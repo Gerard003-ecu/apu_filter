@@ -73,19 +73,24 @@ Una vez completada la instalación, puedes ejecutar la aplicación y las pruebas
 
 ```
 apu_filter/
-├── .venv/
-├── templates/
-│   ├── index.html       # Plantilla principal para la carga de archivos.
-│   └── results.html     # Plantilla para mostrar los resultados del análisis.
-├── app.py               # Archivo principal de la aplicación Flask. Gestiona las rutas y la lógica de la interfaz.
-├── procesador_datos.py  # Módulo que contiene la lógica para procesar los archivos Excel y calcular los costos.
-├── test_app.py          # Pruebas unitarias para la aplicación y el procesamiento de datos.
-├── presupuesto.xlsx     # Archivo de ejemplo: Presupuesto del proyecto.
-├── apus.xlsx            # Archivo de ejemplo: Análisis de Precios Unitarios.
-├── insumos.xlsx         # Archivo de ejemplo: Lista de insumos y sus costos.
-├── requirements.in      # Dependencias de producción (sin anclar).
-├── requirements.txt     # Dependencias de producción (ancladas).
-├── requirements-dev.in  # Dependencias de desarrollo (sin anclar).
-├── requirements-dev.txt # Dependencias de desarrollo (ancladas).
-└── pyproject.toml       # Archivo de configuración del proyecto (incluye configuración de Ruff).
+│
+├── .venv/                   # Carpeta del entorno virtual gestionado por uv
+│
+├── templates/               # Carpeta estándar de Flask para los archivos HTML
+│   └── index.html           # El nuevo dashboard interactivo de una sola página
+│
+├── uploads/                 # (Nueva) Carpeta temporal para los archivos que sube el usuario
+│
+├── app.py                   # El servidor Flask. Ahora gestiona la subida de archivos y sirve el dashboard.
+├── procesador_csv.py        # (Nuevo) Módulo especializado en leer y procesar los CSV de SAGUT.
+├── test_app.py              # Las pruebas unitarias que validan la lógica de procesador_csv.py
+│
+├── pyproject.toml           # Archivo de configuración para Ruff.
+├── README.md                # La documentación del proyecto.
+│
+├── requirements.in          # Dependencias base de la aplicación.
+├── requirements.txt         # Archivo de dependencias compilado por uv (para producción).
+│
+├── requirements-dev.in      # Dependencias de desarrollo (como ruff).
+└── requirements-dev.txt     # Archivo de dependencias de desarrollo compilado.
 ```
