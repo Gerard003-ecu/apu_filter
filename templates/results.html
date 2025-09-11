@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Resultados del Procesamiento de Archivos</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            background-color: #f4f4f4;
+        }
+        h1 {
+            color: #333;
+        }
+        .dataframe {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        .dataframe th, .dataframe td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        .dataframe th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .dataframe tr:nth-child(even){background-color: #f2f2f2;}
+        .dataframe tr:hover {background-color: #ddd;}
+    </style>
+</head>
+<body>
+    <h1>Resultados del Procesamiento</h1>
+    {% for table in tables %}
+        {{ table|safe }}
+    {% endfor %}
+</body>
+</html>
