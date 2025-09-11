@@ -1,61 +1,52 @@
 import pandas as pd
 from flask import Flask, jsonify, render_template
 
-# Importa la función desde tu otro archivo
-from procesador_datos import process_files
+# Importa la nueva función desde procesador_csv
+from procesador_csv import process_csv_files
 
 app = Flask(__name__)
 
 # --- Cargar y procesar los datos una sola vez al inicio ---
+df_consolidado = pd.DataFrame()
 try:
-    # Define las rutas a tus archivos Excel
-    presupuesto_path = "presupuesto.xlsx"
-    apus_path = "apus.xlsx"
-    insumos_path = "insumos.xlsx"
+    # Asegúrate de que los nombres de archivo coincidan con los que tienes
+    presupuesto_path = "presupuesto.csv"
+    apus_path = "apus.csv"
+    insumos_path = "insumos.csv"
 
-    # Llama a tu función para obtener el DataFrame final y procesado
-    df_consolidado = process_files(presupuesto_path, apus_path, insumos_path)
+    # Llama a la nueva función para procesar los archivos CSV
+    df_consolidado = process_csv_files(presupuesto_path, apus_path, insumos_path)
 
     if not df_consolidado.empty:
-        print("DataFrame consolidado cargado y procesado exitosamente.")
-        print(f"Columnas del DataFrame final: {df_consolidado.columns.tolist()}")
+        print("DataFrame consolidado desde CSV cargado y procesado exitosamente.")
     else:
-        print(
-            "El procesamiento de archivos resultó en un DataFrame vacío."
-            "Revisa 'procesador_datos.py' y los archivos de Excel."
-        )
+        print("El procesamiento de archivos CSV resultó en un DataFrame vacío.")
 
-except FileNotFoundError:
-    print(
-        "Error: No se encontró el archivo necesario.",
-            "Asegúrate de que los archivos .xlsx estén ",
-            "presentes en la misma carpeta que app.py. Detalle: {e}"
-    )
-    df_consolidado = (
-        pd.DataFrame()
-    )  # Crea un DataFrame vacío para evitar errores en la ejecución de la app
+except FileNotFoundError as e:
+    print(f"Error: No se encontró el archivo necesario. Detalle: {e}")
+except Exception as e:
+    print(f"Ocurrió un error general al iniciar la app: {e}")
 
 
 @app.route("/")
 def home():
-    # Asegúrate de tener un template 'index.html'
+    """Renderiza la página principal."""
     return render_template("index.html")
 
 
 @app.route("/filtrar", methods=["POST"])
 def filtrar_datos():
-    # La lógica de filtrado puede ser más compleja, pero por ahora devolvemos todo
+    """Devuelve los datos procesados en formato JSON."""
+    total = 0
     if not df_consolidado.empty:
-        # Convertimos los NaN (Not a Number) a None para que JSON no de errores
-        data_to_return = df_consolidado.where(pd.notna(df_consolidado), None).to_dict(
-            "records"
-        )
-        total_records = len(data_to_return)
+        # Rellena valores nulos (NaN) para evitar errores en JSON
+        df_display = df_consolidado.fillna(0)
+        data_to_return = df_display.to_dict("records")
+        total = df_display["Valor Total"].sum()
     else:
         data_to_return = []
-        total_records = 0
 
-    return jsonify({"data": data_to_return, "total": total_records})
+    return jsonify({"data": data_to_return, "total": total})
 
 
 if __name__ == "__main__":

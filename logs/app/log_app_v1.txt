@@ -1,0 +1,18 @@
+Ocurrió un error al procesar los archivos: "None of [Index(['CODIGO_APU', 'DESCRIPCION_APU', 'CANTIDAD_PRESUPUESTO'], dtype='object')] are in the [columns]"
+El procesamiento de archivos resultó en un DataFrame vacío.Revisa 'procesador_datos.py' y los archivos de Excel.
+ * Serving Flask app 'app'
+ * Debug mode: on
+WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
+ * Running on http://127.0.0.1:5001
+Press CTRL+C to quit
+ * Restarting with stat
+Ocurrió un error al procesar los archivos: "None of [Index(['CODIGO_APU', 'DESCRIPCION_APU', 'CANTIDAD_PRESUPUESTO'], dtype='object')] are in the [columns]"
+El procesamiento de archivos resultó en un DataFrame vacío.Revisa 'procesador_datos.py' y los archivos de Excel.
+ * Debugger is active!
+ * Debugger PIN: 125-188-330
+127.0.0.1 - - [11/Sep/2025 16:48:39] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [11/Sep/2025 16:57:55] "POST /filtrar HTTP/1.1" 200 -
+127.0.0.1 - - [11/Sep/2025 16:58:14] "POST /filtrar HTTP/1.1" 200 -
+127.0.0.1 - - [11/Sep/2025 16:58:18] "POST /filtrar HTTP/1.1" 200 -
+127.0.0.1 - - [11/Sep/2025 16:58:21] "POST /filtrar HTTP/1.1" 200 -
+127.0.0.1 - - [11/Sep/2025 16:58:27] "POST /filtrar HTTP/1.1" 200 -
