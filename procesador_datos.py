@@ -1,5 +1,5 @@
+
 import pandas as pd
-import os
 
 
 def process_files(presupuesto_path, apus_path, insumos_path):
@@ -50,14 +50,15 @@ def process_files(presupuesto_path, apus_path, insumos_path):
         )
 
         # --- 3. Cargar y procesar el archivo de APUs ---
-        # Este archivo es complejo. Se asume que el código del APU se encuentra en una fila
-        # y los insumos en las filas siguientes, hasta el próximo código de APU.
+        # Este archivo es complejo. Se asume que el código del APU se encuentra en una
+        # fila y los insumos en las filas siguientes, hasta el próximo código de APU.
         df_apu_raw = pd.read_excel(apus_path, engine="openpyxl", header=None)
         apus_data = []
         current_apu_code = None
 
         for i, row in df_apu_raw.iterrows():
-            # Se asume que una fila de definición de APU tiene un valor en la primera celda que empieza con "APU:"
+            # Se asume que una fila de definición de APU
+            # tiene un valor en la primera celda que empieza con "APU:"
             cell_value = str(row[0])
             if "APU:" in cell_value:
                 current_apu_code = cell_value.split(":")[1].strip()
@@ -125,5 +126,6 @@ def process_files(presupuesto_path, apus_path, insumos_path):
 
     except Exception as e:
         print(f"Ocurrió un error al procesar los archivos: {e}")
-        # En caso de error, devolver un DataFrame vacío para evitar que la aplicación falle.
+        # En caso de error, devolver un DataFrame vacío para evitar que la aplicación
+        # falle.
         return pd.DataFrame()

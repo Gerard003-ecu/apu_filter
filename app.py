@@ -1,5 +1,5 @@
 import pandas as pd
-from flask import Flask, jsonify, request, render_template
+from flask import Flask, jsonify, render_template
 
 # Importa la función desde tu otro archivo
 from procesador_datos import process_files
@@ -21,12 +21,15 @@ try:
         print(f"Columnas del DataFrame final: {df_consolidado.columns.tolist()}")
     else:
         print(
-            "El procesamiento de archivos resultó en un DataFrame vacío. Revisa 'procesador_datos.py' y los archivos de Excel."
+            "El procesamiento de archivos resultó en un DataFrame vacío."
+            "Revisa 'procesador_datos.py' y los archivos de Excel."
         )
 
-except FileNotFoundError as e:
+except FileNotFoundError:
     print(
-        f"Error: No se encontró el archivo necesario. Asegúrate de que los archivos .xlsx estén en la misma carpeta que app.py. Detalle: {e}"
+        "Error: No se encontró el archivo necesario.",
+            "Asegúrate de que los archivos .xlsx estén ",
+            "presentes en la misma carpeta que app.py. Detalle: {e}"
     )
     df_consolidado = (
         pd.DataFrame()

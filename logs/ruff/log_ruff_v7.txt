@@ -1,0 +1,14 @@
+F841 [*] Local variable `e` is assigned to but never used
+  --> app.py:28:29
+   |
+26 |         )
+27 |
+28 | except FileNotFoundError as e:
+   |                             ^
+29 |     print(
+30 |         "Error: No se encontró el archivo necesario.",
+   |
+help: Remove assignment to unused variable `e`
+
+Found 1 error.
+[*] 1 fixable with the `--fix` option.
