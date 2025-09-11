@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>APU Filter</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 2em; }
+        .container { display: flex; flex-direction: column; gap: 2em; }
+        .section { padding: 2em; border: 1px solid #ccc; border-radius: 8px; }
+        .filters { display: flex; gap: 1em; }
+        .results-table { width: 100%; border-collapse: collapse; margin-top: 1em; }
+        .results-table th, .results-table td { border: 1px solid #ccc; padding: 0.5em; text-align: left; }
+    </style>
+</head>
+<body>
+    <h1>APU Filter</h1>
+
+    <div class="section">
+        <h2>Carga tus archivos para comenzar</h2>
+        <p>Sube los archivos presupuesto.csv, apus.csv, e insumos.csv</p>
+        <input type="file" id="presupuesto_file" accept=".csv">
+        <input type="file" id="apus_file" accept=".csv">
+        <input type="file" id="insumos_file" accept=".csv">
+        <button onclick="procesarDatos()">Procesar Datos</button>
+        <div id="status"></div>
+    </div>
+
+    <div class="section">
+        <h2>Filtra y analiza tus datos</h2>
+        <div class="filters">
+            <div>
+                <label for="zona_select">Zona:</label>
+                <select id="zona_select">
+                    <option value="Todas las Zonas">Todas las Zonas</option>
+                    <option value="ZONA O">ZONA O</option>
+                    <option value="ZONA 1">ZONA 1</option>
+                    <option value="ZONA 2">ZONA 2</option>
+                    <option value="ZONA 3">ZONA 3</option>
+                </select>
+            </div>
+            <div>
+                <label for="tipo_costo_select">Tipo de Costo:</label>
+                <select id="tipo_costo_select">
+                    <option value="VALOR M2 SUMINISTRO + AIU">Valor Suministro</option>
+                    <option value="VALOR M2 INSTALACION + AIU">Valor Instalación</option>
+                </select>
+            </div>
+            <div>
+                <label for="busqueda_input">Buscar por Código/Descripción:</label>
+                <input type="text" id="busqueda_input" placeholder="Ej: APU001">
+            </div>
+        </div>
+        <button onclick="aplicarFiltros()">Aplicar Filtros</button>
+    </div>
+
+    <div class="section">
+        <h2>Resultados del Análisis</h2>
+        <p>Costo Total Consolidado: <span id="valor_total">$0</span></p>
+        <table class="results-table">
+            <thead>
+                <tr>
+                    <th>Código APU</th>
+                    <th>Descripción</th>
+                    <th>Valor Total</th>
+                    <th>Zona</th>
+                </tr>
+            </thead>
+            <tbody id="resultados_body">
+                </tbody>
+        </table>
+    </div>
+
+    <script>
+        async function procesarDatos() {
+            // Lógica para enviar archivos al backend
+            const response = await fetch('/filtrar', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    zona: 'Todas las Zonas',
+                    tipo_costo: 'VALOR M2 SUMINISTRO + AIU',
+                    busqueda: ''
+                })
+            });
+            const data = await response.json();
+            mostrarResultados(data);
+        }
+
+        async function aplicarFiltros() {
+            const zona = document.getElementById('zona_select').value;
+            const tipoCosto = document.getElementById('tipo_costo_select').value;
+            const busqueda = document.getElementById('busqueda_input').value;
+
+            const response = await fetch('/filtrar', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    zona: zona,
+                    tipo_costo: tipoCosto,
+                    busqueda: busqueda
+                })
+            });
+            const data = await response.json();
+            mostrarResultados(data);
+        }
+
+        function mostrarResultados(data) {
+            const tabla = document.getElementById('resultados_body');
+            tabla.innerHTML = '';
+            data.data.forEach(item => {
+                const fila = document.createElement('tr');
+                fila.innerHTML = `
+                    <td>${item['CODIGO_APU']}</td>
+                    <td>${item['NOMBRE_APU']}</td>
+                    <td>$${item['VR. TOTAL'].toLocaleString('es-CO')}</td>
+                    <td>${item['ZONA']}</td>
+                `;
+                tabla.appendChild(fila);
+            });
+            document.getElementById('valor_total').textContent = `$${data.total.toLocaleString('es-CO')}`;
+        }
+    </script>
+</body>
+</html>
