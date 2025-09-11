@@ -1,0 +1,115 @@
+I001 [*] Import block is un-sorted or un-formatted
+ --> app.py:1:1
+  |
+1 | / import pandas as pd
+2 | | from flask import Flask, jsonify, request, render_template
+3 | |
+4 | | # Importa la función desde tu otro archivo
+5 | | from procesador_datos import process_files
+  | |__________________________________________^
+6 |
+7 |   app = Flask(__name__)
+  |
+help: Organize imports
+
+F401 [*] `flask.request` imported but unused
+ --> app.py:2:35
+  |
+1 | import pandas as pd
+2 | from flask import Flask, jsonify, request, render_template
+  |                                   ^^^^^^^
+3 |
+4 | # Importa la función desde tu otro archivo
+  |
+help: Remove unused import: `flask.request`
+
+E501 Line too long (127 > 88)
+  --> app.py:24:89
+   |
+22 |     else:
+23 |         print(
+24 |             "El procesamiento de archivos resultó en un DataFrame vacío. Revisa 'procesador_datos.py' y los archivos de Excel."
+   |                                                                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+25 |         )
+   |
+
+E501 Line too long (141 > 88)
+  --> app.py:29:89
+   |
+27 | …
+28 | …
+29 | …ario. Asegúrate de que los archivos .xlsx estén en la misma carpeta que app.py. Detalle: {e}"
+   |                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+30 | …
+31 | …
+   |
+
+S201 Use of `debug=True` in Flask app detected
+  --> app.py:59:24
+   |
+58 | if __name__ == "__main__":
+59 |     app.run(port=5001, debug=True)
+   |                        ^^^^^^^^^^
+   |
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> procesador_datos.py:1:1
+  |
+1 | / import pandas as pd
+2 | | import os
+  | |_________^
+  |
+help: Organize imports
+
+F401 [*] `os` imported but unused
+ --> procesador_datos.py:2:8
+  |
+1 | import pandas as pd
+2 | import os
+  |        ^^
+  |
+help: Remove unused import: `os`
+
+E501 Line too long (91 > 88)
+  --> procesador_datos.py:53:89
+   |
+52 |         # --- 3. Cargar y procesar el archivo de APUs ---
+53 |         # Este archivo es complejo. Se asume que el código del APU se encuentra en una fila
+   |                                                                                         ^^^
+54 |         # y los insumos en las filas siguientes, hasta el próximo código de APU.
+55 |         df_apu_raw = pd.read_excel(apus_path, engine="openpyxl", header=None)
+   |
+
+E501 Line too long (114 > 88)
+  --> procesador_datos.py:60:89
+   |
+59 |         for i, row in df_apu_raw.iterrows():
+60 |             # Se asume que una fila de definición de APU tiene un valor en la primera celda que empieza con "APU:"
+   |                                                                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^
+61 |             cell_value = str(row[0])
+62 |             if "APU:" in cell_value:
+   |
+
+E501 Line too long (92 > 88)
+   --> procesador_datos.py:128:89
+    |
+126 |     except Exception as e:
+127 |         print(f"Ocurrió un error al procesar los archivos: {e}")
+128 |         # En caso de error, devolver un DataFrame vacío para evitar que la aplicación falle.
+    |                                                                                         ^^^^
+129 |         return pd.DataFrame()
+    |
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> test_app.py:1:1
+  |
+1 | / import unittest
+2 | | import pandas as pd
+3 | | import os
+4 | | from procesador_datos import process_files
+  | |__________________________________________^
+  |
+help: Organize imports
+
+Found 11 errors.
+[*] 5 fixable with the `--fix` option.

@@ -1,0 +1,345 @@
+I001 [*] Import block is un-sorted or un-formatted
+ --> app.py:1:1
+  |
+1 | / import pandas as pd
+2 | | from flask import Flask, jsonify, request, render_template
+3 | | # Importa la función desde tu otro archivo
+4 | | from procesador_datos import process_files 
+  | |__________________________________________^
+5 |
+6 |   app = Flask(__name__)
+  |
+help: Organize imports
+
+F401 [*] `flask.request` imported but unused
+ --> app.py:2:35
+  |
+1 | import pandas as pd
+2 | from flask import Flask, jsonify, request, render_template
+  |                                   ^^^^^^^
+3 | # Importa la función desde tu otro archivo
+4 | from procesador_datos import process_files 
+  |
+help: Remove unused import: `flask.request`
+
+W291 [*] Trailing whitespace
+ --> app.py:4:43
+  |
+2 | from flask import Flask, jsonify, request, render_template
+3 | # Importa la función desde tu otro archivo
+4 | from procesador_datos import process_files 
+  |                                           ^
+5 |
+6 | app = Flask(__name__)
+  |
+help: Remove trailing whitespace
+
+W293 [*] Blank line contains whitespace
+  --> app.py:14:1
+   |
+12 |     apus_path = 'apus.xlsx'
+13 |     insumos_path = 'insumos.xlsx'
+14 |     
+   | ^^^^
+15 |     # Llama a tu función para obtener el DataFrame final y procesado
+16 |     df_consolidado = process_files(presupuesto_path, apus_path, insumos_path)
+   |
+help: Remove whitespace from blank line
+
+W293 [*] Blank line contains whitespace
+  --> app.py:17:1
+   |
+15 |     # Llama a tu función para obtener el DataFrame final y procesado
+16 |     df_consolidado = process_files(presupuesto_path, apus_path, insumos_path)
+17 |     
+   | ^^^^
+18 |     if not df_consolidado.empty:
+19 |         print("DataFrame consolidado cargado y procesado exitosamente.")
+   |
+help: Remove whitespace from blank line
+
+E501 Line too long (130 > 88)
+  --> app.py:22:89
+   |
+20 |         print(f"Columnas del DataFrame final: {df_consolidado.columns.tolist()}")
+21 |     else:
+22 |         print("El procesamiento de archivos resultó en un DataFrame vacío. Revisa 'procesador_datos.py' y los archivos de Excel.")
+   |                                                                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+23 |
+24 | except FileNotFoundError as e:
+   |
+
+E501 Line too long (144 > 88)
+  --> app.py:25:89
+   |
+24 | …
+25 | …ario. Asegúrate de que los archivos .xlsx estén en la misma carpeta que app.py. Detalle: {e}")
+   |                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+26 | …Frame vacío para evitar errores en la ejecución de la app
+   |
+
+E501 Line too long (107 > 88)
+  --> app.py:26:89
+   |
+24 | except FileNotFoundError as e:
+25 |     print(f"Error: No se encontró el archivo necesario. Asegúrate de que los archivos .xlsx estén en la misma carpeta que app.py. Deta…
+26 |     df_consolidado = pd.DataFrame() # Crea un DataFrame vacío para evitar errores en la ejecución de la app
+   |                                                                                         ^^^^^^^^^^^^^^^^^^^
+27 |
+28 | @app.route('/')
+   |
+
+E501 Line too long (96 > 88)
+  --> app.py:38:89
+   |
+36 |     if not df_consolidado.empty:
+37 |         # Convertimos los NaN (Not a Number) a None para que JSON no de errores
+38 |         data_to_return = df_consolidado.where(pd.notna(df_consolidado), None).to_dict('records')
+   |                                                                                         ^^^^^^^^
+39 |         total_records = len(data_to_return)
+40 |     else:
+   |
+
+W292 [*] No newline at end of file
+  --> app.py:50:35
+   |
+49 | if __name__ == '__main__':
+50 |     app.run(port=5001, debug=True)
+   |                                   ^
+   |
+help: Add trailing newline
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> procesador_datos.py:1:1
+  |
+1 | / import pandas as pd
+2 | | import os
+  | |_________^
+3 |
+4 |   def process_files(presupuesto_path, apus_path, insumos_path):
+  |
+help: Organize imports
+
+F401 [*] `os` imported but unused
+ --> procesador_datos.py:2:8
+  |
+1 | import pandas as pd
+2 | import os
+  |        ^^
+3 |
+4 | def process_files(presupuesto_path, apus_path, insumos_path):
+  |
+help: Remove unused import: `os`
+
+E501 Line too long (98 > 88)
+  --> procesador_datos.py:27:89
+   |
+25 |         })
+26 |         # Seleccionar solo las columnas necesarias
+27 |         df_presupuesto = df_presupuesto[['CODIGO_APU', 'DESCRIPCION_APU', 'CANTIDAD_PRESUPUESTO']]
+   |                                                                                         ^^^^^^^^^^
+28 |         df_presupuesto.dropna(subset=['CODIGO_APU'], inplace=True)
+29 |         # Convertir a tipos de datos numéricos, tratando errores.
+   |
+
+E501 Line too long (119 > 88)
+  --> procesador_datos.py:30:89
+   |
+28 |         df_presupuesto.dropna(subset=['CODIGO_APU'], inplace=True)
+29 |         # Convertir a tipos de datos numéricos, tratando errores.
+30 |         df_presupuesto['CANTIDAD_PRESUPUESTO'] = pd.to_numeric(df_presupuesto['CANTIDAD_PRESUPUESTO'], errors='coerce')
+   |                                                                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+
+E501 Line too long (107 > 88)
+  --> procesador_datos.py:43:89
+   |
+41 |         df_insumos = df_insumos[['CODIGO_INSUMO', 'VR_UNITARIO_INSUMO']]
+42 |         df_insumos.dropna(subset=['CODIGO_INSUMO'], inplace=True)
+43 |         df_insumos['VR_UNITARIO_INSUMO'] = pd.to_numeric(df_insumos['VR_UNITARIO_INSUMO'], errors='coerce')
+   |                                                                                         ^^^^^^^^^^^^^^^^^^^
+   |
+
+E501 Line too long (91 > 88)
+  --> procesador_datos.py:47:89
+   |
+46 |         # --- 3. Cargar y procesar el archivo de APUs ---
+47 |         # Este archivo es complejo. Se asume que el código del APU se encuentra en una fila
+   |                                                                                         ^^^
+48 |         # y los insumos en las filas siguientes, hasta el próximo código de APU.
+49 |         df_apu_raw = pd.read_excel(apus_path, engine='openpyxl', header=None)
+   |
+
+E501 Line too long (114 > 88)
+  --> procesador_datos.py:54:89
+   |
+53 |         for i, row in df_apu_raw.iterrows():
+54 |             # Se asume que una fila de definición de APU tiene un valor en la primera celda que empieza con "APU:"
+   |                                                                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^
+55 |             cell_value = str(row[0])
+56 |             if 'APU:' in cell_value:
+   |
+
+E501 Line too long (111 > 88)
+  --> procesador_datos.py:62:89
+   |
+60 |             # Se asume que las filas de insumos tienen valores en columnas específicas
+61 |             # Columna 0: CODIGO_INSUMO, Columna 4: CANTIDAD_APU
+62 |             if current_apu_code and pd.notna(row[0]) and pd.notna(row[4]) and isinstance(row[4], (int, float)):
+   |                                                                                         ^^^^^^^^^^^^^^^^^^^^^^^
+63 |                 apus_data.append({
+64 |                     'CODIGO_APU': current_apu_code,
+   |
+
+E501 Line too long (92 > 88)
+  --> procesador_datos.py:70:89
+   |
+69 |         df_apus = pd.DataFrame(apus_data)
+70 |         df_apus.dropna(subset=['CODIGO_APU', 'CODIGO_INSUMO', 'CANTIDAD_APU'], inplace=True)
+   |                                                                                         ^^^^
+   |
+
+E501 Line too long (102 > 88)
+  --> procesador_datos.py:78:89
+   |
+77 |         # Calcular el costo total para cada insumo dentro de su APU.
+78 |         df_merged['COSTO_INSUMO_EN_APU'] = df_merged['CANTIDAD_APU'] * df_merged['VR_UNITARIO_INSUMO']
+   |                                                                                         ^^^^^^^^^^^^^^
+79 |
+80 |         # Agrupar por APU para calcular el valor unitario total de cada APU.
+   |
+
+E501 Line too long (102 > 88)
+  --> procesador_datos.py:91:89
+   |
+89 |         # --- 5. Calcular Costos Finales y dar formato al resultado ---
+90 |         # Calcular el valor total por cada ítem del presupuesto.
+91 |         df_final['VALOR_TOTAL'] = df_final['CANTIDAD_PRESUPUESTO'] * df_final['VR_UNITARIO_CALCULADO']
+   |                                                                                         ^^^^^^^^^^^^^^
+92 |
+93 |         # Añadir la columna 'ZONA' como se solicitó.
+   |
+
+E501 Line too long (92 > 88)
+   --> procesador_datos.py:107:89
+    |
+105 |     except Exception as e:
+106 |         print(f"Ocurrió un error al procesar los archivos: {e}")
+107 |         # En caso de error, devolver un DataFrame vacío para evitar que la aplicación falle.
+    |                                                                                         ^^^^
+108 |         return pd.DataFrame()
+    |
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> test_app.py:1:1
+  |
+1 | / import unittest
+2 | | import pandas as pd
+3 | | import os
+4 | | from procesador_datos import process_files
+  | |__________________________________________^
+5 |
+6 |   class TestDataProcessor(unittest.TestCase):
+  |
+help: Organize imports
+
+E501 Line too long (97 > 88)
+  --> test_app.py:25:89
+   |
+23 |         df_presupuesto = pd.DataFrame(presupuesto_data)
+24 |         writer_presupuesto = pd.ExcelWriter('test_presupuesto.xlsx', engine='openpyxl')
+25 |         df_presupuesto.to_excel(writer_presupuesto, index=False, startrow=9, sheet_name='Sheet1')
+   |                                                                                         ^^^^^^^^^
+26 |         writer_presupuesto.close()
+   |
+
+E501 Line too long (89 > 88)
+  --> test_app.py:38:89
+   |
+36 |         df_insumos = pd.DataFrame(insumos_data)
+37 |         writer_insumos = pd.ExcelWriter('test_insumos.xlsx', engine='openpyxl')
+38 |         df_insumos.to_excel(writer_insumos, index=False, startrow=8, sheet_name='Sheet1')
+   |                                                                                         ^
+39 |         writer_insumos.close()
+   |
+
+W293 [*] Blank line contains whitespace
+  --> test_app.py:77:1
+   |
+75 |         self.assertIsNotNone(df_resultado)
+76 |         self.assertFalse(df_resultado.empty)
+77 |         
+   | ^^^^^^^^
+78 |         # Verificar que las columnas esperadas estén en el resultado
+79 |         expected_columns = ['Código APU', 'Descripción', 'Valor Total', 'ZONA']
+   |
+help: Remove whitespace from blank line
+
+W293 [*] Blank line contains whitespace
+  --> test_app.py:81:1
+   |
+79 |         expected_columns = ['Código APU', 'Descripción', 'Valor Total', 'ZONA']
+80 |         self.assertListEqual(list(df_resultado.columns), expected_columns)
+81 |         
+   | ^^^^^^^^
+82 |         # Verificar el número de filas
+83 |         self.assertEqual(len(df_resultado), 2)
+   |
+help: Remove whitespace from blank line
+
+W293 [*] Blank line contains whitespace
+  --> test_app.py:84:1
+   |
+82 |         # Verificar el número de filas
+83 |         self.assertEqual(len(df_resultado), 2)
+84 |         
+   | ^^^^^^^^
+85 |         # Verificar cálculos específicos
+86 |         # APU-01: (2.5 * 10) + (1.0 * 20) = 25 + 20 = 45. Total = 45 * 100 = 4500
+   |
+help: Remove whitespace from blank line
+
+E501 Line too long (103 > 88)
+  --> test_app.py:88:89
+   |
+86 |         # APU-01: (2.5 * 10) + (1.0 * 20) = 25 + 20 = 45. Total = 45 * 100 = 4500
+87 |         # APU-02: (3.0 * 30) + (5.0 * 10) = 90 + 50 = 140. Total = 140 * 50 = 7000
+88 |         valor_total_apu01 = df_resultado[df_resultado['Código APU'] == 'APU-01']['Valor Total'].iloc[0]
+   |                                                                                         ^^^^^^^^^^^^^^^
+89 |         valor_total_apu02 = df_resultado[df_resultado['Código APU'] == 'APU-02']['Valor Total'].iloc[0]
+   |
+
+E501 Line too long (103 > 88)
+  --> test_app.py:89:89
+   |
+87 |         # APU-02: (3.0 * 30) + (5.0 * 10) = 90 + 50 = 140. Total = 140 * 50 = 7000
+88 |         valor_total_apu01 = df_resultado[df_resultado['Código APU'] == 'APU-01']['Valor Total'].iloc[0]
+89 |         valor_total_apu02 = df_resultado[df_resultado['Código APU'] == 'APU-02']['Valor Total'].iloc[0]
+   |                                                                                         ^^^^^^^^^^^^^^^
+90 |         
+91 |         self.assertAlmostEqual(valor_total_apu01, 4500)
+   |
+
+W293 [*] Blank line contains whitespace
+  --> test_app.py:90:1
+   |
+88 |         valor_total_apu01 = df_resultado[df_resultado['Código APU'] == 'APU-01']['Valor Total'].iloc[0]
+89 |         valor_total_apu02 = df_resultado[df_resultado['Código APU'] == 'APU-02']['Valor Total'].iloc[0]
+90 |         
+   | ^^^^^^^^
+91 |         self.assertAlmostEqual(valor_total_apu01, 4500)
+92 |         self.assertAlmostEqual(valor_total_apu02, 7000)
+   |
+help: Remove whitespace from blank line
+
+W292 [*] No newline at end of file
+  --> test_app.py:95:20
+   |
+94 | if __name__ == '__main__':
+95 |     unittest.main()
+   |                    ^
+   |
+help: Add trailing newline
+
+Found 32 errors.
+[*] 14 fixable with the `--fix` option.

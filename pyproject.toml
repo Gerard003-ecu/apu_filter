@@ -1,0 +1,10 @@
+[tool.ruff]
+line-length = 88
+indent-width = 4
+
+[tool.ruff.lint]
+# Dejamos solo las reglas estándar para errores, advertencias e imports.
+select = ["E", "F", "W", "I"]
+
+[tool.ruff.format]
+quote-style = "double"
