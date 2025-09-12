@@ -440,3 +440,124 @@ def process_all_files(presupuesto_path, apus_path, insumos_path):
         "insumos": insumos_dict,
         "apus_detail": apus_detail,
     }
+
+
+def calculate_estimate(params, data_store):
+    """
+    Calcula una estimación de costo basada en parámetros de entrada.
+    Esta es la función principal para la lógica del 'Estimador Rápido'.
+    """
+    log = []
+
+    # --- 1. Extraer datos y parámetros ---
+    presupuesto_list = data_store.get("presupuesto", [])
+    apus_detail = data_store.get("apus_detail", {})
+
+    tipo = params.get("tipo", "").lower()
+    material = params.get("material", "").lower()
+    cuadrilla = params.get("cuadrilla", "0")
+    izaje = params.get("izaje", "manual").lower()
+    seguridad = params.get("seguridad", "normal").lower()
+    zona = params.get("zona", "zona 0").lower()
+    log.append(f"Parámetros: {params}")
+
+    # --- 2. Encontrar el APU de Mano de Obra principal ---
+    apu_mo_code = None
+    apu_mo_desc = ""
+
+    # Construir términos de búsqueda a partir de los parámetros
+    search_terms = [material]
+    if tipo == "cubierta":
+        # Para cubiertas, el tipo de material (ej. TST) es más descriptivo
+        # a menudo que la propia palabra "cubierta".
+        pass
+    elif tipo == "fachada":
+        search_terms.append("fachada")
+
+    # La descripción de la cuadrilla es un identificador clave
+    search_terms.append(f"cuadrilla de {cuadrilla}")
+
+    for item in presupuesto_list:
+        desc_lower = item.get("DESCRIPCION_APU", "").lower()
+        # Usamos 'all' para asegurar que todos los términos de búsqueda estén presentes
+        if all(term in desc_lower for term in search_terms):
+            # Priorizar APUs que contengan 'mano de obra' para evitar elegir un APU de suministro
+            if "mano de obra" in desc_lower:
+                apu_mo_code = item.get("CODIGO_APU")
+                apu_mo_desc = item.get("DESCRIPCION_APU")
+                log.append(f"APU de M.O. encontrado: {apu_mo_desc} (Código: {apu_mo_code})")
+                break
+
+    if not apu_mo_code:
+        log.append(f"Error: No se encontró APU para los términos: {search_terms}")
+        return {"error": f"No se encontró un APU de mano de obra que coincida con los criterios: {params}", "log": log}
+
+    # --- 3. Calcular costos y tiempo base del APU encontrado ---
+    costos_base = {"MATERIALES": 0, "MANO DE OBRA": 0, "EQUIPO": 0, "OTROS": 0}
+    tiempo_instalacion = 0
+
+    apu_items = apus_detail.get(apu_mo_code, [])
+    if not apu_items:
+        return {"error": f"El código APU {apu_mo_code} no tiene detalle.", "log": log}
+
+    for insumo in apu_items:
+        categoria = insumo.get("CATEGORIA", "OTROS")
+        costo = insumo.get("Vr Total", 0)
+        costos_base[categoria] += costo
+        if categoria == "MANO DE OBRA":
+            tiempo_instalacion += insumo.get("Cantidad", 0)
+
+    valor_suministro = costos_base["MATERIALES"]
+    valor_instalacion = costos_base["MANO DE OBRA"] + costos_base["EQUIPO"]
+    log.append(f"Costos base calculados: Suministro=${valor_suministro:,.0f}, Instalación=${valor_instalacion:,.0f}")
+    log.append(f"Tiempo base de instalación: {tiempo_instalacion:.4f} días/un")
+
+    # --- 4. Aplicar Factores de Ajuste ---
+
+    # a) Ajuste por Izaje (Grúa)
+    if izaje == "grúa":
+        costo_grua_por_dia = 0
+        # Buscar el APU de la grúa
+        for item in presupuesto_list:
+            if "alquiler grua" in item.get("DESCRIPCION_APU", "").lower():
+                codigo_grua = item.get("CODIGO_APU")
+                detalle_grua = apus_detail.get(codigo_grua, [])
+                costo_total_apu_grua = sum(d.get("Vr Total", 0) for d in detalle_grua)
+                # Asumimos que el APU de la grúa está definido por día
+                costo_grua_por_dia = costo_total_apu_grua
+                log.append(f"APU de Grúa encontrado. Costo por día: ${costo_grua_por_dia:,.0f}")
+                break
+
+        if costo_grua_por_dia > 0:
+            costo_adicional_grua = costo_grua_por_dia * tiempo_instalacion
+            valor_instalacion += costo_adicional_grua
+            log.append(f"Costo adicional por grúa ({tiempo_instalacion:.4f} días): ${costo_adicional_grua:,.0f}")
+        else:
+            log.append("ADVERTENCIA: Izaje por grúa seleccionado, pero no se encontró APU de grúa.")
+
+    # b) Ajuste por Exigencia de Seguridad
+    if seguridad == "alta":
+        costo_mo = costos_base["MANO DE OBRA"]
+        incremento_seguridad = costo_mo * 0.15  # 15% de incremento sobre la mano de obra
+        valor_instalacion += incremento_seguridad
+        log.append(f"Incremento por seguridad alta (15% de M.O.): ${incremento_seguridad:,.0f}")
+
+    # c) Ajuste por Zona Geográfica
+    zona_factor = {"zona 0": 1.0, "zona 1": 1.05, "zona 2": 1.10, "zona 3": 1.15}
+    factor = zona_factor.get(zona, 1.0)
+    if factor > 1.0:
+        costo_original_instalacion = valor_instalacion
+        valor_instalacion *= factor
+        incremento_zona = valor_instalacion - costo_original_instalacion
+        log.append(f"Incremento por {zona} ({(factor-1)*100:.0f}%): ${incremento_zona:,.0f}")
+
+    # --- 5. Devolver Resultados ---
+    log.append(f"Valores finales: Suministro=${valor_suministro:,.0f}, Instalación=${valor_instalacion:,.0f}")
+
+    return {
+        "valor_suministro": valor_suministro,
+        "valor_instalacion": valor_instalacion,
+        "tiempo_instalacion": tiempo_instalacion,
+        "apu_encontrado": apu_mo_desc,
+        "log": "\n".join(log)
+    }
