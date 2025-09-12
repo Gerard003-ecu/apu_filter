@@ -163,6 +163,14 @@ def process_apus_csv(path):
         "OTROS": "OTROS",
     }
 
+    def to_numeric_safe(s):
+        if isinstance(s, (int, float)):
+            return s
+        if isinstance(s, str):
+            s = s.replace(".", "").replace(",", ".").strip()
+            return pd.to_numeric(s, errors="coerce")
+        return pd.NA
+
     try:
         with open(path, "r", encoding="latin1") as f:
             for line in f:
@@ -171,35 +179,69 @@ def process_apus_csv(path):
                     if match:
                         current_apu_code = match.group(1).strip()
                         current_category = "INDEFINIDO"
+                    continue
 
                 cleaned_line = line.replace(";", "").strip().upper()
-                found_category = False
                 if cleaned_line in category_keywords:
                     current_category = category_keywords[cleaned_line]
-                    found_category = True
-
-                if found_category:
                     continue
 
                 if current_apu_code and ";" in line:
                     parts = [p.strip() for p in line.split(";")]
-                    if (
-                        len(parts) >= 3
-                        and parts[0]
-                        and pd.to_numeric(parts[2].replace(",", "."), errors="coerce")
-                        is not None
-                    ):
-                        try:
-                            apus_data.append(
-                                {
-                                    "CODIGO_APU": current_apu_code,
-                                    "DESCRIPCION_INSUMO": parts[0],
-                                    "CANTIDAD_APU": float(parts[2].replace(",", ".")),
-                                    "CATEGORIA": current_category,
-                                }
-                            )
-                        except (ValueError, IndexError):
-                            continue
+                    if len(parts) < 6 or not parts[0]:
+                        continue
+
+                    description = parts[0]
+
+                    cantidad = to_numeric_safe(parts[2])
+                    precio_unit = to_numeric_safe(parts[4])
+                    valor_total = to_numeric_safe(parts[5])
+
+                    # Handle special M.O. format
+                    if pd.isna(cantidad) and "%" in parts[2]:
+                        jornal_total = to_numeric_safe(parts[3])
+                        if (
+                            pd.notna(valor_total)
+                            and pd.notna(jornal_total)
+                            and jornal_total > 0
+                        ):
+                            cantidad = valor_total / jornal_total
+                        else:
+                            cantidad = 0
+                        precio_unit = jornal_total
+
+                    if pd.notna(valor_total):
+                        # If quantity or price is missing, try to calculate it
+                        if (
+                            (pd.isna(cantidad) or cantidad == 0)
+                            and pd.notna(precio_unit)
+                            and precio_unit > 0
+                        ):
+                            cantidad = valor_total / precio_unit
+
+                        if (
+                            (pd.isna(precio_unit) or precio_unit == 0)
+                            and pd.notna(cantidad)
+                            and cantidad > 0
+                        ):
+                            precio_unit = valor_total / cantidad
+
+                        apus_data.append(
+                            {
+                                "CODIGO_APU": current_apu_code,
+                                "DESCRIPCION_INSUMO": description,
+                                "CANTIDAD_APU": cantidad if pd.notna(cantidad) else 0,
+                                "PRECIO_UNIT_APU": (
+                                    precio_unit if pd.notna(precio_unit) else 0
+                                ),
+                                "VALOR_TOTAL_APU": valor_total,
+                                "CATEGORIA": current_category,
+                            }
+                        )
+
+        if not apus_data:
+            return pd.DataFrame()
+
         df = pd.DataFrame(apus_data)
         if df.empty:
             return df
@@ -222,30 +264,78 @@ def process_all_files(presupuesto_path, apus_path, insumos_path):
     if df_presupuesto.empty or df_insumos.empty or df_apus.empty:
         return {"error": "Uno o más archivos no pudieron ser procesados."}
 
-    df_merged = pd.merge(df_apus, df_insumos, on="NORMALIZED_DESC", how="left")
-    df_merged["COSTO_INSUMO_EN_APU"] = df_merged["CANTIDAD_APU"] * df_merged[
-        "VR_UNITARIO_INSUMO"
-    ].fillna(0)
-    df_apu_costos = (
-        df_merged.groupby("CODIGO_APU")
-        .agg(VR_UNITARIO_CALCULADO=("COSTO_INSUMO_EN_APU", "sum"))
+    df_merged = pd.merge(
+        df_apus, df_insumos, on="NORMALIZED_DESC", how="left", suffixes=("_apu", "")
+    )
+    df_merged["DESCRIPCION_INSUMO"] = df_merged["DESCRIPCION_INSUMO_apu"]
+
+    df_merged["VR_UNITARIO_FINAL"] = df_merged["VR_UNITARIO_INSUMO"].fillna(
+        df_merged["PRECIO_UNIT_APU"]
+    )
+    mask_no_price = df_merged["VR_UNITARIO_FINAL"].isna()
+    df_merged.loc[mask_no_price, "VR_UNITARIO_FINAL"] = df_merged.loc[
+        mask_no_price, "VALOR_TOTAL_APU"
+    ]
+    df_merged.loc[mask_no_price, "CANTIDAD_APU"] = 1
+    df_merged["COSTO_INSUMO_EN_APU"] = (
+        df_merged["CANTIDAD_APU"] * df_merged["VR_UNITARIO_FINAL"].fillna(0)
+    )
+
+    df_apu_costos_categoria = (
+        df_merged.groupby(["CODIGO_APU", "CATEGORIA"])["COSTO_INSUMO_EN_APU"]
+        .sum()
+        .unstack(fill_value=0)
         .reset_index()
     )
-    df_final = pd.merge(df_presupuesto, df_apu_costos, on="CODIGO_APU", how="left")
+    cost_cols = ["MATERIALES", "MANO DE OBRA", "EQUIPO", "OTROS"]
+    for col in cost_cols:
+        if col not in df_apu_costos_categoria.columns:
+            df_apu_costos_categoria[col] = 0
+
+    df_apu_costos_categoria["VALOR_SUMINISTRO_UN"] = df_apu_costos_categoria[
+        "MATERIALES"
+    ]
+    df_apu_costos_categoria["VALOR_INSTALACION_UN"] = (
+        df_apu_costos_categoria["MANO DE OBRA"] + df_apu_costos_categoria["EQUIPO"]
+    )
+    df_apu_costos_categoria["VALOR_CONSTRUCCION_UN"] = df_apu_costos_categoria[
+        cost_cols
+    ].sum(axis=1)
+
+    df_tiempo = (
+        df_merged[df_merged["CATEGORIA"] == "MANO DE OBRA"]
+        .groupby("CODIGO_APU")["CANTIDAD_APU"]
+        .sum()
+        .reset_index()
+    )
+    df_tiempo.rename(columns={"CANTIDAD_APU": "TIEMPO_INSTALACION"}, inplace=True)
+
+    df_final = pd.merge(
+        df_presupuesto, df_apu_costos_categoria, on="CODIGO_APU", how="left"
+    )
+    df_final = pd.merge(df_final, df_tiempo, on="CODIGO_APU", how="left")
+
+    final_cols_to_fill = [
+        "VALOR_SUMINISTRO_UN",
+        "VALOR_INSTALACION_UN",
+        "VALOR_CONSTRUCCION_UN",
+        "TIEMPO_INSTALACION",
+    ]
+    for col in final_cols_to_fill:
+        if col in df_final.columns:
+            df_final[col] = df_final[col].fillna(0)
+        else:
+            df_final[col] = 0
 
     print(
-        f"Diagnóstico: {df_final['VR_UNITARIO_CALCULADO'].notna().sum()}"
+        f"Diagnóstico: {df_final['VALOR_CONSTRUCCION_UN'].notna().sum()}"
         f" de {len(df_final)} ítems del presupuesto encontraron su costo."
     )
 
-    df_final["VALOR_TOTAL"] = df_final["CANTIDAD_PRESUPUESTO"].fillna(0) * df_final[
-        "VR_UNITARIO_CALCULADO"
-    ].fillna(0)
-
-    df_merged["Vr Unitario"] = df_merged["VR_UNITARIO_INSUMO"].fillna(0)
+    df_merged["Vr Unitario"] = df_merged["VR_UNITARIO_FINAL"].fillna(0)
     df_merged["Vr Total"] = df_merged["COSTO_INSUMO_EN_APU"]
     df_merged_renamed = df_merged.rename(
-        columns={"DESCRIPCION_INSUMO_x": "Descripción", "CANTIDAD_APU": "Cantidad"}
+        columns={"DESCRIPCION_INSUMO": "Descripción", "CANTIDAD_APU": "Cantidad"}
     )
     apus_detail = {
         n: g[
@@ -271,13 +361,7 @@ def process_all_files(presupuesto_path, apus_path, insumos_path):
     print("--- Procesamiento completado ---")
 
     return {
-        "presupuesto": df_final.rename(
-            columns={
-                "CODIGO_APU": "Código APU",
-                "DESCRIPCION_APU": "Descripción",
-                "VALOR_TOTAL": "Valor Total",
-            }
-        ).to_dict("records"),
+        "presupuesto": df_final.to_dict("records"),
         "insumos": insumos_dict,
         "apus_detail": apus_detail,
     }
