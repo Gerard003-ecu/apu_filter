@@ -1,4 +1,5 @@
 import re
+from unidecode import unidecode
 
 import numpy as np
 import pandas as pd
@@ -156,7 +157,7 @@ def process_insumos_csv(path):
 
 def process_apus_csv(path):
     """Parsea manualmente el archivo apus.csv que tiene formato de reporte."""
-    apus_data, current_apu_code, current_category = [], None, "INDEFINIDO"
+    apus_data, current_apu_code, current_apu_desc, current_category = [], None, None, "INDEFINIDO"
     category_keywords = {
         "MATERIALES": "MATERIALES",
         "MANO DE OBRA": "MANO DE OBRA",
@@ -174,11 +175,24 @@ def process_apus_csv(path):
 
     try:
         with open(path, "r", encoding="latin1") as f:
-            for line in f:
+            lines = f.readlines()
+            for i, line in enumerate(lines):
+                # Heurística: la descripción del APU está en la línea anterior a "ITEM:"
                 if "ITEM:" in line.upper():
-                    match = re.search(r"ITEM:\s*([\d,]+\b)", line)
+                    # Buscar hacia atrás desde la línea actual para encontrar la última línea no vacía
+                    desc_line_index = i - 1
+                    while desc_line_index >= 0 and not lines[desc_line_index].strip():
+                        desc_line_index -= 1
+
+                    if desc_line_index >= 0:
+                        prev_line = lines[desc_line_index].strip()
+                        current_apu_desc = prev_line.split(';')[0].strip()
+                    else:
+                        current_apu_desc = "DESCRIPCION NO ENCONTRADA"
+
+                    match = re.search(r"ITEM:\s*([\d,]*\b)", line)
                     if match:
-                        current_apu_code = match.group(1).strip()
+                        current_apu_code = match.group(1).strip() if match.group(1) else current_apu_desc
                         current_category = "INDEFINIDO"
                     continue
 
@@ -230,6 +244,7 @@ def process_apus_csv(path):
                         apus_data.append(
                             {
                                 "CODIGO_APU": current_apu_code,
+                                "DESCRIPCION_APU": current_apu_desc,
                                 "DESCRIPCION_INSUMO": description,
                                 "CANTIDAD_APU": cantidad if pd.notna(cantidad) else 0,
                                 "PRECIO_UNIT_APU": (
@@ -439,6 +454,7 @@ def process_all_files(presupuesto_path, apus_path, insumos_path):
         "presupuesto": df_final.to_dict("records"),
         "insumos": insumos_dict,
         "apus_detail": apus_detail,
+        "all_apus": df_apus.to_dict("records"),
     }
 
 
@@ -449,62 +465,84 @@ def calculate_estimate(params, data_store):
     """
     log = []
 
-    # --- 1. Extraer datos y parámetros ---
-    presupuesto_list = data_store.get("presupuesto", [])
-    apus_detail = data_store.get("apus_detail", {})
+    # --- 0. Función de normalización y mapeo de parámetros ---
+    def _normalize(text):
+        return unidecode(str(text)).upper()
 
-    tipo = params.get("tipo", "").lower()
-    material = params.get("material", "").lower()
+    param_map = {
+        "material": {
+            "TST": "TEJA SENCILLA",
+            "PANEL": "PANEL SANDWICH",
+        },
+        "tipo": {
+            "CUBIERTA": "IZAJE MANUAL",
+            "FACHADA": "IZAJE MANUAL",
+        },
+    }
+
+    # --- 1. Extraer y normalizar datos y parámetros ---
+    all_apus_list = data_store.get("all_apus", [])
+    if not all_apus_list:
+        return {"error": "No hay datos de APU disponibles.", "log": ["Error: all_apus no encontrado en data_store."]}
+
+    df_apus = pd.DataFrame(all_apus_list)
+    # Eliminar duplicados basados en la descripción del APU para tener una lista única de APUs a buscar
+    df_apus_unique = df_apus.drop_duplicates(subset=["DESCRIPCION_APU"])
+
+    apus_detail = data_store.get("apus_detail", {})
+    presupuesto_list = data_store.get("presupuesto", [])
+
+    tipo = params.get("tipo", "").upper()
+    material = params.get("material", "").upper()
     cuadrilla = params.get("cuadrilla", "0")
     izaje = params.get("izaje", "manual").lower()
     seguridad = params.get("seguridad", "normal").lower()
     zona = params.get("zona", "zona 0").lower()
     log.append(f"Parámetros: {params}")
 
-    # --- 2. Encontrar el APU de Mano de Obra principal ---
+    # --- 2. Encontrar el APU de Mano de Obra principal con búsqueda flexible ---
     apu_mo_code = None
     apu_mo_desc = ""
 
-    # Construir términos de búsqueda a partir de los parámetros
-    search_terms = [material]
-    if tipo == "cubierta":
-        # Para cubiertas, el tipo de material (ej. TST) es más descriptivo
-        # a menudo que la propia palabra "cubierta".
-        pass
-    elif tipo == "fachada":
-        search_terms.append("fachada")
+    # Traducir parámetros de frontend a términos de búsqueda del backend
+    material_mapped = param_map["material"].get(material, material)
+    tipo_mapped = param_map["tipo"].get(tipo, tipo)
 
-    # La descripción de la cuadrilla es un identificador clave
-    search_terms.append(f"cuadrilla de {cuadrilla}")
+    # Construir la lista de términos de búsqueda
+    search_terms = ["MANO DE OBRA", tipo_mapped, material_mapped]
+    if cuadrilla != "0":
+        search_terms.append(f"CUADRILLA DE {cuadrilla}")
 
-    for item in presupuesto_list:
-        desc_lower = item.get("DESCRIPCION_APU", "").lower()
-        # Usamos 'all' para asegurar que todos los términos de búsqueda estén presentes
-        if all(term in desc_lower for term in search_terms):
-            # APUs que contengan 'mano de obra' para evitar elegir un APU de suministro
-            if "mano de obra" in desc_lower:
-                apu_mo_code = item.get("CODIGO_APU")
-                apu_mo_desc = item.get("DESCRIPCION_APU")
-                log.append(
-                    f"APU de M.O. encontrado: {apu_mo_desc} (Código: {apu_mo_code})"
-                )
-                break
+    # Normalizar todos los términos para la búsqueda
+    search_terms_normalized = [_normalize(term) for term in search_terms]
+    log.append(f"Términos de búsqueda normalizados: {search_terms_normalized}")
+
+    # Crear una columna normalizada en el DataFrame para la búsqueda
+    df_apus_unique["DESC_NORMALIZED"] = df_apus_unique["DESCRIPCION_APU"].apply(_normalize)
+
+    # Buscar el APU que contenga todos los términos de búsqueda
+    for _, apu_row in df_apus_unique.iterrows():
+        desc_normalized = apu_row["DESC_NORMALIZED"]
+        if all(term in desc_normalized for term in search_terms_normalized):
+            apu_mo_code = apu_row.get("CODIGO_APU")
+            apu_mo_desc = apu_row.get("DESCRIPCION_APU")
+            log.append(f"ÉXITO: APU de M.O. encontrado: '{apu_mo_desc}' (Código: {apu_mo_code})")
+            break
 
     if not apu_mo_code:
-        log.append(f"Error: No se encontró APU para los términos: {search_terms}")
+        log.append("ERROR: No se encontró un APU de mano de obra que coincida con los criterios.")
         return {
-            "error": f"No se encontró un APU de mano de obra"
-                     f" que coincida con los criterios: {params}",
-            "log": log,
+            "error": "No se encontró un APU de mano de obra que coincida con los criterios.",
+            "log": "\n".join(log),
         }
 
-    # --- 3. Calcular costos y tiempo base del APU encontrado ---
+    # --- 3. Calcular costos y tiempo base del APU encontrado (Lógica original preservada) ---
     costos_base = {"MATERIALES": 0, "MANO DE OBRA": 0, "EQUIPO": 0, "OTROS": 0}
     tiempo_instalacion = 0
 
     apu_items = apus_detail.get(apu_mo_code, [])
     if not apu_items:
-        return {"error": f"El código APU {apu_mo_code} no tiene detalle.", "log": log}
+        return {"error": f"El código APU {apu_mo_code} no tiene detalle.", "log": "\n".join(log)}
 
     for insumo in apu_items:
         categoria = insumo.get("CATEGORIA", "OTROS")
@@ -515,69 +553,44 @@ def calculate_estimate(params, data_store):
 
     valor_suministro = costos_base["MATERIALES"]
     valor_instalacion = costos_base["MANO DE OBRA"] + costos_base["EQUIPO"]
-    log.append(
-        f"Costos base calculados:"
-        f" Suministro=${valor_suministro:,.0f}, Instalación=${valor_instalacion:,.0f}"
-    )
-    log.append(f"Tiempo base de instalación: {tiempo_instalacion:.4f} días/un")
+    log.append(f"Costos base: Suministro=${valor_suministro:,.0f}, Instalación=${valor_instalacion:,.0f}")
+    log.append(f"Tiempo base: {tiempo_instalacion:.4f} días/un")
 
-    # --- 4. Aplicar Factores de Ajuste ---
-
-    # a) Ajuste por Izaje (Grúa)
+    # --- 4. Aplicar Factores de Ajuste (Lógica original preservada) ---
     if izaje == "grúa":
         costo_grua_por_dia = 0
-        # Buscar el APU de la grúa
         for item in presupuesto_list:
+            # La descripción a buscar aquí es la del presupuesto, no la del APU de M.O.
             if "alquiler grua" in item.get("DESCRIPCION_APU", "").lower():
                 codigo_grua = item.get("CODIGO_APU")
                 detalle_grua = apus_detail.get(codigo_grua, [])
                 costo_total_apu_grua = sum(d.get("Vr Total", 0) for d in detalle_grua)
-                # Asumimos que el APU de la grúa está definido por día
                 costo_grua_por_dia = costo_total_apu_grua
-                log.append(
-                    f"APU de Grúa encontrado. Costo por día: ${costo_grua_por_dia:,.0f}"
-                )
+                log.append(f"APU de Grúa encontrado. Costo/día: ${costo_grua_por_dia:,.0f}")
                 break
-
         if costo_grua_por_dia > 0:
             costo_adicional_grua = costo_grua_por_dia * tiempo_instalacion
             valor_instalacion += costo_adicional_grua
-            log.append(
-                f"Costo adicional por grúa"
-                f" ({tiempo_instalacion:.4f} días): ${costo_adicional_grua:,.0f}"
-            )
+            log.append(f"Ajuste por grúa ({tiempo_instalacion:.4f} días): +${costo_adicional_grua:,.0f}")
         else:
-            log.append(
-                "ADVERTENCIA: Izaje por grúa seleccionado, no se encontró APU de grúa."
-            )
+            log.append("ADVERTENCIA: Izaje por grúa seleccionado, pero no se encontró APU de grúa.")
 
-    # b) Ajuste por Exigencia de Seguridad
     if seguridad == "alta":
         costo_mo = costos_base["MANO DE OBRA"]
-        incremento_seguridad = (
-            costo_mo * 0.15
-        )  # 15% de incremento sobre la mano de obra
+        incremento_seguridad = costo_mo * 0.15
         valor_instalacion += incremento_seguridad
-        log.append(
-            f"Incremento por seguridad alta (15% de M.O.): ${incremento_seguridad:,.0f}"
-        )
+        log.append(f"Ajuste por seguridad alta (15% de M.O.): +${incremento_seguridad:,.0f}")
 
-    # c) Ajuste por Zona Geográfica
     zona_factor = {"zona 0": 1.0, "zona 1": 1.05, "zona 2": 1.10, "zona 3": 1.15}
     factor = zona_factor.get(zona, 1.0)
     if factor > 1.0:
         costo_original_instalacion = valor_instalacion
         valor_instalacion *= factor
         incremento_zona = valor_instalacion - costo_original_instalacion
-        log.append(
-            f"Incremento {zona} ({(factor - 1) * 100:.0f}%): ${incremento_zona:,.0f}"
-        )
+        log.append(f"Ajuste por {zona} ({(factor - 1) * 100:.0f}%): +${incremento_zona:,.0f}")
 
     # --- 5. Devolver Resultados ---
-    log.append(
-        f"Valores finales: Suministro=${valor_suministro:,.0f},"
-        f" Instalación=${valor_instalacion:,.0f}"
-    )
+    log.append(f"Valores finales: Suministro=${valor_suministro:,.0f}, Instalación=${valor_instalacion:,.0f}")
 
     return {
         "valor_suministro": valor_suministro,
