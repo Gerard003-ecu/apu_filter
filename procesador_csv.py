@@ -1,5 +1,6 @@
 import re
 
+import numpy as np
 import pandas as pd
 
 
@@ -322,17 +323,35 @@ def process_all_files(presupuesto_path, apus_path, insumos_path):
     )
     df_merged["DESCRIPCION_INSUMO"] = df_merged["DESCRIPCION_INSUMO_apu"]
 
+    # --- Lógica de cálculo de costos refactorizada ---
+
+    # El costo se calcula de dos maneras:
+    # 1. Si el insumo existe en df_insumos, el costo es CANTIDAD * PRECIO_INSUMO.
+    # 2. Si no existe, el costo es el VALOR_TOTAL extraído directamente de apus.csv.
+    df_merged["COSTO_INSUMO_EN_APU"] = np.where(
+        df_merged["VR_UNITARIO_INSUMO"].notna(),
+        df_merged["CANTIDAD_APU"] * df_merged["VR_UNITARIO_INSUMO"],
+        df_merged["VALOR_TOTAL_APU"],
+    )
+
+    # El precio unitario final para mostrar es el de insumos si existe.
+    # Si no, es el precio unitario de apus.csv.
+    # Si ambos faltan, se calcula a partir del costo total y la cantidad.
     df_merged["VR_UNITARIO_FINAL"] = df_merged["VR_UNITARIO_INSUMO"].fillna(
         df_merged["PRECIO_UNIT_APU"]
     )
-    mask_no_price = df_merged["VR_UNITARIO_FINAL"].isna()
-    df_merged.loc[mask_no_price, "VR_UNITARIO_FINAL"] = df_merged.loc[
-        mask_no_price, "VALOR_TOTAL_APU"
-    ]
-    df_merged.loc[mask_no_price, "CANTIDAD_APU"] = 1
-    df_merged["COSTO_INSUMO_EN_APU"] = df_merged["CANTIDAD_APU"] * df_merged[
-        "VR_UNITARIO_FINAL"
-    ].fillna(0)
+    # Recalcular si es necesario para que sea consistente
+    # Evitar división por cero
+    mask_recalc = (df_merged["VR_UNITARIO_FINAL"].isna()) | (
+        df_merged["VR_UNITARIO_FINAL"] == 0
+    )
+    cantidad_safe = df_merged["CANTIDAD_APU"].replace(0, 1)
+    df_merged.loc[mask_recalc, "VR_UNITARIO_FINAL"] = (
+        df_merged.loc[mask_recalc, "COSTO_INSUMO_EN_APU"] / cantidad_safe
+    )
+
+    # Asegurarnos de que no haya NaNs en el costo final.
+    df_merged["COSTO_INSUMO_EN_APU"] = df_merged["COSTO_INSUMO_EN_APU"].fillna(0)
 
     df_apu_costos_categoria = (
         df_merged.groupby(["CODIGO_APU", "CATEGORIA"])["COSTO_INSUMO_EN_APU"]
