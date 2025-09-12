@@ -90,27 +90,35 @@ class TestCSVProcessor(unittest.TestCase):
         presupuesto_procesado = resultado["presupuesto"]
         self.assertEqual(len(presupuesto_procesado), 2)
 
-        # APU 1,1: (10 tornillos * $10.50) + (2.5 horas * $20.00) = 105 + 50 = $155
+        # APU 1,1: (10 tornillos * $10.50) + (2.5 horas * $20.00) = 105 + 50 = $155 (Costo Unitario)
         # Valor Total Presupuesto 1,1: 10 ML * $155 = $1550
         item1 = next(
-            (item for item in presupuesto_procesado if item["Código APU"] == "1,1"),
+            (item for item in presupuesto_procesado if item["CODIGO_APU"] == "1,1"),
             None,
         )
         self.assertIsNotNone(
             item1, "No se encontró el ítem 1,1 en el presupuesto procesado"
         )
-        self.assertAlmostEqual(item1["Valor Total"], 1550.0)
+        # El valor total ahora se calcula a partir de la cantidad y el costo de construcción
+        valor_total_calculado1 = (
+            item1["CANTIDAD_PRESUPUESTO"] * item1["VALOR_CONSTRUCCION_UN"]
+        )
+        self.assertAlmostEqual(valor_total_calculado1, 1550.0)
 
-        # APU 1,2: (5 galones * $5.00) + (10 horas * $20.00) = 25 + 200 = $225
+        # APU 1,2: (5 galones * $5.00) + (10 horas * $20.00) = 25 + 200 = $225 (Costo Unitario)
         # Valor Total Presupuesto 1,2: 20 M2 * $225 = $4500
         item2 = next(
-            (item for item in presupuesto_procesado if item["Código APU"] == "1,2"),
+            (item for item in presupuesto_procesado if item["CODIGO_APU"] == "1,2"),
             None,
         )
         self.assertIsNotNone(
             item2, "No se encontró el ítem 1,2 en el presupuesto procesado"
         )
-        self.assertAlmostEqual(item2["Valor Total"], 4500.0)
+        # El valor total se calcula igual para el segundo ítem
+        valor_total_calculado2 = (
+            item2["CANTIDAD_PRESUPUESTO"] * item2["VALOR_CONSTRUCCION_UN"]
+        )
+        self.assertAlmostEqual(valor_total_calculado2, 4500.0)
 
         # 4. Validar la estructura de la clave "insumos"
         insumos_procesados = resultado["insumos"]
