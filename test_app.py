@@ -90,7 +90,7 @@ class TestCSVProcessor(unittest.TestCase):
         presupuesto_procesado = resultado["presupuesto"]
         self.assertEqual(len(presupuesto_procesado), 2)
 
-        # APU 1,1: (10 tornillos * $10.50) + (2.5 horas * $20.00) = 105 + 50 = $155 (Costo Unitario)
+        # APU 1,1: (10 tornillos * $10.50) + (2.5 horas * $20.00) = 105 + 50 = $155
         # Valor Total Presupuesto 1,1: 10 ML * $155 = $1550
         item1 = next(
             (item for item in presupuesto_procesado if item["CODIGO_APU"] == "1,1"),
@@ -99,13 +99,13 @@ class TestCSVProcessor(unittest.TestCase):
         self.assertIsNotNone(
             item1, "No se encontró el ítem 1,1 en el presupuesto procesado"
         )
-        # El valor total ahora se calcula a partir de la cantidad y el costo de construcción
+        # El valor total se calcula a partir de la cantidad y el costo de construcción
         valor_total_calculado1 = (
             item1["CANTIDAD_PRESUPUESTO"] * item1["VALOR_CONSTRUCCION_UN"]
         )
         self.assertAlmostEqual(valor_total_calculado1, 1550.0)
 
-        # APU 1,2: (5 galones * $5.00) + (10 horas * $20.00) = 25 + 200 = $225 (Costo Unitario)
+        # APU 1,2: (5 galones * $5.00) + (10 horas * $20.00) = 25 + 200 = $225
         # Valor Total Presupuesto 1,2: 20 M2 * $225 = $4500
         item2 = next(
             (item for item in presupuesto_procesado if item["CODIGO_APU"] == "1,2"),
