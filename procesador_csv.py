@@ -256,29 +256,51 @@ def process_apus_csv(path):
 
 def group_and_split_description(df):
     """
-    Agrupa las descripciones y las divide en una parte común (grupo) y una variable.
-    Utiliza regex para una división más robusta.
+    Agrupa inteligentemente las descripciones de los ítems del presupuesto.
+    Extrae un nombre de grupo (ej. por calibre) y una descripción corta.
     """
     if "DESCRIPCION_APU" not in df.columns:
-        df["grupo"] = "Indefinido"
+        df["grupo"] = "Ítems Varios"
+        df["DESCRIPCION_APU"] = ""  # Asegurar que la columna existe
         return df
 
-    def split_logic(desc):
-        # Busca el patrón "TEXTO ... TEXTO". Captura ambos lados.
-        match = re.match(r"^(.*?)\s*\.{3,}\s*(.*)$", desc)
-        if match and match.group(2):  # Asegurarse de que la parte variable no esté vacía
-            # El grupo es la parte antes de '...', la descripción es la parte después.
-            return match.group(1).strip(), match.group(2).strip()
+    def get_group_and_short_desc(desc):
+        """
+        Extrae un nombre de grupo y una descripción corta de una descripción completa.
+        """
+        if not isinstance(desc, str):
+            return "Ítems Varios", ""
 
-        # Fallback: si no hay patrón o la parte variable está vacía, el ítem no se agrupa.
-        return "Ítems Varios", desc
+        # Patrón para calibre, ej. "REMATE CON PINTURA DE FABRICA CAL 22"
+        # Es no-codicioso (.*?) para capturar el texto mínimo hasta el calibre.
+        # re.IGNORECASE para capturar "cal", "CAL", "Cal", etc.
+        cal_match = re.match(r"(.*? CAL\.? ?\d+)", desc, re.IGNORECASE)
+        if cal_match:
+            group = cal_match.group(1).strip()
+            # La descripción corta es lo que queda después del match completo.
+            short_desc = desc[len(cal_match.group(0)) :].strip()
+            # Si la descripción corta empieza con conectores comunes, los quitamos.
+            short_desc = re.sub(
+                r"^(de|en|con|para)\s", "", short_desc, flags=re.IGNORECASE
+            ).strip()
+            return group, short_desc
+
+        # Fallback: agrupar por las primeras 4 palabras.
+        words = desc.split()
+        if len(words) > 4:
+            group = " ".join(words[:4])
+            short_desc = " ".join(words[4:])
+            return group, short_desc
+
+        # Si la descripción es corta, se usa como grupo y no hay descripción corta.
+        return desc, ""
 
     # Aplica la lógica para crear las columnas 'grupo' y 'descripcion_corta'
     df[["grupo", "descripcion_corta"]] = df["DESCRIPCION_APU"].apply(
-        lambda x: pd.Series(split_logic(x))
+        lambda x: pd.Series(get_group_and_short_desc(x))
     )
 
-    # La descripción a mostrar será la parte corta/variable.
+    # La descripción a mostrar en la tabla principal será la parte corta.
     df["DESCRIPCION_APU"] = df["descripcion_corta"]
     df.drop(columns=["descripcion_corta"], inplace=True)
 
