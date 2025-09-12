@@ -1,0 +1,48 @@
+F841 Local variable `item1` is assigned to but never used
+  --> test_app.py:91:9
+   |
+89 |         # APU 1,1: (10 tornillos * $10.50) + (2.5 horas * $20.00) = 105 + 50 = $155
+90 |         # Valor Total Presupuesto 1,1: 10 ML * $155 = $1550
+91 |         item1 = next(
+   |         ^^^^^
+92 |             item for item in presupuesto_procesado if item["Código APU"] == "1,1"
+93 |         )
+   |
+help: Remove assignment to unused variable `item1`
+
+F821 Undefined name `item`
+  --> test_app.py:94:32
+   |
+92 |             item for item in presupuesto_procesado if item["Código APU"] == "1,1"
+93 |         )
+94 |         self.assertAlmostEqual(item["Valor Total"], 1550.0)
+   |                                ^^^^
+95 |
+96 |         # APU 1,2: (5 galones * $5.00) + (10 horas * $20.00) = 25 + 200 = $225
+   |
+
+F841 Local variable `item2` is assigned to but never used
+   --> test_app.py:98:9
+    |
+ 96 |         # APU 1,2: (5 galones * $5.00) + (10 horas * $20.00) = 25 + 200 = $225
+ 97 |         # Valor Total Presupuesto 1,2: 20 M2 * $225 = $4500
+ 98 |         item2 = next(
+    |         ^^^^^
+ 99 |             item for item in presupuesto_procesado if item["Código APU"] == "1,2"
+100 |         )
+    |
+help: Remove assignment to unused variable `item2`
+
+F821 Undefined name `item`
+   --> test_app.py:101:32
+    |
+ 99 |             item for item in presupuesto_procesado if item["Código APU"] == "1,2"
+100 |         )
+101 |         self.assertAlmostEqual(item["Valor Total"], 4500.0)
+    |                                ^^^^
+102 |
+103 |         # 4. Validar la estructura de la clave "insumos"
+    |
+
+Found 4 errors.
+No fixes available (2 hidden fixes can be enabled with the `--unsafe-fixes` option).

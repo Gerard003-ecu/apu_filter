@@ -1,5 +1,10 @@
+--- Iniciando procesamiento de archivos CSV ---
+Presupuesto: 3 items leídos.
+Insumos: 3 items únicos leídos.
+APUs: 4 insumos de APU leídos.
+--- Procesamiento completado exitosamente. ---
 .
 ----------------------------------------------------------------------
-Ran 1 test in 0.157s
+Ran 1 test in 0.207s
 
 OK

@@ -1,0 +1,19 @@
+--- Iniciando procesamiento de archivos CSV ---
+Presupuesto: 3 items leídos.
+Insumos: 3 items únicos leídos.
+APUs: 2 insumos de APU leídos.
+--- Procesamiento completado exitosamente. ---
+F
+======================================================================
+FAIL: test_process_csv_files_integration (__main__.TestCSVProcessor.test_process_csv_files_integration)
+Prueba la integración completa de la función process_csv_files.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/gerardomayor/Documents/estru_techos/apu_filter/test_app.py", line 87, in test_process_csv_files_integration
+    self.assertAlmostEqual(valor_total_apu1, 1550.0)
+AssertionError: np.float64(1050.0) != 1550.0 within 7 places (np.float64(500.0) difference)
+
+----------------------------------------------------------------------
+Ran 1 test in 0.231s
+
+FAILED (failures=1)

@@ -1,122 +1,121 @@
 import os
 import unittest
 
-# Importamos la función específica del nuevo módulo que queremos probar
-from procesador_csv import process_csv_files
+# Importamos la función orquestadora que ahora es el núcleo de nuestra lógica
+from procesador_csv import process_all_files
 
 
 class TestCSVProcessor(unittest.TestCase):
     """
-    Clase de prueba para el módulo procesador_csv.py.
-    Valida la lógica de procesamiento de los archivos CSV generados por SAGUT.
+    Clase de prueba actualizada para validar la nueva lógica de `procesador_csv.py`,
+    que devuelve una estructura de datos compleja para el dashboard.
     """
 
     def setUp(self):
         """
-        Se ejecuta antes de cada prueba. Crea archivos CSV temporales
-        con datos simulados para asegurar que la prueba es aislada y repetible.
+        Crea archivos CSV temporales con datos de prueba antes de cada test.
+        Estos datos simulan la estructura de los reportes de SAGUT.
         """
-        # --- 1. Datos de prueba como strings multilínea ---
-
-        # Simula el archivo presupuesto.csv
-        self.presupuesto_csv_data = (
+        # --- Datos de Prueba para presupuesto.csv ---
+        self.presupuesto_data = (
             "ITEM;DESCRIPCION;UND;CANT.; VR. UNIT ; VR.TOTAL \n"
-            "1,1;Instalacion de Teja;ML;10;0;0\n"
-            "1,2;Remate especial;ML;5;0;0\n"
+            "1;Actividad de Construcción 1;;;;\n"
+            "1,1;Montaje de Estructura;ML;10; 155,00 ; 1550 \n"
+            "1,2;Acabados Finales;M2;20; 250,00 ; 5000 \n"
         )
+        with open("test_presupuesto.csv", "w", encoding="latin1") as f:
+            f.write(self.presupuesto_data)
 
-        # Simula el archivo insumos.csv (con encabezados variables)
-        self.insumos_csv_data = (
-            ";;;;;;\n"
-            "  G1  ;MATERIALES;;;;\n"
-            "  CODIGO  ;  DESCRIPCION  ;  UND  ;;  CANT.  ;  VR. UNIT.  ;VR.TOTAL\n"
-            "101;Teja Metalica;UND;;1;15.000,00;15.000,00\n"
-            "102;Tornillo Autoperforante;UND;;1;500,00;500,00\n"
-            "201;Mano de Obra Cuadrilla;HR;;1;20.000,00;20.000,00\n"
+        # --- Datos de Prueba para apus.csv ---
+        self.apus_data = (
+            "REMATE CON PINTURA;;;;;ITEM:   1,1\n"
+            "MATERIALES;;;;;\n"
+            "Tornillo de Acero;UND; 10,0;;\n"
+            "MANO DE OBRA;;;;;\n"
+            "Mano de Obra Especializada;HR; 2,5;;\n"
+            ";;;;\n"
+            "REMATE DE ACERO;;;;;ITEM:   1,2\n"
+            "MATERIALES;;;;;\n"
+            "Pintura Anticorrosiva;GL; 5,0;;\n"
+            "MANO DE OBRA;;;;;\n"
+            "Mano de Obra Especializada;HR; 10,0;;\n"
         )
+        with open("test_apus.csv", "w", encoding="latin1") as f:
+            f.write(self.apus_data)
 
-        # Simula el archivo apus.csv (con su formato de reporte)
-        self.apus_csv_data = (
-            "REMATE CON PINTURA;;;;;  UNIDAD:   ML  \n"
-            ";;;;;  ITEM:   1,1  \n"
-            "DESCRIPCION;UND;CANT.;DESP.%;\n"
-            "MATERIALES;;;;\n"
-            "Teja Metalica;UND;2,0;;\n"
-            "Tornillo Autoperforante;UND;10,0;;\n"
-            "MANO DE OBRA;;;;\n"
-            "Mano de Obra Cuadrilla;HR;0,5;;\n"
-            ";;;COSTO DIRECTO;;\n"
-            ";;;;;  ITEM:   1,2  \n"
-            "Teja Metalica;UND;1,5;;\n"
+        # --- Datos de Prueba para insumos.csv ---
+        self.insumos_data = (
+            "  G1  ;MATERIALES;;;;;\n"
+            "  CODIGO  ;  DESCRIPCION  ;  UND  ;;  CANT.  ;  VR. UNIT.  ;\n"
+            "INS-001;  Tornillo de Acero  ;UND;;;10,50;\n"
+            "INS-003; pintura anticorrosiva ;GL;;;5,00;\n"
+            "  G2  ;MANO DE OBRA;;;;;\n"
+            "  CODIGO  ;  DESCRIPCION  ;  UND  ;;  CANT.  ;  VR. UNIT.  ;\n"
+            "INS-002;Mano de Obra Especializada;HR;;;20,00;\n"
         )
-
-        # --- 2. Crear archivos temporales ---
-        self.presupuesto_path = "test_presupuesto.csv"
-        self.insumos_path = "test_insumos.csv"
-        self.apus_path = "test_apus.csv"
-
-        with open(self.presupuesto_path, "w", encoding="latin1") as f:
-            f.write(self.presupuesto_csv_data)
-        with open(self.insumos_path, "w", encoding="latin1") as f:
-            f.write(self.insumos_csv_data)
-        with open(self.apus_path, "w", encoding="latin1") as f:
-            f.write(self.apus_csv_data)
+        with open("test_insumos.csv", "w", encoding="latin1") as f:
+            f.write(self.insumos_data)
 
     def tearDown(self):
         """
-        Se ejecuta después de cada prueba. Elimina los archivos CSV temporales
-        para no dejar basura en el directorio de trabajo.
+        Elimina los archivos CSV temporales después de cada prueba.
         """
-        os.remove(self.presupuesto_path)
-        os.remove(self.insumos_path)
-        os.remove(self.apus_path)
+        os.remove("test_presupuesto.csv")
+        os.remove("test_apus.csv")
+        os.remove("test_insumos.csv")
 
-    def test_process_csv_files_integration(self):
+    def test_process_all_files_structure_and_calculations(self):
         """
-        Prueba la función principal `process_csv_files` con los datos simulados.
+        Prueba la función orquestadora `process_all_files`, verificando tanto
+        la estructura del diccionario resultante como la precisión de los cálculos.
         """
-        # Ejecutar la función bajo prueba
-        df_resultado = process_csv_files(
-            self.presupuesto_path, self.apus_path, self.insumos_path
+        # Llama a la función principal con los archivos de prueba
+        resultado = process_all_files(
+            "test_presupuesto.csv", "test_apus.csv", "test_insumos.csv"
         )
 
-        # --- Verificaciones (Assertions) ---
-        self.assertIsNotNone(
-            df_resultado, "El DataFrame resultante no debería ser nulo."
-        )
-        self.assertFalse(
-            df_resultado.empty, "El DataFrame resultante no debería estar vacío."
-        )
+        # 1. Verificar que el resultado sea un diccionario y no contenga errores
+        self.assertIsInstance(resultado, dict)
+        self.assertNotIn("error", resultado)
 
-        # Verificar que las columnas esperadas estén presentes
-        expected_columns = ["Código APU", "Descripción", "Valor Total", "ZONA"]
-        self.assertListEqual(
-            list(df_resultado.columns),
-            expected_columns,
-            "Las columnas del DataFrame no son las esperadas.",
-        )
+        # 2. Verificar que las claves principales existan
+        self.assertIn("presupuesto", resultado)
+        self.assertIn("insumos", resultado)
+        self.assertIn("apus_detail", resultado)
 
-        # Verificar el número de filas del resultado final
-        self.assertEqual(
-            len(df_resultado), 2, "El número de filas en el resultado es incorrecto."
-        )
+        # 3. Validar el contenido de la clave "presupuesto"
+        presupuesto_procesado = resultado["presupuesto"]
+        self.assertEqual(len(presupuesto_procesado), 2)
 
-        # Verificar cálculos específicos para un APU
-        # APU '1,1':
-        #  - Teja: 2.0 * 15,000 = 30,000
-        #  - Tornillo: 10.0 * 500 = 5,000
-        #  - MO: 0.5 * 20,000 = 10,000
-        #  - Vr. Unitario APU = 30,000 + 5,000 + 10,000 = 45,000
-        #  - Cantidad Presupuesto = 10
-        #  - Valor Total = 45,000 * 10 = 450,000
-        valor_total_apu_1_1 = df_resultado[df_resultado["Código APU"] == "1,1"][
-            "Valor Total"
-        ].iloc[0]
-        self.assertAlmostEqual(
-            valor_total_apu_1_1,
-            450000,
-            "El cálculo del Valor Total para el APU '1,1' es incorrecto.",
+        # APU 1,1: (10 tornillos * $10.50) + (2.5 horas * $20.00) = 105 + 50 = $155
+        # Valor Total Presupuesto 1,1: 10 ML * $155 = $1550
+        item1 = next(
+            item for item in presupuesto_procesado if item["Código APU"] == "1,1"
         )
+        self.assertAlmostEqual(item1["Valor Total"], 1550.0)
+
+        # APU 1,2: (5 galones * $5.00) + (10 horas * $20.00) = 25 + 200 = $225
+        # Valor Total Presupuesto 1,2: 20 M2 * $225 = $4500
+        item2 = next(
+            item for item in presupuesto_procesado if item["Código APU"] == "1,2"
+        )
+        self.assertAlmostEqual(item2["Valor Total"], 4500.0)
+
+        # 4. Validar la estructura de la clave "insumos"
+        insumos_procesados = resultado["insumos"]
+        self.assertIn("MATERIALES", insumos_procesados)
+        self.assertIn("MANO DE OBRA", insumos_procesados)
+        self.assertEqual(len(insumos_procesados["MATERIALES"]), 2)
+        self.assertEqual(len(insumos_procesados["MANO DE OBRA"]), 1)
+
+        # 5. Validar la estructura de la clave "apus_detail"
+        apus_detalle = resultado["apus_detail"]
+        self.assertIn("1,1", apus_detalle)
+        self.assertIn("1,2", apus_detalle)
+        self.assertEqual(len(apus_detalle["1,1"]), 2)  # Debe tener 2 insumos
+        # Verificar que la categoría se asignó correctamente
+        self.assertEqual(apus_detalle["1,1"][0]["CATEGORIA"], "MATERIALES")
+        self.assertEqual(apus_detalle["1,1"][1]["CATEGORIA"], "MANO DE OBRA")
 
 
 if __name__ == "__main__":

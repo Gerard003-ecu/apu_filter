@@ -1,0 +1,18 @@
+F811 Redefinition of unused `TestCSVProcessor` from line 8
+   --> test_app.py:112:7
+    |
+112 | class TestCSVProcessor(unittest.TestCase):
+    |       ^^^^^^^^^^^^^^^^ `TestCSVProcessor` redefined here
+113 |     """
+114 |     Clase de prueba dedicada a validar la lógica de `procesador_csv.py`.
+    |
+   ::: test_app.py:8:7
+    |
+  8 | class TestCSVProcessor(unittest.TestCase):
+    |       ---------------- previous definition of `TestCSVProcessor` here
+  9 |     """
+ 10 |     Clase de prueba para el módulo procesador_csv.py.
+    |
+help: Remove definition: `TestCSVProcessor`
+
+Found 1 error.

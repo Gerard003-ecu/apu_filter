@@ -3,26 +3,55 @@ import re
 import pandas as pd
 
 
-def process_presupuesto_csv(path):
-    """Lee y limpia el archivo presupuesto.csv."""
-    try:
-        df = pd.read_csv(path, delimiter=";", encoding="latin1")
-        df.columns = (
-            df.columns.str.strip()
-        )  # Limpia espacios en los nombres de columnas
-        df = df.rename(
-            columns={
-                "ITEM": "CODIGO_APU",
-                "DESCRIPCION": "DESCRIPCION_APU",
-                "CANT.": "CANTIDAD_PRESUPUESTO",
-            }
+def normalize_text(series):
+    """Limpia y estandariza texto para hacer un 'join' fiable."""
+    return series.astype(str).str.lower().str.strip()
+
+
+def find_and_rename_columns(df, column_map):
+    """
+    Busca columnas que contengan un texto clave y las renombra.
+    """
+    rename_dict = {}
+    df.columns = df.columns.str.strip()
+
+    for new_name, keyword in column_map.items():
+        found_col = next(
+            (col for col in df.columns if keyword.lower() in col.lower()), None
+        )
+        if found_col:
+            rename_dict[found_col] = new_name
+
+    df = df.rename(columns=rename_dict)
+
+    if not all(new_name in df.columns for new_name in column_map.keys()):
+        missing = [name for name in column_map.keys() if name not in df.columns]
+        print(
+            f"ADVERTENCIA: No se encontraron las siguientes columnas clave: {missing}"
         )
 
-        # Filtra filas que no son items válidos y limpia datos
-        df = df.dropna(subset=["CODIGO_APU"])
-        df = df[df["CODIGO_APU"].str.contains(r"[\d,]", na=False)]
+    return df
+
+
+def process_presupuesto_csv(path):
+    """Lee y limpia el archivo presupuesto.csv de forma robusta."""
+    try:
+        df = pd.read_csv(path, delimiter=";", encoding="latin1", skipinitialspace=True)
+
+        column_map = {
+            "CODIGO_APU": "ITEM",
+            "DESCRIPCION_APU": "DESCRIPCION",
+            "CANTIDAD_PRESUPUESTO": "CANT.",
+        }
+        df = find_and_rename_columns(df, column_map)
+
+        if "CODIGO_APU" not in df.columns:
+            return pd.DataFrame()
+
+        df["CODIGO_APU"] = df["CODIGO_APU"].astype(str).str.strip()
+        df = df[df["CODIGO_APU"].str.contains(r",", na=False)]
         df["CANTIDAD_PRESUPUESTO"] = pd.to_numeric(
-            df["CANTIDAD_PRESUPUESTO"].astype(str).str.replace(",", "."),
+            df["CANTIDAD_PRESUPUESTO"].astype(str).str.replace(",", ".", regex=False),
             errors="coerce",
         )
 
@@ -33,44 +62,92 @@ def process_presupuesto_csv(path):
 
 
 def process_insumos_csv(path):
-    """Lee y limpia el archivo insumos.csv."""
-    try:
-        # Encuentra la fila del encabezado dinámicamente
-        with open(path, "r", encoding="latin1") as f:
-            lines = f.readlines()
-        header_index = next(
-            (
-                i
-                for i, line in enumerate(lines)
-                if "CODIGO" in line and "DESCRIPCION" in line
-            ),
-            -1,
-        )
+    """
+    Lee y limpia el archivo insumos.csv, manejando correctamente los grupos
+    mediante una lectura manual línea por línea.
+    """
+    data_rows = []
+    current_group = "INDEFINIDO"
+    header_found = False
 
-        if header_index == -1:
+    try:
+        with open(path, "r", encoding="latin1") as f:
+            for line in f:
+                # Omitir líneas vacías
+                if not line.strip():
+                    continue
+
+                parts = [p.strip() for p in line.split(";")]
+
+                # Detectar y actualizar el grupo actual
+                if len(parts) > 1 and parts[0].upper().startswith("G") and parts[1]:
+                    current_group = parts[1]
+                    continue
+
+                # Identificar la línea de encabezado principal para empezar a leer datos
+                if "CODIGO" in line and "DESCRIPCION" in line:
+                    header_found = True
+                    # Extraer los nombres de las columnas de esta línea
+                    header_columns = [p.strip() for p in line.split(";")]
+                    desc_index = next(
+                        (
+                            i
+                            for i, col in enumerate(header_columns)
+                            if "DESCRIPCION" in col
+                        ),
+                        -1,
+                    )
+                    vr_unit_index = next(
+                        (
+                            i
+                            for i, col in enumerate(header_columns)
+                            if "VR. UNIT" in col
+                        ),
+                        -1,
+                    )
+                    continue
+
+                # Si hemos encontrado el header, procesar las líneas de datos
+                if header_found and desc_index != -1 and vr_unit_index != -1:
+                    if len(parts) > max(desc_index, vr_unit_index):
+                        description = parts[desc_index]
+                        vr_unit_str = parts[vr_unit_index]
+
+                        # Validar que sea una fila de datos real
+                        if description and vr_unit_str:
+                            data_rows.append(
+                                {
+                                    "DESCRIPCION_INSUMO": description,
+                                    "VR_UNITARIO_INSUMO": vr_unit_str,
+                                    "GRUPO_INSUMO": current_group,
+                                }
+                            )
+
+        if not data_rows:
             return pd.DataFrame()
 
-        df = pd.read_csv(path, delimiter=";", encoding="latin1", skiprows=header_index)
-        df.columns = df.columns.str.strip()
-        df = df.rename(
-            columns={
-                "DESCRIPCION": "DESCRIPCION_INSUMO",
-                "VR. UNIT.": "VR_UNITARIO_INSUMO",
-            }
-        )
+        df = pd.DataFrame(data_rows)
 
-        # Limpia valores numéricos y descripciones
         df["VR_UNITARIO_INSUMO"] = pd.to_numeric(
             df["VR_UNITARIO_INSUMO"]
             .astype(str)
             .str.replace(".", "", regex=False)
-            .str.replace(",", "."),
+            .str.replace(",", ".", regex=False),
             errors="coerce",
         )
-        df["DESCRIPCION_INSUMO"] = df["DESCRIPCION_INSUMO"].str.strip()
-        df = df.dropna(subset=["DESCRIPCION_INSUMO", "VR_UNITARIO_INSUMO"])
+        df.dropna(subset=["DESCRIPCION_INSUMO", "VR_UNITARIO_INSUMO"], inplace=True)
 
-        return df[["DESCRIPCION_INSUMO", "VR_UNITARIO_INSUMO"]]
+        df["NORMALIZED_DESC"] = normalize_text(df["DESCRIPCION_INSUMO"])
+        df = df.drop_duplicates(subset=["NORMALIZED_DESC"], keep="first")
+
+        return df[
+            [
+                "NORMALIZED_DESC",
+                "VR_UNITARIO_INSUMO",
+                "GRUPO_INSUMO",
+                "DESCRIPCION_INSUMO",
+            ]
+        ]
     except Exception as e:
         print(f"Error procesando insumos.csv: {e}")
         return pd.DataFrame()
@@ -78,91 +155,129 @@ def process_insumos_csv(path):
 
 def process_apus_csv(path):
     """Parsea manualmente el archivo apus.csv que tiene formato de reporte."""
-    apus_data = []
-    current_apu_code = None
+    apus_data, current_apu_code, current_category = [], None, "INDEFINIDO"
+    category_keywords = {
+        "MATERIALES": "MATERIALES",
+        "MANO DE OBRA": "MANO DE OBRA",
+        "EQUIPO": "EQUIPO",
+        "OTROS": "OTROS",
+    }
+
     try:
         with open(path, "r", encoding="latin1") as f:
             for line in f:
-                # Busca el código del APU en las líneas de ITEM
-                if "ITEM:" in line:
+                if "ITEM:" in line.upper():
                     match = re.search(r"ITEM:\s*([\d,]+\b)", line)
                     if match:
                         current_apu_code = match.group(1).strip()
-                # Si ya tenemos un APU, busca las líneas de insumos
-                elif (
-                    current_apu_code
-                    and ";" in line
-                    and not line.strip().startswith(
-                        (
-                            ";",
-                            "DESCRIPCION",
-                            "MATERIALES",
-                            "MANO DE OBRA",
-                            "EQUIPO",
-                            "OTROS",
-                            "SUBTOTAL",
-                            "COSTO DIRECTO",
-                        )
-                    )
-                ):
+                        current_category = "INDEFINIDO"
+
+                cleaned_line = line.replace(";", "").strip().upper()
+                found_category = False
+                if cleaned_line in category_keywords:
+                    current_category = category_keywords[cleaned_line]
+                    found_category = True
+
+                if found_category:
+                    continue
+
+                if current_apu_code and ";" in line:
                     parts = [p.strip() for p in line.split(";")]
-                    if len(parts) >= 3 and parts[0]:
+                    if (
+                        len(parts) >= 3
+                        and parts[0]
+                        and pd.to_numeric(parts[2].replace(",", "."), errors="coerce")
+                        is not None
+                    ):
                         try:
-                            # La descripción del insumo es el identificador
-                            description = parts[0]
-                            # La cantidad está en la tercera columna
-                            quantity = float(parts[2].replace(",", "."))
                             apus_data.append(
                                 {
                                     "CODIGO_APU": current_apu_code,
-                                    "DESCRIPCION_INSUMO": description,
-                                    "CANTIDAD_APU": quantity,
+                                    "DESCRIPCION_INSUMO": parts[0],
+                                    "CANTIDAD_APU": float(parts[2].replace(",", ".")),
+                                    "CATEGORIA": current_category,
                                 }
                             )
                         except (ValueError, IndexError):
-                            continue  # Ignora líneas que no se pueden parsear
-        return pd.DataFrame(apus_data)
+                            continue
+        df = pd.DataFrame(apus_data)
+        if df.empty:
+            return df
+
+        df["CODIGO_APU"] = df["CODIGO_APU"].str.strip()
+        df["NORMALIZED_DESC"] = normalize_text(df["DESCRIPCION_INSUMO"])
+        return df
     except Exception as e:
         print(f"Error procesando apus.csv: {e}")
         return pd.DataFrame()
 
 
-def process_csv_files(presupuesto_path, apus_path, insumos_path):
-    """Orquesta el procesamiento de los tres archivos CSV y los consolida."""
+def process_all_files(presupuesto_path, apus_path, insumos_path):
+    """Orquesta el procesamiento y devuelve un diccionario de DataFrames."""
+    print("--- Iniciando procesamiento ---")
     df_presupuesto = process_presupuesto_csv(presupuesto_path)
     df_insumos = process_insumos_csv(insumos_path)
     df_apus = process_apus_csv(apus_path)
 
     if df_presupuesto.empty or df_insumos.empty or df_apus.empty:
-        return pd.DataFrame()
+        return {"error": "Uno o más archivos no pudieron ser procesados."}
 
-    # Unir APUs con Insumos usando la descripción como clave
-    df_merged = pd.merge(df_apus, df_insumos, on="DESCRIPCION_INSUMO", how="left")
-    df_merged["COSTO_INSUMO_EN_APU"] = (
-        df_merged["CANTIDAD_APU"] * df_merged["VR_UNITARIO_INSUMO"]
-    )
-
-    # Calcular el costo total para cada APU
+    df_merged = pd.merge(df_apus, df_insumos, on="NORMALIZED_DESC", how="left")
+    df_merged["COSTO_INSUMO_EN_APU"] = df_merged["CANTIDAD_APU"] * df_merged[
+        "VR_UNITARIO_INSUMO"
+    ].fillna(0)
     df_apu_costos = (
         df_merged.groupby("CODIGO_APU")
         .agg(VR_UNITARIO_CALCULADO=("COSTO_INSUMO_EN_APU", "sum"))
         .reset_index()
     )
-
-    # Unir con el presupuesto para obtener el resultado final
     df_final = pd.merge(df_presupuesto, df_apu_costos, on="CODIGO_APU", how="left")
-    df_final["VALOR_TOTAL"] = (
-        df_final["CANTIDAD_PRESUPUESTO"] * df_final["VR_UNITARIO_CALCULADO"]
-    )
-    df_final["ZONA"] = ""  # Añadir columna ZONA
 
-    # Formatear el DataFrame final
-    df_final = df_final.rename(
-        columns={
-            "CODIGO_APU": "Código APU",
-            "DESCRIPCION_APU": "Descripción",
-            "VALOR_TOTAL": "Valor Total",
-        }
+    print(
+        f"Diagnóstico: {df_final['VR_UNITARIO_CALCULADO'].notna().sum()}"
+        f" de {len(df_final)} ítems del presupuesto encontraron su costo."
     )
 
-    return df_final[["Código APU", "Descripción", "Valor Total", "ZONA"]]
+    df_final["VALOR_TOTAL"] = df_final["CANTIDAD_PRESUPUESTO"].fillna(0) * df_final[
+        "VR_UNITARIO_CALCULADO"
+    ].fillna(0)
+
+    df_merged["Vr Unitario"] = df_merged["VR_UNITARIO_INSUMO"].fillna(0)
+    df_merged["Vr Total"] = df_merged["COSTO_INSUMO_EN_APU"]
+    df_merged_renamed = df_merged.rename(
+        columns={"DESCRIPCION_INSUMO_x": "Descripción", "CANTIDAD_APU": "Cantidad"}
+    )
+    apus_detail = {
+        n: g[
+            ["Descripción", "Cantidad", "Vr Unitario", "Vr Total", "CATEGORIA"]
+        ].to_dict("records")
+        for n, g in df_merged_renamed.groupby("CODIGO_APU")
+    }
+
+    insumos_dict = {}
+    if "GRUPO_INSUMO" in df_insumos.columns:
+        df_insumos_renamed = df_insumos.rename(
+            columns={
+                "DESCRIPCION_INSUMO": "Descripción",
+                "VR_UNITARIO_INSUMO": "Vr Unitario",
+            }
+        )
+        for name, group in df_insumos_renamed.groupby("GRUPO_INSUMO"):
+            if name and isinstance(name, str):
+                insumos_dict[name.strip()] = (
+                    group[["Descripción", "Vr Unitario"]].dropna().to_dict("records")
+                )
+
+    print("--- Procesamiento completado ---")
+
+    return {
+        "presupuesto": df_final.rename(
+            columns={
+                "CODIGO_APU": "Código APU",
+                "DESCRIPCION_APU": "Descripción",
+                "VALOR_TOTAL": "Valor Total",
+            }
+        ).to_dict("records"),
+        "insumos": insumos_dict,
+        "apus_detail": apus_detail,
+    }

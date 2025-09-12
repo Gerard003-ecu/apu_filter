@@ -1,0 +1,19 @@
+--- Iniciando procesamiento de archivos CSV ---
+Presupuesto: 2 items válidos leídos.
+Error procesando insumos.csv: 'CODIGO'
+Insumos: 0 items únicos leídos.
+APUs: 2 insumos de APU leídos.
+F
+======================================================================
+FAIL: test_process_all_files_structure_and_calculations (__main__.TestCSVProcessor.test_process_all_files_structure_and_calculations)
+Prueba la función orquestadora `process_all_files`, verificando tanto
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/gerardomayor/Documents/estru_techos/apu_filter/test_app.py", line 79, in test_process_all_files_structure_and_calculations
+    self.assertNotIn("error", resultado)
+AssertionError: 'error' unexpectedly found in {'error': 'Uno o más archivos no pudieron ser procesados o están vacíos.'}
+
+----------------------------------------------------------------------
+Ran 1 test in 0.112s
+
+FAILED (failures=1)

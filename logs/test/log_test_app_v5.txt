@@ -1,0 +1,24 @@
+--- Iniciando procesamiento ---
+/Users/gerardomayor/Documents/estru_techos/apu_filter/procesador_csv.py:122: FutureWarning: A value is trying to be set on a copy of a DataFrame or Series through chained assignment using an inplace method.
+The behavior will change in pandas 3.0. This inplace method will never work because the intermediate object on which we are setting values always behaves as a copy.
+
+For example, when doing 'df[col].method(value, inplace=True)', try using 'df.method({col: value}, inplace=True)' or df[col] = df[col].method(value) instead, to perform the operation inplace on the original object.
+
+
+  df["GRUPO_INSUMO"].ffill(inplace=True)
+Diagnóstico: 2 de 2 ítems del presupuesto encontraron su costo.
+--- Procesamiento completado ---
+F
+======================================================================
+FAIL: test_process_all_files_structure_and_calculations (__main__.TestCSVProcessor.test_process_all_files_structure_and_calculations)
+Prueba la función orquestadora `process_all_files`, verificando tanto
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/gerardomayor/Documents/estru_techos/apu_filter/test_app.py", line 95, in test_process_all_files_structure_and_calculations
+    self.assertAlmostEqual(item1["Valor Total"], 1550.0)
+AssertionError: 1050.0 != 1550.0 within 7 places (500.0 difference)
+
+----------------------------------------------------------------------
+Ran 1 test in 0.299s
+
+FAILED (failures=1)

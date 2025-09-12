@@ -1,0 +1,11 @@
+E501 Line too long (112 > 88)
+   --> procesador_csv.py:165:89
+    |
+163 |     if unmatched_count > 0:
+164 |         print(
+165 |             f"ADVERTENCIA: No se encontró precio para {unmatched_count} de {len(df_merged)} insumos en los APU."
+    |                                                                                         ^^^^^^^^^^^^^^^^^^^^^^^^
+166 |         )
+    |
+
+Found 1 error.
