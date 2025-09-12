@@ -277,9 +277,9 @@ def process_all_files(presupuesto_path, apus_path, insumos_path):
         mask_no_price, "VALOR_TOTAL_APU"
     ]
     df_merged.loc[mask_no_price, "CANTIDAD_APU"] = 1
-    df_merged["COSTO_INSUMO_EN_APU"] = (
-        df_merged["CANTIDAD_APU"] * df_merged["VR_UNITARIO_FINAL"].fillna(0)
-    )
+    df_merged["COSTO_INSUMO_EN_APU"] = df_merged["CANTIDAD_APU"] * df_merged[
+        "VR_UNITARIO_FINAL"
+    ].fillna(0)
 
     df_apu_costos_categoria = (
         df_merged.groupby(["CODIGO_APU", "CATEGORIA"])["COSTO_INSUMO_EN_APU"]
