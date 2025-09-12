@@ -30,15 +30,15 @@ class TestCSVProcessor(unittest.TestCase):
         self.apus_data = (
             "REMATE CON PINTURA;;;;;ITEM:   1,1\n"
             "MATERIALES;;;;;\n"
-            "Tornillo de Acero;UND; 10,0;;\n"
+            "Tornillo de Acero;UND;10,0;;10,50;105,00\n"
             "MANO DE OBRA;;;;;\n"
-            "Mano de Obra Especializada;HR; 2,5;;\n"
+            "Mano de Obra Especializada;HR;2,5;;20,00;50,00\n"
             ";;;;\n"
             "REMATE DE ACERO;;;;;ITEM:   1,2\n"
             "MATERIALES;;;;;\n"
-            "Pintura Anticorrosiva;GL; 5,0;;\n"
+            "Pintura Anticorrosiva;GL;5,0;;5,00;25,00\n"
             "MANO DE OBRA;;;;;\n"
-            "Mano de Obra Especializada;HR; 10,0;;\n"
+            "Mano de Obra Especializada;HR;10,0;;20,00;200,00\n"
         )
         with open("test_apus.csv", "w", encoding="latin1") as f:
             f.write(self.apus_data)
@@ -88,18 +88,26 @@ class TestCSVProcessor(unittest.TestCase):
         self.assertEqual(len(presupuesto_procesado), 2)
 
         # APU 1,1: (10 tornillos * $10.50) + (2.5 horas * $20.00) = 105 + 50 = $155
-        # Valor Total Presupuesto 1,1: 10 ML * $155 = $1550
         item1 = next(
-            item for item in presupuesto_procesado if item["Código APU"] == "1,1"
+            (item for item in presupuesto_procesado if item["CODIGO_APU"] == "1,1"),
+            None,
         )
-        self.assertAlmostEqual(item1["Valor Total"], 1550.0)
+        self.assertIsNotNone(item1)
+        self.assertAlmostEqual(item1["VALOR_CONSTRUCCION_UN"], 155.0)
+        self.assertAlmostEqual(item1["VALOR_SUMINISTRO_UN"], 105.0)
+        self.assertAlmostEqual(item1["VALOR_INSTALACION_UN"], 50.0)
+        self.assertAlmostEqual(item1["TIEMPO_INSTALACION"], 2.5)
 
         # APU 1,2: (5 galones * $5.00) + (10 horas * $20.00) = 25 + 200 = $225
-        # Valor Total Presupuesto 1,2: 20 M2 * $225 = $4500
         item2 = next(
-            item for item in presupuesto_procesado if item["Código APU"] == "1,2"
+            (item for item in presupuesto_procesado if item["CODIGO_APU"] == "1,2"),
+            None,
         )
-        self.assertAlmostEqual(item2["Valor Total"], 4500.0)
+        self.assertIsNotNone(item2)
+        self.assertAlmostEqual(item2["VALOR_CONSTRUCCION_UN"], 225.0)
+        self.assertAlmostEqual(item2["VALOR_SUMINISTRO_UN"], 25.0)
+        self.assertAlmostEqual(item2["VALOR_INSTALACION_UN"], 200.0)
+        self.assertAlmostEqual(item2["TIEMPO_INSTALACION"], 10.0)
 
         # 4. Validar la estructura de la clave "insumos"
         insumos_procesados = resultado["insumos"]
