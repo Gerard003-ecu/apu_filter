@@ -3,8 +3,8 @@ import os
 from flask import Flask, jsonify, render_template, request
 from werkzeug.utils import secure_filename
 
-# Importamos la nueva función orquestadora del procesador
-from procesador_csv import process_all_files
+# Importamos la nueva función orquestadora y la de estimación
+from procesador_csv import calculate_estimate, process_all_files
 
 app = Flask(__name__)
 
@@ -126,6 +126,37 @@ def get_apu_detail(code):
     }
 
     return jsonify(response)
+
+
+@app.route("/api/estimate", methods=["POST"])
+def get_estimate():
+    """
+    Endpoint para el 'Estimador Rápido'. Recibe los parámetros del formulario,
+    llama a la lógica de cálculo y devuelve una estimación de costos.
+    """
+    global processed_data_store
+    if not processed_data_store:
+        return jsonify({"error": "Los datos no han sido cargados y procesados todavía."}), 400
+
+    params = request.get_json()
+    if not params:
+        return jsonify({"error": "No se proporcionaron parámetros en la solicitud."}), 400
+
+    # Llama a la nueva función de cálculo que estará en procesador_csv.py
+    # Pasamos los datos completos que tenemos en memoria
+    try:
+        # Pasamos la tienda de datos completa para que la función de cálculo
+        # tenga acceso a todo lo que necesite (presupuesto, apus, insumos).
+        result = calculate_estimate(params, processed_data_store)
+
+        if "error" in result:
+             return jsonify(result), 404
+
+        return jsonify(result)
+    except Exception as e:
+        # Capturamos cualquier error inesperado durante el cálculo
+        print(f"Error en get_estimate: {e}")
+        return jsonify({"error": f"Ocurrió un error interno al calcular la estimación: {e}"}), 500
 
 
 if __name__ == "__main__":

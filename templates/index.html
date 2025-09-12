@@ -55,6 +55,7 @@
                 <nav class="-mb-px flex space-x-6" aria-label="Tabs">
                     <button onclick="switchTab('simulador')" id="tab-simulador" class="tab-active whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">Simulador de Costos</button>
                     <button onclick="switchTab('organizador')" id="tab-organizador" class="tab-inactive text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">Organizador y Resúmenes</button>
+                    <button onclick="switchTab('estimador')" id="tab-estimador" class="tab-inactive text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">Estimador Rápido</button>
                 </nav>
             </div>
 
@@ -130,6 +131,97 @@
                     <div id="summary-material" class="summary-card bg-white p-6 rounded-xl shadow-md"></div>
                 </div>
             </div>
+
+            <div id="content-estimador" class="tab-content hidden">
+                <div class="bg-white p-6 rounded-xl shadow-md">
+                    <h2 class="text-2xl font-semibold">Estimador Rápido de Costos</h2>
+                    <p class="text-sm text-gray-500 mb-6">Selecciona los parámetros para obtener una estimación de costos por m² en tiempo real.</p>
+
+                    <div id="estimator-tool">
+                        <!-- Parámetros de Entrada -->
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-4 border-t pt-6">
+                            <div>
+                                <label for="est-tipo" class="block text-sm font-medium text-gray-700">Tipo de Trabajo</label>
+                                <select id="est-tipo" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2">
+                                    <option>CUBIERTA</option>
+                                    <option>FACHADA</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="est-material" class="block text-sm font-medium text-gray-700">Material a Instalar</label>
+                                <select id="est-material" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2">
+                                    <option>TST</option>
+                                    <option>PANEL SANDWICH</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="est-cuadrilla" class="block text-sm font-medium text-gray-700">Cuadrilla de</label>
+                                <select id="est-cuadrilla" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2">
+                                    <option>3</option>
+                                    <option>4</option>
+                                    <option selected>5</option>
+                                    <option>7</option>
+                                    <option>9</option>
+                                </select>
+                            </div>
+                             <div>
+                                <label for="est-m2" class="block text-sm font-medium text-gray-700">Cantidad (m²)</label>
+                                <input type="number" id="est-m2" value="1" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2">
+                            </div>
+                            <div>
+                                <label for="est-zona" class="block text-sm font-medium text-gray-700">Zona</label>
+                                <select id="est-zona" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2">
+                                    <option>ZONA 0</option>
+                                    <option>ZONA 1</option>
+                                    <option>ZONA 2</option>
+                                    <option>ZONA 3</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="est-izaje" class="block text-sm font-medium text-gray-700">Izaje</label>
+                                <select id="est-izaje" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2">
+                                    <option>MANUAL</option>
+                                    <option>GRUA</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="est-seguridad" class="block text-sm font-medium text-gray-700">Exigencia Seguridad</label>
+                                <select id="est-seguridad" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2">
+                                    <option>NORMAL</option>
+                                    <option>ALTA</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Resultados de la Estimación -->
+                        <div class="mt-8 border-t pt-6">
+                            <h3 class="text-lg font-semibold text-gray-800">Resultados de la Estimación</h3>
+                            <div id="estimator-results" class="mt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                                <div class="bg-gray-50 p-4 rounded-lg">
+                                    <p class="text-sm text-gray-600">Valor m² Suministro (+AIU)</p>
+                                    <p id="est-res-suministro" class="text-xl font-bold text-gray-800">$0</p>
+                                </div>
+                                <div class="bg-gray-50 p-4 rounded-lg">
+                                    <p class="text-sm text-gray-600">Valor m² Instalación (+AIU)</p>
+                                    <p id="est-res-instalacion" class="text-xl font-bold text-gray-800">$0</p>
+                                </div>
+                                <div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                                    <p class="text-sm text-blue-700">Valor m² Construcción (+AIU)</p>
+                                    <p id="est-res-construccion" class="text-2xl font-bold text-blue-800">$0</p>
+                                </div>
+                                <div class="bg-gray-50 p-4 rounded-lg">
+                                    <p class="text-sm text-gray-600">Tiempo Instalación (días/m²)</p>
+                                    <p id="est-res-tiempo" class="text-xl font-bold text-gray-800">0.00</p>
+                                </div>
+                            </div>
+                            <div id="estimator-log-container" class="mt-4 hidden">
+                                <p class="text-xs text-gray-500">Log de cálculo:</p>
+                                <pre id="estimator-log" class="bg-gray-100 p-2 rounded-md text-xs text-gray-600 max-h-32 overflow-y-auto"></pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </main>
 
         <div id="status" class="text-center p-4"></div>
@@ -203,8 +295,15 @@
             ['admin_percent', 'imprev_percent', 'util_percent'].forEach(id => {
                 document.getElementById(id).addEventListener('input', updateAllCalculations);
             });
+
+            // Añadir listeners para el nuevo estimador
+            const estimatorInputs = ['est-tipo', 'est-material', 'est-cuadrilla', 'est-m2', 'est-zona', 'est-izaje', 'est-seguridad'];
+            estimatorInputs.forEach(id => {
+                document.getElementById(id).addEventListener('input', updateEstimate);
+            });
             
             updateAllCalculations();
+            updateEstimate(); // Llamada inicial para poblar el estimador
 
         } catch (error) {
             showStatus(`Error en el procesamiento: ${error.message}`, true);
@@ -221,6 +320,67 @@
         updateSimulatorTable();
         updateOrganizerTable();
         updateSummaries();
+        if (Object.keys(rawData).length > 0) {
+            updateEstimate();
+        }
+    }
+
+    async function updateEstimate() {
+        if (Object.keys(rawData).length === 0) {
+            // Aún no se han cargado los datos, no hacer nada.
+            return;
+        }
+
+        const params = {
+            tipo: document.getElementById('est-tipo').value,
+            material: document.getElementById('est-material').value,
+            cuadrilla: document.getElementById('est-cuadrilla').value,
+            m2: parseFloat(document.getElementById('est-m2').value) || 1,
+            zona: document.getElementById('est-zona').value,
+            izaje: document.getElementById('est-izaje').value,
+            seguridad: document.getElementById('est-seguridad').value,
+        };
+
+        const logContainer = document.getElementById('estimator-log-container');
+        const logEl = document.getElementById('estimator-log');
+        logEl.textContent = 'Calculando...';
+        logContainer.classList.remove('hidden');
+
+        try {
+            const response = await fetch('/api/estimate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(params)
+            });
+
+            const result = await response.json();
+            logEl.textContent = result.log || 'No se recibió log del servidor.';
+
+            if (result.error) {
+                logEl.textContent += `\nERROR: ${result.error}`;
+                return;
+            }
+
+            const aiuFactor = 1 + (getAiuPercentages().total / 100);
+            const m2 = params.m2 > 0 ? params.m2 : 1;
+
+            const valorSuministro = result.valor_suministro || 0;
+            const valorInstalacion = result.valor_instalacion || 0;
+            const tiempoInstalacion = result.tiempo_instalacion || 0;
+
+            const valorSuministroAIU = valorSuministro * aiuFactor;
+            const valorInstalacionAIU = valorInstalacion * aiuFactor;
+            const valorConstruccionAIU = (valorSuministro + valorInstalacion) * aiuFactor;
+
+            document.getElementById('est-res-suministro').textContent = formatCurrency(valorSuministroAIU);
+            document.getElementById('est-res-instalacion').textContent = formatCurrency(valorInstalacionAIU);
+            document.getElementById('est-res-construccion').textContent = formatCurrency(valorConstruccionAIU);
+            // El tiempo es por m2, no se multiplica por la cantidad.
+            document.getElementById('est-res-tiempo').textContent = `${tiempoInstalacion.toFixed(4)}`;
+
+        } catch (error) {
+            logEl.textContent = `Error de red o de servidor: ${error.message}`;
+        }
     }
     
     function updateSimulatorTable() {
