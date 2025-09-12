@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>APU Filter | Inteligencia de Costos para Construcción</title>
+    <style>
+        /* --- Estilos Generales --- */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            color: #333;
+            background-color: #f8f9fa;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        section {
+            padding: 60px 0;
+        }
+        h1, h2, h3 {
+            color: #1e3a8a; /* Azul oscuro */
+        }
+        h2 {
+            text-align: center;
+            font-size: 2.5em;
+            margin-bottom: 40px;
+        }
+
+        /* --- Header y Navegación --- */
+        .header {
+            background-color: #fff;
+            padding: 15px 0;
+            border-bottom: 1px solid #e0e0e0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        .header .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #1e3a8a;
+        }
+        .nav a {
+            margin-left: 20px;
+            text-decoration: none;
+            color: #555;
+            font-weight: 500;
+        }
+
+        /* --- Botones (Call to Action) --- */
+        .btn {
+            display: inline-block;
+            padding: 12px 25px;
+            background-color: #2563eb; /* Azul brillante */
+            color: #fff;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+        }
+        .btn:hover {
+            background-color: #1d4ed8; /* Azul más oscuro */
+        }
+        .btn-secondary {
+            background-color: transparent;
+            color: #2563eb;
+            border: 2px solid #2563eb;
+        }
+        .btn-secondary:hover {
+            background-color: #2563eb;
+            color: #fff;
+        }
+
+        /* --- Sección Hero --- */
+        .hero {
+            background-color: #eef2ff;
+            text-align: center;
+            padding: 80px 0;
+        }
+        .hero h1 {
+            font-size: 3.5em;
+            margin-bottom: 10px;
+            line-height: 1.2;
+        }
+        .hero p {
+            font-size: 1.2em;
+            color: #555;
+            max-width: 700px;
+            margin: 0 auto 30px auto;
+        }
+
+        /* --- Sección de Valor --- */
+        .value-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+        }
+        .value-card {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            border-top: 4px solid #2563eb;
+        }
+        .value-card h3 {
+            font-size: 1.5em;
+            margin-top: 0;
+        }
+
+        /* --- Sección de Características --- */
+        #features {
+            background-color: #fff;
+        }
+        .feature-card {
+            text-align: center;
+        }
+        .feature-card .icon {
+            font-size: 3em;
+            color: #2563eb;
+        }
+
+        /* --- Sección de Precios --- */
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            align-items: center;
+        }
+        .pricing-card {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            text-align: center;
+            border: 1px solid #e0e0e0;
+        }
+        .pricing-card.recommended {
+            border: 2px solid #2563eb;
+            transform: scale(1.05);
+        }
+        .pricing-card h3 {
+            font-size: 1.6em;
+        }
+        .price {
+            font-size: 3em;
+            font-weight: bold;
+            color: #1e3a8a;
+            margin: 10px 0;
+        }
+        .price span {
+            font-size: 0.4em;
+            font-weight: normal;
+            color: #555;
+        }
+        .pricing-card ul {
+            list-style: none;
+            padding: 0;
+            margin: 30px 0;
+            text-align: left;
+        }
+        .pricing-card li {
+            margin-bottom: 10px;
+            padding-left: 25px;
+            position: relative;
+        }
+        .pricing-card li::before {
+            content: '✓';
+            color: #16a34a; /* Verde */
+            position: absolute;
+            left: 0;
+            font-weight: bold;
+        }
+
+        /* --- Footer --- */
+        .footer {
+            background-color: #1e3a8a;
+            color: #fff;
+            text-align: center;
+            padding: 40px 0;
+        }
+        .footer p {
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+
+    <header class="header">
+        <div class="container">
+            <div class="logo">APU Filter</div>
+            <nav class="nav">
+                <a href="#value">Valor</a>
+                <a href="#features">Características</a>
+                <a href="#pricing">Precios</a>
+            </nav>
+        </div>
+    </header>
+
+    <section class="hero">
+        <div class="container">
+            <h1>De Horas a Segundos: Inteligencia de Costos para Construcción</h1>
+            <p>APU Filter es la plataforma de análisis y simulación diseñada para convertir los complejos reportes de SAGUT en decisiones de negocio estratégicas y precisas.</p>
+            <a href="mailto:ventas@apu-filter.com" class="btn">Solicitar una Demostración</a>
+        </div>
+    </section>
+
+    <section id="value" class="container">
+        <h2>La Ventaja Competitiva que su Empresa Necesita</h2>
+        <div class="value-grid">
+            <div class="value-card">
+                <h3>Ahorro Radical de Tiempo y Máxima Precisión</h3>
+                <p>Elimine los errores manuales y reduzca el tiempo de procesamiento de reportes en más de un 90%. Lo que antes tomaba horas de ingeniería, ahora se resuelve en segundos, liberando a su equipo para que se enfoque en tareas de mayor valor.</p>
+            </div>
+            <div class="value-card">
+                <h3>Decisiones Estratégicas Basadas en Datos</h3>
+                <p>Con nuestro Simulador de Costos (AIU) y el Estimador Rápido, puede analizar el impacto de los indirectos en la rentabilidad y cotizar nuevos proyectos con una confianza y velocidad sin precedentes. Gane más licitaciones con ofertas rápidas y bien fundamentadas.</p>
+            </div>
+            <div class="value-card">
+                <h3>Centralización y Consistencia Total</h3>
+                <p>Diga adiós a las frágiles macros de Excel dispersas. APU Filter centraliza toda su lógica de negocio en una única fuente de verdad, garantizando que cada miembro del equipo trabaje con las mismas reglas de cálculo y los datos más actualizados.</p>
+            </div>
+        </div>
+    </section>
+
+    <section id="features" class="features">
+        <div class="container">
+            <h2>Características Principales</h2>
+            <div class="value-grid">
+                <div class="feature-card">
+                    <div class="icon">⚙️</div>
+                    <h3>Procesador Inteligente</h3>
+                    <p>Carga y procesa automáticamente los reportes de Presupuesto, APUs e Insumos de SAGUT, consolidando toda la información al instante.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">🎛️</div>
+                    <h3>Simulador de Costos (AIU)</h3>
+                    <p>Ajuste los porcentajes de Administración, Imprevistos y Utilidad y vea cómo impactan el costo total del proyecto en tiempo real.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">⚡</div>
+                    <h3>Estimador Rápido</h3>
+                    <p>Genere estimaciones de costo por m² para nuevos proyectos seleccionando parámetros clave como tipo de trabajo, cuadrilla e izaje.</p>
+                </div>
+                 <div class="feature-card">
+                    <div class="icon">📊</div>
+                    <h3>Organizador y Resúmenes</h3>
+                    <p>Clasifique los ítems del presupuesto por zona, material o tipo, y obtenga resúmenes de costos automáticos para un análisis gerencial profundo.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="pricing">
+        <div class="container">
+            <h2>Planes Flexibles para su Empresa</h2>
+            <div class="pricing-grid">
+                <div class="pricing-card">
+                    <h3>Profesional</h3>
+                    <p>Ideal para analistas y equipos pequeños.</p>
+                    <div class="price">$150 <span>USD / mes</span></div>
+                    <ul>
+                        <li>Hasta 3 usuarios</li>
+                        <li>Procesador de Reportes SAGUT</li>
+                        <li>Simulador de Costos (AIU)</li>
+                        <li>Organizador y Resúmenes</li>
+                        <li>Estimador Rápido de Proyectos</li>
+                        <li>Soporte por correo electrónico</li>
+                    </ul>
+                    <a href="mailto:ventas@apu-filter.com?subject=Interesado en el Plan Profesional" class="btn btn-secondary">Seleccionar Plan</a>
+                </div>
+                <div class="pricing-card recommended">
+                    <h3>Business</h3>
+                    <p>La solución completa para equipos en crecimiento.</p>
+                    <div class="price">$400 <span>USD / mes</span></div>
+                    <ul>
+                        <li>Hasta 10 usuarios</li>
+                        <li><b>Todo lo del plan Profesional, más:</b></li>
+                        <li>Dashboard Gerencial con históricos</li>
+                        <li>Gestión de Usuarios y Permisos</li>
+                        <li>Exportación a PDF/Excel con logo</li>
+                        <li>Soporte prioritario</li>
+                        <li>2 sesiones de capacitación al año</li>
+                    </ul>
+                    <a href="mailto:ventas@apu-filter.com?subject=Interesado en el Plan Business" class="btn">Seleccionar Plan</a>
+                </div>
+                <div class="pricing-card">
+                    <h3>Enterprise</h3>
+                    <p>Para grandes corporaciones y necesidades a medida.</p>
+                    <div class="price">Personalizado</div>
+                    <ul>
+                        <li>Usuarios ilimitados</li>
+                        <li><b>Todo lo del plan Business, más:</b></li>
+                        <li>Integración con ERP/Sistemas contables (API)</li>
+                        <li>Opción de instalación On-Premise</li>
+                        <li>Soporte técnico dedicado</li>
+                        <li>Consultoría y desarrollo a medida</li>
+                    </ul>
+                    <a href="mailto:ventas@apu-filter.com?subject=Interesado en el Plan Enterprise" class="btn btn-secondary">Contactar Ventas</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <h2>¿Listo para optimizar sus presupuestos?</h2>
+            <p>Contáctenos hoy para una demostración personalizada y descubra cómo APU Filter puede transformar su flujo de trabajo.</p>
+            <br>
+            <a href="mailto:ventas@apu-filter.com" class="btn">Solicitar Demostración</a>
+            <p style="margin-top: 30px; font-size: 0.9em; opacity: 0.7;">&copy; 2025 APU Filter. Todos los derechos reservados.</p>
+        </div>
+    </footer>
+
+</body>
+</html>
