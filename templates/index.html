@@ -229,30 +229,73 @@
         const tableBody = document.getElementById('presupuesto-table-body');
         tableBody.innerHTML = '';
 
-        budgetData.forEach(item => {
-            const valorSuministroAIU = (item.VALOR_SUMINISTRO_UN || 0) * aiuFactor;
-            const valorInstalacionAIU = (item.VALOR_INSTALACION_UN || 0) * aiuFactor;
-            const valorConstruccionAIU = (item.VALOR_CONSTRUCCION_UN || 0) * aiuFactor;
-            totalConsolidado += valorConstruccionAIU * (item.CANTIDAD_PRESUPUESTO || 0);
-            
-            const tiempoInstalacion = item.TIEMPO_INSTALACION;
-            const tiempoFormateado = (tiempoInstalacion !== null && typeof tiempoInstalacion !== 'undefined' && !isNaN(tiempoInstalacion))
-                ? `${parseFloat(tiempoInstalacion).toFixed(4)} Días/Un.`
-                : 'N/A';
+        // Agrupar datos por la nueva clave 'grupo'
+        const groupedData = budgetData.reduce((acc, item) => {
+            const group = item.grupo || 'Ítems Varios';
+            if (!acc[group]) {
+                acc[group] = [];
+            }
+            acc[group].push(item);
+            return acc;
+        }, {});
 
-            const row = document.createElement('tr');
-            row.className = 'hover:bg-gray-50 cursor-pointer';
-            row.onclick = () => openModal(item['Código APU']);
-            row.innerHTML = `
-                <td class="px-4 py-4 text-sm font-medium text-gray-900">${item['Código APU']}</td>
-                <td class="px-4 py-4 text-sm text-gray-500">${item.DESCRIPCION_APU}</td>
-                <td class="px-4 py-4 text-sm text-gray-500">${formatCurrency(valorSuministroAIU)}</td>
-                <td class="px-4 py-4 text-sm text-gray-500">${formatCurrency(valorInstalacionAIU)}</td>
-                <td class="px-4 py-4 text-sm font-semibold text-gray-700">${formatCurrency(valorConstruccionAIU)}</td>
-                <td class="px-4 py-4 text-sm text-gray-500">${tiempoFormateado}</td>
-            `;
-            tableBody.appendChild(row);
+        // Ordenar los grupos, poniendo "Ítems Varios" al final
+        const sortedGroups = Object.keys(groupedData).sort((a, b) => {
+            if (a === 'Ítems Varios') return 1;
+            if (b === 'Ítems Varios') return -1;
+            return a.localeCompare(b);
         });
+
+        for (const groupName of sortedGroups) {
+            const items = groupedData[groupName];
+            const groupId = `group-${groupName.replace(/[^a-zA-Z0-9]/g, '-')}`;
+
+            // Crear la fila de cabecera del grupo
+            const groupHeaderRow = document.createElement('tr');
+            groupHeaderRow.className = 'bg-blue-100 hover:bg-blue-200 cursor-pointer';
+            groupHeaderRow.onclick = () => {
+                document.querySelectorAll(`.${groupId}-item`).forEach(row => {
+                    row.classList.toggle('hidden');
+                });
+            };
+            groupHeaderRow.innerHTML = `
+                <td colspan="2" class="px-4 py-3 text-sm font-bold text-blue-800">
+                    ${groupName} (${items.length} ítems)
+                </td>
+                <td colspan="4"></td>
+            `;
+            tableBody.appendChild(groupHeaderRow);
+
+            // Crear las filas de ítems para este grupo
+            items.forEach(item => {
+                const valorSuministroAIU = (item.VALOR_SUMINISTRO_UN || 0) * aiuFactor;
+                const valorInstalacionAIU = (item.VALOR_INSTALACION_UN || 0) * aiuFactor;
+                const valorConstruccionAIU = (item.VALOR_CONSTRUCCION_UN || 0) * aiuFactor;
+                totalConsolidado += valorConstruccionAIU * (item.CANTIDAD_PRESUPUESTO || 0);
+
+                const tiempoInstalacion = item.TIEMPO_INSTALACION;
+                const tiempoFormateado = (tiempoInstalacion !== null && !isNaN(tiempoInstalacion))
+                    ? `${parseFloat(tiempoInstalacion).toFixed(4)} Días/Un.`
+                    : 'N/A';
+
+                const itemRow = document.createElement('tr');
+                itemRow.className = `hidden ${groupId}-item hover:bg-gray-50 cursor-pointer`;
+                itemRow.onclick = (e) => {
+                    e.stopPropagation();
+                    openModal(item.CODIGO_APU);
+                };
+                itemRow.innerHTML = `
+                    <td class="px-4 py-4 text-sm font-medium text-gray-900">${item.CODIGO_APU}</td>
+                    <td class="px-4 py-4 text-sm text-gray-500">${item.DESCRIPCION_APU}</td>
+                    <td class="px-4 py-4 text-sm text-gray-500">${formatCurrency(valorSuministroAIU)}</td>
+                    <td class="px-4 py-4 text-sm text-gray-500">${formatCurrency(valorInstalacionAIU)}</td>
+                    <td class="px-4 py-4 text-sm font-semibold text-gray-700">${formatCurrency(valorConstruccionAIU)}</td>
+                    <td class="px-4 py-4 text-sm text-gray-500">${tiempoFormateado}</td>
+                `;
+                tableBody.appendChild(itemRow);
+            });
+        }
+
         document.getElementById('total-cost').textContent = formatCurrency(totalConsolidado);
     }
 
