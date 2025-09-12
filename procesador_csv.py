@@ -254,6 +254,37 @@ def process_apus_csv(path):
         return pd.DataFrame()
 
 
+def group_and_split_description(df):
+    """
+    Agrupa las descripciones y las divide en una parte común (grupo) y una variable.
+    Utiliza regex para una división más robusta.
+    """
+    if "DESCRIPCION_APU" not in df.columns:
+        df["grupo"] = "Indefinido"
+        return df
+
+    def split_logic(desc):
+        # Busca el patrón "TEXTO ... TEXTO". Captura ambos lados.
+        match = re.match(r"^(.*?)\s*\.{3,}\s*(.*)$", desc)
+        if match and match.group(2):  # Asegurarse de que la parte variable no esté vacía
+            # El grupo es la parte antes de '...', la descripción es la parte después.
+            return match.group(1).strip(), match.group(2).strip()
+
+        # Fallback: si no hay patrón o la parte variable está vacía, el ítem no se agrupa.
+        return "Ítems Varios", desc
+
+    # Aplica la lógica para crear las columnas 'grupo' y 'descripcion_corta'
+    df[["grupo", "descripcion_corta"]] = df["DESCRIPCION_APU"].apply(
+        lambda x: pd.Series(split_logic(x))
+    )
+
+    # La descripción a mostrar será la parte corta/variable.
+    df["DESCRIPCION_APU"] = df["descripcion_corta"]
+    df.drop(columns=["descripcion_corta"], inplace=True)
+
+    return df
+
+
 def process_all_files(presupuesto_path, apus_path, insumos_path):
     """Orquesta el procesamiento y devuelve un diccionario de DataFrames."""
     print("--- Iniciando procesamiento ---")
@@ -326,6 +357,9 @@ def process_all_files(presupuesto_path, apus_path, insumos_path):
             df_final[col] = df_final[col].fillna(0)
         else:
             df_final[col] = 0
+
+    # Agrupa las descripciones antes de enviar los datos
+    df_final = group_and_split_description(df_final)
 
     print(
         f"Diagnóstico: {df_final['VALOR_CONSTRUCCION_UN'].notna().sum()}"
