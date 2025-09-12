@@ -1,0 +1,6 @@
+Traceback (most recent call last):
+  File "/Users/gerardomayor/Documents/estru_techos/apu_filter/test_app.py", line 5, in <module>
+    from procesador_csv import process_all_files
+  File "/Users/gerardomayor/Documents/estru_techos/apu_filter/procesador_csv.py", line 5, in <module>
+    from unidecode import unidecode
+ModuleNotFoundError: No module named 'unidecode'
