@@ -481,16 +481,22 @@ def calculate_estimate(params, data_store):
         desc_lower = item.get("DESCRIPCION_APU", "").lower()
         # Usamos 'all' para asegurar que todos los términos de búsqueda estén presentes
         if all(term in desc_lower for term in search_terms):
-            # Priorizar APUs que contengan 'mano de obra' para evitar elegir un APU de suministro
+            # APUs que contengan 'mano de obra' para evitar elegir un APU de suministro
             if "mano de obra" in desc_lower:
                 apu_mo_code = item.get("CODIGO_APU")
                 apu_mo_desc = item.get("DESCRIPCION_APU")
-                log.append(f"APU de M.O. encontrado: {apu_mo_desc} (Código: {apu_mo_code})")
+                log.append(
+                    f"APU de M.O. encontrado: {apu_mo_desc} (Código: {apu_mo_code})"
+                )
                 break
 
     if not apu_mo_code:
         log.append(f"Error: No se encontró APU para los términos: {search_terms}")
-        return {"error": f"No se encontró un APU de mano de obra que coincida con los criterios: {params}", "log": log}
+        return {
+            "error": f"No se encontró un APU de mano de obra"
+                     f" que coincida con los criterios: {params}",
+            "log": log,
+        }
 
     # --- 3. Calcular costos y tiempo base del APU encontrado ---
     costos_base = {"MATERIALES": 0, "MANO DE OBRA": 0, "EQUIPO": 0, "OTROS": 0}
@@ -509,7 +515,10 @@ def calculate_estimate(params, data_store):
 
     valor_suministro = costos_base["MATERIALES"]
     valor_instalacion = costos_base["MANO DE OBRA"] + costos_base["EQUIPO"]
-    log.append(f"Costos base calculados: Suministro=${valor_suministro:,.0f}, Instalación=${valor_instalacion:,.0f}")
+    log.append(
+        f"Costos base calculados:"
+        f" Suministro=${valor_suministro:,.0f}, Instalación=${valor_instalacion:,.0f}"
+    )
     log.append(f"Tiempo base de instalación: {tiempo_instalacion:.4f} días/un")
 
     # --- 4. Aplicar Factores de Ajuste ---
@@ -525,22 +534,33 @@ def calculate_estimate(params, data_store):
                 costo_total_apu_grua = sum(d.get("Vr Total", 0) for d in detalle_grua)
                 # Asumimos que el APU de la grúa está definido por día
                 costo_grua_por_dia = costo_total_apu_grua
-                log.append(f"APU de Grúa encontrado. Costo por día: ${costo_grua_por_dia:,.0f}")
+                log.append(
+                    f"APU de Grúa encontrado. Costo por día: ${costo_grua_por_dia:,.0f}"
+                )
                 break
 
         if costo_grua_por_dia > 0:
             costo_adicional_grua = costo_grua_por_dia * tiempo_instalacion
             valor_instalacion += costo_adicional_grua
-            log.append(f"Costo adicional por grúa ({tiempo_instalacion:.4f} días): ${costo_adicional_grua:,.0f}")
+            log.append(
+                f"Costo adicional por grúa"
+                f" ({tiempo_instalacion:.4f} días): ${costo_adicional_grua:,.0f}"
+            )
         else:
-            log.append("ADVERTENCIA: Izaje por grúa seleccionado, pero no se encontró APU de grúa.")
+            log.append(
+                "ADVERTENCIA: Izaje por grúa seleccionado, no se encontró APU de grúa."
+            )
 
     # b) Ajuste por Exigencia de Seguridad
     if seguridad == "alta":
         costo_mo = costos_base["MANO DE OBRA"]
-        incremento_seguridad = costo_mo * 0.15  # 15% de incremento sobre la mano de obra
+        incremento_seguridad = (
+            costo_mo * 0.15
+        )  # 15% de incremento sobre la mano de obra
         valor_instalacion += incremento_seguridad
-        log.append(f"Incremento por seguridad alta (15% de M.O.): ${incremento_seguridad:,.0f}")
+        log.append(
+            f"Incremento por seguridad alta (15% de M.O.): ${incremento_seguridad:,.0f}"
+        )
 
     # c) Ajuste por Zona Geográfica
     zona_factor = {"zona 0": 1.0, "zona 1": 1.05, "zona 2": 1.10, "zona 3": 1.15}
@@ -549,15 +569,20 @@ def calculate_estimate(params, data_store):
         costo_original_instalacion = valor_instalacion
         valor_instalacion *= factor
         incremento_zona = valor_instalacion - costo_original_instalacion
-        log.append(f"Incremento por {zona} ({(factor-1)*100:.0f}%): ${incremento_zona:,.0f}")
+        log.append(
+            f"Incremento {zona} ({(factor - 1) * 100:.0f}%): ${incremento_zona:,.0f}"
+        )
 
     # --- 5. Devolver Resultados ---
-    log.append(f"Valores finales: Suministro=${valor_suministro:,.0f}, Instalación=${valor_instalacion:,.0f}")
+    log.append(
+        f"Valores finales: Suministro=${valor_suministro:,.0f},"
+        f" Instalación=${valor_instalacion:,.0f}"
+    )
 
     return {
         "valor_suministro": valor_suministro,
         "valor_instalacion": valor_instalacion,
         "tiempo_instalacion": tiempo_instalacion,
         "apu_encontrado": apu_mo_desc,
-        "log": "\n".join(log)
+        "log": "\n".join(log),
     }

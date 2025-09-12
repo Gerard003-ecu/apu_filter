@@ -136,11 +136,15 @@ def get_estimate():
     """
     global processed_data_store
     if not processed_data_store:
-        return jsonify({"error": "Los datos no han sido cargados y procesados todavía."}), 400
+        return jsonify(
+            {"error": "Los datos no han sido cargados y procesados todavía."}
+        ), 400
 
     params = request.get_json()
     if not params:
-        return jsonify({"error": "No se proporcionaron parámetros en la solicitud."}), 400
+        return jsonify(
+            {"error": "No se proporcionaron parámetros en la solicitud."}
+        ), 400
 
     # Llama a la nueva función de cálculo que estará en procesador_csv.py
     # Pasamos los datos completos que tenemos en memoria
@@ -150,13 +154,15 @@ def get_estimate():
         result = calculate_estimate(params, processed_data_store)
 
         if "error" in result:
-             return jsonify(result), 404
+            return jsonify(result), 404
 
         return jsonify(result)
     except Exception as e:
         # Capturamos cualquier error inesperado durante el cálculo
         print(f"Error en get_estimate: {e}")
-        return jsonify({"error": f"Ocurrió un error interno al calcular la estimación: {e}"}), 500
+        return jsonify(
+            {"error": f"Ocurrió un error interno al calcular la estimación: {e}"}
+        ), 500
 
 
 if __name__ == "__main__":
