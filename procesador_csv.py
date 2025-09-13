@@ -254,6 +254,10 @@ def process_apus_csv_v2(path: str) -> pd.DataFrame:
             if pd.notna(last_numeric_part):
                 valor_total = last_numeric_part
 
+        if (pd.isna(valor_total) or valor_total == 0) and pd.notna(cantidad) and pd.notna(precio_unit):
+            if cantidad > 0 and precio_unit > 0:
+                valor_total = cantidad * precio_unit
+
         if pd.isna(cantidad) and "%" in parts[2]:
             jornal_total = to_numeric_safe(parts[3])
             if pd.notna(valor_total) and pd.notna(jornal_total) and jornal_total > 0:
