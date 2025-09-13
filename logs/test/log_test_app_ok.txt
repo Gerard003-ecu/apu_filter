@@ -1,8 +1,0 @@
---- Iniciando procesamiento ---
-Diagnóstico: 2 de 2 ítems del presupuesto encontraron su costo.
---- Procesamiento completado ---
-.
-----------------------------------------------------------------------
-Ran 1 test in 0.227s
-
-OK

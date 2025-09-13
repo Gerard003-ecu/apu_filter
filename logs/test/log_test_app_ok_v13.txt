@@ -1,0 +1,40 @@
+.2025-09-13 17:31:21,094 - INFO - Cache miss.
+2025-09-13 17:31:21,095 - INFO - Procesando archivos: test_uploads/774abfcc-8329-4a45-980b-b19651e711eb/presupuesto_1757802681_presupuesto.csv, test_uploads/774abfcc-8329-4a45-980b-b19651e711eb/apus_1757802681_apus.csv, test_uploads/774abfcc-8329-4a45-980b-b19651e711eb/insumos_1757802681_insumos.csv
+2025-09-13 17:31:21,309 - INFO - Diagnóstico: 3 de 3 ítems del presupuesto encontraron su costo.
+2025-09-13 17:31:21,339 - INFO - --- Procesamiento completado ---
+2025-09-13 17:31:21,341 - INFO - Cache info: hits=0, misses=1, size=1
+.2025-09-13 17:31:21,357 - INFO - Cache miss.
+2025-09-13 17:31:21,358 - INFO - Procesando archivos: test_uploads/c3021e2d-4a72-410e-ba7a-00ad3b736fcd/presupuesto_1757802681_presupuesto.csv, test_uploads/c3021e2d-4a72-410e-ba7a-00ad3b736fcd/apus_1757802681_apus.csv, test_uploads/c3021e2d-4a72-410e-ba7a-00ad3b736fcd/insumos_1757802681_insumos.csv
+2025-09-13 17:31:21,445 - INFO - Diagnóstico: 3 de 3 ítems del presupuesto encontraron su costo.
+2025-09-13 17:31:21,486 - INFO - --- Procesamiento completado ---
+2025-09-13 17:31:21,489 - INFO - Cache info: hits=0, misses=2, size=2
+.2025-09-13 17:31:21,527 - INFO - Cache miss.
+2025-09-13 17:31:21,528 - INFO - Procesando archivos: test_presupuesto.csv, test_apus.csv, test_insumos.csv
+2025-09-13 17:31:21,668 - INFO - Diagnóstico: 3 de 3 ítems del presupuesto encontraron su costo.
+2025-09-13 17:31:21,698 - INFO - --- Procesamiento completado ---
+2025-09-13 17:31:21,703 - INFO - Cache info: hits=0, misses=1, size=1
+2025-09-13 17:31:21,704 - INFO - Cache info: hits=1, misses=1, size=1
+2025-09-13 17:31:21,704 - INFO - Caché limpiado forzosamente y procesando sin caché.
+2025-09-13 17:31:21,704 - INFO - Procesando archivos: test_presupuesto.csv, test_apus.csv, test_insumos.csv
+2025-09-13 17:31:21,845 - INFO - Diagnóstico: 3 de 3 ítems del presupuesto encontraron su costo.
+2025-09-13 17:31:21,910 - INFO - --- Procesamiento completado ---
+.2025-09-13 17:31:21,932 - INFO - Cache miss.
+2025-09-13 17:31:21,932 - INFO - Procesando archivos: test_presupuesto.csv, test_apus.csv, test_insumos.csv
+2025-09-13 17:31:22,020 - INFO - Diagnóstico: 3 de 3 ítems del presupuesto encontraron su costo.
+2025-09-13 17:31:22,046 - INFO - --- Procesamiento completado ---
+2025-09-13 17:31:22,057 - INFO - Cache info: hits=0, misses=1, size=1
+.2025-09-13 17:31:22,077 - INFO - Cache miss.
+2025-09-13 17:31:22,077 - INFO - Procesando archivos: test_presupuesto.csv, test_apus.csv, test_insumos.csv
+2025-09-13 17:31:22,170 - INFO - Diagnóstico: 3 de 3 ítems del presupuesto encontraron su costo.
+2025-09-13 17:31:22,189 - INFO - --- Procesamiento completado ---
+2025-09-13 17:31:22,193 - INFO - Cache info: hits=0, misses=1, size=1
+...2025-09-13 17:31:22,379 - WARNING - Error leyendo non_existent_file.csv con encoding latin1: [Errno 2] No such file or directory: 'non_existent_file.csv'
+2025-09-13 17:31:22,399 - WARNING - Error leyendo non_existent_file.csv con encoding utf-8: [Errno 2] No such file or directory: 'non_existent_file.csv'
+2025-09-13 17:31:22,402 - WARNING - Error leyendo non_existent_file.csv con encoding iso-8859-1: [Errno 2] No such file or directory: 'non_existent_file.csv'
+2025-09-13 17:31:22,429 - WARNING - Error leyendo non_existent_file.csv con encoding windows-1252: [Errno 2] No such file or directory: 'non_existent_file.csv'
+2025-09-13 17:31:22,432 - ERROR - No se pudo leer non_existent_file.csv con ningún encoding conocido
+.
+----------------------------------------------------------------------
+Ran 9 tests in 1.419s
+
+OK
