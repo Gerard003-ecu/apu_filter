@@ -1,0 +1,62 @@
+.EE2025-09-13 17:20:17,140 - INFO - Cache miss.
+2025-09-13 17:20:17,140 - INFO - Procesando archivos: test_presupuesto.csv, test_apus.csv, test_insumos.csv
+2025-09-13 17:20:17,391 - INFO - Diagnóstico: 3 de 3 ítems del presupuesto encontraron su costo.
+2025-09-13 17:20:17,427 - INFO - --- Procesamiento completado ---
+2025-09-13 17:20:17,442 - INFO - Cache info: hits=0, misses=1, size=1
+2025-09-13 17:20:17,443 - INFO - Cache info: hits=1, misses=1, size=1
+2025-09-13 17:20:17,443 - INFO - Caché limpiado forzosamente y procesando sin caché.
+2025-09-13 17:20:17,443 - INFO - Procesando archivos: test_presupuesto.csv, test_apus.csv, test_insumos.csv
+2025-09-13 17:20:17,549 - INFO - Diagnóstico: 3 de 3 ítems del presupuesto encontraron su costo.
+2025-09-13 17:20:17,654 - INFO - --- Procesamiento completado ---
+.2025-09-13 17:20:17,660 - INFO - Cache miss.
+2025-09-13 17:20:17,691 - INFO - Procesando archivos: test_presupuesto.csv, test_apus.csv, test_insumos.csv
+2025-09-13 17:20:17,816 - INFO - Diagnóstico: 3 de 3 ítems del presupuesto encontraron su costo.
+2025-09-13 17:20:17,854 - INFO - --- Procesamiento completado ---
+2025-09-13 17:20:17,857 - INFO - Cache info: hits=0, misses=1, size=1
+.2025-09-13 17:20:17,887 - INFO - Cache miss.
+2025-09-13 17:20:17,887 - INFO - Procesando archivos: test_presupuesto.csv, test_apus.csv, test_insumos.csv
+2025-09-13 17:20:17,959 - INFO - Diagnóstico: 3 de 3 ítems del presupuesto encontraron su costo.
+2025-09-13 17:20:18,004 - INFO - --- Procesamiento completado ---
+2025-09-13 17:20:18,033 - INFO - Cache info: hits=0, misses=1, size=1
+...2025-09-13 17:20:18,073 - WARNING - Error leyendo non_existent_file.csv con encoding latin1: [Errno 2] No such file or directory: 'non_existent_file.csv'
+2025-09-13 17:20:18,074 - WARNING - Error leyendo non_existent_file.csv con encoding utf-8: [Errno 2] No such file or directory: 'non_existent_file.csv'
+2025-09-13 17:20:18,075 - WARNING - Error leyendo non_existent_file.csv con encoding iso-8859-1: [Errno 2] No such file or directory: 'non_existent_file.csv'
+2025-09-13 17:20:18,083 - WARNING - Error leyendo non_existent_file.csv con encoding windows-1252: [Errno 2] No such file or directory: 'non_existent_file.csv'
+2025-09-13 17:20:18,083 - ERROR - No se pudo leer non_existent_file.csv con ningún encoding conocido
+.
+======================================================================
+ERROR: test_02_upload_success (__main__.TestAppEndpoints.test_02_upload_success)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/gerardomayor/Documents/estru_techos/apu_filter/test_app.py", line 209, in test_02_upload_success
+    "presupuesto.csv", TestCSVProcessor.presupuesto_data
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: type object 'TestCSVProcessor' has no attribute 'presupuesto_data'
+
+======================================================================
+ERROR: test_07_get_estimate_with_session (__main__.TestAppEndpoints.test_07_get_estimate_with_session)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/gerardomayor/.pyenv/versions/3.12.3/lib/python3.12/unittest/mock.py", line 1387, in patched
+    with self.decoration_helper(patched,
+  File "/Users/gerardomayor/.pyenv/versions/3.12.3/lib/python3.12/contextlib.py", line 137, in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+  File "/Users/gerardomayor/.pyenv/versions/3.12.3/lib/python3.12/unittest/mock.py", line 1369, in decoration_helper
+    arg = exit_stack.enter_context(patching)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/gerardomayor/.pyenv/versions/3.12.3/lib/python3.12/contextlib.py", line 526, in enter_context
+    result = _enter(cm)
+             ^^^^^^^^^^
+  File "/Users/gerardomayor/.pyenv/versions/3.12.3/lib/python3.12/unittest/mock.py", line 1512, in __enter__
+    new = Klass(**_kwargs)
+          ^^^^^^^^^^^^^^^^
+  File "/Users/gerardomayor/Documents/estru_techos/apu_filter/test_app.py", line 220, in <lambda>
+    @patch("procesador_csv.config", new_callable=lambda: TestCSVProcessor.test_config)
+                                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: type object 'TestCSVProcessor' has no attribute 'test_config'
+
+----------------------------------------------------------------------
+Ran 9 tests in 1.083s
+
+FAILED (errors=2)

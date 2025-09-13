@@ -11,9 +11,7 @@ import pandas as pd
 from unidecode import unidecode
 
 # Configurar logging
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 
@@ -157,19 +155,11 @@ def process_insumos_csv(path: str) -> pd.DataFrame:
                     header_found = True
                     header_columns = [p.strip() for p in line.split(";")]
                     desc_index = next(
-                        (
-                            i
-                            for i, col in enumerate(header_columns)
-                            if "DESCRIPCION" in col
-                        ),
+                        (i for i, col in enumerate(header_columns) if "DESCRIPCION" in col),
                         -1,
                     )
                     vr_unit_index = next(
-                        (
-                            i
-                            for i, col in enumerate(header_columns)
-                            if "VR. UNIT" in col
-                        ),
+                        (i for i, col in enumerate(header_columns) if "VR. UNIT" in col),
                         -1,
                     )
                     continue
@@ -314,9 +304,7 @@ def process_apus_csv_v2(path: str) -> pd.DataFrame:
             if possible_desc:
                 context["apu_desc"] = possible_desc
             elif context["last_non_empty_line"]:
-                context["apu_desc"] = (
-                    context["last_non_empty_line"].split(";")[0].strip()
-                )
+                context["apu_desc"] = context["last_non_empty_line"].split(";")[0].strip()
             return None, context
         context["last_non_empty_line"] = line
         if ";" in line and context["apu_code"]:
@@ -410,9 +398,7 @@ def _do_processing(presupuesto_path, apus_path, insumos_path):
     for col in cost_cols:
         if col not in df_apu_costos_categoria.columns:
             df_apu_costos_categoria[col] = 0
-    df_apu_costos_categoria["VALOR_SUMINISTRO_UN"] = df_apu_costos_categoria[
-        "MATERIALES"
-    ]
+    df_apu_costos_categoria["VALOR_SUMINISTRO_UN"] = df_apu_costos_categoria["MATERIALES"]
     df_apu_costos_categoria["VALOR_INSTALACION_UN"] = (
         df_apu_costos_categoria["MANO DE OBRA"] + df_apu_costos_categoria["EQUIPO"]
     )
@@ -426,9 +412,7 @@ def _do_processing(presupuesto_path, apus_path, insumos_path):
         .reset_index()
     )
     df_tiempo.rename(columns={"CANTIDAD_APU": "TIEMPO_INSTALACION"}, inplace=True)
-    df_final = pd.merge(
-        df_presupuesto, df_apu_costos_categoria, on="CODIGO_APU", how="left"
-    )
+    df_final = pd.merge(df_presupuesto, df_apu_costos_categoria, on="CODIGO_APU", how="left")
     df_final = pd.merge(df_final, df_tiempo, on="CODIGO_APU", how="left")
     final_cols_to_fill = [
         "VALOR_SUMINISTRO_UN",
@@ -452,9 +436,9 @@ def _do_processing(presupuesto_path, apus_path, insumos_path):
         columns={"DESCRIPCION_INSUMO": "Descripción", "CANTIDAD_APU": "Cantidad"}
     )
     apus_detail = {
-        n: g[
-            ["Descripción", "Cantidad", "Vr Unitario", "Vr Total", "CATEGORIA"]
-        ].to_dict("records")
+        n: g[["Descripción", "Cantidad", "Vr Unitario", "Vr Total", "CATEGORIA"]].to_dict(
+            "records"
+        )
         for n, g in df_merged_renamed.groupby("CODIGO_APU")
     }
     insumos_dict = {}
@@ -505,13 +489,9 @@ def process_all_files(
     except Exception as e:
         logger.error(f"Error al generar hashes de archivos: {e}")
         return {"error": f"Error al generar hashes: {e}"}
-    result = _cached_csv_processing(
-        *file_hashes, presupuesto_path, apus_path, insumos_path
-    )
+    result = _cached_csv_processing(*file_hashes, presupuesto_path, apus_path, insumos_path)
     info = _cached_csv_processing.cache_info()
-    logger.info(
-        f"Cache info: hits={info.hits}, misses={info.misses}, size={info.currsize}"
-    )
+    logger.info(f"Cache info: hits={info.hits}, misses={info.misses}, size={info.currsize}")
     return result
 
 
@@ -539,7 +519,6 @@ def calculate_estimate(
 
     df_apus = pd.DataFrame(all_apus_list)
     df_apus_unique = df_apus.drop_duplicates(subset=["DESCRIPCION_APU"]).copy()
-    apus_detail = data_store.get("apus_detail", {})
 
     tipo = params.get("tipo", "").upper()
     material = params.get("material", "").upper()
@@ -574,19 +553,16 @@ def calculate_estimate(
             apu_mo_code = apu_row.get("CODIGO_APU")
             apu_mo_desc = apu_row.get("DESCRIPCION_APU")
             log.append(
-                f"ÉXITO: APU de M.O. encontrado:"
-                f" '{apu_mo_desc}' (Código: {apu_mo_code})"
+                f"ÉXITO: APU de M.O. encontrado: '{apu_mo_desc}' (Código: {apu_mo_code})"
             )
             break
 
     if not apu_mo_desc:
         log.append(
-            "ERROR: No se encontró un APU de mano de obra"
-            "que coincida con los criterios."
+            "ERROR: No se encontró un APU de mano de obraque coincida con los criterios."
         )
         return {
-            "error": "No se encontró un APU de mano de obra"
-            "que coincida con los criterios.",
+            "error": "No se encontró un APU de mano de obraque coincida con los criterios.",
             "log": "\n".join(log),
         }
 
@@ -633,7 +609,8 @@ def calculate_estimate(
             df_grua_items = df_apus[df_apus["DESCRIPCION_APU"] == descripcion_grua]
             costo_grua_por_dia = df_grua_items["VALOR_TOTAL_APU"].sum()
             log.append(
-                f"APU de Grúa encontrado ('{descripcion_grua}'). Costo/día: ${costo_grua_por_dia:,.0f}"
+                f"APU de Grúa encontrado"
+                f" ('{descripcion_grua}'). Costo/día: ${costo_grua_por_dia:,.0f}"
             )
         if costo_grua_por_dia > 0:
             costo_adicional_grua = costo_grua_por_dia * tiempo_instalacion
@@ -644,17 +621,14 @@ def calculate_estimate(
             )
         else:
             log.append(
-                "ADVERTENCIA: Izaje por grúa seleccionado"
-                "pero no se encontró APU de grúa."
+                "ADVERTENCIA: Izaje por grúa seleccionadopero no se encontró APU de grúa."
             )
 
     if seguridad == "alta":
         costo_mo = costos_base["MANO DE OBRA"]
         incremento_seguridad = costo_mo * 0.15
         valor_instalacion += incremento_seguridad
-        log.append(
-            f"Ajuste por seguridad alta (15% de M.O.): +${incremento_seguridad:,.0f}"
-        )
+        log.append(f"Ajuste por seguridad alta (15% de M.O.): +${incremento_seguridad:,.0f}")
 
     zona_factor = {"zona 0": 1.0, "zona 1": 1.05, "zona 2": 1.10, "zona 3": 1.15}
     factor = zona_factor.get(zona, 1.0)

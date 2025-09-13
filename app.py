@@ -118,9 +118,7 @@ def upload_files():
         raise e
     except Exception as e:
         app.logger.error(f"Error en upload_files: {str(e)}")
-        return jsonify(
-            {"error": "Error interno del servidor al procesar archivos"}
-        ), 500
+        return jsonify({"error": "Error interno del servidor al procesar archivos"}), 500
 
 
 def get_user_data():
@@ -198,9 +196,7 @@ def get_estimate():
     required_params = ["tipo", "material"]
     missing_params = [p for p in required_params if p not in params]
     if missing_params:
-        return jsonify(
-            {"error": f"Parámetros requeridos faltantes: {missing_params}"}
-        ), 400
+        return jsonify({"error": f"Parámetros requeridos faltantes: {missing_params}"}), 400
 
     try:
         result = calculate_estimate(params, user_data)
