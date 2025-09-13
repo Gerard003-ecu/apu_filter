@@ -1,0 +1,65 @@
+ * Serving Flask app 'app'
+ * Debug mode: on
+2025-09-12 22:09:58,364 - INFO - WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
+ * Running on http://127.0.0.1:5002
+2025-09-12 22:09:58,365 - INFO - Press CTRL+C to quit
+2025-09-12 22:09:58,369 - INFO -  * Restarting with stat
+2025-09-12 22:09:59,177 - WARNING -  * Debugger is active!
+2025-09-12 22:09:59,207 - INFO -  * Debugger PIN: 125-188-330
+2025-09-12 22:10:12,622 - INFO - 127.0.0.1 - - [12/Sep/2025 22:10:12] "GET / HTTP/1.1" 200 -
+2025-09-12 22:10:13,273 - INFO - 127.0.0.1 - - [12/Sep/2025 22:10:13] "GET /favicon.ico HTTP/1.1" 404 -
+2025-09-12 22:10:42,794 - INFO - Cache miss.
+2025-09-12 22:10:42,795 - INFO - Procesando archivos: uploads/25b19b32-dd89-45a1-b0d3-8c3d236c8d24/presupuesto_1757733042_presupuesto.csv, uploads/25b19b32-dd89-45a1-b0d3-8c3d236c8d24/apus_1757733042_apus.csv, uploads/25b19b32-dd89-45a1-b0d3-8c3d236c8d24/insumos_1757733042_insumos.csv
+2025-09-12 22:10:43,273 - INFO - Diagnóstico: 77 de 77 ítems del presupuesto encontraron su costo.
+2025-09-12 22:10:43,412 - INFO - --- Procesamiento completado ---
+2025-09-12 22:10:43,419 - INFO - Cache info: hits=0, misses=1, size=1
+2025-09-12 22:10:43,446 - INFO - 127.0.0.1 - - [12/Sep/2025 22:10:43] "POST /upload HTTP/1.1" 200 -
+/Users/gerardomayor/Documents/estru_techos/apu_filter/procesador_csv.py:598: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df_apus_unique["DESC_NORMALIZED"] = df_apus_unique["DESCRIPCION_APU"].apply(
+/Users/gerardomayor/Documents/estru_techos/apu_filter/procesador_csv.py:598: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df_apus_unique["DESC_NORMALIZED"] = df_apus_unique["DESCRIPCION_APU"].apply(
+2025-09-12 22:10:43,626 - INFO - 127.0.0.1 - - [12/Sep/2025 22:10:43] "POST /api/estimate HTTP/1.1" 404 -
+2025-09-12 22:10:43,659 - INFO - 127.0.0.1 - - [12/Sep/2025 22:10:43] "POST /api/estimate HTTP/1.1" 404 -
+/Users/gerardomayor/Documents/estru_techos/apu_filter/procesador_csv.py:598: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df_apus_unique["DESC_NORMALIZED"] = df_apus_unique["DESCRIPCION_APU"].apply(
+2025-09-12 22:13:51,354 - INFO - 127.0.0.1 - - [12/Sep/2025 22:13:51] "POST /api/estimate HTTP/1.1" 404 -
+/Users/gerardomayor/Documents/estru_techos/apu_filter/procesador_csv.py:598: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df_apus_unique["DESC_NORMALIZED"] = df_apus_unique["DESCRIPCION_APU"].apply(
+2025-09-12 22:13:53,424 - INFO - 127.0.0.1 - - [12/Sep/2025 22:13:53] "POST /api/estimate HTTP/1.1" 404 -
+/Users/gerardomayor/Documents/estru_techos/apu_filter/procesador_csv.py:598: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df_apus_unique["DESC_NORMALIZED"] = df_apus_unique["DESCRIPCION_APU"].apply(
+2025-09-12 22:13:55,595 - INFO - 127.0.0.1 - - [12/Sep/2025 22:13:55] "POST /api/estimate HTTP/1.1" 404 -
+/Users/gerardomayor/Documents/estru_techos/apu_filter/procesador_csv.py:598: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df_apus_unique["DESC_NORMALIZED"] = df_apus_unique["DESCRIPCION_APU"].apply(
+2025-09-12 22:13:57,561 - INFO - 127.0.0.1 - - [12/Sep/2025 22:13:57] "POST /api/estimate HTTP/1.1" 404 -
+/Users/gerardomayor/Documents/estru_techos/apu_filter/procesador_csv.py:598: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df_apus_unique["DESC_NORMALIZED"] = df_apus_unique["DESCRIPCION_APU"].apply(
+2025-09-12 22:13:59,821 - INFO - 127.0.0.1 - - [12/Sep/2025 22:13:59] "POST /api/estimate HTTP/1.1" 404 -

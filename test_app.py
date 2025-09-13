@@ -1,8 +1,8 @@
+import io
+import json
 import os
 import unittest
 from unittest.mock import patch
-import json
-import io
 
 import pandas as pd
 
@@ -232,15 +232,16 @@ class TestCSVProcessor(unittest.TestCase):
 # NUEVAS PRUEBAS PARA LOS ENDPOINTS DE LA APP FLASK
 # ======================================================================
 
+
 class TestAppEndpoints(unittest.TestCase):
     """Pruebas para los endpoints de la aplicación Flask."""
 
     def setUp(self):
         """Configuración para cada prueba."""
-        app.config['TESTING'] = True
-        app.config['SECRET_KEY'] = 'test-secret-key'
-        app.config['UPLOAD_FOLDER'] = 'test_uploads'
-        os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+        app.config["TESTING"] = True
+        app.config["SECRET_KEY"] = "test-secret-key"
+        app.config["UPLOAD_FOLDER"] = "test_uploads"
+        os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
         self.client = app.test_client()
         # Limpiar el diccionario de sesiones de usuario antes de cada prueba
         user_sessions.clear()
@@ -248,7 +249,7 @@ class TestAppEndpoints(unittest.TestCase):
     def tearDown(self):
         """Limpieza después de cada prueba."""
         # Limpiar la carpeta de uploads de prueba
-        upload_folder = app.config['UPLOAD_FOLDER']
+        upload_folder = app.config["UPLOAD_FOLDER"]
         if os.path.exists(upload_folder):
             for root, dirs, files in os.walk(upload_folder, topdown=False):
                 for name in files:
@@ -259,91 +260,107 @@ class TestAppEndpoints(unittest.TestCase):
 
     def _get_test_file(self, filename, content):
         """Crea un archivo de prueba en memoria."""
-        return (io.BytesIO(content.encode('latin1')), filename)
+        return (io.BytesIO(content.encode("latin1")), filename)
 
     def test_01_index_route(self):
         """Prueba que la ruta principal '/' funciona."""
-        response = self.client.get('/')
+        response = self.client.get("/")
         self.assertEqual(response.status_code, 200)
-        self.assertIn(b'APU Filter', response.data)
+        self.assertIn(b"APU Filter", response.data)
 
     def test_02_upload_success(self):
         """Prueba una subida de archivos exitosa."""
         with self.client as c:
             with c.session_transaction() as sess:
                 # La sesión está vacía antes de la solicitud
-                self.assertNotIn('session_id', sess)
+                self.assertNotIn("session_id", sess)
 
             data = {
-                'presupuesto': self._get_test_file('presupuesto.csv', TestCSVProcessor.presupuesto_data),
-                'apus': self._get_test_file('apus.csv', TestCSVProcessor.apus_data),
-                'insumos': self._get_test_file('insumos.csv', TestCSVProcessor.insumos_data),
+                "presupuesto": self._get_test_file(
+                    "presupuesto.csv", TestCSVProcessor.presupuesto_data
+                ),
+                "apus": self._get_test_file("apus.csv", TestCSVProcessor.apus_data),
+                "insumos": self._get_test_file(
+                    "insumos.csv", TestCSVProcessor.insumos_data
+                ),
             }
-            response = c.post('/upload', data=data, content_type='multipart/form-data')
+            response = c.post("/upload", data=data, content_type="multipart/form-data")
 
             self.assertEqual(response.status_code, 200)
             json_data = json.loads(response.data)
-            self.assertIn('presupuesto', json_data)
-            self.assertNotIn('error', json_data)
+            self.assertIn("presupuesto", json_data)
+            self.assertNotIn("error", json_data)
 
             # Verificar que la sesión se haya creado
             with c.session_transaction() as sess:
-                self.assertIn('session_id', sess)
-                session_id = sess['session_id']
+                self.assertIn("session_id", sess)
+                session_id = sess["session_id"]
                 self.assertIn(session_id, user_sessions)
 
     def test_03_upload_missing_files(self):
         """Prueba el error cuando faltan archivos en la subida."""
         data = {
-            'presupuesto': self._get_test_file('presupuesto.csv', 'data'),
+            "presupuesto": self._get_test_file("presupuesto.csv", "data"),
         }
-        response = self.client.post('/upload', data=data, content_type='multipart/form-data')
+        response = self.client.post(
+            "/upload", data=data, content_type="multipart/form-data"
+        )
         self.assertEqual(response.status_code, 400)
         json_data = json.loads(response.data)
-        self.assertEqual(json_data['error'], 'Faltan uno o más archivos en la solicitud')
+        self.assertEqual(
+            json_data["error"], "Faltan uno o más archivos en la solicitud"
+        )
 
     def test_04_upload_wrong_extension(self):
         """Prueba el error cuando un archivo no es CSV."""
         data = {
-            'presupuesto': self._get_test_file('presupuesto.txt', 'data'),
-            'apus': self._get_test_file('apus.csv', 'data'),
-            'insumos': self._get_test_file('insumos.csv', 'data'),
+            "presupuesto": self._get_test_file("presupuesto.txt", "data"),
+            "apus": self._get_test_file("apus.csv", "data"),
+            "insumos": self._get_test_file("insumos.csv", "data"),
         }
-        response = self.client.post('/upload', data=data, content_type='multipart/form-data')
+        response = self.client.post(
+            "/upload", data=data, content_type="multipart/form-data"
+        )
         self.assertEqual(response.status_code, 400)
         json_data = json.loads(response.data)
-        self.assertIn('debe ser un CSV', json_data['error'])
+        self.assertIn("debe ser un CSV", json_data["error"])
 
     def test_05_api_endpoints_without_session(self):
         """Prueba que los endpoints de la API requieren una sesión."""
-        response_apu = self.client.get('/api/apu/1,1')
+        response_apu = self.client.get("/api/apu/1,1")
         self.assertEqual(response_apu.status_code, 401)
-        self.assertIn('Sesión no iniciada', response_apu.get_json()['error'])
+        self.assertIn("Sesión no iniciada", response_apu.get_json()["error"])
 
-        response_estimate = self.client.post('/api/estimate', json={'tipo': 'CUBIERTA', 'material': 'TST'})
+        response_estimate = self.client.post(
+            "/api/estimate", json={"tipo": "CUBIERTA", "material": "TST"}
+        )
         self.assertEqual(response_estimate.status_code, 401)
-        self.assertIn('Sesión no iniciada', response_estimate.get_json()['error'])
+        self.assertIn("Sesión no iniciada", response_estimate.get_json()["error"])
 
     def test_06_get_apu_detail_with_session(self):
         """Prueba el endpoint de detalle de APU con una sesión válida."""
         with self.client as c:
             # Primero, subir archivos para crear una sesión
             data = {
-                'presupuesto': self._get_test_file('presupuesto.csv', TestCSVProcessor.presupuesto_data),
-                'apus': self._get_test_file('apus.csv', TestCSVProcessor.apus_data),
-                'insumos': self._get_test_file('insumos.csv', TestCSVProcessor.insumos_data),
+                "presupuesto": self._get_test_file(
+                    "presupuesto.csv", TestCSVProcessor.presupuesto_data
+                ),
+                "apus": self._get_test_file("apus.csv", TestCSVProcessor.apus_data),
+                "insumos": self._get_test_file(
+                    "insumos.csv", TestCSVProcessor.insumos_data
+                ),
             }
-            c.post('/upload', data=data, content_type='multipart/form-data')
+            c.post("/upload", data=data, content_type="multipart/form-data")
 
             # Ahora, probar el endpoint
-            response = c.get('/api/apu/1,1')
+            response = c.get("/api/apu/1,1")
             self.assertEqual(response.status_code, 200)
             json_data = json.loads(response.data)
-            self.assertEqual(json_data['codigo'], '1,1')
-            self.assertIn('desglose', json_data)
+            self.assertEqual(json_data["codigo"], "1,1")
+            self.assertIn("desglose", json_data)
 
             # Probar un código que no existe
-            response_not_found = c.get('/api/apu/999')
+            response_not_found = c.get("/api/apu/999")
             self.assertEqual(response_not_found.status_code, 404)
 
     def test_07_get_estimate_with_session(self):
@@ -351,71 +368,81 @@ class TestAppEndpoints(unittest.TestCase):
         with self.client as c:
             # Subir archivos
             data = {
-                'presupuesto': self._get_test_file('presupuesto.csv', TestCSVProcessor.presupuesto_data),
-                'apus': self._get_test_file('apus.csv', TestCSVProcessor.apus_data),
-                'insumos': self._get_test_file('insumos.csv', TestCSVProcessor.insumos_data),
+                "presupuesto": self._get_test_file(
+                    "presupuesto.csv", TestCSVProcessor.presupuesto_data
+                ),
+                "apus": self._get_test_file("apus.csv", TestCSVProcessor.apus_data),
+                "insumos": self._get_test_file(
+                    "insumos.csv", TestCSVProcessor.insumos_data
+                ),
             }
-            c.post('/upload', data=data, content_type='multipart/form-data')
+            c.post("/upload", data=data, content_type="multipart/form-data")
 
             # Añadir datos de prueba para la estimación
             with c.session_transaction() as sess:
-                session_id = sess['session_id']
-                user_sessions[session_id]['data']['all_apus'].append({
-                    "CODIGO_APU": "M.O.1",
-                    "DESCRIPCION_APU": "MANO DE OBRA IZAJE MANUAL TEJA SENCILLA",
-                    "NORMALIZED_DESC": "mano de obra izaje manual teja sencilla",
-                    "VALOR_TOTAL_APU": 80000
-                })
-                user_sessions[session_id]['data']['apus_detail']['M.O.1'] = [{
-                    'CATEGORIA': 'MANO DE OBRA',
-                    'Vr Total': 80000,
-                    'Cantidad': 8
-                }]
-
+                session_id = sess["session_id"]
+                user_sessions[session_id]["data"]["all_apus"].append(
+                    {
+                        "CODIGO_APU": "M.O.1",
+                        "DESCRIPCION_APU": "MANO DE OBRA IZAJE MANUAL TEJA SENCILLA",
+                        "NORMALIZED_DESC": "mano de obra izaje manual teja sencilla",
+                        "VALOR_TOTAL_APU": 80000,
+                    }
+                )
+                user_sessions[session_id]["data"]["apus_detail"]["M.O.1"] = [
+                    {"CATEGORIA": "MANO DE OBRA", "Vr Total": 80000, "Cantidad": 8}
+                ]
 
             # Probar el endpoint con parámetros válidos
-            estimate_params = {'tipo': 'CUBIERTA', 'material': 'TST'}
-            response = c.post('/api/estimate', json=estimate_params)
+            estimate_params = {"tipo": "CUBIERTA", "material": "TST"}
+            response = c.post("/api/estimate", json=estimate_params)
             self.assertEqual(response.status_code, 200)
             json_data = json.loads(response.data)
-            self.assertAlmostEqual(json_data['valor_instalacion'], 80000)
+            self.assertAlmostEqual(json_data["valor_instalacion"], 80000)
 
             # Probar con parámetros faltantes
-            response_missing = c.post('/api/estimate', json={'tipo': 'CUBIERTA'})
+            response_missing = c.post("/api/estimate", json={"tipo": "CUBIERTA"})
             self.assertEqual(response_missing.status_code, 400)
-            self.assertIn('Parámetros requeridos faltantes', response_missing.get_json()['error'])
+            self.assertIn(
+                "Parámetros requeridos faltantes", response_missing.get_json()["error"]
+            )
 
     def test_08_health_check(self):
         """Prueba el endpoint de estado de la aplicación."""
-        response = self.client.get('/api/health')
+        response = self.client.get("/api/health")
         self.assertEqual(response.status_code, 200)
         json_data = json.loads(response.data)
-        self.assertEqual(json_data['status'], 'ok')
-        self.assertIn('timestamp', json_data)
-        self.assertEqual(json_data['active_sessions'], 0)
+        self.assertEqual(json_data["status"], "ok")
+        self.assertIn("timestamp", json_data)
+        self.assertEqual(json_data["active_sessions"], 0)
 
     def test_09_not_found_error_handler(self):
         """Prueba el manejador de errores 404."""
-        response = self.client.get('/a-route-that-does-not-exist')
+        response = self.client.get("/a-route-that-does-not-exist")
         self.assertEqual(response.status_code, 404)
         json_data = json.loads(response.data)
-        self.assertEqual(json_data['error'], 'Endpoint no encontrado')
+        self.assertEqual(json_data["error"], "Endpoint no encontrado")
 
     def test_10_file_too_large(self):
         """Prueba el manejador de errores 413."""
-        app.config['MAX_CONTENT_LENGTH'] = 10  # 10 bytes
+        app.config["MAX_CONTENT_LENGTH"] = 10  # 10 bytes
         # Re-inicializar cliente con la nueva configuración
         self.client = app.test_client()
 
         data = {
-            'presupuesto': self._get_test_file('presupuesto.csv', 'This is a file that is definitely larger than 10 bytes'),
-            'apus': self._get_test_file('apus.csv', 'data'),
-            'insumos': self._get_test_file('insumos.csv', 'data'),
+            "presupuesto": self._get_test_file(
+                "presupuesto.csv",
+                "This is a file that is definitely larger than 10 bytes",
+            ),
+            "apus": self._get_test_file("apus.csv", "data"),
+            "insumos": self._get_test_file("insumos.csv", "data"),
         }
-        response = self.client.post('/upload', data=data, content_type='multipart/form-data')
+        response = self.client.post(
+            "/upload", data=data, content_type="multipart/form-data"
+        )
         self.assertEqual(response.status_code, 413)
         json_data = json.loads(response.data)
-        self.assertEqual(json_data['error'], 'El archivo es demasiado grande')
+        self.assertEqual(json_data["error"], "El archivo es demasiado grande")
 
 
 if __name__ == "__main__":

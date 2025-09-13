@@ -1,11 +1,11 @@
 import os
-import uuid
 import time
+import uuid
 from datetime import timedelta
 
 from flask import Flask, jsonify, render_template, request, session
-from werkzeug.utils import secure_filename
 from werkzeug.exceptions import HTTPException
+from werkzeug.utils import secure_filename
 
 # Importamos la nueva función orquestadora y la de estimación
 from procesador_csv import calculate_estimate, process_all_files
@@ -21,21 +21,25 @@ app.secret_key = os.environ.get("SECRET_KEY", "dev-key-change-in-production")
 user_sessions = {}
 SESSION_TIMEOUT = 3600  # 1 hora en segundos
 
+
 def cleanup_expired_sessions():
     """Elimina sesiones expiradas periódicamente."""
     current_time = time.time()
     expired_sessions = [
-        session_id for session_id, data in user_sessions.items()
+        session_id
+        for session_id, data in user_sessions.items()
         if current_time - data["last_activity"] > SESSION_TIMEOUT
     ]
     for session_id in expired_sessions:
         if session_id in user_sessions:
             del user_sessions[session_id]
 
+
 @app.route("/")
 def index():
     """Sirve la página principal del dashboard interactivo."""
     return render_template("index.html")
+
 
 @app.before_request
 def before_request():
@@ -43,8 +47,9 @@ def before_request():
     cleanup_expired_sessions()
 
     # Actualizar actividad de la sesión actual
-    if 'session_id' in session and session['session_id'] in user_sessions:
-        user_sessions[session['session_id']]['last_activity'] = time.time()
+    if "session_id" in session and session["session_id"] in user_sessions:
+        user_sessions[session["session_id"]]["last_activity"] = time.time()
+
 
 @app.route("/upload", methods=["POST"])
 def upload_files():
@@ -62,14 +67,14 @@ def upload_files():
 
         # Verificar extensiones de archivo
         for name, file in files.items():
-            if not file.filename.lower().endswith('.csv'):
+            if not file.filename.lower().endswith(".csv"):
                 return jsonify({"error": f"El archivo {name} debe ser un CSV"}), 400
 
         # Crear directorio de sesión único para el usuario
-        if 'session_id' not in session:
-            session['session_id'] = str(uuid.uuid4())
+        if "session_id" not in session:
+            session["session_id"] = str(uuid.uuid4())
 
-        session_id = session['session_id']
+        session_id = session["session_id"]
         user_dir = os.path.join(app.config["UPLOAD_FOLDER"], session_id)
         os.makedirs(user_dir, exist_ok=True)
 
@@ -83,15 +88,13 @@ def upload_files():
 
         # Procesar archivos
         processed_data = process_all_files(
-            file_paths["presupuesto"],
-            file_paths["apus"],
-            file_paths["insumos"]
+            file_paths["presupuesto"], file_paths["apus"], file_paths["insumos"]
         )
 
         # Almacenar datos en la sesión del usuario
         user_sessions[session_id] = {
             "data": processed_data,
-            "last_activity": time.time()
+            "last_activity": time.time(),
         }
 
         # Limpiar archivos temporales
@@ -110,23 +113,27 @@ def upload_files():
         return jsonify(processed_data)
 
     except HTTPException as e:
-        # Las excepciones HTTP (como 413) deben ser manejadas por los error handlers de Flask.
+        # Las excepciones HTTP deben ser manejadas por los error handlers de Flask.
         # Las relanzamos para que el decorador @app.errorhandler las atrape.
         raise e
     except Exception as e:
         app.logger.error(f"Error en upload_files: {str(e)}")
-        return jsonify({"error": "Error interno del servidor al procesar archivos"}), 500
+        return jsonify(
+            {"error": "Error interno del servidor al procesar archivos"}
+        ), 500
+
 
 def get_user_data():
     """Obtiene los datos del usuario actual o devuelve error."""
-    if 'session_id' not in session:
+    if "session_id" not in session:
         return None, jsonify({"error": "Sesión no iniciada"}), 401
 
-    session_id = session['session_id']
+    session_id = session["session_id"]
     if session_id not in user_sessions:
         return None, jsonify({"error": "Sesión expirada o no válida"}), 401
 
-    return user_sessions[session_id]['data'], None, 200
+    return user_sessions[session_id]["data"], None, 200
+
 
 @app.route("/api/apu/<code>", methods=["GET"])
 def get_apu_detail(code):
@@ -145,9 +152,12 @@ def get_apu_detail(code):
 
     # Buscar ítem en el presupuesto
     presupuesto_item = next(
-        (item for item in user_data.get("presupuesto", [])
-         if item.get("CODIGO_APU") == apu_code),
-        None
+        (
+            item
+            for item in user_data.get("presupuesto", [])
+            if item.get("CODIGO_APU") == apu_code
+        ),
+        None,
     )
 
     # Agrupar por categoría
@@ -160,11 +170,14 @@ def get_apu_detail(code):
 
     response = {
         "codigo": apu_code,
-        "descripcion": presupuesto_item.get("DESCRIPCION_APU", "") if presupuesto_item else "",
+        "descripcion": presupuesto_item.get("DESCRIPCION_APU", "")
+        if presupuesto_item
+        else "",
         "desglose": desglose,
     }
 
     return jsonify(response)
+
 
 @app.route("/api/estimate", methods=["POST"])
 def get_estimate():
@@ -185,7 +198,9 @@ def get_estimate():
     required_params = ["tipo", "material"]
     missing_params = [p for p in required_params if p not in params]
     if missing_params:
-        return jsonify({"error": f"Parámetros requeridos faltantes: {missing_params}"}), 400
+        return jsonify(
+            {"error": f"Parámetros requeridos faltantes: {missing_params}"}
+        ), 400
 
     try:
         result = calculate_estimate(params, user_data)
@@ -196,27 +211,34 @@ def get_estimate():
         app.logger.error(f"Error en get_estimate: {str(e)}")
         return jsonify({"error": "Error interno al calcular la estimación"}), 500
 
+
 @app.route("/api/health", methods=["GET"])
 def health_check():
     """Endpoint para verificar el estado de la aplicación."""
-    return jsonify({
-        "status": "ok",
-        "timestamp": time.time(),
-        "active_sessions": len(user_sessions)
-    })
+    return jsonify(
+        {
+            "status": "ok",
+            "timestamp": time.time(),
+            "active_sessions": len(user_sessions),
+        }
+    )
+
 
 @app.errorhandler(404)
 def not_found(error):
     return jsonify({"error": "Endpoint no encontrado"}), 404
+
 
 @app.errorhandler(500)
 def internal_error(error):
     app.logger.error(f"Error interno del servidor: {str(error)}")
     return jsonify({"error": "Error interno del servidor"}), 500
 
+
 @app.errorhandler(413)
 def too_large(error):
     return jsonify({"error": "El archivo es demasiado grande"}), 413
+
 
 if __name__ == "__main__":
     # Ejecuta la aplicación en el puerto 5002 y en modo debug
