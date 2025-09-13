@@ -13,7 +13,8 @@
   "param_map": {
     "material": {
       "TST": "TEJA SENCILLA",
-      "PANEL": "PANEL SANDWICH"
+      "PANEL": "PANEL SANDWICH",
+      "PANEL SANDWICH": "PANEL SANDWICH"
     },
     "tipo": {
       "CUBIERTA": "INSTALACION",
