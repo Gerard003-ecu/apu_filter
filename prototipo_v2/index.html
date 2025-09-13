@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>APU_filter v2 - Prototipo</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>APU_filter v2</h1>
+    </header>
+    <div class="container">
+        <main>
+            <div class="tabs">
+                <button class="tab-link active" data-tab="simulador">Simulador de Costos</button>
+            <button class="tab-link" data-tab="organizador">Organizador y Resúmenes</button>
+            <button class="tab-link" data-tab="estimador">Estimador Rápido</button>
+        </div>
+
+        <div id="simulador" class="tab-content active">
+            <h2>Simulador de Costos</h2>
+            <p>Contenido del simulador de costos (vista de acordeón agrupado).</p>
+        </div>
+
+        <div id="organizador" class="tab-content">
+            <h2>Organizador y Resúmenes</h2>
+            <p>Contenido del organizador y resúmenes (tabla editable y tarjetas de resumen).</p>
+        </div>
+
+        <div id="estimador" class="tab-content">
+            <h2>Estimador Rápido</h2>
+            <div class="estimator-form">
+                <div class="form-group">
+                    <label for="material-input">Material a Instalar</label>
+                    <div class="combobox-wrapper">
+                        <input type="text" id="material-input" class="combobox" placeholder="Escribe o selecciona un material">
+                        <div class="combobox-options">
+                            <div class="combobox-option" data-value="TST">TST</div>
+                            <div class="combobox-option" data-value="PANEL SANDWICH">PANEL SANDWICH</div>
+                            <div class="combobox-option" data-value="CUBIERTA TRASLUCIDA">CUBIERTA TRASLUCIDA</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="quantity">Cantidad (m2)</label>
+                    <input type="number" id="quantity" placeholder="Ej: 100">
+                </div>
+                <button id="estimate-btn">Estimar</button>
+            </div>
+            <div class="estimation-results">
+                <h3>Resultados de la Estimación</h3>
+                <div id="results-output">
+                    <p>Los resultados de la estimación aparecerán aquí.</p>
+                </div>
+            </div>
+        </div>
+    </main>
+    </div>
+    <script src="script.js"></script>
+
+    <!-- Modal for New Material Suggestion -->
+    <div id="suggest-material-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <h2 id="modal-title">Sugerir Nuevo Material: "..."</h2>
+            <p>Hemos detectado un nuevo material. Para poder estimar su costo, por favor, selecciona un APU de mano de obra existente como base de cálculo. Tu sugerencia nos ayudará a mejorar APU Filter.</p>
+            <div class="form-group">
+                <label for="apu-base-select">Seleccionar APU de Mano de Obra Base</label>
+                <select id="apu-base-select">
+                    <option value="1">MANO DE OBRA INSTALACIÓN TEJA SENCILLA CUADRILLA DE 5</option>
+                    <option value="2">MANO DE OBRA INSTALACIÓN PANEL SANDWICH CUADRILLA DE 6</option>
+                    <option value="3">MANO DE OBRA INSTALACIÓN CUBIERTA TRASLUCIDA CUADRILLA DE 4</option>
+                </select>
+            </div>
+            <div class="modal-actions">
+                <button id="use-apu-btn" class="primary">[ Usar APU Base y Estimar ]</button>
+                <button id="cancel-btn" class="secondary">[ Cancelar ]</button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
