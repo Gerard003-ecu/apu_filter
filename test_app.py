@@ -17,6 +17,53 @@ from procesador_csv import (
     safe_read_csv,
 )
 
+# --- Test Data ---
+PRESUPUESTO_DATA = (
+    "ITEM;DESCRIPCION;UND;CANT.; VR. UNIT ; VR.TOTAL \n"
+    "1;Actividad de Construcción 1;;;;\n"
+    "1,1;Montaje de Estructura;ML;10; 155,00 ; 1550 \n"
+    "1,2;Acabados Finales;M2;20; 225,00 ; 4500 \n"
+)
+APUS_DATA = (
+    "REMATE CON PINTURA;;;;;ITEM:   1,1\n"
+    "MATERIALES;;;;;\n"
+    "Tornillo de Acero;UND; 10,0;;10,50;105,00\n"
+    "MANO DE OBRA;;;;;\n"
+    "Mano de Obra Especializada;HR; 2,5;;20,00;50,00\n"
+    ";;;;\n"
+    "REMATE DE ACERO;;;;;ITEM:   1,2\n"
+    "MATERIALES;;;;;\n"
+    "Pintura Anticorrosiva;GL; 5,0;;5,00;25,00\n"
+    "MANO DE OBRA;;;;;\n"
+    "Mano de Obra Especializada;HR; 10,0;;20,00;200,00\n"
+)
+INSUMOS_DATA = (
+    "  G1  ;MATERIALES;;;;;\n"
+    "  CODIGO  ;  DESCRIPCION  ;  UND  ;;  CANT.  ;  VR. UNIT.  ;\n"
+    "INS-001;  Tornillo de Acero  ;UND;;;10,50;\n"
+    "INS-003; pintura anticorrosiva ;GL;;;5,00;\n"
+    "  G2  ;MANO DE OBRA;;;;;\n"
+    "  CODIGO  ;  DESCRIPCION  ;  UND  ;;  CANT.  ;  VR. UNIT.  ;\n"
+    "INS-002;Mano de Obra Especializada;HR;;;20,00;\n"
+)
+TEST_CONFIG = {
+    "presupuesto_column_map": {
+        "CODIGO_APU": ["ITEM"],
+        "DESCRIPCION_APU": ["DESCRIPCION"],
+        "CANTIDAD_PRESUPUESTO": ["CANT."],
+    },
+    "category_keywords": {
+        "MATERIALES": "MATERIALES",
+        "MANO DE OBRA": "MANO DE OBRA",
+        "EQUIPO": "EQUIPO",
+        "OTROS": "OTROS",
+    },
+    "param_map": {
+        "material": {"TST": "TEJA SENCILLA"},
+        "tipo": {"CUBIERTA": "INSTALACION"},
+    },
+}
+
 
 class TestIndividualFunctions(unittest.TestCase):
     """Pruebas para funciones de utilidad individuales."""
@@ -59,64 +106,20 @@ class TestCSVProcessor(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         """Crear archivos de prueba una vez para toda la clase."""
-        cls.presupuesto_data = (
-            "ITEM;DESCRIPCION;UND;CANT.; VR. UNIT ; VR.TOTAL \n"
-            "1;Actividad de Construcción 1;;;;\n"
-            "1,1;Montaje de Estructura;ML;10; 155,00 ; 1550 \n"
-            "1,2;Acabados Finales;M2;20; 225,00 ; 4500 \n"
-        )
         cls.presupuesto_path = "test_presupuesto.csv"
         with open(cls.presupuesto_path, "w", encoding="latin1") as f:
-            f.write(cls.presupuesto_data)
+            f.write(PRESUPUESTO_DATA)
 
-        cls.apus_data = (
-            "REMATE CON PINTURA;;;;;ITEM:   1,1\n"
-            "MATERIALES;;;;;\n"
-            "Tornillo de Acero;UND; 10,0;;10,50;105,00\n"
-            "MANO DE OBRA;;;;;\n"
-            "Mano de Obra Especializada;HR; 2,5;;20,00;50,00\n"
-            ";;;;\n"
-            "REMATE DE ACERO;;;;;ITEM:   1,2\n"
-            "MATERIALES;;;;;\n"
-            "Pintura Anticorrosiva;GL; 5,0;;5,00;25,00\n"
-            "MANO DE OBRA;;;;;\n"
-            "Mano de Obra Especializada;HR; 10,0;;20,00;200,00\n"
-        )
         cls.apus_path = "test_apus.csv"
         with open(cls.apus_path, "w", encoding="latin1") as f:
-            f.write(cls.apus_data)
+            f.write(APUS_DATA)
 
-        cls.insumos_data = (
-            "  G1  ;MATERIALES;;;;;\n"
-            "  CODIGO  ;  DESCRIPCION  ;  UND  ;;  CANT.  ;  VR. UNIT.  ;\n"
-            "INS-001;  Tornillo de Acero  ;UND;;;10,50;\n"
-            "INS-003; pintura anticorrosiva ;GL;;;5,00;\n"
-            "  G2  ;MANO DE OBRA;;;;;\n"
-            "  CODIGO  ;  DESCRIPCION  ;  UND  ;;  CANT.  ;  VR. UNIT.  ;\n"
-            "INS-002;Mano de Obra Especializada;HR;;;20,00;\n"
-        )
         cls.insumos_path = "test_insumos.csv"
         with open(cls.insumos_path, "w", encoding="latin1") as f:
-            f.write(cls.insumos_data)
+            f.write(INSUMOS_DATA)
 
         # Mock del config
-        cls.test_config = {
-            "presupuesto_column_map": {
-                "CODIGO_APU": ["ITEM"],
-                "DESCRIPCION_APU": ["DESCRIPCION"],
-                "CANTIDAD_PRESUPUESTO": ["CANT."],
-            },
-            "category_keywords": {
-                "MATERIALES": "MATERIALES",
-                "MANO DE OBRA": "MANO DE OBRA",
-                "EQUIPO": "EQUIPO",
-                "OTROS": "OTROS",
-            },
-            "param_map": {
-                "material": {"TST": "TEJA SENCILLA"},
-                "tipo": {"CUBIERTA": "IZAJE MANUAL"},
-            },
-        }
+        cls.test_config = TEST_CONFIG
 
     @classmethod
     def tearDownClass(cls):
@@ -200,13 +203,13 @@ class TestCSVProcessor(unittest.TestCase):
         data_store["all_apus"].append(
             {
                 "CODIGO_APU": "M.O.1",
-                "DESCRIPCION_APU": "MANO DE OBRA IZAJE MANUAL TEJA SENCILLA CUADRILLA DE 5",
+                "DESCRIPCION_APU": "MANO DE OBRA INSTALACION TEJA SENCILLA CUADRILLA DE 5",
                 "DESCRIPCION_INSUMO": "Ayudante",
                 "CANTIDAD_APU": 8,
                 "PRECIO_UNIT_APU": 10000,
                 "VALOR_TOTAL_APU": 80000,
                 "CATEGORIA": "MANO DE OBRA",
-                "NORMALIZED_DESC": "ayudante",
+                "NORMALIZED_DESC": "mano de obra instalacion teja sencilla cuadrilla de 5",
             }
         )
         data_store["apus_detail"]["M.O.1"] = [
@@ -224,7 +227,7 @@ class TestCSVProcessor(unittest.TestCase):
         self.assertNotIn("error", result)
         self.assertEqual(
             result["apu_encontrado"],
-            "MANO DE OBRA IZAJE MANUAL TEJA SENCILLA CUADRILLA DE 5",
+            "MANO DE OBRA INSTALACION TEJA SENCILLA CUADRILLA DE 5",
         )
         self.assertAlmostEqual(result["valor_instalacion"], 80000)
 
@@ -278,11 +281,11 @@ class TestAppEndpoints(unittest.TestCase):
 
             data = {
                 "presupuesto": self._get_test_file(
-                    "presupuesto.csv", TestCSVProcessor.presupuesto_data
+                    "presupuesto.csv", PRESUPUESTO_DATA
                 ),
-                "apus": self._get_test_file("apus.csv", TestCSVProcessor.apus_data),
+                "apus": self._get_test_file("apus.csv", APUS_DATA),
                 "insumos": self._get_test_file(
-                    "insumos.csv", TestCSVProcessor.insumos_data
+                    "insumos.csv", INSUMOS_DATA
                 ),
             }
             response = c.post("/upload", data=data, content_type="multipart/form-data")
@@ -344,11 +347,11 @@ class TestAppEndpoints(unittest.TestCase):
             # Primero, subir archivos para crear una sesión
             data = {
                 "presupuesto": self._get_test_file(
-                    "presupuesto.csv", TestCSVProcessor.presupuesto_data
+                    "presupuesto.csv", PRESUPUESTO_DATA
                 ),
-                "apus": self._get_test_file("apus.csv", TestCSVProcessor.apus_data),
+                "apus": self._get_test_file("apus.csv", APUS_DATA),
                 "insumos": self._get_test_file(
-                    "insumos.csv", TestCSVProcessor.insumos_data
+                    "insumos.csv", INSUMOS_DATA
                 ),
             }
             c.post("/upload", data=data, content_type="multipart/form-data")
@@ -370,11 +373,11 @@ class TestAppEndpoints(unittest.TestCase):
             # Subir archivos
             data = {
                 "presupuesto": self._get_test_file(
-                    "presupuesto.csv", TestCSVProcessor.presupuesto_data
+                    "presupuesto.csv", PRESUPUESTO_DATA
                 ),
-                "apus": self._get_test_file("apus.csv", TestCSVProcessor.apus_data),
+                "apus": self._get_test_file("apus.csv", APUS_DATA),
                 "insumos": self._get_test_file(
-                    "insumos.csv", TestCSVProcessor.insumos_data
+                    "insumos.csv", INSUMOS_DATA
                 ),
             }
             c.post("/upload", data=data, content_type="multipart/form-data")
@@ -382,17 +385,19 @@ class TestAppEndpoints(unittest.TestCase):
             # Añadir datos de prueba para la estimación
             with c.session_transaction() as sess:
                 session_id = sess["session_id"]
+                # Añadir un componente de APU de prueba que coincida con la búsqueda
                 user_sessions[session_id]["data"]["all_apus"].append(
                     {
                         "CODIGO_APU": "M.O.1",
-                        "DESCRIPCION_APU": "MANO DE OBRA IZAJE MANUAL TEJA SENCILLA CUADRILLA DE 5",
-                        "NORMALIZED_DESC": "mano de obra izaje manual teja sencilla cuadrilla de 5",
+                        "DESCRIPCION_APU": "MANO DE OBRA INSTALACION TEJA SENCILLA CUADRILLA DE 5",
+                        "DESCRIPCION_INSUMO": "Ayudante",
+                        "CANTIDAD_APU": 8,
+                        "PRECIO_UNIT_APU": 10000,
                         "VALOR_TOTAL_APU": 80000,
+                        "CATEGORIA": "MANO DE OBRA",
+                        "NORMALIZED_DESC": "ayudante",
                     }
                 )
-                user_sessions[session_id]["data"]["apus_detail"]["M.O.1"] = [
-                    {"CATEGORIA": "MANO DE OBRA", "Vr Total": 80000, "Cantidad": 8}
-                ]
 
             # Probar el endpoint con parámetros válidos
             estimate_params = {"tipo": "CUBIERTA", "material": "TST", "cuadrilla": "5"}
