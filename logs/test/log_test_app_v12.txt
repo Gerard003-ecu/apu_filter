@@ -1,0 +1,79 @@
+..2025-09-13 16:10:00,207 - WARNING - Error leyendo non_existent_file.csv con encoding latin1: [Errno 2] No such file or directory: 'non_existent_file.csv'
+2025-09-13 16:10:00,208 - WARNING - Error leyendo non_existent_file.csv con encoding utf-8: [Errno 2] No such file or directory: 'non_existent_file.csv'
+2025-09-13 16:10:00,209 - WARNING - Error leyendo non_existent_file.csv con encoding iso-8859-1: [Errno 2] No such file or directory: 'non_existent_file.csv'
+2025-09-13 16:10:00,223 - WARNING - Error leyendo non_existent_file.csv con encoding windows-1252: [Errno 2] No such file or directory: 'non_existent_file.csv'
+2025-09-13 16:10:00,225 - ERROR - No se pudo leer non_existent_file.csv con ningún encoding conocido
+.2025-09-13 16:10:00,257 - INFO - Cache miss.
+2025-09-13 16:10:00,257 - INFO - Procesando archivos: test_presupuesto.csv, test_apus.csv, test_insumos.csv
+2025-09-13 16:10:00,394 - INFO - Diagnóstico: 2 de 2 ítems del presupuesto encontraron su costo.
+2025-09-13 16:10:00,413 - INFO - --- Procesamiento completado ---
+2025-09-13 16:10:00,415 - INFO - Cache info: hits=0, misses=1, size=1
+2025-09-13 16:10:00,415 - INFO - Cache info: hits=1, misses=1, size=1
+2025-09-13 16:10:00,416 - INFO - Caché limpiado forzosamente y procesando sin caché.
+2025-09-13 16:10:00,416 - INFO - Procesando archivos: test_presupuesto.csv, test_apus.csv, test_insumos.csv
+2025-09-13 16:10:00,462 - INFO - Diagnóstico: 2 de 2 ítems del presupuesto encontraron su costo.
+2025-09-13 16:10:00,473 - INFO - --- Procesamiento completado ---
+.2025-09-13 16:10:00,477 - INFO - Cache miss.
+2025-09-13 16:10:00,477 - INFO - Procesando archivos: test_presupuesto.csv, test_apus.csv, test_insumos.csv
+2025-09-13 16:10:00,517 - INFO - Diagnóstico: 2 de 2 ítems del presupuesto encontraron su costo.
+2025-09-13 16:10:00,528 - INFO - --- Procesamiento completado ---
+2025-09-13 16:10:00,530 - INFO - Cache info: hits=0, misses=1, size=1
+2025-09-13 16:10:00,530 - WARNING - Parámetros requeridos faltantes o vacíos: ['material', 'cuadrilla']
+/Users/gerardomayor/Documents/estru_techos/apu_filter/procesador_csv.py:558: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df_apus_unique["DESC_NORMALIZED"] = df_apus_unique["DESCRIPCION_APU"].apply(
+F2025-09-13 16:10:00,561 - INFO - Cache miss.
+2025-09-13 16:10:00,562 - INFO - Procesando archivos: test_presupuesto.csv, test_apus.csv, test_insumos.csv
+2025-09-13 16:10:00,602 - INFO - Diagnóstico: 2 de 2 ítems del presupuesto encontraron su costo.
+2025-09-13 16:10:00,614 - INFO - --- Procesamiento completado ---
+2025-09-13 16:10:00,616 - INFO - Cache info: hits=0, misses=1, size=1
+..2025-09-13 16:10:00,690 - INFO - Cache miss.
+2025-09-13 16:10:00,690 - INFO - Procesando archivos: test_uploads/9cb40767-8d54-4c6d-8ae5-69ce1227cf06/presupuesto_1757797800_presupuesto.csv, test_uploads/9cb40767-8d54-4c6d-8ae5-69ce1227cf06/apus_1757797800_apus.csv, test_uploads/9cb40767-8d54-4c6d-8ae5-69ce1227cf06/insumos_1757797800_insumos.csv
+2025-09-13 16:10:00,731 - INFO - Diagnóstico: 2 de 2 ítems del presupuesto encontraron su costo.
+2025-09-13 16:10:00,743 - INFO - --- Procesamiento completado ---
+2025-09-13 16:10:00,747 - INFO - Cache info: hits=0, misses=2, size=2
+....2025-09-13 16:10:00,771 - INFO - Cache miss.
+2025-09-13 16:10:00,771 - INFO - Procesando archivos: test_uploads/b783dda4-4cc3-4cad-a926-064f7aa19c54/presupuesto_1757797800_presupuesto.csv, test_uploads/b783dda4-4cc3-4cad-a926-064f7aa19c54/apus_1757797800_apus.csv, test_uploads/b783dda4-4cc3-4cad-a926-064f7aa19c54/insumos_1757797800_insumos.csv
+2025-09-13 16:10:00,816 - INFO - Diagnóstico: 2 de 2 ítems del presupuesto encontraron su costo.
+2025-09-13 16:10:00,836 - INFO - --- Procesamiento completado ---
+2025-09-13 16:10:00,839 - INFO - Cache info: hits=0, misses=3, size=3
+.2025-09-13 16:10:00,853 - INFO - Cache miss.
+2025-09-13 16:10:00,853 - INFO - Procesando archivos: test_uploads/3e9c2be7-cdfb-4d72-b79e-2e1a151be332/presupuesto_1757797800_presupuesto.csv, test_uploads/3e9c2be7-cdfb-4d72-b79e-2e1a151be332/apus_1757797800_apus.csv, test_uploads/3e9c2be7-cdfb-4d72-b79e-2e1a151be332/insumos_1757797800_insumos.csv
+2025-09-13 16:10:00,912 - INFO - Diagnóstico: 2 de 2 ítems del presupuesto encontraron su costo.
+2025-09-13 16:10:00,922 - INFO - --- Procesamiento completado ---
+2025-09-13 16:10:00,924 - INFO - Cache info: hits=0, misses=4, size=4
+/Users/gerardomayor/Documents/estru_techos/apu_filter/procesador_csv.py:558: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df_apus_unique["DESC_NORMALIZED"] = df_apus_unique["DESCRIPCION_APU"].apply(
+F...
+======================================================================
+FAIL: test_calculate_estimate (__main__.TestCSVProcessor.test_calculate_estimate)
+Prueba la función de estimación.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/gerardomayor/.pyenv/versions/3.12.3/lib/python3.12/unittest/mock.py", line 1390, in patched
+    return func(*newargs, **newkeywargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/gerardomayor/Documents/estru_techos/apu_filter/test_app.py", line 224, in test_calculate_estimate
+    self.assertNotIn("error", result)
+AssertionError: 'error' unexpectedly found in {'error': 'No se encontró un APU de mano de obraque coincida con los criterios.', 'log': "Parámetros: {'tipo': 'CUBIERTA', 'material': 'TST', 'cuadrilla': '5'}\nTérminos de búsqueda normalizados: ['MANO DE OBRA', 'IZAJE MANUAL', 'TEJA SENCILLA', 'CUADRILLA DE 5']\nERROR: No se encontró un APU de mano de obraque coincida con los criterios."}
+
+======================================================================
+FAIL: test_07_get_estimate_with_session (__main__.TestAppEndpoints.test_07_get_estimate_with_session)
+Prueba el endpoint de estimación con una sesión válida.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/gerardomayor/Documents/estru_techos/apu_filter/test_app.py", line 400, in test_07_get_estimate_with_session
+    self.assertEqual(response.status_code, 200)
+AssertionError: 404 != 200
+
+----------------------------------------------------------------------
+Ran 16 tests in 0.806s
+
+FAILED (failures=2)
