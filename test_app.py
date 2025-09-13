@@ -200,7 +200,7 @@ class TestCSVProcessor(unittest.TestCase):
         data_store["all_apus"].append(
             {
                 "CODIGO_APU": "M.O.1",
-                "DESCRIPCION_APU": "MANO DE OBRA IZAJE MANUAL TEJA SENCILLA",
+                "DESCRIPCION_APU": "MANO DE OBRA IZAJE MANUAL TEJA SENCILLA CUADRILLA DE 5",
                 "DESCRIPCION_INSUMO": "Ayudante",
                 "CANTIDAD_APU": 8,
                 "PRECIO_UNIT_APU": 10000,
@@ -219,11 +219,12 @@ class TestCSVProcessor(unittest.TestCase):
             }
         ]
 
-        params_ok = {"tipo": "CUBIERTA", "material": "TST"}
+        params_ok = {"tipo": "CUBIERTA", "material": "TST", "cuadrilla": "5"}
         result = calculate_estimate(params_ok, data_store)
         self.assertNotIn("error", result)
         self.assertEqual(
-            result["apu_encontrado"], "MANO DE OBRA IZAJE MANUAL TEJA SENCILLA"
+            result["apu_encontrado"],
+            "MANO DE OBRA IZAJE MANUAL TEJA SENCILLA CUADRILLA DE 5",
         )
         self.assertAlmostEqual(result["valor_instalacion"], 80000)
 
@@ -384,8 +385,8 @@ class TestAppEndpoints(unittest.TestCase):
                 user_sessions[session_id]["data"]["all_apus"].append(
                     {
                         "CODIGO_APU": "M.O.1",
-                        "DESCRIPCION_APU": "MANO DE OBRA IZAJE MANUAL TEJA SENCILLA",
-                        "NORMALIZED_DESC": "mano de obra izaje manual teja sencilla",
+                        "DESCRIPCION_APU": "MANO DE OBRA IZAJE MANUAL TEJA SENCILLA CUADRILLA DE 5",
+                        "NORMALIZED_DESC": "mano de obra izaje manual teja sencilla cuadrilla de 5",
                         "VALOR_TOTAL_APU": 80000,
                     }
                 )
@@ -394,7 +395,7 @@ class TestAppEndpoints(unittest.TestCase):
                 ]
 
             # Probar el endpoint con parámetros válidos
-            estimate_params = {"tipo": "CUBIERTA", "material": "TST"}
+            estimate_params = {"tipo": "CUBIERTA", "material": "TST", "cuadrilla": "5"}
             response = c.post("/api/estimate", json=estimate_params)
             self.assertEqual(response.status_code, 200)
             json_data = json.loads(response.data)
