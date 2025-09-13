@@ -559,9 +559,9 @@ def calculate_estimate(
     search_terms_normalized = [_normalize(term) for term in search_terms]
     log.append(f"Términos de búsqueda normalizados: {search_terms_normalized}")
 
-    df_apus_unique.loc[:, "DESC_NORMALIZED"] = df_apus_unique[
-        "DESCRIPCION_APU"
-    ].apply(_normalize)
+    df_apus_unique.loc[:, "DESC_NORMALIZED"] = df_apus_unique["DESCRIPCION_APU"].apply(
+        _normalize
+    )
 
     apu_mo_code = None
     apu_mo_desc = ""

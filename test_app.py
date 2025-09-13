@@ -280,13 +280,9 @@ class TestAppEndpoints(unittest.TestCase):
                 self.assertNotIn("session_id", sess)
 
             data = {
-                "presupuesto": self._get_test_file(
-                    "presupuesto.csv", PRESUPUESTO_DATA
-                ),
+                "presupuesto": self._get_test_file("presupuesto.csv", PRESUPUESTO_DATA),
                 "apus": self._get_test_file("apus.csv", APUS_DATA),
-                "insumos": self._get_test_file(
-                    "insumos.csv", INSUMOS_DATA
-                ),
+                "insumos": self._get_test_file("insumos.csv", INSUMOS_DATA),
             }
             response = c.post("/upload", data=data, content_type="multipart/form-data")
 
@@ -346,13 +342,9 @@ class TestAppEndpoints(unittest.TestCase):
         with self.client as c:
             # Primero, subir archivos para crear una sesión
             data = {
-                "presupuesto": self._get_test_file(
-                    "presupuesto.csv", PRESUPUESTO_DATA
-                ),
+                "presupuesto": self._get_test_file("presupuesto.csv", PRESUPUESTO_DATA),
                 "apus": self._get_test_file("apus.csv", APUS_DATA),
-                "insumos": self._get_test_file(
-                    "insumos.csv", INSUMOS_DATA
-                ),
+                "insumos": self._get_test_file("insumos.csv", INSUMOS_DATA),
             }
             c.post("/upload", data=data, content_type="multipart/form-data")
 
@@ -372,13 +364,9 @@ class TestAppEndpoints(unittest.TestCase):
         with self.client as c:
             # Subir archivos
             data = {
-                "presupuesto": self._get_test_file(
-                    "presupuesto.csv", PRESUPUESTO_DATA
-                ),
+                "presupuesto": self._get_test_file("presupuesto.csv", PRESUPUESTO_DATA),
                 "apus": self._get_test_file("apus.csv", APUS_DATA),
-                "insumos": self._get_test_file(
-                    "insumos.csv", INSUMOS_DATA
-                ),
+                "insumos": self._get_test_file("insumos.csv", INSUMOS_DATA),
             }
             c.post("/upload", data=data, content_type="multipart/form-data")
 
