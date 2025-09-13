@@ -309,7 +309,11 @@ def process_apus_csv_v2(path: str) -> pd.DataFrame:
             match = re.search(r"ITEM:\s*([\d,\.]*)", line.upper())
             if match:
                 context["apu_code"] = match.group(1).strip()
-            if context["last_non_empty_line"]:
+            # Handle description on same line as ITEM, with fallback to previous line
+            possible_desc = line.split(";")[0].strip()
+            if possible_desc:
+                context["apu_desc"] = possible_desc
+            elif context["last_non_empty_line"]:
                 context["apu_desc"] = (
                     context["last_non_empty_line"].split(";")[0].strip()
                 )
@@ -534,7 +538,7 @@ def calculate_estimate(
         }
 
     df_apus = pd.DataFrame(all_apus_list)
-    df_apus_unique = df_apus.drop_duplicates(subset=["DESCRIPCION_APU"])
+    df_apus_unique = df_apus.drop_duplicates(subset=["DESCRIPCION_APU"]).copy()
     apus_detail = data_store.get("apus_detail", {})
 
     tipo = params.get("tipo", "").upper()
@@ -555,9 +559,9 @@ def calculate_estimate(
     search_terms_normalized = [_normalize(term) for term in search_terms]
     log.append(f"Términos de búsqueda normalizados: {search_terms_normalized}")
 
-    df_apus_unique["DESC_NORMALIZED"] = df_apus_unique["DESCRIPCION_APU"].apply(
-        _normalize
-    )
+    df_apus_unique.loc[:, "DESC_NORMALIZED"] = df_apus_unique[
+        "DESCRIPCION_APU"
+    ].apply(_normalize)
 
     apu_mo_code = None
     apu_mo_desc = ""
@@ -575,7 +579,7 @@ def calculate_estimate(
             )
             break
 
-    if not apu_mo_code:
+    if not apu_mo_desc:
         log.append(
             "ERROR: No se encontró un APU de mano de obra"
             "que coincida con los criterios."
@@ -586,22 +590,26 @@ def calculate_estimate(
             "log": "\n".join(log),
         }
 
-    costos_base = {"MATERIALES": 0.0, "MANO DE OBRA": 0.0, "EQUIPO": 0.0, "OTROS": 0.0}
-    tiempo_instalacion = 0.0
-    apu_items = apus_detail.get(apu_mo_code, [])
-    if not apu_items:
+    # Nueva lógica: filtrar el DataFrame principal por la descripción encontrada
+    apu_items_df = df_apus[df_apus["DESCRIPCION_APU"] == apu_mo_desc]
+
+    if apu_items_df.empty:
         return {
-            "error": f"El código APU {apu_mo_code} no tiene detalle.",
+            "error": f"La descripción de APU '{apu_mo_desc}' no tiene detalle.",
             "log": "\n".join(log),
         }
 
-    for insumo in apu_items:
-        categoria = insumo.get("CATEGORIA", "OTROS")
-        costo = insumo.get("Vr Total", 0)
-        if categoria in costos_base:
-            costos_base[categoria] += costo
-        if categoria == "MANO DE OBRA":
-            tiempo_instalacion += insumo.get("Cantidad", 0)
+    # Calcular costos y tiempo directamente desde el DataFrame filtrado
+    costos_por_categoria = apu_items_df.groupby("CATEGORIA")["VALOR_TOTAL_APU"].sum()
+    costos_base = {
+        "MATERIALES": costos_por_categoria.get("MATERIALES", 0.0),
+        "MANO DE OBRA": costos_por_categoria.get("MANO DE OBRA", 0.0),
+        "EQUIPO": costos_por_categoria.get("EQUIPO", 0.0),
+        "OTROS": costos_por_categoria.get("OTROS", 0.0),
+    }
+
+    mano_de_obra_df = apu_items_df[apu_items_df["CATEGORIA"] == "MANO DE OBRA"]
+    tiempo_instalacion = mano_de_obra_df["CANTIDAD_APU"].sum()
 
     valor_suministro = costos_base["MATERIALES"]
     valor_instalacion = costos_base["MANO DE OBRA"] + costos_base["EQUIPO"]
@@ -614,16 +622,19 @@ def calculate_estimate(
     if izaje == "grúa":
         costo_grua_por_dia = 0.0
         # La búsqueda de la grúa debe hacerse en la lista completa de APUs
+        descripcion_grua = None
         for _, apu_row in df_apus_unique.iterrows():
-            if "alquiler grua" in _normalize(apu_row.get("DESCRIPCION_APU", "")):
-                codigo_grua = apu_row.get("CODIGO_APU")
-                detalle_grua = apus_detail.get(codigo_grua, [])
-                costo_total_apu_grua = sum(d.get("Vr Total", 0) for d in detalle_grua)
-                costo_grua_por_dia = costo_total_apu_grua
-                log.append(
-                    f"APU de Grúa encontrado. Costo/día: ${costo_grua_por_dia:,.0f}"
-                )
+            apu_desc = apu_row.get("DESCRIPCION_APU", "")
+            if "alquiler grua" in _normalize(apu_desc):
+                descripcion_grua = apu_desc
                 break
+
+        if descripcion_grua:
+            df_grua_items = df_apus[df_apus["DESCRIPCION_APU"] == descripcion_grua]
+            costo_grua_por_dia = df_grua_items["VALOR_TOTAL_APU"].sum()
+            log.append(
+                f"APU de Grúa encontrado ('{descripcion_grua}'). Costo/día: ${costo_grua_por_dia:,.0f}"
+            )
         if costo_grua_por_dia > 0:
             costo_adicional_grua = costo_grua_por_dia * tiempo_instalacion
             valor_instalacion += costo_adicional_grua
