@@ -1,6 +1,7 @@
 import hashlib
 import json
 import logging
+import os
 import re
 from functools import lru_cache
 from typing import Dict, List, Optional, Union
@@ -92,7 +93,9 @@ def find_and_rename_columns(df, column_map, fuzzy_match=False):
 def load_config():
     """Carga el archivo de configuración JSON."""
     try:
-        with open("config.json", "r", encoding="utf-8") as f:
+        # Asumimos que config.json está en el mismo directorio que este script
+        config_path = os.path.join(os.path.dirname(__file__), "config.json")
+        with open(config_path, "r", encoding="utf-8") as f:
             return json.load(f)
     except FileNotFoundError:
         logger.error("El archivo config.json no fue encontrado.")
@@ -144,21 +147,14 @@ def process_insumos_csv(path: str) -> pd.DataFrame:
     try:
         with open(path, "r", encoding="latin1") as f:
             for line in f:
-                # Omitir líneas vacías
                 if not line.strip():
                     continue
-
                 parts = [p.strip() for p in line.split(";")]
-
-                # Detectar y actualizar el grupo actual
                 if len(parts) > 1 and parts[0].upper().startswith("G") and parts[1]:
                     current_group = parts[1]
                     continue
-
-                # Identificar la línea de encabezado principal para empezar a leer datos
                 if "CODIGO" in line and "DESCRIPCION" in line:
                     header_found = True
-                    # Extraer los nombres de las columnas de esta línea
                     header_columns = [p.strip() for p in line.split(";")]
                     desc_index = next(
                         (
@@ -177,14 +173,10 @@ def process_insumos_csv(path: str) -> pd.DataFrame:
                         -1,
                     )
                     continue
-
-                # Si hemos encontrado el header, procesar las líneas de datos
                 if header_found and desc_index != -1 and vr_unit_index != -1:
                     if len(parts) > max(desc_index, vr_unit_index):
                         description = parts[desc_index]
                         vr_unit_str = parts[vr_unit_index]
-
-                        # Validar que sea una fila de datos real
                         if description and vr_unit_str:
                             data_rows.append(
                                 {
@@ -193,12 +185,9 @@ def process_insumos_csv(path: str) -> pd.DataFrame:
                                     "GRUPO_INSUMO": current_group,
                                 }
                             )
-
         if not data_rows:
             return pd.DataFrame()
-
         df = pd.DataFrame(data_rows)
-
         df["VR_UNITARIO_INSUMO"] = pd.to_numeric(
             df["VR_UNITARIO_INSUMO"]
             .astype(str)
@@ -207,10 +196,8 @@ def process_insumos_csv(path: str) -> pd.DataFrame:
             errors="coerce",
         )
         df.dropna(subset=["DESCRIPCION_INSUMO", "VR_UNITARIO_INSUMO"], inplace=True)
-
         df["NORMALIZED_DESC"] = normalize_text(df["DESCRIPCION_INSUMO"])
         df = df.drop_duplicates(subset=["NORMALIZED_DESC"], keep="first")
-
         return df[
             [
                 "NORMALIZED_DESC",
@@ -220,7 +207,7 @@ def process_insumos_csv(path: str) -> pd.DataFrame:
             ]
         ]
     except Exception as e:
-        print(f"Error procesando insumos.csv: {e}")
+        logger.error(f"Error procesando insumos.csv: {e}")
         return pd.DataFrame()
 
 
@@ -246,7 +233,6 @@ def process_apus_csv_v2(path: str) -> pd.DataFrame:
         "category": "INDEFINIDO",
         "last_non_empty_line": None,
     }
-
     category_keywords = config.get("category_keywords", {})
 
     def to_numeric_safe(s):
@@ -258,11 +244,25 @@ def process_apus_csv_v2(path: str) -> pd.DataFrame:
         return pd.NA
 
     def parse_data_line(parts, context):
-        """Parsea una línea de datos de insumo."""
         description = parts[0]
         cantidad = to_numeric_safe(parts[2])
         precio_unit = to_numeric_safe(parts[4])
         valor_total = to_numeric_safe(parts[5])
+
+        ### CAMBIO CLAVE 1: Lógica para extraer VALOR_TOTAL_APU de forma robusta ###
+        # Si el valor_total no se pudo parsear de la columna 6 (índice 5),
+        # intenta buscarlo en la última columna no vacía, que es un caso común.
+        if pd.isna(valor_total):
+            last_numeric_part = next(
+                (
+                    to_numeric_safe(p)
+                    for p in reversed(parts)
+                    if to_numeric_safe(p) is not pd.NA
+                ),
+                pd.NA,
+            )
+            if pd.notna(last_numeric_part):
+                valor_total = last_numeric_part
 
         if pd.isna(cantidad) and "%" in parts[2]:
             jornal_total = to_numeric_safe(parts[3])
@@ -298,16 +298,13 @@ def process_apus_csv_v2(path: str) -> pd.DataFrame:
         return None
 
     def parse_line(line, context):
-        """Parsea una línea individual y actualiza el contexto."""
         line = line.strip()
         if not line:
             return None, context
-
         clean_line = line.replace(";", "").strip().upper()
         if clean_line in category_keywords:
             context["category"] = category_keywords[clean_line]
             return None, context
-
         if "ITEM:" in line.upper():
             match = re.search(r"ITEM:\s*([\d,\.]*)", line.upper())
             if match:
@@ -317,14 +314,11 @@ def process_apus_csv_v2(path: str) -> pd.DataFrame:
                     context["last_non_empty_line"].split(";")[0].strip()
                 )
             return None, context
-
         context["last_non_empty_line"] = line
-
         if ";" in line and context["apu_code"]:
             parts = [p.strip() for p in line.split(";")]
             if len(parts) >= 6 and parts[0]:
                 return parse_data_line(parts, context), context
-
         return None, context
 
     try:
@@ -333,25 +327,18 @@ def process_apus_csv_v2(path: str) -> pd.DataFrame:
                 data_row, current_context = parse_line(line, current_context)
                 if data_row:
                     apus_data.append(data_row)
-
         if not apus_data:
             return pd.DataFrame()
-
         df = pd.DataFrame(apus_data)
         df["CODIGO_APU"] = df["CODIGO_APU"].str.strip()
         df["NORMALIZED_DESC"] = normalize_text(df["DESCRIPCION_INSUMO"])
         return df
-
     except Exception as e:
         logger.error(f"Error procesando apus.csv con v2: {e}")
         return pd.DataFrame()
 
 
 def group_and_split_description(df: pd.DataFrame) -> pd.DataFrame:
-    """
-    Agrupa inteligentemente las descripciones de los ítems del presupuesto.
-    Extrae un nombre de grupo (ej. por calibre) y una descripción corta.
-    """
     if "DESCRIPCION_APU" not in df.columns:
         df["grupo"] = "Ítems Varios"
         df["DESCRIPCION_APU"] = ""
@@ -373,7 +360,8 @@ def group_and_split_description(df: pd.DataFrame) -> pd.DataFrame:
             return " ".join(words[:4]), " ".join(words[4:])
         return desc, ""
 
-    df[["grupo", "descripcion_corta"]] = df["DESCRIPCION_APU"].apply(
+    df["original_description"] = df["DESCRIPCION_APU"]
+    df[["grupo", "descripcion_corta"]] = df["original_description"].apply(
         lambda x: pd.Series(get_group_and_short_desc(x))
     )
     df["DESCRIPCION_APU"] = df["descripcion_corta"]
@@ -382,16 +370,12 @@ def group_and_split_description(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def _do_processing(presupuesto_path, apus_path, insumos_path):
-    """The actual processing logic."""
     logger.info(f"Procesando archivos: {presupuesto_path}, {apus_path}, {insumos_path}")
-
     df_presupuesto = process_presupuesto_csv(presupuesto_path)
     df_insumos = process_insumos_csv(insumos_path)
     df_apus = process_apus_csv_v2(apus_path)
-
     if df_presupuesto.empty or df_insumos.empty or df_apus.empty:
         return {"error": "Uno o más archivos no pudieron ser procesados."}
-
     df_merged = pd.merge(
         df_apus, df_insumos, on="NORMALIZED_DESC", how="left", suffixes=("_apu", "")
     )
@@ -412,7 +396,6 @@ def _do_processing(presupuesto_path, apus_path, insumos_path):
         df_merged.loc[mask_recalc, "COSTO_INSUMO_EN_APU"] / cantidad_safe
     )
     df_merged["COSTO_INSUMO_EN_APU"] = df_merged["COSTO_INSUMO_EN_APU"].fillna(0)
-
     df_apu_costos_categoria = (
         df_merged.groupby(["CODIGO_APU", "CATEGORIA"])["COSTO_INSUMO_EN_APU"]
         .sum()
@@ -423,7 +406,6 @@ def _do_processing(presupuesto_path, apus_path, insumos_path):
     for col in cost_cols:
         if col not in df_apu_costos_categoria.columns:
             df_apu_costos_categoria[col] = 0
-
     df_apu_costos_categoria["VALOR_SUMINISTRO_UN"] = df_apu_costos_categoria[
         "MATERIALES"
     ]
@@ -433,7 +415,6 @@ def _do_processing(presupuesto_path, apus_path, insumos_path):
     df_apu_costos_categoria["VALOR_CONSTRUCCION_UN"] = df_apu_costos_categoria[
         cost_cols
     ].sum(axis=1)
-
     df_tiempo = (
         df_merged[df_merged["CATEGORIA"] == "MANO DE OBRA"]
         .groupby("CODIGO_APU")["CANTIDAD_APU"]
@@ -441,12 +422,10 @@ def _do_processing(presupuesto_path, apus_path, insumos_path):
         .reset_index()
     )
     df_tiempo.rename(columns={"CANTIDAD_APU": "TIEMPO_INSTALACION"}, inplace=True)
-
     df_final = pd.merge(
         df_presupuesto, df_apu_costos_categoria, on="CODIGO_APU", how="left"
     )
     df_final = pd.merge(df_final, df_tiempo, on="CODIGO_APU", how="left")
-
     final_cols_to_fill = [
         "VALOR_SUMINISTRO_UN",
         "VALOR_INSTALACION_UN",
@@ -454,14 +433,15 @@ def _do_processing(presupuesto_path, apus_path, insumos_path):
         "TIEMPO_INSTALACION",
     ]
     for col in final_cols_to_fill:
-        df_final[col] = df_final[col].fillna(0)
-
+        if col in df_final.columns:
+            df_final[col] = df_final[col].fillna(0)
+        else:
+            df_final[col] = 0
     df_final = group_and_split_description(df_final)
     logger.info(
-        f"Diagnóstico: {df_final['VALOR_CONSTRUCCION_UN'].notna().sum()} de "
-        f"{len(df_final)} ítems del presupuesto encontraron su costo."
+        f"Diagnóstico: {df_final['VALOR_CONSTRUCCION_UN'].notna().sum()} de"
+        f" {len(df_final)} ítems del presupuesto encontraron su costo."
     )
-
     df_merged["Vr Unitario"] = df_merged["VR_UNITARIO_FINAL"].fillna(0)
     df_merged["Vr Total"] = df_merged["COSTO_INSUMO_EN_APU"]
     df_merged_renamed = df_merged.rename(
@@ -473,7 +453,6 @@ def _do_processing(presupuesto_path, apus_path, insumos_path):
         ].to_dict("records")
         for n, g in df_merged_renamed.groupby("CODIGO_APU")
     }
-
     insumos_dict = {}
     if "GRUPO_INSUMO" in df_insumos.columns:
         df_insumos_renamed = df_insumos.rename(
@@ -487,7 +466,6 @@ def _do_processing(presupuesto_path, apus_path, insumos_path):
                 insumos_dict[name.strip()] = (
                     group[["Descripción", "Vr Unitario"]].dropna().to_dict("records")
                 )
-
     logger.info("--- Procesamiento completado ---")
     return {
         "presupuesto": df_final.to_dict("records"),
@@ -501,7 +479,6 @@ def _do_processing(presupuesto_path, apus_path, insumos_path):
 def _cached_csv_processing(
     presupuesto_hash, apus_hash, insumos_hash, presupuesto_path, apus_path, insumos_path
 ):
-    """Función interna que realiza el procesamiento y cuyos resultados se cachean."""
     logger.info("Cache miss.")
     return _do_processing(presupuesto_path, apus_path, insumos_path)
 
@@ -509,12 +486,10 @@ def _cached_csv_processing(
 def process_all_files(
     presupuesto_path: str, apus_path: str, insumos_path: str, use_cache: bool = True
 ):
-    """Versión mejorada con caché y mejor manejo de errores."""
     if not use_cache:
         _cached_csv_processing.cache_clear()
         logger.info("Caché limpiado forzosamente y procesando sin caché.")
         return _do_processing(presupuesto_path, apus_path, insumos_path)
-
     try:
         file_hashes = (
             get_file_hash(presupuesto_path),
@@ -526,44 +501,31 @@ def process_all_files(
     except Exception as e:
         logger.error(f"Error al generar hashes de archivos: {e}")
         return {"error": f"Error al generar hashes: {e}"}
-
     result = _cached_csv_processing(
         *file_hashes, presupuesto_path, apus_path, insumos_path
     )
-
     info = _cached_csv_processing.cache_info()
     logger.info(
         f"Cache info: hits={info.hits}, misses={info.misses}, size={info.currsize}"
     )
-
     return result
 
 
 def calculate_estimate(
     params: Dict[str, str], data_store: Dict
 ) -> Dict[str, Union[str, float, List[str]]]:
-    """
-    Calcula una estimación de costo basada en parámetros de entrada.
-    Esta es la función principal para la lógica del 'Estimador Rápido'.
-    """
     log = []
-
-    # Validación de parámetros
-    required_params = ["tipo", "material"]
-    missing_params = [p for p in required_params if p not in params]
+    required_params = ["tipo", "material", "cuadrilla"]
+    missing_params = [p for p in required_params if p not in params or not params[p]]
     if missing_params:
-        error_msg = f"Parámetros requeridos faltantes: {missing_params}"
+        error_msg = f"Parámetros requeridos faltantes o vacíos: {missing_params}"
         logger.warning(error_msg)
-        return {
-            "error": error_msg,
-            "log": [error_msg],
-        }
+        return {"error": error_msg, "log": [error_msg]}
 
     def _normalize(text: str) -> str:
         return unidecode(str(text)).upper()
 
     param_map = config.get("param_map", {})
-
     all_apus_list = data_store.get("all_apus", [])
     if not all_apus_list:
         return {
@@ -573,9 +535,7 @@ def calculate_estimate(
 
     df_apus = pd.DataFrame(all_apus_list)
     df_apus_unique = df_apus.drop_duplicates(subset=["DESCRIPCION_APU"])
-
     apus_detail = data_store.get("apus_detail", {})
-    presupuesto_list = data_store.get("presupuesto", [])
 
     tipo = params.get("tipo", "").upper()
     material = params.get("material", "").upper()
@@ -601,25 +561,28 @@ def calculate_estimate(
 
     apu_mo_code = None
     apu_mo_desc = ""
+
+    ### CAMBIO CLAVE 2: Buscar en la lista de APUs, no en el presupuesto ###
+    # La fuente correcta de todas las descripciones de APU es el dataframe de APUs.
     for _, apu_row in df_apus_unique.iterrows():
         desc_normalized = apu_row["DESC_NORMALIZED"]
         if all(term in desc_normalized for term in search_terms_normalized):
             apu_mo_code = apu_row.get("CODIGO_APU")
             apu_mo_desc = apu_row.get("DESCRIPCION_APU")
             log.append(
-                f"ÉXITO:"
-                f" APU de M.O. encontrado: '{apu_mo_desc}' (Código: {apu_mo_code})"
+                f"ÉXITO: APU de M.O. encontrado:"
+                f" '{apu_mo_desc}' (Código: {apu_mo_code})"
             )
             break
 
     if not apu_mo_code:
         log.append(
-            "ERROR: No se encontró un APU de mano de obra que coincida con los "
-            "criterios."
+            "ERROR: No se encontró un APU de mano de obra"
+            "que coincida con los criterios."
         )
         return {
-            "error": "No se encontró un APU de mano de obra que coincida con los"
-            " criterios.",
+            "error": "No se encontró un APU de mano de obra"
+            "que coincida con los criterios.",
             "log": "\n".join(log),
         }
 
@@ -635,7 +598,8 @@ def calculate_estimate(
     for insumo in apu_items:
         categoria = insumo.get("CATEGORIA", "OTROS")
         costo = insumo.get("Vr Total", 0)
-        costos_base[categoria] += costo
+        if categoria in costos_base:
+            costos_base[categoria] += costo
         if categoria == "MANO DE OBRA":
             tiempo_instalacion += insumo.get("Cantidad", 0)
 
@@ -649,9 +613,10 @@ def calculate_estimate(
 
     if izaje == "grúa":
         costo_grua_por_dia = 0.0
-        for item in presupuesto_list:
-            if "alquiler grua" in item.get("DESCRIPCION_APU", "").lower():
-                codigo_grua = item.get("CODIGO_APU")
+        # La búsqueda de la grúa debe hacerse en la lista completa de APUs
+        for _, apu_row in df_apus_unique.iterrows():
+            if "alquiler grua" in _normalize(apu_row.get("DESCRIPCION_APU", "")):
+                codigo_grua = apu_row.get("CODIGO_APU")
                 detalle_grua = apus_detail.get(codigo_grua, [])
                 costo_total_apu_grua = sum(d.get("Vr Total", 0) for d in detalle_grua)
                 costo_grua_por_dia = costo_total_apu_grua
@@ -668,7 +633,8 @@ def calculate_estimate(
             )
         else:
             log.append(
-                "ADVERTENCIA: Izaje por grúa seleccionado, no se encontró APU de grúa."
+                "ADVERTENCIA: Izaje por grúa seleccionado"
+                "pero no se encontró APU de grúa."
             )
 
     if seguridad == "alta":

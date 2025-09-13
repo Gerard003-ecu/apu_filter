@@ -2,7 +2,7 @@
   "presupuesto_column_map": {
     "CODIGO_APU": ["ITEM"],
     "DESCRIPCION_APU": ["DESCRIPCION"],
-    "CANTIDAD_PRESUPUESTO": ["CANT.", "CANTIDAD"]
+    "CANTIDAD_PRESUPUESTO": ["CANT."]
   },
   "category_keywords": {
     "MATERIALES": "MATERIALES",
@@ -16,8 +16,8 @@
       "PANEL": "PANEL SANDWICH"
     },
     "tipo": {
-      "CUBIERTA": "IZAJE MANUAL",
-      "FACHADA": "IZAJE MANUAL"
+      "CUBIERTA": "INSTALACION",
+      "FACHADA": "INSTALACION"
     }
   }
 }
