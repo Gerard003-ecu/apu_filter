@@ -247,7 +247,7 @@ def process_apus_csv_v2(path: str) -> pd.DataFrame:
 
         if pd.notna(valor_total):
             if (pd.isna(cantidad) or cantidad == 0) and pd.notna(precio_unit) and precio_unit > 0:
-                cantidad = valor_total / precio_unit
+                cantidad = valor_total / cantidad
             if (pd.isna(precio_unit) or precio_unit == 0) and pd.notna(cantidad) and cantidad > 0:
                 precio_unit = valor_total / cantidad
         elif pd.notna(cantidad) and pd.notna(precio_unit):
@@ -262,57 +262,41 @@ def process_apus_csv_v2(path: str) -> pd.DataFrame:
             "VALOR_TOTAL_APU": valor_total if pd.notna(valor_total) else 0,
             "CATEGORIA": context["category"],
         }
-    
-    with open(path, "r", encoding="latin1") as f:
-        lines = f.readlines()
-
-    for i, line in enumerate(lines):
-        line = line.strip()
-        if not line: continue
-
-        clean_line_upper = line.replace(";", "").strip().upper()
-        if clean_line_upper in category_keywords:
-            current_context["category"] = category_keywords[clean_line_upper]
-            continue
-
-        if "ITEM:" in line.upper():
-            match = re.search(r"ITEM:\s*([\d,\.]*)", line.upper())
-            if match:
-                current_context["apu_code"] = match.group(1).strip()
-                # La descripción puede estar en la misma línea o en la anterior
-                desc_on_same_line = line.split(";")[0].strip()
-                if desc_on_same_line and not desc_on_same_line.upper().startswith("REMATE"):
-                     current_context["apu_desc"] = desc_on_same_line
-                else:
-                    # Buscar hacia atrás la última línea no vacía que no sea una categoría
-                    for j in range(i - 1, -1, -1):
-                        prev_line = lines[j].strip()
-                        prev_line_clean_upper = prev_line.replace(";", "").strip().upper()
-                        if prev_line and prev_line_clean_upper not in category_keywords:
-                            current_context["apu_desc"] = prev_line.split(";")[0].strip()
-                            break
-            continue
-
-        if current_context["apu_code"] and ";" in line:
-            parts = [p.strip() for p in line.split(";")]
-            if len(parts) >= 6 and parts[0] and "SUBTOTAL" not in parts[0].upper():
-                data_row = parse_data_line(parts, current_context)
-                if data_row: apus_data.append(data_row)
-
-    if not apus_data: return pd.DataFrame()
-    df = pd.DataFrame(apus_data)
-    df["CODIGO_APU"] = df["CODIGO_APU"].str.strip()
-    df["NORMALIZED_DESC"] = normalize_text(df["DESCRIPCION_INSUMO"])
-    return df
 
     try:
         with open(path, "r", encoding="latin1") as f:
-            for line in f:
-                data_row, current_context = parse_line(line, current_context)
-                if data_row:
-                    apus_data.append(data_row)
-        if not apus_data:
-            return pd.DataFrame()
+            lines = f.readlines()
+
+        last_non_empty_line = ""
+        for line in lines:
+            line = line.strip()
+            if not line: continue
+
+            clean_line_upper = line.replace(";", "").strip().upper()
+            if clean_line_upper in category_keywords:
+                current_context["category"] = category_keywords[clean_line_upper]
+                continue
+
+            if "ITEM:" in line.upper():
+                match = re.search(r"ITEM:\s*([\d,\.]*)", line.upper())
+                if match:
+                    current_context["apu_code"] = match.group(1).strip()
+                    desc_on_same_line = line.split(";")[0].strip()
+                    if desc_on_same_line and not desc_on_same_line.upper().startswith("REMATE"):
+                        current_context["apu_desc"] = desc_on_same_line
+                    else:
+                        current_context["apu_desc"] = last_non_empty_line.split(";")[0].strip()
+                continue
+
+            last_non_empty_line = line
+
+            if current_context["apu_code"] and ";" in line:
+                parts = [p.strip() for p in line.split(";")]
+                if len(parts) >= 6 and parts[0] and "SUBTOTAL" not in parts[0].upper():
+                    data_row = parse_data_line(parts, current_context)
+                    if data_row: apus_data.append(data_row)
+
+        if not apus_data: return pd.DataFrame()
         df = pd.DataFrame(apus_data)
         df["CODIGO_APU"] = df["CODIGO_APU"].str.strip()
         df["NORMALIZED_DESC"] = normalize_text(df["DESCRIPCION_INSUMO"])
@@ -528,14 +512,14 @@ def calculate_estimate(
         "MANO DE OBRA": 3,  # Ponderación alta
         tipo_mapped: 2,
         material_mapped: 2,
-        f"CUADRILLA DE {cuadrilla}": 3, # Ponderación alta
+        f"CUADRILLA DE {cuadrilla}": 3,  # Ponderación alta
     }
-    
-    search_terms_normalized = { _normalize(k): v for k, v in search_terms.items() }
+
+    search_terms_normalized = {_normalize(k): v for k, v in search_terms.items()}
     log.append(f"Términos de búsqueda ponderados: {search_terms_normalized}")
 
     df_apus_unique["DESC_NORMALIZED"] = df_apus_unique["DESCRIPCION_APU"].apply(_normalize)
-    
+
     best_match = {"score": 0, "code": None, "desc": ""}
 
     for _, apu_row in df_apus_unique.iterrows():
@@ -544,23 +528,30 @@ def calculate_estimate(
         for term, weight in search_terms_normalized.items():
             if term in desc_normalized:
                 current_score += weight
-        
+
         if current_score > best_match["score"]:
             best_match["score"] = current_score
             best_match["code"] = apu_row.get("CODIGO_APU")
             best_match["desc"] = apu_row.get("DESCRIPCION_APU")
 
     # Umbral mínimo de puntuación para considerar una coincidencia válida
-    MIN_SCORE_THRESHOLD = 5 
+    MIN_SCORE_THRESHOLD = 5
     if best_match["score"] < MIN_SCORE_THRESHOLD:
-        log.append(f"ERROR: No se encontró un APU con una puntuación de"
-        f"coincidencia suficiente. Mejor puntuación: {best_match['score']}")
-        return {"error": "No se encontró un APU"
-        " de mano de obra que coincida con los criterios.", "log": "\n".join(log)}
+        log.append(
+            f"ERROR: No se encontró un APU con una puntuación de"
+            f"coincidencia suficiente. Mejor puntuación: {best_match['score']}"
+        )
+        return {
+            "error": "No se encontró un APU de mano de obra que coincida con los criterios.",
+            "log": "\n".join(log),
+        }
 
     apu_mo_code = best_match["code"]
     apu_mo_desc = best_match["desc"]
-    log.append(f"ÉXITO: Mejor coincidencia encontrada (Puntuación: {best_match['score']}): '{apu_mo_desc}' (Código: {apu_mo_code})")
+    log.append(
+        f"ÉXITO: Mejor coincidencia encontrada"
+        f"(Puntuación: {best_match['score']}): '{apu_mo_desc}' (Código: {apu_mo_code})"
+    )
 
     df_apus_unique.loc[:, "DESC_NORMALIZED"] = df_apus_unique["DESCRIPCION_APU"].apply(
         _normalize

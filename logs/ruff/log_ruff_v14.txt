@@ -1,0 +1,253 @@
+E701 Multiple statements on one line (colon)
+   --> procesador_csv.py:224:39
+    |
+223 |     def to_numeric_safe(s):
+224 |         if isinstance(s, (int, float)): return s
+    |                                       ^
+225 |         if isinstance(s, str):
+226 |             s = s.replace(".", "").replace(",", ".").strip()
+    |
+
+E701 Multiple statements on one line (colon)
+   --> procesador_csv.py:231:37
+    |
+230 |     def parse_data_line(parts, context):
+231 |         if not parts or not parts[0]: return None
+    |                                     ^
+232 |         description = parts[0]
+233 |         cantidad = to_numeric_safe(parts[2]) if len(parts) > 2 else pd.NA
+    |
+
+E501 Line too long (122 > 93)
+   --> procesador_csv.py:238:94
+    |
+237 |         if pd.isna(valor_total):
+238 |             last_numeric_part = next((to_numeric_safe(p) for p in reversed(parts) if pd.notna(to_numeric_safe(p))), pd.NA)
+    |                                                                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+239 |             if pd.notna(last_numeric_part): valor_total = last_numeric_part
+    |
+
+E701 Multiple statements on one line (colon)
+   --> procesador_csv.py:239:43
+    |
+237 |         if pd.isna(valor_total):
+238 |             last_numeric_part = next((to_numeric_safe(p) for p in reversed(parts) if pd.notna(to_numeric_safe(p))), pd.NA)
+239 |             if pd.notna(last_numeric_part): valor_total = last_numeric_part
+    |                                           ^
+240 |
+241 |         if pd.isna(cantidad) and len(parts) > 2 and "%" in parts[2]:
+    |
+
+E701 Multiple statements on one line (colon)
+   --> procesador_csv.py:245:17
+    |
+243 |             if pd.notna(valor_total) and pd.notna(jornal_total) and jornal_total > 0:
+244 |                 cantidad = valor_total / jornal_total
+245 |             else: cantidad = 0
+    |                 ^
+246 |             precio_unit = jornal_total
+    |
+
+E501 Line too long (98 > 93)
+   --> procesador_csv.py:249:94
+    |
+248 |         if pd.notna(valor_total):
+249 |             if (pd.isna(cantidad) or cantidad == 0) and pd.notna(precio_unit) and precio_unit > 0:
+    |                                                                                              ^^^^^
+250 |                 cantidad = valor_total / cantidad
+251 |             if (pd.isna(precio_unit) or precio_unit == 0) and pd.notna(cantidad) and cantidad > 0:
+    |
+
+E501 Line too long (98 > 93)
+   --> procesador_csv.py:251:94
+    |
+249 |             if (pd.isna(cantidad) or cantidad == 0) and pd.notna(precio_unit) and precio_unit > 0:
+250 |                 cantidad = valor_total / cantidad
+251 |             if (pd.isna(precio_unit) or precio_unit == 0) and pd.notna(cantidad) and cantidad > 0:
+    |                                                                                              ^^^^^
+252 |                 precio_unit = valor_total / cantidad
+253 |         elif pd.notna(cantidad) and pd.notna(precio_unit):
+    |
+
+E701 Multiple statements on one line (colon)
+   --> procesador_csv.py:273:24
+    |
+271 |         for line in lines:
+272 |             line = line.strip()
+273 |             if not line: continue
+    |                        ^
+274 |
+275 |             clean_line_upper = line.replace(";", "").strip().upper()
+    |
+
+E501 Line too long (96 > 93)
+   --> procesador_csv.py:285:94
+    |
+283 |                     current_context["apu_code"] = match.group(1).strip()
+284 |                     desc_on_same_line = line.split(";")[0].strip()
+285 |                     if desc_on_same_line and not desc_on_same_line.upper().startswith("REMATE"):
+    |                                                                                              ^^^
+286 |                         current_context["apu_desc"] = desc_on_same_line
+287 |                     else:
+    |
+
+E501 Line too long (95 > 93)
+   --> procesador_csv.py:288:94
+    |
+286 |                         current_context["apu_desc"] = desc_on_same_line
+287 |                     else:
+288 |                         current_context["apu_desc"] = last_non_empty_line.split(";")[0].strip()
+    |                                                                                              ^^
+289 |                 continue
+    |
+
+E701 Multiple statements on one line (colon)
+   --> procesador_csv.py:297:32
+    |
+295 |                 if len(parts) >= 6 and parts[0] and "SUBTOTAL" not in parts[0].upper():
+296 |                     data_row = parse_data_line(parts, current_context)
+297 |                     if data_row: apus_data.append(data_row)
+    |                                ^
+298 |
+299 |         if not apus_data: return pd.DataFrame()
+    |
+
+E701 Multiple statements on one line (colon)
+   --> procesador_csv.py:299:25
+    |
+297 |                     if data_row: apus_data.append(data_row)
+298 |
+299 |         if not apus_data: return pd.DataFrame()
+    |                         ^
+300 |         df = pd.DataFrame(apus_data)
+301 |         df["CODIGO_APU"] = df["CODIGO_APU"].str.strip()
+    |
+
+Found 13 errors (1 fixed, 12 remaining).
+(apu_filter) gerardomayor@MacBook-Air-de-Gerardo apu_filter % ruff check .      
+E701 Multiple statements on one line (colon)
+   --> procesador_csv.py:224:39
+    |
+223 |     def to_numeric_safe(s):
+224 |         if isinstance(s, (int, float)): return s
+    |                                       ^
+225 |         if isinstance(s, str):
+226 |             s = s.replace(".", "").replace(",", ".").strip()
+    |
+
+E701 Multiple statements on one line (colon)
+   --> procesador_csv.py:231:37
+    |
+230 |     def parse_data_line(parts, context):
+231 |         if not parts or not parts[0]: return None
+    |                                     ^
+232 |         description = parts[0]
+233 |         cantidad = to_numeric_safe(parts[2]) if len(parts) > 2 else pd.NA
+    |
+
+E501 Line too long (122 > 93)
+   --> procesador_csv.py:238:94
+    |
+237 |         if pd.isna(valor_total):
+238 |             last_numeric_part = next((to_numeric_safe(p) for p in reversed(parts) if pd.notna(to_numeric_safe(p))), pd.NA)
+    |                                                                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+239 |             if pd.notna(last_numeric_part): valor_total = last_numeric_part
+    |
+
+E701 Multiple statements on one line (colon)
+   --> procesador_csv.py:239:43
+    |
+237 |         if pd.isna(valor_total):
+238 |             last_numeric_part = next((to_numeric_safe(p) for p in reversed(parts) if pd.notna(to_numeric_safe(p))), pd.NA)
+239 |             if pd.notna(last_numeric_part): valor_total = last_numeric_part
+    |                                           ^
+240 |
+241 |         if pd.isna(cantidad) and len(parts) > 2 and "%" in parts[2]:
+    |
+
+E701 Multiple statements on one line (colon)
+   --> procesador_csv.py:245:17
+    |
+243 |             if pd.notna(valor_total) and pd.notna(jornal_total) and jornal_total > 0:
+244 |                 cantidad = valor_total / jornal_total
+245 |             else: cantidad = 0
+    |                 ^
+246 |             precio_unit = jornal_total
+    |
+
+E501 Line too long (98 > 93)
+   --> procesador_csv.py:249:94
+    |
+248 |         if pd.notna(valor_total):
+249 |             if (pd.isna(cantidad) or cantidad == 0) and pd.notna(precio_unit) and precio_unit > 0:
+    |                                                                                              ^^^^^
+250 |                 cantidad = valor_total / cantidad
+251 |             if (pd.isna(precio_unit) or precio_unit == 0) and pd.notna(cantidad) and cantidad > 0:
+    |
+
+E501 Line too long (98 > 93)
+   --> procesador_csv.py:251:94
+    |
+249 |             if (pd.isna(cantidad) or cantidad == 0) and pd.notna(precio_unit) and precio_unit > 0:
+250 |                 cantidad = valor_total / cantidad
+251 |             if (pd.isna(precio_unit) or precio_unit == 0) and pd.notna(cantidad) and cantidad > 0:
+    |                                                                                              ^^^^^
+252 |                 precio_unit = valor_total / cantidad
+253 |         elif pd.notna(cantidad) and pd.notna(precio_unit):
+    |
+
+E701 Multiple statements on one line (colon)
+   --> procesador_csv.py:273:24
+    |
+271 |         for line in lines:
+272 |             line = line.strip()
+273 |             if not line: continue
+    |                        ^
+274 |
+275 |             clean_line_upper = line.replace(";", "").strip().upper()
+    |
+
+E501 Line too long (96 > 93)
+   --> procesador_csv.py:285:94
+    |
+283 |                     current_context["apu_code"] = match.group(1).strip()
+284 |                     desc_on_same_line = line.split(";")[0].strip()
+285 |                     if desc_on_same_line and not desc_on_same_line.upper().startswith("REMATE"):
+    |                                                                                              ^^^
+286 |                         current_context["apu_desc"] = desc_on_same_line
+287 |                     else:
+    |
+
+E501 Line too long (95 > 93)
+   --> procesador_csv.py:288:94
+    |
+286 |                         current_context["apu_desc"] = desc_on_same_line
+287 |                     else:
+288 |                         current_context["apu_desc"] = last_non_empty_line.split(";")[0].strip()
+    |                                                                                              ^^
+289 |                 continue
+    |
+
+E701 Multiple statements on one line (colon)
+   --> procesador_csv.py:297:32
+    |
+295 |                 if len(parts) >= 6 and parts[0] and "SUBTOTAL" not in parts[0].upper():
+296 |                     data_row = parse_data_line(parts, current_context)
+297 |                     if data_row: apus_data.append(data_row)
+    |                                ^
+298 |
+299 |         if not apus_data: return pd.DataFrame()
+    |
+
+E701 Multiple statements on one line (colon)
+   --> procesador_csv.py:299:25
+    |
+297 |                     if data_row: apus_data.append(data_row)
+298 |
+299 |         if not apus_data: return pd.DataFrame()
+    |                         ^
+300 |         df = pd.DataFrame(apus_data)
+301 |         df["CODIGO_APU"] = df["CODIGO_APU"].str.strip()
+    |
+
+Found 12 errors.
