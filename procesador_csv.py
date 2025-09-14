@@ -221,37 +221,56 @@ def process_apus_csv_v2(path: str) -> pd.DataFrame:
     category_keywords = config.get("category_keywords", {})
 
     def to_numeric_safe(s):
-        if isinstance(s, (int, float)): return s
+        if isinstance(s, (int, float)):
+            return s
         if isinstance(s, str):
             s = s.replace(".", "").replace(",", ".").strip()
             return pd.to_numeric(s, errors="coerce")
         return pd.NA
 
     def parse_data_line(parts, context):
-        if not parts or not parts[0]: return None
+        if not parts or not parts[0]:
+            return None
         description = parts[0]
         cantidad = to_numeric_safe(parts[2]) if len(parts) > 2 else pd.NA
         precio_unit = to_numeric_safe(parts[4]) if len(parts) > 4 else pd.NA
         valor_total = to_numeric_safe(parts[5]) if len(parts) > 5 else pd.NA
 
         if pd.isna(valor_total):
-            last_numeric_part = next((to_numeric_safe(p) for p in reversed(parts) if pd.notna(to_numeric_safe(p))), pd.NA)
-            if pd.notna(last_numeric_part): valor_total = last_numeric_part
+            last_numeric_part = next(
+                (
+                    to_numeric_safe(p)
+                    for p in reversed(parts)
+                    if pd.notna(to_numeric_safe(p))
+                ),
+                pd.NA,
+            )
+            if pd.notna(last_numeric_part):
+                valor_total = last_numeric_part
 
         if pd.isna(cantidad) and len(parts) > 2 and "%" in parts[2]:
             jornal_total = to_numeric_safe(parts[3])
             if pd.notna(valor_total) and pd.notna(jornal_total) and jornal_total > 0:
                 cantidad = valor_total / jornal_total
-            else: cantidad = 0
+            else:
+                cantidad = 0
             precio_unit = jornal_total
 
         if pd.notna(valor_total):
-            if (pd.isna(cantidad) or cantidad == 0) and pd.notna(precio_unit) and precio_unit > 0:
+            if (
+                (pd.isna(cantidad) or cantidad == 0)
+                and pd.notna(precio_unit)
+                and precio_unit > 0
+            ):
                 cantidad = valor_total / cantidad
-            if (pd.isna(precio_unit) or precio_unit == 0) and pd.notna(cantidad) and cantidad > 0:
+            if (
+                (pd.isna(precio_unit) or precio_unit == 0)
+                and pd.notna(cantidad)
+                and cantidad > 0
+            ):
                 precio_unit = valor_total / cantidad
         elif pd.notna(cantidad) and pd.notna(precio_unit):
-             valor_total = cantidad * precio_unit
+            valor_total = cantidad * precio_unit
 
         return {
             "CODIGO_APU": context["apu_code"],
@@ -270,7 +289,8 @@ def process_apus_csv_v2(path: str) -> pd.DataFrame:
         last_non_empty_line = ""
         for line in lines:
             line = line.strip()
-            if not line: continue
+            if not line:
+                continue
 
             clean_line_upper = line.replace(";", "").strip().upper()
             if clean_line_upper in category_keywords:
@@ -282,10 +302,14 @@ def process_apus_csv_v2(path: str) -> pd.DataFrame:
                 if match:
                     current_context["apu_code"] = match.group(1).strip()
                     desc_on_same_line = line.split(";")[0].strip()
-                    if desc_on_same_line and not desc_on_same_line.upper().startswith("REMATE"):
+                    if desc_on_same_line and not desc_on_same_line.upper().startswith(
+                        "REMATE"
+                    ):
                         current_context["apu_desc"] = desc_on_same_line
                     else:
-                        current_context["apu_desc"] = last_non_empty_line.split(";")[0].strip()
+                        current_context["apu_desc"] = last_non_empty_line.split(";")[
+                            0
+                        ].strip()
                 continue
 
             last_non_empty_line = line
@@ -294,9 +318,11 @@ def process_apus_csv_v2(path: str) -> pd.DataFrame:
                 parts = [p.strip() for p in line.split(";")]
                 if len(parts) >= 6 and parts[0] and "SUBTOTAL" not in parts[0].upper():
                     data_row = parse_data_line(parts, current_context)
-                    if data_row: apus_data.append(data_row)
+                    if data_row:
+                        apus_data.append(data_row)
 
-        if not apus_data: return pd.DataFrame()
+        if not apus_data:
+            return pd.DataFrame()
         df = pd.DataFrame(apus_data)
         df["CODIGO_APU"] = df["CODIGO_APU"].str.strip()
         df["NORMALIZED_DESC"] = normalize_text(df["DESCRIPCION_INSUMO"])
