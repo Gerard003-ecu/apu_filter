@@ -258,7 +258,7 @@ def process_apus_csv_v2(path: str) -> pd.DataFrame:
                     cantidad = porcentaje / 100
                 else:
                     cantidad = 0
-            except:
+            except ValueError:
                 cantidad = 0
 
         if pd.notna(valor_total):
@@ -633,7 +633,8 @@ def calculate_estimate(
         }
         fallback_rate = standard_rates.get(cuadrilla, 60000)
         valor_instalacion = fallback_rate
-        log.append(f"Usando tarifa estándar para cuadrilla de {cuadrilla}: ${fallback_rate:,.0f}")
+        log.append(f"Usando tarifa estándar"
+           f" para cuadrilla de {cuadrilla}: ${fallback_rate:,.0f}")
 
     log.append(
         f"Costos base:"
