@@ -215,109 +215,95 @@ def get_file_hash(path: str) -> str:
 
 
 def process_apus_csv_v2(path: str) -> pd.DataFrame:
-    """Versión mejorada del parser de APUs con mejor manejo de estados."""
+    """Versión final y robusta del parser de APUs."""
     apus_data = []
-    current_context = {
-        "apu_code": None,
-        "apu_desc": None,
-        "category": "INDEFINIDO",
-        "last_non_empty_line": None,
-    }
+    current_context = {"apu_code": None, "apu_desc": None, "category": "INDEFINIDO"}
     category_keywords = config.get("category_keywords", {})
 
     def to_numeric_safe(s):
-        if isinstance(s, (int, float)):
-            return s
+        if isinstance(s, (int, float)): return s
         if isinstance(s, str):
             s = s.replace(".", "").replace(",", ".").strip()
             return pd.to_numeric(s, errors="coerce")
         return pd.NA
 
     def parse_data_line(parts, context):
+        if not parts or not parts[0]: return None
         description = parts[0]
-        cantidad = to_numeric_safe(parts[2])
-        precio_unit = to_numeric_safe(parts[4])
-        valor_total = to_numeric_safe(parts[5])
+        cantidad = to_numeric_safe(parts[2]) if len(parts) > 2 else pd.NA
+        precio_unit = to_numeric_safe(parts[4]) if len(parts) > 4 else pd.NA
+        valor_total = to_numeric_safe(parts[5]) if len(parts) > 5 else pd.NA
 
-        ### CAMBIO CLAVE 1: Lógica para extraer VALOR_TOTAL_APU de forma robusta ###
-        # Si el valor_total no se pudo parsear de la columna 6 (índice 5),
-        # intenta buscarlo en la última columna no vacía, que es un caso común.
         if pd.isna(valor_total):
-            last_numeric_part = next(
-                (
-                    to_numeric_safe(p)
-                    for p in reversed(parts)
-                    if to_numeric_safe(p) is not pd.NA
-                ),
-                pd.NA,
-            )
-            if pd.notna(last_numeric_part):
-                valor_total = last_numeric_part
+            last_numeric_part = next((to_numeric_safe(p) for p in reversed(parts) if pd.notna(to_numeric_safe(p))), pd.NA)
+            if pd.notna(last_numeric_part): valor_total = last_numeric_part
 
-        if (pd.isna(valor_total) or valor_total == 0) and (
-            pd.notna(cantidad) and pd.notna(precio_unit)
-        ):
-            if cantidad > 0 and precio_unit > 0:
-                valor_total = cantidad * precio_unit
-
-        if pd.isna(cantidad) and "%" in parts[2]:
+        if pd.isna(cantidad) and len(parts) > 2 and "%" in parts[2]:
             jornal_total = to_numeric_safe(parts[3])
             if pd.notna(valor_total) and pd.notna(jornal_total) and jornal_total > 0:
                 cantidad = valor_total / jornal_total
-            else:
-                cantidad = 0
+            else: cantidad = 0
             precio_unit = jornal_total
 
         if pd.notna(valor_total):
-            if (
-                (pd.isna(cantidad) or cantidad == 0)
-                and pd.notna(precio_unit)
-                and precio_unit > 0
-            ):
+            if (pd.isna(cantidad) or cantidad == 0) and pd.notna(precio_unit) and precio_unit > 0:
                 cantidad = valor_total / precio_unit
-            if (
-                (pd.isna(precio_unit) or precio_unit == 0)
-                and pd.notna(cantidad)
-                and cantidad > 0
-            ):
+            if (pd.isna(precio_unit) or precio_unit == 0) and pd.notna(cantidad) and cantidad > 0:
                 precio_unit = valor_total / cantidad
+        elif pd.notna(cantidad) and pd.notna(precio_unit):
+             valor_total = cantidad * precio_unit
 
-            return {
-                "CODIGO_APU": context["apu_code"],
-                "DESCRIPCION_APU": context["apu_desc"],
-                "DESCRIPCION_INSUMO": description,
-                "CANTIDAD_APU": cantidad if pd.notna(cantidad) else 0,
-                "PRECIO_UNIT_APU": precio_unit if pd.notna(precio_unit) else 0,
-                "VALOR_TOTAL_APU": valor_total,
-                "CATEGORIA": context["category"],
-            }
-        return None
+        return {
+            "CODIGO_APU": context["apu_code"],
+            "DESCRIPCION_APU": context["apu_desc"],
+            "DESCRIPCION_INSUMO": description,
+            "CANTIDAD_APU": cantidad if pd.notna(cantidad) else 0,
+            "PRECIO_UNIT_APU": precio_unit if pd.notna(precio_unit) else 0,
+            "VALOR_TOTAL_APU": valor_total if pd.notna(valor_total) else 0,
+            "CATEGORIA": context["category"],
+        }
+    
+    with open(path, "r", encoding="latin1") as f:
+        lines = f.readlines()
 
-    def parse_line(line, context):
+    for i, line in enumerate(lines):
         line = line.strip()
-        if not line:
-            return None, context
-        clean_line = line.replace(";", "").strip().upper()
-        if clean_line in category_keywords:
-            context["category"] = category_keywords[clean_line]
-            return None, context
+        if not line: continue
+
+        clean_line_upper = line.replace(";", "").strip().upper()
+        if clean_line_upper in category_keywords:
+            current_context["category"] = category_keywords[clean_line_upper]
+            continue
+
         if "ITEM:" in line.upper():
             match = re.search(r"ITEM:\s*([\d,\.]*)", line.upper())
             if match:
-                context["apu_code"] = match.group(1).strip()
-            # Handle description on same line as ITEM, with fallback to previous line
-            possible_desc = line.split(";")[0].strip()
-            if possible_desc:
-                context["apu_desc"] = possible_desc
-            elif context["last_non_empty_line"]:
-                context["apu_desc"] = context["last_non_empty_line"].split(";")[0].strip()
-            return None, context
-        context["last_non_empty_line"] = line
-        if ";" in line and context["apu_code"]:
+                current_context["apu_code"] = match.group(1).strip()
+                # La descripción puede estar en la misma línea o en la anterior
+                desc_on_same_line = line.split(";")[0].strip()
+                if desc_on_same_line and not desc_on_same_line.upper().startswith("REMATE"):
+                     current_context["apu_desc"] = desc_on_same_line
+                else:
+                    # Buscar hacia atrás la última línea no vacía que no sea una categoría
+                    for j in range(i - 1, -1, -1):
+                        prev_line = lines[j].strip()
+                        prev_line_clean_upper = prev_line.replace(";", "").strip().upper()
+                        if prev_line and prev_line_clean_upper not in category_keywords:
+                            current_context["apu_desc"] = prev_line.split(";")[0].strip()
+                            break
+            continue
+
+        if current_context["apu_code"] and ";" in line:
             parts = [p.strip() for p in line.split(";")]
-            if len(parts) >= 6 and parts[0]:
-                return parse_data_line(parts, context), context
-        return None, context
+            if len(parts) >= 6 and parts[0] and "SUBTOTAL" not in parts[0].upper():
+                data_row = parse_data_line(parts, current_context)
+                if data_row: apus_data.append(data_row)
+
+    if not apus_data: return pd.DataFrame()
+    df = pd.DataFrame(apus_data)
+    df["CODIGO_APU"] = df["CODIGO_APU"].str.strip()
+    df["NORMALIZED_DESC"] = normalize_text(df["DESCRIPCION_INSUMO"])
+    return df
 
     try:
         with open(path, "r", encoding="latin1") as f:
@@ -534,15 +520,47 @@ def calculate_estimate(
     zona = params.get("zona", "zona 0").lower()
     log.append(f"Parámetros: {params}")
 
+    param_map = config.get("param_map", {})
     material_mapped = param_map.get("material", {}).get(material, material)
     tipo_mapped = param_map.get("tipo", {}).get(tipo, tipo)
 
-    search_terms = ["MANO DE OBRA", tipo_mapped, material_mapped]
-    if cuadrilla != "0":
-        search_terms.append(f"CUADRILLA DE {cuadrilla}")
+    search_terms = {
+        "MANO DE OBRA": 3,  # Ponderación alta
+        tipo_mapped: 2,
+        material_mapped: 2,
+        f"CUADRILLA DE {cuadrilla}": 3, # Ponderación alta
+    }
+    
+    search_terms_normalized = { _normalize(k): v for k, v in search_terms.items() }
+    log.append(f"Términos de búsqueda ponderados: {search_terms_normalized}")
 
-    search_terms_normalized = [_normalize(term) for term in search_terms]
-    log.append(f"Términos de búsqueda normalizados: {search_terms_normalized}")
+    df_apus_unique["DESC_NORMALIZED"] = df_apus_unique["DESCRIPCION_APU"].apply(_normalize)
+    
+    best_match = {"score": 0, "code": None, "desc": ""}
+
+    for _, apu_row in df_apus_unique.iterrows():
+        current_score = 0
+        desc_normalized = apu_row["DESC_NORMALIZED"]
+        for term, weight in search_terms_normalized.items():
+            if term in desc_normalized:
+                current_score += weight
+        
+        if current_score > best_match["score"]:
+            best_match["score"] = current_score
+            best_match["code"] = apu_row.get("CODIGO_APU")
+            best_match["desc"] = apu_row.get("DESCRIPCION_APU")
+
+    # Umbral mínimo de puntuación para considerar una coincidencia válida
+    MIN_SCORE_THRESHOLD = 5 
+    if best_match["score"] < MIN_SCORE_THRESHOLD:
+        log.append(f"ERROR: No se encontró un APU con una puntuación de"
+        f"coincidencia suficiente. Mejor puntuación: {best_match['score']}")
+        return {"error": "No se encontró un APU"
+        " de mano de obra que coincida con los criterios.", "log": "\n".join(log)}
+
+    apu_mo_code = best_match["code"]
+    apu_mo_desc = best_match["desc"]
+    log.append(f"ÉXITO: Mejor coincidencia encontrada (Puntuación: {best_match['score']}): '{apu_mo_desc}' (Código: {apu_mo_code})")
 
     df_apus_unique.loc[:, "DESC_NORMALIZED"] = df_apus_unique["DESCRIPCION_APU"].apply(
         _normalize
