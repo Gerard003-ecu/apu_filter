@@ -248,13 +248,18 @@ def process_apus_csv_v2(path: str) -> pd.DataFrame:
             if pd.notna(last_numeric_part):
                 valor_total = last_numeric_part
 
-        if pd.isna(cantidad) and len(parts) > 2 and "%" in parts[2]:
-            jornal_total = to_numeric_safe(parts[3])
-            if pd.notna(valor_total) and pd.notna(jornal_total) and jornal_total > 0:
-                cantidad = valor_total / jornal_total
-            else:
+        # Handle percentage-based quantities
+        if len(parts) > 2 and "%" in parts[2]:
+            try:
+                # Extract percentage value
+                porcentaje = float(parts[2].strip().replace('%', '').replace(',', '.'))
+                # Calculate quantity based on percentage of total
+                if pd.notna(valor_total) and valor_total > 0:
+                    cantidad = porcentaje / 100
+                else:
+                    cantidad = 0
+            except:
                 cantidad = 0
-            precio_unit = jornal_total
 
         if pd.notna(valor_total):
             if (
@@ -534,14 +539,21 @@ def calculate_estimate(
     material_mapped = param_map.get("material", {}).get(material, material)
     tipo_mapped = param_map.get("tipo", {}).get(tipo, tipo)
 
+    # Enhanced search terms with variations
     search_terms = {
-        "MANO DE OBRA": 3,  # Ponderación alta
+        "MANO DE OBRA": 3,
+        "MANO OBRA": 3,  # Alternative spelling
         tipo_mapped: 2,
         material_mapped: 2,
-        f"CUADRILLA DE {cuadrilla}": 3,  # Ponderación alta
+        f"CUADRILLA {cuadrilla}": 3,
+        f"CUADRILLA DE {cuadrilla}": 3,
     }
 
-    search_terms_normalized = {_normalize(k): v for k, v in search_terms.items()}
+    # Normalize search terms
+    search_terms_normalized = {}
+    for term, weight in search_terms.items():
+        normalized_term = _normalize(term)
+        search_terms_normalized[normalized_term] = weight
     log.append(f"Términos de búsqueda ponderados: {search_terms_normalized}")
 
     df_apus_unique["DESC_NORMALIZED"] = df_apus_unique["DESCRIPCION_APU"].apply(_normalize)
@@ -579,24 +591,6 @@ def calculate_estimate(
         f"(Puntuación: {best_match['score']}): '{apu_mo_desc}' (Código: {apu_mo_code})"
     )
 
-    df_apus_unique.loc[:, "DESC_NORMALIZED"] = df_apus_unique["DESCRIPCION_APU"].apply(
-        _normalize
-    )
-
-    apu_mo_code = None
-    apu_mo_desc = ""
-
-    ### CAMBIO CLAVE 2: Buscar en la lista de APUs, no en el presupuesto ###
-    # La fuente correcta de todas las descripciones de APU es el dataframe de APUs.
-    for _, apu_row in df_apus_unique.iterrows():
-        desc_normalized = apu_row["DESC_NORMALIZED"]
-        if all(term in desc_normalized for term in search_terms_normalized):
-            apu_mo_code = apu_row.get("CODIGO_APU")
-            apu_mo_desc = apu_row.get("DESCRIPCION_APU")
-            log.append(
-                f"ÉXITO: APU de M.O. encontrado: '{apu_mo_desc}' (Código: {apu_mo_code})"
-            )
-            break
 
     if not apu_mo_desc:
         log.append(
@@ -630,6 +624,17 @@ def calculate_estimate(
 
     valor_suministro = costos_base["MATERIALES"]
     valor_instalacion = costos_base["MANO DE OBRA"] + costos_base["EQUIPO"]
+
+    if tiempo_instalacion == 0:
+        # Fallback calculation based on standard labor rates
+        standard_rates = {
+            "3": 80000,  # cuadrilla de 3
+            "5": 100000, # cuadrilla de 5
+        }
+        fallback_rate = standard_rates.get(cuadrilla, 60000)
+        valor_instalacion = fallback_rate
+        log.append(f"Usando tarifa estándar para cuadrilla de {cuadrilla}: ${fallback_rate:,.0f}")
+
     log.append(
         f"Costos base:"
         f" Suministro=${valor_suministro:,.0f}, Instalación=${valor_instalacion:,.0f}"
