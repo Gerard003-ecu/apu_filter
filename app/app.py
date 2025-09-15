@@ -14,9 +14,9 @@ from werkzeug.utils import secure_filename
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from. procesador_csv import calculate_estimate, process_all_files
-
 from models.probability_models import run_monte_carlo_simulation
+
+from .procesador_csv import calculate_estimate, process_all_files
 
 # --- CAMBIO CLAVE 2: Definir rutas absolutas para las carpetas ---
 # Esto asegura que Flask siempre encuentre las plantillas,
