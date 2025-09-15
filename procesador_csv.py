@@ -608,7 +608,8 @@ def calculate_estimate(
     df_inst = df_inst[
         df_inst["DESC_NORMALIZED"].str.contains(material_mapped)
     ].copy()
-    log.append(f"Paso B: {len(df_inst)} APUs restantes tras filtrar por '{material_mapped}'.")
+    log.append(f"Paso B: {len(df_inst)}"
+               f"APUs restantes tras filtrar por '{material_mapped}'.")
 
     # Paso C: Filtrar por cuadrilla
     cuadrilla_term = f"CUADRILLA DE {cuadrilla}"

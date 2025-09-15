@@ -1,0 +1,66 @@
+.2025-09-14 22:28:24,857 - INFO - Cache miss.
+2025-09-14 22:28:24,857 - INFO - Procesando archivos: test_uploads/14e8dca0-ece1-4b63-aa28-b64d313041df/presupuesto_1757906904_presupuesto.csv, test_uploads/14e8dca0-ece1-4b63-aa28-b64d313041df/apus_1757906904_apus.csv, test_uploads/14e8dca0-ece1-4b63-aa28-b64d313041df/insumos_1757906904_insumos.csv
+2025-09-14 22:28:25,013 - INFO - Diagnóstico: 3 de 3 ítems del presupuesto encontraron su costo.
+2025-09-14 22:28:25,082 - INFO - --- Procesamiento completado ---
+2025-09-14 22:28:25,107 - INFO - Cache info: hits=0, misses=1, size=1
+2025-09-14 22:28:25,112 - ERROR - Error en upload_files: Object of type DataFrame is not JSON serializable
+F2025-09-14 22:28:25,176 - INFO - Cache miss.
+2025-09-14 22:28:25,181 - INFO - Procesando archivos: test_uploads/9d9434fd-5413-4e0d-97f7-cdca13cbf501/presupuesto_1757906905_presupuesto.csv, test_uploads/9d9434fd-5413-4e0d-97f7-cdca13cbf501/apus_1757906905_apus.csv, test_uploads/9d9434fd-5413-4e0d-97f7-cdca13cbf501/insumos_1757906905_insumos.csv
+2025-09-14 22:28:25,409 - INFO - Diagnóstico: 3 de 3 ítems del presupuesto encontraron su costo.
+2025-09-14 22:28:25,449 - INFO - --- Procesamiento completado ---
+2025-09-14 22:28:25,462 - INFO - Cache info: hits=0, misses=2, size=2
+2025-09-14 22:28:25,469 - ERROR - Error en upload_files: Object of type DataFrame is not JSON serializable
+F2025-09-14 22:28:25,484 - INFO - Cache miss.
+2025-09-14 22:28:25,487 - INFO - Procesando archivos: test_presupuesto.csv, test_apus.csv, test_insumos.csv
+2025-09-14 22:28:25,617 - INFO - Diagnóstico: 3 de 3 ítems del presupuesto encontraron su costo.
+2025-09-14 22:28:25,647 - INFO - --- Procesamiento completado ---
+2025-09-14 22:28:25,653 - INFO - Cache info: hits=0, misses=1, size=1
+2025-09-14 22:28:25,653 - INFO - Cache info: hits=1, misses=1, size=1
+2025-09-14 22:28:25,654 - INFO - Caché limpiado forzosamente y procesando sin caché.
+2025-09-14 22:28:25,654 - INFO - Procesando archivos: test_presupuesto.csv, test_apus.csv, test_insumos.csv
+2025-09-14 22:28:25,741 - INFO - Diagnóstico: 3 de 3 ítems del presupuesto encontraron su costo.
+2025-09-14 22:28:25,787 - INFO - --- Procesamiento completado ---
+.2025-09-14 22:28:25,801 - INFO - Cache miss.
+2025-09-14 22:28:25,801 - INFO - Procesando archivos: test_presupuesto.csv, test_apus.csv, test_insumos.csv
+2025-09-14 22:28:25,918 - INFO - Diagnóstico: 3 de 3 ítems del presupuesto encontraron su costo.
+2025-09-14 22:28:25,946 - INFO - --- Procesamiento completado ---
+2025-09-14 22:28:25,952 - INFO - Cache info: hits=0, misses=1, size=1
+/home/gerardo/Documentos/GitHub/apu_filter/procesador_csv.py:558: UserWarning: This pattern is interpreted as a regular expression, and has match groups. To actually get the groups, use str.extract.
+  df_apus_unique["DESC_NORMALIZED"].str.contains(suministro_search_terms, regex=True)
+.2025-09-14 22:28:25,984 - INFO - Cache miss.
+2025-09-14 22:28:25,984 - INFO - Procesando archivos: test_presupuesto.csv, test_apus.csv, test_insumos.csv
+2025-09-14 22:28:26,094 - INFO - Diagnóstico: 3 de 3 ítems del presupuesto encontraron su costo.
+2025-09-14 22:28:26,123 - INFO - --- Procesamiento completado ---
+2025-09-14 22:28:26,130 - INFO - Cache info: hits=0, misses=1, size=1
+...2025-09-14 22:28:26,154 - WARNING - Error leyendo non_existent_file.csv con encoding latin1: [Errno 2] No such file or directory: 'non_existent_file.csv'
+2025-09-14 22:28:26,155 - WARNING - Error leyendo non_existent_file.csv con encoding utf-8: [Errno 2] No such file or directory: 'non_existent_file.csv'
+2025-09-14 22:28:26,156 - WARNING - Error leyendo non_existent_file.csv con encoding iso-8859-1: [Errno 2] No such file or directory: 'non_existent_file.csv'
+2025-09-14 22:28:26,159 - WARNING - Error leyendo non_existent_file.csv con encoding windows-1252: [Errno 2] No such file or directory: 'non_existent_file.csv'
+2025-09-14 22:28:26,159 - ERROR - No se pudo leer non_existent_file.csv con ningún encoding conocido
+.
+======================================================================
+FAIL: test_02_upload_success (__main__.TestAppEndpoints.test_02_upload_success)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/gerardo/.local/share/uv/python/cpython-3.12.11-linux-x86_64-gnu/lib/python3.12/unittest/mock.py", line 1396, in patched
+    return func(*newargs, **newkeywargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gerardo/Documentos/GitHub/apu_filter/test_app.py", line 221, in test_02_upload_success
+    self.assertEqual(response.status_code, 200)
+AssertionError: 500 != 200
+
+======================================================================
+FAIL: test_07_get_estimate_with_session (__main__.TestAppEndpoints.test_07_get_estimate_with_session)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/gerardo/.local/share/uv/python/cpython-3.12.11-linux-x86_64-gnu/lib/python3.12/unittest/mock.py", line 1396, in patched
+    return func(*newargs, **newkeywargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gerardo/Documentos/GitHub/apu_filter/test_app.py", line 236, in test_07_get_estimate_with_session
+    self.assertEqual(upload_response.status_code, 200)
+AssertionError: 500 != 200
+
+----------------------------------------------------------------------
+Ran 9 tests in 1.366s
+
+FAILED (failures=2)
