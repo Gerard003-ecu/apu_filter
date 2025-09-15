@@ -23,6 +23,7 @@ APU Filter es una plataforma de inteligencia de negocio diseñada para el sector
 - **Optimización a la Vista:** Identifique rápidamente oportunidades de optimización y tome decisiones informadas para mejorar el margen de sus proyectos.
 
 ## Características Principales
+- **Motor de Simulación de Riesgos (Monte Carlo):** Va más allá de los cálculos estáticos. APU_filter simula miles de posibles resultados para cada APU, modelando la volatilidad de los precios de materiales y la variabilidad en el rendimiento de la mano de obra. Obtén el costo esperado, la desviación estándar y rangos de confianza para entender el verdadero perfil de riesgo de tu presupuesto.
 - **Carga de Reportes SAGUT:** Procesamiento automatizado de archivos de Presupuesto, APU e Insumos.
 - **Simulador AIU:** Módulo interactivo para modelar el impacto de los costos indirectos.
 - **Organizador de Proyecto:** Visualización y análisis detallado de la estructura de costos.
@@ -80,23 +81,22 @@ Siga estos pasos para configurar el entorno de desarrollo y poner en marcha la a
 ```
 apu_filter/
 │
-├── .venv/                   # Carpeta del entorno virtual gestionado por uv
+├── app/                     # Contiene la lógica de la aplicación Flask
+│   ├── __init__.py
+│   ├── app.py               # El servidor Flask y los endpoints
+│   └── procesador_csv.py    # Lógica de parsing y procesamiento de datos
 │
-├── templates/               # Archivos HTML para la interfaz
-│   └── index.html           # Dashboard interactivo de una sola página
+├── models/                  # Módulos de lógica de negocio y análisis
+│   ├── __init__.py
+│   └── probability_models.py# Motor de simulación Monte Carlo
 │
-├── uploads/                 # Carpeta temporal para los archivos subidos
+├── tests/                   # Pruebas unitarias y de integración
+│   ├── __init__.py
+│   ├── test_processing.py   # Pruebas para procesador_csv.py
+│   └── test_models.py       # Pruebas para probability_models.py
 │
-├── app.py                   # Servidor Flask y lógica de la aplicación
-├── procesador_csv.py        # Módulo para leer y procesar los reportes de SAGUT
-├── test_app.py              # Pruebas unitarias
-│
-├── pyproject.toml           # Archivo de configuración del proyecto (incluye Ruff)
-├── README.md                # Documentación del proyecto
-│
-├── requirements.in          # Dependencias base
-├── requirements.txt         # Dependencias de producción (compilado)
-│
-├── requirements-dev.in      # Dependencias de desarrollo
-└── requirements-dev.txt     # Dependencias de desarrollo (compilado)
+├── templates/
+├── uploads/
+├── config.json              # Archivo de configuración
+└── ...
 ```
