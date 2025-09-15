@@ -1,11 +1,13 @@
 import numpy as np
 
+
 def run_monte_carlo_simulation(apu_details, num_simulations=1000):
     """
     Ejecuta una simulación de Monte Carlo sobre el desglose de un APU.
 
     Args:
-        apu_details (list): Lista de diccionarios, donde cada diccionario representa un insumo del APU.
+        apu_details (list): Lista de diccionarios, donde cada diccionario
+        representa un insumo del APU.
         num_simulations (int): Número de simulaciones a ejecutar.
 
     Returns:

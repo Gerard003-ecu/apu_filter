@@ -484,7 +484,13 @@ def _do_processing(presupuesto_path, apus_path, insumos_path):
     )
     apus_detail = {
         n: g[
-            ["DESCRIPCION", "UNIDAD", "CANTIDAD", "VALOR_UNITARIO", "VALOR_TOTAL", "CATEGORIA"]
+            ["DESCRIPCION",
+             "UNIDAD",
+             "CANTIDAD",
+             "VALOR_UNITARIO",
+             "VALOR_TOTAL",
+             "CATEGORIA"
+            ]
         ].to_dict("records")
         for n, g in df_merged_renamed.groupby("CODIGO_APU")
     }
