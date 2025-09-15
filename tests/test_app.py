@@ -1,14 +1,19 @@
 import io
 import json
 import os
+import sys
 import unittest
 from unittest.mock import patch
 
 import pandas as pd
 
+# Add project root to the Python path
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
+
 # Importar la app de Flask y las funciones a probar
-from app import app, user_sessions
-from procesador_csv import (
+from app.app import app, user_sessions
+from app.procesador_csv import (
     _cached_csv_processing,
     calculate_estimate,
     find_and_rename_columns,
@@ -136,7 +141,7 @@ class TestCSVProcessor(unittest.TestCase):
     def setUp(self):
         _cached_csv_processing.cache_clear()
 
-    @patch("procesador_csv.config", new_callable=lambda: TEST_CONFIG)
+    @patch("app.procesador_csv.config", new_callable=lambda: TEST_CONFIG)
     def test_process_all_files_structure_and_calculations(self, mock_config):
         resultado = process_all_files(
             self.presupuesto_path, self.apus_path, self.insumos_path
@@ -151,7 +156,7 @@ class TestCSVProcessor(unittest.TestCase):
         self.assertIsNotNone(item1)
         self.assertAlmostEqual(item1["VALOR_CONSTRUCCION_UN"], 155.0)
 
-    @patch("procesador_csv.config", new_callable=lambda: TEST_CONFIG)
+    @patch("app.procesador_csv.config", new_callable=lambda: TEST_CONFIG)
     def test_caching_logic(self, mock_config):
         process_all_files(self.presupuesto_path, self.apus_path, self.insumos_path)
         info1 = _cached_csv_processing.cache_info()
@@ -165,7 +170,7 @@ class TestCSVProcessor(unittest.TestCase):
         info3 = _cached_csv_processing.cache_info()
         self.assertEqual(info3.currsize, 0)
 
-    @patch("procesador_csv.config", new_callable=lambda: TEST_CONFIG)
+    @patch("app.procesador_csv.config", new_callable=lambda: TEST_CONFIG)
     def test_calculate_estimate(self, mock_config):
         data_store = process_all_files(
             self.presupuesto_path, self.apus_path, self.insumos_path
@@ -209,7 +214,7 @@ class TestAppEndpoints(unittest.TestCase):
         response = self.client.get("/")
         self.assertEqual(response.status_code, 200)
 
-    @patch("procesador_csv.config", new_callable=lambda: TEST_CONFIG)
+    @patch("app.procesador_csv.config", new_callable=lambda: TEST_CONFIG)
     def test_02_upload_success(self, mock_config):
         with self.client as c:
             data = {
@@ -222,7 +227,7 @@ class TestAppEndpoints(unittest.TestCase):
             with c.session_transaction() as sess:
                 self.assertIn("session_id", sess)
 
-    @patch("procesador_csv.config", new_callable=lambda: TEST_CONFIG)
+    @patch("app.procesador_csv.config", new_callable=lambda: TEST_CONFIG)
     def test_07_get_estimate_with_session(self, mock_config):
         with self.client as c:
             data = {
@@ -241,6 +246,38 @@ class TestAppEndpoints(unittest.TestCase):
             self.assertEqual(response.status_code, 200)
             json_data = json.loads(response.data)
             self.assertAlmostEqual(json_data["valor_instalacion"], 80000)
+
+    @patch("app.procesador_csv.config", new_callable=lambda: TEST_CONFIG)
+    def test_08_get_apu_detail_with_simulation(self, mock_config):
+        with self.client as c:
+            # Primero, sube los archivos para inicializar la sesión de datos
+            data = {
+                "presupuesto": self._get_test_file("presupuesto.csv", PRESUPUESTO_DATA),
+                "apus": self._get_test_file("apus.csv", APUS_DATA),
+                "insumos": self._get_test_file("insumos.csv", INSUMOS_DATA),
+            }
+            upload_response = c.post("/upload", data=data, content_type="multipart/form-data")
+            self.assertEqual(upload_response.status_code, 200)
+
+            # Ahora, solicita el detalle de un APU específico
+            # El código '1,1' se codifica como '1%2C1' en la URL
+            response = c.get("/api/apu/1%2C1")
+
+            self.assertEqual(response.status_code, 200)
+            json_data = json.loads(response.data)
+
+            # Verifica que la clave 'simulation' exista
+            self.assertIn("simulation", json_data)
+
+            # Verifica que los resultados de la simulación tengan las claves esperadas
+            sim_results = json_data["simulation"]
+            self.assertIn("mean", sim_results)
+            self.assertIn("std_dev", sim_results)
+            self.assertIn("percentile_5", sim_results)
+            self.assertIn("percentile_95", sim_results)
+
+            # Verifica que los valores de la simulación no sean cero (o None)
+            self.assertNotEqual(sim_results["mean"], 0)
 
 
 if __name__ == "__main__":

@@ -8,7 +8,8 @@ from werkzeug.exceptions import HTTPException
 from werkzeug.utils import secure_filename
 
 # Importamos la nueva función orquestadora y la de estimación
-from procesador_csv import calculate_estimate, process_all_files
+from .procesador_csv import calculate_estimate, process_all_files
+from models.probability_models import run_monte_carlo_simulation
 
 # Configuración de la aplicación
 app = Flask(__name__)
@@ -166,12 +167,16 @@ def get_apu_detail(code):
             desglose[categoria] = []
         desglose[categoria].append(item)
 
+    # Ejecutar simulación de Monte Carlo
+    simulation_results = run_monte_carlo_simulation(apu_details)
+
     response = {
         "codigo": apu_code,
         "descripcion": presupuesto_item.get("DESCRIPCION_APU", "")
         if presupuesto_item
         else "",
         "desglose": desglose,
+        "simulation": simulation_results,
     }
 
     return jsonify(response)
