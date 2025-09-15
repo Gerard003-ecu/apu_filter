@@ -434,10 +434,12 @@ def _do_processing(presupuesto_path, apus_path, insumos_path):
         # 1. Si Costo de Mano de Obra + Equipo > 75%, clasificar como "Instalación".
         if porcentaje_mo_eq > 75:
             return "Instalación"
-        # 2. Si Costo de Materiales > 75% Y Costo de Mano de Obra + Equipo < 10%, clasificar como "Suministro".
+        # 2. Si Costo de Materiales > 75% Y Costo de Mano de Obra + Equipo < 10%,
+        # clasificar como "Suministro".
         if porcentaje_materiales > 75 and porcentaje_mo_eq < 10:
             return "Suministro"
-        # 3. Si Costo de Materiales > 50% Y Costo de Mano de Obra + Equipo > 10%, clasificar como "Suministro (Pre-fabricado)".
+        # 3. Si Costo de Materiales > 50% Y Costo de Mano de Obra + Equipo > 10%,
+        # clasificar como "Suministro (Pre-fabricado)".
         if porcentaje_materiales > 50 and porcentaje_mo_eq > 10:
             return "Suministro (Pre-fabricado)"
         # 4. En cualquier otro caso, clasificar como "Obra Completa".
