@@ -27,9 +27,19 @@ def run_monte_carlo_simulation(apu_details, num_simulations=1000):
                 simulated_price = np.random.normal(loc=base_price, scale=base_price * 0.05)
                 simulation_cost += simulated_price * quantity
             elif category == "MANO DE OBRA":
-                # Simular variabilidad del 10% en el rendimiento (cantidad de tiempo)
-                simulated_quantity = np.random.normal(loc=quantity, scale=quantity * 0.10)
-                simulation_cost += base_price * simulated_quantity
+                # Costo base de la mano de obra para este ítem
+                costo_base_mo = base_price * quantity
+                # Simular con distribución Log-normal para evitar valores negativos
+                if costo_base_mo > 0:
+                    # Usar una desviación estándar del 10% del costo base
+                    sigma = costo_base_mo * 0.10
+                    # Parámetros para la distribución log-normal
+                    mu = np.log(costo_base_mo**2 / np.sqrt(costo_base_mo**2 + sigma**2))
+                    sigma_ln = np.sqrt(np.log(1 + (sigma**2 / costo_base_mo**2)))
+                    costo_simulado_mo = np.random.lognormal(mu, sigma_ln)
+                else:
+                    costo_simulado_mo = 0
+                simulation_cost += costo_simulado_mo
             else:
                 # Otros costos se mantienen fijos
                 simulation_cost += base_price * quantity
