@@ -415,6 +415,28 @@ def _do_processing(presupuesto_path, apus_path, insumos_path):
     df_apu_costos_categoria["VALOR_CONSTRUCCION_UN"] = df_apu_costos_categoria[
         cost_cols
     ].sum(axis=1)
+
+    # --- INICIO: Clasificación de APU por tipo ---
+    def classify_apu(row):
+        """Clasifica un APU basado en la proporción de sus costos."""
+        costo_total = row["VALOR_CONSTRUCCION_UN"]
+        if costo_total == 0:
+            return "Indefinido"
+
+        costo_materiales = row.get("MATERIALES", 0)
+        costo_mano_obra = row.get("MANO DE OBRA", 0)
+        costo_equipo = row.get("EQUIPO", 0)
+
+        # Lógica de clasificación
+        if costo_materiales / costo_total > 0.8:
+            return "Suministro"
+        if (costo_mano_obra + costo_equipo) / costo_total > 0.8:
+            return "Instalación"
+        return "Obra Completa"
+
+    df_apu_costos_categoria["tipo_apu"] = df_apu_costos_categoria.apply(classify_apu, axis=1)
+    # --- FIN: Clasificación de APU por tipo ---
+
     df_tiempo = (
         df_merged[df_merged["CATEGORIA"] == "MANO DE OBRA"]
         .groupby("CODIGO_APU")["CANTIDAD_APU"]
