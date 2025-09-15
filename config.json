@@ -20,5 +20,6 @@
       "CUBIERTA": "INSTALACION",
       "FACHADA": "INSTALACION"
     }
-  }
+  },
+  "min_score_threshold": 5
 }
