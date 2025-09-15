@@ -410,7 +410,7 @@
 
         // Ordenar los tipos de APU
         const sortedApuTypes = Object.keys(apuTypeGroups).sort((a, b) => {
-            const order = { 'Suministro': 1, 'Instalación': 2, 'Obra Completa': 3, 'Indefinido': 4 };
+            const order = { 'Suministro': 1, 'Suministro (Pre-fabricado)': 2, 'Instalación': 3, 'Obra Completa': 4, 'Indefinido': 5 };
             return (order[a] || 99) - (order[b] || 99);
         });
 
@@ -430,6 +430,7 @@
                 <td class="px-4 py-3 text-base font-bold text-gray-800 text-right">
                     ${formatCurrency(apuGroupData.subtotal)}
                 </td>
+                <td class="px-4 py-3 text-sm text-gray-500">-</td>
             `;
             tableBody.appendChild(typeHeaderRow);
 
