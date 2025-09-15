@@ -474,7 +474,7 @@ def _do_processing(presupuesto_path, apus_path, insumos_path):
         "insumos": insumos_dict,
         "apus_detail": apus_detail,
         "all_apus": df_apus.to_dict("records"),
-        "raw_insumos_df": df_insumos,
+        "raw_insumos_df": df_insumos.to_dict("records"),
     }
 
 
@@ -576,22 +576,33 @@ def calculate_estimate(
             "ADVERTENCIA: No se encontró un APU de suministro directo. "
             "Iniciando fallback a insumos."
         )
-        df_insumos = data_store.get("raw_insumos_df")
-        if df_insumos is not None and not df_insumos.empty:
-            insumo_match = df_insumos[
-                df_insumos["NORMALIZED_DESC"].str.contains(material_mapped, na=False)
-            ]
-            if not insumo_match.empty:
-                valor_suministro = insumo_match.iloc[0]["VR_UNITARIO_INSUMO"]
-                apu_suministro_desc = f"Insumo: {insumo_match.iloc[0]['DESCRIPCION_INSUMO']}"
-                log.append(
-                    f"ÉXITO (Fallback): Insumo encontrado: '{apu_suministro_desc}'"
-                    f" -> Valor: ${valor_suministro:,.0f}"
-                )
+        raw_insumos_data = data_store.get("raw_insumos_df")
+        if raw_insumos_data:
+            df_insumos = pd.DataFrame(raw_insumos_data)
+            if not df_insumos.empty:
+                # Buscar el material normalizado en la lista de insumos
+                insumo_match = df_insumos[
+                    df_insumos["NORMALIZED_DESC"].str.contains(material_mapped, na=False)
+                ]
+                if not insumo_match.empty:
+                    valor_suministro = insumo_match.iloc[0]["VR_UNITARIO_INSUMO"]
+                    apu_suministro_desc = (
+                        f"Insumo: {insumo_match.iloc[0]['DESCRIPCION_INSUMO']}"
+                    )
+                    log.append(
+                        f"ÉXITO (Fallback): Insumo encontrado: '{apu_suministro_desc}'"
+                        f" -> Valor: ${valor_suministro:,.0f}"
+                    )
+                else:
+                    log.append(
+                        "ERROR (Fallback): Material no encontrado en lista de insumos."
+                    )
             else:
-                log.append("ERROR (Fallback): Material no encontrado en lista de insumos.")
+                log.append("ERROR (Fallback): El dataframe de insumos está vacío.")
         else:
-            log.append("ERROR (Fallback): El dataframe de insumos no está disponible.")
+            log.append(
+                "ERROR (Fallback): El dataframe de insumos no está disponible."
+            )
 
     # --- 2. Búsqueda de Instalación (Refactorizada con Filtros Secuenciales) ---
     log.append("\n--- BÚSQUEDA DE INSTALACIÓN ---")
