@@ -230,54 +230,40 @@ def process_apus_csv_v2(path: str) -> pd.DataFrame:
 
     def parse_data_line(parts, context):
         """
-        Parsea una línea de datos de un APU con lógica de cascada para
-        mayor robustez.
+        Parsea una línea de datos de un APU con una lógica de búsqueda robusta
+        para el valor total.
         """
         if not parts or not parts[0]:
             return None
 
         description = parts[0]
-        # 1. Intento estándar de leer las columnas
+        unidad = parts[1] if len(parts) > 1 else "UND"
         cantidad = to_numeric_safe(parts[2]) if len(parts) > 2 else pd.NA
         precio_unit = to_numeric_safe(parts[4]) if len(parts) > 4 else pd.NA
-        valor_total = to_numeric_safe(parts[5]) if len(parts) > 5 else pd.NA
+        valor_total = pd.NA
 
-        # 2. Si valor_total es nulo, buscar el último valor numérico en la fila
+        # 1. Búsqueda robusta del VALOR TOTAL
+        # Intenta leer desde la columna 6 (índice 5)
+        if len(parts) > 5:
+            valor_total = to_numeric_safe(parts[5])
+
+        # Si falla, busca hacia atrás desde el final de la línea
         if pd.isna(valor_total):
-            # Excluir el primer elemento (descripción) y los que ya se intentaron
-            numeric_parts = [
-                to_numeric_safe(p) for i, p in enumerate(parts) if i not in [0, 2, 4, 5]
-            ]
-            last_numeric_part = next(
-                (p for p in reversed(numeric_parts) if pd.notna(p) and p != 0),
-                pd.NA,
-            )
-            if pd.notna(last_numeric_part):
-                valor_total = last_numeric_part
+            for part in reversed(parts):
+                numeric_val = to_numeric_safe(part)
+                if pd.notna(numeric_val) and numeric_val != 0:
+                    valor_total = numeric_val
+                    break  # Tomar el primer valor numérico válido
 
-        # 3. Lógica de cálculo en cascada
-        if pd.notna(cantidad) and pd.notna(precio_unit) and pd.isna(valor_total):
-            valor_total = cantidad * precio_unit
-        elif pd.notna(cantidad) and pd.notna(valor_total) and pd.isna(precio_unit):
-            if cantidad != 0:
+        # 2. Recalcular PRECIO UNITARIO si es necesario y posible
+        if pd.notna(valor_total) and pd.notna(cantidad) and cantidad != 0:
+            # Si el precio unitario es nulo o cero, se recalcula
+            if pd.isna(precio_unit) or precio_unit == 0:
                 precio_unit = valor_total / cantidad
-            else:
-                precio_unit = 0
-        # El caso de calcular cantidad se omite intencionadamente para no
-        # inventar datos que pueden ser porcentajes o factores.
 
-        # Manejar cantidades basadas en porcentaje de forma más segura
-        if len(parts) > 2 and isinstance(parts[2], str) and "%" in parts[2]:
-            try:
-                porcentaje = float(parts[2].strip().replace("%", "").replace(",", "."))
-                # Se deja la cantidad como el porcentaje para cálculo posterior
-                cantidad = porcentaje / 100
-            except (ValueError, TypeError):
-                # Si la conversión falla, se mantiene el valor que tuviera
-                pass
-
-        # Extraer la unidad, que está en la segunda columna (índice 1)
-        unidad = parts[1] if len(parts) > 1 else "UND"
+        # 3. Si valor_total sigue siendo nulo, intentar calcularlo desde cantidad y precio
+        if pd.isna(valor_total) and pd.notna(cantidad) and pd.notna(precio_unit):
+            valor_total = cantidad * precio_unit
 
         return {
             "CODIGO_APU": context["apu_code"],
