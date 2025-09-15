@@ -543,7 +543,16 @@
             contentHTML += `
                 <div class="border rounded-lg overflow-hidden">
                     <h4 class="bg-gray-100 px-4 py-2 font-semibold text-gray-700">${catName}</h4>
-                    <table class="min-w-full"><tbody class="divide-y divide-gray-200">
+                    <table class="min-w-full">
+                        <thead class="bg-gray-50 text-xs uppercase text-gray-700">
+                            <tr>
+                                <th class="py-2 px-4 text-left">Descripción</th>
+                                <th class="py-2 px-4 text-right">Cantidad</th>
+                                <th class="py-2 px-4 text-right">Vr. Unitario</th>
+                                <th class="py-2 px-4 text-right">Vr. Total</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200">
             `;
             category.items.forEach(insumo => {
                 contentHTML += `<tr class="text-sm"><td class="py-2 px-4">${insumo['Descripción']}</td><td class="py-2 px-4 text-right">${(insumo['Cantidad'] || 0).toFixed(3)}</td><td class="py-2 px-4 text-right">${formatCurrency(insumo['Vr Unitario'])}</td><td class="py-2 px-4 text-right">${formatCurrency(insumo['Vr Total'])}</td></tr>`;
