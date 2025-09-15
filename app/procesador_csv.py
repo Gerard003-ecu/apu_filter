@@ -473,18 +473,18 @@ def _do_processing(presupuesto_path, apus_path, insumos_path):
         f"Diagnóstico: {df_final['VALOR_CONSTRUCCION_UN'].notna().sum()} de"
         f" {len(df_final)} ítems del presupuesto encontraron su costo."
     )
-    df_merged["Vr Unitario"] = df_merged["VR_UNITARIO_FINAL"].fillna(0)
-    df_merged["Vr Total"] = df_merged["COSTO_INSUMO_EN_APU"]
     df_merged_renamed = df_merged.rename(
         columns={
-            "DESCRIPCION_INSUMO": "Descripción",
-            "CANTIDAD_APU": "Cantidad",
-            "UNIDAD": "Unidad",
+            "DESCRIPCION_INSUMO": "DESCRIPCION",
+            "CANTIDAD_APU": "CANTIDAD",
+            "UNIDAD": "UNIDAD",
+            "VR_UNITARIO_FINAL": "VALOR_UNITARIO",
+            "COSTO_INSUMO_EN_APU": "VALOR_TOTAL",
         }
     )
     apus_detail = {
         n: g[
-            ["Descripción", "Unidad", "Cantidad", "Vr Unitario", "Vr Total", "CATEGORIA"]
+            ["DESCRIPCION", "UNIDAD", "CANTIDAD", "VALOR_UNITARIO", "VALOR_TOTAL", "CATEGORIA"]
         ].to_dict("records")
         for n, g in df_merged_renamed.groupby("CODIGO_APU")
     }

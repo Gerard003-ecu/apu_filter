@@ -553,66 +553,104 @@
         return { admin, imprev, util, total: admin + imprev + util };
     }
 
-    function openModal(apuCode) {
-        const aiuPcts = getAiuPercentages();
-        const apuDetails = rawData.apus_detail[apuCode];
-        if (!apuDetails) return;
-
+    async function openModal(apuCode) {
         document.getElementById('modal-title').textContent = `Detalle APU: ${apuCode}`;
         const modalBody = document.getElementById('modal-body');
+        modalBody.innerHTML = '<div class="text-center p-8">Cargando detalles y ejecutando simulación...</div>';
         
-        let costoDirecto = 0;
-        const categories = {};
-        apuDetails.forEach(insumo => {
-            if (!categories[insumo.CATEGORIA]) categories[insumo.CATEGORIA] = { items: [], subtotal: 0 };
-            categories[insumo.CATEGORIA].items.push(insumo);
-            const vrTotal = insumo['Vr Total'] || 0;
-            categories[insumo.CATEGORIA].subtotal += vrTotal;
-            costoDirecto += vrTotal;
-        });
-
-        let contentHTML = '<div class="space-y-6">';
-        ['MATERIALES', 'MANO DE OBRA', 'EQUIPO', 'OTROS'].forEach(catName => {
-            if (!categories[catName]) return;
-            const category = categories[catName];
-            contentHTML += `
-                <div class="border rounded-lg overflow-hidden">
-                    <h4 class="bg-gray-100 px-4 py-2 font-semibold text-gray-700">${catName}</h4>
-                    <table class="min-w-full">
-                        <thead class="bg-gray-50 text-xs uppercase text-gray-700">
-                            <tr>
-                                <th class="py-2 px-4 text-left">Descripción</th>
-                                <th class="py-2 px-4 text-left">Unidad</th>
-                                <th class="py-2 px-4 text-right">Cantidad</th>
-                                <th class="py-2 px-4 text-right">Vr. Unitario</th>
-                                <th class="py-2 px-4 text-right">Vr. Total</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-200">
-            `;
-            category.items.forEach(insumo => {
-                contentHTML += `<tr class="text-sm"><td class="py-2 px-4">${insumo['Descripción']}</td><td class="py-2 px-4 text-left">${insumo['Unidad'] || 'UND'}</td><td class="py-2 px-4 text-right">${(insumo['Cantidad'] || 0).toFixed(3)}</td><td class="py-2 px-4 text-right">${formatCurrency(insumo['Vr Unitario'])}</td><td class="py-2 px-4 text-right">${formatCurrency(insumo['Vr Total'])}</td></tr>`;
-            });
-            contentHTML += `</tbody><tfoot class="bg-gray-100"><tr><td colspan="3" class="py-2 px-4 text-right font-semibold">SUBTOTAL ${catName}</td><td class="py-2 px-4 text-right font-semibold">${formatCurrency(category.subtotal)}</td></tr></tfoot></table></div>`;
-        });
-
-        const adminValue = costoDirecto * (aiuPcts.admin / 100);
-        const imprevValue = costoDirecto * (aiuPcts.imprev / 100);
-        const utilValue = costoDirecto * (aiuPcts.util / 100);
-        const costoTotalAIU = costoDirecto + adminValue + imprevValue + utilValue;
-
-        contentHTML += `<div class="border rounded-lg mt-6"><table class="min-w-full text-sm"><tbody class="divide-y divide-gray-200">
-            <tr><td class="px-4 py-2 font-semibold text-right">COSTO DIRECTO</td><td class="px-4 py-2 text-right font-semibold">${formatCurrency(costoDirecto)}</td></tr>
-            <tr><td class="px-4 py-2 text-right text-gray-600">ADMINISTRACIÓN (${aiuPcts.admin}%)</td><td class="px-4 py-2 text-right">${formatCurrency(adminValue)}</td></tr>
-            <tr><td class="px-4 py-2 text-right text-gray-600">IMPREVISTOS (${aiuPcts.imprev}%)</td><td class="px-4 py-2 text-right">${formatCurrency(imprevValue)}</td></tr>
-            <tr><td class="px-4 py-2 text-right text-gray-600">UTILIDAD (${aiuPcts.util}%)</td><td class="px-4 py-2 text-right">${formatCurrency(utilValue)}</td></tr>
-            <tr class="bg-blue-100"><td class="px-4 py-2 text-right font-bold text-blue-800 text-base">VALOR TOTAL APU</td><td class="px-4 py-2 text-right font-bold text-blue-800 text-base">${formatCurrency(costoTotalAIU)}</td></tr>
-        </tbody></table></div>`;
-        
-        modalBody.innerHTML = contentHTML + '</div>';
         const modal = document.getElementById('apu-modal');
         modal.classList.remove('hidden');
         modal.classList.add('flex');
+
+        try {
+            const response = await fetch(`/api/apu/${encodeURIComponent(apuCode)}`);
+            if (!response.ok) throw new Error(`Error del servidor: ${response.statusText}`);
+
+            const data = await response.json();
+            const categories = data.desglose;
+            const simulation = data.simulation;
+            const aiuPcts = getAiuPercentages();
+
+            let costoDirecto = 0;
+            let contentHTML = '<div class="space-y-6">';
+
+            ['MATERIALES', 'MANO DE OBRA', 'EQUIPO', 'OTROS'].forEach(catName => {
+                if (!categories[catName]) return;
+
+                const categoryData = { items: categories[catName], subtotal: 0 };
+                categoryData.items.forEach(insumo => {
+                    const vrTotal = insumo.VALOR_TOTAL || 0;
+                    categoryData.subtotal += vrTotal;
+                    costoDirecto += vrTotal;
+                });
+
+                contentHTML += `
+                    <div class="border rounded-lg overflow-hidden">
+                        <h4 class="bg-gray-100 px-4 py-2 font-semibold text-gray-700">${catName}</h4>
+                        <table class="min-w-full">
+                            <thead class="bg-gray-50 text-xs uppercase text-gray-700">
+                                <tr>
+                                    <th class="py-2 px-4 text-left">Descripción</th>
+                                    <th class="py-2 px-4 text-left">Unidad</th>
+                                    <th class="py-2 px-4 text-right">Cantidad</th>
+                                    <th class="py-2 px-4 text-right">Vr. Unitario</th>
+                                    <th class="py-2 px-4 text-right">Vr. Total</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-200">
+                `;
+                categoryData.items.forEach(insumo => {
+                    contentHTML += `<tr class="text-sm">
+                        <td class="py-2 px-4">${insumo.DESCRIPCION}</td>
+                        <td class="py-2 px-4 text-left">${insumo.UNIDAD || 'UND'}</td>
+                        <td class="py-2 px-4 text-right">${(insumo.CANTIDAD || 0).toFixed(3)}</td>
+                        <td class="py-2 px-4 text-right">${formatCurrency(insumo.VALOR_UNITARIO)}</td>
+                        <td class="py-2 px-4 text-right">${formatCurrency(insumo.VALOR_TOTAL)}</td>
+                    </tr>`;
+                });
+                contentHTML += `</tbody><tfoot class="bg-gray-100 font-semibold"><tr class="border-t-2 border-gray-300"><td colspan="4" class="py-2 px-4 text-right">SUBTOTAL ${catName}</td><td class="py-2 px-4 text-right">${formatCurrency(categoryData.subtotal)}</td></tr></tfoot></table></div>`;
+            });
+
+            // AIU Calculation Table
+            const adminValue = costoDirecto * (aiuPcts.admin / 100);
+            const imprevValue = costoDirecto * (aiuPcts.imprev / 100);
+            const utilValue = costoDirecto * (aiuPcts.util / 100);
+            const costoTotalAIU = costoDirecto + adminValue + imprevValue + utilValue;
+
+            contentHTML += `<div class="border rounded-lg mt-6"><table class="min-w-full text-sm"><tbody class="divide-y divide-gray-200">
+                <tr><td class="px-4 py-2 font-semibold text-right">COSTO DIRECTO</td><td class="px-4 py-2 text-right font-semibold">${formatCurrency(costoDirecto)}</td></tr>
+                <tr><td class="px-4 py-2 text-right text-gray-600">ADMINISTRACIÓN (${aiuPcts.admin}%)</td><td class="px-4 py-2 text-right">${formatCurrency(adminValue)}</td></tr>
+                <tr><td class="px-4 py-2 text-right text-gray-600">IMPREVISTOS (${aiuPcts.imprev}%)</td><td class="px-4 py-2 text-right">${formatCurrency(imprevValue)}</td></tr>
+                <tr><td class="px-4 py-2 text-right text-gray-600">UTILIDAD (${aiuPcts.util}%)</td><td class="px-4 py-2 text-right">${formatCurrency(utilValue)}</td></tr>
+                <tr class="bg-blue-100"><td class="px-4 py-2 text-right font-bold text-blue-800 text-base">VALOR TOTAL APU</td><td class="px-4 py-2 text-right font-bold text-blue-800 text-base">${formatCurrency(costoTotalAIU)}</td></tr>
+            </tbody></table></div>`;
+
+            // Monte Carlo Simulation Results Section
+            contentHTML += `
+                <div class="mt-6 border-2 border-dashed border-blue-300 rounded-lg p-4 bg-blue-50">
+                    <h4 class="text-lg font-semibold mb-3 text-blue-800">Análisis de Riesgo (Simulación Monte Carlo)</h4>
+                    <div id="simulation-results" class="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+                        <div class="bg-white p-3 rounded-lg shadow-sm">
+                            <p class="text-sm text-gray-600">Costo Esperado (Media)</p>
+                            <p class="text-xl font-bold text-blue-700">${formatCurrency(simulation.mean)}</p>
+                        </div>
+                        <div class="bg-white p-3 rounded-lg shadow-sm">
+                            <p class="text-sm text-gray-600">Riesgo (Desv. Estándar)</p>
+                            <p class="text-xl font-bold text-blue-700">${formatCurrency(simulation.std_dev)}</p>
+                        </div>
+                        <div class="bg-white p-3 rounded-lg shadow-sm">
+                            <p class="text-sm text-gray-600">Rango de Confianza (90%)</p>
+                            <p class="text-lg font-bold text-blue-700">${formatCurrency(simulation.percentile_5)} - ${formatCurrency(simulation.percentile_95)}</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            modalBody.innerHTML = contentHTML + '</div>';
+
+        } catch (error) {
+            modalBody.innerHTML = `<div class="text-center p-8 text-red-600">Error al cargar datos: ${error.message}</div>`;
+        }
     }
 
     function closeModal() {
