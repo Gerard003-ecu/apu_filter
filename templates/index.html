@@ -547,6 +547,7 @@
                         <thead class="bg-gray-50 text-xs uppercase text-gray-700">
                             <tr>
                                 <th class="py-2 px-4 text-left">Descripción</th>
+                                <th class="py-2 px-4 text-left">Unidad</th>
                                 <th class="py-2 px-4 text-right">Cantidad</th>
                                 <th class="py-2 px-4 text-right">Vr. Unitario</th>
                                 <th class="py-2 px-4 text-right">Vr. Total</th>
@@ -555,7 +556,7 @@
                         <tbody class="divide-y divide-gray-200">
             `;
             category.items.forEach(insumo => {
-                contentHTML += `<tr class="text-sm"><td class="py-2 px-4">${insumo['Descripción']}</td><td class="py-2 px-4 text-right">${(insumo['Cantidad'] || 0).toFixed(3)}</td><td class="py-2 px-4 text-right">${formatCurrency(insumo['Vr Unitario'])}</td><td class="py-2 px-4 text-right">${formatCurrency(insumo['Vr Total'])}</td></tr>`;
+                contentHTML += `<tr class="text-sm"><td class="py-2 px-4">${insumo['Descripción']}</td><td class="py-2 px-4 text-left">${insumo['Unidad'] || 'UND'}</td><td class="py-2 px-4 text-right">${(insumo['Cantidad'] || 0).toFixed(3)}</td><td class="py-2 px-4 text-right">${formatCurrency(insumo['Vr Unitario'])}</td><td class="py-2 px-4 text-right">${formatCurrency(insumo['Vr Total'])}</td></tr>`;
             });
             contentHTML += `</tbody><tfoot class="bg-gray-100"><tr><td colspan="3" class="py-2 px-4 text-right font-semibold">SUBTOTAL ${catName}</td><td class="py-2 px-4 text-right font-semibold">${formatCurrency(category.subtotal)}</td></tr></tfoot></table></div>`;
         });

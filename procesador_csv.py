@@ -276,10 +276,14 @@ def process_apus_csv_v2(path: str) -> pd.DataFrame:
                 # Si la conversión falla, se mantiene el valor que tuviera
                 pass
 
+        # Extraer la unidad, que está en la segunda columna (índice 1)
+        unidad = parts[1] if len(parts) > 1 else "UND"
+
         return {
             "CODIGO_APU": context["apu_code"],
             "DESCRIPCION_APU": context["apu_desc"],
             "DESCRIPCION_INSUMO": description,
+            "UNIDAD": unidad,
             "CANTIDAD_APU": cantidad if pd.notna(cantidad) else 0,
             "PRECIO_UNIT_APU": precio_unit if pd.notna(precio_unit) else 0,
             "VALOR_TOTAL_APU": valor_total if pd.notna(valor_total) else 0,
@@ -439,12 +443,16 @@ def _do_processing(presupuesto_path, apus_path, insumos_path):
     df_merged["Vr Unitario"] = df_merged["VR_UNITARIO_FINAL"].fillna(0)
     df_merged["Vr Total"] = df_merged["COSTO_INSUMO_EN_APU"]
     df_merged_renamed = df_merged.rename(
-        columns={"DESCRIPCION_INSUMO": "Descripción", "CANTIDAD_APU": "Cantidad"}
+        columns={
+            "DESCRIPCION_INSUMO": "Descripción",
+            "CANTIDAD_APU": "Cantidad",
+            "UNIDAD": "Unidad",
+        }
     )
     apus_detail = {
-        n: g[["Descripción", "Cantidad", "Vr Unitario", "Vr Total", "CATEGORIA"]].to_dict(
-            "records"
-        )
+        n: g[
+            ["Descripción", "Unidad", "Cantidad", "Vr Unitario", "Vr Total", "CATEGORIA"]
+        ].to_dict("records")
         for n, g in df_merged_renamed.groupby("CODIGO_APU")
     }
     insumos_dict = {}
@@ -466,6 +474,7 @@ def _do_processing(presupuesto_path, apus_path, insumos_path):
         "insumos": insumos_dict,
         "apus_detail": apus_detail,
         "all_apus": df_apus.to_dict("records"),
+        "raw_insumos_df": df_insumos,
     }
 
 
@@ -541,11 +550,12 @@ def calculate_estimate(
     tipo_mapped = _normalize(param_map.get("tipo", {}).get(tipo, tipo))
     log.append(f"Parámetros mapeados: material='{material_mapped}', tipo='{tipo_mapped}'")
 
-    # --- 1. Búsqueda de Suministro ---
+    # --- 1. Búsqueda de Suministro (Refactorizada) ---
     log.append("\n--- BÚSQUEDA DE SUMINISTRO ---")
+    suministro_search_terms = f"(SOLO LAMINA|SUMINISTRO DE).*{material_mapped}"
+    log.append(f"Términos de búsqueda para suministro: '{suministro_search_terms}'")
     suministro_candidates = df_apus_unique[
-        df_apus_unique["DESC_NORMALIZED"].str.contains(material_mapped)
-        & ~df_apus_unique["DESC_NORMALIZED"].str.contains("MANO DE OBRA|MANO OBRA")
+        df_apus_unique["DESC_NORMALIZED"].str.contains(suministro_search_terms, regex=True)
     ]
     log.append(f"Encontrados {len(suministro_candidates)} candidatos para suministro.")
 
@@ -568,7 +578,6 @@ def calculate_estimate(
         )
         df_insumos = data_store.get("raw_insumos_df")
         if df_insumos is not None and not df_insumos.empty:
-            # Buscar el material normalizado en la lista de insumos
             insumo_match = df_insumos[
                 df_insumos["NORMALIZED_DESC"].str.contains(material_mapped, na=False)
             ]
@@ -584,45 +593,38 @@ def calculate_estimate(
         else:
             log.append("ERROR (Fallback): El dataframe de insumos no está disponible.")
 
-    # --- 2. Búsqueda de Instalación (Mano de Obra) ---
+    # --- 2. Búsqueda de Instalación (Refactorizada con Filtros Secuenciales) ---
     log.append("\n--- BÚSQUEDA DE INSTALACIÓN ---")
-    search_terms = {
-        "MANO DE OBRA": 3,
-        "MANO OBRA": 3,
-        tipo_mapped: 2,
-        material_mapped: 2,
-        f"CUADRILLA {cuadrilla}": 3,
-        f"CUADRILLA DE {cuadrilla}": 3,
-    }
-    log.append(f"Términos de búsqueda para Instalación: {search_terms}")
+    # Paso A: Filtrar por "MANO DE OBRA" Y "INSTALACION"
+    df_inst = df_apus_unique[
+        df_apus_unique["DESC_NORMALIZED"].str.contains("MANO DE OBRA|MANO OBRA")
+        & df_apus_unique["DESC_NORMALIZED"].str.contains("INSTALACION")
+    ].copy()
+    log.append(
+        f"Paso A: {len(df_inst)} APUs encontrados con 'MANO DE OBRA' e 'INSTALACION'."
+    )
 
-    best_match = {"score": 0, "desc": ""}
-    for _, apu_row in df_apus_unique.iterrows():
-        current_score = 0
-        desc_normalized = apu_row["DESC_NORMALIZED"]
-        if "MANO DE OBRA" not in desc_normalized and "MANO OBRA" not in desc_normalized:
-            continue
-        for term, weight in search_terms.items():
-            if term in desc_normalized:
-                current_score += weight
-        if current_score > best_match["score"]:
-            best_match = {"score": current_score, "desc": apu_row["DESCRIPCION_APU"]}
+    # Paso B: Filtrar por material
+    df_inst = df_inst[
+        df_inst["DESC_NORMALIZED"].str.contains(material_mapped)
+    ].copy()
+    log.append(f"Paso B: {len(df_inst)} APUs restantes tras filtrar por '{material_mapped}'.")
 
-    min_score_threshold = 3  # Reducido de 5 para mayor flexibilidad
-    if best_match["score"] < min_score_threshold:
-        msg = (
-            f"No se encontró un APU de instalación con puntaje suficiente "
-            f"(Mejor puntaje: {best_match['score']} < "
-            f"Umbral: {min_score_threshold})."
-        )
+    # Paso C: Filtrar por cuadrilla
+    cuadrilla_term = f"CUADRILLA DE {cuadrilla}"
+    df_inst = df_inst[df_inst["DESC_NORMALIZED"].str.contains(cuadrilla_term)].copy()
+    log.append(
+        f"Paso C: {len(df_inst)} APUs restantes tras filtrar por '{cuadrilla_term}'."
+    )
+
+    if df_inst.empty:
+        msg = "No se encontró un APU de instalación que coincida con todos los criterios."
         log.append(f"ERROR: {msg}")
         return {"error": msg, "log": "\n".join(log)}
 
-    apu_instalacion_desc = best_match["desc"]
-    log.append(
-        f"ÉXITO: Mejor APU de Instalación (Puntaje: {best_match['score']}): "
-        f"'{apu_instalacion_desc}'"
-    )
+    # Tomar el primer resultado
+    apu_instalacion_desc = df_inst.iloc[0]["DESCRIPCION_APU"]
+    log.append(f"ÉXITO: APU de Instalación seleccionado: '{apu_instalacion_desc}'")
 
     # --- 3. Cálculo de Costos y Tiempos ---
     log.append("\n--- CÁLCULO DE COSTOS Y TIEMPO ---")
