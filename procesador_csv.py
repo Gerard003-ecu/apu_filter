@@ -461,11 +461,13 @@ def _do_processing(presupuesto_path, apus_path, insumos_path):
                     group[["Descripción", "Vr Unitario"]].dropna().to_dict("records")
                 )
     logger.info("--- Procesamiento completado ---")
+    # Devolver también el dataframe de insumos para la lógica de fallback
     return {
         "presupuesto": df_final.to_dict("records"),
         "insumos": insumos_dict,
         "apus_detail": apus_detail,
         "all_apus": df_apus.to_dict("records"),
+        "raw_insumos_df": df_insumos,
     }
 
 
@@ -552,7 +554,6 @@ def calculate_estimate(
     apu_suministro_desc = ""
     valor_suministro = 0.0
     if not suministro_candidates.empty:
-        # Priorizar coincidencias más exactas si hay múltiples candidatos
         apu_suministro_desc = suministro_candidates.iloc[0]["DESCRIPCION_APU"]
         suministro_items_df = df_apus[df_apus["DESCRIPCION_APU"] == apu_suministro_desc]
         valor_suministro = suministro_items_df[
@@ -563,7 +564,24 @@ def calculate_estimate(
             f" -> Valor: ${valor_suministro:,.0f}"
         )
     else:
-        log.append("ADVERTENCIA: No se encontró un APU de suministro directo.")
+        log.append("ADVERTENCIA: No se encontró un APU de suministro directo. " "Iniciando fallback a insumos.")
+        df_insumos = data_store.get("raw_insumos_df")
+        if df_insumos is not None and not df_insumos.empty:
+            # Buscar el material normalizado en la lista de insumos
+            insumo_match = df_insumos[
+                df_insumos["NORMALIZED_DESC"].str.contains(material_mapped, na=False)
+            ]
+            if not insumo_match.empty:
+                valor_suministro = insumo_match.iloc[0]["VR_UNITARIO_INSUMO"]
+                apu_suministro_desc = f"Insumo: {insumo_match.iloc[0]['DESCRIPCION_INSUMO']}"
+                log.append(
+                    f"ÉXITO (Fallback): Insumo encontrado: '{apu_suministro_desc}'"
+                    f" -> Valor: ${valor_suministro:,.0f}"
+                )
+            else:
+                log.append("ERROR (Fallback): Material no encontrado en la lista de insumos.")
+        else:
+            log.append("ERROR (Fallback): El dataframe de insumos no está disponible.")
 
     # --- 2. Búsqueda de Instalación (Mano de Obra) ---
     log.append("\n--- BÚSQUEDA DE INSTALACIÓN ---")
@@ -589,7 +607,7 @@ def calculate_estimate(
         if current_score > best_match["score"]:
             best_match = {"score": current_score, "desc": apu_row["DESCRIPCION_APU"]}
 
-    min_score_threshold = config.get("min_score_threshold", 5)
+    min_score_threshold = 3  # Reducido de 5 para mayor flexibilidad
     if best_match["score"] < min_score_threshold:
         msg = (
             f"No se encontró un APU de instalación con puntaje suficiente "
