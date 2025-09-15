@@ -427,11 +427,20 @@ def _do_processing(presupuesto_path, apus_path, insumos_path):
         costo_mano_obra = row.get("MANO DE OBRA", 0)
         costo_equipo = row.get("EQUIPO", 0)
 
-        # Lógica de clasificación
-        if costo_materiales / costo_total > 0.8:
-            return "Suministro"
-        if (costo_mano_obra + costo_equipo) / costo_total > 0.8:
+        porcentaje_materiales = (costo_materiales / costo_total) * 100
+        porcentaje_mo_eq = ((costo_mano_obra + costo_equipo) / costo_total) * 100
+
+        # Aplicar las siguientes reglas en orden:
+        # 1. Si Costo de Mano de Obra + Equipo > 75%, clasificar como "Instalación".
+        if porcentaje_mo_eq > 75:
             return "Instalación"
+        # 2. Si Costo de Materiales > 75% Y Costo de Mano de Obra + Equipo < 10%, clasificar como "Suministro".
+        if porcentaje_materiales > 75 and porcentaje_mo_eq < 10:
+            return "Suministro"
+        # 3. Si Costo de Materiales > 50% Y Costo de Mano de Obra + Equipo > 10%, clasificar como "Suministro (Pre-fabricado)".
+        if porcentaje_materiales > 50 and porcentaje_mo_eq > 10:
+            return "Suministro (Pre-fabricado)"
+        # 4. En cualquier otro caso, clasificar como "Obra Completa".
         return "Obra Completa"
 
     df_apu_costos_categoria["tipo_apu"] = df_apu_costos_categoria.apply(classify_apu, axis=1)
