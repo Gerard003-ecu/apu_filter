@@ -70,3 +70,9 @@ class TestProbabilityModels(unittest.TestCase):
         self.assertEqual(result["std_dev"], 0)
         self.assertEqual(result["percentile_5"], 0)
         self.assertEqual(result["percentile_95"], 0)
+
+# ======================================================================
+# AÑADIR ESTE BLOQUE AL FINAL DEL ARCHIVO
+# ======================================================================
+if __name__ == '__main__':
+    unittest.main()
