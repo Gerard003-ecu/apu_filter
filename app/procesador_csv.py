@@ -484,12 +484,13 @@ def _do_processing(presupuesto_path, apus_path, insumos_path):
     )
     apus_detail = {
         n: g[
-            ["DESCRIPCION",
-             "UNIDAD",
-             "CANTIDAD",
-             "VALOR_UNITARIO",
-             "VALOR_TOTAL",
-             "CATEGORIA"
+            [
+                "DESCRIPCION",
+                "UNIDAD",
+                "CANTIDAD",
+                "VALOR_UNITARIO",
+                "VALOR_TOTAL",
+                "CATEGORIA",
             ]
         ].to_dict("records")
         for n, g in df_merged_renamed.groupby("CODIGO_APU")
@@ -639,9 +640,7 @@ def calculate_estimate(
             else:
                 log.append("ERROR (Fallback): El dataframe de insumos está vacío.")
         else:
-            log.append(
-                "ERROR (Fallback): El dataframe de insumos no está disponible."
-            )
+            log.append("ERROR (Fallback): El dataframe de insumos no está disponible.")
 
     # --- 2. Búsqueda de Instalación (Refactorizada con Filtros Secuenciales) ---
     log.append("\n--- BÚSQUEDA DE INSTALACIÓN ---")
@@ -655,18 +654,13 @@ def calculate_estimate(
     )
 
     # Paso B: Filtrar por material
-    df_inst = df_inst[
-        df_inst["DESC_NORMALIZED"].str.contains(material_mapped)
-    ].copy()
-    log.append(f"Paso B: {len(df_inst)}"
-               f"APUs restantes tras filtrar por '{material_mapped}'.")
+    df_inst = df_inst[df_inst["DESC_NORMALIZED"].str.contains(material_mapped)].copy()
+    log.append(f"Paso B: {len(df_inst)}APUs restantes tras filtrar por '{material_mapped}'.")
 
     # Paso C: Filtrar por cuadrilla
     cuadrilla_term = f"CUADRILLA DE {cuadrilla}"
     df_inst = df_inst[df_inst["DESC_NORMALIZED"].str.contains(cuadrilla_term)].copy()
-    log.append(
-        f"Paso C: {len(df_inst)} APUs restantes tras filtrar por '{cuadrilla_term}'."
-    )
+    log.append(f"Paso C: {len(df_inst)} APUs restantes tras filtrar por '{cuadrilla_term}'.")
 
     if df_inst.empty:
         msg = "No se encontró un APU de instalación que coincida con todos los criterios."

@@ -18,15 +18,15 @@ def run_monte_carlo_simulation(apu_details, num_simulations=1000):
     for _ in range(num_simulations):
         simulation_cost = 0
         for item in apu_details:
-            base_price = item.get('VALOR_UNITARIO', 0)
-            quantity = item.get('CANTIDAD', 0)
-            category = item.get('CATEGORIA', '')
+            base_price = item.get("VALOR_UNITARIO", 0)
+            quantity = item.get("CANTIDAD", 0)
+            category = item.get("CATEGORIA", "")
 
-            if category == 'MATERIALES':
+            if category == "MATERIALES":
                 # Simular volatilidad del 5% en el precio de los materiales
                 simulated_price = np.random.normal(loc=base_price, scale=base_price * 0.05)
                 simulation_cost += simulated_price * quantity
-            elif category == 'MANO DE OBRA':
+            elif category == "MANO DE OBRA":
                 # Simular variabilidad del 10% en el rendimiento (cantidad de tiempo)
                 simulated_quantity = np.random.normal(loc=quantity, scale=quantity * 0.10)
                 simulation_cost += base_price * simulated_quantity
@@ -46,8 +46,8 @@ def run_monte_carlo_simulation(apu_details, num_simulations=1000):
     percentile_95 = np.percentile(total_costs, 95)
 
     return {
-        'mean': mean_cost,
-        'std_dev': std_dev,
-        'percentile_5': percentile_5,
-        'percentile_95': percentile_95
+        "mean": mean_cost,
+        "std_dev": std_dev,
+        "percentile_5": percentile_5,
+        "percentile_95": percentile_95,
     }

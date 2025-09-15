@@ -256,7 +256,9 @@ class TestAppEndpoints(unittest.TestCase):
                 "apus": self._get_test_file("apus.csv", APUS_DATA),
                 "insumos": self._get_test_file("insumos.csv", INSUMOS_DATA),
             }
-            upload_response = c.post("/upload", data=data, content_type="multipart/form-data")
+            upload_response = c.post(
+                "/upload", data=data, content_type="multipart/form-data"
+            )
             self.assertEqual(upload_response.status_code, 200)
 
             # Ahora, solicita el detalle de un APU específico
