@@ -2,22 +2,41 @@ import os
 import time
 import uuid
 from datetime import timedelta
+import json
+import logging
 
 from flask import Flask, jsonify, render_template, request, session
 from werkzeug.exceptions import HTTPException
 from werkzeug.utils import secure_filename
 
+# --- CAMBIO CLAVE 1: Ajustar la ruta de importación ---
+# Añadir el directorio raíz al path para que encuentre el módulo 'models'
+import sys
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+from procesador_csv import calculate_estimate, process_all_files
 from models.probability_models import run_monte_carlo_simulation
 
-# Importamos la nueva función orquestadora y la de estimación
-from .procesador_csv import calculate_estimate, process_all_files
+# --- CAMBIO CLAVE 2: Definir rutas absolutas para las carpetas ---
+# Esto asegura que Flask siempre encuentre las plantillas, sin importar desde dónde se ejecute.
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+template_folder = os.path.join(project_root, 'templates')
 
 # Configuración de la aplicación
-app = Flask(__name__)
-app.config["UPLOAD_FOLDER"] = "uploads"
+app = Flask(__name__, template_folder=template_folder)
+app.config["UPLOAD_FOLDER"] = os.path.join(project_root, "uploads")
 app.config["MAX_CONTENT_LENGTH"] = 16 * 1024 * 1024  # 16MB limit
 app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(hours=1)
 app.secret_key = os.environ.get("SECRET_KEY", "dev-key-change-in-production")
+
+# --- CAMBIO CLAVE 3: Cargar config.json de forma robusta ---
+try:
+    with open(os.path.join(project_root, "config.json"), "r", encoding="utf-8") as f:
+        app.config["APP_CONFIG"] = json.load(f)
+except (FileNotFoundError, json.JSONDecodeError) as e:
+    app.logger.error(f"Error crítico: No se pudo cargar config.json. {e}")
+    app.config["APP_CONFIG"] = {}
+
 
 # Almacenamiento en memoria con expiración (para múltiples usuarios)
 user_sessions = {}

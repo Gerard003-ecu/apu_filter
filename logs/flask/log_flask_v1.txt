@@ -1,0 +1,47 @@
+2025-09-15 17:19:24,686 - ERROR - El archivo config.json no fue encontrado.
+ * Serving Flask app 'app/app.py'
+ * Debug mode: off
+2025-09-15 17:19:24,714 - INFO - WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
+ * Running on http://127.0.0.1:5002
+2025-09-15 17:19:24,714 - INFO - Press CTRL+C to quit
+2025-09-15 17:19:41,483 - ERROR - Exception on / [GET]
+Traceback (most recent call last):
+  File "/home/gerardo/Documentos/GitHub/apu_filter/.venv/lib/python3.12/site-packages/flask/app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gerardo/Documentos/GitHub/apu_filter/.venv/lib/python3.12/site-packages/flask/app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gerardo/Documentos/GitHub/apu_filter/.venv/lib/python3.12/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gerardo/Documentos/GitHub/apu_filter/.venv/lib/python3.12/site-packages/flask/app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gerardo/Documentos/GitHub/apu_filter/app/app.py", line 43, in index
+    return render_template("index.html")
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gerardo/Documentos/GitHub/apu_filter/.venv/lib/python3.12/site-packages/flask/templating.py", line 149, in render_template
+    template = app.jinja_env.get_or_select_template(template_name_or_list)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gerardo/Documentos/GitHub/apu_filter/.venv/lib/python3.12/site-packages/jinja2/environment.py", line 1087, in get_or_select_template
+    return self.get_template(template_name_or_list, parent, globals)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gerardo/Documentos/GitHub/apu_filter/.venv/lib/python3.12/site-packages/jinja2/environment.py", line 1016, in get_template
+    return self._load_template(name, globals)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gerardo/Documentos/GitHub/apu_filter/.venv/lib/python3.12/site-packages/jinja2/environment.py", line 975, in _load_template
+    template = self.loader.load(self, name, self.make_globals(globals))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gerardo/Documentos/GitHub/apu_filter/.venv/lib/python3.12/site-packages/jinja2/loaders.py", line 126, in load
+    source, filename, uptodate = self.get_source(environment, name)
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gerardo/Documentos/GitHub/apu_filter/.venv/lib/python3.12/site-packages/flask/templating.py", line 65, in get_source
+    return self._get_source_fast(environment, template)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gerardo/Documentos/GitHub/apu_filter/.venv/lib/python3.12/site-packages/flask/templating.py", line 99, in _get_source_fast
+    raise TemplateNotFound(template)
+jinja2.exceptions.TemplateNotFound: index.html
+2025-09-15 17:19:41,495 - ERROR - Error interno del servidor: 500 Internal Server Error: The server encountered an internal error and was unable to complete your request. Either the server is overloaded or there is an error in the application.
+2025-09-15 17:19:41,496 - INFO - 127.0.0.1 - - [15/Sep/2025 17:19:41] "GET / HTTP/1.1" 500 -
+2025-09-15 17:19:41,971 - INFO - 127.0.0.1 - - [15/Sep/2025 17:19:41] "GET /favicon.ico HTTP/1.1" 404 -
