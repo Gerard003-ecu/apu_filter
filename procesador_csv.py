@@ -461,13 +461,11 @@ def _do_processing(presupuesto_path, apus_path, insumos_path):
                     group[["Descripción", "Vr Unitario"]].dropna().to_dict("records")
                 )
     logger.info("--- Procesamiento completado ---")
-    # Devolver también el dataframe de insumos para la lógica de fallback
     return {
         "presupuesto": df_final.to_dict("records"),
         "insumos": insumos_dict,
         "apus_detail": apus_detail,
         "all_apus": df_apus.to_dict("records"),
-        "raw_insumos_df": df_insumos,
     }
 
 
