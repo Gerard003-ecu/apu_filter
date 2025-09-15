@@ -1,26 +1,28 @@
+import json
 import os
+
+# --- CAMBIO CLAVE 1: Ajustar la ruta de importación ---
+# Añadir el directorio raíz al path para que encuentre el módulo 'models'
+import sys
 import time
 import uuid
 from datetime import timedelta
-import json
-import logging
 
 from flask import Flask, jsonify, render_template, request, session
 from werkzeug.exceptions import HTTPException
 from werkzeug.utils import secure_filename
 
-# --- CAMBIO CLAVE 1: Ajustar la ruta de importación ---
-# Añadir el directorio raíz al path para que encuentre el módulo 'models'
-import sys
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from procesador_csv import calculate_estimate, process_all_files
+from. procesador_csv import calculate_estimate, process_all_files
+
 from models.probability_models import run_monte_carlo_simulation
 
 # --- CAMBIO CLAVE 2: Definir rutas absolutas para las carpetas ---
-# Esto asegura que Flask siempre encuentre las plantillas, sin importar desde dónde se ejecute.
-project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-template_folder = os.path.join(project_root, 'templates')
+# Esto asegura que Flask siempre encuentre las plantillas,
+# sin importar desde dónde se ejecute.
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+template_folder = os.path.join(project_root, "templates")
 
 # Configuración de la aplicación
 app = Flask(__name__, template_folder=template_folder)

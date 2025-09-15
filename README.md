@@ -84,7 +84,8 @@ apu_filter/
 ├── app/                     # Contiene la lógica de la aplicación Flask
 │   ├── __init__.py
 │   ├── app.py               # El servidor Flask y los endpoints
-│   └── procesador_csv.py    # Lógica de parsing y procesamiento de datos
+│   ├── procesador_csv.py    # Lógica de parsing y procesamiento de datos
+|   └── config.json              # Archivo de configuración
 │
 ├── models/                  # Módulos de lógica de negocio y análisis
 │   ├── __init__.py
@@ -97,6 +98,5 @@ apu_filter/
 │
 ├── templates/
 ├── uploads/
-├── config.json              # Archivo de configuración
 └── ...
 ```
