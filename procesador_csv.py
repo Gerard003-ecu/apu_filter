@@ -564,7 +564,10 @@ def calculate_estimate(
             f" -> Valor: ${valor_suministro:,.0f}"
         )
     else:
-        log.append("ADVERTENCIA: No se encontró un APU de suministro directo. " "Iniciando fallback a insumos.")
+        log.append(
+            "ADVERTENCIA: No se encontró un APU de suministro directo. "
+            "Iniciando fallback a insumos."
+        )
         df_insumos = data_store.get("raw_insumos_df")
         if df_insumos is not None and not df_insumos.empty:
             # Buscar el material normalizado en la lista de insumos
@@ -579,7 +582,7 @@ def calculate_estimate(
                     f" -> Valor: ${valor_suministro:,.0f}"
                 )
             else:
-                log.append("ERROR (Fallback): Material no encontrado en la lista de insumos.")
+                log.append("ERROR (Fallback): Material no encontrado en lista de insumos.")
         else:
             log.append("ERROR (Fallback): El dataframe de insumos no está disponible.")
 
