@@ -173,9 +173,11 @@ class TestCSVProcessor(unittest.TestCase):
         params_ok = {"tipo": "CUBIERTA", "material": "TST", "cuadrilla": "5"}
         result = calculate_estimate(params_ok, data_store)
         self.assertNotIn("error", result)
-        self.assertEqual(
-            result["apu_encontrado"], "MANO DE OBRA INSTALACION TEJA SENCILLA CUADRILLA DE 5"
+        expected_apu = (
+            "Suministro: N/A | Instalación: "
+            "MANO DE OBRA INSTALACION TEJA SENCILLA CUADRILLA DE 5"
         )
+        self.assertEqual(result["apu_encontrado"], expected_apu)
         self.assertAlmostEqual(result["valor_instalacion"], 80000)
 
 
