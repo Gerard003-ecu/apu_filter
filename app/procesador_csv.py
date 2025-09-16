@@ -317,160 +317,120 @@ def get_file_hash(path: str) -> str:
 def process_apus_csv_v2(path: str) -> pd.DataFrame:
     """
     Parsea un archivo de APUs (CSV o Excel) de formato no estructurado,
-    leyendo línea por línea para máxima robustez.
+    leyendo línea por línea para máxima robustez. VERSIÓN FINAL.
     """
     apus_data = []
     current_context = {"apu_code": None, "apu_desc": None, "category": "INDEFINIDO"}
     category_keywords = config.get("category_keywords", {})
 
     def to_numeric_safe(s):
-        if isinstance(s, (int, float)):
-            return s
+        if isinstance(s, (int, float)): return s
         if isinstance(s, str):
-            s = s.replace(",", ".").strip()
-            return pd.to_numeric(s, errors="coerce")
+            # Limpieza más agresiva para números como "1.208,12" o "2%"
+            s_cleaned = re.sub(r'[^\d,\.]', '', s).replace(",", ".").strip()
+            return pd.to_numeric(s_cleaned, errors="coerce")
         return pd.NA
 
     def parse_data_line(parts, context):
-        # ... (la lógica interna de esta función no necesita cambios)
-        if not parts or not parts[0]:
-            return None
+        if not parts or not parts[0]: return None
+        
         description = parts[0].strip()
-        is_mano_de_obra = any(
-            description.upper().startswith(keyword)
-            for keyword in ["M.O.", "SISO", "INGENIERO"]
-        )
-        unidad = parts[1] if len(parts) > 1 else "UND"
-        cantidad, precio_unit, valor_total = pd.NA, pd.NA, pd.NA
-        if is_mano_de_obra:
-            valor_total = to_numeric_safe(parts[5]) if len(parts) > 5 else pd.NA
-            precio_unit = to_numeric_safe(parts[3]) if len(parts) > 3 else pd.NA
-            if pd.notna(valor_total) and pd.notna(precio_unit) and precio_unit != 0:
-                cantidad = valor_total / precio_unit
-            else:
-                cantidad = to_numeric_safe(parts[2]) if len(parts) > 2 else pd.NA
-        else:
-            cantidad = to_numeric_safe(parts[2]) if len(parts) > 2 else pd.NA
-            precio_unit = to_numeric_safe(parts[4]) if len(parts) > 4 else pd.NA
-            if len(parts) > 5:
-                valor_total = to_numeric_safe(parts[5])
-            if pd.isna(valor_total):
-                for part in reversed(parts):
-                    numeric_val = to_numeric_safe(part)
-                    if pd.notna(numeric_val) and numeric_val != 0:
-                        valor_total = numeric_val
-                        break
-            if pd.notna(valor_total) and pd.notna(cantidad) and cantidad != 0:
-                if pd.isna(precio_unit) or precio_unit == 0:
-                    precio_unit = valor_total / cantidad
-            if pd.isna(valor_total) and pd.notna(cantidad) and pd.notna(precio_unit):
-                valor_total = cantidad * precio_unit
+        
+        # --- LÓGICA DE EXTRACCIÓN REFACTORIZADA ---
+        
+        # 1. Extraer el VALOR TOTAL. Es el dato más fiable.
+        # Buscamos hacia atrás el último número válido en la fila.
+        valor_total = next((to_numeric_safe(p) for p in reversed(parts) if pd.notna(to_numeric_safe(p))), 0.0)
+
+        # 2. Extraer la CANTIDAD.
+        cantidad = to_numeric_safe(parts[2]) if len(parts) > 2 else 0.0
+        
+        # 3. Extraer o Calcular el PRECIO UNITARIO.
+        precio_unit = to_numeric_safe(parts[4]) if len(parts) > 4 else 0.0
+
+        # Si la cantidad es 0 pero el valor total no, es un ítem de costo global (ej. Equipo)
+        if (pd.isna(cantidad) or cantidad == 0) and valor_total > 0:
+             cantidad = 1 # Asignamos cantidad 1 para que el precio unitario sea el valor total
+             precio_unit = valor_total
+
+        # Si el precio unitario es 0 pero los otros dos no, lo recalculamos.
+        if (pd.isna(precio_unit) or precio_unit == 0) and valor_total > 0 and cantidad > 0:
+            precio_unit = valor_total / cantidad
+
+        # Caso especial para Mano de Obra con formato de jornal
+        is_mano_de_obra = any(description.upper().startswith(kw) for kw in ["M.O.", "SISO", "INGENIERO"])
+        if is_mano_de_obra and len(parts) >= 6:
+            jornal_total = to_numeric_safe(parts[3])
+            rendimiento = to_numeric_safe(parts[4])
+            valor_total_mo = to_numeric_safe(parts[5])
+
+            if pd.notna(valor_total_mo):
+                valor_total = valor_total_mo
+                precio_unit = jornal_total if pd.notna(jornal_total) else 0
+                if pd.notna(precio_unit) and precio_unit > 0:
+                    cantidad = valor_total / precio_unit
+                else: # Fallback si el jornal no es numérico
+                    cantidad = rendimiento if pd.notna(rendimiento) else 0
+        
         return {
             "CODIGO_APU": context["apu_code"],
             "DESCRIPCION_APU": context["apu_desc"],
             "DESCRIPCION_INSUMO": description,
-            "UNIDAD": unidad,
+            "UNIDAD": parts[1] if len(parts) > 1 else "UND",
             "CANTIDAD_APU": cantidad if pd.notna(cantidad) else 0,
             "PRECIO_UNIT_APU": precio_unit if pd.notna(precio_unit) else 0,
             "VALOR_TOTAL_APU": valor_total if pd.notna(valor_total) else 0,
             "CATEGORIA": context["category"],
         }
 
+    # El resto de la función (el bucle de lectura de líneas) se mantiene igual
     try:
         delimiter = detect_delimiter(path)
         last_non_empty_line = ""
-
         with open(path, "r", encoding="latin1") as f:
             for line in f:
                 line = line.strip()
-                if not line:
-                    continue
-
+                if not line: continue
                 try:
-                    # Prioridad 1: Líneas de "ITEM" que definen un nuevo APU
                     if "ITEM:" in line.upper():
-                        # Extraer código de APU
                         match = re.search(r"ITEM:\s*([\d,\.]*)", line.upper())
                         if match:
                             apu_code = match.group(1).strip()
-                            if not apu_code:  # Si el código está vacío, ignorar la línea
-                                continue
-
+                            if not apu_code: continue
                             current_context["apu_code"] = apu_code
-                            # La descripción puede estar en la misma línea o en la anterior
-                            desc_on_same_line = re.sub(
-                                r"ITEM:\s*([\d,\.]*)", "", line, flags=re.IGNORECASE
-                            ).strip()
-
-                            # Limpiar la descripción de basura de delimitadores
-                            if delimiter in desc_on_same_line:
-                                desc_on_same_line = desc_on_same_line.split(delimiter)[0]
-
-                            if desc_on_same_line.strip():
-                                current_context["apu_desc"] = desc_on_same_line.strip()
+                            desc_on_same_line = re.sub(r"ITEM:\s*([\d,\.]*)", "", line, flags=re.IGNORECASE).strip()
+                            if delimiter in desc_on_same_line: desc_on_same_line = desc_on_same_line.split(delimiter)[0]
+                            if desc_on_same_line.strip(): current_context["apu_desc"] = desc_on_same_line.strip()
                             else:
-                                # Si no, usar la última línea no vacía que no era
-                                # ni categoría ni dato
-                                cleaned_last_line = last_non_empty_line.split(delimiter)[
-                                    0
-                                ].strip()
+                                cleaned_last_line = last_non_empty_line.split(delimiter)[0].strip()
                                 current_context["apu_desc"] = cleaned_last_line
-                            current_context["category"] = (
-                                "INDEFINIDO"  # Resetear categoría para el nuevo APU
-                            )
-                        continue  # Pasar a la siguiente línea
-
-                    # Usar csv.reader para un parseo robusto de la línea
-                    try:
-                        parts_generator = csv.reader(
-                            [line], delimiter=delimiter, quotechar='"'
-                        )
-                        parts = [p.strip() for p in next(parts_generator)]
-                    except StopIteration:
-                        parts = []
-
-                    clean_line_for_keyword_check = "".join(parts).upper()
-
-                    # Prioridad 2: Líneas de categoría
-                    if clean_line_for_keyword_check in category_keywords:
-                        current_context["category"] = category_keywords[
-                            clean_line_for_keyword_check
-                        ]
-                        last_non_empty_line = (
-                            ""  # Esta línea es una categoría, no una descripción
-                        )
+                            current_context["category"] = "INDEFINIDO"
                         continue
-
-                    # Prioridad 3: Líneas de datos (insumos)
-                    # Debe tener un código de APU asignado para ser procesada
+                    
+                    parts_generator = csv.reader([line], delimiter=delimiter, quotechar='"')
+                    parts = [p.strip() for p in next(parts_generator)]
+                    
+                    if len(parts) > 1 and not parts[0] and parts[1]: parts = parts[1:]
+                    clean_line_for_keyword_check = "".join(parts).upper()
+                    if clean_line_for_keyword_check in category_keywords:
+                        current_context["category"] = category_keywords[clean_line_for_keyword_check]
+                        last_non_empty_line = ""
+                        continue
+                    
                     if current_context["apu_code"]:
-                        # Condición para ser una línea de datos válida
                         is_data_line = (
-                            len(parts) >= 6
-                            and parts[0]  # La descripción no puede estar vacía
-                            and "SUBTOTAL" not in parts[0].upper()
-                            and pd.to_numeric(parts[2].replace(",", "."), errors="coerce")
-                            is not np.nan
+                            len(parts) >= 3 and parts[0] and "SUBTOTAL" not in parts[0].upper() and "COSTO DIRECTO" not in parts[0].upper()
                         )
-
                         if is_data_line:
                             data_row = parse_data_line(parts, current_context)
-                            if data_row:
-                                apus_data.append(data_row)
+                            if data_row: apus_data.append(data_row)
                         else:
-                            # Si no es una línea de datos, podría ser la descripción del APU
                             last_non_empty_line = line
-
                     else:
-                        # Si aún no hemos encontrado un "ITEM", guardamos la línea
                         last_non_empty_line = line
-
                 except (IndexError, ValueError) as e:
-                    logger.warning(
-                        f"Omitiendo línea de APU malformada ({type(e).__name__}): {line}"
-                    )
+                    logger.warning(f"Omitiendo línea de APU malformada ({type(e).__name__}): {line}")
                     continue
-
     except Exception as e:
         logger.error(f"Error fatal procesando APUs en {path}: {e}", exc_info=True)
         return pd.DataFrame()
