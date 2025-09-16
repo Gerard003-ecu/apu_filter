@@ -327,13 +327,11 @@ def get_file_hash(path: str) -> str:
 
 def process_apus_csv_v2(path: str) -> pd.DataFrame:
     """
-    Parsea un archivo de APUs con formato de reporte de texto bien formado,
-    utilizando una máquina de estados para interpretar el contexto. VERSIÓN FINAL.
+    Parsea un archivo de APUs con formato de reporte de texto utilizando una
+    estrategia de procesamiento por bloques para máxima robustez. VERSIÓN FINAL.
     """
     apus_data = []
-    current_context = {"apu_code": None, "apu_desc": None, "category": "INDEFINIDO"}
     category_keywords = config.get("category_keywords", {})
-    potential_apu_desc = ""
 
     def to_numeric_safe(s):
         if isinstance(s, (int, float)): return s
@@ -342,63 +340,66 @@ def process_apus_csv_v2(path: str) -> pd.DataFrame:
             return pd.to_numeric(s_cleaned, errors="coerce")
         return pd.NA
 
-    def parse_data_line(parts, context):
-        description = parts[0]
-        cantidad = to_numeric_safe(parts[2])
-        precio_unit = to_numeric_safe(parts[4])
-        valor_total = to_numeric_safe(parts[5])
-
-        # Lógica de consistencia
-        if pd.notna(cantidad) and pd.notna(precio_unit) and pd.isna(valor_total):
-            valor_total = cantidad * precio_unit
-
-        return {
-            "CODIGO_APU": context["apu_code"], "DESCRIPCION_APU": context["apu_desc"],
-            "DESCRIPCION_INSUMO": description, "UNIDAD": parts[1],
-            "CANTIDAD_APU": cantidad if pd.notna(cantidad) else 0,
-            "PRECIO_UNIT_APU": precio_unit if pd.notna(precio_unit) else 0,
-            "VALOR_TOTAL_APU": valor_total if pd.notna(valor_total) else 0,
-            "CATEGORIA": context["category"],
-        }
-
     try:
-        delimiter = detect_delimiter(path)
         with open(path, "r", encoding="latin1") as f:
-            for line in f:
-                line = line.strip()
-                if not line or line == ";;;;;": continue
+            content = f.read()
 
-                # Prioridad 1: Línea de ITEM
+        # 1. Dividir el archivo completo en bloques, cada uno para un APU.
+        # Un bloque comienza con una línea que NO contiene "ITEM:" y es seguida
+        # por una línea que SÍ contiene "ITEM:".
+        blocks = re.split(r'(?=^[^;].*;;;;;)', content, flags=re.MULTILINE)
+
+        for block in blocks:
+            if not block.strip() or "ITEM:" not in block.upper():
+                continue
+
+            lines = block.strip().split('\n')
+
+            # 2. Extraer el código y la descripción del bloque
+            apu_desc = lines[0].split(';')[0].strip()
+            apu_code = None
+            for line in lines:
                 if "ITEM:" in line.upper():
                     match = re.search(r"ITEM:\s*([\d,\.]*)", line.upper())
-                    if match and match.group(1).strip():
-                        current_context["apu_code"] = match.group(1).strip().rstrip(".,")
-                        current_context["apu_desc"] = potential_apu_desc
-                        current_context["category"] = "INDEFINIDO"
-                        potential_apu_desc = ""
+                    if match:
+                        apu_code = match.group(1).strip().rstrip('.,')
+                        break
+
+            if not apu_code or not apu_desc:
+                continue
+
+            # 3. Procesar los insumos dentro del bloque
+            current_category = "INDEFINIDO"
+            for line in lines:
+                line = line.strip()
+                if not line: continue
+
+                # Actualizar categoría
+                clean_line_for_keyword = line.replace(";", "").strip().upper()
+                if clean_line_for_keyword in category_keywords:
+                    current_category = category_keywords[clean_line_for_keyword]
                     continue
 
-                parts = next(csv.reader([line], delimiter=delimiter, quotechar='"'))
-                parts = [p.strip() for p in parts]
-                if not any(parts): continue
+                # Parsear línea de datos
+                parts = [p.strip() for p in line.split(';')]
+                if len(parts) >= 6 and parts[0] and "SUBTOTAL" not in parts[0].upper():
+                    description = parts[0]
+                    cantidad = to_numeric_safe(parts[2])
+                    precio_unit = to_numeric_safe(parts[4])
+                    valor_total = to_numeric_safe(parts[5])
 
-                # Prioridad 2: Línea de Categoría
-                line_content = "".join(parts).upper()
-                if len(parts) < 4 and line_content in category_keywords:
-                    current_context["category"] = category_keywords[line_content]
-                    continue
+                    if pd.notna(cantidad) and pd.notna(precio_unit) and pd.isna(valor_total):
+                        valor_total = cantidad * precio_unit
 
-                # Prioridad 3: Línea de Datos
-                # Condición: tiene un código de APU, al menos 6 columnas, y datos en cantidad o valor total.
-                if current_context["apu_code"] and len(parts) >= 6 and parts[0] and (parts[2].strip() or parts[5].strip()):
-                    if "SUBTOTAL" not in parts[0].upper() and "COSTO DIRECTO" not in parts[0].upper():
-                        data_row = parse_data_line(parts, current_context)
-                        if data_row: apus_data.append(data_row)
-                        continue
-
-                # Prioridad 4: Línea de Descripción
-                if parts and parts[0]:
-                    potential_apu_desc = parts[0]
+                    if pd.notna(valor_total):
+                        apus_data.append({
+                            "CODIGO_APU": apu_code, "DESCRIPCION_APU": apu_desc,
+                            "DESCRIPCION_INSUMO": description, "UNIDAD": parts[1],
+                            "CANTIDAD_APU": cantidad if pd.notna(cantidad) else 0,
+                            "PRECIO_UNIT_APU": precio_unit if pd.notna(precio_unit) else 0,
+                            "VALOR_TOTAL_APU": valor_total if pd.notna(valor_total) else 0,
+                            "CATEGORIA": current_category,
+                        })
 
     except Exception as e:
         logger.error(f"Error fatal procesando APUs en {path}: {e}", exc_info=True)
