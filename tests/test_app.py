@@ -304,6 +304,32 @@ class TestCSVProcessor(unittest.TestCase):
         self.assertEqual(result["apu_encontrado"], expected_apu)
         self.assertAlmostEqual(result["valor_instalacion"], 80000)
 
+    @patch("app.procesador_csv.config", new_callable=lambda: TEST_CONFIG)
+    def test_process_apus_with_malformed_code(self, mock_config):
+        """Prueba que un CODIGO_APU con comas o puntos extra al final se limpie correctamente."""
+        MALFORMED_APUS_DATA = (
+            "REMATE CON PINTURA;;;;;\n"
+            ";;;;;ITEM:   1,1,,\n"  # Código malformado
+            "MATERIALES\n"
+            "Tornillo de Acero;UND;10,0;;10,50;105,00\n"
+        )
+        malformed_apus_path = "test_malformed_apus.csv"
+        with open(malformed_apus_path, "w", encoding="latin1") as f:
+            f.write(MALFORMED_APUS_DATA)
+
+        # Usamos process_all_files porque es el integrador principal
+        resultado = process_all_files(
+            self.presupuesto_path, malformed_apus_path, self.insumos_path
+        )
+        os.remove(malformed_apus_path)
+
+        self.assertNotIn("error", resultado)
+
+        # Verificar que el código '1,1' (limpio) está en el detalle de APUs
+        self.assertIn("1,1", resultado["apus_detail"])
+        # Verificar que el código malformado '1,1,,' NO está
+        self.assertNotIn("1,1,,", resultado["apus_detail"])
+
 
 class TestAppEndpoints(unittest.TestCase):
     """Pruebas para los endpoints de la aplicación Flask."""
