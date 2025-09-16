@@ -30,28 +30,36 @@ from app.procesador_csv import (
 
 PRESUPUESTO_DATA = (
     "ITEM;DESCRIPCION;UND;CANT.; VR. UNIT ; VR.TOTAL \n"
-    "1,1;Montaje de Estructura;ML;10; 155,00 ; 1550 \n"
-    "1,2;Acabados Finales;M2;20; 225,00 ; 4500 \n"
+    "1,1;REMATE CON PINTURA DE FABRICA CAL 22 DE 120 CMTS CURVO;ML;10; 155,00 ; 1550 \n"
+    "1,2;ACABADOS FINALES;M2;20; 225,00 ; 4500 \n"
     "1,3;MANO DE OBRA INSTALACION TEJA SENCILLA CUADRILLA DE 5;M2;1;80000;80000\n"
     "1,4;APU con Corte y Doblez;UN;1;15000;15000\n"
 )
 
 APUS_DATA = (
-    "MANO DE OBRA INSTALACION TEJA SENCILLA CUADRILLA DE 5;;;;;ITEM:   1,3\n"
-    "MANO DE OBRA;;;;;\n"
+    # APU 1,1
+    "REMATE CON PINTURA DE FABRICA CAL 22 DE 120 CMTS CURVO;;;;;\n"
+    ";;;;;ITEM:   1,1\n"
+    "MATERIALES\n"
+    "Tornillo de Acero;UND;10,0;;10,50;105,00\n"
+    "MANO DE OBRA\n"
+    "M.O. CORTE Y DOBLEZ;UND;2,5;;20,00;50,00\n"
+    "\n"
+    # APU 1,2
+    "ACABADOS FINALES;;;;;\n"
+    ";;;;;ITEM:   1,2\n"
+    "MATERIALES\n"
+    "Pintura Anticorrosiva;GL;5,0;;5,00;25,00\n"
+    "MANO DE OBRA\n"
+    "M.O. Mano de Obra Especializada;HR;10,0;;20,00;200,00\n"
+    "\n"
+    # APU para el Estimador
+    "MANO DE OBRA INSTALACION TEJA SENCILLA CUADRILLA DE 5;;;;;\n"
+    ";;;;;ITEM:   1,3\n"
+    "MANO DE OBRA\n"
     "Ayudante;HR;8;;10000;80000\n"
-    "REMATE CON PINTURA;;;;;ITEM:   1,1\n"
-    "MATERIALES;;;;;\n"
-    "Tornillo de Acero;UND; 10,0;;10,50;105,00\n"
-    "MANO DE OBRA;;;;;\n"
-    "Mano de Obra Especializada;HR; 2,5;;20,00;50,00\n"
-    ";;;;\n"
-    "REMATE DE ACERO;;;;;ITEM:   1,2\n"
-    "MATERIALES;;;;;\n"
-    "Pintura Anticorrosiva;GL; 5,0;;5,00;25,00\n"
-    "MANO DE OBRA;;;;;\n"
-    "Mano de Obra Especializada;HR; 10,0;;20,00;200,00\n"
 )
+
 
 INSUMOS_DATA = (
     "  G1  ;MATERIALES;;;;;\n"
@@ -81,25 +89,27 @@ TEST_CONFIG = {
     },
 }
 
-APUS_DATA_COMMA = """"MANO DE OBRA INSTALACION TEJA SENCILLA CUADRILLA DE 5","","","","","ITEM:   1,3"
-"MANO DE OBRA","","","","",""
-"Ayudante","HR","8","","10000","80000"
-"REMATE CON PINTURA","","","","","ITEM:   1,1"
-"MATERIALES","","","","",""
+APUS_DATA_COMMA = """"REMATE CON PINTURA DE FABRICA CAL 22 DE 120 CMTS CURVO","","","","",""
+"","","","","","ITEM:   1,1"
+"MATERIALES"
 "Tornillo de Acero","UND","10,0","","10,50","105,00"
-"MANO DE OBRA","","","","",""
-"Mano de Obra Especializada","HR","2,5","","20,00","50,00"
-","","","",""
-"REMATE DE ACERO","","","","","ITEM:   1,2"
-"MATERIALES","","","","",""
+"MANO DE OBRA"
+"M.O. CORTE Y DOBLEZ","UND","2,5","","20,00","50,00"
+"ACABADOS FINALES","","","","",""
+"","","","","","ITEM:   1,2"
+"MATERIALES"
 "Pintura Anticorrosiva","GL","5,0","","5,00","25,00"
-"MANO DE OBRA","","","","",""
-"Mano de Obra Especializada","HR","10,0","","20,00","200,00"
+"MANO DE OBRA"
+"M.O. Mano de Obra Especializada","HR","10,0","","20,00","200,00"
+"MANO DE OBRA INSTALACION TEJA SENCILLA CUADRILLA DE 5","","","","",""
+"","","","","","ITEM:   1,3"
+"MANO DE OBRA"
+"Ayudante","HR","8","","10000","80000"
 """
 
 PRESUPUESTO_DATA_COMMA = """"ITEM","DESCRIPCION","UND","CANT.","VR. UNIT","VR.TOTAL"
-"1,1","Montaje de Estructura","ML","10","155,00","1550"
-"1,2","Acabados Finales","M2","20","225,00","4500"
+"1,1","REMATE CON PINTURA DE FABRICA CAL 22 DE 120 CMTS CURVO","ML","10","155,00","1550"
+"1,2","ACABADOS FINALES","M2","20","225,00","4500"
 "1,3","MANO DE OBRA INSTALACION TEJA SENCILLA CUADRILLA DE 5","M2","1","80000","80000"
 "1,4","APU con Corte y Doblez","UN","1","15000","15000"
 """
