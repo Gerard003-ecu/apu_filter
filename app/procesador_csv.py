@@ -325,24 +325,40 @@ def process_apus_csv_v2(path: str) -> pd.DataFrame:
     potential_apu_desc = ""
 
     def to_numeric_safe(s):
-        if isinstance(s, (int, float)): return s
+        if isinstance(s, (int, float)):
+            return s
         if isinstance(s, str):
-            s_cleaned = re.sub(r'[^\d,\.]', '', s).replace(",", ".").strip()
+            s_cleaned = re.sub(r"[^\d,\.]", "", s).replace(",", ".").strip()
             return pd.to_numeric(s_cleaned, errors="coerce")
         return pd.NA
 
     def parse_data_line(parts, context):
         description = parts[0].strip()
-        valor_total = next((to_numeric_safe(p) for p in reversed(parts) if pd.notna(to_numeric_safe(p))), 0.0)
+        valor_total = next(
+            (to_numeric_safe(p) for p in reversed(parts) if pd.notna(to_numeric_safe(p))),
+            0.0,
+        )
         cantidad = to_numeric_safe(parts[2]) if len(parts) > 2 else 0.0
         precio_unit = to_numeric_safe(parts[4]) if len(parts) > 4 else 0.0
-        if (pd.isna(precio_unit) or precio_unit == 0) and valor_total > 0 and pd.notna(cantidad) and cantidad > 0:
+        if (
+            (pd.isna(precio_unit) or precio_unit == 0)
+            and valor_total > 0
+            and pd.notna(cantidad)
+            and cantidad > 0
+        ):
             precio_unit = valor_total / cantidad
-        if (pd.isna(valor_total) or valor_total == 0) and pd.notna(cantidad) and cantidad > 0 and pd.notna(precio_unit):
+        if (
+            (pd.isna(valor_total) or valor_total == 0)
+            and pd.notna(cantidad)
+            and cantidad > 0
+            and pd.notna(precio_unit)
+        ):
             valor_total = cantidad * precio_unit
         return {
-            "CODIGO_APU": context["apu_code"], "DESCRIPCION_APU": context["apu_desc"],
-            "DESCRIPCION_INSUMO": description, "UNIDAD": parts[1] if len(parts) > 1 else "UND",
+            "CODIGO_APU": context["apu_code"],
+            "DESCRIPCION_APU": context["apu_desc"],
+            "DESCRIPCION_INSUMO": description,
+            "UNIDAD": parts[1] if len(parts) > 1 else "UND",
             "CANTIDAD_APU": cantidad if pd.notna(cantidad) else 0,
             "PRECIO_UNIT_APU": precio_unit if pd.notna(precio_unit) else 0,
             "VALOR_TOTAL_APU": valor_total if pd.notna(valor_total) else 0,
@@ -354,7 +370,8 @@ def process_apus_csv_v2(path: str) -> pd.DataFrame:
         with open(path, "r", encoding="latin1") as f:
             for line in f:
                 line = line.strip()
-                if not line: continue
+                if not line:
+                    continue
 
                 # --- LÓGICA DE PARSING REESTRUCTURADA ---
 
@@ -365,13 +382,14 @@ def process_apus_csv_v2(path: str) -> pd.DataFrame:
                         current_context["apu_code"] = match.group(1).strip()
                         current_context["apu_desc"] = potential_apu_desc
                         current_context["category"] = "INDEFINIDO"
-                        potential_apu_desc = "" # Reiniciar
+                        potential_apu_desc = ""  # Reiniciar
                     continue
 
                 # Usar csv.reader para manejar comillas
                 parts = next(csv.reader([line], delimiter=delimiter, quotechar='"'))
                 parts = [p.strip() for p in parts]
-                if not any(parts): continue
+                if not any(parts):
+                    continue
 
                 # Prioridad 2: Líneas de Categoría
                 line_content_for_check = "".join(parts).upper()
@@ -380,15 +398,21 @@ def process_apus_csv_v2(path: str) -> pd.DataFrame:
                     continue
 
                 # Prioridad 3: Líneas de Datos (Insumo)
-                # Condición: Debe tener un contexto de APU y la tercera columna debe ser numérica
-                if current_context["apu_code"] and len(parts) > 2 and pd.notna(to_numeric_safe(parts[2])):
+                # Condición: Debe tener un contexto de APU y la
+                # tercera columna debe ser numérica
+                if (
+                    current_context["apu_code"]
+                    and len(parts) > 2
+                    and pd.notna(to_numeric_safe(parts[2]))
+                ):
                     # Si la primera columna está vacía, es un offset
                     if not parts[0] and len(parts) > 1:
                         data_row = parse_data_line(parts[1:], current_context)
                     else:
                         data_row = parse_data_line(parts, current_context)
 
-                    if data_row: apus_data.append(data_row)
+                    if data_row:
+                        apus_data.append(data_row)
                     continue
 
                 # Prioridad 4: Si no es nada de lo anterior, es una posible descripción
