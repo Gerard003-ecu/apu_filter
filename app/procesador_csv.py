@@ -316,8 +316,9 @@ def get_file_hash(path: str) -> str:
 
 def process_apus_csv_v2(path: str) -> pd.DataFrame:
     """
-    Parsea un archivo de APUs de SAGUT de forma flexible,
-    detectando columnas dinámicamente en lugar de posiciones fijas.
+    Parsea un archivo de APUs con formato de reporte de texto utilizando una
+    máquina de estados y posiciones de columna fijas para máxima robustez.
+    VERSIÓN FINAL Y SIMPLIFICADA.
     """
     apus_data = []
     current_context = {"apu_code": None, "apu_desc": None, "category": "INDEFINIDO"}
@@ -325,8 +326,7 @@ def process_apus_csv_v2(path: str) -> pd.DataFrame:
     potential_apu_desc = ""
 
     def to_numeric_safe(s):
-        if isinstance(s, (int, float)):
-            return s
+        if isinstance(s, (int, float)): return s
         if isinstance(s, str):
             s_cleaned = s.replace(".", "").replace(",", ".").strip()
             return pd.to_numeric(s_cleaned, errors="coerce")
@@ -336,80 +336,61 @@ def process_apus_csv_v2(path: str) -> pd.DataFrame:
         delimiter = detect_delimiter(path)
         with open(path, "r", encoding="latin1") as f:
             reader = csv.reader(f, delimiter=delimiter, quotechar='"')
-            header_map = {}
             for parts in reader:
                 parts = [p.strip() for p in parts]
-                line_str = " ".join(parts).upper()
-                if not line_str:
+                line_str = "".join(parts)
+                if not line_str: continue
+
+                # Prioridad 1: Línea de ITEM
+                if "ITEM:" in line_str.upper():
+                    for part in parts:
+                        match = re.search(r"ITEM:\s*([\d,\.]*)", part.upper())
+                        if match and match.group(1).strip():
+                            current_context["apu_code"] = match.group(1).strip().rstrip(".,")
+                            current_context["apu_desc"] = potential_apu_desc
+                            current_context["category"] = "INDEFINIDO"
+                            potential_apu_desc = ""
+                            break
                     continue
 
-                # Detectar ITEM
-                if "ITEM:" in line_str:
-                    match = re.search(r"ITEM:\s*([\d,\.]*)", line_str)
-                    if match and match.group(1).strip():
-                        current_context["apu_code"] = match.group(1).strip().rstrip(".,")
-                        current_context["apu_desc"] = potential_apu_desc
-                        current_context["category"] = "INDEFINIDO"
-                        potential_apu_desc = ""
+                # Prioridad 2: Línea de Categoría
+                if len(parts) < 4 and line_str.upper() in category_keywords:
+                    current_context["category"] = category_keywords[line_str.upper()]
                     continue
 
-                # Detectar categoría
-                if line_str in category_keywords:
-                    current_context["category"] = category_keywords[line_str]
-                    continue
+                # Prioridad 3: Línea de Datos (Insumo)
+                # Condición: tiene un código de APU, al menos 6 columnas y una descripción
+                if current_context["apu_code"] and len(parts) >= 6 and parts[0]:
+                    if "SUBTOTAL" not in parts[0].upper() and "DESCRIPCION" not in parts[0].upper():
+                        description = parts[0]
+                        cantidad = to_numeric_safe(parts[2])
+                        precio_unit = to_numeric_safe(parts[4])
+                        valor_total = to_numeric_safe(parts[5])
 
-                # Detectar encabezado SAGUT (dinámico)
-                if "DESCRIPCION" in line_str and "CANTIDAD" in line_str:
-                    header_map = {col.upper(): idx for idx, col in enumerate(parts)}
-                    continue
+                        if pd.notna(cantidad) and pd.notna(precio_unit) and pd.isna(valor_total):
+                            valor_total = cantidad * precio_unit
 
-                # Filas de datos (cuando hay encabezado y código APU)
-                if current_context["apu_code"] and header_map and len(parts) >= 3:
-                    desc_idx = header_map.get("DESCRIPCION", 0)
-                    cant_idx = header_map.get("CANTIDAD", 2)
-                    prec_idx = next((i for k, i in header_map.items() if "UNIT" in k), None)
-                    tot_idx = next((i for k, i in header_map.items() if "TOTAL" in k), None)
-
-                    description = parts[desc_idx]
-                    cantidad = (
-                        to_numeric_safe(parts[cant_idx]) if cant_idx < len(parts) else 0
-                    )
-                    precio_unit = (
-                        to_numeric_safe(parts[prec_idx])
-                        if prec_idx and prec_idx < len(parts)
-                        else 0
-                    )
-                    valor_total = (
-                        to_numeric_safe(parts[tot_idx])
-                        if tot_idx and tot_idx < len(parts)
-                        else cantidad * precio_unit
-                    )
-
-                    if description:
-                        apus_data.append(
-                            {
-                                "CODIGO_APU": current_context["apu_code"],
-                                "DESCRIPCION_APU": current_context["apu_desc"],
-                                "DESCRIPCION_INSUMO": description,
-                                "UNIDAD": parts[1] if len(parts) > 1 else "",
-                                "CANTIDAD_APU": cantidad or 0,
-                                "PRECIO_UNIT_APU": precio_unit or 0,
-                                "VALOR_TOTAL_APU": valor_total or 0,
+                        if pd.notna(valor_total):
+                            apus_data.append({
+                                "CODIGO_APU": current_context["apu_code"], "DESCRIPCION_APU": current_context["apu_desc"],
+                                "DESCRIPCION_INSUMO": description, "UNIDAD": parts[1],
+                                "CANTIDAD_APU": cantidad if pd.notna(cantidad) else 0,
+                                "PRECIO_UNIT_APU": precio_unit if pd.notna(precio_unit) else 0,
+                                "VALOR_TOTAL_APU": valor_total if pd.notna(valor_total) else 0,
                                 "CATEGORIA": current_context["category"],
-                            }
-                        )
+                            })
                     continue
 
-                # Si no es dato → acumular posible descripción
+                # Prioridad 4: Línea de Descripción
                 if parts and parts[0]:
                     potential_apu_desc = parts[0]
 
     except Exception as e:
-        logger.error(f"Error procesando apus.csv: {e}", exc_info=True)
+        logger.error(f"Error fatal procesando APUs en {path}: {e}", exc_info=True)
         return pd.DataFrame()
 
     if not apus_data:
-        logger.warning(f"No se extrajeron APUs de {path}")
+        logger.warning(f"No se extrajeron datos de APU de {path}")
         return pd.DataFrame()
 
     df = pd.DataFrame(apus_data)
