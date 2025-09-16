@@ -392,7 +392,11 @@ def process_apus_csv_v2(path: str) -> pd.DataFrame:
                         # Extraer código de APU
                         match = re.search(r"ITEM:\s*([\d,\.]*)", line.upper())
                         if match:
-                            current_context["apu_code"] = match.group(1).strip()
+                            apu_code = match.group(1).strip()
+                            if not apu_code:  # Si el código está vacío, ignorar la línea
+                                continue
+
+                            current_context["apu_code"] = apu_code
                             # La descripción puede estar en la misma línea o en la anterior
                             desc_on_same_line = re.sub(
                                 r"ITEM:\s*([\d,\.]*)", "", line, flags=re.IGNORECASE
