@@ -1,6 +1,7 @@
 import hashlib
 import json
 import logging
+import csv
 import os
 import re
 from functools import lru_cache
@@ -16,17 +17,38 @@ logger = logging.getLogger(__name__)
 
 
 def safe_read_csv(path: str, **kwargs) -> Optional[pd.DataFrame]:
-    """Lee un CSV de forma segura con múltiples intentos y codificaciones."""
+    """
+    Lee un CSV de forma segura intentando con varias codificaciones y delimitadores.
+    Prueba primero con punto y coma (;) y luego con coma (,).
+    """
     encodings = ["latin1", "utf-8", "iso-8859-1", "windows-1252"]
-    for encoding in encodings:
-        try:
-            return pd.read_csv(path, encoding=encoding, **kwargs)
-        except UnicodeDecodeError:
-            continue
-        except Exception as e:
-            logger.warning(f"Error leyendo {path} con encoding {encoding}: {e}")
+    delimiters = [";", ","]  # Lista de delimitadores a probar
 
-    logger.error(f"No se pudo leer {path} con ningún encoding conocido")
+    for encoding in encodings:
+        for delimiter in delimiters:
+            try:
+                df = pd.read_csv(
+                    path,
+                    encoding=encoding,
+                    delimiter=delimiter,
+                    quotechar='"',
+                    skipinitialspace=True,
+                )
+                # Heurística: si solo hay una columna, el delimitador probablemente sea incorrecto.
+                if df.shape[1] > 1:
+                    logger.info(
+                        f"Éxito al leer {path} con encoding '{encoding}' y delimitador '{delimiter}'"
+                    )
+                    return df
+            except (pd.errors.ParserError, UnicodeDecodeError):
+                continue
+            except Exception as e:
+                logger.warning(
+                    f"Error inesperado leyendo {path} con encoding {encoding} y delimitador '{delimiter}': {e}"
+                )
+                continue
+
+    logger.error(f"No se pudo leer {path} con ninguna combinación de encoding/delimitador.")
     return None
 
 
@@ -108,7 +130,7 @@ config = load_config()
 
 def process_presupuesto_csv(path: str) -> pd.DataFrame:
     """Lee y limpia el archivo presupuesto.csv de forma robusta."""
-    df = safe_read_csv(path, delimiter=";", skipinitialspace=True)
+    df = safe_read_csv(path)
     if df is None:
         return pd.DataFrame()
 
@@ -215,7 +237,10 @@ def get_file_hash(path: str) -> str:
 
 
 def process_apus_csv_v2(path: str) -> pd.DataFrame:
-    """Versión final y robusta del parser de APUs."""
+    """
+    Versión final y robusta del parser de APUs, que detecta automáticamente
+    el delimitador (',' o ';').
+    """
     apus_data = []
     current_context = {"apu_code": None, "apu_desc": None, "category": "INDEFINIDO"}
     category_keywords = config.get("category_keywords", {})
@@ -298,13 +323,19 @@ def process_apus_csv_v2(path: str) -> pd.DataFrame:
         with open(path, "r", encoding="latin1") as f:
             lines = f.readlines()
 
+        # Detección de delimitador
+        sample = "".join(lines[:50])
+        delimiter = "," if sample.count('"') > 20 and sample.count(',') > sample.count(';') else ";"
+        logger.info(f"Detectado el delimitador '{delimiter}' para el archivo {path}")
+
         last_non_empty_line = ""
         for line in lines:
             line = line.strip()
             if not line:
                 continue
 
-            clean_line_upper = line.replace(";", "").strip().upper()
+            # La lógica para categorías y 'ITEM:' debe manejar ambos delimitadores
+            clean_line_upper = line.replace(";", "").replace(",", "").replace('"', "").strip().upper()
             if clean_line_upper in category_keywords:
                 current_context["category"] = category_keywords[clean_line_upper]
                 continue
@@ -313,21 +344,47 @@ def process_apus_csv_v2(path: str) -> pd.DataFrame:
                 match = re.search(r"ITEM:\s*([\d,\.]*)", line.upper())
                 if match:
                     current_context["apu_code"] = match.group(1).strip()
-                    desc_on_same_line = line.split(";")[0].strip()
-                    if desc_on_same_line and not desc_on_same_line.upper().startswith(
-                        "REMATE"
-                    ):
+                    desc_on_same_line = ""
+                    if delimiter == ",":
+                        try:
+                            desc_on_same_line = next(csv.reader([line], delimiter=',', quotechar='"'))[0].strip()
+                        except (csv.Error, StopIteration, IndexError):
+                            pass # Ignorar errores de parsing en esta línea
+                    else:
+                        desc_on_same_line = line.split(';')[0].strip()
+
+                    if desc_on_same_line and not desc_on_same_line.upper().startswith("REMATE"):
                         current_context["apu_desc"] = desc_on_same_line
                     else:
-                        current_context["apu_desc"] = last_non_empty_line.split(";")[
-                            0
-                        ].strip()
+                        last_desc = ""
+                        if last_non_empty_line:
+                            if delimiter == ",":
+                                try:
+                                    last_parts = next(csv.reader([last_non_empty_line], delimiter=',', quotechar='"'))
+                                    if last_parts:
+                                        last_desc = last_parts[0].strip()
+                                except (csv.Error, StopIteration, IndexError):
+                                    pass
+                            else:
+                                last_desc = last_non_empty_line.split(';')[0].strip()
+                        current_context["apu_desc"] = last_desc
                 continue
 
             last_non_empty_line = line
 
-            if current_context["apu_code"] and ";" in line:
-                parts = [p.strip() for p in line.split(";")]
+            if current_context["apu_code"]:
+                parts = []
+                try:
+                    if delimiter == ",":
+                        if '"' in line:
+                            reader = csv.reader([line], delimiter=delimiter, quotechar='"', skipinitialspace=True)
+                            parts = [p.strip() for p in next(reader)]
+                    else:
+                        if ";" in line:
+                            parts = [p.strip() for p in line.split(";")]
+                except (csv.Error, StopIteration):
+                    continue
+
                 if len(parts) >= 2 and parts[0] and "SUBTOTAL" not in parts[0].upper():
                     data_row = parse_data_line(parts, current_context)
                     if data_row:
@@ -340,7 +397,7 @@ def process_apus_csv_v2(path: str) -> pd.DataFrame:
         df["NORMALIZED_DESC"] = normalize_text(df["DESCRIPCION_INSUMO"])
         return df
     except Exception as e:
-        logger.error(f"Error procesando apus.csv con v2: {e}")
+        logger.error(f"Error procesando apus.csv con v2: {e}", exc_info=True)
         return pd.DataFrame()
 
 
