@@ -431,7 +431,8 @@ def process_apus_csv_v2(path: str) -> pd.DataFrame:
                     and "COSTO DIRECTO" not in line.upper()
                 )
                 if is_data_line:
-                    # Si la primera columna está vacía, es un offset. Pasamos la lista a partir del segundo elemento.
+                    # Si la primera columna está vacía, es un offset.
+                    # Pasamos la lista a partir del segundo elemento.
                     if not parts[0] and len(parts) > 1:
                         data_row = parse_data_line(parts[1:], current_context)
                     else:
