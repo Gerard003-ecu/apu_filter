@@ -344,6 +344,10 @@ def process_apus_csv_v2(path: str) -> pd.DataFrame:
         return pd.NA
 
     def parse_data_line(parts, context):
+        """
+        Parsea una línea de datos de insumo, manejando valores
+        no numéricos para cantidad y precio, que se convierten en 0.
+        """
         description = parts[0].strip()
         valor_total = next(
             (to_numeric_safe(p) for p in reversed(parts) if pd.notna(to_numeric_safe(p))),
@@ -415,10 +419,14 @@ def process_apus_csv_v2(path: str) -> pd.DataFrame:
                     continue
 
                 # Prioridad 3: Identificar línea de DATOS
+                # Una línea de datos debe tener al menos 2 columnas con contenido.
                 is_data_line = (
                     current_context["apu_code"] is not None
-                    and len(parts) > 2
-                    and pd.notna(to_numeric_safe(parts[2]))
+                    and len(parts) >= 3
+                    and parts[0]
+                    and sum(1 for p in parts if p.strip()) > 1
+                    and "SUBTOTAL" not in parts[0].upper()
+                    and "COSTO DIRECTO" not in parts[0].upper()
                 )
                 if is_data_line:
                     # Si la primera columna está vacía, es un offset y hay que desfasar
