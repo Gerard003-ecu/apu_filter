@@ -20,7 +20,7 @@ from app.procesador_csv import (
     normalize_text,
     process_all_files,
     process_insumos_csv,
-    safe_read_csv,
+    safe_read_dataframe,
 )
 
 # ======================================================================
@@ -107,11 +107,11 @@ PRESUPUESTO_DATA_COMMA = """"ITEM","DESCRIPCION","UND","CANT.","VR. UNIT","VR.TO
 INSUMOS_DATA_COMMA = (
     '"G1","MATERIALES"\n'
     '"CODIGO","DESCRIPCION","UND","CANT.","VR. UNIT."\n'
-    '"INS-001","Tornillo de Acero","UND","","10,50"\n'
-    '"INS-003","pintura anticorrosiva","GL","","5,00"\n'
+    '"INS-001","Tornillo de Acero","UND","","10.50"\n'
+    '"INS-003","pintura anticorrosiva","GL","","5.00"\n'
     '"G2","MANO DE OBRA"\n'
     '"CODIGO","DESCRIPCION","UND","CANT.","VR. UNIT."\n'
-    '"INS-002","Mano de Obra Especializada","HR","","20,00"\n'
+    '"INS-002","Mano de Obra Especializada","HR","","20.00"\n'
 )
 
 
@@ -124,14 +124,25 @@ class TestIndividualFunctions(unittest.TestCase):
     """Pruebas para funciones de utilidad individuales."""
 
     # ... (esta clase no necesita cambios)
-    def test_safe_read_csv(self):
-        self.assertIsNone(safe_read_csv("non_existent_file.csv"))
+    def test_safe_read_dataframe(self):
+        # Prueba con archivo inexistente
+        self.assertIsNone(safe_read_dataframe("non_existent_file.csv"))
+
+        # Prueba con CSV
         with open("test_encoding.csv", "w", encoding="latin1") as f:
             f.write("col1;col2\né;ñ")
-        df = safe_read_csv("test_encoding.csv", delimiter=";")
-        self.assertIsNotNone(df)
-        self.assertEqual(df.shape, (1, 2))
+        df_csv = safe_read_dataframe("test_encoding.csv")
+        self.assertIsNotNone(df_csv)
+        self.assertEqual(df_csv.shape, (1, 2))
         os.remove("test_encoding.csv")
+
+        # Prueba con XLSX
+        df_to_excel = pd.DataFrame({"col1": ["é"], "col2": ["ñ"]})
+        df_to_excel.to_excel("test.xlsx", index=False)
+        df_xlsx = safe_read_dataframe("test.xlsx")
+        self.assertIsNotNone(df_xlsx)
+        self.assertEqual(df_xlsx.shape, (1, 2))
+        os.remove("test.xlsx")
 
     def test_normalize_text(self):
         s = pd.Series(["  Texto CON Acentos y Ñ  ", "  Múltiples   espacios  "])

@@ -20,60 +20,90 @@ def detect_delimiter(file_path: str) -> str:
     """
     Detecta el delimitador (',' o ';') de un archivo CSV usando csv.Sniffer.
     """
-    with open(file_path, "r", encoding="latin1") as f:
-        try:
-            # Leer una muestra del archivo para que el sniffer trabaje
+    try:
+        with open(file_path, "r", encoding="latin1") as f:
             sample = f.read(2048)
             sniffer = csv.Sniffer()
-            # sniff en una muestra de las primeras lineas
             dialect = sniffer.sniff(sample, delimiters=";,")
             return dialect.delimiter
-        except csv.Error:
-            # Si falla, asumimos punto y coma como fallback robusto
-            logger.warning(
-                f"csv.Sniffer no pudo detectar el delimitador en {file_path}. "
-                f"Asumiendo ';'."
-            )
-            return ";"
+    except (csv.Error, FileNotFoundError):
+        # Fallback a ; si el sniffer falla o el archivo no existe
+        return ";"
 
 
-def safe_read_csv(path: str, **kwargs) -> Optional[pd.DataFrame]:
+def safe_read_dataframe(path: str, **kwargs) -> Optional[pd.DataFrame]:
     """
-    Lee un CSV de forma segura intentando con varias codificaciones y delimitadores.
-    Prueba primero con punto y coma (;) y luego con coma (,).
+    Lee un archivo de datos (CSV o Excel) de forma segura y eficiente.
+    - Para CSV, prueba explícitamente diferentes delimitadores y codificaciones.
+    - Para Excel, usa openpyxl.
+    - Convierte los tipos de datos a formatos eficientes con PyArrow.
     """
-    encodings = ["latin1", "utf-8", "iso-8859-1", "windows-1252"]
-    delimiters = [";", ","]  # Lista de delimitadores a probar
+    file_extension = os.path.splitext(path)[1].lower()
+    df = None
 
-    for encoding in encodings:
+    if file_extension == ".csv":
+        encodings = ["latin1", "utf-8", "iso-8859-1", "windows-1252"]
+        delimiters = [";", ","]
+
         for delimiter in delimiters:
-            try:
-                df = pd.read_csv(
-                    path,
-                    encoding=encoding,
-                    delimiter=delimiter,
-                    quotechar='"',
-                    skipinitialspace=True,
-                )
-                # Heurística: si solo hay una columna,
-                # el delimitador probablemente sea incorrecto.
-                if df.shape[1] > 1:
-                    logger.info(
-                        f"Éxito al leer {path} con"
-                        f"encoding '{encoding}' y delimitador '{delimiter}'"
-                    )
-                    return df
-            except (pd.errors.ParserError, UnicodeDecodeError):
-                continue
-            except Exception as e:
-                logger.warning(
-                    f"Error inesperado leyendo"
-                    f"{path} con encoding {encoding} y delimitador '{delimiter}': {e}"
-                )
-                continue
+            for encoding in encodings:
+                try:
+                    # Usar un manejador de contexto para asegurar que el archivo se cierre
+                    with open(path, "r", encoding=encoding) as f:
+                        # Pasamos el objeto de archivo a pandas, no la ruta
+                        # Si se especifica explícitamente que no hay cabecera,
+                        # debemos manejar CSVs "irregulares" proporcionando
+                        # nombres de columna para evitar que pandas infiera
+                        # el número de columnas de la primera fila.
+                        kwargs_for_csv = kwargs.copy()
+                        if kwargs_for_csv.get("header") is None and "header" in kwargs_for_csv:
+                            kwargs_for_csv["names"] = range(50)
 
-    logger.error(f"No se pudo leer {path} con ninguna combinación de encoding/delimitador.")
-    return None
+                        temp_df = pd.read_csv(
+                            f,
+                            encoding=encoding,
+                            delimiter=delimiter,
+                            decimal=".",
+                            on_bad_lines="warn",
+                            **kwargs_for_csv,
+                        )
+
+                        # Si el DataFrame tiene más de una columna, asumimos que el delimitador es correcto
+                        if temp_df.shape[1] > 1:
+                            logger.info(
+                                f"Éxito al leer {os.path.basename(path)} con encoding '{encoding}' y delimitador '{delimiter}'"
+                            )
+                            df = temp_df
+                            break  # Salir del bucle de encoding
+                except Exception:
+                    # Continuar al siguiente intento si hay cualquier error
+                    continue
+            if df is not None:
+                break  # Salir del bucle de delimiter
+
+    elif file_extension == ".xlsx":
+        try:
+            df = pd.read_excel(path, engine="openpyxl", **kwargs)
+            logger.info(f"Éxito al leer Excel {path}")
+        except Exception as e:
+            logger.error(f"Error fatal al leer el archivo Excel {path}: {e}", exc_info=True)
+            return None
+    else:
+        logger.error(f"Formato de archivo no soportado para {path}")
+        return None
+
+    if df is None:
+        logger.error(f"No se pudo leer {os.path.basename(path)} con ninguna combinación.")
+        return None
+
+    try:
+        # Optimización con PyArrow
+        df = df.convert_dtypes(dtype_backend="pyarrow")
+        logger.info(f"Tipos de datos optimizados con PyArrow para {path}")
+    except Exception as e:
+        logger.warning(f"No se pudo convertir los tipos a PyArrow para {path}: {e}")
+
+    return df
 
 
 def normalize_text(series, remove_accents=True, remove_special_chars=True):
@@ -153,8 +183,8 @@ config = load_config()
 
 
 def process_presupuesto_csv(path: str) -> pd.DataFrame:
-    """Lee y limpia el archivo presupuesto.csv de forma robusta."""
-    df = safe_read_csv(path)
+    """Lee y limpia el archivo presupuesto (CSV o Excel) de forma robusta."""
+    df = safe_read_dataframe(path)
     if df is None:
         return pd.DataFrame()
 
@@ -168,10 +198,9 @@ def process_presupuesto_csv(path: str) -> pd.DataFrame:
 
         df["CODIGO_APU"] = df["CODIGO_APU"].astype(str).str.strip()
         df = df[df["CODIGO_APU"].str.contains(r",", na=False)]
-        df["CANTIDAD_PRESUPUESTO"] = pd.to_numeric(
-            df["CANTIDAD_PRESUPUESTO"].astype(str).str.replace(",", ".", regex=False),
-            errors="coerce",
-        )
+        # Limpiar y convertir la columna de cantidad
+        cantidad_str = df["CANTIDAD_PRESUPUESTO"].astype(str).str.replace(",", ".", regex=False)
+        df["CANTIDAD_PRESUPUESTO"] = pd.to_numeric(cantidad_str, errors="coerce")
 
         return df[["CODIGO_APU", "DESCRIPCION_APU", "CANTIDAD_PRESUPUESTO"]]
     except Exception as e:
@@ -182,91 +211,81 @@ def process_presupuesto_csv(path: str) -> pd.DataFrame:
 def process_insumos_csv(path: str) -> pd.DataFrame:
     """
     Lee y limpia el archivo insumos.csv, manejando correctamente los grupos
-    mediante una lectura manual línea por línea y detectando el delimitador.
+    y los delimitadores inconsistentes mediante una lectura manual línea por línea.
     """
     data_rows = []
     current_group = "INDEFINIDO"
-    header_found = False
     header_columns = []
-    desc_index = -1
-    vr_unit_index = -1
+    desc_index, vr_unit_index = -1, -1
 
     try:
+        # Primero, detectar el delimitador
         delimiter = detect_delimiter(path)
-        logger.info(f"Detectado el delimitador '{delimiter}' para el archivo {path}")
+        if not delimiter:
+            return pd.DataFrame()
 
         with open(path, "r", encoding="latin1") as f:
-            reader = csv.reader(f, delimiter=delimiter, quotechar='"', skipinitialspace=True)
-            for parts in reader:
-                if not parts or not any(p.strip() for p in parts):
+            # Usar csv.reader para manejar correctamente los campos entre comillas
+            reader = csv.reader(f, delimiter=delimiter, quotechar='"')
+            for raw_parts in reader:
+                if not raw_parts or not any(p.strip() for p in raw_parts):
                     continue
 
-                parts = [p.strip() for p in parts]
+                parts = [p.strip() for p in raw_parts]
+                line_for_check = "".join(parts)
 
-                # Detección de línea de grupo (ej: G1;MATERIALES)
+                # Detectar y actualizar el grupo actual
                 if len(parts) > 1 and parts[0].upper().startswith("G") and parts[1]:
                     current_group = parts[1]
                     continue
 
-                # Detección del encabezado
-                temp_header = [p.upper() for p in parts]
-                if "CODIGO" in temp_header and "DESCRIPCION" in temp_header:
-                    header_found = True
-                    header_columns = parts
+                # Identificar y capturar la línea de encabezado
+                if "CODIGO" in line_for_check.upper() and "DESCRIPCION" in line_for_check.upper():
+                    header_columns = [p.upper() for p in parts]
                     desc_index = next(
-                        (
-                            i
-                            for i, col in enumerate(header_columns)
-                            if "DESCRIPCION" in col.upper()
-                        ),
-                        -1,
+                        (i for i, col in enumerate(header_columns) if "DESCRIPCION" in col), -1
                     )
                     vr_unit_index = next(
-                        (
-                            i
-                            for i, col in enumerate(header_columns)
-                            if "VR. UNIT" in col.upper()
-                        ),
-                        -1,
+                        (i for i, col in enumerate(header_columns) if "VR. UNIT" in col), -1
                     )
                     continue
 
-                # Procesamiento de líneas de datos
-                if header_found and desc_index != -1 and vr_unit_index != -1:
-                    if len(parts) > max(desc_index, vr_unit_index):
-                        description = parts[desc_index]
-                        vr_unit_str = parts[vr_unit_index]
-                        if description and vr_unit_str:
-                            data_rows.append(
-                                {
-                                    "DESCRIPCION_INSUMO": description,
-                                    "VR_UNITARIO_INSUMO": vr_unit_str,
-                                    "GRUPO_INSUMO": current_group,
-                                }
-                            )
+                # Procesar líneas de datos solo si hemos encontrado el encabezado
+                if (
+                    desc_index != -1
+                    and vr_unit_index != -1
+                    and len(parts) > max(desc_index, vr_unit_index)
+                ):
+                    description = parts[desc_index]
+                    vr_unit_str = parts[vr_unit_index]
+
+                    if description and vr_unit_str:
+                        data_rows.append(
+                            {
+                                "DESCRIPCION_INSUMO": description,
+                                "VR_UNITARIO_INSUMO": vr_unit_str,
+                                "GRUPO_INSUMO": current_group,
+                            }
+                        )
+
         if not data_rows:
+            logger.warning(f"No se extrajeron filas de datos de insumos de {path}")
             return pd.DataFrame()
+
         df = pd.DataFrame(data_rows)
         df["VR_UNITARIO_INSUMO"] = pd.to_numeric(
-            df["VR_UNITARIO_INSUMO"]
-            .astype(str)
-            .str.replace(".", "", regex=False)
-            .str.replace(",", ".", regex=False),
+            df["VR_UNITARIO_INSUMO"].astype(str).str.replace(",", ".", regex=False),
             errors="coerce",
         )
         df.dropna(subset=["DESCRIPCION_INSUMO", "VR_UNITARIO_INSUMO"], inplace=True)
         df["NORMALIZED_DESC"] = normalize_text(df["DESCRIPCION_INSUMO"])
         df = df.drop_duplicates(subset=["NORMALIZED_DESC"], keep="first")
         return df[
-            [
-                "NORMALIZED_DESC",
-                "VR_UNITARIO_INSUMO",
-                "GRUPO_INSUMO",
-                "DESCRIPCION_INSUMO",
-            ]
+            ["NORMALIZED_DESC", "VR_UNITARIO_INSUMO", "GRUPO_INSUMO", "DESCRIPCION_INSUMO"]
         ]
+
     except Exception as e:
-        logger.error(f"Error procesando insumos.csv: {e}")
+        logger.error(f"Error procesando insumos.csv manualmente: {e}")
         return pd.DataFrame()
 
 
@@ -285,8 +304,8 @@ def get_file_hash(path: str) -> str:
 
 def process_apus_csv_v2(path: str) -> pd.DataFrame:
     """
-    Versión final y robusta del parser de APUs, que detecta automáticamente
-    el delimitador (',' o ';').
+    Parsea un archivo de APUs (CSV o Excel) de formato no estructurado,
+    leyendo línea por línea para máxima robustez.
     """
     apus_data = []
     current_context = {"apu_code": None, "apu_desc": None, "category": "INDEFINIDO"}
@@ -296,65 +315,44 @@ def process_apus_csv_v2(path: str) -> pd.DataFrame:
         if isinstance(s, (int, float)):
             return s
         if isinstance(s, str):
-            s = s.replace(".", "").replace(",", ".").strip()
+            s = s.replace(",", ".").strip()
             return pd.to_numeric(s, errors="coerce")
         return pd.NA
 
     def parse_data_line(parts, context):
-        """
-        Parsea una línea de datos de un APU, distinguiendo entre Mano de Obra
-        y otros tipos de insumos.
-        """
+        # ... (la lógica interna de esta función no necesita cambios)
         if not parts or not parts[0]:
             return None
-
         description = parts[0].strip()
-        description_upper = description.upper()
         is_mano_de_obra = any(
-            description_upper.startswith(keyword)
+            description.upper().startswith(keyword)
             for keyword in ["M.O.", "SISO", "INGENIERO"]
         )
-
         unidad = parts[1] if len(parts) > 1 else "UND"
-        cantidad = pd.NA
-        precio_unit = pd.NA
-        valor_total = pd.NA
-
+        cantidad, precio_unit, valor_total = pd.NA, pd.NA, pd.NA
         if is_mano_de_obra:
-            # Lógica específica para Mano de Obra
             valor_total = to_numeric_safe(parts[5]) if len(parts) > 5 else pd.NA
             precio_unit = to_numeric_safe(parts[3]) if len(parts) > 3 else pd.NA
-
             if pd.notna(valor_total) and pd.notna(precio_unit) and precio_unit != 0:
                 cantidad = valor_total / precio_unit
             else:
                 cantidad = to_numeric_safe(parts[2]) if len(parts) > 2 else pd.NA
-
         else:
-            # Lógica existente para Materiales, Equipos, etc.
             cantidad = to_numeric_safe(parts[2]) if len(parts) > 2 else pd.NA
             precio_unit = to_numeric_safe(parts[4]) if len(parts) > 4 else pd.NA
-
-            # Búsqueda robusta del VALOR TOTAL
             if len(parts) > 5:
                 valor_total = to_numeric_safe(parts[5])
-
             if pd.isna(valor_total):
                 for part in reversed(parts):
                     numeric_val = to_numeric_safe(part)
                     if pd.notna(numeric_val) and numeric_val != 0:
                         valor_total = numeric_val
                         break
-
-            # Recalcular PRECIO UNITARIO si es necesario
             if pd.notna(valor_total) and pd.notna(cantidad) and cantidad != 0:
                 if pd.isna(precio_unit) or precio_unit == 0:
                     precio_unit = valor_total / cantidad
-
-            # Calcular VALOR TOTAL si es necesario
             if pd.isna(valor_total) and pd.notna(cantidad) and pd.notna(precio_unit):
                 valor_total = cantidad * precio_unit
-
         return {
             "CODIGO_APU": context["apu_code"],
             "DESCRIPCION_APU": context["apu_desc"],
@@ -368,91 +366,62 @@ def process_apus_csv_v2(path: str) -> pd.DataFrame:
 
     try:
         delimiter = detect_delimiter(path)
-        logger.info(f"Detectado el delimitador '{delimiter}' para el archivo {path}")
+        last_non_empty_line_parts = []
 
         with open(path, "r", encoding="latin1") as f:
-            lines = f.readlines()
-
-        last_non_empty_line = ""
-        for line in lines:
-            line = line.strip()
-            if not line:
-                continue
-
-            # La lógica para categorías y 'ITEM:' debe manejar ambos delimitadores
-            clean_line_upper = (
-                line.replace(";", "").replace(",", "").replace('"', "").strip().upper()
-            )
-            if clean_line_upper in category_keywords:
-                current_context["category"] = category_keywords[clean_line_upper]
-                continue
-
-            if "ITEM:" in line.upper():
-                match = re.search(r"ITEM:\s*([\d,\.]*)", line.upper())
-                if match:
-                    current_context["apu_code"] = match.group(1).strip()
-                    try:
-                        parsed_line = next(
-                            csv.reader([line], delimiter=delimiter, quotechar='"')
-                        )
-                        desc_on_same_line = parsed_line[0].strip()
-                    except (csv.Error, StopIteration, IndexError):
-                        desc_on_same_line = ""
-
-                    if desc_on_same_line and not desc_on_same_line.upper().startswith(
-                        "REMATE"
-                    ):
-                        current_context["apu_desc"] = desc_on_same_line
-                    else:
-                        last_desc = ""
-                        if last_non_empty_line:
-                            try:
-                                last_parts = next(
-                                    csv.reader(
-                                        [last_non_empty_line],
-                                        delimiter=delimiter,
-                                        quotechar='"',
-                                    )
-                                )
-                                if last_parts:
-                                    last_desc = last_parts[0].strip()
-                            except (csv.Error, StopIteration, IndexError):
-                                pass
-                        current_context["apu_desc"] = last_desc
-                continue
-
-            last_non_empty_line = line
-
-            if current_context["apu_code"]:
-                try:
-                    parts = [
-                        p.strip()
-                        for p in next(
-                            csv.reader(
-                                [line],
-                                delimiter=delimiter,
-                                quotechar='"',
-                                skipinitialspace=True,
-                            )
-                        )
-                    ]
-                except (csv.Error, StopIteration):
+            reader = csv.reader(f, delimiter=delimiter, quotechar='"')
+            for raw_parts in reader:
+                parts = [p.strip() for p in raw_parts]
+                if not any(parts):
                     continue
 
-                if len(parts) >= 2 and parts[0] and "SUBTOTAL" not in parts[0].upper():
-                    data_row = parse_data_line(parts, current_context)
-                    if data_row:
-                        apus_data.append(data_row)
+                try:
+                    clean_line_upper = "".join(parts).upper()
+                    if clean_line_upper in category_keywords:
+                        current_context["category"] = category_keywords[clean_line_upper]
+                        continue
 
-        if not apus_data:
-            return pd.DataFrame()
-        df = pd.DataFrame(apus_data)
-        df["CODIGO_APU"] = df["CODIGO_APU"].str.strip()
-        df["NORMALIZED_DESC"] = normalize_text(df["DESCRIPCION_INSUMO"])
-        return df
+                    item_part = next((p for p in parts if "ITEM:" in p.upper()), None)
+                    if item_part:
+                        match = re.search(r"ITEM:\s*([\d,\.]*)", item_part.upper())
+                        if match:
+                            current_context["apu_code"] = match.group(1).strip()
+                            desc_parts = [p for p in parts if "ITEM:" not in p.upper()]
+                            desc_on_same_line = " ".join(desc_parts).strip()
+                            if desc_on_same_line:
+                                current_context["apu_desc"] = desc_on_same_line
+                            else:
+                                current_context["apu_desc"] = " ".join(
+                                    last_non_empty_line_parts
+                                ).strip()
+                        continue
+
+                    if current_context["apu_code"] and "SUBTOTAL" not in parts[0].upper():
+                        data_row = parse_data_line(parts, current_context)
+                        if data_row:
+                            apus_data.append(data_row)
+
+                except (IndexError, ValueError) as e:
+                    logger.warning(
+                        f"Omitiendo línea de APU malformada ({type(e).__name__}): {parts}"
+                    )
+                    continue
+                finally:
+                    # Guardar la última línea no vacía para la descripción del APU
+                    last_non_empty_line_parts = parts
+
     except Exception as e:
-        logger.error(f"Error procesando apus.csv con v2: {e}", exc_info=True)
+        logger.error(f"Error fatal procesando APUs en {path}: {e}", exc_info=True)
         return pd.DataFrame()
+
+    if not apus_data:
+        logger.warning(f"No se extrajeron datos de APU de {path}")
+        return pd.DataFrame()
+
+    df = pd.DataFrame(apus_data)
+    df["CODIGO_APU"] = df["CODIGO_APU"].str.strip()
+    df["NORMALIZED_DESC"] = normalize_text(df["DESCRIPCION_INSUMO"])
+    return df
 
 
 def group_and_split_description(df: pd.DataFrame) -> pd.DataFrame:

@@ -92,8 +92,15 @@ def upload_files():
 
         # Verificar extensiones de archivo
         for name, file in files.items():
-            if not file.filename.lower().endswith(".csv"):
-                return jsonify({"error": f"El archivo {name} debe ser un CSV"}), 400
+            if not file.filename.lower().endswith((".csv", ".xlsx")):
+                return (
+                    jsonify(
+                        {
+                            "error": f"El archivo {name} debe ser un CSV o XLSX"
+                        }
+                    ),
+                    400,
+                )
 
         # Crear directorio de sesión único para el usuario
         if "session_id" not in session:
