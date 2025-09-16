@@ -438,7 +438,8 @@ def process_apus_csv_v2(path: str) -> pd.DataFrame:
                     # Comprobar si es una línea de datos/insumo
                     is_data_line = (
                         len(parts) >= 3
-                        and sum(1 for p in parts if p.strip()) >= 3 # Al menos 3 columnas con datos
+                        and sum(1 for p in parts if p.strip())
+                        >= 3  # Al menos 3 columnas con datos
                         and "SUBTOTAL" not in line_content_for_check
                         and "COSTO DIRECTO" not in line_content_for_check
                         and "DESCRIPCION" not in line_content_for_check
