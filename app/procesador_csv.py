@@ -327,57 +327,34 @@ def get_file_hash(path: str) -> str:
 
 def process_apus_csv_v2(path: str) -> pd.DataFrame:
     """
-    Parsea un archivo de APUs con formato de "reporte de texto" utilizando una
-    lógica de "máquina de estados" por bloques para ser inmune a las
-    inconsistencias del formato.
+    Parsea un archivo de APUs con formato de reporte de texto bien formado,
+    utilizando una máquina de estados para interpretar el contexto. VERSIÓN FINAL.
     """
     apus_data = []
+    current_context = {"apu_code": None, "apu_desc": None, "category": "INDEFINIDO"}
     category_keywords = config.get("category_keywords", {})
+    potential_apu_desc = ""
 
-    def to_numeric_safe(s: str):
-        if isinstance(s, (int, float)):
-            return s
+    def to_numeric_safe(s):
+        if isinstance(s, (int, float)): return s
         if isinstance(s, str):
-            s_cleaned = re.sub(r"[^\d,\.]", "", s).replace(",", ".").strip()
+            s_cleaned = s.replace(".", "").replace(",", ".").strip()
             return pd.to_numeric(s_cleaned, errors="coerce")
         return pd.NA
 
     def parse_data_line(parts, context):
-        """
-        Parsea una línea de datos de insumo, manejando valores
-        no numéricos para cantidad y precio, que se convierten en 0.
-        """
-        description = parts[0].strip()
-        # El valor total es el último valor numérico parseable en la línea
-        valor_total = next(
-            (to_numeric_safe(p) for p in reversed(parts) if pd.notna(to_numeric_safe(p))),
-            0.0,
-        )
-        # Asumir posiciones para cantidad y precio unitario, con fallbacks
-        cantidad = to_numeric_safe(parts[2]) if len(parts) > 2 else 0.0
-        precio_unit = to_numeric_safe(parts[4]) if len(parts) > 4 else 0.0
+        description = parts[0]
+        cantidad = to_numeric_safe(parts[2])
+        precio_unit = to_numeric_safe(parts[4])
+        valor_total = to_numeric_safe(parts[5])
 
-        # Lógica de cálculo cruzado si falta un valor
-        if (
-            (pd.isna(precio_unit) or precio_unit == 0)
-            and valor_total > 0
-            and pd.notna(cantidad)
-            and cantidad > 0
-        ):
-            precio_unit = valor_total / cantidad
-        if (
-            (pd.isna(valor_total) or valor_total == 0)
-            and pd.notna(cantidad)
-            and cantidad > 0
-            and pd.notna(precio_unit)
-        ):
+        # Lógica de consistencia
+        if pd.notna(cantidad) and pd.notna(precio_unit) and pd.isna(valor_total):
             valor_total = cantidad * precio_unit
 
         return {
-            "CODIGO_APU": context["apu_code"],
-            "DESCRIPCION_APU": context["apu_desc"],
-            "DESCRIPCION_INSUMO": description,
-            "UNIDAD": parts[1] if len(parts) > 1 else "UND",
+            "CODIGO_APU": context["apu_code"], "DESCRIPCION_APU": context["apu_desc"],
+            "DESCRIPCION_INSUMO": description, "UNIDAD": parts[1],
             "CANTIDAD_APU": cantidad if pd.notna(cantidad) else 0,
             "PRECIO_UNIT_APU": precio_unit if pd.notna(precio_unit) else 0,
             "VALOR_TOTAL_APU": valor_total if pd.notna(valor_total) else 0,
@@ -385,70 +362,43 @@ def process_apus_csv_v2(path: str) -> pd.DataFrame:
         }
 
     try:
-        with open(path, "r", encoding="latin1") as f:
-            lines = [line.strip() for line in f.readlines()]
-
         delimiter = detect_delimiter(path)
+        with open(path, "r", encoding="latin1") as f:
+            for line in f:
+                line = line.strip()
+                if not line or line == ";;;;;": continue
 
-        for i, line in enumerate(lines):
-            if "ITEM:" in line.upper():
-                # --- INICIO DE BLOQUE DE APU ---
-                match = re.search(r"ITEM:\s*([\d,\.]*)", line.upper())
-                if not (match and match.group(1).strip()):
+                # Prioridad 1: Línea de ITEM
+                if "ITEM:" in line.upper():
+                    match = re.search(r"ITEM:\s*([\d,\.]*)", line.upper())
+                    if match and match.group(1).strip():
+                        current_context["apu_code"] = match.group(1).strip().rstrip(".,")
+                        current_context["apu_desc"] = potential_apu_desc
+                        current_context["category"] = "INDEFINIDO"
+                        potential_apu_desc = ""
                     continue
 
-                context = {"apu_code": None, "apu_desc": None, "category": "INDEFINIDO"}
-                context["apu_code"] = match.group(1).strip().rstrip(".,")
+                parts = next(csv.reader([line], delimiter=delimiter, quotechar='"'))
+                parts = [p.strip() for p in parts]
+                if not any(parts): continue
 
-                # Búsqueda hacia atrás de la descripción del APU
-                apu_desc = ""
-                for j in range(i - 1, -1, -1):
-                    prev_line = lines[j]
-                    if not prev_line.strip():
-                        continue  # Ignorar líneas vacías
+                # Prioridad 2: Línea de Categoría
+                line_content = "".join(parts).upper()
+                if len(parts) < 4 and line_content in category_keywords:
+                    current_context["category"] = category_keywords[line_content]
+                    continue
 
-                    # Heurística: si la línea no es una categoría, es la descripción
-                    clean_prev_line = prev_line.replace(";", "").strip().upper()
-                    if clean_prev_line not in category_keywords:
-                        apu_desc = prev_line.split(";")[0].strip()
-                        break
-                context["apu_desc"] = apu_desc
-
-                # --- SUB-BUCLE PARA PROCESAR INSUMOS DEL APU ACTUAL ---
-                for j in range(i + 1, len(lines)):
-                    sub_line = lines[j]
-                    if "ITEM:" in sub_line.upper():
-                        break  # Fin del bloque del APU actual
-
-                    if not sub_line.strip():
+                # Prioridad 3: Línea de Datos
+                # Condición: tiene un código de APU, al menos 6 columnas, y datos en cantidad o valor total.
+                if current_context["apu_code"] and len(parts) >= 6 and parts[0] and (parts[2].strip() or parts[5].strip()):
+                    if "SUBTOTAL" not in parts[0].upper() and "COSTO DIRECTO" not in parts[0].upper():
+                        data_row = parse_data_line(parts, current_context)
+                        if data_row: apus_data.append(data_row)
                         continue
 
-                    parts = next(csv.reader([sub_line], delimiter=delimiter, quotechar='"'))
-                    parts = [p.strip() for p in parts]
-                    if not any(parts):
-                        continue
-
-                    line_content_for_check = "".join(parts).upper()
-
-                    # Comprobar si es una línea de categoría
-                    if len(parts) < 4 and line_content_for_check in category_keywords:
-                        context["category"] = category_keywords[line_content_for_check]
-                        continue
-
-                    # Comprobar si es una línea de datos/insumo
-                    is_data_line = (
-                        len(parts) >= 3
-                        and sum(1 for p in parts if p.strip())
-                        >= 3  # Al menos 3 columnas con datos
-                        and "SUBTOTAL" not in line_content_for_check
-                        and "COSTO DIRECTO" not in line_content_for_check
-                        and "DESCRIPCION" not in line_content_for_check
-                    )
-
-                    if is_data_line:
-                        data_row = parse_data_line(parts, context)
-                        if data_row:
-                            apus_data.append(data_row)
+                # Prioridad 4: Línea de Descripción
+                if parts and parts[0]:
+                    potential_apu_desc = parts[0]
 
     except Exception as e:
         logger.error(f"Error fatal procesando APUs en {path}: {e}", exc_info=True)
