@@ -152,10 +152,12 @@ def upload_files():
 def get_user_data():
     """Obtiene los datos del usuario actual o devuelve error."""
     if "session_id" not in session:
+        app.logger.warning("Sesión no iniciada en get_user_data")
         return None, jsonify({"error": "Sesión no iniciada"}), 401
 
     session_id = session["session_id"]
     if session_id not in user_sessions:
+        app.logger.warning(f"Sesión expirada o no válida: {session_id}")
         return None, jsonify({"error": "Sesión expirada o no válida"}), 401
 
     return user_sessions[session_id]["data"], None, 200
@@ -211,32 +213,47 @@ def get_apu_detail(code):
 
 @app.route("/api/estimate", methods=["POST"])
 def get_estimate():
-    """Endpoint mejorado para estimaciones."""
+    """Endpoint mejorado para estimaciones con validación robusta y logging."""
+    app.logger.info(f"Solicitud POST a /api/estimate con sesión: {session.get('session_id')}")
     user_data, error_response, status_code = get_user_data()
     if error_response:
+        # Loguear el error de sesión antes de retornar
+        error_data = error_response.get_data(as_text=True)
+        app.logger.error(f"Error de sesión en /api/estimate: {error_data}")
         return error_response, status_code
 
-    # Validar parámetros
     if not request.is_json:
+        app.logger.warning("Solicitud a /api/estimate no es JSON.")
         return jsonify({"error": "La solicitud debe ser JSON"}), 400
 
     params = request.get_json()
+    app.logger.info(f"Parámetros recibidos en /api/estimate: {params}")
     if not params:
+        app.logger.warning("No se proporcionaron parámetros en /api/estimate.")
         return jsonify({"error": "No se proporcionaron parámetros"}), 400
 
-    # Validar parámetros requeridos
-    required_params = ["tipo", "material"]
-    missing_params = [p for p in required_params if p not in params]
+    # Validar todos los parámetros requeridos
+    required_params = ["tipo", "material", "cuadrilla"]
+    missing_params = [p for p in required_params if p not in params or not params[p]]
     if missing_params:
-        return jsonify({"error": f"Parámetros requeridos faltantes: {missing_params}"}), 400
+        error_msg = f"Parámetros requeridos faltantes o vacíos: {missing_params}"
+        app.logger.warning(f"Error de validación en /api/estimate: {error_msg}")
+        return jsonify({"error": error_msg}), 400
 
     try:
         result = calculate_estimate(params, user_data)
+        app.logger.info(f"Resultado de calculate_estimate: {result}")
         if "error" in result:
-            return jsonify(result), 404
+            error_msg = result["error"]
+            app.logger.warning(f"Error retornado por calculate_estimate: {error_msg}")
+            # Distinguir entre errores de parámetros (400) y de datos no encontrados (404)
+            if "Parámetros requeridos" in error_msg:
+                return jsonify(result), 400
+            else:
+                return jsonify(result), 404
         return jsonify(result)
     except Exception as e:
-        app.logger.error(f"Error en get_estimate: {str(e)}")
+        app.logger.error(f"Excepción no controlada en get_estimate: {str(e)}", exc_info=True)
         return jsonify({"error": "Error interno al calcular la estimación"}), 500
 
 
