@@ -9,6 +9,7 @@ from typing import Dict, List, Optional, Union
 
 import numpy as np
 import pandas as pd
+from pandas import ArrowDtype
 from unidecode import unidecode
 
 # Configurar logging
@@ -376,11 +377,14 @@ def process_apus_csv_v2(path: str) -> pd.DataFrame:
                     continue
 
                 try:
+                    # Check for category line
                     clean_line_upper = "".join(parts).upper()
                     if clean_line_upper in category_keywords:
                         current_context["category"] = category_keywords[clean_line_upper]
+                        last_non_empty_line_parts = parts
                         continue
 
+                    # Check for ITEM line
                     item_part = next((p for p in parts if "ITEM:" in p.upper()), None)
                     if item_part:
                         match = re.search(r"ITEM:\s*([\d,\.]*)", item_part.upper())
@@ -396,19 +400,26 @@ def process_apus_csv_v2(path: str) -> pd.DataFrame:
                                 ).strip()
                         continue
 
-                    if current_context["apu_code"] and "SUBTOTAL" not in parts[0].upper():
+                    # Process as data line if context is set and line is valid
+                    if (
+                        current_context["apu_code"]
+                        and parts
+                        and parts[0]
+                        and len(parts) >= 6
+                        and "SUBTOTAL" not in parts[0].upper()
+                    ):
                         data_row = parse_data_line(parts, current_context)
                         if data_row:
                             apus_data.append(data_row)
+
+                    # Update last_non_empty_line_parts for the next iteration (for description)
+                    last_non_empty_line_parts = parts
 
                 except (IndexError, ValueError) as e:
                     logger.warning(
                         f"Omitiendo línea de APU malformada ({type(e).__name__}): {parts}"
                     )
                     continue
-                finally:
-                    # Guardar la última línea no vacía para la descripción del APU
-                    last_non_empty_line_parts = parts
 
     except Exception as e:
         logger.error(f"Error fatal procesando APUs en {path}: {e}", exc_info=True)
