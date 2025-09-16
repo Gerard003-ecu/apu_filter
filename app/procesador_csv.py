@@ -739,9 +739,15 @@ def calculate_estimate(
 
     # --- 1. Búsqueda de Suministro (Refactorizada con Fuzzy-Matching) ---
     log.append("\n--- BÚSQUEDA DE SUMINISTRO ---")
-    opciones_suministro = df_apus_unique["DESC_NORMALIZED"].tolist()
+
+    # Filtrar primero por APUs que parezcan de suministro
+    df_suministro_options = df_apus_unique[
+        df_apus_unique["DESC_NORMALIZED"].str.contains("SUMINISTRO|SOLO", na=False)
+    ]
+    opciones_suministro = df_suministro_options["DESC_NORMALIZED"].tolist()
+
     log.append(
-        f"Buscando la mejor coincidencia para '{material_mapped}' en {len(opciones_suministro)} opciones."
+        f"Buscando la mejor coincidencia para '{material_mapped}' en {len(opciones_suministro)} opciones de suministro."
     )
     mejor_coincidencia = encontrar_mejor_coincidencia(material_mapped, opciones_suministro)
 

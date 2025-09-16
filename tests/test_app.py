@@ -1,3 +1,4 @@
+import importlib
 import io
 import json
 import os
@@ -331,6 +332,27 @@ class TestCSVProcessor(unittest.TestCase):
         self.assertIn("1,1", resultado["apus_detail"])
         # Verificar que el código malformado '1,1,,' NO está
         self.assertNotIn("1,1,,", resultado["apus_detail"])
+
+    @patch('app.procesador_csv.process')
+    def test_calculate_estimate_with_fuzzywuzzy(self, mock_process):
+        # Configurar el mock para devolver valores específicos
+        mock_process.extractOne.return_value = ("MANO DE OBRA INSTALACION TEJA SENCILLA", 95)
+
+        data_store = process_all_files(
+            self.presupuesto_path, self.apus_path, self.insumos_path
+        )
+        params_ok = {"tipo": "CUBIERTA", "material": "TST", "cuadrilla": "5"}
+        result = calculate_estimate(params_ok, data_store)
+
+        # Verificaciones
+        self.assertNotIn("error", result)
+        self.assertAlmostEqual(result["valor_instalacion"], 80000)
+
+    def test_calculate_estimate_resilience_without_fuzzywuzzy(self):
+        # Simular ausencia de fuzzywuzzy
+        with patch.dict('sys.modules', {'fuzzywuzzy': None, 'fuzzywuzzy.process': None}):
+            with self.assertRaises(ImportError):
+                importlib.reload(sys.modules['app.procesador_csv'])
 
 
 class TestAppEndpoints(unittest.TestCase):
