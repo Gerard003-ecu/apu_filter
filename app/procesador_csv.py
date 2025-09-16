@@ -394,7 +394,9 @@ def process_apus_csv_v2(path: str) -> pd.DataFrame:
                         if match:
                             current_context["apu_code"] = match.group(1).strip()
                             # La descripción puede estar en la misma línea o en la anterior
-                            desc_on_same_line = re.sub(r"ITEM:\s*([\d,\.]*)", "", line, flags=re.IGNORECASE).strip()
+                            desc_on_same_line = re.sub(
+                                r"ITEM:\s*([\d,\.]*)", "", line, flags=re.IGNORECASE
+                            ).strip()
 
                             # Limpiar la descripción de basura de delimitadores
                             if delimiter in desc_on_same_line:
@@ -403,15 +405,22 @@ def process_apus_csv_v2(path: str) -> pd.DataFrame:
                             if desc_on_same_line.strip():
                                 current_context["apu_desc"] = desc_on_same_line.strip()
                             else:
-                                # Si no, usar la última línea no vacía que no era ni categoría ni dato
-                                cleaned_last_line = last_non_empty_line.split(delimiter)[0].strip()
+                                # Si no, usar la última línea no vacía que no era
+                                # ni categoría ni dato
+                                cleaned_last_line = last_non_empty_line.split(delimiter)[
+                                    0
+                                ].strip()
                                 current_context["apu_desc"] = cleaned_last_line
-                            current_context["category"] = "INDEFINIDO" # Resetear categoría para el nuevo APU
-                        continue # Pasar a la siguiente línea
+                            current_context["category"] = (
+                                "INDEFINIDO"  # Resetear categoría para el nuevo APU
+                            )
+                        continue  # Pasar a la siguiente línea
 
                     # Usar csv.reader para un parseo robusto de la línea
                     try:
-                        parts_generator = csv.reader([line], delimiter=delimiter, quotechar='"')
+                        parts_generator = csv.reader(
+                            [line], delimiter=delimiter, quotechar='"'
+                        )
                         parts = [p.strip() for p in next(parts_generator)]
                     except StopIteration:
                         parts = []
@@ -420,8 +429,12 @@ def process_apus_csv_v2(path: str) -> pd.DataFrame:
 
                     # Prioridad 2: Líneas de categoría
                     if clean_line_for_keyword_check in category_keywords:
-                        current_context["category"] = category_keywords[clean_line_for_keyword_check]
-                        last_non_empty_line = "" # Esta línea es una categoría, no una descripción
+                        current_context["category"] = category_keywords[
+                            clean_line_for_keyword_check
+                        ]
+                        last_non_empty_line = (
+                            ""  # Esta línea es una categoría, no una descripción
+                        )
                         continue
 
                     # Prioridad 3: Líneas de datos (insumos)
@@ -429,10 +442,11 @@ def process_apus_csv_v2(path: str) -> pd.DataFrame:
                     if current_context["apu_code"]:
                         # Condición para ser una línea de datos válida
                         is_data_line = (
-                            len(parts) >= 6 and
-                            parts[0] and # La descripción no puede estar vacía
-                            "SUBTOTAL" not in parts[0].upper() and
-                            pd.to_numeric(parts[2].replace(",", "."), errors='coerce') is not np.nan
+                            len(parts) >= 6
+                            and parts[0]  # La descripción no puede estar vacía
+                            and "SUBTOTAL" not in parts[0].upper()
+                            and pd.to_numeric(parts[2].replace(",", "."), errors="coerce")
+                            is not np.nan
                         )
 
                         if is_data_line:
@@ -446,7 +460,6 @@ def process_apus_csv_v2(path: str) -> pd.DataFrame:
                     else:
                         # Si aún no hemos encontrado un "ITEM", guardamos la línea
                         last_non_empty_line = line
-
 
                 except (IndexError, ValueError) as e:
                     logger.warning(
