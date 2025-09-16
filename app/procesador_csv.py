@@ -124,19 +124,17 @@ def safe_read_dataframe(path: str, **kwargs) -> Optional[pd.DataFrame]:
 
 
 def normalize_text(series, remove_accents=True, remove_special_chars=True):
-    """Limpia y estandariza texto para hacer un 'join' fiable."""
+    """Normaliza texto sin perder información crítica (#, -)."""
     normalized = series.astype(str).str.lower().str.strip()
 
     if remove_accents:
         normalized = normalized.apply(unidecode)
 
     if remove_special_chars:
-        # Mantener sólo caracteres alfanuméricos y espacios
-        normalized = normalized.str.replace(r"[^a-z0-9\s]", "", regex=True)
+        # Conservar # y -
+        normalized = normalized.str.replace(r"[^a-z0-9\s#\-]", "", regex=True)
 
-    # Reducir múltiples espacios a uno solo
     normalized = normalized.str.replace(r"\s+", " ", regex=True)
-
     return normalized
 
 
@@ -213,9 +211,11 @@ def process_presupuesto_csv(path: str) -> pd.DataFrame:
             logger.warning("La columna 'CODIGO_APU' no se encontró en el presupuesto.")
             return pd.DataFrame()
 
+        # No filtrar solo por comas, aceptar cualquier código válido
         df["CODIGO_APU"] = df["CODIGO_APU"].astype(str).str.strip()
-        df = df[df["CODIGO_APU"].str.contains(r",", na=False)]
-        # Limpiar y convertir la columna de cantidad
+        df = df[df["CODIGO_APU"].notna() & (df["CODIGO_APU"] != "")]
+
+        # Limpiar y convertir cantidad
         cantidad_str = (
             df["CANTIDAD_PRESUPUESTO"].astype(str).str.replace(",", ".", regex=False)
         )
@@ -229,70 +229,58 @@ def process_presupuesto_csv(path: str) -> pd.DataFrame:
 
 def process_insumos_csv(path: str) -> pd.DataFrame:
     """
-    Lee y limpia el archivo insumos.csv, manejando correctamente los grupos
-    y los delimitadores inconsistentes mediante una lectura manual línea por línea.
+    Lee y limpia insumos.csv, detectando encabezados SAGUT automáticamente
+    y soportando variantes en nombres de columnas.
     """
     data_rows = []
     current_group = "INDEFINIDO"
-    header_columns = []
     desc_index, vr_unit_index = -1, -1
 
     try:
-        # Primero, detectar el delimitador
         delimiter = detect_delimiter(path)
         if not delimiter:
             return pd.DataFrame()
 
         with open(path, "r", encoding="latin1") as f:
-            # Usar csv.reader para manejar correctamente los campos entre comillas
             reader = csv.reader(f, delimiter=delimiter, quotechar='"')
-            for raw_parts in reader:
-                if not raw_parts or not any(p.strip() for p in raw_parts):
+            for parts in reader:
+                if not parts or not any(p.strip() for p in parts):
                     continue
 
-                parts = [p.strip() for p in raw_parts]
-                line_for_check = "".join(parts)
+                parts = [p.strip() for p in parts]
+                line_for_check = " ".join(parts).upper()
 
-                # Detectar y actualizar el grupo actual
+                # Detectar grupos
                 if len(parts) > 1 and parts[0].upper().startswith("G") and parts[1]:
                     current_group = parts[1]
                     continue
 
-                # Identificar y capturar la línea de encabezado
-                if (
-                    "CODIGO" in line_for_check.upper()
-                    and "DESCRIPCION" in line_for_check.upper()
-                ):
-                    header_columns = [p.upper() for p in parts]
-                    desc_index = next(
-                        (i for i, col in enumerate(header_columns) if "DESCRIPCION" in col),
-                        -1,
-                    )
+                # Detectar encabezados SAGUT (más flexible)
+                if "DESCRIPCION" in line_for_check and "VR" in line_for_check:
+                    header_map = {col.upper(): idx for idx, col in enumerate(parts)}
+                    desc_index = header_map.get("DESCRIPCION", -1)
                     vr_unit_index = next(
-                        (i for i, col in enumerate(header_columns) if "VR. UNIT" in col), -1
+                        (i for k, i in header_map.items() if "VR" in k and "UNIT" in k),
+                        -1,
                     )
                     continue
 
-                # Procesar líneas de datos solo si hemos encontrado el encabezado
-                if (
-                    desc_index != -1
-                    and vr_unit_index != -1
-                    and len(parts) > max(desc_index, vr_unit_index)
-                ):
-                    description = parts[desc_index]
-                    vr_unit_str = parts[vr_unit_index]
-
-                    if description and vr_unit_str:
-                        data_rows.append(
-                            {
-                                "DESCRIPCION_INSUMO": description,
-                                "VR_UNITARIO_INSUMO": vr_unit_str,
-                                "GRUPO_INSUMO": current_group,
-                            }
-                        )
+                # Procesar filas de datos
+                if desc_index != -1 and vr_unit_index != -1:
+                    if len(parts) > max(desc_index, vr_unit_index):
+                        description = parts[desc_index]
+                        vr_unit_str = parts[vr_unit_index]
+                        if description and vr_unit_str:
+                            data_rows.append(
+                                {
+                                    "DESCRIPCION_INSUMO": description,
+                                    "VR_UNITARIO_INSUMO": vr_unit_str,
+                                    "GRUPO_INSUMO": current_group,
+                                }
+                            )
 
         if not data_rows:
-            logger.warning(f"No se extrajeron filas de datos de insumos de {path}")
+            logger.warning(f"No se extrajeron filas de insumos de {path}")
             return pd.DataFrame()
 
         df = pd.DataFrame(data_rows)
@@ -303,12 +291,13 @@ def process_insumos_csv(path: str) -> pd.DataFrame:
         df.dropna(subset=["DESCRIPCION_INSUMO", "VR_UNITARIO_INSUMO"], inplace=True)
         df["NORMALIZED_DESC"] = normalize_text(df["DESCRIPCION_INSUMO"])
         df = df.drop_duplicates(subset=["NORMALIZED_DESC"], keep="first")
+
         return df[
             ["NORMALIZED_DESC", "VR_UNITARIO_INSUMO", "GRUPO_INSUMO", "DESCRIPCION_INSUMO"]
         ]
 
     except Exception as e:
-        logger.error(f"Error procesando insumos.csv manualmente: {e}")
+        logger.error(f"Error procesando insumos.csv: {e}", exc_info=True)
         return pd.DataFrame()
 
 
@@ -327,8 +316,8 @@ def get_file_hash(path: str) -> str:
 
 def process_apus_csv_v2(path: str) -> pd.DataFrame:
     """
-    Parsea un archivo de APUs con formato de reporte de texto utilizando
-    csv.reader y una máquina de estados para máxima robustez. VERSIÓN FINAL.
+    Parsea un archivo de APUs de SAGUT de forma flexible,
+    detectando columnas dinámicamente en lugar de posiciones fijas.
     """
     apus_data = []
     current_context = {"apu_code": None, "apu_desc": None, "category": "INDEFINIDO"}
@@ -343,85 +332,84 @@ def process_apus_csv_v2(path: str) -> pd.DataFrame:
             return pd.to_numeric(s_cleaned, errors="coerce")
         return pd.NA
 
-    def parse_data_line(parts, context):
-        description = parts[0]
-        cantidad = to_numeric_safe(parts[2])
-        precio_unit = to_numeric_safe(parts[4])
-        valor_total = to_numeric_safe(parts[5])
-
-        if pd.notna(cantidad) and pd.notna(precio_unit) and pd.isna(valor_total):
-            valor_total = cantidad * precio_unit
-
-        return {
-            "CODIGO_APU": context["apu_code"],
-            "DESCRIPCION_APU": context["apu_desc"],
-            "DESCRIPCION_INSUMO": description,
-            "UNIDAD": parts[1],
-            "CANTIDAD_APU": cantidad if pd.notna(cantidad) else 0,
-            "PRECIO_UNIT_APU": precio_unit if pd.notna(precio_unit) else 0,
-            "VALOR_TOTAL_APU": valor_total if pd.notna(valor_total) else 0,
-            "CATEGORIA": context["category"],
-        }
-
     try:
         delimiter = detect_delimiter(path)
         with open(path, "r", encoding="latin1") as f:
-            # Usar csv.reader para que maneje comillas y delimitadores por nosotros
             reader = csv.reader(f, delimiter=delimiter, quotechar='"')
+            header_map = {}
             for parts in reader:
-                # Limpiar espacios en blanco de cada parte
                 parts = [p.strip() for p in parts]
-                line_str = "".join(parts)  # Una cadena para búsquedas simples
+                line_str = " ".join(parts).upper()
                 if not line_str:
                     continue
 
-                # Prioridad 1: Línea de ITEM
-                if "ITEM:" in line_str.upper():
-                    # Buscar el código en todas las partes de la línea
-                    for part in parts:
-                        match = re.search(r"ITEM:\s*([\d,\.]*)", part.upper())
-                        if match and match.group(1).strip():
-                            current_context["apu_code"] = match.group(1).strip().rstrip(".,")
-                            current_context["apu_desc"] = potential_apu_desc
-                            current_context["category"] = "INDEFINIDO"
-                            potential_apu_desc = ""
-                            break  # Salir del bucle de partes
+                # Detectar ITEM
+                if "ITEM:" in line_str:
+                    match = re.search(r"ITEM:\s*([\d,\.]*)", line_str)
+                    if match and match.group(1).strip():
+                        current_context["apu_code"] = match.group(1).strip().rstrip(".,")
+                        current_context["apu_desc"] = potential_apu_desc
+                        current_context["category"] = "INDEFINIDO"
+                        potential_apu_desc = ""
                     continue
 
-                # Prioridad 2: Línea de Categoría
-                if len(parts) < 4 and line_str.upper() in category_keywords:
-                    current_context["category"] = category_keywords[line_str.upper()]
+                # Detectar categoría
+                if line_str in category_keywords:
+                    current_context["category"] = category_keywords[line_str]
                     continue
 
-                # Prioridad 3: Línea de Datos
-                # Condición: tiene un código de APU, al menos 6 columnas, una descripción,
-                # y un valor en cantidad o precio unitario para no confundirla con una
-                # línea de descripción de otro APU.
-                if (
-                    current_context["apu_code"]
-                    and len(parts) >= 6
-                    and parts[0]
-                    and (parts[2] or parts[4])
-                ):
-                    if (
-                        "SUBTOTAL" not in parts[0].upper()
-                        and "COSTO DIRECTO" not in parts[0].upper()
-                    ):
-                        data_row = parse_data_line(parts, current_context)
-                        if data_row:
-                            apus_data.append(data_row)
-                        continue
+                # Detectar encabezado SAGUT (dinámico)
+                if "DESCRIPCION" in line_str and "CANTIDAD" in line_str:
+                    header_map = {col.upper(): idx for idx, col in enumerate(parts)}
+                    continue
 
-                # Prioridad 4: Línea de Descripción
+                # Filas de datos (cuando hay encabezado y código APU)
+                if current_context["apu_code"] and header_map and len(parts) >= 3:
+                    desc_idx = header_map.get("DESCRIPCION", 0)
+                    cant_idx = header_map.get("CANTIDAD", 2)
+                    prec_idx = next((i for k, i in header_map.items() if "UNIT" in k), None)
+                    tot_idx = next((i for k, i in header_map.items() if "TOTAL" in k), None)
+
+                    description = parts[desc_idx]
+                    cantidad = (
+                        to_numeric_safe(parts[cant_idx]) if cant_idx < len(parts) else 0
+                    )
+                    precio_unit = (
+                        to_numeric_safe(parts[prec_idx])
+                        if prec_idx and prec_idx < len(parts)
+                        else 0
+                    )
+                    valor_total = (
+                        to_numeric_safe(parts[tot_idx])
+                        if tot_idx and tot_idx < len(parts)
+                        else cantidad * precio_unit
+                    )
+
+                    if description:
+                        apus_data.append(
+                            {
+                                "CODIGO_APU": current_context["apu_code"],
+                                "DESCRIPCION_APU": current_context["apu_desc"],
+                                "DESCRIPCION_INSUMO": description,
+                                "UNIDAD": parts[1] if len(parts) > 1 else "",
+                                "CANTIDAD_APU": cantidad or 0,
+                                "PRECIO_UNIT_APU": precio_unit or 0,
+                                "VALOR_TOTAL_APU": valor_total or 0,
+                                "CATEGORIA": current_context["category"],
+                            }
+                        )
+                    continue
+
+                # Si no es dato → acumular posible descripción
                 if parts and parts[0]:
                     potential_apu_desc = parts[0]
 
     except Exception as e:
-        logger.error(f"Error fatal procesando APUs en {path}: {e}", exc_info=True)
+        logger.error(f"Error procesando apus.csv: {e}", exc_info=True)
         return pd.DataFrame()
 
     if not apus_data:
-        logger.warning(f"No se extrajeron datos de APU de {path}")
+        logger.warning(f"No se extrajeron APUs de {path}")
         return pd.DataFrame()
 
     df = pd.DataFrame(apus_data)
