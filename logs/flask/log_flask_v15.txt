@@ -1,0 +1,13 @@
+ * Serving Flask app 'app/app.py'
+ * Debug mode: off
+2025-09-16 12:44:59,748 - INFO - WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
+ * Running on http://127.0.0.1:5002
+2025-09-16 12:44:59,749 - INFO - Press CTRL+C to quit
+2025-09-16 12:45:02,261 - INFO - 127.0.0.1 - - [16/Sep/2025 12:45:02] "GET / HTTP/1.1" 200 -
+2025-09-16 12:45:18,884 - INFO - Cache miss.
+2025-09-16 12:45:18,885 - INFO - Procesando archivos: /home/gerardo/Documentos/GitHub/apu_filter/uploads/08499735-ee9d-40b4-8f75-33513cff38f4/presupuesto_1758044718_presupuesto.csv, /home/gerardo/Documentos/GitHub/apu_filter/uploads/08499735-ee9d-40b4-8f75-33513cff38f4/apus_1758044718_apus.csv, /home/gerardo/Documentos/GitHub/apu_filter/uploads/08499735-ee9d-40b4-8f75-33513cff38f4/insumos_1758044718_insumos.csv
+2025-09-16 12:45:18,899 - INFO - Éxito al leerpresupuesto_1758044718_presupuesto.csv con encoding 'latin1'y delimitador ';'
+2025-09-16 12:45:18,941 - INFO - Tipos de datos optimizados con PyArrow para /home/gerardo/Documentos/GitHub/apu_filter/uploads/08499735-ee9d-40b4-8f75-33513cff38f4/presupuesto_1758044718_presupuesto.csv
+2025-09-16 12:45:19,089 - WARNING - No se extrajeron datos de APU de /home/gerardo/Documentos/GitHub/apu_filter/uploads/08499735-ee9d-40b4-8f75-33513cff38f4/apus_1758044718_apus.csv
+2025-09-16 12:45:19,091 - INFO - Cache info: hits=0, misses=1, size=1
+2025-09-16 12:45:19,096 - INFO - 127.0.0.1 - - [16/Sep/2025 12:45:19] "POST /upload HTTP/1.1" 500 -
