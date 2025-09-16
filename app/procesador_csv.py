@@ -310,7 +310,7 @@ def process_apus_csv_v2(path: str) -> pd.DataFrame:
 
             if current_context["apu_code"] and ";" in line:
                 parts = [p.strip() for p in line.split(";")]
-                if len(parts) >= 6 and parts[0] and "SUBTOTAL" not in parts[0].upper():
+                if len(parts) >= 2 and parts[0] and "SUBTOTAL" not in parts[0].upper():
                     data_row = parse_data_line(parts, current_context)
                     if data_row:
                         apus_data.append(data_row)

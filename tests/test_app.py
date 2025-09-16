@@ -29,10 +29,10 @@ from app.procesador_csv import (
 
 PRESUPUESTO_DATA = (
     "ITEM;DESCRIPCION;UND;CANT.; VR. UNIT ; VR.TOTAL \n"
-    "1;Actividad de Construcción 1;;;;\n"
     "1,1;Montaje de Estructura;ML;10; 155,00 ; 1550 \n"
     "1,2;Acabados Finales;M2;20; 225,00 ; 4500 \n"
     "1,3;MANO DE OBRA INSTALACION TEJA SENCILLA CUADRILLA DE 5;M2;1;80000;80000\n"
+    "1,4;APU con Corte y Doblez;UN;1;15000;15000\n"
 )
 
 APUS_DATA = (
@@ -149,12 +149,21 @@ class TestCSVProcessor(unittest.TestCase):
         self.assertIsInstance(resultado, dict)
         self.assertNotIn("error", resultado)
         presupuesto_procesado = resultado["presupuesto"]
-        self.assertEqual(len(presupuesto_procesado), 3)
+        self.assertEqual(len(presupuesto_procesado), 4)
         item1 = next(
             (item for item in presupuesto_procesado if item["CODIGO_APU"] == "1,1"), None
         )
         self.assertIsNotNone(item1)
         self.assertAlmostEqual(item1["VALOR_CONSTRUCCION_UN"], 155.0)
+
+        # Test for the new "CORTE Y DOBLEZ" case
+        item4 = next(
+            (item for item in presupuesto_procesado if item["CODIGO_APU"] == "1,4"), None
+        )
+        self.assertIsNotNone(item4)
+        self.assertAlmostEqual(item4["VALOR_CONSTRUCCION_UN"], 15000.0)
+        self.assertAlmostEqual(item4["MANO DE OBRA"], 15000.0)
+        self.assertEqual(item4["tipo_apu"], "Instalación")
 
     @patch("app.procesador_csv.config", new_callable=lambda: TEST_CONFIG)
     def test_caching_logic(self, mock_config):
