@@ -317,14 +317,14 @@ def get_file_hash(path: str) -> str:
 def process_apus_csv_v2(path: str) -> pd.DataFrame:
     """
     Parsea un archivo de APUs con formato de "reporte de texto" utilizando una
-    máquina de estados para interpretar el contexto de cada línea. VERSIÓN FINAL.
+    lógica de contexto explícita y robusta. VERSIÓN REFACTORIZADA.
     """
     apus_data = []
     current_context = {"apu_code": None, "apu_desc": None, "category": "INDEFINIDO"}
     category_keywords = config.get("category_keywords", {})
     potential_apu_desc = ""
 
-    def to_numeric_safe(s):
+    def to_numeric_safe(s: str):
         if isinstance(s, (int, float)):
             return s
         if isinstance(s, str):
@@ -340,6 +340,7 @@ def process_apus_csv_v2(path: str) -> pd.DataFrame:
         )
         cantidad = to_numeric_safe(parts[2]) if len(parts) > 2 else 0.0
         precio_unit = to_numeric_safe(parts[4]) if len(parts) > 4 else 0.0
+
         if (
             (pd.isna(precio_unit) or precio_unit == 0)
             and valor_total > 0
@@ -354,6 +355,7 @@ def process_apus_csv_v2(path: str) -> pd.DataFrame:
             and pd.notna(precio_unit)
         ):
             valor_total = cantidad * precio_unit
+
         return {
             "CODIGO_APU": context["apu_code"],
             "DESCRIPCION_APU": context["apu_desc"],
@@ -373,42 +375,40 @@ def process_apus_csv_v2(path: str) -> pd.DataFrame:
                 if not line:
                     continue
 
-                # --- LÓGICA DE PARSING REESTRUCTURADA ---
-
-                # Prioridad 1: Líneas de "ITEM:"
+                # Prioridad 1: Identificar la línea de ITEM
                 if "ITEM:" in line.upper():
                     match = re.search(r"ITEM:\s*([\d,\.]*)", line.upper())
                     if match and match.group(1).strip():
-                        apu_code = match.group(1).strip()
-                        # Limpiar puntos o comas extra al final del código
-                        apu_code = apu_code.rstrip('.,')
+                        apu_code = match.group(1).strip().rstrip('.,')
+
+                        # El contexto se consolida aquí
                         current_context["apu_code"] = apu_code
                         current_context["apu_desc"] = potential_apu_desc
-                        current_context["category"] = "INDEFINIDO"
-                        potential_apu_desc = ""  # Reiniciar
+                        current_context["category"] = "INDEFINIDO" # Resetear categoría para el nuevo APU
+                        potential_apu_desc = ""  # Limpiar para el próximo APU
                     continue
 
-                # Usar csv.reader para manejar comillas
+                # Usar csv.reader para manejar correctamente las comillas
                 parts = next(csv.reader([line], delimiter=delimiter, quotechar='"'))
                 parts = [p.strip() for p in parts]
                 if not any(parts):
                     continue
 
-                # Prioridad 2: Líneas de Categoría
+                # Prioridad 2: Identificar línea de CATEGORÍA
                 line_content_for_check = "".join(parts).upper()
-                if len(parts) < 4 and line_content_for_check in category_keywords:
+                is_category = len(parts) < 4 and line_content_for_check in category_keywords
+                if is_category:
                     current_context["category"] = category_keywords[line_content_for_check]
                     continue
 
-                # Prioridad 3: Líneas de Datos (Insumo)
-                # Condición: Debe tener un contexto de APU y la
-                # tercera columna debe ser numérica
-                if (
-                    current_context["apu_code"]
-                    and len(parts) > 2
-                    and pd.notna(to_numeric_safe(parts[2]))
-                ):
-                    # Si la primera columna está vacía, es un offset
+                # Prioridad 3: Identificar línea de DATOS
+                is_data_line = (
+                    current_context["apu_code"] is not None and
+                    len(parts) > 2 and
+                    pd.notna(to_numeric_safe(parts[2]))
+                )
+                if is_data_line:
+                    # Si la primera columna está vacía, es un offset y hay que desfasar
                     if not parts[0] and len(parts) > 1:
                         data_row = parse_data_line(parts[1:], current_context)
                     else:
@@ -418,9 +418,10 @@ def process_apus_csv_v2(path: str) -> pd.DataFrame:
                         apus_data.append(data_row)
                     continue
 
-                # Prioridad 4: Si no es nada de lo anterior, es una posible descripción
+                # Fallback: Tratar como línea de DESCRIPCIÓN
                 if parts and parts[0]:
-                    potential_apu_desc = parts[0]
+                    # Acumular en caso de descripciones multilínea
+                    potential_apu_desc = (potential_apu_desc + " " + parts[0]).strip()
 
     except Exception as e:
         logger.error(f"Error fatal procesando APUs en {path}: {e}", exc_info=True)
@@ -729,7 +730,7 @@ def calculate_estimate(
 
     # --- 1. Búsqueda de Suministro (Refactorizada) ---
     log.append("\n--- BÚSQUEDA DE SUMINISTRO ---")
-    suministro_search_terms = f"(SOLO LAMINA|SUMINISTRO DE).*{material_mapped}"
+    suministro_search_terms = f"(?:SOLO LAMINA|SUMINISTRO DE).*{material_mapped}"
     log.append(f"Términos de búsqueda para suministro: '{suministro_search_terms}'")
     suministro_candidates = df_apus_unique[
         df_apus_unique["DESC_NORMALIZED"].str.contains(suministro_search_terms, regex=True)
