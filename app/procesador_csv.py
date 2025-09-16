@@ -419,17 +419,19 @@ def process_apus_csv_v2(path: str) -> pd.DataFrame:
                     continue
 
                 # Prioridad 3: Identificar línea de DATOS
-                # Una línea de datos debe tener al menos 2 columnas con contenido.
+                description_present = (len(parts) > 0 and parts[0]) or (
+                    len(parts) > 1 and parts[1]
+                )
                 is_data_line = (
                     current_context["apu_code"] is not None
+                    and description_present
                     and len(parts) >= 3
-                    and parts[0]
                     and sum(1 for p in parts if p.strip()) > 1
-                    and "SUBTOTAL" not in parts[0].upper()
-                    and "COSTO DIRECTO" not in parts[0].upper()
+                    and "SUBTOTAL" not in line.upper()
+                    and "COSTO DIRECTO" not in line.upper()
                 )
                 if is_data_line:
-                    # Si la primera columna está vacía, es un offset y hay que desfasar
+                    # Si la primera columna está vacía, es un offset. Pasamos la lista a partir del segundo elemento.
                     if not parts[0] and len(parts) > 1:
                         data_row = parse_data_line(parts[1:], current_context)
                     else:
