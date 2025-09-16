@@ -16,6 +16,27 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(
 logger = logging.getLogger(__name__)
 
 
+def detect_delimiter(file_path: str) -> str:
+    """
+    Detecta el delimitador (',' o ';') de un archivo CSV usando csv.Sniffer.
+    """
+    with open(file_path, "r", encoding="latin1") as f:
+        try:
+            # Leer una muestra del archivo para que el sniffer trabaje
+            sample = f.read(2048)
+            sniffer = csv.Sniffer()
+            # sniff en una muestra de las primeras lineas
+            dialect = sniffer.sniff(sample, delimiters=";,")
+            return dialect.delimiter
+        except csv.Error:
+            # Si falla, asumimos punto y coma como fallback robusto
+            logger.warning(
+                f"csv.Sniffer no pudo detectar el delimitador en {file_path}. "
+                f"Asumiendo ';'."
+            )
+            return ";"
+
+
 def safe_read_csv(path: str, **kwargs) -> Optional[pd.DataFrame]:
     """
     Lee un CSV de forma segura intentando con varias codificaciones y delimitadores.
@@ -161,33 +182,56 @@ def process_presupuesto_csv(path: str) -> pd.DataFrame:
 def process_insumos_csv(path: str) -> pd.DataFrame:
     """
     Lee y limpia el archivo insumos.csv, manejando correctamente los grupos
-    mediante una lectura manual línea por línea.
+    mediante una lectura manual línea por línea y detectando el delimitador.
     """
     data_rows = []
     current_group = "INDEFINIDO"
     header_found = False
+    header_columns = []
+    desc_index = -1
+    vr_unit_index = -1
 
     try:
+        delimiter = detect_delimiter(path)
+        logger.info(f"Detectado el delimitador '{delimiter}' para el archivo {path}")
+
         with open(path, "r", encoding="latin1") as f:
-            for line in f:
-                if not line.strip():
+            reader = csv.reader(f, delimiter=delimiter, quotechar='"', skipinitialspace=True)
+            for parts in reader:
+                if not parts or not any(p.strip() for p in parts):
                     continue
-                parts = [p.strip() for p in line.split(";")]
+
+                parts = [p.strip() for p in parts]
+
+                # Detección de línea de grupo (ej: G1;MATERIALES)
                 if len(parts) > 1 and parts[0].upper().startswith("G") and parts[1]:
                     current_group = parts[1]
                     continue
-                if "CODIGO" in line and "DESCRIPCION" in line:
+
+                # Detección del encabezado
+                temp_header = [p.upper() for p in parts]
+                if "CODIGO" in temp_header and "DESCRIPCION" in temp_header:
                     header_found = True
-                    header_columns = [p.strip() for p in line.split(";")]
+                    header_columns = parts
                     desc_index = next(
-                        (i for i, col in enumerate(header_columns) if "DESCRIPCION" in col),
+                        (
+                            i
+                            for i, col in enumerate(header_columns)
+                            if "DESCRIPCION" in col.upper()
+                        ),
                         -1,
                     )
                     vr_unit_index = next(
-                        (i for i, col in enumerate(header_columns) if "VR. UNIT" in col),
+                        (
+                            i
+                            for i, col in enumerate(header_columns)
+                            if "VR. UNIT" in col.upper()
+                        ),
                         -1,
                     )
                     continue
+
+                # Procesamiento de líneas de datos
                 if header_found and desc_index != -1 and vr_unit_index != -1:
                     if len(parts) > max(desc_index, vr_unit_index):
                         description = parts[desc_index]
@@ -323,15 +367,11 @@ def process_apus_csv_v2(path: str) -> pd.DataFrame:
         }
 
     try:
+        delimiter = detect_delimiter(path)
+        logger.info(f"Detectado el delimitador '{delimiter}' para el archivo {path}")
+
         with open(path, "r", encoding="latin1") as f:
             lines = f.readlines()
-
-        # Detección de delimitador
-        sample = "".join(lines[:50])
-        delimiter = (
-            "," if sample.count('"') > 20 and sample.count(",") > sample.count(";") else ";"
-        )
-        logger.info(f"Detectado el delimitador '{delimiter}' para el archivo {path}")
 
         last_non_empty_line = ""
         for line in lines:
@@ -351,16 +391,13 @@ def process_apus_csv_v2(path: str) -> pd.DataFrame:
                 match = re.search(r"ITEM:\s*([\d,\.]*)", line.upper())
                 if match:
                     current_context["apu_code"] = match.group(1).strip()
-                    desc_on_same_line = ""
-                    if delimiter == ",":
-                        try:
-                            desc_on_same_line = next(
-                                csv.reader([line], delimiter=",", quotechar='"')
-                            )[0].strip()
-                        except (csv.Error, StopIteration, IndexError):
-                            pass  # Ignorar errores de parsing en esta línea
-                    else:
-                        desc_on_same_line = line.split(";")[0].strip()
+                    try:
+                        parsed_line = next(
+                            csv.reader([line], delimiter=delimiter, quotechar='"')
+                        )
+                        desc_on_same_line = parsed_line[0].strip()
+                    except (csv.Error, StopIteration, IndexError):
+                        desc_on_same_line = ""
 
                     if desc_on_same_line and not desc_on_same_line.upper().startswith(
                         "REMATE"
@@ -369,41 +406,36 @@ def process_apus_csv_v2(path: str) -> pd.DataFrame:
                     else:
                         last_desc = ""
                         if last_non_empty_line:
-                            if delimiter == ",":
-                                try:
-                                    last_parts = next(
-                                        csv.reader(
-                                            [last_non_empty_line],
-                                            delimiter=",",
-                                            quotechar='"',
-                                        )
+                            try:
+                                last_parts = next(
+                                    csv.reader(
+                                        [last_non_empty_line],
+                                        delimiter=delimiter,
+                                        quotechar='"',
                                     )
-                                    if last_parts:
-                                        last_desc = last_parts[0].strip()
-                                except (csv.Error, StopIteration, IndexError):
-                                    pass
-                            else:
-                                last_desc = last_non_empty_line.split(";")[0].strip()
+                                )
+                                if last_parts:
+                                    last_desc = last_parts[0].strip()
+                            except (csv.Error, StopIteration, IndexError):
+                                pass
                         current_context["apu_desc"] = last_desc
                 continue
 
             last_non_empty_line = line
 
             if current_context["apu_code"]:
-                parts = []
                 try:
-                    if delimiter == ",":
-                        if '"' in line:
-                            reader = csv.reader(
+                    parts = [
+                        p.strip()
+                        for p in next(
+                            csv.reader(
                                 [line],
                                 delimiter=delimiter,
                                 quotechar='"',
                                 skipinitialspace=True,
                             )
-                            parts = [p.strip() for p in next(reader)]
-                    else:
-                        if ";" in line:
-                            parts = [p.strip() for p in line.split(";")]
+                        )
+                    ]
                 except (csv.Error, StopIteration):
                     continue
 

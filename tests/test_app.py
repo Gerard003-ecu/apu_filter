@@ -19,6 +19,7 @@ from app.procesador_csv import (
     find_and_rename_columns,
     normalize_text,
     process_all_files,
+    process_insumos_csv,
     safe_read_csv,
 )
 
@@ -102,6 +103,16 @@ PRESUPUESTO_DATA_COMMA = """"ITEM","DESCRIPCION","UND","CANT.","VR. UNIT","VR.TO
 "1,3","MANO DE OBRA INSTALACION TEJA SENCILLA CUADRILLA DE 5","M2","1","80000","80000"
 "1,4","APU con Corte y Doblez","UN","1","15000","15000"
 """
+
+INSUMOS_DATA_COMMA = (
+    '"G1","MATERIALES"\n'
+    '"CODIGO","DESCRIPCION","UND","CANT.","VR. UNIT."\n'
+    '"INS-001","Tornillo de Acero","UND","","10,50"\n'
+    '"INS-003","pintura anticorrosiva","GL","","5,00"\n'
+    '"G2","MANO DE OBRA"\n'
+    '"CODIGO","DESCRIPCION","UND","CANT.","VR. UNIT."\n'
+    '"INS-002","Mano de Obra Especializada","HR","","20,00"\n'
+)
 
 
 # ======================================================================
@@ -190,25 +201,48 @@ class TestCSVProcessor(unittest.TestCase):
         self.assertAlmostEqual(item4["VALOR_CONSTRUCCION_UN"], 0.0)
 
     @patch("app.procesador_csv.config", new_callable=lambda: TEST_CONFIG)
+    def test_process_insumos_csv_comma_delimited(self, mock_config):
+        """Prueba el procesamiento de insumos.csv delimitado por comas."""
+        insumos_path_comma = "test_insumos_comma.csv"
+        with open(insumos_path_comma, "w", encoding="latin1") as f:
+            f.write(INSUMOS_DATA_COMMA)
+
+        df_insumos = process_insumos_csv(insumos_path_comma)
+        os.remove(insumos_path_comma)
+
+        self.assertFalse(df_insumos.empty)
+        self.assertEqual(len(df_insumos), 3)
+        tornillo = df_insumos[
+            df_insumos["DESCRIPCION_INSUMO"] == "Tornillo de Acero"
+        ]
+        self.assertAlmostEqual(tornillo["VR_UNITARIO_INSUMO"].iloc[0], 10.50)
+
+    @patch("app.procesador_csv.config", new_callable=lambda: TEST_CONFIG)
     def test_process_all_files_comma_delimited(self, mock_config):
         """Prueba el procesamiento de archivos CSV delimitados por comas."""
         presupuesto_path_comma = "test_presupuesto_comma.csv"
         apus_path_comma = "test_apus_comma.csv"
+        insumos_path_comma = "test_insumos_comma.csv"
 
         with open(presupuesto_path_comma, "w", encoding="latin1") as f:
             f.write(PRESUPUESTO_DATA_COMMA)
         with open(apus_path_comma, "w", encoding="latin1") as f:
             f.write(APUS_DATA_COMMA)
+        with open(insumos_path_comma, "w", encoding="latin1") as f:
+            f.write(INSUMOS_DATA_COMMA)
 
         resultado = process_all_files(
-            presupuesto_path_comma, apus_path_comma, self.insumos_path
+            presupuesto_path_comma, apus_path_comma, insumos_path_comma
         )
 
         os.remove(presupuesto_path_comma)
         os.remove(apus_path_comma)
+        os.remove(insumos_path_comma)
 
         self.assertIsInstance(resultado, dict)
         self.assertNotIn("error", resultado)
+
+        # Verificar que el presupuesto se procesó bien
         presupuesto_procesado = resultado["presupuesto"]
         self.assertEqual(len(presupuesto_procesado), 4)
         item1 = next(
@@ -216,6 +250,11 @@ class TestCSVProcessor(unittest.TestCase):
         )
         self.assertIsNotNone(item1)
         self.assertAlmostEqual(item1["VALOR_CONSTRUCCION_UN"], 155.0)
+
+        # Verificar que los insumos de un archivo con comas se procesaron bien
+        self.assertIn("insumos", resultado)
+        self.assertIn("MATERIALES", resultado["insumos"])
+        self.assertEqual(len(resultado["insumos"]["MATERIALES"]), 2)
 
     @patch("app.procesador_csv.config", new_callable=lambda: TEST_CONFIG)
     def test_caching_logic(self, mock_config):

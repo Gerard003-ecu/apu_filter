@@ -33,7 +33,9 @@ app.secret_key = os.environ.get("SECRET_KEY", "dev-key-change-in-production")
 
 # --- CAMBIO CLAVE 3: Cargar config.json de forma robusta ---
 try:
-    with open(os.path.join(project_root, "config.json"), "r", encoding="utf-8") as f:
+    # --- CORRECCIÓN: Apuntar a config.json dentro de la carpeta 'app' ---
+    config_path = os.path.join(os.path.dirname(__file__), "config.json")
+    with open(config_path, "r", encoding="utf-8") as f:
         app.config["APP_CONFIG"] = json.load(f)
 except (FileNotFoundError, json.JSONDecodeError) as e:
     app.logger.error(f"Error crítico: No se pudo cargar config.json. {e}")
