@@ -327,23 +327,30 @@ def process_apus_csv_v2(path: str) -> pd.DataFrame:
     potential_apu_desc = ""
 
     def to_numeric_safe(s):
-        if isinstance(s, (int, float)): return s
+        if isinstance(s, (int, float)):
+            return s
         if isinstance(s, str):
-            s_cleaned = re.sub(r'[^\d,\.]', '', s).replace(",", ".").strip()
+            s_cleaned = re.sub(r"[^\d,\.]", "", s).replace(",", ".").strip()
             return pd.to_numeric(s_cleaned, errors="coerce")
         return pd.NA
 
     def parse_data_line(parts, context):
         # (Esta función auxiliar ya es robusta, no necesita cambios)
-        if not parts or not parts[0]: return None
+        if not parts or not parts[0]:
+            return None
         description = parts[0].strip()
-        is_mano_de_obra = any(description.upper().startswith(kw) for kw in ["M.O.", "SISO", "INGENIERO"])
-        valor_total = next((to_numeric_safe(p) for p in reversed(parts) if pd.notna(to_numeric_safe(p))), 0.0)
+        is_mano_de_obra = any(
+            description.upper().startswith(kw) for kw in ["M.O.", "SISO", "INGENIERO"]
+        )
+        valor_total = next(
+            (to_numeric_safe(p) for p in reversed(parts) if pd.notna(to_numeric_safe(p))),
+            0.0,
+        )
         cantidad = to_numeric_safe(parts[2]) if len(parts) > 2 else 0.0
         precio_unit = to_numeric_safe(parts[4]) if len(parts) > 4 else 0.0
         if (pd.isna(cantidad) or cantidad == 0) and valor_total > 0:
-             cantidad = 1
-             precio_unit = valor_total
+            cantidad = 1
+            precio_unit = valor_total
         if (pd.isna(precio_unit) or precio_unit == 0) and valor_total > 0 and cantidad > 0:
             precio_unit = valor_total / cantidad
         if is_mano_de_obra and len(parts) >= 6:
@@ -355,8 +362,10 @@ def process_apus_csv_v2(path: str) -> pd.DataFrame:
                 if pd.notna(precio_unit) and precio_unit > 0:
                     cantidad = valor_total / precio_unit
         return {
-            "CODIGO_APU": context["apu_code"], "DESCRIPCION_APU": context["apu_desc"],
-            "DESCRIPCION_INSUMO": description, "UNIDAD": parts[1] if len(parts) > 1 else "UND",
+            "CODIGO_APU": context["apu_code"],
+            "DESCRIPCION_APU": context["apu_desc"],
+            "DESCRIPCION_INSUMO": description,
+            "UNIDAD": parts[1] if len(parts) > 1 else "UND",
             "CANTIDAD_APU": cantidad if pd.notna(cantidad) else 0,
             "PRECIO_UNIT_APU": precio_unit if pd.notna(precio_unit) else 0,
             "VALOR_TOTAL_APU": valor_total if pd.notna(valor_total) else 0,
@@ -368,7 +377,8 @@ def process_apus_csv_v2(path: str) -> pd.DataFrame:
         with open(path, "r", encoding="latin1") as f:
             for line in f:
                 line = line.strip()
-                if not line: continue
+                if not line:
+                    continue
 
                 # Prioridad 1: Líneas de "ITEM:" que definen un nuevo APU
                 if "ITEM:" in line.upper():
@@ -378,14 +388,15 @@ def process_apus_csv_v2(path: str) -> pd.DataFrame:
                         # La descripción es la última línea significativa que guardamos
                         current_context["apu_desc"] = potential_apu_desc
                         current_context["category"] = "INDEFINIDO"
-                        potential_apu_desc = "" # Reiniciamos para el próximo APU
+                        potential_apu_desc = ""  # Reiniciamos para el próximo APU
                     continue
 
                 # Usar csv.reader para un parseo robusto
                 parts = next(csv.reader([line], delimiter=delimiter, quotechar='"'))
                 parts = [p.strip() for p in parts]
 
-                # Solución al problema del delimitador inicial: si la primera parte está vacía, la omitimos.
+                # Solución al problema del delimitador inicial:
+                # si la primera parte está vacía, la omitimos.
                 if len(parts) > 1 and not parts[0]:
                     parts = parts[1:]
 
@@ -397,22 +408,29 @@ def process_apus_csv_v2(path: str) -> pd.DataFrame:
                     continue
 
                 # Prioridad 3: Líneas de Datos (Insumo)
-                is_data_line = (current_context["apu_code"] and len(parts) >= 3 and parts[0] and
-                                "SUBTOTAL" not in parts[0].upper() and "COSTO DIRECTO" not in parts[0].upper() and
-                                pd.notna(to_numeric_safe(parts[2])))
+                is_data_line = (
+                    current_context["apu_code"]
+                    and len(parts) >= 3
+                    and parts[0]
+                    and "SUBTOTAL" not in parts[0].upper()
+                    and "COSTO DIRECTO" not in parts[0].upper()
+                    and pd.notna(to_numeric_safe(parts[2]))
+                )
 
                 if is_data_line:
                     data_row = parse_data_line(parts, current_context)
-                    if data_row: apus_data.append(data_row)
+                    if data_row:
+                        apus_data.append(data_row)
                     continue
 
-                # Prioridad 4: Si no es nada de lo anterior, es una posible descripción de APU
-                # Buscamos la primera parte con contenido real para guardarla como descripción.
+                # Prioridad 4: Si no es nada de lo anterior, es una posible
+                # descripción de APU. Buscamos la primera parte con contenido real
+                # para guardarla como descripción.
                 if parts:
                     for part in parts:
-                        if re.search(r'[a-zA-Z0-9]', part):
+                        if re.search(r"[a-zA-Z0-9]", part):
                             potential_apu_desc = part
-                            break # Usamos la primera que encontramos
+                            break  # Usamos la primera que encontramos
 
     except Exception as e:
         logger.error(f"Error fatal procesando APUs en {path}: {e}", exc_info=True)

@@ -1,0 +1,115 @@
+.2025-09-16 07:44:12,049 - INFO - Cache miss.
+2025-09-16 07:44:12,050 - INFO - Procesando archivos: test_uploads/913af50d-83c7-4fae-b384-3f8a573f2968/presupuesto_1758026652_presupuesto.csv, test_uploads/913af50d-83c7-4fae-b384-3f8a573f2968/apus_1758026652_apus.csv, test_uploads/913af50d-83c7-4fae-b384-3f8a573f2968/insumos_1758026652_insumos.csv
+2025-09-16 07:44:12,058 - INFO - Éxito al leerpresupuesto_1758026652_presupuesto.csv con encoding 'latin1'y delimitador ';'
+2025-09-16 07:44:12,069 - INFO - Tipos de datos optimizados con PyArrow para test_uploads/913af50d-83c7-4fae-b384-3f8a573f2968/presupuesto_1758026652_presupuesto.csv
+2025-09-16 07:44:12,270 - INFO - Diagnóstico: 4 de 4 ítems del presupuesto encontraron su costo.
+2025-09-16 07:44:12,302 - INFO - --- Procesamiento completado ---
+2025-09-16 07:44:12,319 - INFO - Cache info: hits=0, misses=1, size=1
+.2025-09-16 07:44:12,353 - INFO - Cache miss.
+2025-09-16 07:44:12,354 - INFO - Procesando archivos: test_uploads/e26a4d52-2f5f-4aa5-9d41-35cac862b8c2/presupuesto_1758026652_presupuesto.csv, test_uploads/e26a4d52-2f5f-4aa5-9d41-35cac862b8c2/apus_1758026652_apus.csv, test_uploads/e26a4d52-2f5f-4aa5-9d41-35cac862b8c2/insumos_1758026652_insumos.csv
+2025-09-16 07:44:12,366 - INFO - Éxito al leerpresupuesto_1758026652_presupuesto.csv con encoding 'latin1'y delimitador ';'
+2025-09-16 07:44:12,370 - INFO - Tipos de datos optimizados con PyArrow para test_uploads/e26a4d52-2f5f-4aa5-9d41-35cac862b8c2/presupuesto_1758026652_presupuesto.csv
+2025-09-16 07:44:12,546 - INFO - Diagnóstico: 4 de 4 ítems del presupuesto encontraron su costo.
+2025-09-16 07:44:12,572 - INFO - --- Procesamiento completado ---
+2025-09-16 07:44:12,580 - INFO - Cache info: hits=0, misses=2, size=2
+/home/gerardo/Documentos/GitHub/apu_filter/app/procesador_csv.py:704: UserWarning: This pattern is interpreted as a regular expression, and has match groups. To actually get the groups, use str.extract.
+  df_apus_unique["DESC_NORMALIZED"].str.contains(suministro_search_terms, regex=True)
+F2025-09-16 07:44:12,613 - INFO - Cache miss.
+2025-09-16 07:44:12,614 - INFO - Procesando archivos: test_uploads/18d380f1-521b-4c69-b97c-24b4c9fdca6b/presupuesto_1758026652_presupuesto.csv, test_uploads/18d380f1-521b-4c69-b97c-24b4c9fdca6b/apus_1758026652_apus.csv, test_uploads/18d380f1-521b-4c69-b97c-24b4c9fdca6b/insumos_1758026652_insumos.csv
+2025-09-16 07:44:12,620 - INFO - Éxito al leerpresupuesto_1758026652_presupuesto.csv con encoding 'latin1'y delimitador ';'
+2025-09-16 07:44:12,628 - INFO - Tipos de datos optimizados con PyArrow para test_uploads/18d380f1-521b-4c69-b97c-24b4c9fdca6b/presupuesto_1758026652_presupuesto.csv
+2025-09-16 07:44:12,737 - INFO - Diagnóstico: 4 de 4 ítems del presupuesto encontraron su costo.
+2025-09-16 07:44:12,767 - INFO - --- Procesamiento completado ---
+2025-09-16 07:44:12,775 - INFO - Cache info: hits=0, misses=3, size=3
+.2025-09-16 07:44:12,800 - INFO - Cache miss.
+2025-09-16 07:44:12,800 - INFO - Procesando archivos: test_presupuesto.csv, test_apus.csv, test_insumos.csv
+2025-09-16 07:44:12,810 - INFO - Éxito al leertest_presupuesto.csv con encoding 'latin1'y delimitador ';'
+2025-09-16 07:44:12,814 - INFO - Tipos de datos optimizados con PyArrow para test_presupuesto.csv
+2025-09-16 07:44:12,933 - INFO - Diagnóstico: 4 de 4 ítems del presupuesto encontraron su costo.
+2025-09-16 07:44:12,960 - INFO - --- Procesamiento completado ---
+2025-09-16 07:44:12,967 - INFO - Cache info: hits=0, misses=1, size=1
+2025-09-16 07:44:12,968 - INFO - Cache info: hits=1, misses=1, size=1
+2025-09-16 07:44:12,968 - INFO - Caché limpiado forzosamente y procesando sin caché.
+2025-09-16 07:44:12,968 - INFO - Procesando archivos: test_presupuesto.csv, test_apus.csv, test_insumos.csv
+2025-09-16 07:44:12,973 - INFO - Éxito al leertest_presupuesto.csv con encoding 'latin1'y delimitador ';'
+2025-09-16 07:44:12,976 - INFO - Tipos de datos optimizados con PyArrow para test_presupuesto.csv
+2025-09-16 07:44:13,108 - INFO - Diagnóstico: 4 de 4 ítems del presupuesto encontraron su costo.
+2025-09-16 07:44:13,140 - INFO - --- Procesamiento completado ---
+.2025-09-16 07:44:13,151 - INFO - Cache miss.
+2025-09-16 07:44:13,151 - INFO - Procesando archivos: test_presupuesto.csv, test_apus.csv, test_insumos.csv
+2025-09-16 07:44:13,156 - INFO - Éxito al leertest_presupuesto.csv con encoding 'latin1'y delimitador ';'
+2025-09-16 07:44:13,160 - INFO - Tipos de datos optimizados con PyArrow para test_presupuesto.csv
+2025-09-16 07:44:13,288 - INFO - Diagnóstico: 4 de 4 ítems del presupuesto encontraron su costo.
+2025-09-16 07:44:13,311 - INFO - --- Procesamiento completado ---
+2025-09-16 07:44:13,319 - INFO - Cache info: hits=0, misses=1, size=1
+/home/gerardo/Documentos/GitHub/apu_filter/app/procesador_csv.py:704: UserWarning: This pattern is interpreted as a regular expression, and has match groups. To actually get the groups, use str.extract.
+  df_apus_unique["DESC_NORMALIZED"].str.contains(suministro_search_terms, regex=True)
+F2025-09-16 07:44:13,375 - INFO - Cache miss.
+2025-09-16 07:44:13,375 - INFO - Procesando archivos: test_presupuesto_comma.csv, test_apus_comma.csv, test_insumos_comma.csv
+2025-09-16 07:44:13,438 - INFO - Éxito al leertest_presupuesto_comma.csv con encoding 'latin1'y delimitador ','
+2025-09-16 07:44:13,446 - INFO - Tipos de datos optimizados con PyArrow para test_presupuesto_comma.csv
+2025-09-16 07:44:13,607 - INFO - Diagnóstico: 4 de 4 ítems del presupuesto encontraron su costo.
+2025-09-16 07:44:13,646 - INFO - --- Procesamiento completado ---
+2025-09-16 07:44:13,661 - INFO - Cache info: hits=0, misses=1, size=1
+F2025-09-16 07:44:13,669 - INFO - Cache miss.
+2025-09-16 07:44:13,670 - INFO - Procesando archivos: test_presupuesto.csv, test_apus.csv, test_insumos.csv
+2025-09-16 07:44:13,676 - INFO - Éxito al leertest_presupuesto.csv con encoding 'latin1'y delimitador ';'
+2025-09-16 07:44:13,681 - INFO - Tipos de datos optimizados con PyArrow para test_presupuesto.csv
+2025-09-16 07:44:13,839 - INFO - Diagnóstico: 4 de 4 ítems del presupuesto encontraron su costo.
+2025-09-16 07:44:13,958 - INFO - --- Procesamiento completado ---
+2025-09-16 07:44:13,976 - INFO - Cache info: hits=0, misses=1, size=1
+F...2025-09-16 07:44:14,060 - ERROR - No se pudo leer non_existent_file.csv con ninguna combinación.
+2025-09-16 07:44:14,075 - INFO - Éxito al leertest_encoding.csv con encoding 'latin1'y delimitador ';'
+2025-09-16 07:44:14,081 - INFO - Tipos de datos optimizados con PyArrow para test_encoding.csv
+2025-09-16 07:44:14,614 - INFO - Éxito al leer Excel test.xlsx
+2025-09-16 07:44:14,616 - INFO - Tipos de datos optimizados con PyArrow para test.xlsx
+.
+======================================================================
+FAIL: test_07_get_estimate_with_session (__main__.TestAppEndpoints.test_07_get_estimate_with_session)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/gerardo/.local/share/uv/python/cpython-3.12.11-linux-x86_64-gnu/lib/python3.12/unittest/mock.py", line 1396, in patched
+    return func(*newargs, **newkeywargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gerardo/Documentos/GitHub/apu_filter/tests/test_app.py", line 355, in test_07_get_estimate_with_session
+    self.assertEqual(response.status_code, 200)
+AssertionError: 404 != 200
+
+======================================================================
+FAIL: test_calculate_estimate (__main__.TestCSVProcessor.test_calculate_estimate)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/gerardo/.local/share/uv/python/cpython-3.12.11-linux-x86_64-gnu/lib/python3.12/unittest/mock.py", line 1396, in patched
+    return func(*newargs, **newkeywargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gerardo/Documentos/GitHub/apu_filter/tests/test_app.py", line 289, in test_calculate_estimate
+    self.assertNotIn("error", result)
+AssertionError: 'error' unexpectedly found in {'error': 'No se encontró un APU de instalación que coincida con todos los criterios.', 'log': "Parámetros de entrada: {'tipo': 'CUBIERTA', 'material': 'TST', 'cuadrilla': '5'}\nParámetros mapeados: material='TEJA SENCILLA', tipo='INSTALACION'\n\n--- BÚSQUEDA DE SUMINISTRO ---\nTérminos de búsqueda para suministro: '(SOLO LAMINA|SUMINISTRO DE).*TEJA SENCILLA'\nEncontrados 0 candidatos para suministro.\nADVERTENCIA: No se encontró un APU de suministro directo. Iniciando fallback a insumos.\nERROR (Fallback): Material no encontrado en lista de insumos.\n\n--- BÚSQUEDA DE INSTALACIÓN ---\nPaso A: 0 APUs encontrados con 'MANO DE OBRA' e 'INSTALACION'.\nPaso B: 0APUs restantes tras filtrar por 'TEJA SENCILLA'.\nPaso C: 0 APUs restantes tras filtrar por 'CUADRILLA DE 5'.\nERROR: No se encontró un APU de instalación que coincida con todos los criterios."}
+
+======================================================================
+FAIL: test_process_all_files_comma_delimited (__main__.TestCSVProcessor.test_process_all_files_comma_delimited)
+Prueba el procesamiento de archivos CSV delimitados por comas.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/gerardo/.local/share/uv/python/cpython-3.12.11-linux-x86_64-gnu/lib/python3.12/unittest/mock.py", line 1396, in patched
+    return func(*newargs, **newkeywargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gerardo/Documentos/GitHub/apu_filter/tests/test_app.py", line 261, in test_process_all_files_comma_delimited
+    self.assertAlmostEqual(item1["VALOR_CONSTRUCCION_UN"], 155.0)
+AssertionError: 0.0 != 155.0 within 7 places (155.0 difference)
+
+======================================================================
+FAIL: test_process_all_files_structure_and_calculations (__main__.TestCSVProcessor.test_process_all_files_structure_and_calculations)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/gerardo/.local/share/uv/python/cpython-3.12.11-linux-x86_64-gnu/lib/python3.12/unittest/mock.py", line 1396, in patched
+    return func(*newargs, **newkeywargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gerardo/Documentos/GitHub/apu_filter/tests/test_app.py", line 203, in test_process_all_files_structure_and_calculations
+    self.assertAlmostEqual(item1["VALOR_CONSTRUCCION_UN"], 155.0)
+AssertionError: 0.0 != 155.0 within 7 places (155.0 difference)
+
+----------------------------------------------------------------------
+Ran 12 tests in 2.629s
+
+FAILED (failures=4)
