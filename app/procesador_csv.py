@@ -328,12 +328,11 @@ def get_file_hash(path: str) -> str:
 def process_apus_csv_v2(path: str) -> pd.DataFrame:
     """
     Parsea un archivo de APUs con formato de "reporte de texto" utilizando una
-    lógica de contexto explícita y robusta. VERSIÓN REFACTORIZADA.
+    lógica de "máquina de estados" por bloques para ser inmune a las
+    inconsistencias del formato.
     """
     apus_data = []
-    current_context = {"apu_code": None, "apu_desc": None, "category": "INDEFINIDO"}
     category_keywords = config.get("category_keywords", {})
-    potential_apu_desc = ""
 
     def to_numeric_safe(s: str):
         if isinstance(s, (int, float)):
@@ -349,13 +348,16 @@ def process_apus_csv_v2(path: str) -> pd.DataFrame:
         no numéricos para cantidad y precio, que se convierten en 0.
         """
         description = parts[0].strip()
+        # El valor total es el último valor numérico parseable en la línea
         valor_total = next(
             (to_numeric_safe(p) for p in reversed(parts) if pd.notna(to_numeric_safe(p))),
             0.0,
         )
+        # Asumir posiciones para cantidad y precio unitario, con fallbacks
         cantidad = to_numeric_safe(parts[2]) if len(parts) > 2 else 0.0
         precio_unit = to_numeric_safe(parts[4]) if len(parts) > 4 else 0.0
 
+        # Lógica de cálculo cruzado si falta un valor
         if (
             (pd.isna(precio_unit) or precio_unit == 0)
             and valor_total > 0
@@ -383,69 +385,69 @@ def process_apus_csv_v2(path: str) -> pd.DataFrame:
         }
 
     try:
-        delimiter = detect_delimiter(path)
         with open(path, "r", encoding="latin1") as f:
-            for line in f:
-                line = line.strip()
-                if not line:
+            lines = [line.strip() for line in f.readlines()]
+
+        delimiter = detect_delimiter(path)
+
+        for i, line in enumerate(lines):
+            if "ITEM:" in line.upper():
+                # --- INICIO DE BLOQUE DE APU ---
+                match = re.search(r"ITEM:\s*([\d,\.]*)", line.upper())
+                if not (match and match.group(1).strip()):
                     continue
 
-                # Prioridad 1: Identificar la línea de ITEM
-                if "ITEM:" in line.upper():
-                    match = re.search(r"ITEM:\s*([\d,\.]*)", line.upper())
-                    if match and match.group(1).strip():
-                        apu_code = match.group(1).strip().rstrip(".,")
+                context = {"apu_code": None, "apu_desc": None, "category": "INDEFINIDO"}
+                context["apu_code"] = match.group(1).strip().rstrip(".,")
 
-                        # El contexto se consolida aquí
-                        current_context["apu_code"] = apu_code
-                        current_context["apu_desc"] = potential_apu_desc
-                        current_context["category"] = (
-                            "INDEFINIDO"  # Resetear categoría para el nuevo APU
-                        )
-                        potential_apu_desc = ""  # Limpiar para el próximo APU
-                    continue
+                # Búsqueda hacia atrás de la descripción del APU
+                apu_desc = ""
+                for j in range(i - 1, -1, -1):
+                    prev_line = lines[j]
+                    if not prev_line.strip():
+                        continue  # Ignorar líneas vacías
 
-                # Usar csv.reader para manejar correctamente las comillas
-                parts = next(csv.reader([line], delimiter=delimiter, quotechar='"'))
-                parts = [p.strip() for p in parts]
-                if not any(parts):
-                    continue
+                    # Heurística: si la línea no es una categoría, es la descripción
+                    clean_prev_line = prev_line.replace(";", "").strip().upper()
+                    if clean_prev_line not in category_keywords:
+                        apu_desc = prev_line.split(";")[0].strip()
+                        break
+                context["apu_desc"] = apu_desc
 
-                # Prioridad 2: Identificar línea de CATEGORÍA
-                line_content_for_check = "".join(parts).upper()
-                is_category = len(parts) < 4 and line_content_for_check in category_keywords
-                if is_category:
-                    current_context["category"] = category_keywords[line_content_for_check]
-                    continue
+                # --- SUB-BUCLE PARA PROCESAR INSUMOS DEL APU ACTUAL ---
+                for j in range(i + 1, len(lines)):
+                    sub_line = lines[j]
+                    if "ITEM:" in sub_line.upper():
+                        break  # Fin del bloque del APU actual
 
-                # Prioridad 3: Identificar línea de DATOS
-                description_present = (len(parts) > 0 and parts[0]) or (
-                    len(parts) > 1 and parts[1]
-                )
-                is_data_line = (
-                    current_context["apu_code"] is not None
-                    and description_present
-                    and len(parts) >= 3
-                    and sum(1 for p in parts if p.strip()) > 1
-                    and "SUBTOTAL" not in line.upper()
-                    and "COSTO DIRECTO" not in line.upper()
-                )
-                if is_data_line:
-                    # Si la primera columna está vacía, es un offset.
-                    # Pasamos la lista a partir del segundo elemento.
-                    if not parts[0] and len(parts) > 1:
-                        data_row = parse_data_line(parts[1:], current_context)
-                    else:
-                        data_row = parse_data_line(parts, current_context)
+                    if not sub_line.strip():
+                        continue
 
-                    if data_row:
-                        apus_data.append(data_row)
-                    continue
+                    parts = next(csv.reader([sub_line], delimiter=delimiter, quotechar='"'))
+                    parts = [p.strip() for p in parts]
+                    if not any(parts):
+                        continue
 
-                # Fallback: Tratar como línea de DESCRIPCIÓN
-                if parts and parts[0]:
-                    # Acumular en caso de descripciones multilínea
-                    potential_apu_desc = (potential_apu_desc + " " + parts[0]).strip()
+                    line_content_for_check = "".join(parts).upper()
+
+                    # Comprobar si es una línea de categoría
+                    if len(parts) < 4 and line_content_for_check in category_keywords:
+                        context["category"] = category_keywords[line_content_for_check]
+                        continue
+
+                    # Comprobar si es una línea de datos/insumo
+                    is_data_line = (
+                        len(parts) >= 3
+                        and sum(1 for p in parts if p.strip()) >= 3 # Al menos 3 columnas con datos
+                        and "SUBTOTAL" not in line_content_for_check
+                        and "COSTO DIRECTO" not in line_content_for_check
+                        and "DESCRIPCION" not in line_content_for_check
+                    )
+
+                    if is_data_line:
+                        data_row = parse_data_line(parts, context)
+                        if data_row:
+                            apus_data.append(data_row)
 
     except Exception as e:
         logger.error(f"Error fatal procesando APUs en {path}: {e}", exc_info=True)
