@@ -306,7 +306,9 @@ class TestCSVProcessor(unittest.TestCase):
 
     @patch("app.procesador_csv.config", new_callable=lambda: TEST_CONFIG)
     def test_process_apus_with_malformed_code(self, mock_config):
-        """Prueba que un CODIGO_APU con comas o puntos extra al final se limpie correctamente."""
+        """
+        Prueba que un CODIGO_APU con comas o puntos extra al final se limpie correctamente.
+        """
         MALFORMED_APUS_DATA = (
             "REMATE CON PINTURA;;;;;\n"
             ";;;;;ITEM:   1,1,,\n"  # Código malformado
