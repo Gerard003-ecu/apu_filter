@@ -10,10 +10,19 @@ from typing import Dict, List, Optional, Union
 import numpy as np
 import pandas as pd
 from unidecode import unidecode
+from fuzzywuzzy import process
 
 # Configurar logging
 logging.basicConfig(level=logging.DEBUG, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
+
+
+def encontrar_mejor_coincidencia(texto, opciones, umbral=70):
+    """Encuentra la mejor coincidencia de texto en una lista de opciones usando fuzzy matching."""
+    if not texto or not opciones:
+        return None
+    coincidencia, puntaje = process.extractOne(texto, opciones)
+    return coincidencia if puntaje >= umbral else None
 
 
 def detect_delimiter(file_path: str) -> str:
@@ -728,13 +737,23 @@ def calculate_estimate(
     tipo_mapped = _normalize(param_map.get("tipo", {}).get(tipo, tipo))
     log.append(f"Parámetros mapeados: material='{material_mapped}', tipo='{tipo_mapped}'")
 
-    # --- 1. Búsqueda de Suministro (Refactorizada) ---
+    # --- 1. Búsqueda de Suministro (Refactorizada con Fuzzy-Matching) ---
     log.append("\n--- BÚSQUEDA DE SUMINISTRO ---")
-    suministro_search_terms = f"(?:SOLO LAMINA|SUMINISTRO DE).*{material_mapped}"
-    log.append(f"Términos de búsqueda para suministro: '{suministro_search_terms}'")
-    suministro_candidates = df_apus_unique[
-        df_apus_unique["DESC_NORMALIZED"].str.contains(suministro_search_terms, regex=True)
-    ]
+    opciones_suministro = df_apus_unique["DESC_NORMALIZED"].tolist()
+    log.append(
+        f"Buscando la mejor coincidencia para '{material_mapped}' en {len(opciones_suministro)} opciones."
+    )
+    mejor_coincidencia = encontrar_mejor_coincidencia(material_mapped, opciones_suministro)
+
+    suministro_candidates = pd.DataFrame()  # Inicializar como vacío
+    if mejor_coincidencia:
+        suministro_candidates = df_apus_unique[
+            df_apus_unique["DESC_NORMALIZED"] == mejor_coincidencia
+        ]
+        log.append(f"Mejor coincidencia encontrada: '{mejor_coincidencia}'")
+    else:
+        log.append("No se encontró una buena coincidencia para el suministro.")
+
     log.append(f"Encontrados {len(suministro_candidates)} candidatos para suministro.")
 
     apu_suministro_desc = ""

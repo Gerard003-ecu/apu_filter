@@ -3,3 +3,5 @@ pandas
 openpyxl
 unidecode
 pyarrow
+fuzzywuzzy
+python-Levenshtein
