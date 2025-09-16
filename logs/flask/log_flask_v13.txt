@@ -1,0 +1,16 @@
+ * Serving Flask app 'app/app.py'
+ * Debug mode: off
+2025-09-16 10:21:20,359 - INFO - WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
+ * Running on http://127.0.0.1:5002
+2025-09-16 10:21:20,361 - INFO - Press CTRL+C to quit
+2025-09-16 10:21:23,949 - INFO - 127.0.0.1 - - [16/Sep/2025 10:21:23] "GET / HTTP/1.1" 200 -
+2025-09-16 10:21:38,322 - INFO - Cache miss.
+2025-09-16 10:21:38,323 - INFO - Procesando archivos: /home/gerardo/Documentos/GitHub/apu_filter/uploads/edf3bc00-8857-43bf-ba1d-6643958406d4/presupuesto_1758036098_presupuesto.csv, /home/gerardo/Documentos/GitHub/apu_filter/uploads/edf3bc00-8857-43bf-ba1d-6643958406d4/apus_1758036098_apus.csv, /home/gerardo/Documentos/GitHub/apu_filter/uploads/edf3bc00-8857-43bf-ba1d-6643958406d4/insumos_1758036098_insumos.csv
+2025-09-16 10:21:38,341 - INFO - Éxito al leerpresupuesto_1758036098_presupuesto.csv con encoding 'latin1'y delimitador ';'
+2025-09-16 10:21:38,391 - INFO - Tipos de datos optimizados con PyArrow para /home/gerardo/Documentos/GitHub/apu_filter/uploads/edf3bc00-8857-43bf-ba1d-6643958406d4/presupuesto_1758036098_presupuesto.csv
+2025-09-16 10:21:38,913 - INFO - Diagnóstico: 77 de 77 ítems del presupuesto encontraron su costo.
+2025-09-16 10:21:38,943 - INFO - --- Procesamiento completado ---
+2025-09-16 10:21:39,021 - INFO - Cache info: hits=0, misses=1, size=1
+2025-09-16 10:21:39,028 - INFO - 127.0.0.1 - - [16/Sep/2025 10:21:39] "POST /upload HTTP/1.1" 200 -
+2025-09-16 10:21:39,382 - INFO - 127.0.0.1 - - [16/Sep/2025 10:21:39] "POST /api/estimate HTTP/1.1" 404 -
+2025-09-16 10:21:39,403 - INFO - 127.0.0.1 - - [16/Sep/2025 10:21:39] "POST /api/estimate HTTP/1.1" 404 -
