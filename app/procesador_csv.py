@@ -1,7 +1,7 @@
+import csv
 import hashlib
 import json
 import logging
-import csv
 import os
 import re
 from functools import lru_cache
@@ -325,7 +325,9 @@ def process_apus_csv_v2(path: str) -> pd.DataFrame:
 
         # Detección de delimitador
         sample = "".join(lines[:50])
-        delimiter = "," if sample.count('"') > 20 and sample.count(',') > sample.count(';') else ";"
+        delimiter = (
+            "," if sample.count('"') > 20 and sample.count(",") > sample.count(";") else ";"
+        )
         logger.info(f"Detectado el delimitador '{delimiter}' para el archivo {path}")
 
         last_non_empty_line = ""
@@ -335,7 +337,9 @@ def process_apus_csv_v2(path: str) -> pd.DataFrame:
                 continue
 
             # La lógica para categorías y 'ITEM:' debe manejar ambos delimitadores
-            clean_line_upper = line.replace(";", "").replace(",", "").replace('"', "").strip().upper()
+            clean_line_upper = (
+                line.replace(";", "").replace(",", "").replace('"', "").strip().upper()
+            )
             if clean_line_upper in category_keywords:
                 current_context["category"] = category_keywords[clean_line_upper]
                 continue
@@ -347,26 +351,36 @@ def process_apus_csv_v2(path: str) -> pd.DataFrame:
                     desc_on_same_line = ""
                     if delimiter == ",":
                         try:
-                            desc_on_same_line = next(csv.reader([line], delimiter=',', quotechar='"'))[0].strip()
+                            desc_on_same_line = next(
+                                csv.reader([line], delimiter=",", quotechar='"')
+                            )[0].strip()
                         except (csv.Error, StopIteration, IndexError):
-                            pass # Ignorar errores de parsing en esta línea
+                            pass  # Ignorar errores de parsing en esta línea
                     else:
-                        desc_on_same_line = line.split(';')[0].strip()
+                        desc_on_same_line = line.split(";")[0].strip()
 
-                    if desc_on_same_line and not desc_on_same_line.upper().startswith("REMATE"):
+                    if desc_on_same_line and not desc_on_same_line.upper().startswith(
+                        "REMATE"
+                    ):
                         current_context["apu_desc"] = desc_on_same_line
                     else:
                         last_desc = ""
                         if last_non_empty_line:
                             if delimiter == ",":
                                 try:
-                                    last_parts = next(csv.reader([last_non_empty_line], delimiter=',', quotechar='"'))
+                                    last_parts = next(
+                                        csv.reader(
+                                            [last_non_empty_line],
+                                            delimiter=",",
+                                            quotechar='"',
+                                        )
+                                    )
                                     if last_parts:
                                         last_desc = last_parts[0].strip()
                                 except (csv.Error, StopIteration, IndexError):
                                     pass
                             else:
-                                last_desc = last_non_empty_line.split(';')[0].strip()
+                                last_desc = last_non_empty_line.split(";")[0].strip()
                         current_context["apu_desc"] = last_desc
                 continue
 
@@ -377,7 +391,12 @@ def process_apus_csv_v2(path: str) -> pd.DataFrame:
                 try:
                     if delimiter == ",":
                         if '"' in line:
-                            reader = csv.reader([line], delimiter=delimiter, quotechar='"', skipinitialspace=True)
+                            reader = csv.reader(
+                                [line],
+                                delimiter=delimiter,
+                                quotechar='"',
+                                skipinitialspace=True,
+                            )
                             parts = [p.strip() for p in next(reader)]
                     else:
                         if ";" in line:
