@@ -230,40 +230,58 @@ def process_apus_csv_v2(path: str) -> pd.DataFrame:
 
     def parse_data_line(parts, context):
         """
-        Parsea una línea de datos de un APU con una lógica de búsqueda robusta
-        para el valor total.
+        Parsea una línea de datos de un APU, distinguiendo entre Mano de Obra
+        y otros tipos de insumos.
         """
         if not parts or not parts[0]:
             return None
 
-        description = parts[0]
+        description = parts[0].strip()
+        description_upper = description.upper()
+        is_mano_de_obra = any(
+            description_upper.startswith(keyword)
+            for keyword in ["M.O.", "SISO", "INGENIERO"]
+        )
+
         unidad = parts[1] if len(parts) > 1 else "UND"
-        cantidad = to_numeric_safe(parts[2]) if len(parts) > 2 else pd.NA
-        precio_unit = to_numeric_safe(parts[4]) if len(parts) > 4 else pd.NA
+        cantidad = pd.NA
+        precio_unit = pd.NA
         valor_total = pd.NA
 
-        # 1. Búsqueda robusta del VALOR TOTAL
-        # Intenta leer desde la columna 6 (índice 5)
-        if len(parts) > 5:
-            valor_total = to_numeric_safe(parts[5])
+        if is_mano_de_obra:
+            # Lógica específica para Mano de Obra
+            valor_total = to_numeric_safe(parts[5]) if len(parts) > 5 else pd.NA
+            precio_unit = to_numeric_safe(parts[3]) if len(parts) > 3 else pd.NA
 
-        # Si falla, busca hacia atrás desde el final de la línea
-        if pd.isna(valor_total):
-            for part in reversed(parts):
-                numeric_val = to_numeric_safe(part)
-                if pd.notna(numeric_val) and numeric_val != 0:
-                    valor_total = numeric_val
-                    break  # Tomar el primer valor numérico válido
+            if pd.notna(valor_total) and pd.notna(precio_unit) and precio_unit != 0:
+                cantidad = valor_total / precio_unit
+            else:
+                cantidad = to_numeric_safe(parts[2]) if len(parts) > 2 else pd.NA
 
-        # 2. Recalcular PRECIO UNITARIO si es necesario y posible
-        if pd.notna(valor_total) and pd.notna(cantidad) and cantidad != 0:
-            # Si el precio unitario es nulo o cero, se recalcula
-            if pd.isna(precio_unit) or precio_unit == 0:
-                precio_unit = valor_total / cantidad
+        else:
+            # Lógica existente para Materiales, Equipos, etc.
+            cantidad = to_numeric_safe(parts[2]) if len(parts) > 2 else pd.NA
+            precio_unit = to_numeric_safe(parts[4]) if len(parts) > 4 else pd.NA
 
-        # 3. Si valor_total sigue siendo nulo, intentar calcularlo desde cantidad y precio
-        if pd.isna(valor_total) and pd.notna(cantidad) and pd.notna(precio_unit):
-            valor_total = cantidad * precio_unit
+            # Búsqueda robusta del VALOR TOTAL
+            if len(parts) > 5:
+                valor_total = to_numeric_safe(parts[5])
+
+            if pd.isna(valor_total):
+                for part in reversed(parts):
+                    numeric_val = to_numeric_safe(part)
+                    if pd.notna(numeric_val) and numeric_val != 0:
+                        valor_total = numeric_val
+                        break
+
+            # Recalcular PRECIO UNITARIO si es necesario
+            if pd.notna(valor_total) and pd.notna(cantidad) and cantidad != 0:
+                if pd.isna(precio_unit) or precio_unit == 0:
+                    precio_unit = valor_total / cantidad
+
+            # Calcular VALOR TOTAL si es necesario
+            if pd.isna(valor_total) and pd.notna(cantidad) and pd.notna(precio_unit):
+                valor_total = cantidad * precio_unit
 
         return {
             "CODIGO_APU": context["apu_code"],
