@@ -608,6 +608,47 @@ def _do_processing(presupuesto_path, apus_path, insumos_path):
                     group[["Descripción", "Vr Unitario"]].dropna().to_dict("records")
                 )
     logger.info("--- Procesamiento completado ---")
+
+    # Reemplazar NaN por None para evitar problemas de serialización JSON
+    df_final = df_final.replace({np.nan: None})
+    df_merged_renamed = df_merged_renamed.replace({np.nan: None})
+    df_apus = df_apus.replace({np.nan: None})
+    df_insumos = df_insumos.replace({np.nan: None})
+
+    # Actualizar los diccionarios después de la limpieza
+    apus_detail = {
+        n: g[
+            [
+                "DESCRIPCION",
+                "UNIDAD",
+                "CANTIDAD",
+                "VALOR_UNITARIO",
+                "VALOR_TOTAL",
+                "CATEGORIA",
+            ]
+        ]
+        .replace({np.nan: None})
+        .to_dict("records")
+        for n, g in df_merged_renamed.groupby("CODIGO_APU")
+    }
+
+    insumos_dict = {}
+    if "GRUPO_INSUMO" in df_insumos.columns:
+        df_insumos_renamed = df_insumos.rename(
+            columns={
+                "DESCRIPCION_INSUMO": "Descripción",
+                "VR_UNITARIO_INSUMO": "Vr Unitario",
+            }
+        )
+        for name, group in df_insumos_renamed.groupby("GRUPO_INSUMO"):
+            if name and isinstance(name, str):
+                insumos_dict[name.strip()] = (
+                    group[["Descripción", "Vr Unitario"]]
+                    .replace({np.nan: None})
+                    .dropna()
+                    .to_dict("records")
+                )
+
     return {
         "presupuesto": df_final.to_dict("records"),
         "insumos": insumos_dict,
