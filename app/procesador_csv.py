@@ -379,7 +379,10 @@ def process_apus_csv_v2(path: str) -> pd.DataFrame:
                 if "ITEM:" in line.upper():
                     match = re.search(r"ITEM:\s*([\d,\.]*)", line.upper())
                     if match and match.group(1).strip():
-                        current_context["apu_code"] = match.group(1).strip()
+                        apu_code = match.group(1).strip()
+                        # Limpiar puntos o comas extra al final del código
+                        apu_code = apu_code.rstrip('.,')
+                        current_context["apu_code"] = apu_code
                         current_context["apu_desc"] = potential_apu_desc
                         current_context["category"] = "INDEFINIDO"
                         potential_apu_desc = ""  # Reiniciar
