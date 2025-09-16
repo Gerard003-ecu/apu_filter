@@ -214,7 +214,9 @@ def get_apu_detail(code):
 @app.route("/api/estimate", methods=["POST"])
 def get_estimate():
     """Endpoint mejorado para estimaciones con validación robusta y logging."""
-    app.logger.info(f"Solicitud POST a /api/estimate con sesión: {session.get('session_id')}")
+    app.logger.info(
+        f"Solicitud POST a /api/estimate con sesión: {session.get('session_id')}"
+    )
     user_data, error_response, status_code = get_user_data()
     if error_response:
         # Loguear el error de sesión antes de retornar
