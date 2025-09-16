@@ -1,0 +1,20 @@
+2025-09-15 21:28:43,003 - ERROR - Error crítico: No se pudo cargar config.json. [Errno 2] No such file or directory: '/home/gerardo/Documentos/GitHub/apu_filter/config.json'
+ * Serving Flask app 'app/app.py'
+ * Debug mode: off
+2025-09-15 21:28:43,019 - INFO - WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
+ * Running on http://127.0.0.1:5002
+2025-09-15 21:28:43,019 - INFO - Press CTRL+C to quit
+2025-09-15 21:28:58,077 - INFO - 127.0.0.1 - - [15/Sep/2025 21:28:58] "GET / HTTP/1.1" 200 -
+2025-09-15 21:28:59,747 - INFO - 127.0.0.1 - - [15/Sep/2025 21:28:59] "GET /favicon.ico HTTP/1.1" 404 -
+2025-09-15 21:29:12,954 - INFO - Cache miss.
+2025-09-15 21:29:12,955 - INFO - Procesando archivos: /home/gerardo/Documentos/GitHub/apu_filter/uploads/833e90c7-48c2-4328-9e9c-85eb9b7ac7e7/presupuesto_1757989752_presupuesto.csv, /home/gerardo/Documentos/GitHub/apu_filter/uploads/833e90c7-48c2-4328-9e9c-85eb9b7ac7e7/apus_1757989752_apus.csv, /home/gerardo/Documentos/GitHub/apu_filter/uploads/833e90c7-48c2-4328-9e9c-85eb9b7ac7e7/insumos_1757989752_insumos.csv
+2025-09-15 21:29:12,974 - INFO - Éxito al leer /home/gerardo/Documentos/GitHub/apu_filter/uploads/833e90c7-48c2-4328-9e9c-85eb9b7ac7e7/presupuesto_1757989752_presupuesto.csv conencoding 'latin1' y delimitador ';'
+2025-09-15 21:29:13,130 - INFO - Detectado el delimitador ',' para el archivo /home/gerardo/Documentos/GitHub/apu_filter/uploads/833e90c7-48c2-4328-9e9c-85eb9b7ac7e7/apus_1757989752_apus.csv
+2025-09-15 21:29:13,233 - INFO - Cache info: hits=0, misses=1, size=1
+2025-09-15 21:29:13,249 - INFO - 127.0.0.1 - - [15/Sep/2025 21:29:13] "POST /upload HTTP/1.1" 500 -
+2025-09-15 21:29:16,415 - INFO - Cache miss.
+2025-09-15 21:29:16,415 - INFO - Procesando archivos: /home/gerardo/Documentos/GitHub/apu_filter/uploads/833e90c7-48c2-4328-9e9c-85eb9b7ac7e7/presupuesto_1757989756_presupuesto.csv, /home/gerardo/Documentos/GitHub/apu_filter/uploads/833e90c7-48c2-4328-9e9c-85eb9b7ac7e7/apus_1757989756_apus.csv, /home/gerardo/Documentos/GitHub/apu_filter/uploads/833e90c7-48c2-4328-9e9c-85eb9b7ac7e7/insumos_1757989756_insumos.csv
+2025-09-15 21:29:16,423 - INFO - Éxito al leer /home/gerardo/Documentos/GitHub/apu_filter/uploads/833e90c7-48c2-4328-9e9c-85eb9b7ac7e7/presupuesto_1757989756_presupuesto.csv conencoding 'latin1' y delimitador ';'
+2025-09-15 21:29:16,466 - INFO - Detectado el delimitador ',' para el archivo /home/gerardo/Documentos/GitHub/apu_filter/uploads/833e90c7-48c2-4328-9e9c-85eb9b7ac7e7/apus_1757989756_apus.csv
+2025-09-15 21:29:16,505 - INFO - Cache info: hits=0, misses=2, size=2
+2025-09-15 21:29:16,506 - INFO - 127.0.0.1 - - [15/Sep/2025 21:29:16] "POST /upload HTTP/1.1" 500 -
