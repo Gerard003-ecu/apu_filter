@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "/home/gerardo/Documentos/GitHub/apu_filter/tests/test_app.py", line 15, in <module>
+    from app.app import app, user_sessions
+  File "/home/gerardo/Documentos/GitHub/apu_filter/app/app.py", line 19, in <module>
+    from .procesador_csv import calculate_estimate, process_all_files
+  File "/home/gerardo/Documentos/GitHub/apu_filter/app/procesador_csv.py", line 12, in <module>
+    from fuzzywuzzy import process
+ModuleNotFoundError: No module named 'fuzzywuzzy'

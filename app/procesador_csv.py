@@ -9,8 +9,8 @@ from typing import Dict, List, Optional, Union
 
 import numpy as np
 import pandas as pd
-from unidecode import unidecode
 from fuzzywuzzy import process
+from unidecode import unidecode
 
 # Configurar logging
 logging.basicConfig(level=logging.DEBUG, format="%(asctime)s - %(levelname)s - %(message)s")
@@ -18,7 +18,9 @@ logger = logging.getLogger(__name__)
 
 
 def encontrar_mejor_coincidencia(texto, opciones, umbral=70):
-    """Encuentra la mejor coincidencia de texto en una lista de opciones usando fuzzy matching."""
+    """Encuentra la mejor coincidencia de texto
+    en una lista de opciones usando fuzzy matching.
+    """
     if not texto or not opciones:
         return None
     coincidencia, puntaje = process.extractOne(texto, opciones)
@@ -388,12 +390,14 @@ def process_apus_csv_v2(path: str) -> pd.DataFrame:
                 if "ITEM:" in line.upper():
                     match = re.search(r"ITEM:\s*([\d,\.]*)", line.upper())
                     if match and match.group(1).strip():
-                        apu_code = match.group(1).strip().rstrip('.,')
+                        apu_code = match.group(1).strip().rstrip(".,")
 
                         # El contexto se consolida aquí
                         current_context["apu_code"] = apu_code
                         current_context["apu_desc"] = potential_apu_desc
-                        current_context["category"] = "INDEFINIDO" # Resetear categoría para el nuevo APU
+                        current_context["category"] = (
+                            "INDEFINIDO"  # Resetear categoría para el nuevo APU
+                        )
                         potential_apu_desc = ""  # Limpiar para el próximo APU
                     continue
 
@@ -412,9 +416,9 @@ def process_apus_csv_v2(path: str) -> pd.DataFrame:
 
                 # Prioridad 3: Identificar línea de DATOS
                 is_data_line = (
-                    current_context["apu_code"] is not None and
-                    len(parts) > 2 and
-                    pd.notna(to_numeric_safe(parts[2]))
+                    current_context["apu_code"] is not None
+                    and len(parts) > 2
+                    and pd.notna(to_numeric_safe(parts[2]))
                 )
                 if is_data_line:
                     # Si la primera columna está vacía, es un offset y hay que desfasar
@@ -741,7 +745,8 @@ def calculate_estimate(
     log.append("\n--- BÚSQUEDA DE SUMINISTRO ---")
     opciones_suministro = df_apus_unique["DESC_NORMALIZED"].tolist()
     log.append(
-        f"Buscando la mejor coincidencia para '{material_mapped}' en {len(opciones_suministro)} opciones."
+        f"Buscando la mejor coincidencia para"
+        f"'{material_mapped}' en {len(opciones_suministro)} opciones."
     )
     mejor_coincidencia = encontrar_mejor_coincidencia(material_mapped, opciones_suministro)
 
