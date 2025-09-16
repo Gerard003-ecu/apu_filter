@@ -12,7 +12,7 @@ import pandas as pd
 from unidecode import unidecode
 
 # Configurar logging
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+logging.basicConfig(level=logging.DEBUG, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 
@@ -359,6 +359,7 @@ def process_apus_csv_v2(path: str) -> pd.DataFrame:
         ):
             valor_total = cantidad * precio_unit
 
+        logger.debug(f"Creando insumo para APU {context['apu_code']}: {description}")
         return {
             "CODIGO_APU": context["apu_code"],
             "DESCRIPCION_APU": context["apu_desc"],
@@ -393,10 +394,13 @@ def process_apus_csv_v2(path: str) -> pd.DataFrame:
                 if "ITEM:" in line.upper():
                     match = re.search(r"ITEM:\s*([\d,\.]*)", line.upper())
                     if match and match.group(1).strip():
-                        current_context["apu_code"] = match.group(1).strip()
+                        apu_code_raw = match.group(1).strip()
+                        apu_code_clean = apu_code_raw.strip(".,")
+                        current_context["apu_code"] = apu_code_clean
                         current_context["apu_desc"] = potential_apu_desc
                         current_context["category"] = "INDEFINIDO"
                         potential_apu_desc = ""
+                        logger.debug(f"Nuevo contexto de APU: {current_context}")
 
                 # CASO 2: Línea de CATEGORÍA
                 elif len(parts) < 4 and "".join(parts).upper() in category_keywords:
