@@ -9,7 +9,6 @@ from typing import Dict, List, Optional, Union
 
 import numpy as np
 import pandas as pd
-from pandas import ArrowDtype
 from unidecode import unidecode
 
 # Configurar logging
@@ -57,7 +56,10 @@ def safe_read_dataframe(path: str, **kwargs) -> Optional[pd.DataFrame]:
                         # nombres de columna para evitar que pandas infiera
                         # el número de columnas de la primera fila.
                         kwargs_for_csv = kwargs.copy()
-                        if kwargs_for_csv.get("header") is None and "header" in kwargs_for_csv:
+                        if (
+                            kwargs_for_csv.get("header") is None
+                            and "header" in kwargs_for_csv
+                        ):
                             kwargs_for_csv["names"] = range(50)
 
                         temp_df = pd.read_csv(
@@ -69,10 +71,13 @@ def safe_read_dataframe(path: str, **kwargs) -> Optional[pd.DataFrame]:
                             **kwargs_for_csv,
                         )
 
-                        # Si el DataFrame tiene más de una columna, asumimos que el delimitador es correcto
+                        # Si el DataFrame tiene más de una columna
+                        # asumimos que el delimitador es correcto
                         if temp_df.shape[1] > 1:
                             logger.info(
-                                f"Éxito al leer {os.path.basename(path)} con encoding '{encoding}' y delimitador '{delimiter}'"
+                                f"Éxito al leer"
+                                f"{os.path.basename(path)} con encoding '{encoding}'"
+                                f"y delimitador '{delimiter}'"
                             )
                             df = temp_df
                             break  # Salir del bucle de encoding
@@ -200,7 +205,9 @@ def process_presupuesto_csv(path: str) -> pd.DataFrame:
         df["CODIGO_APU"] = df["CODIGO_APU"].astype(str).str.strip()
         df = df[df["CODIGO_APU"].str.contains(r",", na=False)]
         # Limpiar y convertir la columna de cantidad
-        cantidad_str = df["CANTIDAD_PRESUPUESTO"].astype(str).str.replace(",", ".", regex=False)
+        cantidad_str = (
+            df["CANTIDAD_PRESUPUESTO"].astype(str).str.replace(",", ".", regex=False)
+        )
         df["CANTIDAD_PRESUPUESTO"] = pd.to_numeric(cantidad_str, errors="coerce")
 
         return df[["CODIGO_APU", "DESCRIPCION_APU", "CANTIDAD_PRESUPUESTO"]]
@@ -241,10 +248,14 @@ def process_insumos_csv(path: str) -> pd.DataFrame:
                     continue
 
                 # Identificar y capturar la línea de encabezado
-                if "CODIGO" in line_for_check.upper() and "DESCRIPCION" in line_for_check.upper():
+                if (
+                    "CODIGO" in line_for_check.upper()
+                    and "DESCRIPCION" in line_for_check.upper()
+                ):
                     header_columns = [p.upper() for p in parts]
                     desc_index = next(
-                        (i for i, col in enumerate(header_columns) if "DESCRIPCION" in col), -1
+                        (i for i, col in enumerate(header_columns) if "DESCRIPCION" in col),
+                        -1,
                     )
                     vr_unit_index = next(
                         (i for i, col in enumerate(header_columns) if "VR. UNIT" in col), -1
@@ -412,7 +423,8 @@ def process_apus_csv_v2(path: str) -> pd.DataFrame:
                         if data_row:
                             apus_data.append(data_row)
 
-                    # Update last_non_empty_line_parts for the next iteration (for description)
+                    # Update last_non_empty_line_parts for
+                    # the next iteration (for description)
                     last_non_empty_line_parts = parts
 
                 except (IndexError, ValueError) as e:
