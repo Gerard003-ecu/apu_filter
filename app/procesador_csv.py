@@ -378,58 +378,79 @@ def process_apus_csv_v2(path: str) -> pd.DataFrame:
 
     try:
         delimiter = detect_delimiter(path)
-        last_non_empty_line_parts = []
+        last_non_empty_line = ""
 
         with open(path, "r", encoding="latin1") as f:
-            reader = csv.reader(f, delimiter=delimiter, quotechar='"')
-            for raw_parts in reader:
-                parts = [p.strip() for p in raw_parts]
-                if not any(parts):
+            for line in f:
+                line = line.strip()
+                if not line:
                     continue
 
                 try:
-                    # Check for category line
-                    clean_line_upper = "".join(parts).upper()
-                    if clean_line_upper in category_keywords:
-                        current_context["category"] = category_keywords[clean_line_upper]
-                        last_non_empty_line_parts = parts
-                        continue
-
-                    # Check for ITEM line
-                    item_part = next((p for p in parts if "ITEM:" in p.upper()), None)
-                    if item_part:
-                        match = re.search(r"ITEM:\s*([\d,\.]*)", item_part.upper())
+                    # Prioridad 1: Líneas de "ITEM" que definen un nuevo APU
+                    if "ITEM:" in line.upper():
+                        # Extraer código de APU
+                        match = re.search(r"ITEM:\s*([\d,\.]*)", line.upper())
                         if match:
                             current_context["apu_code"] = match.group(1).strip()
-                            desc_parts = [p for p in parts if "ITEM:" not in p.upper()]
-                            desc_on_same_line = " ".join(desc_parts).strip()
-                            if desc_on_same_line:
-                                current_context["apu_desc"] = desc_on_same_line
+                            # La descripción puede estar en la misma línea o en la anterior
+                            desc_on_same_line = re.sub(r"ITEM:\s*([\d,\.]*)", "", line, flags=re.IGNORECASE).strip()
+
+                            # Limpiar la descripción de basura de delimitadores
+                            if delimiter in desc_on_same_line:
+                                desc_on_same_line = desc_on_same_line.split(delimiter)[0]
+
+                            if desc_on_same_line.strip():
+                                current_context["apu_desc"] = desc_on_same_line.strip()
                             else:
-                                current_context["apu_desc"] = " ".join(
-                                    last_non_empty_line_parts
-                                ).strip()
+                                # Si no, usar la última línea no vacía que no era ni categoría ni dato
+                                cleaned_last_line = last_non_empty_line.split(delimiter)[0].strip()
+                                current_context["apu_desc"] = cleaned_last_line
+                            current_context["category"] = "INDEFINIDO" # Resetear categoría para el nuevo APU
+                        continue # Pasar a la siguiente línea
+
+                    # Usar csv.reader para un parseo robusto de la línea
+                    try:
+                        parts_generator = csv.reader([line], delimiter=delimiter, quotechar='"')
+                        parts = [p.strip() for p in next(parts_generator)]
+                    except StopIteration:
+                        parts = []
+
+                    clean_line_for_keyword_check = "".join(parts).upper()
+
+                    # Prioridad 2: Líneas de categoría
+                    if clean_line_for_keyword_check in category_keywords:
+                        current_context["category"] = category_keywords[clean_line_for_keyword_check]
+                        last_non_empty_line = "" # Esta línea es una categoría, no una descripción
                         continue
 
-                    # Process as data line if context is set and line is valid
-                    if (
-                        current_context["apu_code"]
-                        and parts
-                        and parts[0]
-                        and len(parts) >= 6
-                        and "SUBTOTAL" not in parts[0].upper()
-                    ):
-                        data_row = parse_data_line(parts, current_context)
-                        if data_row:
-                            apus_data.append(data_row)
+                    # Prioridad 3: Líneas de datos (insumos)
+                    # Debe tener un código de APU asignado para ser procesada
+                    if current_context["apu_code"]:
+                        # Condición para ser una línea de datos válida
+                        is_data_line = (
+                            len(parts) >= 6 and
+                            parts[0] and # La descripción no puede estar vacía
+                            "SUBTOTAL" not in parts[0].upper() and
+                            pd.to_numeric(parts[2].replace(",", "."), errors='coerce') is not np.nan
+                        )
 
-                    # Update last_non_empty_line_parts for
-                    # the next iteration (for description)
-                    last_non_empty_line_parts = parts
+                        if is_data_line:
+                            data_row = parse_data_line(parts, current_context)
+                            if data_row:
+                                apus_data.append(data_row)
+                        else:
+                            # Si no es una línea de datos, podría ser la descripción del APU
+                            last_non_empty_line = line
+
+                    else:
+                        # Si aún no hemos encontrado un "ITEM", guardamos la línea
+                        last_non_empty_line = line
+
 
                 except (IndexError, ValueError) as e:
                     logger.warning(
-                        f"Omitiendo línea de APU malformada ({type(e).__name__}): {parts}"
+                        f"Omitiendo línea de APU malformada ({type(e).__name__}): {line}"
                     )
                     continue
 
