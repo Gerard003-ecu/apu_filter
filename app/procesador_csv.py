@@ -34,17 +34,20 @@ def safe_read_csv(path: str, **kwargs) -> Optional[pd.DataFrame]:
                     quotechar='"',
                     skipinitialspace=True,
                 )
-                # Heurística: si solo hay una columna, el delimitador probablemente sea incorrecto.
+                # Heurística: si solo hay una columna,
+                # el delimitador probablemente sea incorrecto.
                 if df.shape[1] > 1:
                     logger.info(
-                        f"Éxito al leer {path} con encoding '{encoding}' y delimitador '{delimiter}'"
+                        f"Éxito al leer {path} con"
+                        f"encoding '{encoding}' y delimitador '{delimiter}'"
                     )
                     return df
             except (pd.errors.ParserError, UnicodeDecodeError):
                 continue
             except Exception as e:
                 logger.warning(
-                    f"Error inesperado leyendo {path} con encoding {encoding} y delimitador '{delimiter}': {e}"
+                    f"Error inesperado leyendo"
+                    f"{path} con encoding {encoding} y delimitador '{delimiter}': {e}"
                 )
                 continue
 
