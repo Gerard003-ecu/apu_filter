@@ -753,7 +753,7 @@ def calculate_estimate(
     log.append(
         f"Buscando la mejor coincidencia para"
         f"'{material_mapped}' en {len(opciones_suministro)} opciones."
-        )
+    )
     mejor_coincidencia = encontrar_mejor_coincidencia(material_mapped, opciones_suministro)
 
     suministro_candidates = pd.DataFrame()  # Inicializar como vacío

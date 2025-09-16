@@ -333,7 +333,7 @@ class TestCSVProcessor(unittest.TestCase):
         # Verificar que el código malformado '1,1,,' NO está
         self.assertNotIn("1,1,,", resultado["apus_detail"])
 
-    @patch('app.procesador_csv.process')
+    @patch("app.procesador_csv.process")
     def test_calculate_estimate_with_fuzzywuzzy(self, mock_process):
         # Configurar el mock para devolver valores específicos
         mock_process.extractOne.return_value = ("MANO DE OBRA INSTALACION TEJA SENCILLA", 95)
@@ -350,9 +350,9 @@ class TestCSVProcessor(unittest.TestCase):
 
     def test_calculate_estimate_resilience_without_fuzzywuzzy(self):
         # Simular ausencia de fuzzywuzzy
-        with patch.dict('sys.modules', {'fuzzywuzzy': None, 'fuzzywuzzy.process': None}):
+        with patch.dict("sys.modules", {"fuzzywuzzy": None, "fuzzywuzzy.process": None}):
             with self.assertRaises(ImportError):
-                importlib.reload(sys.modules['app.procesador_csv'])
+                importlib.reload(sys.modules["app.procesador_csv"])
 
 
 class TestAppEndpoints(unittest.TestCase):
