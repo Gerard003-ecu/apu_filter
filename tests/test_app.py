@@ -223,9 +223,7 @@ class TestCSVProcessor(unittest.TestCase):
 
         self.assertFalse(df_insumos.empty)
         self.assertEqual(len(df_insumos), 3)
-        tornillo = df_insumos[
-            df_insumos["DESCRIPCION_INSUMO"] == "Tornillo de Acero"
-        ]
+        tornillo = df_insumos[df_insumos["DESCRIPCION_INSUMO"] == "Tornillo de Acero"]
         self.assertAlmostEqual(tornillo["VR_UNITARIO_INSUMO"].iloc[0], 10.50)
 
     @patch("app.procesador_csv.config", new_callable=lambda: TEST_CONFIG)

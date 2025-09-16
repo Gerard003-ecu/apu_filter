@@ -94,11 +94,7 @@ def upload_files():
         for name, file in files.items():
             if not file.filename.lower().endswith((".csv", ".xlsx")):
                 return (
-                    jsonify(
-                        {
-                            "error": f"El archivo {name} debe ser un CSV o XLSX"
-                        }
-                    ),
+                    jsonify({"error": f"El archivo {name} debe ser un CSV o XLSX"}),
                     400,
                 )
 
