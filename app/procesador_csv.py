@@ -336,7 +336,8 @@ def process_apus_csv_v2(path: str) -> pd.DataFrame:
     potential_apu_desc = ""
 
     def to_numeric_safe(s):
-        if isinstance(s, (int, float)): return s
+        if isinstance(s, (int, float)):
+            return s
         if isinstance(s, str):
             s_cleaned = s.replace(".", "").replace(",", ".").strip()
             return pd.to_numeric(s_cleaned, errors="coerce")
@@ -352,8 +353,10 @@ def process_apus_csv_v2(path: str) -> pd.DataFrame:
             valor_total = cantidad * precio_unit
 
         return {
-            "CODIGO_APU": context["apu_code"], "DESCRIPCION_APU": context["apu_desc"],
-            "DESCRIPCION_INSUMO": description, "UNIDAD": parts[1],
+            "CODIGO_APU": context["apu_code"],
+            "DESCRIPCION_APU": context["apu_desc"],
+            "DESCRIPCION_INSUMO": description,
+            "UNIDAD": parts[1],
             "CANTIDAD_APU": cantidad if pd.notna(cantidad) else 0,
             "PRECIO_UNIT_APU": precio_unit if pd.notna(precio_unit) else 0,
             "VALOR_TOTAL_APU": valor_total if pd.notna(valor_total) else 0,
@@ -368,8 +371,9 @@ def process_apus_csv_v2(path: str) -> pd.DataFrame:
             for parts in reader:
                 # Limpiar espacios en blanco de cada parte
                 parts = [p.strip() for p in parts]
-                line_str = "".join(parts) # Una cadena para búsquedas simples
-                if not line_str: continue
+                line_str = "".join(parts)  # Una cadena para búsquedas simples
+                if not line_str:
+                    continue
 
                 # Prioridad 1: Línea de ITEM
                 if "ITEM:" in line_str.upper():
@@ -381,7 +385,7 @@ def process_apus_csv_v2(path: str) -> pd.DataFrame:
                             current_context["apu_desc"] = potential_apu_desc
                             current_context["category"] = "INDEFINIDO"
                             potential_apu_desc = ""
-                            break # Salir del bucle de partes
+                            break  # Salir del bucle de partes
                     continue
 
                 # Prioridad 2: Línea de Categoría
@@ -393,10 +397,19 @@ def process_apus_csv_v2(path: str) -> pd.DataFrame:
                 # Condición: tiene un código de APU, al menos 6 columnas, una descripción,
                 # y un valor en cantidad o precio unitario para no confundirla con una
                 # línea de descripción de otro APU.
-                if current_context["apu_code"] and len(parts) >= 6 and parts[0] and (parts[2] or parts[4]):
-                    if "SUBTOTAL" not in parts[0].upper() and "COSTO DIRECTO" not in parts[0].upper():
+                if (
+                    current_context["apu_code"]
+                    and len(parts) >= 6
+                    and parts[0]
+                    and (parts[2] or parts[4])
+                ):
+                    if (
+                        "SUBTOTAL" not in parts[0].upper()
+                        and "COSTO DIRECTO" not in parts[0].upper()
+                    ):
                         data_row = parse_data_line(parts, current_context)
-                        if data_row: apus_data.append(data_row)
+                        if data_row:
+                            apus_data.append(data_row)
                         continue
 
                 # Prioridad 4: Línea de Descripción
