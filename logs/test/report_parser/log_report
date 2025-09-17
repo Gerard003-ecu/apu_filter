@@ -1,0 +1,4 @@
+Traceback (most recent call last):
+  File "/Users/gerardomayor/Documents/estru_techos/apu_filter/tests/test_report_parser.py", line 4, in <module>
+    from app.report_parser import ReportParser
+ModuleNotFoundError: No module named 'app'
