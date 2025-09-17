@@ -1,10 +1,12 @@
-import re
-import pandas as pd
-import logging
 import csv
-from typing import List, Dict, Optional
+import logging
+import re
+from typing import Dict, List, Optional
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+import pandas as pd
+
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+
 
 def detect_delimiter(file_path: str) -> str:
     """
@@ -20,21 +22,23 @@ def detect_delimiter(file_path: str) -> str:
         # Fallback a ; si el sniffer falla o el archivo no existe
         return ";"
 
+
 class ReportParser:
     """
     Parsea un informe de APU (Análisis de Precios Unitarios) desde un archivo
     de texto con formato CSV, extrayendo los datos de insumos y
     organizándolos en una estructura de datos.
     """
+
     PATTERNS = {
-        'item_code': re.compile(r'ITEM:\s*([\d,\.]*)'),
+        "item_code": re.compile(r"ITEM:\s*([\d,\.]*)"),
     }
     CATEGORY_KEYWORDS = {
         "MATERIALES": "MATERIALES",
         "MANO DE OBRA": "MANO DE OBRA",
         "EQUIPO Y HERRAMIENTA": "EQUIPO Y HERRAMIENTA",
         "EQUIPO": "EQUIPO Y HERRAMIENTA",
-        "OTROS": "OTROS"
+        "OTROS": "OTROS",
     }
 
     def __init__(self, file_path: str):
@@ -59,7 +63,7 @@ class ReportParser:
         self._all_data = []
         try:
             delimiter = detect_delimiter(self.file_path)
-            with open(self.file_path, 'r', encoding='latin1') as f:
+            with open(self.file_path, "r", encoding="latin1") as f:
                 reader = csv.reader(f, delimiter=delimiter, quotechar='"')
                 for parts in reader:
                     self._process_line(parts)
@@ -75,8 +79,13 @@ class ReportParser:
         df = pd.DataFrame(self._all_data)
 
         # Añadir columna normalizada para compatibilidad con el resto del pipeline
-        if 'descripcion' in df.columns:
-            df['NORMALIZED_DESC'] = df['descripcion'].str.lower().str.strip().str.replace(r'\s+', ' ', regex=True)
+        if "descripcion" in df.columns:
+            df["NORMALIZED_DESC"] = (
+                df["descripcion"]
+                .str.lower()
+                .str.strip()
+                .str.replace(r"\s+", " ", regex=True)
+            )
 
         return df
 
@@ -88,7 +97,7 @@ class ReportParser:
 
         # 1. Buscar código de ITEM
         for part in parts_stripped:
-            match = self.PATTERNS['item_code'].search(part.upper())
+            match = self.PATTERNS["item_code"].search(part.upper())
             if match and match.group(1).strip():
                 self._start_new_apu(match.group(1).strip().rstrip(".,"))
                 return
@@ -102,7 +111,10 @@ class ReportParser:
         # 3. Buscar Insumo (lógica adaptada de process_apus_csv_v2)
         is_insumo = False
         if self._current_apu_code and len(parts_stripped) >= 6 and parts_stripped[0]:
-            if "DESCRIPCION" not in parts_stripped[0].upper() and "SUBTOTAL" not in parts_stripped[0].upper():
+            if (
+                "DESCRIPCION" not in parts_stripped[0].upper()
+                and "SUBTOTAL" not in parts_stripped[0].upper()
+            ):
                 # Comprobar si hay valores numéricos en las columnas esperadas
                 try:
                     cantidad_val = self._to_numeric_safe(parts_stripped[2])
@@ -126,14 +138,19 @@ class ReportParser:
         self._current_apu_desc = self._potential_apu_desc
         self._current_category = "INDEFINIDO"
         self._potential_apu_desc = ""
-        logging.info(f"Nuevo APU encontrado: {self._current_apu_code} - {self._current_apu_desc}")
+        logging.info(
+            f"Nuevo APU encontrado: {self._current_apu_code} - {self._current_apu_desc}"
+        )
 
     def _parse_insumo(self, parts: List[str]):
         # Lógica adaptada de la función `parse_data_line` original
         description = parts[0]
 
         # Lógica para Mano de Obra
-        is_mano_de_obra = self._current_category == "MANO DE OBRA" or description.upper().startswith("M.O.")
+        is_mano_de_obra = (
+            self._current_category == "MANO DE OBRA"
+            or description.upper().startswith("M.O.")
+        )
 
         cantidad, precio_unit, valor_total = 0.0, 0.0, 0.0
 
@@ -158,15 +175,17 @@ class ReportParser:
             return
 
         if valor_total > 0:
-            self._all_data.append({
-                'apu_code': self._current_apu_code,
-                'apu_desc': self._current_apu_desc,
-                'categoria': self._current_category,
-                'descripcion': description,
-                'unidad': parts[1],
-                'cantidad': cantidad,
-                'precio_unitario': precio_unit,
-                'precio_total': valor_total
-            })
+            self._all_data.append(
+                {
+                    "apu_code": self._current_apu_code,
+                    "apu_desc": self._current_apu_desc,
+                    "categoria": self._current_category,
+                    "descripcion": description,
+                    "unidad": parts[1],
+                    "cantidad": cantidad,
+                    "precio_unitario": precio_unit,
+                    "precio_total": valor_total,
+                }
+            )
         else:
             logging.debug(f"Línea de insumo sin valor total omitida: {parts}")
