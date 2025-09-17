@@ -317,13 +317,17 @@ def get_file_hash(path: str) -> str:
 def process_apus_csv_v2(path: str) -> pd.DataFrame:
     """
     Parsea un archivo de APUs con formato de reporte de texto utilizando una
-    máquina de estados y posiciones de columna fijas para máxima robustez.
-    VERSIÓN FINAL Y SIMPLIFICADA.
+    máquina de estados línea por línea para máxima robustez.
+    Esta versión lee el archivo con un CSV reader para manejar correctamente
+    comillas y delimitadores antes de la lógica de parseo.
     """
     apus_data = []
-    current_context = {"apu_code": None, "apu_desc": None, "category": "INDEFINIDO"}
     category_keywords = config.get("category_keywords", {})
+
+    current_apu_code = None
+    current_apu_desc = ""
     potential_apu_desc = ""
+    current_category = "INDEFINIDO"
 
     def to_numeric_safe(s):
         if isinstance(s, (int, float)): return s
@@ -337,53 +341,61 @@ def process_apus_csv_v2(path: str) -> pd.DataFrame:
         with open(path, "r", encoding="latin1") as f:
             reader = csv.reader(f, delimiter=delimiter, quotechar='"')
             for parts in reader:
-                parts = [p.strip() for p in parts]
-                line_str = "".join(parts)
-                if not line_str: continue
-
-                # Prioridad 1: Línea de ITEM
-                if "ITEM:" in line_str.upper():
-                    for part in parts:
-                        match = re.search(r"ITEM:\s*([\d,\.]*)", part.upper())
-                        if match and match.group(1).strip():
-                            current_context["apu_code"] = match.group(1).strip().rstrip(".,")
-                            current_context["apu_desc"] = potential_apu_desc
-                            current_context["category"] = "INDEFINIDO"
-                            potential_apu_desc = ""
-                            break
+                if not any(p.strip() for p in parts):
                     continue
 
-                # Prioridad 2: Línea de Categoría
-                if len(parts) < 4 and line_str.upper() in category_keywords:
-                    current_context["category"] = category_keywords[line_str.upper()]
+                parts_stripped = [p.strip() for p in parts]
+
+                item_found = False
+                for part in parts_stripped:
+                    match = re.search(r"ITEM:\s*([\d,\.]*)", part.upper())
+                    if match and match.group(1).strip():
+                        current_apu_code = match.group(1).strip().rstrip(".,")
+                        current_apu_desc = potential_apu_desc
+                        current_category = "INDEFINIDO"
+                        potential_apu_desc = ""
+                        item_found = True
+                        break
+                if item_found:
                     continue
 
-                # Prioridad 3: Línea de Datos (Insumo)
-                # Condición: tiene un código de APU, al menos 6 columnas y una descripción
-                if current_context["apu_code"] and len(parts) >= 6 and parts[0]:
-                    if "SUBTOTAL" not in parts[0].upper() and "DESCRIPCION" not in parts[0].upper():
-                        description = parts[0]
-                        cantidad = to_numeric_safe(parts[2])
-                        precio_unit = to_numeric_safe(parts[4])
-                        valor_total = to_numeric_safe(parts[5])
-
-                        if pd.notna(cantidad) and pd.notna(precio_unit) and pd.isna(valor_total):
-                            valor_total = cantidad * precio_unit
-
-                        if pd.notna(valor_total):
-                            apus_data.append({
-                                "CODIGO_APU": current_context["apu_code"], "DESCRIPCION_APU": current_context["apu_desc"],
-                                "DESCRIPCION_INSUMO": description, "UNIDAD": parts[1],
-                                "CANTIDAD_APU": cantidad if pd.notna(cantidad) else 0,
-                                "PRECIO_UNIT_APU": precio_unit if pd.notna(precio_unit) else 0,
-                                "VALOR_TOTAL_APU": valor_total if pd.notna(valor_total) else 0,
-                                "CATEGORIA": current_context["category"],
-                            })
+                line_content_for_category = "".join(parts_stripped)
+                if line_content_for_category in category_keywords:
+                    current_category = category_keywords[line_content_for_category]
                     continue
 
-                # Prioridad 4: Línea de Descripción
-                if parts and parts[0]:
-                    potential_apu_desc = parts[0]
+                is_insumo = False
+                if current_apu_code and len(parts_stripped) >= 6 and parts_stripped[0]:
+                    if "DESCRIPCION" not in parts_stripped[0].upper() and "SUBTOTAL" not in parts_stripped[0].upper():
+                        cantidad_val = to_numeric_safe(parts_stripped[2])
+                        precio_val = to_numeric_safe(parts_stripped[4])
+                        valor_val = to_numeric_safe(parts_stripped[5])
+
+                        if pd.notna(cantidad_val) or pd.notna(precio_val) or pd.notna(valor_val):
+                            is_insumo = True
+
+                if is_insumo:
+                    description = parts_stripped[0]
+                    cantidad = to_numeric_safe(parts_stripped[2])
+                    precio_unit = to_numeric_safe(parts_stripped[4])
+                    valor_total = to_numeric_safe(parts_stripped[5])
+
+                    if pd.notna(cantidad) and pd.notna(precio_unit) and pd.isna(valor_total):
+                        valor_total = cantidad * precio_unit
+
+                    if pd.notna(valor_total):
+                        apus_data.append({
+                            "CODIGO_APU": current_apu_code, "DESCRIPCION_APU": current_apu_desc,
+                            "DESCRIPCION_INSUMO": description, "UNIDAD": parts_stripped[1],
+                            "CANTIDAD_APU": cantidad if pd.notna(cantidad) else 0,
+                            "PRECIO_UNIT_APU": precio_unit if pd.notna(precio_unit) else 0,
+                            "VALOR_TOTAL_APU": valor_total if pd.notna(valor_total) else 0,
+                            "CATEGORIA": current_category,
+                        })
+                    continue
+
+                if parts_stripped and parts_stripped[0]:
+                    potential_apu_desc = parts_stripped[0]
 
     except Exception as e:
         logger.error(f"Error fatal procesando APUs en {path}: {e}", exc_info=True)
