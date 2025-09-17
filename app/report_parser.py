@@ -13,9 +13,9 @@ class ReportParser:
     """
     PATTERNS = {
         'item_code': re.compile(r'^ITEM:\s*([\d,\.]+)'),
-        'category': re.compile(r'^(MATERIALES|MANO DE OBRA|EQUIPO Y HERRAMIENTA)'),
+        'category': re.compile(r'^(MATERIALES|MANO DE OBRA|EQUIPO Y HERRAMIENTA)$'),
         'insumo': re.compile(r'^(?P<descripcion>.+?)\s+(?P<unidad>[A-Z\d/]+)\s+(?P<cantidad>[\d,\.]+)\s+(?P<precio>[\d,\.]+)\s+(?P<total>[\d,\.]+)$'),
-        'herramienta_menor': re.compile(r'^(EQUIPO Y HERRAMIENTA)\s+\(MANO DE OBRA\)\s+(\d+)%\s+([\d,\.]+)')
+        'herramienta_menor': re.compile(r'^(EQUIPO Y HERRAMIENTA)\s*\(.*\)\s+(\d+)%\s+([\d,\.]+)$')
     }
 
     def __init__(self, file_path: str):
@@ -168,7 +168,8 @@ class ReportParser:
         comas decimales y errores de conversión.
         """
         try:
-            return float(s.replace(',', ''))
+            # Eliminar separadores de miles y reemplazar coma decimal por punto
+            return float(s.replace('.', '').replace(',', '.'))
         except (ValueError, TypeError):
             return 0.0
 
