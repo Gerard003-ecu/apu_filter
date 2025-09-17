@@ -330,7 +330,8 @@ def process_apus_csv_v2(path: str) -> pd.DataFrame:
     current_category = "INDEFINIDO"
 
     def to_numeric_safe(s):
-        if isinstance(s, (int, float)): return s
+        if isinstance(s, (int, float)):
+            return s
         if isinstance(s, str):
             s_cleaned = s.replace(".", "").replace(",", ".").strip()
             return pd.to_numeric(s_cleaned, errors="coerce")
@@ -366,12 +367,19 @@ def process_apus_csv_v2(path: str) -> pd.DataFrame:
 
                 is_insumo = False
                 if current_apu_code and len(parts_stripped) >= 6 and parts_stripped[0]:
-                    if "DESCRIPCION" not in parts_stripped[0].upper() and "SUBTOTAL" not in parts_stripped[0].upper():
+                    if (
+                        "DESCRIPCION" not in parts_stripped[0].upper()
+                        and "SUBTOTAL" not in parts_stripped[0].upper()
+                    ):
                         cantidad_val = to_numeric_safe(parts_stripped[2])
                         precio_val = to_numeric_safe(parts_stripped[4])
                         valor_val = to_numeric_safe(parts_stripped[5])
 
-                        if pd.notna(cantidad_val) or pd.notna(precio_val) or pd.notna(valor_val):
+                        if (
+                            pd.notna(cantidad_val)
+                            or pd.notna(precio_val)
+                            or pd.notna(valor_val)
+                        ):
                             is_insumo = True
 
                 if is_insumo:
@@ -384,14 +392,22 @@ def process_apus_csv_v2(path: str) -> pd.DataFrame:
                         valor_total = cantidad * precio_unit
 
                     if pd.notna(valor_total):
-                        apus_data.append({
-                            "CODIGO_APU": current_apu_code, "DESCRIPCION_APU": current_apu_desc,
-                            "DESCRIPCION_INSUMO": description, "UNIDAD": parts_stripped[1],
-                            "CANTIDAD_APU": cantidad if pd.notna(cantidad) else 0,
-                            "PRECIO_UNIT_APU": precio_unit if pd.notna(precio_unit) else 0,
-                            "VALOR_TOTAL_APU": valor_total if pd.notna(valor_total) else 0,
-                            "CATEGORIA": current_category,
-                        })
+                        apus_data.append(
+                            {
+                                "CODIGO_APU": current_apu_code,
+                                "DESCRIPCION_APU": current_apu_desc,
+                                "DESCRIPCION_INSUMO": description,
+                                "UNIDAD": parts_stripped[1],
+                                "CANTIDAD_APU": cantidad if pd.notna(cantidad) else 0,
+                                "PRECIO_UNIT_APU": precio_unit
+                                if pd.notna(precio_unit)
+                                else 0,
+                                "VALOR_TOTAL_APU": valor_total
+                                if pd.notna(valor_total)
+                                else 0,
+                                "CATEGORIA": current_category,
+                            }
+                        )
                     continue
 
                 if parts_stripped and parts_stripped[0]:
