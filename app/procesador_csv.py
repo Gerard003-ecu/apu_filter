@@ -12,6 +12,8 @@ import pandas as pd
 from fuzzywuzzy import process
 from unidecode import unidecode
 
+from .report_parser import ReportParser
+
 # Configurar logging
 logging.basicConfig(level=logging.DEBUG, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
@@ -369,91 +371,6 @@ def get_file_hash(path: str) -> str:
     return hash_md5.hexdigest()
 
 
-def process_apus_csv_v2(path: str) -> pd.DataFrame:
-    """
-    Parsea un archivo de APUs con formato de reporte de texto utilizando una
-    máquina de estados línea por línea para máxima robustez.
-    Esta versión lee el archivo con un CSV reader para manejar correctamente
-    comillas y delimitadores antes de la lógica de parseo.
-    """
-    apus_data = []
-    category_keywords = config.get("category_keywords", {})
-
-    current_apu_code = None
-    current_apu_desc = ""
-    potential_apu_desc = ""
-    current_category = "INDEFINIDO"
-
-    try:
-        delimiter = detect_delimiter(path)
-        with open(path, "r", encoding="latin1") as f:
-            reader = csv.reader(f, delimiter=delimiter, quotechar='"')
-            for parts in reader:
-                if not any(p.strip() for p in parts):
-                    continue
-
-                parts_stripped = [p.strip() for p in parts]
-
-                item_found = False
-                for part in parts_stripped:
-                    match = re.search(r"ITEM:\s*([\d,\.]*)", part.upper())
-                    if match and match.group(1).strip():
-                        current_apu_code = match.group(1).strip().rstrip(".,")
-                        current_apu_desc = potential_apu_desc
-                        current_category = "INDEFINIDO"
-                        potential_apu_desc = ""
-                        item_found = True
-                        break
-                if item_found:
-                    continue
-
-                line_content_for_category = "".join(parts_stripped)
-                if line_content_for_category in category_keywords:
-                    current_category = category_keywords[line_content_for_category]
-                    continue
-
-                is_insumo = False
-                if current_apu_code and len(parts_stripped) >= 6 and parts_stripped[0]:
-                    if (
-                        "DESCRIPCION" not in parts_stripped[0].upper()
-                        and "SUBTOTAL" not in parts_stripped[0].upper()
-                    ):
-                        cantidad_val = to_numeric_safe(parts_stripped[2])
-                        precio_val = to_numeric_safe(parts_stripped[4])
-                        valor_val = to_numeric_safe(parts_stripped[5])
-
-                        if (
-                            pd.notna(cantidad_val)
-                            or pd.notna(precio_val)
-                            or pd.notna(valor_val)
-                        ):
-                            is_insumo = True
-
-                if is_insumo:
-                    parsed_data = parse_data_line(parts_stripped, current_category)
-                    if parsed_data:
-                        parsed_data["CODIGO_APU"] = current_apu_code
-                        parsed_data["DESCRIPCION_APU"] = current_apu_desc
-                        apus_data.append(parsed_data)
-                    continue
-
-                if parts_stripped and parts_stripped[0]:
-                    potential_apu_desc = parts_stripped[0]
-
-    except Exception as e:
-        logger.error(f"Error fatal procesando APUs en {path}: {e}", exc_info=True)
-        return pd.DataFrame()
-
-    if not apus_data:
-        logger.warning(f"No se extrajeron datos de APU de {path}")
-        return pd.DataFrame()
-
-    df = pd.DataFrame(apus_data)
-    df["CODIGO_APU"] = df["CODIGO_APU"].str.strip()
-    df["NORMALIZED_DESC"] = normalize_text(df["DESCRIPCION_INSUMO"])
-    return df
-
-
 def group_and_split_description(df: pd.DataFrame) -> pd.DataFrame:
     if "DESCRIPCION_APU" not in df.columns:
         df["grupo"] = "Ítems Varios"
@@ -489,7 +406,25 @@ def _do_processing(presupuesto_path, apus_path, insumos_path):
     logger.info(f"Procesando archivos: {presupuesto_path}, {apus_path}, {insumos_path}")
     df_presupuesto = process_presupuesto_csv(presupuesto_path)
     df_insumos = process_insumos_csv(insumos_path)
-    df_apus = process_apus_csv_v2(apus_path)
+
+    # Usar el nuevo ReportParser
+    parser = ReportParser(apus_path)
+    df_apus = parser.parse()
+
+    # El nuevo parser ya añade la columna 'NORMALIZED_DESC', por lo que no es necesario añadirla aquí
+    # df_apus['NORMALIZED_DESC'] = normalize_text(df_apus['descripcion'])
+
+    # Renombrar columnas del nuevo parser para que coincidan con el resto del pipeline
+    df_apus.rename(columns={
+        'apu_code': 'CODIGO_APU',
+        'apu_desc': 'DESCRIPCION_APU',
+        'categoria': 'CATEGORIA',
+        'descripcion': 'DESCRIPCION_INSUMO',
+        'cantidad': 'CANTIDAD_APU',
+        'precio_unitario': 'PRECIO_UNIT_APU',
+        'precio_total': 'VALOR_TOTAL_APU'
+    }, inplace=True)
+
     if df_presupuesto.empty or df_insumos.empty or df_apus.empty:
         return {"error": "Uno o más archivos no pudieron ser procesados."}
     df_merged = pd.merge(
@@ -591,7 +526,7 @@ def _do_processing(presupuesto_path, apus_path, insumos_path):
         columns={
             "DESCRIPCION_INSUMO": "DESCRIPCION",
             "CANTIDAD_APU": "CANTIDAD",
-            "UNIDAD": "UNIDAD",
+            "unidad": "UNIDAD",
             "VR_UNITARIO_FINAL": "VALOR_UNITARIO",
             "COSTO_INSUMO_EN_APU": "VALOR_TOTAL",
         }
