@@ -35,6 +35,7 @@ PRESUPUESTO_DATA = (
     "1,2;ACABADOS FINALES;M2;20; 225,00 ; 4500 \n"
     "1,3;MANO DE OBRA INSTALACION TEJA SENCILLA CUADRILLA DE 5;M2;1;80000;80000\n"
     "1,4;APU con Corte y Doblez;UN;1;15000;15000\n"
+    "1,5;INGENIERO RESIDENTE;MES;1;15000;15000\n"
 )
 
 APUS_DATA = (
@@ -59,6 +60,13 @@ APUS_DATA = (
     ";;;;;ITEM:   1,3\n"
     "MANO DE OBRA\n"
     "Ayudante;HR;8;;10000;80000\n"
+    "\n"
+    # APU para probar nueva logica de Mano de Obra
+    "INGENIERO RESIDENTE;;;;;\n"
+    ";;;;;ITEM:   1,5\n"
+    "MANO DE OBRA\n"
+    # DESCRIPCION; UNIDAD; ; JORNAL; RENDIMIENTO; VALOR TOTAL
+    "INGENIERO RESIDENTE;MES;;150000;10;15000\n"
 )
 
 
@@ -206,7 +214,7 @@ class TestCSVProcessor(unittest.TestCase):
         self.assertIsInstance(resultado, dict)
         self.assertNotIn("error", resultado)
         presupuesto_procesado = resultado["presupuesto"]
-        self.assertEqual(len(presupuesto_procesado), 4)
+        self.assertEqual(len(presupuesto_procesado), 5)
         item1 = next(
             (item for item in presupuesto_procesado if item["CODIGO_APU"] == "1,1"), None
         )
@@ -221,6 +229,15 @@ class TestCSVProcessor(unittest.TestCase):
         # TODO: La lógica para manejar APUs no encontrados en el archivo apus.csv
         # necesita ser definida. Por ahora, el costo es 0.
         self.assertAlmostEqual(item4["VALOR_CONSTRUCCION_UN"], 0.0)
+
+        # Verificar la nueva lógica de "MANO DE OBRA"
+        apu_detail_ing = resultado["apus_detail"]["1,5"]
+        self.assertEqual(len(apu_detail_ing), 1)
+        ing_item = apu_detail_ing[0]
+        self.assertEqual(ing_item["DESCRIPCION"], "INGENIERO RESIDENTE")
+        self.assertAlmostEqual(ing_item["CANTIDAD"], 0.1)  # 1 / 10
+        self.assertAlmostEqual(ing_item["VALOR_UNITARIO"], 150000)
+        self.assertAlmostEqual(ing_item["VALOR_TOTAL"], 15000)
 
     @patch("app.procesador_csv.config", new_callable=lambda: TEST_CONFIG)
     def test_process_insumos_csv_comma_delimited(self, mock_config):

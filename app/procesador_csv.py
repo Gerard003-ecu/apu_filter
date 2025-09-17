@@ -197,6 +197,61 @@ def load_config():
 config = load_config()
 
 
+def to_numeric_safe(s):
+    if isinstance(s, (int, float)):
+        return s
+    if isinstance(s, str):
+        s_cleaned = s.replace(".", "").replace(",", ".").strip()
+        return pd.to_numeric(s_cleaned, errors="coerce")
+    return pd.NA
+
+
+def parse_data_line(parts: List[str], current_category: str) -> Optional[Dict]:
+    """
+    Parsea una línea de datos de un APU (insumo) y devuelve un diccionario con los datos.
+    Contiene lógica especializada para ítems de "MANO DE OBRA".
+    """
+    description = parts[0]
+    labor_prefixes = ["M.O.", "SISO", "INGENIERO"]
+    is_mano_de_obra = current_category == "MANO DE OBRA" or any(
+        description.upper().startswith(p) for p in labor_prefixes
+    )
+
+    if is_mano_de_obra and len(parts) >= 6:
+        # Lógica especializada para Mano de Obra
+        valor_total = to_numeric_safe(parts[5])
+        precio_unitario_jornal = to_numeric_safe(parts[3])
+        rendimiento = to_numeric_safe(parts[4])
+
+        cantidad = 0.0
+        if pd.notna(rendimiento) and rendimiento != 0:
+            cantidad = 1 / rendimiento
+
+        # El "Jornal Total" es el verdadero precio unitario para la mano de obra
+        precio_unit = precio_unitario_jornal
+
+    else:
+        # Lógica para Materiales y Otros (Fallback)
+        cantidad = to_numeric_safe(parts[2])
+        precio_unit = to_numeric_safe(parts[4])
+        valor_total = to_numeric_safe(parts[5])
+
+        # Si el valor total no está, pero sí la cantidad y el precio, se calcula
+        if pd.notna(cantidad) and pd.notna(precio_unit) and pd.isna(valor_total):
+            valor_total = cantidad * precio_unit
+
+    if pd.notna(valor_total):
+        return {
+            "DESCRIPCION_INSUMO": description,
+            "UNIDAD": parts[1],
+            "CANTIDAD_APU": cantidad if pd.notna(cantidad) else 0,
+            "PRECIO_UNIT_APU": precio_unit if pd.notna(precio_unit) else 0,
+            "VALOR_TOTAL_APU": valor_total if pd.notna(valor_total) else 0,
+            "CATEGORIA": current_category,
+        }
+    return None
+
+
 def process_presupuesto_csv(path: str) -> pd.DataFrame:
     """Lee y limpia el archivo presupuesto (CSV o Excel) de forma robusta."""
     df = safe_read_dataframe(path)
@@ -329,14 +384,6 @@ def process_apus_csv_v2(path: str) -> pd.DataFrame:
     potential_apu_desc = ""
     current_category = "INDEFINIDO"
 
-    def to_numeric_safe(s):
-        if isinstance(s, (int, float)):
-            return s
-        if isinstance(s, str):
-            s_cleaned = s.replace(".", "").replace(",", ".").strip()
-            return pd.to_numeric(s_cleaned, errors="coerce")
-        return pd.NA
-
     try:
         delimiter = detect_delimiter(path)
         with open(path, "r", encoding="latin1") as f:
@@ -383,31 +430,11 @@ def process_apus_csv_v2(path: str) -> pd.DataFrame:
                             is_insumo = True
 
                 if is_insumo:
-                    description = parts_stripped[0]
-                    cantidad = to_numeric_safe(parts_stripped[2])
-                    precio_unit = to_numeric_safe(parts_stripped[4])
-                    valor_total = to_numeric_safe(parts_stripped[5])
-
-                    if pd.notna(cantidad) and pd.notna(precio_unit) and pd.isna(valor_total):
-                        valor_total = cantidad * precio_unit
-
-                    if pd.notna(valor_total):
-                        apus_data.append(
-                            {
-                                "CODIGO_APU": current_apu_code,
-                                "DESCRIPCION_APU": current_apu_desc,
-                                "DESCRIPCION_INSUMO": description,
-                                "UNIDAD": parts_stripped[1],
-                                "CANTIDAD_APU": cantidad if pd.notna(cantidad) else 0,
-                                "PRECIO_UNIT_APU": precio_unit
-                                if pd.notna(precio_unit)
-                                else 0,
-                                "VALOR_TOTAL_APU": valor_total
-                                if pd.notna(valor_total)
-                                else 0,
-                                "CATEGORIA": current_category,
-                            }
-                        )
+                    parsed_data = parse_data_line(parts_stripped, current_category)
+                    if parsed_data:
+                        parsed_data["CODIGO_APU"] = current_apu_code
+                        parsed_data["DESCRIPCION_APU"] = current_apu_desc
+                        apus_data.append(parsed_data)
                     continue
 
                 if parts_stripped and parts_stripped[0]:
