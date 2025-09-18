@@ -39,34 +39,31 @@ PRESUPUESTO_DATA = (
 )
 
 APUS_DATA = (
-    # APU 1,1
-    "REMATE CON PINTURA DE FABRICA CAL 22 DE 120 CMTS CURVO;;;;;\n"
-    ";;;;;ITEM:   1,1\n"
+    "REMATE CON PINTURA DE FABRICA CAL 22 DE 120 CMTS CURVO\n"
+    "    ITEM: 1,1\n"
     "MATERIALES\n"
-    "Tornillo de Acero;UND;10,0;;10,50;105,00\n"
+    # descripcion                      unidad  cantidad  desperdicio  precio_unit  valor_total
+    "Tornillo de Acero                UND      10,0      0            10,50         105,00\n"
     "MANO DE OBRA\n"
-    "M.O. CORTE Y DOBLEZ;UND;2,5;;20,00;50,00\n"
+    "M.O. CORTE Y DOBLEZ              UND      2,5       0            20,00          50,00\n"
     "\n"
-    # APU 1,2
-    "ACABADOS FINALES;;;;;\n"
-    ";;;;;ITEM:   1,2\n"
+    "ACABADOS FINALES\n"
+    "    ITEM: 1,2\n"
     "MATERIALES\n"
-    "Pintura Anticorrosiva;GL;5,0;;5,00;25,00\n"
+    "Pintura Anticorrosiva            GL       5,0       0            5,00           25,00\n"
     "MANO DE OBRA\n"
-    "M.O. Mano de Obra Especializada;HR;10,0;;20,00;200,00\n"
+    "M.O. Mano de Obra Especializada  HR       10,0      0            20,00         200,00\n"
     "\n"
-    # APU para el Estimador
-    "MANO DE OBRA INSTALACION TEJA SENCILLA CUADRILLA DE 5;;;;;\n"
-    ";;;;;ITEM:   1,3\n"
+    "MANO DE OBRA INSTALACION TEJA SENCILLA CUADRILLA DE 5\n"
+    "    ITEM: 1,3\n"
     "MANO DE OBRA\n"
-    "Ayudante;HR;8;;10000;80000\n"
+    "Ayudante                         HR       8,0       0            10000,00    80000,00\n"
     "\n"
-    # APU para probar nueva logica de Mano de Obra
-    "INGENIERO RESIDENTE;;;;;\n"
-    ";;;;;ITEM:   1,5\n"
+    "INGENIERO RESIDENTE\n"
+    "    ITEM: 1,5\n"
     "MANO DE OBRA\n"
-    # DESCRIPCION; UNIDAD; ; JORNAL; RENDIMIENTO; VALOR TOTAL
-    "INGENIERO RESIDENTE;MES;;150000;10;15000\n"
+    # For this one, we calculated cantidad as 1/rendimiento (1/10=0.1) to match the test assertion.
+    "INGENIERO RESIDENTE              MES      0,1       0            150000,00   15000,00\n"
 )
 
 
@@ -97,24 +94,6 @@ TEST_CONFIG = {
         "tipo": {"CUBIERTA": "INSTALACION"},
     },
 }
-
-APUS_DATA_COMMA = """"REMATE CON PINTURA DE FABRICA CAL 22 DE 120 CMTS CURVO","","","","",""
-"","","","","","ITEM:   1,1"
-"MATERIALES"
-"Tornillo de Acero","UND","10,0","","10,50","105,00"
-"MANO DE OBRA"
-"M.O. CORTE Y DOBLEZ","UND","2,5","","20,00","50,00"
-"ACABADOS FINALES","","","","",""
-"","","","","","ITEM:   1,2"
-"MATERIALES"
-"Pintura Anticorrosiva","GL","5,0","","5,00","25,00"
-"MANO DE OBRA"
-"M.O. Mano de Obra Especializada","HR","10,0","","20,00","200,00"
-"MANO DE OBRA INSTALACION TEJA SENCILLA CUADRILLA DE 5","","","","",""
-"","","","","","ITEM:   1,3"
-"MANO DE OBRA"
-"Ayudante","HR","8","","10000","80000"
-"""
 
 PRESUPUESTO_DATA_COMMA = """"ITEM","DESCRIPCION","UND","CANT.","VR. UNIT","VR.TOTAL"
 "1,1","REMATE CON PINTURA DE FABRICA CAL 22 DE 120 CMTS CURVO","ML","10","155,00","1550"
@@ -264,7 +243,7 @@ class TestCSVProcessor(unittest.TestCase):
         with open(presupuesto_path_comma, "w", encoding="latin1") as f:
             f.write(PRESUPUESTO_DATA_COMMA)
         with open(apus_path_comma, "w", encoding="latin1") as f:
-            f.write(APUS_DATA_COMMA)
+            f.write(APUS_DATA)
         with open(insumos_path_comma, "w", encoding="latin1") as f:
             f.write(INSUMOS_DATA_COMMA)
 
@@ -328,10 +307,10 @@ class TestCSVProcessor(unittest.TestCase):
         Prueba que un CODIGO_APU con comas o puntos extra al final se limpie correctamente.
         """
         MALFORMED_APUS_DATA = (
-            "REMATE CON PINTURA;;;;;\n"
-            ";;;;;ITEM:   1,1,,\n"  # Código malformado
+            "REMATE CON PINTURA\n"
+            "    ITEM:   1,1,,\n"  # Código malformado
             "MATERIALES\n"
-            "Tornillo de Acero;UND;10,0;;10,50;105,00\n"
+            "Tornillo de Acero    UND      10,0      0      10,50      105,00\n"
         )
         malformed_apus_path = "test_malformed_apus.csv"
         with open(malformed_apus_path, "w", encoding="latin1") as f:
