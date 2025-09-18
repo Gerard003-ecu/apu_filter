@@ -411,24 +411,6 @@ def _do_processing(presupuesto_path, apus_path, insumos_path):
     parser = ReportParser(apus_path)
     df_apus = parser.parse()
 
-    # El nuevo parser ya añade la columna 'NORMALIZED_DESC'
-    # por lo que no es necesario añadirla aquí
-    # df_apus['NORMALIZED_DESC'] = normalize_text(df_apus['descripcion'])
-
-    # Renombrar columnas del nuevo parser para que coincidan con el resto del pipeline
-    df_apus.rename(
-        columns={
-            "apu_code": "CODIGO_APU",
-            "apu_desc": "DESCRIPCION_APU",
-            "categoria": "CATEGORIA",
-            "descripcion": "DESCRIPCION_INSUMO",
-            "cantidad": "CANTIDAD_APU",
-            "precio_unitario": "PRECIO_UNIT_APU",
-            "precio_total": "VALOR_TOTAL_APU",
-        },
-        inplace=True,
-    )
-
     if df_presupuesto.empty or df_insumos.empty or df_apus.empty:
         return {"error": "Uno o más archivos no pudieron ser procesados."}
     df_merged = pd.merge(
