@@ -1,0 +1,23 @@
+ * Serving Flask app 'app/app.py'
+ * Debug mode: on
+2025-09-18 11:41:07,034 - INFO - WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
+ * Running on http://127.0.0.1:5002
+2025-09-18 11:41:07,034 - INFO - Press CTRL+C to quit
+2025-09-18 11:41:07,038 - INFO -  * Restarting with stat
+2025-09-18 11:41:08,844 - WARNING -  * Debugger is active!
+2025-09-18 11:41:08,910 - INFO -  * Debugger PIN: 125-188-330
+2025-09-18 11:42:55,940 - INFO - 127.0.0.1 - - [18/Sep/2025 11:42:55] "GET / HTTP/1.1" 200 -
+2025-09-18 11:42:57,822 - INFO - 127.0.0.1 - - [18/Sep/2025 11:42:57] "GET /favicon.ico HTTP/1.1" 404 -
+2025-09-18 11:43:34,658 - INFO - Cache miss.
+2025-09-18 11:43:34,661 - INFO - Procesando archivos: /Users/gerardomayor/Documents/estru_techos/apu_filter/uploads/f2dd60f8-be0a-4fb4-831f-ba7ce63ac9b0/presupuesto_1758213814_presupuesto.csv, /Users/gerardomayor/Documents/estru_techos/apu_filter/uploads/f2dd60f8-be0a-4fb4-831f-ba7ce63ac9b0/apus_1758213814_apus.csv, /Users/gerardomayor/Documents/estru_techos/apu_filter/uploads/f2dd60f8-be0a-4fb4-831f-ba7ce63ac9b0/insumos_1758213814_insumos.csv
+2025-09-18 11:43:34,995 - INFO - Éxito al leerpresupuesto_1758213814_presupuesto.csv con encoding 'latin1'y delimitador ';'
+2025-09-18 11:43:35,172 - INFO - Tipos de datos optimizados con PyArrow para /Users/gerardomayor/Documents/estru_techos/apu_filter/uploads/f2dd60f8-be0a-4fb4-831f-ba7ce63ac9b0/presupuesto_1758213814_presupuesto.csv
+2025-09-18 11:43:35,577 - INFO - Cache info: hits=0, misses=1, size=1
+2025-09-18 11:43:35,625 - INFO - 127.0.0.1 - - [18/Sep/2025 11:43:35] "POST /upload HTTP/1.1" 500 -
+
+
+
+Los atributos para obtener el acceso de usuario y contraseña son:        
+NIT: 900178900-3                          
+Razón social: ASOCIACION PARA EL DESARROLLO CULTURAL Y EDUCATIVO ADECUE
+adecuetierrayproduzca@gmail.com
