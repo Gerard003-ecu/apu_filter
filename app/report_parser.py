@@ -18,27 +18,26 @@ class ReportParser:
         "item_code": re.compile(r"ITEM:\s*([\d\s,.]*)$"),
         "category": re.compile(r"^(MATERIALES|MANO DE OBRA|EQUIPO|OTROS)$"),
         "mano_de_obra_compleja": re.compile(
-            r"^(?P<descripcion>.+?)\s{2,}"
-            r"(?P<jornal_base>[\d.,]+)\s{2,}"
-            r"(?P<prestaciones>[\d.,]+)\s{2,}"
-            r"(?P<jornal_total>[\d.,]+)\s{2,}"
-            r"(?P<rendimiento>[\d.,]+)\s{2,}"
+            r"^(?P<descripcion>.+?)\s+"
+            r"(?P<jornal_base>[\d.,]+)\s+"
+            r"(?P<prestaciones>\S+)\s+"  # Puede ser % o número
+            r"(?P<jornal_total>[\d.,]+)\s+"
+            r"(?P<rendimiento>[\d.,]+)\s+"
             r"(?P<valor_total>[\d.,]+)$"
         ),
-        # Se incluye el dígito en la unidad para casos como 'M2'.
         "insumo_full": re.compile(
-            r"^(?P<descripcion>.+?)\s{2,}"
-            r"(?P<unidad>[A-Z0-9%]{2,10})\s{2,}"
-            r"(?P<cantidad>[\d.,]+)\s{2,}"
-            r"(?P<desperdicio>\S+)\s{2,}"
-            r"(?P<precio_unit>[\d\s.,]+?)\s{2,}"
+            r"^(?P<descripcion>.+?)\s+"
+            r"(?P<unidad>[A-Z0-9%]{2,10})\s+"
+            r"(?P<cantidad>[\d.,]+)\s+"
+            r"(?P<desperdicio>\S+)\s+"
+            r"(?P<precio_unit>[\d\s.,]+?)\s+"
             r"(?P<valor_total>[\d\s.,]+)$"
         ),
         "insumo_simple": re.compile(
-            r"^(?P<descripcion>.+?)\s{2,}"
-            r"(?P<unidad>[A-Z0-9%]{2,10})\s{2,}"
-            r"(?P<cantidad>[\d.,]+)\s{2,}"
-            r"(?P<precio_unit>[\d\s.,]+?)\s{2,}"
+            r"^(?P<descripcion>.+?)\s+"
+            r"(?P<unidad>[A-Z0-9%]{2,10})\s+"
+            r"(?P<cantidad>[\d.,]+)\s+"
+            r"(?P<precio_unit>[\d\s.,]+?)\s+"
             r"(?P<valor_total>[\d\s.,]+)$"
         ),
         "herramienta_menor": re.compile(
