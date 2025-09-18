@@ -1,191 +1,151 @@
-import csv
-import logging
 import re
-from typing import Dict, List, Optional
-
 import pandas as pd
+import logging
+from typing import List, Dict, Optional
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
-
-
-def detect_delimiter(file_path: str) -> str:
-    """
-    Detecta el delimitador (',' o ';') de un archivo CSV usando csv.Sniffer.
-    """
-    try:
-        with open(file_path, "r", encoding="latin1") as f:
-            sample = f.read(2048)
-            sniffer = csv.Sniffer()
-            dialect = sniffer.sniff(sample, delimiters=";,")
-            return dialect.delimiter
-    except (csv.Error, FileNotFoundError):
-        # Fallback a ; si el sniffer falla o el archivo no existe
-        return ";"
-
+logger = logging.getLogger(__name__)
 
 class ReportParser:
     """
-    Parsea un informe de APU (Análisis de Precios Unitarios) desde un archivo
-    de texto con formato CSV, extrayendo los datos de insumos y
-    organizándolos en una estructura de datos.
+    Parsea un archivo de reporte de APUs en formato de texto (tipo SAGUT)
+    utilizando una máquina de estados y expresiones regulares para manejar
+    formatos inconsistentes y delimitadores variables.
     """
 
     PATTERNS = {
-        "item_code": re.compile(r"ITEM:\s*([\d,\.]*)"),
-    }
-    CATEGORY_KEYWORDS = {
-        "MATERIALES": "MATERIALES",
-        "MANO DE OBRA": "MANO DE OBRA",
-        "EQUIPO Y HERRAMIENTA": "EQUIPO Y HERRAMIENTA",
-        "EQUIPO": "EQUIPO Y HERRAMIENTA",
-        "OTROS": "OTROS",
+        "item_code": re.compile(r"ITEM:\s*([\d\s,.]*)$"),
+        "category": re.compile(r"^(MATERIALES|MANO DE OBRA|EQUIPO|OTROS)$"),
+        # Se incluye el dígito en la unidad para casos como 'M2'.
+        "insumo_full": re.compile(
+            r"^(?P<descripcion>.+?)\s{2,}"
+            r"(?P<unidad>[A-Z0-9%]{2,10})\s{2,}"
+            r"(?P<cantidad>[\d.,]+)\s{2,}"
+            r"(?P<desperdicio>\S+)\s{2,}"
+            r"(?P<precio_unit>[\d\s.,]+?)\s{2,}"
+            r"(?P<valor_total>[\d\s.,]+)$"
+        ),
+        "insumo_simple": re.compile(
+            r"^(?P<descripcion>.+?)\s{2,}"
+            r"(?P<unidad>[A-Z0-9%]{2,10})\s{2,}"
+            r"(?P<cantidad>[\d.,]+)\s{2,}"
+            r"(?P<precio_unit>[\d\s.,]+?)\s{2,}"
+            r"(?P<valor_total>[\d\s.,]+)$"
+        ),
+        "herramienta_menor": re.compile(
+            r"^(?P<descripcion>EQUIPO Y HERRAMIENTA|HERRAMIENTA MENOR)\s+"
+            r"(?P<unidad>UND|%)\s+"
+            r"(?P<base_calculo>[\d.,]+)\s+"
+            r"(?P<porcentaje>[\d.,%]+)\s+"
+            r"(?P<valor_total>[\d.,]+)$"
+        )
     }
 
     def __init__(self, file_path: str):
         self.file_path = file_path
-        self._all_data: List[Dict] = []
+        self.apus_data = []
         self._current_apu_code: Optional[str] = None
         self._current_apu_desc: str = ""
         self._potential_apu_desc: str = ""
         self._current_category: str = "INDEFINIDO"
 
-    def _to_numeric_safe(self, s: str) -> float:
-        if isinstance(s, (int, float)):
-            return float(s)
-        if isinstance(s, str):
-            s_cleaned = s.replace(".", "").replace(",", ".").strip()
-            num = pd.to_numeric(s_cleaned, errors="coerce")
-            return float(num) if pd.notna(num) else 0.0
-        return 0.0
-
     def parse(self) -> pd.DataFrame:
-        logging.info(f"Iniciando el análisis del archivo: {self.file_path}")
-        self._all_data = []
         try:
-            delimiter = detect_delimiter(self.file_path)
             with open(self.file_path, "r", encoding="latin1") as f:
-                reader = csv.reader(f, delimiter=delimiter, quotechar='"')
-                for parts in reader:
-                    self._process_line(parts)
-        except FileNotFoundError:
-            logging.error(f"El archivo no se encontró en la ruta: {self.file_path}")
+                for line in f:
+                    self._process_line(line)
+        except Exception as e:
+            logger.error(f"Error al parsear {self.file_path}: {e}", exc_info=True)
             return pd.DataFrame()
 
-        logging.info(f"Análisis completado. Se encontraron {len(self._all_data)} registros.")
-
-        if not self._all_data:
+        if not self.apus_data:
             return pd.DataFrame()
 
-        df = pd.DataFrame(self._all_data)
-
-        # Añadir columna normalizada para compatibilidad con el resto del pipeline
-        if "descripcion" in df.columns:
-            df["NORMALIZED_DESC"] = (
-                df["descripcion"]
-                .str.lower()
-                .str.strip()
-                .str.replace(r"\s+", " ", regex=True)
-            )
-
+        df = pd.DataFrame(self.apus_data)
+        df["CODIGO_APU"] = df["CODIGO_APU"].str.strip()
+        df["NORMALIZED_DESC"] = self._normalize_text(df["DESCRIPCION_INSUMO"])
         return df
 
-    def _process_line(self, parts: List[str]):
-        if not any(p.strip() for p in parts):
+    def _process_line(self, line: str):
+        line = line.strip()
+        if not line:
             return
 
-        parts_stripped = [p.strip() for p in parts]
+        match_item = self.PATTERNS["item_code"].search(line.upper())
+        if match_item:
+            self._start_new_apu(match_item.group(1))
+            return
 
-        # 1. Buscar código de ITEM
-        for part in parts_stripped:
-            match = self.PATTERNS["item_code"].search(part.upper())
-            if match and match.group(1).strip():
-                self._start_new_apu(match.group(1).strip().rstrip(".,"))
+        match_category = self.PATTERNS["category"].match(line)
+        if match_category:
+            self._current_category = match_category.group(1)
+            return
+
+        if self._current_apu_code:
+            # Intentar el match más específico primero
+            match_herramienta = self.PATTERNS["herramienta_menor"].match(line)
+            if match_herramienta:
+                self._parse_herramienta_menor(match_herramienta.groupdict())
                 return
 
-        # 2. Buscar categoría
-        line_content_for_category = "".join(parts_stripped)
-        if line_content_for_category in self.CATEGORY_KEYWORDS:
-            self._current_category = self.CATEGORY_KEYWORDS[line_content_for_category]
-            return
+            match_insumo_full = self.PATTERNS["insumo_full"].match(line)
+            if match_insumo_full:
+                self._parse_insumo(match_insumo_full.groupdict())
+                return
 
-        # 3. Buscar Insumo (lógica adaptada de process_apus_csv_v2)
-        is_insumo = False
-        if self._current_apu_code and len(parts_stripped) >= 6 and parts_stripped[0]:
-            if (
-                "DESCRIPCION" not in parts_stripped[0].upper()
-                and "SUBTOTAL" not in parts_stripped[0].upper()
-            ):
-                # Comprobar si hay valores numéricos en las columnas esperadas
-                try:
-                    cantidad_val = self._to_numeric_safe(parts_stripped[2])
-                    precio_val = self._to_numeric_safe(parts_stripped[4])
-                    valor_val = self._to_numeric_safe(parts_stripped[5])
-                    if cantidad_val > 0 or precio_val > 0 or valor_val > 0:
-                        is_insumo = True
-                except IndexError:
-                    is_insumo = False
+            match_insumo_simple = self.PATTERNS["insumo_simple"].match(line)
+            if match_insumo_simple:
+                self._parse_insumo(match_insumo_simple.groupdict())
+                return
 
-        if is_insumo:
-            self._parse_insumo(parts_stripped)
-            return
-
-        # 4. Si no es nada de lo anterior, podría ser la descripción del APU
-        if parts_stripped and parts_stripped[0]:
-            self._potential_apu_desc = parts_stripped[0]
+        self._potential_apu_desc = line
 
     def _start_new_apu(self, raw_code: str):
-        self._current_apu_code = raw_code
+        self._current_apu_code = re.sub(r"[\s,.]+$", "", raw_code.replace(" ", ","))
         self._current_apu_desc = self._potential_apu_desc
         self._current_category = "INDEFINIDO"
         self._potential_apu_desc = ""
-        logging.info(
-            f"Nuevo APU encontrado: {self._current_apu_code} - {self._current_apu_desc}"
-        )
 
-    def _parse_insumo(self, parts: List[str]):
-        # Lógica adaptada de la función `parse_data_line` original
-        description = parts[0]
-
-        # Lógica para Mano de Obra
-        is_mano_de_obra = (
-            self._current_category == "MANO DE OBRA"
-            or description.upper().startswith("M.O.")
-        )
-
-        cantidad, precio_unit, valor_total = 0.0, 0.0, 0.0
-
+    def _parse_insumo(self, data: Dict[str, str]):
         try:
-            if is_mano_de_obra and len(parts) >= 6:
-                valor_total = self._to_numeric_safe(parts[5])
-                precio_unitario_jornal = self._to_numeric_safe(parts[3])
-                rendimiento = self._to_numeric_safe(parts[4])
+            self.apus_data.append({
+                "CODIGO_APU": self._current_apu_code,
+                "DESCRIPCION_APU": self._current_apu_desc,
+                "DESCRIPCION_INSUMO": data["descripcion"].strip(),
+                "UNIDAD": data["unidad"],
+                "CANTIDAD_APU": self._to_numeric_safe(data["cantidad"]),
+                "PRECIO_UNIT_APU": self._to_numeric_safe(data["precio_unit"]),
+                "VALOR_TOTAL_APU": self._to_numeric_safe(data["valor_total"]),
+                "CATEGORIA": self._current_category,
+            })
+        except Exception as e:
+            logger.warning(f"No se pudo parsear la línea de insumo: '{data}'. Error: {e}")
 
-                if rendimiento != 0:
-                    cantidad = 1 / rendimiento
-                precio_unit = precio_unitario_jornal
-            else:
-                cantidad = self._to_numeric_safe(parts[2])
-                precio_unit = self._to_numeric_safe(parts[4])
-                valor_total = self._to_numeric_safe(parts[5])
+    def _parse_herramienta_menor(self, data: Dict[str, str]):
+        try:
+            valor_total = self._to_numeric_safe(data["valor_total"])
+            self.apus_data.append({
+                "CODIGO_APU": self._current_apu_code,
+                "DESCRIPCION_APU": self._current_apu_desc,
+                "DESCRIPCION_INSUMO": data["descripcion"].strip(),
+                "UNIDAD": data["unidad"],
+                "CANTIDAD_APU": 1,
+                "PRECIO_UNIT_APU": valor_total,
+                "VALOR_TOTAL_APU": valor_total,
+                "CATEGORIA": self._current_category,
+            })
+        except Exception as e:
+            logger.warning(f"No se pudo parsear la línea de herramienta: '{data}'. Error: {e}")
 
-                if valor_total == 0 and cantidad > 0 and precio_unit > 0:
-                    valor_total = cantidad * precio_unit
-        except IndexError:
-            logging.warning(f"Línea de insumo mal formada omitida: {parts}")
-            return
+    def _to_numeric_safe(self, s: str) -> float:
+        if not s: return 0.0
+        # Eliminar espacios, luego puntos (miles), luego cambiar coma por punto (decimal)
+        s_cleaned = s.replace(" ", "").replace(".", "").replace(",", ".").strip()
+        return float(s_cleaned)
 
-        if valor_total > 0:
-            self._all_data.append(
-                {
-                    "apu_code": self._current_apu_code,
-                    "apu_desc": self._current_apu_desc,
-                    "categoria": self._current_category,
-                    "descripcion": description,
-                    "unidad": parts[1],
-                    "cantidad": cantidad,
-                    "precio_unitario": precio_unit,
-                    "precio_total": valor_total,
-                }
-            )
-        else:
-            logging.debug(f"Línea de insumo sin valor total omitida: {parts}")
+    def _normalize_text(self, series: pd.Series) -> pd.Series:
+        from unidecode import unidecode
+        normalized = series.astype(str).str.lower().str.strip()
+        normalized = normalized.apply(unidecode)
+        normalized = normalized.str.replace(r"[^a-z0-9\s#\-]", "", regex=True)
+        normalized = normalized.str.replace(r"\s+", " ", regex=True)
+        return normalized
