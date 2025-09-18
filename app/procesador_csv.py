@@ -405,193 +405,208 @@ def group_and_split_description(df: pd.DataFrame) -> pd.DataFrame:
 def _do_processing(presupuesto_path, apus_path, insumos_path):
     logger.info(f"Procesando archivos: {presupuesto_path}, {apus_path}, {insumos_path}")
     df_presupuesto = process_presupuesto_csv(presupuesto_path)
+    logger.debug(f"df_presupuesto creado. Columnas: {df_presupuesto.columns.tolist()}. Filas: {len(df_presupuesto)}")
+
     df_insumos = process_insumos_csv(insumos_path)
+    logger.debug(f"df_insumos creado. Columnas: {df_insumos.columns.tolist()}. Filas: {len(df_insumos)}")
 
     # Usar el nuevo ReportParser
     parser = ReportParser(apus_path)
     df_apus = parser.parse()
+    logger.debug(f"df_apus creado por ReportParser. Columnas: {df_apus.columns.tolist()}. Filas: {len(df_apus)}")
+
 
     if df_presupuesto.empty or df_insumos.empty or df_apus.empty:
         return {"error": "Uno o más archivos no pudieron ser procesados."}
-    df_merged = pd.merge(
-        df_apus, df_insumos, on="NORMALIZED_DESC", how="left", suffixes=("_apu", "")
-    )
-    df_merged["DESCRIPCION_INSUMO"] = df_merged["DESCRIPCION_INSUMO_apu"]
-    df_merged["COSTO_INSUMO_EN_APU"] = np.where(
-        df_merged["VR_UNITARIO_INSUMO"].notna(),
-        df_merged["CANTIDAD_APU"] * df_merged["VR_UNITARIO_INSUMO"],
-        df_merged["VALOR_TOTAL_APU"],
-    )
-    df_merged["VR_UNITARIO_FINAL"] = df_merged["VR_UNITARIO_INSUMO"].fillna(
-        df_merged["PRECIO_UNIT_APU"]
-    )
-    mask_recalc = (df_merged["VR_UNITARIO_FINAL"].isna()) | (
-        df_merged["VR_UNITARIO_FINAL"] == 0
-    )
-    cantidad_safe = df_merged["CANTIDAD_APU"].replace(0, 1)
-    df_merged.loc[mask_recalc, "VR_UNITARIO_FINAL"] = (
-        df_merged.loc[mask_recalc, "COSTO_INSUMO_EN_APU"] / cantidad_safe
-    )
-    df_merged["COSTO_INSUMO_EN_APU"] = df_merged["COSTO_INSUMO_EN_APU"].fillna(0)
-    df_apu_costos_categoria = (
-        df_merged.groupby(["CODIGO_APU", "CATEGORIA"])["COSTO_INSUMO_EN_APU"]
-        .sum()
-        .unstack(fill_value=0)
-        .reset_index()
-    )
-    cost_cols = ["MATERIALES", "MANO DE OBRA", "EQUIPO", "OTROS"]
-    for col in cost_cols:
-        if col not in df_apu_costos_categoria.columns:
-            df_apu_costos_categoria[col] = 0
-    df_apu_costos_categoria["VALOR_SUMINISTRO_UN"] = df_apu_costos_categoria["MATERIALES"]
-    df_apu_costos_categoria["VALOR_INSTALACION_UN"] = (
-        df_apu_costos_categoria["MANO DE OBRA"] + df_apu_costos_categoria["EQUIPO"]
-    )
-    df_apu_costos_categoria["VALOR_CONSTRUCCION_UN"] = df_apu_costos_categoria[
-        cost_cols
-    ].sum(axis=1)
 
-    # --- INICIO: Clasificación de APU por tipo ---
-    def classify_apu(row):
-        """Clasifica un APU basado en la proporción de sus costos."""
-        costo_total = row["VALOR_CONSTRUCCION_UN"]
-        if costo_total == 0:
-            return "Indefinido"
-
-        costo_materiales = row.get("MATERIALES", 0)
-        costo_mano_obra = row.get("MANO DE OBRA", 0)
-        costo_equipo = row.get("EQUIPO", 0)
-
-        porcentaje_materiales = (costo_materiales / costo_total) * 100
-        porcentaje_mo_eq = ((costo_mano_obra + costo_equipo) / costo_total) * 100
-
-        # Aplicar las siguientes reglas en orden:
-        # 1. Si Costo de Mano de Obra + Equipo > 75%, clasificar como "Instalación".
-        if porcentaje_mo_eq > 75:
-            return "Instalación"
-        # 2. Si Costo de Materiales > 75% Y Costo de Mano de Obra + Equipo < 10%,
-        # clasificar como "Suministro".
-        if porcentaje_materiales > 75 and porcentaje_mo_eq < 10:
-            return "Suministro"
-        # 3. Si Costo de Materiales > 50% Y Costo de Mano de Obra + Equipo > 10%,
-        # clasificar como "Suministro (Pre-fabricado)".
-        if porcentaje_materiales > 50 and porcentaje_mo_eq > 10:
-            return "Suministro (Pre-fabricado)"
-        # 4. En cualquier otro caso, clasificar como "Obra Completa".
-        return "Obra Completa"
-
-    df_apu_costos_categoria["tipo_apu"] = df_apu_costos_categoria.apply(classify_apu, axis=1)
-    # --- FIN: Clasificación de APU por tipo ---
-
-    df_tiempo = (
-        df_merged[df_merged["CATEGORIA"] == "MANO DE OBRA"]
-        .groupby("CODIGO_APU")["CANTIDAD_APU"]
-        .sum()
-        .reset_index()
-    )
-    df_tiempo.rename(columns={"CANTIDAD_APU": "TIEMPO_INSTALACION"}, inplace=True)
-    df_final = pd.merge(df_presupuesto, df_apu_costos_categoria, on="CODIGO_APU", how="left")
-    df_final = pd.merge(df_final, df_tiempo, on="CODIGO_APU", how="left")
-    final_cols_to_fill = [
-        "VALOR_SUMINISTRO_UN",
-        "VALOR_INSTALACION_UN",
-        "VALOR_CONSTRUCCION_UN",
-        "TIEMPO_INSTALACION",
-    ]
-    for col in final_cols_to_fill:
-        if col in df_final.columns:
-            df_final[col] = df_final[col].fillna(0)
-        else:
-            df_final[col] = 0
-    df_final = group_and_split_description(df_final)
-    logger.info(
-        f"Diagnóstico: {df_final['VALOR_CONSTRUCCION_UN'].notna().sum()} de"
-        f" {len(df_final)} ítems del presupuesto encontraron su costo."
-    )
-    df_merged_renamed = df_merged.rename(
-        columns={
-            "DESCRIPCION_INSUMO": "DESCRIPCION",
-            "CANTIDAD_APU": "CANTIDAD",
-            "unidad": "UNIDAD",
-            "VR_UNITARIO_FINAL": "VALOR_UNITARIO",
-            "COSTO_INSUMO_EN_APU": "VALOR_TOTAL",
-        }
-    )
-    apus_detail = {
-        n: g[
-            [
-                "DESCRIPCION",
-                "UNIDAD",
-                "CANTIDAD",
-                "VALOR_UNITARIO",
-                "VALOR_TOTAL",
-                "CATEGORIA",
-            ]
-        ].to_dict("records")
-        for n, g in df_merged_renamed.groupby("CODIGO_APU")
-    }
-    insumos_dict = {}
-    if "GRUPO_INSUMO" in df_insumos.columns:
-        df_insumos_renamed = df_insumos.rename(
-            columns={
-                "DESCRIPCION_INSUMO": "Descripción",
-                "VR_UNITARIO_INSUMO": "Vr Unitario",
-            }
+    try:
+        # --- SECCIÓN CRÍTICA ---
+        logger.info("Iniciando merge de df_apus y df_insumos...")
+        df_merged = pd.merge(
+            df_apus, df_insumos, on="NORMALIZED_DESC", how="left", suffixes=("_apu", "")
         )
-        for name, group in df_insumos_renamed.groupby("GRUPO_INSUMO"):
-            if name and isinstance(name, str):
-                insumos_dict[name.strip()] = (
-                    group[["Descripción", "Vr Unitario"]].dropna().to_dict("records")
-                )
-    logger.info("--- Procesamiento completado ---")
+        logger.info("Merge completado exitosamente.")
 
-    # Reemplazar NaN por None para evitar problemas de serialización JSON
-    df_final = df_final.replace({np.nan: None})
-    df_merged_renamed = df_merged_renamed.replace({np.nan: None})
-    df_apus = df_apus.replace({np.nan: None})
-    df_insumos = df_insumos.replace({np.nan: None})
+        df_merged["DESCRIPCION_INSUMO"] = df_merged["DESCRIPCION_INSUMO_apu"]
+        df_merged["COSTO_INSUMO_EN_APU"] = np.where(
+            df_merged["VR_UNITARIO_INSUMO"].notna(),
+            df_merged["CANTIDAD_APU"] * df_merged["VR_UNITARIO_INSUMO"],
+            df_merged["VALOR_TOTAL_APU"],
+        )
+        df_merged["VR_UNITARIO_FINAL"] = df_merged["VR_UNITARIO_INSUMO"].fillna(
+            df_merged["PRECIO_UNIT_APU"]
+        )
+        mask_recalc = (df_merged["VR_UNITARIO_FINAL"].isna()) | (
+            df_merged["VR_UNITARIO_FINAL"] == 0
+        )
+        cantidad_safe = df_merged["CANTIDAD_APU"].replace(0, 1)
+        df_merged.loc[mask_recalc, "VR_UNITARIO_FINAL"] = (
+            df_merged.loc[mask_recalc, "COSTO_INSUMO_EN_APU"] / cantidad_safe
+        )
+        df_merged["COSTO_INSUMO_EN_APU"] = df_merged["COSTO_INSUMO_EN_APU"].fillna(0)
+        df_apu_costos_categoria = (
+            df_merged.groupby(["CODIGO_APU", "CATEGORIA"])["COSTO_INSUMO_EN_APU"]
+            .sum()
+            .unstack(fill_value=0)
+            .reset_index()
+        )
+        cost_cols = ["MATERIALES", "MANO DE OBRA", "EQUIPO", "OTROS"]
+        for col in cost_cols:
+            if col not in df_apu_costos_categoria.columns:
+                df_apu_costos_categoria[col] = 0
+        df_apu_costos_categoria["VALOR_SUMINISTRO_UN"] = df_apu_costos_categoria["MATERIALES"]
+        df_apu_costos_categoria["VALOR_INSTALACION_UN"] = (
+            df_apu_costos_categoria["MANO DE OBRA"] + df_apu_costos_categoria["EQUIPO"]
+        )
+        df_apu_costos_categoria["VALOR_CONSTRUCCION_UN"] = df_apu_costos_categoria[
+            cost_cols
+        ].sum(axis=1)
 
-    # Actualizar los diccionarios después de la limpieza
-    apus_detail = {
-        n: g[
-            [
-                "DESCRIPCION",
-                "UNIDAD",
-                "CANTIDAD",
-                "VALOR_UNITARIO",
-                "VALOR_TOTAL",
-                "CATEGORIA",
-            ]
+        # --- INICIO: Clasificación de APU por tipo ---
+        def classify_apu(row):
+            """Clasifica un APU basado en la proporción de sus costos."""
+            costo_total = row["VALOR_CONSTRUCCION_UN"]
+            if costo_total == 0:
+                return "Indefinido"
+
+            costo_materiales = row.get("MATERIALES", 0)
+            costo_mano_obra = row.get("MANO DE OBRA", 0)
+            costo_equipo = row.get("EQUIPO", 0)
+
+            porcentaje_materiales = (costo_materiales / costo_total) * 100
+            porcentaje_mo_eq = ((costo_mano_obra + costo_equipo) / costo_total) * 100
+
+            # Aplicar las siguientes reglas en orden:
+            # 1. Si Costo de Mano de Obra + Equipo > 75%, clasificar como "Instalación".
+            if porcentaje_mo_eq > 75:
+                return "Instalación"
+            # 2. Si Costo de Materiales > 75% Y Costo de Mano de Obra + Equipo < 10%,
+            # clasificar como "Suministro".
+            if porcentaje_materiales > 75 and porcentaje_mo_eq < 10:
+                return "Suministro"
+            # 3. Si Costo de Materiales > 50% Y Costo de Mano de Obra + Equipo > 10%,
+            # clasificar como "Suministro (Pre-fabricado)".
+            if porcentaje_materiales > 50 and porcentaje_mo_eq > 10:
+                return "Suministro (Pre-fabricado)"
+            # 4. En cualquier otro caso, clasificar como "Obra Completa".
+            return "Obra Completa"
+
+        df_apu_costos_categoria["tipo_apu"] = df_apu_costos_categoria.apply(classify_apu, axis=1)
+        # --- FIN: Clasificación de APU por tipo ---
+
+        df_tiempo = (
+            df_merged[df_merged["CATEGORIA"] == "MANO DE OBRA"]
+            .groupby("CODIGO_APU")["CANTIDAD_APU"]
+            .sum()
+            .reset_index()
+        )
+        df_tiempo.rename(columns={"CANTIDAD_APU": "TIEMPO_INSTALACION"}, inplace=True)
+        df_final = pd.merge(df_presupuesto, df_apu_costos_categoria, on="CODIGO_APU", how="left")
+        df_final = pd.merge(df_final, df_tiempo, on="CODIGO_APU", how="left")
+        final_cols_to_fill = [
+            "VALOR_SUMINISTRO_UN",
+            "VALOR_INSTALACION_UN",
+            "VALOR_CONSTRUCCION_UN",
+            "TIEMPO_INSTALACION",
         ]
-        .replace({np.nan: None})
-        .to_dict("records")
-        for n, g in df_merged_renamed.groupby("CODIGO_APU")
-    }
-
-    insumos_dict = {}
-    if "GRUPO_INSUMO" in df_insumos.columns:
-        df_insumos_renamed = df_insumos.rename(
+        for col in final_cols_to_fill:
+            if col in df_final.columns:
+                df_final[col] = df_final[col].fillna(0)
+            else:
+                df_final[col] = 0
+        df_final = group_and_split_description(df_final)
+        logger.info(
+            f"Diagnóstico: {df_final['VALOR_CONSTRUCCION_UN'].notna().sum()} de"
+            f" {len(df_final)} ítems del presupuesto encontraron su costo."
+        )
+        df_merged_renamed = df_merged.rename(
             columns={
-                "DESCRIPCION_INSUMO": "Descripción",
-                "VR_UNITARIO_INSUMO": "Vr Unitario",
+                "DESCRIPCION_INSUMO": "DESCRIPCION",
+                "CANTIDAD_APU": "CANTIDAD",
+                "unidad": "UNIDAD",
+                "VR_UNITARIO_FINAL": "VALOR_UNITARIO",
+                "COSTO_INSUMO_EN_APU": "VALOR_TOTAL",
             }
         )
-        for name, group in df_insumos_renamed.groupby("GRUPO_INSUMO"):
-            if name and isinstance(name, str):
-                insumos_dict[name.strip()] = (
-                    group[["Descripción", "Vr Unitario"]]
-                    .replace({np.nan: None})
-                    .dropna()
-                    .to_dict("records")
-                )
+        apus_detail = {
+            n: g[
+                [
+                    "DESCRIPCION",
+                    "UNIDAD",
+                    "CANTIDAD",
+                    "VALOR_UNITARIO",
+                    "VALOR_TOTAL",
+                    "CATEGORIA",
+                ]
+            ].to_dict("records")
+            for n, g in df_merged_renamed.groupby("CODIGO_APU")
+        }
+        insumos_dict = {}
+        if "GRUPO_INSUMO" in df_insumos.columns:
+            df_insumos_renamed = df_insumos.rename(
+                columns={
+                    "DESCRIPCION_INSUMO": "Descripción",
+                    "VR_UNITARIO_INSUMO": "Vr Unitario",
+                }
+            )
+            for name, group in df_insumos_renamed.groupby("GRUPO_INSUMO"):
+                if name and isinstance(name, str):
+                    insumos_dict[name.strip()] = (
+                        group[["Descripción", "Vr Unitario"]].dropna().to_dict("records")
+                    )
+        logger.info("--- Procesamiento completado ---")
 
-    return {
-        "presupuesto": df_final.to_dict("records"),
-        "insumos": insumos_dict,
-        "apus_detail": apus_detail,
-        "all_apus": df_apus.to_dict("records"),
-        "raw_insumos_df": df_insumos.to_dict("records"),
-    }
+        # Reemplazar NaN por None para evitar problemas de serialización JSON
+        df_final = df_final.replace({np.nan: None})
+        df_merged_renamed = df_merged_renamed.replace({np.nan: None})
+        df_apus = df_apus.replace({np.nan: None})
+        df_insumos = df_insumos.replace({np.nan: None})
+
+        # Actualizar los diccionarios después de la limpieza
+        apus_detail = {
+            n: g[
+                [
+                    "DESCRIPCION",
+                    "UNIDAD",
+                    "CANTIDAD",
+                    "VALOR_UNITARIO",
+                    "VALOR_TOTAL",
+                    "CATEGORIA",
+                ]
+            ]
+            .replace({np.nan: None})
+            .to_dict("records")
+            for n, g in df_merged_renamed.groupby("CODIGO_APU")
+        }
+
+        insumos_dict = {}
+        if "GRUPO_INSUMO" in df_insumos.columns:
+            df_insumos_renamed = df_insumos.rename(
+                columns={
+                    "DESCRIPCION_INSUMO": "Descripción",
+                    "VR_UNITARIO_INSUMO": "Vr Unitario",
+                }
+            )
+            for name, group in df_insumos_renamed.groupby("GRUPO_INSUMO"):
+                if name and isinstance(name, str):
+                    insumos_dict[name.strip()] = (
+                        group[["Descripción", "Vr Unitario"]]
+                        .replace({np.nan: None})
+                        .dropna()
+                        .to_dict("records")
+                    )
+
+        return {
+            "presupuesto": df_final.to_dict("records"),
+            "insumos": insumos_dict,
+            "apus_detail": apus_detail,
+            "all_apus": df_apus.to_dict("records"),
+            "raw_insumos_df": df_insumos.to_dict("records"),
+        }
+
+    except Exception as e:
+        logger.error(f"ERROR CRÍTICO durante el merge o cálculo en _do_processing: {e}", exc_info=True)
+        return {"error": f"Fallo en la etapa de procesamiento de datos: {e}"}
 
 
 @lru_cache(maxsize=10)
