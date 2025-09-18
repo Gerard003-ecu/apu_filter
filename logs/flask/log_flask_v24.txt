@@ -1,0 +1,28 @@
+ * Serving Flask app 'app/app.py'
+ * Debug mode: on
+2025-09-18 12:18:41,832 - INFO - WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
+ * Running on http://127.0.0.1:5002
+2025-09-18 12:18:41,832 - INFO - Press CTRL+C to quit
+2025-09-18 12:18:41,837 - INFO -  * Restarting with stat
+2025-09-18 12:18:44,192 - WARNING -  * Debugger is active!
+2025-09-18 12:18:44,236 - INFO -  * Debugger PIN: 125-188-330
+2025-09-18 12:18:56,042 - INFO - 127.0.0.1 - - [18/Sep/2025 12:18:56] "GET / HTTP/1.1" 200 -
+2025-09-18 12:18:56,575 - INFO - 127.0.0.1 - - [18/Sep/2025 12:18:56] "GET /favicon.ico HTTP/1.1" 404 -
+2025-09-18 12:19:29,145 - INFO - Cache miss.
+2025-09-18 12:19:29,151 - INFO - Procesando archivos: /Users/gerardomayor/Documents/estru_techos/apu_filter/uploads/f2dd60f8-be0a-4fb4-831f-ba7ce63ac9b0/presupuesto_1758215969_presupuesto.csv, /Users/gerardomayor/Documents/estru_techos/apu_filter/uploads/f2dd60f8-be0a-4fb4-831f-ba7ce63ac9b0/apus_1758215969_apus.csv, /Users/gerardomayor/Documents/estru_techos/apu_filter/uploads/f2dd60f8-be0a-4fb4-831f-ba7ce63ac9b0/insumos_1758215969_insumos.csv
+2025-09-18 12:19:29,371 - INFO - Éxito al leerpresupuesto_1758215969_presupuesto.csv con encoding 'latin1'y delimitador ';'
+2025-09-18 12:19:29,496 - INFO - Tipos de datos optimizados con PyArrow para /Users/gerardomayor/Documents/estru_techos/apu_filter/uploads/f2dd60f8-be0a-4fb4-831f-ba7ce63ac9b0/presupuesto_1758215969_presupuesto.csv
+2025-09-18 12:19:29,735 - DEBUG - df_presupuesto creado. Columnas: ['CODIGO_APU', 'DESCRIPCION_APU', 'CANTIDAD_PRESUPUESTO']. Filas: 549
+2025-09-18 12:19:29,793 - DEBUG - df_insumos creado. Columnas: ['NORMALIZED_DESC', 'VR_UNITARIO_INSUMO', 'GRUPO_INSUMO', 'DESCRIPCION_INSUMO']. Filas: 16
+2025-09-18 12:19:29,844 - DEBUG - df_apus creado por ReportParser. Columnas: []. Filas: 0
+2025-09-18 12:19:29,844 - INFO - Cache info: hits=0, misses=1, size=1
+2025-09-18 12:19:29,846 - INFO - 127.0.0.1 - - [18/Sep/2025 12:19:29] "POST /upload HTTP/1.1" 500 -
+2025-09-18 12:19:58,509 - INFO - Cache miss.
+2025-09-18 12:19:58,509 - INFO - Procesando archivos: /Users/gerardomayor/Documents/estru_techos/apu_filter/uploads/f2dd60f8-be0a-4fb4-831f-ba7ce63ac9b0/presupuesto_1758215998_presupuesto.csv, /Users/gerardomayor/Documents/estru_techos/apu_filter/uploads/f2dd60f8-be0a-4fb4-831f-ba7ce63ac9b0/apus_1758215998_apus.csv, /Users/gerardomayor/Documents/estru_techos/apu_filter/uploads/f2dd60f8-be0a-4fb4-831f-ba7ce63ac9b0/insumos_1758215998_insumos.csv
+2025-09-18 12:19:58,548 - INFO - Éxito al leerpresupuesto_1758215998_presupuesto.csv con encoding 'latin1'y delimitador ';'
+2025-09-18 12:19:58,566 - INFO - Tipos de datos optimizados con PyArrow para /Users/gerardomayor/Documents/estru_techos/apu_filter/uploads/f2dd60f8-be0a-4fb4-831f-ba7ce63ac9b0/presupuesto_1758215998_presupuesto.csv
+2025-09-18 12:19:58,597 - DEBUG - df_presupuesto creado. Columnas: ['CODIGO_APU', 'DESCRIPCION_APU', 'CANTIDAD_PRESUPUESTO']. Filas: 549
+2025-09-18 12:19:58,620 - DEBUG - df_insumos creado. Columnas: ['NORMALIZED_DESC', 'VR_UNITARIO_INSUMO', 'GRUPO_INSUMO', 'DESCRIPCION_INSUMO']. Filas: 16
+2025-09-18 12:19:58,712 - DEBUG - df_apus creado por ReportParser. Columnas: []. Filas: 0
+2025-09-18 12:19:58,713 - INFO - Cache info: hits=0, misses=2, size=2
+2025-09-18 12:19:58,714 - INFO - 127.0.0.1 - - [18/Sep/2025 12:19:58] "POST /upload HTTP/1.1" 500 -

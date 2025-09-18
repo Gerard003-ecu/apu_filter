@@ -14,10 +14,3 @@
 2025-09-18 11:43:35,172 - INFO - Tipos de datos optimizados con PyArrow para /Users/gerardomayor/Documents/estru_techos/apu_filter/uploads/f2dd60f8-be0a-4fb4-831f-ba7ce63ac9b0/presupuesto_1758213814_presupuesto.csv
 2025-09-18 11:43:35,577 - INFO - Cache info: hits=0, misses=1, size=1
 2025-09-18 11:43:35,625 - INFO - 127.0.0.1 - - [18/Sep/2025 11:43:35] "POST /upload HTTP/1.1" 500 -
-
-
-
-Los atributos para obtener el acceso de usuario y contraseña son:        
-NIT: 900178900-3                          
-Razón social: ASOCIACION PARA EL DESARROLLO CULTURAL Y EDUCATIVO ADECUE
-adecuetierrayproduzca@gmail.com
