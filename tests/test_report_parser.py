@@ -1,115 +1,138 @@
 import os
 import unittest
 import sys
+import pandas as pd
 
+# Añadir el directorio raíz del proyecto al sys.path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from app.report_parser import ReportParser
 
-# Datos de prueba representativos simulando el contenido de un archivo de APUs.
-APUS_TEST_DATA = '''ITEM: 1,1
+# Datos de prueba actualizados para el nuevo parser basado en regex.
+# Simula un formato de texto de ancho fijo o delimitado por espacios.
+APUS_TEST_DATA = """
+ITEM: 1,1
 CONSTRUCCION DE MURO EN LADRILLO ESTRUCTURAL
 MATERIALES
-"LAMINA DE 1.22 X 2.44 EN 6MM RH";"M2";"0,0420";;"37.000,00";"1.554,00"
-"PERFIL TUBULAR CUADRADO 2"" X 2""";"ML";"1,5000";;"12.000,00";"18.000,00"
+LAMINA DE 1.22 X 2.44 EN 6MM RH      M2      0,0420  -           37.000,00   1.554,00
+PERFIL TUBULAR CUADRADO 2" X 2"      ML      1,5000              12.000,00   18.000,00
 MANO DE OBRA
-"AYUDANTE";"HR";;;"10.000,00";"10.000,00"
-"OFICIAL";"HR";;;"15.000,00";"15.000,00"
-EQUIPO Y HERRAMIENTA
-"equipo y herramienta (5%)";"%";"5";;"25000";"1250,00"
+AYUDANTE                             HR      1,0                 10.000,00   10.000,00
+OFICIAL                              HR      1,0                 15.000,00   15.000,00
+EQUIPO
+HERRAMIENTA MENOR                    %       18000      5%       900,00
 ITEM: 1,2
 PUNTO HIDRAULICO AGUA FRIA/CALIENTE
 MATERIALES
-"SOLDADURA PVC 1/4 GAL";"UND";"0,0200";;"50.000,00";"1.000,00"
-"LIMPIADOR PVC 1/4 GAL";"UND";"0,0200";;"40.000,00";"800,00"
-'''
+SOLDADURA PVC 1/4 GAL                UND     0,0200  -           50.000,00   1.000,00
+INSUMO CON NUMERO GRANDE             UND     2,0     -           1 250 500,50  2 501 001,00
+"""
 
-
-class TestReportParser(unittest.TestCase):
+class TestReportParserRefactored(unittest.TestCase):
     """
-    Pruebas unitarias para la clase ReportParser.
+    Pruebas unitarias para la clase ReportParser refactorizada.
     """
 
-    def setUp(self):
+    @classmethod
+    def setUpClass(cls):
         """
-        Configura el entorno de prueba. Crea un archivo temporal con datos
-        y una instancia del ReportParser.
+        Configura el entorno de prueba una vez para toda la clase.
+        Crea un archivo temporal con datos y una instancia del ReportParser.
         """
-        self.test_file_path = "test_apus.txt"
-        with open(self.test_file_path, "w", encoding="utf-8") as f:
+        cls.test_file_path = "test_apus_refactored.txt"
+        with open(cls.test_file_path, "w", encoding="latin1") as f:
             f.write(APUS_TEST_DATA)
-        self.parser = ReportParser(self.test_file_path)
-        self.df = self.parser.parse()
 
-    def tearDown(self):
+        cls.parser = ReportParser(cls.test_file_path)
+        cls.df = cls.parser.parse()
+
+        # Imprimir el DataFrame para depuración si es necesario
+        print("\nDataFrame parseado para pruebas:")
+        print(cls.df.to_string())
+
+    @classmethod
+    def tearDownClass(cls):
         """
         Limpia el entorno de prueba eliminando el archivo temporal.
         """
-        os.remove(self.test_file_path)
+        os.remove(cls.test_file_path)
+
+    def test_dataframe_not_empty(self):
+        """Verifica que el DataFrame no está vacío."""
+        self.assertFalse(self.df.empty, "El DataFrame no debería estar vacío.")
 
     def test_finds_correct_number_of_apus(self):
         """
         Verifica que el parser identifica el número correcto de APUs únicos.
         """
-        apu_codes = self.df["apu_code"].unique()
+        apu_codes = self.df["CODIGO_APU"].unique()
         self.assertEqual(len(apu_codes), 2, "Deberían encontrarse exactamente 2 APUs.")
         self.assertIn("1,1", apu_codes)
         self.assertIn("1,2", apu_codes)
 
-    def test_parses_standard_insumo_correctly(self):
+    def test_parses_insumo_with_hyphen_as_waste(self):
         """
-        Verifica que un insumo estándar se parsea con los valores correctos.
+        Verifica que un insumo con un guion en la columna de desperdicio se parsea correctamente.
         """
-        # Buscar el insumo específico
-        insumo = self.df[self.df["descripcion"].str.contains("lamina de 1.22", case=False)]
-        self.assertEqual(len(insumo), 1, "Debería encontrarse un solo insumo de 'lamina'.")
+        insumo = self.df[self.df["DESCRIPCION_INSUMO"] == "LAMINA DE 1.22 X 2.44 EN 6MM RH"]
+        self.assertEqual(len(insumo), 1, "Debería encontrarse un solo insumo de 'LAMINA'.")
 
-        # Extraer la fila de datos
         insumo_data = insumo.iloc[0]
+        self.assertEqual(insumo_data["CODIGO_APU"], "1,1")
+        self.assertEqual(insumo_data["UNIDAD"], "M2")
+        self.assertAlmostEqual(insumo_data["CANTIDAD_APU"], 0.0420, places=4)
+        self.assertAlmostEqual(insumo_data["PRECIO_UNIT_APU"], 37000.00, places=2)
+        self.assertAlmostEqual(insumo_data["VALOR_TOTAL_APU"], 1554.00, places=2)
+        self.assertEqual(insumo_data["CATEGORIA"], "MATERIALES")
 
-        # Verificar los valores numéricos
-        self.assertAlmostEqual(insumo_data["cantidad"], 0.0420, places=4)
-        self.assertAlmostEqual(insumo_data["precio_unitario"], 37000.00, places=2)
-        self.assertAlmostEqual(insumo_data["precio_total"], 1554.00, places=2)
-        self.assertEqual(insumo_data["unidad"], "M2")
-        self.assertEqual(insumo_data["apu_code"], "1,1")
-
-    def test_parses_special_case_herramienta_menor(self):
+    def test_parses_insumo_without_waste_column(self):
         """
-        Verifica que el caso especial de 'Herramienta Menor' se parsea correctamente.
+        Verifica que un insumo sin la columna de desperdicio se parsea correctamente.
         """
-        herramienta = self.df[self.df["descripcion"] == "equipo y herramienta (5%)"]
-        self.assertEqual(
-            len(herramienta), 1, "Debería encontrarse un solo insumo de 'Herramienta Menor'."
-        )
+        insumo = self.df[self.df["DESCRIPCION_INSUMO"] == 'PERFIL TUBULAR CUADRADO 2" X 2"']
+        self.assertEqual(len(insumo), 1, "Debería encontrarse un solo insumo de 'PERFIL'.")
 
-        herramienta_data = herramienta.iloc[0]
+        insumo_data = insumo.iloc[0]
+        self.assertEqual(insumo_data["CODIGO_APU"], "1,1")
+        self.assertEqual(insumo_data["UNIDAD"], "ML")
+        self.assertAlmostEqual(insumo_data["CANTIDAD_APU"], 1.5000, places=4)
+        self.assertAlmostEqual(insumo_data["PRECIO_UNIT_APU"], 12000.00, places=2)
+        self.assertAlmostEqual(insumo_data["VALOR_TOTAL_APU"], 18000.00, places=2)
+        self.assertEqual(insumo_data["CATEGORIA"], "MATERIALES")
 
-        self.assertEqual(herramienta_data["categoria"], "EQUIPO Y HERRAMIENTA")
-        self.assertEqual(herramienta_data["unidad"], "%")
-        self.assertAlmostEqual(herramienta_data["cantidad"], 5.0, places=1)
-        self.assertAlmostEqual(herramienta_data["precio_total"], 1250.00, places=2)
-        self.assertEqual(herramienta_data["apu_code"], "1,1")
+    def test_parses_number_with_spaces(self):
+        """
+        Verifica que un número con espacios como separadores de miles se convierte correctamente.
+        """
+        insumo = self.df[self.df["DESCRIPCION_INSUMO"] == "INSUMO CON NUMERO GRANDE"]
+        self.assertEqual(len(insumo), 1, "Debería encontrarse el insumo con número grande.")
 
-    def test_assigns_insumos_to_correct_apu_and_category(self):
+        insumo_data = insumo.iloc[0]
+        self.assertEqual(insumo_data["CODIGO_APU"], "1,2")
+        self.assertAlmostEqual(insumo_data["PRECIO_UNIT_APU"], 1250500.50, places=2)
+        self.assertAlmostEqual(insumo_data["VALOR_TOTAL_APU"], 2501001.00, places=2)
+
+    def test_assigns_correct_apu_and_category(self):
         """
         Verifica que los insumos se asignan al APU y categoría correctos.
         """
-        # Verificar un insumo del segundo APU
-        insumo_soldadura = self.df[self.df["descripcion"].str.contains("soldadura pvc", case=False)]
-        self.assertEqual(
-            len(insumo_soldadura), 1, "Debería encontrarse un insumo de 'soldadura pvc'."
-        )
+        insumo_soldadura = self.df[self.df["DESCRIPCION_INSUMO"] == "SOLDADURA PVC 1/4 GAL"]
+        self.assertEqual(len(insumo_soldadura), 1, "Debería encontrarse un insumo de 'SOLDADURA PVC'.")
 
         insumo_data = insumo_soldadura.iloc[0]
+        self.assertEqual(insumo_data["CODIGO_APU"], "1,2", "El insumo debería pertenecer al APU '1,2'.")
+        self.assertEqual(insumo_data["CATEGORIA"], "MATERIALES", "La categoría debería ser 'MATERIALES'.")
 
-        self.assertEqual(
-            insumo_data["apu_code"], "1,2", "El insumo debería pertenecer al APU '1.2'."
-        )
-        self.assertEqual(
-            insumo_data["categoria"], "MATERIALES", "La categoría debería ser 'MATERIALES'."
-        )
+    def test_parses_herramienta_menor(self):
+        """
+        Verifica que la línea de 'HERRAMIENTA MENOR' se parsea correctamente.
+        """
+        herramienta = self.df[self.df["DESCRIPCION_INSUMO"] == "HERRAMIENTA MENOR"]
+        self.assertEqual(len(herramienta), 1, "Debería encontrarse un insumo de 'HERRAMIENTA MENOR'.")
 
+        herramienta_data = herramienta.iloc[0]
+        self.assertEqual(herramienta_data["CATEGORIA"], "EQUIPO")
+        self.assertAlmostEqual(herramienta_data["VALOR_TOTAL_APU"], 900.00, places=2)
 
 if __name__ == "__main__":
     unittest.main()
