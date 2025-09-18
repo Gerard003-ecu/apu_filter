@@ -1,9 +1,11 @@
-import re
-import pandas as pd
 import logging
-from typing import List, Dict, Optional
+import re
+from typing import Dict, Optional
+
+import pandas as pd
 
 logger = logging.getLogger(__name__)
+
 
 class ReportParser:
     """
@@ -45,7 +47,7 @@ class ReportParser:
             r"(?P<base_calculo>[\d.,]+)\s+"
             r"(?P<porcentaje>[\d.,%]+)\s+"
             r"(?P<valor_total>[\d.,]+)$"
-        )
+        ),
     }
 
     def __init__(self, file_path: str):
@@ -120,34 +122,40 @@ class ReportParser:
 
     def _parse_insumo(self, data: Dict[str, str]):
         try:
-            self.apus_data.append({
-                "CODIGO_APU": self._current_apu_code,
-                "DESCRIPCION_APU": self._current_apu_desc,
-                "DESCRIPCION_INSUMO": data["descripcion"].strip(),
-                "UNIDAD": data["unidad"],
-                "CANTIDAD_APU": self._to_numeric_safe(data["cantidad"]),
-                "PRECIO_UNIT_APU": self._to_numeric_safe(data["precio_unit"]),
-                "VALOR_TOTAL_APU": self._to_numeric_safe(data["valor_total"]),
-                "CATEGORIA": self._current_category,
-            })
+            self.apus_data.append(
+                {
+                    "CODIGO_APU": self._current_apu_code,
+                    "DESCRIPCION_APU": self._current_apu_desc,
+                    "DESCRIPCION_INSUMO": data["descripcion"].strip(),
+                    "UNIDAD": data["unidad"],
+                    "CANTIDAD_APU": self._to_numeric_safe(data["cantidad"]),
+                    "PRECIO_UNIT_APU": self._to_numeric_safe(data["precio_unit"]),
+                    "VALOR_TOTAL_APU": self._to_numeric_safe(data["valor_total"]),
+                    "CATEGORIA": self._current_category,
+                }
+            )
         except Exception as e:
             logger.warning(f"No se pudo parsear la línea de insumo: '{data}'. Error: {e}")
 
     def _parse_herramienta_menor(self, data: Dict[str, str]):
         try:
             valor_total = self._to_numeric_safe(data["valor_total"])
-            self.apus_data.append({
-                "CODIGO_APU": self._current_apu_code,
-                "DESCRIPCION_APU": self._current_apu_desc,
-                "DESCRIPCION_INSUMO": data["descripcion"].strip(),
-                "UNIDAD": data["unidad"],
-                "CANTIDAD_APU": 1,
-                "PRECIO_UNIT_APU": valor_total,
-                "VALOR_TOTAL_APU": valor_total,
-                "CATEGORIA": self._current_category,
-            })
+            self.apus_data.append(
+                {
+                    "CODIGO_APU": self._current_apu_code,
+                    "DESCRIPCION_APU": self._current_apu_desc,
+                    "DESCRIPCION_INSUMO": data["descripcion"].strip(),
+                    "UNIDAD": data["unidad"],
+                    "CANTIDAD_APU": 1,
+                    "PRECIO_UNIT_APU": valor_total,
+                    "VALOR_TOTAL_APU": valor_total,
+                    "CATEGORIA": self._current_category,
+                }
+            )
         except Exception as e:
-            logger.warning(f"No se pudo parsear la línea de herramienta: '{data}'. Error: {e}")
+            logger.warning(
+                f"No se pudo parsear la línea de herramienta: '{data}'. Error: {e}"
+            )
 
     def _parse_mano_de_obra_compleja(self, data: Dict[str, str]):
         try:
@@ -157,27 +165,33 @@ class ReportParser:
             cantidad = (1 / rendimiento) if rendimiento > 0 else 0
             precio_unitario = jornal_total
 
-            self.apus_data.append({
-                "CODIGO_APU": self._current_apu_code,
-                "DESCRIPCION_APU": self._current_apu_desc,
-                "DESCRIPCION_INSUMO": data["descripcion"].strip(),
-                "UNIDAD": "JOR",
-                "CANTIDAD_APU": cantidad,
-                "PRECIO_UNIT_APU": precio_unitario,
-                "VALOR_TOTAL_APU": self._to_numeric_safe(data["valor_total"]),
-                "CATEGORIA": self._current_category,
-            })
+            self.apus_data.append(
+                {
+                    "CODIGO_APU": self._current_apu_code,
+                    "DESCRIPCION_APU": self._current_apu_desc,
+                    "DESCRIPCION_INSUMO": data["descripcion"].strip(),
+                    "UNIDAD": "JOR",
+                    "CANTIDAD_APU": cantidad,
+                    "PRECIO_UNIT_APU": precio_unitario,
+                    "VALOR_TOTAL_APU": self._to_numeric_safe(data["valor_total"]),
+                    "CATEGORIA": self._current_category,
+                }
+            )
         except Exception as e:
-            logger.warning(f"No se pudo parsear la línea de mano de obra compleja: '{data}'. Error: {e}")
+            logger.warning(
+                f"No se pudo parsear la línea de mano de obra compleja: '{data}'. Error: {e}"
+            )
 
     def _to_numeric_safe(self, s: str) -> float:
-        if not s: return 0.0
+        if not s:
+            return 0.0
         # Eliminar espacios, luego puntos (miles), luego cambiar coma por punto (decimal)
         s_cleaned = s.replace(" ", "").replace(".", "").replace(",", ".").strip()
         return float(s_cleaned)
 
     def _normalize_text(self, series: pd.Series) -> pd.Series:
         from unidecode import unidecode
+
         normalized = series.astype(str).str.lower().str.strip()
         normalized = normalized.apply(unidecode)
         normalized = normalized.str.replace(r"[^a-z0-9\s#\-]", "", regex=True)

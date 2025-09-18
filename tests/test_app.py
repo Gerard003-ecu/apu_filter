@@ -42,7 +42,7 @@ APUS_DATA = (
     "REMATE CON PINTURA DE FABRICA CAL 22 DE 120 CMTS CURVO\n"
     "    ITEM: 1,1\n"
     "MATERIALES\n"
-    # descripcion                      unidad  cantidad  desperdicio  precio_unit  valor_total
+    # descripcion                     unidad  cantidad  desperdicio  precio_unit  valor_total
     "Tornillo de Acero                UND      10,0      0            10,50         105,00\n"
     "MANO DE OBRA\n"
     "M.O. CORTE Y DOBLEZ              UND      2,5       0            20,00          50,00\n"
@@ -62,7 +62,8 @@ APUS_DATA = (
     "INGENIERO RESIDENTE\n"
     "    ITEM: 1,5\n"
     "MANO DE OBRA\n"
-    # For this one, we calculated cantidad as 1/rendimiento (1/10=0.1) to match the test assertion.
+    # For this one, we calculated cantidad as 1/rendimiento (1/10=0.1) to match
+    # the test assertion.
     "INGENIERO RESIDENTE              MES      0,1       0            150000,00   15000,00\n"
 )
 

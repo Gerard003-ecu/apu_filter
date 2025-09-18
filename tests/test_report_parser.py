@@ -1,7 +1,6 @@
 import os
-import unittest
 import sys
-import pandas as pd
+import unittest
 
 # Añadir el directorio raíz del proyecto al sys.path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
@@ -27,6 +26,7 @@ MATERIALES
 SOLDADURA PVC 1/4 GAL                UND     0,0200  -           50.000,00   1.000,00
 INSUMO CON NUMERO GRANDE             UND     2,0     -           1 250 500,50  2 501 001,00
 """
+
 
 class TestReportParserRefactored(unittest.TestCase):
     """
@@ -72,7 +72,8 @@ class TestReportParserRefactored(unittest.TestCase):
 
     def test_parses_insumo_with_hyphen_as_waste(self):
         """
-        Verifica que un insumo con un guion en la columna de desperdicio se parsea correctamente.
+        Verifica que un insumo con un guion en la columna de desperdicio
+        se parsea correctamente.
         """
         insumo = self.df[self.df["DESCRIPCION_INSUMO"] == "LAMINA DE 1.22 X 2.44 EN 6MM RH"]
         self.assertEqual(len(insumo), 1, "Debería encontrarse un solo insumo de 'LAMINA'.")
@@ -102,7 +103,8 @@ class TestReportParserRefactored(unittest.TestCase):
 
     def test_parses_number_with_spaces(self):
         """
-        Verifica que un número con espacios como separadores de miles se convierte correctamente.
+        Verifica que un número con espacios como separadores de miles
+        se convierte correctamente.
         """
         insumo = self.df[self.df["DESCRIPCION_INSUMO"] == "INSUMO CON NUMERO GRANDE"]
         self.assertEqual(len(insumo), 1, "Debería encontrarse el insumo con número grande.")
@@ -117,22 +119,31 @@ class TestReportParserRefactored(unittest.TestCase):
         Verifica que los insumos se asignan al APU y categoría correctos.
         """
         insumo_soldadura = self.df[self.df["DESCRIPCION_INSUMO"] == "SOLDADURA PVC 1/4 GAL"]
-        self.assertEqual(len(insumo_soldadura), 1, "Debería encontrarse un insumo de 'SOLDADURA PVC'.")
+        self.assertEqual(
+            len(insumo_soldadura), 1, "Debería encontrarse un insumo de 'SOLDADURA PVC'."
+        )
 
         insumo_data = insumo_soldadura.iloc[0]
-        self.assertEqual(insumo_data["CODIGO_APU"], "1,2", "El insumo debería pertenecer al APU '1,2'.")
-        self.assertEqual(insumo_data["CATEGORIA"], "MATERIALES", "La categoría debería ser 'MATERIALES'.")
+        self.assertEqual(
+            insumo_data["CODIGO_APU"], "1,2", "El insumo debería pertenecer al APU '1,2'."
+        )
+        self.assertEqual(
+            insumo_data["CATEGORIA"], "MATERIALES", "La categoría debería ser 'MATERIALES'."
+        )
 
     def test_parses_herramienta_menor(self):
         """
         Verifica que la línea de 'HERRAMIENTA MENOR' se parsea correctamente.
         """
         herramienta = self.df[self.df["DESCRIPCION_INSUMO"] == "HERRAMIENTA MENOR"]
-        self.assertEqual(len(herramienta), 1, "Debería encontrarse un insumo de 'HERRAMIENTA MENOR'.")
+        self.assertEqual(
+            len(herramienta), 1, "Debería encontrarse un insumo de 'HERRAMIENTA MENOR'."
+        )
 
         herramienta_data = herramienta.iloc[0]
         self.assertEqual(herramienta_data["CATEGORIA"], "EQUIPO")
         self.assertAlmostEqual(herramienta_data["VALOR_TOTAL_APU"], 900.00, places=2)
+
 
 if __name__ == "__main__":
     unittest.main()
