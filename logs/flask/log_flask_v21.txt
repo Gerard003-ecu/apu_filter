@@ -1,0 +1,12 @@
+ * Serving Flask app 'app/app.py'
+ * Debug mode: off
+2025-09-18 00:07:20,843 - INFO - WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
+ * Running on http://127.0.0.1:5002
+2025-09-18 00:07:20,844 - INFO - Press CTRL+C to quit
+2025-09-18 00:07:30,073 - INFO - 127.0.0.1 - - [18/Sep/2025 00:07:30] "GET / HTTP/1.1" 200 -
+2025-09-18 00:08:06,336 - INFO - Cache miss.
+2025-09-18 00:08:06,338 - INFO - Procesando archivos: /Users/gerardomayor/Documents/estru_techos/apu_filter/uploads/359bf3ad-b3bb-41a7-900b-8dd8a6db1f28/presupuesto_1758172086_presupuesto.csv, /Users/gerardomayor/Documents/estru_techos/apu_filter/uploads/359bf3ad-b3bb-41a7-900b-8dd8a6db1f28/apus_1758172086_apus.csv, /Users/gerardomayor/Documents/estru_techos/apu_filter/uploads/359bf3ad-b3bb-41a7-900b-8dd8a6db1f28/insumos_1758172086_insumos.csv
+2025-09-18 00:08:06,639 - INFO - Éxito al leerpresupuesto_1758172086_presupuesto.csv con encoding 'latin1'y delimitador ';'
+2025-09-18 00:08:06,767 - INFO - Tipos de datos optimizados con PyArrow para /Users/gerardomayor/Documents/estru_techos/apu_filter/uploads/359bf3ad-b3bb-41a7-900b-8dd8a6db1f28/presupuesto_1758172086_presupuesto.csv
+2025-09-18 00:08:07,086 - INFO - Cache info: hits=0, misses=1, size=1
+2025-09-18 00:08:07,091 - INFO - 127.0.0.1 - - [18/Sep/2025 00:08:07] "POST /upload HTTP/1.1" 500 -
