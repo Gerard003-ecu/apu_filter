@@ -15,6 +15,14 @@ class ReportParser:
     PATTERNS = {
         "item_code": re.compile(r"ITEM:\s*([\d\s,.]*)$"),
         "category": re.compile(r"^(MATERIALES|MANO DE OBRA|EQUIPO|OTROS)$"),
+        "mano_de_obra_compleja": re.compile(
+            r"^(?P<descripcion>.+?)\s{2,}"
+            r"(?P<jornal_base>[\d.,]+)\s{2,}"
+            r"(?P<prestaciones>[\d.,]+)\s{2,}"
+            r"(?P<jornal_total>[\d.,]+)\s{2,}"
+            r"(?P<rendimiento>[\d.,]+)\s{2,}"
+            r"(?P<valor_total>[\d.,]+)$"
+        ),
         # Se incluye el dígito en la unidad para casos como 'M2'.
         "insumo_full": re.compile(
             r"^(?P<descripcion>.+?)\s{2,}"
@@ -87,6 +95,11 @@ class ReportParser:
                 self._parse_herramienta_menor(match_herramienta.groupdict())
                 return
 
+            match_mano_de_obra_compleja = self.PATTERNS["mano_de_obra_compleja"].match(line)
+            if match_mano_de_obra_compleja:
+                self._parse_mano_de_obra_compleja(match_mano_de_obra_compleja.groupdict())
+                return
+
             match_insumo_full = self.PATTERNS["insumo_full"].match(line)
             if match_insumo_full:
                 self._parse_insumo(match_insumo_full.groupdict())
@@ -135,6 +148,27 @@ class ReportParser:
             })
         except Exception as e:
             logger.warning(f"No se pudo parsear la línea de herramienta: '{data}'. Error: {e}")
+
+    def _parse_mano_de_obra_compleja(self, data: Dict[str, str]):
+        try:
+            rendimiento = self._to_numeric_safe(data["rendimiento"])
+            jornal_total = self._to_numeric_safe(data["jornal_total"])
+
+            cantidad = (1 / rendimiento) if rendimiento > 0 else 0
+            precio_unitario = jornal_total
+
+            self.apus_data.append({
+                "CODIGO_APU": self._current_apu_code,
+                "DESCRIPCION_APU": self._current_apu_desc,
+                "DESCRIPCION_INSUMO": data["descripcion"].strip(),
+                "UNIDAD": "JOR",
+                "CANTIDAD_APU": cantidad,
+                "PRECIO_UNIT_APU": precio_unitario,
+                "VALOR_TOTAL_APU": self._to_numeric_safe(data["valor_total"]),
+                "CATEGORIA": self._current_category,
+            })
+        except Exception as e:
+            logger.warning(f"No se pudo parsear la línea de mano de obra compleja: '{data}'. Error: {e}")
 
     def _to_numeric_safe(self, s: str) -> float:
         if not s: return 0.0
