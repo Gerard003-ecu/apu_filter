@@ -25,12 +25,19 @@ class ReportParser:
             r"(?P<rendimiento>[\d.,]+)\s+"
             r"(?P<valor_total>[\d.,]+)$"
         ),
-        "insumo": re.compile(
-            r"^(?P<descripcion>.+?)\s+"
+        "insumo_full": re.compile(
+            r"^(?P<descripcion>.+)\s+"  # Greedy description
             r"(?P<unidad>[A-Z0-9%]{2,10})\s+"
             r"(?P<cantidad>[\d.,]+)\s+"
-            r"(?:(?P<desperdicio>[\d.,]+|-)\s+)?"
-            r"(?P<precio_unit>[\d\s.,]+?)\s{2,}"
+            r"(?P<desperdicio>[\d.,]+|-)\s+"
+            r"(?P<precio_unit>.+?)\s{2,}"  # Non-greedy price
+            r"(?P<valor_total>[\d\s.,]+)$"
+        ),
+        "insumo_simple": re.compile(
+            r"^(?P<descripcion>.+)\s+"  # Greedy description
+            r"(?P<unidad>[A-Z0-9%]{2,10})\s+"
+            r"(?P<cantidad>[\d.,]+)\s+"
+            r"(?P<precio_unit>.+?)\s{2,}"  # Non-greedy price
             r"(?P<valor_total>[\d\s.,]+)$"
         ),
         "herramienta_menor": re.compile(
@@ -83,7 +90,6 @@ class ReportParser:
             return
 
         if self._current_apu_code:
-            # Intentar el match más específico primero
             match_herramienta = self.PATTERNS["herramienta_menor"].match(line)
             if match_herramienta:
                 self._parse_herramienta_menor(match_herramienta.groupdict())
@@ -94,9 +100,16 @@ class ReportParser:
                 self._parse_mano_de_obra_compleja(match_mano_de_obra_compleja.groupdict())
                 return
 
-            match_insumo = self.PATTERNS["insumo"].match(line)
-            if match_insumo:
-                self._parse_insumo(match_insumo.groupdict())
+            match_insumo_full = self.PATTERNS["insumo_full"].match(line)
+            if match_insumo_full:
+                self._parse_insumo(match_insumo_full.groupdict())
+                return
+
+            match_insumo_simple = self.PATTERNS["insumo_simple"].match(line)
+            if match_insumo_simple:
+                data = match_insumo_simple.groupdict()
+                data["desperdicio"] = None
+                self._parse_insumo(data)
                 return
 
         self._potential_apu_desc = line
@@ -148,10 +161,8 @@ class ReportParser:
         try:
             rendimiento = self._to_numeric_safe(data["rendimiento"])
             jornal_total = self._to_numeric_safe(data["jornal_total"])
-
             cantidad = (1 / rendimiento) if rendimiento > 0 else 0
             precio_unitario = jornal_total
-
             self.apus_data.append(
                 {
                     "CODIGO_APU": self._current_apu_code,
@@ -174,7 +185,13 @@ class ReportParser:
             return 0.0
         # Eliminar espacios, luego puntos (miles), luego cambiar coma por punto (decimal)
         s_cleaned = s.replace(" ", "").replace(".", "").replace(",", ".").strip()
-        return float(s_cleaned)
+        # Manejar el caso de una cadena vacía después de la limpieza
+        if not s_cleaned:
+            return 0.0
+        try:
+            return float(s_cleaned)
+        except (ValueError, TypeError):
+             return 0.0
 
     def _normalize_text(self, series: pd.Series) -> pd.Series:
         from unidecode import unidecode
