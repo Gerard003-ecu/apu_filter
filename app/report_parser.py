@@ -25,19 +25,12 @@ class ReportParser:
             r"(?P<rendimiento>[\d.,]+)\s+"
             r"(?P<valor_total>[\d.,]+)$"
         ),
-        "insumo_full": re.compile(
+        "insumo": re.compile(
             r"^(?P<descripcion>.+?)\s+"
             r"(?P<unidad>[A-Z0-9%]{2,10})\s+"
             r"(?P<cantidad>[\d.,]+)\s+"
-            r"(?P<desperdicio>\S+)\s+"
-            r"(?P<precio_unit>[\d\s.,]+?)\s+"
-            r"(?P<valor_total>[\d\s.,]+)$"
-        ),
-        "insumo_simple": re.compile(
-            r"^(?P<descripcion>.+?)\s+"
-            r"(?P<unidad>[A-Z0-9%]{2,10})\s+"
-            r"(?P<cantidad>[\d.,]+)\s+"
-            r"(?P<precio_unit>[\d\s.,]+?)\s+"
+            r"(?:(?P<desperdicio>[\d.,]+|-)\s+)?"
+            r"(?P<precio_unit>[\d\s.,]+?)\s{2,}"
             r"(?P<valor_total>[\d\s.,]+)$"
         ),
         "herramienta_menor": re.compile(
@@ -101,14 +94,9 @@ class ReportParser:
                 self._parse_mano_de_obra_compleja(match_mano_de_obra_compleja.groupdict())
                 return
 
-            match_insumo_full = self.PATTERNS["insumo_full"].match(line)
-            if match_insumo_full:
-                self._parse_insumo(match_insumo_full.groupdict())
-                return
-
-            match_insumo_simple = self.PATTERNS["insumo_simple"].match(line)
-            if match_insumo_simple:
-                self._parse_insumo(match_insumo_simple.groupdict())
+            match_insumo = self.PATTERNS["insumo"].match(line)
+            if match_insumo:
+                self._parse_insumo(match_insumo.groupdict())
                 return
 
         self._potential_apu_desc = line

@@ -13,7 +13,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 
 
 # Importar la app de Flask y las funciones a probar
-from app.app import app, user_sessions
+from app.app import create_app, user_sessions
 from app.procesador_csv import (
     _cached_csv_processing,
     calculate_estimate,
@@ -356,15 +356,16 @@ class TestAppEndpoints(unittest.TestCase):
     """Pruebas para los endpoints de la aplicación Flask."""
 
     def setUp(self):
-        app.config["TESTING"] = True
-        app.config["SECRET_KEY"] = "test-secret-key"
-        app.config["UPLOAD_FOLDER"] = "test_uploads"
-        os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
-        self.client = app.test_client()
+        self.app = create_app('testing')
+        self.app_context = self.app.app_context()
+        self.app_context.push()
+        os.makedirs(self.app.config["UPLOAD_FOLDER"], exist_ok=True)
+        self.client = self.app.test_client()
         user_sessions.clear()
 
     def tearDown(self):
-        upload_folder = app.config["UPLOAD_FOLDER"]
+        self.app_context.pop()
+        upload_folder = self.app.config["UPLOAD_FOLDER"]
         if os.path.exists(upload_folder):
             for root, dirs, files in os.walk(upload_folder, topdown=False):
                 for name in files:
