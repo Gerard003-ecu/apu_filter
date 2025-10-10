@@ -3,10 +3,8 @@ import os
 import sys
 import time
 import uuid
-from datetime import timedelta
 
 from flask import Flask, jsonify, render_template, request, session
-from werkzeug.exceptions import HTTPException
 from werkzeug.utils import secure_filename
 
 # Asegurarse de que el directorio raíz esté en el sys.path
@@ -14,6 +12,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 
 from config import config_by_name
 from models.probability_models import run_monte_carlo_simulation
+
 from .procesador_csv import calculate_estimate, process_all_files
 
 # Almacenamiento en memoria para sesiones de usuario
@@ -141,7 +140,8 @@ def create_app(config_name):
             return jsonify({"error": "APU no encontrado"}), 404
 
         presupuesto_item = next(
-            (item for item in user_data.get("presupuesto", []) if item.get("CODIGO_APU") == apu_code),
+            (item for item in user_data.get("presupuesto",
+            []) if item.get("CODIGO_APU") == apu_code),
             None,
         )
 

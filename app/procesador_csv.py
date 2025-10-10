@@ -405,15 +405,24 @@ def group_and_split_description(df: pd.DataFrame) -> pd.DataFrame:
 def _do_processing(presupuesto_path, apus_path, insumos_path):
     logger.info(f"Procesando archivos: {presupuesto_path}, {apus_path}, {insumos_path}")
     df_presupuesto = process_presupuesto_csv(presupuesto_path)
-    logger.debug(f"df_presupuesto creado. Columnas: {df_presupuesto.columns.tolist()}. Filas: {len(df_presupuesto)}")
+    logger.debug(
+        f"df_presupuesto creado. Columnas:"
+        f"{df_presupuesto.columns.tolist()}. Filas: {len(df_presupuesto)}"
+        )
 
     df_insumos = process_insumos_csv(insumos_path)
-    logger.debug(f"df_insumos creado. Columnas: {df_insumos.columns.tolist()}. Filas: {len(df_insumos)}")
+    logger.debug(
+        f"df_insumos creado. Columnas:"
+        f"{df_insumos.columns.tolist()}. Filas: {len(df_insumos)}"
+        )
 
     # Usar el nuevo ReportParser
     parser = ReportParser(apus_path)
     df_apus = parser.parse()
-    logger.debug(f"df_apus creado por ReportParser. Columnas: {df_apus.columns.tolist()}. Filas: {len(df_apus)}")
+    logger.debug(
+        f"df_apus creado por ReportParser."
+        f"Columnas: {df_apus.columns.tolist()}. Filas: {len(df_apus)}"
+        )
 
 
     if df_presupuesto.empty or df_insumos.empty or df_apus.empty:
@@ -491,7 +500,9 @@ def _do_processing(presupuesto_path, apus_path, insumos_path):
             # 4. En cualquier otro caso, clasificar como "Obra Completa".
             return "Obra Completa"
 
-        df_apu_costos_categoria["tipo_apu"] = df_apu_costos_categoria.apply(classify_apu, axis=1)
+        df_apu_costos_categoria["tipo_apu"] = df_apu_costos_categoria.apply(
+            classify_apu, axis=1
+            )
         # --- FIN: Clasificación de APU por tipo ---
 
         df_tiempo = (
@@ -501,8 +512,12 @@ def _do_processing(presupuesto_path, apus_path, insumos_path):
             .reset_index()
         )
         df_tiempo.rename(columns={"CANTIDAD_APU": "TIEMPO_INSTALACION"}, inplace=True)
-        df_final = pd.merge(df_presupuesto, df_apu_costos_categoria, on="CODIGO_APU", how="left")
-        df_final = pd.merge(df_final, df_tiempo, on="CODIGO_APU", how="left")
+        df_final = pd.merge(
+            df_presupuesto, df_apu_costos_categoria, on="CODIGO_APU", how="left"
+            )
+        df_final = pd.merge(
+            df_final, df_tiempo, on="CODIGO_APU", how="left"
+            )
         final_cols_to_fill = [
             "VALOR_SUMINISTRO_UN",
             "VALOR_INSTALACION_UN",
@@ -605,7 +620,9 @@ def _do_processing(presupuesto_path, apus_path, insumos_path):
         }
 
     except Exception as e:
-        logger.error(f"ERROR CRÍTICO durante el merge o cálculo en _do_processing: {e}", exc_info=True)
+        logger.error(
+            f"ERROR CRÍTICO en el merge o cálculo en _do_processing: {e}",exc_info=True
+            )
         return {"error": f"Fallo en la etapa de procesamiento de datos: {e}"}
 
 

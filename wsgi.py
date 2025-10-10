@@ -1,4 +1,5 @@
 import os
+
 from app.app import create_app
 
 # Obtener el entorno de la variable de entorno FLASK_ENV.
