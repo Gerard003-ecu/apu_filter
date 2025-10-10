@@ -16,8 +16,42 @@ class ReportParser:
 
     PATTERNS = {
         "item_code": re.compile(r"ITEM:\s*([\d\s,.]*)$"),
-        "category": re.compile(r"^(MATERIALES|MANO DE OBRA|EQUIPO|OTROS)$"),
-        "mano_de_obra_compleja": re.compile(
+        "category": re.compile(r"^(MATERIALES|MANO DE OBRA|EQUIPO|OTROS)"),
+        # CSV (semicolon-delimited) patterns
+        "mano_de_obra_compleja_csv": re.compile(
+            r"^(?P<descripcion>.+?)\s*;"
+            r"(?P<jornal_base>[\d.,]+);"
+            r"(?P<prestaciones>\S+);"
+            r"(?P<jornal_total>[\d.,]+);"
+            r"(?P<rendimiento>[\d.,]+);"
+            r"(?P<valor_total>[\d.,]+)$"
+        ),
+        "insumo_full_csv": re.compile(
+            r"^(?P<descripcion>[^;]+);"
+            r"(?P<unidad>[A-Z0-9/%]+);"
+            r"(?P<cantidad>[\d.,\s]+);"
+            r"(?P<desperdicio>[\d.,\s-]+);"
+            r"(?P<precio_unit>[\d.,\s]+);"
+            r"(?P<valor_total>[\d.,\s]+)$"
+        ),
+        "insumo_simple_csv": re.compile(
+            r"^(?P<descripcion>[^;]+);"
+            r"(?P<unidad>[A-Z0-9/%]+);"
+            r"(?P<cantidad>[\d.,\s]+);"
+            r";"
+            r"(?P<precio_unit>[\d.,\s]+);"
+            r"(?P<valor_total>[\d.,\s]+)$"
+        ),
+        "herramienta_menor_csv": re.compile(
+            r"^(?P<descripcion>EQUIPO Y HERRAMIENTA\s*|HERRAMIENTA MENOR\s*);"
+            r"(?P<unidad>UND|%);"
+            r"(?P<base_calculo>[\d.,\s]+);"
+            r";"
+            r"(?P<porcentaje>[\d.,%]+);"
+            r"(?P<valor_total>[\d.,\s]+)$"
+        ),
+        # TXT (space-delimited) patterns
+        "mano_de_obra_compleja_txt": re.compile(
             r"^(?P<descripcion>.+?)\s+"
             r"(?P<jornal_base>[\d.,]+)\s+"
             r"(?P<prestaciones>\S+)\s+"  # Puede ser % o número
@@ -25,22 +59,22 @@ class ReportParser:
             r"(?P<rendimiento>[\d.,]+)\s+"
             r"(?P<valor_total>[\d.,]+)$"
         ),
-        "insumo_full": re.compile(
-            r"^(?P<descripcion>.+)\s+"  # Greedy description
+        "insumo_full_txt": re.compile(
+            r"^(?P<descripcion>.+?)\s+"
             r"(?P<unidad>[A-Z0-9%]{2,10})\s+"
             r"(?P<cantidad>[\d.,]+)\s+"
             r"(?P<desperdicio>[\d.,]+|-)\s+"
-            r"(?P<precio_unit>.+?)\s{2,}"  # Non-greedy price
+            r"(?P<precio_unit>.+?)\s{2,}"
             r"(?P<valor_total>[\d\s.,]+)$"
         ),
-        "insumo_simple": re.compile(
-            r"^(?P<descripcion>.+)\s+"  # Greedy description
+        "insumo_simple_txt": re.compile(
+            r"^(?P<descripcion>.+?)\s+"
             r"(?P<unidad>[A-Z0-9%]{2,10})\s+"
             r"(?P<cantidad>[\d.,]+)\s+"
-            r"(?P<precio_unit>.+?)\s{2,}"  # Non-greedy price
+            r"(?P<precio_unit>.+?)\s{2,}"
             r"(?P<valor_total>[\d\s.,]+)$"
         ),
-        "herramienta_menor": re.compile(
+        "herramienta_menor_txt": re.compile(
             r"^(?P<descripcion>EQUIPO Y HERRAMIENTA|HERRAMIENTA MENOR)\s+"
             r"(?P<unidad>UND|%)\s+"
             r"(?P<base_calculo>[\d.,]+)\s+"
@@ -54,10 +88,10 @@ class ReportParser:
         self.apus_data = []
         self._current_apu_code: Optional[str] = None
         self._current_apu_desc: str = ""
-        self._potential_apu_desc: str = ""
         self._current_category: str = "INDEFINIDO"
 
     def parse(self) -> pd.DataFrame:
+        logger.info(f"Iniciando el parsing del archivo: {self.file_path}")
         try:
             with open(self.file_path, "r", encoding="latin1") as f:
                 for line in f:
@@ -67,6 +101,7 @@ class ReportParser:
             return pd.DataFrame()
 
         if not self.apus_data:
+            logger.warning("No se extrajeron datos, devolviendo DataFrame vacío.")
             return pd.DataFrame()
 
         df = pd.DataFrame(self.apus_data)
@@ -90,41 +125,59 @@ class ReportParser:
             return
 
         if self._current_apu_code:
-            match_herramienta = self.PATTERNS["herramienta_menor"].match(line)
+            # Try CSV patterns first
+            match_herramienta = self.PATTERNS["herramienta_menor_csv"].match(line)
             if match_herramienta:
                 self._parse_herramienta_menor(match_herramienta.groupdict())
                 return
 
-            # This regex should only apply within the 'MANO DE OBRA' category
             if self._current_category == "MANO DE OBRA":
-                match_mano_de_obra_compleja = self.PATTERNS[
-                    "mano_de_obra_compleja"
-                ].match(line)
+                match_mano_de_obra_compleja = self.PATTERNS["mano_de_obra_compleja_csv"].match(line)
                 if match_mano_de_obra_compleja:
-                    self._parse_mano_de_obra_compleja(
-                        match_mano_de_obra_compleja.groupdict()
-                    )
+                    self._parse_mano_de_obra_compleja(match_mano_de_obra_compleja.groupdict())
                     return
 
-            match_insumo_full = self.PATTERNS["insumo_full"].match(line)
+            match_insumo_full = self.PATTERNS["insumo_full_csv"].match(line)
             if match_insumo_full:
                 self._parse_insumo(match_insumo_full.groupdict())
                 return
 
-            match_insumo_simple = self.PATTERNS["insumo_simple"].match(line)
+            match_insumo_simple = self.PATTERNS["insumo_simple_csv"].match(line)
             if match_insumo_simple:
                 data = match_insumo_simple.groupdict()
-                data["desperdicio"] = None
+                data["desperdicio"] = ""
                 self._parse_insumo(data)
                 return
 
-        self._potential_apu_desc = line
+            # Then try TXT patterns
+            match_herramienta = self.PATTERNS["herramienta_menor_txt"].match(line)
+            if match_herramienta:
+                self._parse_herramienta_menor(match_herramienta.groupdict())
+                return
+
+            if self._current_category == "MANO DE OBRA":
+                match_mano_de_obra_compleja = self.PATTERNS["mano_de_obra_compleja_txt"].match(line)
+                if match_mano_de_obra_compleja:
+                    self._parse_mano_de_obra_compleja(match_mano_de_obra_compleja.groupdict())
+                    return
+
+            match_insumo_full = self.PATTERNS["insumo_full_txt"].match(line)
+            if match_insumo_full:
+                self._parse_insumo(match_insumo_full.groupdict())
+                return
+
+            match_insumo_simple = self.PATTERNS["insumo_simple_txt"].match(line)
+            if match_insumo_simple:
+                data = match_insumo_simple.groupdict()
+                data["desperdicio"] = ""
+                self._parse_insumo(data)
+                return
+
+        self._current_apu_desc = line
 
     def _start_new_apu(self, raw_code: str):
         self._current_apu_code = re.sub(r"[\s,.]+$", "", raw_code.replace(" ", ","))
-        self._current_apu_desc = self._potential_apu_desc
         self._current_category = "INDEFINIDO"
-        self._potential_apu_desc = ""
 
     def _parse_insumo(self, data: Dict[str, str]):
         try:
@@ -138,6 +191,7 @@ class ReportParser:
                     "PRECIO_UNIT_APU": self._to_numeric_safe(data["precio_unit"]),
                     "VALOR_TOTAL_APU": self._to_numeric_safe(data["valor_total"]),
                     "CATEGORIA": self._current_category,
+                    "DESPERDICIO": self._to_numeric_safe(data.get("desperdicio")),
                 }
             )
         except Exception as e:
@@ -186,13 +240,13 @@ class ReportParser:
                 f"No se pudo parsear la línea de mano de obra compleja: '{data}'. Error: {e}"
             )
 
-    def _to_numeric_safe(self, s: str) -> float:
+    def _to_numeric_safe(self, s: Optional[str]) -> float:
         if not s:
             return 0.0
         # Eliminar espacios, luego puntos (miles), luego cambiar coma por punto (decimal)
         s_cleaned = s.replace(" ", "").replace(".", "").replace(",", ".").strip()
         # Manejar el caso de una cadena vacía después de la limpieza
-        if not s_cleaned:
+        if not s_cleaned or s_cleaned == "-":
             return 0.0
         try:
             return float(s_cleaned)
