@@ -687,7 +687,10 @@ def calculate_estimate(
 
     df_apus = pd.DataFrame(all_apus_list)
     df_apus_unique = df_apus.drop_duplicates(subset=["DESCRIPCION_APU"]).copy()
-    logger.debug(f"Descripciones de APU únicas para la búsqueda:\n{df_apus_unique['DESCRIPCION_APU'].to_list()}")
+    logger.debug(
+        f"Descripciones de APU únicas para la búsqueda"
+        f"de suministro:\n{df_apus_unique['DESCRIPCION_APU'].to_list()}"
+    )
     df_apus_unique["DESC_NORMALIZED"] = df_apus_unique["DESCRIPCION_APU"].apply(_normalize)
 
     # --- Parámetros y Mapeo ---
