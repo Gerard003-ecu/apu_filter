@@ -1,0 +1,90 @@
+================================================================= test session starts ==================================================================
+platform darwin -- Python 3.12.3, pytest-8.4.2, pluggy-1.6.0 -- /Users/gerardomayor/Documents/estru_techos/apu_filter/.venv/bin/python3
+cachedir: .pytest_cache
+rootdir: /Users/gerardomayor/Documents/estru_techos/apu_filter
+configfile: pyproject.toml
+collected 15 items                                                                                                                                     
+
+tests/test_app.py::TestIndividualFunctions::test_find_and_rename_columns PASSED                                                                  [  6%]
+tests/test_app.py::TestIndividualFunctions::test_normalize_text PASSED                                                                           [ 13%]
+tests/test_app.py::TestIndividualFunctions::test_safe_read_dataframe PASSED                                                                      [ 20%]
+tests/test_app.py::TestCSVProcessor::test_caching_logic PASSED                                                                                   [ 26%]
+tests/test_app.py::TestCSVProcessor::test_calculate_estimate FAILED                                                                              [ 33%]
+tests/test_app.py::TestCSVProcessor::test_calculate_estimate_resilience_without_fuzzywuzzy PASSED                                                [ 40%]
+tests/test_app.py::TestCSVProcessor::test_calculate_estimate_with_fuzzywuzzy FAILED                                                              [ 46%]
+tests/test_app.py::TestCSVProcessor::test_process_all_files_comma_delimited PASSED                                                               [ 53%]
+tests/test_app.py::TestCSVProcessor::test_process_all_files_structure_and_calculations PASSED                                                    [ 60%]
+tests/test_app.py::TestCSVProcessor::test_process_apus_with_malformed_code PASSED                                                                [ 66%]
+tests/test_app.py::TestCSVProcessor::test_process_insumos_csv_comma_delimited PASSED                                                             [ 73%]
+tests/test_app.py::TestAppEndpoints::test_01_index_route PASSED                                                                                  [ 80%]
+tests/test_app.py::TestAppEndpoints::test_02_upload_success PASSED                                                                               [ 86%]
+tests/test_app.py::TestAppEndpoints::test_07_get_estimate_with_session FAILED                                                                    [ 93%]
+tests/test_app.py::TestAppEndpoints::test_08_get_apu_detail_with_simulation PASSED                                                               [100%]
+
+======================================================================= FAILURES =======================================================================
+_______________________________________________________ TestCSVProcessor.test_calculate_estimate _______________________________________________________
+
+self = <test_app.TestCSVProcessor testMethod=test_calculate_estimate>
+mock_config = {'category_keywords': {'EQUIPO': 'EQUIPO', 'MANO DE OBRA': 'MANO DE OBRA', 'MATERIALES': 'MATERIALES', 'OTROS': 'OTROS...esupuesto_column_map': {'CANTIDAD_PRESUPUESTO': ['CANT.'], 'CODIGO_APU': ['ITEM'], 'DESCRIPCION_APU': ['DESCRIPCION']}}
+
+    @patch("app.procesador_csv.config", new_callable=lambda: TEST_CONFIG)
+    def test_calculate_estimate(self, mock_config):
+        data_store = process_all_files(
+            self.presupuesto_path, self.apus_path, self.insumos_path
+        )
+        params_ok = {"tipo": "CUBIERTA", "material": "TST", "cuadrilla": "5"}
+        result = calculate_estimate(params_ok, data_store)
+>       self.assertNotIn("error", result)
+E       AssertionError: 'error' unexpectedly found in {'error': 'No se encontró un APU de instalación que coincida con todos los criterios.', 'log': "Parámetros de entrada: {'tipo': 'CUBIERTA', 'material': 'TST', 'cuadrilla': '5'}\nParámetros mapeados: material='TEJA SENCILLA', tipo='INSTALACION'\n\n--- BÚSQUEDA DE SUMINISTRO ---\nBuscando la mejor coincidencia para'TEJA SENCILLA' en 0 opciones.\nNo se encontró una buena coincidencia para el suministro.\nEncontrados 0 candidatos para suministro.\nADVERTENCIA: No se encontró un APU de suministro directo. Iniciando fallback a insumos.\nERROR (Fallback): Material no encontrado en lista de insumos.\n\n--- BÚSQUEDA DE INSTALACIÓN ---\nPaso A: 0 APUs encontrados con 'MANO DE OBRA' e 'INSTALACION'.\nPaso B: 0APUs restantes tras filtrar por 'TEJA SENCILLA'.\nPaso C: 0 APUs restantes tras filtrar por 'CUADRILLA DE 5'.\nERROR: No se encontró un APU de instalación que coincida con todos los criterios."}
+
+tests/test_app.py:297: AssertionError
+_______________________________________________ TestCSVProcessor.test_calculate_estimate_with_fuzzywuzzy _______________________________________________
+
+self = <test_app.TestCSVProcessor testMethod=test_calculate_estimate_with_fuzzywuzzy>, mock_process = <MagicMock name='process' id='4809487568'>
+
+    @patch("app.procesador_csv.process")
+    def test_calculate_estimate_with_fuzzywuzzy(self, mock_process):
+        # Configurar el mock para devolver valores específicos
+        mock_process.extractOne.return_value = ("MANO DE OBRA INSTALACION TEJA SENCILLA", 95)
+    
+        data_store = process_all_files(
+            self.presupuesto_path, self.apus_path, self.insumos_path
+        )
+        params_ok = {"tipo": "CUBIERTA", "material": "TST", "cuadrilla": "5"}
+        result = calculate_estimate(params_ok, data_store)
+    
+        # Verificaciones
+>       self.assertNotIn("error", result)
+E       AssertionError: 'error' unexpectedly found in {'error': 'No se encontró un APU de instalación que coincida con todos los criterios.', 'log': "Parámetros de entrada: {'tipo': 'CUBIERTA', 'material': 'TST', 'cuadrilla': '5'}\nParámetros mapeados: material='TEJA SENCILLA', tipo='INSTALACION'\n\n--- BÚSQUEDA DE SUMINISTRO ---\nBuscando la mejor coincidencia para'TEJA SENCILLA' en 0 opciones.\nNo se encontró una buena coincidencia para el suministro.\nEncontrados 0 candidatos para suministro.\nADVERTENCIA: No se encontró un APU de suministro directo. Iniciando fallback a insumos.\nERROR (Fallback): Material no encontrado en lista de insumos.\n\n--- BÚSQUEDA DE INSTALACIÓN ---\nPaso A: 0 APUs encontrados con 'MANO DE OBRA' e 'INSTALACION'.\nPaso B: 0APUs restantes tras filtrar por 'TEJA SENCILLA'.\nPaso C: 0 APUs restantes tras filtrar por 'CUADRILLA DE 5'.\nERROR: No se encontró un APU de instalación que coincida con todos los criterios."}
+
+tests/test_app.py:345: AssertionError
+__________________________________________________ TestAppEndpoints.test_07_get_estimate_with_session __________________________________________________
+
+self = <test_app.TestAppEndpoints testMethod=test_07_get_estimate_with_session>
+mock_config = {'category_keywords': {'EQUIPO': 'EQUIPO', 'MANO DE OBRA': 'MANO DE OBRA', 'MATERIALES': 'MATERIALES', 'OTROS': 'OTROS...esupuesto_column_map': {'CANTIDAD_PRESUPUESTO': ['CANT.'], 'CODIGO_APU': ['ITEM'], 'DESCRIPCION_APU': ['DESCRIPCION']}}
+
+    @patch("app.procesador_csv.config", new_callable=lambda: TEST_CONFIG)
+    def test_07_get_estimate_with_session(self, mock_config):
+        with self.client as c:
+            data = {
+                "presupuesto": self._get_test_file("presupuesto.csv", PRESUPUESTO_DATA),
+                "apus": self._get_test_file("apus.csv", APUS_DATA),
+                "insumos": self._get_test_file("insumos.csv", INSUMOS_DATA),
+            }
+            upload_response = c.post(
+                "/upload", data=data, content_type="multipart/form-data"
+            )
+            self.assertEqual(upload_response.status_code, 200)
+    
+            estimate_params = {"tipo": "CUBIERTA", "material": "TST", "cuadrilla": "5"}
+            response = c.post("/api/estimate", json=estimate_params)
+    
+>           self.assertEqual(response.status_code, 200)
+E           AssertionError: 400 != 200
+
+tests/test_app.py:413: AssertionError
+=============================================================== short test summary info ================================================================
+FAILED tests/test_app.py::TestCSVProcessor::test_calculate_estimate - AssertionError: 'error' unexpectedly found in {'error': 'No se encontró un APU de instalación que coincida con todos los criterios.', 'log': "Parámetros de entrada: {'tipo': 'CUBIERTA', 'material': 'TST', 'cuadrilla': '5'}\nParámetros mapeados: material='TEJA SENCILLA', tipo='INSTALACION'\n\n--- BÚSQUEDA DE SUMINISTRO ---\nBuscando la mejor coincidencia para'TEJA SENCILLA' en 0 opciones.\nNo se encontró una buena coincidencia para el suministro.\nEncontrados 0 candidatos para suministro.\nADVERTENCIA: No se encontró un APU de suministro directo. Iniciando fallback a insumos.\nERROR (Fallback): Material no encontrado en lista de insumos.\n\n--- BÚSQUEDA DE INSTALACIÓN ---\nPaso A: 0 APUs encontrados con 'MANO DE OBRA' e 'INSTALACION'.\nPaso B: 0APUs restantes tras filtrar por 'TEJA SENCILLA'.\nPaso C: 0 APUs restantes tras filtrar por 'CUADRILLA DE 5'.\nERROR: No se encontró un APU de instalación que coincida con todos los criterios."}
+FAILED tests/test_app.py::TestCSVProcessor::test_calculate_estimate_with_fuzzywuzzy - AssertionError: 'error' unexpectedly found in {'error': 'No se encontró un APU de instalación que coincida con todos los criterios.', 'log': "Parámetros de entrada: {'tipo': 'CUBIERTA', 'material': 'TST', 'cuadrilla': '5'}\nParámetros mapeados: material='TEJA SENCILLA', tipo='INSTALACION'\n\n--- BÚSQUEDA DE SUMINISTRO ---\nBuscando la mejor coincidencia para'TEJA SENCILLA' en 0 opciones.\nNo se encontró una buena coincidencia para el suministro.\nEncontrados 0 candidatos para suministro.\nADVERTENCIA: No se encontró un APU de suministro directo. Iniciando fallback a insumos.\nERROR (Fallback): Material no encontrado en lista de insumos.\n\n--- BÚSQUEDA DE INSTALACIÓN ---\nPaso A: 0 APUs encontrados con 'MANO DE OBRA' e 'INSTALACION'.\nPaso B: 0APUs restantes tras filtrar por 'TEJA SENCILLA'.\nPaso C: 0 APUs restantes tras filtrar por 'CUADRILLA DE 5'.\nERROR: No se encontró un APU de instalación que coincida con todos los criterios."}
+FAILED tests/test_app.py::TestAppEndpoints::test_07_get_estimate_with_session - AssertionError: 400 != 200
+============================================================= 3 failed, 12 passed in 5.42s =============================================================
