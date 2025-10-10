@@ -132,9 +132,12 @@ class ReportParser:
                 return
 
             if self._current_category == "MANO DE OBRA":
-                match_mano_de_obra_compleja = self.PATTERNS["mano_de_obra_compleja_csv"].match(line)
+                pattern = self.PATTERNS["mano_de_obra_compleja_csv"]
+                match_mano_de_obra_compleja = pattern.match(line)
                 if match_mano_de_obra_compleja:
-                    self._parse_mano_de_obra_compleja(match_mano_de_obra_compleja.groupdict())
+                    self._parse_mano_de_obra_compleja(
+                        match_mano_de_obra_compleja.groupdict()
+                    )
                     return
 
             match_insumo_full = self.PATTERNS["insumo_full_csv"].match(line)
@@ -156,9 +159,12 @@ class ReportParser:
                 return
 
             if self._current_category == "MANO DE OBRA":
-                match_mano_de_obra_compleja = self.PATTERNS["mano_de_obra_compleja_txt"].match(line)
+                pattern = self.PATTERNS["mano_de_obra_compleja_txt"]
+                match_mano_de_obra_compleja = pattern.match(line)
                 if match_mano_de_obra_compleja:
-                    self._parse_mano_de_obra_compleja(match_mano_de_obra_compleja.groupdict())
+                    self._parse_mano_de_obra_compleja(
+                        match_mano_de_obra_compleja.groupdict()
+                    )
                     return
 
             match_insumo_full = self.PATTERNS["insumo_full_txt"].match(line)

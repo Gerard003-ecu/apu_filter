@@ -1,15 +1,18 @@
-import logging
 import os
 import sys
-import unittest
-
-# Configure logging to display debug messages
-logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
 # Add the project root to the Python path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
+import logging
+import unittest
+
 from app.report_parser import ReportParser
+
+# Configure logging to display debug messages
+logging.basicConfig(
+    level=logging.DEBUG, format="%(asctime)s - %(levelname)s - %(message)s"
+)
 
 
 class TestReportParserWithRealData(unittest.TestCase):
@@ -43,7 +46,9 @@ class TestReportParserWithRealData(unittest.TestCase):
         Tests that the parser identifies a significant number of unique APUs.
         """
         apu_codes = self.df["CODIGO_APU"].unique()
-        self.assertTrue(len(apu_codes) > 5, f"Expected more than 5 APUs, but found {len(apu_codes)}.")
+        num_apus = len(apu_codes)
+        msg = f"Expected more than 5 APUs, but found {num_apus}."
+        self.assertTrue(num_apus > 5, msg)
 
     def test_specific_insumo_is_parsed_correctly(self):
         """
@@ -51,9 +56,12 @@ class TestReportParserWithRealData(unittest.TestCase):
         """
         # Example insumo from apus.csv
         # LAMINA DE 1.22 X 3.05 MTS CAL. 22 PINTADA INCLUIDO
-        #IVA;UND;0,33;14,04;174.928,81;65.403,35
-        insumo = self.df[self.df["DESCRIPCION_INSUMO"] == "LAMINA DE 1.22 X 3.05 MTS CAL. 22 PINTADA INCLUIDO IVA"]
-        self.assertTrue(not insumo.empty, "The specific insumo 'LAMINA...' was not found.")
+        # IVA;UND;0,33;14,04;174.928,81;65.403,35
+        insumo_desc = "LAMINA DE 1.22 X 3.05 MTS CAL. 22 PINTADA INCLUIDO IVA"
+        insumo = self.df[self.df["DESCRIPCION_INSUMO"] == insumo_desc]
+        self.assertTrue(
+            not insumo.empty, "The specific insumo 'LAMINA...' was not found."
+        )
 
         insumo_data = insumo.iloc[0]
         self.assertEqual(insumo_data["UNIDAD"], "UND")
