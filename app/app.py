@@ -156,7 +156,11 @@ def create_app(config_name):
 
         response = {
             "codigo": apu_code,
-            "descripcion": presupuesto_item.get("DESCRIPCION_APU", "") if presupuesto_item else "",
+            "descripcion": (
+                presupuesto_item.get("DESCRIPCION_APU", "")
+                if presupuesto_item
+                else ""
+            ),
             "desglose": desglose,
             "simulation": simulation_results,
         }
