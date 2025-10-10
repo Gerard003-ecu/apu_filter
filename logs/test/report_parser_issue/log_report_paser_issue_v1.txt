@@ -1,0 +1,45 @@
+================================================================= test session starts ==================================================================
+platform darwin -- Python 3.12.3, pytest-8.4.2, pluggy-1.6.0 -- /Users/gerardomayor/Documents/estru_techos/apu_filter/.venv/bin/python3
+cachedir: .pytest_cache
+rootdir: /Users/gerardomayor/Documents/estru_techos/apu_filter
+configfile: pyproject.toml
+collected 3 items                                                                                                                                      
+
+tests/test_report_parser_issue.py::TestReportParserWithRealData::test_dataframe_is_not_empty_with_real_data PASSED                               [ 33%]
+tests/test_report_parser_issue.py::TestReportParserWithRealData::test_finds_a_significant_number_of_apus PASSED                                  [ 66%]
+tests/test_report_parser_issue.py::TestReportParserWithRealData::test_specific_insumo_is_parsed_correctly FAILED                                 [100%]
+
+======================================================================= FAILURES =======================================================================
+________________________________________ TestReportParserWithRealData.test_specific_insumo_is_parsed_correctly _________________________________________
+
+self = <test_report_parser_issue.TestReportParserWithRealData testMethod=test_specific_insumo_is_parsed_correctly>
+
+    def test_specific_insumo_is_parsed_correctly(self):
+        """
+        Tests that a specific known insumo is parsed correctly.
+        """
+        # Example insumo from apus.csv
+        # LAMINA DE 1.22 X 3.05 MTS CAL. 22 PINTADA INCLUIDO
+        # IVA;UND;0,33;14,04;174.928,81;65.403,35
+        insumo_desc = "LAMINA DE 1.22 X 3.05 MTS CAL. 22 PINTADA INCLUIDO IVA"
+        insumo = self.df[self.df["DESCRIPCION_INSUMO"] == insumo_desc]
+        self.assertTrue(
+            not insumo.empty, "The specific insumo 'LAMINA...' was not found."
+        )
+    
+        insumo_data = insumo.iloc[0]
+        self.assertEqual(insumo_data["UNIDAD"], "UND")
+        self.assertAlmostEqual(insumo_data["CANTIDAD_APU"], 0.33, places=2)
+        self.assertAlmostEqual(insumo_data["PRECIO_UNIT_APU"], 174928.81, places=2)
+        self.assertAlmostEqual(insumo_data["VALOR_TOTAL_APU"], 65403.35, places=2)
+>       self.assertEqual(insumo_data["CATEGORIA"], "MATERIALES")
+E       AssertionError: 'INDEFINIDO' != 'MATERIALES'
+E       - INDEFINIDO
+E       + MATERIALES
+
+tests/test_report_parser_issue.py:71: AssertionError
+=============================================================== short test summary info ================================================================
+FAILED tests/test_report_parser_issue.py::TestReportParserWithRealData::test_specific_insumo_is_parsed_correctly - AssertionError: 'INDEFINIDO' != 'MATERIALES'
+- INDEFINIDO
++ MATERIALES
+============================================================= 1 failed, 2 passed in 4.63s ==============================================================
