@@ -1,7 +1,7 @@
+import logging
 import os
 import sys
 import unittest
-import logging
 
 # Configure logging to display debug messages
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -10,6 +10,7 @@ logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from app.report_parser import ReportParser
+
 
 class TestReportParserWithRealData(unittest.TestCase):
     """
@@ -33,7 +34,9 @@ class TestReportParserWithRealData(unittest.TestCase):
         """
         Tests that the DataFrame is not empty when parsing the real apus.csv.
         """
-        self.assertFalse(self.df.empty, "The DataFrame should not be empty when parsing apus.csv.")
+        self.assertFalse(
+            self.df.empty, "The DataFrame should not be empty when parsing apus.csv."
+        )
 
     def test_finds_a_significant_number_of_apus(self):
         """
@@ -47,7 +50,8 @@ class TestReportParserWithRealData(unittest.TestCase):
         Tests that a specific known insumo is parsed correctly.
         """
         # Example insumo from apus.csv
-        # LAMINA DE 1.22 X 3.05 MTS CAL. 22 PINTADA INCLUIDO IVA;UND;0,33;14,04;174.928,81;65.403,35
+        # LAMINA DE 1.22 X 3.05 MTS CAL. 22 PINTADA INCLUIDO
+        #IVA;UND;0,33;14,04;174.928,81;65.403,35
         insumo = self.df[self.df["DESCRIPCION_INSUMO"] == "LAMINA DE 1.22 X 3.05 MTS CAL. 22 PINTADA INCLUIDO IVA"]
         self.assertTrue(not insumo.empty, "The specific insumo 'LAMINA...' was not found.")
 
