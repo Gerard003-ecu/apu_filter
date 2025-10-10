@@ -1,0 +1,23 @@
+E501 Line too long (99 > 93)
+   --> app/app.py:159:94
+    |
+157 |         response = {
+158 |             "codigo": apu_code,
+159 |             "descripcion": presupuesto_item.get("DESCRIPCION_APU", "") if presupuesto_item else "",
+    |                                                                                              ^^^^^^
+160 |             "desglose": desglose,
+161 |             "simulation": simulation_results,
+    |
+
+E501 Line too long (94 > 93)
+   --> app/procesador_csv.py:466:94
+    |
+464 |             if col not in df_apu_costos_categoria.columns:
+465 |                 df_apu_costos_categoria[col] = 0
+466 |         df_apu_costos_categoria["VALOR_SUMINISTRO_UN"] = df_apu_costos_categoria["MATERIALES"]
+    |                                                                                              ^
+467 |         df_apu_costos_categoria["VALOR_INSTALACION_UN"] = (
+468 |             df_apu_costos_categoria["MANO DE OBRA"] + df_apu_costos_categoria["EQUIPO"]
+    |
+
+Found 2 errors.

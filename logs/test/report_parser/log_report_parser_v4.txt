@@ -1,0 +1,33 @@
+================================================================= test session starts ==================================================================
+platform darwin -- Python 3.12.3, pytest-8.4.2, pluggy-1.6.0 -- /Users/gerardomayor/Documents/estru_techos/apu_filter/.venv/bin/python3
+cachedir: .pytest_cache
+rootdir: /Users/gerardomayor/Documents/estru_techos/apu_filter
+configfile: pyproject.toml
+collected 7 items                                                                                                                                      
+
+tests/test_report_parser.py::TestReportParserRefactored::test_assigns_correct_apu_and_category PASSED                                            [ 14%]
+tests/test_report_parser.py::TestReportParserRefactored::test_dataframe_not_empty PASSED                                                         [ 28%]
+tests/test_report_parser.py::TestReportParserRefactored::test_finds_correct_number_of_apus PASSED                                                [ 42%]
+tests/test_report_parser.py::TestReportParserRefactored::test_parses_herramienta_menor PASSED                                                    [ 57%]
+tests/test_report_parser.py::TestReportParserRefactored::test_parses_insumo_with_hyphen_as_waste PASSED                                          [ 71%]
+tests/test_report_parser.py::TestReportParserRefactored::test_parses_insumo_without_waste_column PASSED                                          [ 85%]
+tests/test_report_parser.py::TestReportParserRefactored::test_parses_number_with_spaces FAILED                                                   [100%]
+
+======================================================================= FAILURES =======================================================================
+______________________________________________ TestReportParserRefactored.test_parses_number_with_spaces _______________________________________________
+
+self = <test_report_parser.TestReportParserRefactored testMethod=test_parses_number_with_spaces>
+
+    def test_parses_number_with_spaces(self):
+        """
+        Verifica que un número con espacios como separadores de miles
+        se convierte correctamente.
+        """
+        insumo = self.df[self.df["DESCRIPCION_INSUMO"] == "INSUMO CON NUMERO GRANDE"]
+>       self.assertEqual(len(insumo), 1, "Debería encontrarse el insumo con número grande.")
+E       AssertionError: 0 != 1 : Debería encontrarse el insumo con número grande.
+
+tests/test_report_parser.py:110: AssertionError
+=============================================================== short test summary info ================================================================
+FAILED tests/test_report_parser.py::TestReportParserRefactored::test_parses_number_with_spaces - AssertionError: 0 != 1 : Debería encontrarse el insumo con número grande.
+============================================================= 1 failed, 6 passed in 3.74s ==============================================================
