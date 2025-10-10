@@ -13,6 +13,8 @@ from fuzzywuzzy import process
 from unidecode import unidecode
 
 from .report_parser import ReportParser
+from .utils import clean_apu_code
+
 
 # Configurar logging
 logging.basicConfig(level=logging.DEBUG, format="%(asctime)s - %(levelname)s - %(message)s")
@@ -268,8 +270,7 @@ def process_presupuesto_csv(path: str) -> pd.DataFrame:
             logger.warning("La columna 'CODIGO_APU' no se encontró en el presupuesto.")
             return pd.DataFrame()
 
-        # No filtrar solo por comas, aceptar cualquier código válido
-        df["CODIGO_APU"] = df["CODIGO_APU"].astype(str).str.strip()
+        df["CODIGO_APU"] = df["CODIGO_APU"].astype(str).apply(clean_apu_code)
         df = df[df["CODIGO_APU"].notna() & (df["CODIGO_APU"] != "")]
 
         # Limpiar y convertir cantidad

@@ -4,6 +4,8 @@ from typing import Dict, Optional
 
 import pandas as pd
 
+from .utils import clean_apu_code
+
 logger = logging.getLogger(__name__)
 
 
@@ -188,7 +190,9 @@ class ReportParser:
         self._current_apu_desc = line
 
     def _start_new_apu(self, raw_code: str):
-        self._current_apu_code = re.sub(r"[\s,.]+$", "", raw_code.replace(" ", ","))
+        """Limpia y establece el código del APU para el nuevo bloque."""
+        # Aplica la función de limpieza importada directamente
+        self._current_apu_code = clean_apu_code(raw_code)
         self._current_category = "INDEFINIDO"
 
     def _parse_insumo(self, data: Dict[str, str]):
