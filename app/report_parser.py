@@ -117,77 +117,62 @@ class ReportParser:
         if not line:
             return
 
+        # Prioridad 1: Detectar el código del ITEM y asociar la descripción
         match_item = self.PATTERNS["item_code"].search(line.upper())
         if match_item:
             self._start_new_apu(match_item.group(1))
+            # La descripción ya debería estar en self._current_apu_desc
+            # desde la línea anterior. No hacemos nada aquí.
             return
 
-        # La detección de categoría debe ser más estricta para evitar
-        # que una descripción de APU que comience con una palabra clave
-        # (ej. "MANO DE OBRA...") sea tratada como un encabezado de categoría.
-        # Se considera una categoría solo si la línea COMPLETA es una de las
-        # palabras clave.
+        # Prioridad 2: Detectar un encabezado de categoría
         category_keywords = {"MATERIALES", "MANO DE OBRA", "EQUIPO", "OTROS"}
-        if line.upper() in category_keywords:
-            self._current_category = line.upper()
+        # Limpiamos la línea de posibles punto y coma para una detección robusta
+        cleaned_line_for_category = line.split(";")[0].strip().upper()
+        if cleaned_line_for_category in category_keywords:
+            self._current_category = cleaned_line_for_category
             return
 
+        # Prioridad 3: Procesar una línea de datos si ya estamos en un APU.
         if self._current_apu_code:
-            # Try CSV patterns first
-            match_herramienta = self.PATTERNS["herramienta_menor_csv"].match(line)
-            if match_herramienta:
-                self._parse_herramienta_menor(match_herramienta.groupdict())
-                return
+            patterns_to_try = [
+                (self.PATTERNS["herramienta_menor_csv"], self._parse_herramienta_menor),
+                (
+                    self.PATTERNS["mano_de_obra_compleja_csv"],
+                    self._parse_mano_de_obra_compleja,
+                    "MANO DE OBRA",
+                ),
+                (self.PATTERNS["insumo_full_csv"], self._parse_insumo),
+                (self.PATTERNS["insumo_simple_csv"], self._parse_insumo_simple),
+                (self.PATTERNS["herramienta_menor_txt"], self._parse_herramienta_menor),
+                (
+                    self.PATTERNS["mano_de_obra_compleja_txt"],
+                    self._parse_mano_de_obra_compleja,
+                    "MANO DE OBRA",
+                ),
+                (self.PATTERNS["insumo_full_txt"], self._parse_insumo),
+                (self.PATTERNS["insumo_simple_txt"], self._parse_insumo_simple),
+            ]
 
-            if self._current_category == "MANO DE OBRA":
-                pattern = self.PATTERNS["mano_de_obra_compleja_csv"]
-                match_mano_de_obra_compleja = pattern.match(line)
-                if match_mano_de_obra_compleja:
-                    self._parse_mano_de_obra_compleja(
-                        match_mano_de_obra_compleja.groupdict()
-                    )
+            for item in patterns_to_try:
+                pattern, parser, *category_context = item
+                if category_context and self._current_category != category_context[0]:
+                    continue
+
+                match = pattern.match(line)
+                if match:
+                    parser(match.groupdict())
                     return
 
-            match_insumo_full = self.PATTERNS["insumo_full_csv"].match(line)
-            if match_insumo_full:
-                self._parse_insumo(match_insumo_full.groupdict())
-                return
+        # Prioridad 4: Si no es nada de lo anterior, es una posible descripción de APU.
+        # La guardamos temporalmente. Si la siguiente línea es un "ITEM", se usará.
+        # Si es otra cosa, se sobrescribirá.
+        self._current_apu_desc = line.split(";")[0].strip()
 
-            match_insumo_simple = self.PATTERNS["insumo_simple_csv"].match(line)
-            if match_insumo_simple:
-                data = match_insumo_simple.groupdict()
-                data["desperdicio"] = ""
-                self._parse_insumo(data)
-                return
-
-            # Then try TXT patterns
-            match_herramienta = self.PATTERNS["herramienta_menor_txt"].match(line)
-            if match_herramienta:
-                self._parse_herramienta_menor(match_herramienta.groupdict())
-                return
-
-            if self._current_category == "MANO DE OBRA":
-                pattern = self.PATTERNS["mano_de_obra_compleja_txt"]
-                match_mano_de_obra_compleja = pattern.match(line)
-                if match_mano_de_obra_compleja:
-                    self._parse_mano_de_obra_compleja(
-                        match_mano_de_obra_compleja.groupdict()
-                    )
-                    return
-
-            match_insumo_full = self.PATTERNS["insumo_full_txt"].match(line)
-            if match_insumo_full:
-                self._parse_insumo(match_insumo_full.groupdict())
-                return
-
-            match_insumo_simple = self.PATTERNS["insumo_simple_txt"].match(line)
-            if match_insumo_simple:
-                data = match_insumo_simple.groupdict()
-                data["desperdicio"] = ""
-                self._parse_insumo(data)
-                return
-
-        self._current_apu_desc = line
+    def _parse_insumo_simple(self, data: Dict[str, str]):
+        """Parsea un insumo 'simple' (sin desperdicio) y lo delega a _parse_insumo."""
+        data["desperdicio"] = ""
+        self._parse_insumo(data)
 
     def _start_new_apu(self, raw_code: str):
         """Limpia y establece el código del APU para el nuevo bloque."""
