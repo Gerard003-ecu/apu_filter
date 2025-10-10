@@ -419,6 +419,7 @@ def _do_processing(presupuesto_path, apus_path, insumos_path):
     # Usar el nuevo ReportParser
     parser = ReportParser(apus_path)
     df_apus = parser.parse()
+    logger.debug(f"Contenido de df_apus después del parsing:\n{df_apus.to_string()}")
     logger.debug(
         f"df_apus creado por ReportParser."
         f"Columnas: {df_apus.columns.tolist()}. Filas: {len(df_apus)}"
@@ -686,6 +687,7 @@ def calculate_estimate(
 
     df_apus = pd.DataFrame(all_apus_list)
     df_apus_unique = df_apus.drop_duplicates(subset=["DESCRIPCION_APU"]).copy()
+    logger.debug(f"Descripciones de APU únicas para la búsqueda:\n{df_apus_unique['DESCRIPCION_APU'].to_list()}")
     df_apus_unique["DESC_NORMALIZED"] = df_apus_unique["DESCRIPCION_APU"].apply(_normalize)
 
     # --- Parámetros y Mapeo ---
