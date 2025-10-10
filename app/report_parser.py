@@ -95,10 +95,16 @@ class ReportParser:
                 self._parse_herramienta_menor(match_herramienta.groupdict())
                 return
 
-            match_mano_de_obra_compleja = self.PATTERNS["mano_de_obra_compleja"].match(line)
-            if match_mano_de_obra_compleja:
-                self._parse_mano_de_obra_compleja(match_mano_de_obra_compleja.groupdict())
-                return
+            # This regex should only apply within the 'MANO DE OBRA' category
+            if self._current_category == "MANO DE OBRA":
+                match_mano_de_obra_compleja = self.PATTERNS[
+                    "mano_de_obra_compleja"
+                ].match(line)
+                if match_mano_de_obra_compleja:
+                    self._parse_mano_de_obra_compleja(
+                        match_mano_de_obra_compleja.groupdict()
+                    )
+                    return
 
             match_insumo_full = self.PATTERNS["insumo_full"].match(line)
             if match_insumo_full:

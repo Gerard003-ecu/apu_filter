@@ -463,7 +463,8 @@ def _do_processing(presupuesto_path, apus_path, insumos_path):
         for col in cost_cols:
             if col not in df_apu_costos_categoria.columns:
                 df_apu_costos_categoria[col] = 0
-        df_apu_costos_categoria["VALOR_SUMINISTRO_UN"] = df_apu_costos_categoria["MATERIALES"]
+        df_costos = df_apu_costos_categoria
+        df_costos["VALOR_SUMINISTRO_UN"] = df_costos["MATERIALES"]
         df_apu_costos_categoria["VALOR_INSTALACION_UN"] = (
             df_apu_costos_categoria["MANO DE OBRA"] + df_apu_costos_categoria["EQUIPO"]
         )
