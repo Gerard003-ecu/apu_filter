@@ -16,7 +16,8 @@ class ReportParser:
 
     PATTERNS = {
         "item_code": re.compile(r"ITEM:\s*([\d\s,.]*)$"),
-        "category": re.compile(r"^(MATERIALES|MANO DE OBRA|EQUIPO|OTROS)"),
+        # "category" pattern removed as it was too greedy.
+        # Logic is now handled directly in _process_line.
         # CSV (semicolon-delimited) patterns
         "mano_de_obra_compleja_csv": re.compile(
             r"^(?P<descripcion>.+?)\s*;"
@@ -119,9 +120,14 @@ class ReportParser:
             self._start_new_apu(match_item.group(1))
             return
 
-        match_category = self.PATTERNS["category"].match(line)
-        if match_category:
-            self._current_category = match_category.group(1)
+        # La detección de categoría debe ser más estricta para evitar
+        # que una descripción de APU que comience con una palabra clave
+        # (ej. "MANO DE OBRA...") sea tratada como un encabezado de categoría.
+        # Se considera una categoría solo si la línea COMPLETA es una de las
+        # palabras clave.
+        category_keywords = {"MATERIALES", "MANO DE OBRA", "EQUIPO", "OTROS"}
+        if line.upper() in category_keywords:
+            self._current_category = line.upper()
             return
 
         if self._current_apu_code:
