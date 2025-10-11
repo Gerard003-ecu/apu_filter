@@ -692,8 +692,7 @@ def calculate_estimate(
     params: Dict[str, str], data_store: Dict
 ) -> Dict[str, Union[str, float, List[str]]]:
     """
-    Calcula una estimación de costo basada en la lógica de negocio de
-    "Suministro + Instalación".
+    Calcula una estimación de costo más flexible usando fuzzy matching.
     """
     log = []
     required_params = ["tipo", "material"]
@@ -717,172 +716,108 @@ def calculate_estimate(
     log.append(f"Parámetros de entrada: {params}")
 
     param_map = config.get("param_map", {})
-    # Usar normalize_text para consistencia. Requiere convertir a Series.
     material_mapped = normalize_text(
         pd.Series([param_map.get("material", {}).get(material, material)])
     ).iloc[0]
-    tipo_mapped = normalize_text(
-        pd.Series([param_map.get("tipo", {}).get(tipo, tipo)])
-    ).iloc[0]
-    log.append(f"Parámetros mapeados: material='{material_mapped}', tipo='{tipo_mapped}'")
+    log.append(f"Parámetros mapeados: material='{material_mapped}'")
 
-    # --- Generar Palabras Clave ---
-    material_keywords = material_mapped.split()
-    log.append(f"Palabras clave de material: {material_keywords}")
-
-    # --- 1. Búsqueda del Costo de Suministro ---
+    # --- 1. Búsqueda de Suministro ---
     log.append("\n--- BÚSQUEDA DE SUMINISTRO ---")
     valor_suministro = 0.0
     apu_suministro_desc = "No encontrado"
 
-    # Priorizar APUs de tipo 'Suministro' o 'Suministro (Pre-fabricado)'
     supply_types = ["Suministro", "Suministro (Pre-fabricado)"]
-    df_suministro_options = df_apus[df_apus["tipo_apu"].isin(supply_types)]
+    df_suministro = df_apus[df_apus["tipo_apu"].isin(supply_types)]
 
-    df_suministro_filtered = df_suministro_options.copy()
-    if not df_suministro_filtered.empty and material_keywords:
-        log.append(f"Filtrando {len(df_suministro_filtered)} APUs de suministro por palabras clave: {material_keywords}")
-        for keyword in material_keywords:
-            df_suministro_filtered = df_suministro_filtered[
-                df_suministro_filtered["DESC_NORMALIZED"].str.contains(keyword, na=False)
-            ]
-        log.append(f"Quedan {len(df_suministro_filtered)} APUs después del filtro por palabras clave.")
+    if not df_suministro.empty:
+        opciones = df_suministro["DESC_NORMALIZED"].tolist()
+        # Usar fuzzywuzzy para encontrar la mejor coincidencia
+        resultado = process.extractOne(material_mapped, opciones, score_cutoff=70)
 
-    if not df_suministro_filtered.empty:
-        opciones_suministro = df_suministro_filtered["DESC_NORMALIZED"].tolist()
-        log.append(
-            f"Buscando la mejor coincidencia para '{material_mapped}'"
-            f" en {len(opciones_suministro)} APUs de suministro filtrados."
-        )
-        mejor_coincidencia = encontrar_mejor_coincidencia(
-            material_mapped, opciones_suministro
-        )
-
-        if mejor_coincidencia:
-            apu_encontrado_df = df_suministro_filtered[
-                df_suministro_filtered["DESC_NORMALIZED"] == mejor_coincidencia
-            ]
-            if not apu_encontrado_df.empty:
-                apu_encontrado = apu_encontrado_df.iloc[0]
-                valor_suministro = apu_encontrado["VALOR_SUMINISTRO_UN"]
-                apu_suministro_desc = apu_encontrado["DESCRIPCION_APU"]
-                log.append(
-                    f"APU de Suministro encontrado: '{apu_suministro_desc}'. "
-                    f"Valor: ${valor_suministro:,.0f}"
-                )
-            else:
-                log.append(
-                    f"Coincidencia '{mejor_coincidencia}' encontrada pero sin APU en el df filtrado."
-                )
+        if resultado:
+            mejor_coincidencia, puntaje = resultado
+            log.append(
+                f"Mejor coincidencia de suministro encontrada: '{mejor_coincidencia}'"
+                f" (Puntaje: {puntaje})"
+            )
+            apu_encontrado = df_suministro[
+                df_suministro["DESC_NORMALIZED"] == mejor_coincidencia
+            ].iloc[0]
+            valor_suministro = apu_encontrado["VALOR_SUMINISTRO_UN"]
+            apu_suministro_desc = apu_encontrado["DESCRIPCION_APU"]
+            log.append(
+                f"APU de Suministro: '{apu_suministro_desc}'. "
+                f"Valor: ${valor_suministro:,.0f}"
+            )
         else:
-            log.append("No se encontró un APU de suministro con buena coincidencia en la lista filtrada.")
-    else:
-        log.append("No se encontraron APUs de suministro que contengan todas las palabras clave.")
-
+            log.append(
+                "No se encontró APU de suministro con puntaje > 70. "
+                "Activando fallback a insumos."
+            )
 
     # Fallback a la lista de insumos si no se encontró un APU de suministro
     if valor_suministro == 0:
-        log.append("Fallback: Buscando en la lista de insumos por palabras clave...")
+        log.append("Fallback: Buscando en la lista de insumos...")
         raw_insumos_data = data_store.get("raw_insumos_df")
         if raw_insumos_data:
             df_insumos = pd.DataFrame(raw_insumos_data)
             if not df_insumos.empty:
-                # Filtrar por todas las palabras clave
-                df_insumos_filtered = df_insumos.copy()
-                for keyword in material_keywords:
-                    df_insumos_filtered = df_insumos_filtered[
-                        df_insumos_filtered["NORMALIZED_DESC"].str.contains(keyword, na=False)
-                    ]
-
-                if not df_insumos_filtered.empty:
-                    # Si hay múltiples coincidencias, usar fuzzy en los resultados filtrados
-                    opciones_insumos = df_insumos_filtered["NORMALIZED_DESC"].tolist()
-                    mejor_coincidencia_insumo = encontrar_mejor_coincidencia(
-                        material_mapped, opciones_insumos
+                opciones_insumos = df_insumos["NORMALIZED_DESC"].tolist()
+                resultado_insumo = process.extractOne(
+                    material_mapped, opciones_insumos, score_cutoff=70
+                )
+                if resultado_insumo:
+                    mejor_coincidencia, puntaje = resultado_insumo
+                    insumo_match = df_insumos[
+                        df_insumos["NORMALIZED_DESC"] == mejor_coincidencia
+                    ].iloc[0]
+                    valor_suministro = insumo_match["VR_UNITARIO_INSUMO"]
+                    apu_suministro_desc = (
+                        f"Insumo: {insumo_match['DESCRIPCION_INSUMO']}"
                     )
-
-                    if mejor_coincidencia_insumo:
-                        insumo_match = df_insumos_filtered[
-                            df_insumos_filtered["NORMALIZED_DESC"] == mejor_coincidencia_insumo
-                        ]
-                        valor_suministro = insumo_match.iloc[0]["VR_UNITARIO_INSUMO"]
-                        apu_suministro_desc = (
-                            f"Insumo: {insumo_match.iloc[0]['DESCRIPCION_INSUMO']}"
-                        )
-                        log.append(
-                            f"Insumo encontrado (Fallback): '{apu_suministro_desc}'. "
-                            f"Valor: ${valor_suministro:,.0f}"
-                        )
-                    else:
-                        log.append("ERROR (Fallback): No se encontró coincidencia de insumo en la lista filtrada.")
-                else:
                     log.append(
-                        "ERROR (Fallback): Material no encontrado en lista de insumos con esas palabras clave."
+                        f"Insumo encontrado (Fallback): '{apu_suministro_desc}'. "
+                        f"Valor: ${valor_suministro:,.0f} (Puntaje: {puntaje})"
                     )
+                else:
+                    log.append("ERROR (Fallback): No se encontró insumo con puntaje > 70.")
             else:
                 log.append("ERROR (Fallback): El dataframe de insumos está vacío.")
         else:
             log.append("ERROR (Fallback): El dataframe de insumos no está disponible.")
 
-    # --- 2. Búsqueda del Costo de Instalación ---
+    # --- 2. Búsqueda de Instalación ---
     log.append("\n--- BÚSQUEDA DE INSTALACIÓN ---")
     valor_instalacion = 0.0
     tiempo_instalacion = 0.0
     apu_instalacion_desc = "No encontrado"
 
-    # Búsqueda secuencial y explícita
-    df_inst = df_apus.copy()
-    # Filtro 1: Debe contener "MANO DE OBRA" (case-insensitive)
-    df_inst = df_inst[
-        df_inst["DESC_NORMALIZED"].str.contains(
-            "MANO DE OBRA|MANO OBRA", na=False, case=False
-        )
-    ]
-    log.append(f"Paso 1: {len(df_inst)} APUs con 'MANO DE OBRA'.")
-    # Filtro 2: Debe contener el tipo de trabajo mapeado (ej. 'INSTALACION')
-    # tipo_mapped está en minúsculas, y DESC_NORMALIZED también.
-    df_inst = df_inst[df_inst["DESC_NORMALIZED"].str.contains(tipo_mapped, na=False)]
-    log.append(f"Paso 2: {len(df_inst)} restantes tras filtrar por tipo '{tipo_mapped}'.")
-    # Filtro 3: Debe contener CADA palabra clave del material
-    if material_keywords:
-        log.append(f"Paso 3: Filtrando por palabras clave de material: {material_keywords}")
-        for keyword in material_keywords:
-            df_inst = df_inst[df_inst["DESC_NORMALIZED"].str.contains(keyword, na=False)]
-            log.append(f"  -> Tras filtrar por '{keyword}', quedan {len(df_inst)} APUs.")
-    else:
-        log.append("Paso 3: No hay palabras clave de material para filtrar.")
+    df_instalacion = df_apus[df_apus["tipo_apu"] == "Instalación"]
 
-    if not df_inst.empty:
-        opciones_instalacion = df_inst["DESC_NORMALIZED"].tolist()
-        # Usamos el material mapeado para encontrar la mejor coincidencia
-        # dentro de los APUs de instalación
-        mejor_coincidencia_inst = encontrar_mejor_coincidencia(
-            material_mapped, opciones_instalacion
-        )
+    if not df_instalacion.empty:
+        opciones = df_instalacion["DESC_NORMALIZED"].tolist()
+        resultado = process.extractOne(material_mapped, opciones, score_cutoff=70)
 
-        if mejor_coincidencia_inst:
-            apu_encontrado_df = df_inst[
-                df_inst["DESC_NORMALIZED"] == mejor_coincidencia_inst
-            ]
-            if not apu_encontrado_df.empty:
-                apu_encontrado = apu_encontrado_df.iloc[0]
-                valor_instalacion = apu_encontrado["VALOR_INSTALACION_UN"]
-                tiempo_instalacion = apu_encontrado["TIEMPO_INSTALACION"]
-                apu_instalacion_desc = apu_encontrado["DESCRIPCION_APU"]
-                log.append(
-                    f"APU de Instalación encontrado: '{apu_instalacion_desc}'. "
-                    f"Valor: ${valor_instalacion:,.0f}"
-                )
-            else:
-                log.append(
-                    f"Coincidencia '{mejor_coincidencia_inst}' encontrada pero sin APU."
-                )
-        else:
+        if resultado:
+            mejor_coincidencia, puntaje = resultado
             log.append(
-                "No se encontró un APU de instalación con buena coincidencia."
+                f"Mejor coincidencia de instalación: '{mejor_coincidencia}' "
+                f"(Puntaje: {puntaje})"
             )
+            apu_encontrado = df_instalacion[
+                df_instalacion["DESC_NORMALIZED"] == mejor_coincidencia
+            ].iloc[0]
+            valor_instalacion = apu_encontrado["VALOR_INSTALACION_UN"]
+            tiempo_instalacion = apu_encontrado["TIEMPO_INSTALACION"]
+            apu_instalacion_desc = apu_encontrado["DESCRIPCION_APU"]
+            log.append(
+                f"APU de Instalación: '{apu_instalacion_desc}'. "
+                f"Valor: ${valor_instalacion:,.0f}"
+            )
+        else:
+            log.append("No se encontró APU de instalación con puntaje > 70.")
     else:
-        log.append("ERROR: No se encontró APU de instalación con criterios iniciales.")
+        log.append("No hay APUs de tipo 'Instalación' para buscar.")
 
     # --- 3. Devolver el Resultado Compuesto ---
     valor_construccion = valor_suministro + valor_instalacion
