@@ -256,7 +256,6 @@ def parse_data_line(parts: List[str], current_category: str) -> Optional[Dict]:
 
 
 # En app/procesador_csv.py
-from .utils import clean_apu_code # Asegúrate de que esta importación esté al principio
 
 def process_presupuesto_csv(path: str) -> pd.DataFrame:
     """Lee y limpia el archivo presupuesto (CSV o Excel) de forma robusta."""

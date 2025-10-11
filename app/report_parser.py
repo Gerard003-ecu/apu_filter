@@ -6,6 +6,7 @@ import re
 from typing import Dict, Optional
 
 import pandas as pd
+
 from .utils import clean_apu_code
 
 logger = logging.getLogger(__name__)
