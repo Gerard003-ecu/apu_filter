@@ -101,27 +101,34 @@ def calculate_estimate(params: Dict[str, str], data_store: Dict) -> Dict[str, Un
     else:
         log.append("No se encontró APU de Tarea.")
 
-    # --- Búsqueda de APU de Cuadrilla (NUEVA LÓGICA ESTRICTA) ---
-    log.append("\n--- BÚSQUEDA DE APU DE CUADRILLA ---")
+    # --- BÚSQUEDA DEL APU DE CUADRILLA (COSTO DIARIO) ---
+    log.append("\n--- BÚSQUEDA DE CUADRILLA ---")
     costo_diario_cuadrilla = 0.0
-    apu_cuadrilla_desc = "No encontrado"
+    apu_cuadrilla_desc = "No encontrada"
 
-    if cuadrilla != "0":
-        # Construir el término de búsqueda exacto y normalizado
-        search_term = normalize_text(pd.Series([f"cuadrilla de {cuadrilla}"])).iloc[0]
-        log.append(f"Buscando término exacto de cuadrilla: '{search_term}'")
+    if cuadrilla and cuadrilla != "0":
+        search_term = f"cuadrilla de {cuadrilla}"
+        keywords_cuadrilla = normalize_text(pd.Series([search_term])).iloc[0].split()
+        log.append(f"Buscando cuadrilla con palabras clave: {keywords_cuadrilla} y UNIDAD: DIA")
 
-        # Iterar sobre TODOS los APUs para encontrar la cuadrilla
         for _, apu in df_apus.iterrows():
             desc_normalized = apu.get("DESC_NORMALIZED", "")
-            if search_term in desc_normalized:
+            unidad_apu = str(apu.get("UNIDAD", "")).upper()
+
+            # Condición 1: Todas las palabras clave deben estar en la descripción
+            match_keywords = all(keyword in desc_normalized for keyword in keywords_cuadrilla)
+
+            # Condición 2: La unidad debe ser 'DIA'
+            match_unidad = (unidad_apu == "DIA")
+
+            if match_keywords and match_unidad:
                 costo_diario_cuadrilla = apu["VALOR_CONSTRUCCION_UN"]
                 apu_cuadrilla_desc = apu["original_description"]
-                log.append(f"  --> ¡Coincidencia de cuadrilla encontrada!: '{apu_cuadrilla_desc}'. Costo diario: ${costo_diario_cuadrilla:,.0f}")
-                break # Usar la primera coincidencia
+                log.append(f"  --> Coincidencia de cuadrilla encontrada: '{apu_cuadrilla_desc}'. Costo/día: ${costo_diario_cuadrilla:,.0f}")
+                break # Salir al encontrar la primera coincidencia
 
     if costo_diario_cuadrilla == 0:
-        log.append("  --> No se encontró un APU para la cuadrilla especificada.")
+        log.append("  --> No se encontró un APU para la cuadrilla especificada con UNIDAD: DIA.")
 
     # --- Cálculo del Costo de Instalación ---
     valor_instalacion = 0.0

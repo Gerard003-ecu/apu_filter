@@ -18,7 +18,7 @@ class ReportParser:
     VERSIÓN FINAL Y ROBUSTA.
     """
     PATTERNS = {
-        "item_code": re.compile(r"ITEM:\s*([\d\s,.]*)$"),
+        "item_code": re.compile(r"ITEM:\s*([^;]+)(?:;UNIDAD:\s*([A-Z0-9/%]+))?.*$"),
         "insumo_full": re.compile(
             r"^(?P<descripcion>[^;]+);"
             r"(?P<unidad>[A-Z0-9/%]+);"
@@ -43,6 +43,7 @@ class ReportParser:
         self.context = {
             "apu_code": None,
             "apu_desc": None,
+            "apu_unit": "INDEFINIDO", # Nuevo campo para la unidad del APU
             "category": "INDEFINIDO",
         }
         self.potential_apu_desc = ""
@@ -75,10 +76,13 @@ class ReportParser:
         # 1. ¿Es una línea de ITEM? (Máxima prioridad)
         match_item = self.PATTERNS["item_code"].search(line.upper())
         if match_item:
-            raw_code = match_item.group(1)
+            raw_code = match_item.group(1).strip()
+            unit = match_item.group(2) # Puede ser None si no se encuentra
+
             self.context["apu_code"] = clean_apu_code(raw_code)
             self.context["apu_desc"] = self.potential_apu_desc
-            self.context["category"] = "INDEFINIDO"
+            self.context["apu_unit"] = unit.strip() if unit else "INDEFINIDO"
+            self.context["category"] = "INDEFINIDO" # Resetear categoría para el nuevo APU
             return
 
         # 2. ¿Es un encabezado de CATEGORÍA?
@@ -115,6 +119,7 @@ class ReportParser:
         self.apus_data.append({
             "CODIGO_APU": self.context["apu_code"],
             "DESCRIPCION_APU": self.context["apu_desc"],
+            "UNIDAD_APU": self.context["apu_unit"], # Añadir la unidad del APU
             "DESCRIPCION_INSUMO": data["descripcion"].strip(),
             "UNIDAD": data["unidad"],
             "CANTIDAD_APU": self._to_numeric_safe(data["cantidad"]),
@@ -132,6 +137,7 @@ class ReportParser:
         self.apus_data.append({
             "CODIGO_APU": self.context["apu_code"],
             "DESCRIPCION_APU": self.context["apu_desc"],
+            "UNIDAD_APU": self.context["apu_unit"], # Añadir la unidad del APU
             "DESCRIPCION_INSUMO": data["descripcion"].strip(),
             "UNIDAD": "JOR",
             "CANTIDAD_APU": cantidad,
