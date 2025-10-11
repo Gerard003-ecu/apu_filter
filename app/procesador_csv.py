@@ -517,11 +517,17 @@ def _do_processing(presupuesto_path, apus_path, insumos_path):
             df_processed_apus, df_tiempo, on="CODIGO_APU", how="left"
         )
 
-        df_processed_apus["DESCRIPCION_APU"] = (
-            df_processed_apus["DESCRIPCION_APU"].fillna("")
+        # Renombrar para mayor claridad y para coincidir con la expectativa del usuario
+        # para la fuente de datos del estimador.
+        df_processed_apus.rename(
+            columns={"DESCRIPCION_APU": "original_description"}, inplace=True
+        )
+
+        df_processed_apus["original_description"] = (
+            df_processed_apus["original_description"].fillna("")
         )
         df_processed_apus["DESC_NORMALIZED"] = normalize_text(
-            df_processed_apus["DESCRIPCION_APU"]
+            df_processed_apus["original_description"]
         )
 
         fill_zero_cols = [

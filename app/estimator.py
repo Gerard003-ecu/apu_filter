@@ -61,7 +61,7 @@ def calculate_estimate(
     apu_encontrado = _find_apu_by_keywords(df_suministro_pool, keywords, log)
     if apu_encontrado is not None:
         valor_suministro = apu_encontrado["VALOR_SUMINISTRO_UN"]
-        apu_suministro_desc = apu_encontrado["DESCRIPCION_APU"]
+        apu_suministro_desc = apu_encontrado["original_description"]
         log_msg = (
             f"APU de Suministro encontrado: '{apu_suministro_desc}'. "
             f"Valor: ${valor_suministro:,.0f}"
@@ -78,24 +78,46 @@ def calculate_estimate(
 
     df_instalacion_pool = df_apus[df_apus["tipo_apu"] == "Instalación"]
 
-    # --- INICIO DE LA CORRECCIÓN ---
+    # --- INICIO DE LA LÓGICA DE BÚSQUEDA EN DOS PASOS ---
     apu_encontrado_instalacion = None
     if not df_instalacion_pool.empty and keywords:
-        log.append(f"Buscando con palabras clave (cualquiera): {keywords} en {len(df_instalacion_pool)} APUs de instalación.")
-        for _, apu in df_instalacion_pool.iterrows():
-            desc_to_search = apu.get("DESC_NORMALIZED", "")
-            log.append(f"  ... comparando con: '{desc_to_search}'")
-            # Busca si CUALQUIER palabra clave está en la descripción
-            if any(keyword in desc_to_search for keyword in keywords):
-                apu_encontrado_instalacion = apu
-                log.append("  --> ¡Coincidencia encontrada!")
-                break  # Detenerse en la primera coincidencia
-    # --- FIN DE LA CORRECCIÓN ---
+        # 1. Construir Palabras Clave
+        material_keywords = keywords
+        cuadrilla_keyword = params.get("cuadrilla", "")
+        # Normalizar la palabra clave de la cuadrilla para la búsqueda
+        if cuadrilla_keyword:
+             # Ej: "CUADRILLA DE 5" -> "cuadrilla 5"
+            cuadrilla_keyword_normalized = ' '.join(normalize_text(pd.Series([cuadrilla_keyword])).iloc[0].split())
+
+
+        # 2. Búsqueda Específica (Paso 1)
+        log.append("\n--- Búsqueda de Instalación (Paso 1: Específica) ---")
+        if cuadrilla_keyword:
+            # Busca una coincidencia que contenga la palabra clave principal Y la cuadrilla
+            search_keywords_specific = [material_keywords[0], cuadrilla_keyword_normalized]
+            log.append(f"Intentando búsqueda específica con: {search_keywords_specific}")
+            apu_encontrado_instalacion = _find_apu_by_keywords(
+                df_instalacion_pool, search_keywords_specific, log
+            )
+
+        # 3. Búsqueda General (Paso 2 - Fallback)
+        if apu_encontrado_instalacion is None:
+            log.append("\n--- Búsqueda de Instalación (Paso 2: General) ---")
+            log.append(f"Buscando con palabras clave (cualquiera): {material_keywords} en {len(df_instalacion_pool)} APUs.")
+            for _, apu in df_instalacion_pool.iterrows():
+                desc_to_search = apu.get("DESC_NORMALIZED", "")
+                log.append(f"  ... comparando con: '{desc_to_search}'")
+                if any(keyword in desc_to_search for keyword in material_keywords):
+                    apu_encontrado_instalacion = apu
+                    log.append("  --> ¡Coincidencia encontrada en fallback!")
+                    break
+
+    # --- FIN DE LA LÓGICA DE BÚSQUEDA ---
 
     if apu_encontrado_instalacion is not None:
         valor_instalacion = apu_encontrado_instalacion["VALOR_INSTALACION_UN"]
         tiempo_instalacion = apu_encontrado_instalacion["TIEMPO_INSTALACION"]
-        apu_instalacion_desc = apu_encontrado_instalacion["DESCRIPCION_APU"]
+        apu_instalacion_desc = apu_encontrado_instalacion["original_description"]
         log.append(
             f"APU de Instalación encontrado: '{apu_instalacion_desc}'. Valor: ${valor_instalacion:,.0f}"
         )
