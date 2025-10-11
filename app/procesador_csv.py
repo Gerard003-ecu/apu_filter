@@ -741,12 +741,16 @@ def calculate_estimate(
 
     df_suministro_filtered = df_suministro_options.copy()
     if not df_suministro_filtered.empty and material_keywords:
-        log.append(f"Filtrando {len(df_suministro_filtered)} APUs de suministro por palabras clave: {material_keywords}")
+        log.append(
+            f"Filtrando {len(df_suministro_filtered)}"
+            f" APUs de suministro por palabras clave: {material_keywords}")
         for keyword in material_keywords:
             df_suministro_filtered = df_suministro_filtered[
                 df_suministro_filtered["DESC_NORMALIZED"].str.contains(keyword, na=False)
             ]
-        log.append(f"Quedan {len(df_suministro_filtered)} APUs después del filtro por palabras clave.")
+        log.append(
+            f"Quedan {len(df_suministro_filtered)}"
+            f" APUs después del filtro por palabras clave.")
 
     if not df_suministro_filtered.empty:
         opciones_suministro = df_suministro_filtered["DESC_NORMALIZED"].tolist()
@@ -772,12 +776,19 @@ def calculate_estimate(
                 )
             else:
                 log.append(
-                    f"Coincidencia '{mejor_coincidencia}' encontrada pero sin APU en el df filtrado."
+                    f"Coincidencia '{mejor_coincidencia}'"
+                    f"encontrada pero sin APU en el df filtrado."
                 )
         else:
-            log.append("No se encontró un APU de suministro con buena coincidencia en la lista filtrada.")
+            log.append(
+                "No se encontró un APU de suministro"
+                "con buena coincidencia en la lista filtrada."
+                )
     else:
-        log.append("No se encontraron APUs de suministro que contengan todas las palabras clave.")
+        log.append(
+            "No se encontraron APUs de suministro"
+            "que contengan todas las palabras clave."
+            )
 
 
     # Fallback a la lista de insumos si no se encontró un APU de suministro
@@ -814,10 +825,14 @@ def calculate_estimate(
                             f"Valor: ${valor_suministro:,.0f}"
                         )
                     else:
-                        log.append("ERROR (Fallback): No se encontró coincidencia de insumo en la lista filtrada.")
+                        log.append(
+                            "ERROR (Fallback): No se encontró"
+                            "coincidencia de insumo en la lista filtrada."
+                            )
                 else:
                     log.append(
-                        "ERROR (Fallback): Material no encontrado en lista de insumos con esas palabras clave."
+                        "ERROR (Fallback): Material no encontrado"
+                        "en lista de insumos con esas palabras clave."
                     )
             else:
                 log.append("ERROR (Fallback): El dataframe de insumos está vacío.")
