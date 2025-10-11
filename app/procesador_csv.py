@@ -500,7 +500,7 @@ def _do_processing(presupuesto_path, apus_path, insumos_path):
 
 
         # --- RECONSTRUCCIÓN DE df_processed_apus ---
-        df_apu_descriptions = df_apus[["CODIGO_APU", "DESCRIPCION_APU"]].drop_duplicates()
+        df_apu_descriptions = df_apus[["CODIGO_APU", "DESCRIPCION_APU", "UNIDAD_APU"]].drop_duplicates()
 
         # Asegurar que la clave de merge esté limpia aquí también
         df_apu_costos_categoria['CODIGO_APU'] = (
@@ -520,7 +520,7 @@ def _do_processing(presupuesto_path, apus_path, insumos_path):
         # Renombrar para mayor claridad y para coincidir con la expectativa del usuario
         # para la fuente de datos del estimador.
         df_processed_apus.rename(
-            columns={"DESCRIPCION_APU": "original_description"}, inplace=True
+            columns={"DESCRIPCION_APU": "original_description", "UNIDAD_APU": "UNIDAD"}, inplace=True
         )
 
         df_processed_apus["original_description"] = (
