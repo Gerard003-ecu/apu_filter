@@ -1,5 +1,5 @@
 import logging
-from typing import Dict, List, Union, Optional
+from typing import Dict, List, Optional, Union
 
 import pandas as pd
 
@@ -14,7 +14,7 @@ def _find_apu_by_keywords(df_pool: pd.DataFrame, keywords: List[str], log: List[
         desc_to_search = apu.get("DESC_NORMALIZED", "")
         log.append(f"  ... comparando con: '{desc_to_search}'")
         if all(keyword in desc_to_search for keyword in keywords):
-            log.append(f"  --> ¡Coincidencia encontrada!")
+            log.append("  --> ¡Coincidencia encontrada!")
             return apu
     log.append("  --> No se encontraron coincidencias.")
     return None

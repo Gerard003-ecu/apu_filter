@@ -5,7 +5,7 @@ import logging
 import os
 import re
 from functools import lru_cache
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Optional
 
 import numpy as np
 import pandas as pd

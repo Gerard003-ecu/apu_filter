@@ -13,7 +13,6 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 
 # Importar la app de Flask y las funciones a probar
 from app.app import create_app, user_sessions
-from app.estimator import calculate_estimate
 from app.procesador_csv import (
     _cached_csv_processing,
     find_and_rename_columns,

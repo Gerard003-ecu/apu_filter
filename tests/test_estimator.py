@@ -7,7 +7,7 @@ from unittest.mock import patch
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from app.estimator import calculate_estimate
-from app.procesador_csv import process_all_files, _cached_csv_processing
+from app.procesador_csv import _cached_csv_processing, process_all_files
 
 # Reuse test data from test_app
 from tests.test_app import APUS_DATA, INSUMOS_DATA, PRESUPUESTO_DATA, TEST_CONFIG
