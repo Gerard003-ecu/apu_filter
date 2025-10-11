@@ -12,8 +12,7 @@
   },
   "param_map": {
     "material": {
-      "TST": "TEJA SENCILLA",
-      "PANEL": "PANEL SANDWICH",
+      "TST": "CANAL - SOLO LAMINA",
       "PANEL SANDWICH": "PANEL SANDWICH"
     },
     "tipo": {
@@ -21,5 +20,5 @@
       "FACHADA": "INSTALACION"
     }
   },
-  "min_score_threshold": 5
+  "min_score_threshold": 85
 }
