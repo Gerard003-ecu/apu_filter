@@ -70,98 +70,51 @@ class TestEstimator(unittest.TestCase):
 
     @patch("app.procesador_csv.config", new_callable=lambda: TEST_CONFIG)
     @patch("app.estimator.config", new_callable=lambda: TEST_CONFIG)
-    def test_two_step_installation_search(self, mock_estimator_config, mock_processor_config):
+    def test_new_search_logic(self, mock_estimator_config, mock_processor_config):
         """
-        Tests the two-step search logic for installation APUs.
-        - Step 1: Specific search with material and cuadrilla.
-        - Step 2: Fallback to general search with material keywords.
+        Tests the new _find_best_match logic for installation APUs.
         """
         data_store = process_all_files(
             self.presupuesto_path, self.apus_path, self.insumos_path
         )
 
-        # 1. Test Specific Search (Step 1)
-        # Should find "INSTALACION CANAL CUADRILLA DE 5"
-        params_specific = {
-            "material": "CANAL SOLO",
-            "cuadrilla": "CUADRILLA DE 5",
-        }
-        result_specific = calculate_estimate(params_specific, data_store)
+        # 1. Test Strict Search: material + cuadrilla
+        # Should find "INSTALACION PANEL SANDWICH CUADRILLA DE 5" because all keywords match.
+        params_strict = {"material": "PANEL SANDWICH", "cuadrilla": "5"}
+        result_strict = calculate_estimate(params_strict, data_store)
+
+        self.assertIn("Coincidencia estricta encontrada", result_strict["log"])
+        self.assertIn(
+            "Instalación: INSTALACION PANEL SANDWICH CUADRILLA DE 5",
+            result_strict["apu_encontrado"],
+        )
+        self.assertAlmostEqual(result_strict["valor_instalacion"], 100000.0)
+
+        # 2. Test Flexible Search: material + non-existent cuadrilla
+        # Should find a flexible match on "canal" since "cuadrilla de 99" doesn't exist.
+        params_flexible = {"material": "CANAL SOLO", "cuadrilla": "99"}
+        result_flexible = calculate_estimate(params_flexible, data_store)
+
+        self.assertIn("Coincidencia flexible encontrada", result_flexible["log"])
+        self.assertNotIn("Coincidencia estricta encontrada", result_flexible["log"])
+        # It should find the first "CANAL" APU, which is "INSTALACION CANAL CUADRILLA DE 5"
         self.assertIn(
             "Instalación: INSTALACION CANAL CUADRILLA DE 5",
-            result_specific["apu_encontrado"],
+            result_flexible["apu_encontrado"],
         )
-        self.assertAlmostEqual(result_specific["valor_instalacion"], 90000.0)
+        self.assertAlmostEqual(result_flexible["valor_instalacion"], 90000.0)
 
-        # 2. Test Fallback Search (Step 2)
-        # "CUADRILLA DE 99" doesn't exist, so the specific search fails.
-        # The fallback search for "CANAL SOLO" should find the first APU containing "canal",
-        # which is "INSTALACION CANAL CUADRILLA DE 5", as it appears first in the data.
-        params_fallback = {
-            "material": "CANAL SOLO",
-            "cuadrilla": "CUADRILLA DE 99",  # Non-existent
-        }
-        result_fallback = calculate_estimate(params_fallback, data_store)
-        self.assertIn(
-            "Instalación: INSTALACION CANAL CUADRILLA DE 5",
-            result_fallback["apu_encontrado"],
-        )
-        self.assertAlmostEqual(result_fallback["valor_instalacion"], 90000.0)
-
-        # 3. Test Flexible Keyword Search for "PANEL SANDWICH"
-        # The material is "PANEL SANDWICH", but the APU is "INSTALACION PANEL TIPO SANDWICH"
-        params_sandwich = {"material": "PANEL SANDWICH"}
+        # 3. Test Flexible Search for "PANEL SANDWICH"
+        # The material is "PANEL SANDWICH", but the APU is "INSTALACION PANEL TIPO SANDWICH".
+        # The strict search will now find a match for "panel" and "sandwich"
+        params_sandwich = {"material": "PANEL SANDWICH", "cuadrilla": "0"} # No specific cuadrilla
         result_sandwich = calculate_estimate(params_sandwich, data_store)
+        self.assertIn("Coincidencia estricta encontrada", result_sandwich["log"])
         self.assertIn(
             "Instalación: INSTALACION PANEL TIPO SANDWICH",
             result_sandwich["apu_encontrado"],
         )
         self.assertAlmostEqual(result_sandwich["valor_instalacion"], 95000.0)
-
-    @patch("app.procesador_csv.config", new_callable=lambda: TEST_CONFIG)
-    @patch("app.estimator.config", new_callable=lambda: TEST_CONFIG)
-    def test_flexible_cuadrilla_search(self, mock_estimator_config, mock_processor_config):
-        """
-        Tests the flexible cuadrilla search logic.
-        The search should find a match if the description contains the material keyword AND the cuadrilla number.
-        """
-        data_store = process_all_files(
-            self.presupuesto_path, self.apus_path, self.insumos_path
-        )
-
-        # 1. Test Specific Search with just the number
-        # Should find "INSTALACION CANAL CUADRILLA DE 5" by searching for "canal" and "5"
-        params_specific = {
-            "material": "CANAL SOLO",
-            "cuadrilla": "5", # Note: Just the number
-        }
-        result_specific = calculate_estimate(params_specific, data_store)
-
-        # Check the log for specific search success
-        self.assertIn("Búsqueda de Instalación (Paso 1: Específica con cuadrilla '5')", result_specific["log"])
-        self.assertIn("¡Coincidencia específica encontrada!", result_specific["log"])
-
-        # Check the found APU description and value
-        self.assertIn(
-            "Instalación: INSTALACION CANAL CUADRILLA DE 5",
-            result_specific["apu_encontrado"],
-        )
-        self.assertAlmostEqual(result_specific["valor_instalacion"], 90000.0)
-
-        # 2. Test another specific search
-        # Should find "INSTALACION CANAL CUADRILLA DE 3"
-        params_specific_3 = {
-            "material": "CANAL SOLO",
-            "cuadrilla": "3",
-        }
-        result_specific_3 = calculate_estimate(params_specific_3, data_store)
-        self.assertIn("Búsqueda de Instalación (Paso 1: Específica con cuadrilla '3')", result_specific_3["log"])
-        self.assertIn("¡Coincidencia específica encontrada!", result_specific_3["log"])
-        self.assertIn(
-            "Instalación: INSTALACION CANAL CUADRILLA DE 3",
-            result_specific_3["apu_encontrado"],
-        )
-        self.assertAlmostEqual(result_specific_3["valor_instalacion"], 85000.0)
 
 
 if __name__ == "__main__":
