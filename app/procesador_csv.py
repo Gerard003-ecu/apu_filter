@@ -15,7 +15,6 @@ from unidecode import unidecode
 from .report_parser import ReportParser
 from .utils import clean_apu_code
 
-
 # Configurar logging
 logging.basicConfig(level=logging.DEBUG, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
