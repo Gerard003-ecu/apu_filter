@@ -73,39 +73,81 @@ def calculate_estimate(params: Dict[str, str], data_store: Dict) -> Dict[str, Un
         valor_suministro = apu_encontrado["VALOR_SUMINISTRO_UN"]
         apu_suministro_desc = apu_encontrado["original_description"]
 
-    # --- Búsqueda de Instalación ---
-    log.append("\n--- BÚSQUEDA DE INSTALACIÓN ---")
+    # --- Búsqueda de Instalación (Nueva Lógica) ---
+    log.append("\n--- BÚSQUEDA DE INSTALACIÓN (LÓGICA DE 2 PASOS) ---")
     valor_instalacion = 0.0
     tiempo_instalacion = 0.0
-    apu_instalacion_desc = "No encontrado"
+    rendimiento = 0.0
+    costo_diario_cuadrilla = 0.0
+    apu_tarea_desc = "No encontrado"
+    apu_cuadrilla_desc = "No encontrado"
 
-    # Normalizar el material y la cuadrilla por separado para crear una lista de palabras clave
-    install_keywords_base = normalize_text(pd.Series([material_mapped])).iloc[0].split()
-
-    if cuadrilla and cuadrilla != "0":
-        # Añadir el número de la cuadrilla como una palabra clave separada
-        install_keywords = install_keywords_base + [str(cuadrilla)]
-    else:
-        install_keywords = install_keywords_base
-
-    log.append(f"Palabras clave de instalación: {install_keywords}")
+    # 1. Búsqueda del APU de Tarea (Rendimiento)
+    log.append("\n--- 1. BÚSQUEDA APU DE TAREA (RENDIMIENTO) ---")
+    task_keywords = normalize_text(pd.Series([material_mapped])).iloc[0].split()
+    log.append(f"Palabras clave de tarea: {task_keywords}")
 
     df_instalacion_pool = df_apus[df_apus["tipo_apu"] == "Instalación"]
+    apu_tarea = _find_best_match(df_instalacion_pool, task_keywords, log)
 
-    apu_encontrado = _find_best_match(df_instalacion_pool, install_keywords, log)
-    if apu_encontrado is not None:
-        valor_instalacion = apu_encontrado["VALOR_INSTALACION_UN"]
-        tiempo_instalacion = apu_encontrado["TIEMPO_INSTALACION"]
-        apu_instalacion_desc = apu_encontrado["original_description"] # Usar la descripción original
+    if apu_tarea is not None:
+        tiempo_instalacion = apu_tarea["TIEMPO_INSTALACION"]
+        apu_tarea_desc = apu_tarea["original_description"]
+        if tiempo_instalacion > 0:
+            rendimiento = 1 / tiempo_instalacion
+        log.append(f"APU de Tarea encontrado: '{apu_tarea_desc}'")
+        log.append(f"  -> Tiempo Instalación: {tiempo_instalacion:.4f} días/un")
+        log.append(f"  -> Rendimiento: {rendimiento:.2f} un/día")
+    else:
+        log.append("No se encontró APU de Tarea.")
 
-    # --- Resultado ---
+    # 2. Búsqueda del APU de Cuadrilla (Costo Diario) - Lógica Específica
+    log.append("\n--- 2. BÚSQUEDA APU DE CUADRILLA (COSTO) ---")
+    if cuadrilla and cuadrilla != "0":
+        # Crear la frase de búsqueda específica y normalizarla
+        cuadrilla_phrase = f"cuadrilla de {cuadrilla}"
+        normalized_phrase = normalize_text(pd.Series([cuadrilla_phrase])).iloc[0]
+        log.append(f"Frase de búsqueda de cuadrilla: '{normalized_phrase}'")
+
+        apu_cuadrilla = None
+        # Búsqueda por subcadena exacta en la descripción normalizada
+        for _, apu in df_apus.iterrows():
+            desc_normalized = apu.get("DESC_NORMALIZED", "")
+            if normalized_phrase in desc_normalized:
+                apu_cuadrilla = apu
+                log.append(f"  --> Coincidencia de cuadrilla encontrada: '{desc_normalized}'")
+                break  # Tomar la primera coincidencia
+
+        if apu_cuadrilla is not None:
+            costo_diario_cuadrilla = apu_cuadrilla["VALOR_CONSTRUCCION_UN"]
+            apu_cuadrilla_desc = apu_cuadrilla["original_description"]
+            log.append(f"APU de Cuadrilla encontrado: '{apu_cuadrilla_desc}'")
+            log.append(f"  -> Costo Diario: ${costo_diario_cuadrilla:,.2f}")
+        else:
+            log.append("No se encontró APU de Cuadrilla.")
+    else:
+        log.append("No se especificó cuadrilla, se omite la búsqueda de costo de cuadrilla.")
+
+    # 3. Cálculo del Costo de Instalación
+    log.append("\n--- 3. CÁLCULO COSTO DE INSTALACIÓN ---")
+    if rendimiento > 0:
+        valor_instalacion = costo_diario_cuadrilla / rendimiento
+        log.append(f"Cálculo: (Costo Diario / Rendimiento) = (${costo_diario_cuadrilla:,.2f} / {rendimiento:.2f}) = ${valor_instalacion:,.2f}")
+    else:
+        valor_instalacion = 0.0
+        log.append("El rendimiento es 0, por lo que el costo de instalación es 0.")
+
+
+    # --- Resultado Final ---
+    log.append("\n--- RESULTADO FINAL ---")
     valor_construccion = valor_suministro + valor_instalacion
-    # ... (resto de la función para devolver el diccionario) ...
+    log.append(f"Valor Construcción: (Suministro + Instalación) = (${valor_suministro:,.2f} + ${valor_instalacion:,.2f}) = ${valor_construccion:,.2f}")
+
     return {
         "valor_suministro": valor_suministro,
         "valor_instalacion": valor_instalacion,
         "valor_construccion": valor_construccion,
         "tiempo_instalacion": tiempo_instalacion,
-        "apu_encontrado": f"Suministro: {apu_suministro_desc} | Instalación: {apu_instalacion_desc}",
+        "apu_encontrado": f"Suministro: {apu_suministro_desc} | Tarea: {apu_tarea_desc} | Cuadrilla: {apu_cuadrilla_desc}",
         "log": "\n".join(log),
     }
