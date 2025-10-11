@@ -67,7 +67,8 @@ class ReportParser:
 
     def _process_line(self, line: str):
         line = line.strip()
-        if not line: return
+        if not line:
+            return
 
         # --- Lógica de Máquina de Estados ---
 
@@ -103,7 +104,9 @@ class ReportParser:
         # 4. Si no es nada de lo anterior, es una potencial DESCRIPCIÓN de APU
         # La guardamos para usarla cuando encontremos el próximo "ITEM:"
         first_part = line.split(';')[0].strip()
-        if first_part and "SUBTOTAL" not in first_part.upper() and "COSTO DIRECTO" not in first_part.upper():
+        is_subtotal = "SUBTOTAL" in first_part.upper()
+        is_costo_directo = "COSTO DIRECTO" in first_part.upper()
+        if first_part and not is_subtotal and not is_costo_directo:
             self.potential_apu_desc = first_part
 
     def _parse_insumo(self, data: Dict[str, str]):
@@ -139,9 +142,11 @@ class ReportParser:
 
     def _to_numeric_safe(self, s: Optional[str]) -> float:
         # ... (función de limpieza numérica como la tienes)
-        if not s: return 0.0
+        if not s:
+            return 0.0
         s_cleaned = s.replace(" ", "").replace(".", "").replace(",", ".").strip()
-        if not s_cleaned or s_cleaned == "-": return 0.0
+        if not s_cleaned or s_cleaned == "-":
+            return 0.0
         try:
             return float(s_cleaned)
         except (ValueError, TypeError):
