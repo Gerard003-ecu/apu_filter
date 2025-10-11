@@ -78,16 +78,27 @@ def calculate_estimate(
 
     df_instalacion_pool = df_apus[df_apus["tipo_apu"] == "Instalación"]
 
-    apu_encontrado = _find_apu_by_keywords(df_instalacion_pool, keywords, log)
-    if apu_encontrado is not None:
-        valor_instalacion = apu_encontrado["VALOR_INSTALACION_UN"]
-        tiempo_instalacion = apu_encontrado["TIEMPO_INSTALACION"]
-        apu_instalacion_desc = apu_encontrado["DESCRIPCION_APU"]
-        log_msg = (
-            f"APU de Instalación encontrado: '{apu_instalacion_desc}'. "
-            f"Valor: ${valor_instalacion:,.0f}"
+    # --- INICIO DE LA CORRECCIÓN ---
+    apu_encontrado_instalacion = None
+    if not df_instalacion_pool.empty and keywords:
+        log.append(f"Buscando con palabras clave (cualquiera): {keywords} en {len(df_instalacion_pool)} APUs de instalación.")
+        for _, apu in df_instalacion_pool.iterrows():
+            desc_to_search = apu.get("DESC_NORMALIZED", "")
+            log.append(f"  ... comparando con: '{desc_to_search}'")
+            # Busca si CUALQUIER palabra clave está en la descripción
+            if any(keyword in desc_to_search for keyword in keywords):
+                apu_encontrado_instalacion = apu
+                log.append("  --> ¡Coincidencia encontrada!")
+                break  # Detenerse en la primera coincidencia
+    # --- FIN DE LA CORRECCIÓN ---
+
+    if apu_encontrado_instalacion is not None:
+        valor_instalacion = apu_encontrado_instalacion["VALOR_INSTALACION_UN"]
+        tiempo_instalacion = apu_encontrado_instalacion["TIEMPO_INSTALACION"]
+        apu_instalacion_desc = apu_encontrado_instalacion["DESCRIPCION_APU"]
+        log.append(
+            f"APU de Instalación encontrado: '{apu_instalacion_desc}'. Valor: ${valor_instalacion:,.0f}"
         )
-        log.append(log_msg)
     else:
         log.append("No se encontró APU de instalación.")
 
