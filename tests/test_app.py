@@ -202,12 +202,25 @@ class TestCSVProcessor(unittest.TestCase):
         )
         params_ok = {"tipo": "CUBIERTA", "material": "TST", "cuadrilla": "5"}
         result = calculate_estimate(params_ok, data_store)
-        self.assertNotIn("error", result)
-        self.assertIn("Suministro: SUMINISTRO TEJA SENCILLA", result["apu_encontrado"])
-        self.assertIn("Instalación: MANO DE OBRA INSTALACION CUBIERTA TEJA SENCILLA CUADRILLA DE 5", result["apu_encontrado"])
-        self.assertAlmostEqual(result["valor_suministro"], 50000)
-        self.assertAlmostEqual(result["valor_instalacion"], 80000)
-        self.assertAlmostEqual(result["valor_construccion"], 130000)
+        self.assertNotIn(
+            "error", result
+            )
+        self.assertIn(
+            "Suministro: SUMINISTRO TEJA SENCILLA", result["apu_encontrado"]
+            )
+        self.assertIn(
+            "Instalación: MANO DE OBRA INSTALACION "
+            "CUBIERTA TEJA SENCILLA CUADRILLA DE 5", result["apu_encontrado"]
+            )
+        self.assertAlmostEqual(
+            result["valor_suministro"], 50000
+            )
+        self.assertAlmostEqual(
+            result["valor_instalacion"], 80000
+            )
+        self.assertAlmostEqual(
+            result["valor_construccion"], 130000
+            )
 
     @patch("app.procesador_csv.config", new_callable=lambda: {
         "presupuesto_column_map": {
@@ -237,7 +250,10 @@ class TestCSVProcessor(unittest.TestCase):
         params = {"tipo": "ACABADOS", "material": "PINTURA-CORRO"}
         result = calculate_estimate(params, data_store)
 
-        self.assertNotIn("error", result, f"Se encontró un error inesperado: {result.get('log')}")
+        self.assertNotIn(
+            "error", result, f"Se encontró un error"
+            f" inesperado: {result.get('log')}"
+            )
 
         # Verificar que el suministro se encontró desde el fallback de insumos
         self.assertIn("Insumo: pintura anticorrosiva", result["apu_encontrado"])
@@ -245,7 +261,9 @@ class TestCSVProcessor(unittest.TestCase):
 
         # La instalación no debería encontrarse, ya que no hay un APU de instalación
         # con la palabra clave "pintura"
-        self.assertIn("Instalación: No encontrado", result["apu_encontrado"])
+        self.assertIn(
+            "Instalación: No encontrado", result["apu_encontrado"]
+            )
         self.assertAlmostEqual(result["valor_instalacion"], 0)
 
         # El valor total es solo el del insumo

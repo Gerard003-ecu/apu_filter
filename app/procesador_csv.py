@@ -731,7 +731,10 @@ def calculate_estimate(
         if all(keyword in apu["DESC_NORMALIZED"] for keyword in supply_keywords):
             valor_suministro = apu["VALOR_SUMINISTRO_UN"]
             apu_suministro_desc = apu["DESCRIPCION_APU"]
-            log.append(f"APU de Suministro encontrado: '{apu_suministro_desc}'. Valor: ${valor_suministro:,.0f}")
+            log.append(
+                f"APU de Suministro encontrado: '{apu_suministro_desc}'."
+                f"  Valor: ${valor_suministro:,.0f}"
+                )
             break
 
     # Fallback a la lista de insumos si no se encontró un APU de suministro
@@ -748,14 +751,22 @@ def calculate_estimate(
                     ):
                         valor_suministro = insumo["VR_UNITARIO_INSUMO"]
                         apu_suministro_desc = f"Insumo: {insumo['DESCRIPCION_INSUMO']}"
-                        log.append(f"Insumo encontrado (Fallback): '{apu_suministro_desc}'. Valor: ${valor_suministro:,.0f}")
+                        log.append(
+                            f"Insumo encontrado (Fallback): '{apu_suministro_desc}'."
+                            f"  Valor: ${valor_suministro:,.0f}"
+                            )
                         break
                 if valor_suministro == 0:
                     log.append("No se encontró insumo coincidente en el fallback.")
             else:
-                log.append("ERROR (Fallback): El dataframe de insumos está vacío o no tiene 'NORMALIZED_DESC'.")
+                log.append(
+                    "ERROR (Fallback): El dataframe de insumos "
+                    "está vacío o no tiene 'NORMALIZED_DESC'."
+                    )
         else:
-            log.append("ERROR (Fallback): El dataframe de insumos no está disponible en data_store.")
+            log.append(
+                "ERROR (Fallback): El dataframe de insumos no está disponible en data_store."
+                )
 
     # --- 2. Búsqueda de Instalación por Palabra Clave Principal ---
     log.append("\n--- BÚSQUEDA DE INSTALACIÓN ---")
@@ -764,7 +775,7 @@ def calculate_estimate(
     apu_instalacion_desc = "No encontrado"
 
     if supply_keywords: # Asegurarse de que hay palabras clave para buscar
-        install_keyword = supply_keywords[0] # Usar la primera palabra como clave (ej. 'canal')
+        install_keyword = supply_keywords[0] # Usar la primera palabra como clave ('canal')
         df_instalacion_pool = df_apus[df_apus["tipo_apu"] == "Instalación"]
 
         for _, apu in df_instalacion_pool.iterrows():
@@ -772,7 +783,10 @@ def calculate_estimate(
                 valor_instalacion = apu["VALOR_INSTALACION_UN"]
                 tiempo_instalacion = apu["TIEMPO_INSTALACION"]
                 apu_instalacion_desc = apu["DESCRIPCION_APU"]
-                log.append(f"APU de Instalación encontrado: '{apu_instalacion_desc}'. Valor: ${valor_instalacion:,.0f}")
+                log.append(
+                    f"APU de Instalación encontrado: '{apu_instalacion_desc}'."
+                    f" Valor: ${valor_instalacion:,.0f}"
+                    )
                 break
 
     if valor_instalacion == 0:
