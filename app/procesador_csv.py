@@ -715,11 +715,12 @@ def calculate_estimate(
     log.append(f"Parámetros de entrada: {params}")
 
     param_map = config.get("param_map", {})
-    # Ya no normalizamos aquí, el mapeo debe ser directo al nombre del grupo
     material_mapped = param_map.get("material", {}).get(material, material)
     log.append(f"Parámetros mapeados: material='{material_mapped}'")
 
-    # --- 1. Búsqueda de Suministro por Grupo ---
+    keywords = material_mapped.lower().split()
+
+    # --- 1. Búsqueda de Suministro por Palabras Clave ---
     log.append("\n--- BÚSQUEDA DE SUMINISTRO ---")
     valor_suministro = 0.0
     apu_suministro_desc = "No encontrado"
@@ -727,20 +728,18 @@ def calculate_estimate(
     supply_types = ["Suministro", "Suministro (Pre-fabricado)"]
     df_suministro_pool = df_apus[df_apus["tipo_apu"].isin(supply_types)]
 
-    # Búsqueda por coincidencia en el grupo
-    resultado_suministro = df_suministro_pool[
-        df_suministro_pool["grupo"].str.contains(material_mapped, case=False, na=False)
-    ]
+    for _, apu in df_suministro_pool.iterrows():
+        grupo_lower = str(apu.get("grupo", "")).lower()
+        if all(keyword in grupo_lower for keyword in keywords):
+            valor_suministro = apu["VALOR_SUMINISTRO_UN"]
+            apu_suministro_desc = apu["original_description"]
+            log.append(f"APU de Suministro encontrado: '{apu_suministro_desc}'. Valor: ${valor_suministro:,.0f}")
+            break
 
-    if not resultado_suministro.empty:
-        apu_encontrado = resultado_suministro.iloc[0]
-        valor_suministro = apu_encontrado["VALOR_SUMINISTRO_UN"]
-        apu_suministro_desc = apu_encontrado["original_description"]
-        log.append(f"APU de Suministro encontrado: '{apu_suministro_desc}'. Valor: ${valor_suministro:,.0f}")
-    else:
+    if valor_suministro == 0:
         log.append("No se encontró APU de suministro. Fallback a insumos no implementado.")
 
-    # --- 2. Búsqueda de Instalación por Grupo ---
+    # --- 2. Búsqueda de Instalación por Palabras Clave ---
     log.append("\n--- BÚSQUEDA DE INSTALACIÓN ---")
     valor_instalacion = 0.0
     tiempo_instalacion = 0.0
@@ -748,17 +747,16 @@ def calculate_estimate(
 
     df_instalacion_pool = df_apus[df_apus["tipo_apu"] == "Instalación"]
 
-    resultado_instalacion = df_instalacion_pool[
-        df_instalacion_pool["grupo"].str.contains(material_mapped, case=False, na=False)
-    ]
+    for _, apu in df_instalacion_pool.iterrows():
+        grupo_lower = str(apu.get("grupo", "")).lower()
+        if all(keyword in grupo_lower for keyword in keywords):
+            valor_instalacion = apu["VALOR_INSTALACION_UN"]
+            tiempo_instalacion = apu["TIEMPO_INSTALACION"]
+            apu_instalacion_desc = apu["original_description"]
+            log.append(f"APU de Instalación encontrado: '{apu_instalacion_desc}'. Valor: ${valor_instalacion:,.0f}")
+            break
 
-    if not resultado_instalacion.empty:
-        apu_encontrado = resultado_instalacion.iloc[0]
-        valor_instalacion = apu_encontrado["VALOR_INSTALACION_UN"]
-        tiempo_instalacion = apu_encontrado["TIEMPO_INSTALACION"]
-        apu_instalacion_desc = apu_encontrado["original_description"]
-        log.append(f"APU de Instalación encontrado: '{apu_instalacion_desc}'. Valor: ${valor_instalacion:,.0f}")
-    else:
+    if valor_instalacion == 0:
         log.append("No se encontró APU de instalación.")
 
     # --- 3. Devolver el Resultado Compuesto ---
