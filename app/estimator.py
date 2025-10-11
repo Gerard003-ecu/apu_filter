@@ -101,41 +101,32 @@ def calculate_estimate(params: Dict[str, str], data_store: Dict) -> Dict[str, Un
     else:
         log.append("No se encontró APU de Tarea.")
 
-    # 2. Búsqueda del APU de Cuadrilla (Costo Diario) - Lógica Específica
-    log.append("\n--- 2. BÚSQUEDA APU DE CUADRILLA (COSTO) ---")
-    if cuadrilla and cuadrilla != "0":
-        # Crear la frase de búsqueda específica y normalizarla
-        cuadrilla_phrase = f"cuadrilla de {cuadrilla}"
-        normalized_phrase = normalize_text(pd.Series([cuadrilla_phrase])).iloc[0]
-        log.append(f"Frase de búsqueda de cuadrilla: '{normalized_phrase}'")
+    # --- Búsqueda de APU de Cuadrilla (NUEVA LÓGICA ESTRICTA) ---
+    log.append("\n--- BÚSQUEDA DE APU DE CUADRILLA ---")
+    costo_diario_cuadrilla = 0.0
+    apu_cuadrilla_desc = "No encontrado"
 
-        apu_cuadrilla = None
-        # Búsqueda por subcadena exacta en la descripción normalizada
+    if cuadrilla != "0":
+        # Construir el término de búsqueda exacto y normalizado
+        search_term = normalize_text(pd.Series([f"cuadrilla de {cuadrilla}"])).iloc[0]
+        log.append(f"Buscando término exacto de cuadrilla: '{search_term}'")
+
+        # Iterar sobre TODOS los APUs para encontrar la cuadrilla
         for _, apu in df_apus.iterrows():
             desc_normalized = apu.get("DESC_NORMALIZED", "")
-            if normalized_phrase in desc_normalized:
-                apu_cuadrilla = apu
-                log.append(f"  --> Coincidencia de cuadrilla encontrada: '{desc_normalized}'")
-                break  # Tomar la primera coincidencia
+            if search_term in desc_normalized:
+                costo_diario_cuadrilla = apu["VALOR_CONSTRUCCION_UN"]
+                apu_cuadrilla_desc = apu["original_description"]
+                log.append(f"  --> ¡Coincidencia de cuadrilla encontrada!: '{apu_cuadrilla_desc}'. Costo diario: ${costo_diario_cuadrilla:,.0f}")
+                break # Usar la primera coincidencia
 
-        if apu_cuadrilla is not None:
-            costo_diario_cuadrilla = apu_cuadrilla["VALOR_CONSTRUCCION_UN"]
-            apu_cuadrilla_desc = apu_cuadrilla["original_description"]
-            log.append(f"APU de Cuadrilla encontrado: '{apu_cuadrilla_desc}'")
-            log.append(f"  -> Costo Diario: ${costo_diario_cuadrilla:,.2f}")
-        else:
-            log.append("No se encontró APU de Cuadrilla.")
-    else:
-        log.append("No se especificó cuadrilla, se omite la búsqueda de costo de cuadrilla.")
+    if costo_diario_cuadrilla == 0:
+        log.append("  --> No se encontró un APU para la cuadrilla especificada.")
 
-    # 3. Cálculo del Costo de Instalación
-    log.append("\n--- 3. CÁLCULO COSTO DE INSTALACIÓN ---")
-    if rendimiento > 0:
+    # --- Cálculo del Costo de Instalación ---
+    valor_instalacion = 0.0
+    if rendimiento > 0 and costo_diario_cuadrilla > 0:
         valor_instalacion = costo_diario_cuadrilla / rendimiento
-        log.append(f"Cálculo: (Costo Diario / Rendimiento) = (${costo_diario_cuadrilla:,.2f} / {rendimiento:.2f}) = ${valor_instalacion:,.2f}")
-    else:
-        valor_instalacion = 0.0
-        log.append("El rendimiento es 0, por lo que el costo de instalación es 0.")
 
 
     # --- Resultado Final ---
