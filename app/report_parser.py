@@ -176,7 +176,7 @@ class ReportParser:
 
     def _start_new_apu(self, raw_code: str):
         """Limpia y establece el código del APU para el nuevo bloque."""
-        # Aplica la función de limpieza importada directamente
+        # APLICACIÓN CORRECTA DE LA LIMPIEZA
         self._current_apu_code = clean_apu_code(raw_code)
         self._current_category = "INDEFINIDO"
 

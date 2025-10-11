@@ -255,29 +255,26 @@ def parse_data_line(parts: List[str], current_category: str) -> Optional[Dict]:
     return None
 
 
+# En app/procesador_csv.py
+from .utils import clean_apu_code # Asegúrate de que esta importación esté al principio
+
 def process_presupuesto_csv(path: str) -> pd.DataFrame:
     """Lee y limpia el archivo presupuesto (CSV o Excel) de forma robusta."""
     df = safe_read_dataframe(path)
-    if df is None:
-        return pd.DataFrame()
-
+    if df is None: return pd.DataFrame()
     try:
         column_map = config.get("presupuesto_column_map", {})
         df = find_and_rename_columns(df, column_map)
-
         if "CODIGO_APU" not in df.columns:
             logger.warning("La columna 'CODIGO_APU' no se encontró en el presupuesto.")
             return pd.DataFrame()
 
+        # APLICACIÓN CORRECTA DE LA LIMPIEZA
         df["CODIGO_APU"] = df["CODIGO_APU"].astype(str).apply(clean_apu_code)
         df = df[df["CODIGO_APU"].notna() & (df["CODIGO_APU"] != "")]
 
-        # Limpiar y convertir cantidad
-        cantidad_str = (
-            df["CANTIDAD_PRESUPUESTO"].astype(str).str.replace(",", ".", regex=False)
-        )
+        cantidad_str = df["CANTIDAD_PRESUPUESTO"].astype(str).str.replace(",", ".", regex=False)
         df["CANTIDAD_PRESUPUESTO"] = pd.to_numeric(cantidad_str, errors="coerce")
-
         return df[["CODIGO_APU", "DESCRIPCION_APU", "CANTIDAD_PRESUPUESTO"]]
     except Exception as e:
         logger.error(f"Error procesando presupuesto.csv: {e}")
@@ -516,37 +513,30 @@ def _do_processing(presupuesto_path, apus_path, insumos_path):
         df_tiempo.rename(columns={"CANTIDAD_APU": "TIEMPO_INSTALACION"}, inplace=True)
 
         # --- INICIO: Creación del DataFrame de APUs Procesados ---
-        # Unificar toda la información de APUs en un solo DataFrame para el estimador.
         df_apu_descriptions = df_apus[["CODIGO_APU", "DESCRIPCION_APU"]].drop_duplicates()
+
         df_processed_apus = pd.merge(
             df_apu_costos_categoria, df_apu_descriptions, on="CODIGO_APU", how="left"
         )
         df_processed_apus = pd.merge(
             df_processed_apus, df_tiempo, on="CODIGO_APU", how="left"
         )
-        df_processed_apus["DESCRIPCION_APU"] = df_processed_apus[
-            "DESCRIPCION_APU"
-        ].fillna("")
-        # Limpiar NaNs en columnas clave para evitar errores en cálculos posteriores
-        fill_zero_cols = [
-            "VALOR_SUMINISTRO_UN",
-            "VALOR_INSTALACION_UN",
-            "VALOR_CONSTRUCCION_UN",
-            "TIEMPO_INSTALACION",
-        ]
-        for col in fill_zero_cols:
-            if col in df_processed_apus.columns:
-                df_processed_apus[col] = df_processed_apus[col].fillna(0)
 
-        # 1. PRIMERO, crear la columna normalizada a partir de la descripción COMPLETA
-        # Esta columna es la que usará el estimador para buscar.
+        df_processed_apus["DESCRIPCION_APU"] = df_processed_apus["DESCRIPCION_APU"].fillna("")
+
+        # Crear la columna normalizada a partir de la descripción COMPLETA para la búsqueda
         df_processed_apus["DESC_NORMALIZED"] = normalize_text(
             df_processed_apus["DESCRIPCION_APU"]
         )
 
-        # NO llamar a group_and_split_description aquí.
-        # df_processed_apus debe mantener las descripciones originales completas
-        # para que la lógica de búsqueda del estimador funcione correctamente.
+        # Limpiar NaNs en columnas clave
+        fill_zero_cols = [
+            "VALOR_SUMINISTRO_UN", "VALOR_INSTALACION_UN",
+            "VALOR_CONSTRUCCION_UN", "TIEMPO_INSTALACION",
+        ]
+        for col in fill_zero_cols:
+            if col in df_processed_apus.columns:
+                df_processed_apus[col] = df_processed_apus[col].fillna(0)
         # --- FIN: Creación del DataFrame de APUs Procesados ---
 
         df_final = pd.merge(
