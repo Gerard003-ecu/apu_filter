@@ -7,32 +7,34 @@ from .procesador_csv import config, normalize_text
 
 logger = logging.getLogger(__name__)
 
-def _find_best_match(df_pool: pd.DataFrame, keywords: List[str], log: List[str]) -> Optional[pd.Series]:
+def _find_best_match(df_pool: pd.DataFrame, keywords: List[str], log: List[str], strict: bool = False) -> Optional[pd.Series]:
     """
     Encuentra el mejor APU que coincida con una lista de palabras clave.
-    Divide la descripción en palabras para una coincidencia más precisa.
+    Soporta búsqueda estricta (todas las keywords) y flexible (cualquiera).
     """
     if df_pool.empty or not keywords:
         return None
 
-    log.append(f"Iniciando búsqueda con keywords: {keywords}")
+    log.append(f"Iniciando búsqueda con keywords: {keywords} (Strict={strict})")
 
-    # Paso 1: Búsqueda estricta (todas las palabras clave)
+    # Búsqueda estricta (todas las palabras clave)
     log.append("--- Iniciando Búsqueda Estricta ---")
     for _, apu in df_pool.iterrows():
         desc_normalized = apu.get("DESC_NORMALIZED", "")
         desc_words = set(desc_normalized.split())
-        log.append(f"Estricta: Probando '{desc_normalized}'. Palabras: {desc_words}. Buscando: {keywords}")
         if all(keyword in desc_words for keyword in keywords):
             log.append(f"  --> Coincidencia estricta encontrada: '{desc_normalized}'")
             return apu
 
-    # Paso 2: Búsqueda flexible (cualquier palabra clave) si la estricta falla
+    if strict:
+        log.append("  --> No se encontraron coincidencias (búsqueda estricta finalizada).")
+        return None
+
+    # Búsqueda flexible (cualquier palabra clave) si la estricta falla
     log.append("--- Iniciando Búsqueda Flexible ---")
     for _, apu in df_pool.iterrows():
         desc_normalized = apu.get("DESC_NORMALIZED", "")
         desc_words = set(desc_normalized.split())
-        log.append(f"Flexible: Probando '{desc_normalized}'. Palabras: {desc_words}. Buscando: {keywords}")
         if any(keyword in desc_words for keyword in keywords):
             log.append(f"  --> Coincidencia flexible encontrada: '{desc_normalized}'")
             return apu
@@ -73,67 +75,67 @@ def calculate_estimate(params: Dict[str, str], data_store: Dict) -> Dict[str, Un
         valor_suministro = apu_encontrado["VALOR_SUMINISTRO_UN"]
         apu_suministro_desc = apu_encontrado["original_description"]
 
-    # --- Búsqueda de Instalación (Nueva Lógica) ---
-    log.append("\n--- BÚSQUEDA DE INSTALACIÓN (LÓGICA DE 2 PASOS) ---")
+    # --- Búsqueda de Instalación (Nueva Lógica de Cálculo) ---
+    log.append("\n--- CÁLCULO DE INSTALACIÓN (NUEVO ALGORITMO) ---")
     valor_instalacion = 0.0
-    tiempo_instalacion = 0.0
-    rendimiento = 0.0
-    costo_diario_cuadrilla = 0.0
-    apu_tarea_desc = "No encontrado"
-    apu_cuadrilla_desc = "No encontrado"
-
-    # 1. Búsqueda del APU de Tarea (Rendimiento)
-    log.append("\n--- 1. BÚSQUEDA APU DE TAREA (RENDIMIENTO) ---")
-    task_keywords = normalize_text(pd.Series([material_mapped])).iloc[0].split()
-    log.append(f"Palabras clave de tarea: {task_keywords}")
-
-    df_instalacion_pool = df_apus[df_apus["tipo_apu"] == "Instalación"]
-    apu_tarea = _find_best_match(df_instalacion_pool, task_keywords, log)
-
-    if apu_tarea is not None:
-        tiempo_instalacion = apu_tarea["TIEMPO_INSTALACION"]
-        apu_tarea_desc = apu_tarea["original_description"]
-        if tiempo_instalacion > 0:
-            rendimiento = 1 / tiempo_instalacion
-        log.append(f"APU de Tarea encontrado: '{apu_tarea_desc}'")
-        log.append(f"  -> Tiempo Instalación: {tiempo_instalacion:.4f} días/un")
-        log.append(f"  -> Rendimiento: {rendimiento:.2f} un/día")
-    else:
-        log.append("No se encontró APU de Tarea.")
-
-    # --- BÚSQUEDA DEL APU DE CUADRILLA (COSTO DIARIO) ---
-    log.append("\n--- BÚSQUEDA DE CUADRILLA ---")
-    costo_diario_cuadrilla = 0.0
     apu_cuadrilla_desc = "No encontrada"
+    apu_tarea_desc = "No encontrado"
+    costo_diario_cuadrilla = 0.0
+    rendimiento_m2_por_dia = 0.0
+    costo_equipo_por_m2 = 0.0
 
+    # Paso A: Encontrar el Costo Diario de la Cuadrilla
+    log.append("\n--- Paso A: Encontrar Costo Diario de Cuadrilla ---")
     if cuadrilla and cuadrilla != "0":
         search_term = f"cuadrilla de {cuadrilla}"
         keywords_cuadrilla = normalize_text(pd.Series([search_term])).iloc[0].split()
-        log.append(f"Buscando cuadrilla con palabras clave: {keywords_cuadrilla} y UNIDAD: DIA")
+        log.append(f"Buscando cuadrilla con keywords: {keywords_cuadrilla} y UNIDAD: DIA")
 
-        for _, apu in df_apus.iterrows():
-            desc_normalized = apu.get("DESC_NORMALIZED", "")
-            unidad_apu = str(apu.get("UNIDAD", "")).upper()
+        # Usar una copia para evitar SettingWithCopyWarning
+        df_cuadrilla_pool = df_apus[df_apus["UNIDAD"].astype(str).str.upper() == "DIA"].copy()
 
-            # Condición 1: Todas las palabras clave deben estar en la descripción
-            match_keywords = all(keyword in desc_normalized for keyword in keywords_cuadrilla)
+        apu_cuadrilla = _find_best_match(df_cuadrilla_pool, keywords_cuadrilla, log, strict=True)
 
-            # Condición 2: La unidad debe ser 'DIA'
-            match_unidad = (unidad_apu == "DIA")
+        if apu_cuadrilla is not None:
+            costo_diario_cuadrilla = apu_cuadrilla["VALOR_CONSTRUCCION_UN"]
+            apu_cuadrilla_desc = apu_cuadrilla["original_description"]
+            log.append(f"  --> Cuadrilla encontrada: '{apu_cuadrilla_desc}'. Costo/día: ${costo_diario_cuadrilla:,.0f}")
+        else:
+            log.append("  --> No se encontró APU para la cuadrilla especificada con UNIDAD: DIA.")
+    else:
+        log.append("  --> No se especificó cuadrilla, costo diario es $0.")
 
-            if match_keywords and match_unidad:
-                costo_diario_cuadrilla = apu["VALOR_CONSTRUCCION_UN"]
-                apu_cuadrilla_desc = apu["original_description"]
-                log.append(f"  --> Coincidencia de cuadrilla encontrada: '{apu_cuadrilla_desc}'. Costo/día: ${costo_diario_cuadrilla:,.0f}")
-                break # Salir al encontrar la primera coincidencia
+    # Paso B: Encontrar Rendimiento y Costos de Equipo para la Tarea
+    log.append("\n--- Paso B: Encontrar Rendimiento y Costo de Equipo de Tarea ---")
+    task_keywords = normalize_text(pd.Series([material_mapped])).iloc[0].split()
+    log.append(f"Buscando tarea con keywords: {task_keywords}")
 
-    if costo_diario_cuadrilla == 0:
-        log.append("  --> No se encontró un APU para la cuadrilla especificada con UNIDAD: DIA.")
+    # Buscar en APUs que sean principalmente de instalación
+    df_instalacion_pool = df_apus[df_apus["tipo_apu"].isin(["Instalación", "Obra Completa"])]
+    apu_tarea = _find_best_match(df_instalacion_pool, task_keywords, log)
 
-    # --- Cálculo del Costo de Instalación ---
-    valor_instalacion = 0.0
-    if rendimiento > 0 and costo_diario_cuadrilla > 0:
-        valor_instalacion = costo_diario_cuadrilla / rendimiento
+    if apu_tarea is not None:
+        apu_tarea_desc = apu_tarea["original_description"]
+        rendimiento_m2_por_dia = apu_tarea.get("RENDIMIENTO_DIA", 0.0)
+        costo_equipo_por_m2 = apu_tarea.get("EQUIPO", 0.0) # Costo de equipo por unidad de la tarea
+
+        log.append(f"  --> Tarea encontrada: '{apu_tarea_desc}'")
+        log.append(f"      - Rendimiento (Rendim/Dia): {rendimiento_m2_por_dia:.2f} un/día")
+        log.append(f"      - Costo Equipo por Unidad: ${costo_equipo_por_m2:,.2f}")
+    else:
+        log.append("  --> No se encontró APU de tarea coincidente.")
+
+    # Paso C: El Cálculo Final del Costo de Instalación
+    log.append("\n--- Paso C: Cálculo Final del Costo de Instalación ---")
+    costo_mo_por_m2 = 0.0
+    if rendimiento_m2_por_dia > 0:
+        costo_mo_por_m2 = costo_diario_cuadrilla / rendimiento_m2_por_dia
+        log.append(f"Costo MO por m² = (Costo Diario Cuadrilla / Rendimiento) = ${costo_diario_cuadrilla:,.2f} / {rendimiento_m2_por_dia:.2f} = ${costo_mo_por_m2:,.2f}")
+    else:
+        log.append("Costo MO por m² = $0 (Rendimiento es 0, se evita división por cero).")
+
+    valor_instalacion = costo_mo_por_m2 + costo_equipo_por_m2
+    log.append(f"Valor Instalación Final = (Costo MO por m² + Costo Equipo por m²) = ${costo_mo_por_m2:,.2f} + ${costo_equipo_por_m2:,.2f} = ${valor_instalacion:,.2f}")
 
 
     # --- Resultado Final ---
@@ -145,7 +147,7 @@ def calculate_estimate(params: Dict[str, str], data_store: Dict) -> Dict[str, Un
         "valor_suministro": valor_suministro,
         "valor_instalacion": valor_instalacion,
         "valor_construccion": valor_construccion,
-        "tiempo_instalacion": tiempo_instalacion,
+        "rendimiento_m2_por_dia": rendimiento_m2_por_dia,
         "apu_encontrado": f"Suministro: {apu_suministro_desc} | Tarea: {apu_tarea_desc} | Cuadrilla: {apu_cuadrilla_desc}",
         "log": "\n".join(log),
     }

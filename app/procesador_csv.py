@@ -422,6 +422,18 @@ def _do_processing(presupuesto_path, apus_path, insumos_path):
             df_presupuesto['CODIGO_APU'].astype(str).apply(clean_apu_code)
         )
 
+        # Calcular el rendimiento por día para cada APU.
+        # Es la suma de los rendimientos de sus insumos de "MANO DE OBRA".
+        df_rendimiento = (
+            df_apus[df_apus["CATEGORIA"] == "MANO DE OBRA"]
+            .groupby("CODIGO_APU")["RENDIMIENTO"]
+            .sum()
+            .reset_index()
+        )
+        df_rendimiento.rename(columns={"RENDIMIENTO": "RENDIMIENTO_DIA"}, inplace=True)
+        df_rendimiento['CODIGO_APU'] = df_rendimiento['CODIGO_APU'].astype(str).apply(clean_apu_code)
+
+
         # --- Continuar con el procesamiento normal ---
         df_merged = pd.merge(
             df_apus, df_insumos, on="NORMALIZED_DESC", how="left", suffixes=("_apu", "")
@@ -516,6 +528,9 @@ def _do_processing(presupuesto_path, apus_path, insumos_path):
         df_processed_apus = pd.merge(
             df_processed_apus, df_tiempo, on="CODIGO_APU", how="left"
         )
+        df_processed_apus = pd.merge(
+            df_processed_apus, df_rendimiento, on="CODIGO_APU", how="left"
+        )
 
         # Renombrar para mayor claridad y para coincidir con la expectativa del usuario
         # para la fuente de datos del estimador.
@@ -532,7 +547,7 @@ def _do_processing(presupuesto_path, apus_path, insumos_path):
 
         fill_zero_cols = [
             "VALOR_SUMINISTRO_UN", "VALOR_INSTALACION_UN",
-            "VALOR_CONSTRUCCION_UN", "TIEMPO_INSTALACION",
+            "VALOR_CONSTRUCCION_UN", "TIEMPO_INSTALACION", "RENDIMIENTO_DIA",
         ]
         for col in fill_zero_cols:
             if col in df_processed_apus.columns:
