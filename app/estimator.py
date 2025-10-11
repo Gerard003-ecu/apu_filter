@@ -7,9 +7,12 @@ from .procesador_csv import config, normalize_text
 
 logger = logging.getLogger(__name__)
 
-def _find_apu_by_keywords(df_pool: pd.DataFrame, keywords: List[str], log: List[str]) -> Optional[pd.Series]:
+def _find_apu_by_keywords(
+    df_pool: pd.DataFrame, keywords: List[str], log: List[str]
+) -> Optional[pd.Series]:
     """Función auxiliar para buscar un APU por palabras clave."""
-    log.append(f"Buscando con palabras clave: {keywords} en {len(df_pool)} APUs.")
+    log_msg = f"Buscando con palabras clave: {keywords} en {len(df_pool)} APUs."
+    log.append(log_msg)
     for _, apu in df_pool.iterrows():
         desc_to_search = apu.get("DESC_NORMALIZED", "")
         log.append(f"  ... comparando con: '{desc_to_search}'")
@@ -19,7 +22,9 @@ def _find_apu_by_keywords(df_pool: pd.DataFrame, keywords: List[str], log: List[
     log.append("  --> No se encontraron coincidencias.")
     return None
 
-def calculate_estimate(params: Dict[str, str], data_store: Dict) -> Dict[str, Union[str, float, List[str]]]:
+def calculate_estimate(
+    params: Dict[str, str], data_store: Dict
+) -> Dict[str, Union[str, float, List[str]]]:
     log = []
     # ... (validación de parámetros como antes) ...
 
@@ -57,7 +62,11 @@ def calculate_estimate(params: Dict[str, str], data_store: Dict) -> Dict[str, Un
     if apu_encontrado is not None:
         valor_suministro = apu_encontrado["VALOR_SUMINISTRO_UN"]
         apu_suministro_desc = apu_encontrado["DESCRIPCION_APU"]
-        log.append(f"APU de Suministro encontrado: '{apu_suministro_desc}'. Valor: ${valor_suministro:,.0f}")
+        log_msg = (
+            f"APU de Suministro encontrado: '{apu_suministro_desc}'. "
+            f"Valor: ${valor_suministro:,.0f}"
+        )
+        log.append(log_msg)
     else:
         log.append("No se encontró APU de suministro. Fallback a insumos no implementado.")
 
@@ -74,7 +83,11 @@ def calculate_estimate(params: Dict[str, str], data_store: Dict) -> Dict[str, Un
         valor_instalacion = apu_encontrado["VALOR_INSTALACION_UN"]
         tiempo_instalacion = apu_encontrado["TIEMPO_INSTALACION"]
         apu_instalacion_desc = apu_encontrado["DESCRIPCION_APU"]
-        log.append(f"APU de Instalación encontrado: '{apu_instalacion_desc}'. Valor: ${valor_instalacion:,.0f}")
+        log_msg = (
+            f"APU de Instalación encontrado: '{apu_instalacion_desc}'. "
+            f"Valor: ${valor_instalacion:,.0f}"
+        )
+        log.append(log_msg)
     else:
         log.append("No se encontró APU de instalación.")
 
@@ -88,11 +101,14 @@ def calculate_estimate(params: Dict[str, str], data_store: Dict) -> Dict[str, Un
         f"Valor Construcción: ${valor_construccion:,.0f}"
     )
 
+    apu_encontrado_str = (
+        f"Suministro: {apu_suministro_desc} | Instalación: {apu_instalacion_desc}"
+    )
     return {
         "valor_suministro": valor_suministro,
         "valor_instalacion": valor_instalacion,
         "valor_construccion": valor_construccion,
         "tiempo_instalacion": tiempo_instalacion,
-        "apu_encontrado": f"Suministro: {apu_suministro_desc} | Instalación: {apu_instalacion_desc}",
+        "apu_encontrado": apu_encontrado_str,
         "log": "\n".join(log),
     }
