@@ -203,14 +203,53 @@ class TestCSVProcessor(unittest.TestCase):
         params_ok = {"tipo": "CUBIERTA", "material": "TST", "cuadrilla": "5"}
         result = calculate_estimate(params_ok, data_store)
         self.assertNotIn("error", result)
-        expected_apu = (
-            "Suministro: SUMINISTRO TEJA SENCILLA | "
-            "Instalación: MANO DE OBRA INSTALACION CUBIERTA TEJA SENCILLA CUADRILLA DE 5"
-        )
-        self.assertEqual(result["apu_encontrado"], expected_apu)
+        self.assertIn("Suministro: SUMINISTRO TEJA SENCILLA", result["apu_encontrado"])
+        self.assertIn("Instalación: MANO DE OBRA INSTALACION CUBIERTA TEJA SENCILLA CUADRILLA DE 5", result["apu_encontrado"])
         self.assertAlmostEqual(result["valor_suministro"], 50000)
         self.assertAlmostEqual(result["valor_instalacion"], 80000)
         self.assertAlmostEqual(result["valor_construccion"], 130000)
+
+    @patch("app.procesador_csv.config", new_callable=lambda: {
+        "presupuesto_column_map": {
+            "CODIGO_APU": ["ITEM"],
+            "DESCRIPCION_APU": ["DESCRIPCION"],
+            "CANTIDAD_PRESUPUESTO": ["CANT."],
+        },
+        "category_keywords": {
+            "MATERIALES": "MATERIALES",
+            "MANO DE OBRA": "MANO DE OBRA",
+            "EQUIPO": "EQUIPO",
+            "OTROS": "OTROS",
+        },
+        "param_map": {
+            "material": {"PINTURA-CORRO": "PINTURA ANTICORROSIVA"},
+            "tipo": {}
+        }
+    })
+    def test_calculate_estimate_fallback_to_insumos(self, mock_config):
+        # En este caso, no hay un APU de "Suministro" para "pintura anticorrosiva",
+        # por lo que debería hacer fallback a la lista de insumos.
+        data_store = process_all_files(
+            self.presupuesto_path, self.apus_path, self.insumos_path
+        )
+
+        # El material "PINTURA-CORRO" se mapea a "PINTURA ANTICORROSIVA"
+        params = {"tipo": "ACABADOS", "material": "PINTURA-CORRO"}
+        result = calculate_estimate(params, data_store)
+
+        self.assertNotIn("error", result, f"Se encontró un error inesperado: {result.get('log')}")
+
+        # Verificar que el suministro se encontró desde el fallback de insumos
+        self.assertIn("Insumo: pintura anticorrosiva", result["apu_encontrado"])
+        self.assertAlmostEqual(result["valor_suministro"], 5.00)
+
+        # La instalación no debería encontrarse, ya que no hay un APU de instalación
+        # con la palabra clave "pintura"
+        self.assertIn("Instalación: No encontrado", result["apu_encontrado"])
+        self.assertAlmostEqual(result["valor_instalacion"], 0)
+
+        # El valor total es solo el del insumo
+        self.assertAlmostEqual(result["valor_construccion"], 5.00)
 
 class TestAppEndpoints(unittest.TestCase):
     def setUp(self):

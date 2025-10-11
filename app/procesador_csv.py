@@ -691,10 +691,8 @@ def process_all_files(
 def calculate_estimate(
     params: Dict[str, str], data_store: Dict
 ) -> Dict[str, Union[str, float, List[str]]]:
-    """
-    Calcula una estimación de costo más flexible usando fuzzy matching.
-    """
     log = []
+    # --- Validación de Parámetros ---
     required_params = ["tipo", "material"]
     missing_params = [p for p in required_params if p not in params or not params[p]]
     if missing_params:
@@ -720,103 +718,65 @@ def calculate_estimate(
     ).iloc[0]
     log.append(f"Parámetros mapeados: material='{material_mapped}'")
 
-    # --- 1. Búsqueda de Suministro ---
+    # --- 1. Búsqueda de Suministro por Palabras Clave ---
     log.append("\n--- BÚSQUEDA DE SUMINISTRO ---")
     valor_suministro = 0.0
     apu_suministro_desc = "No encontrado"
 
+    supply_keywords = material_mapped.split()
     supply_types = ["Suministro", "Suministro (Pre-fabricado)"]
-    df_suministro = df_apus[df_apus["tipo_apu"].isin(supply_types)]
+    df_suministro_pool = df_apus[df_apus["tipo_apu"].isin(supply_types)]
 
-    if not df_suministro.empty:
-        opciones = df_suministro["DESC_NORMALIZED"].tolist()
-        # Usar fuzzywuzzy para encontrar la mejor coincidencia
-        resultado = process.extractOne(material_mapped, opciones, score_cutoff=70)
-
-        if resultado:
-            mejor_coincidencia, puntaje = resultado
-            log.append(
-                f"Mejor coincidencia de suministro encontrada: '{mejor_coincidencia}'"
-                f" (Puntaje: {puntaje})"
-            )
-            apu_encontrado = df_suministro[
-                df_suministro["DESC_NORMALIZED"] == mejor_coincidencia
-            ].iloc[0]
-            valor_suministro = apu_encontrado["VALOR_SUMINISTRO_UN"]
-            apu_suministro_desc = apu_encontrado["DESCRIPCION_APU"]
-            log.append(
-                f"APU de Suministro: '{apu_suministro_desc}'. "
-                f"Valor: ${valor_suministro:,.0f}"
-            )
-        else:
-            log.append(
-                "No se encontró APU de suministro con puntaje > 70. "
-                "Activando fallback a insumos."
-            )
+    for _, apu in df_suministro_pool.iterrows():
+        if all(keyword in apu["DESC_NORMALIZED"] for keyword in supply_keywords):
+            valor_suministro = apu["VALOR_SUMINISTRO_UN"]
+            apu_suministro_desc = apu["DESCRIPCION_APU"]
+            log.append(f"APU de Suministro encontrado: '{apu_suministro_desc}'. Valor: ${valor_suministro:,.0f}")
+            break
 
     # Fallback a la lista de insumos si no se encontró un APU de suministro
     if valor_suministro == 0:
-        log.append("Fallback: Buscando en la lista de insumos...")
+        log.append("No se encontró APU de suministro. Iniciando fallback a insumos.")
         raw_insumos_data = data_store.get("raw_insumos_df")
         if raw_insumos_data:
             df_insumos = pd.DataFrame(raw_insumos_data)
-            if not df_insumos.empty:
-                opciones_insumos = df_insumos["NORMALIZED_DESC"].tolist()
-                resultado_insumo = process.extractOne(
-                    material_mapped, opciones_insumos, score_cutoff=70
-                )
-                if resultado_insumo:
-                    mejor_coincidencia, puntaje = resultado_insumo
-                    insumo_match = df_insumos[
-                        df_insumos["NORMALIZED_DESC"] == mejor_coincidencia
-                    ].iloc[0]
-                    valor_suministro = insumo_match["VR_UNITARIO_INSUMO"]
-                    apu_suministro_desc = (
-                        f"Insumo: {insumo_match['DESCRIPCION_INSUMO']}"
-                    )
-                    log.append(
-                        f"Insumo encontrado (Fallback): '{apu_suministro_desc}'. "
-                        f"Valor: ${valor_suministro:,.0f} (Puntaje: {puntaje})"
-                    )
-                else:
-                    log.append("ERROR (Fallback): No se encontró insumo con puntaje > 70.")
+            if not df_insumos.empty and "NORMALIZED_DESC" in df_insumos.columns:
+                for _, insumo in df_insumos.iterrows():
+                    # Asegurarse que la descripción normalizada no es nula
+                    if pd.notna(insumo["NORMALIZED_DESC"]) and all(
+                        keyword in insumo["NORMALIZED_DESC"] for keyword in supply_keywords
+                    ):
+                        valor_suministro = insumo["VR_UNITARIO_INSUMO"]
+                        apu_suministro_desc = f"Insumo: {insumo['DESCRIPCION_INSUMO']}"
+                        log.append(f"Insumo encontrado (Fallback): '{apu_suministro_desc}'. Valor: ${valor_suministro:,.0f}")
+                        break
+                if valor_suministro == 0:
+                    log.append("No se encontró insumo coincidente en el fallback.")
             else:
-                log.append("ERROR (Fallback): El dataframe de insumos está vacío.")
+                log.append("ERROR (Fallback): El dataframe de insumos está vacío o no tiene 'NORMALIZED_DESC'.")
         else:
-            log.append("ERROR (Fallback): El dataframe de insumos no está disponible.")
+            log.append("ERROR (Fallback): El dataframe de insumos no está disponible en data_store.")
 
-    # --- 2. Búsqueda de Instalación ---
+    # --- 2. Búsqueda de Instalación por Palabra Clave Principal ---
     log.append("\n--- BÚSQUEDA DE INSTALACIÓN ---")
     valor_instalacion = 0.0
     tiempo_instalacion = 0.0
     apu_instalacion_desc = "No encontrado"
 
-    df_instalacion = df_apus[df_apus["tipo_apu"] == "Instalación"]
+    if supply_keywords: # Asegurarse de que hay palabras clave para buscar
+        install_keyword = supply_keywords[0] # Usar la primera palabra como clave (ej. 'canal')
+        df_instalacion_pool = df_apus[df_apus["tipo_apu"] == "Instalación"]
 
-    if not df_instalacion.empty:
-        opciones = df_instalacion["DESC_NORMALIZED"].tolist()
-        resultado = process.extractOne(material_mapped, opciones, score_cutoff=70)
+        for _, apu in df_instalacion_pool.iterrows():
+            if install_keyword in apu["DESC_NORMALIZED"]:
+                valor_instalacion = apu["VALOR_INSTALACION_UN"]
+                tiempo_instalacion = apu["TIEMPO_INSTALACION"]
+                apu_instalacion_desc = apu["DESCRIPCION_APU"]
+                log.append(f"APU de Instalación encontrado: '{apu_instalacion_desc}'. Valor: ${valor_instalacion:,.0f}")
+                break
 
-        if resultado:
-            mejor_coincidencia, puntaje = resultado
-            log.append(
-                f"Mejor coincidencia de instalación: '{mejor_coincidencia}' "
-                f"(Puntaje: {puntaje})"
-            )
-            apu_encontrado = df_instalacion[
-                df_instalacion["DESC_NORMALIZED"] == mejor_coincidencia
-            ].iloc[0]
-            valor_instalacion = apu_encontrado["VALOR_INSTALACION_UN"]
-            tiempo_instalacion = apu_encontrado["TIEMPO_INSTALACION"]
-            apu_instalacion_desc = apu_encontrado["DESCRIPCION_APU"]
-            log.append(
-                f"APU de Instalación: '{apu_instalacion_desc}'. "
-                f"Valor: ${valor_instalacion:,.0f}"
-            )
-        else:
-            log.append("No se encontró APU de instalación con puntaje > 70.")
-    else:
-        log.append("No hay APUs de tipo 'Instalación' para buscar.")
+    if valor_instalacion == 0:
+        log.append("No se encontró APU de instalación.")
 
     # --- 3. Devolver el Resultado Compuesto ---
     valor_construccion = valor_suministro + valor_instalacion
@@ -832,7 +792,6 @@ def calculate_estimate(
         "valor_instalacion": valor_instalacion,
         "valor_construccion": valor_construccion,
         "tiempo_instalacion": tiempo_instalacion,
-        "apu_encontrado": f"Suministro: {apu_suministro_desc} | "
-        f"Instalación: {apu_instalacion_desc}",
+        "apu_encontrado": f"Suministro: {apu_suministro_desc} | Instalación: {apu_instalacion_desc}",
         "log": "\n".join(log),
     }
