@@ -726,6 +726,10 @@ def calculate_estimate(
     ).iloc[0]
     log.append(f"Parámetros mapeados: material='{material_mapped}', tipo='{tipo_mapped}'")
 
+    # --- Generar Palabras Clave ---
+    material_keywords = material_mapped.split()
+    log.append(f"Palabras clave de material: {material_keywords}")
+
     # --- 1. Búsqueda del Costo de Suministro ---
     log.append("\n--- BÚSQUEDA DE SUMINISTRO ---")
     valor_suministro = 0.0
@@ -735,19 +739,28 @@ def calculate_estimate(
     supply_types = ["Suministro", "Suministro (Pre-fabricado)"]
     df_suministro_options = df_apus[df_apus["tipo_apu"].isin(supply_types)]
 
-    if not df_suministro_options.empty:
-        opciones_suministro = df_suministro_options["DESC_NORMALIZED"].tolist()
+    df_suministro_filtered = df_suministro_options.copy()
+    if not df_suministro_filtered.empty and material_keywords:
+        log.append(f"Filtrando {len(df_suministro_filtered)} APUs de suministro por palabras clave: {material_keywords}")
+        for keyword in material_keywords:
+            df_suministro_filtered = df_suministro_filtered[
+                df_suministro_filtered["DESC_NORMALIZED"].str.contains(keyword, na=False)
+            ]
+        log.append(f"Quedan {len(df_suministro_filtered)} APUs después del filtro por palabras clave.")
+
+    if not df_suministro_filtered.empty:
+        opciones_suministro = df_suministro_filtered["DESC_NORMALIZED"].tolist()
         log.append(
             f"Buscando la mejor coincidencia para '{material_mapped}'"
-            f" en {len(opciones_suministro)} APUs de suministro."
+            f" en {len(opciones_suministro)} APUs de suministro filtrados."
         )
         mejor_coincidencia = encontrar_mejor_coincidencia(
             material_mapped, opciones_suministro
         )
 
         if mejor_coincidencia:
-            apu_encontrado_df = df_suministro_options[
-                df_suministro_options["DESC_NORMALIZED"] == mejor_coincidencia
+            apu_encontrado_df = df_suministro_filtered[
+                df_suministro_filtered["DESC_NORMALIZED"] == mejor_coincidencia
             ]
             if not apu_encontrado_df.empty:
                 apu_encontrado = apu_encontrado_df.iloc[0]
@@ -759,33 +772,52 @@ def calculate_estimate(
                 )
             else:
                 log.append(
-                    f"Coincidencia '{mejor_coincidencia}' encontrada pero sin APU."
+                    f"Coincidencia '{mejor_coincidencia}' encontrada pero sin APU en el df filtrado."
                 )
         else:
-            log.append("No se encontró un APU de suministro con buena coincidencia.")
+            log.append("No se encontró un APU de suministro con buena coincidencia en la lista filtrada.")
+    else:
+        log.append("No se encontraron APUs de suministro que contengan todas las palabras clave.")
+
 
     # Fallback a la lista de insumos si no se encontró un APU de suministro
     if valor_suministro == 0:
-        log.append("Fallback: Buscando en la lista de insumos...")
+        log.append("Fallback: Buscando en la lista de insumos por palabras clave...")
         raw_insumos_data = data_store.get("raw_insumos_df")
         if raw_insumos_data:
             df_insumos = pd.DataFrame(raw_insumos_data)
             if not df_insumos.empty:
-                insumo_match = df_insumos[
-                    df_insumos["NORMALIZED_DESC"].str.contains(material_mapped, na=False)
-                ]
-                if not insumo_match.empty:
-                    valor_suministro = insumo_match.iloc[0]["VR_UNITARIO_INSUMO"]
-                    apu_suministro_desc = (
-                        f"Insumo: {insumo_match.iloc[0]['DESCRIPCION_INSUMO']}"
+                # Filtrar por todas las palabras clave
+                df_insumos_filtered = df_insumos.copy()
+                for keyword in material_keywords:
+                    df_insumos_filtered = df_insumos_filtered[
+                        df_insumos_filtered["NORMALIZED_DESC"].str.contains(keyword, na=False)
+                    ]
+
+                if not df_insumos_filtered.empty:
+                    # Si hay múltiples coincidencias, usar fuzzy en los resultados filtrados
+                    opciones_insumos = df_insumos_filtered["NORMALIZED_DESC"].tolist()
+                    mejor_coincidencia_insumo = encontrar_mejor_coincidencia(
+                        material_mapped, opciones_insumos
                     )
-                    log.append(
-                        f"Insumo encontrado (Fallback): '{apu_suministro_desc}'. "
-                        f"Valor: ${valor_suministro:,.0f}"
-                    )
+
+                    if mejor_coincidencia_insumo:
+                        insumo_match = df_insumos_filtered[
+                            df_insumos_filtered["NORMALIZED_DESC"] == mejor_coincidencia_insumo
+                        ]
+                        valor_suministro = insumo_match.iloc[0]["VR_UNITARIO_INSUMO"]
+                        apu_suministro_desc = (
+                            f"Insumo: {insumo_match.iloc[0]['DESCRIPCION_INSUMO']}"
+                        )
+                        log.append(
+                            f"Insumo encontrado (Fallback): '{apu_suministro_desc}'. "
+                            f"Valor: ${valor_suministro:,.0f}"
+                        )
+                    else:
+                        log.append("ERROR (Fallback): No se encontró coincidencia de insumo en la lista filtrada.")
                 else:
                     log.append(
-                        "ERROR (Fallback): Material no encontrado en lista de insumos."
+                        "ERROR (Fallback): Material no encontrado en lista de insumos con esas palabras clave."
                     )
             else:
                 log.append("ERROR (Fallback): El dataframe de insumos está vacío.")
@@ -811,12 +843,14 @@ def calculate_estimate(
     # tipo_mapped está en minúsculas, y DESC_NORMALIZED también.
     df_inst = df_inst[df_inst["DESC_NORMALIZED"].str.contains(tipo_mapped, na=False)]
     log.append(f"Paso 2: {len(df_inst)} restantes tras filtrar por tipo '{tipo_mapped}'.")
-    # Filtro 3: Debe contener el material mapeado
-    # (ej. 'canal - solo lamina' o 'panel sandwich')
-    df_inst = df_inst[df_inst["DESC_NORMALIZED"].str.contains(material_mapped, na=False)]
-    log.append(
-        f"Paso 3: {len(df_inst)} restantes al filtrar por material '{material_mapped}'."
-    )
+    # Filtro 3: Debe contener CADA palabra clave del material
+    if material_keywords:
+        log.append(f"Paso 3: Filtrando por palabras clave de material: {material_keywords}")
+        for keyword in material_keywords:
+            df_inst = df_inst[df_inst["DESC_NORMALIZED"].str.contains(keyword, na=False)]
+            log.append(f"  -> Tras filtrar por '{keyword}', quedan {len(df_inst)} APUs.")
+    else:
+        log.append("Paso 3: No hay palabras clave de material para filtrar.")
 
     if not df_inst.empty:
         opciones_instalacion = df_inst["DESC_NORMALIZED"].tolist()
