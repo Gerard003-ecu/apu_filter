@@ -57,29 +57,30 @@ class TestEstimator(unittest.TestCase):
         self.assertIn("Cuadrilla: CUADRILLA DE 4", result["apu_encontrado"])
 
         # Verificar los valores calculados
-        # APU Tarea (Rendimiento): TIEMPO = 0.125 días/un -> Rendimiento = 1 / 0.125 = 8 un/día
-        # APU Cuadrilla (Costo): VALOR_CONSTRUCCION_UN = 120000 + 80000 = 200000 $/día
-        # Costo Instalación = Costo Diario / Rendimiento = 200000 / 8 = 25000 $/un
+        # APU Tarea: RENDIMIENTO_DIA = 8.0 un/día, EQUIPO = 0
+        # APU Cuadrilla: VALOR_CONSTRUCCION_UN = 120000 + 80000 = 200000 $/día
+        # Costo MO = Costo Diario / Rendimiento = 200000 / 8 = 25000
+        # Costo Instalación = Costo MO + Costo Equipo = 25000 + 0 = 25000
         self.assertAlmostEqual(result["valor_suministro"], 50000.0)
         self.assertAlmostEqual(result["valor_instalacion"], 25000.0)
         self.assertAlmostEqual(result["valor_construccion"], 75000.0)
-        self.assertAlmostEqual(result["tiempo_instalacion"], 0.125)
+        self.assertAlmostEqual(result["rendimiento_m2_por_dia"], 8.0)
 
         # 2. Caso de prueba donde no se encuentra la cuadrilla
         params_no_cuadrilla = {"material": "PANEL TIPO SANDWICH", "cuadrilla": "99"}
         result_no_cuadrilla = calculate_estimate(params_no_cuadrilla, data_store)
-        self.assertIn("--> No se encontró un APU para la cuadrilla especificada con UNIDAD: DIA.", result_no_cuadrilla["log"])
+        self.assertIn("--> No se encontró APU para la cuadrilla especificada con UNIDAD: DIA.", result_no_cuadrilla["log"])
+        # valor_instalacion debe ser 0 porque costo_diario_cuadrilla es 0
         self.assertAlmostEqual(result_no_cuadrilla["valor_instalacion"], 0)
         # El rendimiento aún debe calcularse
-        # TIEMPO = 0.5 -> Rendimiento = 2.0
-        self.assertAlmostEqual(result_no_cuadrilla["tiempo_instalacion"], 0.5)
+        self.assertAlmostEqual(result_no_cuadrilla["rendimiento_m2_por_dia"], 2.0)
 
         # 3. Caso de prueba donde no se encuentra el APU de tarea
         params_no_task = {"material": "MATERIAL INEXISTENTE", "cuadrilla": "4"}
         result_no_task = calculate_estimate(params_no_task, data_store)
-        self.assertIn("No se encontró APU de Tarea", result_no_task["log"])
+        self.assertIn("No se encontró APU de tarea coincidente", result_no_task["log"])
         self.assertAlmostEqual(result_no_task["valor_instalacion"], 0)
-        self.assertAlmostEqual(result_no_task["tiempo_instalacion"], 0)
+        self.assertAlmostEqual(result_no_task["rendimiento_m2_por_dia"], 0)
         # El costo de la cuadrilla debe encontrarse
         self.assertIn("Cuadrilla: CUADRILLA DE 4", result_no_task["apu_encontrado"])
 

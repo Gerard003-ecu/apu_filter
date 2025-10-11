@@ -114,36 +114,37 @@ class ReportParser:
             self.potential_apu_desc = first_part
 
     def _parse_insumo(self, data: Dict[str, str]):
-        # ... (lógica para parsear insumos, similar a la que ya tienes)
         valor_total = self._to_numeric_safe(data["valor_total"])
         self.apus_data.append({
             "CODIGO_APU": self.context["apu_code"],
             "DESCRIPCION_APU": self.context["apu_desc"],
-            "UNIDAD_APU": self.context["apu_unit"], # Añadir la unidad del APU
+            "UNIDAD_APU": self.context["apu_unit"],
             "DESCRIPCION_INSUMO": data["descripcion"].strip(),
             "UNIDAD": data["unidad"],
             "CANTIDAD_APU": self._to_numeric_safe(data["cantidad"]),
             "PRECIO_UNIT_APU": self._to_numeric_safe(data["precio_unit"]),
             "VALOR_TOTAL_APU": valor_total,
             "CATEGORIA": self.context["category"],
+            "RENDIMIENTO": 0.0,  # Rendimiento no aplica para insumos generales
         })
 
     def _parse_mano_de_obra(self, data: Dict[str, str]):
-        # ... (lógica para parsear mano de obra, similar a la que ya tienes)
         valor_total = self._to_numeric_safe(data["valor_total"])
         jornal_total = self._to_numeric_safe(data["jornal_total"])
         cantidad = valor_total / jornal_total if jornal_total > 0 else 0
+        rendimiento = self._to_numeric_safe(data["rendimiento"])
 
         self.apus_data.append({
             "CODIGO_APU": self.context["apu_code"],
             "DESCRIPCION_APU": self.context["apu_desc"],
-            "UNIDAD_APU": self.context["apu_unit"], # Añadir la unidad del APU
+            "UNIDAD_APU": self.context["apu_unit"],
             "DESCRIPCION_INSUMO": data["descripcion"].strip(),
             "UNIDAD": "JOR",
             "CANTIDAD_APU": cantidad,
             "PRECIO_UNIT_APU": jornal_total,
             "VALOR_TOTAL_APU": valor_total,
-            "CATEGORIA": "MANO DE OBRA", # Forzar categoría
+            "CATEGORIA": "MANO DE OBRA",
+            "RENDIMIENTO": rendimiento, # Extraer el rendimiento
         })
 
     def _to_numeric_safe(self, s: Optional[str]) -> float:
