@@ -134,7 +134,7 @@ def normalize_text(series, remove_accents=True, remove_special_chars=True):
         normalized = normalized.apply(unidecode)
 
     if remove_special_chars:
-        # Conservar # y -
+        # Conservar números, # y -
         normalized = normalized.str.replace(r"[^a-z0-9\s#\-]", "", regex=True)
 
     normalized = normalized.str.replace(r"\s+", " ", regex=True)

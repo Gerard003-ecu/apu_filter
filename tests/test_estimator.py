@@ -118,6 +118,51 @@ class TestEstimator(unittest.TestCase):
         )
         self.assertAlmostEqual(result_sandwich["valor_instalacion"], 95000.0)
 
+    @patch("app.procesador_csv.config", new_callable=lambda: TEST_CONFIG)
+    @patch("app.estimator.config", new_callable=lambda: TEST_CONFIG)
+    def test_flexible_cuadrilla_search(self, mock_estimator_config, mock_processor_config):
+        """
+        Tests the flexible cuadrilla search logic.
+        The search should find a match if the description contains the material keyword AND the cuadrilla number.
+        """
+        data_store = process_all_files(
+            self.presupuesto_path, self.apus_path, self.insumos_path
+        )
+
+        # 1. Test Specific Search with just the number
+        # Should find "INSTALACION CANAL CUADRILLA DE 5" by searching for "canal" and "5"
+        params_specific = {
+            "material": "CANAL SOLO",
+            "cuadrilla": "5", # Note: Just the number
+        }
+        result_specific = calculate_estimate(params_specific, data_store)
+
+        # Check the log for specific search success
+        self.assertIn("Búsqueda de Instalación (Paso 1: Específica con cuadrilla '5')", result_specific["log"])
+        self.assertIn("¡Coincidencia específica encontrada!", result_specific["log"])
+
+        # Check the found APU description and value
+        self.assertIn(
+            "Instalación: INSTALACION CANAL CUADRILLA DE 5",
+            result_specific["apu_encontrado"],
+        )
+        self.assertAlmostEqual(result_specific["valor_instalacion"], 90000.0)
+
+        # 2. Test another specific search
+        # Should find "INSTALACION CANAL CUADRILLA DE 3"
+        params_specific_3 = {
+            "material": "CANAL SOLO",
+            "cuadrilla": "3",
+        }
+        result_specific_3 = calculate_estimate(params_specific_3, data_store)
+        self.assertIn("Búsqueda de Instalación (Paso 1: Específica con cuadrilla '3')", result_specific_3["log"])
+        self.assertIn("¡Coincidencia específica encontrada!", result_specific_3["log"])
+        self.assertIn(
+            "Instalación: INSTALACION CANAL CUADRILLA DE 3",
+            result_specific_3["apu_encontrado"],
+        )
+        self.assertAlmostEqual(result_specific_3["valor_instalacion"], 85000.0)
+
 
 if __name__ == "__main__":
     unittest.main()
