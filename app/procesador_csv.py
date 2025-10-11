@@ -711,7 +711,6 @@ def calculate_estimate(
     df_apus = pd.DataFrame(processed_apus_list)
 
     # --- Parámetros y Mapeo ---
-    tipo = params.get("tipo", "").upper()
     material = params.get("material", "").upper()
     log.append(f"Parámetros de entrada: {params}")
 
