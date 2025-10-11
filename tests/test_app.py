@@ -84,6 +84,11 @@ APUS_DATA = (
     "ITEM: 2,3\n"
     "MANO DE OBRA;;;;;\n"
     "Ayudante;HR;9,5;0;10000,00;95000,00\n"
+    "\n"
+    "INSTALACION PANEL SANDWICH CUADRILLA DE 5\n"
+    "ITEM: 2,5\n"
+    "MANO DE OBRA;;;;;\n"
+    "Ayudante;HR;10,0;0;10000,00;100000,00\n"
 )
 
 INSUMOS_DATA = (
