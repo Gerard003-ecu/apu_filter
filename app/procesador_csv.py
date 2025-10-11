@@ -808,25 +808,36 @@ def calculate_estimate(
     # tipo_mapped está en minúsculas, y DESC_NORMALIZED también.
     df_inst = df_inst[df_inst["DESC_NORMALIZED"].str.contains(tipo_mapped, na=False)]
     log.append(f"Paso 2: {len(df_inst)} restantes tras filtrar por tipo '{tipo_mapped}'.")
-    # Filtro 3: Debe contener la cuadrilla (case-insensitive)
-    cuadrilla_term = f"CUADRILLA DE {cuadrilla}"
-    df_inst = df_inst[
-        df_inst["DESC_NORMALIZED"].str.contains(cuadrilla_term, na=False, case=False)
-    ]
-    log.append(f"Paso 3: {len(df_inst)} restantes tras filtrar por '{cuadrilla_term}'.")
+    # Filtro 3: Debe contener el material mapeado (ej. 'canal - solo lamina' o 'panel sandwich')
+    df_inst = df_inst[df_inst["DESC_NORMALIZED"].str.contains(material_mapped, na=False)]
+    log.append(f"Paso 3: {len(df_inst)} restantes tras filtrar por material '{material_mapped}'.")
 
     if not df_inst.empty:
-        # Idealmente, aquí se podría añadir una lógica para elegir el "mejor" si hay varios
-        apu_encontrado = df_inst.iloc[0]
-        valor_instalacion = apu_encontrado["VALOR_INSTALACION_UN"]
-        tiempo_instalacion = apu_encontrado["TIEMPO_INSTALACION"]
-        apu_instalacion_desc = apu_encontrado["DESCRIPCION_APU"]
-        log.append(
-            f"APU de Instalación encontrado: '{apu_instalacion_desc}'. "
-            f"Valor: ${valor_instalacion:,.0f}"
+        opciones_instalacion = df_inst["DESC_NORMALIZED"].tolist()
+        # Usamos el material mapeado para encontrar la mejor coincidencia dentro de los APUs de instalación
+        mejor_coincidencia_inst = encontrar_mejor_coincidencia(
+            material_mapped, opciones_instalacion
         )
+
+        if mejor_coincidencia_inst:
+            apu_encontrado_df = df_inst[
+                df_inst["DESC_NORMALIZED"] == mejor_coincidencia_inst
+            ]
+            if not apu_encontrado_df.empty:
+                apu_encontrado = apu_encontrado_df.iloc[0]
+                valor_instalacion = apu_encontrado["VALOR_INSTALACION_UN"]
+                tiempo_instalacion = apu_encontrado["TIEMPO_INSTALACION"]
+                apu_instalacion_desc = apu_encontrado["DESCRIPCION_APU"]
+                log.append(
+                    f"APU de Instalación encontrado: '{apu_instalacion_desc}'. "
+                    f"Valor: ${valor_instalacion:,.0f}"
+                )
+            else:
+                log.append(f"Coincidencia '{mejor_coincidencia_inst}' encontrada pero sin APU correspondiente.")
+        else:
+            log.append("No se encontró un APU de instalación con buena coincidencia tras el filtrado.")
     else:
-        log.append("ERROR: No se encontró un APU de instalación con los criterios.")
+        log.append("ERROR: No se encontró un APU de instalación con los criterios iniciales.")
 
     # --- 3. Devolver el Resultado Compuesto ---
     valor_construccion = valor_suministro + valor_instalacion
