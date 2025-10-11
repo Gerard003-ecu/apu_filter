@@ -53,12 +53,19 @@ APUS_DATA = (
     "INSTALACION TEJA SENCILLA CUBIERTA\n"
     "ITEM: 1,3\n"
     "MANO DE OBRA;;;;;\n"
-    "Ayudante;HR;8,0;0;10000,00;80000,00\n"
+    # La CANTIDAD_APU (0,125) se convierte en el TIEMPO_INSTALACION
+    "Ayudante;HR;0,125;0;10000,00;1250,00\n"
     "\n"
     "SUMINISTRO TEJA SENCILLA\n"
     "ITEM: 1,4\n"
     "MATERIALES;;;;;\n"
     "TEJA SENCILLA;M2;1,0;0;50000,00;50000,00\n"
+    "\n"
+    "CUADRILLA DE 4\n"
+    "ITEM: 1,6\n"
+    "MANO DE OBRA;;;;;\n"
+    "OFICIAL;DIA;1;0;120000,00;120000,00\n"
+    "AYUDANTE;DIA;1;0;80000,00;80000,00\n"
     "\n"
     "INGENIERO RESIDENTE\n"
     "ITEM: 1,5\n"
@@ -78,12 +85,12 @@ APUS_DATA = (
     "INSTALACION CANAL LAMINA\n"
     "ITEM: 2,2\n"
     "MANO DE OBRA;;;;;\n"
-    "Ayudante;HR;8,5;0;10000,00;85000,00\n"
+    "Ayudante;HR;0,2;0;10000,00;2000,00\n"
     "\n"
     "INSTALACION PANEL TIPO SANDWICH\n"
     "ITEM: 2,3\n"
     "MANO DE OBRA;;;;;\n"
-    "Ayudante;HR;9,5;0;10000,00;95000,00\n"
+    "Ayudante;HR;0,5;0;10000,00;5000,00\n"
     "\n"
     "INSTALACION PANEL SANDWICH CUADRILLA DE 5\n"
     "ITEM: 2,5\n"
@@ -254,13 +261,16 @@ class TestAppEndpoints(unittest.TestCase):
                 "insumos": self._get_test_file("insumos.csv", INSUMOS_DATA),
             }
             c.post("/upload", data=data, content_type="multipart/form-data")
-            estimate_params = {"tipo": "CUBIERTA", "material": "TST"}
+            # Usa los nuevos parámetros que incluyen la cuadrilla
+            estimate_params = {"material": "TST", "cuadrilla": "4"}
             response = c.post("/api/estimate", json=estimate_params)
             self.assertEqual(response.status_code, 200)
             json_data = json.loads(response.data)
+
+            # Los valores esperados deben coincidir con el cálculo en test_estimator
             self.assertAlmostEqual(json_data["valor_suministro"], 50000)
-            self.assertAlmostEqual(json_data["valor_instalacion"], 80000)
-            self.assertAlmostEqual(json_data["valor_construccion"], 130000)
+            self.assertAlmostEqual(json_data["valor_instalacion"], 25000)
+            self.assertAlmostEqual(json_data["valor_construccion"], 75000)
 
 if __name__ == "__main__":
     unittest.main()

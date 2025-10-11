@@ -37,84 +37,51 @@ class TestEstimator(unittest.TestCase):
 
     @patch("app.procesador_csv.config", new_callable=lambda: TEST_CONFIG)
     @patch("app.estimator.config", new_callable=lambda: TEST_CONFIG)
-    def test_calculate_estimate_logic(self, mock_estimator_config, mock_processor_config):
+    def test_calculate_estimate_logic_two_step(self, mock_estimator_config, mock_processor_config):
         """
-        Tests the refactored calculate_estimate function with the new search logic.
+        Tests the refactored calculate_estimate function with the new two-step search logic.
         """
         data_store = process_all_files(
             self.presupuesto_path, self.apus_path, self.insumos_path
         )
 
-        # The search for 'TEJA SENCILLA' should now work on 'original_description'
-        params_ok = {"tipo": "CUBIERTA", "material": "TST"}
-        result = calculate_estimate(params_ok, data_store)
+        # 1. Caso de prueba principal con la nueva lógica
+        params = {"material": "TST", "cuadrilla": "4"}
+        result = calculate_estimate(params, data_store)
 
         self.assertNotIn("error", result)
-        # Verify that the correct APUs were found based on the full description
-        self.assertIn(
-            "Suministro: SUMINISTRO TEJA SENCILLA", result["apu_encontrado"]
-        )
-        self.assertIn(
-            "Instalación: INSTALACION TEJA SENCILLA CUBIERTA", result["apu_encontrado"]
-        )
+
+        # Verificar que se encontraron los APUs correctos
+        self.assertIn("Suministro: SUMINISTRO TEJA SENCILLA", result["apu_encontrado"])
+        self.assertIn("Tarea: INSTALACION TEJA SENCILLA CUBIERTA", result["apu_encontrado"])
+        self.assertIn("Cuadrilla: CUADRILLA DE 4", result["apu_encontrado"])
+
+        # Verificar los valores calculados
+        # APU Tarea (Rendimiento): TIEMPO = 0.125 días/un -> Rendimiento = 1 / 0.125 = 8 un/día
+        # APU Cuadrilla (Costo): VALOR_CONSTRUCCION_UN = 120000 + 80000 = 200000 $/día
+        # Costo Instalación = Costo Diario / Rendimiento = 200000 / 8 = 25000 $/un
         self.assertAlmostEqual(result["valor_suministro"], 50000.0)
-        self.assertAlmostEqual(result["valor_instalacion"], 80000.0)
-        self.assertAlmostEqual(result["valor_construccion"], 130000.0)
+        self.assertAlmostEqual(result["valor_instalacion"], 25000.0)
+        self.assertAlmostEqual(result["valor_construccion"], 75000.0)
+        self.assertAlmostEqual(result["tiempo_instalacion"], 0.125)
 
-        # Test case where no match is found
-        params_fail = {"tipo": "CUBIERTA", "material": "ACERO INOXIDABLE"}
-        result_fail = calculate_estimate(params_fail, data_store)
-        self.assertAlmostEqual(result_fail["valor_suministro"], 0)
-        self.assertAlmostEqual(result_fail["valor_instalacion"], 0)
-        self.assertIn("No encontrado", result_fail["apu_encontrado"])
+        # 2. Caso de prueba donde no se encuentra la cuadrilla
+        params_no_cuadrilla = {"material": "PANEL TIPO SANDWICH", "cuadrilla": "99"}
+        result_no_cuadrilla = calculate_estimate(params_no_cuadrilla, data_store)
+        self.assertIn("No se encontró APU de Cuadrilla", result_no_cuadrilla["log"])
+        self.assertAlmostEqual(result_no_cuadrilla["valor_instalacion"], 0)
+        # El rendimiento aún debe calcularse
+        # TIEMPO = 0.5 -> Rendimiento = 2.0
+        self.assertAlmostEqual(result_no_cuadrilla["tiempo_instalacion"], 0.5)
 
-    @patch("app.procesador_csv.config", new_callable=lambda: TEST_CONFIG)
-    @patch("app.estimator.config", new_callable=lambda: TEST_CONFIG)
-    def test_new_search_logic(self, mock_estimator_config, mock_processor_config):
-        """
-        Tests the new _find_best_match logic for installation APUs.
-        """
-        data_store = process_all_files(
-            self.presupuesto_path, self.apus_path, self.insumos_path
-        )
-
-        # 1. Test Strict Search: material + cuadrilla
-        # Should find "INSTALACION PANEL SANDWICH CUADRILLA DE 5" because all keywords match.
-        params_strict = {"material": "PANEL SANDWICH", "cuadrilla": "5"}
-        result_strict = calculate_estimate(params_strict, data_store)
-
-        self.assertIn("Coincidencia estricta encontrada", result_strict["log"])
-        self.assertIn(
-            "Instalación: INSTALACION PANEL SANDWICH CUADRILLA DE 5",
-            result_strict["apu_encontrado"],
-        )
-        self.assertAlmostEqual(result_strict["valor_instalacion"], 100000.0)
-
-        # 2. Test Flexible Search: material + non-existent cuadrilla
-        # Should find a flexible match on "canal" since "cuadrilla de 99" doesn't exist.
-        params_flexible = {"material": "CANAL SOLO", "cuadrilla": "99"}
-        result_flexible = calculate_estimate(params_flexible, data_store)
-
-        self.assertIn("Coincidencia flexible encontrada", result_flexible["log"])
-        self.assertNotIn("Coincidencia estricta encontrada", result_flexible["log"])
-        # It should find the first "CANAL" APU, which is "INSTALACION CANAL CUADRILLA DE 5"
-        self.assertIn(
-            "Instalación: INSTALACION CANAL CUADRILLA DE 5",
-            result_flexible["apu_encontrado"],
-        )
-        self.assertAlmostEqual(result_flexible["valor_instalacion"], 90000.0)
-
-        # 3. Test Flexible Search for "PANEL SANDWICH"
-        # The material is "PANEL SANDWICH", but the APU is "INSTALACION PANEL TIPO SANDWICH".
-        # The strict search will now find a match for "panel" and "sandwich"
-        params_sandwich = {"material": "PANEL SANDWICH", "cuadrilla": "0"} # No specific cuadrilla
-        result_sandwich = calculate_estimate(params_sandwich, data_store)
-        self.assertIn("Coincidencia estricta encontrada", result_sandwich["log"])
-        self.assertIn(
-            "Instalación: INSTALACION PANEL TIPO SANDWICH",
-            result_sandwich["apu_encontrado"],
-        )
-        self.assertAlmostEqual(result_sandwich["valor_instalacion"], 95000.0)
+        # 3. Caso de prueba donde no se encuentra el APU de tarea
+        params_no_task = {"material": "MATERIAL INEXISTENTE", "cuadrilla": "4"}
+        result_no_task = calculate_estimate(params_no_task, data_store)
+        self.assertIn("No se encontró APU de Tarea", result_no_task["log"])
+        self.assertAlmostEqual(result_no_task["valor_instalacion"], 0)
+        self.assertAlmostEqual(result_no_task["tiempo_instalacion"], 0)
+        # El costo de la cuadrilla debe encontrarse
+        self.assertIn("Cuadrilla: CUADRILLA DE 4", result_no_task["apu_encontrado"])
 
 
 if __name__ == "__main__":
