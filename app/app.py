@@ -13,7 +13,8 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 from config import config_by_name
 from models.probability_models import run_monte_carlo_simulation
 
-from .procesador_csv import calculate_estimate, process_all_files
+from .estimator import calculate_estimate
+from .procesador_csv import process_all_files
 
 # Almacenamiento en memoria para sesiones de usuario
 user_sessions = {}

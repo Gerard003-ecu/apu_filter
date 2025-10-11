@@ -527,9 +527,6 @@ def _do_processing(presupuesto_path, apus_path, insumos_path):
         df_processed_apus["DESCRIPCION_APU"] = df_processed_apus[
             "DESCRIPCION_APU"
         ].fillna("")
-        df_processed_apus["DESC_NORMALIZED"] = normalize_text(
-            df_processed_apus["DESCRIPCION_APU"]
-        )
         # Limpiar NaNs en columnas clave para evitar errores en cálculos posteriores
         fill_zero_cols = [
             "VALOR_SUMINISTRO_UN",
@@ -543,6 +540,10 @@ def _do_processing(presupuesto_path, apus_path, insumos_path):
 
         # Aplicar la agrupación al DataFrame de búsqueda para el estimador
         df_processed_apus = group_and_split_description(df_processed_apus)
+        # Ahora creamos la columna normalizada desde la descripción original completa
+        df_processed_apus["DESC_NORMALIZED"] = normalize_text(
+            df_processed_apus["original_description"]
+        )
         # --- FIN: Creación del DataFrame de APUs Procesados ---
 
         df_final = pd.merge(
@@ -691,88 +692,3 @@ def process_all_files(
     return result
 
 
-def calculate_estimate(
-    params: Dict[str, str], data_store: Dict
-) -> Dict[str, Union[str, float, List[str]]]:
-    log = []
-    # --- Validación de Parámetros ---
-    required_params = ["tipo", "material"]
-    missing_params = [p for p in required_params if p not in params or not params[p]]
-    if missing_params:
-        error_msg = f"Parámetros requeridos faltantes o vacíos: {missing_params}"
-        logger.warning(error_msg)
-        return {"error": error_msg, "log": [error_msg]}
-
-    processed_apus_list = data_store.get("processed_apus", [])
-    if not processed_apus_list:
-        return {
-            "error": "No hay datos de APU procesados disponibles.",
-            "log": ["Error: 'processed_apus' no encontrado en data_store."],
-        }
-    df_apus = pd.DataFrame(processed_apus_list)
-
-    material = params.get("material", "").upper()
-    log.append(f"Parámetros de entrada: {params}")
-
-    param_map = config.get("param_map", {})
-    material_mapped = param_map.get("material", {}).get(material, material)
-    log.append(f"Parámetros mapeados: material='{material_mapped}'")
-
-    keywords = material_mapped.lower().split()
-
-    # --- 1. Búsqueda de Suministro por Palabras Clave ---
-    log.append("\n--- BÚSQUEDA DE SUMINISTRO ---")
-    valor_suministro = 0.0
-    apu_suministro_desc = "No encontrado"
-
-    supply_types = ["Suministro", "Suministro (Pre-fabricado)"]
-    df_suministro_pool = df_apus[df_apus["tipo_apu"].isin(supply_types)]
-
-    for _, apu in df_suministro_pool.iterrows():
-        grupo_lower = str(apu.get("grupo", "")).lower()
-        if all(keyword in grupo_lower for keyword in keywords):
-            valor_suministro = apu["VALOR_SUMINISTRO_UN"]
-            apu_suministro_desc = apu["original_description"]
-            log.append(f"APU de Suministro encontrado: '{apu_suministro_desc}'. Valor: ${valor_suministro:,.0f}")
-            break
-
-    if valor_suministro == 0:
-        log.append("No se encontró APU de suministro. Fallback a insumos no implementado.")
-
-    # --- 2. Búsqueda de Instalación por Palabras Clave ---
-    log.append("\n--- BÚSQUEDA DE INSTALACIÓN ---")
-    valor_instalacion = 0.0
-    tiempo_instalacion = 0.0
-    apu_instalacion_desc = "No encontrado"
-
-    df_instalacion_pool = df_apus[df_apus["tipo_apu"] == "Instalación"]
-
-    for _, apu in df_instalacion_pool.iterrows():
-        grupo_lower = str(apu.get("grupo", "")).lower()
-        if all(keyword in grupo_lower for keyword in keywords):
-            valor_instalacion = apu["VALOR_INSTALACION_UN"]
-            tiempo_instalacion = apu["TIEMPO_INSTALACION"]
-            apu_instalacion_desc = apu["original_description"]
-            log.append(f"APU de Instalación encontrado: '{apu_instalacion_desc}'. Valor: ${valor_instalacion:,.0f}")
-            break
-
-    if valor_instalacion == 0:
-        log.append("No se encontró APU de instalación.")
-
-    # --- 3. Devolver el Resultado Compuesto ---
-    valor_construccion = valor_suministro + valor_instalacion
-    log.append(
-        f"\n--- RESULTADO COMPUESTO ---\n"
-        f"Valor Suministro: ${valor_suministro:,.0f}\n"
-        f"Valor Instalación: ${valor_instalacion:,.0f}\n"
-        f"Valor Construcción: ${valor_construccion:,.0f}"
-    )
-
-    return {
-        "valor_suministro": valor_suministro,
-        "valor_instalacion": valor_instalacion,
-        "valor_construccion": valor_construccion,
-        "tiempo_instalacion": tiempo_instalacion,
-        "apu_encontrado": f"Suministro: {apu_suministro_desc} | Instalación: {apu_instalacion_desc}",
-        "log": "\n".join(log),
-    }

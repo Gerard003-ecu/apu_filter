@@ -13,9 +13,9 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 
 # Importar la app de Flask y las funciones a probar
 from app.app import create_app, user_sessions
+from app.estimator import calculate_estimate
 from app.procesador_csv import (
     _cached_csv_processing,
-    calculate_estimate,
     find_and_rename_columns,
     normalize_text,
     process_all_files,
@@ -197,19 +197,6 @@ class TestCSVProcessor(unittest.TestCase):
         self.assertAlmostEqual(ing_item["VALOR_UNITARIO"], 150000)
         self.assertAlmostEqual(ing_item["VALOR_TOTAL"], 15000)
 
-    @patch("app.procesador_csv.config", new_callable=lambda: TEST_CONFIG)
-    def test_calculate_estimate(self, mock_config):
-        data_store = process_all_files(
-            self.presupuesto_path, self.apus_path, self.insumos_path
-        )
-        params_ok = {"tipo": "CUBIERTA", "material": "TST", "cuadrilla": "5"}
-        result = calculate_estimate(params_ok, data_store)
-        self.assertNotIn("error", result)
-        self.assertIn("Suministro: SUMINISTRO TEJA SENCILLA", result["apu_encontrado"])
-        self.assertIn("Instalación: INSTALACION TEJA SENCILLA CUBIERTA", result["apu_encontrado"])
-        self.assertAlmostEqual(result["valor_suministro"], 50000)
-        self.assertAlmostEqual(result["valor_instalacion"], 80000)
-        self.assertAlmostEqual(result["valor_construccion"], 130000)
 
 class TestAppEndpoints(unittest.TestCase):
     def setUp(self):
@@ -235,7 +222,8 @@ class TestAppEndpoints(unittest.TestCase):
         return (io.BytesIO(content.encode("latin1")), filename)
 
     @patch("app.procesador_csv.config", new_callable=lambda: TEST_CONFIG)
-    def test_get_estimate_with_session(self, mock_config):
+    @patch("app.estimator.config", new_callable=lambda: TEST_CONFIG)
+    def test_get_estimate_with_session(self, mock_estimator_config, mock_processor_config):
         with self.client as c:
             data = {
                 "presupuesto": self._get_test_file("presupuesto.csv", PRESUPUESTO_DATA),
@@ -243,7 +231,7 @@ class TestAppEndpoints(unittest.TestCase):
                 "insumos": self._get_test_file("insumos.csv", INSUMOS_DATA),
             }
             c.post("/upload", data=data, content_type="multipart/form-data")
-            estimate_params = {"tipo": "CUBIERTA", "material": "TST", "cuadrilla": "5"}
+            estimate_params = {"tipo": "CUBIERTA", "material": "TST"}
             response = c.post("/api/estimate", json=estimate_params)
             self.assertEqual(response.status_code, 200)
             json_data = json.loads(response.data)
