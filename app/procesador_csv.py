@@ -515,12 +515,38 @@ def _do_processing(presupuesto_path, apus_path, insumos_path):
             .reset_index()
         )
         df_tiempo.rename(columns={"CANTIDAD_APU": "TIEMPO_INSTALACION"}, inplace=True)
+
+        # --- INICIO: Creación del DataFrame de APUs Procesados ---
+        # Unificar toda la información de APUs en un solo DataFrame para el estimador.
+        df_apu_descriptions = df_apus[["CODIGO_APU", "DESCRIPCION_APU"]].drop_duplicates()
+        df_processed_apus = pd.merge(
+            df_apu_costos_categoria, df_apu_descriptions, on="CODIGO_APU", how="left"
+        )
+        df_processed_apus = pd.merge(
+            df_processed_apus, df_tiempo, on="CODIGO_APU", how="left"
+        )
+        df_processed_apus["DESCRIPCION_APU"] = df_processed_apus[
+            "DESCRIPCION_APU"
+        ].fillna("")
+        df_processed_apus["DESC_NORMALIZED"] = normalize_text(
+            df_processed_apus["DESCRIPCION_APU"]
+        )
+        # Limpiar NaNs en columnas clave para evitar errores en cálculos posteriores
+        fill_zero_cols = [
+            "VALOR_SUMINISTRO_UN",
+            "VALOR_INSTALACION_UN",
+            "VALOR_CONSTRUCCION_UN",
+            "TIEMPO_INSTALACION",
+        ]
+        for col in fill_zero_cols:
+            if col in df_processed_apus.columns:
+                df_processed_apus[col] = df_processed_apus[col].fillna(0)
+        # --- FIN: Creación del DataFrame de APUs Procesados ---
+
         df_final = pd.merge(
             df_presupuesto, df_apu_costos_categoria, on="CODIGO_APU", how="left"
-            )
-        df_final = pd.merge(
-            df_final, df_tiempo, on="CODIGO_APU", how="left"
-            )
+        )
+        df_final = pd.merge(df_final, df_tiempo, on="CODIGO_APU", how="left")
         final_cols_to_fill = [
             "VALOR_SUMINISTRO_UN",
             "VALOR_INSTALACION_UN",
@@ -579,6 +605,7 @@ def _do_processing(presupuesto_path, apus_path, insumos_path):
         df_merged_renamed = df_merged_renamed.replace({np.nan: None})
         df_apus = df_apus.replace({np.nan: None})
         df_insumos = df_insumos.replace({np.nan: None})
+        df_processed_apus = df_processed_apus.replace({np.nan: None})
 
         # Actualizar los diccionarios después de la limpieza
         apus_detail = {
@@ -620,6 +647,7 @@ def _do_processing(presupuesto_path, apus_path, insumos_path):
             "apus_detail": apus_detail,
             "all_apus": df_apus.to_dict("records"),
             "raw_insumos_df": df_insumos.to_dict("records"),
+            "processed_apus": df_processed_apus.to_dict("records"),
         }
 
     except Exception as e:
@@ -676,23 +704,13 @@ def calculate_estimate(
         logger.warning(error_msg)
         return {"error": error_msg, "log": [error_msg]}
 
-    def _normalize(text: str) -> str:
-        return unidecode(str(text)).upper()
-
-    all_apus_list = data_store.get("all_apus", [])
-    if not all_apus_list:
+    processed_apus_list = data_store.get("processed_apus", [])
+    if not processed_apus_list:
         return {
-            "error": "No hay datos de APU disponibles.",
-            "log": ["Error: all_apus no encontrado en data_store."],
+            "error": "No hay datos de APU procesados disponibles.",
+            "log": ["Error: 'processed_apus' no encontrado en data_store."],
         }
-
-    df_apus = pd.DataFrame(all_apus_list)
-    df_apus_unique = df_apus.drop_duplicates(subset=["DESCRIPCION_APU"]).copy()
-    logger.debug(
-        f"Descripciones de APU únicas para la búsqueda"
-        f"de suministro:\n{df_apus_unique['DESCRIPCION_APU'].to_list()}"
-    )
-    df_apus_unique["DESC_NORMALIZED"] = df_apus_unique["DESCRIPCION_APU"].apply(_normalize)
+    df_apus = pd.DataFrame(processed_apus_list)
 
     # --- Parámetros y Mapeo ---
     tipo = params.get("tipo", "").upper()
@@ -701,58 +719,58 @@ def calculate_estimate(
     log.append(f"Parámetros de entrada: {params}")
 
     param_map = config.get("param_map", {})
-    material_mapped = _normalize(param_map.get("material", {}).get(material, material))
-    tipo_mapped = _normalize(param_map.get("tipo", {}).get(tipo, tipo))
+    # Usar normalize_text para consistencia. Requiere convertir a Series.
+    material_mapped = normalize_text(
+        pd.Series([param_map.get("material", {}).get(material, material)])
+    ).iloc[0]
+    tipo_mapped = normalize_text(
+        pd.Series([param_map.get("tipo", {}).get(tipo, tipo)])
+    ).iloc[0]
     log.append(f"Parámetros mapeados: material='{material_mapped}', tipo='{tipo_mapped}'")
 
-    # --- 1. Búsqueda de Suministro (Refactorizada con Fuzzy-Matching) ---
+    # --- 1. Búsqueda del Costo de Suministro ---
     log.append("\n--- BÚSQUEDA DE SUMINISTRO ---")
-
-    # Filtrar primero por APUs que parezcan de suministro
-    df_suministro_options = df_apus_unique[
-        df_apus_unique["DESC_NORMALIZED"].str.contains("SUMINISTRO|SOLO", na=False)
-    ]
-    opciones_suministro = df_suministro_options["DESC_NORMALIZED"].tolist()
-
-    log.append(
-        f"Buscando la mejor coincidencia para"
-        f"'{material_mapped}' en {len(opciones_suministro)} opciones."
-    )
-    mejor_coincidencia = encontrar_mejor_coincidencia(material_mapped, opciones_suministro)
-
-    suministro_candidates = pd.DataFrame()  # Inicializar como vacío
-    if mejor_coincidencia:
-        suministro_candidates = df_apus_unique[
-            df_apus_unique["DESC_NORMALIZED"] == mejor_coincidencia
-        ]
-        log.append(f"Mejor coincidencia encontrada: '{mejor_coincidencia}'")
-    else:
-        log.append("No se encontró una buena coincidencia para el suministro.")
-
-    log.append(f"Encontrados {len(suministro_candidates)} candidatos para suministro.")
-
-    apu_suministro_desc = ""
     valor_suministro = 0.0
-    if not suministro_candidates.empty:
-        apu_suministro_desc = suministro_candidates.iloc[0]["DESCRIPCION_APU"]
-        suministro_items_df = df_apus[df_apus["DESCRIPCION_APU"] == apu_suministro_desc]
-        valor_suministro = suministro_items_df[
-            suministro_items_df["CATEGORIA"] == "MATERIALES"
-        ]["VALOR_TOTAL_APU"].sum()
+    apu_suministro_desc = "No encontrado"
+
+    # Priorizar APUs de tipo 'Suministro' o 'Suministro (Pre-fabricado)'
+    supply_types = ["Suministro", "Suministro (Pre-fabricado)"]
+    df_suministro_options = df_apus[df_apus["tipo_apu"].isin(supply_types)]
+
+    if not df_suministro_options.empty:
+        opciones_suministro = df_suministro_options["DESC_NORMALIZED"].tolist()
         log.append(
-            f"APU de Suministro seleccionado: '{apu_suministro_desc}'"
-            f" -> Valor: ${valor_suministro:,.0f}"
+            f"Buscando la mejor coincidencia para '{material_mapped}'"
+            f" en {len(opciones_suministro)} APUs de suministro."
         )
-    else:
-        log.append(
-            "ADVERTENCIA: No se encontró un APU de suministro directo. "
-            "Iniciando fallback a insumos."
+        mejor_coincidencia = encontrar_mejor_coincidencia(
+            material_mapped, opciones_suministro
         )
+
+        if mejor_coincidencia:
+            apu_encontrado_df = df_suministro_options[
+                df_suministro_options["DESC_NORMALIZED"] == mejor_coincidencia
+            ]
+            if not apu_encontrado_df.empty:
+                apu_encontrado = apu_encontrado_df.iloc[0]
+                valor_suministro = apu_encontrado["VALOR_SUMINISTRO_UN"]
+                apu_suministro_desc = apu_encontrado["DESCRIPCION_APU"]
+                log.append(
+                    f"APU de Suministro encontrado: '{apu_suministro_desc}'. "
+                    f"Valor: ${valor_suministro:,.0f}"
+                )
+            else:
+                log.append(f"Coincidencia '{mejor_coincidencia}' encontrada pero sin APU correspondiente.")
+        else:
+            log.append("No se encontró un APU de suministro con buena coincidencia.")
+
+    # Fallback a la lista de insumos si no se encontró un APU de suministro
+    if valor_suministro == 0:
+        log.append("Fallback: Buscando en la lista de insumos...")
         raw_insumos_data = data_store.get("raw_insumos_df")
         if raw_insumos_data:
             df_insumos = pd.DataFrame(raw_insumos_data)
             if not df_insumos.empty:
-                # Buscar el material normalizado en la lista de insumos
                 insumo_match = df_insumos[
                     df_insumos["NORMALIZED_DESC"].str.contains(material_mapped, na=False)
                 ]
@@ -762,8 +780,8 @@ def calculate_estimate(
                         f"Insumo: {insumo_match.iloc[0]['DESCRIPCION_INSUMO']}"
                     )
                     log.append(
-                        f"ÉXITO (Fallback): Insumo encontrado: '{apu_suministro_desc}'"
-                        f" -> Valor: ${valor_suministro:,.0f}"
+                        f"Insumo encontrado (Fallback): '{apu_suministro_desc}'. "
+                        f"Valor: ${valor_suministro:,.0f}"
                     )
                 else:
                     log.append(
@@ -774,68 +792,58 @@ def calculate_estimate(
         else:
             log.append("ERROR (Fallback): El dataframe de insumos no está disponible.")
 
-    # --- 2. Búsqueda de Instalación (Refactorizada con Filtros Secuenciales) ---
+    # --- 2. Búsqueda del Costo de Instalación ---
     log.append("\n--- BÚSQUEDA DE INSTALACIÓN ---")
-    # Paso A: Filtrar por "MANO DE OBRA" Y "INSTALACION"
-    df_inst = df_apus_unique[
-        df_apus_unique["DESC_NORMALIZED"].str.contains("MANO DE OBRA|MANO OBRA")
-        & df_apus_unique["DESC_NORMALIZED"].str.contains("INSTALACION")
-    ].copy()
-    log.append(
-        f"Paso A: {len(df_inst)} APUs encontrados con 'MANO DE OBRA' e 'INSTALACION'."
-    )
+    valor_instalacion = 0.0
+    tiempo_instalacion = 0.0
+    apu_instalacion_desc = "No encontrado"
 
-    # Paso B: Filtrar por material
-    df_inst = df_inst[df_inst["DESC_NORMALIZED"].str.contains(material_mapped)].copy()
-    log.append(f"Paso B: {len(df_inst)}APUs restantes tras filtrar por '{material_mapped}'.")
-
-    # Paso C: Filtrar por cuadrilla
+    # Búsqueda secuencial y explícita
+    df_inst = df_apus.copy()
+    # Filtro 1: Debe contener "MANO DE OBRA" (case-insensitive)
+    df_inst = df_inst[
+        df_inst["DESC_NORMALIZED"].str.contains("MANO DE OBRA|MANO OBRA", na=False, case=False)
+    ]
+    log.append(f"Paso 1: {len(df_inst)} APUs con 'MANO DE OBRA'.")
+    # Filtro 2: Debe contener el tipo de trabajo mapeado (ej. 'INSTALACION')
+    # tipo_mapped está en minúsculas, y DESC_NORMALIZED también.
+    df_inst = df_inst[df_inst["DESC_NORMALIZED"].str.contains(tipo_mapped, na=False)]
+    log.append(f"Paso 2: {len(df_inst)} restantes tras filtrar por tipo '{tipo_mapped}'.")
+    # Filtro 3: Debe contener la cuadrilla (case-insensitive)
     cuadrilla_term = f"CUADRILLA DE {cuadrilla}"
-    df_inst = df_inst[df_inst["DESC_NORMALIZED"].str.contains(cuadrilla_term)].copy()
-    log.append(f"Paso C: {len(df_inst)} APUs restantes tras filtrar por '{cuadrilla_term}'.")
+    df_inst = df_inst[
+        df_inst["DESC_NORMALIZED"].str.contains(cuadrilla_term, na=False, case=False)
+    ]
+    log.append(f"Paso 3: {len(df_inst)} restantes tras filtrar por '{cuadrilla_term}'.")
 
-    if df_inst.empty:
-        msg = "No se encontró un APU de instalación que coincida con todos los criterios."
-        log.append(f"ERROR: {msg}")
-        return {"error": msg, "log": "\n".join(log)}
+    if not df_inst.empty:
+        # Idealmente, aquí se podría añadir una lógica para elegir el "mejor" si hay varios
+        apu_encontrado = df_inst.iloc[0]
+        valor_instalacion = apu_encontrado["VALOR_INSTALACION_UN"]
+        tiempo_instalacion = apu_encontrado["TIEMPO_INSTALACION"]
+        apu_instalacion_desc = apu_encontrado["DESCRIPCION_APU"]
+        log.append(
+            f"APU de Instalación encontrado: '{apu_instalacion_desc}'. "
+            f"Valor: ${valor_instalacion:,.0f}"
+        )
+    else:
+        log.append("ERROR: No se encontró un APU de instalación con los criterios.")
 
-    # Tomar el primer resultado
-    apu_instalacion_desc = df_inst.iloc[0]["DESCRIPCION_APU"]
-    log.append(f"ÉXITO: APU de Instalación seleccionado: '{apu_instalacion_desc}'")
-
-    # --- 3. Cálculo de Costos y Tiempos ---
-    log.append("\n--- CÁLCULO DE COSTOS Y TIEMPO ---")
-    instalacion_items_df = df_apus[df_apus["DESCRIPCION_APU"] == apu_instalacion_desc]
-    costos_instalacion = (
-        instalacion_items_df.groupby("CATEGORIA")["VALOR_TOTAL_APU"]
-        .sum()
-        .reindex(["MANO DE OBRA", "EQUIPO"], fill_value=0)
-    )
-    valor_instalacion = costos_instalacion["MANO DE OBRA"] + costos_instalacion["EQUIPO"]
-    tiempo_instalacion = instalacion_items_df[
-        instalacion_items_df["CATEGORIA"] == "MANO DE OBRA"
-    ]["CANTIDAD_APU"].sum()
-
+    # --- 3. Devolver el Resultado Compuesto ---
+    valor_construccion = valor_suministro + valor_instalacion
     log.append(
-        f"Costo Instalación Base (MO+EQ): ${valor_instalacion:,.0f} "
-        f"| Tiempo: {tiempo_instalacion:.4f} días/un"
-    )
-
-    # --- 4. Ajustes Adicionales (Ej. Izaje, Seguridad, Zona) ---
-    # (La lógica de ajustes se mantiene, pero se podría refactorizar en el futuro)
-    # ...
-
-    log.append(
-        f"\n--- RESULTADO FINAL ---\n"
+        f"\n--- RESULTADO COMPUESTO ---\n"
         f"Valor Suministro: ${valor_suministro:,.0f}\n"
-        f"Valor Instalación: ${valor_instalacion:,.0f}"
+        f"Valor Instalación: ${valor_instalacion:,.0f}\n"
+        f"Valor Construcción: ${valor_construccion:,.0f}"
     )
 
     return {
         "valor_suministro": valor_suministro,
         "valor_instalacion": valor_instalacion,
+        "valor_construccion": valor_construccion,
         "tiempo_instalacion": tiempo_instalacion,
-        "apu_encontrado": f"Suministro: {apu_suministro_desc or 'N/A'} | "
+        "apu_encontrado": f"Suministro: {apu_suministro_desc} | "
         f"Instalación: {apu_instalacion_desc}",
         "log": "\n".join(log),
     }
