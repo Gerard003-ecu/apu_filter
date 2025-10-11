@@ -81,37 +81,34 @@ def calculate_estimate(
     # --- INICIO DE LA LÓGICA DE BÚSQUEDA EN DOS PASOS ---
     apu_encontrado_instalacion = None
     if not df_instalacion_pool.empty and keywords:
-        # 1. Construir Palabras Clave
-        material_keywords = keywords
-        cuadrilla_keyword = params.get("cuadrilla", "")
-        # Normalizar la palabra clave de la cuadrilla para la búsqueda
-        if cuadrilla_keyword:
-             # Ej: "CUADRILLA DE 5" -> "cuadrilla 5"
-            cuadrilla_keyword_normalized = ' '.join(normalize_text(pd.Series([cuadrilla_keyword])).iloc[0].split())
+        cuadrilla_str = str(params.get("cuadrilla", "0"))
 
-
-        # 2. Búsqueda Específica (Paso 1)
-        log.append("\n--- Búsqueda de Instalación (Paso 1: Específica) ---")
-        if cuadrilla_keyword:
-            # Busca una coincidencia que contenga la palabra clave principal Y la cuadrilla
-            search_keywords_specific = [material_keywords[0], cuadrilla_keyword_normalized]
-            log.append(f"Intentando búsqueda específica con: {search_keywords_specific}")
-            apu_encontrado_instalacion = _find_apu_by_keywords(
-                df_instalacion_pool, search_keywords_specific, log
+        # Paso 1: Búsqueda Específica
+        if cuadrilla_str != "0":
+            log.append(
+                f"--- Búsqueda de Instalación (Paso 1: Específica con cuadrilla '{cuadrilla_str}') ---"
             )
+            for _, apu in df_instalacion_pool.iterrows():
+                desc_norm = apu["DESC_NORMALIZED"]
+                # Condición: debe contener la palabra clave principal Y el número de la cuadrilla
+                if keywords and keywords[0] in desc_norm and cuadrilla_str in desc_norm.split():
+                    apu_encontrado_instalacion = apu
+                    log.append("  --> ¡Coincidencia específica encontrada!")
+                    break
 
-        # 3. Búsqueda General (Paso 2 - Fallback)
+        # Paso 2: Búsqueda General (Fallback)
         if apu_encontrado_instalacion is None:
-            log.append("\n--- Búsqueda de Instalación (Paso 2: General) ---")
-            log.append(f"Buscando con palabras clave (cualquiera): {material_keywords} en {len(df_instalacion_pool)} APUs.")
+            log.append("\n--- Búsqueda de Instalación (Paso 2: General / Fallback) ---")
+            log.append(
+                f"Buscando con palabras clave (cualquiera): {keywords} en {len(df_instalacion_pool)} APUs."
+            )
             for _, apu in df_instalacion_pool.iterrows():
                 desc_to_search = apu.get("DESC_NORMALIZED", "")
                 log.append(f"  ... comparando con: '{desc_to_search}'")
-                if any(keyword in desc_to_search for keyword in material_keywords):
+                if any(keyword in desc_to_search for keyword in keywords):
                     apu_encontrado_instalacion = apu
                     log.append("  --> ¡Coincidencia encontrada en fallback!")
                     break
-
     # --- FIN DE LA LÓGICA DE BÚSQUEDA ---
 
     if apu_encontrado_instalacion is not None:
