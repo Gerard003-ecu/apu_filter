@@ -696,7 +696,7 @@ def calculate_estimate(
     "Suministro + Instalación".
     """
     log = []
-    required_params = ["tipo", "material", "cuadrilla"]
+    required_params = ["tipo", "material"]
     missing_params = [p for p in required_params if p not in params or not params[p]]
     if missing_params:
         error_msg = f"Parámetros requeridos faltantes o vacíos: {missing_params}"
@@ -714,7 +714,6 @@ def calculate_estimate(
     # --- Parámetros y Mapeo ---
     tipo = params.get("tipo", "").upper()
     material = params.get("material", "").upper()
-    cuadrilla = params.get("cuadrilla", "0")
     log.append(f"Parámetros de entrada: {params}")
 
     param_map = config.get("param_map", {})
@@ -759,7 +758,9 @@ def calculate_estimate(
                     f"Valor: ${valor_suministro:,.0f}"
                 )
             else:
-                log.append(f"Coincidencia '{mejor_coincidencia}' encontrada pero sin APU correspondiente.")
+                log.append(
+                    f"Coincidencia '{mejor_coincidencia}' encontrada pero sin APU."
+                )
         else:
             log.append("No se encontró un APU de suministro con buena coincidencia.")
 
@@ -801,20 +802,26 @@ def calculate_estimate(
     df_inst = df_apus.copy()
     # Filtro 1: Debe contener "MANO DE OBRA" (case-insensitive)
     df_inst = df_inst[
-        df_inst["DESC_NORMALIZED"].str.contains("MANO DE OBRA|MANO OBRA", na=False, case=False)
+        df_inst["DESC_NORMALIZED"].str.contains(
+            "MANO DE OBRA|MANO OBRA", na=False, case=False
+        )
     ]
     log.append(f"Paso 1: {len(df_inst)} APUs con 'MANO DE OBRA'.")
     # Filtro 2: Debe contener el tipo de trabajo mapeado (ej. 'INSTALACION')
     # tipo_mapped está en minúsculas, y DESC_NORMALIZED también.
     df_inst = df_inst[df_inst["DESC_NORMALIZED"].str.contains(tipo_mapped, na=False)]
     log.append(f"Paso 2: {len(df_inst)} restantes tras filtrar por tipo '{tipo_mapped}'.")
-    # Filtro 3: Debe contener el material mapeado (ej. 'canal - solo lamina' o 'panel sandwich')
+    # Filtro 3: Debe contener el material mapeado
+    # (ej. 'canal - solo lamina' o 'panel sandwich')
     df_inst = df_inst[df_inst["DESC_NORMALIZED"].str.contains(material_mapped, na=False)]
-    log.append(f"Paso 3: {len(df_inst)} restantes tras filtrar por material '{material_mapped}'.")
+    log.append(
+        f"Paso 3: {len(df_inst)} restantes al filtrar por material '{material_mapped}'."
+    )
 
     if not df_inst.empty:
         opciones_instalacion = df_inst["DESC_NORMALIZED"].tolist()
-        # Usamos el material mapeado para encontrar la mejor coincidencia dentro de los APUs de instalación
+        # Usamos el material mapeado para encontrar la mejor coincidencia
+        # dentro de los APUs de instalación
         mejor_coincidencia_inst = encontrar_mejor_coincidencia(
             material_mapped, opciones_instalacion
         )
@@ -833,11 +840,15 @@ def calculate_estimate(
                     f"Valor: ${valor_instalacion:,.0f}"
                 )
             else:
-                log.append(f"Coincidencia '{mejor_coincidencia_inst}' encontrada pero sin APU correspondiente.")
+                log.append(
+                    f"Coincidencia '{mejor_coincidencia_inst}' encontrada pero sin APU."
+                )
         else:
-            log.append("No se encontró un APU de instalación con buena coincidencia tras el filtrado.")
+            log.append(
+                "No se encontró un APU de instalación con buena coincidencia."
+            )
     else:
-        log.append("ERROR: No se encontró un APU de instalación con los criterios iniciales.")
+        log.append("ERROR: No se encontró APU de instalación con criterios iniciales.")
 
     # --- 3. Devolver el Resultado Compuesto ---
     valor_construccion = valor_suministro + valor_instalacion
