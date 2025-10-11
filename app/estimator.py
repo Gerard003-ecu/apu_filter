@@ -56,7 +56,7 @@ def calculate_estimate(params: Dict[str, str], data_store: Dict) -> Dict[str, Un
     apu_encontrado = _find_apu_by_keywords(df_suministro_pool, keywords, log)
     if apu_encontrado is not None:
         valor_suministro = apu_encontrado["VALOR_SUMINISTRO_UN"]
-        apu_suministro_desc = apu_encontrado["original_description"]
+        apu_suministro_desc = apu_encontrado["DESCRIPCION_APU"]
         log.append(f"APU de Suministro encontrado: '{apu_suministro_desc}'. Valor: ${valor_suministro:,.0f}")
     else:
         log.append("No se encontró APU de suministro. Fallback a insumos no implementado.")
@@ -73,7 +73,7 @@ def calculate_estimate(params: Dict[str, str], data_store: Dict) -> Dict[str, Un
     if apu_encontrado is not None:
         valor_instalacion = apu_encontrado["VALOR_INSTALACION_UN"]
         tiempo_instalacion = apu_encontrado["TIEMPO_INSTALACION"]
-        apu_instalacion_desc = apu_encontrado["original_description"]
+        apu_instalacion_desc = apu_encontrado["DESCRIPCION_APU"]
         log.append(f"APU de Instalación encontrado: '{apu_instalacion_desc}'. Valor: ${valor_instalacion:,.0f}")
     else:
         log.append("No se encontró APU de instalación.")
