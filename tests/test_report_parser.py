@@ -7,24 +7,23 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 
 from app.report_parser import ReportParser
 
-# Datos de prueba actualizados para el nuevo parser basado en regex.
-# Simula un formato de texto de ancho fijo o delimitado por espacios.
+# Datos de prueba para el parser, utilizando formato delimitado por punto y coma.
 APUS_TEST_DATA = """
 ITEM: 1,1
 CONSTRUCCION DE MURO EN LADRILLO ESTRUCTURAL
-MATERIALES
-LAMINA DE 1.22 X 2.44 EN 6MM RH      M2      0,0420  -           37.000,00   1.554,00
-PERFIL TUBULAR CUADRADO 2" X 2"      ML      1,5000              12.000,00   18.000,00
-MANO DE OBRA
-AYUDANTE                             HR      1,0                 10.000,00   10.000,00
-OFICIAL                              HR      1,0                 15.000,00   15.000,00
-EQUIPO
-HERRAMIENTA MENOR                    %       18000      5%       900,00
+MATERIALES;;;;;
+LAMINA DE 1.22 X 2.44 EN 6MM RH;M2;0,0420;-;37.000,00;1.554,00
+PERFIL TUBULAR CUADRADO 2" X 2";ML;1,5000;;12.000,00;18.000,00
+MANO DE OBRA;;;;;
+AYUDANTE;HR;1,0;;10.000,00;10.000,00
+OFICIAL;HR;1,0;;15.000,00;15.000,00
+EQUIPO;;;;;
+HERRAMIENTA MENOR;%;0.05;-;18000;900,00
 ITEM: 1,2
 PUNTO HIDRAULICO AGUA FRIA/CALIENTE
-MATERIALES
-SOLDADURA PVC 1/4 GAL                UND     0,0200  -           50.000,00   1.000,00
-INSUMO CON NUMERO GRANDE             UND     2,0     -           1 250 500,50  2 501 001,00
+MATERIALES;;;;;
+SOLDADURA PVC 1/4 GAL;UND;0,0200;-;50.000,00;1.000,00
+INSUMO CON NUMERO GRANDE;UND;2,0;-;1 250 500,50;2 501 001,00
 """
 
 
