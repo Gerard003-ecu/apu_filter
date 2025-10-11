@@ -538,12 +538,13 @@ def _do_processing(presupuesto_path, apus_path, insumos_path):
             if col in df_processed_apus.columns:
                 df_processed_apus[col] = df_processed_apus[col].fillna(0)
 
-        # Aplicar la agrupación al DataFrame de búsqueda para el estimador
-        df_processed_apus = group_and_split_description(df_processed_apus)
-        # Ahora creamos la columna normalizada desde la descripción original completa
+        # 1. PRIMERO, crear la columna normalizada a partir de la descripción COMPLETA
         df_processed_apus["DESC_NORMALIZED"] = normalize_text(
-            df_processed_apus["original_description"]
+            df_processed_apus["DESCRIPCION_APU"]
         )
+
+        # 2. DESPUÉS, aplicar la división para la visualización en la UI
+        df_processed_apus = group_and_split_description(df_processed_apus)
         # --- FIN: Creación del DataFrame de APUs Procesados ---
 
         df_final = pd.merge(
