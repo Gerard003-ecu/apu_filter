@@ -513,23 +513,28 @@ def _do_processing(presupuesto_path, apus_path, insumos_path):
         df_tiempo.rename(columns={"CANTIDAD_APU": "TIEMPO_INSTALACION"}, inplace=True)
 
         # --- INICIO: Creación del DataFrame de APUs Procesados ---
+        # Unificar toda la información de APUs en un solo DataFrame para el estimador.
+
+        # 1. Obtener un mapa único de CODIGO_APU a DESCRIPCION_APU
         df_apu_descriptions = df_apus[["CODIGO_APU", "DESCRIPCION_APU"]].drop_duplicates()
 
+        # 2. Unir los costos calculados con las descripciones
         df_processed_apus = pd.merge(
             df_apu_costos_categoria, df_apu_descriptions, on="CODIGO_APU", how="left"
         )
+
+        # 3. Unir los tiempos de instalación
         df_processed_apus = pd.merge(
             df_processed_apus, df_tiempo, on="CODIGO_APU", how="left"
         )
 
+        # 4. Limpiar y crear la columna de búsqueda normalizada
         df_processed_apus["DESCRIPCION_APU"] = df_processed_apus["DESCRIPCION_APU"].fillna("")
-
-        # Crear la columna normalizada a partir de la descripción COMPLETA para la búsqueda
         df_processed_apus["DESC_NORMALIZED"] = normalize_text(
             df_processed_apus["DESCRIPCION_APU"]
         )
 
-        # Limpiar NaNs en columnas clave
+        # Limpiar NaNs en columnas clave para evitar errores posteriores
         fill_zero_cols = [
             "VALOR_SUMINISTRO_UN", "VALOR_INSTALACION_UN",
             "VALOR_CONSTRUCCION_UN", "TIEMPO_INSTALACION",
@@ -537,6 +542,9 @@ def _do_processing(presupuesto_path, apus_path, insumos_path):
         for col in fill_zero_cols:
             if col in df_processed_apus.columns:
                 df_processed_apus[col] = df_processed_apus[col].fillna(0)
+
+        # NO llamar a group_and_split_description aquí.
+        # Este DataFrame es exclusivamente para la lógica de búsqueda del estimador.
         # --- FIN: Creación del DataFrame de APUs Procesados ---
 
         df_final = pd.merge(
