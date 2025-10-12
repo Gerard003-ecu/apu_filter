@@ -1,689 +1,215 @@
-import csv
-import hashlib
-import json
 import logging
-import os
-import re
-from functools import lru_cache
-from typing import Dict, List, Optional
 
 import numpy as np
 import pandas as pd
-from fuzzywuzzy import process
-from unidecode import unidecode
 
 from .report_parser import ReportParser
-from .utils import clean_apu_code
+from .utils import clean_apu_code, normalize_text
 
-# Configurar logging
-logging.basicConfig(level=logging.DEBUG, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
-
-def encontrar_mejor_coincidencia(texto, opciones, umbral=70):
-    """Encuentra la mejor coincidencia de texto
-    en una lista de opciones usando fuzzy matching.
+# Estas funciones ahora viven aquí temporalmente para evitar dependencias circulares
+# TODO: Mover a un módulo de utils de dataframes o similar
+def group_and_split_description(df):
     """
-    if not texto or not opciones:
-        return None
-    coincidencia, puntaje = process.extractOne(texto, opciones)
-    return coincidencia if puntaje >= umbral else None
+    Agrupa por 'CODIGO_APU' y 'DESCRIPCION_APU', y luego divide la descripción
+    en una versión principal y una secundaria si encuentra un patrón como ' / '.
+    """
+    df_grouped = df.copy()
+    df_grouped["original_description"] = df_grouped["DESCRIPCION_APU"]
+
+    # Dividir la descripción solo si contiene ' / '
+    if "DESCRIPCION_APU" in df_grouped.columns:
+        split_desc = df_grouped["DESCRIPCION_APU"].str.split(" / ", n=1, expand=True)
+        df_grouped["DESCRIPCION_APU"] = split_desc[0]
+        if split_desc.shape[1] > 1:
+            df_grouped["descripcion_secundaria"] = split_desc[1]
+        else:
+            df_grouped["descripcion_secundaria"] = ""
+
+    return df_grouped
+
+def process_presupuesto_csv(file_path):
+    """Procesa el archivo CSV del presupuesto."""
+    try:
+        df = pd.read_csv(file_path, encoding="latin1", sep=";", skipinitialspace=True)
+        df["CODIGO_APU"] = df["ITEM"].astype(str).apply(clean_apu_code)
+        # Forzar la conversión a string antes de reemplazar la coma
+        df["CANTIDAD_PRESUPUESTO"] = pd.to_numeric(
+            df["CANT."].astype(str).str.replace(",", "."), errors="coerce"
+        ).fillna(0)
+        df["DESCRIPCION_APU"] = df["DESCRIPCION"]
+        return df[
+            ["CODIGO_APU", "DESCRIPCION_APU", "CANTIDAD_PRESUPUESTO"]
+        ].drop_duplicates()
+    except Exception as e:
+        logger.error(f"Error procesando el archivo de presupuesto: {e}")
+        return pd.DataFrame()
 
 
-def detect_delimiter(file_path: str) -> str:
-    """
-    Detecta el delimitador (',' o ';') de un archivo CSV usando csv.Sniffer.
-    """
+def process_insumos_csv(file_path):
+    """Procesa el archivo CSV de insumos que tiene un formato no estándar."""
     try:
         with open(file_path, "r", encoding="latin1") as f:
-            sample = f.read(2048)
-            sniffer = csv.Sniffer()
-            dialect = sniffer.sniff(sample, delimiters=";,")
-            return dialect.delimiter
-    except (csv.Error, FileNotFoundError):
-        # Fallback a ; si el sniffer falla o el archivo no existe
-        return ";"
+            lines = f.readlines()
 
+        records = []
+        current_group = None
+        header = None
 
-def safe_read_dataframe(path: str, **kwargs) -> Optional[pd.DataFrame]:
-    """
-    Lee un archivo de datos (CSV o Excel) de forma segura y eficiente.
-    - Para CSV, prueba explícitamente diferentes delimitadores y codificaciones.
-    - Para Excel, usa openpyxl.
-    - Convierte los tipos de datos a formatos eficientes con PyArrow.
-    """
-    file_extension = os.path.splitext(path)[1].lower()
-    df = None
+        for line in lines:
+            parts = [p.strip().replace('"', "") for p in line.strip().split(";")]
+            if not any(parts):
+                continue
+            if parts[0].startswith("G"):
+                current_group = parts[1]
+                header = None
+                continue
+            if "CODIGO" in parts[0] and "DESCRIPCION" in parts[1]:
+                header = ["CODIGO", "DESCRIPCION", "UND", "CANT.", "VR. UNIT."]
+                continue
+            if header and current_group:
+                record = {"GRUPO_INSUMO": current_group}
+                for i, col in enumerate(header):
+                    record[col] = parts[i] if i < len(parts) else None
+                records.append(record)
 
-    if file_extension == ".csv":
-        encodings = ["latin1", "utf-8", "iso-8859-1", "windows-1252"]
-        delimiters = [";", ","]
-
-        for delimiter in delimiters:
-            for encoding in encodings:
-                try:
-                    # Usar un manejador de contexto para asegurar que el archivo se cierre
-                    with open(path, "r", encoding=encoding) as f:
-                        # Pasamos el objeto de archivo a pandas, no la ruta
-                        # Si se especifica explícitamente que no hay cabecera,
-                        # debemos manejar CSVs "irregulares" proporcionando
-                        # nombres de columna para evitar que pandas infiera
-                        # el número de columnas de la primera fila.
-                        kwargs_for_csv = kwargs.copy()
-                        if (
-                            kwargs_for_csv.get("header") is None
-                            and "header" in kwargs_for_csv
-                        ):
-                            kwargs_for_csv["names"] = range(50)
-
-                        temp_df = pd.read_csv(
-                            f,
-                            encoding=encoding,
-                            delimiter=delimiter,
-                            decimal=".",
-                            on_bad_lines="warn",
-                            **kwargs_for_csv,
-                        )
-
-                        # Si el DataFrame tiene más de una columna
-                        # asumimos que el delimitador es correcto
-                        if temp_df.shape[1] > 1:
-                            logger.info(
-                                f"Éxito al leer"
-                                f"{os.path.basename(path)} con encoding '{encoding}'"
-                                f"y delimitador '{delimiter}'"
-                            )
-                            df = temp_df
-                            break  # Salir del bucle de encoding
-                except Exception:
-                    # Continuar al siguiente intento si hay cualquier error
-                    continue
-            if df is not None:
-                break  # Salir del bucle de delimiter
-
-    elif file_extension == ".xlsx":
-        try:
-            df = pd.read_excel(path, engine="openpyxl", **kwargs)
-            logger.info(f"Éxito al leer Excel {path}")
-        except Exception as e:
-            logger.error(f"Error fatal al leer el archivo Excel {path}: {e}", exc_info=True)
-            return None
-    else:
-        logger.error(f"Formato de archivo no soportado para {path}")
-        return None
-
-    if df is None:
-        logger.error(f"No se pudo leer {os.path.basename(path)} con ninguna combinación.")
-        return None
-
-    try:
-        # Optimización con PyArrow
-        df = df.convert_dtypes(dtype_backend="pyarrow")
-        logger.info(f"Tipos de datos optimizados con PyArrow para {path}")
-    except Exception as e:
-        logger.warning(f"No se pudo convertir los tipos a PyArrow para {path}: {e}")
-
-    return df
-
-
-def normalize_text(series, remove_accents=True, remove_special_chars=True):
-    """Normaliza texto sin perder información crítica (#, -)."""
-    normalized = series.astype(str).str.lower().str.strip()
-
-    if remove_accents:
-        normalized = normalized.apply(unidecode)
-
-    if remove_special_chars:
-        # Conservar números, # y -
-        normalized = normalized.str.replace(r"[^a-z0-9\s#\-]", "", regex=True)
-
-    normalized = normalized.str.replace(r"\s+", " ", regex=True)
-    return normalized
-
-
-def find_and_rename_columns(df, column_map, fuzzy_match=False):
-    """
-    Busca columnas que contengan un texto clave y las renombra.
-    Soporta coincidencia exacta y fuzzy.
-    """
-    rename_dict = {}
-    df.columns = df.columns.str.strip()
-
-    for new_name, keywords in column_map.items():
-        if not isinstance(keywords, list):
-            keywords = [keywords]
-
-        found_col = None
-        for keyword in keywords:
-            # Coincidencia exacta
-            for col in df.columns:
-                if keyword.lower() == col.lower():
-                    found_col = col
-                    break
-
-            # Coincidencia parcial si no se encontró exacta
-            if not found_col:
-                for col in df.columns:
-                    if keyword.lower() in col.lower():
-                        found_col = col
-                        break
-
-            if found_col:
-                rename_dict[found_col] = new_name
-                break
-
-    df = df.rename(columns=rename_dict)
-
-    # Verificar columnas faltantes
-    missing = [name for name in column_map.keys() if name not in df.columns]
-    if missing:
-        logger.warning(f"Columnas no encontradas: {missing}")
-
-    return df
-
-
-def load_config():
-    """Carga el archivo de configuración JSON."""
-    try:
-        # Asumimos que config.json está en el mismo directorio que este script
-        config_path = os.path.join(os.path.dirname(__file__), "config.json")
-        with open(config_path, "r", encoding="utf-8") as f:
-            return json.load(f)
-    except FileNotFoundError:
-        logger.error("El archivo config.json no fue encontrado.")
-        return {}
-    except json.JSONDecodeError:
-        logger.error("Error al decodificar config.json.")
-        return {}
-
-
-config = load_config()
-
-
-def to_numeric_safe(s):
-    if isinstance(s, (int, float)):
-        return s
-    if isinstance(s, str):
-        s_cleaned = s.replace(".", "").replace(",", ".").strip()
-        return pd.to_numeric(s_cleaned, errors="coerce")
-    return pd.NA
-
-
-def parse_data_line(parts: List[str], current_category: str) -> Optional[Dict]:
-    """
-    Parsea una línea de datos de un APU (insumo) y devuelve un diccionario con los datos.
-    Contiene lógica especializada para ítems de "MANO DE OBRA".
-    """
-    description = parts[0]
-    labor_prefixes = ["M.O.", "SISO", "INGENIERO"]
-    is_mano_de_obra = current_category == "MANO DE OBRA" or any(
-        description.upper().startswith(p) for p in labor_prefixes
-    )
-
-    if is_mano_de_obra and len(parts) >= 6:
-        # Lógica especializada para Mano de Obra
-        valor_total = to_numeric_safe(parts[5])
-        precio_unitario_jornal = to_numeric_safe(parts[3])
-        rendimiento = to_numeric_safe(parts[4])
-
-        cantidad = 0.0
-        if pd.notna(rendimiento) and rendimiento != 0:
-            cantidad = 1 / rendimiento
-
-        # El "Jornal Total" es el verdadero precio unitario para la mano de obra
-        precio_unit = precio_unitario_jornal
-
-    else:
-        # Lógica para Materiales y Otros (Fallback)
-        cantidad = to_numeric_safe(parts[2])
-        precio_unit = to_numeric_safe(parts[4])
-        valor_total = to_numeric_safe(parts[5])
-
-        # Si el valor total no está, pero sí la cantidad y el precio, se calcula
-        if pd.notna(cantidad) and pd.notna(precio_unit) and pd.isna(valor_total):
-            valor_total = cantidad * precio_unit
-
-    if pd.notna(valor_total):
-        return {
-            "DESCRIPCION_INSUMO": description,
-            "UNIDAD": parts[1],
-            "CANTIDAD_APU": cantidad if pd.notna(cantidad) else 0,
-            "PRECIO_UNIT_APU": precio_unit if pd.notna(precio_unit) else 0,
-            "VALOR_TOTAL_APU": valor_total if pd.notna(valor_total) else 0,
-            "CATEGORIA": current_category,
-        }
-    return None
-
-
-# En app/procesador_csv.py
-
-def process_presupuesto_csv(path: str) -> pd.DataFrame:
-    """Lee y limpia el archivo presupuesto (CSV o Excel) de forma robusta."""
-    df = safe_read_dataframe(path)
-    if df is None:
-        return pd.DataFrame()
-    try:
-        column_map = config.get("presupuesto_column_map", {})
-        df = find_and_rename_columns(df, column_map)
-        if "CODIGO_APU" not in df.columns:
-            logger.warning("La columna 'CODIGO_APU' no se encontró en el presupuesto.")
+        if not records:
             return pd.DataFrame()
 
-        # APLICACIÓN CORRECTA DE LA LIMPIEZA
-        df["CODIGO_APU"] = df["CODIGO_APU"].astype(str).apply(clean_apu_code)
-        df = df[df["CODIGO_APU"].notna() & (df["CODIGO_APU"] != "")]
-
-        cantidad_str = (
-            df["CANTIDAD_PRESUPUESTO"].astype(str).str.replace(",", ".", regex=False)
-        )
-        df["CANTIDAD_PRESUPUESTO"] = pd.to_numeric(cantidad_str, errors="coerce")
-        return df[["CODIGO_APU", "DESCRIPCION_APU", "CANTIDAD_PRESUPUESTO"]]
-    except Exception as e:
-        logger.error(f"Error procesando presupuesto.csv: {e}")
-        return pd.DataFrame()
-
-
-def process_insumos_csv(path: str) -> pd.DataFrame:
-    """
-    Lee y limpia insumos.csv, detectando encabezados SAGUT automáticamente
-    y soportando variantes en nombres de columnas.
-    """
-    data_rows = []
-    current_group = "INDEFINIDO"
-    desc_index, vr_unit_index = -1, -1
-
-    try:
-        delimiter = detect_delimiter(path)
-        if not delimiter:
-            return pd.DataFrame()
-
-        with open(path, "r", encoding="latin1") as f:
-            reader = csv.reader(f, delimiter=delimiter, quotechar='"')
-            for parts in reader:
-                if not parts or not any(p.strip() for p in parts):
-                    continue
-
-                parts = [p.strip() for p in parts]
-                line_for_check = " ".join(parts).upper()
-
-                # Detectar grupos
-                if len(parts) > 1 and parts[0].upper().startswith("G") and parts[1]:
-                    current_group = parts[1]
-                    continue
-
-                # Detectar encabezados SAGUT (más flexible)
-                if "DESCRIPCION" in line_for_check and "VR" in line_for_check:
-                    header_map = {col.upper(): idx for idx, col in enumerate(parts)}
-                    desc_index = header_map.get("DESCRIPCION", -1)
-                    vr_unit_index = next(
-                        (i for k, i in header_map.items() if "VR" in k and "UNIT" in k),
-                        -1,
-                    )
-                    continue
-
-                # Procesar filas de datos
-                if desc_index != -1 and vr_unit_index != -1:
-                    if len(parts) > max(desc_index, vr_unit_index):
-                        description = parts[desc_index]
-                        vr_unit_str = parts[vr_unit_index]
-                        if description and vr_unit_str:
-                            data_rows.append(
-                                {
-                                    "DESCRIPCION_INSUMO": description,
-                                    "VR_UNITARIO_INSUMO": vr_unit_str,
-                                    "GRUPO_INSUMO": current_group,
-                                }
-                            )
-
-        if not data_rows:
-            logger.warning(f"No se extrajeron filas de insumos de {path}")
-            return pd.DataFrame()
-
-        df = pd.DataFrame(data_rows)
-        df["VR_UNITARIO_INSUMO"] = pd.to_numeric(
-            df["VR_UNITARIO_INSUMO"].astype(str).str.replace(",", ".", regex=False),
-            errors="coerce",
-        )
-        df.dropna(subset=["DESCRIPCION_INSUMO", "VR_UNITARIO_INSUMO"], inplace=True)
-        df["NORMALIZED_DESC"] = normalize_text(df["DESCRIPCION_INSUMO"])
-        df = df.drop_duplicates(subset=["NORMALIZED_DESC"], keep="first")
-
-        return df[
-            ["NORMALIZED_DESC", "VR_UNITARIO_INSUMO", "GRUPO_INSUMO", "DESCRIPCION_INSUMO"]
-        ]
-
-    except Exception as e:
-        logger.error(f"Error procesando insumos.csv: {e}", exc_info=True)
-        return pd.DataFrame()
-
-
-def get_file_hash(path: str) -> str:
-    """Calcula el hash de un archivo para usar como clave de caché."""
-    hash_md5 = hashlib.md5()
-    try:
-        with open(path, "rb") as f:
-            for chunk in iter(lambda: f.read(4096), b""):
-                hash_md5.update(chunk)
-    except FileNotFoundError:
-        logger.error(f"No se pudo encontrar el archivo para hashear: {path}")
-        return ""
-    return hash_md5.hexdigest()
-
-
-def group_and_split_description(df: pd.DataFrame) -> pd.DataFrame:
-    if "DESCRIPCION_APU" not in df.columns:
-        df["grupo"] = "Ítems Varios"
-        df["DESCRIPCION_APU"] = ""
-        return df
-
-    def get_group_and_short_desc(desc):
-        if not isinstance(desc, str):
-            return "Ítems Varios", ""
-        cal_match = re.match(r"(.*? CAL\.? ?\d+)", desc, re.IGNORECASE)
-        if cal_match:
-            group = cal_match.group(1).strip()
-            short_desc = desc[len(cal_match.group(0)) :].strip()
-            short_desc = re.sub(
-                r"^(de|en|con|para)\s", "", short_desc, flags=re.IGNORECASE
-            ).strip()
-            return group, short_desc
-        words = desc.split()
-        if len(words) > 4:
-            return " ".join(words[:4]), " ".join(words[4:])
-        return desc, ""
-
-    df["original_description"] = df["DESCRIPCION_APU"]
-    df[["grupo", "descripcion_corta"]] = df["original_description"].apply(
-        lambda x: pd.Series(get_group_and_short_desc(x))
-    )
-    df["DESCRIPCION_APU"] = df["descripcion_corta"]
-    df.drop(columns=["descripcion_corta"], inplace=True)
-    return df
-
-
-def _do_processing(presupuesto_path, apus_path, insumos_path):
-    logger.info(f"Procesando archivos: {presupuesto_path}, {apus_path}, {insumos_path}")
-    df_presupuesto = process_presupuesto_csv(presupuesto_path)
-    df_insumos = process_insumos_csv(insumos_path)
-    parser = ReportParser(apus_path)
-    df_apus = parser.parse()
-
-    if df_presupuesto.empty or df_insumos.empty or df_apus.empty:
-        return {"error": "Uno o más archivos no pudieron ser procesados."}
-
-    try:
-        # --- INICIO DE LA LÓGICA CORREGIDA ---
-
-        # Forzar la limpieza de CODIGO_APU en todos los DFs antes de cualquier operación
-        df_apus['CODIGO_APU'] = (
-            df_apus['CODIGO_APU'].astype(str).apply(clean_apu_code)
-        )
-        df_presupuesto['CODIGO_APU'] = (
-            df_presupuesto['CODIGO_APU'].astype(str).apply(clean_apu_code)
-        )
-
-        # Calcular el rendimiento por día para cada APU.
-        # Es la suma de los rendimientos de sus insumos de "MANO DE OBRA".
-        df_rendimiento = (
-            df_apus[df_apus["CATEGORIA"] == "MANO DE OBRA"]
-            .groupby("CODIGO_APU")["RENDIMIENTO"]
-            .sum()
-            .reset_index()
-        )
-        df_rendimiento.rename(columns={"RENDIMIENTO": "RENDIMIENTO_DIA"}, inplace=True)
-        df_rendimiento['CODIGO_APU'] = df_rendimiento['CODIGO_APU'].astype(str).apply(clean_apu_code)
-
-
-        # --- Continuar con el procesamiento normal ---
-        df_merged = pd.merge(
-            df_apus, df_insumos, on="NORMALIZED_DESC", how="left", suffixes=("_apu", "")
-        )
-
-        # (el resto de la lógica de cálculo de costos de df_merged es correcta)
-        costo_insumo = np.where(
-            df_merged["VR_UNITARIO_INSUMO"].notna(),
-            df_merged["CANTIDAD"] * df_merged["VR_UNITARIO_INSUMO"],
-            df_merged["VR_TOTAL"],
-        )
-        df_merged["COSTO_INSUMO_EN_APU"] = pd.Series(costo_insumo).fillna(0)
-
-        df_merged["VR_UNITARIO_FINAL"] = df_merged["VR_UNITARIO_INSUMO"].fillna(
-            df_merged["VR_UNITARIO"]
-        )
-        mask_recalc = (df_merged["VR_UNITARIO_FINAL"].isna()) | (
-            df_merged["VR_UNITARIO_FINAL"] == 0
-        )
-        cantidad_safe = df_merged["CANTIDAD"].replace(0, 1)
-        df_merged.loc[mask_recalc, "VR_UNITARIO_FINAL"] = (
-            df_merged.loc[mask_recalc, "COSTO_INSUMO_EN_APU"] / cantidad_safe
-        )
-
-        df_apu_costos_categoria = (
-            df_merged.groupby(["CODIGO_APU", "CATEGORIA"])["COSTO_INSUMO_EN_APU"]
-            .sum().unstack(fill_value=0).reset_index()
-        )
-
-        # (el resto de la lógica de classify_apu, df_tiempo, etc. es correcta)
-        cost_cols = ["MATERIALES", "MANO DE OBRA", "EQUIPO", "OTROS"]
-        for col in cost_cols:
-            if col not in df_apu_costos_categoria.columns:
-                df_apu_costos_categoria[col] = 0
-
-        df_apu_costos_categoria["VALOR_SUMINISTRO_UN"] = (
-            df_apu_costos_categoria["MATERIALES"]
-        )
-        df_apu_costos_categoria["VALOR_INSTALACION_UN"] = (
-            df_apu_costos_categoria["MANO DE OBRA"]
-            + df_apu_costos_categoria["EQUIPO"]
-        )
-        df_apu_costos_categoria["VALOR_CONSTRUCCION_UN"] = df_apu_costos_categoria[
-            cost_cols
-        ].sum(axis=1)
-
-        def classify_apu(row):
-            costo_total = row["VALOR_CONSTRUCCION_UN"]
-            if costo_total == 0:
-                return "Indefinido"
-            porcentaje_mo_eq = (
-                (row.get("MANO DE OBRA", 0) + row.get("EQUIPO", 0)) / costo_total
-            ) * 100
-            if porcentaje_mo_eq > 75:
-                return "Instalación"
-            porcentaje_materiales = (row.get("MATERIALES", 0) / costo_total) * 100
-            if porcentaje_materiales > 75 and porcentaje_mo_eq < 10:
-                return "Suministro"
-            if porcentaje_materiales > 50 and porcentaje_mo_eq > 10:
-                return "Suministro (Pre-fabricado)"
-            return "Obra Completa"
-
-        df_apu_costos_categoria["tipo_apu"] = (
-            df_apu_costos_categoria.apply(classify_apu, axis=1)
-        )
-
-        df_tiempo = (
-            df_merged[df_merged["CATEGORIA"] == "MANO DE OBRA"]
-            .groupby("CODIGO_APU")["CANTIDAD"]
-            .sum()
-            .reset_index()
-        )
-        df_tiempo.rename(columns={"CANTIDAD": "TIEMPO_INSTALACION"}, inplace=True)
-        df_tiempo['CODIGO_APU'] = df_tiempo['CODIGO_APU'].astype(str).apply(clean_apu_code)
-
-
-        # --- RECONSTRUCCIÓN DE df_processed_apus ---
-        df_apu_descriptions = df_apus[["CODIGO_APU", "DESCRIPCION_APU", "UNIDAD_APU"]].drop_duplicates()
-
-        # Asegurar que la clave de merge esté limpia aquí también
-        df_apu_costos_categoria['CODIGO_APU'] = (
-            df_apu_costos_categoria['CODIGO_APU'].astype(str).apply(clean_apu_code)
-        )
-        df_apu_descriptions['CODIGO_APU'] = (
-            df_apu_descriptions['CODIGO_APU'].astype(str).apply(clean_apu_code)
-        )
-
-        df_processed_apus = pd.merge(
-            df_apu_costos_categoria, df_apu_descriptions, on="CODIGO_APU", how="left"
-        )
-        df_processed_apus = pd.merge(
-            df_processed_apus, df_tiempo, on="CODIGO_APU", how="left"
-        )
-        df_processed_apus = pd.merge(
-            df_processed_apus, df_rendimiento, on="CODIGO_APU", how="left"
-        )
-
-        # Renombrar para mayor claridad
-        df_processed_apus.rename(columns={"UNIDAD_APU": "UNIDAD"}, inplace=True)
-
-        # Llenar NaNs en la descripción
-        df_processed_apus["DESCRIPCION_APU"] = df_processed_apus["DESCRIPCION_APU"].fillna("")
-
-        # --- INICIO DE LA CORRECCIÓN ---
-        # 1. Crear la columna normalizada a partir de la descripción COMPLETA
-        df_processed_apus["DESC_NORMALIZED"] = normalize_text(df_processed_apus["DESCRIPCION_APU"])
-
-        # 2. Aplicar la división para la visualización en la UI
-        #    Esto crea 'original_description' y acorta 'DESCRIPCION_APU'
-        df_processed_apus = group_and_split_description(df_processed_apus)
-        # --- FIN DE LA CORRECCIÓN ---
-
-        fill_zero_cols = [
-            "VALOR_SUMINISTRO_UN", "VALOR_INSTALACION_UN",
-            "VALOR_CONSTRUCCION_UN", "TIEMPO_INSTALACION", "RENDIMIENTO_DIA",
-        ]
-        for col in fill_zero_cols:
-            if col in df_processed_apus.columns:
-                df_processed_apus[col] = df_processed_apus[col].fillna(0)
-
-        # --- FIN DE LA LÓGICA CORREGIDA ---
-
-        # (resto de la lógica de _do_processing para crear df_final y los diccionarios)
-        df_final = pd.merge(
-            df_presupuesto, df_apu_costos_categoria, on="CODIGO_APU", how="left"
-        )
-        df_final = pd.merge(df_final, df_tiempo, on="CODIGO_APU", how="left")
-        final_cols_to_fill = [
-            "VALOR_SUMINISTRO_UN", "VALOR_INSTALACION_UN",
-            "VALOR_CONSTRUCCION_UN", "TIEMPO_INSTALACION",
-        ]
-        for col in final_cols_to_fill:
-            if col in df_final.columns:
-                df_final[col] = df_final[col].fillna(0)
-            else:
-                df_final[col] = 0
-        df_final = group_and_split_description(df_final)
-
-        # Asegurarse de que la columna TIPO_INSUMO exista para la lógica del estimador
-        if "TIPO_INSUMO" not in df_merged.columns and "CATEGORIA" in df_merged.columns:
-            df_merged["TIPO_INSUMO"] = df_merged["CATEGORIA"]
-
-        # Renombrar columnas finales para consistencia en la salida
-        df_merged.rename(
-            columns={
-                "VR_UNITARIO_FINAL": "VALOR_UNITARIO",
-                "COSTO_INSUMO_EN_APU": "VALOR_TOTAL",
-            },
+        df = pd.DataFrame(records)
+        df.rename(
+            columns={"DESCRIPCION": "DESCRIPCION_INSUMO", "VR. UNIT.": "VR_UNITARIO_INSUMO"},
             inplace=True,
         )
-
-        # Renombrar df_merged para claridad antes de la limpieza
-        df_merged_renamed = df_merged
-
-        logger.info("--- Procesamiento completado ---")
-
-        # --- INICIO DE LA CORRECCIÓN ---
-        # Reemplazar NaN por None en TODOS los DataFrames antes de la conversión
-        # para asegurar una serialización JSON válida.
-        df_final = df_final.replace({np.nan: None})
-        df_merged_renamed = df_merged_renamed.replace({np.nan: None})
-        df_apus = df_apus.replace({np.nan: None})
-        df_insumos = df_insumos.replace({np.nan: None})
-        df_processed_apus = df_processed_apus.replace({np.nan: None})
-
-        # Ahora, las conversiones a diccionario serán seguras
-        apus_detail = df_merged_renamed.to_dict("records")
-
-        insumos_dict = {}
-        if "GRUPO_INSUMO" in df_insumos.columns:
-            df_insumos_renamed = df_insumos.rename(
-                columns={
-                    "DESCRIPCION_INSUMO": "Descripción",
-                    "VR_UNITARIO_INSUMO": "Vr Unitario",
-                }
-            )
-            for name, group in df_insumos_renamed.groupby("GRUPO_INSUMO"):
-                if name and isinstance(name, str):
-                    insumos_dict[name.strip()] = (
-                        group[["Descripción", "Vr Unitario"]]
-                        .replace({np.nan: None}) # También aquí por seguridad
-                        .dropna()
-                        .to_dict("records")
-                    )
-        # --- FIN DE LA CORRECCIÓN ---
-
-        # Construir el diccionario de resultados como antes
-        result_dict = {
-            "presupuesto": df_final.to_dict("records"),
-            "insumos": insumos_dict,
-            "apus_detail": apus_detail,
-            "all_apus": df_apus.to_dict("records"),
-            "raw_insumos_df": df_insumos.to_dict("records"),
-            "processed_apus": df_processed_apus.to_dict("records"),
-        }
-
-        # --- INICIO DE LA CORRECCIÓN ---
-        # Forzar una serialización y deserialización para limpiar todos los tipos de datos no estándar
-        try:
-            logger.debug("Sanitizando el diccionario de resultados para una salida JSON válida...")
-
-            # 1. Convertir a una cadena JSON usando el motor de Pandas/Numpy
-            #    (Versión corregida SIN allow_nan=False)
-            json_string = json.dumps(result_dict, default=lambda x: None if pd.isna(x) else x)
-
-            # 2. Convertir de nuevo a un objeto Python.
-            sanitized_result = json.loads(json_string)
-            logger.debug("Sanitización completada.")
-
-            return sanitized_result
-
-        except Exception as e:
-            logger.error(f"Error durante la sanitización final del JSON: {e}", exc_info=True)
-            return result_dict
-        # --- FIN DE LA CORRECCIÓN ---
-
+        final_cols = ["GRUPO_INSUMO", "DESCRIPCION_INSUMO", "VR_UNITARIO_INSUMO"]
+        df = df[final_cols]
+        # Forzar la conversión a string antes de reemplazar la coma
+        df["VR_UNITARIO_INSUMO"] = pd.to_numeric(
+            df["VR_UNITARIO_INSUMO"].astype(str).str.replace(",", "."), errors="coerce"
+        )
+        df["NORMALIZED_DESC"] = normalize_text(df["DESCRIPCION_INSUMO"])
+        return df.dropna(subset=["DESCRIPCION_INSUMO"])
     except Exception as e:
-        logger.error(f"ERROR CRÍTICO en _do_processing: {e}", exc_info=True)
-        return {"error": f"Fallo en la etapa de procesamiento de datos: {e}"}
+        logger.error(f"Error procesando el archivo de insumos: {e}")
+        return pd.DataFrame()
 
 
-@lru_cache(maxsize=10)
-def _cached_csv_processing(
-    presupuesto_hash, apus_hash, insumos_hash, presupuesto_path, apus_path, insumos_path
-):
-    logger.info("Cache miss.")
+def process_all_files(presupuesto_path, apus_path, insumos_path):
+    """Función principal que orquesta el procesamiento de todos los archivos."""
     return _do_processing(presupuesto_path, apus_path, insumos_path)
 
 
-def process_all_files(
-    presupuesto_path: str, apus_path: str, insumos_path: str, use_cache: bool = True
-):
-    if not use_cache:
-        _cached_csv_processing.cache_clear()
-        logger.info("Caché limpiado forzosamente y procesando sin caché.")
-        return _do_processing(presupuesto_path, apus_path, insumos_path)
-    try:
-        file_hashes = (
-            get_file_hash(presupuesto_path),
-            get_file_hash(apus_path),
-            get_file_hash(insumos_path),
-        )
-        if any(h == "" for h in file_hashes):
-            return {"error": "No se pudo generar el hash para uno o más archivos."}
-    except Exception as e:
-        logger.error(f"Error al generar hashes de archivos: {e}")
-        return {"error": f"Error al generar hashes: {e}"}
-    result = _cached_csv_processing(*file_hashes, presupuesto_path, apus_path, insumos_path)
-    info = _cached_csv_processing.cache_info()
-    logger.info(f"Cache info: hits={info.hits}, misses={info.misses}, size={info.currsize}")
-    return result
+def _do_processing(presupuesto_path, apus_path, insumos_path):
+    logger.info(f"Iniciando procesamiento: {presupuesto_path}, {apus_path}, {insumos_path}")
 
+    # 1. Cargar todos los datos base
+    df_presupuesto = process_presupuesto_csv(presupuesto_path)
+    df_insumos = process_insumos_csv(insumos_path)
+    parser = ReportParser(apus_path)
+    df_apus_raw = parser.parse()
 
+    if df_presupuesto.empty or df_insumos.empty or df_apus_raw.empty:
+        return {"error": "Fallo al cargar uno o más archivos de datos."}
+
+    # 2. Unificar y calcular costos de insumos
+    df_merged = pd.merge(
+        df_apus_raw, df_insumos, on="NORMALIZED_DESC", how="left", suffixes=("_apu", "")
+    )
+    df_merged["TIPO_INSUMO"] = df_merged["CATEGORIA"]
+
+    # Coalesce: Usar la descripción del insumo maestro si existe, si no, usar la del APU.
+    # Esto es crucial para no perder descripciones de mano de obra o insumos no mapeados.
+    df_merged['DESCRIPCION_INSUMO'] = df_merged['DESCRIPCION_INSUMO'].fillna(df_merged['DESCRIPCION_INSUMO_apu'])
+
+    # La unidad del insumo siempre vendrá del reporte de APU, así que renombramos la columna.
+    df_merged.rename(columns={"UNIDAD_INSUMO_apu": "UNIDAD_INSUMO"}, inplace=True)
+
+    # Calcular el costo real de cada insumo en el APU
+    costo_insumo = np.where(
+        df_merged["VR_UNITARIO_INSUMO"].notna(),
+        df_merged["CANTIDAD_APU"] * df_merged["VR_UNITARIO_INSUMO"],
+        df_merged["VALOR_TOTAL_APU"]
+    )
+    df_merged["COSTO_INSUMO_EN_APU"] = pd.Series(costo_insumo).fillna(0)
+
+    # Calcular el precio unitario final de cada insumo
+    df_merged["VR_UNITARIO_FINAL"] = df_merged["VR_UNITARIO_INSUMO"].fillna(df_merged["PRECIO_UNIT_APU"])
+    cantidad_safe = df_merged["CANTIDAD_APU"].replace(0, 1)
+    df_merged["VR_UNITARIO_FINAL"] = df_merged["VR_UNITARIO_FINAL"].fillna(
+        df_merged["COSTO_INSUMO_EN_APU"] / cantidad_safe
+    )
+
+    # 3. Agregar costos por APU y categoría
+    df_apu_costos = df_merged.groupby(["CODIGO_APU", "CATEGORIA"])["COSTO_INSUMO_EN_APU"].sum().unstack(fill_value=0).reset_index()
+
+    cost_cols = ["MATERIALES", "MANO DE OBRA", "EQUIPO", "OTROS"]
+    for col in cost_cols:
+        if col not in df_apu_costos.columns:
+            df_apu_costos[col] = 0
+
+    # 4. Calcular valores unitarios y clasificar APUs
+    df_apu_costos["VALOR_SUMINISTRO_UN"] = df_apu_costos["MATERIALES"]
+    df_apu_costos["VALOR_INSTALACION_UN"] = df_apu_costos["MANO DE OBRA"] + df_apu_costos["EQUIPO"]
+    df_apu_costos["VALOR_CONSTRUCCION_UN"] = df_apu_costos[cost_cols].sum(axis=1)
+
+    def classify_apu(row):
+        # ... (la función classify_apu no necesita cambios)
+        costo_total = row["VALOR_CONSTRUCCION_UN"]
+        if costo_total == 0: return "Indefinido"
+        porcentaje_mo_eq = ((row.get("MANO DE OBRA", 0) + row.get("EQUIPO", 0)) / costo_total) * 100
+        if porcentaje_mo_eq > 75: return "Instalación"
+        porcentaje_materiales = (row.get("MATERIALES", 0) / costo_total) * 100
+        if porcentaje_materiales > 75 and porcentaje_mo_eq < 10: return "Suministro"
+        if porcentaje_materiales > 50 and porcentaje_mo_eq > 10: return "Suministro (Pre-fabricado)"
+        return "Obra Completa"
+
+    df_apu_costos["tipo_apu"] = df_apu_costos.apply(classify_apu, axis=1)
+
+    # 5. Calcular tiempo y rendimiento
+    df_tiempo = df_merged[df_merged["CATEGORIA"] == "MANO DE OBRA"].groupby("CODIGO_APU")["CANTIDAD_APU"].sum().reset_index()
+    df_tiempo.rename(columns={"CANTIDAD_APU": "TIEMPO_INSTALACION"}, inplace=True)
+
+    df_rendimiento = df_merged[df_merged["CATEGORIA"] == "MANO DE OBRA"].groupby("CODIGO_APU")["RENDIMIENTO"].sum().reset_index()
+    df_rendimiento.rename(columns={"RENDIMIENTO": "RENDIMIENTO_DIA"}, inplace=True)
+
+    # 6. Construir el DataFrame final para el presupuesto (df_final)
+    df_final = pd.merge(df_presupuesto, df_apu_costos, on="CODIGO_APU", how="left")
+    df_final = pd.merge(df_final, df_tiempo, on="CODIGO_APU", how="left")
+    df_final = group_and_split_description(df_final) # Esto crea 'original_description'
+
+    # 7. Construir el DataFrame final para el estimador (df_processed_apus)
+    df_apu_descriptions = df_apus_raw[["CODIGO_APU", "DESCRIPCION_APU", "UNIDAD_APU"]].drop_duplicates()
+    df_processed_apus = pd.merge(df_apu_costos, df_apu_descriptions, on="CODIGO_APU", how="left")
+    df_processed_apus = pd.merge(df_processed_apus, df_tiempo, on="CODIGO_APU", how="left")
+    df_processed_apus = pd.merge(df_processed_apus, df_rendimiento, on="CODIGO_APU", how="left")
+    df_processed_apus.rename(columns={"UNIDAD_APU": "UNIDAD"}, inplace=True)
+    df_processed_apus["DESC_NORMALIZED"] = normalize_text(df_processed_apus["DESCRIPCION_APU"])
+    df_processed_apus = group_and_split_description(df_processed_apus) # Esto crea 'original_description'
+
+    # 8. Preparar diccionarios de salida y sanitizar
+    df_merged.rename(columns={"VR_UNITARIO_FINAL": "VR_UNITARIO", "COSTO_INSUMO_EN_APU": "VR_TOTAL"}, inplace=True)
+
+    # Sanitización final para evitar errores JSON
+    dataframes_to_sanitize = [df_final, df_merged, df_apus_raw, df_insumos, df_processed_apus]
+    for df in dataframes_to_sanitize:
+        df.replace({np.nan: None}, inplace=True)
+
+    apus_detail = df_merged.to_dict("records")
+
+    insumos_dict = {
+        name.strip(): group[["DESCRIPCION_INSUMO", "VR_UNITARIO_INSUMO"]].dropna().to_dict("records")
+        for name, group in df_insumos.groupby("GRUPO_INSUMO") if name and isinstance(name, str)
+    }
+
+    result_dict = {
+        "presupuesto": df_final.to_dict("records"),
+        "insumos": insumos_dict,
+        "apus_detail": apus_detail,
+        "all_apus": df_apus_raw.to_dict("records"),
+        "raw_insumos_df": df_insumos.to_dict("records"),
+        "processed_apus": df_processed_apus.to_dict("records"),
+    }
+
+    logger.info("--- Procesamiento completado ---")
+    return result_dict

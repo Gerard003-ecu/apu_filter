@@ -14,12 +14,9 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 # Importar la app de Flask y las funciones a probar
 from app.app import create_app, user_sessions
 from app.procesador_csv import (
-    _cached_csv_processing,
-    find_and_rename_columns,
-    normalize_text,
     process_all_files,
-    safe_read_dataframe,
 )
+from app.utils import normalize_text
 
 # ======================================================================
 # DATOS DE PRUEBA GLOBALES
@@ -143,41 +140,6 @@ INSUMOS_DATA_COMMA = (
     '"INS-002","Mano de Obra Especializada","HR","","20.00"\n'
 )
 
-class TestIndividualFunctions(unittest.TestCase):
-    def test_safe_read_dataframe(self):
-        self.assertIsNone(safe_read_dataframe("non_existent_file.csv"))
-        with open("test_encoding.csv", "w", encoding="latin1") as f:
-            f.write("col1;col2\né;ñ")
-        df_csv = safe_read_dataframe("test_encoding.csv")
-        self.assertIsNotNone(df_csv)
-        self.assertEqual(df_csv.shape, (1, 2))
-        os.remove("test_encoding.csv")
-        df_to_excel = pd.DataFrame({"col1": ["é"], "col2": ["ñ"]})
-        df_to_excel.to_excel("test.xlsx", index=False)
-        df_xlsx = safe_read_dataframe("test.xlsx")
-        self.assertIsNotNone(df_xlsx)
-        self.assertEqual(df_xlsx.shape, (1, 2))
-        os.remove("test.xlsx")
-
-    def test_normalize_text(self):
-        s = pd.Series(["  Texto CON Acentos y Ñ  ", "  Múltiples   espacios  "])
-        result = normalize_text(s)
-        self.assertEqual(result.iloc[0], "texto con acentos y n")
-        self.assertEqual(result.iloc[1], "multiples espacios")
-
-    def test_find_and_rename_columns(self):
-        df = pd.DataFrame(columns=["  ITEM ", "DESCRIPCION DEL APU", "  CANT. "])
-        column_map = {
-            "CODIGO_APU": ["item"],
-            "DESCRIPCION_APU": ["descripcion"],
-            "CANTIDAD_PRESUPUESTO": ["cantidad", "cant"],
-        }
-        renamed_df = find_and_rename_columns(df, column_map)
-        self.assertIn("CODIGO_APU", renamed_df.columns)
-        self.assertIn("DESCRIPCION_APU", renamed_df.columns)
-        self.assertIn("CANTIDAD_PRESUPUESTO", renamed_df.columns)
-
-
 class TestCSVProcessor(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -197,11 +159,7 @@ class TestCSVProcessor(unittest.TestCase):
         os.remove(cls.apus_path)
         os.remove(cls.insumos_path)
 
-    def setUp(self):
-        _cached_csv_processing.cache_clear()
-
-    @patch("app.procesador_csv.config", new_callable=lambda: TEST_CONFIG)
-    def test_process_all_files_structure_and_calculations(self, mock_config):
+    def test_process_all_files_structure_and_calculations(self):
         resultado = process_all_files(
             self.presupuesto_path, self.apus_path, self.insumos_path
         )
@@ -226,10 +184,12 @@ class TestCSVProcessor(unittest.TestCase):
         ]
         self.assertEqual(len(apu_detail_ing_list), 1)
         ing_item = apu_detail_ing_list[0]
-        self.assertEqual(ing_item["DESCRIPCION"], "INGENIERO RESIDENTE")
-        self.assertAlmostEqual(ing_item["CANTIDAD"], 0.1)
-        self.assertAlmostEqual(ing_item["VALOR_UNITARIO"], 150000)
-        self.assertAlmostEqual(ing_item["VALOR_TOTAL"], 15000)
+        # La descripción del insumo ahora viene de la columna 'DESCRIPCION_INSUMO'
+        self.assertEqual(ing_item["DESCRIPCION_INSUMO"], "INGENIERO RESIDENTE")
+        self.assertAlmostEqual(ing_item["CANTIDAD_APU"], 0.1)
+        self.assertAlmostEqual(ing_item["PRECIO_UNIT_APU"], 150000)
+        # El nombre final de la columna en el diccionario de salida es VR_TOTAL
+        self.assertAlmostEqual(ing_item["VR_TOTAL"], 15000)
 
 
 class TestAppEndpoints(unittest.TestCase):
@@ -255,16 +215,17 @@ class TestAppEndpoints(unittest.TestCase):
     def _get_test_file(self, filename, content):
         return (io.BytesIO(content.encode("latin1")), filename)
 
-    @patch("app.procesador_csv.config", new_callable=lambda: TEST_CONFIG)
-    @patch("app.estimator.config", new_callable=lambda: TEST_CONFIG)
-    def test_get_estimate_with_session(self, mock_estimator_config, mock_processor_config):
+    def test_get_estimate_with_session(self):
         with self.client as c:
             data = {
                 "presupuesto": self._get_test_file("presupuesto.csv", PRESUPUESTO_DATA),
                 "apus": self._get_test_file("apus.csv", APUS_DATA),
                 "insumos": self._get_test_file("insumos.csv", INSUMOS_DATA),
             }
+            # Set the app config directly for the test
+            c.application.config["APP_CONFIG"] = TEST_CONFIG
             c.post("/upload", data=data, content_type="multipart/form-data")
+
             # Usa los nuevos parámetros que incluyen la cuadrilla
             estimate_params = {"material": "TST", "cuadrilla": "4"}
             response = c.post("/api/estimate", json=estimate_params)

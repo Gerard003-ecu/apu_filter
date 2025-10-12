@@ -3,7 +3,7 @@ from typing import Dict, List, Optional, Union
 
 import pandas as pd
 
-from .procesador_csv import config, normalize_text
+from .utils import normalize_text
 
 logger = logging.getLogger(__name__)
 
@@ -43,7 +43,7 @@ def _find_best_match(df_pool: pd.DataFrame, keywords: List[str], log: List[str],
     return None
 
 
-def calculate_estimate(params: Dict[str, str], data_store: Dict) -> Dict[str, Union[str, float, List[str]]]:
+def calculate_estimate(params: Dict[str, str], data_store: Dict, config: Dict) -> Dict[str, Union[str, float, List[str]]]:
     log = []
     # ... (validación de parámetros como antes) ...
 
@@ -130,7 +130,7 @@ def calculate_estimate(params: Dict[str, str], data_store: Dict) -> Dict[str, Un
             mano_de_obra = apu_details[apu_details["TIPO_INSUMO"] == "MANO DE OBRA"]
 
             if not mano_de_obra.empty:
-                tiempo_total_por_unidad = mano_de_obra["CANTIDAD"].sum()
+                tiempo_total_por_unidad = mano_de_obra["CANTIDAD_APU"].sum()
                 log.append(f"      - Insumos 'MANO DE OBRA' encontrados: {len(mano_de_obra)}")
                 log.append(f"      - Tiempo total sumado (Cantidades): {tiempo_total_por_unidad:.4f}")
 

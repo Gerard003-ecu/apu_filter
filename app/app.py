@@ -238,7 +238,7 @@ def create_app(config_name):
             return jsonify({"error": "No se proporcionaron parámetros"}), 400
 
         try:
-            result = calculate_estimate(params, user_data)
+            result = calculate_estimate(params, user_data, app.config.get("APP_CONFIG", {}))
             if "error" in result:
                 return jsonify(result), 400
             return jsonify(result)
