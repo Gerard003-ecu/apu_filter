@@ -590,16 +590,16 @@ def _do_processing(presupuesto_path, apus_path, insumos_path):
 
         logger.info("--- Procesamiento completado ---")
 
-        # --- INICIO DE LA CORRECCIÓN: Limpieza final de NaN antes de la serialización ---
-        # Reemplazar NaN por None (JSON-friendly null) en todos los DataFrames finales
+        # --- INICIO DE LA CORRECCIÓN ---
+        # Reemplazar NaN por None en TODOS los DataFrames antes de la conversión
+        # para asegurar una serialización JSON válida.
         df_final = df_final.replace({np.nan: None})
         df_merged_renamed = df_merged_renamed.replace({np.nan: None})
         df_apus = df_apus.replace({np.nan: None})
         df_insumos = df_insumos.replace({np.nan: None})
         df_processed_apus = df_processed_apus.replace({np.nan: None})
 
-        # La creación de apus_detail debe ser una conversión directa a una lista plana.
-        # El groupby ya no es necesario aquí.
+        # Ahora, las conversiones a diccionario serán seguras
         apus_detail = df_merged_renamed.to_dict("records")
 
         insumos_dict = {}
@@ -613,7 +613,10 @@ def _do_processing(presupuesto_path, apus_path, insumos_path):
             for name, group in df_insumos_renamed.groupby("GRUPO_INSUMO"):
                 if name and isinstance(name, str):
                     insumos_dict[name.strip()] = (
-                        group[["Descripción", "Vr Unitario"]].to_dict("records")
+                        group[["Descripción", "Vr Unitario"]]
+                        .replace({np.nan: None}) # También aquí por seguridad
+                        .dropna()
+                        .to_dict("records")
                     )
         # --- FIN DE LA CORRECCIÓN ---
 
