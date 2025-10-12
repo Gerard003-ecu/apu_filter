@@ -1,0 +1,56 @@
+ * Serving Flask app 'app.app:create_app('development')'
+ * Debug mode: off
+2025-10-11 19:06:16,948 - INFO - WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
+ * Running on http://127.0.0.1:5002
+2025-10-11 19:06:16,948 - INFO - Press CTRL+C to quit
+2025-10-11 19:06:22,558 - INFO - 127.0.0.1 - - [11/Oct/2025 19:06:22] "GET / HTTP/1.1" 200 -
+2025-10-11 19:06:23,906 - INFO - 127.0.0.1 - - [11/Oct/2025 19:06:23] "GET /favicon.ico HTTP/1.1" 404 -
+2025-10-11 19:06:25,494 - INFO - Cache miss.
+2025-10-11 19:06:25,495 - INFO - Procesando archivos: /Users/gerardomayor/Documents/estru_techos/apu_filter/uploads/483f0122-c6a5-4596-b2c7-baf8571d454e/presupuesto.csv, /Users/gerardomayor/Documents/estru_techos/apu_filter/uploads/483f0122-c6a5-4596-b2c7-baf8571d454e/apus.csv, /Users/gerardomayor/Documents/estru_techos/apu_filter/uploads/483f0122-c6a5-4596-b2c7-baf8571d454e/insumos.csv
+2025-10-11 19:06:25,557 - INFO - Éxito al leerpresupuesto.csv con encoding 'latin1'y delimitador ';'
+2025-10-11 19:06:25,596 - INFO - Tipos de datos optimizados con PyArrow para /Users/gerardomayor/Documents/estru_techos/apu_filter/uploads/483f0122-c6a5-4596-b2c7-baf8571d454e/presupuesto.csv
+2025-10-11 19:06:25,666 - INFO - Iniciando el parsing del archivo: /Users/gerardomayor/Documents/estru_techos/apu_filter/uploads/483f0122-c6a5-4596-b2c7-baf8571d454e/apus.csv
+2025-10-11 19:06:25,974 - INFO - Cache info: hits=0, misses=1, size=1
+2025-10-11 19:06:25,992 - INFO - 127.0.0.1 - - [11/Oct/2025 19:06:25] "POST /upload HTTP/1.1" 200 -
+2025-10-11 19:06:26,159 - INFO - 127.0.0.1 - - [11/Oct/2025 19:06:26] "POST /api/estimate HTTP/1.1" 200 -
+2025-10-11 19:06:26,196 - INFO - 127.0.0.1 - - [11/Oct/2025 19:06:26] "POST /api/estimate HTTP/1.1" 200 -
+2025-10-11 19:06:41,973 - ERROR - Exception on /api/apu/16,2 [GET]
+Traceback (most recent call last):
+  File "/Users/gerardomayor/Documents/estru_techos/apu_filter/.venv/lib/python3.12/site-packages/flask/app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/gerardomayor/Documents/estru_techos/apu_filter/.venv/lib/python3.12/site-packages/flask/app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/gerardomayor/Documents/estru_techos/apu_filter/.venv/lib/python3.12/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/gerardomayor/Documents/estru_techos/apu_filter/.venv/lib/python3.12/site-packages/flask/app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/gerardomayor/Documents/estru_techos/apu_filter/app/app.py", line 139, in get_apu_detail
+    apu_details = user_data.get("apus_detail", {}).get(apu_code)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'list' object has no attribute 'get'
+2025-10-11 19:06:41,994 - ERROR - Error interno del servidor: 500 Internal Server Error: The server encountered an internal error and was unable to complete your request. Either the server is overloaded or there is an error in the application.
+2025-10-11 19:06:41,995 - INFO - 127.0.0.1 - - [11/Oct/2025 19:06:41] "GET /api/apu/16,2 HTTP/1.1" 500 -
+2025-10-11 19:06:46,672 - ERROR - Exception on /api/apu/16,2 [GET]
+Traceback (most recent call last):
+  File "/Users/gerardomayor/Documents/estru_techos/apu_filter/.venv/lib/python3.12/site-packages/flask/app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/gerardomayor/Documents/estru_techos/apu_filter/.venv/lib/python3.12/site-packages/flask/app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/gerardomayor/Documents/estru_techos/apu_filter/.venv/lib/python3.12/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/gerardomayor/Documents/estru_techos/apu_filter/.venv/lib/python3.12/site-packages/flask/app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/gerardomayor/Documents/estru_techos/apu_filter/app/app.py", line 139, in get_apu_detail
+    apu_details = user_data.get("apus_detail", {}).get(apu_code)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'list' object has no attribute 'get'
+2025-10-11 19:06:46,674 - ERROR - Error interno del servidor: 500 Internal Server Error: The server encountered an internal error and was unable to complete your request. Either the server is overloaded or there is an error in the application.
+2025-10-11 19:06:46,674 - INFO - 127.0.0.1 - - [11/Oct/2025 19:06:46] "GET /api/apu/16,2 HTTP/1.1" 500 -
