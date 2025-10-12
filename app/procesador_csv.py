@@ -620,7 +620,8 @@ def _do_processing(presupuesto_path, apus_path, insumos_path):
                     )
         # --- FIN DE LA CORRECCIÓN ---
 
-        return {
+        # Construir el diccionario de resultados como antes
+        result_dict = {
             "presupuesto": df_final.to_dict("records"),
             "insumos": insumos_dict,
             "apus_detail": apus_detail,
@@ -628,6 +629,26 @@ def _do_processing(presupuesto_path, apus_path, insumos_path):
             "raw_insumos_df": df_insumos.to_dict("records"),
             "processed_apus": df_processed_apus.to_dict("records"),
         }
+
+        # --- INICIO DE LA CORRECCIÓN ---
+        # Forzar una serialización y deserialización para limpiar todos los tipos de datos no estándar
+        try:
+            logger.debug("Sanitizando el diccionario de resultados para una salida JSON válida...")
+            # 1. Convertir a una cadena JSON usando el motor de Pandas/Numpy
+            # Usamos una lambda para manejar valores que pd.isna reconoce pero json no.
+            json_string = json.dumps(result_dict, default=lambda x: None if pd.isna(x) else x)
+
+            # 2. Convertir de nuevo a un objeto Python. Esto reemplazará NaN/NaT con None.
+            sanitized_result = json.loads(json_string)
+            logger.debug("Sanitización completada.")
+
+            return sanitized_result
+
+        except Exception as e:
+            logger.error(f"Error durante la sanitización final del JSON: {e}", exc_info=True)
+            # Devolver el diccionario original si la sanitización falla, para no romper todo
+            return result_dict
+        # --- FIN DE LA CORRECCIÓN ---
 
     except Exception as e:
         logger.error(f"ERROR CRÍTICO en _do_processing: {e}", exc_info=True)
