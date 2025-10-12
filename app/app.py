@@ -130,35 +130,46 @@ def create_app(config_name):
 
     @app.route("/api/apu/<code>", methods=["GET"])
     def get_apu_detail(code):
-        """Devuelve los detalles de un APU."""
+        """Devuelve los detalles de un APU, adaptado para la nueva estructura de lista."""
         user_data, error_response, status_code = get_user_data()
         if error_response:
             return error_response, status_code
 
         apu_code = code.replace("%2C", ",")
-        apu_details = user_data.get("apus_detail", {}).get(apu_code)
-        if not apu_details:
+
+        # Obtener la lista plana de todos los detalles de APU
+        all_apu_details = user_data.get("apus_detail", [])
+        if not isinstance(all_apu_details, list):
+            # Fallback por si algo sale mal
+            return jsonify({"error": "Formato de datos de apus_detail incorrecto"}), 500
+
+        # Filtrar la lista para encontrar los insumos del APU solicitado
+        apu_details_for_code = [
+            item for item in all_apu_details if item.get("CODIGO_APU") == apu_code
+        ]
+
+        if not apu_details_for_code:
             return jsonify({"error": "APU no encontrado"}), 404
 
+        # El resto de la lógica para agrupar por categoría y simular sigue siendo válida
         presupuesto_item = next(
-            (item for item in user_data.get("presupuesto",
-            []) if item.get("CODIGO_APU") == apu_code),
+            (item for item in user_data.get("presupuesto", []) if item.get("CODIGO_APU") == apu_code),
             None,
         )
 
         desglose = {}
-        for item in apu_details:
+        for item in apu_details_for_code:
             categoria = item.get("CATEGORIA", "INDEFINIDO")
             if categoria not in desglose:
                 desglose[categoria] = []
             desglose[categoria].append(item)
 
-        simulation_results = run_monte_carlo_simulation(apu_details)
+        simulation_results = run_monte_carlo_simulation(apu_details_for_code)
 
         response = {
             "codigo": apu_code,
             "descripcion": (
-                presupuesto_item.get("DESCRIPCION_APU", "")
+                presupuesto_item.get("original_description", "") # Usar la descripción original
                 if presupuesto_item
                 else ""
             ),
