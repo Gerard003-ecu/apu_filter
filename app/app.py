@@ -95,7 +95,10 @@ def create_app(config_name):
                 file_paths[name] = file_path
 
             processed_data = process_all_files(
-                file_paths["presupuesto"], file_paths["apus"], file_paths["insumos"]
+                file_paths["presupuesto"],
+                file_paths["apus"],
+                file_paths["insumos"],
+                config=app.config.get("APP_CONFIG", {}),
             )
 
             user_sessions[session_id] = {

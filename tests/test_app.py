@@ -161,7 +161,7 @@ class TestCSVProcessor(unittest.TestCase):
 
     def test_process_all_files_structure_and_calculations(self):
         resultado = process_all_files(
-            self.presupuesto_path, self.apus_path, self.insumos_path
+            self.presupuesto_path, self.apus_path, self.insumos_path, config=TEST_CONFIG
         )
         self.assertIsInstance(resultado, dict)
         self.assertNotIn("error", resultado)
