@@ -219,9 +219,12 @@ class TestCSVProcessor(unittest.TestCase):
         )
         self.assertIsNotNone(item4)
         self.assertAlmostEqual(item4["VALOR_CONSTRUCCION_UN"], 50000.0)
-        apu_detail_ing = resultado["apus_detail"]["1,5"]
-        self.assertEqual(len(apu_detail_ing), 1)
-        ing_item = apu_detail_ing[0]
+        # Encontrar el APU de interés en la lista
+        apu_detail_ing_list = [
+            item for item in resultado["apus_detail"] if item["CODIGO_APU"] == "1,5"
+        ]
+        self.assertEqual(len(apu_detail_ing_list), 1)
+        ing_item = apu_detail_ing_list[0]
         self.assertEqual(ing_item["DESCRIPCION"], "INGENIERO RESIDENTE")
         self.assertAlmostEqual(ing_item["CANTIDAD"], 0.1)
         self.assertAlmostEqual(ing_item["VALOR_UNITARIO"], 150000)

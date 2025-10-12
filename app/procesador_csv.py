@@ -580,13 +580,15 @@ def _do_processing(presupuesto_path, apus_path, insumos_path):
         )
 
         apus_detail_cols = [
-            "DESCRIPCION", "UNIDAD", "CANTIDAD",
-            "VALOR_UNITARIO", "VALOR_TOTAL", "CATEGORIA"
+            "CODIGO_APU", "DESCRIPCION", "UNIDAD", "CANTIDAD",
+            "VALOR_UNITARIO", "VALOR_TOTAL", "CATEGORIA", "TIPO_INSUMO"
         ]
-        apus_detail = {
-            n: g[apus_detail_cols].to_dict("records")
-            for n, g in df_merged_renamed.groupby("CODIGO_APU")
-        }
+        # Asegurarse de que la columna TIPO_INSUMO exista para la lógica del estimador
+        if "TIPO_INSUMO" not in df_merged_renamed.columns and "CATEGORIA" in df_merged_renamed.columns:
+            df_merged_renamed["TIPO_INSUMO"] = df_merged_renamed["CATEGORIA"]
+
+        # Crear una lista plana de registros, no un diccionario anidado
+        apus_detail = df_merged_renamed[apus_detail_cols].to_dict("records")
 
         insumos_dict = {}
         if "GRUPO_INSUMO" in df_insumos.columns:
