@@ -63,7 +63,7 @@ class ReportParser:
             return pd.DataFrame()
 
         df = pd.DataFrame(self.apus_data)
-        df["NORMALIZED_DESC"] = self._normalize_text(df["DESCRIPCION_INSUMO"])
+        df["NORMALIZED_DESC"] = self._normalize_text(df["DESCRIPCION"])
         return df
 
     def _process_line(self, line: str):
@@ -119,11 +119,11 @@ class ReportParser:
             "CODIGO_APU": self.context["apu_code"],
             "DESCRIPCION_APU": self.context["apu_desc"],
             "UNIDAD_APU": self.context["apu_unit"],
-            "DESCRIPCION_INSUMO": data["descripcion"].strip(),
+            "DESCRIPCION": data["descripcion"].strip(),
             "UNIDAD": data["unidad"],
-            "CANTIDAD_APU": self._to_numeric_safe(data["cantidad"]),
-            "PRECIO_UNIT_APU": self._to_numeric_safe(data["precio_unit"]),
-            "VALOR_TOTAL_APU": valor_total,
+            "CANTIDAD": self._to_numeric_safe(data["cantidad"]),
+            "VR_UNITARIO": self._to_numeric_safe(data["precio_unit"]),
+            "VR_TOTAL": valor_total,
             "CATEGORIA": self.context["category"],
             "RENDIMIENTO": 0.0,  # Rendimiento no aplica para insumos generales
         })
@@ -138,11 +138,11 @@ class ReportParser:
             "CODIGO_APU": self.context["apu_code"],
             "DESCRIPCION_APU": self.context["apu_desc"],
             "UNIDAD_APU": self.context["apu_unit"],
-            "DESCRIPCION_INSUMO": data["descripcion"].strip(),
+            "DESCRIPCION": data["descripcion"].strip(),
             "UNIDAD": "JOR",
-            "CANTIDAD_APU": cantidad,
-            "PRECIO_UNIT_APU": jornal_total,
-            "VALOR_TOTAL_APU": valor_total,
+            "CANTIDAD": cantidad,
+            "VR_UNITARIO": jornal_total,
+            "VR_TOTAL": valor_total,
             "CATEGORIA": "MANO DE OBRA",
             "RENDIMIENTO": rendimiento, # Extraer el rendimiento
         })
