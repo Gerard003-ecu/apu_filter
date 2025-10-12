@@ -219,8 +219,11 @@ class TestCSVProcessor(unittest.TestCase):
         )
         self.assertIsNotNone(item4)
         self.assertAlmostEqual(item4["VALOR_CONSTRUCCION_UN"], 50000.0)
-        # Encontrar el APU de interés en el diccionario
-        apu_detail_ing_list = resultado["apus_detail"].get("1,5", [])
+        # 'apus_detail' ahora es una lista, así que filtramos para encontrar el item
+        apu_detail_completo = resultado["apus_detail"]
+        apu_detail_ing_list = [
+            item for item in apu_detail_completo if item.get("CODIGO_APU") == "1,5"
+        ]
         self.assertEqual(len(apu_detail_ing_list), 1)
         ing_item = apu_detail_ing_list[0]
         self.assertEqual(ing_item["DESCRIPCION"], "INGENIERO RESIDENTE")

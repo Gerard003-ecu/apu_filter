@@ -598,11 +598,9 @@ def _do_processing(presupuesto_path, apus_path, insumos_path):
         df_insumos = df_insumos.replace({np.nan: None})
         df_processed_apus = df_processed_apus.replace({np.nan: None})
 
-        # Ahora, la conversión a diccionario será segura, manteniendo la estructura anidada
-        apus_detail = {
-            n: g.to_dict("records")
-            for n, g in df_merged_renamed.groupby("CODIGO_APU")
-        }
+        # La creación de apus_detail debe ser una conversión directa a una lista plana.
+        # El groupby ya no es necesario aquí.
+        apus_detail = df_merged_renamed.to_dict("records")
 
         insumos_dict = {}
         if "GRUPO_INSUMO" in df_insumos.columns:
