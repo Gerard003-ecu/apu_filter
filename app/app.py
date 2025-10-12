@@ -1,9 +1,11 @@
 import json
+import logging
 import os
 import sys
 import time
 import uuid
 
+import pandas as pd
 from flask import Flask, jsonify, render_template, request, session
 from werkzeug.utils import secure_filename
 
@@ -143,76 +145,84 @@ def create_app(config_name):
     @app.route("/api/apu/<code>", methods=["GET"])
     def get_apu_detail(code):
         """
-    Devuelve los detalles de un APU, con agrupación de mano de obra
-    y asegurando consistencia de datos para la simulación. VERSIÓN FINAL.
+        Devuelve los detalles de un APU, con logging de depuración detallado.
         """
-        user_data, error_response, status_code = get_user_data()
-        if error_response:
-            return error_response, status_code
+        logger = app.logger # Usar el logger de la app de Flask
+        try:
+            logger.debug(f"Iniciando get_apu_detail para el código: {code}")
 
-        apu_code = code.replace("%2C", ",")
+            user_data, error_response, status_code = get_user_data()
+            if error_response:
+                return error_response, status_code
 
-        all_apu_details = user_data.get("apus_detail", [])
-        if not isinstance(all_apu_details, list):
-            return jsonify({"error": "Formato de datos de apus_detail incorrecto"}), 500
+            apu_code = code.replace("%2C", ",")
+            logger.debug(f"Código de APU limpio: {apu_code}")
 
-        apu_details_for_code = [
-            item for item in all_apu_details if item.get("CODIGO_APU") == apu_code
-        ]
+            all_apu_details = user_data.get("apus_detail", [])
+            logger.debug(f"Tipo de all_apu_details: {type(all_apu_details)}, Longitud: {len(all_apu_details) if isinstance(all_apu_details, list) else 'N/A'}")
 
-        if not apu_details_for_code:
-            return jsonify({"error": "APU no encontrado"}), 404
+            if not isinstance(all_apu_details, list):
+                logger.error("Error Crítico: apus_detail no es una lista.")
+                return jsonify({"error": "Formato de datos interno incorrecto"}), 500
 
-        # --- Lógica de Agrupación de Mano de Obra ---
-        import pandas as pd
-        df_details = pd.DataFrame(apu_details_for_code)
+            apu_details_for_code = [
+                item for item in all_apu_details if item.get("CODIGO_APU") == apu_code
+            ]
+            logger.debug(f"Encontrados {len(apu_details_for_code)} insumos para el APU {apu_code}")
 
-        df_mano_de_obra = df_details[df_details['CATEGORIA'] == 'MANO DE OBRA']
-        df_otros = df_details[df_details['CATEGORIA'] != 'MANO DE OBRA']
+            if not apu_details_for_code:
+                return jsonify({"error": "APU no encontrado"}), 404
 
-        apu_details_procesados = df_otros.to_dict('records')
+            logger.debug("Creando DataFrame para agrupación...")
+            df_details = pd.DataFrame(apu_details_for_code)
 
-        if not df_mano_de_obra.empty:
-            # --- INICIO DE LA CORRECCIÓN ---
-            df_mo_agrupado = df_mano_de_obra.groupby('DESCRIPCION_INSUMO').agg(
-                CANTIDAD=('CANTIDAD_APU', 'sum'),         # Corregido
-                VR_TOTAL=('VALOR_TOTAL_APU', 'sum'),         # Corregido
-                UNIDAD=('UNIDAD', 'first'),
-                VR_UNITARIO=('PRECIO_UNIT_APU', 'first'), # Corregido
-                CATEGORIA=('CATEGORIA', 'first')
-            ).reset_index()
+            df_mano_de_obra = df_details[df_details['CATEGORIA'] == 'MANO DE OBRA']
+            df_otros = df_details[df_details['CATEGORIA'] != 'MANO DE OBRA']
 
-            # Renombrar columnas para que el frontend las entienda
-            df_mo_agrupado.rename(columns={'DESCRIPCION_INSUMO': 'DESCRIPCION'}, inplace=True)
+            apu_details_procesados = df_otros.to_dict('records')
 
-            apu_details_procesados.extend(df_mo_agrupado.to_dict('records'))
-            # --- FIN DE LA CORRECCIÓN ---
+            if not df_mano_de_obra.empty:
+                logger.debug("Agrupando insumos de Mano de Obra...")
+                df_mo_agrupado = df_mano_de_obra.groupby('DESCRIPCION').agg(
+                    CANTIDAD=('CANTIDAD', 'sum'),
+                    VR_TOTAL=('VR_TOTAL', 'sum'),
+                    UNIDAD=('UNIDAD', 'first'),
+                    VR_UNITARIO=('VR_UNITARIO', 'first'),
+                    CATEGORIA=('CATEGORIA', 'first')
+                ).reset_index()
+                apu_details_procesados.extend(df_mo_agrupado.to_dict('records'))
 
-        presupuesto_item = next(
-            (item for item in user_data.get("presupuesto", []) if item.get("CODIGO_APU") == apu_code),
-            None,
-        )
+            logger.debug(f"Agrupación completada. Total de ítems procesados: {len(apu_details_procesados)}")
 
-        desglose = {}
-        for item in apu_details_procesados:
-            categoria = item.get("CATEGORIA", "INDEFINIDO")
-            if categoria not in desglose:
-                desglose[categoria] = []
-            desglose[categoria].append(item)
+            presupuesto_item = next(
+                (item for item in user_data.get("presupuesto", []) if item.get("CODIGO_APU") == apu_code),
+                None,
+            )
 
-        simulation_results = run_monte_carlo_simulation(apu_details_procesados)
+            desglose = {}
+            for item in apu_details_procesados:
+                categoria = item.get("CATEGORIA", "INDEFINIDO")
+                if categoria not in desglose:
+                    desglose[categoria] = []
+                desglose[categoria].append(item)
 
-        response = {
-            "codigo": apu_code,
-            "descripcion": (
-                presupuesto_item.get("original_description", "")
-                if presupuesto_item
-                else ""
-            ),
-            "desglose": desglose,
-            "simulation": simulation_results,
-        }
-        return jsonify(response)
+            logger.debug("Iniciando simulación Monte Carlo...")
+            simulation_results = run_monte_carlo_simulation(apu_details_procesados)
+            logger.debug("Simulación completada.")
+
+            response = {
+                "codigo": apu_code,
+                "descripcion": presupuesto_item.get("original_description", "") if presupuesto_item else "",
+                "desglose": desglose,
+                "simulation": simulation_results,
+            }
+            logger.debug(f"Enviando respuesta final para APU {apu_code}")
+            return jsonify(response)
+
+        except Exception as e:
+            # ¡ESTE BLOQUE ES CRUCIAL! Capturará CUALQUIER error y lo registrará.
+            logger.error(f"Excepción no controlada en get_apu_detail para el código {code}: {e}", exc_info=True)
+            return jsonify({"error": "Error interno del servidor al procesar los detalles del APU."}), 500
 
     @app.route("/api/estimate", methods=["POST"])
     def get_estimate():
