@@ -116,11 +116,33 @@ def calculate_estimate(params: Dict[str, str], data_store: Dict) -> Dict[str, Un
 
     if apu_tarea is not None:
         apu_tarea_desc = apu_tarea["original_description"]
-        rendimiento_m2_por_dia = apu_tarea.get("RENDIMIENTO_DIA", 0.0)
-        costo_equipo_por_m2 = apu_tarea.get("EQUIPO", 0.0) # Costo de equipo por unidad de la tarea
+        apu_code = apu_tarea["CODIGO_APU"]
+        costo_equipo_por_m2 = apu_tarea.get("EQUIPO", 0.0)
+        log.append(f"  --> Tarea encontrada: '{apu_tarea_desc}' (Código: {apu_code})")
 
-        log.append(f"  --> Tarea encontrada: '{apu_tarea_desc}'")
-        log.append(f"      - Rendimiento (Rendim/Dia): {rendimiento_m2_por_dia:.2f} un/día")
+        # Nueva lógica para calcular rendimiento desde el desglose
+        apus_detail_records = data_store.get("apus_detail", [])
+        df_apus_detail = pd.DataFrame(apus_detail_records)
+
+        if not df_apus_detail.empty:
+            apu_details = df_apus_detail[df_apus_detail["CODIGO_APU"] == apu_code]
+            mano_de_obra = apu_details[apu_details["TIPO_INSUMO"] == "MANO DE OBRA"]
+
+            if not mano_de_obra.empty:
+                tiempo_total_por_unidad = mano_de_obra["CANTIDAD"].sum()
+                log.append(f"      - Insumos 'MANO DE OBRA' encontrados: {len(mano_de_obra)}")
+                log.append(f"      - Tiempo total sumado (Cantidades): {tiempo_total_por_unidad:.4f}")
+
+                if tiempo_total_por_unidad > 0:
+                    rendimiento_m2_por_dia = 1 / tiempo_total_por_unidad
+                    log.append(f"      - Rendimiento calculado: 1 / {tiempo_total_por_unidad:.4f} = {rendimiento_m2_por_dia:.2f} un/día")
+                else:
+                    log.append("      - Tiempo total es 0, no se puede calcular rendimiento.")
+            else:
+                log.append("      - No se encontraron insumos de 'MANO DE OBRA' para este APU.")
+        else:
+            log.append("      - No se encontró el detalle de APUs (apus_detail) para calcular el rendimiento.")
+
         log.append(f"      - Costo Equipo por Unidad: ${costo_equipo_por_m2:,.2f}")
     else:
         log.append("  --> No se encontró APU de tarea coincidente.")
