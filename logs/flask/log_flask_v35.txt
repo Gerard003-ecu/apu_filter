@@ -1,0 +1,15 @@
+ * Serving Flask app 'app.app:create_app('development')'
+ * Debug mode: off
+2025-10-11 22:36:58,059 - INFO - WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
+ * Running on http://127.0.0.1:5002
+2025-10-11 22:36:58,061 - INFO - Press CTRL+C to quit
+2025-10-11 22:37:06,503 - INFO - 127.0.0.1 - - [11/Oct/2025 22:37:06] "GET / HTTP/1.1" 200 -
+2025-10-11 22:37:11,374 - INFO - Cache miss.
+2025-10-11 22:37:11,374 - INFO - Procesando archivos: /Users/gerardomayor/Documents/estru_techos/apu_filter/uploads/483f0122-c6a5-4596-b2c7-baf8571d454e/presupuesto.csv, /Users/gerardomayor/Documents/estru_techos/apu_filter/uploads/483f0122-c6a5-4596-b2c7-baf8571d454e/apus.csv, /Users/gerardomayor/Documents/estru_techos/apu_filter/uploads/483f0122-c6a5-4596-b2c7-baf8571d454e/insumos.csv
+2025-10-11 22:37:11,457 - INFO - Éxito al leerpresupuesto.csv con encoding 'latin1'y delimitador ';'
+2025-10-11 22:37:11,574 - INFO - Tipos de datos optimizados con PyArrow para /Users/gerardomayor/Documents/estru_techos/apu_filter/uploads/483f0122-c6a5-4596-b2c7-baf8571d454e/presupuesto.csv
+2025-10-11 22:37:11,726 - INFO - Iniciando el parsing del archivo: /Users/gerardomayor/Documents/estru_techos/apu_filter/uploads/483f0122-c6a5-4596-b2c7-baf8571d454e/apus.csv
+2025-10-11 22:37:12,034 - INFO - Cache info: hits=0, misses=1, size=1
+2025-10-11 22:37:12,048 - INFO - 127.0.0.1 - - [11/Oct/2025 22:37:12] "POST /upload HTTP/1.1" 200 -
+2025-10-11 22:37:21,558 - INFO - Cache info: hits=1, misses=1, size=1
+2025-10-11 22:37:21,584 - INFO - 127.0.0.1 - - [11/Oct/2025 22:37:21] "POST /upload HTTP/1.1" 200 -
