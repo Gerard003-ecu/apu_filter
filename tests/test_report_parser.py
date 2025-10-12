@@ -74,30 +74,30 @@ class TestReportParserRefactored(unittest.TestCase):
         Verifica que un insumo con un guion en la columna de desperdicio
         se parsea correctamente.
         """
-        insumo = self.df[self.df["DESCRIPCION_INSUMO"] == "LAMINA DE 1.22 X 2.44 EN 6MM RH"]
+        insumo = self.df[self.df["DESCRIPCION"] == "LAMINA DE 1.22 X 2.44 EN 6MM RH"]
         self.assertEqual(len(insumo), 1, "Debería encontrarse un solo insumo de 'LAMINA'.")
 
         insumo_data = insumo.iloc[0]
         self.assertEqual(insumo_data["CODIGO_APU"], "1,1")
         self.assertEqual(insumo_data["UNIDAD"], "M2")
-        self.assertAlmostEqual(insumo_data["CANTIDAD_APU"], 0.0420, places=4)
-        self.assertAlmostEqual(insumo_data["PRECIO_UNIT_APU"], 37000.00, places=2)
-        self.assertAlmostEqual(insumo_data["VALOR_TOTAL_APU"], 1554.00, places=2)
+        self.assertAlmostEqual(insumo_data["CANTIDAD"], 0.0420, places=4)
+        self.assertAlmostEqual(insumo_data["VR_UNITARIO"], 37000.00, places=2)
+        self.assertAlmostEqual(insumo_data["VR_TOTAL"], 1554.00, places=2)
         self.assertEqual(insumo_data["CATEGORIA"], "MATERIALES")
 
     def test_parses_insumo_without_waste_column(self):
         """
         Verifica que un insumo sin la columna de desperdicio se parsea correctamente.
         """
-        insumo = self.df[self.df["DESCRIPCION_INSUMO"] == 'PERFIL TUBULAR CUADRADO 2" X 2"']
+        insumo = self.df[self.df["DESCRIPCION"] == 'PERFIL TUBULAR CUADRADO 2" X 2"']
         self.assertEqual(len(insumo), 1, "Debería encontrarse un solo insumo de 'PERFIL'.")
 
         insumo_data = insumo.iloc[0]
         self.assertEqual(insumo_data["CODIGO_APU"], "1,1")
         self.assertEqual(insumo_data["UNIDAD"], "ML")
-        self.assertAlmostEqual(insumo_data["CANTIDAD_APU"], 1.5000, places=4)
-        self.assertAlmostEqual(insumo_data["PRECIO_UNIT_APU"], 12000.00, places=2)
-        self.assertAlmostEqual(insumo_data["VALOR_TOTAL_APU"], 18000.00, places=2)
+        self.assertAlmostEqual(insumo_data["CANTIDAD"], 1.5000, places=4)
+        self.assertAlmostEqual(insumo_data["VR_UNITARIO"], 12000.00, places=2)
+        self.assertAlmostEqual(insumo_data["VR_TOTAL"], 18000.00, places=2)
         self.assertEqual(insumo_data["CATEGORIA"], "MATERIALES")
 
     def test_parses_number_with_spaces(self):
@@ -105,19 +105,19 @@ class TestReportParserRefactored(unittest.TestCase):
         Verifica que un número con espacios como separadores de miles
         se convierte correctamente.
         """
-        insumo = self.df[self.df["DESCRIPCION_INSUMO"] == "INSUMO CON NUMERO GRANDE"]
+        insumo = self.df[self.df["DESCRIPCION"] == "INSUMO CON NUMERO GRANDE"]
         self.assertEqual(len(insumo), 1, "Debería encontrarse el insumo con número grande.")
 
         insumo_data = insumo.iloc[0]
         self.assertEqual(insumo_data["CODIGO_APU"], "1,2")
-        self.assertAlmostEqual(insumo_data["PRECIO_UNIT_APU"], 1250500.50, places=2)
-        self.assertAlmostEqual(insumo_data["VALOR_TOTAL_APU"], 2501001.00, places=2)
+        self.assertAlmostEqual(insumo_data["VR_UNITARIO"], 1250500.50, places=2)
+        self.assertAlmostEqual(insumo_data["VR_TOTAL"], 2501001.00, places=2)
 
     def test_assigns_correct_apu_and_category(self):
         """
         Verifica que los insumos se asignan al APU y categoría correctos.
         """
-        insumo_soldadura = self.df[self.df["DESCRIPCION_INSUMO"] == "SOLDADURA PVC 1/4 GAL"]
+        insumo_soldadura = self.df[self.df["DESCRIPCION"] == "SOLDADURA PVC 1/4 GAL"]
         self.assertEqual(
             len(insumo_soldadura), 1, "Debería encontrarse un insumo de 'SOLDADURA PVC'."
         )
@@ -134,14 +134,14 @@ class TestReportParserRefactored(unittest.TestCase):
         """
         Verifica que la línea de 'HERRAMIENTA MENOR' se parsea correctamente.
         """
-        herramienta = self.df[self.df["DESCRIPCION_INSUMO"] == "HERRAMIENTA MENOR"]
+        herramienta = self.df[self.df["DESCRIPCION"] == "HERRAMIENTA MENOR"]
         self.assertEqual(
             len(herramienta), 1, "Debería encontrarse un insumo de 'HERRAMIENTA MENOR'."
         )
 
         herramienta_data = herramienta.iloc[0]
         self.assertEqual(herramienta_data["CATEGORIA"], "EQUIPO")
-        self.assertAlmostEqual(herramienta_data["VALOR_TOTAL_APU"], 900.00, places=2)
+        self.assertAlmostEqual(herramienta_data["VR_TOTAL"], 900.00, places=2)
 
 
 if __name__ == "__main__":
