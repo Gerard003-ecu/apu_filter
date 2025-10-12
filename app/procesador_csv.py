@@ -532,18 +532,20 @@ def _do_processing(presupuesto_path, apus_path, insumos_path):
             df_processed_apus, df_rendimiento, on="CODIGO_APU", how="left"
         )
 
-        # Renombrar para mayor claridad y para coincidir con la expectativa del usuario
-        # para la fuente de datos del estimador.
-        df_processed_apus.rename(
-            columns={"DESCRIPCION_APU": "original_description", "UNIDAD_APU": "UNIDAD"}, inplace=True
-        )
+        # Renombrar para mayor claridad
+        df_processed_apus.rename(columns={"UNIDAD_APU": "UNIDAD"}, inplace=True)
 
-        df_processed_apus["original_description"] = (
-            df_processed_apus["original_description"].fillna("")
-        )
-        df_processed_apus["DESC_NORMALIZED"] = normalize_text(
-            df_processed_apus["original_description"]
-        )
+        # Llenar NaNs en la descripción
+        df_processed_apus["DESCRIPCION_APU"] = df_processed_apus["DESCRIPCION_APU"].fillna("")
+
+        # --- INICIO DE LA CORRECCIÓN ---
+        # 1. Crear la columna normalizada a partir de la descripción COMPLETA
+        df_processed_apus["DESC_NORMALIZED"] = normalize_text(df_processed_apus["DESCRIPCION_APU"])
+
+        # 2. Aplicar la división para la visualización en la UI
+        #    Esto crea 'original_description' y acorta 'DESCRIPCION_APU'
+        df_processed_apus = group_and_split_description(df_processed_apus)
+        # --- FIN DE LA CORRECCIÓN ---
 
         fill_zero_cols = [
             "VALOR_SUMINISTRO_UN", "VALOR_INSTALACION_UN",
