@@ -185,13 +185,21 @@ def create_app(config_name):
 
             if not df_mano_de_obra.empty:
                 logger.debug("Agrupando insumos de Mano de Obra...")
-                df_mo_agrupado = df_mano_de_obra.groupby('DESCRIPCION').agg(
+
+                # --- INICIO DE LA CORRECCIÓN ---
+                # El nombre correcto de la columna es 'DESCRIPCION_INSUMO'
+                df_mo_agrupado = df_mano_de_obra.groupby('DESCRIPCION_INSUMO').agg(
                     CANTIDAD=('CANTIDAD', 'sum'),
                     VR_TOTAL=('VR_TOTAL', 'sum'),
                     UNIDAD=('UNIDAD', 'first'),
                     VR_UNITARIO=('VR_UNITARIO', 'first'),
                     CATEGORIA=('CATEGORIA', 'first')
                 ).reset_index()
+
+                # Renombrar la columna agrupada para que el frontend la entienda
+                df_mo_agrupado.rename(columns={'DESCRIPCION_INSUMO': 'DESCRIPCION'}, inplace=True)
+                # --- FIN DE LA CORRECCIÓN ---
+
                 apu_details_procesados.extend(df_mo_agrupado.to_dict('records'))
 
             logger.debug(f"Agrupación completada. Total de ítems procesados: {len(apu_details_procesados)}")
