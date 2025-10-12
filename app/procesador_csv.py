@@ -440,21 +440,20 @@ def _do_processing(presupuesto_path, apus_path, insumos_path):
         )
 
         # (el resto de la lógica de cálculo de costos de df_merged es correcta)
-        df_merged["DESCRIPCION_INSUMO"] = df_merged["DESCRIPCION_INSUMO_apu"]
         costo_insumo = np.where(
             df_merged["VR_UNITARIO_INSUMO"].notna(),
-            df_merged["CANTIDAD_APU"] * df_merged["VR_UNITARIO_INSUMO"],
-            df_merged["VALOR_TOTAL_APU"],
+            df_merged["CANTIDAD"] * df_merged["VR_UNITARIO_INSUMO"],
+            df_merged["VR_TOTAL"],
         )
         df_merged["COSTO_INSUMO_EN_APU"] = pd.Series(costo_insumo).fillna(0)
 
         df_merged["VR_UNITARIO_FINAL"] = df_merged["VR_UNITARIO_INSUMO"].fillna(
-            df_merged["PRECIO_UNIT_APU"]
+            df_merged["VR_UNITARIO"]
         )
         mask_recalc = (df_merged["VR_UNITARIO_FINAL"].isna()) | (
             df_merged["VR_UNITARIO_FINAL"] == 0
         )
-        cantidad_safe = df_merged["CANTIDAD_APU"].replace(0, 1)
+        cantidad_safe = df_merged["CANTIDAD"].replace(0, 1)
         df_merged.loc[mask_recalc, "VR_UNITARIO_FINAL"] = (
             df_merged.loc[mask_recalc, "COSTO_INSUMO_EN_APU"] / cantidad_safe
         )
@@ -503,11 +502,11 @@ def _do_processing(presupuesto_path, apus_path, insumos_path):
 
         df_tiempo = (
             df_merged[df_merged["CATEGORIA"] == "MANO DE OBRA"]
-            .groupby("CODIGO_APU")["CANTIDAD_APU"]
+            .groupby("CODIGO_APU")["CANTIDAD"]
             .sum()
             .reset_index()
         )
-        df_tiempo.rename(columns={"CANTIDAD_APU": "TIEMPO_INSTALACION"}, inplace=True)
+        df_tiempo.rename(columns={"CANTIDAD": "TIEMPO_INSTALACION"}, inplace=True)
         df_tiempo['CODIGO_APU'] = df_tiempo['CODIGO_APU'].astype(str).apply(clean_apu_code)
 
 
@@ -573,24 +572,21 @@ def _do_processing(presupuesto_path, apus_path, insumos_path):
                 df_final[col] = 0
         df_final = group_and_split_description(df_final)
 
-        df_merged_renamed = df_merged.rename(
+        # Asegurarse de que la columna TIPO_INSUMO exista para la lógica del estimador
+        if "TIPO_INSUMO" not in df_merged.columns and "CATEGORIA" in df_merged.columns:
+            df_merged["TIPO_INSUMO"] = df_merged["CATEGORIA"]
+
+        # Renombrar columnas finales para consistencia en la salida
+        df_merged.rename(
             columns={
-                "DESCRIPCION_INSUMO": "DESCRIPCION", "CANTIDAD_APU": "CANTIDAD",
-                "unidad": "UNIDAD", "VR_UNITARIO_FINAL": "VALOR_UNITARIO",
+                "VR_UNITARIO_FINAL": "VALOR_UNITARIO",
                 "COSTO_INSUMO_EN_APU": "VALOR_TOTAL",
-            }
+            },
+            inplace=True,
         )
 
-        apus_detail_cols = [
-            "CODIGO_APU", "DESCRIPCION", "UNIDAD", "CANTIDAD",
-            "VALOR_UNITARIO", "VALOR_TOTAL", "CATEGORIA", "TIPO_INSUMO"
-        ]
-        # Asegurarse de que la columna TIPO_INSUMO exista para la lógica del estimador
-        if "TIPO_INSUMO" not in df_merged_renamed.columns and "CATEGORIA" in df_merged_renamed.columns:
-            df_merged_renamed["TIPO_INSUMO"] = df_merged_renamed["CATEGORIA"]
-
         # Crear una lista plana de registros, no un diccionario anidado
-        apus_detail = df_merged_renamed[apus_detail_cols].to_dict("records")
+        apus_detail = df_merged.to_dict("records")
 
         insumos_dict = {}
         if "GRUPO_INSUMO" in df_insumos.columns:

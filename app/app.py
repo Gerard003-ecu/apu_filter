@@ -166,10 +166,10 @@ def create_app(config_name):
         if not df_mano_de_obra.empty:
             # --- INICIO DE LA CORRECCIÓN ---
             df_mo_agrupado = df_mano_de_obra.groupby('DESCRIPCION').agg(
-                CANTIDAD=('CANTIDAD_APU', 'sum'),
-                VR_TOTAL=('VALOR_TOTAL_APU', 'sum'), # Corregido: Usar VALOR_TOTAL_APU
+                CANTIDAD=('CANTIDAD', 'sum'),
+                VR_TOTAL=('VR_TOTAL', 'sum'),
                 UNIDAD=('UNIDAD', 'first'),
-                VR_UNITARIO=('PRECIO_UNIT_APU', 'first'), # Corregido: Usar PRECIO_UNIT_APU
+                VR_UNITARIO=('VR_UNITARIO', 'first'),
                 CATEGORIA=('CATEGORIA', 'first')
             ).reset_index()
             # --- FIN DE LA CORRECCIÓN ---
