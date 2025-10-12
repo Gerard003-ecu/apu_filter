@@ -1,41 +1,29 @@
  * Serving Flask app 'app.app:create_app('development')'
  * Debug mode: off
-2025-10-12 16:36:03,263 - INFO - WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
+2025-10-12 16:51:21,788 - INFO - WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
  * Running on http://127.0.0.1:5002
-2025-10-12 16:36:03,263 - INFO - Press CTRL+C to quit
-2025-10-12 16:36:08,778 - INFO - 127.0.0.1 - - [12/Oct/2025 16:36:08] "GET / HTTP/1.1" 200 -
-2025-10-12 16:36:09,832 - INFO - 127.0.0.1 - - [12/Oct/2025 16:36:09] "GET /favicon.ico HTTP/1.1" 404 -
-2025-10-12 16:36:11,318 - INFO - Cache miss.
-2025-10-12 16:36:11,318 - INFO - Procesando archivos: /Users/gerardomayor/Documents/estru_techos/apu_filter/uploads/483f0122-c6a5-4596-b2c7-baf8571d454e/presupuesto.csv, /Users/gerardomayor/Documents/estru_techos/apu_filter/uploads/483f0122-c6a5-4596-b2c7-baf8571d454e/apus.csv, /Users/gerardomayor/Documents/estru_techos/apu_filter/uploads/483f0122-c6a5-4596-b2c7-baf8571d454e/insumos.csv
-2025-10-12 16:36:11,382 - INFO - Éxito al leerpresupuesto.csv con encoding 'latin1'y delimitador ';'
-2025-10-12 16:36:11,465 - INFO - Tipos de datos optimizados con PyArrow para /Users/gerardomayor/Documents/estru_techos/apu_filter/uploads/483f0122-c6a5-4596-b2c7-baf8571d454e/presupuesto.csv
-2025-10-12 16:36:11,624 - INFO - Iniciando el parsing del archivo: /Users/gerardomayor/Documents/estru_techos/apu_filter/uploads/483f0122-c6a5-4596-b2c7-baf8571d454e/apus.csv
-2025-10-12 16:36:11,890 - INFO - --- Procesamiento completado ---
-2025-10-12 16:36:11,965 - DEBUG - Sanitizando el diccionario de resultados para una salida JSON válida...
-2025-10-12 16:36:12,025 - DEBUG - Sanitización completada.
-2025-10-12 16:36:12,026 - INFO - Cache info: hits=0, misses=1, size=1
-2025-10-12 16:36:12,091 - INFO - 127.0.0.1 - - [12/Oct/2025 16:36:12] "POST /upload HTTP/1.1" 200 -
-2025-10-12 16:36:12,264 - INFO - 127.0.0.1 - - [12/Oct/2025 16:36:12] "POST /api/estimate HTTP/1.1" 200 -
-2025-10-12 16:36:12,268 - INFO - 127.0.0.1 - - [12/Oct/2025 16:36:12] "POST /api/estimate HTTP/1.1" 200 -
-2025-10-12 16:36:20,577 - DEBUG - Iniciando get_apu_detail para el código: 16,2
-2025-10-12 16:36:20,577 - DEBUG - Código de APU limpio: 16,2
-2025-10-12 16:36:20,578 - DEBUG - Tipo de all_apu_details: <class 'list'>, Longitud: 738
-2025-10-12 16:36:20,579 - DEBUG - Encontrados 336 insumos para el APU 16,2
-2025-10-12 16:36:20,579 - DEBUG - Creando DataFrame para agrupación...
-2025-10-12 16:36:20,592 - DEBUG - Agrupando insumos de Mano de Obra...
-2025-10-12 16:36:20,627 - DEBUG - Agrupación completada. Total de ítems procesados: 250
-2025-10-12 16:36:20,628 - DEBUG - Iniciando simulación Monte Carlo...
-2025-10-12 16:36:20,735 - DEBUG - Simulación completada.
-2025-10-12 16:36:20,735 - DEBUG - Enviando respuesta final para APU 16,2
-2025-10-12 16:36:20,739 - INFO - 127.0.0.1 - - [12/Oct/2025 16:36:20] "GET /api/apu/16,2 HTTP/1.1" 200 -
-2025-10-12 16:36:46,522 - DEBUG - Iniciando get_apu_detail para el código: 16,2
-2025-10-12 16:36:46,522 - DEBUG - Código de APU limpio: 16,2
-2025-10-12 16:36:46,522 - DEBUG - Tipo de all_apu_details: <class 'list'>, Longitud: 738
-2025-10-12 16:36:46,523 - DEBUG - Encontrados 336 insumos para el APU 16,2
-2025-10-12 16:36:46,524 - DEBUG - Creando DataFrame para agrupación...
-2025-10-12 16:36:46,611 - DEBUG - Agrupando insumos de Mano de Obra...
-2025-10-12 16:36:46,653 - DEBUG - Agrupación completada. Total de ítems procesados: 250
-2025-10-12 16:36:46,653 - DEBUG - Iniciando simulación Monte Carlo...
-2025-10-12 16:36:46,766 - DEBUG - Simulación completada.
-2025-10-12 16:36:46,766 - DEBUG - Enviando respuesta final para APU 16,2
-2025-10-12 16:36:46,769 - INFO - 127.0.0.1 - - [12/Oct/2025 16:36:46] "GET /api/apu/16,2 HTTP/1.1" 200 -
+2025-10-12 16:51:21,788 - INFO - Press CTRL+C to quit
+2025-10-12 16:51:28,975 - INFO - 127.0.0.1 - - [12/Oct/2025 16:51:28] "GET / HTTP/1.1" 200 -
+2025-10-12 16:51:31,534 - INFO - Cache miss.
+2025-10-12 16:51:31,534 - INFO - Procesando archivos: /Users/gerardomayor/Documents/estru_techos/apu_filter/uploads/483f0122-c6a5-4596-b2c7-baf8571d454e/presupuesto.csv, /Users/gerardomayor/Documents/estru_techos/apu_filter/uploads/483f0122-c6a5-4596-b2c7-baf8571d454e/apus.csv, /Users/gerardomayor/Documents/estru_techos/apu_filter/uploads/483f0122-c6a5-4596-b2c7-baf8571d454e/insumos.csv
+2025-10-12 16:51:31,610 - INFO - Éxito al leerpresupuesto.csv con encoding 'latin1'y delimitador ';'
+2025-10-12 16:51:31,685 - INFO - Tipos de datos optimizados con PyArrow para /Users/gerardomayor/Documents/estru_techos/apu_filter/uploads/483f0122-c6a5-4596-b2c7-baf8571d454e/presupuesto.csv
+2025-10-12 16:51:31,834 - INFO - Iniciando el parsing del archivo: /Users/gerardomayor/Documents/estru_techos/apu_filter/uploads/483f0122-c6a5-4596-b2c7-baf8571d454e/apus.csv
+2025-10-12 16:51:32,057 - INFO - --- Procesamiento completado ---
+2025-10-12 16:51:32,118 - DEBUG - Sanitizando el diccionario de resultados para una salida JSON válida...
+2025-10-12 16:51:32,157 - DEBUG - Sanitización completada.
+2025-10-12 16:51:32,158 - INFO - Cache info: hits=0, misses=1, size=1
+2025-10-12 16:51:32,223 - INFO - 127.0.0.1 - - [12/Oct/2025 16:51:32] "POST /upload HTTP/1.1" 200 -
+2025-10-12 16:51:32,386 - INFO - 127.0.0.1 - - [12/Oct/2025 16:51:32] "POST /api/estimate HTTP/1.1" 200 -
+2025-10-12 16:51:32,410 - INFO - 127.0.0.1 - - [12/Oct/2025 16:51:32] "POST /api/estimate HTTP/1.1" 200 -
+2025-10-12 16:51:39,612 - DEBUG - Iniciando get_apu_detail para el código: 16,2
+2025-10-12 16:51:39,612 - DEBUG - Código de APU limpio: 16,2
+2025-10-12 16:51:39,612 - DEBUG - Tipo de all_apu_details: <class 'list'>, Longitud: 738
+2025-10-12 16:51:39,613 - DEBUG - Encontrados 336 insumos para el APU 16,2
+2025-10-12 16:51:39,613 - DEBUG - Creando DataFrame para agrupación...
+2025-10-12 16:51:39,632 - DEBUG - Agrupando insumos de Mano de Obra...
+2025-10-12 16:51:39,663 - DEBUG - Agrupación completada. Total de ítems procesados: 250
+2025-10-12 16:51:39,663 - DEBUG - Iniciando simulación Monte Carlo...
+2025-10-12 16:51:39,774 - DEBUG - Simulación completada.
+2025-10-12 16:51:39,774 - DEBUG - Enviando respuesta final para APU 16,2
+2025-10-12 16:51:39,778 - INFO - 127.0.0.1 - - [12/Oct/2025 16:51:39] "GET /api/apu/16,2 HTTP/1.1" 200 -
