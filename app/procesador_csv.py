@@ -4,7 +4,12 @@ import numpy as np
 import pandas as pd
 
 from .report_parser import ReportParser
-from .utils import clean_apu_code, normalize_text
+from .utils import (
+    clean_apu_code,
+    find_and_rename_columns,
+    normalize_text,
+    safe_read_dataframe,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -29,21 +34,59 @@ def group_and_split_description(df):
 
     return df_grouped
 
-def process_presupuesto_csv(file_path):
-    """Procesa el archivo CSV del presupuesto."""
+def process_presupuesto_csv(path: str, config: dict) -> pd.DataFrame:
+    """
+    Lee y limpia el archivo presupuesto, manejando robustamente
+    archivos con o sin encabezado explícito.
+    """
+    # Leer sin encabezado para tener control total
+    df = safe_read_dataframe(path, header=None)
+    if df is None:
+        return pd.DataFrame()
+
     try:
-        df = pd.read_csv(file_path, encoding="latin1", sep=";", skipinitialspace=True)
-        df["CODIGO_APU"] = df["ITEM"].astype(str).apply(clean_apu_code)
-        # Forzar la conversión a string antes de reemplazar la coma
-        df["CANTIDAD_PRESUPUESTO"] = pd.to_numeric(
-            df["CANT."].astype(str).str.replace(",", "."), errors="coerce"
-        ).fillna(0)
-        df["DESCRIPCION_APU"] = df["DESCRIPCION"]
-        return df[
-            ["CODIGO_APU", "DESCRIPCION_APU", "CANTIDAD_PRESUPUESTO"]
-        ].drop_duplicates()
+        # Buscar la fila que actúa como encabezado
+        header_row_index = -1
+        for i, row in df.head(10).iterrows():  # Buscar en las primeras 10 filas
+            row_str = " ".join(row.astype(str).str.upper())
+            if "ITEM" in row_str and "DESCRIPCION" in row_str and "CANT" in row_str:
+                header_row_index = i
+                break
+
+        if header_row_index != -1:
+            # Asignar la fila encontrada como el nuevo encabezado
+            df.columns = df.iloc[header_row_index]
+            # Eliminar todas las filas hasta el encabezado (inclusive)
+            df = df.iloc[header_row_index + 1 :].reset_index(drop=True)
+        else:
+            logger.warning(
+                "No se encontró una fila de encabezado válida en el presupuesto."
+            )
+            return pd.DataFrame()
+
+        # Ahora, proceder con el renombrado estándar
+        column_map = config.get("presupuesto_column_map", {})
+        df = find_and_rename_columns(df, column_map)
+
+        if "CODIGO_APU" not in df.columns:
+            logger.error(
+                "La columna 'CODIGO_APU' no se pudo crear después de buscar el encabezado."
+            )
+            return pd.DataFrame()
+
+        # El resto de la lógica de limpieza es la misma
+        df["CODIGO_APU"] = df["CODIGO_APU"].astype(str).apply(clean_apu_code)
+        df = df[df["CODIGO_APU"].notna() & (df["CODIGO_APU"] != "")]
+
+        cantidad_str = (
+            df["CANTIDAD_PRESUPUESTO"].astype(str).str.replace(",", ".", regex=False)
+        )
+        df["CANTIDAD_PRESUPUESTO"] = pd.to_numeric(cantidad_str, errors="coerce")
+
+        return df[["CODIGO_APU", "DESCRIPCION_APU", "CANTIDAD_PRESUPUESTO"]]
+
     except Exception as e:
-        logger.error(f"Error procesando el archivo de presupuesto: {e}")
+        logger.error(f"Error procesando el archivo de presupuesto: {e}", exc_info=True)
         return pd.DataFrame()
 
 
@@ -95,16 +138,16 @@ def process_insumos_csv(file_path):
         return pd.DataFrame()
 
 
-def process_all_files(presupuesto_path, apus_path, insumos_path):
+def process_all_files(presupuesto_path, apus_path, insumos_path, config):
     """Función principal que orquesta el procesamiento de todos los archivos."""
-    return _do_processing(presupuesto_path, apus_path, insumos_path)
+    return _do_processing(presupuesto_path, apus_path, insumos_path, config)
 
 
-def _do_processing(presupuesto_path, apus_path, insumos_path):
+def _do_processing(presupuesto_path, apus_path, insumos_path, config):
     logger.info(f"Iniciando procesamiento: {presupuesto_path}, {apus_path}, {insumos_path}")
 
     # 1. Cargar todos los datos base
-    df_presupuesto = process_presupuesto_csv(presupuesto_path)
+    df_presupuesto = process_presupuesto_csv(presupuesto_path, config)
     df_insumos = process_insumos_csv(insumos_path)
     parser = ReportParser(apus_path)
     df_apus_raw = parser.parse()
@@ -120,7 +163,9 @@ def _do_processing(presupuesto_path, apus_path, insumos_path):
 
     # Coalesce: Usar la descripción del insumo maestro si existe, si no, usar la del APU.
     # Esto es crucial para no perder descripciones de mano de obra o insumos no mapeados.
-    df_merged['DESCRIPCION_INSUMO'] = df_merged['DESCRIPCION_INSUMO'].fillna(df_merged['DESCRIPCION_INSUMO_apu'])
+    df_merged["DESCRIPCION_INSUMO"] = df_merged["DESCRIPCION_INSUMO"].fillna(
+        df_merged["DESCRIPCION_INSUMO_apu"]
+    )
 
     # La unidad del insumo siempre vendrá del reporte de APU, así que renombramos la columna.
     df_merged.rename(columns={"UNIDAD_INSUMO_apu": "UNIDAD_INSUMO"}, inplace=True)
@@ -134,14 +179,21 @@ def _do_processing(presupuesto_path, apus_path, insumos_path):
     df_merged["COSTO_INSUMO_EN_APU"] = pd.Series(costo_insumo).fillna(0)
 
     # Calcular el precio unitario final de cada insumo
-    df_merged["VR_UNITARIO_FINAL"] = df_merged["VR_UNITARIO_INSUMO"].fillna(df_merged["PRECIO_UNIT_APU"])
+    df_merged["VR_UNITARIO_FINAL"] = df_merged["VR_UNITARIO_INSUMO"].fillna(
+        df_merged["PRECIO_UNIT_APU"]
+    )
     cantidad_safe = df_merged["CANTIDAD_APU"].replace(0, 1)
     df_merged["VR_UNITARIO_FINAL"] = df_merged["VR_UNITARIO_FINAL"].fillna(
         df_merged["COSTO_INSUMO_EN_APU"] / cantidad_safe
     )
 
     # 3. Agregar costos por APU y categoría
-    df_apu_costos = df_merged.groupby(["CODIGO_APU", "CATEGORIA"])["COSTO_INSUMO_EN_APU"].sum().unstack(fill_value=0).reset_index()
+    df_apu_costos = (
+        df_merged.groupby(["CODIGO_APU", "CATEGORIA"])["COSTO_INSUMO_EN_APU"]
+        .sum()
+        .unstack(fill_value=0)
+        .reset_index()
+    )
 
     cost_cols = ["MATERIALES", "MANO DE OBRA", "EQUIPO", "OTROS"]
     for col in cost_cols:
@@ -150,27 +202,45 @@ def _do_processing(presupuesto_path, apus_path, insumos_path):
 
     # 4. Calcular valores unitarios y clasificar APUs
     df_apu_costos["VALOR_SUMINISTRO_UN"] = df_apu_costos["MATERIALES"]
-    df_apu_costos["VALOR_INSTALACION_UN"] = df_apu_costos["MANO DE OBRA"] + df_apu_costos["EQUIPO"]
+    df_apu_costos["VALOR_INSTALACION_UN"] = (
+        df_apu_costos["MANO DE OBRA"] + df_apu_costos["EQUIPO"]
+    )
     df_apu_costos["VALOR_CONSTRUCCION_UN"] = df_apu_costos[cost_cols].sum(axis=1)
 
     def classify_apu(row):
         # ... (la función classify_apu no necesita cambios)
         costo_total = row["VALOR_CONSTRUCCION_UN"]
-        if costo_total == 0: return "Indefinido"
-        porcentaje_mo_eq = ((row.get("MANO DE OBRA", 0) + row.get("EQUIPO", 0)) / costo_total) * 100
-        if porcentaje_mo_eq > 75: return "Instalación"
+        if costo_total == 0:
+            return "Indefinido"
+        porcentaje_mo_eq = (
+            (row.get("MANO DE OBRA", 0) + row.get("EQUIPO", 0)) / costo_total
+        ) * 100
+        if porcentaje_mo_eq > 75:
+            return "Instalación"
         porcentaje_materiales = (row.get("MATERIALES", 0) / costo_total) * 100
-        if porcentaje_materiales > 75 and porcentaje_mo_eq < 10: return "Suministro"
-        if porcentaje_materiales > 50 and porcentaje_mo_eq > 10: return "Suministro (Pre-fabricado)"
+        if porcentaje_materiales > 75 and porcentaje_mo_eq < 10:
+            return "Suministro"
+        if porcentaje_materiales > 50 and porcentaje_mo_eq > 10:
+            return "Suministro (Pre-fabricado)"
         return "Obra Completa"
 
     df_apu_costos["tipo_apu"] = df_apu_costos.apply(classify_apu, axis=1)
 
     # 5. Calcular tiempo y rendimiento
-    df_tiempo = df_merged[df_merged["CATEGORIA"] == "MANO DE OBRA"].groupby("CODIGO_APU")["CANTIDAD_APU"].sum().reset_index()
+    df_tiempo = (
+        df_merged[df_merged["CATEGORIA"] == "MANO DE OBRA"]
+        .groupby("CODIGO_APU")["CANTIDAD_APU"]
+        .sum()
+        .reset_index()
+    )
     df_tiempo.rename(columns={"CANTIDAD_APU": "TIEMPO_INSTALACION"}, inplace=True)
 
-    df_rendimiento = df_merged[df_merged["CATEGORIA"] == "MANO DE OBRA"].groupby("CODIGO_APU")["RENDIMIENTO"].sum().reset_index()
+    df_rendimiento = (
+        df_merged[df_merged["CATEGORIA"] == "MANO DE OBRA"]
+        .groupby("CODIGO_APU")["RENDIMIENTO"]
+        .sum()
+        .reset_index()
+    )
     df_rendimiento.rename(columns={"RENDIMIENTO": "RENDIMIENTO_DIA"}, inplace=True)
 
     # 6. Construir el DataFrame final para el presupuesto (df_final)
@@ -179,27 +249,51 @@ def _do_processing(presupuesto_path, apus_path, insumos_path):
     df_final = group_and_split_description(df_final) # Esto crea 'original_description'
 
     # 7. Construir el DataFrame final para el estimador (df_processed_apus)
-    df_apu_descriptions = df_apus_raw[["CODIGO_APU", "DESCRIPCION_APU", "UNIDAD_APU"]].drop_duplicates()
-    df_processed_apus = pd.merge(df_apu_costos, df_apu_descriptions, on="CODIGO_APU", how="left")
-    df_processed_apus = pd.merge(df_processed_apus, df_tiempo, on="CODIGO_APU", how="left")
-    df_processed_apus = pd.merge(df_processed_apus, df_rendimiento, on="CODIGO_APU", how="left")
+    df_apu_descriptions = df_apus_raw[
+        ["CODIGO_APU", "DESCRIPCION_APU", "UNIDAD_APU"]
+    ].drop_duplicates()
+    df_processed_apus = pd.merge(
+        df_apu_costos, df_apu_descriptions, on="CODIGO_APU", how="left"
+    )
+    df_processed_apus = pd.merge(
+        df_processed_apus, df_tiempo, on="CODIGO_APU", how="left"
+    )
+    df_processed_apus = pd.merge(
+        df_processed_apus, df_rendimiento, on="CODIGO_APU", how="left"
+    )
     df_processed_apus.rename(columns={"UNIDAD_APU": "UNIDAD"}, inplace=True)
-    df_processed_apus["DESC_NORMALIZED"] = normalize_text(df_processed_apus["DESCRIPCION_APU"])
-    df_processed_apus = group_and_split_description(df_processed_apus) # Esto crea 'original_description'
+    df_processed_apus["DESC_NORMALIZED"] = normalize_text(
+        df_processed_apus["DESCRIPCION_APU"]
+    )
+    df_processed_apus = group_and_split_description(
+        df_processed_apus
+    )  # Esto crea 'original_description'
 
     # 8. Preparar diccionarios de salida y sanitizar
-    df_merged.rename(columns={"VR_UNITARIO_FINAL": "VR_UNITARIO", "COSTO_INSUMO_EN_APU": "VR_TOTAL"}, inplace=True)
+    df_merged.rename(
+        columns={"VR_UNITARIO_FINAL": "VR_UNITARIO", "COSTO_INSUMO_EN_APU": "VR_TOTAL"},
+        inplace=True,
+    )
 
     # Sanitización final para evitar errores JSON
-    dataframes_to_sanitize = [df_final, df_merged, df_apus_raw, df_insumos, df_processed_apus]
+    dataframes_to_sanitize = [
+        df_final,
+        df_merged,
+        df_apus_raw,
+        df_insumos,
+        df_processed_apus,
+    ]
     for df in dataframes_to_sanitize:
         df.replace({np.nan: None}, inplace=True)
 
     apus_detail = df_merged.to_dict("records")
 
     insumos_dict = {
-        name.strip(): group[["DESCRIPCION_INSUMO", "VR_UNITARIO_INSUMO"]].dropna().to_dict("records")
-        for name, group in df_insumos.groupby("GRUPO_INSUMO") if name and isinstance(name, str)
+        name.strip(): group[["DESCRIPCION_INSUMO", "VR_UNITARIO_INSUMO"]]
+        .dropna()
+        .to_dict("records")
+        for name, group in df_insumos.groupby("GRUPO_INSUMO")
+        if name and isinstance(name, str)
     }
 
     result_dict = {

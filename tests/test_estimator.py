@@ -37,7 +37,7 @@ class TestEstimator(unittest.TestCase):
         Tests the refactored calculate_estimate function with the new two-step search logic.
         """
         data_store = process_all_files(
-            self.presupuesto_path, self.apus_path, self.insumos_path
+            self.presupuesto_path, self.apus_path, self.insumos_path, config=TEST_CONFIG
         )
 
         # 1. Caso de prueba principal con la nueva lógica
