@@ -7,7 +7,7 @@ from unittest.mock import patch
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from app.estimator import calculate_estimate
-from app.procesador_csv import _cached_csv_processing, process_all_files
+from app.procesador_csv import process_all_files
 
 # Reuse test data from test_app
 from tests.test_app import APUS_DATA, INSUMOS_DATA, PRESUPUESTO_DATA, TEST_CONFIG
@@ -32,12 +32,7 @@ class TestEstimator(unittest.TestCase):
         os.remove(cls.apus_path)
         os.remove(cls.insumos_path)
 
-    def setUp(self):
-        _cached_csv_processing.cache_clear()
-
-    @patch("app.procesador_csv.config", new_callable=lambda: TEST_CONFIG)
-    @patch("app.estimator.config", new_callable=lambda: TEST_CONFIG)
-    def test_calculate_estimate_logic_two_step(self, mock_estimator_config, mock_processor_config):
+    def test_calculate_estimate_logic_two_step(self):
         """
         Tests the refactored calculate_estimate function with the new two-step search logic.
         """
@@ -47,7 +42,7 @@ class TestEstimator(unittest.TestCase):
 
         # 1. Caso de prueba principal con la nueva lógica
         params = {"material": "TST", "cuadrilla": "4"}
-        result = calculate_estimate(params, data_store)
+        result = calculate_estimate(params, data_store, TEST_CONFIG)
 
         self.assertNotIn("error", result)
 
@@ -68,7 +63,7 @@ class TestEstimator(unittest.TestCase):
 
         # 2. Caso de prueba donde no se encuentra la cuadrilla
         params_no_cuadrilla = {"material": "PANEL TIPO SANDWICH", "cuadrilla": "99"}
-        result_no_cuadrilla = calculate_estimate(params_no_cuadrilla, data_store)
+        result_no_cuadrilla = calculate_estimate(params_no_cuadrilla, data_store, TEST_CONFIG)
         self.assertIn("--> No se encontró APU para la cuadrilla especificada con UNIDAD: DIA.", result_no_cuadrilla["log"])
         # valor_instalacion debe ser 0 porque costo_diario_cuadrilla es 0
         self.assertAlmostEqual(result_no_cuadrilla["valor_instalacion"], 0)
@@ -77,7 +72,7 @@ class TestEstimator(unittest.TestCase):
 
         # 3. Caso de prueba donde no se encuentra el APU de tarea
         params_no_task = {"material": "MATERIAL INEXISTENTE", "cuadrilla": "4"}
-        result_no_task = calculate_estimate(params_no_task, data_store)
+        result_no_task = calculate_estimate(params_no_task, data_store, TEST_CONFIG)
         self.assertIn("No se encontró APU de tarea coincidente", result_no_task["log"])
         self.assertAlmostEqual(result_no_task["valor_instalacion"], 0)
         self.assertAlmostEqual(result_no_task["rendimiento_m2_por_dia"], 0)

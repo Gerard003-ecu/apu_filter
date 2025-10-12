@@ -58,16 +58,16 @@ class TestReportParserWithRealData(unittest.TestCase):
         # LAMINA DE 1.22 X 3.05 MTS CAL. 22 PINTADA INCLUIDO
         # IVA;UND;0,33;14,04;174.928,81;65.403,35
         insumo_desc = "LAMINA DE 1.22 X 3.05 MTS CAL. 22 PINTADA INCLUIDO IVA"
-        insumo = self.df[self.df["DESCRIPCION"] == insumo_desc]
+        insumo = self.df[self.df["DESCRIPCION_INSUMO"] == insumo_desc]
         self.assertTrue(
             not insumo.empty, "The specific insumo 'LAMINA...' was not found."
         )
 
         insumo_data = insumo.iloc[0]
-        self.assertEqual(insumo_data["UNIDAD"], "UND")
-        self.assertAlmostEqual(insumo_data["CANTIDAD"], 0.33, places=2)
-        self.assertAlmostEqual(insumo_data["VR_UNITARIO"], 174928.81, places=2)
-        self.assertAlmostEqual(insumo_data["VR_TOTAL"], 65403.35, places=2)
+        self.assertEqual(insumo_data["UNIDAD_INSUMO"], "UND")
+        self.assertAlmostEqual(insumo_data["CANTIDAD_APU"], 0.33, places=2)
+        self.assertAlmostEqual(insumo_data["PRECIO_UNIT_APU"], 174928.81, places=2)
+        self.assertAlmostEqual(insumo_data["VALOR_TOTAL_APU"], 65403.35, places=2)
         self.assertEqual(insumo_data["CATEGORIA"], "MATERIALES")
 
 if __name__ == "__main__":

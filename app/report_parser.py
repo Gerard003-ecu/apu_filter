@@ -63,7 +63,21 @@ class ReportParser:
             return pd.DataFrame()
 
         df = pd.DataFrame(self.apus_data)
-        df["NORMALIZED_DESC"] = self._normalize_text(df["DESCRIPCION"])
+        # Estandarizar nombres de columnas para consistencia
+        df.rename(columns={
+            "DESCRIPCION": "DESCRIPCION_INSUMO",
+            "CANTIDAD": "CANTIDAD_APU",
+            "VR_UNITARIO": "PRECIO_UNIT_APU",
+            "VR_TOTAL": "VALOR_TOTAL_APU",
+            "UNIDAD": "UNIDAD_INSUMO"
+        }, inplace=True)
+
+        df["NORMALIZED_DESC"] = self._normalize_text(df["DESCRIPCION_INSUMO"])
+
+        # Log del DataFrame parseado para depuración
+        # Muestra las primeras 5 filas del dataframe parseado
+        # logger.debug(f"DataFrame parseado para pruebas:\n{df.head().to_string()}")
+
         return df
 
     def _process_line(self, line: str):
@@ -132,20 +146,21 @@ class ReportParser:
         valor_total = self._to_numeric_safe(data["valor_total"])
         jornal_total = self._to_numeric_safe(data["jornal_total"])
         cantidad = valor_total / jornal_total if jornal_total > 0 else 0
-        rendimiento = self._to_numeric_safe(data["rendimiento"])
 
-        self.apus_data.append({
-            "CODIGO_APU": self.context["apu_code"],
-            "DESCRIPCION_APU": self.context["apu_desc"],
-            "UNIDAD_APU": self.context["apu_unit"],
-            "DESCRIPCION": data["descripcion"].strip(),
-            "UNIDAD": "JOR",
-            "CANTIDAD": cantidad,
-            "VR_UNITARIO": jornal_total,
-            "VR_TOTAL": valor_total,
-            "CATEGORIA": "MANO DE OBRA",
-            "RENDIMIENTO": rendimiento, # Extraer el rendimiento
-        })
+        self.apus_data.append(
+            {
+                "CODIGO_APU": self.context["apu_code"],
+                "DESCRIPCION_APU": self.context["apu_desc"],
+                "UNIDAD_APU": self.context["apu_unit"],
+                "DESCRIPCION": data["descripcion"].strip(),
+                "UNIDAD": "JOR",
+                "CANTIDAD": cantidad,
+                "VR_UNITARIO": jornal_total,
+                "VR_TOTAL": valor_total,
+                "CATEGORIA": "MANO DE OBRA",
+                "RENDIMIENTO": self._to_numeric_safe(data["rendimiento"]),
+            }
+        )
 
     def _to_numeric_safe(self, s: Optional[str]) -> float:
         # ... (función de limpieza numérica como la tienes)
