@@ -164,13 +164,15 @@ def create_app(config_name):
         apu_details_procesados = df_otros.to_dict('records')
 
         if not df_mano_de_obra.empty:
+            # --- INICIO DE LA CORRECCIÓN ---
             df_mo_agrupado = df_mano_de_obra.groupby('DESCRIPCION').agg(
-                CANTIDAD=('CANTIDAD', 'sum'),
-                VR_TOTAL=('VR_TOTAL', 'sum'),
+                CANTIDAD=('CANTIDAD_APU', 'sum'),
+                VR_TOTAL=('VALOR_TOTAL_APU', 'sum'), # Corregido: Usar VALOR_TOTAL_APU
                 UNIDAD=('UNIDAD', 'first'),
-                VR_UNITARIO=('VR_UNITARIO', 'first'), # Se mantiene el primer Vr. Unitario como referencia
+                VR_UNITARIO=('PRECIO_UNIT_APU', 'first'), # Corregido: Usar PRECIO_UNIT_APU
                 CATEGORIA=('CATEGORIA', 'first')
             ).reset_index()
+            # --- FIN DE LA CORRECCIÓN ---
 
             apu_details_procesados.extend(df_mo_agrupado.to_dict('records'))
 
