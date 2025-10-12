@@ -151,6 +151,28 @@ def create_app(config_name):
         if not apu_details_for_code:
             return jsonify({"error": "APU no encontrado"}), 404
 
+        # --- INICIO DE LA NUEVA LÓGICA DE AGRUPACIÓN ---
+        import pandas as pd
+
+        df_details = pd.DataFrame(apu_details_for_code)
+
+        df_mano_de_obra = df_details[df_details['CATEGORIA'] == 'MANO DE OBRA']
+        df_otros = df_details[df_details['CATEGORIA'] != 'MANO DE OBRA']
+
+        apu_details_procesados = df_otros.to_dict('records')
+
+        if not df_mano_de_obra.empty:
+            df_mo_agrupado = df_mano_de_obra.groupby('DESCRIPCION').agg(
+                CANTIDAD=('CANTIDAD', 'sum'),
+                VR_TOTAL=('VR_TOTAL', 'sum'),
+                UNIDAD=('UNIDAD', 'first'),
+                VR_UNITARIO=('VR_UNITARIO', 'first'),
+                CATEGORIA=('CATEGORIA', 'first')
+            ).reset_index()
+
+            apu_details_procesados.extend(df_mo_agrupado.to_dict('records'))
+        # --- FIN DE LA NUEVA LÓGICA DE AGRUPACIÓN ---
+
         # El resto de la lógica para agrupar por categoría y simular sigue siendo válida
         presupuesto_item = next(
             (item for item in user_data.get("presupuesto", []) if item.get("CODIGO_APU") == apu_code),
@@ -158,13 +180,14 @@ def create_app(config_name):
         )
 
         desglose = {}
-        for item in apu_details_for_code:
+        for item in apu_details_procesados: #<-- Se usa la lista procesada
             categoria = item.get("CATEGORIA", "INDEFINIDO")
             if categoria not in desglose:
                 desglose[categoria] = []
             desglose[categoria].append(item)
 
-        simulation_results = run_monte_carlo_simulation(apu_details_for_code)
+        simulation_results = run_monte_carlo_simulation(apu_details_procesados)
+
 
         response = {
             "codigo": apu_code,
