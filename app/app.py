@@ -130,20 +130,20 @@ def create_app(config_name):
 
     @app.route("/api/apu/<code>", methods=["GET"])
     def get_apu_detail(code):
-        """Devuelve los detalles de un APU, adaptado para la nueva estructura de lista."""
+        """
+        Devuelve los detalles de un APU, con agrupación de mano de obra
+        y asegurando consistencia de datos para la simulación. VERSIÓN FINAL.
+        """
         user_data, error_response, status_code = get_user_data()
         if error_response:
             return error_response, status_code
 
         apu_code = code.replace("%2C", ",")
 
-        # Obtener la lista plana de todos los detalles de APU
         all_apu_details = user_data.get("apus_detail", [])
         if not isinstance(all_apu_details, list):
-            # Fallback por si algo sale mal
             return jsonify({"error": "Formato de datos de apus_detail incorrecto"}), 500
 
-        # Filtrar la lista para encontrar los insumos del APU solicitado
         apu_details_for_code = [
             item for item in all_apu_details if item.get("CODIGO_APU") == apu_code
         ]
@@ -151,14 +151,16 @@ def create_app(config_name):
         if not apu_details_for_code:
             return jsonify({"error": "APU no encontrado"}), 404
 
-        # --- INICIO DE LA NUEVA LÓGICA DE AGRUPACIÓN ---
+        # --- INICIO DE LA LÓGICA DE AGRUPACIÓN Y CONSISTENCIA ---
         import pandas as pd
 
+        # Usar Pandas para una agrupación robusta
         df_details = pd.DataFrame(apu_details_for_code)
 
         df_mano_de_obra = df_details[df_details['CATEGORIA'] == 'MANO DE OBRA']
         df_otros = df_details[df_details['CATEGORIA'] != 'MANO DE OBRA']
 
+        # La lista final que se usará para TODO
         apu_details_procesados = df_otros.to_dict('records')
 
         if not df_mano_de_obra.empty:
@@ -166,33 +168,33 @@ def create_app(config_name):
                 CANTIDAD=('CANTIDAD', 'sum'),
                 VR_TOTAL=('VR_TOTAL', 'sum'),
                 UNIDAD=('UNIDAD', 'first'),
-                VR_UNITARIO=('VR_UNITARIO', 'first'),
+                VR_UNITARIO=('VR_UNITARIO', 'first'), # Se mantiene el primer Vr. Unitario como referencia
                 CATEGORIA=('CATEGORIA', 'first')
             ).reset_index()
 
             apu_details_procesados.extend(df_mo_agrupado.to_dict('records'))
-        # --- FIN DE LA NUEVA LÓGICA DE AGRUPACIÓN ---
 
-        # El resto de la lógica para agrupar por categoría y simular sigue siendo válida
+        # --- FIN DE LA LÓGICA DE AGRUPACIÓN Y CONSISTENCIA ---
+
         presupuesto_item = next(
             (item for item in user_data.get("presupuesto", []) if item.get("CODIGO_APU") == apu_code),
             None,
         )
 
         desglose = {}
-        for item in apu_details_procesados: #<-- Se usa la lista procesada
+        for item in apu_details_procesados: # Usar la lista procesada
             categoria = item.get("CATEGORIA", "INDEFINIDO")
             if categoria not in desglose:
                 desglose[categoria] = []
             desglose[categoria].append(item)
 
+        # Usar la misma lista procesada para la simulación
         simulation_results = run_monte_carlo_simulation(apu_details_procesados)
-
 
         response = {
             "codigo": apu_code,
             "descripcion": (
-                presupuesto_item.get("original_description", "") # Usar la descripción original
+                presupuesto_item.get("original_description", "")
                 if presupuesto_item
                 else ""
             ),
