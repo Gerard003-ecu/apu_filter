@@ -187,16 +187,17 @@ def create_app(config_name):
                 logger.debug("Agrupando insumos de Mano de Obra...")
 
                 # --- INICIO DE LA CORRECCIÓN ---
-                # El nombre correcto de la columna es 'DESCRIPCION_INSUMO'
+                # Usar los nombres de columna correctos del parser ('_APU')
+                # y renombrar la salida a lo que espera el frontend.
                 df_mo_agrupado = df_mano_de_obra.groupby('DESCRIPCION_INSUMO').agg(
-                    CANTIDAD=('CANTIDAD', 'sum'),
+                    CANTIDAD=('CANTIDAD_APU', 'sum'),
                     VR_TOTAL=('VR_TOTAL', 'sum'),
                     UNIDAD=('UNIDAD', 'first'),
                     VR_UNITARIO=('VR_UNITARIO', 'first'),
                     CATEGORIA=('CATEGORIA', 'first')
                 ).reset_index()
 
-                # Renombrar la columna agrupada para que el frontend la entienda
+                # Renombrar la columna de descripción para el frontend
                 df_mo_agrupado.rename(columns={'DESCRIPCION_INSUMO': 'DESCRIPCION'}, inplace=True)
                 # --- FIN DE LA CORRECCIÓN ---
 
