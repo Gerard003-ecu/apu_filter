@@ -1,0 +1,52 @@
+ * Serving Flask app 'app.app:create_app('development')'
+ * Debug mode: off
+2025-10-11 22:00:57,701 - INFO - WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
+ * Running on http://127.0.0.1:5002
+2025-10-11 22:00:57,703 - INFO - Press CTRL+C to quit
+2025-10-11 22:01:02,054 - INFO - 127.0.0.1 - - [11/Oct/2025 22:01:02] "GET / HTTP/1.1" 200 -
+2025-10-11 22:01:05,402 - INFO - Cache miss.
+2025-10-11 22:01:05,403 - INFO - Procesando archivos: /Users/gerardomayor/Documents/estru_techos/apu_filter/uploads/483f0122-c6a5-4596-b2c7-baf8571d454e/presupuesto.csv, /Users/gerardomayor/Documents/estru_techos/apu_filter/uploads/483f0122-c6a5-4596-b2c7-baf8571d454e/apus.csv, /Users/gerardomayor/Documents/estru_techos/apu_filter/uploads/483f0122-c6a5-4596-b2c7-baf8571d454e/insumos.csv
+2025-10-11 22:01:05,449 - INFO - Éxito al leerpresupuesto.csv con encoding 'latin1'y delimitador ';'
+2025-10-11 22:01:05,486 - INFO - Tipos de datos optimizados con PyArrow para /Users/gerardomayor/Documents/estru_techos/apu_filter/uploads/483f0122-c6a5-4596-b2c7-baf8571d454e/presupuesto.csv
+2025-10-11 22:01:05,557 - INFO - Iniciando el parsing del archivo: /Users/gerardomayor/Documents/estru_techos/apu_filter/uploads/483f0122-c6a5-4596-b2c7-baf8571d454e/apus.csv
+2025-10-11 22:01:05,748 - INFO - Cache info: hits=0, misses=1, size=1
+2025-10-11 22:01:05,757 - INFO - 127.0.0.1 - - [11/Oct/2025 22:01:05] "POST /upload HTTP/1.1" 200 -
+2025-10-11 22:01:05,927 - INFO - 127.0.0.1 - - [11/Oct/2025 22:01:05] "POST /api/estimate HTTP/1.1" 200 -
+2025-10-11 22:01:05,938 - INFO - 127.0.0.1 - - [11/Oct/2025 22:01:05] "POST /api/estimate HTTP/1.1" 200 -
+2025-10-11 22:01:19,188 - ERROR - Exception on /api/apu/16,2 [GET]
+Traceback (most recent call last):
+  File "/Users/gerardomayor/Documents/estru_techos/apu_filter/.venv/lib/python3.12/site-packages/flask/app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/gerardomayor/Documents/estru_techos/apu_filter/.venv/lib/python3.12/site-packages/flask/app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/gerardomayor/Documents/estru_techos/apu_filter/.venv/lib/python3.12/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/gerardomayor/Documents/estru_techos/apu_filter/.venv/lib/python3.12/site-packages/flask/app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/gerardomayor/Documents/estru_techos/apu_filter/app/app.py", line 168, in get_apu_detail
+    df_mo_agrupado = df_mano_de_obra.groupby('DESCRIPCION').agg(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/gerardomayor/Documents/estru_techos/apu_filter/.venv/lib/python3.12/site-packages/pandas/core/groupby/generic.py", line 1432, in aggregate
+    result = op.agg()
+             ^^^^^^^^
+  File "/Users/gerardomayor/Documents/estru_techos/apu_filter/.venv/lib/python3.12/site-packages/pandas/core/apply.py", line 190, in agg
+    return self.agg_dict_like()
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/Users/gerardomayor/Documents/estru_techos/apu_filter/.venv/lib/python3.12/site-packages/pandas/core/apply.py", line 423, in agg_dict_like
+    return self.agg_or_apply_dict_like(op_name="agg")
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/gerardomayor/Documents/estru_techos/apu_filter/.venv/lib/python3.12/site-packages/pandas/core/apply.py", line 1603, in agg_or_apply_dict_like
+    result_index, result_data = self.compute_dict_like(
+                                ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/gerardomayor/Documents/estru_techos/apu_filter/.venv/lib/python3.12/site-packages/pandas/core/apply.py", line 462, in compute_dict_like
+    func = self.normalize_dictlike_arg(op_name, selected_obj, func)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/gerardomayor/Documents/estru_techos/apu_filter/.venv/lib/python3.12/site-packages/pandas/core/apply.py", line 663, in normalize_dictlike_arg
+    raise KeyError(f"Column(s) {list(cols)} do not exist")
+KeyError: "Column(s) ['CANTIDAD_APU', 'PRECIO_UNIT_APU', 'VALOR_TOTAL_APU'] do not exist"
+2025-10-11 22:01:19,227 - ERROR - Error interno del servidor: 500 Internal Server Error: The server encountered an internal error and was unable to complete your request. Either the server is overloaded or there is an error in the application.
+2025-10-11 22:01:19,312 - INFO - 127.0.0.1 - - [11/Oct/2025 22:01:19] "GET /api/apu/16,2 HTTP/1.1" 500 -
