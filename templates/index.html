@@ -554,64 +554,87 @@
     }
 
     async function openModal(apuCode) {
-        document.getElementById('modal-title').textContent = `Detalle APU: ${apuCode}`;
-        const modalBody = document.getElementById('modal-body');
-        modalBody.innerHTML = '<div class="text-center p-8">Cargando detalles y ejecutando simulación...</div>';
-        
         const modal = document.getElementById('apu-modal');
+        const modalBody = document.getElementById('modal-body');
+        const modalTitle = document.getElementById('modal-title');
+        
+        modalTitle.textContent = `Detalle APU: ${apuCode}`;
+        modalBody.innerHTML = '<p>Cargando datos...</p>';
         modal.classList.remove('hidden');
         modal.classList.add('flex');
 
         try {
             const response = await fetch(`/api/apu/${encodeURIComponent(apuCode)}`);
-            if (!response.ok) throw new Error(`Error del servidor: ${response.statusText}`);
 
-            const data = await response.json();
-            const categories = data.desglose;
-            const simulation = data.simulation;
+            // --- INICIO DE LA LÓGICA DE DEPURACIÓN ---
+
+            // 1. Obtener la respuesta como texto crudo
+            const rawText = await response.text();
+
+            // 2. Imprimir el texto crudo en la consola del navegador para inspección
+            console.log("--- RESPUESTA CRUDA DEL SERVIDOR ---");
+            console.log(rawText);
+            console.log("--- FIN DE LA RESPUESTA CRUDA ---");
+
+            if (!response.ok) {
+                // Intentar parsear el error si es posible, si no, mostrar el texto crudo
+                try {
+                    const errorData = JSON.parse(rawText);
+                    throw new Error(errorData.error || `Error del servidor: ${response.statusText}`);
+                } catch (e) {
+                    throw new Error(rawText || `Error del servidor: ${response.statusText}`);
+                }
+            }
+
+            // 3. Intentar parsear el JSON dentro de un try...catch
+            let data;
+            try {
+                data = JSON.parse(rawText);
+            } catch (e) {
+                console.error("Error al parsear el JSON:", e);
+                // Mostrar el error en el modal para que sea visible
+                modalBody.innerHTML = `<p class="text-red-500">Error al procesar los datos del servidor. Revisa la consola del navegador para más detalles.</p><pre class="bg-gray-100 p-2 text-xs">${rawText.substring(0, 1000)}...</pre>`;
+                return; // Detener la ejecución
+            }
+
+            // --- FIN DE LA LÓGICA DE DEPURACIÓN ---
+
+            // Si el parseo fue exitoso, continuar con la lógica de renderizado...
             const aiuPcts = getAiuPercentages();
 
-            let costoDirecto = 0;
-            let contentHTML = '<div class="space-y-6">';
+            // ... (el resto de la lógica para construir el HTML del modal sigue aquí,
+            // usando la variable 'data' que ahora contiene el JSON parseado) ...
 
+            let costoDirecto = 0;
+            const categories = data.desglose || {};
+
+            let contentHTML = '<div class="space-y-6">';
             ['MATERIALES', 'MANO DE OBRA', 'EQUIPO', 'OTROS'].forEach(catName => {
                 if (!categories[catName]) return;
+                const categoryItems = categories[catName];
+                let categorySubtotal = 0;
 
-                const categoryData = { items: categories[catName], subtotal: 0 };
-                categoryData.items.forEach(insumo => {
-                    const vrTotal = insumo.VALOR_TOTAL || 0;
-                    categoryData.subtotal += vrTotal;
-                    costoDirecto += vrTotal;
+                let tableRowsHTML = '';
+                categoryItems.forEach(insumo => {
+                    const vrTotal = insumo['VR_TOTAL'] || 0;
+                    categorySubtotal += vrTotal;
+                    tableRowsHTML += `<tr class="text-sm">
+                        <td class="py-2 px-4">${insumo['DESCRIPCION']}</td>
+                        <td class="py-2 px-4 text-right">${(insumo['CANTIDAD'] || 0).toFixed(3)}</td>
+                        <td class="py-2 px-4 text-right">${formatCurrency(insumo['VR_UNITARIO'])}</td>
+                        <td class="py-2 px-4 text-right">${formatCurrency(vrTotal)}</td>
+                    </tr>`;
                 });
+                costoDirecto += categorySubtotal;
 
                 contentHTML += `
                     <div class="border rounded-lg overflow-hidden">
                         <h4 class="bg-gray-100 px-4 py-2 font-semibold text-gray-700">${catName}</h4>
-                        <table class="min-w-full">
-                            <thead class="bg-gray-50 text-xs uppercase text-gray-700">
-                                <tr>
-                                    <th class="py-2 px-4 text-left">Descripción</th>
-                                    <th class="py-2 px-4 text-left">Unidad</th>
-                                    <th class="py-2 px-4 text-right">Cantidad</th>
-                                    <th class="py-2 px-4 text-right">Vr. Unitario</th>
-                                    <th class="py-2 px-4 text-right">Vr. Total</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-gray-200">
-                `;
-                categoryData.items.forEach(insumo => {
-                    contentHTML += `<tr class="text-sm">
-                        <td class="py-2 px-4">${insumo.DESCRIPCION}</td>
-                        <td class="py-2 px-4 text-left">${insumo.UNIDAD || 'UND'}</td>
-                        <td class="py-2 px-4 text-right">${(insumo.CANTIDAD || 0).toFixed(3)}</td>
-                        <td class="py-2 px-4 text-right">${formatCurrency(insumo.VALOR_UNITARIO)}</td>
-                        <td class="py-2 px-4 text-right">${formatCurrency(insumo.VALOR_TOTAL)}</td>
-                    </tr>`;
-                });
-                contentHTML += `</tbody><tfoot class="bg-gray-100 font-semibold"><tr class="border-t-2 border-gray-300"><td colspan="4" class="py-2 px-4 text-right">SUBTOTAL ${catName}</td><td class="py-2 px-4 text-right">${formatCurrency(categoryData.subtotal)}</td></tr></tfoot></table></div>`;
+                        <table class="min-w-full"><tbody class="divide-y divide-gray-200">${tableRowsHTML}</tbody>
+                        <tfoot class="bg-gray-100"><tr><td colspan="3" class="py-2 px-4 text-right font-semibold">SUBTOTAL ${catName}</td><td class="py-2 px-4 text-right font-semibold">${formatCurrency(categorySubtotal)}</td></tr></tfoot></table>
+                    </div>`;
             });
 
-            // AIU Calculation Table
             const adminValue = costoDirecto * (aiuPcts.admin / 100);
             const imprevValue = costoDirecto * (aiuPcts.imprev / 100);
             const utilValue = costoDirecto * (aiuPcts.util / 100);
@@ -625,31 +648,23 @@
                 <tr class="bg-blue-100"><td class="px-4 py-2 text-right font-bold text-blue-800 text-base">VALOR TOTAL APU</td><td class="px-4 py-2 text-right font-bold text-blue-800 text-base">${formatCurrency(costoTotalAIU)}</td></tr>
             </tbody></table></div>`;
 
-            // Monte Carlo Simulation Results Section
-            contentHTML += `
-                <div class="mt-6 border-2 border-dashed border-blue-300 rounded-lg p-4 bg-blue-50">
-                    <h4 class="text-lg font-semibold mb-3 text-blue-800">Análisis de Riesgo (Simulación Monte Carlo)</h4>
-                    <div id="simulation-results" class="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
-                        <div class="bg-white p-3 rounded-lg shadow-sm">
-                            <p class="text-sm text-gray-600">Costo Esperado (Media)</p>
-                            <p class="text-xl font-bold text-blue-700">${formatCurrency(simulation.mean)}</p>
-                        </div>
-                        <div class="bg-white p-3 rounded-lg shadow-sm">
-                            <p class="text-sm text-gray-600">Riesgo (Desv. Estándar)</p>
-                            <p class="text-xl font-bold text-blue-700">${formatCurrency(simulation.std_dev)}</p>
-                        </div>
-                        <div class="bg-white p-3 rounded-lg shadow-sm">
-                            <p class="text-sm text-gray-600">Rango de Confianza (90%)</p>
-                            <p class="text-lg font-bold text-blue-700">${formatCurrency(simulation.percentile_5)} - ${formatCurrency(simulation.percentile_95)}</p>
-                        </div>
+            // Añadir simulación si existe
+            if (data.simulation) {
+                contentHTML += `<div class="border rounded-lg mt-6 p-4 bg-gray-50">
+                    <h4 class="font-semibold text-center mb-2">Análisis de Riesgo (Simulación Monte Carlo)</h4>
+                    <div class="grid grid-cols-3 text-center text-sm">
+                        <div><p class="text-gray-500">Costo Esperado (Media)</p><p class="font-bold">${formatCurrency(data.simulation.mean)}</p></div>
+                        <div><p class="text-gray-500">Riesgo (Desv. Estándar)</p><p class="font-bold">${formatCurrency(data.simulation.std_dev)}</p></div>
+                        <div><p class="text-gray-500">Rango de Confianza (90%)</p><p class="font-bold">${formatCurrency(data.simulation.percentile_5)} - ${formatCurrency(data.simulation.percentile_95)}</p></div>
                     </div>
-                </div>
-            `;
+                </div>`;
+            }
 
             modalBody.innerHTML = contentHTML + '</div>';
 
         } catch (error) {
-            modalBody.innerHTML = `<div class="text-center p-8 text-red-600">Error al cargar datos: ${error.message}</div>`;
+            console.error("Error al cargar datos del APU:", error);
+            modalBody.innerHTML = `<p class="text-red-500">Error al cargar datos: ${error.message}</p>`;
         }
     }
 
