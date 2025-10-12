@@ -585,8 +585,24 @@ def _do_processing(presupuesto_path, apus_path, insumos_path):
             inplace=True,
         )
 
-        # Crear una lista plana de registros, no un diccionario anidado
-        apus_detail = df_merged.to_dict("records")
+        # Renombrar df_merged para claridad antes de la limpieza
+        df_merged_renamed = df_merged
+
+        logger.info("--- Procesamiento completado ---")
+
+        # --- INICIO DE LA CORRECCIÓN: Limpieza final de NaN antes de la serialización ---
+        # Reemplazar NaN por None (JSON-friendly null) en todos los DataFrames finales
+        df_final = df_final.replace({np.nan: None})
+        df_merged_renamed = df_merged_renamed.replace({np.nan: None})
+        df_apus = df_apus.replace({np.nan: None})
+        df_insumos = df_insumos.replace({np.nan: None})
+        df_processed_apus = df_processed_apus.replace({np.nan: None})
+
+        # Ahora, la conversión a diccionario será segura, manteniendo la estructura anidada
+        apus_detail = {
+            n: g.to_dict("records")
+            for n, g in df_merged_renamed.groupby("CODIGO_APU")
+        }
 
         insumos_dict = {}
         if "GRUPO_INSUMO" in df_insumos.columns:
@@ -599,16 +615,16 @@ def _do_processing(presupuesto_path, apus_path, insumos_path):
             for name, group in df_insumos_renamed.groupby("GRUPO_INSUMO"):
                 if name and isinstance(name, str):
                     insumos_dict[name.strip()] = (
-                        group[["Descripción", "Vr Unitario"]].dropna().to_dict("records")
+                        group[["Descripción", "Vr Unitario"]].to_dict("records")
                     )
-
-        df_final = df_final.replace({np.nan: None})
-        df_processed_apus = df_processed_apus.replace({np.nan: None})
+        # --- FIN DE LA CORRECCIÓN ---
 
         return {
             "presupuesto": df_final.to_dict("records"),
             "insumos": insumos_dict,
             "apus_detail": apus_detail,
+            "all_apus": df_apus.to_dict("records"),
+            "raw_insumos_df": df_insumos.to_dict("records"),
             "processed_apus": df_processed_apus.to_dict("records"),
         }
 
