@@ -143,8 +143,8 @@ def create_app(config_name):
     @app.route("/api/apu/<code>", methods=["GET"])
     def get_apu_detail(code):
         """
-        Devuelve los detalles de un APU, adaptado para la nueva estructura de lista.
-        VERSIÓN FINAL Y ROBUSTA.
+    Devuelve los detalles de un APU, con agrupación de mano de obra
+    y asegurando consistencia de datos para la simulación. VERSIÓN FINAL.
         """
         user_data, error_response, status_code = get_user_data()
         if error_response:
@@ -152,12 +152,10 @@ def create_app(config_name):
 
         apu_code = code.replace("%2C", ",")
 
-        # Obtener la lista plana de todos los detalles de APU
         all_apu_details = user_data.get("apus_detail", [])
         if not isinstance(all_apu_details, list):
             return jsonify({"error": "Formato de datos de apus_detail incorrecto"}), 500
 
-        # Filtrar la lista para encontrar los insumos del APU solicitado
         apu_details_for_code = [
             item for item in all_apu_details if item.get("CODIGO_APU") == apu_code
         ]
@@ -168,21 +166,27 @@ def create_app(config_name):
         # --- Lógica de Agrupación de Mano de Obra ---
         import pandas as pd
         df_details = pd.DataFrame(apu_details_for_code)
+
         df_mano_de_obra = df_details[df_details['CATEGORIA'] == 'MANO DE OBRA']
         df_otros = df_details[df_details['CATEGORIA'] != 'MANO DE OBRA']
 
         apu_details_procesados = df_otros.to_dict('records')
+
         if not df_mano_de_obra.empty:
-            df_mo_agrupado = df_mano_de_obra.groupby('DESCRIPCION').agg(
-                CANTIDAD=('CANTIDAD', 'sum'),
-                VR_TOTAL=('VR_TOTAL', 'sum'),
+            # --- INICIO DE LA CORRECCIÓN ---
+            df_mo_agrupado = df_mano_de_obra.groupby('DESCRIPCION_INSUMO').agg(
+                CANTIDAD=('CANTIDAD_APU', 'sum'),         # Corregido
+                VR_TOTAL=('VALOR_TOTAL_APU', 'sum'),         # Corregido
                 UNIDAD=('UNIDAD', 'first'),
-                VR_UNITARIO=('VR_UNITARIO', 'first'),
+                VR_UNITARIO=('PRECIO_UNIT_APU', 'first'), # Corregido
                 CATEGORIA=('CATEGORIA', 'first')
             ).reset_index()
-            apu_details_procesados.extend(df_mo_agrupado.to_dict('records'))
 
-        # --- Fin de la Lógica de Agrupación ---
+            # Renombrar columnas para que el frontend las entienda
+            df_mo_agrupado.rename(columns={'DESCRIPCION_INSUMO': 'DESCRIPCION'}, inplace=True)
+
+            apu_details_procesados.extend(df_mo_agrupado.to_dict('records'))
+            # --- FIN DE LA CORRECCIÓN ---
 
         presupuesto_item = next(
             (item for item in user_data.get("presupuesto", []) if item.get("CODIGO_APU") == apu_code),
