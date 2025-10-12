@@ -111,7 +111,19 @@ def create_app(config_name):
             if "error" in processed_data:
                 return jsonify(processed_data), 500
 
-            return jsonify(processed_data)
+            # --- INICIO DE LA CORRECCIÓN ---
+            try:
+                # Forzar una doble conversión para limpiar tipos de datos no serializables
+                # 1. Convertir el diccionario a una cadena JSON (esto manejará NaNs, etc.)
+                json_string = json.dumps(processed_data, allow_nan=False)
+                # 2. Convertir la cadena de nuevo a un objeto Python puro
+                clean_data = json.loads(json_string)
+                # 3. Devolver el objeto limpio con jsonify
+                return jsonify(clean_data)
+            except (TypeError, ValueError) as e:
+                app.logger.error(f"Error de serialización JSON en /upload: {e}")
+                return jsonify({"error": "Los datos procesados no pudieron ser convertidos a JSON."}), 500
+            # --- FIN DE LA CORRECCIÓN ---
 
         except Exception as e:
             app.logger.error(f"Error en upload_files: {str(e)}")
