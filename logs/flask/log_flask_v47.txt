@@ -1,0 +1,44 @@
+ * Serving Flask app 'app.app:create_app('development')'
+ * Debug mode: off
+WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
+ * Running on http://127.0.0.1:5002
+Press CTRL+C to quit
+127.0.0.1 - - [12/Oct/2025 18:11:29] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [12/Oct/2025 18:11:31] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [12/Oct/2025 18:11:33] "POST /upload HTTP/1.1" 200 -
+127.0.0.1 - - [12/Oct/2025 18:11:33] "POST /api/estimate HTTP/1.1" 200 -
+127.0.0.1 - - [12/Oct/2025 18:11:33] "POST /api/estimate HTTP/1.1" 200 -
+127.0.0.1 - - [12/Oct/2025 18:11:57] "POST /api/estimate HTTP/1.1" 200 -
+127.0.0.1 - - [12/Oct/2025 18:11:59] "POST /api/estimate HTTP/1.1" 200 -
+[2025-10-12 18:12:30,640] ERROR in app: Excepción no controlada en get_apu_detail para el código 16,2: 'DESCRIPCION'
+Traceback (most recent call last):
+  File "/Users/gerardomayor/Documents/estru_techos/apu_filter/app/app.py", line 188, in get_apu_detail
+    df_mo_agrupado = df_mano_de_obra.groupby('DESCRIPCION').agg(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/gerardomayor/Documents/estru_techos/apu_filter/.venv/lib/python3.12/site-packages/pandas/core/frame.py", line 9190, in groupby
+    return DataFrameGroupBy(
+           ^^^^^^^^^^^^^^^^^
+  File "/Users/gerardomayor/Documents/estru_techos/apu_filter/.venv/lib/python3.12/site-packages/pandas/core/groupby/groupby.py", line 1330, in __init__
+    grouper, exclusions, obj = get_grouper(
+                               ^^^^^^^^^^^^
+  File "/Users/gerardomayor/Documents/estru_techos/apu_filter/.venv/lib/python3.12/site-packages/pandas/core/groupby/grouper.py", line 1043, in get_grouper
+    raise KeyError(gpr)
+KeyError: 'DESCRIPCION'
+127.0.0.1 - - [12/Oct/2025 18:12:30] "GET /api/apu/16,2 HTTP/1.1" 500 -
+127.0.0.1 - - [12/Oct/2025 18:12:48] "POST /api/estimate HTTP/1.1" 200 -
+127.0.0.1 - - [12/Oct/2025 18:12:49] "POST /api/estimate HTTP/1.1" 200 -
+[2025-10-12 18:13:03,711] ERROR in app: Excepción no controlada en get_apu_detail para el código 16,2: 'DESCRIPCION'
+Traceback (most recent call last):
+  File "/Users/gerardomayor/Documents/estru_techos/apu_filter/app/app.py", line 188, in get_apu_detail
+    df_mo_agrupado = df_mano_de_obra.groupby('DESCRIPCION').agg(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/gerardomayor/Documents/estru_techos/apu_filter/.venv/lib/python3.12/site-packages/pandas/core/frame.py", line 9190, in groupby
+    return DataFrameGroupBy(
+           ^^^^^^^^^^^^^^^^^
+  File "/Users/gerardomayor/Documents/estru_techos/apu_filter/.venv/lib/python3.12/site-packages/pandas/core/groupby/groupby.py", line 1330, in __init__
+    grouper, exclusions, obj = get_grouper(
+                               ^^^^^^^^^^^^
+  File "/Users/gerardomayor/Documents/estru_techos/apu_filter/.venv/lib/python3.12/site-packages/pandas/core/groupby/grouper.py", line 1043, in get_grouper
+    raise KeyError(gpr)
+KeyError: 'DESCRIPCION'
+127.0.0.1 - - [12/Oct/2025 18:13:03] "GET /api/apu/16,2 HTTP/1.1" 500 -

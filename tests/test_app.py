@@ -3,9 +3,6 @@ import json
 import os
 import sys
 import unittest
-from unittest.mock import patch
-
-import pandas as pd
 
 # Add project root to the Python path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
@@ -16,7 +13,6 @@ from app.app import create_app, user_sessions
 from app.procesador_csv import (
     process_all_files,
 )
-from app.utils import normalize_text
 
 # ======================================================================
 # DATOS DE PRUEBA GLOBALES
