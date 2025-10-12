@@ -121,10 +121,8 @@ def calculate_estimate(params: Dict[str, str], data_store: Dict) -> Dict[str, Un
         log.append(f"  --> Tarea encontrada: '{apu_tarea_desc}' (Código: {apu_code})")
 
         # Nueva lógica para calcular rendimiento desde el desglose
-        apus_detail_dict = data_store.get("apus_detail", {})
-        apus_detail_records = [
-            item for sublist in apus_detail_dict.values() for item in sublist
-        ]
+        # 'apus_detail' ahora es una lista plana de registros, no un diccionario.
+        apus_detail_records = data_store.get("apus_detail", [])
         df_apus_detail = pd.DataFrame(apus_detail_records)
 
         if not df_apus_detail.empty:
