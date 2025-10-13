@@ -224,21 +224,24 @@ def create_app(config_name):
                     continue
 
                 # Agrupar por descripción de insumo
-                df_agrupado = (
-                    df_categoria.groupby("DESCRIPCION_INSUMO")
-                    .agg(
-                        CANTIDAD_APU=("CANTIDAD_APU", "sum"),
-                        VALOR_TOTAL_APU=("VALOR_TOTAL_APU", "sum"),
-                        # Para 'MANO DE OBRA', sumar el rendimiento. Para otros, no es relevante.
-                        RENDIMIENTO=("RENDIMIENTO", "sum"),
-                        UNIDAD_APU=("UNIDAD_APU", "first"),
-                        PRECIO_UNIT_APU=("PRECIO_UNIT_APU", "first"),
-                        CATEGORIA=("CATEGORIA", "first"),
-                        CODIGO_APU=("CODIGO_APU", "first"),
-                        UNIDAD_INSUMO=("UNIDAD_INSUMO", "first")
-                    )
-                    .reset_index()
-                )
+                # Definir las agregaciones base
+                aggregations = {
+                    'CANTIDAD_APU': ('CANTIDAD_APU', 'sum'),
+                    'VALOR_TOTAL_APU': ('VALOR_TOTAL_APU', 'sum'),
+                    'RENDIMIENTO': ('RENDIMIENTO', 'sum'),
+                    'UNIDAD_APU': ('UNIDAD_APU', 'first'),
+                    'PRECIO_UNIT_APU': ('PRECIO_UNIT_APU', 'first'),
+                    'CATEGORIA': ('CATEGORIA', 'first'),
+                    'CODIGO_APU': ('CODIGO_APU', 'first'),
+                    'UNIDAD_INSUMO': ('UNIDAD_INSUMO', 'first')
+                }
+
+                # Añadir agregación para 'alerta' si la columna existe en el DataFrame
+                if 'alerta' in df_categoria.columns:
+                    # Usamos una función lambda para unir las alertas únicas y no nulas
+                    aggregations['alerta'] = ('alerta', lambda x: ' | '.join(x.dropna().unique()))
+
+                df_agrupado = df_categoria.groupby('DESCRIPCION_INSUMO').agg(**aggregations).reset_index()
 
                 # Renombrar columnas para consistencia en el frontend
                 df_agrupado.rename(

@@ -480,9 +480,10 @@
                         e.stopPropagation();
                         openModal(item.CODIGO_APU);
                     };
+                    const alertaIcon = item.alerta ? `<span class="text-yellow-500" title="${item.alerta}"> ⚠️</span>` : '';
                     itemRow.innerHTML = `
                         <td class="pl-12 pr-4 py-4 text-sm font-medium text-gray-900">${item.CODIGO_APU}</td>
-                        <td class="px-4 py-4 text-sm text-gray-500">${item.DESCRIPCION_APU}</td>
+                        <td class="px-4 py-4 text-sm text-gray-500">${item.DESCRIPCION_APU}${alertaIcon}</td>
                         <td class="px-4 py-4 text-sm text-gray-500">${formatCurrency(valorSuministroAIU)}</td>
                         <td class="px-4 py-4 text-sm text-gray-500">${formatCurrency(valorInstalacionAIU)}</td>
                         <td class="px-4 py-4 text-sm font-semibold text-gray-700">${formatCurrency(valorConstruccionAIU)}</td>
@@ -637,16 +638,17 @@
                     const vrTotal = insumo['VR_TOTAL'] || 0;
                     categorySubtotal += vrTotal;
 
+                    const alertaIcon = insumo.alerta ? ` <span class="text-yellow-500" title="${insumo.alerta}">⚠️</span>` : '';
                     if (catName === 'MANO DE OBRA') {
                         tableRowsHTML += `<tr class="text-sm">
-                            <td class="py-2 px-4">${insumo['DESCRIPCION']}</td>
+                            <td class="py-2 px-4">${insumo['DESCRIPCION']}${alertaIcon}</td>
                             <td class="py-2 px-4 text-right">${formatCurrency(insumo['VR_UNITARIO'])}</td>
                             <td class="py-2 px-4 text-right">${(insumo['RENDIMIENTO'] || 0).toFixed(2)}</td>
                             <td class="py-2 px-4 text-right">${formatCurrency(vrTotal)}</td>
                         </tr>`;
                     } else {
                         tableRowsHTML += `<tr class="text-sm">
-                            <td class="py-2 px-4">${insumo['DESCRIPCION']}</td>
+                            <td class="py-2 px-4">${insumo['DESCRIPCION']}${alertaIcon}</td>
                             <td class="py-2 px-4 text-right">${(insumo['CANTIDAD'] || 0).toFixed(3)}</td>
                             <td class="py-2 px-4 text-right">${formatCurrency(insumo['VR_UNITARIO'])}</td>
                             <td class="py-2 px-4 text-right">${formatCurrency(vrTotal)}</td>
