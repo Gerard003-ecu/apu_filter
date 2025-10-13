@@ -614,24 +614,55 @@
                 const categoryItems = categories[catName];
                 let categorySubtotal = 0;
 
+                let tableHeadersHTML = '';
+                if (catName === 'MANO DE OBRA') {
+                    tableHeadersHTML = `
+                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Descripción</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Jornal Total</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Rendimiento (un/día)</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Valor Total</th>
+                    `;
+                } else {
+                    tableHeadersHTML = `
+                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Descripción</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Cantidad</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Vr. Unitario</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Valor Total</th>
+                    `;
+                }
+
+
                 let tableRowsHTML = '';
                 categoryItems.forEach(insumo => {
                     const vrTotal = insumo['VR_TOTAL'] || 0;
                     categorySubtotal += vrTotal;
-                    tableRowsHTML += `<tr class="text-sm">
-                        <td class="py-2 px-4">${insumo['DESCRIPCION']}</td>
-                        <td class="py-2 px-4 text-right">${(insumo['CANTIDAD'] || 0).toFixed(3)}</td>
-                        <td class="py-2 px-4 text-right">${formatCurrency(insumo['VR_UNITARIO'])}</td>
-                        <td class="py-2 px-4 text-right">${formatCurrency(vrTotal)}</td>
-                    </tr>`;
+
+                    if (catName === 'MANO DE OBRA') {
+                        tableRowsHTML += `<tr class="text-sm">
+                            <td class="py-2 px-4">${insumo['DESCRIPCION']}</td>
+                            <td class="py-2 px-4 text-right">${formatCurrency(insumo['VR_UNITARIO'])}</td>
+                            <td class="py-2 px-4 text-right">${(insumo['RENDIMIENTO'] || 0).toFixed(2)}</td>
+                            <td class="py-2 px-4 text-right">${formatCurrency(vrTotal)}</td>
+                        </tr>`;
+                    } else {
+                        tableRowsHTML += `<tr class="text-sm">
+                            <td class="py-2 px-4">${insumo['DESCRIPCION']}</td>
+                            <td class="py-2 px-4 text-right">${(insumo['CANTIDAD'] || 0).toFixed(3)}</td>
+                            <td class="py-2 px-4 text-right">${formatCurrency(insumo['VR_UNITARIO'])}</td>
+                            <td class="py-2 px-4 text-right">${formatCurrency(vrTotal)}</td>
+                        </tr>`;
+                    }
                 });
                 costoDirecto += categorySubtotal;
 
                 contentHTML += `
                     <div class="border rounded-lg overflow-hidden">
                         <h4 class="bg-gray-100 px-4 py-2 font-semibold text-gray-700">${catName}</h4>
-                        <table class="min-w-full"><tbody class="divide-y divide-gray-200">${tableRowsHTML}</tbody>
-                        <tfoot class="bg-gray-100"><tr><td colspan="3" class="py-2 px-4 text-right font-semibold">SUBTOTAL ${catName}</td><td class="py-2 px-4 text-right font-semibold">${formatCurrency(categorySubtotal)}</td></tr></tfoot></table>
+                        <table class="min-w-full">
+                            <thead class="bg-gray-50"><tr>${tableHeadersHTML}</tr></thead>
+                            <tbody class="divide-y divide-gray-200">${tableRowsHTML}</tbody>
+                            <tfoot class="bg-gray-100"><tr><td colspan="3" class="py-2 px-4 text-right font-semibold">SUBTOTAL ${catName}</td><td class="py-2 px-4 text-right font-semibold">${formatCurrency(categorySubtotal)}</td></tr></tfoot>
+                        </table>
                     </div>`;
             });
 
