@@ -3,6 +3,7 @@ import logging
 import numpy as np
 import pandas as pd
 
+from .data_validator import validate_and_clean_data
 from .report_parser import ReportParser
 from .utils import (
     clean_apu_code,
@@ -356,9 +357,16 @@ def _do_processing(presupuesto_path, apus_path, insumos_path, config):
         "insumos": insumos_dict,
         "apus_detail": apus_detail,
         "all_apus": df_apus_raw.to_dict("records"),
-        "raw_insumos_df": df_insumos.to_dict("records"),
+        "raw_insumos_df": df_insumos, # Pasamos el DF directamente para el validador
         "processed_apus": df_processed_apus.to_dict("records"),
     }
 
+    logger.info("Iniciando Agente de Validación de Datos...")
+    validated_result = validate_and_clean_data(result_dict)
+    logger.info("Validación completada.")
+
+    # El validador ya no necesita el DataFrame, lo convertimos a dict para el resto de la app
+    validated_result['raw_insumos_df'] = df_insumos.to_dict("records")
+
     logger.info("--- Procesamiento completado ---")
-    return result_dict
+    return validated_result
