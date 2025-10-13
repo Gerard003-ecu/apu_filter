@@ -42,7 +42,9 @@ def run_monte_carlo_simulation(apu_details, num_simulations=1000):
             # Simular variabilidad solo si hay un costo base
             if row['VR_TOTAL'] > 0:
                 # Asumir una desviación estándar del 10% para la simulación
-                simulated_item_cost = np.random.normal(loc=row['VR_TOTAL'], scale=row['VR_TOTAL'] * 0.1)
+                simulated_item_cost = np.random.normal(
+                    loc=row["VR_TOTAL"], scale=row["VR_TOTAL"] * 0.1
+                )
                 simulated_cost += max(0, simulated_item_cost) # Evitar costos negativos
 
         total_costs.append(simulated_cost)

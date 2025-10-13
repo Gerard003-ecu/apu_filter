@@ -16,9 +16,19 @@ logger = logging.getLogger(__name__)
 # Estas funciones ahora viven aquí temporalmente para evitar dependencias circulares
 # TODO: Mover a un módulo de utils de dataframes o similar
 def group_and_split_description(df):
-    """
-    Agrupa por 'CODIGO_APU' y 'DESCRIPCION_APU', y luego divide la descripción
-    en una versión principal y una secundaria si encuentra un patrón como ' / '.
+    """Conserva la descripción original y divide la principal en dos si es necesario.
+
+    Esta función crea una copia de la columna 'DESCRIPCION_APU' en
+    'original_description' para preservar el texto completo. Luego, si encuentra
+    un separador ' / ', divide 'DESCRIPCION_APU' en una parte principal y una
+    secundaria.
+
+    Args:
+        df (pd.DataFrame): DataFrame que contiene la columna 'DESCRIPCION_APU'.
+
+    Returns:
+        pd.DataFrame: El DataFrame modificado con las nuevas columnas
+                      'original_description' y 'descripcion_secundaria'.
     """
     df_grouped = df.copy()
     df_grouped["original_description"] = df_grouped["DESCRIPCION_APU"]
@@ -34,10 +44,21 @@ def group_and_split_description(df):
 
     return df_grouped
 
+
 def process_presupuesto_csv(path: str, config: dict) -> pd.DataFrame:
-    """
-    Lee y limpia el archivo presupuesto, manejando robustamente
-    archivos con o sin encabezado explícito.
+    """Lee y procesa el archivo CSV del presupuesto.
+
+    Detecta automáticamente la fila de encabezado, renombra las columnas según
+    la configuración, limpia los códigos de APU y convierte las cantidades a
+    formato numérico.
+
+    Args:
+        path (str): La ruta al archivo CSV del presupuesto.
+        config (dict): El diccionario de configuración de la aplicación.
+
+    Returns:
+        pd.DataFrame: Un DataFrame limpio y procesado del presupuesto, o un
+                      DataFrame vacío si ocurre un error.
     """
     # Leer sin encabezado para tener control total
     df = safe_read_dataframe(path, header=None)
@@ -91,7 +112,18 @@ def process_presupuesto_csv(path: str, config: dict) -> pd.DataFrame:
 
 
 def process_insumos_csv(file_path):
-    """Procesa el archivo CSV de insumos que tiene un formato no estándar."""
+    """Procesa el archivo CSV de insumos con formato no estándar.
+
+    Parsea un archivo donde los datos están agrupados bajo encabezados de 'Grupo'
+    y extrae la información relevante, normalizando descripciones y valores.
+
+    Args:
+        file_path (str): La ruta al archivo CSV de insumos.
+
+    Returns:
+        pd.DataFrame: Un DataFrame con los datos de insumos procesados, o un
+                      DataFrame vacío si ocurre un error.
+    """
     try:
         with open(file_path, "r", encoding="latin1") as f:
             lines = f.readlines()
@@ -122,7 +154,10 @@ def process_insumos_csv(file_path):
 
         df = pd.DataFrame(records)
         df.rename(
-            columns={"DESCRIPCION": "DESCRIPCION_INSUMO", "VR. UNIT.": "VR_UNITARIO_INSUMO"},
+            columns={
+                "DESCRIPCION": "DESCRIPCION_INSUMO",
+                "VR. UNIT.": "VR_UNITARIO_INSUMO",
+            },
             inplace=True,
         )
         final_cols = ["GRUPO_INSUMO", "DESCRIPCION_INSUMO", "VR_UNITARIO_INSUMO"]
@@ -139,12 +174,43 @@ def process_insumos_csv(file_path):
 
 
 def process_all_files(presupuesto_path, apus_path, insumos_path, config):
-    """Función principal que orquesta el procesamiento de todos los archivos."""
+    """Orquesta el procesamiento completo de los archivos de entrada.
+
+    Esta función es el punto de entrada principal que invoca a la lógica de
+    procesamiento interna.
+
+    Args:
+        presupuesto_path (str): Ruta al archivo de presupuesto.
+        apus_path (str): Ruta al archivo de APUs.
+        insumos_path (str): Ruta al archivo de insumos.
+        config (dict): Diccionario de configuración de la aplicación.
+
+    Returns:
+        dict: Un diccionario que contiene todos los DataFrames procesados y
+              listas de datos, o un diccionario de error si falla.
+    """
     return _do_processing(presupuesto_path, apus_path, insumos_path, config)
 
 
 def _do_processing(presupuesto_path, apus_path, insumos_path, config):
-    logger.info(f"Iniciando procesamiento: {presupuesto_path}, {apus_path}, {insumos_path}")
+    """Lógica central para procesar, unificar y calcular todos los datos.
+
+    Realiza la carga, limpieza, unión y cálculos sobre los datos de presupuesto,
+    APUs e insumos para generar las estructuras de datos finales que utilizará
+    la aplicación.
+
+    Args:
+        presupuesto_path (str): Ruta al archivo de presupuesto.
+        apus_path (str): Ruta al archivo de APUs.
+        insumos_path (str): Ruta al archivo de insumos.
+        config (dict): Diccionario de configuración.
+
+    Returns:
+        dict: Un diccionario con los datos procesados listos para ser usados.
+    """
+    logger.info(
+        f"Iniciando procesamiento: {presupuesto_path}, {apus_path}, {insumos_path}"
+    )
 
     # 1. Cargar todos los datos base
     df_presupuesto = process_presupuesto_csv(presupuesto_path, config)

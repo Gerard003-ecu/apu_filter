@@ -23,7 +23,11 @@ def normalize_text(text_series):
     # Convertir a minúsculas
     text_series = text_series.str.lower()
     # Quitar tildes
-    text_series = text_series.str.normalize("NFKD").str.encode("ascii", errors="ignore").str.decode("utf-8")
+    text_series = (
+        text_series.str.normalize("NFKD")
+        .str.encode("ascii", errors="ignore")
+        .str.decode("utf-8")
+    )
     # Reemplazar caracteres no alfanuméricos por espacios
     text_series = text_series.str.replace(r"[^a-z0-9\s]", " ", regex=True)
     # Simplificar espacios múltiples a uno solo
@@ -38,7 +42,9 @@ def safe_read_dataframe(path, header=0):
     """
     try:
         if path.endswith(".csv"):
-            return pd.read_csv(path, encoding="latin1", sep=None, engine="python", header=header)
+            return pd.read_csv(
+                path, encoding="latin1", sep=None, engine="python", header=header
+            )
         elif path.endswith((".xls", ".xlsx")):
             return pd.read_excel(path, header=header)
         else:
