@@ -149,7 +149,7 @@ def create_app(config_name):
     def get_apu_detail(code):
         """
         Devuelve los detalles de un APU, con agrupación de mano de obra
-        y asegurando la sanitización de datos para evitar errores. VERSIÓN FINAL.
+        y sanitización de datos en la entrada para evitar errores. VERSIÓN FINAL.
         """
         logger = app.logger
         try:
@@ -169,13 +169,14 @@ def create_app(config_name):
             if not apu_details_for_code_raw:
                 return jsonify({"error": "APU no encontrado"}), 404
 
-            # --- INICIO DE LA CORRECCIÓN DE SANITIZACIÓN ---
+            # --- INICIO DE LA CORRECCIÓN DE SANITIZACIÓN DEFINITIVA ---
             # Convertir a DataFrame, limpiar NaN, y volver a lista de dicts
+            # ESTE ES EL PASO MÁS IMPORTANTE
             df_temp = pd.DataFrame(apu_details_for_code_raw)
             df_temp.replace({np.nan: None}, inplace=True)
             apu_details_for_code = df_temp.to_dict('records')
             logger.debug(f"Datos sanitizados. Encontrados {len(apu_details_for_code)} insumos para el APU {apu_code}")
-            # --- FIN DE LA CORRECCIÓN DE SANITIZACIÓN ---
+            # --- FIN DE LA CORRECCIÓN DE SANITIZACIÓN DEFINITIVA ---
 
             df_details = pd.DataFrame(apu_details_for_code)
 
@@ -203,7 +204,6 @@ def create_app(config_name):
 
                 apu_details_procesados.extend(df_mo_agrupado.to_dict('records'))
 
-            # ... (el resto de la función no necesita cambios) ...
             presupuesto_item = next(
                 (item for item in user_data.get("presupuesto", []) if item.get("CODIGO_APU") == apu_code),
                 None,
