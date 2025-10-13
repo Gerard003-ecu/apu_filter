@@ -4,6 +4,7 @@ import sys
 import time
 import uuid
 
+import numpy as np
 import pandas as pd
 from flask import Flask, jsonify, render_template, request, session
 from werkzeug.utils import secure_filename
@@ -147,9 +148,10 @@ def create_app(config_name):
     @app.route("/api/apu/<code>", methods=["GET"])
     def get_apu_detail(code):
         """
-        Devuelve los detalles de un APU, con logging de depuración detallado.
+        Devuelve los detalles de un APU, con agrupación de mano de obra
+        y asegurando la sanitización de datos para evitar errores. VERSIÓN FINAL.
         """
-        logger = app.logger # Usar el logger de la app de Flask
+        logger = app.logger
         try:
             logger.debug(f"Iniciando get_apu_detail para el código: {code}")
 
@@ -158,24 +160,23 @@ def create_app(config_name):
                 return error_response, status_code
 
             apu_code = code.replace("%2C", ",")
-            logger.debug(f"Código de APU limpio: {apu_code}")
-
             all_apu_details = user_data.get("apus_detail", [])
-            logger.debug(f"Tipo de all_apu_details: {type(all_apu_details)}, Longitud: {len(all_apu_details) if isinstance(all_apu_details, list) else 'N/A'}")
 
-            if not isinstance(all_apu_details, list):
-                logger.error("Error Crítico: apus_detail no es una lista.")
-                return jsonify({"error": "Formato de datos interno incorrecto"}), 500
-
-            apu_details_for_code = [
+            apu_details_for_code_raw = [
                 item for item in all_apu_details if item.get("CODIGO_APU") == apu_code
             ]
-            logger.debug(f"Encontrados {len(apu_details_for_code)} insumos para el APU {apu_code}")
 
-            if not apu_details_for_code:
+            if not apu_details_for_code_raw:
                 return jsonify({"error": "APU no encontrado"}), 404
 
-            logger.debug("Creando DataFrame para agrupación...")
+            # --- INICIO DE LA CORRECCIÓN DE SANITIZACIÓN ---
+            # Convertir a DataFrame, limpiar NaN, y volver a lista de dicts
+            df_temp = pd.DataFrame(apu_details_for_code_raw)
+            df_temp.replace({np.nan: None}, inplace=True)
+            apu_details_for_code = df_temp.to_dict('records')
+            logger.debug(f"Datos sanitizados. Encontrados {len(apu_details_for_code)} insumos para el APU {apu_code}")
+            # --- FIN DE LA CORRECCIÓN DE SANITIZACIÓN ---
+
             df_details = pd.DataFrame(apu_details_for_code)
 
             df_mano_de_obra = df_details[df_details['CATEGORIA'] == 'MANO DE OBRA']
@@ -184,27 +185,25 @@ def create_app(config_name):
             apu_details_procesados = df_otros.to_dict('records')
 
             if not df_mano_de_obra.empty:
-                logger.debug("Agrupando insumos de Mano de Obra...")
-
-                # --- INICIO DE LA CORRECCIÓN COMPLETA ---
-                # Usar TODOS los nombres de columna correctos del parser
-                # y renombrar la salida a lo que espera el frontend.
                 df_mo_agrupado = df_mano_de_obra.groupby('DESCRIPCION_INSUMO').agg(
-                    CANTIDAD=('CANTIDAD_APU', 'sum'),
-                    VR_TOTAL=('VALOR_TOTAL_APU', 'sum'),
-                    UNIDAD=('UNIDAD_APU', 'first'),  # <-- CORRECCIÓN CLAVE
-                    VR_UNITARIO=('PRECIO_UNIT_APU', 'first'),
+                    CANTIDAD_APU=('CANTIDAD_APU', 'sum'),
+                    VALOR_TOTAL_APU=('VALOR_TOTAL_APU', 'sum'),
+                    UNIDAD_APU=('UNIDAD_APU', 'first'),
+                    PRECIO_UNIT_APU=('PRECIO_UNIT_APU', 'first'),
                     CATEGORIA=('CATEGORIA', 'first')
                 ).reset_index()
 
-                # Renombrar la columna de descripción para el frontend
-                df_mo_agrupado.rename(columns={'DESCRIPCION_INSUMO': 'DESCRIPCION'}, inplace=True)
-                # --- FIN DE LA CORRECCIÓN COMPLETA ---
+                df_mo_agrupado.rename(columns={
+                    'DESCRIPCION_INSUMO': 'DESCRIPCION',
+                    'CANTIDAD_APU': 'CANTIDAD',
+                    'VALOR_TOTAL_APU': 'VR_TOTAL',
+                    'UNIDAD_APU': 'UNIDAD',
+                    'PRECIO_UNIT_APU': 'VR_UNITARIO'
+                }, inplace=True)
 
                 apu_details_procesados.extend(df_mo_agrupado.to_dict('records'))
 
-            logger.debug(f"Agrupación completada. Total de ítems procesados: {len(apu_details_procesados)}")
-
+            # ... (el resto de la función no necesita cambios) ...
             presupuesto_item = next(
                 (item for item in user_data.get("presupuesto", []) if item.get("CODIGO_APU") == apu_code),
                 None,
@@ -217,9 +216,7 @@ def create_app(config_name):
                     desglose[categoria] = []
                 desglose[categoria].append(item)
 
-            logger.debug("Iniciando simulación Monte Carlo...")
             simulation_results = run_monte_carlo_simulation(apu_details_procesados)
-            logger.debug("Simulación completada.")
 
             response = {
                 "codigo": apu_code,
@@ -227,11 +224,9 @@ def create_app(config_name):
                 "desglose": desglose,
                 "simulation": simulation_results,
             }
-            logger.debug(f"Enviando respuesta final para APU {apu_code}")
             return jsonify(response)
 
         except Exception as e:
-            # ¡ESTE BLOQUE ES CRUCIAL! Capturará CUALQUIER error y lo registrará.
             logger.error(f"Excepción no controlada en get_apu_detail para el código {code}: {e}", exc_info=True)
             return jsonify({"error": "Error interno del servidor al procesar los detalles del APU."}), 500
 
