@@ -17,6 +17,7 @@ from models.probability_models import run_monte_carlo_simulation
 
 from .estimator import calculate_estimate
 from .procesador_csv import process_all_files
+from .utils import sanitize_for_json
 
 # Almacenamiento en memoria para sesiones de usuario
 user_sessions = {}
@@ -145,14 +146,7 @@ def create_app(config_name):
 
             if "error" in processed_data:
                 return jsonify(processed_data), 500
-            try:
-                json_string = json.dumps(processed_data, allow_nan=False)
-                clean_data = json.loads(json_string)
-                return jsonify(clean_data)
-            except (TypeError, ValueError) as e:
-                app.logger.error(f"Error de serialización JSON en /upload: {e}")
-                error_msg = "Los datos procesados no pudieron ser convertidos a JSON."
-                return jsonify({"error": error_msg}), 500
+            return jsonify(sanitize_for_json(processed_data))
 
         except Exception as e:
             app.logger.error(f"Error en upload_files: {str(e)}")
@@ -280,7 +274,7 @@ def create_app(config_name):
                 "desglose": desglose,
                 "simulation": simulation_results,
             }
-            return jsonify(response)
+            return jsonify(sanitize_for_json(response))
 
         except Exception as e:
             logger.error(
@@ -323,7 +317,7 @@ def create_app(config_name):
             )
             if "error" in result:
                 return jsonify(result), 400
-            return jsonify(result)
+            return jsonify(sanitize_for_json(result))
         except Exception as e:
             app.logger.error(f"Error en get_estimate: {str(e)}")
             return jsonify({"error": "Error interno al calcular"}), 500
