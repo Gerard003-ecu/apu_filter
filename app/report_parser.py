@@ -92,11 +92,7 @@ class ReportParser:
         if match_item:
             raw_code = match_item.group(1).strip()
             unit = match_item.group(2) # Puede ser None si no se encuentra
-
-            self.context["apu_code"] = clean_apu_code(raw_code)
-            self.context["apu_desc"] = self.potential_apu_desc
-            self.context["apu_unit"] = unit.strip() if unit else "INDEFINIDO"
-            self.context["category"] = "INDEFINIDO" # Resetear categoría para el nuevo APU
+            self._start_new_apu(raw_code, unit)
             return
 
         # 2. ¿Es un encabezado de CATEGORÍA?
@@ -126,6 +122,24 @@ class ReportParser:
         is_costo_directo = "COSTO DIRECTO" in first_part.upper()
         if first_part and not is_subtotal and not is_costo_directo:
             self.potential_apu_desc = first_part
+
+    def _start_new_apu(self, raw_code: str, unit: Optional[str]):
+        """
+        Limpia y establece el código del APU para el nuevo bloque.
+        Si el código no es válido, se establece a None para detener la asignación de insumos.
+        """
+        cleaned_code = clean_apu_code(raw_code)
+
+        # Si el código está vacío después de la limpieza, es un APU de plantilla sin ITEM.
+        # Invalida el APU actual para evitar la contaminación de datos.
+        if not cleaned_code:
+            self.context["apu_code"] = None
+        else:
+            self.context["apu_code"] = cleaned_code
+            self.context["apu_desc"] = self.potential_apu_desc
+            self.context["apu_unit"] = unit.strip() if unit else "INDEFINIDO"
+
+        self.context["category"] = "INDEFINIDO"
 
     def _parse_insumo(self, data: Dict[str, str]):
         valor_total = self._to_numeric_safe(data["valor_total"])
