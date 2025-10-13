@@ -1,8 +1,7 @@
 # app/data_validator.py
 import logging
-from fuzzywuzzy import process
+
 import pandas as pd
-import numpy as np
 
 logger = logging.getLogger(__name__)
 
