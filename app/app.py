@@ -212,42 +212,47 @@ def create_app(config_name):
 
             df_details = pd.DataFrame(apu_details_for_code)
 
-            df_mano_de_obra = df_details[df_details["CATEGORIA"] == "MANO DE OBRA"]
-            df_otros = df_details[df_details["CATEGORIA"] != "MANO DE OBRA"]
+            # Generalizar la agrupación para TODAS las categorías
+            logger.debug("Agrupando todos los insumos por categoría y descripción...")
+            apu_details_procesados = []
 
-            apu_details_procesados = df_otros.to_dict("records")
+            # Iterar sobre cada categoría y aplicar la lógica de agrupación
+            for categoria in df_details["CATEGORIA"].unique():
+                df_categoria = df_details[df_details["CATEGORIA"] == categoria]
 
-            if not df_mano_de_obra.empty:
-                logger.debug("Agrupando insumos de Mano de Obra...")
-                df_mo_agrupado = (
-                    df_mano_de_obra.groupby("DESCRIPCION_INSUMO")
+                if df_categoria.empty:
+                    continue
+
+                # Agrupar por descripción de insumo
+                df_agrupado = (
+                    df_categoria.groupby("DESCRIPCION_INSUMO")
                     .agg(
                         CANTIDAD_APU=("CANTIDAD_APU", "sum"),
                         VALOR_TOTAL_APU=("VALOR_TOTAL_APU", "sum"),
+                        # Para 'MANO DE OBRA', sumar el rendimiento. Para otros, no es relevante.
+                        RENDIMIENTO=("RENDIMIENTO", "sum"),
                         UNIDAD_APU=("UNIDAD_APU", "first"),
                         PRECIO_UNIT_APU=("PRECIO_UNIT_APU", "first"),
                         CATEGORIA=("CATEGORIA", "first"),
+                        CODIGO_APU=("CODIGO_APU", "first"),
+                        UNIDAD_INSUMO=("UNIDAD_INSUMO", "first")
                     )
                     .reset_index()
                 )
 
-                df_mo_agrupado.rename(
+                # Renombrar columnas para consistencia en el frontend
+                df_agrupado.rename(
                     columns={
                         "DESCRIPCION_INSUMO": "DESCRIPCION",
                         "CANTIDAD_APU": "CANTIDAD",
                         "VALOR_TOTAL_APU": "VR_TOTAL",
-                        "UNIDAD_APU": "UNIDAD",
+                        "UNIDAD_INSUMO": "UNIDAD",
                         "PRECIO_UNIT_APU": "VR_UNITARIO",
                     },
                     inplace=True,
                 )
 
-                apu_details_procesados.extend(df_mo_agrupado.to_dict("records"))
-
-            # Estandarizar el nombre de la clave de descripción para todas las categorías
-            for item in apu_details_procesados:
-                if "DESCRIPCION_INSUMO" in item:
-                    item["DESCRIPCION"] = item.pop("DESCRIPCION_INSUMO")
+                apu_details_procesados.extend(df_agrupado.to_dict("records"))
 
             presupuesto_data = user_data.get("presupuesto", [])
             presupuesto_item = next(

@@ -129,14 +129,22 @@ class ReportParser:
 
     def _parse_insumo(self, data: Dict[str, str]):
         valor_total = self._to_numeric_safe(data["valor_total"])
+        precio_unit = self._to_numeric_safe(data["precio_unit"])
+        cantidad = self._to_numeric_safe(data["cantidad"])
+
+        # Calcular cantidad implícita si es cero pero los costos no lo son
+        if cantidad == 0 and valor_total > 0 and precio_unit > 0:
+            cantidad = valor_total / precio_unit
+            logger.debug(f"Cantidad implícita calculada para '{data['descripcion']}': {cantidad}")
+
         self.apus_data.append({
             "CODIGO_APU": self.context["apu_code"],
             "DESCRIPCION_APU": self.context["apu_desc"],
             "UNIDAD_APU": self.context["apu_unit"],
             "DESCRIPCION": data["descripcion"].strip(),
             "UNIDAD": data["unidad"],
-            "CANTIDAD": self._to_numeric_safe(data["cantidad"]),
-            "VR_UNITARIO": self._to_numeric_safe(data["precio_unit"]),
+            "CANTIDAD": cantidad,
+            "VR_UNITARIO": precio_unit,
             "VR_TOTAL": valor_total,
             "CATEGORIA": self.context["category"],
             "RENDIMIENTO": 0.0,  # Rendimiento no aplica para insumos generales
