@@ -186,20 +186,20 @@ def create_app(config_name):
             if not df_mano_de_obra.empty:
                 logger.debug("Agrupando insumos de Mano de Obra...")
 
-                # --- INICIO DE LA CORRECCIÓN ---
-                # Usar los nombres de columna correctos del parser ('_APU')
+                # --- INICIO DE LA CORRECCIÓN COMPLETA ---
+                # Usar TODOS los nombres de columna correctos del parser
                 # y renombrar la salida a lo que espera el frontend.
                 df_mo_agrupado = df_mano_de_obra.groupby('DESCRIPCION_INSUMO').agg(
                     CANTIDAD=('CANTIDAD_APU', 'sum'),
-                    VR_TOTAL=('VR_TOTAL', 'sum'),
+                    VR_TOTAL=('VALOR_TOTAL_APU', 'sum'),
                     UNIDAD=('UNIDAD', 'first'),
-                    VR_UNITARIO=('VR_UNITARIO', 'first'),
+                    VR_UNITARIO=('PRECIO_UNIT_APU', 'first'),
                     CATEGORIA=('CATEGORIA', 'first')
                 ).reset_index()
 
                 # Renombrar la columna de descripción para el frontend
                 df_mo_agrupado.rename(columns={'DESCRIPCION_INSUMO': 'DESCRIPCION'}, inplace=True)
-                # --- FIN DE LA CORRECCIÓN ---
+                # --- FIN DE LA CORRECCIÓN COMPLETA ---
 
                 apu_details_procesados.extend(df_mo_agrupado.to_dict('records'))
 
