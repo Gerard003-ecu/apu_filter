@@ -62,8 +62,13 @@ class TestEstimator(unittest.TestCase):
 
         # 2. Caso de prueba donde no se encuentra la cuadrilla
         params_no_cuadrilla = {"material": "PANEL TIPO SANDWICH", "cuadrilla": "99"}
-        result_no_cuadrilla = calculate_estimate(params_no_cuadrilla, data_store, TEST_CONFIG)
-        self.assertIn("--> No se encontró APU para la cuadrilla especificada con UNIDAD: DIA.", result_no_cuadrilla["log"])
+        result_no_cuadrilla = calculate_estimate(
+            params_no_cuadrilla, data_store, TEST_CONFIG
+        )
+        self.assertIn(
+            "--> No se encontró APU para la cuadrilla especificada con UNIDAD: DIA.",
+            result_no_cuadrilla["log"],
+        )
         # valor_instalacion debe ser 0 porque costo_diario_cuadrilla es 0
         self.assertAlmostEqual(result_no_cuadrilla["valor_instalacion"], 0)
         # El rendimiento aún debe calcularse

@@ -7,7 +7,9 @@ from .utils import normalize_text
 
 logger = logging.getLogger(__name__)
 
-def _find_best_match(df_pool: pd.DataFrame, keywords: List[str], log: List[str], strict: bool = False) -> Optional[pd.Series]:
+def _find_best_match(
+    df_pool: pd.DataFrame, keywords: List[str], log: List[str], strict: bool = False
+) -> Optional[pd.Series]:
     """
     Encuentra el mejor APU que coincida con una lista de palabras clave.
     Soporta búsqueda estricta (todas las keywords) y flexible (cualquiera).
@@ -27,7 +29,9 @@ def _find_best_match(df_pool: pd.DataFrame, keywords: List[str], log: List[str],
             return apu
 
     if strict:
-        log.append("  --> No se encontraron coincidencias (búsqueda estricta finalizada).")
+        log.append(
+            "  --> No se encontraron coincidencias (búsqueda estricta finalizada)."
+        )
         return None
 
     # Búsqueda flexible (cualquier palabra clave) si la estricta falla
@@ -43,7 +47,9 @@ def _find_best_match(df_pool: pd.DataFrame, keywords: List[str], log: List[str],
     return None
 
 
-def calculate_estimate(params: Dict[str, str], data_store: Dict, config: Dict) -> Dict[str, Union[str, float, List[str]]]:
+def calculate_estimate(
+    params: Dict[str, str], data_store: Dict, config: Dict
+) -> Dict[str, Union[str, float, List[str]]]:
     log = []
     # ... (validación de parámetros como antes) ...
 
@@ -89,19 +95,30 @@ def calculate_estimate(params: Dict[str, str], data_store: Dict, config: Dict) -
     if cuadrilla and cuadrilla != "0":
         search_term = f"cuadrilla de {cuadrilla}"
         keywords_cuadrilla = normalize_text(pd.Series([search_term])).iloc[0].split()
-        log.append(f"Buscando cuadrilla con keywords: {keywords_cuadrilla} y UNIDAD: DIA")
+        log.append(
+            f"Buscando cuadrilla con keywords: {keywords_cuadrilla} y UNIDAD: DIA"
+        )
 
         # Usar una copia para evitar SettingWithCopyWarning
-        df_cuadrilla_pool = df_apus[df_apus["UNIDAD"].astype(str).str.upper() == "DIA"].copy()
+        df_cuadrilla_pool = df_apus[
+            df_apus["UNIDAD"].astype(str).str.upper() == "DIA"
+        ].copy()
 
-        apu_cuadrilla = _find_best_match(df_cuadrilla_pool, keywords_cuadrilla, log, strict=True)
+        apu_cuadrilla = _find_best_match(
+            df_cuadrilla_pool, keywords_cuadrilla, log, strict=True
+        )
 
         if apu_cuadrilla is not None:
             costo_diario_cuadrilla = apu_cuadrilla["VALOR_CONSTRUCCION_UN"]
             apu_cuadrilla_desc = apu_cuadrilla["original_description"]
-            log.append(f"  --> Cuadrilla encontrada: '{apu_cuadrilla_desc}'. Costo/día: ${costo_diario_cuadrilla:,.0f}")
+            log.append(
+                f"  --> Cuadrilla encontrada: '{apu_cuadrilla_desc}'. "
+                f"Costo/día: ${costo_diario_cuadrilla:,.0f}"
+            )
         else:
-            log.append("  --> No se encontró APU para la cuadrilla especificada con UNIDAD: DIA.")
+            log.append(
+                "  --> No se encontró APU para la cuadrilla especificada con UNIDAD: DIA."
+            )
     else:
         log.append("  --> No se especificó cuadrilla, costo diario es $0.")
 
@@ -111,7 +128,9 @@ def calculate_estimate(params: Dict[str, str], data_store: Dict, config: Dict) -
     log.append(f"Buscando tarea con keywords: {task_keywords}")
 
     # Buscar en APUs que sean principalmente de instalación
-    df_instalacion_pool = df_apus[df_apus["tipo_apu"].isin(["Instalación", "Obra Completa"])]
+    df_instalacion_pool = df_apus[
+        df_apus["tipo_apu"].isin(["Instalación", "Obra Completa"])
+    ]
     apu_tarea = _find_best_match(df_instalacion_pool, task_keywords, log)
 
     if apu_tarea is not None:
@@ -131,18 +150,33 @@ def calculate_estimate(params: Dict[str, str], data_store: Dict, config: Dict) -
 
             if not mano_de_obra.empty:
                 tiempo_total_por_unidad = mano_de_obra["CANTIDAD_APU"].sum()
-                log.append(f"      - Insumos 'MANO DE OBRA' encontrados: {len(mano_de_obra)}")
-                log.append(f"      - Tiempo total sumado (Cantidades): {tiempo_total_por_unidad:.4f}")
+                log.append(
+                    f"      - Insumos 'MANO DE OBRA' encontrados: {len(mano_de_obra)}"
+                )
+                log.append(
+                    "      - Tiempo total sumado (Cantidades): "
+                    f"{tiempo_total_por_unidad:.4f}"
+                )
 
                 if tiempo_total_por_unidad > 0:
                     rendimiento_m2_por_dia = 1 / tiempo_total_por_unidad
-                    log.append(f"      - Rendimiento calculado: 1 / {tiempo_total_por_unidad:.4f} = {rendimiento_m2_por_dia:.2f} un/día")
+                    log.append(
+                        f"      - Rendimiento calculado: 1 / {tiempo_total_por_unidad:.4f} "
+                        f"= {rendimiento_m2_por_dia:.2f} un/día"
+                    )
                 else:
-                    log.append("      - Tiempo total es 0, no se puede calcular rendimiento.")
+                    log.append(
+                        "      - Tiempo total es 0, no se puede calcular rendimiento."
+                    )
             else:
-                log.append("      - No se encontraron insumos de 'MANO DE OBRA' para este APU.")
+                log.append(
+                    "      - No se encontraron insumos de 'MANO DE OBRA' para este APU."
+                )
         else:
-            log.append("      - No se encontró el detalle de APUs (apus_detail) para calcular el rendimiento.")
+            log.append(
+                "      - No se encontró el detalle de APUs (apus_detail) "
+                "para calcular el rendimiento."
+            )
 
         log.append(f"      - Costo Equipo por Unidad: ${costo_equipo_por_m2:,.2f}")
     else:
@@ -153,24 +187,41 @@ def calculate_estimate(params: Dict[str, str], data_store: Dict, config: Dict) -
     costo_mo_por_m2 = 0.0
     if rendimiento_m2_por_dia > 0:
         costo_mo_por_m2 = costo_diario_cuadrilla / rendimiento_m2_por_dia
-        log.append(f"Costo MO por m² = (Costo Diario Cuadrilla / Rendimiento) = ${costo_diario_cuadrilla:,.2f} / {rendimiento_m2_por_dia:.2f} = ${costo_mo_por_m2:,.2f}")
+        log.append(
+            f"Costo MO por m² = (Costo Diario Cuadrilla / Rendimiento) = "
+            f"${costo_diario_cuadrilla:,.2f} / {rendimiento_m2_por_dia:.2f} = "
+            f"${costo_mo_por_m2:,.2f}"
+        )
     else:
-        log.append("Costo MO por m² = $0 (Rendimiento es 0, se evita división por cero).")
+        log.append(
+            "Costo MO por m² = $0 (Rendimiento es 0, se evita división por cero)."
+        )
 
     valor_instalacion = costo_mo_por_m2 + costo_equipo_por_m2
-    log.append(f"Valor Instalación Final = (Costo MO por m² + Costo Equipo por m²) = ${costo_mo_por_m2:,.2f} + ${costo_equipo_por_m2:,.2f} = ${valor_instalacion:,.2f}")
-
+    log.append(
+        f"Valor Instalación Final = (Costo MO por m² + Costo Equipo por m²) = "
+        f"${costo_mo_por_m2:,.2f} + ${costo_equipo_por_m2:,.2f} = "
+        f"${valor_instalacion:,.2f}"
+    )
 
     # --- Resultado Final ---
     log.append("\n--- RESULTADO FINAL ---")
     valor_construccion = valor_suministro + valor_instalacion
-    log.append(f"Valor Construcción: (Suministro + Instalación) = (${valor_suministro:,.2f} + ${valor_instalacion:,.2f}) = ${valor_construccion:,.2f}")
+    log.append(
+        f"Valor Construcción: (Suministro + Instalación) = "
+        f"(${valor_suministro:,.2f} + ${valor_instalacion:,.2f}) = "
+        f"${valor_construccion:,.2f}"
+    )
 
+    apu_encontrado_str = (
+        f"Suministro: {apu_suministro_desc} | Tarea: {apu_tarea_desc} | "
+        f"Cuadrilla: {apu_cuadrilla_desc}"
+    )
     return {
         "valor_suministro": valor_suministro,
         "valor_instalacion": valor_instalacion,
         "valor_construccion": valor_construccion,
         "rendimiento_m2_por_dia": rendimiento_m2_por_dia,
-        "apu_encontrado": f"Suministro: {apu_suministro_desc} | Tarea: {apu_tarea_desc} | Cuadrilla: {apu_cuadrilla_desc}",
+        "apu_encontrado": apu_encontrado_str,
         "log": "\n".join(log),
     }
