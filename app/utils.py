@@ -1,5 +1,6 @@
 import re
 
+import numpy as np
 import pandas as pd
 
 
@@ -66,3 +67,25 @@ def find_and_rename_columns(df, column_map):
                 renamed_cols[col] = standard_name
                 break
     return df.rename(columns=renamed_cols)
+
+
+def sanitize_for_json(data):
+    """
+    Recorre recursivamente una estructura de datos (dict/list) y convierte
+    los tipos de datos no serializables de JSON (como np.nan, pd.NA, np.int64)
+    a tipos nativos de Python (None, int, float).
+    """
+    if isinstance(data, dict):
+        return {k: sanitize_for_json(v) for k, v in data.items()}
+    if isinstance(data, list):
+        return [sanitize_for_json(v) for v in data]
+    # Conversión de tipos de NumPy a Python nativo
+    if isinstance(data, (np.int64, np.int32)):
+        return int(data)
+    if isinstance(data, (np.float64, np.float32)):
+        # Manejar NaN específicamente aquí
+        return None if np.isnan(data) else float(data)
+    # Manejar pd.NA y otros nulos de Pandas
+    if pd.isna(data):
+        return None
+    return data

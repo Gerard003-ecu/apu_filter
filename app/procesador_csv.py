@@ -341,17 +341,6 @@ def _do_processing(presupuesto_path, apus_path, insumos_path, config):
         inplace=True,
     )
 
-    # Sanitización final para evitar errores JSON
-    dataframes_to_sanitize = [
-        df_final,
-        df_merged,
-        df_apus_raw,
-        df_insumos,
-        df_processed_apus,
-    ]
-    for df in dataframes_to_sanitize:
-        df.replace({np.nan: None}, inplace=True)
-
     apus_detail = df_merged.to_dict("records")
 
     insumos_dict = {
