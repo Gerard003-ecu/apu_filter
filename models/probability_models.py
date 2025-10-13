@@ -3,6 +3,7 @@
 import numpy as np
 import pandas as pd
 
+
 # --- INICIO DE LA CORRECCIÓN ---
 def sanitize_value(value):
     """Convierte NaN de numpy a None de Python, si no, devuelve el valor original."""
