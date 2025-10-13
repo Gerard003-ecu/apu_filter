@@ -244,6 +244,11 @@ def create_app(config_name):
 
                 apu_details_procesados.extend(df_mo_agrupado.to_dict("records"))
 
+            # Estandarizar el nombre de la clave de descripción para todas las categorías
+            for item in apu_details_procesados:
+                if "DESCRIPCION_INSUMO" in item:
+                    item["DESCRIPCION"] = item.pop("DESCRIPCION_INSUMO")
+
             presupuesto_data = user_data.get("presupuesto", [])
             presupuesto_item = next(
                 (
