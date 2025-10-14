@@ -87,7 +87,7 @@ def _find_best_match(
 
     # Aplicar criterios de selección
     if strict and best_percentage == 100.0:
-        log.append(f"  ✅ Match ESTRICTO encontrado!")
+        log.append("  ✅ Match ESTRICTO encontrado!")
         return best_match
     elif not strict and best_percentage >= min_match_percentage:
         log.append(f"  ✅ Match FLEXIBLE encontrado ({best_percentage:.0f}%)")
