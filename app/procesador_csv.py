@@ -58,23 +58,29 @@ def process_presupuesto_csv(path: str, config: dict) -> pd.DataFrame:
         df = find_and_rename_columns(df, column_map)
 
         if "CODIGO_APU" not in df.columns:
-            logger.error("La columna 'CODIGO_APU' no se pudo crear después de buscar el encabezado.")
+            logger.error(
+                "La columna 'CODIGO_APU' no se pudo crear después de buscar el encabezado."
+            )
             return pd.DataFrame()
 
         df["CODIGO_APU"] = df["CODIGO_APU"].astype(str).apply(clean_apu_code)
         df = df[df["CODIGO_APU"].notna() & (df["CODIGO_APU"] != "")]
 
-        cantidad_str = df["CANTIDAD_PRESUPUESTO"].astype(str).str.replace(",", ".", regex=False)
+        cantidad_str = (
+            df["CANTIDAD_PRESUPUESTO"].astype(str).str.replace(",", ".", regex=False)
+        )
         df["CANTIDAD_PRESUPUESTO"] = pd.to_numeric(cantidad_str, errors="coerce")
 
         # 🔥 VALIDACIÓN CRÍTICA: Eliminar duplicados de CODIGO_APU
         duplicates = df[df.duplicated(subset=["CODIGO_APU"], keep=False)]
         if not duplicates.empty:
             logger.warning(
-                f"⚠️ Se encontraron {len(duplicates)} filas duplicadas en presupuesto por CODIGO_APU. "
-                f"Se conservará la primera ocurrencia."
+                f"⚠️ Se encontraron {len(duplicates)} filas duplicadas en "
+                f"presupuesto por CODIGO_APU. Se conservará la primera ocurrencia."
             )
-            logger.debug(f"Códigos duplicados: {duplicates['CODIGO_APU'].unique().tolist()}")
+            logger.debug(
+                f"Códigos duplicados: {duplicates['CODIGO_APU'].unique().tolist()}"
+            )
             df = df.drop_duplicates(subset=["CODIGO_APU"], keep="first")
 
         logger.info(f"✅ Presupuesto cargado: {len(df)} APUs únicos")
@@ -125,29 +131,30 @@ def process_insumos_csv(file_path):
         )
         final_cols = ["GRUPO_INSUMO", "DESCRIPCION_INSUMO", "VR_UNITARIO_INSUMO"]
         df = df[final_cols]
-        
+
         df["VR_UNITARIO_INSUMO"] = pd.to_numeric(
             df["VR_UNITARIO_INSUMO"].astype(str).str.replace(",", "."), errors="coerce"
         )
         df["NORMALIZED_DESC"] = normalize_text(df["DESCRIPCION_INSUMO"])
-        
+
         df = df.dropna(subset=["DESCRIPCION_INSUMO"])
-        
+
         # 🔥 VALIDACIÓN CRÍTICA: Verificar duplicados en descripciones normalizadas
         duplicates = df[df.duplicated(subset=["NORMALIZED_DESC"], keep=False)]
         if not duplicates.empty:
             logger.warning(
-                f"⚠️ Se encontraron {len(duplicates)} insumos con descripciones normalizadas duplicadas. "
-                f"Esto podría causar problemas en el merge. Se conservará el de mayor precio."
+                f"⚠️ Se encontraron {len(duplicates)} insumos con descripciones "
+                f"normalizadas duplicadas. Esto podría causar problemas en el merge. "
+                f"Se conservará el de mayor precio."
             )
             # Conservar el de mayor precio para cada descripción normalizada
             df = df.sort_values("VR_UNITARIO_INSUMO", ascending=False).drop_duplicates(
                 subset=["NORMALIZED_DESC"], keep="first"
             )
-        
+
         logger.info(f"✅ Insumos cargados: {len(df)} insumos únicos")
         return df
-        
+
     except Exception as e:
         logger.error(f"Error procesando el archivo de insumos: {e}")
         return pd.DataFrame()
@@ -160,127 +167,19 @@ def process_all_files(presupuesto_path, apus_path, insumos_path, config):
 
 # ==================== LÓGICA PRINCIPAL ====================
 
-def _do_processing(presupuesto_path, apus_path, insumos_path, config):
+def _calculate_apu_costs_and_metadata(df_merged):
     """
-    Lógica central para procesar, unificar y calcular todos los datos.
-    VERSIÓN MEJORADA CON VALIDACIONES ANTI-EXPLOSIÓN.
+    Calculates costs, classifies APUs, and extracts metadata like time and performance.
     """
-    logger.info("=" * 80)
-    logger.info(f"🚀 Iniciando procesamiento de archivos...")
-    logger.info(f"   Presupuesto: {presupuesto_path}")
-    logger.info(f"   APUs: {apus_path}")
-    logger.info(f"   Insumos: {insumos_path}")
-    logger.info("=" * 80)
-
-    # ========== 1. CARGAR DATOS BASE ==========
-    df_presupuesto = process_presupuesto_csv(presupuesto_path, config)
-    df_insumos = process_insumos_csv(insumos_path)
-    parser = ReportParser(apus_path)
-    df_apus_raw = parser.parse()
-
-    if df_presupuesto.empty or df_insumos.empty or df_apus_raw.empty:
-        logger.error("❌ Fallo al cargar uno o más archivos de datos.")
-        return {"error": "Fallo al cargar uno o más archivos de datos."}
-
-    logger.info(f"📊 Datos cargados:")
-    logger.info(f"   - Presupuesto: {len(df_presupuesto)} APUs")
-    logger.info(f"   - Insumos maestros: {len(df_insumos)} insumos")
-    logger.info(f"   - APUs detallados: {len(df_apus_raw)} registros de insumos en APUs")
-
-    # ========== 2. MERGE APUs con INSUMOS (CRÍTICO) ==========
-    logger.info("🔗 Iniciando merge de APUs con catálogo de insumos...")
-    
-    rows_before = len(df_apus_raw)
-    df_merged = pd.merge(
-        df_apus_raw, 
-        df_insumos, 
-        on="NORMALIZED_DESC", 
-        how="left", 
-        suffixes=("_apu", ""),
-        validate="m:1"  # 🔥 VALIDACIÓN: Múltiples APUs a 1 insumo (evita explosión)
-    )
-    rows_after = len(df_merged)
-    
-    if rows_after != rows_before:
-        logger.error(
-            f"❌ EXPLOSIÓN CARTESIANA DETECTADA EN MERGE APUs-INSUMOS: "
-            f"{rows_before} → {rows_after} filas (+{rows_after - rows_before})"
-        )
-        # Investigar cuáles descripciones causaron el problema
-        problematic = df_apus_raw.groupby("NORMALIZED_DESC").size()
-        problematic = problematic[problematic > 1].sort_values(ascending=False).head(10)
-        logger.error(f"Descripciones normalizadas con más ocurrencias:\n{problematic}")
-        # NO retornar error, pero advertir fuertemente
-        logger.warning("⚠️ Continuando con precaución...")
-
-    df_merged["TIPO_INSUMO"] = df_merged["CATEGORIA"]
-
-    # Coalesce de descripciones
-    df_merged["DESCRIPCION_INSUMO"] = df_merged["DESCRIPCION_INSUMO"].fillna(
-        df_merged["DESCRIPCION_INSUMO_apu"]
-    )
-    df_merged.rename(columns={"UNIDAD_INSUMO_apu": "UNIDAD_INSUMO"}, inplace=True)
-
-    # ========== 3. CALCULAR COSTOS DE INSUMOS (VALIDADO) ==========
-    logger.info("💰 Calculando costos de insumos...")
-    
-    # Validar que las cantidades sean razonables
-    qty_stats = df_merged["CANTIDAD_APU"].describe()
-    logger.debug(f"Estadísticas de CANTIDAD_APU:\n{qty_stats}")
-    
-    if df_merged["CANTIDAD_APU"].max() > 1e6:
-        logger.warning(f"⚠️ Cantidad extremadamente alta detectada: {df_merged['CANTIDAD_APU'].max()}")
-    
-    # Validar precios unitarios
-    precio_stats = df_merged["VR_UNITARIO_INSUMO"].describe()
-    logger.debug(f"Estadísticas de VR_UNITARIO_INSUMO:\n{precio_stats}")
-    
-    # Calcular costo de insumo
-    costo_insumo = np.where(
-        df_merged["VR_UNITARIO_INSUMO"].notna(),
-        df_merged["CANTIDAD_APU"] * df_merged["VR_UNITARIO_INSUMO"],
-        df_merged["VALOR_TOTAL_APU"]
-    )
-    df_merged["COSTO_INSUMO_EN_APU"] = pd.Series(costo_insumo).fillna(0)
-    
-    # 🔥 VALIDACIÓN: Detectar costos anómalos
-    costo_max = df_merged["COSTO_INSUMO_EN_APU"].max()
-    if costo_max > 1e9:  # 1 billón
-        logger.error(f"❌ COSTO ANÓMALO DETECTADO: {costo_max:,.2f}")
-        anomalies = df_merged[df_merged["COSTO_INSUMO_EN_APU"] > 1e8].head(10)
-        logger.error(f"Registros anómalos:\n{anomalies[['CODIGO_APU', 'DESCRIPCION_INSUMO', 'CANTIDAD_APU', 'VR_UNITARIO_INSUMO', 'COSTO_INSUMO_EN_APU']]}")
-
-    # Calcular precio unitario final
-    df_merged["VR_UNITARIO_FINAL"] = df_merged["VR_UNITARIO_INSUMO"].fillna(
-        df_merged["PRECIO_UNIT_APU"]
-    )
-    cantidad_safe = df_merged["CANTIDAD_APU"].replace(0, 1)
-    df_merged["VR_UNITARIO_FINAL"] = df_merged["VR_UNITARIO_FINAL"].fillna(
-        df_merged["COSTO_INSUMO_EN_APU"] / cantidad_safe
-    )
-
     # ========== 4. AGREGAR COSTOS POR APU Y CATEGORÍA (VALIDADO) ==========
     logger.info("📊 Agregando costos por APU y categoría...")
-    
+
     df_apu_costos = (
         df_merged.groupby(["CODIGO_APU", "CATEGORIA"])["COSTO_INSUMO_EN_APU"]
         .sum()
         .unstack(fill_value=0)
         .reset_index()
     )
-    
-    # 🔥 VALIDACIÓN CRÍTICA: Verificar que no haya duplicados de CODIGO_APU
-    duplicates_apu_costos = df_apu_costos[df_apu_costos.duplicated(subset=["CODIGO_APU"], keep=False)]
-    if not duplicates_apu_costos.empty:
-        logger.error(
-            f"❌ DUPLICADOS EN df_apu_costos DETECTADOS: {len(duplicates_apu_costos)} filas. "
-            f"Esto causará explosión en el merge con presupuesto."
-        )
-        logger.error(f"Códigos duplicados: {duplicates_apu_costos['CODIGO_APU'].tolist()}")
-        # Intentar agregar nuevamente (esto no debería pasar)
-        df_apu_costos = df_apu_costos.groupby("CODIGO_APU").sum().reset_index()
-        logger.warning("⚠️ Se aplicó agregación adicional para eliminar duplicados.")
-    
     logger.info(f"✅ df_apu_costos creado: {len(df_apu_costos)} APUs únicos")
 
     cost_cols = ["MATERIALES", "MANO DE OBRA", "EQUIPO", "OTROS"]
@@ -294,15 +193,21 @@ def _do_processing(presupuesto_path, apus_path, insumos_path, config):
         df_apu_costos["MANO DE OBRA"] + df_apu_costos["EQUIPO"]
     )
     df_apu_costos["VALOR_CONSTRUCCION_UN"] = df_apu_costos[cost_cols].sum(axis=1)
-    
+
     # 🔥 VALIDACIÓN: Verificar valores unitarios razonables
     valor_max = df_apu_costos["VALOR_CONSTRUCCION_UN"].max()
     logger.info(f"📈 Valor unitario máximo de APU: ${valor_max:,.2f}")
-    
+
     if valor_max > 1e8:  # 100 millones por unidad
-        logger.warning(f"⚠️ Valor unitario extremadamente alto detectado")
+        logger.warning("⚠️ Valor unitario extremadamente alto detectado")
         top_expensive = df_apu_costos.nlargest(5, "VALOR_CONSTRUCCION_UN")[
-            ["CODIGO_APU", "VALOR_CONSTRUCCION_UN", "MATERIALES", "MANO DE OBRA", "EQUIPO"]
+            [
+                "CODIGO_APU",
+                "VALOR_CONSTRUCCION_UN",
+                "MATERIALES",
+                "MANO DE OBRA",
+                "EQUIPO",
+            ]
         ]
         logger.warning(f"APUs más costosos:\n{top_expensive}")
 
@@ -342,49 +247,183 @@ def _do_processing(presupuesto_path, apus_path, insumos_path, config):
     )
     df_rendimiento.rename(columns={"RENDIMIENTO": "RENDIMIENTO_DIA"}, inplace=True)
 
+    return df_apu_costos, df_tiempo, df_rendimiento
+
+
+def _do_processing(presupuesto_path, apus_path, insumos_path, config):
+    """
+    Lógica central para procesar, unificar y calcular todos los datos.
+    VERSIÓN MEJORADA CON VALIDACIONES ANTI-EXPLOSIÓN.
+    """
+    logger.info("=" * 80)
+    logger.info("🚀 Iniciando procesamiento de archivos...")
+    logger.info(f"   Presupuesto: {presupuesto_path}")
+    logger.info(f"   APUs: {apus_path}")
+    logger.info(f"   Insumos: {insumos_path}")
+    logger.info("=" * 80)
+
+    # ========== 1. CARGAR DATOS BASE ==========
+    df_presupuesto = process_presupuesto_csv(presupuesto_path, config)
+    df_insumos = process_insumos_csv(insumos_path)
+    parser = ReportParser(apus_path)
+    df_apus_raw = parser.parse()
+
+    if df_presupuesto.empty or df_insumos.empty or df_apus_raw.empty:
+        logger.error("❌ Fallo al cargar uno o más archivos de datos.")
+        return {"error": "Fallo al cargar uno o más archivos de datos."}
+
+    logger.info("📊 Datos cargados:")
+    logger.info(f"   - Presupuesto: {len(df_presupuesto)} APUs")
+    logger.info(f"   - Insumos maestros: {len(df_insumos)} insumos")
+    logger.info(
+        f"   - APUs detallados: {len(df_apus_raw)} registros de insumos en APUs"
+    )
+
+    # ========== 2. MERGE APUs con INSUMOS (CRÍTICO) ==========
+    logger.info("🔗 Iniciando merge de APUs con catálogo de insumos...")
+
+    rows_before = len(df_apus_raw)
+    df_merged = pd.merge(
+        df_apus_raw,
+        df_insumos,
+        on="NORMALIZED_DESC",
+        how="left",
+        suffixes=("_apu", ""),
+        validate="m:1"  # 🔥 VALIDACIÓN: Múltiples APUs a 1 insumo (evita explosión)
+    )
+    rows_after = len(df_merged)
+
+    if rows_after != rows_before:
+        logger.error(
+            f"❌ EXPLOSIÓN CARTESIANA DETECTADA EN MERGE APUs-INSUMOS: "
+            f"{rows_before} → {rows_after} filas (+{rows_after - rows_before})"
+        )
+        problematic = (
+            df_apus_raw.groupby("NORMALIZED_DESC")
+            .size()
+            .loc[lambda x: x > 1]
+            .sort_values(ascending=False)
+            .head(10)
+        )
+        logger.error(f"Descripciones normalizadas con más ocurrencias:\n{problematic}")
+        logger.warning("⚠️ Continuando con precaución...")
+
+    df_merged["TIPO_INSUMO"] = df_merged["CATEGORIA"]
+    df_merged["DESCRIPCION_INSUMO"] = df_merged["DESCRIPCION_INSUMO"].fillna(
+        df_merged["DESCRIPCION_INSUMO_apu"]
+    )
+    df_merged.rename(columns={"UNIDAD_INSUMO_apu": "UNIDAD_INSUMO"}, inplace=True)
+
+    # ========== 3. CALCULAR COSTOS DE INSUMOS (VALIDADO) ==========
+    logger.info("💰 Calculando costos de insumos...")
+    qty_stats = df_merged["CANTIDAD_APU"].describe()
+    logger.debug(f"Estadísticas de CANTIDAD_APU:\n{qty_stats}")
+    if df_merged["CANTIDAD_APU"].max() > 1e6:
+        logger.warning(
+            f"⚠️ Cantidad extremadamente alta detectada: {df_merged['CANTIDAD_APU'].max()}"
+        )
+
+    precio_stats = df_merged["VR_UNITARIO_INSUMO"].describe()
+    logger.debug(f"Estadísticas de VR_UNITARIO_INSUMO:\n{precio_stats}")
+    costo_insumo = np.where(
+        df_merged["VR_UNITARIO_INSUMO"].notna(),
+        df_merged["CANTIDAD_APU"] * df_merged["VR_UNITARIO_INSUMO"],
+        df_merged["VALOR_TOTAL_APU"]
+    )
+    df_merged["COSTO_INSUMO_EN_APU"] = pd.Series(costo_insumo).fillna(0)
+    costo_max = df_merged["COSTO_INSUMO_EN_APU"].max()
+    if costo_max > 1e9:
+        logger.error(f"❌ COSTO ANÓMALO DETECTADO: {costo_max:,.2f}")
+        anomalies = df_merged[df_merged["COSTO_INSUMO_EN_APU"] > 1e8].head(10)
+        logger.error(
+            "Registros anómalos:\n%s",
+            anomalies[
+                [
+                    "CODIGO_APU",
+                    "DESCRIPCION_INSUMO",
+                    "CANTIDAD_APU",
+                    "VR_UNITARIO_INSUMO",
+                    "COSTO_INSUMO_EN_APU",
+                ]
+            ],
+        )
+
+    df_merged["VR_UNITARIO_FINAL"] = df_merged["VR_UNITARIO_INSUMO"].fillna(
+        df_merged["PRECIO_UNIT_APU"]
+    )
+    cantidad_safe = df_merged["CANTIDAD_APU"].replace(0, 1)
+    df_merged["VR_UNITARIO_FINAL"] = df_merged["VR_UNITARIO_FINAL"].fillna(
+        df_merged["COSTO_INSUMO_EN_APU"] / cantidad_safe
+    )
+
+    # ========== 4-7. CALCULAR COSTOS Y METADATOS DE APU ==========
+    df_apu_costos, df_tiempo, df_rendimiento = _calculate_apu_costs_and_metadata(
+        df_merged
+    )
+
     # ========== 8. MERGE FINAL CON PRESUPUESTO (CRÍTICO) ==========
     logger.info("🔗 Realizando merge final: presupuesto + costos...")
-    logger.info(f"   - df_presupuesto: {len(df_presupuesto)} filas, {df_presupuesto['CODIGO_APU'].nunique()} APUs únicos")
-    logger.info(f"   - df_apu_costos: {len(df_apu_costos)} filas, {df_apu_costos['CODIGO_APU'].nunique()} APUs únicos")
-    
-    rows_before_final = len(df_presupuesto)
-    df_final = pd.merge(
-        df_presupuesto, 
-        df_apu_costos, 
-        on="CODIGO_APU", 
-        how="left",
-        validate="1:1"  # 🔥 VALIDACIÓN CRÍTICA: Solo permite relación 1:1
+    logger.info(
+        f"   - df_presupuesto: {len(df_presupuesto)} filas, "
+        f"{df_presupuesto['CODIGO_APU'].nunique()} APUs únicos"
     )
+    logger.info(
+        f"   - df_apu_costos: {len(df_apu_costos)} filas, "
+        f"{df_apu_costos['CODIGO_APU'].nunique()} APUs únicos"
+    )
+
+    rows_before_final = len(df_presupuesto)
+    try:
+        df_final = pd.merge(
+            df_presupuesto,
+            df_apu_costos,
+            on="CODIGO_APU",
+            how="left",
+            validate="1:1",  # 🔥 VALIDACIÓN CRÍTICA: Solo permite relación 1:1
+        )
+    except pd.errors.MergeError:
+        logger.error(
+            "❌ EXPLOSIÓN CARTESIANA DETECTADA: Se encontraron APUs duplicados "
+            "al intentar unir con el presupuesto."
+        )
+        dupes = df_apu_costos[
+            df_apu_costos.duplicated("CODIGO_APU", keep=False)
+        ].sort_values("CODIGO_APU")
+        logger.error(f"APUs duplicados en la lista de costos:\n{dupes}")
+        return {
+            "error": "Explosión cartesiana detectada en merge final. "
+            "Revise los datos de APU, existen duplicados."
+        }
+
     rows_after_final = len(df_final)
-    
     if rows_after_final != rows_before_final:
         logger.error(
             f"❌ EXPLOSIÓN CARTESIANA EN MERGE FINAL: "
             f"{rows_before_final} → {rows_after_final} filas"
         )
-        return {"error": "Explosión cartesiana detectada en merge final. Revise los datos."}
-    
+        return {
+            "error": "Explosión cartesiana detectada en merge final. Revise los datos."
+        }
+
     logger.info(f"✅ Merge exitoso: {len(df_final)} filas (sin duplicación)")
 
-    # Merge con tiempo
     df_final = pd.merge(df_final, df_tiempo, on="CODIGO_APU", how="left")
     df_final = group_and_split_description(df_final)
-    
+
     # 🔥 CALCULAR VALORES TOTALES (CON VALIDACIÓN)
     logger.info("💵 Calculando valores totales del presupuesto...")
-    
-    # Asegurar que CANTIDAD_PRESUPUESTO existe y es numérica
     if "CANTIDAD_PRESUPUESTO" not in df_final.columns:
         logger.error("❌ Falta columna CANTIDAD_PRESUPUESTO en df_final")
         return {"error": "Error en estructura de datos: falta CANTIDAD_PRESUPUESTO"}
-    
-    df_final["CANTIDAD_PRESUPUESTO"] = pd.to_numeric(df_final["CANTIDAD_PRESUPUESTO"], errors="coerce").fillna(0)
-    
-    # Verificar cantidades antes de multiplicar
-    qty_final_stats = df_final["CANTIDAD_PRESUPUESTO"].describe()
-    logger.debug(f"Estadísticas de CANTIDAD_PRESUPUESTO:\n{qty_final_stats}")
-    
-    # Calcular valores totales consolidados
+
+    df_final["CANTIDAD_PRESUPUESTO"] = pd.to_numeric(
+        df_final["CANTIDAD_PRESUPUESTO"], errors="coerce"
+    ).fillna(0)
+    logger.debug(
+        "Estadísticas de CANTIDAD_PRESUPUESTO:\n%s",
+        df_final["CANTIDAD_PRESUPUESTO"].describe(),
+    )
+
     df_final["VALOR_SUMINISTRO_TOTAL"] = (
         df_final["VALOR_SUMINISTRO_UN"] * df_final["CANTIDAD_PRESUPUESTO"]
     )
@@ -394,25 +433,30 @@ def _do_processing(presupuesto_path, apus_path, insumos_path, config):
     df_final["VALOR_CONSTRUCCION_TOTAL"] = (
         df_final["VALOR_CONSTRUCCION_UN"] * df_final["CANTIDAD_PRESUPUESTO"]
     )
-    
-    # 🔥 VALIDACIÓN FINAL: Verificar totales razonables
+
     total_construccion = df_final["VALOR_CONSTRUCCION_TOTAL"].sum()
     logger.info(f"💰 COSTO TOTAL CONSOLIDADO: ${total_construccion:,.2f}")
-    
-    if total_construccion > 1e12:  # 1 billón
+    if total_construccion > 1e12:
         logger.error(f"❌ COSTO TOTAL ANORMALMENTE ALTO: ${total_construccion:,.2f}")
         top_contributors = df_final.nlargest(10, "VALOR_CONSTRUCCION_TOTAL")[
-            ["CODIGO_APU", "DESCRIPCION_APU", "CANTIDAD_PRESUPUESTO", 
-             "VALOR_CONSTRUCCION_UN", "VALOR_CONSTRUCCION_TOTAL"]
+            [
+                "CODIGO_APU",
+                "DESCRIPCION_APU",
+                "CANTIDAD_PRESUPUESTO",
+                "VALOR_CONSTRUCCION_UN",
+                "VALOR_CONSTRUCCION_TOTAL",
+            ]
         ]
-        logger.error(f"Top 10 APUs que más contribuyen:\n{top_contributors}")
-        return {"error": f"Costo total anormalmente alto: ${total_construccion:,.2f}. Revise los datos."}
+        logger.error("Top 10 APUs que más contribuyen:\n%s", top_contributors)
+        return {
+            "error": f"Costo total anormalmente alto: ${total_construccion:,.2f}. "
+            f"Revise los datos."
+        }
 
     # ========== 9. CONSTRUIR df_processed_apus ==========
     df_apu_descriptions = df_apus_raw[
         ["CODIGO_APU", "DESCRIPCION_APU", "UNIDAD_APU"]
     ].drop_duplicates()
-    
     df_processed_apus = pd.merge(
         df_apu_costos, df_apu_descriptions, on="CODIGO_APU", how="left"
     )
@@ -433,9 +477,7 @@ def _do_processing(presupuesto_path, apus_path, insumos_path, config):
         columns={"VR_UNITARIO_FINAL": "VR_UNITARIO", "COSTO_INSUMO_EN_APU": "VR_TOTAL"},
         inplace=True,
     )
-
     apus_detail = df_merged.to_dict("records")
-
     insumos_dict = {
         name.strip(): group[["DESCRIPCION_INSUMO", "VR_UNITARIO_INSUMO"]]
         .dropna()
@@ -443,7 +485,6 @@ def _do_processing(presupuesto_path, apus_path, insumos_path, config):
         for name, group in df_insumos.groupby("GRUPO_INSUMO")
         if name and isinstance(name, str)
     }
-
     result_dict = {
         "presupuesto": df_final.to_dict("records"),
         "insumos": insumos_dict,
@@ -458,12 +499,12 @@ def _do_processing(presupuesto_path, apus_path, insumos_path, config):
     validated_result = validate_and_clean_data(result_dict)
     logger.info("✅ Validación completada.")
 
-    validated_result['raw_insumos_df'] = df_insumos.to_dict("records")
+    validated_result["raw_insumos_df"] = df_insumos.to_dict("records")
 
     logger.info("=" * 80)
     logger.info("🎉 Procesamiento completado exitosamente")
     logger.info(f"   - APUs en presupuesto: {len(df_final)}")
     logger.info(f"   - Costo total: ${total_construccion:,.2f}")
     logger.info("=" * 80)
-    
+
     return validated_result
