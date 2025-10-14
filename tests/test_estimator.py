@@ -71,7 +71,7 @@ class TestEstimator(unittest.TestCase):
             params_no_cuadrilla, data_store, TEST_CONFIG
         )
         self.assertIn(
-            "No se encontró cuadrilla con UNIDAD: DIA.",
+            "No se encontró cuadrilla exacta",
             result_no_cuadrilla["log"],
         )
         # valor_instalacion debe ser 0 porque costo_diario_cuadrilla es 0
@@ -82,7 +82,7 @@ class TestEstimator(unittest.TestCase):
         # 3. Caso de prueba donde no se encuentra el APU de tarea
         params_no_task = {"material": "MATERIAL INEXISTENTE", "cuadrilla": "4"}
         result_no_task = calculate_estimate(params_no_task, data_store, TEST_CONFIG)
-        self.assertIn("No se encontró APU de tarea.", result_no_task["log"])
+        self.assertIn("No se encontró tarea de instalación", result_no_task["log"])
         self.assertAlmostEqual(result_no_task["valor_instalacion"], 0)
         self.assertAlmostEqual(result_no_task["rendimiento_m2_por_dia"], 0)
         # El costo de la cuadrilla debe encontrarse
