@@ -1,8 +1,9 @@
-import io
-import json
 import os
 import sys
 import unittest
+from unittest.mock import patch
+
+import pandas as pd
 
 # Add project root to the Python path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
@@ -158,8 +159,8 @@ class TestCSVProcessor(unittest.TestCase):
 
     def test_duplicate_codigo_apu_in_presupuesto(self):
         """
-        Tests that if the budget file contains duplicate CODIGO_APU, only the first one is kept
-        and a warning is logged.
+        Tests that if the budget file contains duplicate CODIGO_APU, only the
+        first one is kept and a warning is logged.
         """
         PRESUPUESTO_DUPLICADO = (
             "ITEM;DESCRIPCION;UND;CANT.;VR. UNIT;VR.TOTAL\n"
@@ -171,12 +172,15 @@ class TestCSVProcessor(unittest.TestCase):
         with open(presupuesto_path, "w", encoding="latin1") as f:
             f.write(PRESUPUESTO_DUPLICADO)
 
-        with self.assertLogs('app.procesador_csv', level='WARNING') as cm:
+        with self.assertLogs("app.procesador_csv", level="WARNING") as cm:
             resultado = process_all_files(
                 presupuesto_path, self.apus_path, self.insumos_path, config=TEST_CONFIG
             )
             # Check for the specific warning message
-            self.assertTrue(any("Se encontraron 2 filas duplicadas en presupuesto" in msg for msg in cm.output))
+            self.assertTrue(
+                any("Se encontraron 2 filas duplicadas en presupuesto" in msg
+                    for msg in cm.output)
+            )
 
         # The result should not contain an error
         self.assertNotIn("error", resultado)
@@ -186,7 +190,9 @@ class TestCSVProcessor(unittest.TestCase):
         self.assertEqual(len(presupuesto_procesado), 2)
 
         # Verify that the first item (1,1) was kept
-        item1 = next((item for item in presupuesto_procesado if item["CODIGO_APU"] == "1,1"), None)
+        item1 = next(
+            (item for item in presupuesto_procesado if item["CODIGO_APU"] == "1,1"), None
+        )
         self.assertIsNotNone(item1)
         self.assertEqual(item1["DESCRIPCION_APU"], "Primera Desc")
 
@@ -217,7 +223,9 @@ class TestCSVProcessor(unittest.TestCase):
 
         # There should be only one "Tornillo de Acero"
         tornillo_entries = [
-            item for item in insumos_list if item["DESCRIPCION_INSUMO"] == "Tornillo de Acero"
+            item
+            for item in insumos_list
+            if item["DESCRIPCION_INSUMO"] == "Tornillo de Acero"
         ]
         self.assertEqual(len(tornillo_entries), 1)
 
@@ -226,51 +234,34 @@ class TestCSVProcessor(unittest.TestCase):
 
         os.remove(insumos_path)
 
-    @unittest.skip("Cannot be tested without refactoring _do_processing")
     def test_cartesian_explosion_on_final_merge(self):
         """
-        Tests that the final merge fails if df_apu_costos has duplicate CODIGO_APU,
-        preventing a cartesian explosion.
+        Tests that the final merge returns an error if df_apu_costos has duplicate
+        CODIGO_APU, preventing a cartesian explosion. This is tested by mocking
+        the output of _calculate_apu_costs_and_metadata.
         """
-        from app.procesador_csv import _do_processing
+        # Create a malformed df_apu_costos with duplicate CODIGO_APU
+        malformed_apu_costos = pd.DataFrame({
+            'CODIGO_APU': ['1,1', '1,2', '1,1'],
+            'VALOR_CONSTRUCCION_UN': [100, 200, 150]
+        })
+        # Mock the helper function to return the malformed data
+        with patch('app.procesador_csv._calculate_apu_costs_and_metadata',
+                   return_value=(malformed_apu_costos, pd.DataFrame(), pd.DataFrame())):
+            with self.assertLogs("app.procesador_csv", level="ERROR") as cm:
+                resultado = process_all_files(
+                    self.presupuesto_path,
+                    self.apus_path,
+                    self.insumos_path,
+                    TEST_CONFIG
+                )
+                self.assertTrue(
+                    any("EXPLOSIÓN CARTESIANA DETECTADA" in msg for msg in cm.output)
+                )
 
-        # This APU data creates two entries for the same CODIGO_APU in df_apu_costos
-        # because they belong to different categories ('MATERIALES' and 'EQUIPO').
-        # The groupby().unstack() operation will create one row with two columns,
-        # which is correct. The logic was flawed. Let's create a different malformed
-        # APU that causes a real issue.
-        APUS_DATA_MALFORMED = (
-            "DESCRIPCION_A\n"
-            "ITEM: 1,1\n"
-            "MATERIALES;;;;;\n"
-            "Insumo A;UN;1;0;10;10\n"
-            "\n"
-            "DESCRIPCION_B\n" # This should be a different item
-            "ITEM: 1,1\n"
-            "EQUIPO;;;;;\n"
-            "Insumo B;UN;1;0;20;20\n"
-        )
-
-        # The `ReportParser` is the one that creates the raw APU dataframe.
-        # The issue is that the parser will create two different APUs with the same code.
-        # Let's check the `df_apus_raw` from the parser.
-        # The current `_do_processing` function has a check for duplicates in `df_apu_costos`
-        # and aggregates them, so the final merge validation will not be triggered.
-        # The error must be caught earlier. Let's verify the warning for `df_apu_costos`.
-
-        apus_path_malformed = "test_apus_malformed.csv"
-        with open(apus_path_malformed, "w", encoding="latin1") as f:
-            f.write(APUS_DATA_MALFORMED)
-
-        # We expect a WARNING log when df_apu_costos has duplicates.
-        with self.assertLogs('app.procesador_csv', level='ERROR') as cm:
-            _do_processing(
-                self.presupuesto_path, apus_path_malformed, self.insumos_path, TEST_CONFIG
-            )
-            # The test is now expected to pass by capturing the ERROR log
-            self.assertTrue(any("DUPLICADOS EN df_apu_costos DETECTADOS" in msg for msg in cm.output))
-
-        os.remove(apus_path_malformed)
+        # The result should contain an error message
+        self.assertIn("error", resultado)
+        self.assertIn("Explosión cartesiana detectada", resultado["error"])
 
     def test_abnormally_high_cost_triggers_error(self):
         """
