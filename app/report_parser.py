@@ -317,11 +317,31 @@ class ReportParser:
         return False
 
     def _start_new_apu(self, raw_code: str, unit: str):
+        """
+        Inicia un nuevo APU y resetea completamente el contexto.
+
+        Es crítico que TODO el contexto se resetee para evitar que datos de APUs
+        anteriores se filtren a APUs nuevos (especialmente APUs de plantilla inválidos).
+        """
         cleaned_code = clean_apu_code(raw_code)
+
         if not cleaned_code:
-            logger.warning(f"⚠️ Código APU no válido: '{raw_code}'")
-            self.context["apu_code"] = None
+            logger.warning(
+                f"⚠️ Código APU no válido: '{raw_code}' - Reseteando contexto completo"
+            )
+            # ⚡ CRÍTICO: Resetear TODO el contexto, no solo apu_code
+            # Esto evita que descripciones/unidades/categorías de APUs anteriores
+            # se asocien incorrectamente con insumos de APUs inválidos/plantilla
+            self.context = {
+                "apu_code": None,
+                "apu_desc": "",
+                "apu_unit": "",
+                "category": "INDEFINIDO",
+            }
+            self.potential_apu_desc = ""
             return
+
+        # APU válido: establecer nuevo contexto limpio
         self.context = {
             "apu_code": cleaned_code,
             "apu_desc": self.potential_apu_desc,
@@ -331,7 +351,8 @@ class ReportParser:
         self.potential_apu_desc = ""
         self.stats["items_found"] += 1
         logger.debug(
-            f"✅ Nuevo APU iniciado: {cleaned_code} - {self.context['apu_desc']}"
+            f"✅ Nuevo APU iniciado: {cleaned_code} - '{self.context['apu_desc']}' "
+            f"({self.context['apu_unit']})"
         )
 
     def _parse_insumo(self, data: Dict[str, str]):
