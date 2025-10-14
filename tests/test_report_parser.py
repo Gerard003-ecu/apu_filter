@@ -1,148 +1,205 @@
+# En tests/test_report_parser.py
+
 import os
 import sys
 import unittest
+import pandas as pd
+import shutil
 
-# Añadir el directorio raíz del proyecto al sys.path
+# Añadir el directorio raíz del proyecto al sys.path para encontrar los módulos de la app
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from app.report_parser import ReportParser
 
-# Datos de prueba para el parser, utilizando formato delimitado por punto y coma.
-APUS_TEST_DATA = """
-ITEM: 1,1
-CONSTRUCCION DE MURO EN LADRILLO ESTRUCTURAL
-MATERIALES;;;;;
-LAMINA DE 1.22 X 2.44 EN 6MM RH;M2;0,0420;-;37.000,00;1.554,00
-PERFIL TUBULAR CUADRADO 2" X 2";ML;1,5000;;12.000,00;18.000,00
-MANO DE OBRA;;;;;
-AYUDANTE;HR;1,0;;10.000,00;10.000,00
-OFICIAL;HR;1,0;;15.000,00;15.000,00
-EQUIPO;;;;;
-HERRAMIENTA MENOR;%;0.05;-;18000;900,00
-ITEM: 1,2
-PUNTO HIDRAULICO AGUA FRIA/CALIENTE
-MATERIALES;;;;;
-SOLDADURA PVC 1/4 GAL;UND;0,0200;-;50.000,00;1.000,00
-INSUMO CON NUMERO GRANDE;UND;2,0;-;1 250 500,50;2 501 001,00
-"""
-
-
-class TestReportParserRefactored(unittest.TestCase):
+class TestNewReportParser(unittest.TestCase):
     """
-    Pruebas unitarias para la clase ReportParser refactorizada.
+    Suite de pruebas exhaustiva para la nueva y robusta implementación de ReportParser.
     """
 
     @classmethod
     def setUpClass(cls):
-        """
-        Configura el entorno de prueba una vez para toda la clase.
-        Crea un archivo temporal con datos y una instancia del ReportParser.
-        """
-        cls.test_file_path = "test_apus_refactored.txt"
-        with open(cls.test_file_path, "w", encoding="latin1") as f:
-            f.write(APUS_TEST_DATA)
-
-        cls.parser = ReportParser(cls.test_file_path)
-        cls.df = cls.parser.parse()
-
-        # Imprimir el DataFrame para depuración si es necesario
-        print("\nDataFrame parseado para pruebas:")
-        print(cls.df.to_string())
+        """Crea un directorio temporal para los archivos de prueba."""
+        cls.temp_dir = "temp_test_files_for_parser"
+        if os.path.exists(cls.temp_dir):
+            shutil.rmtree(cls.temp_dir)
+        os.makedirs(cls.temp_dir)
 
     @classmethod
     def tearDownClass(cls):
-        """
-        Limpia el entorno de prueba eliminando el archivo temporal.
-        """
-        os.remove(cls.test_file_path)
+        """Elimina el directorio temporal después de que todas las pruebas han corrido."""
+        if os.path.exists(cls.temp_dir):
+            shutil.rmtree(cls.temp_dir)
 
-    def test_dataframe_not_empty(self):
-        """Verifica que el DataFrame no está vacío."""
-        self.assertFalse(self.df.empty, "El DataFrame no debería estar vacío.")
+    def _create_test_file(self, filename: str, content: str) -> str:
+        """
+        Crea un archivo de prueba en el directorio temporal y devuelve su ruta.
+        El contenido se codifica en 'latin1' para simular los archivos reales.
+        """
+        path = os.path.join(self.temp_dir, filename)
+        with open(path, "w", encoding="latin1") as f:
+            f.write(content)
+        return path
 
-    def test_finds_correct_number_of_apus(self):
-        """
-        Verifica que el parser identifica el número correcto de APUs únicos.
-        """
-        apu_codes = self.df["CODIGO_APU"].unique()
-        self.assertEqual(len(apu_codes), 2, "Deberían encontrarse exactamente 2 APUs.")
-        self.assertIn("1,1", apu_codes)
-        self.assertIn("1,2", apu_codes)
+    # Aquí se agregarán los métodos de prueba para cada escenario.
 
-    def test_parses_insumo_with_hyphen_as_waste(self):
+    def test_basic_parsing_and_context_detection(self):
         """
-        Verifica que un insumo con un guion en la columna de desperdicio
-        se parsea correctamente.
+        Prueba el parsing básico y la correcta detección de contexto
+        (descripción de APU, unidad y cambio de categoría).
         """
-        insumo = self.df[self.df["DESCRIPCION_INSUMO"] == "LAMINA DE 1.22 X 2.44 EN 6MM RH"]
-        self.assertEqual(len(insumo), 1, "Debería encontrarse un solo insumo de 'LAMINA'.")
+        apu_data = (
+            "UNA DESCRIPCION DE APU VALIDA\n"
+            "ITEM: APU-01; UNIDAD: M2\n"
+            "MATERIALES\n"
+            "Cemento;UND;1;;100;100\n"
+            "Arena;M3;2;;50;100\n"
+            "MANO DE OBRA\n"
+            "Oficial;JOR;8;;20;160\n"
+        )
+        test_file = self._create_test_file("basic_parsing.txt", apu_data)
 
-        insumo_data = insumo.iloc[0]
-        self.assertEqual(insumo_data["CODIGO_APU"], "1,1")
-        self.assertEqual(insumo_data["UNIDAD_INSUMO"], "M2")
-        self.assertAlmostEqual(insumo_data["CANTIDAD_APU"], 0.0420, places=4)
-        self.assertAlmostEqual(insumo_data["PRECIO_UNIT_APU"], 37000.00, places=2)
-        self.assertAlmostEqual(insumo_data["VALOR_TOTAL_APU"], 1554.00, places=2)
-        self.assertEqual(insumo_data["CATEGORIA"], "MATERIALES")
+        parser = ReportParser(test_file)
+        df = parser.parse()
 
-    def test_parses_insumo_without_waste_column(self):
-        """
-        Verifica que un insumo sin la columna de desperdicio se parsea correctamente.
-        """
-        insumo = self.df[self.df["DESCRIPCION_INSUMO"] == 'PERFIL TUBULAR CUADRADO 2" X 2"']
-        self.assertEqual(len(insumo), 1, "Debería encontrarse un solo insumo de 'PERFIL'.")
-
-        insumo_data = insumo.iloc[0]
-        self.assertEqual(insumo_data["CODIGO_APU"], "1,1")
-        self.assertEqual(insumo_data["UNIDAD_INSUMO"], "ML")
-        self.assertAlmostEqual(insumo_data["CANTIDAD_APU"], 1.5000, places=4)
-        self.assertAlmostEqual(insumo_data["PRECIO_UNIT_APU"], 12000.00, places=2)
-        self.assertAlmostEqual(insumo_data["VALOR_TOTAL_APU"], 18000.00, places=2)
-        self.assertEqual(insumo_data["CATEGORIA"], "MATERIALES")
-
-    def test_parses_number_with_spaces(self):
-        """
-        Verifica que un número con espacios como separadores de miles
-        se convierte correctamente.
-        """
-        insumo = self.df[self.df["DESCRIPCION_INSUMO"] == "INSUMO CON NUMERO GRANDE"]
-        self.assertEqual(len(insumo), 1, "Debería encontrarse el insumo con número grande.")
-
-        insumo_data = insumo.iloc[0]
-        self.assertEqual(insumo_data["CODIGO_APU"], "1,2")
-        self.assertAlmostEqual(insumo_data["PRECIO_UNIT_APU"], 1250500.50, places=2)
-        self.assertAlmostEqual(insumo_data["VALOR_TOTAL_APU"], 2501001.00, places=2)
-
-    def test_assigns_correct_apu_and_category(self):
-        """
-        Verifica que los insumos se asignan al APU y categoría correctos.
-        """
-        insumo_soldadura = self.df[self.df["DESCRIPCION_INSUMO"] == "SOLDADURA PVC 1/4 GAL"]
-        self.assertEqual(
-            len(insumo_soldadura), 1, "Debería encontrarse un insumo de 'SOLDADURA PVC'."
+        self.assertEqual(len(df), 3, "Deberían parsearse 3 insumos.")
+        self.assertListEqual(
+            list(df.columns),
+            ['CODIGO_APU', 'DESCRIPCION_APU', 'UNIDAD_APU', 'DESCRIPCION_INSUMO',
+             'UNIDAD_INSUMO', 'CANTIDAD_APU', 'PRECIO_UNIT_APU', 'VALOR_TOTAL_APU',
+             'CATEGORIA', 'RENDIMIENTO', 'FORMATO_ORIGEN', 'NORMALIZED_DESC']
         )
 
-        insumo_data = insumo_soldadura.iloc[0]
-        self.assertEqual(
-            insumo_data["CODIGO_APU"], "1,2", "El insumo debería pertenecer al APU '1,2'."
-        )
-        self.assertEqual(
-            insumo_data["CATEGORIA"], "MATERIALES", "La categoría debería ser 'MATERIALES'."
-        )
+        # Verificar contexto del APU
+        self.assertEqual(df["CODIGO_APU"].iloc[0], "01") # clean_apu_code elimina caracteres no numéricos
+        self.assertEqual(df["DESCRIPCION_APU"].iloc[0], "UNA DESCRIPCION DE APU VALIDA")
+        self.assertEqual(df["UNIDAD_APU"].iloc[0], "M2")
 
-    def test_parses_herramienta_menor(self):
+        # Verificar categorías
+        self.assertEqual(df[df["DESCRIPCION_INSUMO"] == "Cemento"]["CATEGORIA"].iloc[0], "MATERIALES")
+        self.assertEqual(df[df["DESCRIPCION_INSUMO"] == "Arena"]["CATEGORIA"].iloc[0], "MATERIALES")
+        self.assertEqual(df[df["DESCRIPCION_INSUMO"] == "Oficial"]["CATEGORIA"].iloc[0], "MANO DE OBRA")
+
+    def test_mano_de_obra_compleja_logic(self):
         """
-        Verifica que la línea de 'HERRAMIENTA MENOR' se parsea correctamente.
+        Verifica que la lógica para la mano de obra compleja (formato SAGUT)
+        calcule correctamente la cantidad y el rendimiento.
         """
-        herramienta = self.df[self.df["DESCRIPCION_INSUMO"] == "HERRAMIENTA MENOR"]
-        self.assertEqual(
-            len(herramienta), 1, "Debería encontrarse un insumo de 'HERRAMIENTA MENOR'."
+        mo_data = (
+            "ITEM: 9901\n"
+            "MANO DE OBRA\n"
+            # Desc; Jornal Base; Prestaciones; Jornal Total; Rendimiento; Vr. Total
+            "OFICIAL DE PRIMERA;80.000;1,75;140.000;0,5;70.000\n"
         )
+        test_file = self._create_test_file("mo_compleja.txt", mo_data)
 
-        herramienta_data = herramienta.iloc[0]
-        self.assertEqual(herramienta_data["CATEGORIA"], "EQUIPO")
-        self.assertAlmostEqual(herramienta_data["VALOR_TOTAL_APU"], 900.00, places=2)
+        parser = ReportParser(test_file)
+        df = parser.parse()
 
+        self.assertEqual(len(df), 1)
+        insumo = df.iloc[0]
+
+        # Cantidad = Vr. Total / Jornal Total = 70000 / 140000 = 0.5
+        self.assertAlmostEqual(insumo["CANTIDAD_APU"], 0.5, places=4)
+        self.assertAlmostEqual(insumo["RENDIMIENTO"], 0.5, places=4)
+        self.assertAlmostEqual(insumo["PRECIO_UNIT_APU"], 140000, places=2)
+        self.assertEqual(insumo["FORMATO_ORIGEN"], "MO_COMPLEJA")
+
+    def test_mano_de_obra_simple_logic(self):
+        """
+        Verifica que la lógica para la mano de obra simple (formato CSV)
+        calcule correctamente el rendimiento a partir de los valores.
+        """
+        mo_data = (
+            "ITEM: 9902\n"
+            "MANO DE OBRA\n"
+            # Desc; ; Cantidad; ; Vr. Unitario; Vr. Total
+            "AYUDANTE DE OBRA;;1;;120000;15000\n"
+        )
+        test_file = self._create_test_file("mo_simple.txt", mo_data)
+
+        parser = ReportParser(test_file)
+        df = parser.parse()
+
+        self.assertEqual(len(df), 1)
+        insumo = df.iloc[0]
+
+        # Rendimiento = Vr. Unitario / Vr. Total = 120000 / 15000 = 8.0
+        self.assertAlmostEqual(insumo["RENDIMIENTO"], 8.0, places=4)
+        self.assertAlmostEqual(insumo["CANTIDAD_APU"], 1.0, places=4)
+        self.assertEqual(insumo["FORMATO_ORIGEN"], "MO_SIMPLE")
+
+    def test_ignore_garbage_lines(self):
+        """
+        Verifica que el parser ignora líneas basura (títulos, separadores, etc.)
+        y no las procesa como datos válidos.
+        """
+        garbage_data = (
+            "FORMATO DE ANÁLISIS DE PRECIOS UNITARIOS\n"
+            "=========================================\n"
+            "ITEM: 123\n"
+            "PRESUPUESTO OFICIAL\n"
+            "Un insumo valido;UND;1;;100;100\n"
+            "------\n"
+            "SUBTOTAL: 100\n"
+        )
+        test_file = self._create_test_file("garbage.txt", garbage_data)
+
+        parser = ReportParser(test_file)
+        df = parser.parse()
+
+        self.assertEqual(len(df), 1, "Solo el insumo válido debería ser parseado.")
+        self.assertEqual(df.iloc[0]["DESCRIPCION_INSUMO"], "Un insumo valido")
+
+    def test_discard_insumo_with_zero_values(self):
+        """
+        Verifica que `_should_add_insumo` descarta correctamente un insumo
+        cuando tanto la cantidad como el valor total son cero.
+        """
+        zero_value_data = (
+            "ITEM: 456\n"
+            "MATERIALES\n"
+            "Insumo bueno;UND;1;;100;100\n"
+            "Insumo malo;UND;0;;0;0\n"
+            "Otro insumo bueno;UND;2;;50;100\n"
+        )
+        test_file = self._create_test_file("zero_value.txt", zero_value_data)
+
+        parser = ReportParser(test_file)
+        df = parser.parse()
+
+        self.assertEqual(len(df), 2, "El insumo con valores cero no debería agregarse.")
+        descripciones = df["DESCRIPCION_INSUMO"].tolist()
+        self.assertIn("Insumo bueno", descripciones)
+        self.assertNotIn("Insumo malo", descripciones)
+
+    def test_prevent_data_contamination(self):
+        """
+        Prueba el bug original: Un APU válido seguido de un APU 'plantilla'
+        sin un 'ITEM:' no debe contaminar los datos del APU válido.
+        """
+        contamination_data = (
+            "DESCRIPCION DEL PRIMER APU\n"
+            "ITEM: APU-VALIDO-1\n"
+            "MATERIALES\n"
+            "Cemento;UND;1;;100;100\n"
+            "\n"
+            # Este es un APU de plantilla, sin ITEM. Sus insumos no deben ser parseados.
+            "DESCRIPCION DEL APU PLANTILLA\n"
+            "Insumo fantasma;UND;10;;10;100\n"
+            "Obrero fantasma;JOR;8;;20;160\n"
+        )
+        test_file = self._create_test_file("contamination.txt", contamination_data)
+
+        parser = ReportParser(test_file)
+        df = parser.parse()
+
+        # Esta prueba verifica que el parser es robusto contra la contaminación de datos.
+        # Los insumos que aparecen después de una descripción pero sin un nuevo "ITEM:"
+        # no deben ser asignados al APU anterior.
+        self.assertEqual(len(df), 1, "Solo los insumos del APU con 'ITEM:' deben ser parseados.")
+
+        self.assertEqual(df.iloc[0]["CODIGO_APU"], "1")
+        self.assertEqual(df.iloc[0]["DESCRIPCION_INSUMO"], "Cemento")
 
 if __name__ == "__main__":
-    unittest.main()
+    unittest.main(verbosity=2)
