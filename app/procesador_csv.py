@@ -6,6 +6,7 @@ import pandas as pd
 from .data_validator import validate_and_clean_data
 from .report_parser import ReportParser
 from .utils import (
+    add_original_description,
     clean_apu_code,
     find_and_rename_columns,
     normalize_text,
@@ -15,21 +16,6 @@ from .utils import (
 logger = logging.getLogger(__name__)
 
 # ==================== FUNCIONES AUXILIARES ====================
-
-def group_and_split_description(df):
-    """Conserva la descripción original y divide la principal en dos si es necesario."""
-    df_grouped = df.copy()
-    df_grouped["original_description"] = df_grouped["DESCRIPCION_APU"]
-
-    if "DESCRIPCION_APU" in df_grouped.columns:
-        split_desc = df_grouped["DESCRIPCION_APU"].str.split(" / ", n=1, expand=True)
-        df_grouped["DESCRIPCION_APU"] = split_desc[0]
-        if split_desc.shape[1] > 1:
-            df_grouped["descripcion_secundaria"] = split_desc[1]
-        else:
-            df_grouped["descripcion_secundaria"] = ""
-
-    return df_grouped
 
 
 def process_presupuesto_csv(path: str, config: dict) -> pd.DataFrame:
@@ -408,7 +394,16 @@ def _do_processing(presupuesto_path, apus_path, insumos_path, config):
     logger.info(f"✅ Merge exitoso: {len(df_final)} filas (sin duplicación)")
 
     df_final = pd.merge(df_final, df_tiempo, on="CODIGO_APU", how="left")
-    df_final = group_and_split_description(df_final)
+
+    # 🔥 NUEVO: Preservar descripción original y luego dividir
+    df_final = add_original_description(df_final)
+    if "DESCRIPCION_APU" in df_final.columns:
+        split_desc = df_final["DESCRIPCION_APU"].str.split(" / ", n=1, expand=True)
+        df_final["DESCRIPCION_APU"] = split_desc[0]
+        if split_desc.shape[1] > 1:
+            df_final["descripcion_secundaria"] = split_desc[1].fillna("")
+        else:
+            df_final["descripcion_secundaria"] = ""
 
     # 🔥 CALCULAR VALORES TOTALES (CON VALIDACIÓN)
     logger.info("💵 Calculando valores totales del presupuesto...")
@@ -470,7 +465,18 @@ def _do_processing(presupuesto_path, apus_path, insumos_path, config):
     df_processed_apus["DESC_NORMALIZED"] = normalize_text(
         df_processed_apus["DESCRIPCION_APU"]
     )
-    df_processed_apus = group_and_split_description(df_processed_apus)
+
+    # 🔥 NUEVO: Preservar descripción original y luego dividir
+    df_processed_apus = add_original_description(df_processed_apus)
+    if "DESCRIPCION_APU" in df_processed_apus.columns:
+        split_desc = df_processed_apus["DESCRIPCION_APU"].str.split(
+            " / ", n=1, expand=True
+        )
+        df_processed_apus["DESCRIPCION_APU"] = split_desc[0]
+        if split_desc.shape[1] > 1:
+            df_processed_apus["descripcion_secundaria"] = split_desc[1].fillna("")
+        else:
+            df_processed_apus["descripcion_secundaria"] = ""
 
     # ========== 10. PREPARAR DICCIONARIOS DE SALIDA ==========
     df_merged.rename(
