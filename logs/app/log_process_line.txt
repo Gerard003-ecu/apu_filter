@@ -1,0 +1,161 @@
+def _process_line(self, line: str):
+    """
+    Versión final refinada del proceso principal.
+    """
+    line = line.strip()
+    if not line:
+        return
+
+    # --- FILTRADO TEMPRANO MEJORADO ---
+    if self._is_garbage_line(line):
+        return
+
+    upper_line = line.upper()
+
+    # 1. DETECCIÓN DE ITEM (con logging contextual)
+    match_item = self.PATTERNS["item_code"].search(upper_line)
+    if match_item:
+        raw_code = match_item.group(1).strip()
+        unit_match = re.search(r"UNIDAD:\s*([A-Z0-9/%]+)", upper_line)
+        unit = unit_match.group(1) if unit_match else "INDEFINIDO"
+        
+        logger.debug(f"ITEM detectado: código='{raw_code}', unidad='{unit}'")
+        self._start_new_apu(raw_code, unit)
+        return
+
+    # 2. DETECCIÓN DE CATEGORÍA (más tolerante)
+    category_keywords = {"MATERIALES", "MANO DE OBRA", "EQUIPO", "OTROS"}
+    first_part = line.split(';', 1)[0].strip().upper()
+    
+    # Búsqueda flexible de categoría
+    for category in category_keywords:
+        if category in first_part:  # En lugar de igualdad exacta
+            self.context["category"] = category
+            logger.debug(f"Categoría establecida: {category}")
+            return
+
+    # 3. PROCESAMIENTO DE DATOS (más ordenado)
+    if not self.context["apu_code"]:
+        # Si no hay APU activo, solo buscar descripciones potenciales
+        if self._is_potential_description(line):
+            self.potential_apu_desc = line.split(';', 1)[0].strip()
+        return
+
+    # Con APU activo, intentar parsear datos
+    processed = self._try_parse_data_line(line)
+    if not processed and self._is_potential_description(line):
+        self.potential_apu_desc = line.split(';', 1)[0].strip()
+
+def _try_parse_data_line(self, line: str) -> bool:
+    """
+    Intenta parsear una línea como datos, retorna True si tuvo éxito.
+    """
+    # Orden de intentos: Mano de obra -> Insumo general
+    match_mo = self.PATTERNS["mano_de_obra"].match(line)
+    if match_mo:
+        data = match_mo.groupdict()
+        if self._is_valid_mo_data(data):
+            self._parse_mano_de_obra(data)
+            return True
+
+    match_insumo = self.PATTERNS["insumo_full"].match(line)
+    if match_insumo:
+        data = match_insumo.groupdict()
+        if self._is_valid_insumo_data(data):
+            self._parse_insumo(data)
+            return True
+
+    # Si tiene estructura de datos pero no coincide, log warning
+    if self._has_data_structure(line):
+        logger.warning(f"Línea con estructura no parseada: {line[:100]}")
+        
+    return False
+
+def _calculate_mo_quantity(self, valor_total: float, jornal_total: float, rendimiento: float) -> float:
+    """
+    Versión mejorada con manejo de casos edge.
+    """
+    if jornal_total <= 0:
+        return 0.0
+    
+    # Cálculo base
+    if valor_total > 0:
+        cantidad_base = valor_total / jornal_total
+    else:
+        cantidad_base = 0
+
+    # Ajustar por rendimiento si es significativo
+    if rendimiento > 0:
+        # Si el rendimiento es muy bajo, podría indicar horas en lugar de días
+        if 0 < rendimiento < 0.2:  # Menos de 0.2 jornal/día
+            logger.debug(f"Rendimiento muy bajo ({rendimiento}), interpretando como horas")
+            # Convertir a horas (asumiendo 8 horas por jornal)
+            cantidad_base *= 8
+        elif rendimiento > 10:  # Rendimiento muy alto
+            logger.debug(f"Rendimiento inusualmente alto: {rendimiento}")
+    
+    return cantidad_base
+
+def _should_add_insumo(self, descripcion: str, cantidad: float, valor_total: float) -> bool:
+    """
+    Versión más estricta con validaciones adicionales.
+    """
+    # Validación de descripción
+    if not descripcion or len(descripcion.strip()) < 2:
+        return False
+    
+    # Excluir descripciones genéricas o inválidas
+    invalid_descriptions = {"", "-", "N/A", "NO APLICA", "S/D"}
+    if descripcion.upper() in invalid_descriptions:
+        return False
+    
+    # Validación numérica más estricta
+    if cantidad <= 0 and valor_total <= 0:
+        return False
+        
+    # Rechazar valores extremadamente pequeños (posibles errores)
+    if 0 < cantidad < 1e-10 or 0 < valor_total < 0.001:
+        logger.debug(f"Valores muy pequeños descartados: cantidad={cantidad}, total={valor_total}")
+        return False
+    
+    return True
+
+    # Recomendaciones Adicionales:
+
+    Agregar métricas de parsing:
+
+def __init__(self, file_path: str):
+    self.file_path = file_path
+    self.parsed_rows = []
+    self.context = {
+        "apu_code": None,
+        "apu_desc": "",
+        "apu_unit": "",
+        "category": "INDEFINIDO",
+    }
+    self.potential_apu_desc = ""
+    # Métricas
+    self.stats = {
+        "total_lines": 0,
+        "processed_lines": 0,
+        "items_found": 0,
+        "insumos_parsed": 0,
+        "mo_parsed": 0,
+        "garbage_lines": 0
+    }
+
+    # Mejorar los patrones regex para mayor flexibilidad:
+PATTERNS = {
+    "item_code": re.compile(r"ITEM:\s*([^;]+?)(?:\s*;|\s*$).*?UNIDAD:\s*([A-Z0-9/%]+)?", re.IGNORECASE),
+    "insumo_full": re.compile(
+        r"^(?P<descripcion>[^;]+);"
+        r"(?P<unidad>[^;]*);"
+        r"(?P<cantidad>[^;]*);"
+        r"(?P<desperdicio>[^;]*);"
+        r"(?P<precio_unit>[^;]*);"
+        r"(?P<valor_total>[^;]*)", 
+        re.IGNORECASE
+    ),
+    # ... otros patrones
+}
+
