@@ -6,7 +6,6 @@ import pandas as pd
 from .data_validator import validate_and_clean_data
 from .report_parser import ReportParser
 from .utils import (
-    add_original_description,
     clean_apu_code,
     find_and_rename_columns,
     normalize_text,
@@ -239,7 +238,7 @@ def _calculate_apu_costs_and_metadata(df_merged):
 def _do_processing(presupuesto_path, apus_path, insumos_path, config):
     """
     Lógica central para procesar, unificar y calcular todos los datos.
-    VERSIÓN MEJORADA CON VALIDACIONES ANTI-EXPLOSIÓN.
+    VERSIÓN CORREGIDA: Preserva descripciones completas desde df_apus_raw.
     """
     logger.info("=" * 80)
     logger.info("🚀 Iniciando procesamiento de archivos...")
@@ -258,12 +257,36 @@ def _do_processing(presupuesto_path, apus_path, insumos_path, config):
         logger.error("❌ Fallo al cargar uno o más archivos de datos.")
         return {"error": "Fallo al cargar uno o más archivos de datos."}
 
+    # ========== 🔥 CRÍTICO: CAPTURAR DESCRIPCIONES COMPLETAS AL INICIO ==========
+    logger.info("📝 Capturando descripciones completas desde df_apus_raw...")
+
+    # Crear diccionario de mapeo: CODIGO_APU -> descripción completa original
+    descripciones_completas = {}
+    if "DESCRIPCION_APU" in df_apus_raw.columns and "CODIGO_APU" in df_apus_raw.columns:
+        # Obtener descripción única para cada APU (pueden haber múltiples filas por APU)
+        for codigo_apu, group in df_apus_raw.groupby("CODIGO_APU"):
+            # Tomar la primera descripción no vacía del grupo
+            descripciones = group["DESCRIPCION_APU"].dropna()
+            if not descripciones.empty:
+                descripciones_completas[codigo_apu] = descripciones.iloc[0]
+
+    logger.info(f"✅ Capturadas {len(descripciones_completas)} descripciones únicas de APUs")
+
+    # Verificar que tenemos descripciones
+    if not descripciones_completas:
+        logger.error("❌ No se pudieron capturar descripciones de APUs desde df_apus_raw")
+        logger.debug(f"Columnas en df_apus_raw: {df_apus_raw.columns.tolist()}")
+        logger.debug(f"Primeras filas de df_apus_raw:\n{df_apus_raw.head()}")
+    else:
+        # Mostrar muestra de descripciones capturadas
+        sample_descs = dict(list(descripciones_completas.items())[:3])
+        logger.debug(f"Muestra de descripciones capturadas: {sample_descs}")
+
     logger.info("📊 Datos cargados:")
     logger.info(f"   - Presupuesto: {len(df_presupuesto)} APUs")
     logger.info(f"   - Insumos maestros: {len(df_insumos)} insumos")
-    logger.info(
-        f"   - APUs detallados: {len(df_apus_raw)} registros de insumos en APUs"
-    )
+    logger.info(f"   - APUs detallados: {len(df_apus_raw)} registros de insumos en APUs")
+    logger.info(f"   - Descripciones completas capturadas: {len(descripciones_completas)}")
 
     # ========== 2. MERGE APUs con INSUMOS (CRÍTICO) ==========
     logger.info("🔗 Iniciando merge de APUs con catálogo de insumos...")
@@ -395,8 +418,19 @@ def _do_processing(presupuesto_path, apus_path, insumos_path, config):
 
     df_final = pd.merge(df_final, df_tiempo, on="CODIGO_APU", how="left")
 
-    # 🔥 NUEVO: Preservar descripción original y luego dividir
-    df_final = add_original_description(df_final)
+    # ========== 🔥 ENRIQUECER df_final CON DESCRIPCIONES COMPLETAS ==========
+    logger.info("📝 Enriqueciendo df_final con descripciones completas originales...")
+
+    # Mapear las descripciones completas usando el diccionario capturado al inicio
+    df_final["original_description"] = df_final["CODIGO_APU"].map(descripciones_completas)
+
+    # Fallback: si no hay mapeo, usar la descripción existente
+    if "DESCRIPCION_APU" in df_final.columns:
+        df_final["original_description"] = df_final["original_description"].fillna(
+            df_final["DESCRIPCION_APU"]
+        )
+
+    # Aplicar split de descripción (pero preservando original_description)
     if "DESCRIPCION_APU" in df_final.columns:
         split_desc = df_final["DESCRIPCION_APU"].str.split(" / ", n=1, expand=True)
         df_final["DESCRIPCION_APU"] = split_desc[0]
@@ -404,6 +438,15 @@ def _do_processing(presupuesto_path, apus_path, insumos_path, config):
             df_final["descripcion_secundaria"] = split_desc[1].fillna("")
         else:
             df_final["descripcion_secundaria"] = ""
+    else:
+        df_final["descripcion_secundaria"] = ""
+
+    # Validación
+    descripciones_validas = df_final["original_description"].notna().sum()
+    logger.info(
+        f"✅ df_final enriquecido: {descripciones_validas}/{len(df_final)} "
+        f"filas con descripción original"
+    )
 
     # 🔥 CALCULAR VALORES TOTALES (CON VALIDACIÓN)
     logger.info("💵 Calculando valores totales del presupuesto...")
@@ -466,17 +509,37 @@ def _do_processing(presupuesto_path, apus_path, insumos_path, config):
         df_processed_apus["DESCRIPCION_APU"]
     )
 
-    # 🔥 NUEVO: Preservar descripción original y luego dividir
-    df_processed_apus = add_original_description(df_processed_apus)
+    # ========== 🔥 ENRIQUECER df_processed_apus CON DESCRIPCIONES COMPLETAS ==========
+    logger.info("📝 Enriqueciendo df_processed_apus con descripciones completas originales...")
+
+    # Mapear las descripciones completas
+    df_processed_apus["original_description"] = df_processed_apus["CODIGO_APU"].map(
+        descripciones_completas
+    )
+
+    # Fallback
     if "DESCRIPCION_APU" in df_processed_apus.columns:
-        split_desc = df_processed_apus["DESCRIPCION_APU"].str.split(
-            " / ", n=1, expand=True
-        )
+        df_processed_apus["original_description"] = df_processed_apus[
+            "original_description"
+        ].fillna(df_processed_apus["DESCRIPCION_APU"])
+
+    # Aplicar split
+    if "DESCRIPCION_APU" in df_processed_apus.columns:
+        split_desc = df_processed_apus["DESCRIPCION_APU"].str.split(" / ", n=1, expand=True)
         df_processed_apus["DESCRIPCION_APU"] = split_desc[0]
         if split_desc.shape[1] > 1:
             df_processed_apus["descripcion_secundaria"] = split_desc[1].fillna("")
         else:
             df_processed_apus["descripcion_secundaria"] = ""
+    else:
+        df_processed_apus["descripcion_secundaria"] = ""
+
+    # Validación
+    descripciones_validas_processed = df_processed_apus["original_description"].notna().sum()
+    logger.info(
+        f"✅ df_processed_apus enriquecido: {descripciones_validas_processed}/"
+        f"{len(df_processed_apus)} filas con descripción original"
+    )
 
     # ========== 10. PREPARAR DICCIONARIOS DE SALIDA ==========
     df_merged.rename(
@@ -502,6 +565,25 @@ def _do_processing(presupuesto_path, apus_path, insumos_path, config):
 
     # ========== 11. VALIDACIÓN FINAL ==========
     logger.info("🤖 Iniciando Agente de Validación de Datos...")
+
+    # 🔥 VALIDACIÓN CRÍTICA: Verificar descripciones antes de enviar al validador
+    logger.info("🔍 Verificación final de descripciones:")
+    if result_dict["presupuesto"]:
+        sample_presupuesto = result_dict["presupuesto"][:3]
+        for item in sample_presupuesto:
+            logger.debug(
+                f"   APU {item.get('CODIGO_APU')}: "
+                f"original_description='{item.get('original_description', 'N/A')}'"
+            )
+
+    if result_dict["processed_apus"]:
+        sample_processed = result_dict["processed_apus"][:3]
+        for item in sample_processed:
+            logger.debug(
+                f"   APU {item.get('CODIGO_APU')}: "
+                f"original_description='{item.get('original_description', 'N/A')}'"
+            )
+
     validated_result = validate_and_clean_data(result_dict)
     logger.info("✅ Validación completada.")
 
@@ -510,6 +592,8 @@ def _do_processing(presupuesto_path, apus_path, insumos_path, config):
     logger.info("=" * 80)
     logger.info("🎉 Procesamiento completado exitosamente")
     logger.info(f"   - APUs en presupuesto: {len(df_final)}")
+    logger.info(f"   - APUs con descripción original: {descripciones_validas}/{len(df_final)}")
+    logger.info(f"   - APUs procesados: {len(df_processed_apus)}")
     logger.info(f"   - Costo total: ${total_construccion:,.2f}")
     logger.info("=" * 80)
 
