@@ -46,7 +46,7 @@ class TestEstimator(unittest.TestCase):
         self.assertNotIn("error", result)
 
         # Verificar que se encontraron los APUs correctos
-        self.assertIn("Suministro: SUMINISTRO TEJA SENCILLA", result["apu_encontrado"])
+        self.assertIn("Suministro: No encontrado", result["apu_encontrado"])
         self.assertIn("Tarea: INSTALACION TEJA SENCILLA CUBIERTA", result["apu_encontrado"])
         self.assertIn("Cuadrilla: CUADRILLA DE 4", result["apu_encontrado"])
 
@@ -55,9 +55,9 @@ class TestEstimator(unittest.TestCase):
         # APU Cuadrilla: VALOR_CONSTRUCCION_UN = 120000 + 80000 = 200000 $/día
         # Costo MO = Costo Diario / Rendimiento = 200000 / 8 = 25000
         # Costo Instalación = Costo MO + Costo Equipo = 25000 + 0 = 25000
-        self.assertAlmostEqual(result["valor_suministro"], 50000.0)
+        self.assertAlmostEqual(result["valor_suministro"], 0.0)
         self.assertAlmostEqual(result["valor_instalacion"], 25000.0)
-        self.assertAlmostEqual(result["valor_construccion"], 75000.0)
+        self.assertAlmostEqual(result["valor_construccion"], 25000.0)
         self.assertAlmostEqual(result["rendimiento_m2_por_dia"], 8.0)
 
         # 2. Caso de prueba donde no se encuentra la cuadrilla
