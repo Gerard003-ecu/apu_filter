@@ -89,3 +89,12 @@ def sanitize_for_json(data):
     if pd.isna(data):
         return None
     return data
+
+
+def add_original_description(df):
+    """Crea la columna 'original_description' como una copia de 'DESCRIPCION_APU'."""
+    if "DESCRIPCION_APU" in df.columns:
+        df["original_description"] = df["DESCRIPCION_APU"]
+    else:
+        df["original_description"] = ""
+    return df
