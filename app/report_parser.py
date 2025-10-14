@@ -92,31 +92,20 @@ class ReportParser:
         logger.info(f"✅ DataFrame generado con {len(df)} registros")
         return df
 
-    def _is_potential_description(self, line: str) -> bool:
-        """
-        Determina si una línea podría ser una descripción de APU.
-        Debe tener texto significativo y no parecer una línea de datos o basura.
-        """
-        if self._has_data_structure(line) or self._is_garbage_line(line):
-            return False
-        # Una descripción debe tener al menos una palabra de 3 o más letras
-        return re.search(r"[a-zA-Z]{3,}", line) is not None
-
     def _process_line(self, line: str, line_num: int):
         """
-        VERSIÓN REPARADA: Garantiza que las categorías se detecten ANTES de los insumos
-        y filtra líneas de metadatos que causan errores de parsing.
+        VERSIÓN CORREGIDA: Captura descripciones ANTES del ITEM y las preserva correctamente.
         """
         line = line.strip()
         if not line:
+            # NO resetear potential_apu_desc aquí, solo el contexto actual
             self.context["apu_code"] = None
-            self.potential_apu_desc = ""
-            logger.debug("🔄 Contexto de APU reseteado por línea vacía.")
+            logger.debug("🔄 Contexto de APU reseteado por línea vacía (descripción potencial preservada).")
             return
 
         self.stats["processed_lines"] += 1
 
-        # 0. ⚡ FILTRO PRIORITARIO: Descartar líneas de metadatos (PRIMERO)
+        # 0. ⚡ FILTRO PRIORITARIO: Descartar líneas de metadatos
         if self._is_metadata_line(line):
             self.stats["garbage_lines"] += 1
             logger.debug(f"⏭️  Línea de metadato descartada en L{line_num}")
@@ -129,7 +118,16 @@ class ReportParser:
 
         upper_line = line.upper()
 
-        # 2. Detección de ITEM (máxima prioridad)
+        # 2. 🔥 CAPTURA DE DESCRIPCIÓN POTENCIAL (ANTES DE BUSCAR ITEM)
+        # Si no estamos en un APU activo Y la línea parece una descripción
+        if not self.context["apu_code"] and not self.PATTERNS["item_code"].search(upper_line):
+            if self._is_potential_description(line):
+                # Capturar toda la línea como descripción potencial
+                self.potential_apu_desc = line.split(';')[0].strip()
+                logger.debug(f"📝 Descripción potencial capturada (L{line_num}): '{self.potential_apu_desc[:50]}...'")
+                return
+
+        # 3. Detección de ITEM (usa la descripción capturada previamente)
         match_item = self.PATTERNS["item_code"].search(upper_line)
         if match_item:
             raw_code = match_item.group(1).strip()
@@ -137,33 +135,170 @@ class ReportParser:
             unit = unit_match.group(1) if unit_match else "INDEFINIDO"
 
             logger.debug(
-                f"🆕 ITEM detectado (L{line_num}): código='{raw_code}', unidad='{unit}'"
+                f"🆕 ITEM detectado (L{line_num}): código='{raw_code}', unidad='{unit}', "
+                f"descripción pendiente='{self.potential_apu_desc[:30]}...'"
             )
             self._start_new_apu(raw_code, unit)
             return
 
         # 4. Lógica dependiente del estado
         if not self.context["apu_code"]:
-            # ESTADO INACTIVO: Solo buscar descripción
-            if self._is_potential_description(line):
-                self.potential_apu_desc = line.split(';', 1)[0].strip()
+            # ESTADO INACTIVO: Ya capturamos descripción arriba, no hacer nada más
             return
 
         # --- ESTADO ACTIVO: APU en progreso ---
-        # ORDEN CRÍTICO REPARADO:
 
         # A. PRIMERO: Intentar detectar categoría
         category_detected = self._try_detect_category_change(line, upper_line)
         if category_detected:
-            return  # ¡Categoría detectada! No procesar como dato
+            return
 
         # B. SEGUNDO: Intentar parsear como dato
         if self._try_parse_as_data_line(line, line_num):
             return
 
-        # C. TERCERO: Considerar como descripción potencial
+        # C. TERCERO: Si estamos en un APU pero la línea no es dato ni categoría,
+        #    podría ser la descripción del SIGUIENTE APU
         if self._is_potential_description(line):
-            self.potential_apu_desc = line.split(';', 1)[0].strip()
+            # Guardar para el próximo APU
+            self.potential_apu_desc = line.split(';')[0].strip()
+            logger.debug(f"📝 Nueva descripción potencial capturada (L{line_num}): '{self.potential_apu_desc[:50]}...'")
+
+    def _start_new_apu(self, raw_code: str, unit: str):
+        """
+        VERSIÓN CORREGIDA: Usa la descripción capturada previamente y la preserva correctamente.
+        """
+        cleaned_code = clean_apu_code(raw_code)
+
+        if not cleaned_code:
+            logger.warning(
+                f"⚠️ Código APU no válido: '{raw_code}' - Reseteando contexto completo"
+            )
+            # NO resetear potential_apu_desc aquí, podría ser para el siguiente APU válido
+            self.context = {
+                "apu_code": None,
+                "apu_desc": "",
+                "apu_unit": "",
+                "category": "INDEFINIDO",
+            }
+            return
+
+        # 🔥 IMPORTANTE: Usar la descripción capturada previamente
+        descripcion_apu = self.potential_apu_desc if self.potential_apu_desc else ""
+
+        # APU válido: establecer nuevo contexto con la descripción capturada
+        self.context = {
+            "apu_code": cleaned_code,
+            "apu_desc": descripcion_apu,  # 🔥 Aquí usamos la descripción capturada
+            "apu_unit": unit.strip(),
+            "category": "INDEFINIDO",
+        }
+
+        logger.info(
+            f"✅ Nuevo APU iniciado: {cleaned_code} - '{descripcion_apu[:50]}...' ({unit})"
+        )
+
+        # Resetear SOLO después de usar la descripción
+        self.potential_apu_desc = ""
+        self.stats["items_found"] += 1
+
+    def _is_potential_description(self, line: str) -> bool:
+        """
+        VERSIÓN MEJORADA: Determina si una línea podría ser una descripción de APU.
+        """
+        # Eliminar espacios y verificar que no esté vacía
+        line_clean = line.strip()
+        if not line_clean:
+            return False
+
+        # No debe ser una línea de datos (con múltiples punto y comas)
+        if self._has_data_structure(line):
+            return False
+
+        # No debe ser basura o metadatos
+        if self._is_garbage_line(line) or self._is_metadata_line(line):
+            return False
+
+        # No debe parecer una categoría sola
+        upper_line = line_clean.upper()
+        if upper_line in self.CATEGORY_KEYWORDS:
+            return False
+
+        # CRITERIOS POSITIVOS para una descripción:
+        # 1. Debe tener al menos 5 caracteres
+        if len(line_clean) < 5:
+            return False
+
+        # 2. Debe contener al menos una palabra significativa (3+ letras)
+        if not re.search(r"[a-zA-Z]{3,}", line_clean):
+            return False
+
+        # 3. No debe empezar con números solos (podría ser un código mal formateado)
+        if re.match(r"^\d+\.?\d*$", line_clean):
+            return False
+
+        # 4. Típicamente las descripciones de APU contienen palabras como:
+        description_keywords = [
+            "SUMINISTRO", "INSTALACION", "CONSTRUCCION", "EXCAVACION",
+            "RELLENO", "CONCRETO", "ACERO", "TUBERIA", "CANAL", "MURO",
+            "LOSA", "VIGA", "COLUMNA", "CIMENTACION", "ESTRUCTURA",
+            "ACABADO", "PINTURA", "PRELIMINAR", "DEMOLICION", "RETIRO",
+            "TRANSPORTE", "MONTAJE", "MANTENIMIENTO", "REPARACION"
+        ]
+
+        # Si contiene alguna palabra clave típica de descripción, es muy probable que lo sea
+        for keyword in description_keywords:
+            if keyword in upper_line:
+                logger.debug(f"✅ Descripción detectada por palabra clave '{keyword}': {line_clean[:50]}...")
+                return True
+
+        # Si no tiene palabras clave pero tiene suficiente texto alfabético,
+        # podría ser una descripción
+        alpha_chars = sum(1 for c in line_clean if c.isalpha())
+        if alpha_chars >= 10:  # Al menos 10 letras
+            return True
+
+        return False
+
+    def _log_parsing_stats(self):
+        """VERSIÓN MEJORADA: Incluye estadísticas de descripciones capturadas"""
+        logger.info("📊 MÉTRICAS FINALES DE PARSING:")
+        for key, value in self.stats.items():
+            logger.info(f"   {key}: {value}")
+
+        # Contar APUs con descripción
+        apus_con_desc = sum(1 for apu in self.apus_data if apu.get("DESCRIPCION_APU"))
+        total_apus = len(set(apu["CODIGO_APU"] for apu in self.apus_data if apu.get("CODIGO_APU")))
+
+        logger.info(f"   APUs con descripción: {apus_con_desc}/{total_apus}")
+
+        # Mostrar muestra de APUs con sus descripciones
+        if self.apus_data:
+            unique_apus = {}
+            for apu in self.apus_data:
+                codigo = apu.get("CODIGO_APU")
+                if codigo and codigo not in unique_apus:
+                    unique_apus[codigo] = apu.get("DESCRIPCION_APU", "")
+
+            logger.info("📝 Muestra de APUs con sus descripciones:")
+            for codigo, desc in list(unique_apus.items())[:5]:
+                desc_preview = desc[:50] + "..." if len(desc) > 50 else desc
+                logger.info(f"   {codigo}: '{desc_preview}'")
+
+        total_parsed = sum(
+            [
+                self.stats[k]
+                for k in [
+                    "insumos_parsed",
+                    "mo_compleja_parsed",
+                    "mo_simple_parsed",
+                    "fallback_parsed",
+                ]
+            ]
+        )
+        if self.stats["processed_lines"] > 0:
+            success_rate = total_parsed / self.stats["processed_lines"] * 100
+            logger.info(f"   TASA_ÉXITO_PARSE: {success_rate:.1f}%")
 
     def _try_parse_as_data_line(self, line: str, line_num: int) -> bool:
         """Versión con logs de diagnóstico"""
@@ -315,45 +450,6 @@ class ReportParser:
                 logger.debug(f"🔄 Fallback exitoso (L{line_num}): {desc[:50]}...")
                 return True
         return False
-
-    def _start_new_apu(self, raw_code: str, unit: str):
-        """
-        Inicia un nuevo APU y resetea completamente el contexto.
-
-        Es crítico que TODO el contexto se resetee para evitar que datos de APUs
-        anteriores se filtren a APUs nuevos (especialmente APUs de plantilla inválidos).
-        """
-        cleaned_code = clean_apu_code(raw_code)
-
-        if not cleaned_code:
-            logger.warning(
-                f"⚠️ Código APU no válido: '{raw_code}' - Reseteando contexto completo"
-            )
-            # ⚡ CRÍTICO: Resetear TODO el contexto, no solo apu_code
-            # Esto evita que descripciones/unidades/categorías de APUs anteriores
-            # se asocien incorrectamente con insumos de APUs inválidos/plantilla
-            self.context = {
-                "apu_code": None,
-                "apu_desc": "",
-                "apu_unit": "",
-                "category": "INDEFINIDO",
-            }
-            self.potential_apu_desc = ""
-            return
-
-        # APU válido: establecer nuevo contexto limpio
-        self.context = {
-            "apu_code": cleaned_code,
-            "apu_desc": self.potential_apu_desc,
-            "apu_unit": unit.strip(),
-            "category": "INDEFINIDO",
-        }
-        self.potential_apu_desc = ""
-        self.stats["items_found"] += 1
-        logger.debug(
-            f"✅ Nuevo APU iniciado: {cleaned_code} - '{self.context['apu_desc']}' "
-            f"({self.context['apu_unit']})"
-        )
 
     def _parse_insumo(self, data: Dict[str, str]):
         desc = data["descripcion"].strip()
@@ -576,22 +672,3 @@ class ReportParser:
         normalized = re.sub(r"[^a-z0-9\s#\-]", "", normalized)
         normalized = re.sub(r"\s+", " ", normalized)
         return normalized
-
-    def _log_parsing_stats(self):
-        logger.info("📊 MÉTRICAS FINALES DE PARSING:")
-        for key, value in self.stats.items():
-            logger.info(f"   {key}: {value}")
-        total_parsed = sum(
-            [
-                self.stats[k]
-                for k in [
-                    "insumos_parsed",
-                    "mo_compleja_parsed",
-                    "mo_simple_parsed",
-                    "fallback_parsed",
-                ]
-            ]
-        )
-        if self.stats["processed_lines"] > 0:
-            success_rate = total_parsed / self.stats["processed_lines"] * 100
-            logger.info(f"   TASA_ÉXITO_PARSE: {success_rate:.1f}%")
