@@ -120,14 +120,15 @@ class ReportParser:
             self.stats["garbage_lines"] += 1
             return
 
+        # 2. ✨ FILTRO ESPECÍFICO: Líneas de metadatos que deben ignorarse
         upper_line = line.upper()
-
-        # 2. ✨ NUEVO FILTRO ESPECÍFICO: IMPUESTOS Y RETENCIONES o POLIZAS
-        if "IMPUESTOS Y RETENCIONES" in upper_line or "POLIZAS" in upper_line:
+        if any(keyword in upper_line for keyword in [
+            "IMPUESTOS Y RETENCIONES",
+            "POLIZAS",
+            "EQUIPO Y HERRAMIENTA"
+        ]):
             self.stats["garbage_lines"] += 1
-            logger.debug(
-                f"🚫 Línea ignorada por contener IMPUESTOS/POLIZAS: {line[:50]}..."
-            )
+            logger.debug(f"🚫 Línea ignorada por contener metadato: {line[:60]}...")
             return
 
         # 3. Detección de ITEM (máxima prioridad)
@@ -153,7 +154,7 @@ class ReportParser:
         # --- ESTADO ACTIVO: APU en progreso ---
         # ORDEN CRÍTICO REPARADO:
 
-        # A. PRIMERO: Intentar detectar categoría (¡ESTO FALTA!)
+        # A. PRIMERO: Intentar detectar categoría
         category_detected = self._try_detect_category_change(line, upper_line)
         if category_detected:
             return  # ¡Categoría detectada! No procesar como dato
