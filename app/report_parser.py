@@ -105,6 +105,7 @@ class ReportParser:
     def _process_line(self, line: str, line_num: int):
         """
         VERSIÓN REPARADA: Garantiza que las categorías se detecten ANTES de los insumos
+        y filtra líneas de metadatos que causan errores de parsing.
         """
         line = line.strip()
         if not line:
@@ -115,23 +116,20 @@ class ReportParser:
 
         self.stats["processed_lines"] += 1
 
-        # 1. Filtrado de basura (siempre primero)
+        # 0. ⚡ FILTRO PRIORITARIO: Descartar líneas de metadatos (PRIMERO)
+        if self._is_metadata_line(line):
+            self.stats["garbage_lines"] += 1
+            logger.debug(f"⏭️  Línea de metadato descartada en L{line_num}")
+            return
+
+        # 1. Filtrado de basura general
         if self._is_garbage_line(line):
             self.stats["garbage_lines"] += 1
             return
 
-        # 2. ✨ FILTRO ESPECÍFICO: Líneas de metadatos que deben ignorarse
         upper_line = line.upper()
-        if any(keyword in upper_line for keyword in [
-            "IMPUESTOS Y RETENCIONES",
-            "POLIZAS",
-            "EQUIPO Y HERRAMIENTA"
-        ]):
-            self.stats["garbage_lines"] += 1
-            logger.debug(f"🚫 Línea ignorada por contener metadato: {line[:60]}...")
-            return
 
-        # 3. Detección de ITEM (máxima prioridad)
+        # 2. Detección de ITEM (máxima prioridad)
         match_item = self.PATTERNS["item_code"].search(upper_line)
         if match_item:
             raw_code = match_item.group(1).strip()
@@ -498,6 +496,46 @@ class ReportParser:
                 "===",
             ]
         )
+
+    def _is_metadata_line(self, line: str) -> bool:
+        """
+        Detecta si una línea contiene metadatos que deben ser ignorados.
+
+        Estas líneas suelen aparecer como encabezados o subtotales que no son insumos reales
+        y pueden causar errores de parsing si se procesan como datos.
+
+        Args:
+            line: Línea de texto a evaluar
+
+        Returns:
+            True si la línea contiene palabras clave de metadatos, False en caso contrario
+        """
+        if not line:
+            return False
+
+        # Palabras clave que identifican líneas de metadatos no procesables
+        metadata_keywords = [
+            'EQUIPO Y HERRAMIENTA',
+            'EQUIPOS Y HERRAMIENTA',
+            'EQUIPO Y HERRAMIENTAS',
+            'EQUIPOS Y HERRAMIENTAS',
+            'IMPUESTOS Y RETENCIONES',
+            'IMPUESTOS',
+            'POLIZAS',
+            'PÓLIZAS',  # Versión con acento
+        ]
+
+        upper_line = line.upper()
+
+        # Verificar si alguna palabra clave está presente en la línea
+        for keyword in metadata_keywords:
+            if keyword in upper_line:
+                logger.debug(
+                    f"🚫 Línea de metadato detectada ('{keyword}'): {line[:60]}..."
+                )
+                return True
+
+        return False
 
     def _has_data_structure(self, line: str) -> bool:
         return line.count(";") >= 2
