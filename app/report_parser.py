@@ -1,26 +1,17 @@
-# En app/report_parser.py
-
 import logging
 import re
 from typing import Dict, Optional, List, Any
 
 import pandas as pd
+from unidecode import unidecode
 
 from .utils import clean_apu_code
 
 logger = logging.getLogger(__name__)
 
 class ReportParser:
-    """
-    Parsea un archivo de reporte de APUs en formato de texto (tipo SAGUT)
-    utilizando una máquina de estados pura para manejar múltiples formatos.
-    VERSIÓN ROBUSTA CON SOPORTE MULTI-FORMATO.
-    """
-    
     PATTERNS = {
         "item_code": re.compile(r"ITEM:\s*([^;]+)", re.IGNORECASE),
-        
-        # Patrón para insumos generales
         "insumo_full": re.compile(
             r"^(?P<descripcion>[^;]+);"
             r"(?P<unidad>[^;]*);"
@@ -30,10 +21,8 @@ class ReportParser:
             r"(?P<valor_total>[^;]*)",
             re.IGNORECASE
         ),
-        
-        # Patrón para mano de obra COMPLEJA (formato SAGUT extendido)
         "mano_de_obra_compleja": re.compile(
-            r"^(?P<descripcion>(M\.O\.|MANO DE OBRA|SISO|INGENIERO|OFICIAL|AYUDANTE|MAESTRO).+?);"
+            r"^(?P<descripcion>(?:M\.O\.|MANO DE OBRA|SISO|INGENIERO|OFICIAL|AYUDANTE|MAESTRO|CAPATAZ|CUADRILLA|OBRERO).*?);"
             r"(?P<jornal_base>[\d.,\s]+);"
             r"(?P<prestaciones>[\d%.,\s]+);"
             r"(?P<jornal_total>[\d.,\s]+);"
@@ -41,19 +30,15 @@ class ReportParser:
             r"(?P<valor_total>[\d.,\s]+)",
             re.IGNORECASE
         ),
-        
-        # Patrón para mano de obra SIMPLE (formato CSV estándar)
         "mano_de_obra_simple": re.compile(
-            r"^(?P<descripcion>(M\.O\.|MANO DE OBRA|SISO|INGENIERO|OFICIAL|AYUDANTE|MAESTRO).+?);"
-            r"[^;]*;"  # Ignora segundo campo (puede ser código o vacío)
+            r"^(?P<descripcion>(?:M\.O\.|MANO DE OBRA|SISO|INGENIERO|OFICIAL|AYUDANTE|MAESTRO|CAPATAZ|CUADRILLA|OBRERO).*?);"
+            r"[^;]*;"
             r"(?P<cantidad>[^;]*);"
-            r"[^;]*;"  # Ignora cuarto campo (desperdicio)
+            r"[^;]*;"
             r"(?P<precio_unit>[^;]*);"
             r"(?P<valor_total>[^;]*)",
             re.IGNORECASE
         ),
-        
-        # Patrón genérico para datos estructurados (fallback)
         "generic_data": re.compile(
             r"^(?P<descripcion>[^;]+);"
             r"(?P<col2>[^;]*);"
@@ -64,47 +49,36 @@ class ReportParser:
         ),
     }
 
+    CATEGORY_KEYWORDS = {"MATERIALES", "MANO DE OBRA", "EQUIPO", "OTROS", "TRANSPORTE"}
+
     def __init__(self, file_path: str):
         self.file_path = file_path
         self.apus_data: List[Dict[str, Any]] = []
         self.context = {
-            "apu_code": None,
-            "apu_desc": "",
-            "apu_unit": "",
-            "category": "INDEFINIDO",
+            "apu_code": None, "apu_desc": "", "apu_unit": "", "category": "INDEFINIDO",
         }
         self.potential_apu_desc = ""
-        
-        # Métricas mejoradas
         self.stats = {
-            "total_lines": 0,
-            "processed_lines": 0,
-            "items_found": 0,
-            "insumos_parsed": 0,
-            "mo_compleja_parsed": 0,
-            "mo_simple_parsed": 0,
-            "garbage_lines": 0,
-            "unparsed_data_lines": 0,
-            "fallback_parsed": 0
+            "total_lines": 0, "processed_lines": 0, "items_found": 0,
+            "insumos_parsed": 0, "mo_compleja_parsed": 0, "mo_simple_parsed": 0,
+            "garbage_lines": 0, "unparsed_data_lines": 0, "fallback_parsed": 0
         }
 
     def parse(self) -> pd.DataFrame:
-        """Ejecuta el parsing completo del archivo y retorna DataFrame con resultados."""
         logger.info(f"🔍 Iniciando parsing del archivo: {self.file_path}")
-        
         try:
-            with open(self.file_path, "r", encoding="latin1") as f:
+            with open(self.file_path, "r", encoding="utf-8", errors="replace") as f:
                 for line_num, line in enumerate(f, 1):
                     self.stats["total_lines"] += 1
                     self._process_line(line, line_num)
-                    
+        except FileNotFoundError:
+            logger.error(f"❌ Archivo no encontrado: {self.file_path}")
+            return pd.DataFrame()
         except Exception as e:
             logger.error(f"❌ Error crítico al parsear {self.file_path}: {e}", exc_info=True)
             return pd.DataFrame()
 
-        # Reporte final de métricas
         self._log_parsing_stats()
-        
         if not self.apus_data:
             logger.warning("⚠️ No se extrajeron datos de APU, devolviendo DataFrame vacío.")
             return pd.DataFrame()
@@ -114,403 +88,217 @@ class ReportParser:
         return df
 
     def _process_line(self, line: str, line_num: int):
-        """Procesa una línea individual del archivo."""
         line = line.strip()
         if not line:
+            self.context["apu_code"] = None
+            self.potential_apu_desc = ""
+            logger.debug("🔄 Contexto de APU reseteado por línea vacía.")
             return
 
-        self.stats["processed_lines"] += 1
-
-        # Filtrado temprano de líneas basura
         if self._is_garbage_line(line):
             self.stats["garbage_lines"] += 1
             return
 
-        upper_line = line.upper()
+        self.stats["processed_lines"] += 1
 
-        # Detección de nuevo ITEM (inicio de APU)
-        match_item = self.PATTERNS["item_code"].search(upper_line)
+        match_item = self.PATTERNS["item_code"].search(line)
         if match_item:
             raw_code = match_item.group(1).strip()
-            unit_match = re.search(r"UNIDAD:\s*([A-Z0-9/%]+)", upper_line)
+            unit_match = re.search(r"UNIDAD:\s*([A-Z0-9/%]+)", line.upper())
             unit = unit_match.group(1) if unit_match else "INDEFINIDO"
-
-            logger.debug(f"🆕 ITEM detectado (L{line_num}): código='{raw_code}', unidad='{unit}'")
             self._start_new_apu(raw_code, unit)
             return
 
-        # Detección de categorías
-        category_keywords = {"MATERIALES", "MANO DE OBRA", "EQUIPO", "OTROS", "TRANSPORTE"}
-        first_part = line.split(';', 1)[0].strip().upper()
+        if self.context["apu_code"]:
+            self._process_line_in_active_apu(line, line_num)
+        else:
+            self._process_line_in_inactive_state(line, line_num)
 
-        for category in category_keywords:
-            if category in first_part:
-                old_category = self.context["category"]
-                self.context["category"] = category
-                if old_category != category:
-                    logger.debug(f"📂 Categoría cambiada: {old_category} -> {category}")
-                return
-
-        # Si no hay APU activo, buscar descripción potencial
-        if not self.context["apu_code"]:
-            if self._is_potential_description(line):
-                self.potential_apu_desc = line.split(';', 1)[0].strip()
+    def _process_line_in_active_apu(self, line: str, line_num: int):
+        if self._try_parse_as_data_line(line, line_num):
             return
 
-        # Intentar parsear como línea de datos
-        processed = self._try_parse_data_line(line, line_num)
-        if not processed and self._is_potential_description(line):
-            self.potential_apu_desc = line.split(';', 1)[0].strip()
+        if self._try_detect_category_change(line):
+            return
 
-    def _try_parse_data_line(self, line: str, line_num: int) -> bool:
-        """
-        Intenta parsear una línea como datos con estrategia de fallback.
-        Retorna True si la línea fue parseada exitosamente.
-        """
-        # PRIORIDAD 1: Mano de obra (detección por categoría o keywords)
-        if (self.context["category"] == "MANO DE OBRA" or 
-            self._looks_like_mo(line)):
-            
-            # 1A: Formato complejo (SAGUT extendido)
-            match_mo_compleja = self.PATTERNS["mano_de_obra_compleja"].match(line)
-            if match_mo_compleja:
-                data = match_mo_compleja.groupdict()
-                if self._is_valid_mo_compleja_data(data):
-                    self._parse_mano_de_obra_compleja(data)
-                    return True
-            
-            # 1B: Formato simple (CSV estándar)
-            match_mo_simple = self.PATTERNS["mano_de_obra_simple"].match(line)
-            if match_mo_simple:
-                data = match_mo_simple.groupdict()
-                if self._is_valid_mo_simple_data(data):
-                    self._parse_mano_de_obra_simple(data)
-                    return True
-
-        # PRIORIDAD 2: Insumo general
-        match_insumo = self.PATTERNS["insumo_full"].match(line)
-        if match_insumo:
-            data = match_insumo.groupdict()
-            if self._is_valid_insumo_data(data):
-                self._parse_insumo(data)
-                return True
-
-        # PRIORIDAD 3: Fallback genérico para datos estructurados
-        if self._has_data_structure(line):
-            processed_fallback = self._try_fallback_parsing(line, line_num)
-            if processed_fallback:
-                return True
-                
-            logger.warning(f"⚠️ Línea {line_num} con estructura no parseada: {line[:100]}...")
+        if not self._has_data_structure(line):
+            self.context["apu_desc"] = line.split(';')[0].strip()
+            logger.debug(f"📝 Descripción de APU actualizada a: {self.context['apu_desc']}")
+        else:
+            logger.warning(f"⚠️ Línea {line_num} en APU activo no reconocida: {line[:100]}...")
             self.stats["unparsed_data_lines"] += 1
 
+    def _process_line_in_inactive_state(self, line: str, line_num: int):
+        if not self._has_data_structure(line) and not self._is_garbage_line(line):
+            self.potential_apu_desc = line.split(';')[0].strip()
+            logger.debug(f"📝 Potencial descripción de APU guardada: {self.potential_apu_desc}")
+        else:
+            logger.debug(f"🗑️ Descartando línea de datos sin APU activo: {line[:100]}...")
+            self.stats["unparsed_data_lines"] += 1
+
+    def _try_parse_as_data_line(self, line: str, line_num: int) -> bool:
+        match_mo_compleja = self.PATTERNS["mano_de_obra_compleja"].match(line)
+        if match_mo_compleja:
+            self._parse_mano_de_obra_compleja(match_mo_compleja.groupdict())
+            return True
+
+        match_mo_simple = self.PATTERNS["mano_de_obra_simple"].match(line)
+        if match_mo_simple:
+            self._parse_mano_de_obra_simple(match_mo_simple.groupdict())
+            return True
+
+        match_insumo = self.PATTERNS["insumo_full"].match(line)
+        if match_insumo:
+            self._parse_insumo(match_insumo.groupdict())
+            return True
+
+        if self._has_data_structure(line):
+            if self._try_fallback_parsing(line, line_num):
+                return True
+        return False
+
+    def _try_detect_category_change(self, line: str) -> bool:
+        if line.count(';') >= 2:
+            return False
+        first_part = line.split(';')[0].strip().upper()
+        for category in self.CATEGORY_KEYWORDS:
+            if category in first_part:
+                self.context["category"] = category
+                logger.debug(f"📂 Categoría cambiada a: {category}")
+                return True
         return False
 
     def _try_fallback_parsing(self, line: str, line_num: int) -> bool:
-        """Intenta parseo genérico como última opción."""
-        match_generic = self.PATTERNS["generic_data"].match(line)
-        if not match_generic:
-            return False
-
-        data = match_generic.groupdict()
-        descripcion = data["descripcion"].strip()
-        
-        # Intentar extraer valores de columnas probables
-        posibles_valores = [data["col3"], data["col4"], data["col5"], data["col6"]]
-        valores_numericos = []
-        
-        for valor in posibles_valores:
-            num_val = self._to_numeric_safe(valor)
-            if num_val > 0:
-                valores_numericos.append(num_val)
-        
-        if len(valores_numericos) >= 2 and self._should_add_insumo(descripcion, 1, max(valores_numericos)):
-            # Usar los dos valores más altos como precio unitario y total
-            valores_numericos.sort(reverse=True)
-            precio_unit = valores_numericos[0]
-            valor_total = valores_numericos[1]
+        match = self.PATTERNS["generic_data"].match(line)
+        if not match: return False
+        data = match.groupdict()
+        desc = data["descripcion"].strip()
+        if self._looks_like_mo(desc): return False
+        vals = [self._to_numeric_safe(v) for v in data.values() if isinstance(v, str)]
+        vals = [v for v in vals if v > 0]
+        if len(vals) >= 2:
+            vals.sort(reverse=True)
+            valor_total, precio_unit = vals[0], vals[1]
             cantidad = valor_total / precio_unit if precio_unit > 0 else 0
-            
-            self.apus_data.append({
-                "CODIGO_APU": self.context["apu_code"],
-                "DESCRIPCION_APU": self.context["apu_desc"],
-                "UNIDAD_APU": self.context["apu_unit"],
-                "DESCRIPCION": descripcion,
-                "UNIDAD": "UND",  # Unidad por defecto
-                "CANTIDAD": round(cantidad, 6),
-                "VR_UNITARIO": round(precio_unit, 2),
-                "VR_TOTAL": round(valor_total, 2),
-                "CATEGORIA": self.context["category"],
-                "RENDIMIENTO": 0.0,
-                "FORMATO_ORIGEN": "FALLBACK_GENERIC"
-            })
-            self.stats["fallback_parsed"] += 1
-            logger.debug(f"🔄 Fallback parsing exitoso (L{line_num}): {descripcion[:50]}...")
-            return True
-            
+            if self._should_add_insumo(desc, cantidad, valor_total):
+                self._add_apu_data(descripcion=desc, unidad="UND", cantidad=cantidad, precio_unit=precio_unit, valor_total=valor_total, rendimiento=0.0, formato="FALLBACK", categoria=self.context["category"])
+                self.stats["fallback_parsed"] += 1
+                logger.debug(f"🔄 Fallback exitoso (L{line_num}): {desc[:50]}...")
+                return True
         return False
 
-    def _looks_like_mo(self, line: str) -> bool:
-        """Detecta si una línea parece ser de mano de obra por su descripción."""
-        mo_keywords = ["M.O.", "MANO DE OBRA", "SISO", "INGENIERO", "OFICIAL", 
-                       "AYUDANTE", "MAESTRO", "TOPOGRAFO", "CAPATAZ", "CUADRILLA"]
-        upper_line = line.upper()
-        return any(keyword in upper_line for keyword in mo_keywords)
-
-    def _calculate_mo_quantity(self, valor_total: float, jornal_total: float, rendimiento: float) -> float:
-        """Calcula cantidad para mano de obra compleja."""
-        if jornal_total <= 0:
-            logger.debug("⚠️ Jornal total es 0 o negativo, retornando cantidad 0")
-            return 0.0
-
-        cantidad_base = valor_total / jornal_total if valor_total > 0 else 0.0
-
-        # Ajustes por rendimiento anómalo
-        if rendimiento > 0:
-            if 0 < rendimiento < 0.2:
-                logger.debug(f"🔧 Rendimiento muy bajo ({rendimiento}), interpretando como horas -> *8")
-                cantidad_base *= 8
-            elif rendimiento > 10:
-                logger.warning(f"⚠️ Rendimiento inusualmente alto: {rendimiento}")
-
-        return round(cantidad_base, 6)
-
-    def _calculate_rendimiento_simple(self, valor_total: float, precio_unit: float) -> float:
-        """Calcula rendimiento para formato simple de MO."""
-        if valor_total <= 0 or precio_unit <= 0:
-            return 0.0
-        
-        rendimiento = precio_unit / valor_total
-        
-        # Validar que el rendimiento sea razonable
-        if rendimiento > 100:
-            logger.warning(f"⚠️ Rendimiento calculado muy alto ({rendimiento:.2f})")
-            rendimiento = 8.0  # Valor por defecto razonable
-        elif rendimiento < 0.0001:
-            logger.warning(f"⚠️ Rendimiento calculado muy bajo ({rendimiento:.6f})")
-            rendimiento = 0.0
-        
-        return round(rendimiento, 6)
-
-    def _should_add_insumo(self, descripcion: str, cantidad: float, valor_total: float) -> bool:
-        """Validación robusta para determinar si un insumo debe agregarse."""
-        # Validar descripción
-        if not descripcion or len(descripcion.strip()) < 2:
-            return False
-
-        invalid_descriptions = {"", "-", "N/A", "NO APLICA", "S/D", "SIN DATOS", 
-                               "SUBTOTAL", "TOTAL", "TOTAL GENERAL"}
-        if descripcion.upper().strip() in invalid_descriptions:
-            return False
-
-        # Al menos uno de los valores debe ser positivo
-        if cantidad <= 0 and valor_total <= 0:
-            return False
-
-        # Filtrar valores excesivamente pequeños (posible ruido)
-        if 0 < cantidad < 1e-10 or 0 < valor_total < 0.001:
-            logger.debug(f"⚠️ Valores muy pequeños descartados: cantidad={cantidad}, total={valor_total}")
-            return False
-
-        return True
-
-    def _is_garbage_line(self, line: str) -> bool:
-        """Filtra líneas que no aportan información útil."""
-        upper_line = line.upper()
-        garbage_keywords = [
-            "FORMATO DE ANÁLISIS", "COSTOS DIRECTOS", "COSTO TOTAL",
-            "PRESUPUESTO OFICIAL", "CONSTRUCTOR:", "REPRESENTANTE LEGAL:",
-            "NIT:", "CIUDAD:", "FECHA:", "PROPONENTE:", "SUBTOTAL",
-            "PÁGINA", "HOJA", "===", "---", "***", "RESUMEN", "TOTAL GENERAL"
-        ]
-        return any(keyword in upper_line for keyword in garbage_keywords)
-
-    def _is_potential_description(self, line: str) -> bool:
-        """Determina si una línea podría ser una descripción de APU."""
-        return line.count(';') < 2 and not line.replace('.', '', 1).isdigit()
-
-    def _is_valid_mo_compleja_data(self, data: Dict[str, str]) -> bool:
-        """Valida datos de mano de obra en formato complejo."""
-        required_fields = ["descripcion", "valor_total", "jornal_total", "rendimiento"]
-        return all(data.get(k) and str(data.get(k)).strip() for k in required_fields)
-
-    def _is_valid_mo_simple_data(self, data: Dict[str, str]) -> bool:
-        """Valida datos de mano de obra en formato simple."""
-        required_fields = ["descripcion", "cantidad", "precio_unit", "valor_total"]
-        return all(data.get(k) and str(data.get(k)).strip() for k in required_fields)
-
-    def _is_valid_insumo_data(self, data: Dict[str, str]) -> bool:
-        """Valida que los datos de insumo extraídos sean coherentes."""
-        has_desc = data.get("descripcion") and data["descripcion"].strip()
-        has_total = data.get("valor_total") and data["valor_total"].strip()
-        return bool(has_desc and has_total)
-
-    def _has_data_structure(self, line: str) -> bool:
-        """Comprueba si la línea parece tener datos por la cantidad de separadores."""
-        return line.count(';') >= 5
-
-    def _start_new_apu(self, raw_code: str, unit: Optional[str]):
-        """Inicia contexto para un nuevo APU."""
+    def _start_new_apu(self, raw_code: str, unit: str):
         cleaned_code = clean_apu_code(raw_code)
         if not cleaned_code:
-            logger.warning(f"⚠️ Código APU no válido después de limpieza: '{raw_code}'")
+            logger.warning(f"⚠️ Código APU no válido: '{raw_code}'")
             self.context["apu_code"] = None
             return
-
-        self.context["apu_code"] = cleaned_code
-        self.context["apu_desc"] = self.potential_apu_desc
-        self.context["apu_unit"] = unit.strip() if unit else "INDEFINIDO"
-        self.context["category"] = "INDEFINIDO"
+        self.context = {"apu_code": cleaned_code, "apu_desc": self.potential_apu_desc, "apu_unit": unit.strip(), "category": "INDEFINIDO"}
         self.potential_apu_desc = ""
         self.stats["items_found"] += 1
-        
         logger.debug(f"✅ Nuevo APU iniciado: {cleaned_code} - {self.context['apu_desc']}")
 
     def _parse_insumo(self, data: Dict[str, str]):
-        """Parsea y almacena un insumo general."""
-        descripcion = data["descripcion"].strip()
+        desc = data["descripcion"].strip()
         cantidad = self._to_numeric_safe(data["cantidad"])
         valor_total = self._to_numeric_safe(data["valor_total"])
         precio_unit = self._to_numeric_safe(data["precio_unit"])
-
-        # Si cantidad es 0 pero tenemos total y precio, calcular cantidad
         if cantidad == 0 and valor_total > 0 and precio_unit > 0:
             cantidad = valor_total / precio_unit
-            logger.debug(f"🔧 Cantidad calculada: {cantidad:.4f} = {valor_total}/{precio_unit}")
-
-        if not self._should_add_insumo(descripcion, cantidad, valor_total):
-            return
-
-        self.apus_data.append({
-            "CODIGO_APU": self.context["apu_code"],
-            "DESCRIPCION_APU": self.context["apu_desc"],
-            "UNIDAD_APU": self.context["apu_unit"],
-            "DESCRIPCION": descripcion,
-            "UNIDAD": data["unidad"].strip(),
-            "CANTIDAD": round(cantidad, 6),
-            "VR_UNITARIO": round(precio_unit, 2),
-            "VR_TOTAL": round(valor_total, 2),
-            "CATEGORIA": self.context["category"],
-            "RENDIMIENTO": 0.0,
-            "FORMATO_ORIGEN": "INSUMO_GENERAL"
-        })
-        self.stats["insumos_parsed"] += 1
-        logger.debug(f"✅ Insumo agregado: {descripcion[:50]}...")
+        if self._should_add_insumo(desc, cantidad, valor_total):
+            self._add_apu_data(descripcion=desc, unidad=data["unidad"].strip(), cantidad=cantidad, precio_unit=precio_unit, valor_total=valor_total, rendimiento=0.0, formato="INSUMO_GENERAL", categoria=self.context["category"])
+            self.stats["insumos_parsed"] += 1
+            logger.debug(f"✅ Insumo agregado: {desc[:50]}...")
 
     def _parse_mano_de_obra_compleja(self, data: Dict[str, str]):
-        """Parsea mano de obra en formato COMPLEJO (SAGUT extendido)."""
+        desc = data["descripcion"].strip()
         valor_total = self._to_numeric_safe(data["valor_total"])
         jornal_total = self._to_numeric_safe(data["jornal_total"])
         rendimiento = self._to_numeric_safe(data["rendimiento"])
-        descripcion = data["descripcion"].strip()
-
-        cantidad = self._calculate_mo_quantity(valor_total, jornal_total, rendimiento)
-
-        if not self._should_add_insumo(descripcion, cantidad, valor_total):
-            return
-
-        self.apus_data.append({
-            "CODIGO_APU": self.context["apu_code"],
-            "DESCRIPCION_APU": self.context["apu_desc"],
-            "UNIDAD_APU": self.context["apu_unit"],
-            "DESCRIPCION": descripcion,
-            "UNIDAD": "JOR",
-            "CANTIDAD": round(cantidad, 6),
-            "VR_UNITARIO": round(jornal_total, 2),
-            "VR_TOTAL": round(valor_total, 2),
-            "CATEGORIA": "MANO DE OBRA",
-            "RENDIMIENTO": round(rendimiento, 6),
-            "FORMATO_ORIGEN": "MO_COMPLEJA"
-        })
-        self.stats["mo_compleja_parsed"] += 1
-        logger.debug(f"✅ MO Compleja agregada: {descripcion[:50]}... (rend={rendimiento:.4f})")
+        cantidad = self._calculate_mo_quantity(valor_total, jornal_total)
+        if self._should_add_insumo(desc, cantidad, valor_total):
+            self._add_apu_data(descripcion=desc, unidad="JOR", cantidad=cantidad, precio_unit=jornal_total, valor_total=valor_total, rendimiento=rendimiento, formato="MO_COMPLEJA", categoria="MANO DE OBRA")
+            self.stats["mo_compleja_parsed"] += 1
+            logger.debug(f"✅ MO Compleja agregada: {desc[:50]}...")
 
     def _parse_mano_de_obra_simple(self, data: Dict[str, str]):
-        """Parsea mano de obra en formato SIMPLE (CSV estándar)."""
-        descripcion = data["descripcion"].strip()
+        desc = data["descripcion"].strip()
         cantidad = self._to_numeric_safe(data["cantidad"])
         precio_unit = self._to_numeric_safe(data["precio_unit"])
         valor_total = self._to_numeric_safe(data["valor_total"])
-
-        # Calcular rendimiento
-        rendimiento = self._calculate_rendimiento_simple(valor_total, precio_unit)
-
-        # Si cantidad es 0 pero tenemos total y precio, calcular cantidad
         if cantidad == 0 and valor_total > 0 and precio_unit > 0:
             cantidad = valor_total / precio_unit
-            logger.debug(f"🔧 Cantidad MO calculada: {cantidad:.4f} = {valor_total}/{precio_unit}")
+        rendimiento = self._calculate_rendimiento_simple(valor_total, precio_unit)
+        if self._should_add_insumo(desc, cantidad, valor_total):
+            self._add_apu_data(descripcion=desc, unidad="JOR", cantidad=cantidad, precio_unit=precio_unit, valor_total=valor_total, rendimiento=rendimiento, formato="MO_SIMPLE", categoria="MANO DE OBRA")
+            self.stats["mo_simple_parsed"] += 1
+            logger.debug(f"✅ MO Simple agregada: {desc[:50]}...")
 
-        if not self._should_add_insumo(descripcion, cantidad, valor_total):
-            return
-
-        self.apus_data.append({
-            "CODIGO_APU": self.context["apu_code"],
-            "DESCRIPCION_APU": self.context["apu_desc"],
-            "UNIDAD_APU": self.context["apu_unit"],
-            "DESCRIPCION": descripcion,
-            "UNIDAD": "JOR",
-            "CANTIDAD": round(cantidad, 6),
-            "VR_UNITARIO": round(precio_unit, 2),
-            "VR_TOTAL": round(valor_total, 2),
-            "CATEGORIA": "MANO DE OBRA",
-            "RENDIMIENTO": rendimiento,
-            "FORMATO_ORIGEN": "MO_SIMPLE"
-        })
-        self.stats["mo_simple_parsed"] += 1
-        logger.debug(f"✅ MO Simple agregada: {descripcion[:50]}... (rend={rendimiento:.4f})")
+    def _add_apu_data(self, **kwargs):
+        base_data = {"CODIGO_APU": self.context["apu_code"], "DESCRIPCION_APU": self.context["apu_desc"], "UNIDAD_APU": self.context["apu_unit"]}
+        record = {"DESCRIPCION": kwargs["descripcion"], "UNIDAD": kwargs["unidad"], "CANTIDAD": round(kwargs["cantidad"], 6), "VR_UNITARIO": round(kwargs["precio_unit"], 2), "VR_TOTAL": round(kwargs["valor_total"], 2), "CATEGORIA": kwargs["categoria"], "RENDIMIENTO": round(kwargs["rendimiento"], 6), "FORMATO_ORIGEN": kwargs["formato"]}
+        self.apus_data.append({**base_data, **record})
 
     def _to_numeric_safe(self, s: Optional[str]) -> float:
-        """Convierte string a número de forma segura."""
-        if not s:
-            return 0.0
-        
-        # Limpiar: eliminar espacios, normalizar separadores decimales
-        s_cleaned = s.replace(" ", "").replace(".", "").replace(",", ".").strip()
-        
-        if not s_cleaned or s_cleaned == "-":
-            return 0.0
-        
+        if not s or not isinstance(s, str): return 0.0
+        s_cleaned = s.strip().replace("$", "").replace(" ", "")
+        if not s_cleaned: return 0.0
+
+        # Heurística para manejar formatos numéricos inconsistentes
+        if ',' in s_cleaned:
+            # Si hay comas, son el separador decimal; los puntos son de miles.
+            s_cleaned = s_cleaned.replace('.', '')
+            s_cleaned = s_cleaned.replace(',', '.')
+        elif s_cleaned.count('.') > 1:
+            # Si no hay comas pero >1 punto, son de miles.
+            s_cleaned = s_cleaned.replace('.', '')
+
         try:
             return float(s_cleaned)
-        except (ValueError, TypeError) as e:
-            logger.debug(f"⚠️ No se pudo convertir '{s}' a numérico: {e}")
+        except (ValueError, TypeError):
             return 0.0
 
+    def _should_add_insumo(self, desc: str, cantidad: float, valor_total: float) -> bool:
+        if not desc or len(desc.strip()) < 2: return False
+        return not (cantidad <= 0 and valor_total <= 0)
+
+    def _looks_like_mo(self, line: str) -> bool:
+        mo_keywords = ["M.O.", "MANO DE OBRA", "SISO", "INGENIERO", "OFICIAL", "OBRERO", "AYUDANTE", "MAESTRO", "TOPOGRAFO", "CAPATAZ", "CUADRILLA"]
+        return any(keyword in line.upper() for keyword in mo_keywords)
+
+    def _calculate_mo_quantity(self, valor_total: float, jornal_total: float) -> float:
+        if jornal_total <= 0: return 0.0
+        return valor_total / jornal_total
+
+    def _calculate_rendimiento_simple(self, valor_total: float, precio_unit: float) -> float:
+        if valor_total <= 0 or precio_unit <= 0: return 0.0
+        return precio_unit / valor_total
+
+    def _is_garbage_line(self, line: str) -> bool:
+        upper_line = line.upper()
+        return any(kw in upper_line for kw in ["FORMATO DE ANÁLISIS", "COSTOS DIRECTOS", "PRESUPUESTO OFICIAL", "REPRESENTANTE LEGAL", "SUBTOTAL", "PÁGINA", "==="])
+
+    def _has_data_structure(self, line: str) -> bool:
+        return line.count(';') >= 2
+
     def _build_dataframe(self) -> pd.DataFrame:
-        """Construye y normaliza el DataFrame final."""
         df = pd.DataFrame(self.apus_data)
-        df.rename(columns={
-            "DESCRIPCION": "DESCRIPCION_INSUMO",
-            "CANTIDAD": "CANTIDAD_APU",
-            "VR_UNITARIO": "PRECIO_UNIT_APU",
-            "VR_TOTAL": "VALOR_TOTAL_APU",
-            "UNIDAD": "UNIDAD_INSUMO"
-        }, inplace=True)
-        
-        # Normalizar texto para búsquedas
+        df.rename(columns={"DESCRIPCION": "DESCRIPCION_INSUMO", "CANTIDAD": "CANTIDAD_APU", "VR_UNITARIO": "PRECIO_UNIT_APU", "VR_TOTAL": "VALOR_TOTAL_APU", "UNIDAD": "UNIDAD_INSUMO"}, inplace=True)
         df["NORMALIZED_DESC"] = self._normalize_text(df["DESCRIPCION_INSUMO"])
-        
         return df
 
     def _normalize_text(self, series: pd.Series) -> pd.Series:
-        """Normaliza texto para comparaciones (sin acentos, minúsculas, etc.)."""
-        from unidecode import unidecode
-        
         normalized = series.astype(str).str.lower().str.strip()
         normalized = normalized.apply(unidecode)
         normalized = normalized.str.replace(r"[^a-z0-9\s#\-]", "", regex=True)
         normalized = normalized.str.replace(r"\s+", " ", regex=True)
-        
         return normalized
 
     def _log_parsing_stats(self):
-        """Registra las estadísticas finales del parsing."""
         logger.info("📊 MÉTRICAS FINALES DE PARSING:")
         for key, value in self.stats.items():
             logger.info(f"   {key}: {value}")
-        
-        # Métricas calculadas
+        total_parsed = sum([self.stats[k] for k in ["insumos_parsed", "mo_compleja_parsed", "mo_simple_parsed", "fallback_parsed"]])
         if self.stats["processed_lines"] > 0:
-            success_rate = (self.stats["insumos_parsed"] + self.stats["mo_compleja_parsed"] + 
-                          self.stats["mo_simple_parsed"]) / self.stats["processed_lines"] * 100
-            logger.info(f"   TASA_ÉXITO: {success_rate:.1f}%")
+            success_rate = total_parsed / self.stats["processed_lines"] * 100
+            logger.info(f"   TASA_ÉXITO_PARSE: {success_rate:.1f}%")
