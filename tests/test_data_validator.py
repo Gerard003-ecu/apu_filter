@@ -72,7 +72,9 @@ class TestDataValidator(unittest.TestCase):
         # Escenario 1: Descripción faltante (None)
         data_faltante = [{'DESCRIPCION_INSUMO': None}]
         resultado_faltante = _validate_missing_descriptions(data_faltante, insumos_df)
-        self.assertEqual(resultado_faltante[0]['DESCRIPCION_INSUMO'], "Insumo sin descripción")
+        self.assertEqual(
+            resultado_faltante[0]['DESCRIPCION_INSUMO'], "Insumo sin descripción"
+        )
         self.assertIn('alerta', resultado_faltante[0])
 
         # Escenario 2: Descripción presente
