@@ -47,6 +47,12 @@ def _find_best_match(
     log.append(f"  - Modo: {'ESTRICTO (100%)' if strict else f'FLEXIBLE (≥{min_match_percentage}%)'}")
     log.append(f"  - APUs en pool: {len(df_pool)}")
 
+    # --- INICIO DE LA CORRECCIÓN ---
+    log.append("  - Primeras 5 descripciones en el pool de búsqueda:")
+    for desc in df_pool.head(5)['original_description']:
+        log.append(f"    -> {desc}")
+    # --- FIN DE LA CORRECCIÓN ---
+
     best_match = None
     best_score = 0
     best_percentage = 0.0
