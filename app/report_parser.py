@@ -69,16 +69,18 @@ class ReportParser:
 
     def parse(self) -> pd.DataFrame:
         logger.info(f"🔍 Iniciando parsing del archivo: {self.file_path}")
+        logger.info(f"📊 Contexto inicial: {self.context}")
+
         try:
-            with open(self.file_path, "r", encoding="utf-8", errors="replace") as f:
+            with open(self.file_path, "r", encoding="latin1") as f:
                 for line_num, line in enumerate(f, 1):
                     self.stats["total_lines"] += 1
+                    logger.debug(f"--- Línea {line_num} ---")
                     self._process_line(line, line_num)
-        except FileNotFoundError:
-            logger.error(f"❌ Archivo no encontrado: {self.file_path}")
-            return pd.DataFrame()
+                    logger.debug(f"Contexto actual: {self.context}")
+
         except Exception as e:
-            logger.error(f"❌ Error crítico al parsear {self.file_path}: {e}", exc_info=True)
+            logger.error(f"❌ Error al parsear {self.file_path}: {e}", exc_info=True)
             return pd.DataFrame()
 
         self._log_parsing_stats()
@@ -90,7 +92,20 @@ class ReportParser:
         logger.info(f"✅ DataFrame generado con {len(df)} registros")
         return df
 
+    def _is_potential_description(self, line: str) -> bool:
+        """
+        Determina si una línea podría ser una descripción de APU.
+        Debe tener texto significativo y no parecer una línea de datos o basura.
+        """
+        if self._has_data_structure(line) or self._is_garbage_line(line):
+            return False
+        # Una descripción debe tener al menos una palabra de 3 o más letras
+        return re.search(r"[a-zA-Z]{3,}", line) is not None
+
     def _process_line(self, line: str, line_num: int):
+        """
+        VERSIÓN REPARADA: Garantiza que las categorías se detecten ANTES de los insumos
+        """
         line = line.strip()
         if not line:
             self.context["apu_code"] = None
@@ -98,50 +113,58 @@ class ReportParser:
             logger.debug("🔄 Contexto de APU reseteado por línea vacía.")
             return
 
+        self.stats["processed_lines"] += 1
+
+        # 1. Filtrado de basura (siempre primero)
         if self._is_garbage_line(line):
             self.stats["garbage_lines"] += 1
             return
 
-        self.stats["processed_lines"] += 1
+        upper_line = line.upper()
 
-        match_item = self.PATTERNS["item_code"].search(line)
+        # 2. Detección de ITEM (máxima prioridad)
+        match_item = self.PATTERNS["item_code"].search(upper_line)
         if match_item:
             raw_code = match_item.group(1).strip()
-            unit_match = re.search(r"UNIDAD:\s*([A-Z0-9/%]+)", line.upper())
+            unit_match = re.search(r"UNIDAD:\s*([A-Z0-9/%]+)", upper_line)
             unit = unit_match.group(1) if unit_match else "INDEFINIDO"
+
+            logger.debug(f"🆕 ITEM detectado (L{line_num}): código='{raw_code}', unidad='{unit}'")
             self._start_new_apu(raw_code, unit)
             return
 
-        if self.context["apu_code"]:
-            self._process_line_in_active_apu(line, line_num)
-        else:
-            self._process_line_in_inactive_state(line, line_num)
+        # 3. Lógica dependiente del estado
+        if not self.context["apu_code"]:
+            # ESTADO INACTIVO: Solo buscar descripción
+            if self._is_potential_description(line):
+                self.potential_apu_desc = line.split(';', 1)[0].strip()
+            return
 
-    def _process_line_in_active_apu(self, line: str, line_num: int):
+        # --- ESTADO ACTIVO: APU en progreso ---
+        # ORDEN CRÍTICO REPARADO:
+
+        # A. PRIMERO: Intentar detectar categoría (¡ESTO FALTA!)
+        category_detected = self._try_detect_category_change(line, upper_line)
+        if category_detected:
+            return  # ¡Categoría detectada! No procesar como dato
+
+        # B. SEGUNDO: Intentar parsear como dato
         if self._try_parse_as_data_line(line, line_num):
             return
 
-        if self._try_detect_category_change(line):
-            return
-
-        if not self._has_data_structure(line):
-            self.context["apu_desc"] = line.split(";")[0].strip()
-            logger.debug(f"📝 Descripción de APU actualizada a: {self.context['apu_desc']}")
-        else:
-            logger.warning(
-                f"⚠️ Línea {line_num} en APU activo no reconocida: {line[:100]}..."
-            )
-            self.stats["unparsed_data_lines"] += 1
-
-    def _process_line_in_inactive_state(self, line: str, line_num: int):
-        if not self._has_data_structure(line) and not self._is_garbage_line(line):
-            self.potential_apu_desc = line.split(";")[0].strip()
-            logger.debug(f"📝 Potencial descripción guardada: {self.potential_apu_desc}")
-        else:
-            logger.debug(f"🗑️ Descartando línea sin APU activo: {line[:100]}...")
-            self.stats["unparsed_data_lines"] += 1
+        # C. TERCERO: Considerar como descripción potencial
+        if self._is_potential_description(line):
+            self.potential_apu_desc = line.split(';', 1)[0].strip()
 
     def _try_parse_as_data_line(self, line: str, line_num: int) -> bool:
+        """Versión con logs de diagnóstico"""
+        has_data_structure = self._has_data_structure(line)
+        current_category = self.context["category"]
+
+        logger.debug(f"🔍 Analizando línea {line_num}: cat='{current_category}', datos={has_data_structure}")
+        logger.debug(f"   Contenido: {line[:80]}...")
+
+        # ... resto de la lógica de parsing ...
         match_mo_compleja = self.PATTERNS["mano_de_obra_compleja"].match(line)
         if match_mo_compleja:
             self._parse_mano_de_obra_compleja(match_mo_compleja.groupdict())
@@ -160,18 +183,65 @@ class ReportParser:
         if self._has_data_structure(line):
             if self._try_fallback_parsing(line, line_num):
                 return True
+
+        processed = match_mo_compleja or match_mo_simple or match_insumo or self._has_data_structure(line)
+        if not processed:
+            logger.debug(f"   ❌ No se pudo parsear como dato")
+        return processed
+
+    def _try_detect_category_change(self, line: str, upper_line: str) -> bool:
+        """
+        DETECCIÓN MEJORADA: Más flexible pero aún precisa
+        """
+        # Si tiene estructura de datos, probablemente no es categoría
+        if self._has_data_structure(line):
+            return False
+
+        # Lista expandida de categorías y sus variantes
+        category_mappings = {
+            "MATERIALES": [
+                "MATERIALES", "MATERIALES Y SUMINISTROS", "MATERIAL",
+                "MATERIALES Y ACCESORIOS", "SUMINISTROS"
+            ],
+            "MANO DE OBRA": [
+                "MANO DE OBRA", "MANO DE OBRA DIRECTA", "M.O.",
+                "MO", "MANO DE OBRA Y SUPERVISIÓN"
+            ],
+            "EQUIPO": [
+                "EQUIPO", "EQUIPOS", "EQUIPOS Y HERRAMIENTAS",
+                "HERRAMIENTAS", "MAQUINARIA"
+            ],
+            "TRANSPORTE": ["TRANSPORTE", "TRANSPORTES", "FLETE"],
+            "OTROS": ["OTROS", "OTROS GASTOS", "GASTOS GENERALES", "INDIRECTOS"]
+        }
+
+        line_clean = line.strip()
+        upper_clean = line_clean.upper()
+
+        # Buscar coincidencia exacta o muy cercana
+        for category, keywords in category_mappings.items():
+            for keyword in keywords:
+                # Coincidencia exacta (caso más común)
+                if upper_clean == keyword:
+                    return self._update_category(category, line_clean)
+
+                # Coincidencia al inicio (para casos como "MATERIALES Y...")
+                if upper_clean.startswith(keyword + " ") or upper_clean.startswith(keyword + ";"):
+                    return self._update_category(category, line_clean)
+
+                # Coincidencia en línea que solo contiene la palabra clave
+                if re.match(rf"^\s*{re.escape(keyword)}\s*$", upper_clean, re.IGNORECASE):
+                    return self._update_category(category, line_clean)
+
         return False
 
-    def _try_detect_category_change(self, line: str) -> bool:
-        if line.count(';') >= 2:
-            return False
-        first_part = line.split(';')[0].strip().upper()
-        for category in self.CATEGORY_KEYWORDS:
-            if category in first_part:
-                self.context["category"] = category
-                logger.debug(f"📂 Categoría cambiada a: {category}")
-                return True
-        return False
+    def _update_category(self, new_category: str, line: str) -> bool:
+        """Actualiza la categoría y registra el cambio."""
+        old_category = self.context["category"]
+        if old_category != new_category:
+            self.context["category"] = new_category
+            logger.debug(f"📂 Categoría cambiada: {old_category} -> {new_category} (línea: '{line}')")
+        return True
 
     def _try_fallback_parsing(self, line: str, line_num: int) -> bool:
         match = self.PATTERNS["generic_data"].match(line)
@@ -292,15 +362,19 @@ class ReportParser:
             "DESCRIPCION_APU": self.context["apu_desc"],
             "UNIDAD_APU": self.context["apu_unit"],
         }
+
+        descripcion_insumo = kwargs["descripcion"]
+
         record = {
-            "DESCRIPCION": kwargs["descripcion"],
-            "UNIDAD": kwargs["unidad"],
-            "CANTIDAD": round(kwargs["cantidad"], 6),
-            "VR_UNITARIO": round(kwargs["precio_unit"], 2),
-            "VR_TOTAL": round(kwargs["valor_total"], 2),
+            "DESCRIPCION_INSUMO": descripcion_insumo,
+            "UNIDAD_INSUMO": kwargs["unidad"],
+            "CANTIDAD_APU": round(kwargs["cantidad"], 6),
+            "PRECIO_UNIT_APU": round(kwargs["precio_unit"], 2),
+            "VALOR_TOTAL_APU": round(kwargs["valor_total"], 2),
             "CATEGORIA": kwargs["categoria"],
             "RENDIMIENTO": round(kwargs["rendimiento"], 6),
             "FORMATO_ORIGEN": kwargs["formato"],
+            "NORMALIZED_DESC": self._normalize_text_single(descripcion_insumo),
         }
         self.apus_data.append({**base_data, **record})
 
@@ -386,25 +460,19 @@ class ReportParser:
         return line.count(";") >= 2
 
     def _build_dataframe(self) -> pd.DataFrame:
-        df = pd.DataFrame(self.apus_data)
-        df.rename(
-            columns={
-                "DESCRIPCION": "DESCRIPCION_INSUMO",
-                "CANTIDAD": "CANTIDAD_APU",
-                "VR_UNITARIO": "PRECIO_UNIT_APU",
-                "VR_TOTAL": "VALOR_TOTAL_APU",
-                "UNIDAD": "UNIDAD_INSUMO",
-            },
-            inplace=True,
-        )
-        df["NORMALIZED_DESC"] = self._normalize_text(df["DESCRIPCION_INSUMO"])
-        return df
+        if not self.apus_data:
+            return pd.DataFrame()
+        return pd.DataFrame(self.apus_data)
 
-    def _normalize_text(self, series: pd.Series) -> pd.Series:
-        normalized = series.astype(str).str.lower().str.strip()
-        normalized = normalized.apply(unidecode)
-        normalized = normalized.str.replace(r"[^a-z0-9\s#\-]", "", regex=True)
-        normalized = normalized.str.replace(r"\s+", " ", regex=True)
+    def _normalize_text_single(self, text: str) -> str:
+        """Normaliza un único string de texto."""
+        if not isinstance(text, str):
+            text = str(text)
+
+        normalized = text.lower().strip()
+        normalized = unidecode(normalized)
+        normalized = re.sub(r"[^a-z0-9\s#\-]", "", normalized)
+        normalized = re.sub(r"\s+", " ", normalized)
         return normalized
 
     def _log_parsing_stats(self):

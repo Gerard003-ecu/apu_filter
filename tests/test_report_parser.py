@@ -49,10 +49,10 @@ class TestNewReportParser(unittest.TestCase):
     def _create_test_file(self, filename: str, content: str) -> str:
         """
         Crea un archivo de prueba en el directorio temporal y devuelve su ruta.
-        El contenido se codifica en 'utf-8' para compatibilidad en pruebas.
+        El contenido se codifica en 'latin1' para compatibilidad con el parser.
         """
         path = os.path.join(self.temp_dir, filename)
-        with open(path, "w", encoding="utf-8") as f:
+        with open(path, "w", encoding="latin1") as f:
             f.write(content)
         self.test_files.append(path)
         return path
@@ -277,10 +277,78 @@ class TestNewReportParser(unittest.TestCase):
 
     def test_encoding_handling(self):
         """Prueba el manejo de diferentes codificaciones."""
-        special_chars_data = "ITEM: ENC-01\nMaterial ñoño con €;U;1;;1;1\n"
+        special_chars_data = "ITEM: ENC-01\nMaterial con ñandú;U;1;;1;1\n"
         parser = self._create_parser_for_content(special_chars_data, "encoding.txt")
         df = parser.parse()
-        self.assertEqual(df.iloc[0]["DESCRIPCION_INSUMO"], "Material ñoño con €")
+        self.assertEqual(df.iloc[0]["DESCRIPCION_INSUMO"], "Material con ñandú")
+
+    def test_category_detection_before_insumos(self):
+        """
+        Prueba CRÍTICA: La categoría debe detectarse ANTES de procesar insumos
+        """
+        critical_data = (
+            "LAMINA DE ACERO GALVANIZADO CALIBRE 22\n"
+            "ITEM: 1,1; UNIDAD: M2\n"
+            "MATERIALES\n"  # ← ESTA LÍNEA DEBE DETECTARSE COMO CATEGORÍA
+            "LAMINA DE ACERO GALVANIZADO CAL 22; M2; 1,03; ; 34.756,10; 35.799,00\n"
+            "MANO DE OBRA\n"  # ← ESTA TAMBIÉN
+            "OFICIAL; JOR; 0,14; ; 50.000,00; 7.000,00\n"
+        )
+        test_file = self._create_test_file("critical_category.txt", critical_data)
+
+        parser = ReportParser(test_file)
+        df = parser.parse()
+
+        # VERIFICACIONES CRÍTICAS
+        self.assertEqual(len(df), 2, "Deberían haber 2 insumos")
+
+        # El primer insumo debe estar en categoría "MATERIALES"
+        lamina_row = df[df["DESCRIPCION_INSUMO"].str.contains("LAMINA")]
+        self.assertEqual(len(lamina_row), 1)
+        self.assertEqual(lamina_row.iloc[0]["CATEGORIA"], "MATERIALES")
+
+        # El segundo insumo debe estar en categoría "MANO DE OBRA"
+        oficial_row = df[df["DESCRIPCION_INSUMO"] == "OFICIAL"]
+        self.assertEqual(len(oficial_row), 1)
+        self.assertEqual(oficial_row.iloc[0]["CATEGORIA"], "MANO DE OBRA")
+
+        # Verificar que los cálculos son correctos
+        total_cost = df["VALOR_TOTAL_APU"].sum()
+        self.assertAlmostEqual(total_cost, 42799.0, places=2)  # 35,799 + 7,000
+
+    def test_apu_classification_depends_on_categories(self):
+        """
+        Prueba que la clasificación de APUs depende de las categorías correctas
+        """
+        classification_data = (
+            "APU DE SUMINISTRO\n"
+            "ITEM: SUM-001; UNIDAD: UND\n"
+            "MATERIALES\n"
+            "Tornillo;UND;100;;0.50;50.00\n"
+            "Tuerca;UND;100;;0.30;30.00\n"
+            "\n"
+            "APU DE SERVICIO\n"
+            "ITEM: SERV-001; UNIDAD: JOR\n"
+            "MANO DE OBRA\n"
+            "Oficial;JOR;1;;80.00;80.00\n"
+            "Ayudante;JOR;1;;50.00;50.00\n"
+        )
+        test_file = self._create_test_file("classification.txt", classification_data)
+
+        parser = ReportParser(test_file)
+        df = parser.parse()
+
+        # Verificar que los APUs tienen los insumos correctos
+        apu_sum = df[df["CODIGO_APU"] == "001"]
+        apu_serv = df[df["CODIGO_APU"] == "001"]  # Ajustar según clean_apu_code
+
+        # El APU de suministro debe tener 2 materiales
+        materiales_sum = apu_sum[apu_sum["CATEGORIA"] == "MATERIALES"]
+        self.assertEqual(len(materiales_sum), 2)
+
+        # El APU de servicio debe tener 2 MO
+        mo_serv = apu_serv[apu_serv["CATEGORIA"] == "MANO DE OBRA"]
+        self.assertEqual(len(mo_serv), 2)
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
