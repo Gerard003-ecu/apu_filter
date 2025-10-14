@@ -1,5 +1,4 @@
 # En app/report_parser.py
-# REEMPLAZA LA CLASE ReportParser COMPLETA CON ESTO:
 
 import logging
 import re
