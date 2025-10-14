@@ -236,12 +236,19 @@ def create_app(config_name):
                     'UNIDAD_INSUMO': ('UNIDAD_INSUMO', 'first')
                 }
 
-                # Añadir agregación para 'alerta' si la columna existe en el DataFrame
-                if 'alerta' in df_categoria.columns:
+                # Añadir agregación para 'alerta' si la columna existe
+                if "alerta" in df_categoria.columns:
                     # Usamos una función lambda para unir las alertas únicas y no nulas
-                    aggregations['alerta'] = ('alerta', lambda x: ' | '.join(x.dropna().unique()))
+                    aggregations["alerta"] = (
+                        "alerta",
+                        lambda x: " | ".join(x.dropna().unique()),
+                    )
 
-                df_agrupado = df_categoria.groupby('DESCRIPCION_INSUMO').agg(**aggregations).reset_index()
+                df_agrupado = (
+                    df_categoria.groupby("DESCRIPCION_INSUMO")
+                    .agg(**aggregations)
+                    .reset_index()
+                )
 
                 # Renombrar columnas para consistencia en el frontend
                 df_agrupado.rename(

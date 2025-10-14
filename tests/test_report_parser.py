@@ -1,18 +1,18 @@
 # En tests/test_report_parser.py
 
-import os
-import sys
-import unittest
-import pandas as pd
-import shutil
 import logging
-from unittest.mock import patch, MagicMock
+import os
+import shutil
+import sys
 import tempfile
+import unittest
+from unittest.mock import patch
 
-# Añadir el directorio raíz del proyecto al sys.path para encontrar los módulos de la app
+# Añadir el directorio raíz del proyecto al sys.path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from app.report_parser import ReportParser
+
 
 class TestNewReportParser(unittest.TestCase):
     """
@@ -23,9 +23,11 @@ class TestNewReportParser(unittest.TestCase):
     def setUpClass(cls):
         """Configuración inicial para todas las pruebas."""
         cls.temp_dir = tempfile.mkdtemp(prefix="test_report_parser_")
-        
+
         # Configurar logging para pruebas
-        logging.basicConfig(level=logging.DEBUG, format='%(name)s - %(levelname)s - %(message)s')
+        logging.basicConfig(
+            level=logging.DEBUG, format="%(name)s - %(levelname)s - %(message)s"
+        )
         cls.logger = logging.getLogger(__name__)
 
     @classmethod
@@ -179,8 +181,9 @@ class TestNewReportParser(unittest.TestCase):
         )
         parser = self._create_parser_for_content(zero_value_data, "zero_value.txt")
         df = parser.parse()
-        # La lógica correcta es que se añaden 4: bueno, cant cero, total cero, y otro bueno.
-        self.assertEqual(len(df), 4, "Deberían agregarse insumos con cantidad o valor positivo.")
+        self.assertEqual(
+            len(df), 4, "Deberían agregarse insumos con cantidad o valor positivo."
+        )
         descripciones = df["DESCRIPCION_INSUMO"].tolist()
         self.assertIn("Insumo bueno", descripciones)
         self.assertIn("Otro insumo bueno", descripciones)
@@ -198,9 +201,13 @@ class TestNewReportParser(unittest.TestCase):
             "DESCRIPCION DEL APU PLANTILLA\n"
             "Insumo fantasma;UND;10;;10;100\n"
         )
-        parser = self._create_parser_for_content(contamination_data, "contamination.txt")
+        parser = self._create_parser_for_content(
+            contamination_data, "contamination.txt"
+        )
         df = parser.parse()
-        self.assertEqual(len(df), 1, "Solo los insumos del APU con 'ITEM:' deben ser parseados.")
+        self.assertEqual(
+            len(df), 1, "Solo los insumos del APU con 'ITEM:' deben ser parseados."
+        )
         self.assertEqual(df.iloc[0]["CODIGO_APU"], "1")
 
     def test_multiple_apus_parsing(self):
@@ -250,18 +257,20 @@ class TestNewReportParser(unittest.TestCase):
             "Línea de descripción\n"
         )
         parser = self._create_parser_for_content(stats_data, "stats.txt")
-        df = parser.parse()
+        parser.parse()
         stats = parser.stats
         self.assertEqual(stats["items_found"], 1)
         self.assertEqual(stats["insumos_parsed"], 3)
         self.assertEqual(stats["mo_simple_parsed"], 1)
         self.assertEqual(stats["unparsed_data_lines"], 0)
 
-    @patch('app.report_parser.clean_apu_code')
+    @patch("app.report_parser.clean_apu_code")
     def test_apu_code_cleaning(self, mock_clean):
         """Prueba la limpieza de códigos APU usando mock."""
         mock_clean.return_value = "CLEANED123"
-        parser = self._create_parser_for_content("ITEM: APU-DIRTY\nMat;U;1;;1;1", "mock_clean.txt")
+        parser = self._create_parser_for_content(
+            "ITEM: APU-DIRTY\nMat;U;1;;1;1", "mock_clean.txt"
+        )
         df = parser.parse()
         mock_clean.assert_called_once_with("APU-DIRTY")
         self.assertEqual(df["CODIGO_APU"].iloc[0], "CLEANED123")

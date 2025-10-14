@@ -1,6 +1,6 @@
 import logging
 import re
-from typing import Dict, Optional, List, Any
+from typing import Any, Dict, List, Optional
 
 import pandas as pd
 from unidecode import unidecode
@@ -8,6 +8,7 @@ from unidecode import unidecode
 from .utils import clean_apu_code
 
 logger = logging.getLogger(__name__)
+
 
 class ReportParser:
     PATTERNS = {
@@ -19,25 +20,27 @@ class ReportParser:
             r"(?P<desperdicio>[^;]*);"
             r"(?P<precio_unit>[^;]*);"
             r"(?P<valor_total>[^;]*)",
-            re.IGNORECASE
+            re.IGNORECASE,
         ),
         "mano_de_obra_compleja": re.compile(
-            r"^(?P<descripcion>(?:M\.O\.|MANO DE OBRA|SISO|INGENIERO|OFICIAL|AYUDANTE|MAESTRO|CAPATAZ|CUADRILLA|OBRERO).*?);"
+            r"^(?P<descripcion>(?:M\.O\.|MANO DE OBRA|SISO|INGENIERO|OFICIAL|AYUDANTE"
+            r"|MAESTRO|CAPATAZ|CUADRILLA|OBRERO).*?);"
             r"(?P<jornal_base>[\d.,\s]+);"
             r"(?P<prestaciones>[\d%.,\s]+);"
             r"(?P<jornal_total>[\d.,\s]+);"
             r"(?P<rendimiento>[\d.,\s]+);"
             r"(?P<valor_total>[\d.,\s]+)",
-            re.IGNORECASE
+            re.IGNORECASE,
         ),
         "mano_de_obra_simple": re.compile(
-            r"^(?P<descripcion>(?:M\.O\.|MANO DE OBRA|SISO|INGENIERO|OFICIAL|AYUDANTE|MAESTRO|CAPATAZ|CUADRILLA|OBRERO).*?);"
+            r"^(?P<descripcion>(?:M\.O\.|MANO DE OBRA|SISO|INGENIERO|OFICIAL|AYUDANTE"
+            r"|MAESTRO|CAPATAZ|CUADRILLA|OBRERO).*?);"
             r"[^;]*;"
             r"(?P<cantidad>[^;]*);"
             r"[^;]*;"
             r"(?P<precio_unit>[^;]*);"
             r"(?P<valor_total>[^;]*)",
-            re.IGNORECASE
+            re.IGNORECASE,
         ),
         "generic_data": re.compile(
             r"^(?P<descripcion>[^;]+);"
@@ -122,18 +125,20 @@ class ReportParser:
             return
 
         if not self._has_data_structure(line):
-            self.context["apu_desc"] = line.split(';')[0].strip()
+            self.context["apu_desc"] = line.split(";")[0].strip()
             logger.debug(f"📝 Descripción de APU actualizada a: {self.context['apu_desc']}")
         else:
-            logger.warning(f"⚠️ Línea {line_num} en APU activo no reconocida: {line[:100]}...")
+            logger.warning(
+                f"⚠️ Línea {line_num} en APU activo no reconocida: {line[:100]}..."
+            )
             self.stats["unparsed_data_lines"] += 1
 
     def _process_line_in_inactive_state(self, line: str, line_num: int):
         if not self._has_data_structure(line) and not self._is_garbage_line(line):
-            self.potential_apu_desc = line.split(';')[0].strip()
-            logger.debug(f"📝 Potencial descripción de APU guardada: {self.potential_apu_desc}")
+            self.potential_apu_desc = line.split(";")[0].strip()
+            logger.debug(f"📝 Potencial descripción guardada: {self.potential_apu_desc}")
         else:
-            logger.debug(f"🗑️ Descartando línea de datos sin APU activo: {line[:100]}...")
+            logger.debug(f"🗑️ Descartando línea sin APU activo: {line[:100]}...")
             self.stats["unparsed_data_lines"] += 1
 
     def _try_parse_as_data_line(self, line: str, line_num: int) -> bool:
@@ -170,18 +175,31 @@ class ReportParser:
 
     def _try_fallback_parsing(self, line: str, line_num: int) -> bool:
         match = self.PATTERNS["generic_data"].match(line)
-        if not match: return False
+        if not match:
+            return False
         data = match.groupdict()
         desc = data["descripcion"].strip()
-        if self._looks_like_mo(desc): return False
-        vals = [self._to_numeric_safe(v) for v in data.values() if isinstance(v, str)]
+        if self._looks_like_mo(desc):
+            return False
+        vals = [
+            self._to_numeric_safe(v) for v in data.values() if isinstance(v, str)
+        ]
         vals = [v for v in vals if v > 0]
         if len(vals) >= 2:
             vals.sort(reverse=True)
             valor_total, precio_unit = vals[0], vals[1]
             cantidad = valor_total / precio_unit if precio_unit > 0 else 0
             if self._should_add_insumo(desc, cantidad, valor_total):
-                self._add_apu_data(descripcion=desc, unidad="UND", cantidad=cantidad, precio_unit=precio_unit, valor_total=valor_total, rendimiento=0.0, formato="FALLBACK", categoria=self.context["category"])
+                self._add_apu_data(
+                    descripcion=desc,
+                    unidad="UND",
+                    cantidad=cantidad,
+                    precio_unit=precio_unit,
+                    valor_total=valor_total,
+                    rendimiento=0.0,
+                    formato="FALLBACK",
+                    categoria=self.context["category"],
+                )
                 self.stats["fallback_parsed"] += 1
                 logger.debug(f"🔄 Fallback exitoso (L{line_num}): {desc[:50]}...")
                 return True
@@ -193,10 +211,17 @@ class ReportParser:
             logger.warning(f"⚠️ Código APU no válido: '{raw_code}'")
             self.context["apu_code"] = None
             return
-        self.context = {"apu_code": cleaned_code, "apu_desc": self.potential_apu_desc, "apu_unit": unit.strip(), "category": "INDEFINIDO"}
+        self.context = {
+            "apu_code": cleaned_code,
+            "apu_desc": self.potential_apu_desc,
+            "apu_unit": unit.strip(),
+            "category": "INDEFINIDO",
+        }
         self.potential_apu_desc = ""
         self.stats["items_found"] += 1
-        logger.debug(f"✅ Nuevo APU iniciado: {cleaned_code} - {self.context['apu_desc']}")
+        logger.debug(
+            f"✅ Nuevo APU iniciado: {cleaned_code} - {self.context['apu_desc']}"
+        )
 
     def _parse_insumo(self, data: Dict[str, str]):
         desc = data["descripcion"].strip()
@@ -206,7 +231,16 @@ class ReportParser:
         if cantidad == 0 and valor_total > 0 and precio_unit > 0:
             cantidad = valor_total / precio_unit
         if self._should_add_insumo(desc, cantidad, valor_total):
-            self._add_apu_data(descripcion=desc, unidad=data["unidad"].strip(), cantidad=cantidad, precio_unit=precio_unit, valor_total=valor_total, rendimiento=0.0, formato="INSUMO_GENERAL", categoria=self.context["category"])
+            self._add_apu_data(
+                descripcion=desc,
+                unidad=data["unidad"].strip(),
+                cantidad=cantidad,
+                precio_unit=precio_unit,
+                valor_total=valor_total,
+                rendimiento=0.0,
+                formato="INSUMO_GENERAL",
+                categoria=self.context["category"],
+            )
             self.stats["insumos_parsed"] += 1
             logger.debug(f"✅ Insumo agregado: {desc[:50]}...")
 
@@ -217,7 +251,16 @@ class ReportParser:
         rendimiento = self._to_numeric_safe(data["rendimiento"])
         cantidad = self._calculate_mo_quantity(valor_total, jornal_total)
         if self._should_add_insumo(desc, cantidad, valor_total):
-            self._add_apu_data(descripcion=desc, unidad="JOR", cantidad=cantidad, precio_unit=jornal_total, valor_total=valor_total, rendimiento=rendimiento, formato="MO_COMPLEJA", categoria="MANO DE OBRA")
+            self._add_apu_data(
+                descripcion=desc,
+                unidad="JOR",
+                cantidad=cantidad,
+                precio_unit=jornal_total,
+                valor_total=valor_total,
+                rendimiento=rendimiento,
+                formato="MO_COMPLEJA",
+                categoria="MANO DE OBRA",
+            )
             self.stats["mo_compleja_parsed"] += 1
             logger.debug(f"✅ MO Compleja agregada: {desc[:50]}...")
 
@@ -230,60 +273,130 @@ class ReportParser:
             cantidad = valor_total / precio_unit
         rendimiento = self._calculate_rendimiento_simple(valor_total, precio_unit)
         if self._should_add_insumo(desc, cantidad, valor_total):
-            self._add_apu_data(descripcion=desc, unidad="JOR", cantidad=cantidad, precio_unit=precio_unit, valor_total=valor_total, rendimiento=rendimiento, formato="MO_SIMPLE", categoria="MANO DE OBRA")
+            self._add_apu_data(
+                descripcion=desc,
+                unidad="JOR",
+                cantidad=cantidad,
+                precio_unit=precio_unit,
+                valor_total=valor_total,
+                rendimiento=rendimiento,
+                formato="MO_SIMPLE",
+                categoria="MANO DE OBRA",
+            )
             self.stats["mo_simple_parsed"] += 1
             logger.debug(f"✅ MO Simple agregada: {desc[:50]}...")
 
     def _add_apu_data(self, **kwargs):
-        base_data = {"CODIGO_APU": self.context["apu_code"], "DESCRIPCION_APU": self.context["apu_desc"], "UNIDAD_APU": self.context["apu_unit"]}
-        record = {"DESCRIPCION": kwargs["descripcion"], "UNIDAD": kwargs["unidad"], "CANTIDAD": round(kwargs["cantidad"], 6), "VR_UNITARIO": round(kwargs["precio_unit"], 2), "VR_TOTAL": round(kwargs["valor_total"], 2), "CATEGORIA": kwargs["categoria"], "RENDIMIENTO": round(kwargs["rendimiento"], 6), "FORMATO_ORIGEN": kwargs["formato"]}
+        base_data = {
+            "CODIGO_APU": self.context["apu_code"],
+            "DESCRIPCION_APU": self.context["apu_desc"],
+            "UNIDAD_APU": self.context["apu_unit"],
+        }
+        record = {
+            "DESCRIPCION": kwargs["descripcion"],
+            "UNIDAD": kwargs["unidad"],
+            "CANTIDAD": round(kwargs["cantidad"], 6),
+            "VR_UNITARIO": round(kwargs["precio_unit"], 2),
+            "VR_TOTAL": round(kwargs["valor_total"], 2),
+            "CATEGORIA": kwargs["categoria"],
+            "RENDIMIENTO": round(kwargs["rendimiento"], 6),
+            "FORMATO_ORIGEN": kwargs["formato"],
+        }
         self.apus_data.append({**base_data, **record})
 
     def _to_numeric_safe(self, s: Optional[str]) -> float:
-        if not s or not isinstance(s, str): return 0.0
+        if not s or not isinstance(s, str):
+            return 0.0
         s_cleaned = s.strip().replace("$", "").replace(" ", "")
-        if not s_cleaned: return 0.0
+        if not s_cleaned:
+            return 0.0
 
         # Heurística para manejar formatos numéricos inconsistentes
-        if ',' in s_cleaned:
-            # Si hay comas, son el separador decimal; los puntos son de miles.
-            s_cleaned = s_cleaned.replace('.', '')
-            s_cleaned = s_cleaned.replace(',', '.')
+        if "," in s_cleaned:
+            # Si la coma existe, es el separador decimal. Los puntos son de miles.
+            s_cleaned = s_cleaned.replace(".", "")
+            s_cleaned = s_cleaned.replace(",", ".")
         elif s_cleaned.count('.') > 1:
-            # Si no hay comas pero >1 punto, son de miles.
-            s_cleaned = s_cleaned.replace('.', '')
+            # Múltiples puntos sin comas: son separadores de miles.
+            s_cleaned = s_cleaned.replace(".", "")
+        elif s_cleaned.count('.') == 1:
+            # Un solo punto: puede ser decimal o de miles (ej. 80.000).
+            integer_part, fractional_part = s_cleaned.split('.')
+            if len(fractional_part) == 3 and integer_part != "0":
+                # Probablemente es un separador de miles, como en "80.000"
+                s_cleaned = integer_part + fractional_part
+            # De lo contrario, se asume que es un punto decimal (ej. 0.125, 123.45)
 
         try:
             return float(s_cleaned)
         except (ValueError, TypeError):
             return 0.0
 
-    def _should_add_insumo(self, desc: str, cantidad: float, valor_total: float) -> bool:
-        if not desc or len(desc.strip()) < 2: return False
+    def _should_add_insumo(
+        self, desc: str, cantidad: float, valor_total: float
+    ) -> bool:
+        if not desc or len(desc.strip()) < 2:
+            return False
         return not (cantidad <= 0 and valor_total <= 0)
 
     def _looks_like_mo(self, line: str) -> bool:
-        mo_keywords = ["M.O.", "MANO DE OBRA", "SISO", "INGENIERO", "OFICIAL", "OBRERO", "AYUDANTE", "MAESTRO", "TOPOGRAFO", "CAPATAZ", "CUADRILLA"]
+        mo_keywords = [
+            "M.O.",
+            "MANO DE OBRA",
+            "SISO",
+            "INGENIERO",
+            "OFICIAL",
+            "OBRERO",
+            "AYUDANTE",
+            "MAESTRO",
+            "TOPOGRAFO",
+            "CAPATAZ",
+            "CUADRILLA",
+        ]
         return any(keyword in line.upper() for keyword in mo_keywords)
 
     def _calculate_mo_quantity(self, valor_total: float, jornal_total: float) -> float:
-        if jornal_total <= 0: return 0.0
+        if jornal_total <= 0:
+            return 0.0
         return valor_total / jornal_total
 
-    def _calculate_rendimiento_simple(self, valor_total: float, precio_unit: float) -> float:
-        if valor_total <= 0 or precio_unit <= 0: return 0.0
+    def _calculate_rendimiento_simple(
+        self, valor_total: float, precio_unit: float
+    ) -> float:
+        if valor_total <= 0 or precio_unit <= 0:
+            return 0.0
         return precio_unit / valor_total
 
     def _is_garbage_line(self, line: str) -> bool:
         upper_line = line.upper()
-        return any(kw in upper_line for kw in ["FORMATO DE ANÁLISIS", "COSTOS DIRECTOS", "PRESUPUESTO OFICIAL", "REPRESENTANTE LEGAL", "SUBTOTAL", "PÁGINA", "==="])
+        return any(
+            kw in upper_line
+            for kw in [
+                "FORMATO DE ANÁLISIS",
+                "COSTOS DIRECTOS",
+                "PRESUPUESTO OFICIAL",
+                "REPRESENTANTE LEGAL",
+                "SUBTOTAL",
+                "PÁGINA",
+                "===",
+            ]
+        )
 
     def _has_data_structure(self, line: str) -> bool:
-        return line.count(';') >= 2
+        return line.count(";") >= 2
 
     def _build_dataframe(self) -> pd.DataFrame:
         df = pd.DataFrame(self.apus_data)
-        df.rename(columns={"DESCRIPCION": "DESCRIPCION_INSUMO", "CANTIDAD": "CANTIDAD_APU", "VR_UNITARIO": "PRECIO_UNIT_APU", "VR_TOTAL": "VALOR_TOTAL_APU", "UNIDAD": "UNIDAD_INSUMO"}, inplace=True)
+        df.rename(
+            columns={
+                "DESCRIPCION": "DESCRIPCION_INSUMO",
+                "CANTIDAD": "CANTIDAD_APU",
+                "VR_UNITARIO": "PRECIO_UNIT_APU",
+                "VR_TOTAL": "VALOR_TOTAL_APU",
+                "UNIDAD": "UNIDAD_INSUMO",
+            },
+            inplace=True,
+        )
         df["NORMALIZED_DESC"] = self._normalize_text(df["DESCRIPCION_INSUMO"])
         return df
 
@@ -298,7 +411,17 @@ class ReportParser:
         logger.info("📊 MÉTRICAS FINALES DE PARSING:")
         for key, value in self.stats.items():
             logger.info(f"   {key}: {value}")
-        total_parsed = sum([self.stats[k] for k in ["insumos_parsed", "mo_compleja_parsed", "mo_simple_parsed", "fallback_parsed"]])
+        total_parsed = sum(
+            [
+                self.stats[k]
+                for k in [
+                    "insumos_parsed",
+                    "mo_compleja_parsed",
+                    "mo_simple_parsed",
+                    "fallback_parsed",
+                ]
+            ]
+        )
         if self.stats["processed_lines"] > 0:
             success_rate = total_parsed / self.stats["processed_lines"] * 100
             logger.info(f"   TASA_ÉXITO_PARSE: {success_rate:.1f}%")
