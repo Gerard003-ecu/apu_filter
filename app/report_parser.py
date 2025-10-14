@@ -122,7 +122,15 @@ class ReportParser:
 
         upper_line = line.upper()
 
-        # 2. Detección de ITEM (máxima prioridad)
+        # 2. ✨ NUEVO FILTRO ESPECÍFICO: IMPUESTOS Y RETENCIONES o POLIZAS
+        if "IMPUESTOS Y RETENCIONES" in upper_line or "POLIZAS" in upper_line:
+            self.stats["garbage_lines"] += 1
+            logger.debug(
+                f"🚫 Línea ignorada por contener IMPUESTOS/POLIZAS: {line[:50]}..."
+            )
+            return
+
+        # 3. Detección de ITEM (máxima prioridad)
         match_item = self.PATTERNS["item_code"].search(upper_line)
         if match_item:
             raw_code = match_item.group(1).strip()
@@ -135,7 +143,7 @@ class ReportParser:
             self._start_new_apu(raw_code, unit)
             return
 
-        # 3. Lógica dependiente del estado
+        # 4. Lógica dependiente del estado
         if not self.context["apu_code"]:
             # ESTADO INACTIVO: Solo buscar descripción
             if self._is_potential_description(line):
