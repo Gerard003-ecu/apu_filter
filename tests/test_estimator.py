@@ -9,7 +9,12 @@ from app.estimator import calculate_estimate
 from app.procesador_csv import process_all_files
 
 # Reuse test data from test_app
-from tests.test_app import APUS_DATA, INSUMOS_DATA, PRESUPUESTO_DATA, TEST_CONFIG
+from tests.test_procesador_csv import (
+    APUS_DATA,
+    INSUMOS_DATA,
+    PRESUPUESTO_DATA,
+    TEST_CONFIG,
+)
 
 
 class TestEstimator(unittest.TestCase):
