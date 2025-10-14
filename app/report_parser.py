@@ -129,7 +129,9 @@ class ReportParser:
             unit_match = re.search(r"UNIDAD:\s*([A-Z0-9/%]+)", upper_line)
             unit = unit_match.group(1) if unit_match else "INDEFINIDO"
 
-            logger.debug(f"🆕 ITEM detectado (L{line_num}): código='{raw_code}', unidad='{unit}'")
+            logger.debug(
+                f"🆕 ITEM detectado (L{line_num}): código='{raw_code}', unidad='{unit}'"
+            )
             self._start_new_apu(raw_code, unit)
             return
 
@@ -161,7 +163,10 @@ class ReportParser:
         has_data_structure = self._has_data_structure(line)
         current_category = self.context["category"]
 
-        logger.debug(f"🔍 Analizando línea {line_num}: cat='{current_category}', datos={has_data_structure}")
+        logger.debug(
+            f"🔍 Analizando línea {line_num}: cat='{current_category}', "
+            f"datos={has_data_structure}"
+        )
         logger.debug(f"   Contenido: {line[:80]}...")
 
         # ... resto de la lógica de parsing ...
@@ -184,20 +189,29 @@ class ReportParser:
             if self._try_fallback_parsing(line, line_num):
                 return True
 
-        processed = match_mo_compleja or match_mo_simple or match_insumo or self._has_data_structure(line)
+        processed = (
+            match_mo_compleja
+            or match_mo_simple
+            or match_insumo
+            or self._has_data_structure(line)
+        )
         if not processed:
-            logger.debug(f"   ❌ No se pudo parsear como dato")
+            logger.debug("   ❌ No se pudo parsear como dato")
         return processed
 
     def _try_detect_category_change(self, line: str, upper_line: str) -> bool:
         """
-        DETECCIÓN MEJORADA: Más flexible pero aún precisa
+        Detecta si una línea es un cambio de categoría.
+        Una línea de categoría contiene una palabra clave de categoría y no es una
+        línea de datos.
         """
-        # Si tiene estructura de datos, probablemente no es categoría
-        if self._has_data_structure(line):
+        line_clean = line.strip()
+        if not line_clean:
             return False
 
-        # Lista expandida de categorías y sus variantes
+        # Extraer la primera parte de la línea, que podría ser la categoría
+        first_part = line_clean.split(';')[0].strip().upper()
+
         category_mappings = {
             "MATERIALES": [
                 "MATERIALES", "MATERIALES Y SUMINISTROS", "MATERIAL",
@@ -215,32 +229,52 @@ class ReportParser:
             "OTROS": ["OTROS", "OTROS GASTOS", "GASTOS GENERALES", "INDIRECTOS"]
         }
 
-        line_clean = line.strip()
-        upper_clean = line_clean.upper()
-
-        # Buscar coincidencia exacta o muy cercana
+        found_category = None
+        # Buscar si la primera parte coincide con alguna palabra clave de categoría
         for category, keywords in category_mappings.items():
-            for keyword in keywords:
-                # Coincidencia exacta (caso más común)
-                if upper_clean == keyword:
-                    return self._update_category(category, line_clean)
+            if first_part in keywords:
+                found_category = category
+                break
 
-                # Coincidencia al inicio (para casos como "MATERIALES Y...")
-                if upper_clean.startswith(keyword + " ") or upper_clean.startswith(keyword + ";"):
-                    return self._update_category(category, line_clean)
+        if not found_category:
+            return False
 
-                # Coincidencia en línea que solo contiene la palabra clave
-                if re.match(rf"^\s*{re.escape(keyword)}\s*$", upper_clean, re.IGNORECASE):
-                    return self._update_category(category, line_clean)
+        # Tenemos una coincidencia potencial. Ahora, hay que asegurarse de que no es
+        # una línea de datos.
+        # Una línea de datos real (insumo, mano de obra) tendrá valores numéricos para
+        # cantidad, precio, valor, etc.
+        # Una línea de categoría como "MATERIALES;;;;" no los tendrá.
 
-        return False
+        # Usamos la expresión regular de insumo para ver si coincide
+        match = self.PATTERNS["insumo_full"].match(line_clean)
+        if match:
+            data = match.groupdict()
+            # Si hay valores numéricos significativos, es una línea de datos, no un
+            # encabezado de categoría.
+            if (self._to_numeric_safe(data["cantidad"]) > 0 or
+                self._to_numeric_safe(data["precio_unit"]) > 0 or
+                self._to_numeric_safe(data["valor_total"]) > 0):
+                # Es una línea de datos que casualmente empieza con una palabra de categoría
+                # ej: "EQUIPO DE SEGURIDAD;UND;1;..."
+                logger.debug(
+                    f"Línea '{line_clean[:30]}...' parece categoría pero tiene "
+                    f"datos, se ignora."
+                )
+                return False
+
+        # Si llegamos aquí, es porque la línea empieza con una palabra clave de categoría y
+        # no parece tener datos numéricos. Es un cambio de categoría.
+        return self._update_category(found_category, line_clean)
 
     def _update_category(self, new_category: str, line: str) -> bool:
         """Actualiza la categoría y registra el cambio."""
         old_category = self.context["category"]
         if old_category != new_category:
             self.context["category"] = new_category
-            logger.debug(f"📂 Categoría cambiada: {old_category} -> {new_category} (línea: '{line}')")
+            logger.debug(
+                f"📂 Categoría cambiada: {old_category} -> {new_category} "
+                f"(línea: '{line}')"
+            )
         return True
 
     def _try_fallback_parsing(self, line: str, line_num: int) -> bool:

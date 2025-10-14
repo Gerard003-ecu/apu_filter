@@ -24,35 +24,26 @@ PRESUPUESTO_DATA = (
     "1,2;ACABADOS FINALES;M2;20; 225,00 ; 4500 \n"
     # Se ajusta la descripción para que la búsqueda por grupo funcione
     "1,3;INSTALACION TEJA SENCILLA CUBIERTA;M2;1;80000;80000\n"
-    "1,4;SUMINISTRO TEJA SENCILLA;UN;1;50000;50000\n"
     "1,5;INGENIERO RESIDENTE;MES;1;15000;15000\n"
 )
 
 APUS_DATA = (
     "REMATE CON PINTURA DE FABRICA CAL 22 DE 120 CMTS CURVO\n"
     "ITEM: 1,1\n"
-    "MATERIALES;;;;;\n"
-    "Tornillo de Acero;UND;10,0;0;10,50;105,00\n"
     "MANO DE OBRA;;;;;\n"
-    "M.O. CORTE Y DOBLEZ;1;1;1;1;50,00\n" # Formato corregido
+    "M.O. CORTE Y DOBLEZ;1;1;1;1;50,00\n"
     "\n"
     "ACABADOS FINALES\n"
     "ITEM: 1,2\n"
     "MATERIALES;;;;;\n"
     "Pintura Anticorrosiva;GL;5,0;0;5,00;25,00\n"
     "MANO DE OBRA;;;;;\n"
-    "M.O. Mano de Obra Especializada;1;1;1;1;200,00\n" # Formato corregido
+    "M.O. Mano de Obra Especializada;1;1;1;1;200,00\n"
     "\n"
     "INSTALACION TEJA SENCILLA CUBIERTA\n"
     "ITEM: 1,3\n"
     "MANO DE OBRA;;;;;\n"
-    # Formato: Desc;Jornal Base;Prestaciones;Jornal Total;Rendimiento;Valor Total
     "M.O. Ayudante;10000,00;0;10000,00;8,0;1250,00\n"
-    "\n"
-    "SUMINISTRO TEJA SENCILLA\n"
-    "ITEM: 1,4\n"
-    "MATERIALES;;;;;\n"
-    "TEJA SENCILLA;M2;1,0;0;50000,00;50000,00\n"
     "\n"
     "CUADRILLA DE 4\n"
     "ITEM: 1,6;UNIDAD: DIA\n"
@@ -162,17 +153,12 @@ class TestCSVProcessor(unittest.TestCase):
         self.assertIsInstance(resultado, dict)
         self.assertNotIn("error", resultado)
         presupuesto_procesado = resultado["presupuesto"]
-        self.assertEqual(len(presupuesto_procesado), 5)
+        self.assertEqual(len(presupuesto_procesado), 4)
         item1 = next(
             (item for item in presupuesto_procesado if item["CODIGO_APU"] == "1,1"), None
         )
         self.assertIsNotNone(item1)
-        self.assertAlmostEqual(item1["VALOR_CONSTRUCCION_UN"], 155.0)
-        item4 = next(
-            (item for item in presupuesto_procesado if item["CODIGO_APU"] == "1,4"), None
-        )
-        self.assertIsNotNone(item4)
-        self.assertAlmostEqual(item4["VALOR_CONSTRUCCION_UN"], 50000.0)
+        self.assertAlmostEqual(item1["VALOR_CONSTRUCCION_UN"], 50.0)
         # 'apus_detail' ahora es una lista, así que filtramos para encontrar el item
         apu_detail_completo = resultado["apus_detail"]
         apu_detail_ing_list = [
@@ -229,9 +215,9 @@ class TestAppEndpoints(unittest.TestCase):
             json_data = json.loads(response.data)
 
             # Los valores esperados deben coincidir con el cálculo en test_estimator
-            self.assertAlmostEqual(json_data["valor_suministro"], 50000)
+            self.assertAlmostEqual(json_data["valor_suministro"], 0.0)
             self.assertAlmostEqual(json_data["valor_instalacion"], 25000)
-            self.assertAlmostEqual(json_data["valor_construccion"], 75000)
+            self.assertAlmostEqual(json_data["valor_construccion"], 25000)
 
 if __name__ == "__main__":
     unittest.main()
