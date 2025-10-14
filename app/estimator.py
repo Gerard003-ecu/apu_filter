@@ -26,99 +26,59 @@ def _find_best_match(
     keywords: List[str],
     log: List[str],
     strict: bool = False,
-    min_match_percentage: float = 30.0  # Nuevo parámetro configurable
+    min_match_percentage: float = 30.0
 ) -> Optional[pd.Series]:
-    """
-    Encuentra el mejor APU que coincida con una lista de palabras clave.
-    Usa un sistema de puntuación para seleccionar la mejor coincidencia.
-
-    Args:
-        df_pool: DataFrame con los APUs disponibles
-        keywords: Lista de palabras clave a buscar
-        log: Lista para registrar el proceso de búsqueda
-        strict: Si True, requiere 100% de coincidencia
-        min_match_percentage: Porcentaje mínimo de coincidencia requerido (default 30%)
-    """
     if df_pool.empty or not keywords:
         log.append("  --> Pool vacío o sin keywords, retornando None.")
         return None
 
-    log.append(f"Iniciando búsqueda con keywords: {keywords}")
-    log.append(f"  - Modo: {'ESTRICTO (100%)' if strict else f'FLEXIBLE (≥{min_match_percentage}%)'}")
+    log.append(f"--- INICIO DEPURACIÓN DETALLADA DE BÚSQUEDA ---")
+    log.append(f"Buscando con keywords: {keywords}")
+    log.append(f"  - Modo: {'ESTRICTO' if strict else f'FLEXIBLE (umbral: {min_match_percentage}%)'}")
     log.append(f"  - APUs en pool: {len(df_pool)}")
+    log.append("  - Primeras 5 descripciones en el pool:")
+    for desc in df_pool.head(5)['original_description']:
+        log.append(f"    - {desc}")
 
-    best_match = None
-    best_score = 0
-    best_percentage = 0.0
-    candidates = []
+    best_candidate = None
+    highest_score = -1
 
-    # Evaluar cada APU y calcular su puntaje
-    for idx, apu in df_pool.iterrows():
+    for _, apu in df_pool.iterrows():
         desc_normalized = apu.get("DESC_NORMALIZED", "")
         desc_words = set(desc_normalized.split())
 
-        # Calcular puntaje
-        matches, percentage = _calculate_match_score(desc_words, keywords)
+        matches = sum(1 for keyword in keywords if keyword in desc_words)
 
-        # Registrar candidatos con al menos 1 coincidencia
         if matches > 0:
-            candidates.append({
-                'description': desc_normalized,
-                'original': apu.get("original_description", ""),
-                'matches': matches,
-                'percentage': percentage,
-                'apu': apu
-            })
+            percentage = (matches / len(keywords)) * 100 if keywords else 0
+            log.append(f"  - Candidato: '{desc_normalized}' -> Coincidencias: {matches}/{len(keywords)} ({percentage:.1f}%)")
 
-        # Actualizar mejor coincidencia
-        if matches > best_score:
-            best_match = apu
-            best_score = matches
-            best_percentage = percentage
+            if percentage > highest_score:
+                highest_score = percentage
+                best_candidate = apu
 
-    # Ordenar candidatos por puntaje (descendente)
-    candidates.sort(key=lambda x: (x['matches'], x['percentage']), reverse=True)
+    log.append("--- FIN DEPURACIÓN DETALLADA ---")
 
-    # Mostrar top 5 candidatos en el log
-    if candidates:
-        log.append(f"\n  📊 Top {min(5, len(candidates))} candidatos encontrados:")
-        for i, candidate in enumerate(candidates[:5], 1):
-            log.append(
-                f"    {i}. {candidate['matches']}/{len(keywords)} palabras "
-                f"({candidate['percentage']:.1f}%) - {candidate['original'][:80]}"
-            )
-    else:
-        log.append("  ❌ No se encontraron candidatos con coincidencias.")
+    if best_candidate is None:
+        log.append("  ❌ No se encontraron candidatos con ninguna coincidencia.")
+        return None
+
+    log.append(f"  🏆 Mejor candidato encontrado: '{best_candidate.get('original_description')}' con un {highest_score:.1f}% de coincidencia.")
 
     # Aplicar criterios de selección
     if strict:
-        # Modo estricto: requiere 100% de coincidencia
-        if best_percentage == 100.0:
-            log.append(
-                f"\n  ✅ Coincidencia ESTRICTA encontrada ({best_score}/{len(keywords)} palabras, 100%)"
-            )
-            log.append(f"     '{best_match.get('original_description', '')}'")
-            return best_match
+        if highest_score >= 100:
+            log.append("  ✅ Éxito: Coincidencia estricta encontrada.")
+            return best_candidate
         else:
-            log.append(
-                f"\n  ❌ No se encontró coincidencia estricta. "
-                f"Mejor resultado: {best_percentage:.1f}%"
-            )
+            log.append("  ❌ Fallo: No se alcanzó el 100% requerido por el modo estricto.")
             return None
     else:
-        # Modo flexible: requiere porcentaje mínimo
-        if best_percentage >= min_match_percentage:
-            log.append(
-                f"\n  ✅ Mejor coincidencia FLEXIBLE: {best_score}/{len(keywords)} palabras "
-                f"({best_percentage:.1f}%)"
-            )
-            log.append(f"     '{best_match.get('original_description', '')}'")
-            return best_match
+        if highest_score >= min_match_percentage:
+            log.append(f"  ✅ Éxito: Supera el umbral flexible de {min_match_percentage}%.")
+            return best_candidate
         else:
-            log.append(
-                f"\n  ❌ Ninguna coincidencia supera el umbral mínimo ({min_match_percentage}%). "
-                f"Mejor resultado: {best_percentage:.1f}%"
-            )
+            log.append(f"  ❌ Fallo: No supera el umbral flexible de {min_match_percentage}%.")
             return None
 
 
