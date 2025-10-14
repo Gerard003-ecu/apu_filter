@@ -32,7 +32,7 @@ def _find_best_match(
         log.append("  --> Pool vacío o sin keywords, retornando None.")
         return None
 
-    log.append(f"--- INICIO DEPURACIÓN DETALLADA DE BÚSQUEDA ---")
+    log.append("--- INICIO DEPURACIÓN DETALLADA DE BÚSQUEDA ---")
     log.append(f"Buscando con keywords: {keywords}")
     log.append(f"  - Modo: {'ESTRICTO' if strict else f'FLEXIBLE (umbral: {min_match_percentage}%)'}")
     log.append(f"  - APUs en pool: {len(df_pool)}")
