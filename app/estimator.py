@@ -336,8 +336,8 @@ def calculate_estimate(
     costo_instalacion_final = (costo_mo_ajustado + costo_equipo) * factor_zona \
         + costo_adicional_izaje
     log.append(
-        f"  [3] Costo Instalación Final = "
-        f"((MO Ajustado + Equipo) * Factor Zona) + Costo Izaje"
+        "  [3] Costo Instalación Final = "
+        "((MO Ajustado + Equipo) * Factor Zona) + Costo Izaje"
     )
     log.append(
         f"      = ((${costo_mo_ajustado:,.2f} + ${costo_equipo:,.2f}) "

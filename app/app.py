@@ -25,6 +25,7 @@ SESSION_TIMEOUT = 3600  # 1 hora
 
 import logging
 
+
 def create_app(config_name):
     """Crea y configura una instancia de la aplicación Flask.
 
