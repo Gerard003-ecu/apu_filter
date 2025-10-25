@@ -1,5 +1,6 @@
 import logging
 import re
+from enum import Enum
 from typing import Any, Dict, List, Optional
 
 import pandas as pd
@@ -8,6 +9,12 @@ from unidecode import unidecode
 from .utils import clean_apu_code
 
 logger = logging.getLogger(__name__)
+
+
+class ParserState(Enum):
+    IDLE = "IDLE"  # Sin APU activo
+    AWAITING_DESCRIPTION = "AWAITING_DESCRIPTION"  # Esperando descripción
+    PROCESSING_DATA = "PROCESSING_DATA"  # Procesando insumos
 
 
 class ReportParser:
@@ -68,6 +75,13 @@ class ReportParser:
     }
 
     CATEGORY_KEYWORDS = {"MATERIALES", "MANO DE OBRA", "EQUIPO", "OTROS", "TRANSPORTE"}
+    DESCRIPTION_KEYWORDS = [
+            "SUMINISTRO", "INSTALACION", "CONSTRUCCION", "EXCAVACION",
+            "RELLENO", "CONCRETO", "ACERO", "TUBERIA", "CANAL", "MURO",
+            "LOSA", "VIGA", "COLUMNA", "CIMENTACION", "ESTRUCTURA",
+            "ACABADO", "PINTURA", "PRELIMINAR", "DEMOLICION", "RETIRO",
+            "TRANSPORTE", "MONTAJE", "MANTENIMIENTO", "REPARACION"
+        ]
 
     def __init__(self, file_path: str):
         """Inicializa el ReportParser.
@@ -77,6 +91,7 @@ class ReportParser:
         """
         self.file_path = file_path
         self.apus_data: List[Dict[str, Any]] = []
+        self.state = ParserState.IDLE
         self.context = {
             "apu_code": None, "apu_desc": "", "apu_unit": "", "category": "INDEFINIDO",
         }
@@ -84,7 +99,8 @@ class ReportParser:
         self.stats = {
             "total_lines": 0, "processed_lines": 0, "items_found": 0,
             "insumos_parsed": 0, "mo_compleja_parsed": 0, "mo_simple_parsed": 0,
-            "garbage_lines": 0, "unparsed_data_lines": 0, "fallback_parsed": 0
+            "garbage_lines": 0, "unparsed_data_lines": 0, "fallback_parsed": 0,
+            "state_transitions": 0
         }
 
     def parse(self) -> pd.DataFrame:
@@ -118,136 +134,154 @@ class ReportParser:
         return df
 
     def _process_line(self, line: str, line_num: int):
-        """Procesa una sola línea con una máquina de estados corregida."""
+        """Procesa una línea con máquina de estados explícita."""
         line = line.strip()
 
-        # Regla 1: Una línea en blanco SIEMPRE resetea el contexto a inactivo.
+        # 🔴 REGLA GLOBAL 1: Línea en blanco → Resetear a IDLE
         if not line:
-            if self.context["apu_code"] is not None:
-                logger.debug(f"🔄 Contexto de APU {self.context['apu_code']} cerrado por línea en blanco.")
-                self.context["apu_code"] = None
+            self._transition_to_idle("línea en blanco")
             return
 
-        # Regla 2: Buscar un nuevo ITEM para iniciar un APU.
-        match_item = self.PATTERNS["item_code"].search(line.upper())
-        if match_item:
-            raw_code = match_item.group(1).strip()
-            unit_match = re.search(r"UNIDAD:\s*([A-Z0-9/%]+)", line.upper())
-            unit = unit_match.group(1) if unit_match else "INDEFINIDO"
-            self._start_new_apu(raw_code, unit)
+        # 🔴 REGLA GLOBAL 2: Ignorar basura/metadatos
+        if self._is_garbage_line(line) or self._is_metadata_line(line):
+            self.stats["garbage_lines"] += 1
             return
 
-        # Si no estamos en un APU activo, ignorar la línea.
-        if self.context["apu_code"] is None:
+        self.stats["processed_lines"] += 1
+
+        # 🔴 REGLA GLOBAL 3: Detectar nuevo ITEM (siempre disponible)
+        if self._try_start_new_apu(line, line_num):
             return
 
-        # --- ESTADO ACTIVO: Estamos dentro de un APU ---
-
-        # Regla 3: Si la descripción del APU está vacía, esta línea DEBE ser la descripción.
-        if not self.context["apu_desc"]:
-            if self._is_potential_description(line, line_num):
-                self.context["apu_desc"] = line.split(';')[0].strip()
-                logger.debug(f"📝 Descripción asignada a {self.context['apu_code']}: '{self.context['apu_desc'][:50]}...'")
-                return
-
-        # Regla 4: Intentar detectar un cambio de categoría.
-        if self._try_detect_category_change(line, line.upper()):
+        # 🔴 PROCESAMIENTO ESPECÍFICO POR ESTADO
+        if self.state == ParserState.IDLE:
+            # Solo esperamos nuevo ITEM, ignorar resto
             return
 
-        # Regla 5: Intentar parsear la línea como datos de insumo.
+        elif self.state == ParserState.AWAITING_DESCRIPTION:
+            self._handle_awaiting_description_state(line, line_num)
+
+        elif self.state == ParserState.PROCESSING_DATA:
+            self._handle_processing_data_state(line, line_num)
+
+
+    def _handle_awaiting_description_state(self, line: str, line_num: int):
+        """Maneja el estado de espera por descripción."""
+        # Prioridad 1: Asignar descripción. Si tiene éxito, transiciona a PROCESSING_DATA.
+        if self._try_assign_description(line, line_num):
+            return
+
+        # Prioridad 2: Detectar categoría. Si se encuentra, también puede que ya
+        # venga la data.
+        if self._try_detect_category_change(line):
+            # Forzamos una descripción por defecto y pasamos a procesar datos.
+            self.context["apu_desc"] = "SIN DESCRIPCION"
+            self._transition_to(ParserState.PROCESSING_DATA, "categoría sin descripción")
+            return
+
+        # Prioridad 3: Si no es descripción pero tiene datos, forzar transición.
+        if self._is_structured_data_line(line):
+            logger.warning(f"⚠️ Datos sin descripción en APU {self.context['apu_code']}")
+            self.context["apu_desc"] = "SIN DESCRIPCION"
+            self._transition_to(ParserState.PROCESSING_DATA, "forzado por datos")
+            # Reintentar el parseo de la línea actual en el nuevo estado.
+            self._handle_processing_data_state(line, line_num)
+
+    def _handle_processing_data_state(self, line: str, line_num: int):
+        """Maneja el estado de procesamiento de datos."""
+        # Prioridad 1: Detectar cambio de categoría.
+        if self._try_detect_category_change(line):
+            return
+
+        # Prioridad 2: Parsear como dato.
         if self._try_parse_as_data_line(line, line_num):
             return
 
-        # Si nada coincide, registrar como no reconocida.
-        logger.warning(f"⚠️ Línea {line_num} no reconocida dentro del APU {self.context['apu_code']}: {line[:100]}...")
+        # Prioridad 3: Si la línea parece una descripción pero no tiene datos,
+        # simplemente la ignoramos. Esto evita que texto no estructurado sea
+        # marcado como error.
+        if self._is_potential_description(line, line_num):
+            logger.debug(f"📝 Ignorando línea tipo descripción en estado de datos (L{line_num})")
+            return
+
+        # Prioridad 4: Si nada de lo anterior coincide, es una línea no reconocida.
+        logger.warning(f"⚠️ Línea {line_num} no reconocida: {line[:100]}...")
         self.stats["unparsed_data_lines"] += 1
 
 
-    def _start_new_apu(self, raw_code: str, unit: str):
-        """Inicia un nuevo APU, reseteando el contexto."""
+    def _try_assign_description(self, line: str, line_num: int) -> bool:
+        """Intenta asignar la descripción a un APU y transiciona el estado."""
+        if self._is_potential_description(line, line_num):
+            self.context["apu_desc"] = line.split(';')[0].strip()
+            logger.debug(f"📝 Descripción asignada a {self.context['apu_code']}: '{self.context['apu_desc'][:50]}...'")
+            self._transition_to(ParserState.PROCESSING_DATA, "descripción asignada")
+            return True
+        return False
+
+    def _try_start_new_apu(self, line: str, line_num: int) -> bool:
+        """Intenta detectar y procesar el inicio de un nuevo APU."""
+        match_item = self.PATTERNS["item_code"].search(line.upper())
+        if not match_item:
+            return False
+
+        raw_code = match_item.group(1).strip()
+        unit_match = re.search(r"UNIDAD:\s*([A-Z0-9/%]+)", line.upper())
+        unit = unit_match.group(1).strip() if unit_match else "INDEFINIDO"
+
         cleaned_code = clean_apu_code(raw_code)
         if not cleaned_code:
-            self.context["apu_code"] = None
-            return
+            # Si el código es inválido, no iniciamos un nuevo APU
+            return False
 
-        # Iniciar nuevo contexto con descripción vacía. Se llenará después.
+        # Iniciar nuevo contexto
         self.context = {
             "apu_code": cleaned_code,
             "apu_desc": "",
-            "apu_unit": unit.strip(),
+            "apu_unit": unit,
             "category": "INDEFINIDO",
         }
         self.stats["items_found"] += 1
         logger.info(f"✅ Nuevo APU iniciado: {cleaned_code} (esperando descripción)")
+        self._transition_to(ParserState.AWAITING_DESCRIPTION, f"nuevo item en L{line_num}")
+        return True
 
     def _is_potential_description(self, line: str, line_num: int) -> bool:
-        """Determina si una línea podría ser una descripción de APU.
-
-        Args:
-            line (str): La línea a evaluar.
-            line_num (int): El número de la línea en el archivo.
-
-        Returns:
-            bool: True si la línea es una descripción potencial, False en caso contrario.
-        """
-        # Eliminar espacios y verificar que no esté vacía
+        """Determina si una línea es una descripción válida de APU."""
         line_clean = line.strip()
-        if not line_clean:
+        if not line_clean or len(line_clean) < 5:
             return False
 
-        # No debe ser una línea de datos (con múltiples punto y comas)
-        if self._has_data_structure(line):
+        # CRITERIOS DE EXCLUSIÓN
+        # 1. No debe tener estructura de datos
+        if self._is_structured_data_line(line):
             return False
 
-        # No debe ser basura o metadatos
+        # 2. No debe ser basura o metadatos
         if self._is_garbage_line(line) or self._is_metadata_line(line):
             return False
 
-        # No debe parecer una categoría sola
-        upper_line = line_clean.upper()
-        if upper_line in self.CATEGORY_KEYWORDS:
+        # 3. No debe ser solo una categoría
+        first_part = line_clean.split(';')[0].strip().upper()
+        if first_part in self.CATEGORY_KEYWORDS:
             return False
 
-        # CRITERIOS POSITIVOS para una descripción:
-        # 1. Debe tener al menos 5 caracteres
-        if len(line_clean) < 5:
+        # 4. No debe ser solo números
+        if re.match(r"^[\d.,\s]+$", first_part):
             return False
 
-        # 2. Debe contener al menos una palabra significativa (3+ letras)
-        if not re.search(r"[a-zA-Z]{3,}", line_clean):
+        # CRITERIOS DE INCLUSIÓN
+        # 1. Debe tener contenido alfabético significativo
+        if not re.search(r"[a-zA-ZáéíóúÁÉÍÓÚñÑ]{3,}", first_part):
             return False
 
-        # 3. No debe empezar con números solos (podría ser un código mal formateado)
-        if re.match(r"^\d+\.?\d*$", line_clean):
-            return False
-
-        # 4. Típicamente las descripciones de APU contienen palabras como:
-        description_keywords = [
-            "SUMINISTRO", "INSTALACION", "CONSTRUCCION", "EXCAVACION",
-            "RELLENO", "CONCRETO", "ACERO", "TUBERIA", "CANAL", "MURO",
-            "LOSA", "VIGA", "COLUMNA", "CIMENTACION", "ESTRUCTURA",
-            "ACABADO", "PINTURA", "PRELIMINAR", "DEMOLICION", "RETIRO",
-            "TRANSPORTE", "MONTAJE", "MANTENIMIENTO", "REPARACION"
-        ]
-
-        # Si contiene alguna palabra clave típica de descripción, es muy probable que lo sea
-        for keyword in description_keywords:
-            if keyword in upper_line:
-                logger.debug(
-                    "✅ Descripción detectada por palabra clave (L%d): '%s': %s...",
-                    line_num,
-                    keyword,
-                    line_clean[:50],
-                )
+        # 2. BONUS: Si contiene palabras clave de construcción
+        for keyword in self.DESCRIPTION_KEYWORDS:
+            if keyword in first_part:
                 return True
 
-        # Si no tiene palabras clave pero tiene suficiente texto alfabético,
-        # podría ser una descripción
-        alpha_chars = sum(1 for c in line_clean if c.isalpha())
-        if alpha_chars >= 10:  # Al menos 10 letras
-            return True
-
-        return False
+        # 3. Contenido alfabético suficiente
+        alpha_count = sum(1 for c in first_part if c.isalpha())
+        return alpha_count >= 10
 
     def _log_parsing_stats(self):
         """Registra las estadísticas del proceso de análisis."""
@@ -342,42 +376,25 @@ class ReportParser:
             logger.debug("   ❌ No se pudo parsear como dato")
         return processed
 
-    def _try_detect_category_change(self, line: str, upper_line: str) -> bool:
-        """Detecta si una línea representa un cambio de categoría.
-
-        Args:
-            line (str): La línea a analizar.
-            upper_line (str): La versión en mayúsculas de la línea.
-
-        Returns:
-            bool: True si la línea es un cambio de categoría, False en caso contrario.
-        """
+    def _try_detect_category_change(self, line: str) -> bool:
+        """Detecta cambios de categoría evitando falsos positivos."""
         line_clean = line.strip()
         if not line_clean:
             return False
 
-        # Extraer la primera parte de la línea, que podría ser la categoría
         first_part = line_clean.split(';')[0].strip().upper()
 
+        # Mapeo robusto de categorías
         category_mappings = {
-            "MATERIALES": [
-                "MATERIALES", "MATERIALES Y SUMINISTROS", "MATERIAL",
-                "MATERIALES Y ACCESORIOS", "SUMINISTROS"
-            ],
-            "MANO DE OBRA": [
-                "MANO DE OBRA", "MANO DE OBRA DIRECTA", "M.O.",
-                "MO", "MANO DE OBRA Y SUPERVISIÓN"
-            ],
-            "EQUIPO": [
-                "EQUIPO", "EQUIPOS", "EQUIPOS Y HERRAMIENTAS",
-                "HERRAMIENTAS", "MAQUINARIA"
-            ],
+            "MATERIALES": ["MATERIALES", "MATERIALES Y SUMINISTROS", "MATERIAL"],
+            "MANO DE OBRA": ["MANO DE OBRA", "MANO DE OBRA DIRECTA", "M.O.", "MO"],
+            "EQUIPO": ["EQUIPO", "EQUIPOS", "EQUIPOS Y HERRAMIENTAS", "MAQUINARIA"],
             "TRANSPORTE": ["TRANSPORTE", "TRANSPORTES", "FLETE"],
-            "OTROS": ["OTROS", "OTROS GASTOS", "GASTOS GENERALES", "INDIRECTOS"]
+            "OTROS": ["OTROS", "OTROS GASTOS", "GASTOS GENERALES"]
         }
 
+        # Buscar categoría
         found_category = None
-        # Buscar si la primera parte coincide con alguna palabra clave de categoría
         for category, keywords in category_mappings.items():
             if first_part in keywords:
                 found_category = category
@@ -386,51 +403,51 @@ class ReportParser:
         if not found_category:
             return False
 
-        # Tenemos una coincidencia potencial. Ahora, hay que asegurarse de que no es
-        # una línea de datos.
-        # Una línea de datos real (insumo, mano de obra) tendrá valores numéricos para
-        # cantidad, precio, valor, etc.
-        # Una línea de categoría como "MATERIALES;;;;" no los tendrá.
+        # 🔴 VALIDACIÓN CRÍTICA: No debe ser línea de datos
+        if self._is_structured_data_line(line):
+            logger.debug(f"❌ '{first_part}' parece categoría pero tiene datos")
+            return False
 
-        # Usamos la expresión regular de insumo para ver si coincide
-        match = self.PATTERNS["insumo_full"].match(line_clean)
-        if match:
-            data = match.groupdict()
-            # Si hay valores numéricos significativos, es una línea de datos, no un
-            # encabezado de categoría.
-            if (self._to_numeric_safe(data["cantidad"]) > 0 or
-                self._to_numeric_safe(data["precio_unit"]) > 0 or
-                self._to_numeric_safe(data["valor_total"]) > 0):
-                # Es una línea de datos que casualmente empieza con una palabra de categoría
-                # ej: "EQUIPO DE SEGURIDAD;UND;1;..."
-                logger.debug(
-                    f"Línea '{line_clean[:30]}...' parece categoría pero tiene "
-                    f"datos, se ignora."
-                )
-                return False
+        # Cambiar categoría solo si es diferente
+        if self.context["category"] != found_category:
+            old_category = self.context["category"]
+            self.context["category"] = found_category
+            logger.info(f"📂 Categoría cambiada: {old_category} → {found_category}")
+            return True
 
-        # Si llegamos aquí, es porque la línea empieza con una palabra clave de categoría y
-        # no parece tener datos numéricos. Es un cambio de categoría.
-        return self._update_category(found_category, line_clean)
+        return False
 
-    def _update_category(self, new_category: str, line: str) -> bool:
-        """Actualiza la categoría en el contexto de análisis.
+    def _is_structured_data_line(self, line: str) -> bool:
+        """Verifica si una línea tiene estructura de datos real."""
+        if line.count(';') < 2:
+            return False
 
-        Args:
-            new_category (str): La nueva categoría a establecer.
-            line (str): La línea que provocó el cambio de categoría.
+        parts = line.split(';')
+        numeric_values = 0
 
-        Returns:
-            bool: True si la categoría se actualizó, False en caso contrario.
-        """
-        old_category = self.context["category"]
-        if old_category != new_category:
-            self.context["category"] = new_category
-            logger.debug(
-                f"📂 Categoría cambiada: {old_category} -> {new_category} "
-                f"(línea: '{line}')"
-            )
-        return True
+        # Verificar valores numéricos en campos de datos
+        for part in parts[1:]: # Ignorar descripción
+            value = self._to_numeric_safe(part)
+            if value > 0:
+                numeric_values += 1
+
+        # Requiere al menos 2 valores numéricos significativos
+        return numeric_values >= 2
+
+    def _transition_to(self, new_state: ParserState, reason: str):
+        """Realiza transición controlada entre estados."""
+        if self.state != new_state:
+            logger.debug(f"🔄 {self.state.value} → {new_state.value} ({reason})")
+            self.state = new_state
+            self.stats["state_transitions"] += 1
+
+    def _transition_to_idle(self, reason: str):
+        """Resetea la máquina de estados a IDLE."""
+        if self.state != ParserState.IDLE:
+            logger.debug(f"🔄 Reset a IDLE ({reason})")
+            self.state = ParserState.IDLE
+            self.context["apu_code"] = None
+            self.stats["state_transitions"] += 1
 
     def _try_fallback_parsing(self, line: str, line_num: int) -> bool:
         """Intenta un análisis genérico como último recurso.
