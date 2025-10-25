@@ -5,15 +5,29 @@ import pandas as pd
 
 
 def clean_apu_code(code: str) -> str:
-    """Limpia un código de APU para que sea consistente para el merge."""
+    """Limpia un código de APU para que sea consistente.
+
+    Args:
+        code (str): El código de APU a limpiar.
+
+    Returns:
+        str: El código de APU limpio.
+    """
     if not isinstance(code, str):
         code = str(code)
     return re.sub(r'[^\d,]', '', code.replace('.', ',')).strip().rstrip(',')
 
-def normalize_text(text_series):
-    """
-    Normaliza un texto para búsqueda: convierte a minúsculas, elimina tildes,
-    reemplaza caracteres no alfanuméricos por espacios y simplifica espacios.
+def normalize_text(text_series: pd.Series) -> pd.Series:
+    """Normaliza un texto para la búsqueda.
+
+    Convierte a minúsculas, elimina tildes, reemplaza caracteres no
+    alfanuméricos por espacios y simplifica los espacios en blanco.
+
+    Args:
+        text_series (pd.Series): La serie de texto a normalizar.
+
+    Returns:
+        pd.Series: La serie de texto normalizada.
     """
     if text_series is None or text_series.empty:
         return text_series
@@ -36,10 +50,17 @@ def normalize_text(text_series):
     return text_series
 
 
-def safe_read_dataframe(path, header=0):
-    """
-    Lee un archivo (CSV o Excel) en un DataFrame de Pandas de forma segura,
-    manejando errores de archivo no encontrado o de formato.
+def safe_read_dataframe(path: str, header: int = 0) -> pd.DataFrame:
+    """Lee un archivo (CSV o Excel) en un DataFrame de Pandas de forma segura.
+
+    Maneja los errores de archivo no encontrado o de formato.
+
+    Args:
+        path (str): La ruta al archivo.
+        header (int): El índice de la fila a utilizar como encabezado.
+
+    Returns:
+        pd.DataFrame: El DataFrame leído o un DataFrame vacío si ocurre un error.
     """
     try:
         if path.endswith(".csv"):
@@ -56,9 +77,18 @@ def safe_read_dataframe(path, header=0):
         return None
 
 
-def find_and_rename_columns(df, column_map):
-    """
-    Busca y renombra columnas en un DataFrame basado en un mapa de posibles nombres.
+def find_and_rename_columns(
+    df: pd.DataFrame, column_map: dict
+) -> pd.DataFrame:
+    """Busca y renombra columnas en un DataFrame.
+
+    Args:
+        df (pd.DataFrame): El DataFrame en el que se buscarán y renombrarán las columnas.
+        column_map (dict): Un diccionario que mapea los nombres de columna
+                           estándar a una lista de posibles nombres.
+
+    Returns:
+        pd.DataFrame: El DataFrame con las columnas renombradas.
     """
     renamed_cols = {}
     for standard_name, possible_names in column_map.items():
@@ -69,11 +99,17 @@ def find_and_rename_columns(df, column_map):
     return df.rename(columns=renamed_cols)
 
 
-def sanitize_for_json(data):
-    """
-    Recorre recursivamente una estructura de datos (dict/list) y convierte
-    los tipos de datos no serializables de JSON (como np.nan, pd.NA, np.int64)
-    a tipos nativos de Python (None, int, float).
+def sanitize_for_json(data: any) -> any:
+    """Convierte tipos de datos no serializables a tipos nativos de Python.
+
+    Recorre recursivamente una estructura de datos (dict, list) y convierte
+    tipos no serializables para JSON a tipos nativos de Python.
+
+    Args:
+        data (any): La estructura de datos a sanear.
+
+    Returns:
+        any: La estructura de datos saneada.
     """
     if isinstance(data, dict):
         return {k: sanitize_for_json(v) for k, v in data.items()}

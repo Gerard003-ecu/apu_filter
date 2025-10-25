@@ -11,6 +11,21 @@ logger = logging.getLogger(__name__)
 
 
 class ReportParser:
+    """Analizador de informes de Análisis de Precios Unitarios (APU).
+
+    Esta clase se encarga de leer un archivo de texto con un formato no
+    estándar, identificar y extraer los datos de los APU, y convertirlos
+    en un DataFrame de Pandas estructurado.
+
+    Attributes:
+        file_path (str): La ruta al archivo a analizar.
+        apus_data (List[Dict[str, Any]]): Una lista de diccionarios con
+                                          los datos de los APU extraídos.
+        context (Dict[str, Any]): El contexto actual del análisis.
+        potential_apu_desc (str): Una descripción de APU potencial.
+        stats (Dict[str, int]): Estadísticas del proceso de análisis.
+    """
+
     PATTERNS = {
         "item_code": re.compile(r"ITEM:\s*([^;]+)", re.IGNORECASE),
         "insumo_full": re.compile(
@@ -55,6 +70,11 @@ class ReportParser:
     CATEGORY_KEYWORDS = {"MATERIALES", "MANO DE OBRA", "EQUIPO", "OTROS", "TRANSPORTE"}
 
     def __init__(self, file_path: str):
+        """Inicializa el ReportParser.
+
+        Args:
+            file_path (str): La ruta al archivo a analizar.
+        """
         self.file_path = file_path
         self.apus_data: List[Dict[str, Any]] = []
         self.context = {
@@ -68,6 +88,11 @@ class ReportParser:
         }
 
     def parse(self) -> pd.DataFrame:
+        """Analiza el archivo de APU y devuelve un DataFrame.
+
+        Returns:
+            pd.DataFrame: Un DataFrame con los datos de APU analizados.
+        """
         logger.info(f"🔍 Iniciando parsing del archivo: {self.file_path}")
         logger.info(f"📊 Contexto inicial: {self.context}")
 
@@ -93,8 +118,11 @@ class ReportParser:
         return df
 
     def _process_line(self, line: str, line_num: int):
-        """
-        VERSIÓN CORREGIDA: Captura descripciones ANTES del ITEM y las preserva correctamente.
+        """Procesa una sola línea del archivo de APU.
+
+        Args:
+            line (str): La línea a procesar.
+            line_num (int): El número de la línea en el archivo.
         """
         line = line.strip()
         if not line:
@@ -123,8 +151,9 @@ class ReportParser:
 
         # 2. 🔥 CAPTURA DE DESCRIPCIÓN POTENCIAL (ANTES DE BUSCAR ITEM)
         # Si no estamos en un APU activo Y la línea parece una descripción
-        if not self.context["apu_code"] and not self.PATTERNS["item_code"].search(upper_line):
-            if self._is_potential_description(line):
+        is_potential_item = self.PATTERNS["item_code"].search(upper_line)
+        if not self.context["apu_code"] and not is_potential_item:
+            if self._is_potential_description(line, line_num):
                 # Capturar toda la línea como descripción potencial
                 self.potential_apu_desc = line.split(';')[0].strip()
                 logger.debug(
@@ -164,7 +193,7 @@ class ReportParser:
 
         # C. TERCERO: Si estamos en un APU pero la línea no es dato ni categoría,
         #    podría ser la descripción del SIGUIENTE APU
-        if self._is_potential_description(line):
+        if self._is_potential_description(line, line_num):
             # Guardar para el próximo APU
             self.potential_apu_desc = line.split(';')[0].strip()
             logger.debug(
@@ -173,8 +202,11 @@ class ReportParser:
                 )
 
     def _start_new_apu(self, raw_code: str, unit: str):
-        """
-        Usa la descripción capturada previamente y la preserva correctamente.
+        """Inicia un nuevo APU en el contexto de análisis.
+
+        Args:
+            raw_code (str): El código de APU sin procesar.
+            unit (str): La unidad del APU.
         """
         cleaned_code = clean_apu_code(raw_code)
 
@@ -210,9 +242,15 @@ class ReportParser:
         self.potential_apu_desc = ""
         self.stats["items_found"] += 1
 
-    def _is_potential_description(self, line: str) -> bool:
-        """
-        VERSIÓN MEJORADA: Determina si una línea podría ser una descripción de APU.
+    def _is_potential_description(self, line: str, line_num: int) -> bool:
+        """Determina si una línea podría ser una descripción de APU.
+
+        Args:
+            line (str): La línea a evaluar.
+            line_num (int): El número de la línea en el archivo.
+
+        Returns:
+            bool: True si la línea es una descripción potencial, False en caso contrario.
         """
         # Eliminar espacios y verificar que no esté vacía
         line_clean = line.strip()
@@ -258,8 +296,11 @@ class ReportParser:
         for keyword in description_keywords:
             if keyword in upper_line:
                 logger.debug(
-                    f"✅ Descripción detectada por palabra clave (L{line_num}): '{keyword}': {line_clean[:50]}..."
-                    )
+                    "✅ Descripción detectada por palabra clave (L%d): '%s': %s...",
+                    line_num,
+                    keyword,
+                    line_clean[:50],
+                )
                 return True
 
         # Si no tiene palabras clave pero tiene suficiente texto alfabético,
@@ -271,7 +312,7 @@ class ReportParser:
         return False
 
     def _log_parsing_stats(self):
-        """VERSIÓN MEJORADA: Incluye estadísticas de descripciones capturadas"""
+        """Registra las estadísticas del proceso de análisis."""
         logger.info("📊 MÉTRICAS FINALES DE PARSING:")
         for key, value in self.stats.items():
             logger.info(f"   {key}: {value}")
@@ -315,7 +356,15 @@ class ReportParser:
             logger.info(f"   TASA_ÉXITO_PARSE: {success_rate:.1f}%")
 
     def _try_parse_as_data_line(self, line: str, line_num: int) -> bool:
-        """Versión con logs de diagnóstico"""
+        """Intenta analizar una línea como una línea de datos.
+
+        Args:
+            line (str): La línea a analizar.
+            line_num (int): El número de la línea en el archivo.
+
+        Returns:
+            bool: True si la línea se analizó como datos, False en caso contrario.
+        """
         has_data_structure = self._has_data_structure(line)
         current_category = self.context["category"]
 
@@ -356,10 +405,14 @@ class ReportParser:
         return processed
 
     def _try_detect_category_change(self, line: str, upper_line: str) -> bool:
-        """
-        Detecta si una línea es un cambio de categoría.
-        Una línea de categoría contiene una palabra clave de categoría y no es una
-        línea de datos.
+        """Detecta si una línea representa un cambio de categoría.
+
+        Args:
+            line (str): La línea a analizar.
+            upper_line (str): La versión en mayúsculas de la línea.
+
+        Returns:
+            bool: True si la línea es un cambio de categoría, False en caso contrario.
         """
         line_clean = line.strip()
         if not line_clean:
@@ -423,7 +476,15 @@ class ReportParser:
         return self._update_category(found_category, line_clean)
 
     def _update_category(self, new_category: str, line: str) -> bool:
-        """Actualiza la categoría y registra el cambio."""
+        """Actualiza la categoría en el contexto de análisis.
+
+        Args:
+            new_category (str): La nueva categoría a establecer.
+            line (str): La línea que provocó el cambio de categoría.
+
+        Returns:
+            bool: True si la categoría se actualizó, False en caso contrario.
+        """
         old_category = self.context["category"]
         if old_category != new_category:
             self.context["category"] = new_category
@@ -434,6 +495,15 @@ class ReportParser:
         return True
 
     def _try_fallback_parsing(self, line: str, line_num: int) -> bool:
+        """Intenta un análisis genérico como último recurso.
+
+        Args:
+            line (str): La línea a analizar.
+            line_num (int): El número de la línea en el archivo.
+
+        Returns:
+            bool: True si el análisis fue exitoso, False en caso contrario.
+        """
         match = self.PATTERNS["generic_data"].match(line)
         if not match:
             return False
@@ -466,6 +536,11 @@ class ReportParser:
         return False
 
     def _parse_insumo(self, data: Dict[str, str]):
+        """Analiza y agrega un insumo general a los datos del APU.
+
+        Args:
+            data (Dict[str, str]): Los datos del insumo extraídos.
+        """
         desc = data["descripcion"].strip()
         cantidad = self._to_numeric_safe(data["cantidad"])
         valor_total = self._to_numeric_safe(data["valor_total"])
@@ -487,6 +562,11 @@ class ReportParser:
             logger.debug(f"✅ Insumo agregado: {desc[:50]}...")
 
     def _parse_mano_de_obra_compleja(self, data: Dict[str, str]):
+        """Analiza y agrega datos de mano de obra compleja al APU.
+
+        Args:
+            data (Dict[str, str]): Los datos de mano de obra extraídos.
+        """
         desc = data["descripcion"].strip()
         valor_total = self._to_numeric_safe(data["valor_total"])
         jornal_total = self._to_numeric_safe(data["jornal_total"])
@@ -507,6 +587,11 @@ class ReportParser:
             logger.debug(f"✅ MO Compleja agregada: {desc[:50]}...")
 
     def _parse_mano_de_obra_simple(self, data: Dict[str, str]):
+        """Analiza y agrega datos de mano de obra simple al APU.
+
+        Args:
+            data (Dict[str, str]): Los datos de mano de obra extraídos.
+        """
         desc = data["descripcion"].strip()
         cantidad = self._to_numeric_safe(data["cantidad"])
         precio_unit = self._to_numeric_safe(data["precio_unit"])
@@ -529,6 +614,11 @@ class ReportParser:
             logger.debug(f"✅ MO Simple agregada: {desc[:50]}...")
 
     def _add_apu_data(self, **kwargs):
+        """Agrega un registro de datos de APU a la lista de datos.
+
+        Args:
+            **kwargs: Los datos del registro de APU a agregar.
+        """
         base_data = {
             "CODIGO_APU": self.context["apu_code"],
             "DESCRIPCION_APU": self.context["apu_desc"],
@@ -551,6 +641,14 @@ class ReportParser:
         self.apus_data.append({**base_data, **record})
 
     def _to_numeric_safe(self, s: Optional[str]) -> float:
+        """Convierte una cadena a un número de punto flotante de forma segura.
+
+        Args:
+            s (Optional[str]): La cadena a convertir.
+
+        Returns:
+            float: El número convertido o 0.0 si la conversión falla.
+        """
         if not s or not isinstance(s, str):
             return 0.0
         s_cleaned = s.strip().replace("$", "").replace(" ", "")
@@ -581,11 +679,29 @@ class ReportParser:
     def _should_add_insumo(
         self, desc: str, cantidad: float, valor_total: float
     ) -> bool:
+        """Determina si se debe agregar un insumo a los datos del APU.
+
+        Args:
+            desc (str): La descripción del insumo.
+            cantidad (float): La cantidad del insumo.
+            valor_total (float): El valor total del insumo.
+
+        Returns:
+            bool: True si se debe agregar el insumo, False en caso contrario.
+        """
         if not desc or len(desc.strip()) < 2:
             return False
         return not (cantidad <= 0 and valor_total <= 0)
 
     def _looks_like_mo(self, line: str) -> bool:
+        """Comprueba si una línea parece ser de mano de obra.
+
+        Args:
+            line (str): La línea a comprobar.
+
+        Returns:
+            bool: True si la línea parece ser de mano de obra, False en caso contrario.
+        """
         mo_keywords = [
             "M.O.",
             "MANO DE OBRA",
@@ -602,6 +718,15 @@ class ReportParser:
         return any(keyword in line.upper() for keyword in mo_keywords)
 
     def _calculate_mo_quantity(self, valor_total: float, jornal_total: float) -> float:
+        """Calcula la cantidad de mano de obra.
+
+        Args:
+            valor_total (float): El valor total.
+            jornal_total (float): El jornal total.
+
+        Returns:
+            float: La cantidad de mano de obra.
+        """
         if jornal_total <= 0:
             return 0.0
         return valor_total / jornal_total
@@ -609,11 +734,28 @@ class ReportParser:
     def _calculate_rendimiento_simple(
         self, valor_total: float, precio_unit: float
     ) -> float:
+        """Calcula el rendimiento para mano de obra simple.
+
+        Args:
+            valor_total (float): El valor total.
+            precio_unit (float): El precio unitario.
+
+        Returns:
+            float: El rendimiento calculado.
+        """
         if valor_total <= 0 or precio_unit <= 0:
             return 0.0
         return precio_unit / valor_total
 
     def _is_garbage_line(self, line: str) -> bool:
+        """Comprueba si una línea es basura y debe ser ignorada.
+
+        Args:
+            line (str): La línea a comprobar.
+
+        Returns:
+            bool: True si la línea es basura, False en caso contrario.
+        """
         upper_line = line.upper()
         return any(
             kw in upper_line
@@ -669,15 +811,35 @@ class ReportParser:
         return False
 
     def _has_data_structure(self, line: str) -> bool:
+        """Comprueba si una línea tiene una estructura de datos similar a un CSV.
+
+        Args:
+            line (str): La línea a comprobar.
+
+        Returns:
+            bool: True si la línea tiene una estructura de datos, False en caso contrario.
+        """
         return line.count(";") >= 2
 
     def _build_dataframe(self) -> pd.DataFrame:
+        """Construye un DataFrame a partir de los datos de APU analizados.
+
+        Returns:
+            pd.DataFrame: El DataFrame construido.
+        """
         if not self.apus_data:
             return pd.DataFrame()
         return pd.DataFrame(self.apus_data)
 
     def _normalize_text_single(self, text: str) -> str:
-        """Normaliza un único string de texto."""
+        """Normaliza un único string de texto.
+
+        Args:
+            text (str): El texto a normalizar.
+
+        Returns:
+            str: El texto normalizado.
+        """
         if not isinstance(text, str):
             text = str(text)
 

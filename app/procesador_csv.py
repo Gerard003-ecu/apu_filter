@@ -16,8 +16,16 @@ logger = logging.getLogger(__name__)
 
 # ==================== FUNCIONES AUXILIARES ====================
 
-def group_and_split_description(df):
-    """Conserva la descripción original y divide la principal en dos si es necesario."""
+def group_and_split_description(df: pd.DataFrame) -> pd.DataFrame:
+    """Conserva la descripción original y la divide en principal y secundaria.
+
+    Args:
+        df (pd.DataFrame): El DataFrame que contiene la columna 'DESCRIPCION_APU'.
+
+    Returns:
+        pd.DataFrame: El DataFrame con la descripción original conservada y
+                      dividida en 'DESCRIPCION_APU' y 'descripcion_secundaria'.
+    """
     df_grouped = df.copy()
     df_grouped["original_description"] = df_grouped["DESCRIPCION_APU"]
 
@@ -33,7 +41,15 @@ def group_and_split_description(df):
 
 
 def process_presupuesto_csv(path: str, config: dict) -> pd.DataFrame:
-    """Lee y procesa el archivo CSV del presupuesto."""
+    """Lee y procesa el archivo CSV del presupuesto.
+
+    Args:
+        path (str): La ruta al archivo CSV del presupuesto.
+        config (dict): La configuración de la aplicación.
+
+    Returns:
+        pd.DataFrame: Un DataFrame con los datos del presupuesto procesados.
+    """
     df = safe_read_dataframe(path, header=None)
     if df is None:
         return pd.DataFrame()
@@ -91,8 +107,15 @@ def process_presupuesto_csv(path: str, config: dict) -> pd.DataFrame:
         return pd.DataFrame()
 
 
-def process_insumos_csv(file_path):
-    """Procesa el archivo CSV de insumos con formato no estándar."""
+def process_insumos_csv(file_path: str) -> pd.DataFrame:
+    """Procesa el archivo CSV de insumos con formato no estándar.
+
+    Args:
+        file_path (str): La ruta al archivo CSV de insumos.
+
+    Returns:
+        pd.DataFrame: Un DataFrame con los datos de insumos procesados.
+    """
     try:
         with open(file_path, "r", encoding="latin1") as f:
             lines = f.readlines()
@@ -160,16 +183,33 @@ def process_insumos_csv(file_path):
         return pd.DataFrame()
 
 
-def process_all_files(presupuesto_path, apus_path, insumos_path, config):
-    """Orquesta el procesamiento completo de los archivos de entrada."""
+def process_all_files(
+    presupuesto_path: str, apus_path: str, insumos_path: str, config: dict
+) -> dict:
+    """Orquesta el procesamiento completo de los archivos de entrada.
+
+    Args:
+        presupuesto_path (str): La ruta al archivo del presupuesto.
+        apus_path (str): La ruta al archivo de APUs.
+        insumos_path (str): La ruta al archivo de insumos.
+        config (dict): La configuración de la aplicación.
+
+    Returns:
+        dict: Un diccionario con los datos procesados.
+    """
     return _do_processing(presupuesto_path, apus_path, insumos_path, config)
 
 
 # ==================== LÓGICA PRINCIPAL ====================
 
-def _calculate_apu_costs_and_metadata(df_merged):
-    """
-    Calculates costs, classifies APUs, and extracts metadata like time and performance.
+def _calculate_apu_costs_and_metadata(df_merged: pd.DataFrame) -> tuple:
+    """Calcula costos, clasifica APUs y extrae metadatos.
+
+    Args:
+        df_merged (pd.DataFrame): El DataFrame fusionado con los datos de APU.
+
+    Returns:
+        tuple: Una tupla con los DataFrames de costos de APU, tiempo y rendimiento.
     """
     # ========== 4. AGREGAR COSTOS POR APU Y CATEGORÍA (VALIDADO) ==========
     logger.info("📊 Agregando costos por APU y categoría...")
@@ -250,10 +290,19 @@ def _calculate_apu_costs_and_metadata(df_merged):
     return df_apu_costos, df_tiempo, df_rendimiento
 
 
-def _do_processing(presupuesto_path, apus_path, insumos_path, config):
-    """
-    Lógica central para procesar, unificar y calcular todos los datos.
-    VERSIÓN MEJORADA CON VALIDACIONES ANTI-EXPLOSIÓN.
+def _do_processing(
+    presupuesto_path: str, apus_path: str, insumos_path: str, config: dict
+) -> dict:
+    """Lógica central para procesar, unificar y calcular todos los datos.
+
+    Args:
+        presupuesto_path (str): La ruta al archivo del presupuesto.
+        apus_path (str): La ruta al archivo de APUs.
+        insumos_path (str): La ruta al archivo de insumos.
+        config (dict): La configuración de la aplicación.
+
+    Returns:
+        dict: Un diccionario con los datos procesados.
     """
     logger.info("=" * 80)
     logger.info("🚀 Iniciando procesamiento de archivos...")

@@ -153,11 +153,12 @@ def create_app(config_name):
             return jsonify({"error": "Error interno del servidor"}), 500
 
     def get_user_data():
-        """Recupera los datos procesados asociados a la sesión del usuario actual.
+        """Recupera los datos procesados asociados a la sesión del usuario.
 
         Returns:
-            tuple: Una tupla conteniendo los datos del usuario (dict) y una
-                   respuesta de error (Response o None) con su código de estado.
+            tuple: Una tupla con los datos del usuario (dict), una respuesta
+                   de error (Response o None) y un código de estado.
+
         """
         if "session_id" not in session:
             return None, jsonify({"error": "Sesión no iniciada"}), 401
