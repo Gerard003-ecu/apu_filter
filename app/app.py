@@ -23,6 +23,8 @@ from .utils import sanitize_for_json
 user_sessions = {}
 SESSION_TIMEOUT = 3600  # 1 hora
 
+import logging
+
 def create_app(config_name):
     """Crea y configura una instancia de la aplicación Flask.
 
@@ -37,6 +39,7 @@ def create_app(config_name):
     Returns:
         Flask: La instancia de la aplicación Flask configurada.
     """
+    logging.basicConfig(level=logging.DEBUG)
     app = Flask(__name__)
 
     # Cargar configuración desde el objeto de configuración
@@ -145,11 +148,15 @@ def create_app(config_name):
                 os.rmdir(user_dir)
 
             if "error" in processed_data:
+                app.logger.error(f"Error de procesamiento: {processed_data['error']}")
                 return jsonify(processed_data), 500
             return jsonify(sanitize_for_json(processed_data))
 
         except Exception as e:
-            app.logger.error(f"Error en upload_files: {str(e)}")
+            import traceback
+            with open("upload_error.log", "w") as f:
+                f.write(traceback.format_exc())
+            app.logger.error(f"Excepción no controlada en upload_files: {str(e)}", exc_info=True)
             return jsonify({"error": "Error interno del servidor"}), 500
 
     def get_user_data():

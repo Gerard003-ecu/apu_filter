@@ -11,4 +11,4 @@ if __name__ == "__main__":
     # Esta parte es útil para ejecutar la aplicación directamente con `python wsgi.py`
     # para pruebas locales en un entorno de producción simulado.
     # Gunicorn no usará esta sección.
-    app.run()
+    app.run(use_reloader=False)

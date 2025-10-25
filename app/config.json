@@ -20,5 +20,21 @@
       "FACHADA": "INSTALACION"
     }
   },
-  "min_score_threshold": 85
+  "min_score_threshold": 85,
+  "estimator_rules": {
+    "factores_zona": {
+      "ZONA 0": 1.0,
+      "ZONA 1": 1.05,
+      "ZONA 2": 1.10,
+      "ZONA 3": 1.15
+    },
+    "costo_adicional_izaje": {
+      "MANUAL": 0,
+      "GRUA": 5000
+    },
+    "factor_seguridad": {
+      "NORMAL": 1.0,
+      "ALTA": 1.15
+    }
+  }
 }

@@ -153,7 +153,11 @@ def calculate_estimate(
     # Obtener parámetros
     material = params.get("material", "").upper()
     cuadrilla = params.get("cuadrilla", "0")
+    zona = params.get("zona", "ZONA 0")
+    izaje = params.get("izaje", "MANUAL")
+    seguridad = params.get("seguridad", "NORMAL")
     log.append(f"📝 Material: '{material}' | Cuadrilla: '{cuadrilla}'")
+    log.append(f"📝 Config: Zona='{zona}', Izaje='{izaje}', Seguridad='{seguridad}'")
 
     # Mapear material si existe configuración
     param_map = config.get("param_map", {})
@@ -296,29 +300,53 @@ def calculate_estimate(
         log.append("⚠️ No se encontró tarea de instalación")
 
     # ============================================
-    # 5. CÁLCULO FINAL
+    # 5. CÁLCULO FINAL CON REGLAS DE NEGOCIO
     # ============================================
     log.append("\n" + "="*70)
-    log.append("🧮 CÁLCULO FINAL")
+    log.append("🧮 CÁLCULO FINAL CON REGLAS DE NEGOCIO")
     log.append("-"*70)
 
-    # Calcular costo MO por unidad
-    costo_mo_por_m2 = 0.0
+    # Cargar reglas de negocio
+    rules = config.get("estimator_rules", {})
+    factor_zona = rules.get("factores_zona", {}).get(zona, 1.0)
+    costo_adicional_izaje = rules.get("costo_adicional_izaje", {}).get(izaje, 0)
+    factor_seguridad = rules.get("factor_seguridad", {}).get(seguridad, 1.0)
+
+    # 1. Calcular costo_mo_base
+    costo_mo_base = 0.0
     if rendimiento_dia > 0:
-        costo_mo_por_m2 = costo_diario_cuadrilla / rendimiento_dia
+        costo_mo_base = costo_diario_cuadrilla / rendimiento_dia
         log.append(
-            f"💵 Costo MO/un = ${costo_diario_cuadrilla:,.2f} ÷ {rendimiento_dia:.2f} "
-            f"= ${costo_mo_por_m2:,.2f}"
+            f"  [1] Costo MO Base = (Costo Cuadrilla / Rendimiento) = "
+            f"${costo_diario_cuadrilla:,.2f} / {rendimiento_dia:.2f} "
+            f"= ${costo_mo_base:,.2f}"
         )
     else:
-        log.append("💵 Costo MO/un = $0 (sin rendimiento)")
+        log.append("  [1] Costo MO Base = $0.00 (Rendimiento es 0)")
 
-    # Calcular valor instalación
-    valor_instalacion = costo_mo_por_m2 + costo_equipo
+    # 2. Aplicar factor de seguridad
+    costo_mo_ajustado = costo_mo_base * factor_seguridad
     log.append(
-        f"🔨 Instalación = ${costo_mo_por_m2:,.2f} + ${costo_equipo:,.2f} "
-        f"= ${valor_instalacion:,.2f}"
+        f"  [2] Costo MO Ajustado = (Costo MO Base * Factor Seguridad) = "
+        f"${costo_mo_base:,.2f} * {factor_seguridad} "
+        f"= ${costo_mo_ajustado:,.2f}"
     )
+
+    # 3. Calcular costo_instalacion_final
+    costo_instalacion_final = (costo_mo_ajustado + costo_equipo) * factor_zona \
+        + costo_adicional_izaje
+    log.append(
+        f"  [3] Costo Instalación Final = "
+        f"((MO Ajustado + Equipo) * Factor Zona) + Costo Izaje"
+    )
+    log.append(
+        f"      = ((${costo_mo_ajustado:,.2f} + ${costo_equipo:,.2f}) "
+        f"* {factor_zona}) + ${costo_adicional_izaje:,.2f}"
+    )
+    log.append(f"      = ${costo_instalacion_final:,.2f}")
+
+    # Asignar a `valor_instalacion` para mantener la estructura de respuesta
+    valor_instalacion = costo_instalacion_final
 
     # Calcular valor construcción total
     valor_construccion = valor_suministro + valor_instalacion
@@ -342,11 +370,17 @@ def calculate_estimate(
         f"🔨 Instalación:   ${valor_instalacion:,.2f}"
         )
     log.append(
-        f"   └─ MO:         ${costo_mo_por_m2:,.2f}"
-        )
+        f"   ├─ MO Base:    ${costo_mo_base:,.2f}"
+    )
     log.append(
-        f"   └─ Equipo:     ${costo_equipo:,.2f}"
-        )
+        f"   ├─ Ajustes MO: ${costo_mo_ajustado - costo_mo_base:,.2f} (Seguridad)"
+    )
+    log.append(
+        f"   ├─ Equipo:     ${costo_equipo:,.2f}"
+    )
+    log.append(
+        f"   └─ Ajustes Adicionales: ${valor_instalacion - (costo_mo_ajustado + costo_equipo):,.2f} (Zona, Izaje)"
+    )
     log.append(
         "-"*70
         )
