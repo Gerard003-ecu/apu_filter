@@ -387,8 +387,18 @@ class ReportParser:
 
         match_insumo = self.PATTERNS["insumo_full"].match(line)
         if match_insumo:
-            self._parse_insumo(match_insumo.groupdict())
-            return True
+            data = match_insumo.groupdict()
+            # Un insumo real debe tener unidad o valores numéricos significativos.
+            # Si no, es probable que sea una descripción de APU.
+            is_real_insumo = (
+                data["unidad"].strip()
+                or self._to_numeric_safe(data["cantidad"]) > 0
+                or self._to_numeric_safe(data["precio_unit"]) > 0
+                or self._to_numeric_safe(data["valor_total"]) > 0
+            )
+            if is_real_insumo:
+                self._parse_insumo(data)
+                return True
 
         if self._has_data_structure(line):
             if self._try_fallback_parsing(line, line_num):
