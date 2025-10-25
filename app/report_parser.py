@@ -118,129 +118,67 @@ class ReportParser:
         return df
 
     def _process_line(self, line: str, line_num: int):
-        """Procesa una sola línea del archivo de APU.
-
-        Args:
-            line (str): La línea a procesar.
-            line_num (int): El número de la línea en el archivo.
-        """
+        """Procesa una sola línea con una máquina de estados corregida."""
         line = line.strip()
+
+        # Regla 1: Una línea en blanco SIEMPRE resetea el contexto a inactivo.
         if not line:
-            # NO resetear potential_apu_desc aquí, solo el contexto actual
-            self.context["apu_code"] = None
-            logger.debug(
-                "🔄 Contexto de APU reseteado por línea"
-                " vacía (descripción potencial preservada)."
-                )
+            if self.context["apu_code"] is not None:
+                logger.debug(f"🔄 Contexto de APU {self.context['apu_code']} cerrado por línea en blanco.")
+                self.context["apu_code"] = None
             return
 
-        self.stats["processed_lines"] += 1
-
-        # 0. ⚡ FILTRO PRIORITARIO: Descartar líneas de metadatos
-        if self._is_metadata_line(line):
-            self.stats["garbage_lines"] += 1
-            logger.debug(f"⏭️  Línea de metadato descartada en L{line_num}")
-            return
-
-        # 1. Filtrado de basura general
-        if self._is_garbage_line(line):
-            self.stats["garbage_lines"] += 1
-            return
-
-        upper_line = line.upper()
-
-        # 2. 🔥 CAPTURA DE DESCRIPCIÓN POTENCIAL (ANTES DE BUSCAR ITEM)
-        # Si no estamos en un APU activo Y la línea parece una descripción
-        is_potential_item = self.PATTERNS["item_code"].search(upper_line)
-        if not self.context["apu_code"] and not is_potential_item:
-            if self._is_potential_description(line, line_num):
-                # Capturar toda la línea como descripción potencial
-                self.potential_apu_desc = line.split(';')[0].strip()
-                logger.debug(
-                    f"📝 Descripción potencial capturada"
-                    f" (L{line_num}): '{self.potential_apu_desc[:50]}...'")
-                return
-
-        # 3. Detección de ITEM (usa la descripción capturada previamente)
-        match_item = self.PATTERNS["item_code"].search(upper_line)
+        # Regla 2: Buscar un nuevo ITEM para iniciar un APU.
+        match_item = self.PATTERNS["item_code"].search(line.upper())
         if match_item:
             raw_code = match_item.group(1).strip()
-            unit_match = re.search(r"UNIDAD:\s*([A-Z0-9/%]+)", upper_line)
+            unit_match = re.search(r"UNIDAD:\s*([A-Z0-9/%]+)", line.upper())
             unit = unit_match.group(1) if unit_match else "INDEFINIDO"
-
-            logger.debug(
-                f"🆕 ITEM detectado (L{line_num}): código='{raw_code}', unidad='{unit}', "
-                f"descripción pendiente='{self.potential_apu_desc[:30]}...'"
-            )
             self._start_new_apu(raw_code, unit)
             return
 
-        # 4. Lógica dependiente del estado
-        if not self.context["apu_code"]:
-            # ESTADO INACTIVO: Ya capturamos descripción arriba, no hacer nada más
+        # Si no estamos en un APU activo, ignorar la línea.
+        if self.context["apu_code"] is None:
             return
 
-        # --- ESTADO ACTIVO: APU en progreso ---
+        # --- ESTADO ACTIVO: Estamos dentro de un APU ---
 
-        # A. PRIMERO: Intentar detectar categoría
-        category_detected = self._try_detect_category_change(line, upper_line)
-        if category_detected:
+        # Regla 3: Si la descripción del APU está vacía, esta línea DEBE ser la descripción.
+        if not self.context["apu_desc"]:
+            if self._is_potential_description(line, line_num):
+                self.context["apu_desc"] = line.split(';')[0].strip()
+                logger.debug(f"📝 Descripción asignada a {self.context['apu_code']}: '{self.context['apu_desc'][:50]}...'")
+                return
+
+        # Regla 4: Intentar detectar un cambio de categoría.
+        if self._try_detect_category_change(line, line.upper()):
             return
 
-        # B. SEGUNDO: Intentar parsear como dato
+        # Regla 5: Intentar parsear la línea como datos de insumo.
         if self._try_parse_as_data_line(line, line_num):
             return
 
-        # C. TERCERO: Si estamos en un APU pero la línea no es dato ni categoría,
-        #    podría ser la descripción del SIGUIENTE APU
-        if self._is_potential_description(line, line_num):
-            # Guardar para el próximo APU
-            self.potential_apu_desc = line.split(';')[0].strip()
-            logger.debug(
-                f"📝 Nueva descripción potencial capturada"
-                f" (L{line_num}): '{self.potential_apu_desc[:50]}...'"
-                )
+        # Si nada coincide, registrar como no reconocida.
+        logger.warning(f"⚠️ Línea {line_num} no reconocida dentro del APU {self.context['apu_code']}: {line[:100]}...")
+        self.stats["unparsed_data_lines"] += 1
+
 
     def _start_new_apu(self, raw_code: str, unit: str):
-        """Inicia un nuevo APU en el contexto de análisis.
-
-        Args:
-            raw_code (str): El código de APU sin procesar.
-            unit (str): La unidad del APU.
-        """
+        """Inicia un nuevo APU, reseteando el contexto."""
         cleaned_code = clean_apu_code(raw_code)
-
         if not cleaned_code:
-            logger.warning(
-                f"⚠️ Código APU no válido: '{raw_code}' - Reseteando contexto completo"
-            )
-            # NO resetear potential_apu_desc aquí, podría ser para el siguiente APU válido
-            self.context = {
-                "apu_code": None,
-                "apu_desc": "",
-                "apu_unit": "",
-                "category": "INDEFINIDO",
-            }
+            self.context["apu_code"] = None
             return
 
-        # 🔥 IMPORTANTE: Usar la descripción capturada previamente
-        descripcion_apu = self.potential_apu_desc if self.potential_apu_desc else ""
-
-        # APU válido: establecer nuevo contexto con la descripción capturada
+        # Iniciar nuevo contexto con descripción vacía. Se llenará después.
         self.context = {
             "apu_code": cleaned_code,
-            "apu_desc": descripcion_apu,  # 🔥 Aquí usamos la descripción capturada
+            "apu_desc": "",
             "apu_unit": unit.strip(),
             "category": "INDEFINIDO",
         }
-
-        logger.info(
-            f"✅ Nuevo APU iniciado: {cleaned_code} - '{descripcion_apu[:50]}...' ({unit})"
-        )
-
-        # Resetear SOLO después de usar la descripción
-        self.potential_apu_desc = ""
         self.stats["items_found"] += 1
+        logger.info(f"✅ Nuevo APU iniciado: {cleaned_code} (esperando descripción)")
 
     def _is_potential_description(self, line: str, line_num: int) -> bool:
         """Determina si una línea podría ser una descripción de APU.
