@@ -354,8 +354,12 @@ def _do_processing(
             .sort_values(ascending=False)
             .head(10)
         )
-        logger.error(f"Descripciones normalizadas con más ocurrencias:\n{problematic}")
-        logger.warning("⚠️ Continuando con precaución...")
+        logger.error(
+            f"Descripciones normalizadas con más ocurrencias:\n{problematic}"
+            )
+        logger.warning(
+            "⚠️ Continuando con precaución..."
+            )
 
     df_merged["TIPO_INSUMO"] = df_merged["CATEGORIA"]
     df_merged["DESCRIPCION_INSUMO"] = df_merged["DESCRIPCION_INSUMO"].fillna(
