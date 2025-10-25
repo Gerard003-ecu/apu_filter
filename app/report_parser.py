@@ -100,7 +100,10 @@ class ReportParser:
         if not line:
             # NO resetear potential_apu_desc aquí, solo el contexto actual
             self.context["apu_code"] = None
-            logger.debug("🔄 Contexto de APU reseteado por línea vacía (descripción potencial preservada).")
+            logger.debug(
+                "🔄 Contexto de APU reseteado por línea"
+                " vacía (descripción potencial preservada)."
+                )
             return
 
         self.stats["processed_lines"] += 1
@@ -124,7 +127,9 @@ class ReportParser:
             if self._is_potential_description(line):
                 # Capturar toda la línea como descripción potencial
                 self.potential_apu_desc = line.split(';')[0].strip()
-                logger.debug(f"📝 Descripción potencial capturada (L{line_num}): '{self.potential_apu_desc[:50]}...'")
+                logger.debug(
+                    f"📝 Descripción potencial capturada"
+                    f" (L{line_num}): '{self.potential_apu_desc[:50]}...'")
                 return
 
         # 3. Detección de ITEM (usa la descripción capturada previamente)
@@ -162,11 +167,14 @@ class ReportParser:
         if self._is_potential_description(line):
             # Guardar para el próximo APU
             self.potential_apu_desc = line.split(';')[0].strip()
-            logger.debug(f"📝 Nueva descripción potencial capturada (L{line_num}): '{self.potential_apu_desc[:50]}...'")
+            logger.debug(
+                f"📝 Nueva descripción potencial capturada"
+                f" (L{line_num}): '{self.potential_apu_desc[:50]}...'"
+                )
 
     def _start_new_apu(self, raw_code: str, unit: str):
         """
-        VERSIÓN CORREGIDA: Usa la descripción capturada previamente y la preserva correctamente.
+        Usa la descripción capturada previamente y la preserva correctamente.
         """
         cleaned_code = clean_apu_code(raw_code)
 
@@ -249,7 +257,9 @@ class ReportParser:
         # Si contiene alguna palabra clave típica de descripción, es muy probable que lo sea
         for keyword in description_keywords:
             if keyword in upper_line:
-                logger.debug(f"✅ Descripción detectada por palabra clave '{keyword}': {line_clean[:50]}...")
+                logger.debug(
+                    f"✅ Descripción detectada por palabra clave (L{line_num}): '{keyword}': {line_clean[:50]}..."
+                    )
                 return True
 
         # Si no tiene palabras clave pero tiene suficiente texto alfabético,
@@ -267,8 +277,12 @@ class ReportParser:
             logger.info(f"   {key}: {value}")
 
         # Contar APUs con descripción
-        apus_con_desc = sum(1 for apu in self.apus_data if apu.get("DESCRIPCION_APU"))
-        total_apus = len(set(apu["CODIGO_APU"] for apu in self.apus_data if apu.get("CODIGO_APU")))
+        apus_con_desc = sum(
+            1 for apu in self.apus_data if apu.get("DESCRIPCION_APU")
+            )
+        total_apus = len(
+            set(apu["CODIGO_APU"] for apu in self.apus_data if apu.get("CODIGO_APU"))
+            )
 
         logger.info(f"   APUs con descripción: {apus_con_desc}/{total_apus}")
 

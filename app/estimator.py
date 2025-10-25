@@ -44,9 +44,16 @@ def _find_best_match(
         log.append("  --> Pool vacío o sin keywords, retornando None.")
         return None
 
-    log.append(f"  🔍 Buscando: {' '.join(keywords)}")
-    log.append(f"  📊 Pool size: {len(df_pool)} APUs")
-    log.append(f"  ⚙️ Modo: {'ESTRICTO (100%)' if strict else f'FLEXIBLE (≥{min_match_percentage}%)'}")
+    log.append(
+        f"  🔍 Buscando: {' '.join(keywords)}"
+        )
+    log.append(
+        f"  📊 Pool size: {len(df_pool)} APUs"
+        )
+    log.append(
+        f"  ⚙️ Modo: "
+        f"{'ESTRICTO (100%)' if strict else f'FLEXIBLE (≥{min_match_percentage}%)'}"
+        )
 
     best_match = None
     best_score = 0
@@ -302,15 +309,33 @@ def calculate_estimate(
     # ============================================
     # RESUMEN FINAL
     # ============================================
-    log.append("\n" + "="*70)
-    log.append("📊 RESUMEN EJECUTIVO")
-    log.append("="*70)
-    log.append(f"📦 Suministro:    ${valor_suministro:,.2f}  ({apu_suministro_desc[:50]}...)")
-    log.append(f"🔨 Instalación:   ${valor_instalacion:,.2f}")
-    log.append(f"   └─ MO:         ${costo_mo_por_m2:,.2f}")
-    log.append(f"   └─ Equipo:     ${costo_equipo:,.2f}")
-    log.append("-"*70)
-    log.append(f"💰 TOTAL:         ${valor_construccion:,.2f}")
+    log.append(
+        "\n" + "="*70
+        )
+    log.append(
+        "📊 RESUMEN EJECUTIVO"
+        )
+    log.append(
+        "="*70
+        )
+    log.append(
+        f"📦 Suministro:    ${valor_suministro:,.2f}  ({apu_suministro_desc[:50]}...)"
+        )
+    log.append(
+        f"🔨 Instalación:   ${valor_instalacion:,.2f}"
+        )
+    log.append(
+        f"   └─ MO:         ${costo_mo_por_m2:,.2f}"
+        )
+    log.append(
+        f"   └─ Equipo:     ${costo_equipo:,.2f}"
+        )
+    log.append(
+        "-"*70
+        )
+    log.append(
+        f"💰 TOTAL:         ${valor_construccion:,.2f}"
+        )
 
     # Construir descripción de APUs encontrados
     apu_encontrado_str = (
