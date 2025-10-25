@@ -9,9 +9,15 @@ logger = logging.getLogger(__name__)
 COSTO_MAXIMO_RAZONABLE = 50_000_000
 
 def _validate_extreme_costs(presupuesto_data: list) -> list:
-    """
-    Valida los costos de construcción en la lista de presupuesto.
+    """Valida los costos de construcción en la lista de presupuesto.
+
     Añade una alerta si un costo unitario es excesivamente alto.
+
+    Args:
+        presupuesto_data (list): La lista de datos del presupuesto.
+
+    Returns:
+        list: La lista de datos del presupuesto con posibles alertas.
     """
     for item in presupuesto_data:
         if item.get("VALOR_CONSTRUCCION_UN", 0) > COSTO_MAXIMO_RAZONABLE:
@@ -27,9 +33,15 @@ def _validate_extreme_costs(presupuesto_data: list) -> list:
     return presupuesto_data
 
 def _validate_zero_quantity_with_cost(apus_detail_data: list) -> list:
-    """
-    Valida insumos con cantidad cero pero con un valor total positivo.
+    """Valida insumos con cantidad cero pero con un valor total positivo.
+
     Intenta recalcular la cantidad y añade una alerta si no es posible.
+
+    Args:
+        apus_detail_data (list): La lista de detalles de APU.
+
+    Returns:
+        list: La lista de detalles de APU con posibles correcciones y alertas.
     """
     for insumo in apus_detail_data:
         if insumo.get("CANTIDAD") == 0 and insumo.get("VALOR_TOTAL", 0) > 0:
@@ -62,9 +74,16 @@ def _validate_zero_quantity_with_cost(apus_detail_data: list) -> list:
 def _validate_missing_descriptions(
     apus_detail_data: list, raw_insumos_df: pd.DataFrame
 ) -> list:
-    """
-    Valida insumos con descripciones faltantes.
+    """Valida insumos con descripciones faltantes.
+
     Intenta encontrar la descripción más plausible usando fuzzy matching.
+
+    Args:
+        apus_detail_data (list): La lista de detalles de APU.
+        raw_insumos_df (pd.DataFrame): El DataFrame de insumos crudos.
+
+    Returns:
+        list: La lista de detalles de APU con descripciones corregidas.
     """
     if raw_insumos_df is None or "DESCRIPCION_INSUMO" not in raw_insumos_df.columns:
         logger.error(
@@ -96,16 +115,14 @@ def _validate_missing_descriptions(
 
 
 def validate_and_clean_data(data_store: dict) -> dict:
-    """
-    Agente de Validación de Datos.
-    Orquesta las validaciones y correcciones sobre los datos procesados.
+    """Orquesta las validaciones y correcciones sobre los datos procesados.
 
     Args:
-        data_store (dict): El diccionario de datos que contiene 'presupuesto',
-                           'apus_detail', y 'raw_insumos_df'.
+        data_store (dict): Un diccionario que contiene 'presupuesto',
+                           'apus_detail' y 'raw_insumos_df'.
 
     Returns:
-        dict: El data_store enriquecido con validaciones y alertas.
+        dict: El diccionario de datos enriquecido con validaciones y alertas.
     """
     logger.info("El Agente de Validación de Datos ha iniciado.")
 

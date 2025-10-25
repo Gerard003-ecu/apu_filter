@@ -11,11 +11,15 @@ logger = logging.getLogger(__name__)
 def _calculate_match_score(
     desc_words: set, keywords: List[str]
 ) -> Tuple[int, float]:
-    """
-    Calcula un puntaje de coincidencia para un APU.
+    """Calcula un puntaje de coincidencia para un APU.
+
+    Args:
+        desc_words (set): Un conjunto de palabras de la descripción.
+        keywords (List[str]): Una lista de palabras clave a buscar.
 
     Returns:
-        Tuple[int, float]: (número de palabras coincidentes, porcentaje de coincidencia)
+        Tuple[int, float]: Una tupla con el número de palabras coincidentes
+                           y el porcentaje de coincidencia.
     """
     matches = sum(1 for keyword in keywords if keyword in desc_words)
     percentage = (matches / len(keywords) * 100) if keywords else 0
@@ -27,18 +31,23 @@ def _find_best_match(
     keywords: List[str],
     log: List[str],
     strict: bool = False,
-    min_match_percentage: float = 30.0
+    min_match_percentage: float = 30.0,
 ) -> Optional[pd.Series]:
-    """
-    Encuentra el mejor APU que coincida con una lista de palabras clave.
-    Usa un sistema de puntuación para seleccionar la mejor coincidencia.
+    """Encuentra la mejor coincidencia de APU para una lista de palabras clave.
+
+    Utiliza un sistema de puntuación para seleccionar la mejor coincidencia
+    basado en el número de palabras clave que coinciden.
 
     Args:
-        df_pool: DataFrame con los APUs disponibles
-        keywords: Lista de palabras clave a buscar
-        log: Lista para registrar el proceso de búsqueda
-        strict: Si True, requiere 100% de coincidencia
-        min_match_percentage: Porcentaje mínimo de coincidencia requerido
+        df_pool (pd.DataFrame): El DataFrame de APUs disponibles.
+        keywords (List[str]): La lista de palabras clave a buscar.
+        log (List[str]): Una lista para registrar el proceso de búsqueda.
+        strict (bool): Si es True, requiere una coincidencia del 100%.
+        min_match_percentage (float): El porcentaje mínimo de coincidencia.
+
+    Returns:
+        Optional[pd.Series]: La mejor coincidencia de APU o None si no se
+                             encuentra ninguna.
     """
     if df_pool.empty or not keywords:
         log.append("  --> Pool vacío o sin keywords, retornando None.")
@@ -107,15 +116,23 @@ def _find_best_match(
 def calculate_estimate(
     params: Dict[str, str], data_store: Dict, config: Dict
 ) -> Dict[str, Union[str, float, List[str]]]:
-    """
-    Función detective que busca componentes de forma atómica y ensambla el resultado.
+    """Busca componentes de forma atómica y ensambla el resultado.
 
     Algoritmo:
-    1. Carga de datos
-    2. Búsqueda de Suministro (tipos: Suministro, Suministro Pre-fabricado)
-    3. Búsqueda de Cuadrilla (UNIDAD = DIA, modo strict)
-    4. Búsqueda de Tarea para Rendimiento y Equipo (tipo: Instalación)
-    5. Cálculo final ensamblando los componentes
+    1. Carga los datos.
+    2. Busca el suministro.
+    3. Busca la cuadrilla.
+    4. Busca la tarea para el rendimiento y el equipo.
+    5. Calcula el resultado final ensamblando los componentes.
+
+    Args:
+        params (Dict[str, str]): Los parámetros para la estimación.
+        data_store (Dict): El almacén de datos con los datos procesados.
+        config (Dict): La configuración de la aplicación.
+
+    Returns:
+        Dict[str, Union[str, float, List[str]]]: Un diccionario con el
+                                                 resultado de la estimación.
     """
     log = []
     log.append("🕵️ ESTIMADOR DETECTIVE INICIADO")
