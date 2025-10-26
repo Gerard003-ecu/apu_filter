@@ -325,5 +325,26 @@ class TestNewReportParser(unittest.TestCase):
         self.assertEqual(len(df["CODIGO_APU"].unique()), 2)
         self.assertEqual(len(df), 2)
 
+    def test_unit_extraction_robustness(self):
+        """Prueba la extracción robusta de unidades de medida."""
+        test_cases = [
+            ("ITEM: APU-01; UNIDAD: M2", "M2"),
+            ("ITEM: APU-02; UNIDAD M3", "M3"),
+            ("ITEM: APU-03; UNIDAD: UND", "UND"),
+            ("ITEM: APU-04; UNIDAD: JOR.", "JOR"),
+            ("ITEM: APU-05; JORNAL", "JOR"),
+            ("ITEM: APU-06; UNIDAD: SERVICIO", "SERVICIO"),
+            ("ITEM: APU-07; ML", "ML"),
+            ("ITEM: APU-08", "INDEFINIDO"),
+        ]
+
+        for i, (content, expected_unit) in enumerate(test_cases):
+            with self.subTest(test_case=i):
+                apu_data = content + "\nDESCRIPCION DE PRUEBA\nInsumo;U;1;;1;1"
+                parser = self._create_parser_for_content(apu_data, f"unit_test_{i}.txt")
+                df = parser.parse()
+                self.assertFalse(df.empty)
+                self.assertEqual(df["UNIDAD_APU"].iloc[0], expected_unit)
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
