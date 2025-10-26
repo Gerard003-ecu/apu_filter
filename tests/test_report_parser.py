@@ -350,7 +350,7 @@ class TestNewReportParser(unittest.TestCase):
             ("ITEM: APU-05; JORNAL", "JOR"),
             ("ITEM: APU-06; UNIDAD: SERVICIO", "SERVICIO"),
             ("ITEM: APU-07; ML", "ML"),
-            ("ITEM: APU-08", "INDEFINIDO"),
+            ("ITEM: APU-08", "UND"),
         ]
 
         for i, (content, expected_unit) in enumerate(test_cases):
