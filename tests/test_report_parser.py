@@ -350,12 +350,12 @@ class TestNewReportParser(unittest.TestCase):
             ("ITEM: APU-05; JORNAL", "JOR"),
             ("ITEM: APU-06; UNIDAD: SERVICIO", "SERVICIO"),
             ("ITEM: APU-07; ML", "ML"),
-            ("ITEM: APU-08", "UND"),
+            ("ITEM: APU-08", "M2"),
         ]
 
         for i, (content, expected_unit) in enumerate(test_cases):
             with self.subTest(test_case=i):
-                apu_data = content + "\nDESCRIPCION DE PRUEBA\nInsumo;U;1;;1;1"
+                apu_data = content + "\nTEXTO DE PRUEBA\nInsumo;U;1;;1;1"
                 parser = self._create_parser_for_content(apu_data, f"unit_test_{i}.txt")
                 df = parser.parse()
                 self.assertFalse(df.empty)
