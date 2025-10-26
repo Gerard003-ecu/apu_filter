@@ -169,25 +169,27 @@ class ReportParser:
             self._process_apu_data(line, line_num)
 
     def _capture_apu_description(self, line: str, line_num: int):
-        """Captura la descripción del APU - SIMPLE Y DIRECTA."""
-        # LÓGICA SIMPLIFICADA: La primera línea no vacía después de ITEM es la descripción
+        """Captura la descripción del APU e infiere la unidad automáticamente."""
+        # LÓGICA SIMPLIFICADA: La primera línea después de ITEM es la descripción
         description = line.split(';')[0].strip()
 
         # Validaciones básicas
         if not description or len(description) < 3:
-            logger.warning(
-                "⚠️ Descripción muy corta o vacía en APU %s", self.context['apu_code']
-            )
+            logger.warning(f"⚠️ Descripción muy corta o vacía en APU {self.context['apu_code']}")
             description = "DESCRIPCIÓN NO DISPONIBLE"
 
         # ASIGNAR DESCRIPCIÓN SIEMPRE
         self.context["apu_desc"] = description
+
+        # 🎯 INFERIR UNIDAD AUTOMÁTICAMENTE SI ES "UND" (no se encontró explícita)
+        if self.context["apu_unit"] == "UND":
+            inferred_unit = self._infer_unit_from_context(description, self.context["category"])
+            self.context["apu_unit"] = inferred_unit
+            logger.info(f"🎯 Unidad inferida '{inferred_unit}' para APU {self.context['apu_code']}: '{description[:50]}...'")
+
         self._transition_to(ParserState.PROCESSING_APU, "descripción capturada")
 
-        logger.info(
-            "✅ Descripción asignada a %s: '%s...'",
-            self.context['apu_code'], description[:60]
-        )
+        logger.info(f"✅ Descripción asignada a {self.context['apu_code']}: '{description[:60]}...'")
 
         # IMPORTANTE: La línea podría contener datos después de ';'
         # Si tiene estructura de datos, procesarla también
@@ -195,6 +197,85 @@ class ReportParser:
             remaining_data = ';'.join(line.split(';')[1:])
             if remaining_data.strip():
                 self._try_parse_as_data_line(remaining_data, line_num)
+
+    def _infer_unit_from_context(self, description: str, category: str) -> str:
+        """
+        Infiere la unidad de medida basándose en la descripción y categoría del APU.
+
+        Args:
+            description: Descripción del APU
+            category: Categoría actual del APU
+
+        Returns:
+            str: Unidad inferida (DIA, M2, M3, JOR, etc.)
+        """
+        desc_upper = description.upper()
+
+        logger.debug(f"🔍 Inferiendo unidad para: '{description}' | Categoría: {category}")
+
+        # INFERENCIA POR CATEGORÍA
+        if category == "MANO DE OBRA":
+            # Para mano de obra, usar JORNAL o DÍA según el contexto
+            if any(word in desc_upper for word in ["CUADRILLA", "EQUIPO", "GRUPO"]):
+                return "DIA"
+            else:
+                return "JOR"
+
+        # INFERENCIA POR PALABRAS CLAVE EN DESCRIPCIÓN
+        inference_patterns = [
+            # CUADRILLAS (DIA)
+            (["CUADRILLA", "EQUIPO", "GRUPO", "BRIGADA", "DIA", "DIARIO", "JORNADA"], "DIA"),
+
+            # SUPERFICIE (M2)
+            (["M2", "METRO CUADRADO", "METRO CUADRAD", "M²", "SUPERFICIE", "AREA", "ÁREA"], "M2"),
+
+            # VOLUMEN (M3)
+            (["M3", "METRO CUBICO", "METRO CÚBICO", "M³", "VOLUMEN", "EXCAVACION", "RELLENO"], "M3"),
+
+            # LONGITUD (ML)
+            (["ML", "METRO LINEAL", "LINEAL", "LONGITUD", "TUBERIA", "TUBERÍA", "CANAL"], "ML"),
+
+            # SERVICIOS
+            (["SERVICIO", "SERV", "INSTALACION", "INSTALACIÓN", "MONTAJE"], "SERVICIO"),
+
+            # LOTES
+            (["LOTE", "LOT", "PAQUETE", "KIT"], "LOTE"),
+
+            # UNIDADES
+            (["UNIDAD", "UND", "UN", "UNIT", "ELEMENTO", "PIEZA"], "UND"),
+        ]
+
+        for keywords, unit in inference_patterns:
+            if any(keyword in desc_upper for keyword in keywords):
+                logger.info(f"🎯 Unidad inferida '{unit}' por keywords: {keywords}")
+                return unit
+
+        # INFERENCIA POR TIPO DE TRABAJO
+        work_patterns = [
+            (["CIMIENTO", "ZAPATA", "LOSA", "VIGA", "COLUMNA", "CONCRETO"], "M3"),
+            (["ACABADO", "PINTURA", "ENCHAPE", "PISO", "PARED", "MURO"], "M2"),
+            (["TUBERIA", "TUBERÍA", "CONDUCCION", "CONDUCCIÓN", "LINEA", "LÍNEA"], "ML"),
+            (["DEMOLICION", "DEMOLICIÓN", "RETIRO", "ELIMINACION", "ELIMINACIÓN"], "M3"),
+            (["LIMITE", "LÍMITE", "LINDERO", "CERC", "VALLA", "CERCA"], "ML"),
+        ]
+
+        for keywords, unit in work_patterns:
+            if any(keyword in desc_upper for keyword in keywords):
+                logger.info(f"🎯 Unidad inferida '{unit}' por tipo de trabajo: {keywords}")
+                return unit
+
+        # POR DEFECTO BASADO EN CATEGORÍA
+        default_units = {
+            "MATERIALES": "UND",
+            "MANO DE OBRA": "JOR",
+            "EQUIPO": "DIA",
+            "TRANSPORTE": "VIAJE",
+            "OTROS": "UND"
+        }
+
+        default_unit = default_units.get(category, "UND")
+        logger.info(f"🔄 Usando unidad por defecto '{default_unit}' para categoría '{category}'")
+        return default_unit
 
     def _process_apu_data(self, line: str, line_num: int):
         """Procesa datos dentro de un APU activo."""
@@ -586,69 +667,70 @@ class ReportParser:
         return alpha_count >= 10
 
     def _log_parsing_stats(self):
-        """Registrar estadísticas con diagnóstico EXTENDIDO de unidades."""
+        """Registrar estadísticas con diagnóstico de unidades inferidas."""
         logger.info("=" * 60)
-        logger.info("📊 MÉTRICAS FINALES DE PARSING - DIAGNÓSTICO EXTENDIDO")
+        logger.info("📊 MÉTRICAS FINALES DE PARSING - UNIDADES INFERIDAS")
         logger.info("=" * 60)
 
         for key, value in self.stats.items():
             logger.info(f" {key:.<35} {value}")
 
-        # ANÁLISIS PROFUNDO DE UNIDADES
+        # ANÁLISIS PROFUNDO DE UNIDADES INFERIDAS
         unique_apus = {}
         for apu in self.apus_data:
             codigo = apu.get("CODIGO_APU")
             if codigo and codigo not in unique_apus:
                 unique_apus[codigo] = {
-                    "desc": apu.get("DESCRIPCION_APU", ""),
-                    "unit": apu.get("UNIDAD_APU", "INDEFINIDO"),
+                    'desc': apu.get("DESCRIPCION_APU", ""),
+                    'unit': apu.get("UNIDAD_APU", "INDEFINIDO"),
+                    'category': apu.get("CATEGORIA", "INDEFINIDO")
                 }
 
-        # Contadores específicos
+        # CONTADORES ESPECÍFICOS
         apus_con_unidad_valida = 0
         unidades_encontradas = []
+        unidades_inferidas_no_und = 0
 
         for codigo, data in unique_apus.items():
-            if data["unit"] != "INDEFINIDO":
+            if data['unit'] != "INDEFINIDO":
                 apus_con_unidad_valida += 1
-                unidades_encontradas.append(data["unit"])
+                unidades_encontradas.append(data['unit'])
+                if data['unit'] != "UND":
+                    unidades_inferidas_no_und += 1
 
         total_apus = len(unique_apus)
 
         logger.info(f" APUs con descripción válida:......... {total_apus}/{total_apus}")
-        logger.info(
-            f" APUs con unidad válida:............ {apus_con_unidad_valida}/{total_apus}"
-        )
+        logger.info(f" APUs con unidad válida:............ {apus_con_unidad_valida}/{total_apus}")
+        logger.info(f" APUs con unidad inferida (no UND):... {unidades_inferidas_no_und}/{total_apus}")
 
         # DISTRIBUCIÓN DETALLADA
         from collections import Counter
-
         unit_counter = Counter(unidades_encontradas)
 
         logger.info("\n📏 DISTRIBUCIÓN DETALLADA DE UNIDADES:")
         for unit, count in unit_counter.most_common():
-            logger.info(f" {unit:.<20} {count}")
+            status = "✅ INFERIDA" if unit != "UND" else "🔄 POR DEFECTO"
+            logger.info(f" {unit:.<20} {count:.<3} {status}")
 
         # UNIDADES CRÍTICAS PARA EL ESTIMADOR
-        unidades_criticas = {"DIA", "JOR", "M2", "M3"}
+        logger.info("\n🎯 UNIDADES CRÍTICAS PARA EL ESTIMADOR:")
+        unidades_criticas = {'DIA', 'JOR', 'M2', 'M3', 'ML'}
         for unidad in unidades_criticas:
             count = sum(1 for u in unidades_encontradas if u == unidad)
-            logger.info(f" {unidad + ' (CRÍTICA)':.<20} {count}")
+            status = "✅ LISTO" if count > 0 else "❌ FALTANTE"
+            logger.info(f" {unidad:.<20} {count:.<3} {status}")
 
-        # MUESTRA DE APUs CON UNIDADES VÁLIDAS (si las hay)
-        if apus_con_unidad_valida > 0:
-            logger.info("\n✅ APUs CON UNIDADES VÁLIDAS:")
-            valid_apus = [
-                (codigo, data)
-                for codigo, data in unique_apus.items()
-                if data["unit"] != "INDEFINIDO"
-            ]
-            for i, (codigo, data) in enumerate(valid_apus[:10], 1):
-                logger.info(
-                    f" {i}. {codigo}: '{data['unit']}' - '{data['desc'][:50]}...'"
-                )
+        # MUESTRA DE APUs CON UNIDADES INFERIDAS
+        apus_con_unidades_inferidas = [(codigo, data) for codigo, data in unique_apus.items()
+                                       if data['unit'] != "UND" and data['unit'] != "INDEFINIDO"]
+
+        if apus_con_unidades_inferidas:
+            logger.info(f"\n✅ APUs CON UNIDADES INFERIDAS ({len(apus_con_unidades_inferidas)}):")
+            for i, (codigo, data) in enumerate(apus_con_unidades_inferidas[:10], 1):
+                logger.info(f" {i}. {codigo}: '{data['unit']}' - '{data['desc'][:50]}...'")
         else:
-            logger.info("\n❌ NINGÚN APU CON UNIDAD VÁLIDA ENCONTRADO")
+            logger.info("\n❌ NO SE INFIRIERON UNIDADES ESPECÍFICAS")
 
         logger.info("=" * 60)
 
@@ -702,7 +784,7 @@ class ReportParser:
         return processed
 
     def _try_detect_category_change(self, line: str) -> bool:
-        """Detecta cambios de categoría evitando falsos positivos."""
+        """Detecta cambios de categoría y re-infiere unidades si es necesario."""
         line_clean = line.strip()
         if not line_clean:
             return False
@@ -737,6 +819,13 @@ class ReportParser:
         if self.context["category"] != found_category:
             old_category = self.context["category"]
             self.context["category"] = found_category
+
+            # 🎯 RE-INFERIR UNIDAD AL CAMBIAR CATEGORÍA
+            if self.context["apu_desc"] and self.context["apu_unit"] == "UND":
+                new_unit = self._infer_unit_from_context(self.context["apu_desc"], found_category)
+                self.context["apu_unit"] = new_unit
+                logger.info(f"🔄 Unidad re-inferida '{new_unit}' por cambio de categoría: {old_category} → {found_category}")
+
             logger.info(f"📂 Categoría cambiada: {old_category} → {found_category}")
             return True
 
