@@ -132,6 +132,7 @@ class TestNewReportParser(unittest.TestCase):
         """Prueba el mecanismo de fallback para líneas estructuradas no reconocidas."""
         fallback_data = (
             "ITEM: 8801\n"
+            "UNA DESCRIPCION DE APU VALIDA\n"
             "MATERIALES\n"
             "Material sin formato valido;ALGUN DATO;OTRO DATO\n"
             "Otro material;1;2;3;4;5\n"
@@ -147,7 +148,7 @@ class TestNewReportParser(unittest.TestCase):
         garbage_data = (
             "FORMATO DE ANÁLISIS DE PRECIOS UNITARIOS\n"
             "ITEM: 123\n"
-            "DESCRIPCION\n"
+            "UNA DESCRIPCION DE APU VALIDA\n"
             "Un insumo valido;UND;1;;100;100\n"
             "SUBTOTAL: 100\n"
         )
@@ -162,7 +163,7 @@ class TestNewReportParser(unittest.TestCase):
         """Verifica descarte de insumos con valores cero."""
         zero_value_data = (
             "ITEM: 456\n"
-            "DESCRIPCION\n"
+            "UNA DESCRIPCION DE APU VALIDA\n"
             "MATERIALES\n"
             "Insumo bueno;UND;1;;100;100\n"
             "Insumo malo;UND;0;;0;0\n"
@@ -248,7 +249,7 @@ class TestNewReportParser(unittest.TestCase):
         """Prueba la limpieza de códigos APU usando mock."""
         mock_clean.return_value = "CLEANED123"
         parser = self._create_parser_for_content(
-            "ITEM: APU-DIRTY\nDESCRIPCION\nMat;U;1;;1;1", "mock_clean.txt"
+            "ITEM: APU-DIRTY\nUNA DESCRIPCION DE APU VALIDA\nMat;U;1;;1;1", "mock_clean.txt"
         )
         df = parser.parse()
         mock_clean.assert_called_once_with("APU-DIRTY")
@@ -256,7 +257,7 @@ class TestNewReportParser(unittest.TestCase):
 
     def test_encoding_handling(self):
         """Prueba el manejo de diferentes codificaciones."""
-        special_chars_data = "ITEM: ENC-01\nDESCRIPCION\nMaterial con ñandú;U;1;;1;1\n"
+        special_chars_data = "ITEM: ENC-01\nUNA DESCRIPCION DE APU VALIDA\nMaterial con ñandú;U;1;;1;1\n"
         parser = self._create_parser_for_content(special_chars_data, "encoding.txt")
         df = parser.parse()
         self.assertEqual(df.iloc[0]["DESCRIPCION_INSUMO"], "Material con ñandú")

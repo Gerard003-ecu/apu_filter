@@ -119,11 +119,14 @@ class ReportParser:
             # Condiciones para forzar DIA
             force_dia_conditions = [
                 # Si es mano de obra y tiene código de cuadrilla
-                category == "MANO DE OBRA" and any(apu_code.startswith(code) for code in squad_codes),
+                category == "MANO DE OBRA" and any(
+                    apu_code.startswith(code) for code in squad_codes
+                ),
                 # Si el código contiene patrones de cuadrilla
                 re.match(r'1[3-9]', apu_code) and category == "MANO DE OBRA",
                 # Si la descripción sugiere cuadrilla aunque sea genérica
-                any(keyword in apu.get("DESCRIPCION_APU", "").upper() for keyword in ['DESCRIPCION', 'APU', 'ITEM']),
+                any(keyword in apu.get("DESCRIPCION_APU", "").upper()
+                    for keyword in ['DESCRIPCION', 'APU', 'ITEM']),
             ]
 
             if any(force_dia_conditions) and current_unit != "DIA":
@@ -157,7 +160,7 @@ class ReportParser:
         return df
 
     def _process_line(self, line: str, line_num: int):
-        """Procesa una línea con máquina de estados simplificada y robusta."""
+        """Procesa una línea con máquina de estados corregida para captura de descripción."""
         line = line.strip()
 
         # REGLA 1: Ignorar líneas vacías, basura y metadatos
@@ -181,43 +184,91 @@ class ReportParser:
             return
 
         elif self.state == ParserState.AWAITING_DESCRIPTION:
-            # ESTADO CRÍTICO: La primera línea después de ITEM debe ser la descripción
-            self._capture_apu_description(line, line_num)
+            # ESTADO CRÍTICO CORREGIDO: Solo capturar líneas que parecen descripciones reales
+            if self._is_valid_apu_description(line):
+                self._capture_apu_description(line, line_num)
+            else:
+                # Si no es una descripción válida, continuar esperando
+                logger.debug(
+                    f"⏳ Esperando descripción válida para APU {self.context['apu_code']}: "
+                    f"'{line[:60]}...'"
+                )
+                return
 
         elif self.state == ParserState.PROCESSING_APU:
             # Procesar categorías e insumos del APU actual
             self._process_apu_data(line, line_num)
 
+    def _is_valid_apu_description(self, line: str) -> bool:
+        """Determina si una línea es una descripción válida de APU (NO encabezados)."""
+        line_clean = line.strip()
+
+        # CRITERIOS DE EXCLUSIÓN (lo que NO es una descripción)
+        exclusion_patterns = [
+            r'^DESCRIPCION$', r'^DESCRIPCIÓN$',  # Encabezados de tabla
+            r'^ITEM$', r'^UNIDAD$', r'^CANTIDAD$',  # Otros encabezados
+            r'^CODIGO$', r'^CÓDIGO$',
+            r'^MATERIALES$', r'^MANO DE OBRA$', r'^EQUIPO$',  # Categorías
+            r'^VALOR TOTAL$', r'^PRECIO UNIT$',
+            r'^;+DESCRIPCION;+', r'^;+DESCRIPCIÓN;+'  # Encabezados con separadores
+        ]
+
+        for pattern in exclusion_patterns:
+            if re.match(pattern, line_clean.upper()):
+                return False
+
+        # CRITERIOS DE INCLUSIÓN (lo que SÍ es una descripción)
+        inclusion_criteria = [
+            len(line_clean) >= 5,  # Longitud mínima reducida
+            not line_clean.upper().startswith(';'),  # No empieza con separador
+            bool(re.search(r'[a-zA-ZáéíóúÁÉÍÓÚñÑ]', line_clean)),  # Contiene texto
+            not re.match(r'^[\d\s.,;]+$', line_clean)  # No es solo números/puntuación
+        ]
+
+        return all(inclusion_criteria)
+
     def _capture_apu_description(self, line: str, line_num: int):
-        """Captura la descripción del APU e infiere la unidad automáticamente."""
-        # LÓGICA SIMPLIFICADA: La primera línea después de ITEM es la descripción
+        """Captura la descripción del APU con validación mejorada."""
+        # Tomar solo la primera parte antes de cualquier ';' como descripción
         description = line.split(';')[0].strip()
 
-        # Validaciones básicas
-        if not description or len(description) < 3:
-            logger.warning(f"⚠️ Descripción muy corta o vacía en APU {self.context['apu_code']}")
+        # Validación adicional contra encabezados
+        if description.upper() in [
+            'DESCRIPCION', 'DESCRIPCIÓN', 'ITEM', 'UNIDAD', 'CANTIDAD'
+        ]:
+            logger.warning(
+                f"⚠️ Se rechazó encabezado como descripción para APU "
+                f"{self.context['apu_code']}"
+            )
+            description = "DESCRIPCIÓN NO ESPECIFICADA"
+
+        # Validaciones básicas de calidad
+        if not description or len(description) < 5:
+            logger.warning(
+                f"⚠️ Descripción muy corta o vacía en APU {self.context['apu_code']}"
+            )
             description = "DESCRIPCIÓN NO DISPONIBLE"
 
-        # ASIGNAR DESCRIPCIÓN SIEMPRE
+        # ASIGNAR DESCRIPCIÓN
         self.context["apu_desc"] = description
 
-        # 🎯 INFERIR UNIDAD AUTOMÁTICAMENTE SI ES "UND" (no se encontró explícita)
+        # 🎯 INFERIR UNIDAD SI ES NECESARIO
         if self.context["apu_unit"] == "UND" and not self.context.get("unit_was_explicit"):
             inferred_unit = self._infer_unit_from_context(
                 description, self.context["category"]
             )
             self.context["apu_unit"] = inferred_unit
             logger.info(
-                f"🎯 Unidad inferida '{inferred_unit}' para APU {self.context['apu_code']}: "
-                f"'{description[:50]}...'"
+                f"🎯 Unidad inferida '{inferred_unit}' para APU {self.context['apu_code']}"
             )
 
-        self._transition_to(ParserState.PROCESSING_APU, "descripción capturada")
+        self._transition_to(ParserState.PROCESSING_APU, "descripción válida capturada")
 
-        logger.info(f"✅ Descripción asignada a {self.context['apu_code']}: '{description[:60]}...'")
+        logger.info(
+            f"✅ Descripción APU {self.context['apu_code']}: '{description[:70]}...'"
+        )
 
-        # IMPORTANTE: La línea podría contener datos después de ';'
-        # Si tiene estructura de datos, procesarla también
+        # Si la línea contiene datos después de ';', procesarlos también
         if self._has_data_structure(line):
             remaining_data = ';'.join(line.split(';')[1:])
             if remaining_data.strip():
@@ -429,16 +480,20 @@ class ReportParser:
     def _find_units_bruteforce(self, text: str) -> str:
         """Búsqueda brutal de unidades en el texto."""
         # Unidades CRÍTICAS (con variaciones), ordenadas por longitud
-        critical_units = sorted(
-            ['DIA', 'DIAS', 'DÍAS', 'JOR', 'JORNAL', 'M2', 'M3', 'UND', 'UNIDAD', 'HORA', 'HORAS', 'LOTE', 'SERVICIO'],
-            key=len, reverse=True
-        )
+        critical_units = sorted([
+            'DIA', 'DIAS', 'DÍAS', 'JOR', 'JORNAL', 'M2', 'M3', 'UND',
+            'UNIDAD', 'HORA', 'HORAS', 'LOTE', 'SERVICIO'
+        ], key=len, reverse=True)
         for unit in critical_units:
             if re.search(r'\b' + re.escape(unit) + r'\b', text):
                 return self._clean_unit_brutal(unit)
 
         # Unidades secundarias
-        secondary_units = sorted(['ML', 'KM', 'CM', 'KG', 'TON', 'L', 'GAL', 'M'], key=len, reverse=True)
+        secondary_units = sorted(
+            ['ML', 'KM', 'CM', 'KG', 'TON', 'L', 'GAL', 'M'],
+            key=len,
+            reverse=True
+        )
         for unit in secondary_units:
             if re.search(r'\b' + re.escape(unit) + r'\b', text):
                 return unit
@@ -486,7 +541,7 @@ class ReportParser:
             'SERVICIO': 'SERVICIO', 'SERV': 'SERVICIO',
             'LOTE': 'LOTE', 'LOT': 'LOTE',
             'KG': 'KG', 'GR': 'GR', 'TON': 'TON',
-            'L': 'L', 'ML': 'ML', 'GAL': 'GAL'
+            'L': 'L', 'GAL': 'GAL'
         }
 
         return unit_mappings.get(unit, unit)
@@ -515,11 +570,12 @@ class ReportParser:
         logger.debug(f"🔄 Usando fallback para unidad en línea {line_num}")
 
         # Lista extendida de unidades para buscar, incluyendo variaciones comunes.
-        # Ordenadas por longitud para priorizar coincidencias más largas (ej. 'JORNAL' sobre 'JOR').
+        # Ordenadas por longitud para priorizar coincidencias más largas
+        # (ej. 'JORNAL' sobre 'JOR').
         known_units_variations = sorted([
-            'M2', 'M3', 'ML', 'M', 'UND', 'UN', 'UNIT', 'UNIDAD', 'SERVICIO', 'SERV',
-            'JOR', 'JORNAL', 'DIA', 'DIAS', 'DÍAS', 'HORA', 'HR', 'HORAS',
-            'LOTE', 'LOT', 'KG', 'GR', 'TON', 'L', 'GAL'
+            'M2', 'M3', 'ML', 'M', 'UND', 'UN', 'UNIT', 'UNIDAD', 'SERVICIO',
+            'SERV', 'JOR', 'JORNAL', 'DIA', 'DIAS', 'DÍAS', 'HORA', 'HR',
+            'HORAS', 'LOTE', 'LOT', 'KG', 'GR', 'TON', 'L', 'GAL'
         ], key=len, reverse=True)
 
         for unit_variation in known_units_variations:
@@ -527,7 +583,10 @@ class ReportParser:
             if re.search(r'\b' + re.escape(unit_variation) + r'\b', line):
                 # Si se encuentra, normalizarla usando el método centralizado
                 normalized_unit = self._clean_unit(unit_variation)
-                logger.debug(f"🔄 Unidad '{normalized_unit}' (detectada como '{unit_variation}') por fallback")
+                logger.debug(
+                    f"🔄 Unidad '{normalized_unit}' (detectada como "
+                    f"'{unit_variation}') por fallback"
+                )
                 return normalized_unit
 
         # Estrategia adicional: buscar después del último ';'
@@ -537,7 +596,9 @@ class ReportParser:
             # Normalizar la última parte y verificar si es una unidad válida
             normalized_last_part = self._clean_unit(last_part)
             if self._is_valid_unit(normalized_last_part):
-                logger.debug(f"🔄 Unidad '{normalized_last_part}' detectada en último segmento")
+                logger.debug(
+                    f"🔄 Unidad '{normalized_last_part}' detectada en último segmento"
+                )
                 return normalized_last_part
 
         logger.warning(f"⚠️ No se pudo detectar unidad en línea {line_num}")
@@ -741,7 +802,12 @@ class ReportParser:
         logger.info("\n🎯 UNIDADES CRÍTICAS PARA EL ESTIMADOR:")
         for unit in critical_units:
             count = unit_counts[unit]
-            status = "✅ SUFICIENTE" if count >= 3 else "⚠️ INSUFICIENTE" if count > 0 else "❌ FALTANTE"
+            if count >= 3:
+                status = "✅ SUFICIENTE"
+            elif count > 0:
+                status = "⚠️ INSUFICIENTE"
+            else:
+                status = "❌ FALTANTE"
             logger.info(f" {unit:.<20} {count:.<3} {status}")
 
         # RECOMENDACIONES ESPECÍFICAS
@@ -751,7 +817,9 @@ class ReportParser:
         if unit_counts['M2'] < 3:
             logger.info(" • Se necesitan más APUs con UNIDAD=M2 para suministros")
         if unit_counts['M3'] < 2:
-            logger.info(" • Se necesitan más APUs con UNIDAD=M3 para materiales volumétricos")
+            logger.info(
+                " • Se necesitan más APUs con UNIDAD=M3 para materiales volumétricos"
+            )
 
         logger.info("=" * 60)
 
@@ -843,9 +911,14 @@ class ReportParser:
 
             # 🎯 RE-INFERIR UNIDAD AL CAMBIAR CATEGORÍA
             if self.context["apu_desc"] and self.context["apu_unit"] == "UND":
-                new_unit = self._infer_unit_from_context(self.context["apu_desc"], found_category)
+                new_unit = self._infer_unit_from_context(
+                    self.context["apu_desc"], found_category
+                )
                 self.context["apu_unit"] = new_unit
-                logger.info(f"🔄 Unidad re-inferida '{new_unit}' por cambio de categoría: {old_category} → {found_category}")
+                logger.info(
+                    f"🔄 Unidad re-inferida '{new_unit}' por cambio de "
+                    f"categoría: {old_category} → {found_category}"
+                )
 
             logger.info(f"📂 Categoría cambiada: {old_category} → {found_category}")
             return True
@@ -1165,31 +1238,17 @@ class ReportParser:
         )
 
     def _is_metadata_line(self, line: str) -> bool:
-        """
-        Detecta si una línea contiene metadatos que deben ser ignorados.
-
-        Estas líneas suelen aparecer como encabezados o subtotales que no son insumos reales
-        y pueden causar errores de parsing si se procesan como datos.
-
-        Args:
-            line: Línea de texto a evaluar
-
-        Returns:
-            True si la línea contiene palabras clave de metadatos, False en caso contrario
-        """
+        """Detecta si una línea contiene metadatos que deben ser ignorados."""
         if not line:
             return False
 
         # Palabras clave que identifican líneas de metadatos no procesables
         metadata_keywords = [
-            'EQUIPO Y HERRAMIENTA',
-            'EQUIPOS Y HERRAMIENTA',
-            'EQUIPO Y HERRAMIENTAS',
-            'EQUIPOS Y HERRAMIENTAS',
-            'IMPUESTOS Y RETENCIONES',
-            'IMPUESTOS',
-            'POLIZAS',
-            'PÓLIZAS',  # Versión con acento
+            'EQUIPO Y HERRAMIENTA', 'EQUIPOS Y HERRAMIENTA',
+            'EQUIPO Y HERRAMIENTAS', 'EQUIPOS Y HERRAMIENTAS',
+            'IMPUESTOS Y RETENCIONES', 'IMPUESTOS', 'POLIZAS', 'PÓLIZAS',
+            'DESCRIPCION', 'DESCRIPCIÓN', 'UNIDAD', 'CANTIDAD', 'PRECIO UNIT',
+            'VALOR TOTAL', 'ITEM', 'CODIGO', 'CÓDIGO'
         ]
 
         upper_line = line.upper()
@@ -1197,10 +1256,16 @@ class ReportParser:
         # Verificar si alguna palabra clave está presente en la línea
         for keyword in metadata_keywords:
             if keyword in upper_line:
-                logger.debug(
-                    f"🚫 Línea de metadato detectada ('{keyword}'): {line[:60]}..."
+                # Validación adicional: debe ser una línea "pura" del encabezado
+                is_pure_header = (
+                        upper_line.strip() == keyword
+                        or re.match(r'^;*\s*' + re.escape(keyword) + r'\s*;*$', upper_line)
                 )
-                return True
+                if is_pure_header:
+                    logger.debug(
+                        f"🚫 Línea de metadato detectada ('{keyword}'): {line[:60]}..."
+                    )
+                    return True
 
         return False
 
