@@ -867,14 +867,13 @@ class ReportParser:
         return False
 
     def _try_detect_category_change(self, line: str) -> bool:
-        """Detecta cambios de categoría y re-infiere unidades si es necesario."""
+        """Detecta cambios de categoría evitando falsos positivos."""
         line_clean = line.strip()
         if not line_clean:
             return False
 
         first_part = line_clean.split(';')[0].strip().upper()
 
-        # Mapeo robusto de categorías
         category_mappings = {
             "MATERIALES": ["MATERIALES", "MATERIALES Y SUMINISTROS", "MATERIAL"],
             "MANO DE OBRA": ["MANO DE OBRA", "MANO DE OBRA DIRECTA", "M.O.", "MO"],
@@ -883,7 +882,6 @@ class ReportParser:
             "OTROS": ["OTROS", "OTROS GASTOS", "GASTOS GENERALES"]
         }
 
-        # Buscar categoría
         found_category = None
         for category, keywords in category_mappings.items():
             if first_part in keywords:
@@ -893,27 +891,16 @@ class ReportParser:
         if not found_category:
             return False
 
-        # 🔴 VALIDACIÓN CRÍTICA: No debe ser línea de datos
-        if self._is_structured_data_line(line):
-            logger.debug(f"❌ '{first_part}' parece categoría pero tiene datos")
+        # --- INICIO DE LA CORRECCIÓN ---
+        # Usar la función que sí existe: _has_data_structure
+        if self._has_data_structure(line):
+            logger.debug(f"❌ '{first_part}' parece categoría pero tiene estructura de datos, ignorando.")
             return False
+        # --- FIN DE LA CORRECCIÓN ---
 
-        # Cambiar categoría solo si es diferente
         if self.context["category"] != found_category:
             old_category = self.context["category"]
             self.context["category"] = found_category
-
-            # 🎯 RE-INFERIR UNIDAD AL CAMBIAR CATEGORÍA
-            if self.context["apu_desc"] and self.context["apu_unit"] == "UND":
-                new_unit = self._infer_unit_from_context(
-                    self.context["apu_desc"], found_category
-                )
-                self.context["apu_unit"] = new_unit
-                logger.info(
-                    f"🔄 Unidad re-inferida '{new_unit}' por cambio de "
-                    f"categoría: {old_category} → {found_category}"
-                )
-
             logger.info(f"📂 Categoría cambiada: {old_category} → {found_category}")
             return True
 
