@@ -172,14 +172,19 @@ class ReportParser:
 
         # Validaciones básicas
         if not description or len(description) < 3:
-            logger.warning(f"⚠️ Descripción muy corta o vacía en APU {self.context['apu_code']}")
+            logger.warning(
+                "⚠️ Descripción muy corta o vacía en APU %s", self.context['apu_code']
+            )
             description = "DESCRIPCIÓN NO DISPONIBLE"
 
         # ASIGNAR DESCRIPCIÓN SIEMPRE
         self.context["apu_desc"] = description
         self._transition_to(ParserState.PROCESSING_APU, "descripción capturada")
 
-        logger.info(f"✅ Descripción asignada a {self.context['apu_code']}: '{description[:60]}...'")
+        logger.info(
+            "✅ Descripción asignada a %s: '%s...'",
+            self.context['apu_code'], description[:60]
+        )
 
         # IMPORTANTE: La línea podría contener datos después de ';'
         # Si tiene estructura de datos, procesarla también
@@ -199,7 +204,10 @@ class ReportParser:
             return
 
         # Prioridad 3: Línea no reconocida (registrar pero continuar)
-        logger.debug(f"⚠️ Línea {line_num} no reconocida en APU {self.context['apu_code']}: {line[:80]}...")
+        logger.debug(
+            "⚠️ Línea %d no reconocida en APU %s: %s...",
+            line_num, self.context['apu_code'], line[:60]
+        )
         self.stats["unparsed_data_lines"] += 1
 
     def _try_start_new_apu(self, line: str, line_num: int) -> bool:
@@ -324,7 +332,7 @@ class ReportParser:
         if len(parts) > 1:
             last_part = parts[-1].strip()
             if self._is_valid_unit(last_part):
-                logger.debug(f"🔄 Unidad '{last_part}' detectada por fallback (último segmento)")
+                logger.debug("🔄 Unidad '%s' detectada por fallback", last_part)
                 return last_part
 
         # Estrategia 2: Buscar unidades conocidas en toda la línea
@@ -396,19 +404,27 @@ class ReportParser:
 
         # Contar APUs con descripción válida
         apus_con_desc_valida = sum(
-            1 for data in unique_apus.values()
-            if data['desc'] and data['desc'] not in ["SIN DESCRIPCION", "DESCRIPCIÓN NO DISPONIBLE"]
+            1
+            for data in unique_apus.values()
+            if data["desc"]
+            and data["desc"] not in ["SIN DESCRIPCION", "DESCRIPCIÓN NO DISPONIBLE"]
         )
         total_apus = len(unique_apus)
 
-        logger.info(f" APUs con descripción válida:......... {apus_con_desc_valida}/{total_apus}")
+        logger.info(
+            " APUs con descripción válida:......... %d/%d",
+            apus_con_desc_valida, total_apus
+        )
 
         # Contar APUs con unidad válida
         apus_con_unidad_valida = sum(
             1 for data in unique_apus.values()
             if data['unit'] and data['unit'] != "INDEFINIDO"
         )
-        logger.info(f" APUs con unidad válida:............ {apus_con_unidad_valida}/{total_apus}")
+        logger.info(
+            " APUs con unidad válida:............ %d/%d",
+            apus_con_unidad_valida, total_apus
+        )
 
         # Mostrar distribución de unidades
         unidades = [data['unit'] for data in unique_apus.values()]
@@ -429,10 +445,17 @@ class ReportParser:
             for i, (codigo, data) in enumerate(list(unique_apus.items())[:5], 1):
                 desc = data['desc']
                 unit = data['unit']
-                estado_desc = "✅ VÁLIDA" if desc and desc not in ["SIN DESCRIPCION", "DESCRIPCIÓN NO DISPONIBLE"] else "❌ PROBLEMA"
+                estado_desc = (
+                    "✅ VÁLIDA"
+                    if desc and desc not in ["SIN DESCRIPCION", "DESCRIPCIÓN NO DISPONIBLE"]
+                    else "❌ PROBLEMA"
+                )
                 estado_unit = "✅ VÁLIDA" if unit != "INDEFINIDO" else "❌ PROBLEMA"
                 desc_preview = desc[:50] + "..." if len(desc) > 50 else desc
-                logger.info(f" {i}. {codigo}: Descripción: {estado_desc} | Unidad: {estado_unit}")
+                logger.info(
+                    " %d. %s: Descripción: %s | Unidad: %s",
+                    i, codigo, estado_desc, estado_unit
+                )
                 logger.info(f" Descripción: '{desc_preview}'")
                 logger.info(f" Unidad: '{unit}'")
 
@@ -568,7 +591,10 @@ class ReportParser:
     def _transition_to_idle(self, reason: str):
         """Resetea a IDLE (ahora más simple)."""
         if self.state != ParserState.IDLE:
-            logger.debug(f"🔄 Reset a IDLE ({reason}) | APU: {self.context.get('apu_code', 'N/A')}")
+            logger.debug(
+                "🔄 Reset a IDLE (%s) | APU: %s",
+                reason, self.context.get('apu_code', 'N/A')
+            )
             self.state = ParserState.IDLE
             self.context["apu_code"] = None
             self.stats["state_transitions"] += 1

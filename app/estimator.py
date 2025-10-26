@@ -41,7 +41,8 @@ def _find_best_match(
 
     log.append(f"  🔍 Buscando: {' '.join(keywords)}")
     log.append(f"  📊 Pool size: {len(df_pool)} APUs")
-    log.append(f"  ⚙️ Modo: {'ESTRICTO (100%)' if strict else f'FLEXIBLE (≥{min_match_percentage}%)'} | Estrategia: {match_mode}")
+    modo_str = "ESTRICTO (100%)" if strict else f"FLEXIBLE (≥{min_match_percentage}%)"
+    log.append(f" ⚙️ Modo: {modo_str} | Estrategia: {match_mode}")
 
     best_match = None
     best_score = 0
@@ -366,7 +367,8 @@ def calculate_estimate(
         f"   ├─ Equipo:     ${costo_equipo:,.2f}"
     )
     log.append(
-        f"   └─ Ajustes Adicionales: ${valor_instalacion - (costo_mo_ajustado + costo_equipo):,.2f} (Zona, Izaje)"
+        f"   └─ Ajustes Adicionales: "
+        f"${valor_instalacion - (costo_mo_ajustado + costo_equipo):,.2f} (Zona, Izaje)"
     )
     log.append(
         "-"*70
