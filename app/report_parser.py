@@ -12,9 +12,9 @@ logger = logging.getLogger(__name__)
 
 
 class ParserState(Enum):
-    IDLE = "IDLE"  # Sin APU activo
-    AWAITING_DESCRIPTION = "AWAITING_DESCRIPTION"  # Esperando descripción
-    PROCESSING_DATA = "PROCESSING_DATA"  # Procesando insumos
+    IDLE = "IDLE"
+    AWAITING_DESCRIPTION = "AWAITING_DESCRIPTION"
+    PROCESSING_APU = "PROCESSING_APU"
 
 
 class ReportParser:
@@ -134,115 +134,101 @@ class ReportParser:
         return df
 
     def _process_line(self, line: str, line_num: int):
-        """Procesa una línea con máquina de estados explícita."""
+        """Procesa una línea con máquina de estados simplificada y robusta."""
         line = line.strip()
 
-        # 🔴 REGLA GLOBAL 1: Línea en blanco → Resetear a IDLE
+        # REGLA 1: Ignorar líneas vacías, basura y metadatos
         if not line:
             self._transition_to_idle("línea en blanco")
             return
 
-        # 🔴 REGLA GLOBAL 2: Ignorar basura/metadatos
         if self._is_garbage_line(line) or self._is_metadata_line(line):
             self.stats["garbage_lines"] += 1
             return
 
         self.stats["processed_lines"] += 1
 
-        # 🔴 REGLA GLOBAL 3: Detectar nuevo ITEM (siempre disponible)
+        # REGLA 2: Detectar nuevo ITEM (SIEMPRE disponible, en cualquier estado)
         if self._try_start_new_apu(line, line_num):
             return
 
-        # 🔴 PROCESAMIENTO ESPECÍFICO POR ESTADO
+        # REGLA 3: Procesamiento según estado actual
         if self.state == ParserState.IDLE:
-            # Solo esperamos nuevo ITEM, ignorar resto
+            # En IDLE, solo nos interesan los nuevos ITEMs
             return
 
         elif self.state == ParserState.AWAITING_DESCRIPTION:
-            self._handle_awaiting_description_state(line, line_num)
+            # ESTADO CRÍTICO: La primera línea después de ITEM debe ser la descripción
+            self._capture_apu_description(line, line_num)
 
-        elif self.state == ParserState.PROCESSING_DATA:
-            self._handle_processing_data_state(line, line_num)
+        elif self.state == ParserState.PROCESSING_APU:
+            # Procesar categorías e insumos del APU actual
+            self._process_apu_data(line, line_num)
 
+    def _capture_apu_description(self, line: str, line_num: int):
+        """Captura la descripción del APU - SIMPLE Y DIRECTA."""
+        # LÓGICA SIMPLIFICADA: La primera línea no vacía después de ITEM es la descripción
+        description = line.split(';')[0].strip()
 
-    def _handle_awaiting_description_state(self, line: str, line_num: int):
-        """Maneja el estado de espera por descripción."""
-        # Prioridad 1: Asignar descripción. Si tiene éxito, transiciona a PROCESSING_DATA.
-        if self._try_assign_description(line, line_num):
-            return
+        # Validaciones básicas
+        if not description or len(description) < 3:
+            logger.warning(f"⚠️ Descripción muy corta o vacía en APU {self.context['apu_code']}")
+            description = "DESCRIPCIÓN NO DISPONIBLE"
 
-        # Prioridad 2: Detectar categoría. Si se encuentra, también puede que ya
-        # venga la data.
+        # ASIGNAR DESCRIPCIÓN SIEMPRE
+        self.context["apu_desc"] = description
+        self._transition_to(ParserState.PROCESSING_APU, "descripción capturada")
+
+        logger.info(f"✅ Descripción asignada a {self.context['apu_code']}: '{description[:60]}...'")
+
+        # IMPORTANTE: La línea podría contener datos después de ';'
+        # Si tiene estructura de datos, procesarla también
+        if self._has_data_structure(line):
+            remaining_data = ';'.join(line.split(';')[1:])
+            if remaining_data.strip():
+                self._try_parse_as_data_line(remaining_data, line_num)
+
+    def _process_apu_data(self, line: str, line_num: int):
+        """Procesa datos dentro de un APU activo."""
+        # Prioridad 1: Detectar cambio de categoría
         if self._try_detect_category_change(line):
-            # Forzamos una descripción por defecto y pasamos a procesar datos.
-            self.context["apu_desc"] = "SIN DESCRIPCION"
-            self._transition_to(ParserState.PROCESSING_DATA, "categoría sin descripción")
             return
 
-        # Prioridad 3: Si no es descripción pero tiene datos, forzar transición.
-        if self._is_structured_data_line(line):
-            logger.warning(f"⚠️ Datos sin descripción en APU {self.context['apu_code']}")
-            self.context["apu_desc"] = "SIN DESCRIPCION"
-            self._transition_to(ParserState.PROCESSING_DATA, "forzado por datos")
-            # Reintentar el parseo de la línea actual en el nuevo estado.
-            self._handle_processing_data_state(line, line_num)
-
-    def _handle_processing_data_state(self, line: str, line_num: int):
-        """Maneja el estado de procesamiento de datos."""
-        # Prioridad 1: Detectar cambio de categoría.
-        if self._try_detect_category_change(line):
-            return
-
-        # Prioridad 2: Parsear como dato.
+        # Prioridad 2: Intentar parsear como dato
         if self._try_parse_as_data_line(line, line_num):
             return
 
-        # Prioridad 3: Si la línea parece una descripción pero no tiene datos,
-        # simplemente la ignoramos. Esto evita que texto no estructurado sea
-        # marcado como error.
-        if self._is_potential_description(line, line_num):
-            logger.debug(f"📝 Ignorando línea tipo descripción en estado de datos (L{line_num})")
-            return
-
-        # Prioridad 4: Si nada de lo anterior coincide, es una línea no reconocida.
-        logger.warning(f"⚠️ Línea {line_num} no reconocida: {line[:100]}...")
+        # Prioridad 3: Línea no reconocida (registrar pero continuar)
+        logger.debug(f"⚠️ Línea {line_num} no reconocida en APU {self.context['apu_code']}: {line[:80]}...")
         self.stats["unparsed_data_lines"] += 1
 
-
-    def _try_assign_description(self, line: str, line_num: int) -> bool:
-        """Intenta asignar la descripción a un APU y transiciona el estado."""
-        if self._is_potential_description(line, line_num):
-            self.context["apu_desc"] = line.split(';')[0].strip()
-            logger.debug(f"📝 Descripción asignada a {self.context['apu_code']}: '{self.context['apu_desc'][:50]}...'")
-            self._transition_to(ParserState.PROCESSING_DATA, "descripción asignada")
-            return True
-        return False
-
     def _try_start_new_apu(self, line: str, line_num: int) -> bool:
-        """Intenta detectar y procesar el inicio de un nuevo APU."""
+        """Inicia un nuevo APU y transiciona a AWAITING_DESCRIPTION."""
         match_item = self.PATTERNS["item_code"].search(line.upper())
         if not match_item:
             return False
 
         raw_code = match_item.group(1).strip()
         unit_match = re.search(r"UNIDAD:\s*([A-Z0-9/%]+)", line.upper())
-        unit = unit_match.group(1).strip() if unit_match else "INDEFINIDO"
+        unit = unit_match.group(1) if unit_match else "INDEFINIDO"
 
         cleaned_code = clean_apu_code(raw_code)
         if not cleaned_code:
-            # Si el código es inválido, no iniciamos un nuevo APU
+            logger.warning(f"⚠️ Código de APU inválido: '{raw_code}'")
             return False
 
-        # Iniciar nuevo contexto
+        # INICIAR NUEVO APU - CONTEXTO LIMPIO
         self.context = {
             "apu_code": cleaned_code,
-            "apu_desc": "",
-            "apu_unit": unit,
+            "apu_desc": "",  # VACÍO - se llenará con la siguiente línea
+            "apu_unit": unit.strip(),
             "category": "INDEFINIDO",
         }
+
         self.stats["items_found"] += 1
-        logger.info(f"✅ Nuevo APU iniciado: {cleaned_code} (esperando descripción)")
-        self._transition_to(ParserState.AWAITING_DESCRIPTION, f"nuevo item en L{line_num}")
+        self._transition_to(ParserState.AWAITING_DESCRIPTION, f"nuevo APU: {cleaned_code}")
+
+        logger.info(f"🔄 Nuevo APU iniciado: {cleaned_code} | Esperando descripción...")
         return True
 
     def _is_potential_description(self, line: str, line_num: int) -> bool:
@@ -284,48 +270,52 @@ class ReportParser:
         return alpha_count >= 10
 
     def _log_parsing_stats(self):
-        """Registra las estadísticas del proceso de análisis."""
-        logger.info("📊 MÉTRICAS FINALES DE PARSING:")
+        """Registra estadísticas finales con diagnóstico de descripciones."""
+        logger.info("=" * 60)
+        logger.info("📊 MÉTRICAS FINALES DE PARSING")
+        logger.info("=" * 60)
+
         for key, value in self.stats.items():
-            logger.info(f"   {key}: {value}")
+            logger.info(f"   {key:.<35} {value}")
 
-        # Contar APUs con descripción
-        apus_con_desc = sum(
-            1 for apu in self.apus_data if apu.get("DESCRIPCION_APU")
-            )
-        total_apus = len(
-            set(apu["CODIGO_APU"] for apu in self.apus_data if apu.get("CODIGO_APU"))
-            )
+        # DIAGNÓSTICO CRÍTICO: Verificar descripciones
+        unique_apus = {}
+        for apu in self.apus_data:
+            codigo = apu.get("CODIGO_APU")
+            if codigo and codigo not in unique_apus:
+                unique_apus[codigo] = apu.get("DESCRIPCION_APU", "")
 
-        logger.info(f"   APUs con descripción: {apus_con_desc}/{total_apus}")
-
-        # Mostrar muestra de APUs con sus descripciones
-        if self.apus_data:
-            unique_apus = {}
-            for apu in self.apus_data:
-                codigo = apu.get("CODIGO_APU")
-                if codigo and codigo not in unique_apus:
-                    unique_apus[codigo] = apu.get("DESCRIPCION_APU", "")
-
-            logger.info("📝 Muestra de APUs con sus descripciones:")
-            for codigo, desc in list(unique_apus.items())[:5]:
-                desc_preview = desc[:50] + "..." if len(desc) > 50 else desc
-                logger.info(f"   {codigo}: '{desc_preview}'")
-
-        total_parsed = sum(
-            [
-                self.stats[k]
-                for k in [
-                    "insumos_parsed",
-                    "mo_compleja_parsed",
-                    "mo_simple_parsed",
-                    "fallback_parsed",
-                ]
-            ]
+        # Contar APUs con descripción válida
+        apus_con_desc_valida = sum(
+            1 for desc in unique_apus.values()
+            if desc and desc not in ["SIN DESCRIPCION", "DESCRIPCIÓN NO DISPONIBLE"]
         )
+        total_apus = len(unique_apus)
+
+        logger.info(f"   APUs con descripción válida:......... {apus_con_desc_valida}/{total_apus}")
+
+        # Mostrar muestra de APUs para diagnóstico
+        if unique_apus:
+            logger.info("\n🔍 DIAGNÓSTICO - Muestra de APUs:")
+            for i, (codigo, desc) in enumerate(list(unique_apus.items())[:5], 1):
+                estado = "✅ VÁLIDA" if desc and desc not in ["SIN DESCRIPCION", "DESCRIPCIÓN NO DISPONIBLE"] else "❌ PROBLEMA"
+                desc_preview = desc[:50] + "..." if len(desc) > 50 else desc
+                logger.info(f"   {i}. {codigo}: {estado}")
+                logger.info(f"      '{desc_preview}'")
+
+        # Tasa de éxito
+        total_parsed = (
+            self.stats["insumos_parsed"] +
+            self.stats["mo_compleja_parsed"] +
+            self.stats["mo_simple_parsed"] +
+            self.stats["fallback_parsed"]
+        )
+
         if self.stats["processed_lines"] > 0:
-            success_rate = total_parsed / self.stats["processed_lines"] * 100
-            logger.info(f"   TASA_ÉXITO_PARSE: {success_rate:.1f}%")
+            success_rate = (total_parsed / self.stats["processed_lines"]) * 100
+            logger.info(f"\n   ✅ TASA DE ÉXITO: {success_rate:.1f}%")
+
+        logger.info("=" * 60)
 
     def _try_parse_as_data_line(self, line: str, line_num: int) -> bool:
         """Intenta analizar una línea como una línea de datos.
@@ -436,15 +426,16 @@ class ReportParser:
 
     def _transition_to(self, new_state: ParserState, reason: str):
         """Realiza transición controlada entre estados."""
-        if self.state != new_state:
-            logger.debug(f"🔄 {self.state.value} → {new_state.value} ({reason})")
+        old_state = self.state
+        if old_state != new_state:
             self.state = new_state
             self.stats["state_transitions"] += 1
+            logger.debug(f"🔄 {old_state.value} → {new_state.value} ({reason})")
 
     def _transition_to_idle(self, reason: str):
-        """Resetea la máquina de estados a IDLE."""
+        """Resetea a IDLE (ahora más simple)."""
         if self.state != ParserState.IDLE:
-            logger.debug(f"🔄 Reset a IDLE ({reason})")
+            logger.debug(f"🔄 Reset a IDLE ({reason}) | APU: {self.context.get('apu_code', 'N/A')}")
             self.state = ParserState.IDLE
             self.context["apu_code"] = None
             self.stats["state_transitions"] += 1

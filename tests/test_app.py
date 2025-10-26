@@ -53,15 +53,15 @@ class TestAppEndpoints(unittest.TestCase):
             c.post("/upload", data=data, content_type="multipart/form-data")
 
             # Usa los nuevos parámetros que incluyen la cuadrilla
-            estimate_params = {"material": "TST", "cuadrilla": "4"}
+            estimate_params = {"material": "TEJA", "cuadrilla": "1"}
             response = c.post("/api/estimate", json=estimate_params)
             self.assertEqual(response.status_code, 200)
             json_data = json.loads(response.data)
 
             # Los valores esperados deben coincidir con el cálculo en test_estimator
-            self.assertAlmostEqual(json_data["valor_suministro"], 0.0)
-            self.assertAlmostEqual(json_data["valor_instalacion"], 25000)
-            self.assertAlmostEqual(json_data["valor_construccion"], 25000)
+            self.assertAlmostEqual(json_data["valor_suministro"], 50000.0)
+            self.assertAlmostEqual(json_data["valor_instalacion"], 11760.0)
+            self.assertAlmostEqual(json_data["valor_construccion"], 61760.0)
 
 if __name__ == "__main__":
     unittest.main()
