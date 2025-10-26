@@ -218,7 +218,11 @@ class ReportParser:
 
         raw_code = match_item.group(1).strip()
 
-        # 🔧 EXTRACCIÓN ROBUSTA DE UNIDAD - REEMPLAZAR LA LÍNEA ACTUAL
+        # DEBUG TEMPORAL - solo para diagnóstico
+        if "UNIDAD" in line.upper():
+            self._debug_unit_extraction(line, line_num)
+
+        # 🔧 EXTRACCIÓN ROBUSTA DE UNIDAD - VERSIÓN CORREGIDA
         unit = self._extract_unit_robust(line, line_num)
 
         cleaned_code = clean_apu_code(raw_code)
@@ -242,7 +246,7 @@ class ReportParser:
 
     def _extract_unit_robust(self, line: str, line_num: int) -> str:
         """
-        Extrae la unidad de medida de forma robusta.
+        Extrae la unidad de medida de forma robusta - VERSIÓN CORREGIDA.
 
         Args:
             line: Línea que contiene el ITEM y posiblemente UNIDAD
@@ -251,46 +255,49 @@ class ReportParser:
         Returns:
             str: Unidad extraída o "INDEFINIDO" si no se encuentra
         """
-        line_upper = line.upper()
+        line_upper = line.upper().strip()
 
-        # PATRÓN MEJORADO - Más flexible e inclusivo
+        # DEBUG: Log para diagnóstico
+        logger.debug(f"🔍 Buscando unidad en línea {line_num}: '{line_upper}'")
+
+        # PATRONES CORREGIDOS - Más simples y efectivos
         patterns = [
-            # Formato: UNIDAD: VALOR
-            r"UNIDAD:\s*([A-ZÁÉÍÓÚÑ0-9/%\-_\s\.]+?)(?=;|$|\s)",
+            # Formato: UNIDAD: VALOR (patrón principal)
+            r"UNIDAD\s*:\s*([^;,\s]+)",
             # Formato: UNIDAD VALOR (sin dos puntos)
-            r"UNIDAD\s+([A-ZÁÉÍÓÚÑ0-9/%\-_\s\.]+?)(?=;|$|\s)",
-            # Buscar directamente unidades comunes
-            r"\b(M2|M3|ML|M|CM|MM|KM|UND|UN|UNIT|U|JOR|DIA|DÍAS|HORA|HR|HS|MES|SEMANA|LOTE|LOT|SERVICIO|SERV|KG|GR|TON|LB|OZ|L|ML|GAL|PT)\b"
+            r"UNIDAD\s+([^;,\s]+)",
+            # Buscar directamente después de "UNIDAD:"
+            r"UNIDAD:\s*(\w+)",
         ]
 
-        for pattern in patterns:
+        for i, pattern in enumerate(patterns):
             match = re.search(pattern, line_upper)
             if match:
                 unit = match.group(1).strip()
+                logger.debug(f"🎯 Patrón {i} coincidió: '{unit}'")
 
                 # Limpiar unidad capturada
                 unit = self._clean_unit(unit)
 
                 if unit and self._is_valid_unit(unit):
-                    logger.debug(f"✅ Unidad '{unit}' extraída de línea {line_num}")
+                    logger.info(f"✅ Unidad '{unit}' extraída de línea {line_num}")
                     return unit
 
-        # Si no se encuentra, buscar en el contexto de la línea
+        # FALLBACK: Buscar unidades conocidas en cualquier parte de la línea
         return self._fallback_unit_detection(line_upper, line_num)
 
     def _clean_unit(self, unit: str) -> str:
-        """Limpia y normaliza la unidad extraída."""
+        """Limpia y normaliza la unidad extraída - VERSIÓN SIMPLIFICADA."""
         if not unit:
             return ""
 
-        # Remover palabras comunes que no son parte de la unidad
-        unit = re.sub(r'\b(UNIDAD|UND|UNIT|U)\b', '', unit, flags=re.IGNORECASE)
-
         # Limpiar espacios y caracteres extraños
-        unit = re.sub(r'[^\w\s/%\-\.]', '', unit)
-        unit = unit.strip()
+        unit = re.sub(r'[^\w]', '', unit.strip())
 
-        # Normalizar unidades comunes
+        # Normalizar unidades comunes (MAYÚSCULAS)
+        unit = unit.upper()
+
+        # Mapeo de normalización
         unit_mappings = {
             'M2': 'M2', 'M3': 'M3', 'ML': 'ML', 'M': 'M',
             'DIA': 'DIA', 'DIAS': 'DIA', 'DÍAS': 'DIA',
@@ -298,10 +305,12 @@ class ReportParser:
             'HORA': 'HORA', 'HR': 'HORA', 'HORAS': 'HORA',
             'UND': 'UND', 'UN': 'UND', 'UNIT': 'UND', 'UNIDAD': 'UND',
             'SERVICIO': 'SERVICIO', 'SERV': 'SERVICIO',
-            'LOTE': 'LOTE', 'LOT': 'LOTE'
+            'LOTE': 'LOTE', 'LOT': 'LOTE',
+            'KG': 'KG', 'GR': 'GR', 'TON': 'TON',
+            'L': 'L', 'ML': 'ML', 'GAL': 'GAL'
         }
 
-        return unit_mappings.get(unit.upper(), unit.upper())
+        return unit_mappings.get(unit, unit)
 
     def _is_valid_unit(self, unit: str) -> bool:
         """Verifica si la unidad extraída es válida."""
@@ -321,29 +330,58 @@ class ReportParser:
 
     def _fallback_unit_detection(self, line: str, line_num: int) -> str:
         """
-        Detección de unidad como fallback cuando los patrones no funcionan.
-
-        Estrategias:
-        1. Buscar después del último ';' en la línea
-        2. Analizar palabras comunes en contexto
+        Detección de unidad como fallback - VERSIÓN CORREGIDA Y MEJORADA.
+        Ahora normaliza las unidades encontradas.
         """
-        # Estrategia 1: Buscar después del último punto y coma
+        logger.debug(f"🔄 Usando fallback para unidad en línea {line_num}")
+
+        # Lista extendida de unidades para buscar, incluyendo variaciones comunes.
+        # Ordenadas por longitud para priorizar coincidencias más largas (ej. 'JORNAL' sobre 'JOR').
+        known_units_variations = sorted([
+            'M2', 'M3', 'ML', 'M', 'UND', 'UN', 'UNIT', 'UNIDAD', 'SERVICIO', 'SERV',
+            'JOR', 'JORNAL', 'DIA', 'DIAS', 'DÍAS', 'HORA', 'HR', 'HORAS',
+            'LOTE', 'LOT', 'KG', 'GR', 'TON', 'L', 'GAL'
+        ], key=len, reverse=True)
+
+        for unit_variation in known_units_variations:
+            # Buscar la variación como palabra completa en la línea
+            if re.search(r'\b' + re.escape(unit_variation) + r'\b', line):
+                # Si se encuentra, normalizarla usando el método centralizado
+                normalized_unit = self._clean_unit(unit_variation)
+                logger.debug(f"🔄 Unidad '{normalized_unit}' (detectada como '{unit_variation}') por fallback")
+                return normalized_unit
+
+        # Estrategia adicional: buscar después del último ';'
         parts = line.split(';')
         if len(parts) > 1:
             last_part = parts[-1].strip()
-            if self._is_valid_unit(last_part):
-                logger.debug("🔄 Unidad '%s' detectada por fallback", last_part)
-                return last_part
+            # Normalizar la última parte y verificar si es una unidad válida
+            normalized_last_part = self._clean_unit(last_part)
+            if self._is_valid_unit(normalized_last_part):
+                logger.debug(f"🔄 Unidad '{normalized_last_part}' detectada en último segmento")
+                return normalized_last_part
 
-        # Estrategia 2: Buscar unidades conocidas en toda la línea
-        known_units = ['M2', 'M3', 'ML', 'UND', 'JOR', 'DIA', 'HORA', 'LOTE']
-        for unit in known_units:
-            if unit in line:
-                logger.debug(f"🔄 Unidad '{unit}' detectada por fallback (búsqueda directa)")
-                return unit
-
-        logger.warning(f"⚠️ No se pudo detectar unidad en línea {line_num}: {line[:80]}...")
+        logger.warning(f"⚠️ No se pudo detectar unidad en línea {line_num}")
         return "INDEFINIDO"
+
+    def _debug_unit_extraction(self, line: str, line_num: int):
+        """Método temporal para debuggear la extracción de unidades."""
+        if "ITEM:" in line.upper() and "UNIDAD" in line.upper():
+            logger.info(f"🔍 DEBUG Línea {line_num}: {line.strip()}")
+
+            # Probar cada patrón individualmente
+            patterns = [
+                r"UNIDAD\s*:\s*([^;,\s]+)",
+                r"UNIDAD\s+([^;,\s]+)",
+                r"UNIDAD:\s*(\w+)"
+            ]
+
+            for i, pattern in enumerate(patterns):
+                match = re.search(pattern, line.upper())
+                if match:
+                    logger.info(f" Patrón {i}: ✅ COINCIDENCIA -> '{match.group(1)}'")
+                else:
+                    logger.info(f" Patrón {i}: ❌ NO COINCIDENCIA")
 
     def _is_potential_description(self, line: str, line_num: int) -> bool:
         """Determina si una línea es una descripción válida de APU."""
