@@ -211,35 +211,33 @@ class ReportParser:
         self.stats["unparsed_data_lines"] += 1
 
     def _try_start_new_apu(self, line: str, line_num: int) -> bool:
-        """Inicia un nuevo APU con extracción robusta de unidad."""
+        """Inicia un nuevo APU con extracción ULTRA-ROBUSTA de unidad."""
         match_item = self.PATTERNS["item_code"].search(line.upper())
         if not match_item:
             return False
 
         raw_code = match_item.group(1).strip()
 
-        # DEBUG TEMPORAL - solo para diagnóstico
-        if "UNIDAD" in line.upper():
-            self._debug_unit_extraction(line, line_num)
-
-        # 🔧 EXTRACCIÓN ROBUSTA DE UNIDAD - VERSIÓN CORREGIDA
-        unit = self._extract_unit_robust(line, line_num)
+        # 🚨 EXTRACCIÓN ULTRA-ROBUSTA - ENFOQUE DIRECTO
+        unit = self._extract_unit_ultra_robust(line, line_num)
 
         cleaned_code = clean_apu_code(raw_code)
         if not cleaned_code:
             logger.warning(f"⚠️ Código de APU inválido: '{raw_code}'")
             return False
 
-        # INICIAR NUEVO APU - CONTEXTO LIMPIO
+        # INICIAR NUEVO APU
         self.context = {
             "apu_code": cleaned_code,
-            "apu_desc": "", # VACÍO - se llenará con la siguiente línea
+            "apu_desc": "",
             "apu_unit": unit,
             "category": "INDEFINIDO",
         }
 
         self.stats["items_found"] += 1
-        self._transition_to(ParserState.AWAITING_DESCRIPTION, f"nuevo APU: {cleaned_code}")
+        self._transition_to(
+            ParserState.AWAITING_DESCRIPTION, f"nuevo APU: {cleaned_code}"
+        )
 
         logger.info(f"🔄 Nuevo APU iniciado: {cleaned_code} | Unidad: {unit}")
         return True
@@ -383,6 +381,127 @@ class ReportParser:
                 else:
                     logger.info(f" Patrón {i}: ❌ NO COINCIDENCIA")
 
+    def _extract_unit_ultra_robust(self, line: str, line_num: int) -> str:
+        """
+        Extrae la unidad de medida con enfoque ULTRA-ROBUSTO.
+        Si no encuentra UNIDAD:, busca directamente unidades conocidas.
+        """
+        line_upper = line.upper().strip()
+
+        # DEBUG CRÍTICO
+        logger.info(f"🔍 ANALIZANDO UNIDAD en línea {line_num}: '{line_upper}'")
+
+        # ESTRATEGIA 1: Buscar patrón UNIDAD: explícito
+        unidad_patterns = [
+            r"UNIDAD\s*:\s*([^;]+)",  # UNIDAD: valor (hasta ;)
+            r"UNIDAD\s*:\s*(\S+)",  # UNIDAD: valor (una palabra)
+            r"UNIDAD\s+([^;]+)",  # UNIDAD valor (sin :)
+            r"UNIDAD\s+(\S+)",  # UNIDAD valor (una palabra sin :)
+        ]
+
+        for pattern in unidad_patterns:
+            match = re.search(pattern, line_upper)
+            if match:
+                raw_unit = match.group(1).strip()
+                logger.info(f"🎯 Patrón UNIDAD coincidió: '{raw_unit}'")
+
+                # Extraer la primera palabra después de UNIDAD:
+                unit = self._extract_first_word(raw_unit)
+                unit = self._clean_unit_aggressive(unit)
+
+                if self._is_valid_unit(unit):
+                    logger.info(f"✅ Unidad '{unit}' extraída de patrón UNIDAD")
+                    return unit
+
+        # ESTRATEGIA 2: Buscar directamente unidades conocidas en toda la línea
+        direct_units = self._find_direct_units(line_upper)
+        if direct_units:
+            logger.info(f"🎯 Unidad directa encontrada: '{direct_units}'")
+            return direct_units
+
+        # ESTRATEGIA 3: Buscar después del código del ITEM
+        unit_after_item = self._extract_unit_after_item(line_upper, line_num)
+        if unit_after_item:
+            return unit_after_item
+
+        logger.warning(f"🚨 NO SE PUDO EXTRAER UNIDAD en línea {line_num}")
+        return "INDEFINIDO"
+
+    def _extract_first_word(self, text: str) -> str:
+        """Extrae la primera palabra de un texto."""
+        words = text.split()
+        return words[0] if words else ""
+
+    def _clean_unit_aggressive(self, unit: str) -> str:
+        """Limpia unidad de forma agresiva."""
+        if not unit:
+            return ""
+
+        # Remover caracteres no alfabéticos (excepto / y %)
+        unit = re.sub(r"[^A-Z0-9/%]", "", unit.upper())
+
+        # Mapeo directo y simple
+        unit_map = {
+            "M2": "M2",
+            "M3": "M3",
+            "ML": "ML",
+            "M": "M",
+            "DIA": "DIA",
+            "DIAS": "DIA",
+            "DÍAS": "DIA",
+            "JOR": "JOR",
+            "JORNAL": "JOR",
+            "HORA": "HORA",
+            "HR": "HORA",
+            "UND": "UND",
+            "UN": "UND",
+            "UNIDAD": "UND",
+            "LOTE": "LOTE",
+            "SERVICIO": "SERVICIO",
+            "KG": "KG",
+            "TON": "TON",
+        }
+
+        return unit_map.get(unit, unit)
+
+    def _find_direct_units(self, line: str) -> str:
+        """Busca unidades directamente en la línea."""
+        # Unidades prioritarias para el estimador
+        priority_units = ["DIA", "JOR", "M2", "M3", "UND", "HORA"]
+
+        for unit in priority_units:
+            # Buscar como palabra completa
+            if re.search(r"\b" + unit + r"\b", line):
+                return unit
+
+        # Unidades secundarias
+        secondary_units = ["LOTE", "SERVICIO", "KG", "TON", "ML", "M"]
+        for unit in secondary_units:
+            if re.search(r"\b" + unit + r"\b", line):
+                return unit
+
+        return ""
+
+    def _extract_unit_after_item(self, line: str, line_num: int) -> str:
+        """Intenta extraer unidad después del código del ITEM."""
+        # Buscar patrones comunes: ITEM: CODIGO; UNIDAD: VALOR
+        patterns = [
+            r"ITEM[^;]*;\s*UNIDAD[^:]*:\s*([^;]+)",  # ITEM...; UNIDAD:...
+            r"ITEM[^;]*;\s*(\w+)\s*;",  # ITEM...; UNIDAD;
+            r"ITEM[^;]*;\s*([^;]+)$",  # ITEM...; algo_al_final
+        ]
+
+        for pattern in patterns:
+            match = re.search(pattern, line)
+            if match:
+                potential_unit = match.group(1).strip()
+                unit = self._clean_unit_aggressive(potential_unit)
+                if self._is_valid_unit(unit):
+                    logger.info(f"🎯 Unidad '{unit}' extraída después de ITEM")
+                    return unit
+
+        return ""
+
     def _is_potential_description(self, line: str, line_num: int) -> bool:
         """Determina si una línea es una descripción válida de APU."""
         line_clean = line.strip()
@@ -422,92 +541,69 @@ class ReportParser:
         return alpha_count >= 10
 
     def _log_parsing_stats(self):
-        """Registra estadísticas finales con diagnóstico de descripciones y unidades."""
+        """Registrar estadísticas con diagnóstico EXTENDIDO de unidades."""
         logger.info("=" * 60)
-        logger.info("📊 MÉTRICAS FINALES DE PARSING")
+        logger.info("📊 MÉTRICAS FINALES DE PARSING - DIAGNÓSTICO EXTENDIDO")
         logger.info("=" * 60)
 
         for key, value in self.stats.items():
             logger.info(f" {key:.<35} {value}")
 
-        # DIAGNÓSTICO CRÍTICO: Verificar descripciones y unidades
+        # ANÁLISIS PROFUNDO DE UNIDADES
         unique_apus = {}
         for apu in self.apus_data:
             codigo = apu.get("CODIGO_APU")
             if codigo and codigo not in unique_apus:
                 unique_apus[codigo] = {
-                    'desc': apu.get("DESCRIPCION_APU", ""),
-                    'unit': apu.get("UNIDAD_APU", "INDEFINIDO")
+                    "desc": apu.get("DESCRIPCION_APU", ""),
+                    "unit": apu.get("UNIDAD_APU", "INDEFINIDO"),
                 }
 
-        # Contar APUs con descripción válida
-        apus_con_desc_valida = sum(
-            1
-            for data in unique_apus.values()
-            if data["desc"]
-            and data["desc"] not in ["SIN DESCRIPCION", "DESCRIPCIÓN NO DISPONIBLE"]
-        )
+        # Contadores específicos
+        apus_con_unidad_valida = 0
+        unidades_encontradas = []
+
+        for codigo, data in unique_apus.items():
+            if data["unit"] != "INDEFINIDO":
+                apus_con_unidad_valida += 1
+                unidades_encontradas.append(data["unit"])
+
         total_apus = len(unique_apus)
 
+        logger.info(f" APUs con descripción válida:......... {total_apus}/{total_apus}")
         logger.info(
-            " APUs con descripción válida:......... %d/%d",
-            apus_con_desc_valida, total_apus
+            f" APUs con unidad válida:............ {apus_con_unidad_valida}/{total_apus}"
         )
 
-        # Contar APUs con unidad válida
-        apus_con_unidad_valida = sum(
-            1 for data in unique_apus.values()
-            if data['unit'] and data['unit'] != "INDEFINIDO"
-        )
-        logger.info(
-            " APUs con unidad válida:............ %d/%d",
-            apus_con_unidad_valida, total_apus
-        )
-
-        # Mostrar distribución de unidades
-        unidades = [data['unit'] for data in unique_apus.values()]
+        # DISTRIBUCIÓN DETALLADA
         from collections import Counter
-        unit_counter = Counter(unidades)
 
-        logger.info("\n📏 DISTRIBUCIÓN DE UNIDADES:")
-        for unit, count in unit_counter.most_common(10):
+        unit_counter = Counter(unidades_encontradas)
+
+        logger.info("\n📏 DISTRIBUCIÓN DETALLADA DE UNIDADES:")
+        for unit, count in unit_counter.most_common():
             logger.info(f" {unit:.<20} {count}")
 
-        # Verificar específicamente unidades DIA
-        apus_dia = sum(1 for data in unique_apus.values() if data['unit'] == 'DIA')
-        logger.info(f" APUs con UNIDAD=DIA:.............. {apus_dia}")
+        # UNIDADES CRÍTICAS PARA EL ESTIMADOR
+        unidades_criticas = {"DIA", "JOR", "M2", "M3"}
+        for unidad in unidades_criticas:
+            count = sum(1 for u in unidades_encontradas if u == unidad)
+            logger.info(f" {unidad + ' (CRÍTICA)':.<20} {count}")
 
-        # Mostrar muestra de APUs para diagnóstico
-        if unique_apus:
-            logger.info("\n🔍 DIAGNÓSTICO - Muestra de APUs:")
-            for i, (codigo, data) in enumerate(list(unique_apus.items())[:5], 1):
-                desc = data['desc']
-                unit = data['unit']
-                estado_desc = (
-                    "✅ VÁLIDA"
-                    if desc and desc not in ["SIN DESCRIPCION", "DESCRIPCIÓN NO DISPONIBLE"]
-                    else "❌ PROBLEMA"
-                )
-                estado_unit = "✅ VÁLIDA" if unit != "INDEFINIDO" else "❌ PROBLEMA"
-                desc_preview = desc[:50] + "..." if len(desc) > 50 else desc
+        # MUESTRA DE APUs CON UNIDADES VÁLIDAS (si las hay)
+        if apus_con_unidad_valida > 0:
+            logger.info("\n✅ APUs CON UNIDADES VÁLIDAS:")
+            valid_apus = [
+                (codigo, data)
+                for codigo, data in unique_apus.items()
+                if data["unit"] != "INDEFINIDO"
+            ]
+            for i, (codigo, data) in enumerate(valid_apus[:10], 1):
                 logger.info(
-                    " %d. %s: Descripción: %s | Unidad: %s",
-                    i, codigo, estado_desc, estado_unit
+                    f" {i}. {codigo}: '{data['unit']}' - '{data['desc'][:50]}...'"
                 )
-                logger.info(f" Descripción: '{desc_preview}'")
-                logger.info(f" Unidad: '{unit}'")
-
-        # Tasa de éxito
-        total_parsed = (
-            self.stats["insumos_parsed"] +
-            self.stats["mo_compleja_parsed"] +
-            self.stats["mo_simple_parsed"] +
-            self.stats["fallback_parsed"]
-        )
-
-        if self.stats["processed_lines"] > 0:
-            success_rate = (total_parsed / self.stats["processed_lines"]) * 100
-            logger.info(f"\n ✅ TASA DE ÉXITO: {success_rate:.1f}%")
+        else:
+            logger.info("\n❌ NINGÚN APU CON UNIDAD VÁLIDA ENCONTRADO")
 
         logger.info("=" * 60)
 
