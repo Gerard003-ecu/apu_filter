@@ -410,7 +410,7 @@ class ReportParser:
             return direct_units
 
         # ESTRATEGIA 3: Si todo falla, devolver cadena vacía
-        logger.warning(f"🚨 No se encontró unidad explícita, se inferirá más tarde")
+        logger.warning("🚨 No se encontró unidad explícita, se inferirá más tarde")
         return ""
 
     def _extract_unit_from_text(self, text: str) -> str:
