@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 import sys
 import time
@@ -22,8 +23,6 @@ from .utils import sanitize_for_json
 # Almacenamiento en memoria para sesiones de usuario
 user_sessions = {}
 SESSION_TIMEOUT = 3600  # 1 hora
-
-import logging
 
 
 def create_app(config_name):
@@ -157,7 +156,7 @@ def create_app(config_name):
             import traceback
             with open("upload_error.log", "w") as f:
                 f.write(traceback.format_exc())
-            app.logger.error(f"Excepción no controlada en upload_files: {str(e)}", exc_info=True)
+            app.logger.error(f"Error no controlado en upload_files: {e}", exc_info=True)
             return jsonify({"error": "Error interno del servidor"}), 500
 
     def get_user_data():

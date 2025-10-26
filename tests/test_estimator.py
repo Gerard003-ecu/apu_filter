@@ -49,7 +49,10 @@ class TestEstimator(unittest.TestCase):
         result = calculate_estimate(params, data_store, TEST_CONFIG)
 
         self.assertNotIn("error", result)
-        self.assertIn("Suministro: SUMINISTRO TEJA TRAPEZOIDAL ROJA CAL.28", result["apu_encontrado"])
+        self.assertIn(
+            "Suministro: SUMINISTRO TEJA TRAPEZOIDAL ROJA CAL.28",
+            result["apu_encontrado"]
+        )
         self.assertIn("Tarea: INSTALACION TEJA TRAPEZOIDAL", result["apu_encontrado"])
         self.assertIn("Cuadrilla: CUADRILLA TIPO 1 (1 OF + 2 AYU)", result["apu_encontrado"])
         self.assertAlmostEqual(result["valor_suministro"], 50000.0)

@@ -66,7 +66,7 @@ class TestNewReportParser(unittest.TestCase):
         """Prueba el parsing básico con la nueva lógica de descripción."""
         apu_data = (
             "ITEM: APU-01; UNIDAD: M2\n"
-            "UNA DESCRIPCION DE APU VALIDA;MATERIALES;Cemento;UND;1;;100;100\n"  # Descripción + datos
+            "UNA DESCRIPCION DE APU VALIDA;MATERIALES;Cemento;UND;1;;100;100\n"
         )
         parser = self._create_parser_for_content(apu_data, "basic_parsing.txt")
         df = parser.parse()
@@ -88,7 +88,9 @@ class TestNewReportParser(unittest.TestCase):
         df = parser.parse()
 
         self.assertEqual(len(df), 2)
-        self.assertEqual(df["DESCRIPCION_APU"].iloc[0], "DESCRIPCION DEL APU DE MANO DE OBRA")
+        self.assertEqual(
+            df["DESCRIPCION_APU"].iloc[0], "DESCRIPCION DEL APU DE MANO DE OBRA"
+        )
 
     def test_mano_de_obra_simple_logic(self):
         """Verifica la lógica para la mano de obra simple con nueva máquina de estados."""
@@ -120,7 +122,11 @@ class TestNewReportParser(unittest.TestCase):
 
         self.assertEqual(len(df), 1, "Debería haber encontrado un insumo de MO.")
         insumo = df.iloc[0]
-        self.assertEqual(insumo["CATEGORIA"], "MANO DE OBRA", "La categoría debería haber sido forzada a MANO DE OBRA.")
+        self.assertEqual(
+            insumo["CATEGORIA"],
+            "MANO DE OBRA",
+            "La categoría debería haber sido forzada a MANO DE OBRA.",
+        )
 
     def test_fallback_parsing_mechanism(self):
         """Prueba el mecanismo de fallback para líneas estructuradas no reconocidas."""
@@ -177,7 +183,9 @@ class TestNewReportParser(unittest.TestCase):
         self.assertNotIn("Insumo malo", descripciones)
 
     def test_prevent_data_contamination(self):
-        """Prueba que los insumos sin un APU activo son ignorados (nueva lógica más estricta)."""
+        """
+        Prueba que los insumos sin un APU activo son ignorados (nueva lógica más estricta).
+        """
         contamination_data = (
             "ITEM: APU-VALIDO-1\n"
             "DESCRIPCION VALIDA\n"  # ✅ REQUERIDO
@@ -270,7 +278,9 @@ class TestNewReportParser(unittest.TestCase):
 
         # VERIFICACIONES CRÍTICAS
         self.assertEqual(len(df), 2, "Deberían haber 2 insumos")
-        self.assertEqual(df["DESCRIPCION_APU"].iloc[0], "LAMINA DE ACERO GALVANIZADO CALIBRE 22")
+        self.assertEqual(
+            df["DESCRIPCION_APU"].iloc[0], "LAMINA DE ACERO GALVANIZADO CALIBRE 22"
+        )
 
     def test_description_capture_robustness(self):
         """Prueba que la descripción SIEMPRE se captura después de ITEM."""
@@ -284,8 +294,8 @@ class TestNewReportParser(unittest.TestCase):
             ),
             (
                 "ITEM: TEST-002\n"
-                "DESCRIPCION CON DATOS;MATERIALES;Insumo;UND;1;;100;100",  # Descripción y datos en misma línea
-                "DESCRIPCION CON DATOS"
+                "DESCRIPCION CON DATOS;MATERIALES;Insumo;UND;1;;100;100",
+                "DESCRIPCION CON DATOS",
             ),
             (
                 "ITEM: TEST-003\n"
@@ -300,10 +310,15 @@ class TestNewReportParser(unittest.TestCase):
             with self.subTest(test_case=i):
                 parser = self._create_parser_for_content(content, f"desc_test_{i}.txt")
                 df = parser.parse()
-                self.assertFalse(df.empty, f"Test case {i}: DataFrame no debería estar vacío")
+                self.assertFalse(
+                    df.empty, f"Test case {i}: DataFrame no debería estar vacío"
+                )
                 actual_desc = df["DESCRIPCION_APU"].iloc[0]
-                self.assertEqual(actual_desc, expected_desc,
-                                 f"Test case {i}: Descripción no coincide")
+                self.assertEqual(
+                    actual_desc,
+                    expected_desc,
+                    f"Test case {i}: Descripción no coincide",
+                )
 
     def test_state_transitions(self):
         """Verifica las transiciones de estado de la máquina."""
