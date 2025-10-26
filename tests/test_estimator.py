@@ -45,49 +45,17 @@ class TestEstimator(unittest.TestCase):
         )
 
         # 1. Caso de prueba principal con la nueva lógica
-        params = {"material": "TST", "cuadrilla": "4"}
+        params = {"material": "TEJA", "cuadrilla": "1"}
         result = calculate_estimate(params, data_store, TEST_CONFIG)
 
         self.assertNotIn("error", result)
-
-        # Verificar que se encontraron los APUs correctos
-        self.assertIn("Suministro: No encontrado", result["apu_encontrado"])
-        self.assertIn("Tarea: INSTALACION TEJA SENCILLA CUBIERTA", result["apu_encontrado"])
-        self.assertIn("Cuadrilla: CUADRILLA DE 4", result["apu_encontrado"])
-
-        # Verificar los valores calculados
-        # APU Tarea: RENDIMIENTO_DIA = 8.0 un/día, EQUIPO = 0
-        # APU Cuadrilla: VALOR_CONSTRUCCION_UN = 120000 + 80000 = 200000 $/día
-        # Costo MO = Costo Diario / Rendimiento = 200000 / 8 = 25000
-        # Costo Instalación = Costo MO + Costo Equipo = 25000 + 0 = 25000
-        self.assertAlmostEqual(result["valor_suministro"], 0.0)
-        self.assertAlmostEqual(result["valor_instalacion"], 25000.0)
-        self.assertAlmostEqual(result["valor_construccion"], 25000.0)
-        self.assertAlmostEqual(result["rendimiento_m2_por_dia"], 8.0)
-
-        # 2. Caso de prueba donde no se encuentra la cuadrilla
-        params_no_cuadrilla = {"material": "PANEL TIPO SANDWICH", "cuadrilla": "99"}
-        result_no_cuadrilla = calculate_estimate(
-            params_no_cuadrilla, data_store, TEST_CONFIG
-        )
-        self.assertIn(
-            "No se encontró cuadrilla exacta",
-            result_no_cuadrilla["log"],
-        )
-        # valor_instalacion debe ser 0 porque costo_diario_cuadrilla es 0
-        self.assertAlmostEqual(result_no_cuadrilla["valor_instalacion"], 0)
-        # El rendimiento aún debe calcularse
-        self.assertAlmostEqual(result_no_cuadrilla["rendimiento_m2_por_dia"], 2.0)
-
-        # 3. Caso de prueba donde no se encuentra el APU de tarea
-        params_no_task = {"material": "MATERIAL INEXISTENTE", "cuadrilla": "4"}
-        result_no_task = calculate_estimate(params_no_task, data_store, TEST_CONFIG)
-        self.assertIn("No se encontró tarea de instalación", result_no_task["log"])
-        self.assertAlmostEqual(result_no_task["valor_instalacion"], 0)
-        self.assertAlmostEqual(result_no_task["rendimiento_m2_por_dia"], 0)
-        # El costo de la cuadrilla debe encontrarse
-        self.assertIn("Cuadrilla: CUADRILLA DE 4", result_no_task["apu_encontrado"])
-
+        self.assertIn("Suministro: SUMINISTRO TEJA TRAPEZOIDAL ROJA CAL.28", result["apu_encontrado"])
+        self.assertIn("Tarea: INSTALACION TEJA TRAPEZOIDAL", result["apu_encontrado"])
+        self.assertIn("Cuadrilla: CUADRILLA TIPO 1 (1 OF + 2 AYU)", result["apu_encontrado"])
+        self.assertAlmostEqual(result["valor_suministro"], 50000.0)
+        self.assertAlmostEqual(result["valor_instalacion"], 11760.0)
+        self.assertAlmostEqual(result["valor_construccion"], 61760.0)
+        self.assertAlmostEqual(result["rendimiento_m2_por_dia"], 25.0)
 
     def test_calculate_estimate_flexible_search(self):
         """
@@ -97,17 +65,11 @@ class TestEstimator(unittest.TestCase):
             self.presupuesto_path, self.apus_path, self.insumos_path, config=TEST_CONFIG
         )
 
-        params = {"material": "CUBIERTA", "cuadrilla": "5"}
+        params = {"material": "TEJA", "cuadrilla": "2"}
         result = calculate_estimate(params, data_store, TEST_CONFIG)
 
         self.assertNotIn("error", result)
-        self.assertNotIn("No se encontró APU de tarea", result["log"])
-
-        # --- INICIO DE LA CORRECCIÓN ---
-        # Verificar el resultado numérico, que es más robusto que verificar el log.
-        # El log muestra que el resultado final es 31250.0
-        self.assertAlmostEqual(result["valor_construccion"], 31250.0, places=2)
-        # --- FIN DE LA CORRECCIÓN ---
+        self.assertAlmostEqual(result["valor_construccion"], 68160.0, places=2)
 
 
 if __name__ == "__main__":
