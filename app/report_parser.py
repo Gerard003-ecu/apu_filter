@@ -824,25 +824,19 @@ class ReportParser:
         logger.info("=" * 60)
 
     def _try_parse_as_data_line(self, line: str, line_num: int) -> bool:
-        """Intenta analizar una línea como una línea de datos.
+        """Intenta analizar una línea como una línea de datos con validación mejorada."""
+        # 🔴 FILTRO CRÍTICO: Rechazar metadatos antes de cualquier procesamiento
+        if self._is_metadata_line(line):
+            logger.debug(f"🚫 Rechazando metadato en L{line_num}: {line[:60]}...")
+            return False
 
-        Args:
-            line (str): La línea a analizar.
-            line_num (int): El número de la línea en el archivo.
-
-        Returns:
-            bool: True si la línea se analizó como datos, False en caso contrario.
-        """
         has_data_structure = self._has_data_structure(line)
         current_category = self.context["category"]
 
-        logger.debug(
-            f"🔍 Analizando línea {line_num}: cat='{current_category}', "
-            f"datos={has_data_structure}"
-        )
-        logger.debug(f"   Contenido: {line[:80]}...")
+        logger.debug(f"🔍 Analizando línea {line_num}: cat='{current_category}', datos={has_data_structure}")
+        logger.debug(f" Contenido: {line[:80]}...")
 
-        # ... resto de la lógica de parsing ...
+        # Intentar patrones específicos primero
         match_mo_compleja = self.PATTERNS["mano_de_obra_compleja"].match(line)
         if match_mo_compleja:
             self._parse_mano_de_obra_compleja(match_mo_compleja.groupdict())
@@ -855,22 +849,22 @@ class ReportParser:
 
         match_insumo = self.PATTERNS["insumo_full"].match(line)
         if match_insumo:
+            # 🔴 VALIDACIÓN ADICIONAL: Verificar que no sea un metadato disfrazado
+            descripcion = match_insumo.groupdict().get("descripcion", "").strip().upper()
+            if any(meta in descripcion for meta in ['EQUIPO Y HERRAMIENTA', 'IMPUESTOS', 'POLIZAS', 'SEGUROS']):
+                logger.warning(f"🚫 Rechazando insumo con metadato: {descripcion}")
+                return False
+
             self._parse_insumo(match_insumo.groupdict())
             return True
 
+        # Fallback parsing con validación mejorada
         if self._has_data_structure(line):
             if self._try_fallback_parsing(line, line_num):
                 return True
 
-        processed = (
-            match_mo_compleja
-            or match_mo_simple
-            or match_insumo
-            or self._has_data_structure(line)
-        )
-        if not processed:
-            logger.debug("   ❌ No se pudo parsear como dato")
-        return processed
+        logger.debug(" ❌ No se pudo parsear como dato válido")
+        return False
 
     def _try_detect_category_change(self, line: str) -> bool:
         """Detecta cambios de categoría y re-infiere unidades si es necesario."""
@@ -962,30 +956,44 @@ class ReportParser:
             self.stats["state_transitions"] += 1
 
     def _try_fallback_parsing(self, line: str, line_num: int) -> bool:
-        """Intenta un análisis genérico como último recurso.
-
-        Args:
-            line (str): La línea a analizar.
-            line_num (int): El número de la línea en el archivo.
-
-        Returns:
-            bool: True si el análisis fue exitoso, False en caso contrario.
-        """
+        """Intenta un análisis genérico como último recurso con validación mejorada."""
         match = self.PATTERNS["generic_data"].match(line)
         if not match:
             return False
+
         data = match.groupdict()
         desc = data["descripcion"].strip()
+
+        # 🔴 FILTRO CRÍTICO: Rechazar metadatos en fallback
+        desc_upper = desc.upper()
+        metadata_indicators = [
+            'EQUIPO Y HERRAMIENTA', 'IMPUESTOS', 'POLIZAS', 'SEGUROS',
+            'GASTOS GENERALES', 'UTILIDAD', 'ADMINISTRACION'
+        ]
+
+        if any(meta in desc_upper for meta in metadata_indicators):
+            logger.warning(f"🚫 Rechazando fallback con metadato: {desc}")
+            return False
+
+        # Validar que tenga contenido real
         if self._looks_like_mo(desc):
             return False
+
         vals = [
             self._to_numeric_safe(v) for v in data.values() if isinstance(v, str)
         ]
         vals = [v for v in vals if v > 0]
+
         if len(vals) >= 2:
             vals.sort(reverse=True)
             valor_total, precio_unit = vals[0], vals[1]
             cantidad = valor_total / precio_unit if precio_unit > 0 else 0
+
+            # 🔴 VALIDACIÓN DE MONTOS RAZONABLES
+            if valor_total > 1000000: # Rechazar valores excesivos
+                logger.warning(f"🚫 Rechazando valor total excesivo en fallback: {valor_total}")
+                return False
+
             if self._should_add_insumo(desc, cantidad, valor_total):
                 self._add_apu_data(
                     descripcion=desc,
@@ -1000,6 +1008,7 @@ class ReportParser:
                 self.stats["fallback_parsed"] += 1
                 logger.debug(f"🔄 Fallback exitoso (L{line_num}): {desc[:50]}...")
                 return True
+
         return False
 
     def _parse_insumo(self, data: Dict[str, str]):
@@ -1143,21 +1152,28 @@ class ReportParser:
         except (ValueError, TypeError):
             return 0.0
 
-    def _should_add_insumo(
-        self, desc: str, cantidad: float, valor_total: float
-    ) -> bool:
-        """Determina si se debe agregar un insumo a los datos del APU.
-
-        Args:
-            desc (str): La descripción del insumo.
-            cantidad (float): La cantidad del insumo.
-            valor_total (float): El valor total del insumo.
-
-        Returns:
-            bool: True si se debe agregar el insumo, False en caso contrario.
-        """
+    def _should_add_insumo(self, desc: str, cantidad: float, valor_total: float) -> bool:
+        """Determina si se debe agregar un insumo con criterios más estrictos."""
         if not desc or len(desc.strip()) < 2:
             return False
+
+        # 🔴 CRITERIOS DE EXCLUSIÓN MÁS ESTRICTOS
+        desc_upper = desc.upper()
+
+        # Excluir metadatos conocidos
+        excluded_terms = [
+            'EQUIPO Y HERRAMIENTA', 'IMPUESTOS', 'POLIZAS', 'SEGUROS',
+            'GASTOS GENERALES', 'UTILIDAD', 'ADMINISTRACION', 'RETENCIONES'
+        ]
+
+        if any(term in desc_upper for term in excluded_terms):
+            return False
+
+        # Excluir valores excesivamente altos
+        if valor_total > 1000000: # Ajustar según el contexto del proyecto
+            logger.warning(f"🚫 Rechazando insumo con valor total excesivo: {valor_total}")
+            return False
+
         return not (cantidad <= 0 and valor_total <= 0)
 
     def _looks_like_mo(self, line: str) -> bool:
@@ -1238,34 +1254,59 @@ class ReportParser:
         )
 
     def _is_metadata_line(self, line: str) -> bool:
-        """Detecta si una línea contiene metadatos que deben ser ignorados."""
+        """Detecta si una línea contiene metadatos que deben ser ignorados - VERSIÓN COMPLETA."""
         if not line:
-            return False
+            return True
 
-        # Palabras clave que identifican líneas de metadatos no procesables
-        metadata_keywords = [
+        upper_line = line.upper().strip()
+
+        # METADATOS CRÍTICOS QUE DEBEN SER IGNORADOS
+        critical_metadata = [
+            # Costos indirectos y generales
             'EQUIPO Y HERRAMIENTA', 'EQUIPOS Y HERRAMIENTA',
-            'EQUIPO Y HERRAMIENTAS', 'EQUIPOS Y HERRAMIENTAS',
-            'IMPUESTOS Y RETENCIONES', 'IMPUESTOS', 'POLIZAS', 'PÓLIZAS',
-            'DESCRIPCION', 'DESCRIPCIÓN', 'UNIDAD', 'CANTIDAD', 'PRECIO UNIT',
-            'VALOR TOTAL', 'ITEM', 'CODIGO', 'CÓDIGO'
+            'IMPUESTOS Y RETENCIONES', 'IMPUESTOS',
+            'POLIZAS', 'PÓLIZAS', 'SEGUROS',
+            'GASTOS GENERALES', 'COSTOS INDIRECTOS',
+            'ADMINISTRACION', 'ADMINISTRACIÓN',
+            'UTILIDAD', 'UTILIDADES',
+
+            # Encabezados de tabla
+            'DESCRIPCION', 'DESCRIPCIÓN', 'UNIDAD', 'CANTIDAD',
+            'PRECIO UNIT', 'PRECIO UNITARIO', 'VALOR TOTAL',
+            'ITEM', 'CODIGO', 'CÓDIGO', 'RENDIMIENTO',
+
+            # Subtotales y totales
+            'SUBTOTAL', 'TOTAL', 'SUMA',
+
+            # Categorías (solo como encabezados, no como datos)
+            'MATERIALES', 'MANO DE OBRA', 'EQUIPO', 'TRANSPORTE', 'OTROS'
         ]
+        category_keywords = ['MATERIALES', 'MANO DE OBRA', 'EQUIPO', 'TRANSPORTE', 'OTROS']
 
-        upper_line = line.upper()
 
-        # Verificar si alguna palabra clave está presente en la línea
-        for keyword in metadata_keywords:
-            if keyword in upper_line:
-                # Validación adicional: debe ser una línea "pura" del encabezado
-                is_pure_header = (
-                        upper_line.strip() == keyword
-                        or re.match(r'^;*\s*' + re.escape(keyword) + r'\s*;*$', upper_line)
-                )
-                if is_pure_header:
-                    logger.debug(
-                        f"🚫 Línea de metadato detectada ('{keyword}'): {line[:60]}..."
-                    )
-                    return True
+        # Verificar coincidencia exacta o casi exacta
+        for keyword in critical_metadata:
+            # Coincidencia exacta
+            if upper_line == keyword:
+                return True
+
+            # Coincidencia con separadores (ej: "DESCRIPCION;UNIDAD;CANTIDAD...")
+            if re.match(r'^;*\s*' + re.escape(keyword) + r'\s*;*$', upper_line):
+                return True
+
+            # Coincidencia como primera parte de la línea
+            if upper_line.startswith(keyword + ';') or upper_line.endswith(';' + keyword):
+                if keyword in category_keywords and self._has_data_structure(line):
+                    continue
+                return True
+
+        # Líneas que son puramente separadores o formato
+        if re.match(r'^[;=\-\s]+$', upper_line):
+            return True
+
+        # Líneas que contienen porcentajes de costos indirectos
+        if re.search(r'\d+%', upper_line) and any(kw in upper_line for kw in ['IMPUESTO', 'POLIZA', 'UTILIDAD']):
+            return True
 
         return False
 
