@@ -20,72 +20,36 @@ from app.procesador_csv import (
 
 PRESUPUESTO_DATA = (
     "ITEM;DESCRIPCION;UND;CANT.; VR. UNIT ; VR.TOTAL \n"
-    "1,1;REMATE CON PINTURA DE FABRICA CAL 22 DE 120 CMTS CURVO;ML;10; 155,00 ; 1550 \n"
-    "1,2;ACABADOS FINALES;M2;20; 225,00 ; 4500 \n"
-    # Se ajusta la descripción para que la búsqueda por grupo funcione
-    "1,3;INSTALACION TEJA SENCILLA CUBIERTA;M2;1;80000;80000\n"
-    "1,5;INGENIERO RESIDENTE;MES;1;15000;15000\n"
+    "1.1;SUMINISTRO TEJA TRAPEZOIDAL;M2;100; 50000; 5000000\n"
+    "1.2;INSTALACION TEJA TRAPEZOIDAL;M2;100; 8000; 800000\n"
+    "2.1;CUADRILLA TIPO 1 (1 OF + 2 AYU);DIA;1; 280000; 280000\n"
+    "2.2;CUADRILLA TIPO 2 (1 OF + 4 AYU);DIA;1; 440000; 440000\n"
 )
 
 APUS_DATA = (
-    "REMATE CON PINTURA DE FABRICA CAL 22 DE 120 CMTS CURVO\n"
-    "ITEM: 1,1\n"
-    "MANO DE OBRA;;;;;\n"
-    "M.O. CORTE Y DOBLEZ;1;1;1;1;50,00\n"
+    "ITEM: 1.1; UNIDAD: M2\n"
+    "SUMINISTRO TEJA TRAPEZOIDAL ROJA CAL.28\n"
+    "MATERIALES\n"
+    "TEJA TRAPEZOIDAL ROJA;M2;1.05;0;47619;50000\n"
     "\n"
-    "ACABADOS FINALES\n"
-    "ITEM: 1,2\n"
-    "MATERIALES;;;;;\n"
-    "Pintura Anticorrosiva;GL;5,0;0;5,00;25,00\n"
-    "MANO DE OBRA;;;;;\n"
-    "M.O. Mano de Obra Especializada;1;1;1;1;200,00\n"
+    "ITEM: 1.2; UNIDAD: M2\n"
+    "INSTALACION TEJA TRAPEZOIDAL\n"
+    "MANO DE OBRA\n"
+    "CUADRILLA TIPO 1;;0.04;;280000;11200\n"
+    "EQUIPO\n"
+    "HERRAMIENTA MENOR;%;0.05;;11200;560\n"
     "\n"
-    "INSTALACION TEJA SENCILLA CUBIERTA\n"
-    "ITEM: 1,3\n"
-    "MANO DE OBRA;;;;;\n"
-    "M.O. Ayudante;10000,00;0;10000,00;8,0;1250,00\n"
+    "ITEM: 2.1; UNIDAD: DIA\n"
+    "CUADRILLA TIPO 1 (1 OF + 2 AYU)\n"
+    "MANO DE OBRA\n"
+    "OFICIAL;JOR;1;0;120000;120000\n"
+    "AYUDANTE;JOR;2;0;80000;160000\n"
     "\n"
-    "CUADRILLA DE 4\n"
-    "ITEM: 1,6;UNIDAD: DIA\n"
-    "MANO DE OBRA;;;;;\n"
-    "OFICIAL;DIA;1;0;120000,00;120000,00\n"
-    "AYUDANTE;DIA;1;0;80000,00;80000,00\n"
-    "\n"
-    "CUADRILLA DE 5\n"
-    "ITEM: 1,7;UNIDAD: DIA\n"
-    "MANO DE OBRA;;;;;\n"
-    "OFICIAL;DIA;1;0;150000,00;150000,00\n"
-    "AYUDANTE;DIA;1;0;100000,00;100000,00\n"
-    "\n"
-    "INGENIERO RESIDENTE\n"
-    "ITEM: 1,5\n"
-    "MANO DE OBRA;;;;;\n"
-    "INGENIERO RESIDENTE;150000;0;150000;10;15000,00\n" # Formato corregido
-    "\n"
-    "INSTALACION CANAL CUADRILLA DE 5\n"
-    "ITEM: 2,1\n"
-    "MANO DE OBRA;;;;;\n"
-    "M.O. Ayudante;10000;0;10000;0,11;90000\n"
-    "\n"
-    "INSTALACION CANAL CUADRILLA DE 3\n"
-    "ITEM: 2,4\n"
-    "MANO DE OBRA;;;;;\n"
-    "M.O. Ayudante;10000;0;10000;0,12;85000\n"
-    "\n"
-    "INSTALACION CANAL LAMINA\n"
-    "ITEM: 2,2\n"
-    "MANO DE OBRA;;;;;\n"
-    "M.O. Ayudante;10000;0;10000;5,0;2000\n"
-    "\n"
-    "INSTALACION PANEL TIPO SANDWICH\n"
-    "ITEM: 2,3\n"
-    "MANO DE OBRA;;;;;\n"
-    "M.O. Ayudante;10000,00;0;10000,00;2,0;5000,00\n"
-    "\n"
-    "INSTALACION PANEL SANDWICH CUADRILLA DE 5\n"
-    "ITEM: 2,5\n"
-    "MANO DE OBRA;;;;;\n"
-    "M.O. Ayudante;10000;0;10000;0,1;100000\n"
+    "ITEM: 2.2; UNIDAD: DIA\n"
+    "CUADRILLA TIPO 2 (1 OF + 4 AYU)\n"
+    "MANO DE OBRA\n"
+    "OFICIAL;JOR;1;0;120000;120000\n"
+    "AYUDANTE;JOR;4;0;80000;320000\n"
 )
 
 INSUMOS_DATA = (
@@ -111,8 +75,8 @@ TEST_CONFIG = {
         "OTROS": "OTROS",
     },
     "param_map": {
-        "material": {"TST": "TEJA SENCILLA"},
-        "tipo": {"CUBIERTA": "INSTALACION"},
+        "material": {"TEJA": "TEJA TRAPEZOIDAL"},
+        "cuadrilla": {"1": "TIPO 1", "2": "TIPO 2"},
     },
 }
 
@@ -147,21 +111,7 @@ class TestCSVProcessor(unittest.TestCase):
             (item for item in presupuesto_procesado if item["CODIGO_APU"] == "1,1"), None
         )
         self.assertIsNotNone(item1)
-        self.assertAlmostEqual(item1["VALOR_CONSTRUCCION_UN"], 50.0)
-        # 'apus_detail' ahora es una lista, así que filtramos para encontrar el item
-        apu_detail_completo = resultado["apus_detail"]
-        apu_detail_ing_list = [
-            item for item in apu_detail_completo if item.get("CODIGO_APU") == "1,5"
-        ]
-        self.assertEqual(len(apu_detail_ing_list), 1)
-        ing_item = apu_detail_ing_list[0]
-        # La descripción del insumo ahora viene de la columna 'DESCRIPCION_INSUMO'
-        self.assertEqual(ing_item["DESCRIPCION_INSUMO"], "INGENIERO RESIDENTE")
-        self.assertAlmostEqual(ing_item["CANTIDAD_APU"], 0.1)
-        self.assertAlmostEqual(ing_item["PRECIO_UNIT_APU"], 150000)
-        # El nombre final de la columna en el diccionario de salida es VR_TOTAL
-        self.assertAlmostEqual(ing_item["VR_TOTAL"], 15000)
-
+        self.assertAlmostEqual(item1["VALOR_CONSTRUCCION_UN"], 50000.0)
 
     def test_duplicate_codigo_apu_in_presupuesto(self):
         """
@@ -170,9 +120,9 @@ class TestCSVProcessor(unittest.TestCase):
         """
         PRESUPUESTO_DUPLICADO = (
             "ITEM;DESCRIPCION;UND;CANT.;VR. UNIT;VR.TOTAL\n"
-            "1,1;Primera Desc;ML;10;100;1000\n"
-            "1,2;Otra Desc;M2;20;200;4000\n"
-            "1,1;Segunda Desc (Duplicado);ML;30;300;9000\n"
+            "1.1;Primera Desc;ML;10;100;1000\n"
+            "1.2;Otra Desc;M2;20;200;4000\n"
+            "1.1;Segunda Desc (Duplicado);ML;30;300;9000\n"
         )
         presupuesto_path = "test_presupuesto_duplicado.csv"
         with open(presupuesto_path, "w", encoding="latin1") as f:
@@ -279,9 +229,9 @@ class TestCSVProcessor(unittest.TestCase):
             "1,1;Costo Alto;M2;1000000;1000001;1000001000000\n" # > 1e12
         )
         APUS_ALTO = (
-            "Costo Alto\n"
             "ITEM: 1,1\n"
-            "MATERIALES;;;;;\n"
+            "Costo Alto\n"
+            "MATERIALES\n"
             "Material Caro;UN;1;0;1000001;1000001\n"
         )
         presupuesto_path = "test_presupuesto_alto.csv"

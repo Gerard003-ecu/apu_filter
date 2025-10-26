@@ -32,49 +32,36 @@ def _find_best_match(
     log: List[str],
     strict: bool = False,
     min_match_percentage: float = 30.0,
+    match_mode: str = 'words'
 ) -> Optional[pd.Series]:
-    """Encuentra la mejor coincidencia de APU para una lista de palabras clave.
-
-    Utiliza un sistema de puntuación para seleccionar la mejor coincidencia
-    basado en el número de palabras clave que coinciden.
-
-    Args:
-        df_pool (pd.DataFrame): El DataFrame de APUs disponibles.
-        keywords (List[str]): La lista de palabras clave a buscar.
-        log (List[str]): Una lista para registrar el proceso de búsqueda.
-        strict (bool): Si es True, requiere una coincidencia del 100%.
-        min_match_percentage (float): El porcentaje mínimo de coincidencia.
-
-    Returns:
-        Optional[pd.Series]: La mejor coincidencia de APU o None si no se
-                             encuentra ninguna.
-    """
+    """Encuentra la mejor coincidencia de APU para una lista de palabras clave."""
     if df_pool.empty or not keywords:
         log.append("  --> Pool vacío o sin keywords, retornando None.")
         return None
 
-    log.append(
-        f"  🔍 Buscando: {' '.join(keywords)}"
-        )
-    log.append(
-        f"  📊 Pool size: {len(df_pool)} APUs"
-        )
-    log.append(
-        f"  ⚙️ Modo: "
-        f"{'ESTRICTO (100%)' if strict else f'FLEXIBLE (≥{min_match_percentage}%)'}"
-        )
+    log.append(f"  🔍 Buscando: {' '.join(keywords)}")
+    log.append(f"  📊 Pool size: {len(df_pool)} APUs")
+    log.append(f"  ⚙️ Modo: {'ESTRICTO (100%)' if strict else f'FLEXIBLE (≥{min_match_percentage}%)'} | Estrategia: {match_mode}")
 
     best_match = None
     best_score = 0
     best_percentage = 0.0
     candidates = []
 
-    # Evaluar cada APU
     for idx, apu in df_pool.iterrows():
         desc_normalized = apu.get("DESC_NORMALIZED", "")
-        desc_words = set(desc_normalized.split())
+        if pd.isna(desc_normalized):
+            desc_normalized = ""
 
-        matches, percentage = _calculate_match_score(desc_words, keywords)
+        matches, percentage = 0, 0
+        if match_mode == 'words':
+            desc_words = set(desc_normalized.split())
+            matches, percentage = _calculate_match_score(desc_words, keywords)
+        elif match_mode == 'substring':
+            keyword_str = ' '.join(keywords)
+            if keyword_str in desc_normalized:
+                matches = len(keywords)
+                percentage = 100.0
 
         if matches > 0:
             candidates.append({
@@ -84,15 +71,13 @@ def _find_best_match(
                 'apu': apu
             })
 
-        if matches > best_score:
-            best_match = apu
-            best_score = matches
-            best_percentage = percentage
+            if matches > best_score:
+                best_match = apu
+                best_score = matches
+                best_percentage = percentage
 
-    # Ordenar candidatos
     candidates.sort(key=lambda x: (x['matches'], x['percentage']), reverse=True)
 
-    # Mostrar top candidatos
     if candidates:
         log.append(f"  📋 Top {min(3, len(candidates))} candidatos:")
         for i, candidate in enumerate(candidates[:3], 1):
@@ -101,7 +86,6 @@ def _find_best_match(
                 f"({candidate['percentage']:.0f}%) - {candidate['description'][:60]}..."
             )
 
-    # Aplicar criterios de selección
     if strict and best_percentage == 100.0:
         log.append("  ✅ Match ESTRICTO encontrado!")
         return best_match
@@ -221,7 +205,8 @@ def calculate_estimate(
         log.append(f"👥 Pool de cuadrillas: {len(df_cuadrilla_pool)} APUs con UNIDAD=DIA")
 
         # Preparar keywords de cuadrilla
-        cuadrilla_keywords = ["cuadrilla", "de", cuadrilla]
+        cuadrilla_mapped = param_map.get("cuadrilla", {}).get(cuadrilla, cuadrilla)
+        cuadrilla_keywords = ["cuadrilla", cuadrilla_mapped]
         cuadrilla_keywords_norm = normalize_text(
             pd.Series([" ".join(cuadrilla_keywords)])
         ).iloc[0].split()
@@ -231,13 +216,15 @@ def calculate_estimate(
             df_cuadrilla_pool,
             cuadrilla_keywords_norm,
             log,
-            strict=True  # Búsqueda estricta para cuadrillas
+        strict=True,
+        match_mode='substring'
         )
 
         if apu_cuadrilla is not None:
             costo_diario_cuadrilla = apu_cuadrilla.get("VALOR_CONSTRUCCION_UN", 0.0)
             apu_cuadrilla_desc = apu_cuadrilla.get("original_description", "")
             log.append(f"💰 Costo diario: ${costo_diario_cuadrilla:,.2f}")
+            costo_equipo = 0.0
         else:
             log.append("⚠️ No se encontró cuadrilla exacta")
     else:
