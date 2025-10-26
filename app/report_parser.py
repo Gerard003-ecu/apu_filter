@@ -104,22 +104,25 @@ class ReportParser:
         }
 
     def parse(self) -> pd.DataFrame:
-        """Analiza el archivo de APU y devuelve un DataFrame.
+        """Analiza el archivo con DEBUG EXTENDIDO de unidades."""
+        logger.info(f"🔍 Iniciando parsing DEL ARCHIVO: {self.file_path}")
 
-        Returns:
-            pd.DataFrame: Un DataFrame con los datos de APU analizados.
-        """
-        logger.info(f"🔍 Iniciando parsing del archivo: {self.file_path}")
-        logger.info(f"📊 Contexto inicial: {self.context}")
+        # DEBUG CRÍTICO: Mostrar TODAS las líneas con ITEM
+        try:
+            with open(self.file_path, "r", encoding="latin1") as f:
+                logger.info("🚨 DEBUG CRÍTICO - TODAS LAS LÍNEAS CON 'ITEM':")
+                for line_num, line in enumerate(f, 1):
+                    if "ITEM" in line.upper():
+                        logger.info(f" Línea {line_num}: {line.strip()}")
+        except Exception as e:
+            logger.error(f"❌ Error en debug: {e}")
 
+        # Continuar con el parsing normal
         try:
             with open(self.file_path, "r", encoding="latin1") as f:
                 for line_num, line in enumerate(f, 1):
                     self.stats["total_lines"] += 1
-                    logger.debug(f"--- Línea {line_num} ---")
                     self._process_line(line, line_num)
-                    logger.debug(f"Contexto actual: {self.context}")
-
         except Exception as e:
             logger.error(f"❌ Error al parsear {self.file_path}: {e}", exc_info=True)
             return pd.DataFrame()
@@ -211,22 +214,21 @@ class ReportParser:
         self.stats["unparsed_data_lines"] += 1
 
     def _try_start_new_apu(self, line: str, line_num: int) -> bool:
-        """Inicia un nuevo APU con extracción ULTRA-ROBUSTA de unidad."""
+        """Inicia un nuevo APU con extracción ULTRA-AGRESIVA de unidad."""
         match_item = self.PATTERNS["item_code"].search(line.upper())
         if not match_item:
             return False
 
         raw_code = match_item.group(1).strip()
 
-        # 🚨 EXTRACCIÓN ULTRA-ROBUSTA - ENFOQUE DIRECTO
-        unit = self._extract_unit_ultra_robust(line, line_num)
+        # 🚨 EXTRACCIÓN ULTRA-AGRESIVA
+        unit = self._extract_unit_emergency(line, line_num)
 
         cleaned_code = clean_apu_code(raw_code)
         if not cleaned_code:
             logger.warning(f"⚠️ Código de APU inválido: '{raw_code}'")
             return False
 
-        # INICIAR NUEVO APU
         self.context = {
             "apu_code": cleaned_code,
             "apu_desc": "",
@@ -235,54 +237,97 @@ class ReportParser:
         }
 
         self.stats["items_found"] += 1
-        self._transition_to(
-            ParserState.AWAITING_DESCRIPTION, f"nuevo APU: {cleaned_code}"
-        )
+        self._transition_to(ParserState.AWAITING_DESCRIPTION, f"nuevo APU: {cleaned_code}")
 
         logger.info(f"🔄 Nuevo APU iniciado: {cleaned_code} | Unidad: {unit}")
         return True
 
-    def _extract_unit_robust(self, line: str, line_num: int) -> str:
+    def _extract_unit_emergency(self, line: str, line_num: int) -> str:
         """
-        Extrae la unidad de medida de forma robusta - VERSIÓN CORREGIDA.
-
-        Args:
-            line: Línea que contiene el ITEM y posiblemente UNIDAD
-            line_num: Número de línea para logging
-
-        Returns:
-            str: Unidad extraída o "INDEFINIDO" si no se encuentra
+        Extracción de unidad de EMERGENCIA - Enfoque brutalmente simple.
         """
         line_upper = line.upper().strip()
 
-        # DEBUG: Log para diagnóstico
-        logger.debug(f"🔍 Buscando unidad en línea {line_num}: '{line_upper}'")
+        logger.info(f"🚨 EMERGENCY UNIT EXTRACTION Línea {line_num}: '{line_upper}'")
 
-        # PATRONES CORREGIDOS - Más simples y efectivos
-        patterns = [
-            # Formato: UNIDAD: VALOR (patrón principal)
-            r"UNIDAD\s*:\s*([^;,\s]+)",
-            # Formato: UNIDAD VALOR (sin dos puntos)
-            r"UNIDAD\s+([^;,\s]+)",
-            # Buscar directamente después de "UNIDAD:"
-            r"UNIDAD:\s*(\w+)",
-        ]
+        # ESTRATEGIA 1: Buscar UNIDAD: o UNIDAD (prioriza con ':')
+        text_after_unidad = ""
+        if "UNIDAD:" in line_upper:
+            parts = line_upper.split("UNIDAD:", 1)
+            if len(parts) > 1:
+                text_after_unidad = parts[1].strip()
+        elif "UNIDAD" in line_upper:
+            parts = line_upper.split("UNIDAD", 1)
+            if len(parts) > 1:
+                text_after_unidad = parts[1].strip()
 
-        for i, pattern in enumerate(patterns):
-            match = re.search(pattern, line_upper)
-            if match:
-                unit = match.group(1).strip()
-                logger.debug(f"🎯 Patrón {i} coincidió: '{unit}'")
+        if text_after_unidad:
+            unit = self._extract_unit_from_text(text_after_unidad)
+            if unit:
+                logger.info(f"🎯 UNIDAD encontrado -> '{unit}'")
+                return unit
 
-                # Limpiar unidad capturada
-                unit = self._clean_unit(unit)
+        # ESTRATEGIA 2: Buscar unidades directamente en toda la línea
+        direct_units = self._find_units_bruteforce(line_upper)
+        if direct_units:
+            logger.info(f"🎯 Unidad directa -> '{direct_units}'")
+            return direct_units
 
-                if unit and self._is_valid_unit(unit):
-                    logger.info(f"✅ Unidad '{unit}' extraída de línea {line_num}")
-                    return unit
+        # ESTRATEGIA 3: Si todo falla, asumir UND (fallback de emergencia)
+        logger.warning(f"🚨 ASIGNANDO 'UND' COMO FALLBACK de emergencia")
+        return "UND"
 
-        # FALLBACK: Buscar unidades conocidas en cualquier parte de la línea
-        return self._fallback_unit_detection(line_upper, line_num)
+    def _extract_unit_from_text(self, text: str) -> str:
+        """Extrae unidad de un texto usando múltiples estrategias."""
+        # Intentar extraer primera palabra
+        words = text.split()
+        if words:
+            first_word = words[0].strip(';,.')
+            unit = self._clean_unit_brutal(first_word)
+            if self._is_valid_unit(unit):
+                return unit
+
+        # Buscar unidades en el texto completo
+        return self._find_units_bruteforce(text)
+
+    def _find_units_bruteforce(self, text: str) -> str:
+        """Búsqueda brutal de unidades en el texto."""
+        # Unidades CRÍTICAS (con variaciones), ordenadas por longitud
+        critical_units = sorted(
+            ['DIA', 'DIAS', 'DÍAS', 'JOR', 'JORNAL', 'M2', 'M3', 'UND', 'UNIDAD', 'HORA', 'HORAS', 'LOTE', 'SERVICIO'],
+            key=len, reverse=True
+        )
+        for unit in critical_units:
+            if re.search(r'\b' + re.escape(unit) + r'\b', text):
+                return self._clean_unit_brutal(unit)
+
+        # Unidades secundarias
+        secondary_units = sorted(['ML', 'KM', 'CM', 'KG', 'TON', 'L', 'GAL', 'M'], key=len, reverse=True)
+        for unit in secondary_units:
+            if re.search(r'\b' + re.escape(unit) + r'\b', text):
+                return unit
+
+        return ""
+
+    def _clean_unit_brutal(self, unit: str) -> str:
+        """Limpieza brutal de unidad."""
+        if not unit:
+            return ""
+
+        # Remover caracteres no deseados
+        unit = re.sub(r'[^A-Z0-9/%]', '', unit.upper())
+
+        # Mapeo directo
+        unit_map = {
+            'M2': 'M2', 'M3': 'M3', 'ML': 'ML', 'M': 'M',
+            'DIA': 'DIA', 'DIAS': 'DIA', 'DÍAS': 'DIA',
+            'JOR': 'JOR', 'JORNAL': 'JOR',
+            'HORA': 'HORA', 'HR': 'HORA', 'HORAS': 'HORA',
+            'UND': 'UND', 'UN': 'UND', 'UNIDAD': 'UND',
+            'LOTE': 'LOTE', 'SERVICIO': 'SERVICIO'
+        }
+
+        return unit_map.get(unit, unit)
 
     def _clean_unit(self, unit: str) -> str:
         """Limpia y normaliza la unidad extraída - VERSIÓN SIMPLIFICADA."""
@@ -311,11 +356,11 @@ class ReportParser:
         return unit_mappings.get(unit, unit)
 
     def _is_valid_unit(self, unit: str) -> bool:
-        """Verifica si la unidad extraída es válida."""
-        if not unit or len(unit) > 20: # Unidades muy largas probablemente son incorrectas
+        """Verifica si la unidad es válida (VERSIÓN PERMISIVA)."""
+        if not unit or unit == "INDEFINIDO":
             return False
 
-        # Lista de unidades válidas comunes en construcción
+        # Cualquier unidad no vacía es válida en modo emergencia
         valid_units = {
             'M2', 'M3', 'ML', 'M', 'CM', 'MM', 'KM',
             'UND', 'UNIDAD', 'U', 'UNIT',
@@ -324,7 +369,7 @@ class ReportParser:
             'L', 'ML', 'GAL', 'PT', '%'
         }
 
-        return unit.upper() in valid_units
+        return unit in valid_units
 
     def _fallback_unit_detection(self, line: str, line_num: int) -> str:
         """
