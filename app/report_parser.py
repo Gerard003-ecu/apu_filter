@@ -225,7 +225,7 @@ class ReportParser:
 
         # Patrón específico: empieza con "DESCRIPCION" y tiene separadores
         if re.match(r'^;*\s*(?:DESCRIPCION|DESCRIPCIÓN);.+;.+', line_upper):
-            logger.debug(f"📋 Encabezado con patrón DESCRIPCION;...;...")
+            logger.debug("📋 Encabezado con patrón DESCRIPCION;...;...")
             return True
 
         return False
@@ -331,7 +331,7 @@ class ReportParser:
 
         # 2. Encabezados con separadores (ej: ";DESCRIPCION;UNIDAD;")
         if re.match(r'^;*\s*(?:DESCRIPCION|DESCRIPCIÓN|ITEM|UNIDAD)\s*;', line_clean.upper()):
-            logger.debug(f"❌ Rechazado: encabezado con separadores")
+            logger.debug("❌ Rechazado: encabezado con separadores")
             return False
 
         # 3. Categorías standalone (sin datos)
@@ -341,17 +341,17 @@ class ReportParser:
 
         # 4. Líneas que son solo números/puntuación
         if re.match(r'^[\d\s.,;$%]+$', line_clean):
-            logger.debug(f"❌ Rechazado: solo números/puntuación")
+            logger.debug("❌ Rechazado: solo números/puntuación")
             return False
 
         # 5. Metadatos conocidos
         if self._is_metadata_line(line):
-            logger.debug(f"❌ Rechazado: metadato")
+            logger.debug("❌ Rechazado: metadato")
             return False
 
         # 6. Encabezados de tabla multi-columna
         if self._is_table_header(line):
-            logger.debug(f"❌ Rechazado: encabezado multi-columna")
+            logger.debug("❌ Rechazado: encabezado multi-columna")
             return False
 
         # ========== CRITERIOS DE INCLUSIÓN ==========
@@ -369,7 +369,7 @@ class ReportParser:
 
         # 3. No debe empezar con separador
         if line_clean.startswith(';'):
-            logger.debug(f"❌ Rechazado: empieza con separador")
+            logger.debug("❌ Rechazado: empieza con separador")
             return False
 
         # 4. BONUS: Palabras clave de construcción aumentan confianza
@@ -379,7 +379,7 @@ class ReportParser:
         )
 
         if has_construction_keyword:
-            logger.debug(f"✅ ALTA CONFIANZA: contiene palabra clave de construcción")
+            logger.debug("✅ ALTA CONFIANZA: contiene palabra clave de construcción")
             return True
 
         # 5. Validación final: proporción de letras vs números

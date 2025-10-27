@@ -21,6 +21,7 @@ from tests.test_data import (
     TEST_CONFIG,
 )
 
+
 class TestCSVProcessorWithNewData(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
