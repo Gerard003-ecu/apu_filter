@@ -752,7 +752,7 @@ class ReportParser:
 
         # CRITERIOS DE EXCLUSIÓN
         # 1. No debe tener estructura de datos
-        if self._is_structured_data_line(line):
+        if self._has_data_structure(line)::
             return False
 
         # 2. No debe ser basura o metadatos
