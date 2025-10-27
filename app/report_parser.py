@@ -14,6 +14,7 @@ logger = logging.getLogger(__name__)
 class ParserState(Enum):
     IDLE = "IDLE"
     AWAITING_DESCRIPTION = "AWAITING_DESCRIPTION"
+    SKIPPING_HEADERS = "SKIPPING_HEADERS" # 🆕 NUEVO ESTADO
     PROCESSING_APU = "PROCESSING_APU"
 
 
@@ -159,116 +160,303 @@ class ReportParser:
         logger.info(f"✅ DataFrame generado con {len(df)} registros")
         return df
 
+    def _extract_inline_description(self, line: str, line_num: int) -> str:
+        """
+        Intenta extraer descripción de la misma línea que contiene ITEM:.
+
+        Formato esperado:
+        ITEM: 01-A;DESCRIPCION: Excavación manual;UNIDAD: M3
+        """
+        line_upper = line.upper()
+
+        # Patrón 1: ITEM: codigo; DESCRIPCION: texto
+        pattern1 = r'ITEM:\s*[^;]+;\s*(?:DESCRIPCION|DESCRIPCIÓN)\s*:\s*([^;]+)'
+        match = re.search(pattern1, line_upper, re.IGNORECASE)
+
+        if match:
+            description = match.group(1).strip()
+            # Validar que no sea un encabezado disfrazado
+            if description.upper() not in ['DESCRIPCION', 'DESCRIPCIÓN', '']:
+                logger.info(f"🎯 Descripción inline extraída: '{description}'")
+                return description
+
+        # Patrón 2: Descripción después del código sin palabra clave
+        # ITEM: 01-A; Excavación manual; M3
+        pattern2 = r'ITEM:\s*[^;]+;\s*([^;]+)'
+        match = re.search(pattern2, line, re.IGNORECASE)
+
+        if match:
+            potential_desc = match.group(1).strip()
+            # Validar que no sea UNIDAD ni encabezado
+            if (not re.match(r'^(?:UNIDAD|DESCRIPCION|CÓDIGO)', potential_desc.upper())
+            and len(potential_desc) > 5):
+                logger.info(f"🎯 Descripción inline (patrón 2): '{potential_desc}'")
+                return potential_desc
+
+        return ""
+
+    def _is_table_header(self, line: str) -> bool:
+        """
+        Detecta si una línea es un encabezado de tabla completo.
+
+        Ejemplos:
+        - "DESCRIPCION;UNIDAD;CANTIDAD;PRECIO UNIT;VALOR TOTAL"
+        - ";DESCRIPCION;UNIDAD;CANTIDAD;DESPERDICIO;PRECIO UNIT;VALOR TOTAL"
+        """
+        line_upper = line.upper().strip()
+
+        # Lista de palabras que indican encabezado
+        header_keywords = [
+            'DESCRIPCION', 'DESCRIPCIÓN', 'UNIDAD', 'CANTIDAD',
+            'PRECIO UNIT', 'PRECIO UNITARIO', 'VALOR TOTAL',
+            'RENDIMIENTO', 'DESPERDICIO', 'CODIGO', 'CÓDIGO'
+        ]
+
+        # Contar cuántas palabras clave de encabezado aparecen
+        keyword_count = sum(
+            1 for keyword in header_keywords
+            if keyword in line_upper
+        )
+
+        # Si tiene 3 o más palabras clave de encabezado, es un encabezado
+        if keyword_count >= 3:
+            logger.debug(f"📋 Encabezado multi-columna detectado ({keyword_count} keywords)")
+            return True
+
+        # Patrón específico: empieza con "DESCRIPCION" y tiene separadores
+        if re.match(r'^;*\s*(?:DESCRIPCION|DESCRIPCIÓN);.+;.+', line_upper):
+            logger.debug(f"📋 Encabezado con patrón DESCRIPCION;...;...")
+            return True
+
+        return False
+
     def _process_line(self, line: str, line_num: int):
-        """Procesa una línea con máquina de estados corregida para captura de descripción."""
+        """Procesa una línea con máquina de estados ROBUSTA para captura de descripción."""
         line = line.strip()
 
-        # REGLA 1: Ignorar líneas vacías, basura y metadatos
+        # REGLA 1: Ignorar líneas vacías y basura
         if not line:
             self._transition_to_idle("línea en blanco")
             return
 
-        if self._is_garbage_line(line) or self._is_metadata_line(line):
+        if self._is_garbage_line(line):
             self.stats["garbage_lines"] += 1
             return
 
         self.stats["processed_lines"] += 1
 
-        # REGLA 2: Detectar nuevo ITEM (SIEMPRE disponible, en cualquier estado)
+        # REGLA 2: Detectar nuevo ITEM (disponible en cualquier estado)
         if self._try_start_new_apu(line, line_num):
             return
 
         # REGLA 3: Procesamiento según estado actual
         if self.state == ParserState.IDLE:
-            # En IDLE, solo nos interesan los nuevos ITEMs
+            # En IDLE, solo esperamos ITEMs
             return
 
         elif self.state == ParserState.AWAITING_DESCRIPTION:
-            # ESTADO CRÍTICO CORREGIDO: Solo capturar líneas que parecen descripciones reales
+            # 🆕 CRÍTICO: Detectar y SALTAR encabezados de tabla
+            if self._is_table_header(line):
+                logger.info(
+                    f"📋 Encabezado de tabla detectado después de ITEM "
+                    f"{self.context['apu_code']}, saltando..."
+                )
+                self._transition_to(ParserState.SKIPPING_HEADERS, "encabezado detectado")
+                return
+
+            # Intentar capturar descripción válida
             if self._is_valid_apu_description(line):
                 self._capture_apu_description(line, line_num)
             else:
-                # Si no es una descripción válida, continuar esperando
                 logger.debug(
-                    f"⏳ Esperando descripción válida para APU {self.context['apu_code']}: "
+                    f"⏳ L{line_num}: Esperando descripción válida, rechazando: "
                     f"'{line[:60]}...'"
                 )
                 return
 
+        elif self.state == ParserState.SKIPPING_HEADERS:
+            # 🆕 NUEVO: Estado para saltar encabezados hasta encontrar descripción
+            if self._is_table_header(line) or self._is_metadata_line(line):
+                logger.debug(f"⏭️ L{line_num}: Saltando encabezado/metadato")
+                return
+
+            # Encontramos línea que no es encabezado
+            if self._is_valid_apu_description(line):
+                self._capture_apu_description(line, line_num)
+            else:
+                # Si no es descripción válida pero tampoco encabezado,
+                # puede ser el inicio de datos (ej: categoría)
+                self._transition_to(
+                    ParserState.PROCESSING_APU,
+                    "datos encontrados sin descripción explícita"
+                )
+                # Asignar descripción por defecto
+                self.context["apu_desc"] = f"APU {self.context['apu_code']}"
+                logger.warning(
+                    f"⚠️ No se encontró descripción para APU {self.context['apu_code']}, "
+                    f"usando descripción genérica"
+                )
+                # Procesar la línea actual como dato
+                self._process_apu_data(line, line_num)
+                return
+
         elif self.state == ParserState.PROCESSING_APU:
-            # Procesar categorías e insumos del APU actual
+            # Procesar categorías e insumos
             self._process_apu_data(line, line_num)
 
     def _is_valid_apu_description(self, line: str) -> bool:
-        """Determina si una línea es una descripción válida de APU (NO encabezados)."""
+        """
+        Determina si una línea es una descripción válida de APU.
+        VERSIÓN REFACTORIZADA con validación multi-criterio.
+        """
         line_clean = line.strip()
 
-        # CRITERIOS DE EXCLUSIÓN (lo que NO es una descripción)
-        exclusion_patterns = [
-            r'^DESCRIPCION$', r'^DESCRIPCIÓN$',  # Encabezados de tabla
-            r'^ITEM$', r'^UNIDAD$', r'^CANTIDAD$',  # Otros encabezados
-            r'^CODIGO$', r'^CÓDIGO$',
-            r'^MATERIALES$', r'^MANO DE OBRA$', r'^EQUIPO$',  # Categorías
-            r'^VALOR TOTAL$', r'^PRECIO UNIT$',
-            r'^;+DESCRIPCION;+', r'^;+DESCRIPCIÓN;+'  # Encabezados con separadores
-        ]
+        if not line_clean or len(line_clean) < 5:
+            return False
 
-        for pattern in exclusion_patterns:
-            if re.match(pattern, line_clean.upper()):
+        # ========== CRITERIOS DE EXCLUSIÓN (LISTA COMPLETA) ==========
+
+        # 1. Encabezados de tabla exactos
+        table_headers_exact = {
+            'DESCRIPCION', 'DESCRIPCIÓN', 'ITEM', 'UNIDAD', 'CANTIDAD',
+            'CODIGO', 'CÓDIGO', 'VALOR TOTAL', 'PRECIO UNIT',
+            'PRECIO UNITARIO', 'RENDIMIENTO', 'DESPERDICIO'
+        }
+
+        first_word = line_clean.split(';')[0].strip().upper()
+
+        if first_word in table_headers_exact:
+            logger.debug(f"❌ Rechazado: encabezado exacto '{first_word}'")
+            return False
+
+        # 2. Encabezados con separadores (ej: ";DESCRIPCION;UNIDAD;")
+        if re.match(r'^;*\s*(?:DESCRIPCION|DESCRIPCIÓN|ITEM|UNIDAD)\s*;', line_clean.upper()):
+            logger.debug(f"❌ Rechazado: encabezado con separadores")
+            return False
+
+        # 3. Categorías standalone (sin datos)
+        if first_word in self.CATEGORY_KEYWORDS and not self._has_data_structure(line):
+            logger.debug(f"❌ Rechazado: categoría standalone '{first_word}'")
+            return False
+
+        # 4. Líneas que son solo números/puntuación
+        if re.match(r'^[\d\s.,;$%]+$', line_clean):
+            logger.debug(f"❌ Rechazado: solo números/puntuación")
+            return False
+
+        # 5. Metadatos conocidos
+        if self._is_metadata_line(line):
+            logger.debug(f"❌ Rechazado: metadato")
+            return False
+
+        # 6. Encabezados de tabla multi-columna
+        if self._is_table_header(line):
+            logger.debug(f"❌ Rechazado: encabezado multi-columna")
+            return False
+
+        # ========== CRITERIOS DE INCLUSIÓN ==========
+
+        # 1. Longitud mínima
+        if len(first_word) < 5:
+            logger.debug(f"❌ Rechazado: descripción muy corta '{first_word}'")
+            return False
+
+        # 2. Debe contener texto alfabético significativo
+        alpha_count = sum(1 for c in first_word if c.isalpha())
+        if alpha_count < 5:
+            logger.debug(f"❌ Rechazado: insuficiente contenido alfabético ({alpha_count})")
+            return False
+
+        # 3. No debe empezar con separador
+        if line_clean.startswith(';'):
+            logger.debug(f"❌ Rechazado: empieza con separador")
+            return False
+
+        # 4. BONUS: Palabras clave de construcción aumentan confianza
+        has_construction_keyword = any(
+            keyword in first_word.upper()
+            for keyword in self.DESCRIPTION_KEYWORDS
+        )
+
+        if has_construction_keyword:
+            logger.debug(f"✅ ALTA CONFIANZA: contiene palabra clave de construcción")
+            return True
+
+        # 5. Validación final: proporción de letras vs números
+        total_chars = len(re.sub(r'\s', '', first_word))
+        if total_chars > 0:
+            alpha_ratio = alpha_count / total_chars
+            if alpha_ratio < 0.5: # Al menos 50% letras
+                logger.debug(f"❌ Rechazado: baja proporción de letras ({alpha_ratio:.2f})")
                 return False
 
-        # CRITERIOS DE INCLUSIÓN (lo que SÍ es una descripción)
-        inclusion_criteria = [
-            len(line_clean) >= 5,  # Longitud mínima reducida
-            not line_clean.upper().startswith(';'),  # No empieza con separador
-            bool(re.search(r'[a-zA-ZáéíóúÁÉÍÓÚñÑ]', line_clean)),  # Contiene texto
-            not re.match(r'^[\d\s.,;]+$', line_clean)  # No es solo números/puntuación
-        ]
-
-        return all(inclusion_criteria)
+        logger.debug(f"✅ Descripción válida: '{first_word}'")
+        return True
 
     def _capture_apu_description(self, line: str, line_num: int):
-        """Captura la descripción del APU con validación mejorada."""
-        # Tomar solo la primera parte antes de cualquier ';' como descripción
+        """
+        Captura la descripción del APU con validación REFORZADA.
+        VERSIÓN REFACTORIZADA - Eliminación total de encabezados.
+        """
+        # Extraer solo la primera parte antes de ';'
         description = line.split(';')[0].strip()
 
-        # Validación adicional contra encabezados
-        if description.upper() in [
-            'DESCRIPCION', 'DESCRIPCIÓN', 'ITEM', 'UNIDAD', 'CANTIDAD'
-        ]:
-            logger.warning(
-                f"⚠️ Se rechazó encabezado como descripción para APU "
-                f"{self.context['apu_code']}"
-            )
-            description = "DESCRIPCIÓN NO ESPECIFICADA"
+        # ========== VALIDACIONES CRÍTICAS ==========
 
-        # Validaciones básicas de calidad
-        if not description or len(description) < 5:
-            logger.warning(
-                f"⚠️ Descripción muy corta o vacía en APU {self.context['apu_code']}"
-            )
-            description = "DESCRIPCIÓN NO DISPONIBLE"
+        # 1. Validación contra encabezados (lista completa)
+        forbidden_headers = {
+            'DESCRIPCION', 'DESCRIPCIÓN', 'ITEM', 'UNIDAD', 'CANTIDAD',
+            'CODIGO', 'CÓDIGO', 'VALOR TOTAL', 'PRECIO UNIT',
+            'PRECIO UNITARIO', 'RENDIMIENTO'
+        }
 
-        # ASIGNAR DESCRIPCIÓN
+        if description.upper() in forbidden_headers:
+            logger.error(
+                f"❌ CRÍTICO: Se intentó capturar encabezado '{description}' como "
+                f"descripción para APU {self.context['apu_code']} en L{line_num}"
+            )
+            # NO capturar, mantener en AWAITING_DESCRIPTION o pasar a SKIPPING_HEADERS
+            self._transition_to(ParserState.SKIPPING_HEADERS, "encabezado rechazado")
+            return
+
+        # 2. Validación de longitud mínima
+        if len(description) < 5:
+            logger.warning(
+                f"⚠️ Descripción muy corta en L{line_num} para APU "
+                f"{self.context['apu_code']}: '{description}'"
+            )
+            description = f"APU {self.context['apu_code']} - DESCRIPCIÓN NO DISPONIBLE"
+
+        # 3. Validación de contenido alfabético
+        alpha_count = sum(1 for c in description if c.isalpha())
+        if alpha_count < 5:
+            logger.warning(
+                f"⚠️ Descripción con poco contenido alfabético en L{line_num}: '{description}'"
+            )
+            description = f"APU {self.context['apu_code']} - {description}"
+
+        # ========== ASIGNAR DESCRIPCIÓN VALIDADA ==========
         self.context["apu_desc"] = description
 
-        # 🎯 INFERIR UNIDAD SI ES NECESARIO
+        # Inferir unidad si es necesario
         if self.context["apu_unit"] == "UND" and not self.context.get("unit_was_explicit"):
             inferred_unit = self._infer_unit_from_context(
                 description, self.context["category"]
             )
             self.context["apu_unit"] = inferred_unit
             logger.info(
-                f"🎯 Unidad inferida '{inferred_unit}' para APU {self.context['apu_code']}"
+                f"🎯 Unidad inferida '{inferred_unit}' para APU "
+                f"{self.context['apu_code']}"
             )
 
+        # Transición a PROCESSING_APU
         self._transition_to(ParserState.PROCESSING_APU, "descripción válida capturada")
 
         logger.info(
-            f"✅ Descripción APU {self.context['apu_code']}: '{description[:70]}...'"
+            f"✅ APU {self.context['apu_code']} | Descripción: '{description[:70]}...'"
         )
 
-        # Si la línea contiene datos después de ';', procesarlos también
+        # Procesar datos restantes en la misma línea si existen
         if self._has_data_structure(line):
             remaining_data = ';'.join(line.split(';')[1:])
             if remaining_data.strip():
@@ -399,34 +587,47 @@ class ReportParser:
         self.stats["unparsed_data_lines"] += 1
 
     def _try_start_new_apu(self, line: str, line_num: int) -> bool:
-        """Inicia un nuevo APU con extracción ULTRA-AGRESIVA de unidad."""
+        """Inicia un nuevo APU con detección mejorada de descripción inline."""
         match_item = self.PATTERNS["item_code"].search(line.upper())
         if not match_item:
             return False
 
         raw_code = match_item.group(1).strip()
+        cleaned_code = clean_apu_code(raw_code)
 
-        # 🚨 EXTRACCIÓN ULTRA-AGRESIVA
+        if not cleaned_code:
+            logger.warning(f"⚠️ Código de APU inválido en L{line_num}: '{raw_code}'")
+            return False
+
+        # 🆕 MEJORA: Intentar extraer descripción de la MISMA línea de ITEM
+        inline_description = self._extract_inline_description(line, line_num)
+
+        # Extraer unidad (método existente mejorado)
         unit = self._extract_unit_emergency(line, line_num)
         unit_was_explicit = bool(unit)
 
-        cleaned_code = clean_apu_code(raw_code)
-        if not cleaned_code:
-            logger.warning(f"⚠️ Código de APU inválido: '{raw_code}'")
-            return False
-
+        # Inicializar contexto del nuevo APU
         self.context = {
             "apu_code": cleaned_code,
-            "apu_desc": "",
+            "apu_desc": inline_description, # 🆕 Puede estar vacío
             "apu_unit": unit or "UND",
             "category": "INDEFINIDO",
             "unit_was_explicit": unit_was_explicit,
         }
 
         self.stats["items_found"] += 1
-        self._transition_to(ParserState.AWAITING_DESCRIPTION, f"nuevo APU: {cleaned_code}")
 
-        logger.info(f"🔄 Nuevo APU iniciado: {cleaned_code} | Unidad: {unit}")
+        # 🆕 DECISIÓN DE ESTADO: Si ya tenemos descripción, pasar directo a PROCESSING
+        if inline_description:
+            logger.info(
+                f"✅ APU {cleaned_code} iniciado CON descripción inline: "
+                f"'{inline_description[:60]}...'"
+            )
+            self._transition_to(ParserState.PROCESSING_APU, "descripción inline capturada")
+        else:
+            logger.info(f"🔄 APU {cleaned_code} iniciado, esperando descripción...")
+            self._transition_to(ParserState.AWAITING_DESCRIPTION, f"nuevo APU: {cleaned_code}")
+
         return True
 
     def _extract_unit_emergency(self, line: str, line_num: int) -> str:
@@ -1241,15 +1442,17 @@ class ReportParser:
         )
 
     def _is_metadata_line(self, line: str) -> bool:
-        """Detecta si una línea contiene metadatos que deben ser ignorados - VERSIÓN COMPLETA."""
+        """
+        Detecta si una línea contiene metadatos - VERSIÓN REFORZADA.
+        """
         if not line:
             return True
 
         upper_line = line.upper().strip()
 
-        # METADATOS CRÍTICOS QUE DEBEN SER IGNORADOS
+        # ========== METADATOS CRÍTICOS ==========
         critical_metadata = [
-            # Costos indirectos y generales
+            # Costos indirectos
             'EQUIPO Y HERRAMIENTA', 'EQUIPOS Y HERRAMIENTA',
             'IMPUESTOS Y RETENCIONES', 'IMPUESTOS',
             'POLIZAS', 'PÓLIZAS', 'SEGUROS',
@@ -1257,42 +1460,36 @@ class ReportParser:
             'ADMINISTRACION', 'ADMINISTRACIÓN',
             'UTILIDAD', 'UTILIDADES',
 
-            # Encabezados de tabla
+            # Encabezados de tabla (agregados aquí también)
             'DESCRIPCION', 'DESCRIPCIÓN', 'UNIDAD', 'CANTIDAD',
             'PRECIO UNIT', 'PRECIO UNITARIO', 'VALOR TOTAL',
             'ITEM', 'CODIGO', 'CÓDIGO', 'RENDIMIENTO',
 
-            # Subtotales y totales
+            # Subtotales
             'SUBTOTAL', 'TOTAL', 'SUMA',
-
-            # Categorías (solo como encabezados, no como datos)
-            # 'MATERIALES', 'MANO DE OBRA', 'EQUIPO', 'TRANSPORTE', 'OTROS'
         ]
-        category_keywords = ['MATERIALES', 'MANO DE OBRA', 'EQUIPO', 'TRANSPORTE', 'OTROS']
 
-
-        # Verificar coincidencia exacta o casi exacta
+        # Verificar coincidencia exacta
         for keyword in critical_metadata:
-            # Coincidencia exacta
             if upper_line == keyword:
                 return True
 
-            # Coincidencia con separadores (ej: "DESCRIPCION;UNIDAD;CANTIDAD...")
+            # Con separadores
             if re.match(r'^;*\s*' + re.escape(keyword) + r'\s*;*$', upper_line):
                 return True
 
-            # Coincidencia como primera parte de la línea
-            if upper_line.startswith(keyword + ';') or upper_line.endswith(';' + keyword):
-                if keyword in category_keywords and self._has_data_structure(line):
-                    continue
+            # Como primera parte
+            if upper_line.startswith(keyword + ';'):
                 return True
 
-        # Líneas que son puramente separadores o formato
+        # Líneas puramente separadores
         if re.match(r'^[;=\-\s]+$', upper_line):
             return True
 
-        # Líneas que contienen porcentajes de costos indirectos
-        if re.search(r'\d+%', upper_line) and any(kw in upper_line for kw in ['IMPUESTO', 'POLIZA', 'UTILIDAD']):
+        # Líneas con porcentajes de costos
+        if re.search(r'\d+%', upper_line) and any(
+            kw in upper_line for kw in ['IMPUESTO', 'POLIZA', 'UTILIDAD', 'ADMINISTRACION']
+        ):
             return True
 
         return False
