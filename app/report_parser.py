@@ -752,7 +752,7 @@ class ReportParser:
 
         # CRITERIOS DE EXCLUSIÓN
         # 1. No debe tener estructura de datos
-        if self._has_data_structure(line)::
+        if self._has_data_structure(line):
             return False
 
         # 2. No debe ser basura o metadatos
@@ -1266,7 +1266,7 @@ class ReportParser:
             'SUBTOTAL', 'TOTAL', 'SUMA',
 
             # Categorías (solo como encabezados, no como datos)
-            'MATERIALES', 'MANO DE OBRA', 'EQUIPO', 'TRANSPORTE', 'OTROS'
+            # 'MATERIALES', 'MANO DE OBRA', 'EQUIPO', 'TRANSPORTE', 'OTROS'
         ]
         category_keywords = ['MATERIALES', 'MANO DE OBRA', 'EQUIPO', 'TRANSPORTE', 'OTROS']
 

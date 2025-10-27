@@ -287,6 +287,17 @@ def calculate_estimate(
     else:
         log.append("⚠️ No se encontró tarea de instalación")
 
+    # --- INICIO DE LA CORRECCIÓN ---
+    # REGLA DE NEGOCIO ADICIONAL: Si no se encontró tarea pero sí suministro,
+    # crear una tarea sintética para continuar con el cálculo.
+    if apu_tarea is None and apu_suministro is not None:
+        apu_tarea_desc = f"INSTALACION {material_mapped}"
+        log.append(f"✅ Tarea sintética creada: '{apu_tarea_desc}'")
+        # Asumir rendimiento y equipo cero si no hay tarea explícita
+        rendimiento_dia = 0.0
+        costo_equipo = 0.0
+    # --- FIN DE LA CORRECCIÓN ---
+
     # ============================================
     # 5. CÁLCULO FINAL CON REGLAS DE NEGOCIO
     # ============================================

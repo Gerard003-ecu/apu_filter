@@ -5,17 +5,23 @@ import pandas as pd
 
 
 def clean_apu_code(code: str) -> str:
-    """Limpia un código de APU para que sea consistente.
+    """Limpia y estandariza un código de APU.
+
+    Convierte comas a puntos y elimina caracteres no numéricos,
+    permitiendo un único punto como separador decimal.
 
     Args:
         code (str): El código de APU a limpiar.
 
     Returns:
-        str: El código de APU limpio.
+        str: El código de APU estandarizado.
     """
     if not isinstance(code, str):
         code = str(code)
-    return re.sub(r'[^\d,]', '', code.replace('.', ',')).strip().rstrip(',')
+    # Reemplazar comas por puntos y eliminar caracteres no deseados
+    cleaned_code = re.sub(r'[^\d.]', '', code.replace(',', '.'))
+    # Asegurarse de que no termine con un punto
+    return cleaned_code.strip().rstrip('.')
 
 def normalize_text(text_series: pd.Series) -> pd.Series:
     """Normaliza un texto para la búsqueda.

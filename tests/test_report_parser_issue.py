@@ -1,74 +1,86 @@
 import os
 import sys
+import unittest
+import tempfile
+import shutil
 
 # Add the project root to the Python path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-import logging
-import unittest
-
 from app.report_parser import ReportParser
-
-# Configure logging to display debug messages
-logging.basicConfig(
-    level=logging.DEBUG, format="%(asctime)s - %(levelname)s - %(message)s"
-)
+from tests.test_data import APUS_DATA # Importar los nuevos datos
 
 
-class TestReportParserWithRealData(unittest.TestCase):
+class TestReportParserWithNewData(unittest.TestCase):
     """
-    Test suite for ReportParser with the actual apus.csv file.
+    Suite de pruebas para ReportParser utilizando los nuevos datos de prueba centralizados.
     """
 
     @classmethod
     def setUpClass(cls):
         """
-        Set up the test environment.
+        Configura el entorno de prueba creando un archivo APU temporal
+        con los nuevos datos.
         """
-        cls.test_file_path = "apus.csv"
+        # Crear un directorio temporal para los archivos de prueba
+        cls.temp_dir = tempfile.mkdtemp()
+        cls.test_file_path = os.path.join(cls.temp_dir, "test_apus.csv")
+
+        # Escribir los nuevos datos de APUS_DATA en el archivo temporal
+        with open(cls.test_file_path, "w", encoding="latin1") as f:
+            f.write(APUS_DATA)
+
+        # Crear una instancia del parser y analizar el archivo
         cls.parser = ReportParser(cls.test_file_path)
         cls.df = cls.parser.parse()
 
-        # Print the DataFrame for debugging if necessary
-        logging.debug("Parsed DataFrame for testing with real data:")
-        logging.debug(cls.df.to_string())
+        if cls.df.empty:
+            raise ValueError("El análisis de los datos de prueba no produjo resultados.")
 
-    def test_dataframe_is_not_empty_with_real_data(self):
+    @classmethod
+    def tearDownClass(cls):
+        """Limpia el directorio temporal después de las pruebas."""
+        shutil.rmtree(cls.temp_dir)
+
+    def test_dataframe_is_not_empty(self):
+        """Verifica que el DataFrame resultante no esté vacío."""
+        self.assertFalse(self.df.empty, "El DataFrame no debería estar vacío.")
+
+    def test_finds_correct_number_of_apus(self):
         """
-        Tests that the DataFrame is not empty when parsing the real apus.csv.
+        Verifica que el parser identifica el número correcto de APUs únicos
+        basado en los nuevos datos de prueba.
         """
-        self.assertFalse(
-            self.df.empty, "The DataFrame should not be empty when parsing apus.csv."
+        expected_apus = ["1.1", "1.2", "2.1", "3.1"]
+        actual_apus = self.df["CODIGO_APU"].unique()
+        self.assertCountEqual(
+            actual_apus,
+            expected_apus,
+            f"Se esperaban los APUs {expected_apus} pero se encontraron {actual_apus}",
         )
-
-    def test_finds_a_significant_number_of_apus(self):
-        """
-        Tests that the parser identifies a significant number of unique APUs.
-        """
-        apu_codes = self.df["CODIGO_APU"].unique()
-        num_apus = len(apu_codes)
-        msg = f"Expected more than 5 APUs, but found {num_apus}."
-        self.assertTrue(num_apus > 5, msg)
 
     def test_specific_insumo_is_parsed_correctly(self):
         """
-        Tests that a specific known insumo is parsed correctly.
+        Prueba que un insumo específico de los nuevos datos de prueba
+        (TEJA TRAPEZOIDAL ROJA) se analiza correctamente.
         """
-        # Example insumo from apus.csv
-        # LAMINA DE 1.22 X 3.05 MTS CAL. 22 PINTADA INCLUIDO
-        # IVA;UND;0,33;14,04;174.928,81;65.403,35
-        insumo_desc = "LAMINA DE 1.22 X 3.05 MTS CAL. 22 PINTADA INCLUIDO IVA"
+        # Buscar el insumo específico en el DataFrame
+        insumo_desc = "TEJA TRAPEZOIDAL ROJA"
         insumo = self.df[self.df["DESCRIPCION_INSUMO"] == insumo_desc]
-        self.assertTrue(
-            not insumo.empty, "The specific insumo 'LAMINA...' was not found."
+
+        # Verificar que el insumo fue encontrado
+        self.assertFalse(
+            insumo.empty, f"El insumo '{insumo_desc}' no fue encontrado."
         )
 
+        # Realizar aserciones sobre los datos del insumo
         insumo_data = insumo.iloc[0]
-        self.assertEqual(insumo_data["UNIDAD_INSUMO"], "UND")
-        self.assertAlmostEqual(insumo_data["CANTIDAD_APU"], 0.33, places=2)
-        self.assertAlmostEqual(insumo_data["PRECIO_UNIT_APU"], 174928.81, places=2)
-        self.assertAlmostEqual(insumo_data["VALOR_TOTAL_APU"], 65403.35, places=2)
+        self.assertEqual(insumo_data["UNIDAD_INSUMO"], "M2")
+        self.assertAlmostEqual(insumo_data["CANTIDAD_APU"], 1.05, places=2)
+        self.assertAlmostEqual(insumo_data["PRECIO_UNIT_APU"], 47619, places=2)
+        self.assertAlmostEqual(insumo_data["VALOR_TOTAL_APU"], 50000, places=2)
         self.assertEqual(insumo_data["CATEGORIA"], "MATERIALES")
+
 
 if __name__ == "__main__":
     unittest.main()
