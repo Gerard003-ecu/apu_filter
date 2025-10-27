@@ -208,9 +208,15 @@ class TestNewReportParser(unittest.TestCase):
     def test_multiple_apus_parsing(self):
         """Prueba el parsing de múltiples APUs en el mismo archivo."""
         multi_apu_data = (
-            "ITEM: 001\nAPU 1\nMat 1;U;1;;1;1\n\n"
-            "ITEM: 002\nAPU 2\nMat 2;U;1;;1;1\n\n"
-            "ITEM: 003\nAPU 3\nMat 3;U;1;;1;1\n"
+            "ITEM: 001\n"
+            "UNA DESCRIPCION LARGA PARA APU 1\n"
+            "Mat 1;U;1;;1;1\n\n"
+            "ITEM: 002\n"
+            "UNA DESCRIPCION LARGA PARA APU 2\n"
+            "Mat 2;U;1;;1;1\n\n"
+            "ITEM: 003\n"
+            "UNA DESCRIPCION LARGA PARA APU 3\n"
+            "Mat 3;U;1;;1;1\n"
         )
         parser = self._create_parser_for_content(multi_apu_data, "multi_apu.txt")
         df = parser.parse()
@@ -340,6 +346,25 @@ class TestNewReportParser(unittest.TestCase):
         # Verificar que ambos APUs se procesaron
         self.assertEqual(len(df["CODIGO_APU"].unique()), 2)
         self.assertEqual(len(df), 2)
+
+    def test_skipping_headers_state(self):
+        """
+        Prueba que el estado SKIPPING_HEADERS ignora los encabezados de tabla
+        y captura la descripción correcta que aparece después.
+        """
+        header_skipping_data = (
+            "ITEM: APU-01\n"
+            "DESCRIPCION;UNIDAD;CANTIDAD;PRECIO UNIT;VALOR TOTAL\n"  # Encabezado a ignorar
+            "Esta es la descripcion real del APU\n"  # Descripción a capturar
+            "MATERIALES\n"
+            "Insumo de prueba;UND;1;;100;100\n"
+        )
+        parser = self._create_parser_for_content(header_skipping_data, "header_skipping.txt")
+        df = parser.parse()
+
+        self.assertEqual(len(df), 1, "Debería parsearse 1 insumo.")
+        self.assertEqual(df["CODIGO_APU"].iloc[0], "01")
+        self.assertEqual(df["DESCRIPCION_APU"].iloc[0], "Esta es la descripcion real del APU")
 
     def test_unit_extraction_robustness(self):
         """Prueba la extracción robusta de unidades de medida."""
