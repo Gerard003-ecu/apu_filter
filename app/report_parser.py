@@ -562,11 +562,18 @@ class ReportParser:
         else:
             return "UND"
 
+    def _get_cleaned_apu_code(self) -> str:
+        """
+        Obtiene el código de APU limpio, calculándolo solo una vez por contexto.
+        """
+        if self.context.get("cleaned_apu_code") is None:
+            raw_apu_code = self.context.get("apu_code", "")
+            self.context["cleaned_apu_code"] = clean_apu_code(raw_apu_code)
+        return self.context["cleaned_apu_code"]
+
     def _infer_unit_from_context(self, description: str, category: str) -> str:
         """Usa inferencia ultra-agresiva como estrategia principal."""
-        # Obtener código APU del contexto actual
-        apu_code = self.context.get("apu_code", "")
-
+        apu_code = self._get_cleaned_apu_code()
         return self._infer_unit_aggressive(description, category, apu_code)
 
     def _process_apu_data(self, line: str, line_num: int):
@@ -593,9 +600,8 @@ class ReportParser:
             return False
 
         raw_code = match_item.group(1).strip()
-        cleaned_code = clean_apu_code(raw_code)
 
-        if not cleaned_code:
+        if not raw_code:
             logger.warning(f"⚠️ Código de APU inválido en L{line_num}: '{raw_code}'")
             return False
 
@@ -608,11 +614,12 @@ class ReportParser:
 
         # Inicializar contexto del nuevo APU
         self.context = {
-            "apu_code": cleaned_code,
+            "apu_code": raw_code, # Guardar código crudo
             "apu_desc": inline_description, # 🆕 Puede estar vacío
             "apu_unit": unit or "UND",
             "category": "INDEFINIDO",
             "unit_was_explicit": unit_was_explicit,
+            "cleaned_apu_code": None,
         }
 
         self.stats["items_found"] += 1
@@ -620,13 +627,13 @@ class ReportParser:
         # 🆕 DECISIÓN DE ESTADO: Si ya tenemos descripción, pasar directo a PROCESSING
         if inline_description:
             logger.info(
-                f"✅ APU {cleaned_code} iniciado CON descripción inline: "
+                f"✅ APU {raw_code} iniciado CON descripción inline: "
                 f"'{inline_description[:60]}...'"
             )
             self._transition_to(ParserState.PROCESSING_APU, "descripción inline capturada")
         else:
-            logger.info(f"🔄 APU {cleaned_code} iniciado, esperando descripción...")
-            self._transition_to(ParserState.AWAITING_DESCRIPTION, f"nuevo APU: {cleaned_code}")
+            logger.info(f"🔄 APU {raw_code} iniciado, esperando descripción...")
+            self._transition_to(ParserState.AWAITING_DESCRIPTION, f"nuevo APU: {raw_code}")
 
         return True
 
@@ -1239,7 +1246,7 @@ class ReportParser:
         if self._should_add_insumo(desc, cantidad, valor_total):
             self._add_apu_data(
                 descripcion=desc,
-                unidad="JOR",
+                unidad=data.get("unidad", "JOR"),
                 cantidad=cantidad,
                 precio_unit=jornal_total,
                 valor_total=valor_total,
@@ -1266,7 +1273,7 @@ class ReportParser:
         if self._should_add_insumo(desc, cantidad, valor_total):
             self._add_apu_data(
                 descripcion=desc,
-                unidad="JOR",
+                unidad=data.get("unidad", "JOR"),
                 cantidad=cantidad,
                 precio_unit=precio_unit,
                 valor_total=valor_total,
@@ -1283,8 +1290,9 @@ class ReportParser:
         Args:
             **kwargs: Los datos del registro de APU a agregar.
         """
+        cleaned_code = self._get_cleaned_apu_code()
         base_data = {
-            "CODIGO_APU": self.context["apu_code"],
+            "CODIGO_APU": cleaned_code,
             "DESCRIPCION_APU": self.context["apu_desc"],
             "UNIDAD_APU": self.context["apu_unit"],
         }
