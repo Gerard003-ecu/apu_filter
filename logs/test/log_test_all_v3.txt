@@ -3,7 +3,7 @@ platform darwin -- Python 3.12.3, pytest-8.4.2, pluggy-1.6.0 -- /Users/gerardoma
 cachedir: .pytest_cache
 rootdir: /Users/gerardomayor/Documents/estru_techos/apu_filter
 configfile: pyproject.toml
-collected 24 items                                                                                                                                    
+collected 24 items
 
 tests/test_app.py::TestAppEndpoints::test_get_estimate_with_session FAILED                                                                      [  4%]
 tests/test_apu_processor.py::TestAPUProcessor::test_exclusion_of_metadata_insumos PASSED                                                        [  8%]
@@ -52,7 +52,7 @@ self = <test_app.TestAppEndpoints testMethod=test_get_estimate_with_session>
             c.application.config["APP_CONFIG"] = TEST_CONFIG
             upload_response = c.post("/upload", data=data, content_type="multipart/form-data")
             self.assertEqual(upload_response.status_code, 200)
-    
+
             # Solicitar una estimación con los parámetros definidos
             estimate_params = {"material": "TEJA", "cuadrilla": "1"}
             response = c.post("/api/estimate", json=estimate_params)
@@ -76,7 +76,7 @@ self = <test_estimator.TestEstimatorWithNewData testMethod=test_calculate_estima
 >       result = calculate_estimate(params, self.data_store, TEST_CONFIG)
                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-tests/test_estimator.py:87: 
+tests/test_estimator.py:87:
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
 params = {'cuadrilla': '1', 'material': 'PINTURA'}
@@ -87,19 +87,19 @@ config = {'category_keywords': {'EQUIPO': 'EQUIPO', 'MANO DE OBRA': 'MANO DE OBR
         params: Dict[str, str], data_store: Dict, config: Dict
     ) -> Dict[str, Union[str, float, List[str]]]:
         """Busca componentes de forma atómica y ensambla el resultado.
-    
+
         Algoritmo:
         1. Carga los datos.
         2. Busca el suministro.
         3. Busca la cuadrilla.
         4. Busca la tarea para el rendimiento y el equipo.
         5. Calcula el resultado final ensamblando los componentes.
-    
+
         Args:
             params (Dict[str, str]): Los parámetros para la estimación.
             data_store (Dict): El almacén de datos con los datos procesados.
             config (Dict): La configuración de la aplicación.
-    
+
         Returns:
             Dict[str, Union[str, float, List[str]]]: Un diccionario con el
                                                      resultado de la estimación.
@@ -107,7 +107,7 @@ config = {'category_keywords': {'EQUIPO': 'EQUIPO', 'MANO DE OBRA': 'MANO DE OBR
         log = []
         log.append("🕵️ ESTIMADOR DETECTIVE INICIADO")
         log.append("="*70)
-    
+
         # ============================================
         # 1. CARGA DE DATOS
         # ============================================
@@ -116,10 +116,10 @@ config = {'category_keywords': {'EQUIPO': 'EQUIPO', 'MANO DE OBRA': 'MANO DE OBR
             error_msg = "No hay datos de APU procesados disponibles."
             log.append(f"❌ ERROR: {error_msg}")
             return {"error": error_msg, "log": "\n".join(log)}
-    
+
         df_processed_apus = pd.DataFrame(processed_apus_list)
         log.append(f"📚 Datos cargados: {len(df_processed_apus)} APUs disponibles")
-    
+
         # Obtener parámetros
         material = params.get("material", "").upper()
         cuadrilla = params.get("cuadrilla", "0")
@@ -128,13 +128,13 @@ config = {'category_keywords': {'EQUIPO': 'EQUIPO', 'MANO DE OBRA': 'MANO DE OBR
         seguridad = params.get("seguridad", "NORMAL")
         log.append(f"📝 Material: '{material}' | Cuadrilla: '{cuadrilla}'")
         log.append(f"📝 Config: Zona='{zona}', Izaje='{izaje}', Seguridad='{seguridad}'")
-    
+
         # Mapear material si existe configuración
         param_map = config.get("param_map", {})
         material_mapped = param_map.get("material", {}).get(material, material)
         if material != material_mapped:
             log.append(f"🔄 Material mapeado: '{material}' → '{material_mapped}'")
-    
+
         # Preparar keywords del material
 >       material_keywords = normalize_text(pd.Series([material_mapped])).iloc[0].split()
                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -155,7 +155,7 @@ self = <test_estimator.TestEstimatorWithNewData testMethod=test_calculate_estima
 >       result = calculate_estimate(params, self.data_store, TEST_CONFIG)
                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-tests/test_estimator.py:61: 
+tests/test_estimator.py:61:
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
 params = {'cuadrilla': '1', 'material': 'TEJA'}
@@ -166,19 +166,19 @@ config = {'category_keywords': {'EQUIPO': 'EQUIPO', 'MANO DE OBRA': 'MANO DE OBR
         params: Dict[str, str], data_store: Dict, config: Dict
     ) -> Dict[str, Union[str, float, List[str]]]:
         """Busca componentes de forma atómica y ensambla el resultado.
-    
+
         Algoritmo:
         1. Carga los datos.
         2. Busca el suministro.
         3. Busca la cuadrilla.
         4. Busca la tarea para el rendimiento y el equipo.
         5. Calcula el resultado final ensamblando los componentes.
-    
+
         Args:
             params (Dict[str, str]): Los parámetros para la estimación.
             data_store (Dict): El almacén de datos con los datos procesados.
             config (Dict): La configuración de la aplicación.
-    
+
         Returns:
             Dict[str, Union[str, float, List[str]]]: Un diccionario con el
                                                      resultado de la estimación.
@@ -186,7 +186,7 @@ config = {'category_keywords': {'EQUIPO': 'EQUIPO', 'MANO DE OBRA': 'MANO DE OBR
         log = []
         log.append("🕵️ ESTIMADOR DETECTIVE INICIADO")
         log.append("="*70)
-    
+
         # ============================================
         # 1. CARGA DE DATOS
         # ============================================
@@ -195,10 +195,10 @@ config = {'category_keywords': {'EQUIPO': 'EQUIPO', 'MANO DE OBRA': 'MANO DE OBR
             error_msg = "No hay datos de APU procesados disponibles."
             log.append(f"❌ ERROR: {error_msg}")
             return {"error": error_msg, "log": "\n".join(log)}
-    
+
         df_processed_apus = pd.DataFrame(processed_apus_list)
         log.append(f"📚 Datos cargados: {len(df_processed_apus)} APUs disponibles")
-    
+
         # Obtener parámetros
         material = params.get("material", "").upper()
         cuadrilla = params.get("cuadrilla", "0")
@@ -207,13 +207,13 @@ config = {'category_keywords': {'EQUIPO': 'EQUIPO', 'MANO DE OBRA': 'MANO DE OBR
         seguridad = params.get("seguridad", "NORMAL")
         log.append(f"📝 Material: '{material}' | Cuadrilla: '{cuadrilla}'")
         log.append(f"📝 Config: Zona='{zona}', Izaje='{izaje}', Seguridad='{seguridad}'")
-    
+
         # Mapear material si existe configuración
         param_map = config.get("param_map", {})
         material_mapped = param_map.get("material", {}).get(material, material)
         if material != material_mapped:
             log.append(f"🔄 Material mapeado: '{material}' → '{material_mapped}'")
-    
+
         # Preparar keywords del material
 >       material_keywords = normalize_text(pd.Series([material_mapped])).iloc[0].split()
                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
