@@ -1,5 +1,6 @@
+from typing import Optional
 import re
-
+from unidecode import unidecode
 import numpy as np
 import pandas as pd
 
@@ -23,7 +24,7 @@ def clean_apu_code(code: str) -> str:
     # Asegurarse de que no termine con un punto
     return cleaned_code.strip().rstrip('.')
 
-def normalize_text(text_series: pd.Series) -> pd.Series:
+def normalize_text_series(text_series: pd.Series) -> pd.Series:
     """Normaliza un texto para la búsqueda.
 
     Convierte a minúsculas, elimina tildes, reemplaza caracteres no
@@ -131,3 +132,57 @@ def sanitize_for_json(data: any) -> any:
     if pd.isna(data):
         return None
     return data
+
+def parse_number(s: Optional[str]) -> float:
+    """Convierte una cadena a un número de punto flotante de forma segura.
+
+    Args:
+        s (Optional[str]): La cadena a convertir.
+
+    Returns:
+        float: El número convertido o 0.0 si la conversión falla.
+    """
+    if not s or not isinstance(s, str):
+        return 0.0
+    s_cleaned = s.strip().replace("$", "").replace(" ", "")
+    if not s_cleaned:
+        return 0.0
+
+    # Heurística para manejar formatos numéricos inconsistentes
+    if "," in s_cleaned:
+        # Si la coma existe, es el separador decimal. Los puntos son de miles.
+        s_cleaned = s_cleaned.replace(".", "")
+        s_cleaned = s_cleaned.replace(",", ".")
+    elif s_cleaned.count('.') > 1:
+        # Múltiples puntos sin comas: son separadores de miles.
+        s_cleaned = s_cleaned.replace(".", "")
+    elif s_cleaned.count('.') == 1:
+        # Un solo punto: puede ser decimal o de miles (ej. 80.000).
+        integer_part, fractional_part = s_cleaned.split('.')
+        if len(fractional_part) == 3 and integer_part != "0":
+            # Probablemente es un separador de miles, como en "80.000"
+            s_cleaned = integer_part + fractional_part
+        # De lo contrario, se asume que es un punto decimal (ej. 0.125, 123.45)
+
+    try:
+        return float(s_cleaned)
+    except (ValueError, TypeError):
+        return 0.0
+
+def normalize_text(text: str) -> str:
+    """Normaliza un único string de texto.
+
+    Args:
+        text (str): El texto a normalizar.
+
+    Returns:
+        str: El texto normalizado.
+    """
+    if not isinstance(text, str):
+        text = str(text)
+
+    normalized = text.lower().strip()
+    normalized = unidecode(normalized)
+    normalized = re.sub(r"[^a-z0-9\s#\-]", "", normalized)
+    normalized = re.sub(r"\s+", " ", normalized)
+    return normalized

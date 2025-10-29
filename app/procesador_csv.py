@@ -4,11 +4,12 @@ import numpy as np
 import pandas as pd
 
 from .data_validator import validate_and_clean_data
-from .report_parser import ReportParser
+from .report_parser_crudo import ReportParserCrudo
+from .apu_processor import APUProcessor
 from .utils import (
     clean_apu_code,
     find_and_rename_columns,
-    normalize_text,
+    normalize_text_series,
     safe_read_dataframe,
 )
 
@@ -158,7 +159,7 @@ def process_insumos_csv(file_path: str) -> pd.DataFrame:
         df["VR_UNITARIO_INSUMO"] = pd.to_numeric(
             df["VR_UNITARIO_INSUMO"].astype(str).str.replace(",", "."), errors="coerce"
         )
-        df["NORMALIZED_DESC"] = normalize_text(df["DESCRIPCION_INSUMO"])
+        df["NORMALIZED_DESC"] = normalize_text_series(df["DESCRIPCION_INSUMO"])
 
         df = df.dropna(subset=["DESCRIPCION_INSUMO"])
 
@@ -314,8 +315,14 @@ def _do_processing(
     # ========== 1. CARGAR DATOS BASE ==========
     df_presupuesto = process_presupuesto_csv(presupuesto_path, config)
     df_insumos = process_insumos_csv(insumos_path)
-    parser = ReportParser(apus_path)
-    df_apus_raw = parser.parse()
+
+    # Etapa 1: Extracción Cruda
+    parser = ReportParserCrudo(apus_path)
+    raw_records = parser.parse_to_raw()
+
+    # Etapa 2: Procesamiento con Lógica de Negocio
+    processor = APUProcessor(raw_records)
+    df_apus_raw = processor.process_all()
 
     if df_presupuesto.empty or df_insumos.empty or df_apus_raw.empty:
         logger.error("❌ Fallo al cargar uno o más archivos de datos.")
@@ -520,7 +527,7 @@ def _do_processing(
         df_processed_apus, df_rendimiento, on="CODIGO_APU", how="left"
     )
     df_processed_apus.rename(columns={"UNIDAD_APU": "UNIDAD"}, inplace=True)
-    df_processed_apus["DESC_NORMALIZED"] = normalize_text(
+    df_processed_apus["DESC_NORMALIZED"] = normalize_text_series(
         df_processed_apus["DESCRIPCION_APU"]
     )
     df_processed_apus = group_and_split_description(df_processed_apus)
