@@ -3,9 +3,9 @@ import logging
 import numpy as np
 import pandas as pd
 
+from .apu_processor import APUProcessor
 from .data_validator import validate_and_clean_data
 from .report_parser_crudo import ReportParserCrudo
-from .apu_processor import APUProcessor
 from .utils import (
     clean_apu_code,
     find_and_rename_columns,

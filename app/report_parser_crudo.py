@@ -1,7 +1,8 @@
 import logging
 import re
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Dict, List
+
 from .utils import clean_apu_code
 
 logger = logging.getLogger(__name__)

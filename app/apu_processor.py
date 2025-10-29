@@ -1,9 +1,11 @@
 import logging
 import re
-from typing import Any, Dict, List, Optional
 from collections import defaultdict
+from typing import Any, Dict, List, Optional
+
 import pandas as pd
 from unidecode import unidecode
+
 from .utils import clean_apu_code, parse_number
 
 logger = logging.getLogger(__name__)

@@ -1,8 +1,9 @@
-from typing import Optional
 import re
-from unidecode import unidecode
+from typing import Optional
+
 import numpy as np
 import pandas as pd
+from unidecode import unidecode
 
 
 def clean_apu_code(code: str) -> str:
