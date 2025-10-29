@@ -1,0 +1,227 @@
+================================================================= test session starts =================================================================
+platform darwin -- Python 3.12.3, pytest-8.4.2, pluggy-1.6.0 -- /Users/gerardomayor/Documents/estru_techos/apu_filter/.venv/bin/python3
+cachedir: .pytest_cache
+rootdir: /Users/gerardomayor/Documents/estru_techos/apu_filter
+configfile: pyproject.toml
+collected 24 items                                                                                                                                    
+
+tests/test_app.py::TestAppEndpoints::test_get_estimate_with_session FAILED                                                                      [  4%]
+tests/test_apu_processor.py::TestAPUProcessor::test_exclusion_of_metadata_insumos PASSED                                                        [  8%]
+tests/test_apu_processor.py::TestAPUProcessor::test_mo_rendimiento_calculation PASSED                                                           [ 12%]
+tests/test_apu_processor.py::TestAPUProcessor::test_numeric_conversion_and_calculations PASSED                                                  [ 16%]
+tests/test_apu_processor.py::TestAPUProcessor::test_unit_inference PASSED                                                                       [ 20%]
+tests/test_data_validator.py::TestDataValidator::test_validate_and_clean_data_integration PASSED                                                [ 25%]
+tests/test_data_validator.py::TestDataValidator::test_validate_extreme_costs PASSED                                                             [ 29%]
+tests/test_data_validator.py::TestDataValidator::test_validate_missing_descriptions PASSED                                                      [ 33%]
+tests/test_data_validator.py::TestDataValidator::test_validate_zero_quantity_with_cost PASSED                                                   [ 37%]
+tests/test_estimator.py::TestEstimatorWithNewData::test_calculate_estimate_flexible_search FAILED                                               [ 41%]
+tests/test_estimator.py::TestEstimatorWithNewData::test_calculate_estimate_logic_two_step FAILED                                                [ 45%]
+tests/test_models.py::TestProbabilityModels::test_sanitize_value PASSED                                                                         [ 50%]
+tests/test_models.py::TestProbabilityModels::test_simulation_handles_empty_input PASSED                                                         [ 54%]
+tests/test_models.py::TestProbabilityModels::test_simulation_handles_missing_columns PASSED                                                     [ 58%]
+tests/test_models.py::TestProbabilityModels::test_simulation_handles_zero_cost_input PASSED                                                     [ 62%]
+tests/test_models.py::TestProbabilityModels::test_simulation_returns_correct_structure PASSED                                                   [ 66%]
+tests/test_models.py::TestProbabilityModels::test_simulation_values_are_reasonable PASSED                                                       [ 70%]
+tests/test_procesador_csv.py::TestCSVProcessorWithNewData::test_abnormally_high_cost_triggers_error PASSED                                      [ 75%]
+tests/test_procesador_csv.py::TestCSVProcessorWithNewData::test_cartesian_explosion_on_final_merge PASSED                                       [ 79%]
+tests/test_procesador_csv.py::TestCSVProcessorWithNewData::test_process_all_files_structure_and_calculations PASSED                             [ 83%]
+tests/test_report_parser_crudo.py::TestReportParserCrudo::test_basic_raw_extraction PASSED                                                      [ 87%]
+tests/test_report_parser_crudo.py::TestReportParserCrudo::test_inline_description_extraction PASSED                                             [ 91%]
+tests/test_report_parser_crudo.py::TestReportParserCrudo::test_multiple_apus_raw PASSED                                                         [ 95%]
+tests/test_report_parser_crudo.py::TestReportParserCrudo::test_no_numeric_conversion PASSED                                                     [100%]
+
+====================================================================== FAILURES =======================================================================
+___________________________________________________ TestAppEndpoints.test_get_estimate_with_session ___________________________________________________
+
+self = <test_app.TestAppEndpoints testMethod=test_get_estimate_with_session>
+
+    def test_get_estimate_with_session(self):
+        """
+        Prueba el endpoint de estimación (/api/estimate) usando los nuevos datos de prueba.
+        Verifica que la sesión de usuario se maneje correctamente y que los cálculos
+        de la estimación sean los esperados.
+        """
+        with self.client as c:
+            # Simular la carga de archivos para crear una sesión de datos
+            data = {
+                "presupuesto": self._get_test_file("presupuesto.csv", PRESUPUESTO_DATA),
+                "apus": self._get_test_file("apus.csv", APUS_DATA),
+                "insumos": self._get_test_file("insumos.csv", INSUMOS_DATA),
+            }
+            # Asignar la configuración de prueba directamente a la aplicación
+            c.application.config["APP_CONFIG"] = TEST_CONFIG
+            upload_response = c.post("/upload", data=data, content_type="multipart/form-data")
+            self.assertEqual(upload_response.status_code, 200)
+    
+            # Solicitar una estimación con los parámetros definidos
+            estimate_params = {"material": "TEJA", "cuadrilla": "1"}
+            response = c.post("/api/estimate", json=estimate_params)
+>           self.assertEqual(response.status_code, 200)
+E           AssertionError: 500 != 200
+
+tests/test_app.py:69: AssertionError
+------------------------------------------------------------------ Captured log call ------------------------------------------------------------------
+ERROR    app.app:app.py:350 Error en get_estimate: 'str' object has no attribute 'iloc'
+__________________________________________ TestEstimatorWithNewData.test_calculate_estimate_flexible_search ___________________________________________
+
+self = <test_estimator.TestEstimatorWithNewData testMethod=test_calculate_estimate_flexible_search>
+
+    def test_calculate_estimate_flexible_search(self):
+        """
+        Prueba la lógica de búsqueda flexible, asegurando que el estimador
+        pueda encontrar APUs de suministro aunque no sigan el patrón estándar,
+        y valida el valor final calculado.
+        """
+        params = {"material": "PINTURA", "cuadrilla": "1"} # Usando el APU de pintura
+>       result = calculate_estimate(params, self.data_store, TEST_CONFIG)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_estimator.py:87: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+params = {'cuadrilla': '1', 'material': 'PINTURA'}
+data_store = {'all_apus': [{'CANTIDAD_APU': 1.05, 'CATEGORIA': 'MATERIALES', 'CODIGO_APU': '1.1', 'DESCRIPCION_APU': 'SUMINISTRO TE...ANTIDAD_PRESUPUESTO': 10.0, 'CODIGO_APU': '3.1', 'DESCRIPCION_APU': 'PINTURA ANTICORROSIVA', 'EQUIPO': 0.0, ...}], ...}
+config = {'category_keywords': {'EQUIPO': 'EQUIPO', 'MANO DE OBRA': 'MANO DE OBRA', 'MATERIALES': 'MATERIALES', 'OTROS': 'OTROS...esupuesto_column_map': {'CANTIDAD_PRESUPUESTO': ['CANT.'], 'CODIGO_APU': ['ITEM'], 'DESCRIPCION_APU': ['DESCRIPCION']}}
+
+    def calculate_estimate(
+        params: Dict[str, str], data_store: Dict, config: Dict
+    ) -> Dict[str, Union[str, float, List[str]]]:
+        """Busca componentes de forma atómica y ensambla el resultado.
+    
+        Algoritmo:
+        1. Carga los datos.
+        2. Busca el suministro.
+        3. Busca la cuadrilla.
+        4. Busca la tarea para el rendimiento y el equipo.
+        5. Calcula el resultado final ensamblando los componentes.
+    
+        Args:
+            params (Dict[str, str]): Los parámetros para la estimación.
+            data_store (Dict): El almacén de datos con los datos procesados.
+            config (Dict): La configuración de la aplicación.
+    
+        Returns:
+            Dict[str, Union[str, float, List[str]]]: Un diccionario con el
+                                                     resultado de la estimación.
+        """
+        log = []
+        log.append("🕵️ ESTIMADOR DETECTIVE INICIADO")
+        log.append("="*70)
+    
+        # ============================================
+        # 1. CARGA DE DATOS
+        # ============================================
+        processed_apus_list = data_store.get("processed_apus", [])
+        if not processed_apus_list:
+            error_msg = "No hay datos de APU procesados disponibles."
+            log.append(f"❌ ERROR: {error_msg}")
+            return {"error": error_msg, "log": "\n".join(log)}
+    
+        df_processed_apus = pd.DataFrame(processed_apus_list)
+        log.append(f"📚 Datos cargados: {len(df_processed_apus)} APUs disponibles")
+    
+        # Obtener parámetros
+        material = params.get("material", "").upper()
+        cuadrilla = params.get("cuadrilla", "0")
+        zona = params.get("zona", "ZONA 0")
+        izaje = params.get("izaje", "MANUAL")
+        seguridad = params.get("seguridad", "NORMAL")
+        log.append(f"📝 Material: '{material}' | Cuadrilla: '{cuadrilla}'")
+        log.append(f"📝 Config: Zona='{zona}', Izaje='{izaje}', Seguridad='{seguridad}'")
+    
+        # Mapear material si existe configuración
+        param_map = config.get("param_map", {})
+        material_mapped = param_map.get("material", {}).get(material, material)
+        if material != material_mapped:
+            log.append(f"🔄 Material mapeado: '{material}' → '{material_mapped}'")
+    
+        # Preparar keywords del material
+>       material_keywords = normalize_text(pd.Series([material_mapped])).iloc[0].split()
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'str' object has no attribute 'iloc'
+
+app/estimator.py:154: AttributeError
+___________________________________________ TestEstimatorWithNewData.test_calculate_estimate_logic_two_step ___________________________________________
+
+self = <test_estimator.TestEstimatorWithNewData testMethod=test_calculate_estimate_logic_two_step>
+
+    def test_calculate_estimate_logic_two_step(self):
+        """
+        Prueba la lógica de búsqueda en dos pasos de `calculate_estimate`
+        con los nuevos datos, verificando que encuentre el suministro, la tarea
+        y la cuadrilla correctos y calcule el valor final esperado.
+        """
+        params = {"material": "TEJA", "cuadrilla": "1"}
+>       result = calculate_estimate(params, self.data_store, TEST_CONFIG)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_estimator.py:61: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+params = {'cuadrilla': '1', 'material': 'TEJA'}
+data_store = {'all_apus': [{'CANTIDAD_APU': 1.05, 'CATEGORIA': 'MATERIALES', 'CODIGO_APU': '1.1', 'DESCRIPCION_APU': 'SUMINISTRO TE...ANTIDAD_PRESUPUESTO': 10.0, 'CODIGO_APU': '3.1', 'DESCRIPCION_APU': 'PINTURA ANTICORROSIVA', 'EQUIPO': 0.0, ...}], ...}
+config = {'category_keywords': {'EQUIPO': 'EQUIPO', 'MANO DE OBRA': 'MANO DE OBRA', 'MATERIALES': 'MATERIALES', 'OTROS': 'OTROS...esupuesto_column_map': {'CANTIDAD_PRESUPUESTO': ['CANT.'], 'CODIGO_APU': ['ITEM'], 'DESCRIPCION_APU': ['DESCRIPCION']}}
+
+    def calculate_estimate(
+        params: Dict[str, str], data_store: Dict, config: Dict
+    ) -> Dict[str, Union[str, float, List[str]]]:
+        """Busca componentes de forma atómica y ensambla el resultado.
+    
+        Algoritmo:
+        1. Carga los datos.
+        2. Busca el suministro.
+        3. Busca la cuadrilla.
+        4. Busca la tarea para el rendimiento y el equipo.
+        5. Calcula el resultado final ensamblando los componentes.
+    
+        Args:
+            params (Dict[str, str]): Los parámetros para la estimación.
+            data_store (Dict): El almacén de datos con los datos procesados.
+            config (Dict): La configuración de la aplicación.
+    
+        Returns:
+            Dict[str, Union[str, float, List[str]]]: Un diccionario con el
+                                                     resultado de la estimación.
+        """
+        log = []
+        log.append("🕵️ ESTIMADOR DETECTIVE INICIADO")
+        log.append("="*70)
+    
+        # ============================================
+        # 1. CARGA DE DATOS
+        # ============================================
+        processed_apus_list = data_store.get("processed_apus", [])
+        if not processed_apus_list:
+            error_msg = "No hay datos de APU procesados disponibles."
+            log.append(f"❌ ERROR: {error_msg}")
+            return {"error": error_msg, "log": "\n".join(log)}
+    
+        df_processed_apus = pd.DataFrame(processed_apus_list)
+        log.append(f"📚 Datos cargados: {len(df_processed_apus)} APUs disponibles")
+    
+        # Obtener parámetros
+        material = params.get("material", "").upper()
+        cuadrilla = params.get("cuadrilla", "0")
+        zona = params.get("zona", "ZONA 0")
+        izaje = params.get("izaje", "MANUAL")
+        seguridad = params.get("seguridad", "NORMAL")
+        log.append(f"📝 Material: '{material}' | Cuadrilla: '{cuadrilla}'")
+        log.append(f"📝 Config: Zona='{zona}', Izaje='{izaje}', Seguridad='{seguridad}'")
+    
+        # Mapear material si existe configuración
+        param_map = config.get("param_map", {})
+        material_mapped = param_map.get("material", {}).get(material, material)
+        if material != material_mapped:
+            log.append(f"🔄 Material mapeado: '{material}' → '{material_mapped}'")
+    
+        # Preparar keywords del material
+>       material_keywords = normalize_text(pd.Series([material_mapped])).iloc[0].split()
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'str' object has no attribute 'iloc'
+
+app/estimator.py:154: AttributeError
+=============================================================== short test summary info ===============================================================
+FAILED tests/test_app.py::TestAppEndpoints::test_get_estimate_with_session - AssertionError: 500 != 200
+FAILED tests/test_estimator.py::TestEstimatorWithNewData::test_calculate_estimate_flexible_search - AttributeError: 'str' object has no attribute 'iloc'
+FAILED tests/test_estimator.py::TestEstimatorWithNewData::test_calculate_estimate_logic_two_step - AttributeError: 'str' object has no attribute 'iloc'
+============================================================ 3 failed, 21 passed in 8.53s =============================================================
