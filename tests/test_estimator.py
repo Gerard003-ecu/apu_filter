@@ -18,11 +18,23 @@ from tests.test_data import (
 
 
 class TestEstimatorWithNewData(unittest.TestCase):
+    """
+    Pruebas de integración para la función `calculate_estimate`.
+
+    Utiliza un conjunto de datos centralizado y realista para simular el
+    proceso completo desde la carga de archivos hasta el cálculo de una
+-    estimación. Valida la lógica de búsqueda de APUs (suministro, instalación,
+    cuadrilla) y la precisión de los cálculos finales.
+    """
     @classmethod
     def setUpClass(cls):
         """
-        Prepara el entorno de prueba creando archivos temporales con los nuevos
-        datos centralizados.
+        Prepara el entorno de prueba para toda la clase.
+
+        Crea archivos temporales (presupuesto, APUs, insumos) a partir de los
+        datos de prueba centralizados y los procesa una sola vez para
+        optimizar el tiempo de ejecución de las pruebas. El `data_store`
+        resultante se reutiliza en todos los tests de la clase.
         """
         cls.presupuesto_path = "test_presupuesto_estimator.csv"
         with open(cls.presupuesto_path, "w", encoding="latin1") as f:
@@ -46,16 +58,22 @@ class TestEstimatorWithNewData(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        """Limpia los archivos de prueba después de que todas las pruebas han corrido."""
+        """
+        Limpia el entorno después de que todas las pruebas de la clase se hayan
+        ejecutado, eliminando los archivos temporales creados.
+        """
         os.remove(cls.presupuesto_path)
         os.remove(cls.apus_path)
         os.remove(cls.insumos_path)
 
     def test_calculate_estimate_logic_two_step(self):
         """
-        Prueba la lógica de búsqueda en dos pasos de `calculate_estimate`
-        con los nuevos datos, verificando que encuentre el suministro, la tarea
-        y la cuadrilla correctos y calcule el valor final esperado.
+        Prueba el escenario ideal donde existen APUs claros y separados para
+        suministro e instalación de un material.
+
+        Verifica que `calculate_estimate` identifique correctamente cada APU,
+        extraiga los valores correctos y calcule el costo total de construcción
+        y el rendimiento esperado.
         """
         params = {"material": "TEJA", "cuadrilla": "1"}
         result = calculate_estimate(params, self.data_store, TEST_CONFIG)
@@ -79,9 +97,12 @@ class TestEstimatorWithNewData(unittest.TestCase):
 
     def test_calculate_estimate_flexible_search(self):
         """
-        Prueba la lógica de búsqueda flexible, asegurando que el estimador
-        pueda encontrar APUs de suministro aunque no sigan el patrón estándar,
-        y valida el valor final calculado.
+        Prueba la capacidad del estimador para manejar casos donde no existe un
+        APU de instalación explícito para un material.
+
+        Verifica que se encuentre un APU de suministro genérico y que el sistema
+        cree una tarea de instalación sintética, reflejándose en los resultados
+        finales.
         """
         params = {"material": "PINTURA", "cuadrilla": "1"} # Usando el APU de pintura
         result = calculate_estimate(params, self.data_store, TEST_CONFIG)

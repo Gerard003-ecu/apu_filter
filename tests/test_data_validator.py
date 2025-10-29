@@ -16,10 +16,18 @@ from app.data_validator import (
 
 
 class TestDataValidator(unittest.TestCase):
+    """
+    Pruebas unitarias para las funciones de validación de datos.
+
+    Esta clase se asegura de que las funciones en `data_validator.py`
+    identifiquen y manejen correctamente casos anómalos en los datos,
+    como costos extremos, cantidades cero con valor, y descripciones faltantes.
+    """
 
     def test_validate_extreme_costs(self):
         """
-        Prueba que la función de costos extremos añada una alerta correctamente.
+        Verifica que se añada una alerta a los ítems con costos de construcción
+        excesivamente altos.
         """
         # Escenario 1: Un costo normal
         data_normal = [{'ITEM': '1,1', 'VALOR_CONSTRUCCION_UN': 100000}]
@@ -34,9 +42,11 @@ class TestDataValidator(unittest.TestCase):
 
     def test_validate_zero_quantity_with_cost(self):
         """
-        Prueba que la función de cantidad cero recalcule la cantidad o añada una alerta.
+        Prueba la lógica que maneja insumos con cantidad cero pero con un
+        costo total positivo.
         """
-        # Escenario 1: Cantidad cero, pero se puede recalcular
+        # Escenario 1: Cantidad cero, pero se puede recalcular a partir del
+        # valor total y el precio unitario.
         data_recalculable = [{
             'DESCRIPCION_INSUMO': 'Tornillo',
             'CANTIDAD': 0,
@@ -48,7 +58,8 @@ class TestDataValidator(unittest.TestCase):
         self.assertIn('alerta', resultado_recalculado[0])
         self.assertIn('recalculada', resultado_recalculado[0]['alerta'])
 
-        # Escenario 2: Cantidad cero, no se puede recalcular (precio unitario es cero)
+        # Escenario 2: Cantidad cero, no se puede recalcular porque el precio
+        # unitario también es cero.
         data_no_recalculable = [{
             'DESCRIPCION_INSUMO': 'Pintura',
             'CANTIDAD': 0,
@@ -62,7 +73,8 @@ class TestDataValidator(unittest.TestCase):
 
     def test_validate_missing_descriptions(self):
         """
-        Prueba que la función de descripciones faltantes asigne un placeholder y una alerta.
+        Asegura que se asigne un texto predeterminado y se genere una alerta
+        para los insumos que no tienen descripción.
         """
         # Crear un DataFrame de insumos de referencia para el fuzzy matching
         insumos_df = pd.DataFrame({
@@ -84,7 +96,8 @@ class TestDataValidator(unittest.TestCase):
 
     def test_validate_and_clean_data_integration(self):
         """
-        Prueba la función orquestadora para asegurar que llama a las sub-funciones.
+        Prueba la función principal de orquestación para verificar que todas
+        las validaciones se apliquen correctamente en conjunto.
         """
         data_store = {
             'presupuesto': [{'ITEM': '1,1', 'VALOR_CONSTRUCCION_UN': 90_000_000}],

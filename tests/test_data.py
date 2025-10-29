@@ -1,4 +1,13 @@
-# tests/test_data.py
+"""
+Contiene datos de prueba centralizados para ser reutilizados en múltiples
+suites de pruebas.
+
+Este módulo define strings multi-línea con datos simulados para los archivos
+de entrada (presupuesto, APUs, insumos) y un diccionario de configuración
+de prueba. El objetivo es proporcionar un conjunto de datos coherente y
+realista que permita probar la interacción entre diferentes componentes del
+sistema de forma predecible.
+"""
 
 # ======================================================================
 # DATOS DE PRUEBA CENTRALIZADOS Y REALISTAS

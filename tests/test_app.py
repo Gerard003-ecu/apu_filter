@@ -20,8 +20,22 @@ from tests.test_data import (
 
 
 class TestAppEndpoints(unittest.TestCase):
+    """
+    Conjunto de pruebas para los endpoints de la aplicación Flask.
+
+    Estas pruebas verifican la funcionalidad de los puntos de entrada de la API,
+    como la carga de archivos y el cálculo de estimaciones, asegurando que
+    la interacción a través de HTTP funcione como se espera.
+    """
+
     def setUp(self):
-        """Configura la aplicación Flask para pruebas."""
+        """
+        Configura el entorno necesario para cada prueba.
+
+        Crea una instancia de la aplicación Flask en modo de prueba, establece un
+        contexto de aplicación, crea la carpeta de subida de archivos y
+        limpia las sesiones de usuario existentes.
+        """
         self.app = create_app('testing')
         self.app_context = self.app.app_context()
         self.app_context.push()
@@ -30,7 +44,12 @@ class TestAppEndpoints(unittest.TestCase):
         user_sessions.clear()
 
     def tearDown(self):
-        """Limpia el entorno de prueba después de cada test."""
+        """
+        Limpia el entorno después de la ejecución de cada prueba.
+
+        Elimina el contexto de la aplicación y borra la carpeta de subida de
+        archivos junto con su contenido para no dejar artefactos.
+        """
         self.app_context.pop()
         upload_folder = self.app.config["UPLOAD_FOLDER"]
         if os.path.exists(upload_folder):
@@ -42,14 +61,26 @@ class TestAppEndpoints(unittest.TestCase):
             os.rmdir(upload_folder)
 
     def _get_test_file(self, filename, content):
-        """Crea un archivo en memoria para simular la carga de archivos."""
+        """
+        Crea un archivo en memoria para simular la carga de archivos en una petición.
+
+        Args:
+            filename (str): El nombre del archivo a simular.
+            content (str): El contenido del archivo.
+
+        Returns:
+            tuple: Una tupla con un objeto BytesIO y el nombre del archivo,
+                   lista para ser usada en una petición `multipart/form-data`.
+        """
         return (io.BytesIO(content.encode("latin1")), filename)
 
     def test_get_estimate_with_session(self):
         """
-        Prueba el endpoint de estimación (/api/estimate) usando los nuevos datos de prueba.
-        Verifica que la sesión de usuario se maneje correctamente y que los cálculos
-        de la estimación sean los esperados.
+        Prueba el flujo completo de carga de datos y solicitud de estimación.
+
+        Simula una petición POST a `/upload` con los archivos de prueba y luego
+        una petición POST a `/api/estimate` para verificar que el cálculo se
+        realiza correctamente utilizando los datos de la sesión.
         """
         with self.client as c:
             # Simular la carga de archivos para crear una sesión de datos
@@ -60,7 +91,9 @@ class TestAppEndpoints(unittest.TestCase):
             }
             # Asignar la configuración de prueba directamente a la aplicación
             c.application.config["APP_CONFIG"] = TEST_CONFIG
-            upload_response = c.post("/upload", data=data, content_type="multipart/form-data")
+            upload_response = c.post(
+                "/upload", data=data, content_type="multipart/form-data"
+            )
             self.assertEqual(upload_response.status_code, 200)
 
             # Solicitar una estimación con los parámetros definidos
