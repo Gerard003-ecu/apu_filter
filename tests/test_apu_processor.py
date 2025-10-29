@@ -13,17 +13,26 @@ from app.apu_processor import APUProcessor
 
 class TestAPUProcessor(unittest.TestCase):
     """
-    Suite de pruebas para APUProcessor, enfocado en la lógica de negocio.
+    Pruebas unitarias para la clase APUProcessor.
+
+    Esta suite de pruebas se centra en validar la lógica de negocio implementada
+    en APUProcessor, como la conversión de tipos, cálculos de campos derivados,
+    inferencia de unidades y la exclusión de insumos no relevantes.
     """
 
     def setUp(self):
-        """Configuración inicial para las pruebas."""
+        """
+        Configura el entorno de logging para las pruebas.
+        """
         logging.basicConfig(
             level=logging.INFO, format="%(name)s - %(levelname)s - %(message)s"
         )
 
     def test_numeric_conversion_and_calculations(self):
-        """Prueba la conversión numérica y cálculos de campos."""
+        """
+        Verifica que la conversión de strings a números y los cálculos básicos
+        se realicen correctamente.
+        """
         raw_records = [
             {
                 "apu_code": "APU-01",
@@ -43,7 +52,10 @@ class TestAPUProcessor(unittest.TestCase):
         self.assertAlmostEqual(record["VALOR_TOTAL_APU"], 1500.00)
 
     def test_mo_rendimiento_calculation(self):
-        """Prueba el cálculo de rendimiento para mano de obra."""
+        """
+        Prueba que el cálculo del rendimiento para insumos de mano de obra
+        se ejecute correctamente cuando el campo está ausente.
+        """
         raw_records = [
             {
                 "apu_code": "APU-MO-01",
@@ -61,7 +73,10 @@ class TestAPUProcessor(unittest.TestCase):
         self.assertAlmostEqual(df.iloc[0]["RENDIMIENTO"], 10.0)
 
     def test_unit_inference(self):
-        """Prueba la inferencia de unidades para APUs marcados como 'UND'."""
+        """
+        Valida la capacidad de inferir la unidad de un APU cuando se
+        proporciona como 'UND' (indefinida), basándose en palabras clave.
+        """
         raw_records = [
             {
                 "apu_code": "APU-INF-01",
@@ -77,7 +92,10 @@ class TestAPUProcessor(unittest.TestCase):
         self.assertEqual(df.iloc[0]["UNIDAD_APU"], "M3") # "Excavacion" infiere M3
 
     def test_exclusion_of_metadata_insumos(self):
-        """Prueba que los insumos que son metadatos se excluyen."""
+        """
+        Asegura que los insumos que representan metadatos (como 'EQUIPO Y
+        HERRAMIENTA') sean filtrados y no se incluyan en el resultado final.
+        """
         raw_records = [
             {
                 "apu_code": "APU-META-01",

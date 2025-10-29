@@ -142,9 +142,13 @@ def calculate_estimate(
     valor_suministro = 0.0
     apu_suministro_desc = "No encontrado"
     supply_types = ["Suministro", "Suministro (Pre-fabricado)"]
-    df_suministro_pool = df_processed_apus[df_processed_apus["tipo_apu"].isin(supply_types)].copy()
+    df_suministro_pool = df_processed_apus[
+        df_processed_apus["tipo_apu"].isin(supply_types)
+    ].copy()
     log.append(f"📦 Pool de suministros: {len(df_suministro_pool)} APUs")
-    apu_suministro = _find_best_match(df_suministro_pool, material_keywords, log, strict=False, min_match_percentage=25.0)
+    apu_suministro = _find_best_match(
+        df_suministro_pool, material_keywords, log, strict=False, min_match_percentage=25.0
+    )
     if apu_suministro is not None:
         valor_suministro = apu_suministro.get("VALOR_SUMINISTRO_UN", 0.0)
         apu_suministro_desc = apu_suministro.get("original_description", "")
@@ -161,12 +165,16 @@ def calculate_estimate(
     costo_diario_cuadrilla = 0.0
     apu_cuadrilla_desc = "No encontrada"
     if cuadrilla and cuadrilla != "0":
-        df_cuadrilla_pool = df_processed_apus[df_processed_apus["UNIDAD"].astype(str).str.upper() == "DIA"].copy()
+        df_cuadrilla_pool = df_processed_apus[
+            df_processed_apus["UNIDAD"].astype(str).str.upper() == "DIA"
+        ].copy()
         log.append(f"👥 Pool de cuadrillas: {len(df_cuadrilla_pool)} APUs con UNIDAD=DIA")
         cuadrilla_mapped = param_map.get("cuadrilla", {}).get(cuadrilla, cuadrilla)
         search_term = f"cuadrilla {cuadrilla_mapped}"
         cuadrilla_keywords_norm = normalize_text(search_term).split()
-        apu_cuadrilla = _find_best_match(df_cuadrilla_pool, cuadrilla_keywords_norm, log, strict=True, match_mode='substring')
+        apu_cuadrilla = _find_best_match(
+            df_cuadrilla_pool, cuadrilla_keywords_norm, log, strict=True, match_mode='substring'
+        )
         if apu_cuadrilla is not None:
             costo_diario_cuadrilla = apu_cuadrilla.get("VALOR_CONSTRUCCION_UN", 0.0)
             apu_cuadrilla_desc = apu_cuadrilla.get("original_description", "")
@@ -187,7 +195,9 @@ def calculate_estimate(
     apu_tarea_desc = "No encontrado"
     df_tarea_pool = df_processed_apus[df_processed_apus["tipo_apu"] == "Instalación"].copy()
     log.append(f"🔧 Pool de instalación: {len(df_tarea_pool)} APUs")
-    apu_tarea = _find_best_match(df_tarea_pool, material_keywords, log, strict=False, min_match_percentage=30.0)
+    apu_tarea = _find_best_match(
+        df_tarea_pool, material_keywords, log, strict=False, min_match_percentage=30.0
+    )
     if apu_tarea is not None:
         apu_tarea_desc = apu_tarea.get("original_description", "")
         costo_equipo = apu_tarea.get("EQUIPO", 0.0)
@@ -226,7 +236,9 @@ def calculate_estimate(
     if rendimiento_dia > 0:
         costo_mo_base = costo_diario_cuadrilla / rendimiento_dia
     costo_mo_ajustado = costo_mo_base * factor_seguridad
-    valor_instalacion = (costo_mo_ajustado + costo_equipo) * factor_zona + costo_adicional_izaje
+    valor_instalacion = (
+        (costo_mo_ajustado + costo_equipo) * factor_zona + costo_adicional_izaje
+    )
     valor_construccion = valor_suministro + valor_instalacion
 
     # ============================================
@@ -235,7 +247,7 @@ def calculate_estimate(
     log.append("\n" + "="*70)
     log.append("📊 RESUMEN EJECUTIVO")
     log.append("="*70)
-    log.append(f"📦 Suministro:    ${valor_suministro:,.2f}  ({apu_suministro_desc[:50]}...)")
+    log.append(f"📦 Suministro: ${valor_suministro:,.2f} ({apu_suministro_desc[:50]}...)")
     log.append(f"🔨 Instalación:   ${valor_instalacion:,.2f}")
     log.append(f"💰 TOTAL:         ${valor_construccion:,.2f}")
 

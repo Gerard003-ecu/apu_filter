@@ -23,9 +23,20 @@ from tests.test_data import (
 
 
 class TestCSVProcessorWithNewData(unittest.TestCase):
+    """
+    Pruebas de integración para la función `process_all_files`.
+
+    Esta clase valida el flujo completo de procesamiento de los archivos CSV
+    de entrada (presupuesto, APUs, insumos). Se asegura de que los datos se
+    lean, procesen, combinen y validen correctamente, y de que se manejen
+-    adecuadamente los casos de error como costos excesivos o duplicados.
+    """
     @classmethod
     def setUpClass(cls):
-        """Crea archivos temporales con los nuevos datos de prueba."""
+        """
+        Configura el entorno de prueba creando archivos temporales con datos
+        realistas para ser utilizados en todas las pruebas de la clase.
+        """
         cls.presupuesto_path = "test_presupuesto_new.csv"
         with open(cls.presupuesto_path, "w", encoding="latin1") as f:
             f.write(PRESUPUESTO_DATA)
@@ -40,46 +51,57 @@ class TestCSVProcessorWithNewData(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        """Elimina los archivos temporales después de las pruebas."""
+        """
+        Limpia el entorno de prueba eliminando los archivos temporales
+        creados después de que todas las pruebas hayan finalizado.
+        """
         os.remove(cls.presupuesto_path)
         os.remove(cls.apus_path)
         os.remove(cls.insumos_path)
 
     def test_process_all_files_structure_and_calculations(self):
         """
-        Prueba la estructura y los cálculos del `process_all_files` con los nuevos datos.
-        Verifica que el valor de construcción para un APU específico sea el esperado.
+        Prueba el caso de éxito del procesamiento.
+
+        Verifica que la estructura del `data_store` resultante sea la correcta,
+        que no contenga errores y que los cálculos clave (como el valor de
+        construcción de un APU) sean precisos según los datos de entrada.
         """
         resultado = process_all_files(
             self.presupuesto_path, self.apus_path, self.insumos_path, config=TEST_CONFIG
         )
 
         self.assertIsInstance(resultado, dict)
-        self.assertNotIn("error", resultado, f"El procesamiento falló inesperadamente: {resultado.get('error')}")
+        self.assertNotIn(
+            "error", resultado, f"El procesamiento falló: {resultado.get('error')}"
+        )
 
         presupuesto_procesado = resultado["presupuesto"]
-        self.assertEqual(len(presupuesto_procesado), 4, "Deberían procesarse 4 ítems del presupuesto.")
+        self.assertEqual(
+            len(presupuesto_procesado), 4, "Deberían procesarse 4 ítems."
+        )
 
         # Buscar el ítem 1.1 y verificar su valor de construcción
         item1_1 = next(
             (item for item in presupuesto_procesado if item["CODIGO_APU"] == "1.1"), None
         )
-        self.assertIsNotNone(item1_1, "El ítem 1.1 no fue encontrado en el resultado.")
+        self.assertIsNotNone(item1_1, "El ítem 1.1 no fue encontrado.")
         self.assertAlmostEqual(item1_1["VALOR_CONSTRUCCION_UN"], 52000.0, places=2)
 
     def test_abnormally_high_cost_triggers_error(self):
         """
-        Prueba que un costo anormalmente alto, proveniente de una cantidad
-        excesiva en el presupuesto, activa un error de validación.
+        Valida que el sistema detecte y rechace un presupuesto con costos
+        totales anormalmente altos, previniendo errores por datos de entrada
+        incorrectos.
         """
         # Datos con una cantidad extremadamente alta en el presupuesto
-        PRESUPUESTO_ALTO = (
+        presupuesto_alto = (
             "ITEM;DESCRIPCION;UND;CANT.;VR. UNIT;VR.TOTAL\n"
-            "1.1;SUMINISTRO TEJA;M2;20000000;52000;1040000000000\n" # Cantidad > 1e6, Costo Total > 1e12
+            "1.1;SUMINISTRO TEJA;M2;20000000;52000;1040000000000\n"
         )
         presupuesto_alto_path = "test_presupuesto_alto.csv"
         with open(presupuesto_alto_path, "w", encoding="latin1") as f:
-            f.write(PRESUPUESTO_ALTO)
+            f.write(presupuesto_alto)
 
         APUS_ALTO = (
             "ITEM: 1.1; UNIDAD: M2\n"
@@ -106,8 +128,11 @@ class TestCSVProcessorWithNewData(unittest.TestCase):
 
     def test_cartesian_explosion_on_final_merge(self):
         """
-        Prueba que el merge final retorna un error si df_apu_costos tiene
-        CODIGO_APU duplicados, previniendo una explosión cartesiana.
+        Prueba la salvaguarda contra explosiones cartesianas.
+
+        Verifica que `process_all_files` retorne un error si detecta códigos de
+        APU duplicados en los costos calculados, lo que podría llevar a un
+        merge incorrecto y a datos inflados.
         """
         malformed_apu_costos = pd.DataFrame({
             'CODIGO_APU': ['1.1', '1.2', '1.1'], # '1.1' está duplicado

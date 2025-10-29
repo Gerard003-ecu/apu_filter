@@ -11,16 +11,30 @@ from models.probability_models import run_monte_carlo_simulation, sanitize_value
 
 
 class TestProbabilityModels(unittest.TestCase):
+    """
+    Pruebas unitarias para los modelos de probabilidad.
+
+    Esta suite de pruebas valida el funcionamiento de la simulación de Monte
+    Carlo y sus funciones auxiliares, asegurando que los cálculos sean
+    estadísticamente razonables, que la estructura de salida sea la correcta
+    y que los casos borde (entradas vacías, costos cero, etc.) se manejen
+    de forma robusta.
+    """
 
     def test_sanitize_value(self):
-        """Tests the sanitize_value helper function."""
+        """
+        Prueba la función auxiliar `sanitize_value` para asegurar que maneje
+        correctamente valores NaN y numéricos.
+        """
         self.assertIsNone(sanitize_value(np.nan))
         self.assertEqual(sanitize_value(10), 10)
         self.assertEqual(sanitize_value(0.5), 0.5)
 
     def test_simulation_returns_correct_structure(self):
         """
-        Verifies that the simulation result has the correct structure and types.
+        Verifica que el resultado de la simulación tenga la estructura y los
+        tipos de datos esperados (media, desviación estándar, percentiles) y
+        que no contenga valores NaN.
         """
         # The model now expects 'VR_TOTAL' instead of 'VALOR_UNITARIO'
         apu_details = [
@@ -40,7 +54,8 @@ class TestProbabilityModels(unittest.TestCase):
 
     def test_simulation_values_are_reasonable(self):
         """
-        Verifies that the simulation values are reasonable for a known input.
+        Asegura que los valores estadísticos generados por la simulación sean
+        coherentes y razonables para una entrada conocida.
         """
         # The new simulation model expects 'VR_TOTAL' and introduces randomness.
         apu_details = [
@@ -72,7 +87,9 @@ class TestProbabilityModels(unittest.TestCase):
 
     def test_simulation_handles_empty_input(self):
         """
-        Verifies that the simulation handles empty input gracefully.
+        Verifica que la simulación se comporte correctamente cuando recibe una
+        lista de insumos vacía, devolviendo un resultado con todos los
+        valores en cero.
         """
         apu_details = []
         result = run_monte_carlo_simulation(apu_details, num_simulations=10)
@@ -81,7 +98,8 @@ class TestProbabilityModels(unittest.TestCase):
 
     def test_simulation_handles_zero_cost_input(self):
         """
-        Verifies that the simulation handles input with zero total cost.
+        Prueba el comportamiento de la simulación cuando los insumos tienen un
+        costo total de cero.
         """
         apu_details = [{"VR_TOTAL": 0, "CANTIDAD": 10}]
         result = run_monte_carlo_simulation(apu_details, num_simulations=100)
@@ -90,7 +108,9 @@ class TestProbabilityModels(unittest.TestCase):
 
     def test_simulation_handles_missing_columns(self):
         """
-        Verifies graceful handling of missing required columns.
+        Verifica que la simulación maneje de forma robusta la ausencia de
+        columnas requeridas en los datos de entrada, retornando un resultado
+        nulo sin lanzar errores.
         """
         apu_details = [{"CANTIDAD": 10}] # Missing VR_TOTAL
         result = run_monte_carlo_simulation(apu_details, num_simulations=10)
