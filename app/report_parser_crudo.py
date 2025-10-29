@@ -14,7 +14,7 @@ class ParserState(Enum):
 
     Attributes:
         IDLE: Estado inicial o esperando un nuevo APU.
-        AWAITING_DESCRIPTION: Se encontró un código de APU y se espera la línea de descripción.
+        AWAITING_DESCRIPTION: Se encontró un código de APU y espera la línea de descripción.
         SKIPPING_HEADERS: Ignorando líneas de cabecera después de la descripción.
         PROCESSING_APU: Procesando activamente las líneas de insumos de un APU.
     """

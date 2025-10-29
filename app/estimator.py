@@ -173,7 +173,11 @@ def calculate_estimate(
         search_term = f"cuadrilla {cuadrilla_mapped}"
         cuadrilla_keywords_norm = normalize_text(search_term).split()
         apu_cuadrilla = _find_best_match(
-            df_cuadrilla_pool, cuadrilla_keywords_norm, log, strict=True, match_mode='substring'
+            df_cuadrilla_pool,
+            cuadrilla_keywords_norm,
+            log,
+            strict=True,
+            match_mode='substring'
         )
         if apu_cuadrilla is not None:
             costo_diario_cuadrilla = apu_cuadrilla.get("VALOR_CONSTRUCCION_UN", 0.0)
