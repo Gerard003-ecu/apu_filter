@@ -151,7 +151,7 @@ def calculate_estimate(
         log.append(f"🔄 Material mapeado: '{material}' → '{material_mapped}'")
 
     # Preparar keywords del material
-    material_keywords = normalize_text(pd.Series([material_mapped])).iloc[0].split()
+    material_keywords = normalize_text(material_mapped).split()
 
     # ============================================
     # 2. BÚSQUEDA DE SUMINISTRO
@@ -207,10 +207,8 @@ def calculate_estimate(
 
         # Preparar keywords de cuadrilla
         cuadrilla_mapped = param_map.get("cuadrilla", {}).get(cuadrilla, cuadrilla)
-        cuadrilla_keywords = ["cuadrilla", cuadrilla_mapped]
-        cuadrilla_keywords_norm = normalize_text(
-            pd.Series([" ".join(cuadrilla_keywords)])
-        ).iloc[0].split()
+        search_term = f"cuadrilla {cuadrilla_mapped}"
+        cuadrilla_keywords_norm = normalize_text(search_term).split()
 
         # Buscar cuadrilla (modo strict)
         apu_cuadrilla = _find_best_match(
