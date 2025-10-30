@@ -1,0 +1,30 @@
+ * Debug mode: off
+WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
+ * Running on http://127.0.0.1:5002
+Press CTRL+C to quit
+127.0.0.1 - - [14/Oct/2025 09:13:28] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [14/Oct/2025 09:13:28] "GET /favicon.ico HTTP/1.1" 404 -
+⚠️ Se encontraron 17 filas duplicadas en presupuesto por CODIGO_APU. Se conservará la primera ocurrencia.
+⚠️ Se encontraron 54 insumos con descripciones normalizadas duplicadas. Esto podría causar problemas en el merge. Se conservará el de mayor precio.
+⚠️ Cantidad extremadamente alta detectada: 1334819.81982
+⚠️ Valor unitario extremadamente alto detectado
+APUs más costosos:
+CATEGORIA CODIGO_APU  VALOR_CONSTRUCCION_UN  MATERIALES  MANO DE OBRA         EQUIPO
+28              16,2           3.494810e+08   134905.44  3.487284e+08  617711.954597
+0                1,1           7.303385e+04    65403.35  7.630230e+03       0.000000
+46               5,1           6.900902e+04    61378.52  7.630230e+03       0.000000
+36               3,1           6.524387e+04    57613.37  7.630230e+03       0.000000
+14              11,1           6.349806e+04    61378.52  2.119500e+03       0.000000
+Alerta de costo excesivo para el item None: Costo unitario (349,480,972.75) excede el umbral de 50,000,000.00.
+127.0.0.1 - - [14/Oct/2025 09:13:31] "POST /upload HTTP/1.1" 200 -
+127.0.0.1 - - [14/Oct/2025 09:13:31] "POST /api/estimate HTTP/1.1" 200 -
+127.0.0.1 - - [14/Oct/2025 09:13:31] "POST /api/estimate HTTP/1.1" 200 -
+127.0.0.1 - - [14/Oct/2025 09:14:25] "GET /api/apu/1,5 HTTP/1.1" 200 -
+127.0.0.1 - - [14/Oct/2025 09:15:59] "GET /api/apu/1,1 HTTP/1.1" 200 -
+127.0.0.1 - - [14/Oct/2025 09:16:36] "GET /api/apu/16,2 HTTP/1.1" 200 -
+127.0.0.1 - - [14/Oct/2025 09:19:56] "GET /api/apu/1,3 HTTP/1.1" 200 -
+127.0.0.1 - - [14/Oct/2025 09:20:12] "POST /api/estimate HTTP/1.1" 200 -
+127.0.0.1 - - [14/Oct/2025 09:20:13] "POST /api/estimate HTTP/1.1" 200 -
+127.0.0.1 - - [14/Oct/2025 09:20:24] "GET /api/apu/3,3 HTTP/1.1" 200 -
+127.0.0.1 - - [14/Oct/2025 09:20:58] "GET /api/apu/1,1 HTTP/1.1" 200 -
+127.0.0.1 - - [14/Oct/2025 09:21:18] "GET /api/apu/9,3 HTTP/1.1" 200 -

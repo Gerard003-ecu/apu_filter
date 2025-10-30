@@ -1,0 +1,144 @@
+================================================================= test session starts ==================================================================
+platform darwin -- Python 3.12.3, pytest-8.4.2, pluggy-1.6.0 -- /Users/gerardomayor/Documents/estru_techos/apu_filter/.venv/bin/python3
+cachedir: .pytest_cache
+rootdir: /Users/gerardomayor/Documents/estru_techos/apu_filter
+configfile: pyproject.toml
+collected 30 items
+
+tests/test_app.py::TestCSVProcessor::test_process_all_files_structure_and_calculations FAILED                                                    [  3%]
+tests/test_app.py::TestAppEndpoints::test_get_estimate_with_session FAILED                                                                       [  6%]
+tests/test_data_validator.py::TestDataValidator::test_validate_and_clean_data_integration PASSED                                                 [ 10%]
+tests/test_data_validator.py::TestDataValidator::test_validate_extreme_costs PASSED                                                              [ 13%]
+tests/test_data_validator.py::TestDataValidator::test_validate_missing_descriptions PASSED                                                       [ 16%]
+tests/test_data_validator.py::TestDataValidator::test_validate_zero_quantity_with_cost PASSED                                                    [ 20%]
+tests/test_estimator.py::TestEstimator::test_calculate_estimate_logic_two_step FAILED                                                            [ 23%]
+tests/test_models.py::TestProbabilityModels::test_sanitize_value PASSED                                                                          [ 26%]
+tests/test_models.py::TestProbabilityModels::test_simulation_handles_empty_input PASSED                                                          [ 30%]
+tests/test_models.py::TestProbabilityModels::test_simulation_handles_missing_columns PASSED                                                      [ 33%]
+tests/test_models.py::TestProbabilityModels::test_simulation_handles_zero_cost_input PASSED                                                      [ 36%]
+tests/test_models.py::TestProbabilityModels::test_simulation_returns_correct_structure PASSED                                                    [ 40%]
+tests/test_models.py::TestProbabilityModels::test_simulation_values_are_reasonable PASSED                                                        [ 43%]
+tests/test_report_parser.py::TestNewReportParser::test_apu_code_cleaning PASSED                                                                  [ 46%]
+tests/test_report_parser.py::TestNewReportParser::test_basic_parsing_and_context_detection PASSED                                                [ 50%]
+tests/test_report_parser.py::TestNewReportParser::test_category_detection_variations PASSED                                                      [ 53%]
+tests/test_report_parser.py::TestNewReportParser::test_discard_insumo_with_zero_values PASSED                                                    [ 56%]
+tests/test_report_parser.py::TestNewReportParser::test_encoding_handling PASSED                                                                  [ 60%]
+tests/test_report_parser.py::TestNewReportParser::test_error_handling PASSED                                                                     [ 63%]
+tests/test_report_parser.py::TestNewReportParser::test_fallback_parsing_mechanism PASSED                                                         [ 66%]
+tests/test_report_parser.py::TestNewReportParser::test_ignore_garbage_lines PASSED                                                               [ 70%]
+tests/test_report_parser.py::TestNewReportParser::test_mano_de_obra_compleja_logic PASSED                                                        [ 73%]
+tests/test_report_parser.py::TestNewReportParser::test_mano_de_obra_simple_logic PASSED                                                          [ 76%]
+tests/test_report_parser.py::TestNewReportParser::test_mo_detection_by_keywords PASSED                                                           [ 80%]
+tests/test_report_parser.py::TestNewReportParser::test_multiple_apus_parsing PASSED                                                              [ 83%]
+tests/test_report_parser.py::TestNewReportParser::test_prevent_data_contamination PASSED                                                         [ 86%]
+tests/test_report_parser.py::TestNewReportParser::test_stats_tracking PASSED                                                                     [ 90%]
+tests/test_report_parser_issue.py::TestReportParserWithRealData::test_dataframe_is_not_empty_with_real_data PASSED                               [ 93%]
+tests/test_report_parser_issue.py::TestReportParserWithRealData::test_finds_a_significant_number_of_apus PASSED                                  [ 96%]
+tests/test_report_parser_issue.py::TestReportParserWithRealData::test_specific_insumo_is_parsed_correctly FAILED                                 [100%]
+
+======================================================================= FAILURES =======================================================================
+__________________________________________ TestCSVProcessor.test_process_all_files_structure_and_calculations __________________________________________
+
+self = <test_app.TestCSVProcessor testMethod=test_process_all_files_structure_and_calculations>
+
+    def test_process_all_files_structure_and_calculations(self):
+        resultado = process_all_files(
+            self.presupuesto_path, self.apus_path, self.insumos_path, config=TEST_CONFIG
+        )
+        self.assertIsInstance(resultado, dict)
+        self.assertNotIn("error", resultado)
+        presupuesto_procesado = resultado["presupuesto"]
+        self.assertEqual(len(presupuesto_procesado), 5)
+        item1 = next(
+            (item for item in presupuesto_procesado if item["CODIGO_APU"] == "1,1"), None
+        )
+        self.assertIsNotNone(item1)
+>       self.assertAlmostEqual(item1["VALOR_CONSTRUCCION_UN"], 155.0)
+E       AssertionError: 50.0 != 155.0 within 7 places (105.0 difference)
+
+tests/test_app.py:170: AssertionError
+___________________________________________________ TestAppEndpoints.test_get_estimate_with_session ____________________________________________________
+
+self = <test_app.TestAppEndpoints testMethod=test_get_estimate_with_session>
+
+    def test_get_estimate_with_session(self):
+        with self.client as c:
+            data = {
+                "presupuesto": self._get_test_file("presupuesto.csv", PRESUPUESTO_DATA),
+                "apus": self._get_test_file("apus.csv", APUS_DATA),
+                "insumos": self._get_test_file("insumos.csv", INSUMOS_DATA),
+            }
+            # Set the app config directly for the test
+            c.application.config["APP_CONFIG"] = TEST_CONFIG
+            c.post("/upload", data=data, content_type="multipart/form-data")
+
+            # Usa los nuevos parámetros que incluyen la cuadrilla
+            estimate_params = {"material": "TST", "cuadrilla": "4"}
+            response = c.post("/api/estimate", json=estimate_params)
+            self.assertEqual(response.status_code, 200)
+            json_data = json.loads(response.data)
+
+            # Los valores esperados deben coincidir con el cálculo en test_estimator
+>           self.assertAlmostEqual(json_data["valor_suministro"], 50000)
+E           AssertionError: 0.0 != 50000 within 7 places (50000.0 difference)
+
+tests/test_app.py:232: AssertionError
+_________________________________________________ TestEstimator.test_calculate_estimate_logic_two_step _________________________________________________
+
+self = <test_estimator.TestEstimator testMethod=test_calculate_estimate_logic_two_step>
+
+    def test_calculate_estimate_logic_two_step(self):
+        """
+        Tests the refactored calculate_estimate function with the new two-step search logic.
+        """
+        data_store = process_all_files(
+            self.presupuesto_path, self.apus_path, self.insumos_path, config=TEST_CONFIG
+        )
+
+        # 1. Caso de prueba principal con la nueva lógica
+        params = {"material": "TST", "cuadrilla": "4"}
+        result = calculate_estimate(params, data_store, TEST_CONFIG)
+
+        self.assertNotIn("error", result)
+
+        # Verificar que se encontraron los APUs correctos
+>       self.assertIn("Suministro: SUMINISTRO TEJA SENCILLA", result["apu_encontrado"])
+E       AssertionError: 'Suministro: SUMINISTRO TEJA SENCILLA' not found in 'Suministro: No encontrado | Tarea: INSTALACION TEJA SENCILLA CUBIERTA | Cuadrilla: CUADRILLA DE 4'
+
+tests/test_estimator.py:49: AssertionError
+________________________________________ TestReportParserWithRealData.test_specific_insumo_is_parsed_correctly _________________________________________
+
+self = <test_report_parser_issue.TestReportParserWithRealData testMethod=test_specific_insumo_is_parsed_correctly>
+
+    def test_specific_insumo_is_parsed_correctly(self):
+        """
+        Tests that a specific known insumo is parsed correctly.
+        """
+        # Example insumo from apus.csv
+        # LAMINA DE 1.22 X 3.05 MTS CAL. 22 PINTADA INCLUIDO
+        # IVA;UND;0,33;14,04;174.928,81;65.403,35
+        insumo_desc = "LAMINA DE 1.22 X 3.05 MTS CAL. 22 PINTADA INCLUIDO IVA"
+        insumo = self.df[self.df["DESCRIPCION_INSUMO"] == insumo_desc]
+        self.assertTrue(
+            not insumo.empty, "The specific insumo 'LAMINA...' was not found."
+        )
+
+        insumo_data = insumo.iloc[0]
+        self.assertEqual(insumo_data["UNIDAD_INSUMO"], "UND")
+        self.assertAlmostEqual(insumo_data["CANTIDAD_APU"], 0.33, places=2)
+        self.assertAlmostEqual(insumo_data["PRECIO_UNIT_APU"], 174928.81, places=2)
+        self.assertAlmostEqual(insumo_data["VALOR_TOTAL_APU"], 65403.35, places=2)
+>       self.assertEqual(insumo_data["CATEGORIA"], "MATERIALES")
+E       AssertionError: 'INDEFINIDO' != 'MATERIALES'
+E       - INDEFINIDO
+E       + MATERIALES
+
+tests/test_report_parser_issue.py:71: AssertionError
+=============================================================== short test summary info ================================================================
+FAILED tests/test_app.py::TestCSVProcessor::test_process_all_files_structure_and_calculations - AssertionError: 50.0 != 155.0 within 7 places (105.0 difference)
+FAILED tests/test_app.py::TestAppEndpoints::test_get_estimate_with_session - AssertionError: 0.0 != 50000 within 7 places (50000.0 difference)
+FAILED tests/test_estimator.py::TestEstimator::test_calculate_estimate_logic_two_step - AssertionError: 'Suministro: SUMINISTRO TEJA SENCILLA' not found in 'Suministro: No encontrado | Tarea: INSTALACION TEJA SENCILLA CUBIERTA | Cuadrilla: CUADRILLA DE 4'
+FAILED tests/test_report_parser_issue.py::TestReportParserWithRealData::test_specific_insumo_is_parsed_correctly - AssertionError: 'INDEFINIDO' != 'MATERIALES'
+- INDEFINIDO
++ MATERIALES
+============================================================= 4 failed, 26 passed in 8.58s =============================================================

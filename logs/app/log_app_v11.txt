@@ -1,0 +1,88 @@
+ * Serving Flask app 'app.app:create_app('development')'
+ * Debug mode: off
+INFO:werkzeug:WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
+ * Running on http://127.0.0.1:5002
+INFO:werkzeug:Press CTRL+C to quit
+INFO:werkzeug:127.0.0.1 - - [28/Oct/2025 20:50:53] "GET / HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [28/Oct/2025 20:50:55] "GET /favicon.ico HTTP/1.1" 404 -
+INFO:app.procesador_csv:================================================================================
+INFO:app.procesador_csv:🚀 Iniciando procesamiento de archivos...
+INFO:app.procesador_csv:   Presupuesto: /Users/gerardomayor/Documents/estru_techos/apu_filter/uploads/6c1c93dc-a09a-4c99-968e-8989dbb7a17a/presupuesto.csv
+INFO:app.procesador_csv:   APUs: /Users/gerardomayor/Documents/estru_techos/apu_filter/uploads/6c1c93dc-a09a-4c99-968e-8989dbb7a17a/apus.csv
+INFO:app.procesador_csv:   Insumos: /Users/gerardomayor/Documents/estru_techos/apu_filter/uploads/6c1c93dc-a09a-4c99-968e-8989dbb7a17a/insumos.csv
+INFO:app.procesador_csv:================================================================================
+WARNING:app.procesador_csv:⚠️ Se encontraron 17 filas duplicadas en presupuesto por CODIGO_APU. Se conservará la primera ocurrencia.
+DEBUG:app.procesador_csv:Códigos duplicados: ['18', '19', '20', '21', '23', '22', '24', '25']
+INFO:app.procesador_csv:✅ Presupuesto cargado: 104 APUs únicos
+WARNING:app.procesador_csv:⚠️ Se encontraron 54 insumos con descripciones normalizadas duplicadas. Esto podría causar problemas en el merge. Se conservará el de mayor precio.
+INFO:app.procesador_csv:✅ Insumos cargados: 115 insumos únicos
+INFO:app.report_parser_crudo:🔍 Iniciando extracción cruda desde: /Users/gerardomayor/Documents/estru_techos/apu_filter/uploads/6c1c93dc-a09a-4c99-968e-8989dbb7a17a/apus.csv
+INFO:app.report_parser_crudo:✅ Extracción cruda completada: 3866 registros
+INFO:app.apu_processor:📊 Procesados 811 registros
+INFO:app.apu_processor: total_records: 811
+INFO:app.apu_processor: categoria_INDEFINIDO: 811
+INFO:app.procesador_csv:📊 Datos cargados:
+INFO:app.procesador_csv:   - Presupuesto: 104 APUs
+INFO:app.procesador_csv:   - Insumos maestros: 115 insumos
+INFO:app.procesador_csv:   - APUs detallados: 811 registros de insumos en APUs
+INFO:app.procesador_csv:🔗 Iniciando merge de APUs con catálogo de insumos...
+INFO:app.procesador_csv:💰 Calculando costos de insumos...
+DEBUG:app.procesador_csv:Estadísticas de CANTIDAD_APU:
+count    8.110000e+02
+mean     1.568526e+04
+std      1.051404e+05
+min      0.000000e+00
+25%      4.000000e-03
+50%      1.100000e-01
+75%      1.025000e+00
+max      1.334820e+06
+Name: CANTIDAD_APU, dtype: float64
+WARNING:app.procesador_csv:⚠️ Cantidad extremadamente alta detectada: 1334819.81982
+DEBUG:app.procesador_csv:Estadísticas de VR_UNITARIO_INSUMO:
+count     527.000000
+mean       76.850192
+std       239.822106
+min         0.000000
+25%         2.644879
+50%         6.846000
+75%        41.860135
+max      2475.000000
+Name: VR_UNITARIO_INSUMO, dtype: float64
+INFO:app.procesador_csv:📊 Agregando costos por APU y categoría...
+INFO:app.procesador_csv:✅ df_apu_costos creado: 77 APUs únicos
+INFO:app.procesador_csv:📈 Valor unitario máximo de APU: $0.00
+INFO:app.procesador_csv:🔗 Realizando merge final: presupuesto + costos...
+INFO:app.procesador_csv:   - df_presupuesto: 104 filas, 104 APUs únicos
+INFO:app.procesador_csv:   - df_apu_costos: 77 filas, 77 APUs únicos
+INFO:app.procesador_csv:✅ Merge exitoso: 104 filas (sin duplicación)
+INFO:app.procesador_csv:💵 Calculando valores totales del presupuesto...
+DEBUG:app.procesador_csv:Estadísticas de CANTIDAD_PRESUPUESTO:
+count    104.000000
+mean      19.334615
+std       70.210452
+min        0.000000
+25%        0.000000
+50%        2.850000
+75%        2.850000
+max      374.000000
+Name: CANTIDAD_PRESUPUESTO, dtype: float64
+INFO:app.procesador_csv:💰 COSTO TOTAL CONSOLIDADO: $0.00
+INFO:app.procesador_csv:🤖 Iniciando Agente de Validación de Datos...
+INFO:app.data_validator:El Agente de Validación de Datos ha iniciado.
+INFO:app.data_validator:El Agente de Validación de Datos ha completado su ejecución.
+INFO:app.procesador_csv:✅ Validación completada.
+INFO:app.procesador_csv:================================================================================
+INFO:app.procesador_csv:🎉 Procesamiento completado exitosamente
+INFO:app.procesador_csv:   - APUs en presupuesto: 104
+INFO:app.procesador_csv:   - Costo total: $0.00
+INFO:app.procesador_csv:================================================================================
+INFO:werkzeug:127.0.0.1 - - [28/Oct/2025 20:51:28] "POST /upload HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [28/Oct/2025 20:51:29] "POST /api/estimate HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [28/Oct/2025 20:51:29] "POST /api/estimate HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [28/Oct/2025 20:52:14] "POST /api/estimate HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [28/Oct/2025 20:52:17] "POST /api/estimate HTTP/1.1" 200 -
+DEBUG:app.app:Iniciando get_apu_detail para el código: 1
+INFO:werkzeug:127.0.0.1 - - [28/Oct/2025 20:52:40] "GET /api/apu/1 HTTP/1.1" 404 -
+INFO:werkzeug:127.0.0.1 - - [28/Oct/2025 20:53:05] "POST /api/estimate HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [28/Oct/2025 20:53:12] "POST /api/estimate HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [28/Oct/2025 20:53:17] "POST /api/estimate HTTP/1.1" 200 -

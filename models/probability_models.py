@@ -1,63 +1,66 @@
-import numpy as np
+# En models/probability_models.py
 
+import numpy as np
+import pandas as pd
+
+
+# --- INICIO DE LA CORRECCIÓN ---
+def sanitize_value(value):
+    """Convierte NaN de numpy a None de Python, si no, devuelve el valor original."""
+    if pd.isna(value):
+        return None
+    return value
+# --- FIN DE LA CORRECCIÓN ---
 
 def run_monte_carlo_simulation(apu_details, num_simulations=1000):
-    """
-    Ejecuta una simulación de Monte Carlo sobre el desglose de un APU.
+    if not apu_details:
+        return {
+            'mean': 0, 'std_dev': 0, 'percentile_5': 0, 'percentile_95': 0
+        }
 
-    Args:
-        apu_details (list): Lista de diccionarios, donde cada diccionario
-        representa un insumo del APU.
-        num_simulations (int): Número de simulaciones a ejecutar.
+    df = pd.DataFrame(apu_details)
 
-    Returns:
-        dict: Un diccionario con los resultados estadísticos de la simulación.
-    """
+    # Asegurarse de que las columnas existen y son numéricas
+    if 'VR_TOTAL' not in df.columns or 'CANTIDAD' not in df.columns:
+         return {
+            'mean': 0, 'std_dev': 0, 'percentile_5': 0, 'percentile_95': 0
+        }
+
+    df['VR_TOTAL'] = pd.to_numeric(df['VR_TOTAL'], errors='coerce').fillna(0)
+    df['CANTIDAD'] = pd.to_numeric(df['CANTIDAD'], errors='coerce').fillna(0)
+
     total_costs = []
+    if df.empty or df['VR_TOTAL'].sum() == 0:
+        # Si no hay datos o costos, devolver ceros sanitizados
+        return {
+            'mean': 0, 'std_dev': 0, 'percentile_5': 0, 'percentile_95': 0
+        }
 
     for _ in range(num_simulations):
-        simulation_cost = 0
-        for item in apu_details:
-            base_price = item.get("VALOR_UNITARIO", 0)
-            quantity = item.get("CANTIDAD", 0)
-            category = item.get("CATEGORIA", "")
+        simulated_cost = 0
+        for _, row in df.iterrows():
+            # Simular variabilidad solo si hay un costo base
+            if row['VR_TOTAL'] > 0:
+                # Asumir una desviación estándar del 10% para la simulación
+                simulated_item_cost = np.random.normal(
+                    loc=row["VR_TOTAL"], scale=row["VR_TOTAL"] * 0.1
+                )
+                simulated_cost += max(0, simulated_item_cost) # Evitar costos negativos
 
-            if category == "MATERIALES":
-                # Simular volatilidad del 5% en el precio de los materiales
-                simulated_price = np.random.normal(loc=base_price, scale=base_price * 0.05)
-                simulation_cost += simulated_price * quantity
-            elif category == "MANO DE OBRA":
-                # Costo base de la mano de obra para este ítem
-                costo_base_mo = base_price * quantity
-                # Simular con distribución Log-normal para evitar valores negativos
-                if costo_base_mo > 0:
-                    # Usar una desviación estándar del 10% del costo base
-                    sigma = costo_base_mo * 0.10
-                    # Parámetros para la distribución log-normal
-                    mu = np.log(costo_base_mo**2 / np.sqrt(costo_base_mo**2 + sigma**2))
-                    sigma_ln = np.sqrt(np.log(1 + (sigma**2 / costo_base_mo**2)))
-                    costo_simulado_mo = np.random.lognormal(mu, sigma_ln)
-                else:
-                    costo_simulado_mo = 0
-                simulation_cost += costo_simulado_mo
-            else:
-                # Otros costos se mantienen fijos
-                simulation_cost += base_price * quantity
+        total_costs.append(simulated_cost)
 
-        total_costs.append(simulation_cost)
+    # Si total_costs está vacío, np.mean y otros devolverán NaN.
+    if not total_costs:
+        return {'mean': 0, 'std_dev': 0, 'percentile_5': 0, 'percentile_95': 0}
 
-    # Asegurarse de que los costos no sean negativos
-    total_costs = [max(0, cost) for cost in total_costs]
-
-    # Calcular resultados estadísticos
-    mean_cost = np.mean(total_costs)
-    std_dev = np.std(total_costs)
-    percentile_5 = np.percentile(total_costs, 5)
-    percentile_95 = np.percentile(total_costs, 95)
-
-    return {
-        "mean": mean_cost,
-        "std_dev": std_dev,
-        "percentile_5": percentile_5,
-        "percentile_95": percentile_95,
+    # --- INICIO DE LA CORRECCIÓN ---
+    # Aplicar la sanitización a cada resultado antes de devolverlo
+    results = {
+        'mean': sanitize_value(np.mean(total_costs)),
+        'std_dev': sanitize_value(np.std(total_costs)),
+        'percentile_5': sanitize_value(np.percentile(total_costs, 5)),
+        'percentile_95': sanitize_value(np.percentile(total_costs, 95)),
     }
+    # --- FIN DE LA CORRECCIÓN ---
+
+    return results

@@ -141,8 +141,8 @@
                         <!-- Parámetros de Entrada -->
                         <div class="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-4 border-t pt-6">
                             <div>
-                                <label for="est-tipo" class="block text-sm font-medium text-gray-700">Tipo de Trabajo</label>
-                                <select id="est-tipo" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2">
+                                <label for="est-producto" class="block text-sm font-medium text-gray-700">Producto</label>
+                                <select id="est-producto" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2">
                                     <option>CUBIERTA</option>
                                     <option>FACHADA</option>
                                 </select>
@@ -150,8 +150,7 @@
                             <div>
                                 <label for="est-material" class="block text-sm font-medium text-gray-700">Material a Instalar</label>
                                 <select id="est-material" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2">
-                                    <option>TST</option>
-                                    <option>PANEL SANDWICH</option>
+                                    /* Options will be populated by JavaScript */
                                 </select>
                             </div>
                             <div>
@@ -215,8 +214,8 @@
                                 </div>
                             </div>
                             <div id="estimator-log-container" class="mt-4 hidden">
-                                <p class="text-xs text-gray-500">Log de cálculo:</p>
-                                <pre id="estimator-log" class="bg-gray-100 p-2 rounded-md text-xs text-gray-600 max-h-32 overflow-y-auto"></pre>
+                                <label for="estimator-log" class="block text-sm font-medium text-gray-700">Log de Cálculo</label>
+                                <textarea id="estimator-log" readonly class="mt-1 block w-full rounded-md border-gray-200 bg-gray-50 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50" rows="10" style="font-family: monospace;"></textarea>
                             </div>
                         </div>
                     </div>
@@ -243,6 +242,36 @@
 <script>
     let rawData = {};
     let budgetData = [];
+
+    const materialMap = {
+        'CUBIERTA': ['TST', 'PANEL SANDWICH'],
+        'FACHADA': ['PANEL SANDWICH', 'LOUVER', 'PERFORADA']
+    };
+
+    function updateMaterialOptions() {
+        const producto = document.getElementById('est-producto').value;
+        const materialSelect = document.getElementById('est-material');
+        const materiales = materialMap[producto] || [];
+
+        materialSelect.innerHTML = '';
+        materiales.forEach(material => {
+            const option = document.createElement('option');
+            option.value = material;
+            option.textContent = material;
+            materialSelect.appendChild(option);
+        });
+
+        // Trigger estimate update after repopulating
+        updateEstimate();
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const productoSelect = document.getElementById('est-producto');
+        productoSelect.addEventListener('change', updateMaterialOptions);
+
+        // Initial population
+        updateMaterialOptions();
+    });
 
     function showLoader(show) { document.getElementById('loader').classList.toggle('hidden', !show); }
     function showStatus(message, isError = false) {
@@ -280,13 +309,17 @@
         showStatus("Procesando archivos...", false);
 
         try {
+            console.log("Iniciando procesamiento de archivos...");
             const response = await fetch('/upload', { method: 'POST', body: formData });
+            console.log("Respuesta del servidor recibida:", response.status);
             if (!response.ok) throw new Error(`Error del servidor: ${response.statusText}`);
             
             rawData = await response.json();
+            console.log("Datos JSON parseados:", rawData);
             if (rawData.error) throw new Error(rawData.error);
             
             budgetData = JSON.parse(JSON.stringify(rawData.presupuesto));
+            console.log("Datos del presupuesto procesados.");
 
             document.getElementById('upload-container').classList.add('hidden');
             document.getElementById('main-content').classList.remove('hidden');
@@ -297,15 +330,19 @@
             });
 
             // Añadir listeners para el nuevo estimador
-            const estimatorInputs = ['est-tipo', 'est-material', 'est-cuadrilla', 'est-m2', 'est-zona', 'est-izaje', 'est-seguridad'];
+            const estimatorInputs = ['est-producto', 'est-material', 'est-cuadrilla', 'est-m2', 'est-zona', 'est-izaje', 'est-seguridad'];
             estimatorInputs.forEach(id => {
-                document.getElementById(id).addEventListener('input', updateEstimate);
+                 const element = document.getElementById(id);
+                if (element) {
+                    element.addEventListener('input', updateEstimate);
+                }
             });
             
             updateAllCalculations();
             updateEstimate(); // Llamada inicial para poblar el estimador
 
         } catch (error) {
+            console.error("Error detallado:", error);
             showStatus(`Error en el procesamiento: ${error.message}`, true);
         } finally {
             showLoader(false);
@@ -332,7 +369,7 @@
         }
 
         const params = {
-            tipo: document.getElementById('est-tipo').value,
+            producto: document.getElementById('est-producto').value,
             material: document.getElementById('est-material').value,
             cuadrilla: document.getElementById('est-cuadrilla').value,
             m2: parseFloat(document.getElementById('est-m2').value) || 1,
@@ -480,9 +517,10 @@
                         e.stopPropagation();
                         openModal(item.CODIGO_APU);
                     };
+                    const alertaIcon = item.alerta ? `<span class="text-yellow-500" title="${item.alerta}"> ⚠️</span>` : '';
                     itemRow.innerHTML = `
                         <td class="pl-12 pr-4 py-4 text-sm font-medium text-gray-900">${item.CODIGO_APU}</td>
-                        <td class="px-4 py-4 text-sm text-gray-500">${item.DESCRIPCION_APU}</td>
+                        <td class="px-4 py-4 text-sm text-gray-500">${item.DESCRIPCION_APU}${alertaIcon}</td>
                         <td class="px-4 py-4 text-sm text-gray-500">${formatCurrency(valorSuministroAIU)}</td>
                         <td class="px-4 py-4 text-sm text-gray-500">${formatCurrency(valorInstalacionAIU)}</td>
                         <td class="px-4 py-4 text-sm font-semibold text-gray-700">${formatCurrency(valorConstruccionAIU)}</td>
@@ -554,64 +592,119 @@
     }
 
     async function openModal(apuCode) {
-        document.getElementById('modal-title').textContent = `Detalle APU: ${apuCode}`;
-        const modalBody = document.getElementById('modal-body');
-        modalBody.innerHTML = '<div class="text-center p-8">Cargando detalles y ejecutando simulación...</div>';
-        
         const modal = document.getElementById('apu-modal');
+        const modalBody = document.getElementById('modal-body');
+        const modalTitle = document.getElementById('modal-title');
+        
+        modalTitle.textContent = `Detalle APU: ${apuCode}`;
+        modalBody.innerHTML = '<p>Cargando datos...</p>';
         modal.classList.remove('hidden');
         modal.classList.add('flex');
 
         try {
             const response = await fetch(`/api/apu/${encodeURIComponent(apuCode)}`);
-            if (!response.ok) throw new Error(`Error del servidor: ${response.statusText}`);
 
-            const data = await response.json();
-            const categories = data.desglose;
-            const simulation = data.simulation;
+            // --- INICIO DE LA LÓGICA DE DEPURACIÓN ---
+
+            // 1. Obtener la respuesta como texto crudo
+            const rawText = await response.text();
+
+            // 2. Imprimir el texto crudo en la consola del navegador para inspección
+            console.log("--- RESPUESTA CRUDA DEL SERVIDOR ---");
+            console.log(rawText);
+            console.log("--- FIN DE LA RESPUESTA CRUDA ---");
+
+            if (!response.ok) {
+                // Intentar parsear el error si es posible, si no, mostrar el texto crudo
+                try {
+                    const errorData = JSON.parse(rawText);
+                    throw new Error(errorData.error || `Error del servidor: ${response.statusText}`);
+                } catch (e) {
+                    throw new Error(rawText || `Error del servidor: ${response.statusText}`);
+                }
+            }
+
+            // 3. Intentar parsear el JSON dentro de un try...catch
+            let data;
+            try {
+                data = JSON.parse(rawText);
+            } catch (e) {
+                console.error("Error al parsear el JSON:", e);
+                // Mostrar el error en el modal para que sea visible
+                modalBody.innerHTML = `<p class="text-red-500">Error al procesar los datos del servidor. Revisa la consola del navegador para más detalles.</p><pre class="bg-gray-100 p-2 text-xs">${rawText.substring(0, 1000)}...</pre>`;
+                return; // Detener la ejecución
+            }
+
+            // --- FIN DE LA LÓGICA DE DEPURACIÓN ---
+
+            // Si el parseo fue exitoso, continuar con la lógica de renderizado...
             const aiuPcts = getAiuPercentages();
 
-            let costoDirecto = 0;
-            let contentHTML = '<div class="space-y-6">';
+            // ... (el resto de la lógica para construir el HTML del modal sigue aquí,
+            // usando la variable 'data' que ahora contiene el JSON parseado) ...
 
+            let costoDirecto = 0;
+            const categories = data.desglose || {};
+
+            let contentHTML = '<div class="space-y-6">';
             ['MATERIALES', 'MANO DE OBRA', 'EQUIPO', 'OTROS'].forEach(catName => {
                 if (!categories[catName]) return;
+                const categoryItems = categories[catName];
+                let categorySubtotal = 0;
 
-                const categoryData = { items: categories[catName], subtotal: 0 };
-                categoryData.items.forEach(insumo => {
-                    const vrTotal = insumo.VALOR_TOTAL || 0;
-                    categoryData.subtotal += vrTotal;
-                    costoDirecto += vrTotal;
+                let tableHeadersHTML = '';
+                if (catName === 'MANO DE OBRA') {
+                    tableHeadersHTML = `
+                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Descripción</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Jornal Total</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Rendimiento (un/día)</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Valor Total</th>
+                    `;
+                } else {
+                    tableHeadersHTML = `
+                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Descripción</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Cantidad</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Vr. Unitario</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Valor Total</th>
+                    `;
+                }
+
+
+                let tableRowsHTML = '';
+                categoryItems.forEach(insumo => {
+                    const vrTotal = insumo['VR_TOTAL'] || 0;
+                    categorySubtotal += vrTotal;
+
+                    const alertaIcon = insumo.alerta ? ` <span class="text-yellow-500" title="${insumo.alerta}">⚠️</span>` : '';
+                    if (catName === 'MANO DE OBRA') {
+                        tableRowsHTML += `<tr class="text-sm">
+                            <td class="py-2 px-4">${insumo['DESCRIPCION']}${alertaIcon}</td>
+                            <td class="py-2 px-4 text-right">${formatCurrency(insumo['VR_UNITARIO'])}</td>
+                            <td class="py-2 px-4 text-right">${(insumo['RENDIMIENTO'] || 0).toFixed(2)}</td>
+                            <td class="py-2 px-4 text-right">${formatCurrency(vrTotal)}</td>
+                        </tr>`;
+                    } else {
+                        tableRowsHTML += `<tr class="text-sm">
+                            <td class="py-2 px-4">${insumo['DESCRIPCION']}${alertaIcon}</td>
+                            <td class="py-2 px-4 text-right">${(insumo['CANTIDAD'] || 0).toFixed(3)}</td>
+                            <td class="py-2 px-4 text-right">${formatCurrency(insumo['VR_UNITARIO'])}</td>
+                            <td class="py-2 px-4 text-right">${formatCurrency(vrTotal)}</td>
+                        </tr>`;
+                    }
                 });
+                costoDirecto += categorySubtotal;
 
                 contentHTML += `
                     <div class="border rounded-lg overflow-hidden">
                         <h4 class="bg-gray-100 px-4 py-2 font-semibold text-gray-700">${catName}</h4>
                         <table class="min-w-full">
-                            <thead class="bg-gray-50 text-xs uppercase text-gray-700">
-                                <tr>
-                                    <th class="py-2 px-4 text-left">Descripción</th>
-                                    <th class="py-2 px-4 text-left">Unidad</th>
-                                    <th class="py-2 px-4 text-right">Cantidad</th>
-                                    <th class="py-2 px-4 text-right">Vr. Unitario</th>
-                                    <th class="py-2 px-4 text-right">Vr. Total</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-gray-200">
-                `;
-                categoryData.items.forEach(insumo => {
-                    contentHTML += `<tr class="text-sm">
-                        <td class="py-2 px-4">${insumo.DESCRIPCION}</td>
-                        <td class="py-2 px-4 text-left">${insumo.UNIDAD || 'UND'}</td>
-                        <td class="py-2 px-4 text-right">${(insumo.CANTIDAD || 0).toFixed(3)}</td>
-                        <td class="py-2 px-4 text-right">${formatCurrency(insumo.VALOR_UNITARIO)}</td>
-                        <td class="py-2 px-4 text-right">${formatCurrency(insumo.VALOR_TOTAL)}</td>
-                    </tr>`;
-                });
-                contentHTML += `</tbody><tfoot class="bg-gray-100 font-semibold"><tr class="border-t-2 border-gray-300"><td colspan="4" class="py-2 px-4 text-right">SUBTOTAL ${catName}</td><td class="py-2 px-4 text-right">${formatCurrency(categoryData.subtotal)}</td></tr></tfoot></table></div>`;
+                            <thead class="bg-gray-50"><tr>${tableHeadersHTML}</tr></thead>
+                            <tbody class="divide-y divide-gray-200">${tableRowsHTML}</tbody>
+                            <tfoot class="bg-gray-100"><tr><td colspan="3" class="py-2 px-4 text-right font-semibold">SUBTOTAL ${catName}</td><td class="py-2 px-4 text-right font-semibold">${formatCurrency(categorySubtotal)}</td></tr></tfoot>
+                        </table>
+                    </div>`;
             });
 
-            // AIU Calculation Table
             const adminValue = costoDirecto * (aiuPcts.admin / 100);
             const imprevValue = costoDirecto * (aiuPcts.imprev / 100);
             const utilValue = costoDirecto * (aiuPcts.util / 100);
@@ -625,31 +718,23 @@
                 <tr class="bg-blue-100"><td class="px-4 py-2 text-right font-bold text-blue-800 text-base">VALOR TOTAL APU</td><td class="px-4 py-2 text-right font-bold text-blue-800 text-base">${formatCurrency(costoTotalAIU)}</td></tr>
             </tbody></table></div>`;
 
-            // Monte Carlo Simulation Results Section
-            contentHTML += `
-                <div class="mt-6 border-2 border-dashed border-blue-300 rounded-lg p-4 bg-blue-50">
-                    <h4 class="text-lg font-semibold mb-3 text-blue-800">Análisis de Riesgo (Simulación Monte Carlo)</h4>
-                    <div id="simulation-results" class="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
-                        <div class="bg-white p-3 rounded-lg shadow-sm">
-                            <p class="text-sm text-gray-600">Costo Esperado (Media)</p>
-                            <p class="text-xl font-bold text-blue-700">${formatCurrency(simulation.mean)}</p>
-                        </div>
-                        <div class="bg-white p-3 rounded-lg shadow-sm">
-                            <p class="text-sm text-gray-600">Riesgo (Desv. Estándar)</p>
-                            <p class="text-xl font-bold text-blue-700">${formatCurrency(simulation.std_dev)}</p>
-                        </div>
-                        <div class="bg-white p-3 rounded-lg shadow-sm">
-                            <p class="text-sm text-gray-600">Rango de Confianza (90%)</p>
-                            <p class="text-lg font-bold text-blue-700">${formatCurrency(simulation.percentile_5)} - ${formatCurrency(simulation.percentile_95)}</p>
-                        </div>
+            // Añadir simulación si existe
+            if (data.simulation) {
+                contentHTML += `<div class="border rounded-lg mt-6 p-4 bg-gray-50">
+                    <h4 class="font-semibold text-center mb-2">Análisis de Riesgo (Simulación Monte Carlo)</h4>
+                    <div class="grid grid-cols-3 text-center text-sm">
+                        <div><p class="text-gray-500">Costo Esperado (Media)</p><p class="font-bold">${formatCurrency(data.simulation.mean)}</p></div>
+                        <div><p class="text-gray-500">Riesgo (Desv. Estándar)</p><p class="font-bold">${formatCurrency(data.simulation.std_dev)}</p></div>
+                        <div><p class="text-gray-500">Rango de Confianza (90%)</p><p class="font-bold">${formatCurrency(data.simulation.percentile_5)} - ${formatCurrency(data.simulation.percentile_95)}</p></div>
                     </div>
-                </div>
-            `;
+                </div>`;
+            }
 
             modalBody.innerHTML = contentHTML + '</div>';
 
         } catch (error) {
-            modalBody.innerHTML = `<div class="text-center p-8 text-red-600">Error al cargar datos: ${error.message}</div>`;
+            console.error("Error al cargar datos del APU:", error);
+            modalBody.innerHTML = `<p class="text-red-500">Error al cargar datos: ${error.message}</p>`;
         }
     }
 
