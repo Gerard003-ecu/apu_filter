@@ -1,8 +1,8 @@
 import logging
 import re
+from collections import Counter
 from enum import Enum
 from typing import Dict, List
-from collections import Counter
 
 from .utils import clean_apu_code
 
@@ -57,11 +57,11 @@ class ReportParserCrudo:
 
     # Mejorado: Incluir variaciones comunes
     CATEGORY_KEYWORDS = {
-        "MATERIALES", 
-        "MANO DE OBRA", 
-        "EQUIPO", 
+        "MATERIALES",
+        "MANO DE OBRA",
+        "EQUIPO",
         "EQUIPOS",
-        "OTROS", 
+        "OTROS",
         "TRANSPORTE",
         "TRANSPORTES",
         "HERRAMIENTA",
@@ -114,26 +114,26 @@ class ReportParserCrudo:
         except Exception as e:
             logger.error(f"❌ Error al leer {self.file_path}: {e}")
             return []
-        
+
         self._log_statistics()
         return self.raw_records
 
     def _log_statistics(self):
         """Registra estadísticas del proceso de parseo para debugging."""
         logger.info(f"✅ Extracción cruda completada: {len(self.raw_records)} registros")
-        logger.info(f"📊 Estadísticas del parseo:")
+        logger.info("📊 Estadísticas del parseo:")
         logger.info(f"   - Total de líneas procesadas: {self.stats['total_lines']}")
         logger.info(f"   - APUs detectados: {self.stats['apu_count']}")
         logger.info(f"   - Líneas omitidas: {self.stats['skipped_lines']}")
-        logger.info(f"   - Cambios de categoría detectados:")
-        
+        logger.info("   - Cambios de categoría detectados:")
+
         for category, count in self.stats['category_changes'].items():
             logger.info(f"      * {category}: {count} veces")
-        
+
         # Advertencia si no se detectaron categorías
         if sum(self.stats['category_changes'].values()) == 0:
             logger.warning("⚠️  NO SE DETECTARON CAMBIOS DE CATEGORÍA - Revisar formato del archivo")
-        
+
         # Advertencia si todos los insumos están como INDEFINIDO
         indefinidos = sum(1 for r in self.raw_records if r.get('category') == 'INDEFINIDO')
         if indefinidos == len(self.raw_records) and len(self.raw_records) > 0:
@@ -306,17 +306,17 @@ class ReportParserCrudo:
         """
         # Normalizar la línea para comparación
         line_upper = line.upper().strip()
-        
+
         # Obtener la primera parte (antes del primer ;)
         first_part = line_upper.split(";")[0].strip()
-        
+
         # Método 1: Coincidencia exacta en la primera parte
         if first_part in self.CATEGORY_KEYWORDS:
             self.context["category"] = first_part
             self.stats["category_changes"][first_part] += 1
             logger.debug(f"✓ Categoría detectada (exacta): {first_part}")
             return True
-        
+
         # Método 2: Buscar palabra clave en cualquier parte de la primera sección
         # (útil si hay caracteres especiales o espacios extra)
         for keyword in self.CATEGORY_KEYWORDS:
@@ -328,7 +328,7 @@ class ReportParserCrudo:
                     self.stats["category_changes"][keyword] += 1
                     logger.debug(f"✓ Categoría detectada (contenida): {keyword} en '{first_part}'")
                     return True
-        
+
         # Método 3: Buscar en toda la línea si es corta (probablemente un encabezado)
         if len(line_upper) < 50 and ";" not in line_upper[10:]:  # Pocos puntos y comas
             for keyword in self.CATEGORY_KEYWORDS:
@@ -337,7 +337,7 @@ class ReportParserCrudo:
                     self.stats["category_changes"][keyword] += 1
                     logger.debug(f"✓ Categoría detectada (línea corta): {keyword}")
                     return True
-        
+
         return False
 
     def _looks_like_insumo_line(self, line: str) -> bool:
@@ -355,14 +355,14 @@ class ReportParserCrudo:
         parts = line.split(";")
         if len(parts) < 3:
             return False
-        
+
         # Verificar si hay al menos 2 campos que parezcan numéricos
         numeric_fields = 0
         for part in parts[1:]:  # Saltar descripción
             part_clean = part.strip().replace(",", "").replace(".", "").replace("$", "")
             if part_clean and part_clean.replace("-", "").isdigit():
                 numeric_fields += 1
-        
+
         return numeric_fields >= 2
 
     def _has_data_structure(self, line: str) -> bool:
@@ -378,12 +378,12 @@ class ReportParserCrudo:
         # Mejorado: Verificar que tenga suficientes columnas Y datos numéricos
         if line.count(";") < 2:
             return False
-        
+
         # Verificar que no sea solo una línea de encabezado
         first_part = line.split(";")[0].strip().upper()
         if first_part in {"DESCRIPCION", "CÓDIGO", "CODIGO", "UNIDAD", "CANTIDAD"}:
             return False
-        
+
         return True
 
     def _add_raw_record(self, **kwargs):
@@ -404,7 +404,7 @@ class ReportParserCrudo:
             "insumo_line": kwargs.get("insumo_line", ""),
         }
         self.raw_records.append(record)
-        
+
         # Debug logging cada ciertos registros
         if len(self.raw_records) % 100 == 0:
             logger.debug(f"Registros procesados: {len(self.raw_records)}, "
