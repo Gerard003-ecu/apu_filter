@@ -3,7 +3,7 @@ platform darwin -- Python 3.12.3, pytest-8.4.2, pluggy-1.6.0 -- /Users/gerardoma
 cachedir: .pytest_cache
 rootdir: /Users/gerardomayor/Documents/estru_techos/apu_filter
 configfile: pyproject.toml
-collected 37 items                                                                                                                                     
+collected 37 items
 
 tests/test_app.py::TestAppEndpoints::test_get_estimate_with_session PASSED                                                                       [  2%]
 tests/test_data_validator.py::TestDataValidator::test_validate_and_clean_data_integration PASSED                                                 [  5%]
@@ -55,15 +55,15 @@ self = <test_estimator.TestEstimator testMethod=test_calculate_estimate_flexible
         data_store = process_all_files(
             self.presupuesto_path, self.apus_path, self.insumos_path, config=TEST_CONFIG
         )
-    
+
         # Caso que fallaba: "CUBIERTA" no coincide 100% con "INSTALACION TEJA SENCILLA CUBIERTA"
         # Con la nueva lógica de puntuación, debería encontrarlo.
         params = {"material": "CUBIERTA", "cuadrilla": "5"}
         result = calculate_estimate(params, data_store, TEST_CONFIG)
-    
+
         self.assertNotIn("error", result)
         self.assertNotIn("No se encontró APU de tarea", result["log"])
-    
+
         # Verificar que la búsqueda flexible encontró el APU de tarea correcto
 >       self.assertIn("Mejor coincidencia FLEXIBLE", result["log"])
 E       AssertionError: 'Mejor coincidencia FLEXIBLE' not found in "📝 Parámetros de entrada: {'material': 'CUBIERTA', 'cuadrilla': '5'}\n🔄 Material mapeado: 'CUBIERTA' → 'CUBIERTA'\n\n============================================================\n🔍 BÚSQUEDA DE SUMINISTRO\n============================================================\n  --> Pool vacío o sin keywords, retornando None.\n\n⚠️ No se encontró APU de suministro.\n\n============================================================\n🔧 CÁLCULO DE INSTALACIÓN\n============================================================\n\n📍 Paso A: Costo Diario de Cuadrilla\n----------------------------------------\n--- INICIO DEPURACIÓN DETALLADA DE BÚSQUEDA ---\nBuscando con keywords: ['cuadrilla', 'de', '5']\n  - Modo: ESTRICTO\n  - APUs en pool: 2\n  - Primeras 5 descripciones en el pool:\n    - CUADRILLA DE 4\n    - CUADRILLA DE 5\n  - Candidato: 'cuadrilla de 4' -> Coincidencias: 2/3 (66.7%)\n  - Candidato: 'cuadrilla de 5' -> Coincidencias: 3/3 (100.0%)\n--- FIN DEPURACIÓN DETALLADA ---\n  🏆 Mejor candidato encontrado: 'CUADRILLA DE 5' con un 100.0% de coincidencia.\n  ✅ Éxito: Coincidencia estricta encontrada.\n💰 Costo/día: $250,000.00\n\n📍 Paso B: Rendimiento y Costo de Equipo\n----------------------------------------\n--- INICIO DEPURACIÓN DETALLADA DE BÚSQUEDA ---\nBuscando con keywords: ['cubierta']\n  - Modo: FLEXIBLE (umbral: 30.0%)\n  - APUs en pool: 11\n  - Primeras 5 descripciones en el pool:\n    - REMATE CON PINTURA DE FABRICA CAL 22 DE 120 CMTS CURVO\n    - ACABADOS FINALES\n    - INSTALACION TEJA SENCILLA CUBIERTA\n    - INGENIERO RESIDENTE\n    - CUADRILLA DE 4\n  - Candidato: 'instalacion teja sencilla cubierta' -> Coincidencias: 1/1 (100.0%)\n--- FIN DEPURACIÓN DETALLADA ---\n  🏆 Mejor candidato encontrado: 'INSTALACION TEJA SENCILLA CUBIERTA' con un 100.0% de coincidencia.\n  ✅ Éxito: Supera el umbral flexible de 30.0%.\n\n📦 APU Tarea: 1,3\n⏱️ Tiempo total MO: 0.1250\n📊 Rendimiento: 8.00 un/día\n🔧 Costo Equipo: $0.00/un\n\n📍 Paso C: Cálculo Final\n----------------------------------------\n💵 Costo MO/un = $250,000.00 / 8.00 = $31,250.00\n🔨 Instalación = $31,250.00 + $0.00 = $31,250.00\n\n============================================================\n📊 RESULTADO FINAL\n============================================================\n💰 Suministro:    $0.00\n🔨 Instalación:   $31,250.00\n────────────────────────────────────────\n💵 TOTAL:         $31,250.00"

@@ -3,7 +3,7 @@ platform darwin -- Python 3.12.3, pytest-8.4.2, pluggy-1.6.0 -- /Users/gerardoma
 cachedir: .pytest_cache
 rootdir: /Users/gerardomayor/Documents/estru_techos/apu_filter
 configfile: pyproject.toml
-collected 33 items                                                                                                                                     
+collected 33 items
 
 tests/test_app.py::TestCSVProcessor::test_process_all_files_structure_and_calculations PASSED                                                    [  3%]
 tests/test_app.py::TestAppEndpoints::test_get_estimate_with_session PASSED                                                                       [  6%]
@@ -60,10 +60,10 @@ self = <test_report_parser.TestNewReportParser testMethod=test_category_detectio
             "Transporte 1;UND;1;;75;75\n"
         )
         test_file = self._create_test_file("categories.txt", category_data)
-    
+
         parser = ReportParser(test_file)
         df = parser.parse()
-    
+
 >       self.assertEqual(len(df), 5)
 E       AssertionError: 3 != 5
 
@@ -84,10 +84,10 @@ self = <test_report_parser.TestNewReportParser testMethod=test_discard_insumo_wi
             "Otro insumo bueno;UND;2;;50;100\n"
         )
         test_file = self._create_test_file("zero_value.txt", zero_value_data)
-    
+
         parser = ReportParser(test_file)
         df = parser.parse()
-    
+
 >       self.assertEqual(len(df), 2, "Solo insumos con valores positivos deberían agregarse.")
 E       AssertionError: 3 != 2 : Solo insumos con valores positivos deberían agregarse.
 
@@ -108,8 +108,8 @@ self = <test_report_parser.TestNewReportParser testMethod=test_encoding_handling
 >       test_file = self._create_test_file("encoding.txt", special_chars_data)
                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-tests/test_report_parser.py:447: 
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_report_parser.py:447:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
 self = <test_report_parser.TestNewReportParser testMethod=test_encoding_handling>, filename = 'encoding.txt'
 content = 'ITEM: ENCODING-01\nMATERIALES\nMaterial ñoño con carácter €;UND;1;;100;100\nMaterial con símbolo ®;UND;1;;100;100\n'
@@ -156,10 +156,10 @@ self = <test_report_parser.TestNewReportParser testMethod=test_fallback_parsing_
             "Otro material;COD456;1.0;DESC;100.00;100.00\n"
         )
         test_file = self._create_test_file("fallback.txt", fallback_data)
-    
+
         parser = ReportParser(test_file)
         df = parser.parse()
-    
+
         # Debería parsear al menos algunos datos mediante fallback
         self.assertGreater(len(df), 0)
         if len(df) > 0:
@@ -180,19 +180,19 @@ self = <test_report_parser.TestNewReportParser testMethod=test_mano_de_obra_comp
             "AYUDANTE;60.000;1,75;105.000;1,0;105.000\n"
         )
         test_file = self._create_test_file("mo_compleja.txt", mo_data)
-    
+
         parser = ReportParser(test_file)
         df = parser.parse()
-    
+
         self.assertEqual(len(df), 2)
-    
+
         # Verificar primer insumo
         oficial = df[df["DESCRIPCION_INSUMO"] == "OFICIAL DE PRIMERA"].iloc[0]
         self.assertAlmostEqual(oficial["CANTIDAD_APU"], 0.5, places=4)
         self.assertAlmostEqual(oficial["RENDIMIENTO"], 0.5, places=4)
         self.assertAlmostEqual(oficial["PRECIO_UNIT_APU"], 140000, places=2)
         self.assertEqual(oficial["FORMATO_ORIGEN"], "MO_COMPLEJA")
-    
+
         # Verificar segundo insumo
         ayudante = df[df["DESCRIPCION_INSUMO"] == "AYUDANTE"].iloc[0]
 >       self.assertAlmostEqual(ayudante["CANTIDAD_APU"], 1.0, places=4)
@@ -212,10 +212,10 @@ self = <test_report_parser.TestNewReportParser testMethod=test_mo_detection_by_k
             "MANO DE OBRA ESPECIALIZADA;;2;;200000;40000\n"
         )
         test_file = self._create_test_file("mo_keywords.txt", mo_data)
-    
+
         parser = ReportParser(test_file)
         df = parser.parse()
-    
+
 >       self.assertEqual(len(df), 2)
 E       AssertionError: 1 != 2
 
@@ -237,10 +237,10 @@ self = <test_report_parser.TestNewReportParser testMethod=test_prevent_data_cont
             "Obrero fantasma;JOR;8;;20;160\n"
         )
         test_file = self._create_test_file("contamination.txt", contamination_data)
-    
+
         parser = ReportParser(test_file)
         df = parser.parse()
-    
+
 >       self.assertEqual(len(df), 1, "Solo los insumos del APU con 'ITEM:' deben ser parseados.")
 E       AssertionError: 3 != 1 : Solo los insumos del APU con 'ITEM:' deben ser parseados.
 
@@ -262,10 +262,10 @@ self = <test_report_parser.TestNewReportParser testMethod=test_stats_tracking>
             "Equipo 1;UND;1;;200;200\n"
         )
         test_file = self._create_test_file("stats.txt", stats_data)
-    
+
         parser = ReportParser(test_file)
         df = parser.parse()
-    
+
         # Verificar estadísticas básicas
         stats = parser.stats
         self.assertEqual(stats["items_found"], 1)

@@ -3,7 +3,7 @@ platform darwin -- Python 3.12.3, pytest-8.4.2, pluggy-1.6.0 -- /Users/gerardoma
 cachedir: .pytest_cache
 rootdir: /Users/gerardomayor/Documents/estru_techos/apu_filter
 configfile: pyproject.toml
-collected 37 items                                                                                                                                     
+collected 37 items
 
 tests/test_app.py::TestAppEndpoints::test_get_estimate_with_session FAILED                                                                       [  2%]
 tests/test_data_validator.py::TestDataValidator::test_validate_and_clean_data_integration PASSED                                                 [  5%]
@@ -58,13 +58,13 @@ self = <test_app.TestAppEndpoints testMethod=test_get_estimate_with_session>
             # Set the app config directly for the test
             c.application.config["APP_CONFIG"] = TEST_CONFIG
             c.post("/upload", data=data, content_type="multipart/form-data")
-    
+
             # Usa los nuevos parámetros que incluyen la cuadrilla
             estimate_params = {"material": "TST", "cuadrilla": "4"}
             response = c.post("/api/estimate", json=estimate_params)
             self.assertEqual(response.status_code, 200)
             json_data = json.loads(response.data)
-    
+
             # Los valores esperados deben coincidir con el cálculo en test_estimator
             self.assertAlmostEqual(json_data["valor_suministro"], 0.0)
 >           self.assertAlmostEqual(json_data["valor_instalacion"], 25000)
@@ -82,13 +82,13 @@ self = <test_estimator.TestEstimator testMethod=test_calculate_estimate_flexible
         data_store = process_all_files(
             self.presupuesto_path, self.apus_path, self.insumos_path, config=TEST_CONFIG
         )
-    
+
         params = {"material": "CUBIERTA", "cuadrilla": "5"}
         result = calculate_estimate(params, data_store, TEST_CONFIG)
-    
+
         self.assertNotIn("error", result)
         self.assertNotIn("No se encontró APU de tarea", result["log"])
-    
+
         # --- INICIO DE LA CORRECCIÓN ---
         # Verificar el resultado numérico, que es más robusto que verificar el log.
         # El log muestra que el resultado final es 31250.0
@@ -107,13 +107,13 @@ self = <test_estimator.TestEstimator testMethod=test_calculate_estimate_logic_tw
         data_store = process_all_files(
             self.presupuesto_path, self.apus_path, self.insumos_path, config=TEST_CONFIG
         )
-    
+
         # 1. Caso de prueba principal con la nueva lógica
         params = {"material": "TST", "cuadrilla": "4"}
         result = calculate_estimate(params, data_store, TEST_CONFIG)
-    
+
         self.assertNotIn("error", result)
-    
+
         # Verificar que se encontraron los APUs correctos
         self.assertIn("Suministro: No encontrado", result["apu_encontrado"])
 >       self.assertIn("Tarea: INSTALACION TEJA SENCILLA CUBIERTA", result["apu_encontrado"])

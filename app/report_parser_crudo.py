@@ -132,12 +132,16 @@ class ReportParserCrudo:
 
         # Advertencia si no se detectaron categorías
         if sum(self.stats['category_changes'].values()) == 0:
-            logger.warning("⚠️  NO SE DETECTARON CAMBIOS DE CATEGORÍA - Revisar formato del archivo")
+            logger.warning(
+                "⚠️ NO SE DETECTARON CAMBIOS DE CATEGORÍA - Revisar formato del archivo"
+            )
 
         # Advertencia si todos los insumos están como INDEFINIDO
         indefinidos = sum(1 for r in self.raw_records if r.get('category') == 'INDEFINIDO')
         if indefinidos == len(self.raw_records) and len(self.raw_records) > 0:
-            logger.warning(f"⚠️  TODOS los {indefinidos} insumos están marcados como INDEFINIDO")
+            logger.warning(
+                f"⚠️ TODOS los {indefinidos} insumos están marcados como INDEFINIDO"
+            )
 
     def _process_line(self, line: str, line_num: int):
         """
@@ -170,12 +174,16 @@ class ReportParserCrudo:
         elif self.state == ParserState.PROCESSING_APU:
             # CRÍTICO: Detectar categoría ANTES de verificar estructura de datos
             if self._try_detect_category_change(line):
-                logger.debug(f"Línea {line_num}: Categoría detectada -> {self.context['category']}")
+                category = self.context['category']
+                logger.debug(f"Línea {line_num}: Categoría detectada -> {category}")
                 return
             if self._has_data_structure(line):
                 self._add_raw_record(insumo_line=line)
             else:
-                logger.debug(f"Línea {line_num}: Sin estructura de datos -> '{line[:50]}...'")
+                log_line = line[:50]
+                logger.debug(
+                    f"Línea {line_num}: Sin estructura de datos -> '{log_line}...'"
+                )
                 self.stats["skipped_lines"] += 1
 
     def _try_start_new_apu(self, line: str, line_num: int) -> bool:
@@ -295,9 +303,7 @@ class ReportParserCrudo:
     def _try_detect_category_change(self, line: str) -> bool:
         """
         Detecta si la línea es un cambio de categoría (e.g., "MANO DE OBRA").
-        
         MEJORADO: Más flexible y robusto en la detección.
-
         Args:
             line: La línea de texto.
 
@@ -326,7 +332,9 @@ class ReportParserCrudo:
                 if not self._looks_like_insumo_line(line):
                     self.context["category"] = keyword
                     self.stats["category_changes"][keyword] += 1
-                    logger.debug(f"✓ Categoría detectada (contenida): {keyword} en '{first_part}'")
+                    logger.debug(
+                        f"✓ Categoría detectada (contenida): {keyword} en '{first_part}'"
+                    )
                     return True
 
         # Método 3: Buscar en toda la línea si es corta (probablemente un encabezado)
@@ -343,9 +351,7 @@ class ReportParserCrudo:
     def _looks_like_insumo_line(self, line: str) -> bool:
         """
         Determina si una línea parece ser un insumo con datos numéricos.
-        
         Ayuda a evitar falsos positivos en la detección de categorías.
-
         Args:
             line: La línea de texto.
 

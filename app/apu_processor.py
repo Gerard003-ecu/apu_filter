@@ -114,7 +114,8 @@ class APUProcessor:
         # 2. Parsear línea de insumo
         parsed = self._parse_insumo_line(record.get("insumo_line", ""))
         if not parsed:
-            logger.debug(f"No se pudo parsear insumo_line: {record.get('insumo_line', '')[:100]}")
+            insumo_line = record.get('insumo_line', '')[:100]
+            logger.debug(f"No se pudo parsear insumo_line: {insumo_line}")
             return None
 
         descripcion_insumo = parsed.get("descripcion", "").strip()
@@ -144,7 +145,9 @@ class APUProcessor:
 
         # 8. Calcular rendimiento para MO si falta
         if tipo_insumo == "MANO_DE_OBRA" and rendimiento == 0 and valor_total > 0:
-            rendimiento = self._calculate_rendimiento_simple(cantidad, precio_unit, valor_total)
+            rendimiento = self._calculate_rendimiento_simple(
+                cantidad, precio_unit, valor_total
+            )
 
         # 9. Validar antes de agregar
         if not self._should_add_insumo(descripcion_insumo, cantidad, valor_total):
@@ -173,14 +176,11 @@ class APUProcessor:
     def _classify_insumo(self, descripcion: str) -> str:
         """
         🆕 Clasifica un insumo según su descripción en categorías operativas.
-        
         Esta es la lógica faltante que impedía los cálculos de costos unitarios.
-
         Args:
             descripcion: La descripción del insumo.
-
         Returns:
-            Una de las categorías: SUMINISTRO, INSTALACION, MANO_DE_OBRA, 
+            Una de las categorías: SUMINISTRO, INSTALACION, MANO_DE_OBRA,
             EQUIPO, TRANSPORTE, u OTRO.
         """
         desc_upper = descripcion.upper()
@@ -212,10 +212,8 @@ class APUProcessor:
     def _infer_type_by_unit(self, desc_upper: str) -> Optional[str]:
         """
         🆕 Infiere el tipo de insumo por patrones en la descripción.
-        
         Args:
             desc_upper: Descripción en mayúsculas.
-            
         Returns:
             Tipo inferido o None.
         """
@@ -233,12 +231,10 @@ class APUProcessor:
     ) -> tuple[float, float, float]:
         """
         🆕 Corrige y valida valores numéricos, calculando faltantes.
-        
         Args:
             cantidad: Cantidad del insumo.
             precio_unit: Precio unitario.
             valor_total: Valor total.
-            
         Returns:
             Tupla con (cantidad, precio_unit, valor_total) corregidos.
         """
@@ -250,12 +246,16 @@ class APUProcessor:
         # Caso 2: Tenemos cantidad y precio, falta total
         elif valor_total == 0 and cantidad > 0 and precio_unit > 0:
             valor_total = cantidad * precio_unit
-            logger.debug(f"Valor total calculado: {valor_total} = {cantidad} * {precio_unit}")
+            logger.debug(
+                f"Valor total calculado: {valor_total} = {cantidad} * {precio_unit}"
+            )
 
         # Caso 3: Tenemos cantidad y total, falta precio
         elif precio_unit == 0 and cantidad > 0 and valor_total > 0:
             precio_unit = valor_total / cantidad
-            logger.debug(f"Precio unit calculado: {precio_unit} = {valor_total} / {cantidad}")
+            logger.debug(
+                f"Precio unit calculado: {precio_unit} = {valor_total} / {cantidad}"
+            )
 
         # Validar coherencia (tolerancia del 1%)
         if cantidad > 0 and precio_unit > 0:
@@ -336,8 +336,10 @@ class APUProcessor:
         """
         return {
             "MO_COMPLEJA": re.compile(
-                r"^(?P<descripcion>(?:M\.O\.|M O |MANO DE OBRA|SISO|INGENIERO|OFICIAL|AYUDANTE"
-                r"|MAESTRO|CAPATAZ|CUADRILLA|OBRERO).*?);"
+                r"^(?P<descripcion>("
+                r"?:M\.O\.|M O |MANO DE OBRA|SISO|INGENIERO|OFICIAL|AYUDANTE"
+                r"|MAESTRO|CAPATAZ|CUADRILLA|OBRERO"
+                r").*?);"
                 r"\s*(?P<jornal_base>[\d.,\s]+);\s*"
                 r"(?P<prestaciones>[\d%.,\s]+);\s*"
                 r"(?P<jornal_total>[\d.,\s]+);\s*"
@@ -346,8 +348,10 @@ class APUProcessor:
                 re.IGNORECASE,
             ),
             "MO_SIMPLE": re.compile(
-                r"^(?P<descripcion>(?:M\.O\.|M O |MANO DE OBRA|SISO|INGENIERO|OFICIAL|AYUDANTE"
-                r"|MAESTRO|CAPATAZ|CUADRILLA|OBRERO).*?);"
+                r"^(?P<descripcion>("
+                r"?:M\.O\.|M O |MANO DE OBRA|SISO|INGENIERO|OFICIAL|AYUDANTE"
+                r"|MAESTRO|CAPATAZ|CUADRILLA|OBRERO"
+                r").*?);"
                 r"\s*[^;]*;\s*"
                 r"(?P<cantidad>[^;]*);\s*"
                 r"[^;]*;\s*"
@@ -602,9 +606,15 @@ class APUProcessor:
         logger.info("=" * 60)
         logger.info(f"✅ Registros procesados: {len(self.processed_data)}")
         logger.info(f"❌ Errores: {self.stats.get('errores', 0)}")
-        logger.info(f"🗑️  Descartados: {self.stats.get('registros_descartados', 0)}")
-        logger.info(f"⛔ Rechazados validación: {self.stats.get('rechazados_validacion', 0)}")
-        logger.info(f"🚫 Excluidos por término: {self.stats.get('excluidos_por_termino', 0)}")
+        logger.info(
+            f"🗑️  Descartados: {self.stats.get('registros_descartados', 0)}"
+        )
+        logger.info(
+            f"⛔ Rechazados validación: {self.stats.get('rechazados_validacion', 0)}"
+        )
+        logger.info(
+            f"🚫 Excluidos por término: {self.stats.get('excluidos_por_termino', 0)}"
+        )
         logger.info("-" * 60)
 
         # Estadísticas por tipo
@@ -649,10 +659,8 @@ class APUProcessor:
 def calculate_unit_costs(df: pd.DataFrame) -> pd.DataFrame:
     """
     Calcula los costos unitarios por APU sumando los valores por tipo de insumo.
-    
     Args:
         df: DataFrame procesado con columna TIPO_INSUMO.
-        
     Returns:
         DataFrame con costos unitarios por APU.
     """
@@ -661,7 +669,8 @@ def calculate_unit_costs(df: pd.DataFrame) -> pd.DataFrame:
         return pd.DataFrame()
 
     # Agrupar por APU y tipo
-    grouped = df.groupby(['CODIGO_APU', 'DESCRIPCION_APU', 'UNIDAD_APU', 'TIPO_INSUMO'])['VALOR_TOTAL_APU'].sum().reset_index()
+    group_cols = ['CODIGO_APU', 'DESCRIPCION_APU', 'UNIDAD_APU', 'TIPO_INSUMO']
+    grouped = df.groupby(group_cols)['VALOR_TOTAL_APU'].sum().reset_index()
 
     # Pivotar para tener una columna por tipo
     pivot = grouped.pivot_table(
@@ -679,8 +688,12 @@ def calculate_unit_costs(df: pd.DataFrame) -> pd.DataFrame:
 
     # Calcular totales
     pivot['VALOR_SUMINISTRO_UN'] = pivot.get('SUMINISTRO', 0)
-    pivot['VALOR_INSTALACION_UN'] = pivot.get('INSTALACION', 0) + pivot.get('MANO_DE_OBRA', 0)
-    pivot['COSTO_UNITARIO_TOTAL'] = pivot[[col for col in pivot.columns if col not in ['CODIGO_APU', 'DESCRIPCION_APU', 'UNIDAD_APU']]].sum(axis=1)
+    pivot['VALOR_INSTALACION_UN'] = (
+        pivot.get('INSTALACION', 0) + pivot.get('MANO_DE_OBRA', 0)
+    )
+    non_total_cols = ['CODIGO_APU', 'DESCRIPCION_APU', 'UNIDAD_APU']
+    total_cols = [col for col in pivot.columns if col not in non_total_cols]
+    pivot['COSTO_UNITARIO_TOTAL'] = pivot[total_cols].sum(axis=1)
 
     logger.info(f"✅ Costos unitarios calculados para {len(pivot)} APUs")
 
