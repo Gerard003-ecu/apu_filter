@@ -394,7 +394,7 @@ def _do_processing(
     costo_max = df_merged["COSTO_INSUMO_EN_APU"].max()
     if costo_max > 1e9:
         logger.error(f"❌ COSTO ANÓMALO DETECTADO: {costo_max:,.2f}")
-        anomalies = df_merged[df_merged["COSTO_INSUMO_EN_APU"] > 1e8].head(10)
+        anomalies = df_merged[df_merged["COSTO_INSUMO_EN_APU"] > 1e9].head(10)
         logger.error(
             "Registros anómalos:\n%s",
             anomalies[
@@ -496,7 +496,7 @@ def _do_processing(
 
     total_construccion = df_final["VALOR_CONSTRUCCION_TOTAL"].sum()
     logger.info(f"💰 COSTO TOTAL CONSOLIDADO: ${total_construccion:,.2f}")
-    if total_construccion > 1e12:
+    if total_construccion > 1e11:
         logger.error(f"❌ COSTO TOTAL ANORMALMENTE ALTO: ${total_construccion:,.2f}")
         top_contributors = df_final.nlargest(10, "VALOR_CONSTRUCCION_TOTAL")[
             [

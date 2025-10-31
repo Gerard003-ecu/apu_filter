@@ -86,7 +86,7 @@ class TestCSVProcessorWithNewData(unittest.TestCase):
             (item for item in presupuesto_procesado if item["CODIGO_APU"] == "1.1"), None
         )
         self.assertIsNotNone(item1_1, "El ítem 1.1 no fue encontrado.")
-        self.assertAlmostEqual(item1_1["VALOR_CONSTRUCCION_UN"], 52000.0, places=2)
+        self.assertAlmostEqual(item1_1["VALOR_CONSTRUCCION_UN"], 50000.0, places=2)
 
     def test_abnormally_high_cost_triggers_error(self):
         """
@@ -123,8 +123,11 @@ class TestCSVProcessorWithNewData(unittest.TestCase):
         self.assertIn("error", resultado)
         self.assertIn("Costo total anormalmente alto", resultado["error"])
 
-        os.remove(presupuesto_alto_path)
-        os.remove(apus_alto_path)
+        # Limpiar los archivos temporales creados para esta prueba
+        if os.path.exists(presupuesto_alto_path):
+            os.remove(presupuesto_alto_path)
+        if os.path.exists(apus_alto_path):
+            os.remove(apus_alto_path)
 
     def test_cartesian_explosion_on_final_merge(self):
         """

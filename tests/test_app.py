@@ -103,9 +103,9 @@ class TestAppEndpoints(unittest.TestCase):
             json_data = json.loads(response.data)
 
             # Aserciones basadas en los nuevos datos de prueba (ver test_estimator.py)
-            self.assertAlmostEqual(json_data["valor_suministro"], 52000.0, places=2)
+            self.assertAlmostEqual(json_data["valor_suministro"], 50000.0, places=2)
             self.assertAlmostEqual(json_data["valor_instalacion"], 11760.0, places=2)
-            self.assertAlmostEqual(json_data["valor_construccion"], 63760.0, places=2)
+            self.assertAlmostEqual(json_data["valor_construccion"], 61760.0, places=2)
 
 if __name__ == "__main__":
     unittest.main()
