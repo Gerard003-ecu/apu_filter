@@ -50,7 +50,8 @@ class APUProcessor:
 
     EXCLUDED_TERMS = [
         'IMPUESTOS', 'POLIZAS', 'SEGUROS', 'GASTOS GENERALES',
-        'UTILIDAD', 'ADMINISTRACION', 'RETENCIONES', 'AIU', 'A.I.U'
+        'UTILIDAD', 'ADMINISTRACION', 'RETENCIONES', 'AIU', 'A.I.U',
+        'EQUIPO Y HERRAMIENTA'
     ]
 
     def __init__(self, raw_records: List[Dict[str, str]]):
@@ -464,10 +465,9 @@ class APUProcessor:
 
         desc_u = desc.upper()
 
-        # Excluir si es solo el término (no como parte de otro)
+        # Excluir si el término aparece en la descripción
         for term in self.EXCLUDED_TERMS:
-            # Buscar el término como palabra completa
-            if re.search(rf'\b{re.escape(term)}\b', desc_u):
+            if term in desc_u:
                 logger.debug(f"Excluido por término '{term}': {desc[:50]}")
                 return True
 
@@ -490,24 +490,20 @@ class APUProcessor:
         self, cantidad: float, precio_unit: float, valor_total: float
     ) -> float:
         """
-        Calcula el rendimiento de mano de obra en casos simples.
-        MEJORADO con mejor lógica.
+        Calcula el rendimiento de mano de obra usando la fórmula correcta.
+        El rendimiento es el inverso de la cantidad.
 
         Args:
-            cantidad: Cantidad del insumo.
+            cantidad: Cantidad del insumo (ej: JORNAL/UNIDAD).
             precio_unit: El precio unitario del insumo.
             valor_total: El valor total del insumo.
 
         Returns:
-            El valor del rendimiento calculado.
+            El valor del rendimiento calculado (ej: UNIDAD/JORNAL).
         """
-        # Rendimiento típicamente es cantidad (horas, jornales, etc.)
+        # El rendimiento es el inverso de la cantidad.
         if cantidad > 0:
-            return cantidad
-
-        # Si no, intentar calcular de valor/precio
-        if precio_unit > 0 and valor_total > 0:
-            return valor_total / precio_unit
+            return 1.0 / cantidad
 
         return 0.0
 
