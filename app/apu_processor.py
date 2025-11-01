@@ -122,7 +122,11 @@ class APUProcessor:
         # 4. Clasificar tipo de insumo PRIMERO
         tipo_insumo = self._classify_insumo(descripcion_insumo)
 
-        # 5. Convertir a números CON EL TIPO YA CONOCIDO
+        # 5. Inferir unidad de APU si es "UND"
+        if apu_unit == "UND":
+            apu_unit = self._infer_unit_aggressive(apu_desc, category, apu_code)
+
+        # 6. Convertir a números con validación mejorada
         cantidad = parse_number(parsed.get("cantidad", "0"))
         precio_unit = parse_number(parsed.get("precio_unit", "0"))
         valor_total = parse_number(parsed.get("valor_total", "0"))
