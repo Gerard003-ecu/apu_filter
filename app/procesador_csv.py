@@ -235,22 +235,24 @@ def _calculate_apu_costs_and_metadata(df_merged: pd.DataFrame) -> tuple:
     )
     df_apu_costos["VALOR_CONSTRUCCION_UN"] = df_apu_costos[cost_cols].sum(axis=1)
 
-    # 🔥 VALIDACIÓN: Verificar valores unitarios razonables
+    # 🔥 VALIDACIÓN MEJORADA: Verificar valores unitarios razonables
     valor_max = df_apu_costos["VALOR_CONSTRUCCION_UN"].max()
-    logger.info(f"📈 Valor unitario máximo de APU: ${valor_max:,.2f}")
+    valor_avg = df_apu_costos["VALOR_CONSTRUCCION_UN"].mean()
+    valor_std = df_apu_costos["VALOR_CONSTRUCCION_UN"].std()
 
-    if valor_max > 1e8:  # 100 millones por unidad
-        logger.warning("⚠️ Valor unitario extremadamente alto detectado")
-        top_expensive = df_apu_costos.nlargest(5, "VALOR_CONSTRUCCION_UN")[
-            [
-                "CODIGO_APU",
-                "VALOR_CONSTRUCCION_UN",
-                "MATERIALES",
-                "MANO DE OBRA",
-                "EQUIPO",
-            ]
-        ]
-        logger.warning(f"APUs más costosos:\n{top_expensive}")
+    logger.info(f"📈 Estadísticas de costos unitarios: Max=${valor_max:,.2f}, Avg=${valor_avg:,.2f}")
+
+    # Detectar outliers usando método estadístico
+    outlier_threshold = valor_avg + (3 * valor_std)
+    outliers = df_apu_costos[df_apu_costos["VALOR_CONSTRUCCION_UN"] > outlier_threshold]
+
+    if not outliers.empty:
+        logger.warning(f"⚠️ Se detectaron {len(outliers)} APUs con costos anómalos")
+        for _, outlier in outliers.iterrows():
+            logger.warning(
+                f" APU {outlier['CODIGO_APU']}: ${outlier['VALOR_CONSTRUCCION_UN']:,.2f} "
+                f"(MO: {outlier.get('MANO DE OBRA', 0):,.2f}, MAT: {outlier.get('MATERIALES', 0):,.2f})"
+            )
 
     # ========== 6. CLASIFICAR APUs ==========
     def classify_apu(row):
