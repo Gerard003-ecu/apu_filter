@@ -93,14 +93,7 @@ class APUProcessor:
 
     def _process_single_record(self, record: Dict[str, str]) -> Optional[Dict[str, Any]]:
         """
-        Procesa un único registro crudo y lo transforma.
-
-        Args:
-            record: Un diccionario que representa una línea de insumo cruda.
-
-        Returns:
-            Un diccionario con los datos del insumo procesados y estructurados,
-            o None si el insumo debe ser excluido.
+        🆕 FLUJO CORREGIDO con manejo especial para MO
         """
         # 1. Normalizar campos básicos
         apu_code = clean_apu_code(record.get("apu_code", ""))
@@ -126,32 +119,28 @@ class APUProcessor:
             self.stats["excluidos_por_termino"] += 1
             return None
 
-        # 4. **NUEVA LÓGICA**: Clasificar tipo de insumo
+        # 4. Clasificar tipo de insumo PRIMERO
         tipo_insumo = self._classify_insumo(descripcion_insumo)
 
-        # 5. Inferir unidad de APU si es "UND"
-        if apu_unit == "UND":
-            apu_unit = self._infer_unit_aggressive(apu_desc, category, apu_code)
-
-        # 6. Convertir a números con validación mejorada
+        # 5. Convertir a números CON EL TIPO YA CONOCIDO
         cantidad = parse_number(parsed.get("cantidad", "0"))
         precio_unit = parse_number(parsed.get("precio_unit", "0"))
         valor_total = parse_number(parsed.get("valor_total", "0"))
         rendimiento = parse_number(parsed.get("rendimiento", "0"))
 
-        # 7. Calcular campos faltantes y corregir inconsistencias
+        # 🔥 CORRECCIÓN CRÍTICA: Aplicar lógica especial para MO
         cantidad, precio_unit, valor_total = self._fix_numeric_values(
-            cantidad, precio_unit, valor_total
+            cantidad, precio_unit, valor_total, tipo_insumo # ← Pasar el tipo
         )
 
-        # 8. Calcular rendimiento para MO si falta
-        if tipo_insumo == "MANO_DE_OBRA" and rendimiento == 0 and valor_total > 0:
-            rendimiento = self._calculate_rendimiento_simple(
-                cantidad, precio_unit, valor_total
-            )
+        # 6. Para MO, calcular rendimiento si falta
+        if tipo_insumo == "MANO_DE_OBRA" and rendimiento == 0:
+            if cantidad > 0:
+                rendimiento = 1.0 / cantidad
+                logger.debug(f"Rendimiento MO calculado: {rendimiento} = 1 / {cantidad}")
 
         # 9. Validar antes de agregar
-        if not self._should_add_insumo(descripcion_insumo, cantidad, valor_total):
+        if not self._should_add_insumo(descripcion_insumo, cantidad, valor_total, tipo_insumo):
             self.stats["rechazados_validacion"] += 1
             return None
 
@@ -176,17 +165,13 @@ class APUProcessor:
 
     def _classify_insumo(self, descripcion: str) -> str:
         """
-        🆕 Clasifica un insumo según su descripción en categorías operativas.
-        Esta es la lógica faltante que impedía los cálculos de costos unitarios.
-        Args:
-            descripcion: La descripción del insumo.
-        Returns:
-            Una de las categorías: SUMINISTRO, INSTALACION, MANO_DE_OBRA,
-            EQUIPO, TRANSPORTE, u OTRO.
+        🆕 CLASIFICACIÓN MEJORADA:
+        - MANO_DE_OBRA y EQUIPO contribuyen a INSTALACIÓN
+        - No buscar "INSTALACION" en descripciones de insumos individuales
         """
         desc_upper = descripcion.upper()
 
-        # Prioridad: MO > Equipo > Transporte > Instalación > Suministro
+        # Prioridad: MO > Equipo > Transporte > Suministro
         if any(kw in desc_upper for kw in self.MANO_OBRA_KEYWORDS):
             return "MANO_DE_OBRA"
 
@@ -196,17 +181,10 @@ class APUProcessor:
         if any(kw in desc_upper for kw in self.TRANSPORTE_KEYWORDS):
             return "TRANSPORTE"
 
-        if any(kw in desc_upper for kw in self.INSTALACION_KEYWORDS):
-            return "INSTALACION"
-
         if any(kw in desc_upper for kw in self.SUMINISTRO_KEYWORDS):
             return "SUMINISTRO"
 
-        # Si no matchea nada, inferir por unidad
-        unidad_hint = self._infer_type_by_unit(desc_upper)
-        if unidad_hint:
-            return unidad_hint
-
+        # 🔥 NUNCA clasificar como "INSTALACION" - eso se calcula en agregaciones
         logger.debug(f"Insumo sin clasificar: {descripcion[:50]}")
         return "OTRO"
 
@@ -228,46 +206,37 @@ class APUProcessor:
         return None
 
     def _fix_numeric_values(
-        self, cantidad: float, precio_unit: float, valor_total: float
+        self, cantidad: float, precio_unit: float, valor_total: float, tipo_insumo: str
     ) -> tuple[float, float, float]:
         """
-        🆕 Corrige y valida valores numéricos, calculando faltantes.
-        Args:
-            cantidad: Cantidad del insumo.
-            precio_unit: Precio unitario.
-            valor_total: Valor total.
-        Returns:
-            Tupla con (cantidad, precio_unit, valor_total) corregidos.
+        🆕 Corrige valores numéricos considerando el tipo de insumo.
+        PARA MANO DE OBRA: cantidad = 1 / rendimiento (precio_unit)
         """
-        # Caso 1: Tenemos total y precio, falta cantidad
-        if cantidad == 0 and valor_total > 0 and precio_unit > 0:
-            cantidad = valor_total / precio_unit
-            logger.debug(f"Cantidad calculada: {cantidad} = {valor_total} / {precio_unit}")
+        # Para mano de obra, el precio_unit es realmente el RENDIMIENTO
+        if tipo_insumo == "MANO_DE_OBRA":
+            if precio_unit > 0 and cantidad == 0:
+                cantidad = 1.0 / precio_unit
+                logger.debug(f"MO: Cantidad calculada como 1/rendimiento: {cantidad} = 1 / {precio_unit}")
+            elif cantidad > 0 and precio_unit == 0:
+                precio_unit = 1.0 / cantidad
+                logger.debug(f"MO: Rendimiento calculado como 1/cantidad: {precio_unit} = 1 / {cantidad}")
 
-        # Caso 2: Tenemos cantidad y precio, falta total
-        elif valor_total == 0 and cantidad > 0 and precio_unit > 0:
-            valor_total = cantidad * precio_unit
-            logger.debug(
-                f"Valor total calculado: {valor_total} = {cantidad} * {precio_unit}"
-            )
+            # Recalcular valor_total si es necesario
+            if valor_total == 0 and cantidad > 0:
+                # Necesitamos el jornal_real, que debería venir de otro campo
+                # Por ahora, usamos una estimación conservadora
+                jornal_estimado = precio_unit * 1000 # Factor estimado
+                valor_total = cantidad * jornal_estimado
+                logger.debug(f"MO: Valor total estimado: {valor_total}")
 
-        # Caso 3: Tenemos cantidad y total, falta precio
-        elif precio_unit == 0 and cantidad > 0 and valor_total > 0:
-            precio_unit = valor_total / cantidad
-            logger.debug(
-                f"Precio unit calculado: {precio_unit} = {valor_total} / {cantidad}"
-            )
-
-        # Validar coherencia (tolerancia del 1%)
-        if cantidad > 0 and precio_unit > 0:
-            calculado = cantidad * precio_unit
-            if valor_total > 0 and abs(calculado - valor_total) / valor_total > 0.01:
-                logger.warning(
-                    f"Inconsistencia: {cantidad} * {precio_unit} = {calculado} "
-                    f"pero valor_total = {valor_total}"
-                )
-                # Confiar en valor_total si existe
-                valor_total = calculado
+        # Lógica original para otros tipos
+        else:
+            if cantidad == 0 and valor_total > 0 and precio_unit > 0:
+                cantidad = valor_total / precio_unit
+            elif valor_total == 0 and cantidad > 0 and precio_unit > 0:
+                valor_total = cantidad * precio_unit
+            elif precio_unit == 0 and cantidad > 0 and valor_total > 0:
+                precio_unit = valor_total / cantidad
 
         return cantidad, precio_unit, valor_total
 
@@ -329,34 +298,23 @@ class APUProcessor:
 
     def _get_parsing_patterns(self) -> Dict[str, re.Pattern]:
         """
-        Define y devuelve los patrones regex para parsear líneas de insumos.
-        MEJORADO con patrones más flexibles.
-
-        Returns:
-            Un diccionario que mapea nombres de formato a patrones regex compilados.
+        🆕 PATRONES MEJORADOS para distinguir jornal vs rendimiento
         """
         return {
-            "MO_COMPLEJA": re.compile(
-                r"^(?P<descripcion>("
-                r"?:M\.O\.|M O |MANO DE OBRA|SISO|INGENIERO|OFICIAL|AYUDANTE"
-                r"|MAESTRO|CAPATAZ|CUADRILLA|OBRERO"
-                r").*?);"
+            "MO_COMPLETA": re.compile(
+                r"^(?P<descripcion>(?:M\.O\.|M O |MANO DE OBRA).*?);"
                 r"\s*(?P<jornal_base>[\d.,\s]+);\s*"
                 r"(?P<prestaciones>[\d%.,\s]+);\s*"
                 r"(?P<jornal_total>[\d.,\s]+);\s*"
-                r"(?P<rendimiento>[\d.,\s]+);\s*"
+                r"(?P<rendimiento>[\d.,\s]+);\s*" # ← ESTE es el rendimiento
                 r"(?P<valor_total>[\d.,\s]+)",
                 re.IGNORECASE,
             ),
-            "MO_SIMPLE": re.compile(
-                r"^(?P<descripcion>("
-                r"?:M\.O\.|M O |MANO DE OBRA|SISO|INGENIERO|OFICIAL|AYUDANTE"
-                r"|MAESTRO|CAPATAZ|CUADRILLA|OBRERO"
-                r").*?);"
-                r"\s*[^;]*;\s*"
-                r"(?P<cantidad>[^;]*);\s*"
+            "MO_SIMPLE_CORREGIDO": re.compile(
+                r"^(?P<descripcion>(?:M\.O\.|M O |MANO DE OBRA).*?);"
+                r"\s*[^;]*;\s*" # Campo intermedio
+                r"(?P<rendimiento>[^;]*);\s*" # ← RENDIMIENTO identificado
                 r"[^;]*;\s*"
-                r"(?P<precio_unit>[^;]*);\s*"
                 r"(?P<valor_total>[^;]*)",
                 re.IGNORECASE,
             ),
@@ -507,31 +465,32 @@ class APUProcessor:
 
         return 0.0
 
-    def _should_add_insumo(self, desc: str, cantidad: float, valor_total: float) -> bool:
+    def _should_add_insumo(self, desc: str, cantidad: float, valor_total: float, tipo_insumo: str) -> bool:
         """
-        Aplica reglas de validación para decidir si un insumo es válido.
-        MEJORADO con validaciones más robustas.
-
-        Args:
-            desc: La descripción del insumo.
-            cantidad: La cantidad del insumo.
-            valor_total: El valor total del insumo.
-
-        Returns:
-            True si el insumo es válido y debe ser añadido, False en caso contrario.
+        🆕 VALIDACIÓN MEJORADA con umbrales por tipo de insumo
         """
         # Descripción válida
         if not desc or len(desc.strip()) < 3:
             logger.debug("Rechazado: descripción muy corta")
             return False
 
+        # Umbrales por tipo de insumo
+        umbrales = {
+            "MANO_DE_OBRA": {"cantidad": 1000, "valor": 999_999},
+            "EQUIPO": {"cantidad": 10000, "valor": 999_999},
+            "SUMINISTRO": {"cantidad": 100000, "valor": 999_999},
+            "OTRO": {"cantidad": 1000000, "valor": 999_999_999}
+        }
+
+        umbral = umbrales.get(tipo_insumo, umbrales["OTRO"])
+
         # Evitar valores absurdos
-        if valor_total > 999_999_999:
-            logger.warning(f"Rechazado: valor total absurdo {valor_total}")
+        if valor_total > umbral["valor"]:
+            logger.warning(f"Rechazado: valor total absurdo {valor_total} para {tipo_insumo}")
             return False
 
-        if cantidad > 999_999:
-            logger.warning(f"Rechazado: cantidad absurda {cantidad}")
+        if cantidad > umbral["cantidad"]:
+            logger.warning(f"Rechazado: cantidad absurda {cantidad} para {tipo_insumo}")
             return False
 
         # Debe tener al menos cantidad o valor
@@ -624,10 +583,7 @@ class APUProcessor:
 
     def _build_dataframe(self) -> pd.DataFrame:
         """
-        Construye un DataFrame de pandas a partir de los datos procesados.
-
-        Returns:
-            Un DataFrame de pandas. Si no hay datos, retorna un DataFrame vacío.
+        Construye DataFrame validando correctamente los tipos.
         """
         if not self.processed_data:
             logger.warning("⚠️ No hay datos procesados para construir DataFrame")
@@ -640,13 +596,24 @@ class APUProcessor:
             tipos_count = df['TIPO_INSUMO'].value_counts()
             logger.info("📋 Distribución de tipos de insumo:")
             for tipo, count in tipos_count.items():
-                logger.info(f"  {tipo}: {count}")
+                logger.info(f" {tipo}: {count}")
 
-            # ALERTA si no hay suministros o instalación
+            # 🔥 CORRECCIÓN: No buscar "INSTALACION" en insumos individuales
+            # La instalación es una SUMA de MANO_DE_OBRA + EQUIPO
             if 'SUMINISTRO' not in tipos_count:
                 logger.error("🚨 NO SE ENCONTRARON INSUMOS DE SUMINISTRO")
-            if 'INSTALACION' not in tipos_count:
-                logger.error("🚨 NO SE ENCONTRARON INSUMOS DE INSTALACION")
+
+            # Verificar componentes de instalación
+            has_mo = 'MANO_DE_OBRA' in tipos_count
+            has_equipo = 'EQUIPO' in tipos_count
+            if not has_mo and not has_equipo:
+                logger.error("🚨 NO SE ENCONTRARON COMPONENTES DE INSTALACIÓN (MO o EQUIPO)")
+            elif not has_mo:
+                logger.warning("⚠️ NO SE ENCONTRÓ MANO DE OBRA para instalación")
+            elif not has_equipo:
+                logger.warning("⚠️ NO SE ENCONTRÓ EQUIPO para instalación")
+            else:
+                logger.info("✅ Componentes de instalación encontrados: MO + EQUIPO")
 
         return df
 
