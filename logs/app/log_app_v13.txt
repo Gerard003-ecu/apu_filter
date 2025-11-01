@@ -888,9 +888,9 @@ max      2475.000000
 Name: VR_UNITARIO_INSUMO, dtype: float64
 INFO:app.procesador_csv:📊 Agregando costos por APU y categoría...
 INFO:app.procesador_csv:✅ df_apu_costos creado: 77 APUs únicos
-INFO:app.procesador_csv:📈 Estadísticas de costos unitarios: Max=$8,577,739.57, Avg=$116,214.70
+INFO:app.procesador_csv:📈 Estadísticas de costos unitarios: Max=$8,251,410.76, Avg=$111,976.66
 WARNING:app.procesador_csv:⚠️ Se detectaron 1 APUs con costos anómalos
-WARNING:app.procesador_csv: APU 16.2: $8,577,739.57 (MO: 7,977,088.66, MAT: 134,905.44)
+WARNING:app.procesador_csv: APU 16.2: $8,251,410.76 (MO: 7,977,088.66, MAT: 134,905.44)
 INFO:app.procesador_csv:🔗 Realizando merge final: presupuesto + costos...
 INFO:app.procesador_csv:   - df_presupuesto: 104 filas, 104 APUs únicos
 INFO:app.procesador_csv:   - df_apu_costos: 77 filas, 77 APUs únicos
@@ -906,7 +906,7 @@ min        0.000000
 75%        2.850000
 max      374.000000
 Name: CANTIDAD_PRESUPUESTO, dtype: float64
-INFO:app.procesador_csv:💰 COSTO TOTAL CONSOLIDADO: $3,221,441,858.90
+INFO:app.procesador_csv:💰 COSTO TOTAL CONSOLIDADO: $3,099,394,883.04
 INFO:app.procesador_csv:🤖 Iniciando Agente de Validación de Datos...
 INFO:app.data_validator:El Agente de Validación de Datos ha iniciado.
 INFO:app.data_validator:El Agente de Validación de Datos ha completado su ejecución.
@@ -914,23 +914,23 @@ INFO:app.procesador_csv:✅ Validación completada.
 INFO:app.procesador_csv:================================================================================
 INFO:app.procesador_csv:🎉 Procesamiento completado exitosamente
 INFO:app.procesador_csv:   - APUs en presupuesto: 104
-INFO:app.procesador_csv:   - Costo total: $3,221,441,858.90
+INFO:app.procesador_csv:   - Costo total: $3,099,394,883.04
 INFO:app.procesador_csv:================================================================================
-INFO:werkzeug:127.0.0.1 - - [01/Nov/2025 00:10:34] "POST /upload HTTP/1.1" 200 -
-INFO:werkzeug:127.0.0.1 - - [01/Nov/2025 00:10:35] "POST /api/estimate HTTP/1.1" 200 -
-INFO:werkzeug:127.0.0.1 - - [01/Nov/2025 00:10:35] "POST /api/estimate HTTP/1.1" 200 -
-DEBUG:app.app:Iniciando get_apu_detail para el código: 13.1
-DEBUG:app.app:Datos sanitizados. Encontrados 19 insumos para el APU 13.1
-DEBUG:app.app:Agrupando todos los insumos por categoría y descripción...
-INFO:werkzeug:127.0.0.1 - - [01/Nov/2025 00:11:21] "GET /api/apu/13.1 HTTP/1.1" 200 -
-DEBUG:app.app:Iniciando get_apu_detail para el código: 1
-INFO:werkzeug:127.0.0.1 - - [01/Nov/2025 00:12:17] "GET /api/apu/1 HTTP/1.1" 404 -
-DEBUG:app.app:Iniciando get_apu_detail para el código: 2.4
-DEBUG:app.app:Datos sanitizados. Encontrados 3 insumos para el APU 2.4
-DEBUG:app.app:Agrupando todos los insumos por categoría y descripción...
-INFO:werkzeug:127.0.0.1 - - [01/Nov/2025 00:12:43] "GET /api/apu/2.4 HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [01/Nov/2025 10:04:44] "POST /upload HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [01/Nov/2025 10:04:45] "POST /api/estimate HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [01/Nov/2025 10:04:45] "POST /api/estimate HTTP/1.1" 200 -
 DEBUG:app.app:Iniciando get_apu_detail para el código: 2.7
 DEBUG:app.app:Datos sanitizados. Encontrados 6 insumos para el APU 2.7
 DEBUG:app.app:Agrupando todos los insumos por categoría y descripción...
-INFO:werkzeug:127.0.0.1 - - [01/Nov/2025 00:13:03] "GET /api/apu/2.7 HTTP/1.1" 200 -
-INFO:werkzeug:127.0.0.1 - - [01/Nov/2025 00:13:45] "POST /api/estimate HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [01/Nov/2025 10:05:51] "GET /api/apu/2.7 HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [01/Nov/2025 10:07:49] "POST /api/estimate HTTP/1.1" 200 -
+DEBUG:app.app:Iniciando get_apu_detail para el código: 16.2
+DEBUG:app.app:Datos sanitizados. Encontrados 400 insumos para el APU 16.2
+DEBUG:app.app:Agrupando todos los insumos por categoría y descripción...
+INFO:werkzeug:127.0.0.1 - - [01/Nov/2025 10:08:44] "GET /api/apu/16.2 HTTP/1.1" 200 -
+DEBUG:app.app:Iniciando get_apu_detail para el código: 16.2
+DEBUG:app.app:Datos sanitizados. Encontrados 400 insumos para el APU 16.2
+DEBUG:app.app:Agrupando todos los insumos por categoría y descripción...
+INFO:werkzeug:127.0.0.1 - - [01/Nov/2025 10:10:03] "GET /api/apu/16.2 HTTP/1.1" 200 -
+DEBUG:app.app:Iniciando get_apu_detail para el código: 1
+INFO:werkzeug:127.0.0.1 - - [01/Nov/2025 10:12:53] "GET /api/apu/1 HTTP/1.1" 404 -
