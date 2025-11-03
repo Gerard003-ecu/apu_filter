@@ -1,5 +1,6 @@
 # app/schemas.py
-from dataclasses import dataclass, field
+from dataclasses import dataclass
+
 
 @dataclass
 class InsumoProcesado:

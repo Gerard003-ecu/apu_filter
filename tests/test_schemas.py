@@ -1,4 +1,5 @@
 import pytest
+
 from app.schemas import (
     Equipo,
     InsumoProcesado,
@@ -7,6 +8,7 @@ from app.schemas import (
     Suministro,
     Transporte,
 )
+
 
 @pytest.fixture
 def common_args():

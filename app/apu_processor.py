@@ -214,41 +214,41 @@ class APUProcessor:
         """
         # Extraer jornal total (precio unitario de MO)
         jornal_total = parse_number(parsed.get("jornal_total", "0"))
-        
+
         # Si no hay jornal_total, intentar con precio_unit como fallback
         if jornal_total == 0:
             jornal_total = parse_number(parsed.get("precio_unit", "0"))
             logger.debug(f"MO: Usando precio_unit como jornal_total: {jornal_total}")
-        
+
         # Extraer rendimiento (jornales por unidad)
         rendimiento = parse_number(parsed.get("rendimiento", "0"))
-        
+
         # La cantidad para MO es el rendimiento mismo
         cantidad = rendimiento
-        
+
         # Calcular valor total
         valor_total = parse_number(parsed.get("valor_total", "0"))
-        
+
         # Validar y recalcular si es necesario
         if valor_total == 0 and cantidad > 0 and jornal_total > 0:
             valor_total = cantidad * jornal_total
             logger.debug(f"MO: Valor total calculado: {valor_total} = {cantidad} * {jornal_total}")
-        
+
         # Si tenemos valor_total y jornal pero no cantidad
         elif cantidad == 0 and valor_total > 0 and jornal_total > 0:
             cantidad = valor_total / jornal_total
             rendimiento = cantidad
             logger.debug(f"MO: Cantidad calculada: {cantidad} = {valor_total} / {jornal_total}")
-        
+
         # Si tenemos valor_total y cantidad pero no jornal
         elif jornal_total == 0 and valor_total > 0 and cantidad > 0:
             jornal_total = valor_total / cantidad
             logger.debug(f"MO: Jornal calculado: {jornal_total} = {valor_total} / {cantidad}")
-        
+
         # Validación final
         if cantidad == 0 or jornal_total == 0:
             logger.warning(f"MO: Valores incompletos - Cant: {cantidad}, Jornal: {jornal_total}, Total: {valor_total}")
-        
+
         return cantidad, jornal_total, valor_total, rendimiento
 
     def _extract_regular_values(self, parsed: Dict[str, str]) -> Tuple[float, float, float, float]:
@@ -259,24 +259,24 @@ class APUProcessor:
         precio_unit = parse_number(parsed.get("precio_unit", "0"))
         valor_total = parse_number(parsed.get("valor_total", "0"))
         rendimiento = parse_number(parsed.get("rendimiento", "0"))
-        
+
         # Calcular valores faltantes
         if valor_total == 0 and cantidad > 0 and precio_unit > 0:
             valor_total = cantidad * precio_unit
             logger.debug(f"Valor total calculado: {valor_total} = {cantidad} * {precio_unit}")
-        
+
         elif cantidad == 0 and valor_total > 0 and precio_unit > 0:
             cantidad = valor_total / precio_unit
             logger.debug(f"Cantidad calculada: {cantidad} = {valor_total} / {precio_unit}")
-        
+
         elif precio_unit == 0 and cantidad > 0 and valor_total > 0:
             precio_unit = valor_total / cantidad
             logger.debug(f"Precio unitario calculado: {precio_unit} = {valor_total} / {cantidad}")
-        
+
         # Para insumos regulares, si hay cantidad pero no rendimiento
         if rendimiento == 0 and cantidad > 0:
             rendimiento = cantidad
-        
+
         return cantidad, precio_unit, valor_total, rendimiento
 
     def _classify_insumo(self, descripcion: str) -> str:
@@ -346,11 +346,11 @@ class APUProcessor:
                 r'\bDIA\b', r'\bHORA\b(?!.*OFICIAL|.*AYUDANTE)'
             ]
         }
-        
+
         for tipo, patterns in unit_patterns.items():
             if any(re.search(pattern, desc_upper) for pattern in patterns):
                 return tipo
-        
+
         return None
 
     def _parse_insumo_line(self, line: str) -> Optional[Dict[str, str]]:
@@ -439,7 +439,7 @@ class APUProcessor:
                 r"(?P<valor_total>[\d.,\s]+)",
                 re.IGNORECASE
             ),
-            
+
             # Patrón para MO simplificado (sin prestaciones)
             "MO_SIMPLE": re.compile(
                 r"^(?P<descripcion>(?:M\.O\.|M\s*O\s+|MANO\s+DE\s+OBRA).*?);\s*"
@@ -449,7 +449,7 @@ class APUProcessor:
                 r"(?P<valor_total>[\d.,\s]+)",
                 re.IGNORECASE
             ),
-            
+
             # Patrón para insumo completo con desperdicio
             "INSUMO_CON_DESPERDICIO": re.compile(
                 r"^(?P<descripcion>[^;]+);\s*"
@@ -459,7 +459,7 @@ class APUProcessor:
                 r"(?P<precio_unit>[\d.,\s]*);\s*"
                 r"(?P<valor_total>[\d.,\s]*)"
             ),
-            
+
             # Patrón para insumo básico (sin desperdicio)
             "INSUMO_BASICO": re.compile(
                 r"^(?P<descripcion>[^;]+);\s*"
@@ -492,7 +492,7 @@ class APUProcessor:
             "EQUIPO": "DIA",
             "TRANSPORTE": "VIAJE",
         }
-        
+
         if tipo_insumo in tipo_unit_map:
             logger.debug(f"Unidad inferida por tipo '{tipo_insumo}': {tipo_unit_map[tipo_insumo]}")
             return tipo_unit_map[tipo_insumo]
@@ -522,7 +522,7 @@ class APUProcessor:
             "TRANSPORTE": "VIAJE",
             "MATERIALES": "UN",
         }
-        
+
         if category in cat_unit_map:
             logger.debug(f"Unidad inferida por categoría '{category}': {cat_unit_map[category]}")
             return cat_unit_map[category]
@@ -555,42 +555,42 @@ class APUProcessor:
             "JORNALES": "JOR",
             "HORA": "HR",
             "HORAS": "HR",
-            
+
             # Unidades
             "UN": "UND",
             "UNIDAD": "UND",
             "UNIDADES": "UND",
-            
+
             # Distancia
             "METRO": "M",
             "METROS": "M",
             "MTS": "M",
             "ML": "M",  # Metro lineal
-            
+
             # Área
             "M2": "M2",
             "MT2": "M2",
             "METROSCUADRADOS": "M2",
-            
+
             # Volumen
             "M3": "M3",
             "MT3": "M3",
             "METROSCUBICOS": "M3",
-            
+
             # Peso
             "KILOGRAMO": "KG",
             "KILOGRAMOS": "KG",
             "KILO": "KG",
             "TONELADA": "TON",
             "TONELADAS": "TON",
-            
+
             # Volumen líquido
             "GLN": "GAL",
             "GALON": "GAL",
             "GALONES": "GAL",
             "LITRO": "LT",
             "LITROS": "LT",
-            
+
             # Transporte
             "VIAJES": "VIAJE",
             "VJE": "VIAJE",
@@ -619,7 +619,7 @@ class APUProcessor:
             if term in desc_u:
                 logger.debug(f"Excluido por término '{term}': {desc[:50]}")
                 return True
-        
+
         # Excluir descripciones muy cortas o sospechosas
         if len(desc.strip()) < 3:
             logger.debug(f"Excluido por descripción muy corta: {desc}")
@@ -698,7 +698,7 @@ class APUProcessor:
         # Validación 4: Coherencia entre cantidad y valor
         if cantidad > 0 and valor_total > 0:
             precio_implícito = valor_total / cantidad
-            
+
             # Umbrales de precio unitario razonables
             precio_umbrales = {
                 "MANO_DE_OBRA": (1000, 500_000),  # Jornal entre 1K y 500K
@@ -707,9 +707,9 @@ class APUProcessor:
                 "TRANSPORTE": (100, 500_000),  # Entre 100 y 500K por viaje
                 "OTRO": (0.01, 100_000_000),
             }
-            
+
             min_precio, max_precio = precio_umbrales.get(tipo_insumo, precio_umbrales["OTRO"])
-            
+
             if not (min_precio <= precio_implícito <= max_precio):
                 logger.warning(
                     f"Rechazado: precio unitario implícito sospechoso ${precio_implícito:,.2f} "
@@ -740,10 +740,10 @@ class APUProcessor:
 
         # Remover acentos
         text = unidecode(text.lower().strip())
-        
+
         # Mantener solo caracteres permitidos
         text = re.sub(r"[^a-z0-9\s#\-]", "", text)
-        
+
         # Normalizar espacios
         text = re.sub(r"\s+", " ", text)
 
@@ -884,11 +884,11 @@ class APUProcessor:
         # Verificar que existan suministros
         if 'SUMINISTRO' not in tipos_count or tipos_count['SUMINISTRO'] == 0:
             logger.error("🚨 NO SE ENCONTRARON INSUMOS DE SUMINISTRO")
-        
+
         # Verificar componentes de instalación
         has_mo = 'MANO_DE_OBRA' in tipos_count and tipos_count['MANO_DE_OBRA'] > 0
         has_equipo = 'EQUIPO' in tipos_count and tipos_count['EQUIPO'] > 0
-        
+
         if not has_mo and not has_equipo:
             logger.error("🚨 NO SE ENCONTRARON COMPONENTES DE INSTALACIÓN (MO ni EQUIPO)")
         elif not has_mo:
@@ -897,7 +897,7 @@ class APUProcessor:
             logger.warning("⚠️ NO SE ENCONTRÓ EQUIPO para instalación")
         else:
             logger.info("✅ Componentes de instalación encontrados: MO + EQUIPO")
-        
+
         # Validar valores numéricos
         for col in ['CANTIDAD_APU', 'PRECIO_UNIT_APU', 'VALOR_TOTAL_APU']:
             if col in df.columns:
@@ -933,7 +933,7 @@ def calculate_unit_costs(df: pd.DataFrame) -> pd.DataFrame:
 
     # Agrupar por APU y tipo de insumo
     group_cols = ['CODIGO_APU', 'DESCRIPCION_APU', 'UNIDAD_APU', 'TIPO_INSUMO']
-    
+
     try:
         grouped = df.groupby(group_cols)['VALOR_TOTAL_APU'].sum().reset_index()
     except KeyError as e:
@@ -961,12 +961,12 @@ def calculate_unit_costs(df: pd.DataFrame) -> pd.DataFrame:
 
     # Calcular valores por categoría
     pivot['VALOR_SUMINISTRO_UN'] = pivot.get('SUMINISTRO', 0)
-    
+
     # 🔥 CORRECCIÓN CRÍTICA: INSTALACION = MO + EQUIPO
     pivot['VALOR_INSTALACION_UN'] = (
         pivot.get('MANO_DE_OBRA', 0) + pivot.get('EQUIPO', 0)
     )
-    
+
     pivot['VALOR_TRANSPORTE_UN'] = pivot.get('TRANSPORTE', 0)
     pivot['VALOR_OTRO_UN'] = pivot.get('OTRO', 0)
 
@@ -998,12 +998,12 @@ def calculate_unit_costs(df: pd.DataFrame) -> pd.DataFrame:
         'PCT_INSTALACION',
         'PCT_TRANSPORTE',
     ]
-    
+
     # Agregar columnas que existan y no estén en el orden
     existing_cols = [col for col in column_order if col in pivot.columns]
     remaining_cols = [col for col in pivot.columns if col not in existing_cols]
     final_columns = existing_cols + remaining_cols
-    
+
     pivot = pivot[final_columns]
 
     # Log de resumen
