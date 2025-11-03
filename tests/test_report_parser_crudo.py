@@ -80,7 +80,7 @@ class TestReportParserCrudo(unittest.TestCase):
 
         self.assertEqual(len(raw_records), 1)
         record = raw_records[0]
-        self.assertEqual(record["apu_code"], "01")
+        self.assertEqual(record["apu_code"], "APU-01")
         self.assertEqual(record["apu_desc"], "UNA DESCRIPCION DE APU VALIDA")
         self.assertEqual(record["apu_unit"], "M2")
         self.assertEqual(record["category"], "MATERIALES")

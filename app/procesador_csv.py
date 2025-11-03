@@ -159,12 +159,12 @@ def process_insumos_csv(file_path: str) -> pd.DataFrame:
         df["VR_UNITARIO_INSUMO"] = pd.to_numeric(
             df["VR_UNITARIO_INSUMO"].astype(str).str.replace(",", "."), errors="coerce"
         )
-        df["NORMALIZED_DESC"] = normalize_text_series(df["DESCRIPCION_INSUMO"])
+        df["DESCRIPCION_INSUMO_NORM"] = normalize_text_series(df["DESCRIPCION_INSUMO"])
 
         df = df.dropna(subset=["DESCRIPCION_INSUMO"])
 
         # 🔥 VALIDACIÓN CRÍTICA: Verificar duplicados en descripciones normalizadas
-        duplicates = df[df.duplicated(subset=["NORMALIZED_DESC"], keep=False)]
+        duplicates = df[df.duplicated(subset=["DESCRIPCION_INSUMO_NORM"], keep=False)]
         if not duplicates.empty:
             logger.warning(
                 f"⚠️ Se encontraron {len(duplicates)} insumos con descripciones "
@@ -173,7 +173,7 @@ def process_insumos_csv(file_path: str) -> pd.DataFrame:
             )
             # Conservar el de mayor precio para cada descripción normalizada
             df = df.sort_values("VR_UNITARIO_INSUMO", ascending=False).drop_duplicates(
-                subset=["NORMALIZED_DESC"], keep="first"
+                subset=["DESCRIPCION_INSUMO_NORM"], keep="first"
             )
 
         logger.info(f"✅ Insumos cargados: {len(df)} insumos únicos")
@@ -259,36 +259,47 @@ def _calculate_apu_costs_and_metadata(df_merged: pd.DataFrame) -> tuple:
         costo_total = row["VALOR_CONSTRUCCION_UN"]
         if costo_total == 0:
             return "Indefinido"
-        porcentaje_mo_eq = (
-            (row.get("MANO DE OBRA", 0) + row.get("EQUIPO", 0)) / costo_total
-        ) * 100
+
+        mo_cost = row.get("MANO DE OBRA", 0)
+        eq_cost = row.get("EQUIPO", 0)
+        mat_cost = row.get("MATERIALES", 0)
+
+        porcentaje_mo_eq = ((mo_cost + eq_cost) / costo_total) * 100
+        porcentaje_materiales = (mat_cost / costo_total) * 100
+
         if porcentaje_mo_eq > 75:
             return "Instalación"
-        porcentaje_materiales = (row.get("MATERIALES", 0) / costo_total) * 100
-        if porcentaje_materiales > 75 and porcentaje_mo_eq < 10:
+
+        if porcentaje_materiales > 75 and porcentaje_mo_eq < 15:
             return "Suministro"
-        if porcentaje_materiales > 50 and porcentaje_mo_eq > 10:
+
+        if porcentaje_materiales > 65 and porcentaje_mo_eq > 15:
             return "Suministro (Pre-fabricado)"
+
         return "Obra Completa"
 
     df_apu_costos["tipo_apu"] = df_apu_costos.apply(classify_apu, axis=1)
 
     # ========== 7. CALCULAR TIEMPO Y RENDIMIENTO ==========
+    df_mo_data = df_merged[df_merged["CATEGORIA"] == "MANO DE OBRA"].copy()
+
     df_tiempo = (
-        df_merged[df_merged["CATEGORIA"] == "MANO DE OBRA"]
-        .groupby("CODIGO_APU")["CANTIDAD_APU"]
+        df_mo_data.groupby("CODIGO_APU")["CANTIDAD_APU"]
         .sum()
         .reset_index()
     )
     df_tiempo.rename(columns={"CANTIDAD_APU": "TIEMPO_INSTALACION"}, inplace=True)
 
-    df_rendimiento = (
-        df_merged[df_merged["CATEGORIA"] == "MANO DE OBRA"]
-        .groupby("CODIGO_APU")["RENDIMIENTO"]
-        .sum()
-        .reset_index()
-    )
-    df_rendimiento.rename(columns={"RENDIMIENTO": "RENDIMIENTO_DIA"}, inplace=True)
+    if "RENDIMIENTO" in df_mo_data.columns:
+        df_rendimiento = (
+            df_mo_data.groupby("CODIGO_APU")["RENDIMIENTO"]
+            .sum()
+            .reset_index()
+        )
+        df_rendimiento.rename(columns={"RENDIMIENTO": "RENDIMIENTO_DIA"}, inplace=True)
+    else:
+        df_rendimiento = pd.DataFrame(columns=["CODIGO_APU", "RENDIMIENTO_DIA"])
+
 
     return df_apu_costos, df_tiempo, df_rendimiento
 
@@ -340,11 +351,14 @@ def _do_processing(
     # ========== 2. MERGE APUs con INSUMOS (CRÍTICO) ==========
     logger.info("🔗 Iniciando merge de APUs con catálogo de insumos...")
 
+    # Normalizar descripción en df_apus_raw para el merge
+    df_apus_raw['DESCRIPCION_INSUMO_NORM'] = normalize_text_series(df_apus_raw['DESCRIPCION_INSUMO'])
+
     rows_before = len(df_apus_raw)
     df_merged = pd.merge(
         df_apus_raw,
         df_insumos,
-        on="NORMALIZED_DESC",
+        on="DESCRIPCION_INSUMO_NORM",
         how="left",
         suffixes=("_apu", ""),
         validate="m:1"  # 🔥 VALIDACIÓN: Múltiples APUs a 1 insumo (evita explosión)
@@ -357,7 +371,7 @@ def _do_processing(
             f"{rows_before} → {rows_after} filas (+{rows_after - rows_before})"
         )
         problematic = (
-            df_apus_raw.groupby("NORMALIZED_DESC")
+            df_apus_raw.groupby("DESCRIPCION_INSUMO_NORM")
             .size()
             .loc[lambda x: x > 1]
             .sort_values(ascending=False)
@@ -536,7 +550,7 @@ def _do_processing(
 
     # ========== 10. PREPARAR DICCIONARIOS DE SALIDA ==========
     df_merged.rename(
-        columns={"VR_UNITARIO_FINAL": "VR_UNITARIO", "COSTO_INSUMO_EN_APU": "VR_TOTAL"},
+        columns={"vr_unitario_final": "vr_unitario", "costo_insumo_en_apu": "vr_total"},
         inplace=True,
     )
     apus_detail = df_merged.to_dict("records")

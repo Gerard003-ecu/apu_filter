@@ -7,23 +7,15 @@ from unidecode import unidecode
 
 
 def clean_apu_code(code: str) -> str:
-    """Limpia y estandariza un código de APU.
-
-    Convierte comas a puntos y elimina caracteres no numéricos,
-    permitiendo un único punto como separador decimal.
-
-    Args:
-        code (str): El código de APU a limpiar.
-
-    Returns:
-        str: El código de APU estandarizado.
-    """
+    """Limpia y estandariza un código de APU."""
     if not isinstance(code, str):
         code = str(code)
-    # Reemplazar comas por puntos y eliminar caracteres no deseados
-    cleaned_code = re.sub(r'[^\d.]', '', code.replace(',', '.'))
-    # Asegurarse de que no termine con un punto
-    return cleaned_code.strip().rstrip('.')
+
+    cleaned_code = code.strip()
+    cleaned_code = re.sub(r'[^\w.,\-]', '', cleaned_code)
+    cleaned_code = cleaned_code.rstrip('.,')
+
+    return cleaned_code
 
 def normalize_text_series(text_series: pd.Series) -> pd.Series:
     """Normaliza un texto para la búsqueda.
