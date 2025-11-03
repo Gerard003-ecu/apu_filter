@@ -6,6 +6,14 @@ from typing import Any, Dict, List, Optional, Tuple
 import pandas as pd
 from unidecode import unidecode
 
+from .schemas import (
+    Equipo,
+    InsumoProcesado,
+    ManoDeObra,
+    Otro,
+    Suministro,
+    Transporte,
+)
 from .utils import clean_apu_code, parse_number
 
 logger = logging.getLogger(__name__)
@@ -136,21 +144,37 @@ class APUProcessor:
         # 8. Normalizar descripción
         normalized_desc = self._normalize_text_single(descripcion_insumo)
 
-        return {
-            "CODIGO_APU": apu_code,
-            "DESCRIPCION_APU": apu_desc,
-            "UNIDAD_APU": apu_unit,
-            "DESCRIPCION_INSUMO": descripcion_insumo,
-            "UNIDAD_INSUMO": parsed.get("unidad", "UND"),
-            "CANTIDAD_APU": round(cantidad, 6),
-            "PRECIO_UNIT_APU": round(precio_unit, 2),
-            "VALOR_TOTAL_APU": round(valor_total, 2),
-            "CATEGORIA": category,
-            "TIPO_INSUMO": tipo_insumo,
-            "RENDIMIENTO": round(rendimiento, 6),
-            "FORMATO_ORIGEN": parsed.get("formato", "GENERIC"),
-            "NORMALIZED_DESC": normalized_desc,
+        # Construye el diccionario de argumentos comunes
+        common_args = {
+            "codigo_apu": apu_code,
+            "descripcion_apu": apu_desc,
+            "unidad_apu": apu_unit,
+            "descripcion_insumo": descripcion_insumo,
+            "unidad_insumo": parsed.get("unidad", "UND"),
+            "cantidad": round(cantidad, 6),
+            "precio_unitario": round(precio_unit, 2),
+            "valor_total": round(valor_total, 2),
+            "categoria": category,
+            "formato_origen": parsed.get("formato", "GENERIC"),
+            "tipo_insumo": tipo_insumo,
+            "normalized_desc": self._normalize_text_single(descripcion_insumo),
         }
+
+        # Instancia la clase de datos correcta
+        try:
+            if tipo_insumo == "MANO_DE_OBRA":
+                return ManoDeObra(rendimiento=round(rendimiento, 6), **common_args)
+            elif tipo_insumo == "EQUIPO":
+                return Equipo(**common_args)
+            elif tipo_insumo == "SUMINISTRO":
+                return Suministro(**common_args)
+            elif tipo_insumo == "TRANSPORTE":
+                return Transporte(**common_args)
+            else:
+                return Otro(**common_args)
+        except TypeError as e:
+            logger.error(f"Error al crear objeto de datos para {apu_code} ({descripcion_insumo}): {e}")
+            return None
 
     def _extract_numeric_values(
         self, parsed: Dict[str, str], tipo_insumo: str
@@ -737,43 +761,43 @@ class APUProcessor:
         patched = 0
 
         for apu in self.processed_data:
-            apu_code = apu["CODIGO_APU"]
-            tipo_insumo = apu.get("TIPO_INSUMO", "")
-            desc_apu = apu["DESCRIPCION_APU"].upper()
+            apu_code = apu.codigo_apu
+            tipo_insumo = apu.tipo_insumo
+            desc_apu = apu.descripcion_apu.upper()
 
             # Corrección 1: Cuadrillas deben estar en DIA
             if (tipo_insumo == "MANO_DE_OBRA" and
                 any(apu_code.startswith(c) for c in squad_codes) and
-                apu["UNIDAD_APU"] != "DIA"):
-                old = apu["UNIDAD_APU"]
-                apu["UNIDAD_APU"] = "DIA"
+                apu.unidad_apu != "DIA"):
+                old = apu.unidad_apu
+                apu.unidad_apu = "DIA"
                 logger.info(f"🔧 PARCHE DIA: {apu_code} '{old}' → 'DIA'")
                 patched += 1
 
             # Corrección 2: MO con descripción de cuadrilla
             elif (tipo_insumo == "MANO_DE_OBRA" and
                   "CUADRILLA" in desc_apu and
-                  apu["UNIDAD_APU"] not in ["DIA", "JOR"]):
-                old = apu["UNIDAD_APU"]
-                apu["UNIDAD_APU"] = "DIA"
+                  apu.unidad_apu not in ["DIA", "JOR"]):
+                old = apu.unidad_apu
+                apu.unidad_apu = "DIA"
                 logger.info(f"🔧 PARCHE CUADRILLA: {apu_code} '{old}' → 'DIA'")
                 patched += 1
 
         if patched > 0:
             logger.info(f"✅ Aplicados {patched} parches de unidades")
 
-    def _update_stats(self, record: Dict):
+    def _update_stats(self, record: InsumoProcesado):
         """
         Actualiza las estadísticas de procesamiento con un nuevo registro.
 
         Args:
-            record: El registro procesado.
+            record: El registro procesado como objeto de datos.
         """
         self.stats["total_records"] += 1
-        self.stats[f"cat_{record.get('CATEGORIA', 'SIN_CAT')}"] += 1
-        self.stats[f"tipo_{record.get('TIPO_INSUMO', 'SIN_TIPO')}"] += 1
-        self.stats[f"fmt_{record.get('FORMATO_ORIGEN', 'UNKNOWN')}"] += 1
-        self.stats[f"unit_{record.get('UNIDAD_APU', 'UND')}"] += 1
+        self.stats[f"cat_{record.categoria}"] += 1
+        self.stats[f"tipo_{record.tipo_insumo}"] += 1
+        self.stats[f"fmt_{record.formato_origen}"] += 1
+        self.stats[f"unit_{record.unidad_apu}"] += 1
 
     def _log_stats(self):
         """Registra las estadísticas finales del proceso en el log."""
@@ -818,6 +842,23 @@ class APUProcessor:
             return pd.DataFrame()
 
         df = pd.DataFrame(self.processed_data)
+
+        # Renombrar columnas para mantener la compatibilidad con el resto de la app
+        column_mapping = {
+            "codigo_apu": "CODIGO_APU",
+            "descripcion_apu": "DESCRIPCION_APU",
+            "unidad_apu": "UNIDAD_APU",
+            "descripcion_insumo": "DESCRIPCION_INSUMO",
+            "unidad_insumo": "UNIDAD_INSUMO",
+            "cantidad": "CANTIDAD_APU",
+            "precio_unitario": "PRECIO_UNIT_APU",
+            "valor_total": "VALOR_TOTAL_APU",
+            "categoria": "CATEGORIA",
+            "formato_origen": "FORMATO_ORIGEN",
+            "tipo_insumo": "TIPO_INSUMO",
+            "rendimiento": "RENDIMIENTO",
+        }
+        df.rename(columns=column_mapping, inplace=True)
 
         # Validar distribución de tipos
         if 'TIPO_INSUMO' in df.columns:

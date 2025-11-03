@@ -176,7 +176,8 @@ def calculate_estimate(
             df_cuadrilla_pool,
             cuadrilla_keywords_norm,
             log,
-            strict=True,
+            strict=False,  # <-- Asegúrate que sea False
+            min_match_percentage=50.0,
             match_mode='substring'
         )
         if apu_cuadrilla is not None:
@@ -200,7 +201,11 @@ def calculate_estimate(
     df_tarea_pool = df_processed_apus[df_processed_apus["tipo_apu"] == "Instalación"].copy()
     log.append(f"🔧 Pool de instalación: {len(df_tarea_pool)} APUs")
     apu_tarea = _find_best_match(
-        df_tarea_pool, material_keywords, log, strict=False, min_match_percentage=30.0
+        df_tarea_pool,
+        material_keywords,
+        log,
+        strict=False,
+        min_match_percentage=40.0
     )
     if apu_tarea is not None:
         apu_tarea_desc = apu_tarea.get("original_description", "")
