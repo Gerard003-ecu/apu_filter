@@ -64,7 +64,7 @@ class APUProcessor:
             raw_records: Una lista de diccionarios con registros de insumo crudo.
         """
         self.raw_records = raw_records
-        self.processed_data: List[Dict[str, Any]] = []
+        self.processed_data: List[InsumoProcesado] = []
         self.stats = defaultdict(int)
 
     def process_all(self) -> pd.DataFrame:
@@ -93,9 +93,14 @@ class APUProcessor:
         self._log_stats()
         return self._build_dataframe()
 
-    def _process_single_record(self, record: Dict[str, str]) -> Optional[Dict[str, Any]]:
+    def _process_single_record(self, record: Dict[str, str]) -> Optional[InsumoProcesado]:
         """
-        Procesa un registro individual con manejo especial para cada tipo de insumo.
+        Procesa un registro individual con recalculación INCONDICIONAL para Mano de Obra.
+
+        Para Mano de Obra:
+        - SIEMPRE recalcula valor_total = cantidad * precio_unitario
+        - Ignora el valor_total del archivo fuente
+        - Calcula cantidad como 1/rendimiento si rendimiento > 0
 
         Returns:
             Diccionario con los datos procesados o None si debe descartarse.
@@ -124,16 +129,16 @@ class APUProcessor:
             self.stats["excluidos_por_termino"] += 1
             return None
 
-        # 4. Clasificar tipo de insumo
+        # 4. Clasificar tipo de insumo ANTES de inferir unidad
         tipo_insumo = self._classify_insumo(descripcion_insumo)
 
         # 5. Inferir unidad de APU si es "UND"
         if apu_unit == "UND":
             apu_unit = self._infer_unit_aggressive(apu_desc, category, tipo_insumo)
 
-        # 6. Extraer valores numéricos según el tipo de insumo
-        cantidad, precio_unit, valor_total, rendimiento = self._extract_numeric_values(
-            parsed, tipo_insumo
+        # 6. Extraer y calcular valores numéricos según tipo de insumo
+        cantidad, precio_unit, valor_total, rendimiento = self._extract_and_calculate_values(
+            parsed, tipo_insumo, descripcion_insumo
         )
 
         # 7. Validar antes de agregar
@@ -144,9 +149,9 @@ class APUProcessor:
             return None
 
         # 8. Normalizar descripción
-        self._normalize_text_single(descripcion_insumo)
+        normalized_desc = self._normalize_text_single(descripcion_insumo)
 
-        # Construye el diccionario de argumentos comunes
+        # 9. Construir el diccionario de argumentos comunes
         common_args = {
             "codigo_apu": apu_code,
             "descripcion_apu": apu_desc,
@@ -159,10 +164,10 @@ class APUProcessor:
             "categoria": category,
             "formato_origen": parsed.get("formato", "GENERIC"),
             "tipo_insumo": tipo_insumo,
-            "normalized_desc": self._normalize_text_single(descripcion_insumo),
+            "normalized_desc": normalized_desc,
         }
 
-        # Instancia la clase de datos correcta
+        # 10. Instanciar la clase de datos correcta
         try:
             if tipo_insumo == "MANO_DE_OBRA":
                 return ManoDeObra(rendimiento=round(rendimiento, 6), **common_args)
@@ -181,124 +186,144 @@ class APUProcessor:
             )
             return None
 
-    def _extract_numeric_values(
-        self, parsed: Dict[str, str], tipo_insumo: str
+    def _extract_and_calculate_values(
+        self, parsed: Dict[str, str], tipo_insumo: str, descripcion: str
     ) -> Tuple[float, float, float, float]:
         """
-        Extrae y calcula correctamente los valores numéricos según el tipo de insumo.
+        Extrae y calcula valores numéricos con lógica específica por tipo de insumo.
 
-        Para MANO_DE_OBRA:
-            - precio_unit = jornal_total (campo explícito)
-            - rendimiento = rendimiento parseado (ej: 0.5 significa 0.5 jornales por unidad)
-            - cantidad = rendimiento (cantidad de jornales por unidad de APU)
-            - valor_total = cantidad * precio_unit
-
-        Para otros insumos:
-            - Los valores se toman directamente y se validan/calculan faltantes
+        🔥 CRÍTICO: Para MANO_DE_OBRA, la recalculación es INCONDICIONAL.
 
         Args:
             parsed: Diccionario con valores parseados
             tipo_insumo: Tipo clasificado del insumo
+            descripcion: Descripción del insumo (para logging)
 
         Returns:
             Tupla (cantidad, precio_unit, valor_total, rendimiento)
         """
         if tipo_insumo == "MANO_DE_OBRA":
-            return self._extract_mo_values(parsed)
+            return self._calculate_mo_values_unconditional(parsed, descripcion)
         else:
-            return self._extract_regular_values(parsed)
+            return self._calculate_regular_values(parsed, descripcion)
 
-    def _extract_mo_values(
-        self, parsed: Dict[str, str]
+    def _calculate_mo_values_unconditional(
+        self, parsed: Dict[str, str], descripcion: str
     ) -> Tuple[float, float, float, float]:
         """
-        Extrae valores para Mano de Obra con la lógica correcta.
+        Calcula valores para Mano de Obra con recalculación INCONDICIONAL.
 
-        Estructura esperada de MO:
-            - jornal_total: Precio del jornal completo (precio_unit)
-            - rendimiento: Jornales por unidad de APU (cantidad)
-            - valor_total: jornal_total * rendimiento
+        Lógica aplicada:
+        1. precio_unitario = jornal_total (costo del jornal completo)
+        2. rendimiento = unidades producidas por jornal
+        3. cantidad = 1 / rendimiento (jornales necesarios por unidad de APU)
+        4. valor_total = cantidad * precio_unitario (SIEMPRE recalculado)
+
+        Args:
+            parsed: Datos parseados de la línea
+            descripcion: Descripción del insumo (para logging)
+
+        Returns:
+            Tupla (cantidad, precio_unit, valor_total, rendimiento)
         """
-        # Extraer jornal total (precio unitario de MO)
+        # Extraer jornal total (precio del jornal completo)
         jornal_total = parse_number(parsed.get("jornal_total", "0"))
-
-        # Si no hay jornal_total, intentar con precio_unit como fallback
+        
+        # Fallback: si no hay jornal_total, usar precio_unit
         if jornal_total == 0:
             jornal_total = parse_number(parsed.get("precio_unit", "0"))
-            logger.debug(f"MO: Usando precio_unit como jornal_total: {jornal_total}")
+            if jornal_total > 0:
+                logger.debug(
+                    "MO '%s...': Usando precio_unit como jornal_total: %.2f",
+                    descripcion[:30], jornal_total
+                )
 
-        # Extraer rendimiento (jornales por unidad)
+        # Extraer rendimiento (unidades por jornal)
         rendimiento = parse_number(parsed.get("rendimiento", "0"))
 
-        # La cantidad para MO es el rendimiento mismo
-        cantidad = rendimiento
+        # Calcular cantidad (jornales por unidad de APU)
+        if rendimiento > 0:
+            cantidad = 1.0 / rendimiento
+        else:
+            # Si no hay rendimiento, intentar calcular desde valor_total
+            valor_total_parseado = parse_number(parsed.get("valor_total", "0"))
+            if valor_total_parseado > 0 and jornal_total > 0:
+                cantidad = valor_total_parseado / jornal_total
+                rendimiento = 1.0 / cantidad if cantidad > 0 else 0
+                logger.debug(
+                    "MO '%s...': Rendimiento calculado desde valor_total: %.6f",
+                    descripcion[:30], rendimiento
+                )
+            else:
+                cantidad = 0
+                logger.warning(
+                    "MO '%s...': Sin rendimiento ni datos para calcularlo",
+                    descripcion[:30]
+                )
 
-        # Calcular valor total
-        valor_total = parse_number(parsed.get("valor_total", "0"))
+        # 🔥 RECALCULACIÓN INCONDICIONAL del valor_total
+        valor_total = cantidad * jornal_total
 
-        # Validar y recalcular si es necesario
-        if valor_total == 0 and cantidad > 0 and jornal_total > 0:
-            valor_total = cantidad * jornal_total
-            logger.debug(
-                "MO: Valor total calculado: %f = %f * %f",
-                valor_total, cantidad, jornal_total
-            )
+        # Logging detallado
+        logger.debug(
+            "MO '%s...': Jornal=%.2f, Rend=%.6f, Cant=%.6f, VrTotal=%.2f (RECALCULADO)",
+            descripcion[:30], jornal_total, rendimiento, cantidad, valor_total
+        )
 
-        # Si tenemos valor_total y jornal pero no cantidad
-        elif cantidad == 0 and valor_total > 0 and jornal_total > 0:
-            cantidad = valor_total / jornal_total
-            rendimiento = cantidad
-            logger.debug(
-                "MO: Cantidad calculada: %f = %f / %f",
-                cantidad, valor_total, jornal_total
-            )
-
-        # Si tenemos valor_total y cantidad pero no jornal
-        elif jornal_total == 0 and valor_total > 0 and cantidad > 0:
-            jornal_total = valor_total / cantidad
-            logger.debug(
-                "MO: Jornal calculado: %f = %f / %f",
-                jornal_total, valor_total, cantidad
-            )
-
-        # Validación final
+        # Validación de coherencia
         if cantidad == 0 or jornal_total == 0:
             logger.warning(
-                "MO: Valores incompletos - Cant: %f, Jornal: %f, Total: %f",
-                cantidad, jornal_total, valor_total
+                "⚠️ MO '%s...': Valores incompletos - Cant: %.6f, Jornal: %.2f",
+                descripcion[:30], cantidad, jornal_total
             )
 
         return cantidad, jornal_total, valor_total, rendimiento
 
-    def _extract_regular_values(
-        self, parsed: Dict[str, str]
+    def _calculate_regular_values(
+        self, parsed: Dict[str, str], descripcion: str
     ) -> Tuple[float, float, float, float]:
         """
-        Extrae valores para insumos regulares (no MO).
+        Calcula valores para insumos regulares (no MO) con corrección de valores faltantes.
+
+        Args:
+            parsed: Datos parseados
+            descripcion: Descripción del insumo (para logging)
+
+        Returns:
+            Tupla (cantidad, precio_unit, valor_total, rendimiento)
         """
         cantidad = parse_number(parsed.get("cantidad", "0"))
         precio_unit = parse_number(parsed.get("precio_unit", "0"))
         valor_total = parse_number(parsed.get("valor_total", "0"))
         rendimiento = parse_number(parsed.get("rendimiento", "0"))
 
-        # Calcular valores faltantes
-        if valor_total == 0 and cantidad > 0 and precio_unit > 0:
-            valor_total = cantidad * precio_unit
-            logger.debug(
-                "Valor total calculado: %f = %f * %f",
-                valor_total, cantidad, precio_unit
-            )
+        # Contar valores existentes
+        valores_existentes = sum([
+            1 for v in [cantidad, precio_unit, valor_total] if v > 0
+        ])
 
-        elif cantidad == 0 and valor_total > 0 and precio_unit > 0:
-            cantidad = valor_total / precio_unit
-            logger.debug(f"Cantidad calculada: {cantidad} = {valor_total} / {precio_unit}")
+        # Si tenemos al menos 2 valores, podemos calcular el faltante
+        if valores_existentes >= 2:
+            if valor_total == 0 and cantidad > 0 and precio_unit > 0:
+                valor_total = cantidad * precio_unit
+                logger.debug(
+                    "Calculado valor_total: %.2f = %.6f * %.2f para '%s...'",
+                    valor_total, cantidad, precio_unit, descripcion[:30]
+                )
 
-        elif precio_unit == 0 and cantidad > 0 and valor_total > 0:
-            precio_unit = valor_total / cantidad
-            logger.debug(
-                "Precio unitario calculado: %f = %f / %f",
-                precio_unit, valor_total, cantidad
-            )
+            elif cantidad == 0 and valor_total > 0 and precio_unit > 0:
+                cantidad = valor_total / precio_unit
+                logger.debug(
+                    "Calculada cantidad: %.6f = %.2f / %.2f para '%s...'",
+                    cantidad, valor_total, precio_unit, descripcion[:30]
+                )
+
+            elif precio_unit == 0 and cantidad > 0 and valor_total > 0:
+                precio_unit = valor_total / cantidad
+                logger.debug(
+                    "Calculado precio_unit: %.2f = %.2f / %.6f para '%s...'",
+                    precio_unit, valor_total, cantidad, descripcion[:30]
+                )
 
         # Para insumos regulares, si hay cantidad pero no rendimiento
         if rendimiento == 0 and cantidad > 0:
@@ -308,17 +333,21 @@ class APUProcessor:
 
     def _classify_insumo(self, descripcion: str) -> str:
         """
-        Clasifica un insumo según su descripción.
+        Clasifica un insumo según su descripción con orden de prioridad.
 
-        La clasificación es excluyente con el siguiente orden de prioridad:
-        1. MANO_DE_OBRA
+        Orden de clasificación:
+        1. MANO_DE_OBRA (mayor prioridad)
         2. EQUIPO
         3. TRANSPORTE
         4. SUMINISTRO
-        5. OTRO
+        5. Inferencia por unidad
+        6. OTRO (por defecto)
 
-        NOTA: INSTALACION no se clasifica a nivel de insumo individual,
-        sino que se calcula como MANO_DE_OBRA + EQUIPO en las agregaciones.
+        Args:
+            descripcion: Descripción del insumo
+
+        Returns:
+            Tipo de insumo clasificado
         """
         desc_upper = descripcion.upper()
 
@@ -338,16 +367,17 @@ class APUProcessor:
         if any(kw in desc_upper for kw in self.SUMINISTRO_KEYWORDS):
             return "SUMINISTRO"
 
-        # Intentar inferir por patrón de unidad
+        # Prioridad 5: Intentar inferir por patrón de unidad
         tipo_inferido = self._infer_type_by_unit(desc_upper)
         if tipo_inferido:
             logger.debug(
-                "Tipo inferido por unidad: %s para %s", tipo_inferido, descripcion[:50]
+                "Tipo inferido por unidad: %s para '%s...'",
+                tipo_inferido, descripcion[:50]
             )
             return tipo_inferido
 
-        # Sin clasificación clara
-        logger.debug(f"Insumo sin clasificar: {descripcion[:50]}")
+        # Por defecto
+        logger.debug(f"Insumo sin clasificar: '{descripcion[:50]}...'")
         return "OTRO"
 
     def _infer_type_by_unit(self, desc_upper: str) -> Optional[str]:
@@ -360,7 +390,6 @@ class APUProcessor:
         Returns:
             Tipo inferido o None.
         """
-        # Patrones de unidad que sugieren tipo de insumo
         unit_patterns = {
             "SUMINISTRO": [
                 r'\bML\b', r'\bM\b(?!\.O\.)', r'\bMTS\b', r'\bMETROS?\b',
@@ -369,10 +398,12 @@ class APUProcessor:
                 r'\bLT\b', r'\bGAL(ON)?(ES)?\b'
             ],
             "MANO_DE_OBRA": [
-                r'\bJOR(NAL)?(ES)?\b', r'\bHORA\b', r'\bHR\b'
+                r'\bJOR(NAL)?(ES)?\b', r'\bHORA\b(?=.*(?:OFICIAL|AYUDANTE|OBRERO))',
+                r'\bHR\b(?=.*(?:OFICIAL|AYUDANTE|OBRERO))'
             ],
             "EQUIPO": [
-                r'\bDIA\b', r'\bHORA\b(?!.*OFICIAL|.*AYUDANTE)'
+                r'\bDIA\b(?!.*(?:OFICIAL|AYUDANTE))',
+                r'\bHORA\b(?!.*(?:OFICIAL|AYUDANTE))'
             ]
         }
 
@@ -404,7 +435,7 @@ class APUProcessor:
             if match:
                 data = match.groupdict()
                 data["formato"] = name
-                logger.debug(f"✓ Parseado con patrón '{name}': {line[:60]}")
+                logger.debug(f"✓ Parseado con patrón '{name}': {line[:60]}...")
                 return data
 
         # Fallback: parsing genérico por separador
@@ -413,10 +444,16 @@ class APUProcessor:
     def _parse_generic_fallback(self, line: str) -> Optional[Dict[str, str]]:
         """
         Parseo genérico cuando ningún patrón específico funciona.
+
+        Args:
+            line: Línea a parsear
+
+        Returns:
+            Diccionario con campos parseados o None
         """
         parts = [p.strip() for p in line.split(";")]
 
-        # Caso con suficientes campos
+        # Caso con suficientes campos (6 o más)
         if len(parts) >= 6:
             result = {
                 "descripcion": parts[0],
@@ -428,31 +465,29 @@ class APUProcessor:
                 "rendimiento": "0",
                 "formato": "FALLBACK_FULL",
             }
-            logger.debug(f"⚠ Fallback completo aplicado: {line[:60]}")
+            logger.debug(f"⚠ Fallback completo aplicado: {line[:60]}...")
             return result
 
-        # Caso con campos mínimos
-        if len(parts) >= 3:
+        # Caso con campos mínimos (3 o más)
+        elif len(parts) >= 3:
             result = {
                 "descripcion": parts[0],
-                "unidad": parts[1] if len(parts) > 1 else "UND",
+                "unidad": parts[1] if len(parts) > 1 and parts[1] else "UND",
                 "cantidad": parts[2] if len(parts) > 2 else "0",
-                "precio_unit": "0",
-                "valor_total": "0",
+                "precio_unit": parts[3] if len(parts) > 3 else "0",
+                "valor_total": parts[4] if len(parts) > 4 else "0",
                 "rendimiento": "0",
                 "formato": "FALLBACK_MINIMAL",
             }
-            logger.debug(f"⚠ Fallback minimal aplicado: {line[:60]}")
+            logger.debug(f"⚠ Fallback minimal aplicado: {line[:60]}...")
             return result
 
-        logger.warning(f"❌ No se pudo parsear línea: {line[:100]}")
+        logger.warning(f"❌ No se pudo parsear línea: {line[:100]}...")
         return None
 
     def _get_parsing_patterns(self) -> Dict[str, re.Pattern]:
         """
         Define los patrones regex para parsear diferentes formatos de líneas de insumo.
-
-        Los patrones están ordenados de más específico a más general.
 
         Returns:
             Diccionario con nombre del patrón y regex compilado.
@@ -545,7 +580,10 @@ class APUProcessor:
 
         for unit, words in unit_keywords.items():
             if any(w in desc_upper for w in words):
-                logger.debug(f"Unidad inferida '{unit}' por keyword en: {description[:50]}")
+                logger.debug(
+                    "Unidad inferida '%s' por keyword en: '%s...'",
+                    unit, description[:50]
+                )
                 return unit
 
         # Tercero: Por categoría
@@ -563,7 +601,7 @@ class APUProcessor:
             )
             return unidad
 
-        logger.debug(f"No se pudo inferir unidad para: {description[:50]}, usando UND")
+        logger.debug(f"No se pudo inferir unidad para: '{description[:50]}...', usando UND")
         return "UND"
 
     def _clean_unit(self, unit: str) -> str:
@@ -601,7 +639,7 @@ class APUProcessor:
             "METRO": "M",
             "METROS": "M",
             "MTS": "M",
-            "ML": "M",  # Metro lineal
+            "ML": "M",
 
             # Área
             "M2": "M2",
@@ -651,14 +689,13 @@ class APUProcessor:
 
         # Excluir términos exactos o contenidos
         for term in self.EXCLUDED_TERMS:
-            # Buscar como palabra completa o contenida
             if term in desc_u:
-                logger.debug(f"Excluido por término '{term}': {desc[:50]}")
+                logger.debug(f"Excluido por término '{term}': '{desc[:50]}...'")
                 return True
 
-        # Excluir descripciones muy cortas o sospechosas
+        # Excluir descripciones muy cortas
         if len(desc.strip()) < 3:
-            logger.debug(f"Excluido por descripción muy corta: {desc}")
+            logger.debug(f"Excluido por descripción muy corta: '{desc}'")
             return True
 
         return False
@@ -668,9 +705,6 @@ class APUProcessor:
     ) -> bool:
         """
         Valida si un insumo debe ser agregado a los datos procesados.
-
-        Aplica umbrales específicos según el tipo de insumo para evitar
-        valores absurdos o datos corruptos.
 
         Args:
             desc: Descripción del insumo
@@ -688,25 +722,25 @@ class APUProcessor:
 
         # Validación 2: Debe tener al menos cantidad o valor
         if cantidad <= 0 and valor_total <= 0:
-            logger.debug(f"Rechazado: sin cantidad ni valor - {desc[:30]}")
+            logger.debug(f"Rechazado: sin cantidad ni valor - '{desc[:30]}...'")
             return False
 
         # Validación 3: Umbrales por tipo de insumo
         umbrales = {
             "MANO_DE_OBRA": {
-                "cantidad_max": 1000,  # Máximo 1000 jornales por unidad
-                "valor_max": 999_999,  # Máximo ~1M por jornal
+                "cantidad_max": 1000,
+                "valor_max": 999_999,
             },
             "EQUIPO": {
-                "cantidad_max": 10000,  # Máximo 10000 horas/días
-                "valor_max": 9_999_999,  # Máximo ~10M
+                "cantidad_max": 10000,
+                "valor_max": 9_999_999,
             },
             "SUMINISTRO": {
-                "cantidad_max": 100000,  # Según el material
-                "valor_max": 99_999_999,  # Máximo ~100M
+                "cantidad_max": 100000,
+                "valor_max": 99_999_999,
             },
             "TRANSPORTE": {
-                "cantidad_max": 10000,  # Máximo 10000 viajes
+                "cantidad_max": 10000,
                 "valor_max": 9_999_999,
             },
             "OTRO": {
@@ -720,7 +754,7 @@ class APUProcessor:
         # Validar cantidad
         if cantidad > umbral["cantidad_max"]:
             logger.warning(
-                "Rechazado: cantidad absurda %.2f para %s - %s",
+                "Rechazado: cantidad absurda %.2f para %s - '%s...'",
                 cantidad, tipo_insumo, desc[:30]
             )
             return False
@@ -728,21 +762,20 @@ class APUProcessor:
         # Validar valor total
         if valor_total > umbral["valor_max"]:
             logger.warning(
-                "Rechazado: valor total absurdo $%.2f para %s - %s",
+                "Rechazado: valor total absurdo $%.2f para %s - '%s...'",
                 valor_total, tipo_insumo, desc[:30]
             )
             return False
 
         # Validación 4: Coherencia entre cantidad y valor
         if cantidad > 0 and valor_total > 0:
-            precio_implícito = valor_total / cantidad
+            precio_implicito = valor_total / cantidad
 
-            # Umbrales de precio unitario razonables
             precio_umbrales = {
-                "MANO_DE_OBRA": (1000, 500_000),  # Jornal entre 1K y 500K
-                "EQUIPO": (100, 1_000_000),  # Entre 100 y 1M por día/hora
-                "SUMINISTRO": (1, 10_000_000),  # Muy variable
-                "TRANSPORTE": (100, 500_000),  # Entre 100 y 500K por viaje
+                "MANO_DE_OBRA": (1000, 500_000),
+                "EQUIPO": (100, 1_000_000),
+                "SUMINISTRO": (1, 10_000_000),
+                "TRANSPORTE": (100, 500_000),
                 "OTRO": (0.01, 100_000_000),
             }
 
@@ -751,13 +784,11 @@ class APUProcessor:
             )
             min_precio, max_precio = umbrales_precio
 
-            if not (min_precio <= precio_implícito <= max_precio):
-                msg = (
-                    "Rechazado: precio unitario implícito sospechoso $%.2f "
-                    "para %s (esperado entre $%d y $%d) - %s"
-                )
+            if not (min_precio <= precio_implicito <= max_precio):
                 logger.warning(
-                    msg, precio_implícito, tipo_insumo,
+                    "Rechazado: precio unitario implícito sospechoso $%.2f "
+                    "para %s (esperado entre $%d y $%d) - '%s...'",
+                    precio_implicito, tipo_insumo,
                     min_precio, max_precio, desc[:30]
                 )
                 return False
@@ -767,12 +798,6 @@ class APUProcessor:
     def _normalize_text_single(self, text: str) -> str:
         """
         Normaliza una cadena de texto para facilitar comparaciones.
-
-        Proceso:
-        1. Convertir a minúsculas
-        2. Remover acentos y caracteres especiales
-        3. Mantener solo alfanuméricos, espacios y guiones
-        4. Normalizar espacios múltiples
 
         Args:
             text: La cadena de texto a normalizar.
@@ -797,10 +822,6 @@ class APUProcessor:
     def _emergency_dia_units_patch(self):
         """
         Aplica correcciones de unidades para casos conocidos.
-
-        Específicamente:
-        - Corrige unidades de cuadrillas a 'DIA'
-        - Corrige unidades de MO según contexto
         """
         squad_codes = ['13', '14', '15', '16', '17', '18', '19', '20']
         patched = 0
@@ -833,10 +854,10 @@ class APUProcessor:
 
     def _update_stats(self, record: InsumoProcesado):
         """
-        Actualiza las estadísticas de procesamiento con un nuevo registro.
+        Actualiza las estadísticas de procesamiento.
 
         Args:
-            record: El registro procesado como objeto de datos.
+            record: El registro procesado.
         """
         self.stats["total_records"] += 1
         self.stats[f"cat_{record.categoria}"] += 1
@@ -845,7 +866,7 @@ class APUProcessor:
         self.stats[f"unit_{record.unidad_apu}"] += 1
 
     def _log_stats(self):
-        """Registra las estadísticas finales del proceso en el log."""
+        """Registra las estadísticas finales del proceso."""
         logger.info("=" * 60)
         logger.info("📊 RESUMEN DE PROCESAMIENTO")
         logger.info("=" * 60)
@@ -875,7 +896,7 @@ class APUProcessor:
                     tipo.replace('tipo_', ''), count, percentage
                 )
 
-        # Estadísticas por formato de origen
+        # Estadísticas por formato
         formatos = [k for k in self.stats.keys() if k.startswith('fmt_')]
         if formatos:
             logger.info("-" * 60)
@@ -896,9 +917,19 @@ class APUProcessor:
             logger.warning("⚠️ No hay datos procesados para construir DataFrame")
             return pd.DataFrame()
 
-        df = pd.DataFrame(self.processed_data)
+        # Convertir objetos a diccionarios
+        data_dicts = []
+        for item in self.processed_data:
+            if hasattr(item, '__dict__'):
+                data_dicts.append(item.__dict__)
+            elif isinstance(item, dict):
+                data_dicts.append(item)
+            else:
+                logger.warning(f"Tipo inesperado en processed_data: {type(item)}")
 
-        # Renombrar columnas para mantener la compatibilidad con el resto de la app
+        df = pd.DataFrame(data_dicts)
+
+        # Renombrar columnas
         column_mapping = {
             "codigo_apu": "CODIGO_APU",
             "descripcion_apu": "DESCRIPCION_APU",
@@ -923,20 +954,19 @@ class APUProcessor:
                 percentage = (count / len(df)) * 100
                 logger.info(f"   {tipo:.<20} {count:>6} ({percentage:.1f}%)")
 
-            # Validaciones de calidad
             self._validate_dataframe_quality(df, tipos_count)
 
         return df
 
     def _validate_dataframe_quality(self, df: pd.DataFrame, tipos_count: pd.Series):
         """
-        Valida la calidad del DataFrame generado y registra advertencias si es necesario.
+        Valida la calidad del DataFrame generado.
 
         Args:
             df: DataFrame procesado
             tipos_count: Serie con conteo de tipos de insumo
         """
-        # Verificar que existan suministros
+        # Verificar suministros
         if 'SUMINISTRO' not in tipos_count or tipos_count['SUMINISTRO'] == 0:
             logger.error("🚨 NO SE ENCONTRARON INSUMOS DE SUMINISTRO")
 
@@ -960,7 +990,7 @@ class APUProcessor:
                 zero_count = (df[col] == 0).sum()
                 if null_count > 0:
                     logger.warning(f"⚠️ {null_count} valores nulos en {col}")
-                if zero_count > len(df) * 0.5:  # Más del 50% en cero
+                if zero_count > len(df) * 0.5:
                     percentage = zero_count / len(df) * 100
                     logger.warning(
                         "⚠️ %d valores en cero en %s (%.1f%%)",
@@ -972,17 +1002,13 @@ def calculate_unit_costs(df: pd.DataFrame) -> pd.DataFrame:
     """
     Calcula los costos unitarios por APU sumando los valores por tipo de insumo.
 
-    INSTALACION se calcula como: MANO_DE_OBRA + EQUIPO
+    INSTALACION = MANO_DE_OBRA + EQUIPO
 
     Args:
         df: DataFrame procesado con columna TIPO_INSUMO.
 
     Returns:
-        DataFrame con costos unitarios por APU, incluyendo:
-        - VALOR_SUMINISTRO_UN
-        - VALOR_INSTALACION_UN (MO + EQUIPO)
-        - VALOR_TRANSPORTE_UN
-        - COSTO_UNITARIO_TOTAL
+        DataFrame con costos unitarios por APU.
     """
     if df.empty or 'TIPO_INSUMO' not in df.columns:
         logger.error("❌ DataFrame inválido para cálculo de costos unitarios")
@@ -990,7 +1016,7 @@ def calculate_unit_costs(df: pd.DataFrame) -> pd.DataFrame:
 
     logger.info("🔄 Calculando costos unitarios por APU...")
 
-    # Agrupar por APU y tipo de insumo
+    # Agrupar por APU y tipo
     group_cols = ['CODIGO_APU', 'DESCRIPCION_APU', 'UNIDAD_APU', 'TIPO_INSUMO']
 
     try:
@@ -999,7 +1025,7 @@ def calculate_unit_costs(df: pd.DataFrame) -> pd.DataFrame:
         logger.error(f"❌ Error al agrupar: columna faltante {e}")
         return pd.DataFrame()
 
-    # Pivotar para tener una columna por tipo de insumo
+    # Pivotar
     try:
         pivot = grouped.pivot_table(
             index=['CODIGO_APU', 'DESCRIPCION_APU', 'UNIDAD_APU'],
@@ -1012,24 +1038,19 @@ def calculate_unit_costs(df: pd.DataFrame) -> pd.DataFrame:
         logger.error(f"❌ Error al pivotar tabla: {e}")
         return pd.DataFrame()
 
-    # Asegurar que existan todas las columnas de tipo
+    # Asegurar columnas
     for col in ['SUMINISTRO', 'MANO_DE_OBRA', 'EQUIPO', 'TRANSPORTE', 'OTRO']:
         if col not in pivot.columns:
             pivot[col] = 0
-            logger.debug(f"Columna '{col}' no existe, agregada con valor 0")
 
-    # Calcular valores por categoría
+    # Calcular valores
     pivot['VALOR_SUMINISTRO_UN'] = pivot.get('SUMINISTRO', 0)
-
-    # 🔥 CORRECCIÓN CRÍTICA: INSTALACION = MO + EQUIPO
     pivot['VALOR_INSTALACION_UN'] = (
         pivot.get('MANO_DE_OBRA', 0) + pivot.get('EQUIPO', 0)
     )
-
     pivot['VALOR_TRANSPORTE_UN'] = pivot.get('TRANSPORTE', 0)
     pivot['VALOR_OTRO_UN'] = pivot.get('OTRO', 0)
 
-    # Calcular costo unitario total
     pivot['COSTO_UNITARIO_TOTAL'] = (
         pivot['VALOR_SUMINISTRO_UN'] +
         pivot['VALOR_INSTALACION_UN'] +
@@ -1064,23 +1085,20 @@ def calculate_unit_costs(df: pd.DataFrame) -> pd.DataFrame:
         'PCT_TRANSPORTE',
     ]
 
-    # Agregar columnas que existan y no estén en el orden
     existing_cols = [col for col in column_order if col in pivot.columns]
     remaining_cols = [col for col in pivot.columns if col not in existing_cols]
-    final_columns = existing_cols + remaining_cols
+    pivot = pivot[existing_cols + remaining_cols]
 
-    pivot = pivot[final_columns]
-
-    # Log de resumen
+    # Log de resumen (🔥 CORRECCIÓN DEL BUG TIPOGRÁFICO)
     logger.info(f"✅ Costos unitarios calculados para {len(pivot)} APUs")
-    # Log de resumen
-    logger.info(f"✅ Costos unitarios calculados para {len(pivot)} APUs")
-    # logger.info(f"   Valor total suministros: ${pivot['VALOR_SUMINISTRO_UN'].sum():,.2f}")
+    logger.info(
+        f"   Valor total suministros: ${pivot['VALOR_SUMINISTRO_UN'].sum():,.2f}"
+    )
     logger.info(
         f"   Valor total instalación: ${pivot['VALOR_INSTALACION_UN'].sum():,.2f}"
     )
     logger.info(
-        f"   Valor total transporte: ${pivot['VALO_TRANSPORTE_UN'].sum():,.2f}"
+        f"   Valor total transporte: ${pivot['VALOR_TRANSPORTE_UN'].sum():,.2f}"
     )
     logger.info(f"   Costo total: ${pivot['COSTO_UNITARIO_TOTAL'].sum():,.2f}")
 
