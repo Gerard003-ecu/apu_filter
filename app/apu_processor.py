@@ -56,7 +56,7 @@ class APUProcessor:
         'EQUIPO Y HERRAMIENTA'
     ]
 
-    def __init__(self, raw_records: List[Dict[str, str]]):
+    def __init__(self, raw_records: List[Dict[str, str]], config: Dict):
         """
         Inicializa el procesador con una lista de registros crudos.
 
@@ -64,6 +64,7 @@ class APUProcessor:
             raw_records: Una lista de diccionarios con registros de insumo crudo.
         """
         self.raw_records = raw_records
+        self.config = config
         self.processed_data: List[InsumoProcesado] = []
         self.stats = defaultdict(int)
 
@@ -141,17 +142,10 @@ class APUProcessor:
             parsed, tipo_insumo, descripcion_insumo
         )
 
-        # 7. Validar antes de agregar
-        if not self._should_add_insumo(
-            descripcion_insumo, cantidad, valor_total, precio_unit, tipo_insumo
-        ):
-            self.stats["rechazados_validacion"] += 1
-            return None
-
-        # 8. Normalizar descripción
+        # 7. Normalizar descripción
         normalized_desc = self._normalize_text_single(descripcion_insumo)
 
-        # 9. Construir el diccionario de argumentos comunes
+        # 8. Construir el diccionario de argumentos comunes
         common_args = {
             "codigo_apu": apu_code,
             "descripcion_apu": apu_desc,
@@ -167,24 +161,32 @@ class APUProcessor:
             "normalized_desc": normalized_desc,
         }
 
-        # 10. Instanciar la clase de datos correcta
+        # 9. Instanciar la clase de datos correcta
+        insumo_obj = None
         try:
             if tipo_insumo == "MANO_DE_OBRA":
-                return ManoDeObra(rendimiento=round(rendimiento, 6), **common_args)
+                insumo_obj = ManoDeObra(rendimiento=round(rendimiento, 6), **common_args)
             elif tipo_insumo == "EQUIPO":
-                return Equipo(**common_args)
+                insumo_obj = Equipo(**common_args)
             elif tipo_insumo == "SUMINISTRO":
-                return Suministro(**common_args)
+                insumo_obj = Suministro(**common_args)
             elif tipo_insumo == "TRANSPORTE":
-                return Transporte(**common_args)
+                insumo_obj = Transporte(**common_args)
             else:
-                return Otro(**common_args)
+                insumo_obj = Otro(**common_args)
         except TypeError as e:
             logger.error(
                 "Error al crear objeto de datos para %s (%s): %s",
                 apu_code, descripcion_insumo, e
             )
             return None
+
+        # Validar el objeto completo ANTES de agregarlo
+        if not self._should_add_insumo(insumo_obj):
+            self.stats["rechazados_validacion"] += 1
+            return None
+
+        return insumo_obj
 
     def _extract_and_calculate_values(
         self, parsed: Dict[str, str], tipo_insumo: str, descripcion: str
@@ -676,57 +678,46 @@ class APUProcessor:
 
         return False
 
-    def _should_add_insumo(
-        self,
-        desc: str,
-        cantidad: float,
-        valor_total: float,
-        precio_unit: float,
-        tipo_insumo: str,
-    ) -> bool:
-        """VALIDACIÓN MEJORADA con umbrales por tipo de insumo y precio unitario."""
-        if not desc or len(desc.strip()) < 3:
+    def _should_add_insumo(self, insumo: InsumoProcesado) -> bool:
+        """VALIDACIÓN MEJORADA que usa umbrales de config.json."""
+        thresholds = self.config.get("validation_thresholds", {})
+        tipo_insumo = insumo.tipo_insumo
+
+        if not insumo.descripcion_insumo or len(insumo.descripcion_insumo.strip()) < 3:
             logger.debug("Rechazado: descripción muy corta")
             return False
 
-        # Umbrales de valor total por tipo de insumo
-        umbrales_valor = {
-            "MANO_DE_OBRA": 1_000_000,
-            "EQUIPO": 5_000_000,
-            "SUMINISTRO": 10_000_000,
-            "OTRO": 20_000_000
-        }
-        umbral_valor = umbrales_valor.get(tipo_insumo, umbrales_valor["OTRO"])
-        if valor_total > umbral_valor:
-            logger.warning(
-                f"Rechazado: valor total absurdo ${valor_total:,.2f} para {tipo_insumo}"
-            )
-            return False
-
-        # Umbrales de cantidad por tipo de insumo
-        umbrales_cantidad = {
-            "MANO_DE_OBRA": 1000,
-            "EQUIPO": 10000,
-        }
-        umbral_cantidad = umbrales_cantidad.get(tipo_insumo)
-        if umbral_cantidad and cantidad > umbral_cantidad:
-            logger.warning(f"Rechazado: cantidad absurda {cantidad} para {tipo_insumo}")
-            return False
-
-        # Validación específica para el precio unitario (jornal) de Mano de Obra
+        # Validar Mano de Obra de forma específica
         if tipo_insumo == "MANO_DE_OBRA":
-            MIN_JORNAL = 50000  # Ajustar si es necesario
-            MAX_JORNAL = 500000  # Ajustar si es necesario
-            if not (MIN_JORNAL <= precio_unit <= MAX_JORNAL) and precio_unit > 0:
+            mo_config = thresholds.get("MANO_DE_OBRA", {})
+            min_jornal = mo_config.get("min_jornal", 0)
+            max_jornal = mo_config.get("max_jornal", float('inf'))
+            max_valor_total = mo_config.get("max_valor_total", float('inf'))
+
+            if not (min_jornal <= insumo.precio_unitario <= max_jornal) and insumo.precio_unitario > 0:
                 logger.warning(
-                    "Rechazado: Jornal de MO fuera de rango ($%.2f) para '%s...'",
-                    precio_unit,
-                    desc[:50],
+                    f"Rechazado: Jornal de MO fuera de rango (${insumo.precio_unitario:,.2f}) para '{insumo.descripcion_insumo[:50]}...'"
                 )
                 return False
 
-        if cantidad <= 1e-9 and valor_total <= 1e-9:
-            logger.debug(f"Rechazado: sin cantidad ni valor - '{desc[:50]}...'")
+            if insumo.valor_total > max_valor_total:
+                logger.warning(
+                    f"Rechazado: Valor total de MO absurdo (${insumo.valor_total:,.2f}) para '{insumo.descripcion_insumo[:50]}...'"
+                )
+                return False
+
+        # Validación general para otros tipos
+        else:
+            tipo_config = thresholds.get(tipo_insumo, thresholds.get("DEFAULT", {}))
+            max_valor_total = tipo_config.get("max_valor_total", float('inf'))
+            if insumo.valor_total > max_valor_total:
+                logger.warning(
+                    f"Rechazado: Valor total absurdo (${insumo.valor_total:,.2f}) para {tipo_insumo}"
+                )
+                return False
+
+        if insumo.cantidad <= 1e-9 and insumo.valor_total <= 1e-9:
+            logger.debug(f"Rechazado: sin cantidad ni valor - '{insumo.descripcion_insumo[:50]}...'")
             return False
 
         return True
