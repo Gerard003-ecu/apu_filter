@@ -1,0 +1,11 @@
+Traceback (most recent call last):
+  File "/app/app/app.py", line 132, in upload_files
+    processed_data = process_all_files(
+                     ^^^^^^^^^^^^^^^^^^
+  File "/app/app/procesador_csv.py", line 201, in process_all_files
+    return _do_processing(presupuesto_path, apus_path, insumos_path, config)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/app/procesador_csv.py", line 586, in _do_processing
+    "processed_apus": df_processed_apus.to_dict("records"),
+                      ^^^^^^^^^^^^^^^^^
+UnboundLocalError: cannot access local variable 'df_processed_apus' where it is not associated with a value

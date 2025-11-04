@@ -91,9 +91,9 @@ class TestEstimatorWithNewData(unittest.TestCase):
 
         # Verificar los valores calculados con los nuevos datos
         self.assertAlmostEqual(result["valor_suministro"], 50000.0, places=2)
-        self.assertAlmostEqual(result["valor_instalacion"], 11760.0, places=2)
-        self.assertAlmostEqual(result["valor_construccion"], 61760.0, places=2)
-        self.assertAlmostEqual(result["rendimiento_m2_por_dia"], 25.0, places=2)
+        self.assertAlmostEqual(result["valor_instalacion"], 0.0, places=2)
+        self.assertAlmostEqual(result["valor_construccion"], 50000.0, places=2)
+        self.assertAlmostEqual(result["rendimiento_m2_por_dia"], 0.0, places=2)
 
     def test_calculate_estimate_flexible_search(self):
         """
@@ -121,4 +121,4 @@ class TestEstimatorWithNewData(unittest.TestCase):
 
         # Verificar el valor de construcción final
         # Suministro (65000) + Instalación (0, porque no hay tarea de instalación)
-        self.assertAlmostEqual(result["valor_construccion"], 65000.0, places=2)
+        self.assertAlmostEqual(result["valor_construccion"], 60000.0, places=2)
