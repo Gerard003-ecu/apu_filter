@@ -90,7 +90,8 @@ class TestAPUProcessor(unittest.TestCase):
         processor = APUProcessor(raw_records)
         df = processor.process_all()
 
-        self.assertEqual(df.iloc[0]["UNIDAD_APU"], "DIA") # La categoría "EQUIPO" infiere "DIA"
+        # La categoría "EQUIPO" debe inferir la unidad "DIA"
+        self.assertEqual(df.iloc[0]["UNIDAD_APU"], "DIA")
 
     def test_exclusion_of_metadata_insumos(self):
         """

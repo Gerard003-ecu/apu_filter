@@ -25,20 +25,42 @@ class ManoDeObra(InsumoProcesado):
 
 @dataclass
 class Equipo(InsumoProcesado):
-    """Esquema específico para Equipo."""
+    """
+    Representa un insumo de tipo 'Equipo' en un APU.
+
+    Hereda todos los atributos de InsumoProcesado y se utiliza para
+    identificar y agrupar los costos asociados a la maquinaria y
+    herramientas utilizadas en el análisis de precios unitarios.
+    """
     pass
 
 @dataclass
 class Suministro(InsumoProcesado):
-    """Esquema específico para Suministro."""
+    """
+    Representa un insumo de tipo 'Suministro' en un APU.
+
+    Este esquema se utiliza para los materiales y productos consumibles
+    que se integran directamente en la obra o el producto final.
+    """
     pass
 
 @dataclass
 class Transporte(InsumoProcesado):
-    """Esquema específico para Transporte."""
+    """
+    Representa un insumo de tipo 'Transporte' en un APU.
+
+    Define los costos asociados al transporte de materiales, equipo o
+    personal, heradando la estructura base de InsumoProcesado.
+    """
     pass
 
 @dataclass
 class Otro(InsumoProcesado):
-    """Esquema para insumos no clasificados."""
+    """
+    Representa un insumo no clasificado dentro de las categorías estándar.
+
+    Este esquema actúa como un contenedor para cualquier insumo que no
+    corresponda a 'Mano de Obra', 'Equipo', 'Suministro' o 'Transporte',
+    asegurando que todos los datos sean capturados.
+    """
     pass

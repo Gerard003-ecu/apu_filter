@@ -8,3 +8,10 @@ select = ["E", "F", "W", "I"]
 
 [tool.ruff.format]
 quote-style = "double"
+
+[project]
+name = "apu-project"
+version = "0.1.0"
+
+[tool.setuptools]
+packages = ["app"]
