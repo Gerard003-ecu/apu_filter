@@ -53,25 +53,35 @@ class TestAPUProcessor(unittest.TestCase):
 
     def test_mo_rendimiento_calculation(self):
         """
-        Prueba que el cálculo del rendimiento para insumos de mano de obra
-        se ejecute correctamente cuando el campo está ausente.
+        Prueba que la relación CANTIDAD = 1 / RENDIMIENTO se mantenga
+        correctamente para la Mano de Obra, y que el valor total se recalcule.
         """
         raw_records = [
             {
                 "apu_code": "APU-MO-01",
-                "apu_desc": "Prueba MO",
-                "apu_unit": "JOR",
+                "apu_desc": "Prueba MO con Rendimiento",
+                "apu_unit": "UN",
                 "category": "MANO DE OBRA",
-                "insumo_line": "OFICIAL;;0.1;;150000;15000",
+                # Formato: DESCRIPCION; JORNAL_BASE; PRESTACIONES; JORNAL_TOTAL; RENDIMIENTO; VALOR_TOTAL_ORIGINAL (será ignorado)
+                "insumo_line": "MANO DE OBRA CUADRILLA TIPO 1; 100000; 0; 150000; 10.0; 999999",
             }
         ]
         processor = APUProcessor(raw_records)
         df = processor.process_all()
 
         self.assertEqual(len(df), 1)
-        # El rendimiento se calcula como valor_total / jornal (precio_unit)
-        # 15000 / 150000 = 0.1
-        self.assertAlmostEqual(df.iloc[0]["RENDIMIENTO"], 0.1)
+
+        # 1. El RENDIMIENTO debe ser el valor parseado: 10.0
+        self.assertAlmostEqual(df.iloc[0]["RENDIMIENTO"], 10.0)
+
+        # 2. La CANTIDAD debe ser 1 / RENDIMIENTO (1 / 10.0 = 0.1)
+        self.assertAlmostEqual(df.iloc[0]["CANTIDAD_APU"], 0.1)
+
+        # 3. El PRECIO_UNIT_APU debe ser el JORNAL_TOTAL: 150000
+        self.assertAlmostEqual(df.iloc[0]["PRECIO_UNIT_APU"], 150000)
+
+        # 4. El VALOR_TOTAL_APU debe ser recalculado: CANTIDAD * PRECIO_UNIT (0.1 * 150000 = 15000)
+        self.assertAlmostEqual(df.iloc[0]["VALOR_TOTAL_APU"], 15000)
 
     def test_unit_inference(self):
         """
