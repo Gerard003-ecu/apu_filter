@@ -210,66 +210,74 @@ class APUProcessor:
     def _calculate_mo_values_unconditional(
         self, parsed: Dict[str, str], descripcion: str
     ) -> Tuple[float, float, float, float]:
-        """Calcula valores para Mano de Obra con validación reforzada."""
+        """
+        Calcula valores para Mano de Obra con recalculación INCONDICIONAL.
 
-        # Extraer jornal total con múltiples fallbacks
+        Lógica aplicada:
+        1. precio_unitario = jornal_total (costo del jornal completo)
+        2. rendimiento = unidades producidas por jornal
+        3. cantidad = 1 / rendimiento (jornales necesarios por unidad de APU)
+        4. valor_total = cantidad * precio_unitario (SIEMPRE recalculado)
+
+        Args:
+            parsed: Datos parseados de la línea
+            descripcion: Descripción del insumo (para logging)
+
+        Returns:
+            Tupla (cantidad, precio_unit, valor_total, rendimiento)
+        """
+        # Extraer jornal total (precio del jornal completo)
         jornal_total = parse_number(parsed.get("jornal_total", "0"))
-
+        
+        # Fallback: si no hay jornal_total, usar precio_unit
         if jornal_total == 0:
             jornal_total = parse_number(parsed.get("precio_unit", "0"))
-
-        if jornal_total == 0:
-            valor_total = parse_number(parsed.get("valor_total", "0"))
-            rendimiento = parse_number(parsed.get("rendimiento", "0"))
-            if valor_total > 0 and rendimiento > 0:
-                jornal_total = valor_total * rendimiento
-                logger.warning(
-                    "MO '%s...': Jornal inferido desde valor_total * rendimiento: %.2f",
-                    descripcion[:30],
-                    jornal_total,
+            if jornal_total > 0:
+                logger.debug(
+                    "MO '%s...': Usando precio_unit como jornal_total: %.2f",
+                    descripcion[:30], jornal_total
                 )
 
-        # Validar rango razonable del jornal
-        if jornal_total < 10_000 or jornal_total > 1_000_000:
-            logger.warning(
-                "⚠️ MO '%s...': Jornal fuera de rango típico: $%.2f",
-                descripcion[:30],
-                jornal_total,
-            )
-
-        # Resto de la lógica existente...
+        # Extraer rendimiento (unidades por jornal)
         rendimiento = parse_number(parsed.get("rendimiento", "0"))
 
+        # Calcular cantidad (jornales por unidad de APU)
         if rendimiento > 0:
             cantidad = 1.0 / rendimiento
         else:
+            # Si no hay rendimiento, intentar calcular desde valor_total
             valor_total_parseado = parse_number(parsed.get("valor_total", "0"))
             if valor_total_parseado > 0 and jornal_total > 0:
                 cantidad = valor_total_parseado / jornal_total
                 rendimiento = 1.0 / cantidad if cantidad > 0 else 0
+                logger.debug(
+                    "MO '%s...': Rendimiento calculado desde valor_total: %.6f",
+                    descripcion[:30], rendimiento
+                )
             else:
                 cantidad = 0
-                logger.error(
-                    "❌ MO '%s...': Sin datos suficientes para cálculo",
-                    descripcion[:30],
-                )
-
-        # RECALCULACIÓN INCONDICIONAL + validación
-        valor_total_recalc = cantidad * jornal_total
-
-        # Validar coherencia con valor original (si existe)
-        valor_total_original = parse_number(parsed.get("valor_total", "0"))
-        if valor_total_original > 0:
-            diferencia = abs(valor_total_recalc - valor_total_original)
-            if diferencia > 100:  # Tolerancia de $100
                 logger.warning(
-                    "MO '%s...': Diferencia en valor_total: Original=$%.2f, Recalc=$%.2f",
-                    descripcion[:30],
-                    valor_total_original,
-                    valor_total_recalc,
+                    "MO '%s...': Sin rendimiento ni datos para calcularlo",
+                    descripcion[:30]
                 )
 
-        return cantidad, jornal_total, valor_total_recalc, rendimiento
+        # 🔥 RECALCULACIÓN INCONDICIONAL del valor_total
+        valor_total = cantidad * jornal_total
+
+        # Logging detallado
+        logger.debug(
+            "MO '%s...': Jornal=%.2f, Rend=%.6f, Cant=%.6f, VrTotal=%.2f (RECALCULADO)",
+            descripcion[:30], jornal_total, rendimiento, cantidad, valor_total
+        )
+
+        # Validación de coherencia
+        if cantidad == 0 or jornal_total == 0:
+            logger.warning(
+                "⚠️ MO '%s...': Valores incompletos - Cant: %.6f, Jornal: %.2f",
+                descripcion[:30], cantidad, jornal_total
+            )
+
+        return cantidad, jornal_total, valor_total, rendimiento
 
     def _calculate_regular_values(
         self, parsed: Dict[str, str], descripcion: str
