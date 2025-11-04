@@ -261,7 +261,8 @@ def _calculate_apu_costs_and_metadata(df_merged: pd.DataFrame) -> tuple:
         for _, outlier in outliers.iterrows():
             logger.warning(
                 f" APU {outlier['CODIGO_APU']}: ${outlier['VALOR_CONSTRUCCION_UN']:,.2f} "
-                f"(MO: {outlier.get('MANO DE OBRA', 0):,.2f}, MAT: {outlier.get('MATERIALES', 0):,.2f})"
+                f"(MO: {outlier.get('MANO DE OBRA', 0):,.2f}, "
+                f"MAT: {outlier.get('MATERIALES', 0):,.2f})"
             )
 
     # ========== 6. CLASIFICAR APUs ==========

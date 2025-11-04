@@ -228,7 +228,7 @@ class APUProcessor:
         """
         # Extraer jornal total (precio del jornal completo)
         jornal_total = parse_number(parsed.get("jornal_total", "0"))
-        
+
         # Fallback: si no hay jornal_total, usar precio_unit
         if jornal_total == 0:
             jornal_total = parse_number(parsed.get("precio_unit", "0"))
@@ -333,51 +333,27 @@ class APUProcessor:
 
     def _classify_insumo(self, descripcion: str) -> str:
         """
-        Clasifica un insumo según su descripción con orden de prioridad.
-
-        Orden de clasificación:
-        1. MANO_DE_OBRA (mayor prioridad)
-        2. EQUIPO
-        3. TRANSPORTE
-        4. SUMINISTRO
-        5. Inferencia por unidad
-        6. OTRO (por defecto)
-
-        Args:
-            descripcion: Descripción del insumo
-
-        Returns:
-            Tipo de insumo clasificado
+        Clasifica un insumo basado en palabras clave con un orden de precedencia estricto.
         """
         desc_upper = descripcion.upper()
 
-        # Prioridad 1: Mano de Obra
-        if any(kw in desc_upper for kw in self.MANO_OBRA_KEYWORDS):
-            return "MANO_DE_OBRA"
-
-        # Prioridad 2: Equipo
+        # 🔥 ORDEN DE PRECEDENCIA CORREGIDO:
+        # 1. Equipo (más específico, como "HERRAMIENTA") debe ir primero.
         if any(kw in desc_upper for kw in self.EQUIPO_KEYWORDS):
             return "EQUIPO"
 
-        # Prioridad 3: Transporte
+        # 2. Mano de Obra se comprueba después.
+        if any(kw in desc_upper for kw in self.MANO_OBRA_KEYWORDS):
+            return "MANO_DE_OBRA"
+
+        # 3. El resto de las categorías.
         if any(kw in desc_upper for kw in self.TRANSPORTE_KEYWORDS):
             return "TRANSPORTE"
 
-        # Prioridad 4: Suministro
         if any(kw in desc_upper for kw in self.SUMINISTRO_KEYWORDS):
             return "SUMINISTRO"
 
-        # Prioridad 5: Intentar inferir por patrón de unidad
-        tipo_inferido = self._infer_type_by_unit(desc_upper)
-        if tipo_inferido:
-            logger.debug(
-                "Tipo inferido por unidad: %s para '%s...'",
-                tipo_inferido, descripcion[:50]
-            )
-            return tipo_inferido
-
-        # Por defecto
-        logger.debug(f"Insumo sin clasificar: '{descripcion[:50]}...'")
+        logger.debug(f"Insumo sin clasificar: {descripcion[:50]}")
         return "OTRO"
 
     def _infer_type_by_unit(self, desc_upper: str) -> Optional[str]:
@@ -700,7 +676,14 @@ class APUProcessor:
 
         return False
 
-    def _should_add_insumo(self, desc: str, cantidad: float, valor_total: float, precio_unit: float, tipo_insumo: str) -> bool:
+    def _should_add_insumo(
+        self,
+        desc: str,
+        cantidad: float,
+        valor_total: float,
+        precio_unit: float,
+        tipo_insumo: str,
+    ) -> bool:
         """VALIDACIÓN MEJORADA con umbrales por tipo de insumo y precio unitario."""
         if not desc or len(desc.strip()) < 3:
             logger.debug("Rechazado: descripción muy corta")
@@ -715,7 +698,9 @@ class APUProcessor:
         }
         umbral_valor = umbrales_valor.get(tipo_insumo, umbrales_valor["OTRO"])
         if valor_total > umbral_valor:
-            logger.warning(f"Rechazado: valor total absurdo ${valor_total:,.2f} para {tipo_insumo}")
+            logger.warning(
+                f"Rechazado: valor total absurdo ${valor_total:,.2f} para {tipo_insumo}"
+            )
             return False
 
         # Umbrales de cantidad por tipo de insumo
@@ -730,11 +715,13 @@ class APUProcessor:
 
         # Validación específica para el precio unitario (jornal) de Mano de Obra
         if tipo_insumo == "MANO_DE_OBRA":
-            MIN_JORNAL = 50000 # Ajustar si es necesario
-            MAX_JORNAL = 500000 # Ajustar si es necesario
+            MIN_JORNAL = 50000  # Ajustar si es necesario
+            MAX_JORNAL = 500000  # Ajustar si es necesario
             if not (MIN_JORNAL <= precio_unit <= MAX_JORNAL) and precio_unit > 0:
                 logger.warning(
-                    f"Rechazado: Jornal de MO fuera de rango (${precio_unit:,.2f}) para '{desc[:50]}...'"
+                    "Rechazado: Jornal de MO fuera de rango ($%.2f) para '%s...'",
+                    precio_unit,
+                    desc[:50],
                 )
                 return False
 

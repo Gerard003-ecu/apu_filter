@@ -62,8 +62,10 @@ class TestAPUProcessor(unittest.TestCase):
                 "apu_desc": "Prueba MO con Rendimiento",
                 "apu_unit": "UN",
                 "category": "MANO DE OBRA",
-                # Formato: DESCRIPCION; JORNAL_BASE; PRESTACIONES; JORNAL_TOTAL; RENDIMIENTO; VALOR_TOTAL_ORIGINAL (será ignorado)
-                "insumo_line": "MANO DE OBRA CUADRILLA TIPO 1; 100000; 0; 150000; 10.0; 999999",
+                # Formato: DESCRIPCION; JORNAL_BASE; PRESTACIONES; JORNAL_TOTAL;
+                # RENDIMIENTO; VALOR_TOTAL_ORIGINAL (será ignorado)
+                "insumo_line": "MANO DE OBRA CUADRILLA TIPO 1; 100000; 0; 150000; "
+                "10.0; 999999",
             }
         ]
         processor = APUProcessor(raw_records)
@@ -80,7 +82,8 @@ class TestAPUProcessor(unittest.TestCase):
         # 3. El PRECIO_UNIT_APU debe ser el JORNAL_TOTAL: 150000
         self.assertAlmostEqual(df.iloc[0]["PRECIO_UNIT_APU"], 150000)
 
-        # 4. El VALOR_TOTAL_APU debe ser recalculado: CANTIDAD * PRECIO_UNIT (0.1 * 150000 = 15000)
+        # 4. El VALOR_TOTAL_APU debe ser recalculado:
+        #    CANTIDAD * PRECIO_UNIT (0.1 * 150000 = 15000)
         self.assertAlmostEqual(df.iloc[0]["VALOR_TOTAL_APU"], 15000)
 
     def test_unit_inference(self):
