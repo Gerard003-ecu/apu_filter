@@ -337,7 +337,7 @@ def _do_processing(
     raw_records = parser.parse_to_raw()
 
     # Etapa 2: Procesamiento con Lógica de Negocio
-    processor = APUProcessor(raw_records)
+    processor = APUProcessor(raw_records, config) # <-- AÑADIR 'config' AQUÍ
     df_apus_raw = processor.process_all()
 
     if df_presupuesto.empty or df_insumos.empty or df_apus_raw.empty:

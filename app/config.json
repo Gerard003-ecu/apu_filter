@@ -4,11 +4,18 @@
     "DESCRIPCION_APU": ["DESCRIPCION"],
     "CANTIDAD_PRESUPUESTO": ["CANT."]
   },
-  "category_keywords": {
-    "MATERIALES": "MATERIALES",
-    "MANO DE OBRA": "MANO DE OBRA",
-    "EQUIPO": "EQUIPO",
-    "OTROS": "OTROS"
+  "validation_thresholds": {
+    "MANO_DE_OBRA": {
+      "min_jornal": 50000,
+      "max_jornal": 600000,
+      "max_valor_total": 2000000
+    },
+    "EQUIPO": {
+      "max_valor_total": 5000000
+    },
+    "DEFAULT": {
+      "max_valor_total": 10000000
+    }
   },
   "param_map": {
     "material": {

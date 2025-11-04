@@ -24,6 +24,21 @@ class TestAPUProcessor(unittest.TestCase):
         """
         Configura el entorno de logging para las pruebas.
         """
+        self.config = {
+            "validation_thresholds": {
+                "MANO_DE_OBRA": {
+                    "min_jornal": 50000,
+                    "max_jornal": 600000,
+                    "max_valor_total": 2000000
+                },
+                "EQUIPO": {
+                    "max_valor_total": 5000000
+                },
+                "DEFAULT": {
+                    "max_valor_total": 10000000
+                }
+            }
+        }
         logging.basicConfig(
             level=logging.INFO, format="%(name)s - %(levelname)s - %(message)s"
         )
@@ -42,7 +57,7 @@ class TestAPUProcessor(unittest.TestCase):
                 "insumo_line": "Cemento;UND;1,5;;1.000,00;1.500,00",
             }
         ]
-        processor = APUProcessor(raw_records)
+        processor = APUProcessor(raw_records, self.config)
         df = processor.process_all()
 
         self.assertEqual(len(df), 1)
@@ -68,7 +83,7 @@ class TestAPUProcessor(unittest.TestCase):
                 "10.0; 999999",
             }
         ]
-        processor = APUProcessor(raw_records)
+        processor = APUProcessor(raw_records, self.config)
         df = processor.process_all()
 
         self.assertEqual(len(df), 1)
@@ -100,7 +115,7 @@ class TestAPUProcessor(unittest.TestCase):
                 "insumo_line": "Retroexcavadora;DIA;1;;500000;500000",
             }
         ]
-        processor = APUProcessor(raw_records)
+        processor = APUProcessor(raw_records, self.config)
         df = processor.process_all()
 
         # La categoría "EQUIPO" debe inferir la unidad "DIA"
@@ -127,7 +142,7 @@ class TestAPUProcessor(unittest.TestCase):
                 "insumo_line": "Insumo Valido;UND;1;;1000;1000",
             },
         ]
-        processor = APUProcessor(raw_records)
+        processor = APUProcessor(raw_records, self.config)
         df = processor.process_all()
 
         self.assertEqual(len(df), 1)
