@@ -5,6 +5,7 @@ from typing import Dict, List, Optional, Tuple
 
 import pandas as pd
 from unidecode import unidecode
+from lark import Lark, Transformer, v_args
 
 from .schemas import (
     Equipo,
@@ -17,6 +18,104 @@ from .schemas import (
 from .utils import clean_apu_code, parse_number
 
 logger = logging.getLogger(__name__)
+
+# Gramática PEG para parsing de líneas de insumo
+APU_GRAMMAR = r"""
+    ?start: insumo_line
+
+    ?insumo_line: mo_completa | mo_simple | insumo_con_desperdicio | insumo_basico
+
+    mo_completa: descripcion ";" jornal_base ";" prestaciones ";" jornal_total ";" rendimiento ";" valor_total
+    mo_simple: descripcion ";" unidad ";" rendimiento ";" jornal_total ";" valor_total
+    insumo_con_desperdicio: descripcion ";" unidad ";" cantidad ";" desperdicio ";" precio_unit ";" valor_total
+    insumo_basico: descripcion ";" unidad ";" cantidad ";" precio_unit ";" valor_total
+
+    descripcion: ESCAPED_STRING
+    jornal_base: SIGNED_NUMBER
+    prestaciones: (SIGNED_NUMBER | ESCAPED_STRING)
+    jornal_total: SIGNED_NUMBER
+    rendimiento: SIGNED_NUMBER
+    valor_total: SIGNED_NUMBER
+    unidad: CNAME
+    cantidad: SIGNED_NUMBER
+    desperdicio: (SIGNED_NUMBER | CNAME)
+    precio_unit: SIGNED_NUMBER
+
+    %import common.CNAME
+    %import common.ESCAPED_STRING
+    %import common.SIGNED_NUMBER
+    %import common.WS
+    %ignore WS
+"""
+
+
+@v_args(inline=True)
+class APUTransformer(Transformer):
+    """Transforma el árbol de parsing Lark en diccionarios estructurados."""
+    
+    def __init__(self, apu_context: Dict):
+        self.apu_context = apu_context
+        super().__init__()
+
+    def _create_base_data(self, tokens: List, formato: str) -> Dict:
+        """Crea la estructura base de datos para todos los formatos."""
+        return {
+            "formato": formato,
+            **self.apu_context
+        }
+
+    def mo_completa(self, descripcion, jornal_base, prestaciones, jornal_total, rendimiento, valor_total):
+        """Transforma formato MO completa."""
+        data = self._create_base_data([descripcion, jornal_base, prestaciones, jornal_total, rendimiento, valor_total], "MO_COMPLETA")
+        data.update({
+            "descripcion": descripcion.value.strip('"'),
+            "jornal_base": str(jornal_base),
+            "prestaciones": str(prestaciones),
+            "jornal_total": str(jornal_total),
+            "rendimiento": str(rendimiento),
+            "valor_total": str(valor_total),
+            "unidad": "JOR"
+        })
+        return data
+
+    def mo_simple(self, descripcion, unidad, rendimiento, jornal_total, valor_total):
+        """Transforma formato MO simple."""
+        data = self._create_base_data([descripcion, unidad, rendimiento, jornal_total, valor_total], "MO_SIMPLE")
+        data.update({
+            "descripcion": descripcion.value.strip('"'),
+            "unidad": str(unidad),
+            "rendimiento": str(rendimiento),
+            "jornal_total": str(jornal_total),
+            "valor_total": str(valor_total)
+        })
+        return data
+
+    def insumo_con_desperdicio(self, descripcion, unidad, cantidad, desperdicio, precio_unit, valor_total):
+        """Transforma formato insumo con desperdicio."""
+        data = self._create_base_data([descripcion, unidad, cantidad, desperdicio, precio_unit, valor_total], "INSUMO_CON_DESPERDICIO")
+        data.update({
+            "descripcion": descripcion.value.strip('"'),
+            "unidad": str(unidad),
+            "cantidad": str(cantidad),
+            "desperdicio": str(desperdicio),
+            "precio_unit": str(precio_unit),
+            "valor_total": str(valor_total),
+            "rendimiento": "0"
+        })
+        return data
+
+    def insumo_basico(self, descripcion, unidad, cantidad, precio_unit, valor_total):
+        """Transforma formato insumo básico."""
+        data = self._create_base_data([descripcion, unidad, cantidad, precio_unit, valor_total], "INSUMO_BASICO")
+        data.update({
+            "descripcion": descripcion.value.strip('"'),
+            "unidad": str(unidad),
+            "cantidad": str(cantidad),
+            "precio_unit": str(precio_unit),
+            "valor_total": str(valor_total),
+            "rendimiento": "0"
+        })
+        return data
 
 
 class APUProcessor:
@@ -67,6 +166,13 @@ class APUProcessor:
         self.config = config
         self.processed_data: List[InsumoProcesado] = []
         self.stats = defaultdict(int)
+        
+        # Inicializar parser Lark
+        try:
+            self.parser = Lark(APU_GRAMMAR, start='insumo_line', parser='lalr', transformer=None)
+        except Exception as e:
+            logger.error(f"Error inicializando parser Lark: {e}")
+            raise
 
     def process_all(self) -> pd.DataFrame:
         """
@@ -96,7 +202,7 @@ class APUProcessor:
 
     def _process_single_record(self, record: Dict[str, str]) -> Optional[InsumoProcesado]:
         """
-        Procesa un registro individual con recalculación INCONDICIONAL para Mano de Obra.
+        Procesa un registro individual usando parser Lark.
 
         Para Mano de Obra:
         - SIEMPRE recalcula valor_total = cantidad * precio_unitario
@@ -116,12 +222,16 @@ class APUProcessor:
             logger.debug(f"Registro sin código o descripción APU: {record}")
             return None
 
-        # 2. Parsear línea de insumo
-        parsed = self._parse_insumo_line(record.get("insumo_line", ""))
+        # 2. Parsear línea de insumo con Lark
+        insumo_line = record.get("insumo_line", "")
+        parsed = self._parse_with_lark(insumo_line, apu_code, apu_desc, apu_unit, category)
+        
         if not parsed:
-            insumo_line = record.get('insumo_line', '')[:100]
-            logger.debug(f"No se pudo parsear insumo_line: {insumo_line}")
-            return None
+            # Fallback a parsing genérico
+            parsed = self._parse_generic_fallback(insumo_line)
+            if not parsed:
+                logger.debug(f"No se pudo parsear insumo_line: {insumo_line[:100]}")
+                return None
 
         descripcion_insumo = parsed.get("descripcion", "").strip()
 
@@ -187,6 +297,92 @@ class APUProcessor:
             return None
 
         return insumo_obj
+
+    def _parse_with_lark(self, line: str, apu_code: str, apu_desc: str, apu_unit: str, category: str) -> Optional[Dict]:
+        """
+        Parsea una línea de insumo usando gramática Lark.
+        
+        Args:
+            line: Línea a parsear
+            apu_context: Contexto del APU para el transformer
+            
+        Returns:
+            Diccionario con datos parseados o None si falla
+        """
+        if not line or not line.strip():
+            return None
+
+        line = line.strip()
+        
+        try:
+            # Crear contexto para el transformer
+            apu_context = {
+                "apu_code": apu_code,
+                "apu_desc": apu_desc,
+                "apu_unit": apu_unit,
+                "category": category,
+            }
+            
+            # Parsear con Lark
+            transformer = APUTransformer(apu_context)
+            tree = self.parser.parse(line)
+            result = transformer.transform(tree)
+            
+            logger.debug(f"✓ Parseado con Lark '{result.get('formato', 'UNKNOWN')}': {line[:60]}...")
+            return result
+            
+        except Exception as e:
+            logger.debug(f"Lark no pudo parsear línea: '{line[:70]}...'. Error: {e}")
+            self.stats["errores_parsing"] += 1
+            return None
+
+    def _parse_generic_fallback(self, line: str) -> Optional[Dict[str, str]]:
+        """
+        Parseo genérico cuando Lark no puede parsear la línea.
+
+        Args:
+            line: Línea a parsear
+
+        Returns:
+            Diccionario con campos parseados o None
+        """
+        if not line or not line.strip():
+            return None
+
+        line = line.strip()
+        parts = [p.strip() for p in line.split(";")]
+
+        # Caso con suficientes campos (6 o más)
+        if len(parts) >= 6:
+            result = {
+                "descripcion": parts[0],
+                "unidad": parts[1] if parts[1] else "UND",
+                "cantidad": parts[2] if parts[2] else "0",
+                "desperdicio": parts[3] if len(parts) > 3 else "0",
+                "precio_unit": parts[4] if len(parts) > 4 else "0",
+                "valor_total": parts[5] if len(parts) > 5 else "0",
+                "rendimiento": "0",
+                "formato": "FALLBACK_FULL",
+            }
+            logger.debug(f"⚠ Fallback completo aplicado: {line[:60]}...")
+            return result
+
+        # Caso con campos mínimos (3 o más)
+        elif len(parts) >= 3:
+            result = {
+                "descripcion": parts[0],
+                "unidad": parts[1] if len(parts) > 1 and parts[1] else "UND",
+                "cantidad": parts[2] if len(parts) > 2 else "0",
+                "precio_unit": parts[3] if len(parts) > 3 else "0",
+                "valor_total": parts[4] if len(parts) > 4 else "0",
+                "rendimiento": "0",
+                "formato": "FALLBACK_MINIMAL",
+            }
+            logger.debug(f"⚠ Fallback minimal aplicado: {line[:60]}...")
+            return result
+
+        logger.warning(f"❌ No se pudo parsear línea: {line[:100]}...")
+        return None
 
     def _extract_and_calculate_values(
         self, parsed: Dict[str, str], tipo_insumo: str, descripcion: str
@@ -357,160 +553,6 @@ class APUProcessor:
 
         logger.debug(f"Insumo sin clasificar: {descripcion[:50]}")
         return "OTRO"
-
-    def _infer_type_by_unit(self, desc_upper: str) -> Optional[str]:
-        """
-        Infiere el tipo de insumo por patrones de unidad en la descripción.
-
-        Args:
-            desc_upper: Descripción en mayúsculas.
-
-        Returns:
-            Tipo inferido o None.
-        """
-        unit_patterns = {
-            "SUMINISTRO": [
-                r'\bML\b', r'\bM\b(?!\.O\.)', r'\bMTS\b', r'\bMETROS?\b',
-                r'\bUN\b', r'\bUND\b', r'\bUNIDAD(ES)?\b',
-                r'\bKG\b', r'\bTON\b', r'\bM3\b', r'\bM2\b',
-                r'\bLT\b', r'\bGAL(ON)?(ES)?\b'
-            ],
-            "MANO_DE_OBRA": [
-                r'\bJOR(NAL)?(ES)?\b', r'\bHORA\b(?=.*(?:OFICIAL|AYUDANTE|OBRERO))',
-                r'\bHR\b(?=.*(?:OFICIAL|AYUDANTE|OBRERO))'
-            ],
-            "EQUIPO": [
-                r'\bDIA\b(?!.*(?:OFICIAL|AYUDANTE))',
-                r'\bHORA\b(?!.*(?:OFICIAL|AYUDANTE))'
-            ]
-        }
-
-        for tipo, patterns in unit_patterns.items():
-            if any(re.search(pattern, desc_upper) for pattern in patterns):
-                return tipo
-
-        return None
-
-    def _parse_insumo_line(self, line: str) -> Optional[Dict[str, str]]:
-        """
-        Parsea una línea de insumo textual usando patrones regex especializados.
-
-        Args:
-            line: La cadena de texto que representa la línea de insumo.
-
-        Returns:
-            Un diccionario con los campos parseados o None si no se puede parsear.
-        """
-        if not line or not line.strip():
-            return None
-
-        line = line.strip()
-        patterns = self._get_parsing_patterns()
-
-        # Intentar con cada patrón en orden de especificidad
-        for name, pattern in patterns.items():
-            match = pattern.match(line)
-            if match:
-                data = match.groupdict()
-                data["formato"] = name
-                logger.debug(f"✓ Parseado con patrón '{name}': {line[:60]}...")
-                return data
-
-        # Fallback: parsing genérico por separador
-        return self._parse_generic_fallback(line)
-
-    def _parse_generic_fallback(self, line: str) -> Optional[Dict[str, str]]:
-        """
-        Parseo genérico cuando ningún patrón específico funciona.
-
-        Args:
-            line: Línea a parsear
-
-        Returns:
-            Diccionario con campos parseados o None
-        """
-        parts = [p.strip() for p in line.split(";")]
-
-        # Caso con suficientes campos (6 o más)
-        if len(parts) >= 6:
-            result = {
-                "descripcion": parts[0],
-                "unidad": parts[1] if parts[1] else "UND",
-                "cantidad": parts[2] if parts[2] else "0",
-                "desperdicio": parts[3] if len(parts) > 3 else "0",
-                "precio_unit": parts[4] if len(parts) > 4 else "0",
-                "valor_total": parts[5] if len(parts) > 5 else "0",
-                "rendimiento": "0",
-                "formato": "FALLBACK_FULL",
-            }
-            logger.debug(f"⚠ Fallback completo aplicado: {line[:60]}...")
-            return result
-
-        # Caso con campos mínimos (3 o más)
-        elif len(parts) >= 3:
-            result = {
-                "descripcion": parts[0],
-                "unidad": parts[1] if len(parts) > 1 and parts[1] else "UND",
-                "cantidad": parts[2] if len(parts) > 2 else "0",
-                "precio_unit": parts[3] if len(parts) > 3 else "0",
-                "valor_total": parts[4] if len(parts) > 4 else "0",
-                "rendimiento": "0",
-                "formato": "FALLBACK_MINIMAL",
-            }
-            logger.debug(f"⚠ Fallback minimal aplicado: {line[:60]}...")
-            return result
-
-        logger.warning(f"❌ No se pudo parsear línea: {line[:100]}...")
-        return None
-
-    def _get_parsing_patterns(self) -> Dict[str, re.Pattern]:
-        """
-        Define los patrones regex para parsear diferentes formatos de líneas de insumo.
-
-        Returns:
-            Diccionario con nombre del patrón y regex compilado.
-        """
-        return {
-            # Patrón para Mano de Obra con todos los campos
-            "MO_COMPLETA": re.compile(
-                r"^(?P<descripcion>(?:M\.O\.|M\s*O\s+|MANO\s+DE\s+OBRA).*?);\s*"
-                r"(?P<jornal_base>[\d.,\s]+);\s*"
-                r"(?P<prestaciones>[\d%.,\s]+);\s*"
-                r"(?P<jornal_total>[\d.,\s]+);\s*"
-                r"(?P<rendimiento>[\d.,\s]+);\s*"
-                r"(?P<valor_total>[\d.,\s]+)",
-                re.IGNORECASE
-            ),
-
-            # Patrón para MO simplificado (sin prestaciones)
-            "MO_SIMPLE": re.compile(
-                r"^(?P<descripcion>(?:M\.O\.|M\s*O\s+|MANO\s+DE\s+OBRA).*?);\s*"
-                r"(?P<unidad>[^;]*);\s*"
-                r"(?P<rendimiento>[\d.,\s]+);\s*"
-                r"(?P<jornal_total>[\d.,\s]+);\s*"
-                r"(?P<valor_total>[\d.,\s]+)",
-                re.IGNORECASE
-            ),
-
-            # Patrón para insumo completo con desperdicio
-            "INSUMO_CON_DESPERDICIO": re.compile(
-                r"^(?P<descripcion>[^;]+);\s*"
-                r"(?P<unidad>[^;]*);\s*"
-                r"(?P<cantidad>[\d.,\s]*);\s*"
-                r"(?P<desperdicio>[\d.,\s%]*);\s*"
-                r"(?P<precio_unit>[\d.,\s]*);\s*"
-                r"(?P<valor_total>[\d.,\s]*)"
-            ),
-
-            # Patrón para insumo básico (sin desperdicio)
-            "INSUMO_BASICO": re.compile(
-                r"^(?P<descripcion>[^;]+);\s*"
-                r"(?P<unidad>[^;]*);\s*"
-                r"(?P<cantidad>[\d.,\s]*);\s*"
-                r"(?P<precio_unit>[\d.,\s]*);\s*"
-                r"(?P<valor_total>[\d.,\s]*)"
-            ),
-        }
 
     def _infer_unit_aggressive(
         self, description: str, category: str, tipo_insumo: str
@@ -806,6 +848,7 @@ class APUProcessor:
         logger.info(
             f"🚫 Excluidos por término: {self.stats.get('excluidos_por_termino', 0)}"
         )
+        logger.info(f"📝 Errores parsing: {self.stats.get('errores_parsing', 0)}")
         logger.info("-" * 60)
 
         # Estadísticas por tipo de insumo
@@ -1016,7 +1059,7 @@ def calculate_unit_costs(df: pd.DataFrame) -> pd.DataFrame:
     remaining_cols = [col for col in pivot.columns if col not in existing_cols]
     pivot = pivot[existing_cols + remaining_cols]
 
-    # Log de resumen (🔥 CORRECCIÓN DEL BUG TIPOGRÁFICO)
+    # Log de resumen
     logger.info(f"✅ Costos unitarios calculados para {len(pivot)} APUs")
     logger.info(
         f"   Valor total suministros: ${pivot['VALOR_SUMINISTRO_UN'].sum():,.2f}"
