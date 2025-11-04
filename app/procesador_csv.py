@@ -204,138 +204,110 @@ def process_all_files(
 # ==================== LÓGICA PRINCIPAL ====================
 
 def _calculate_apu_costs_and_metadata(df_merged: pd.DataFrame) -> tuple:
-    """Calcula costos, clasifica APUs y extrae metadatos - VERSIÓN CORREGIDA."""
+    """Calcula costos, clasifica APUs y extrae metadatos.
 
-    # ========== AGREGAR COSTOS POR APU Y TIPO DE INSUMO ==========
-    logger.info("📊 Agregando costos por APU y tipo de insumo...")
+    Args:
+        df_merged (pd.DataFrame): El DataFrame fusionado con los datos de APU.
 
-    # Mapeo consistente entre categorías y tipos de insumo
-    categoria_to_tipo = {
-        "MATERIALES": "SUMINISTRO",
-        "MANO DE OBRA": "MANO_DE_OBRA",
-        "EQUIPO": "EQUIPO",
-        "TRANSPORTE": "TRANSPORTE",
-        "OTROS": "OTRO",
-    }
+    Returns:
+        tuple: Una tupla con los DataFrames de costos de APU, tiempo y rendimiento.
+    """
+    # ========== 4. AGREGAR COSTOS POR APU Y CATEGORÍA (VALIDADO) ==========
+    logger.info("📊 Agregando costos por APU y categoría...")
 
-    # Agrupar por tipo de insumo (no por categoría cruda)
     df_apu_costos = (
-        df_merged.groupby(["CODIGO_APU", "TIPO_INSUMO"])["COSTO_INSUMO_EN_APU"]
+        df_merged.groupby(["CODIGO_APU", "CATEGORIA"])["COSTO_INSUMO_EN_APU"]
         .sum()
         .unstack(fill_value=0)
         .reset_index()
     )
+    logger.info(f"✅ df_apu_costos creado: {len(df_apu_costos)} APUs únicos")
 
-    # Asegurar todas las columnas de tipos
-    tipo_cols = ["SUMINISTRO", "MANO_DE_OBRA", "EQUIPO", "TRANSPORTE", "OTRO"]
-    for col in tipo_cols:
+    cost_cols = ["MATERIALES", "MANO DE OBRA", "EQUIPO", "OTROS"]
+    for col in cost_cols:
         if col not in df_apu_costos.columns:
             df_apu_costos[col] = 0
 
-    # ========== CALCULAR VALORES UNITARIOS CONSISTENTES ==========
-    df_apu_costos["VALOR_SUMINISTRO_UN"] = df_apu_costos["SUMINISTRO"]
+    # ========== 5. CALCULAR VALORES UNITARIOS ==========
+    df_apu_costos["VALOR_SUMINISTRO_UN"] = df_apu_costos["MATERIALES"]
     df_apu_costos["VALOR_INSTALACION_UN"] = (
-        df_apu_costos["MANO_DE_OBRA"] + df_apu_costos["EQUIPO"]
+        df_apu_costos["MANO DE OBRA"] + df_apu_costos["EQUIPO"]
     )
-    df_apu_costos["VALOR_TRANSPORTE_UN"] = df_apu_costos["TRANSPORTE"]
-    df_apu_costos["VALOR_OTRO_UN"] = df_apu_costos["OTRO"]
+    df_apu_costos["VALOR_CONSTRUCCION_UN"] = df_apu_costos[cost_cols].sum(axis=1)
 
-    df_apu_costos["VALOR_CONSTRUCCION_UN"] = (
-        df_apu_costos["VALOR_SUMINISTRO_UN"]
-        + df_apu_costos["VALOR_INSTALACION_UN"]
-        + df_apu_costos["VALOR_TRANSPORTE_UN"]
-        + df_apu_costos["VALOR_OTRO_UN"]
+    # 🔥 VALIDACIÓN MEJORADA: Verificar valores unitarios razonables
+    valor_max = df_apu_costos["VALOR_CONSTRUCCION_UN"].max()
+    valor_avg = df_apu_costos["VALOR_CONSTRUCCION_UN"].mean()
+    valor_std = df_apu_costos["VALOR_CONSTRUCCION_UN"].std()
+
+    logger.info(
+        "📈 Estadísticas de costos unitarios: Max=$%.2f, Avg=$%.2f",
+        valor_max, valor_avg
     )
 
-    # ========== CLASIFICACIÓN MEJORADA DE APUs ==========
-    def classify_apu_corregida(row):
+    # Detectar outliers usando método estadístico
+    outlier_threshold = valor_avg + (3 * valor_std)
+    outliers = df_apu_costos[df_apu_costos["VALOR_CONSTRUCCION_UN"] > outlier_threshold]
+
+    if not outliers.empty:
+        logger.warning(f"⚠️ Se detectaron {len(outliers)} APUs con costos anómalos")
+        for _, outlier in outliers.iterrows():
+            logger.warning(
+                " APU %s: $%.2f (MO: %.2f, MAT: %.2f)",
+                outlier['CODIGO_APU'],
+                outlier['VALOR_CONSTRUCCION_UN'],
+                outlier.get('MANO DE OBRA', 0),
+                outlier.get('MATERIALES', 0)
+            )
+
+    # ========== 6. CLASIFICAR APUs ==========
+    def classify_apu(row):
         costo_total = row["VALOR_CONSTRUCCION_UN"]
         if costo_total == 0:
             return "Indefinido"
 
-        valor_suministro = row["VALOR_SUMINISTRO_UN"]
-        valor_instalacion = row["VALOR_INSTALACION_UN"]
+        mo_cost = row.get("MANO DE OBRA", 0)
+        eq_cost = row.get("EQUIPO", 0)
+        mat_cost = row.get("MATERIALES", 0)
 
-        porcentaje_suministro = (valor_suministro / costo_total) * 100
-        porcentaje_instalacion = (valor_instalacion / costo_total) * 100
+        porcentaje_mo_eq = ((mo_cost + eq_cost) / costo_total) * 100
+        porcentaje_materiales = (mat_cost / costo_total) * 100
 
-        # Lógica de clasificación mejorada
-        if porcentaje_instalacion > 75:
+        if porcentaje_mo_eq > 75:
             return "Instalación"
-        elif porcentaje_suministro > 75:
+
+        if porcentaje_materiales > 75 and porcentaje_mo_eq < 15:
             return "Suministro"
-        elif porcentaje_instalacion > 40 and porcentaje_suministro > 40:
-            return "Obra Completa"
-        elif porcentaje_suministro > 60 and porcentaje_instalacion > 15:
+
+        if porcentaje_materiales > 65 and porcentaje_mo_eq > 15:
             return "Suministro (Pre-fabricado)"
-        else:
-            return "Obra Completa"
 
-    df_apu_costos["tipo_apu"] = df_apu_costos.apply(classify_apu_corregida, axis=1)
+        return "Obra Completa"
 
-    # Log de distribución de tipos
-    tipo_dist = df_apu_costos["tipo_apu"].value_counts()
-    logger.info("📋 Distribución de tipos de APU:")
-    for tipo, count in tipo_dist.items():
-        logger.info(f" {tipo}: {count} APUs")
+    df_apu_costos["tipo_apu"] = df_apu_costos.apply(classify_apu, axis=1)
 
-    # Resto del código existente para tiempo y rendimiento...
-    df_mo_data = df_merged[df_merged["TIPO_INSUMO"] == "MANO_DE_OBRA"].copy()
+    # ========== 7. CALCULAR TIEMPO Y RENDIMIENTO ==========
+    df_mo_data = df_merged[df_merged["CATEGORIA"] == "MANO DE OBRA"].copy()
 
     df_tiempo = (
-        df_mo_data.groupby("CODIGO_APU")["CANTIDAD_APU"].sum().reset_index()
+        df_mo_data.groupby("CODIGO_APU")["CANTIDAD_APU"]
+        .sum()
+        .reset_index()
     )
     df_tiempo.rename(columns={"CANTIDAD_APU": "TIEMPO_INSTALACION"}, inplace=True)
 
     if "RENDIMIENTO" in df_mo_data.columns:
         df_rendimiento = (
             df_mo_data.groupby("CODIGO_APU")["RENDIMIENTO"]
-            .mean()  # Usar promedio en lugar de suma
+            .sum()
             .reset_index()
         )
         df_rendimiento.rename(columns={"RENDIMIENTO": "RENDIMIENTO_DIA"}, inplace=True)
     else:
         df_rendimiento = pd.DataFrame(columns=["CODIGO_APU", "RENDIMIENTO_DIA"])
 
+
     return df_apu_costos, df_tiempo, df_rendimiento
-
-
-def _validate_cost_consistency(
-    df_final: pd.DataFrame, df_apus_raw: pd.DataFrame
-) -> bool:
-    """Valida la consistencia entre costos directos y datos crudos."""
-
-    logger.info("🔍 Validando consistencia de costos...")
-
-    # Calcular costo total desde datos crudos
-    costo_directo_crudo = df_apus_raw["VALOR_TOTAL_APU"].sum()
-    costo_directo_final = df_final["VALOR_CONSTRUCCION_TOTAL"].sum()
-
-    diferencia = abs(costo_directo_crudo - costo_directo_final)
-    porcentaje_diferencia = (
-        (diferencia / costo_directo_crudo) * 100 if costo_directo_crudo > 0 else 100
-    )
-
-    logger.info(f"💰 Costo directo (crudo): ${costo_directo_crudo:,.2f}")
-    logger.info(f"💰 Costo directo (final): ${costo_directo_final:,.2f}")
-    logger.info(f"📊 Diferencia: ${diferencia:,.2f} ({porcentaje_diferencia:.2f}%)")
-
-    # Umbral de tolerancia
-    if porcentaje_diferencia > 5:  # 5% de tolerancia
-        logger.error(
-            f"🚨 DISCREPANCIA CRÍTICA EN COSTOS: {porcentaje_diferencia:.2f}%"
-        )
-
-        # Análisis detallado por tipo de insumo
-        costos_por_tipo = df_apus_raw.groupby("TIPO_INSUMO")["VALOR_TOTAL_APU"].sum()
-        logger.info("📊 Costos por tipo de insumo (crudo):")
-        for tipo, costo in costos_por_tipo.items():
-            logger.info(f" {tipo}: ${costo:,.2f}")
-
-        return False
-
-    logger.info("✅ Costos consistentes validados")
-    return True
 
 
 def _do_processing(
@@ -420,6 +392,7 @@ def _do_processing(
             "⚠️ Continuando con precaución..."
             )
 
+    df_merged["TIPO_INSUMO"] = df_merged["CATEGORIA"]
     df_merged["DESCRIPCION_INSUMO"] = df_merged["DESCRIPCION_INSUMO"].fillna(
         df_merged["DESCRIPCION_INSUMO_apu"]
     )
@@ -585,7 +558,7 @@ def _do_processing(
 
     # ========== 10. PREPARAR DICCIONARIOS DE SALIDA ==========
     df_merged.rename(
-        columns={"VR_UNITARIO_FINAL": "vr_unitario", "COSTO_INSUMO_EN_APU": "vr_total"},
+        columns={"vr_unitario_final": "vr_unitario", "costo_insumo_en_apu": "vr_total"},
         inplace=True,
     )
     apus_detail = df_merged.to_dict("records")
@@ -597,81 +570,6 @@ def _do_processing(
         if name and isinstance(name, str)
     }
     result_dict = {
-        "presupuesto": df_final.to_dict("records"),
-        "insumos": insumos_dict,
-        "apus_detail": apus_detail,
-        "all_apus": df_apus_raw.to_dict("records"),
-        "raw_insumos_df": df_insumos,
-        "processed_apus": df_processed_apus.to_dict("records"),
-    }
-
-    # ========== 11. VALIDACIÓN FINAL ==========
-    logger.info("🤖 Iniciando Agente de Validación de Datos...")
-    validated_result = validate_and_clean_data(result_dict)
-    logger.info("✅ Validación completada.")
-
-    # ========== VALIDACIÓN DE CONSISTENCIA ==========
-    logger.info("🔍 Ejecutando validación de consistencia...")
-    if not _validate_cost_consistency(df_final, df_apus_raw):
-        logger.error("❌ Se detectaron inconsistencias críticas en los costos")
-        # Continuar procesamiento pero registrar alerta
-        validated_result["alertas"] = [
-            "Se detectaron inconsistencias en los costos calculados"
-        ]
-
-    # Validar distribución de tipos de APU
-    tipo_apu_dist = df_final["tipo_apu"].value_counts()
-    logger.info("📊 Distribución final de tipos de APU:")
-    for tipo, count in tipo_apu_dist.items():
-        porcentaje = (count / len(df_final)) * 100
-        logger.info(f" {tipo}: {count} ({porcentaje:.1f}%)")
-
-    # Verificar que Suministro esté presente
-    if "Suministro" not in tipo_apu_dist:
-        logger.warning("⚠️ No se encontraron APUs clasificados como 'Suministro'")
-        # Forzar reclasificación de algunos APUs basado en porcentajes
-        suministro_candidates = df_final[
-            (df_final["VALOR_SUMINISTRO_UN"] / df_final["VALOR_CONSTRUCCION_UN"]) > 0.7
-        ]
-        if len(suministro_candidates) > 0:
-            logger.info(
-                f"🔧 Reclasificando {len(suministro_candidates)} APUs como Suministro"
-            )
-            df_final.loc[suministro_candidates.index, "tipo_apu"] = "Suministro"
-
-    # ========== 9. CONSTRUIR df_processed_apus ==========
-    df_apu_descriptions = df_apus_raw[
-        ["CODIGO_APU", "DESCRIPCION_APU", "UNIDAD_APU"]
-    ].drop_duplicates()
-    df_processed_apus = pd.merge(
-        df_apu_costos, df_apu_descriptions, on="CODIGO_APU", how="left"
-    )
-    df_processed_apus = pd.merge(
-        df_processed_apus, df_tiempo, on="CODIGO_APU", how="left"
-    )
-    df_processed_apus = pd.merge(
-        df_processed_apus, df_rendimiento, on="CODIGO_APU", how="left"
-    )
-    df_processed_apus.rename(columns={"UNIDAD_APU": "UNIDAD"}, inplace=True)
-    df_processed_apus["DESC_NORMALIZED"] = normalize_text_series(
-        df_processed_apus["DESCRIPCION_APU"]
-    )
-    df_processed_apus = group_and_split_description(df_processed_apus)
-
-    # ========== 10. PREPARAR DICCIONARIOS DE SALIDA ==========
-    df_merged.rename(
-        columns={"VR_UNITARIO_FINAL": "vr_unitario", "COSTO_INSUMO_EN_APU": "vr_total"},
-        inplace=True,
-    )
-    apus_detail = df_merged.to_dict("records")
-    insumos_dict = {
-        name.strip(): group[["DESCRIPCION_INSUMO", "VR_UNITARIO_INSUMO"]]
-        .dropna()
-        .to_dict("records")
-        for name, group in df_insumos.groupby("GRUPO_INSUMO")
-        if name and isinstance(name, str)
-    }
-    final_result_dict = {
         "presupuesto": df_final.to_dict("records"),
         "insumos": insumos_dict,
         "apus_detail": apus_detail,
