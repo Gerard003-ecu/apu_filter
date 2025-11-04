@@ -240,7 +240,10 @@ def _calculate_apu_costs_and_metadata(df_merged: pd.DataFrame) -> tuple:
     valor_avg = df_apu_costos["VALOR_CONSTRUCCION_UN"].mean()
     valor_std = df_apu_costos["VALOR_CONSTRUCCION_UN"].std()
 
-    logger.info(f"📈 Estadísticas de costos unitarios: Max=${valor_max:,.2f}, Avg=${valor_avg:,.2f}")
+    logger.info(
+        "📈 Estadísticas de costos unitarios: Max=$%.2f, Avg=$%.2f",
+        valor_max, valor_avg
+    )
 
     # Detectar outliers usando método estadístico
     outlier_threshold = valor_avg + (3 * valor_std)
@@ -250,8 +253,11 @@ def _calculate_apu_costs_and_metadata(df_merged: pd.DataFrame) -> tuple:
         logger.warning(f"⚠️ Se detectaron {len(outliers)} APUs con costos anómalos")
         for _, outlier in outliers.iterrows():
             logger.warning(
-                f" APU {outlier['CODIGO_APU']}: ${outlier['VALOR_CONSTRUCCION_UN']:,.2f} "
-                f"(MO: {outlier.get('MANO DE OBRA', 0):,.2f}, MAT: {outlier.get('MATERIALES', 0):,.2f})"
+                " APU %s: $%.2f (MO: %.2f, MAT: %.2f)",
+                outlier['CODIGO_APU'],
+                outlier['VALOR_CONSTRUCCION_UN'],
+                outlier.get('MANO DE OBRA', 0),
+                outlier.get('MATERIALES', 0)
             )
 
     # ========== 6. CLASIFICAR APUs ==========
@@ -352,7 +358,9 @@ def _do_processing(
     logger.info("🔗 Iniciando merge de APUs con catálogo de insumos...")
 
     # Normalizar descripción en df_apus_raw para el merge
-    df_apus_raw['DESCRIPCION_INSUMO_NORM'] = normalize_text_series(df_apus_raw['DESCRIPCION_INSUMO'])
+    df_apus_raw['DESCRIPCION_INSUMO_NORM'] = normalize_text_series(
+        df_apus_raw['DESCRIPCION_INSUMO']
+    )
 
     rows_before = len(df_apus_raw)
     df_merged = pd.merge(
