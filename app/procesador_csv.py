@@ -204,46 +204,61 @@ def process_all_files(
 # ==================== LÓGICA PRINCIPAL ====================
 
 def _calculate_apu_costs_and_metadata(df_merged: pd.DataFrame) -> tuple:
-    """Calcula costos, clasifica APUs y extrae metadatos."""
-    logger.info("📊 Agregando costos por APU y TIPO DE INSUMO...")
+    """Calcula costos, clasifica APUs y extrae metadatos.
 
-    # 🔥 CORRECCIÓN: Agrupar por 'TIPO_INSUMO' que es la fuente de verdad
-    group_cols = ['CODIGO_APU', 'TIPO_INSUMO']
+    Args:
+        df_merged (pd.DataFrame): El DataFrame fusionado con los datos de APU.
+
+    Returns:
+        tuple: Una tupla con los DataFrames de costos de APU, tiempo y rendimiento.
+    """
+    # ========== 4. AGREGAR COSTOS POR APU Y CATEGORÍA (VALIDADO) ==========
+    logger.info("📊 Agregando costos por APU y categoría...")
+
     df_apu_costos = (
-        df_merged.groupby(group_cols)["COSTO_INSUMO_EN_APU"]
+        df_merged.groupby(["CODIGO_APU", "CATEGORIA"])["COSTO_INSUMO_EN_APU"]
         .sum()
         .unstack(fill_value=0)
         .reset_index()
     )
     logger.info(f"✅ df_apu_costos creado: {len(df_apu_costos)} APUs únicos")
 
-    # Mapear los tipos de insumo a las categorías de costo esperadas
-    cost_map = {
-        "SUMINISTRO": "MATERIALES",
-        "MANO_DE_OBRA": "MANO DE OBRA",
-        "EQUIPO": "EQUIPO",
-        "TRANSPORTE": "OTROS",
-        "OTRO": "OTROS"
-    }
-
-    # Renombrar columnas según el mapa
-    df_apu_costos.rename(columns=cost_map, inplace=True)
-
-    # Consolidar columnas que mapearon a la misma categoría (ej. OTROS)
-    final_cols = ["MATERIALES", "MANO DE OBRA", "EQUIPO", "OTROS"]
-    for col in final_cols:
+    cost_cols = ["MATERIALES", "MANO DE OBRA", "EQUIPO", "OTROS"]
+    for col in cost_cols:
         if col not in df_apu_costos.columns:
-            df_apu_costos[col] = 0.0
-
-    # Si hay múltiples columnas con el mismo nombre después del rename, sumarlas
-    df_apu_costos = df_apu_costos.groupby(level=0, axis=1).sum()
+            df_apu_costos[col] = 0
 
     # ========== 5. CALCULAR VALORES UNITARIOS ==========
     df_apu_costos["VALOR_SUMINISTRO_UN"] = df_apu_costos["MATERIALES"]
     df_apu_costos["VALOR_INSTALACION_UN"] = (
         df_apu_costos["MANO DE OBRA"] + df_apu_costos["EQUIPO"]
     )
-    df_apu_costos["VALOR_CONSTRUCCION_UN"] = df_apu_costos[final_cols].sum(axis=1)
+    df_apu_costos["VALOR_CONSTRUCCION_UN"] = df_apu_costos[cost_cols].sum(axis=1)
+
+    # 🔥 VALIDACIÓN MEJORADA: Verificar valores unitarios razonables
+    valor_max = df_apu_costos["VALOR_CONSTRUCCION_UN"].max()
+    valor_avg = df_apu_costos["VALOR_CONSTRUCCION_UN"].mean()
+    valor_std = df_apu_costos["VALOR_CONSTRUCCION_UN"].std()
+
+    logger.info(
+        "📈 Estadísticas de costos unitarios: Max=$%.2f, Avg=$%.2f",
+        valor_max, valor_avg
+    )
+
+    # Detectar outliers usando método estadístico
+    outlier_threshold = valor_avg + (3 * valor_std)
+    outliers = df_apu_costos[df_apu_costos["VALOR_CONSTRUCCION_UN"] > outlier_threshold]
+
+    if not outliers.empty:
+        logger.warning(f"⚠️ Se detectaron {len(outliers)} APUs con costos anómalos")
+        for _, outlier in outliers.iterrows():
+            logger.warning(
+                " APU %s: $%.2f (MO: %.2f, MAT: %.2f)",
+                outlier['CODIGO_APU'],
+                outlier['VALOR_CONSTRUCCION_UN'],
+                outlier.get('MANO DE OBRA', 0),
+                outlier.get('MATERIALES', 0)
+            )
 
     # ========== 6. CLASIFICAR APUs ==========
     def classify_apu(row):
@@ -279,7 +294,7 @@ def _calculate_apu_costs_and_metadata(df_merged: pd.DataFrame) -> tuple:
         .sum()
         .reset_index()
     )
-    df_tiempo.rename(columns={"CANTIDAD_APU": "TIEMPO_INSTALacion"}, inplace=True)
+    df_tiempo.rename(columns={"CANTIDAD_APU": "TIEMPO_INSTALACION"}, inplace=True)
 
     if "RENDIMIENTO" in df_mo_data.columns:
         df_rendimiento = (
@@ -563,20 +578,8 @@ def _do_processing(
         "processed_apus": df_processed_apus.to_dict("records"),
     }
 
-    # ========== 11. VALIDACIÓN FINAL (INTEGRACIÓN CORRECTA) ==========
+    # ========== 11. VALIDACIÓN FINAL ==========
     logger.info("🤖 Iniciando Agente de Validación de Datos...")
-
-    # 🔥 CORRECCIÓN: Pasa el diccionario de resultados a la función de validación
-    # y recibe el diccionario modificado de vuelta.
-    result_dict = {
-        "presupuesto": df_final.to_dict("records"),
-        "insumos": insumos_dict,
-        "apus_detail": apus_detail,
-        "all_apus": df_apus_raw.to_dict("records"),
-        "raw_insumos_df": df_insumos,
-        "processed_apus": df_processed_apus.to_dict("records"),
-    }
-
     validated_result = validate_and_clean_data(result_dict)
     logger.info("✅ Validación completada.")
 
