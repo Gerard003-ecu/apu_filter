@@ -1,7 +1,7 @@
 import logging
 import re
 from collections import defaultdict
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 
 import pandas as pd
 from unidecode import unidecode
