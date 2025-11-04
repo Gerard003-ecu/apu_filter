@@ -204,27 +204,37 @@ def process_all_files(
 # ==================== LÓGICA PRINCIPAL ====================
 
 def _calculate_apu_costs_and_metadata(df_merged: pd.DataFrame) -> tuple:
-    """Calcula costos, clasifica APUs y extrae metadatos.
+    """Calcula costos, clasifica APUs y extrae metadatos."""
+    # ========== 4. AGREGAR COSTOS POR APU Y TIPO DE INSUMO (CORREGIDO) ==========
+    logger.info("📊 Agregando costos por APU y TIPO DE INSUMO...")
 
-    Args:
-        df_merged (pd.DataFrame): El DataFrame fusionado con los datos de APU.
-
-    Returns:
-        tuple: Una tupla con los DataFrames de costos de APU, tiempo y rendimiento.
-    """
-    # ========== 4. AGREGAR COSTOS POR APU Y CATEGORÍA (VALIDADO) ==========
-    logger.info("📊 Agregando costos por APU y categoría...")
-
+    # Agrupar por 'TIPO_INSUMO' para una clasificación más precisa
     df_apu_costos = (
-        df_merged.groupby(["CODIGO_APU", "CATEGORIA"])["COSTO_INSUMO_EN_APU"]
+        df_merged.groupby(["CODIGO_APU", "TIPO_INSUMO"])["COSTO_INSUMO_EN_APU"]
         .sum()
         .unstack(fill_value=0)
         .reset_index()
     )
     logger.info(f"✅ df_apu_costos creado: {len(df_apu_costos)} APUs únicos")
 
-    cost_cols = ["MATERIALES", "MANO DE OBRA", "EQUIPO", "OTROS"]
-    for col in cost_cols:
+    # Mapear los TIPO_INSUMO a las columnas de costo que espera la lógica de clasificación
+    cost_cols_map = {
+        "SUMINISTRO": "MATERIALES",
+        "MANO_DE_OBRA": "MANO DE OBRA",
+        "EQUIPO": "EQUIPO",
+        "TRANSPORTE": "OTROS",
+        "OTRO": "OTROS",
+    }
+    df_apu_costos.rename(columns=cost_cols_map, inplace=True)
+
+    # Consolidar columnas 'OTROS' si se han creado varias
+    if "OTROS" in df_apu_costos.columns and isinstance(
+        df_apu_costos["OTROS"], pd.DataFrame
+    ):
+        df_apu_costos["OTROS"] = df_apu_costos["OTROS"].sum(axis=1)
+
+    final_cost_cols = ["MATERIALES", "MANO DE OBRA", "EQUIPO", "OTROS"]
+    for col in final_cost_cols:
         if col not in df_apu_costos.columns:
             df_apu_costos[col] = 0
 
@@ -233,31 +243,25 @@ def _calculate_apu_costs_and_metadata(df_merged: pd.DataFrame) -> tuple:
     df_apu_costos["VALOR_INSTALACION_UN"] = (
         df_apu_costos["MANO DE OBRA"] + df_apu_costos["EQUIPO"]
     )
-    df_apu_costos["VALOR_CONSTRUCCION_UN"] = df_apu_costos[cost_cols].sum(axis=1)
+    df_apu_costos["VALOR_CONSTRUCCION_UN"] = df_apu_costos[final_cost_cols].sum(axis=1)
 
-    # 🔥 VALIDACIÓN MEJORADA: Verificar valores unitarios razonables
     valor_max = df_apu_costos["VALOR_CONSTRUCCION_UN"].max()
     valor_avg = df_apu_costos["VALOR_CONSTRUCCION_UN"].mean()
     valor_std = df_apu_costos["VALOR_CONSTRUCCION_UN"].std()
-
     logger.info(
-        "📈 Estadísticas de costos unitarios: Max=$%.2f, Avg=$%.2f",
-        valor_max, valor_avg
+        f"📈 Estadísticas de costos unitarios: Max=${valor_max:,.2f}, Avg=${valor_avg:,.2f}"
     )
 
-    # Detectar outliers usando método estadístico
     outlier_threshold = valor_avg + (3 * valor_std)
-    outliers = df_apu_costos[df_apu_costos["VALOR_CONSTRUCCION_UN"] > outlier_threshold]
-
+    outliers = df_apu_costos[
+        df_apu_costos["VALOR_CONSTRUCCION_UN"] > outlier_threshold
+    ]
     if not outliers.empty:
         logger.warning(f"⚠️ Se detectaron {len(outliers)} APUs con costos anómalos")
         for _, outlier in outliers.iterrows():
             logger.warning(
-                " APU %s: $%.2f (MO: %.2f, MAT: %.2f)",
-                outlier['CODIGO_APU'],
-                outlier['VALOR_CONSTRUCCION_UN'],
-                outlier.get('MANO DE OBRA', 0),
-                outlier.get('MATERIALES', 0)
+                f" APU {outlier['CODIGO_APU']}: ${outlier['VALOR_CONSTRUCCION_UN']:,.2f} "
+                f"(MO: {outlier.get('MANO DE OBRA', 0):,.2f}, MAT: {outlier.get('MATERIALES', 0):,.2f})"
             )
 
     # ========== 6. CLASIFICAR APUs ==========
@@ -265,47 +269,39 @@ def _calculate_apu_costs_and_metadata(df_merged: pd.DataFrame) -> tuple:
         costo_total = row["VALOR_CONSTRUCCION_UN"]
         if costo_total == 0:
             return "Indefinido"
-
-        mo_cost = row.get("MANO DE OBRA", 0)
-        eq_cost = row.get("EQUIPO", 0)
-        mat_cost = row.get("MATERIALES", 0)
-
-        porcentaje_mo_eq = ((mo_cost + eq_cost) / costo_total) * 100
-        porcentaje_materiales = (mat_cost / costo_total) * 100
-
+        porcentaje_mo_eq = (
+            (row.get("MANO DE OBRA", 0) + row.get("EQUIPO", 0)) / costo_total
+        ) * 100
+        porcentaje_materiales = (row.get("MATERIALES", 0) / costo_total) * 100
         if porcentaje_mo_eq > 75:
             return "Instalación"
-
         if porcentaje_materiales > 75 and porcentaje_mo_eq < 15:
             return "Suministro"
-
         if porcentaje_materiales > 65 and porcentaje_mo_eq > 15:
             return "Suministro (Pre-fabricado)"
-
         return "Obra Completa"
 
     df_apu_costos["tipo_apu"] = df_apu_costos.apply(classify_apu, axis=1)
 
-    # ========== 7. CALCULAR TIEMPO Y RENDIMIENTO ==========
-    df_mo_data = df_merged[df_merged["CATEGORIA"] == "MANO DE OBRA"].copy()
-
+    # ========== 7. CALCULAR TIEMPO Y RENDIMIENTO (CÓDIGO QUE FUE BORRADO) ==========
     df_tiempo = (
-        df_mo_data.groupby("CODIGO_APU")["CANTIDAD_APU"]
+        df_merged[df_merged["TIPO_INSUMO"] == "MANO_DE_OBRA"]
+        .groupby("CODIGO_APU")["CANTIDAD_APU"]
         .sum()
         .reset_index()
     )
     df_tiempo.rename(columns={"CANTIDAD_APU": "TIEMPO_INSTALACION"}, inplace=True)
 
-    if "RENDIMIENTO" in df_mo_data.columns:
+    if "RENDIMIENTO" in df_merged.columns:
         df_rendimiento = (
-            df_mo_data.groupby("CODIGO_APU")["RENDIMIENTO"]
+            df_merged[df_merged["TIPO_INSUMO"] == "MANO_DE_OBRA"]
+            .groupby("CODIGO_APU")["RENDIMIENTO"]
             .sum()
             .reset_index()
         )
         df_rendimiento.rename(columns={"RENDIMIENTO": "RENDIMIENTO_DIA"}, inplace=True)
     else:
         df_rendimiento = pd.DataFrame(columns=["CODIGO_APU", "RENDIMIENTO_DIA"])
-
 
     return df_apu_costos, df_tiempo, df_rendimiento
 
