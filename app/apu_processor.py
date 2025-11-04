@@ -143,7 +143,7 @@ class APUProcessor:
 
         # 7. Validar antes de agregar
         if not self._should_add_insumo(
-            descripcion_insumo, cantidad, valor_total, precio_unit, tipo_insumo
+            descripcion_insumo, cantidad, valor_total, tipo_insumo
         ):
             self.stats["rechazados_validacion"] += 1
             return None
@@ -700,43 +700,98 @@ class APUProcessor:
 
         return False
 
-    def _should_add_insumo(self, desc: str, cantidad: float, valor_total: float, precio_unit: float, tipo_insumo: str) -> bool:
-        """VALIDACIÓN MEJORADA con umbrales por tipo de insumo y precio unitario."""
+    def _should_add_insumo(
+        self, desc: str, cantidad: float, valor_total: float, tipo_insumo: str
+    ) -> bool:
+        """
+        Valida si un insumo debe ser agregado a los datos procesados.
+
+        Args:
+            desc: Descripción del insumo
+            cantidad: Cantidad del insumo
+            valor_total: Valor total del insumo
+            tipo_insumo: Tipo clasificado del insumo
+
+        Returns:
+            True si el insumo pasa las validaciones, False en caso contrario
+        """
+        # Validación 1: Descripción válida
         if not desc or len(desc.strip()) < 3:
-            logger.debug("Rechazado: descripción muy corta")
+            logger.debug("Rechazado: descripción muy corta o vacía")
             return False
 
-        # 🔥 VALIDACIÓN DE PRECIO UNITARIO (JORNAL) PARA MANO DE OBRA
-        if tipo_insumo == "MANO_DE_OBRA":
-            MIN_JORNAL = 1000 # Umbral mínimo para un jornal
-            MAX_JORNAL = 500000 # Umbral máximo razonable para un jornal diario
-            if not (MIN_JORNAL <= precio_unit <= MAX_JORNAL) and precio_unit > 0:
-                logger.warning(
-                    f"Rechazado: precio unitario implícito sospechoso ${precio_unit:,.2f} para MANO_DE_OBRA "
-                    f"(esperado entre ${MIN_JORNAL:,.2f} y ${MAX_JORNAL:,.2f}) - '{desc[:50]}...'"
-                )
-                return False
+        # Validación 2: Debe tener al menos cantidad o valor
+        if cantidad <= 0 and valor_total <= 0:
+            logger.debug(f"Rechazado: sin cantidad ni valor - '{desc[:30]}...'")
+            return False
 
-        # Umbrales de cantidad y valor total
+        # Validación 3: Umbrales por tipo de insumo
         umbrales = {
-            "MANO_DE_OBRA": {"cantidad": 1000, "valor": 10_000_000},
-            "EQUIPO": {"cantidad": 10000, "valor": 20_000_000},
-            "SUMINISTRO": {"cantidad": 100000, "valor": 50_000_000},
-            "OTRO": {"cantidad": 1000000, "valor": 100_000_000}
+            "MANO_DE_OBRA": {
+                "cantidad_max": 1000,
+                "valor_max": 999_999,
+            },
+            "EQUIPO": {
+                "cantidad_max": 10000,
+                "valor_max": 9_999_999,
+            },
+            "SUMINISTRO": {
+                "cantidad_max": 100000,
+                "valor_max": 99_999_999,
+            },
+            "TRANSPORTE": {
+                "cantidad_max": 10000,
+                "valor_max": 9_999_999,
+            },
+            "OTRO": {
+                "cantidad_max": 1_000_000,
+                "valor_max": 999_999_999,
+            }
         }
+
         umbral = umbrales.get(tipo_insumo, umbrales["OTRO"])
 
-        if valor_total > umbral["valor"]:
-            logger.warning(f"Rechazado: valor total absurdo ${valor_total:,.2f} para {tipo_insumo} - '{desc[:50]}...'")
+        # Validar cantidad
+        if cantidad > umbral["cantidad_max"]:
+            logger.warning(
+                "Rechazado: cantidad absurda %.2f para %s - '%s...'",
+                cantidad, tipo_insumo, desc[:30]
+            )
             return False
 
-        if cantidad > umbral["cantidad"]:
-            logger.warning(f"Rechazado: cantidad absurda {cantidad:,.2f} para {tipo_insumo} - '{desc[:50]}...'")
+        # Validar valor total
+        if valor_total > umbral["valor_max"]:
+            logger.warning(
+                "Rechazado: valor total absurdo $%.2f para %s - '%s...'",
+                valor_total, tipo_insumo, desc[:30]
+            )
             return False
 
-        if cantidad <= 0 and valor_total <= 0:
-            logger.debug(f"Rechazado: sin cantidad ni valor - '{desc[:50]}...'")
-            return False
+        # Validación 4: Coherencia entre cantidad y valor
+        if cantidad > 0 and valor_total > 0:
+            precio_implicito = valor_total / cantidad
+
+            precio_umbrales = {
+                "MANO_DE_OBRA": (1000, 500_000),
+                "EQUIPO": (100, 1_000_000),
+                "SUMINISTRO": (1, 10_000_000),
+                "TRANSPORTE": (100, 500_000),
+                "OTRO": (0.01, 100_000_000),
+            }
+
+            umbrales_precio = precio_umbrales.get(
+                tipo_insumo, precio_umbrales["OTRO"]
+            )
+            min_precio, max_precio = umbrales_precio
+
+            if not (min_precio <= precio_implicito <= max_precio):
+                logger.warning(
+                    "Rechazado: precio unitario implícito sospechoso $%.2f "
+                    "para %s (esperado entre $%d y $%d) - '%s...'",
+                    precio_implicito, tipo_insumo,
+                    min_precio, max_precio, desc[:30]
+                )
+                return False
 
         return True
 
