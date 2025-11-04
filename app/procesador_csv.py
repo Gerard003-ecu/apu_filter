@@ -553,9 +553,21 @@ def _do_processing(
     )
     df_processed_apus = group_and_split_description(df_processed_apus)
 
+    # 🔥 INICIO DEL NUEVO BLOQUE DE CÓDIGO
+    # Forzar una única fuente de verdad: Asegurar que apus_detail solo contenga insumos validados.
+    # Filtramos df_merged para que solo incluya los códigos de APU que terminaron en el presupuesto final.
+    codigos_apu_validos = df_final["CODIGO_APU"].unique()
+    insumos_antes = len(df_merged)
+    df_merged = df_merged[df_merged["CODIGO_APU"].isin(codigos_apu_validos)].copy()
+    insumos_despues = len(df_merged)
+    logger.info(
+    f"✅ Sincronización de datos completada. Insumos filtrados: {insumos_antes} -> {insumos_despues}"
+    )
+    # 🔥 FIN DEL NUEVO BLOQUE DE CÓDIGO
+
     # ========== 10. PREPARAR DICCIONARIOS DE SALIDA ==========
     df_merged.rename(
-        columns={"vr_unitario_final": "vr_unitario", "costo_insumo_en_apu": "vr_total"},
+        columns={"VR_UNITARIO_FINAL": "VR_UNITARIO", "COSTO_INSUMO_EN_APU": "VR_TOTAL"},
         inplace=True,
     )
     apus_detail = df_merged.to_dict("records")

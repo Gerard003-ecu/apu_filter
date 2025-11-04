@@ -42,6 +42,17 @@ def create_app(config_name):
     logging.basicConfig(level=logging.DEBUG)
     app = Flask(__name__)
 
+    # 🔥 INICIO DEL NUEVO BLOQUE DE CÓDIGO
+    # Configuración de logging a archivo
+    log_formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    log_handler = logging.FileHandler('app.log', mode='w') # 'w' para sobrescribir en cada reinicio
+    log_handler.setFormatter(log_formatter)
+    log_handler.setLevel(logging.DEBUG)
+    app.logger.addHandler(log_handler)
+    # También añade el handler al logger raíz para capturar logs de otros módulos
+    logging.getLogger().addHandler(log_handler)
+    # 🔥 FIN DEL NUEVO BLOQUE DE CÓDIGO
+
     # Cargar configuración desde el objeto de configuración
     app.config.from_object(config_by_name[config_name])
 
@@ -194,6 +205,7 @@ def create_app(config_name):
         """
         logger = app.logger
         try:
+            logger.info(f"Solicitud de detalle para APU: {code}") # <-- AÑADIR ESTA LÍNEA
             logger.debug(f"Iniciando get_apu_detail para el código: {code}")
 
             user_data, error_response, status_code = get_user_data()
@@ -208,6 +220,7 @@ def create_app(config_name):
             ]
 
             if not apu_details_for_code_raw:
+                logger.warning(f"APU no encontrado en apus_detail: {apu_code}") # <-- AÑADIR ESTA LÍNEA
                 return jsonify({"error": "APU no encontrado"}), 404
 
             df_temp = pd.DataFrame(apu_details_for_code_raw)
@@ -302,6 +315,7 @@ def create_app(config_name):
                 "desglose": desglose,
                 "simulation": simulation_results,
             }
+            logger.info(f"Detalle para APU {apu_code} generado exitosamente con {len(apu_details_procesados)} insumos agrupados.") # <-- AÑADIR ESTA LÍNEA
             return jsonify(sanitize_for_json(response))
 
         except Exception as e:
@@ -339,10 +353,13 @@ def create_app(config_name):
         if not params:
             return jsonify({"error": "No se proporcionaron parámetros"}), 400
 
+        app.logger.info(f"Solicitud de estimación recibida con parámetros: {params}") # <-- AÑADIR ESTA LÍNEA
+
         try:
             result = calculate_estimate(
                 params, user_data, app.config.get("APP_CONFIG", {})
             )
+            app.logger.info(f"Resultado de la estimación: Construcción=${result.get('valor_construccion', 0):,.2f}, Rendimiento={result.get('rendimiento_m2_por_dia', 0):.2f}") # <-- AÑADIR ESTA LÍNEA
             if "error" in result:
                 return jsonify(result), 400
             return jsonify(sanitize_for_json(result))
