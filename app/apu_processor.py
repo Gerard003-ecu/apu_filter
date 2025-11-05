@@ -19,16 +19,16 @@ from .utils import clean_apu_code, parse_number
 
 logger = logging.getLogger(__name__)
 
-# Gramática PEG simplificada - solo tokenización, sin interpretación
+# Gramática PEG corregida - versión funcional
 APU_GRAMMAR = r"""
     ?start: line
-    line: (field (SEP field)*)?   // Una línea es una lista opcional de campos
-    field: /[^;]*/               // Un campo es cualquier cosa que no sea separador
-    SEP: ";"                      // El separador es un terminal explícito
+    line: (field (SEP field)*)?
+    field: FIELD_VALUE
+    FIELD_VALUE: /[^;\n]*/  // Cualquier cosa excepto ; y nueva línea
+    SEP: ";"
     %import common.WS
     %ignore WS
 """
-
 
 @v_args(inline=True)
 class APUTransformer(Transformer):
@@ -41,15 +41,17 @@ class APUTransformer(Transformer):
 
     def line(self, *fields):
         """
-        Despachador inteligente - decide el tipo de línea basado en el número de campos.
-        
-        Args:
-            *fields: Campos tokenizados de la línea
-            
-        Returns:
-            Objeto de datos estructurado (ManoDeObra, Suministro, etc.)
+        Despachador inteligente - CORREGIDO para manejar tokens Lark.
         """
-        fields = [str(f).strip() if f else "" for f in fields]
+        # Convertir tokens Lark a strings
+        field_strings = []
+        for field in fields:
+            if hasattr(field, 'value'):
+                field_strings.append(str(field.value).strip())
+            else:
+                field_strings.append(str(field).strip() if field else "")
+
+        fields = field_strings
         num_fields = len(fields)
 
         logger.debug(f"📝 Campos parseados ({num_fields}): {fields}")
@@ -59,7 +61,7 @@ class APUTransformer(Transformer):
             return self._build_mo_completa(fields)
         elif num_fields == 5:
             return self._build_insumo_basico(fields)
-        elif num_fields >= 4:
+        elif num_fields >= 3:  # Reducido de 4 a 3 para mayor flexibilidad
             return self._build_insumo_minimal(fields)
         else:
             logger.warning(f"❌ Línea con {num_fields} campos - insuficientes: {fields}")
