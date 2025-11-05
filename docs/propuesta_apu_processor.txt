@@ -1,0 +1,81 @@
+Métodos y Clases Críticas para la Implementación de Jules
+1. La Gramática (APU_GRAMMAR): Simple y Orientada a Separadores
+
+Este es el fundamento. La gramática debe ser lo más simple posible para evitar los LexError
+APU_GRAMMAR = r"""
+    ?start: line
+    line: (field (SEP field)*)?   // Una línea es una lista opcional de campos
+    field: /[^;]*/               // Un campo es cualquier cosa que no sea un separador
+    SEP: ";"                      // El separador es un terminal explícito
+    %import common.WS
+    %ignore WS
+"""
+Función Crítica: Su única responsabilidad es dividir la línea por el separador ;. No intenta entender el contenido de los campos. Esto resuelve el problema de los "zero-width terminals" de una vez por todas.
+
+2. La Clase APUProcessor (El Orquestador 🏗️)
+
+Esta clase es el punto de entrada y el controlador del flujo de trabajo.
+
+    Función Crítica: Inicializar correctamente el parser de lark.
+
+    Implementación Robusta:
+    self.parser = Lark(APU_GRAMMAR, start='line', parser='earley', ambiguity='resolve')
+
+        parser='earley': Se elige este algoritmo por su capacidad para manejar gramáticas complejas y ambiguas, lo que lo hace perfecto para datos del mundo real. Es la solución al bloqueo de Jules.
+
+        ambiguity='resolve': Emula la filosofía de Arpeggio/PEG. Si Earley encuentra múltiples formas de interpretar una línea, simplemente elige la primera, garantizando un resultado determinista.
+
+    Función Crítica: Orquestar el proceso para una sola línea de insumo.
+
+    Implementación Robusta:
+
+        Contexto: Prepara el apu_context (código, descripción, etc.) que se pasará al transformer.
+
+        Llamada a "Tree-less Parsing": Invoca al parser usando la optimización clave que aprendimos del informe de Lark. Esto es más rápido y consume menos memoria.
+    
+    transformer = APUTransformer(apu_context, self.config)
+    insumo_obj = self.parser.parse(insumo_line, transformer=transformer)
+
+Cadena de Validación: Aplica las funciones de validación (_is_excluded_insumo, _should_add_insumo) sobre el objeto dataclass ya construido. Esto asegura que solo los objetos válidos y completos lleguen al resultado final.
+
+Manejo de Errores: Envuelve todo en un bloque try...except para que, si una línea es completamente irreparable, el proceso no se detenga, sino que se registre el error y se continúe.
+
+    Función Crítica: Clasificar un insumo basándose en su descripción.
+
+    Implementación Robusta (Lógica de "Embudo"):
+
+        Excepciones Primero: Comprueba si la descripción coincide con una lista de excepciones conocidas (ej. "HERRAMIENTA MENOR (% MANO DE OBRA)") para forzar una clasificación correcta en casos ambiguos.
+
+        Precedencia Después: Si no es una excepción, comprueba las palabras clave generales en un orden de precedencia estricto: Equipo -> Mano de Obra -> Transporte -> Suministro. Este orden es la solución al bug de clasificación que Jules no podía resolver.
+
+        @staticmethod: Se define como un método estático para que pueda ser llamado desde el APUTransformer sin necesidad de una instancia de APUProcessor, promoviendo un bajo acoplamiento.
+
+3. La Clase APUTransformer (El Cerebro de la Transformación 🧠)
+
+Esta es la clase más importante y donde reside la lógica de negocio del parsing.
+
+    Función Crítica: Actuar como un despachador inteligente. Es el corazón de la nueva arquitectura.
+
+    Implementación Robusta:
+
+        Recibe una lista de tokens limpios.
+
+        Decide basándose en el número de campos:
+
+            Si hay 6 o más campos, determina si es ManoDeObra o un Insumo general y llama al método _build_* correspondiente.
+
+            Si hay 5 campos, asume que es un Insumo básico y llama a _build_insumo_basico.
+
+        Si el número de campos es inesperado, descarta la línea y la registra. Esto reemplaza la necesidad de múltiples reglas de gramática frágiles.
+
+    Función Crítica: Actuar como "fábricas" especializadas para cada tipo de línea.
+
+    Implementación Robusta:
+
+        Desempaquetado Explícito: Asigna los tokens a variables con nombres claros (ej. descripcion, _, _, jornal_total, ...). Esto hace que el código sea auto-documentado.
+
+        Conversión Segura: Utiliza parse_number() para convertir los tokens de texto a números, manejando errores de forma segura.
+
+        Lógica de Negocio Centralizada: Contiene los cálculos clave en un solo lugar. Por ejemplo, _build_mo_completa es el único lugar donde se calcula cantidad = 1.0 / rend.
+
+        Instanciación Directa de dataclasses: Su return es un objeto ManoDeObra(...) o Suministro(...) ya completo y validado por su tipo. Esto garantiza que solo objetos bien formados salgan del transformer.
