@@ -32,210 +32,140 @@ APU_GRAMMAR = r"""
 
 @v_args(inline=True)
 class APUTransformer(Transformer):
-    """Transforma el árbol de parsing Lark en objetos de datos estructurados."""
+    """
+    Transforma el árbol de parsing de Lark en objetos dataclass usando un
+    despachador inteligente con heurística y fallbacks.
+    """
 
     def __init__(self, apu_context: Dict, config: Dict):
         self.apu_context = apu_context
         self.config = config
         super().__init__()
 
+    def _clean_token(self, token):
+        if token is None: return ""
+        return token.value.strip()
+
     def line(self, *fields):
         """
-        Despachador inteligente - CORREGIDO para manejar tokens Lark.
+        Punto de entrada principal: limpia, detecta el formato y despacha al constructor correcto.
         """
-        # Convertir tokens Lark a strings
-        field_strings = []
-        for field in fields:
-            if hasattr(field, 'value'):
-                field_strings.append(str(field.value).strip())
-            else:
-                field_strings.append(str(field).strip() if field else "")
+        tokens = [self._clean_token(f) for f in fields]
 
-        fields = field_strings
-        num_fields = len(fields)
-
-        logger.debug(f"📝 Campos parseados ({num_fields}): {fields}")
-
-        # Despachar basado en número de campos y contenido
-        if num_fields >= 6:
-            return self._build_mo_completa(fields)
-        elif num_fields == 5:
-            return self._build_insumo_basico(fields)
-        elif num_fields >= 3:  # Reducido de 4 a 3 para mayor flexibilidad
-            return self._build_insumo_minimal(fields)
-        else:
-            logger.warning(f"❌ Línea con {num_fields} campos - insuficientes: {fields}")
+        if not tokens or not tokens[0]:
             return None
 
-    def _build_mo_completa(self, fields: List[str]):
-        """
-        Construye objeto ManoDeObra desde formato completo (6+ campos).
-        
-        Formato: descripcion; jornal_base; prestaciones; jornal_total; rendimiento; valor_total
-        """
-        try:
-            descripcion = fields[0]
-            jornal_base = parse_number(fields[1])
-            prestaciones = fields[2]  # Puede ser número o texto
-            jornal_total = parse_number(fields[3])
-            rendimiento = parse_number(fields[4])
-            valor_total = parse_number(fields[5])
+        formato_detectado = self._detect_format(tokens)
 
-            # Calcular cantidad para MO
-            cantidad = 1.0 / rendimiento if rendimiento > 0 else 0
-
-            # 🔥 RECALCULACIÓN INCONDICIONAL para MO
-            valor_total_recalc = cantidad * jornal_total
-
-            logger.debug(
-                f"👷 MO Completa: '{descripcion[:30]}...' - "
-                f"Rend: {rendimiento}, Cant: {cantidad:.6f}, "
-                f"VrTotal: {valor_total} → {valor_total_recalc:.2f} (RECALCULADO)"
-            )
-
-            return ManoDeObra(
-                codigo_apu=self.apu_context["apu_code"],
-                descripcion_apu=self.apu_context["apu_desc"],
-                unidad_apu=self.apu_context["apu_unit"],
-                descripcion_insumo=descripcion,
-                unidad_insumo="JOR",
-                cantidad=round(cantidad, 6),
-                precio_unitario=round(jornal_total, 2),
-                valor_total=round(valor_total_recalc, 2),
-                categoria=self.apu_context["category"],
-                formato_origen="MO_COMPLETA",
-                tipo_insumo="MANO_DE_OBRA",
-                normalized_desc=self._normalize_text(descripcion),
-                rendimiento=round(rendimiento, 6)
-            )
-
-        except (ValueError, ZeroDivisionError, IndexError) as e:
-            logger.warning(f"❌ Error construyendo MO completa: {e} - Campos: {fields}")
-            return None
-
-    def _build_insumo_basico(self, fields: List[str]):
-        """
-        Construye objeto de insumo desde formato básico (5 campos).
-        
-        Formato: descripcion; unidad; cantidad; precio_unit; valor_total
-        """
-        try:
-            descripcion = fields[0]
-            unidad = fields[1] if fields[1] else "UND"
-            cantidad = parse_number(fields[2])
-            precio_unit = parse_number(fields[3])
-            valor_total = parse_number(fields[4])
-
-            # Corregir valores faltantes
-            if valor_total == 0 and cantidad > 0 and precio_unit > 0:
-                valor_total = cantidad * precio_unit
-            elif cantidad == 0 and valor_total > 0 and precio_unit > 0:
-                cantidad = valor_total / precio_unit
-            elif precio_unit == 0 and cantidad > 0 and valor_total > 0:
-                precio_unit = valor_total / cantidad
-
-            # Clasificar tipo
-            tipo_insumo = self._classify_insumo(descripcion)
-
-            # Determinar clase de datos
-            insumo_class = self._get_insumo_class(tipo_insumo)
-
-            return insumo_class(
-                codigo_apu=self.apu_context["apu_code"],
-                descripcion_apu=self.apu_context["apu_desc"],
-                unidad_apu=self.apu_context["apu_unit"],
-                descripcion_insumo=descripcion,
-                unidad_insumo=unidad,
-                cantidad=round(cantidad, 6),
-                precio_unitario=round(precio_unit, 2),
-                valor_total=round(valor_total, 2),
-                categoria=self.apu_context["category"],
-                formato_origen="INSUMO_BASICO",
-                tipo_insumo=tipo_insumo,
-                normalized_desc=self._normalize_text(descripcion),
-                rendimiento=0.0
-            )
-
-        except (ValueError, IndexError) as e:
-            logger.warning(f"❌ Error construyendo insumo básico: {e} - Campos: {fields}")
-            return None
-
-    def _build_insumo_minimal(self, fields: List[str]):
-        """
-        Construye objeto de insumo desde formato mínimo (4 campos).
-        
-        Formato: descripcion; unidad; cantidad; precio_unit
-        """
-        try:
-            descripcion = fields[0]
-            unidad = fields[1] if len(fields) > 1 and fields[1] else "UND"
-            cantidad = parse_number(fields[2]) if len(fields) > 2 else 0
-            precio_unit = parse_number(fields[3]) if len(fields) > 3 else 0
-
-            # Calcular valor total
-            valor_total = cantidad * precio_unit if cantidad > 0 and precio_unit > 0 else 0
-
-            # Clasificar tipo
-            tipo_insumo = self._classify_insumo(descripcion)
-
-            # Determinar clase de datos
-            insumo_class = self._get_insumo_class(tipo_insumo)
-
-            return insumo_class(
-                codigo_apu=self.apu_context["apu_code"],
-                descripcion_apu=self.apu_context["apu_desc"],
-                unidad_apu=self.apu_context["apu_unit"],
-                descripcion_insumo=descripcion,
-                unidad_insumo=unidad,
-                cantidad=round(cantidad, 6),
-                precio_unitario=round(precio_unit, 2),
-                valor_total=round(valor_total, 2),
-                categoria=self.apu_context["category"],
-                formato_origen="INSUMO_MINIMAL",
-                tipo_insumo=tipo_insumo,
-                normalized_desc=self._normalize_text(descripcion),
-                rendimiento=0.0
-            )
-
-        except (ValueError, IndexError) as e:
-            logger.warning(f"❌ Error construyendo insumo mínimo: {e} - Campos: {fields}")
-            return None
-
-    def _classify_insumo(self, descripcion: str) -> str:
-        """
-        Clasifica un insumo basado en palabras clave con precedencia estricta.
-        
-        Orden de precedencia: EQUIPO → MANO_DE_OBRA → TRANSPORTE → SUMINISTRO → OTRO
-        """
-        if not descripcion:
-            return "OTRO"
-
-        desc_upper = descripcion.upper()
-
-        # 1. Excepciones conocidas primero
-        exception_map = {
-            "HERRAMIENTA MENOR": "EQUIPO",
-            "HERRAMIENTA (% MO)": "EQUIPO",
-            "EQUIPO Y HERRAMIENTA": "EQUIPO",
+        dispatcher = {
+            "MO_COMPLETA": self._build_mo_completa,
+            "INSUMO_BASICO": self._build_insumo_basico,
         }
 
-        for exception, tipo in exception_map.items():
-            if exception in desc_upper:
-                return tipo
+        builder = dispatcher.get(formato_detectado)
 
-        # 2. Palabras clave con precedencia estricta
-        keyword_hierarchy = [
-            ("EQUIPO", self._get_equipo_keywords()),
-            ("MANO_DE_OBRA", self._get_mo_keywords()),
-            ("TRANSPORTE", self._get_transporte_keywords()),
-            ("SUMINISTRO", self._get_sumistro_keywords()),
-        ]
+        if builder:
+            return builder(tokens)
+        else:
+            logger.warning(f"⚠️ Formato no reconocido para la línea: {tokens}")
+            return None
 
-        for tipo, keywords in keyword_hierarchy:
-            if any(kw in desc_upper for kw in keywords):
-                return tipo
+    def _detect_format(self, fields: List[str]) -> str:
+        """
+        Detecta el formato de la línea basándose en contenido y estructura.
+        """
+        num_fields = len(fields)
+        descripcion = fields[0]
+        tipo_probable = self._classify_insumo_static(descripcion)
 
-        return "OTRO"
+        if num_fields >= 6 and tipo_probable == "MANO_DE_OBRA":
+            # Validar si realmente tiene la estructura de MO_COMPLETA
+            try:
+                jornal_total = parse_number(fields[3])
+                rendimiento = parse_number(fields[4])
+                thresholds = self.config.get("validation_thresholds", {}).get("MANO_DE_OBRA", {})
+                min_jornal = thresholds.get("min_jornal", 50000)
+
+                # Si el jornal es válido y el rendimiento es plausible, es MO_COMPLETA
+                if jornal_total >= min_jornal and rendimiento > 0:
+                    return "MO_COMPLETA"
+            except (ValueError, IndexError):
+                pass
+
+        # Si no es MO_COMPLETA o tiene 5 campos o más, es un insumo básico.
+        if num_fields >= 5:
+            return "INSUMO_BASICO"
+
+        return "DESCONOCIDO"
+
+    def _build_mo_completa(self, tokens: List[str]) -> Optional[InsumoProcesado]:
+        """Construye un objeto ManoDeObra. Si falla, intenta construirlo como un insumo básico."""
+        try:
+            descripcion, _, _, jornal_total_str, rendimiento_str, *_ = tokens
+            jornal_total = parse_number(jornal_total_str)
+            rendimiento = parse_number(rendimiento_str)
+
+            # Validación de robustez
+            thresholds = self.config.get("validation_thresholds", {}).get("MANO_DE_OBRA", {})
+            min_jornal = thresholds.get("min_jornal", 0)
+            if not (jornal_total >= min_jornal and rendimiento > 0):
+                logger.warning(f"⚠️ Falla validación de MO para '{descripcion[:30]}...'. Intentando fallback.")
+                return self._fallback_to_insumo_basico(tokens)
+
+            cantidad = 1.0 / rendimiento
+            valor_total = cantidad * jornal_total
+
+            return ManoDeObra(
+                descripcion_insumo=descripcion, unidad_insumo="JOR",
+                cantidad=cantidad, precio_unitario=jornal_total, valor_total=valor_total,
+                rendimiento=rendimiento, formato_origen="MO_COMPLETA",
+                tipo_insumo="MANO_DE_OBRA",
+                normalized_desc=self._normalize_text(descripcion),
+                **self.apu_context
+            )
+        except (ValueError, ZeroDivisionError, IndexError) as e:
+            logger.error(f"❌ Error construyendo MO_COMPLETA: {e}. Intentando fallback.")
+            return self._fallback_to_insumo_basico(tokens)
+
+    def _build_insumo_basico(self, tokens: List[str]) -> Optional[InsumoProcesado]:
+        """Construye un objeto de insumo genérico (Suministro, Equipo, etc.)."""
+        try:
+            # Maneja tanto 5 como 6 campos, ignorando el campo de desperdicio si existe
+            if len(tokens) >= 6:
+                descripcion, unidad, cantidad_str, _, precio_unit_str, valor_total_str, *_ = tokens
+            else:
+                descripcion, unidad, cantidad_str, precio_unit_str, valor_total_str, *_ = tokens
+
+            cantidad = parse_number(cantidad_str)
+            precio_unit = parse_number(precio_unit_str)
+            valor_total = parse_number(valor_total_str)
+
+            # Lógica de corrección de valores
+            if valor_total == 0 and cantidad > 0 and precio_unit > 0:
+                valor_total = cantidad * precio_unit
+
+            tipo_insumo = self._classify_insumo_static(descripcion)
+
+            common_args = {
+                "descripcion_insumo": descripcion, "unidad_insumo": unidad or "UND",
+                "cantidad": cantidad, "precio_unitario": precio_unit, "valor_total": valor_total,
+                "rendimiento": cantidad, "formato_origen": "INSUMO_BASICO",
+                "tipo_insumo": tipo_insumo,
+                "normalized_desc": self._normalize_text(descripcion),
+                **self.apu_context
+            }
+
+            class_map = {"EQUIPO": Equipo, "TRANSPORTE": Transporte, "SUMINISTRO": Suministro}
+            InsumoClass = class_map.get(tipo_insumo, Otro)
+            return InsumoClass(**common_args)
+        except (ValueError, IndexError) as e:
+            logger.error(f"❌ Error fatal construyendo INSUMO_BASICO: {e} para tokens {tokens}")
+            return None
+
+    def _fallback_to_insumo_basico(self, tokens: List[str]) -> Optional[InsumoProcesado]:
+        """Si la construcción de MO falla, intenta procesar la línea como un insumo básico."""
+        logger.debug(f"🔄 Ejecutando fallback a insumo básico para: {tokens[0][:50]}...")
+        return self._build_insumo_basico(tokens)
 
     @staticmethod
     def _get_equipo_keywords():
@@ -262,18 +192,45 @@ class APUTransformer(Transformer):
                 "LADRILLO", "BLOQUE", "MADERA", "PINTURA", "PEGANTE", "TORNILLO",
                 "CLAVO", "ARENA", "PIEDRA", "AGREGADO", "CONCRETO", "MALLA", "PERNO"]
 
-    def _get_insumo_class(self, tipo_insumo: str):
-        """Devuelve la clase de datos apropiada para el tipo de insumo."""
-        class_map = {
-            "MANO_DE_OBRA": ManoDeObra,
-            "EQUIPO": Equipo,
-            "SUMINISTRO": Suministro,
-            "TRANSPORTE": Transporte,
-            "OTRO": Otro,
-        }
-        return class_map.get(tipo_insumo, Otro)
+    @staticmethod
+    def _classify_insumo_static(descripcion: str) -> str:
+        """
+        Clasifica un insumo basado en palabras clave con precedencia estricta.
+        
+        Orden de precedencia: EQUIPO → MANO_DE_OBRA → TRANSPORTE → SUMINISTRO → OTRO
+        """
+        if not descripcion:
+            return "OTRO"
 
-    def _normalize_text(self, text: str) -> str:
+        desc_upper = descripcion.upper()
+
+        # 1. Excepciones conocidas primero
+        exception_map = {
+            "HERRAMIENTA MENOR": "EQUIPO",
+            "HERRAMIENTA (% MO)": "EQUIPO",
+            "EQUIPO Y HERRAMIENTA": "EQUIPO",
+        }
+
+        for exception, tipo in exception_map.items():
+            if exception in desc_upper:
+                return tipo
+
+        # 2. Palabras clave con precedencia estricta
+        keyword_hierarchy = [
+            ("EQUIPO", APUTransformer._get_equipo_keywords()),
+            ("MANO_DE_OBRA", APUTransformer._get_mo_keywords()),
+            ("TRANSPORTE", APUTransformer._get_transporte_keywords()),
+            ("SUMINISTRO", APUTransformer._get_sumistro_keywords()),
+        ]
+
+        for tipo, keywords in keyword_hierarchy:
+            if any(kw in desc_upper for kw in keywords):
+                return tipo
+
+        return "OTRO"
+
+    @staticmethod
+    def _normalize_text(text: str) -> str:
         """Normaliza texto para comparación."""
         if not text:
             return ""
