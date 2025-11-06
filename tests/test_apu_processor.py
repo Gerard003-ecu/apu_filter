@@ -88,10 +88,10 @@ class TestAPUProcessorFixed(unittest.TestCase):
     def test_transformer_directly_fixed(self):
         """Prueba del transformer directamente."""
         apu_context = {
-            "apu_code": "TEST-TRANSFORMER",
-            "apu_desc": "Test Transformer",
-            "apu_unit": "UND",
-            "category": "MATERIALES"
+            "codigo_apu": "TEST-TRANSFORMER",
+            "descripcion_apu": "Test Transformer",
+            "unidad_apu": "UND",
+            "categoria": "MATERIALES"
         }
 
         try:
