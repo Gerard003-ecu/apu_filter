@@ -1,4 +1,5 @@
 flask
+lark
 pandas
 openpyxl
 unidecode

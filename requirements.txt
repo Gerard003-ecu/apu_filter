@@ -14,6 +14,8 @@ itsdangerous==2.2.0
     # via flask
 jinja2==3.1.6
     # via flask
+lark==1.3.1
+    # via -r requirements.in
 levenshtein==0.27.1
     # via python-levenshtein
 markupsafe==3.0.2

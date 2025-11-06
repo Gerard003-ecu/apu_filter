@@ -1,0 +1,982 @@
+### propuesta 1 ###
+
+def normalize_text(text: str, preserve_special_chars: bool = False) -> str:
+    """
+    Normaliza un texto de forma consistente y robusta.
+    """
+    if text is None:
+        return ""
+
+    if not isinstance(text, str):
+        text = str(text)
+
+    text = text.lower().strip()
+    text = unidecode(text)
+
+    if preserve_special_chars:
+        pattern = r"[^a-z0-9\s#\-_/\.@]"
+    else:
+        pattern = r"[^a-z0-9\s]"
+
+    text = re.sub(pattern, "", text)
+    text = re.sub(r"\s+", " ", text)
+
+    return text.strip()
+
+
+def normalize_unit(unit: str) -> str:
+    if not unit or not isinstance(unit, str):
+        return 'UND'
+
+    unit_clean = unidecode(unit.upper().strip())
+
+    unit_mapping = {
+        'DIAS': 'DIA', 'DÍAS': 'DIA', 'JORNAL': 'JOR', 'JORNALES': 'JOR',
+        'HORAS': 'HR', 'HORA': 'HR', 'UNIDAD': 'UND', 'UNIDADES': 'UND',
+        'UN': 'UND', 'METRO': 'M', 'METROS': 'M', 'MTS': 'M',
+        'METRO2': 'M2', 'M2': 'M2', 'MT2': 'M2', 'METRO CUADRADO': 'M2',
+        'METRO3': 'M3', 'M3': 'M3', 'MT3': 'M3', 'METRO CUBICO': 'M3',
+        'KILOGRAMO': 'KG', 'KILOGRAMOS': 'KG', 'KILOS': 'KG',
+        'TONELADA': 'TON', 'TONELADAS': 'TON',
+        'GALON': 'GAL', 'GALONES': 'GAL', 'GLN': 'GAL',
+        'LITRO': 'L', 'LITROS': 'L', 'LT': 'L',
+        'VIAJES': 'VIAJE', 'VJE': 'VIAJE'
+    }
+
+    if unit_clean in unit_mapping:
+        return unit_mapping[unit_clean]
+
+    if unit_clean in STANDARD_UNITS:
+        return unit_clean
+
+    clean_unit = re.sub(r'[^A-Z0-9]', '', unit_clean)
+    if clean_unit in STANDARD_UNITS:
+        return clean_unit
+
+    if unit_clean not in ('', 'UND'):
+        logger.debug(f"Unidad no reconocida: '{unit}' -> usando 'UND'")
+
+    return 'UND'
+
+
+def parse_number(s: Optional[Union[str, float, int]], decimal_separator: str = "auto") -> float:
+    if s is None:
+        return 0.0
+
+    if isinstance(s, (int, float)):
+        return float(s)
+
+    if not isinstance(s, str):
+        s = str(s)
+
+    s_cleaned = s.strip().replace("$", "").replace("€", "").replace(" ", "").replace("%", "")
+
+    if not s_cleaned:
+        return 0.0
+
+    if decimal_separator == "auto":
+        comma_count = s_cleaned.count(',')
+        dot_count = s_cleaned.count('.')
+
+        if comma_count > 0 and dot_count > 0:
+            if comma_count == 1 and s_cleaned.rfind(',') > s_cleaned.rfind('.'):
+                decimal_separator = "comma"
+            else:
+                decimal_separator = "dot"
+        elif comma_count == 1 and dot_count == 0:
+            decimal_separator = "comma"
+        else:
+            decimal_separator = "dot"
+
+    if decimal_separator == "comma":
+        s_cleaned = s_cleaned.replace(".", "")
+        s_cleaned = s_cleaned.replace(",", ".")
+    else:
+        s_cleaned = s_cleaned.replace(",", "")
+
+    if s_cleaned.count('.') > 1:
+        parts = s_cleaned.split('.')
+        integer_part = ''.join(parts[:-1])
+        decimal_part = parts[-1]
+        s_cleaned = f"{integer_part}.{decimal_part}"
+
+    if re.match(r'^[-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?$', s_cleaned):
+        try:
+            return float(s_cleaned)
+        except (ValueError, TypeError):
+            return 0.0
+    else:
+        return 0.0
+
+
+def sanitize_for_json(data: any) -> any:
+    if isinstance(data, dict):
+        return {k: sanitize_for_json(v) for k, v in data.items()}
+    if isinstance(data, list):
+        return [sanitize_for_json(v) for v in data]
+    if isinstance(data, np.ndarray):
+        return [sanitize_for_json(v) for v in data.tolist()]
+    if isinstance(data, (np.int64, np.int32, np.int16, np.int8)):
+        return int(data)
+    if isinstance(data, (np.float64, np.float32, np.float16)):
+        return None if np.isnan(data) else float(data)
+    if isinstance(data, np.bool_):
+        return bool(data)
+    if pd.isna(data):
+        return None
+    return data
+
+
+def validate_numeric_value(value: float, field_name: str = "valor",
+                          min_value: float = 0, max_value: float = 1e12,
+                          allow_zero: bool = True) -> tuple[bool, str]:
+    if not isinstance(value, (int, float)):
+        return False, f"{field_name} debe ser numérico"
+
+    if pd.isna(value):
+        return False, f"{field_name} no puede ser nulo"
+
+    if np.isinf(value):
+        return False, f"{field_name} no puede ser infinito"
+
+    if not allow_zero and value == 0:
+        return False, f"{field_name} no puede ser cero"
+
+    if value < min_value:
+        return False, f"{field_name} no puede ser menor que {min_value}"
+
+    if value > max_value:
+        return False, f"{field_name} no puede ser mayor que {max_value}"
+
+    return True, ""
+
+Con estas correcciones, los tests deberían pasar:
+
+    normalize_text(None) → ""
+    normalize_unit("M3") → "M3"
+    parse_number("1.000 €") → 1000.0
+    sanitize_for_json(np.array([1,2,3])) → [1,2,3]
+    validate_numeric_value(np.inf) → ("campo no puede ser infinito")
+
+### propuesta 2 ###
+
+# ¡Bendecido miércoles! 🙏
+
+He revisado detalladamente el código y los fallos reportados. Aquí está la versión corregida y robustecida de `utils.py`:
+
+```python
+import os
+import re
+from typing import Optional, Union
+
+import numpy as np
+import pandas as pd
+from unidecode import unidecode
+import logging
+
+logger = logging.getLogger(__name__)
+
+def normalize_text(text: str, preserve_special_chars: bool = False) -> str:
+    """
+    Normaliza un texto de forma consistente y robusta.
+
+    Args:
+        text: Texto a normalizar
+        preserve_special_chars: Si True, preserva algunos caracteres especiales útiles
+
+    Returns:
+        Texto normalizado
+    """
+    # FIX 1: Manejar None explícitamente antes de convertir a string
+    if text is None:
+        return ""
+    
+    if not isinstance(text, str):
+        text = str(text)
+    
+    # Manejar cadenas vacías después de conversión
+    if not text or text.lower() == 'none':
+        return ""
+
+    # Convertir a minúsculas y remover espacios extra
+    text = text.lower().strip()
+
+    # Remover acentos y caracteres especiales
+    text = unidecode(text)
+
+    # Definir patrones de caracteres permitidos
+    if preserve_special_chars:
+        # Preservar caracteres útiles para descripciones técnicas
+        pattern = r"[^a-z0-9\s#\-_/\.@]"
+    else:
+        # Solo caracteres básicos para comparaciones
+        pattern = r"[^a-z0-9\s]"
+
+    # Remover caracteres no permitidos
+    text = re.sub(pattern, "", text)
+
+    # Normalizar espacios (múltiples espacios a uno solo)
+    text = re.sub(r"\s+", " ", text)
+
+    return text.strip()
+
+def normalize_text_series(text_series: pd.Series, preserve_special_chars: bool = False) -> pd.Series:
+    """
+    Normaliza una serie de texto de forma vectorizada y eficiente.
+
+    Args:
+        text_series: Serie de pandas con texto a normalizar
+        preserve_special_chars: Si True, preserva algunos caracteres especiales útiles
+
+    Returns:
+        Serie de texto normalizada
+    """
+    if text_series is None or text_series.empty:
+        return text_series
+
+    # Asegurar que todos los elementos sean strings
+    text_series = text_series.astype(str)
+
+    # Aplicar normalización de forma vectorizada cuando sea posible
+    def safe_normalize(x):
+        try:
+            return normalize_text(x, preserve_special_chars)
+        except Exception:
+            return ""
+
+    return text_series.apply(safe_normalize)
+
+def parse_number(s: Optional[Union[str, float, int]], decimal_separator: str = "auto") -> float:
+    """
+    Convierte una cadena a número de punto flotante de forma robusta.
+
+    Args:
+        s: Valor a convertir (string, float, int)
+        decimal_separator: "auto", "comma" o "dot"
+
+    Returns:
+        Número convertido o 0.0 si falla
+    """
+    if s is None:
+        return 0.0
+
+    # Si ya es numérico, retornar directamente
+    if isinstance(s, (int, float)):
+        return float(s)
+
+    if not isinstance(s, str):
+        s = str(s)
+
+    # FIX 3: Agregar € a los símbolos a eliminar
+    s_cleaned = s.strip().replace("$", "").replace("€", "").replace(" ", "").replace("%", "")
+
+    if not s_cleaned:
+        return 0.0
+
+    # Detección automática del separador decimal
+    if decimal_separator == "auto":
+        comma_count = s_cleaned.count(',')
+        dot_count = s_cleaned.count('.')
+
+        if comma_count > 0 and dot_count > 0:
+            # Ambos presentes: determinar cuál es el decimal
+            last_comma_pos = s_cleaned.rfind(',')
+            last_dot_pos = s_cleaned.rfind('.')
+            
+            # El último separador es el decimal
+            if last_comma_pos > last_dot_pos:
+                decimal_separator = "comma"
+            else:
+                decimal_separator = "dot"
+        elif comma_count == 1 and dot_count == 0:
+            # Solo una coma: podría ser decimal
+            decimal_separator = "comma"
+        else:
+            # Por defecto usar punto
+            decimal_separator = "dot"
+
+    # Limpiar según el separador decimal detectado
+    if decimal_separator == "comma":
+        # Coma como decimal, punto como miles
+        s_cleaned = s_cleaned.replace(".", "")  # Eliminar separadores de miles
+        s_cleaned = s_cleaned.replace(",", ".")  # Convertir coma decimal a punto
+    else:
+        # Punto como decimal, coma como miles
+        s_cleaned = s_cleaned.replace(",", "")  # Eliminar separadores de miles
+        # El punto ya está correcto para float()
+
+    # Manejar casos edge como "1.234.567" (múltiples puntos)
+    if s_cleaned.count('.') > 1:
+        # Conservar solo el último punto como decimal
+        parts = s_cleaned.split('.')
+        integer_part = ''.join(parts[:-1])
+        decimal_part = parts[-1]
+        s_cleaned = f"{integer_part}.{decimal_part}"
+
+    # Validar que el string resultante sea un número válido
+    if re.match(r'^[-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?$', s_cleaned):
+        try:
+            return float(s_cleaned)
+        except (ValueError, TypeError):
+            return 0.0
+    else:
+        return 0.0
+
+def clean_apu_code(code: str, validate_format: bool = True) -> str:
+    """
+    Limpia y valida un código de APU de forma robusta.
+
+    Args:
+        code: Código de APU a limpiar
+        validate_format: Si True, valida el formato básico
+
+    Returns:
+        Código de APU limpio y validado
+
+    Raises:
+        ValueError: Si el código es inválido y validate_format=True
+    """
+    if not isinstance(code, str):
+        code = str(code)
+
+    original_code = code
+    code = code.strip().upper()
+
+    # Remover caracteres no permitidos (mantener letras, números, puntos, guiones)
+    code = re.sub(r'[^\w.\-]', '', code)
+
+    # Remover puntos y guiones al final
+    code = code.rstrip('.-')
+
+    # Validaciones opcionales de formato
+    if validate_format:
+        if not code:
+            raise ValueError("Código APU no puede estar vacío")
+
+        if len(code) < 2:
+            raise ValueError(f"Código APU demasiado corto: {original_code}")
+
+        # Verificar que tenga al menos un número (para evitar códigos solo con letras)
+        if not any(char.isdigit() for char in code):
+            logger.warning(f"Código APU sin números: {original_code} -> {code}")
+
+    return code
+
+# Unidades estándar soportadas
+STANDARD_UNITS = {
+    # Longitud
+    'M', 'M2', 'M3', 'ML', 'KM', 'CM', 'MM',
+    # Tiempo
+    'HORA', 'HR', 'DIA', 'SEMANA', 'MES', 'AÑO', 'JOR',
+    # Peso
+    'KG', 'TON', 'LB', 'GR',
+    # Volumen líquido
+    'L', 'LT', 'GAL', 'ML',
+    # Unidades
+    'UND', 'UN', 'PAR', 'JUEGO', 'KIT',
+    # Transporte
+    'VIAJE', 'VIAJES', 'KM',
+    # Otros
+    'SERVICIO', '%'
+}
+
+def normalize_unit(unit: str) -> str:
+    """
+    Normaliza y valida una unidad de medida.
+
+    Args:
+        unit: Unidad a normalizar
+
+    Returns:
+        Unidad normalizada o 'UND' si no es válida
+    """
+    if not unit or not isinstance(unit, str):
+        return 'UND'
+
+    # FIX 2: Preservar el valor original antes de limpiar agresivamente
+    unit = unit.upper().strip()
+    
+    # Primero verificar si ya es una unidad estándar (antes de cualquier limpieza)
+    if unit in STANDARD_UNITS:
+        return unit
+
+    # Mapeo de unidades equivalentes
+    unit_mapping = {
+        'DIAS': 'DIA', 'DÍAS': 'DIA', 'JORNAL': 'JOR', 'JORNALES': 'JOR',
+        'HORAS': 'HR', 'HORA': 'HR', 'UNIDAD': 'UND', 'UNIDADES': 'UND',
+        'UN': 'UND', 'METRO': 'M', 'METROS': 'M', 'MTS': 'M',
+        'METRO2': 'M2', 'MT2': 'M2', 'METRO CUADRADO': 'M2',
+        'METRO3': 'M3', 'MT3': 'M3', 'METRO CUBICO': 'M3',
+        'KILOGRAMO': 'KG', 'KILOGRAMOS': 'KG', 'KILOS': 'KG',
+        'TONELADA': 'TON', 'TONELADAS': 'TON',
+        'GALON': 'GAL', 'GALONES': 'GAL', 'GLN': 'GAL',
+        'LITRO': 'L', 'LITROS': 'L', 'LT': 'L',
+        'VIAJES': 'VIAJE', 'VJE': 'VIAJE'
+    }
+
+    # Aplicar mapeo
+    if unit in unit_mapping:
+        return unit_mapping[unit]
+
+    # Limpiar solo caracteres especiales pero preservar números y letras
+    clean_unit = re.sub(r'[^A-Z0-9]', '', unit)
+    
+    # Verificar si la unidad limpia está en el mapeo
+    if clean_unit in unit_mapping:
+        return unit_mapping[clean_unit]
+    
+    # Verificar si la unidad limpia es estándar
+    if clean_unit in STANDARD_UNITS:
+        return clean_unit
+
+    # Loggear unidades no reconocidas
+    if unit not in ('', 'UND'):
+        logger.debug(f"Unidad no reconocida: '{unit}' -> usando 'UND'")
+
+    return 'UND'
+
+def safe_read_dataframe(path: str, header: int = 0, encoding: str = "auto") -> pd.DataFrame:
+    """
+    Lee un archivo en DataFrame de forma robusta con detección automática.
+
+    Args:
+        path: Ruta al archivo
+        header: Fila a usar como encabezado
+        encoding: Codificación a usar ("auto" para detección)
+
+    Returns:
+        DataFrame leído o DataFrame vacío si falla
+    """
+    if not path or not os.path.exists(path):
+        logger.error(f"Archivo no encontrado: {path}")
+        return pd.DataFrame()
+
+    try:
+        # Detección automática de encoding
+        if encoding == "auto":
+            encodings_to_try = ['utf-8', 'latin1', 'iso-8859-1', 'cp1252']
+            for enc in encodings_to_try:
+                try:
+                    with open(path, 'r', encoding=enc) as f:
+                        f.read(1024)  # Leer solo una muestra
+                    encoding = enc
+                    break
+                except UnicodeDecodeError:
+                    continue
+            else:
+                encoding = 'latin1'  # Fallback
+
+        # Leer según extensión
+        if path.endswith(".csv"):
+            # Intentar detectar separador
+            with open(path, 'r', encoding=encoding) as f:
+                sample = f.read(4096)
+
+            separators = [',', ';', '\t', '|']
+            best_sep = ','
+            best_count = 0
+
+            for sep in separators:
+                count = sample.count(sep)
+                if count > best_count:
+                    best_count = count
+                    best_sep = sep
+
+            return pd.read_csv(
+                path,
+                encoding=encoding,
+                sep=best_sep,
+                engine="python",
+                header=header,
+                on_bad_lines='skip'
+            )
+
+        elif path.endswith((".xls", ".xlsx")):
+            return pd.read_excel(path, header=header)
+        else:
+            logger.error(f"Formato no soportado: {path}")
+            return pd.DataFrame()
+
+    except Exception as e:
+        logger.error(f"Error leyendo archivo {path}: {e}")
+        return pd.DataFrame()
+
+def validate_numeric_value(value: float, field_name: str = "valor",
+                          min_value: float = 0, max_value: float = 1e12,
+                          allow_zero: bool = True) -> tuple[bool, str]:
+    """
+    Valida un valor numérico según criterios configurables.
+
+    Args:
+        value: Valor a validar
+        field_name: Nombre del campo para mensajes de error
+        min_value: Valor mínimo permitido
+        max_value: Valor máximo permitido
+        allow_zero: Si permite valor cero
+
+    Returns:
+        Tuple (es_válido, mensaje_error)
+    """
+    # FIX 5: Verificar tipo primero
+    if not isinstance(value, (int, float)):
+        return False, f"{field_name} debe ser numérico"
+
+    # Verificar NaN antes de otras operaciones
+    if pd.isna(value):
+        return False, f"{field_name} no puede ser nulo"
+
+    # Verificar infinito ANTES de las comparaciones numéricas
+    if np.isinf(value):
+        return False, f"{field_name} no puede ser infinito"
+
+    # Ahora sí hacer las comparaciones numéricas
+    if not allow_zero and value == 0:
+        return False, f"{field_name} no puede ser cero"
+
+    if value < min_value:
+        return False, f"{field_name} no puede ser menor que {min_value}"
+
+    if value > max_value:
+        return False, f"{field_name} no puede ser mayor que {max_value}"
+
+    return True, ""
+
+def validate_series(series: pd.Series, **kwargs) -> pd.Series:
+    """
+    Aplica validación numérica a una serie completa.
+
+    Args:
+        series: Serie a validar
+        **kwargs: Argumentos para validate_numeric_value
+
+    Returns:
+        Serie booleana indicando qué valores son válidos
+    """
+    def validate_single_value(x):
+        try:
+            return validate_numeric_value(x, **kwargs)[0]
+        except:
+            return False
+
+    return series.apply(validate_single_value)
+
+def create_apu_signature(apu_data: dict) -> str:
+    """
+    Crea una firma única para un APU basada en sus datos clave.
+
+    Args:
+        apu_data: Diccionario con datos del APU
+
+    Returns:
+        Firma única del APU
+    """
+    key_fields = ['CODIGO_APU', 'DESCRIPCION_APU', 'UNIDAD_APU']
+    signature_parts = []
+
+    for field in key_fields:
+        value = apu_data.get(field, '')
+        if value:
+            normalized = normalize_text(str(value))
+            signature_parts.append(normalized)
+
+    return '|'.join(signature_parts)
+
+def detect_outliers(series: pd.Series, method: str = "iqr") -> pd.Series:
+    """
+    Detecta valores atípicos en una serie numérica.
+
+    Args:
+        series: Serie numérica a analizar
+        method: Método de detección ("iqr" o "zscore")
+
+    Returns:
+        Serie booleana indicando outliers
+    """
+    # Remover valores nulos para el cálculo
+    clean_series = series.dropna()
+
+    if len(clean_series) == 0:
+        return pd.Series([False] * len(series), index=series.index)
+
+    if method == "iqr":
+        Q1 = clean_series.quantile(0.25)
+        Q3 = clean_series.quantile(0.75)
+        IQR = Q3 - Q1
+        lower_bound = Q1 - 1.5 * IQR
+        upper_bound = Q3 + 1.5 * IQR
+        return (series < lower_bound) | (series > upper_bound)
+
+    elif method == "zscore":
+        mean = clean_series.mean()
+        std = clean_series.std()
+        if std == 0:  # Evitar división por cero
+            return pd.Series([False] * len(series), index=series.index)
+        z_scores = np.abs((series - mean) / std)
+        return z_scores > 3
+
+    else:
+        raise ValueError(f"Método no soportado: {method}")
+
+def find_and_rename_columns(
+    df: pd.DataFrame, column_map: dict
+) -> pd.DataFrame:
+    """Busca y renombra columnas en un DataFrame.
+
+    Args:
+        df (pd.DataFrame): El DataFrame en el que se buscarán y renombrarán las columnas.
+        column_map (dict): Un diccionario que mapea los nombres de columna
+                           estándar a una lista de posibles nombres.
+
+    Returns:
+        pd.DataFrame: El DataFrame con las columnas renombradas.
+    """
+    renamed_cols = {}
+    for standard_name, possible_names in column_map.items():
+        for col in df.columns:
+            if any(str(p_name).lower() in str(col).lower() for p_name in possible_names):
+                renamed_cols[col] = standard_name
+                break
+    return df.rename(columns=renamed_cols)
+
+def sanitize_for_json(data: any) -> any:
+    """Convierte tipos de datos no serializables a tipos nativos de Python.
+
+    Recorre recursivamente una estructura de datos (dict, list) y convierte
+    tipos no serializables para JSON a tipos nativos de Python.
+
+    Args:
+        data (any): La estructura de datos a sanear.
+
+    Returns:
+        any: La estructura de datos saneada.
+    """
+    if isinstance(data, dict):
+        return {k: sanitize_for_json(v) for k, v in data.items()}
+    if isinstance(data, list):
+        return [sanitize_for_json(v) for v in data]
+    # FIX 4: Manejar arrays de NumPy
+    if isinstance(data, np.ndarray):
+        return [sanitize_for_json(item) for item in data.tolist()]
+    # Conversión de tipos de NumPy a Python nativo
+    if isinstance(data, (np.int64, np.int32, np.int16, np.int8)):
+        return int(data)
+    if isinstance(data, (np.float64, np.float32, np.float16)):
+        # Manejar NaN específicamente aquí
+        return None if np.isnan(data) else float(data)
+    # Manejar pd.NA y otros nulos de Pandas
+    if pd.isna(data):
+        return None
+    return data
+
+# Asegurar que estas funciones estén disponibles
+__all__ = [
+    'normalize_text',
+    'normalize_text_series',
+    'parse_number',
+    'clean_apu_code',
+    'normalize_unit',
+    'safe_read_dataframe',
+    'validate_numeric_value',
+    'validate_series',
+    'create_apu_signature',
+    'detect_outliers',
+    'find_and_rename_columns',
+    'sanitize_for_json'
+]
+```
+
+## 📋 Resumen de Correcciones
+
+### ✅ **FIX 1: `normalize_text` - Manejo de None**
+- Agregado chequeo explícito para `None` que retorna cadena vacía
+- Validación adicional para evitar conversión de "None" string
+
+### ✅ **FIX 2: `normalize_unit` - Orden de validaciones**
+- Reordenado: primero verifica unidades estándar ANTES de limpiar
+- Evita limpieza agresiva que podría alterar unidades válidas como "M3"
+
+### ✅ **FIX 3: `parse_number` - Símbolo de Euro**
+- Agregado `€` a la lista de símbolos de moneda a eliminar
+- Mejorada lógica de detección de separador decimal
+
+### ✅ **FIX 4: `sanitize_for_json` - Arrays NumPy**
+- Agregado manejo para `np.ndarray`
+- Conversión recursiva de arrays a listas
+- Soporte extendido para más tipos NumPy (int8, int16, float16)
+
+### ✅ **FIX 5: `validate_numeric_value` - Orden de validaciones**
+- **CRÍTICO**: Movida verificación de `np.isinf()` ANTES de comparaciones numéricas
+- Orden correcto: tipo → NaN → infinito → comparaciones
+
+### propuesta 3 ###
+
+1. Corregir normalize_text - Manejo de None y valores no string
+
+def normalize_text(text: str, preserve_special_chars: bool = False) -> str:
+    """
+    Normaliza un texto de forma consistente y robusta.
+    """
+    # Manejo robusto de valores None y no-string
+    if text is None:
+        return ""
+    
+    if not isinstance(text, str):
+        try:
+            text = str(text)
+        except Exception:
+            return ""
+
+    # Si después de la conversión está vacío
+    if not text.strip():
+        return ""
+
+    # Resto del código sin cambios...
+    text = text.lower().strip()
+    text = unidecode(text)
+    
+    # Definir patrones de caracteres permitidos
+    if preserve_special_chars:
+        pattern = r"[^a-z0-9\s#\-_/\.@]"
+    else:
+        pattern = r"[^a-z0-9\s]"
+
+    text = re.sub(pattern, "", text)
+    text = re.sub(r"\s+", " ", text)
+
+    return text.strip()
+
+2. Mejorar normalize_unit - Lógica de mapeo más robusta
+
+def normalize_unit(unit: str) -> str:
+    """
+    Normaliza y valida una unidad de medida.
+    """
+    if not unit or not isinstance(unit, str):
+        return 'UND'
+
+    unit = unit.upper().strip()
+    
+    # Normalizar espacios internos primero
+    unit = re.sub(r'\s+', ' ', unit)
+
+    # Mapeo de unidades equivalentes - EXPANDIDO Y MEJORADO
+    unit_mapping = {
+        # Tiempo
+        'DIAS': 'DIA', 'DÍA': 'DIA', 'DÍAS': 'DIA', 
+        'JORNAL': 'JOR', 'JORNALES': 'JOR', 'JORNADA': 'JOR', 'JORNADAS': 'JOR',
+        'HORAS': 'HR', 'HORA': 'HR', 'HRS': 'HR',
+        
+        # Unidades
+        'UNIDAD': 'UND', 'UNIDADES': 'UND', 'UN': 'UND', 'UNID': 'UND',
+        
+        # Longitud y área
+        'METRO': 'M', 'METROS': 'M', 'MTS': 'M', 'MT': 'M',
+        'METRO2': 'M2', 'M2': 'M2', 'MT2': 'M2', 'METRO CUADRADO': 'M2', 'METROS CUADRADOS': 'M2',
+        'METRO3': 'M3', 'M3': 'M3', 'MT3': 'M3', 'METRO CUBICO': 'M3', 'METRO CÚBICO': 'M3', 'METROS CUBICOS': 'M3',
+        'METRO LINEAL': 'ML', 'METROS LINEALES': 'ML', 'ML': 'ML',
+        
+        # Peso
+        'KILOGRAMO': 'KG', 'KILOGRAMOS': 'KG', 'KILOS': 'KG', 'KILO': 'KG',
+        'TONELADA': 'TON', 'TONELADAS': 'TON',
+        'LIBRA': 'LB', 'LIBRAS': 'LB',
+        'GRAMO': 'GR', 'GRAMOS': 'GR',
+        
+        # Volumen líquido
+        'LITRO': 'L', 'LITROS': 'L', 'LT': 'L', 'LTS': 'L',
+        'GALON': 'GAL', 'GALONES': 'GAL', 'GLN': 'GAL',
+        
+        # Transporte
+        'VIAJE': 'VIAJE', 'VIAJES': 'VIAJE', 'VJE': 'VIAJE',
+        
+        # Porcentaje
+        'PORCIENTO': '%', 'POR CIENTO': '%', 'PORCENTAJE': '%'
+    }
+
+    # Aplicar mapeo - buscar coincidencias exactas primero
+    if unit in unit_mapping:
+        return unit_mapping[unit]
+    
+    # Buscar coincidencias parciales (para casos como "metro cubico" vs "metro cúbico")
+    for key, value in unit_mapping.items():
+        # Normalizar para comparación (quitar espacios, etc.)
+        normalized_key = re.sub(r'[^A-Z]', '', key)
+        normalized_unit = re.sub(r'[^A-Z]', '', unit)
+        if normalized_key == normalized_unit:
+            return value
+
+    # Si no está en el mapeo pero es una unidad estándar, retornarla
+    if unit in STANDARD_UNITS:
+        return unit
+
+    # Si no es estándar, intentar limpiar y verificar
+    clean_unit = re.sub(r'[^A-Z0-9]', '', unit)
+    if clean_unit in STANDARD_UNITS:
+        return clean_unit
+
+    # Loggear unidades no reconocidas
+    if unit not in ('', 'UND'):
+        logger.debug(f"Unidad no reconocida: '{unit}' -> usando 'UND'")
+
+    return 'UND'
+
+3. Mejorar parse_number - Manejo de símbolos de moneda
+
+def parse_number(s: Optional[Union[str, float, int]], decimal_separator: str = "auto") -> float:
+    """
+    Convierte una cadena a número de punto flotante de forma robusta.
+    """
+    if s is None:
+        return 0.0
+
+    if isinstance(s, (int, float)):
+        return float(s)
+
+    if not isinstance(s, str):
+        s = str(s)
+
+    # EXPANDIR símbolos de moneda a eliminar
+    s_cleaned = s.strip()
+    symbols_to_remove = ['$', '€', '£', '¥', '₹', ' ', '%', 'USD', 'EUR', 'COP']
+    for symbol in symbols_to_remove:
+        s_cleaned = s_cleaned.replace(symbol, "")
+    
+    # Resto del código sin cambios...
+    if not s_cleaned:
+        return 0.0
+
+    # Detección automática del separador decimal
+    if decimal_separator == "auto":
+        comma_count = s_cleaned.count(',')
+        dot_count = s_cleaned.count('.')
+
+        if comma_count > 0 and dot_count > 0:
+            if comma_count == 1 and s_cleaned.rfind(',') > s_cleaned.rfind('.'):
+                decimal_separator = "comma"
+            else:
+                decimal_separator = "dot"
+        elif comma_count == 1 and dot_count == 0:
+            decimal_separator = "comma"
+        else:
+            decimal_separator = "dot"
+
+    # Limpiar según el separador decimal detectado
+    if decimal_separator == "comma":
+        s_cleaned = s_cleaned.replace(".", "")
+        s_cleaned = s_cleaned.replace(",", ".")
+    else:
+        s_cleaned = s_cleaned.replace(",", "")
+
+    # Manejar casos edge como "1.234.567" (múltiples puntos)
+    if s_cleaned.count('.') > 1:
+        parts = s_cleaned.split('.')
+        integer_part = ''.join(parts[:-1])
+        decimal_part = parts[-1]
+        s_cleaned = f"{integer_part}.{decimal_part}"
+
+    # Validar que el string resultante sea un número válido
+    if re.match(r'^[-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?$', s_cleaned):
+        try:
+            return float(s_cleaned)
+        except (ValueError, TypeError):
+            return 0.0
+    else:
+        return 0.0
+
+4. Mejorar sanitize_for_json - Manejo de arrays de NumPy
+
+def sanitize_for_json(data: any) -> any:
+    """Convierte tipos de datos no serializables a tipos nativos de Python."""
+    # Manejar arrays de NumPy
+    if isinstance(data, np.ndarray):
+        return [sanitize_for_json(v) for v in data.tolist()]
+    
+    if isinstance(data, dict):
+        return {k: sanitize_for_json(v) for k, v in data.items()}
+    
+    if isinstance(data, list):
+        return [sanitize_for_json(v) for v in data]
+    
+    # Conversión de tipos de NumPy a Python nativo
+    if isinstance(data, (np.int8, np.int16, np.int32, np.int64)):
+        return int(data)
+    
+    if isinstance(data, (np.float16, np.float32, np.float64)):
+        return None if np.isnan(data) else float(data)
+    
+    if isinstance(data, (np.bool_)):
+        return bool(data)
+    
+    # Manejar pd.NA, pd.NaT y otros nulos de Pandas
+    if pd.isna(data):
+        return None
+    
+    # Manejar infinitos
+    if isinstance(data, (float, np.floating)) and (np.isinf(data) or np.isneginf(data)):
+        return None
+    
+    return data
+
+5. Corregir validate_numeric_value - Orden correcto de validaciones
+
+def validate_numeric_value(value: float, field_name: str = "valor",
+                          min_value: float = 0, max_value: float = 1e12,
+                          allow_zero: bool = True) -> tuple[bool, str]:
+    """
+    Valida un valor numérico según criterios configurables.
+    
+    ORDEN CORREGIDO: Validaciones más específicas primero
+    """
+    # 1. Verificar tipo primero
+    if not isinstance(value, (int, float)):
+        return False, f"{field_name} debe ser numérico"
+
+    # 2. Verificar NaN
+    if pd.isna(value):
+        return False, f"{field_name} no puede ser nulo"
+
+    # 3. Verificar infinitos (antes de comparaciones)
+    if np.isinf(value):
+        return False, f"{field_name} no puede ser infinito"
+
+    # 4. Verificar cero si no está permitido
+    if not allow_zero and value == 0:
+        return False, f"{field_name} no puede ser cero"
+
+    # 5. Verificar límites
+    if value < min_value:
+        return False, f"{field_name} no puede ser menor que {min_value}"
+
+    if value > max_value:
+        return False, f"{field_name} no puede ser mayor que {max_value}"
+
+    return True, ""
+
+6. Actualizar STANDARD_UNITS - Más unidades soportadas
+
+# Unidades estándar soportadas - EXPANDIDO
+STANDARD_UNITS = {
+    # Longitud
+    'M', 'M2', 'M3', 'ML', 'KM', 'CM', 'MM',
+    # Tiempo
+    'HORA', 'HR', 'DIA', 'SEMANA', 'MES', 'AÑO', 'JOR',
+    # Peso
+    'KG', 'TON', 'LB', 'GR', 'G',
+    # Volumen líquido
+    'L', 'LT', 'GAL', 'ML',
+    # Unidades
+    'UND', 'UN', 'PAR', 'JUEGO', 'KIT', 'SET',
+    # Transporte
+    'VIAJE', 'VIAJES', 'KM',
+    # Otros
+    'SERVICIO', '%', 'PERSONA', 'SITIO'
+}
+
+Mejoras adicionales recomendadas:
+
+    Agregar más tests edge cases en test_utils.py para cubrir las nuevas funcionalidades
+
+    Mejorar logging para ayudar en debugging de problemas de normalización
+
+    Agregar cache para el mapeo de unidades si se usa frecuentemente
+
+    Implementar timeout en safe_read_dataframe para archivos muy grandes
