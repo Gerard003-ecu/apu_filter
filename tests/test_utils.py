@@ -1,26 +1,27 @@
 import os
 import sys
-import unittest
 import tempfile
-import pandas as pd
+import unittest
+
 import numpy as np
+import pandas as pd
 
 # Añadir el directorio raíz del proyecto al sys.path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from app.utils import (
-    normalize_text,
-    normalize_text_series,
-    parse_number,
     clean_apu_code,
-    normalize_unit,
-    safe_read_dataframe,
-    validate_numeric_value,
-    validate_series,
     create_apu_signature,
     detect_outliers,
     find_and_rename_columns,
+    normalize_text,
+    normalize_text_series,
+    normalize_unit,
+    parse_number,
+    safe_read_dataframe,
     sanitize_for_json,
+    validate_numeric_value,
+    validate_series,
 )
 
 

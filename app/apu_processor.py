@@ -5,7 +5,6 @@ from typing import Dict, List, Optional
 
 import pandas as pd
 from lark import Lark, Transformer, v_args
-from unidecode import unidecode
 
 from .schemas import (
     Equipo,
@@ -15,7 +14,7 @@ from .schemas import (
     Suministro,
     Transporte,
 )
-from .utils import clean_apu_code, parse_number
+from .utils import clean_apu_code, normalize_text, parse_number
 
 logger = logging.getLogger(__name__)
 
@@ -76,7 +75,7 @@ class APUTransformer(Transformer):
         """
         num_fields = len(fields)
         descripcion = fields[0]
-        tipo_probable = self._classify_insumo_static(descripcion)
+        tipo_probable = APUTransformer._classify_insumo_static(descripcion)
 
         if num_fields >= 6 and tipo_probable == "MANO_DE_OBRA":
             # Validar si realmente tiene la estructura de MO_COMPLETA
@@ -120,7 +119,7 @@ class APUTransformer(Transformer):
                 cantidad=cantidad, precio_unitario=jornal_total, valor_total=valor_total,
                 rendimiento=rendimiento, formato_origen="MO_COMPLETA",
                 tipo_insumo="MANO_DE_OBRA",
-                normalized_desc=self._normalize_text(descripcion),
+                normalized_desc=normalize_text(descripcion),
                 **self.apu_context
             )
         except (ValueError, ZeroDivisionError, IndexError) as e:
@@ -144,14 +143,14 @@ class APUTransformer(Transformer):
             if valor_total == 0 and cantidad > 0 and precio_unit > 0:
                 valor_total = cantidad * precio_unit
 
-            tipo_insumo = self._classify_insumo_static(descripcion)
+            tipo_insumo = APUTransformer._classify_insumo_static(descripcion)
 
             common_args = {
                 "descripcion_insumo": descripcion, "unidad_insumo": unidad or "UND",
                 "cantidad": cantidad, "precio_unitario": precio_unit, "valor_total": valor_total,
                 "rendimiento": cantidad, "formato_origen": "INSUMO_BASICO",
                 "tipo_insumo": tipo_insumo,
-                "normalized_desc": self._normalize_text(descripcion),
+                "normalized_desc": normalize_text(descripcion),
                 **self.apu_context
             }
 
@@ -228,17 +227,6 @@ class APUTransformer(Transformer):
                 return tipo
 
         return "OTRO"
-
-    @staticmethod
-    def _normalize_text(text: str) -> str:
-        """Normaliza texto para comparación."""
-        if not text:
-            return ""
-        text = unidecode(text.lower().strip())
-        text = re.sub(r"[^a-z0-9\s#\-]", "", text)
-        text = re.sub(r"\s+", " ", text)
-        return text.strip()
-
 
 class APUProcessor:
     """

@@ -2,12 +2,12 @@ import logging
 import os
 import sys
 import unittest
+
 import pandas as pd
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from app.apu_processor import APUProcessor, APUTransformer
-from app.schemas import create_insumo, validate_insumo_data
 
 
 class TestAPUProcessorFixed(unittest.TestCase):

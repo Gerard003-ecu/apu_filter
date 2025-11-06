@@ -1,6 +1,5 @@
 # app/schemas.py
-from dataclasses import dataclass, field
-from typing import Optional
+from dataclasses import dataclass
 
 
 @dataclass
@@ -31,21 +30,21 @@ class InsumoProcesado:
         Validación básica después de la inicialización.
         """
         self._validate_basic_fields()
-        
+
     def _validate_basic_fields(self):
         """Valida campos básicos requeridos."""
         if not self.codigo_apu or not isinstance(self.codigo_apu, str):
             raise ValueError("codigo_apu es requerido y debe ser string")
-            
+
         if not self.descripcion_insumo or not isinstance(self.descripcion_insumo, str):
             raise ValueError("descripcion_insumo es requerido y debe ser string")
-            
+
         if self.cantidad < 0:
             raise ValueError("cantidad no puede ser negativa")
-            
+
         if self.precio_unitario < 0:
             raise ValueError("precio_unitario no puede ser negativo")
-            
+
         if self.valor_total < 0:
             raise ValueError("valor_total no puede ser negativo")
 
@@ -71,19 +70,19 @@ class InsumoProcesado:
 @dataclass
 class ManoDeObra(InsumoProcesado):
     """Esquema específico para Mano de Obra."""
-    
+
     def __post_init__(self):
         """
         Validaciones específicas para Mano de Obra.
         """
         super()._validate_basic_fields()
         self._validate_mo_specific()
-        
+
     def _validate_mo_specific(self):
         """Validaciones específicas de Mano de Obra."""
         if self.rendimiento < 0:
             raise ValueError("rendimiento no puede ser negativo")
-            
+
         # Para MO, si hay rendimiento > 0, validar coherencia con cantidad
         if self.rendimiento > 0 and self.cantidad > 0:
             calculated_quantity = 1.0 / self.rendimiento
@@ -102,12 +101,12 @@ class Equipo(InsumoProcesado):
     identificar y agrupar los costos asociados a la maquinaria y
     herramientas utilizadas en el análisis de precios unitarios.
     """
-    
+
     def __post_init__(self):
         """Validaciones específicas para Equipo."""
         super()._validate_basic_fields()
         self._validate_equipo_specific()
-        
+
     def _validate_equipo_specific(self):
         """Validaciones específicas para equipos."""
         # Los equipos típicamente se miden en tiempo (DIA, HORA)
@@ -125,12 +124,12 @@ class Suministro(InsumoProcesado):
     Este esquema se utiliza para los materiales y productos consumibles
     que se integran directamente en la obra o el producto final.
     """
-    
+
     def __post_init__(self):
         """Validaciones específicas para Suministro."""
         super()._validate_basic_fields()
         self._validate_suministro_specific()
-        
+
     def _validate_suministro_specific(self):
         """Validaciones específicas para suministros."""
         # Los suministros típicamente tienen cantidad > 0
@@ -148,17 +147,17 @@ class Transporte(InsumoProcesado):
     Define los costos asociados al transporte de materiales, equipo o
     personal, heredando la estructura base de InsumoProcesado.
     """
-    
+
     def __post_init__(self):
         """Validaciones específicas para Transporte."""
         super()._validate_basic_fields()
         self._validate_transporte_specific()
-        
+
     def _validate_transporte_specific(self):
         """Validaciones específicas para transporte."""
         # El transporte típicamente se mide en VIAJE, KM, etc.
         transport_units = ['VIAJE', 'KM', 'MILLA', 'TON-KM']
-        if (self.unidad_apu not in transport_units and 
+        if (self.unidad_apu not in transport_units and
             self.unidad_insumo not in transport_units):
             # No es error, pero puede ser una advertencia
             pass
@@ -173,7 +172,7 @@ class Otro(InsumoProcesado):
     corresponda a 'Mano de Obra', 'Equipo', 'Suministro' o 'Transporte',
     asegurando que todos los datos sean capturados.
     """
-    
+
     def __post_init__(self):
         """Validaciones básicas para Otros."""
         super()._validate_basic_fields()
@@ -205,9 +204,9 @@ def create_insumo(tipo_insumo: str, **kwargs) -> InsumoProcesado:
     """
     if tipo_insumo not in INSUMO_CLASS_MAP:
         raise ValueError(f"Tipo de insumo no válido: {tipo_insumo}")
-    
+
     insumo_class = INSUMO_CLASS_MAP[tipo_insumo]
-    
+
     try:
         return insumo_class(**kwargs)
     except TypeError as e:
@@ -225,15 +224,15 @@ def validate_insumo_data(insumo_data: dict) -> dict:
         Diccionario validado y limpiado
     """
     required_fields = [
-        'codigo_apu', 'descripcion_apu', 'unidad_apu', 
+        'codigo_apu', 'descripcion_apu', 'unidad_apu',
         'descripcion_insumo', 'unidad_insumo', 'tipo_insumo'
     ]
-    
+
     # Verificar campos requeridos
     for field in required_fields:
         if field not in insumo_data:
             raise ValueError(f"Campo requerido faltante: {field}")
-    
+
     # Asegurar valores por defecto
     defaults = {
         'cantidad': 0.0,
@@ -244,10 +243,10 @@ def validate_insumo_data(insumo_data: dict) -> dict:
         'normalized_desc': '',
         'rendimiento': 0.0
     }
-    
+
     cleaned_data = insumo_data.copy()
     for field, default_value in defaults.items():
         if field not in cleaned_data or cleaned_data[field] is None:
             cleaned_data[field] = default_value
-    
+
     return cleaned_data

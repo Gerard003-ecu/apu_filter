@@ -1,29 +1,19 @@
 import os
 import sys
 import unittest
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
+
 import pandas as pd
-import numpy as np
 
 # Add project root to the Python path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 # Importar la app de Flask y las funciones a probar
-from app.procesador_csv import (
-process_all_files,
-_do_processing,
-_calculate_apu_costs_and_metadata,
-group_and_split_description,
-process_presupuesto_csv,
-process_insumos_csv
-)
+from app.procesador_csv import process_all_files
 
 # Importar los datos de prueba centralizados
 from tests.test_data import (
-APUS_DATA,
-INSUMOS_DATA,
-PRESUPUESTO_DATA,
-TEST_CONFIG,
+    TEST_CONFIG,
 )
 
 
