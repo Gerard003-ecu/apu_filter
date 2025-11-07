@@ -16,7 +16,7 @@ class ParserState(Enum):
     Attributes:
         IDLE: Estado inicial o esperando un nuevo APU.
         AWAITING_DESCRIPTION: Se encontró un código de APU y espera la línea de descripción.
-        SKIPPING_HEADERS: Ignorando líneas de cabecera después de la descripción.
+        SKIPPING_HEADERS: Ignorando líneas de cabecera después de la descripción (no usado activamente).
         PROCESSING_APU: Procesando activamente las líneas de insumos de un APU.
     """
     IDLE = "IDLE"
@@ -41,21 +41,17 @@ class ReportParserCrudo:
         context (Dict[str, str]): Almacena información del APU actual (código,
                                    descripción, unidad, categoría).
         stats (Dict): Estadísticas del proceso de parseo.
+        _apu_start_line (int): Línea donde se inició el APU actual (para diagnóstico).
     """
 
     PATTERNS = {
         "item_code": re.compile(r"ITEM:\s*([^;]+)", re.IGNORECASE),
-        "generic_data": re.compile(
-            r"^(?P<descripcion>[^;]+);"
-            r"(?P<col2>[^;]*);"
-            r"(?P<col3>[^;]*);"
-            r"(?P<col4>[^;]*);"
-            r"(?P<col5>[^;]*);"
-            r"(?P<col6>[^;]*)"
-        ),
+        "inline_desc": re.compile(r"ITEM:\s*[^;]+;\s*(?:DESCRIPCION|DESCRIPCIÓN)\s*:\s*([^;]+)", re.IGNORECASE),
+        "inline_unit": re.compile(r"UNIDAD\s*:\s*([^;,\s]+)", re.IGNORECASE),
+        "header_keywords": re.compile(r"^(?:ITEM|DESCRIPCION|DESCRIPCIÓN|UNIDAD|CANTIDAD|VALOR\s+TOTAL|CODIGO|CÓDIGO)$", re.IGNORECASE),
     }
 
-    # Mejorado: Incluir variaciones comunes
+    # Mejorado: Incluir variaciones comunes y normalizadas
     CATEGORY_KEYWORDS = {
         "MATERIALES",
         "MANO DE OBRA",
@@ -66,8 +62,13 @@ class ReportParserCrudo:
         "TRANSPORTES",
         "HERRAMIENTA",
         "HERRAMIENTAS",
-        "SUBCONTRATOS"
+        "SUBCONTRATOS",
+        "SERVICIOS",
+        "INSUMOS",
     }
+
+    # Límite de caracteres para considerar una línea como categoría (evita falsos positivos)
+    MAX_CATEGORY_LINE_LENGTH = 80
 
     def __init__(self, file_path: str):
         """
@@ -82,16 +83,20 @@ class ReportParserCrudo:
         self.context = {
             "apu_code": "",
             "apu_desc": "",
-            "apu_unit": "",
+            "apu_unit": "UND",  # Valor por defecto
             "category": "INDEFINIDO",
         }
-        # Nuevo: Estadísticas para debugging
+        self._apu_start_line = 0  # Para rastrear origen de APU actual
+
+        # Estadísticas mejoradas
         self.stats = {
             "total_lines": 0,
             "apu_count": 0,
             "category_changes": Counter(),
             "skipped_lines": 0,
             "lines_by_state": Counter(),
+            "invalid_apu_codes": 0,
+            "insumos_sin_categoria": 0,
         }
 
     def parse_to_raw(self) -> List[Dict[str, str]]:
@@ -112,7 +117,7 @@ class ReportParserCrudo:
                     self.stats["total_lines"] += 1
                     self._process_line(line, line_num)
         except Exception as e:
-            logger.error(f"❌ Error al leer {self.file_path}: {e}")
+            logger.error(f"❌ Error al leer {self.file_path}: {e}", exc_info=True)
             return []
 
         self._log_statistics()
@@ -125,22 +130,23 @@ class ReportParserCrudo:
         logger.info(f"   - Total de líneas procesadas: {self.stats['total_lines']}")
         logger.info(f"   - APUs detectados: {self.stats['apu_count']}")
         logger.info(f"   - Líneas omitidas: {self.stats['skipped_lines']}")
-        logger.info("   - Cambios de categoría detectados:")
+        logger.info(f"   - Códigos APU inválidos: {self.stats['invalid_apu_codes']}")
+        logger.info(f"   - Insumos sin categoría asignada: {self.stats['insumos_sin_categoria']}")
 
-        for category, count in self.stats['category_changes'].items():
-            logger.info(f"      * {category}: {count} veces")
-
-        # Advertencia si no se detectaron categorías
-        if sum(self.stats['category_changes'].values()) == 0:
+        if self.stats['category_changes']:
+            logger.info("   - Cambios de categoría detectados:")
+            for category, count in self.stats['category_changes'].most_common():
+                logger.info(f"      * {category}: {count} veces")
+        else:
             logger.warning(
                 "⚠️ NO SE DETECTARON CAMBIOS DE CATEGORÍA - Revisar formato del archivo"
             )
 
-        # Advertencia si todos los insumos están como INDEFINIDO
-        indefinidos = sum(1 for r in self.raw_records if r.get('category') == 'INDEFINIDO')
-        if indefinidos == len(self.raw_records) and len(self.raw_records) > 0:
+        if len(self.raw_records) > 0 and all(
+            r.get('category') == 'INDEFINIDO' for r in self.raw_records
+        ):
             logger.warning(
-                f"⚠️ TODOS los {indefinidos} insumos están marcados como INDEFINIDO"
+                f"⚠️ TODOS los {len(self.raw_records)} insumos están marcados como INDEFINIDO"
             )
 
     def _process_line(self, line: str, line_num: int):
@@ -151,47 +157,58 @@ class ReportParserCrudo:
             line: La línea de texto a procesar.
             line_num: El número de línea actual, para propósitos de logging.
         """
-        line = line.strip()
-        if not line:
+        line_clean = line.strip()
+        if not line_clean:
             return
 
         self.stats["lines_by_state"][self.state.value] += 1
 
-        # Detectar nuevo ITEM en cualquier estado
-        if self._try_start_new_apu(line, line_num):
+        # Siempre intentar detectar nuevo APU primero (prioridad máxima)
+        if self._try_start_new_apu(line_clean, line_num):
             return
 
+        # Si estamos en IDLE, ignoramos (ya se hizo en try_start_new_apu)
         if self.state == ParserState.IDLE:
             self.stats["skipped_lines"] += 1
             return
-        elif self.state == ParserState.AWAITING_DESCRIPTION:
-            if self._is_valid_apu_description(line):
-                self._capture_apu_description(line)
+
+        # Estado AWAITING_DESCRIPTION: esperamos descripción. Si no llega en 5 líneas, forzamos.
+        if self.state == ParserState.AWAITING_DESCRIPTION:
+            if self._is_valid_apu_description(line_clean):
+                self._capture_apu_description(line_clean)
                 self.state = ParserState.PROCESSING_APU
             else:
-                self.stats["skipped_lines"] += 1
-                return
+                # Si pasan 5 líneas sin descripción, asumimos que no hay y pasamos a processing con descripción vacía
+                if line_num > self._apu_start_line + 5:
+                    logger.warning(
+                        f"Línea {line_num}: APU {self.context['apu_code']} sin descripción tras 5 líneas. Forzando a PROCESSING_APU."
+                    )
+                    self.state = ParserState.PROCESSING_APU
+                else:
+                    self.stats["skipped_lines"] += 1
+                    return
+
+        # Estado PROCESSING_APU: procesar insumos o cambios de categoría
         elif self.state == ParserState.PROCESSING_APU:
-            # CRÍTICO: Detectar categoría ANTES de verificar estructura de datos
-            if self._try_detect_category_change(line):
-                category = self.context['category']
-                logger.debug(f"Línea {line_num}: Categoría detectada -> {category}")
+            # 1. Intentar detectar cambio de categoría (prioridad alta)
+            if self._try_detect_category_change(line_clean, line_num):
                 return
-            if self._has_data_structure(line):
-                self._add_raw_record(insumo_line=line)
+
+            # 2. Validar si es línea de insumo
+            if self._has_valid_insumo_structure(line_clean):
+                self._add_raw_record(insumo_line=line_clean)
             else:
-                log_line = line[:50]
-                logger.debug(
-                    f"Línea {line_num}: Sin estructura de datos -> '{log_line}...'"
-                )
+                # Posible encabezado secundario, comentario, o línea corrupta
+                log_line = line_clean[:50]
+                logger.debug(f"Línea {line_num}: No es insumo válido -> '{log_line}...' (estado: {self.state.value})")
                 self.stats["skipped_lines"] += 1
 
     def _try_start_new_apu(self, line: str, line_num: int) -> bool:
         """
         Intenta detectar el inicio de un nuevo APU en la línea.
 
-        Si encuentra un "ITEM:", reinicia el contexto y cambia el estado
-        del parser.
+        Si encuentra un "ITEM:", reinicia el contexto, cierra el APU anterior si existía,
+        y cambia el estado del parser.
 
         Args:
             line: La línea de texto a analizar.
@@ -205,66 +222,44 @@ class ReportParserCrudo:
             return False
 
         raw_code = match.group(1).strip()
-        if not raw_code:
+        if not raw_code or len(raw_code) < 3 or not re.search(r'[A-Za-z0-9]', raw_code):
+            logger.warning(f"Línea {line_num}: Código APU inválido o demasiado corto: '{raw_code}'")
+            self.stats["invalid_apu_codes"] += 1
             return False
 
-        # Extraer descripción inline si existe
-        inline_desc = self._extract_inline_description(line)
+        # Si ya había un APU activo, cerrarlo implícitamente (evita fugas de contexto)
+        if self.state != ParserState.IDLE:
+            if self.state == ParserState.AWAITING_DESCRIPTION:
+                logger.warning(f"Línea {line_num}: Nuevo APU iniciado sin descripción para APU anterior: {self.context['apu_code']}")
+            # Registrar que se cerró un APU implícitamente
+            if self.context["apu_code"] and self.context["apu_desc"]:
+                pass  # Ya se registró el insumo, no hay que hacer nada más
 
-        # Extraer unidad inline si existe
-        inline_unit = self._extract_inline_unit(line)
+        # Extraer descripción inline
+        inline_desc_match = self.PATTERNS["inline_desc"].search(line)
+        inline_desc = inline_desc_match.group(1).strip() if inline_desc_match else ""
 
+        # Extraer unidad inline
+        inline_unit_match = self.PATTERNS["inline_unit"].search(line)
+        inline_unit = inline_unit_match.group(1).strip() if inline_unit_match else "UND"
+
+        # Limpiar código APU inmediatamente
+        cleaned_code = clean_apu_code(raw_code)
+
+        # Reiniciar contexto
         self.context = {
-            "apu_code": raw_code,
+            "apu_code": cleaned_code,
             "apu_desc": inline_desc,
-            "apu_unit": inline_unit or "UND",
-            "category": "INDEFINIDO",  # Reiniciar categoría
+            "apu_unit": inline_unit,
+            "category": "INDEFINIDO",
         }
+        self._apu_start_line = line_num
+        self.state = ParserState.AWAITING_DESCRIPTION if not inline_desc else ParserState.PROCESSING_APU
 
         self.stats["apu_count"] += 1
-        logger.debug(f"Línea {line_num}: Nuevo APU detectado -> {raw_code}")
-
-        if inline_desc:
-            self.state = ParserState.PROCESSING_APU
-        else:
-            self.state = ParserState.AWAITING_DESCRIPTION
+        logger.debug(f"Línea {line_num}: Nuevo APU detectado -> {cleaned_code} (desc: '{inline_desc[:30]}...')")
 
         return True
-
-    def _extract_inline_description(self, line: str) -> str:
-        """
-        Extrae la descripción de un APU si está en la misma línea que el "ITEM:".
-
-        Args:
-            line: La línea de texto.
-
-        Returns:
-            La descripción encontrada o una cadena vacía.
-        """
-        patterns = [
-            r'ITEM:\s*[^;]+;\s*(?:DESCRIPCION|DESCRIPCIÓN)\s*:\s*([^;]+)',
-            r'ITEM:\s*[^;]+;\s*([^;]+)',
-        ]
-        for pat in patterns:
-            match = re.search(pat, line, re.IGNORECASE)
-            if match:
-                desc = match.group(1).strip()
-                if len(desc) > 5 and not desc.upper().startswith(("UNIDAD", "DESCRIP")):
-                    return desc
-        return ""
-
-    def _extract_inline_unit(self, line: str) -> str:
-        """
-        Extrae la unidad de un APU si está explícitamente en la misma línea ("UNIDAD:").
-
-        Args:
-            line: La línea de texto.
-
-        Returns:
-            La unidad encontrada o una cadena vacía.
-        """
-        match = re.search(r"UNIDAD\s*:\s*([^;,\s]+)", line, re.IGNORECASE)
-        return match.group(1).strip() if match else ""
 
     def _is_valid_apu_description(self, line: str) -> bool:
         """
@@ -279,14 +274,23 @@ class ReportParserCrudo:
             True si la línea parece una descripción válida.
         """
         first_part = line.split(";")[0].strip()
+
+        # Evitar encabezados
+        if self.PATTERNS["header_keywords"].fullmatch(first_part.upper()):
+            return False
+
+        # Evitar líneas puramente numéricas o de separadores
+        if re.match(r"^[.,\d\s$%\-]+$", first_part):
+            return False
+
+        # Requerir longitud mínima
         if len(first_part) < 5:
             return False
-        if first_part.upper() in {
-            "ITEM", "DESCRIPCION", "DESCRIPCIÓN", "UNIDAD", "CANTIDAD", "VALOR TOTAL"
-        }:
+
+        # Evitar que sea solo un código o número
+        if re.match(r"^[A-Z0-9]{1,6}$", first_part):
             return False
-        if re.match(r"^[\d.,$%]+$", first_part):
-            return False
+
         return True
 
     def _capture_apu_description(self, line: str):
@@ -298,53 +302,63 @@ class ReportParserCrudo:
         """
         desc = line.split(";")[0].strip()
         self.context["apu_desc"] = desc
-        logger.debug(f"Descripción APU capturada: {desc[:50]}...")
+        logger.debug(f"Línea {self._apu_start_line}: Descripción APU capturada: '{desc[:50]}...'")
 
-    def _try_detect_category_change(self, line: str) -> bool:
+    def _try_detect_category_change(self, line: str, line_num: int) -> bool:
         """
         Detecta si la línea es un cambio de categoría (e.g., "MANO DE OBRA").
-        MEJORADO: Más flexible y robusto en la detección.
+
+        Solo se considera categoría si:
+        - La línea es corta (< 80 chars)
+        - No contiene más de un ';'
+        - La primera parte coincide con una palabra clave
+
         Args:
             line: La línea de texto.
+            line_num: Número de línea para logging.
 
         Returns:
             True si la línea es un cambio de categoría, False en caso contrario.
         """
-        # Normalizar la línea para comparación
-        line_upper = line.upper().strip()
+        line_clean = line.strip()
+        line_upper = line_clean.upper()
 
-        # Obtener la primera parte (antes del primer ;)
+        # Si es muy larga, no es categoría
+        if len(line_clean) > self.MAX_CATEGORY_LINE_LENGTH:
+            return False
+
+        # Si tiene más de un ;, probablemente es un insumo
+        if line_clean.count(";") > 1:
+            return False
+
+        # Obtener primera parte (antes del primer ;)
         first_part = line_upper.split(";")[0].strip()
 
-        # Método 1: Coincidencia exacta en la primera parte
+        # Si está vacía, ignorar
+        if not first_part:
+            return False
+
+        # Método 1: Coincidencia exacta
         if first_part in self.CATEGORY_KEYWORDS:
+            old_category = self.context["category"]
             self.context["category"] = first_part
-            self.stats["category_changes"][first_part] += 1
-            logger.debug(f"✓ Categoría detectada (exacta): {first_part}")
+            if old_category != first_part:
+                self.stats["category_changes"][first_part] += 1
+                logger.debug(f"Línea {line_num}: Categoría cambiada a '{first_part}' (desde '{old_category}')")
             return True
 
-        # Método 2: Buscar palabra clave en cualquier parte de la primera sección
-        # (útil si hay caracteres especiales o espacios extra)
+        # Método 2: Contiene categoría como substring (solo si no hay ; ni datos numéricos)
         for keyword in self.CATEGORY_KEYWORDS:
             if keyword in first_part:
-                # Verificar que no sea parte de una descripción más larga con datos numéricos
-                # (evitar falsos positivos)
-                if not self._looks_like_insumo_line(line):
-                    self.context["category"] = keyword
+                # Evitar falsos positivos: si contiene números o símbolos típicos de insumos, no es categoría
+                if self._looks_like_insumo_line(line_clean):
+                    continue
+                old_category = self.context["category"]
+                self.context["category"] = keyword
+                if old_category != keyword:
                     self.stats["category_changes"][keyword] += 1
-                    logger.debug(
-                        f"✓ Categoría detectada (contenida): {keyword} en '{first_part}'"
-                    )
-                    return True
-
-        # Método 3: Buscar en toda la línea si es corta (probablemente un encabezado)
-        if len(line_upper) < 50 and ";" not in line_upper[10:]:  # Pocos puntos y comas
-            for keyword in self.CATEGORY_KEYWORDS:
-                if keyword in line_upper:
-                    self.context["category"] = keyword
-                    self.stats["category_changes"][keyword] += 1
-                    logger.debug(f"✓ Categoría detectada (línea corta): {keyword}")
-                    return True
+                    logger.debug(f"Línea {line_num}: Categoría detectada por substring: '{keyword}' en '{first_part}'")
+                return True
 
         return False
 
@@ -352,6 +366,7 @@ class ReportParserCrudo:
         """
         Determina si una línea parece ser un insumo con datos numéricos.
         Ayuda a evitar falsos positivos en la detección de categorías.
+
         Args:
             line: La línea de texto.
 
@@ -362,56 +377,89 @@ class ReportParserCrudo:
         if len(parts) < 3:
             return False
 
-        # Verificar si hay al menos 2 campos que parezcan numéricos
-        numeric_fields = 0
+        numeric_count = 0
         for part in parts[1:]:  # Saltar descripción
-            part_clean = part.strip().replace(",", "").replace(".", "").replace("$", "")
-            if part_clean and part_clean.replace("-", "").isdigit():
-                numeric_fields += 1
+            part_clean = part.strip().replace(",", "").replace(".", "").replace("$", "").replace("-", "")
+            if part_clean and part_clean.isdigit():
+                numeric_count += 1
+                if numeric_count >= 2:  # Al menos 2 campos numéricos
+                    return True
+        return False
 
-        return numeric_fields >= 2
-
-    def _has_data_structure(self, line: str) -> bool:
+    def _has_valid_insumo_structure(self, line: str) -> bool:
         """
-        Verifica si una línea tiene la estructura de un insumo (contiene ';').
+        Verifica si una línea tiene estructura válida de insumo.
+
+        Requisitos:
+        - Al menos 3 columnas separadas por ;
+        - La primera columna no es un encabezado conocido
+        - Al menos una columna posterior contiene datos numéricos o alfanuméricos significativos
+        - No es una línea vacía o solo con separadores
 
         Args:
             line: La línea de texto.
 
         Returns:
-            True si la línea parece ser un insumo.
+            True si la línea es un insumo válido.
         """
-        # Mejorado: Verificar que tenga suficientes columnas Y datos numéricos
-        if line.count(";") < 2:
+        parts = line.split(";")
+        if len(parts) < 3:
             return False
 
-        # Verificar que no sea solo una línea de encabezado
-        first_part = line.split(";")[0].strip().upper()
-        if first_part in {"DESCRIPCION", "CÓDIGO", "CODIGO", "UNIDAD", "CANTIDAD"}:
+        # Primera parte: descripción
+        first_part = parts[0].strip()
+        if not first_part:
             return False
 
-        return True
+        # Evitar encabezados
+        if self.PATTERNS["header_keywords"].fullmatch(first_part.upper()):
+            return False
+
+        # Al menos una columna posterior debe tener contenido no vacío y no solo símbolos
+        has_valid_field = False
+        for part in parts[1:]:
+            part_clean = part.strip()
+            if part_clean and not re.fullmatch(r"^[.,\s$%\-]+$", part_clean):
+                has_valid_field = True
+                break
+
+        return has_valid_field
 
     def _add_raw_record(self, **kwargs):
         """
         Crea un nuevo registro crudo y lo añade a la lista de resultados.
 
         Utiliza la información del contexto actual del APU.
+        Limpia la línea de insumo antes de guardar.
 
         Args:
             **kwargs: Argumentos clave-valor, se espera 'insumo_line'.
         """
-        cleaned_code = clean_apu_code(self.context["apu_code"])
+        insumo_line = kwargs.get("insumo_line", "").strip()
+        if not insumo_line:
+            logger.warning(f"Intento de agregar registro sin línea de insumo. Contexto: {self.context}")
+            return
+
+        # Limpiar insumo_line: eliminar espacios extra, tabuladores, saltos
+        insumo_line_clean = " ".join(insumo_line.split())
+
+        # Verificar si la categoría es INDEFINIDO y registrar estadística
+        if self.context["category"] == "INDEFINIDO":
+            self.stats["insumos_sin_categoria"] += 1
+
         record = {
-            "apu_code": cleaned_code,
+            "apu_code": self.context["apu_code"],
             "apu_desc": self.context["apu_desc"],
             "apu_unit": self.context["apu_unit"],
             "category": self.context["category"],
-            "insumo_line": kwargs.get("insumo_line", ""),
+            "insumo_line": insumo_line_clean,
         }
         self.raw_records.append(record)
 
-        # Debug logging cada ciertos registros
+        # Logging cada 100 registros
         if len(self.raw_records) % 100 == 0:
-            logger.debug(f"Registros procesados: {len(self.raw_records)}, "
-                        f"Categoría actual: {self.context['category']}")
+            logger.debug(
+                f"Registros procesados: {len(self.raw_records)} | "
+                f"Categoría actual: {self.context['category']} | "
+                f"APU: {self.context['apu_code']}"
+            )

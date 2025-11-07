@@ -1,451 +1,1091 @@
+"""
+Suite de pruebas robusta para el procesador CSV.
+
+Incluye:
+- Pruebas unitarias para cada clase especializada
+- Pruebas de integración end-to-end
+- Fixtures reutilizables
+- Validaciones exhaustivas
+- Manejo de casos edge
+"""
+
 import os
 import sys
+import tempfile
 import unittest
-from unittest.mock import MagicMock, patch
+from pathlib import Path
+from typing import Dict
+from unittest.mock import MagicMock, Mock, patch
 
 import pandas as pd
+import numpy as np
 
 # Add project root to the Python path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-# Importar la app de Flask y las funciones a probar
-from app.procesador_csv import process_all_files
-
-# Importar los datos de prueba centralizados
-from tests.test_data import (
-    TEST_CONFIG,
+from app.procesador_csv import (
+    APUCostCalculator,
+    ColumnNames,
+    DataMerger,
+    DataValidator,
+    FileValidator,
+    InsumosProcessor,
+    InsumoTypes,
+    PresupuestoProcessor,
+    ProcessingThresholds,
+    APUTypes,
+    build_output_dictionary,
+    build_processed_apus_dataframe,
+    calculate_insumo_costs,
+    calculate_total_costs,
+    group_and_split_description,
+    process_all_files,
+    synchronize_data_sources,
 )
 
+# Importar datos de prueba centralizados
+from tests.test_data import TEST_CONFIG
 
-class TestCSVProcessorWithNewData(unittest.TestCase):
-    """
-    Pruebas de integración robustas para la función `process_all_files`.
 
-    Esta clase valida el flujo completo de procesamiento con la nueva
-    arquitectura híbrida Lark+Python y todas las funcionalidades mejoradas.
-    """
+# ==================== FIXTURES Y HELPERS ====================
 
-    @classmethod
-    def setUpClass(cls):
-        """
-        Configura el entorno de prueba creando archivos temporales con datos
-        realistas y compatibles con el nuevo parser.
-        """
-        # Presupuesto con formato mejorado
-        cls.presupuesto_path = "test_presupuesto_new.csv"
-        presupuesto_data = (
+class TestDataBuilder:
+    """Constructor de datos de prueba reutilizables."""
+    
+    @staticmethod
+    def create_presupuesto_csv(path: str, data: str = None) -> str:
+        """Crea archivo CSV de presupuesto de prueba."""
+        if data is None:
+            data = (
+                "ITEM;DESCRIPCION;UND;CANT.;VR. UNIT;VR.TOTAL\n"
+                "1.1;INSTALACION TUBERIA PVC 3/4;ML;100;50000;5000000\n"
+                "1.2;EXCAVACION MANUAL;M3;50;25000;1250000\n"
+                "2.1;SUM. CEMENTO;UND;200;15000;3000000\n"
+                "2.2;TRANSPORTE MATERIAL;VIAJE;10;80000;800000\n"
+            )
+        
+        with open(path, "w", encoding="latin1") as f:
+            f.write(data)
+        
+        return path
+    
+    @staticmethod
+    def create_apus_csv(path: str, data: str = None) -> str:
+        """Crea archivo CSV de APUs de prueba."""
+        if data is None:
+            data = (
+                "ITEM: 1.1; UNIDAD: ML\n"
+                "INSTALACION TUBERIA PVC 3/4\n"
+                "MATERIALES\n"
+                '"TUBERIA PVC 3/4";ML;1.05;;38095;40000\n'
+                '"CEMENTO";UND;0.5;;10000;5000\n'
+                "MANO DE OBRA\n"
+                '"OFICIAL";50000;0;75000;8.0;9375\n'
+                "EQUIPO\n"
+                '"HERRAMIENTA MENOR";DIA;0.1;;50000;5000\n'
+            )
+        
+        with open(path, "w", encoding="latin1") as f:
+            f.write(data)
+        
+        return path
+    
+    @staticmethod
+    def create_insumos_csv(path: str, data: str = None) -> str:
+        """Crea archivo CSV de insumos de prueba."""
+        if data is None:
+            data = (
+                "G;MATERIALES\n"
+                "CODIGO;DESCRIPCION;UND;CANT.;VR. UNIT.\n"
+                "M001;TUBERIA PVC 3/4;ML;1;40000\n"
+                "M002;CEMENTO;UND;1;12000\n"
+                "G;MANO DE OBRA\n"
+                "CODIGO;DESCRIPCION;UND;CANT.;VR. UNIT.\n"
+                "MO01;OFICIAL;JOR;1;80000\n"
+                "G;EQUIPO\n"
+                "CODIGO;DESCRIPCION;UND;CANT.;VR. UNIT.\n"
+                "E001;HERRAMIENTA MENOR;DIA;1;55000\n"
+            )
+        
+        with open(path, "w", encoding="latin1") as f:
+            f.write(data)
+        
+        return path
+    
+    @staticmethod
+    def create_sample_presupuesto_df() -> pd.DataFrame:
+        """Crea DataFrame de presupuesto de muestra."""
+        return pd.DataFrame({
+            ColumnNames.CODIGO_APU: ["1.1", "1.2", "2.1"],
+            ColumnNames.DESCRIPCION_APU: [
+                "INSTALACION TUBERIA",
+                "EXCAVACION MANUAL",
+                "SUMINISTRO CEMENTO"
+            ],
+            ColumnNames.CANTIDAD_PRESUPUESTO: [100, 50, 200]
+        })
+    
+    @staticmethod
+    def create_sample_insumos_df() -> pd.DataFrame:
+        """Crea DataFrame de insumos de muestra."""
+        return pd.DataFrame({
+            ColumnNames.GRUPO_INSUMO: ["MATERIALES", "MATERIALES", "MANO DE OBRA"],
+            ColumnNames.DESCRIPCION_INSUMO: [
+                "TUBERIA PVC 3/4",
+                "CEMENTO",
+                "OFICIAL"
+            ],
+            ColumnNames.VR_UNITARIO_INSUMO: [40000, 12000, 80000],
+            ColumnNames.DESCRIPCION_INSUMO_NORM: [
+                "tuberia pvc 3/4",
+                "cemento",
+                "oficial"
+            ]
+        })
+    
+    @staticmethod
+    def create_sample_apus_df() -> pd.DataFrame:
+        """Crea DataFrame de APUs procesados de muestra."""
+        return pd.DataFrame({
+            ColumnNames.CODIGO_APU: ["1.1", "1.1", "1.2"],
+            ColumnNames.DESCRIPCION_APU: [
+                "INSTALACION TUBERIA",
+                "INSTALACION TUBERIA",
+                "EXCAVACION MANUAL"
+            ],
+            ColumnNames.UNIDAD_APU: ["ML", "ML", "M3"],
+            ColumnNames.DESCRIPCION_INSUMO: [
+                "TUBERIA PVC 3/4",
+                "OFICIAL",
+                "PEON"
+            ],
+            ColumnNames.CANTIDAD_APU: [1.05, 0.125, 0.5],
+            ColumnNames.PRECIO_UNIT_APU: [38095, 75000, 50000],
+            ColumnNames.VALOR_TOTAL_APU: [40000, 9375, 25000],
+            ColumnNames.CATEGORIA: [
+                "MATERIALES",
+                "MANO DE OBRA",
+                "MANO DE OBRA"
+            ],
+            ColumnNames.TIPO_INSUMO: [
+                InsumoTypes.SUMINISTRO,
+                InsumoTypes.MANO_DE_OBRA,
+                InsumoTypes.MANO_DE_OBRA
+            ],
+            ColumnNames.NORMALIZED_DESC: [
+                "tuberia pvc 3/4",
+                "oficial",
+                "peon"
+            ],
+            ColumnNames.RENDIMIENTO: [0, 8.0, 10.0]
+        })
+
+
+class TempFileManager:
+    """Gestor de archivos temporales para pruebas."""
+    
+    def __init__(self):
+        self.temp_files = []
+        self.temp_dir = tempfile.mkdtemp()
+    
+    def create_temp_file(self, suffix: str = ".csv") -> str:
+        """Crea un archivo temporal y registra su ruta."""
+        fd, path = tempfile.mkstemp(suffix=suffix, dir=self.temp_dir)
+        os.close(fd)
+        self.temp_files.append(path)
+        return path
+    
+    def cleanup(self):
+        """Limpia todos los archivos temporales."""
+        for path in self.temp_files:
+            if os.path.exists(path):
+                os.remove(path)
+        
+        if os.path.exists(self.temp_dir):
+            os.rmdir(self.temp_dir)
+
+
+# ==================== PRUEBAS UNITARIAS ====================
+
+class TestColumnNames(unittest.TestCase):
+    """Pruebas para la clase de constantes ColumnNames."""
+    
+    def test_column_names_are_strings(self):
+        """Verifica que todas las constantes sean strings."""
+        for attr_name in dir(ColumnNames):
+            if not attr_name.startswith("_"):
+                attr_value = getattr(ColumnNames, attr_name)
+                self.assertIsInstance(
+                    attr_value,
+                    str,
+                    f"{attr_name} debe ser un string"
+                )
+    
+    def test_no_duplicate_column_names(self):
+        """Verifica que no haya nombres de columna duplicados."""
+        column_values = [
+            getattr(ColumnNames, attr)
+            for attr in dir(ColumnNames)
+            if not attr.startswith("_")
+        ]
+        
+        self.assertEqual(
+            len(column_values),
+            len(set(column_values)),
+            "No debe haber nombres de columna duplicados"
+        )
+
+
+class TestProcessingThresholds(unittest.TestCase):
+    """Pruebas para la clase ProcessingThresholds."""
+    
+    def test_default_thresholds(self):
+        """Verifica que los umbrales por defecto sean razonables."""
+        thresholds = ProcessingThresholds()
+        
+        self.assertEqual(thresholds.outlier_std_multiplier, 3.0)
+        self.assertEqual(thresholds.max_quantity, 1e6)
+        self.assertEqual(thresholds.max_cost_per_item, 1e9)
+        self.assertEqual(thresholds.max_total_cost, 1e11)
+        self.assertEqual(thresholds.instalacion_mo_threshold, 75.0)
+    
+    def test_custom_thresholds(self):
+        """Verifica que se puedan personalizar los umbrales."""
+        thresholds = ProcessingThresholds(
+            outlier_std_multiplier=2.5,
+            max_total_cost=5e11
+        )
+        
+        self.assertEqual(thresholds.outlier_std_multiplier, 2.5)
+        self.assertEqual(thresholds.max_total_cost, 5e11)
+
+
+class TestDataValidator(unittest.TestCase):
+    """Pruebas para la clase DataValidator."""
+    
+    def setUp(self):
+        self.validator = DataValidator()
+    
+    def test_validate_dataframe_not_empty_success(self):
+        """Prueba validación exitosa de DataFrame no vacío."""
+        df = pd.DataFrame({"col1": [1, 2, 3]})
+        is_valid, error = self.validator.validate_dataframe_not_empty(df, "test_df")
+        
+        self.assertTrue(is_valid)
+        self.assertIsNone(error)
+    
+    def test_validate_dataframe_not_empty_failure(self):
+        """Prueba validación fallida con DataFrame vacío."""
+        df = pd.DataFrame()
+        is_valid, error = self.validator.validate_dataframe_not_empty(df, "test_df")
+        
+        self.assertFalse(is_valid)
+        self.assertIsNotNone(error)
+        self.assertIn("vacío", error.lower())
+    
+    def test_validate_dataframe_none(self):
+        """Prueba validación con DataFrame None."""
+        is_valid, error = self.validator.validate_dataframe_not_empty(None, "test_df")
+        
+        self.assertFalse(is_valid)
+        self.assertIsNotNone(error)
+    
+    def test_validate_required_columns_success(self):
+        """Prueba validación exitosa de columnas requeridas."""
+        df = pd.DataFrame({
+            "col1": [1, 2],
+            "col2": [3, 4],
+            "col3": [5, 6]
+        })
+        
+        is_valid, error = self.validator.validate_required_columns(
+            df,
+            ["col1", "col2"],
+            "test_df"
+        )
+        
+        self.assertTrue(is_valid)
+        self.assertIsNone(error)
+    
+    def test_validate_required_columns_failure(self):
+        """Prueba validación fallida con columnas faltantes."""
+        df = pd.DataFrame({"col1": [1, 2]})
+        
+        is_valid, error = self.validator.validate_required_columns(
+            df,
+            ["col1", "col2", "col3"],
+            "test_df"
+        )
+        
+        self.assertFalse(is_valid)
+        self.assertIsNotNone(error)
+        self.assertIn("col2", error)
+        self.assertIn("col3", error)
+    
+    def test_detect_and_log_duplicates_no_duplicates(self):
+        """Prueba detección sin duplicados."""
+        df = pd.DataFrame({
+            "id": [1, 2, 3],
+            "value": ["a", "b", "c"]
+        })
+        
+        result = self.validator.detect_and_log_duplicates(
+            df,
+            ["id"],
+            "test_df"
+        )
+        
+        self.assertEqual(len(result), 3)
+        pd.testing.assert_frame_equal(result, df)
+    
+    def test_detect_and_log_duplicates_with_duplicates(self):
+        """Prueba detección y eliminación de duplicados."""
+        df = pd.DataFrame({
+            "id": [1, 2, 2, 3],
+            "value": ["a", "b", "c", "d"]
+        })
+        
+        with self.assertLogs('app.procesador_csv', level='WARNING'):
+            result = self.validator.detect_and_log_duplicates(
+                df,
+                ["id"],
+                "test_df",
+                keep="first"
+            )
+        
+        self.assertEqual(len(result), 3)
+        self.assertListEqual(result["id"].tolist(), [1, 2, 3])
+    
+    def test_validate_numeric_range_success(self):
+        """Prueba validación de rango numérico exitosa."""
+        series = pd.Series([10, 20, 30, 40])
+        
+        is_valid = self.validator.validate_numeric_range(
+            series,
+            "test_column",
+            max_value=50,
+            min_value=5
+        )
+        
+        self.assertTrue(is_valid)
+    
+    def test_validate_numeric_range_failure(self):
+        """Prueba validación de rango numérico fallida."""
+        series = pd.Series([10, 20, 100, 40])
+        
+        with self.assertLogs('app.procesador_csv', level='WARNING'):
+            is_valid = self.validator.validate_numeric_range(
+                series,
+                "test_column",
+                max_value=50,
+                min_value=5
+            )
+        
+        self.assertFalse(is_valid)
+
+
+class TestFileValidator(unittest.TestCase):
+    """Pruebas para la clase FileValidator."""
+    
+    def setUp(self):
+        self.validator = FileValidator()
+        self.temp_manager = TempFileManager()
+    
+    def tearDown(self):
+        self.temp_manager.cleanup()
+    
+    def test_validate_file_exists_success(self):
+        """Prueba validación exitosa de archivo existente."""
+        temp_file = self.temp_manager.create_temp_file()
+        
+        is_valid, error = self.validator.validate_file_exists(temp_file, "test")
+        
+        self.assertTrue(is_valid)
+        self.assertIsNone(error)
+    
+    def test_validate_file_exists_failure(self):
+        """Prueba validación fallida con archivo inexistente."""
+        non_existent = "/path/to/nonexistent/file.csv"
+        
+        is_valid, error = self.validator.validate_file_exists(non_existent, "test")
+        
+        self.assertFalse(is_valid)
+        self.assertIsNotNone(error)
+        self.assertIn("no encontrado", error.lower())
+    
+    def test_validate_file_is_directory(self):
+        """Prueba validación fallida cuando la ruta es un directorio."""
+        is_valid, error = self.validator.validate_file_exists(
+            self.temp_manager.temp_dir,
+            "test"
+        )
+        
+        self.assertFalse(is_valid)
+        self.assertIsNotNone(error)
+
+
+class TestPresupuestoProcessor(unittest.TestCase):
+    """Pruebas para la clase PresupuestoProcessor."""
+    
+    def setUp(self):
+        self.config = TEST_CONFIG.copy()
+        self.thresholds = ProcessingThresholds()
+        self.processor = PresupuestoProcessor(self.config, self.thresholds)
+        self.temp_manager = TempFileManager()
+    
+    def tearDown(self):
+        self.temp_manager.cleanup()
+    
+    def test_process_success(self):
+        """Prueba procesamiento exitoso de presupuesto."""
+        temp_file = self.temp_manager.create_temp_file()
+        TestDataBuilder.create_presupuesto_csv(temp_file)
+        
+        result = self.processor.process(temp_file)
+        
+        self.assertFalse(result.empty)
+        self.assertIn(ColumnNames.CODIGO_APU, result.columns)
+        self.assertIn(ColumnNames.DESCRIPCION_APU, result.columns)
+        self.assertIn(ColumnNames.CANTIDAD_PRESUPUESTO, result.columns)
+    
+    def test_process_with_duplicates(self):
+        """Prueba que se eliminen duplicados correctamente."""
+        temp_file = self.temp_manager.create_temp_file()
+        data = (
             "ITEM;DESCRIPCION;UND;CANT.;VR. UNIT;VR.TOTAL\n"
-            "1.1;INSTALACION TUBERIA PVC 3/4;ML;100;50000;5000000\n"
-            "1.2;EXCAVACION MANUAL;M3;50;25000;1250000\n"
-            "2.1;SUM. CEMENTO;UND;200;15000;3000000\n"
-            "2.2;TRANSPORTE MATERIAL;VIAJE;10;80000;800000\n"
+            "1.1;APU 1;ML;100;50000;5000000\n"
+            "1.1;APU 1 DUPLICADO;ML;150;60000;9000000\n"
+            "1.2;APU 2;M3;50;25000;1250000\n"
         )
-        with open(cls.presupuesto_path, "w", encoding="latin1") as f:
-            f.write(presupuesto_data)
+        TestDataBuilder.create_presupuesto_csv(temp_file, data)
+        
+        with self.assertLogs('app.procesador_csv', level='WARNING'):
+            result = self.processor.process(temp_file)
+        
+        # Debe conservar solo el primero
+        self.assertEqual(len(result), 2)
+        self.assertEqual(result[ColumnNames.CODIGO_APU].tolist(), ["1.1", "1.2"])
+    
+    def test_process_invalid_file(self):
+        """Prueba manejo de archivo inválido."""
+        result = self.processor.process("/path/to/nonexistent.csv")
+        
+        self.assertTrue(result.empty)
+    
+    def test_find_and_set_header_success(self):
+        """Prueba búsqueda exitosa de encabezado."""
+        df = pd.DataFrame([
+            ["", "", "", ""],
+            ["Proyecto X", "", "", ""],
+            ["ITEM", "DESCRIPCION", "UND", "CANT."],
+            ["1.1", "APU 1", "ML", "100"]
+        ])
+        
+        result = self.processor._find_and_set_header(df)
+        
+        self.assertFalse(result.empty)
+        self.assertIn("ITEM", result.columns)
+        self.assertEqual(len(result), 1)
+    
+    def test_find_and_set_header_not_found(self):
+        """Prueba cuando no se encuentra encabezado."""
+        df = pd.DataFrame([
+            ["datos", "sin", "formato"],
+            ["invalido", "para", "presupuesto"]
+        ])
+        
+        with self.assertLogs('app.procesador_csv', level='ERROR'):
+            result = self.processor._find_and_set_header(df)
+        
+        self.assertTrue(result.empty)
 
-        # APUs con formato compatible con Lark (comillas en descripciones)
-        cls.apus_path = "test_apus_new.csv"
-        apus_data = (
-            "ITEM: 1.1; UNIDAD: ML\n"
-            "INSTALACION TUBERIA PVC 3/4\n"
-            "MATERIALES\n"
-            '"TUBERIA PVC 3/4";ML;1.05;;38095;40000\n'
-            '"CEMENTO";UND;0.5;;10000;5000\n'
-            "MANO DE OBRA\n"
-            '"OFICIAL";50000;0;75000;8.0;9375\n'
-            "EQUIPO\n"
-            '"HERRAMIENTA MENOR";DIA;0.1;;50000;5000\n'
-        )
-        with open(cls.apus_path, "w", encoding="latin1") as f:
-            f.write(apus_data)
 
-        # Insumos con descripciones normalizadas
-        cls.insumos_path = "test_insumos_new.csv"
-        insumos_data = (
+class TestInsumosProcessor(unittest.TestCase):
+    """Pruebas para la clase InsumosProcessor."""
+    
+    def setUp(self):
+        self.thresholds = ProcessingThresholds()
+        self.processor = InsumosProcessor(self.thresholds)
+        self.temp_manager = TempFileManager()
+    
+    def tearDown(self):
+        self.temp_manager.cleanup()
+    
+    def test_process_success(self):
+        """Prueba procesamiento exitoso de insumos."""
+        temp_file = self.temp_manager.create_temp_file()
+        TestDataBuilder.create_insumos_csv(temp_file)
+        
+        result = self.processor.process(temp_file)
+        
+        self.assertFalse(result.empty)
+        self.assertIn(ColumnNames.GRUPO_INSUMO, result.columns)
+        self.assertIn(ColumnNames.DESCRIPCION_INSUMO, result.columns)
+        self.assertIn(ColumnNames.VR_UNITARIO_INSUMO, result.columns)
+        self.assertIn(ColumnNames.DESCRIPCION_INSUMO_NORM, result.columns)
+    
+    def test_process_with_duplicates(self):
+        """Prueba eliminación de duplicados conservando el de mayor precio."""
+        temp_file = self.temp_manager.create_temp_file()
+        data = (
             "G;MATERIALES\n"
             "CODIGO;DESCRIPCION;UND;CANT.;VR. UNIT.\n"
-            "M001;TUBERIA PVC 3/4;ML;1;40000\n"
-            "M002;CEMENTO;UND;1;12000\n"
-            "G;MANO DE OBRA\n"
-            "CODIGO;DESCRIPCION;UND;CANT.;VR. UNIT.\n"
-            "MO01;OFICIAL;JOR;1;80000\n"
-            "G;EQUIPO\n"
-            "CODIGO;DESCRIPCION;UND;CANT.;VR. UNIT.\n"
-            "E001;HERRAMIENTA MENOR;DIA;1;55000\n"
+            "M001;CEMENTO;UND;1;10000\n"
+            "M002;CEMENTO;UND;1;12000\n"  # Mayor precio
+            "M003;CEMENTO;UND;1;11000\n"
         )
-        with open(cls.insumos_path, "w", encoding="latin1") as f:
-            f.write(insumos_data)
-
-    @classmethod
-    def tearDownClass(cls):
-        """
-        Limpia el entorno de prueba eliminando los archivos temporales.
-        """
-        for path in [cls.presupuesto_path, cls.apus_path, cls.insumos_path]:
-            if os.path.exists(path):
-                os.remove(path)
-
-    def test_process_all_files_structure_and_calculations_enhanced(self):
-        """
-        Prueba mejorada del caso de éxito del procesamiento.
-
-        Verifica la estructura del data_store resultante, cálculos clave
-        y la integración con la nueva lógica de normalización.
-        """
-        resultado = process_all_files(
-            self.presupuesto_path, self.apus_path, self.insumos_path, config=TEST_CONFIG
+        TestDataBuilder.create_insumos_csv(temp_file, data)
+        
+        with self.assertLogs('app.procesador_csv', level='WARNING'):
+            result = self.processor.process(temp_file)
+        
+        # Debe conservar el de mayor precio
+        cemento = result[
+            result[ColumnNames.DESCRIPCION_INSUMO] == "CEMENTO"
+        ]
+        self.assertEqual(len(cemento), 1)
+        self.assertEqual(
+            cemento[ColumnNames.VR_UNITARIO_INSUMO].iloc[0],
+            12000
         )
+    
+    def test_parse_file_structure(self):
+        """Prueba el parseo de la estructura del archivo."""
+        temp_file = self.temp_manager.create_temp_file()
+        TestDataBuilder.create_insumos_csv(temp_file)
+        
+        records = self.processor._parse_file(temp_file)
+        
+        self.assertGreater(len(records), 0)
+        self.assertIn(ColumnNames.GRUPO_INSUMO, records[0])
 
-        self.assertIsInstance(resultado, dict)
-        self.assertNotIn(
-            "error", resultado, f"El procesamiento falló: {resultado.get('error')}"
-        )
 
-        # Verificar estructura completa del resultado
-        expected_keys = ["presupuesto", "insumos", "apus_detail", "all_apus", "processed_apus"]
-        for key in expected_keys:
-            self.assertIn(key, resultado, f"Falta clave en resultado: {key}")
-
-        presupuesto_procesado = resultado["presupuesto"]
-        self.assertGreater(len(presupuesto_procesado), 0, "Debería haber APUs procesados")
-
-        # Verificar que se usó NORMALIZED_DESC en lugar de crear columnas temporales
-        apus_detail = resultado["apus_detail"]
-        if apus_detail:
-            first_insumo = apus_detail[0]
-            self.assertIn("NORMALIZED_DESC", first_insumo,
-                          "Debería usar NORMALIZED_DESC del APUProcessor")
-
-        # Buscar el ítem 1.1 y verificar cálculos
-        item1_1 = next(
-            (item for item in presupuesto_procesado if item["CODIGO_APU"] == "1.1"), None
-        )
-        self.assertIsNotNone(item1_1, "El ítem 1.1 no fue encontrado.")
-
-        # Verificar cálculos de costos
-        self.assertIn("VALOR_CONSTRUCCION_UN", item1_1)
-        self.assertIn("VALOR_SUMINISTRO_UN", item1_1)
-        self.assertIn("VALOR_INSTALACION_UN", item1_1)
-
-    def test_normalized_desc_integration(self):
-        """
-        Prueba que el sistema use correctamente NORMALIZED_DESC para los merges.
-        """
-        # Mock específico para verificar el uso de NORMALIZED_DESC
-        with patch('app.procesador_csv.APUProcessor') as mock_processor_class:
-            mock_processor = MagicMock()
-            mock_processor_class.return_value = mock_processor
-
-            # Simular DataFrame con NORMALIZED_DESC
-            mock_apus_df = pd.DataFrame({
-                'CODIGO_APU': ['1.1', '1.1'],
-                'DESCRIPCION_APU': ['APU Test', 'APU Test'],
-                'UNIDAD_APU': ['ML', 'ML'],
-                'DESCRIPCION_INSUMO': ['TUBERIA PVC', 'OFICIAL'],
-                'UNIDAD_INSUMO': ['ML', 'JOR'],
-                'CANTIDAD_APU': [1.05, 0.125],
-                'PRECIO_UNIT_APU': [38095, 75000],
-                'VALOR_TOTAL_APU': [40000, 9375],
-                'CATEGORIA': ['MATERIALES', 'MANO DE OBRA'],
-                'FORMATO_ORIGEN': ['INSUMO_BASICO', 'MO_COMPLETA'],
-                'TIPO_INSUMO': ['SUMINISTRO', 'MANO_DE_OBRA'],
-                'RENDIMIENTO': [0, 8.0],
-                'NORMALIZED_DESC': ['tuberia pvc', 'oficial'] # Columna del APUProcessor
-            })
-
-            mock_processor.process_all.return_value = mock_apus_df
-
-            resultado = process_all_files(
-                self.presupuesto_path, self.apus_path, self.insumos_path, config=TEST_CONFIG
-            )
-
-            # Verificar que no se creó DESCRIPCION_INSUMO_NORM duplicada
-            if 'apus_detail' in resultado and resultado['apus_detail']:
-                first_insumo = resultado['apus_detail'][0]
-                self.assertIn('NORMALIZED_DESC', first_insumo)
-                # Asegurar que no hay columnas duplicadas
-                self.assertNotIn('DESCRIPCION_INSUMO_NORM', first_insumo)
-
-    def test_abnormally_high_cost_triggers_error_enhanced(self):
-        """
-        Valida mejorada para costos anormalmente altos.
-
-        Usa datos compatibles con el nuevo parser y verifica la detección
-        mejorada de outliers.
-        """
-        # Datos con costos extremadamente altos pero con formato correcto
-        presupuesto_alto = (
-            "ITEM;DESCRIPCION;UND;CANT.;VR. UNIT;VR.TOTAL\n"
-            "1.1;MATERIAL COSTOSO;UND;1000000;1000000;1000000000000\n"
-        )
-        presupuesto_alto_path = "test_presupuesto_alto.csv"
-        with open(presupuesto_alto_path, "w", encoding="latin1") as f:
-            f.write(presupuesto_alto)
-
-        apus_alto = (
-            "ITEM: 1.1; UNIDAD: UND\n"
-            "MATERIAL COSTOSO\n"
-            "MATERIALES\n"
-            '"MATERIAL COSTOSO";UND;1;;1000000;1000000\n'
-        )
-        apus_alto_path = "test_apus_alto.csv"
-        with open(apus_alto_path, "w", encoding="latin1") as f:
-            f.write(apus_alto)
-
-        with self.assertLogs('app.procesador_csv', level='ERROR') as cm:
-            resultado = process_all_files(
-                presupuesto_alto_path, apus_alto_path, self.insumos_path, config=TEST_CONFIG
-            )
-
-            # Verificar detección mejorada de outliers
-            error_messages = [msg for msg in cm.output if "ANORMAL" in msg or "ALTO" in msg]
-            self.assertGreater(len(error_messages), 0,
-                               "Debería detectar costos anormalmente altos")
-
-        self.assertIn("error", resultado)
-        self.assertIn("alto", resultado["error"].lower())
-
-        # Limpiar archivos temporales
-        for path in [presupuesto_alto_path, apus_alto_path]:
-            if os.path.exists(path):
-                os.remove(path)
-
-    def test_cartesian_explosion_on_final_merge_enhanced(self):
-        """
-        Prueba mejorada contra explosiones cartesianas.
-
-        Verifica las validaciones mejoradas en los merges y la estructura
-        de datos esperada.
-        """
-        # Crear DataFrame con estructura mejorada pero duplicados
-        malformed_apu_costos = pd.DataFrame({
-            'CODIGO_APU': ['1.1', '1.2', '1.1'], # '1.1' duplicado
-            'VALOR_SUMINISTRO_UN': [50000, 30000, 55000],
-            'VALOR_INSTALACION_UN': [20000, 15000, 22000],
-            'VALOR_TRANSPORTE_UN': [0, 0, 0],
-            'VALOR_OTRO_UN': [0, 0, 0],
-            'VALOR_CONSTRUCCION_UN': [70000, 45000, 77000],
-            'PCT_SUMINISTRO': [71.4, 66.7, 71.4],
-            'PCT_INSTALACION': [28.6, 33.3, 28.6],
-            'PCT_TRANSPORTE': [0, 0, 0],
-            'tipo_apu': ['Suministro', 'Suministro', 'Suministro']
+class TestAPUCostCalculator(unittest.TestCase):
+    """Pruebas para la clase APUCostCalculator."""
+    
+    def setUp(self):
+        self.thresholds = ProcessingThresholds()
+        self.calculator = APUCostCalculator(self.thresholds)
+    
+    def test_calculate_complete_flow(self):
+        """Prueba el flujo completo de cálculo de costos."""
+        df_merged = pd.DataFrame({
+            ColumnNames.CODIGO_APU: ["1.1", "1.1", "1.2"],
+            ColumnNames.TIPO_INSUMO: [
+                InsumoTypes.SUMINISTRO,
+                InsumoTypes.MANO_DE_OBRA,
+                InsumoTypes.SUMINISTRO
+            ],
+            ColumnNames.COSTO_INSUMO_EN_APU: [40000, 9375, 25000],
+            ColumnNames.CANTIDAD_APU: [1.05, 0.125, 1.0],
+            ColumnNames.RENDIMIENTO: [0, 8.0, 10.0]
         })
+        
+        df_costos, df_tiempo, df_rendimiento = self.calculator.calculate(df_merged)
+        
+        # Verificar estructura de costos
+        self.assertFalse(df_costos.empty)
+        self.assertIn(ColumnNames.CODIGO_APU, df_costos.columns)
+        self.assertIn(ColumnNames.VALOR_SUMINISTRO_UN, df_costos.columns)
+        self.assertIn(ColumnNames.VALOR_INSTALACION_UN, df_costos.columns)
+        self.assertIn(ColumnNames.VALOR_CONSTRUCCION_UN, df_costos.columns)
+        self.assertIn(ColumnNames.TIPO_APU, df_costos.columns)
+        
+        # Verificar tiempo
+        self.assertFalse(df_tiempo.empty)
+        self.assertIn(ColumnNames.TIEMPO_INSTALACION, df_tiempo.columns)
+        
+        # Verificar rendimiento
+        self.assertFalse(df_rendimiento.empty)
+        self.assertIn(ColumnNames.RENDIMIENTO_DIA, df_rendimiento.columns)
+    
+    def test_classify_apus_instalacion(self):
+        """Prueba clasificación de APU tipo Instalación."""
+        df = pd.DataFrame({
+            ColumnNames.CODIGO_APU: ["1.1"],
+            ColumnNames.MATERIALES: [10000],
+            ColumnNames.MANO_DE_OBRA: [70000],
+            ColumnNames.EQUIPO: [10000],
+            ColumnNames.OTROS: [0]
+        })
+        
+        df = self.calculator._calculate_unit_values(df)
+        df = self.calculator._classify_apus(df)
+        
+        self.assertEqual(df[ColumnNames.TIPO_APU].iloc[0], APUTypes.INSTALACION)
+    
+    def test_classify_apus_suministro(self):
+        """Prueba clasificación de APU tipo Suministro."""
+        df = pd.DataFrame({
+            ColumnNames.CODIGO_APU: ["1.1"],
+            ColumnNames.MATERIALES: [80000],
+            ColumnNames.MANO_DE_OBRA: [10000],
+            ColumnNames.EQUIPO: [5000],
+            ColumnNames.OTROS: [0]
+        })
+        
+        df = self.calculator._calculate_unit_values(df)
+        df = self.calculator._classify_apus(df)
+        
+        self.assertEqual(df[ColumnNames.TIPO_APU].iloc[0], APUTypes.SUMINISTRO)
+    
+    def test_classify_apus_obra_completa(self):
+        """Prueba clasificación de APU tipo Obra Completa."""
+        df = pd.DataFrame({
+            ColumnNames.CODIGO_APU: ["1.1"],
+            ColumnNames.MATERIALES: [40000],
+            ColumnNames.MANO_DE_OBRA: [30000],
+            ColumnNames.EQUIPO: [20000],
+            ColumnNames.OTROS: [10000]
+        })
+        
+        df = self.calculator._calculate_unit_values(df)
+        df = self.calculator._classify_apus(df)
+        
+        self.assertEqual(df[ColumnNames.TIPO_APU].iloc[0], APUTypes.OBRA_COMPLETA)
+    
+    def test_detect_cost_outliers(self):
+        """Prueba detección de valores atípicos."""
+        df = pd.DataFrame({
+            ColumnNames.CODIGO_APU: ["1.1", "1.2", "1.3", "1.4"],
+            ColumnNames.VALOR_CONSTRUCCION_UN: [100000, 110000, 105000, 1000000]
+        })
+        
+        with self.assertLogs('app.procesador_csv', level='WARNING'):
+            result = self.calculator._detect_cost_outliers(df)
+        
+        self.assertEqual(len(result), 4)
 
+
+class TestDataMerger(unittest.TestCase):
+    """Pruebas para la clase DataMerger."""
+    
+    def setUp(self):
+        self.thresholds = ProcessingThresholds()
+        self.merger = DataMerger(self.thresholds)
+    
+    def test_merge_apus_with_insumos_success(self):
+        """Prueba merge exitoso de APUs con insumos."""
+        df_apus = TestDataBuilder.create_sample_apus_df()
+        df_insumos = TestDataBuilder.create_sample_insumos_df()
+        
+        result = self.merger.merge_apus_with_insumos(df_apus, df_insumos)
+        
+        self.assertFalse(result.empty)
+        self.assertIn(ColumnNames.TIPO_INSUMO, result.columns)
+    
+    def test_merge_apus_without_normalized_desc(self):
+        """Prueba merge cuando falta NORMALIZED_DESC (fallback)."""
+        df_apus = TestDataBuilder.create_sample_apus_df()
+        df_apus = df_apus.drop(columns=[ColumnNames.NORMALIZED_DESC])
+        df_insumos = TestDataBuilder.create_sample_insumos_df()
+        
+        with self.assertLogs('app.procesador_csv', level='WARNING'):
+            result = self.merger.merge_apus_with_insumos(df_apus, df_insumos)
+        
+        self.assertIn(ColumnNames.NORMALIZED_DESC, result.columns)
+    
+    def test_merge_with_presupuesto_success(self):
+        """Prueba merge exitoso 1:1 con presupuesto."""
+        df_presupuesto = TestDataBuilder.create_sample_presupuesto_df()
+        
+        df_costos = pd.DataFrame({
+            ColumnNames.CODIGO_APU: ["1.1", "1.2", "2.1"],
+            ColumnNames.VALOR_SUMINISTRO_UN: [50000, 30000, 15000],
+            ColumnNames.VALOR_INSTALACION_UN: [20000, 15000, 5000],
+            ColumnNames.VALOR_CONSTRUCCION_UN: [70000, 45000, 20000]
+        })
+        
+        result = self.merger.merge_with_presupuesto(df_presupuesto, df_costos)
+        
+        self.assertEqual(len(result), 3)
+        self.assertIn(ColumnNames.VALOR_CONSTRUCCION_UN, result.columns)
+    
+    def test_merge_with_presupuesto_duplicates(self):
+        """Prueba que falle con duplicados (explosión cartesiana)."""
+        df_presupuesto = TestDataBuilder.create_sample_presupuesto_df()
+        
+        df_costos = pd.DataFrame({
+            ColumnNames.CODIGO_APU: ["1.1", "1.1", "1.2"],  # Duplicado
+            ColumnNames.VALOR_SUMINISTRO_UN: [50000, 55000, 30000],
+            ColumnNames.VALOR_INSTALACION_UN: [20000, 22000, 15000],
+            ColumnNames.VALOR_CONSTRUCCION_UN: [70000, 77000, 45000]
+        })
+        
+        with self.assertRaises(pd.errors.MergeError):
+            with self.assertLogs('app.procesador_csv', level='ERROR'):
+                self.merger.merge_with_presupuesto(df_presupuesto, df_costos)
+
+
+# ==================== PRUEBAS DE FUNCIONES AUXILIARES ====================
+
+class TestAuxiliaryFunctions(unittest.TestCase):
+    """Pruebas para funciones auxiliares."""
+    
+    def test_group_and_split_description(self):
+        """Prueba división de descripciones."""
+        df = pd.DataFrame({
+            ColumnNames.DESCRIPCION_APU: [
+                "INSTALACION / TUBERIA PVC",
+                "SUMINISTRO CEMENTO",
+                "EXCAVACION / MANUAL / PROFUNDA"
+            ]
+        })
+        
+        result = group_and_split_description(df)
+        
+        self.assertIn(ColumnNames.ORIGINAL_DESCRIPTION, result.columns)
+        self.assertIn(ColumnNames.DESCRIPCION_SECUNDARIA, result.columns)
+        self.assertEqual(result[ColumnNames.DESCRIPCION_APU].iloc[0], "INSTALACION")
+        self.assertEqual(
+            result[ColumnNames.DESCRIPCION_SECUNDARIA].iloc[0],
+            "TUBERIA PVC"
+        )
+    
+    def test_calculate_insumo_costs(self):
+        """Prueba cálculo de costos de insumos."""
+        df = pd.DataFrame({
+            ColumnNames.CANTIDAD_APU: [1.05, 0.5],
+            ColumnNames.VR_UNITARIO_INSUMO: [40000, 12000],
+            ColumnNames.VALOR_TOTAL_APU: [42000, 6000]
+        })
+        
+        thresholds = ProcessingThresholds()
+        result = calculate_insumo_costs(df, thresholds)
+        
+        self.assertIn(ColumnNames.COSTO_INSUMO_EN_APU, result.columns)
+        self.assertIn(ColumnNames.VR_UNITARIO_FINAL, result.columns)
+        self.assertEqual(result[ColumnNames.COSTO_INSUMO_EN_APU].iloc[0], 42000)
+    
+    def test_calculate_total_costs(self):
+        """Prueba cálculo de valores totales."""
+        df = pd.DataFrame({
+            ColumnNames.CANTIDAD_PRESUPUESTO: [100, 50],
+            ColumnNames.VALOR_SUMINISTRO_UN: [50000, 30000],
+            ColumnNames.VALOR_INSTALACION_UN: [20000, 15000],
+            ColumnNames.VALOR_CONSTRUCCION_UN: [70000, 45000]
+        })
+        
+        thresholds = ProcessingThresholds()
+        result = calculate_total_costs(df, thresholds)
+        
+        self.assertIn(ColumnNames.VALOR_SUMINISTRO_TOTAL, result.columns)
+        self.assertIn(ColumnNames.VALOR_INSTALACION_TOTAL, result.columns)
+        self.assertIn(ColumnNames.VALOR_CONSTRUCCION_TOTAL, result.columns)
+        
+        self.assertEqual(result[ColumnNames.VALOR_CONSTRUCCION_TOTAL].iloc[0], 7000000)
+    
+    def test_calculate_total_costs_exceeds_threshold(self):
+        """Prueba que lance error cuando se excede el umbral."""
+        df = pd.DataFrame({
+            ColumnNames.CANTIDAD_PRESUPUESTO: [1e6],
+            ColumnNames.VALOR_SUMINISTRO_UN: [1e6],
+            ColumnNames.VALOR_INSTALACION_UN: [0],
+            ColumnNames.VALOR_CONSTRUCCION_UN: [1e6]
+        })
+        
+        thresholds = ProcessingThresholds(max_total_cost=1e10)
+        
+        with self.assertRaises(ValueError):
+            with self.assertLogs('app.procesador_csv', level='ERROR'):
+                calculate_total_costs(df, thresholds)
+    
+    def test_synchronize_data_sources(self):
+        """Prueba sincronización de fuentes de datos."""
+        df_merged = pd.DataFrame({
+            ColumnNames.CODIGO_APU: ["1.1", "1.2", "1.3", "2.1"],
+            "data": ["a", "b", "c", "d"]
+        })
+        
+        df_final = pd.DataFrame({
+            ColumnNames.CODIGO_APU: ["1.1", "1.2", "2.1"]  # Sin 1.3
+        })
+        
+        with self.assertLogs('app.procesador_csv', level='INFO'):
+            result = synchronize_data_sources(df_merged, df_final)
+        
+        self.assertEqual(len(result), 3)
+        self.assertNotIn("1.3", result[ColumnNames.CODIGO_APU].tolist())
+    
+    def test_build_processed_apus_dataframe(self):
+        """Prueba construcción de DataFrame de APUs procesados."""
+        df_costos = pd.DataFrame({
+            ColumnNames.CODIGO_APU: ["1.1", "1.2"],
+            ColumnNames.VALOR_CONSTRUCCION_UN: [70000, 45000]
+        })
+        
+        df_apus_raw = pd.DataFrame({
+            ColumnNames.CODIGO_APU: ["1.1", "1.2"],
+            ColumnNames.DESCRIPCION_APU: ["APU 1", "APU 2"],
+            ColumnNames.UNIDAD_APU: ["ML", "M3"]
+        })
+        
         df_tiempo = pd.DataFrame({
-            'CODIGO_APU': ['1.1', '1.2'],
-            'TIEMPO_INSTALACION': [0.125, 0.1]
+            ColumnNames.CODIGO_APU: ["1.1"],
+            ColumnNames.TIEMPO_INSTALACION: [0.125]
         })
-
+        
         df_rendimiento = pd.DataFrame({
-            'CODIGO_APU': ['1.1', '1.2'],
-            'RENDIMIENTO_DIA': [8.0, 10.0]
+            ColumnNames.CODIGO_APU: ["1.1"],
+            ColumnNames.RENDIMIENTO_DIA: [8.0]
         })
+        
+        result = build_processed_apus_dataframe(
+            df_costos,
+            df_apus_raw,
+            df_tiempo,
+            df_rendimiento
+        )
+        
+        self.assertFalse(result.empty)
+        self.assertIn("UNIDAD", result.columns)
+        self.assertIn("DESC_NORMALIZED", result.columns)
+        self.assertIn(ColumnNames.ORIGINAL_DESCRIPTION, result.columns)
 
-        with patch('app.procesador_csv._calculate_apu_costs_and_metadata',
-                   return_value=(malformed_apu_costos, df_tiempo, df_rendimiento)):
-            with self.assertLogs("app.procesador_csv", level="ERROR") as cm:
+
+# ==================== PRUEBAS DE INTEGRACIÓN ====================
+
+class TestProcessAllFilesIntegration(unittest.TestCase):
+    """Pruebas de integración end-to-end."""
+    
+    def setUp(self):
+        """Configura archivos temporales para pruebas."""
+        self.temp_manager = TempFileManager()
+        
+        self.presupuesto_path = self.temp_manager.create_temp_file()
+        self.apus_path = self.temp_manager.create_temp_file()
+        self.insumos_path = self.temp_manager.create_temp_file()
+        
+        TestDataBuilder.create_presupuesto_csv(self.presupuesto_path)
+        TestDataBuilder.create_apus_csv(self.apus_path)
+        TestDataBuilder.create_insumos_csv(self.insumos_path)
+    
+    def tearDown(self):
+        """Limpia archivos temporales."""
+        self.temp_manager.cleanup()
+    
+    def test_process_all_files_success(self):
+        """Prueba procesamiento completo exitoso."""
+        with patch('app.procesador_csv.ReportParserCrudo') as mock_parser_class:
+            with patch('app.procesador_csv.APUProcessor') as mock_processor_class:
+                # Mock del parser
+                mock_parser = MagicMock()
+                mock_parser_class.return_value = mock_parser
+                mock_parser.parse_to_raw.return_value = []
+                
+                # Mock del processor
+                mock_processor = MagicMock()
+                mock_processor_class.return_value = mock_processor
+                mock_processor.process_all.return_value = TestDataBuilder.create_sample_apus_df()
+                
+                # Ejecutar
                 resultado = process_all_files(
                     self.presupuesto_path,
                     self.apus_path,
                     self.insumos_path,
                     TEST_CONFIG
                 )
-
-                # Verificar detección mejorada de explosión cartesiana
-                error_messages = [msg for msg in cm.output if "EXPLOSIÓN" in msg or "CARTESIANA" in msg]
-                self.assertGreater(len(error_messages), 0,
-                                   "Debería detectar explosión cartesiana")
-
-        self.assertIn("error", resultado)
-        self.assertIn("explosión", resultado["error"].lower() or "cartesiana" in resultado["error"].lower())
-
-    def test_data_synchronization_enhanced(self):
-        """
-        Prueba la sincronización mejorada de datos entre APUs y presupuesto.
-        """
-        with patch('app.procesador_csv.APUProcessor') as mock_processor_class:
-            mock_processor = MagicMock()
-            mock_processor_class.return_value = mock_processor
-
-            # Simular APUs que incluyen códigos no presentes en el presupuesto
-            mock_apus_df = pd.DataFrame({
-                'CODIGO_APU': ['1.1', '1.2', '1.3', '2.1'], # 1.3 no está en presupuesto
-                'DESCRIPCION_APU': ['APU 1.1', 'APU 1.2', 'APU 1.3', 'APU 2.1'],
-                'UNIDAD_APU': ['ML', 'M3', 'UND', 'UND'],
-                'DESCRIPCION_INSUMO': ['Insumo A', 'Insumo B', 'Insumo C', 'Insumo D'],
-                'UNIDAD_INSUMO': ['ML', 'M3', 'UND', 'UND'],
-                'CANTIDAD_APU': [1, 1, 1, 1],
-                'PRECIO_UNIT_APU': [1000, 2000, 3000, 4000],
-                'VALOR_TOTAL_APU': [1000, 2000, 3000, 4000],
-                'CATEGORIA': ['MATERIALES', 'MATERIALES', 'MATERIALES', 'MATERIALES'],
-                'FORMATO_ORIGEN': ['INSUMO_BASICO', 'INSUMO_BASICO', 'INSUMO_BASICO', 'INSUMO_BASICO'],
-                'TIPO_INSUMO': ['SUMINISTRO', 'SUMINISTRO', 'SUMINISTRO', 'SUMINISTRO'],
-                'RENDIMIENTO': [0, 0, 0, 0],
-                'NORMALIZED_DESC': ['insumo a', 'insumo b', 'insumo c', 'insumo d']
-            })
-
-            mock_processor.process_all.return_value = mock_apus_df
-
-            resultado = process_all_files(
-                self.presupuesto_path, self.apus_path, self.insumos_path, config=TEST_CONFIG
-            )
-
-            # Verificar que solo los APUs del presupuesto están en el resultado
-            if 'presupuesto' in resultado:
-                codigos_presupuesto = {item['CODIGO_APU'] for item in resultado['presupuesto']}
-                expected_codes = {'1.1', '1.2', '2.1', '2.2'} # Del presupuesto real
-                self.assertEqual(codigos_presupuesto, expected_codes)
-
-            # Verificar sincronización en apus_detail
-            if 'apus_detail' in resultado:
-                codigos_detalle = {item['CODIGO_APU'] for item in resultado['apus_detail']}
-                # No debería incluir 1.3 que no está en presupuesto
-                self.assertNotIn('1.3', codigos_detalle)
-
-    def test_unit_inference_in_processing(self):
-        """
-        Prueba que la inferencia agresiva de unidades funcione en el procesamiento completo.
-        """
-        with patch('app.procesador_csv.APUProcessor') as mock_processor_class:
-            mock_processor = MagicMock()
-            mock_processor_class.return_value = mock_processor
-
-            # Simular APUs con unidades UND que deben ser inferidas
-            mock_apus_df = pd.DataFrame({
-                'CODIGO_APU': ['1.1', '1.2'],
-                'DESCRIPCION_APU': ['Excavacion manual', 'Pintura de fachada'],
-                'UNIDAD_APU': ['UND', 'UND'], # Unidades indefinidas
-                'DESCRIPCION_INSUMO': ['Insumo A', 'Insumo B'],
-                'UNIDAD_INSUMO': ['UND', 'UND'],
-                'CANTIDAD_APU': [1, 1],
-                'PRECIO_UNIT_APU': [1000, 2000],
-                'VALOR_TOTAL_APU': [1000, 2000],
-                'CATEGORIA': ['MOVIMIENTO DE TIERRAS', 'ACABADOS'],
-                'FORMATO_ORIGEN': ['INSUMO_BASICO', 'INSUMO_BASICO'],
-                'TIPO_INSUMO': ['SUMINISTRO', 'SUMINISTRO'],
-                'RENDIMIENTO': [0, 0],
-                'NORMALIZED_DESC': ['insumo a', 'insumo b']
-            })
-
-            mock_processor.process_all.return_value = mock_apus_df
-
-            resultado = process_all_files(
-                self.presupuesto_path, self.apus_path, self.insumos_path, config=TEST_CONFIG
-            )
-
-            # Verificar que las unidades fueron inferidas correctamente
-            if 'processed_apus' in resultado:
-                for apu in resultado['processed_apus']:
-                    codigo = apu['CODIGO_APU']
-                    if codigo == '1.1':
-                        self.assertEqual(apu['UNIDAD'], 'M3') # Excavación → M3
-                    elif codigo == '1.2':
-                        self.assertEqual(apu['UNIDAD'], 'M2') # Pintura → M2
-
-    def test_validation_thresholds_application(self):
-        """
-        Prueba que los umbrales de validación del config se apliquen correctamente.
-        """
-        # Config con umbrales más estrictos
-        strict_config = TEST_CONFIG.copy()
-        strict_config["validation_thresholds"]["SUMINISTRO"]["max_valor_total"] = 1000
-
-        with patch('app.procesador_csv.APUProcessor') as mock_processor_class:
-            mock_processor = MagicMock()
-            mock_processor_class.return_value = mock_processor
-
-            # Simular APU con valor superior al umbral
-            mock_apus_df = pd.DataFrame({
-                'CODIGO_APU': ['1.1'],
-                'DESCRIPCION_APU': ['APU Test'],
-                'UNIDAD_APU': ['UND'],
-                'DESCRIPCION_INSUMO': ['Material Costoso'],
-                'UNIDAD_INSUMO': ['UND'],
-                'CANTIDAD_APU': [1],
-                'PRECIO_UNIT_APU': [1500], # Superior al umbral de 1000
-                'VALOR_TOTAL_APU': [1500],
-                'CATEGORIA': ['MATERIALES'],
-                'FORMATO_ORIGEN': ['INSUMO_BASICO'],
-                'TIPO_INSUMO': ['SUMINISTRO'],
-                'RENDIMIENTO': [0],
-                'NORMALIZED_DESC': ['material costoso']
-            })
-
-            mock_processor.process_all.return_value = mock_apus_df
-
-            resultado = process_all_files(
-                self.presupuesto_path, self.apus_path, self.insumos_path, config=strict_config
-            )
-
-            # Verificar que el insumo fue rechazado por el umbral
-            if 'apus_detail' in resultado:
-                # Debería estar vacío o no contener el insumo costoso
-                insumos_costosos = [item for item in resultado['apus_detail']
-                                    if item['DESCRIPCION_INSUMO'] == 'Material Costoso']
-                self.assertEqual(len(insumos_costosos), 0)
-
-    def test_error_handling_robustness(self):
-        """
-        Prueba el manejo robusto de errores en el procesamiento completo.
-        """
-        # Caso 1: Error en carga de presupuesto
-        with patch('app.procesador_csv.process_presupuesto_csv', return_value=pd.DataFrame()):
-            resultado = process_all_files(
-                self.presupuesto_path, self.apus_path, self.insumos_path, config=TEST_CONFIG
-            )
-            self.assertIn("error", resultado)
-
-        # Caso 2: Error en carga de insumos
-        with patch('app.procesador_csv.process_insumos_csv', return_value=pd.DataFrame()):
-            resultado = process_all_files(
-                self.presupuesto_path, self.apus_path, self.insumos_path, config=TEST_CONFIG
-            )
-            self.assertIn("error", resultado)
-
-        # Caso 3: Error en APUProcessor
-        with patch('app.procesador_csv.APUProcessor') as mock_processor_class:
-            mock_processor = MagicMock()
-            mock_processor_class.return_value = mock_processor
-            mock_processor.process_all.side_effect = Exception("Error simulado en processor")
-
-            with self.assertLogs('app.procesador_csv', level='ERROR') as cm:
-                resultado = process_all_files(
-                    self.presupuesto_path, self.apus_path, self.insumos_path, config=TEST_CONFIG
-                )
-                self.assertIn("error", resultado)
-
-    def test_dataframe_structure_validation(self):
-        """
-        Prueba que los DataFrames intermedios tengan la estructura correcta.
-        """
-        resultado = process_all_files(
-            self.presupuesto_path, self.apus_path, self.insumos_path, config=TEST_CONFIG
-        )
-
-        if 'error' not in resultado:
-            # Verificar estructura de presupuesto procesado
-            presupuesto = resultado['presupuesto']
-            if presupuesto:
-                first_item = presupuesto[0]
+                
+                # Verificaciones
+                self.assertIsInstance(resultado, dict)
+                self.assertNotIn("error", resultado)
+                
                 expected_keys = [
-                    'CODIGO_APU', 'DESCRIPCION_APU', 'UNIDAD_APU', 'CANTIDAD_PRESUPUESTO',
-                    'VALOR_SUMINISTRO_UN', 'VALOR_INSTALACION_UN', 'VALOR_CONSTRUCCION_UN'
+                    "presupuesto",
+                    "insumos",
+                    "apus_detail",
+                    "all_apus",
+                    "processed_apus"
                 ]
+                
                 for key in expected_keys:
-                    self.assertIn(key, first_item, f"Falta clave en presupuesto: {key}")
+                    self.assertIn(key, resultado, f"Falta clave: {key}")
+    
+    def test_process_all_files_file_not_found(self):
+        """Prueba manejo de archivos no encontrados."""
+        resultado = process_all_files(
+            "/nonexistent/presupuesto.csv",
+            self.apus_path,
+            self.insumos_path,
+            TEST_CONFIG
+        )
+        
+        self.assertIn("error", resultado)
+        self.assertIn("no encontrado", resultado["error"].lower())
+    
+    def test_process_all_files_empty_presupuesto(self):
+        """Prueba manejo de presupuesto vacío."""
+        with patch('app.procesador_csv.PresupuestoProcessor') as mock_class:
+            mock_processor = MagicMock()
+            mock_class.return_value = mock_processor
+            mock_processor.process.return_value = pd.DataFrame()
+            
+            resultado = process_all_files(
+                self.presupuesto_path,
+                self.apus_path,
+                self.insumos_path,
+                TEST_CONFIG
+            )
+            
+            self.assertIn("error", resultado)
+            self.assertIn("presupuesto", resultado["error"].lower())
+    
+    def test_process_all_files_custom_thresholds(self):
+        """Prueba aplicación de umbrales personalizados."""
+        custom_config = TEST_CONFIG.copy()
+        custom_config["processing_thresholds"] = {
+            "outlier_std_multiplier": 2.5,
+            "max_total_cost": 5e11
+        }
+        
+        with patch('app.procesador_csv.ReportParserCrudo'):
+            with patch('app.procesador_csv.APUProcessor') as mock_processor_class:
+                mock_processor = MagicMock()
+                mock_processor_class.return_value = mock_processor
+                mock_processor.process_all.return_value = TestDataBuilder.create_sample_apus_df()
+                
+                resultado = process_all_files(
+                    self.presupuesto_path,
+                    self.apus_path,
+                    self.insumos_path,
+                    custom_config
+                )
+                
+                # Debe procesar sin errores con los umbrales personalizados
+                self.assertIsInstance(resultado, dict)
+    
+    def test_process_all_files_merge_error(self):
+        """Prueba manejo de errores de merge."""
+        with patch('app.procesador_csv.DataMerger') as mock_merger_class:
+            mock_merger = MagicMock()
+            mock_merger_class.return_value = mock_merger
+            mock_merger.merge_with_presupuesto.side_effect = pd.errors.MergeError(
+                "Explosión cartesiana"
+            )
+            
+            with patch('app.procesador_csv.ReportParserCrudo'):
+                with patch('app.procesador_csv.APUProcessor') as mock_processor_class:
+                    mock_processor = MagicMock()
+                    mock_processor_class.return_value = mock_processor
+                    mock_processor.process_all.return_value = TestDataBuilder.create_sample_apus_df()
+                    
+                    resultado = process_all_files(
+                        self.presupuesto_path,
+                        self.apus_path,
+                        self.insumos_path,
+                        TEST_CONFIG
+                    )
+                    
+                    self.assertIn("error", resultado)
+                    self.assertIn("merge", resultado["error"].lower())
 
-            # Verificar estructura de apus_detail
-            apus_detail = resultado['apus_detail']
-            if apus_detail:
-                first_detail = apus_detail[0]
-                expected_detail_keys = [
-                    'CODIGO_APU', 'DESCRIPCION_INSUMO', 'UNIDAD_INSUMO', 'CANTIDAD_APU',
-                    'PRECIO_UNIT_APU', 'VALOR_TOTAL_APU', 'TIPO_INSUMO', 'NORMALIZED_DESC'
-                ]
-                for key in expected_detail_keys:
-                    self.assertIn(key, first_detail, f"Falta clave en apus_detail: {key}")
+
+class TestEdgeCases(unittest.TestCase):
+    """Pruebas de casos límite y escenarios especiales."""
+    
+    def setUp(self):
+        self.temp_manager = TempFileManager()
+        self.thresholds = ProcessingThresholds()
+    
+    def tearDown(self):
+        self.temp_manager.cleanup()
+    
+    def test_empty_insumos_group(self):
+        """Prueba manejo de grupos de insumos vacíos."""
+        temp_file = self.temp_manager.create_temp_file()
+        data = (
+            "G;MATERIALES\n"
+            "CODIGO;DESCRIPCION;UND;CANT.;VR. UNIT.\n"
+            "G;MANO DE OBRA\n"  # Grupo sin datos
+            "CODIGO;DESCRIPCION;UND;CANT.;VR. UNIT.\n"
+            "MO01;OFICIAL;JOR;1;80000\n"
+        )
+        TestDataBuilder.create_insumos_csv(temp_file, data)
+        
+        processor = InsumosProcessor(self.thresholds)
+        result = processor.process(temp_file)
+        
+        self.assertFalse(result.empty)
+        self.assertIn("OFICIAL", result[ColumnNames.DESCRIPCION_INSUMO].values)
+    
+    def test_special_characters_in_descriptions(self):
+        """Prueba manejo de caracteres especiales."""
+        df = pd.DataFrame({
+            ColumnNames.DESCRIPCION_APU: [
+                "TUBERÍA PVC 3/4\" Ø20mm",
+                "EXCAVACIÓN (MANUAL) - TIPO A",
+                "CEMENTO 50kg @ $15.000"
+            ]
+        })
+        
+        result = group_and_split_description(df)
+        
+        self.assertEqual(len(result), 3)
+        self.assertIn(ColumnNames.ORIGINAL_DESCRIPTION, result.columns)
+    
+    def test_zero_quantities(self):
+        """Prueba manejo de cantidades en cero."""
+        df = pd.DataFrame({
+            ColumnNames.CANTIDAD_APU: [0, 1.05, 0],
+            ColumnNames.VR_UNITARIO_INSUMO: [40000, 12000, 5000],
+            ColumnNames.VALOR_TOTAL_APU: [0, 12600, 0]
+        })
+        
+        result = calculate_insumo_costs(df, self.thresholds)
+        
+        # No debe generar errores ni NaN
+        self.assertFalse(result[ColumnNames.COSTO_INSUMO_EN_APU].isna().any())
+        self.assertFalse(result[ColumnNames.VR_UNITARIO_FINAL].isna().any())
+    
+    def test_very_long_descriptions(self):
+        """Prueba manejo de descripciones muy largas."""
+        long_desc = "A" * 1000
+        df = pd.DataFrame({
+            ColumnNames.DESCRIPCION_APU: [long_desc]
+        })
+        
+        result = group_and_split_description(df)
+        
+        self.assertEqual(len(result[ColumnNames.DESCRIPCION_APU].iloc[0]), 1000)
+    
+    def test_negative_costs(self):
+        """Prueba detección de costos negativos."""
+        df = pd.DataFrame({
+            ColumnNames.CANTIDAD_APU: [1.0],
+            ColumnNames.VR_UNITARIO_INSUMO: [-1000],  # Negativo
+            ColumnNames.VALOR_TOTAL_APU: [1000]
+        })
+        
+        result = calculate_insumo_costs(df, self.thresholds)
+        
+        # Debe calcular sin crash (aunque sea anómalo)
+        self.assertIsNotNone(result[ColumnNames.COSTO_INSUMO_EN_APU].iloc[0])
+
+
+# ==================== SUITE DE PRUEBAS ====================
+
+def suite():
+    """Construye la suite completa de pruebas."""
+    test_suite = unittest.TestSuite()
+    
+    # Pruebas unitarias
+    test_suite.addTest(unittest.makeSuite(TestColumnNames))
+    test_suite.addTest(unittest.makeSuite(TestProcessingThresholds))
+    test_suite.addTest(unittest.makeSuite(TestDataValidator))
+    test_suite.addTest(unittest.makeSuite(TestFileValidator))
+    test_suite.addTest(unittest.makeSuite(TestPresupuestoProcessor))
+    test_suite.addTest(unittest.makeSuite(TestInsumosProcessor))
+    test_suite.addTest(unittest.makeSuite(TestAPUCostCalculator))
+    test_suite.addTest(unittest.makeSuite(TestDataMerger))
+    test_suite.addTest(unittest.makeSuite(TestAuxiliaryFunctions))
+    
+    # Pruebas de integración
+    test_suite.addTest(unittest.makeSuite(TestProcessAllFilesIntegration))
+    test_suite.addTest(unittest.makeSuite(TestEdgeCases))
+    
+    return test_suite
 
 
 if __name__ == "__main__":
-    # Ejecutar pruebas con cobertura completa
-    unittest.main(verbosity=2, failfast=False)
+    runner = unittest.TextTestRunner(verbosity=2, failfast=False)
+    runner.run(suite())
