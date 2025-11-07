@@ -16,7 +16,7 @@ from typing import Dict, Optional, Tuple, Any
 
 import numpy as np
 import pandas as pd
-from flask import Flask, jsonify, render_template, request, session
+from flask import Flask, jsonify, render_template, request, session, current_app
 from werkzeug.utils import secure_filename
 from werkzeug.exceptions import RequestEntityTooLarge
 
@@ -37,89 +37,6 @@ SESSION_TIMEOUT = 3600  # 1 hora
 MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16MB máximo por archivo
 ALLOWED_EXTENSIONS = {'.csv', '.xlsx', '.xls'}
 
-# ============================================================================
-# GESTOR DE SESIONES MEJORADO
-# ============================================================================
-
-class SessionManager:
-    """Gestiona las sesiones de usuario con expiración automática."""
-    
-    def __init__(self, timeout: int = SESSION_TIMEOUT):
-        self._sessions: Dict[str, Dict[str, Any]] = {}
-        self.timeout = timeout
-        self._logger = logging.getLogger(__name__)
-    
-    def create_session(self, session_id: Optional[str] = None) -> str:
-        """Crea una nueva sesión con ID único."""
-        if not session_id:
-            session_id = str(uuid.uuid4())
-        
-        self._sessions[session_id] = {
-            "data": {},
-            "last_activity": time.time(),
-            "created_at": time.time()
-        }
-        self._logger.info(f"Nueva sesión creada: {session_id[:8]}...")
-        return session_id
-    
-    def get_session(self, session_id: str) -> Optional[Dict[str, Any]]:
-        """Obtiene los datos de una sesión si existe y no ha expirado."""
-        if session_id not in self._sessions:
-            return None
-        
-        session_data = self._sessions[session_id]
-        if self._is_expired(session_data):
-            self.remove_session(session_id)
-            return None
-        
-        # Actualizar actividad
-        session_data["last_activity"] = time.time()
-        return session_data
-    
-    def update_session(self, session_id: str, data: Dict[str, Any]) -> bool:
-        """Actualiza los datos de una sesión existente."""
-        if session_id not in self._sessions:
-            return False
-        
-        self._sessions[session_id]["data"] = data
-        self._sessions[session_id]["last_activity"] = time.time()
-        return True
-    
-    def remove_session(self, session_id: str) -> bool:
-        """Elimina una sesión del almacenamiento."""
-        if session_id in self._sessions:
-            del self._sessions[session_id]
-            self._logger.debug(f"Sesión eliminada: {session_id[:8]}...")
-            return True
-        return False
-    
-    def cleanup_expired_sessions(self) -> int:
-        """Elimina todas las sesiones expiradas y retorna el número eliminado."""
-        current_time = time.time()
-        expired = [
-            sid for sid, data in self._sessions.items()
-            if self._is_expired(data)
-        ]
-        
-        for sid in expired:
-            self.remove_session(sid)
-        
-        if expired:
-            self._logger.info(f"Limpieza: {len(expired)} sesiones expiradas eliminadas")
-        
-        return len(expired)
-    
-    def _is_expired(self, session_data: Dict[str, Any]) -> bool:
-        """Verifica si una sesión ha expirado."""
-        return time.time() - session_data.get("last_activity", 0) > self.timeout
-    
-    @property
-    def active_count(self) -> int:
-        """Retorna el número de sesiones activas."""
-        return len(self._sessions)
-
-# Instancia global del gestor de sesiones
-session_manager = SessionManager()
 
 # ============================================================================
 # CONFIGURACIÓN DE LOGGING MEJORADA
@@ -185,17 +102,24 @@ def require_session(f):
     """Decorador que requiere una sesión válida para acceder al endpoint."""
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        session_id = session.get("session_id")
+        session_id = session.sid
         if not session_id:
-            return jsonify({"error": "Sesión no iniciada", "code": "NO_SESSION"}), 401
-        
-        session_data = session_manager.get_session(session_id)
-        if not session_data:
-            return jsonify({"error": "Sesión expirada", "code": "SESSION_EXPIRED"}), 401
-        
-        # Pasar los datos de sesión a la función
+            return jsonify({"error": "Sesión no iniciada..."}), 401
+
+        redis_client = current_app.config['SESSION_REDIS']
+        data_key = f"apu_filter:data:{session_id}"
+
+        session_data_json = redis_client.get(data_key)
+        if not session_data_json:
+            return jsonify({"error": "Sesión expirada o datos no encontrados..."}), 401
+
+        session_data = {"data": json.loads(session_data_json)}
+
+        # Refrescar la expiración de los datos
+        redis_client.expire(data_key, SESSION_TIMEOUT)
+
         return f(session_data=session_data, *args, **kwargs)
-    
+
     return decorated_function
 
 def handle_errors(f):
@@ -397,6 +321,19 @@ def create_app(config_name: str) -> Flask:
     # Configurar logging
     setup_logging(app)
     app.logger.info(f"Iniciando aplicación en modo: {config_name}")
+
+    # Configurar Flask-Session
+    from flask_session import Session
+    import redis
+
+    app.config['SESSION_TYPE'] = 'redis'
+    app.config['SESSION_PERMANENT'] = True
+    app.config['SESSION_USE_SIGNER'] = True
+    app.config['SESSION_KEY_PREFIX'] = 'apu_filter:session:'
+    app.config['SESSION_REDIS'] = redis.from_url(app.config['REDIS_URL'])
+    app.config['PERMANENT_SESSION_LIFETIME'] = SESSION_TIMEOUT
+
+    Session(app)
     
     # Cargar configuración específica de la aplicación
     config_path = Path(__file__).parent / "config.json"
@@ -427,15 +364,6 @@ def create_app(config_name: str) -> Flask:
     @app.before_request
     def before_request_func():
         """Mantenimiento antes de cada solicitud."""
-        # Limpiar sesiones expiradas cada 100 requests (optimización)
-        if hasattr(app, 'request_count'):
-            app.request_count += 1
-        else:
-            app.request_count = 1
-        
-        if app.request_count % 100 == 0:
-            session_manager.cleanup_expired_sessions()
-        
         # Logging de request
         app.logger.debug(f"Request: {request.method} {request.path}")
     
@@ -466,9 +394,12 @@ def create_app(config_name: str) -> Flask:
     @app.route("/api/health", methods=["GET"])
     def health_check():
         """Endpoint de verificación de estado."""
+        redis_client = app.config['SESSION_REDIS']
+        active_sessions = redis_client.dbsize()
+
         return jsonify({
             "status": "healthy",
-            "active_sessions": session_manager.active_count,
+            "active_sessions": active_sessions,
             "timestamp": time.time(),
             "version": app.config.get("APP_CONFIG", {}).get("version", "1.0.0")
         })
@@ -508,11 +439,8 @@ def create_app(config_name: str) -> Flask:
             
             files_to_process[file_name] = file
         
-        # Crear o recuperar sesión
-        if "session_id" not in session:
-            session["session_id"] = session_manager.create_session()
-        
-        session_id = session["session_id"]
+        # Flask-Session maneja la creación de la sesión automáticamente
+        session_id = session.sid
         
         # Procesar archivos en directorio temporal
         upload_path = Path(app.config["UPLOAD_FOLDER"])
@@ -545,14 +473,17 @@ def create_app(config_name: str) -> Flask:
                 "code": "PROCESSING_ERROR"
             }), 500
         
-        # Actualizar sesión con datos procesados
-        session_manager.update_session(session_id, processed_data)
+        # Guardar datos en Redis
+        redis_client = app.config['SESSION_REDIS']
+        data_key = f"apu_filter:data:{session_id}"
+        sanitized_data = sanitize_for_json(processed_data)
+        redis_client.set(data_key, json.dumps(sanitized_data), ex=SESSION_TIMEOUT)
         
         app.logger.info(f"Archivos procesados exitosamente para sesión {session_id[:8]}")
         
         # Preparar respuesta
-        response_data = sanitize_for_json(processed_data)
-        response_data["session_id"] = session_id[:8]  # Enviar ID parcial por seguridad
+        response_data = sanitized_data
+        response_data["session_id"] = session_id[:8]
         
         return jsonify(response_data)
     
