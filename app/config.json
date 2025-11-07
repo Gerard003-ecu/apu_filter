@@ -43,5 +43,37 @@
       "NORMAL": 1.0,
       "ALTA": 1.15
     }
-  }
+  },
+  "keyword_maps": {
+    "equipo": [
+      "EQUIPO", "HERRAMIENTA", "RETROEXCAVADORA", "VOLQUETA",
+      "MEZCLADORA", "VIBRADOR", "COMPACTADOR", "ANDAMIO",
+      "FORMALETA", "ENCOFRADO", "MAQUINARIA", "VEHICULO",
+      "CAMION", "GRUA", "BOMBA", "MARTILLO", "TALADRO",
+      "SIERRA", "COMPRESOR", "PLANTA", "GENERADOR"
+    ],
+    "mano_de_obra": [
+      "M.O.", "M O ", "MANO DE OBRA", "OFICIAL", "AYUDANTE",
+      "MAESTRO", "CUADRILLA", "OBRERO", "CAPATAZ", "OPERARIO",
+      "SISO", "INGENIERO", "TOPOGRAFO", "RESIDENTE", "PERSONAL",
+      "JORNAL", "PEON", "ALBAÑIL", "ELECTRICISTA", "PLOMERO"
+    ],
+    "transporte": [
+      "TRANSPORTE", "ACARREO", "FLETE", "VIAJE", "MOVILIZACION",
+      "CAMIONETA", "VOLQUETA", "CARGA", "DESCARGA", "TRASLADO",
+      "ENVIO", "DESPACHO"
+    ],
+    "suministro": [
+      "SUMINISTRO", "TUBO", "TUBERIA", "ACCESORIO", "VALVULA",
+      "MATERIAL", "CEMENTO", "ARENA", "GRAVA", "HIERRO", "ACERO",
+      "ALAMBRE", "CABLE", "LADRILLO", "BLOQUE", "MADERA",
+      "PINTURA", "PEGANTE", "TORNILLO", "CLAVO", "PIEDRA",
+      "AGREGADO", "CONCRETO", "MALLA", "PERNO", "VARILLA"
+    ]
+  },
+  "apu_classification_rules": [
+    { "type": "Instalación", "condition": "porcentaje_mo_eq > 75.0" },
+    { "type": "Suministro", "condition": "porcentaje_materiales > 75.0 and porcentaje_mo_eq < 15.0" },
+    { "type": "Suministro (Pre-fabricado)", "condition": "porcentaje_materiales > 65.0 and porcentaje_mo_eq > 15.0" }
+  ]
 }

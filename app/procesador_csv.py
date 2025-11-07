@@ -1,4 +1,5 @@
 import logging
+from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
@@ -88,6 +89,22 @@ class APUTypes:
     SUMINISTRO_PREFABRICADO = "Suministro (Pre-fabricado)"
     OBRA_COMPLETA = "Obra Completa"
     INDEFINIDO = "Indefinido"
+
+
+class ProcessingStep(ABC):
+    @abstractmethod
+    def execute(self, context: dict) -> dict:
+        pass
+
+class ProcessingPipeline:
+    def __init__(self, steps: list[ProcessingStep]):
+        self.steps = steps
+
+    def run(self, initial_context: dict) -> dict:
+        context = initial_context
+        for step in self.steps:
+            context = step.execute(context)
+        return context
 
 
 @dataclass
@@ -236,6 +253,135 @@ class FileValidator:
 
 
 # ==================== PROCESADORES ====================
+
+class LoadDataStep(ProcessingStep):
+    def __init__(self, config: dict, thresholds: ProcessingThresholds):
+        self.config = config
+        self.thresholds = thresholds
+
+    def execute(self, context: dict) -> dict:
+        presupuesto_path = context["presupuesto_path"]
+        apus_path = context["apus_path"]
+        insumos_path = context["insumos_path"]
+
+        file_validator = FileValidator()
+        validations = [
+            (presupuesto_path, "presupuesto"),
+            (apus_path, "APUs"),
+            (insumos_path, "insumos"),
+        ]
+        for file_path, file_type in validations:
+            is_valid, error = file_validator.validate_file_exists(file_path, file_type)
+            if not is_valid:
+                raise ValueError(error)
+
+        presupuesto_processor = PresupuestoProcessor(self.config, self.thresholds)
+        df_presupuesto = presupuesto_processor.process(presupuesto_path)
+
+        insumos_processor = InsumosProcessor(self.thresholds)
+        df_insumos = insumos_processor.process(insumos_path)
+
+        parser = ReportParserCrudo(apus_path)
+        raw_records = parser.parse_to_raw()
+
+        processor = APUProcessor(raw_records, self.config)
+        df_apus_raw = processor.process_all()
+
+        data_validator = DataValidator()
+        validations = [
+            (df_presupuesto, "presupuesto"),
+            (df_insumos, "insumos"),
+            (df_apus_raw, "APUs"),
+        ]
+        for df, name in validations:
+            is_valid, error = data_validator.validate_dataframe_not_empty(df, name)
+            if not is_valid:
+                raise ValueError(error)
+
+        context['df_presupuesto'] = df_presupuesto
+        context['df_insumos'] = df_insumos
+        context['df_apus_raw'] = df_apus_raw
+        return context
+
+class MergeDataStep(ProcessingStep):
+    def __init__(self, thresholds: ProcessingThresholds):
+        self.thresholds = thresholds
+
+    def execute(self, context: dict) -> dict:
+        df_apus_raw = context['df_apus_raw']
+        df_insumos = context['df_insumos']
+
+        merger = DataMerger(self.thresholds)
+        df_merged = merger.merge_apus_with_insumos(df_apus_raw, df_insumos)
+
+        context['df_merged'] = df_merged
+        return context
+
+class CalculateCostsStep(ProcessingStep):
+    def __init__(self, config: dict, thresholds: ProcessingThresholds):
+        self.config = config
+        self.thresholds = thresholds
+
+    def execute(self, context: dict) -> dict:
+        df_merged = context['df_merged']
+
+        df_merged = calculate_insumo_costs(df_merged, self.thresholds)
+
+        cost_calculator = APUCostCalculator(self.config, self.thresholds)
+        df_apu_costos, df_tiempo, df_rendimiento = cost_calculator.calculate(df_merged)
+
+        context['df_merged'] = df_merged
+        context['df_apu_costos'] = df_apu_costos
+        context['df_tiempo'] = df_tiempo
+        context['df_rendimiento'] = df_rendimiento
+        return context
+
+class FinalMergeStep(ProcessingStep):
+    def __init__(self, thresholds: ProcessingThresholds):
+        self.thresholds = thresholds
+
+    def execute(self, context: dict) -> dict:
+        df_presupuesto = context['df_presupuesto']
+        df_apu_costos = context['df_apu_costos']
+        df_tiempo = context['df_tiempo']
+
+        merger = DataMerger(self.thresholds)
+        df_final = merger.merge_with_presupuesto(df_presupuesto, df_apu_costos)
+
+        df_final = pd.merge(df_final, df_tiempo, on=ColumnNames.CODIGO_APU, how="left")
+
+        df_final = group_and_split_description(df_final)
+
+        df_final = calculate_total_costs(df_final, self.thresholds)
+
+        context['df_final'] = df_final
+        return context
+
+class BuildOutputStep(ProcessingStep):
+    def execute(self, context: dict) -> dict:
+        df_final = context['df_final']
+        df_insumos = context['df_insumos']
+        df_merged = context['df_merged']
+        df_apus_raw = context['df_apus_raw']
+        df_apu_costos = context['df_apu_costos']
+        df_tiempo = context['df_tiempo']
+        df_rendimiento = context['df_rendimiento']
+
+        df_merged = synchronize_data_sources(df_merged, df_final)
+
+        df_processed_apus = build_processed_apus_dataframe(
+            df_apu_costos, df_apus_raw, df_tiempo, df_rendimiento
+        )
+
+        result_dict = build_output_dictionary(
+            df_final, df_insumos, df_merged, df_apus_raw, df_processed_apus
+        )
+
+        validated_result = validate_and_clean_data(result_dict)
+        validated_result["raw_insumos_df"] = df_insumos.to_dict("records")
+
+        context['final_result'] = validated_result
+        return context
 
 class PresupuestoProcessor:
     """Procesador especializado para archivos de presupuesto."""
@@ -491,7 +637,8 @@ class InsumosProcessor:
 class APUCostCalculator:
     """Calculador de costos y metadatos de APUs."""
     
-    def __init__(self, thresholds: ProcessingThresholds):
+    def __init__(self, config: dict, thresholds: ProcessingThresholds):
+        self.config = config
         self.thresholds = thresholds
     
     def calculate(
@@ -615,26 +762,24 @@ class APUCostCalculator:
             if costo_total == 0:
                 return APUTypes.INDEFINIDO
             
-            porcentaje_mo_eq = (
-                (row.get(ColumnNames.MANO_DE_OBRA, 0) + row.get(ColumnNames.EQUIPO, 0))
-                / costo_total
-            ) * 100
-            
-            porcentaje_materiales = (
-                row.get(ColumnNames.MATERIALES, 0) / costo_total
-            ) * 100
-            
-            # Criterios configurables
-            if porcentaje_mo_eq > self.thresholds.instalacion_mo_threshold:
-                return APUTypes.INSTALACION
-            
-            if (porcentaje_materiales > self.thresholds.suministro_mat_threshold and
-                porcentaje_mo_eq < self.thresholds.suministro_mo_max):
-                return APUTypes.SUMINISTRO
-            
-            if (porcentaje_materiales > self.thresholds.prefabricado_mat_threshold and
-                porcentaje_mo_eq > self.thresholds.prefabricado_mo_min):
-                return APUTypes.SUMINISTRO_PREFABRICADO
+            # Contexto para eval()
+            context = {
+                "porcentaje_mo_eq": (
+                    (row.get(ColumnNames.MANO_DE_OBRA, 0) + row.get(ColumnNames.EQUIPO, 0))
+                    / costo_total
+                ) * 100,
+                "porcentaje_materiales": (
+                    row.get(ColumnNames.MATERIALES, 0) / costo_total
+                ) * 100
+            }
+
+            # Motor de reglas desde config
+            for rule in self.config.get("apu_classification_rules", []):
+                try:
+                    if eval(rule["condition"], {"__builtins__": {}}, context):
+                        return rule["type"]
+                except Exception as e:
+                    logger.error(f"Error evaluando regla: {rule}. Error: {e}")
             
             return APUTypes.OBRA_COMPLETA
         
@@ -1166,154 +1311,45 @@ def _do_processing(
         Diccionario con datos procesados o error.
     """
     logger.info("=" * 80)
-    logger.info("🚀 Iniciando procesamiento de archivos...")
+    logger.info("🚀 Iniciando procesamiento de archivos con patrón pipeline...")
     logger.info("=" * 80)
-    
-    # Inicializar umbrales de configuración
+
     thresholds = ProcessingThresholds()
-    
-    # Aplicar configuraciones personalizadas si existen
     if "processing_thresholds" in config:
         custom_thresholds = config["processing_thresholds"]
         for key, value in custom_thresholds.items():
             if hasattr(thresholds, key):
                 setattr(thresholds, key, value)
-                logger.debug(f"✅ Umbral personalizado: {key} = {value}")
-    
+
     try:
-        # ========== VALIDACIÓN DE ARCHIVOS ==========
-        file_validator = FileValidator()
+        pipeline = ProcessingPipeline([
+            LoadDataStep(config, thresholds),
+            MergeDataStep(thresholds),
+            CalculateCostsStep(config, thresholds),
+            FinalMergeStep(thresholds),
+            BuildOutputStep(),
+        ])
         
-        validations = [
-            (presupuesto_path, "presupuesto"),
-            (apus_path, "APUs"),
-            (insumos_path, "insumos"),
-        ]
+        initial_context = {
+            "presupuesto_path": presupuesto_path,
+            "apus_path": apus_path,
+            "insumos_path": insumos_path,
+        }
         
-        for file_path, file_type in validations:
-            is_valid, error = file_validator.validate_file_exists(file_path, file_type)
-            if not is_valid:
-                return {"error": error}
-        
-        # ========== CARGA DE DATOS BASE ==========
-        logger.info("📂 Cargando archivos de entrada...")
-        
-        # Procesar presupuesto
-        presupuesto_processor = PresupuestoProcessor(config, thresholds)
-        df_presupuesto = presupuesto_processor.process(presupuesto_path)
-        
-        # Procesar insumos
-        insumos_processor = InsumosProcessor(thresholds)
-        df_insumos = insumos_processor.process(insumos_path)
-        
-        # Procesar APUs (etapa 1: extracción cruda)
-        parser = ReportParserCrudo(apus_path)
-        raw_records = parser.parse_to_raw()
-        
-        # Procesar APUs (etapa 2: lógica de negocio)
-        processor = APUProcessor(raw_records, config)
-        df_apus_raw = processor.process_all()
-        
-        # ========== VALIDACIÓN DE DATOS CARGADOS ==========
-        logger.info("✅ Validando datos cargados...")
-        
-        data_validator = DataValidator()
-        
-        validations = [
-            (df_presupuesto, "presupuesto"),
-            (df_insumos, "insumos"),
-            (df_apus_raw, "APUs"),
-        ]
-        
-        for df, name in validations:
-            is_valid, error = data_validator.validate_dataframe_not_empty(df, name)
-            if not is_valid:
-                return {"error": error}
-        
-        logger.info("✅ Todos los archivos cargados correctamente")
-        
-        # ========== MERGE DE DATOS ==========
-        merger = DataMerger(thresholds)
-        
-        # Merge APUs con Insumos
-        df_merged = merger.merge_apus_with_insumos(df_apus_raw, df_insumos)
-        
-        # ========== CÁLCULO DE COSTOS DE INSUMOS ==========
-        df_merged = calculate_insumo_costs(df_merged, thresholds)
-        
-        # ========== CÁLCULO DE COSTOS Y METADATOS DE APU ==========
-        cost_calculator = APUCostCalculator(thresholds)
-        df_apu_costos, df_tiempo, df_rendimiento = cost_calculator.calculate(df_merged)
-        
-        # ========== MERGE FINAL CON PRESUPUESTO ==========
-        df_final = merger.merge_with_presupuesto(df_presupuesto, df_apu_costos)
-        
-        # Agregar tiempo de instalación
-        df_final = pd.merge(
-            df_final,
-            df_tiempo,
-            on=ColumnNames.CODIGO_APU,
-            how="left"
-        )
-        
-        # Dividir descripciones
-        df_final = group_and_split_description(df_final)
-        
-        # ========== CÁLCULO DE VALORES TOTALES ==========
-        df_final = calculate_total_costs(df_final, thresholds)
-        
-        # ========== SINCRONIZACIÓN DE DATOS ==========
-        df_merged = synchronize_data_sources(df_merged, df_final)
-        
-        # ========== CONSTRUCCIÓN DE APUs PROCESADOS ==========
-        df_processed_apus = build_processed_apus_dataframe(
-            df_apu_costos,
-            df_apus_raw,
-            df_tiempo,
-            df_rendimiento
-        )
-        
-        # ========== CONSTRUCCIÓN DEL RESULTADO ==========
-        result_dict = build_output_dictionary(
-            df_final,
-            df_insumos,
-            df_merged,
-            df_apus_raw,
-            df_processed_apus
-        )
-        
-        # ========== VALIDACIÓN FINAL ==========
-        logger.info("🤖 Ejecutando validación final de datos...")
-        validated_result = validate_and_clean_data(result_dict)
-        
-        # Preservar raw_insumos_df como DataFrame
-        validated_result["raw_insumos_df"] = df_insumos.to_dict("records")
-        
-        # ========== RESUMEN FINAL ==========
-        total_construccion = df_final[ColumnNames.VALOR_CONSTRUCCION_TOTAL].sum()
+        final_context = pipeline.run(initial_context)
         
         logger.info("=" * 80)
         logger.info("🎉 PROCESAMIENTO COMPLETADO EXITOSAMENTE")
-        logger.info(f"   📊 APUs en presupuesto: {len(df_final)}")
-        logger.info(f"   💰 Costo total: ${total_construccion:,.2f}")
-        logger.info(f"   📦 Insumos únicos: {len(df_insumos)}")
-        logger.info(f"   🔧 APUs procesados: {len(df_processed_apus)}")
         logger.info("=" * 80)
         
-        return validated_result
-        
-    except pd.errors.MergeError as e:
-        error_msg = f"Error en merge de datos (explosión cartesiana o duplicados): {e}"
+        return final_context.get('final_result', {"error": "Pipeline no produjo resultado final"})
+
+    except (ValueError, pd.errors.MergeError) as e:
+        error_msg = f"Error en el pipeline: {e}"
         logger.error(f"❌ {error_msg}", exc_info=True)
         return {"error": error_msg}
-    
-    except ValueError as e:
-        error_msg = f"Error de validación: {e}"
-        logger.error(f"❌ {error_msg}", exc_info=True)
-        return {"error": error_msg}
-    
     except Exception as e:
-        error_msg = f"Error crítico en procesamiento: {e}"
+        error_msg = f"Error crítico en el pipeline: {e}"
         logger.error(f"❌ {error_msg}", exc_info=True)
         return {"error": error_msg}
 

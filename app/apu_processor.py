@@ -74,38 +74,30 @@ class KeywordCache:
     _transporte_keywords: List[str] = field(default_factory=list)
     _suministro_keywords: List[str] = field(default_factory=list)
     _initialized: bool = False
+    config: Dict[str, Any] = field(default_factory=dict)
+
+    def __init__(self, config: Dict[str, Any]):
+        """
+        Inicializa el cache de keywords a partir de la configuración.
+
+        Args:
+            config: Diccionario de configuración que debe contener 'keyword_maps'.
+        """
+        self.config = config
+        self._initialized = False
 
     def initialize(self):
-        """Inicializa keywords una sola vez."""
-        if not self._initialized:
-            self._equipo_keywords = [
-                "EQUIPO", "HERRAMIENTA", "RETROEXCAVADORA", "VOLQUETA", 
-                "MEZCLADORA", "VIBRADOR", "COMPACTADOR", "ANDAMIO", 
-                "FORMALETA", "ENCOFRADO", "MAQUINARIA", "VEHICULO", 
-                "CAMION", "GRUA", "BOMBA", "MARTILLO", "TALADRO", 
-                "SIERRA", "COMPRESOR", "PLANTA", "GENERADOR"
-            ]
+        """Inicializa keywords una sola vez desde la configuración."""
+        if not self._initialized and self.config:
+            keyword_maps = self.config.get("keyword_maps", {})
+            self._equipo_keywords = keyword_maps.get("equipo", [])
+            self._mo_keywords = keyword_maps.get("mano_de_obra", [])
+            self._transporte_keywords = keyword_maps.get("transporte", [])
+            self._suministro_keywords = keyword_maps.get("suministro", [])
             
-            self._mo_keywords = [
-                "M.O.", "M O ", "MANO DE OBRA", "OFICIAL", "AYUDANTE", 
-                "MAESTRO", "CUADRILLA", "OBRERO", "CAPATAZ", "OPERARIO", 
-                "SISO", "INGENIERO", "TOPOGRAFO", "RESIDENTE", "PERSONAL", 
-                "JORNAL", "PEON", "ALBAÑIL", "ELECTRICISTA", "PLOMERO"
-            ]
+            if not any([self._equipo_keywords, self._mo_keywords, self._transporte_keywords, self._suministro_keywords]):
+                logger.warning("Keyword maps en config.json está vacío o no se encontró.")
             
-            self._transporte_keywords = [
-                "TRANSPORTE", "ACARREO", "FLETE", "VIAJE", "MOVILIZACION", 
-                "CAMIONETA", "VOLQUETA", "CARGA", "DESCARGA", "TRASLADO",
-                "ENVIO", "DESPACHO"
-            ]
-            
-            self._suministro_keywords = [
-                "SUMINISTRO", "TUBO", "TUBERIA", "ACCESORIO", "VALVULA", 
-                "MATERIAL", "CEMENTO", "ARENA", "GRAVA", "HIERRO", "ACERO", 
-                "ALAMBRE", "CABLE", "LADRILLO", "BLOQUE", "MADERA", 
-                "PINTURA", "PEGANTE", "TORNILLO", "CLAVO", "PIEDRA", 
-                "AGREGADO", "CONCRETO", "MALLA", "PERNO", "VARILLA"
-            ]
             self._initialized = True
 
     @property
@@ -128,10 +120,6 @@ class KeywordCache:
         self.initialize()
         return self._suministro_keywords
 
-
-# Instancia global del cache
-keyword_cache = KeywordCache()
-
 # ============================================================================
 # TRANSFORMER MEJORADO
 # ============================================================================
@@ -143,9 +131,10 @@ class APUTransformer(Transformer):
     Versión mejorada con validación robusta y cache.
     """
 
-    def __init__(self, apu_context: Dict[str, Any], config: Dict[str, Any]):
+    def __init__(self, apu_context: Dict[str, Any], config: Dict[str, Any], keyword_cache: KeywordCache):
         self.apu_context = apu_context
         self.config = config
+        self.keyword_cache = keyword_cache
         self.validation_cache = {}
         super().__init__()
 
@@ -430,10 +419,10 @@ class APUTransformer(Transformer):
 
         # Clasificación por keywords con orden de precedencia
         keyword_hierarchy = [
-            (TipoInsumo.EQUIPO, keyword_cache.equipo_keywords),
-            (TipoInsumo.MANO_DE_OBRA, keyword_cache.mo_keywords),
-            (TipoInsumo.TRANSPORTE, keyword_cache.transporte_keywords),
-            (TipoInsumo.SUMINISTRO, keyword_cache.suministro_keywords),
+            (TipoInsumo.EQUIPO, self.keyword_cache.equipo_keywords),
+            (TipoInsumo.MANO_DE_OBRA, self.keyword_cache.mo_keywords),
+            (TipoInsumo.TRANSPORTE, self.keyword_cache.transporte_keywords),
+            (TipoInsumo.SUMINISTRO, self.keyword_cache.suministro_keywords),
         ]
 
         for tipo, keywords in keyword_hierarchy:
@@ -479,6 +468,9 @@ class APUProcessor:
         self.stats = defaultdict(int)
         self._parser = None
         
+        # Inicializar cache de keywords
+        self.keyword_cache = KeywordCache(self.config)
+
         # Inicializar parser
         self._initialize_parser()
 
@@ -617,7 +609,7 @@ class APUProcessor:
             }
 
             # Parsear con transformer
-            transformer = APUTransformer(apu_context, self.config)
+            transformer = APUTransformer(apu_context, self.config, self.keyword_cache)
             tree = self._parser.parse(insumo_line)
             insumo_obj = transformer.transform(tree)
             
