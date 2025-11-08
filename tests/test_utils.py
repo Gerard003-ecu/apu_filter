@@ -17,7 +17,7 @@ import numpy as np
 import pandas as pd
 
 # Importar el módulo a probar
-import utils
+from app import utils
 from pandas.testing import assert_series_equal
 
 # ============================================================================

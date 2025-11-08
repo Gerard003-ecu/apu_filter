@@ -358,9 +358,9 @@ def normalize_unit(unit: str) -> str:
 
     # Log solo para unidades no triviales
     if unit not in ('', 'UND') and len(unit) > 1:
-        logger.debug(f"Unidad no reconocida: '{unit}' -> usando 'UND'")
+        logger.debug(f"Unidad no reconocida: '{unit}' -> usando '{unit}'")
 
-    return 'UND'
+    return unit
 
 # ============================================================================
 # FUNCIONES DE LECTURA DE ARCHIVOS
@@ -443,8 +443,7 @@ def _read_csv_robust(
         'sep': separator,
         'engine': 'python',
         'header': header,
-        'on_bad_lines': 'skip',
-        'low_memory': False  # Evita warnings de tipos mixtos
+        'on_bad_lines': 'skip'
     }
 
     if nrows is not None:

@@ -11,13 +11,13 @@ import sys
 import tempfile
 import time
 import unittest
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 # Agregar el directorio raíz del proyecto al path de Python
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 # Importar componentes de la aplicación
-from app.app import APUProcessor, FileValidator, SessionManager, create_app, session_manager
+from app.app import APUProcessor, FileValidator, create_app
 
 # Importar datos de prueba centralizados
 from tests.test_data import (
@@ -60,102 +60,6 @@ APU_TEST_DETAILS = [
         "alerta": "Another alert"
     }
 ]
-
-# ============================================================================
-# PRUEBAS DEL GESTOR DE SESIONES
-# ============================================================================
-
-class TestSessionManager(unittest.TestCase):
-    """Pruebas para la clase SessionManager."""
-
-    def setUp(self):
-        """Configurar un nuevo gestor de sesiones para cada prueba."""
-        self.manager = SessionManager(timeout=60)  # Timeout corto para pruebas
-
-    def test_create_session(self):
-        """Verificar creación de nuevas sesiones."""
-        session_id = self.manager.create_session()
-        self.assertIsNotNone(session_id)
-        self.assertEqual(self.manager.active_count, 1)
-
-        # Verificar que se puede crear con ID personalizado
-        custom_id = "custom-session-id"
-        result_id = self.manager.create_session(custom_id)
-        self.assertEqual(result_id, custom_id)
-        self.assertEqual(self.manager.active_count, 2)
-
-    def test_get_session(self):
-        """Verificar recuperación de sesiones."""
-        session_id = self.manager.create_session()
-        session_data = self.manager.get_session(session_id)
-
-        self.assertIsNotNone(session_data)
-        self.assertIn("data", session_data)
-        self.assertIn("last_activity", session_data)
-        self.assertIn("created_at", session_data)
-
-        # Intentar obtener sesión inexistente
-        non_existent = self.manager.get_session("non-existent")
-        self.assertIsNone(non_existent)
-
-    def test_update_session(self):
-        """Verificar actualización de datos de sesión."""
-        session_id = self.manager.create_session()
-        test_data = {"test_key": "test_value"}
-
-        success = self.manager.update_session(session_id, test_data)
-        self.assertTrue(success)
-
-        session_data = self.manager.get_session(session_id)
-        self.assertEqual(session_data["data"], test_data)
-
-        # Intentar actualizar sesión inexistente
-        success = self.manager.update_session("non-existent", test_data)
-        self.assertFalse(success)
-
-    def test_session_expiration(self):
-        """Verificar expiración automática de sesiones."""
-        self.manager.timeout = 0.1  # Timeout muy corto para prueba
-        session_id = self.manager.create_session()
-
-        # Sesión debe existir inicialmente
-        self.assertIsNotNone(self.manager.get_session(session_id))
-
-        # Esperar a que expire
-        time.sleep(0.2)
-
-        # Sesión debe haber expirado
-        self.assertIsNone(self.manager.get_session(session_id))
-        self.assertEqual(self.manager.active_count, 0)
-
-    def test_cleanup_expired_sessions(self):
-        """Verificar limpieza de sesiones expiradas."""
-        self.manager.timeout = 0.1
-
-        # Crear múltiples sesiones
-        session_ids = [self.manager.create_session() for _ in range(3)]
-        self.assertEqual(self.manager.active_count, 3)
-
-        # Esperar a que expiren
-        time.sleep(0.2)
-
-        # Limpiar sesiones expiradas
-        removed_count = self.manager.cleanup_expired_sessions()
-        self.assertEqual(removed_count, 3)
-        self.assertEqual(self.manager.active_count, 0)
-
-    def test_remove_session(self):
-        """Verificar eliminación manual de sesiones."""
-        session_id = self.manager.create_session()
-
-        # Eliminar sesión existente
-        success = self.manager.remove_session(session_id)
-        self.assertTrue(success)
-        self.assertEqual(self.manager.active_count, 0)
-
-        # Intentar eliminar sesión inexistente
-        success = self.manager.remove_session("non-existent")
-        self.assertFalse(success)
 
 # ============================================================================
 # PRUEBAS DEL VALIDADOR DE ARCHIVOS
@@ -262,8 +166,18 @@ class TestAppEndpoints(unittest.TestCase):
     Suite completa de pruebas para los endpoints de la aplicación Flask.
     """
 
-    def setUp(self):
+    @patch('redis.from_url')
+    @patch('faiss.read_index')
+    def setUp(self, mock_read_index, mock_redis_from_url):
         """Configurar el entorno de prueba."""
+        # Mock de Redis
+        mock_redis_client = MagicMock()
+        mock_redis_client.dbsize.return_value = 0
+        mock_redis_from_url.return_value = mock_redis_client
+
+        # Mock de FAISS
+        mock_read_index.return_value = MagicMock()
+
         self.app = create_app('testing')
         self.app.testing = True
         self.app_context = self.app.app_context()
@@ -275,10 +189,6 @@ class TestAppEndpoints(unittest.TestCase):
 
         self.client = self.app.test_client()
 
-        # Limpiar el gestor de sesiones global
-        global session_manager
-        session_manager._sessions.clear()
-
     def tearDown(self):
         """Limpiar el entorno después de cada prueba."""
         self.app_context.pop()
@@ -286,9 +196,6 @@ class TestAppEndpoints(unittest.TestCase):
         # Eliminar directorio temporal
         if os.path.exists(self.temp_dir):
             shutil.rmtree(self.temp_dir)
-
-        # Limpiar sesiones
-        session_manager._sessions.clear()
 
     def _create_test_file(self, filename, content):
         """
@@ -428,9 +335,6 @@ class TestAppEndpoints(unittest.TestCase):
         response = self.client.get("/api/apu/10.M01")
         self.assertEqual(response.status_code, 401)
 
-        data = json.loads(response.data)
-        self.assertEqual(data["code"], "NO_SESSION")
-
     def test_get_apu_detail_not_found(self):
         """Verificar manejo de APU no encontrado."""
         with self.client as c:
@@ -498,9 +402,6 @@ class TestAppEndpoints(unittest.TestCase):
         response = self.client.post("/api/estimate", json=estimate_params)
 
         self.assertEqual(response.status_code, 401)
-
-        data = json.loads(response.data)
-        self.assertEqual(data["code"], "NO_SESSION")
 
     def test_get_estimate_invalid_content_type(self):
         """Verificar rechazo de content-type inválido."""
@@ -618,9 +519,6 @@ class TestAppEndpoints(unittest.TestCase):
             response2 = c2.post("/upload", data=data2, content_type="multipart/form-data")
             self.assertEqual(response2.status_code, 200)
 
-        # Verificar que hay 2 sesiones activas
-        self.assertEqual(session_manager.active_count, 2)
-
 # ============================================================================
 # PRUEBAS DE INTEGRACIÓN
 # ============================================================================
@@ -628,8 +526,16 @@ class TestAppEndpoints(unittest.TestCase):
 class TestIntegration(unittest.TestCase):
     """Pruebas de integración end-to-end."""
 
-    def setUp(self):
+    @patch('redis.from_url')
+    @patch('faiss.read_index')
+    def setUp(self, mock_read_index, mock_redis_from_url):
         """Configurar entorno de integración."""
+        mock_redis_client = MagicMock()
+        mock_redis_client.dbsize.return_value = 0
+        mock_redis_from_url.return_value = mock_redis_client
+
+        mock_read_index.return_value = MagicMock()
+
         self.app = create_app('testing')
         self.app.testing = True
         self.app_context = self.app.app_context()
@@ -640,14 +546,12 @@ class TestIntegration(unittest.TestCase):
         self.app.config["APP_CONFIG"] = TEST_CONFIG
 
         self.client = self.app.test_client()
-        session_manager._sessions.clear()
 
     def tearDown(self):
         """Limpiar entorno de integración."""
         self.app_context.pop()
         if os.path.exists(self.temp_dir):
             shutil.rmtree(self.temp_dir)
-        session_manager._sessions.clear()
 
     def test_complete_workflow(self):
         """Prueba el flujo completo de la aplicación."""

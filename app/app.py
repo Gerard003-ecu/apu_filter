@@ -18,6 +18,11 @@ import pandas as pd
 from flask import Flask, current_app, jsonify, render_template, request, session
 from werkzeug.utils import secure_filename
 
+# --- Dependencias para Búsqueda Semántica ---
+import faiss
+from sentence_transformers import SentenceTransformer
+
+
 # Configuración del path del sistema
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
@@ -295,6 +300,65 @@ class APUProcessor:
         return desglose
 
 # ============================================================================
+# CARGA DE MODELOS DE BÚSQUEDA SEMÁNTICA
+# ============================================================================
+
+def load_semantic_search_artifacts(app: Flask):
+    """
+    Carga el índice FAISS, el mapeo de IDs y el modelo de embeddings.
+    Estos artefactos son generados por `scripts/generate_embeddings.py`.
+    """
+    app.logger.info("Iniciando carga de artefactos de búsqueda semántica...")
+
+    embeddings_dir = Path(__file__).parent / "embeddings"
+    index_path = embeddings_dir / "faiss.index"
+    map_path = embeddings_dir / "id_map.json"
+    metadata_path = embeddings_dir / "metadata.json"
+
+    try:
+        # Validar que todos los archivos necesarios existan
+        if not all([index_path.exists(), map_path.exists(), metadata_path.exists()]):
+            raise FileNotFoundError(
+                "No se encontraron todos los archivos de embeddings. "
+                "Asegúrese de ejecutar 'scripts/generate_embeddings.py' primero."
+            )
+
+        # Cargar metadata para obtener el nombre del modelo dinámicamente
+        with open(metadata_path, "r", encoding="utf-8") as f:
+            metadata = json.load(f)
+
+        model_name = metadata.get("model_name")
+        if not model_name:
+            raise ValueError("El nombre del modelo no se encontró en metadata.json")
+
+        # Cargar los artefactos y guardarlos en la configuración de la app
+        app.config["FAISS_INDEX"] = faiss.read_index(str(index_path))
+
+        with open(map_path, "r", encoding="utf-8") as f:
+            app.config["ID_MAP"] = json.load(f)
+
+        app.config["EMBEDDING_MODEL"] = SentenceTransformer(model_name)
+
+        app.logger.info(
+            f"✅ Búsqueda semántica lista. Modelo: '{model_name}', "
+            f"Vectores en índice: {app.config['FAISS_INDEX'].ntotal}"
+        )
+
+    except Exception as e:
+        app.logger.error(
+            f"❌ Error crítico al cargar artefactos de búsqueda semántica: {e}",
+            exc_info=True
+        )
+        # La aplicación puede continuar, pero la búsqueda semántica no funcionará.
+        app.config["FAISS_INDEX"] = None
+        app.config["ID_MAP"] = None
+        app.config["EMBEDDING_MODEL"] = None
+        app.logger.warning(
+            "La funcionalidad de búsqueda semántica estará desactivada."
+        )
+
+
+# ============================================================================
 # FACTORY DE APLICACIÓN MEJORADA
 # ============================================================================
 
@@ -355,6 +419,9 @@ def create_app(config_name: str) -> Flask:
 
     # Inicializar procesador de APU
     apu_processor = APUProcessor(app.logger)
+
+    # Cargar artefactos de búsqueda semántica
+    load_semantic_search_artifacts(app)
 
     # ========================================================================
     # MIDDLEWARE Y HOOKS

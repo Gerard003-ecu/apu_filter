@@ -75,4 +75,12 @@ TEST_CONFIG = {
         "material": {"TEJA": "TEJA TRAPEZOIDAL", "PINTURA": "PINTURA ANTICORROSIVA"},
         "cuadrilla": {"1": "TIPO 1"},
     },
+    "validation_thresholds": {
+        "MANO_DE_OBRA": {
+            "min_jornal": 50000,
+            "max_jornal": 10000000,
+            "min_rendimiento": 0.001,
+            "max_rendimiento": 1000,
+        }
+    },
 }
