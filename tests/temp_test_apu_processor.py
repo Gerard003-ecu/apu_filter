@@ -1,11 +1,11 @@
 import sys
 from pathlib import Path
-import pandas as pd
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from app.apu_processor import APUProcessor
 from tests.test_data import APUS_DATA, TEST_CONFIG
+
 
 def test_apu_processor_produces_correct_columns():
     """

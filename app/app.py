@@ -13,15 +13,13 @@ from functools import wraps
 from pathlib import Path
 from typing import Optional, Tuple
 
+# --- Dependencias para Búsqueda Semántica ---
+import faiss
 import numpy as np
 import pandas as pd
 from flask import Flask, current_app, jsonify, render_template, request, session
-from werkzeug.utils import secure_filename
-
-# --- Dependencias para Búsqueda Semántica ---
-import faiss
 from sentence_transformers import SentenceTransformer
-
+from werkzeug.utils import secure_filename
 
 # Configuración del path del sistema
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))

@@ -15,10 +15,10 @@ from unittest.mock import patch
 
 import numpy as np
 import pandas as pd
+from pandas.testing import assert_series_equal
 
 # Importar el módulo a probar
 from app import utils
-from pandas.testing import assert_series_equal
 
 # ============================================================================
 # FIXTURES Y UTILIDADES DE PRUEBA MEJORADAS
