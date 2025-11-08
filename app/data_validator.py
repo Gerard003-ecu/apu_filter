@@ -1,8 +1,9 @@
 # app/data_validator.py
 import logging
-from typing import List, Dict, Any, Optional, Union
-import pandas as pd
 from copy import deepcopy
+from typing import Any, Dict, List, Optional
+
+import pandas as pd
 
 # Optional fuzzy matching (install with: pip install fuzzywuzzy python-Levenshtein)
 try:

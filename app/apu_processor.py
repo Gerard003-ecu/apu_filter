@@ -6,13 +6,13 @@ Versión refinada con mejoras en robustez, performance y mantenibilidad.
 import logging
 import re
 from collections import defaultdict
-from functools import lru_cache
-from typing import Dict, List, Optional, Tuple, Union, Any
 from dataclasses import dataclass, field
 from enum import Enum
+from functools import lru_cache
+from typing import Any, Dict, List, Optional, Tuple
 
-import pandas as pd
 import numpy as np
+import pandas as pd
 from lark import Lark, Transformer, v_args
 from lark.exceptions import LarkError, UnexpectedCharacters, UnexpectedEOF
 
@@ -94,10 +94,10 @@ class KeywordCache:
             self._mo_keywords = keyword_maps.get("mano_de_obra", [])
             self._transporte_keywords = keyword_maps.get("transporte", [])
             self._suministro_keywords = keyword_maps.get("suministro", [])
-            
+
             if not any([self._equipo_keywords, self._mo_keywords, self._transporte_keywords, self._suministro_keywords]):
                 logger.warning("Keyword maps en config.json está vacío o no se encontró.")
-            
+
             self._initialized = True
 
     @property
@@ -140,7 +140,7 @@ class APUTransformer(Transformer):
 
     def _clean_token(self, token) -> str:
         """Limpia un token de forma segura."""
-        if token is None: 
+        if token is None:
             return ""
         value = getattr(token, 'value', str(token))
         return value.strip() if value else ""
@@ -151,7 +151,7 @@ class APUTransformer(Transformer):
         """
         try:
             tokens = [self._clean_token(f) for f in fields]
-            
+
             # Validación básica
             if not tokens or not tokens[0]:
                 logger.debug("Línea vacía o sin contenido")
@@ -177,10 +177,10 @@ class APUTransformer(Transformer):
         Detecta el formato de la línea con validación mejorada.
         """
         num_fields = len(fields)
-        
+
         if num_fields < 5:
             return FormatoLinea.DESCONOCIDO
-            
+
         descripcion = fields[0]
         tipo_probable = self._classify_insumo_with_cache(descripcion)
 
@@ -200,19 +200,19 @@ class APUTransformer(Transformer):
         try:
             if len(fields) < 6:
                 return False
-                
+
             jornal_total = parse_number(fields[3])
             rendimiento = parse_number(fields[4])
-            
+
             thresholds = self.config.get("validation_thresholds", {}).get("MANO_DE_OBRA", {})
             min_jornal = thresholds.get("min_jornal", 50000)
             max_jornal = thresholds.get("max_jornal", 10000000)
             min_rendimiento = thresholds.get("min_rendimiento", 0.001)
             max_rendimiento = thresholds.get("max_rendimiento", 1000)
 
-            return (min_jornal <= jornal_total <= max_jornal and 
+            return (min_jornal <= jornal_total <= max_jornal and
                     min_rendimiento <= rendimiento <= max_rendimiento)
-                    
+
         except (ValueError, IndexError):
             return False
 
@@ -224,19 +224,19 @@ class APUTransformer(Transformer):
         }
 
         builder = builders.get(formato)
-        
+
         if not builder:
             logger.warning(f"Formato no soportado: {formato}")
             return None
 
         # Intenta construir con el builder principal
         result = builder(tokens)
-        
+
         # Si falla y es MO_COMPLETA, intenta fallback a insumo básico
         if not result and formato == FormatoLinea.MO_COMPLETA:
             logger.debug("Aplicando fallback MO_COMPLETA -> INSUMO_BASICO")
             result = self._build_insumo_basico(tokens)
-            
+
         return result
 
     def _build_mo_completa(self, tokens: List[str]) -> Optional[ManoDeObra]:
@@ -249,7 +249,7 @@ class APUTransformer(Transformer):
             if len(tokens) < required_fields:
                 logger.debug(f"Insuficientes campos para MO_COMPLETA: {len(tokens)}")
                 return None
-                
+
             descripcion = tokens[0]
             jornal_total = parse_number(tokens[3])
             rendimiento = parse_number(tokens[4])
@@ -289,7 +289,7 @@ class APUTransformer(Transformer):
             parsed_values = self._parse_insumo_fields(tokens)
             if not parsed_values:
                 return None
-                
+
             descripcion, unidad, cantidad, precio_unit, valor_total = parsed_values
 
             # Corrección automática de valores
@@ -300,7 +300,7 @@ class APUTransformer(Transformer):
 
             # Construcción del objeto apropiado
             return self._build_typed_insumo(
-                descripcion, unidad, cantidad, precio_unit, 
+                descripcion, unidad, cantidad, precio_unit,
                 valor_total, tipo_insumo
             )
 
@@ -313,7 +313,7 @@ class APUTransformer(Transformer):
         try:
             if len(tokens) < 5:
                 return None
-                
+
             # Extracción de campos según cantidad
             if len(tokens) >= 6:
                 # Formato con desperdicio (ignorado)
@@ -338,18 +338,18 @@ class APUTransformer(Transformer):
             calculated = cantidad * precio_unit
             logger.debug(f"Valor total corregido: 0 -> {calculated:.2f}")
             return calculated
-            
+
         # Validar coherencia con tolerancia
         if cantidad > 0 and precio_unit > 0:
             expected = cantidad * precio_unit
             tolerance = 0.01  # 1% de tolerancia
             if abs(valor_total - expected) / expected > tolerance:
                 logger.warning(f"Valor total inconsistente: {valor_total:.2f} vs esperado {expected:.2f}")
-                
+
         return valor_total
 
     def _build_typed_insumo(self, descripcion: str, unidad: str, cantidad: float,
-                           precio_unit: float, valor_total: float, 
+                           precio_unit: float, valor_total: float,
                            tipo_insumo: TipoInsumo) -> InsumoProcesado:
         """Construye el objeto de insumo del tipo apropiado."""
         common_args = {
@@ -378,18 +378,18 @@ class APUTransformer(Transformer):
     def _validate_mo_values(self, jornal: float, rendimiento: float) -> bool:
         """Valida valores de mano de obra contra umbrales."""
         thresholds = self.config.get("validation_thresholds", {}).get("MANO_DE_OBRA", {})
-        
+
         min_jornal = thresholds.get("min_jornal", 50000)
         max_jornal = thresholds.get("max_jornal", 10000000)
         min_rendimiento = thresholds.get("min_rendimiento", 0.001)
         max_rendimiento = thresholds.get("max_rendimiento", 1000)
 
-        is_valid = (min_jornal <= jornal <= max_jornal and 
+        is_valid = (min_jornal <= jornal <= max_jornal and
                    min_rendimiento <= rendimiento <= max_rendimiento)
-                   
+
         if not is_valid:
             logger.warning(f"Valores MO fuera de rango: jornal={jornal:,.0f}, rendimiento={rendimiento:.3f}")
-            
+
         return is_valid
 
     @lru_cache(maxsize=2048)
@@ -461,13 +461,13 @@ class APUProcessor:
         """
         # Validación de entrada
         self._validate_inputs(raw_records, config)
-        
+
         self.raw_records = raw_records
         self.config = config
         self.processed_data: List[InsumoProcesado] = []
         self.stats = defaultdict(int)
         self._parser = None
-        
+
         # Inicializar cache de keywords
         self.keyword_cache = KeywordCache(self.config)
 
@@ -478,13 +478,13 @@ class APUProcessor:
         """Valida las entradas del procesador."""
         if not isinstance(raw_records, list):
             raise ValueError("raw_records debe ser una lista")
-            
+
         if not isinstance(config, dict):
             raise ValueError("config debe ser un diccionario")
-            
+
         if not raw_records:
             logger.warning("Lista de registros vacía")
-            
+
         # Validar estructura mínima de config
         required_config_keys = ["validation_thresholds"]
         missing_keys = [k for k in required_config_keys if k not in config]
@@ -514,23 +514,23 @@ class APUProcessor:
             DataFrame con datos procesados
         """
         logger.info(f"🚀 Iniciando procesamiento de {len(self.raw_records)} registros...")
-        
+
         # Procesar en lotes para optimizar memoria
         batch_size = self.config.get("batch_size", 1000)
-        
+
         for batch_start in range(0, len(self.raw_records), batch_size):
             batch_end = min(batch_start + batch_size, len(self.raw_records))
             batch = self.raw_records[batch_start:batch_end]
-            
+
             self._process_batch(batch, batch_start)
-            
+
             # Log de progreso
             if batch_end % (batch_size * 10) == 0:
                 logger.info(f"Procesados {batch_end}/{len(self.raw_records)} registros...")
 
         # Post-procesamiento
         self._apply_post_processing()
-        
+
         # Generar estadísticas y DataFrame
         self._log_stats()
         return self._build_optimized_dataframe()
@@ -545,7 +545,7 @@ class APUProcessor:
                     self._update_stats(processed)
                 else:
                     self.stats["registros_descartados"] += 1
-                    
+
             except Exception as e:
                 record_num = offset + idx + 1
                 logger.warning(f"⚠️ Error en registro {record_num}: {e}")
@@ -579,11 +579,11 @@ class APUProcessor:
         """Limpia y valida campos del registro."""
         apu_code = clean_apu_code(record.get("apu_code", ""))
         apu_desc = record.get("apu_desc", "").strip()
-        
+
         if not apu_code or not apu_desc:
-            logger.debug(f"Registro sin código o descripción APU válidos")
+            logger.debug("Registro sin código o descripción APU válidos")
             return None
-            
+
         return {
             "apu_code": apu_code,
             "apu_desc": apu_desc,
@@ -595,7 +595,7 @@ class APUProcessor:
     def _parse_insumo_line(self, clean_record: Dict[str, str]) -> Optional[InsumoProcesado]:
         """Parsea la línea de insumo usando Lark."""
         insumo_line = clean_record["insumo_line"]
-        
+
         if not insumo_line or not insumo_line.strip():
             return None
 
@@ -612,7 +612,7 @@ class APUProcessor:
             transformer = APUTransformer(apu_context, self.config, self.keyword_cache)
             tree = self._parser.parse(insumo_line)
             insumo_obj = transformer.transform(tree)
-            
+
             return insumo_obj
 
         except (LarkError, UnexpectedCharacters, UnexpectedEOF) as e:
@@ -624,7 +624,7 @@ class APUProcessor:
             self.stats["errores_parsing"] += 1
             return None
 
-    def _post_process_insumo(self, insumo_obj: InsumoProcesado, 
+    def _post_process_insumo(self, insumo_obj: InsumoProcesado,
                             clean_record: Dict[str, str]) -> InsumoProcesado:
         """Aplica post-procesamiento al objeto de insumo."""
         # Inferir unidad si es necesario
@@ -662,7 +662,7 @@ class APUProcessor:
         return unit_mapping.get(unit_clean, unit_clean)
 
     @lru_cache(maxsize=512)
-    def _infer_unit_intelligent(self, description: str, category: str, 
+    def _infer_unit_intelligent(self, description: str, category: str,
                                tipo_insumo: str) -> str:
         """Infiere unidad con lógica mejorada y cache."""
         desc_upper = description.upper()
@@ -743,7 +743,7 @@ class APUProcessor:
             # Validación general para otros tipos
             tipo_config = thresholds.get(tipo, thresholds.get("DEFAULT", {}))
             max_valor = tipo_config.get("max_valor_total", float('inf'))
-            
+
             if insumo.valor_total > max_valor:
                 logger.debug(f"Valor excesivo para {tipo}: ${insumo.valor_total:,.0f}")
                 return False
@@ -759,10 +759,10 @@ class APUProcessor:
         """Aplica correcciones y ajustes finales."""
         # Corrección de unidades para cuadrillas
         self._fix_squad_units()
-        
+
         # Normalización de valores extremos
         self._normalize_extreme_values()
-        
+
         # Detección y corrección de duplicados
         self._handle_duplicates()
 
@@ -780,7 +780,7 @@ class APUProcessor:
                 continue
 
             for pattern, unit in squad_patterns:
-                if (re.match(pattern, insumo.codigo_apu) or 
+                if (re.match(pattern, insumo.codigo_apu) or
                     pattern in insumo.descripcion_apu.upper()):
                     if insumo.unidad_apu != unit:
                         old_unit = insumo.unidad_apu
@@ -858,7 +858,7 @@ class APUProcessor:
         self.stats[f"tipo_{record.tipo_insumo}"] += 1
         self.stats[f"fmt_{record.formato_origen}"] += 1
         self.stats[f"unit_{record.unidad_apu}"] += 1
-        
+
         # Estadísticas adicionales
         if record.valor_total > 0:
             self.stats["con_valor"] += 1
@@ -869,7 +869,7 @@ class APUProcessor:
         """Genera log detallado de estadísticas."""
         total_input = len(self.raw_records)
         total_output = len(self.processed_data)
-        
+
         logger.info("=" * 60)
         logger.info("📊 RESUMEN DE PROCESAMIENTO")
         logger.info("=" * 60)
@@ -877,7 +877,7 @@ class APUProcessor:
         logger.info(f"✅ Registros procesados: {total_output:,}")
         logger.info(f"📈 Tasa de éxito: {(total_output/total_input*100):.1f}%")
         logger.info("-" * 60)
-        
+
         # Desglose de rechazos
         logger.info("❌ Análisis de rechazos:")
         logger.info(f"   Errores de procesamiento: {self.stats.get('errores', 0):,}")
@@ -885,27 +885,27 @@ class APUProcessor:
         logger.info(f"   Rechazados (validación): {self.stats.get('rechazados_validacion', 0):,}")
         logger.info(f"   Excluidos (términos): {self.stats.get('excluidos_por_termino', 0):,}")
         logger.info(f"   Errores de parsing: {self.stats.get('errores_parsing', 0):,}")
-        
+
         # Distribución por tipo
         logger.info("-" * 60)
         logger.info("📋 Distribución por tipo de insumo:")
-        tipos = [(k.replace('tipo_', ''), v) for k, v in self.stats.items() 
+        tipos = [(k.replace('tipo_', ''), v) for k, v in self.stats.items()
                  if k.startswith('tipo_')]
-        
+
         for tipo, count in sorted(tipos, key=lambda x: x[1], reverse=True):
             pct = (count / total_output * 100) if total_output > 0 else 0
             logger.info(f"   {tipo:.<25} {count:>6,} ({pct:>5.1f}%)")
-            
+
         # Unidades más comunes
         logger.info("-" * 60)
         logger.info("📏 Unidades APU más comunes:")
-        units = [(k.replace('unit_', ''), v) for k, v in self.stats.items() 
+        units = [(k.replace('unit_', ''), v) for k, v in self.stats.items()
                  if k.startswith('unit_')]
-        
+
         for unit, count in sorted(units, key=lambda x: x[1], reverse=True)[:10]:
             pct = (count / total_output * 100) if total_output > 0 else 0
             logger.info(f"   {unit:.<10} {count:>6,} ({pct:>5.1f}%)")
-            
+
         logger.info("=" * 60)
 
     def _build_optimized_dataframe(self) -> pd.DataFrame:
@@ -940,7 +940,7 @@ class APUProcessor:
             "tipo_insumo": "TIPO_INSUMO",
             "rendimiento": "RENDIMIENTO",
         }
-        
+
         df.rename(columns=column_mapping, inplace=True)
 
         # Optimizar tipos de datos
@@ -979,7 +979,7 @@ class APUProcessor:
 
         # Análisis de distribución
         tipo_counts = df['TIPO_INSUMO'].value_counts()
-        
+
         # Validaciones críticas
         validations = [
             ('SUMINISTRO', "⚠️ Sin insumos de SUMINISTRO"),
@@ -1003,7 +1003,7 @@ class APUProcessor:
                 nulls = df[col].isna().sum()
                 zeros = (df[col] == 0).sum()
                 negatives = (df[col] < 0).sum()
-                
+
                 if nulls > 0:
                     logger.warning(f"   {col}: {nulls:,} valores nulos")
                 if zeros > len(df) * 0.3:
@@ -1019,7 +1019,7 @@ class APUProcessor:
 # FUNCIONES DE UTILIDAD MEJORADAS
 # ============================================================================
 
-def calculate_unit_costs(df: pd.DataFrame, 
+def calculate_unit_costs(df: pd.DataFrame,
                         config: Optional[Dict[str, Any]] = None) -> pd.DataFrame:
     """
     Calcula costos unitarios por APU con validación robusta.
@@ -1067,7 +1067,7 @@ def calculate_unit_costs(df: pd.DataFrame,
         # Calcular componentes
         pivot['VALOR_SUMINISTRO_UN'] = pivot.get('SUMINISTRO', 0)
         pivot['VALOR_INSTALACION_UN'] = (
-            pivot.get('MANO_DE_OBRA', 0) + 
+            pivot.get('MANO_DE_OBRA', 0) +
             pivot.get('EQUIPO', 0)
         )
         pivot['VALOR_TRANSPORTE_UN'] = pivot.get('TRANSPORTE', 0)
@@ -1090,7 +1090,7 @@ def calculate_unit_costs(df: pd.DataFrame,
 
         # Ordenar y limpiar
         pivot = pivot.sort_values('CODIGO_APU')
-        
+
         # Optimizar tipos
         for col in pivot.select_dtypes(include=['float64']).columns:
             pivot[col] = pivot[col].astype('float32')
@@ -1105,7 +1105,7 @@ def calculate_unit_costs(df: pd.DataFrame,
         # Validar resultados
         if pivot['COSTO_UNITARIO_TOTAL'].sum() == 0:
             logger.error("⚠️ Todos los costos calculados son cero")
-        
+
         negative_costs = (pivot['COSTO_UNITARIO_TOTAL'] < 0).sum()
         if negative_costs > 0:
             logger.error(f"⚠️ {negative_costs} APUs con costos negativos")

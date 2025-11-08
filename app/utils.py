@@ -5,17 +5,15 @@ Este módulo proporciona funciones robustas para normalización de texto,
 conversión de números, validación de datos y manejo de archivos.
 """
 
-import os
+import logging
 import re
-from typing import Optional, Union, Dict, List, Tuple, Any
 from functools import lru_cache
 from pathlib import Path
-import warnings
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import numpy as np
 import pandas as pd
 from unidecode import unidecode
-import logging
 
 # Configuración del logger
 logger = logging.getLogger(__name__)
@@ -101,10 +99,10 @@ def normalize_text(text: str, preserve_special_chars: bool = False) -> str:
 
     # Convertir a minúsculas y remover espacios extra
     text = text.lower().strip()
-    
+
     # Remover acentos y caracteres especiales
     text = unidecode(text)
-    
+
     # Definir patrones de caracteres permitidos
     if preserve_special_chars:
         # Preservar caracteres útiles para descripciones técnicas
@@ -112,18 +110,18 @@ def normalize_text(text: str, preserve_special_chars: bool = False) -> str:
     else:
         # Solo caracteres básicos para comparaciones
         pattern = r"[^a-z0-9\s]"
-    
+
     # Remover caracteres no permitidos
     text = re.sub(pattern, "", text)
-    
+
     # Normalizar espacios (múltiples espacios a uno solo)
     text = WHITESPACE_PATTERN.sub(" ", text)
-    
+
     return text.strip()
 
 
 def normalize_text_series(
-    text_series: pd.Series, 
+    text_series: pd.Series,
     preserve_special_chars: bool = False,
     chunk_size: int = 10000
 ) -> pd.Series:
@@ -145,7 +143,7 @@ def normalize_text_series(
 
     # Asegurar que todos los elementos sean strings
     text_series = text_series.astype(str)
-    
+
     # Para series grandes, procesar por chunks
     if len(text_series) > chunk_size:
         result_chunks = []
@@ -156,7 +154,7 @@ def normalize_text_series(
             )
             result_chunks.append(normalized_chunk)
         return pd.concat(result_chunks)
-    
+
     # Para series pequeñas, procesar directamente
     return text_series.apply(lambda x: _safe_normalize(x, preserve_special_chars))
 
@@ -174,7 +172,7 @@ def _safe_normalize(text: str, preserve_special_chars: bool) -> str:
 # ============================================================================
 
 def parse_number(
-    s: Optional[Union[str, float, int]], 
+    s: Optional[Union[str, float, int]],
     decimal_separator: str = "auto",
     default_value: float = 0.0
 ) -> float:
@@ -233,7 +231,7 @@ def parse_number(
             return result
         except (ValueError, TypeError, OverflowError):
             return default_value
-    
+
     return default_value
 
 
@@ -241,7 +239,7 @@ def _detect_decimal_separator(s: str) -> str:
     """Detecta el separador decimal en un string numérico."""
     comma_count = s.count(',')
     dot_count = s.count('.')
-    
+
     if comma_count > 0 and dot_count > 0:
         # Ambos presentes: asumir que la coma es decimal si está después del punto
         if comma_count == 1 and s.rfind(',') > s.rfind('.'):
@@ -253,7 +251,7 @@ def _detect_decimal_separator(s: str) -> str:
         comma_pos = s.find(',')
         digits_after = len(s[comma_pos+1:])
         return "dot" if digits_after == 3 else "comma"
-    
+
     return "dot"
 
 
@@ -266,14 +264,14 @@ def _normalize_numeric_string(s: str, decimal_separator: str) -> str:
     else:
         # Punto como decimal, coma como miles
         s = s.replace(",", "")  # Eliminar separadores de miles
-    
+
     # Manejar casos edge como "1.234.567" (múltiples puntos)
     if s.count('.') > 1:
         parts = s.split('.')
         integer_part = ''.join(parts[:-1])
         decimal_part = parts[-1]
         s = f"{integer_part}.{decimal_part}"
-    
+
     return s
 
 # ============================================================================
@@ -307,7 +305,7 @@ def clean_apu_code(code: str, validate_format: bool = True) -> str:
 
     # Remover caracteres no permitidos (mantener letras, números, puntos, guiones)
     code = APU_INVALID_CHARS_PATTERN.sub('', code)
-    
+
     # Remover puntos y guiones al final
     code = code.rstrip('.-')
 
@@ -322,7 +320,7 @@ def clean_apu_code(code: str, validate_format: bool = True) -> str:
         # Verificar que tenga al menos un número
         if not any(char.isdigit() for char in code):
             logger.warning(f"Código APU sin números: '{original_code}' -> '{code}'")
-    
+
     return code
 
 # ============================================================================
@@ -344,24 +342,24 @@ def normalize_unit(unit: str) -> str:
         return 'UND'
 
     unit = unit.upper().strip()
-    
+
     # Verificar en mapeo primero (más común)
     if unit in UNIT_MAPPING:
         return UNIT_MAPPING[unit]
-    
+
     # Si es una unidad estándar, retornarla
     if unit in STANDARD_UNITS:
         return unit
-    
+
     # Intentar limpiar y verificar
     clean_unit = re.sub(r'[^A-Z0-9]', '', unit)
     if clean_unit in STANDARD_UNITS:
         return clean_unit
-    
+
     # Log solo para unidades no triviales
     if unit not in ('', 'UND') and len(unit) > 1:
         logger.debug(f"Unidad no reconocida: '{unit}' -> usando 'UND'")
-    
+
     return 'UND'
 
 # ============================================================================
@@ -389,7 +387,7 @@ def safe_read_dataframe(
         DataFrame leído o DataFrame vacío si falla
     """
     path = Path(path) if not isinstance(path, Path) else path
-    
+
     if not path.exists():
         logger.error(f"Archivo no encontrado: {path}")
         return pd.DataFrame()
@@ -401,7 +399,7 @@ def safe_read_dataframe(
 
         # Leer según extensión
         file_extension = path.suffix.lower()
-        
+
         if file_extension == ".csv":
             return _read_csv_robust(path, encoding, header, nrows, usecols)
         elif file_extension in [".xls", ".xlsx"]:
@@ -437,7 +435,7 @@ def _read_csv_robust(
     """Lee un archivo CSV de forma robusta."""
     # Detectar separador
     separator = _detect_csv_separator(path, encoding)
-    
+
     # Configurar parámetros de lectura
     read_params = {
         'filepath_or_buffer': path,
@@ -448,12 +446,12 @@ def _read_csv_robust(
         'on_bad_lines': 'skip',
         'low_memory': False  # Evita warnings de tipos mixtos
     }
-    
+
     if nrows is not None:
         read_params['nrows'] = nrows
     if usecols is not None:
         read_params['usecols'] = usecols
-    
+
     return pd.read_csv(**read_params)
 
 
@@ -468,12 +466,12 @@ def _read_excel_robust(
         'io': path,
         'header': header
     }
-    
+
     if nrows is not None:
         read_params['nrows'] = nrows
     if usecols is not None:
         read_params['usecols'] = usecols
-    
+
     return pd.read_excel(**read_params)
 
 
@@ -482,10 +480,10 @@ def _detect_csv_separator(path: Path, encoding: str) -> str:
     try:
         with open(path, 'r', encoding=encoding) as f:
             sample = f.read(4096)
-        
+
         best_sep = ','
         best_count = 0
-        
+
         for sep in DEFAULT_CSV_SEPARATORS:
             # Contar ocurrencias considerando saltos de línea
             lines = sample.split('\n')[:5]  # Primeras 5 líneas
@@ -496,7 +494,7 @@ def _detect_csv_separator(path: Path, encoding: str) -> str:
                     if avg_count > best_count:
                         best_count = avg_count
                         best_sep = sep
-        
+
         return best_sep
     except Exception:
         return ','
@@ -591,7 +589,7 @@ def validate_series(
         validation_results = series.apply(
             lambda x: validate_numeric_value(x, **kwargs)
         )
-        
+
         return pd.DataFrame({
             'value': series,
             'is_valid': validation_results.apply(lambda x: x[0]),
@@ -618,9 +616,9 @@ def create_apu_signature(
     """
     if key_fields is None:
         key_fields = ['CODIGO_APU', 'DESCRIPCION_APU', 'UNIDAD_APU']
-    
+
     signature_parts = []
-    
+
     for field in key_fields:
         value = apu_data.get(field, '')
         if value:
@@ -629,10 +627,10 @@ def create_apu_signature(
                 normalized = str(value)
             else:
                 normalized = normalize_text(str(value))
-            
+
             if normalized:  # Solo añadir si no está vacío
                 signature_parts.append(normalized)
-    
+
     return '|'.join(signature_parts) if signature_parts else 'empty_signature'
 
 
@@ -665,7 +663,7 @@ def detect_outliers(
 
     # Remover valores nulos para el cálculo
     clean_series = series.dropna()
-    
+
     if len(clean_series) == 0:
         result = pd.Series([False] * len(series), index=series.index)
         bounds = {}
@@ -695,17 +693,17 @@ def _detect_outliers_iqr(
     Q1 = clean_series.quantile(0.25)
     Q3 = clean_series.quantile(0.75)
     IQR = Q3 - Q1
-    
+
     lower_bound = Q1 - threshold * IQR
     upper_bound = Q3 + threshold * IQR
-    
+
     outliers = (series < lower_bound) | (series > upper_bound)
     bounds = {
         'Q1': Q1, 'Q3': Q3, 'IQR': IQR,
         'lower_bound': lower_bound,
         'upper_bound': upper_bound
     }
-    
+
     return outliers, bounds
 
 
@@ -717,7 +715,7 @@ def _detect_outliers_zscore(
     """Detección de outliers usando z-score."""
     mean = clean_series.mean()
     std = clean_series.std()
-    
+
     if std == 0:  # Evitar división por cero
         outliers = pd.Series([False] * len(series), index=series.index)
         bounds = {'mean': mean, 'std': 0, 'threshold': threshold}
@@ -730,7 +728,7 @@ def _detect_outliers_zscore(
             'lower_bound': mean - threshold * std,
             'upper_bound': mean + threshold * std
         }
-    
+
     return outliers, bounds
 
 
@@ -742,7 +740,7 @@ def _detect_outliers_modified_zscore(
     """Detección de outliers usando Modified Z-score (más robusto)."""
     median = clean_series.median()
     mad = np.median(np.abs(clean_series - median))
-    
+
     if mad == 0:
         # Usar MAD mínimo para evitar división por cero
         mad = 1.4826 * clean_series.std()
@@ -750,10 +748,10 @@ def _detect_outliers_modified_zscore(
             outliers = pd.Series([False] * len(series), index=series.index)
             bounds = {'median': median, 'mad': 0, 'threshold': threshold}
             return outliers, bounds
-    
+
     modified_z_scores = 0.6745 * (series - median) / mad
     outliers = np.abs(modified_z_scores) > threshold
-    
+
     bounds = {
         'median': median,
         'mad': mad,
@@ -761,7 +759,7 @@ def _detect_outliers_modified_zscore(
         'lower_bound': median - threshold * mad / 0.6745,
         'upper_bound': median + threshold * mad / 0.6745
     }
-    
+
     return outliers, bounds
 
 # ============================================================================
@@ -792,43 +790,43 @@ def find_and_rename_columns(
 
     renamed_cols = {}
     used_cols = set()
-    
+
     for standard_name, possible_names in column_map.items():
         found = False
         for col in df.columns:
             if col in used_cols:
                 continue
-                
+
             col_compare = col if case_sensitive else str(col).lower()
-            
+
             for p_name in possible_names:
                 p_name_compare = p_name if case_sensitive else str(p_name).lower()
-                
+
                 # Búsqueda flexible: coincidencia exacta o parcial
                 if (p_name_compare == col_compare or
                     p_name_compare in col_compare or
                     col_compare in p_name_compare):
-                    
+
                     if standard_name in renamed_cols.values():
                         logger.warning(
                             f"Columna '{standard_name}' ya mapeada. "
                             f"Ignorando '{col}'"
                         )
                         continue
-                    
+
                     renamed_cols[col] = standard_name
                     used_cols.add(col)
                     found = True
                     break
-            
+
             if found:
                 break
-    
+
     # Log columnas no mapeadas si hay muchas
     unmapped = set(df.columns) - used_cols
     if len(unmapped) > 0 and len(unmapped) <= 5:
         logger.debug(f"Columnas no mapeadas: {unmapped}")
-    
+
     return df.rename(columns=renamed_cols)
 
 # ============================================================================
@@ -858,49 +856,49 @@ def sanitize_for_json(data: Any, max_depth: int = 100) -> Any:
             k: sanitize_for_json(v, max_depth - 1)
             for k, v in data.items()
         }
-    
+
     # Manejar listas y tuplas
     if isinstance(data, (list, tuple)):
         return [
             sanitize_for_json(v, max_depth - 1)
             for v in data
         ]
-    
+
     # Manejar Series de pandas
     if isinstance(data, pd.Series):
         return sanitize_for_json(data.to_list(), max_depth - 1)
-    
+
     # Manejar DataFrames de pandas
     if isinstance(data, pd.DataFrame):
         return sanitize_for_json(data.to_dict('records'), max_depth - 1)
-    
+
     # Conversión de tipos de NumPy a Python nativo
     if isinstance(data, (np.integer, np.int32, np.int64)):
         return int(data)
-    
+
     if isinstance(data, (np.floating, np.float32, np.float64)):
         if np.isnan(data) or np.isinf(data):
             return None
         return float(data)
-    
+
     if isinstance(data, np.ndarray):
         return sanitize_for_json(data.tolist(), max_depth - 1)
-    
+
     if isinstance(data, (np.bool_, bool)):
         return bool(data)
-    
+
     # Manejar pd.NA, pd.NaT y otros nulos de Pandas
     if pd.isna(data):
         return None
-    
+
     # Manejar fechas
     if hasattr(data, 'isoformat'):
         return data.isoformat()
-    
+
     # Para otros tipos, intentar conversión a string
     if hasattr(data, '__dict__'):
         return sanitize_for_json(data.__dict__, max_depth - 1)
-    
+
     return data
 
 # ============================================================================
@@ -918,13 +916,13 @@ def calculate_statistics(series: pd.Series) -> Dict[str, float]:
         Diccionario con estadísticas
     """
     clean_series = series.dropna()
-    
+
     if len(clean_series) == 0:
         return {
             'count': 0, 'mean': None, 'std': None,
             'min': None, 'max': None, 'median': None
         }
-    
+
     return {
         'count': len(clean_series),
         'mean': float(clean_series.mean()),
@@ -959,13 +957,13 @@ def batch_process_dataframe(
     """
     if len(df) <= batch_size:
         return process_func(df, **kwargs)
-    
+
     results = []
     for i in range(0, len(df), batch_size):
         batch = df.iloc[i:i+batch_size]
         processed = process_func(batch, **kwargs)
         results.append(processed)
-    
+
     return pd.concat(results, ignore_index=True)
 
 # ============================================================================

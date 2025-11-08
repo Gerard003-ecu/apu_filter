@@ -1,9 +1,9 @@
 # app/schemas.py
+import logging
 import re
 import warnings
-from dataclasses import dataclass, asdict
+from dataclasses import asdict, dataclass
 from typing import Any, Dict, Optional
-import logging
 
 # Configuración básica de logging
 logger = logging.getLogger(__name__)
@@ -230,7 +230,7 @@ class Suministro(InsumoProcesado):
         # Suministros deben tener cantidad > 0 (salvo excepciones documentadas)
         if self.cantidad == 0:
             warnings.warn(
-                f"Suministro: cantidad=0.0. ¿Es intencional? Los suministros suelen tener cantidad > 0.",
+                "Suministro: cantidad=0.0. ¿Es intencional? Los suministros suelen tener cantidad > 0.",
                 UserWarning,
                 stacklevel=2
             )

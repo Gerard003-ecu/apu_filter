@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 
 class ColumnNames:
     """Nombres de columnas estandarizados para evitar strings mágicos."""
-    
+
     # Columnas de APU
     CODIGO_APU = "CODIGO_APU"
     DESCRIPCION_APU = "DESCRIPCION_APU"
@@ -31,10 +31,10 @@ class ColumnNames:
     ORIGINAL_DESCRIPTION = "original_description"
     UNIDAD_APU = "UNIDAD_APU"
     CANTIDAD_APU = "CANTIDAD_APU"
-    
+
     # Columnas de Presupuesto
     CANTIDAD_PRESUPUESTO = "CANTIDAD_PRESUPUESTO"
-    
+
     # Columnas de Insumos
     GRUPO_INSUMO = "GRUPO_INSUMO"
     DESCRIPCION_INSUMO = "DESCRIPCION_INSUMO"
@@ -42,31 +42,31 @@ class ColumnNames:
     VR_UNITARIO_INSUMO = "VR_UNITARIO_INSUMO"
     UNIDAD_INSUMO = "UNIDAD_INSUMO"
     NORMALIZED_DESC = "NORMALIZED_DESC"
-    
+
     # Columnas de Costos
     COSTO_INSUMO_EN_APU = "COSTO_INSUMO_EN_APU"
     VR_UNITARIO_FINAL = "VR_UNITARIO_FINAL"
     VALOR_TOTAL_APU = "VALOR_TOTAL_APU"
     PRECIO_UNIT_APU = "PRECIO_UNIT_APU"
-    
+
     # Columnas de Resultados
     MATERIALES = "MATERIALES"
     MANO_DE_OBRA = "MANO DE OBRA"
     EQUIPO = "EQUIPO"
     OTROS = "OTROS"
-    
+
     VALOR_SUMINISTRO_UN = "VALOR_SUMINISTRO_UN"
     VALOR_INSTALACION_UN = "VALOR_INSTALACION_UN"
     VALOR_CONSTRUCCION_UN = "VALOR_CONSTRUCCION_UN"
-    
+
     VALOR_SUMINISTRO_TOTAL = "VALOR_SUMINISTRO_TOTAL"
     VALOR_INSTALACION_TOTAL = "VALOR_INSTALACION_TOTAL"
     VALOR_CONSTRUCCION_TOTAL = "VALOR_CONSTRUCCION_TOTAL"
-    
+
     TIPO_INSUMO = "TIPO_INSUMO"
     TIPO_APU = "tipo_apu"
     CATEGORIA = "CATEGORIA"
-    
+
     # Columnas de Tiempo
     TIEMPO_INSTALACION = "TIEMPO_INSTALACION"
     RENDIMIENTO = "RENDIMIENTO"
@@ -110,22 +110,22 @@ class ProcessingPipeline:
 @dataclass
 class ProcessingThresholds:
     """Umbrales configurables para validaciones y clasificación."""
-    
+
     # Detección de outliers
     outlier_std_multiplier: float = 3.0
-    
+
     # Límites de costos anómalos
     max_quantity: float = 1e6
     max_cost_per_item: float = 1e9
     max_total_cost: float = 1e11
-    
+
     # Clasificación de APU (porcentajes)
     instalacion_mo_threshold: float = 75.0
     suministro_mat_threshold: float = 75.0
     suministro_mo_max: float = 15.0
     prefabricado_mat_threshold: float = 65.0
     prefabricado_mo_min: float = 15.0
-    
+
     # Número máximo de filas para búsqueda de encabezado
     max_header_search_rows: int = 10
 
@@ -137,7 +137,7 @@ class ProcessingResult:
     data: Optional[Dict] = None
     error: Optional[str] = None
     warnings: List[str] = None
-    
+
     def __post_init__(self):
         if self.warnings is None:
             self.warnings = []
@@ -147,10 +147,10 @@ class ProcessingResult:
 
 class DataValidator:
     """Validador centralizado para verificación de integridad de datos."""
-    
+
     @staticmethod
     def validate_dataframe_not_empty(
-        df: pd.DataFrame, 
+        df: pd.DataFrame,
         name: str
     ) -> Tuple[bool, Optional[str]]:
         """Valida que un DataFrame no esté vacío."""
@@ -159,11 +159,11 @@ class DataValidator:
             logger.error(f"❌ {error_msg}")
             return False, error_msg
         return True, None
-    
+
     @staticmethod
     def validate_required_columns(
-        df: pd.DataFrame, 
-        required_cols: List[str], 
+        df: pd.DataFrame,
+        required_cols: List[str],
         df_name: str
     ) -> Tuple[bool, Optional[str]]:
         """Valida que existan las columnas requeridas."""
@@ -175,17 +175,17 @@ class DataValidator:
             logger.error(f"❌ {error_msg}")
             return False, error_msg
         return True, None
-    
+
     @staticmethod
     def detect_and_log_duplicates(
-        df: pd.DataFrame, 
-        subset_cols: List[str], 
+        df: pd.DataFrame,
+        subset_cols: List[str],
         df_name: str,
         keep: str = "first"
     ) -> pd.DataFrame:
         """Detecta, registra y elimina duplicados."""
         duplicates = df[df.duplicated(subset=subset_cols, keep=False)]
-        
+
         if not duplicates.empty:
             unique_dupes = duplicates[subset_cols[0]].unique()
             logger.warning(
@@ -195,18 +195,18 @@ class DataValidator:
             logger.debug(
                 f"Valores duplicados en '{df_name}': {unique_dupes.tolist()[:10]}"
             )
-            
+
             df_clean = df.drop_duplicates(subset=subset_cols, keep=keep)
             logger.info(
                 f"✅ Duplicados eliminados: {len(df)} -> {len(df_clean)} filas"
             )
             return df_clean
-        
+
         return df
-    
+
     @staticmethod
     def validate_numeric_range(
-        series: pd.Series, 
+        series: pd.Series,
         column_name: str,
         max_value: float,
         min_value: float = 0
@@ -215,7 +215,7 @@ class DataValidator:
         invalid_values = series[
             (series < min_value) | (series > max_value)
         ]
-        
+
         if not invalid_values.empty:
             logger.warning(
                 f"⚠️  Se encontraron {len(invalid_values)} valores fuera de rango "
@@ -226,28 +226,28 @@ class DataValidator:
                 f"{invalid_values.describe()}"
             )
             return False
-        
+
         return True
 
 
 class FileValidator:
     """Validador para archivos de entrada."""
-    
+
     @staticmethod
     def validate_file_exists(file_path: str, file_type: str) -> Tuple[bool, Optional[str]]:
         """Valida que un archivo exista."""
         path = Path(file_path)
-        
+
         if not path.exists():
             error_msg = f"Archivo de {file_type} no encontrado: {file_path}"
             logger.error(f"❌ {error_msg}")
             return False, error_msg
-        
+
         if not path.is_file():
             error_msg = f"La ruta de {file_type} no es un archivo: {file_path}"
             logger.error(f"❌ {error_msg}")
             return False, error_msg
-        
+
         logger.debug(f"✅ Archivo de {file_type} validado: {file_path}")
         return True, None
 
@@ -385,88 +385,88 @@ class BuildOutputStep(ProcessingStep):
 
 class PresupuestoProcessor:
     """Procesador especializado para archivos de presupuesto."""
-    
+
     def __init__(self, config: dict, thresholds: ProcessingThresholds):
         self.config = config
         self.thresholds = thresholds
         self.validator = DataValidator()
-    
+
     def process(self, path: str) -> pd.DataFrame:
         """Procesa el archivo CSV del presupuesto."""
         df = safe_read_dataframe(path, header=None)
-        
+
         if df is None or df.empty:
             logger.error("❌ No se pudo leer el archivo de presupuesto")
             return pd.DataFrame()
-        
+
         try:
             df = self._find_and_set_header(df)
             if df.empty:
                 return pd.DataFrame()
-            
+
             df = self._rename_columns(df)
             if not self._validate_required_columns(df):
                 return pd.DataFrame()
-            
+
             df = self._clean_and_convert_data(df)
             df = self._remove_duplicates(df)
-            
+
             logger.info(f"✅ Presupuesto cargado: {len(df)} APUs únicos")
-            
+
             return df[[
                 ColumnNames.CODIGO_APU,
                 ColumnNames.DESCRIPCION_APU,
                 ColumnNames.CANTIDAD_PRESUPUESTO
             ]]
-            
+
         except Exception as e:
             logger.error(
-                f"❌ Error procesando presupuesto: {e}", 
+                f"❌ Error procesando presupuesto: {e}",
                 exc_info=True
             )
             return pd.DataFrame()
-    
+
     def _find_and_set_header(self, df: pd.DataFrame) -> pd.DataFrame:
         """Busca y establece la fila de encabezado."""
         header_row_index = -1
         search_rows = min(
-            self.thresholds.max_header_search_rows, 
+            self.thresholds.max_header_search_rows,
             len(df)
         )
-        
+
         for i in range(search_rows):
             row_str = " ".join(df.iloc[i].astype(str).str.upper())
             if all(keyword in row_str for keyword in ["ITEM", "DESCRIPCION", "CANT"]):
                 header_row_index = i
                 break
-        
+
         if header_row_index == -1:
             logger.error(
                 f"❌ No se encontró encabezado válido en las primeras "
                 f"{search_rows} filas del presupuesto"
             )
             return pd.DataFrame()
-        
+
         df.columns = df.iloc[header_row_index]
         df = df.iloc[header_row_index + 1:].reset_index(drop=True)
-        
+
         logger.debug(f"✅ Encabezado encontrado en fila {header_row_index}")
         return df
-    
+
     def _rename_columns(self, df: pd.DataFrame) -> pd.DataFrame:
         """Renombra columnas según configuración."""
         column_map = self.config.get("presupuesto_column_map", {})
         return find_and_rename_columns(df, column_map)
-    
+
     def _validate_required_columns(self, df: pd.DataFrame) -> bool:
         """Valida columnas requeridas."""
         is_valid, error = self.validator.validate_required_columns(
-            df, 
-            [ColumnNames.CODIGO_APU], 
+            df,
+            [ColumnNames.CODIGO_APU],
             "presupuesto"
         )
         return is_valid
-    
+
     def _clean_and_convert_data(self, df: pd.DataFrame) -> pd.DataFrame:
         """Limpia y convierte tipos de datos."""
         # Limpiar códigos APU
@@ -475,13 +475,13 @@ class PresupuestoProcessor:
             .astype(str)
             .apply(clean_apu_code)
         )
-        
+
         # Filtrar códigos vacíos
         df = df[
-            df[ColumnNames.CODIGO_APU].notna() & 
+            df[ColumnNames.CODIGO_APU].notna() &
             (df[ColumnNames.CODIGO_APU] != "")
         ]
-        
+
         # Convertir cantidades
         if ColumnNames.CANTIDAD_PRESUPUESTO in df.columns:
             cantidad_str = (
@@ -490,19 +490,19 @@ class PresupuestoProcessor:
                 .str.replace(",", ".", regex=False)
             )
             df[ColumnNames.CANTIDAD_PRESUPUESTO] = pd.to_numeric(
-                cantidad_str, 
+                cantidad_str,
                 errors="coerce"
             )
-            
+
             # Validar rango
             self.validator.validate_numeric_range(
                 df[ColumnNames.CANTIDAD_PRESUPUESTO],
                 ColumnNames.CANTIDAD_PRESUPUESTO,
                 self.thresholds.max_quantity
             )
-        
+
         return df
-    
+
     def _remove_duplicates(self, df: pd.DataFrame) -> pd.DataFrame:
         """Elimina duplicados de códigos APU."""
         return self.validator.detect_and_log_duplicates(
@@ -515,85 +515,85 @@ class PresupuestoProcessor:
 
 class InsumosProcessor:
     """Procesador especializado para archivos de insumos."""
-    
+
     def __init__(self, thresholds: ProcessingThresholds):
         self.thresholds = thresholds
         self.validator = DataValidator()
-    
+
     def process(self, file_path: str) -> pd.DataFrame:
         """Procesa el archivo CSV de insumos con formato no estándar."""
         try:
             records = self._parse_file(file_path)
-            
+
             if not records:
                 logger.warning("⚠️  No se encontraron registros en archivo de insumos")
                 return pd.DataFrame()
-            
+
             df = pd.DataFrame(records)
             df = self._rename_and_select_columns(df)
             df = self._convert_and_normalize(df)
             df = self._remove_duplicates(df)
-            
+
             logger.info(f"✅ Insumos cargados: {len(df)} insumos únicos")
             return df
-            
+
         except Exception as e:
             logger.error(
                 f"❌ Error procesando archivo de insumos: {e}",
                 exc_info=True
             )
             return pd.DataFrame()
-    
+
     def _parse_file(self, file_path: str) -> List[Dict]:
         """Parsea el archivo de insumos con formato especial."""
         with open(file_path, "r", encoding="latin1") as f:
             lines = f.readlines()
-        
+
         records = []
         current_group = None
         header = None
-        
+
         for line in lines:
             parts = [p.strip().replace('"', "") for p in line.strip().split(";")]
-            
+
             if not any(parts):
                 continue
-            
+
             # Detectar grupo
             if parts[0].startswith("G"):
                 current_group = parts[1]
                 header = None
                 continue
-            
+
             # Detectar encabezado
             if "CODIGO" in parts[0] and "DESCRIPCION" in parts[1]:
                 header = ["CODIGO", "DESCRIPCION", "UND", "CANT.", "VR. UNIT."]
                 continue
-            
+
             # Parsear registro
             if header and current_group:
                 record = {ColumnNames.GRUPO_INSUMO: current_group}
                 for i, col in enumerate(header):
                     record[col] = parts[i] if i < len(parts) else None
                 records.append(record)
-        
+
         return records
-    
+
     def _rename_and_select_columns(self, df: pd.DataFrame) -> pd.DataFrame:
         """Renombra y selecciona columnas relevantes."""
         df = df.rename(columns={
             "DESCRIPCION": ColumnNames.DESCRIPCION_INSUMO,
             "VR. UNIT.": ColumnNames.VR_UNITARIO_INSUMO,
         })
-        
+
         final_cols = [
             ColumnNames.GRUPO_INSUMO,
             ColumnNames.DESCRIPCION_INSUMO,
             ColumnNames.VR_UNITARIO_INSUMO
         ]
-        
+
         return df[final_cols]
-    
+
     def _convert_and_normalize(self, df: pd.DataFrame) -> pd.DataFrame:
         """Convierte valores numéricos y normaliza texto."""
         # Convertir precios
@@ -603,64 +603,64 @@ class InsumosProcessor:
             .str.replace(",", "."),
             errors="coerce"
         )
-        
+
         # Normalizar descripciones
         df[ColumnNames.DESCRIPCION_INSUMO_NORM] = normalize_text_series(
             df[ColumnNames.DESCRIPCION_INSUMO]
         )
-        
+
         # Eliminar filas sin descripción
         df = df.dropna(subset=[ColumnNames.DESCRIPCION_INSUMO])
-        
+
         return df
-    
+
     def _remove_duplicates(self, df: pd.DataFrame) -> pd.DataFrame:
         """Elimina duplicados conservando el de mayor precio."""
         duplicates = df[
             df.duplicated(subset=[ColumnNames.DESCRIPCION_INSUMO_NORM], keep=False)
         ]
-        
+
         if not duplicates.empty:
             logger.warning(
                 f"⚠️  Se encontraron {len(duplicates)} insumos con descripciones "
                 f"normalizadas duplicadas. Se conservará el de mayor precio."
             )
-            
+
             df = (
                 df.sort_values(ColumnNames.VR_UNITARIO_INSUMO, ascending=False)
                 .drop_duplicates(subset=[ColumnNames.DESCRIPCION_INSUMO_NORM], keep="first")
             )
-        
+
         return df
 
 
 class APUCostCalculator:
     """Calculador de costos y metadatos de APUs."""
-    
+
     def __init__(self, config: dict, thresholds: ProcessingThresholds):
         self.config = config
         self.thresholds = thresholds
-    
+
     def calculate(
-        self, 
+        self,
         df_merged: pd.DataFrame
     ) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
         """Calcula costos, clasifica APUs y extrae metadatos."""
-        
+
         df_apu_costos = self._aggregate_costs_by_type(df_merged)
         df_apu_costos = self._calculate_unit_values(df_apu_costos)
         df_apu_costos = self._detect_cost_outliers(df_apu_costos)
         df_apu_costos = self._classify_apus(df_apu_costos)
-        
+
         df_tiempo = self._calculate_installation_time(df_merged)
         df_rendimiento = self._calculate_performance(df_merged)
-        
+
         return df_apu_costos, df_tiempo, df_rendimiento
-    
+
     def _aggregate_costs_by_type(self, df_merged: pd.DataFrame) -> pd.DataFrame:
         """Agrupa costos por APU y tipo de insumo."""
         logger.info("📊 Agregando costos por APU y tipo de insumo...")
-        
+
         df_apu_costos = (
             df_merged.groupby([ColumnNames.CODIGO_APU, ColumnNames.TIPO_INSUMO])
             [ColumnNames.COSTO_INSUMO_EN_APU]
@@ -668,7 +668,7 @@ class APUCostCalculator:
             .unstack(fill_value=0)
             .reset_index()
         )
-        
+
         # Mapear tipos de insumo a columnas de costo
         cost_cols_map = {
             InsumoTypes.SUMINISTRO: ColumnNames.MATERIALES,
@@ -677,16 +677,16 @@ class APUCostCalculator:
             InsumoTypes.TRANSPORTE: ColumnNames.OTROS,
             InsumoTypes.OTRO: ColumnNames.OTROS,
         }
-        
+
         df_apu_costos = df_apu_costos.rename(columns=cost_cols_map)
-        
+
         # Consolidar columna OTROS si se generaron múltiples
         if ColumnNames.OTROS in df_apu_costos.columns:
             if isinstance(df_apu_costos[ColumnNames.OTROS], pd.DataFrame):
                 df_apu_costos[ColumnNames.OTROS] = (
                     df_apu_costos[ColumnNames.OTROS].sum(axis=1)
                 )
-        
+
         # Asegurar que existan todas las columnas de costo
         final_cost_cols = [
             ColumnNames.MATERIALES,
@@ -694,22 +694,22 @@ class APUCostCalculator:
             ColumnNames.EQUIPO,
             ColumnNames.OTROS
         ]
-        
+
         for col in final_cost_cols:
             if col not in df_apu_costos.columns:
                 df_apu_costos[col] = 0
-        
+
         logger.info(f"✅ Costos agregados: {len(df_apu_costos)} APUs únicos")
         return df_apu_costos
-    
+
     def _calculate_unit_values(self, df: pd.DataFrame) -> pd.DataFrame:
         """Calcula valores unitarios por APU."""
         df[ColumnNames.VALOR_SUMINISTRO_UN] = df[ColumnNames.MATERIALES]
-        
+
         df[ColumnNames.VALOR_INSTALACION_UN] = (
             df[ColumnNames.MANO_DE_OBRA] + df[ColumnNames.EQUIPO]
         )
-        
+
         cost_cols = [
             ColumnNames.MATERIALES,
             ColumnNames.MANO_DE_OBRA,
@@ -717,32 +717,32 @@ class APUCostCalculator:
             ColumnNames.OTROS
         ]
         df[ColumnNames.VALOR_CONSTRUCCION_UN] = df[cost_cols].sum(axis=1)
-        
+
         return df
-    
+
     def _detect_cost_outliers(self, df: pd.DataFrame) -> pd.DataFrame:
         """Detecta y registra valores de costo anómalos."""
         valor_max = df[ColumnNames.VALOR_CONSTRUCCION_UN].max()
         valor_avg = df[ColumnNames.VALOR_CONSTRUCCION_UN].mean()
         valor_std = df[ColumnNames.VALOR_CONSTRUCCION_UN].std()
-        
+
         logger.info(
             f"📈 Estadísticas de costos unitarios: "
             f"Max=${valor_max:,.2f}, Avg=${valor_avg:,.2f}, Std=${valor_std:,.2f}"
         )
-        
+
         outlier_threshold = valor_avg + (
             self.thresholds.outlier_std_multiplier * valor_std
         )
-        
+
         outliers = df[df[ColumnNames.VALOR_CONSTRUCCION_UN] > outlier_threshold]
-        
+
         if not outliers.empty:
             logger.warning(
                 f"⚠️  Se detectaron {len(outliers)} APUs con costos atípicos "
                 f"(>{outlier_threshold:,.2f})"
             )
-            
+
             for _, outlier in outliers.head(5).iterrows():
                 logger.warning(
                     f"   APU {outlier[ColumnNames.CODIGO_APU]}: "
@@ -750,18 +750,18 @@ class APUCostCalculator:
                     f"(MO: ${outlier.get(ColumnNames.MANO_DE_OBRA, 0):,.2f}, "
                     f"MAT: ${outlier.get(ColumnNames.MATERIALES, 0):,.2f})"
                 )
-        
+
         return df
-    
+
     def _classify_apus(self, df: pd.DataFrame) -> pd.DataFrame:
         """Clasifica APUs según distribución de costos."""
-        
+
         def classify_apu(row) -> str:
             costo_total = row[ColumnNames.VALOR_CONSTRUCCION_UN]
-            
+
             if costo_total == 0:
                 return APUTypes.INDEFINIDO
-            
+
             # Contexto para eval()
             context = {
                 "porcentaje_mo_eq": (
@@ -780,17 +780,17 @@ class APUCostCalculator:
                         return rule["type"]
                 except Exception as e:
                     logger.error(f"Error evaluando regla: {rule}. Error: {e}")
-            
+
             return APUTypes.OBRA_COMPLETA
-        
+
         df[ColumnNames.TIPO_APU] = df.apply(classify_apu, axis=1)
-        
+
         # Registrar distribución de tipos
         tipo_counts = df[ColumnNames.TIPO_APU].value_counts()
         logger.info(f"📋 Clasificación de APUs:\n{tipo_counts}")
-        
+
         return df
-    
+
     def _calculate_installation_time(self, df_merged: pd.DataFrame) -> pd.DataFrame:
         """Calcula tiempo de instalación basado en mano de obra."""
         df_tiempo = (
@@ -799,41 +799,41 @@ class APUCostCalculator:
             .sum()
             .reset_index()
         )
-        
+
         df_tiempo = df_tiempo.rename(
             columns={ColumnNames.CANTIDAD_APU: ColumnNames.TIEMPO_INSTALACION}
         )
-        
+
         return df_tiempo
-    
+
     def _calculate_performance(self, df_merged: pd.DataFrame) -> pd.DataFrame:
         """Calcula rendimiento diario si la columna existe."""
         if ColumnNames.RENDIMIENTO not in df_merged.columns:
             return pd.DataFrame(
                 columns=[ColumnNames.CODIGO_APU, ColumnNames.RENDIMIENTO_DIA]
             )
-        
+
         df_rendimiento = (
             df_merged[df_merged[ColumnNames.TIPO_INSUMO] == InsumoTypes.MANO_DE_OBRA]
             .groupby(ColumnNames.CODIGO_APU)[ColumnNames.RENDIMIENTO]
             .sum()
             .reset_index()
         )
-        
+
         df_rendimiento = df_rendimiento.rename(
             columns={ColumnNames.RENDIMIENTO: ColumnNames.RENDIMIENTO_DIA}
         )
-        
+
         return df_rendimiento
 
 
 class DataMerger:
     """Gestor de merge de datos con validaciones robustas."""
-    
+
     def __init__(self, thresholds: ProcessingThresholds):
         self.thresholds = thresholds
         self.validator = DataValidator()
-    
+
     def merge_apus_with_insumos(
         self,
         df_apus: pd.DataFrame,
@@ -841,7 +841,7 @@ class DataMerger:
     ) -> pd.DataFrame:
         """Merge de APUs con catálogo de insumos."""
         logger.info("🔗 Iniciando merge de APUs con catálogo de insumos...")
-        
+
         # Validar que existe la columna de normalización
         if ColumnNames.NORMALIZED_DESC not in df_apus.columns:
             logger.warning(
@@ -851,9 +851,9 @@ class DataMerger:
             df_apus[ColumnNames.NORMALIZED_DESC] = normalize_text_series(
                 df_apus[ColumnNames.DESCRIPCION_INSUMO]
             )
-        
+
         rows_before = len(df_apus)
-        
+
         df_merged = pd.merge(
             df_apus,
             df_insumos,
@@ -863,33 +863,33 @@ class DataMerger:
             suffixes=("_apu", ""),
             validate="m:1"
         )
-        
+
         rows_after = len(df_merged)
-        
+
         if rows_after != rows_before:
             logger.warning(
                 f"⚠️  Cambio en número de filas durante merge: "
                 f"{rows_before} -> {rows_after}"
             )
-        
+
         # Consolidar columnas duplicadas
         df_merged[ColumnNames.TIPO_INSUMO] = df_merged[ColumnNames.CATEGORIA]
-        
+
         df_merged[ColumnNames.DESCRIPCION_INSUMO] = (
             df_merged[ColumnNames.DESCRIPCION_INSUMO]
             .fillna(df_merged[f"{ColumnNames.DESCRIPCION_INSUMO}_apu"])
         )
-        
+
         # Renombrar unidad de insumo
         if f"{ColumnNames.UNIDAD_INSUMO}_apu" in df_merged.columns:
             df_merged = df_merged.rename(
                 columns={f"{ColumnNames.UNIDAD_INSUMO}_apu": ColumnNames.UNIDAD_INSUMO}
             )
-        
+
         logger.info(f"✅ Merge completado: {len(df_merged)} registros")
-        
+
         return df_merged
-    
+
     def merge_with_presupuesto(
         self,
         df_presupuesto: pd.DataFrame,
@@ -897,7 +897,7 @@ class DataMerger:
     ) -> pd.DataFrame:
         """Merge de presupuesto con costos de APUs (1:1 validado)."""
         logger.info("🔗 Realizando merge final: presupuesto + costos...")
-        
+
         logger.debug(
             f"   - Presupuesto: {len(df_presupuesto)} filas, "
             f"{df_presupuesto[ColumnNames.CODIGO_APU].nunique()} APUs únicos"
@@ -906,9 +906,9 @@ class DataMerger:
             f"   - Costos: {len(df_apu_costos)} filas, "
             f"{df_apu_costos[ColumnNames.CODIGO_APU].nunique()} APUs únicos"
         )
-        
+
         rows_before = len(df_presupuesto)
-        
+
         try:
             df_final = pd.merge(
                 df_presupuesto,
@@ -921,7 +921,7 @@ class DataMerger:
             logger.error(
                 f"❌ Error en merge 1:1: Se detectaron duplicados. {e}"
             )
-            
+
             # Diagnosticar duplicados
             dupes_presupuesto = df_presupuesto[
                 df_presupuesto.duplicated(ColumnNames.CODIGO_APU, keep=False)
@@ -929,23 +929,23 @@ class DataMerger:
             dupes_costos = df_apu_costos[
                 df_apu_costos.duplicated(ColumnNames.CODIGO_APU, keep=False)
             ]
-            
+
             if not dupes_presupuesto.empty:
                 logger.error(
                     f"Duplicados en presupuesto:\n"
                     f"{dupes_presupuesto[ColumnNames.CODIGO_APU].unique()}"
                 )
-            
+
             if not dupes_costos.empty:
                 logger.error(
                     f"Duplicados en costos:\n"
                     f"{dupes_costos[ColumnNames.CODIGO_APU].unique()}"
                 )
-            
+
             raise
-        
+
         rows_after = len(df_final)
-        
+
         if rows_after != rows_before:
             logger.error(
                 f"❌ Explosión cartesiana detectada: "
@@ -954,9 +954,9 @@ class DataMerger:
             raise ValueError(
                 "Merge produjo explosión cartesiana. Revise duplicados en datos."
             )
-        
+
         logger.info(f"✅ Merge 1:1 exitoso: {len(df_final)} filas")
-        
+
         return df_final
 
 
@@ -977,27 +977,27 @@ def group_and_split_description(df: pd.DataFrame) -> pd.DataFrame:
             f"Saltando división de descripción."
         )
         return df
-    
+
     df_result = df.copy()
-    
+
     # Conservar original
     df_result[ColumnNames.ORIGINAL_DESCRIPTION] = (
         df_result[ColumnNames.DESCRIPCION_APU]
     )
-    
+
     # Dividir por separador
     split_desc = (
         df_result[ColumnNames.DESCRIPCION_APU]
         .str.split(" / ", n=1, expand=True)
     )
-    
+
     df_result[ColumnNames.DESCRIPCION_APU] = split_desc[0]
-    
+
     if split_desc.shape[1] > 1:
         df_result[ColumnNames.DESCRIPCION_SECUNDARIA] = split_desc[1]
     else:
         df_result[ColumnNames.DESCRIPCION_SECUNDARIA] = ""
-    
+
     return df_result
 
 
@@ -1007,7 +1007,7 @@ def calculate_total_costs(
 ) -> pd.DataFrame:
     """Calcula valores totales del presupuesto con validaciones."""
     logger.info("💵 Calculando valores totales del presupuesto...")
-    
+
     # Validar que existe la columna de cantidad
     if ColumnNames.CANTIDAD_PRESUPUESTO not in df.columns:
         logger.error(
@@ -1016,45 +1016,45 @@ def calculate_total_costs(
         raise ValueError(
             f"Columna requerida no encontrada: {ColumnNames.CANTIDAD_PRESUPUESTO}"
         )
-    
+
     # Convertir y validar cantidades
     df[ColumnNames.CANTIDAD_PRESUPUESTO] = pd.to_numeric(
         df[ColumnNames.CANTIDAD_PRESUPUESTO],
         errors="coerce"
     ).fillna(0)
-    
+
     logger.debug(
         f"Estadísticas de cantidades:\n"
         f"{df[ColumnNames.CANTIDAD_PRESUPUESTO].describe()}"
     )
-    
+
     # Calcular valores totales
     df[ColumnNames.VALOR_SUMINISTRO_TOTAL] = (
-        df[ColumnNames.VALOR_SUMINISTRO_UN] * 
+        df[ColumnNames.VALOR_SUMINISTRO_UN] *
         df[ColumnNames.CANTIDAD_PRESUPUESTO]
     )
-    
+
     df[ColumnNames.VALOR_INSTALACION_TOTAL] = (
-        df[ColumnNames.VALOR_INSTALACION_UN] * 
+        df[ColumnNames.VALOR_INSTALACION_UN] *
         df[ColumnNames.CANTIDAD_PRESUPUESTO]
     )
-    
+
     df[ColumnNames.VALOR_CONSTRUCCION_TOTAL] = (
-        df[ColumnNames.VALOR_CONSTRUCCION_UN] * 
+        df[ColumnNames.VALOR_CONSTRUCCION_UN] *
         df[ColumnNames.CANTIDAD_PRESUPUESTO]
     )
-    
+
     # Validar costo total
     total_construccion = df[ColumnNames.VALOR_CONSTRUCCION_TOTAL].sum()
-    
+
     logger.info(f"💰 COSTO TOTAL CONSOLIDADO: ${total_construccion:,.2f}")
-    
+
     if total_construccion > thresholds.max_total_cost:
         logger.error(
             f"❌ COSTO TOTAL ANORMALMENTE ALTO: ${total_construccion:,.2f} "
             f"(límite: ${thresholds.max_total_cost:,.2f})"
         )
-        
+
         # Mostrar principales contribuyentes
         top_contributors = df.nlargest(10, ColumnNames.VALOR_CONSTRUCCION_TOTAL)[
             [
@@ -1065,13 +1065,13 @@ def calculate_total_costs(
                 ColumnNames.VALOR_CONSTRUCCION_TOTAL,
             ]
         ]
-        
+
         logger.error(f"Top 10 APUs contributores:\n{top_contributors}")
-        
+
         raise ValueError(
             f"Costo total excede límite permitido: ${total_construccion:,.2f}"
         )
-    
+
     return df
 
 
@@ -1081,55 +1081,55 @@ def calculate_insumo_costs(
 ) -> pd.DataFrame:
     """Calcula costos de insumos con validaciones robustas."""
     logger.info("💰 Calculando costos de insumos...")
-    
+
     # Validar columnas requeridas
     required_cols = [
         ColumnNames.CANTIDAD_APU,
         ColumnNames.VR_UNITARIO_INSUMO,
         ColumnNames.VALOR_TOTAL_APU
     ]
-    
+
     for col in required_cols:
         if col not in df.columns:
             logger.warning(f"⚠️  Columna {col} no encontrada. Creando con valor 0.")
             df[col] = 0
-    
+
     # Estadísticas de cantidad
     qty_stats = df[ColumnNames.CANTIDAD_APU].describe()
     logger.debug(f"Estadísticas de cantidad:\n{qty_stats}")
-    
+
     if df[ColumnNames.CANTIDAD_APU].max() > thresholds.max_quantity:
         logger.warning(
             f"⚠️  Cantidad extremadamente alta detectada: "
             f"{df[ColumnNames.CANTIDAD_APU].max():,.2f}"
         )
-    
+
     # Estadísticas de precio
     precio_stats = df[ColumnNames.VR_UNITARIO_INSUMO].describe()
     logger.debug(f"Estadísticas de precio unitario:\n{precio_stats}")
-    
+
     # Calcular costo usando numpy.where para eficiencia
     costo_insumo = np.where(
         df[ColumnNames.VR_UNITARIO_INSUMO].notna(),
         df[ColumnNames.CANTIDAD_APU] * df[ColumnNames.VR_UNITARIO_INSUMO],
         df[ColumnNames.VALOR_TOTAL_APU]
     )
-    
+
     df[ColumnNames.COSTO_INSUMO_EN_APU] = pd.Series(costo_insumo).fillna(0)
-    
+
     # Validar costos anómalos
     costo_max = df[ColumnNames.COSTO_INSUMO_EN_APU].max()
-    
+
     if costo_max > thresholds.max_cost_per_item:
         logger.error(
             f"❌ COSTO ANÓMALO DETECTADO: ${costo_max:,.2f} "
             f"(límite: ${thresholds.max_cost_per_item:,.2f})"
         )
-        
+
         anomalies = df[
             df[ColumnNames.COSTO_INSUMO_EN_APU] > thresholds.max_cost_per_item
         ].head(10)
-        
+
         logger.error(
             f"Registros anómalos:\n{anomalies[[
                 ColumnNames.CODIGO_APU,
@@ -1139,22 +1139,22 @@ def calculate_insumo_costs(
                 ColumnNames.COSTO_INSUMO_EN_APU,
             ]]}"
         )
-    
+
     # Calcular valor unitario final con fallbacks
     df[ColumnNames.VR_UNITARIO_FINAL] = (
         df[ColumnNames.VR_UNITARIO_INSUMO]
         .fillna(df.get(ColumnNames.PRECIO_UNIT_APU, 0))
     )
-    
+
     # Fallback adicional: calcular desde costo total
     cantidad_safe = df[ColumnNames.CANTIDAD_APU].replace(0, 1)
     df[ColumnNames.VR_UNITARIO_FINAL] = (
         df[ColumnNames.VR_UNITARIO_FINAL]
         .fillna(df[ColumnNames.COSTO_INSUMO_EN_APU] / cantidad_safe)
     )
-    
+
     logger.info(f"✅ Costos de insumos calculados: {len(df)} registros")
-    
+
     return df
 
 
@@ -1166,7 +1166,7 @@ def build_processed_apus_dataframe(
 ) -> pd.DataFrame:
     """Construye el DataFrame de APUs procesados consolidado."""
     logger.info("📦 Construyendo DataFrame de APUs procesados...")
-    
+
     # Extraer descripciones únicas de APUs
     df_apu_descriptions = df_apus_raw[
         [
@@ -1175,7 +1175,7 @@ def build_processed_apus_dataframe(
             ColumnNames.UNIDAD_APU
         ]
     ].drop_duplicates(subset=[ColumnNames.CODIGO_APU])
-    
+
     # Merge costos + descripciones
     df_processed = pd.merge(
         df_apu_costos,
@@ -1183,7 +1183,7 @@ def build_processed_apus_dataframe(
         on=ColumnNames.CODIGO_APU,
         how="left"
     )
-    
+
     # Merge tiempo
     df_processed = pd.merge(
         df_processed,
@@ -1191,7 +1191,7 @@ def build_processed_apus_dataframe(
         on=ColumnNames.CODIGO_APU,
         how="left"
     )
-    
+
     # Merge rendimiento
     if not df_rendimiento.empty:
         df_processed = pd.merge(
@@ -1200,24 +1200,24 @@ def build_processed_apus_dataframe(
             on=ColumnNames.CODIGO_APU,
             how="left"
         )
-    
+
     # Renombrar unidad
     if ColumnNames.UNIDAD_APU in df_processed.columns:
         df_processed = df_processed.rename(
             columns={ColumnNames.UNIDAD_APU: "UNIDAD"}
         )
-    
+
     # Normalizar descripción
     if ColumnNames.DESCRIPCION_APU in df_processed.columns:
         df_processed["DESC_NORMALIZED"] = normalize_text_series(
             df_processed[ColumnNames.DESCRIPCION_APU]
         )
-    
+
     # Dividir descripción
     df_processed = group_and_split_description(df_processed)
-    
+
     logger.info(f"✅ APUs procesados consolidados: {len(df_processed)} registros")
-    
+
     return df_processed
 
 
@@ -1230,20 +1230,20 @@ def synchronize_data_sources(
     Filtra df_merged para incluir solo APUs presentes en el presupuesto final.
     """
     logger.info("🔄 Sincronizando fuentes de datos...")
-    
+
     codigos_apu_validos = df_final[ColumnNames.CODIGO_APU].unique()
-    
+
     insumos_antes = len(df_merged)
     df_merged_sync = df_merged[
         df_merged[ColumnNames.CODIGO_APU].isin(codigos_apu_validos)
     ].copy()
     insumos_despues = len(df_merged_sync)
-    
+
     logger.info(
         f"✅ Sincronización completada. Insumos: "
         f"{insumos_antes} -> {insumos_despues}"
     )
-    
+
     return df_merged_sync
 
 
@@ -1256,13 +1256,13 @@ def build_output_dictionary(
 ) -> dict:
     """Construye el diccionario de salida estandarizado."""
     logger.info("📦 Construyendo diccionario de salida...")
-    
+
     # Renombrar columnas en df_merged para salida
     df_merged_output = df_merged.rename(columns={
         ColumnNames.VR_UNITARIO_FINAL: "VR_UNITARIO",
         ColumnNames.COSTO_INSUMO_EN_APU: "VR_TOTAL",
     })
-    
+
     # Construir diccionario de insumos por grupo
     insumos_dict = {}
     for name, group in df_insumos.groupby(ColumnNames.GRUPO_INSUMO):
@@ -1275,7 +1275,7 @@ def build_output_dictionary(
                 .dropna()
                 .to_dict("records")
             )
-    
+
     # Construir diccionario final
     result_dict = {
         "presupuesto": df_final.to_dict("records"),
@@ -1285,9 +1285,9 @@ def build_output_dictionary(
         "raw_insumos_df": df_insumos,
         "processed_apus": df_processed_apus.to_dict("records"),
     }
-    
+
     logger.info("✅ Diccionario de salida construido")
-    
+
     return result_dict
 
 
@@ -1329,19 +1329,19 @@ def _do_processing(
             FinalMergeStep(thresholds),
             BuildOutputStep(),
         ])
-        
+
         initial_context = {
             "presupuesto_path": presupuesto_path,
             "apus_path": apus_path,
             "insumos_path": insumos_path,
         }
-        
+
         final_context = pipeline.run(initial_context)
-        
+
         logger.info("=" * 80)
         logger.info("🎉 PROCESAMIENTO COMPLETADO EXITOSAMENTE")
         logger.info("=" * 80)
-        
+
         return final_context.get('final_result', {"error": "Pipeline no produjo resultado final"})
 
     except (ValueError, pd.errors.MergeError) as e:

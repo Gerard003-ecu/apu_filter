@@ -1,19 +1,18 @@
+
 import pytest
-from dataclasses import asdict
+
 from app.schemas import (
+    Equipo,
     InsumoProcesado,
     ManoDeObra,
-    Equipo,
     Suministro,
     Transporte,
-    Otro,
     create_insumo,
-    validate_insumo_data,
-    normalize_unit,
     normalize_description,
     normalize_tipo_insumo,
+    normalize_unit,
+    validate_insumo_data,
 )
-import warnings
 
 
 # --- Fixtures mejoradas ---

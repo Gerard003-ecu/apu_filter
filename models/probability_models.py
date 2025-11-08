@@ -1,8 +1,9 @@
 # models/probability_models.py
 
+from typing import Any, Dict, List, Optional
+
 import numpy as np
 import pandas as pd
-from typing import List, Dict, Any, Optional, Union
 
 
 def sanitize_value(value: Any) -> Optional[float]:
@@ -57,7 +58,7 @@ def run_monte_carlo_simulation(
     Raises:
         ValueError: Si num_simulations <= 0 o volatility_factor < 0.
     """
-    
+
     # Validación de entradas
     if not isinstance(apu_details, list):
         if log_warnings:
