@@ -905,6 +905,16 @@ def sanitize_for_json(data: Any, max_depth: int = 100) -> Any:
 # FUNCIONES ADICIONALES DE UTILIDAD
 # ============================================================================
 
+def calculate_std_dev(values: List[float]) -> float:
+    """Calcula la desviación estándar de una lista de valores."""
+    if not values or len(values) < 2:
+        return 0.0
+
+    mean = sum(values) / len(values)
+    variance = sum((x - mean) ** 2 for x in values) / len(values)
+    return variance ** 0.5
+
+
 def calculate_statistics(series: pd.Series) -> Dict[str, float]:
     """
     Calcula estadísticas descriptivas robustas para una serie numérica.
@@ -985,6 +995,7 @@ __all__ = [
     'find_and_rename_columns',
     'sanitize_for_json',
     # Funciones adicionales
+    'calculate_std_dev',
     'calculate_statistics',
     'batch_process_dataframe',
     # Constantes
