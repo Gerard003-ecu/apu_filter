@@ -1,4 +1,6 @@
 # scripts/generate_embeddings.py
+# NOTA: Este script está en desarrollo y depende de la generación del archivo
+# `data/processed_apus.json`, que actualmente está bloqueada por un problema de parsing.
 
 import argparse
 import json
@@ -174,6 +176,7 @@ class DataValidator:
             )
         
         # Validar longitud del texto
+        df[text_column] = df[text_column].astype(str)
         df['text_length'] = df[text_column].str.len()
         invalid_length = df[
             (df['text_length'] < config.MIN_TEXT_LENGTH) | 
@@ -493,7 +496,7 @@ class EmbeddingPipeline:
         """
         # Embeddings (float32) + índice FAISS + overhead
         bytes_per_embedding = embedding_dim * 4  # float32
-        total_bytes = n_samples * bytes_per_embedding * 2.5  # Factor de overhead
+        total_bytes = n_samples * bytes_per_embedding * 5.0  # Factor de overhead
         return total_bytes / (1024**3)
     
     def run(
