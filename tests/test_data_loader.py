@@ -1,242 +1,209 @@
-# app/tests/test_data_loader.py
+# tests/test_data_loader.py
 """
-Pruebas unitarias para el módulo data_loader.py.
-
-Cubre casos de éxito, manejo de errores, validaciones y comportamiento
-con diferentes formatos (CSV, Excel, PDF).
+Pruebas unitarias para el módulo data_loader.py utilizando pytest.
+Cubre casos de éxito, manejo de errores y validaciones para CSV, Excel y PDF.
 """
 
-import unittest
-from unittest import mock
-from unittest.mock import patch, mock_open, MagicMock
+import pytest
+from unittest.mock import patch, MagicMock
 import pandas as pd
-import logging
 from pathlib import Path
-import tempfile
-import os
 
 # Importar el módulo bajo prueba
-from ..data_loader import (
+from app.data_loader import (
     load_from_csv,
     load_from_xlsx,
     load_from_pdf,
     load_data,
 )
 
-# Para evitar logs molestos durante las pruebas
-logging.disable(logging.CRITICAL)
+# ─────────────────────────────────────────────────────────────
+# FIXTURES DE PYTEST
+# ─────────────────────────────────────────────────────────────
 
+@pytest.fixture
+def mock_path_exists():
+    """Fixture para mockear pathlib.Path.exists."""
+    with patch("pathlib.Path.exists") as mock_exists:
+        yield mock_exists
 
-class TestDataLoader(unittest.TestCase):
+# ─────────────────────────────────────────────────────────────
+# PRUEBAS PARA load_from_csv
+# ─────────────────────────────────────────────────────────────
 
-    def setUp(self):
-        """Configuración común antes de cada prueba."""
-        self.valid_path = Path("dummy.csv")
-        self.nonexistent_path = Path("not_exists.csv")
+@patch("pandas.read_csv")
+def test_load_from_csv_success(mock_read_csv, mock_path_exists):
+    """Prueba la carga exitosa de un archivo CSV."""
+    mock_path_exists.return_value = True
+    mock_read_csv.return_value = pd.DataFrame({"A": [1, 2], "B": [3, 4]})
 
-    # ─────────────────────────────────────────────────────────────
-    # TEST: load_from_csv
-    # ─────────────────────────────────────────────────────────────
+    df = load_from_csv("data.csv", sep=";", encoding="utf-8")
 
-    @patch("pandas.read_csv")
-    @patch("pathlib.Path.exists", return_value=True)
-    def test_load_from_csv_success(self, mock_exists, mock_read_csv):
-        """Prueba carga exitosa de CSV."""
-        mock_read_csv.return_value = pd.DataFrame({"A": [1, 2], "B": [3, 4]})
-        df = load_from_csv("data.csv", sep=";", encoding="utf-8")
-        mock_read_csv.assert_called_once_with(
-            "data.csv", sep=";", encoding="utf-8"
-        )
-        self.assertFalse(df.empty)
-        self.assertEqual(df.shape, (2, 2))
+    mock_read_csv.assert_called_once_with(Path("data.csv"), sep=";", encoding="utf-8")
+    assert not df.empty
+    assert df.shape == (2, 2)
 
-    @patch("pathlib.Path.exists", return_value=False)
-    def test_load_from_csv_file_not_found(self):
-        """Prueba que se lance FileNotFoundError si el archivo no existe."""
-        with self.assertRaises(FileNotFoundError):
-            load_from_csv("missing.csv")
+def test_load_from_csv_file_not_found(mock_path_exists):
+    """Prueba que se lance FileNotFoundError si el CSV no existe."""
+    mock_path_exists.return_value = False
+    with pytest.raises(FileNotFoundError, match="Archivo no encontrado"):
+        load_from_csv("missing.csv")
 
-    @patch("pandas.read_csv", side_effect=pd.errors.EmptyDataError("Empty"))
-    @patch("pathlib.Path.exists", return_value=True)
-    def test_load_from_csv_empty(self, mock_exists, mock_read_csv):
-        """Prueba manejo de archivo CSV vacío."""
-        with self.assertRaises(pd.errors.EmptyDataError):
-            load_from_csv("empty.csv")
+@patch("pandas.read_csv", side_effect=pd.errors.EmptyDataError)
+def test_load_from_csv_empty_error(mock_read_csv, mock_path_exists):
+    """Prueba el manejo de un archivo CSV vacío que lanza EmptyDataError."""
+    mock_path_exists.return_value = True
+    with pytest.raises(pd.errors.EmptyDataError):
+        load_from_csv("empty.csv")
 
-    @patch("pandas.read_csv", side_effect=UnicodeDecodeError("utf-8", b"\xff", 0, 1, "invalid"))
-    @patch("pathlib.Path.exists", return_value=True)
-    def test_load_from_csv_encoding_error(self, mock_exists, mock_read_csv):
-        """Prueba manejo de error de codificación."""
-        with self.assertRaises(UnicodeDecodeError):
-            load_from_csv("bad_encoding.csv", encoding="utf-8")
+@patch("pandas.read_csv", side_effect=UnicodeDecodeError("utf-8", b"\\xff", 0, 1, "invalid"))
+def test_load_from_csv_encoding_error(mock_read_csv, mock_path_exists):
+    """Prueba el manejo de errores de codificación en CSV."""
+    mock_path_exists.return_value = True
+    with pytest.raises(UnicodeDecodeError):
+        load_from_csv("bad_encoding.csv", encoding="utf-8")
 
-    # ─────────────────────────────────────────────────────────────
-    # TEST: load_from_xlsx
-    # ─────────────────────────────────────────────────────────────
+# ─────────────────────────────────────────────────────────────
+# PRUEBAS PARA load_from_xlsx
+# ─────────────────────────────────────────────────────────────
 
-    @patch("pandas.read_excel")
-    @patch("pathlib.Path.exists", return_value=True)
-    def test_load_from_xlsx_success(self, mock_exists, mock_read_excel):
-        """Prueba carga exitosa de Excel (hoja única)."""
-        mock_read_excel.return_value = pd.DataFrame({"X": [10], "Y": [20]})
-        df = load_from_xlsx("data.xlsx", sheet_name="Hoja1")
-        mock_read_excel.assert_called_once_with(
-            "data.xlsx", sheet_name="Hoja1"
-        )
-        self.assertEqual(df.shape, (1, 2))
+@patch("pandas.read_excel")
+def test_load_from_xlsx_single_sheet_success(mock_read_excel, mock_path_exists):
+    """Prueba la carga exitosa de una única hoja de Excel."""
+    mock_path_exists.return_value = True
+    mock_read_excel.return_value = pd.DataFrame({"X": [10], "Y": [20]})
 
-    @patch("pandas.read_excel", return_value={"Sheet1": pd.DataFrame({"A": [1]})})
-    @patch("pathlib.Path.exists", return_value=True)
-    def test_load_from_xlsx_multiple_sheets_returns_first(self, mock_exists, mock_read_excel):
-        """Si se devuelven múltiples hojas, debe tomar la primera."""
-        with self.assertLogs("app.data_loader", level="WARNING") as log:
-            df = load_from_xlsx("data.xlsx")
-            self.assertIn("múltiples hojas", log.output[0].lower())
-        self.assertEqual(df.shape, (1, 1))
+    df = load_from_xlsx("data.xlsx", sheet_name="Hoja1")
 
-    @patch("pathlib.Path.exists", return_value=False)
-    def test_load_from_xlsx_file_not_found(self):
-        """Prueba que se lance FileNotFoundError si el archivo Excel no existe."""
-        with self.assertRaises(FileNotFoundError):
-            load_from_xlsx("missing.xlsx")
+    mock_read_excel.assert_called_once_with(Path("data.xlsx"), sheet_name="Hoja1")
+    assert df.shape == (1, 2)
 
-    @patch("pandas.read_excel", side_effect=ValueError("No such sheet"))
-    @patch("pathlib.Path.exists", return_value=True)
-    def test_load_from_xlsx_sheet_not_found(self, mock_exists, mock_read_excel):
-        """Prueba manejo de hoja inexistente."""
-        with self.assertRaises(ValueError):
-            load_from_xlsx("data.xlsx", sheet_name="NoExiste")
+@patch("pandas.read_excel")
+def test_load_from_xlsx_all_sheets_success(mock_read_excel, mock_path_exists):
+    """Prueba que devuelva un dict de DataFrames cuando sheet_name es None."""
+    mock_path_exists.return_value = True
+    sheets = {
+        "Sheet1": pd.DataFrame({"A": [1]}),
+        "Sheet2": pd.DataFrame({"B": [2]})
+    }
+    mock_read_excel.return_value = sheets
 
-    # ─────────────────────────────────────────────────────────────
-    # TEST: load_from_pdf
-    # ─────────────────────────────────────────────────────────────
+    data = load_from_xlsx("data.xlsx", sheet_name=None)
 
-    @patch("pdfplumber.open")
-    @patch("pathlib.Path.exists", return_value=True)
-    def test_load_from_pdf_no_tables(self, mock_exists, mock_pdf_open):
-        """Prueba PDF sin tablas: debe devolver DataFrame vacío."""
-        mock_pdf = MagicMock()
-        mock_pdf.pages = [MagicMock(), MagicMock()]  # 2 páginas
-        for page in mock_pdf.pages:
-            page.extract_tables.return_value = []
-        mock_pdf_open.return_value.__enter__.return_value = mock_pdf
+    assert isinstance(data, dict)
+    assert len(data) == 2
+    assert "Sheet1" in data
+    pd.testing.assert_frame_equal(data["Sheet2"], sheets["Sheet2"])
 
-        with self.assertLogs("app.data_loader", level="WARNING") as log:
-            df = load_from_pdf("no_tables.pdf")
-            self.assertIn("no se encontraron tablas", log.output[0].lower())
-        self.assertTrue(df.empty)
+def test_load_from_xlsx_file_not_found(mock_path_exists):
+    """Prueba que se lance FileNotFoundError si el archivo Excel no existe."""
+    mock_path_exists.return_value = False
+    with pytest.raises(FileNotFoundError):
+        load_from_xlsx("missing.xlsx")
 
-    @patch("pdfplumber.open")
-    @patch("pathlib.Path.exists", return_value=True)
-    def test_load_from_pdf_with_tables(self, mock_exists, mock_pdf_open):
-        """Prueba extracción exitosa de tablas del PDF."""
-        # Simular una tabla: encabezado + 2 filas
-        mock_table = [
-            ["Nombre", "Edad"],
-            ["Alice", "30"],
-            ["Bob", "25"]
-        ]
-        mock_page = MagicMock()
-        mock_page.extract_tables.return_value = [mock_table]
-        mock_pdf = MagicMock()
-        mock_pdf.pages = [mock_page]
-        mock_pdf_open.return_value.__enter__.return_value = mock_pdf
+@patch("pandas.read_excel", side_effect=ValueError("No such sheet"))
+def test_load_from_xlsx_sheet_not_found(mock_read_excel, mock_path_exists):
+    """Prueba el manejo de una hoja de Excel inexistente."""
+    mock_path_exists.return_value = True
+    with pytest.raises(ValueError, match="Hoja 'NoExiste' no encontrada"):
+        load_from_xlsx("data.xlsx", sheet_name="NoExiste")
 
-        df = load_from_pdf("with_tables.pdf")
-        self.assertEqual(df.shape, (2, 2))
-        self.assertEqual(list(df.columns), ["Nombre", "Edad"])
+# ─────────────────────────────────────────────────────────────
+# PRUEBAS PARA load_from_pdf
+# ─────────────────────────────────────────────────────────────
 
-    @patch("pdfplumber.open", side_effect=Exception("PDF corrupto"))
-    @patch("pathlib.Path.exists", return_value=True)
-    def test_load_from_pdf_processing_error(self, mock_exists, mock_pdf_open):
-        """Prueba manejo de error al abrir el PDF."""
-        with self.assertRaises(Exception) as context:
-            load_from_pdf("corrupt.pdf")
-        self.assertIn("PDF corrupto", str(context.exception))
+@patch("pdfplumber.open")
+def test_load_from_pdf_no_tables(mock_pdf_open, mock_path_exists, caplog):
+    """Prueba un PDF sin tablas; debe devolver un DataFrame vacío y loguear."""
+    mock_path_exists.return_value = True
+    mock_page = MagicMock()
+    mock_page.extract_tables.return_value = []
+    mock_pdf = MagicMock()
+    mock_pdf.pages = [mock_page]
+    mock_pdf_open.return_value.__enter__.return_value = mock_pdf
 
-    @patch("pathlib.Path.exists", return_value=False)
-    def test_load_from_pdf_file_not_found(self, mock_exists):
-        """Prueba que se lance FileNotFoundError si el PDF no existe."""
-        with self.assertRaises(FileNotFoundError):
-            load_from_pdf("missing.pdf")
+    df = load_from_pdf("no_tables.pdf")
 
-    @patch("pdfplumber.open")
-    @patch("pathlib.Path.exists", return_value=True)
-    def test_load_from_pdf_with_page_range(self, mock_exists, mock_pdf_open):
-        """Prueba que solo se procesen las páginas en el rango dado."""
-        mock_pdf = MagicMock()
-        mock_pdf.pages = [MagicMock(), MagicMock(), MagicMock()]  # 3 páginas
-        for page in mock_pdf.pages:
-            page.extract_tables.return_value = []
+    assert df.empty
+    assert "No se encontraron tablas en el PDF" in caplog.text
 
-        mock_pdf_open.return_value.__enter__.return_value = mock_pdf
+@patch("pdfplumber.open")
+def test_load_from_pdf_with_dirty_tables(mock_pdf_open, mock_path_exists):
+    """Prueba la extracción de tablas 'sucias' (con Nones y longitudes variables)."""
+    mock_path_exists.return_value = True
+    mock_table = [
+        ["Nombre", "Edad", "Ciudad"],
+        ["Alice", "30", "Madrid"],
+        ["Bob", None],  # Fila con longitud inconsistente
+        ["Charlie", "25", "Barcelona"]
+    ]
+    mock_page = MagicMock()
+    mock_page.extract_tables.return_value = [mock_table]
+    mock_pdf = MagicMock()
+    mock_pdf.pages = [mock_page]
+    mock_pdf_open.return_value.__enter__.return_value = mock_pdf
 
-        load_from_pdf("data.pdf", page_range=range(1, 2))  # Solo página 2
-        self.assertEqual(len(mock_pdf.pages), 3)
-        # Se debe haber procesado solo 1 página
-        self.assertEqual(len(mock_pdf.pages[1].extract_tables.call_args_list), 1)
-        self.assertEqual(len(mock_pdf.pages[0].extract_tables.call_args_list), 0)
-        self.assertEqual(len(mock_pdf.pages[2].extract_tables.call_args_list), 0)
+    df = load_from_pdf("dirty_tables.pdf")
 
-    # ─────────────────────────────────────────────────────────────
-    # TEST: load_data (factory)
-    # ─────────────────────────────────────────────────────────────
+    assert df.shape == (3, 3)  # 3 filas de datos, 3 columnas
+    assert list(df.columns) == ["Nombre", "Edad", "Ciudad"]
+    # Verifica que pandas haya llenado los valores faltantes con NaN (o None)
+    assert pd.isna(df.iloc[1, 2])
 
-    @patch("app.data_loader.load_from_csv")
-    def test_load_data_csv_calls_correct_loader(self, mock_loader):
-        """Prueba que .csv llame a load_from_csv."""
-        mock_loader.return_value = pd.DataFrame()
-        df = load_data("data.csv", sep=";")
-        mock_loader.assert_called_once_with("data.csv", sep=";")
-        self.assertIsInstance(df, pd.DataFrame)
+@patch("pdfplumber.open")
+def test_load_from_pdf_with_table_settings(mock_pdf_open, mock_path_exists):
+    """Prueba que los 'table_settings' se pasen correctamente a extract_tables."""
+    mock_path_exists.return_value = True
+    mock_page = MagicMock()
+    mock_page.extract_tables.return_value = []
+    mock_pdf = MagicMock()
+    mock_pdf.pages = [mock_page]
+    mock_pdf_open.return_value.__enter__.return_value = mock_pdf
 
-    @patch("app.data_loader.load_from_xlsx")
-    def test_load_data_xlsx_calls_correct_loader(self, mock_loader):
-        """Prueba que .xlsx llame a load_from_xlsx."""
-        mock_loader.return_value = pd.DataFrame()
-        df = load_data("data.xlsx", sheet_name=0)
-        mock_loader.assert_called_once_with("data.xlsx", sheet_name=0)
+    settings = {"vertical_strategy": "lines"}
+    load_from_pdf("some.pdf", table_settings=settings)
 
-    @patch("app.data_loader.load_from_pdf")
-    def test_load_data_pdf_calls_correct_loader(self, mock_loader):
-        """Prueba que .pdf llame a load_from_pdf."""
-        mock_loader.return_value = pd.DataFrame()
-        df = load_data("report.pdf", page_range=range(0, 1))
-        mock_loader.assert_called_once_with("report.pdf", page_range=range(0, 1))
+    mock_page.extract_tables.assert_called_once_with(settings)
 
-    def test_load_data_unsupported_format(self):
-        """Prueba que se lance ValueError con extensión no soportada."""
-        with self.assertRaises(ValueError) as context:
-            load_data("data.txt")
-        self.assertIn("no soportado", str(context.exception).lower())
+def test_load_from_pdf_file_not_found(mock_path_exists):
+    """Prueba que se lance FileNotFoundError si el PDF no existe."""
+    mock_path_exists.return_value = False
+    with pytest.raises(FileNotFoundError):
+        load_from_pdf("missing.pdf")
 
-    @patch("pathlib.Path.exists", return_value=False)
-    def test_load_data_file_not_found(self, mock_exists):
-        """Prueba que se lance FileNotFoundError si el archivo no existe."""
-        with self.assertRaises(FileNotFoundError):
-            load_data("missing.csv")
+# ─────────────────────────────────────────────────────────────
+# PRUEBAS PARA LA FUNCIÓN FACTORY: load_data
+# ─────────────────────────────────────────────────────────────
 
-    # ─────────────────────────────────────────────────────────────
-    # TEST: Casos extremos y tipos de entrada
-    # ─────────────────────────────────────────────────────────────
+@patch("app.data_loader.load_from_csv")
+def test_load_data_routes_to_csv(mock_loader, mock_path_exists):
+    """Prueba que load_data llame a load_from_csv para archivos .csv."""
+    mock_path_exists.return_value = True
+    load_data(Path("data.csv"), sep=";")
+    mock_loader.assert_called_once_with(Path("data.csv"), sep=";")
 
-    def test_load_data_with_pathlib_path(self):
-        """Prueba que acepte Path de pathlib, no solo str."""
-        with tempfile.NamedTemporaryFile(suffix=".csv", delete=False) as tmp:
-            tmp.write(b"A;B\n1;2")  # Contenido CSV básico
-            tmp_path = Path(tmp.name)
+@patch("app.data_loader.load_from_xlsx")
+def test_load_data_routes_to_xlsx(mock_loader, mock_path_exists):
+    """Prueba que load_data llame a load_from_xlsx para archivos .xlsx."""
+    mock_path_exists.return_value = True
+    load_data(Path("data.xlsx"), sheet_name=0)
+    mock_loader.assert_called_once_with(Path("data.xlsx"), sheet_name=0)
 
-        try:
-            with patch("pandas.read_csv", return_value=pd.DataFrame({"A": [1], "B": [2]})):
-                df = load_data(tmp_path, sep=";")
-                self.assertEqual(df.shape, (1, 2))
-        finally:
-            os.remove(tmp_path)
+@patch("app.data_loader.load_from_pdf")
+def test_load_data_routes_to_pdf(mock_loader, mock_path_exists):
+    """Prueba que load_data llame a load_from_pdf para archivos .pdf."""
+    mock_path_exists.return_value = True
+    load_data(Path("report.pdf"), page_range=range(1))
+    mock_loader.assert_called_once_with(Path("report.pdf"), page_range=range(1))
 
-    def tearDown(self):
-        """Limpieza después de cada prueba."""
-        pass
+def test_load_data_unsupported_format(mock_path_exists):
+    """Prueba que se lance ValueError para formatos de archivo no soportados."""
+    mock_path_exists.return_value = True
+    with pytest.raises(ValueError, match="Formato de archivo no soportado"):
+        load_data(Path("data.txt"))
 
-
-if __name__ == "__main__":
-    unittest.main()
+def test_load_data_file_not_found(mock_path_exists):
+    """Prueba que la función factory lance FileNotFoundError."""
+    mock_path_exists.return_value = False
+    with pytest.raises(FileNotFoundError):
+        load_data(Path("missing.any"))

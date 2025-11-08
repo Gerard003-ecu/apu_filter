@@ -190,3 +190,5 @@ urllib3==2.5.0
     # via requests
 werkzeug==3.1.3
     # via flask
+pdfplumber
+pytest

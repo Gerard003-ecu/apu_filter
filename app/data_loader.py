@@ -6,7 +6,7 @@ Diseñado para ser robusto, extensible y fácil de mantener.
 
 import logging
 from pathlib import Path
-from typing import Union, Optional
+from typing import Union, Optional, Dict
 
 import pandas as pd
 import openpyxl  # Necesario para pd.read_excel con .xlsx
@@ -18,6 +18,7 @@ logger = logging.getLogger(__name__)
 
 # Tipos aceptables para rutas
 PathType = Union[str, Path]
+DataFrameOrDict = Union[pd.DataFrame, Dict[str, pd.DataFrame]]
 
 
 def load_from_csv(
@@ -69,38 +70,45 @@ def load_from_xlsx(
     path: PathType,
     sheet_name: Optional[Union[str, int]] = 0,
     **kwargs
-) -> pd.DataFrame:
+) -> DataFrameOrDict:
     """
-    Carga una hoja de cálculo Excel (.xlsx o .xls) en un DataFrame.
+    Carga una hoja de cálculo Excel (.xlsx o .xls).
+
+    Si `sheet_name` es un string o un índice, devuelve un único DataFrame.
+    Si `sheet_name` es `None`, devuelve un diccionario de DataFrames, donde
+    las claves son los nombres de las hojas.
 
     Args:
         path: Ruta al archivo.
-        sheet_name: Nombre o índice de la hoja a cargar.
+        sheet_name: Nombre/índice de la hoja o `None` para todas.
         **kwargs: Argumentos adicionales para pd.read_excel.
 
     Returns:
-        DataFrame con los datos cargados.
+        Un DataFrame o un diccionario de DataFrames.
 
     Raises:
         FileNotFoundError: Si el archivo no existe.
-        ValueError: Si la hoja no existe.
+        ValueError: Si la hoja especificada no existe.
         Exception: Para otros errores de lectura.
     """
     path = Path(path)
     if not path.exists():
         raise FileNotFoundError(f"Archivo no encontrado: {path}")
 
-    logger.info(f"Cargando Excel desde {path}, hoja '{sheet_name}'")
+    logger.info(f"Cargando Excel desde {path}, hoja(s): '{sheet_name if sheet_name is not None else 'Todas'}'")
     try:
-        df = pd.read_excel(path, sheet_name=sheet_name, **kwargs)
-        if isinstance(df, dict):
-            # Si se devuelve un dict (múltiples hojas), se toma la primera clave
-            first_sheet = next(iter(df))
-            df = df[first_sheet]
-            logger.warning(f"Se cargó múltiples hojas; usando la primera: '{first_sheet}'")
-        if df.empty:
+        data = pd.read_excel(path, sheet_name=sheet_name, **kwargs)
+
+        if isinstance(data, dict):
+            # Si se leen múltiples hojas (sheet_name=None), devolver el dict
+            logger.info(f"Se cargaron {len(data)} hojas del archivo Excel.")
+            return data
+
+        # Si es un solo DataFrame
+        if data.empty:
             logger.warning(f"La hoja '{sheet_name}' en {path} está vacía.")
-        return df
+        return data
+
     except ValueError as e:
         if "sheet" in str(e).lower():
             raise ValueError(f"Hoja '{sheet_name}' no encontrada en {path}: {e}")
@@ -119,14 +127,12 @@ def load_from_pdf(
     """
     Extrae tablas de un archivo PDF y las combina en un DataFrame.
 
-    Nota: La extracción de tablas en PDF es heurística y depende del formato.
-    Se extraen todas las tablas detectadas en las páginas especificadas.
-
     Args:
         path: Ruta al archivo PDF.
         page_range: Rango de páginas a procesar (ej: range(0, 5) para páginas 1-5).
                     Por defecto, todas las páginas.
-        **kwargs: Argumentos adicionales para pdfplumber (como `laparams`).
+        **kwargs: Argumentos adicionales. `table_settings` se pasa a `extract_tables`.
+                  Otros kwargs (como `laparams`) se pasan a `pdfplumber.open`.
 
     Returns:
         DataFrame con todas las tablas concatenadas.
@@ -140,13 +146,15 @@ def load_from_pdf(
         raise FileNotFoundError(f"Archivo no encontrado: {path}")
 
     logger.info(f"Extrayendo tablas del PDF: {path}")
+
+    # Extraer table_settings de kwargs si existe
+    table_settings = kwargs.pop("table_settings", {})
     tables = []
 
     try:
         with pdfplumber.open(path, **kwargs) as pdf:
             pages = pdf.pages
 
-            # Aplicar rango de páginas si se especifica
             if page_range is not None:
                 start = max(0, page_range.start)
                 end = min(len(pages), page_range.stop)
@@ -155,26 +163,25 @@ def load_from_pdf(
                 logger.info(f"Procesando {len(pages)} páginas del PDF.")
 
             for i, page in enumerate(pages):
-                page_num = (page_range.start + i) if page_range else (i + 1)
-                extracted = page.extract_tables()
+                page_num = (page_range.start + i + 1) if page_range else (i + 1)
+                extracted = page.extract_tables(table_settings)
+
                 if not extracted:
                     logger.debug(f"No se encontraron tablas en la página {page_num}")
                     continue
 
                 for table in extracted:
                     if table and len(table) > 0:
-                        # Convertir a DataFrame (puede tener filas con diferente longitud)
-                        df_table = pd.DataFrame(table[1:], columns=table[0] if len(table) > 1 else None)
+                        df_table = pd.DataFrame(table[1:], columns=table[0] if table[0] else None)
                         tables.append(df_table)
                         logger.debug(f"Tabla encontrada en página {page_num}, forma: {df_table.shape}")
 
             if not tables:
                 logger.warning(f"No se encontraron tablas en el PDF: {path}")
-                return pd.DataFrame()  # Devuelve DataFrame vacío
+                return pd.DataFrame()
 
-            # Concatenar todas las tablas
             combined_df = pd.concat(tables, ignore_index=True)
-            logger.info(f"PDF cargado exitosamente: {len(tables)} tablas combinadas en {combined_df.shape}")
+            logger.info(f"PDF cargado: {len(tables)} tablas combinadas en un DataFrame de forma {combined_df.shape}")
             return combined_df
 
     except Exception as e:
@@ -185,16 +192,19 @@ def load_from_pdf(
 def load_data(
     path: PathType,
     **kwargs
-) -> pd.DataFrame:
+) -> DataFrameOrDict:
     """
     Función factory que carga datos según la extensión del archivo.
+
+    Para Excel, si se pasa `sheet_name=None`, puede devolver un diccionario
+    de DataFrames. En los demás casos, devuelve un único DataFrame.
 
     Args:
         path: Ruta al archivo de datos.
         **kwargs: Argumentos adicionales pasados al cargador específico.
 
     Returns:
-        DataFrame con los datos cargados.
+        Un DataFrame o un diccionario de DataFrames.
 
     Raises:
         ValueError: Si el formato no es soportado.
@@ -203,7 +213,6 @@ def load_data(
     path = Path(path)
     extension = path.suffix.lower()
 
-    # Validar existencia del archivo
     if not path.exists():
         raise FileNotFoundError(f"Archivo no encontrado: {path}")
 
