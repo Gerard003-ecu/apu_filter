@@ -54,7 +54,7 @@ APU_GRAMMAR = r"""
     line: (field (SEP field)*)? NEWLINE?
     field: FIELD_VALUE
     
-    FIELD_VALUE: /[^;\r\n]*/  // Cualquier cosa excepto ; y saltos de línea
+    FIELD_VALUE: /[^;\r\n]+/  // Cualquier cosa excepto ; y saltos de línea
     SEP: /\s*;\s*/             // Separador con espacios opcionales
     NEWLINE: /[\r\n]+/         // Saltos de línea múltiples
     

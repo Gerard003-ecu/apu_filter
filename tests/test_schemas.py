@@ -264,7 +264,7 @@ def test_transporte_unidad_no_tipica(transporte_data):
 # --- Pruebas de create_insumo y validate_insumo_data ---
 def test_create_insumo_exitoso(base_insumo_data):
     """Prueba que create_insumo crea correctamente una instancia."""
-    insumo = create_insumo("SUMINISTRO", **base_insumo_data)
+    insumo = create_insumo(**base_insumo_data)
     assert isinstance(insumo, Suministro)
     assert insumo.tipo_insumo == "SUMINISTRO"
     assert insumo.categoria == "SUMINISTRO"  # Sincronizado
@@ -272,15 +272,16 @@ def test_create_insumo_exitoso(base_insumo_data):
 
 def test_create_insumo_tipo_invalido(base_insumo_data):
     """Prueba que create_insumo lanza error si tipo es inválido."""
-    with pytest.raises(ValueError, match="Tipo de insumo no válido: INVALID"):
-        create_insumo("INVALID", **base_insumo_data)
+    base_insumo_data["tipo_insumo"] = "INVALID"
+    with pytest.raises(ValueError, match="Tipo de insumo inválido"):
+        create_insumo(**base_insumo_data)
 
 
 def test_create_insumo_argumentos_incorrectos(base_insumo_data):
     """Prueba que create_insumo lanza error si faltan argumentos requeridos."""
     base_insumo_data.pop("codigo_apu")
     with pytest.raises(ValueError, match="Error creando insumo tipo SUMINISTRO"):
-        create_insumo("SUMINISTRO", **base_insumo_data)
+        create_insumo(**base_insumo_data)
 
 
 def test_validate_insumo_data_exitoso(base_insumo_data):

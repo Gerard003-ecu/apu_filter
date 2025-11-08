@@ -1,7 +1,10 @@
 import logging
 from typing import Dict, List, Optional, Tuple, Union
 
+import numpy as np
 import pandas as pd
+from flask import current_app
+from sentence_transformers import SentenceTransformer
 
 from .utils import normalize_text
 
@@ -29,7 +32,7 @@ def _calculate_match_score(
     return matches, percentage
 
 
-def _find_best_match(
+def _find_best_keyword_match(
     df_pool: pd.DataFrame,
     keywords: List[str],
     log: List[str],
@@ -156,6 +159,129 @@ def _find_best_match(
             return None
 
 
+def _find_best_semantic_match(
+    df_pool: pd.DataFrame,
+    query_text: str,
+    log: List[str],
+    min_similarity: float = 0.5,
+    top_k: int = 5,
+) -> Optional[pd.Series]:
+    """
+    Encuentra la mejor coincidencia semántica para un texto de consulta.
+
+    Utiliza un índice FAISS y embeddings de `sentence-transformers` cargados
+    en la aplicación Flask para encontrar los APUs más relevantes.
+
+    Args:
+        df_pool (pd.DataFrame): DataFrame con APUs procesados a considerar.
+        query_text (str): Texto de consulta (ej. "muro de ladrillo").
+        log (List[str]): Lista de mensajes de log (mutable).
+        min_similarity (float): Umbral mínimo de similitud de coseno para considerar una coincidencia válida.
+        top_k (int): Número de vecinos a buscar en el índice FAISS.
+
+    Returns:
+        pd.Series o None: El APU con mejor coincidencia, o None si no cumple criterios.
+    """
+    # --- 1. Obtener artefactos de búsqueda semántica desde la app ---
+    model: Optional[SentenceTransformer] = current_app.config.get("EMBEDDING_MODEL")
+    faiss_index = current_app.config.get("FAISS_INDEX")
+    id_map: Optional[dict] = current_app.config.get("ID_MAP")
+
+    if not all([model, faiss_index, id_map]):
+        log.append("  ❌ ERROR: Faltan artefactos de búsqueda semántica. La función está desactivada.")
+        return None
+
+    # --- 2. Validación de entradas ---
+    if not isinstance(df_pool, pd.DataFrame) or df_pool.empty:
+        log.append("  --> Pool de APUs vacío, retornando None.")
+        return None
+    if not query_text or not query_text.strip():
+        log.append("  --> Texto de consulta vacío, retornando None.")
+        return None
+
+    log.append(f"  🔍 Búsqueda Semántica: '{query_text}'")
+    log.append(f"  📊 Pool size: {len(df_pool)} APUs")
+    log.append(f"  ⚙️ Umbral de similitud: {min_similarity:.2f}")
+
+    # --- 3. Generar embedding para la consulta ---
+    try:
+        query_embedding = model.encode(
+            [query_text],
+            convert_to_numpy=True,
+            normalize_embeddings=True
+        )
+    except Exception as e:
+        log.append(f"  ❌ ERROR al generar embedding para la consulta: {e}")
+        return None
+
+    # --- 4. Buscar en el índice FAISS ---
+    try:
+        # FAISS espera un array 2D de float32
+        distances, indices = faiss_index.search(query_embedding.astype(np.float32), k=top_k)
+    except Exception as e:
+        log.append(f"  ❌ ERROR durante la búsqueda en FAISS: {e}")
+        return None
+
+    # --- 5. Procesar y filtrar resultados ---
+    candidates = []
+    if indices.size == 0 or distances.size == 0:
+        log.append("  --> No se encontraron resultados en el índice.")
+        return None
+
+    # Iterar sobre los resultados encontrados
+    for i in range(len(indices[0])):
+        faiss_idx = indices[0][i]
+        similarity = distances[0][i]
+
+        # Obtener el CODIGO_APU desde el mapeo
+        apu_code = id_map.get(str(faiss_idx))
+        if apu_code is None:
+            log.append(f"  ⚠️ Índice FAISS {faiss_idx} no encontrado en el mapa de IDs.")
+            continue
+
+        # Buscar el APU en el DataFrame del pool actual
+        apu_match = df_pool[df_pool["CODIGO_APU"] == apu_code]
+
+        if not apu_match.empty:
+            candidates.append({
+                "apu": apu_match.iloc[0],
+                "similarity": float(similarity),
+            })
+
+    if not candidates:
+        log.append("  --> Ninguno de los candidatos del índice estaba en el pool filtrado.")
+        return None
+
+    # --- 6. Log y selección final ---
+    # Ordenar candidatos por similitud
+    candidates.sort(key=lambda x: x['similarity'], reverse=True)
+
+    log.append(f"  📋 Top {len(candidates)} candidatos encontrados:")
+    for i, cand in enumerate(candidates, 1):
+        apu = cand['apu']
+        desc = apu.get("original_description", "N/A")
+        desc_snippet = desc[:70] + "..." if len(desc) > 70 else desc
+        log.append(
+            f"    {i}. Sim: {cand['similarity']:.3f} | "
+            f"Código: {apu.get('CODIGO_APU')} | Desc: {desc_snippet}"
+        )
+
+    # Seleccionar el mejor candidato que cumpla el umbral
+    best_candidate = candidates[0]
+    if best_candidate["similarity"] >= min_similarity:
+        log.append(
+            f"  ✅ Coincidencia encontrada con similitud "
+            f"({best_candidate['similarity']:.3f}) >= {min_similarity:.2f}"
+        )
+        return best_candidate["apu"]
+    else:
+        log.append(
+            f"  ❌ Sin coincidencia válida. Mejor similitud "
+            f"({best_candidate['similarity']:.3f}) < umbral ({min_similarity:.2f})"
+        )
+        return None
+
+
 def calculate_estimate(
     params: Dict[str, str], data_store: Dict, config: Dict
 ) -> Dict[str, Union[str, float, List[str]]]:
@@ -245,12 +371,11 @@ def calculate_estimate(
 
     log.append(f"📦 Pool de suministros: {len(df_suministro_pool)} APUs")
 
-    apu_suministro = _find_best_match(
-        df_suministro_pool,
-        material_keywords,
-        log,
-        strict=False,
-        min_match_percentage=25.0
+    apu_suministro = _find_best_semantic_match(
+        df_pool=df_suministro_pool,
+        query_text=material_mapped,
+        log=log,
+        min_similarity=0.30  # Umbral más bajo para suministros
     )
 
     if apu_suministro is not None:
@@ -282,7 +407,7 @@ def calculate_estimate(
         search_term = f"cuadrilla {cuadrilla_mapped}"
         cuadrilla_keywords_norm = normalize_text(search_term).split()
 
-        apu_cuadrilla = _find_best_match(
+        apu_cuadrilla = _find_best_keyword_match(
             df_cuadrilla_pool,
             cuadrilla_keywords_norm,
             log,
@@ -314,12 +439,11 @@ def calculate_estimate(
     df_tarea_pool = df_processed_apus[df_processed_apus["tipo_apu"] == "Instalación"].copy()
     log.append(f"🔧 Pool de instalación: {len(df_tarea_pool)} APUs")
 
-    apu_tarea = _find_best_match(
-        df_tarea_pool,
-        material_keywords,
-        log,
-        strict=False,
-        min_match_percentage=40.0
+    apu_tarea = _find_best_semantic_match(
+        df_pool=df_tarea_pool,
+        query_text=material_mapped,
+        log=log,
+        min_similarity=0.40
     )
 
     if apu_tarea is not None:
