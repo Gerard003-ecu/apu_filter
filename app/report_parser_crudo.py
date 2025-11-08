@@ -10,7 +10,7 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set, Union
 
-from .utils import clean_apu_code
+from .utils import calculate_std_dev, clean_apu_code
 
 logger = logging.getLogger(__name__)
 
@@ -450,6 +450,7 @@ class ReportParserCrudo:
                 if self._quick_apu_check(block):
                     apu_blocks += 1
 
+            # La confianza en los bloques aumenta si los bloques parecen APUs reales.
             block_confidence = apu_blocks / min(10, len(valid_blocks))
             confidence_scores['blocks'] = block_confidence
 
@@ -460,6 +461,7 @@ class ReportParserCrudo:
         # Analizar estructura de líneas
         lines = content.split('\n')[:500]  # Muestra
         apu_lines = sum(1 for line in lines if self._quick_apu_check(line))
+        # La confianza en las líneas aumenta si muchas líneas individuales parecen ser el inicio de un APU.
         line_confidence = apu_lines / len(lines) if lines else 0
         confidence_scores['lines'] = line_confidence
 
@@ -536,7 +538,7 @@ class ReportParserCrudo:
             if count > 0:
                 # Calcular score con consistencia
                 avg_parts = sum(consistency) / len(consistency) if consistency else 0
-                std_dev = self._calculate_std_dev(consistency)
+                std_dev = calculate_std_dev(consistency)
                 consistency_factor = 1.0 if std_dev < 2 else 0.5
 
                 score = (count / len(lines)) * weight * consistency_factor
@@ -558,13 +560,6 @@ class ReportParserCrudo:
         logger.warning("⚠️ No se pudo detectar un separador claro")
         return 0.0
 
-    def _calculate_std_dev(self, values: List[float]) -> float:
-        """Calcula la desviación estándar de una lista de valores."""
-        if not values:
-            return 0.0
-        mean = sum(values) / len(values)
-        variance = sum((x - mean) ** 2 for x in values) / len(values)
-        return variance ** 0.5
 
     def _parse_by_blocks(self, content: str) -> bool:
         """
@@ -815,7 +810,7 @@ class ReportParserCrudo:
 
         # Estrategia 2: Búsqueda por campos separados (confianza media)
         item_code = unit = desc = None
-        item_line = unit_line = desc_line = 0
+        item_line = 0
 
         for i, line in enumerate(lines[:7]):
             # Buscar código
@@ -832,7 +827,6 @@ class ReportParserCrudo:
                 match = self.pattern_matcher.match('unit_flexible', line)
                 if match:
                     unit = match.group(1).strip()
-                    unit_line = source_line + i
 
             # Buscar descripción
             if not desc and len(line) >= self.config.min_description_length:
@@ -841,7 +835,6 @@ class ReportParserCrudo:
                     # Verificar que no sea una línea de datos
                     if not self.pattern_matcher.match('numeric_row', line):
                         desc = line.strip()[:200]  # Limitar longitud
-                        desc_line = source_line + i
 
         # Construir contexto si tenemos al menos el código
         if item_code:
@@ -1014,7 +1007,6 @@ class ReportParserCrudo:
 
         # Verificar que no sean todas numéricas o todas texto
         has_number = any(any(c.isdigit() for c in p) for p in significant)
-        has_text = any(any(c.isalpha() for c in p) for p in significant)
 
         return len(significant) >= 2 and (has_number or len(significant) >= 3)
 
