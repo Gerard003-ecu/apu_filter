@@ -1,11 +1,11 @@
 # scripts/diagnose_apus_file.py
 
+import logging
 import re
 import sys
-from pathlib import Path
 from collections import Counter
-from typing import Dict, List, Optional, Any
-import logging
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 # Configuración global de logging (ajustable desde fuera si se desea)
 logging.basicConfig(
@@ -38,7 +38,7 @@ class APUFileDiagnostic:
         self._reset_state()
 
     def _reset_state(self):
-        """Restablece todos los estados internos para garantizar limpieza entre ejecuciones."""
+        """Restablece todos los estados internos para una ejecución limpia."""
         self.stats = Counter()
         self.patterns_found: List[Dict[str, Any]] = []
         self.sample_lines: List[Dict[str, Any]] = []
@@ -63,7 +63,7 @@ class APUFileDiagnostic:
         logger.info(f"🔍 Analizando archivo: {self.file_path}")
         try:
             file_size = self.file_path.stat().st_size
-            logger.info(f"📦 Tamaño: {file_size:,} bytes")
+            logger.info(f"📦 Tamaño: {int(file_size):,} bytes")
             self.stats['file_size'] = file_size
         except OSError as e:
             logger.error(f"❌ No se pudo obtener el tamaño del archivo: {e}")
@@ -103,10 +103,42 @@ class APUFileDiagnostic:
                 self.stats['encoding'] = encoding
                 return content
             except (UnicodeError, OSError, ValueError) as e:
-                logger.debug(f"❌ Fallo al leer con encoding '{encoding}': {type(e).__name__}: {e}")
+                logger.debug(
+                    f"Fallo al leer con '{encoding}': {type(e).__name__}"
+                )
                 continue
 
-        logger.error("❌ No se pudo leer el archivo con ninguno de los encodings soportados.")
+        logger.error(
+            "❌ No se pudo leer el archivo con ninguno de los encodings soportados."
+        )
+        return None
+
+    def _detect_separator(self, lines: List[str]) -> Optional[str]:
+        """
+        Analiza una muestra de líneas para inferir el separador más probable.
+        """
+        sample_lines = [
+            line.strip() for line in lines if line.strip()
+        ][:self.MAX_PATTERN_ANALYSIS_LINES]
+
+        if not sample_lines:
+            return None
+
+        # Prioridad a separadores comunes
+        potential_separators = [';', ',', '\t', '|']
+        separator_counts = Counter()
+
+        for line in sample_lines:
+            for sep in potential_separators:
+                # Conteo consistente de separadores por línea
+                counts_in_line = line.count(sep)
+                if counts_in_line > 1:  # Al menos dos apariciones
+                    separator_counts[sep] += 1
+
+        if separator_counts:
+            # El separador más frecuente en las líneas de muestra
+            return separator_counts.most_common(1)[0][0]
+
         return None
 
     def _analyze_lines(self, lines: List[str]):
@@ -114,6 +146,9 @@ class APUFileDiagnostic:
         item_pattern = re.compile(r'ITEM', re.IGNORECASE)
         unidad_pattern = re.compile(r'UNIDAD', re.IGNORECASE)
         descripcion_pattern = re.compile(r'DESCRIPCION|DESCRIPCIÓN', re.IGNORECASE)
+
+        # Primero, intentar detectar el separador principal
+        self.stats['detected_separator'] = self._detect_separator(lines)
 
         for line_num, line in enumerate(lines, 1):
             stripped = line.strip()
@@ -137,7 +172,8 @@ class APUFileDiagnostic:
             if ';' in stripped:
                 self.stats['lines_with_semicolon'] += 1
                 semicolon_count = stripped.count(';')
-                self.stats['max_semicolons'] = max(self.stats.get('max_semicolons', 0), semicolon_count)
+                current_max = self.stats.get('max_semicolons', 0)
+                self.stats['max_semicolons'] = max(current_max, semicolon_count)
 
             if '\t' in line:
                 self.stats['lines_with_tabs'] += 1
@@ -182,7 +218,7 @@ class APUFileDiagnostic:
 
     def _detect_patterns(self, lines: List[str]):
         """Detecta patrones estructurales en las primeras líneas del archivo."""
-        pattern_item = re.compile(r'ITEM\s*[:\s]\s*([^\s;,]+)', re.IGNORECASE)
+        pattern_item = re.compile(r'ITEM\s*[:\s]\s*([\d,\.]+)', re.IGNORECASE)
         pattern_unit = re.compile(r'UNIDAD\s*[:\s]\s*([^\s;,]+)', re.IGNORECASE)
         pattern_numeric_row = re.compile(r'(?:[\d.,]+\s+){2,}[\d.,]+')  # Al menos 3 números
 
@@ -229,13 +265,17 @@ class APUFileDiagnostic:
         report.append(f"  Líneas con contenido: {self.stats.get('non_empty_lines', 0):,}")
         report.append(f"  Encoding detectado: {self.stats.get('encoding', 'desconocido')}")
 
-        report += [
+        detected_sep = self.stats.get('detected_separator')
+        sep_report = [
             "\n🔍 SEPARADORES DETECTADOS:",
+            f"  Separador más probable: '{detected_sep}'" if detected_sep else "  Separador no determinado",
             f"  Líneas con punto y coma (;): {self.stats.get('lines_with_semicolon', 0):,}",
             f"  Máximo de ';' por línea: {self.stats.get('max_semicolons', 0)}",
             f"  Líneas con tabulaciones: {self.stats.get('lines_with_tabs', 0):,}",
-            f"  Líneas con espacios múltiples: {self.stats.get('lines_with_multiple_spaces', 0):,}",
+            "  Líneas con espacios múltiples: "
+            f"{self.stats.get('lines_with_multiple_spaces', 0):,}",
         ]
+        report += sep_report
 
         report += [
             "\n🏗️ ESTRUCTURA DEL ARCHIVO:",
@@ -266,7 +306,11 @@ class APUFileDiagnostic:
         # Muestra de líneas
         report += ["\n📝 MUESTRA DE PRIMERAS LÍNEAS:"]
         for sample in self.sample_lines[:self.MAX_REPORT_SAMPLE_LINES]:
-            report.append(f"  Línea {sample['line_num']:4d} ({sample['length']:3d} chars): {sample['content']}")
+            line_report = (
+                f"  Línea {sample['line_num']:4d} ({sample['length']:3d} chars): "
+                f"{sample['content']}"
+            )
+            report.append(line_report)
 
         # Patrones clave
         report += ["\n🎯 PATRONES CLAVE DETECTADOS:"]
@@ -286,21 +330,30 @@ class APUFileDiagnostic:
 
         # Recomendaciones inteligentes
         report += ["\n💡 RECOMENDACIONES:"]
-        non_empty = self.stats.get('non_empty_lines', 1)
 
-        if self.stats.get('lines_with_semicolon', 0) > non_empty * 0.5:
-            report.append("  → El archivo usa PUNTO Y COMA (;) como separador principal")
-            report.append("  → Considerar parsing con split(';') o csv con delimitador ';'")
+        # Recomendación del separador
+        detected_sep = self.stats.get('detected_separator')
+        if detected_sep:
+            report.append(
+                f"  → El separador más probable es '{detected_sep}'. "
+                f"Prueba leerlo con pandas.read_csv(..., sep='{detected_sep}')"
+            )
 
-        if self.stats.get('blocks_by_double_newline', 0) > 10:
-            report.append("  → El archivo tiene múltiples bloques separados por líneas vacías")
-            report.append("  → Considerar parsing por secciones o bloques lógicos")
+        if self.stats.get('blocks_by_double_newline', 0) > 1:
+            report.append(
+                "  → El archivo parece estar estructurado en bloques separados por líneas vacías."
+            )
+            report.append("  → Se recomienda un parsing basado en bloques.")
 
         if self.stats.get('lines_with_ITEM', 0) > 0:
-            report.append(f"  → Se detectaron {self.stats['lines_with_ITEM']} líneas con 'ITEM'")
+            report.append(
+                f"  → Se detectaron {self.stats['lines_with_ITEM']} líneas con 'ITEM'"
+            )
             report.append("  → Posiblemente 'ITEM' marca el inicio de una entrada APU")
         else:
-            report.append("  ⚠️ NO se detectaron líneas con 'ITEM' - verificar formato esperado")
+            report.append(
+                "  ⚠️ NO se detectaron líneas con 'ITEM' - verificar formato esperado"
+            )
 
         if self.stats.get('numeric_rows', 0) > 5:
             report.append("  → Hay varias filas numéricas consecutivas")
