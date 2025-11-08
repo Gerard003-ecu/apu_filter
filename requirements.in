@@ -12,3 +12,4 @@ redis
 sentence-transformers
 faiss-cpu
 psutil
+pdfplumber
