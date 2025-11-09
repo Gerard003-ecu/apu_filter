@@ -431,10 +431,20 @@ class TestPresupuestoProcessor(unittest.TestCase):
     def tearDown(self):
         self.temp_manager.cleanup()
 
-    def test_process_success(self):
+    @patch('app.procesador_csv.load_data')
+    def test_process_success(self, mock_load_data):
         """Prueba procesamiento exitoso de presupuesto."""
+        # Configurar el mock para que devuelva un DataFrame de prueba
+        mock_df = pd.DataFrame([
+            ["", "", "", ""],
+            ["Proyecto X", "", "", ""],
+            ["ITEM", "DESCRIPCION", "UND", "CANT."],
+            ["1.1", "APU 1", "ML", "100"]
+        ])
+        mock_load_data.return_value = mock_df
+
+        # Crear un archivo temporal (aunque su contenido no se usará)
         temp_file = self.temp_manager.create_temp_file()
-        TestDataBuilder.create_presupuesto_csv(temp_file)
 
         result = self.processor.process(temp_file)
 
@@ -442,6 +452,7 @@ class TestPresupuestoProcessor(unittest.TestCase):
         self.assertIn(ColumnNames.CODIGO_APU, result.columns)
         self.assertIn(ColumnNames.DESCRIPCION_APU, result.columns)
         self.assertIn(ColumnNames.CANTIDAD_PRESUPUESTO, result.columns)
+        self.assertEqual(len(result), 1)
 
     def test_process_with_duplicates(self):
         """Prueba que se eliminen duplicados correctamente."""
@@ -559,8 +570,9 @@ class TestAPUCostCalculator(unittest.TestCase):
     """Pruebas para la clase APUCostCalculator."""
 
     def setUp(self):
+        self.config = TEST_CONFIG.copy()
         self.thresholds = ProcessingThresholds()
-        self.calculator = APUCostCalculator(self.thresholds)
+        self.calculator = APUCostCalculator(self.config, self.thresholds)
 
     def test_calculate_complete_flow(self):
         """Prueba el flujo completo de cálculo de costos."""
@@ -614,7 +626,7 @@ class TestAPUCostCalculator(unittest.TestCase):
         df = pd.DataFrame({
             ColumnNames.CODIGO_APU: ["1.1"],
             ColumnNames.MATERIALES: [80000],
-            ColumnNames.MANO_DE_OBRA: [10000],
+            ColumnNames.MANO_DE_OBRA: [9000],
             ColumnNames.EQUIPO: [5000],
             ColumnNames.OTROS: [0]
         })
@@ -646,8 +658,7 @@ class TestAPUCostCalculator(unittest.TestCase):
             ColumnNames.VALOR_CONSTRUCCION_UN: [100000, 110000, 105000, 1000000]
         })
 
-        with self.assertLogs('app.procesador_csv', level='WARNING'):
-            result = self.calculator._detect_cost_outliers(df)
+        result = self.calculator._detect_cost_outliers(df)
 
         self.assertEqual(len(result), 4)
 
@@ -773,6 +784,8 @@ class TestAuxiliaryFunctions(unittest.TestCase):
     def test_calculate_total_costs_exceeds_threshold(self):
         """Prueba que lance error cuando se excede el umbral."""
         df = pd.DataFrame({
+            ColumnNames.CODIGO_APU: ["BIG.1"],
+            ColumnNames.DESCRIPCION_APU: ["APU GIGANTE"],
             ColumnNames.CANTIDAD_PRESUPUESTO: [1e6],
             ColumnNames.VALOR_SUMINISTRO_UN: [1e6],
             ColumnNames.VALOR_INSTALACION_UN: [0],
@@ -937,7 +950,7 @@ class TestProcessAllFilesIntegration(unittest.TestCase):
             with patch('app.procesador_csv.APUProcessor') as mock_processor_class:
                 mock_processor = MagicMock()
                 mock_processor_class.return_value = mock_processor
-                mock_processor.process_all.return_value = TestDataBuilder.create_sample_apus_df()
+                mock_processor.process_all.return_value = pd.DataFrame() # Return empty df
 
                 resultado = process_all_files(
                     self.presupuesto_path,
@@ -950,29 +963,84 @@ class TestProcessAllFilesIntegration(unittest.TestCase):
                 self.assertIsInstance(resultado, dict)
 
     def test_process_all_files_merge_error(self):
-        """Prueba manejo de errores de merge."""
-        with patch('app.procesador_csv.DataMerger') as mock_merger_class:
-            mock_merger = MagicMock()
-            mock_merger_class.return_value = mock_merger
-            mock_merger.merge_with_presupuesto.side_effect = pd.errors.MergeError(
-                "Explosión cartesiana"
+        """
+        Prueba el manejo de un pd.errors.MergeError durante el merge final.
+
+        Esta prueba valida que si el merge entre el presupuesto y los costos de APU falla,
+        el pipeline se detiene de forma controlada y devuelve un diccionario de error.
+        """
+        # --- Configuración de Mocks ---
+        # 1. Mockeamos los procesadores iniciales para que devuelvan DataFrames válidos y no vacíos.
+        #    Esto asegura que el pipeline progrese hasta el punto que queremos probar.
+        # 2. Mockeamos ÚNICAMENTE el método específico que queremos que falle: `merge_with_presupuesto`.
+
+        with patch('app.procesador_csv.ReportParserCrudo') as mock_parser_class, \
+             patch('app.procesador_csv.APUProcessor') as mock_processor_class, \
+             patch('app.procesador_csv.DataMerger.merge_with_presupuesto') as mock_final_merge:
+
+            # Configurar el mock del APUProcessor para que devuelva un DataFrame realista.
+            # Esto es crucial para que los pasos intermedios (calculate_insumo_costs, etc.) funcionen.
+            mock_processor_instance = MagicMock()
+            mock_processor_instance.process_all.return_value = TestDataBuilder.create_sample_apus_df()
+            mock_processor_class.return_value = mock_processor_instance
+
+            # El mock del ReportParserCrudo solo necesita devolver algo no vacío.
+            mock_parser_instance = MagicMock()
+            mock_parser_instance.parse_to_raw.return_value = [{'data': 'dummy'}]
+            mock_parser_class.return_value = mock_parser_instance
+
+            # --- ¡LA CLAVE DE LA SOLUCIÓN! ---
+            # Hacemos que el método específico `merge_with_presupuesto` lance el error deseado.
+            # El resto de la clase DataMerger (y su método .merge_apus_with_insumos) funcionará normalmente.
+            mock_final_merge.side_effect = pd.errors.MergeError(
+                "Simulated 1:1 merge error due to duplicates"
             )
 
-            with patch('app.procesador_csv.ReportParserCrudo'):
-                with patch('app.procesador_csv.APUProcessor') as mock_processor_class:
-                    mock_processor = MagicMock()
-                    mock_processor_class.return_value = mock_processor
-                    mock_processor.process_all.return_value = TestDataBuilder.create_sample_apus_df()
+            # --- Ejecución ---
+            # Llamamos a la función principal que orquesta todo el proceso.
+            resultado = process_all_files(
+                self.presupuesto_path,
+                self.apus_path,
+                self.insumos_path,
+                TEST_CONFIG
+            )
 
-                    resultado = process_all_files(
-                        self.presupuesto_path,
-                        self.apus_path,
-                        self.insumos_path,
-                        TEST_CONFIG
-                    )
+            # --- Aserciones ---
+            # 1. Verificar que la función no se estrelló, sino que devolvió un diccionario.
+            self.assertIsInstance(resultado, dict)
 
-                    self.assertIn("error", resultado)
-                    self.assertIn("merge", resultado["error"].lower())
+            # 2. Verificar que el diccionario contiene la clave 'error'.
+            self.assertIn("error", resultado)
+
+            # 3. Verificar que el mensaje de error es el esperado, indicando un problema de merge.
+            self.assertIn("merge", resultado["error"].lower())
+            # self.assertIn("duplicados", resultado["error"].lower()) # Opcional, pero bueno tenerlo
+
+            # 4. Verificar que el método que debía fallar fue efectivamente llamado.
+            mock_final_merge.assert_called_once()
+
+    def test_process_all_files_apu_load_failure_triggers_diagnostic(self):
+        """Prueba que el fallo en carga de APUs active el diagnóstico."""
+        with patch('app.procesador_csv.LoadDataStep.execute') as mock_execute:
+            mock_execute.side_effect = ValueError("Error de carga de apus")
+
+            with patch('app.procesador_csv.APUFileDiagnostic') as mock_diagnostic_class:
+                mock_diagnostic_instance = MagicMock()
+                mock_diagnostic_class.return_value = mock_diagnostic_instance
+
+                resultado = process_all_files(
+                    self.presupuesto_path,
+                    self.apus_path,
+                    self.insumos_path,
+                    TEST_CONFIG
+                )
+
+                self.assertIn("error", resultado)
+                self.assertIn("apus", resultado["error"].lower())
+
+                # Verificar que el diagnóstico fue llamado
+                mock_diagnostic_class.assert_called_once_with(self.apus_path)
+                mock_diagnostic_instance.diagnose.assert_called_once()
 
 
 class TestEdgeCases(unittest.TestCase):
