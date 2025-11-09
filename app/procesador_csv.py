@@ -1132,15 +1132,13 @@ def calculate_insumo_costs(
             df[ColumnNames.COSTO_INSUMO_EN_APU] > thresholds.max_cost_per_item
         ].head(10)
 
-        logger.error(
-            f"Registros anómalos:\n{anomalies[[
-                ColumnNames.CODIGO_APU,
-                ColumnNames.DESCRIPCION_INSUMO,
-                ColumnNames.CANTIDAD_APU,
-                ColumnNames.VR_UNITARIO_INSUMO,
-                ColumnNames.COSTO_INSUMO_EN_APU,
-            ]]}"
-        )
+        logger.error("Registros anómalos:\n%s", anomalies[[
+            ColumnNames.CODIGO_APU,
+            ColumnNames.DESCRIPCION_INSUMO,
+            ColumnNames.CANTIDAD_APU,
+            ColumnNames.VR_UNITARIO_INSUMO,
+            ColumnNames.COSTO_INSUMO_EN_APU,
+        ]])
 
     # Calcular valor unitario final con fallbacks
     df[ColumnNames.VR_UNITARIO_FINAL] = (
