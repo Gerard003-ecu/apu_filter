@@ -48,16 +48,13 @@ class FormatoLinea(Enum):
     DESCONOCIDO = "DESCONOCIDO"
 
 
-# Gramática PEG mejorada con manejo de casos edge
 APU_GRAMMAR = r"""
     ?start: line
     line: (field (SEP field)*)? NEWLINE?
     field: FIELD_VALUE
-    
-    FIELD_VALUE: /[^;\r\n]+/  // Cualquier cosa excepto ; y saltos de línea
-    SEP: /\s*;\s*/             // Separador con espacios opcionales
-    NEWLINE: /[\r\n]+/         // Saltos de línea múltiples
-    
+    FIELD_VALUE: /[^;\r\n]+/
+    SEP: ";"
+    NEWLINE: /[\r\n]+/
     %import common.WS
     %ignore WS
 """
@@ -147,24 +144,23 @@ class APUTransformer(Transformer):
 
     def line(self, *fields) -> Optional[InsumoProcesado]:
         """
-        Punto de entrada principal con validación mejorada.
+        Punto de entrada principal del transformer. Recibe los campos ya separados por Lark.
         """
         try:
+            # Los campos ya vienen como una tupla de tokens de Lark
             tokens = [self._clean_token(f) for f in fields]
 
-            # Validación básica
+            # Validación básica: debe haber al menos una descripción
             if not tokens or not tokens[0]:
-                logger.debug("Línea vacía o sin contenido")
+                logger.debug("Línea vacía o sin descripción tras el parseo.")
                 return None
 
-            # Detección de formato con cache
-            formato_detectado = self._detect_format_cached(tuple(tokens))
-
-            # Dispatch mejorado con fallback automático
+            # Detección de formato y despacho al builder correspondiente
+            formato_detectado = self._detect_format(tokens)
             return self._dispatch_builder(formato_detectado, tokens)
 
         except Exception as e:
-            logger.error(f"Error procesando línea: {e}", exc_info=True)
+            logger.error(f"Error crítico procesando línea en APUTransformer: {tokens if 'tokens' in locals() else 'desconocida'}", exc_info=True)
             return None
 
     @lru_cache(maxsize=1024)
@@ -241,18 +237,21 @@ class APUTransformer(Transformer):
 
     def _build_mo_completa(self, tokens: List[str]) -> Optional[ManoDeObra]:
         """
-        Construye un objeto ManoDeObra con validación robusta.
+        Construye un objeto ManoDeObra con validación robusta y manejo de separadores.
         """
         try:
-            # Desempaquetado seguro
-            required_fields = 6
-            if len(tokens) < required_fields:
-                logger.debug(f"Insuficientes campos para MO_COMPLETA: {len(tokens)}")
+            if len(tokens) < 6:
                 return None
 
             descripcion = tokens[0]
-            jornal_total = parse_number(tokens[3])
-            rendimiento = parse_number(tokens[4])
+            jornal_str = tokens[3]
+            rendimiento_str = tokens[4]
+
+            # Detección de separador decimal
+            decimal_separator = "comma" if ',' in jornal_str or ',' in rendimiento_str else "dot"
+
+            jornal_total = parse_number(jornal_str, decimal_separator=decimal_separator)
+            rendimiento = parse_number(rendimiento_str, decimal_separator=decimal_separator)
 
             # Validación estricta
             if not self._validate_mo_values(jornal_total, rendimiento):
@@ -309,27 +308,28 @@ class APUTransformer(Transformer):
             return None
 
     def _parse_insumo_fields(self, tokens: List[str]) -> Optional[Tuple[str, str, float, float, float]]:
-        """Parsea campos de insumo con manejo flexible."""
+        """
+        Parsea los campos de una línea de insumo, manejando formatos de 5 o 6 campos
+        y detectando automáticamente el separador decimal.
+        """
         try:
-            if len(tokens) < 5:
+            num_tokens = len(tokens)
+            if num_tokens < 5:
                 return None
 
-            # Extracción de campos según cantidad
-            if len(tokens) >= 6:
-                # Formato con desperdicio (ignorado)
-                descripcion, unidad, cantidad_str, _, precio_str, valor_str = tokens[:6]
-            else:
-                # Formato estándar
-                descripcion, unidad, cantidad_str, precio_str, valor_str = tokens[:5]
+            descripcion, unidad, cantidad_str = tokens[0], tokens[1], tokens[2]
 
-            # Parseo numérico
-            cantidad = parse_number(cantidad_str)
-            precio_unit = parse_number(precio_str)
-            valor_total = parse_number(valor_str)
+            precio_str, valor_str = (tokens[4], tokens[5]) if num_tokens >= 6 else (tokens[3], tokens[4])
+
+            # Conversión numérica robusta con el separador de coma
+            cantidad = parse_number(cantidad_str, decimal_separator="comma")
+            precio_unit = parse_number(precio_str, decimal_separator="comma")
+            valor_total = parse_number(valor_str, decimal_separator="comma")
 
             return descripcion, unidad, cantidad, precio_unit, valor_total
 
-        except (ValueError, IndexError):
+        except (ValueError, IndexError) as e:
+            logger.warning(f"Error al parsear campos de insumo: {tokens}. Error: {e}")
             return None
 
     def _correct_total_value(self, cantidad: float, precio_unit: float, valor_total: float) -> float:

@@ -214,11 +214,12 @@ def parse_number(
     if not s_cleaned:
         return default_value
 
-    # Detección automática del separador decimal
-    if decimal_separator == "auto":
-        decimal_separator = _detect_decimal_separator(s_cleaned)
+    # Forzar el manejo de la coma como separador decimal si está presente
+    if decimal_separator == "auto" and ',' in s_cleaned and '.' not in s_cleaned:
+        decimal_separator = "comma"
+    elif decimal_separator == "auto":
+        decimal_separator = "dot"
 
-    # Limpiar según el separador decimal detectado
     s_cleaned = _normalize_numeric_string(s_cleaned, decimal_separator)
 
     # Validar y convertir
@@ -304,6 +305,7 @@ def clean_apu_code(code: str, validate_format: bool = True) -> str:
     code = code.strip().upper()
 
     # Remover caracteres no permitidos (mantener letras, números, puntos, guiones)
+    code = code.replace(',', '.')
     code = APU_INVALID_CHARS_PATTERN.sub('', code)
 
     # Remover puntos y guiones al final
