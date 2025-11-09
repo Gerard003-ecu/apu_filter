@@ -1,3 +1,9 @@
+# --- PyTorch CPU-only ---
+--index-url https://download.pytorch.org/whl/cpu
+torch
+
+# --- Resto de dependencias de la aplicación ---
+
 flask
 lark
 pandas
