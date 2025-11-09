@@ -83,4 +83,18 @@ TEST_CONFIG = {
             "max_rendimiento": 1000,
         }
     },
+    "apu_classification_rules": [
+        {
+            "condition": "porcentaje_mo_eq > 75.0",
+            "type": "Instalación"
+        },
+        {
+            "condition": "porcentaje_materiales > 75.0 and porcentaje_mo_eq < 15.0",
+            "type": "Suministro"
+        },
+        {
+            "condition": "porcentaje_materiales > 65.0 and porcentaje_mo_eq > 15.0",
+            "type": "Suministro (Pre-fabricado)"
+        }
+    ]
 }

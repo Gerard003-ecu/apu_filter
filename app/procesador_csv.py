@@ -7,14 +7,16 @@ from typing import Dict, List, Optional, Tuple
 import numpy as np
 import pandas as pd
 
+from scripts.diagnose_apus_file import APUFileDiagnostic
+
 from .apu_processor import APUProcessor
+from .data_loader import load_data
 from .data_validator import validate_and_clean_data
 from .report_parser_crudo import ReportParserCrudo
 from .utils import (
     clean_apu_code,
     find_and_rename_columns,
     normalize_text_series,
-    safe_read_dataframe,
 )
 
 logger = logging.getLogger(__name__)
@@ -392,14 +394,14 @@ class PresupuestoProcessor:
         self.validator = DataValidator()
 
     def process(self, path: str) -> pd.DataFrame:
-        """Procesa el archivo CSV del presupuesto."""
-        df = safe_read_dataframe(path, header=None)
-
-        if df is None or df.empty:
-            logger.error("❌ No se pudo leer el archivo de presupuesto")
-            return pd.DataFrame()
-
+        """Procesa el archivo de presupuesto (CSV o Excel)."""
         try:
+            # CAMBIO: Reemplazar safe_read_dataframe por load_data
+            df = load_data(path, header=None)
+
+            if df is None or df.empty:
+                logger.error("❌ No se pudo leer el archivo de presupuesto o está vacío")
+                return pd.DataFrame()
             df = self._find_and_set_header(df)
             if df.empty:
                 return pd.DataFrame()
@@ -1347,6 +1349,16 @@ def _do_processing(
     except (ValueError, pd.errors.MergeError) as e:
         error_msg = f"Error en el pipeline: {e}"
         logger.error(f"❌ {error_msg}", exc_info=True)
+        # Si el error está relacionado con la carga de APUs, ejecutar diagnóstico
+        if "apus" in str(e).lower():
+            logger.info("=" * 80)
+            logger.info("🤔 El procesamiento de APUs falló. Ejecutando diagnóstico...")
+            try:
+                diagnostic = APUFileDiagnostic(apus_path)
+                diagnostic.diagnose()
+            except Exception as diag_e:
+                logger.error(f"❌ Error durante el diagnóstico del archivo APU: {diag_e}", exc_info=True)
+            logger.info("=" * 80)
         return {"error": error_msg}
     except Exception as e:
         error_msg = f"Error crítico en el pipeline: {e}"
