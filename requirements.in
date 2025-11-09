@@ -1,6 +1,8 @@
-# --- PyTorch CPU-only ---
---index-url https://download.pytorch.org/whl/cpu
-torch
+# -- Índices de Paquetes ---
+# 1. Usa la autopista principal (PyPI)
+--index-url https://pypi.org/simple
+# 2. Añade el desvío de PyTorch como una fuente EXTRA
+--extra-index-url https://download.pytorch.org/whl/cpu
 
 # --- Resto de dependencias de la aplicación ---
 
