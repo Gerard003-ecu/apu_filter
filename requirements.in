@@ -3,14 +3,12 @@ lark
 pandas
 openpyxl
 unidecode
-pyarrow
 fuzzywuzzy
 python-dotenv
 python-Levenshtein
 Flask-Session
 redis
 sentence-transformers
-faiss-cpu
 psutil
 pdfplumber
 networkx<3.3
