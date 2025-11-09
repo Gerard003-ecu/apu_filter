@@ -13,3 +13,4 @@ sentence-transformers
 faiss-cpu
 psutil
 pdfplumber
+networkx<3.3
