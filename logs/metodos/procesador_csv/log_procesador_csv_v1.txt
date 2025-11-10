@@ -1,0 +1,52 @@
+================================================ test session starts =================================================
+platform linux -- Python 3.10.19, pytest-8.4.2, pluggy-1.6.0 -- /home/gerardo/miniconda3/envs/ap_filter_env/bin/python
+cachedir: .pytest_cache
+rootdir: /home/gerardo/Documentos/GitHub/apu_filter
+configfile: pyproject.toml
+collected 1 item                                                                                                     
+
+tests/test_procesador_csv.py::TestProcessAllFilesIntegration::test_process_all_files_empty_presupuesto FAILED  [100%]
+
+====================================================== FAILURES ======================================================
+______________________ TestProcessAllFilesIntegration.test_process_all_files_empty_presupuesto _______________________
+
+self = <tests.test_procesador_csv.TestProcessAllFilesIntegration testMethod=test_process_all_files_empty_presupuesto>
+
+    def test_process_all_files_empty_presupuesto(self):
+        """Prueba manejo de presupuesto vacío."""
+        with patch('app.procesador_csv.PresupuestoProcessor') as mock_class:
+            mock_processor = MagicMock()
+            mock_class.return_value = mock_processor
+            mock_processor.process.return_value = pd.DataFrame()
+    
+            resultado = process_all_files(
+                self.presupuesto_path,
+                self.apus_path,
+                self.insumos_path,
+                TEST_CONFIG
+            )
+    
+            self.assertIn("error", resultado)
+>           self.assertIn("presupuesto", resultado["error"].lower())
+E           AssertionError: 'presupuesto' not found in 'error crítico en el pipeline: division by zero'
+
+tests/test_procesador_csv.py:939: AssertionError
+------------------------------------------------- Captured log call --------------------------------------------------
+WARNING  app.report_parser_crudo:report_parser_crudo.py:112 No records were extracted. The file might be empty or in an unexpected format.
+WARNING  app.apu_processor:apu_processor.py:486 Lista de registros vacía
+ERROR    app.procesador_csv:procesador_csv.py:1363 ❌ Error crítico en el pipeline: division by zero
+Traceback (most recent call last):
+  File "/home/gerardo/Documentos/GitHub/apu_filter/app/procesador_csv.py", line 1339, in _do_processing
+    final_context = pipeline.run(initial_context)
+  File "/home/gerardo/Documentos/GitHub/apu_filter/app/procesador_csv.py", line 108, in run
+    context = step.execute(context)
+  File "/home/gerardo/Documentos/GitHub/apu_filter/app/procesador_csv.py", line 290, in execute
+    df_apus_raw = processor.process_all()
+  File "/home/gerardo/Documentos/GitHub/apu_filter/app/apu_processor.py", line 535, in process_all
+    self._log_stats()
+  File "/home/gerardo/Documentos/GitHub/apu_filter/app/apu_processor.py", line 878, in _log_stats
+    logger.info(f"📈 Tasa de éxito: {(total_output/total_input*100):.1f}%")
+ZeroDivisionError: division by zero
+============================================== short test summary info ===============================================
+FAILED tests/test_procesador_csv.py::TestProcessAllFilesIntegration::test_process_all_files_empty_presupuesto - AssertionError: 'presupuesto' not found in 'error crítico en el pipeline: division by zero'
+================================================= 1 failed in 2.45s ==================================================
