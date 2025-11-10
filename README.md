@@ -18,11 +18,34 @@ APU Filter es una plataforma de inteligencia de negocio diseñada para el sector
 - **Lógica de Negocio Unificada:** Centralice las reglas de cálculo y análisis, que a menudo están dispersas en frágiles macros de Excel, difíciles de mantener y escalar.
 - **Fuente Única de Verdad:** Asegure que todo el equipo de costos y presupuestos trabaje con las mismas reglas y los datos más actualizados, eliminando inconsistencias.
 
-## Características Principales
-- **Motor de Simulación de Riesgos (Monte Carlo):** Modela la volatilidad de precios y la variabilidad en el rendimiento para entender el verdadero perfil de riesgo de su presupuesto.
-- **Capa de Ingesta de Datos Multi-Formato:** Procesamiento automatizado de archivos de Presupuesto, APU e Insumos desde formatos `.csv`, `.xlsx` y `.pdf`.
-- **Estimador Rápido con Búsqueda Semántica:** Calculadora para generar presupuestos preliminares de forma instantánea, basada en la similitud conceptual de los APUs.
-- **Herramientas de Diagnóstico:** Incluye scripts para analizar y diagnosticar archivos de entrada con formatos desconocidos.
+## Arquitectura del Proyecto
+
+APU Filter está construido sobre una arquitectura modular que separa claramente las responsabilidades, garantizando robustez y escalabilidad. Sus tres pilares fundamentales son:
+
+### 1. Parser de APU (Máquina de Estados)
+- **Componente Clave:** `app/report_parser_crudo.py`
+- **Función:** Es la primera línea de defensa del sistema, responsable de procesar los archivos de APU semi-estructurados. En lugar de depender de un formato CSV estricto, implementa una **máquina de estados** que lee el archivo línea por línea.
+- **Mecanismo:**
+    1.  **Detecta Cabeceras de APU:** Identifica el inicio de un nuevo APU buscando un patrón específico (una línea con `UNIDAD:` seguida de una con `ITEM:`).
+    2.  **Mantiene el Contexto:** Una vez dentro de un APU, asigna una categoría a cada insumo (Materiales, Mano de Obra, Equipo) basándose en palabras clave.
+    3.  **Extrae Insumos:** Parsea cada línea de insumo dentro del contexto del APU y la categoría actual, ignorando líneas irrelevantes (subtotales, decorativas, etc.).
+- **Resultado:** Transforma un archivo de texto caótico en una lista estructurada de registros listos para ser procesados.
+
+### 2. Pipeline de Procesamiento de Datos
+- **Componente Clave:** `app/procesador_csv.py`
+- **Función:** Es el orquestador central que toma los datos crudos del parser y los transforma en un modelo de costos consolidado.
+- **Mecanismo:** Utiliza un patrón `Pipeline` con pasos secuenciales y bien definidos:
+    1.  **Carga de Datos:** Ingiere los tres archivos principales (Presupuesto, APUs, Insumos).
+    2.  **Fusión de Datos:** Enriquece los insumos de los APUs con los precios del catálogo maestro de insumos.
+    3.  **Cálculo de Costos:** Agrega los costos de los insumos para calcular el valor total de cada APU, desglosado por categoría (Materiales, Mano de Obra, Equipo).
+    4.  **Merge Final:** Une los costos calculados de los APUs con las cantidades del archivo de presupuesto para generar el informe final.
+
+### 3. Estimador Inteligente
+- **Componente Clave:** `app/estimator.py`
+- **Función:** Proporciona una capacidad de búsqueda avanzada para generar cotizaciones rápidas para nuevos proyectos, basándose en el conocimiento extraído de APUs históricos.
+- **Mecanismo Dual:**
+    - **Búsqueda por Palabras Clave:** Un método tradicional y rápido que busca coincidencias directas de texto.
+    - **Búsqueda Semántica (Vectorial):** Su capacidad más potente. Utiliza modelos de `sentence-transformers` para convertir las descripciones de los APUs en vectores numéricos (embeddings). Luego, usa **FAISS** para encontrar los APUs más *conceptualmente similares* a una nueva descripción, incluso si no comparten las mismas palabras.
 
 ## Tecnologías Utilizadas
 
@@ -70,32 +93,40 @@ graph TD
     G[requirements.txt (sin faiss/torch)] --> H{Paso 4: Instalar Dependencias de la Aplicación};
     H -- "uv pip install -r" --> I[Librerías Restantes];
     I --> J[Fin: Entorno Listo ✅];
+```
+### Pasos Detallados
+**Requisito Previo:** Asegúrese de tener instalado Miniconda o Anaconda. Puede descargarlo desde [aquí](https://www.anaconda.com/products/distribution).
 
-Pasos Detallados
-Requisito Previo: Asegúrese de tener instalado Miniconda o Anaconda. Puede descargarlo desde aquí.
-Paso 1: Crear el Entorno Conda
-Cree un nuevo entorno Conda llamado apu_filter_env con Python 3.10, que es la versión compatible con todas las dependencias clave.
-
+**Paso 1: Crear el Entorno Conda**
+Cree un nuevo entorno Conda llamado `apu_filter_env` con Python 3.10, que es la versión compatible con todas las dependencias clave.
+```bash
 conda create --name apu_filter_env python=3.10
+```
 
-Paso 2: Activar el Entorno
+**Paso 2: Activar el Entorno**
 Active el entorno recién creado. Debe hacer esto cada vez que trabaje en el proyecto.
-
+```bash
 conda activate apu_filter_env
+```
 
-Paso 3: Instalar Paquetes Especiales (faiss-cpu y torch)
-Instale faiss-cpu usando Conda y torch usando pip con el índice de PyTorch.
+**Paso 3: Instalar Paquetes Especiales (faiss-cpu y torch)**
+Instale `faiss-cpu` usando Conda y `torch` usando pip con el índice de PyTorch.
 
-Instalar faiss-cpu:
+*Instalar faiss-cpu:*
+```bash
 conda install -c pytorch faiss-cpu
+```
 
-Instalar torch (versión CPU):
+*Instalar torch (versión CPU):*
+```bash
 pip install torch --index-url https://download.pytorch.org/whl/cpu
+```
 
-Paso 4: Instalar el Resto de Dependencias con uv
-Finalmente, instale todas las demás dependencias del proyecto listadas en requirements.txt.
-
+**Paso 4: Instalar el Resto de Dependencias con uv**
+Finalmente, instale todas las demás dependencias del proyecto listadas en `requirements.txt`.
+```bash
 uv pip install -r requirements.txt
+```
 
 Nota Importante: El archivo requirements.txt no debe contener faiss-cpu ni torch. Si alguna vez necesita regenerar este archivo (ej. usando uv pip compile requirements.in), asegúrese de excluir estas dos librerías para evitar conflictos.
 
@@ -119,6 +150,7 @@ pytest -vv
 Estructura del Directorio
 El proyecto está organizado con una clara separación de responsabilidades para facilitar la mantenibilidad y la escalabilidad.
 
+```
 apu_filter/
 │
 ├── app/                        # Lógica principal de la aplicación Flask
@@ -133,6 +165,8 @@ apu_filter/
 │   ├── utils.py                # Funciones de utilidad generales (normalización, parsing, etc.)
 │   ├── config.json             # Archivo de configuración de la lógica de negocio
 │   └── embeddings/             # Directorio para los artefactos de ML (índice FAISS, mapeo)
+│
+├── data/                       # Datos de entrada y resultados intermedios
 │
 ├── models/                     # Módulos de lógica de negocio y análisis avanzado
 │   ├── __init__.py
@@ -156,3 +190,4 @@ apu_filter/
 ├── requirements.in             # Archivo fuente para definir dependencias
 ├── requirements.txt            # Archivo de dependencias "congelado" generado por uv
 └── pyproject.toml              # Archivo de configuración del proyecto Python
+```
