@@ -1,5 +1,6 @@
 # --- Resto de dependencias de la aplicación ---
 
+torch
 flask
 lark
 pandas
