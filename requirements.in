@@ -12,6 +12,7 @@ Flask-Session
 redis
 psutil
 pdfplumber
+sentence-transformers
 networkx<3.3
 # Pin NumPy to a 1.x version for compatibility with faiss-cpu from conda
 numpy<2.0
