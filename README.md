@@ -7,40 +7,41 @@ APU Filter es una plataforma de inteligencia de negocio diseñada para el sector
 ## ¿Por qué APU Filter?
 
 ### De Horas a Segundos: Ahorro de Tiempo y Reducción de Errores
-- **Automatización Inteligente:** APU Filter automatiza el procesamiento de los complejos reportes de costos (compatibles con el formato SAGUT), una tarea que tradicionalmente consume horas de trabajo de ingeniería.
+- **Automatización Inteligente:** APU Filter automatiza el procesamiento de los complejos reportes de costos, una tarea que tradicionalmente consume horas de trabajo de ingeniería.
 - **Fiabilidad Garantizada:** Minimiza los errores humanos de transcripción y cálculo que se producen en flujos de trabajo manuales basados en Excel, garantizando cifras fiables para sus análisis.
 
 ### Una Herramienta de Decisión Estratégica
 - **Simulador de Costos (AIU):** No se limite a ver los costos; proyéctelos. El simulador permite analizar en tiempo real el impacto de los costos indirectos (Administración, Imprevistos, Utilidad) en la rentabilidad final del proyecto.
-- **Estimador Rápido:** Genere cotizaciones precisas para nuevos proyectos en segundos, no en horas. Esta agilidad le otorga una ventaja competitiva crucial para responder rápidamente a las oportunidades del mercado.
+- **Estimador Semántico:** Genere cotizaciones precisas para nuevos proyectos en segundos. Utilizando embeddings de texto y búsqueda vectorial (FAISS), el estimador encuentra los APUs más *conceptualmente similares*, no solo los que coinciden por palabras clave.
 
 ### Centralización y Consistencia
 - **Lógica de Negocio Unificada:** Centralice las reglas de cálculo y análisis, que a menudo están dispersas en frágiles macros de Excel, difíciles de mantener y escalar.
 - **Fuente Única de Verdad:** Asegure que todo el equipo de costos y presupuestos trabaje con las mismas reglas y los datos más actualizados, eliminando inconsistencias.
 
-### Inteligencia de Datos y Visualización
-- **Organizador de Proyecto:** Transforme datos planos en *insights* visuales. La plataforma permite analizar los costos por zona, tipo de trabajo o material, facilitando la identificación de los principales focos de costo.
-- **Optimización a la Vista:** Identifique rápidamente oportunidades de optimización y tome decisiones informadas para mejorar el margen de sus proyectos.
-
 ## Características Principales
-- **Motor de Simulación de Riesgos (Monte Carlo):** Va más allá de los cálculos estáticos. APU_filter simula miles de posibles resultados para cada APU, modelando la volatilidad de los precios de materiales y la variabilidad en el rendimiento de la mano de obra. Obtén el costo esperado, la desviación estándar y rangos de confianza para entender el verdadero perfil de riesgo de tu presupuesto.
-- **Carga de Reportes SAGUT:** Procesamiento automatizado de archivos de Presupuesto, APU e Insumos.
-- **Simulador AIU:** Módulo interactivo para modelar el impacto de los costos indirectos.
-- **Organizador de Proyecto:** Visualización y análisis detallado de la estructura de costos.
-- **Estimador Rápido:** Calculadora para generar presupuestos preliminares de forma instantánea.
-
-## Capturas de Pantalla
-
-*[Placeholder para captura de pantalla del Dashboard Principal]*
-
-*[Placeholder para captura de pantalla del Simulador AIU]*
+- **Motor de Simulación de Riesgos (Monte Carlo):** Modela la volatilidad de precios y la variabilidad en el rendimiento para entender el verdadero perfil de riesgo de su presupuesto.
+- **Capa de Ingesta de Datos Multi-Formato:** Procesamiento automatizado de archivos de Presupuesto, APU e Insumos desde formatos `.csv`, `.xlsx` y `.pdf`.
+- **Estimador Rápido con Búsqueda Semántica:** Calculadora para generar presupuestos preliminares de forma instantánea, basada en la similitud conceptual de los APUs.
+- **Herramientas de Diagnóstico:** Incluye scripts para analizar y diagnosticar archivos de entrada con formatos desconocidos.
 
 ## Tecnologías Utilizadas
 
-- **Backend:** Python, Flask
-- **Análisis de Datos:** Pandas, Openpyxl
-- **Gestor de Paquetes y Entorno:** uv
-- **Calidad de Código:** Ruff
+La plataforma está construida sobre una pila de tecnologías modernas de alto rendimiento:
+
+- **Backend:** **Flask** para la API web.
+- **Análisis de Datos y ML:**
+    - **Pandas:** Utilizado como la base para la manipulación de datos.
+    - **Sentence-Transformers:** Para la generación de embeddings de texto que potencian la búsqueda semántica.
+    - **FAISS (Facebook AI Similarity Search):** Para la búsqueda vectorial de alta velocidad de los APUs más similares.
+- **Parsing y Estructura de Datos:**
+    - **Lark:** Para el parsing robusto de la gramática de los insumos en los archivos de APU.
+    - **Dataclasses:** Para la creación de esquemas de datos (`schemas.py`) que garantizan la consistencia y validación.
+- **Entorno y Dependencias:**
+    - **Conda:** Para gestionar el entorno y las dependencias complejas con componentes binarios (ej. `faiss-cpu`).
+    - **uv & pip:** Para la gestión rápida y eficiente del resto de las dependencias de Python.
+- **Calidad de Código y Pruebas:**
+    - **Pytest:** Para una suite de pruebas exhaustiva que cubre desde unidades hasta la integración completa.
+    - **Ruff:** Para el formateo y linting del código, asegurando un estilo consistente y de alta calidad.
 
 ## Instalación y Uso
 
@@ -70,101 +71,88 @@ graph TD
     H -- "uv pip install -r" --> I[Librerías Restantes];
     I --> J[Fin: Entorno Listo ✅];
 
-```
+Pasos Detallados
+Requisito Previo: Asegúrese de tener instalado Miniconda o Anaconda. Puede descargarlo desde aquí.
+Paso 1: Crear el Entorno Conda
+Cree un nuevo entorno Conda llamado apu_filter_env con Python 3.10, que es la versión compatible con todas las dependencias clave.
 
-### Pasos Detallados
-
-**Requisito Previo:** Asegúrese de tener instalado **Miniconda** o **Anaconda**. Puede descargarlo desde [aquí](https://www.anaconda.com/download).
-
----
-
-#### **Paso 1: Crear el Entorno Conda**
-
-Cree un nuevo entorno Conda llamado `apu_filter_env` con Python 3.10.
-
-```bash
 conda create --name apu_filter_env python=3.10
-```
 
----
+Paso 2: Activar el Entorno
+Active el entorno recién creado. Debe hacer esto cada vez que trabaje en el proyecto.
 
-#### **Paso 2: Activar el Entorno**
-
-Active el entorno recién creado. **Debe hacer esto cada vez que trabaje en el proyecto.**
-
-```bash
 conda activate apu_filter_env
-```
 
----
+Paso 3: Instalar Paquetes Especiales (faiss-cpu y torch)
+Instale faiss-cpu usando Conda y torch usando pip con el índice de PyTorch.
 
-#### **Paso 3: Instalar Paquetes Especiales (faiss-cpu y torch)**
+Instalar faiss-cpu:
+conda install -c pytorch faiss-cpu
 
-Instale `faiss-cpu` usando Conda y `torch` usando pip con el índice de PyTorch.
+Instalar torch (versión CPU):
+pip install torch --index-url https://download.pytorch.org/whl/cpu
 
-1.  **Instalar faiss-cpu:**
-    ```bash
-    conda install -c pytorch faiss-cpu
-    ```
+Paso 4: Instalar el Resto de Dependencias con uv
+Finalmente, instale todas las demás dependencias del proyecto listadas en requirements.txt.
 
-2.  **Instalar torch (versión CPU):**
-    ```bash
-    pip install torch --index-url https://download.pytorch.org/whl/cpu
-    ```
-
----
-
-#### **Paso 4: Instalar el Resto de Dependencias con uv**
-
-Finalmente, instale todas las demás dependencias del proyecto listadas en `requirements.txt`.
-
-```bash
 uv pip install -r requirements.txt
-```
 
-> **Nota Importante:** El archivo `requirements.txt` no debe contener `faiss-cpu` ni `torch`. Si alguna vez necesita regenerar este archivo (ej. usando `uv pip compile`), asegúrese de excluir estas dos librerías para evitar conflictos.
+Nota Importante: El archivo requirements.txt no debe contener faiss-cpu ni torch. Si alguna vez necesita regenerar este archivo (ej. usando uv pip compile requirements.in), asegúrese de excluir estas dos librerías para evitar conflictos.
 
----
+Flujo de Trabajo del Proyecto
+El ciclo de vida del desarrollo y uso de la aplicación sigue estos pasos:
+Configuración: La lógica de negocio (mapeo de columnas, umbrales, reglas del estimador) se gestiona en app/config.json.
+Pre-procesamiento (si los datos cambian): La búsqueda semántica requiere un índice. Si los datos de los APUs cambian, debe regenerar los embeddings ejecutando:
+python scripts/generate_embeddings.py --input path/to/processed_apus.json
 
-### **Ejecución de la Aplicación**
-
-Una vez completada la instalación, puede ejecutar la aplicación:
-
-```bash
+Ejecución de la Aplicación: Con el entorno activado, inicie el servidor Flask:
 flask run
-```
 
-La aplicación estará disponible en `http://127.0.0.1:5000`.
+Interacción con la API:
+Un usuario sube los archivos (presupuesto, apus, insumos) al endpoint /upload.
+La aplicación procesa los datos y los almacena en una sesión.
+El usuario interactúa con los endpoints /api/estimate y /api/apu/{code} para realizar análisis.
+Validación y Pruebas: Para verificar la integridad del código, ejecute la suite de pruebas completa:
 
-### **Ejecución de las Pruebas**
+pytest -vv
 
-Para verificar que todo funciona correctamente, ejecute el conjunto de pruebas:
+Estructura del Directorio
+El proyecto está organizado con una clara separación de responsabilidades para facilitar la mantenibilidad y la escalabilidad.
 
-```bash
-pytest
-```
-
-## Estructura del Directorio
-
-```
 apu_filter/
 │
-├── app/                     # Contiene la lógica de la aplicación Flask
+├── app/                        # Lógica principal de la aplicación Flask
 │   ├── __init__.py
-│   ├── app.py               # El servidor Flask y los endpoints
-│   ├── procesador_csv.py    # Lógica de parsing y procesamiento de datos
-|   └── config.json              # Archivo de configuración
+│   ├── app.py                  # Factory de la app, endpoints API y carga de modelos
+│   ├── procesador_csv.py       # Orquestador del pipeline de procesamiento de datos
+│   ├── report_parser_crudo.py  # Parser especializado para archivos de APU semi-estructurados
+│   ├── apu_processor.py        # Motor de transformación que aplica lógica de negocio a los datos parseados
+│   ├── estimator.py            # Lógica de estimación con búsqueda semántica y por keywords
+│   ├── data_loader.py          # Capa de abstracción para leer datos (.csv, .xlsx, .pdf)
+│   ├── schemas.py              # Definición de los esquemas de datos (dataclasses)
+│   ├── utils.py                # Funciones de utilidad generales (normalización, parsing, etc.)
+│   ├── config.json             # Archivo de configuración de la lógica de negocio
+│   └── embeddings/             # Directorio para los artefactos de ML (índice FAISS, mapeo)
 │
-├── models/                  # Módulos de lógica de negocio y análisis
+├── models/                     # Módulos de lógica de negocio y análisis avanzado
 │   ├── __init__.py
-│   └── probability_models.py# Motor de simulación Monte Carlo
+│   └── probability_models.py   # Motor de simulación Monte Carlo para análisis de riesgos
 │
-├── tests/                   # Pruebas unitarias y de integración
-│   ├── __init__.py
-│   ├── test_processing.py   # Pruebas para procesador_csv.py
-│   └── test_models.py       # Pruebas para probability_models.py
+├── scripts/                    # Herramientas de línea de comandos para desarrolladores
+│   ├── generate_embeddings.py  # Script para generar el índice de búsqueda semántica
+│   └── diagnose_apus_file.py   # Herramienta para analizar formatos de archivo de APU
 │
-├── templates/
-├── uploads/
-└── ...
-```
+├── tests/                      # Suite de pruebas completa del proyecto
+│   ├── test_app.py             # Pruebas de integración para los endpoints de la API
+│   ├── test_procesador_csv.py  # Pruebas para el orquestador del pipeline
+│   ├── test_apu_processor.py   # Pruebas para el motor de transformación
+│   ├── test_estimator.py       # Pruebas para la lógica de estimación
+│   ├── test_data_loader.py     # Pruebas para la capa de carga de datos
+│   └── test_data.py            # Datos de prueba centralizados
+│
+├── templates/                  # Plantillas HTML para la interfaz (si aplica)
+├── uploads/                    # Directorio temporal para archivos subidos
+│
+├── requirements.in             # Archivo fuente para definir dependencias
+├── requirements.txt            # Archivo de dependencias "congelado" generado por uv
+└── pyproject.toml              # Archivo de configuración del proyecto Python
