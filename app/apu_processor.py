@@ -4,11 +4,13 @@ Versión refinada con mejoras en robustez, performance y mantenibilidad.
 """
 import logging
 import re
+import time
 from collections import defaultdict
+from unidecode import unidecode
 from dataclasses import dataclass, field
 from enum import Enum
 from functools import lru_cache
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple
 import numpy as np
 import pandas as pd
 from lark import Lark, Transformer, v_args
@@ -42,11 +44,9 @@ APU_GRAMMAR = r"""
     ?start: line
     line: (field (SEP field)*)? NEWLINE?
     field: FIELD_VALUE
-    FIELD_VALUE: /[^;\r
-]+/
+    FIELD_VALUE: /[^;\r\n]+/
     SEP: ";"
-    NEWLINE: /[\r
-]+/
+    NEWLINE: /(\r\n)+/
     %import common.WS
     %ignore WS
 """
@@ -289,36 +289,11 @@ class APUTransformer(Transformer):
             if len(fields) < 6:
                 return False
             
-            # Intentar identificar los campos relevantes para MO
-            jornal_total = None
-            rendimiento = None
-            
-            # Buscar campos numéricos relevantes
-            numeric_fields = []
-            for field in fields[2:]:  # Empezar después de descripción y unidad
-                try:
-                    # Intentar parsear como número
-                    num_value = parse_number(field, decimal_separator="comma")
-                    numeric_fields.append((field, num_value))
-                except:
-                    continue
-            
-            # Necesitamos al menos 3 campos numéricos para MO_COMPLETA
-            if len(numeric_fields) < 3:
-                return False
-            
-            # El campo de rendimiento suele ser el primero numérico después de la unidad
-            if len(numeric_fields) >= 1:
-                rendimiento = numeric_fields[0][1]
-            
-            # El campo de jornal total suele ser uno de los últimos
-            if len(numeric_fields) >= 3:
-                jornal_total = numeric_fields[2][1]
-            elif len(numeric_fields) >= 2:
-                jornal_total = numeric_fields[1][1]
-            
-            if jornal_total is None or rendimiento is None:
-                return False
+            # En MO_COMPLETA, los campos relevantes son:
+            # fields[2] = rendimiento (cantidad de jornadas por unidad de APU)
+            # fields[4] = jornal total (precio unitario)
+            rendimiento = parse_number(fields[2], decimal_separator="comma")
+            jornal_total = parse_number(fields[4], decimal_separator="comma")
             
             thresholds = self.config.get("validation_thresholds", {}).get("MANO_DE_OBRA", {})
             min_jornal = thresholds.get("min_jornal", 50000)
@@ -355,6 +330,7 @@ class APUTransformer(Transformer):
     def _build_mo_completa(self, tokens: List[str]) -> Optional[ManoDeObra]:
         """
         Construye un objeto ManoDeObra con validación robusta y manejo de separadores.
+        CORRECCIÓN PRINCIPAL: Se ajustaron los índices para usar los campos correctos
         """
         try:
             # Filtrar campos vacíos al final
@@ -364,47 +340,23 @@ class APUTransformer(Transformer):
             
             descripcion = tokens[0]
             
-            # Identificar posición de campos numéricos
-            numeric_fields = []
-            for i, token in enumerate(tokens):
-                if i == 0:  # Saltar descripción
-                    continue
-                try:
-                    # Intentar parsear como número
-                    num_value = parse_number(token, decimal_separator="comma")
-                    numeric_fields.append((i, token, num_value))
-                except:
-                    continue
+            # CORRECCIÓN: En MO_COMPLETA:
+            # tokens[2] = rendimiento (cantidad de jornadas por unidad de APU)
+            # tokens[4] = jornal total (precio unitario)
+            rendimiento_str = tokens[2]
+            jornal_str = tokens[4]
             
-            # Para MO_COMPLETA necesitamos al menos 3 campos numéricos
-            if len(numeric_fields) < 3:
-                return None
-            
-            # Extraer campos relevantes
-            cantidad = 1.0  # Por defecto
-            rendimiento = None
-            jornal_total = None
-            
-            # El campo de rendimiento suele ser el primero numérico después de la unidad
-            if len(numeric_fields) >= 1:
-                rendimiento = numeric_fields[0][2]
-            
-            # El campo de jornal total suele ser uno de los últimos
-            if len(numeric_fields) >= 3:
-                jornal_total = numeric_fields[2][2]
-            elif len(numeric_fields) >= 2:
-                jornal_total = numeric_fields[1][2]
-            
-            # Validar que tengamos los campos necesarios
-            if jornal_total is None or rendimiento is None or rendimiento <= 0:
-                return None
+            # Detección de separador decimal
+            decimal_separator = "comma" if ',' in jornal_str or ',' in rendimiento_str else "dot"
+            rendimiento = parse_number(rendimiento_str, decimal_separator=decimal_separator)
+            jornal_total = parse_number(jornal_str, decimal_separator=decimal_separator)
             
             # Validación estricta
             if not self._validate_mo_values(jornal_total, rendimiento):
                 return None
             
-            # Cálculos
-            cantidad = 1.0 / rendimiento
+            # Cálculos - CORRECCIÓN: cantidad = 1.0 / rendimiento
+            cantidad = 1.0 / rendimiento if rendimiento > 0 else 0
             valor_total = cantidad * jornal_total
             
             # Construcción del objeto
@@ -986,7 +938,8 @@ class APUProcessor:
         if not unit or not unit.strip():
             return "UND"
         
-        unit_clean = re.sub(r"[^A-Z0-9]", "", unit.upper().strip())
+        unit_clean = unidecode(unit).upper().strip()
+        unit_clean = re.sub(r"[^A-Z0-9_]", "", unit_clean)
         
         unit_mapping = {
             "DIAS": "DIA", "DÍAS": "DIA", "JORNAL": "JOR",
