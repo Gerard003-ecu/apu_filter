@@ -1,6 +1,5 @@
 # --- Resto de dependencias de la aplicación ---
 
-torch
 flask
 lark
 pandas
@@ -11,7 +10,8 @@ python-dotenv
 python-Levenshtein
 Flask-Session
 redis
-sentence-transformers
 psutil
 pdfplumber
 networkx<3.3
+# Pin NumPy to a 1.x version for compatibility with faiss-cpu from conda
+numpy<2.0
