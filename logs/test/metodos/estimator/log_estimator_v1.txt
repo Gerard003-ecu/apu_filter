@@ -1,0 +1,91 @@
+================================================ test session starts =================================================
+platform linux -- Python 3.10.19, pytest-8.4.2, pluggy-1.6.0 -- /home/gerardo/miniconda3/envs/ap_filter_env/bin/python
+cachedir: .pytest_cache
+rootdir: /home/gerardo/Documentos/GitHub/apu_filter
+configfile: pyproject.toml
+collected 9 items                                                                                                    
+
+tests/test_estimator.py::test_find_best_semantic_match_success PASSED                                          [ 11%]
+tests/test_estimator.py::test_find_best_semantic_match_below_threshold PASSED                                  [ 22%]
+tests/test_estimator.py::test_find_best_semantic_match_empty_pool PASSED                                       [ 33%]
+tests/test_estimator.py::test_find_best_semantic_match_empty_query PASSED                                      [ 44%]
+tests/test_estimator.py::test_find_best_semantic_match_candidate_not_in_pool PASSED                            [ 55%]
+tests/test_estimator.py::test_find_best_keyword_match_exact_word_success PASSED                                [ 66%]
+tests/test_estimator.py::test_find_best_keyword_match_substring_success PASSED                                 [ 77%]
+tests/test_estimator.py::test_find_best_keyword_match_no_match PASSED                                          [ 88%]
+tests/test_estimator.py::test_calculate_estimate_delegates_correctly FAILED                                    [100%]
+
+====================================================== FAILURES ======================================================
+____________________________________ test_calculate_estimate_delegates_correctly _____________________________________
+
+mock_keyword_match = <MagicMock name='_find_best_keyword_match' id='132128727025216'>
+mock_semantic_match = <MagicMock name='_find_best_semantic_match' id='132128727033040'>, app_context = None
+sample_apu_pool =   CODIGO_APU              original_description              DESC_NORMALIZED
+0    APU-001   Instalación de muro de ladr...ara exteriores  pintura acrilica exteriores
+2    APU-003   CUADRILLA TIPO 1 (1 OF + 2 AYU)  cuadrilla tipo 1 1 of 2 ayu
+
+    @patch("app.estimator._find_best_semantic_match")
+    @patch("app.estimator._find_best_keyword_match")
+    def test_calculate_estimate_delegates_correctly(
+        mock_keyword_match, mock_semantic_match, app_context, sample_apu_pool
+    ):
+        """
+        Prueba que `calculate_estimate` llame a las funciones de búsqueda correctas.
+        """
+        # Configurar mocks para que devuelvan valores y así poder verificar el flujo
+        mock_semantic_match.return_value = sample_apu_pool.iloc[0]  # Devuelve APU-001
+        mock_keyword_match.return_value = sample_apu_pool.iloc[2]  # Devuelve APU-003
+    
+        # Datos de entrada para la función principal
+        params = {"material": "muro de ladrillo", "cuadrilla": "1"}
+        data_store = {
+            "processed_apus": sample_apu_pool.to_dict("records"),
+            "apus_detail": [],
+        }
+        config = {"param_map": {"material": {}, "cuadrilla": {}}}
+    
+        # Ejecutar la función
+        result = calculate_estimate(params, data_store, config)
+    
+        # Verificar que no haya errores
+>       assert "error" not in result
+E       assert 'error' not in {'error': "\u274c Columnas faltantes en APUs: {'EQUIPO', 'UNIDAD', 'tipo_apu', 'VALOR_SUMINISTRO_UN'}", 'log': "\U0001f575\ufe0f ESTIMADOR DETECTIVE INICIADO\n======================================================================\n\U0001f4da Datos cargados: 3 APUs disponibles\n\u274c Columnas faltantes en APUs: {'EQUIPO', 'UNIDAD', 'tipo_apu', 'VALOR_SUMINISTRO_UN'}"}
+
+tests/test_estimator.py:238: AssertionError
+----------------------------------------------- Captured stderr setup ------------------------------------------------
+14:14:28 - INFO - Iniciando aplicación en modo: testing
+14:14:28 - INFO - Iniciando aplicación en modo: testing
+14:14:28 - INFO - Configuración cargada exitosamente desde config.json
+14:14:28 - INFO - Configuración cargada exitosamente desde config.json
+14:14:28 - INFO - Iniciando carga de artefactos de búsqueda semántica...
+14:14:28 - INFO - Iniciando carga de artefactos de búsqueda semántica...
+14:14:28 - ERROR - ❌ Error crítico al cargar artefactos de búsqueda semántica: Error in faiss::Index* faiss::read_index(faiss::IOReader*, int) at /home/runner/miniconda3/conda-bld/faiss-pkg_1728491153420/work/faiss/impl/index_read.cpp:535: Error: 'ret == (1)' failed: read error in /home/gerardo/Documentos/GitHub/apu_filter/app/embeddings/faiss.index: 0 != 1 (Success)
+Traceback (most recent call last):
+  File "/home/gerardo/Documentos/GitHub/apu_filter/app/app.py", line 333, in load_semantic_search_artifacts
+    app.config["FAISS_INDEX"] = faiss.read_index(str(index_path))
+  File "/home/gerardo/miniconda3/envs/ap_filter_env/lib/python3.10/site-packages/faiss/swigfaiss.py", line 11280, in read_index
+    return _swigfaiss.read_index(*args)
+RuntimeError: Error in faiss::Index* faiss::read_index(faiss::IOReader*, int) at /home/runner/miniconda3/conda-bld/faiss-pkg_1728491153420/work/faiss/impl/index_read.cpp:535: Error: 'ret == (1)' failed: read error in /home/gerardo/Documentos/GitHub/apu_filter/app/embeddings/faiss.index: 0 != 1 (Success)
+14:14:28 - ERROR - ❌ Error crítico al cargar artefactos de búsqueda semántica: Error in faiss::Index* faiss::read_index(faiss::IOReader*, int) at /home/runner/miniconda3/conda-bld/faiss-pkg_1728491153420/work/faiss/impl/index_read.cpp:535: Error: 'ret == (1)' failed: read error in /home/gerardo/Documentos/GitHub/apu_filter/app/embeddings/faiss.index: 0 != 1 (Success)
+Traceback (most recent call last):
+  File "/home/gerardo/Documentos/GitHub/apu_filter/app/app.py", line 333, in load_semantic_search_artifacts
+    app.config["FAISS_INDEX"] = faiss.read_index(str(index_path))
+  File "/home/gerardo/miniconda3/envs/ap_filter_env/lib/python3.10/site-packages/faiss/swigfaiss.py", line 11280, in read_index
+    return _swigfaiss.read_index(*args)
+RuntimeError: Error in faiss::Index* faiss::read_index(faiss::IOReader*, int) at /home/runner/miniconda3/conda-bld/faiss-pkg_1728491153420/work/faiss/impl/index_read.cpp:535: Error: 'ret == (1)' failed: read error in /home/gerardo/Documentos/GitHub/apu_filter/app/embeddings/faiss.index: 0 != 1 (Success)
+14:14:28 - WARNING - La funcionalidad de búsqueda semántica estará desactivada.
+14:14:28 - WARNING - La funcionalidad de búsqueda semántica estará desactivada.
+================================================== warnings summary ==================================================
+tests/test_estimator.py::test_find_best_semantic_match_success
+tests/test_estimator.py::test_find_best_semantic_match_below_threshold
+tests/test_estimator.py::test_find_best_semantic_match_empty_pool
+tests/test_estimator.py::test_find_best_semantic_match_empty_query
+tests/test_estimator.py::test_find_best_semantic_match_candidate_not_in_pool
+tests/test_estimator.py::test_calculate_estimate_delegates_correctly
+  /home/gerardo/miniconda3/envs/ap_filter_env/lib/python3.10/site-packages/flask_session/base.py:172: DeprecationWarning: The 'use_signer' option is deprecated and will be removed in the next minor release. Please update your configuration accordingly or open an issue.
+    warnings.warn(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+============================================== short test summary info ===============================================
+FAILED tests/test_estimator.py::test_calculate_estimate_delegates_correctly - assert 'error' not in {'error': "\u274c Columnas faltantes en APUs: {'EQUIPO', 'UNIDAD', 'tipo_apu', 'VALOR_SUMINISTRO_UN'}", 'log': "\U0001f575\ufe0f ESTIMADOR DETECTIVE INICIADO\n======================================================================\n\U0001f4da Datos cargados: 3 APUs disponibles\n\u274c Columnas faltantes en APUs: {'EQUIPO', 'UNIDAD', 'tipo_apu', 'VALOR_SUMINISTRO_UN'}"}
+====================================== 1 failed, 8 passed, 6 warnings in 17.73s ======================================

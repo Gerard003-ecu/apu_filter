@@ -1,0 +1,49 @@
+================================================ test session starts =================================================
+platform linux -- Python 3.10.19, pytest-8.4.2, pluggy-1.6.0 -- /home/gerardo/miniconda3/envs/ap_filter_env/bin/python
+cachedir: .pytest_cache
+rootdir: /home/gerardo/Documentos/GitHub/apu_filter
+configfile: pyproject.toml
+collected 39 items                                                                                                   
+
+tests/test_generate_embeddings.py::TestDataValidator::test_validate_dataframe_success PASSED                   [  2%]
+tests/test_generate_embeddings.py::TestDataValidator::test_validate_dataframe_missing_columns PASSED           [  5%]
+tests/test_generate_embeddings.py::TestDataValidator::test_validate_dataframe_null_removal PASSED              [  7%]
+tests/test_generate_embeddings.py::TestDataValidator::test_validate_dataframe_duplicate_removal PASSED         [ 10%]
+tests/test_generate_embeddings.py::TestDataValidator::test_validate_dataframe_text_length_filtering PASSED     [ 12%]
+tests/test_generate_embeddings.py::TestDataValidator::test_validate_dataframe_empty_after_cleaning PASSED      [ 15%]
+tests/test_generate_embeddings.py::TestMemoryMonitor::test_check_memory_sufficient PASSED                      [ 17%]
+tests/test_generate_embeddings.py::TestMemoryMonitor::test_check_memory_exceeds_limit PASSED                   [ 20%]
+tests/test_generate_embeddings.py::TestMemoryMonitor::test_check_memory_insufficient_available PASSED          [ 23%]
+tests/test_generate_embeddings.py::TestFileManager::test_create_backup_existing_file PASSED                    [ 25%]
+tests/test_generate_embeddings.py::TestFileManager::test_create_backup_nonexistent_file PASSED                 [ 28%]
+tests/test_generate_embeddings.py::TestFileManager::test_load_data_json PASSED                                 [ 30%]
+tests/test_generate_embeddings.py::TestFileManager::test_load_data_csv PASSED                                  [ 33%]
+tests/test_generate_embeddings.py::TestFileManager::test_load_data_nonexistent_file PASSED                     [ 35%]
+tests/test_generate_embeddings.py::TestFileManager::test_load_data_unsupported_format XFAIL (pd.read_json no
+es thread-safe, problema conocido)                                                                             [ 38%]
+tests/test_generate_embeddings.py::TestEmbeddingGenerator::test_load_model_success PASSED                      [ 41%]
+tests/test_generate_embeddings.py::TestEmbeddingGenerator::test_load_model_failure PASSED                      [ 43%]
+tests/test_generate_embeddings.py::TestEmbeddingGenerator::test_generate_embeddings_batch_simplified PASSED    [ 46%]
+tests/test_generate_embeddings.py::TestEmbeddingGenerator::test_generate_embeddings_no_model PASSED            [ 48%]
+tests/test_generate_embeddings.py::TestEmbeddingGenerator::test_build_faiss_index PASSED                       [ 51%]
+tests/test_generate_embeddings.py::TestEmbeddingGenerator::test_validate_index_success_simplified PASSED       [ 53%]
+tests/test_generate_embeddings.py::TestEmbeddingGenerator::test_validate_index_failure PASSED                  [ 56%]
+tests/test_generate_embeddings.py::TestEmbeddingPipeline::test_run_complete_success_fixed PASSED               [ 58%]
+tests/test_generate_embeddings.py::TestEmbeddingPipeline::test_run_with_invalid_input_file PASSED              [ 61%]
+tests/test_generate_embeddings.py::TestEmbeddingPipeline::test_run_with_model_load_error PASSED                [ 64%]
+tests/test_generate_embeddings.py::TestEmbeddingPipeline::test_run_with_empty_dataframe PASSED                 [ 66%]
+tests/test_generate_embeddings.py::TestEmbeddingPipeline::test_run_with_backup_creation_fixed PASSED           [ 69%]
+tests/test_generate_embeddings.py::TestPerformanceAndEdgeCases::test_large_dataset_handling[100] PASSED        [ 71%]
+tests/test_generate_embeddings.py::TestPerformanceAndEdgeCases::test_large_dataset_handling[1000] PASSED       [ 74%]
+tests/test_generate_embeddings.py::TestPerformanceAndEdgeCases::test_large_dataset_handling[5000] PASSED       [ 76%]
+tests/test_generate_embeddings.py::TestPerformanceAndEdgeCases::test_special_characters_in_text PASSED         [ 79%]
+tests/test_generate_embeddings.py::TestPerformanceAndEdgeCases::test_memory_estimation_accuracy PASSED         [ 82%]
+tests/test_generate_embeddings.py::TestPerformanceAndEdgeCases::test_different_batch_sizes[1] PASSED           [ 84%]
+tests/test_generate_embeddings.py::TestPerformanceAndEdgeCases::test_different_batch_sizes[10] PASSED          [ 87%]
+tests/test_generate_embeddings.py::TestPerformanceAndEdgeCases::test_different_batch_sizes[100] PASSED         [ 89%]
+tests/test_generate_embeddings.py::TestPerformanceAndEdgeCases::test_different_batch_sizes[512] PASSED         [ 92%]
+tests/test_generate_embeddings.py::TestCLIIntegration::test_main_function_success PASSED                       [ 94%]
+tests/test_generate_embeddings.py::TestCLIIntegration::test_main_function_with_error PASSED                    [ 97%]
+tests/test_generate_embeddings.py::TestConcurrencyAndThreadSafety::test_concurrent_file_access XFAIL           [100%]
+
+=========================================== 37 passed, 2 xfailed in 16.56s ===========================================

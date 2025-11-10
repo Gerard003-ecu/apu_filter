@@ -1,0 +1,135 @@
+================================================ test session starts =================================================
+platform linux -- Python 3.10.19, pytest-8.4.2, pluggy-1.6.0 -- /home/gerardo/miniconda3/envs/ap_filter_env/bin/python
+cachedir: .pytest_cache
+rootdir: /home/gerardo/Documentos/GitHub/apu_filter
+configfile: pyproject.toml
+collected 22 items                                                                                                   
+
+tests/test_data_validator.py::TestDataValidator::test_validate_and_clean_data__inmutable_input PASSED          [  4%]
+tests/test_data_validator.py::TestDataValidator::test_validate_and_clean_data__integration_success PASSED      [  9%]
+tests/test_data_validator.py::TestDataValidator::test_validate_and_clean_data__invalid_data_store_type PASSED  [ 13%]
+tests/test_data_validator.py::TestDataValidator::test_validate_and_clean_data__missing_apus_detail_key PASSED  [ 18%]
+tests/test_data_validator.py::TestDataValidator::test_validate_and_clean_data__missing_presupuesto_key PASSED  [ 22%]
+tests/test_data_validator.py::TestDataValidator::test_validate_and_clean_data__none_in_apus_detail FAILED      [ 27%]
+tests/test_data_validator.py::TestDataValidator::test_validate_and_clean_data__none_in_presupuesto FAILED      [ 31%]
+tests/test_data_validator.py::TestDataValidator::test_validate_extreme_costs__extreme_cost PASSED              [ 36%]
+tests/test_data_validator.py::TestDataValidator::test_validate_extreme_costs__inmutable_input PASSED           [ 40%]
+tests/test_data_validator.py::TestDataValidator::test_validate_extreme_costs__non_numeric_value PASSED         [ 45%]
+tests/test_data_validator.py::TestDataValidator::test_validate_extreme_costs__normal_cost PASSED               [ 50%]
+tests/test_data_validator.py::TestDataValidator::test_validate_missing_descriptions__fuzzy_matching_enabled FAILED [ 54%]
+tests/test_data_validator.py::TestDataValidator::test_validate_missing_descriptions__inmutable_input PASSED    [ 59%]
+tests/test_data_validator.py::TestDataValidator::test_validate_missing_descriptions__missing_description PASSED [ 63%]
+tests/test_data_validator.py::TestDataValidator::test_validate_missing_descriptions__no_fuzzy_available FAILED [ 68%]
+tests/test_data_validator.py::TestDataValidator::test_validate_missing_descriptions__present_description PASSED [ 72%]
+tests/test_data_validator.py::TestDataValidator::test_validate_missing_descriptions__raw_insumos_df_missing_column PASSED [ 77%]
+tests/test_data_validator.py::TestDataValidator::test_validate_missing_descriptions__raw_insumos_df_none PASSED [ 81%]
+tests/test_data_validator.py::TestDataValidator::test_validate_zero_quantity_with_cost__inmutable_input PASSED [ 86%]
+tests/test_data_validator.py::TestDataValidator::test_validate_zero_quantity_with_cost__invalid_types FAILED   [ 90%]
+tests/test_data_validator.py::TestDataValidator::test_validate_zero_quantity_with_cost__non_recalculable PASSED [ 95%]
+tests/test_data_validator.py::TestDataValidator::test_validate_zero_quantity_with_cost__recalculable PASSED    [100%]
+
+====================================================== FAILURES ======================================================
+________________________ TestDataValidator.test_validate_and_clean_data__none_in_apus_detail _________________________
+
+self = <tests.test_data_validator.TestDataValidator testMethod=test_validate_and_clean_data__none_in_apus_detail>
+
+    def test_validate_and_clean_data__none_in_apus_detail(self):
+        """Verifica manejo de apus_detail como None."""
+        data_store = {
+            'presupuesto': self.presupuesto_extremo,
+            'apus_detail': None,
+            'raw_insumos_df': self.raw_insumos_df
+        }
+        resultado = validate_and_clean_data(data_store)
+>       self.assertEqual(resultado['apus_detail'], [], "Debe convertir None a lista vacía")
+E       AssertionError: None != [] : Debe convertir None a lista vacía
+
+tests/test_data_validator.py:240: AssertionError
+------------------------------------------------- Captured log call --------------------------------------------------
+WARNING  app.data_validator:data_validator.py:54 Alerta de costo excesivo para el item 1,2: Costo unitario (60,000,000.00) excede el umbral de 50,000,000.00.
+ERROR    app.data_validator:data_validator.py:74 Entrada a _validate_zero_quantity_with_cost no es una lista. Retornando sin cambios.
+ERROR    app.data_validator:data_validator.py:141 Entrada a _validate_missing_descriptions no es una lista. Retornando sin cambios.
+________________________ TestDataValidator.test_validate_and_clean_data__none_in_presupuesto _________________________
+
+self = <tests.test_data_validator.TestDataValidator testMethod=test_validate_and_clean_data__none_in_presupuesto>
+
+    def test_validate_and_clean_data__none_in_presupuesto(self):
+        """Verifica manejo de presupuesto como None."""
+        data_store = {
+            'presupuesto': None,
+            'apus_detail': self.apus_detail_recalculable,
+            'raw_insumos_df': self.raw_insumos_df
+        }
+        resultado = validate_and_clean_data(data_store)
+>       self.assertEqual(resultado['presupuesto'], [], "Debe convertir None a lista vacía")
+E       AssertionError: None != [] : Debe convertir None a lista vacía
+
+tests/test_data_validator.py:230: AssertionError
+------------------------------------------------- Captured log call --------------------------------------------------
+ERROR    app.data_validator:data_validator.py:34 Entrada a _validate_extreme_costs no es una lista. Retornando sin cambios.
+____________________ TestDataValidator.test_validate_missing_descriptions__fuzzy_matching_enabled ____________________
+
+self = <tests.test_data_validator.TestDataValidator testMethod=test_validate_missing_descriptions__fuzzy_matching_enabled>
+
+    def test_validate_missing_descriptions__fuzzy_matching_enabled(self):
+        """Verifica que fuzzy matching encuentra una coincidencia cercana (si está disponible)."""
+        # Simulamos que fuzzywuzzy está disponible (no necesitamos mockear el match)
+        # Como no podemos controlar fuzzywuzzy sin instalarlo, probamos el comportamiento
+        # con una descripción que no coincide exactamente, pero es similar.
+        data_similar = [{'DESCRIPCION_INSUMO': 'Tornillo de acero 1/2 pulgadas'}]  # ligeramente distinta
+        resultado = _validate_missing_descriptions(data_similar, self.raw_insumos_df)
+>       self.assertEqual(resultado[0]['DESCRIPCION_INSUMO'], "Tornillo de acero 1/2\"")  # debe coincidir
+E       AssertionError: 'Tornillo de acero 1/2 pulgadas' != 'Tornillo de acero 1/2"'
+E       - Tornillo de acero 1/2 pulgadas
+E       ?                      ^^^^^^^^^
+E       + Tornillo de acero 1/2"
+E       ?                      ^
+
+tests/test_data_validator.py:153: AssertionError
+______________________ TestDataValidator.test_validate_missing_descriptions__no_fuzzy_available ______________________
+
+self = <tests.test_data_validator.TestDataValidator testMethod=test_validate_missing_descriptions__no_fuzzy_available>
+
+    @patch('app.data_validator.HAS_FUZZY', False)
+    def test_validate_missing_descriptions__no_fuzzy_available(self):
+        """Verifica fallback cuando fuzzywuzzy no está instalado."""
+        resultado = _validate_missing_descriptions(self.apus_detail_sin_descripcion, self.raw_insumos_df)
+        self.assertEqual(resultado[0]['DESCRIPCION_INSUMO'], "Insumo sin descripción")
+        self.assertIn('alertas', resultado[0])
+>       self.assertIn('fuzzywuzzy no instalado', resultado[0]['alertas'][0])
+E       AssertionError: 'fuzzywuzzy no instalado' not found in "Descripción faltante. Fuzzy matching no disponible. Instale 'fuzzywuzzy' para mejoras."
+
+tests/test_data_validator.py:131: AssertionError
+------------------------------------------------- Captured log call --------------------------------------------------
+WARNING  app.data_validator:data_validator.py:227 Insumo 0: Descripción faltante (fuzzywuzzy no instalado).
+_______________________ TestDataValidator.test_validate_zero_quantity_with_cost__invalid_types _______________________
+
+self = <tests.test_data_validator.TestDataValidator testMethod=test_validate_zero_quantity_with_cost__invalid_types>
+
+    def test_validate_zero_quantity_with_cost__invalid_types(self):
+        """Verifica manejo de tipos inválidos (cadena, None, NaN)."""
+        data_broken = [{
+            'DESCRIPCION_INSUMO': 'Pintura',
+            'CANTIDAD': 'cero',  # cadena
+            'VALOR_TOTAL': '100',
+            'VR_UNITARIO': '0'
+        }]
+        resultado = _validate_zero_quantity_with_cost(data_broken)
+        self.assertEqual(resultado[0]['CANTIDAD'], 'cero')  # No se modifica
+>       self.assertIn('alertas', resultado[0])
+E       AssertionError: 'alertas' not found in {'DESCRIPCION_INSUMO': 'Pintura', 'CANTIDAD': 'cero', 'VALOR_TOTAL': '100', 'VR_UNITARIO': '0'}
+
+tests/test_data_validator.py:116: AssertionError
+------------------------------------------------- Captured log call --------------------------------------------------
+WARNING  app.data_validator:data_validator.py:90 Cantidad inválida en insumo Pintura: cero
+============================================== short test summary info ===============================================
+FAILED tests/test_data_validator.py::TestDataValidator::test_validate_and_clean_data__none_in_apus_detail - AssertionError: None != [] : Debe convertir None a lista vacía
+FAILED tests/test_data_validator.py::TestDataValidator::test_validate_and_clean_data__none_in_presupuesto - AssertionError: None != [] : Debe convertir None a lista vacía
+FAILED tests/test_data_validator.py::TestDataValidator::test_validate_missing_descriptions__fuzzy_matching_enabled - AssertionError: 'Tornillo de acero 1/2 pulgadas' != 'Tornillo de acero 1/2"'
+- Tornillo de acero 1/2 pulgadas
+?                      ^^^^^^^^^
++ Tornillo de acero 1/2"
+?                      ^
+FAILED tests/test_data_validator.py::TestDataValidator::test_validate_missing_descriptions__no_fuzzy_available - AssertionError: 'fuzzywuzzy no instalado' not found in "Descripción faltante. Fuzzy matching no disponible. Instale 'fuzzywuzzy' para mejoras."
+FAILED tests/test_data_validator.py::TestDataValidator::test_validate_zero_quantity_with_cost__invalid_types - AssertionError: 'alertas' not found in {'DESCRIPCION_INSUMO': 'Pintura', 'CANTIDAD': 'cero', 'VALOR_TOTAL': '100', 'VR_UNITARIO': '0'}
+============================================ 5 failed, 17 passed in 1.85s ============================================

@@ -1,0 +1,26 @@
+================================================ test session starts =================================================
+platform linux -- Python 3.10.19, pytest-8.4.2, pluggy-1.6.0 -- /home/gerardo/miniconda3/envs/ap_filter_env/bin/python
+cachedir: .pytest_cache
+rootdir: /home/gerardo/Documentos/GitHub/apu_filter
+configfile: pyproject.toml
+collected 17 items                                                                                                   
+
+tests/test_data_loader.py::test_load_from_csv_success PASSED                                                   [  5%]
+tests/test_data_loader.py::test_load_from_csv_file_not_found PASSED                                            [ 11%]
+tests/test_data_loader.py::test_load_from_csv_empty_error PASSED                                               [ 17%]
+tests/test_data_loader.py::test_load_from_csv_encoding_error PASSED                                            [ 23%]
+tests/test_data_loader.py::test_load_from_xlsx_single_sheet_success PASSED                                     [ 29%]
+tests/test_data_loader.py::test_load_from_xlsx_all_sheets_success PASSED                                       [ 35%]
+tests/test_data_loader.py::test_load_from_xlsx_file_not_found PASSED                                           [ 41%]
+tests/test_data_loader.py::test_load_from_xlsx_sheet_not_found PASSED                                          [ 47%]
+tests/test_data_loader.py::test_load_from_pdf_no_tables PASSED                                                 [ 52%]
+tests/test_data_loader.py::test_load_from_pdf_with_dirty_tables PASSED                                         [ 58%]
+tests/test_data_loader.py::test_load_from_pdf_with_table_settings PASSED                                       [ 64%]
+tests/test_data_loader.py::test_load_from_pdf_file_not_found PASSED                                            [ 70%]
+tests/test_data_loader.py::test_load_data_routes_to_csv PASSED                                                 [ 76%]
+tests/test_data_loader.py::test_load_data_routes_to_xlsx PASSED                                                [ 82%]
+tests/test_data_loader.py::test_load_data_routes_to_pdf PASSED                                                 [ 88%]
+tests/test_data_loader.py::test_load_data_unsupported_format PASSED                                            [ 94%]
+tests/test_data_loader.py::test_load_data_file_not_found PASSED                                                [100%]
+
+================================================= 17 passed in 2.42s =================================================
