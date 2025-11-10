@@ -44,37 +44,105 @@ APU Filter es una plataforma de inteligencia de negocio diseñada para el sector
 
 ## Instalación y Uso
 
-Siga estos pasos para configurar el entorno de desarrollo y poner en marcha la aplicación:
+Esta sección describe cómo configurar un entorno de desarrollo robusto utilizando un enfoque híbrido que combina **Conda**, **pip** y **uv**.
 
-1.  **Clonar el repositorio:**
+### ¿Por qué un Enfoque Híbrido?
+
+El proyecto depende de librerías complejas que tienen dependencias a nivel de sistema (ej. C++), como `faiss-cpu`, y otras que requieren versiones específicas de CPU, como `torch`. Para manejar esto de forma fiable:
+-   **Conda** se utiliza para instalar `faiss-cpu`, ya que gestiona de manera excelente las dependencias binarias complejas.
+-   **Pip** se usa para instalar la versión de `torch` específica para CPU desde su repositorio oficial.
+-   **uv** gestiona el resto de las dependencias de Python de manera extremadamente rápida y eficiente.
+
+Este enfoque garantiza una instalación estable y reproducible, evitando los comunes errores de compilación.
+
+### Diagrama del Flujo de Instalación
+
+```mermaid
+graph TD
+    A[Inicio: Entorno Limpio] --> B{Paso 1: Crear Entorno Conda con Python 3.10};
+    B --> C[Paso 2: Activar Entorno];
+    C --> D{Paso 3: Instalar Paquetes Especiales};
+    D -- "conda install -c pytorch" --> E[faiss-cpu];
+    D -- "pip install --index-url ..." --> F[torch (cpu)];
+    E --> H;
+    F --> H;
+    G[requirements.txt (sin faiss/torch)] --> H{Paso 4: Instalar Dependencias de la Aplicación};
+    H -- "uv pip install -r" --> I[Librerías Restantes];
+    I --> J[Fin: Entorno Listo ✅];
+
+```
+
+### Pasos Detallados
+
+**Requisito Previo:** Asegúrese de tener instalado **Miniconda** o **Anaconda**. Puede descargarlo desde [aquí](https://www.anaconda.com/download).
+
+---
+
+#### **Paso 1: Crear el Entorno Conda**
+
+Cree un nuevo entorno Conda llamado `apu_filter_env` con Python 3.10.
+
+```bash
+conda create --name apu_filter_env python=3.10
+```
+
+---
+
+#### **Paso 2: Activar el Entorno**
+
+Active el entorno recién creado. **Debe hacer esto cada vez que trabaje en el proyecto.**
+
+```bash
+conda activate apu_filter_env
+```
+
+---
+
+#### **Paso 3: Instalar Paquetes Especiales (faiss-cpu y torch)**
+
+Instale `faiss-cpu` usando Conda y `torch` usando pip con el índice de PyTorch.
+
+1.  **Instalar faiss-cpu:**
     ```bash
-    git clone <URL-DEL-REPOSITORIO>
-    cd apu_filter
+    conda install -c pytorch faiss-cpu
     ```
 
-2.  **Crear y activar un entorno virtual con `uv`:**
+2.  **Instalar torch (versión CPU):**
     ```bash
-    uv venv
-    source .venv/bin/activate  # macOS/Linux
-    # .venv\Scripts\activate   # Windows
+    pip install torch --index-url https://download.pytorch.org/whl/cpu
     ```
 
-3.  **Instalar las dependencias:**
-    ```bash
-    uv pip install -r requirements.txt -r requirements-dev.txt
-    ```
-    *Nota: Si necesita modificar las dependencias, edite `requirements.in` o `requirements-dev.in` y recompile con `uv pip compile`.*
+---
 
-4.  **Ejecutar la aplicación:**
-    ```bash
-    flask run
-    ```
-    La aplicación estará disponible en `http://127.0.0.1:5000`.
+#### **Paso 4: Instalar el Resto de Dependencias con uv**
 
-5.  **Ejecutar las pruebas:**
-    ```bash
-    pytest
-    ```
+Finalmente, instale todas las demás dependencias del proyecto listadas en `requirements.txt`.
+
+```bash
+uv pip install -r requirements.txt
+```
+
+> **Nota Importante:** El archivo `requirements.txt` no debe contener `faiss-cpu` ni `torch`. Si alguna vez necesita regenerar este archivo (ej. usando `uv pip compile`), asegúrese de excluir estas dos librerías para evitar conflictos.
+
+---
+
+### **Ejecución de la Aplicación**
+
+Una vez completada la instalación, puede ejecutar la aplicación:
+
+```bash
+flask run
+```
+
+La aplicación estará disponible en `http://127.0.0.1:5000`.
+
+### **Ejecución de las Pruebas**
+
+Para verificar que todo funciona correctamente, ejecute el conjunto de pruebas:
+
+```bash
+pytest
+```
 
 ## Estructura del Directorio
 
