@@ -28,9 +28,9 @@ def base_insumo_data():
         "cantidad": 10.5,
         "precio_unitario": 25.75,
         "valor_total": 270.375,  # 10.5 * 25.75
-        "categoria": "SUMINISTRO",  # Será sobrescrito por tipo_insumo
+        "categoria": "SUMINISTRO",
         "formato_origen": "EXCEL",
-        "tipo_insumo": "SUMINISTRO",  # Este es el campo que determina la clase
+        "tipo_insumo": "SUMINISTRO",
     }
 
 
@@ -108,7 +108,7 @@ def test_normalize_unit():
 def test_normalize_description():
     """Prueba que normalize_description limpia y normaliza descripciones."""
     assert normalize_description("  Cemento Portland  ") == "CEMENTO PORTLAND"
-    assert normalize_description("Cemento con tilde: ácido") == "CEMENTO CON TILDE: CIDO"
+    assert normalize_description("Cemento con tilde: ácido") == "CEMENTO CON TILDE: ACIDO"
     assert normalize_description("") == ""
     assert normalize_description(None) == ""
     assert normalize_description("  \t\n  ") == ""
@@ -128,13 +128,13 @@ def test_insumo_procesado_creacion_correcta(base_insumo_data):
     """Prueba que InsumoProcesado se crea correctamente y normaliza campos."""
     insumo = InsumoProcesado(**base_insumo_data)
     assert insumo.codigo_apu == "APU-001"
-    assert insumo.descripcion_apu == "CONSTRUCCIÓN DE MURO DE CONCRETO"
+    assert insumo.descripcion_apu == "CONSTRUCCION DE MURO DE CONCRETO"
     assert insumo.descripcion_insumo == "CEMENTO PORTLAND 50KG"
     assert insumo.unidad_apu == "M2"
     assert insumo.unidad_insumo == "BOLSA"
     assert insumo.tipo_insumo == "SUMINISTRO"
-    assert insumo.categoria == "SUMINISTRO"  # Forzado por coherencia
-    assert insumo.normalized_desc == "CEMENTO PORTLAND 50KG"  # Generado automáticamente
+    assert insumo.categoria == "SUMINISTRO"
+    assert insumo.normalized_desc == "CEMENTO PORTLAND 50KG"
     assert insumo.formato_origen == "EXCEL"
 
 
@@ -143,7 +143,7 @@ def test_insumo_procesado_valida_valor_total(base_insumo_data):
     base_insumo_data["valor_total"] = 9999.99  # Inconsistente con 10.5 * 25.75
     with pytest.warns(UserWarning, match="valor_total.*no coincide"):
         insumo = InsumoProcesado(**base_insumo_data)
-        assert insumo.valor_total == 9999.99  # No se corrige, solo se advierte
+        assert insumo.valor_total == 9999.99
 
 
 def test_insumo_procesado_lanza_error_si_codigo_vacio(base_insumo_data):
@@ -217,13 +217,13 @@ def test_mano_de_obra_inconsistencia_rendimiento_cantidad(mano_obra_data):
     mano_obra_data["cantidad"] = 5.0  # Debería ser 2.0 → 1/0.5
     with pytest.warns(UserWarning, match="rendimiento=0.5 sugiere cantidad≈2.0000, pero cantidad=5.0"):
         insumo = ManoDeObra(**mano_obra_data)
-        assert insumo.cantidad == 5.0  # No se corrige, solo se advierte
+        assert insumo.cantidad == 5.0
 
 
 def test_mano_de_obra_unidad_no_tipica(mano_obra_data):
     """Prueba que ManoDeObra emite advertencia si unidad no es típica."""
     mano_obra_data["unidad_apu"] = "KG"
-    with pytest.warns(UserWarning, match="unidades 'KG' o 'BOLSA' no son típicas"):
+    with pytest.warns(UserWarning, match="unidades 'KG' o 'PERSONA' no son típicas"):
         ManoDeObra(**mano_obra_data)
 
 
@@ -267,7 +267,7 @@ def test_create_insumo_exitoso(base_insumo_data):
     insumo = create_insumo(**base_insumo_data)
     assert isinstance(insumo, Suministro)
     assert insumo.tipo_insumo == "SUMINISTRO"
-    assert insumo.categoria == "SUMINISTRO"  # Sincronizado
+    assert insumo.categoria == "SUMINISTRO"
 
 
 def test_create_insumo_tipo_invalido(base_insumo_data):
@@ -287,12 +287,12 @@ def test_create_insumo_argumentos_incorrectos(base_insumo_data):
 def test_validate_insumo_data_exitoso(base_insumo_data):
     """Prueba que validate_insumo_data limpia y normaliza correctamente."""
     cleaned = validate_insumo_data(base_insumo_data)
-    assert cleaned["unidad_apu"] == "M2"  # Normalizado
-    assert cleaned["unidad_insumo"] == "BOLSA"  # Normalizado
-    assert cleaned["tipo_insumo"] == "SUMINISTRO"  # Normalizado
-    assert cleaned["categoria"] == "SUMINISTRO"  # Forzado
-    assert cleaned["cantidad"] == 10.5  # Convertido a float
-    assert cleaned["normalized_desc"] == "CEMENTO PORTLAND 50KG"  # Generado
+    assert cleaned["unidad_apu"] == "M2"
+    assert cleaned["unidad_insumo"] == "BOLSA"
+    assert cleaned["tipo_insumo"] == "SUMINISTRO"
+    assert cleaned["categoria"] == "SUMINISTRO"
+    assert cleaned["cantidad"] == 10.5
+    assert cleaned["normalized_desc"] == "CEMENTO PORTLAND 50KG"
 
 
 def test_validate_insumo_data_falta_campo_obligatorio(base_insumo_data):
@@ -338,7 +338,7 @@ def test_insumo_procesado_con_normalized_desc_manual(base_insumo_data):
     base_insumo_data["descripcion_insumo"] = "Cemento"
     base_insumo_data["normalized_desc"] = "DESCRIPCION_MANUAL"
     insumo = InsumoProcesado(**base_insumo_data)
-    assert insumo.normalized_desc == "CEMENTO"  # No se usa el valor manual
+    assert insumo.normalized_desc == "CEMENTO"
 
 
 def test_insumo_procesado_con_categoria_diferente(base_insumo_data):
@@ -346,7 +346,7 @@ def test_insumo_procesado_con_categoria_diferente(base_insumo_data):
     base_insumo_data["categoria"] = "OTRO"
     base_insumo_data["tipo_insumo"] = "SUMINISTRO"
     insumo = InsumoProcesado(**base_insumo_data)
-    assert insumo.categoria == "SUMINISTRO"  # No se mantiene el valor dado
+    assert insumo.categoria == "SUMINISTRO"
 
 
 def test_to_dict_serializable(base_insumo_data):
@@ -354,7 +354,7 @@ def test_to_dict_serializable(base_insumo_data):
     insumo = InsumoProcesado(**base_insumo_data)
     d = insumo.to_dict()
     assert isinstance(d, dict)
-    assert len(d) == 13  # Todos los campos
+    assert len(d) == 13
     assert d["codigo_apu"] == "APU-001"
     assert d["normalized_desc"] == "CEMENTO PORTLAND 50KG"
     assert d["unidad_apu"] == "M2"
