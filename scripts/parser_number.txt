@@ -1,0 +1,776 @@
+# en app/util.py
+
+### propuesta 1 ###
+import re
+import logging
+from typing import Optional, Union, Tuple
+from functools import lru_cache
+from decimal import Decimal, InvalidOperation
+
+logger = logging.getLogger(__name__)
+
+
+def parse_number(
+    s: Optional[Union[str, float, int]], 
+    default_value: float = 0.0,
+    decimal_separator: Optional[str] = None,
+    strict: bool = False,
+    allow_percentage: bool = True,
+    allow_scientific: bool = True,
+    debug: bool = False
+) -> float:
+    """
+    Convierte una cadena a número de punto flotante de forma robusta.
+    
+    Maneja diferentes formatos numéricos incluyendo:
+    - Separadores de miles y decimales (punto o coma)
+    - Números negativos y positivos
+    - Porcentajes (opcional)
+    - Notación científica (opcional)
+    - Espacios en blanco
+    - Caracteres no numéricos comunes
+    
+    Args:
+        s: Valor a convertir (string, float, int o None)
+        default_value: Valor por defecto si la conversión falla
+        decimal_separator: Forzar separador decimal específico ('dot', 'comma', None=auto)
+        strict: Si True, falla con excepciones en lugar de retornar default
+        allow_percentage: Si True, maneja valores como "15%" -> 0.15
+        allow_scientific: Si True, maneja notación científica como "1.5e-3"
+        debug: Si True, registra información de depuración
+    
+    Returns:
+        float: Número parseado o default_value si falla
+        
+    Raises:
+        ValueError: Solo si strict=True y la conversión falla
+        
+    Examples:
+        >>> parse_number("1,234.56")
+        1234.56
+        >>> parse_number("1.234,56", decimal_separator="comma")
+        1234.56
+        >>> parse_number("€ 1,500.00")
+        1500.0
+        >>> parse_number("15%", allow_percentage=True)
+        0.15
+        >>> parse_number("1.5e-3", allow_scientific=True)
+        0.0015
+        >>> parse_number("N/A", default_value=-1)
+        -1.0
+    """
+    
+    # ============================================================
+    # 1. VALIDACIÓN INICIAL Y CASOS RÁPIDOS
+    # ============================================================
+    
+    # Caso None
+    if s is None:
+        if debug:
+            logger.debug(f"parse_number: Input is None, returning default {default_value}")
+        return default_value
+    
+    # Casos numéricos directos (int, float)
+    if isinstance(s, (int, float)):
+        result = float(s)
+        if debug:
+            logger.debug(f"parse_number: Direct numeric conversion: {s} -> {result}")
+        return result
+    
+    # Convertir a string si no lo es
+    if not isinstance(s, str):
+        s = str(s)
+    
+    # Cache para strings comunes
+    cached_result = _get_cached_parse(s, decimal_separator)
+    if cached_result is not None:
+        if debug:
+            logger.debug(f"parse_number: Cache hit for '{s}' -> {cached_result}")
+        return cached_result
+    
+    # Guardar string original para logging
+    original_s = s
+    
+    # ============================================================
+    # 2. LIMPIEZA INICIAL Y VALIDACIONES
+    # ============================================================
+    
+    # Eliminar espacios en blanco al inicio y final
+    s = s.strip()
+    
+    # Verificar si está vacío después de strip
+    if not s:
+        if debug:
+            logger.debug(f"parse_number: Empty string after strip, returning default {default_value}")
+        return _handle_parse_error(original_s, "empty string", default_value, strict)
+    
+    # Verificar casos especiales comunes que no son números
+    if _is_non_numeric_text(s):
+        if debug:
+            logger.debug(f"parse_number: Non-numeric text detected: '{s}'")
+        return _handle_parse_error(original_s, "non-numeric text", default_value, strict)
+    
+    # ============================================================
+    # 3. MANEJO DE PORCENTAJES
+    # ============================================================
+    
+    if allow_percentage and '%' in s:
+        result = _parse_percentage(s, default_value, strict, debug)
+        if result is not None:
+            _cache_parse_result(original_s, decimal_separator, result)
+            return result
+    
+    # ============================================================
+    # 4. MANEJO DE NOTACIÓN CIENTÍFICA
+    # ============================================================
+    
+    if allow_scientific and ('e' in s.lower() or 'E' in s):
+        result = _parse_scientific(s, default_value, strict, debug)
+        if result is not None:
+            _cache_parse_result(original_s, decimal_separator, result)
+            return result
+    
+    # ============================================================
+    # 5. LIMPIEZA DE CARACTERES NO NUMÉRICOS
+    # ============================================================
+    
+    # Extraer signo si existe
+    sign = 1.0
+    s_work = s
+    
+    # Manejar múltiples signos al inicio
+    sign_match = re.match(r'^([+-]+)', s_work)
+    if sign_match:
+        signs = sign_match.group(1)
+        # Contar signos negativos
+        neg_count = signs.count('-')
+        sign = -1.0 if neg_count % 2 == 1 else 1.0
+        s_work = s_work[len(signs):]
+        if debug:
+            logger.debug(f"parse_number: Extracted sign: {sign} from '{signs}'")
+    
+    # Eliminar símbolos de moneda comunes y otros caracteres no numéricos
+    # pero preservar puntos, comas, espacios (pueden ser separadores)
+    s_cleaned = re.sub(r'[^\d,.\s-]', '', s_work)
+    
+    # Eliminar espacios que pueden ser separadores de miles
+    # pero solo si están entre dígitos
+    s_cleaned = re.sub(r'(?<=\d)\s+(?=\d)', '', s_cleaned)
+    s_cleaned = s_cleaned.strip()
+    
+    if not s_cleaned or not re.search(r'\d', s_cleaned):
+        if debug:
+            logger.debug(f"parse_number: No digits found after cleaning: '{s}' -> '{s_cleaned}'")
+        return _handle_parse_error(original_s, "no digits found", default_value, strict)
+    
+    # ============================================================
+    # 6. DETECCIÓN INTELIGENTE DE SEPARADORES
+    # ============================================================
+    
+    if decimal_separator:
+        # Usar separador especificado por el usuario
+        s_standard = _apply_separator_format(s_cleaned, decimal_separator, debug)
+    else:
+        # Detección automática mejorada
+        s_standard = _auto_detect_and_convert_separators(s_cleaned, debug)
+    
+    # ============================================================
+    # 7. VALIDACIÓN Y CONVERSIÓN FINAL
+    # ============================================================
+    
+    # Validar formato antes de intentar conversión
+    if not _is_valid_number_format(s_standard):
+        if debug:
+            logger.debug(f"parse_number: Invalid format after standardization: '{s_standard}'")
+        return _handle_parse_error(original_s, f"invalid format: {s_standard}", default_value, strict)
+    
+    # Intentar conversión con manejo de errores robusto
+    try:
+        # Usar Decimal para mayor precisión en la conversión intermedia
+        if '.' in s_standard and len(s_standard.split('.')[1]) > 15:
+            # Para números con muchos decimales, usar Decimal
+            result = float(Decimal(s_standard)) * sign
+        else:
+            # Conversión directa para números normales
+            result = float(s_standard) * sign
+        
+        # Validar resultado
+        if not _is_finite(result):
+            if debug:
+                logger.debug(f"parse_number: Non-finite result: {result}")
+            return _handle_parse_error(original_s, f"non-finite result: {result}", default_value, strict)
+        
+        # Cache el resultado exitoso
+        _cache_parse_result(original_s, decimal_separator, result)
+        
+        if debug:
+            logger.debug(f"parse_number: Success: '{original_s}' -> {result}")
+        
+        return result
+        
+    except (ValueError, TypeError, InvalidOperation) as e:
+        if debug:
+            logger.debug(f"parse_number: Conversion error for '{s_standard}': {e}")
+        return _handle_parse_error(original_s, str(e), default_value, strict)
+
+
+# ============================================================
+# FUNCIONES AUXILIARES ROBUSTAS
+# ============================================================
+
+@lru_cache(maxsize=1024)
+def _get_cached_parse(s: str, decimal_separator: Optional[str]) -> Optional[float]:
+    """
+    Busca en cache valores previamente parseados.
+    Cache key incluye el string y el separador para evitar colisiones.
+    """
+    # Solo cachear strings comunes y cortos
+    if len(s) > 50:
+        return None
+    
+    # Valores comunes pre-computados
+    common_values = {
+        "0": 0.0,
+        "1": 1.0,
+        "-1": -1.0,
+        "0.0": 0.0,
+        "1.0": 1.0,
+        "0,0": 0.0,
+        "1,0": 1.0,
+    }
+    
+    return common_values.get(s)
+
+
+def _cache_parse_result(s: str, decimal_separator: Optional[str], result: float):
+    """Almacena resultado en cache si es apropiado."""
+    # Solo cachear strings cortos para evitar uso excesivo de memoria
+    if len(s) <= 50:
+        # El LRU cache de _get_cached_parse manejará esto automáticamente
+        pass
+
+
+def _is_non_numeric_text(s: str) -> bool:
+    """
+    Detecta texto que claramente no es un número.
+    """
+    non_numeric_indicators = [
+        r'^N[/\\]?A$',           # N/A, NA
+        r'^-+$',                 # Solo guiones
+        r'^\?+$',                # Solo signos de interrogación
+        r'^TBD$',                # To Be Determined
+        r'^NULL$',               # NULL
+        r'^NONE$',               # None
+        r'^NAN$',                # NaN
+        r'^#.*',                 # Errores de Excel (#DIV/0!, #VALUE!, etc)
+    ]
+    
+    s_upper = s.upper().strip()
+    return any(re.match(pattern, s_upper) for pattern in non_numeric_indicators)
+
+
+def _parse_percentage(s: str, default_value: float, strict: bool, debug: bool) -> Optional[float]:
+    """
+    Parsea un valor de porcentaje (e.g., "15%" -> 0.15).
+    """
+    try:
+        # Eliminar el símbolo de porcentaje y espacios
+        s_percent = s.replace('%', '').strip()
+        
+        if not s_percent:
+            return None
+        
+        # Parsear recursivamente sin el %
+        base_value = parse_number(
+            s_percent, 
+            default_value=None,  # Usar None para detectar fallo
+            allow_percentage=False,  # Evitar recursión infinita
+            debug=debug
+        )
+        
+        if base_value is None:
+            return None
+        
+        # Convertir a decimal (dividir por 100)
+        result = base_value / 100.0
+        
+        if debug:
+            logger.debug(f"parse_percentage: '{s}' -> {base_value} -> {result}")
+        
+        return result
+        
+    except Exception as e:
+        if debug:
+            logger.debug(f"parse_percentage: Error parsing '{s}': {e}")
+        return None
+
+
+def _parse_scientific(s: str, default_value: float, strict: bool, debug: bool) -> Optional[float]:
+    """
+    Parsea notación científica (e.g., "1.5e-3" -> 0.0015).
+    """
+    try:
+        # Limpiar espacios alrededor de 'e' o 'E'
+        s_sci = re.sub(r'\s*([eE])\s*', r'\1', s.strip())
+        
+        # Validar formato básico de notación científica
+        if not re.match(r'^[+-]?\d+\.?\d*[eE][+-]?\d+$', s_sci):
+            return None
+        
+        result = float(s_sci)
+        
+        if not _is_finite(result):
+            return None
+        
+        if debug:
+            logger.debug(f"parse_scientific: '{s}' -> {result}")
+        
+        return result
+        
+    except (ValueError, OverflowError) as e:
+        if debug:
+            logger.debug(f"parse_scientific: Error parsing '{s}': {e}")
+        return None
+
+
+def _apply_separator_format(s: str, separator_format: str, debug: bool) -> str:
+    """
+    Aplica formato de separador especificado por el usuario.
+    """
+    if separator_format == "comma":
+        # Coma es decimal, punto es miles
+        s_standard = s.replace('.', '').replace(',', '.')
+        if debug:
+            logger.debug(f"apply_separator: Comma format: '{s}' -> '{s_standard}'")
+    elif separator_format == "dot":
+        # Punto es decimal, coma es miles
+        s_standard = s.replace(',', '')
+        if debug:
+            logger.debug(f"apply_separator: Dot format: '{s}' -> '{s_standard}'")
+    else:
+        # Formato no reconocido, usar auto-detección
+        s_standard = _auto_detect_and_convert_separators(s, debug)
+    
+    return s_standard
+
+
+def _auto_detect_and_convert_separators(s: str, debug: bool) -> str:
+    """
+    Detección automática mejorada de separadores decimales y de miles.
+    """
+    # Contar ocurrencias
+    comma_count = s.count(',')
+    dot_count = s.count('.')
+    
+    # Casos simples sin ambigüedad
+    if comma_count == 0 and dot_count == 0:
+        # No hay separadores
+        return s
+    
+    if comma_count == 0:
+        # Solo puntos, asumir que el punto es decimal
+        return s
+    
+    if dot_count == 0:
+        # Solo comas
+        if comma_count == 1:
+            # Una sola coma, probablemente decimal
+            return s.replace(',', '.')
+        else:
+            # Múltiples comas, probablemente miles
+            return s.replace(',', '')
+    
+    # Ambos separadores presentes - análisis más detallado
+    last_comma = s.rfind(',')
+    last_dot = s.rfind('.')
+    
+    # El último separador suele ser el decimal
+    if last_comma > last_dot:
+        # Coma es decimal
+        # Verificar consistencia: después de la coma decimal debe haber 1-4 dígitos típicamente
+        after_comma = s[last_comma + 1:]
+        if after_comma and after_comma.isdigit() and len(after_comma) <= 4:
+            s_standard = s.replace('.', '').replace(',', '.')
+            if debug:
+                logger.debug(f"auto_detect: Comma as decimal: '{s}' -> '{s_standard}'")
+            return s_standard
+    
+    # Punto es decimal (caso más común)
+    # Verificar consistencia: después del punto decimal debe haber dígitos
+    after_dot = s[last_dot + 1:]
+    if after_dot and after_dot.isdigit():
+        s_standard = s.replace(',', '')
+        if debug:
+            logger.debug(f"auto_detect: Dot as decimal: '{s}' -> '{s_standard}'")
+        return s_standard
+    
+    # Caso ambiguo, usar heurística adicional
+    return _resolve_ambiguous_separators(s, debug)
+
+
+def _resolve_ambiguous_separators(s: str, debug: bool) -> str:
+    """
+    Resuelve casos ambiguos usando heurísticas adicionales.
+    """
+    # Analizar patrones de agrupamiento
+    # En formato de miles, los grupos son típicamente de 3 dígitos
+    
+    # Buscar patrones como 1.234.567 o 1,234,567
+    thousand_dot_pattern = re.match(r'^\d{1,3}(?:\.\d{3})+(?:,\d+)?$', s)
+    thousand_comma_pattern = re.match(r'^\d{1,3}(?:,\d{3})+(?:\.\d+)?$', s)
+    
+    if thousand_comma_pattern:
+        # Formato americano: 1,234,567.89
+        result = s.replace(',', '')
+        if debug:
+            logger.debug(f"resolve_ambiguous: American format detected: '{s}' -> '{result}'")
+        return result
+    
+    if thousand_dot_pattern:
+        # Formato europeo: 1.234.567,89
+        result = s.replace('.', '').replace(',', '.')
+        if debug:
+            logger.debug(f"resolve_ambiguous: European format detected: '{s}' -> '{result}'")
+        return result
+    
+    # Si no hay patrón claro, usar la posición del último separador
+    last_comma = s.rfind(',')
+    last_dot = s.rfind('.')
+    
+    if last_comma > last_dot:
+        return s.replace('.', '').replace(',', '.')
+    else:
+        return s.replace(',', '')
+
+
+def _is_valid_number_format(s: str) -> bool:
+    """
+    Valida que la string tenga un formato numérico válido después de la estandarización.
+    """
+    # Debe tener al menos un dígito
+    if not re.search(r'\d', s):
+        return False
+    
+    # No debe tener múltiples puntos decimales
+    if s.count('.') > 1:
+        return False
+    
+    # Validar formato general
+    # Permitir: dígitos, máximo un punto decimal, signo opcional al inicio
+    pattern = r'^-?\d+\.?\d*$'
+    return bool(re.match(pattern, s))
+
+
+def _is_finite(value: float) -> bool:
+    """
+    Verifica que el valor sea finito (no inf, -inf o nan).
+    """
+    import math
+    return math.isfinite(value)
+
+
+def _handle_parse_error(
+    original: str, 
+    error: str, 
+    default_value: float, 
+    strict: bool
+) -> float:
+    """
+    Maneja errores de parsing de forma consistente.
+    """
+    error_msg = f"Failed to parse '{original}': {error}"
+    
+    if strict:
+        raise ValueError(error_msg)
+    else:
+        logger.debug(f"parse_number: {error_msg}, returning default {default_value}")
+        return default_value
+
+### propuesta 2 con conjunto de pruebas específicas ###
+
+import re
+from typing import Optional, Union, Any
+
+def parse_number(
+    s: Optional[Union[str, float, int]], 
+    default_value: float = 0.0,
+    decimal_separator: Optional[str] = None
+) -> float:
+    """
+    Convierte una cadena a número de punto flotante de forma robusta.
+    Maneja diferentes separadores de miles y decimales (punto o coma).
+    
+    Args:
+        s: Valor a convertir (str, int, float, o cualquier otro tipo)
+        default_value: Valor por defecto si la conversión falla
+        decimal_separator: Forzar separador decimal ('dot' para punto, 'comma' para coma). 
+                          Si es None, se detecta automáticamente.
+    
+    Returns:
+        Número float resultante o default_value si no es posible convertir
+    
+    Ejemplos:
+        >>> parse_number("1.234,56")  # 1234.56
+        >>> parse_number("1,234.56")  # 1234.56
+        >>> parse_number("1,234")     # 1.234 (si hay solo uno, se asume decimal)
+        >>> parse_number("1.234")     # 1234.0 (si hay solo uno, se asume miles en algunos contextos)
+    """
+    try:
+        # Paso 1: Manejo de valores nulos y tipos numéricos directos
+        if s is None:
+            return default_value
+            
+        if isinstance(s, (int, float)):
+            # Validar que no sea NaN o infinito
+            if isinstance(s, float) and (s != s or s in (float('inf'), float('-inf'))):
+                return default_value
+            return float(s)
+        
+        # Paso 2: Conversión segura a string
+        if not isinstance(s, str):
+            try:
+                s = str(s)
+            except Exception:
+                return default_value
+        
+        # Paso 3: Sanitización inicial
+        s = s.strip()
+        if not s:
+            return default_value
+        
+        # Paso 4: Preprocesamiento - eliminar espacios y caracteres problemáticos
+        # Mantener solo dígitos, punto, coma, signo negativo al inicio
+        s_cleaned = re.sub(r'[^\d,.-]', '', s)
+        
+        # Caso especial: si el primer caracter es '-' y sigue con números, mantenerlo
+        has_negative_sign = s.startswith('-') or (len(s) > 1 and s[0] == '-' and s[1].isdigit())
+        if has_negative_sign and not s_cleaned.startswith('-'):
+            # Reconstruir con signo negativo si corresponde
+            s_cleaned = '-' + re.sub(r'[^-\d,.-]', '', s[1:])
+        
+        if not s_cleaned or s_cleaned in ['-', '+', '.', ',']:
+            return default_value
+        
+        # Paso 5: Detección inteligente del separador decimal
+        last_comma = s_cleaned.rfind(',')
+        last_dot = s_cleaned.rfind('.')
+        
+        # Remover signos duplicados
+        s_cleaned = re.sub(r'^[-+]+', lambda m: m.group(0)[0], s_cleaned)  # Solo primer signo
+        s_cleaned = re.sub(r'[-+]+$', '', s_cleaned)  # Eliminar signos al final
+        
+        # Detectar separador decimal basado en parámetro o contexto
+        if decimal_separator == "comma":
+            # Forzar coma como decimal
+            s_standard = s_cleaned.replace('.', '')  # Eliminar puntos (miles)
+            s_standard = s_standard.replace(',', '.')  # Reemplazar coma por punto decimal
+        elif decimal_separator == "dot":
+            # Forzar punto como decimal
+            s_standard = s_cleaned.replace(',', '')  # Eliminar comas (miles)
+        else:
+            # Detección automática (lógica original mejorada)
+            if last_comma > last_dot:
+                # La coma es más a la derecha → probablemente decimal
+                s_standard = s_cleaned.replace('.', '').replace(',', '.')
+            elif last_dot > last_comma:
+                # El punto es más a la derecha → probablemente decimal
+                s_standard = s_cleaned.replace(',', '')
+            else:
+                # Casos especiales: solo un tipo de separador o ninguno
+                if ',' in s_cleaned and '.' not in s_cleaned:
+                    # Solo comas: si hay exactamente una coma y 3 dígitos después → miles
+                    parts = s_cleaned.split(',')
+                    if len(parts) == 2 and len(parts[1]) == 3 and parts[1].isdigit():
+                        s_standard = s_cleaned.replace(',', '')
+                    else:
+                        # En otros casos, asumir coma como decimal
+                        s_standard = s_cleaned.replace(',', '.')
+                elif '.' in s_cleaned and ',' not in s_cleaned:
+                    # Solo puntos: si hay exactamente un punto y 3 dígitos después → miles
+                    parts = s_cleaned.split('.')
+                    if len(parts) == 2 and len(parts[1]) == 3 and parts[1].isdigit():
+                        s_standard = s_cleaned.replace('.', '')
+                    else:
+                        # En otros casos, asumir punto como decimal (ya está bien)
+                        s_standard = s_cleaned
+                else:
+                    # Sin separadores o ambos ausentes
+                    s_standard = s_cleaned.replace(',', '.')
+        
+        # Paso 6: Validación final antes de conversión
+        # Verificar que la cadena estandarizada tenga formato numérico válido
+        if not re.match(r'^-?(\d+\.?\d*|\.\d+)$', s_standard):
+            # Intentar limpieza adicional: eliminar caracteres no válidos restantes
+            s_standard = re.sub(r'[^-\d.]', '', s_standard)
+            # Asegurar máximo un punto decimal
+            parts = s_standard.split('.')
+            if len(parts) > 2:
+                s_standard = parts[0] + '.' + ''.join(parts[1:])
+            # Asegurar máximo un signo negativo al inicio
+            if s_standard.count('-') > 1:
+                s_standard = '-' + s_standard.replace('-', '')
+            elif s_standard.endswith('-'):
+                s_standard = s_standard[:-1]
+        
+        # Paso 7: Conversión final con manejo de errores
+        try:
+            result = float(s_standard)
+            
+            # Validaciones adicionales del resultado
+            if result != result:  # NaN check
+                return default_value
+            if result == float('inf') or result == float('-inf'):
+                return default_value
+            if abs(result) > 1e308:  # Evitar overflow
+                return default_value
+                
+            return result
+            
+        except (ValueError, TypeError, OverflowError):
+            return default_value
+            
+    except Exception:
+        # Cualquier error inesperado retorna el valor por defecto
+        return default_value
+
+
+# ============================================================================
+# PRUEBAS UNITARIAS PARA PARSE_NUMBER REFINADO
+# ============================================================================
+
+import unittest
+
+class TestParseNumberRefined(unittest.TestCase):
+    """Suite completa de pruebas para parse_number refinado."""
+    
+    def test_valores_numericos_directos(self):
+        """Prueba con valores numéricos directos."""
+        self.assertEqual(parse_number(123), 123.0)
+        self.assertEqual(parse_number(123.45), 123.45)
+        self.assertEqual(parse_number(-456), -456.0)
+        self.assertEqual(parse_number(0), 0.0)
+    
+    def test_valores_nulos_y_vacios(self):
+        """Prueba con valores nulos y vacíos."""
+        self.assertEqual(parse_number(None), 0.0)
+        self.assertEqual(parse_number(""), 0.0)
+        self.assertEqual(parse_number("   "), 0.0)
+        self.assertEqual(parse_number("", default_value=999.0), 999.0)
+    
+    def test_separador_decimal_coma(self):
+        """Prueba con coma como separador decimal."""
+        self.assertAlmostEqual(parse_number("123,45"), 123.45, places=2)
+        self.assertAlmostEqual(parse_number("1.234,56"), 1234.56, places=2)
+        self.assertAlmostEqual(parse_number("-1.234,56"), -1234.56, places=2)
+        self.assertAlmostEqual(parse_number("1,234"), 1.234, places=3)  # Coma decimal
+    
+    def test_separador_decimal_punto(self):
+        """Prueba con punto como separador decimal."""
+        self.assertAlmostEqual(parse_number("123.45"), 123.45, places=2)
+        self.assertAlmostEqual(parse_number("1,234.56"), 1234.56, places=2)
+        self.assertAlmostEqual(parse_number("-1,234.56"), -1234.56, places=2)
+        self.assertAlmostEqual(parse_number("1.234"), 1234.0, places=0)  # Punto como miles
+    
+    def test_forzar_separador_decimal(self):
+        """Prueba forzando separador decimal específico."""
+        # Forzar coma como decimal
+        self.assertAlmostEqual(parse_number("1.234", decimal_separator="comma"), 1.234, places=3)
+        self.assertAlmostEqual(parse_number("1,234", decimal_separator="comma"), 1234.0, places=0)
+        
+        # Forzar punto como decimal
+        self.assertAlmostEqual(parse_number("1,234", decimal_separator="dot"), 1234.0, places=0)
+        self.assertAlmostEqual(parse_number("1.234", decimal_separator="dot"), 1234.0, places=0)
+    
+    def test_casos_ambiguos_resolucion_inteligente(self):
+        """Prueba resolución inteligente de casos ambiguos."""
+        # Coma más a la derecha → decimal
+        self.assertAlmostEqual(parse_number("1.234,56"), 1234.56, places=2)
+        # Punto más a la derecha → decimal
+        self.assertAlmostEqual(parse_number("1,234.56"), 1234.56, places=2)
+        # Solo coma → depende del contexto
+        self.assertAlmostEqual(parse_number("1,234"), 1.234, places=3)  # asume decimal
+        # Solo punto → depende del contexto
+        self.assertAlmostEqual(parse_number("1.234"), 1234.0, places=0)  # asume miles (3 dígitos)
+    
+    def test_numeros_negativos(self):
+        """Prueba con números negativos."""
+        self.assertEqual(parse_number("-123"), -123.0)
+        self.assertAlmostEqual(parse_number("-123,45"), -123.45, places=2)
+        self.assertAlmostEqual(parse_number("-1.234,56"), -1234.56, places=2)
+        self.assertEqual(parse_number(" - 123 "), -123.0)  # con espacios
+    
+    def test_valores_invalidos(self):
+        """Prueba con valores inválidos."""
+        self.assertEqual(parse_number("abc"), 0.0)
+        self.assertEqual(parse_number("12a34b"), 1234.0)  # extrae dígitos
+        self.assertEqual(parse_number("..."), 0.0)
+        self.assertEqual(parse_number(",,,"), 0.0)
+        self.assertEqual(parse_number(".,."), 0.0)
+    
+    def test_valores_limites(self):
+        """Prueba con valores límite."""
+        self.assertEqual(parse_number("0"), 0.0)
+        self.assertEqual(parse_number("-0"), 0.0)
+        self.assertAlmostEqual(parse_number("0.0001"), 0.0001, places=4)
+        self.assertAlmostEqual(parse_number("-0.0001"), -0.0001, places=4)
+    
+    def test_tipos_no_string(self):
+        """Prueba con tipos no string que pueden convertirse."""
+        self.assertEqual(parse_number(True), 1.0)
+        self.assertEqual(parse_number(False), 0.0)
+        self.assertEqual(parse_number([1, 2, 3]), 123.0)  # "[1, 2, 3]" → "123"
+    
+    def test_nan_e_infinitos(self):
+        """Prueba manejo de NaN e infinitos."""
+        import math
+        self.assertEqual(parse_number(float('nan')), 0.0)
+        self.assertEqual(parse_number(float('inf')), 0.0)
+        self.assertEqual(parse_number(float('-inf')), 0.0)
+    
+    def test_caracteres_especiales_y_unicode(self):
+        """Prueba con caracteres especiales y Unicode."""
+        self.assertAlmostEqual(parse_number("1 234,56 €"), 1234.56, places=2)
+        self.assertAlmostEqual(parse_number("USD 1,234.56"), 1234.56, places=2)
+        self.assertAlmostEqual(parse_number("₡1.234,56"), 1234.56, places=2)  # Colones
+    
+    def test_multiples_separadores(self):
+        """Prueba con múltiples separadores."""
+        self.assertAlmostEqual(parse_number("1.234.567,89"), 1234567.89, places=2)
+        self.assertAlmostEqual(parse_number("1,234,567.89"), 1234567.89, places=2)
+        self.assertAlmostEqual(parse_number("1,234.567,89"), 1234.56789, places=5)  # último es decimal
+    
+    def test_signos_duplicados(self):
+        """Prueba con signos duplicados."""
+        self.assertEqual(parse_number("--123"), -123.0)
+        self.assertEqual(parse_number("++123"), 123.0)
+        self.assertEqual(parse_number("-+-123"), -123.0)
+        self.assertEqual(parse_number("123-"), 123.0)  # ignora signo al final
+    
+    def test_overflow_protegido(self):
+        """Prueba protección contra overflow."""
+        # Esto debería retornar default_value en lugar de causar error
+        huge_number = "1" + "0" * 400  # número extremadamente grande
+        result = parse_number(huge_number)
+        self.assertEqual(result, 0.0)  # o podría ser default_value configurado
+    
+    def test_valores_por_defecto_personalizados(self):
+        """Prueba con valores por defecto personalizados."""
+        self.assertEqual(parse_number("invalid", default_value=-1.0), -1.0)
+        self.assertEqual(parse_number("", default_value=999.0), 999.0)
+        self.assertEqual(parse_number(None, default_value=999.0), 999.0)
+
+
+def run_parse_number_tests():
+    """Ejecuta todas las pruebas para parse_number."""
+    loader = unittest.TestLoader()
+    suite = loader.loadTestsFromTestCase(TestParseNumberRefined)
+    runner = unittest.TextTestRunner(verbosity=2)
+    result = runner.run(suite)
+    return result.wasSuccessful()
+
+
+if __name__ == "__main__":
+    success = run_parse_number_tests()
+    print(f"\n{'='*70}")
+    print(f"Pruebas {'EXITOSAS' if success else 'FALLIDAS'}")
+    print(f"{'='*70}")

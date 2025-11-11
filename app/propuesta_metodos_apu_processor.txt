@@ -1,0 +1,685 @@
+"""
+Procesador APU refinado con mejoras en robustez, coherencia y mantenibilidad.
+Versión mejorada con patrones de diseño sólidos y optimizaciones de rendimiento.
+"""
+import re
+import logging
+from typing import List, Optional, Tuple, Dict, Any, Set
+from enum import Enum
+from dataclasses import dataclass
+from functools import lru_cache
+from .utils import normalize_text, parse_number
+from .schemas import ManoDeObra
+
+logger = logging.getLogger(__name__)
+
+
+class TipoInsumo(Enum):
+    """Enumeración de tipos de insumo válidos."""
+    MANO_DE_OBRA = "MANO_DE_OBRA"
+    EQUIPO = "EQUIPO"
+    TRANSPORTE = "TRANSPORTE"
+    SUMINISTRO = "SUMINISTRO"
+    OTRO = "OTRO"
+
+
+class FormatoLinea(Enum):
+    """Enumeración de formatos de línea detectados."""
+    MO_COMPLETA = "MO_COMPLETA"
+    INSUMO_BASICO = "INSUMO_BASICO"
+    DESCONOCIDO = "DESCONOCIDO"
+
+
+@dataclass
+class ValidationThresholds:
+    """Umbrales de validación para diferentes tipos de insumos."""
+    min_jornal: float = 50000
+    max_jornal: float = 10000000
+    min_rendimiento: float = 0.001
+    max_rendimiento: float = 1000
+    min_cantidad: float = 0.001
+    max_cantidad: float = 1000000
+    min_precio: float = 0.01
+    max_precio: float = 1e9
+
+
+# Gramática Lark mejorada con mejor manejo de espacios y caracteres especiales
+APU_GRAMMAR = r"""
+    ?start: line
+    line: (field (SEP field)*)? NEWLINE?
+    field: FIELD_VALUE
+    FIELD_VALUE: /[^;\r\n\t]+/
+    SEP: /\s*[;]\s*/
+    NEWLINE: /[\r\n]+/
+    %import common.WS
+    %ignore WS
+"""
+
+
+class PatternMatcher:
+    """Clase auxiliar para compilar y cachear patrones regex."""
+    
+    def __init__(self):
+        self._pattern_cache: Dict[str, re.Pattern] = {}
+        self._compile_patterns()
+    
+    def _compile_patterns(self) -> None:
+        """Pre-compila todos los patrones regex para mejor performance."""
+        # Patrones de resumen/totalización
+        self._pattern_cache['summary'] = re.compile(
+            r'SUBTOTAL|TOTAL|RESUMEN|VALOR\s+TOTAL|SUMA|TOTALES|ACUMULADO',
+            re.IGNORECASE
+        )
+        # Patrones de encabezado
+        self._pattern_cache['header'] = re.compile(
+            r'DESCRIPCI[OÓ]N|UNID|CANT|PRECIO|VALOR|DESP|REND|JORNAL|ITEM|C[OÓ]DIGO',
+            re.IGNORECASE
+        )
+        # Patrones de categoría
+        self._pattern_cache['category'] = re.compile(
+            r'^(MATERIALES?|MANO\s+DE\s+OBRA|EQUIPO|TRANSPORTE|OTROS?|SERVICIOS?)$',
+            re.IGNORECASE
+        )
+        # Patrón numérico
+        self._pattern_cache['numeric'] = re.compile(r'[\d,.]')
+        # Patrón de texto significativo
+        self._pattern_cache['text'] = re.compile(r'[a-zA-Z]{3,}')
+        # Patrón de porcentaje
+        self._pattern_cache['percentage'] = re.compile(r'%')
+    
+    def is_summary(self, text: str) -> bool:
+        """Verifica si el texto es una línea de resumen."""
+        return bool(self._pattern_cache['summary'].search(text))
+    
+    def is_header(self, text: str) -> bool:
+        """Verifica si el texto es una línea de encabezado."""
+        return bool(self._pattern_cache['header'].search(text))
+    
+    def is_category(self, text: str) -> bool:
+        """Verifica si el texto es una línea de categoría."""
+        return bool(self._pattern_cache['category'].match(text.strip()))
+    
+    def has_numeric_content(self, text: str) -> bool:
+        """Verifica si el texto contiene contenido numérico."""
+        return bool(self._pattern_cache['numeric'].search(text))
+    
+    def has_text_content(self, text: str) -> bool:
+        """Verifica si el texto contiene palabras significativas."""
+        return bool(self._pattern_cache['text'].search(text))
+    
+    def has_percentage(self, text: str) -> bool:
+        """Verifica si el texto contiene un símbolo de porcentaje."""
+        return bool(self._pattern_cache['percentage'].search(text))
+
+
+class UnitsValidator:
+    """Validador de unidades con caché y normalización mejorada."""
+    
+    # Conjunto de unidades válidas como constante de clase
+    VALID_UNITS: Set[str] = {
+        # Unidades básicas
+        "UND", "UN", "UNID", "UNIDAD", "UNIDADES",
+        # Longitud
+        "M", "MT", "MTS", "MTR", "MTRS", "METRO", "METROS", "ML", "KM",
+        # Área
+        "M2", "MT2", "MTS2", "MTRS2", "METROSCUAD", "METROSCUADRADOS",
+        # Volumen
+        "M3", "MT3", "MTS3", "MTRS3", "METROSCUB", "METROSCUBICOS",
+        # Tiempo
+        "HR", "HRS", "HORA", "HORAS", "MIN", "MINUTO", "MINUTOS",
+        "DIA", "DIAS", "SEM", "SEMANA", "SEMANAS", "MES", "MESES",
+        # Trabajo
+        "JOR", "JORN", "JORNAL", "JORNALES",
+        # Peso
+        "G", "GR", "GRAMO", "GRAMOS",
+        "KG", "KGS", "KILO", "KILOS", "KILOGRAMO", "KILOGRAMOS",
+        "TON", "TONS", "TONELADA", "TONELADAS",
+        "LB", "LIBRA", "LIBRAS",
+        # Volumen líquido
+        "GAL", "GLN", "GALON", "GALONES",
+        "LT", "LTS", "LITRO", "LITROS", "ML", "MILILITRO", "MILILITROS",
+        # Transporte
+        "VIAJE", "VIAJES", "VJE", "VJ",
+        # Otros
+        "BULTO", "BULTOS", "SACO", "SACOS", "PAQ", "PAQUETE", "PAQUETES",
+        "GLOBAL", "GLB", "GB"
+    }
+    
+    @classmethod
+    @lru_cache(maxsize=256)
+    def normalize_unit(cls, unit: str) -> str:
+        """Normaliza una unidad a su forma canónica."""
+        if not unit:
+            return "UND"
+        
+        unit_clean = re.sub(r'[^A-Z0-9]', '', unit.upper().strip())
+        
+        # Mapeo de variaciones comunes a forma canónica
+        unit_mappings = {
+            "UNID": "UND", "UN": "UND", "UNIDAD": "UND", "UNIDADES": "UND",
+            "MT": "M", "MTS": "M", "MTR": "M", "MTRS": "M", "METRO": "M", "METROS": "M",
+            "MT2": "M2", "MTS2": "M2", "MTRS2": "M2",
+            "MT3": "M3", "MTS3": "M3", "MTRS3": "M3",
+            "HR": "HRS", "HORA": "HRS", "HORAS": "HRS",
+            "JORN": "JOR", "JORNAL": "JOR", "JORNALES": "JOR",
+            "KGS": "KG", "KILO": "KG", "KILOS": "KG",
+            "TONS": "TON", "TONELADA": "TON",
+            "GLN": "GAL", "GALON": "GAL", "GALONES": "GAL",
+            "LTS": "LT", "LITRO": "LT", "LITROS": "LT",
+            "VIAJES": "VIAJE", "VJE": "VIAJE", "VJ": "VIAJE",
+            "GLB": "GLOBAL", "GB": "GLOBAL"
+        }
+        
+        return unit_mappings.get(unit_clean, unit_clean if unit_clean in cls.VALID_UNITS else "UND")
+    
+    @classmethod
+    def is_valid(cls, unit: str) -> bool:
+        """Verifica si una unidad es válida."""
+        if not unit:
+            return False
+        unit_clean = re.sub(r'[^A-Z0-9]', '', unit.upper().strip())
+        return unit_clean in cls.VALID_UNITS or len(unit_clean) <= 4
+
+
+class FieldParser:
+    """Parser dedicado para campos con lógica reutilizable."""
+    
+    def __init__(self, decimal_separator: str = "dot"):
+        self.decimal_separator = decimal_separator
+    
+    def detect_decimal_separator(self, values: List[str]) -> str:
+        """Detecta el separador decimal basado en los valores proporcionados."""
+        for value in values:
+            if value and isinstance(value, str):
+                if ',' in value and '.' in value:
+                    # Si hay ambos, el punto probablemente es separador de miles
+                    return "comma"
+                elif ',' in value:
+                    # Si solo hay comas, probablemente es separador decimal
+                    return "comma"
+        return "dot"
+    
+    def parse_numeric_value(self, value: str, fallback: float = 0.0) -> float:
+        """Parsea un valor numérico con manejo robusto de errores."""
+        if not value or not isinstance(value, str):
+            return fallback
+        
+        try:
+            return parse_number(value.strip(), decimal_separator=self.decimal_separator)
+        except (ValueError, TypeError) as e:
+            logger.debug(f"Error parseando valor numérico '{value}': {e}")
+            return fallback
+    
+    def extract_numeric_fields(self, fields: List[str], start_idx: int = 0) -> List[Tuple[int, str]]:
+        """Extrae campos que parecen numéricos con sus índices."""
+        numeric_fields = []
+        for i in range(start_idx, len(fields)):
+            field = fields[i].strip() if fields[i] else ""
+            if field and (re.search(r'[\d,.]', field) or '%' in field):
+                # Verificar que no sea principalmente texto
+                if not re.match(r'^[a-zA-Z\s]{5,}', field):
+                    numeric_fields.append((i, field))
+        return numeric_fields
+
+
+class APUTransformer:
+    """
+    Transformer mejorado con arquitectura más robusta y coherente.
+    """
+    
+    # Constantes de configuración
+    MIN_FIELDS_FOR_INSUMO = 3
+    MIN_FIELDS_FOR_MO = 5
+    MIN_NUMERIC_FIELDS = 2
+    
+    # Casos especiales para clasificación de insumos
+    SPECIAL_CLASSIFICATION_CASES = {
+        "HERRAMIENTA MENOR": TipoInsumo.EQUIPO,
+        "HERRAMIENTA (% MO)": TipoInsumo.EQUIPO,
+        "EQUIPO Y HERRAMIENTA": TipoInsumo.EQUIPO,
+        "MANO OBRA": TipoInsumo.MANO_DE_OBRA,
+        "MO ": TipoInsumo.MANO_DE_OBRA,
+    }
+    
+    def __init__(self, apu_context: Dict[str, Any], config: Dict[str, Any], keyword_cache: Any):
+        self.apu_context = apu_context
+        self.config = config
+        self.keyword_cache = keyword_cache
+        
+        # Inicializar componentes auxiliares
+        self.pattern_matcher = PatternMatcher()
+        self.units_validator = UnitsValidator()
+        self.field_parser = FieldParser()
+        
+        # Cargar umbrales de validación
+        self.thresholds = self._load_validation_thresholds()
+    
+    def _load_validation_thresholds(self) -> ValidationThresholds:
+        """Carga los umbrales de validación desde la configuración."""
+        mo_thresholds = self.config.get("validation_thresholds", {}).get("MANO_DE_OBRA", {})
+        return ValidationThresholds(
+            min_jornal=mo_thresholds.get("min_jornal", 50000),
+            max_jornal=mo_thresholds.get("max_jornal", 10000000),
+            min_rendimiento=mo_thresholds.get("min_rendimiento", 0.001),
+            max_rendimiento=mo_thresholds.get("max_rendimiento", 1000)
+        )
+    
+    def _filter_trailing_empty_fields(self, tokens: List[str]) -> List[str]:
+        """
+        Filtra campos vacíos al final preservando campos intermedios.
+        Versión optimizada con mejor performance.
+        """
+        if not tokens:
+            return []
+        
+        # Buscar el último campo no vacío de manera eficiente
+        for i in range(len(tokens) - 1, -1, -1):
+            if tokens[i] and tokens[i].strip():
+                return tokens[:i + 1]
+        
+        return []
+    
+    def _is_noise_line(self, description: str) -> bool:
+        """
+        Verifica si una línea es ruido (encabezados, totales, categorías).
+        Método consolidado para mejorar mantenibilidad.
+        """
+        if not description:
+            return True
+        
+        description = description.strip()
+        
+        # Verificar todos los tipos de líneas de ruido
+        return (
+            self.pattern_matcher.is_summary(description) or
+            self.pattern_matcher.is_header(description) or
+            self.pattern_matcher.is_category(description)
+        )
+    
+    def _count_numeric_fields(self, fields: List[str]) -> int:
+        """
+        Cuenta campos que contienen valores numéricos válidos.
+        Versión mejorada con validación real de números.
+        """
+        count = 0
+        for field in fields:
+            if not field:
+                continue
+            
+            field = field.strip()
+            # Verificar si contiene contenido numérico
+            if self.pattern_matcher.has_numeric_content(field):
+                # Verificar que no sea principalmente texto
+                if not self.pattern_matcher.has_text_content(field) or self.pattern_matcher.has_percentage(field):
+                    # Intentar parsear para validar que es realmente numérico
+                    try:
+                        self.field_parser.parse_numeric_value(field)
+                        count += 1
+                    except:
+                        # Si falla el parseo, verificar si es un porcentaje válido
+                        if self.pattern_matcher.has_percentage(field):
+                            count += 1
+        
+        return count
+    
+    @lru_cache(maxsize=512)
+    def _classify_insumo_cached(self, descripcion: str) -> TipoInsumo:
+        """Versión cacheada de clasificación de insumo."""
+        return self._classify_insumo(descripcion)
+    
+    def _classify_insumo(self, descripcion: str) -> TipoInsumo:
+        """
+        Clasifica un insumo basado en palabras clave con lógica mejorada.
+        """
+        if not descripcion:
+            return TipoInsumo.OTRO
+        
+        desc_upper = descripcion.upper()
+        
+        # Verificar casos especiales primero
+        for case_key, tipo in self.SPECIAL_CLASSIFICATION_CASES.items():
+            if case_key in desc_upper:
+                return tipo
+        
+        # Clasificación por keywords con orden de precedencia
+        keyword_hierarchy = [
+            (TipoInsumo.EQUIPO, self.keyword_cache.equipo_keywords),
+            (TipoInsumo.MANO_DE_OBRA, self.keyword_cache.mo_keywords),
+            (TipoInsumo.TRANSPORTE, self.keyword_cache.transporte_keywords),
+            (TipoInsumo.SUMINISTRO, self.keyword_cache.suministro_keywords),
+        ]
+        
+        for tipo, keywords in keyword_hierarchy:
+            if any(kw.upper() in desc_upper for kw in keywords):
+                return tipo
+        
+        # Clasificación basada en contexto del APU si está disponible
+        if self.apu_context:
+            apu_desc = self.apu_context.get("descripcion_apu", "").upper()
+            context_mappings = [
+                (["MANO DE OBRA", "MO ", "PERSONAL"], TipoInsumo.MANO_DE_OBRA),
+                (["EQUIPO", "MAQUINARIA", "HERRAMIENTA"], TipoInsumo.EQUIPO),
+                (["TRANSPORTE", "ACARREO", "FLETE"], TipoInsumo.TRANSPORTE),
+                (["MATERIAL", "SUMINISTRO", "INSUMO"], TipoInsumo.SUMINISTRO),
+            ]
+            
+            for keywords, tipo in context_mappings:
+                if any(kw in apu_desc for kw in keywords):
+                    return tipo
+        
+        return TipoInsumo.OTRO
+    
+    def _detect_format(self, fields: List[str]) -> FormatoLinea:
+        """
+        Detecta el formato de línea con lógica simplificada y más robusta.
+        """
+        # Filtrar y validar campos
+        clean_fields = self._filter_trailing_empty_fields(fields)
+        
+        if not clean_fields or not clean_fields[0]:
+            return FormatoLinea.DESCONOCIDO
+        
+        num_fields = len(clean_fields)
+        descripcion = clean_fields[0].strip()
+        
+        # Filtro de ruido consolidado
+        if self._is_noise_line(descripcion):
+            logger.debug(f"Línea de ruido ignorada: {descripcion[:50]}...")
+            return FormatoLinea.DESCONOCIDO
+        
+        # Validación de campos mínimos
+        if num_fields < self.MIN_FIELDS_FOR_INSUMO:
+            return FormatoLinea.DESCONOCIDO
+        
+        # Clasificar el tipo de insumo
+        tipo_probable = self._classify_insumo_cached(descripcion)
+        
+        # Detectar formato MO_COMPLETA
+        if (num_fields >= self.MIN_FIELDS_FOR_MO and 
+            tipo_probable == TipoInsumo.MANO_DE_OBRA):
+            if self._validate_mo_format(clean_fields):
+                return FormatoLinea.MO_COMPLETA
+        
+        # Detectar formato INSUMO_BASICO
+        numeric_count = self._count_numeric_fields(clean_fields[1:])
+        if numeric_count >= self.MIN_NUMERIC_FIELDS:
+            return FormatoLinea.INSUMO_BASICO
+        
+        return FormatoLinea.DESCONOCIDO
+    
+    def _extract_mo_values(self, fields: List[str]) -> Optional[Tuple[float, float, str]]:
+        """
+        Extrae y valida valores de mano de obra de los campos.
+        Método auxiliar para reducir duplicación de código.
+        """
+        if len(fields) < self.MIN_FIELDS_FOR_MO:
+            return None
+        
+        # Estrategia adaptativa para encontrar rendimiento y jornal
+        rendimiento_idx = 2
+        jornal_idx = 4
+        
+        # Ajustar índices si hay campos vacíos
+        if not fields[rendimiento_idx].strip():
+            # Buscar siguiente campo no vacío
+            for i in range(3, min(len(fields), 5)):
+                if fields[i].strip():
+                    rendimiento_idx = i
+                    break
+        
+        if jornal_idx < len(fields) and not fields[jornal_idx].strip():
+            # Buscar último campo numérico
+            for i in range(len(fields) - 1, max(rendimiento_idx, 3), -1):
+                if fields[i].strip() and self.pattern_matcher.has_numeric_content(fields[i]):
+                    jornal_idx = i
+                    break
+        
+        # Validar que tenemos los índices correctos
+        if rendimiento_idx >= len(fields) or jornal_idx >= len(fields):
+            return None
+        
+        rendimiento_str = fields[rendimiento_idx].strip()
+        jornal_str = fields[jornal_idx].strip()
+        
+        if not rendimiento_str or not jornal_str:
+            return None
+        
+        # Detectar separador decimal
+        decimal_separator = self.field_parser.detect_decimal_separator([rendimiento_str, jornal_str])
+        self.field_parser.decimal_separator = decimal_separator
+        
+        try:
+            rendimiento = self.field_parser.parse_numeric_value(rendimiento_str)
+            jornal = self.field_parser.parse_numeric_value(jornal_str)
+            return rendimiento, jornal, decimal_separator
+        except Exception as e:
+            logger.debug(f"Error extrayendo valores MO: {e}")
+            return None
+    
+    def _validate_mo_format(self, fields: List[str]) -> bool:
+        """
+        Valida si los campos corresponden a formato MO_COMPLETA.
+        Versión mejorada con lógica consolidada.
+        """
+        valores = self._extract_mo_values(fields)
+        
+        if not valores:
+            return False
+        
+        rendimiento, jornal, _ = valores
+        
+        # Validar contra umbrales
+        return (
+            self.thresholds.min_jornal <= jornal <= self.thresholds.max_jornal and
+            self.thresholds.min_rendimiento <= rendimiento <= self.thresholds.max_rendimiento
+        )
+    
+    def _build_mo_completa(self, tokens: List[str]) -> Optional[ManoDeObra]:
+        """
+        Construye un objeto ManoDeObra reutilizando lógica común.
+        """
+        # Filtrar campos vacíos
+        tokens = self._filter_trailing_empty_fields(tokens)
+        
+        if len(tokens) < self.MIN_FIELDS_FOR_MO:
+            logger.debug(f"MO_COMPLETA requiere al menos {self.MIN_FIELDS_FOR_MO} campos, solo hay {len(tokens)}")
+            return None
+        
+        descripcion = tokens[0].strip()
+        
+        # Extraer valores usando el método común
+        valores = self._extract_mo_values(tokens)
+        
+        if not valores:
+            logger.debug("No se pudieron extraer valores válidos de MO")
+            return None
+        
+        rendimiento, jornal_total, _ = valores
+        
+        # Validar valores
+        if not self._validate_mo_values(jornal_total, rendimiento):
+            return None
+        
+        # Cálculos robustos con validación
+        try:
+            cantidad = 1.0 / rendimiento if rendimiento > 0 else 0.0
+            valor_total = cantidad * jornal_total if cantidad > 0 and jornal_total > 0 else 0.0
+            
+            # Validar resultados calculados
+            if cantidad <= 0 or valor_total <= 0:
+                logger.warning(f"Cálculos MO resultaron en valores inválidos: cantidad={cantidad}, valor={valor_total}")
+                return None
+            
+        except (ZeroDivisionError, OverflowError) as e:
+            logger.error(f"Error en cálculos MO: {e}")
+            return None
+        
+        # Construir objeto con todos los campos validados
+        return ManoDeObra(
+            descripcion_insumo=descripcion,
+            unidad_insumo="JOR",
+            cantidad=round(cantidad, 6),  # Precisión razonable
+            precio_unitario=round(jornal_total, 2),
+            valor_total=round(valor_total, 2),
+            rendimiento=round(rendimiento, 6),
+            formato_origen="MO_COMPLETA",
+            tipo_insumo="MANO_DE_OBRA",
+            normalized_desc=normalize_text(descripcion),
+            **self.apu_context
+        )
+    
+    def _validate_mo_values(self, jornal: float, rendimiento: float) -> bool:
+        """Valida valores de mano de obra con logging mejorado."""
+        is_valid = (
+            self.thresholds.min_jornal <= jornal <= self.thresholds.max_jornal and
+            self.thresholds.min_rendimiento <= rendimiento <= self.thresholds.max_rendimiento
+        )
+        
+        if not is_valid:
+            logger.warning(
+                f"Valores MO fuera de rango: jornal={jornal:,.0f} "
+                f"(rango: {self.thresholds.min_jornal:,}-{self.thresholds.max_jornal:,}), "
+                f"rendimiento={rendimiento:.6f} "
+                f"(rango: {self.thresholds.min_rendimiento}-{self.thresholds.max_rendimiento})"
+            )
+        
+        return is_valid
+    
+    def _parse_insumo_fields(self, tokens: List[str]) -> Optional[Tuple[str, str, float, float, float]]:
+        """
+        Parsea campos de insumo con lógica modularizada y más robusta.
+        """
+        # Filtrar y validar entrada
+        tokens = self._filter_trailing_empty_fields(tokens)
+        
+        if len(tokens) < self.MIN_FIELDS_FOR_INSUMO:
+            return None
+        
+        descripcion = tokens[0].strip()
+        if not descripcion:
+            return None
+        
+        # Extraer unidad
+        unidad, unidad_end_idx = self._extract_unit_from_tokens(tokens)
+        
+        # Extraer valores numéricos
+        numeric_fields = self.field_parser.extract_numeric_fields(tokens, unidad_end_idx)
+        
+        if len(numeric_fields) < 2:
+            logger.debug(f"Insuficientes campos numéricos: {len(numeric_fields)}")
+            return None
+        
+        # Detectar separador decimal
+        numeric_values = [field[1] for field in numeric_fields]
+        self.field_parser.decimal_separator = self.field_parser.detect_decimal_separator(numeric_values)
+        
+        # Parsear valores según la cantidad de campos encontrados
+        cantidad, precio_unit, valor_total = self._parse_numeric_values(numeric_fields)
+        
+        # Validar y calcular valores faltantes
+        cantidad, precio_unit, valor_total = self._calculate_missing_values(
+            cantidad, precio_unit, valor_total
+        )
+        
+        # Validación final
+        if not self._validate_insumo_values(cantidad, precio_unit, valor_total):
+            return None
+        
+        return descripcion, unidad, cantidad, precio_unit, valor_total
+    
+    def _extract_unit_from_tokens(self, tokens: List[str]) -> Tuple[str, int]:
+        """
+        Extrae la unidad de los tokens y retorna su posición final.
+        """
+        # Buscar unidad válida en las primeras posiciones
+        for i in range(1, min(4, len(tokens))):
+            token = tokens[i].strip() if tokens[i] else ""
+            if token and self.units_validator.is_valid(token):
+                return self.units_validator.normalize_unit(token), i + 1
+        
+        # Si no se encuentra unidad, usar default
+        return "UND", 1
+    
+    def _parse_numeric_values(self, numeric_fields: List[Tuple[int, str]]) -> Tuple[float, float, float]:
+        """
+        Parsea valores numéricos según la cantidad de campos disponibles.
+        """
+        num_count = len(numeric_fields)
+        
+        cantidad = 1.0
+        precio_unit = 0.0
+        valor_total = 0.0
+        
+        if num_count == 2:
+            # Dos valores: cantidad y valor total
+            cantidad = self.field_parser.parse_numeric_value(numeric_fields[0][1], 1.0)
+            valor_total = self.field_parser.parse_numeric_value(numeric_fields[1][1], 0.0)
+            
+        elif num_count >= 3:
+            # Tres o más valores
+            cantidad = self.field_parser.parse_numeric_value(numeric_fields[0][1], 1.0)
+            
+            # Verificar si el segundo campo es desperdicio
+            if self.pattern_matcher.has_percentage(numeric_fields[1][1]):
+                # Desperdicio detectado, ajustar índices
+                if num_count > 3:
+                    precio_unit = self.field_parser.parse_numeric_value(numeric_fields[2][1], 0.0)
+                    valor_total = self.field_parser.parse_numeric_value(numeric_fields[3][1], 0.0)
+                elif num_count == 3:
+                    valor_total = self.field_parser.parse_numeric_value(numeric_fields[2][1], 0.0)
+            else:
+                # Sin desperdicio
+                precio_unit = self.field_parser.parse_numeric_value(numeric_fields[1][1], 0.0)
+                valor_total = self.field_parser.parse_numeric_value(numeric_fields[2][1], 0.0)
+        
+        return cantidad, precio_unit, valor_total
+    
+    def _calculate_missing_values(self, cantidad: float, precio_unit: float, 
+                                 valor_total: float) -> Tuple[float, float, float]:
+        """
+        Calcula valores faltantes basándose en los disponibles.
+        """
+        try:
+            if cantidad > 0 and precio_unit > 0 and valor_total == 0:
+                valor_total = cantidad * precio_unit
+                
+            elif cantidad > 0 and valor_total > 0 and precio_unit == 0:
+                precio_unit = valor_total / cantidad
+                
+            elif precio_unit > 0 and valor_total > 0 and cantidad == 0:
+                cantidad = valor_total / precio_unit
+                
+        except (ZeroDivisionError, OverflowError) as e:
+            logger.debug(f"Error calculando valores faltantes: {e}")
+        
+        return cantidad, precio_unit, valor_total
+    
+    def _validate_insumo_values(self, cantidad: float, precio: float, total: float) -> bool:
+        """
+        Valida que los valores del insumo sean coherentes.
+        """
+        # Validar rangos básicos
+        if cantidad <= 0 or precio < 0 or total < 0:
+            return False
+        
+        # Validar contra umbrales configurados
+        if cantidad > self.thresholds.max_cantidad:
+            logger.warning(f"Cantidad excede el máximo: {cantidad} > {self.thresholds.max_cantidad}")
+            return False
+        
+        if precio > self.thresholds.max_precio:
+            logger.warning(f"Precio excede el máximo: {precio} > {self.thresholds.max_precio}")
+            return False
+        
+        # Validar coherencia entre valores (con tolerancia)
+        if cantidad > 0 and precio > 0 and total > 0:
+            expected_total = cantidad * precio
+            tolerance = 0.01  # 1% de tolerancia
+            if abs(total - expected_total) / expected_total > tolerance:
+                logger.warning(
+                    f"Incoherencia en valores: {cantidad} × {precio} = {expected_total}, "
+                    f"pero total es {total}"
+                )
+                return False
+        
+        return True
