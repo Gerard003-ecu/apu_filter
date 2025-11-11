@@ -68,16 +68,28 @@ La plataforma está construida sobre una pila de tecnologías modernas de alto r
 
 ## Instalación y Uso
 
-Esta sección describe cómo configurar un entorno de desarrollo robusto utilizando un enfoque híbrido que combina **Conda**, **pip** y **uv**.
+Esta sección describe cómo configurar un entorno de desarrollo robusto utilizando un enfoque híbrido que combina **Conda**, **pip** y **uv**. Este método es esencial para garantizar una instalación estable y reproducible.
 
-### ¿Por qué un Enfoque Híbrido?
+### La Arquitectura de la Instalación: Una Analogía de Engranajes
 
-El proyecto depende de librerías complejas que tienen dependencias a nivel de sistema (ej. C++), como `faiss-cpu`, y otras que requieren versiones específicas de CPU, como `torch`. Para manejar esto de forma fiable:
--   **Conda** se utiliza para instalar `faiss-cpu`, ya que gestiona de manera excelente las dependencias binarias complejas.
--   **Pip** se usa para instalar la versión de `torch` específica para CPU desde su repositorio oficial.
--   **uv** gestiona el resto de las dependencias de Python de manera extremadamente rápida y eficiente.
+Para entender por qué seguimos un orden de instalación específico, podemos visualizar nuestro entorno como una caja de cambios de precisión compuesta por tres engranajes diferentes, cada uno con una función especializada.
 
-Este enfoque garantiza una instalación estable y reproducible, evitando los comunes errores de compilación.
+1.  **Conda: El Engranaje Principal y de Potencia (El Engranaje Grande)**
+    *   **Rol:** Mueve las piezas más pesadas y complejas que no son de Python puro y dependen del sistema operativo (ej. librerías C++).
+    *   **Característica:** Es potente y fiable, diseñado para buscar e instalar paquetes pre-compilados que encajan perfectamente con la arquitectura de la máquina.
+    *   **En APU Filter:** Su única tarea es instalar `faiss-cpu`, una librería con dependencias complejas a nivel de sistema.
+
+2.  **Pip (con `--index-url`): La Herramienta Especializada**
+    *   **Rol:** Se utiliza para una pieza crítica que necesita una instalación muy específica desde un repositorio exclusivo.
+    *   **Característica:** Comunica una intención precisa: "Ve únicamente a este almacén específico (el de PyTorch para CPU) y trae la pieza exacta que encuentres allí".
+    *   **En APU Filter:** Su única tarea es instalar la versión `torch` optimizada exclusivamente para CPU, evitando la descarga de las pesadas librerías de CUDA.
+
+3.  **uv/pip: El Engranaje de Alta Velocidad y Precisión (El Engranaje Pequeño)**
+    *   **Rol:** Ensambla todos los componentes de la aplicación que son de Python puro, comunicándose directamente con el ecosistema de Python (PyPI).
+    *   **Característica:** Es ultrarrápido y ágil, ideal para manejar dependencias estándar de Python, pero no tiene la fuerza para gestionar las piezas pesadas que maneja Conda.
+    *   **En APU Filter:** Su tarea es instalar todo lo demás desde `requirements.txt` de forma eficiente.
+
+Este enfoque de "engranajes" asegura que cada componente se instale con la herramienta adecuada, en el orden correcto, garantizando la estabilidad y el rendimiento del sistema.
 
 ### Diagrama del Flujo de Instalación
 
@@ -94,41 +106,43 @@ graph TD
     H -- "uv pip install -r" --> I[Librerías Restantes];
     I --> J[Fin: Entorno Listo ✅];
 ```
-### Pasos Detallados
+
+### Pasos Detallados de Instalación
+
 **Requisito Previo:** Asegúrese de tener instalado Miniconda o Anaconda. Puede descargarlo desde [aquí](https://www.anaconda.com/products/distribution).
 
-**Paso 1: Crear el Entorno Conda**
-Cree un nuevo entorno Conda llamado `apu_filter_env` con Python 3.10, que es la versión compatible con todas las dependencias clave.
+**Paso 1: Crear el Entorno Base (Conda)**
+Cree un nuevo entorno Conda llamado `apu_filter_env` con Python 3.10, la versión sobre la cual se construirán los demás componentes.
 ```bash
 conda create --name apu_filter_env python=3.10
 ```
 
 **Paso 2: Activar el Entorno**
-Active el entorno recién creado. Debe hacer esto cada vez que trabaje en el proyecto.
+Active el entorno recién creado. **Debe hacer esto cada vez que trabaje en el proyecto.**
 ```bash
 conda activate apu_filter_env
 ```
 
-**Paso 3: Instalar Paquetes Especiales (faiss-cpu y torch)**
-Instale `faiss-cpu` usando Conda y `torch` usando pip con el índice de PyTorch.
+**Paso 3: Instalar Componentes Pesados (Conda y Pip Especializado)**
+Instale los "engranajes" principales que requieren compilaciones y dependencias complejas.
 
-*Instalar faiss-cpu:*
-```bash
-conda install -c pytorch faiss-cpu
-```
+*   **Instalar `faiss-cpu` (El Engranaje de Potencia):**
+    ```bash
+    conda install -c pytorch faiss-cpu
+    ```
 
-*Instalar torch (versión CPU):*
-```bash
-pip install torch --index-url https://download.pytorch.org/whl/cpu
-```
+*   **Instalar `torch` (La Herramienta Especializada):**
+    ```bash
+    pip install torch --index-url https://download.pytorch.org/whl/cpu
+    ```
 
-**Paso 4: Instalar el Resto de Dependencias con uv**
-Finalmente, instale todas las demás dependencias del proyecto listadas en `requirements.txt`.
+**Paso 4: Instalar Dependencias de la Aplicación (uv)**
+Finalmente, instale todas las demás dependencias de Python puro con el "engranaje de alta velocidad".
 ```bash
 uv pip install -r requirements.txt
 ```
 
-Nota Importante: El archivo requirements.txt no debe contener faiss-cpu ni torch. Si alguna vez necesita regenerar este archivo (ej. usando uv pip compile requirements.in), asegúrese de excluir estas dos librerías para evitar conflictos.
+**Nota Importante:** El archivo `requirements.txt` no debe contener `faiss-cpu` ni `torch`. Si alguna vez necesita regenerar este archivo (ej. usando `uv pip compile requirements.in`), asegúrese de excluir estas dos librerías para evitar conflictos de instalación.
 
 Flujo de Trabajo del Proyecto
 El ciclo de vida del desarrollo y uso de la aplicación sigue estos pasos:
