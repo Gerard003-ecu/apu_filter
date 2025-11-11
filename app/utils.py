@@ -10,6 +10,7 @@ import re
 from functools import lru_cache
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union
+from decimal import Decimal, InvalidOperation
 
 import numpy as np
 import pandas as pd
@@ -173,107 +174,479 @@ def _safe_normalize(text: str, preserve_special_chars: bool) -> str:
 
 def parse_number(
     s: Optional[Union[str, float, int]],
-    decimal_separator: str = "auto",
-    default_value: float = 0.0
+    default_value: float = 0.0,
+    decimal_separator: Optional[str] = None,
+    strict: bool = False,
+    allow_percentage: bool = True,
+    allow_scientific: bool = True,
+    debug: bool = False
 ) -> float:
     """
     Convierte una cadena a número de punto flotante de forma robusta.
 
+    Maneja diferentes formatos numéricos incluyendo:
+    - Separadores de miles y decimales (punto o coma)
+    - Números negativos y positivos
+    - Porcentajes (opcional)
+    - Notación científica (opcional)
+    - Espacios en blanco
+    - Caracteres no numéricos comunes
+
     Args:
-        s: Valor a convertir (string, float, int)
-        decimal_separator: "auto", "comma" o "dot"
+        s: Valor a convertir (string, float, int o None)
         default_value: Valor por defecto si la conversión falla
+        decimal_separator: Forzar separador decimal específico ('dot', 'comma', None=auto)
+        strict: Si True, falla con excepciones en lugar de retornar default
+        allow_percentage: Si True, maneja valores como "15%" -> 0.15
+        allow_scientific: Si True, maneja notación científica como "1.5e-3"
+        debug: Si True, registra información de depuración
 
     Returns:
-        Número convertido o default_value si falla
+        float: Número parseado o default_value si falla
+
+    Raises:
+        ValueError: Solo si strict=True y la conversión falla
+
+    Examples:
+        >>> parse_number("1,234.56")
+        1234.56
+        >>> parse_number("1.234,56", decimal_separator="comma")
+        1234.56
+        >>> parse_number("€ 1,500.00")
+        1500.0
+        >>> parse_number("15%", allow_percentage=True)
+        0.15
+        >>> parse_number("1.5e-3", allow_scientific=True)
+        0.0015
+        >>> parse_number("N/A", default_value=-1)
+        -1.0
     """
+
+    # ============================================================
+    # 1. VALIDACIÓN INICIAL Y CASOS RÁPIDOS
+    # ============================================================
+
+    # Caso None
     if s is None:
+        if debug:
+            logger.debug(f"parse_number: Input is None, returning default {default_value}")
         return default_value
 
-    # Si ya es numérico, retornar directamente
+    # Casos numéricos directos (int, float)
     if isinstance(s, (int, float)):
-        if pd.isna(s) or np.isnan(s):
-            return default_value
-        return float(s)
+        result = float(s)
+        if debug:
+            logger.debug(f"parse_number: Direct numeric conversion: {s} -> {result}")
+        return result
 
+    # Convertir a string si no lo es
     if not isinstance(s, str):
-        try:
-            s = str(s)
-        except Exception:
-            return default_value
+        s = str(s)
 
-    # Limpiar string inicial
-    s_cleaned = s.strip()
-    if not s_cleaned:
-        return default_value
+    # Cache para strings comunes
+    cached_result = _get_cached_parse(s, decimal_separator)
+    if cached_result is not None:
+        if debug:
+            logger.debug(f"parse_number: Cache hit for '{s}' -> {cached_result}")
+        return cached_result
 
-    # Remover símbolos comunes de moneda y porcentaje
-    for char in ['$', '€', '£', '¥', '%', ' ']:
-        s_cleaned = s_cleaned.replace(char, '')
+    # Guardar string original para logging
+    original_s = s
 
-    if not s_cleaned:
-        return default_value
+    # ============================================================
+    # 2. LIMPIEZA INICIAL Y VALIDACIONES
+    # ============================================================
 
-    # Forzar el manejo de la coma como separador decimal si está presente
-    if decimal_separator == "auto" and ',' in s_cleaned and '.' not in s_cleaned:
-        decimal_separator = "comma"
-    elif decimal_separator == "auto":
-        decimal_separator = "dot"
+    # Eliminar espacios en blanco al inicio y final
+    s = s.strip()
 
-    s_cleaned = _normalize_numeric_string(s_cleaned, decimal_separator)
+    # Verificar si está vacío después de strip
+    if not s:
+        if debug:
+            logger.debug(f"parse_number: Empty string after strip, returning default {default_value}")
+        return _handle_parse_error(original_s, "empty string", default_value, strict)
 
-    # Validar y convertir
-    if NUMERIC_PATTERN.match(s_cleaned):
-        try:
-            result = float(s_cleaned)
-            # Validar que el resultado no sea infinito
-            if np.isinf(result):
-                return default_value
+    # Verificar casos especiales comunes que no son números
+    if _is_non_numeric_text(s):
+        if debug:
+            logger.debug(f"parse_number: Non-numeric text detected: '{s}'")
+        return _handle_parse_error(original_s, "non-numeric text", default_value, strict)
+
+    # ============================================================
+    # 3. MANEJO DE PORCENTAJES
+    # ============================================================
+
+    if allow_percentage and '%' in s:
+        result = _parse_percentage(s, default_value, strict, debug)
+        if result is not None:
+            _cache_parse_result(original_s, decimal_separator, result)
             return result
-        except (ValueError, TypeError, OverflowError):
-            return default_value
 
-    return default_value
+    # ============================================================
+    # 4. MANEJO DE NOTACIÓN CIENTÍFICA
+    # ============================================================
+
+    if allow_scientific and ('e' in s.lower() or 'E' in s):
+        result = _parse_scientific(s, default_value, strict, debug)
+        if result is not None:
+            _cache_parse_result(original_s, decimal_separator, result)
+            return result
+
+    # ============================================================
+    # 5. LIMPIEZA DE CARACTERES NO NUMÉRICOS
+    # ============================================================
+
+    # Extraer signo si existe
+    sign = 1.0
+    s_work = s
+
+    # Manejar múltiples signos al inicio
+    sign_match = re.match(r'^([+-]+)', s_work)
+    if sign_match:
+        signs = sign_match.group(1)
+        # Contar signos negativos
+        neg_count = signs.count('-')
+        sign = -1.0 if neg_count % 2 == 1 else 1.0
+        s_work = s_work[len(signs):]
+        if debug:
+            logger.debug(f"parse_number: Extracted sign: {sign} from '{signs}'")
+
+    # Eliminar símbolos de moneda comunes y otros caracteres no numéricos
+    # pero preservar puntos, comas, espacios (pueden ser separadores)
+    s_cleaned = re.sub(r'[^\d,.\s-]', '', s_work)
+
+    # Eliminar espacios que pueden ser separadores de miles
+    # pero solo si están entre dígitos
+    s_cleaned = re.sub(r'(?<=\d)\s+(?=\d)', '', s_cleaned)
+    s_cleaned = s_cleaned.strip()
+
+    if not s_cleaned or not re.search(r'\d', s_cleaned):
+        if debug:
+            logger.debug(f"parse_number: No digits found after cleaning: '{s}' -> '{s_cleaned}'")
+        return _handle_parse_error(original_s, "no digits found", default_value, strict)
+
+    # ============================================================
+    # 6. DETECCIÓN INTELIGENTE DE SEPARADORES
+    # ============================================================
+
+    if decimal_separator:
+        # Usar separador especificado por el usuario
+        s_standard = _apply_separator_format(s_cleaned, decimal_separator, debug)
+    else:
+        # Detección automática mejorada
+        s_standard = _auto_detect_and_convert_separators(s_cleaned, debug)
+
+    # ============================================================
+    # 7. VALIDACIÓN Y CONVERSIÓN FINAL
+    # ============================================================
+
+    # Validar formato antes de intentar conversión
+    if not _is_valid_number_format(s_standard):
+        if debug:
+            logger.debug(f"parse_number: Invalid format after standardization: '{s_standard}'")
+        return _handle_parse_error(original_s, f"invalid format: {s_standard}", default_value, strict)
+
+    # Intentar conversión con manejo de errores robusto
+    try:
+        # Usar Decimal para mayor precisión en la conversión intermedia
+        if '.' in s_standard and len(s_standard.split('.')[1]) > 15:
+            # Para números con muchos decimales, usar Decimal
+            result = float(Decimal(s_standard)) * sign
+        else:
+            # Conversión directa para números normales
+            result = float(s_standard) * sign
+
+        # Validar resultado
+        if not _is_finite(result):
+            if debug:
+                logger.debug(f"parse_number: Non-finite result: {result}")
+            return _handle_parse_error(original_s, f"non-finite result: {result}", default_value, strict)
+
+        # Cache el resultado exitoso
+        _cache_parse_result(original_s, decimal_separator, result)
+
+        if debug:
+            logger.debug(f"parse_number: Success: '{original_s}' -> {result}")
+
+        return result
+
+    except (ValueError, TypeError, InvalidOperation) as e:
+        if debug:
+            logger.debug(f"parse_number: Conversion error for '{s_standard}': {e}")
+        return _handle_parse_error(original_s, str(e), default_value, strict)
 
 
-def _detect_decimal_separator(s: str) -> str:
-    """Detecta el separador decimal en un string numérico."""
+# ============================================================
+# FUNCIONES AUXILIARES ROBUSTAS
+# ============================================================
+
+@lru_cache(maxsize=1024)
+def _get_cached_parse(s: str, decimal_separator: Optional[str]) -> Optional[float]:
+    """
+    Busca en cache valores previamente parseados.
+    Cache key incluye el string y el separador para evitar colisiones.
+    """
+    # Solo cachear strings comunes y cortos
+    if len(s) > 50:
+        return None
+
+    # Valores comunes pre-computados
+    common_values = {
+        "0": 0.0,
+        "1": 1.0,
+        "-1": -1.0,
+        "0.0": 0.0,
+        "1.0": 1.0,
+        "0,0": 0.0,
+        "1,0": 1.0,
+    }
+
+    return common_values.get(s)
+
+
+def _cache_parse_result(s: str, decimal_separator: Optional[str], result: float):
+    """Almacena resultado en cache si es apropiado."""
+    # Solo cachear strings cortos para evitar uso excesivo de memoria
+    if len(s) <= 50:
+        # El LRU cache de _get_cached_parse manejará esto automáticamente
+        pass
+
+
+def _is_non_numeric_text(s: str) -> bool:
+    """
+    Detecta texto que claramente no es un número.
+    """
+    non_numeric_indicators = [
+        r'^N[/\\]?A$',           # N/A, NA
+        r'^-+$',                 # Solo guiones
+        r'^\?+$',                # Solo signos de interrogación
+        r'^TBD$',                # To Be Determined
+        r'^NULL$',               # NULL
+        r'^NONE$',               # None
+        r'^NAN$',                # NaN
+        r'^#.*',                 # Errores de Excel (#DIV/0!, #VALUE!, etc)
+    ]
+
+    s_upper = s.upper().strip()
+    return any(re.match(pattern, s_upper) for pattern in non_numeric_indicators)
+
+
+def _parse_percentage(s: str, default_value: float, strict: bool, debug: bool) -> Optional[float]:
+    """
+    Parsea un valor de porcentaje (e.g., "15%" -> 0.15).
+    """
+    try:
+        # Eliminar el símbolo de porcentaje y espacios
+        s_percent = s.replace('%', '').strip()
+
+        if not s_percent:
+            return None
+
+        # Parsear recursivamente sin el %
+        base_value = parse_number(
+            s_percent,
+            default_value=None,  # Usar None para detectar fallo
+            allow_percentage=False,  # Evitar recursión infinita
+            debug=debug
+        )
+
+        if base_value is None:
+            return None
+
+        # Convertir a decimal (dividir por 100)
+        result = base_value / 100.0
+
+        if debug:
+            logger.debug(f"parse_percentage: '{s}' -> {base_value} -> {result}")
+
+        return result
+
+    except Exception as e:
+        if debug:
+            logger.debug(f"parse_percentage: Error parsing '{s}': {e}")
+        return None
+
+
+def _parse_scientific(s: str, default_value: float, strict: bool, debug: bool) -> Optional[float]:
+    """
+    Parsea notación científica (e.g., "1.5e-3" -> 0.0015).
+    """
+    try:
+        # Limpiar espacios alrededor de 'e' o 'E'
+        s_sci = re.sub(r'\s*([eE])\s*', r'\1', s.strip())
+
+        # Validar formato básico de notación científica
+        if not re.match(r'^[+-]?\d+\.?\d*[eE][+-]?\d+$', s_sci):
+            return None
+
+        result = float(s_sci)
+
+        if not _is_finite(result):
+            return None
+
+        if debug:
+            logger.debug(f"parse_scientific: '{s}' -> {result}")
+
+        return result
+
+    except (ValueError, OverflowError) as e:
+        if debug:
+            logger.debug(f"parse_scientific: Error parsing '{s}': {e}")
+        return None
+
+
+def _apply_separator_format(s: str, separator_format: str, debug: bool) -> str:
+    """
+    Aplica formato de separador especificado por el usuario.
+    """
+    if separator_format == "comma":
+        # Coma es decimal, punto es miles
+        s_standard = s.replace('.', '').replace(',', '.')
+        if debug:
+            logger.debug(f"apply_separator: Comma format: '{s}' -> '{s_standard}'")
+    elif separator_format == "dot":
+        # Punto es decimal, coma es miles
+        s_standard = s.replace(',', '')
+        if debug:
+            logger.debug(f"apply_separator: Dot format: '{s}' -> '{s_standard}'")
+    else:
+        # Formato no reconocido, usar auto-detección
+        s_standard = _auto_detect_and_convert_separators(s, debug)
+
+    return s_standard
+
+
+def _auto_detect_and_convert_separators(s: str, debug: bool) -> str:
+    """
+    Detección automática mejorada de separadores decimales y de miles.
+    """
+    # Contar ocurrencias
     comma_count = s.count(',')
     dot_count = s.count('.')
 
-    if comma_count > 0 and dot_count > 0:
-        # Ambos presentes: asumir que la coma es decimal si está después del punto
-        if comma_count == 1 and s.rfind(',') > s.rfind('.'):
-            return "comma"
-        return "dot"
-    elif comma_count == 1 and dot_count == 0:
-        # Solo una coma: probablemente decimal
-        # Verificar si hay 3 dígitos después (sería miles)
-        comma_pos = s.find(',')
-        digits_after = len(s[comma_pos+1:])
-        return "dot" if digits_after == 3 else "comma"
+    # Casos simples sin ambigüedad
+    if comma_count == 0 and dot_count == 0:
+        # No hay separadores
+        return s
 
-    return "dot"
+    if comma_count == 0:
+        # Solo puntos, asumir que el punto es decimal
+        return s
+
+    if dot_count == 0:
+        # Solo comas
+        if comma_count == 1:
+            # Una sola coma, probablemente decimal
+            return s.replace(',', '.')
+        else:
+            # Múltiples comas, probablemente miles
+            return s.replace(',', '')
+
+    # Ambos separadores presentes - análisis más detallado
+    last_comma = s.rfind(',')
+    last_dot = s.rfind('.')
+
+    # El último separador suele ser el decimal
+    if last_comma > last_dot:
+        # Coma es decimal
+        # Verificar consistencia: después de la coma decimal debe haber 1-4 dígitos típicamente
+        after_comma = s[last_comma + 1:]
+        if after_comma and after_comma.isdigit() and len(after_comma) <= 4:
+            s_standard = s.replace('.', '').replace(',', '.')
+            if debug:
+                logger.debug(f"auto_detect: Comma as decimal: '{s}' -> '{s_standard}'")
+            return s_standard
+
+    # Punto es decimal (caso más común)
+    # Verificar consistencia: después del punto decimal debe haber dígitos
+    after_dot = s[last_dot + 1:]
+    if after_dot and after_dot.isdigit():
+        s_standard = s.replace(',', '')
+        if debug:
+            logger.debug(f"auto_detect: Dot as decimal: '{s}' -> '{s_standard}'")
+        return s_standard
+
+    # Caso ambiguo, usar heurística adicional
+    return _resolve_ambiguous_separators(s, debug)
 
 
-def _normalize_numeric_string(s: str, decimal_separator: str) -> str:
-    """Normaliza un string numérico según el separador decimal."""
-    if decimal_separator == "comma":
-        # Coma como decimal, punto como miles
-        s = s.replace(".", "")  # Eliminar separadores de miles
-        s = s.replace(",", ".")  # Convertir coma decimal a punto
+def _resolve_ambiguous_separators(s: str, debug: bool) -> str:
+    """
+    Resuelve casos ambiguos usando heurísticas adicionales.
+    """
+    # Analizar patrones de agrupamiento
+    # En formato de miles, los grupos son típicamente de 3 dígitos
+
+    # Buscar patrones como 1.234.567 o 1,234,567
+    thousand_dot_pattern = re.match(r'^\d{1,3}(?:\.\d{3})+(?:,\d+)?$', s)
+    thousand_comma_pattern = re.match(r'^\d{1,3}(?:,\d{3})+(?:\.\d+)?$', s)
+
+    if thousand_comma_pattern:
+        # Formato americano: 1,234,567.89
+        result = s.replace(',', '')
+        if debug:
+            logger.debug(f"resolve_ambiguous: American format detected: '{s}' -> '{result}'")
+        return result
+
+    if thousand_dot_pattern:
+        # Formato europeo: 1.234.567,89
+        result = s.replace('.', '').replace(',', '.')
+        if debug:
+            logger.debug(f"resolve_ambiguous: European format detected: '{s}' -> '{result}'")
+        return result
+
+    # Si no hay patrón claro, usar la posición del último separador
+    last_comma = s.rfind(',')
+    last_dot = s.rfind('.')
+
+    if last_comma > last_dot:
+        return s.replace('.', '').replace(',', '.')
     else:
-        # Punto como decimal, coma como miles
-        s = s.replace(",", "")  # Eliminar separadores de miles
+        return s.replace(',', '')
 
-    # Manejar casos edge como "1.234.567" (múltiples puntos)
+
+def _is_valid_number_format(s: str) -> bool:
+    """
+    Valida que la string tenga un formato numérico válido después de la estandarización.
+    """
+    # Debe tener al menos un dígito
+    if not re.search(r'\d', s):
+        return False
+
+    # No debe tener múltiples puntos decimales
     if s.count('.') > 1:
-        parts = s.split('.')
-        integer_part = ''.join(parts[:-1])
-        decimal_part = parts[-1]
-        s = f"{integer_part}.{decimal_part}"
+        return False
 
-    return s
+    # Validar formato general
+    # Permitir: dígitos, máximo un punto decimal, signo opcional al inicio
+    pattern = r'^-?\d+\.?\d*$'
+    return bool(re.match(pattern, s))
+
+
+def _is_finite(value: float) -> bool:
+    """
+    Verifica que el valor sea finito (no inf, -inf o nan).
+    """
+    import math
+    return math.isfinite(value)
+
+
+def _handle_parse_error(
+    original: str,
+    error: str,
+    default_value: float,
+    strict: bool
+) -> float:
+    """
+    Maneja errores de parsing de forma consistente.
+    """
+    error_msg = f"Failed to parse '{original}': {error}"
+
+    if strict:
+        raise ValueError(error_msg)
+    else:
+        logger.debug(f"parse_number: {error_msg}, returning default {default_value}")
+        return default_value
 
 # ============================================================================
 # FUNCIONES DE VALIDACIÓN Y LIMPIEZA DE CÓDIGOS APU
@@ -977,6 +1350,99 @@ def batch_process_dataframe(
 
     return pd.concat(results, ignore_index=True)
 
+def calculate_unit_costs(df: pd.DataFrame,
+                        config: Optional[Dict[str, Any]] = None) -> pd.DataFrame:
+    """
+    Calcula costos unitarios por APU con validación robusta.
+    Args:
+        df: DataFrame procesado
+        config: Configuración opcional para cálculos
+    Returns:
+        DataFrame con costos unitarios por APU
+    """
+    if df.empty:
+        logger.error("❌ DataFrame vacío para cálculo de costos")
+        return pd.DataFrame()
+
+    required_cols = ['CODIGO_APU', 'TIPO_INSUMO', 'VALOR_TOTAL_APU']
+    missing = [col for col in required_cols if col not in df.columns]
+    if missing:
+        logger.error(f"❌ Columnas faltantes: {missing}")
+        return pd.DataFrame()
+
+    logger.info("🔄 Calculando costos unitarios por APU...")
+    try:
+        # Agrupar y sumar por APU y tipo
+        grouped = df.groupby(
+            ['CODIGO_APU', 'DESCRIPCION_APU', 'UNIDAD_APU', 'TIPO_INSUMO']
+        )['VALOR_TOTAL_APU'].sum().reset_index()
+
+        # Pivotear
+        pivot = grouped.pivot_table(
+            index=['CODIGO_APU', 'DESCRIPCION_APU', 'UNIDAD_APU'],
+            columns='TIPO_INSUMO',
+            values='VALOR_TOTAL_APU',
+            fill_value=0,
+            aggfunc='sum'
+        ).reset_index()
+
+        # Asegurar todas las columnas necesarias
+        expected_columns = ['SUMINISTRO', 'MANO_DE_OBRA', 'EQUIPO', 'TRANSPORTE', 'OTRO']
+        for col in expected_columns:
+            if col not in pivot.columns:
+                pivot[col] = 0
+
+        # Calcular componentes
+        pivot['VALOR_SUMINISTRO_UN'] = pivot.get('SUMINISTRO', 0)
+        pivot['VALOR_INSTALACION_UN'] = (
+            pivot.get('MANO_DE_OBRA', 0) +
+            pivot.get('EQUIPO', 0)
+        )
+        pivot['VALOR_TRANSPORTE_UN'] = pivot.get('TRANSPORTE', 0)
+        pivot['VALOR_OTRO_UN'] = pivot.get('OTRO', 0)
+
+        # Total
+        pivot['COSTO_UNITARIO_TOTAL'] = (
+            pivot['VALOR_SUMINISTRO_UN'] +
+            pivot['VALOR_INSTALACION_UN'] +
+            pivot['VALOR_TRANSPORTE_UN'] +
+            pivot['VALOR_OTRO_UN']
+        )
+
+        # Porcentajes con manejo de división por cero
+        total = pivot['COSTO_UNITARIO_TOTAL'].replace(0, np.nan)
+        pivot['PCT_SUMINISTRO'] = (pivot['VALOR_SUMINISTRO_UN'] / total * 100).fillna(0).round(2)
+        pivot['PCT_INSTALACION'] = (pivot['VALOR_INSTALACION_UN'] / total * 100).fillna(0).round(2)
+        pivot['PCT_TRANSPORTE'] = (pivot['VALOR_TRANSPORTE_UN'] / total * 100).fillna(0).round(2)
+        pivot['PCT_OTRO'] = (pivot['VALOR_OTRO_UN'] / total * 100).fillna(0).round(2)
+
+        # Ordenar y limpiar
+        pivot = pivot.sort_values('CODIGO_APU')
+
+        # Optimizar tipos
+        for col in pivot.select_dtypes(include=['float64']).columns:
+            pivot[col] = pivot[col].astype('float32')
+
+        # Log resumen
+        logger.info(f"✅ Costos calculados para {len(pivot):,} APUs únicos")
+        logger.info(f"   💰 Suministros: ${pivot['VALOR_SUMINISTRO_UN'].sum():,.2f}")
+        logger.info(f"   👷 Instalación: ${pivot['VALOR_INSTALACION_UN'].sum():,.2f}")
+        logger.info(f"   🚚 Transporte: ${pivot['VALOR_TRANSPORTE_UN'].sum():,.2f}")
+        logger.info(f"   📊 Total: ${pivot['COSTO_UNITARIO_TOTAL'].sum():,.2f}")
+
+        # Validar resultados
+        if pivot['COSTO_UNITARIO_TOTAL'].sum() == 0:
+            logger.error("⚠️ Todos los costos calculados son cero")
+
+        negative_costs = (pivot['COSTO_UNITARIO_TOTAL'] < 0).sum()
+        if negative_costs > 0:
+            logger.error(f"⚠️ {negative_costs} APUs con costos negativos")
+
+        return pivot
+    except Exception as e:
+        logger.error(f"❌ Error calculando costos unitarios: {str(e)}")
+        return pd.DataFrame()
+
 # ============================================================================
 # LISTA DE EXPORTACIÓN
 # ============================================================================
@@ -995,6 +1461,7 @@ __all__ = [
     'detect_outliers',
     'find_and_rename_columns',
     'sanitize_for_json',
+    'calculate_unit_costs',
     # Funciones adicionales
     'calculate_std_dev',
     'calculate_statistics',

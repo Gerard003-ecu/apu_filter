@@ -42,7 +42,11 @@ VALID_TIPOS_INSUMO = {
 
 def normalize_tipo_insumo(tipo: str) -> str:
     """Normaliza y valida el tipo de insumo."""
-    normalized = tipo.strip().upper()
+    # Manejar enums y strings
+    if hasattr(tipo, 'value'):
+        tipo = tipo.value
+
+    normalized = str(tipo).strip().upper()
     if normalized not in VALID_TIPOS_INSUMO:
         raise ValueError(f"Tipo de insumo inválido: {tipo}. Valores válidos: {VALID_TIPOS_INSUMO}")
     return normalized
@@ -91,19 +95,18 @@ class InsumoProcesado:
         self._validate_consistency()
 
     def _normalize_fields(self):
-        """Normaliza campos clave antes de validación."""
+        """Normaliza campos clave y asegura consistencia."""
         self.codigo_apu = self.codigo_apu.strip() if isinstance(self.codigo_apu, str) else ""
         self.descripcion_apu = normalize_description(self.descripcion_apu)
         self.descripcion_insumo = normalize_description(self.descripcion_insumo)
         self.unidad_apu = normalize_unit(self.unidad_apu)
         self.unidad_insumo = normalize_unit(self.unidad_insumo)
-        self.categoria = self.categoria.strip().upper() if isinstance(self.categoria, str) else "OTRO"
         self.tipo_insumo = normalize_tipo_insumo(self.tipo_insumo)
         self.formato_origen = self.formato_origen.strip().upper() if isinstance(self.formato_origen, str) else "GENERIC"
 
-        # Generar normalized_desc si no se proporcionó
-        if not self.normalized_desc:
-            self.normalized_desc = normalize_description(self.descripcion_insumo)
+        # Forzar sincronización de categoria y regeneración de normalized_desc
+        self.categoria = self.tipo_insumo
+        self.normalized_desc = normalize_description(self.descripcion_insumo)
 
     def _validate_required_fields(self):
         """Valida campos obligatorios y tipos."""
@@ -156,7 +159,7 @@ class InsumoProcesado:
 @dataclass
 class ManoDeObra(InsumoProcesado):
     """Esquema específico para Mano de Obra."""
-
+    jornal: float = 0.0
     def _validate_consistency(self):
         """Validaciones específicas de Mano de Obra."""
         super()._validate_consistency()
