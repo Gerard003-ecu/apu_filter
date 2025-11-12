@@ -656,50 +656,229 @@ def _handle_parse_error(
 # ============================================================================
 
 @lru_cache(maxsize=512)
-def clean_apu_code(code: str, validate_format: bool = True) -> str:
+def clean_apu_code(
+code: str,
+validate_format: bool = True,
+min_length: int = 1,
+is_item_code: bool = False,
+allow_numeric_only: bool = True
+) -> str:
     """
-    Limpia y valida un código de APU de forma robusta con cache.
+     Limpia y valida un código de APU/ITEM de forma robusta con cache.
 
-    Args:
-        code: Código de APU a limpiar
-        validate_format: Si True, valida el formato básico
+     Maneja múltiples contextos:
+     - Códigos de APU técnicos (ej: "APU-001", "M.2.1.3")
+     - Códigos de ITEM simples (ej: "1", "2", "3.1")
+     - Códigos alfanuméricos (ej: "A1", "B-2")
 
-    Returns:
-        Código de APU limpio y validado
+     Args:
+     code: Código de APU o ITEM a limpiar
+     validate_format: Si True, aplica validaciones de formato
+     min_length: Longitud mínima requerida (default=1 para permitir ITEMs simples)
+     is_item_code: Si True, aplica reglas más permisivas para códigos de ITEM
+     allow_numeric_only: Si True, permite códigos que son solo números
 
-    Raises:
-        ValueError: Si el código es inválido y validate_format=True
-        TypeError: Si code no puede convertirse a string
-    """
+     Returns:
+     Código limpio y validado en mayúsculas
+
+     Raises:
+     ValueError: Si el código es inválido y validate_format=True
+     TypeError: Si code no puede convertirse a string
+
+     Examples:
+    >>> clean_apu_code("1") # ITEM simple
+     '1'
+    >>> clean_apu_code("3.1.2") # ITEM jerárquico
+     '3.1.2'
+    >>> clean_apu_code("APU-001", min_length=2) # APU técnico
+     'APU-001'
+    >>> clean_apu_code(" a1-b ") # Con espacios y minúsculas
+     'A1-B'
+     """
+    # ============================================================
+    # 1. VALIDACIÓN Y CONVERSIÓN DE TIPO
+    # ============================================================
     if not isinstance(code, str):
         try:
             code = str(code)
         except Exception as e:
-            raise TypeError(f"No se puede convertir código APU a string: {e}")
+            raise TypeError(
+                f"No se puede convertir código a string. "
+                f"Tipo recibido: {type(code).__name__}, Error: {e}"
+            )
 
+    # Guardar original para mensajes de error
     original_code = code
-    code = code.strip().upper()
 
-    # Remover caracteres no permitidos (mantener letras, números, puntos, guiones)
+    # ============================================================
+    # 2. LIMPIEZA BÁSICA
+    # ============================================================
+    # Eliminar espacios al inicio y final
+    code = code.strip()
+
+    # Validar que no esté vacío después del strip
+    if not code:
+        if validate_format:
+            raise ValueError(
+                f"Código no puede estar vacío o solo contener espacios. "
+                f"Original: '{original_code}'"
+            )
+        return ""
+
+    # Convertir a mayúsculas para consistencia
+    code = code.upper()
+
+    # ============================================================
+    # 3. NORMALIZACIÓN DE CARACTERES ESPECIALES
+    # ============================================================
+    # Reemplazar comas por puntos (común en notación decimal europea)
     code = code.replace(',', '.')
+
+    # Remover caracteres no permitidos
+    # Permitidos: letras, números, puntos, guiones, guiones bajos
     code = APU_INVALID_CHARS_PATTERN.sub('', code)
 
-    # Remover puntos y guiones al final
-    code = code.rstrip('.-')
+    # Remover puntos y guiones al final (no aportan información)
+    code = code.rstrip('.-_')
 
-    # Validaciones opcionales de formato
+    # Remover puntos y guiones al inicio (poco común pero posible)
+    code = code.lstrip('.-_')
+
+    # Verificar si quedó vacío después de la limpieza
+    if not code:
+        if validate_format:
+            raise ValueError(
+                f"Código vacío después de limpieza. "
+                f"Original: '{original_code}' contenía solo caracteres inválidos"
+            )
+        return ""
+
+    # ============================================================
+    # 4. VALIDACIONES DE FORMATO (SI ESTÁN HABILITADAS)
+    # ============================================================
     if validate_format:
-        if not code:
-            raise ValueError(f"Código APU no puede estar vacío: '{original_code}'")
+        # 4.1 Validar longitud mínima
+        if len(code) < min_length:
+            raise ValueError(
+                f"Código demasiado corto (mín: {min_length} caracteres). "
+                f"Original: '{original_code}', Limpio: '{code}'"
+            )
 
-        if len(code) < 2:
-            raise ValueError(f"Código APU demasiado corto: '{original_code}'")
+        # 4.2 Validar que contenga al menos un carácter alfanumérico
+        if not any(c.isalnum() for c in code):
+            raise ValueError(
+                f"Código debe contener al menos un carácter alfanumérico. "
+                f"Original: '{original_code}', Limpio: '{code}'"
+            )
 
-        # Verificar que tenga al menos un número
-        if not any(char.isdigit() for char in code):
-            logger.warning(f"Código APU sin números: '{original_code}' -> '{code}'")
+        # 4.3 Validar código numérico puro (si no está permitido)
+        is_numeric_only = all(c.isdigit() or c == '.' for c in code)
+        if is_numeric_only and not allow_numeric_only and not is_item_code:
+            logger.warning(
+                f"Código es solo numérico (puede ser válido como ITEM): "
+                f"'{original_code}' -> '{code}'"
+            )
+
+        # 4.4 Advertencia si el código no tiene números
+        # (los APUs técnicos normalmente incluyen números)
+        if not is_item_code and not any(c.isdigit() for c in code):
+            logger.warning(
+                f"Código APU sin números (inusual): "
+                f"'{original_code}' -> '{code}'"
+            )
+
+        # 4.5 Validar patrones específicos para códigos de ITEM
+        if is_item_code:
+            # Los ITEMs suelen ser números con posibles puntos para jerarquía
+            # Ejemplos: "1", "2.3", "1.2.3", "A.1", etc.
+            if not _is_valid_item_code(code):
+                logger.warning(
+                    f"Código ITEM con formato inusual: '{code}'. "
+                    f"Se esperaba formato numérico o jerárquico"
+                )
+
+    # ============================================================
+    # 5. VALIDACIONES ADICIONALES DE CALIDAD
+    # ============================================================
+
+    # Detectar múltiples puntos consecutivos (probablemente error)
+    if '..' in code:
+        logger.warning(
+            f"Código contiene puntos consecutivos: '{original_code}' -> '{code}'"
+        )
+        # Corregir múltiples puntos consecutivos
+        code = re.sub(r'\.{2,}', '.', code)
+
+    # Detectar múltiples guiones consecutivos
+    if '--' in code:
+        logger.warning(
+            f"Código contiene guiones consecutivos: '{original_code}' -> '{code}'"
+        )
+        # Corregir múltiples guiones consecutivos
+        code = re.sub(r'-{2,}', '-', code)
+
+    # Validar longitud máxima razonable (evitar códigos excesivamente largos)
+    MAX_CODE_LENGTH = 100
+    if len(code) > MAX_CODE_LENGTH:
+        logger.warning(
+            f"Código excesivamente largo ({len(code)} caracteres): '{code[:50]}...'"
+        )
+        if validate_format:
+            raise ValueError(
+                f"Código demasiado largo (máx: {MAX_CODE_LENGTH} caracteres). "
+                f"Original: '{original_code}' ({len(original_code)} caracteres)"
+            )
 
     return code
+
+def _is_valid_item_code(code: str) -> bool:
+    """
+     Valida si un código tiene formato válido para un ITEM.
+
+     Los ITEMs válidos típicamente siguen estos patrones:
+     - Numérico simple: "1", "2", "10"
+     - Jerárquico con puntos: "1.1", "2.3.4", "1.2.3.4"
+     - Alfanumérico jerárquico: "A.1", "B.2.1", "I.A.1"
+     - Mixto con guiones: "1-A", "2-B-1"
+
+     Args:
+     code: Código a validar
+
+     Returns:
+     True si el código tiene un formato válido para ITEM
+
+     Examples:
+    >>> _is_valid_item_code("1")
+     True
+    >>> _is_valid_item_code("1.2.3")
+     True
+    >>> _is_valid_item_code("A.1")
+     True
+    >>> _is_valid_item_code("......")
+     False
+     """
+    # Patrón para ITEMs válidos:
+    # - Debe empezar con letra o número
+    # - Puede contener letras, números, puntos, guiones
+    # - Debe terminar con letra o número
+    # - No puede tener solo separadores
+    pattern = r'^[A-Z0-9]([A-Z0-9.\-_]*[A-Z0-9])?$'
+
+    if not re.match(pattern, code):
+        return False
+
+    # Validar que no sea solo separadores
+    if all(c in '.-_' for c in code):
+        return False
+
+    # Validar estructura jerárquica si tiene puntos
+    if '.' in code:
+        parts = code.split('.')
+        # Cada parte debe ser alfanumérica no vacía
+        if not all(part and part[0].isalnum() for part in parts):
+            return False
+
+    return True
 
 # ============================================================================
 # FUNCIONES DE NORMALIZACIÓN DE UNIDADES

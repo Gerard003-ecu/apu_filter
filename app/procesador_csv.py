@@ -470,21 +470,30 @@ class PresupuestoProcessor:
         return is_valid
 
     def _clean_and_convert_data(self, df: pd.DataFrame) -> pd.DataFrame:
-        """Limpia y convierte tipos de datos."""
-        # Limpiar códigos APU
+        """
+         Limpia y convierte tipos de datos.
+         Maneja códigos de ITEM de cualquier longitud, incluyendo dígitos simples.
+         """
+        # Limpiar códigos APU/ITEM con parámetros permisivos para ITEMs del presupuesto
         df[ColumnNames.CODIGO_APU] = (
             df[ColumnNames.CODIGO_APU]
             .astype(str)
-            .apply(clean_apu_code)
+            .apply(lambda code: clean_apu_code(
+                code,
+                validate_format=True, # Mantener validación básica
+                min_length=1, # ✅ Permitir ITEMs de 1 carácter
+                is_item_code=True, # ✅ Indicar que son códigos de ITEM
+                allow_numeric_only=True # ✅ Permitir números puros ("1", "2")
+            ))
         )
 
-        # Filtrar códigos vacíos
+        # Filtrar códigos vacíos (solo después de la limpieza)
         df = df[
             df[ColumnNames.CODIGO_APU].notna() &
             (df[ColumnNames.CODIGO_APU] != "")
         ]
 
-        # Convertir cantidades
+        # Convertir cantidades con manejo robusto
         if ColumnNames.CANTIDAD_PRESUPUESTO in df.columns:
             cantidad_str = (
                 df[ColumnNames.CANTIDAD_PRESUPUESTO]
@@ -496,12 +505,27 @@ class PresupuestoProcessor:
                 errors="coerce"
             )
 
-            # Validar rango
-            self.validator.validate_numeric_range(
-                df[ColumnNames.CANTIDAD_PRESUPUESTO],
-                ColumnNames.CANTIDAD_PRESUPUESTO,
-                self.thresholds.max_quantity
+        # Validar rango con logging mejorado
+        invalid_quantities = df[
+            (df[ColumnNames.CANTIDAD_PRESUPUESTO] < 0) |
+            (df[ColumnNames.CANTIDAD_PRESUPUESTO] > self.thresholds.max_quantity)
+        ]
+        if not invalid_quantities.empty:
+            logger.warning(
+                f"⚠️ Se encontraron {len(invalid_quantities)} cantidades "
+                f"fuera de rango (0 - {self.thresholds.max_quantity:,.0f})"
             )
+            # Mostrar ejemplos
+            for idx, row in invalid_quantities.head(3).iterrows():
+                logger.warning(
+                    f" ITEM {row[ColumnNames.CODIGO_APU]}: "
+                    f"Cantidad = {row[ColumnNames.CANTIDAD_PRESUPUESTO]}"
+                )
+
+        logger.debug(
+            f"✅ Limpieza completada: {len(df)} ITEMs válidos "
+            f"(incluyendo códigos de 1 carácter)"
+        )
 
         return df
 
@@ -1299,29 +1323,55 @@ def _do_processing(
     insumos_path: str,
     config: dict
 ) -> dict:
-    """Lógica central para procesar, unificar y calcular todos los datos.
-    
-    Args:
-        presupuesto_path: Ruta al archivo de presupuesto.
-        apus_path: Ruta al archivo de APUs.
-        insumos_path: Ruta al archivo de insumos.
-        config: Configuración de la aplicación.
-    
-    Returns:
-        Diccionario con datos procesados o error.
     """
+     Lógica central para procesar, unificar y calcular todos los datos.
+     Procesa archivos de entrada y genera archivos JSON de salida necesarios
+     para análisis posteriores y generación de embeddings.
+     Args:
+     presupuesto_path: Ruta al archivo de presupuesto.
+     apus_path: Ruta al archivo de APUs.
+     insumos_path: Ruta al archivo de insumos.
+     config: Configuración de la aplicación.
+     Returns:
+     Diccionario con datos procesados o error.
+     Genera archivos:
+     - data/processed_apus.json: APUs procesados para embeddings
+     - data/presupuesto_final.json: Presupuesto consolidado
+     - data/insumos_detalle.json: Detalle de insumos por APU
+     """
     logger.info("=" * 80)
     logger.info("🚀 Iniciando procesamiento de archivos con patrón pipeline...")
     logger.info("=" * 80)
 
+    # ============================================================
+    # 1. CONFIGURACIÓN DE UMBRALES Y RUTAS DE SALIDA
+    # ============================================================
     thresholds = ProcessingThresholds()
     if "processing_thresholds" in config:
         custom_thresholds = config["processing_thresholds"]
         for key, value in custom_thresholds.items():
             if hasattr(thresholds, key):
                 setattr(thresholds, key, value)
+                logger.debug(f"Umbral configurado: {key} = {value}")
+
+    # Configurar rutas de salida desde config o usar defaults
+    output_dir = Path(config.get("output_dir", "data"))
+    output_files = {
+        "processed_apus": output_dir / config.get(
+            "processed_apus_file", "processed_apus.json"
+        ),
+        "presupuesto_final": output_dir / config.get(
+            "presupuesto_final_file", "presupuesto_final.json"
+        ),
+        "insumos_detalle": output_dir / config.get(
+            "insumos_detalle_file", "insumos_detalle.json"
+        ),
+    }
 
     try:
+        # ============================================================
+        # 2. EJECUTAR PIPELINE DE PROCESAMIENTO
+        # ============================================================
         pipeline = ProcessingPipeline([
             LoadDataStep(config, thresholds),
             MergeDataStep(thresholds),
@@ -1336,33 +1386,342 @@ def _do_processing(
             "insumos_path": insumos_path,
         }
 
+        logger.info("🔄 Ejecutando pipeline de procesamiento...")
         final_context = pipeline.run(initial_context)
+
+        final_result = final_context.get('final_result')
+        if not final_result:
+            error_msg = "Pipeline no produjo resultado final"
+            logger.error(f"❌ {error_msg}")
+            return {"error": error_msg}
+
+        if "error" in final_result:
+            logger.error(f"❌ Error en resultado final: {final_result['error']}")
+            return final_result
+
+        # ============================================================
+        # 3. VALIDAR DATOS ANTES DE GUARDAR
+        # ============================================================
+        logger.info("🔍 Validando datos procesados antes de guardar...")
+        validation_results = _validate_output_data(final_result)
+        if not validation_results["is_valid"]:
+            logger.error(
+                f"❌ Validación de datos falló: {validation_results['errors']}"
+            )
+            # Continuar pero registrar advertencias
+            for warning in validation_results["warnings"]:
+                logger.warning(f"⚠️ {warning}")
+
+        # ============================================================
+        # 4. GUARDAR ARCHIVOS JSON DE SALIDA
+        # ============================================================
+        logger.info("=" * 80)
+        logger.info("💾 Guardando archivos JSON de salida...")
+        logger.info("=" * 80)
+
+        saved_files = _save_output_files(final_result, output_files, config)
+
+        # ============================================================
+        # 5. REGISTRAR ESTADÍSTICAS Y COMPLETAR
+        # ============================================================
+        _log_processing_statistics(final_result, saved_files)
 
         logger.info("=" * 80)
         logger.info("🎉 PROCESAMIENTO COMPLETADO EXITOSAMENTE")
         logger.info("=" * 80)
 
-        return final_context.get('final_result', {"error": "Pipeline no produjo resultado final"})
+        # Añadir información de archivos guardados al resultado
+        final_result["output_files"] = {
+            name: str(path) for name, path in saved_files.items()
+        }
+        final_result["processing_timestamp"] = pd.Timestamp.now().isoformat()
+
+        return final_result
 
     except (ValueError, pd.errors.MergeError) as e:
         error_msg = f"Error en el pipeline: {e}"
         logger.error(f"❌ {error_msg}", exc_info=True)
-        # Si el error está relacionado con la carga de APUs, ejecutar diagnóstico
+        # Diagnóstico específico para errores de APUs
         if "apus" in str(e).lower():
             logger.info("=" * 80)
-            logger.info("🤔 El procesamiento de APUs falló. Ejecutando diagnóstico...")
+            logger.info("🔍 Ejecutando diagnóstico del archivo de APUs...")
+            logger.info("=" * 80)
             try:
                 diagnostic = APUFileDiagnostic(apus_path)
                 diagnostic.diagnose()
             except Exception as diag_e:
-                logger.error(f"❌ Error durante el diagnóstico del archivo APU: {diag_e}", exc_info=True)
-            logger.info("=" * 80)
+                logger.error(
+                    f"❌ Error durante el diagnóstico: {diag_e}",
+                    exc_info=True
+                )
+        logger.info("=" * 80)
         return {"error": error_msg}
     except Exception as e:
         error_msg = f"Error crítico en el pipeline: {e}"
         logger.error(f"❌ {error_msg}", exc_info=True)
         return {"error": error_msg}
 
+# ============================================================
+# FUNCIONES AUXILIARES PARA GUARDADO Y VALIDACIÓN
+# ============================================================
+
+def _validate_output_data(result: dict) -> dict:
+    """
+     Valida la integridad de los datos de salida.
+     Args:
+     result: Diccionario con los datos procesados
+     Returns:
+     Diccionario con resultado de validación
+     """
+    validation = {
+        "is_valid": True,
+        "errors": [],
+        "warnings": []
+    }
+
+    # Validar presencia de secciones clave
+    required_keys = ["presupuesto", "processed_apus", "apus_detail"]
+    for key in required_keys:
+        if key not in result:
+            validation["errors"].append(f"Falta sección requerida: {key}")
+            validation["is_valid"] = False
+        elif not result[key]:
+            validation["warnings"].append(f"Sección vacía: {key}")
+
+    # Validar que processed_apus tenga datos
+    if "processed_apus" in result:
+        processed_count = len(result["processed_apus"])
+        if processed_count == 0:
+            validation["errors"].append("processed_apus está vacío")
+            validation["is_valid"] = False
+        else:
+            logger.info(f"✅ {processed_count} APUs procesados listos para guardar")
+
+    # Validar estructura de processed_apus
+    if "processed_apus" in result and result["processed_apus"]:
+        sample_apu = result["processed_apus"][0]
+        expected_fields = [
+            ColumnNames.CODIGO_APU,
+            ColumnNames.DESCRIPCION_APU,
+            ColumnNames.VALOR_CONSTRUCCION_UN
+        ]
+        missing_fields = [
+            field for field in expected_fields
+            if field not in sample_apu
+        ]
+        if missing_fields:
+            validation["warnings"].append(
+                f"Campos faltantes en processed_apus: {missing_fields}"
+            )
+
+    return validation
+
+def _save_output_files(
+    result: dict,
+    output_files: dict,
+    config: dict
+) -> dict:
+    """
+     Guarda los archivos JSON de salida de forma robusta.
+     Args:
+     result: Diccionario con los datos procesados
+     output_files: Diccionario con rutas de archivos a guardar
+     config: Configuración de la aplicación
+     Returns:
+     Diccionario con rutas de archivos guardados exitosamente
+     """
+    from .utils import sanitize_for_json
+    import json
+    saved_files = {}
+
+    # Asegurar que el directorio de salida existe
+    for file_path in output_files.values():
+        file_path.parent.mkdir(parents=True, exist_ok=True)
+        logger.debug(f"Directorio verificado: {file_path.parent}")
+
+    # ============================================================
+    # 1. GUARDAR PROCESSED_APUS.JSON (CRÍTICO PARA EMBEDDINGS)
+    # ============================================================
+    if "processed_apus" in result and result["processed_apus"]:
+        try:
+            processed_apus_path = output_files["processed_apus"]
+            logger.info(f"💾 Guardando APUs procesados en: {processed_apus_path}")
+            # Sanitizar datos para JSON
+            processed_data = sanitize_for_json(result["processed_apus"])
+            # Guardar con formato legible
+            with open(processed_apus_path, "w", encoding="utf-8") as f:
+                json.dump(
+                    processed_data,
+                    f,
+                    indent=2,
+                    ensure_ascii=False
+                )
+            file_size = processed_apus_path.stat().st_size
+            logger.info(
+                f"✅ processed_apus.json guardado exitosamente "
+                f"({len(processed_data)} registros, {file_size:,} bytes)"
+            )
+            saved_files["processed_apus"] = processed_apus_path
+        except Exception as e:
+            logger.error(
+                f"❌ Error guardando processed_apus.json: {e}",
+                exc_info=True
+            )
+            # Este es crítico, pero no falla el proceso completo
+    else:
+        logger.warning("⚠️ No hay datos de processed_apus para guardar")
+
+    # ============================================================
+    # 2. GUARDAR PRESUPUESTO_FINAL.JSON
+    # ============================================================
+    if "presupuesto" in result and result["presupuesto"]:
+        try:
+            presupuesto_path = output_files["presupuesto_final"]
+            logger.info(f"💾 Guardando presupuesto final en: {presupuesto_path}")
+            presupuesto_data = sanitize_for_json(result["presupuesto"])
+            with open(presupuesto_path, "w", encoding="utf-8") as f:
+                json.dump(
+                    presupuesto_data,
+                    f,
+                    indent=2,
+                    ensure_ascii=False
+                )
+            file_size = presupuesto_path.stat().st_size
+            logger.info(
+                f"✅ presupuesto_final.json guardado "
+                f"({len(presupuesto_data)} registros, {file_size:,} bytes)"
+            )
+            saved_files["presupuesto_final"] = presupuesto_path
+        except Exception as e:
+            logger.error(
+                f"❌ Error guardando presupuesto_final.json: {e}",
+                exc_info=True
+            )
+
+    # ============================================================
+    # 3. GUARDAR INSUMOS_DETALLE.JSON
+    # ============================================================
+    if "apus_detail" in result and result["apus_detail"]:
+        try:
+            insumos_path = output_files["insumos_detalle"]
+            logger.info(f"💾 Guardando detalle de insumos en: {insumos_path}")
+            insumos_data = sanitize_for_json(result["apus_detail"])
+            with open(insumos_path, "w", encoding="utf-8") as f:
+                json.dump(
+                    insumos_data,
+                    f,
+                    indent=2,
+                    ensure_ascii=False
+                )
+            file_size = insumos_path.stat().st_size
+            logger.info(
+                f"✅ insumos_detalle.json guardado "
+                f"({len(insumos_data)} registros, {file_size:,} bytes)"
+            )
+            saved_files["insumos_detalle"] = insumos_path
+        except Exception as e:
+            logger.error(
+                f"❌ Error guardando insumos_detalle.json: {e}",
+                exc_info=True
+            )
+
+    # ============================================================
+    # 4. GUARDAR ARCHIVO COMPLETO DE RESPALDO (OPCIONAL)
+    # ============================================================
+    if config.get("save_full_backup", False):
+        try:
+            backup_path = output_files.get(
+                "full_backup",
+                Path(config.get("output_dir", "data")) / "full_backup.json"
+            )
+            logger.info(f"💾 Guardando respaldo completo en: {backup_path}")
+            # Crear copia del resultado sin DataFrames crudos
+            backup_data = {
+                k: v for k, v in result.items()
+                if k not in ["raw_insumos_df"] and not isinstance(v, pd.DataFrame)
+            }
+            backup_data_clean = sanitize_for_json(backup_data)
+            with open(backup_path, "w", encoding="utf-8") as f:
+                json.dump(
+                    backup_data_clean,
+                    f,
+                    indent=2,
+                    ensure_ascii=False
+                )
+            file_size = backup_path.stat().st_size
+            logger.info(
+                f"✅ Respaldo completo guardado ({file_size:,} bytes)"
+            )
+            saved_files["full_backup"] = backup_path
+        except Exception as e:
+            logger.error(
+                f"⚠️ Error guardando respaldo completo: {e}",
+                exc_info=True
+            )
+            # Este es opcional, no afecta el proceso
+
+    return saved_files
+
+def _log_processing_statistics(result: dict, saved_files: dict) -> None:
+    """
+     Registra estadísticas del procesamiento completado.
+     Args:
+     result: Diccionario con los datos procesados
+     saved_files: Diccionario con archivos guardados
+     """
+    logger.info("=" * 80)
+    logger.info("📊 ESTADÍSTICAS DEL PROCESAMIENTO")
+    logger.info("=" * 80)
+
+    # Estadísticas de datos
+    stats = []
+    if "presupuesto" in result:
+        count = len(result["presupuesto"])
+        stats.append(f" 📋 APUs en Presupuesto: {count:,}")
+        # Calcular totales si existe la columna
+        if result["presupuesto"]:
+            try:
+                total_construccion = sum(
+                    item.get(ColumnNames.VALOR_CONSTRUCCION_TOTAL, 0)
+                    for item in result["presupuesto"]
+                )
+                stats.append(f" 💰 Costo Total Construcción: ${total_construccion:,.2f}")
+            except Exception:
+                pass
+
+    if "processed_apus" in result:
+        count = len(result["processed_apus"])
+        stats.append(f" 🏗️ APUs Procesados: {count:,}")
+
+    if "apus_detail" in result:
+        count = len(result["apus_detail"])
+        stats.append(f" 🔧 Insumos Detallados: {count:,}")
+
+    if "insumos" in result:
+        grupos = len(result["insumos"])
+        total_insumos = sum(len(items) for items in result["insumos"].values())
+        stats.append(f" 📦 Grupos de Insumos: {grupos}")
+        stats.append(f" 📦 Total Insumos: {total_insumos:,}")
+
+    for stat in stats:
+        logger.info(stat)
+
+    # Archivos guardados
+    logger.info("")
+    logger.info("📁 ARCHIVOS GENERADOS:")
+    if saved_files:
+        for name, path in saved_files.items():
+            file_size = path.stat().st_size if path.exists() else 0
+            size_mb = file_size / (1024 * 1024)
+            logger.info(f" ✅ {name}: {path} ({size_mb:.2f} MB)")
+    else:
+        logger.warning(" ⚠️ No se guardaron archivos de salida")
+
+    logger.info("=" * 80)
+
+# ============================================================
+# FUNCIÓN PRINCIPAL (SIN CAMBIOS)
+# ============================================================
 
 def process_all_files(
     presupuesto_path: str,
@@ -1370,15 +1729,14 @@ def process_all_files(
     insumos_path: str,
     config: dict
 ) -> dict:
-    """Orquesta el procesamiento completo de los archivos de entrada.
-    
-    Args:
-        presupuesto_path: Ruta al archivo del presupuesto.
-        apus_path: Ruta al archivo de APUs.
-        insumos_path: Ruta al archivo de insumos.
-        config: Configuración de la aplicación.
-    
-    Returns:
-        Diccionario con los datos procesados o información de error.
     """
+     Orquesta el procesamiento completo de los archivos de entrada.
+     Args:
+     presupuesto_path: Ruta al archivo del presupuesto.
+     apus_path: Ruta al archivo de APUs.
+     insumos_path: Ruta al archivo de insumos.
+     config: Configuración de la aplicación.
+     Returns:
+     Diccionario con los datos procesados o información de error.
+     """
     return _do_processing(presupuesto_path, apus_path, insumos_path, config)

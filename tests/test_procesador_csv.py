@@ -13,6 +13,7 @@ import os
 import sys
 import tempfile
 import unittest
+from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pandas as pd
@@ -505,6 +506,22 @@ class TestPresupuestoProcessor(unittest.TestCase):
 
         self.assertTrue(result.empty)
 
+    def test_process_with_single_digit_item(self):
+        """Prueba que procese correctamente un ITEM de un solo dígito."""
+        temp_file = self.temp_manager.create_temp_file()
+        data = (
+            "ITEM;DESCRIPCION;UND;CANT.\n"
+            "1;APU de un digito;ML;100\n"
+            "1.1;APU normal;M3;50\n"
+        )
+        TestDataBuilder.create_presupuesto_csv(temp_file, data)
+
+        result = self.processor.process(temp_file)
+
+        self.assertEqual(len(result), 2)
+        self.assertIn("1", result[ColumnNames.CODIGO_APU].tolist())
+        self.assertEqual(result.iloc[0][ColumnNames.CODIGO_APU], "1")
+
 
 class TestInsumosProcessor(unittest.TestCase):
     """Pruebas para la clase InsumosProcessor."""
@@ -872,44 +889,51 @@ class TestProcessAllFilesIntegration(unittest.TestCase):
         """Limpia archivos temporales."""
         self.temp_manager.cleanup()
 
-    def test_process_all_files_success(self):
-        """Prueba procesamiento completo exitoso."""
-        with patch('app.procesador_csv.ReportParserCrudo') as mock_parser_class:
-            with patch('app.procesador_csv.APUProcessor') as mock_processor_class:
-                # Mock del parser
-                mock_parser = MagicMock()
-                mock_parser_class.return_value = mock_parser
-                mock_parser.parse_to_raw.return_value = []
+    @patch('app.procesador_csv._save_output_files')
+    def test_process_all_files_success(self, mock_save_output_files):
+        """Prueba procesamiento completo exitoso, simulando guardado de archivos."""
+        # Crear un mock de Path para evitar el error 'str' object has no attribute 'exists'
+        mock_path = MagicMock(spec=Path)
+        mock_path.exists.return_value = True
+        mock_path.stat.return_value.st_size = 12345
+        # Simulamos que _save_output_files devuelve un diccionario con mocks de Path
+        mock_save_output_files.return_value = {
+            "processed_apus": mock_path,
+            "presupuesto_final": mock_path,
+            "insumos_detalle": mock_path,
+        }
 
-                # Mock del processor
-                mock_processor = MagicMock()
-                mock_processor_class.return_value = mock_processor
-                mock_processor.process_all.return_value = (
-                    TestDataBuilder.create_sample_apus_df()
-                )
+        with patch('app.procesador_csv.ReportParserCrudo') as mock_parser_class, \
+             patch('app.procesador_csv.APUProcessor') as mock_processor_class:
 
-                # Ejecutar
-                resultado = process_all_files(
-                    self.presupuesto_path,
-                    self.apus_path,
-                    self.insumos_path,
-                    TEST_CONFIG
-                )
+            mock_parser = MagicMock()
+            mock_parser_class.return_value = mock_parser
+            mock_parser.parse_to_raw.return_value = []
 
-                # Verificaciones
-                self.assertIsInstance(resultado, dict)
-                self.assertNotIn("error", resultado)
+            mock_processor = MagicMock()
+            mock_processor_class.return_value = mock_processor
+            mock_processor.process_all.return_value = TestDataBuilder.create_sample_apus_df()
 
-                expected_keys = [
-                    "presupuesto",
-                    "insumos",
-                    "apus_detail",
-                    "all_apus",
-                    "processed_apus"
-                ]
+            resultado = process_all_files(
+                self.presupuesto_path,
+                self.apus_path,
+                self.insumos_path,
+                TEST_CONFIG
+            )
 
-                for key in expected_keys:
-                    self.assertIn(key, resultado, f"Falta clave: {key}")
+            self.assertIsInstance(resultado, dict)
+            self.assertNotIn("error", resultado, f"Se encontró un error inesperado: {resultado.get('error')}")
+
+            expected_keys = [
+                "presupuesto", "insumos", "apus_detail",
+                "all_apus", "processed_apus", "output_files"
+            ]
+            for key in expected_keys:
+                self.assertIn(key, resultado, f"Falta clave: {key}")
+
+            # Verificar la nueva estructura de salida
+            self.assertIn("processed_apus", resultado["output_files"])
+            mock_save_output_files.assert_called_once()
 
     def test_process_all_files_file_not_found(self):
         """Prueba manejo de archivos no encontrados."""

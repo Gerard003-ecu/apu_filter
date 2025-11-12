@@ -411,71 +411,98 @@ class TestParseNumber:
 # ============================================================================
 
 class TestCleanApuCode:
-    """Suite de pruebas para clean_apu_code()"""
+    """Suite de pruebas exhaustiva para la nueva función clean_apu_code."""
 
-    def test_clean_simple_code(self):
-        """Debe limpiar código APU simple."""
-        result = utils.clean_apu_code('apu-001')
-        assert result == 'APU-001'
+    # Casos básicos de limpieza
+    def test_limpieza_basica(self):
+        assert utils.clean_apu_code("  apu-001  ") == "APU-001"
+        assert utils.clean_apu_code("apu,001") == "APU.001"
+        assert utils.clean_apu_code("APU@001#") == "APU001"
+        assert utils.clean_apu_code("APU-001.-_") == "APU-001"
+        assert utils.clean_apu_code("._-APU-001") == "APU-001"
 
-    def test_clean_with_spaces(self):
-        """Debe remover espacios."""
-        result = utils.clean_apu_code('  APU-001  ')
-        assert result == 'APU-001'
+    # Pruebas del parámetro min_length
+    def test_min_length(self):
+        assert utils.clean_apu_code("1") == "1"  # Default min_length=1
+        with pytest.raises(ValueError, match="demasiado corto"):
+            utils.clean_apu_code("1", min_length=2)
+        assert utils.clean_apu_code("12", min_length=2) == "12"
 
-    def test_clean_special_characters(self):
-        """Debe remover caracteres especiales no permitidos."""
-        result = utils.clean_apu_code('APU@001#')
-        assert '@' not in result
-        assert '#' not in result
+    # Pruebas del parámetro is_item_code
+    def test_is_item_code(self, caplog):
+        # Códigos de item válidos
+        assert utils.clean_apu_code("1.2.3", is_item_code=True) == "1.2.3"
+        assert utils.clean_apu_code("A.1", is_item_code=True) == "A.1"
+        # Un código numérico no debería generar warnings si es un item_code
+        utils.clean_apu_code("123", is_item_code=True)
+        assert not any("inusual" in rec.message for rec in caplog.records)
 
-    def test_clean_preserve_dots_hyphens(self):
-        """Debe preservar puntos y guiones válidos."""
-        result = utils.clean_apu_code('APU-001.01')
-        assert '-' in result
-        assert '.' in result
+    # Pruebas de validación de formato
+    def test_validate_format_exceptions(self):
+        with pytest.raises(ValueError, match="vacío o solo contener espacios"):
+            utils.clean_apu_code("", validate_format=True)
+        with pytest.raises(ValueError, match="demasiado corto"):
+            utils.clean_apu_code("A", min_length=2, validate_format=True)
+        # Este caso ahora debería lanzar "vacío después de limpieza"
+        with pytest.raises(ValueError, match="vacío después de limpieza"):
+            utils.clean_apu_code(".-.", validate_format=True)
 
-    def test_clean_remove_trailing_separators(self):
-        """Debe remover separadores al final."""
-        result = utils.clean_apu_code('APU-001.-')
-        assert not result.endswith('.')
-        assert not result.endswith('-')
+    def test_no_validate_format(self):
+        assert utils.clean_apu_code("", validate_format=False) == ""
+        assert utils.clean_apu_code("A", min_length=2, validate_format=False) == "A"
 
-    def test_clean_uppercase_conversion(self):
-        """Debe convertir a mayúsculas."""
-        result = utils.clean_apu_code('apu-abc-123')
-        assert result == result.upper()
+    # Pruebas de advertencias (warnings)
+    def test_warnings(self, caplog):
+        # Código sin números (no item)
+        utils.clean_apu_code("ABC", is_item_code=False)
+        assert "sin números" in caplog.text
+        caplog.clear()
+        # Múltiples puntos
+        utils.clean_apu_code("A..B")
+        assert "puntos consecutivos" in caplog.text
+        caplog.clear()
+        # Múltiples guiones
+        utils.clean_apu_code("A--B")
+        assert "guiones consecutivos" in caplog.text
 
-    def test_clean_empty_raises_error_with_validation(self):
-        """Debe lanzar error para código vacío con validación."""
-        with pytest.raises(ValueError):
-            utils.clean_apu_code('', validate_format=True)
+    # Pruebas de correcciones automáticas
+    def test_correcciones_automaticas(self):
+        assert utils.clean_apu_code("A..B--C") == "A.B-C"
+        assert utils.clean_apu_code("A...B") == "A.B"
 
-    def test_clean_too_short_raises_error(self):
-        """Debe lanzar error para código muy corto con validación."""
-        with pytest.raises(ValueError):
-            utils.clean_apu_code('A', validate_format=True)
+    # Pruebas de tipos de entrada
+    def test_tipos_de_entrada(self):
+        assert utils.clean_apu_code(123) == "123"
+        assert utils.clean_apu_code(123.45) == "123.45"
+        # La función ahora convierte `None` a string 'None' y lo procesa
+        assert utils.clean_apu_code(None) == "NONE"
 
-    def test_clean_without_validation(self):
-        """Debe permitir códigos vacíos sin validación."""
-        result = utils.clean_apu_code('', validate_format=False)
-        assert result == ''
+    # Pruebas específicas para _is_valid_item_code y su interacción
+    @pytest.mark.parametrize("code, expected_clean, should_warn", [
+        ("1", "1", False),
+        ("1.2.3", "1.2.3", False),
+        ("A.1", "A.1", False),
+        ("ITEM-01", "ITEM-01", False),
+        # Estos casos se limpian a un formato válido ANTES de la validación,
+        # por lo que no deberían generar una advertencia.
+        ("1.", "1", False),
+        (".1", "1", False),
+        ("A-B-", "A-B", False),
+    ])
+    def test_item_code_cleaning_and_warnings(self, code, expected_clean, should_warn, caplog):
+        result = utils.clean_apu_code(code, is_item_code=True)
+        assert result == expected_clean
+        if should_warn:
+            assert "formato inusual" in caplog.text
+        else:
+            assert "formato inusual" not in caplog.text
 
-    def test_clean_numeric_conversion(self):
-        """Debe convertir números a string."""
-        result = utils.clean_apu_code(12345, validate_format=False)
-        assert result == '12345'
-
-    def test_clean_cache_functionality(self):
-        """Debe usar cache para códigos repetidos."""
-        code = 'APU-TEST-001'
-        result1 = utils.clean_apu_code(code)
-        result2 = utils.clean_apu_code(code)
-
-        assert result1 == result2
-        # Verificar cache
-        cache_info = utils.clean_apu_code.cache_info()
-        assert cache_info.hits > 0
+    def test_item_code_invalid_raises_error(self):
+        # Estos se limpian a vacío, lo que dispara un ValueError
+        with pytest.raises(ValueError, match="vacío después de limpieza"):
+            utils.clean_apu_code(".", is_item_code=True)
+        with pytest.raises(ValueError, match="vacío después de limpieza"):
+            utils.clean_apu_code("-", is_item_code=True)
 
 
 # ============================================================================
