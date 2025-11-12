@@ -6,10 +6,9 @@ Diseñado para ser robusto, extensible y fácil de mantener.
 
 import logging
 from pathlib import Path
-from typing import Union, Optional, Dict
+from typing import Dict, Optional, Union
 
 import pandas as pd
-import openpyxl  # Necesario para pd.read_excel con .xlsx
 import pdfplumber
 
 # Configuración básica de logging

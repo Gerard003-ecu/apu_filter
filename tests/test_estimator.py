@@ -29,16 +29,28 @@ def sample_apu_pool():
                 "CODIGO_APU": "APU-001",
                 "original_description": "Instalación de muro de ladrillo",
                 "DESC_NORMALIZED": "instalacion muro ladrillo",
+                "VALOR_SUMINISTRO_UN": 100,
+                "tipo_apu": "SUMINISTRO",
+                "EQUIPO": 10,
+                "UNIDAD": "M2",
             },
             {
                 "CODIGO_APU": "APU-002",
                 "original_description": "Pintura acrílica para exteriores",
                 "DESC_NORMALIZED": "pintura acrilica exteriores",
+                "VALOR_SUMINISTRO_UN": 200,
+                "tipo_apu": "SUMINISTRO",
+                "EQUIPO": 20,
+                "UNIDAD": "M2",
             },
             {
                 "CODIGO_APU": "APU-003",
                 "original_description": "CUADRILLA TIPO 1 (1 OF + 2 AYU)",
                 "DESC_NORMALIZED": "cuadrilla tipo 1 1 of 2 ayu",
+                "VALOR_SUMINISTRO_UN": 300,
+                "tipo_apu": "MANO_DE_OBRA",
+                "EQUIPO": 30,
+                "UNIDAD": "JOR",
             },
         ]
     )
@@ -246,4 +258,4 @@ def test_calculate_estimate_delegates_correctly(
 
     # Verificar que se llamó a la búsqueda por keywords para la cuadrilla
     mock_keyword_match.assert_called_once()
-    mock_keyword_match.call_args.kwargs["keywords"] == ["cuadrilla", "1"]
+    assert mock_keyword_match.call_args[0][1] == ['cuadrilla', '1']

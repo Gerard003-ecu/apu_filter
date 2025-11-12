@@ -17,8 +17,13 @@ def sanitize_value(value: Any) -> Optional[float]:
     Returns:
         None si es NaN/NA, valor original en otro caso.
     """
+    # Si es un iterable no string, devolver tal cual
+    if isinstance(value, (list, tuple)):
+        return value
+
     if pd.isna(value):
         return None
+
     return float(value) if isinstance(value, (np.floating, np.integer)) else value
 
 

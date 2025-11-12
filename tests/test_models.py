@@ -132,7 +132,9 @@ class TestProbabilityModels(unittest.TestCase):
         Si todos los costos son inválidos, debe retornar None.
         """
         # VR_TOTAL = 0
-        result1 = run_monte_carlo_simulation([{"VR_TOTAL": 0, "CANTIDAD": 10}], num_simulations=100)
+        result1 = run_monte_carlo_simulation(
+            [{"VR_TOTAL": 0, "CANTIDAD": 10}], num_simulations=100
+        )
         self.assertEqual(result1, {
             'mean': None,
             'std_dev': None,
@@ -141,7 +143,9 @@ class TestProbabilityModels(unittest.TestCase):
         })
 
         # CANTIDAD = 0
-        result2 = run_monte_carlo_simulation([{"VR_TOTAL": 100, "CANTIDAD": 0}], num_simulations=100)
+        result2 = run_monte_carlo_simulation(
+            [{"VR_TOTAL": 100, "CANTIDAD": 0}], num_simulations=100
+        )
         self.assertEqual(result2, {
             'mean': None,
             'std_dev': None,
@@ -150,7 +154,9 @@ class TestProbabilityModels(unittest.TestCase):
         })
 
         # VR_TOTAL negativo
-        result3 = run_monte_carlo_simulation([{"VR_TOTAL": -50, "CANTIDAD": 1}], num_simulations=100)
+        result3 = run_monte_carlo_simulation(
+            [{"VR_TOTAL": -50, "CANTIDAD": 1}], num_simulations=100
+        )
         self.assertEqual(result3, {
             'mean': None,
             'std_dev': None,
@@ -163,7 +169,7 @@ class TestProbabilityModels(unittest.TestCase):
             {"VR_TOTAL": 100, "CANTIDAD": 1},
             {"VR_TOTAL": 0, "CANTIDAD": 1}
         ], num_simulations=100)
-        # Solo el primero cuenta → costo base = 100 → simulación debe tener media cercana a 100
+        # Solo el primero cuenta → costo base = 100 → simulación con media ~100
         self.assertIsNotNone(result4['mean'])
         self.assertGreater(result4['mean'], 50)  # por la variabilidad
         self.assertLess(result4['mean'], 150)
@@ -198,7 +204,6 @@ class TestProbabilityModels(unittest.TestCase):
             {"VR_TOTAL": 800, "CANTIDAD": 10},  # base = 8000
             {"VR_TOTAL": 200, "CANTIDAD": 10},  # base = 2000
         ]
-        total_base_cost = 10000
 
         result = run_monte_carlo_simulation(apu_details, num_simulations=5000)
 
@@ -248,14 +253,20 @@ class TestProbabilityModels(unittest.TestCase):
             run_monte_carlo_simulation([{"VR_TOTAL": 100, "CANTIDAD": 1}], num_simulations=0)
 
         with self.assertRaises(ValueError):
-            run_monte_carlo_simulation([{"VR_TOTAL": 100, "CANTIDAD": 1}], num_simulations=-5)
+            run_monte_carlo_simulation(
+                [{"VR_TOTAL": 100, "CANTIDAD": 1}], num_simulations=-5
+            )
 
         with self.assertRaises(ValueError):
-            run_monte_carlo_simulation([{"VR_TOTAL": 100, "CANTIDAD": 1}], num_simulations="100")
+            run_monte_carlo_simulation(
+                [{"VR_TOTAL": 100, "CANTIDAD": 1}], num_simulations="100"
+            )
 
         # Esto debe funcionar
         try:
-            run_monte_carlo_simulation([{"VR_TOTAL": 100, "CANTIDAD": 1}], num_simulations=100)
+            run_monte_carlo_simulation(
+                [{"VR_TOTAL": 100, "CANTIDAD": 1}], num_simulations=100
+            )
         except ValueError:
             self.fail("num_simulations=100 debería ser válido")
 
@@ -264,11 +275,19 @@ class TestProbabilityModels(unittest.TestCase):
         Debe lanzar ValueError si volatility_factor es negativo.
         """
         with self.assertRaises(ValueError):
-            run_monte_carlo_simulation([{"VR_TOTAL": 100, "CANTIDAD": 1}], num_simulations=10, volatility_factor=-0.1)
+            run_monte_carlo_simulation(
+                [{"VR_TOTAL": 100, "CANTIDAD": 1}],
+                num_simulations=10,
+                volatility_factor=-0.1,
+            )
 
         # Esto debe funcionar
         try:
-            run_monte_carlo_simulation([{"VR_TOTAL": 100, "CANTIDAD": 1}], num_simulations=10, volatility_factor=0.0)
+            run_monte_carlo_simulation(
+                [{"VR_TOTAL": 100, "CANTIDAD": 1}],
+                num_simulations=10,
+                volatility_factor=0.0,
+            )
         except ValueError:
             self.fail("volatility_factor=0.0 debe ser válido")
 
@@ -279,9 +298,13 @@ class TestProbabilityModels(unittest.TestCase):
         apu_details = [{"VR_TOTAL": 100, "CANTIDAD": 1}]  # base = 100
 
         # Baja volatilidad → baja desviación
-        result_low = run_monte_carlo_simulation(apu_details, num_simulations=2000, volatility_factor=0.01)
+        result_low = run_monte_carlo_simulation(
+            apu_details, num_simulations=2000, volatility_factor=0.01
+        )
         # Alta volatilidad → alta desviación
-        result_high = run_monte_carlo_simulation(apu_details, num_simulations=2000, volatility_factor=0.2)
+        result_high = run_monte_carlo_simulation(
+            apu_details, num_simulations=2000, volatility_factor=0.2
+        )
 
         self.assertGreater(result_high['std_dev'], result_low['std_dev'])
         self.assertGreater(result_high['std_dev'], 0)
@@ -289,17 +312,20 @@ class TestProbabilityModels(unittest.TestCase):
 
     def test_simulation_with_min_cost_threshold(self):
         """
-        Verifica que el umbral mínimo funcione correctamente (aunque no es expuesto en API pública,
-        el código interno lo usa — no es necesario exponerlo, pero debe funcionar).
+        Verifica que el umbral mínimo funcione correctamente.
         """
         # Un costo de 50, con umbral 100 → debe ignorarse
         apu_details = [{"VR_TOTAL": 50, "CANTIDAD": 2}]  # base = 100 → igual al umbral
-        result = run_monte_carlo_simulation(apu_details, num_simulations=100, min_cost_threshold=100)
-        # Como base = 100, no se ignora
-        self.assertIsNotNone(result['mean'])
+        result = run_monte_carlo_simulation(
+            apu_details, num_simulations=100, min_cost_threshold=100
+        )
+        # Como VR_TOTAL (50) < 100, debe ignorarse y devolver None
+        self.assertIsNone(result['mean'])
 
         apu_details2 = [{"VR_TOTAL": 49, "CANTIDAD": 2}]  # base = 98 < 100 → ignorado
-        result2 = run_monte_carlo_simulation(apu_details2, num_simulations=100, min_cost_threshold=100)
+        result2 = run_monte_carlo_simulation(
+            apu_details2, num_simulations=100, min_cost_threshold=100
+        )
         self.assertEqual(result2, {
             'mean': None,
             'std_dev': None,

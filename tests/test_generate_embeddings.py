@@ -715,7 +715,7 @@ class TestPerformanceAndEdgeCases:
         generator.model = mock_model
 
         texts = ["Text"] * 50
-        embeddings = generator.generate_embeddings_batch(texts, batch_size)
+        generator.generate_embeddings_batch(texts, batch_size)
 
         expected_calls = (len(texts) + batch_size - 1) // batch_size
         assert mock_model.encode.call_count == expected_calls
@@ -795,7 +795,7 @@ class TestConcurrencyAndThreadSafety:
         def load_file():
             try:
                 for _ in range(10):
-                    df = manager.load_data(test_file)
+                    manager.load_data(test_file)
                     time.sleep(0.001)
             except Exception as e:
                 errors.append(e)

@@ -884,7 +884,9 @@ class TestProcessAllFilesIntegration(unittest.TestCase):
                 # Mock del processor
                 mock_processor = MagicMock()
                 mock_processor_class.return_value = mock_processor
-                mock_processor.process_all.return_value = TestDataBuilder.create_sample_apus_df()
+                mock_processor.process_all.return_value = (
+                    TestDataBuilder.create_sample_apus_df()
+                )
 
                 # Ejecutar
                 resultado = process_all_files(
@@ -970,18 +972,24 @@ class TestProcessAllFilesIntegration(unittest.TestCase):
         el pipeline se detiene de forma controlada y devuelve un diccionario de error.
         """
         # --- Configuración de Mocks ---
-        # 1. Mockeamos los procesadores iniciales para que devuelvan DataFrames válidos y no vacíos.
-        #    Esto asegura que el pipeline progrese hasta el punto que queremos probar.
-        # 2. Mockeamos ÚNICAMENTE el método específico que queremos que falle: `merge_with_presupuesto`.
+        # 1. Mockeamos procesadores iniciales para que devuelvan DataFrames
+        #    válidos y no vacíos. Así, el pipeline progresa.
+        # 2. Mockeamos el método que queremos que falle: `merge_with_presupuesto`.
 
-        with patch('app.procesador_csv.ReportParserCrudo') as mock_parser_class, \
-             patch('app.procesador_csv.APUProcessor') as mock_processor_class, \
-             patch('app.procesador_csv.DataMerger.merge_with_presupuesto') as mock_final_merge:
+        with patch(
+            'app.procesador_csv.ReportParserCrudo'
+        ) as mock_parser_class, patch(
+            'app.procesador_csv.APUProcessor'
+        ) as mock_processor_class, patch(
+            'app.procesador_csv.DataMerger.merge_with_presupuesto'
+        ) as mock_final_merge:
 
-            # Configurar el mock del APUProcessor para que devuelva un DataFrame realista.
-            # Esto es crucial para que los pasos intermedios (calculate_insumo_costs, etc.) funcionen.
+            # Configurar mock de APUProcessor para que devuelva un DF realista.
+            # Esto es crucial para que los pasos intermedios funcionen.
             mock_processor_instance = MagicMock()
-            mock_processor_instance.process_all.return_value = TestDataBuilder.create_sample_apus_df()
+            mock_processor_instance.process_all.return_value = (
+                TestDataBuilder.create_sample_apus_df()
+            )
             mock_processor_class.return_value = mock_processor_instance
 
             # El mock del ReportParserCrudo solo necesita devolver algo no vacío.
@@ -990,8 +998,8 @@ class TestProcessAllFilesIntegration(unittest.TestCase):
             mock_parser_class.return_value = mock_parser_instance
 
             # --- ¡LA CLAVE DE LA SOLUCIÓN! ---
-            # Hacemos que el método específico `merge_with_presupuesto` lance el error deseado.
-            # El resto de la clase DataMerger (y su método .merge_apus_with_insumos) funcionará normalmente.
+            # Hacemos que `merge_with_presupuesto` lance el error deseado.
+            # El resto de DataMerger funcionará normalmente.
             mock_final_merge.side_effect = pd.errors.MergeError(
                 "Simulated 1:1 merge error due to duplicates"
             )
@@ -1006,17 +1014,16 @@ class TestProcessAllFilesIntegration(unittest.TestCase):
             )
 
             # --- Aserciones ---
-            # 1. Verificar que la función no se estrelló, sino que devolvió un diccionario.
+            # 1. Verificar que la función devolvió un diccionario y no se estrelló.
             self.assertIsInstance(resultado, dict)
 
             # 2. Verificar que el diccionario contiene la clave 'error'.
             self.assertIn("error", resultado)
 
-            # 3. Verificar que el mensaje de error es el esperado, indicando un problema de merge.
+            # 3. Verificar que el mensaje de error esperado está presente.
             self.assertIn("merge", resultado["error"].lower())
-            # self.assertIn("duplicados", resultado["error"].lower()) # Opcional, pero bueno tenerlo
 
-            # 4. Verificar que el método que debía fallar fue efectivamente llamado.
+            # 4. Verificar que el método mockeado fue llamado.
             mock_final_merge.assert_called_once()
 
     def test_process_all_files_apu_load_failure_triggers_diagnostic(self):
