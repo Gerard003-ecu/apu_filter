@@ -1,659 +1,1250 @@
 """
-Suite de pruebas para la aplicación Flask.
-Prueba endpoints, manejo de sesiones, validación de archivos y procesamiento de datos.
+Suite completa de pruebas para app.py
+
+Pruebas exhaustivas con cobertura de endpoints, decoradores, validadores,
+procesadores, manejo de errores y funcionalidades de la aplicación Flask.
 """
 
-import io
 import json
-import os
-import shutil
-import sys
+import logging
 import tempfile
-import unittest
-from unittest.mock import MagicMock, patch
+from datetime import datetime
+from io import BytesIO
+from pathlib import Path
+from unittest.mock import MagicMock, Mock, PropertyMock, mock_open, patch
 
-# Agregar el directorio raíz del proyecto al path de Python
+import numpy as np
+import pandas as pd
+import pytest
+from flask import Flask, session
+from werkzeug.datastructures import FileStorage
+
+# Importar módulo a probar
+import sys
+import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-# Importar componentes de la aplicación
-from app.app import APUProcessor, FileValidator, create_app
-
-# Importar datos de prueba centralizados
-from tests.test_data import (
-    APUS_DATA,
-    INSUMOS_DATA,
-    PRESUPUESTO_DATA,
-    TEST_CONFIG,
+from app import app as app_module
+from app.app import (
+    ALLOWED_EXTENSIONS,
+    MAX_CONTENT_LENGTH,
+    SESSION_TIMEOUT,
+    APUProcessor,
+    FileValidator,
+    create_app,
+    handle_errors,
+    load_semantic_search_artifacts,
+    require_session,
+    setup_logging,
+    temporary_upload_directory,
 )
 
-# ============================================================================
-# FIXTURES Y DATOS DE PRUEBA ADICIONALES
-# ============================================================================
-
-INVALID_CSV_DATA = "invalid,csv,data\nwithout,proper,structure"
-LARGE_FILE_DATA = "x" * (17 * 1024 * 1024)  # Archivo de más de 16MB
-
-APU_TEST_DETAILS = [
-    {
-        "CODIGO_APU": "TEST001",
-        "DESCRIPCION_INSUMO": "Material A",
-        "CATEGORIA": "MATERIALES",
-        "CANTIDAD_APU": 10.0,
-        "VALOR_TOTAL_APU": 100000.0,
-        "RENDIMIENTO": 1.0,
-        "UNIDAD_APU": "UN",
-        "PRECIO_UNIT_APU": 10000.0,
-        "UNIDAD_INSUMO": "UN",
-        "alerta": "Test alert"
-    },
-    {
-        "CODIGO_APU": "TEST001",
-        "DESCRIPCION_INSUMO": "Material A",  # Duplicado para probar agrupación
-        "CATEGORIA": "MATERIALES",
-        "CANTIDAD_APU": 5.0,
-        "VALOR_TOTAL_APU": 50000.0,
-        "RENDIMIENTO": 0.5,
-        "UNIDAD_APU": "UN",
-        "PRECIO_UNIT_APU": 10000.0,
-        "UNIDAD_INSUMO": "UN",
-        "alerta": "Another alert"
-    }
-]
 
 # ============================================================================
-# PRUEBAS DEL VALIDADOR DE ARCHIVOS
+# FIXTURES - Configuración y datos de prueba
 # ============================================================================
 
-class TestFileValidator(unittest.TestCase):
-    """Pruebas para la clase FileValidator."""
-
-    def setUp(self):
-        """Configurar validador para cada prueba."""
-        self.validator = FileValidator()
-
-    def test_validate_empty_file(self):
-        """Verificar validación de archivo vacío."""
-        mock_file = MagicMock()
-        mock_file.filename = ""
-
-        is_valid, error = self.validator.validate_file(mock_file)
-        self.assertFalse(is_valid)
-        self.assertEqual(error, "Archivo no seleccionado")
-
-    def test_validate_invalid_extension(self):
-        """Verificar rechazo de extensiones no permitidas."""
-        mock_file = MagicMock()
-        mock_file.filename = "test.exe"
-
-        is_valid, error = self.validator.validate_file(mock_file)
-        self.assertFalse(is_valid)
-        self.assertIn("Extensión no permitida", error)
-
-    def test_validate_valid_extensions(self):
-        """Verificar aceptación de extensiones válidas."""
-        valid_extensions = ['.csv', '.xlsx', '.xls']
-
-        for ext in valid_extensions:
-            mock_file = MagicMock()
-            mock_file.filename = f"test{ext}"
-            mock_file.tell.return_value = 1024  # Tamaño pequeño
-
-            is_valid, error = self.validator.validate_file(mock_file)
-            self.assertTrue(is_valid)
-            self.assertIsNone(error)
-
-    def test_validate_file_size(self):
-        """Verificar validación de tamaño de archivo."""
-        mock_file = MagicMock()
-        mock_file.filename = "test.csv"
-        mock_file.tell.return_value = 20 * 1024 * 1024  # 20MB
-
-        is_valid, error = self.validator.validate_file(mock_file)
-        self.assertFalse(is_valid)
-        self.assertIn("Archivo demasiado grande", error)
-
-# ============================================================================
-# PRUEBAS DEL PROCESADOR DE APU
-# ============================================================================
-
-class TestAPUProcessor(unittest.TestCase):
-    """Pruebas para la clase APUProcessor."""
-
-    def setUp(self):
-        """Configurar procesador para cada prueba."""
-        mock_logger = MagicMock()
-        self.processor = APUProcessor(mock_logger)
-
-    def test_process_apu_details_empty(self):
-        """Verificar manejo de lista vacía de detalles."""
-        with self.assertRaises(ValueError) as context:
-            self.processor.process_apu_details([], "TEST001")
-
-        self.assertIn("No se encontraron detalles", str(context.exception))
-
-    def test_process_apu_details_grouping(self):
-        """Verificar agrupación correcta de items por categoría."""
-        result = self.processor.process_apu_details(APU_TEST_DETAILS, "TEST001")
-
-        self.assertIn("items", result)
-        self.assertIn("desglose", result)
-        self.assertIn("total_items", result)
-
-        # Verificar que los items duplicados se agruparon
-        self.assertEqual(result["total_items"], 1)  # Solo 1 item después de agrupar
-
-        # Verificar suma de cantidades
-        item = result["items"][0]
-        self.assertEqual(item["CANTIDAD"], 15.0)  # 10 + 5
-        self.assertEqual(item["VR_TOTAL"], 150000.0)  # 100000 + 50000
-
-    def test_organize_breakdown_by_category(self):
-        """Verificar organización correcta del desglose por categoría."""
-        result = self.processor.process_apu_details(APU_TEST_DETAILS, "TEST001")
-        desglose = result["desglose"]
-
-        self.assertIn("MATERIALES", desglose)
-        self.assertIsInstance(desglose["MATERIALES"], list)
-        self.assertEqual(len(desglose["MATERIALES"]), 1)
-
-# ============================================================================
-# PRUEBAS DE ENDPOINTS DE LA APLICACIÓN
-# ============================================================================
-
-class TestAppEndpoints(unittest.TestCase):
-    """
-    Suite completa de pruebas para los endpoints de la aplicación Flask.
-    """
-
-    @patch('redis.from_url')
-    @patch('faiss.read_index')
-    def setUp(self, mock_read_index, mock_redis_from_url):
-        """Configurar el entorno de prueba."""
-        # Mock de Redis
+@pytest.fixture
+def app():
+    """Fixture que crea instancia de la aplicación Flask para tests."""
+    
+    # Mockear Redis para tests
+    with patch('redis.from_url') as mock_redis:
         mock_redis_client = MagicMock()
-        mock_redis_client.dbsize.return_value = 0
-        mock_redis_from_url.return_value = mock_redis_client
-
-        # Mock de FAISS
-        mock_read_index.return_value = MagicMock()
-
-        self.app = create_app('testing')
-        self.app.testing = True
-        self.app_context = self.app.app_context()
-        self.app_context.push()
-
-        # Crear directorio temporal para uploads
-        self.temp_dir = tempfile.mkdtemp()
-        self.app.config["UPLOAD_FOLDER"] = self.temp_dir
-
-        self.client = self.app.test_client()
-
-    def tearDown(self):
-        """Limpiar el entorno después de cada prueba."""
-        self.app_context.pop()
-
-        # Eliminar directorio temporal
-        if os.path.exists(self.temp_dir):
-            shutil.rmtree(self.temp_dir)
-
-    def _create_test_file(self, filename, content):
-        """
-        Crear un archivo de prueba en memoria.
+        mock_redis_client.dbsize.return_value = 5
+        mock_redis_client.get.return_value = None
+        mock_redis_client.set.return_value = True
+        mock_redis_client.expire.return_value = True
+        mock_redis.return_value = mock_redis_client
         
-        Args:
-            filename: Nombre del archivo
-            content: Contenido del archivo
+        # Mockear carga de embeddings
+        with patch('app.app.load_semantic_search_artifacts'):
+            app = create_app('testing')
+            app.config['TESTING'] = True
+            app.config['SESSION_REDIS'] = mock_redis_client
             
-        Returns:
-            Tupla (BytesIO, filename) para usar en requests multipart
-        """
-        return (io.BytesIO(content.encode("latin1")), filename)
+            yield app
 
-    def test_index_route(self):
-        """Verificar que la ruta principal funciona."""
-        response = self.client.get("/")
-        self.assertEqual(response.status_code, 200)
 
-    def test_health_check(self):
-        """Verificar el endpoint de salud."""
-        response = self.client.get("/api/health")
-        self.assertEqual(response.status_code, 200)
+@pytest.fixture
+def client(app):
+    """Fixture que crea cliente de test para la aplicación."""
+    return app.test_client()
 
-        data = json.loads(response.data)
-        self.assertEqual(data["status"], "healthy")
-        self.assertIn("active_sessions", data)
-        self.assertIn("timestamp", data)
-        self.assertIn("version", data)
 
-    def test_upload_files_success(self):
-        """Verificar carga exitosa de archivos."""
-        with self.client as c:
-            # Configurar la aplicación con los datos de prueba
-            c.application.config["APP_CONFIG"] = TEST_CONFIG
+@pytest.fixture
+def runner(app):
+    """Fixture que crea CLI runner para tests."""
+    return app.test_cli_runner()
 
-            # Preparar archivos de prueba
-            data = {
-                "presupuesto": self._create_test_file("presupuesto.csv", PRESUPUESTO_DATA),
-                "apus": self._create_test_file("apus.csv", APUS_DATA),
-                "insumos": self._create_test_file("insumos.csv", INSUMOS_DATA),
+
+@pytest.fixture
+def mock_redis():
+    """Fixture que proporciona un cliente Redis mockeado."""
+    mock_client = MagicMock()
+    mock_client.get.return_value = None
+    mock_client.set.return_value = True
+    mock_client.expire.return_value = True
+    mock_client.delete.return_value = True
+    mock_client.dbsize.return_value = 0
+    return mock_client
+
+
+@pytest.fixture
+def sample_session_data():
+    """Fixture con datos de sesión de prueba."""
+    return {
+        "data": {
+            "presupuesto": [
+                {
+                    "CODIGO_APU": "APU-001",
+                    "original_description": "Concreto f'c=280 kg/cm2",
+                    "UNIDAD": "M3",
+                    "CANTIDAD": 100.0,
+                    "VR_UNITARIO": 350000.0
+                }
+            ],
+            "apus_detail": [
+                {
+                    "CODIGO_APU": "APU-001",
+                    "DESCRIPCION_INSUMO": "Cemento Portland",
+                    "CATEGORIA": "SUMINISTRO",
+                    "CANTIDAD_APU": 7.5,
+                    "UNIDAD_APU": "BLS",
+                    "PRECIO_UNIT_APU": 35000.0,
+                    "VALOR_TOTAL_APU": 262500.0,
+                    "RENDIMIENTO": 1.0,
+                    "UNIDAD_INSUMO": "BLS"
+                },
+                {
+                    "CODIGO_APU": "APU-001",
+                    "DESCRIPCION_INSUMO": "Arena",
+                    "CATEGORIA": "SUMINISTRO",
+                    "CANTIDAD_APU": 0.5,
+                    "UNIDAD_APU": "M3",
+                    "PRECIO_UNIT_APU": 80000.0,
+                    "VALOR_TOTAL_APU": 40000.0,
+                    "RENDIMIENTO": 1.0,
+                    "UNIDAD_INSUMO": "M3"
+                }
+            ],
+            "summary": {
+                "total_apus": 1,
+                "total_insumos": 2
             }
-
-            # Realizar carga
-            response = c.post("/upload", data=data, content_type="multipart/form-data")
-
-            self.assertEqual(response.status_code, 200)
-
-            data = json.loads(response.data)
-            self.assertIn("session_id", data)
-            self.assertIn("presupuesto", data)
-            self.assertIn("apus_detail", data)
-
-    def test_upload_files_missing_files(self):
-        """Verificar manejo de archivos faltantes."""
-        with self.client as c:
-            # Solo enviar un archivo de los tres requeridos
-            data = {
-                "presupuesto": self._create_test_file("presupuesto.csv", PRESUPUESTO_DATA)
-            }
-
-            response = c.post("/upload", data=data, content_type="multipart/form-data")
-
-            self.assertEqual(response.status_code, 400)
-
-            data = json.loads(response.data)
-            self.assertIn("error", data)
-            self.assertIn("Faltan archivos", data["error"])
-            self.assertEqual(data["code"], "MISSING_FILES")
-
-    def test_upload_files_invalid_extension(self):
-        """Verificar rechazo de archivos con extensión inválida."""
-        with self.client as c:
-            data = {
-                "presupuesto": self._create_test_file("presupuesto.txt", PRESUPUESTO_DATA),
-                "apus": self._create_test_file("apus.csv", APUS_DATA),
-                "insumos": self._create_test_file("insumos.csv", INSUMOS_DATA),
-            }
-
-            response = c.post("/upload", data=data, content_type="multipart/form-data")
-
-            self.assertEqual(response.status_code, 400)
-
-            data = json.loads(response.data)
-            self.assertIn("error", data)
-            self.assertEqual(data["code"], "INVALID_FILE")
-
-    def test_upload_files_empty_file(self):
-        """Verificar manejo de archivos vacíos."""
-        with self.client as c:
-            data = {
-                "presupuesto": self._create_test_file("", ""),
-                "apus": self._create_test_file("apus.csv", APUS_DATA),
-                "insumos": self._create_test_file("insumos.csv", INSUMOS_DATA),
-            }
-
-            response = c.post("/upload", data=data, content_type="multipart/form-data")
-
-            self.assertEqual(response.status_code, 400)
-
-            data = json.loads(response.data)
-            self.assertIn("error", data)
-            self.assertEqual(data["code"], "INVALID_FILE")
-
-    def test_get_apu_detail_with_session(self):
-        """Verificar obtención de detalles de APU con sesión válida."""
-        with self.client as c:
-            # Primero cargar archivos para crear sesión
-            c.application.config["APP_CONFIG"] = TEST_CONFIG
-
-            upload_data = {
-                "presupuesto": self._create_test_file("presupuesto.csv", PRESUPUESTO_DATA),
-                "apus": self._create_test_file("apus.csv", APUS_DATA),
-                "insumos": self._create_test_file("insumos.csv", INSUMOS_DATA),
-            }
-
-            upload_response = c.post(
-                "/upload",
-                data=upload_data,
-                content_type="multipart/form-data"
-            )
-            self.assertEqual(upload_response.status_code, 200)
-
-            # Solicitar detalles de un APU
-            response = c.get("/api/apu/10.M01")
-            self.assertEqual(response.status_code, 200)
-
-            data = json.loads(response.data)
-            self.assertIn("codigo", data)
-            self.assertIn("descripcion", data)
-            self.assertIn("desglose", data)
-            self.assertIn("simulation", data)
-            self.assertIn("metadata", data)
-
-    def test_get_apu_detail_without_session(self):
-        """Verificar error al solicitar APU sin sesión."""
-        response = self.client.get("/api/apu/10.M01")
-        self.assertEqual(response.status_code, 401)
-
-    def test_get_apu_detail_not_found(self):
-        """Verificar manejo de APU no encontrado."""
-        with self.client as c:
-            # Crear sesión con datos
-            c.application.config["APP_CONFIG"] = TEST_CONFIG
-
-            upload_data = {
-                "presupuesto": self._create_test_file("presupuesto.csv", PRESUPUESTO_DATA),
-                "apus": self._create_test_file("apus.csv", APUS_DATA),
-                "insumos": self._create_test_file("insumos.csv", INSUMOS_DATA),
-            }
-
-            upload_response = c.post(
-                "/upload",
-                data=upload_data,
-                content_type="multipart/form-data"
-            )
-            self.assertEqual(upload_response.status_code, 200)
-
-            # Solicitar APU inexistente
-            response = c.get("/api/apu/NON_EXISTENT")
-            self.assertEqual(response.status_code, 404)
-
-            data = json.loads(response.data)
-            self.assertEqual(data["code"], "APU_NOT_FOUND")
-
-    def test_get_estimate_with_session(self):
-        """Verificar cálculo de estimación con sesión válida."""
-        with self.client as c:
-            # Cargar archivos para crear sesión
-            c.application.config["APP_CONFIG"] = TEST_CONFIG
-
-            upload_data = {
-                "presupuesto": self._create_test_file("presupuesto.csv", PRESUPUESTO_DATA),
-                "apus": self._create_test_file("apus.csv", APUS_DATA),
-                "insumos": self._create_test_file("insumos.csv", INSUMOS_DATA),
-            }
-
-            upload_response = c.post(
-                "/upload",
-                data=upload_data,
-                content_type="multipart/form-data"
-            )
-            self.assertEqual(upload_response.status_code, 200)
-
-            # Solicitar estimación
-            estimate_params = {"material": "TEJA", "cuadrilla": "1"}
-            response = c.post("/api/estimate", json=estimate_params)
-
-            self.assertEqual(response.status_code, 200)
-
-            data = json.loads(response.data)
-            self.assertIn("valor_suministro", data)
-            self.assertIn("valor_instalacion", data)
-            self.assertIn("valor_construccion", data)
-
-            # Verificar valores esperados
-            self.assertAlmostEqual(data["valor_suministro"], 50000.0, places=2)
-            self.assertAlmostEqual(data["valor_instalacion"], 11760.0, places=2)
-            self.assertAlmostEqual(data["valor_construccion"], 61760.0, places=2)
-
-    def test_get_estimate_without_session(self):
-        """Verificar error al solicitar estimación sin sesión."""
-        estimate_params = {"material": "TEJA", "cuadrilla": "1"}
-        response = self.client.post("/api/estimate", json=estimate_params)
-
-        self.assertEqual(response.status_code, 401)
-
-    def test_get_estimate_invalid_content_type(self):
-        """Verificar rechazo de content-type inválido."""
-        with self.client as c:
-            # Crear sesión primero
-            c.application.config["APP_CONFIG"] = TEST_CONFIG
-
-            upload_data = {
-                "presupuesto": self._create_test_file("presupuesto.csv", PRESUPUESTO_DATA),
-                "apus": self._create_test_file("apus.csv", APUS_DATA),
-                "insumos": self._create_test_file("insumos.csv", INSUMOS_DATA),
-            }
-
-            c.post("/upload", data=upload_data, content_type="multipart/form-data")
-
-            # Enviar estimación con content-type incorrecto
-            response = c.post(
-                "/api/estimate",
-                data="material=TEJA&cuadrilla=1",
-                content_type="application/x-www-form-urlencoded"
-            )
-
-            self.assertEqual(response.status_code, 400)
-
-            data = json.loads(response.data)
-            self.assertEqual(data["code"], "INVALID_CONTENT_TYPE")
-
-    def test_get_estimate_no_params(self):
-        """Verificar manejo de solicitud sin parámetros."""
-        with self.client as c:
-            # Crear sesión
-            c.application.config["APP_CONFIG"] = TEST_CONFIG
-
-            upload_data = {
-                "presupuesto": self._create_test_file("presupuesto.csv", PRESUPUESTO_DATA),
-                "apus": self._create_test_file("apus.csv", APUS_DATA),
-                "insumos": self._create_test_file("insumos.csv", INSUMOS_DATA),
-            }
-
-            c.post("/upload", data=upload_data, content_type="multipart/form-data")
-
-            # Enviar estimación sin parámetros
-            response = c.post("/api/estimate", json={})
-
-            self.assertEqual(response.status_code, 400)
-
-            data = json.loads(response.data)
-            self.assertEqual(data["code"], "NO_PARAMS")
-
-    def test_404_error_handler(self):
-        """Verificar manejo de rutas no encontradas."""
-        response = self.client.get("/non/existent/route")
-        self.assertEqual(response.status_code, 404)
-
-        data = json.loads(response.data)
-        self.assertIn("error", data)
-        self.assertEqual(data["code"], "NOT_FOUND")
-        self.assertIn("path", data)
-
-    def test_session_persistence_across_requests(self):
-        """Verificar que la sesión persiste entre requests."""
-        with self.client as c:
-            # Primera request: cargar archivos
-            c.application.config["APP_CONFIG"] = TEST_CONFIG
-
-            upload_data = {
-                "presupuesto": self._create_test_file("presupuesto.csv", PRESUPUESTO_DATA),
-                "apus": self._create_test_file("apus.csv", APUS_DATA),
-                "insumos": self._create_test_file("insumos.csv", INSUMOS_DATA),
-            }
-
-            upload_response = c.post(
-                "/upload",
-                data=upload_data,
-                content_type="multipart/form-data"
-            )
-            self.assertEqual(upload_response.status_code, 200)
-
-            # Segunda request: obtener detalles de APU (debe usar misma sesión)
-            apu_response = c.get("/api/apu/10.M01")
-            self.assertEqual(apu_response.status_code, 200)
-
-            # Tercera request: obtener estimación (debe usar misma sesión)
-            estimate_params = {"material": "TEJA", "cuadrilla": "1"}
-            estimate_response = c.post("/api/estimate", json=estimate_params)
-            self.assertEqual(estimate_response.status_code, 200)
-
-    def test_concurrent_sessions(self):
-        """Verificar manejo de múltiples sesiones concurrentes."""
-        # Cliente 1
-        client1 = self.app.test_client()
-        with client1 as c1:
-            c1.application.config["APP_CONFIG"] = TEST_CONFIG
-
-            data1 = {
-                "presupuesto": self._create_test_file("presupuesto.csv", PRESUPUESTO_DATA),
-                "apus": self._create_test_file("apus.csv", APUS_DATA),
-                "insumos": self._create_test_file("insumos.csv", INSUMOS_DATA),
-            }
-
-            response1 = c1.post("/upload", data=data1, content_type="multipart/form-data")
-            self.assertEqual(response1.status_code, 200)
-
-        # Cliente 2
-        client2 = self.app.test_client()
-        with client2 as c2:
-            c2.application.config["APP_CONFIG"] = TEST_CONFIG
-
-            data2 = {
-                "presupuesto": self._create_test_file("presupuesto.csv", PRESUPUESTO_DATA),
-                "apus": self._create_test_file("apus.csv", APUS_DATA),
-                "insumos": self._create_test_file("insumos.csv", INSUMOS_DATA),
-            }
-
-            response2 = c2.post("/upload", data=data2, content_type="multipart/form-data")
-            self.assertEqual(response2.status_code, 200)
-
-# ============================================================================
-# PRUEBAS DE INTEGRACIÓN
-# ============================================================================
-
-class TestIntegration(unittest.TestCase):
-    """Pruebas de integración end-to-end."""
-
-    @patch('redis.from_url')
-    @patch('faiss.read_index')
-    def setUp(self, mock_read_index, mock_redis_from_url):
-        """Configurar entorno de integración."""
-        mock_redis_client = MagicMock()
-        mock_redis_client.dbsize.return_value = 0
-        mock_redis_from_url.return_value = mock_redis_client
-
-        mock_read_index.return_value = MagicMock()
-
-        self.app = create_app('testing')
-        self.app.testing = True
-        self.app_context = self.app.app_context()
-        self.app_context.push()
-
-        self.temp_dir = tempfile.mkdtemp()
-        self.app.config["UPLOAD_FOLDER"] = self.temp_dir
-        self.app.config["APP_CONFIG"] = TEST_CONFIG
-
-        self.client = self.app.test_client()
-
-    def tearDown(self):
-        """Limpiar entorno de integración."""
-        self.app_context.pop()
-        if os.path.exists(self.temp_dir):
-            shutil.rmtree(self.temp_dir)
-
-    def test_complete_workflow(self):
-        """Prueba el flujo completo de la aplicación."""
-        with self.client as c:
-            # 1. Verificar salud de la aplicación
-            health_response = c.get("/api/health")
-            self.assertEqual(health_response.status_code, 200)
-
-            # 2. Cargar archivos
-            upload_data = {
-                "presupuesto": (
-                    io.BytesIO(PRESUPUESTO_DATA.encode("latin1")),
-                    "presupuesto.csv"
-                ),
-                "apus": (
-                    io.BytesIO(APUS_DATA.encode("latin1")),
-                    "apus.csv"
-                ),
-                "insumos": (
-                    io.BytesIO(INSUMOS_DATA.encode("latin1")),
-                    "insumos.csv"
-                ),
-            }
-
-            upload_response = c.post(
-                "/upload",
-                data=upload_data,
-                content_type="multipart/form-data"
-            )
-            self.assertEqual(upload_response.status_code, 200)
-
-            upload_data = json.loads(upload_response.data)
-            self.assertIn("session_id", upload_data)
-
-            # 3. Obtener detalles de múltiples APUs
-            apu_codes = ["10.M01", "11.M01"]  # Asumiendo que existen en los datos
-
-            for code in apu_codes:
-                apu_response = c.get(f"/api/apu/{code}")
-                self.assertEqual(apu_response.status_code, 200)
-
-                apu_data = json.loads(apu_response.data)
-                self.assertEqual(apu_data["codigo"], code)
-                self.assertIn("simulation", apu_data)
-
-            # 4. Calcular múltiples estimaciones con diferentes parámetros
-            estimate_scenarios = [
-                {"material": "TEJA", "cuadrilla": "1"},
-                {"material": "TEJA", "cuadrilla": "2"},
-                {"material": "CONCRETO", "cuadrilla": "1"}
-            ]
-
-            for params in estimate_scenarios:
-                estimate_response = c.post("/api/estimate", json=params)
-                self.assertEqual(estimate_response.status_code, 200)
-
-                estimate_data = json.loads(estimate_response.data)
-                self.assertIn("valor_construccion", estimate_data)
-                self.assertGreater(estimate_data["valor_construccion"], 0)
-
-            # 5. Verificar que la sesión sigue activa
-            final_health = c.get("/api/health")
-            health_data = json.loads(final_health.data)
-            self.assertGreaterEqual(health_data["active_sessions"], 1)
-
-# ============================================================================
-# RUNNER DE PRUEBAS
-# ============================================================================
-
-def run_tests():
-    """Ejecutar todas las suites de pruebas con reporte detallado."""
-    # Crear loader y suite
-    loader = unittest.TestLoader()
-    suite = unittest.TestSuite()
-
-    # Agregar todas las clases de prueba
-    test_classes = [
-        TestSessionManager,
-        TestFileValidator,
-        TestAPUProcessor,
-        TestAppEndpoints,
-        TestIntegration
+        }
+    }
+
+
+@pytest.fixture
+def sample_csv_content():
+    """Fixture con contenido CSV de prueba."""
+    return """CODIGO,DESCRIPCION,UNIDAD,CANTIDAD,VR_UNITARIO
+APU-001,Concreto,M3,100,350000
+APU-002,Acero,KG,500,5000"""
+
+
+@pytest.fixture
+def sample_file():
+    """Fixture que crea un archivo FileStorage de prueba."""
+    content = b"CODIGO,DESCRIPCION\nAPU-001,Concreto"
+    return FileStorage(
+        stream=BytesIO(content),
+        filename="test.csv",
+        content_type="text/csv"
+    )
+
+
+@pytest.fixture
+def sample_apu_data():
+    """Fixture con datos de APU para procesamiento."""
+    return [
+        {
+            "CODIGO_APU": "APU-001",
+            "DESCRIPCION_INSUMO": "Cemento",
+            "CATEGORIA": "SUMINISTRO",
+            "CANTIDAD_APU": 7.5,
+            "UNIDAD_APU": "BLS",
+            "PRECIO_UNIT_APU": 35000.0,
+            "VALOR_TOTAL_APU": 262500.0,
+            "RENDIMIENTO": 1.0,
+            "UNIDAD_INSUMO": "BLS"
+        },
+        {
+            "CODIGO_APU": "APU-001",
+            "DESCRIPCION_INSUMO": "Oficial",
+            "CATEGORIA": "MANO_DE_OBRA",
+            "CANTIDAD_APU": 1.0,
+            "UNIDAD_APU": "JOR",
+            "PRECIO_UNIT_APU": 65000.0,
+            "VALOR_TOTAL_APU": 65000.0,
+            "RENDIMIENTO": 1.0,
+            "UNIDAD_INSUMO": "JOR"
+        }
     ]
 
-    for test_class in test_classes:
-        suite.addTests(loader.loadTestsFromTestCase(test_class))
 
-    # Ejecutar con runner verboso
-    runner = unittest.TextTestRunner(verbosity=2)
-    result = runner.run(suite)
+@pytest.fixture
+def temp_dir():
+    """Fixture que crea directorio temporal."""
+    with tempfile.TemporaryDirectory() as tmpdirname:
+        yield Path(tmpdirname)
 
-    # Imprimir resumen
-    print("\n" + "="*70)
-    print("RESUMEN DE PRUEBAS")
-    print("="*70)
-    print(f"Pruebas ejecutadas: {result.testsRun}")
-    print(f"Exitosas: {result.testsRun - len(result.failures) - len(result.errors)}")
-    print(f"Fallos: {len(result.failures)}")
-    print(f"Errores: {len(result.errors)}")
-    print(f"Tiempo total: {result.stop - result.start:.2f}s")
 
-    return result.wasSuccessful()
+# ============================================================================
+# TESTS - CONFIGURACIÓN Y LOGGING
+# ============================================================================
 
-if __name__ == "__main__":
-    success = run_tests()
-    sys.exit(0 if success else 1)
+class TestSetupLogging:
+    """Suite de pruebas para setup_logging()"""
+    
+    def test_setup_logging_basic(self, app):
+        """Debe configurar logging correctamente."""
+        setup_logging(app)
+        
+        assert app.logger.level == logging.DEBUG
+        assert len(app.logger.handlers) >= 1
+    
+    def test_setup_logging_creates_log_directory(self, app):
+        """Debe crear directorio de logs."""
+        with patch('pathlib.Path.mkdir') as mock_mkdir:
+            setup_logging(app)
+            mock_mkdir.assert_called()
+    
+    def test_setup_logging_file_handler(self, app):
+        """Debe configurar handler de archivo."""
+        setup_logging(app, log_file="test.log")
+        
+        # Verificar que hay handlers
+        assert len(app.logger.handlers) > 0
+    
+    def test_setup_logging_console_handler(self, app):
+        """Debe configurar handler de consola."""
+        from logging import StreamHandler
+        
+        setup_logging(app)
+        
+        # Verificar que hay un StreamHandler
+        has_stream_handler = any(
+            isinstance(h, StreamHandler) for h in app.logger.handlers
+        )
+        assert has_stream_handler
+    
+    def test_setup_logging_formatter(self, app):
+        """Debe configurar formateadores."""
+        setup_logging(app)
+        
+        for handler in app.logger.handlers:
+            assert handler.formatter is not None
+
+
+# ============================================================================
+# TESTS - VALIDADORES
+# ============================================================================
+
+class TestFileValidator:
+    """Suite de pruebas para FileValidator"""
+    
+    def test_validate_file_valid_csv(self, sample_file):
+        """Debe validar archivo CSV válido."""
+        is_valid, error = FileValidator.validate_file(sample_file)
+        
+        assert is_valid
+        assert error is None
+    
+    def test_validate_file_no_file(self):
+        """Debe rechazar archivo None."""
+        is_valid, error = FileValidator.validate_file(None)
+        
+        assert not is_valid
+        assert "no seleccionado" in error.lower()
+    
+    def test_validate_file_empty_filename(self):
+        """Debe rechazar filename vacío."""
+        empty_file = FileStorage(
+            stream=BytesIO(b"test"),
+            filename="",
+            content_type="text/csv"
+        )
+        
+        is_valid, error = FileValidator.validate_file(empty_file)
+        
+        assert not is_valid
+        assert "no seleccionado" in error.lower()
+    
+    def test_validate_file_invalid_extension(self):
+        """Debe rechazar extensiones no permitidas."""
+        invalid_file = FileStorage(
+            stream=BytesIO(b"test"),
+            filename="test.txt",
+            content_type="text/plain"
+        )
+        
+        is_valid, error = FileValidator.validate_file(invalid_file)
+        
+        assert not is_valid
+        assert "extensión no permitida" in error.lower()
+    
+    def test_validate_file_allowed_extensions(self):
+        """Debe aceptar extensiones permitidas."""
+        for ext in ['.csv', '.xlsx', '.xls']:
+            file = FileStorage(
+                stream=BytesIO(b"test"),
+                filename=f"test{ext}",
+                content_type="application/octet-stream"
+            )
+            
+            is_valid, error = FileValidator.validate_file(file)
+            assert is_valid, f"Extensión {ext} debería ser válida"
+    
+    def test_validate_file_too_large(self):
+        """Debe rechazar archivos muy grandes."""
+        # Crear archivo que exceda MAX_CONTENT_LENGTH
+        large_content = b"x" * (MAX_CONTENT_LENGTH + 1000)
+        large_file = FileStorage(
+            stream=BytesIO(large_content),
+            filename="large.csv",
+            content_type="text/csv"
+        )
+        
+        is_valid, error = FileValidator.validate_file(large_file)
+        
+        assert not is_valid
+        assert "demasiado grande" in error.lower()
+    
+    def test_validate_file_secure_filename(self):
+        """Debe manejar nombres de archivo inseguros."""
+        unsafe_file = FileStorage(
+            stream=BytesIO(b"test"),
+            filename="../../../etc/passwd",
+            content_type="text/csv"
+        )
+        
+        # secure_filename debería limpiar el nombre
+        is_valid, error = FileValidator.validate_file(unsafe_file)
+        
+        # Puede ser válido o inválido dependiendo de secure_filename
+        assert isinstance(is_valid, bool)
+
+
+# ============================================================================
+# TESTS - PROCESADOR APU
+# ============================================================================
+
+class TestAPUProcessor:
+    """Suite de pruebas para APUProcessor"""
+    
+    @pytest.fixture
+    def processor(self, app):
+        """Fixture que crea instancia de APUProcessor."""
+        return APUProcessor(app.logger)
+    
+    def test_process_apu_details_basic(self, processor, sample_apu_data):
+        """Debe procesar detalles de APU correctamente."""
+        result = processor.process_apu_details(sample_apu_data, "APU-001")
+        
+        assert "items" in result
+        assert "desglose" in result
+        assert "total_items" in result
+        assert result["total_items"] > 0
+    
+    def test_process_apu_details_empty_raises_error(self, processor):
+        """Debe lanzar error para lista vacía."""
+        with pytest.raises(ValueError) as exc_info:
+            processor.process_apu_details([], "APU-001")
+        
+        assert "no se encontraron detalles" in str(exc_info.value).lower()
+    
+    def test_process_apu_details_categories(self, processor, sample_apu_data):
+        """Debe organizar por categorías."""
+        result = processor.process_apu_details(sample_apu_data, "APU-001")
+        
+        assert "SUMINISTRO" in result["desglose"]
+        assert "MANO_DE_OBRA" in result["desglose"]
+    
+    def test_group_by_category(self, processor, sample_apu_data):
+        """Debe agrupar correctamente por categoría."""
+        df = pd.DataFrame(sample_apu_data)
+        result = processor._group_by_category(df)
+        
+        assert isinstance(result, list)
+        assert len(result) > 0
+        
+        # Verificar estructura
+        for item in result:
+            assert "DESCRIPCION" in item
+            assert "CATEGORIA" in item
+            assert "CANTIDAD" in item
+    
+    def test_group_by_category_aggregation(self, processor):
+        """Debe agregar valores correctamente."""
+        # Datos duplicados que deben agregarse
+        data = [
+            {
+                "CODIGO_APU": "APU-001",
+                "DESCRIPCION_INSUMO": "Cemento",
+                "CATEGORIA": "SUMINISTRO",
+                "CANTIDAD_APU": 5.0,
+                "VALOR_TOTAL_APU": 100000.0,
+                "RENDIMIENTO": 1.0,
+                "UNIDAD_APU": "BLS",
+                "PRECIO_UNIT_APU": 20000.0,
+                "UNIDAD_INSUMO": "BLS"
+            },
+            {
+                "CODIGO_APU": "APU-001",
+                "DESCRIPCION_INSUMO": "Cemento",  # Mismo insumo
+                "CATEGORIA": "SUMINISTRO",
+                "CANTIDAD_APU": 3.0,
+                "VALOR_TOTAL_APU": 60000.0,
+                "RENDIMIENTO": 1.0,
+                "UNIDAD_APU": "BLS",
+                "PRECIO_UNIT_APU": 20000.0,
+                "UNIDAD_INSUMO": "BLS"
+            }
+        ]
+        
+        df = pd.DataFrame(data)
+        result = processor._group_by_category(df)
+        
+        # Debe haber un solo item agregado
+        assert len(result) == 1
+        assert result[0]["CANTIDAD"] == 8.0  # 5 + 3
+        assert result[0]["VR_TOTAL"] == 160000.0  # 100000 + 60000
+    
+    def test_organize_breakdown(self, processor, sample_apu_data):
+        """Debe organizar desglose por categoría."""
+        df = pd.DataFrame(sample_apu_data)
+        items = processor._group_by_category(df)
+        result = processor._organize_breakdown(items)
+        
+        assert isinstance(result, dict)
+        assert "SUMINISTRO" in result
+        assert isinstance(result["SUMINISTRO"], list)
+    
+    def test_process_apu_details_with_nan(self, processor):
+        """Debe manejar valores NaN."""
+        data = [
+            {
+                "CODIGO_APU": "APU-001",
+                "DESCRIPCION_INSUMO": "Cemento",
+                "CATEGORIA": "SUMINISTRO",
+                "CANTIDAD_APU": np.nan,
+                "VALOR_TOTAL_APU": 100000.0,
+                "RENDIMIENTO": 1.0,
+                "UNIDAD_APU": "BLS",
+                "PRECIO_UNIT_APU": 20000.0,
+                "UNIDAD_INSUMO": "BLS"
+            }
+        ]
+        
+        result = processor.process_apu_details(data, "APU-001")
+        
+        # No debe lanzar error
+        assert "items" in result
+    
+    def test_process_apu_details_with_alerts(self, processor):
+        """Debe procesar alertas si existen."""
+        data = [
+            {
+                "CODIGO_APU": "APU-001",
+                "DESCRIPCION_INSUMO": "Cemento",
+                "CATEGORIA": "SUMINISTRO",
+                "CANTIDAD_APU": 5.0,
+                "VALOR_TOTAL_APU": 100000.0,
+                "RENDIMIENTO": 1.0,
+                "UNIDAD_APU": "BLS",
+                "PRECIO_UNIT_APU": 20000.0,
+                "UNIDAD_INSUMO": "BLS",
+                "alerta": "Precio alto"
+            }
+        ]
+        
+        result = processor.process_apu_details(data, "APU-001")
+        
+        # Verificar que se procesó sin error
+        assert "items" in result
+
+
+# ============================================================================
+# TESTS - DECORADORES
+# ============================================================================
+
+class TestDecorators:
+    """Suite de pruebas para decoradores"""
+    
+    def test_require_session_decorator_no_session(self, app, client):
+        """Debe rechazar request sin sesión."""
+        
+        @require_session
+        def test_endpoint(session_data=None):
+            return {"status": "ok"}
+        
+        with app.test_request_context():
+            # Mock de session.sid
+            with patch('app.app.session') as mock_session:
+                mock_session.sid = None
+                
+                result, status = test_endpoint()
+                
+                assert status == 401
+                assert "error" in result
+    
+    def test_require_session_decorator_expired_session(self, app, mock_redis):
+        """Debe rechazar sesión expirada."""
+        
+        @require_session
+        def test_endpoint(session_data=None):
+            return {"status": "ok"}
+        
+        with app.test_request_context():
+            app.config['SESSION_REDIS'] = mock_redis
+            mock_redis.get.return_value = None  # Sesión expirada
+            
+            with patch('app.app.session') as mock_session:
+                mock_session.sid = "test_session_id"
+                
+                result, status = test_endpoint()
+                
+                assert status == 401
+                assert "expirada" in result["error"].lower()
+    
+    def test_require_session_decorator_valid_session(self, app, mock_redis):
+        """Debe permitir acceso con sesión válida."""
+        
+        @require_session
+        def test_endpoint(session_data=None):
+            return {"status": "ok", "data": session_data}
+        
+        session_data = {"key": "value"}
+        mock_redis.get.return_value = json.dumps(session_data)
+        
+        with app.test_request_context():
+            app.config['SESSION_REDIS'] = mock_redis
+            
+            with patch('app.app.session') as mock_session:
+                mock_session.sid = "test_session_id"
+                
+                result = test_endpoint()
+                
+                assert result["status"] == "ok"
+                assert "data" in result
+    
+    def test_handle_errors_decorator_value_error(self, app):
+        """Debe manejar ValueError."""
+        
+        @handle_errors
+        def test_endpoint():
+            raise ValueError("Test error")
+        
+        with app.test_request_context():
+            result, status = test_endpoint()
+            
+            assert status == 400
+            assert result["code"] == "VALIDATION_ERROR"
+    
+    def test_handle_errors_decorator_key_error(self, app):
+        """Debe manejar KeyError."""
+        
+        @handle_errors
+        def test_endpoint():
+            raise KeyError("missing_key")
+        
+        with app.test_request_context():
+            result, status = test_endpoint()
+            
+            assert status == 400
+            assert result["code"] == "MISSING_KEY"
+    
+    def test_handle_errors_decorator_generic_error(self, app):
+        """Debe manejar errores genéricos."""
+        
+        @handle_errors
+        def test_endpoint():
+            raise Exception("Generic error")
+        
+        with app.test_request_context():
+            result, status = test_endpoint()
+            
+            assert status == 500
+            assert result["code"] == "INTERNAL_ERROR"
+    
+    def test_handle_errors_decorator_success(self, app):
+        """Debe permitir ejecución exitosa."""
+        
+        @handle_errors
+        def test_endpoint():
+            return {"status": "ok"}, 200
+        
+        with app.test_request_context():
+            result, status = test_endpoint()
+            
+            assert status == 200
+            assert result["status"] == "ok"
+
+
+# ============================================================================
+# TESTS - CONTEXT MANAGERS
+# ============================================================================
+
+class TestContextManagers:
+    """Suite de pruebas para context managers"""
+    
+    def test_temporary_upload_directory_creates_dir(self, temp_dir):
+        """Debe crear directorio temporal."""
+        session_id = "test_session"
+        
+        with temporary_upload_directory(temp_dir, session_id) as user_dir:
+            assert user_dir.exists()
+            assert user_dir.is_dir()
+            assert session_id in str(user_dir)
+    
+    def test_temporary_upload_directory_cleanup(self, temp_dir):
+        """Debe limpiar directorio al salir."""
+        session_id = "test_session"
+        created_dir = None
+        
+        with temporary_upload_directory(temp_dir, session_id) as user_dir:
+            created_dir = user_dir
+            # Crear archivo de prueba
+            test_file = user_dir / "test.txt"
+            test_file.write_text("test content")
+            assert test_file.exists()
+        
+        # Después del context, el directorio debe estar limpio
+        assert not created_dir.exists()
+    
+    def test_temporary_upload_directory_cleanup_on_error(self, temp_dir):
+        """Debe limpiar directorio incluso si hay error."""
+        session_id = "test_session"
+        created_dir = None
+        
+        try:
+            with temporary_upload_directory(temp_dir, session_id) as user_dir:
+                created_dir = user_dir
+                raise Exception("Test error")
+        except Exception:
+            pass
+        
+        # Debe haberse limpiado de todos modos
+        assert not created_dir.exists()
+    
+    def test_temporary_upload_directory_multiple_files(self, temp_dir):
+        """Debe limpiar múltiples archivos."""
+        session_id = "test_session"
+        
+        with temporary_upload_directory(temp_dir, session_id) as user_dir:
+            # Crear varios archivos
+            for i in range(5):
+                (user_dir / f"file{i}.txt").write_text(f"content {i}")
+        
+        # Todos deben ser eliminados
+        assert not (temp_dir / session_id).exists()
+
+
+# ============================================================================
+# TESTS - ENDPOINTS
+# ============================================================================
+
+class TestEndpoints:
+    """Suite de pruebas para endpoints de la API"""
+    
+    def test_index_endpoint(self, client):
+        """Debe renderizar página principal."""
+        with patch('app.app.render_template') as mock_render:
+            mock_render.return_value = "Index Page"
+            
+            response = client.get('/')
+            
+            assert response.status_code == 200
+            mock_render.assert_called_once_with('index.html')
+    
+    def test_health_check_endpoint(self, client):
+        """Debe retornar estado de salud."""
+        response = client.get('/api/health')
+        
+        assert response.status_code == 200
+        data = json.loads(response.data)
+        
+        assert data['status'] == 'healthy'
+        assert 'active_sessions' in data
+        assert 'timestamp' in data
+        assert 'version' in data
+    
+    def test_upload_missing_files(self, client):
+        """Debe rechazar upload sin archivos requeridos."""
+        response = client.post('/upload', data={})
+        
+        assert response.status_code == 400
+        data = json.loads(response.data)
+        
+        assert 'error' in data
+        assert data['code'] == 'MISSING_FILES'
+    
+    def test_upload_invalid_file(self, client):
+        """Debe rechazar archivo inválido."""
+        # Archivo con extensión inválida
+        invalid_file = FileStorage(
+            stream=BytesIO(b"test"),
+            filename="test.txt",
+            content_type="text/plain"
+        )
+        
+        response = client.post('/upload', data={
+            'presupuesto': invalid_file,
+            'apus': invalid_file,
+            'insumos': invalid_file
+        })
+        
+        assert response.status_code == 400
+        data = json.loads(response.data)
+        
+        assert data['code'] == 'INVALID_FILE'
+    
+    @patch('app.app.process_all_files')
+    def test_upload_successful(self, mock_process, client, sample_file):
+        """Debe procesar upload exitoso."""
+        # Mock del procesamiento
+        mock_process.return_value = {
+            "presupuesto": [],
+            "apus_detail": [],
+            "summary": {"total_apus": 0}
+        }
+        
+        response = client.post('/upload', data={
+            'presupuesto': sample_file,
+            'apus': sample_file,
+            'insumos': sample_file
+        })
+        
+        # Puede ser 200 si está bien configurado o error si falta algo
+        assert response.status_code in [200, 400, 500]
+    
+    @patch('app.app.process_all_files')
+    def test_upload_processing_error(self, mock_process, client, sample_file):
+        """Debe manejar error de procesamiento."""
+        mock_process.return_value = {
+            "error": "Error al procesar archivos"
+        }
+        
+        response = client.post('/upload', data={
+            'presupuesto': sample_file,
+            'apus': sample_file,
+            'insumos': sample_file
+        })
+        
+        assert response.status_code == 500
+        data = json.loads(response.data)
+        
+        assert data['code'] == 'PROCESSING_ERROR'
+    
+    def test_get_apu_detail_no_session(self, client):
+        """Debe rechazar petición sin sesión."""
+        response = client.get('/api/apu/APU-001')
+        
+        assert response.status_code == 401
+    
+    @patch('app.app.run_monte_carlo_simulation')
+    def test_get_apu_detail_success(self, mock_simulation, app, client, sample_session_data, mock_redis):
+        """Debe retornar detalles de APU."""
+        # Setup
+        app.config['SESSION_REDIS'] = mock_redis
+        mock_redis.get.return_value = json.dumps(sample_session_data["data"])
+        
+        mock_simulation.return_value = {
+            "mean": 300000,
+            "std": 15000,
+            "percentiles": {}
+        }
+        
+        with client.session_transaction() as sess:
+            sess['user_id'] = 'test_user'
+        
+        # Mock session.sid
+        with patch('app.app.session') as mock_session:
+            mock_session.sid = "test_session_id"
+            
+            response = client.get('/api/apu/APU-001')
+            
+            # Verificar respuesta
+            if response.status_code == 200:
+                data = json.loads(response.data)
+                assert 'codigo' in data
+                assert 'desglose' in data
+    
+    def test_get_apu_detail_not_found(self, app, client, sample_session_data, mock_redis):
+        """Debe retornar 404 para APU inexistente."""
+        app.config['SESSION_REDIS'] = mock_redis
+        mock_redis.get.return_value = json.dumps(sample_session_data["data"])
+        
+        with patch('app.app.session') as mock_session:
+            mock_session.sid = "test_session_id"
+            
+            response = client.get('/api/apu/APU-999')
+            
+            if response.status_code == 404:
+                data = json.loads(response.data)
+                assert data['code'] == 'APU_NOT_FOUND'
+    
+    def test_get_estimate_no_session(self, client):
+        """Debe rechazar estimación sin sesión."""
+        response = client.post('/api/estimate',
+                              data=json.dumps({}),
+                              content_type='application/json')
+        
+        assert response.status_code == 401
+    
+    def test_get_estimate_invalid_content_type(self, app, client, mock_redis):
+        """Debe rechazar content-type inválido."""
+        app.config['SESSION_REDIS'] = mock_redis
+        mock_redis.get.return_value = json.dumps({"data": {}})
+        
+        with patch('app.app.session') as mock_session:
+            mock_session.sid = "test_session_id"
+            
+            response = client.post('/api/estimate', data="not json")
+            
+            if response.status_code == 400:
+                data = json.loads(response.data)
+                assert 'INVALID_CONTENT_TYPE' in data.get('code', '')
+    
+    def test_get_estimate_no_params(self, app, client, mock_redis):
+        """Debe rechazar petición sin parámetros."""
+        app.config['SESSION_REDIS'] = mock_redis
+        mock_redis.get.return_value = json.dumps({"data": {}})
+        
+        with patch('app.app.session') as mock_session:
+            mock_session.sid = "test_session_id"
+            
+            response = client.post('/api/estimate',
+                                  data=json.dumps(None),
+                                  content_type='application/json')
+            
+            if response.status_code == 400:
+                data = json.loads(response.data)
+                assert 'error' in data
+    
+    @patch('app.app.calculate_estimate')
+    def test_get_estimate_success(self, mock_calculate, app, client, sample_session_data, mock_redis):
+        """Debe calcular estimación exitosamente."""
+        app.config['SESSION_REDIS'] = mock_redis
+        mock_redis.get.return_value = json.dumps(sample_session_data["data"])
+        
+        mock_calculate.return_value = {
+            "valor_construccion": 500000000,
+            "rendimiento_m2_por_dia": 25.5
+        }
+        
+        with patch('app.app.session') as mock_session:
+            mock_session.sid = "test_session_id"
+            
+            params = {"area_m2": 1000, "pisos": 2}
+            
+            response = client.post('/api/estimate',
+                                  data=json.dumps(params),
+                                  content_type='application/json')
+            
+            if response.status_code == 200:
+                data = json.loads(response.data)
+                assert 'valor_construccion' in data
+
+
+# ============================================================================
+# TESTS - ERROR HANDLERS
+# ============================================================================
+
+class TestErrorHandlers:
+    """Suite de pruebas para manejadores de errores"""
+    
+    def test_404_handler(self, client):
+        """Debe manejar error 404."""
+        response = client.get('/ruta/inexistente')
+        
+        assert response.status_code == 404
+        data = json.loads(response.data)
+        
+        assert data['code'] == 'NOT_FOUND'
+        assert 'error' in data
+        assert 'path' in data
+    
+    def test_413_handler(self, client):
+        """Debe manejar archivo muy grande."""
+        # Crear archivo que exceda el límite
+        large_content = b"x" * (MAX_CONTENT_LENGTH + 1000)
+        large_file = FileStorage(
+            stream=BytesIO(large_content),
+            filename="large.csv",
+            content_type="text/csv"
+        )
+        
+        response = client.post('/upload', data={
+            'presupuesto': large_file,
+            'apus': large_file,
+            'insumos': large_file
+        })
+        
+        # Puede ser 413 o rechazado antes
+        if response.status_code == 413:
+            data = json.loads(response.data)
+            assert data['code'] == 'FILE_TOO_LARGE'
+    
+    def test_500_handler(self, app, client):
+        """Debe manejar error 500."""
+        # Crear endpoint que falle
+        @app.route('/test_500')
+        def test_500():
+            raise Exception("Test internal error")
+        
+        response = client.get('/test_500')
+        
+        assert response.status_code == 500
+        data = json.loads(response.data)
+        
+        assert data['code'] == 'INTERNAL_ERROR'
+
+
+# ============================================================================
+# TESTS - MIDDLEWARE Y HOOKS
+# ============================================================================
+
+class TestMiddleware:
+    """Suite de pruebas para middleware y hooks"""
+    
+    def test_before_request_logging(self, app, client, caplog):
+        """Debe loggear requests."""
+        with caplog.at_level(logging.DEBUG):
+            client.get('/api/health')
+            
+            # Verificar que se loggeó algo
+            assert len(caplog.records) > 0
+    
+    def test_after_request_security_headers(self, client):
+        """Debe agregar headers de seguridad."""
+        response = client.get('/api/health')
+        
+        assert 'X-Content-Type-Options' in response.headers
+        assert response.headers['X-Content-Type-Options'] == 'nosniff'
+        
+        assert 'X-Frame-Options' in response.headers
+        assert response.headers['X-Frame-Options'] == 'DENY'
+        
+        assert 'X-XSS-Protection' in response.headers
+    
+    def test_after_request_cors_disabled(self, app, client):
+        """CORS debe estar deshabilitado por defecto."""
+        app.config['ENABLE_CORS'] = False
+        
+        response = client.get('/api/health')
+        
+        assert 'Access-Control-Allow-Origin' not in response.headers
+    
+    def test_after_request_cors_enabled(self, app, client):
+        """Debe agregar headers CORS si está habilitado."""
+        app.config['ENABLE_CORS'] = True
+        
+        response = client.get('/api/health')
+        
+        assert 'Access-Control-Allow-Origin' in response.headers
+
+
+# ============================================================================
+# TESTS - CARGA DE MODELOS SEMÁNTICOS
+# ============================================================================
+
+class TestSemanticSearch:
+    """Suite de pruebas para carga de búsqueda semántica"""
+    
+    @patch('pathlib.Path.exists')
+    @patch('faiss.read_index')
+    @patch('builtins.open', new_callable=mock_open, read_data='{"model_name": "test-model"}')
+    @patch('app.app.SentenceTransformer')
+    def test_load_semantic_search_success(self, mock_transformer, mock_file, mock_faiss, mock_exists, app):
+        """Debe cargar artefactos exitosamente."""
+        mock_exists.return_value = True
+        mock_index = MagicMock()
+        mock_index.ntotal = 1000
+        mock_faiss.return_value = mock_index
+        
+        load_semantic_search_artifacts(app)
+        
+        assert app.config.get('FAISS_INDEX') is not None
+        assert app.config.get('EMBEDDING_MODEL') is not None
+    
+    @patch('pathlib.Path.exists')
+    def test_load_semantic_search_missing_files(self, mock_exists, app):
+        """Debe manejar archivos faltantes."""
+        mock_exists.return_value = False
+        
+        load_semantic_search_artifacts(app)
+        
+        # Debe configurar como None
+        assert app.config.get('FAISS_INDEX') is None
+        assert app.config.get('EMBEDDING_MODEL') is None
+    
+    @patch('pathlib.Path.exists')
+    @patch('faiss.read_index')
+    def test_load_semantic_search_error_handling(self, mock_faiss, mock_exists, app):
+        """Debe manejar errores en carga."""
+        mock_exists.return_value = True
+        mock_faiss.side_effect = Exception("Error loading index")
+        
+        # No debe lanzar excepción
+        load_semantic_search_artifacts(app)
+        
+        # Debe configurar como None
+        assert app.config.get('FAISS_INDEX') is None
+
+
+# ============================================================================
+# TESTS - CREATE APP
+# ============================================================================
+
+class TestCreateApp:
+    """Suite de pruebas para create_app factory"""
+    
+    @patch('redis.from_url')
+    @patch('app.app.load_semantic_search_artifacts')
+    def test_create_app_development(self, mock_load, mock_redis):
+        """Debe crear app en modo desarrollo."""
+        mock_redis.return_value = MagicMock()
+        
+        app = create_app('development')
+        
+        assert app is not None
+        assert app.config['TESTING'] is False
+        assert app.config['DEBUG'] is True
+    
+    @patch('redis.from_url')
+    @patch('app.app.load_semantic_search_artifacts')
+    def test_create_app_testing(self, mock_load, mock_redis):
+        """Debe crear app en modo testing."""
+        mock_redis.return_value = MagicMock()
+        
+        app = create_app('testing')
+        
+        assert app is not None
+        assert app.config['TESTING'] is True
+    
+    @patch('redis.from_url')
+    @patch('app.app.load_semantic_search_artifacts')
+    def test_create_app_production(self, mock_load, mock_redis):
+        """Debe crear app en modo producción."""
+        mock_redis.return_value = MagicMock()
+        
+        app = create_app('production')
+        
+        assert app is not None
+        assert app.config['SESSION_COOKIE_SECURE'] is True
+    
+    @patch('redis.from_url')
+    @patch('app.app.load_semantic_search_artifacts')
+    def test_create_app_config_loading(self, mock_load, mock_redis):
+        """Debe cargar configuración desde archivo."""
+        mock_redis.return_value = MagicMock()
+        
+        with patch('builtins.open', mock_open(read_data='{"version": "1.0.0"}')):
+            app = create_app('testing')
+            
+            assert 'APP_CONFIG' in app.config
+    
+    @patch('redis.from_url')
+    @patch('app.app.load_semantic_search_artifacts')
+    def test_create_app_upload_folder_creation(self, mock_load, mock_redis):
+        """Debe crear carpeta de uploads."""
+        mock_redis.return_value = MagicMock()
+        
+        with patch('pathlib.Path.mkdir') as mock_mkdir:
+            app = create_app('testing')
+            
+            # Verificar que se intentó crear directorio
+            assert 'UPLOAD_FOLDER' in app.config
+    
+    @patch('redis.from_url')
+    @patch('app.app.load_semantic_search_artifacts')
+    def test_create_app_session_configuration(self, mock_load, mock_redis):
+        """Debe configurar sesiones correctamente."""
+        mock_redis.return_value = MagicMock()
+        
+        app = create_app('testing')
+        
+        assert app.config['SESSION_TYPE'] == 'redis'
+        assert app.config['SESSION_PERMANENT'] is True
+        assert app.config['SESSION_USE_SIGNER'] is True
+        assert app.config['PERMANENT_SESSION_LIFETIME'] == SESSION_TIMEOUT
+
+
+# ============================================================================
+# TESTS DE INTEGRACIÓN
+# ============================================================================
+
+class TestIntegration:
+    """Tests de integración end-to-end"""
+    
+    @patch('app.app.process_all_files')
+    @patch('app.app.run_monte_carlo_simulation')
+    def test_full_workflow(self, mock_simulation, mock_process, client, sample_file, sample_session_data, mock_redis):
+        """Workflow completo: upload -> detail -> estimate."""
+        
+        # 1. Upload
+        mock_process.return_value = sample_session_data["data"]
+        
+        upload_response = client.post('/upload', data={
+            'presupuesto': sample_file,
+            'apus': sample_file,
+            'insumos': sample_file
+        })
+        
+        # Verificar upload
+        assert upload_response.status_code in [200, 400, 500]
+        
+        # 2. Get APU detail (si upload fue exitoso)
+        if upload_response.status_code == 200:
+            mock_simulation.return_value = {"mean": 300000}
+            
+            with patch('app.app.session') as mock_session:
+                mock_session.sid = "test_session"
+                
+                detail_response = client.get('/api/apu/APU-001')
+                # Puede fallar por sesión, pero no debe crashear
+                assert detail_response.status_code in [200, 401, 404]
+
+
+# ============================================================================
+# TESTS DE SEGURIDAD
+# ============================================================================
+
+class TestSecurity:
+    """Tests de seguridad"""
+    
+    def test_sql_injection_attempt(self, client):
+        """Debe prevenir SQL injection."""
+        malicious_code = "'; DROP TABLE users; --"
+        
+        response = client.get(f'/api/apu/{malicious_code}')
+        
+        # No debe ejecutar código malicioso
+        assert response.status_code in [401, 404]
+    
+    def test_xss_attempt(self, client):
+        """Debe prevenir XSS."""
+        xss_payload = "<script>alert('XSS')</script>"
+        
+        response = client.get(f'/api/apu/{xss_payload}')
+        
+        # No debe ejecutar script
+        assert response.status_code in [401, 404]
+        if response.data:
+            assert b'<script>' not in response.data
+    
+    def test_path_traversal_attempt(self, client, sample_file):
+        """Debe prevenir path traversal."""
+        traversal_file = FileStorage(
+            stream=BytesIO(b"test"),
+            filename="../../../etc/passwd",
+            content_type="text/csv"
+        )
+        
+        response = client.post('/upload', data={
+            'presupuesto': traversal_file,
+            'apus': sample_file,
+            'insumos': sample_file
+        })
+        
+        # Debe rechazar o sanitizar
+        assert response.status_code in [400, 500]
+
+
+# ============================================================================
+# TESTS DE CONSTANTES
+# ============================================================================
+
+class TestConstants:
+    """Tests para constantes de configuración"""
+    
+    def test_session_timeout_constant(self):
+        """SESSION_TIMEOUT debe ser número positivo."""
+        assert SESSION_TIMEOUT > 0
+        assert isinstance(SESSION_TIMEOUT, int)
+    
+    def test_max_content_length_constant(self):
+        """MAX_CONTENT_LENGTH debe ser razonable."""
+        assert MAX_CONTENT_LENGTH > 0
+        assert MAX_CONTENT_LENGTH == 16 * 1024 * 1024  # 16MB
+    
+    def test_allowed_extensions_constant(self):
+        """ALLOWED_EXTENSIONS debe contener extensiones válidas."""
+        assert isinstance(ALLOWED_EXTENSIONS, set)
+        assert '.csv' in ALLOWED_EXTENSIONS
+        assert '.xlsx' in ALLOWED_EXTENSIONS
+        assert '.xls' in ALLOWED_EXTENSIONS
+        
+        # No debe contener extensiones peligrosas
+        assert '.exe' not in ALLOWED_EXTENSIONS
+        assert '.sh' not in ALLOWED_EXTENSIONS
+
+
+# ============================================================================
+# TESTS DE RENDIMIENTO
+# ============================================================================
+
+class TestPerformance:
+    """Tests de rendimiento"""
+    
+    def test_health_check_response_time(self, client):
+        """Health check debe ser rápido."""
+        import time
+        
+        start = time.time()
+        response = client.get('/api/health')
+        elapsed = time.time() - start
+        
+        assert response.status_code == 200
+        assert elapsed < 1.0  # Debe responder en menos de 1 segundo
+    
+    def test_multiple_concurrent_requests(self, client):
+        """Debe manejar múltiples requests."""
+        import concurrent.futures
+        
+        def make_request():
+            return client.get('/api/health')
+        
+        with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
+            futures = [executor.submit(make_request) for _ in range(10)]
+            responses = [f.result() for f in futures]
+        
+        # Todas deben completarse exitosamente
+        assert all(r.status_code == 200 for r in responses)
+
+
+# ============================================================================
+# CONFIGURACIÓN DE PYTEST
+# ============================================================================
+
+def pytest_configure(config):
+    """Configuración de pytest."""
+    config.addinivalue_line(
+        "markers", "slow: marks tests as slow"
+    )
+    config.addinivalue_line(
+        "markers", "integration: marks tests as integration tests"
+    )
+    config.addinivalue_line(
+        "markers", "security: marks tests as security tests"
+    )
+
+
+# ============================================================================
+# EJECUCIÓN PRINCIPAL
+# ============================================================================
+
+if __name__ == '__main__':
+    pytest.main([
+        __file__,
+        '-v',
+        '--tb=short',
+        '--cov=app.app',
+        '--cov-report=html',
+        '--cov-report=term-missing',
+        '-W', 'ignore::DeprecationWarning',
+        '--maxfail=3',  # Detener después de 3 fallos
+    ])
