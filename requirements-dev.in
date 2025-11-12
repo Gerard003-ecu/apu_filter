@@ -1,3 +1,4 @@
+fakeredis
 ruff
 pytest
 parameterized
