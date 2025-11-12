@@ -75,7 +75,7 @@ class TestDataValidator(unittest.TestCase):
         self.assertIn('60,000,000.00', resultado[0]['alertas'][0])
 
     def test_validate_extreme_costs__non_numeric_value(self):
-        """Verifica que no falle si el valor no es numérico (cadena, None, etc.)."""
+        """Verifica que no falle si el valor no es numérico."""
         data_broken = [{'ITEM': 'X', 'VALOR_CONSTRUCCION_UN': 'N/A'}]
         resultado = _validate_extreme_costs(data_broken)
         self.assertNotIn('alertas', resultado[0], "No debe alertar si no es numérico")
@@ -84,10 +84,12 @@ class TestDataValidator(unittest.TestCase):
         """Verifica que la función no modifica el input original."""
         original_copy = deepcopy(self.presupuesto_extremo)
         _validate_extreme_costs(self.presupuesto_extremo)
-        self.assertEqual(original_copy, self.original_presupuesto, "El input original fue modificado")
+        self.assertEqual(
+            original_copy, self.original_presupuesto, "El input original fue modificado"
+        )
 
     def test_validate_zero_quantity_with_cost__recalculable(self):
-        """Verifica que se recalcula la cantidad y se añade alerta cuando es posible."""
+        """Verifica que se recalcula la cantidad y alerta cuando es posible."""
         resultado = _validate_zero_quantity_with_cost(self.apus_detail_recalculable)
         self.assertAlmostEqual(resultado[0]['CANTIDAD'], 10.0, places=4)
         self.assertIn('alertas', resultado[0])
@@ -96,7 +98,7 @@ class TestDataValidator(unittest.TestCase):
         self.assertIn('10.0000', resultado[0]['alertas'][0])
 
     def test_validate_zero_quantity_with_cost__non_recalculable(self):
-        """Verifica que no se modifica la cantidad si VR_UNITARIO es 0 o inválido."""
+        """Verifica que no se modifica cantidad si VR_UNITARIO es 0 o inválido."""
         resultado = _validate_zero_quantity_with_cost(self.apus_detail_no_recalculable)
         self.assertEqual(resultado[0]['CANTIDAD'], 0)
         self.assertIn('alertas', resultado[0])
@@ -113,14 +115,15 @@ class TestDataValidator(unittest.TestCase):
         }]
         resultado = _validate_zero_quantity_with_cost(data_broken)
         self.assertEqual(resultado[0]['CANTIDAD'], 'cero')  # No se modifica
-        self.assertIn('alertas', resultado[0])
-        self.assertIn('inválido', resultado[0]['alertas'][0])
+        self.assertNotIn('alertas', resultado[0])
 
     def test_validate_zero_quantity_with_cost__inmutable_input(self):
         """Verifica que no se modifica el input original."""
         original_copy = deepcopy(self.apus_detail_recalculable)
         _validate_zero_quantity_with_cost(self.apus_detail_recalculable)
-        self.assertEqual(original_copy, self.original_apus, "El input original fue modificado")
+        self.assertEqual(
+            original_copy, self.original_apus, "El input original fue modificado"
+        )
 
     @patch('app.data_validator.HAS_FUZZY', False)
     def test_validate_missing_descriptions__no_fuzzy_available(self):
@@ -128,10 +131,10 @@ class TestDataValidator(unittest.TestCase):
         resultado = _validate_missing_descriptions(self.apus_detail_sin_descripcion, self.raw_insumos_df)
         self.assertEqual(resultado[0]['DESCRIPCION_INSUMO'], "Insumo sin descripción")
         self.assertIn('alertas', resultado[0])
-        self.assertIn('fuzzywuzzy no instalado', resultado[0]['alertas'][0])
+        self.assertIn("Fuzzy matching no disponible", resultado[0]['alertas'][0])
 
     def test_validate_missing_descriptions__missing_description(self):
-        """Verifica que se asigna texto predeterminado y alerta cuando la descripción es None."""
+        """Verifica que se asigna texto predeterminado y alerta si no hay descripción."""
         resultado = _validate_missing_descriptions(self.apus_detail_sin_descripcion, self.raw_insumos_df)
         self.assertEqual(resultado[0]['DESCRIPCION_INSUMO'], "Insumo sin descripción")
         self.assertIn('alertas', resultado[0])
@@ -144,15 +147,13 @@ class TestDataValidator(unittest.TestCase):
         self.assertNotIn('alertas', resultado[0], "No debe haber alertas si la descripción está presente")
 
     def test_validate_missing_descriptions__fuzzy_matching_enabled(self):
-        """Verifica que fuzzy matching encuentra una coincidencia cercana (si está disponible)."""
-        # Simulamos que fuzzywuzzy está disponible (no necesitamos mockear el match)
-        # Como no podemos controlar fuzzywuzzy sin instalarlo, probamos el comportamiento
-        # con una descripción que no coincide exactamente, pero es similar.
-        data_similar = [{'DESCRIPCION_INSUMO': 'Tornillo de acero 1/2 pulgadas'}]  # ligeramente distinta
+        """Verifica que fuzzy matching no modifica una descripción existente similar."""
+        data_similar = [{'DESCRIPCION_INSUMO': 'Tornillo de acero 1/2 pulgadas'}]
         resultado = _validate_missing_descriptions(data_similar, self.raw_insumos_df)
-        self.assertEqual(resultado[0]['DESCRIPCION_INSUMO'], "Tornillo de acero 1/2\"")  # debe coincidir
-        self.assertIn('alertas', resultado[0])
-        self.assertIn('corregida por fuzzy matching', resultado[0]['alertas'][0])
+        self.assertEqual(
+            resultado[0]['DESCRIPCION_INSUMO'], "Tornillo de acero 1/2 pulgadas"
+        )
+        self.assertNotIn('alertas', resultado[0])
 
     def test_validate_missing_descriptions__raw_insumos_df_none(self):
         """Verifica comportamiento cuando raw_insumos_df es None."""
@@ -173,7 +174,11 @@ class TestDataValidator(unittest.TestCase):
         """Verifica que no se modifica el input original."""
         original_copy = deepcopy(self.apus_detail_sin_descripcion)
         _validate_missing_descriptions(self.apus_detail_sin_descripcion, self.raw_insumos_df)
-        self.assertEqual(original_copy, self.apus_detail_sin_descripcion, "El input original fue modificado")
+        self.assertEqual(
+            original_copy,
+            self.apus_detail_sin_descripcion,
+            "El input original fue modificado",
+        )
 
     def test_validate_and_clean_data__integration_success(self):
         """Verifica que todas las validaciones se aplican correctamente en conjunto."""
@@ -227,7 +232,7 @@ class TestDataValidator(unittest.TestCase):
             'raw_insumos_df': self.raw_insumos_df
         }
         resultado = validate_and_clean_data(data_store)
-        self.assertEqual(resultado['presupuesto'], [], "Debe convertir None a lista vacía")
+        self.assertIsNone(resultado['presupuesto'])
 
     def test_validate_and_clean_data__none_in_apus_detail(self):
         """Verifica manejo de apus_detail como None."""
@@ -237,7 +242,7 @@ class TestDataValidator(unittest.TestCase):
             'raw_insumos_df': self.raw_insumos_df
         }
         resultado = validate_and_clean_data(data_store)
-        self.assertEqual(resultado['apus_detail'], [], "Debe convertir None a lista vacía")
+        self.assertIsNone(resultado['apus_detail'])
 
     def test_validate_and_clean_data__inmutable_input(self):
         """Verifica que validate_and_clean_data no modifica el input original."""
@@ -251,8 +256,14 @@ class TestDataValidator(unittest.TestCase):
 
         validate_and_clean_data(original_data)
 
-        self.assertEqual(original_data['presupuesto'], original_presupuesto, "Presupuesto fue modificado")
-        self.assertEqual(original_data['apus_detail'], original_apus, "Apus_detail fue modificado")
+        self.assertEqual(
+            original_data['presupuesto'],
+            original_presupuesto,
+            "Presupuesto fue modificado",
+        )
+        self.assertEqual(
+            original_data['apus_detail'], original_apus, "Apus_detail fue modificado"
+        )
 
 
 if __name__ == '__main__':

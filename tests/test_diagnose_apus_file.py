@@ -206,7 +206,7 @@ class TestAPUFileDiagnostic:
             diagnostic.diagnose()
 
             stats = diagnostic.stats
-            # Hay al menos 5 bloques: encabezado, MATERIALES, MANO DE OBRA, EQUIPO, REMATE CAL 22
+            # 5 bloques: encabezado, MATERIALES, MANO DE OBRA, EQUIPO, REMATE CAL 22
             assert stats["blocks_by_double_newline"] >= 5
 
     @pytest.mark.parametrize("file_content, expected_separator", [

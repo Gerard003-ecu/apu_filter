@@ -21,7 +21,7 @@ import re
 import unicodedata
 import warnings
 from dataclasses import asdict, dataclass, field
-from decimal import Decimal, InvalidOperation
+from decimal import Decimal
 from enum import Enum
 from functools import lru_cache
 from typing import Any, ClassVar, Dict, Final, Optional, Protocol, Set, Type, Union
@@ -89,34 +89,34 @@ UNIDAD_NORMALIZADA_MAP: Final[Dict[str, str]] = {
     'semana': 'SEMANA', 'sem': 'SEMANA', 'semanas': 'SEMANA',
     'mes': 'MES', 'meses': 'MES',
     'jornal': 'JOR', 'jornales': 'JOR',
-    
+
     # Masa
     'kg': 'KG', 'kilogramo': 'KG', 'kilogramos': 'KG', 'kilo': 'KG', 'kilos': 'KG',
     'gramo': 'GR', 'gramos': 'GR', 'gr': 'GR', 'g': 'GR',
     'tonelada': 'TON', 'toneladas': 'TON', 'ton': 'TON', 't': 'TON',
     'libra': 'LB', 'libras': 'LB', 'lb': 'LB',
-    
+
     # Volumen
     'm3': 'M3', 'm³': 'M3', 'metro cubico': 'M3', 'metros cubicos': 'M3',
     'litro': 'L', 'litros': 'L', 'l': 'L', 'lt': 'L', 'lts': 'L',
     'mililitro': 'ML', 'mililitros': 'ML', 'ml': 'ML',
     'galon': 'GAL', 'galones': 'GAL', 'gal': 'GAL',
-    
+
     # Área
     'm2': 'M2', 'm²': 'M2', 'metro cuadrado': 'M2', 'metros cuadrados': 'M2',
     'cm2': 'CM2', 'cm²': 'CM2',
-    
+
     # Longitud
     'metro': 'M', 'metros': 'M', 'm': 'M', 'mts': 'M',
     'kilometro': 'KM', 'kilometros': 'KM', 'km': 'KM', 'kilómetro': 'KM', 'kilómetros': 'KM',
     'centimetro': 'CM', 'centimetros': 'CM', 'cm': 'CM',
     'milimetro': 'MM', 'milimetros': 'MM', 'mm': 'MM',
-    
+
     # Transporte
     'viaje': 'VIAJE', 'viajes': 'VIAJES', 'vje': 'VIAJE',
     'milla': 'MILLA', 'millas': 'MILLA',
     'ton-km': 'TON-KM', 'ton km': 'TON-KM', 'tonelada-kilometro': 'TON-KM',
-    
+
     # Genéricas
     'unidad': 'UNIDAD', 'unidades': 'UNIDAD', 'und': 'UNIDAD', 'u': 'UNIDAD', 'un': 'UNIDAD',
     'par': 'PAR', 'pares': 'PAR',
@@ -135,13 +135,13 @@ FORMATOS_VALIDOS: Final[Set[str]] = frozenset({
 
 class TipoInsumo(str, Enum):
     """Tipos válidos de insumos en un APU."""
-    
+
     MANO_DE_OBRA = "MANO_DE_OBRA"
     EQUIPO = "EQUIPO"
     SUMINISTRO = "SUMINISTRO"
     TRANSPORTE = "TRANSPORTE"
     OTRO = "OTRO"
-    
+
     @classmethod
     def from_string(cls, value: str) -> TipoInsumo:
         """
@@ -158,9 +158,9 @@ class TipoInsumo(str, Enum):
         """
         if isinstance(value, cls):
             return value
-        
+
         normalized = str(value).strip().upper().replace(' ', '_')
-        
+
         try:
             return cls(normalized)
         except ValueError:
@@ -168,7 +168,7 @@ class TipoInsumo(str, Enum):
                 f"Tipo de insumo inválido: '{value}'. "
                 f"Valores válidos: {', '.join(t.value for t in cls)}"
             )
-    
+
     @classmethod
     def get_valid_values(cls) -> Set[str]:
         """Retorna conjunto de valores válidos."""
@@ -224,24 +224,21 @@ def normalize_unit(unit: Optional[str]) -> str:
         'KG'
         >>> normalize_unit('metros')
         'M'
-        >>> normalize_unit('hora')
-        'HORA'
+        >>> normalize_unit(None)
+        'UNIDAD'
     """
-    if unit is None or not isinstance(unit, str):
-        return 'UNIDAD'  # Default fallback
-    
+    if not isinstance(unit, str) or not unit.strip():
+        return 'UNIDAD'
+
     # Normalizar a minúsculas y limpiar espacios
     normalized = unit.strip().lower()
-    
-    if not normalized:
-        return 'UNIDAD'
-    
+
     # Buscar en mapeo
     result = UNIDAD_NORMALIZADA_MAP.get(normalized)
-    
+
     if result:
         return result
-    
+
     # Si no está en el mapeo, retornar en mayúsculas
     return unit.strip().upper()
 
@@ -261,20 +258,20 @@ def normalize_description(desc: Optional[str]) -> str:
     Examples:
         >>> normalize_description('  Concreto  f\'c=280  ')
         'CONCRETO FC=280'
-        >>> normalize_description('Ácido Nitrógeno')
-        'ACIDO NITROGENO'
+        >>> normalize_description(None)
+        ''
     """
-    if not desc or not isinstance(desc, str):
-        return ""
-    
+    if not isinstance(desc, str) or not desc:
+        return ''
+
     # Eliminar tildes (NFD normalization)
     desc = unicodedata.normalize('NFD', desc)
     desc = desc.encode('ASCII', 'ignore').decode('ASCII')
-    
+
     # Limpiar espacios múltiples y caracteres especiales innecesarios
     desc = re.sub(r'[^\w\s\-./()=]', '', desc)
     desc = re.sub(r'\s+', ' ', desc.strip())
-    
+
     return desc.upper()
 
 
@@ -294,23 +291,23 @@ def normalize_codigo(codigo: Optional[str]) -> str:
     """
     if not codigo or not isinstance(codigo, str):
         raise ValidationError("Código APU no puede estar vacío")
-    
+
     # Limpiar y convertir a mayúsculas
     codigo_clean = codigo.strip().upper()
-    
+
     # Validar longitud
     if len(codigo_clean) > MAX_CODIGO_LENGTH:
         raise ValidationError(
             f"Código APU demasiado largo: {len(codigo_clean)} caracteres "
             f"(máximo: {MAX_CODIGO_LENGTH})"
         )
-    
+
     if len(codigo_clean) < 1:
         raise ValidationError("Código APU no puede estar vacío")
-    
+
     # Remover caracteres no permitidos (mantener alfanuméricos, guiones, puntos)
     codigo_clean = re.sub(r'[^\w\-.]', '', codigo_clean)
-    
+
     return codigo_clean
 
 
@@ -320,7 +317,7 @@ def normalize_codigo(codigo: Optional[str]) -> str:
 
 class NumericValidator:
     """Validador de valores numéricos con rangos configurables."""
-    
+
     @staticmethod
     def validate_non_negative(
         value: Union[int, float, Decimal],
@@ -348,7 +345,7 @@ class NumericValidator:
             raise ValidationError(
                 f"{field_name} debe ser numérico, recibido: {type(value).__name__}"
             )
-        
+
         # Convertir a float
         try:
             float_value = float(value)
@@ -356,41 +353,41 @@ class NumericValidator:
             raise ValidationError(
                 f"No se puede convertir {field_name} a número: {e}"
             )
-        
+
         # Validar NaN e infinito
         if not (float('-inf') < float_value < float('inf')):
             raise ValidationError(
                 f"{field_name} debe ser un número finito, recibido: {float_value}"
             )
-        
+
         # Validar rango mínimo
         if float_value < min_value:
             raise ValidationError(
                 f"{field_name} no puede ser menor que {min_value}, recibido: {float_value}"
             )
-        
+
         # Validar rango máximo
         if max_value is not None and float_value > max_value:
             raise ValidationError(
                 f"{field_name} no puede ser mayor que {max_value}, recibido: {float_value}"
             )
-        
+
         return float_value
-    
+
     @staticmethod
     def validate_positive(value: Union[int, float], field_name: str) -> float:
         """Valida que un valor sea positivo (> 0)."""
         validated = NumericValidator.validate_non_negative(value, field_name)
-        
+
         if validated <= 0:
             raise ValidationError(f"{field_name} debe ser mayor que 0")
-        
+
         return validated
 
 
 class StringValidator:
     """Validador de strings."""
-    
+
     @staticmethod
     def validate_non_empty(
         value: str,
@@ -415,16 +412,16 @@ class StringValidator:
             raise ValidationError(
                 f"{field_name} debe ser string, recibido: {type(value).__name__}"
             )
-        
+
         if not value or not value.strip():
             raise ValidationError(f"{field_name} no puede estar vacío")
-        
+
         if max_length and len(value) > max_length:
             raise ValidationError(
                 f"{field_name} demasiado largo: {len(value)} caracteres "
                 f"(máximo: {max_length})"
             )
-        
+
         return value.strip()
 
 
@@ -434,7 +431,7 @@ class StringValidator:
 
 class InsumoProtocol(Protocol):
     """Protocolo que define la interfaz de un insumo."""
-    
+
     codigo_apu: str
     descripcion_apu: str
     unidad_apu: str
@@ -445,11 +442,11 @@ class InsumoProtocol(Protocol):
     valor_total: float
     categoria: str
     tipo_insumo: str
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """Convierte el insumo a diccionario."""
         ...
-    
+
     def validate(self) -> bool:
         """Valida el insumo."""
         ...
@@ -481,7 +478,7 @@ class InsumoProcesado:
         rendimiento: Rendimiento (para mano de obra)
         normalized_desc: Descripción normalizada (generada automáticamente)
     """
-    
+
     # Campos obligatorios
     codigo_apu: str
     descripcion_apu: str
@@ -492,20 +489,20 @@ class InsumoProcesado:
     precio_unitario: float
     valor_total: float
     tipo_insumo: str
-    
+
     # Campos opcionales con defaults
     categoria: str = field(default="OTRO")
     formato_origen: str = field(default="GENERIC")
     rendimiento: float = field(default=0.0)
     normalized_desc: str = field(default="", init=False)
-    
+
     # Metadatos de validación
     _validated: bool = field(default=False, init=False, repr=False)
-    
+
     # Constantes de clase
     EXPECTED_UNITS: ClassVar[Set[str]] = UNIDADES_GENERICAS
     REQUIRES_RENDIMIENTO: ClassVar[bool] = False
-    
+
     def __post_init__(self):
         """
         Validación y normalización automática después de inicialización.
@@ -522,17 +519,17 @@ class InsumoProcesado:
             self._validate_numeric_fields()
             self._validate_consistency()
             self._post_validation_hook()
-            
+
             # Marcar como validado
             object.__setattr__(self, '_validated', True)
-            
+
         except Exception as e:
             logger.error(
                 f"Error inicializando {self.__class__.__name__} "
                 f"para APU {getattr(self, 'codigo_apu', 'UNKNOWN')}: {e}"
             )
             raise
-    
+
     def _normalize_all_fields(self):
         """Normaliza todos los campos del insumo."""
         # Normalizar código
@@ -540,7 +537,7 @@ class InsumoProcesado:
             object.__setattr__(self, 'codigo_apu', normalize_codigo(self.codigo_apu))
         except ValidationError as e:
             raise ValidationError(f"Error en codigo_apu: {e}")
-        
+
         # Normalizar descripciones
         object.__setattr__(
             self, 'descripcion_apu',
@@ -554,18 +551,18 @@ class InsumoProcesado:
             self, 'normalized_desc',
             normalize_description(self.descripcion_insumo)
         )
-        
+
         # Normalizar unidades
         object.__setattr__(self, 'unidad_apu', normalize_unit(self.unidad_apu))
         object.__setattr__(self, 'unidad_insumo', normalize_unit(self.unidad_insumo))
-        
+
         # Normalizar tipo_insumo
         tipo_enum = TipoInsumo.from_string(self.tipo_insumo)
         object.__setattr__(self, 'tipo_insumo', tipo_enum.value)
-        
+
         # Sincronizar categoria con tipo_insumo
         object.__setattr__(self, 'categoria', tipo_enum.value)
-        
+
         # Normalizar formato_origen
         formato_upper = str(self.formato_origen).strip().upper()
         if formato_upper not in FORMATOS_VALIDOS:
@@ -575,19 +572,19 @@ class InsumoProcesado:
             )
             formato_upper = "GENERIC"
         object.__setattr__(self, 'formato_origen', formato_upper)
-    
+
     def _validate_required_fields(self):
         """Valida campos obligatorios."""
         # Validar codigo_apu (ya validado en normalización)
         StringValidator.validate_non_empty(
             self.codigo_apu, "codigo_apu", MAX_CODIGO_LENGTH
         )
-        
+
         # Validar descripción insumo
         StringValidator.validate_non_empty(
             self.descripcion_insumo, "descripcion_insumo", MAX_DESCRIPCION_LENGTH
         )
-    
+
     def _validate_numeric_fields(self):
         """Valida todos los campos numéricos."""
         # Validar cantidad
@@ -595,25 +592,25 @@ class InsumoProcesado:
             self.cantidad, "cantidad", MIN_CANTIDAD, MAX_CANTIDAD
         )
         object.__setattr__(self, 'cantidad', cantidad_validated)
-        
+
         # Validar precio_unitario
         precio_validated = NumericValidator.validate_non_negative(
             self.precio_unitario, "precio_unitario", MIN_PRECIO, MAX_PRECIO
         )
         object.__setattr__(self, 'precio_unitario', precio_validated)
-        
+
         # Validar valor_total
         valor_validated = NumericValidator.validate_non_negative(
             self.valor_total, "valor_total", MIN_PRECIO, MAX_PRECIO
         )
         object.__setattr__(self, 'valor_total', valor_validated)
-        
+
         # Validar rendimiento
         rendimiento_validated = NumericValidator.validate_non_negative(
             self.rendimiento, "rendimiento", MIN_RENDIMIENTO, MAX_RENDIMIENTO
         )
         object.__setattr__(self, 'rendimiento', rendimiento_validated)
-    
+
     def _validate_consistency(self):
         """
         Valida coherencia lógica entre campos.
@@ -621,25 +618,25 @@ class InsumoProcesado:
         """
         # Validar coherencia valor_total
         self._validate_valor_total_consistency()
-        
+
         # Validar unidades esperadas (si están definidas)
         if self.EXPECTED_UNITS:
             self._validate_expected_units()
-        
+
         # Validar rendimiento si es requerido
         if self.REQUIRES_RENDIMIENTO:
             self._validate_rendimiento_required()
-    
+
     def _validate_valor_total_consistency(self):
         """Valida que valor_total sea coherente con cantidad * precio_unitario."""
         expected_total = self.cantidad * self.precio_unitario
-        
+
         # Calcular diferencia relativa
         if expected_total > 0:
             diff_rel = abs(self.valor_total - expected_total) / expected_total
         else:
             diff_rel = abs(self.valor_total - expected_total)
-        
+
         if diff_rel > VALOR_TOTAL_TOLERANCE:
             warnings.warn(
                 f"{self.__class__.__name__} [{self.codigo_apu}]: "
@@ -648,12 +645,12 @@ class InsumoProcesado:
                 UserWarning,
                 stacklevel=3
             )
-    
+
     def _validate_expected_units(self):
         """Valida que las unidades estén en el conjunto esperado."""
         if (self.unidad_apu not in self.EXPECTED_UNITS and
             self.unidad_insumo not in self.EXPECTED_UNITS):
-            
+
             warnings.warn(
                 f"{self.__class__.__name__} [{self.codigo_apu}]: "
                 f"unidades '{self.unidad_apu}'/'{self.unidad_insumo}' no son típicas. "
@@ -661,7 +658,7 @@ class InsumoProcesado:
                 UserWarning,
                 stacklevel=3
             )
-    
+
     def _validate_rendimiento_required(self):
         """Valida que rendimiento sea > 0 si es requerido."""
         if self.rendimiento <= 0:
@@ -671,14 +668,14 @@ class InsumoProcesado:
                 UserWarning,
                 stacklevel=3
             )
-    
+
     def _post_validation_hook(self):
         """
         Hook para validaciones adicionales en subclases.
         Se ejecuta después de todas las validaciones básicas.
         """
         pass
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """
         Convierte el insumo a diccionario para serialización.
@@ -690,7 +687,7 @@ class InsumoProcesado:
         # Remover campos internos
         data.pop('_validated', None)
         return data
-    
+
     def validate(self) -> bool:
         """
         Verifica si el insumo está validado.
@@ -699,7 +696,7 @@ class InsumoProcesado:
             True si el insumo pasó todas las validaciones
         """
         return self._validated
-    
+
     def __repr__(self) -> str:
         """Representación string mejorada."""
         return (
@@ -725,30 +722,30 @@ class ManoDeObra(InsumoProcesado):
     - Unidades típicas: HORA, DIA, JOR, SEMANA, MES
     - Puede incluir jornal (campo opcional adicional)
     """
-    
+
     # Sobrescribir constantes de clase
     EXPECTED_UNITS: ClassVar[Set[str]] = UNIDADES_TIEMPO
     REQUIRES_RENDIMIENTO: ClassVar[bool] = True
-    
+
     # Campo adicional específico
     jornal: float = field(default=0.0)
-    
+
     def _post_validation_hook(self):
         """Validaciones específicas de Mano de Obra."""
         super()._post_validation_hook()
-        
+
         # Validar jornal si existe
         if self.jornal != 0.0:
             jornal_validated = NumericValidator.validate_non_negative(
                 self.jornal, "jornal", MIN_PRECIO, MAX_PRECIO
             )
             object.__setattr__(self, 'jornal', jornal_validated)
-        
+
         # Validar coherencia rendimiento-cantidad
         if self.rendimiento > 0:
             expected_cantidad = 1.0 / self.rendimiento
             diff = abs(self.cantidad - expected_cantidad)
-            
+
             if diff > CANTIDAD_RENDIMIENTO_TOLERANCE:
                 warnings.warn(
                     f"ManoDeObra [{self.codigo_apu}]: "
@@ -768,14 +765,14 @@ class Equipo(InsumoProcesado):
     - Unidades típicas: HORA, DIA
     - Rendimiento no aplica (debe ser 0)
     """
-    
+
     EXPECTED_UNITS: ClassVar[Set[str]] = UNIDADES_TIEMPO
     REQUIRES_RENDIMIENTO: ClassVar[bool] = False
-    
+
     def _post_validation_hook(self):
         """Validaciones específicas de Equipo."""
         super()._post_validation_hook()
-        
+
         # Advertir si rendimiento != 0
         if self.rendimiento != 0:
             warnings.warn(
@@ -797,17 +794,17 @@ class Suministro(InsumoProcesado):
     - Cantidad debería ser > 0 (salvo casos especiales)
     - Rendimiento no aplica
     """
-    
+
     EXPECTED_UNITS: ClassVar[Set[str]] = (
-        UNIDADES_MASA | UNIDADES_VOLUMEN | UNIDADES_AREA | 
+        UNIDADES_MASA | UNIDADES_VOLUMEN | UNIDADES_AREA |
         UNIDADES_LONGITUD | UNIDADES_GENERICAS
     )
     REQUIRES_RENDIMIENTO: ClassVar[bool] = False
-    
+
     def _post_validation_hook(self):
         """Validaciones específicas de Suministro."""
         super()._post_validation_hook()
-        
+
         # Advertir si cantidad == 0
         if self.cantidad == 0:
             warnings.warn(
@@ -816,7 +813,7 @@ class Suministro(InsumoProcesado):
                 UserWarning,
                 stacklevel=4
             )
-        
+
         # Advertir si rendimiento != 0
         if self.rendimiento != 0:
             warnings.warn(
@@ -836,14 +833,14 @@ class Transporte(InsumoProcesado):
     - Unidades típicas: KM, VIAJE, TON-KM
     - Rendimiento no aplica
     """
-    
+
     EXPECTED_UNITS: ClassVar[Set[str]] = UNIDADES_TRANSPORTE
     REQUIRES_RENDIMIENTO: ClassVar[bool] = False
-    
+
     def _post_validation_hook(self):
         """Validaciones específicas de Transporte."""
         super()._post_validation_hook()
-        
+
         # Advertir si rendimiento != 0
         if self.rendimiento != 0:
             warnings.warn(
@@ -862,7 +859,7 @@ class Otro(InsumoProcesado):
     Categoría genérica para insumos que no encajan en las categorías estándar.
     Validaciones mínimas.
     """
-    
+
     EXPECTED_UNITS: ClassVar[Set[str]] = set()  # Cualquier unidad es válida
     REQUIRES_RENDIMIENTO: ClassVar[bool] = False
 
@@ -884,13 +881,12 @@ INSUMO_CLASS_MAP: Final[Dict[str, Type[InsumoProcesado]]] = {
 # FACTORY FUNCTIONS
 # ============================================================================
 
-def create_insumo(tipo_insumo: Union[str, TipoInsumo], **kwargs) -> InsumoProcesado:
+def create_insumo(**kwargs) -> InsumoProcesado:
     """
     Factory function para crear instancias de insumos dinámicamente.
     
     Args:
-        tipo_insumo: Tipo de insumo a crear (string o enum)
-        **kwargs: Argumentos para la clase específica
+        **kwargs: Argumentos para la clase específica, debe incluir 'tipo_insumo'
         
     Returns:
         Instancia validada de la clase de insumo correspondiente
@@ -915,31 +911,39 @@ def create_insumo(tipo_insumo: Union[str, TipoInsumo], **kwargs) -> InsumoProces
     """
     try:
         # Normalizar tipo_insumo
-        tipo_enum = TipoInsumo.from_string(tipo_insumo)
+        if 'tipo_insumo' not in kwargs:
+            raise ValidationError("El argumento 'tipo_insumo' es requerido")
+        tipo_enum = TipoInsumo.from_string(kwargs['tipo_insumo'])
         tipo_normalizado = tipo_enum.value
-        
+
         # Forzar coherencia en kwargs
         kwargs['tipo_insumo'] = tipo_normalizado
         kwargs['categoria'] = tipo_normalizado
-        
+
         # Obtener clase correspondiente
         insumo_class = INSUMO_CLASS_MAP.get(tipo_normalizado)
-        
+
         if not insumo_class:
             raise InvalidTipoInsumoError(
                 f"No hay clase definida para tipo: {tipo_normalizado}"
             )
-        
+
         # Crear instancia
         logger.debug(f"Creando insumo tipo {tipo_normalizado} para APU {kwargs.get('codigo_apu', 'UNKNOWN')}")
-        return insumo_class(**kwargs)
         
+        # Filtrar kwargs para que solo contengan los campos esperados por la clase
+        import inspect
+        sig = inspect.signature(insumo_class)
+        valid_kwargs = {k: v for k, v in kwargs.items() if k in sig.parameters}
+
+        return insumo_class(**valid_kwargs)
+
     except InvalidTipoInsumoError:
         raise
     except TypeError as e:
         # Error en los argumentos
         raise ValidationError(
-            f"Error creando insumo tipo {tipo_insumo}: {e}. "
+            f"Error creando insumo: {e}. "
             f"Argumentos recibidos: {list(kwargs.keys())}"
         ) from e
     except Exception as e:
@@ -983,21 +987,21 @@ def validate_insumo_data(insumo_data: Dict[str, Any]) -> Dict[str, Any]:
     """
     if not isinstance(insumo_data, dict):
         raise ValidationError("insumo_data debe ser un diccionario")
-    
+
     # Campos obligatorios
     required_fields = [
         'codigo_apu', 'descripcion_apu', 'unidad_apu',
         'descripcion_insumo', 'unidad_insumo', 'tipo_insumo'
     ]
-    
+
     # Verificar campos requeridos
     missing_fields = [f for f in required_fields if f not in insumo_data or insumo_data[f] is None]
-    
+
     if missing_fields:
         raise ValidationError(
             f"Campos requeridos faltantes o nulos: {', '.join(missing_fields)}"
         )
-    
+
     # Valores por defecto
     defaults = {
         'cantidad': 0.0,
@@ -1008,10 +1012,10 @@ def validate_insumo_data(insumo_data: Dict[str, Any]) -> Dict[str, Any]:
         'rendimiento': 0.0,
         'jornal': 0.0
     }
-    
+
     # Crear diccionario limpio
     cleaned_data = {}
-    
+
     # Procesar todos los campos del input
     for key, value in insumo_data.items():
         if value is None:
@@ -1019,7 +1023,7 @@ def validate_insumo_data(insumo_data: Dict[str, Any]) -> Dict[str, Any]:
             if key in defaults:
                 cleaned_data[key] = defaults[key]
             continue
-        
+
         # Convertir campos numéricos
         if key in ['cantidad', 'precio_unitario', 'valor_total', 'rendimiento', 'jornal']:
             try:
@@ -1031,12 +1035,12 @@ def validate_insumo_data(insumo_data: Dict[str, Any]) -> Dict[str, Any]:
         else:
             # Mantener otros campos como están
             cleaned_data[key] = value
-    
+
     # Agregar defaults para campos no proporcionados
     for field, default_value in defaults.items():
         if field not in cleaned_data:
             cleaned_data[field] = default_value
-    
+
     # Validar y normalizar tipo_insumo
     try:
         tipo_enum = TipoInsumo.from_string(cleaned_data['tipo_insumo'])
@@ -1044,18 +1048,18 @@ def validate_insumo_data(insumo_data: Dict[str, Any]) -> Dict[str, Any]:
         cleaned_data['categoria'] = tipo_enum.value  # Sincronizar
     except InvalidTipoInsumoError as e:
         raise ValidationError(f"Tipo de insumo inválido: {e}") from e
-    
+
     # Calcular valor_total si no se proporcionó o es 0
     if cleaned_data.get('valor_total', 0) == 0:
         cantidad = cleaned_data.get('cantidad', 0)
         precio = cleaned_data.get('precio_unitario', 0)
         cleaned_data['valor_total'] = cantidad * precio
-    
+
     logger.debug(
         f"Datos validados para insumo {cleaned_data.get('codigo_apu', 'UNKNOWN')}: "
         f"tipo={cleaned_data.get('tipo_insumo')}"
     )
-    
+
     return cleaned_data
 
 
@@ -1075,8 +1079,7 @@ def create_insumo_from_raw(raw_data: Dict[str, Any]) -> InsumoProcesado:
         ValidationError: Si los datos son inválidos
     """
     cleaned_data = validate_insumo_data(raw_data)
-    tipo_insumo = cleaned_data.pop('tipo_insumo')
-    return create_insumo(tipo_insumo, **cleaned_data)
+    return create_insumo(**cleaned_data)
 
 
 # ============================================================================
@@ -1098,12 +1101,12 @@ def get_tipo_insumo_class(tipo: Union[str, TipoInsumo]) -> Type[InsumoProcesado]
     """
     tipo_enum = TipoInsumo.from_string(tipo)
     insumo_class = INSUMO_CLASS_MAP.get(tipo_enum.value)
-    
+
     if not insumo_class:
         raise InvalidTipoInsumoError(
             f"No hay clase definida para tipo: {tipo_enum.value}"
         )
-    
+
     return insumo_class
 
 
@@ -1140,10 +1143,10 @@ __all__ = [
     'InvalidTipoInsumoError',
     'InsumoDataError',
     'UnitNormalizationError',
-    
+
     # Enums
     'TipoInsumo',
-    
+
     # Clases principales
     'InsumoProcesado',
     'ManoDeObra',
@@ -1151,26 +1154,26 @@ __all__ = [
     'Suministro',
     'Transporte',
     'Otro',
-    
+
     # Factory functions
     'create_insumo',
     'create_insumo_from_raw',
     'validate_insumo_data',
-    
+
     # Funciones de normalización
     'normalize_unit',
     'normalize_description',
     'normalize_codigo',
-    
+
     # Validadores
     'NumericValidator',
     'StringValidator',
-    
+
     # Utilidades
     'get_tipo_insumo_class',
     'get_all_tipo_insumo_values',
     'is_valid_tipo_insumo',
-    
+
     # Constantes útiles
     'UNIDADES_TIEMPO',
     'UNIDADES_MASA',

@@ -1,6 +1,5 @@
 # app/report_parser_crudo.py
 
-import hashlib
 import logging
 import re
 from collections import Counter
@@ -163,7 +162,7 @@ class ReportParserCrudo:
 
         while i < len(lines):
             line = lines[i].strip()
-            
+
             if not line:
                 i += 1
                 continue
@@ -238,5 +237,5 @@ class ReportParserCrudo:
                     self.stats['lines_ignored_in_context'] += 1
 
             i += 1
-        
+
         return self.stats['insumos_extracted'] > 0

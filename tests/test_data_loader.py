@@ -4,17 +4,18 @@ Pruebas unitarias para el módulo data_loader.py utilizando pytest.
 Cubre casos de éxito, manejo de errores y validaciones para CSV, Excel y PDF.
 """
 
-import pytest
-from unittest.mock import patch, MagicMock
-import pandas as pd
 from pathlib import Path
+from unittest.mock import MagicMock, patch
+
+import pandas as pd
+import pytest
 
 # Importar el módulo bajo prueba
 from app.data_loader import (
-    load_from_csv,
-    load_from_xlsx,
-    load_from_pdf,
     load_data,
+    load_from_csv,
+    load_from_pdf,
+    load_from_xlsx,
 )
 
 # ─────────────────────────────────────────────────────────────

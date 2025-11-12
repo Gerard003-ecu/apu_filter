@@ -1,9 +1,10 @@
 import unittest
-from unittest.mock import Mock
+
 import pandas as pd
+
 from app.apu_processor import APUProcessor
-from app.schemas import ManoDeObra, Suministro
 from app.utils import calculate_unit_costs
+
 
 class TestFixtures:
     @staticmethod

@@ -18,6 +18,7 @@ import faiss
 import numpy as np
 import pandas as pd
 from flask import Flask, current_app, jsonify, render_template, request, session
+from markupsafe import escape
 from sentence_transformers import SentenceTransformer
 from werkzeug.utils import secure_filename
 
@@ -106,16 +107,34 @@ def require_session(f):
     def decorated_function(*args, **kwargs):
         session_id = session.sid
         if not session_id:
-            return jsonify({"error": "Sesión no iniciada..."}), 401
+            response = {"error": "Sesión no iniciada..."}
+            return jsonify(response), 401
 
-        redis_client = current_app.config['SESSION_REDIS']
+        redis_client = current_app.config.get('SESSION_REDIS')
+        if not redis_client:
+            # En pruebas, el cliente puede no estar disponible.
+            # Simular el caso de sesión no encontrada.
+            response = {"error": "Infraestructura de sesión no disponible"}
+            return jsonify(response), 500
+
         data_key = f"apu_filter:data:{session_id}"
 
-        session_data_json = redis_client.get(data_key)
-        if not session_data_json:
-            return jsonify({"error": "Sesión expirada o datos no encontrados..."}), 401
+        try:
+            session_data_json = redis_client.get(data_key)
+        except Exception as e:
+            current_app.logger.error(f"Error al conectar con Redis: {e}")
+            response = {"error": "No se pudo conectar al servidor de sesión"}
+            return jsonify(response), 503
 
-        session_data = {"data": json.loads(session_data_json)}
+        if not session_data_json:
+            response = {"error": "Sesión expirada o datos no encontrados..."}
+            return jsonify(response), 401
+
+        try:
+            session_data = {"data": json.loads(session_data_json)}
+        except json.JSONDecodeError:
+            response = {"error": "Error al decodificar datos de sesión"}
+            return jsonify(response), 500
 
         # Refrescar la expiración de los datos
         redis_client.expire(data_key, SESSION_TIMEOUT)
@@ -132,13 +151,16 @@ def handle_errors(f):
             return f(*args, **kwargs)
         except ValueError as e:
             current_app.logger.warning(f"Error de validación en {f.__name__}: {str(e)}")
-            return jsonify({"error": str(e), "code": "VALIDATION_ERROR"}), 400
+            response = {"error": str(e), "code": "VALIDATION_ERROR"}
+            return jsonify(response), 400
         except KeyError as e:
             current_app.logger.error(f"Clave faltante en {f.__name__}: {str(e)}")
-            return jsonify({"error": f"Dato requerido faltante: {str(e)}", "code": "MISSING_KEY"}), 400
+            response = {"error": f"Dato requerido faltante: {str(e)}", "code": "MISSING_KEY"}
+            return jsonify(response), 400
         except Exception as e:
             current_app.logger.error(f"Error no controlado en {f.__name__}: {str(e)}", exc_info=True)
-            return jsonify({"error": "Error interno del servidor", "code": "INTERNAL_ERROR"}), 500
+            response = {"error": "Error interno del servidor", "code": "INTERNAL_ERROR"}
+            return jsonify(response), 500
 
     return decorated_function
 
@@ -677,7 +699,7 @@ def create_app(config_name: str) -> Flask:
         return jsonify({
             "error": "Recurso no encontrado",
             "code": "NOT_FOUND",
-            "path": request.path
+            "path": escape(request.path)
         }), 404
 
     @app.errorhandler(413)

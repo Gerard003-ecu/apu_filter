@@ -2,20 +2,19 @@
 Procesador APU con arquitectura modular de especialistas.
 Mantiene compatibilidad con LoadDataStep mientras usa componentes especializados.
 """
-import re
 import logging
-from typing import List, Optional, Dict, Any, Set, Tuple
-from enum import Enum
+import re
 from dataclasses import dataclass
+from enum import Enum
 from functools import lru_cache
+from typing import Any, Dict, List, Optional, Set, Tuple
+
 import pandas as pd
-from lark import Lark, Transformer, v_args, Token
-from lark.exceptions import LarkError, ParseError
+from lark import Lark, Token, Transformer, v_args
+from lark.exceptions import LarkError
+
+from .schemas import Equipo, InsumoProcesado, ManoDeObra, Otro, Suministro, Transporte
 from .utils import normalize_text, parse_number
-from .schemas import (
-    ManoDeObra, Equipo, Transporte,
-    Suministro, InsumoProcesado, Otro
-)
 
 logger = logging.getLogger(__name__)
 
@@ -83,7 +82,7 @@ APU_GRAMMAR = r"""
 
 class PatternMatcher:
     """Especialista en detección de patrones y clasificación de líneas."""
-    
+
     # Palabras clave de encabezado de tabla
     HEADER_KEYWORDS = [
         'DESCRIPCION', 'DESCRIPCIÓN', 'DESC', 'UND', 'UNID', 'UNIDAD',
@@ -189,7 +188,7 @@ class UnitsValidator:
         "BULTO", "BULTOS", "SACO", "SACOS", "PAQ", "PAQUETE", "PAQUETES",
         "GLOBAL", "GLB", "GB"
     }
-    
+
     @classmethod
     @lru_cache(maxsize=256)
     def normalize_unit(cls, unit: str) -> str:
@@ -207,7 +206,7 @@ class UnitsValidator:
         }
 
         return unit_mappings.get(unit_clean, unit_clean if unit_clean in cls.VALID_UNITS else "UND")
-    
+
     @classmethod
     def is_valid(cls, unit: str) -> bool:
         """Verifica si una unidad es válida."""
@@ -219,11 +218,11 @@ class UnitsValidator:
 
 class NumericFieldExtractor:
     """Especialista en extracción e identificación de campos numéricos."""
-    
+
     def __init__(self, thresholds: ValidationThresholds = None):
         self.pattern_matcher = PatternMatcher()
         self.thresholds = thresholds or ValidationThresholds()
-    
+
     def extract_all_numeric_values(self, fields: List[str], skip_first: bool = True) -> List[float]:
         """Extrae todos los valores numéricos de los campos."""
         start_idx = 1 if skip_first else 0
@@ -238,7 +237,7 @@ class NumericFieldExtractor:
                 numeric_values.append(value)
 
         return numeric_values
-    
+
     def parse_number_safe(self, value: str) -> Optional[float]:
         """Parsea un número de forma segura con detección automática de formato."""
         if not value or not isinstance(value, str):
@@ -267,7 +266,7 @@ class NumericFieldExtractor:
 
         except (ValueError, TypeError, AttributeError):
             return None
-    
+
     def identify_mo_values(self, numeric_values: List[float]) -> Optional[Tuple[float, float]]:
         """
         Identifica rendimiento y jornal usando heurísticas inteligentes.
@@ -344,7 +343,7 @@ class APUTransformer(Transformer):
         self.numeric_extractor = NumericFieldExtractor(self.thresholds)
 
         super().__init__()
-    
+
     def _load_validation_thresholds(self) -> ValidationThresholds:
         """Carga los umbrales de validación desde la configuración."""
         mo_config = self.config.get("validation_thresholds", {}).get("MANO_DE_OBRA", {})
@@ -355,7 +354,7 @@ class APUTransformer(Transformer):
             max_rendimiento=mo_config.get("max_rendimiento", 1000),
             max_rendimiento_tipico=mo_config.get("max_rendimiento_tipico", 100)
         )
-    
+
     def _extract_value(self, item) -> str:
         """Extrae el valor de string de un token o string."""
         if item is None:
@@ -397,7 +396,7 @@ class APUTransformer(Transformer):
         if not args:
             return ""
         return self._extract_value(args[0]) if args else ""
-    
+
     def _filter_trailing_empty(self, tokens: List[str]) -> List[str]:
         """Elimina campos vacíos al final."""
         if not tokens:
@@ -408,9 +407,9 @@ class APUTransformer(Transformer):
             if tokens[i]:
                 last_idx = i
                 break
-        
+
         return tokens[:last_idx + 1] if last_idx >= 0 else []
-    
+
     def _detect_format(self, fields: List[str]) -> FormatoLinea:
         """
         Detecta el formato usando los especialistas.
@@ -418,35 +417,35 @@ class APUTransformer(Transformer):
         """
         if not fields or not fields[0]:
             return FormatoLinea.DESCONOCIDO
-        
+
         descripcion = fields[0].strip()
         num_fields = len(fields)
-        
+
         # Usar PatternMatcher para filtrar ruido contextualmente
         if self._is_noise_line(descripcion, num_fields):
             return FormatoLinea.DESCONOCIDO
-        
+
         if num_fields < 3:
             return FormatoLinea.DESCONOCIDO
-        
+
         # Clasificar tipo de insumo
         tipo_probable = self._classify_insumo(descripcion)
-        
+
         # Detectar MO_COMPLETA si es mano de obra y tiene formato válido
         if tipo_probable == TipoInsumo.MANO_DE_OBRA and num_fields >= 5:
             if self._validate_mo_format(fields):
                 logger.debug(f"MO_COMPLETA detectado: {descripcion[:30]}...")
                 return FormatoLinea.MO_COMPLETA
-        
+
         # Detectar INSUMO_BASICO si tiene suficientes campos numéricos
         if num_fields >= 4:
             numeric_values = self.numeric_extractor.extract_all_numeric_values(fields)
             if len(numeric_values) >= 2:
                 logger.debug(f"INSUMO_BASICO detectado: {descripcion[:30]}...")
                 return FormatoLinea.INSUMO_BASICO
-        
+
         return FormatoLinea.DESCONOCIDO
-    
+
     def _is_noise_line(self, descripcion: str, num_fields: int) -> bool:
         """Detecta líneas de ruido usando el PatternMatcher."""
         descripcion_upper = descripcion.upper()
@@ -464,7 +463,7 @@ class APUTransformer(Transformer):
             return True
 
         return False
-    
+
     def _validate_mo_format(self, fields: List[str]) -> bool:
         """Valida formato MO usando NumericFieldExtractor."""
         if len(fields) < 5:
@@ -474,7 +473,7 @@ class APUTransformer(Transformer):
         mo_values = self.numeric_extractor.identify_mo_values(numeric_values)
 
         return mo_values is not None
-    
+
     def _dispatch_builder(self, formato: FormatoLinea, tokens: List[str]) -> Optional[InsumoProcesado]:
         """Despacha al constructor apropiado."""
         try:
@@ -486,27 +485,27 @@ class APUTransformer(Transformer):
         except Exception as e:
             logger.error(f"Error construyendo {formato.value}: {e}")
             return None
-    
+
     def _build_mo_completa(self, tokens: List[str]) -> Optional[ManoDeObra]:
         """Construye ManoDeObra usando NumericFieldExtractor."""
         try:
             descripcion = tokens[0]
             unidad = self.units_validator.normalize_unit(tokens[1]) if len(tokens) > 1 else "JOR"
-            
+
             # Usar NumericFieldExtractor para identificar valores
             numeric_values = self.numeric_extractor.extract_all_numeric_values(tokens)
             mo_values = self.numeric_extractor.identify_mo_values(numeric_values)
-            
+
             if not mo_values:
                 logger.debug("No se pudieron identificar jornal y rendimiento")
                 return None
-            
+
             rendimiento, jornal = mo_values
 
             # Cálculos
             cantidad = 1.0 / rendimiento if rendimiento > 0 else 0
             valor_total = cantidad * jornal
-            
+
             if cantidad <= 0 or valor_total <= 0:
                 return None
 
@@ -523,46 +522,45 @@ class APUTransformer(Transformer):
                 formato_origen="MO_COMPLETA",
                 tipo_insumo="MANO_DE_OBRA",
                 categoria="MANO_DE_OBRA",
-                normalized_desc=normalize_text(descripcion),
                 **context
             )
-            
+
         except Exception as e:
             logger.error(f"Error construyendo MO_COMPLETA: {e}")
             return None
-    
+
     def _build_insumo_basico(self, tokens: List[str]) -> Optional[InsumoProcesado]:
         """Construye insumo básico usando los especialistas."""
         try:
             if len(tokens) < 4:
                 return None
-            
+
             descripcion = tokens[0]
             unidad = self.units_validator.normalize_unit(tokens[1]) if len(tokens) > 1 else "UND"
-            
+
             # Usar NumericFieldExtractor para valores
             valores = self.numeric_extractor.extract_insumo_values(tokens)
-            
+
             if len(valores) < 2:
                 return None
-            
+
             # Interpretar valores
             cantidad = valores[0] if len(valores) > 0 else 1.0
             precio = valores[1] if len(valores) > 1 else 0.0
             total = valores[2] if len(valores) > 2 else cantidad * precio
-            
+
             # Corregir si es necesario
             if total == 0 and cantidad > 0 and precio > 0:
                 total = cantidad * precio
             elif precio == 0 and cantidad > 0 and total > 0:
                 precio = total / cantidad
-            
+
             if total <= 0:
                 return None
-            
+
             tipo_insumo = self._classify_insumo(descripcion)
             InsumoClass = self._get_insumo_class(tipo_insumo)
-            
+
             context = self.apu_context.copy()
             context.pop('cantidad_apu', None)
             context.pop('precio_unitario_apu', None)
@@ -576,14 +574,13 @@ class APUTransformer(Transformer):
                 formato_origen="INSUMO_BASICO",
                 tipo_insumo=tipo_insumo.value,
                 categoria=tipo_insumo.value,
-                normalized_desc=normalize_text(descripcion),
                 **context
             )
-            
+
         except Exception as e:
             logger.error(f"Error construyendo INSUMO_BASICO: {e}")
             return None
-    
+
     @lru_cache(maxsize=2048)
     def _classify_insumo(self, descripcion: str) -> TipoInsumo:
         """Clasifica el tipo de insumo."""
@@ -592,23 +589,23 @@ class APUTransformer(Transformer):
             return TipoInsumo.OTRO
 
         desc_upper = descripcion.upper()
-        
+
         special_cases = {
             "HERRAMIENTA MENOR": TipoInsumo.EQUIPO,
             "MANO DE OBRA": TipoInsumo.MANO_DE_OBRA,
         }
-        
+
         for case, tipo in special_cases.items():
             if case in desc_upper:
                 return tipo
-        
+
         # Clasificación por keywords
         if any(kw in desc_upper for kw in ["OFICIAL", "PEON", "AYUDANTE"]):
             return TipoInsumo.MANO_DE_OBRA
         if any(kw in desc_upper for kw in ["VIBRADOR", "MEZCLADORA"]):
             return TipoInsumo.EQUIPO
 
-        return TipoInsumo.OTRO
+        return TipoInsumo.SUMINISTRO
 
     def _get_insumo_class(self, tipo_insumo: TipoInsumo):
         """Obtiene la clase apropiada."""
@@ -619,7 +616,7 @@ class APUTransformer(Transformer):
             TipoInsumo.SUMINISTRO: Suministro,
             TipoInsumo.OTRO: Otro
         }
-        return class_mapping.get(tipo_insumo, Otro)
+        return class_mapping.get(tipo_insumo, Suministro)
 
 
 # ============================================================================
@@ -631,7 +628,7 @@ class APUProcessor:
     Procesador principal que mantiene compatibilidad con LoadDataStep
     mientras usa la arquitectura de especialistas internamente.
     """
-    
+
     def __init__(self, raw_records: List[Dict[str, Any]], config: Dict[str, Any] = None):
         """
         Constructor compatible con LoadDataStep.
@@ -643,7 +640,7 @@ class APUProcessor:
         self.raw_records = raw_records or []
         self.config = config or {}
         self.keyword_cache = None  # Cargar si es necesario
-        
+
         # Crear parser una vez
         try:
             self.parser = Lark(APU_GRAMMAR, parser='lalr', transformer=None, debug=False)
@@ -657,34 +654,34 @@ class APUProcessor:
         self.units_validator = UnitsValidator()
         self.thresholds = ValidationThresholds()
         self.numeric_extractor = NumericFieldExtractor(self.thresholds)
-    
+
     def process_all(self) -> pd.DataFrame:
         """
         Método principal que procesa todos los registros y retorna DataFrame.
         Compatible con LoadDataStep.
         """
         logger.info(f"Iniciando procesamiento de {len(self.raw_records)} APUs con especialistas")
-        
+
         all_results = []
-        
+
         for i, record in enumerate(self.raw_records):
             try:
                 apu_context = self._extract_apu_context(record)
-                
+
                 if 'lines' in record and record['lines']:
                     insumos = self._process_apu_lines(record['lines'], apu_context)
                     if insumos:
                         all_results.extend(insumos)
-                
+
                 if (i + 1) % 100 == 0:
                     logger.info(f"Procesados {i + 1}/{len(self.raw_records)} APUs")
 
             except Exception as e:
                 logger.error(f"Error procesando APU {i}: {e}")
                 continue
-        
+
         logger.info(f"Procesamiento completado: {len(all_results)} insumos extraídos")
-        
+
         # Convertir a DataFrame
         if all_results:
             return self._convert_to_dataframe(all_results)
@@ -701,15 +698,15 @@ class APUProcessor:
             'cantidad_apu': record.get('cantidad_apu', 1.0),
             'precio_unitario_apu': record.get('precio_unitario_apu', 0.0)
         }
-    
+
     def _process_apu_lines(self, lines: List[str], apu_context: Dict[str, Any]) -> List[InsumoProcesado]:
         """Procesa líneas de un APU usando el orquestador."""
         results = []
-        
+
         for line_num, line in enumerate(lines):
             if not line or not line.strip():
                 continue
-            
+
             try:
                 if self.parser:
                     # Usar parser con transformer orquestador
@@ -722,7 +719,7 @@ class APUProcessor:
                 else:
                     # Fallback directo con especialistas
                     insumo = self._process_with_specialists(line, apu_context)
-                
+
                 if insumo:
                     insumo.line_number = line_num
                     results.append(insumo)
@@ -730,38 +727,38 @@ class APUProcessor:
             except Exception as e:
                 logger.debug(f"Error procesando línea {line_num}: {e}")
                 continue
-        
+
         return results
-    
+
     def _process_with_specialists(self, line: str, apu_context: Dict[str, Any]) -> Optional[InsumoProcesado]:
         """Procesamiento directo usando especialistas sin Lark."""
         fields = [f.strip() for f in line.split(';')]
-        
+
         # Filtrar trailing empty
         while fields and not fields[-1]:
             fields.pop()
-        
+
         if len(fields) < 4:
             return None
-        
+
         descripcion = fields[0]
-        
+
         # Usar PatternMatcher para detectar ruido
         if self.pattern_matcher.is_likely_summary(descripcion, len(fields)):
             return None
-        
+
         # Extraer valores con NumericFieldExtractor
         valores = self.numeric_extractor.extract_insumo_values(fields)
-        
+
         if len(valores) < 2:
             return None
-        
+
         # Construir insumo
         unidad = self.units_validator.normalize_unit(fields[1]) if len(fields) > 1 else "UND"
         cantidad = valores[0] if valores else 1.0
         precio = valores[1] if len(valores) > 1 else 0.0
         total = valores[2] if len(valores) > 2 else cantidad * precio
-        
+
         return Otro(
             descripcion_insumo=descripcion,
             unidad_insumo=unidad,
@@ -771,7 +768,6 @@ class APUProcessor:
             rendimiento=round(cantidad, 6),
             formato_origen="SPECIALIST",
             tipo_insumo="OTRO",
-            normalized_desc=normalize_text(descripcion),
             **apu_context
         )
 
@@ -793,5 +789,5 @@ class APUProcessor:
                 'formato_origen': getattr(insumo, 'formato_origen', '')
             }
             records.append(record)
-        
+
         return pd.DataFrame(records)

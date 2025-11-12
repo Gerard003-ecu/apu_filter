@@ -7,10 +7,10 @@ conversión de números, validación de datos y manejo de archivos.
 
 import logging
 import re
+from decimal import Decimal, InvalidOperation
 from functools import lru_cache
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union
-from decimal import Decimal, InvalidOperation
 
 import numpy as np
 import pandas as pd
@@ -47,7 +47,7 @@ UNIT_MAPPING = {
     'HORAS': 'HR', 'HORA': 'HR', 'UNIDAD': 'UND', 'UNIDADES': 'UND',
     'UN': 'UND', 'METRO': 'M', 'METROS': 'M', 'MTS': 'M',
     'METRO2': 'M2', 'M2': 'M2', 'MT2': 'M2', 'METRO CUADRADO': 'M2',
-    'METRO3': 'M3', 'M3': 'M3', 'MT3': 'M3', 'METRO CUBICO': 'M3',
+    'METRO3': 'M3', 'M3': 'M3', 'MT3': 'M3', 'METRO CUBICO': 'M3', 'METROS CUBICOS': 'M3',
     'KILOGRAMO': 'KG', 'KILOGRAMOS': 'KG', 'KILOS': 'KG',
     'TONELADA': 'TON', 'TONELADAS': 'TON',
     'GALON': 'GAL', 'GALONES': 'GAL', 'GLN': 'GAL',
@@ -314,6 +314,9 @@ def parse_number(
     # Eliminar símbolos de moneda comunes y otros caracteres no numéricos
     # pero preservar puntos, comas, espacios (pueden ser separadores)
     s_cleaned = re.sub(r'[^\d,.\s-]', '', s_work)
+    cleaned_strip = s_cleaned.strip()
+    if cleaned_strip.startswith(('.', ',')) and len(cleaned_strip) > 1:
+        s_cleaned = '0' + s_cleaned
 
     # Eliminar espacios que pueden ser separadores de miles
     # pero solo si están entre dígitos
@@ -646,7 +649,7 @@ def _handle_parse_error(
         raise ValueError(error_msg)
     else:
         logger.debug(f"parse_number: {error_msg}, returning default {default_value}")
-        return default_value
+        return float(default_value)
 
 # ============================================================================
 # FUNCIONES DE VALIDACIÓN Y LIMPIEZA DE CÓDIGOS APU
@@ -717,6 +720,8 @@ def normalize_unit(unit: str) -> str:
         return 'UND'
 
     unit = unit.upper().strip()
+    if not unit:
+        return 'UND'
 
     # Verificar en mapeo primero (más común)
     if unit in UNIT_MAPPING:
@@ -1250,7 +1255,7 @@ def sanitize_for_json(data: Any, max_depth: int = 100) -> Any:
     if isinstance(data, (np.integer, np.int32, np.int64)):
         return int(data)
 
-    if isinstance(data, (np.floating, np.float32, np.float64)):
+    if isinstance(data, (float, np.floating, np.float32, np.float64)):
         if np.isnan(data) or np.isinf(data):
             return None
         return float(data)
@@ -1304,7 +1309,10 @@ def calculate_statistics(series: pd.Series) -> Dict[str, float]:
     if len(clean_series) == 0:
         return {
             'count': 0, 'mean': None, 'std': None,
-            'min': None, 'max': None, 'median': None
+            'min': None, 'max': None, 'median': None,
+            'q1': None, 'q3': None,
+            'null_count': len(series),
+            'null_percentage': 100.0
         }
 
     return {

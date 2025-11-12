@@ -3,15 +3,10 @@ Suite de pruebas completa para ReportParserCrudo.
 Cubre funcionalidad, casos edge, errores y rendimiento.
 """
 
-import re
 import shutil
 import tempfile
-import time
-from collections import Counter
 from pathlib import Path
-from stat import S_IFREG
 from typing import Generator
-from unittest.mock import Mock, patch
 
 import pytest
 
@@ -20,7 +15,6 @@ from app.report_parser_crudo import (
     APUContext,
     FileReadError,
     ParserConfig,
-    ParseStrategyError,
     ReportParserCrudo,
 )
 
@@ -122,10 +116,14 @@ class TestAPUContext:
 
     def test_is_valid_property(self):
         """Verifica la propiedad is_valid."""
-        valid_context = APUContext(apu_code="AB", apu_desc="Test", apu_unit="UN", source_line=1)
+        valid_context = APUContext(
+            apu_code="AB", apu_desc="Test", apu_unit="UN", source_line=1
+        )
         assert valid_context.is_valid
 
-        context = APUContext(apu_code="A ", apu_desc="Test", apu_unit="UN", source_line=1)
+        context = APUContext(
+            apu_code="A ", apu_desc="Test", apu_unit="UN", source_line=1
+        )
         assert not context.is_valid
 
 # =====================================================================
@@ -241,7 +239,11 @@ class TestCompleteParsing:
     def test_parse_already_parsed(self, temp_dir):
         """Verifica que no se re-procese archivo ya parseado."""
         file_path = temp_dir / "test.txt"
-        file_path.write_text("REMATE CON PINTURA...;;;;; UNIDAD: ML\n;;;;; ITEM: 1,1\nDESCRIPCION;UND;CANT.;...")
+        file_path.write_text(
+            "REMATE CON PINTURA...;;;;; UNIDAD: ML\n"
+            ";;;;; ITEM: 1,1\n"
+            "DESCRIPCION;UND;CANT.;..."
+        )
 
         parser = ReportParserCrudo(file_path)
 
