@@ -658,6 +658,11 @@ class PresupuestoFileDiagnostic:
             line_num (int): Número de línea
             separator (str): Separador de columnas
         """
+        # Ignorar líneas de totales o resúmenes
+        if line.strip().upper().startswith('TOTAL'):
+            self.stats['summary_lines_ignored'] += 1
+            return
+
         columns = [col.strip() for col in line.split(separator)]
         num_cols = len(columns)
         

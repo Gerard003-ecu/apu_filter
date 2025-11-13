@@ -310,16 +310,15 @@ class TestEncodingDetection:
         result = diagnostic.diagnose()
         assert result['success'] is True
     
-    @patch('diagnose_presupuesto_file.CHARDET_AVAILABLE', True)
-    @patch('diagnose_presupuesto_file.chardet.detect')
-    def test_chardet_detection_high_confidence(self, mock_detect, temp_dir):
+    @patch('scripts.diagnose_presupuesto_file.chardet')
+    def test_chardet_detection_high_confidence(self, mock_chardet, temp_dir):
         """Debe usar chardet cuando otros métodos fallan y confianza es alta."""
         # Crear archivo que falle con encodings estándar
         file_path = temp_dir / "special.csv"
         with open(file_path, 'wb') as f:
             f.write(b'\xff\xfeI\x00T\x00E\x00M\x00')  # UTF-16 LE
         
-        mock_detect.return_value = {'encoding': 'utf-16', 'confidence': 0.95}
+        mock_chardet.detect.return_value = {'encoding': 'utf-16', 'confidence': 0.95}
         
         diagnostic = PresupuestoFileDiagnostic(file_path)
         
@@ -329,14 +328,13 @@ class TestEncodingDetection:
             if content:  # Si chardet funcionó
                 assert diagnostic._encoding == 'utf-16'
     
-    @patch('diagnose_presupuesto_file.CHARDET_AVAILABLE', True)
-    @patch('diagnose_presupuesto_file.chardet.detect')
-    def test_chardet_detection_low_confidence(self, mock_detect, temp_dir):
+    @patch('scripts.diagnose_presupuesto_file.chardet')
+    def test_chardet_detection_low_confidence(self, mock_chardet, temp_dir):
         """Debe rechazar chardet cuando confianza es baja."""
         file_path = temp_dir / "ambiguous.csv"
         file_path.write_bytes(b'ITEM;DESC\n')
         
-        mock_detect.return_value = {'encoding': 'ascii', 'confidence': 0.5}
+        mock_chardet.detect.return_value = {'encoding': 'ascii', 'confidence': 0.5}
         
         diagnostic = PresupuestoFileDiagnostic(file_path)
         result = diagnostic._read_with_chardet()
@@ -634,9 +632,9 @@ class TestHelperFunctions:
     
     @patch('pathlib.Path.open', side_effect=PermissionError("Access denied"))
     def test_check_read_permissions_failure(self, mock_open, valid_presupuesto_file):
-        """Debe retornar False sin permisos."""
-        diagnostic = PresupuestoFileDiagnostic(valid_presupuesto_file)
-        assert diagnostic._check_read_permissions() is False
+        """Debe lanzar PermissionError si el constructor detecta falta de permisos."""
+        with pytest.raises(PermissionError, match="No hay permisos"):
+            PresupuestoFileDiagnostic(valid_presupuesto_file)
 
 
 # ============================================================================
