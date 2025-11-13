@@ -269,7 +269,19 @@ class InsumosFileDiagnostic:
 
     def _reset_state(self) -> None:
         """Reinicia el estado interno para un nuevo diagnóstico."""
-        self.stats: Counter = Counter()
+        # Initialize all counters to 0 to ensure they exist in the final report
+        self.stats: Counter = Counter({
+            'empty_lines': 0,
+            'non_empty_lines': 0,
+            'comment_lines': 0,
+            'groups_detected': 0,
+            'header_lines_detected': 0,
+            'duplicate_groups': 0,
+            'groups_with_headers': 0,
+            'groups_with_data': 0,
+            'groups_complete': 0,
+            'integrity_issues': 0,
+        })
         self.sample_lines: List[SampleLine] = []
         self.groups_found: List[GroupInfo] = []
         self.current_group: Optional[GroupInfo] = None
@@ -603,7 +615,13 @@ class InsumosFileDiagnostic:
 
     def _normalize_text(self, text: str) -> str:
         """
-        Normaliza texto eliminando comillas, espacios extra y convirtiendo a mayúsculas.
+        Normaliza texto a un formato estándar para comparaciones.
+
+        Realiza las siguientes acciones:
+        1. Convierte a mayúsculas.
+        2. Elimina acentos y caracteres diacríticos.
+        3. Elimina todos los caracteres que no sean letras, números o espacios.
+        4. Reemplaza múltiples espacios con uno solo.
         
         Args:
             text (str): Texto a normalizar
@@ -611,15 +629,10 @@ class InsumosFileDiagnostic:
         Returns:
             str: Texto normalizado
         """
-        # Eliminar comillas y caracteres especiales
+        # 1. Convertir a mayúsculas
         normalized = text.upper()
         
-        # Eliminar comillas, paréntesis y otros caracteres
-        chars_to_remove = '"\'()[]{}«»""''<>'
-        for char in chars_to_remove:
-            normalized = normalized.replace(char, '')
-        
-        # Eliminar acentos comunes
+        # 2. Eliminar acentos comunes
         accent_map = {
             'Á': 'A', 'É': 'E', 'Í': 'I', 'Ó': 'O', 'Ú': 'U',
             'À': 'A', 'È': 'E', 'Ì': 'I', 'Ò': 'O', 'Ù': 'U',
@@ -630,37 +643,44 @@ class InsumosFileDiagnostic:
         for accented, plain in accent_map.items():
             normalized = normalized.replace(accented, plain)
         
-        # Normalizar espacios múltiples a uno solo
+        # 3. Eliminar todos los caracteres no alfanuméricos (excepto espacios)
+        # Esto elimina ., $, #, -, _, etc.
+        normalized = re.sub(r'[^A-Z0-9\s]', '', normalized)
+
+        # 4. Normalizar espacios múltiples a uno solo
         normalized = re.sub(r'\s+', ' ', normalized)
         
         return normalized.strip()
 
     def _is_group_line(self, line: str) -> Tuple[bool, Optional[str]]:
         """
-        Determina si una línea es el inicio de un grupo.
+        Determina si una línea es el inicio de un grupo, usando la línea original.
+        La comparación del prefijo es case-insensitive.
         
         Args:
-            line (str): Línea normalizada a evaluar
+            line (str): Línea a evaluar (sin normalizar)
             
         Returns:
-            Tuple[bool, Optional[str]]: (es_grupo, nombre_grupo)
+            Tuple[bool, Optional[str]]: (es_grupo, nombre_grupo_sin_normalizar)
         """
         if not self._separator:
             return False, None
+
+        GROUP_PREFIXES = ['G', 'GRUPO']
         
-        # Verificar si la línea comienza con algún prefijo de grupo
-        for prefix in self.GROUP_PREFIXES:
-            # Normalizar el prefijo para comparación
-            normalized_prefix = prefix.replace(';', self._separator).replace(',', self._separator).replace('\t', self._separator).replace('|', self._separator)
-            
-            if line.startswith(normalized_prefix):
-                # Extraer el nombre del grupo
-                parts = line.split(self._separator, 1)
-                if len(parts) >= 2:
-                    group_name = parts[1].strip()
-                    if group_name:  # Asegurar que el nombre no esté vacío
-                        return True, group_name
+        # Dividir la línea por el separador para aislar el prefijo
+        parts = line.split(self._separator, 1)
         
+        if len(parts) < 2:
+            return False, None
+
+        # Comprobar si la primera parte es un prefijo de grupo válido (ignorando mayúsculas/minúsculas)
+        prefix_candidate = parts[0].strip().upper()
+        group_name = parts[1].strip()
+
+        if prefix_candidate in GROUP_PREFIXES and group_name:
+            return True, group_name
+
         return False, None
 
     def _analyze_structure_hierarchical(self, lines: List[str]) -> None:
@@ -678,50 +698,49 @@ class InsumosFileDiagnostic:
         
         for line_num, line in enumerate(lines, 1):
             stripped = line.strip()
-            
+
             # Clasificar línea
             if not stripped:
                 self.stats['empty_lines'] += 1
                 continue
-            
+
             self.stats['non_empty_lines'] += 1
-            
+
             if self._is_comment_line(stripped):
                 self.stats['comment_lines'] += 1
                 continue
-            
-            # Normalizar línea para análisis
-            normalized = self._normalize_text(stripped)
-            
-            # 1. Detectar inicio de nuevo grupo
-            is_group, group_name = self._is_group_line(normalized)
-            
+
+            # 1. Detectar inicio de nuevo grupo USANDO LA LÍNEA ORIGINAL
+            is_group, group_name = self._is_group_line(stripped)
+
             if is_group and group_name:
                 # Finalizar grupo anterior si existe
                 if self.current_group:
                     self._finalize_current_group()
-                
-                # Verificar duplicados
-                if group_name in self._group_names_seen:
-                    logger.warning(f"⚠️ Grupo duplicado detectado: '{group_name}' en línea {line_num}")
+
+                # Normalizar el nombre del grupo para consistencia
+                normalized_group_name = self._normalize_text(group_name)
+
+                # Verificar duplicados usando el nombre normalizado
+                if normalized_group_name in self._group_names_seen:
+                    logger.warning(f"⚠️ Grupo duplicado detectado: '{normalized_group_name}' en línea {line_num}")
                     self.stats['duplicate_groups'] += 1
-                    # Hacer único el nombre agregando sufijo
-                    original_name = group_name
+                    original_name = normalized_group_name
                     counter = 2
-                    while group_name in self._group_names_seen:
-                        group_name = f"{original_name} ({counter})"
+                    while normalized_group_name in self._group_names_seen:
+                        normalized_group_name = f"{original_name} ({counter})"
                         counter += 1
-                
-                # Crear nuevo grupo
+
+                # Crear nuevo grupo con el nombre normalizado
                 try:
                     self.current_group = GroupInfo(
-                        name=group_name,
+                        name=normalized_group_name,
                         line_num=line_num
                     )
                     self.groups_found.append(self.current_group)
-                    self._group_names_seen.add(group_name)
+                    self._group_names_seen.add(normalized_group_name)
                     self.stats['groups_detected'] += 1
-                    logger.debug(f"🔍 Grupo detectado: '{group_name}' en línea {line_num}")
+                    logger.debug(f"🔍 Grupo detectado: '{normalized_group_name}' en línea {line_num}")
                 except ValueError as e:
                     logger.error(f"Error al crear grupo: {e}")
                     self.current_group = None
