@@ -505,10 +505,10 @@ class TestDecorators:
             return jsonify({"status": "ok", "data": session_data})
 
         session_payload = {"user": "test"}
-        
+
         with client.session_transaction() as sess:
             sess['user_id'] = 'test_user'
-        
+
         with patch.object(app.config['SESSION_REDIS'], 'get', return_value=json.dumps(session_payload).encode('utf-8')):
             response = client.get('/test_valid_session')
 
@@ -731,7 +731,7 @@ class TestEndpoints:
     def test_get_apu_detail_success(self, mock_simulation, app, client, sample_session_data):
         """Debe retornar detalles de APU."""
         mock_simulation.return_value = {"mean": 300000, "std": 15000, "percentiles": {}}
-        
+
         with client.session_transaction() as sess:
             sess['user_id'] = 'test_user'
 
@@ -779,7 +779,7 @@ class TestEndpoints:
 
         with patch.object(app.config['SESSION_REDIS'], 'get', return_value=json.dumps({"data": {}}).encode('utf-8')):
             response = client.post('/api/estimate', json=None)
-        
+
         assert response.status_code == 400
         data = json.loads(response.data)
         assert 'error' in data
@@ -796,7 +796,7 @@ class TestEndpoints:
             sess['user_id'] = 'test_user'
 
         params = {"area_m2": 1000, "pisos": 2}
-        
+
         with patch.object(app.config['SESSION_REDIS'], 'get', return_value=json.dumps(sample_session_data["data"]).encode('utf-8')):
             response = client.post('/api/estimate', json=params)
 
@@ -1005,7 +1005,7 @@ class TestCreateApp:
         """Debe crear carpeta de uploads."""
         mock_redis.return_value = MagicMock()
 
-        with patch('pathlib.Path.mkdir') as mock_mkdir:
+        with patch('pathlib.Path.mkdir'):
             app = create_app('testing')
 
             # Verificar que se intentó crear directorio
@@ -1046,7 +1046,7 @@ class TestIntegration:
             upload_response = client.post('/upload', data={
                 'presupuesto': sample_file, 'apus': sample_file, 'insumos': sample_file
             }, follow_redirects=True)
-            
+
             assert upload_response.status_code == 200
 
             # 3. Get APU detail

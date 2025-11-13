@@ -930,7 +930,7 @@ def create_insumo(**kwargs) -> InsumoProcesado:
 
         # Crear instancia
         logger.debug(f"Creando insumo tipo {tipo_normalizado} para APU {kwargs.get('codigo_apu', 'UNKNOWN')}")
-        
+
         # Filtrar kwargs para que solo contengan los campos esperados por la clase
         import inspect
         sig = inspect.signature(insumo_class)

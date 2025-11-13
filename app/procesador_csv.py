@@ -1530,8 +1530,9 @@ def _save_output_files(
      Returns:
      Diccionario con rutas de archivos guardados exitosamente
      """
-    from .utils import sanitize_for_json
     import json
+
+    from .utils import sanitize_for_json
     saved_files = {}
 
     # Asegurar que el directorio de salida existe
