@@ -383,7 +383,9 @@ class TestPresupuestoProcessor(unittest.TestCase):
     def setUp(self):
         self.config = TEST_CONFIG.copy()
         self.thresholds = ProcessingThresholds()
-        self.processor = PresupuestoProcessor(self.config, self.thresholds)
+        # CAMBIO: Extraer y pasar el perfil
+        profile = self.config.get("file_profiles", {}).get("presupuesto_default", {})
+        self.processor = PresupuestoProcessor(self.config, self.thresholds, profile)
         self.temp_manager = TempFileManager()
 
     def tearDown(self):
@@ -484,7 +486,9 @@ class TestInsumosProcessor(unittest.TestCase):
 
     def setUp(self):
         self.thresholds = ProcessingThresholds()
-        self.processor = InsumosProcessor(self.thresholds)
+        # CAMBIO: Extraer y pasar el perfil
+        profile = TEST_CONFIG.get("file_profiles", {}).get("insumos_default", {})
+        self.processor = InsumosProcessor(self.thresholds, profile)
         self.temp_manager = TempFileManager()
 
     def tearDown(self):
@@ -1045,6 +1049,8 @@ class TestEdgeCases(unittest.TestCase):
     def setUp(self):
         self.temp_manager = TempFileManager()
         self.thresholds = ProcessingThresholds()
+        # CAMBIO: Añadir el perfil para la prueba que lo necesita
+        self.insumos_profile = TEST_CONFIG.get("file_profiles", {}).get("insumos_default", {})
 
     def tearDown(self):
         self.temp_manager.cleanup()
@@ -1061,7 +1067,8 @@ class TestEdgeCases(unittest.TestCase):
         )
         TestDataBuilder.create_insumos_csv(temp_file, data)
 
-        processor = InsumosProcessor(self.thresholds)
+        # CAMBIO: Pasar el perfil al crear el procesador
+        processor = InsumosProcessor(self.thresholds, self.insumos_profile)
         result = processor.process(temp_file)
 
         self.assertFalse(result.empty)

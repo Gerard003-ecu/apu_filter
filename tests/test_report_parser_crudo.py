@@ -17,10 +17,14 @@ from app.report_parser_crudo import (
     ParserConfig,
     ReportParserCrudo,
 )
+from tests.test_data import TEST_CONFIG
 
 # =====================================================================
 # FIXTURES Y DATOS DE PRUEBA
 # =====================================================================
+
+# Define un perfil de prueba que se puede reutilizar
+TEST_APUS_PROFILE = TEST_CONFIG.get("file_profiles", {}).get("apus_default", {})
 
 
 @pytest.fixture
@@ -141,7 +145,7 @@ class TestReportParserInitialization:
         file_path = temp_dir / "test.txt"
         file_path.write_text("Test content")
 
-        parser = ReportParserCrudo(file_path)
+        parser = ReportParserCrudo(file_path, profile=TEST_APUS_PROFILE)
         assert parser.file_path == file_path
         assert parser.config is not None
         assert not parser._parsed
@@ -150,12 +154,12 @@ class TestReportParserInitialization:
     def test_file_not_found_raises_error(self):
         """Verifica que archivo inexistente lance error."""
         with pytest.raises(FileNotFoundError):
-            ReportParserCrudo("/path/to/nonexistent/file.txt")
+            ReportParserCrudo("/path/to/nonexistent/file.txt", profile=TEST_APUS_PROFILE)
 
     def test_directory_path_raises_error(self, temp_dir):
         """Verifica que pasar directorio lance error."""
         with pytest.raises(ValueError):
-            ReportParserCrudo(temp_dir)
+            ReportParserCrudo(temp_dir, profile=TEST_APUS_PROFILE)
 
     def test_empty_file_raises_error(self, temp_dir):
         """Verifica que archivo vacío lance error."""
@@ -163,7 +167,7 @@ class TestReportParserInitialization:
         file_path.touch()
 
         with pytest.raises(ValueError):
-            ReportParserCrudo(file_path)
+            ReportParserCrudo(file_path, profile=TEST_APUS_PROFILE)
 
 
 # =====================================================================
@@ -180,7 +184,10 @@ class TestFileReading:
         content = "ITEM: TEST-001\nDescripción: Ñoño está aquí"
         file_path.write_text(content, encoding="utf-8")
 
-        parser = ReportParserCrudo(file_path)
+        # FIX: Usar un perfil específico para forzar la lectura como UTF-8
+        profile = TEST_APUS_PROFILE.copy()
+        profile["encoding"] = "utf-8"
+        parser = ReportParserCrudo(file_path, profile=profile)
         read_content = parser._read_file_safely()
 
         assert "TEST-001" in read_content
@@ -194,7 +201,7 @@ class TestFileReading:
         file_path.write_bytes(content.encode("latin1"))
 
         config = ParserConfig(encodings=["latin1", "utf-8"])
-        parser = ReportParserCrudo(file_path, config=config)
+        parser = ReportParserCrudo(file_path, profile=TEST_APUS_PROFILE, config=config)
         read_content = parser._read_file_safely()
 
         assert "TEST-002" in read_content
@@ -203,10 +210,14 @@ class TestFileReading:
     def test_all_encodings_fail(self, temp_dir):
         """Verifica error cuando todos los encodings fallan."""
         file_path = temp_dir / "bad.txt"
-        file_path.write_text("test")
+        # Esta es una secuencia de bytes inválida en UTF-8.
+        file_path.write_bytes(b"\x81\x82\x83\x95")
 
-        config = ParserConfig(encodings=["invalid_encoding"])
-        parser = ReportParserCrudo(file_path, config=config)
+        # FIX: Probar el caso de fallo limitando los encodings a uno que falle.
+        # Esto valida que la excepción se lanza cuando NINGUNA codificación tiene éxito.
+        profile = {"parser_strategy": "state_machine_v2"}
+        config = ParserConfig(encodings=["utf-8"])  # Solo intentar con utf-8
+        parser = ReportParserCrudo(file_path, profile=profile, config=config)
 
         with pytest.raises(FileReadError):
             parser._read_file_safely()
@@ -225,7 +236,7 @@ class TestCompleteParsing:
         file_path = temp_dir / "lines.txt"
         file_path.write_text(sample_apu_content_lines)
 
-        parser = ReportParserCrudo(file_path)
+        parser = ReportParserCrudo(file_path, profile=TEST_APUS_PROFILE)
         results = parser.parse_to_raw()
 
         assert len(results) > 0
@@ -237,7 +248,7 @@ class TestCompleteParsing:
         file_path = temp_dir / "invalid.txt"
         file_path.write_text(sample_invalid_content)
 
-        parser = ReportParserCrudo(file_path)
+        parser = ReportParserCrudo(file_path, profile=TEST_APUS_PROFILE)
         results = parser.parse_to_raw()
 
         assert len(results) == 0
@@ -252,7 +263,7 @@ class TestCompleteParsing:
             "DESCRIPCION;UND;CANT.;..."
         )
 
-        parser = ReportParserCrudo(file_path)
+        parser = ReportParserCrudo(file_path, profile=TEST_APUS_PROFILE)
 
         results1 = parser.parse_to_raw()
         initial_count = len(results1)
@@ -275,6 +286,6 @@ class TestEdgeCases:
         file_path = temp_dir / "whitespace.txt"
         file_path.write_text("   \n\n   \t\t   \n   ")
 
-        parser = ReportParserCrudo(file_path)
+        parser = ReportParserCrudo(file_path, profile=TEST_APUS_PROFILE)
         results = parser.parse_to_raw()
         assert len(results) == 0
