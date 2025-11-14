@@ -255,6 +255,7 @@ class LoadDataStep(ProcessingStep):
         apus_path = context["apus_path"]
         insumos_path = context["insumos_path"]
 
+        # ... (validaciones de existencia de archivos) ...
         file_validator = FileValidator()
         validations = [
             (presupuesto_path, "presupuesto"),
@@ -265,16 +266,33 @@ class LoadDataStep(ProcessingStep):
             is_valid, error = file_validator.validate_file_exists(file_path, file_type)
             if not is_valid:
                 raise ValueError(error)
+        # --- CAMBIO CLAVE: Leer y usar los perfiles ---
+        file_profiles = self.config.get("file_profiles", {})
 
-        presupuesto_processor = PresupuestoProcessor(self.config, self.thresholds)
+        # Cargar Presupuesto con su perfil
+        presupuesto_profile = file_profiles.get("presupuesto_default")
+        if not presupuesto_profile:
+            raise ValueError("No se encontró el perfil 'presupuesto_default' en config.json")
+        presupuesto_processor = PresupuestoProcessor(
+            self.config, self.thresholds, presupuesto_profile
+        )
         df_presupuesto = presupuesto_processor.process(presupuesto_path)
 
-        insumos_processor = InsumosProcessor(self.thresholds)
+        # Cargar Insumos con su perfil
+        insumos_profile = file_profiles.get("insumos_default")
+        if not insumos_profile:
+            raise ValueError("No se encontró el perfil 'insumos_default' en config.json")
+        insumos_processor = InsumosProcessor(self.thresholds, insumos_profile)
         df_insumos = insumos_processor.process(insumos_path)
 
-        parser = ReportParserCrudo(apus_path)
+        # Cargar APUs con su perfil
+        apus_profile = file_profiles.get("apus_default")
+        if not apus_profile:
+            raise ValueError("No se encontró el perfil 'apus_default' en config.json")
+        parser = ReportParserCrudo(apus_path, apus_profile)
         raw_records = parser.parse_to_raw()
 
+        # El resto del pipeline sigue igual, pero ahora APUProcessor también necesita la config
         processor = APUProcessor(raw_records, self.config)
         df_apus_raw = processor.process_all()
 
@@ -382,16 +400,19 @@ class BuildOutputStep(ProcessingStep):
 class PresupuestoProcessor:
     """Procesador especializado para archivos de presupuesto."""
 
-    def __init__(self, config: dict, thresholds: ProcessingThresholds):
+    def __init__(self, config: dict, thresholds: ProcessingThresholds, profile: dict):
         self.config = config
         self.thresholds = thresholds
+        self.profile = profile  # Guardar el perfil
         self.validator = DataValidator()
 
     def process(self, path: str) -> pd.DataFrame:
         """Procesa el archivo de presupuesto (CSV o Excel)."""
         try:
-            # CAMBIO: Reemplazar safe_read_dataframe por load_data
-            df = load_data(path, header=None)
+            # CAMBIO: Usar los parámetros del perfil para la carga
+            loader_params = self.profile.get("loader_params", {})
+            logger.info(f"Cargando presupuesto con perfil: {loader_params}")
+            df = load_data(path, **loader_params)
 
             if df is None or df.empty:
                 logger.error("❌ No se pudo leer el archivo de presupuesto o está vacío")
@@ -462,19 +483,15 @@ class PresupuestoProcessor:
         Limpia y convierte tipos de datos.
         Maneja códigos de ITEM de cualquier longitud, incluyendo dígitos simples.
         """
-        # Limpiar códigos APU/ITEM con parámetros permisivos para ITEMs del presupuesto
+        # CAMBIO: Leer los parámetros desde la configuración
+        clean_code_params = (
+            self.config.get("clean_apu_code_params", {}).get("presupuesto_item", {})
+        )
+
         df[ColumnNames.CODIGO_APU] = (
             df[ColumnNames.CODIGO_APU]
             .astype(str)
-            .apply(
-                lambda code: clean_apu_code(
-                    code,
-                    validate_format=True,  # Mantener validación básica
-                    min_length=1,  # ✅ Permitir ITEMs de 1 carácter
-                    is_item_code=True,  # ✅ Indicar que son códigos de ITEM
-                    allow_numeric_only=True,  # ✅ Permitir números puros ("1", "2")
-                )
-            )
+            .apply(lambda code: clean_apu_code(code, **clean_code_params))
         )
 
         # Filtrar códigos vacíos (solo después de la limpieza)
@@ -525,8 +542,9 @@ class PresupuestoProcessor:
 class InsumosProcessor:
     """Procesador especializado para archivos de insumos."""
 
-    def __init__(self, thresholds: ProcessingThresholds):
+    def __init__(self, thresholds: ProcessingThresholds, profile: dict):
         self.thresholds = thresholds
+        self.profile = profile  # Guardar el perfil
         self.validator = DataValidator()
 
     def process(self, file_path: str) -> pd.DataFrame:
@@ -552,7 +570,9 @@ class InsumosProcessor:
 
     def _parse_file(self, file_path: str) -> List[Dict]:
         """Parsea el archivo de insumos con formato especial."""
-        with open(file_path, "r", encoding="latin1") as f:
+        # CAMBIO: Usar el encoding del perfil
+        encoding = self.profile.get("encoding", "latin1")  # latin1 como fallback seguro
+        with open(file_path, "r", encoding=encoding) as f:
             lines = f.readlines()
 
         records = []

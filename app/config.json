@@ -17,6 +17,52 @@
       "max_valor_total": 10000000
     }
   },
+  "file_profiles": {
+    "presupuesto_default": {
+      "description": "Perfil para presupuesto CSV estándar.",
+      "loader_params": {
+        "header": 0,
+        "sep": ";",
+        "encoding": "UTF-8-SIG"
+      }
+    },
+    "insumos_default": {
+      "description": "Perfil para insumos jerárquicos.",
+      "parser_strategy": "hierarchical_v1",
+      "encoding": "UTF-8-SIG"
+    },
+    "apus_default": {
+      "description": "Perfil para APUs semi-estructurados.",
+      "parser_strategy": "state_machine_v2",
+      "encoding": "MacRoman"
+    }
+  },
+  "clean_apu_code_params": {
+    "presupuesto_item": {
+      "min_length": 1,
+      "max_length": 50,
+      "replace_comma": true
+    }
+  },
+  "apu_processor_rules": {
+    "special_cases": {
+      "TRANSPORTE": "TRANSPORTE",
+      "SUMINISTRO": "SUMINISTRO",
+      "ACARREO": "TRANSPORTE",
+      "FLETE": "TRANSPORTE"
+    },
+    "mo_keywords": [
+      "M.O.", "MANO DE OBRA", "OFICIAL", "AYUDANTE", "MAESTRO", "CUADRILLA"
+    ],
+    "equipo_keywords": [
+      "EQUIPO", "HERRAMIENTA", "ANDAMIO", "MAQUINARIA"
+    ]
+  },
+  "estimator_thresholds": {
+    "min_semantic_similarity_suministro": 0.30,
+    "min_semantic_similarity_tarea": 0.40,
+    "min_keyword_match_percentage_cuadrilla": 50.0
+  },
   "param_map": {
     "material": {
       "TST": "CANAL - SOLO LAMINA",

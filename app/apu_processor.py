@@ -893,19 +893,19 @@ class APUTransformer(Transformer):
 
         desc_upper = descripcion.upper()
 
-        special_cases = {
-            "HERRAMIENTA MENOR": TipoInsumo.EQUIPO,
-            "MANO DE OBRA": TipoInsumo.MANO_DE_OBRA,
-        }
+        # CAMBIO: Leer reglas desde la config
+        rules = self.config.get("apu_processor_rules", {})
+        special_cases = rules.get("special_cases", {})
+        mo_keywords = rules.get("mo_keywords", [])
+        equipo_keywords = rules.get("equipo_keywords", [])
 
-        for case, tipo in special_cases.items():
+        for case, tipo_str in special_cases.items():
             if case in desc_upper:
-                return tipo
+                return TipoInsumo(tipo_str)
 
-        # Clasificación por keywords
-        if any(kw in desc_upper for kw in ["OFICIAL", "PEON", "AYUDANTE"]):
+        if any(kw in desc_upper for kw in mo_keywords):
             return TipoInsumo.MANO_DE_OBRA
-        if any(kw in desc_upper for kw in ["VIBRADOR", "MEZCLADORA"]):
+        if any(kw in desc_upper for kw in equipo_keywords):
             return TipoInsumo.EQUIPO
 
         return TipoInsumo.SUMINISTRO

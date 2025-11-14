@@ -123,7 +123,12 @@ class ReportParserCrudo:
         "AIU",
     }
 
-    def __init__(self, file_path: Union[str, Path], config: Optional[ParserConfig] = None):
+    def __init__(
+        self,
+        file_path: Union[str, Path],
+        profile: dict,
+        config: Optional[ParserConfig] = None,
+    ):
         """
         Inicializa el parser.
 
@@ -132,6 +137,7 @@ class ReportParserCrudo:
             config: Un objeto `ParserConfig` opcional con la configuración.
         """
         self.file_path = Path(file_path)
+        self.profile = profile  # Guardar el perfil
         self.config = config or ParserConfig()
         self._validate_file_path()
 
@@ -203,7 +209,12 @@ class ReportParserCrudo:
             FileReadError: Si no se puede leer el archivo con ninguna de las
                            codificaciones especificadas.
         """
-        for encoding in self.config.encodings:
+        # CAMBIO: Usar el encoding del perfil como primera opción
+        encodings_to_try = [self.profile.get("encoding")] + self.config.encodings
+
+        for encoding in filter(
+            None, encodings_to_try
+        ):  # filter(None, ...) para saltar si el perfil no tiene encoding
             try:
                 with open(self.file_path, "r", encoding=encoding, errors="strict") as f:
                     content = f.read()
