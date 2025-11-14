@@ -185,8 +185,9 @@ class TestInsumosFileDiagnostic:
 
     def test_main_function_integration(self, tmp_path, caplog):
         """Prueba la función main con un archivo simple y explícito."""
-        from scripts.diagnose_insumos_file import main
         import logging
+
+        from scripts.diagnose_insumos_file import main
 
         # Crear un archivo simple que el Sniffer pueda manejar fácilmente
         content = "G;GRUPO1\nCODIGO;DESC\nITEM1;A\nITEM2;B\n"

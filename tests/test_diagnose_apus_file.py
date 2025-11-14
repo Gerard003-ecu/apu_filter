@@ -7,7 +7,10 @@ import pytest
 
 # Importar la clase y dataclasses a probar
 from scripts.diagnose_apus_file import (
-    APUFileDiagnostic, DiagnosticResult, FileStats, Pattern
+    APUFileDiagnostic,
+    DiagnosticResult,
+    FileStats,
+    Pattern,
 )
 
 # --- Fixtures ---
