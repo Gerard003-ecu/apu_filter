@@ -190,7 +190,7 @@ class DiagnosticResult:
 class InsumosFileDiagnostic:
     """
     Diagnosticador avanzado para archivos de insumos jerárquicos.
-    
+
     Estructura esperada:
         G;<NOMBRE_GRUPO>
         <ENCABEZADO>
@@ -198,7 +198,7 @@ class InsumosFileDiagnostic:
         <DATO2>
         G;<OTRO_GRUPO>
         ...
-    
+
     Uso:
         diagnostic = InsumosFileDiagnostic("insumos.csv")
         result = diagnostic.diagnose()
@@ -233,10 +233,10 @@ class InsumosFileDiagnostic:
     def __init__(self, file_path: Union[str, Path]):
         """
         Inicializa el diagnóstico.
-        
+
         Args:
             file_path: Ruta al archivo de insumos
-            
+
         Raises:
             ValueError: Si el archivo no existe o está vacío
         """
@@ -275,7 +275,7 @@ class InsumosFileDiagnostic:
     def diagnose(self) -> DiagnosticResult:
         """
         Ejecuta diagnóstico completo.
-        
+
         Returns:
             DiagnosticResult con toda la información
         """
@@ -346,7 +346,7 @@ class InsumosFileDiagnostic:
     def _detect_encoding(self) -> Optional[Tuple[str, float]]:
         """
         Detecta encoding con chardet o fallback.
-        
+
         Returns:
             (encoding, confianza) o None
         """
@@ -422,7 +422,7 @@ class InsumosFileDiagnostic:
     def _detect_csv_dialect(self, content: str) -> None:
         """
         Detecta dialecto CSV con csv.Sniffer.
-        
+
         Args:
             content: Contenido del archivo
         """
@@ -480,7 +480,7 @@ class InsumosFileDiagnostic:
     def _analyze_hierarchical_structure(self, lines: List[str]) -> None:
         """
         Analiza estructura jerárquica de grupos.
-        
+
         Args:
             lines: Líneas a analizar
         """
@@ -523,7 +523,8 @@ class InsumosFileDiagnostic:
 
     def _is_group_line(self, line: str) -> Tuple[bool, Optional[str]]:
         """
-        Determina si una línea es el inicio de un grupo usando una expresión regular flexible.
+        Determina si una línea es el inicio de un grupo usando una expresión
+        regular flexible.
 
         Args:
         line (str): Línea a evaluar (puede tener espacios iniciales y no estar normalizada)
@@ -665,7 +666,7 @@ class InsumosFileDiagnostic:
     def _process_data_line(self, line: str, line_num: int) -> None:
         """
         Procesa línea de datos usando csv.reader para robustez.
-        
+
         Args:
             line: Línea a procesar
             line_num: Número de línea
@@ -809,9 +810,12 @@ class InsumosFileDiagnostic:
         # Columnas irregulares
         if self.stats.column_consistency < self.COLUMN_CONSISTENCY_THRESHOLD:
             self.recommendations.extend([
-                f"⚠️ Columnas irregulares (consistencia: {self.stats.column_consistency:.1%})",
+                (
+                    "⚠️ Columnas irregulares (consistencia: "
+                    f"{self.stats.column_consistency:.1%})"
+                ),
                 "Usar on_bad_lines='warn' en pandas",
-                "Validar número de columnas por línea"
+                "Validar número de columnas por línea",
             ])
 
         # Estrategia de procesamiento
@@ -901,7 +905,10 @@ class InsumosFileDiagnostic:
                 lines.extend([
                     f"\n  {i}. {status} {group.name}",
                     f"     Línea: {group.line_num}",
-                    f"     Header: {'Línea ' + str(group.header_line) if group.has_header else 'No'}",
+                    (
+                        "     Header: "
+                        f"{'Línea ' + str(group.header_line) if group.has_header else 'No'}"
+                    ),
                     f"     Datos: {group.data_lines} líneas",
                 ])
 

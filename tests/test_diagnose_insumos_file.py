@@ -13,6 +13,7 @@ from scripts.diagnose_insumos_file import ConfidenceLevel, InsumosFileDiagnostic
 
 # --- Fixtures ---
 
+
 @pytest.fixture
 def valid_insumos_file(tmp_path):
     """Crea un archivo de insumos válido y más extenso."""
@@ -30,8 +31,9 @@ MO001;Oficial;DIA;80000
 MO002;Ayudante;DIA;50000
 """
     file_path = tmp_path / "insumos_valid.csv"
-    file_path.write_text(content, encoding='utf-8')
+    file_path.write_text(content, encoding="utf-8")
     return file_path
+
 
 @pytest.fixture
 def insumos_mixed_quality(tmp_path):
@@ -53,8 +55,9 @@ G;GRUPO VACIO
 CODIGO;DESCRIPCION
 """
     file_path = tmp_path / "insumos_mixed.csv"
-    file_path.write_text(content, encoding='utf-8')
+    file_path.write_text(content, encoding="utf-8")
     return file_path
+
 
 @pytest.fixture
 def insumos_no_groups(tmp_path):
@@ -65,8 +68,9 @@ ITEM1;Item A;UND
 ITEM2;Item B;UND
 """
     file_path = tmp_path / "insumos_no_groups.csv"
-    file_path.write_text(content, encoding='utf-8')
+    file_path.write_text(content, encoding="utf-8")
     return file_path
+
 
 @pytest.fixture
 def insumos_duplicate_groups(tmp_path):
@@ -85,10 +89,12 @@ CODIGO;DESCRIPCION
 MAT2;Arena
 """
     file_path = tmp_path / "insumos_duplicates.csv"
-    file_path.write_text(content, encoding='utf-8')
+    file_path.write_text(content, encoding="utf-8")
     return file_path
 
+
 # --- Suite de Pruebas ---
+
 
 class TestInsumosFileDiagnostic:
     """Pruebas para la clase InsumosFileDiagnostic."""
@@ -110,12 +116,15 @@ class TestInsumosFileDiagnostic:
         result = diagnostic.diagnose()
 
         assert result.success
-        assert result.stats.encoding.lower() in ['utf-8', 'ascii']  # ASCII es un subconjunto de UTF-8
-        assert result.stats.csv_delimiter == ';'
+        assert result.stats.encoding.lower() in [
+            "utf-8",
+            "ascii",
+        ]  # ASCII es un subconjunto de UTF-8
+        assert result.stats.csv_delimiter == ";"
         assert result.stats.groups_detected == 2
         assert result.stats.groups_complete == 2
 
-        materiales_group = next(g for g in result.groups if g.name == 'MATERIALES')
+        materiales_group = next(g for g in result.groups if g.name == "MATERIALES")
         assert materiales_group.is_complete
         assert materiales_group.dominant_column_count == 4
 
@@ -135,13 +144,17 @@ class TestInsumosFileDiagnostic:
 
         assert result.success
         assert result.stats.groups_detected == 4
-        assert result.stats.groups_complete == 2  # Lógica mejorada ahora cuenta "INCONSISTENTE" como completo
+        assert (
+            result.stats.groups_complete == 2
+        )  # Lógica mejorada ahora cuenta "INCONSISTENTE" como completo
         assert result.stats.integrity_issues > 0
 
-        inconsistent_group = next(g for g in result.groups if g.name == 'GRUPO INCONSISTENTE')
+        inconsistent_group = next(
+            g for g in result.groups if g.name == "GRUPO INCONSISTENTE"
+        )
         assert inconsistent_group.column_consistency < 0.8
 
-        empty_group = next(g for g in result.groups if g.name == 'GRUPO VACIO')
+        empty_group = next(g for g in result.groups if g.name == "GRUPO VACIO")
         assert not empty_group.has_data
 
     def test_diagnose_duplicate_groups(self, insumos_duplicate_groups):
@@ -170,7 +183,9 @@ class TestInsumosFileDiagnostic:
         diagnostic = InsumosFileDiagnostic(insumos_mixed_quality)
         result = diagnostic.diagnose()
 
-        assert result.stats.overall_confidence_score < 0.8  # Un archivo mixto puede tener confianza media
+        assert (
+            result.stats.overall_confidence_score < 0.8
+        )  # Un archivo mixto puede tener confianza media
         assert result.stats.overall_confidence == ConfidenceLevel.MEDIUM.value
 
     def test_recommendations_for_hierarchical_processing(self, valid_insumos_file):
@@ -194,7 +209,7 @@ class TestInsumosFileDiagnostic:
         p = tmp_path / "simple_insumos.csv"
         p.write_text(content, encoding="utf-8")
 
-        with patch.object(sys, 'argv', ['diagnose_insumos_file.py', str(p)]):
+        with patch.object(sys, "argv", ["diagnose_insumos_file.py", str(p)]):
             with caplog.at_level(logging.INFO):
                 return_code = main()
 

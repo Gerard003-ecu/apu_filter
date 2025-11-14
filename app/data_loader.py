@@ -21,10 +21,7 @@ DataFrameOrDict = Union[pd.DataFrame, Dict[str, pd.DataFrame]]
 
 
 def load_from_csv(
-    path: PathType,
-    sep: str = ';',
-    encoding: str = 'utf-8',
-    **kwargs
+    path: PathType, sep: str = ";", encoding: str = "utf-8", **kwargs
 ) -> pd.DataFrame:
     """
     Carga un archivo CSV en un DataFrame.
@@ -48,7 +45,9 @@ def load_from_csv(
     if not path.exists():
         raise FileNotFoundError(f"Archivo no encontrado: {path}")
 
-    logger.info(f"Cargando CSV desde {path} con delimitador '{sep}' y codificación '{encoding}'")
+    logger.info(
+        f"Cargando CSV desde {path} con delimitador '{sep}' y codificación '{encoding}'"
+    )
     try:
         df = pd.read_csv(path, sep=sep, encoding=encoding, **kwargs)
         if df.empty:
@@ -66,9 +65,7 @@ def load_from_csv(
 
 
 def load_from_xlsx(
-    path: PathType,
-    sheet_name: Optional[Union[str, int]] = 0,
-    **kwargs
+    path: PathType, sheet_name: Optional[Union[str, int]] = 0, **kwargs
 ) -> DataFrameOrDict:
     """
     Carga una hoja de cálculo Excel (.xlsx o .xls).
@@ -94,7 +91,8 @@ def load_from_xlsx(
     if not path.exists():
         raise FileNotFoundError(f"Archivo no encontrado: {path}")
 
-    logger.info(f"Cargando Excel desde {path}, hoja(s): '{sheet_name if sheet_name is not None else 'Todas'}'")
+    sheet_info = sheet_name if sheet_name is not None else "Todas"
+    logger.info(f"Cargando Excel desde {path}, hoja(s): '{sheet_info}'")
     try:
         data = pd.read_excel(path, sheet_name=sheet_name, **kwargs)
 
@@ -119,9 +117,7 @@ def load_from_xlsx(
 
 
 def load_from_pdf(
-    path: PathType,
-    page_range: Optional[range] = None,
-    **kwargs
+    path: PathType, page_range: Optional[range] = None, **kwargs
 ) -> pd.DataFrame:
     """
     Extrae tablas de un archivo PDF y las combina en un DataFrame.
@@ -171,16 +167,23 @@ def load_from_pdf(
 
                 for table in extracted:
                     if table and len(table) > 0:
-                        df_table = pd.DataFrame(table[1:], columns=table[0] if table[0] else None)
+                        df_table = pd.DataFrame(
+                            table[1:], columns=table[0] if table[0] else None
+                        )
                         tables.append(df_table)
-                        logger.debug(f"Tabla encontrada en página {page_num}, forma: {df_table.shape}")
+                        logger.debug(
+                            f"Tabla encontrada en página {page_num}, forma: {df_table.shape}"
+                        )
 
             if not tables:
                 logger.warning(f"No se encontraron tablas en el PDF: {path}")
                 return pd.DataFrame()
 
             combined_df = pd.concat(tables, ignore_index=True)
-            logger.info(f"PDF cargado: {len(tables)} tablas combinadas en un DataFrame de forma {combined_df.shape}")
+            logger.info(
+                f"PDF cargado: {len(tables)} tablas combinadas en un DataFrame "
+                f"de forma {combined_df.shape}"
+            )
             return combined_df
 
     except Exception as e:
@@ -188,10 +191,7 @@ def load_from_pdf(
         raise
 
 
-def load_data(
-    path: PathType,
-    **kwargs
-) -> DataFrameOrDict:
+def load_data(path: PathType, **kwargs) -> DataFrameOrDict:
     """
     Función factory que carga datos según la extensión del archivo.
 
@@ -218,15 +218,17 @@ def load_data(
     logger.info(f"Cargando datos desde {path} (formato: {extension})")
 
     try:
-        if extension == '.csv':
+        if extension == ".csv":
             return load_from_csv(path, **kwargs)
-        elif extension in ['.xlsx', '.xls']:
+        elif extension in [".xlsx", ".xls"]:
             return load_from_xlsx(path, **kwargs)
-        elif extension == '.pdf':
+        elif extension == ".pdf":
             return load_from_pdf(path, **kwargs)
         else:
-            raise ValueError(f"Formato de archivo no soportado: {extension}. "
-                             f"Formatos soportados: .csv, .xlsx, .xls, .pdf")
+            raise ValueError(
+                f"Formato de archivo no soportado: {extension}. "
+                f"Formatos soportados: .csv, .xlsx, .xls, .pdf"
+            )
     except Exception as e:
         logger.error(f"Error al cargar {path} con formato {extension}: {e}")
         raise

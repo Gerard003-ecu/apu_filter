@@ -33,7 +33,7 @@ class TestProbabilityModels(unittest.TestCase):
         """sanitize_value debe devolver None cuando recibe np.nan o pd.NA."""
         self.assertIsNone(sanitize_value(np.nan))
         self.assertIsNone(sanitize_value(pd.NA))
-        self.assertIsNone(sanitize_value(float('nan')))
+        self.assertIsNone(sanitize_value(float("nan")))
 
     def test_sanitize_value_handles_numeric_values(self):
         """sanitize_value debe devolver el valor numérico original como float."""
@@ -76,7 +76,7 @@ class TestProbabilityModels(unittest.TestCase):
             value = result[key]
             self.assertTrue(
                 isinstance(value, (float, type(None))),
-                f"Valor de {key} debe ser float o None, no {type(value)}"
+                f"Valor de {key} debe ser float o None, no {type(value)}",
             )
             self.assertNotEqual(value, np.nan, f"Valor de {key} no debe ser np.nan")
 
@@ -87,10 +87,10 @@ class TestProbabilityModels(unittest.TestCase):
         """
         result = run_monte_carlo_simulation([], num_simulations=10)
         expected = {
-            'mean': None,
-            'std_dev': None,
-            'percentile_5': None,
-            'percentile_95': None
+            "mean": None,
+            "std_dev": None,
+            "percentile_5": None,
+            "percentile_95": None,
         }
         self.assertEqual(result, expected)
 
@@ -101,30 +101,24 @@ class TestProbabilityModels(unittest.TestCase):
         """
         # Falta VR_TOTAL
         result1 = run_monte_carlo_simulation([{"CANTIDAD": 10}], num_simulations=10)
-        self.assertEqual(result1, {
-            'mean': None,
-            'std_dev': None,
-            'percentile_5': None,
-            'percentile_95': None
-        })
+        self.assertEqual(
+            result1,
+            {"mean": None, "std_dev": None, "percentile_5": None, "percentile_95": None},
+        )
 
         # Falta CANTIDAD
         result2 = run_monte_carlo_simulation([{"VR_TOTAL": 100}], num_simulations=10)
-        self.assertEqual(result2, {
-            'mean': None,
-            'std_dev': None,
-            'percentile_5': None,
-            'percentile_95': None
-        })
+        self.assertEqual(
+            result2,
+            {"mean": None, "std_dev": None, "percentile_5": None, "percentile_95": None},
+        )
 
         # Faltan ambas
         result3 = run_monte_carlo_simulation([{"OTRO_CAMPO": 5}], num_simulations=10)
-        self.assertEqual(result3, {
-            'mean': None,
-            'std_dev': None,
-            'percentile_5': None,
-            'percentile_95': None
-        })
+        self.assertEqual(
+            result3,
+            {"mean": None, "std_dev": None, "percentile_5": None, "percentile_95": None},
+        )
 
     def test_simulation_handles_zero_or_negative_cost(self):
         """
@@ -135,44 +129,38 @@ class TestProbabilityModels(unittest.TestCase):
         result1 = run_monte_carlo_simulation(
             [{"VR_TOTAL": 0, "CANTIDAD": 10}], num_simulations=100
         )
-        self.assertEqual(result1, {
-            'mean': None,
-            'std_dev': None,
-            'percentile_5': None,
-            'percentile_95': None
-        })
+        self.assertEqual(
+            result1,
+            {"mean": None, "std_dev": None, "percentile_5": None, "percentile_95": None},
+        )
 
         # CANTIDAD = 0
         result2 = run_monte_carlo_simulation(
             [{"VR_TOTAL": 100, "CANTIDAD": 0}], num_simulations=100
         )
-        self.assertEqual(result2, {
-            'mean': None,
-            'std_dev': None,
-            'percentile_5': None,
-            'percentile_95': None
-        })
+        self.assertEqual(
+            result2,
+            {"mean": None, "std_dev": None, "percentile_5": None, "percentile_95": None},
+        )
 
         # VR_TOTAL negativo
         result3 = run_monte_carlo_simulation(
             [{"VR_TOTAL": -50, "CANTIDAD": 1}], num_simulations=100
         )
-        self.assertEqual(result3, {
-            'mean': None,
-            'std_dev': None,
-            'percentile_5': None,
-            'percentile_95': None
-        })
+        self.assertEqual(
+            result3,
+            {"mean": None, "std_dev": None, "percentile_5": None, "percentile_95": None},
+        )
 
         # Mixto: uno válido, uno inválido
-        result4 = run_monte_carlo_simulation([
-            {"VR_TOTAL": 100, "CANTIDAD": 1},
-            {"VR_TOTAL": 0, "CANTIDAD": 1}
-        ], num_simulations=100)
+        result4 = run_monte_carlo_simulation(
+            [{"VR_TOTAL": 100, "CANTIDAD": 1}, {"VR_TOTAL": 0, "CANTIDAD": 1}],
+            num_simulations=100,
+        )
         # Solo el primero cuenta → costo base = 100 → simulación con media ~100
-        self.assertIsNotNone(result4['mean'])
-        self.assertGreater(result4['mean'], 50)  # por la variabilidad
-        self.assertLess(result4['mean'], 150)
+        self.assertIsNotNone(result4["mean"])
+        self.assertGreater(result4["mean"], 50)  # por la variabilidad
+        self.assertLess(result4["mean"], 150)
 
     def test_simulation_with_valid_positive_costs(self):
         """
@@ -184,17 +172,17 @@ class TestProbabilityModels(unittest.TestCase):
         result = run_monte_carlo_simulation(apu_details, num_simulations=5000)
 
         # La media debe estar cerca de 1000 (con margen por variabilidad)
-        self.assertIsNotNone(result['mean'])
-        self.assertGreater(result['mean'], 900)
-        self.assertLess(result['mean'], 1100)
+        self.assertIsNotNone(result["mean"])
+        self.assertGreater(result["mean"], 900)
+        self.assertLess(result["mean"], 1100)
 
         # La desviación estándar debe ser positiva (por la volatilidad del 10%)
-        self.assertGreater(result['std_dev'], 0)
-        self.assertLess(result['std_dev'], 200)  # 10% de 1000 = 100, más ruido
+        self.assertGreater(result["std_dev"], 0)
+        self.assertLess(result["std_dev"], 200)  # 10% de 1000 = 100, más ruido
 
         # Percentiles deben ser lógicos
-        self.assertLess(result['percentile_5'], result['mean'])
-        self.assertLess(result['mean'], result['percentile_95'])
+        self.assertLess(result["percentile_5"], result["mean"])
+        self.assertLess(result["mean"], result["percentile_95"])
 
     def test_simulation_with_multiple_items(self):
         """
@@ -207,12 +195,12 @@ class TestProbabilityModels(unittest.TestCase):
 
         result = run_monte_carlo_simulation(apu_details, num_simulations=5000)
 
-        self.assertIsNotNone(result['mean'])
-        self.assertGreater(result['mean'], 9000)
-        self.assertLess(result['mean'], 11000)
-        self.assertGreater(result['std_dev'], 0)
-        self.assertLess(result['percentile_5'], result['mean'])
-        self.assertGreater(result['percentile_95'], result['mean'])
+        self.assertIsNotNone(result["mean"])
+        self.assertGreater(result["mean"], 9000)
+        self.assertLess(result["mean"], 11000)
+        self.assertGreater(result["std_dev"], 0)
+        self.assertLess(result["percentile_5"], result["mean"])
+        self.assertGreater(result["percentile_95"], result["mean"])
 
     def test_simulation_handles_invalid_input_types(self):
         """
@@ -220,30 +208,24 @@ class TestProbabilityModels(unittest.TestCase):
         """
         # None
         result1 = run_monte_carlo_simulation(None, num_simulations=10)
-        self.assertEqual(result1, {
-            'mean': None,
-            'std_dev': None,
-            'percentile_5': None,
-            'percentile_95': None
-        })
+        self.assertEqual(
+            result1,
+            {"mean": None, "std_dev": None, "percentile_5": None, "percentile_95": None},
+        )
 
         # String
         result2 = run_monte_carlo_simulation("not a list", num_simulations=10)
-        self.assertEqual(result2, {
-            'mean': None,
-            'std_dev': None,
-            'percentile_5': None,
-            'percentile_95': None
-        })
+        self.assertEqual(
+            result2,
+            {"mean": None, "std_dev": None, "percentile_5": None, "percentile_95": None},
+        )
 
         # Número
         result3 = run_monte_carlo_simulation(123, num_simulations=10)
-        self.assertEqual(result3, {
-            'mean': None,
-            'std_dev': None,
-            'percentile_5': None,
-            'percentile_95': None
-        })
+        self.assertEqual(
+            result3,
+            {"mean": None, "std_dev": None, "percentile_5": None, "percentile_95": None},
+        )
 
     def test_simulation_throws_on_invalid_num_simulations(self):
         """
@@ -306,9 +288,9 @@ class TestProbabilityModels(unittest.TestCase):
             apu_details, num_simulations=2000, volatility_factor=0.2
         )
 
-        self.assertGreater(result_high['std_dev'], result_low['std_dev'])
-        self.assertGreater(result_high['std_dev'], 0)
-        self.assertGreater(result_low['std_dev'], 0)
+        self.assertGreater(result_high["std_dev"], result_low["std_dev"])
+        self.assertGreater(result_high["std_dev"], 0)
+        self.assertGreater(result_low["std_dev"], 0)
 
     def test_simulation_with_min_cost_threshold(self):
         """
@@ -320,36 +302,34 @@ class TestProbabilityModels(unittest.TestCase):
             apu_details, num_simulations=100, min_cost_threshold=100
         )
         # Como VR_TOTAL (50) < 100, debe ignorarse y devolver None
-        self.assertIsNone(result['mean'])
+        self.assertIsNone(result["mean"])
 
         apu_details2 = [{"VR_TOTAL": 49, "CANTIDAD": 2}]  # base = 98 < 100 → ignorado
         result2 = run_monte_carlo_simulation(
             apu_details2, num_simulations=100, min_cost_threshold=100
         )
-        self.assertEqual(result2, {
-            'mean': None,
-            'std_dev': None,
-            'percentile_5': None,
-            'percentile_95': None
-        })
+        self.assertEqual(
+            result2,
+            {"mean": None, "std_dev": None, "percentile_5": None, "percentile_95": None},
+        )
 
     def test_simulation_handles_mixed_data_types_and_nan(self):
         """
         Verifica que el sistema maneje entradas con tipos mixtos y NaN sin fallar.
         """
         apu_details = [
-            {"VR_TOTAL": "100", "CANTIDAD": 1},      # string numérico → debe parsear
-            {"VR_TOTAL": np.nan, "CANTIDAD": 1},      # NaN → ignorado
-            {"VR_TOTAL": 200, "CANTIDAD": "2"},       # string numérico → debe parsear
-            {"VR_TOTAL": "abc", "CANTIDAD": 1},       # no numérico → ignorado
-            {"VR_TOTAL": 150, "CANTIDAD": None},      # None → ignorado
+            {"VR_TOTAL": "100", "CANTIDAD": 1},  # string numérico → debe parsear
+            {"VR_TOTAL": np.nan, "CANTIDAD": 1},  # NaN → ignorado
+            {"VR_TOTAL": 200, "CANTIDAD": "2"},  # string numérico → debe parsear
+            {"VR_TOTAL": "abc", "CANTIDAD": 1},  # no numérico → ignorado
+            {"VR_TOTAL": 150, "CANTIDAD": None},  # None → ignorado
         ]
         result = run_monte_carlo_simulation(apu_details, num_simulations=100)
 
         # Solo dos entradas válidas: 100*1 + 200*2 = 500
-        self.assertIsNotNone(result['mean'])
-        self.assertGreater(result['mean'], 400)
-        self.assertLess(result['mean'], 600)
+        self.assertIsNotNone(result["mean"])
+        self.assertGreater(result["mean"], 400)
+        self.assertLess(result["mean"], 600)
 
     def test_simulation_output_never_returns_numpy_nan(self):
         """
@@ -362,7 +342,7 @@ class TestProbabilityModels(unittest.TestCase):
         for key, value in result.items():
             self.assertFalse(
                 isinstance(value, float) and np.isnan(value),
-                f"Valor de {key} no debe ser np.nan (aunque sea float)"
+                f"Valor de {key} no debe ser np.nan (aunque sea float)",
             )
 
 

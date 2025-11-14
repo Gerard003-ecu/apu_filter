@@ -30,6 +30,7 @@ from scripts.generate_embeddings import (
 # FIXTURES
 # ============================================================================
 
+
 @pytest.fixture
 def config():
     """Proporciona una configuración de prueba."""
@@ -46,41 +47,45 @@ def config():
 @pytest.fixture
 def sample_dataframe():
     """Crea un DataFrame de prueba con datos válidos."""
-    return pd.DataFrame({
-        "CODIGO_APU": ["APU-001", "APU-002", "APU-003", "APU-004", "APU-005"],
-        "original_description": [
-            "Instalación de muro de ladrillo común de 15cm",
-            "Suministro de tubería de PVC de 2 pulgadas",
-            "Excavación manual en tierra hasta 2m de profundidad",
-            "Colocación de concreto premezclado f'c=210",
-            "Pintura acrílica en muros interiores dos manos",
-        ],
-        "unidad": ["m2", "m", "m3", "m3", "m2"],
-        "precio": [100.5, 45.2, 78.9, 234.5, 67.8],
-    })
+    return pd.DataFrame(
+        {
+            "CODIGO_APU": ["APU-001", "APU-002", "APU-003", "APU-004", "APU-005"],
+            "original_description": [
+                "Instalación de muro de ladrillo común de 15cm",
+                "Suministro de tubería de PVC de 2 pulgadas",
+                "Excavación manual en tierra hasta 2m de profundidad",
+                "Colocación de concreto premezclado f'c=210",
+                "Pintura acrílica en muros interiores dos manos",
+            ],
+            "unidad": ["m2", "m", "m3", "m3", "m2"],
+            "precio": [100.5, 45.2, 78.9, 234.5, 67.8],
+        }
+    )
 
 
 @pytest.fixture
 def invalid_dataframe():
     """Crea un DataFrame con datos problemáticos para pruebas de validación."""
-    return pd.DataFrame({
-        "CODIGO_APU": ["APU-001", "APU-002", None, "APU-001", "APU-005"],
-        "original_description": [
-            "Texto válido",
-            None,  # Descripción nula
-            "Texto válido 2",
-            "Duplicado",  # ID duplicado
-            "ab",  # Texto muy corto
-        ],
-        "otra_columna": [1, 2, 3, 4, 5],
-    })
+    return pd.DataFrame(
+        {
+            "CODIGO_APU": ["APU-001", "APU-002", None, "APU-001", "APU-005"],
+            "original_description": [
+                "Texto válido",
+                None,  # Descripción nula
+                "Texto válido 2",
+                "Duplicado",  # ID duplicado
+                "ab",  # Texto muy corto
+            ],
+            "otra_columna": [1, 2, 3, 4, 5],
+        }
+    )
 
 
 @pytest.fixture
 def sample_csv_file(tmp_path: Path, sample_dataframe: pd.DataFrame) -> Path:
     """Crea un archivo CSV temporal con datos de prueba."""
     file_path = tmp_path / "test_apus.csv"
-    sample_dataframe.to_csv(file_path, index=False, encoding='utf-8')
+    sample_dataframe.to_csv(file_path, index=False, encoding="utf-8")
     return file_path
 
 
@@ -88,7 +93,7 @@ def sample_csv_file(tmp_path: Path, sample_dataframe: pd.DataFrame) -> Path:
 def sample_json_file(tmp_path: Path, sample_dataframe: pd.DataFrame) -> Path:
     """Crea un archivo JSON temporal con datos de prueba."""
     file_path = tmp_path / "test_apus.json"
-    sample_dataframe.to_json(file_path, orient='records', force_ascii=False)
+    sample_dataframe.to_json(file_path, orient="records", force_ascii=False)
     return file_path
 
 
@@ -122,6 +127,7 @@ def mock_faiss_index():
 # TESTS - DataValidator
 # ============================================================================
 
+
 class TestDataValidator:
     """Pruebas para la clase DataValidator."""
 
@@ -130,10 +136,7 @@ class TestDataValidator:
         validator = DataValidator()
 
         result = validator.validate_dataframe(
-            sample_dataframe,
-            "original_description",
-            "CODIGO_APU",
-            config
+            sample_dataframe, "original_description", "CODIGO_APU", config
         )
 
         assert len(result) == 5
@@ -146,10 +149,7 @@ class TestDataValidator:
 
         with pytest.raises(DataValidationError) as exc_info:
             validator.validate_dataframe(
-                sample_dataframe,
-                "columna_inexistente",
-                "CODIGO_APU",
-                config
+                sample_dataframe, "columna_inexistente", "CODIGO_APU", config
             )
 
         assert "Columnas faltantes" in str(exc_info.value)
@@ -159,10 +159,7 @@ class TestDataValidator:
         validator = DataValidator()
 
         result = validator.validate_dataframe(
-            invalid_dataframe,
-            "original_description",
-            "CODIGO_APU",
-            config
+            invalid_dataframe, "original_description", "CODIGO_APU", config
         )
 
         # Debe eliminar filas con valores nulos
@@ -172,10 +169,12 @@ class TestDataValidator:
 
     def test_validate_dataframe_duplicate_removal(self, config):
         """Prueba eliminación de duplicados por ID."""
-        df = pd.DataFrame({
-            "CODIGO_APU": ["APU-001", "APU-001", "APU-002"],
-            "original_description": ["Texto 1", "Texto 2", "Texto 3"],
-        })
+        df = pd.DataFrame(
+            {
+                "CODIGO_APU": ["APU-001", "APU-001", "APU-002"],
+                "original_description": ["Texto 1", "Texto 2", "Texto 3"],
+            }
+        )
 
         validator = DataValidator()
         result = validator.validate_dataframe(
@@ -187,14 +186,16 @@ class TestDataValidator:
 
     def test_validate_dataframe_text_length_filtering(self, config):
         """Prueba filtrado por longitud de texto."""
-        df = pd.DataFrame({
-            "CODIGO_APU": ["APU-001", "APU-002", "APU-003"],
-            "original_description": [
-                "ab",  # Muy corto
-                "Texto de longitud normal para procesar",
-                "x" * 6000,  # Muy largo
-            ],
-        })
+        df = pd.DataFrame(
+            {
+                "CODIGO_APU": ["APU-001", "APU-002", "APU-003"],
+                "original_description": [
+                    "ab",  # Muy corto
+                    "Texto de longitud normal para procesar",
+                    "x" * 6000,  # Muy largo
+                ],
+            }
+        )
 
         validator = DataValidator()
         result = validator.validate_dataframe(
@@ -206,17 +207,17 @@ class TestDataValidator:
 
     def test_validate_dataframe_empty_after_cleaning(self, config):
         """Prueba error cuando no quedan datos después de limpieza."""
-        df = pd.DataFrame({
-            "CODIGO_APU": [None, None],
-            "original_description": [None, None],
-        })
+        df = pd.DataFrame(
+            {
+                "CODIGO_APU": [None, None],
+                "original_description": [None, None],
+            }
+        )
 
         validator = DataValidator()
 
         with pytest.raises(DataValidationError) as exc_info:
-            validator.validate_dataframe(
-                df, "original_description", "CODIGO_APU", config
-            )
+            validator.validate_dataframe(df, "original_description", "CODIGO_APU", config)
 
         assert "No quedan datos válidos" in str(exc_info.value)
 
@@ -225,10 +226,11 @@ class TestDataValidator:
 # TESTS - MemoryMonitor
 # ============================================================================
 
+
 class TestMemoryMonitor:
     """Pruebas para la clase MemoryMonitor."""
 
-    @patch('psutil.virtual_memory')
+    @patch("psutil.virtual_memory")
     def test_check_memory_sufficient(self, mock_memory):
         """Prueba cuando hay memoria suficiente."""
         mock_memory.return_value = MagicMock(available=10 * 1024**3)  # 10 GB
@@ -237,7 +239,7 @@ class TestMemoryMonitor:
         # No debe lanzar excepción
         monitor.check_memory_availability(2.0, 8.0)
 
-    @patch('psutil.virtual_memory')
+    @patch("psutil.virtual_memory")
     def test_check_memory_exceeds_limit(self, mock_memory):
         """Prueba cuando se excede el límite configurado."""
         mock_memory.return_value = MagicMock(available=10 * 1024**3)
@@ -249,7 +251,7 @@ class TestMemoryMonitor:
 
         assert "el límite es" in str(exc_info.value)
 
-    @patch('psutil.virtual_memory')
+    @patch("psutil.virtual_memory")
     def test_check_memory_insufficient_available(self, mock_memory):
         """Prueba cuando no hay suficiente memoria disponible."""
         mock_memory.return_value = MagicMock(available=2 * 1024**3)  # 2 GB
@@ -265,6 +267,7 @@ class TestMemoryMonitor:
 # ============================================================================
 # TESTS - FileManager
 # ============================================================================
+
 
 class TestFileManager:
     """Pruebas para la clase FileManager."""
@@ -336,10 +339,11 @@ class TestFileManager:
 # TESTS - EmbeddingGenerator (CORREGIDO)
 # ============================================================================
 
+
 class TestEmbeddingGenerator:
     """Pruebas para la clase EmbeddingGenerator."""
 
-    @patch('scripts.generate_embeddings.SentenceTransformer')
+    @patch("scripts.generate_embeddings.SentenceTransformer")
     def test_load_model_success(self, mock_transformer_class, config):
         """Prueba carga exitosa del modelo."""
         mock_model = MagicMock()
@@ -352,7 +356,7 @@ class TestEmbeddingGenerator:
         assert generator.model is not None
         mock_transformer_class.assert_called_once_with("test-model")
 
-    @patch('scripts.generate_embeddings.SentenceTransformer')
+    @patch("scripts.generate_embeddings.SentenceTransformer")
     def test_load_model_failure(self, mock_transformer_class, config):
         """Prueba error al cargar modelo."""
         mock_transformer_class.side_effect = Exception("Model not found")
@@ -370,6 +374,7 @@ class TestEmbeddingGenerator:
 
         # Mock manual del modelo
         mock_model = MagicMock()
+
         def mock_encode(texts, **kwargs):
             # Retornar embeddings del tamaño correcto según el batch
             return np.random.rand(len(texts), 384).astype(np.float32)
@@ -393,7 +398,7 @@ class TestEmbeddingGenerator:
 
         assert "El modelo no ha sido cargado" in str(exc_info.value)
 
-    @patch('scripts.generate_embeddings.faiss')
+    @patch("scripts.generate_embeddings.faiss")
     def test_build_faiss_index(self, mock_faiss, config):
         """Prueba construcción del índice FAISS."""
         mock_index = MagicMock()
@@ -416,6 +421,7 @@ class TestEmbeddingGenerator:
 
         # Mock del índice con comportamiento correcto
         mock_index = MagicMock()
+
         def mock_search(query, k):
             # Para cada query, devolver su propio índice
             idx = 0  # Por defecto
@@ -442,7 +448,8 @@ class TestEmbeddingGenerator:
 
         # Configurar el mock para que devuelva índice incorrecto
         mock_faiss_index.search.return_value = (
-            np.array([[0.9]]), np.array([[999]])  # Índice imposible
+            np.array([[0.9]]),
+            np.array([[999]]),  # Índice imposible
         )
 
         result = generator.validate_index(mock_faiss_index, embeddings, 2)
@@ -454,12 +461,13 @@ class TestEmbeddingGenerator:
 # TESTS - EmbeddingPipeline (Integration Tests - CORREGIDOS)
 # ============================================================================
 
+
 class TestEmbeddingPipeline:
     """Pruebas de integración para el pipeline completo."""
 
-    @patch('scripts.generate_embeddings.faiss')
-    @patch('scripts.generate_embeddings.SentenceTransformer')
-    @patch('psutil.virtual_memory')
+    @patch("scripts.generate_embeddings.faiss")
+    @patch("scripts.generate_embeddings.SentenceTransformer")
+    @patch("psutil.virtual_memory")
     def test_run_complete_success_fixed(
         self,
         mock_memory,
@@ -467,7 +475,7 @@ class TestEmbeddingPipeline:
         mock_faiss,
         config,
         sample_csv_file,
-        output_dir
+        output_dir,
     ):
         """Prueba ejecución completa exitosa del pipeline (corregida)."""
         # Configurar mocks
@@ -491,13 +499,13 @@ class TestEmbeddingPipeline:
         pipeline = EmbeddingPipeline(config)
 
         # Patch del método de validación para que siempre retorne True
-        with patch.object(pipeline.generator, 'validate_index', return_value=True):
+        with patch.object(pipeline.generator, "validate_index", return_value=True):
             metrics = pipeline.run(
                 input_file=sample_csv_file,
                 output_dir=output_dir,
                 model_name="test-model",
                 text_column="original_description",
-                id_column="CODIGO_APU"
+                id_column="CODIGO_APU",
             )
 
         # Verificar métricas
@@ -534,16 +542,12 @@ class TestEmbeddingPipeline:
                 output_dir=output_dir,
                 model_name="test-model",
                 text_column="desc",
-                id_column="id"
+                id_column="id",
             )
 
-    @patch('scripts.generate_embeddings.SentenceTransformer')
+    @patch("scripts.generate_embeddings.SentenceTransformer")
     def test_run_with_model_load_error(
-        self,
-        mock_transformer_class,
-        config,
-        sample_csv_file,
-        output_dir
+        self, mock_transformer_class, config, sample_csv_file, output_dir
     ):
         """Prueba manejo de error al cargar modelo."""
         mock_transformer_class.side_effect = Exception("Model error")
@@ -556,17 +560,13 @@ class TestEmbeddingPipeline:
                 output_dir=output_dir,
                 model_name="invalid-model",
                 text_column="original_description",
-                id_column="CODIGO_APU"
+                id_column="CODIGO_APU",
             )
-
 
     def test_run_with_empty_dataframe(self, config, tmp_path, output_dir):
         """Prueba con DataFrame vacío después de limpieza."""
         # Crear archivo con datos inválidos
-        df = pd.DataFrame({
-            "CODIGO_APU": [None, None],
-            "original_description": [None, None]
-        })
+        df = pd.DataFrame({"CODIGO_APU": [None, None], "original_description": [None, None]})
         input_file = tmp_path / "empty.csv"
         df.to_csv(input_file, index=False)
 
@@ -578,14 +578,14 @@ class TestEmbeddingPipeline:
                 output_dir=output_dir,
                 model_name="test-model",
                 text_column="original_description",
-                id_column="CODIGO_APU"
+                id_column="CODIGO_APU",
             )
 
         assert "No quedan datos válidos" in str(exc_info.value)
 
-    @patch('scripts.generate_embeddings.faiss')
-    @patch('scripts.generate_embeddings.SentenceTransformer')
-    @patch('psutil.virtual_memory')
+    @patch("scripts.generate_embeddings.faiss")
+    @patch("scripts.generate_embeddings.SentenceTransformer")
+    @patch("psutil.virtual_memory")
     def test_run_with_backup_creation_fixed(
         self,
         mock_memory,
@@ -593,7 +593,7 @@ class TestEmbeddingPipeline:
         mock_faiss,
         config,
         sample_csv_file,
-        output_dir
+        output_dir,
     ):
         """Prueba creación de backups cuando existen archivos previos (corregida)."""
         # Configurar mocks
@@ -618,13 +618,13 @@ class TestEmbeddingPipeline:
         # Ejecutar pipeline con backup habilitado
         pipeline = EmbeddingPipeline(config)
 
-        with patch.object(pipeline.generator, 'validate_index', return_value=True):
+        with patch.object(pipeline.generator, "validate_index", return_value=True):
             pipeline.run(
                 input_file=sample_csv_file,
                 output_dir=output_dir,
                 model_name="test-model",
                 text_column="original_description",
-                id_column="CODIGO_APU"
+                id_column="CODIGO_APU",
             )
 
         # Verificar que se crearon backups
@@ -640,6 +640,7 @@ class TestEmbeddingPipeline:
 # TESTS - Performance and Edge Cases
 # ============================================================================
 
+
 class TestPerformanceAndEdgeCases:
     """Pruebas de rendimiento y casos extremos."""
 
@@ -647,13 +648,15 @@ class TestPerformanceAndEdgeCases:
     def test_large_dataset_handling(self, config, tmp_path, n_samples):
         """Prueba manejo de datasets grandes."""
         # Crear dataset grande
-        df = pd.DataFrame({
-            "CODIGO_APU": [f"APU-{i:05d}" for i in range(n_samples)],
-            "original_description": [
-                f"Descripción de prueba número {i} con texto suficiente"
-                for i in range(n_samples)
-            ]
-        })
+        df = pd.DataFrame(
+            {
+                "CODIGO_APU": [f"APU-{i:05d}" for i in range(n_samples)],
+                "original_description": [
+                    f"Descripción de prueba número {i} con texto suficiente"
+                    for i in range(n_samples)
+                ],
+            }
+        )
 
         input_file = tmp_path / f"large_{n_samples}.csv"
         df.to_csv(input_file, index=False)
@@ -668,14 +671,16 @@ class TestPerformanceAndEdgeCases:
 
     def test_special_characters_in_text(self, config):
         """Prueba manejo de caracteres especiales."""
-        df = pd.DataFrame({
-            "CODIGO_APU": ["APU-001", "APU-002", "APU-003"],
-            "original_description": [
-                "Texto con ñ, á, é, í, ó, ú",
-                "Text with 特殊字符 and émojis 😀",
-                "Symbols: @#$%^&*()_+-=[]{}|;:',.<>?/",
-            ]
-        })
+        df = pd.DataFrame(
+            {
+                "CODIGO_APU": ["APU-001", "APU-002", "APU-003"],
+                "original_description": [
+                    "Texto con ñ, á, é, í, ó, ú",
+                    "Text with 特殊字符 and émojis 😀",
+                    "Symbols: @#$%^&*()_+-=[]{}|;:',.<>?/",
+                ],
+            }
+        )
 
         validator = DataValidator()
         result = validator.validate_dataframe(
@@ -709,8 +714,10 @@ class TestPerformanceAndEdgeCases:
 
         # Mock del modelo mejorado
         mock_model = MagicMock()
+
         def mock_encode(texts, **kwargs):
             return np.random.rand(len(texts), 384).astype(np.float32)
+
         mock_model.encode.side_effect = mock_encode
         generator.model = mock_model
 
@@ -725,10 +732,11 @@ class TestPerformanceAndEdgeCases:
 # TESTS - CLI Integration
 # ============================================================================
 
+
 class TestCLIIntegration:
     """Pruebas de integración con la interfaz de línea de comandos."""
 
-    @patch('scripts.generate_embeddings.EmbeddingPipeline')
+    @patch("scripts.generate_embeddings.EmbeddingPipeline")
     def test_main_function_success(self, mock_pipeline_class, sample_csv_file):
         """Prueba función main con argumentos válidos."""
         from scripts.generate_embeddings import main
@@ -740,20 +748,24 @@ class TestCLIIntegration:
         # Simular argumentos de línea de comandos
         test_args = [
             "generate_embeddings.py",
-            "--input", str(sample_csv_file),
-            "--output", "test_output",
-            "--model", "test-model",
-            "--batch-size", "64",
+            "--input",
+            str(sample_csv_file),
+            "--output",
+            "test_output",
+            "--model",
+            "test-model",
+            "--batch-size",
+            "64",
         ]
 
-        with patch.object(sys, 'argv', test_args):
+        with patch.object(sys, "argv", test_args):
             with pytest.raises(SystemExit) as exc_info:
                 main()
 
             assert exc_info.value.code == 0
             mock_pipeline.run.assert_called_once()
 
-    @patch('scripts.generate_embeddings.EmbeddingPipeline')
+    @patch("scripts.generate_embeddings.EmbeddingPipeline")
     def test_main_function_with_error(self, mock_pipeline_class):
         """Prueba manejo de errores en función main."""
         from scripts.generate_embeddings import main
@@ -764,10 +776,11 @@ class TestCLIIntegration:
 
         test_args = [
             "generate_embeddings.py",
-            "--input", "test.csv",
+            "--input",
+            "test.csv",
         ]
 
-        with patch.object(sys, 'argv', test_args):
+        with patch.object(sys, "argv", test_args):
             with pytest.raises(SystemExit) as exc_info:
                 main()
 
@@ -777,6 +790,7 @@ class TestCLIIntegration:
 # ============================================================================
 # TESTS - Concurrency and Thread Safety (MARCADO COMO XFAIL)
 # ============================================================================
+
 
 class TestConcurrencyAndThreadSafety:
     """Pruebas de concurrencia y seguridad de hilos."""
@@ -815,11 +829,13 @@ class TestConcurrencyAndThreadSafety:
 
 if __name__ == "__main__":
     # Configurar pytest para ejecutar con verbosidad y cobertura
-    pytest.main([
-        __file__,
-        "-v",
-        "--tb=short",
-        "--cov=scripts.generate_embeddings",
-        "--cov-report=html",
-        "--cov-report=term-missing",
-    ])
+    pytest.main(
+        [
+            __file__,
+            "-v",
+            "--tb=short",
+            "--cov=scripts.generate_embeddings",
+            "--cov-report=html",
+            "--cov-report=term-missing",
+        ]
+    )

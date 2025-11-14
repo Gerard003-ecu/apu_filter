@@ -13,6 +13,7 @@ from scripts.diagnose_presupuesto_file import ConfidenceLevel, PresupuestoFileDi
 
 # --- Fixtures ---
 
+
 @pytest.fixture
 def valid_presupuesto_file(tmp_path):
     """Crea un archivo de presupuesto válido y más extenso."""
@@ -30,8 +31,9 @@ ITEM;DESCRIPCION;CANTIDAD;UNIDAD;VR. UNITARIO;TOTAL
 TOTAL PRESUPUESTO: 38500000
 """
     file_path = tmp_path / "presupuesto_valid.csv"
-    file_path.write_text(content, encoding='utf-8')
+    file_path.write_text(content, encoding="utf-8")
     return file_path
+
 
 @pytest.fixture
 def presupuesto_inconsistent_columns(tmp_path):
@@ -43,8 +45,9 @@ ITEM;DESCRIPCION;CANTIDAD;TOTAL
 3;Item C;30;3000
 """
     file_path = tmp_path / "presupuesto_inconsistent.csv"
-    file_path.write_text(content, encoding='utf-8')
+    file_path.write_text(content, encoding="utf-8")
     return file_path
+
 
 @pytest.fixture
 def presupuesto_no_header(tmp_path):
@@ -54,10 +57,12 @@ def presupuesto_no_header(tmp_path):
 2;Concreto;50;M3;350000;17500000
 """
     file_path = tmp_path / "presupuesto_no_header.csv"
-    file_path.write_text(content, encoding='utf-8')
+    file_path.write_text(content, encoding="utf-8")
     return file_path
 
+
 # --- Suite de Pruebas ---
+
 
 class TestPresupuestoFileDiagnostic:
     """Pruebas para la clase PresupuestoFileDiagnostic."""
@@ -73,15 +78,18 @@ class TestPresupuestoFileDiagnostic:
         with pytest.raises(ValueError, match="Archivo no encontrado"):
             PresupuestoFileDiagnostic(tmp_path / "non_existent.csv")
 
-    @patch('scripts.diagnose_presupuesto_file.chardet.detect', return_value={'encoding': 'utf-8', 'confidence': 0.99})
+    @patch(
+        "scripts.diagnose_presupuesto_file.chardet.detect",
+        return_value={"encoding": "utf-8", "confidence": 0.99},
+    )
     def test_diagnose_successful_run(self, mock_chardet, valid_presupuesto_file):
         """Prueba de integración de un diagnóstico exitoso."""
         diagnostic = PresupuestoFileDiagnostic(valid_presupuesto_file)
         result = diagnostic.diagnose()
 
         assert result.success
-        assert result.stats.encoding.lower() == 'utf-8'
-        assert result.stats.csv_delimiter == ';'
+        assert result.stats.encoding.lower() == "utf-8"
+        assert result.stats.csv_delimiter == ";"
         assert result.header_candidate is not None
         assert result.header_candidate.line_num == 6
         assert result.stats.dominant_column_count == 6
@@ -120,7 +128,9 @@ class TestPresupuestoFileDiagnostic:
         diagnostic = PresupuestoFileDiagnostic(valid_presupuesto_file)
         result = diagnostic.diagnose()
 
-        assert result.stats.comment_lines == 0  # Lógica actual no cuenta metadatos como comentarios
+        assert (
+            result.stats.comment_lines == 0
+        )  # Lógica actual no cuenta metadatos como comentarios
         assert result.stats.empty_lines == 1
 
     def test_total_line_detection(self, valid_presupuesto_file):
@@ -159,7 +169,7 @@ class TestPresupuestoFileDiagnostic:
         p = tmp_path / "simple_presupuesto.csv"
         p.write_text(content, encoding="utf-8")
 
-        with patch.object(sys, 'argv', ['diagnose_presupuesto_file.py', str(p)]):
+        with patch.object(sys, "argv", ["diagnose_presupuesto_file.py", str(p)]):
             with caplog.at_level(logging.INFO):
                 return_code = main()
 
