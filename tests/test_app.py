@@ -42,19 +42,21 @@ from app.app import (
 # FIXTURES - Configuración y datos de prueba
 # ============================================================================
 
+
 @pytest.fixture
 def app():
     """Fixture que crea instancia de la aplicación Flask para tests."""
     # Usar fakeredis para simular Redis en memoria
-    with patch('redis.from_url') as mock_from_url:
+    with patch("redis.from_url") as mock_from_url:
         import fakeredis
+
         fake_redis_client = fakeredis.FakeStrictRedis()
         mock_from_url.return_value = fake_redis_client
 
         # Mockear carga de embeddings
-        with patch('app.app.load_semantic_search_artifacts'):
-            app = create_app('testing')
-            app.config['TESTING'] = True
+        with patch("app.app.load_semantic_search_artifacts"):
+            app = create_app("testing")
+            app.config["TESTING"] = True
             # No es necesario sobreescribir SESSION_REDIS, create_app ya lo hace
             yield app
 
@@ -94,7 +96,7 @@ def sample_session_data():
                     "original_description": "Concreto f'c=280 kg/cm2",
                     "UNIDAD": "M3",
                     "CANTIDAD": 100.0,
-                    "VR_UNITARIO": 350000.0
+                    "VR_UNITARIO": 350000.0,
                 }
             ],
             "apus_detail": [
@@ -107,7 +109,7 @@ def sample_session_data():
                     "PRECIO_UNIT_APU": 35000.0,
                     "VALOR_TOTAL_APU": 262500.0,
                     "RENDIMIENTO": 1.0,
-                    "UNIDAD_INSUMO": "BLS"
+                    "UNIDAD_INSUMO": "BLS",
                 },
                 {
                     "CODIGO_APU": "APU-001",
@@ -118,13 +120,10 @@ def sample_session_data():
                     "PRECIO_UNIT_APU": 80000.0,
                     "VALOR_TOTAL_APU": 40000.0,
                     "RENDIMIENTO": 1.0,
-                    "UNIDAD_INSUMO": "M3"
-                }
+                    "UNIDAD_INSUMO": "M3",
+                },
             ],
-            "summary": {
-                "total_apus": 1,
-                "total_insumos": 2
-            }
+            "summary": {"total_apus": 1, "total_insumos": 2},
         }
     }
 
@@ -141,11 +140,7 @@ APU-002,Acero,KG,500,5000"""
 def sample_file():
     """Fixture que crea un archivo FileStorage de prueba."""
     content = b"CODIGO,DESCRIPCION\nAPU-001,Concreto"
-    return FileStorage(
-        stream=BytesIO(content),
-        filename="test.csv",
-        content_type="text/csv"
-    )
+    return FileStorage(stream=BytesIO(content), filename="test.csv", content_type="text/csv")
 
 
 @pytest.fixture
@@ -161,7 +156,7 @@ def sample_apu_data():
             "PRECIO_UNIT_APU": 35000.0,
             "VALOR_TOTAL_APU": 262500.0,
             "RENDIMIENTO": 1.0,
-            "UNIDAD_INSUMO": "BLS"
+            "UNIDAD_INSUMO": "BLS",
         },
         {
             "CODIGO_APU": "APU-001",
@@ -172,8 +167,8 @@ def sample_apu_data():
             "PRECIO_UNIT_APU": 65000.0,
             "VALOR_TOTAL_APU": 65000.0,
             "RENDIMIENTO": 1.0,
-            "UNIDAD_INSUMO": "JOR"
-        }
+            "UNIDAD_INSUMO": "JOR",
+        },
     ]
 
 
@@ -188,6 +183,7 @@ def temp_dir():
 # TESTS - CONFIGURACIÓN Y LOGGING
 # ============================================================================
 
+
 class TestSetupLogging:
     """Suite de pruebas para setup_logging()"""
 
@@ -200,7 +196,7 @@ class TestSetupLogging:
 
     def test_setup_logging_creates_log_directory(self, app):
         """Debe crear directorio de logs."""
-        with patch('pathlib.Path.mkdir') as mock_mkdir:
+        with patch("pathlib.Path.mkdir") as mock_mkdir:
             setup_logging(app)
             mock_mkdir.assert_called()
 
@@ -218,9 +214,7 @@ class TestSetupLogging:
         setup_logging(app)
 
         # Verificar que hay un StreamHandler
-        has_stream_handler = any(
-            isinstance(h, StreamHandler) for h in app.logger.handlers
-        )
+        has_stream_handler = any(isinstance(h, StreamHandler) for h in app.logger.handlers)
         assert has_stream_handler
 
     def test_setup_logging_formatter(self, app):
@@ -234,6 +228,7 @@ class TestSetupLogging:
 # ============================================================================
 # TESTS - VALIDADORES
 # ============================================================================
+
 
 class TestFileValidator:
     """Suite de pruebas para FileValidator"""
@@ -255,9 +250,7 @@ class TestFileValidator:
     def test_validate_file_empty_filename(self):
         """Debe rechazar filename vacío."""
         empty_file = FileStorage(
-            stream=BytesIO(b"test"),
-            filename="",
-            content_type="text/csv"
+            stream=BytesIO(b"test"), filename="", content_type="text/csv"
         )
 
         is_valid, error = FileValidator.validate_file(empty_file)
@@ -268,9 +261,7 @@ class TestFileValidator:
     def test_validate_file_invalid_extension(self):
         """Debe rechazar extensiones no permitidas."""
         invalid_file = FileStorage(
-            stream=BytesIO(b"test"),
-            filename="test.txt",
-            content_type="text/plain"
+            stream=BytesIO(b"test"), filename="test.txt", content_type="text/plain"
         )
 
         is_valid, error = FileValidator.validate_file(invalid_file)
@@ -280,11 +271,11 @@ class TestFileValidator:
 
     def test_validate_file_allowed_extensions(self):
         """Debe aceptar extensiones permitidas."""
-        for ext in ['.csv', '.xlsx', '.xls']:
+        for ext in [".csv", ".xlsx", ".xls"]:
             file = FileStorage(
                 stream=BytesIO(b"test"),
                 filename=f"test{ext}",
-                content_type="application/octet-stream"
+                content_type="application/octet-stream",
             )
 
             is_valid, error = FileValidator.validate_file(file)
@@ -295,9 +286,7 @@ class TestFileValidator:
         # Crear archivo que exceda MAX_CONTENT_LENGTH
         large_content = b"x" * (MAX_CONTENT_LENGTH + 1000)
         large_file = FileStorage(
-            stream=BytesIO(large_content),
-            filename="large.csv",
-            content_type="text/csv"
+            stream=BytesIO(large_content), filename="large.csv", content_type="text/csv"
         )
 
         is_valid, error = FileValidator.validate_file(large_file)
@@ -308,9 +297,7 @@ class TestFileValidator:
     def test_validate_file_secure_filename(self):
         """Debe manejar nombres de archivo inseguros."""
         unsafe_file = FileStorage(
-            stream=BytesIO(b"test"),
-            filename="../../../etc/passwd",
-            content_type="text/csv"
+            stream=BytesIO(b"test"), filename="../../../etc/passwd", content_type="text/csv"
         )
 
         # secure_filename debería limpiar el nombre
@@ -323,6 +310,7 @@ class TestFileValidator:
 # ============================================================================
 # TESTS - PROCESADOR APU
 # ============================================================================
+
 
 class TestAPUProcessor:
     """Suite de pruebas para APUProcessor"""
@@ -382,7 +370,7 @@ class TestAPUProcessor:
                 "RENDIMIENTO": 1.0,
                 "UNIDAD_APU": "BLS",
                 "PRECIO_UNIT_APU": 20000.0,
-                "UNIDAD_INSUMO": "BLS"
+                "UNIDAD_INSUMO": "BLS",
             },
             {
                 "CODIGO_APU": "APU-001",
@@ -393,8 +381,8 @@ class TestAPUProcessor:
                 "RENDIMIENTO": 1.0,
                 "UNIDAD_APU": "BLS",
                 "PRECIO_UNIT_APU": 20000.0,
-                "UNIDAD_INSUMO": "BLS"
-            }
+                "UNIDAD_INSUMO": "BLS",
+            },
         ]
 
         df = pd.DataFrame(data)
@@ -427,7 +415,7 @@ class TestAPUProcessor:
                 "RENDIMIENTO": 1.0,
                 "UNIDAD_APU": "BLS",
                 "PRECIO_UNIT_APU": 20000.0,
-                "UNIDAD_INSUMO": "BLS"
+                "UNIDAD_INSUMO": "BLS",
             }
         ]
 
@@ -449,7 +437,7 @@ class TestAPUProcessor:
                 "UNIDAD_APU": "BLS",
                 "PRECIO_UNIT_APU": 20000.0,
                 "UNIDAD_INSUMO": "BLS",
-                "alerta": "Precio alto"
+                "alerta": "Precio alto",
             }
         ]
 
@@ -463,18 +451,20 @@ class TestAPUProcessor:
 # TESTS - DECORADORES
 # ============================================================================
 
+
 class TestDecorators:
     """Suite de pruebas para decoradores"""
 
     def test_require_session_decorator_no_session(self, app, client):
         """Debe rechazar request sin sesión (resultando en sesión expirada)."""
-        @app.route('/test_no_session')
+
+        @app.route("/test_no_session")
         @require_session
         def test_endpoint(session_data=None):
             return jsonify({"status": "ok"})
 
-        with patch.object(app.config['SESSION_REDIS'], 'get', return_value=None):
-            response = client.get('/test_no_session')
+        with patch.object(app.config["SESSION_REDIS"], "get", return_value=None):
+            response = client.get("/test_no_session")
 
         assert response.status_code == 401
         json_data = response.get_json()
@@ -482,16 +472,17 @@ class TestDecorators:
 
     def test_require_session_decorator_expired_session(self, app, client):
         """Debe rechazar sesión expirada."""
-        @app.route('/test_expired_session')
+
+        @app.route("/test_expired_session")
         @require_session
         def test_endpoint(session_data=None):
             return jsonify({"status": "ok"})
 
         with client.session_transaction() as sess:
-            sess['user_id'] = 'test_user'
+            sess["user_id"] = "test_user"
 
-        with patch.object(app.config['SESSION_REDIS'], 'get', return_value=None):
-            response = client.get('/test_expired_session')
+        with patch.object(app.config["SESSION_REDIS"], "get", return_value=None):
+            response = client.get("/test_expired_session")
 
         assert response.status_code == 401
         json_data = response.get_json()
@@ -499,7 +490,8 @@ class TestDecorators:
 
     def test_require_session_decorator_valid_session(self, app, client):
         """Debe permitir acceso con sesión válida."""
-        @app.route('/test_valid_session')
+
+        @app.route("/test_valid_session")
         @require_session
         def test_endpoint(session_data=None):
             return jsonify({"status": "ok", "data": session_data})
@@ -507,10 +499,14 @@ class TestDecorators:
         session_payload = {"user": "test"}
 
         with client.session_transaction() as sess:
-            sess['user_id'] = 'test_user'
+            sess["user_id"] = "test_user"
 
-        with patch.object(app.config['SESSION_REDIS'], 'get', return_value=json.dumps(session_payload).encode('utf-8')):
-            response = client.get('/test_valid_session')
+        with patch.object(
+            app.config["SESSION_REDIS"],
+            "get",
+            return_value=json.dumps(session_payload).encode("utf-8"),
+        ):
+            response = client.get("/test_valid_session")
 
         assert response.status_code == 200
         json_data = response.get_json()
@@ -519,48 +515,52 @@ class TestDecorators:
 
     def test_handle_errors_decorator_value_error(self, app, client):
         """Debe manejar ValueError."""
-        @app.route('/test_value_error')
+
+        @app.route("/test_value_error")
         @handle_errors
         def test_endpoint():
             raise ValueError("Test error")
 
-        response = client.get('/test_value_error')
+        response = client.get("/test_value_error")
         assert response.status_code == 400
         json_data = response.get_json()
         assert json_data["code"] == "VALIDATION_ERROR"
 
     def test_handle_errors_decorator_key_error(self, app, client):
         """Debe manejar KeyError."""
-        @app.route('/test_key_error')
+
+        @app.route("/test_key_error")
         @handle_errors
         def test_endpoint():
             raise KeyError("missing_key")
 
-        response = client.get('/test_key_error')
+        response = client.get("/test_key_error")
         assert response.status_code == 400
         json_data = response.get_json()
         assert json_data["code"] == "MISSING_KEY"
 
     def test_handle_errors_decorator_generic_error(self, app, client):
         """Debe manejar errores genéricos."""
-        @app.route('/test_generic_error')
+
+        @app.route("/test_generic_error")
         @handle_errors
         def test_endpoint():
             raise Exception("Generic error")
 
-        response = client.get('/test_generic_error')
+        response = client.get("/test_generic_error")
         assert response.status_code == 500
         json_data = response.get_json()
         assert json_data["code"] == "INTERNAL_ERROR"
 
     def test_handle_errors_decorator_success(self, app, client):
         """Debe permitir ejecución exitosa."""
-        @app.route('/test_success')
+
+        @app.route("/test_success")
         @handle_errors
         def test_endpoint():
             return {"status": "ok"}, 200
 
-        response = client.get('/test_success')
+        response = client.get("/test_success")
         assert response.status_code == 200
         json_data = response.get_json()
         assert json_data["status"] == "ok"
@@ -569,6 +569,7 @@ class TestDecorators:
 # ============================================================================
 # TESTS - CONTEXT MANAGERS
 # ============================================================================
+
 
 class TestContextManagers:
     """Suite de pruebas para context managers"""
@@ -629,235 +630,253 @@ class TestContextManagers:
 # TESTS - ENDPOINTS
 # ============================================================================
 
+
 class TestEndpoints:
     """Suite de pruebas para endpoints de la API"""
 
     def test_index_endpoint(self, client):
         """Debe renderizar página principal."""
-        with patch('app.app.render_template') as mock_render:
+        with patch("app.app.render_template") as mock_render:
             mock_render.return_value = "Index Page"
 
-            response = client.get('/')
+            response = client.get("/")
 
             assert response.status_code == 200
-            mock_render.assert_called_once_with('index.html')
+            mock_render.assert_called_once_with("index.html")
 
     def test_health_check_endpoint(self, client):
         """Debe retornar estado de salud."""
-        response = client.get('/api/health')
+        response = client.get("/api/health")
 
         assert response.status_code == 200
         data = json.loads(response.data)
 
-        assert data['status'] == 'healthy'
-        assert 'active_sessions' in data
-        assert 'timestamp' in data
-        assert 'version' in data
+        assert data["status"] == "healthy"
+        assert "active_sessions" in data
+        assert "timestamp" in data
+        assert "version" in data
 
     def test_upload_missing_files(self, client):
         """Debe rechazar upload sin archivos requeridos."""
-        response = client.post('/upload', data={})
+        response = client.post("/upload", data={})
 
         assert response.status_code == 400
         data = json.loads(response.data)
 
-        assert 'error' in data
-        assert data['code'] == 'MISSING_FILES'
+        assert "error" in data
+        assert data["code"] == "MISSING_FILES"
 
     def test_upload_invalid_file(self, client):
         """Debe rechazar archivo inválido."""
         # Archivo con extensión inválida
         invalid_file = FileStorage(
-            stream=BytesIO(b"test"),
-            filename="test.txt",
-            content_type="text/plain"
+            stream=BytesIO(b"test"), filename="test.txt", content_type="text/plain"
         )
 
-        response = client.post('/upload', data={
-            'presupuesto': invalid_file,
-            'apus': invalid_file,
-            'insumos': invalid_file
-        })
+        response = client.post(
+            "/upload",
+            data={
+                "presupuesto": invalid_file,
+                "apus": invalid_file,
+                "insumos": invalid_file,
+            },
+        )
 
         assert response.status_code == 400
         data = json.loads(response.data)
 
-        assert data['code'] == 'INVALID_FILE'
+        assert data["code"] == "INVALID_FILE"
 
-    @patch('app.app.process_all_files')
+    @patch("app.app.process_all_files")
     def test_upload_successful(self, mock_process, client, sample_file):
         """Debe procesar upload exitoso."""
         # Mock del procesamiento
         mock_process.return_value = {
             "presupuesto": [],
             "apus_detail": [],
-            "summary": {"total_apus": 0}
+            "summary": {"total_apus": 0},
         }
 
-        response = client.post('/upload', data={
-            'presupuesto': sample_file,
-            'apus': sample_file,
-            'insumos': sample_file
-        })
+        response = client.post(
+            "/upload",
+            data={"presupuesto": sample_file, "apus": sample_file, "insumos": sample_file},
+        )
 
         # Puede ser 200 si está bien configurado o error si falta algo
         assert response.status_code in [200, 400, 500]
 
-    @patch('app.app.process_all_files')
+    @patch("app.app.process_all_files")
     def test_upload_processing_error(self, mock_process, client, sample_file):
         """Debe manejar error de procesamiento."""
-        mock_process.return_value = {
-            "error": "Error al procesar archivos"
-        }
+        mock_process.return_value = {"error": "Error al procesar archivos"}
 
-        response = client.post('/upload', data={
-            'presupuesto': sample_file,
-            'apus': sample_file,
-            'insumos': sample_file
-        })
+        response = client.post(
+            "/upload",
+            data={"presupuesto": sample_file, "apus": sample_file, "insumos": sample_file},
+        )
 
         assert response.status_code == 500
         data = json.loads(response.data)
 
-        assert data['code'] == 'PROCESSING_ERROR'
+        assert data["code"] == "PROCESSING_ERROR"
 
     def test_get_apu_detail_no_session(self, client):
         """Debe rechazar petición sin sesión."""
-        response = client.get('/api/apu/APU-001')
+        response = client.get("/api/apu/APU-001")
 
         assert response.status_code == 401
 
-    @patch('app.app.run_monte_carlo_simulation')
+    @patch("app.app.run_monte_carlo_simulation")
     def test_get_apu_detail_success(self, mock_simulation, app, client, sample_session_data):
         """Debe retornar detalles de APU."""
         mock_simulation.return_value = {"mean": 300000, "std": 15000, "percentiles": {}}
 
         with client.session_transaction() as sess:
-            sess['user_id'] = 'test_user'
+            sess["user_id"] = "test_user"
 
-        with patch.object(app.config['SESSION_REDIS'], 'get', return_value=json.dumps(sample_session_data["data"]).encode('utf-8')):
-            response = client.get('/api/apu/APU-001')
+        with patch.object(
+            app.config["SESSION_REDIS"],
+            "get",
+            return_value=json.dumps(sample_session_data["data"]).encode("utf-8"),
+        ):
+            response = client.get("/api/apu/APU-001")
 
         assert response.status_code == 200
         data = json.loads(response.data)
-        assert 'codigo' in data
-        assert 'desglose' in data
+        assert "codigo" in data
+        assert "desglose" in data
 
     def test_get_apu_detail_not_found(self, app, client, sample_session_data):
         """Debe retornar 404 para APU inexistente."""
         with client.session_transaction() as sess:
-            sess['user_id'] = 'test_user'
+            sess["user_id"] = "test_user"
 
-        with patch.object(app.config['SESSION_REDIS'], 'get', return_value=json.dumps(sample_session_data["data"]).encode('utf-8')):
-            response = client.get('/api/apu/APU-999')
+        with patch.object(
+            app.config["SESSION_REDIS"],
+            "get",
+            return_value=json.dumps(sample_session_data["data"]).encode("utf-8"),
+        ):
+            response = client.get("/api/apu/APU-999")
 
         assert response.status_code == 404
         data = json.loads(response.data)
-        assert data['code'] == 'APU_NOT_FOUND'
+        assert data["code"] == "APU_NOT_FOUND"
 
     def test_get_estimate_no_session(self, client):
         """Debe rechazar estimación sin sesión."""
-        response = client.post('/api/estimate', json={})
+        response = client.post("/api/estimate", json={})
         assert response.status_code == 401
 
     def test_get_estimate_invalid_content_type(self, app, client):
         """Debe rechazar content-type inválido."""
         with client.session_transaction() as sess:
-            sess['user_id'] = 'test_user'
+            sess["user_id"] = "test_user"
 
-        with patch.object(app.config['SESSION_REDIS'], 'get', return_value=json.dumps({"data": {}}).encode('utf-8')):
-            response = client.post('/api/estimate', data="not json")
+        with patch.object(
+            app.config["SESSION_REDIS"],
+            "get",
+            return_value=json.dumps({"data": {}}).encode("utf-8"),
+        ):
+            response = client.post("/api/estimate", data="not json")
 
         assert response.status_code == 400
         data = json.loads(response.data)
-        assert 'INVALID_CONTENT_TYPE' in data.get('code', '')
+        assert "INVALID_CONTENT_TYPE" in data.get("code", "")
 
     def test_get_estimate_no_params(self, app, client):
         """Debe rechazar petición sin parámetros."""
         with client.session_transaction() as sess:
-            sess['user_id'] = 'test_user'
+            sess["user_id"] = "test_user"
 
-        with patch.object(app.config['SESSION_REDIS'], 'get', return_value=json.dumps({"data": {}}).encode('utf-8')):
-            response = client.post('/api/estimate', json=None)
+        with patch.object(
+            app.config["SESSION_REDIS"],
+            "get",
+            return_value=json.dumps({"data": {}}).encode("utf-8"),
+        ):
+            response = client.post("/api/estimate", json=None)
 
         assert response.status_code == 400
         data = json.loads(response.data)
-        assert 'error' in data
+        assert "error" in data
 
-    @patch('app.app.calculate_estimate')
+    @patch("app.app.calculate_estimate")
     def test_get_estimate_success(self, mock_calculate, app, client, sample_session_data):
         """Debe calcular estimación exitosamente."""
         mock_calculate.return_value = {
             "valor_construccion": 500000000,
-            "rendimiento_m2_por_dia": 25.5
+            "rendimiento_m2_por_dia": 25.5,
         }
 
         with client.session_transaction() as sess:
-            sess['user_id'] = 'test_user'
+            sess["user_id"] = "test_user"
 
         params = {"area_m2": 1000, "pisos": 2}
 
-        with patch.object(app.config['SESSION_REDIS'], 'get', return_value=json.dumps(sample_session_data["data"]).encode('utf-8')):
-            response = client.post('/api/estimate', json=params)
+        with patch.object(
+            app.config["SESSION_REDIS"],
+            "get",
+            return_value=json.dumps(sample_session_data["data"]).encode("utf-8"),
+        ):
+            response = client.post("/api/estimate", json=params)
 
         assert response.status_code == 200
         data = json.loads(response.data)
-        assert 'valor_construccion' in data
+        assert "valor_construccion" in data
 
 
 # ============================================================================
 # TESTS - ERROR HANDLERS
 # ============================================================================
 
+
 class TestErrorHandlers:
     """Suite de pruebas para manejadores de errores"""
 
     def test_404_handler(self, client):
         """Debe manejar error 404."""
-        response = client.get('/ruta/inexistente')
+        response = client.get("/ruta/inexistente")
 
         assert response.status_code == 404
         data = json.loads(response.data)
 
-        assert data['code'] == 'NOT_FOUND'
-        assert 'error' in data
-        assert 'path' in data
+        assert data["code"] == "NOT_FOUND"
+        assert "error" in data
+        assert "path" in data
 
     def test_413_handler(self, client):
         """Debe manejar archivo muy grande."""
         # Crear archivo que exceda el límite
         large_content = b"x" * (MAX_CONTENT_LENGTH + 1000)
         large_file = FileStorage(
-            stream=BytesIO(large_content),
-            filename="large.csv",
-            content_type="text/csv"
+            stream=BytesIO(large_content), filename="large.csv", content_type="text/csv"
         )
 
-        response = client.post('/upload', data={
-            'presupuesto': large_file,
-            'apus': large_file,
-            'insumos': large_file
-        })
+        response = client.post(
+            "/upload",
+            data={"presupuesto": large_file, "apus": large_file, "insumos": large_file},
+        )
 
         # Puede ser 413 o rechazado antes
         if response.status_code == 413:
             data = json.loads(response.data)
-            assert data['code'] == 'FILE_TOO_LARGE'
+            assert data["code"] == "FILE_TOO_LARGE"
 
     def test_500_handler(self, app, client):
         """Debe manejar error 500."""
+
         # Crear endpoint que falle
-        @app.route('/test_500')
+        @app.route("/test_500")
         def test_500():
             raise Exception("Test internal error")
 
         with pytest.raises(Exception):
-            client.get('/test_500', force_server_error=True)
+            client.get("/test_500", force_server_error=True)
 
 
 # ============================================================================
 # TESTS - MIDDLEWARE Y HOOKS
 # ============================================================================
+
 
 class TestMiddleware:
     """Suite de pruebas para middleware y hooks"""
@@ -865,52 +884,55 @@ class TestMiddleware:
     def test_before_request_logging(self, app, client, caplog):
         """Debe loggear requests."""
         with caplog.at_level(logging.DEBUG):
-            client.get('/api/health')
+            client.get("/api/health")
 
             # Verificar que se loggeó algo
             assert len(caplog.records) > 0
 
     def test_after_request_security_headers(self, client):
         """Debe agregar headers de seguridad."""
-        response = client.get('/api/health')
+        response = client.get("/api/health")
 
-        assert 'X-Content-Type-Options' in response.headers
-        assert response.headers['X-Content-Type-Options'] == 'nosniff'
+        assert "X-Content-Type-Options" in response.headers
+        assert response.headers["X-Content-Type-Options"] == "nosniff"
 
-        assert 'X-Frame-Options' in response.headers
-        assert response.headers['X-Frame-Options'] == 'DENY'
+        assert "X-Frame-Options" in response.headers
+        assert response.headers["X-Frame-Options"] == "DENY"
 
-        assert 'X-XSS-Protection' in response.headers
+        assert "X-XSS-Protection" in response.headers
 
     def test_after_request_cors_disabled(self, app, client):
         """CORS debe estar deshabilitado por defecto."""
-        app.config['ENABLE_CORS'] = False
+        app.config["ENABLE_CORS"] = False
 
-        response = client.get('/api/health')
+        response = client.get("/api/health")
 
-        assert 'Access-Control-Allow-Origin' not in response.headers
+        assert "Access-Control-Allow-Origin" not in response.headers
 
     def test_after_request_cors_enabled(self, app, client):
         """Debe agregar headers CORS si está habilitado."""
-        app.config['ENABLE_CORS'] = True
+        app.config["ENABLE_CORS"] = True
 
-        response = client.get('/api/health')
+        response = client.get("/api/health")
 
-        assert 'Access-Control-Allow-Origin' in response.headers
+        assert "Access-Control-Allow-Origin" in response.headers
 
 
 # ============================================================================
 # TESTS - CARGA DE MODELOS SEMÁNTICOS
 # ============================================================================
 
+
 class TestSemanticSearch:
     """Suite de pruebas para carga de búsqueda semántica"""
 
-    @patch('pathlib.Path.exists')
-    @patch('faiss.read_index')
-    @patch('builtins.open', new_callable=mock_open, read_data='{"model_name": "test-model"}')
-    @patch('app.app.SentenceTransformer')
-    def test_load_semantic_search_success(self, mock_transformer, mock_file, mock_faiss, mock_exists, app):
+    @patch("pathlib.Path.exists")
+    @patch("faiss.read_index")
+    @patch("builtins.open", new_callable=mock_open, read_data='{"model_name": "test-model"}')
+    @patch("app.app.SentenceTransformer")
+    def test_load_semantic_search_success(
+        self, mock_transformer, mock_file, mock_faiss, mock_exists, app
+    ):
         """Debe cargar artefactos exitosamente."""
         mock_exists.return_value = True
         mock_index = MagicMock()
@@ -919,10 +941,10 @@ class TestSemanticSearch:
 
         load_semantic_search_artifacts(app)
 
-        assert app.config.get('FAISS_INDEX') is not None
-        assert app.config.get('EMBEDDING_MODEL') is not None
+        assert app.config.get("FAISS_INDEX") is not None
+        assert app.config.get("EMBEDDING_MODEL") is not None
 
-    @patch('pathlib.Path.exists')
+    @patch("pathlib.Path.exists")
     def test_load_semantic_search_missing_files(self, mock_exists, app):
         """Debe manejar archivos faltantes."""
         mock_exists.return_value = False
@@ -930,11 +952,11 @@ class TestSemanticSearch:
         load_semantic_search_artifacts(app)
 
         # Debe configurar como None
-        assert app.config.get('FAISS_INDEX') is None
-        assert app.config.get('EMBEDDING_MODEL') is None
+        assert app.config.get("FAISS_INDEX") is None
+        assert app.config.get("EMBEDDING_MODEL") is None
 
-    @patch('pathlib.Path.exists')
-    @patch('faiss.read_index')
+    @patch("pathlib.Path.exists")
+    @patch("faiss.read_index")
     def test_load_semantic_search_error_handling(self, mock_faiss, mock_exists, app):
         """Debe manejar errores en carga."""
         mock_exists.return_value = True
@@ -944,123 +966,138 @@ class TestSemanticSearch:
         load_semantic_search_artifacts(app)
 
         # Debe configurar como None
-        assert app.config.get('FAISS_INDEX') is None
+        assert app.config.get("FAISS_INDEX") is None
 
 
 # ============================================================================
 # TESTS - CREATE APP
 # ============================================================================
 
+
 class TestCreateApp:
     """Suite de pruebas para create_app factory"""
 
-    @patch('redis.from_url')
-    @patch('app.app.load_semantic_search_artifacts')
+    @patch("redis.from_url")
+    @patch("app.app.load_semantic_search_artifacts")
     def test_create_app_development(self, mock_load, mock_redis):
         """Debe crear app en modo desarrollo."""
         mock_redis.return_value = MagicMock()
 
-        app = create_app('development')
+        app = create_app("development")
 
         assert app is not None
-        assert app.config['TESTING'] is False
-        assert app.config['DEBUG'] is True
+        assert app.config["TESTING"] is False
+        assert app.config["DEBUG"] is True
 
-    @patch('redis.from_url')
-    @patch('app.app.load_semantic_search_artifacts')
+    @patch("redis.from_url")
+    @patch("app.app.load_semantic_search_artifacts")
     def test_create_app_testing(self, mock_load, mock_redis):
         """Debe crear app en modo testing."""
         mock_redis.return_value = MagicMock()
 
-        app = create_app('testing')
+        app = create_app("testing")
 
         assert app is not None
-        assert app.config['TESTING'] is True
+        assert app.config["TESTING"] is True
 
-    @patch('redis.from_url')
-    @patch('app.app.load_semantic_search_artifacts')
+    @patch("redis.from_url")
+    @patch("app.app.load_semantic_search_artifacts")
     def test_create_app_production(self, mock_load, mock_redis):
         """Debe crear app en modo producción."""
         mock_redis.return_value = MagicMock()
 
-        app = create_app('production')
+        app = create_app("production")
 
         assert app is not None
-        assert app.config['SESSION_COOKIE_SECURE'] is True
+        assert app.config["SESSION_COOKIE_SECURE"] is True
 
-    @patch('redis.from_url')
-    @patch('app.app.load_semantic_search_artifacts')
+    @patch("redis.from_url")
+    @patch("app.app.load_semantic_search_artifacts")
     def test_create_app_config_loading(self, mock_load, mock_redis):
         """Debe cargar configuración desde archivo."""
         mock_redis.return_value = MagicMock()
 
-        with patch('builtins.open', mock_open(read_data='{"version": "1.0.0"}')):
-            app = create_app('testing')
+        with patch("builtins.open", mock_open(read_data='{"version": "1.0.0"}')):
+            app = create_app("testing")
 
-            assert 'APP_CONFIG' in app.config
+            assert "APP_CONFIG" in app.config
 
-    @patch('redis.from_url')
-    @patch('app.app.load_semantic_search_artifacts')
+    @patch("redis.from_url")
+    @patch("app.app.load_semantic_search_artifacts")
     def test_create_app_upload_folder_creation(self, mock_load, mock_redis):
         """Debe crear carpeta de uploads."""
         mock_redis.return_value = MagicMock()
 
-        with patch('pathlib.Path.mkdir'):
-            app = create_app('testing')
+        with patch("pathlib.Path.mkdir"):
+            app = create_app("testing")
 
             # Verificar que se intentó crear directorio
-            assert 'UPLOAD_FOLDER' in app.config
+            assert "UPLOAD_FOLDER" in app.config
 
-    @patch('redis.from_url')
-    @patch('app.app.load_semantic_search_artifacts')
+    @patch("redis.from_url")
+    @patch("app.app.load_semantic_search_artifacts")
     def test_create_app_session_configuration(self, mock_load, mock_redis):
         """Debe configurar sesiones correctamente."""
         mock_redis.return_value = MagicMock()
 
-        app = create_app('testing')
+        app = create_app("testing")
 
-        assert app.config['SESSION_TYPE'] == 'redis'
-        assert app.config['SESSION_PERMANENT'] is True
-        assert app.config['SESSION_USE_SIGNER'] is True
-        assert app.config['PERMANENT_SESSION_LIFETIME'] == SESSION_TIMEOUT
+        assert app.config["SESSION_TYPE"] == "redis"
+        assert app.config["SESSION_PERMANENT"] is True
+        assert app.config["SESSION_USE_SIGNER"] is True
+        assert app.config["PERMANENT_SESSION_LIFETIME"] == SESSION_TIMEOUT
 
 
 # ============================================================================
 # TESTS DE INTEGRACIÓN
 # ============================================================================
 
+
 class TestIntegration:
     """Tests de integración end-to-end"""
 
-    @patch('app.app.process_all_files')
-    @patch('app.app.run_monte_carlo_simulation')
-    def test_full_workflow(self, mock_simulation, mock_process, app, client, sample_file, sample_session_data):
+    @patch("app.app.process_all_files")
+    @patch("app.app.run_monte_carlo_simulation")
+    def test_full_workflow(
+        self, mock_simulation, mock_process, app, client, sample_file, sample_session_data
+    ):
         """Workflow completo: upload -> detail -> estimate."""
         # 1. Simular sesión y parchear redis
         with client.session_transaction() as sess:
-            sess['user_id'] = 'workflow_user'
+            sess["user_id"] = "workflow_user"
 
-        with patch.object(app.config['SESSION_REDIS'], 'get', return_value=json.dumps(sample_session_data["data"]).encode('utf-8')):
+        with patch.object(
+            app.config["SESSION_REDIS"],
+            "get",
+            return_value=json.dumps(sample_session_data["data"]).encode("utf-8"),
+        ):
             # 2. Upload
             mock_process.return_value = sample_session_data["data"]
-            upload_response = client.post('/upload', data={
-                'presupuesto': sample_file, 'apus': sample_file, 'insumos': sample_file
-            }, follow_redirects=True)
+            upload_response = client.post(
+                "/upload",
+                data={
+                    "presupuesto": sample_file,
+                    "apus": sample_file,
+                    "insumos": sample_file,
+                },
+                follow_redirects=True,
+            )
 
             assert upload_response.status_code == 200
 
             # 3. Get APU detail
             mock_simulation.return_value = {"mean": 300000}
-            detail_response = client.get('/api/apu/APU-001')
+            detail_response = client.get("/api/apu/APU-001")
 
             assert detail_response.status_code == 200
             detail_data = json.loads(detail_response.data)
-            assert 'desglose' in detail_data
+            assert "desglose" in detail_data
 
 
 # ============================================================================
 # TESTS DE SEGURIDAD
 # ============================================================================
+
 
 class TestSecurity:
     """Tests de seguridad"""
@@ -1069,7 +1106,7 @@ class TestSecurity:
         """Debe prevenir SQL injection."""
         malicious_code = "'; DROP TABLE users; --"
 
-        response = client.get(f'/api/apu/{malicious_code}')
+        response = client.get(f"/api/apu/{malicious_code}")
 
         # No debe ejecutar código malicioso
         assert response.status_code in [401, 404]
@@ -1078,26 +1115,27 @@ class TestSecurity:
         """Debe prevenir XSS."""
         xss_payload = "<script>alert('XSS')</script>"
 
-        response = client.get(f'/api/apu/{xss_payload}')
+        response = client.get(f"/api/apu/{xss_payload}")
 
         # No debe ejecutar script
         assert response.status_code in [401, 404]
         if response.data:
-            assert b'<script>' not in response.data
+            assert b"<script>" not in response.data
 
     def test_path_traversal_attempt(self, client, sample_file):
         """Debe prevenir path traversal."""
         traversal_file = FileStorage(
-            stream=BytesIO(b"test"),
-            filename="../../../etc/passwd",
-            content_type="text/csv"
+            stream=BytesIO(b"test"), filename="../../../etc/passwd", content_type="text/csv"
         )
 
-        response = client.post('/upload', data={
-            'presupuesto': traversal_file,
-            'apus': sample_file,
-            'insumos': sample_file
-        })
+        response = client.post(
+            "/upload",
+            data={
+                "presupuesto": traversal_file,
+                "apus": sample_file,
+                "insumos": sample_file,
+            },
+        )
 
         # Debe rechazar o sanitizar
         assert response.status_code in [400, 500]
@@ -1106,6 +1144,7 @@ class TestSecurity:
 # ============================================================================
 # TESTS DE CONSTANTES
 # ============================================================================
+
 
 class TestConstants:
     """Tests para constantes de configuración"""
@@ -1123,18 +1162,19 @@ class TestConstants:
     def test_allowed_extensions_constant(self):
         """ALLOWED_EXTENSIONS debe contener extensiones válidas."""
         assert isinstance(ALLOWED_EXTENSIONS, set)
-        assert '.csv' in ALLOWED_EXTENSIONS
-        assert '.xlsx' in ALLOWED_EXTENSIONS
-        assert '.xls' in ALLOWED_EXTENSIONS
+        assert ".csv" in ALLOWED_EXTENSIONS
+        assert ".xlsx" in ALLOWED_EXTENSIONS
+        assert ".xls" in ALLOWED_EXTENSIONS
 
         # No debe contener extensiones peligrosas
-        assert '.exe' not in ALLOWED_EXTENSIONS
-        assert '.sh' not in ALLOWED_EXTENSIONS
+        assert ".exe" not in ALLOWED_EXTENSIONS
+        assert ".sh" not in ALLOWED_EXTENSIONS
 
 
 # ============================================================================
 # TESTS DE RENDIMIENTO
 # ============================================================================
+
 
 class TestPerformance:
     """Tests de rendimiento"""
@@ -1144,7 +1184,7 @@ class TestPerformance:
         import time
 
         start = time.time()
-        response = client.get('/api/health')
+        response = client.get("/api/health")
         elapsed = time.time() - start
 
         assert response.status_code == 200
@@ -1155,7 +1195,7 @@ class TestPerformance:
         import concurrent.futures
 
         def make_request():
-            return client.get('/api/health')
+            return client.get("/api/health")
 
         with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
             futures = [executor.submit(make_request) for _ in range(10)]
@@ -1169,31 +1209,29 @@ class TestPerformance:
 # CONFIGURACIÓN DE PYTEST
 # ============================================================================
 
+
 def pytest_configure(config):
     """Configuración de pytest."""
-    config.addinivalue_line(
-        "markers", "slow: marks tests as slow"
-    )
-    config.addinivalue_line(
-        "markers", "integration: marks tests as integration tests"
-    )
-    config.addinivalue_line(
-        "markers", "security: marks tests as security tests"
-    )
+    config.addinivalue_line("markers", "slow: marks tests as slow")
+    config.addinivalue_line("markers", "integration: marks tests as integration tests")
+    config.addinivalue_line("markers", "security: marks tests as security tests")
 
 
 # ============================================================================
 # EJECUCIÓN PRINCIPAL
 # ============================================================================
 
-if __name__ == '__main__':
-    pytest.main([
-        __file__,
-        '-v',
-        '--tb=short',
-        '--cov=app.app',
-        '--cov-report=html',
-        '--cov-report=term-missing',
-        '-W', 'ignore::DeprecationWarning',
-        '--maxfail=3',  # Detener después de 3 fallos
-    ])
+if __name__ == "__main__":
+    pytest.main(
+        [
+            __file__,
+            "-v",
+            "--tb=short",
+            "--cov=app.app",
+            "--cov-report=html",
+            "--cov-report=term-missing",
+            "-W",
+            "ignore::DeprecationWarning",
+            "--maxfail=3",  # Detener después de 3 fallos
+        ]
+    )

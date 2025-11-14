@@ -31,5 +31,6 @@ def run(playwright):
 
     browser.close()
 
+
 with sync_playwright() as playwright:
     run(playwright)

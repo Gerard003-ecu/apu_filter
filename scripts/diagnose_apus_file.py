@@ -20,24 +20,21 @@ from typing import Any, Dict, List, Optional, Tuple
 # Dependencia externa para detección de encoding
 try:
     import chardet
+
     CHARDET_AVAILABLE = True
 except ImportError:
     CHARDET_AVAILABLE = False
-    logging.warning(
-        "⚠️ chardet no disponible. Instalar con: pip install chardet"
-    )
+    logging.warning("⚠️ chardet no disponible. Instalar con: pip install chardet")
 
 # Configuración de logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(levelname)s: %(message)s'
-)
+logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 logger = logging.getLogger(__name__)
 
 
 @dataclass
 class FileStats:
     """Estadísticas del archivo analizado."""
+
     file_size: int = 0
     encoding: str = "unknown"
     encoding_confidence: float = 0.0
@@ -79,6 +76,7 @@ class FileStats:
 @dataclass
 class Pattern:
     """Patrón detectado en el archivo."""
+
     type: str
     line_num: int
     value: Optional[str] = None
@@ -89,6 +87,7 @@ class Pattern:
 @dataclass
 class DiagnosticResult:
     """Resultado completo del diagnóstico."""
+
     success: bool
     stats: FileStats
     patterns: List[Pattern] = field(default_factory=list)
@@ -100,14 +99,14 @@ class DiagnosticResult:
 class APUFileDiagnostic:
     """
     Herramienta de diagnóstico avanzada para analizar archivos APU.
-    
+
     Características:
     - Detección automática de encoding con chardet
     - Inferencia de dialecto CSV con csv.Sniffer
     - Análisis de columnas irregulares
     - Detección de patrones estructurales
     - Recomendaciones inteligentes
-    
+
     Uso:
         diagnostic = APUFileDiagnostic("archivo.csv")
         result = diagnostic.diagnose()
@@ -116,8 +115,8 @@ class APUFileDiagnostic:
     """
 
     # Constantes de configuración
-    FALLBACK_ENCODINGS = ['utf-8', 'latin1', 'cp1252', 'iso-8859-1']
-    CATEGORY_KEYWORDS = ['MATERIALES', 'MANO DE OBRA', 'EQUIPO', 'OTROS']
+    FALLBACK_ENCODINGS = ["utf-8", "latin1", "cp1252", "iso-8859-1"]
+    CATEGORY_KEYWORDS = ["MATERIALES", "MANO DE OBRA", "EQUIPO", "OTROS"]
 
     # Límites de procesamiento
     ENCODING_SAMPLE_SIZE = 100_000  # bytes para detección de encoding
@@ -127,21 +126,19 @@ class APUFileDiagnostic:
     MAX_PATTERN_DETECTION_LINES = 100
 
     # Patrones regex compilados (eficiencia)
-    PATTERN_ITEM = re.compile(r'ITEM\s*[:\s]\s*([\d,\.]+)', re.IGNORECASE)
-    PATTERN_UNIDAD = re.compile(r'UNIDAD\s*[:\s]\s*([^\s;,]+)', re.IGNORECASE)
-    PATTERN_DESCRIPCION = re.compile(
-        r'DESCRIPCION|DESCRIPCIÓN', re.IGNORECASE
-    )
-    PATTERN_NUMERIC_ROW = re.compile(r'(?:[\d.,]+\s+){2,}[\d.,]+')
-    PATTERN_MULTIPLE_SPACES = re.compile(r'\s{2,}')
+    PATTERN_ITEM = re.compile(r"ITEM\s*[:\s]\s*([\d,\.]+)", re.IGNORECASE)
+    PATTERN_UNIDAD = re.compile(r"UNIDAD\s*[:\s]\s*([^\s;,]+)", re.IGNORECASE)
+    PATTERN_DESCRIPCION = re.compile(r"DESCRIPCION|DESCRIPCIÓN", re.IGNORECASE)
+    PATTERN_NUMERIC_ROW = re.compile(r"(?:[\d.,]+\s+){2,}[\d.,]+")
+    PATTERN_MULTIPLE_SPACES = re.compile(r"\s{2,}")
 
     def __init__(self, file_path: str):
         """
         Inicializa el diagnóstico.
-        
+
         Args:
             file_path: Ruta al archivo a analizar
-            
+
         Raises:
             ValueError: Si la ruta no es válida
         """
@@ -155,7 +152,7 @@ class APUFileDiagnostic:
     def diagnose(self) -> DiagnosticResult:
         """
         Ejecuta diagnóstico completo del archivo.
-        
+
         Returns:
             DiagnosticResult con toda la información recopilada
         """
@@ -243,28 +240,26 @@ class APUFileDiagnostic:
     def _detect_encoding(self) -> Optional[Tuple[str, float]]:
         """
         Detecta el encoding del archivo usando chardet o fallback manual.
-        
+
         Returns:
             Tupla (encoding, confianza) o None si falla
         """
         if CHARDET_AVAILABLE:
             return self._detect_encoding_with_chardet()
         else:
-            logger.warning(
-                "⚠️ Usando detección manual de encoding (menos precisa)"
-            )
+            logger.warning("⚠️ Usando detección manual de encoding (menos precisa)")
             return self._detect_encoding_fallback()
 
     def _detect_encoding_with_chardet(self) -> Optional[Tuple[str, float]]:
         """
         Usa chardet para detectar encoding automáticamente.
-        
+
         Returns:
             Tupla (encoding, confianza) o None
         """
         try:
             # Leer muestra de bytes
-            with open(self.file_path, 'rb') as f:
+            with open(self.file_path, "rb") as f:
                 raw_data = f.read(self.ENCODING_SAMPLE_SIZE)
 
             if not raw_data:
@@ -273,23 +268,19 @@ class APUFileDiagnostic:
 
             # Detectar encoding
             detection = chardet.detect(raw_data)
-            encoding = detection.get('encoding')
-            confidence = detection.get('confidence', 0.0)
+            encoding = detection.get("encoding")
+            confidence = detection.get("confidence", 0.0)
 
             if not encoding:
                 logger.warning("⚠️ chardet no pudo determinar encoding")
                 return self._detect_encoding_fallback()
 
-            logger.info(
-                f"✅ Encoding detectado: {encoding} "
-                f"(confianza: {confidence:.1%})"
-            )
+            logger.info(f"✅ Encoding detectado: {encoding} (confianza: {confidence:.1%})")
 
             # Si la confianza es muy baja, advertir
             if confidence < 0.7:
                 logger.warning(
-                    f"⚠️ Baja confianza en encoding ({confidence:.1%}). "
-                    "Verificar resultados."
+                    f"⚠️ Baja confianza en encoding ({confidence:.1%}). Verificar resultados."
                 )
 
             return (encoding, confidence)
@@ -301,13 +292,13 @@ class APUFileDiagnostic:
     def _detect_encoding_fallback(self) -> Optional[Tuple[str, float]]:
         """
         Fallback: prueba encodings comunes manualmente.
-        
+
         Returns:
             Tupla (encoding, 0.5) o None
         """
         for encoding in self.FALLBACK_ENCODINGS:
             try:
-                with open(self.file_path, 'r', encoding=encoding) as f:
+                with open(self.file_path, "r", encoding=encoding) as f:
                     # Intentar leer una muestra
                     f.read(1024)
 
@@ -325,10 +316,10 @@ class APUFileDiagnostic:
     def _read_file(self, encoding: str) -> Optional[str]:
         """
         Lee el archivo completo con el encoding especificado.
-        
+
         Args:
             encoding: Encoding a usar
-            
+
         Returns:
             Contenido del archivo o None si falla
         """
@@ -342,7 +333,7 @@ class APUFileDiagnostic:
 
             content = self.file_path.read_text(
                 encoding=encoding,
-                errors='replace'  # Reemplazar caracteres inválidos
+                errors="replace",  # Reemplazar caracteres inválidos
             )
 
             return content
@@ -356,13 +347,13 @@ class APUFileDiagnostic:
     def _detect_csv_dialect(self, content: str) -> None:
         """
         Usa csv.Sniffer para detectar automáticamente el dialecto CSV.
-        
+
         Args:
             content: Contenido del archivo
         """
         try:
             # Extraer muestra para el sniffer
-            sample = content[:self.CSV_SNIFFER_SAMPLE_SIZE]
+            sample = content[: self.CSV_SNIFFER_SAMPLE_SIZE]
 
             # Intentar detectar dialecto
             sniffer = csv.Sniffer()
@@ -382,7 +373,7 @@ class APUFileDiagnostic:
             )
 
             # Validar que tiene sentido
-            if self.stats.csv_delimiter in ['\n', '\r']:
+            if self.stats.csv_delimiter in ["\n", "\r"]:
                 logger.warning(
                     "⚠️ Delimitador detectado parece inválido. "
                     "Puede no ser un CSV bien formado."
@@ -404,11 +395,11 @@ class APUFileDiagnostic:
     def _detect_delimiter_fallback(self, lines: List[str]) -> None:
         """
         Fallback manual para detección de delimitador.
-        
+
         Args:
             lines: Primeras líneas del archivo
         """
-        potential_delimiters = [';', ',', '\t', '|', ':']
+        potential_delimiters = [";", ",", "\t", "|", ":"]
         delimiter_scores = Counter()
 
         clean_lines = [line.strip() for line in lines if line.strip()]
@@ -422,15 +413,13 @@ class APUFileDiagnostic:
         if delimiter_scores:
             best_delim = delimiter_scores.most_common(1)[0][0]
             self.stats.csv_delimiter = best_delim
-            logger.info(
-                f"✅ Delimitador detectado (fallback): '{best_delim}'"
-            )
+            logger.info(f"✅ Delimitador detectado (fallback): '{best_delim}'")
 
     def _analyze_column_distribution(self, lines: List[str]) -> None:
         """
         Analiza la distribución de columnas usando csv.reader.
         Detecta filas irregulares.
-        
+
         Args:
             lines: Líneas del archivo
         """
@@ -439,13 +428,13 @@ class APUFileDiagnostic:
 
         try:
             # Analizar primeras N líneas
-            lines_to_analyze = lines[:self.MAX_LINES_COLUMN_ANALYSIS]
+            lines_to_analyze = lines[: self.MAX_LINES_COLUMN_ANALYSIS]
 
             # Usar csv.reader con el delimitador detectado
             reader = csv.reader(
                 lines_to_analyze,
                 delimiter=self.stats.csv_delimiter,
-                quotechar=self.stats.csv_quotechar or '"'
+                quotechar=self.stats.csv_quotechar or '"',
             )
 
             column_counts = Counter()
@@ -465,10 +454,15 @@ class APUFileDiagnostic:
                 total_rows = sum(column_counts.values())
                 expected = self.stats.most_common_column_count
 
-                variance = sum(
-                    count * ((cols - expected) ** 2)
-                    for cols, count in column_counts.items()
-                ) / total_rows if total_rows > 0 else 0
+                variance = (
+                    sum(
+                        count * ((cols - expected) ** 2)
+                        for cols, count in column_counts.items()
+                    )
+                    / total_rows
+                    if total_rows > 0
+                    else 0
+                )
 
                 self.stats.column_count_variance = variance
 
@@ -493,7 +487,7 @@ class APUFileDiagnostic:
     def _analyze_basic_line_stats(self, lines: List[str]) -> None:
         """
         Análisis básico de estadísticas de líneas.
-        
+
         Args:
             lines: Todas las líneas del archivo
         """
@@ -508,57 +502,50 @@ class APUFileDiagnostic:
 
             # Guardar muestras
             if len(self.sample_lines) < self.MAX_SAMPLE_LINES:
-                self.sample_lines.append({
-                    'line_num': line_num,
-                    'content': stripped[:200],
-                    'length': len(stripped)
-                })
-
-            # Estadísticas de separadores (legacy)
-            if ';' in stripped:
-                self.stats.lines_with_semicolon += 1
-                semicolon_count = stripped.count(';')
-                self.stats.max_semicolons = max(
-                    self.stats.max_semicolons,
-                    semicolon_count
+                self.sample_lines.append(
+                    {
+                        "line_num": line_num,
+                        "content": stripped[:200],
+                        "length": len(stripped),
+                    }
                 )
 
-            if '\t' in line:
+            # Estadísticas de separadores (legacy)
+            if ";" in stripped:
+                self.stats.lines_with_semicolon += 1
+                semicolon_count = stripped.count(";")
+                self.stats.max_semicolons = max(self.stats.max_semicolons, semicolon_count)
+
+            if "\t" in line:
                 self.stats.lines_with_tabs += 1
 
     def _analyze_block_structure(self, content: str) -> None:
         """
         Analiza estructura de bloques en el archivo.
-        
+
         Args:
             content: Contenido completo del archivo
         """
         # Bloques por doble salto
-        blocks_double = [
-            b for b in re.split(r'\n\s*\n', content) if b.strip()
-        ]
+        blocks_double = [b for b in re.split(r"\n\s*\n", content) if b.strip()]
         self.stats.blocks_by_double_newline = len(blocks_double)
 
         # Bloques por guiones
-        blocks_dashes = [
-            b for b in re.split(r'\n-{3,}\n', content) if b.strip()
-        ]
+        blocks_dashes = [b for b in re.split(r"\n-{3,}\n", content) if b.strip()]
         self.stats.blocks_by_dashes = len(blocks_dashes)
 
         # Bloques por signos igual
-        blocks_equals = [
-            b for b in re.split(r'\n={3,}\n', content) if b.strip()
-        ]
+        blocks_equals = [b for b in re.split(r"\n={3,}\n", content) if b.strip()]
         self.stats.blocks_by_equals = len(blocks_equals)
 
     def _detect_key_patterns(self, lines: List[str]) -> None:
         """
         Detecta patrones estructurales clave (ITEM, UNIDAD, etc.).
-        
+
         Args:
             lines: Líneas del archivo
         """
-        lines_to_analyze = lines[:self.MAX_PATTERN_DETECTION_LINES]
+        lines_to_analyze = lines[: self.MAX_PATTERN_DETECTION_LINES]
 
         for line_num, line in enumerate(lines_to_analyze, 1):
             stripped = line.strip()
@@ -566,22 +553,26 @@ class APUFileDiagnostic:
             # Patrón ITEM
             match = self.PATTERN_ITEM.search(stripped)
             if match:
-                self.patterns.append(Pattern(
-                    type='ITEM_CODE',
-                    line_num=line_num,
-                    value=match.group(1),
-                    content=stripped[:150]
-                ))
+                self.patterns.append(
+                    Pattern(
+                        type="ITEM_CODE",
+                        line_num=line_num,
+                        value=match.group(1),
+                        content=stripped[:150],
+                    )
+                )
 
             # Patrón UNIDAD
             match = self.PATTERN_UNIDAD.search(stripped)
             if match:
-                self.patterns.append(Pattern(
-                    type='UNIT',
-                    line_num=line_num,
-                    value=match.group(1),
-                    content=stripped[:150]
-                ))
+                self.patterns.append(
+                    Pattern(
+                        type="UNIT",
+                        line_num=line_num,
+                        value=match.group(1),
+                        content=stripped[:150],
+                    )
+                )
 
             # Filas numéricas
             if self.PATTERN_NUMERIC_ROW.search(stripped):
@@ -590,7 +581,7 @@ class APUFileDiagnostic:
     def _analyze_keywords(self, lines: List[str]) -> None:
         """
         Analiza presencia de palabras clave importantes.
-        
+
         Args:
             lines: Líneas del archivo
         """
@@ -642,12 +633,13 @@ class APUFileDiagnostic:
         # Estructura de bloques
         if self.stats.blocks_by_double_newline > 10:
             self.recommendations.append(
-                f"📦 Archivo con estructura de bloques ({self.stats.blocks_by_double_newline} bloques). "
-                f"Considerar parsing basado en bloques."
+                f"📦 Archivo con estructura de bloques "
+                f"({self.stats.blocks_by_double_newline} bloques). "
+                "Considerar parsing basado en bloques."
             )
 
         # Patrones ITEM
-        item_patterns = [p for p in self.patterns if p.type == 'ITEM_CODE']
+        item_patterns = [p for p in self.patterns if p.type == "ITEM_CODE"]
         if item_patterns:
             self.recommendations.append(
                 f"✅ Detectados {len(item_patterns)} códigos ITEM. "
@@ -678,7 +670,6 @@ class APUFileDiagnostic:
             f"(confianza: {self.stats.encoding_confidence:.1%})",
             f"  Delimitador CSV: '{self.stats.csv_delimiter or 'N/A'}'",
             f"  Quote char: '{self.stats.csv_quotechar or 'N/A'}'",
-
             "\n📈 ESTADÍSTICAS GENERALES:",
             f"  Tamaño: {self.stats.file_size:,} bytes",
             f"  Total líneas: {self.stats.total_lines:,}",
@@ -688,31 +679,41 @@ class APUFileDiagnostic:
 
         # Análisis de columnas
         if self.stats.column_counts:
-            report_lines.extend([
-                "\n📊 ANÁLISIS DE COLUMNAS:",
-                f"  Número más común: {self.stats.most_common_column_count}",
-                f"  Distribución: {dict(self.stats.column_counts.most_common(5))}",
-                f"  Varianza: {self.stats.column_count_variance:.2f}",
-                "  " + ("✅ Estructura regular" if self.stats.column_count_variance < 1.0
-                       else "⚠️ Estructura irregular")
-            ])
+            report_lines.extend(
+                [
+                    "\n📊 ANÁLISIS DE COLUMNAS:",
+                    f"  Número más común: {self.stats.most_common_column_count}",
+                    f"  Distribución: {dict(self.stats.column_counts.most_common(5))}",
+                    f"  Varianza: {self.stats.column_count_variance:.2f}",
+                    "  "
+                    + (
+                        "✅ Estructura regular"
+                        if self.stats.column_count_variance < 1.0
+                        else "⚠️ Estructura irregular"
+                    ),
+                ]
+            )
 
         # Estructura
-        report_lines.extend([
-            "\n🏗️ ESTRUCTURA:",
-            f"  Bloques (líneas vacías): {self.stats.blocks_by_double_newline}",
-            f"  Bloques (guiones): {self.stats.blocks_by_dashes}",
-            f"  Bloques (iguales): {self.stats.blocks_by_equals}",
-        ])
+        report_lines.extend(
+            [
+                "\n🏗️ ESTRUCTURA:",
+                f"  Bloques (líneas vacías): {self.stats.blocks_by_double_newline}",
+                f"  Bloques (guiones): {self.stats.blocks_by_dashes}",
+                f"  Bloques (iguales): {self.stats.blocks_by_equals}",
+            ]
+        )
 
         # Palabras clave
-        report_lines.extend([
-            "\n🔑 PALABRAS CLAVE:",
-            f"  'ITEM': {self.stats.lines_with_item:,} líneas",
-            f"  'UNIDAD': {self.stats.lines_with_unidad:,} líneas",
-            f"  'DESCRIPCION': {self.stats.lines_with_descripcion:,} líneas",
-            f"  Filas numéricas: {self.stats.numeric_rows:,}",
-        ])
+        report_lines.extend(
+            [
+                "\n🔑 PALABRAS CLAVE:",
+                f"  'ITEM': {self.stats.lines_with_item:,} líneas",
+                f"  'UNIDAD': {self.stats.lines_with_unidad:,} líneas",
+                f"  'DESCRIPCION': {self.stats.lines_with_descripcion:,} líneas",
+                f"  Filas numéricas: {self.stats.numeric_rows:,}",
+            ]
+        )
 
         # Categorías
         if self.stats.categories:
@@ -721,7 +722,7 @@ class APUFileDiagnostic:
                 report_lines.append(f"  {cat}: {count} veces")
 
         # Patrones clave
-        item_codes = [p for p in self.patterns if p.type == 'ITEM_CODE']
+        item_codes = [p for p in self.patterns if p.type == "ITEM_CODE"]
         if item_codes:
             report_lines.append(f"\n🎯 CÓDIGOS ITEM ({len(item_codes)} encontrados):")
             for p in item_codes[:5]:
@@ -739,7 +740,7 @@ class APUFileDiagnostic:
         if self.recommendations:
             report_lines.append("\n💡 RECOMENDACIONES:")
             for rec in self.recommendations:
-                for line in rec.split('\n'):
+                for line in rec.split("\n"):
                     report_lines.append(f"  {line}")
 
         report_lines.append("=" * 80 + "\n")
@@ -756,16 +757,12 @@ class APUFileDiagnostic:
             patterns=self.patterns,
             sample_lines=self.sample_lines,
             recommendations=self.recommendations,
-            errors=self.errors
+            errors=self.errors,
         )
 
     def _build_failure_result(self) -> DiagnosticResult:
         """Construye resultado de fallo."""
-        return DiagnosticResult(
-            success=False,
-            stats=self.stats,
-            errors=self.errors
-        )
+        return DiagnosticResult(success=False, stats=self.stats, errors=self.errors)
 
 
 def main():
@@ -791,15 +788,15 @@ def main():
         logger.info("✅ Diagnóstico completado exitosamente")
 
         # Exportar resultado como JSON si se requiere
-        if len(sys.argv) > 2 and sys.argv[2] == '--json':
+        if len(sys.argv) > 2 and sys.argv[2] == "--json":
             import json
             from dataclasses import asdict
 
             output = {
-                'success': result.success,
-                'stats': asdict(result.stats),
-                'recommendations': result.recommendations,
-                'errors': result.errors
+                "success": result.success,
+                "stats": asdict(result.stats),
+                "recommendations": result.recommendations,
+                "errors": result.errors,
             }
             print(json.dumps(output, indent=2, ensure_ascii=False))
 

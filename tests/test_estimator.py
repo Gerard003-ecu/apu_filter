@@ -20,6 +20,7 @@ from app.estimator import (
 # PYTEST FIXTURES
 # ============================================================================
 
+
 @pytest.fixture(scope="module")
 def sample_apu_pool():
     """Crea un DataFrame de pandas con APUs de prueba."""
@@ -107,6 +108,7 @@ def app_context(mock_embedding_model, mock_faiss_index, mock_id_map):
 # PRUEBAS PARA _find_best_semantic_match
 # ============================================================================
 
+
 def test_find_best_semantic_match_success(app_context, sample_apu_pool):
     """Prueba que se encuentre la mejor coincidencia cuando la similitud es alta."""
     log = []
@@ -150,9 +152,7 @@ def test_find_best_semantic_match_empty_pool(app_context):
 def test_find_best_semantic_match_empty_query(app_context, sample_apu_pool):
     """Prueba que la función maneje una consulta vacía."""
     log = []
-    result = _find_best_semantic_match(
-        df_pool=sample_apu_pool, query_text="  ", log=log
-    )
+    result = _find_best_semantic_match(df_pool=sample_apu_pool, query_text="  ", log=log)
     assert result is None
     assert "Texto de consulta vacío" in "".join(log)
 
@@ -258,4 +258,4 @@ def test_calculate_estimate_delegates_correctly(
 
     # Verificar que se llamó a la búsqueda por keywords para la cuadrilla
     mock_keyword_match.assert_called_once()
-    assert mock_keyword_match.call_args[0][1] == ['cuadrilla', '1']
+    assert mock_keyword_match.call_args[0][1] == ["cuadrilla", "1"]
