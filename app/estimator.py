@@ -11,9 +11,7 @@ from .utils import normalize_text
 logger = logging.getLogger(__name__)
 
 
-def _calculate_match_score(
-    desc_words: set, keywords: List[str]
-) -> Tuple[int, float]:
+def _calculate_match_score(desc_words: set, keywords: List[str]) -> Tuple[int, float]:
     """
     Calcula el puntaje de coincidencia entre una descripción normalizada y palabras clave.
 
@@ -38,11 +36,12 @@ def _find_best_keyword_match(
     log: List[str],
     strict: bool = False,
     min_match_percentage: float = 30.0,
-    match_mode: str = 'words'
+    match_mode: str = "words",
 ) -> Optional[pd.Series]:
     """
     Encuentra la mejor coincidencia de APU para una lista de palabras clave.
-    Soporta modos: 'words' (coincidencia exacta de palabras) y 'substring' (contiene toda la cadena).
+    Soporta modos: 'words' (coincidencia exacta de palabras) y 'substring'
+    (contiene toda la cadena).
 
     Args:
         df_pool (pd.DataFrame): DataFrame con APUs procesados.
@@ -95,11 +94,11 @@ def _find_best_keyword_match(
         matches = 0
         percentage = 0.0
 
-        if match_mode == 'words':
+        if match_mode == "words":
             desc_words = set(desc_normalized.split())
             matches, percentage = _calculate_match_score(desc_words, keywords_clean)
-        elif match_mode == 'substring':
-            keyword_str = ' '.join(keywords_clean)
+        elif match_mode == "substring":
+            keyword_str = " ".join(keywords_clean)
             if keyword_str in desc_normalized:
                 matches = len(keywords_clean)
                 percentage = 100.0
@@ -115,12 +114,14 @@ def _find_best_keyword_match(
         if not original_desc:
             original_desc = "Descripción no disponible"
 
-        candidates.append({
-            'description': original_desc,
-            'matches': matches,
-            'percentage': percentage,
-            'apu': apu
-        })
+        candidates.append(
+            {
+                "description": original_desc,
+                "matches": matches,
+                "percentage": percentage,
+                "apu": apu,
+            }
+        )
 
         # Actualizar mejor coincidencia (prioriza matches, luego por %)
         if matches > best_score or (matches == best_score and percentage > best_percentage):
@@ -129,14 +130,18 @@ def _find_best_keyword_match(
             best_percentage = percentage
 
     # Ordenar candidatos por relevancia
-    candidates.sort(key=lambda x: (x['matches'], x['percentage']), reverse=True)
+    candidates.sort(key=lambda x: (x["matches"], x["percentage"]), reverse=True)
 
     # Mostrar top 3 candidatos
     if candidates:
         top_n = min(3, len(candidates))
         log.append(f"  📋 Top {top_n} candidatos:")
         for i, cand in enumerate(candidates[:top_n], 1):
-            desc_snippet = cand['description'][:60] + "..." if len(cand['description']) > 60 else cand['description']
+            desc_snippet = (
+                cand["description"][:60] + "..."
+                if len(cand["description"]) > 60
+                else cand["description"]
+            )
             log.append(
                 f"    {i}. [{cand['matches']}/{len(keywords_clean)}] "
                 f"({cand['percentage']:.0f}%) - {desc_snippet}"
@@ -155,7 +160,10 @@ def _find_best_keyword_match(
             log.append(f"  ✅ Match FLEXIBLE encontrado ({best_percentage:.0f}%)")
             return best_match
         else:
-            log.append(f"  ❌ Sin match válido (mejor: {best_percentage:.0f}% | umbral: {min_match_percentage:.0f}%)")
+            log.append(
+                f"  ❌ Sin match válido (mejor: {best_percentage:.0f}% | "
+                f"umbral: {min_match_percentage:.0f}%)"
+            )
             return None
 
 
@@ -176,7 +184,8 @@ def _find_best_semantic_match(
         df_pool (pd.DataFrame): DataFrame con APUs procesados a considerar.
         query_text (str): Texto de consulta (ej. "muro de ladrillo").
         log (List[str]): Lista de mensajes de log (mutable).
-        min_similarity (float): Umbral mínimo de similitud de coseno para considerar una coincidencia válida.
+    min_similarity (float): Umbral mínimo de similitud de coseno para
+                            considerar una coincidencia válida.
         top_k (int): Número de vecinos a buscar en el índice FAISS.
 
     Returns:
@@ -188,7 +197,10 @@ def _find_best_semantic_match(
     id_map: Optional[dict] = current_app.config.get("ID_MAP")
 
     if not all([model, faiss_index, id_map]):
-        log.append("  ❌ ERROR: Faltan artefactos de búsqueda semántica. La función está desactivada.")
+        log.append(
+            "  ❌ ERROR: Faltan artefactos de búsqueda semántica. "
+            "La función está desactivada."
+        )
         return None
 
     # --- 2. Validación de entradas ---
@@ -206,9 +218,7 @@ def _find_best_semantic_match(
     # --- 3. Generar embedding para la consulta ---
     try:
         query_embedding = model.encode(
-            [query_text],
-            convert_to_numpy=True,
-            normalize_embeddings=True
+            [query_text], convert_to_numpy=True, normalize_embeddings=True
         )
     except Exception as e:
         log.append(f"  ❌ ERROR al generar embedding para la consulta: {e}")
@@ -243,10 +253,12 @@ def _find_best_semantic_match(
         apu_match = df_pool[df_pool["CODIGO_APU"] == apu_code]
 
         if not apu_match.empty:
-            candidates.append({
-                "apu": apu_match.iloc[0],
-                "similarity": float(similarity),
-            })
+            candidates.append(
+                {
+                    "apu": apu_match.iloc[0],
+                    "similarity": float(similarity),
+                }
+            )
 
     if not candidates:
         log.append("  --> Ninguno de los candidatos del índice estaba en el pool filtrado.")
@@ -254,11 +266,11 @@ def _find_best_semantic_match(
 
     # --- 6. Log y selección final ---
     # Ordenar candidatos por similitud
-    candidates.sort(key=lambda x: x['similarity'], reverse=True)
+    candidates.sort(key=lambda x: x["similarity"], reverse=True)
 
     log.append(f"  📋 Top {len(candidates)} candidatos encontrados:")
     for i, cand in enumerate(candidates, 1):
-        apu = cand['apu']
+        apu = cand["apu"]
         desc = apu.get("original_description", "N/A")
         desc_snippet = desc[:70] + "..." if len(desc) > 70 else desc
         log.append(
@@ -325,7 +337,15 @@ def calculate_estimate(
     log.append(f"📚 Datos cargados: {len(df_processed_apus)} APUs disponibles")
 
     # Validar columnas críticas
-    required_cols = {"DESC_NORMALIZED", "original_description", "tipo_apu", "VALOR_SUMINISTRO_UN", "UNIDAD", "EQUIPO", "CODIGO_APU"}
+    required_cols = {
+        "DESC_NORMALIZED",
+        "original_description",
+        "tipo_apu",
+        "VALOR_SUMINISTRO_UN",
+        "UNIDAD",
+        "EQUIPO",
+        "CODIGO_APU",
+    }
     missing_cols = required_cols - set(df_processed_apus.columns)
     if missing_cols:
         error_msg = f"❌ Columnas faltantes en APUs: {missing_cols}"
@@ -351,7 +371,10 @@ def calculate_estimate(
     # Normalizar keywords de material
     material_keywords = normalize_text(material_mapped).split()
     if not material_keywords:
-        log.append("⚠️ Material mapeado resultó en keywords vacías. La búsqueda de suministro y tarea será inefectiva.")
+        log.append(
+            "⚠️ Material mapeado resultó en keywords vacías. La búsqueda de "
+            "suministro y tarea será inefectiva."
+        )
 
     # ============================================
     # 2. BÚSQUEDA DE SUMINISTRO
@@ -375,7 +398,7 @@ def calculate_estimate(
         df_pool=df_suministro_pool,
         query_text=material_mapped,
         log=log,
-        min_similarity=0.30  # Umbral más bajo para suministros
+        min_similarity=0.30,  # Umbral más bajo para suministros
     )
 
     if apu_suministro is not None:
@@ -403,7 +426,9 @@ def calculate_estimate(
 
         log.append(f"👥 Pool de cuadrillas: {len(df_cuadrilla_pool)} APUs con UNIDAD=DIA")
 
-        cuadrilla_mapped = (param_map.get("cuadrilla", {}).get(cuadrilla, cuadrilla) or "").strip()
+        cuadrilla_mapped = (
+            param_map.get("cuadrilla", {}).get(cuadrilla, cuadrilla) or ""
+        ).strip()
         search_term = f"cuadrilla {cuadrilla_mapped}"
         cuadrilla_keywords_norm = normalize_text(search_term).split()
 
@@ -413,11 +438,13 @@ def calculate_estimate(
             log,
             strict=False,
             min_match_percentage=50.0,
-            match_mode='substring'  # Buscar la frase completa
+            match_mode="substring",  # Buscar la frase completa
         )
 
         if apu_cuadrilla is not None:
-            costo_diario_cuadrilla = float(apu_cuadrilla.get("VALOR_CONSTRUCCION_UN", 0.0) or 0.0)
+            costo_diario_cuadrilla = float(
+                apu_cuadrilla.get("VALOR_CONSTRUCCION_UN", 0.0) or 0.0
+            )
             apu_cuadrilla_desc = str(apu_cuadrilla.get("original_description", "")).strip()
             log.append(f"💰 Costo diario: ${costo_diario_cuadrilla:,.2f}")
         else:
@@ -440,10 +467,7 @@ def calculate_estimate(
     log.append(f"🔧 Pool de instalación: {len(df_tarea_pool)} APUs")
 
     apu_tarea = _find_best_semantic_match(
-        df_pool=df_tarea_pool,
-        query_text=material_mapped,
-        log=log,
-        min_similarity=0.40
+        df_pool=df_tarea_pool, query_text=material_mapped, log=log, min_similarity=0.40
     )
 
     if apu_tarea is not None:
@@ -463,13 +487,19 @@ def calculate_estimate(
                 if missing_detail:
                     log.append(f"⚠️ Columnas faltantes en apus_detail: {missing_detail}")
                 else:
-                    apu_details = df_detail[df_detail["CODIGO_APU"].astype(str).str.strip() == apu_code]
-                    mano_obra = apu_details[apu_details["TIPO_INSUMO"].astype(str).str.strip() == "MANO DE OBRA"]
+                    apu_details = df_detail[
+                        df_detail["CODIGO_APU"].astype(str).str.strip() == apu_code
+                    ]
+                    mano_obra = apu_details[
+                        apu_details["TIPO_INSUMO"].astype(str).str.strip() == "MANO DE OBRA"
+                    ]
                     if not mano_obra.empty:
                         tiempo_total = mano_obra["CANTIDAD_APU"].sum()
                         if tiempo_total > 0:
                             rendimiento_dia = 1.0 / tiempo_total
-                            log.append(f"⏱️ Rendimiento calculado: {rendimiento_dia:.2f} un/día")
+                            log.append(
+                                f"⏱️ Rendimiento calculado: {rendimiento_dia:.2f} un/día"
+                            )
             except Exception as e:
                 log.append(f"⚠️ Error procesando apus_detail: {str(e)}")
         else:
@@ -493,7 +523,9 @@ def calculate_estimate(
 
     rules = config.get("estimator_rules", {})
     if not isinstance(rules, dict):
-        log.append("⚠️ Configuración 'estimator_rules' no es un dict. Usando valores por defecto.")
+        log.append(
+            "⚠️ Configuración 'estimator_rules' no es un dict. Usando valores por defecto."
+        )
         rules = {}
 
     factor_zona = rules.get("factores_zona", {}).get(zona, 1.0)
@@ -509,8 +541,8 @@ def calculate_estimate(
 
     costo_mo_ajustado = costo_mo_base * factor_seguridad
     valor_instalacion = (
-        (costo_mo_ajustado + costo_equipo) * factor_zona + costo_adicional_izaje
-    )
+        costo_mo_ajustado + costo_equipo
+    ) * factor_zona + costo_adicional_izaje
     valor_construccion = valor_suministro + valor_instalacion
 
     # ============================================
@@ -519,7 +551,12 @@ def calculate_estimate(
     log.append("\n" + "=" * 70)
     log.append("📊 RESUMEN EJECUTIVO")
     log.append("=" * 70)
-    log.append(f"📦 Suministro: ${valor_suministro:,.2f} ({apu_suministro_desc[:50]}{'...' if len(apu_suministro_desc) > 50 else ''})")
+    apu_desc_short = (
+        f"{apu_suministro_desc[:50]}..."
+        if len(apu_suministro_desc) > 50
+        else apu_suministro_desc
+    )
+    log.append(f"📦 Suministro: ${valor_suministro:,.2f} ({apu_desc_short})")
     log.append(f"🔨 Instalación:   ${valor_instalacion:,.2f}")
     log.append(f"💰 TOTAL:         ${valor_construccion:,.2f}")
 

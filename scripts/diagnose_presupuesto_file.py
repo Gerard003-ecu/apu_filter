@@ -27,18 +27,14 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 # Detección automática de encoding
 try:
     import chardet
+
     CHARDET_AVAILABLE = True
 except ImportError:
     CHARDET_AVAILABLE = False
-    logging.warning(
-        "⚠️ chardet no disponible. Instalar con: pip install chardet"
-    )
+    logging.warning("⚠️ chardet no disponible. Instalar con: pip install chardet")
 
 # Configuración de logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(levelname)s: %(message)s'
-)
+logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 logger = logging.getLogger(__name__)
 
 
@@ -46,13 +42,16 @@ logger = logging.getLogger(__name__)
 # EXCEPCIONES PERSONALIZADAS
 # ============================================================================
 
+
 class DiagnosticError(Exception):
     """Excepción base para errores de diagnóstico."""
+
     pass
 
 
 class FileReadError(DiagnosticError):
     """Error al leer el archivo."""
+
     pass
 
 
@@ -60,8 +59,10 @@ class FileReadError(DiagnosticError):
 # ENUMS
 # ============================================================================
 
+
 class ConfidenceLevel(Enum):
     """Niveles de confianza para detecciones."""
+
     HIGH = "alta"
     MEDIUM = "media"
     LOW = "baja"
@@ -72,9 +73,11 @@ class ConfidenceLevel(Enum):
 # DATACLASSES
 # ============================================================================
 
+
 @dataclass
 class HeaderCandidate:
     """Candidato a encabezado detectado."""
+
     line_num: int
     content: str
     matches: List[str]
@@ -96,6 +99,7 @@ class HeaderCandidate:
 @dataclass
 class FileStatistics:
     """Estadísticas del archivo analizado."""
+
     # Básicas
     file_size: int = 0
     total_lines: int = 0
@@ -138,6 +142,7 @@ class FileStatistics:
 @dataclass
 class DiagnosticResult:
     """Resultado completo del diagnóstico."""
+
     success: bool
     file_path: str
     stats: FileStatistics
@@ -152,10 +157,11 @@ class DiagnosticResult:
 # CLASE PRINCIPAL
 # ============================================================================
 
+
 class PresupuestoFileDiagnostic:
     """
     Diagnosticador avanzado para archivos de presupuesto.
-    
+
     Estructura esperada:
         <METADATA_OPCIONAL>
         <ENCABEZADO>
@@ -163,7 +169,7 @@ class PresupuestoFileDiagnostic:
         <DATO2>
         ...
         <TOTAL_OPCIONAL>
-    
+
     Uso:
         diagnostic = PresupuestoFileDiagnostic("presupuesto.csv")
         result = diagnostic.diagnose()
@@ -172,13 +178,28 @@ class PresupuestoFileDiagnostic:
     """
 
     # Configuración
-    FALLBACK_ENCODINGS = ['utf-8', 'utf-8-sig', 'latin1', 'cp1252', 'iso-8859-1']
+    FALLBACK_ENCODINGS = ["utf-8", "utf-8-sig", "latin1", "cp1252", "iso-8859-1"]
 
     # Keywords para encabezados
     HEADER_KEYWORDS = [
-        'ITEM', 'DESCRIPCION', 'CANT', 'CANTIDAD', 'UNIDAD', 'UND',
-        'VR UNITARIO', 'VALOR UNITARIO', 'PRECIO', 'TOTAL', 'IMPORTE',
-        'PU', 'P U', 'SUBTOTAL', 'PARCIAL', 'COSTO', 'VR', 'VALOR'
+        "ITEM",
+        "DESCRIPCION",
+        "CANT",
+        "CANTIDAD",
+        "UNIDAD",
+        "UND",
+        "VR UNITARIO",
+        "VALOR UNITARIO",
+        "PRECIO",
+        "TOTAL",
+        "IMPORTE",
+        "PU",
+        "P U",
+        "SUBTOTAL",
+        "PARCIAL",
+        "COSTO",
+        "VR",
+        "VALOR",
     ]
 
     # Límites
@@ -191,17 +212,17 @@ class PresupuestoFileDiagnostic:
     MAX_HEADER_SEARCH_LINES = 50  # Buscar header en primeras N líneas
 
     # Patrones regex compilados
-    PATTERN_COMMENT = re.compile(r'^\s*[#\/\*\-\'%]')
-    PATTERN_TOTAL_LINE = re.compile(r'^\s*TOTAL', re.IGNORECASE)
-    PATTERN_MULTIPLE_SPACES = re.compile(r'\s{2,}')
+    PATTERN_COMMENT = re.compile(r"^\s*[#\/\*\-\'%]")
+    PATTERN_TOTAL_LINE = re.compile(r"^\s*TOTAL", re.IGNORECASE)
+    PATTERN_MULTIPLE_SPACES = re.compile(r"\s{2,}")
 
     def __init__(self, file_path: Union[str, Path]):
         """
         Inicializa el diagnóstico.
-        
+
         Args:
             file_path: Ruta al archivo de presupuesto
-            
+
         Raises:
             ValueError: Si el archivo no existe o está vacío
         """
@@ -240,7 +261,7 @@ class PresupuestoFileDiagnostic:
     def diagnose(self) -> DiagnosticResult:
         """
         Ejecuta diagnóstico completo.
-        
+
         Returns:
             DiagnosticResult con toda la información
         """
@@ -298,7 +319,7 @@ class PresupuestoFileDiagnostic:
                 recommendations=self.recommendations,
                 errors=self.errors,
                 warnings=self.warnings,
-                samples=self.samples
+                samples=self.samples,
             )
 
         except Exception as e:
@@ -326,24 +347,20 @@ class PresupuestoFileDiagnostic:
     def _detect_encoding_with_chardet(self) -> Optional[Tuple[str, float]]:
         """Detecta encoding con chardet."""
         try:
-            with open(self.file_path, 'rb') as f:
+            with open(self.file_path, "rb") as f:
                 sample = f.read(self.CHARDET_SAMPLE_SIZE)
 
             detection = chardet.detect(sample)
-            encoding = detection.get('encoding')
-            confidence = detection.get('confidence', 0.0)
+            encoding = detection.get("encoding")
+            confidence = detection.get("confidence", 0.0)
 
             if not encoding:
                 return None
 
-            logger.info(
-                f"✅ Encoding: {encoding} (confianza: {confidence:.1%})"
-            )
+            logger.info(f"✅ Encoding: {encoding} (confianza: {confidence:.1%})")
 
             if confidence < 0.7:
-                self.warnings.append(
-                    f"Baja confianza en encoding ({confidence:.1%})"
-                )
+                self.warnings.append(f"Baja confianza en encoding ({confidence:.1%})")
 
             return (encoding, confidence)
 
@@ -355,7 +372,7 @@ class PresupuestoFileDiagnostic:
         """Fallback manual para encoding."""
         for encoding in self.FALLBACK_ENCODINGS:
             try:
-                with open(self.file_path, 'r', encoding=encoding) as f:
+                with open(self.file_path, "r", encoding=encoding) as f:
                     f.read(1024)
                 logger.info(f"✅ Encoding (manual): {encoding}")
                 return (encoding, 0.5)
@@ -368,10 +385,7 @@ class PresupuestoFileDiagnostic:
     def _read_file(self, encoding: str) -> Optional[str]:
         """Lee el archivo completo."""
         try:
-            return self.file_path.read_text(
-                encoding=encoding,
-                errors='replace'
-            )
+            return self.file_path.read_text(encoding=encoding, errors="replace")
         except Exception as e:
             self.errors.append(f"Error al leer archivo: {e}")
             return None
@@ -383,12 +397,12 @@ class PresupuestoFileDiagnostic:
     def _detect_csv_dialect(self, content: str) -> None:
         """
         Detecta dialecto CSV con csv.Sniffer.
-        
+
         Args:
             content: Contenido del archivo
         """
         try:
-            sample = content[:self.CSV_SNIFFER_SAMPLE_SIZE]
+            sample = content[: self.CSV_SNIFFER_SAMPLE_SIZE]
             sniffer = csv.Sniffer()
             dialect = sniffer.sniff(sample)
 
@@ -397,9 +411,7 @@ class PresupuestoFileDiagnostic:
             self.stats.csv_quotechar = dialect.quotechar
             self.stats.csv_dialect_detected = True
 
-            logger.info(
-                f"✅ Dialecto CSV: delimitador='{dialect.delimiter}'"
-            )
+            logger.info(f"✅ Dialecto CSV: delimitador='{dialect.delimiter}'")
 
         except csv.Error:
             logger.warning("⚠️ csv.Sniffer falló, usando detección manual")
@@ -410,11 +422,12 @@ class PresupuestoFileDiagnostic:
 
     def _detect_separator_fallback(self, lines: List[str]) -> None:
         """Fallback manual para detectar separador."""
-        separators = [';', ',', '\t', '|']
+        separators = [";", ",", "\t", "|"]
         scores = Counter()
 
         clean_lines = [
-            line.strip() for line in lines
+            line.strip()
+            for line in lines
             if line.strip() and not self._is_comment(line.strip())
         ]
 
@@ -430,8 +443,8 @@ class PresupuestoFileDiagnostic:
             self.stats.csv_delimiter = best
             logger.info(f"✅ Separador (fallback): '{best}'")
         else:
-            self._separator = ';'
-            self.stats.csv_delimiter = ';'
+            self._separator = ";"
+            self.stats.csv_delimiter = ";"
             logger.warning("⚠️ Usando separador por defecto: ';'")
 
     # ========================================================================
@@ -441,7 +454,7 @@ class PresupuestoFileDiagnostic:
     def _analyze_structure(self, lines: List[str]) -> None:
         """
         Analiza estructura del archivo.
-        
+
         Args:
             lines: Líneas a analizar
         """
@@ -475,7 +488,7 @@ class PresupuestoFileDiagnostic:
     def _find_header_candidates(self, lines: List[str]) -> List[HeaderCandidate]:
         """
         Busca candidatos a encabezado en las primeras líneas.
-        
+
         Returns:
             Lista de candidatos ordenados por score
         """
@@ -497,21 +510,18 @@ class PresupuestoFileDiagnostic:
                 # Si encontramos uno muy bueno, podemos parar
                 if candidate.match_count >= 5:
                     logger.debug(
-                        f"Header fuerte en línea {line_num}: "
-                        f"{candidate.match_count} matches"
+                        f"Header fuerte en línea {line_num}: {candidate.match_count} matches"
                     )
                     break
 
         return candidates
 
     def _evaluate_header_candidate(
-        self,
-        line: str,
-        line_num: int
+        self, line: str, line_num: int
     ) -> Optional[HeaderCandidate]:
         """
         Evalúa si una línea puede ser encabezado.
-        
+
         Returns:
             HeaderCandidate si cumple criterios, None en caso contrario
         """
@@ -525,13 +535,11 @@ class PresupuestoFileDiagnostic:
         # Contar columnas usando csv.reader
         try:
             reader = csv.reader(
-                [line],
-                delimiter=self._separator,
-                quotechar=self.stats.csv_quotechar or '"'
+                [line], delimiter=self._separator, quotechar=self.stats.csv_quotechar or '"'
             )
             row = next(reader)
             column_count = len(row)
-        except:
+        except Exception:
             # Fallback
             column_count = len(line.split(self._separator))
 
@@ -548,13 +556,13 @@ class PresupuestoFileDiagnostic:
             content=line,
             matches=matches,
             column_count=column_count,
-            confidence=confidence
+            confidence=confidence,
         )
 
     def _process_data_lines(self, lines: List[str], header_line: int) -> None:
         """
         Procesa líneas de datos después del encabezado.
-        
+
         Args:
             lines: Todas las líneas
             header_line: Número de línea del header (0 si no hay)
@@ -594,7 +602,7 @@ class PresupuestoFileDiagnostic:
     def _process_data_line(self, line: str, line_num: int) -> None:
         """
         Procesa una línea de datos usando csv.reader.
-        
+
         Args:
             line: Línea a procesar
             line_num: Número de línea
@@ -602,31 +610,27 @@ class PresupuestoFileDiagnostic:
         try:
             # Usar csv.reader para robustez
             reader = csv.reader(
-                [line],
-                delimiter=self._separator,
-                quotechar=self.stats.csv_quotechar or '"'
+                [line], delimiter=self._separator, quotechar=self.stats.csv_quotechar or '"'
             )
 
             row = next(reader)
             num_cols = len(row)
 
             # Actualizar estadísticas
-            self._column_stats[num_cols]['count'] += 1
+            self._column_stats[num_cols]["count"] += 1
 
             # Guardar muestra
             if len(self.samples) < self.MAX_SAMPLES:
-                self.samples.append({
-                    'line_num': line_num,
-                    'content': line,
-                    'column_count': num_cols
-                })
+                self.samples.append(
+                    {"line_num": line_num, "content": line, "column_count": num_cols}
+                )
 
         except Exception as e:
             logger.debug(f"Error procesando línea {line_num}: {e}")
             # Fallback: split manual
             parts = line.split(self._separator)
             num_cols = len(parts)
-            self._column_stats[num_cols]['count'] += 1
+            self._column_stats[num_cols]["count"] += 1
 
     def _is_comment(self, line: str) -> bool:
         """Determina si es comentario."""
@@ -638,15 +642,12 @@ class PresupuestoFileDiagnostic:
         normalized = text.upper()
 
         # Eliminar acentos
-        replacements = {
-            'Á': 'A', 'É': 'E', 'Í': 'I', 'Ó': 'O', 'Ú': 'U',
-            'Ñ': 'N', 'Ü': 'U'
-        }
+        replacements = {"Á": "A", "É": "E", "Í": "I", "Ó": "O", "Ú": "U", "Ñ": "N", "Ü": "U"}
         for old, new in replacements.items():
             normalized = normalized.replace(old, new)
 
         # Normalizar espacios
-        normalized = self.PATTERN_MULTIPLE_SPACES.sub(' ', normalized)
+        normalized = self.PATTERN_MULTIPLE_SPACES.sub(" ", normalized)
 
         return normalized.strip()
 
@@ -659,7 +660,7 @@ class PresupuestoFileDiagnostic:
         # Convertir a Counter
         total_counts = Counter()
         for num_cols, stats in self._column_stats.items():
-            total_counts[num_cols] = stats['count']
+            total_counts[num_cols] = stats["count"]
 
         self.stats.column_distribution = total_counts
 
@@ -695,9 +696,11 @@ class PresupuestoFileDiagnostic:
             )
 
         # Header y datos con diferente número de columnas
-        if (self.header_candidate and
-            self.stats.dominant_column_count and
-            self.header_candidate.column_count != self.stats.dominant_column_count):
+        if (
+            self.header_candidate
+            and self.stats.dominant_column_count
+            and self.header_candidate.column_count != self.stats.dominant_column_count
+        ):
             self.warnings.append(
                 f"Header tiene {self.header_candidate.column_count} columnas "
                 f"pero datos tienen {self.stats.dominant_column_count}"
@@ -738,15 +741,15 @@ class PresupuestoFileDiagnostic:
         # Consistencia de columnas
         consistency = self.stats.column_consistency
         if consistency < self.COLUMN_CONSISTENCY_THRESHOLD:
-            self.recommendations.extend([
-                f"⚠️ Columnas irregulares (consistencia: {consistency:.1%})",
-                "Usar on_bad_lines='warn' en pandas",
-                "Validar separador detectado"
-            ])
-        elif consistency >= 0.95:
-            self.recommendations.append(
-                f"✅ Estructura consistente ({consistency:.1%})"
+            self.recommendations.extend(
+                [
+                    f"⚠️ Columnas irregulares (consistencia: {consistency:.1%})",
+                    "Usar on_bad_lines='warn' en pandas",
+                    "Validar separador detectado",
+                ]
             )
+        elif consistency >= 0.95:
+            self.recommendations.append(f"✅ Estructura consistente ({consistency:.1%})")
 
         # Líneas de resumen
         if self.stats.summary_lines_ignored > 0:
@@ -801,12 +804,10 @@ class PresupuestoFileDiagnostic:
             "\n" + "=" * 90,
             "📊 REPORTE - DIAGNÓSTICO DE PRESUPUESTO".center(90),
             "=" * 90,
-
             "\n📁 ARCHIVO:",
             f"  Ruta: {self.file_path}",
             f"  Tamaño: {self._human_size(self.stats.file_size)}",
             f"  Líneas: {self.stats.total_lines:,}",
-
             "\n🔤 FORMATO:",
             f"  Encoding: {self.stats.encoding} ({self.stats.encoding_confidence:.1%})",
             f"  Separador: '{self.stats.csv_delimiter}'",
@@ -815,25 +816,32 @@ class PresupuestoFileDiagnostic:
 
         # Encabezado
         if self.header_candidate:
-            lines.extend([
-                "\n✅ ENCABEZADO DETECTADO:",
-                f"  Línea: {self.header_candidate.line_num}",
-                f"  Columnas: {self.header_candidate.column_count}",
-                f"  Keywords ({self.header_candidate.match_count}): {', '.join(self.header_candidate.matches)}",
-                f"  Confianza: {self.header_candidate.confidence.value.upper()}",
-                f"  Contenido: {self.header_candidate.content[:80]}..."
-            ])
+            lines.extend(
+                [
+                    "\n✅ ENCABEZADO DETECTADO:",
+                    f"  Línea: {self.header_candidate.line_num}",
+                    f"  Columnas: {self.header_candidate.column_count}",
+                    (
+                        f"  Keywords ({self.header_candidate.match_count}): "
+                        f"{', '.join(self.header_candidate.matches)}"
+                    ),
+                    f"  Confianza: {self.header_candidate.confidence.value.upper()}",
+                    f"  Contenido: {self.header_candidate.content[:80]}...",
+                ]
+            )
 
             if self.stats.data_start_line:
                 lines.append(f"  Datos desde línea: {self.stats.data_start_line}")
         else:
-            lines.extend([
-                "\n⚠️ NO SE DETECTÓ ENCABEZADO",
-                "  Posibles causas:",
-                "  - Formato no estándar",
-                "  - Keywords diferentes a las esperadas",
-                "  - Archivo sin encabezado"
-            ])
+            lines.extend(
+                [
+                    "\n⚠️ NO SE DETECTÓ ENCABEZADO",
+                    "  Posibles causas:",
+                    "  - Formato no estándar",
+                    "  - Keywords diferentes a las esperadas",
+                    "  - Archivo sin encabezado",
+                ]
+            )
 
         # Columnas
         if self.stats.column_distribution:
@@ -843,15 +851,17 @@ class PresupuestoFileDiagnostic:
                 pct = (count / sum(self.stats.column_distribution.values())) * 100
                 lines.append(f"  {marker} {cols} columnas: {count} líneas ({pct:.1f}%)")
 
-            lines.append(
-                f"\n  Consistencia: {self.stats.column_consistency:.1%}"
-            )
+            lines.append(f"\n  Consistencia: {self.stats.column_consistency:.1%}")
 
         # Muestras
         if self.samples:
             lines.append("\n📝 MUESTRAS:")
             for sample in self.samples[:10]:
-                content = sample['content'][:70] + "..." if len(sample['content']) > 70 else sample['content']
+                content = (
+                    sample["content"][:70] + "..."
+                    if len(sample["content"]) > 70
+                    else sample["content"]
+                )
                 lines.append(
                     f"  L{sample['line_num']:>4} ({sample['column_count']} cols): {content}"
                 )
@@ -863,13 +873,14 @@ class PresupuestoFileDiagnostic:
                 lines.append(f"  {rec}")
 
         # Confianza
-        lines.extend([
-            "\n🎯 CONFIANZA GENERAL:",
-            f"  Nivel: {self.stats.overall_confidence.upper()}",
-            f"  Score: {self.stats.overall_confidence_score:.1%}",
-
-            "\n" + "=" * 90 + "\n"
-        ])
+        lines.extend(
+            [
+                "\n🎯 CONFIANZA GENERAL:",
+                f"  Nivel: {self.stats.overall_confidence.upper()}",
+                f"  Score: {self.stats.overall_confidence_score:.1%}",
+                "\n" + "=" * 90 + "\n",
+            ]
+        )
 
         for line in lines:
             logger.info(line)
@@ -878,12 +889,11 @@ class PresupuestoFileDiagnostic:
         """Limita líneas para archivos grandes."""
         if len(lines) > self.MAX_LINES_TO_ANALYZE:
             logger.warning(
-                f"⚠️ Archivo grande. Analizando primeras "
-                f"{self.MAX_LINES_TO_ANALYZE:,} líneas"
+                f"⚠️ Archivo grande. Analizando primeras {self.MAX_LINES_TO_ANALYZE:,} líneas"
             )
             self.stats.truncated_analysis = True
             self.stats.lines_analyzed = self.MAX_LINES_TO_ANALYZE
-            return lines[:self.MAX_LINES_TO_ANALYZE]
+            return lines[: self.MAX_LINES_TO_ANALYZE]
 
         self.stats.lines_analyzed = len(lines)
         return lines
@@ -915,34 +925,36 @@ class PresupuestoFileDiagnostic:
             file_path=str(self.file_path),
             stats=self.stats,
             errors=self.errors,
-            warnings=self.warnings
+            warnings=self.warnings,
         )
 
     def to_dict(self) -> Dict[str, Any]:
         """Exporta resultado como diccionario."""
         return {
-            'file_path': str(self.file_path),
-            'stats': asdict(self.stats),
-            'header': (
+            "file_path": str(self.file_path),
+            "stats": asdict(self.stats),
+            "header": (
                 {
-                    'line_num': self.header_candidate.line_num,
-                    'content': self.header_candidate.content,
-                    'matches': self.header_candidate.matches,
-                    'column_count': self.header_candidate.column_count,
-                    'confidence': self.header_candidate.confidence.value
+                    "line_num": self.header_candidate.line_num,
+                    "content": self.header_candidate.content,
+                    "matches": self.header_candidate.matches,
+                    "column_count": self.header_candidate.column_count,
+                    "confidence": self.header_candidate.confidence.value,
                 }
-                if self.header_candidate else None
+                if self.header_candidate
+                else None
             ),
-            'recommendations': self.recommendations,
-            'warnings': self.warnings,
-            'errors': self.errors,
-            'samples': self.samples[:10]
+            "recommendations": self.recommendations,
+            "warnings": self.warnings,
+            "errors": self.errors,
+            "samples": self.samples[:10],
         }
 
 
 # ============================================================================
 # MAIN
 # ============================================================================
+
 
 def main() -> int:
     """Función principal CLI."""
@@ -965,8 +977,9 @@ def main() -> int:
             return 1
 
         # Exportar JSON si se solicita
-        if len(sys.argv) > 2 and sys.argv[2] == '--json':
+        if len(sys.argv) > 2 and sys.argv[2] == "--json":
             import json
+
             output = diagnostic.to_dict()
             print(json.dumps(output, indent=2, ensure_ascii=False))
 

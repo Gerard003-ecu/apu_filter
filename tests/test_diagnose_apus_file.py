@@ -15,6 +15,7 @@ from scripts.diagnose_apus_file import (
 
 # --- Fixtures ---
 
+
 @pytest.fixture
 def sample_file_content() -> str:
     """Contenido de prueba realista."""
@@ -39,6 +40,7 @@ MATERIALES
 LAMINA DE 1.22 X 3.05    UND    0,27    174.928,81    54.145,39
 """
 
+
 @pytest.fixture
 def apus_file(tmp_path: Path, sample_file_content: str) -> Path:
     """Crea un archivo de APUs temporal y devuelve su ruta."""
@@ -46,7 +48,9 @@ def apus_file(tmp_path: Path, sample_file_content: str) -> Path:
     p.write_text(sample_file_content, encoding="utf-8")
     return p
 
+
 # --- Suite de Pruebas ---
+
 
 class TestAPUFileDiagnostic:
     """Pruebas para APUFileDiagnostic usando archivos temporales reales."""
@@ -70,7 +74,7 @@ class TestAPUFileDiagnostic:
         result = diagnostic.diagnose()
 
         assert result.success
-        assert result.stats.encoding.lower() in ['utf-8', 'ascii']
+        assert result.stats.encoding.lower() in ["utf-8", "ascii"]
         assert result.stats.total_lines > 0
         assert len(result.patterns) > 0
         assert len(result.recommendations) > 0
@@ -85,16 +89,16 @@ class TestAPUFileDiagnostic:
         assert stats.empty_lines == 6
         assert stats.lines_with_item == 2
         assert stats.lines_with_unidad == 2
-        assert stats.categories['MATERIALES'] == 2
-        assert stats.categories['MANO DE OBRA'] == 1
+        assert stats.categories["MATERIALES"] == 2
+        assert stats.categories["MANO DE OBRA"] == 1
 
     def test_diagnose_key_pattern_detection(self, apus_file: Path):
         """Verifica la detección de patrones clave como ITEM y UNIDAD."""
         diagnostic = APUFileDiagnostic(apus_file)
         result = diagnostic.diagnose()
 
-        item_codes = [p for p in result.patterns if p.type == 'ITEM_CODE']
-        units = [p for p in result.patterns if p.type == 'UNIT']
+        item_codes = [p for p in result.patterns if p.type == "ITEM_CODE"]
+        units = [p for p in result.patterns if p.type == "UNIT"]
 
         assert len(item_codes) == 2
         assert item_codes[0].value == "1,1"

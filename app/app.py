@@ -1,5 +1,6 @@
 """
 Módulo principal de la aplicación Flask.
+
 Gestiona el procesamiento de archivos CSV, estimaciones y simulaciones Monte Carlo.
 """
 
@@ -38,20 +39,21 @@ from .utils import sanitize_for_json
 
 SESSION_TIMEOUT = 3600  # 1 hora
 MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16MB máximo por archivo
-ALLOWED_EXTENSIONS = {'.csv', '.xlsx', '.xls'}
+ALLOWED_EXTENSIONS = {".csv", ".xlsx", ".xls"}
 
 
 # ============================================================================
 # CONFIGURACIÓN DE LOGGING MEJORADA
 # ============================================================================
 
+
 def setup_logging(app: Flask, log_file: str = "app.log") -> None:
     """
     Configura el sistema de logging con rotación y formatos mejorados.
-    
+
     Args:
-        app: Instancia de Flask
-        log_file: Nombre del archivo de log
+        app: Instancia de Flask.
+        log_file: Nombre del archivo de log.
     """
     # Crear directorio de logs si no existe
     log_dir = Path("logs")
@@ -59,22 +61,22 @@ def setup_logging(app: Flask, log_file: str = "app.log") -> None:
 
     # Formato detallado para archivo
     file_formatter = logging.Formatter(
-        '%(asctime)s | %(name)s | %(levelname)s | %(funcName)s:%(lineno)d | %(message)s',
-        datefmt='%Y-%m-%d %H:%M:%S'
+        "%(asctime)s | %(name)s | %(levelname)s | %(funcName)s:%(lineno)d | %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
     )
 
     # Formato simple para consola
     console_formatter = logging.Formatter(
-        '%(asctime)s - %(levelname)s - %(message)s',
-        datefmt='%H:%M:%S'
+        "%(asctime)s - %(levelname)s - %(message)s", datefmt="%H:%M:%S"
     )
 
     # Handler para archivo con rotación
     from logging.handlers import RotatingFileHandler
+
     file_handler = RotatingFileHandler(
         log_dir / log_file,
-        maxBytes=10*1024*1024,  # 10MB
-        backupCount=5
+        maxBytes=10 * 1024 * 1024,  # 10MB
+        backupCount=5,
     )
     file_handler.setFormatter(file_formatter)
     file_handler.setLevel(logging.DEBUG)
@@ -97,12 +99,26 @@ def setup_logging(app: Flask, log_file: str = "app.log") -> None:
     root_logger.addHandler(console_handler)
     root_logger.setLevel(logging.INFO)
 
+
 # ============================================================================
 # DECORADORES Y UTILIDADES
 # ============================================================================
 
+
 def require_session(f):
-    """Decorador que requiere una sesión válida para acceder al endpoint."""
+    """
+    Decorador que verifica la existencia y validez de una sesión de usuario.
+
+    Este decorador comprueba que exista un ID de sesión y que los datos
+    asociados a esa sesión estén presentes en Redis. Si la sesión es válida,
+    carga los datos y los pasa como un argumento `session_data` a la función
+    decorada. También refresca el tiempo de expiración de la sesión.
+
+    Returns:
+        Una respuesta JSON de error con código 401 si la sesión no es válida,
+        o el resultado de la función decorada si la validación es exitosa.
+    """
+
     @wraps(f)
     def decorated_function(*args, **kwargs):
         session_id = session.sid
@@ -110,7 +126,7 @@ def require_session(f):
             response = {"error": "Sesión no iniciada..."}
             return jsonify(response), 401
 
-        redis_client = current_app.config.get('SESSION_REDIS')
+        redis_client = current_app.config.get("SESSION_REDIS")
         if not redis_client:
             # En pruebas, el cliente puede no estar disponible.
             # Simular el caso de sesión no encontrada.
@@ -143,8 +159,10 @@ def require_session(f):
 
     return decorated_function
 
+
 def handle_errors(f):
     """Decorador para manejo centralizado de errores."""
+
     @wraps(f)
     def decorated_function(*args, **kwargs):
         try:
@@ -158,11 +176,14 @@ def handle_errors(f):
             response = {"error": f"Dato requerido faltante: {str(e)}", "code": "MISSING_KEY"}
             return jsonify(response), 400
         except Exception as e:
-            current_app.logger.error(f"Error no controlado en {f.__name__}: {str(e)}", exc_info=True)
+            current_app.logger.error(
+                f"Error no controlado en {f.__name__}: {str(e)}", exc_info=True
+            )
             response = {"error": "Error interno del servidor", "code": "INTERNAL_ERROR"}
             return jsonify(response), 500
 
     return decorated_function
+
 
 @contextmanager
 def temporary_upload_directory(base_path: Path, session_id: str):
@@ -186,9 +207,11 @@ def temporary_upload_directory(base_path: Path, session_id: str):
             except Exception as e:
                 logging.warning(f"No se pudo eliminar directorio {user_dir}: {e}")
 
+
 # ============================================================================
 # VALIDADORES
 # ============================================================================
+
 
 class FileValidator:
     """Valida archivos subidos."""
@@ -197,9 +220,9 @@ class FileValidator:
     def validate_file(file) -> Tuple[bool, Optional[str]]:
         """
         Valida que un archivo sea válido para procesamiento.
-        
+
         Returns:
-            Tupla (es_válido, mensaje_error)
+            Tupla (es_válido, mensaje_error).
         """
         if not file or file.filename == "":
             return False, "Archivo no seleccionado"
@@ -218,13 +241,15 @@ class FileValidator:
         file.seek(0)  # Volver al inicio
 
         if file_size > MAX_CONTENT_LENGTH:
-            return False, f"Archivo demasiado grande: {file_size / (1024*1024):.2f}MB"
+            return False, f"Archivo demasiado grande: {file_size / (1024 * 1024):.2f}MB"
 
         return True, None
+
 
 # ============================================================================
 # PROCESADORES DE DATOS MEJORADOS
 # ============================================================================
+
 
 class APUProcessor:
     """Procesa y agrupa datos de APU."""
@@ -235,13 +260,13 @@ class APUProcessor:
     def process_apu_details(self, apu_details: list, apu_code: str) -> dict:
         """
         Procesa los detalles de un APU específico.
-        
+
         Args:
-            apu_details: Lista de detalles del APU
-            apu_code: Código del APU
-            
+            apu_details: Lista de detalles del APU.
+            apu_code: Código del APU.
+
         Returns:
-            Diccionario con los datos procesados
+            Diccionario con los datos procesados.
         """
         if not apu_details:
             raise ValueError(f"No se encontraron detalles para el APU {apu_code}")
@@ -259,11 +284,23 @@ class APUProcessor:
         return {
             "items": processed_items,
             "desglose": desglose,
-            "total_items": len(processed_items)
+            "total_items": len(processed_items),
         }
 
     def _group_by_category(self, df: pd.DataFrame) -> list:
-        """Agrupa los items por categoría y descripción."""
+        """
+        Agrupa los ítems de un DataFrame por su categoría y descripción.
+
+        Para cada categoría, agrupa los insumos por su descripción, sumando
+        sus cantidades y valores para consolidar registros duplicados.
+
+        Args:
+            df: DataFrame con los detalles de los insumos de un APU.
+
+        Returns:
+            Una lista de diccionarios, donde cada diccionario representa un
+            ítem de insumo procesado y agrupado.
+        """
         processed = []
 
         for categoria in df["CATEGORIA"].unique():
@@ -274,14 +311,14 @@ class APUProcessor:
 
             # Definir agregaciones
             aggregations = {
-                'CANTIDAD_APU': 'sum',
-                'VALOR_TOTAL_APU': 'sum',
-                'RENDIMIENTO': 'sum',
-                'UNIDAD_APU': 'first',
-                'PRECIO_UNIT_APU': 'first',
-                'CATEGORIA': 'first',
-                'CODIGO_APU': 'first',
-                'UNIDAD_INSUMO': 'first'
+                "CANTIDAD_APU": "sum",
+                "VALOR_TOTAL_APU": "sum",
+                "RENDIMIENTO": "sum",
+                "UNIDAD_APU": "first",
+                "PRECIO_UNIT_APU": "first",
+                "CATEGORIA": "first",
+                "CODIGO_APU": "first",
+                "UNIDAD_INSUMO": "first",
             }
 
             # Agregar manejo de alertas si existe
@@ -290,26 +327,36 @@ class APUProcessor:
 
             # Agrupar
             df_grouped = (
-                df_categoria.groupby("DESCRIPCION_INSUMO")
-                .agg(aggregations)
-                .reset_index()
+                df_categoria.groupby("DESCRIPCION_INSUMO").agg(aggregations).reset_index()
             )
 
             # Renombrar columnas
-            df_grouped.rename(columns={
-                "DESCRIPCION_INSUMO": "DESCRIPCION",
-                "CANTIDAD_APU": "CANTIDAD",
-                "VALOR_TOTAL_APU": "VR_TOTAL",
-                "UNIDAD_INSUMO": "UNIDAD",
-                "PRECIO_UNIT_APU": "VR_UNITARIO"
-            }, inplace=True)
+            df_grouped.rename(
+                columns={
+                    "DESCRIPCION_INSUMO": "DESCRIPCION",
+                    "CANTIDAD_APU": "CANTIDAD",
+                    "VALOR_TOTAL_APU": "VR_TOTAL",
+                    "UNIDAD_INSUMO": "UNIDAD",
+                    "PRECIO_UNIT_APU": "VR_UNITARIO",
+                },
+                inplace=True,
+            )
 
             processed.extend(df_grouped.to_dict("records"))
 
         return processed
 
     def _organize_breakdown(self, items: list) -> dict:
-        """Organiza los items en un desglose por categoría."""
+        """
+        Organiza una lista de ítems en un diccionario desglosado por categoría.
+
+        Args:
+            items: Lista de ítems (insumos) a organizar.
+
+        Returns:
+            Un diccionario donde las claves son los nombres de las categorías y
+            los valores son listas de los ítems pertenecientes a esa categoría.
+        """
         desglose = {}
         for item in items:
             categoria = item.get("CATEGORIA", "INDEFINIDO")
@@ -319,13 +366,16 @@ class APUProcessor:
 
         return desglose
 
+
 # ============================================================================
 # CARGA DE MODELOS DE BÚSQUEDA SEMÁNTICA
 # ============================================================================
 
+
 def load_semantic_search_artifacts(app: Flask):
     """
     Carga el índice FAISS, el mapeo de IDs y el modelo de embeddings.
+
     Estos artefactos son generados por `scripts/generate_embeddings.py`.
     """
     app.logger.info("Iniciando carga de artefactos de búsqueda semántica...")
@@ -367,39 +417,38 @@ def load_semantic_search_artifacts(app: Flask):
     except Exception as e:
         app.logger.error(
             f"❌ Error crítico al cargar artefactos de búsqueda semántica: {e}",
-            exc_info=True
+            exc_info=True,
         )
         # La aplicación puede continuar, pero la búsqueda semántica no funcionará.
         app.config["FAISS_INDEX"] = None
         app.config["ID_MAP"] = None
         app.config["EMBEDDING_MODEL"] = None
-        app.logger.warning(
-            "La funcionalidad de búsqueda semántica estará desactivada."
-        )
+        app.logger.warning("La funcionalidad de búsqueda semántica estará desactivada.")
 
 
 # ============================================================================
 # FACTORY DE APLICACIÓN MEJORADA
 # ============================================================================
 
+
 def create_app(config_name: str) -> Flask:
     """
     Crea y configura una instancia de la aplicación Flask.
-    
+
     Args:
-        config_name: Nombre del entorno de configuración
-        
+        config_name: Nombre del entorno de configuración.
+
     Returns:
-        Instancia configurada de Flask
+        Instancia configurada de Flask.
     """
     app = Flask(__name__)
 
     # Configuración básica
     app.config.from_object(config_by_name[config_name])
-    app.config['MAX_CONTENT_LENGTH'] = MAX_CONTENT_LENGTH
-    app.config['SESSION_COOKIE_SECURE'] = config_name == 'production'
-    app.config['SESSION_COOKIE_HTTPONLY'] = True
-    app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+    app.config["MAX_CONTENT_LENGTH"] = MAX_CONTENT_LENGTH
+    app.config["SESSION_COOKIE_SECURE"] = config_name == "production"
+    app.config["SESSION_COOKIE_HTTPONLY"] = True
+    app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
 
     # Configurar logging
     setup_logging(app)
@@ -409,12 +458,12 @@ def create_app(config_name: str) -> Flask:
     import redis
     from flask_session import Session
 
-    app.config['SESSION_TYPE'] = 'redis'
-    app.config['SESSION_PERMANENT'] = True
-    app.config['SESSION_USE_SIGNER'] = True
-    app.config['SESSION_KEY_PREFIX'] = 'apu_filter:session:'
-    app.config['SESSION_REDIS'] = redis.from_url(app.config['REDIS_URL'])
-    app.config['PERMANENT_SESSION_LIFETIME'] = SESSION_TIMEOUT
+    app.config["SESSION_TYPE"] = "redis"
+    app.config["SESSION_PERMANENT"] = True
+    app.config["SESSION_USE_SIGNER"] = True
+    app.config["SESSION_KEY_PREFIX"] = "apu_filter:session:"
+    app.config["SESSION_REDIS"] = redis.from_url(app.config["REDIS_URL"])
+    app.config["PERMANENT_SESSION_LIFETIME"] = SESSION_TIMEOUT
 
     Session(app)
 
@@ -449,22 +498,30 @@ def create_app(config_name: str) -> Flask:
 
     @app.before_request
     def before_request_func():
-        """Mantenimiento antes de cada solicitud."""
+        """Registra información de la solicitud antes de que se procese."""
         # Logging de request
         app.logger.debug(f"Request: {request.method} {request.path}")
 
     @app.after_request
     def after_request_func(response):
-        """Procesamiento después de cada solicitud."""
+        """
+        Añade cabeceras de seguridad a la respuesta después de cada solicitud.
+
+        Args:
+            response: El objeto de respuesta de Flask.
+
+        Returns:
+            El objeto de respuesta modificado.
+        """
         # Headers de seguridad
-        response.headers['X-Content-Type-Options'] = 'nosniff'
-        response.headers['X-Frame-Options'] = 'DENY'
-        response.headers['X-XSS-Protection'] = '1; mode=block'
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["X-Frame-Options"] = "DENY"
+        response.headers["X-XSS-Protection"] = "1; mode=block"
 
         # CORS si es necesario (configurar según necesidades)
-        if app.config.get('ENABLE_CORS'):
-            response.headers['Access-Control-Allow-Origin'] = '*'
-            response.headers['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS'
+        if app.config.get("ENABLE_CORS"):
+            response.headers["Access-Control-Allow-Origin"] = "*"
+            response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
 
         return response
 
@@ -480,34 +537,43 @@ def create_app(config_name: str) -> Flask:
     @app.route("/api/health", methods=["GET"])
     def health_check():
         """Endpoint de verificación de estado."""
-        redis_client = app.config['SESSION_REDIS']
+        redis_client = app.config["SESSION_REDIS"]
         active_sessions = redis_client.dbsize()
 
-        return jsonify({
-            "status": "healthy",
-            "active_sessions": active_sessions,
-            "timestamp": time.time(),
-            "version": app.config.get("APP_CONFIG", {}).get("version", "1.0.0")
-        })
+        return jsonify(
+            {
+                "status": "healthy",
+                "active_sessions": active_sessions,
+                "timestamp": time.time(),
+                "version": app.config.get("APP_CONFIG", {}).get("version", "1.0.0"),
+            }
+        )
 
     @app.route("/upload", methods=["POST"])
     @handle_errors
     def upload_files():
         """
-        Maneja la carga y procesamiento de archivos.
-        
+        Gestiona la carga de archivos de presupuesto, APU e insumos.
+
+        Valida los archivos, los guarda temporalmente, los procesa para extraer
+        y estructurar los datos, y finalmente almacena el resultado en la
+        sesión del usuario en Redis.
+
         Returns:
-            JSON con los datos procesados o error
+            Un objeto JSON con los datos procesados si el proceso es exitoso,
+            o un mensaje de error en caso contrario.
         """
         # Validar archivos requeridos
         required_files = ["presupuesto", "apus", "insumos"]
         missing_files = [f for f in required_files if f not in request.files]
 
         if missing_files:
-            return jsonify({
-                "error": f"Faltan archivos: {', '.join(missing_files)}",
-                "code": "MISSING_FILES"
-            }), 400
+            return jsonify(
+                {
+                    "error": f"Faltan archivos: {', '.join(missing_files)}",
+                    "code": "MISSING_FILES",
+                }
+            ), 400
 
         # Validar cada archivo
         file_validator = FileValidator()
@@ -518,10 +584,12 @@ def create_app(config_name: str) -> Flask:
             is_valid, error_msg = file_validator.validate_file(file)
 
             if not is_valid:
-                return jsonify({
-                    "error": f"Error en archivo {file_name}: {error_msg}",
-                    "code": "INVALID_FILE"
-                }), 400
+                return jsonify(
+                    {
+                        "error": f"Error en archivo {file_name}: {error_msg}",
+                        "code": "INVALID_FILE",
+                    }
+                ), 400
 
             files_to_process[file_name] = file
 
@@ -548,19 +616,18 @@ def create_app(config_name: str) -> Flask:
                 file_paths["presupuesto"],
                 file_paths["apus"],
                 file_paths["insumos"],
-                config=app.config.get("APP_CONFIG", {})
+                config=app.config.get("APP_CONFIG", {}),
             )
 
         # Verificar errores en el procesamiento
         if "error" in processed_data:
             app.logger.error(f"Error de procesamiento: {processed_data['error']}")
-            return jsonify({
-                "error": processed_data['error'],
-                "code": "PROCESSING_ERROR"
-            }), 500
+            return jsonify(
+                {"error": processed_data["error"], "code": "PROCESSING_ERROR"}
+            ), 500
 
         # Guardar datos en Redis
-        redis_client = app.config['SESSION_REDIS']
+        redis_client = app.config["SESSION_REDIS"]
         data_key = f"apu_filter:data:{session_id}"
         sanitized_data = sanitize_for_json(processed_data)
         redis_client.set(data_key, json.dumps(sanitized_data), ex=SESSION_TIMEOUT)
@@ -569,7 +636,7 @@ def create_app(config_name: str) -> Flask:
 
         # Preparar respuesta
         response_data = sanitized_data
-        response_data["session_id"] = session_id[:8]
+        response_data["session_id"] = session_id
 
         return jsonify(response_data)
 
@@ -578,14 +645,20 @@ def create_app(config_name: str) -> Flask:
     @handle_errors
     def get_apu_detail(code: str, session_data: dict = None):
         """
-        Obtiene detalles de un APU específico.
-        
+        Recupera y procesa los detalles de un Análisis de Precios Unitarios (APU).
+
+        Busca el APU por su código en los datos de la sesión, procesa sus
+        componentes, ejecuta una simulación Monte Carlo sobre ellos y devuelve
+        un informe detallado.
+
         Args:
-            code: Código del APU
-            session_data: Datos de la sesión (inyectado por decorador)
-            
+            code: El código del APU a consultar.
+            session_data: Los datos de la sesión del usuario, inyectados por el
+                          decorador `require_session`.
+
         Returns:
-            JSON con detalles del APU
+            Un objeto JSON con el desglose detallado del APU, los resultados de
+            la simulación y metadatos asociados.
         """
         app.logger.info(f"Solicitud de detalle para APU: {code}")
 
@@ -598,16 +671,14 @@ def create_app(config_name: str) -> Flask:
 
         # Filtrar por código
         apu_details = [
-            item for item in all_apu_details
-            if item.get("CODIGO_APU") == apu_code
+            item for item in all_apu_details if item.get("CODIGO_APU") == apu_code
         ]
 
         if not apu_details:
             app.logger.warning(f"APU no encontrado: {apu_code}")
-            return jsonify({
-                "error": f"APU no encontrado: {apu_code}",
-                "code": "APU_NOT_FOUND"
-            }), 404
+            return jsonify(
+                {"error": f"APU no encontrado: {apu_code}", "code": "APU_NOT_FOUND"}
+            ), 404
 
         # Procesar detalles del APU
         processed_data = apu_processor.process_apu_details(apu_details, apu_code)
@@ -615,8 +686,7 @@ def create_app(config_name: str) -> Flask:
         # Obtener información del presupuesto
         presupuesto_data = user_data.get("presupuesto", [])
         presupuesto_item = next(
-            (item for item in presupuesto_data if item.get("CODIGO_APU") == apu_code),
-            None
+            (item for item in presupuesto_data if item.get("CODIGO_APU") == apu_code), None
         )
 
         # Ejecutar simulación Monte Carlo
@@ -625,13 +695,15 @@ def create_app(config_name: str) -> Flask:
         # Preparar respuesta
         response = {
             "codigo": apu_code,
-            "descripcion": presupuesto_item.get("original_description", "") if presupuesto_item else "",
+            "descripcion": presupuesto_item.get("original_description", "")
+            if presupuesto_item
+            else "",
             "desglose": processed_data["desglose"],
             "simulation": simulation_results,
             "metadata": {
                 "total_items": processed_data["total_items"],
-                "categorias": list(processed_data["desglose"].keys())
-            }
+                "categorias": list(processed_data["desglose"].keys()),
+            },
         }
 
         app.logger.info(
@@ -646,44 +718,48 @@ def create_app(config_name: str) -> Flask:
     @handle_errors
     def get_estimate(session_data: dict = None):
         """
-        Calcula estimación basada en parámetros.
-        
+        Calcula una estimación de costos y rendimientos para un proyecto.
+
+        Recibe una serie de parámetros en formato JSON, busca en los datos de
+        la sesión los APU correspondientes y calcula una estimación
+        agregada.
+
         Args:
-            session_data: Datos de la sesión (inyectado por decorador)
-            
+            session_data: Los datos de la sesión del usuario, inyectados por el
+                          decorador `require_session`.
+
         Returns:
-            JSON con resultados de la estimación
+            Un objeto JSON con los resultados de la estimación, incluyendo
+            costos de construcción y rendimientos.
         """
         # Validar request
         if not request.is_json:
-            return jsonify({
-                "error": "Content-Type debe ser application/json",
-                "code": "INVALID_CONTENT_TYPE"
-            }), 400
+            return jsonify(
+                {
+                    "error": "Content-Type debe ser application/json",
+                    "code": "INVALID_CONTENT_TYPE",
+                }
+            ), 400
 
         params = request.get_json()
         if not params:
-            return jsonify({
-                "error": "No se proporcionaron parámetros",
-                "code": "NO_PARAMS"
-            }), 400
+            return jsonify(
+                {"error": "No se proporcionaron parámetros", "code": "NO_PARAMS"}
+            ), 400
 
         app.logger.info(f"Solicitud de estimación con parámetros: {params}")
 
         # Calcular estimación
         user_data = session_data["data"]
-        result = calculate_estimate(
-            params,
-            user_data,
-            app.config.get("APP_CONFIG", {})
-        )
+        result = calculate_estimate(params, user_data, app.config.get("APP_CONFIG", {}))
 
         if "error" in result:
             app.logger.warning(f"Error en estimación: {result['error']}")
             return jsonify(result), 400
 
         app.logger.info(
-            f"Estimación calculada: Construcción=${result.get('valor_construccion', 0):,.2f}, "
+            f"Estimación calculada: Construcción="
+            f"${result.get('valor_construccion', 0):,.2f}, "
             f"Rendimiento={result.get('rendimiento_m2_por_dia', 0):.2f}"
         )
 
@@ -696,29 +772,36 @@ def create_app(config_name: str) -> Flask:
     @app.errorhandler(404)
     def not_found(error):
         """Maneja errores 404."""
-        return jsonify({
-            "error": "Recurso no encontrado",
-            "code": "NOT_FOUND",
-            "path": escape(request.path)
-        }), 404
+        return jsonify(
+            {
+                "error": "Recurso no encontrado",
+                "code": "NOT_FOUND",
+                "path": escape(request.path),
+            }
+        ), 404
 
     @app.errorhandler(413)
     def request_entity_too_large(error):
         """Maneja errores de tamaño de archivo."""
-        return jsonify({
-            "error": f"Archivo demasiado grande. Máximo: {MAX_CONTENT_LENGTH / (1024*1024):.1f}MB",
-            "code": "FILE_TOO_LARGE"
-        }), 413
+        max_mb = MAX_CONTENT_LENGTH / (1024 * 1024)
+        return jsonify(
+            {
+                "error": f"Archivo demasiado grande. Máximo: {max_mb:.1f}MB",
+                "code": "FILE_TOO_LARGE",
+            }
+        ), 413
 
     @app.errorhandler(500)
     def internal_error(error):
         """Maneja errores internos del servidor."""
         app.logger.error(f"Error 500: {str(error)}", exc_info=True)
-        return jsonify({
-            "error": "Error interno del servidor",
-            "code": "INTERNAL_ERROR",
-            "message": "Por favor, contacte al administrador si el problema persiste"
-        }), 500
+        return jsonify(
+            {
+                "error": "Error interno del servidor",
+                "code": "INTERNAL_ERROR",
+                "message": "Por favor, contacte al administrador si el problema persiste",
+            }
+        ), 500
 
     return app
 

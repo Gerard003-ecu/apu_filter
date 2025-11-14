@@ -7,7 +7,7 @@ from unittest.mock import patch
 import pandas as pd
 
 # Añadir el directorio raíz del proyecto a sys.path
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from app.data_validator import (
     _validate_extreme_costs,
@@ -26,35 +26,37 @@ class TestDataValidator(unittest.TestCase):
 
     def setUp(self):
         """Preparar datos de prueba reutilizables."""
-        self.presupuesto_normal = [{'ITEM': '1,1', 'VALOR_CONSTRUCCION_UN': 100_000}]
-        self.presupuesto_extremo = [{'ITEM': '1,2', 'VALOR_CONSTRUCCION_UN': 60_000_000}]
+        self.presupuesto_normal = [{"ITEM": "1,1", "VALOR_CONSTRUCCION_UN": 100_000}]
+        self.presupuesto_extremo = [{"ITEM": "1,2", "VALOR_CONSTRUCCION_UN": 60_000_000}]
 
-        self.apus_detail_recalculable = [{
-            'DESCRIPCION_INSUMO': 'Tornillo',
-            'CANTIDAD': 0,
-            'VALOR_TOTAL': 100,
-            'VR_UNITARIO': 10
-        }]
-        self.apus_detail_no_recalculable = [{
-            'DESCRIPCION_INSUMO': 'Pintura',
-            'CANTIDAD': 0,
-            'VALOR_TOTAL': 100,
-            'VR_UNITARIO': 0
-        }]
-        self.apus_detail_con_descripcion = [{
-            'DESCRIPCION_INSUMO': 'Tornillo de acero 1/2"'
-        }]
-        self.apus_detail_sin_descripcion = [{
-            'DESCRIPCION_INSUMO': None
-        }]
+        self.apus_detail_recalculable = [
+            {
+                "DESCRIPCION_INSUMO": "Tornillo",
+                "CANTIDAD": 0,
+                "VALOR_TOTAL": 100,
+                "VR_UNITARIO": 10,
+            }
+        ]
+        self.apus_detail_no_recalculable = [
+            {
+                "DESCRIPCION_INSUMO": "Pintura",
+                "CANTIDAD": 0,
+                "VALOR_TOTAL": 100,
+                "VR_UNITARIO": 0,
+            }
+        ]
+        self.apus_detail_con_descripcion = [{"DESCRIPCION_INSUMO": 'Tornillo de acero 1/2"'}]
+        self.apus_detail_sin_descripcion = [{"DESCRIPCION_INSUMO": None}]
 
-        self.raw_insumos_df = pd.DataFrame({
-            'DESCRIPCION_INSUMO': [
-                'Tornillo de acero 1/2"',
-                'Pintura anticorrosiva',
-                'Cemento Portland'
-            ]
-        }).astype(str)
+        self.raw_insumos_df = pd.DataFrame(
+            {
+                "DESCRIPCION_INSUMO": [
+                    'Tornillo de acero 1/2"',
+                    "Pintura anticorrosiva",
+                    "Cemento Portland",
+                ]
+            }
+        ).astype(str)
 
         # Datos originales para verificar inmutabilidad
         self.original_presupuesto = deepcopy(self.presupuesto_extremo)
@@ -64,21 +66,23 @@ class TestDataValidator(unittest.TestCase):
     def test_validate_extreme_costs__normal_cost(self):
         """Verifica que no se añada alerta si el costo es normal."""
         resultado = _validate_extreme_costs(self.presupuesto_normal)
-        self.assertNotIn('alertas', resultado[0], "No debe haber alertas para costos normales")
+        self.assertNotIn(
+            "alertas", resultado[0], "No debe haber alertas para costos normales"
+        )
 
     def test_validate_extreme_costs__extreme_cost(self):
         """Verifica que se añada una alerta cuando el costo excede el umbral."""
         resultado = _validate_extreme_costs(self.presupuesto_extremo)
-        self.assertIn('alertas', resultado[0], "Debe haber una lista de alertas")
-        self.assertEqual(len(resultado[0]['alertas']), 1)
-        self.assertIn('excede el umbral', resultado[0]['alertas'][0])
-        self.assertIn('60,000,000.00', resultado[0]['alertas'][0])
+        self.assertIn("alertas", resultado[0], "Debe haber una lista de alertas")
+        self.assertEqual(len(resultado[0]["alertas"]), 1)
+        self.assertIn("excede el umbral", resultado[0]["alertas"][0])
+        self.assertIn("60,000,000.00", resultado[0]["alertas"][0])
 
     def test_validate_extreme_costs__non_numeric_value(self):
         """Verifica que no falle si el valor no es numérico."""
-        data_broken = [{'ITEM': 'X', 'VALOR_CONSTRUCCION_UN': 'N/A'}]
+        data_broken = [{"ITEM": "X", "VALOR_CONSTRUCCION_UN": "N/A"}]
         resultado = _validate_extreme_costs(data_broken)
-        self.assertNotIn('alertas', resultado[0], "No debe alertar si no es numérico")
+        self.assertNotIn("alertas", resultado[0], "No debe alertar si no es numérico")
 
     def test_validate_extreme_costs__inmutable_input(self):
         """Verifica que la función no modifica el input original."""
@@ -91,31 +95,33 @@ class TestDataValidator(unittest.TestCase):
     def test_validate_zero_quantity_with_cost__recalculable(self):
         """Verifica que se recalcula la cantidad y alerta cuando es posible."""
         resultado = _validate_zero_quantity_with_cost(self.apus_detail_recalculable)
-        self.assertAlmostEqual(resultado[0]['CANTIDAD'], 10.0, places=4)
-        self.assertIn('alertas', resultado[0])
-        self.assertEqual(len(resultado[0]['alertas']), 1)
-        self.assertIn('recalculada', resultado[0]['alertas'][0])
-        self.assertIn('10.0000', resultado[0]['alertas'][0])
+        self.assertAlmostEqual(resultado[0]["CANTIDAD"], 10.0, places=4)
+        self.assertIn("alertas", resultado[0])
+        self.assertEqual(len(resultado[0]["alertas"]), 1)
+        self.assertIn("recalculada", resultado[0]["alertas"][0])
+        self.assertIn("10.0000", resultado[0]["alertas"][0])
 
     def test_validate_zero_quantity_with_cost__non_recalculable(self):
         """Verifica que no se modifica cantidad si VR_UNITARIO es 0 o inválido."""
         resultado = _validate_zero_quantity_with_cost(self.apus_detail_no_recalculable)
-        self.assertEqual(resultado[0]['CANTIDAD'], 0)
-        self.assertIn('alertas', resultado[0])
-        self.assertEqual(len(resultado[0]['alertas']), 1)
-        self.assertIn('No se puede recalcular', resultado[0]['alertas'][0])
+        self.assertEqual(resultado[0]["CANTIDAD"], 0)
+        self.assertIn("alertas", resultado[0])
+        self.assertEqual(len(resultado[0]["alertas"]), 1)
+        self.assertIn("No se puede recalcular", resultado[0]["alertas"][0])
 
     def test_validate_zero_quantity_with_cost__invalid_types(self):
         """Verifica manejo de tipos inválidos (cadena, None, NaN)."""
-        data_broken = [{
-            'DESCRIPCION_INSUMO': 'Pintura',
-            'CANTIDAD': 'cero',  # cadena
-            'VALOR_TOTAL': '100',
-            'VR_UNITARIO': '0'
-        }]
+        data_broken = [
+            {
+                "DESCRIPCION_INSUMO": "Pintura",
+                "CANTIDAD": "cero",  # cadena
+                "VALOR_TOTAL": "100",
+                "VR_UNITARIO": "0",
+            }
+        ]
         resultado = _validate_zero_quantity_with_cost(data_broken)
-        self.assertEqual(resultado[0]['CANTIDAD'], 'cero')  # No se modifica
-        self.assertNotIn('alertas', resultado[0])
+        self.assertEqual(resultado[0]["CANTIDAD"], "cero")  # No se modifica
+        self.assertNotIn("alertas", resultado[0])
 
     def test_validate_zero_quantity_with_cost__inmutable_input(self):
         """Verifica que no se modifica el input original."""
@@ -125,50 +131,60 @@ class TestDataValidator(unittest.TestCase):
             original_copy, self.original_apus, "El input original fue modificado"
         )
 
-    @patch('app.data_validator.HAS_FUZZY', False)
+    @patch("app.data_validator.HAS_FUZZY", False)
     def test_validate_missing_descriptions__no_fuzzy_available(self):
         """Verifica fallback cuando fuzzywuzzy no está instalado."""
-        resultado = _validate_missing_descriptions(self.apus_detail_sin_descripcion, self.raw_insumos_df)
-        self.assertEqual(resultado[0]['DESCRIPCION_INSUMO'], "Insumo sin descripción")
-        self.assertIn('alertas', resultado[0])
-        self.assertIn("Fuzzy matching no disponible", resultado[0]['alertas'][0])
+        resultado = _validate_missing_descriptions(
+            self.apus_detail_sin_descripcion, self.raw_insumos_df
+        )
+        self.assertEqual(resultado[0]["DESCRIPCION_INSUMO"], "Insumo sin descripción")
+        self.assertIn("alertas", resultado[0])
+        self.assertIn("Fuzzy matching no disponible", resultado[0]["alertas"][0])
 
     def test_validate_missing_descriptions__missing_description(self):
         """Verifica que se asigna texto predeterminado y alerta si no hay descripción."""
-        resultado = _validate_missing_descriptions(self.apus_detail_sin_descripcion, self.raw_insumos_df)
-        self.assertEqual(resultado[0]['DESCRIPCION_INSUMO'], "Insumo sin descripción")
-        self.assertIn('alertas', resultado[0])
-        self.assertEqual(len(resultado[0]['alertas']), 1)
-        self.assertIn('faltante', resultado[0]['alertas'][0])
+        resultado = _validate_missing_descriptions(
+            self.apus_detail_sin_descripcion, self.raw_insumos_df
+        )
+        self.assertEqual(resultado[0]["DESCRIPCION_INSUMO"], "Insumo sin descripción")
+        self.assertIn("alertas", resultado[0])
+        self.assertEqual(len(resultado[0]["alertas"]), 1)
+        self.assertIn("faltante", resultado[0]["alertas"][0])
 
     def test_validate_missing_descriptions__present_description(self):
         """Verifica que no se añade alerta si la descripción está presente."""
-        resultado = _validate_missing_descriptions(self.apus_detail_con_descripcion, self.raw_insumos_df)
-        self.assertNotIn('alertas', resultado[0], "No debe haber alertas si la descripción está presente")
+        resultado = _validate_missing_descriptions(
+            self.apus_detail_con_descripcion, self.raw_insumos_df
+        )
+        self.assertNotIn(
+            "alertas", resultado[0], "No debe haber alertas si la descripción está presente"
+        )
 
     def test_validate_missing_descriptions__fuzzy_matching_enabled(self):
         """Verifica que fuzzy matching no modifica una descripción existente similar."""
-        data_similar = [{'DESCRIPCION_INSUMO': 'Tornillo de acero 1/2 pulgadas'}]
+        data_similar = [{"DESCRIPCION_INSUMO": "Tornillo de acero 1/2 pulgadas"}]
         resultado = _validate_missing_descriptions(data_similar, self.raw_insumos_df)
         self.assertEqual(
-            resultado[0]['DESCRIPCION_INSUMO'], "Tornillo de acero 1/2 pulgadas"
+            resultado[0]["DESCRIPCION_INSUMO"], "Tornillo de acero 1/2 pulgadas"
         )
-        self.assertNotIn('alertas', resultado[0])
+        self.assertNotIn("alertas", resultado[0])
 
     def test_validate_missing_descriptions__raw_insumos_df_none(self):
         """Verifica comportamiento cuando raw_insumos_df es None."""
         resultado = _validate_missing_descriptions(self.apus_detail_sin_descripcion, None)
-        self.assertEqual(resultado[0]['DESCRIPCION_INSUMO'], "Insumo sin descripción")
-        self.assertIn('alertas', resultado[0])
-        self.assertIn('DataFrame inválido', resultado[0]['alertas'][0])
+        self.assertEqual(resultado[0]["DESCRIPCION_INSUMO"], "Insumo sin descripción")
+        self.assertIn("alertas", resultado[0])
+        self.assertIn("DataFrame inválido", resultado[0]["alertas"][0])
 
     def test_validate_missing_descriptions__raw_insumos_df_missing_column(self):
         """Verifica comportamiento cuando raw_insumos_df no tiene la columna requerida."""
-        df_broken = pd.DataFrame({'OTRA_COLUMNA': ['valor']})
-        resultado = _validate_missing_descriptions(self.apus_detail_sin_descripcion, df_broken)
-        self.assertEqual(resultado[0]['DESCRIPCION_INSUMO'], "Insumo sin descripción")
-        self.assertIn('alertas', resultado[0])
-        self.assertIn('columna faltante', resultado[0]['alertas'][0])
+        df_broken = pd.DataFrame({"OTRA_COLUMNA": ["valor"]})
+        resultado = _validate_missing_descriptions(
+            self.apus_detail_sin_descripcion, df_broken
+        )
+        self.assertEqual(resultado[0]["DESCRIPCION_INSUMO"], "Insumo sin descripción")
+        self.assertIn("alertas", resultado[0])
+        self.assertIn("columna faltante", resultado[0]["alertas"][0])
 
     def test_validate_missing_descriptions__inmutable_input(self):
         """Verifica que no se modifica el input original."""
@@ -183,41 +199,41 @@ class TestDataValidator(unittest.TestCase):
     def test_validate_and_clean_data__integration_success(self):
         """Verifica que todas las validaciones se aplican correctamente en conjunto."""
         data_store = {
-            'presupuesto': self.presupuesto_extremo,
-            'apus_detail': self.apus_detail_recalculable,
-            'raw_insumos_df': self.raw_insumos_df
+            "presupuesto": self.presupuesto_extremo,
+            "apus_detail": self.apus_detail_recalculable,
+            "raw_insumos_df": self.raw_insumos_df,
         }
 
         resultado = validate_and_clean_data(data_store)
 
         # Verificar que las alertas están presentes y son correctas
-        self.assertIn('alertas', resultado['presupuesto'][0])
-        self.assertEqual(len(resultado['presupuesto'][0]['alertas']), 1)
-        self.assertIn('excede el umbral', resultado['presupuesto'][0]['alertas'][0])
+        self.assertIn("alertas", resultado["presupuesto"][0])
+        self.assertEqual(len(resultado["presupuesto"][0]["alertas"]), 1)
+        self.assertIn("excede el umbral", resultado["presupuesto"][0]["alertas"][0])
 
-        self.assertIn('alertas', resultado['apus_detail'][0])
-        self.assertEqual(len(resultado['apus_detail'][0]['alertas']), 1)
-        self.assertIn('recalculada', resultado['apus_detail'][0]['alertas'][0])
+        self.assertIn("alertas", resultado["apus_detail"][0])
+        self.assertEqual(len(resultado["apus_detail"][0]["alertas"]), 1)
+        self.assertIn("recalculada", resultado["apus_detail"][0]["alertas"][0])
 
     def test_validate_and_clean_data__missing_presupuesto_key(self):
         """Verifica que no falla si 'presupuesto' no está presente."""
         data_store = {
-            'apus_detail': self.apus_detail_recalculable,
-            'raw_insumos_df': self.raw_insumos_df
+            "apus_detail": self.apus_detail_recalculable,
+            "raw_insumos_df": self.raw_insumos_df,
         }
         resultado = validate_and_clean_data(data_store)
-        self.assertNotIn('presupuesto', resultado, "No debe añadirse si no estaba")
-        self.assertIn('apus_detail', resultado)
+        self.assertNotIn("presupuesto", resultado, "No debe añadirse si no estaba")
+        self.assertIn("apus_detail", resultado)
 
     def test_validate_and_clean_data__missing_apus_detail_key(self):
         """Verifica que no falla si 'apus_detail' no está presente."""
         data_store = {
-            'presupuesto': self.presupuesto_extremo,
-            'raw_insumos_df': self.raw_insumos_df
+            "presupuesto": self.presupuesto_extremo,
+            "raw_insumos_df": self.raw_insumos_df,
         }
         resultado = validate_and_clean_data(data_store)
-        self.assertNotIn('apus_detail', resultado, "No debe añadirse si no estaba")
-        self.assertIn('presupuesto', resultado)
+        self.assertNotIn("apus_detail", resultado, "No debe añadirse si no estaba")
+        self.assertIn("presupuesto", resultado)
 
     def test_validate_and_clean_data__invalid_data_store_type(self):
         """Verifica que no falla si data_store no es dict."""
@@ -227,44 +243,44 @@ class TestDataValidator(unittest.TestCase):
     def test_validate_and_clean_data__none_in_presupuesto(self):
         """Verifica manejo de presupuesto como None."""
         data_store = {
-            'presupuesto': None,
-            'apus_detail': self.apus_detail_recalculable,
-            'raw_insumos_df': self.raw_insumos_df
+            "presupuesto": None,
+            "apus_detail": self.apus_detail_recalculable,
+            "raw_insumos_df": self.raw_insumos_df,
         }
         resultado = validate_and_clean_data(data_store)
-        self.assertIsNone(resultado['presupuesto'])
+        self.assertIsNone(resultado["presupuesto"])
 
     def test_validate_and_clean_data__none_in_apus_detail(self):
         """Verifica manejo de apus_detail como None."""
         data_store = {
-            'presupuesto': self.presupuesto_extremo,
-            'apus_detail': None,
-            'raw_insumos_df': self.raw_insumos_df
+            "presupuesto": self.presupuesto_extremo,
+            "apus_detail": None,
+            "raw_insumos_df": self.raw_insumos_df,
         }
         resultado = validate_and_clean_data(data_store)
-        self.assertIsNone(resultado['apus_detail'])
+        self.assertIsNone(resultado["apus_detail"])
 
     def test_validate_and_clean_data__inmutable_input(self):
         """Verifica que validate_and_clean_data no modifica el input original."""
         original_data = {
-            'presupuesto': deepcopy(self.presupuesto_extremo),
-            'apus_detail': deepcopy(self.apus_detail_recalculable),
-            'raw_insumos_df': deepcopy(self.raw_insumos_df)
+            "presupuesto": deepcopy(self.presupuesto_extremo),
+            "apus_detail": deepcopy(self.apus_detail_recalculable),
+            "raw_insumos_df": deepcopy(self.raw_insumos_df),
         }
-        original_presupuesto = deepcopy(original_data['presupuesto'])
-        original_apus = deepcopy(original_data['apus_detail'])
+        original_presupuesto = deepcopy(original_data["presupuesto"])
+        original_apus = deepcopy(original_data["apus_detail"])
 
         validate_and_clean_data(original_data)
 
         self.assertEqual(
-            original_data['presupuesto'],
+            original_data["presupuesto"],
             original_presupuesto,
             "Presupuesto fue modificado",
         )
         self.assertEqual(
-            original_data['apus_detail'], original_apus, "Apus_detail fue modificado"
+            original_data["apus_detail"], original_apus, "Apus_detail fue modificado"
         )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()
