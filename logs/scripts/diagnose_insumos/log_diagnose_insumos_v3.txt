@@ -1,0 +1,70 @@
+INFO: 📂 Archivo: insumos.csv (19.7 KB)
+INFO: 🔍 Iniciando diagnóstico de insumos...
+INFO: ✅ Encoding: UTF-8-SIG (confianza: 100.0%)
+INFO: ✅ Dialecto CSV detectado: delimitador=';'
+INFO: 
+==========================================================================================
+INFO:                       📊 REPORTE - DIAGNÓSTICO DE INSUMOS JERÁRQUICOS                      
+INFO: ==========================================================================================
+INFO: 
+📁 ARCHIVO:
+INFO:   Ruta: /home/gerardo/Documentos/GitHub/apu_filter/data/insumos.csv
+INFO:   Tamaño: 19.7 KB
+INFO:   Líneas: 161
+INFO: 
+🔤 FORMATO:
+INFO:   Encoding: UTF-8-SIG (100.0%)
+INFO:   Separador: ';'
+INFO:   Dialecto detectado: Sí
+INFO: 
+📦 GRUPOS:
+INFO:   Total detectados: 4
+INFO:   Con encabezado: 4
+INFO:   Con datos: 4
+INFO:   Completos: 4
+INFO: 
+📋 DETALLE DE GRUPOS:
+INFO: 
+  1. ✅ MATERIALES
+INFO:      Línea: 3
+INFO:      Header: Línea 4
+INFO:      Datos: 59 líneas
+INFO:      Columnas: 12 (100.0% consistencia)
+INFO: 
+  2. ✅ MANO DE OBRA
+INFO:      Línea: 64
+INFO:      Header: Línea 65
+INFO:      Datos: 19 líneas
+INFO:      Columnas: 12 (100.0% consistencia)
+INFO: 
+  3. ✅ EQUIPO
+INFO:      Línea: 85
+INFO:      Header: Línea 86
+INFO:      Datos: 54 líneas
+INFO:      Columnas: 12 (100.0% consistencia)
+INFO: 
+  4. ✅ OTROS
+INFO:      Línea: 141
+INFO:      Header: Línea 142
+INFO:      Datos: 19 líneas
+INFO:      Columnas: 12 (100.0% consistencia)
+INFO: 
+📊 DISTRIBUCIÓN DE COLUMNAS:
+INFO:   → 12 columnas: 151 líneas
+INFO: 
+💡 RECOMENDACIONES:
+INFO:   ✅ Leer con: sep=';', encoding='UTF-8-SIG'
+INFO:   ✅ 100% de grupos están completos
+INFO:   📋 Estrategia sugerida:
+INFO:   1. Identificar líneas que empiecen con 'G;'
+INFO:   2. Siguiente línea = encabezado
+INFO:   3. Líneas subsiguientes = datos
+INFO:   4. Procesar cada grupo como DataFrame independiente
+INFO: 
+🎯 CONFIANZA GENERAL:
+INFO:   Nivel: ALTA
+INFO:   Score: 100.0%
+INFO: 
+==========================================================================================
+
+INFO: ✅ Diagnóstico completado exitosamente
