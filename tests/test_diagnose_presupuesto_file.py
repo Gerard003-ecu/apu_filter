@@ -150,8 +150,9 @@ class TestPresupuestoFileDiagnostic:
 
     def test_main_function_integration(self, tmp_path, caplog):
         """Prueba la función main con un archivo simple y explícito."""
-        from scripts.diagnose_presupuesto_file import main
         import logging
+
+        from scripts.diagnose_presupuesto_file import main
 
         # Crear un archivo simple que el Sniffer pueda manejar fácilmente
         content = "ITEM;DESCRIPCION;CANT\n1;Item A;10\n2;Item B;20\n"

@@ -523,23 +523,40 @@ class InsumosFileDiagnostic:
 
     def _is_group_line(self, line: str) -> Tuple[bool, Optional[str]]:
         """
-        Determina si es línea de grupo.
-        
+        Determina si una línea es el inicio de un grupo usando una expresión regular flexible.
+
+        Args:
+        line (str): Línea a evaluar (puede tener espacios iniciales y no estar normalizada)
+
         Returns:
-            (es_grupo, nombre)
+        Tuple[bool, Optional[str]]: (es_grupo, nombre_grupo)
         """
         if not self._separator:
             return False, None
 
-        parts = line.split(self._separator, 1)
-        if len(parts) < 2:
-            return False, None
+        # Patrón de Regex:
+        # ^\s* -> Permite espacios en blanco al inicio (opcional).
+        # (G\d*) -> Busca una 'G' seguida de cero o más dígitos (G, G1, G22, etc.).
+        # \s* -> Permite espacios después del identificador.
+        # {re.escape(self._separator)} -> Usa el separador detectado de forma segura.
+        # (.*) -> Captura el resto de la línea como el nombre del grupo.
+        pattern = re.compile(
+            rf"^\s*(G\d*)\s*{re.escape(self._separator)}(.*)",
+            re.IGNORECASE
+        )
 
-        prefix = parts[0].strip().upper()
-        name = parts[1].strip()
+        match = pattern.match(line)
 
-        if prefix in self.GROUP_MARKERS and name:
-            return True, name
+        if match:
+            # El grupo 2 de la captura es el nombre del grupo.
+            group_name_raw = match.group(2).strip()
+
+            # El nombre del grupo puede estar seguido de más separadores y datos.
+            # Lo limpiamos quedándonos solo con la primera parte.
+            group_name = group_name_raw.split(self._separator)[0].strip()
+
+            if group_name:
+                return True, group_name
 
         return False, None
 
