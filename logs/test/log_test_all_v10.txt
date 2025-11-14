@@ -1,0 +1,962 @@
+# Informe parcial
+tests/test_generate_embeddings.py::TestFileManager::test_create_backup_nonexistent_file PASSED                 [ 28%]
+tests/test_generate_embeddings.py::TestFileManager::test_load_data_json PASSED                                 [ 28%]
+tests/test_generate_embeddings.py::TestFileManager::test_load_data_csv PASSED                                  [ 28%]
+tests/test_generate_embeddings.py::TestFileManager::test_load_data_nonexistent_file PASSED                     [ 28%]
+tests/test_generate_embeddings.py::TestFileManager::test_load_data_unsupported_format XFAIL (pd.read_json no
+es thread-safe, problema conocido)                                                                             [ 28%]
+tests/test_generate_embeddings.py::TestEmbeddingGenerator::test_load_model_success PASSED                      [ 29%]
+tests/test_generate_embeddings.py::TestEmbeddingGenerator::test_load_model_failure PASSED                      [ 29%]
+tests/test_generate_embeddings.py::TestEmbeddingGenerator::test_generate_embeddings_batch_simplified PASSED    [ 29%]
+tests/test_generate_embeddings.py::TestEmbeddingGenerator::test_generate_embeddings_no_model PASSED            [ 29%]
+tests/test_generate_embeddings.py::TestEmbeddingGenerator::test_build_faiss_index PASSED                       [ 29%]
+tests/test_generate_embeddings.py::TestEmbeddingGenerator::test_validate_index_success_simplified PASSED       [ 30%]
+tests/test_generate_embeddings.py::TestEmbeddingGenerator::test_validate_index_failure PASSED                  [ 30%]
+tests/test_generate_embeddings.py::TestEmbeddingPipeline::test_run_complete_success_fixed PASSED               [ 30%]
+tests/test_generate_embeddings.py::TestEmbeddingPipeline::test_run_with_invalid_input_file PASSED              [ 30%]
+tests/test_generate_embeddings.py::TestEmbeddingPipeline::test_run_with_model_load_error PASSED                [ 30%]
+tests/test_generate_embeddings.py::TestEmbeddingPipeline::test_run_with_empty_dataframe PASSED                 [ 30%]
+tests/test_generate_embeddings.py::TestEmbeddingPipeline::test_run_with_backup_creation_fixed PASSED           [ 31%]
+tests/test_generate_embeddings.py::TestPerformanceAndEdgeCases::test_large_dataset_handling[100] PASSED        [ 31%]
+tests/test_generate_embeddings.py::TestPerformanceAndEdgeCases::test_large_dataset_handling[1000] PASSED       [ 31%]
+tests/test_generate_embeddings.py::TestPerformanceAndEdgeCases::test_large_dataset_handling[5000] PASSED       [ 31%]
+tests/test_generate_embeddings.py::TestPerformanceAndEdgeCases::test_special_characters_in_text PASSED         [ 31%]
+tests/test_generate_embeddings.py::TestPerformanceAndEdgeCases::test_memory_estimation_accuracy PASSED         [ 32%]
+tests/test_generate_embeddings.py::TestPerformanceAndEdgeCases::test_different_batch_sizes[1] PASSED           [ 32%]
+tests/test_generate_embeddings.py::TestPerformanceAndEdgeCases::test_different_batch_sizes[10] PASSED          [ 32%]
+tests/test_generate_embeddings.py::TestPerformanceAndEdgeCases::test_different_batch_sizes[100] PASSED         [ 32%]
+tests/test_generate_embeddings.py::TestPerformanceAndEdgeCases::test_different_batch_sizes[512] PASSED         [ 32%]
+tests/test_generate_embeddings.py::TestCLIIntegration::test_main_function_success PASSED                       [ 32%]
+tests/test_generate_embeddings.py::TestCLIIntegration::test_main_function_with_error PASSED                    [ 33%]
+tests/test_generate_embeddings.py::TestConcurrencyAndThreadSafety::test_concurrent_file_access XFAIL           [ 33%]
+tests/test_models.py::TestProbabilityModels::test_sanitize_value_handles_nan PASSED                            [ 33%]
+tests/test_models.py::TestProbabilityModels::test_sanitize_value_handles_non_numeric PASSED                    [ 33%]
+tests/test_models.py::TestProbabilityModels::test_sanitize_value_handles_numeric_values PASSED                 [ 33%]
+tests/test_models.py::TestProbabilityModels::test_simulation_handles_empty_input_list PASSED                   [ 33%]
+tests/test_models.py::TestProbabilityModels::test_simulation_handles_invalid_input_types PASSED                [ 34%]
+tests/test_models.py::TestProbabilityModels::test_simulation_handles_missing_required_columns PASSED           [ 34%]
+tests/test_models.py::TestProbabilityModels::test_simulation_handles_mixed_data_types_and_nan PASSED           [ 34%]
+tests/test_models.py::TestProbabilityModels::test_simulation_handles_zero_or_negative_cost PASSED              [ 34%]
+tests/test_models.py::TestProbabilityModels::test_simulation_output_never_returns_numpy_nan PASSED             [ 34%]
+tests/test_models.py::TestProbabilityModels::test_simulation_returns_correct_structure_with_valid_input PASSED [ 35%]
+tests/test_models.py::TestProbabilityModels::test_simulation_throws_on_invalid_num_simulations PASSED          [ 35%]
+tests/test_models.py::TestProbabilityModels::test_simulation_throws_on_negative_volatility PASSED              [ 35%]
+tests/test_models.py::TestProbabilityModels::test_simulation_with_custom_volatility_factor PASSED              [ 35%]
+tests/test_models.py::TestProbabilityModels::test_simulation_with_min_cost_threshold PASSED                    [ 35%]
+tests/test_models.py::TestProbabilityModels::test_simulation_with_multiple_items PASSED                        [ 35%]
+tests/test_models.py::TestProbabilityModels::test_simulation_with_valid_positive_costs PASSED                  [ 36%]
+tests/test_procesador_csv.py::TestColumnNames::test_column_names_are_strings PASSED                            [ 36%]
+tests/test_procesador_csv.py::TestColumnNames::test_no_duplicate_column_names PASSED                           [ 36%]
+tests/test_procesador_csv.py::TestProcessingThresholds::test_custom_thresholds PASSED                          [ 36%]
+tests/test_procesador_csv.py::TestProcessingThresholds::test_default_thresholds PASSED                         [ 36%]
+tests/test_procesador_csv.py::TestDataValidator::test_detect_and_log_duplicates_no_duplicates PASSED           [ 37%]
+tests/test_procesador_csv.py::TestDataValidator::test_detect_and_log_duplicates_with_duplicates PASSED         [ 37%]
+tests/test_procesador_csv.py::TestDataValidator::test_validate_dataframe_none PASSED                           [ 37%]
+tests/test_procesador_csv.py::TestDataValidator::test_validate_dataframe_not_empty_failure PASSED              [ 37%]
+tests/test_procesador_csv.py::TestDataValidator::test_validate_dataframe_not_empty_success PASSED              [ 37%]
+tests/test_procesador_csv.py::TestDataValidator::test_validate_numeric_range_failure PASSED                    [ 37%]
+tests/test_procesador_csv.py::TestDataValidator::test_validate_numeric_range_success PASSED                    [ 38%]
+tests/test_procesador_csv.py::TestDataValidator::test_validate_required_columns_failure PASSED                 [ 38%]
+tests/test_procesador_csv.py::TestDataValidator::test_validate_required_columns_success PASSED                 [ 38%]
+tests/test_procesador_csv.py::TestFileValidator::test_validate_file_exists_failure PASSED                      [ 38%]
+tests/test_procesador_csv.py::TestFileValidator::test_validate_file_exists_success PASSED                      [ 38%]
+tests/test_procesador_csv.py::TestFileValidator::test_validate_file_is_directory PASSED                        [ 38%]
+tests/test_procesador_csv.py::TestPresupuestoProcessor::test_find_and_set_header_not_found FAILED              [ 39%]
+tests/test_procesador_csv.py::TestPresupuestoProcessor::test_find_and_set_header_success FAILED                [ 39%]
+tests/test_procesador_csv.py::TestPresupuestoProcessor::test_process_invalid_file FAILED                       [ 39%]
+tests/test_procesador_csv.py::TestPresupuestoProcessor::test_process_success FAILED                            [ 39%]
+tests/test_procesador_csv.py::TestPresupuestoProcessor::test_process_with_duplicates FAILED                    [ 39%]
+tests/test_procesador_csv.py::TestPresupuestoProcessor::test_process_with_single_digit_item FAILED             [ 40%]
+tests/test_procesador_csv.py::TestInsumosProcessor::test_parse_file_structure FAILED                           [ 40%]
+tests/test_procesador_csv.py::TestInsumosProcessor::test_process_success FAILED                                [ 40%]
+tests/test_procesador_csv.py::TestInsumosProcessor::test_process_with_duplicates FAILED                        [ 40%]
+tests/test_procesador_csv.py::TestAPUCostCalculator::test_calculate_complete_flow PASSED                       [ 40%]
+tests/test_procesador_csv.py::TestAPUCostCalculator::test_classify_apus_instalacion PASSED                     [ 40%]
+tests/test_procesador_csv.py::TestAPUCostCalculator::test_classify_apus_obra_completa PASSED                   [ 41%]
+tests/test_procesador_csv.py::TestAPUCostCalculator::test_classify_apus_suministro PASSED                      [ 41%]
+tests/test_procesador_csv.py::TestAPUCostCalculator::test_detect_cost_outliers PASSED                          [ 41%]
+tests/test_procesador_csv.py::TestDataMerger::test_merge_apus_with_insumos_success PASSED                      [ 41%]
+tests/test_procesador_csv.py::TestDataMerger::test_merge_apus_without_normalized_desc PASSED                   [ 41%]
+tests/test_procesador_csv.py::TestDataMerger::test_merge_with_presupuesto_duplicates PASSED                    [ 42%]
+tests/test_procesador_csv.py::TestDataMerger::test_merge_with_presupuesto_success PASSED                       [ 42%]
+tests/test_procesador_csv.py::TestAuxiliaryFunctions::test_build_processed_apus_dataframe PASSED               [ 42%]
+tests/test_procesador_csv.py::TestAuxiliaryFunctions::test_calculate_insumo_costs PASSED                       [ 42%]
+tests/test_procesador_csv.py::TestAuxiliaryFunctions::test_calculate_total_costs PASSED                        [ 42%]
+tests/test_procesador_csv.py::TestAuxiliaryFunctions::test_calculate_total_costs_exceeds_threshold PASSED      [ 42%]
+tests/test_procesador_csv.py::TestAuxiliaryFunctions::test_group_and_split_description PASSED                  [ 43%]
+tests/test_procesador_csv.py::TestAuxiliaryFunctions::test_synchronize_data_sources PASSED                     [ 43%]
+tests/test_procesador_csv.py::TestProcessAllFilesIntegration::test_process_all_files_apu_load_failure_triggers_diagnostic PASSED [ 43%]
+tests/test_procesador_csv.py::TestProcessAllFilesIntegration::test_process_all_files_custom_thresholds PASSED  [ 43%]
+tests/test_procesador_csv.py::TestProcessAllFilesIntegration::test_process_all_files_empty_presupuesto PASSED  [ 43%]
+tests/test_procesador_csv.py::TestProcessAllFilesIntegration::test_process_all_files_file_not_found PASSED     [ 44%]
+tests/test_procesador_csv.py::TestProcessAllFilesIntegration::test_process_all_files_merge_error FAILED        [ 44%]
+tests/test_procesador_csv.py::TestProcessAllFilesIntegration::test_process_all_files_success FAILED            [ 44%]
+tests/test_procesador_csv.py::TestEdgeCases::test_empty_insumos_group FAILED                                   [ 44%]
+tests/test_procesador_csv.py::TestEdgeCases::test_negative_costs PASSED                                        [ 44%]
+tests/test_procesador_csv.py::TestEdgeCases::test_special_characters_in_descriptions PASSED                    [ 44%]
+tests/test_procesador_csv.py::TestEdgeCases::test_very_long_descriptions PASSED                                [ 45%]
+tests/test_procesador_csv.py::TestEdgeCases::test_zero_quantities PASSED                                       [ 45%]
+tests/test_report_parser_crudo.py::TestParserConfig::test_default_config_creation PASSED                       [ 45%]
+tests/test_report_parser_crudo.py::TestParserConfig::test_custom_config_creation PASSED                        [ 45%]
+tests/test_report_parser_crudo.py::TestAPUContext::test_valid_apu_context_creation PASSED                      [ 45%]
+tests/test_report_parser_crudo.py::TestAPUContext::test_apu_context_normalization PASSED                       [ 45%]
+tests/test_report_parser_crudo.py::TestAPUContext::test_empty_apu_code_raises_error PASSED                     [ 46%]
+tests/test_report_parser_crudo.py::TestAPUContext::test_is_valid_property PASSED                               [ 46%]
+tests/test_report_parser_crudo.py::TestReportParserInitialization::test_valid_file_initialization FAILED       [ 46%]
+tests/test_report_parser_crudo.py::TestReportParserInitialization::test_file_not_found_raises_error FAILED     [ 46%]
+tests/test_report_parser_crudo.py::TestReportParserInitialization::test_directory_path_raises_error FAILED     [ 46%]
+tests/test_report_parser_crudo.py::TestReportParserInitialization::test_empty_file_raises_error FAILED         [ 47%]
+tests/test_report_parser_crudo.py::TestFileReading::test_read_utf8_file FAILED                                 [ 47%]
+tests/test_report_parser_crudo.py::TestFileReading::test_read_latin1_file FAILED                               [ 47%]
+tests/test_report_parser_crudo.py::TestFileReading::test_all_encodings_fail FAILED                             [ 47%]
+tests/test_report_parser_crudo.py::TestCompleteParsing::test_parse_lines_format FAILED                         [ 47%]
+tests/test_report_parser_crudo.py::TestCompleteParsing::test_parse_invalid_content FAILED                      [ 47%]
+tests/test_report_parser_crudo.py::TestCompleteParsing::test_parse_already_parsed FAILED                       [ 48%]
+tests/test_report_parser_crudo.py::TestEdgeCases::test_only_whitespace_file FAILED                             [ 48%]
+tests/test_schemas.py::TestNormalizeUnit::test_normalize_unit_basic PASSED                                     [ 48%]
+tests/test_schemas.py::TestNormalizeUnit::test_normalize_unit_case_insensitive PASSED                          [ 48%]
+tests/test_schemas.py::TestNormalizeUnit::test_normalize_unit_with_spaces PASSED                               [ 48%]
+tests/test_schemas.py::TestNormalizeUnit::test_normalize_unit_none PASSED                                      [ 49%]
+tests/test_schemas.py::TestNormalizeUnit::test_normalize_unit_empty_string PASSED                              [ 49%]
+tests/test_schemas.py::TestNormalizeUnit::test_normalize_unit_not_in_map PASSED                                [ 49%]
+tests/test_schemas.py::TestNormalizeUnit::test_normalize_unit_time_units PASSED                                [ 49%]
+tests/test_schemas.py::TestNormalizeUnit::test_normalize_unit_mass_units PASSED                                [ 49%]
+tests/test_schemas.py::TestNormalizeUnit::test_normalize_unit_volume_units PASSED                              [ 49%]
+tests/test_schemas.py::TestNormalizeUnit::test_normalize_unit_area_units PASSED                                [ 50%]
+tests/test_schemas.py::TestNormalizeUnit::test_normalize_unit_transport_units PASSED                           [ 50%]
+tests/test_schemas.py::TestNormalizeUnit::test_normalize_unit_cache PASSED                                     [ 50%]
+tests/test_schemas.py::TestNormalizeUnit::test_normalize_unit_invalid_type PASSED                              [ 50%]
+tests/test_schemas.py::TestNormalizeDescription::test_normalize_description_basic PASSED                       [ 50%]
+tests/test_schemas.py::TestNormalizeDescription::test_normalize_description_accents PASSED                     [ 50%]
+tests/test_schemas.py::TestNormalizeDescription::test_normalize_description_multiple_spaces PASSED             [ 51%]
+tests/test_schemas.py::TestNormalizeDescription::test_normalize_description_special_chars PASSED               [ 51%]
+tests/test_schemas.py::TestNormalizeDescription::test_normalize_description_leading_trailing_spaces PASSED     [ 51%]
+tests/test_schemas.py::TestNormalizeDescription::test_normalize_description_none PASSED                        [ 51%]
+tests/test_schemas.py::TestNormalizeDescription::test_normalize_description_empty_string PASSED                [ 51%]
+tests/test_schemas.py::TestNormalizeDescription::test_normalize_description_numbers PASSED                     [ 52%]
+tests/test_schemas.py::TestNormalizeDescription::test_normalize_description_parentheses PASSED                 [ 52%]
+tests/test_schemas.py::TestNormalizeDescription::test_normalize_description_cache PASSED                       [ 52%]
+tests/test_schemas.py::TestNormalizeDescription::test_normalize_description_invalid_type PASSED                [ 52%]
+tests/test_schemas.py::TestNormalizeCodigo::test_normalize_codigo_basic PASSED                                 [ 52%]
+tests/test_schemas.py::TestNormalizeCodigo::test_normalize_codigo_uppercase PASSED                             [ 52%]
+tests/test_schemas.py::TestNormalizeCodigo::test_normalize_codigo_with_spaces PASSED                           [ 53%]
+tests/test_schemas.py::TestNormalizeCodigo::test_normalize_codigo_special_chars PASSED                         [ 53%]
+tests/test_schemas.py::TestNormalizeCodigo::test_normalize_codigo_preserve_valid_chars PASSED                  [ 53%]
+tests/test_schemas.py::TestNormalizeCodigo::test_normalize_codigo_none_raises_error PASSED                     [ 53%]
+tests/test_schemas.py::TestNormalizeCodigo::test_normalize_codigo_empty_raises_error PASSED                    [ 53%]
+tests/test_schemas.py::TestNormalizeCodigo::test_normalize_codigo_too_long_raises_error PASSED                 [ 54%]
+tests/test_schemas.py::TestNormalizeCodigo::test_normalize_codigo_cache PASSED                                 [ 54%]
+tests/test_schemas.py::TestNumericValidator::test_validate_non_negative_valid_int PASSED                       [ 54%]
+tests/test_schemas.py::TestNumericValidator::test_validate_non_negative_valid_float PASSED                     [ 54%]
+tests/test_schemas.py::TestNumericValidator::test_validate_non_negative_decimal PASSED                         [ 54%]
+tests/test_schemas.py::TestNumericValidator::test_validate_non_negative_zero PASSED                            [ 54%]
+tests/test_schemas.py::TestNumericValidator::test_validate_non_negative_negative_raises_error PASSED           [ 55%]
+tests/test_schemas.py::TestNumericValidator::test_validate_non_negative_with_min_value PASSED                  [ 55%]
+tests/test_schemas.py::TestNumericValidator::test_validate_non_negative_with_max_value PASSED                  [ 55%]
+tests/test_schemas.py::TestNumericValidator::test_validate_non_negative_with_range PASSED                      [ 55%]
+tests/test_schemas.py::TestNumericValidator::test_validate_non_negative_invalid_type PASSED                    [ 55%]
+tests/test_schemas.py::TestNumericValidator::test_validate_non_negative_nan_raises_error PASSED                [ 55%]
+tests/test_schemas.py::TestNumericValidator::test_validate_non_negative_inf_raises_error PASSED                [ 56%]
+tests/test_schemas.py::TestNumericValidator::test_validate_positive_valid PASSED                               [ 56%]
+tests/test_schemas.py::TestNumericValidator::test_validate_positive_zero_raises_error PASSED                   [ 56%]
+tests/test_schemas.py::TestNumericValidator::test_validate_positive_negative_raises_error PASSED               [ 56%]
+tests/test_schemas.py::TestStringValidator::test_validate_non_empty_valid PASSED                               [ 56%]
+tests/test_schemas.py::TestStringValidator::test_validate_non_empty_with_spaces PASSED                         [ 57%]
+tests/test_schemas.py::TestStringValidator::test_validate_non_empty_empty_raises_error PASSED                  [ 57%]
+tests/test_schemas.py::TestStringValidator::test_validate_non_empty_whitespace_raises_error PASSED             [ 57%]
+tests/test_schemas.py::TestStringValidator::test_validate_non_empty_invalid_type_raises_error PASSED           [ 57%]
+tests/test_schemas.py::TestStringValidator::test_validate_non_empty_with_max_length PASSED                     [ 57%]
+tests/test_schemas.py::TestStringValidator::test_validate_non_empty_none_raises_error PASSED                   [ 57%]
+tests/test_schemas.py::TestTipoInsumo::test_tipo_insumo_values PASSED                                          [ 58%]
+tests/test_schemas.py::TestTipoInsumo::test_from_string_valid PASSED                                           [ 58%]
+tests/test_schemas.py::TestTipoInsumo::test_from_string_with_spaces PASSED                                     [ 58%]
+tests/test_schemas.py::TestTipoInsumo::test_from_string_already_enum PASSED                                    [ 58%]
+tests/test_schemas.py::TestTipoInsumo::test_from_string_invalid_raises_error PASSED                            [ 58%]
+tests/test_schemas.py::TestTipoInsumo::test_get_valid_values PASSED                                            [ 59%]
+tests/test_schemas.py::TestInsumoProcesado::test_create_valid_insumo PASSED                                    [ 59%]
+tests/test_schemas.py::TestInsumoProcesado::test_normalization_in_post_init PASSED                             [ 59%]
+tests/test_schemas.py::TestInsumoProcesado::test_description_normalization PASSED                              [ 59%]
+tests/test_schemas.py::TestInsumoProcesado::test_tipo_categoria_sync PASSED                                    [ 59%]
+tests/test_schemas.py::TestInsumoProcesado::test_empty_codigo_raises_error PASSED                              [ 59%]
+tests/test_schemas.py::TestInsumoProcesado::test_empty_descripcion_raises_error PASSED                         [ 60%]
+tests/test_schemas.py::TestInsumoProcesado::test_negative_cantidad_raises_error PASSED                         [ 60%]
+tests/test_schemas.py::TestInsumoProcesado::test_negative_precio_raises_error PASSED                           [ 60%]
+tests/test_schemas.py::TestInsumoProcesado::test_valor_total_consistency_warning PASSED                        [ 60%]
+tests/test_schemas.py::TestInsumoProcesado::test_to_dict PASSED                                                [ 60%]
+tests/test_schemas.py::TestInsumoProcesado::test_validate_method PASSED                                        [ 61%]
+tests/test_schemas.py::TestInsumoProcesado::test_repr PASSED                                                   [ 61%]
+tests/test_schemas.py::TestManoDeObra::test_create_valid_mano_obra PASSED                                      [ 61%]
+tests/test_schemas.py::TestManoDeObra::test_rendimiento_required PASSED                                        [ 61%]
+tests/test_schemas.py::TestManoDeObra::test_rendimiento_cantidad_consistency PASSED                            [ 61%]
+tests/test_schemas.py::TestManoDeObra::test_expected_units_warning PASSED                                      [ 61%]
+tests/test_schemas.py::TestManoDeObra::test_jornal_validation PASSED                                           [ 62%]
+tests/test_schemas.py::TestManoDeObra::test_jornal_negative_raises_error PASSED                                [ 62%]
+tests/test_schemas.py::TestEquipo::test_create_valid_equipo PASSED                                             [ 62%]
+tests/test_schemas.py::TestEquipo::test_rendimiento_should_be_zero PASSED                                      [ 62%]
+tests/test_schemas.py::TestEquipo::test_expected_time_units PASSED                                             [ 62%]
+tests/test_schemas.py::TestSuministro::test_create_valid_suministro PASSED                                     [ 62%]
+tests/test_schemas.py::TestSuministro::test_cantidad_zero_warning PASSED                                       [ 63%]
+tests/test_schemas.py::TestSuministro::test_rendimiento_should_be_zero PASSED                                  [ 63%]
+tests/test_schemas.py::TestSuministro::test_expected_units PASSED                                              [ 63%]
+tests/test_schemas.py::TestTransporte::test_create_valid_transporte PASSED                                     [ 63%]
+tests/test_schemas.py::TestTransporte::test_expected_transport_units PASSED                                    [ 63%]
+tests/test_schemas.py::TestTransporte::test_rendimiento_should_be_zero PASSED                                  [ 64%]
+tests/test_schemas.py::TestOtro::test_create_valid_otro PASSED                                                 [ 64%]
+tests/test_schemas.py::TestOtro::test_flexible_units PASSED                                                    [ 64%]
+tests/test_schemas.py::TestCreateInsumo::test_create_mano_obra PASSED                                          [ 64%]
+tests/test_schemas.py::TestCreateInsumo::test_create_equipo PASSED                                             [ 64%]
+tests/test_schemas.py::TestCreateInsumo::test_create_suministro PASSED                                         [ 64%]
+tests/test_schemas.py::TestCreateInsumo::test_create_transporte PASSED                                         [ 65%]
+tests/test_schemas.py::TestCreateInsumo::test_create_otro PASSED                                               [ 65%]
+tests/test_schemas.py::TestCreateInsumo::test_create_with_enum PASSED                                          [ 65%]
+tests/test_schemas.py::TestCreateInsumo::test_create_case_insensitive PASSED                                   [ 65%]
+tests/test_schemas.py::TestCreateInsumo::test_create_invalid_tipo_raises_error PASSED                          [ 65%]
+tests/test_schemas.py::TestCreateInsumo::test_create_missing_kwargs_raises_error PASSED                        [ 66%]
+tests/test_schemas.py::TestCreateInsumo::test_create_forces_tipo_sync PASSED                                   [ 66%]
+tests/test_schemas.py::TestValidateInsumoData::test_validate_complete_data PASSED                              [ 66%]
+tests/test_schemas.py::TestValidateInsumoData::test_validate_adds_defaults PASSED                              [ 66%]
+tests/test_schemas.py::TestValidateInsumoData::test_validate_converts_numeric_strings PASSED                   [ 66%]
+tests/test_schemas.py::TestValidateInsumoData::test_validate_missing_required_raises_error PASSED              [ 66%]
+tests/test_schemas.py::TestValidateInsumoData::test_validate_null_required_raises_error PASSED                 [ 67%]
+tests/test_schemas.py::TestValidateInsumoData::test_validate_invalid_numeric_raises_error PASSED               [ 67%]
+tests/test_schemas.py::TestValidateInsumoData::test_validate_normalizes_tipo PASSED                            [ 67%]
+tests/test_schemas.py::TestValidateInsumoData::test_validate_calculates_valor_total PASSED                     [ 67%]
+tests/test_schemas.py::TestValidateInsumoData::test_validate_not_dict_raises_error PASSED                      [ 67%]
+tests/test_schemas.py::TestCreateInsumoFromRaw::test_create_from_raw_success PASSED                            [ 67%]
+tests/test_schemas.py::TestCreateInsumoFromRaw::test_create_from_raw_invalid_data PASSED                       [ 68%]
+tests/test_schemas.py::TestUtilityFunctions::test_get_tipo_insumo_class_valid PASSED                           [ 68%]
+tests/test_schemas.py::TestUtilityFunctions::test_get_tipo_insumo_class_with_enum PASSED                       [ 68%]
+tests/test_schemas.py::TestUtilityFunctions::test_get_tipo_insumo_class_invalid_raises_error PASSED            [ 68%]
+tests/test_schemas.py::TestUtilityFunctions::test_get_all_tipo_insumo_values PASSED                            [ 68%]
+tests/test_schemas.py::TestUtilityFunctions::test_is_valid_tipo_insumo_valid PASSED                            [ 69%]
+tests/test_schemas.py::TestUtilityFunctions::test_is_valid_tipo_insumo_invalid PASSED                          [ 69%]
+tests/test_schemas.py::TestConstants::test_unidad_normalizada_map_exists PASSED                                [ 69%]
+tests/test_schemas.py::TestConstants::test_insumo_class_map_complete PASSED                                    [ 69%]
+tests/test_schemas.py::TestConstants::test_tolerance_values PASSED                                             [ 69%]
+tests/test_schemas.py::TestConstants::test_length_limits PASSED                                                [ 69%]
+tests/test_schemas.py::TestConstants::test_numeric_limits PASSED                                               [ 70%]
+tests/test_schemas.py::TestConstants::test_unit_sets PASSED                                                    [ 70%]
+tests/test_schemas.py::TestIntegration::test_full_workflow_create_validate_serialize PASSED                    [ 70%]
+tests/test_schemas.py::TestIntegration::test_workflow_all_types PASSED                                         [ 70%]
+tests/test_schemas.py::TestEdgeCases::test_very_large_values PASSED                                            [ 70%]
+tests/test_schemas.py::TestEdgeCases::test_very_small_values PASSED                                            [ 71%]
+tests/test_schemas.py::TestEdgeCases::test_zero_values PASSED                                                  [ 71%]
+tests/test_schemas.py::TestEdgeCases::test_unicode_characters PASSED                                           [ 71%]
+tests/test_schemas.py::TestEdgeCases::test_very_long_description PASSED                                        [ 71%]
+tests/test_schemas.py::TestEdgeCases::test_decimal_precision PASSED                                            [ 71%]
+tests/test_utils.py::TestNormalizeText::test_normalize_simple_text PASSED                                      [ 71%]
+tests/test_utils.py::TestNormalizeText::test_normalize_accents PASSED                                          [ 72%]
+tests/test_utils.py::TestNormalizeText::test_normalize_special_chars_default PASSED                            [ 72%]
+tests/test_utils.py::TestNormalizeText::test_normalize_preserve_special_chars PASSED                           [ 72%]
+tests/test_utils.py::TestNormalizeText::test_normalize_multiple_spaces PASSED                                  [ 72%]
+tests/test_utils.py::TestNormalizeText::test_normalize_empty_string PASSED                                     [ 72%]
+tests/test_utils.py::TestNormalizeText::test_normalize_none_raises_type_error PASSED                           [ 72%]
+tests/test_utils.py::TestNormalizeText::test_normalize_numeric_input PASSED                                    [ 73%]
+tests/test_utils.py::TestNormalizeText::test_normalize_case_insensitive PASSED                                 [ 73%]
+tests/test_utils.py::TestNormalizeText::test_normalize_cache_hit PASSED                                        [ 73%]
+tests/test_utils.py::TestNormalizeTextSeries::test_normalize_series_basic PASSED                               [ 73%]
+tests/test_utils.py::TestNormalizeTextSeries::test_normalize_series_empty PASSED                               [ 73%]
+tests/test_utils.py::TestNormalizeTextSeries::test_normalize_series_none_input PASSED                          [ 74%]
+tests/test_utils.py::TestNormalizeTextSeries::test_normalize_series_with_nulls PASSED                          [ 74%]
+tests/test_utils.py::TestNormalizeTextSeries::test_normalize_series_large_chunks PASSED                        [ 74%]
+tests/test_utils.py::TestNormalizeTextSeries::test_normalize_series_preserve_special PASSED                    [ 74%]
+tests/test_utils.py::TestParseNumber::test_parse_integer_string PASSED                                         [ 74%]
+tests/test_utils.py::TestParseNumber::test_parse_float_string PASSED                                           [ 74%]
+tests/test_utils.py::TestParseNumber::test_parse_float_comma_separator PASSED                                  [ 75%]
+tests/test_utils.py::TestParseNumber::test_parse_direct_numeric PASSED                                         [ 75%]
+tests/test_utils.py::TestParseNumber::test_parse_none_returns_default PASSED                                   [ 75%]
+tests/test_utils.py::TestParseNumber::test_parse_thousands_comma_separator PASSED                              [ 75%]
+tests/test_utils.py::TestParseNumber::test_parse_thousands_dot_separator PASSED                                [ 75%]
+tests/test_utils.py::TestParseNumber::test_parse_thousands_space_separator PASSED                              [ 76%]
+tests/test_utils.py::TestParseNumber::test_parse_percentage PASSED                                             [ 76%]
+tests/test_utils.py::TestParseNumber::test_parse_percentage_disabled PASSED                                    [ 76%]
+tests/test_utils.py::TestParseNumber::test_parse_scientific_notation PASSED                                    [ 76%]
+tests/test_utils.py::TestParseNumber::test_parse_scientific_disabled PASSED                                    [ 76%]
+tests/test_utils.py::TestParseNumber::test_parse_currency_symbols PASSED                                       [ 76%]
+tests/test_utils.py::TestParseNumber::test_parse_negative_numbers PASSED                                       [ 77%]
+tests/test_utils.py::TestParseNumber::test_parse_positive_sign PASSED                                          [ 77%]
+tests/test_utils.py::TestParseNumber::test_parse_multiple_signs PASSED                                         [ 77%]
+tests/test_utils.py::TestParseNumber::test_parse_empty_string PASSED                                           [ 77%]
+tests/test_utils.py::TestParseNumber::test_parse_non_numeric_text PASSED                                       [ 77%]
+tests/test_utils.py::TestParseNumber::test_parse_very_small_number PASSED                                      [ 77%]
+tests/test_utils.py::TestParseNumber::test_parse_very_large_number PASSED                                      [ 78%]
+tests/test_utils.py::TestParseNumber::test_parse_zero_variations PASSED                                        [ 78%]
+tests/test_utils.py::TestParseNumber::test_parse_strict_mode_raises_exception PASSED                           [ 78%]
+tests/test_utils.py::TestParseNumber::test_parse_strict_mode_valid_input PASSED                                [ 78%]
+tests/test_utils.py::TestParseNumber::test_parse_debug_mode PASSED                                             [ 78%]
+tests/test_utils.py::TestParseNumber::test_parse_only_decimal_separator PASSED                                 [ 79%]
+tests/test_utils.py::TestParseNumber::test_parse_multiple_decimal_separators PASSED                            [ 79%]
+tests/test_utils.py::TestParseNumber::test_parse_whitespace_only PASSED                                        [ 79%]
+tests/test_utils.py::TestCleanApuCode::test_limpieza_basica PASSED                                             [ 79%]
+tests/test_utils.py::TestCleanApuCode::test_min_length PASSED                                                  [ 79%]
+tests/test_utils.py::TestCleanApuCode::test_is_item_code PASSED                                                [ 79%]
+tests/test_utils.py::TestCleanApuCode::test_validate_format_exceptions PASSED                                  [ 80%]
+tests/test_utils.py::TestCleanApuCode::test_no_validate_format PASSED                                          [ 80%]
+tests/test_utils.py::TestCleanApuCode::test_warnings PASSED                                                    [ 80%]
+tests/test_utils.py::TestCleanApuCode::test_correcciones_automaticas PASSED                                    [ 80%]
+tests/test_utils.py::TestCleanApuCode::test_tipos_de_entrada PASSED                                            [ 80%]
+tests/test_utils.py::TestCleanApuCode::test_item_code_cleaning_and_warnings[1-1-False] PASSED                  [ 81%]
+tests/test_utils.py::TestCleanApuCode::test_item_code_cleaning_and_warnings[1.2.3-1.2.3-False] PASSED          [ 81%]
+tests/test_utils.py::TestCleanApuCode::test_item_code_cleaning_and_warnings[A.1-A.1-False] PASSED              [ 81%]
+tests/test_utils.py::TestCleanApuCode::test_item_code_cleaning_and_warnings[ITEM-01-ITEM-01-False] PASSED      [ 81%]
+tests/test_utils.py::TestCleanApuCode::test_item_code_cleaning_and_warnings[1.-1-False] PASSED                 [ 81%]
+tests/test_utils.py::TestCleanApuCode::test_item_code_cleaning_and_warnings[.1-1-False] PASSED                 [ 81%]
+tests/test_utils.py::TestCleanApuCode::test_item_code_cleaning_and_warnings[A-B--A-B-False] PASSED             [ 82%]
+tests/test_utils.py::TestCleanApuCode::test_item_code_invalid_raises_error PASSED                              [ 82%]
+tests/test_utils.py::TestNormalizeUnit::test_normalize_standard_unit PASSED                                    [ 82%]
+tests/test_utils.py::TestNormalizeUnit::test_normalize_mapped_unit PASSED                                      [ 82%]
+tests/test_utils.py::TestNormalizeUnit::test_normalize_case_insensitive PASSED                                 [ 82%]
+tests/test_utils.py::TestNormalizeUnit::test_normalize_with_spaces PASSED                                      [ 83%]
+tests/test_utils.py::TestNormalizeUnit::test_normalize_empty_returns_default PASSED                            [ 83%]
+tests/test_utils.py::TestNormalizeUnit::test_normalize_none_returns_default PASSED                             [ 83%]
+tests/test_utils.py::TestNormalizeUnit::test_normalize_unknown_unit PASSED                                     [ 83%]
+tests/test_utils.py::TestNormalizeUnit::test_normalize_special_chars_removal PASSED                            [ 83%]
+tests/test_utils.py::TestNormalizeUnit::test_normalize_cache_hit PASSED                                        [ 83%]
+tests/test_utils.py::TestSafeReadDataframe::test_read_csv_basic PASSED                                         [ 84%]
+tests/test_utils.py::TestSafeReadDataframe::test_read_csv_with_encoding_auto PASSED                            [ 84%]
+tests/test_utils.py::TestSafeReadDataframe::test_read_csv_with_nrows PASSED                                    [ 84%]
+tests/test_utils.py::TestSafeReadDataframe::test_read_csv_with_usecols PASSED                                  [ 84%]
+tests/test_utils.py::TestSafeReadDataframe::test_read_nonexistent_file PASSED                                  [ 84%]
+tests/test_utils.py::TestSafeReadDataframe::test_read_unsupported_format PASSED                                [ 84%]
+tests/test_utils.py::TestSafeReadDataframe::test_read_path_object PASSED                                       [ 85%]
+tests/test_utils.py::TestSafeReadDataframe::test_read_string_path PASSED                                       [ 85%]
+tests/test_utils.py::TestSafeReadDataframe::test_read_csv_separator_detection PASSED                           [ 85%]
+tests/test_utils.py::TestValidateNumericValue::test_validate_valid_number PASSED                               [ 85%]
+tests/test_utils.py::TestValidateNumericValue::test_validate_zero_allowed PASSED                               [ 85%]
+tests/test_utils.py::TestValidateNumericValue::test_validate_zero_not_allowed PASSED                           [ 86%]
+tests/test_utils.py::TestValidateNumericValue::test_validate_negative_allowed PASSED                           [ 86%]
+tests/test_utils.py::TestValidateNumericValue::test_validate_negative_not_allowed PASSED                       [ 86%]
+tests/test_utils.py::TestValidateNumericValue::test_validate_min_value PASSED                                  [ 86%]
+tests/test_utils.py::TestValidateNumericValue::test_validate_max_value PASSED                                  [ 86%]
+tests/test_utils.py::TestValidateNumericValue::test_validate_range PASSED                                      [ 86%]
+tests/test_utils.py::TestValidateNumericValue::test_validate_nan PASSED                                        [ 87%]
+tests/test_utils.py::TestValidateNumericValue::test_validate_inf_not_allowed PASSED                            [ 87%]
+tests/test_utils.py::TestValidateNumericValue::test_validate_inf_allowed PASSED                                [ 87%]
+tests/test_utils.py::TestValidateNumericValue::test_validate_non_numeric_type PASSED                           [ 87%]
+tests/test_utils.py::TestValidateNumericValue::test_validate_numpy_types PASSED                                [ 87%]
+tests/test_utils.py::TestValidateNumericValue::test_validate_field_name_in_message PASSED                      [ 88%]
+tests/test_utils.py::TestValidateSeries::test_validate_series_mask_mode PASSED                                 [ 88%]
+tests/test_utils.py::TestValidateSeries::test_validate_series_dataframe_mode PASSED                            [ 88%]
+tests/test_utils.py::TestValidateSeries::test_validate_empty_series PASSED                                     [ 88%]
+tests/test_utils.py::TestValidateSeries::test_validate_series_with_kwargs PASSED                               [ 88%]
+tests/test_utils.py::TestCreateApuSignature::test_signature_basic PASSED                                       [ 88%]
+tests/test_utils.py::TestCreateApuSignature::test_signature_custom_fields PASSED                               [ 89%]
+tests/test_utils.py::TestCreateApuSignature::test_signature_missing_fields PASSED                              [ 89%]
+tests/test_utils.py::TestCreateApuSignature::test_signature_empty_data PASSED                                  [ 89%]
+tests/test_utils.py::TestCreateApuSignature::test_signature_numeric_values PASSED                              [ 89%]
+tests/test_utils.py::TestCreateApuSignature::test_signature_normalization PASSED                               [ 89%]
+tests/test_utils.py::TestDetectOutliers::test_detect_outliers_iqr_basic PASSED                                 [ 89%]
+tests/test_utils.py::TestDetectOutliers::test_detect_outliers_with_bounds PASSED                               [ 90%]
+tests/test_utils.py::TestDetectOutliers::test_detect_outliers_zscore PASSED                                    [ 90%]
+tests/test_utils.py::TestDetectOutliers::test_detect_outliers_modified_zscore PASSED                           [ 90%]
+tests/test_utils.py::TestDetectOutliers::test_detect_outliers_empty_series PASSED                              [ 90%]
+tests/test_utils.py::TestDetectOutliers::test_detect_outliers_all_nan PASSED                                   [ 90%]
+tests/test_utils.py::TestDetectOutliers::test_detect_outliers_invalid_method PASSED                            [ 91%]
+tests/test_utils.py::TestDetectOutliers::test_detect_outliers_constant_series PASSED                           [ 91%]
+tests/test_utils.py::TestDetectOutliers::test_detect_outliers_custom_threshold PASSED                          [ 91%]
+tests/test_utils.py::TestFindAndRenameColumns::test_rename_exact_match PASSED                                  [ 91%]
+tests/test_utils.py::TestFindAndRenameColumns::test_rename_partial_match PASSED                                [ 91%]
+tests/test_utils.py::TestFindAndRenameColumns::test_rename_case_insensitive PASSED                             [ 91%]
+tests/test_utils.py::TestFindAndRenameColumns::test_rename_case_sensitive PASSED                               [ 92%]
+tests/test_utils.py::TestFindAndRenameColumns::test_rename_multiple_possibilities PASSED                       [ 92%]
+tests/test_utils.py::TestFindAndRenameColumns::test_rename_empty_dataframe PASSED                              [ 92%]
+tests/test_utils.py::TestFindAndRenameColumns::test_rename_no_matches PASSED                                   [ 92%]
+tests/test_utils.py::TestBatchProcessDataframe::test_batch_process_small_df PASSED                             [ 92%]
+tests/test_utils.py::TestBatchProcessDataframe::test_batch_process_large_df PASSED                             [ 93%]
+tests/test_utils.py::TestBatchProcessDataframe::test_batch_process_with_kwargs PASSED                          [ 93%]
+tests/test_utils.py::TestSanitizeForJson::test_sanitize_basic_types PASSED                                     [ 93%]
+tests/test_utils.py::TestSanitizeForJson::test_sanitize_numpy_types PASSED                                     [ 93%]
+tests/test_utils.py::TestSanitizeForJson::test_sanitize_pandas_types PASSED                                    [ 93%]
+tests/test_utils.py::TestSanitizeForJson::test_sanitize_nan_inf PASSED                                         [ 93%]
+tests/test_utils.py::TestSanitizeForJson::test_sanitize_pandas_na PASSED                                       [ 94%]
+tests/test_utils.py::TestSanitizeForJson::test_sanitize_nested_structures PASSED                               [ 94%]
+tests/test_utils.py::TestSanitizeForJson::test_sanitize_max_depth_error PASSED                                 [ 94%]
+tests/test_utils.py::TestSanitizeForJson::test_sanitize_datetime PASSED                                        [ 94%]
+tests/test_utils.py::TestCalculateStatistics::test_statistics_basic PASSED                                     [ 94%]
+tests/test_utils.py::TestCalculateStatistics::test_statistics_with_nulls PASSED                                [ 94%]
+tests/test_utils.py::TestCalculateStatistics::test_statistics_empty_series PASSED                              [ 95%]
+tests/test_utils.py::TestCalculateStatistics::test_statistics_all_nan PASSED                                   [ 95%]
+tests/test_utils.py::TestCalculateStatistics::test_statistics_quartiles PASSED                                 [ 95%]
+tests/test_utils.py::TestCalculateStdDev::test_std_dev_basic PASSED                                            [ 95%]
+tests/test_utils.py::TestCalculateStdDev::test_std_dev_constant_values PASSED                                  [ 95%]
+tests/test_utils.py::TestCalculateStdDev::test_std_dev_single_value PASSED                                     [ 96%]
+tests/test_utils.py::TestCalculateStdDev::test_std_dev_empty_list PASSED                                       [ 96%]
+tests/test_utils.py::TestCalculateUnitCosts::test_calculate_costs_basic PASSED                                 [ 96%]
+tests/test_utils.py::TestCalculateUnitCosts::test_calculate_costs_empty_df PASSED                              [ 96%]
+tests/test_utils.py::TestCalculateUnitCosts::test_calculate_costs_missing_columns PASSED                       [ 96%]
+tests/test_utils.py::TestCalculateUnitCosts::test_calculate_costs_aggregation PASSED                           [ 96%]
+tests/test_utils.py::TestCalculateUnitCosts::test_calculate_costs_percentages PASSED                           [ 97%]
+tests/test_utils.py::TestCalculateUnitCosts::test_calculate_costs_zero_division PASSED                         [ 97%]
+tests/test_utils.py::TestIntegration::test_full_workflow_text_processing PASSED                                [ 97%]
+tests/test_utils.py::TestIntegration::test_full_workflow_numeric_processing PASSED                             [ 97%]
+tests/test_utils.py::TestIntegration::test_full_workflow_dataframe_processing PASSED                           [ 97%]
+tests/test_utils.py::TestIntegration::test_full_workflow_apu_processing PASSED                                 [ 98%]
+tests/test_utils.py::TestPerformance::test_normalize_text_cache_performance PASSED                             [ 98%]
+tests/test_utils.py::TestPerformance::test_parse_number_performance PASSED                                     [ 98%]
+tests/test_utils.py::TestPerformance::test_batch_processing_efficiency PASSED                                  [ 98%]
+tests/test_utils.py::TestConstants::test_standard_units_is_frozen_set PASSED                                   [ 98%]
+tests/test_utils.py::TestConstants::test_standard_units_contains_common_units PASSED                           [ 98%]
+tests/test_utils.py::TestConstants::test_unit_mapping_is_dict PASSED                                           [ 99%]
+tests/test_utils.py::TestConstants::test_unit_mapping_consistency PASSED                                       [ 99%]
+tests/test_utils.py::TestErrorHandling::test_normalize_text_invalid_type_handling PASSED                       [ 99%]
+tests/test_utils.py::TestErrorHandling::test_parse_number_extreme_values PASSED                                [ 99%]
+tests/test_utils.py::TestErrorHandling::test_validate_numeric_mixed_types PASSED                               [ 99%]
+tests/test_utils.py::TestErrorHandling::test_safe_read_corrupted_file PASSED                                   [100%]
+
+====================================================== FAILURES ======================================================
+____________________________ TestPresupuestoProcessor.test_find_and_set_header_not_found _____________________________
+
+self = <tests.test_procesador_csv.TestPresupuestoProcessor testMethod=test_find_and_set_header_not_found>
+
+    def setUp(self):
+        self.config = TEST_CONFIG.copy()
+        self.thresholds = ProcessingThresholds()
+>       self.processor = PresupuestoProcessor(self.config, self.thresholds)
+E       TypeError: PresupuestoProcessor.__init__() missing 1 required positional argument: 'profile'
+
+tests/test_procesador_csv.py:386: TypeError
+_____________________________ TestPresupuestoProcessor.test_find_and_set_header_success ______________________________
+
+self = <tests.test_procesador_csv.TestPresupuestoProcessor testMethod=test_find_and_set_header_success>
+
+    def setUp(self):
+        self.config = TEST_CONFIG.copy()
+        self.thresholds = ProcessingThresholds()
+>       self.processor = PresupuestoProcessor(self.config, self.thresholds)
+E       TypeError: PresupuestoProcessor.__init__() missing 1 required positional argument: 'profile'
+
+tests/test_procesador_csv.py:386: TypeError
+_________________________________ TestPresupuestoProcessor.test_process_invalid_file _________________________________
+
+self = <tests.test_procesador_csv.TestPresupuestoProcessor testMethod=test_process_invalid_file>
+
+    def setUp(self):
+        self.config = TEST_CONFIG.copy()
+        self.thresholds = ProcessingThresholds()
+>       self.processor = PresupuestoProcessor(self.config, self.thresholds)
+E       TypeError: PresupuestoProcessor.__init__() missing 1 required positional argument: 'profile'
+
+tests/test_procesador_csv.py:386: TypeError
+___________________________________ TestPresupuestoProcessor.test_process_success ____________________________________
+
+self = <tests.test_procesador_csv.TestPresupuestoProcessor testMethod=test_process_success>
+
+    def setUp(self):
+        self.config = TEST_CONFIG.copy()
+        self.thresholds = ProcessingThresholds()
+>       self.processor = PresupuestoProcessor(self.config, self.thresholds)
+E       TypeError: PresupuestoProcessor.__init__() missing 1 required positional argument: 'profile'
+
+tests/test_procesador_csv.py:386: TypeError
+_______________________________ TestPresupuestoProcessor.test_process_with_duplicates ________________________________
+
+self = <tests.test_procesador_csv.TestPresupuestoProcessor testMethod=test_process_with_duplicates>
+
+    def setUp(self):
+        self.config = TEST_CONFIG.copy()
+        self.thresholds = ProcessingThresholds()
+>       self.processor = PresupuestoProcessor(self.config, self.thresholds)
+E       TypeError: PresupuestoProcessor.__init__() missing 1 required positional argument: 'profile'
+
+tests/test_procesador_csv.py:386: TypeError
+____________________________ TestPresupuestoProcessor.test_process_with_single_digit_item ____________________________
+
+self = <tests.test_procesador_csv.TestPresupuestoProcessor testMethod=test_process_with_single_digit_item>
+
+    def setUp(self):
+        self.config = TEST_CONFIG.copy()
+        self.thresholds = ProcessingThresholds()
+>       self.processor = PresupuestoProcessor(self.config, self.thresholds)
+E       TypeError: PresupuestoProcessor.__init__() missing 1 required positional argument: 'profile'
+
+tests/test_procesador_csv.py:386: TypeError
+___________________________________ TestInsumosProcessor.test_parse_file_structure ___________________________________
+
+self = <tests.test_procesador_csv.TestInsumosProcessor testMethod=test_parse_file_structure>
+
+    def setUp(self):
+        self.thresholds = ProcessingThresholds()
+>       self.processor = InsumosProcessor(self.thresholds)
+E       TypeError: InsumosProcessor.__init__() missing 1 required positional argument: 'profile'
+
+tests/test_procesador_csv.py:487: TypeError
+_____________________________________ TestInsumosProcessor.test_process_success ______________________________________
+
+self = <tests.test_procesador_csv.TestInsumosProcessor testMethod=test_process_success>
+
+    def setUp(self):
+        self.thresholds = ProcessingThresholds()
+>       self.processor = InsumosProcessor(self.thresholds)
+E       TypeError: InsumosProcessor.__init__() missing 1 required positional argument: 'profile'
+
+tests/test_procesador_csv.py:487: TypeError
+_________________________________ TestInsumosProcessor.test_process_with_duplicates __________________________________
+
+self = <tests.test_procesador_csv.TestInsumosProcessor testMethod=test_process_with_duplicates>
+
+    def setUp(self):
+        self.thresholds = ProcessingThresholds()
+>       self.processor = InsumosProcessor(self.thresholds)
+E       TypeError: InsumosProcessor.__init__() missing 1 required positional argument: 'profile'
+
+tests/test_procesador_csv.py:487: TypeError
+_________________________ TestProcessAllFilesIntegration.test_process_all_files_merge_error __________________________
+
+self = <tests.test_procesador_csv.TestProcessAllFilesIntegration testMethod=test_process_all_files_merge_error>
+
+    def test_process_all_files_merge_error(self):
+        """
+        Prueba el manejo de un pd.errors.MergeError durante el merge final.
+    
+        Esta prueba valida que si el merge entre el presupuesto y los costos de APU falla,
+        el pipeline se detiene de forma controlada y devuelve un diccionario de error.
+        """
+        # --- Configuración de Mocks ---
+        # 1. Mockeamos procesadores iniciales para que devuelvan DataFrames
+        #    válidos y no vacíos. Así, el pipeline progresa.
+        # 2. Mockeamos el método que queremos que falle: `merge_with_presupuesto`.
+    
+        with (
+            patch("app.procesador_csv.ReportParserCrudo") as mock_parser_class,
+            patch("app.procesador_csv.APUProcessor") as mock_processor_class,
+            patch(
+                "app.procesador_csv.DataMerger.merge_with_presupuesto"
+            ) as mock_final_merge,
+        ):
+            # Configurar mock de APUProcessor para que devuelva un DF realista.
+            # Esto es crucial para que los pasos intermedios funcionen.
+            mock_processor_instance = MagicMock()
+            mock_processor_instance.process_all.return_value = (
+                TestDataBuilder.create_sample_apus_df()
+            )
+            mock_processor_class.return_value = mock_processor_instance
+    
+            # El mock del ReportParserCrudo solo necesita devolver algo no vacío.
+            mock_parser_instance = MagicMock()
+            mock_parser_instance.parse_to_raw.return_value = [{"data": "dummy"}]
+            mock_parser_class.return_value = mock_parser_instance
+    
+            # --- ¡LA CLAVE DE LA SOLUCIÓN! ---
+            # Hacemos que `merge_with_presupuesto` lance el error deseado.
+            # El resto de DataMerger funcionará normalmente.
+            mock_final_merge.side_effect = pd.errors.MergeError(
+                "Simulated 1:1 merge error due to duplicates"
+            )
+    
+            # --- Ejecución ---
+            # Llamamos a la función principal que orquesta todo el proceso.
+            resultado = process_all_files(
+                self.presupuesto_path, self.apus_path, self.insumos_path, TEST_CONFIG
+            )
+    
+            # --- Aserciones ---
+            # 1. Verificar que la función devolvió un diccionario y no se estrelló.
+            self.assertIsInstance(resultado, dict)
+    
+            # 2. Verificar que el diccionario contiene la clave 'error'.
+            self.assertIn("error", resultado)
+    
+            # 3. Verificar que el mensaje de error esperado está presente.
+>           self.assertIn("merge", resultado["error"].lower())
+E           AssertionError: 'merge' not found in "error en el pipeline: no se encontró el perfil 'presupuesto_default' en config.json"
+
+tests/test_procesador_csv.py:1016: AssertionError
+------------------------------------------------ Captured stderr call ------------------------------------------------
+17:51:10 - INFO - ================================================================================
+17:51:10 - INFO - 🚀 Iniciando procesamiento de archivos con patrón pipeline...
+17:51:10 - INFO - ================================================================================
+17:51:10 - INFO - 🔄 Ejecutando pipeline de procesamiento...
+17:51:10 - ERROR - ❌ Error en el pipeline: No se encontró el perfil 'presupuesto_default' en config.json
+Traceback (most recent call last):
+  File "/home/gerardo/Documentos/GitHub/apu_filter/app/procesador_csv.py", line 1342, in _do_processing
+    final_context = pipeline.run(initial_context)
+  File "/home/gerardo/Documentos/GitHub/apu_filter/app/procesador_csv.py", line 112, in run
+    context = step.execute(context)
+  File "/home/gerardo/Documentos/GitHub/apu_filter/app/procesador_csv.py", line 275, in execute
+    raise ValueError("No se encontró el perfil 'presupuesto_default' en config.json")
+ValueError: No se encontró el perfil 'presupuesto_default' en config.json
+17:51:10 - INFO - ================================================================================
+------------------------------------------------- Captured log call --------------------------------------------------
+INFO     app.procesador_csv:procesador_csv.py:1295 ================================================================================
+INFO     app.procesador_csv:procesador_csv.py:1296 🚀 Iniciando procesamiento de archivos con patrón pipeline...
+INFO     app.procesador_csv:procesador_csv.py:1297 ================================================================================
+INFO     app.procesador_csv:procesador_csv.py:1341 🔄 Ejecutando pipeline de procesamiento...
+ERROR    app.procesador_csv:procesador_csv.py:1393 ❌ Error en el pipeline: No se encontró el perfil 'presupuesto_default' en config.json
+Traceback (most recent call last):
+  File "/home/gerardo/Documentos/GitHub/apu_filter/app/procesador_csv.py", line 1342, in _do_processing
+    final_context = pipeline.run(initial_context)
+  File "/home/gerardo/Documentos/GitHub/apu_filter/app/procesador_csv.py", line 112, in run
+    context = step.execute(context)
+  File "/home/gerardo/Documentos/GitHub/apu_filter/app/procesador_csv.py", line 275, in execute
+    raise ValueError("No se encontró el perfil 'presupuesto_default' en config.json")
+ValueError: No se encontró el perfil 'presupuesto_default' en config.json
+INFO     app.procesador_csv:procesador_csv.py:1404 ================================================================================
+___________________________ TestProcessAllFilesIntegration.test_process_all_files_success ____________________________
+
+self = <tests.test_procesador_csv.TestProcessAllFilesIntegration testMethod=test_process_all_files_success>
+mock_save_output_files = <MagicMock name='_save_output_files' id='138775189464416'>
+
+    @patch("app.procesador_csv._save_output_files")
+    def test_process_all_files_success(self, mock_save_output_files):
+        """Prueba procesamiento completo exitoso, simulando guardado de archivos."""
+        # Crear un mock de Path para evitar el error 'str' object has no attribute 'exists'
+        mock_path = MagicMock(spec=Path)
+        mock_path.exists.return_value = True
+        mock_path.stat.return_value.st_size = 12345
+        # Simulamos que _save_output_files devuelve un diccionario con mocks de Path
+        mock_save_output_files.return_value = {
+            "processed_apus": mock_path,
+            "presupuesto_final": mock_path,
+            "insumos_detalle": mock_path,
+        }
+    
+        with (
+            patch("app.procesador_csv.ReportParserCrudo") as mock_parser_class,
+            patch("app.procesador_csv.APUProcessor") as mock_processor_class,
+        ):
+            mock_parser = MagicMock()
+            mock_parser_class.return_value = mock_parser
+            mock_parser.parse_to_raw.return_value = []
+    
+            mock_processor = MagicMock()
+            mock_processor_class.return_value = mock_processor
+            mock_processor.process_all.return_value = TestDataBuilder.create_sample_apus_df()
+    
+            resultado = process_all_files(
+                self.presupuesto_path, self.apus_path, self.insumos_path, TEST_CONFIG
+            )
+    
+            self.assertIsInstance(resultado, dict)
+>           self.assertNotIn(
+                "error",
+                resultado,
+                f"Se encontró un error inesperado: {resultado.get('error')}",
+            )
+E           AssertionError: 'error' unexpectedly found in {'error': "Error en el pipeline: No se encontró el perfil 'presupuesto_default' en config.json"} : Se encontró un error inesperado: Error en el pipeline: No se encontró el perfil 'presupuesto_default' en config.json
+
+tests/test_procesador_csv.py:898: AssertionError
+------------------------------------------------ Captured stderr call ------------------------------------------------
+17:51:10 - INFO - ================================================================================
+17:51:10 - INFO - 🚀 Iniciando procesamiento de archivos con patrón pipeline...
+17:51:10 - INFO - ================================================================================
+17:51:10 - INFO - 🔄 Ejecutando pipeline de procesamiento...
+17:51:10 - ERROR - ❌ Error en el pipeline: No se encontró el perfil 'presupuesto_default' en config.json
+Traceback (most recent call last):
+  File "/home/gerardo/Documentos/GitHub/apu_filter/app/procesador_csv.py", line 1342, in _do_processing
+    final_context = pipeline.run(initial_context)
+  File "/home/gerardo/Documentos/GitHub/apu_filter/app/procesador_csv.py", line 112, in run
+    context = step.execute(context)
+  File "/home/gerardo/Documentos/GitHub/apu_filter/app/procesador_csv.py", line 275, in execute
+    raise ValueError("No se encontró el perfil 'presupuesto_default' en config.json")
+ValueError: No se encontró el perfil 'presupuesto_default' en config.json
+17:51:10 - INFO - ================================================================================
+------------------------------------------------- Captured log call --------------------------------------------------
+INFO     app.procesador_csv:procesador_csv.py:1295 ================================================================================
+INFO     app.procesador_csv:procesador_csv.py:1296 🚀 Iniciando procesamiento de archivos con patrón pipeline...
+INFO     app.procesador_csv:procesador_csv.py:1297 ================================================================================
+INFO     app.procesador_csv:procesador_csv.py:1341 🔄 Ejecutando pipeline de procesamiento...
+ERROR    app.procesador_csv:procesador_csv.py:1393 ❌ Error en el pipeline: No se encontró el perfil 'presupuesto_default' en config.json
+Traceback (most recent call last):
+  File "/home/gerardo/Documentos/GitHub/apu_filter/app/procesador_csv.py", line 1342, in _do_processing
+    final_context = pipeline.run(initial_context)
+  File "/home/gerardo/Documentos/GitHub/apu_filter/app/procesador_csv.py", line 112, in run
+    context = step.execute(context)
+  File "/home/gerardo/Documentos/GitHub/apu_filter/app/procesador_csv.py", line 275, in execute
+    raise ValueError("No se encontró el perfil 'presupuesto_default' en config.json")
+ValueError: No se encontró el perfil 'presupuesto_default' en config.json
+INFO     app.procesador_csv:procesador_csv.py:1404 ================================================================================
+_______________________________________ TestEdgeCases.test_empty_insumos_group _______________________________________
+
+self = <tests.test_procesador_csv.TestEdgeCases testMethod=test_empty_insumos_group>
+
+    def test_empty_insumos_group(self):
+        """Prueba manejo de grupos de insumos vacíos."""
+        temp_file = self.temp_manager.create_temp_file()
+        data = (
+            "G;MATERIALES\n"
+            "CODIGO;DESCRIPCION;UND;CANT.;VR. UNIT.\n"
+            "G;MANO DE OBRA\n"  # Grupo sin datos
+            "CODIGO;DESCRIPCION;UND;CANT.;VR. UNIT.\n"
+            "MO01;OFICIAL;JOR;1;80000\n"
+        )
+        TestDataBuilder.create_insumos_csv(temp_file, data)
+    
+>       processor = InsumosProcessor(self.thresholds)
+E       TypeError: InsumosProcessor.__init__() missing 1 required positional argument: 'profile'
+
+tests/test_procesador_csv.py:1064: TypeError
+___________________________ TestReportParserInitialization.test_valid_file_initialization ____________________________
+
+self = <tests.test_report_parser_crudo.TestReportParserInitialization object at 0x7e371f175990>
+temp_dir = PosixPath('/tmp/tmpej8uzi82')
+
+    def test_valid_file_initialization(self, temp_dir):
+        """Verifica inicialización con archivo válido."""
+        file_path = temp_dir / "test.txt"
+        file_path.write_text("Test content")
+    
+>       parser = ReportParserCrudo(file_path)
+E       TypeError: ReportParserCrudo.__init__() missing 1 required positional argument: 'profile'
+
+tests/test_report_parser_crudo.py:144: TypeError
+__________________________ TestReportParserInitialization.test_file_not_found_raises_error ___________________________
+
+self = <tests.test_report_parser_crudo.TestReportParserInitialization object at 0x7e371f175690>
+
+    def test_file_not_found_raises_error(self):
+        """Verifica que archivo inexistente lance error."""
+        with pytest.raises(FileNotFoundError):
+>           ReportParserCrudo("/path/to/nonexistent/file.txt")
+E           TypeError: ReportParserCrudo.__init__() missing 1 required positional argument: 'profile'
+
+tests/test_report_parser_crudo.py:153: TypeError
+__________________________ TestReportParserInitialization.test_directory_path_raises_error ___________________________
+
+self = <tests.test_report_parser_crudo.TestReportParserInitialization object at 0x7e371f175e10>
+temp_dir = PosixPath('/tmp/tmp6i6ncxmw')
+
+    def test_directory_path_raises_error(self, temp_dir):
+        """Verifica que pasar directorio lance error."""
+        with pytest.raises(ValueError):
+>           ReportParserCrudo(temp_dir)
+E           TypeError: ReportParserCrudo.__init__() missing 1 required positional argument: 'profile'
+
+tests/test_report_parser_crudo.py:158: TypeError
+____________________________ TestReportParserInitialization.test_empty_file_raises_error _____________________________
+
+self = <tests.test_report_parser_crudo.TestReportParserInitialization object at 0x7e371dcd2e30>
+temp_dir = PosixPath('/tmp/tmpnho7j_rq')
+
+    def test_empty_file_raises_error(self, temp_dir):
+        """Verifica que archivo vacío lance error."""
+        file_path = temp_dir / "empty.txt"
+        file_path.touch()
+    
+        with pytest.raises(ValueError):
+>           ReportParserCrudo(file_path)
+E           TypeError: ReportParserCrudo.__init__() missing 1 required positional argument: 'profile'
+
+tests/test_report_parser_crudo.py:166: TypeError
+________________________________________ TestFileReading.test_read_utf8_file _________________________________________
+
+self = <tests.test_report_parser_crudo.TestFileReading object at 0x7e371dcd3400>
+temp_dir = PosixPath('/tmp/tmpgtcimesk')
+
+    def test_read_utf8_file(self, temp_dir):
+        """Verifica lectura de archivo UTF-8."""
+        file_path = temp_dir / "utf8.txt"
+        content = "ITEM: TEST-001\nDescripción: Ñoño está aquí"
+        file_path.write_text(content, encoding="utf-8")
+    
+>       parser = ReportParserCrudo(file_path)
+E       TypeError: ReportParserCrudo.__init__() missing 1 required positional argument: 'profile'
+
+tests/test_report_parser_crudo.py:183: TypeError
+_______________________________________ TestFileReading.test_read_latin1_file ________________________________________
+
+self = <tests.test_report_parser_crudo.TestFileReading object at 0x7e371dcd0430>
+temp_dir = PosixPath('/tmp/tmpas631foa')
+
+    def test_read_latin1_file(self, temp_dir):
+        """Verifica lectura de archivo Latin-1."""
+        file_path = temp_dir / "latin1.txt"
+        content = "ITEM: TEST-002\nDescripción: Café"
+        file_path.write_bytes(content.encode("latin1"))
+    
+        config = ParserConfig(encodings=["latin1", "utf-8"])
+>       parser = ReportParserCrudo(file_path, config=config)
+E       TypeError: ReportParserCrudo.__init__() missing 1 required positional argument: 'profile'
+
+tests/test_report_parser_crudo.py:197: TypeError
+______________________________________ TestFileReading.test_all_encodings_fail _______________________________________
+
+self = <tests.test_report_parser_crudo.TestFileReading object at 0x7e371dcd00a0>
+temp_dir = PosixPath('/tmp/tmpj2srknih')
+
+    def test_all_encodings_fail(self, temp_dir):
+        """Verifica error cuando todos los encodings fallan."""
+        file_path = temp_dir / "bad.txt"
+        file_path.write_text("test")
+    
+        config = ParserConfig(encodings=["invalid_encoding"])
+>       parser = ReportParserCrudo(file_path, config=config)
+E       TypeError: ReportParserCrudo.__init__() missing 1 required positional argument: 'profile'
+
+tests/test_report_parser_crudo.py:209: TypeError
+____________________________________ TestCompleteParsing.test_parse_lines_format _____________________________________
+
+self = <tests.test_report_parser_crudo.TestCompleteParsing object at 0x7e371dcd2e60>
+temp_dir = PosixPath('/tmp/tmp5y30i72_')
+sample_apu_content_lines = '\nREMATE CON PINTURA...;;;;; UNIDAD: ML\n;;;;; ITEM: 1,1\nDESCRIPCION;UND;CANT.;...\nLAMINA DE 1.22...;UND;0,33;14,04;174.928,81;65.403,35\n'
+
+    def test_parse_lines_format(self, temp_dir, sample_apu_content_lines):
+        """Verifica parsing completo con formato de líneas."""
+        file_path = temp_dir / "lines.txt"
+        file_path.write_text(sample_apu_content_lines)
+    
+>       parser = ReportParserCrudo(file_path)
+E       TypeError: ReportParserCrudo.__init__() missing 1 required positional argument: 'profile'
+
+tests/test_report_parser_crudo.py:228: TypeError
+___________________________________ TestCompleteParsing.test_parse_invalid_content ___________________________________
+
+self = <tests.test_report_parser_crudo.TestCompleteParsing object at 0x7e371e123df0>
+temp_dir = PosixPath('/tmp/tmp7a56qrh4')
+sample_invalid_content = '\n    Este es un archivo de texto plano sin formato APU.\n    No contiene información estructurada.\n    Solo texto normal sin códigos ni items.\n    Lorem ipsum dolor sit amet.\n    '
+
+    def test_parse_invalid_content(self, temp_dir, sample_invalid_content):
+        """Verifica manejo de contenido inválido."""
+        file_path = temp_dir / "invalid.txt"
+        file_path.write_text(sample_invalid_content)
+    
+>       parser = ReportParserCrudo(file_path)
+E       TypeError: ReportParserCrudo.__init__() missing 1 required positional argument: 'profile'
+
+tests/test_report_parser_crudo.py:240: TypeError
+___________________________________ TestCompleteParsing.test_parse_already_parsed ____________________________________
+
+self = <tests.test_report_parser_crudo.TestCompleteParsing object at 0x7e371e120e50>
+temp_dir = PosixPath('/tmp/tmp_k5l8089')
+
+    def test_parse_already_parsed(self, temp_dir):
+        """Verifica que no se re-procese archivo ya parseado."""
+        file_path = temp_dir / "test.txt"
+        file_path.write_text(
+            "REMATE CON PINTURA...;;;;; UNIDAD: ML\n"
+            ";;;;; ITEM: 1,1\n"
+            "DESCRIPCION;UND;CANT.;..."
+        )
+    
+>       parser = ReportParserCrudo(file_path)
+E       TypeError: ReportParserCrudo.__init__() missing 1 required positional argument: 'profile'
+
+tests/test_report_parser_crudo.py:255: TypeError
+______________________________________ TestEdgeCases.test_only_whitespace_file _______________________________________
+
+self = <tests.test_report_parser_crudo.TestEdgeCases object at 0x7e371dcd0220>
+temp_dir = PosixPath('/tmp/tmp5rmavnin')
+
+    def test_only_whitespace_file(self, temp_dir):
+        """Verifica manejo de archivo solo con espacios."""
+        file_path = temp_dir / "whitespace.txt"
+        file_path.write_text("   \n\n   \t\t   \n   ")
+    
+>       parser = ReportParserCrudo(file_path)
+E       TypeError: ReportParserCrudo.__init__() missing 1 required positional argument: 'profile'
+
+tests/test_report_parser_crudo.py:278: TypeError
+================================================== warnings summary ==================================================
+tests/test_app.py: 55 warnings
+tests/test_estimator.py: 6 warnings
+  /home/gerardo/miniconda3/envs/ap_filter_env/lib/python3.10/site-packages/flask_session/base.py:172: DeprecationWarning: The 'use_signer' option is deprecated and will be removed in the next minor release. Please update your configuration accordingly or open an issue.
+    warnings.warn(
+
+tests/test_app.py::TestCreateApp::test_create_app_development
+tests/test_app.py::TestCreateApp::test_create_app_testing
+tests/test_app.py::TestCreateApp::test_create_app_production
+tests/test_app.py::TestCreateApp::test_create_app_config_loading
+tests/test_app.py::TestCreateApp::test_create_app_upload_folder_creation
+tests/test_app.py::TestCreateApp::test_create_app_session_configuration
+  /home/gerardo/miniconda3/envs/ap_filter_env/lib/python3.10/site-packages/flask_session/redis/redis.py:51: RuntimeWarning: No valid Redis instance provided, attempting to create a new instance on localhost with default settings.
+    warnings.warn(
+
+tests/test_apu_processor.py::TestAPUProcessor::test_integration_with_calculate_unit_costs
+tests/test_apu_processor.py::TestAPUProcessor::test_process_all
+  /home/gerardo/Documentos/GitHub/apu_filter/app/apu_processor.py:863: UserWarning: Suministro [1.1]: rendimiento=0.125 no es relevante. Se recomienda usar 0.0
+    return InsumoClass(
+
+tests/test_apu_processor.py::TestAPUProcessor::test_integration_with_calculate_unit_costs
+tests/test_apu_processor.py::TestAPUProcessor::test_process_all
+  /home/gerardo/Documentos/GitHub/apu_filter/app/apu_processor.py:863: UserWarning: Suministro [1.1]: rendimiento=350.0 no es relevante. Se recomienda usar 0.0
+    return InsumoClass(
+
+tests/test_apu_processor.py::TestAPUProcessor::test_integration_with_calculate_unit_costs
+tests/test_apu_processor.py::TestAPUProcessor::test_process_all
+  /home/gerardo/Documentos/GitHub/apu_filter/app/apu_processor.py:863: UserWarning: Suministro [2.1]: rendimiento=0.5 no es relevante. Se recomienda usar 0.0
+    return InsumoClass(
+
+tests/test_schemas.py::TestInsumoProcesado::test_create_valid_insumo
+tests/test_schemas.py::TestInsumoProcesado::test_normalization_in_post_init
+tests/test_schemas.py::TestInsumoProcesado::test_description_normalization
+tests/test_schemas.py::TestInsumoProcesado::test_tipo_categoria_sync
+tests/test_schemas.py::TestInsumoProcesado::test_to_dict
+tests/test_schemas.py::TestInsumoProcesado::test_validate_method
+tests/test_schemas.py::TestInsumoProcesado::test_repr
+  /home/gerardo/Documentos/GitHub/apu_filter/app/schemas.py:572: UserWarning: InsumoProcesado [APU-001]: unidades 'M3'/'KG' no son típicas. Unidades esperadas: frozenset({'PAR', 'KIT', 'UNIDAD', 'JUEGO', 'UND', 'U'})
+    self._validate_consistency()
+
+tests/test_schemas.py::TestManoDeObra::test_create_valid_mano_obra
+  /home/gerardo/Documentos/GitHub/apu_filter/tests/test_schemas.py:747: UserWarning: ManoDeObra [APU-001]: rendimiento=0.6700 sugiere cantidad≈1.4925, pero cantidad=1.5000
+    mano_obra = ManoDeObra(**sample_mano_obra_data)
+
+tests/test_schemas.py::TestManoDeObra::test_jornal_validation
+  /home/gerardo/Documentos/GitHub/apu_filter/tests/test_schemas.py:796: UserWarning: ManoDeObra [APU-001]: rendimiento=0.6700 sugiere cantidad≈1.4925, pero cantidad=1.5000
+    mano_obra = ManoDeObra(**data)
+
+tests/test_schemas.py::TestCreateInsumo::test_create_mano_obra
+  /home/gerardo/Documentos/GitHub/apu_filter/app/schemas.py:995: UserWarning: ManoDeObra [APU-001]: rendimiento=0.6700 sugiere cantidad≈1.4925, pero cantidad=1.5000
+    return insumo_class(**valid_kwargs)
+
+tests/test_schemas.py::TestIntegration::test_workflow_all_types
+  /home/gerardo/Documentos/GitHub/apu_filter/app/schemas.py:572: UserWarning: Transporte [APU-001]: unidades 'M3'/'KG' no son típicas. Unidades esperadas: frozenset({'MILLA', 'VIAJES', 'TON-KM', 'KM', 'VIAJE'})
+    self._validate_consistency()
+
+tests/test_utils.py::TestBatchProcessDataframe::test_batch_process_large_df
+tests/test_utils.py::TestBatchProcessDataframe::test_batch_process_large_df
+tests/test_utils.py::TestBatchProcessDataframe::test_batch_process_large_df
+tests/test_utils.py::TestBatchProcessDataframe::test_batch_process_large_df
+tests/test_utils.py::TestBatchProcessDataframe::test_batch_process_large_df
+  /home/gerardo/Documentos/GitHub/apu_filter/tests/test_utils.py:1017: SettingWithCopyWarning: 
+  A value is trying to be set on a copy of a slice from a DataFrame.
+  Try using .loc[row_indexer,col_indexer] = value instead
+  
+  See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+    df_chunk["B"] = df_chunk["A"] * 2
+
+tests/test_utils.py::TestBatchProcessDataframe::test_batch_process_with_kwargs
+tests/test_utils.py::TestBatchProcessDataframe::test_batch_process_with_kwargs
+  /home/gerardo/Documentos/GitHub/apu_filter/tests/test_utils.py:1030: SettingWithCopyWarning: 
+  A value is trying to be set on a copy of a slice from a DataFrame.
+  Try using .loc[row_indexer,col_indexer] = value instead
+  
+  See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+    df_chunk["B"] = df_chunk["A"] * multiplier
+
+tests/test_utils.py::TestPerformance::test_batch_processing_efficiency
+tests/test_utils.py::TestPerformance::test_batch_processing_efficiency
+tests/test_utils.py::TestPerformance::test_batch_processing_efficiency
+tests/test_utils.py::TestPerformance::test_batch_processing_efficiency
+tests/test_utils.py::TestPerformance::test_batch_processing_efficiency
+  /home/gerardo/Documentos/GitHub/apu_filter/tests/test_utils.py:1447: SettingWithCopyWarning: 
+  A value is trying to be set on a copy of a slice from a DataFrame.
+  Try using .loc[row_indexer,col_indexer] = value instead
+  
+  See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+    df["C"] = df["A"] + df["B"]
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+============================================== short test summary info ===============================================
+FAILED tests/test_procesador_csv.py::TestPresupuestoProcessor::test_find_and_set_header_not_found - TypeError: PresupuestoProcessor.__init__() missing 1 required positional argument: 'profile'
+FAILED tests/test_procesador_csv.py::TestPresupuestoProcessor::test_find_and_set_header_success - TypeError: PresupuestoProcessor.__init__() missing 1 required positional argument: 'profile'
+FAILED tests/test_procesador_csv.py::TestPresupuestoProcessor::test_process_invalid_file - TypeError: PresupuestoProcessor.__init__() missing 1 required positional argument: 'profile'
+FAILED tests/test_procesador_csv.py::TestPresupuestoProcessor::test_process_success - TypeError: PresupuestoProcessor.__init__() missing 1 required positional argument: 'profile'
+FAILED tests/test_procesador_csv.py::TestPresupuestoProcessor::test_process_with_duplicates - TypeError: PresupuestoProcessor.__init__() missing 1 required positional argument: 'profile'
+FAILED tests/test_procesador_csv.py::TestPresupuestoProcessor::test_process_with_single_digit_item - TypeError: PresupuestoProcessor.__init__() missing 1 required positional argument: 'profile'
+FAILED tests/test_procesador_csv.py::TestInsumosProcessor::test_parse_file_structure - TypeError: InsumosProcessor.__init__() missing 1 required positional argument: 'profile'
+FAILED tests/test_procesador_csv.py::TestInsumosProcessor::test_process_success - TypeError: InsumosProcessor.__init__() missing 1 required positional argument: 'profile'
+FAILED tests/test_procesador_csv.py::TestInsumosProcessor::test_process_with_duplicates - TypeError: InsumosProcessor.__init__() missing 1 required positional argument: 'profile'
+FAILED tests/test_procesador_csv.py::TestProcessAllFilesIntegration::test_process_all_files_merge_error - AssertionError: 'merge' not found in "error en el pipeline: no se encontró el perfil 'presupuesto_default' en config.json"
+FAILED tests/test_procesador_csv.py::TestProcessAllFilesIntegration::test_process_all_files_success - AssertionError: 'error' unexpectedly found in {'error': "Error en el pipeline: No se encontró el perfil 'presupuesto_default' en config.json"} : Se encontró un error inesperado: Error en el pipeline: No se encontró el perfil 'presupuesto_default' en config.json
+FAILED tests/test_procesador_csv.py::TestEdgeCases::test_empty_insumos_group - TypeError: InsumosProcessor.__init__() missing 1 required positional argument: 'profile'
+FAILED tests/test_report_parser_crudo.py::TestReportParserInitialization::test_valid_file_initialization - TypeError: ReportParserCrudo.__init__() missing 1 required positional argument: 'profile'
+FAILED tests/test_report_parser_crudo.py::TestReportParserInitialization::test_file_not_found_raises_error - TypeError: ReportParserCrudo.__init__() missing 1 required positional argument: 'profile'
+FAILED tests/test_report_parser_crudo.py::TestReportParserInitialization::test_directory_path_raises_error - TypeError: ReportParserCrudo.__init__() missing 1 required positional argument: 'profile'
+FAILED tests/test_report_parser_crudo.py::TestReportParserInitialization::test_empty_file_raises_error - TypeError: ReportParserCrudo.__init__() missing 1 required positional argument: 'profile'
+FAILED tests/test_report_parser_crudo.py::TestFileReading::test_read_utf8_file - TypeError: ReportParserCrudo.__init__() missing 1 required positional argument: 'profile'
+FAILED tests/test_report_parser_crudo.py::TestFileReading::test_read_latin1_file - TypeError: ReportParserCrudo.__init__() missing 1 required positional argument: 'profile'
+FAILED tests/test_report_parser_crudo.py::TestFileReading::test_all_encodings_fail - TypeError: ReportParserCrudo.__init__() missing 1 required positional argument: 'profile'
+FAILED tests/test_report_parser_crudo.py::TestCompleteParsing::test_parse_lines_format - TypeError: ReportParserCrudo.__init__() missing 1 required positional argument: 'profile'
+FAILED tests/test_report_parser_crudo.py::TestCompleteParsing::test_parse_invalid_content - TypeError: ReportParserCrudo.__init__() missing 1 required positional argument: 'profile'
+FAILED tests/test_report_parser_crudo.py::TestCompleteParsing::test_parse_already_parsed - TypeError: ReportParserCrudo.__init__() missing 1 required positional argument: 'profile'
+FAILED tests/test_report_parser_crudo.py::TestEdgeCases::test_only_whitespace_file - TypeError: ReportParserCrudo.__init__() missing 1 required positional argument: 'profile'
+============================== 23 failed, 534 passed, 2 xfailed, 96 warnings in 41.33s ===============================
