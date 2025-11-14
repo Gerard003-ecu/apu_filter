@@ -394,11 +394,17 @@ def calculate_estimate(
 
     log.append(f"📦 Pool de suministros: {len(df_suministro_pool)} APUs")
 
+    # CAMBIO: Leer umbrales desde la config
+    thresholds = config.get("estimator_thresholds", {})
+    min_sim_suministro = thresholds.get("min_semantic_similarity_suministro", 0.30)
+    min_sim_tarea = thresholds.get("min_semantic_similarity_tarea", 0.40)
+    min_kw_cuadrilla = thresholds.get("min_keyword_match_percentage_cuadrilla", 50.0)
+
     apu_suministro = _find_best_semantic_match(
         df_pool=df_suministro_pool,
         query_text=material_mapped,
         log=log,
-        min_similarity=0.30,  # Umbral más bajo para suministros
+        min_similarity=min_sim_suministro,  # Umbral más bajo para suministros
     )
 
     if apu_suministro is not None:
@@ -437,7 +443,7 @@ def calculate_estimate(
             cuadrilla_keywords_norm,
             log,
             strict=False,
-            min_match_percentage=50.0,
+            min_match_percentage=min_kw_cuadrilla,
             match_mode="substring",  # Buscar la frase completa
         )
 
@@ -467,7 +473,10 @@ def calculate_estimate(
     log.append(f"🔧 Pool de instalación: {len(df_tarea_pool)} APUs")
 
     apu_tarea = _find_best_semantic_match(
-        df_pool=df_tarea_pool, query_text=material_mapped, log=log, min_similarity=0.40
+        df_pool=df_tarea_pool,
+        query_text=material_mapped,
+        log=log,
+        min_similarity=min_sim_tarea,
     )
 
     if apu_tarea is not None:
