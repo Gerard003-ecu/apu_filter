@@ -121,5 +121,14 @@
     { "type": "Instalación", "condition": "porcentaje_mo_eq > 75.0" },
     { "type": "Suministro", "condition": "porcentaje_materiales > 75.0 and porcentaje_mo_eq < 15.0" },
     { "type": "Suministro (Pre-fabricado)", "condition": "porcentaje_materiales > 65.0 and porcentaje_mo_eq > 15.0" }
-  ]
+  ],
+  "embedding_generation": {
+    "model_name": "paraphrase-multilingual-MiniLM-L12-v2",
+    "input_file": "data/processed_apus.json",
+    "output_dir": "app/embeddings",
+    "text_column": "original_description",
+    "id_column": "CODIGO_APU",
+    "max_batch_size": 512,
+    "memory_limit_gb": 8.0
+  }
 }

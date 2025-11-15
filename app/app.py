@@ -255,8 +255,8 @@ class FileValidator:
 def load_semantic_search_artifacts(app: Flask):
     """
     Carga el índice FAISS, el mapeo de IDs y el modelo de embeddings.
-
-    Estos artefactos son generados por `scripts/generate_embeddings.py`.
+    Lee el nombre del modelo desde metadata.json para carga dinámica.
+    Si los archivos no existen, registra una advertencia y desactiva la función.
     """
     app.logger.info("Iniciando carga de artefactos de búsqueda semántica...")
 
@@ -265,33 +265,45 @@ def load_semantic_search_artifacts(app: Flask):
     map_path = embeddings_dir / "id_map.json"
     metadata_path = embeddings_dir / "metadata.json"
 
-    try:
-        # Validar que todos los archivos necesarios existan
-        if not all([index_path.exists(), map_path.exists(), metadata_path.exists()]):
-            raise FileNotFoundError(
-                "No se encontraron todos los archivos de embeddings. "
-                "Asegúrese de ejecutar 'scripts/generate_embeddings.py' primero."
-            )
+    # Establecer valores por defecto en None
+    app.config["FAISS_INDEX"] = None
+    app.config["ID_MAP"] = None
+    app.config["EMBEDDING_MODEL"] = None
 
-        # Cargar metadata para obtener el nombre del modelo dinámicamente
+    try:
+        # 1. Validar que todos los archivos necesarios existan
+        if not all([index_path.exists(), map_path.exists(), metadata_path.exists()]):
+            app.logger.warning(
+                "No se encontraron todos los archivos de embeddings. "
+                "La búsqueda semántica estará desactivada. "
+                "Ejecute 'scripts/generate_embeddings.py' para generarlos."
+            )
+            return
+
+        # 2. Cargar metadata para obtener el nombre del modelo dinámicamente
         with open(metadata_path, "r", encoding="utf-8") as f:
             metadata = json.load(f)
 
         model_name = metadata.get("model_name")
         if not model_name:
-            raise ValueError("El nombre del modelo no se encontró en metadata.json")
+            raise ValueError("El 'model_name' no se encontró en metadata.json")
 
-        # Cargar los artefactos y guardarlos en la configuración de la app
-        app.config["FAISS_INDEX"] = faiss.read_index(str(index_path))
+        # 3. Cargar los artefactos
+        faiss_index = faiss.read_index(str(index_path))
 
         with open(map_path, "r", encoding="utf-8") as f:
-            app.config["ID_MAP"] = json.load(f)
+            id_map = json.load(f)
 
-        app.config["EMBEDDING_MODEL"] = SentenceTransformer(model_name)
+        embedding_model = SentenceTransformer(model_name)
+
+        # 4. Guardar en la configuración de la app solo si todo fue exitoso
+        app.config["FAISS_INDEX"] = faiss_index
+        app.config["ID_MAP"] = id_map
+        app.config["EMBEDDING_MODEL"] = embedding_model
 
         app.logger.info(
             f"✅ Búsqueda semántica lista. Modelo: '{model_name}', "
-            f"Vectores en índice: {app.config['FAISS_INDEX'].ntotal}"
+            f"Vectores: {faiss_index.ntotal}"
         )
 
     except Exception as e:
@@ -299,11 +311,11 @@ def load_semantic_search_artifacts(app: Flask):
             f"❌ Error crítico al cargar artefactos de búsqueda semántica: {e}",
             exc_info=True,
         )
-        # La aplicación puede continuar, pero la búsqueda semántica no funcionará.
+        # Asegurar que la configuración quede limpia en caso de error
         app.config["FAISS_INDEX"] = None
         app.config["ID_MAP"] = None
         app.config["EMBEDDING_MODEL"] = None
-        app.logger.warning("La funcionalidad de búsqueda semántica estará desactivada.")
+        app.logger.warning("La funcionalidad de búsqueda semántica ha sido desactivada debido a un error.")
 
 
 # ============================================================================
@@ -370,7 +382,8 @@ def create_app(config_name: str) -> Flask:
     apu_presenter = APUPresenter(app.logger)
 
     # Cargar artefactos de búsqueda semántica
-    load_semantic_search_artifacts(app)
+    with app.app_context():
+        load_semantic_search_artifacts(app)
 
     # ========================================================================
     # MIDDLEWARE Y HOOKS

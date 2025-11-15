@@ -235,9 +235,6 @@ class APUPresenter:
         """
         df = df.copy()
         
-        # Reemplazar valores especiales
-        df.replace({np.nan: None, np.inf: None, -np.inf: None}, inplace=True)
-        
         # Limpiar strings: eliminar espacios y normalizar
         string_columns = df.select_dtypes(include=['object']).columns
         for col in string_columns:
@@ -266,7 +263,16 @@ class APUPresenter:
                     self.logger.warning(
                         f"Columna '{col}': {negative_count} valores negativos encontrados"
                     )
+
+        # Reemplazar valores especiales de forma robusta al final
+        # Esto asegura que los NaN introducidos por to_numeric también se manejen
+        df.replace([np.inf, -np.inf], np.nan, inplace=True)
         
+        # Convertir todos los np.nan a None.
+        # Esto es necesario para que las aserciones 'is None' pasen
+        # y puede cambiar el dtype de las columnas a 'object'.
+        df = df.astype(object).where(pd.notnull(df), None)
+
         return df
 
     def _validate_dataframe_schema(
@@ -310,7 +316,8 @@ class APUPresenter:
             Lista de diccionarios con items procesados y consolidados.
         """
         processed = []
-        categories = df["CATEGORIA"].dropna().unique()
+        # Incluir valores NaN/None como una categoría a procesar
+        categories = df["CATEGORIA"].unique()
         
         if len(categories) == 0:
             self.logger.warning(
@@ -321,7 +328,11 @@ class APUPresenter:
         self.logger.debug(f"Procesando {len(categories)} categorías")
 
         for categoria in categories:
-            df_categoria = df[df["CATEGORIA"] == categoria].copy()
+            # Manejar el filtrado para valores NaN/None
+            if pd.isna(categoria):
+                df_categoria = df[df["CATEGORIA"].isna()].copy()
+            else:
+                df_categoria = df[df["CATEGORIA"] == categoria].copy()
 
             if df_categoria.empty:
                 continue
