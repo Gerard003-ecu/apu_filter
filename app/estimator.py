@@ -353,14 +353,18 @@ def calculate_estimate(
     costo_diario_cuadrilla = 0.0
     apu_cuadrilla_desc = "No encontrada"
     if cuadrilla and cuadrilla != "0":
-        df_cuadrilla_pool = df_processed_apus[df_processed_apus["UNIDAD"].astype(str).str.upper().str.strip() == "DIA"]
+        df_cuadrilla_pool = df_processed_apus[
+            df_processed_apus["UNIDAD"].astype(str).str.upper().str.strip() == "DIA"
+        ]
         search_term = f"cuadrilla {cuadrilla}"
         cuadrilla_keywords = normalize_text(search_term).split()
         apu_cuadrilla = _find_best_keyword_match(
             df_cuadrilla_pool, cuadrilla_keywords, log, min_match_percentage=min_kw_cuadrilla
         )
         if apu_cuadrilla is not None:
-            costo_diario_cuadrilla = float(apu_cuadrilla.get("VALOR_CONSTRUCCION_UN", 0.0) or 0.0)
+            costo_diario_cuadrilla = float(
+                apu_cuadrilla.get("VALOR_CONSTRUCCION_UN", 0.0) or 0.0
+            )
             apu_cuadrilla_desc = str(apu_cuadrilla.get("original_description", "")).strip()
             log.append(f"💰 Costo Cuadrilla: ${costo_diario_cuadrilla:,.2f}/día")
 
@@ -394,8 +398,8 @@ def calculate_estimate(
         if apus_detail_list:
             df_detail = pd.DataFrame(apus_detail_list)
             mano_obra = df_detail[
-                (df_detail["CODIGO_APU"] == apu_code) &
-                (df_detail["TIPO_INSUMO"] == "MANO DE OBRA")
+                (df_detail["CODIGO_APU"] == apu_code)
+                & (df_detail["TIPO_INSUMO"] == "MANO DE OBRA")
             ]
             tiempo_total = mano_obra["CANTIDAD_APU"].sum()
             if tiempo_total > 0:
@@ -415,7 +419,9 @@ def calculate_estimate(
 
     costo_mo_base = costo_diario_cuadrilla / rendimiento_dia if rendimiento_dia > 0 else 0
     costo_mo_ajustado = costo_mo_base * factor_seguridad
-    valor_instalacion = (costo_mo_ajustado + costo_equipo) * factor_zona + costo_adicional_izaje
+    valor_instalacion = (
+        costo_mo_ajustado + costo_equipo
+    ) * factor_zona + costo_adicional_izaje
     valor_construccion = valor_suministro + valor_instalacion
 
     log.append(f"💰 TOTAL CONSTRUCCIÓN: ${valor_construccion:,.2f}")

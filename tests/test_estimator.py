@@ -1,6 +1,6 @@
 import sys
 from pathlib import Path
-from unittest.mock import MagicMock, patch, call
+from unittest.mock import MagicMock, patch
 
 import numpy as np
 import pandas as pd
@@ -12,7 +12,6 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from app.app import create_app
 from app.estimator import (
-    _find_best_keyword_match,
     _find_best_semantic_match,
     calculate_estimate,
 )
@@ -31,22 +30,31 @@ def sample_apu_pool():
                 "CODIGO_APU": "APU-001",
                 "original_description": "Instalación de muro de ladrillo",
                 "DESC_NORMALIZED": "instalacion muro ladrillo",
-                "VALOR_SUMINISTRO_UN": 100, "VALOR_CONSTRUCCION_UN": 150,
-                "tipo_apu": "Suministro", "EQUIPO": 10, "UNIDAD": "M2",
+                "VALOR_SUMINISTRO_UN": 100,
+                "VALOR_CONSTRUCCION_UN": 150,
+                "tipo_apu": "Suministro",
+                "EQUIPO": 10,
+                "UNIDAD": "M2",
             },
             {
                 "CODIGO_APU": "APU-002",
                 "original_description": "Pintura acrílica para exteriores",
                 "DESC_NORMALIZED": "pintura acrilica exteriores",
-                "VALOR_SUMINISTRO_UN": 200, "VALOR_CONSTRUCCION_UN": 250,
-                "tipo_apu": "Suministro", "EQUIPO": 20, "UNIDAD": "M2",
+                "VALOR_SUMINISTRO_UN": 200,
+                "VALOR_CONSTRUCCION_UN": 250,
+                "tipo_apu": "Suministro",
+                "EQUIPO": 20,
+                "UNIDAD": "M2",
             },
             {
                 "CODIGO_APU": "APU-003",
                 "original_description": "CUADRILLA TIPO 1 (1 OF + 2 AYU)",
                 "DESC_NORMALIZED": "cuadrilla tipo 1 1 of 2 ayu",
-                "VALOR_SUMINISTRO_UN": 0, "VALOR_CONSTRUCCION_UN": 300,
-                "tipo_apu": "Instalación", "EQUIPO": 30, "UNIDAD": "DIA",
+                "VALOR_SUMINISTRO_UN": 0,
+                "VALOR_CONSTRUCCION_UN": 300,
+                "tipo_apu": "Instalación",
+                "EQUIPO": 30,
+                "UNIDAD": "DIA",
             },
         ]
     )
@@ -170,9 +178,7 @@ def test_calculate_estimate_fallback_to_keyword_on_semantic_failure(
 
 
 @patch("app.estimator._find_best_keyword_match")
-def test_calculate_estimate_no_semantic_artifacts(
-    mock_keyword_match, sample_apu_pool
-):
+def test_calculate_estimate_no_semantic_artifacts(mock_keyword_match, sample_apu_pool):
     """
     Verifica que se recurre a keywords si los artefactos semánticos no están cargados.
     Esta prueba NO mockea _find_best_semantic_match para probar su lógica interna.
@@ -187,7 +193,10 @@ def test_calculate_estimate_no_semantic_artifacts(
         mock_keyword_match.return_value = sample_apu_pool.iloc[0]
 
         params = {"material": "muro", "cuadrilla": "1"}
-        data_store = {"processed_apus": sample_apu_pool.to_dict("records"), "apus_detail": []}
+        data_store = {
+            "processed_apus": sample_apu_pool.to_dict("records"),
+            "apus_detail": [],
+        }
         config = {"param_map": {}, "estimator_thresholds": {}}
 
         result = calculate_estimate(params, data_store, config)

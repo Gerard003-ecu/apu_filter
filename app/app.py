@@ -16,8 +16,6 @@ from typing import Optional, Tuple
 
 # --- Dependencias para Búsqueda Semántica ---
 import faiss
-import numpy as np
-import pandas as pd
 from flask import Flask, current_app, jsonify, render_template, request, session
 from markupsafe import escape
 from sentence_transformers import SentenceTransformer
@@ -315,7 +313,9 @@ def load_semantic_search_artifacts(app: Flask):
         app.config["FAISS_INDEX"] = None
         app.config["ID_MAP"] = None
         app.config["EMBEDDING_MODEL"] = None
-        app.logger.warning("La funcionalidad de búsqueda semántica ha sido desactivada debido a un error.")
+        app.logger.warning(
+            "La funcionalidad de búsqueda semántica ha sido desactivada debido a un error."
+        )
 
 
 # ============================================================================

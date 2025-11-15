@@ -484,8 +484,8 @@ class PresupuestoProcessor:
         Maneja códigos de ITEM de cualquier longitud, incluyendo dígitos simples.
         """
         # CAMBIO: Leer los parámetros desde la configuración
-        clean_code_params = (
-            self.config.get("clean_apu_code_params", {}).get("presupuesto_item", {})
+        clean_code_params = self.config.get("clean_apu_code_params", {}).get(
+            "presupuesto_item", {}
         )
 
         df[ColumnNames.CODIGO_APU] = (

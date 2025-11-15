@@ -104,21 +104,19 @@ def _validate_zero_quantity_with_cost(
         # Validar tipos numéricos
         if not isinstance(cantidad, (int, float)) or pd.isna(cantidad):
             logger.warning(
-            f"Cantidad inválida en insumo "
-            f"{insumo.get('DESCRIPCION_INSUMO', 'desconocido')}: {cantidad}"
+                f"Cantidad inválida en insumo "
+                f"{insumo.get('DESCRIPCION_INSUMO', 'desconocido')}: {cantidad}"
             )
             continue
 
         if not isinstance(valor_total, (int, float)) or pd.isna(valor_total):
             logger.warning(
-            f"Valor total inválido en insumo "
-            f"{insumo.get('DESCRIPCION_INSUMO', 'desconocido')}: {valor_total}"
+                f"Valor total inválido en insumo "
+                f"{insumo.get('DESCRIPCION_INSUMO', 'desconocido')}: {valor_total}"
             )
             continue
 
-        if not isinstance(precio_unitario, (int, float)) or pd.isna(
-            precio_unitario
-        ):
+        if not isinstance(precio_unitario, (int, float)) or pd.isna(precio_unitario):
             logger.warning(
                 "Precio unitario inválido en insumo "
                 f"{insumo.get('DESCRIPCION_INSUMO', 'desconocido')}: "
@@ -212,8 +210,7 @@ def _validate_missing_descriptions(
             if not descripcion or pd.isna(descripcion):
                 insumo["DESCRIPCION_INSUMO"] = "Insumo sin descripción"
                 insumo.setdefault("alertas", []).append(
-                    "Descripción del insumo faltante y columna faltante en "
-                    "DataFrame."
+                    "Descripción del insumo faltante y columna faltante en DataFrame."
                 )
                 logger.warning(
                     f"Insumo {idx} sin descripción y columna "

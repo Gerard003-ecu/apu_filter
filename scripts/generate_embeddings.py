@@ -73,6 +73,7 @@ def setup_logging(log_level: str = "INFO", log_file: Optional[Path] = None) -> N
 @dataclass
 class ScriptConfig:
     """Configuración del script, combinando JSON y argumentos de línea de comandos."""
+
     model_name: str
     input_file: Path
     output_dir: Path
@@ -92,21 +93,25 @@ class ScriptConfig:
 # --- Excepciones Personalizadas ---
 class EmbeddingGenerationError(Exception):
     """Excepción base para errores en la generación de embeddings"""
+
     pass
 
 
 class DataValidationError(EmbeddingGenerationError):
     """Error en la validación de datos de entrada"""
+
     pass
 
 
 class ModelLoadError(EmbeddingGenerationError):
     """Error al cargar el modelo de embeddings"""
+
     pass
 
 
 class InsufficientMemoryError(EmbeddingGenerationError):
     """Error por memoria insuficiente"""
+
     pass
 
 
@@ -153,12 +158,15 @@ class MemoryMonitor:
     @staticmethod
     def check_memory_availability(estimated_size_gb: float, limit_gb: float) -> None:
         """Verifica si hay suficiente memoria disponible."""
-        import psutil
         available_gb = psutil.virtual_memory().available / (1024**3)
         if estimated_size_gb > limit_gb:
-            raise InsufficientMemoryError(f"Requiere ~{estimated_size_gb:.2f}GB, límite {limit_gb:.2f}GB")
+            raise InsufficientMemoryError(
+                f"Requiere ~{estimated_size_gb:.2f}GB, límite {limit_gb:.2f}GB"
+            )
         if estimated_size_gb > available_gb * 0.8:
-            raise InsufficientMemoryError(f"Requiere ~{estimated_size_gb:.2f}GB, disponible {available_gb:.2f}GB")
+            raise InsufficientMemoryError(
+                f"Requiere ~{estimated_size_gb:.2f}GB, disponible {available_gb:.2f}GB"
+            )
 
 
 class FileManager:
@@ -170,7 +178,9 @@ class FileManager:
         if not file_path.exists():
             return None
         timestamp = time.strftime("%Y%m%d_%H%M%S")
-        backup_path = file_path.with_name(f"{file_path.stem}_backup_{timestamp}{file_path.suffix}")
+        backup_path = file_path.with_name(
+            f"{file_path.stem}_backup_{timestamp}{file_path.suffix}"
+        )
         shutil.copy2(file_path, backup_path)
         logging.getLogger(__name__).info(f"Backup creado: {backup_path}")
         return backup_path
@@ -236,7 +246,7 @@ class EmbeddingGenerator:
         n_samples = min(self.config.validation_sample_size, len(embeddings))
         sample_indices = np.random.choice(len(embeddings), n_samples, replace=False)
         for idx in sample_indices:
-            query = embeddings[idx:idx+1].astype(np.float32)
+            query = embeddings[idx : idx + 1].astype(np.float32)
             _, indices = index.search(query, k=1)
             if indices[0][0] != idx:
                 self.logger.error(f"Error de validación: índice {idx} no coincide")
@@ -262,15 +272,19 @@ class EmbeddingPipeline:
     def run(self) -> Dict[str, Union[str, int]]:
         """Ejecuta el pipeline completo."""
         start_time = time.time()
-        self.logger.info("="*60 + "\nINICIANDO GENERACIÓN DE EMBEDDINGS\n" + "="*60)
+        self.logger.info("=" * 60 + "\nINICIANDO GENERACIÓN DE EMBEDDINGS\n" + "=" * 60)
 
         df = FileManager.load_data(self.config.input_file)
-        df = DataValidator.validate_dataframe(df, self.config.text_column, self.config.id_column, self.config)
+        df = DataValidator.validate_dataframe(
+            df, self.config.text_column, self.config.id_column, self.config
+        )
 
         self.generator.load_model()
         embedding_dim = self.generator.model.get_sentence_embedding_dimension()
         estimated_memory = self.estimate_memory_usage(len(df), embedding_dim)
-        MemoryMonitor.check_memory_availability(estimated_memory, self.config.memory_limit_gb)
+        MemoryMonitor.check_memory_availability(
+            estimated_memory, self.config.memory_limit_gb
+        )
 
         embeddings = self.generator.generate_embeddings(df[self.config.text_column].tolist())
         index = self.generator.build_faiss_index(embeddings)
@@ -289,7 +303,7 @@ class EmbeddingPipeline:
             "embedding_dim": embedding_dim,
         }
 
-        self.logger.info("="*60 + "\n✅ PROCESO COMPLETADO EXITOSAMENTE\n" + "="*60)
+        self.logger.info("=" * 60 + "\n✅ PROCESO COMPLETADO EXITOSAMENTE\n" + "=" * 60)
         return metrics
 
     def save_artifacts(self, index: faiss.Index, id_map: Dict[str, str]) -> None:
@@ -325,7 +339,9 @@ class EmbeddingPipeline:
 
 def main():
     """Punto de entrada principal del script."""
-    parser = argparse.ArgumentParser(description="Genera embeddings para búsqueda semántica.")
+    parser = argparse.ArgumentParser(
+        description="Genera embeddings para búsqueda semántica."
+    )
 
     # Cargar configuración desde JSON como base
     try:
@@ -341,18 +357,33 @@ def main():
     parser.add_argument("--model_name", type=str, default=json_config.get("model_name"))
     parser.add_argument("--text_column", type=str, default=json_config.get("text_column"))
     parser.add_argument("--id_column", type=str, default=json_config.get("id_column"))
-    parser.add_argument("--max_batch_size", type=int, default=json_config.get("max_batch_size", 512))
-    parser.add_argument("--memory_limit_gb", type=float, default=json_config.get("memory_limit_gb", 8.0))
-    parser.add_argument("--log-level", type=str, default="INFO", choices=["DEBUG", "INFO", "WARNING", "ERROR"])
-    parser.add_argument("--no-backup", action="store_true", help="Desactiva la creación de backups")
-    parser.add_argument("--no-normalize", action="store_true", help="No normalizar los embeddings")
+    parser.add_argument(
+        "--max_batch_size", type=int, default=json_config.get("max_batch_size", 512)
+    )
+    parser.add_argument(
+        "--memory_limit_gb", type=float, default=json_config.get("memory_limit_gb", 8.0)
+    )
+    parser.add_argument(
+        "--log-level",
+        type=str,
+        default="INFO",
+        choices=["DEBUG", "INFO", "WARNING", "ERROR"],
+    )
+    parser.add_argument(
+        "--no-backup", action="store_true", help="Desactiva la creación de backups"
+    )
+    parser.add_argument(
+        "--no-normalize", action="store_true", help="No normalizar los embeddings"
+    )
 
     args = parser.parse_args()
 
     # Validar que los argumentos requeridos tengan valor
-    required_args = ['input_file', 'output_dir', 'model_name', 'text_column', 'id_column']
+    required_args = ["input_file", "output_dir", "model_name", "text_column", "id_column"]
     if any(getattr(args, arg) is None for arg in required_args):
-        sys.exit(f"Error: Faltan configuraciones requeridas en config.json o como argumentos. Necesarios: {', '.join(required_args)}")
+        sys.exit(
+            f"Error: Faltan configuraciones requeridas en config.json o como argumentos. Necesarios: {', '.join(required_args)}"
+        )
 
     setup_logging(args.log_level)
 

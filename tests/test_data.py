@@ -65,37 +65,31 @@ TEST_CONFIG = {
         "DESCRIPCION_APU": ["DESCRIPCION"],
         "CANTIDAD_PRESUPUESTO": ["CANT."],
     },
-
     # --- INICIO DE LA MODIFICACIÓN ---
     "file_profiles": {
         "presupuesto_default": {
             "loader_params": {"header": None, "sep": ";", "encoding": "latin1"}
         },
-        "insumos_default": {
-            "parser_strategy": "hierarchical_v1", "encoding": "latin1"
-        },
-        "apus_default": {
-            "parser_strategy": "state_machine_v2", "encoding": "latin1"
-        }
+        "insumos_default": {"parser_strategy": "hierarchical_v1", "encoding": "latin1"},
+        "apus_default": {"parser_strategy": "state_machine_v2", "encoding": "latin1"},
     },
     "estimator_thresholds": {
         "min_semantic_similarity_suministro": 0.30,
         "min_semantic_similarity_tarea": 0.40,
-        "min_keyword_match_percentage_cuadrilla": 50.0
+        "min_keyword_match_percentage_cuadrilla": 50.0,
     },
     "apu_processor_rules": {
         "mo_keywords": ["OFICIAL", "AYUDANTE", "PEON"],
-        "equipo_keywords": ["HERRAMIENTA MENOR"]
+        "equipo_keywords": ["HERRAMIENTA MENOR"],
     },
     "clean_apu_code_params": {
         "presupuesto_item": {
             "min_length": 1,
             "is_item_code": True,
-            "allow_numeric_only": True
+            "allow_numeric_only": True,
         }
     },
     # --- FIN DE LA MODIFICACIÓN ---
-
     "validation_thresholds": {
         "MANO_DE_OBRA": {
             "min_jornal": 50000,

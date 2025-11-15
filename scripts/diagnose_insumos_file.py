@@ -28,18 +28,14 @@ from typing import Any, Dict, List, Optional, Set, Tuple, Union
 # Detección automática de encoding
 try:
     import chardet
+
     CHARDET_AVAILABLE = True
 except ImportError:
     CHARDET_AVAILABLE = False
-    logging.warning(
-        "⚠️ chardet no disponible. Instalar con: pip install chardet"
-    )
+    logging.warning("⚠️ chardet no disponible. Instalar con: pip install chardet")
 
 # Configuración de logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(levelname)s: %(message)s'
-)
+logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 logger = logging.getLogger(__name__)
 
 
@@ -47,18 +43,22 @@ logger = logging.getLogger(__name__)
 # EXCEPCIONES PERSONALIZADAS
 # ============================================================================
 
+
 class DiagnosticError(Exception):
     """Excepción base para errores de diagnóstico."""
+
     pass
 
 
 class FileReadError(DiagnosticError):
     """Error al leer el archivo."""
+
     pass
 
 
 class EncodingDetectionError(DiagnosticError):
     """Error al detectar el encoding."""
+
     pass
 
 
@@ -66,8 +66,10 @@ class EncodingDetectionError(DiagnosticError):
 # ENUMS
 # ============================================================================
 
+
 class ConfidenceLevel(Enum):
     """Niveles de confianza para detecciones."""
+
     HIGH = "alta"
     MEDIUM = "media"
     LOW = "baja"
@@ -78,9 +80,11 @@ class ConfidenceLevel(Enum):
 # DATACLASSES
 # ============================================================================
 
+
 @dataclass
 class GroupInfo:
     """Información de un grupo detectado."""
+
     name: str
     line_num: int
     original_name: str = ""  # Nombre sin normalizar
@@ -132,6 +136,7 @@ class GroupInfo:
 @dataclass
 class FileStatistics:
     """Estadísticas del archivo analizado."""
+
     # Básicas
     file_size: int = 0
     total_lines: int = 0
@@ -174,6 +179,7 @@ class FileStatistics:
 @dataclass
 class DiagnosticResult:
     """Resultado completo del diagnóstico."""
+
     success: bool
     file_path: str
     stats: FileStatistics
@@ -186,6 +192,7 @@ class DiagnosticResult:
 # ============================================================================
 # CLASE PRINCIPAL
 # ============================================================================
+
 
 class InsumosFileDiagnostic:
     """
@@ -207,14 +214,27 @@ class InsumosFileDiagnostic:
     """
 
     # Configuración
-    FALLBACK_ENCODINGS = ['utf-8', 'utf-8-sig', 'latin1', 'cp1252', 'iso-8859-1']
-    GROUP_MARKERS = ['G', 'GRUPO']  # Prefijos válidos para grupos
+    FALLBACK_ENCODINGS = ["utf-8", "utf-8-sig", "latin1", "cp1252", "iso-8859-1"]
+    GROUP_MARKERS = ["G", "GRUPO"]  # Prefijos válidos para grupos
 
     # Palabras clave para encabezados
     HEADER_KEYWORDS = [
-        'CODIGO', 'COD', 'DESCRIPCION', 'DESC', 'UND', 'UNIDAD',
-        'VALOR', 'VR', 'UNITARIO', 'PRECIO', 'COSTO', 'TOTAL',
-        'CANTIDAD', 'CANT', 'PARCIAL', 'SUBTOTAL'
+        "CODIGO",
+        "COD",
+        "DESCRIPCION",
+        "DESC",
+        "UND",
+        "UNIDAD",
+        "VALOR",
+        "VR",
+        "UNITARIO",
+        "PRECIO",
+        "COSTO",
+        "TOTAL",
+        "CANTIDAD",
+        "CANT",
+        "PARCIAL",
+        "SUBTOTAL",
     ]
 
     # Límites
@@ -227,8 +247,8 @@ class InsumosFileDiagnostic:
     MAX_GROUPS_IN_REPORT = 10
 
     # Patrones regex compilados
-    PATTERN_COMMENT = re.compile(r'^\s*[#\/\*\-\'%]')
-    PATTERN_MULTIPLE_SPACES = re.compile(r'\s{2,}')
+    PATTERN_COMMENT = re.compile(r"^\s*[#\/\*\-\'%]")
+    PATTERN_MULTIPLE_SPACES = re.compile(r"\s{2,}")
 
     def __init__(self, file_path: Union[str, Path]):
         """
@@ -332,7 +352,7 @@ class InsumosFileDiagnostic:
                 groups=self.groups,
                 recommendations=self.recommendations,
                 errors=self.errors,
-                warnings=self.warnings
+                warnings=self.warnings,
             )
 
         except Exception as e:
@@ -365,24 +385,20 @@ class InsumosFileDiagnostic:
     def _detect_encoding_with_chardet(self) -> Optional[Tuple[str, float]]:
         """Detecta encoding con chardet."""
         try:
-            with open(self.file_path, 'rb') as f:
+            with open(self.file_path, "rb") as f:
                 sample = f.read(self.CHARDET_SAMPLE_SIZE)
 
             detection = chardet.detect(sample)
-            encoding = detection.get('encoding')
-            confidence = detection.get('confidence', 0.0)
+            encoding = detection.get("encoding")
+            confidence = detection.get("confidence", 0.0)
 
             if not encoding:
                 return None
 
-            logger.info(
-                f"✅ Encoding: {encoding} (confianza: {confidence:.1%})"
-            )
+            logger.info(f"✅ Encoding: {encoding} (confianza: {confidence:.1%})")
 
             if confidence < 0.7:
-                self.warnings.append(
-                    f"Baja confianza en encoding ({confidence:.1%})"
-                )
+                self.warnings.append(f"Baja confianza en encoding ({confidence:.1%})")
 
             return (encoding, confidence)
 
@@ -394,7 +410,7 @@ class InsumosFileDiagnostic:
         """Fallback manual para encoding."""
         for encoding in self.FALLBACK_ENCODINGS:
             try:
-                with open(self.file_path, 'r', encoding=encoding) as f:
+                with open(self.file_path, "r", encoding=encoding) as f:
                     f.read(1024)
                 logger.info(f"✅ Encoding (manual): {encoding}")
                 return (encoding, 0.5)
@@ -407,10 +423,7 @@ class InsumosFileDiagnostic:
     def _read_file(self, encoding: str) -> Optional[str]:
         """Lee el archivo completo."""
         try:
-            return self.file_path.read_text(
-                encoding=encoding,
-                errors='replace'
-            )
+            return self.file_path.read_text(encoding=encoding, errors="replace")
         except Exception as e:
             self.errors.append(f"Error al leer archivo: {e}")
             return None
@@ -427,7 +440,7 @@ class InsumosFileDiagnostic:
             content: Contenido del archivo
         """
         try:
-            sample = content[:self.CSV_SNIFFER_SAMPLE_SIZE]
+            sample = content[: self.CSV_SNIFFER_SAMPLE_SIZE]
             sniffer = csv.Sniffer()
             dialect = sniffer.sniff(sample)
 
@@ -436,9 +449,7 @@ class InsumosFileDiagnostic:
             self.stats.csv_quotechar = dialect.quotechar
             self.stats.csv_dialect_detected = True
 
-            logger.info(
-                f"✅ Dialecto CSV detectado: delimitador='{dialect.delimiter}'"
-            )
+            logger.info(f"✅ Dialecto CSV detectado: delimitador='{dialect.delimiter}'")
 
         except csv.Error:
             logger.warning("⚠️ csv.Sniffer falló, usando detección manual")
@@ -449,11 +460,12 @@ class InsumosFileDiagnostic:
 
     def _detect_separator_fallback(self, lines: List[str]) -> None:
         """Fallback manual para detectar separador."""
-        separators = [';', ',', '\t', '|']
+        separators = [";", ",", "\t", "|"]
         scores = Counter()
 
         clean_lines = [
-            line.strip() for line in lines
+            line.strip()
+            for line in lines
             if line.strip() and not self._is_comment(line.strip())
         ]
 
@@ -469,8 +481,8 @@ class InsumosFileDiagnostic:
             self.stats.csv_delimiter = best
             logger.info(f"✅ Separador (fallback): '{best}'")
         else:
-            self._separator = ';'
-            self.stats.csv_delimiter = ';'
+            self._separator = ";"
+            self.stats.csv_delimiter = ";"
             logger.warning("⚠️ Usando separador por defecto: ';'")
 
     # ========================================================================
@@ -542,8 +554,7 @@ class InsumosFileDiagnostic:
         # {re.escape(self._separator)} -> Usa el separador detectado de forma segura.
         # (.*) -> Captura el resto de la línea como el nombre del grupo.
         pattern = re.compile(
-            rf"^\s*(G\d*)\s*{re.escape(self._separator)}(.*)",
-            re.IGNORECASE
+            rf"^\s*(G\d*)\s*{re.escape(self._separator)}(.*)", re.IGNORECASE
         )
 
         match = pattern.match(line)
@@ -561,21 +572,14 @@ class InsumosFileDiagnostic:
 
         return False, None
 
-    def _start_new_group(
-        self,
-        group_name: str,
-        line_num: int,
-        original_line: str
-    ) -> None:
+    def _start_new_group(self, group_name: str, line_num: int, original_line: str) -> None:
         """Inicia un nuevo grupo."""
         # Normalizar nombre
         normalized_name = self._normalize_group_name(group_name)
 
         # Manejar duplicados
         if normalized_name in self._group_names_seen:
-            self.warnings.append(
-                f"Grupo duplicado: '{normalized_name}' en línea {line_num}"
-            )
+            self.warnings.append(f"Grupo duplicado: '{normalized_name}' en línea {line_num}")
             self.stats.duplicate_groups += 1
 
             # Hacer nombre único
@@ -587,9 +591,7 @@ class InsumosFileDiagnostic:
 
         # Crear grupo
         self._current_group = GroupInfo(
-            name=normalized_name,
-            original_name=group_name,
-            line_num=line_num
+            name=normalized_name, original_name=group_name, line_num=line_num
         )
 
         self.groups.append(self._current_group)
@@ -604,15 +606,12 @@ class InsumosFileDiagnostic:
         normalized = name.upper().strip()
 
         # Eliminar acentos comunes
-        replacements = {
-            'Á': 'A', 'É': 'E', 'Í': 'I', 'Ó': 'O', 'Ú': 'U',
-            'Ñ': 'N', 'Ü': 'U'
-        }
+        replacements = {"Á": "A", "É": "E", "Í": "I", "Ó": "O", "Ú": "U", "Ñ": "N", "Ü": "U"}
         for old, new in replacements.items():
             normalized = normalized.replace(old, new)
 
         # Normalizar espacios
-        normalized = self.PATTERN_MULTIPLE_SPACES.sub(' ', normalized)
+        normalized = self.PATTERN_MULTIPLE_SPACES.sub(" ", normalized)
 
         return normalized.strip()
 
@@ -631,9 +630,7 @@ class InsumosFileDiagnostic:
         if self._current_group.is_complete:
             self.stats.groups_complete += 1
 
-        logger.debug(
-            f"   └─ Datos: {self._current_group.data_lines} líneas"
-        )
+        logger.debug(f"   └─ Datos: {self._current_group.data_lines} líneas")
 
     def _process_line_in_group(self, line: str, line_num: int) -> None:
         """Procesa línea dentro de un grupo."""
@@ -656,10 +653,7 @@ class InsumosFileDiagnostic:
         normalized = line.upper()
 
         # Contar keywords
-        matches = sum(
-            1 for keyword in self.HEADER_KEYWORDS
-            if keyword in normalized
-        )
+        matches = sum(1 for keyword in self.HEADER_KEYWORDS if keyword in normalized)
 
         return matches >= self.MIN_HEADER_KEYWORD_MATCHES
 
@@ -677,9 +671,7 @@ class InsumosFileDiagnostic:
         try:
             # Usar csv.reader para manejar quotes, escapes, etc.
             reader = csv.reader(
-                [line],
-                delimiter=self._separator,
-                quotechar=self.stats.csv_quotechar or '"'
+                [line], delimiter=self._separator, quotechar=self.stats.csv_quotechar or '"'
             )
 
             row = next(reader)
@@ -749,8 +741,7 @@ class InsumosFileDiagnostic:
                 consistency = group.column_consistency
                 if consistency < self.COLUMN_CONSISTENCY_THRESHOLD:
                     issues.append(
-                        f"Grupo '{group.name}' columnas inconsistentes "
-                        f"({consistency:.1%})"
+                        f"Grupo '{group.name}' columnas inconsistentes ({consistency:.1%})"
                     )
                     if group.confidence == ConfidenceLevel.HIGH:
                         group.confidence = ConfidenceLevel.MEDIUM
@@ -772,12 +763,14 @@ class InsumosFileDiagnostic:
 
         # Sin grupos detectados
         if self.stats.groups_detected == 0:
-            self.recommendations.extend([
-                "❌ CRÍTICO: No se detectaron grupos",
-                "Verificar que el formato sea: G;<NOMBRE>",
-                f"Confirmar separador: '{self._separator}'",
-                "Revisar primeras líneas del archivo manualmente"
-            ])
+            self.recommendations.extend(
+                [
+                    "❌ CRÍTICO: No se detectaron grupos",
+                    "Verificar que el formato sea: G;<NOMBRE>",
+                    f"Confirmar separador: '{self._separator}'",
+                    "Revisar primeras líneas del archivo manualmente",
+                ]
+            )
             return
 
         # Encoding
@@ -795,7 +788,8 @@ class InsumosFileDiagnostic:
         # Grupos incompletos
         complete_ratio = (
             self.stats.groups_complete / self.stats.groups_detected
-            if self.stats.groups_detected > 0 else 0
+            if self.stats.groups_detected > 0
+            else 0
         )
 
         if complete_ratio < 0.5:
@@ -803,30 +797,32 @@ class InsumosFileDiagnostic:
                 f"⚠️ Solo {complete_ratio:.0%} de grupos están completos"
             )
         elif complete_ratio >= 0.9:
-            self.recommendations.append(
-                f"✅ {complete_ratio:.0%} de grupos están completos"
-            )
+            self.recommendations.append(f"✅ {complete_ratio:.0%} de grupos están completos")
 
         # Columnas irregulares
         if self.stats.column_consistency < self.COLUMN_CONSISTENCY_THRESHOLD:
-            self.recommendations.extend([
-                (
-                    "⚠️ Columnas irregulares (consistencia: "
-                    f"{self.stats.column_consistency:.1%})"
-                ),
-                "Usar on_bad_lines='warn' en pandas",
-                "Validar número de columnas por línea",
-            ])
+            self.recommendations.extend(
+                [
+                    (
+                        "⚠️ Columnas irregulares (consistencia: "
+                        f"{self.stats.column_consistency:.1%})"
+                    ),
+                    "Usar on_bad_lines='warn' en pandas",
+                    "Validar número de columnas por línea",
+                ]
+            )
 
         # Estrategia de procesamiento
         if self.stats.groups_complete > 0:
-            self.recommendations.extend([
-                "📋 Estrategia sugerida:",
-                "1. Identificar líneas que empiecen con 'G;'",
-                "2. Siguiente línea = encabezado",
-                "3. Líneas subsiguientes = datos",
-                "4. Procesar cada grupo como DataFrame independiente"
-            ])
+            self.recommendations.extend(
+                [
+                    "📋 Estrategia sugerida:",
+                    "1. Identificar líneas que empiecen con 'G;'",
+                    "2. Siguiente línea = encabezado",
+                    "3. Líneas subsiguientes = datos",
+                    "4. Procesar cada grupo como DataFrame independiente",
+                ]
+            )
 
     def _calculate_overall_confidence(self) -> None:
         """Calcula confianza general."""
@@ -840,9 +836,7 @@ class InsumosFileDiagnostic:
 
         # Factor 2: Grupos completos
         if self.stats.groups_detected > 0:
-            complete_ratio = (
-                self.stats.groups_complete / self.stats.groups_detected
-            )
+            complete_ratio = self.stats.groups_complete / self.stats.groups_detected
             factors.append(complete_ratio)
 
         # Factor 3: Consistencia de columnas
@@ -876,17 +870,14 @@ class InsumosFileDiagnostic:
             "\n" + "=" * 90,
             "📊 REPORTE - DIAGNÓSTICO DE INSUMOS JERÁRQUICOS".center(90),
             "=" * 90,
-
             "\n📁 ARCHIVO:",
             f"  Ruta: {self.file_path}",
             f"  Tamaño: {self._human_size(self.stats.file_size)}",
             f"  Líneas: {self.stats.total_lines:,}",
-
             "\n🔤 FORMATO:",
             f"  Encoding: {self.stats.encoding} ({self.stats.encoding_confidence:.1%})",
             f"  Separador: '{self.stats.csv_delimiter}'",
             f"  Dialecto detectado: {'Sí' if self.stats.csv_dialect_detected else 'No'}",
-
             "\n📦 GRUPOS:",
             f"  Total detectados: {self.stats.groups_detected}",
             f"  Con encabezado: {self.stats.groups_with_headers}",
@@ -900,17 +891,19 @@ class InsumosFileDiagnostic:
         # Detalle de grupos
         if self.groups:
             lines.append("\n📋 DETALLE DE GRUPOS:")
-            for i, group in enumerate(self.groups[:self.MAX_GROUPS_IN_REPORT], 1):
+            for i, group in enumerate(self.groups[: self.MAX_GROUPS_IN_REPORT], 1):
                 status = "✅" if group.is_complete else "⚠️"
-                lines.extend([
-                    f"\n  {i}. {status} {group.name}",
-                    f"     Línea: {group.line_num}",
-                    (
-                        "     Header: "
-                        f"{'Línea ' + str(group.header_line) if group.has_header else 'No'}"
-                    ),
-                    f"     Datos: {group.data_lines} líneas",
-                ])
+                lines.extend(
+                    [
+                        f"\n  {i}. {status} {group.name}",
+                        f"     Línea: {group.line_num}",
+                        (
+                            "     Header: "
+                            f"{'Línea ' + str(group.header_line) if group.has_header else 'No'}"
+                        ),
+                        f"     Datos: {group.data_lines} líneas",
+                    ]
+                )
 
                 if group.has_data:
                     lines.append(
@@ -919,9 +912,7 @@ class InsumosFileDiagnostic:
                     )
 
             if len(self.groups) > self.MAX_GROUPS_IN_REPORT:
-                lines.append(
-                    f"\n  ... y {len(self.groups) - self.MAX_GROUPS_IN_REPORT} más"
-                )
+                lines.append(f"\n  ... y {len(self.groups) - self.MAX_GROUPS_IN_REPORT} más")
 
         # Columnas
         if self.stats.column_distribution:
@@ -937,12 +928,14 @@ class InsumosFileDiagnostic:
                 lines.append(f"  {rec}")
 
         # Confianza
-        lines.extend([
-            "\n🎯 CONFIANZA GENERAL:",
-            f"  Nivel: {self.stats.overall_confidence.upper()}",
-            f"  Score: {self.stats.overall_confidence_score:.1%}",
-            "\n" + "=" * 90 + "\n"
-        ])
+        lines.extend(
+            [
+                "\n🎯 CONFIANZA GENERAL:",
+                f"  Nivel: {self.stats.overall_confidence.upper()}",
+                f"  Score: {self.stats.overall_confidence_score:.1%}",
+                "\n" + "=" * 90 + "\n",
+            ]
+        )
 
         for line in lines:
             logger.info(line)
@@ -951,12 +944,11 @@ class InsumosFileDiagnostic:
         """Limita líneas para archivos grandes."""
         if len(lines) > self.MAX_LINES_TO_ANALYZE:
             logger.warning(
-                f"⚠️ Archivo grande. Analizando primeras "
-                f"{self.MAX_LINES_TO_ANALYZE:,} líneas"
+                f"⚠️ Archivo grande. Analizando primeras {self.MAX_LINES_TO_ANALYZE:,} líneas"
             )
             self.stats.truncated_analysis = True
             self.stats.lines_analyzed = self.MAX_LINES_TO_ANALYZE
-            return lines[:self.MAX_LINES_TO_ANALYZE]
+            return lines[: self.MAX_LINES_TO_ANALYZE]
 
         self.stats.lines_analyzed = len(lines)
         return lines
@@ -988,37 +980,38 @@ class InsumosFileDiagnostic:
             file_path=str(self.file_path),
             stats=self.stats,
             errors=self.errors,
-            warnings=self.warnings
+            warnings=self.warnings,
         )
 
     def to_dict(self) -> Dict[str, Any]:
         """Exporta resultado como diccionario."""
         return {
-            'file_path': str(self.file_path),
-            'stats': asdict(self.stats),
-            'groups': [
+            "file_path": str(self.file_path),
+            "stats": asdict(self.stats),
+            "groups": [
                 {
-                    'name': g.name,
-                    'original_name': g.original_name,
-                    'line_num': g.line_num,
-                    'header_line': g.header_line,
-                    'data_lines': g.data_lines,
-                    'dominant_columns': g.dominant_column_count,
-                    'column_consistency': f"{g.column_consistency:.1%}",
-                    'confidence': g.confidence.value,
-                    'is_complete': g.is_complete
+                    "name": g.name,
+                    "original_name": g.original_name,
+                    "line_num": g.line_num,
+                    "header_line": g.header_line,
+                    "data_lines": g.data_lines,
+                    "dominant_columns": g.dominant_column_count,
+                    "column_consistency": f"{g.column_consistency:.1%}",
+                    "confidence": g.confidence.value,
+                    "is_complete": g.is_complete,
                 }
                 for g in self.groups
             ],
-            'recommendations': self.recommendations,
-            'warnings': self.warnings,
-            'errors': self.errors
+            "recommendations": self.recommendations,
+            "warnings": self.warnings,
+            "errors": self.errors,
         }
 
 
 # ============================================================================
 # MAIN
 # ============================================================================
+
 
 def main() -> int:
     """Función principal CLI."""
@@ -1041,8 +1034,9 @@ def main() -> int:
             return 1
 
         # Exportar JSON si se solicita
-        if len(sys.argv) > 2 and sys.argv[2] == '--json':
+        if len(sys.argv) > 2 and sys.argv[2] == "--json":
             import json
+
             output = diagnostic.to_dict()
             print(json.dumps(output, indent=2, ensure_ascii=False))
 

@@ -1050,7 +1050,9 @@ class TestEdgeCases(unittest.TestCase):
         self.temp_manager = TempFileManager()
         self.thresholds = ProcessingThresholds()
         # CAMBIO: Añadir el perfil para la prueba que lo necesita
-        self.insumos_profile = TEST_CONFIG.get("file_profiles", {}).get("insumos_default", {})
+        self.insumos_profile = TEST_CONFIG.get("file_profiles", {}).get(
+            "insumos_default", {}
+        )
 
     def tearDown(self):
         self.temp_manager.cleanup()
