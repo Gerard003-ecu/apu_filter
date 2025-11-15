@@ -28,7 +28,6 @@ from app.app import (
     ALLOWED_EXTENSIONS,
     MAX_CONTENT_LENGTH,
     SESSION_TIMEOUT,
-    APUProcessor,
     FileValidator,
     create_app,
     handle_errors,
@@ -37,6 +36,7 @@ from app.app import (
     setup_logging,
     temporary_upload_directory,
 )
+from app.presenters import APUPresenter
 
 # ============================================================================
 # FIXTURES - Configuración y datos de prueba
@@ -312,13 +312,13 @@ class TestFileValidator:
 # ============================================================================
 
 
-class TestAPUProcessor:
-    """Suite de pruebas para APUProcessor"""
+class TestAPUPresenter:
+    """Suite de pruebas para APUPresenter"""
 
     @pytest.fixture
     def processor(self, app):
-        """Fixture que crea instancia de APUProcessor."""
-        return APUProcessor(app.logger)
+        """Fixture que crea instancia de APUPresenter."""
+        return APUPresenter(app.logger)
 
     def test_process_apu_details_basic(self, processor, sample_apu_data):
         """Debe procesar detalles de APU correctamente."""
