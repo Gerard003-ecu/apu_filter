@@ -380,7 +380,7 @@ class TestDataSanitization:
         )
 
         presenter.logger = mock_logger
-        df_sanitized = presenter._sanitize_dataframe(df)
+        presenter._sanitize_dataframe(df)
 
         # Debe haber advertencias sobre valores negativos
         warning_calls = [call for call in mock_logger.warning.call_args_list]
@@ -764,7 +764,7 @@ class TestProcessAPUDetailsIntegration:
         """Debe loggear el inicio y fin del procesamiento."""
         presenter.logger = mock_logger
 
-        result = presenter.process_apu_details(valid_apu_details, "APU001")
+        presenter.process_apu_details(valid_apu_details, "APU001")
 
         # Verificar llamadas al logger
         info_calls = mock_logger.info.call_args_list
@@ -829,7 +829,7 @@ class TestEdgeCasesAndErrors:
             ],
         ):
             # No debe lanzar excepción, debe continuar
-            result = presenter._group_by_category(pd.DataFrame(valid_apu_details))
+            presenter._group_by_category(pd.DataFrame(valid_apu_details))
 
             # Verificar que se loggeó el error
             mock_logger.error.assert_called()
@@ -880,7 +880,7 @@ class TestEdgeCasesAndErrors:
         """Debe advertir sobre valores negativos."""
         presenter.logger = mock_logger
 
-        result = presenter.process_apu_details(apu_details_negative_values, "APU001")
+        presenter.process_apu_details(apu_details_negative_values, "APU001")
 
         # Debe advertir sobre valores negativos
         mock_logger.warning.assert_called()
@@ -1146,7 +1146,6 @@ class TestAdditionalCoverage:
 if __name__ == "__main__":
     """
     Ejecutar tests con pytest.
-    
     Comandos útiles:
     - pytest test_presenters.py -v                    # Verbose
     - pytest test_presenters.py -v --cov=presenters   # Con cobertura

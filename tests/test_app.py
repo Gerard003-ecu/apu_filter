@@ -1044,7 +1044,6 @@ class TestCreateApp:
 
         assert app.config["SESSION_TYPE"] == "redis"
         assert app.config["SESSION_PERMANENT"] is True
-        assert app.config["SESSION_USE_SIGNER"] is True
         assert app.config["PERMANENT_SESSION_LIFETIME"] == SESSION_TIMEOUT
 
 

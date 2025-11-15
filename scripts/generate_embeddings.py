@@ -382,7 +382,8 @@ def main():
     required_args = ["input_file", "output_dir", "model_name", "text_column", "id_column"]
     if any(getattr(args, arg) is None for arg in required_args):
         sys.exit(
-            f"Error: Faltan configuraciones requeridas en config.json o como argumentos. Necesarios: {', '.join(required_args)}"
+            "Error: Faltan configuraciones requeridas en config.json o como argumentos. "
+            f"Necesarios: {', '.join(required_args)}"
         )
 
     setup_logging(args.log_level)
