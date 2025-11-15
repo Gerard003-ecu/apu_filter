@@ -999,7 +999,7 @@ class TestBatchProcessDataframe:
         df = pd.DataFrame({"A": range(100)})
 
         def process_func(df_chunk):
-            df_chunk["B"] = df_chunk["A"] * 2
+            df_chunk.loc[:, "B"] = df_chunk["A"] * 2
             return df_chunk
 
         result = utils.batch_process_dataframe(df, process_func, batch_size=1000)
@@ -1014,7 +1014,7 @@ class TestBatchProcessDataframe:
         df = pd.DataFrame({"A": range(5000)})
 
         def process_func(df_chunk):
-            df_chunk["B"] = df_chunk["A"] * 2
+            df_chunk.loc[:, "B"] = df_chunk["A"] * 2
             return df_chunk
 
         result = utils.batch_process_dataframe(df, process_func, batch_size=1000)
@@ -1027,7 +1027,7 @@ class TestBatchProcessDataframe:
         df = pd.DataFrame({"A": range(100)})
 
         def process_func(df_chunk, multiplier=1):
-            df_chunk["B"] = df_chunk["A"] * multiplier
+            df_chunk.loc[:, "B"] = df_chunk["A"] * multiplier
             return df_chunk
 
         result = utils.batch_process_dataframe(df, process_func, batch_size=50, multiplier=3)
@@ -1444,7 +1444,7 @@ class TestPerformance:
         large_df = pd.DataFrame({"A": range(50000), "B": range(50000)})
 
         def simple_process(df):
-            df["C"] = df["A"] + df["B"]
+            df.loc[:, "C"] = df["A"] + df["B"]
             return df
 
         import time

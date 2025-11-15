@@ -292,7 +292,8 @@ class LoadDataStep(ProcessingStep):
         parser = ReportParserCrudo(apus_path, apus_profile)
         raw_records = parser.parse_to_raw()
 
-        # El resto del pipeline sigue igual, pero ahora APUProcessor también necesita la config
+        # El resto del pipeline sigue igual,
+        # pero ahora APUProcessor también necesita la config
         processor = APUProcessor(raw_records, self.config)
         df_apus_raw = processor.process_all()
 

@@ -899,7 +899,7 @@ class InsumosFileDiagnostic:
                         f"     Línea: {group.line_num}",
                         (
                             "     Header: "
-                            f"{'Línea ' + str(group.header_line) if group.has_header else 'No'}"
+                            f"{str(group.header_line) if group.has_header else 'No'}"
                         ),
                         f"     Datos: {group.data_lines} líneas",
                     ]

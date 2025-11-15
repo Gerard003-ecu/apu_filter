@@ -77,19 +77,21 @@ class MonteCarloConfig:
         # Validar num_simulations
         if not isinstance(self.num_simulations, int):
             raise TypeError(
-                f"num_simulations debe ser int, recibido: {type(self.num_simulations).__name__}"
+                "num_simulations debe ser int, "
+                f"recibido: {type(self.num_simulations).__name__}"
             )
 
         if not (MIN_NUM_SIMULATIONS <= self.num_simulations <= MAX_NUM_SIMULATIONS):
             raise ValueError(
-                f"num_simulations debe estar entre {MIN_NUM_SIMULATIONS} y {MAX_NUM_SIMULATIONS}, "
-                f"recibido: {self.num_simulations}"
+                f"num_simulations debe estar entre {MIN_NUM_SIMULATIONS} y "
+                f"{MAX_NUM_SIMULATIONS}, recibido: {self.num_simulations}"
             )
 
         # Validar volatility_factor
         if not isinstance(self.volatility_factor, (int, float)):
             raise TypeError(
-                f"volatility_factor debe ser numérico, recibido: {type(self.volatility_factor).__name__}"
+                "volatility_factor debe ser numérico, "
+                f"recibido: {type(self.volatility_factor).__name__}"
             )
 
         if not (MIN_VOLATILITY <= self.volatility_factor <= MAX_VOLATILITY):

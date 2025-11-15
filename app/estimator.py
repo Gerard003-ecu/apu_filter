@@ -348,7 +348,8 @@ def calculate_estimate(
         log.append(f"💰 Valor Suministro: ${valor_suministro:,.2f}")
 
     # --- 3. Búsqueda de Cuadrilla ---
-    # (La búsqueda de cuadrilla sigue siendo por palabras clave, ya que es más precisa para ese caso)
+    # (La búsqueda de cuadrilla sigue siendo por palabras clave,
+    # ya que es más precisa para ese caso)
     log.append("\n" + "=" * 70 + "\n🎯 BÚSQUEDA #2: CUADRILLA\n" + "-" * 70)
     costo_diario_cuadrilla = 0.0
     apu_cuadrilla_desc = "No encontrada"
@@ -431,6 +432,10 @@ def calculate_estimate(
         "valor_instalacion": valor_instalacion,
         "valor_construccion": valor_construccion,
         "rendimiento_m2_por_dia": rendimiento_dia,
-        "apu_encontrado": f"Suministro: {apu_suministro_desc} | Tarea: {apu_tarea_desc} | Cuadrilla: {apu_cuadrilla_desc}",
+        "apu_encontrado": (
+            f"Suministro: {apu_suministro_desc} | "
+            f"Tarea: {apu_tarea_desc} | "
+            f"Cuadrilla: {apu_cuadrilla_desc}"
+        ),
         "log": "\n".join(log),
     }

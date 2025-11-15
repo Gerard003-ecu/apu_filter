@@ -1588,7 +1588,7 @@ def batch_process_dataframe(
 
     results = []
     for i in range(0, len(df), batch_size):
-        batch = df.iloc[i : i + batch_size]
+        batch = df.iloc[i : i + batch_size].copy()
         processed = process_func(batch, **kwargs)
         results.append(processed)
 

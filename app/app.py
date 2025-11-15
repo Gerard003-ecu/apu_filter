@@ -352,7 +352,6 @@ def create_app(config_name: str) -> Flask:
 
     app.config["SESSION_TYPE"] = "redis"
     app.config["SESSION_PERMANENT"] = True
-    app.config["SESSION_USE_SIGNER"] = True
     app.config["SESSION_KEY_PREFIX"] = "apu_filter:session:"
     app.config["SESSION_REDIS"] = redis.from_url(app.config["REDIS_URL"])
     app.config["PERMANENT_SESSION_LIFETIME"] = SESSION_TIMEOUT
