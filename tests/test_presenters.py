@@ -11,7 +11,7 @@ from typing import Dict, List, Any
 import logging
 
 # Importar las clases a testear
-from presenters import APUPresenter, APUProcessingConfig
+from app.presenters import APUPresenter, APUProcessingConfig
 
 
 # ============================================================================

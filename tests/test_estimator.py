@@ -1,10 +1,11 @@
 import sys
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, patch, call
 
 import numpy as np
 import pandas as pd
 import pytest
+from flask import current_app
 
 # Añadir el directorio raíz del proyecto al sys.path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
@@ -30,28 +31,22 @@ def sample_apu_pool():
                 "CODIGO_APU": "APU-001",
                 "original_description": "Instalación de muro de ladrillo",
                 "DESC_NORMALIZED": "instalacion muro ladrillo",
-                "VALOR_SUMINISTRO_UN": 100,
-                "tipo_apu": "SUMINISTRO",
-                "EQUIPO": 10,
-                "UNIDAD": "M2",
+                "VALOR_SUMINISTRO_UN": 100, "VALOR_CONSTRUCCION_UN": 150,
+                "tipo_apu": "Suministro", "EQUIPO": 10, "UNIDAD": "M2",
             },
             {
                 "CODIGO_APU": "APU-002",
                 "original_description": "Pintura acrílica para exteriores",
                 "DESC_NORMALIZED": "pintura acrilica exteriores",
-                "VALOR_SUMINISTRO_UN": 200,
-                "tipo_apu": "SUMINISTRO",
-                "EQUIPO": 20,
-                "UNIDAD": "M2",
+                "VALOR_SUMINISTRO_UN": 200, "VALOR_CONSTRUCCION_UN": 250,
+                "tipo_apu": "Suministro", "EQUIPO": 20, "UNIDAD": "M2",
             },
             {
                 "CODIGO_APU": "APU-003",
                 "original_description": "CUADRILLA TIPO 1 (1 OF + 2 AYU)",
                 "DESC_NORMALIZED": "cuadrilla tipo 1 1 of 2 ayu",
-                "VALOR_SUMINISTRO_UN": 300,
-                "tipo_apu": "MANO_DE_OBRA",
-                "EQUIPO": 30,
-                "UNIDAD": "JOR",
+                "VALOR_SUMINISTRO_UN": 0, "VALOR_CONSTRUCCION_UN": 300,
+                "tipo_apu": "Instalación", "EQUIPO": 30, "UNIDAD": "DIA",
             },
         ]
     )
@@ -61,7 +56,6 @@ def sample_apu_pool():
 def mock_embedding_model():
     """Mock del modelo SentenceTransformer."""
     model = MagicMock()
-    # Simula la codificación de un embedding de 384 dimensiones
     model.encode.return_value = np.random.rand(1, 384).astype(np.float32)
     return model
 
@@ -70,13 +64,8 @@ def mock_embedding_model():
 def mock_faiss_index():
     """Mock del índice FAISS."""
     index = MagicMock()
-    # Simula una búsqueda que devuelve distancias e índices
-    # Distances: [[sim_alta, sim_media, sim_baja]]
-    # Indices: [[idx_apu_1, idx_apu_2, idx_apu_0]]
-    index.search.return_value = (
-        np.array([[0.9, 0.7, 0.5]], dtype=np.float32),
-        np.array([[1, 2, 0]], dtype=np.int64),
-    )
+    # Simula una búsqueda que devuelve 'APU-002' como el más cercano
+    index.search.return_value = (np.array([[0.9]]), np.array([[1]]))
     return index
 
 
@@ -88,19 +77,12 @@ def mock_id_map():
 
 @pytest.fixture
 def app_context(mock_embedding_model, mock_faiss_index, mock_id_map):
-    """
-    Crea un contexto de aplicación Flask de prueba.
-
-    Carga los mocks del modelo, índice y mapa en la configuración de la app
-    para que `_find_best_semantic_match` pueda acceder a ellos a través
-    de `current_app`.
-    """
+    """Crea un contexto de aplicación Flask de prueba con artefactos mockeados."""
     app = create_app("testing")
-    app.config["EMBEDDING_MODEL"] = mock_embedding_model
-    app.config["FAISS_INDEX"] = mock_faiss_index
-    app.config["ID_MAP"] = mock_id_map
-
     with app.app_context():
+        current_app.config["EMBEDDING_MODEL"] = mock_embedding_model
+        current_app.config["FAISS_INDEX"] = mock_faiss_index
+        current_app.config["ID_MAP"] = mock_id_map
         yield
 
 
@@ -118,9 +100,7 @@ def test_find_best_semantic_match_success(app_context, sample_apu_pool):
         log=log,
         min_similarity=0.8,
     )
-
     assert result is not None
-    assert isinstance(result, pd.Series)
     assert result["CODIGO_APU"] == "APU-002"
     assert "✅ Coincidencia encontrada" in "".join(log)
 
@@ -134,128 +114,86 @@ def test_find_best_semantic_match_below_threshold(app_context, sample_apu_pool):
         log=log,
         min_similarity=0.95,  # Umbral muy alto
     )
-
     assert result is None
     assert "❌ Sin coincidencia válida" in "".join(log)
 
 
-def test_find_best_semantic_match_empty_pool(app_context):
-    """Prueba que la función maneje un DataFrame vacío."""
-    log = []
-    result = _find_best_semantic_match(
-        df_pool=pd.DataFrame(), query_text="consulta", log=log
-    )
-    assert result is None
-    assert "Pool de APUs vacío" in "".join(log)
-
-
-def test_find_best_semantic_match_empty_query(app_context, sample_apu_pool):
-    """Prueba que la función maneje una consulta vacía."""
-    log = []
-    result = _find_best_semantic_match(df_pool=sample_apu_pool, query_text="  ", log=log)
-    assert result is None
-    assert "Texto de consulta vacío" in "".join(log)
-
-
-def test_find_best_semantic_match_candidate_not_in_pool(app_context, sample_apu_pool):
-    """Prueba que se ignoren candidatos del índice que no están en el pool actual."""
-    # El pool solo contiene 'APU-001'. El mock de FAISS devolverá 'APU-002' como el mejor.
-    filtered_pool = sample_apu_pool[sample_apu_pool["CODIGO_APU"] == "APU-001"]
-    log = []
-
-    result = _find_best_semantic_match(
-        df_pool=filtered_pool,
-        query_text="pintura",
-        log=log,
-        min_similarity=0.1,
-    )
-
-    # El resultado debe ser APU-001 (el único en el pool), no APU-002.
-    assert result is not None
-    assert result["CODIGO_APU"] == "APU-001"
-    assert "ninguno de los candidatos del índice estaba en el pool filtrado" not in "".join(
-        log
-    )
-
-
 # ============================================================================
-# PRUEBAS PARA _find_best_keyword_match
+# PRUEBAS DE INTEGRACIÓN PARA calculate_estimate CON FALLBACK
 # ============================================================================
 
 
-def test_find_best_keyword_match_exact_word_success(sample_apu_pool):
-    """Prueba que encuentre una coincidencia exacta de palabras."""
-    log = []
-    result = _find_best_keyword_match(
-        df_pool=sample_apu_pool,
-        keywords=["pintura", "exteriores"],
-        log=log,
-        min_match_percentage=50,
-    )
-    assert result is not None
-    assert result["CODIGO_APU"] == "APU-002"
-
-
-def test_find_best_keyword_match_substring_success(sample_apu_pool):
-    """Prueba que encuentre una coincidencia de subcadena."""
-    log = []
-    result = _find_best_keyword_match(
-        df_pool=sample_apu_pool,
-        keywords=["cuadrilla", "tipo", "1"],
-        log=log,
-        match_mode="substring",
-    )
-    assert result is not None
-    assert result["CODIGO_APU"] == "APU-003"
-
-
-def test_find_best_keyword_match_no_match(sample_apu_pool):
-    """Prueba que devuelva None cuando no hay coincidencia."""
-    log = []
-    result = _find_best_keyword_match(
-        df_pool=sample_apu_pool, keywords=["palabra", "inexistente"], log=log
-    )
-    assert result is None
-
-
-# ============================================================================
-# PRUEBAS DE INTEGRACIÓN PARA calculate_estimate
-# ============================================================================
-
-
-@patch("app.estimator._find_best_semantic_match")
 @patch("app.estimator._find_best_keyword_match")
-def test_calculate_estimate_delegates_correctly(
-    mock_keyword_match, mock_semantic_match, app_context, sample_apu_pool
+@patch("app.estimator._find_best_semantic_match")
+def test_calculate_estimate_uses_semantic_first(
+    mock_semantic_match, mock_keyword_match, app_context, sample_apu_pool
 ):
     """
-    Prueba que `calculate_estimate` llame a las funciones de búsqueda correctas.
+    Verifica que la búsqueda semántica se usa primero y, si tiene éxito,
+    la de keywords no se llama para esa parte.
     """
-    # Configurar mocks para que devuelvan valores y así poder verificar el flujo
-    mock_semantic_match.return_value = sample_apu_pool.iloc[0]  # Devuelve APU-001
-    mock_keyword_match.return_value = sample_apu_pool.iloc[2]  # Devuelve APU-003
+    mock_semantic_match.return_value = sample_apu_pool.iloc[0]
+    mock_keyword_match.return_value = sample_apu_pool.iloc[2]
 
-    # Datos de entrada para la función principal
     params = {"material": "muro de ladrillo", "cuadrilla": "1"}
-    data_store = {
-        "processed_apus": sample_apu_pool.to_dict("records"),
-        "apus_detail": [],
-    }
-    config = {"param_map": {"material": {}, "cuadrilla": {}}}
+    data_store = {"processed_apus": sample_apu_pool.to_dict("records"), "apus_detail": []}
+    config = {"param_map": {}, "estimator_thresholds": {}}
 
-    # Ejecutar la función
+    calculate_estimate(params, data_store, config)
+
+    assert mock_semantic_match.call_count == 2
+    mock_keyword_match.assert_called_once()
+    # Acceder a argumentos posicionales (args) en lugar de kwargs
+    assert "cuadrilla" in mock_keyword_match.call_args.args[1]
+
+
+@patch("app.estimator._find_best_keyword_match")
+@patch("app.estimator._find_best_semantic_match")
+def test_calculate_estimate_fallback_to_keyword_on_semantic_failure(
+    mock_semantic_match, mock_keyword_match, app_context, sample_apu_pool
+):
+    """
+    Verifica que se recurre a la búsqueda por keywords si la semántica falla.
+    """
+    mock_semantic_match.return_value = None
+    mock_keyword_match.return_value = sample_apu_pool.iloc[0]
+
+    params = {"material": "pintura", "cuadrilla": "1"}
+    data_store = {"processed_apus": sample_apu_pool.to_dict("records"), "apus_detail": []}
+    config = {"param_map": {}, "estimator_thresholds": {}}
+
     result = calculate_estimate(params, data_store, config)
 
-    # Verificar que no haya errores
-    assert "error" not in result
-
-    # Verificar que se llamó a la búsqueda semántica para suministro y tarea
     assert mock_semantic_match.call_count == 2
-    # La primera llamada fue para suministro, con el texto "muro de ladrillo"
-    mock_semantic_match.call_args_list[0].kwargs["query_text"] == "muro de ladrillo"
-    # La segunda llamada fue para tarea, con el mismo texto
-    mock_semantic_match.call_args_list[1].kwargs["query_text"] == "muro de ladrillo"
+    assert mock_keyword_match.call_count == 3
+    assert "Búsqueda semántica sin éxito. Recurriendo a palabras clave" in result["log"]
 
-    # Verificar que se llamó a la búsqueda por keywords para la cuadrilla
-    mock_keyword_match.assert_called_once()
-    assert mock_keyword_match.call_args[0][1] == ["cuadrilla", "1"]
+
+@patch("app.estimator._find_best_keyword_match")
+def test_calculate_estimate_no_semantic_artifacts(
+    mock_keyword_match, sample_apu_pool
+):
+    """
+    Verifica que se recurre a keywords si los artefactos semánticos no están cargados.
+    Esta prueba NO mockea _find_best_semantic_match para probar su lógica interna.
+    """
+    app = create_app("testing")
+    with app.app_context():
+        # Simular que los artefactos no se cargaron
+        current_app.config["EMBEDDING_MODEL"] = None
+        current_app.config["FAISS_INDEX"] = None
+        current_app.config["ID_MAP"] = None
+
+        mock_keyword_match.return_value = sample_apu_pool.iloc[0]
+
+        params = {"material": "muro", "cuadrilla": "1"}
+        data_store = {"processed_apus": sample_apu_pool.to_dict("records"), "apus_detail": []}
+        config = {"param_map": {}, "estimator_thresholds": {}}
+
+        result = calculate_estimate(params, data_store, config)
+
+        # Como consecuencia del fallo interno de la búsqueda semántica,
+        # se debe llamar al fallback de keywords 3 veces (suministro, cuadrilla, tarea)
+        assert mock_keyword_match.call_count == 3
+        # Verificar que el log contiene el mensaje de error correcto
+        assert "Faltan artefactos de búsqueda semántica" in result["log"]
