@@ -9,6 +9,7 @@ Incluye:
 - Manejo de casos edge
 """
 
+import copy
 import os
 import sys
 import tempfile
@@ -384,9 +385,17 @@ class TestPresupuestoProcessor(unittest.TestCase):
     def setUp(self):
         self.config = TEST_CONFIG.copy()
         self.thresholds = ProcessingThresholds()
-        # CAMBIO: Extraer y pasar el perfil
+
+        # --- INICIO DE LA CORRECCIÓN ---
+        # 1. Extraer el perfil del presupuesto desde la configuración de prueba.
         profile = self.config.get("file_profiles", {}).get("presupuesto_default", {})
+        if not profile:
+            self.fail("El perfil 'presupuesto_default' no se encontró en TEST_CONFIG.")
+
+        # 2. Inyectar el perfil al crear la instancia del procesador.
         self.processor = PresupuestoProcessor(self.config, self.thresholds, profile)
+        # --- FIN DE LA CORRECCIÓN ---
+
         self.temp_manager = TempFileManager()
 
     def tearDown(self):
@@ -395,17 +404,14 @@ class TestPresupuestoProcessor(unittest.TestCase):
     @patch("app.procesador_csv.load_data")
     def test_process_success_with_phantom_rows(self, mock_load_data):
         """Prueba que el proceso completo maneje filas fantasma."""
+        # --- INICIO DE LA CORRECCIÓN ---
+        # Simula el DataFrame que `load_data` devuelve DESPUÉS de procesar el header.
         mock_df = pd.DataFrame(
-            [
-                [np.nan, np.nan, np.nan, np.nan],
-                ["", " ", "", " "],
-                ["ITEM", "DESCRIPCION", "UND", "CANT."],
-                [";", ";", ";", ";"],
-                ["1.1", "APU 1", "ML", "100"],
-                ["1.2", "APU 2", "M3", "50"],
-            ]
+            data=[["1.1", "APU 1", "ML", "100"], ["1.2", "APU 2", "M3", "50"]],
+            columns=["ITEM", "DESCRIPCION", "UND", "CANT."],
         )
         mock_load_data.return_value = mock_df
+        # --- FIN DE LA CORRECCIÓN ---
 
         temp_file = self.temp_manager.create_temp_file()
         result = self.processor.process(temp_file)
@@ -425,8 +431,15 @@ class TestPresupuestoProcessor(unittest.TestCase):
         )
         TestDataBuilder.create_presupuesto_csv(temp_file, data)
 
+        # Crear un procesador con el perfil de encabezado correcto
+        profile = copy.deepcopy(
+            self.config.get("file_profiles", {}).get("presupuesto_default", {})
+        )
+        profile["loader_params"]["header"] = 0
+        processor = PresupuestoProcessor(self.config, self.thresholds, profile)
+
         with self.assertLogs("app.procesador_csv", level="WARNING"):
-            result = self.processor.process(temp_file)
+            result = processor.process(temp_file)
 
         # Debe conservar solo el primero
         self.assertEqual(len(result), 2)
@@ -446,7 +459,13 @@ class TestPresupuestoProcessor(unittest.TestCase):
         )
         TestDataBuilder.create_presupuesto_csv(temp_file, data)
 
-        result = self.processor.process(temp_file)
+        profile = copy.deepcopy(
+            self.config.get("file_profiles", {}).get("presupuesto_default", {})
+        )
+        profile["loader_params"]["header"] = 0
+        processor = PresupuestoProcessor(self.config, self.thresholds, profile)
+
+        result = processor.process(temp_file)
 
         self.assertEqual(len(result), 2)
         self.assertIn("1", result[ColumnNames.CODIGO_APU].tolist())
@@ -885,31 +904,32 @@ class TestProcessAllFilesIntegration(unittest.TestCase):
     @patch("app.procesador_csv._save_output_files")
     def test_process_all_files_success(self, mock_save_output_files):
         """Prueba procesamiento completo exitoso, simulando guardado de archivos."""
-        # Crear un mock de Path para evitar el error 'str' object has no attribute 'exists'
         mock_path = MagicMock(spec=Path)
         mock_path.exists.return_value = True
         mock_path.stat.return_value.st_size = 12345
-        # Simulamos que _save_output_files devuelve un diccionario con mocks de Path
         mock_save_output_files.return_value = {
             "processed_apus": mock_path,
             "presupuesto_final": mock_path,
             "insumos_detalle": mock_path,
         }
 
-        with (
-            patch("app.procesador_csv.ReportParserCrudo") as mock_parser_class,
-            patch("app.procesador_csv.APUProcessor") as mock_processor_class,
-        ):
-            mock_parser = MagicMock()
-            mock_parser_class.return_value = mock_parser
-            mock_parser.parse_to_raw.return_value = []
+        # Adaptar el config para la prueba
+        test_config = copy.deepcopy(TEST_CONFIG)
+        test_config["file_profiles"]["presupuesto_default"]["loader_params"][
+            "header"
+        ] = 0
 
+        with patch("app.procesador_csv.ReportParserCrudo"), patch(
+            "app.procesador_csv.APUProcessor"
+        ) as mock_processor_class:
             mock_processor = MagicMock()
+            mock_processor.process_all.return_value = (
+                TestDataBuilder.create_sample_apus_df()
+            )
             mock_processor_class.return_value = mock_processor
-            mock_processor.process_all.return_value = TestDataBuilder.create_sample_apus_df()
 
             resultado = process_all_files(
-                self.presupuesto_path, self.apus_path, self.insumos_path, TEST_CONFIG
+                self.presupuesto_path, self.apus_path, self.insumos_path, test_config
             )
 
             self.assertIsInstance(resultado, dict)
@@ -918,7 +938,6 @@ class TestProcessAllFilesIntegration(unittest.TestCase):
                 resultado,
                 f"Se encontró un error inesperado: {resultado.get('error')}",
             )
-
             expected_keys = [
                 "presupuesto",
                 "insumos",
@@ -929,8 +948,6 @@ class TestProcessAllFilesIntegration(unittest.TestCase):
             ]
             for key in expected_keys:
                 self.assertIn(key, resultado, f"Falta clave: {key}")
-
-            # Verificar la nueva estructura de salida
             self.assertIn("processed_apus", resultado["output_files"])
             mock_save_output_files.assert_called_once()
 
@@ -1018,9 +1035,14 @@ class TestProcessAllFilesIntegration(unittest.TestCase):
             )
 
             # --- Ejecución ---
+            # Adaptar el config para la prueba
+            test_config = copy.deepcopy(TEST_CONFIG)
+            test_config["file_profiles"]["presupuesto_default"]["loader_params"][
+                "header"
+            ] = 0
             # Llamamos a la función principal que orquesta todo el proceso.
             resultado = process_all_files(
-                self.presupuesto_path, self.apus_path, self.insumos_path, TEST_CONFIG
+                self.presupuesto_path, self.apus_path, self.insumos_path, test_config
             )
 
             # --- Aserciones ---
