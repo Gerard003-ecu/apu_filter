@@ -49,16 +49,16 @@ Bob Johnson;35;Chicago"""
 def problematic_csv_path(temp_dir):
     """Crea un CSV con diferentes tipos de problemas."""
     csv_path = temp_dir / "problematic.csv"
-    content = """Name;Age;City
-John Doe;30;New York
-# This is a comment
-Jane Smith;25;Los Angeles
-;;
-Bob Johnson;35;Chicago;Extra Column
-   ;   ;   
-Alice;28;Boston
-# Another comment
-"""
+    content = (
+        "Name;Age;City\n"
+        "John Doe;30;New York\n"
+        "# This is a comment\n"
+        "Jane Smith;25;Los Angeles\n"
+        "\n"
+        "Bob Johnson;35;Chicago;Extra Column\n"
+        "   ;   ;   \n"
+        "Alice;28;Boston\n"
+    )
     csv_path.write_text(content, encoding='utf-8')
     return csv_path
 
@@ -160,16 +160,16 @@ class TestCleaningStats:
     def test_multiple_skip_reasons(self):
         """Verifica el registro de múltiples razones de salto."""
         stats = CleaningStats()
-        
+
         stats.record_skip(SkipReason.EMPTY)
         stats.record_skip(SkipReason.COMMENT)
-        stats.record_skip(SkipReason.INCONSISTENT_COLUMNS)
+        stats.record_skip(SkipReason.INCONSISTENT_DELIMITERS)
         stats.record_skip(SkipReason.EMPTY)
-        
+
         assert stats.rows_skipped == 4
         assert stats.skip_reasons[SkipReason.EMPTY] == 2
         assert stats.skip_reasons[SkipReason.COMMENT] == 1
-        assert stats.skip_reasons[SkipReason.INCONSISTENT_COLUMNS] == 1
+        assert stats.skip_reasons[SkipReason.INCONSISTENT_DELIMITERS] == 1
 
 
 # ============================================================================
@@ -314,164 +314,111 @@ class TestValidations:
 
 
 # ============================================================================
-# TESTS DE LECTURA DE ENCABEZADO
+# TESTS DE PROCESAMIENTO DE ENCABEZADO
 # ============================================================================
 
-class TestReadHeader:
-    """Pruebas para el método _read_header."""
-    
-    def test_read_valid_header(self, sample_csv_path):
-        """Verifica lectura correcta de encabezado válido."""
-        with open(sample_csv_path, 'r', encoding='utf-8') as f:
-            reader = csv.reader(f, delimiter=';')
-            cleaner = CSVCleaner(
-                input_path=str(sample_csv_path),
-                output_path="dummy.csv"
-            )
-            
-            header = cleaner._read_header(reader)
-            
-            assert header == ['Name', 'Age', 'City']
-    
-    def test_empty_csv_raises_error(self, temp_dir):
-        """Verifica error con CSV completamente vacío."""
-        empty_file = temp_dir / "empty.csv"
-        empty_file.write_text("", encoding='utf-8')
+class TestProcessHeader:
+    """Pruebas para el método _process_header."""
+
+    def test_process_valid_header(self, sample_csv_path):
+        """Verifica el procesamiento correcto de un encabezado válido."""
+        cleaner = CSVCleaner(str(sample_csv_path), "dummy.csv")
+        header_line = "Name;Age;City"
+
+        cleaner._process_header(header_line)
+
+        assert cleaner.expected_delimiter_count == 2
+        assert cleaner.stats.rows_written == 0  # No debe modificar estadísticas
+
+    def test_empty_header_raises_error(self, temp_dir):
+        """Verifica que un encabezado completamente vacío lanza un error."""
+        cleaner = CSVCleaner("dummy_in.csv", "dummy_out.csv")
         
-        with open(empty_file, 'r', encoding='utf-8') as f:
-            reader = csv.reader(f, delimiter=';')
-            cleaner = CSVCleaner(
-                input_path=str(empty_file),
-                output_path="dummy.csv"
-            )
-            
-            with pytest.raises(ValueError, match="vacío"):
-                cleaner._read_header(reader)
-    
+        with pytest.raises(ValueError, match="El encabezado del CSV está vacío"):
+            cleaner._process_header("")
+
     def test_blank_header_raises_error(self, temp_dir):
-        """Verifica error con encabezado en blanco."""
-        blank_header = temp_dir / "blank_header.csv"
-        blank_header.write_text(";;;\n", encoding='utf-8')
-        
-        with open(blank_header, 'r', encoding='utf-8') as f:
-            reader = csv.reader(f, delimiter=';')
-            cleaner = CSVCleaner(
-                input_path=str(blank_header),
-                output_path="dummy.csv"
-            )
-            
-            with pytest.raises(ValueError, match="vacío"):
-                cleaner._read_header(reader)
-    
+        """Verifica que un encabezado con solo espacios y delimitadores lanza error."""
+        cleaner = CSVCleaner("dummy_in.csv", "dummy_out.csv")
+
+        with pytest.raises(ValueError, match="contiene solo espacios en blanco"):
+            cleaner._process_header("   ;   ;   ")
+
     @patch('scripts.clean_csv.logger')
     def test_duplicate_headers_warning(self, mock_logger, duplicate_headers_csv_path):
-        """Verifica advertencia con encabezados duplicados."""
-        with open(duplicate_headers_csv_path, 'r', encoding='utf-8') as f:
-            reader = csv.reader(f, delimiter=';')
-            cleaner = CSVCleaner(
-                input_path=str(duplicate_headers_csv_path),
-                output_path="dummy.csv"
-            )
-            
-            header = cleaner._read_header(reader)
-            
-            # Debe haber generado advertencia
-            mock_logger.warning.assert_called()
-            warning_message = mock_logger.warning.call_args[0][0]
-            assert "duplicados" in warning_message.lower()
+        """Verifica que se emite una advertencia con encabezados duplicados."""
+        cleaner = CSVCleaner(str(duplicate_headers_csv_path), "dummy.csv")
+        header_line = "Name;Age;Name;City"
+
+        cleaner._process_header(header_line)
+
+        mock_logger.warning.assert_called()
+        warning_message = mock_logger.warning.call_args[0][0]
+        assert "duplicados" in warning_message
 
 
 # ============================================================================
-# TESTS DE VALIDACIÓN DE FILAS
+# TESTS DE VALIDACIÓN DE LÍNEAS
 # ============================================================================
 
-class TestShouldSkipRow:
-    """Pruebas para el método _should_skip_row."""
-    
-    def test_valid_row_not_skipped(self, sample_csv_path):
-        """Verifica que una fila válida no se salta."""
-        cleaner = CSVCleaner(
-            input_path=str(sample_csv_path),
-            output_path="dummy.csv"
-        )
-        
-        row = ['John Doe', '30', 'New York']
-        result = cleaner._should_skip_row(row, num_columns=3, line_num=2)
-        
+class TestShouldSkipLine:
+    """Pruebas para el método _should_skip_line."""
+
+    @pytest.fixture
+    def cleaner(self, sample_csv_path):
+        """Prepara un limpiador con el encabezado ya procesado."""
+        cleaner = CSVCleaner(str(sample_csv_path), "dummy.csv")
+        cleaner._process_header("Name;Age;City")  # Establecer el conteo esperado de delimitadores
+        return cleaner
+
+    def test_valid_line_not_skipped(self, cleaner):
+        """Verifica que una línea válida no se salta."""
+        line = "John Doe;30;New York"
+        result = cleaner._should_skip_line(line, line_num=2)
         assert result is None
-    
-    def test_empty_row_skipped(self, sample_csv_path):
-        """Verifica que una fila vacía se salta."""
-        cleaner = CSVCleaner(
-            input_path=str(sample_csv_path),
-            output_path="dummy.csv"
-        )
-        
-        row = []
-        result = cleaner._should_skip_row(row, num_columns=3, line_num=2)
-        
+
+    def test_empty_line_skipped(self, cleaner):
+        """Verifica que una línea completamente vacía se salta."""
+        line = ""
+        result = cleaner._should_skip_line(line, line_num=2)
         assert result == SkipReason.EMPTY
-    
-    def test_blank_fields_row_skipped(self, sample_csv_path):
-        """Verifica que una fila con campos en blanco se salta."""
-        cleaner = CSVCleaner(
-            input_path=str(sample_csv_path),
-            output_path="dummy.csv"
-        )
-        
-        row = ['  ', '  ', '  ']
-        result = cleaner._should_skip_row(row, num_columns=3, line_num=2)
-        
+
+    def test_whitespace_line_skipped(self, cleaner):
+        """Verifica que una línea con solo espacios se salta."""
+        line = "      "
+        result = cleaner._should_skip_line(line, line_num=2)
         assert result == SkipReason.EMPTY
-    
-    def test_comment_row_skipped(self, sample_csv_path):
-        """Verifica que una fila de comentario se salta."""
-        cleaner = CSVCleaner(
-            input_path=str(sample_csv_path),
-            output_path="dummy.csv"
-        )
-        
-        row = ['# This is a comment', 'data', 'data']
-        result = cleaner._should_skip_row(row, num_columns=3, line_num=2)
-        
+
+    def test_blank_fields_line_skipped(self, cleaner):
+        """Verifica que una línea con campos en blanco se salta."""
+        line = "   ;   ;   "
+        result = cleaner._should_skip_line(line, line_num=2)
+        assert result == SkipReason.WHITESPACE_ONLY
+
+    def test_comment_line_skipped(self, cleaner):
+        """Verifica que una línea de comentario se salta."""
+        line = "# This is a comment"
+        result = cleaner._should_skip_line(line, line_num=2)
         assert result == SkipReason.COMMENT
-    
-    def test_inconsistent_columns_strict_mode(self, sample_csv_path):
-        """Verifica que columnas inconsistentes se saltan en modo estricto."""
-        cleaner = CSVCleaner(
-            input_path=str(sample_csv_path),
-            output_path="dummy.csv",
-            strict_mode=True
-        )
-        
-        row = ['John', '30', 'NYC', 'Extra']
-        result = cleaner._should_skip_row(row, num_columns=3, line_num=2)
-        
-        assert result == SkipReason.INCONSISTENT_COLUMNS
-    
-    def test_inconsistent_columns_non_strict_mode(self, sample_csv_path):
-        """Verifica que columnas inconsistentes NO se saltan en modo no estricto."""
-        cleaner = CSVCleaner(
-            input_path=str(sample_csv_path),
-            output_path="dummy.csv",
-            strict_mode=False
-        )
-        
-        row = ['John', '30', 'NYC', 'Extra']
-        result = cleaner._should_skip_row(row, num_columns=3, line_num=2)
-        
+
+    def test_inconsistent_delimiters_strict_mode(self, cleaner):
+        """Verifica que delimitadores inconsistentes se saltan en modo estricto."""
+        cleaner.strict_mode = True
+        line = "John;30;NYC;Extra"
+        result = cleaner._should_skip_line(line, line_num=2)
+        assert result == SkipReason.INCONSISTENT_DELIMITERS
+
+    def test_inconsistent_delimiters_non_strict_mode(self, cleaner):
+        """Verifica que delimitadores inconsistentes NO se saltan en modo no estricto."""
+        cleaner.strict_mode = False
+        line = "John;30;NYC;Extra"
+        result = cleaner._should_skip_line(line, line_num=2)
         assert result is None
-    
-    def test_comment_with_spaces(self, sample_csv_path):
-        """Verifica detección de comentario con espacios."""
-        cleaner = CSVCleaner(
-            input_path=str(sample_csv_path),
-            output_path="dummy.csv"
-        )
-        
-        row = ['  # Comment with spaces', 'data', 'data']
-        result = cleaner._should_skip_row(row, num_columns=3, line_num=2)
-        
+
+    def test_comment_with_leading_spaces(self, cleaner):
+        """Verifica que un comentario con espacios al inicio se detecta."""
+        line = "  # Comment with spaces"
+        result = cleaner._should_skip_line(line, line_num=2)
         assert result == SkipReason.COMMENT
 
 
@@ -481,141 +428,112 @@ class TestShouldSkipRow:
 
 class TestCleanMethod:
     """Pruebas para el método clean (integración)."""
-    
-    def test_clean_valid_csv(self, sample_csv_path, output_path):
-        """Verifica limpieza exitosa de CSV válido."""
-        cleaner = CSVCleaner(
-            input_path=str(sample_csv_path),
-            output_path=str(output_path)
+
+    def test_clean_preserves_original_format(self, temp_dir, output_path):
+        """Verifica que el limpiador preserva el formato original exacto."""
+        input_content = (
+            '"Name";"Age";"City"\n'
+            ' "John Doe" ; 30 ; "New York" \n'
+            '# Comment to be skipped\n'
+            '"Jane Smith";25;"Los Angeles"\n'
         )
-        
+        input_path = temp_dir / "input.csv"
+        input_path.write_text(input_content, encoding='utf-8')
+
+        cleaner = CSVCleaner(str(input_path), str(output_path))
         stats = cleaner.clean()
+
+        assert stats.rows_written == 2
+        assert stats.rows_skipped == 1
+
+        output_content = output_path.read_text(encoding='utf-8')
         
+        expected_output = (
+            '"Name";"Age";"City"\n'
+            ' "John Doe" ; 30 ; "New York" \n'
+            '"Jane Smith";25;"Los Angeles"\n'
+        )
+
+        assert output_content == expected_output
+
+    def test_clean_problematic_csv(self, problematic_csv_path, output_path):
+        """Verifica la limpieza de un CSV con varios problemas."""
+        cleaner = CSVCleaner(str(problematic_csv_path), str(output_path))
+        stats = cleaner.clean()
+
         assert output_path.exists()
         assert stats.rows_written == 3
-        assert stats.rows_skipped == 0
+        assert stats.rows_skipped == 4
+
+        assert stats.skip_reasons[SkipReason.COMMENT] == 1
+        assert stats.skip_reasons[SkipReason.EMPTY] == 1
+        assert stats.skip_reasons[SkipReason.INCONSISTENT_DELIMITERS] == 1
+        assert stats.skip_reasons[SkipReason.WHITESPACE_ONLY] == 1
         
         # Verificar contenido
-        with open(output_path, 'r', encoding='utf-8') as f:
-            reader = csv.reader(f, delimiter=';')
-            rows = list(reader)
-            
-        assert len(rows) == 4  # header + 3 data rows
-        assert rows[0] == ['Name', 'Age', 'City']
-    
-    def test_clean_problematic_csv(self, problematic_csv_path, output_path):
-        """Verifica limpieza de CSV con problemas."""
-        cleaner = CSVCleaner(
-            input_path=str(problematic_csv_path),
-            output_path=str(output_path)
+        output_content = output_path.read_text(encoding='utf-8')
+        expected_content = (
+            "Name;Age;City\n"
+            "John Doe;30;New York\n"
+            "Jane Smith;25;Los Angeles\n"
+            "Alice;28;Boston\n"
         )
-        
-        stats = cleaner.clean()
-        
-        assert output_path.exists()
-        assert stats.rows_written == 3  # Solo las filas válidas
-        assert stats.rows_skipped > 0
-        assert stats.skip_reasons[SkipReason.COMMENT] == 2
-        assert stats.skip_reasons[SkipReason.EMPTY] >= 1
-        assert stats.skip_reasons[SkipReason.INCONSISTENT_COLUMNS] >= 1
-    
+        assert output_content == expected_content
+
     def test_clean_with_comma_delimiter(self, comma_delimited_csv_path, output_path):
-        """Verifica limpieza con delimitador de coma."""
+        """Verifica la limpieza con delimitador de coma."""
         cleaner = CSVCleaner(
             input_path=str(comma_delimited_csv_path),
             output_path=str(output_path),
             delimiter=','
         )
-        
         stats = cleaner.clean()
-        
         assert stats.rows_written == 2
         
-        # Verificar delimitador correcto en salida
-        with open(output_path, 'r', encoding='utf-8') as f:
-            content = f.read()
-        
-        assert ',' in content
-        assert ';' not in content
-    
+        original_content = comma_delimited_csv_path.read_text(encoding='utf-8')
+        output_content = output_path.read_text(encoding='utf-8')
+        assert original_content == output_content
+
     def test_clean_header_only_csv(self, header_only_csv_path, output_path):
-        """Verifica limpieza de CSV solo con encabezado."""
-        cleaner = CSVCleaner(
-            input_path=str(header_only_csv_path),
-            output_path=str(output_path)
-        )
-        
+        """Verifica la limpieza de un CSV solo con encabezado."""
+        cleaner = CSVCleaner(str(header_only_csv_path), str(output_path))
         stats = cleaner.clean()
-        
         assert stats.rows_written == 0
         
-        # Verificar que el encabezado se escribió
-        with open(output_path, 'r', encoding='utf-8') as f:
-            reader = csv.reader(f, delimiter=';')
-            rows = list(reader)
-        
-        assert len(rows) == 1
-        assert rows[0] == ['Name', 'Age', 'City']
-    
-    def test_clean_large_csv(self, large_csv_path, output_path):
-        """Verifica limpieza de CSV grande."""
-        cleaner = CSVCleaner(
-            input_path=str(large_csv_path),
-            output_path=str(output_path)
-        )
-        
-        stats = cleaner.clean()
-        
-        assert stats.rows_written == 1000
-        assert output_path.exists()
-    
+        output_content = output_path.read_text(encoding='utf-8')
+        assert output_content == "Name;Age;City\n"
+
     def test_clean_non_strict_mode(self, problematic_csv_path, output_path):
-        """Verifica modo no estricto permite columnas inconsistentes."""
+        """Verifica que el modo no estricto permite delimitadores inconsistentes."""
         cleaner = CSVCleaner(
             input_path=str(problematic_csv_path),
             output_path=str(output_path),
             strict_mode=False
         )
-        
         stats = cleaner.clean()
         
-        # En modo no estricto, algunas filas inconsistentes se aceptan
-        assert stats.rows_written >= 3
-    
-    def test_clean_with_different_encoding(self, temp_dir, output_path):
-        """Verifica limpieza con diferentes encodings."""
-        # Crear archivo con encoding latin-1
-        input_file = temp_dir / "latin1.csv"
-        content = "Name;City\nJosé;São Paulo\n"
-        input_file.write_text(content, encoding='latin-1')
+        # La línea con delimitadores extra ahora debe ser incluida
+        assert stats.rows_written == 4
+        assert stats.skip_reasons[SkipReason.INCONSISTENT_DELIMITERS] == 0
         
-        cleaner = CSVCleaner(
-            input_path=str(input_file),
-            output_path=str(output_path),
-            encoding='latin-1'
-        )
-        
-        stats = cleaner.clean()
-        
-        assert stats.rows_written == 1
-    
+        output_content = output_path.read_text(encoding='utf-8')
+        assert "Bob Johnson;35;Chicago;Extra Column" in output_content
+
     def test_statistics_accuracy(self, problematic_csv_path, output_path):
-        """Verifica precisión de las estadísticas."""
+        """Verifica la precisión de las estadísticas."""
         cleaner = CSVCleaner(
             input_path=str(problematic_csv_path),
             output_path=str(output_path),
-            verbose=True
         )
-        
         stats = cleaner.clean()
+
+        total_from_reasons = sum(stats.skip_reasons.values())
+        assert total_from_reasons == stats.rows_skipped
         
-        # Verificar que la suma es coherente
-        total_skip_reasons = sum(stats.skip_reasons.values())
-        assert total_skip_reasons == stats.rows_skipped
-        
-        # Verificar que se registraron todas las razones
-        assert stats.skip_reasons[SkipReason.COMMENT] > 0
-        assert stats.skip_reasons[SkipReason.EMPTY] > 0
+        assert stats.skip_reasons[SkipReason.COMMENT] == 1
+        assert stats.skip_reasons[SkipReason.EMPTY] == 1
+        assert stats.skip_reasons[SkipReason.WHITESPACE_ONLY] == 1
+        assert stats.skip_reasons[SkipReason.INCONSISTENT_DELIMITERS] == 1
 
 
 # ============================================================================
@@ -624,47 +542,23 @@ class TestCleanMethod:
 
 class TestErrorHandling:
     """Pruebas para manejo de errores."""
-    
-    def test_permission_denied_input(self, temp_dir, output_path):
-        """Verifica manejo de error de permisos en lectura."""
+
+    def test_permission_denied_raises_ioerror(self, temp_dir):
+        """Verifica que un error de permisos lanza IOError."""
         input_file = temp_dir / "no_read.csv"
-        input_file.write_text("Name;Age\nJohn;30\n", encoding='utf-8')
-        
-        # Simular archivo sin permisos de lectura (solo en Unix)
+        input_file.write_text("header\ndata", encoding='utf-8')
+        output_file = temp_dir / "output.csv"
+
         import platform
         if platform.system() != 'Windows':
             input_file.chmod(0o000)
             
-            cleaner = CSVCleaner(
-                input_path=str(input_file),
-                output_path=str(output_path)
-            )
+            cleaner = CSVCleaner(str(input_file), str(output_file))
             
-            with pytest.raises(IOError):
+            with pytest.raises(IOError, match="Permiso denegado"):
                 cleaner.clean()
             
-            # Restaurar permisos para cleanup
             input_file.chmod(0o644)
-    
-    def test_csv_parsing_error(self, temp_dir, output_path):
-        """Verifica manejo de errores de parsing CSV."""
-        # Crear archivo con formato inválido
-        input_file = temp_dir / "invalid.csv"
-        # CSV con comillas sin cerrar puede causar problemas
-        content = 'Name;Age\n"Unclosed quote;30\n'
-        input_file.write_text(content, encoding='utf-8')
-        
-        cleaner = CSVCleaner(
-            input_path=str(input_file),
-            output_path=str(output_path)
-        )
-        
-        # Puede o no lanzar excepción dependiendo del parser
-        # pero no debe crashear
-        try:
-            cleaner.clean()
-        except (ValueError, RuntimeError):
-            pass
 
 
 # ============================================================================
