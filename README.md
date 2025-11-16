@@ -181,7 +181,11 @@ apu_filter/
 │   ├── config.json             # Archivo de configuración de la lógica de negocio
 │   └── embeddings/             # Directorio para los artefactos de ML (índice FAISS, mapeo)
 │
-├── data/                       # Datos de entrada y resultados intermedios
+├── data/                       # Datos de entrada y resultados intermedmedios
+│   ├── presupuesto_clean.csv   # Versión sanitizada del presupuesto, lista para el pipeline
+│
+├── data_dirty/                 # Datos crudos y sin procesar
+│   ├── presupuesto.csv         # Archivo de presupuesto original con posibles errores
 │
 ├── models/                     # Módulos de lógica de negocio y análisis avanzado
 │   ├── __init__.py
