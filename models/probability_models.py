@@ -207,6 +207,10 @@ def sanitize_value(value: Any) -> Optional[Union[float, int, str, list, tuple]]:
     if isinstance(value, (list, tuple, dict)):
         return value
 
+    # Manejar arrays de numpy para evitar errores en pd.isna
+    if isinstance(value, np.ndarray):
+        return value
+
     # Strings se retornan sin modificar
     if isinstance(value, str):
         return value
@@ -452,68 +456,63 @@ class MonteCarloSimulator:
         Raises:
             ValueError: Si faltan columnas requeridas.
         """
+        # Validar que todos los diccionarios tengan las claves requeridas
+        # para distinguir un error estructural (clave faltante) de un
+        # problema de datos (valor NaN).
+        required_cols = {"VR_TOTAL", "CANTIDAD"}
+        if any(not required_cols.issubset(item) for item in apu_details):
+            raise ValueError("Faltan columnas requeridas")
+
         # Convertir a DataFrame
         df = pd.DataFrame(apu_details)
 
-        # Validar columnas requeridas
-        required_cols = {"VR_TOTAL", "CANTIDAD"}
-        missing_cols = required_cols - set(df.columns)
-
-        if missing_cols:
-            raise ValueError(f"Faltan columnas requeridas: {sorted(missing_cols)}")
-
-        # Convertir a numérico
+        # Convertir a numérico, forzando errores a NaN
         df["VR_TOTAL"] = pd.to_numeric(df["VR_TOTAL"], errors="coerce")
         df["CANTIDAD"] = pd.to_numeric(df["CANTIDAD"], errors="coerce")
 
-        # Contar valores convertidos a NaN
+        # Loggear valores no numéricos convertidos a NaN
         vr_total_nulls = df["VR_TOTAL"].isna().sum()
         cantidad_nulls = df["CANTIDAD"].isna().sum()
-
         if vr_total_nulls > 0:
             self.logger.warning(
-                f"VR_TOTAL: {vr_total_nulls} valores no numéricos convertidos a NaN"
+                f"VR_TOTAL: {vr_total_nulls} valores no numéricos o faltantes convertidos a NaN"
             )
-
         if cantidad_nulls > 0:
             self.logger.warning(
-                f"CANTIDAD: {cantidad_nulls} valores no numéricos convertidos a NaN"
+                f"CANTIDAD: {cantidad_nulls} valores no numéricos o faltantes convertidos a NaN"
             )
 
-        # Filtrar filas válidas
+        # Filtrar filas que no cumplen con los requisitos básicos
+        initial_rows = len(df)
         valid_mask = (
             df["VR_TOTAL"].notna()
             & df["CANTIDAD"].notna()
             & (df["VR_TOTAL"] > self.config.min_cost_threshold)
             & (df["CANTIDAD"] > self.config.min_quantity_threshold)
         )
-
         df_valid = df[valid_mask].copy()
-        discarded_count = len(df) - len(df_valid)
-
-        # Log de datos descartados
-        if discarded_count > 0:
-            self.logger.warning(
-                f"Se descartaron {discarded_count}/{len(df)} items por no cumplir umbrales: "
-                f"VR_TOTAL > {self.config.min_cost_threshold}, "
-                f"CANTIDAD > {self.config.min_quantity_threshold}"
-            )
 
         # Calcular costo base
         df_valid["base_cost"] = df_valid["VR_TOTAL"] * df_valid["CANTIDAD"]
 
-        # Verificar que no haya costos base inválidos
+        # Filtrar costos base que resultaron en NaN o infinito
         invalid_base_costs = (
             df_valid["base_cost"].isna() | np.isinf(df_valid["base_cost"])
         ).sum()
-
         if invalid_base_costs > 0:
-            self.logger.error(
-                f"Se encontraron {invalid_base_costs} costos base inválidos (NaN/inf)"
+            self.logger.warning(
+                f"Se encontraron {invalid_base_costs} costos base inválidos (NaN/inf) que serán descartados"
             )
             df_valid = df_valid[
                 df_valid["base_cost"].notna() & np.isfinite(df_valid["base_cost"])
             ].copy()
+
+        # Calcular y loggear el número total de items descartados al final
+        discarded_count = initial_rows - len(df_valid)
+        if discarded_count > 0:
+            self.logger.warning(
+                f"Se descartaron {discarded_count}/{initial_rows} items por valores inválidos o no cumplir umbrales."
+            )
 
         return df_valid, discarded_count
 

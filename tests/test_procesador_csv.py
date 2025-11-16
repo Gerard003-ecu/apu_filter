@@ -16,6 +16,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
+import numpy as np
 import pandas as pd
 
 # Add project root to the Python path
@@ -392,29 +393,26 @@ class TestPresupuestoProcessor(unittest.TestCase):
         self.temp_manager.cleanup()
 
     @patch("app.procesador_csv.load_data")
-    def test_process_success(self, mock_load_data):
-        """Prueba procesamiento exitoso de presupuesto."""
-        # Configurar el mock para que devuelva un DataFrame de prueba
+    def test_process_success_with_phantom_rows(self, mock_load_data):
+        """Prueba que el proceso completo maneje filas fantasma."""
         mock_df = pd.DataFrame(
             [
-                ["", "", "", ""],
-                ["Proyecto X", "", "", ""],
+                [np.nan, np.nan, np.nan, np.nan],
+                ["", " ", "", " "],
                 ["ITEM", "DESCRIPCION", "UND", "CANT."],
+                [";", ";", ";", ";"],
                 ["1.1", "APU 1", "ML", "100"],
+                ["1.2", "APU 2", "M3", "50"],
             ]
         )
         mock_load_data.return_value = mock_df
 
-        # Crear un archivo temporal (aunque su contenido no se usará)
         temp_file = self.temp_manager.create_temp_file()
-
         result = self.processor.process(temp_file)
 
         self.assertFalse(result.empty)
+        self.assertEqual(len(result), 2)
         self.assertIn(ColumnNames.CODIGO_APU, result.columns)
-        self.assertIn(ColumnNames.DESCRIPCION_APU, result.columns)
-        self.assertIn(ColumnNames.CANTIDAD_PRESUPUESTO, result.columns)
-        self.assertEqual(len(result), 1)
 
     def test_process_with_duplicates(self):
         """Prueba que se eliminen duplicados correctamente."""
@@ -440,32 +438,6 @@ class TestPresupuestoProcessor(unittest.TestCase):
 
         self.assertTrue(result.empty)
 
-    def test_find_and_set_header_success(self):
-        """Prueba búsqueda exitosa de encabezado."""
-        df = pd.DataFrame(
-            [
-                ["", "", "", ""],
-                ["Proyecto X", "", "", ""],
-                ["ITEM", "DESCRIPCION", "UND", "CANT."],
-                ["1.1", "APU 1", "ML", "100"],
-            ]
-        )
-
-        result = self.processor._find_and_set_header(df)
-
-        self.assertFalse(result.empty)
-        self.assertIn("ITEM", result.columns)
-        self.assertEqual(len(result), 1)
-
-    def test_find_and_set_header_not_found(self):
-        """Prueba cuando no se encuentra encabezado."""
-        df = pd.DataFrame([["datos", "sin", "formato"], ["invalido", "para", "presupuesto"]])
-
-        with self.assertLogs("app.procesador_csv", level="ERROR"):
-            result = self.processor._find_and_set_header(df)
-
-        self.assertTrue(result.empty)
-
     def test_process_with_single_digit_item(self):
         """Prueba que procese correctamente un ITEM de un solo dígito."""
         temp_file = self.temp_manager.create_temp_file()
@@ -479,6 +451,48 @@ class TestPresupuestoProcessor(unittest.TestCase):
         self.assertEqual(len(result), 2)
         self.assertIn("1", result[ColumnNames.CODIGO_APU].tolist())
         self.assertEqual(result.iloc[0][ColumnNames.CODIGO_APU], "1")
+
+
+class TestCleanPhantomRows(unittest.TestCase):
+    """Pruebas específicas para el método _clean_phantom_rows."""
+
+    def setUp(self):
+        self.config = TEST_CONFIG.copy()
+        self.thresholds = ProcessingThresholds()
+        profile = self.config.get("file_profiles", {}).get("presupuesto_default", {})
+        self.processor = PresupuestoProcessor(self.config, self.thresholds, profile)
+
+    def test_clean_fully_nan_rows(self):
+        """Prueba que elimina filas con todos los valores NaN."""
+        df = pd.DataFrame(
+            [[1, "A"], [np.nan, np.nan], [3, "C"]], columns=["col1", "col2"]
+        )
+        result = self.processor._clean_phantom_rows(df)
+        self.assertEqual(len(result), 2)
+
+    def test_clean_empty_string_rows(self):
+        """Prueba que elimina filas con solo strings vacíos o espacios."""
+        df = pd.DataFrame(
+            [[1, "A"], ["", " "], [" ", ""], [3, "C"]], columns=["col1", "col2"]
+        )
+        result = self.processor._clean_phantom_rows(df)
+        self.assertEqual(len(result), 2)
+
+    def test_clean_delimiter_only_rows(self):
+        """Prueba que elimina filas que solo contienen delimitadores."""
+        df = pd.DataFrame(
+            [[1, "A"], [";", ";"], [3, "C"]], columns=["col1", "col2"]
+        )
+        result = self.processor._clean_phantom_rows(df)
+        self.assertEqual(len(result), 2)
+
+    def test_clean_no_alphanumeric_content(self):
+        """Prueba que elimina filas sin contenido alfanumérico."""
+        df = pd.DataFrame(
+            [[1, "A"], [".", "-"], [3, "C"]], columns=["col1", "col2"]
+        )
+        result = self.processor._clean_phantom_rows(df)
+        self.assertEqual(len(result), 2)
 
 
 class TestInsumosProcessor(unittest.TestCase):

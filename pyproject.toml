@@ -1,3 +1,8 @@
+[tool.pytest.ini_options]
+pythonpath = [
+    ".", "app", "models"
+]
+
 [tool.ruff]
 line-length = 93
 indent-width = 4
