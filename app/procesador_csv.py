@@ -255,7 +255,7 @@ class LoadDataStep(ProcessingStep):
         apus_path = context["apus_path"]
         insumos_path = context["insumos_path"]
 
-        # ... (validaciones de existencia de archivos) ...
+        # Validaciones de existencia de archivos
         file_validator = FileValidator()
         validations = [
             (presupuesto_path, "presupuesto"),
@@ -266,7 +266,8 @@ class LoadDataStep(ProcessingStep):
             is_valid, error = file_validator.validate_file_exists(file_path, file_type)
             if not is_valid:
                 raise ValueError(error)
-        # --- CAMBIO CLAVE: Leer y usar los perfiles ---
+
+        # Leer y usar los perfiles
         file_profiles = self.config.get("file_profiles", {})
 
         # Cargar Presupuesto con su perfil
@@ -292,8 +293,6 @@ class LoadDataStep(ProcessingStep):
         parser = ReportParserCrudo(apus_path, apus_profile)
         raw_records = parser.parse_to_raw()
 
-        # El resto del pipeline sigue igual,
-        # pero ahora APUProcessor también necesita la config
         processor = APUProcessor(raw_records, self.config)
         df_apus_raw = processor.process_all()
 
@@ -399,37 +398,55 @@ class BuildOutputStep(ProcessingStep):
 
 
 class PresupuestoProcessor:
-    """Procesador especializado para archivos de presupuesto."""
+    """Procesador especializado para archivos de presupuesto con limpieza robusta de filas fantasma."""
 
     def __init__(self, config: dict, thresholds: ProcessingThresholds, profile: dict):
         self.config = config
         self.thresholds = thresholds
-        self.profile = profile  # Guardar el perfil
+        self.profile = profile
         self.validator = DataValidator()
 
     def process(self, path: str) -> pd.DataFrame:
-        """Procesa el archivo de presupuesto (CSV o Excel)."""
+        """Procesa el archivo de presupuesto (CSV o Excel) con limpieza robusta."""
         try:
-            # CAMBIO: Usar los parámetros del perfil para la carga
+            # PASO 1: Cargar datos usando perfil
             loader_params = self.profile.get("loader_params", {})
-            logger.info(f"Cargando presupuesto con perfil: {loader_params}")
+            logger.info(f"📥 Cargando presupuesto con perfil: {loader_params}")
             df = load_data(path, **loader_params)
 
             if df is None or df.empty:
                 logger.error("❌ No se pudo leer el archivo de presupuesto o está vacío")
                 return pd.DataFrame()
-            df = self._find_and_set_header(df)
+
+            logger.info(f"📊 DataFrame inicial: {len(df)} filas, {len(df.columns)} columnas")
+
+            # PASO 2: Limpieza CRÍTICA de filas fantasma ANTES de buscar encabezado
+            df = self._clean_phantom_rows(df, stage="INICIAL")
             if df.empty:
+                logger.error("❌ DataFrame vacío después de limpieza inicial")
                 return pd.DataFrame()
 
+            # PASO 3: Buscar y establecer encabezado
+            df = self._find_and_set_header(df)
+            if df.empty:
+                logger.error("❌ DataFrame vacío después de establecer encabezado")
+                return pd.DataFrame()
+
+            # PASO 4: Renombrar columnas
             df = self._rename_columns(df)
             if not self._validate_required_columns(df):
                 return pd.DataFrame()
 
+            # PASO 5: Limpiar y convertir datos
             df = self._clean_and_convert_data(df)
+            if df.empty:
+                logger.warning("⚠️ DataFrame vacío después de limpieza de datos")
+                return pd.DataFrame()
+
+            # PASO 6: Eliminar duplicados
             df = self._remove_duplicates(df)
 
-            logger.info(f"✅ Presupuesto cargado: {len(df)} APUs únicos")
+            logger.info(f"✅ Presupuesto procesado exitosamente: {len(df)} APUs únicos")
 
             return df[
                 [
@@ -443,48 +460,236 @@ class PresupuestoProcessor:
             logger.error(f"❌ Error procesando presupuesto: {e}", exc_info=True)
             return pd.DataFrame()
 
+    def _clean_phantom_rows(self, df: pd.DataFrame, stage: str = "") -> pd.DataFrame:
+        """
+        Elimina filas fantasma de forma agresiva y robusta.
+
+        Detecta y elimina:
+        1. Filas completamente NaN
+        2. Filas con solo strings vacíos o espacios
+        3. Filas con solo delimitadores (ej: ';;;;;')
+        4. Filas sin contenido alfanumérico real
+
+        Args:
+            df: DataFrame a limpiar
+            stage: Etapa del proceso (para logging)
+
+        Returns:
+            DataFrame limpio sin filas fantasma
+        """
+        if df is None or df.empty:
+            logger.warning(f"⚠️ [{stage}] DataFrame vacío o None en entrada")
+            return pd.DataFrame()
+
+        rows_before = len(df)
+        stage_label = f"[{stage}]" if stage else ""
+
+        # ESTRATEGIA 1: Eliminar filas completamente NaN
+        df_clean = df.dropna(how='all')
+        if df_clean.empty:
+            logger.warning(f"⚠️ {stage_label} DataFrame vacío después de dropna(how='all')")
+            return pd.DataFrame()
+
+        # ESTRATEGIA 2: Eliminar filas donde TODOS los valores son vacíos/espacios/NaN
+        def is_empty_row(row):
+            """Verifica si una fila está completamente vacía."""
+            for val in row:
+                if pd.notna(val):
+                    val_str = str(val).strip()
+                    # Si encuentra al menos un valor no vacío, no es fila fantasma
+                    if val_str and val_str not in ['', 'nan', 'None', 'NaN', 'NaT']:
+                        return False
+            return True
+
+        mask_empty = df_clean.apply(is_empty_row, axis=1)
+        df_clean = df_clean[~mask_empty]
+
+        if df_clean.empty:
+            logger.warning(f"⚠️ {stage_label} DataFrame vacío después de eliminar filas vacías")
+            return pd.DataFrame()
+
+        # ESTRATEGIA 3: Eliminar filas que son solo delimitadores o caracteres especiales
+        def is_delimiter_only_row(row):
+            """Detecta filas que contienen solo delimitadores (ej: ';;;;;')."""
+            row_values = [str(val) for val in row if pd.notna(val)]
+            if not row_values:
+                return True
+
+            # Unir todos los valores y buscar contenido alfanumérico
+            combined = ''.join(row_values)
+            # Remover todos los caracteres que no sean alfanuméricos
+            clean_content = ''.join(c for c in combined if c.isalnum())
+
+            # Si no queda nada alfanumérico, es fila fantasma
+            return len(clean_content) == 0
+
+        mask_delimiters = df_clean.apply(is_delimiter_only_row, axis=1)
+        df_clean = df_clean[~mask_delimiters]
+
+        if df_clean.empty:
+            logger.warning(f"⚠️ {stage_label} DataFrame vacío después de eliminar delimitadores")
+            return pd.DataFrame()
+
+        # ESTRATEGIA 4: Validación de contenido mínimo
+        def has_minimum_content(row):
+            """Verifica que la fila tenga contenido real."""
+            for val in row:
+                if pd.notna(val):
+                    val_str = str(val).strip()
+                    # Buscar al menos un carácter alfanumérico
+                    if any(c.isalnum() for c in val_str):
+                        return True
+            return False
+
+        mask_content = df_clean.apply(has_minimum_content, axis=1)
+        df_clean = df_clean[mask_content]
+
+        # Reset index para evitar problemas
+        df_clean = df_clean.reset_index(drop=True)
+
+        rows_after = len(df_clean)
+        removed_count = rows_before - rows_after
+
+        # Logging detallado
+        if removed_count > 0:
+            logger.info(
+                f"🧹 {stage_label} Limpieza de filas fantasma: "
+                f"{rows_before} → {rows_after} filas "
+                f"(-{removed_count} eliminadas)"
+            )
+
+            # Log de muestra de filas eliminadas (solo primeras 3)
+            if removed_count > 0:
+                removed_indices = set(df.index) - set(df_clean.index)
+                sample_indices = list(removed_indices)[:3]
+                for idx in sample_indices:
+                    if idx < len(df):
+                        row_preview = df.iloc[idx].tolist()
+                        logger.debug(f"   🗑️  Fila {idx} eliminada: {row_preview}")
+        else:
+            logger.debug(f"✅ {stage_label} No se encontraron filas fantasma ({rows_after} filas)")
+
+        return df_clean
+
     def _find_and_set_header(self, df: pd.DataFrame) -> pd.DataFrame:
-        """Busca y establece la fila de encabezado."""
+        """Busca y establece la fila de encabezado con validación mejorada."""
+        if df is None or df.empty:
+            logger.error("❌ DataFrame vacío en _find_and_set_header")
+            return pd.DataFrame()
+
         header_row_index = -1
         search_rows = min(self.thresholds.max_header_search_rows, len(df))
 
+        # Palabras clave flexibles para detección de encabezado
+        header_keywords = [
+            ["ITEM", "DESCRIPCION", "CANT"],      # Variante 1
+            ["ITEM", "DESCRIPCION", "UND"],       # Variante 2
+            ["CODIGO", "DESCRIPCION", "CANT"],    # Variante 3
+            ["ITEM", "UND", "CANT"],              # Variante 4 (mínima)
+        ]
+
+        logger.debug(f"🔍 Buscando encabezado en primeras {search_rows} filas...")
+
         for i in range(search_rows):
-            row_str = " ".join(df.iloc[i].astype(str).str.upper())
-            if all(keyword in row_str for keyword in ["ITEM", "DESCRIPCION", "CANT"]):
-                header_row_index = i
+            # Convertir toda la fila a string y normalizar
+            row_values = [str(val) for val in df.iloc[i] if pd.notna(val)]
+            row_str = " ".join(row_values).upper()
+
+            # Verificar que la fila tenga contenido
+            if not row_str.strip():
+                logger.debug(f"   Fila {i}: vacía (skip)")
+                continue
+
+            logger.debug(f"   Fila {i}: {row_str[:100]}...")
+
+            # Probar cada conjunto de keywords
+            for keyword_set in header_keywords:
+                if all(keyword in row_str for keyword in keyword_set):
+                    header_row_index = i
+                    logger.info(
+                        f"✅ Encabezado detectado en fila {i} "
+                        f"(keywords: {', '.join(keyword_set)})"
+                    )
+                    break
+
+            if header_row_index != -1:
                 break
 
         if header_row_index == -1:
             logger.error(
-                f"❌ No se encontró encabezado válido en las primeras "
-                f"{search_rows} filas del presupuesto"
+                f"❌ No se encontró encabezado válido en las primeras {search_rows} filas"
             )
+            # Log de diagnóstico de primeras filas
+            logger.error("📋 Primeras filas del archivo:")
+            for i in range(min(5, len(df))):
+                logger.error(f"   Fila {i}: {df.iloc[i].tolist()}")
             return pd.DataFrame()
 
-        df.columns = df.iloc[header_row_index]
-        df = df.iloc[header_row_index + 1 :].reset_index(drop=True)
+        # Establecer encabezado y eliminar filas anteriores
+        new_columns = df.iloc[header_row_index].tolist()
+        logger.debug(f"📋 Nuevas columnas: {new_columns}")
 
-        logger.debug(f"✅ Encabezado encontrado en fila {header_row_index}")
+        df.columns = new_columns
+        df = df.iloc[header_row_index + 1:].reset_index(drop=True)
+
+        logger.info(
+            f"✅ Encabezado establecido (fila {header_row_index}), "
+            f"{len(df)} filas restantes"
+        )
+
+        # CRÍTICO: Aplicar limpieza después de establecer encabezado
+        # porque pueden quedar filas fantasma justo después del header
+        df = self._clean_phantom_rows(df, stage="POST-HEADER")
+
+        if df.empty:
+            logger.error("❌ DataFrame vacío después de limpiar post-header")
+            return pd.DataFrame()
+
         return df
 
     def _rename_columns(self, df: pd.DataFrame) -> pd.DataFrame:
         """Renombra columnas según configuración."""
+        if df.empty:
+            logger.warning("⚠️ DataFrame vacío en _rename_columns")
+            return df
+
         column_map = self.config.get("presupuesto_column_map", {})
-        return find_and_rename_columns(df, column_map)
+        logger.debug(f"📋 Mapa de columnas: {column_map}")
+
+        df_renamed = find_and_rename_columns(df, column_map)
+        logger.info(f"✅ Columnas renombradas: {list(df_renamed.columns)}")
+
+        return df_renamed
 
     def _validate_required_columns(self, df: pd.DataFrame) -> bool:
-        """Valida columnas requeridas."""
+        """Valida que existan las columnas requeridas."""
+        if df.empty:
+            logger.error("❌ DataFrame vacío en _validate_required_columns")
+            return False
+
         is_valid, error = self.validator.validate_required_columns(
             df, [ColumnNames.CODIGO_APU], "presupuesto"
         )
+
+        if not is_valid:
+            logger.error(f"❌ Validación de columnas falló: {error}")
+            logger.error(f"   Columnas disponibles: {list(df.columns)}")
+
         return is_valid
 
     def _clean_and_convert_data(self, df: pd.DataFrame) -> pd.DataFrame:
         """
-        Limpia y convierte tipos de datos.
-        Maneja códigos de ITEM de cualquier longitud, incluyendo dígitos simples.
+        Limpia y convierte tipos de datos con validación robusta.
+        Elimina registros con códigos APU vacíos o inválidos.
         """
-        # CAMBIO: Leer los parámetros desde la configuración
+        if df.empty:
+            logger.warning("⚠️ DataFrame vacío en _clean_and_convert_data")
+            return df
+
+        initial_count = len(df)
+        logger.info(f"🔧 Iniciando limpieza de {initial_count} registros...")
+
+        # PASO 1: Limpiar códigos APU
         clean_code_params = self.config.get("clean_apu_code_params", {}).get(
             "presupuesto_item", {}
         )
@@ -495,49 +700,92 @@ class PresupuestoProcessor:
             .apply(lambda code: clean_apu_code(code, **clean_code_params))
         )
 
-        # Filtrar códigos vacíos (solo después de la limpieza)
-        df = df[df[ColumnNames.CODIGO_APU].notna() & (df[ColumnNames.CODIGO_APU] != "")]
+        # PASO 2: Filtrar códigos vacíos, NaN, o inválidos
+        mask_valid_code = (
+            df[ColumnNames.CODIGO_APU].notna() &
+            (df[ColumnNames.CODIGO_APU] != "") &
+            (df[ColumnNames.CODIGO_APU] != "nan") &
+            (df[ColumnNames.CODIGO_APU].str.strip() != "")
+        )
 
-        # Convertir cantidades con manejo robusto
+        df = df[mask_valid_code].copy()
+
+        codes_removed = initial_count - len(df)
+        if codes_removed > 0:
+            logger.warning(
+                f"⚠️  Eliminados {codes_removed} registros con código APU vacío/inválido"
+            )
+
+        if df.empty:
+            logger.error("❌ No quedan registros después de limpiar códigos APU")
+            return pd.DataFrame()
+
+        # PASO 3: Limpiar descripción (opcional pero recomendado)
+        if ColumnNames.DESCRIPCION_APU in df.columns:
+            df[ColumnNames.DESCRIPCION_APU] = (
+                df[ColumnNames.DESCRIPCION_APU]
+                .astype(str)
+                .str.strip()
+                .replace(['nan', 'None', 'NaN', ''], pd.NA)
+                .fillna("SIN DESCRIPCIÓN")
+            )
+
+        # PASO 4: Convertir cantidades con manejo robusto
         if ColumnNames.CANTIDAD_PRESUPUESTO in df.columns:
-            cantidad_str = (
+            # Normalizar formato numérico
+            cantidad_series = (
                 df[ColumnNames.CANTIDAD_PRESUPUESTO]
                 .astype(str)
-                .str.replace(",", ".", regex=False)
+                .str.strip()
+                .str.replace(",", ".", regex=False)  # Coma decimal → punto
+                .str.replace(r"[^\d.-]", "", regex=True)  # Solo dígitos, punto y signo
+                .str.replace(r"\.(?=.*\.)", "", regex=True)  # Eliminar puntos duplicados
             )
+
             df[ColumnNames.CANTIDAD_PRESUPUESTO] = pd.to_numeric(
-                cantidad_str, errors="coerce"
-            )
+                cantidad_series, errors="coerce"
+            ).fillna(0)
 
-        # Validar rango con logging mejorado
-        invalid_quantities = df[
-            (df[ColumnNames.CANTIDAD_PRESUPUESTO] < 0)
-            | (df[ColumnNames.CANTIDAD_PRESUPUESTO] > self.thresholds.max_quantity)
-        ]
-        if not invalid_quantities.empty:
-            logger.warning(
-                f"⚠️ Se encontraron {len(invalid_quantities)} cantidades "
-                f"fuera de rango (0 - {self.thresholds.max_quantity:,.0f})"
-            )
-            # Mostrar ejemplos
-            for idx, row in invalid_quantities.head(3).iterrows():
-                logger.warning(
-                    f" ITEM {row[ColumnNames.CODIGO_APU]}: "
-                    f"Cantidad = {row[ColumnNames.CANTIDAD_PRESUPUESTO]}"
-                )
+            # Advertir sobre cantidades cero o negativas
+            zero_count = (df[ColumnNames.CANTIDAD_PRESUPUESTO] == 0).sum()
+            negative_count = (df[ColumnNames.CANTIDAD_PRESUPUESTO] < 0).sum()
 
-        logger.debug(
-            f"✅ Limpieza completada: {len(df)} ITEMs válidos "
-            f"(incluyendo códigos de 1 carácter)"
+            if zero_count > 0:
+                logger.warning(f"⚠️  {zero_count} registros con cantidad = 0")
+            if negative_count > 0:
+                logger.warning(f"⚠️  {negative_count} registros con cantidad negativa")
+
+        # PASO 5: Validación final
+        final_count = len(df)
+        total_removed = initial_count - final_count
+
+        logger.info(
+            f"✅ Limpieza completada: {final_count} registros válidos "
+            f"({total_removed} eliminados, {(final_count/max(initial_count, 1)*100):.1f}% conservado)"
         )
 
         return df
 
     def _remove_duplicates(self, df: pd.DataFrame) -> pd.DataFrame:
         """Elimina duplicados de códigos APU."""
-        return self.validator.detect_and_log_duplicates(
+        if df.empty:
+            logger.warning("⚠️ DataFrame vacío en _remove_duplicates")
+            return df
+
+        initial_count = len(df)
+
+        df_unique = self.validator.detect_and_log_duplicates(
             df, [ColumnNames.CODIGO_APU], "presupuesto", keep="first"
         )
+
+        duplicates_removed = initial_count - len(df_unique)
+        if duplicates_removed > 0:
+            logger.info(
+                f"🔄 Duplicados eliminados: {duplicates_removed} "
+                f"({len(df_unique)} únicos de {initial_count} totales)"
+            )
+
+        return df_unique
 
 
 class InsumosProcessor:
@@ -545,7 +793,7 @@ class InsumosProcessor:
 
     def __init__(self, thresholds: ProcessingThresholds, profile: dict):
         self.thresholds = thresholds
-        self.profile = profile  # Guardar el perfil
+        self.profile = profile
         self.validator = DataValidator()
 
     def process(self, file_path: str) -> pd.DataFrame:
@@ -571,8 +819,7 @@ class InsumosProcessor:
 
     def _parse_file(self, file_path: str) -> List[Dict]:
         """Parsea el archivo de insumos con formato especial."""
-        # CAMBIO: Usar el encoding del perfil
-        encoding = self.profile.get("encoding", "latin1")  # latin1 como fallback seguro
+        encoding = self.profile.get("encoding", "latin1")
         with open(file_path, "r", encoding=encoding) as f:
             lines = f.readlines()
 
@@ -978,14 +1225,7 @@ class DataMerger:
 
 
 def group_and_split_description(df: pd.DataFrame) -> pd.DataFrame:
-    """Conserva la descripción original y la divide en principal y secundaria.
-
-    Args:
-        df: DataFrame que contiene la columna DESCRIPCION_APU.
-
-    Returns:
-        DataFrame con descripción dividida.
-    """
+    """Conserva la descripción original y la divide en principal y secundaria."""
     if ColumnNames.DESCRIPCION_APU not in df.columns:
         logger.warning(
             f"⚠️  Columna {ColumnNames.DESCRIPCION_APU} no encontrada. "
@@ -1207,10 +1447,7 @@ def build_processed_apus_dataframe(
 def synchronize_data_sources(
     df_merged: pd.DataFrame, df_final: pd.DataFrame
 ) -> pd.DataFrame:
-    """Sincroniza fuentes de datos para consistencia.
-
-    Filtra df_merged para incluir solo APUs presentes en el presupuesto final.
-    """
+    """Sincroniza fuentes de datos para consistencia."""
     logger.info("🔄 Sincronizando fuentes de datos...")
 
     codigos_apu_validos = df_final[ColumnNames.CODIGO_APU].unique()
@@ -1279,27 +1516,12 @@ def _do_processing(
 ) -> dict:
     """
     Lógica central para procesar, unificar y calcular todos los datos.
-    Procesa archivos de entrada y genera archivos JSON de salida necesarios
-    para análisis posteriores y generación de embeddings.
-    Args:
-    presupuesto_path: Ruta al archivo de presupuesto.
-    apus_path: Ruta al archivo de APUs.
-    insumos_path: Ruta al archivo de insumos.
-    config: Configuración de la aplicación.
-    Returns:
-    Diccionario con datos procesados o error.
-    Genera archivos:
-    - data/processed_apus.json: APUs procesados para embeddings
-    - data/presupuesto_final.json: Presupuesto consolidado
-    - data/insumos_detalle.json: Detalle de insumos por APU
     """
     logger.info("=" * 80)
     logger.info("🚀 Iniciando procesamiento de archivos con patrón pipeline...")
     logger.info("=" * 80)
 
-    # ============================================================
-    # 1. CONFIGURACIÓN DE UMBRALES Y RUTAS DE SALIDA
-    # ============================================================
+    # Configuración de umbrales
     thresholds = ProcessingThresholds()
     if "processing_thresholds" in config:
         custom_thresholds = config["processing_thresholds"]
@@ -1308,7 +1530,7 @@ def _do_processing(
                 setattr(thresholds, key, value)
                 logger.debug(f"Umbral configurado: {key} = {value}")
 
-    # Configurar rutas de salida desde config o usar defaults
+    # Configurar rutas de salida
     output_dir = Path(config.get("output_dir", "data"))
     output_files = {
         "processed_apus": output_dir
@@ -1320,9 +1542,7 @@ def _do_processing(
     }
 
     try:
-        # ============================================================
-        # 2. EJECUTAR PIPELINE DE PROCESAMIENTO
-        # ============================================================
+        # Ejecutar pipeline
         pipeline = ProcessingPipeline(
             [
                 LoadDataStep(config, thresholds),
@@ -1352,36 +1572,28 @@ def _do_processing(
             logger.error(f"❌ Error en resultado final: {final_result['error']}")
             return final_result
 
-        # ============================================================
-        # 3. VALIDAR DATOS ANTES DE GUARDAR
-        # ============================================================
+        # Validar datos
         logger.info("🔍 Validando datos procesados antes de guardar...")
         validation_results = _validate_output_data(final_result)
         if not validation_results["is_valid"]:
             logger.error(f"❌ Validación de datos falló: {validation_results['errors']}")
-            # Continuar pero registrar advertencias
             for warning in validation_results["warnings"]:
                 logger.warning(f"⚠️ {warning}")
 
-        # ============================================================
-        # 4. GUARDAR ARCHIVOS JSON DE SALIDA
-        # ============================================================
+        # Guardar archivos
         logger.info("=" * 80)
         logger.info("💾 Guardando archivos JSON de salida...")
         logger.info("=" * 80)
 
         saved_files = _save_output_files(final_result, output_files, config)
 
-        # ============================================================
-        # 5. REGISTRAR ESTADÍSTICAS Y COMPLETAR
-        # ============================================================
+        # Registrar estadísticas
         _log_processing_statistics(final_result, saved_files)
 
         logger.info("=" * 80)
         logger.info("🎉 PROCESAMIENTO COMPLETADO EXITOSAMENTE")
         logger.info("=" * 80)
 
-        # Añadir información de archivos guardados al resultado
         final_result["output_files"] = {
             name: str(path) for name, path in saved_files.items()
         }
@@ -1392,7 +1604,6 @@ def _do_processing(
     except (ValueError, pd.errors.MergeError) as e:
         error_msg = f"Error en el pipeline: {e}"
         logger.error(f"❌ {error_msg}", exc_info=True)
-        # Diagnóstico específico para errores de APUs
         if "apus" in str(e).lower():
             logger.info("=" * 80)
             logger.info("🔍 Ejecutando diagnóstico del archivo de APUs...")
@@ -1416,16 +1627,9 @@ def _do_processing(
 
 
 def _validate_output_data(result: dict) -> dict:
-    """
-    Valida la integridad de los datos de salida.
-    Args:
-    result: Diccionario con los datos procesados
-    Returns:
-    Diccionario con resultado de validación
-    """
+    """Valida la integridad de los datos de salida."""
     validation = {"is_valid": True, "errors": [], "warnings": []}
 
-    # Validar presencia de secciones clave
     required_keys = ["presupuesto", "processed_apus", "apus_detail"]
     for key in required_keys:
         if key not in result:
@@ -1434,7 +1638,6 @@ def _validate_output_data(result: dict) -> dict:
         elif not result[key]:
             validation["warnings"].append(f"Sección vacía: {key}")
 
-    # Validar que processed_apus tenga datos
     if "processed_apus" in result:
         processed_count = len(result["processed_apus"])
         if processed_count == 0:
@@ -1443,7 +1646,6 @@ def _validate_output_data(result: dict) -> dict:
         else:
             logger.info(f"✅ {processed_count} APUs procesados listos para guardar")
 
-    # Validar estructura de processed_apus
     if "processed_apus" in result and result["processed_apus"]:
         sample_apu = result["processed_apus"][0]
         expected_fields = [
@@ -1461,15 +1663,7 @@ def _validate_output_data(result: dict) -> dict:
 
 
 def _save_output_files(result: dict, output_files: dict, config: dict) -> dict:
-    """
-    Guarda los archivos JSON de salida de forma robusta.
-    Args:
-    result: Diccionario con los datos procesados
-    output_files: Diccionario con rutas de archivos a guardar
-    config: Configuración de la aplicación
-    Returns:
-    Diccionario con rutas de archivos guardados exitosamente
-    """
+    """Guarda los archivos JSON de salida de forma robusta."""
     import json
 
     from .utils import sanitize_for_json
@@ -1481,16 +1675,12 @@ def _save_output_files(result: dict, output_files: dict, config: dict) -> dict:
         file_path.parent.mkdir(parents=True, exist_ok=True)
         logger.debug(f"Directorio verificado: {file_path.parent}")
 
-    # ============================================================
-    # 1. GUARDAR PROCESSED_APUS.JSON (CRÍTICO PARA EMBEDDINGS)
-    # ============================================================
+    # Guardar processed_apus.json
     if "processed_apus" in result and result["processed_apus"]:
         try:
             processed_apus_path = output_files["processed_apus"]
             logger.info(f"💾 Guardando APUs procesados en: {processed_apus_path}")
-            # Sanitizar datos para JSON
             processed_data = sanitize_for_json(result["processed_apus"])
-            # Guardar con formato legible
             with open(processed_apus_path, "w", encoding="utf-8") as f:
                 json.dump(processed_data, f, indent=2, ensure_ascii=False)
             file_size = processed_apus_path.stat().st_size
@@ -1501,13 +1691,10 @@ def _save_output_files(result: dict, output_files: dict, config: dict) -> dict:
             saved_files["processed_apus"] = processed_apus_path
         except Exception as e:
             logger.error(f"❌ Error guardando processed_apus.json: {e}", exc_info=True)
-            # Este es crítico, pero no falla el proceso completo
     else:
         logger.warning("⚠️ No hay datos de processed_apus para guardar")
 
-    # ============================================================
-    # 2. GUARDAR PRESUPUESTO_FINAL.JSON
-    # ============================================================
+    # Guardar presupuesto_final.json
     if "presupuesto" in result and result["presupuesto"]:
         try:
             presupuesto_path = output_files["presupuesto_final"]
@@ -1524,9 +1711,7 @@ def _save_output_files(result: dict, output_files: dict, config: dict) -> dict:
         except Exception as e:
             logger.error(f"❌ Error guardando presupuesto_final.json: {e}", exc_info=True)
 
-    # ============================================================
-    # 3. GUARDAR INSUMOS_DETALLE.JSON
-    # ============================================================
+    # Guardar insumos_detalle.json
     if "apus_detail" in result and result["apus_detail"]:
         try:
             insumos_path = output_files["insumos_detalle"]
@@ -1543,16 +1728,13 @@ def _save_output_files(result: dict, output_files: dict, config: dict) -> dict:
         except Exception as e:
             logger.error(f"❌ Error guardando insumos_detalle.json: {e}", exc_info=True)
 
-    # ============================================================
-    # 4. GUARDAR ARCHIVO COMPLETO DE RESPALDO (OPCIONAL)
-    # ============================================================
+    # Guardar archivo completo de respaldo (opcional)
     if config.get("save_full_backup", False):
         try:
             backup_path = output_files.get(
                 "full_backup", Path(config.get("output_dir", "data")) / "full_backup.json"
             )
             logger.info(f"💾 Guardando respaldo completo en: {backup_path}")
-            # Crear copia del resultado sin DataFrames crudos
             backup_data = {
                 k: v
                 for k, v in result.items()
@@ -1566,28 +1748,20 @@ def _save_output_files(result: dict, output_files: dict, config: dict) -> dict:
             saved_files["full_backup"] = backup_path
         except Exception as e:
             logger.error(f"⚠️ Error guardando respaldo completo: {e}", exc_info=True)
-            # Este es opcional, no afecta el proceso
 
     return saved_files
 
 
 def _log_processing_statistics(result: dict, saved_files: dict) -> None:
-    """
-    Registra estadísticas del procesamiento completado.
-    Args:
-    result: Diccionario con los datos procesados
-    saved_files: Diccionario con archivos guardados
-    """
+    """Registra estadísticas del procesamiento completado."""
     logger.info("=" * 80)
     logger.info("📊 ESTADÍSTICAS DEL PROCESAMIENTO")
     logger.info("=" * 80)
 
-    # Estadísticas de datos
     stats = []
     if "presupuesto" in result:
         count = len(result["presupuesto"])
         stats.append(f" 📋 APUs en Presupuesto: {count:,}")
-        # Calcular totales si existe la columna
         if result["presupuesto"]:
             try:
                 total_construccion = sum(
@@ -1615,7 +1789,6 @@ def _log_processing_statistics(result: dict, saved_files: dict) -> None:
     for stat in stats:
         logger.info(stat)
 
-    # Archivos guardados
     logger.info("")
     logger.info("📁 ARCHIVOS GENERADOS:")
     if saved_files:
@@ -1629,22 +1802,8 @@ def _log_processing_statistics(result: dict, saved_files: dict) -> None:
     logger.info("=" * 80)
 
 
-# ============================================================
-# FUNCIÓN PRINCIPAL (SIN CAMBIOS)
-# ============================================================
-
-
 def process_all_files(
     presupuesto_path: str, apus_path: str, insumos_path: str, config: dict
 ) -> dict:
-    """
-    Orquesta el procesamiento completo de los archivos de entrada.
-    Args:
-    presupuesto_path: Ruta al archivo del presupuesto.
-    apus_path: Ruta al archivo de APUs.
-    insumos_path: Ruta al archivo de insumos.
-    config: Configuración de la aplicación.
-    Returns:
-    Diccionario con los datos procesados o información de error.
-    """
+    """Orquesta el procesamiento completo de los archivos de entrada."""
     return _do_processing(presupuesto_path, apus_path, insumos_path, config)
