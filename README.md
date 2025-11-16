@@ -183,17 +183,25 @@ apu_filter/
 │
 ├── data/                       # Datos de entrada y resultados intermedmedios
 │   ├── presupuesto_clean.csv   # Versión sanitizada del presupuesto, lista para el pipeline
+│   ├── insumos_clean.csv       # Versión sanitizada de insumos, lista para el pipeline
+│   └── apus_clean.csv          # Versión sanitizada de apus, lista para el pipeline  
 │
 ├── data_dirty/                 # Datos crudos y sin procesar
 │   ├── presupuesto.csv         # Archivo de presupuesto original con posibles errores
+│   ├── insumos.csv             # Archivo de insumos original con posibles errores
+│   └── apus.csv                # Archivo de apus original con posibles errores  
 │
 ├── models/                     # Módulos de lógica de negocio y análisis avanzado
 │   ├── __init__.py
 │   └── probability_models.py   # Motor de simulación Monte Carlo para análisis de riesgos
 │
 ├── scripts/                    # Herramientas de línea de comandos para desarrolladores
-│   ├── generate_embeddings.py  # Script para generar el índice de búsqueda semántica
-│   └── diagnose_apus_file.py   # Herramienta para analizar formatos de archivo de APU
+│   ├── __init__.py
+│   ├── generate_embeddings.py       # Script para generar el índice de búsqueda semántica
+│   ├── diagnose_apus_file.py        # Herramienta para analizar formatos de archivo de APU
+│   ├── diagnose_insumos_file.py     # Herramienta para analizar formatos de archivo de insumos
+│   ├── diagnose_presupuesto_file.py # Herramienta para analizar formatos de archivo de presupuesto
+│   └── clean_csv.py                 # Herramienta para limpiar caracteres sucios y crear un archivo csv limpio 
 │
 ├── tests/                      # Suite de pruebas completa del proyecto
 │   ├── test_app.py             # Pruebas de integración para los endpoints de la API
