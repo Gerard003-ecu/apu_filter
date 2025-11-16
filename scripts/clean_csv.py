@@ -129,6 +129,12 @@ class CSVCleaner:
                 f"({self.MAX_FILE_SIZE / 1024 / 1024:.2f} MB): {file_size / 1024 / 1024:.2f} MB"
             )
         
+        # Validar que entrada y salida no sean el mismo archivo
+        if self.input_path.resolve() == self.output_path.resolve():
+            raise ValueError(
+                "El archivo de entrada y salida no pueden ser el mismo"
+            )
+
         # Validar archivo de salida
         if self.output_path.exists() and not self.overwrite:
             raise ValueError(
@@ -161,12 +167,6 @@ class CSVCleaner:
             logger.warning(
                 f"Delimitador inusual detectado: '{self.delimiter}'. "
                 f"Delimitadores comunes: {self.VALID_DELIMITERS}"
-            )
-        
-        # Validar que entrada y salida no sean el mismo archivo
-        if self.input_path.resolve() == self.output_path.resolve():
-            raise ValueError(
-                "El archivo de entrada y salida no pueden ser el mismo"
             )
         
         logger.debug("✅ Validaciones de entrada completadas exitosamente")
