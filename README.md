@@ -140,6 +140,7 @@ Instale los "engranajes" principales que requieren compilaciones y dependencias 
 Finalmente, instale todas las demás dependencias de Python puro con el "engranaje de alta velocidad".
 ```bash
 uv pip install -r requirements.txt
+uv pip install -r requirements-dev.txt
 ```
 
 **Nota Importante:** El archivo `requirements.txt` no debe contener `faiss-cpu` ni `torch`. Si alguna vez necesita regenerar este archivo (ej. usando `uv pip compile requirements.in`), asegúrese de excluir estas dos librerías para evitar conflictos de instalación.
