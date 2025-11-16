@@ -1,9 +1,8 @@
 # scripts/clean_csv.py
-import csv
 import sys
 import logging
 from pathlib import Path
-from typing import Optional, Dict, List
+from typing import Optional, Dict, List, TextIO
 from dataclasses import dataclass
 from enum import Enum
 
@@ -19,8 +18,8 @@ class SkipReason(Enum):
     """Razones por las que una fila puede ser saltada."""
     EMPTY = "Línea vacía"
     COMMENT = "Comentario"
-    INCONSISTENT_COLUMNS = "Número inconsistente de columnas"
-    MALFORMED = "Formato inválido"
+    INCONSISTENT_DELIMITERS = "Número inconsistente de delimitadores"
+    WHITESPACE_ONLY = "Solo espacios en blanco"
 
 
 @dataclass
@@ -46,7 +45,15 @@ class CleaningStats:
 
 class CSVCleaner:
     """
-    Limpiador robusto de archivos CSV con validaciones exhaustivas.
+    Filtro de líneas para archivos CSV que preserva el formato original.
+    
+    Este limpiador NO reformatea el CSV, solo actúa como filtro:
+    - Lee líneas del archivo original
+    - Decide si cada línea es válida
+    - Escribe las líneas válidas EXACTAMENTE como las encontró
+    
+    Esto evita problemas de re-formatting que pueden romper parsers 
+    posteriores que esperan un formato específico.
     """
     
     # Delimitadores válidos comunes
@@ -74,7 +81,7 @@ class CSVCleaner:
             delimiter: Delimitador del CSV (por defecto ';')
             encoding: Codificación del archivo (por defecto 'utf-8')
             overwrite: Si True, sobrescribe archivo de salida existente
-            strict_mode: Si True, valida estrictamente el número de columnas
+            strict_mode: Si True, valida estrictamente el número de delimitadores
             verbose: Si True, muestra información detallada de depuración
         """
         self.input_path = Path(input_path)
@@ -85,6 +92,7 @@ class CSVCleaner:
         self.strict_mode = strict_mode
         self.verbose = verbose
         self.stats = CleaningStats()
+        self.expected_delimiter_count: Optional[int] = None
         
         if self.verbose:
             logger.setLevel(logging.DEBUG)
@@ -121,12 +129,6 @@ class CSVCleaner:
                 f"({self.MAX_FILE_SIZE / 1024 / 1024:.2f} MB): {file_size / 1024 / 1024:.2f} MB"
             )
         
-        # Validar que entrada y salida no sean el mismo archivo
-        if self.input_path.resolve() == self.output_path.resolve():
-            raise ValueError(
-                "El archivo de entrada y salida no pueden ser el mismo"
-            )
-
         # Validar archivo de salida
         if self.output_path.exists() and not self.overwrite:
             raise ValueError(
@@ -161,101 +163,162 @@ class CSVCleaner:
                 f"Delimitadores comunes: {self.VALID_DELIMITERS}"
             )
         
+        # Validar que entrada y salida no sean el mismo archivo
+        if self.input_path.resolve() == self.output_path.resolve():
+            raise ValueError(
+                "El archivo de entrada y salida no pueden ser el mismo"
+            )
+        
         logger.debug("✅ Validaciones de entrada completadas exitosamente")
     
-    def _read_header(self, reader: csv.reader) -> Optional[List[str]]:
+    def _count_delimiters(self, line: str) -> int:
         """
-        Lee y valida el encabezado del CSV.
+        Cuenta el número de delimitadores en una línea.
         
         Args:
-            reader: Reader de CSV
+            line: Línea a analizar
             
         Returns:
-            Lista con los campos del encabezado o None si no hay
-            
-        Raises:
-            ValueError: Si el encabezado es inválido
+            Número de delimitadores encontrados
         """
-        try:
-            header = next(reader)
-        except StopIteration:
-            raise ValueError(
-                "El archivo CSV está vacío o solo contiene el encabezado"
-            )
-        
-        # Validar que el header no esté completamente vacío
-        if not header or not any(field.strip() for field in header):
-            raise ValueError(
-                "El encabezado del CSV está vacío o contiene solo espacios"
-            )
-        
-        # Validar que no haya nombres de columna duplicados
-        header_stripped = [h.strip() for h in header]
-        if len(header_stripped) != len(set(header_stripped)):
-            duplicates = [
-                h for h in header_stripped 
-                if header_stripped.count(h) > 1
-            ]
-            logger.warning(
-                f"⚠️  Encabezados duplicados detectados: {set(duplicates)}"
-            )
-        
-        logger.info(f"✅ Encabezado detectado con {len(header)} columnas")
-        if self.verbose:
-            logger.debug(f"Columnas: {header}")
-        
-        return header
+        return line.count(self.delimiter)
     
-    def _should_skip_row(
-        self, 
-        row: List[str], 
-        num_columns: int, 
-        line_num: int
-    ) -> Optional[SkipReason]:
+    def _is_empty_line(self, line: str) -> bool:
         """
-        Determina si una fila debe ser saltada y por qué razón.
+        Determina si una línea está vacía o contiene solo espacios.
         
         Args:
-            row: Fila a evaluar
-            num_columns: Número esperado de columnas
+            line: Línea a evaluar
+            
+        Returns:
+            True si la línea está vacía o solo contiene espacios
+        """
+        return not line.strip()
+    
+    def _is_comment_line(self, line: str) -> bool:
+        """
+        Determina si una línea es un comentario (comienza con #).
+        
+        Args:
+            line: Línea a evaluar
+            
+        Returns:
+            True si la línea es un comentario
+        """
+        return line.strip().startswith('#')
+    
+    def _is_all_whitespace_fields(self, line: str) -> bool:
+        """
+        Determina si una línea contiene solo campos vacíos o con espacios.
+        Por ejemplo: ";;;" o "  ;  ;  "
+        
+        Args:
+            line: Línea a evaluar
+            
+        Returns:
+            True si todos los campos están vacíos o solo contienen espacios
+        """
+        if not line.strip():
+            return True
+        
+        # Dividir por el delimitador y verificar si todos los campos están vacíos
+        fields = line.split(self.delimiter)
+        return all(not field.strip() for field in fields)
+    
+    def _should_skip_line(self, line: str, line_num: int) -> Optional[SkipReason]:
+        """
+        Determina si una línea debe ser saltada y por qué razón.
+        
+        Args:
+            line: Línea a evaluar (sin el salto de línea final)
             line_num: Número de línea (para logging)
             
         Returns:
             SkipReason si debe saltarse, None si es válida
         """
-        # Validar que row no sea None o vacío
-        if not row:
+        # 1. Ignorar líneas completamente vacías
+        if self._is_empty_line(line):
             if self.verbose:
-                logger.debug(f"Línea {line_num}: Fila vacía (None o lista vacía)")
-            return SkipReason.EMPTY
-        
-        # 1. Ignorar líneas completamente en blanco
-        if not any(field.strip() for field in row):
-            if self.verbose:
-                logger.debug(f"Línea {line_num}: Todos los campos están vacíos")
+                logger.debug(f"Línea {line_num}: Línea vacía")
             return SkipReason.EMPTY
         
         # 2. Ignorar líneas de comentario (comienzan con '#')
-        first_field = row[0].strip() if row else ""
-        if first_field.startswith('#'):
+        if self._is_comment_line(line):
             if self.verbose:
                 logger.debug(f"Línea {line_num}: Comentario detectado")
             return SkipReason.COMMENT
         
-        # 3. Validar consistencia de columnas (si está en modo estricto)
-        if self.strict_mode and len(row) != num_columns:
+        # 3. Ignorar líneas con solo espacios en blanco en todos los campos
+        if self._is_all_whitespace_fields(line):
             if self.verbose:
-                logger.debug(
-                    f"Línea {line_num}: Esperadas {num_columns} columnas, "
-                    f"encontradas {len(row)}"
-                )
-            return SkipReason.INCONSISTENT_COLUMNS
+                logger.debug(f"Línea {line_num}: Solo espacios en blanco")
+            return SkipReason.WHITESPACE_ONLY
+        
+        # 4. Validar consistencia de delimitadores (si está en modo estricto)
+        if self.strict_mode and self.expected_delimiter_count is not None:
+            delimiter_count = self._count_delimiters(line)
+            if delimiter_count != self.expected_delimiter_count:
+                if self.verbose:
+                    logger.debug(
+                        f"Línea {line_num}: Esperados {self.expected_delimiter_count} "
+                        f"delimitadores, encontrados {delimiter_count}"
+                    )
+                return SkipReason.INCONSISTENT_DELIMITERS
         
         return None
+    
+    def _process_header(self, header_line: str) -> None:
+        """
+        Procesa la línea de encabezado y establece la configuración esperada.
+        
+        Args:
+            header_line: Línea de encabezado (sin salto de línea)
+            
+        Raises:
+            ValueError: Si el encabezado es inválido
+        """
+        # Validar que el header no esté completamente vacío
+        if self._is_empty_line(header_line):
+            raise ValueError(
+                "El encabezado del CSV está vacío"
+            )
+        
+        if self._is_all_whitespace_fields(header_line):
+            raise ValueError(
+                "El encabezado del CSV contiene solo espacios en blanco"
+            )
+        
+        # Contar delimitadores en el header para validación futura
+        self.expected_delimiter_count = self._count_delimiters(header_line)
+        
+        # Extraer nombres de columnas para logging
+        column_names = header_line.split(self.delimiter)
+        num_columns = len(column_names)
+        
+        logger.info(f"✅ Encabezado detectado con {num_columns} columnas")
+        
+        if self.verbose:
+            logger.debug(f"Delimitadores en encabezado: {self.expected_delimiter_count}")
+            logger.debug(f"Columnas: {column_names}")
+        
+        # Advertir sobre encabezados duplicados
+        column_names_stripped = [col.strip() for col in column_names]
+        if len(column_names_stripped) != len(set(column_names_stripped)):
+            duplicates = [
+                col for col in column_names_stripped 
+                if column_names_stripped.count(col) > 1
+            ]
+            logger.warning(
+                f"⚠️  Encabezados duplicados detectados: {set(duplicates)}"
+            )
     
     def clean(self) -> CleaningStats:
         """
         Ejecuta el proceso de limpieza del CSV.
+        
+        IMPORTANTE: Este método NO reformatea el CSV. Lee líneas del archivo
+        original y escribe las líneas válidas EXACTAMENTE como las encontró,
+        preservando comillas, espacios, y cualquier otro formato.
         
         Returns:
             CleaningStats con las estadísticas del proceso
@@ -271,6 +334,7 @@ class CSVCleaner:
         logger.info(f"   Delimitador: '{self.delimiter}'")
         logger.info(f"   Encoding: {self.encoding}")
         logger.info(f"   Modo estricto: {self.strict_mode}")
+        logger.info(f"   Modo filtro: PRESERVA FORMATO ORIGINAL")
         
         try:
             with open(
@@ -282,34 +346,50 @@ class CSVCleaner:
                  open(
                      self.output_path, 
                      'w', 
-                     encoding=self.encoding, 
-                     newline=''
+                     encoding=self.encoding,
+                     newline=''  # Importante: preservar los saltos de línea originales
                  ) as outfile:
                 
-                reader = csv.reader(infile, delimiter=self.delimiter)
-                writer = csv.writer(outfile, delimiter=self.delimiter)
+                # Procesar encabezado
+                header_line = infile.readline()
                 
-                # Leer y validar encabezado
-                header = self._read_header(reader)
-                writer.writerow(header)
-                num_columns = len(header)
+                if not header_line:
+                    raise ValueError(
+                        "El archivo CSV está vacío o no contiene encabezado"
+                    )
                 
-                # Procesar filas
-                for line_num, row in enumerate(reader, start=2):
-                    skip_reason = self._should_skip_row(row, num_columns, line_num)
+                # Remover salto de línea para validación, pero guardarlo para escritura
+                line_ending = self._detect_line_ending(header_line)
+                header_clean = header_line.rstrip('\r\n')
+                
+                self._process_header(header_clean)
+                
+                # Escribir encabezado EXACTAMENTE como se leyó
+                outfile.write(header_line)
+                
+                # Procesar resto de líneas
+                line_num = 2  # Empezamos en 2 porque la línea 1 es el header
+                
+                for raw_line in infile:
+                    # Remover salto de línea solo para validación
+                    line_clean = raw_line.rstrip('\r\n')
+                    
+                    # Si la línea está completamente vacía (EOF), saltar
+                    if not raw_line:
+                        continue
+                    
+                    skip_reason = self._should_skip_line(line_clean, line_num)
                     
                     if skip_reason:
                         self.stats.record_skip(skip_reason)
+                        line_num += 1
                         continue
                     
-                    try:
-                        writer.writerow(row)
-                        self.stats.record_written()
-                    except Exception as e:
-                        logger.error(
-                            f"Error al escribir línea {line_num}: {e}"
-                        )
-                        self.stats.record_skip(SkipReason.MALFORMED)
+                    # Escribir la línea EXACTAMENTE como se leyó
+                    # (incluyendo su salto de línea original)
+                    outfile.write(raw_line)
+                    self.stats.record_written()
+                    line_num += 1
             
             self._print_summary()
             return self.stats
@@ -322,14 +402,28 @@ class CSVCleaner:
             raise ValueError(
                 f"Error de codificación. Intente con un encoding diferente: {e}"
             )
-        except csv.Error as e:
-            raise ValueError(
-                f"Error al parsear el CSV: {e}"
-            )
         except Exception as e:
             raise RuntimeError(
                 f"Error inesperado durante la limpieza: {e}"
             )
+    
+    def _detect_line_ending(self, line: str) -> str:
+        """
+        Detecta el tipo de salto de línea usado.
+        
+        Args:
+            line: Línea a analizar
+            
+        Returns:
+            '\r\n' para Windows, '\n' para Unix
+        """
+        if line.endswith('\r\n'):
+            return '\r\n'
+        elif line.endswith('\n'):
+            return '\n'
+        elif line.endswith('\r'):
+            return '\r'
+        return '\n'  # Default
     
     def _print_summary(self) -> None:
         """Imprime un resumen detallado del proceso de limpieza."""
@@ -356,7 +450,7 @@ def main():
     import argparse
     
     parser = argparse.ArgumentParser(
-        description='Limpia archivos CSV eliminando filas problemáticas',
+        description='Filtro de líneas para archivos CSV (preserva formato original)',
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Ejemplos de uso:
@@ -364,6 +458,12 @@ Ejemplos de uso:
   %(prog)s input.csv output.csv -d ","
   %(prog)s input.csv output.csv --overwrite --verbose
   %(prog)s input.csv output.csv --no-strict
+
+IMPORTANTE:
+  Este limpiador NO reformatea el CSV. Lee líneas del archivo original
+  y escribe las líneas válidas EXACTAMENTE como las encontró, preservando
+  comillas, espacios, y cualquier otro formato. Solo actúa como filtro
+  de líneas problemáticas.
         """
     )
     
@@ -393,7 +493,7 @@ Ejemplos de uso:
     parser.add_argument(
         '--no-strict',
         action='store_true',
-        help='No validar estrictamente el número de columnas'
+        help='No validar estrictamente el número de delimitadores'
     )
     parser.add_argument(
         '-v', '--verbose',
