@@ -724,40 +724,44 @@ def clean_apu_code(
     code: str,
     validate_format: bool = True,
     min_length: int = 1,
+    max_length: Optional[int] = None,
     is_item_code: bool = False,
     allow_numeric_only: bool = True,
+    replace_comma: bool = True,
 ) -> str:
     """
-     Limpia y valida un código de APU/ITEM de forma robusta con cache.
+    Limpia y valida un código de APU/ITEM de forma robusta con cache.
 
-     Maneja múltiples contextos:
-     - Códigos de APU técnicos (ej: "APU-001", "M.2.1.3")
-     - Códigos de ITEM simples (ej: "1", "2", "3.1")
-     - Códigos alfanuméricos (ej: "A1", "B-2")
+    Maneja múltiples contextos:
+    - Códigos de APU técnicos (ej: "APU-001", "M.2.1.3")
+    - Códigos de ITEM simples (ej: "1", "2", "3.1")
+    - Códigos alfanuméricos (ej: "A1", "B-2")
 
-     Args:
-     code: Código de APU o ITEM a limpiar
-     validate_format: Si True, aplica validaciones de formato
-     min_length: Longitud mínima requerida (default=1 para permitir ITEMs simples)
-     is_item_code: Si True, aplica reglas más permisivas para códigos de ITEM
-     allow_numeric_only: Si True, permite códigos que son solo números
+    Args:
+    code: Código de APU o ITEM a limpiar
+    validate_format: Si True, aplica validaciones de formato
+    min_length: Longitud mínima requerida (default=1 para permitir ITEMs simples)
+    max_length: Longitud máxima opcional
+    is_item_code: Si True, aplica reglas más permisivas para códigos de ITEM
+    allow_numeric_only: Si True, permite códigos que son solo números
+    replace_comma: Si True, reemplaza comas por puntos
 
-     Returns:
-     Código limpio y validado en mayúsculas
+    Returns:
+    Código limpio y validado en mayúsculas
 
-     Raises:
-     ValueError: Si el código es inválido y validate_format=True
-     TypeError: Si code no puede convertirse a string
+    Raises:
+    ValueError: Si el código es inválido y validate_format=True
+    TypeError: Si code no puede convertirse a string
 
-     Examples:
+    Examples:
     >>> clean_apu_code("1") # ITEM simple
-     '1'
+    '1'
     >>> clean_apu_code("3.1.2") # ITEM jerárquico
-     '3.1.2'
+    '3.1.2'
     >>> clean_apu_code("APU-001", min_length=2) # APU técnico
-     'APU-001'
+    'APU-001'
     >>> clean_apu_code(" a1-b ") # Con espacios y minúsculas
-     'A1-B'
+    'A1-B'
     """
     # ============================================================
     # 1. VALIDACIÓN Y CONVERSIÓN DE TIPO
@@ -795,8 +799,9 @@ def clean_apu_code(
     # ============================================================
     # 3. NORMALIZACIÓN DE CARACTERES ESPECIALES
     # ============================================================
-    # Reemplazar comas por puntos (común en notación decimal europea)
-    code = code.replace(",", ".")
+    # Reemplazar comas por puntos (configurable)
+    if replace_comma:
+        code = code.replace(",", ".")
 
     # Remover caracteres no permitidos
     # Permitidos: letras, números, puntos, guiones, guiones bajos
@@ -828,14 +833,21 @@ def clean_apu_code(
                 f"Original: '{original_code}', Limpio: '{code}'"
             )
 
-        # 4.2 Validar que contenga al menos un carácter alfanumérico
+        # 4.2 Validar longitud máxima (NUEVA VALIDACIÓN)
+        if max_length is not None and len(code) > max_length:
+            raise ValueError(
+                f"Código demasiado largo (máx: {max_length} caracteres). "
+                f"Original: '{original_code}', Limpio: '{code}'"
+            )
+
+        # 4.3 Validar que contenga al menos un carácter alfanumérico
         if not any(c.isalnum() for c in code):
             raise ValueError(
                 f"Código debe contener al menos un carácter alfanumérico. "
                 f"Original: '{original_code}', Limpio: '{code}'"
             )
 
-        # 4.3 Validar código numérico puro (si no está permitido)
+        # 4.4 Validar código numérico puro (si no está permitido)
         is_numeric_only = all(c.isdigit() or c == "." for c in code)
         if is_numeric_only and not allow_numeric_only and not is_item_code:
             logger.warning(
@@ -843,14 +855,14 @@ def clean_apu_code(
                 f"'{original_code}' -> '{code}'"
             )
 
-        # 4.4 Advertencia si el código no tiene números
+        # 4.5 Advertencia si el código no tiene números
         # (los APUs técnicos normalmente incluyen números)
         if not is_item_code and not any(c.isdigit() for c in code):
             logger.warning(
                 f"Código APU sin números (inusual): '{original_code}' -> '{code}'"
             )
 
-        # 4.5 Validar patrones específicos para códigos de ITEM
+        # 4.6 Validar patrones específicos para códigos de ITEM
         if is_item_code:
             # Los ITEMs suelen ser números con posibles puntos para jerarquía
             # Ejemplos: "1", "2.3", "1.2.3", "A.1", etc.
@@ -877,18 +889,6 @@ def clean_apu_code(
         )
         # Corregir múltiples guiones consecutivos
         code = re.sub(r"-{2,}", "-", code)
-
-    # Validar longitud máxima razonable (evitar códigos excesivamente largos)
-    MAX_CODE_LENGTH = 100
-    if len(code) > MAX_CODE_LENGTH:
-        logger.warning(
-            f"Código excesivamente largo ({len(code)} caracteres): '{code[:50]}...'"
-        )
-        if validate_format:
-            raise ValueError(
-                f"Código demasiado largo (máx: {MAX_CODE_LENGTH} caracteres). "
-                f"Original: '{original_code}' ({len(original_code)} caracteres)"
-            )
 
     return code
 
