@@ -68,7 +68,12 @@ TEST_CONFIG = {
     # --- INICIO DE LA MODIFICACIÓN ---
     "file_profiles": {
         "presupuesto_default": {
-            "loader_params": {"header": None, "sep": ";", "encoding": "latin1"}
+            "loader_params": {
+                "header": 0,
+                "sep": ";",
+                "encoding": "latin1",
+                "dtype": {"ITEM": str},
+            }
         },
         "insumos_default": {"parser_strategy": "hierarchical_v1", "encoding": "latin1"},
         "apus_default": {"parser_strategy": "state_machine_v2", "encoding": "latin1"},

@@ -407,57 +407,49 @@ class PresupuestoProcessor:
         self.validator = DataValidator()
 
     def process(self, path: str) -> pd.DataFrame:
-        """Procesa el archivo de presupuesto (CSV o Excel) con limpieza robusta."""
+        """Procesa el archivo de presupuesto usando el perfil proporcionado."""
         try:
-            # PASO 1: Cargar datos usando perfil
+            # Paso 1: Cargar los datos. `load_data` ya usa el perfil para el encabezado.
             loader_params = self.profile.get("loader_params", {})
             logger.info(f"📥 Cargando presupuesto con perfil: {loader_params}")
             df = load_data(path, **loader_params)
 
             if df is None or df.empty:
-                logger.error("❌ No se pudo leer el archivo de presupuesto o está vacío")
+                logger.error("❌ No se pudo leer el archivo de presupuesto o está vacío.")
                 return pd.DataFrame()
 
-            logger.info(f"📊 DataFrame inicial: {len(df)} filas, {len(df.columns)} columnas")
+            logger.info(f"📊 DataFrame inicial: {df.shape[0]} filas, {df.shape[1]} columnas")
 
-            # PASO 2: Limpieza CRÍTICA de filas fantasma ANTES de buscar encabezado
-            df = self._clean_phantom_rows(df, stage="INICIAL")
-            if df.empty:
-                logger.error("❌ DataFrame vacío después de limpieza inicial")
+            # Paso 2: Limpiar filas fantasma (aún útil para robustez).
+            df_clean = self._clean_phantom_rows(df)
+            logger.info(f"🧹 Limpieza de filas fantasma: {len(df)} → {len(df_clean)} filas")
+            if df_clean.empty:
+                logger.error("❌ DataFrame vacío después de la limpieza inicial.")
                 return pd.DataFrame()
 
-            # PASO 3: Buscar y establecer encabezado
-            df = self._find_and_set_header(df)
-            if df.empty:
-                logger.error("❌ DataFrame vacío después de establecer encabezado")
+            # Paso 3: Renombrar columnas.
+            df_renamed = self._rename_columns(df_clean)
+            if not self._validate_required_columns(df_renamed):
                 return pd.DataFrame()
 
-            # PASO 4: Renombrar columnas
-            df = self._rename_columns(df)
-            if not self._validate_required_columns(df):
-                return pd.DataFrame()
+            # Paso 4: Limpiar y convertir datos.
+            df_converted = self._clean_and_convert_data(df_renamed)
 
-            # PASO 5: Limpiar y convertir datos
-            df = self._clean_and_convert_data(df)
-            if df.empty:
-                logger.warning("⚠️ DataFrame vacío después de limpieza de datos")
-                return pd.DataFrame()
+            # Paso 5: Eliminar duplicados.
+            df_final = self._remove_duplicates(df_converted)
 
-            # PASO 6: Eliminar duplicados
-            df = self._remove_duplicates(df)
+            logger.info(f"✅ Presupuesto cargado: {len(df_final)} APUs únicos")
 
-            logger.info(f"✅ Presupuesto procesado exitosamente: {len(df)} APUs únicos")
-
-            return df[
-                [
-                    ColumnNames.CODIGO_APU,
-                    ColumnNames.DESCRIPCION_APU,
-                    ColumnNames.CANTIDAD_PRESUPUESTO,
-                ]
+            # Devolver solo las columnas necesarias para el resto del pipeline.
+            final_cols = [
+                ColumnNames.CODIGO_APU,
+                ColumnNames.DESCRIPCION_APU,
+                ColumnNames.CANTIDAD_PRESUPUESTO,
             ]
+            return df_final[[col for col in final_cols if col in df_final.columns]]
 
         except Exception as e:
-            logger.error(f"❌ Error procesando presupuesto: {e}", exc_info=True)
+            logger.error(f"❌ Error fatal procesando presupuesto: {e}", exc_info=True)
             return pd.DataFrame()
 
     def _clean_phantom_rows(self, df: pd.DataFrame, stage: str = "") -> pd.DataFrame:
@@ -570,82 +562,6 @@ class PresupuestoProcessor:
             logger.debug(f"✅ {stage_label} No se encontraron filas fantasma ({rows_after} filas)")
 
         return df_clean
-
-    def _find_and_set_header(self, df: pd.DataFrame) -> pd.DataFrame:
-        """Busca y establece la fila de encabezado con validación mejorada."""
-        if df is None or df.empty:
-            logger.error("❌ DataFrame vacío en _find_and_set_header")
-            return pd.DataFrame()
-
-        header_row_index = -1
-        search_rows = min(self.thresholds.max_header_search_rows, len(df))
-
-        # Palabras clave flexibles para detección de encabezado
-        header_keywords = [
-            ["ITEM", "DESCRIPCION", "CANT"],      # Variante 1
-            ["ITEM", "DESCRIPCION", "UND"],       # Variante 2
-            ["CODIGO", "DESCRIPCION", "CANT"],    # Variante 3
-            ["ITEM", "UND", "CANT"],              # Variante 4 (mínima)
-        ]
-
-        logger.debug(f"🔍 Buscando encabezado en primeras {search_rows} filas...")
-
-        for i in range(search_rows):
-            # Convertir toda la fila a string y normalizar
-            row_values = [str(val) for val in df.iloc[i] if pd.notna(val)]
-            row_str = " ".join(row_values).upper()
-
-            # Verificar que la fila tenga contenido
-            if not row_str.strip():
-                logger.debug(f"   Fila {i}: vacía (skip)")
-                continue
-
-            logger.debug(f"   Fila {i}: {row_str[:100]}...")
-
-            # Probar cada conjunto de keywords
-            for keyword_set in header_keywords:
-                if all(keyword in row_str for keyword in keyword_set):
-                    header_row_index = i
-                    logger.info(
-                        f"✅ Encabezado detectado en fila {i} "
-                        f"(keywords: {', '.join(keyword_set)})"
-                    )
-                    break
-
-            if header_row_index != -1:
-                break
-
-        if header_row_index == -1:
-            logger.error(
-                f"❌ No se encontró encabezado válido en las primeras {search_rows} filas"
-            )
-            # Log de diagnóstico de primeras filas
-            logger.error("📋 Primeras filas del archivo:")
-            for i in range(min(5, len(df))):
-                logger.error(f"   Fila {i}: {df.iloc[i].tolist()}")
-            return pd.DataFrame()
-
-        # Establecer encabezado y eliminar filas anteriores
-        new_columns = df.iloc[header_row_index].tolist()
-        logger.debug(f"📋 Nuevas columnas: {new_columns}")
-
-        df.columns = new_columns
-        df = df.iloc[header_row_index + 1:].reset_index(drop=True)
-
-        logger.info(
-            f"✅ Encabezado establecido (fila {header_row_index}), "
-            f"{len(df)} filas restantes"
-        )
-
-        # CRÍTICO: Aplicar limpieza después de establecer encabezado
-        # porque pueden quedar filas fantasma justo después del header
-        df = self._clean_phantom_rows(df, stage="POST-HEADER")
-
-        if df.empty:
-            logger.error("❌ DataFrame vacío después de limpiar post-header")
-            return pd.DataFrame()
-
-        return df
 
     def _rename_columns(self, df: pd.DataFrame) -> pd.DataFrame:
         """Renombra columnas según configuración."""
