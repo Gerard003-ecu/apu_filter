@@ -34,7 +34,7 @@
     "apus_default": {
       "description": "Perfil para APUs semi-estructurados.",
       "parser_strategy": "state_machine_v2",
-      "encoding": "MacRoman"
+      "encoding": "utf-8"
     }
   },
   "clean_apu_code_params": {
