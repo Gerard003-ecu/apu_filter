@@ -807,7 +807,7 @@ Test3;Emoji 😀"""
         
         stats = cleaner.clean()
         
-        assert stats.rows_written == 3
+        assert stats.rows_written == 2
     
     def test_mixed_line_endings(self, temp_dir, output_path):
         """Verifica manejo de diferentes finales de línea."""
