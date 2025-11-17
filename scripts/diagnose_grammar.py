@@ -1,7 +1,7 @@
+import logging
+
 from lark import Lark
 from lark.exceptions import LarkError
-import logging
-from typing import Dict, List
 
 logger = logging.getLogger(__name__)
 
@@ -84,8 +84,8 @@ def diagnose_grammar_mismatches(
     return failed_lines
 
 if __name__ == '__main__':
-    import sys
     import os
+    import sys
     # Asegurar que el directorio raíz del proyecto esté en el PYTHONPATH
     sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
     from app.apu_processor import APU_GRAMMAR

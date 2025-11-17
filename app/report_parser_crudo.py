@@ -14,7 +14,8 @@ from collections import Counter
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
-from lark import Lark, LarkError
+
+from lark import Lark
 
 from .utils import clean_apu_code
 
@@ -176,7 +177,7 @@ class ReportParserCrudo:
         self._validate_file_path()
 
         # --- INICIO DE LA MODIFICACIÓN ---
-        from .apu_processor import APU_GRAMMAR # Importar la gramática
+        from .apu_processor import APU_GRAMMAR  # Importar la gramática
         self.lark_parser = self._initialize_lark_parser(APU_GRAMMAR)
         self._parse_cache: Dict[str, Tuple[bool, Any]] = {}
         self.validation_stats = ValidationStats()
@@ -434,7 +435,7 @@ class ReportParserCrudo:
         if total > 0:
             logger.info(f"✓ Insumos válidos (ambas capas):     {valid} ({valid/total*100:.1f}%)")
         else:
-            logger.info(f"✓ Insumos válidos (ambas capas):     0 (0.0%)")
+            logger.info("✓ Insumos válidos (ambas capas):     0 (0.0%)")
         logger.info(f"  - Pasaron validación básica:       {self.validation_stats.passed_basic}")
         logger.info(f"  - Pasaron validación Lark:         {self.validation_stats.passed_lark}")
         logger.info(f"  - Cache hits:                      {self.validation_stats.cached_parses}")

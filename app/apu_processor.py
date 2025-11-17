@@ -20,7 +20,7 @@ from typing import Any, Dict, List, Optional, Set, Tuple
 
 import pandas as pd
 from lark import Lark, Token, Transformer, v_args
-from lark.exceptions import LarkError, UnexpectedCharacters, UnexpectedInput
+from lark.exceptions import LarkError
 
 from .schemas import Equipo, InsumoProcesado, ManoDeObra, Otro, Suministro, Transporte
 from .utils import parse_number
