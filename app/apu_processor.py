@@ -387,16 +387,23 @@ class NumericFieldExtractor:
     y magnitud relativa.
     """
 
-    def __init__(self, thresholds: ValidationThresholds = None):
+    def __init__(
+        self, config: Optional[Dict[str, Any]] = None, thresholds: Optional[ValidationThresholds] = None
+    ):
         """
         Inicializa el extractor.
 
         Args:
+            config: El diccionario de configuración.
             thresholds: Un objeto `ValidationThresholds` con los umbrales
                         para la identificación de valores.
         """
+        self.config = config or {}
         self.pattern_matcher = PatternMatcher()
         self.thresholds = thresholds or ValidationThresholds()
+        # AÑADIR: Leer el separador decimal de la configuración
+        number_format = self.config.get("number_format", {})
+        self.decimal_separator = number_format.get("decimal_separator")
 
     def extract_all_numeric_values(
         self, fields: List[str], skip_first: bool = True
@@ -427,7 +434,8 @@ class NumericFieldExtractor:
 
     def parse_number_safe(self, value: str) -> Optional[float]:
         """
-        Parsea un número de forma segura, detectando el separador decimal.
+        Parsea un número de forma segura, utilizando el separador decimal
+        configurado.
 
         Args:
             value: La cadena de texto que contiene el número.
@@ -437,28 +445,9 @@ class NumericFieldExtractor:
         """
         if not value or not isinstance(value, str):
             return None
-
         try:
-            clean = value.strip().replace(" ", "")
-
-            # Detectar y manejar separador decimal
-            if "," in clean and "." not in clean:
-                # Solo comas: probablemente separador decimal
-                return parse_number(clean, decimal_separator="comma")
-            elif "." in clean and "," not in clean:
-                # Solo puntos: separador decimal estándar
-                return parse_number(clean, decimal_separator="dot")
-            elif "," in clean and "." in clean:
-                # Ambos presentes: determinar cuál es el decimal
-                if clean.rindex(",") > clean.rindex("."):
-                    clean = clean.replace(".", "")
-                    return parse_number(clean, decimal_separator="comma")
-                else:
-                    clean = clean.replace(",", "")
-                    return parse_number(clean, decimal_separator="dot")
-            else:
-                return float(clean) if clean else None
-
+            # CAMBIO: Pasar el separador decimal a la función de parseo
+            return parse_number(value, decimal_separator=self.decimal_separator)
         except (ValueError, TypeError, AttributeError):
             return None
 
@@ -582,8 +571,8 @@ class APUTransformer(Transformer):
         self.pattern_matcher = PatternMatcher()
         self.units_validator = UnitsValidator()
         self.thresholds = self._load_validation_thresholds()
-        self.numeric_extractor = NumericFieldExtractor(self.thresholds)
-
+        # CAMBIO: Pasar la config al NumericFieldExtractor
+        self.numeric_extractor = NumericFieldExtractor(self.config, self.thresholds)
         super().__init__()
 
     def _load_validation_thresholds(self) -> ValidationThresholds:
@@ -623,8 +612,12 @@ class APUTransformer(Transformer):
             o None en caso contrario.
         """
         fields = []
+        # CORRECCIÓN: Filtrar los tokens SEP ('\;') que Lark incluye en `args`.
+        # Lark pasa una lista plana [field, SEP, field, SEP, ...].
+        # Un SEP es un Token, un field no.
+        filtered_args = [arg for arg in args if not isinstance(arg, Token) or arg.type != 'SEP']
 
-        for arg in args:
+        for arg in filtered_args:
             if isinstance(arg, list):
                 fields.extend([self._extract_value(f) for f in arg])
             else:
@@ -962,7 +955,7 @@ class APUProcessor:
         self.pattern_matcher = PatternMatcher()
         self.units_validator = UnitsValidator()
         self.thresholds = ValidationThresholds()
-        self.numeric_extractor = NumericFieldExtractor(self.thresholds)
+        self.numeric_extractor = NumericFieldExtractor(self.config, self.thresholds)
 
     def process_all(self) -> pd.DataFrame:
         """
