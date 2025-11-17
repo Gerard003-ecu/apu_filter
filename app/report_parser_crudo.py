@@ -20,6 +20,16 @@ from .utils import clean_apu_code
 logger = logging.getLogger(__name__)
 
 
+@dataclass
+class LineValidationResult:
+    """Resultado de la validación de una línea."""
+
+    is_valid: bool
+    reason: str = ""
+    fields_count: int = 0
+    has_numeric_fields: bool = False
+
+
 class ParserError(Exception):
     """Excepción base para errores ocurridos durante el parseo."""
 
@@ -137,13 +147,79 @@ class ReportParserCrudo:
             config: Un objeto `ParserConfig` opcional con la configuración.
         """
         self.file_path = Path(file_path)
-        self.profile = profile  # Guardar el perfil
+        self.profile = profile or {}
         self.config = config or ParserConfig()
+        self.numeric_pattern = self._build_numeric_pattern()
+        self.validation_stats = {
+            "total_lines_evaluated": 0,
+            "valid_insumos": 0,
+            "rejected_insufficient_fields": 0,
+            "rejected_no_numeric_data": 0,
+            "rejected_empty_key_field": 0,
+            "rejected_subtotal_line": 0,
+        }
         self._validate_file_path()
 
         self.raw_records: List[Dict[str, Any]] = []
         self.stats: Counter = Counter()
         self._parsed: bool = False
+
+    def _build_numeric_pattern(self) -> re.Pattern:
+        """Construye el patrón regex para validar números según el perfil."""
+        number_format = self.profile.get("number_format", {})
+        decimal_separator = number_format.get("decimal_separator")
+
+        if decimal_separator == "comma":
+            decimal_char = ","
+            thousands_char = r"\."
+        elif decimal_separator == "dot":
+            decimal_char = r"\."
+            thousands_char = ","
+        else:
+            # Si no se especifica, permitir ambos formatos
+            decimal_char = r"[,.]"
+            thousands_char = r"[.,]"
+
+        # Patrón mejorado que es más flexible
+        pattern = (
+            r"^\s*[-+]?"  # Signo opcional
+            r"(\d{1,3}(" + thousands_char + r"\d{3})*|\d+)"  # Parte entera con o sin separadores de miles
+            r"(" + decimal_char + r"\d+)?"  # Parte decimal opcional
+            r"\s*$"
+        )
+        return re.compile(pattern)
+
+    def _validate_insumo_line(self, line: str, fields: List[str]) -> LineValidationResult:
+        """Validación estricta de una línea candidata a insumo ANTES de enviarla a Lark."""
+        # 1. Número mínimo de campos
+        if len(fields) < 5:
+            return LineValidationResult(
+                is_valid=False, reason=f"Insuficientes campos: {len(fields)} < 5"
+            )
+
+        # 2. Descripción no vacía
+        if not fields[0] or not fields[0].strip():
+            return LineValidationResult(is_valid=False, reason="Campo de descripción vacío")
+
+        # 3. Detectar líneas de subtotal/total
+        if any(keyword in line.upper() for keyword in self.JUNK_KEYWORDS):
+            return LineValidationResult(
+                is_valid=False, reason="Línea de subtotal/junk detectada"
+            )
+
+        # 4. Al menos 2 campos numéricos válidos
+        numeric_fields_found = 0
+        for field in fields[1:]:  # Saltar descripción
+            if field and self.numeric_pattern.match(field.strip()):
+                numeric_fields_found += 1
+
+        if numeric_fields_found < 2:
+            return LineValidationResult(
+                is_valid=False,
+                reason=f"Campos numéricos insuficientes: {numeric_fields_found} < 2",
+            )
+
+        return LineValidationResult(is_valid=True)
 
     def _validate_file_path(self) -> None:
         """Valida que la ruta del archivo sea un archivo válido y no vacío."""
@@ -359,9 +435,15 @@ class ReportParserCrudo:
                     i += 1
                     continue
 
-                # Asumir que es una línea de insumo
+                # --- INICIO DE LA MODIFICACIÓN ---
+                # Asumir que es una línea de insumo y VALIDARLA ESTRICTAMENTE
                 fields = [f.strip() for f in line.split(";")]
-                if len(fields) >= 5 and fields[0]:
+                self.validation_stats["total_lines_evaluated"] += 1
+
+                validation_result = self._validate_insumo_line(line, fields)
+
+                if validation_result.is_valid:
+                    # ✅ Línea VÁLIDA - Agregar a registros
                     record = {
                         "apu_code": current_apu_context.apu_code,
                         "apu_desc": current_apu_context.apu_desc,
@@ -372,9 +454,63 @@ class ReportParserCrudo:
                     }
                     self.raw_records.append(record)
                     self.stats["insumos_extracted"] += 1
+                    self.validation_stats["valid_insumos"] += 1
+                    logger.debug(f" ✓ Insumo válido [línea {i + 1}]: {fields[0][:50]}...")
                 else:
+                    # ❌ Línea RECHAZADA - Registrar y continuar
+                    if "Insuficientes campos" in validation_result.reason:
+                        self.validation_stats["rejected_insufficient_fields"] += 1
+                    elif "numéricos insuficientes" in validation_result.reason:
+                        self.validation_stats["rejected_no_numeric_data"] += 1
+                    elif "descripción vacío" in validation_result.reason:
+                        self.validation_stats["rejected_empty_key_field"] += 1
+                    elif "subtotal" in validation_result.reason:
+                        self.validation_stats["rejected_subtotal_line"] += 1
+                    logger.debug(
+                        f" ✗ Línea rechazada [línea {i + 1}]: {validation_result.reason} -> Contenido: {line[:80]}..."
+                    )
                     self.stats["lines_ignored_in_context"] += 1
+                # --- FIN DE LA MODIFICACIÓN ---
 
             i += 1
-
+        self._log_validation_summary()  # Añadir esta llamada al final
         return self.stats["insumos_extracted"] > 0
+
+    def _log_validation_summary(self):
+        """Registra un resumen detallado de la validación."""
+        total_eval = self.validation_stats["total_lines_evaluated"]
+        valid = self.validation_stats["valid_insumos"]
+
+        if total_eval == 0:
+            logger.warning("⚠️  No se evaluaron líneas para validación")
+            return
+
+        logger.info("=" * 70)
+        logger.info("📊 RESUMEN DE VALIDACIÓN DE LÍNEAS")
+        logger.info("=" * 70)
+        logger.info(f"Total líneas evaluadas:        {total_eval}")
+        if total_eval > 0:
+            logger.info(
+                f"✓ Insumos válidos:             {valid} ({valid/total_eval*100:.1f}%)"
+            )
+        else:
+            logger.info("✓ Insumos válidos:             0 (0.0%)")
+        logger.info(
+            f"✗ Rechazados - Campos insuf.:  {self.validation_stats['rejected_insufficient_fields']}"
+        )
+        logger.info(
+            f"✗ Rechazados - Sin numéricos:  {self.validation_stats['rejected_no_numeric_data']}"
+        )
+        logger.info(
+            f"✗ Rechazados - Desc. vacía:    {self.validation_stats['rejected_empty_key_field']}"
+        )
+        logger.info(
+            f"✗ Rechazados - Subtotales:     {self.validation_stats['rejected_subtotal_line']}"
+        )
+        logger.info("=" * 70)
+
+        if valid == 0 and total_eval > 0:
+            logger.error(
+                "🚨 CRÍTICO: 0 insumos válidos encontrados. "
+                "Revise el formato del archivo o el perfil de configuración."
+            )
