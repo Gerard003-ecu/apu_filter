@@ -46,10 +46,13 @@ class TestFixtures:
 class TestAPUProcessor(unittest.TestCase):
     def setUp(self):
         self.config = TestFixtures.get_default_config()
+        # Perfil por defecto para pruebas que no dependen de un perfil específico
+        self.default_profile = {"number_format": {"decimal_separator": "."}}
 
     def test_process_all(self):
         records = TestFixtures.get_sample_records()
-        processor = APUProcessor(records, self.config)
+        # CAMBIO: Pasar el perfil por defecto
+        processor = APUProcessor(records, self.config, self.default_profile)
         df = processor.process_all()
 
         self.assertIsInstance(df, pd.DataFrame)
@@ -58,7 +61,8 @@ class TestAPUProcessor(unittest.TestCase):
 
     def test_integration_with_calculate_unit_costs(self):
         records = TestFixtures.get_sample_records()
-        processor = APUProcessor(records, self.config)
+        # CAMBIO: Pasar el perfil por defecto
+        processor = APUProcessor(records, self.config, self.default_profile)
         df = processor.process_all()
 
         # Renombrar columnas para que coincidan con lo que espera calculate_unit_costs
@@ -82,10 +86,10 @@ class TestAPUProcessor(unittest.TestCase):
         Prueba que el procesador maneja correctamente los números con comas
         decimales cuando se especifica en la configuración.
         """
-        # 1. Configuración personalizada con separador de coma
-        comma_config = TestFixtures.get_default_config()
-        # Simula la configuración resuelta que el procesador espera recibir
-        comma_config["number_format"] = {"decimal_separator": "comma"}
+        # 1. Configuración de perfil con separador de coma
+        config = TestFixtures.get_default_config()
+        # El perfil ahora lleva la configuración específica del archivo
+        comma_profile = {"number_format": {"decimal_separator": ","}}
 
         # 2. Datos de muestra con comas como decimales y puntos como miles
         comma_records = [
@@ -102,8 +106,8 @@ class TestAPUProcessor(unittest.TestCase):
             }
         ]
 
-        # 3. Procesar los datos
-        processor = APUProcessor(comma_records, comma_config)
+        # 3. Procesar los datos, pasando el perfil con la coma
+        processor = APUProcessor(comma_records, config, comma_profile)
         df = processor.process_all()
 
         # 4. Verificaciones
