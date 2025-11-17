@@ -1,0 +1,325 @@
+16:22:47 - INFO - Iniciando aplicación en modo: development
+16:22:47 - INFO - Iniciando aplicación en modo: development
+16:22:47 - INFO - Configuración cargada exitosamente desde config.json
+16:22:47 - INFO - Configuración cargada exitosamente desde config.json
+16:22:47 - INFO - APUPresenter inicializado correctamente
+16:22:47 - INFO - APUPresenter inicializado correctamente
+16:22:47 - INFO - Iniciando carga de artefactos de búsqueda semántica...
+16:22:47 - INFO - Iniciando carga de artefactos de búsqueda semántica...
+16:22:47 - WARNING - No se encontraron todos los archivos de embeddings. La búsqueda semántica estará desactivada. Ejecute 'scripts/generate_embeddings.py' para generarlos.
+16:22:47 - WARNING - No se encontraron todos los archivos de embeddings. La búsqueda semántica estará desactivada. Ejecute 'scripts/generate_embeddings.py' para generarlos.
+ * Serving Flask app 'app.app:create_app('development')'
+ * Debug mode: off
+16:22:47 - INFO - WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
+ * Running on http://127.0.0.1:5002
+16:22:47 - INFO - Press CTRL+C to quit
+16:22:53 - INFO - 127.0.0.1 - - [17/Nov/2025 16:22:53] "GET / HTTP/1.1" 200 -
+16:23:31 - INFO - Procesando archivos para sesión RCpkYYrL...
+16:23:31 - INFO - Procesando archivos para sesión RCpkYYrL...
+16:23:31 - INFO - ================================================================================
+16:23:31 - INFO - 🚀 Iniciando procesamiento de archivos con patrón pipeline...
+16:23:31 - INFO - ================================================================================
+16:23:31 - INFO - 🔄 Ejecutando pipeline de procesamiento...
+16:23:31 - INFO - 📥 Cargando presupuesto con perfil: {'header': 0, 'sep': ';', 'encoding': 'UTF-8-SIG'}
+16:23:31 - INFO - Cargando datos desde /Users/gerardomayor/Documents/estru_techos/apu_filter/uploads/RCpkYYrLkDo7PtvJ9_7tmka5h0QrGtHh7A8jD2ekmSY/presupuesto_clean.csv (formato: .csv)
+16:23:31 - INFO - Cargando CSV desde /Users/gerardomayor/Documents/estru_techos/apu_filter/uploads/RCpkYYrLkDo7PtvJ9_7tmka5h0QrGtHh7A8jD2ekmSY/presupuesto_clean.csv con delimitador ';' y codificación 'UTF-8-SIG'
+16:23:31 - INFO - 📊 DataFrame inicial: 436 filas, 6 columnas
+16:23:32 - INFO - 🧹  Limpieza de filas fantasma: 436 → 435 filas (-1 eliminadas)
+16:23:32 - INFO - 🧹 Limpieza de filas fantasma: 436 → 435 filas
+16:23:32 - INFO - ✅ Columnas renombradas: ['CODIGO_APU', 'DESCRIPCION_APU', 'UND', 'CANTIDAD_PRESUPUESTO', ' VR. UNIT ', ' VR.TOTAL']
+16:23:32 - INFO - 🔧 Iniciando limpieza de 435 registros...
+16:23:32 - WARNING - Código APU sin números (inusual): 'nan' -> 'NAN'
+16:23:32 - WARNING - ⚠️  94 registros con cantidad = 0
+16:23:32 - INFO - ✅ Limpieza completada: 435 registros válidos (0 eliminados, 100.0% conservado)
+16:23:32 - WARNING - ⚠️  Se encontraron 339 filas duplicadas en 'presupuesto' por ['CODIGO_APU']. Se conservará: 'first'
+16:23:32 - INFO - ✅ Duplicados eliminados: 435 -> 105 filas
+16:23:32 - INFO - 🔄 Duplicados eliminados: 330 (105 únicos de 435 totales)
+16:23:32 - INFO - ✅ Presupuesto cargado: 105 APUs únicos
+16:23:32 - WARNING - ⚠️  Se encontraron 54 insumos con descripciones normalizadas duplicadas. Se conservará el de mayor precio.
+16:23:32 - INFO - ✅ Insumos cargados: 115 insumos únicos
+16:23:32 - INFO - ✓ Parser Lark inicializado correctamente para pre-validación
+16:23:32 - INFO - Iniciando parseo línea por línea de: apus_clean.csv
+16:23:32 - INFO - Archivo leído exitosamente con codificación: utf-8
+16:23:32 - INFO - Iniciando parsing de 3027 líneas con validación Lark
+16:23:32 - INFO - ✓ APU detectado [línea 1]: 1.1 - REMATE CON PINTURA DE FABRICA CAL 22 DE 120 CMTS C
+16:23:32 - INFO - ✓ APU detectado [línea 19]: 1.2 - REMATE CON PINTURA DE FABRICA CAL 22 DE 100 CMTS C
+16:23:32 - INFO - ✓ APU detectado [línea 37]: 1.3 - REMATE CON PINTURA DE FABRICA CAL 22 DE 80 CMTS CU
+16:23:32 - INFO - ✓ APU detectado [línea 55]: 1.4 - REMATE CON PINTURA DE FABRICA CAL 22 DE 60 CMTS CU
+16:23:32 - INFO - ✓ APU detectado [línea 73]: 1.5 - REMATE CON PINTURA DE FABRICA CAL 22 DE 40 CMTS CU
+16:23:32 - INFO - ✓ APU detectado [línea 91]: 1.6 - REMATE CON PINTURA DE FABRICA CAL 22 DE 30 CMTS CU
+16:23:32 - INFO - ✓ APU detectado [línea 109]: 1.7 - REMATE CON PINTURA DE FABRICA CAL 22 DE 20 CMTS CU
+16:23:32 - INFO - ✓ APU detectado [línea 127]: 2.1 - REMATE CON PINTURA DE FABRICA CAL 24 DE 120 CMTS C
+16:23:32 - INFO - ✓ APU detectado [línea 145]: 2.2 - REMATE CON PINTURA DE FABRICA CAL 24 DE 100 CMTS C
+16:23:32 - INFO - ✓ APU detectado [línea 163]: 2.3 - REMATE CON PINTURA DE FABRICA CAL 24 DE 80 CMTS CU
+16:23:32 - INFO - ✓ APU detectado [línea 181]: 2.4 - REMATE CON PINTURA DE FABRICA CAL 24 DE 60 CMTS CU
+16:23:32 - INFO - ✓ APU detectado [línea 199]: 2.5 - REMATE CON PINTURA DE FABRICA CAL 24 DE 40 CMTS CU
+16:23:32 - INFO - ✓ APU detectado [línea 217]: 2.6 - REMATE CON PINTURA DE FABRICA CAL 24 DE 30 CMTS CU
+16:23:32 - INFO - ✓ APU detectado [línea 235]: 2.7 - REMATE CON PINTURA DE FABRICA CAL 24 DE 20 CMTS CU
+16:23:32 - INFO - ✓ APU detectado [línea 253]: UNKNOWN_APU_253 - REMATE CON PINTURA DE FABRICA CAL 24 DE 20 CMTS CU
+16:23:32 - INFO - ✓ APU detectado [línea 271]: 3.1 - REMATE CON PINTURA DE FABRICA CAL 24 DE 80 CMTS CU
+16:23:32 - INFO - ✓ APU detectado [línea 289]: 3.2 - REMATE CON PINTURA DE FABRICA CAL 24 DE 60 CMTS CU
+16:23:32 - INFO - ✓ APU detectado [línea 307]: 3.3 - REMATE CON PINTURA DE FABRICA CAL 24 DE 40 CMTS CU
+16:23:32 - INFO - ✓ APU detectado [línea 325]: 3.4 - REMATE CON PINTURA DE FABRICA CAL 24 DE 30 CMTS CU
+16:23:32 - INFO - ✓ APU detectado [línea 343]: 3.5 - REMATE CON PINTURA DE FABRICA CAL 24 DE 20 CMTS CU
+16:23:32 - INFO - ✓ APU detectado [línea 361]: 4.1 - REMATE CON PINTURA DE FABRICA CAL 26 DE 80 CMTS CU
+16:23:32 - INFO - ✓ APU detectado [línea 379]: 4.2 - REMATE CON PINTURA DE FABRICA CAL 26 DE 60 CMTS CU
+16:23:32 - INFO - ✓ APU detectado [línea 397]: 4.3 - REMATE CON PINTURA DE FABRICA CAL 26 DE 40 CMTS CU
+16:23:32 - INFO - ✓ APU detectado [línea 415]: 4.4 - REMATE CON PINTURA DE FABRICA CAL 26 DE 30 CMTS CU
+16:23:32 - INFO - ✓ APU detectado [línea 433]: 4.5 - REMATE CON PINTURA DE FABRICA CAL 26 DE 20 CMTS CU
+16:23:32 - INFO - ✓ APU detectado [línea 451]: 5.1 - REMATE CON PINTURA DE FABRICA CAL 22 DE 120 CMTS
+16:23:32 - INFO - ✓ APU detectado [línea 469]: 5.2 - REMATE CON PINTURA DE FABRICA CAL 22 DE 100 CMTS
+16:23:32 - INFO - ✓ APU detectado [línea 487]: 5.3 - REMATE CON PINTURA DE FABRICA CAL 22 DE 80 CMTS
+16:23:32 - INFO - ✓ APU detectado [línea 505]: 5.4 - REMATE CON PINTURA DE FABRICA CAL 22 DE 60 CMTS
+16:23:32 - INFO - ✓ APU detectado [línea 523]: 5.5 - REMATE CON PINTURA DE FABRICA CAL 22 DE 40 CMTS
+16:23:32 - INFO - ✓ APU detectado [línea 541]: 5.6 - REMATE CON PINTURA DE FABRICA CAL 22 DE 30 CMTS
+16:23:32 - INFO - ✓ APU detectado [línea 559]: 5.7 - REMATE CON PINTURA DE FABRICA CAL 22 DE 20 CMTS
+16:23:32 - INFO - ✓ APU detectado [línea 577]: 6.1 - REMATE CON PINTURA DE FABRICA CAL 24 DE 120 CMTS
+16:23:32 - INFO - ✓ APU detectado [línea 595]: 6.2 - REMATE CON PINTURA DE FABRICA CAL 24 DE 100 CMTS
+16:23:32 - INFO - ✓ APU detectado [línea 613]: 6.3 - REMATE CON PINTURA DE FABRICA CAL 24 DE 80 CMTS
+16:23:32 - INFO - ✓ APU detectado [línea 631]: 6.4 - REMATE CON PINTURA DE FABRICA CAL 24 DE 60 CMTS
+16:23:32 - INFO - ✓ APU detectado [línea 649]: 6.5 - REMATE CON PINTURA DE FABRICA CAL 24 DE 40 CMTS
+16:23:32 - INFO - ✓ APU detectado [línea 667]: 6.6 - REMATE CON PINTURA DE FABRICA CAL 24 DE 30 CMTS
+16:23:32 - INFO - ✓ APU detectado [línea 685]: 6.7 - REMATE CON PINTURA DE FABRICA CAL 24 DE 20 CMTS
+16:23:32 - INFO - ✓ APU detectado [línea 703]: 7.1 - REMATE CON PINTURA FABRICA CAL 24 DE 0.80 MTS LAMI
+16:23:32 - INFO - ✓ APU detectado [línea 721]: 7.2 - REMATE CON PINTURA DE FABRICA CAL 24 DE 60 CMTS
+16:23:32 - INFO - ✓ APU detectado [línea 739]: 7.3 - REMATE CON PINTURA DE FABRICA CAL 24 DE 40 CTS
+16:23:32 - INFO - ✓ APU detectado [línea 757]: 7.4 - REMATE CON PINTURA DE FABRICA CAL 24 DE 30 CMTS
+16:23:32 - INFO - ✓ APU detectado [línea 775]: 7.5 - REMATE CON PINTURA DE FABRICA CAL 24 DE 20 CMTS
+16:23:32 - INFO - ✓ APU detectado [línea 793]: 8.1 - REMATE CON PINTURA DE FABRICA CAL 26 DE 80 CMTS
+16:23:32 - INFO - ✓ APU detectado [línea 811]: 8.2 - REMATE CON PINTURA DE FABRICA CAL 26 DE 60 CMTS
+16:23:32 - INFO - ✓ APU detectado [línea 829]: 8.3 - REMATE CON PINTURA DE FABRICA CAL 26 DE 40 CMTS
+16:23:32 - INFO - ✓ APU detectado [línea 847]: 8.4 - REMATE CON PINTURA DE FABRICA CAL 26 DE 30 CMTS
+16:23:32 - INFO - ✓ APU detectado [línea 865]: 8.5 - REMATE CON PINTURA DE FABRICA CAL 26 DE 20 CMTS
+16:23:32 - INFO - ✓ APU detectado [línea 883]: 9.1 - INSTALACION DE CABALLETE � LIMATESA
+16:23:32 - INFO - ✓ APU detectado [línea 909]: 9.2 - INSTALACION DE SOLAPAS CON RANURA
+16:23:32 - INFO - ✓ APU detectado [línea 935]: 9.3 - INSTALACION DE SOLAPAS SIN RANURA
+16:23:32 - INFO - ✓ APU detectado [línea 959]: 9.4 - INSTALACION DE GOTERO
+16:23:32 - INFO - ✓ APU detectado [línea 983]: 9.5 - INSTALACION DE CONTRACABALLETE
+16:23:32 - INFO - ✓ APU detectado [línea 1007]: 9.6 - INSTALACION DE ESQUINERO
+16:23:32 - INFO - ✓ APU detectado [línea 1031]: 9.7 - INSTALACION DE LIMAHOYA
+16:23:32 - INFO - ✓ APU detectado [línea 1063]: 10.1 - INSTALACION DE CABALLETE � LIMATESA CURVO
+16:23:32 - INFO - ✓ APU detectado [línea 1089]: 10.2 - INSTALACION DE SOLAPAS CON RANURA CURVA
+16:23:32 - INFO - ✓ APU detectado [línea 1115]: 10.3 - INSTALACION DE SOLAPAS SIN RANURA CURVA
+16:23:32 - INFO - ✓ APU detectado [línea 1139]: 10.4 - INSTALACION DE GOTERO CURVO
+16:23:32 - INFO - ✓ APU detectado [línea 1163]: 10.5 - INSTALACION DE CONTRACABALLETE CURVO
+16:23:32 - INFO - ✓ APU detectado [línea 1187]: 10.6 - INSTALACION DE ESQUINERO CURVO
+16:23:32 - INFO - ✓ APU detectado [línea 1211]: 10.7 - INSTALACION DE LIMAHOYA CURVA
+16:23:32 - INFO - ✓ APU detectado [línea 1244]: 11.1 - CANAL - SOLO LAMINA CAL 22 DE 120 CMTS
+16:23:32 - INFO - ✓ APU detectado [línea 1262]: 11.2 - CANAL - SOLO LAMINA CAL 22 DE 100 CMTS
+16:23:32 - INFO - ✓ APU detectado [línea 1280]: 11.3 - CANAL - SOLO LAMINA CAL 22 DE 80 CMTS
+16:23:32 - INFO - ✓ APU detectado [línea 1298]: 11.4 - CANAL - SOLO LAMINA CAL 22 DE 60 CMTS
+16:23:32 - INFO - ✓ APU detectado [línea 1316]: 12.1 - CANAL - SOLO LAMINA CAL 24 DE 120 CMTS
+16:23:32 - INFO - ✓ APU detectado [línea 1334]: 12.2 - CANAL - SOLO LAMINA CAL 24 DE 100 CMTS
+16:23:32 - INFO - ✓ APU detectado [línea 1352]: 12.3 - CANAL - SOLO LAMINA CAL 24 DE 80 CMTS
+16:23:32 - INFO - ✓ APU detectado [línea 1370]: 12.4 - CANAL - SOLO LAMINA CAL 24 DE 60 CMTS
+16:23:32 - INFO - ✓ APU detectado [línea 1388]: 13.1 - CANAL EN LAMINA - MANO DE OBRA Y FORMACION
+16:23:32 - INFO - ✓ APU detectado [línea 1421]: 13.2 - CANAL EN RESINA POLIESTER - MANO DE OBRA Y FORMACI
+16:23:32 - INFO - ✓ APU detectado [línea 1447]: 14.1 - PROTECCION DE POLIURETANO CON PINTURA BRONCO
+16:23:32 - INFO - ✓ APU detectado [línea 1494]: 15.2 - INSTALACION PLATINADO CORREAS (EJEMPLO: BRAKO 1)
+16:23:32 - INFO - ✓ APU detectado [línea 1522]: 16.1 - "SUMINISTRO DE PLATINA 1/8""x1-1/2"""
+16:23:32 - INFO - ✓ APU detectado [línea 1548]: 16.2 - INSTALACION PLATINADO CORREAS (EJEMPLO: BRAKO 1)
+16:23:32 - INFO - ✓ APU detectado [línea 1576]: UNKNOWN_APU_1576 - CUADRILLA DE 2 TECHADORES 1 DIA
+16:23:32 - INFO - ✓ APU detectado [línea 1604]: UNKNOWN_APU_1604 - CUADRILLA DE 2 TECHADORES 6 DIAS
+16:23:32 - INFO - ✓ APU detectado [línea 1632]: UNKNOWN_APU_1632 - CUADRILLA DE 2 TECHADORES 1 MES
+16:23:32 - INFO - ✓ APU detectado [línea 1660]: UNKNOWN_APU_1660 - CUADRILLA DE 3 TECHADORES 1 DIA
+16:23:32 - INFO - ✓ APU detectado [línea 1688]: UNKNOWN_APU_1688 - CUADRILLA DE 3 TECHADORES 6 DIAS
+16:23:32 - INFO - ✓ APU detectado [línea 1716]: UNKNOWN_APU_1716 - CUADRILLA DE 3 TECHADORES 1 MES
+16:23:32 - INFO - ✓ APU detectado [línea 1744]: UNKNOWN_APU_1744 - CUADRILLA DE 4 TECHADORES 1 DIA
+16:23:32 - INFO - ✓ APU detectado [línea 1772]: UNKNOWN_APU_1772 - CUADRILLA DE 4 TECHADORES 6 DIAS
+16:23:32 - INFO - ✓ APU detectado [línea 1800]: UNKNOWN_APU_1800 - CUADRILLA DE 4 TECHADORES 1 MES
+16:23:32 - INFO - ✓ APU detectado [línea 1828]: UNKNOWN_APU_1828 - CUADRILLA DE 4 TECHADORES 1 DIA
+16:23:32 - INFO - ✓ APU detectado [línea 1856]: UNKNOWN_APU_1856 - LIMPIEZA DE CUBIERTA CUADRILLA DE 3
+16:23:32 - INFO - ✓ APU detectado [línea 1881]: UNKNOWN_APU_1881 - LIMPIEZA DE CUBIERTA CUADRILLA DE 4
+16:23:32 - INFO - ✓ APU detectado [línea 1897]: UNKNOWN_APU_1897 - ARMADO Y DESARMADO DE ANDAMIOS 1 CUERPO H=2.00MT
+16:23:32 - INFO - ✓ APU detectado [línea 1917]: UNKNOWN_APU_1917 - ARMADO Y DESARMADO DE ANDAMIOS 2 CUERPOS H=4.00MT
+16:23:32 - INFO - ✓ APU detectado [línea 1937]: UNKNOWN_APU_1937 - ARMADO Y DESARMADO DE ANDAMIOS 3 CUERPOS H=6.00MT
+16:23:32 - INFO - ✓ APU detectado [línea 1957]: UNKNOWN_APU_1957 - ARMADO Y DESARMADO DE ANDAMIOS 4 CUERPOS H=8.00MT
+16:23:32 - INFO - ✓ APU detectado [línea 1977]: UNKNOWN_APU_1977 - ARMADO Y DESARMADO DE ANDAMIOS 5 CUERPOS H=10.00MT
+16:23:32 - INFO - ✓ APU detectado [línea 1997]: UNKNOWN_APU_1997 - ALQUILER ANDAMIO 1 CUERPO H=2.00MT
+16:23:32 - INFO - ✓ APU detectado [línea 2012]: UNKNOWN_APU_2012 - ALQUILER ANDAMIO 2 CUERPOS H=4.00MT
+16:23:32 - INFO - ✓ APU detectado [línea 2027]: UNKNOWN_APU_2027 - ALQUILER ANDAMIO 3 CUERPOS H=6.00MT
+16:23:32 - INFO - ✓ APU detectado [línea 2042]: UNKNOWN_APU_2042 - ALQUILER ANDAMIO 4 CUERPOS H=8.00MT
+16:23:32 - INFO - ✓ APU detectado [línea 2057]: UNKNOWN_APU_2057 - ALQUILER ANDAMIO 5 CUERPOS H=10.00MT
+16:23:32 - INFO - ✓ APU detectado [línea 2072]: UNKNOWN_APU_2072 - ALQUILER ANDAMIO DE CARGA H=2.00MT
+16:23:32 - INFO - ✓ APU detectado [línea 2087]: UNKNOWN_APU_2087 - ALQUILER ANDAMIO DE CARGA H=4.00MT
+16:23:32 - INFO - ✓ APU detectado [línea 2102]: UNKNOWN_APU_2102 - ALQUILER ANDAMIO DE CARGA H=6.00MT
+16:23:32 - INFO - ✓ APU detectado [línea 2117]: UNKNOWN_APU_2117 - ALQUILER ANDAMIO DE CARGA H=8.00MT
+16:23:32 - INFO - ✓ APU detectado [línea 2132]: UNKNOWN_APU_2132 - ALQUILER ANDAMIO DE CARGA H=10.00MT
+16:23:32 - INFO - ✓ APU detectado [línea 2147]: UNKNOWN_APU_2147 - ALQUILER ANDAMIO DE CARGA H=12.00MT
+16:23:32 - INFO - ✓ APU detectado [línea 2162]: UNKNOWN_APU_2162 - RESIDENTE OCUP. 30%
+16:23:32 - INFO - ✓ APU detectado [línea 2173]: UNKNOWN_APU_2173 - RESIDENTE OCUP. 50%
+16:23:32 - INFO - ✓ APU detectado [línea 2184]: UNKNOWN_APU_2184 - RESIDENTE OCUP. 70%
+16:23:32 - INFO - ✓ APU detectado [línea 2195]: UNKNOWN_APU_2195 - RESIDENTE OCUP. 100%
+16:23:32 - INFO - ✓ APU detectado [línea 2206]: UNKNOWN_APU_2206 - MANO DE OBRA IZAJE MANUAL DE TEJA SENCILLA CUADRIL
+16:23:32 - INFO - ✓ APU detectado [línea 2226]: UNKNOWN_APU_2226 - MANO DE OBRA IZAJE MANUAL DE TEJA SENCILLA CUADRIL
+16:23:32 - INFO - ✓ APU detectado [línea 2246]: UNKNOWN_APU_2246 - MANO DE OBRA IZAJE MANUAL DE TEJA SENCILLA CUADRIL
+16:23:32 - INFO - ✓ APU detectado [línea 2266]: UNKNOWN_APU_2266 - MANO DE OBRA IZAJE MANUAL DE TEJA SENCILLA CUADRIL
+16:23:32 - INFO - ✓ APU detectado [línea 2286]: UNKNOWN_APU_2286 - MANO DE OBRA IZAJE MANUAL DE TEJA SENCILLA CUADRIL
+16:23:32 - INFO - ✓ APU detectado [línea 2306]: UNKNOWN_APU_2306 - MANO DE OBRA IZAJE MANUAL DE PANEL SANDWICH CUADRI
+16:23:32 - INFO - ✓ APU detectado [línea 2326]: UNKNOWN_APU_2326 - MANO DE OBRA IZAJE MANUAL DE PANEL SANDWICH CUADRI
+16:23:32 - INFO - ✓ APU detectado [línea 2346]: UNKNOWN_APU_2346 - MANO DE OBRA IZAJE MANUAL DE PANEL SANDWICH CUADRI
+16:23:32 - INFO - ✓ APU detectado [línea 2366]: UNKNOWN_APU_2366 - MANO DE OBRA IZAJE MANUAL DE PANEL SANDWICH CUADRI
+16:23:32 - INFO - ✓ APU detectado [línea 2386]: UNKNOWN_APU_2386 - MANO DE OBRA IZAJE MANUAL DE PANEL SANDWICH CUADRI
+16:23:32 - INFO - ✓ APU detectado [línea 2406]: UNKNOWN_APU_2406 - CANAL - SOLO LAMINA CAL 24 DE 120 CMTS
+16:23:32 - INFO - ✓ APU detectado [línea 2424]: UNKNOWN_APU_2424 - CANAL - SOLO LAMINA CAL 24 DE 100 CMTS
+16:23:32 - INFO - ✓ APU detectado [línea 2442]: UNKNOWN_APU_2442 - CANAL - SOLO LAMINA CAL 24 DE 80 CMTS
+16:23:32 - INFO - ✓ APU detectado [línea 2460]: UNKNOWN_APU_2460 - CANAL - SOLO LAMINA CAL 24 DE 60 CMTS
+16:23:32 - INFO - ✓ APU detectado [línea 2478]: UNKNOWN_APU_2478 - CANAL - MANO DE OBRA Y FORMACION
+16:23:32 - INFO - ✓ APU detectado [línea 2490]: UNKNOWN_APU_2490 - PROTECCION DE POLIURETANO CON PINTURA BRONCO
+16:23:32 - INFO - ✓ APU detectado [línea 2500]: UNKNOWN_APU_2500 - INSTALACION PLATINADO CORREAS (EJEMPLO: BRAKO 1)
+16:23:32 - INFO - ✓ APU detectado [línea 2512]: UNKNOWN_APU_2512 - INSTALACION PLATINADO CORREAS (EJEMPLO: BRAKO 1)
+16:23:32 - INFO - ✓ APU detectado [línea 2524]: UNKNOWN_APU_2524 - CUADRILLA DE 4 TECHADORES 1 DIA
+16:23:32 - INFO - ✓ APU detectado [línea 2537]: UNKNOWN_APU_2537 - ARMADO Y DESARMADO DE ANDAMIOS 1 CUERPO H=2.00MT
+16:23:32 - INFO - ✓ APU detectado [línea 2557]: UNKNOWN_APU_2557 - ARMADO Y DESARMADO DE ANDAMIOS 2 CUERPOS H=4.00MT
+16:23:32 - INFO - ✓ APU detectado [línea 2577]: UNKNOWN_APU_2577 - ARMADO Y DESARMADO DE ANDAMIOS 3 CUERPOS H=6.00MT
+16:23:32 - INFO - ✓ APU detectado [línea 2597]: UNKNOWN_APU_2597 - ARMADO Y DESARMADO DE ANDAMIOS 4 CUERPOS H=8.00MT
+16:23:33 - INFO - ✓ APU detectado [línea 2617]: UNKNOWN_APU_2617 - ARMADO Y DESARMADO DE ANDAMIOS 5 CUERPOS H=10.00MT
+16:23:33 - INFO - ✓ APU detectado [línea 2637]: UNKNOWN_APU_2637 - ALQUILER ANDAMIO 1 CUERPO H=2.00MT
+16:23:33 - INFO - ✓ APU detectado [línea 2652]: UNKNOWN_APU_2652 - ALQUILER ANDAMIO 2 CUERPOS H=4.00MT
+16:23:33 - INFO - ✓ APU detectado [línea 2667]: UNKNOWN_APU_2667 - ALQUILER ANDAMIO 3 CUERPOS H=6.00MT
+16:23:33 - INFO - ✓ APU detectado [línea 2682]: UNKNOWN_APU_2682 - ALQUILER ANDAMIO 4 CUERPOS H=8.00MT
+16:23:33 - INFO - ✓ APU detectado [línea 2697]: UNKNOWN_APU_2697 - ALQUILER ANDAMIO 5 CUERPOS H=10.00MT
+16:23:33 - INFO - ✓ APU detectado [línea 2712]: UNKNOWN_APU_2712 - ALQUILER ANDAMIO DE CARGA H=2.00MT
+16:23:33 - INFO - ✓ APU detectado [línea 2727]: UNKNOWN_APU_2727 - ALQUILER ANDAMIO DE CARGA H=4.00MT
+16:23:33 - INFO - ✓ APU detectado [línea 2742]: UNKNOWN_APU_2742 - ALQUILER ANDAMIO DE CARGA H=6.00MT
+16:23:33 - INFO - ✓ APU detectado [línea 2757]: UNKNOWN_APU_2757 - ALQUILER ANDAMIO DE CARGA H=8.00MT
+16:23:33 - INFO - ✓ APU detectado [línea 2772]: UNKNOWN_APU_2772 - ALQUILER ANDAMIO DE CARGA H=10.00MT
+16:23:33 - INFO - ✓ APU detectado [línea 2787]: UNKNOWN_APU_2787 - ALQUILER ANDAMIO DE CARGA H=12.00MT
+16:23:33 - INFO - ✓ APU detectado [línea 2802]: UNKNOWN_APU_2802 - MANO DE OBRA IZAJE CON EQUIPO DE TEJA SENCILLA CUA
+16:23:33 - INFO - ✓ APU detectado [línea 2822]: UNKNOWN_APU_2822 - MANO DE OBRA IZAJE CON EQUIPO DE TEJA SENCILLA CUA
+16:23:33 - INFO - ✓ APU detectado [línea 2842]: UNKNOWN_APU_2842 - MANO DE OBRA IZAJE CON EQUIPO DE TEJA SENCILLA CUA
+16:23:33 - INFO - ✓ APU detectado [línea 2862]: UNKNOWN_APU_2862 - MANO DE OBRA IZAJE CON EQUIPO DE TEJA SENCILLA CUA
+16:23:33 - INFO - ✓ APU detectado [línea 2882]: UNKNOWN_APU_2882 - MANO DE OBRA IZAJE CON EQUIPO DE TEJA SENCILLA CUA
+16:23:33 - INFO - ✓ APU detectado [línea 2902]: UNKNOWN_APU_2902 - MANO DE OBRA IZAJE CON EQUIPO DE PANEL SANDWICH CU
+16:23:33 - INFO - ✓ APU detectado [línea 2922]: UNKNOWN_APU_2922 - MANO DE OBRA IZAJE CON EQUIPO DE PANEL SANDWICH CU
+16:23:33 - INFO - ✓ APU detectado [línea 2942]: UNKNOWN_APU_2942 - MANO DE OBRA IZAJE CON EQUIPO DE PANEL SANDWICH CU
+16:23:33 - INFO - ✓ APU detectado [línea 2962]: UNKNOWN_APU_2962 - MANO DE OBRA IZAJE CON EQUIPO DE PANEL SANDWICH CU
+16:23:33 - INFO - ✓ APU detectado [línea 2982]: UNKNOWN_APU_2982 - MANO DE OBRA IZAJE CON EQUIPO DE PANEL SANDWICH CU
+16:23:33 - INFO - ✓ APU detectado [línea 3003]: UNKNOWN_APU_3003 - MANO DE OBRA DESMONTE DE TEJA DE ASBESTO CUADRILLA
+16:23:33 - INFO - ================================================================================
+16:23:33 - INFO - 📊 RESUMEN DE VALIDACIÓN CON LARK
+16:23:33 - INFO - ================================================================================
+16:23:33 - INFO - Total líneas evaluadas:              983
+16:23:33 - INFO - ✓ Insumos válidos (ambas capas):     909 (92.5%)
+16:23:33 - INFO -   - Pasaron validación básica:       909
+16:23:33 - INFO -   - Pasaron validación Lark:         909
+16:23:33 - INFO -   - Cache hits:                      395
+16:23:33 - INFO - 
+16:23:33 - INFO - Rechazos por validación básica:
+16:23:33 - INFO -   - Campos insuficientes/vacíos:     2
+16:23:33 - INFO -   - Sin datos numéricos:             72
+16:23:33 - INFO -   - Subtotales:                      0
+16:23:33 - INFO -   - Líneas decorativas:              0
+16:23:33 - INFO - 
+16:23:33 - INFO - Rechazos por validación Lark:
+16:23:33 - INFO -   - Parse error genérico:            0
+16:23:33 - INFO -   - Unexpected input:                0
+16:23:33 - INFO -   - Unexpected characters:           0
+16:23:33 - INFO - ================================================================================
+16:23:33 - INFO - Parseo completo. Extraídos 909 registros crudos.
+16:23:33 - INFO - ✓ APUProcessor inicializado con cache de 514 líneas pre-parseadas
+16:23:33 - INFO - Parser Lark inicializado con arquitectura de especialistas
+16:23:33 - INFO - Iniciando procesamiento de 909 APUs con especialistas
+16:23:33 - INFO - Procesados 100/909 APUs
+16:23:33 - INFO - Procesados 200/909 APUs
+16:23:33 - INFO - Procesados 300/909 APUs
+16:23:33 - INFO - Procesados 400/909 APUs
+16:23:33 - INFO - Procesados 500/909 APUs
+16:23:33 - INFO - Procesados 600/909 APUs
+16:23:33 - INFO - Procesados 700/909 APUs
+16:23:33 - INFO - Procesados 800/909 APUs
+16:23:33 - INFO - Procesados 900/909 APUs
+16:23:33 - INFO - Procesamiento completado: 0 insumos extraídos
+16:23:33 - WARNING - No se encontraron insumos válidos
+16:23:33 - ERROR - ❌ DataFrame 'APUs' está vacío o es None
+16:23:33 - ERROR - ❌ Error en el pipeline: DataFrame 'APUs' está vacío o es None
+Traceback (most recent call last):
+  File "/Users/gerardomayor/Documents/estru_techos/apu_filter/app/procesador_csv.py", line 1484, in _do_processing
+    final_context = pipeline.run(initial_context)
+  File "/Users/gerardomayor/Documents/estru_techos/apu_filter/app/procesador_csv.py", line 112, in run
+    context = step.execute(context)
+  File "/Users/gerardomayor/Documents/estru_techos/apu_filter/app/procesador_csv.py", line 313, in execute
+    raise ValueError(error)
+ValueError: DataFrame 'APUs' está vacío o es None
+16:23:33 - INFO - ================================================================================
+16:23:33 - INFO - 🔍 Ejecutando diagnóstico del archivo de APUs...
+16:23:33 - INFO - ================================================================================
+16:23:33 - INFO - 🔍 Iniciando diagnóstico: /Users/gerardomayor/Documents/estru_techos/apu_filter/uploads/RCpkYYrLkDo7PtvJ9_7tmka5h0QrGtHh7A8jD2ekmSY/apus_clean.csv
+16:23:33 - INFO - 📦 Tamaño: 139,423 bytes
+16:23:34 - INFO - ✅ Encoding detectado: utf-8 (confianza: 99.0%)
+16:23:34 - INFO - ✅ Dialecto CSV detectado:
+   - Delimitador: ';'
+   - Quote char: '"'
+   - Double quote: False
+16:23:34 - INFO - 📊 Análisis de columnas:
+   - Columnas más común: 6
+   - Distribución: {6: 500}
+   - Varianza: 0.00
+16:23:34 - INFO - 
+================================================================================
+16:23:34 - INFO - 📊 REPORTE DE DIAGNÓSTICO AVANZADO - ARCHIVO APU
+16:23:34 - INFO - ================================================================================
+16:23:34 - INFO - 
+🔍 DETECCIÓN AUTOMÁTICA DE FORMATO:
+16:23:34 - INFO -   Encoding: utf-8 (confianza: 99.0%)
+16:23:34 - INFO -   Delimitador CSV: ';'
+16:23:34 - INFO -   Quote char: '"'
+16:23:34 - INFO - 
+📈 ESTADÍSTICAS GENERALES:
+16:23:34 - INFO -   Tamaño: 139,423 bytes
+16:23:34 - INFO -   Total líneas: 3,027
+16:23:34 - INFO -   Líneas vacías: 0
+16:23:34 - INFO -   Líneas con contenido: 3,027
+16:23:34 - INFO - 
+📊 ANÁLISIS DE COLUMNAS:
+16:23:34 - INFO -   Número más común: 6
+16:23:34 - INFO -   Distribución: {6: 500}
+16:23:34 - INFO -   Varianza: 0.00
+16:23:34 - INFO -   ✅ Estructura regular
+16:23:34 - INFO - 
+🏗️ ESTRUCTURA:
+16:23:34 - INFO -   Bloques (líneas vacías): 1
+16:23:34 - INFO -   Bloques (guiones): 1
+16:23:34 - INFO -   Bloques (iguales): 1
+16:23:34 - INFO - 
+🔑 PALABRAS CLAVE:
+16:23:34 - INFO -   'ITEM': 77 líneas
+16:23:34 - INFO -   'UNIDAD': 155 líneas
+16:23:34 - INFO -   'DESCRIPCION': 156 líneas
+16:23:34 - INFO -   Filas numéricas: 0
+16:23:34 - INFO - 
+📦 CATEGORÍAS:
+16:23:34 - INFO -   EQUIPO: 407 veces
+16:23:34 - INFO -   MANO DE OBRA: 338 veces
+16:23:34 - INFO -   MATERIALES: 312 veces
+16:23:34 - INFO -   OTROS: 273 veces
+16:23:34 - INFO - 
+🎯 CÓDIGOS ITEM (6 encontrados):
+16:23:34 - INFO -   Línea 2: 1,1
+16:23:34 - INFO -   Línea 20: 1,2
+16:23:34 - INFO -   Línea 38: 1,3
+16:23:34 - INFO -   Línea 56: 1,4
+16:23:34 - INFO -   Línea 74: 1,5
+16:23:34 - INFO - 
+📝 MUESTRA DE LÍNEAS:
+16:23:34 - INFO -   L   1 ( 73 chars): REMATE CON PINTURA DE FABRICA CAL 22 DE 120 CMTS CURVO;;;;;  UNIDAD:   ML
+16:23:34 - INFO -   L   2 ( 18 chars): ;;;;;  ITEM:   1,1
+16:23:34 - INFO -   L   3 ( 58 chars): DESCRIPCION;UND;CANT.;DESP.%;  PRECIO UNIT  ;  VALOR TOTAL
+16:23:34 - INFO -   L   4 ( 15 chars): MATERIALES;;;;;
+16:23:34 - INFO -   L   5 ( 90 chars): LAMINA DE 1.22 X 3.05 MTS CAL. 22 PINTADA INCLUIDO IVA;UND;0,33;14,04;174.928,81;65.403,35
+16:23:34 - INFO -   L   6 ( 37 chars): ;;;;  SUBTOTAL MATERIALES  ;65.403,35
+16:23:34 - INFO -   L   7 ( 17 chars): MANO DE OBRA;;;;;
+16:23:34 - INFO -   L   8 ( 48 chars): M.O. CORTE Y DOBLEZ;UND;6,316;;1.208,12;7.630,23
+16:23:34 - INFO -   L   9 ( 39 chars): ;;;;  SUBTOTAL- MANO DE OBRA  ;7.630,23
+16:23:34 - INFO -   L  10 ( 11 chars): EQUIPO;;;;;
+16:23:34 - INFO - 
+💡 RECOMENDACIONES:
+16:23:34 - INFO -   ✅ Usar pandas.read_csv() con:
+16:23:34 - INFO -      sep=';', encoding='utf-8'
+16:23:34 - INFO -   ✅ Detectados 6 códigos ITEM. Probablemente 'ITEM' marca inicio de cada APU.
+16:23:34 - INFO - ================================================================================
+
+16:23:34 - INFO - ================================================================================
+16:23:34 - ERROR - Error de procesamiento: Error en el pipeline: DataFrame 'APUs' está vacío o es None
+16:23:34 - ERROR - Error de procesamiento: Error en el pipeline: DataFrame 'APUs' está vacío o es None
+16:23:34 - INFO - 127.0.0.1 - - [17/Nov/2025 16:23:34] "POST /upload HTTP/1.1" 500 -
