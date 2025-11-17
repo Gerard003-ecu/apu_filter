@@ -13,14 +13,14 @@ para lograr un procesamiento robusto y flexible.
 
 import logging
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum
 from functools import lru_cache
 from typing import Any, Dict, List, Optional, Set, Tuple
 
 import pandas as pd
 from lark import Lark, Token, Transformer, v_args
-from lark.exceptions import LarkError
+from lark.exceptions import LarkError, UnexpectedCharacters, UnexpectedInput
 
 from .schemas import Equipo, InsumoProcesado, ManoDeObra, Otro, Suministro, Transporte
 from .utils import parse_number
@@ -31,6 +31,22 @@ logger = logging.getLogger(__name__)
 # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 # ENUMS Y DATACLASSES
 # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
+
+@dataclass
+class ParsingStats:
+    """Estadísticas detalladas del proceso de parsing."""
+
+    total_lines: int = 0
+    successful_parses: int = 0
+    lark_parse_errors: int = 0
+    lark_unexpected_input: int = 0
+    lark_unexpected_chars: int = 0
+    transformer_errors: int = 0
+    empty_results: int = 0
+    fallback_attempts: int = 0
+    fallback_successes: int = 0
+    failed_lines: List[Dict[str, Any]] = field(default_factory=list)
 
 
 class TipoInsumo(Enum):
@@ -961,6 +977,8 @@ class APUProcessor:
         self.config = config or {}
         self.profile = profile or {}
         self.keyword_cache = None  # Cargar si es necesario
+        self.parsing_stats = ParsingStats()
+        self.debug_mode = self.config.get("debug_mode", False)
 
         # Crear parser una vez
         try:
@@ -1035,7 +1053,14 @@ class APUProcessor:
         self, lines: List[str], apu_context: Dict[str, Any]
     ) -> List[InsumoProcesado]:
         """
-        Procesa las líneas de detalle de un único APU.
+        Procesa las líneas de detalle de un único APU con manejo ROBUSTO de errores.
+
+        Mejoras implementadas:
+        - Manejo granular de excepciones de Lark
+        - Logging detallado con contexto de errores
+        - Estadísticas completas de parsing
+        - Sistema de fallback documentado
+        - Modo debug para investigación profunda
 
         Args:
             lines: Lista de cadenas de texto, cada una es una línea del APU.
@@ -1045,36 +1070,220 @@ class APUProcessor:
             Una lista de objetos `InsumoProcesado`.
         """
         results = []
+        self.parsing_stats = ParsingStats()  # Reset stats por APU
 
-        for line_num, line in enumerate(lines):
+        logger.info(
+            f"Procesando {len(lines)} líneas para APU: {apu_context.get('codigo_apu', 'UNKNOWN')}"
+        )
+
+        for line_num, line in enumerate(lines, start=1):
             if not line or not line.strip():
                 continue
 
+            self.parsing_stats.total_lines += 1
+            line_clean = line.strip()
+            insumo = None
+
             try:
                 if self.parser:
-                    # Usar parser con transformer orquestador
-                    tree = self.parser.parse(line.strip())
-                    # CAMBIO: Pasar self.profile al transformer
-                    transformer = APUTransformer(
-                        apu_context, self.config, self.profile, self.keyword_cache
-                    )
-                    insumo = transformer.transform(tree)
+                    # Intentar parsing con Lark
+                    try:
+                        tree = self.parser.parse(line_clean)
 
-                    if isinstance(insumo, list):
-                        insumo = insumo[0] if insumo else None
+                        # Intentar transformación
+                        try:
+                            transformer = APUTransformer(
+                                apu_context, self.config, self.profile, self.keyword_cache
+                            )
+                            insumo = transformer.transform(tree)
+
+                            # Manejar resultado de tipo lista
+                            if isinstance(insumo, list):
+                                if insumo:
+                                    insumo = insumo[0]
+                                    self.parsing_stats.successful_parses += 1
+                                else:
+                                    self.parsing_stats.empty_results += 1
+                                    logger.warning(
+                                        f"  ⚠️  Línea {line_num}: Transformer devolvió lista vacía"
+                                    )
+                                    insumo = None
+                            elif insumo:
+                                self.parsing_stats.successful_parses += 1
+
+                        except Exception as transform_error:
+                            self.parsing_stats.transformer_errors += 1
+                            logger.error(
+                                f"  ✗ Línea {line_num}: Error en transformer\n"
+                                f"    Error: {type(transform_error).__name__}: {transform_error}\n"
+                                f"    Línea: {line_clean[:100]}"
+                            )
+
+                            if self.debug_mode:
+                                logger.debug(f"    Árbol Lark: {tree.pretty()}")
+
+                            # Intentar fallback
+                            insumo = self._attempt_fallback(line_clean, apu_context, line_num)
+
+                    except UnexpectedInput as ui_error:
+                        self.parsing_stats.lark_unexpected_input += 1
+                        self._log_lark_error("UnexpectedInput", ui_error, line_clean, line_num)
+                        insumo = self._attempt_fallback(line_clean, apu_context, line_num)
+
+                    except UnexpectedCharacters as uc_error:
+                        self.parsing_stats.lark_unexpected_chars += 1
+                        self._log_lark_error(
+                            "UnexpectedCharacters", uc_error, line_clean, line_num
+                        )
+                        insumo = self._attempt_fallback(line_clean, apu_context, line_num)
+
+                    except LarkError as lark_error:
+                        self.parsing_stats.lark_parse_errors += 1
+                        self._log_lark_error("LarkError", lark_error, line_clean, line_num)
+                        insumo = self._attempt_fallback(line_clean, apu_context, line_num)
+
                 else:
-                    # Fallback directo con especialistas si Lark falla
-                    insumo = self._process_with_specialists(line, apu_context)
+                    # No hay parser Lark, usar fallback directo
+                    logger.warning("Parser Lark no disponible, usando fallback")
+                    insumo = self._process_with_specialists(line_clean, apu_context)
 
+                # Agregar resultado si es válido
                 if insumo:
                     insumo.line_number = line_num
                     results.append(insumo)
+                else:
+                    # Registrar línea fallida para análisis
+                    self.parsing_stats.failed_lines.append(
+                        {
+                            "line_number": line_num,
+                            "content": line_clean,
+                            "apu_code": apu_context.get("codigo_apu", "UNKNOWN"),
+                        }
+                    )
 
-            except Exception as e:
-                logger.debug(f"Error procesando línea {line_num}: {e}")
+            except Exception as unexpected_error:
+                # Error completamente inesperado
+                logger.error(
+                    f"  🚨 Línea {line_num}: Error inesperado NO capturado\n"
+                    f"    Tipo: {type(unexpected_error).__name__}\n"
+                    f"    Error: {unexpected_error}\n"
+                    f"    Línea: {line_clean}"
+                )
+
+                self.parsing_stats.failed_lines.append(
+                    {
+                        "line_number": line_num,
+                        "content": line_clean,
+                        "error": str(unexpected_error),
+                        "apu_code": apu_context.get("codigo_apu", "UNKNOWN"),
+                    }
+                )
+
+                if self.debug_mode:
+                    import traceback
+
+                    logger.debug(f"Traceback completo:\n{traceback.format_exc()}")
+
                 continue
 
+        # Log de estadísticas del APU procesado
+        self._log_parsing_stats(apu_context.get("codigo_apu", "UNKNOWN"))
+
         return results
+
+    def _log_lark_error(self, error_type: str, error: LarkError, line: str, line_num: int):
+        """
+        Logging detallado y estructurado de errores de Lark.
+
+        Args:
+            error_type: Tipo de error Lark.
+            error: La excepción de Lark.
+            line: La línea que causó el error.
+            line_num: Número de línea.
+        """
+        logger.warning(
+            f"  ✗ Línea {line_num}: {error_type}\n"
+            f"    Error: {error}\n"
+            f"    Línea: {line[:100]}{'...' if len(line) > 100 else ''}"
+        )
+
+        if self.config.get("debug_mode") and hasattr(error, "line") and hasattr(error, "column"):
+            logger.debug(f"    Posición del error: línea {error.line}, columna {error.column}")
+            if hasattr(error, "expected"):
+                logger.debug(f"    Esperaba: {error.expected}")
+
+    def _attempt_fallback(
+        self, line: str, apu_context: Dict[str, Any], line_num: int
+    ) -> Optional[InsumoProcesado]:
+        """
+        Intenta procesar la línea con el sistema de fallback.
+
+        Args:
+            line: La línea a procesar.
+            apu_context: Contexto del APU.
+            line_num: Número de línea.
+
+        Returns:
+            InsumoProcesado si el fallback tiene éxito, None en caso contrario.
+        """
+        self.parsing_stats.fallback_attempts += 1
+
+        try:
+            insumo = self._process_with_specialists(line, apu_context)
+
+            if insumo:
+                self.parsing_stats.fallback_successes += 1
+                logger.info(f"  ✓ Línea {line_num}: Fallback exitoso")
+                return insumo
+            else:
+                logger.debug(f"  ✗ Línea {line_num}: Fallback sin resultado")
+                return None
+
+        except Exception as fallback_error:
+            logger.error(f"  ✗ Línea {line_num}: Fallback falló\n" f"    Error: {fallback_error}")
+            return None
+
+    def _log_parsing_stats(self, apu_code: str):
+        """
+        Registra estadísticas detalladas del parsing del APU.
+
+        Args:
+            apu_code: Código del APU procesado.
+        """
+        stats = self.parsing_stats
+
+        if stats.total_lines == 0:
+            return
+
+        success_rate = (
+            (stats.successful_parses / stats.total_lines * 100) if stats.total_lines > 0 else 0
+        )
+
+        logger.info("-" * 70)
+        logger.info(f"📈 ESTADÍSTICAS DE PARSING - APU: {apu_code}")
+        logger.info("-" * 70)
+        logger.info(f"Total líneas procesadas:           {stats.total_lines}")
+        logger.info(f"✓ Parsing exitoso:                 {stats.successful_parses} ({success_rate:.1f}%)")
+        logger.info(f"✗ Errores Lark - Parse:            {stats.lark_parse_errors}")
+        logger.info(f"✗ Errores Lark - Input inesperado: {stats.lark_unexpected_input}")
+        logger.info(f"✗ Errores Lark - Char inesperado:  {stats.lark_unexpected_chars}")
+        logger.info(f"✗ Errores Transformer:             {stats.transformer_errors}")
+        logger.info(f"⚠️  Resultados vacíos:              {stats.empty_results}")
+        logger.info(f"🔄 Intentos de fallback:           {stats.fallback_attempts}")
+        logger.info(f"✓ Fallback exitoso:                {stats.fallback_successes}")
+        logger.info("-" * 70)
+
+        # Alertas críticas
+        if stats.successful_parses == 0 and stats.total_lines > 0:
+            logger.error(
+                f"🚨 CRÍTICO: APU {apu_code} - 0% de éxito en parsing. "
+                "Posible incompatibilidad entre gramática Lark y formato de datos."
+            )
+
+        if self.config.get("debug_mode") and stats.failed_lines:
+            logger.debug("\n📋 Primeras 5 líneas fallidas:")
+            for failed in stats.failed_lines[:5]:
+                logger.debug(f"  Línea {failed['line_number']}: {failed['content'][:80]}...")
 
     def _process_with_specialists(
         self, line: str, apu_context: Dict[str, Any]
