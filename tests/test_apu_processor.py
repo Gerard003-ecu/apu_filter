@@ -10,11 +10,10 @@ class TestFixtures:
     @staticmethod
     def get_default_config():
         return {
-            "keyword_maps": {
-                "equipo": ["EQUIPO", "HERRAMIENTA", "MAQUINA"],
-                "mano_de_obra": ["OFICIAL", "AYUDANTE", "PEON"],
-                "transporte": ["TRANSPORTE", "VOLQUETA"],
-                "suministro": ["CEMENTO", "ARENA"],
+            "apu_processor_rules": {
+                "special_cases": {"TRANSPORTE": "TRANSPORTE"},
+                "mo_keywords": ["OFICIAL", "AYUDANTE", "PEON", "CUADRILLA"],
+                "equipo_keywords": ["EQUIPO", "HERRAMIENTA", "MAQUINA"],
             },
             "validation_thresholds": {
                 "MANO_DE_OBRA": {
@@ -77,6 +76,52 @@ class TestAPUProcessor(unittest.TestCase):
         self.assertFalse(costs_df.empty)
         self.assertIn("COSTO_UNITARIO_TOTAL", costs_df.columns)
         self.assertEqual(len(costs_df), 2)
+
+    def test_process_with_comma_decimal_separator(self):
+        """
+        Prueba que el procesador maneja correctamente los números con comas
+        decimales cuando se especifica en la configuración.
+        """
+        # 1. Configuración personalizada con separador de coma
+        comma_config = TestFixtures.get_default_config()
+        # Simula la configuración resuelta que el procesador espera recibir
+        comma_config["number_format"] = {"decimal_separator": "comma"}
+
+        # 2. Datos de muestra con comas como decimales y puntos como miles
+        comma_records = [
+            {
+                "codigo_apu": "3.1",
+                "descripcion_apu": "Piso Industrial",
+                "unidad_apu": "M2",
+                "lines": [
+                    # Formato: DESCRIPCION;UND;CANT;PRECIO;TOTAL
+                    "CONCRETO ESPECIAL;M3;0,15;850.123,50;127.518,53",
+                    # Formato MO: DESCRIPCION;UND;RENDIMIENTO;;JORNAL;TOTAL
+                    "CUADRILLA PISOS;JOR;0,08;;250.000,00;20.000,00",
+                ],
+            }
+        ]
+
+        # 3. Procesar los datos
+        processor = APUProcessor(comma_records, comma_config)
+        df = processor.process_all()
+
+        # 4. Verificaciones
+        self.assertIsInstance(df, pd.DataFrame)
+        self.assertFalse(df.empty)
+        self.assertEqual(len(df), 2)
+
+        # Verificar el parseo correcto de 'CONCRETO'
+        concreto_row = df[df["descripcion_insumo"] == "CONCRETO ESPECIAL"].iloc[0]
+        self.assertAlmostEqual(concreto_row["cantidad"], 0.15)
+        self.assertAlmostEqual(concreto_row["precio_unitario"], 850123.50)
+        self.assertAlmostEqual(concreto_row["valor_total"], 127518.53)
+
+        # Verificar el parseo correcto de 'CUADRILLA' (Mano de Obra)
+        cuadrilla_row = df[df["descripcion_insumo"] == "CUADRILLA PISOS"].iloc[0]
+        self.assertAlmostEqual(cuadrilla_row["rendimiento"], 0.08)
+        self.assertAlmostEqual(cuadrilla_row["precio_unitario"], 250000.00)  # Jornal
+        self.assertAlmostEqual(cuadrilla_row["cantidad"], 1.0 / 0.08)  # Cantidad calculada
 
 
 if __name__ == "__main__":
