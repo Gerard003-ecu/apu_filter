@@ -388,21 +388,25 @@ class NumericFieldExtractor:
     """
 
     def __init__(
-        self, config: Optional[Dict[str, Any]] = None, thresholds: Optional[ValidationThresholds] = None
+        self,
+        config: Dict[str, Any],
+        profile: Optional[Dict[str, Any]] = None,
+        thresholds: Optional[ValidationThresholds] = None,
     ):
         """
         Inicializa el extractor.
 
         Args:
-            config: El diccionario de configuración.
-            thresholds: Un objeto `ValidationThresholds` con los umbrales
-                        para la identificación de valores.
+            config: El diccionario de configuración global.
+            profile: El perfil de configuración específico del archivo.
+            thresholds: Un objeto `ValidationThresholds` con los umbrales.
         """
         self.config = config or {}
+        self.profile = profile or {}
         self.pattern_matcher = PatternMatcher()
         self.thresholds = thresholds or ValidationThresholds()
-        # AÑADIR: Leer el separador decimal de la configuración
-        number_format = self.config.get("number_format", {})
+        # CAMBIO: Leer el separador decimal desde el profile
+        number_format = self.profile.get("number_format", {})
         self.decimal_separator = number_format.get("decimal_separator")
 
     def extract_all_numeric_values(
@@ -552,7 +556,11 @@ class APUTransformer(Transformer):
     """
 
     def __init__(
-        self, apu_context: Dict[str, Any], config: Dict[str, Any], keyword_cache: Any
+        self,
+        apu_context: Dict[str, Any],
+        config: Dict[str, Any],
+        profile: Dict[str, Any],
+        keyword_cache: Any,
     ):
         """
         Inicializa el Transformer.
@@ -561,18 +569,22 @@ class APUTransformer(Transformer):
             apu_context: Diccionario con el contexto del APU actual (código,
                          descripción, etc.).
             config: Diccionario de configuración de la aplicación.
+            profile: Perfil de configuración específico para el archivo.
             keyword_cache: Cache de palabras clave (actualmente no usado).
         """
         self.apu_context = apu_context or {}
         self.config = config or {}
+        self.profile = profile or {}
         self.keyword_cache = keyword_cache
 
         # Inicializar especialistas
         self.pattern_matcher = PatternMatcher()
         self.units_validator = UnitsValidator()
         self.thresholds = self._load_validation_thresholds()
-        # CAMBIO: Pasar la config al NumericFieldExtractor
-        self.numeric_extractor = NumericFieldExtractor(self.config, self.thresholds)
+        # CAMBIO: Pasar el profile al NumericFieldExtractor
+        self.numeric_extractor = NumericFieldExtractor(
+            self.config, self.profile, self.thresholds
+        )
         super().__init__()
 
     def _load_validation_thresholds(self) -> ValidationThresholds:
@@ -930,7 +942,12 @@ class APUProcessor:
     delegando la lógica compleja a la arquitectura de especialistas.
     """
 
-    def __init__(self, raw_records: List[Dict[str, Any]], config: Dict[str, Any] = None):
+    def __init__(
+        self,
+        raw_records: List[Dict[str, Any]],
+        config: Dict[str, Any],
+        profile: Dict[str, Any],
+    ):
         """
         Inicializa el procesador de APU.
 
@@ -938,9 +955,11 @@ class APUProcessor:
             raw_records: Lista de registros crudos, cada uno representando un
                          APU con sus líneas de detalle.
             config: Diccionario de configuración de la aplicación.
+            profile: Perfil de configuración específico para el archivo APU.
         """
         self.raw_records = raw_records or []
         self.config = config or {}
+        self.profile = profile or {}
         self.keyword_cache = None  # Cargar si es necesario
 
         # Crear parser una vez
@@ -955,7 +974,9 @@ class APUProcessor:
         self.pattern_matcher = PatternMatcher()
         self.units_validator = UnitsValidator()
         self.thresholds = ValidationThresholds()
-        self.numeric_extractor = NumericFieldExtractor(self.config, self.thresholds)
+        self.numeric_extractor = NumericFieldExtractor(
+            self.config, self.profile, self.thresholds
+        )
 
     def process_all(self) -> pd.DataFrame:
         """
@@ -1033,8 +1054,9 @@ class APUProcessor:
                 if self.parser:
                     # Usar parser con transformer orquestador
                     tree = self.parser.parse(line.strip())
+                    # CAMBIO: Pasar self.profile al transformer
                     transformer = APUTransformer(
-                        apu_context, self.config, self.keyword_cache
+                        apu_context, self.config, self.profile, self.keyword_cache
                     )
                     insumo = transformer.transform(tree)
 

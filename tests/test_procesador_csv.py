@@ -932,6 +932,22 @@ class TestProcessAllFilesIntegration(unittest.TestCase):
                 self.presupuesto_path, self.apus_path, self.insumos_path, test_config
             )
 
+            # --- NUEVA VERIFICACIÓN ---
+            # Asegurarse de que APUProcessor fue instanciado con el perfil correcto.
+            mock_processor_class.assert_called_once()
+            call_args, call_kwargs = mock_processor_class.call_args
+            passed_profile = call_args[2]  # El perfil es el tercer argumento posicional
+            expected_profile = test_config.get("file_profiles", {}).get("apus_default")
+            self.assertIsNotNone(
+                expected_profile,
+                "El perfil 'apus_default' debe existir en la configuración de prueba",
+            )
+            self.assertEqual(
+                passed_profile,
+                expected_profile,
+                "APUProcessor no fue llamado con el perfil correcto",
+            )
+
             self.assertIsInstance(resultado, dict)
             self.assertNotIn(
                 "error",

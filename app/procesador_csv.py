@@ -293,7 +293,8 @@ class LoadDataStep(ProcessingStep):
         parser = ReportParserCrudo(apus_path, apus_profile)
         raw_records = parser.parse_to_raw()
 
-        processor = APUProcessor(raw_records, self.config)
+        # CAMBIO: Pasar el perfil al APUProcessor
+        processor = APUProcessor(raw_records, self.config, apus_profile)
         df_apus_raw = processor.process_all()
 
         data_validator = DataValidator()
