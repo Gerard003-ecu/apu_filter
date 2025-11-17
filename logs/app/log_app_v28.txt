@@ -1,0 +1,158 @@
+(apu_filter_env) gerardomayor@MacBook-Air-de-Gerardo apu_filter % python -m flask run --port=5002
+14:44:56 - INFO - Iniciando aplicación en modo: development
+14:44:56 - INFO - Iniciando aplicación en modo: development
+14:44:58 - INFO - Configuración cargada exitosamente desde config.json
+14:44:58 - INFO - Configuración cargada exitosamente desde config.json
+14:44:58 - INFO - APUPresenter inicializado correctamente
+14:44:58 - INFO - APUPresenter inicializado correctamente
+14:44:58 - INFO - Iniciando carga de artefactos de búsqueda semántica...
+14:44:58 - INFO - Iniciando carga de artefactos de búsqueda semántica...
+14:44:58 - WARNING - No se encontraron todos los archivos de embeddings. La búsqueda semántica estará desactivada. Ejecute 'scripts/generate_embeddings.py' para generarlos.
+14:44:58 - WARNING - No se encontraron todos los archivos de embeddings. La búsqueda semántica estará desactivada. Ejecute 'scripts/generate_embeddings.py' para generarlos.
+ * Serving Flask app 'app.app:create_app('development')'
+ * Debug mode: off
+14:44:58 - INFO - WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
+ * Running on http://127.0.0.1:5002
+14:44:58 - INFO - Press CTRL+C to quit
+14:45:23 - INFO - 127.0.0.1 - - [17/Nov/2025 14:45:23] "GET / HTTP/1.1" 200 -
+14:45:24 - INFO - 127.0.0.1 - - [17/Nov/2025 14:45:24] "GET /favicon.ico HTTP/1.1" 404 -
+14:46:28 - INFO - Procesando archivos para sesión J7L6Z523...
+14:46:28 - INFO - Procesando archivos para sesión J7L6Z523...
+14:46:28 - INFO - ================================================================================
+14:46:28 - INFO - 🚀 Iniciando procesamiento de archivos con patrón pipeline...
+14:46:28 - INFO - ================================================================================
+14:46:28 - INFO - 🔄 Ejecutando pipeline de procesamiento...
+14:46:28 - INFO - 📥 Cargando presupuesto con perfil: {'header': 0, 'sep': ';', 'encoding': 'UTF-8-SIG'}
+14:46:28 - INFO - Cargando datos desde /Users/gerardomayor/Documents/estru_techos/apu_filter/uploads/J7L6Z523sE44CFpTDzpTERGrp-_i1zJ4yGnUcuNCvbc/presupuesto_clean.csv (formato: .csv)
+14:46:28 - INFO - Cargando CSV desde /Users/gerardomayor/Documents/estru_techos/apu_filter/uploads/J7L6Z523sE44CFpTDzpTERGrp-_i1zJ4yGnUcuNCvbc/presupuesto_clean.csv con delimitador ';' y codificación 'UTF-8-SIG'
+14:46:28 - INFO - 📊 DataFrame inicial: 436 filas, 6 columnas
+14:46:29 - INFO - 🧹  Limpieza de filas fantasma: 436 → 435 filas (-1 eliminadas)
+14:46:29 - INFO - 🧹 Limpieza de filas fantasma: 436 → 435 filas
+14:46:29 - INFO - ✅ Columnas renombradas: ['CODIGO_APU', 'DESCRIPCION_APU', 'UND', 'CANTIDAD_PRESUPUESTO', ' VR. UNIT ', ' VR.TOTAL']
+14:46:29 - INFO - 🔧 Iniciando limpieza de 435 registros...
+14:46:29 - WARNING - Código APU sin números (inusual): 'nan' -> 'NAN'
+14:46:29 - WARNING - ⚠️  94 registros con cantidad = 0
+14:46:29 - INFO - ✅ Limpieza completada: 435 registros válidos (0 eliminados, 100.0% conservado)
+14:46:29 - WARNING - ⚠️  Se encontraron 339 filas duplicadas en 'presupuesto' por ['CODIGO_APU']. Se conservará: 'first'
+14:46:29 - INFO - ✅ Duplicados eliminados: 435 -> 105 filas
+14:46:29 - INFO - 🔄 Duplicados eliminados: 330 (105 únicos de 435 totales)
+14:46:29 - INFO - ✅ Presupuesto cargado: 105 APUs únicos
+14:46:29 - WARNING - ⚠️  Se encontraron 54 insumos con descripciones normalizadas duplicadas. Se conservará el de mayor precio.
+14:46:29 - INFO - ✅ Insumos cargados: 115 insumos únicos
+14:46:29 - INFO - Iniciando parseo línea por línea de: apus_clean.csv
+14:46:29 - INFO - Archivo leído exitosamente con codificación: utf-8
+14:46:29 - INFO - ======================================================================
+14:46:29 - INFO - 📊 RESUMEN DE VALIDACIÓN DE LÍNEAS
+14:46:29 - INFO - ======================================================================
+14:46:29 - INFO - Total líneas evaluadas:        983
+14:46:29 - INFO - ✓ Insumos válidos:             808 (82.2%)
+14:46:29 - INFO - ✗ Rechazados - Campos insuf.:  0
+14:46:29 - INFO - ✗ Rechazados - Sin numéricos:  173
+14:46:29 - INFO - ✗ Rechazados - Desc. vacía:    2
+14:46:29 - INFO - ✗ Rechazados - Subtotales:     0
+14:46:29 - INFO - ======================================================================
+14:46:29 - INFO - Parseo completo. Extraídos 808 registros crudos.
+14:46:29 - INFO - Parser Lark inicializado con arquitectura de especialistas
+14:46:29 - INFO - Iniciando procesamiento de 808 APUs con especialistas
+14:46:29 - INFO - Procesados 100/808 APUs
+14:46:29 - INFO - Procesados 200/808 APUs
+14:46:29 - INFO - Procesados 300/808 APUs
+14:46:29 - INFO - Procesados 400/808 APUs
+14:46:29 - INFO - Procesados 500/808 APUs
+14:46:29 - INFO - Procesados 600/808 APUs
+14:46:29 - INFO - Procesados 700/808 APUs
+14:46:29 - INFO - Procesados 800/808 APUs
+14:46:29 - INFO - Procesamiento completado: 0 insumos extraídos
+14:46:29 - WARNING - No se encontraron insumos válidos
+14:46:29 - ERROR - ❌ DataFrame 'APUs' está vacío o es None
+14:46:29 - ERROR - ❌ Error en el pipeline: DataFrame 'APUs' está vacío o es None
+Traceback (most recent call last):
+  File "/Users/gerardomayor/Documents/estru_techos/apu_filter/app/procesador_csv.py", line 1480, in _do_processing
+    final_context = pipeline.run(initial_context)
+  File "/Users/gerardomayor/Documents/estru_techos/apu_filter/app/procesador_csv.py", line 112, in run
+    context = step.execute(context)
+  File "/Users/gerardomayor/Documents/estru_techos/apu_filter/app/procesador_csv.py", line 309, in execute
+    raise ValueError(error)
+ValueError: DataFrame 'APUs' está vacío o es None
+14:46:29 - INFO - ================================================================================
+14:46:29 - INFO - 🔍 Ejecutando diagnóstico del archivo de APUs...
+14:46:29 - INFO - ================================================================================
+14:46:29 - INFO - 🔍 Iniciando diagnóstico: /Users/gerardomayor/Documents/estru_techos/apu_filter/uploads/J7L6Z523sE44CFpTDzpTERGrp-_i1zJ4yGnUcuNCvbc/apus_clean.csv
+14:46:29 - INFO - 📦 Tamaño: 139,423 bytes
+14:46:30 - INFO - ✅ Encoding detectado: utf-8 (confianza: 99.0%)
+14:46:30 - INFO - ✅ Dialecto CSV detectado:
+   - Delimitador: ';'
+   - Quote char: '"'
+   - Double quote: False
+14:46:30 - INFO - 📊 Análisis de columnas:
+   - Columnas más común: 6
+   - Distribución: {6: 500}
+   - Varianza: 0.00
+14:46:30 - INFO - 
+================================================================================
+14:46:30 - INFO - 📊 REPORTE DE DIAGNÓSTICO AVANZADO - ARCHIVO APU
+14:46:30 - INFO - ================================================================================
+14:46:30 - INFO - 
+🔍 DETECCIÓN AUTOMÁTICA DE FORMATO:
+14:46:30 - INFO -   Encoding: utf-8 (confianza: 99.0%)
+14:46:30 - INFO -   Delimitador CSV: ';'
+14:46:30 - INFO -   Quote char: '"'
+14:46:30 - INFO - 
+📈 ESTADÍSTICAS GENERALES:
+14:46:30 - INFO -   Tamaño: 139,423 bytes
+14:46:30 - INFO -   Total líneas: 3,027
+14:46:30 - INFO -   Líneas vacías: 0
+14:46:30 - INFO -   Líneas con contenido: 3,027
+14:46:30 - INFO - 
+📊 ANÁLISIS DE COLUMNAS:
+14:46:30 - INFO -   Número más común: 6
+14:46:30 - INFO -   Distribución: {6: 500}
+14:46:30 - INFO -   Varianza: 0.00
+14:46:30 - INFO -   ✅ Estructura regular
+14:46:30 - INFO - 
+🏗️ ESTRUCTURA:
+14:46:30 - INFO -   Bloques (líneas vacías): 1
+14:46:30 - INFO -   Bloques (guiones): 1
+14:46:30 - INFO -   Bloques (iguales): 1
+14:46:30 - INFO - 
+🔑 PALABRAS CLAVE:
+14:46:30 - INFO -   'ITEM': 77 líneas
+14:46:30 - INFO -   'UNIDAD': 155 líneas
+14:46:30 - INFO -   'DESCRIPCION': 156 líneas
+14:46:30 - INFO -   Filas numéricas: 0
+14:46:30 - INFO - 
+📦 CATEGORÍAS:
+14:46:30 - INFO -   EQUIPO: 407 veces
+14:46:30 - INFO -   MANO DE OBRA: 338 veces
+14:46:30 - INFO -   MATERIALES: 312 veces
+14:46:30 - INFO -   OTROS: 273 veces
+14:46:30 - INFO - 
+🎯 CÓDIGOS ITEM (6 encontrados):
+14:46:30 - INFO -   Línea 2: 1,1
+14:46:30 - INFO -   Línea 20: 1,2
+14:46:30 - INFO -   Línea 38: 1,3
+14:46:30 - INFO -   Línea 56: 1,4
+14:46:30 - INFO -   Línea 74: 1,5
+14:46:30 - INFO - 
+📝 MUESTRA DE LÍNEAS:
+14:46:30 - INFO -   L   1 ( 73 chars): REMATE CON PINTURA DE FABRICA CAL 22 DE 120 CMTS CURVO;;;;;  UNIDAD:   ML
+14:46:30 - INFO -   L   2 ( 18 chars): ;;;;;  ITEM:   1,1
+14:46:30 - INFO -   L   3 ( 58 chars): DESCRIPCION;UND;CANT.;DESP.%;  PRECIO UNIT  ;  VALOR TOTAL
+14:46:30 - INFO -   L   4 ( 15 chars): MATERIALES;;;;;
+14:46:30 - INFO -   L   5 ( 90 chars): LAMINA DE 1.22 X 3.05 MTS CAL. 22 PINTADA INCLUIDO IVA;UND;0,33;14,04;174.928,81;65.403,35
+14:46:30 - INFO -   L   6 ( 37 chars): ;;;;  SUBTOTAL MATERIALES  ;65.403,35
+14:46:30 - INFO -   L   7 ( 17 chars): MANO DE OBRA;;;;;
+14:46:30 - INFO -   L   8 ( 48 chars): M.O. CORTE Y DOBLEZ;UND;6,316;;1.208,12;7.630,23
+14:46:30 - INFO -   L   9 ( 39 chars): ;;;;  SUBTOTAL- MANO DE OBRA  ;7.630,23
+14:46:30 - INFO -   L  10 ( 11 chars): EQUIPO;;;;;
+14:46:30 - INFO - 
+💡 RECOMENDACIONES:
+14:46:30 - INFO -   ✅ Usar pandas.read_csv() con:
+14:46:30 - INFO -      sep=';', encoding='utf-8'
+14:46:30 - INFO -   ✅ Detectados 6 códigos ITEM. Probablemente 'ITEM' marca inicio de cada APU.
+14:46:30 - INFO - ================================================================================
+
+14:46:30 - INFO - ================================================================================
+14:46:30 - ERROR - Error de procesamiento: Error en el pipeline: DataFrame 'APUs' está vacío o es None
+14:46:30 - ERROR - Error de procesamiento: Error en el pipeline: DataFrame 'APUs' está vacío o es None
+14:46:30 - INFO - 127.0.0.1 - - [17/Nov/2025 14:46:30] "POST /upload HTTP/1.1" 500 -
