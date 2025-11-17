@@ -963,6 +963,7 @@ class APUProcessor:
         raw_records: List[Dict[str, Any]],
         config: Dict[str, Any],
         profile: Dict[str, Any],
+        parse_cache: Optional[Dict[str, Any]] = None,
     ):
         """
         Inicializa el procesador de APU.
@@ -976,11 +977,14 @@ class APUProcessor:
         self.raw_records = raw_records or []
         self.config = config or {}
         self.profile = profile or {}
-        self.keyword_cache = None  # Cargar si es necesario
-        self.parsing_stats = ParsingStats()
-        self.debug_mode = self.config.get("debug_mode", False)
+        self.keyword_cache = None
 
-        # Crear parser una vez
+        # --- INICIO DE LA MODIFICACIÓN ---
+        self.parse_cache = parse_cache or {}
+        if self.parse_cache:
+            logger.info(f"✓ APUProcessor inicializado con cache de {len(self.parse_cache)} líneas pre-parseadas")
+        # --- FIN DE LA MODIFICACIÓN ---
+
         try:
             self.parser = Lark(APU_GRAMMAR, parser="lalr", transformer=None, debug=False)
             logger.info("Parser Lark inicializado con arquitectura de especialistas")
@@ -1053,27 +1057,23 @@ class APUProcessor:
         self, lines: List[str], apu_context: Dict[str, Any]
     ) -> List[InsumoProcesado]:
         """
-        Procesa las líneas de detalle de un único APU con manejo ROBUSTO de errores.
+        Procesa líneas de APU con reutilización de cache de parsing.
 
-        Mejoras implementadas:
-        - Manejo granular de excepciones de Lark
-        - Logging detallado con contexto de errores
-        - Estadísticas completas de parsing
-        - Sistema de fallback documentado
-        - Modo debug para investigación profunda
+        Si una línea ya fue parseada por ReportParserCrudo, reutilizamos
+        el árbol de parsing en lugar de parsear de nuevo.
 
         Args:
-            lines: Lista de cadenas de texto, cada una es una línea del APU.
-            apu_context: El contexto del APU al que pertenecen las líneas.
+            lines: Lista de líneas a procesar.
+            apu_context: Contexto del APU.
 
         Returns:
-            Una lista de objetos `InsumoProcesado`.
+            Lista de insumos procesados.
         """
         results = []
-        self.parsing_stats = ParsingStats()  # Reset stats por APU
+        self.parsing_stats = ParsingStats()
 
         logger.info(
-            f"Procesando {len(lines)} líneas para APU: {apu_context.get('codigo_apu', 'UNKNOWN')}"
+            f"Procesando {len(lines)} líneas para APU: {apu_context.get('apu_code', 'UNKNOWN')}"
         )
 
         for line_num, line in enumerate(lines, start=1):
@@ -1086,108 +1086,69 @@ class APUProcessor:
 
             try:
                 if self.parser:
-                    # Intentar parsing con Lark
-                    try:
-                        tree = self.parser.parse(line_clean)
+                    # 🔥 OPTIMIZACIÓN: Usar cache si está disponible
+                    tree = None
+                    used_cache = False
 
-                        # Intentar transformación
+                    if line_clean in self.parse_cache:
+                        tree = self.parse_cache[line_clean]
+                        used_cache = True
+                        logger.debug(f"  ⚡ Línea {line_num}: Usando árbol Lark del cache")
+
+                    if tree is None:
+                        # Parsear normalmente
                         try:
-                            transformer = APUTransformer(
-                                apu_context, self.config, self.profile, self.keyword_cache
+                            tree = self.parser.parse(line_clean)
+                        except LarkError as lark_error:
+                            # Si falla aquí, significa que ReportParserCrudo dejó pasar algo
+                            logger.warning(
+                                f"  ⚠️  Línea {line_num}: Falló Lark pero pasó validación previa\n"
+                                f"      Error: {lark_error}\n"
+                                f"      Esto NO debería ocurrir con validación unificada"
                             )
-                            insumo = transformer.transform(tree)
+                            self.parsing_stats.lark_parse_errors += 1
+                            continue
 
-                            # Manejar resultado de tipo lista
-                            if isinstance(insumo, list):
-                                if insumo:
-                                    insumo = insumo[0]
-                                    self.parsing_stats.successful_parses += 1
-                                else:
-                                    self.parsing_stats.empty_results += 1
-                                    logger.warning(
-                                        f"  ⚠️  Línea {line_num}: Transformer devolvió lista vacía"
-                                    )
-                                    insumo = None
-                            elif insumo:
-                                self.parsing_stats.successful_parses += 1
-
-                        except Exception as transform_error:
-                            self.parsing_stats.transformer_errors += 1
-                            logger.error(
-                                f"  ✗ Línea {line_num}: Error en transformer\n"
-                                f"    Error: {type(transform_error).__name__}: {transform_error}\n"
-                                f"    Línea: {line_clean[:100]}"
-                            )
-
-                            if self.debug_mode:
-                                logger.debug(f"    Árbol Lark: {tree.pretty()}")
-
-                            # Intentar fallback
-                            insumo = self._attempt_fallback(line_clean, apu_context, line_num)
-
-                    except UnexpectedInput as ui_error:
-                        self.parsing_stats.lark_unexpected_input += 1
-                        self._log_lark_error("UnexpectedInput", ui_error, line_clean, line_num)
-                        insumo = self._attempt_fallback(line_clean, apu_context, line_num)
-
-                    except UnexpectedCharacters as uc_error:
-                        self.parsing_stats.lark_unexpected_chars += 1
-                        self._log_lark_error(
-                            "UnexpectedCharacters", uc_error, line_clean, line_num
+                    # Transformar árbol a insumo
+                    try:
+                        transformer = APUTransformer(
+                            apu_context, self.config, self.profile, self.keyword_cache
                         )
-                        insumo = self._attempt_fallback(line_clean, apu_context, line_num)
+                        insumo = transformer.transform(tree)
 
-                    except LarkError as lark_error:
-                        self.parsing_stats.lark_parse_errors += 1
-                        self._log_lark_error("LarkError", lark_error, line_clean, line_num)
-                        insumo = self._attempt_fallback(line_clean, apu_context, line_num)
+                        if isinstance(insumo, list):
+                            if insumo:
+                                insumo = insumo[0]
+                                self.parsing_stats.successful_parses += 1
+                            else:
+                                self.parsing_stats.empty_results += 1
+                                insumo = None
+                        else:
+                            self.parsing_stats.successful_parses += 1
 
-                else:
-                    # No hay parser Lark, usar fallback directo
-                    logger.warning("Parser Lark no disponible, usando fallback")
-                    insumo = self._process_with_specialists(line_clean, apu_context)
+                    except Exception as transform_error:
+                        self.parsing_stats.transformer_errors += 1
+                        logger.error(
+                            f"  ✗ Línea {line_num}: Error en transformer\n"
+                            f"    Error: {transform_error}\n"
+                            f"    Línea: {line_clean[:100]}"
+                        )
+                        continue
 
-                # Agregar resultado si es válido
+                # Agregar resultado
                 if insumo:
                     insumo.line_number = line_num
                     results.append(insumo)
-                else:
-                    # Registrar línea fallida para análisis
-                    self.parsing_stats.failed_lines.append(
-                        {
-                            "line_number": line_num,
-                            "content": line_clean,
-                            "apu_code": apu_context.get("codigo_apu", "UNKNOWN"),
-                        }
-                    )
 
             except Exception as unexpected_error:
-                # Error completamente inesperado
                 logger.error(
-                    f"  🚨 Línea {line_num}: Error inesperado NO capturado\n"
-                    f"    Tipo: {type(unexpected_error).__name__}\n"
+                    f"  🚨 Línea {line_num}: Error inesperado\n"
                     f"    Error: {unexpected_error}\n"
                     f"    Línea: {line_clean}"
                 )
-
-                self.parsing_stats.failed_lines.append(
-                    {
-                        "line_number": line_num,
-                        "content": line_clean,
-                        "error": str(unexpected_error),
-                        "apu_code": apu_context.get("codigo_apu", "UNKNOWN"),
-                    }
-                )
-
-                if self.debug_mode:
-                    import traceback
-
-                    logger.debug(f"Traceback completo:\n{traceback.format_exc()}")
-
                 continue
 
-        # Log de estadísticas del APU procesado
-        self._log_parsing_stats(apu_context.get("codigo_apu", "UNKNOWN"))
+        self._log_parsing_stats(apu_context.get("apu_code", "UNKNOWN"))
 
         return results
 

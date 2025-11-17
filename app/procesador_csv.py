@@ -12,7 +12,7 @@ from scripts.diagnose_apus_file import APUFileDiagnostic
 from .apu_processor import APUProcessor
 from .data_loader import load_data
 from .data_validator import validate_and_clean_data
-from .report_parser_crudo import ReportParserCrudo
+from .report_parser_crudo import ParserConfig, ReportParserCrudo
 from .utils import (
     clean_apu_code,
     find_and_rename_columns,
@@ -290,11 +290,15 @@ class LoadDataStep(ProcessingStep):
         apus_profile = file_profiles.get("apus_default")
         if not apus_profile:
             raise ValueError("No se encontró el perfil 'apus_default' en config.json")
-        parser = ReportParserCrudo(apus_path, apus_profile)
-        raw_records = parser.parse_to_raw()
 
-        # CAMBIO: Pasar el perfil al APUProcessor
-        processor = APUProcessor(raw_records, self.config, apus_profile)
+        # Paso 1: Ejecutar el "Guardia" para obtener registros crudos y el cache
+        config_obj = self.config if isinstance(self.config, ParserConfig) else ParserConfig(**self.config.get('parser_config', {}))
+        parser = ReportParserCrudo(apus_path, apus_profile, config_obj)
+        raw_records = parser.parse_to_raw()
+        parse_cache = parser.get_parse_cache() # Obtener el cache
+
+        # Paso 2: Ejecutar el "Cirujano" pasándole los registros y el cache
+        processor = APUProcessor(raw_records, self.config, apus_profile, parse_cache)
         df_apus_raw = processor.process_all()
 
         data_validator = DataValidator()
