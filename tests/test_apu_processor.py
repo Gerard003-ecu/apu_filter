@@ -51,8 +51,9 @@ class TestAPUProcessor(unittest.TestCase):
 
     def test_process_all(self):
         records = TestFixtures.get_sample_records()
-        # CAMBIO: Pasar el perfil por defecto
-        processor = APUProcessor(records, self.config, self.default_profile)
+        # CAMBIO: Inicializar con config y profile, luego asignar raw_records
+        processor = APUProcessor(self.config, self.default_profile)
+        processor.raw_records = records
         df = processor.process_all()
 
         self.assertIsInstance(df, pd.DataFrame)
@@ -61,8 +62,9 @@ class TestAPUProcessor(unittest.TestCase):
 
     def test_integration_with_calculate_unit_costs(self):
         records = TestFixtures.get_sample_records()
-        # CAMBIO: Pasar el perfil por defecto
-        processor = APUProcessor(records, self.config, self.default_profile)
+        # CAMBIO: Inicializar con config y profile, luego asignar raw_records
+        processor = APUProcessor(self.config, self.default_profile)
+        processor.raw_records = records
         df = processor.process_all()
 
         # Renombrar columnas para que coincidan con lo que espera calculate_unit_costs
@@ -107,7 +109,8 @@ class TestAPUProcessor(unittest.TestCase):
         ]
 
         # 3. Procesar los datos, pasando el perfil con la coma
-        processor = APUProcessor(comma_records, config, comma_profile)
+        processor = APUProcessor(config, comma_profile)
+        processor.raw_records = comma_records
         df = processor.process_all()
 
         # 4. Verificaciones
@@ -116,16 +119,16 @@ class TestAPUProcessor(unittest.TestCase):
         self.assertEqual(len(df), 2)
 
         # Verificar el parseo correcto de 'CONCRETO'
-        concreto_row = df[df["descripcion_insumo"] == "CONCRETO ESPECIAL"].iloc[0]
-        self.assertAlmostEqual(concreto_row["cantidad"], 0.15)
-        self.assertAlmostEqual(concreto_row["precio_unitario"], 850123.50)
-        self.assertAlmostEqual(concreto_row["valor_total"], 127518.53)
+        concreto_row = df[df["DESCRIPCION_INSUMO"] == "CONCRETO ESPECIAL"].iloc[0]
+        self.assertAlmostEqual(concreto_row["CANTIDAD_APU"], 0.15)
+        self.assertAlmostEqual(concreto_row["PRECIO_UNIT_APU"], 850123.50)
+        self.assertAlmostEqual(concreto_row["VALOR_TOTAL_APU"], 127518.53)
 
         # Verificar el parseo correcto de 'CUADRILLA' (Mano de Obra)
-        cuadrilla_row = df[df["descripcion_insumo"] == "CUADRILLA PISOS"].iloc[0]
-        self.assertAlmostEqual(cuadrilla_row["rendimiento"], 0.08)
-        self.assertAlmostEqual(cuadrilla_row["precio_unitario"], 250000.00)  # Jornal
-        self.assertAlmostEqual(cuadrilla_row["cantidad"], 1.0 / 0.08)  # Cantidad calculada
+        cuadrilla_row = df[df["DESCRIPCION_INSUMO"] == "CUADRILLA PISOS"].iloc[0]
+        self.assertAlmostEqual(cuadrilla_row["RENDIMIENTO"], 0.08)
+        self.assertAlmostEqual(cuadrilla_row["PRECIO_UNIT_APU"], 250000.00)  # Jornal
+        self.assertAlmostEqual(cuadrilla_row["CANTIDAD_APU"], 1.0 / 0.08)  # Cantidad calculada
 
 
 if __name__ == "__main__":

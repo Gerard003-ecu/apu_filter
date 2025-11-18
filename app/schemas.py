@@ -543,7 +543,7 @@ class InsumoProcesado:
     tipo_insumo: str
 
     # Campos opcionales con defaults
-    categoria: str = field(default="OTRO")
+    categoria: str = field(default="OTRO", init=True)
     formato_origen: str = field(default="GENERIC")
     rendimiento: float = field(default=0.0)
     normalized_desc: str = field(default="", init=False)
