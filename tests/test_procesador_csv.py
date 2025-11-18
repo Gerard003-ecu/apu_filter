@@ -919,9 +919,17 @@ class TestProcessAllFilesIntegration(unittest.TestCase):
             "header"
         ] = 0
 
-        with patch("app.procesador_csv.ReportParserCrudo"), patch(
+        with patch(
+            "app.procesador_csv.ReportParserCrudo"
+        ) as mock_parser_class, patch(
             "app.procesador_csv.APUProcessor"
         ) as mock_processor_class:
+            # Configurar mock de ReportParserCrudo para que no falle al desempacar
+            mock_parser = MagicMock()
+            mock_parser.parse_to_raw.return_value = (["some data"], {"some": "cache"})
+            mock_parser_class.return_value = mock_parser
+
+            # Configurar mock de APUProcessor
             mock_processor = MagicMock()
             mock_processor.process_all.return_value = (
                 TestDataBuilder.create_sample_apus_df()
@@ -932,12 +940,22 @@ class TestProcessAllFilesIntegration(unittest.TestCase):
                 self.presupuesto_path, self.apus_path, self.insumos_path, test_config
             )
 
-            # --- NUEVA VERIFICACIÓN ---
-            # Asegurarse de que APUProcessor fue instanciado con el perfil correcto.
+            # --- VERIFICACIÓN CORREGIDA ---
+            # 1. Asegurarse de que APUProcessor fue instanciado.
             mock_processor_class.assert_called_once()
-            call_args, call_kwargs = mock_processor_class.call_args
-            passed_profile = call_args[2]  # El perfil es el tercer argumento posicional
+
+            # 2. Verificar que se le asignó el atributo `raw_records` a la instancia mock
+            self.assertTrue(
+                hasattr(mock_processor, "raw_records"),
+                "El atributo raw_records debería haberse asignado al mock de APUProcessor",
+            )
+
+            # 3. Verificar que la instanciación se hizo con el perfil correcto.
+            call_args, _ = mock_processor_class.call_args
+            # El perfil es ahora el segundo argumento posicional (índice 1)
+            passed_profile = call_args[1]
             expected_profile = test_config.get("file_profiles", {}).get("apus_default")
+
             self.assertIsNotNone(
                 expected_profile,
                 "El perfil 'apus_default' debe existir en la configuración de prueba",
@@ -948,6 +966,7 @@ class TestProcessAllFilesIntegration(unittest.TestCase):
                 "APUProcessor no fue llamado con el perfil correcto",
             )
 
+            # --- ASERCIONES ORIGINALES ---
             self.assertIsInstance(resultado, dict)
             self.assertNotIn(
                 "error",

@@ -297,8 +297,9 @@ class LoadDataStep(ProcessingStep):
         raw_records = parser.parse_to_raw()
         parse_cache = parser.get_parse_cache() # Obtener el cache
 
-        # Paso 2: Ejecutar el "Cirujano" pasándole los registros y el cache
-        processor = APUProcessor(raw_records, self.config, apus_profile, parse_cache)
+        # Paso 2: Ejecutar el "Cirujano" adaptativo
+        processor = APUProcessor(self.config, apus_profile, parse_cache)
+        processor.raw_records = raw_records  # Asignar registros externamente
         df_apus_raw = processor.process_all()
 
         data_validator = DataValidator()

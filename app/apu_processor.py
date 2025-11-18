@@ -17,6 +17,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 from functools import lru_cache
 from typing import Any, Dict, List, Optional, Set, Tuple
+from collections import defaultdict
 
 import pandas as pd
 from lark import Lark, Token, Transformer, v_args
@@ -46,6 +47,7 @@ class ParsingStats:
     empty_results: int = 0
     fallback_attempts: int = 0
     fallback_successes: int = 0
+    cache_hits: int = 0
     failed_lines: List[Dict[str, Any]] = field(default_factory=list)
 
 
@@ -825,7 +827,6 @@ class APUTransformer(Transformer):
                 rendimiento=round(rendimiento, 6),
                 formato_origen="MO_COMPLETA",
                 tipo_insumo="MANO_DE_OBRA",
-                categoria="MANO_DE_OBRA",
                 **context,
             )
 
@@ -890,7 +891,6 @@ class APUTransformer(Transformer):
                 rendimiento=round(cantidad, 6),
                 formato_origen="INSUMO_BASICO",
                 tipo_insumo=tipo_insumo.value,
-                categoria=tipo_insumo.value,
                 **context,
             )
 
@@ -947,140 +947,349 @@ class APUTransformer(Transformer):
 # PROCESADOR PRINCIPAL - COMPATIBLE CON LoadDataStep
 # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
-
 class APUProcessor:
     """
-    Procesador principal que mantiene compatibilidad con `LoadDataStep`.
+    Procesador de APUs con soporte para múltiples formatos de entrada.
 
-    Esta clase es el punto de entrada para el procesamiento de APUs. Recibe
-    los registros crudos, inicializa el parser Lark con el `APUTransformer`
-    y orquesta el procesamiento de todas las líneas de todos los APUs,
-    delegando la lógica compleja a la arquitectura de especialistas.
+    Soporta dos formatos:
+    1. Formato agrupado (legacy): [{"codigo_apu": "X", "lines": [...]}]
+    2. Formato plano (nuevo): [{"apu_code": "X", "insumo_line": "...", "_lark_tree": ...}]
     """
 
     def __init__(
         self,
-        raw_records: List[Dict[str, Any]],
-        config: Dict[str, Any],
-        profile: Dict[str, Any],
-        parse_cache: Optional[Dict[str, Any]] = None,
+        config,
+        profile: Optional[Dict[str, Any]] = None,
+        parse_cache: Optional[Dict[str, Any]] = None
     ):
         """
-        Inicializa el procesador de APU.
+        Inicializa el procesador con cache opcional de parsing.
 
         Args:
-            raw_records: Lista de registros crudos, cada uno representando un
-                         APU con sus líneas de detalle.
-            config: Diccionario de configuración de la aplicación.
-            profile: Perfil de configuración específico para el archivo APU.
+            config: Configuración del sistema.
+            profile: Perfil de parsing.
+            parse_cache: Cache de árboles Lark pre-parseados.
         """
-        self.raw_records = raw_records or []
-        self.config = config or {}
+        self.config = config
         self.profile = profile or {}
-        self.keyword_cache = None
+        self.parser = self._initialize_parser()
+        self.keyword_cache = {}
 
-        # --- INICIO DE LA MODIFICACIÓN ---
+        # Cache de parsing (optimización)
         self.parse_cache = parse_cache or {}
+
+        # Estadísticas globales
+        self.global_stats = {
+            "total_apus": 0,
+            "total_insumos": 0,
+            "format_detected": None,
+        }
+
+        self.parsing_stats = ParsingStats()
+        self.debug_mode = self.config.get("debug_mode", False)
+
+        # Registros crudos (se establecerán externamente)
+        self.raw_records = []
+
         if self.parse_cache:
-            logger.info(f"✓ APUProcessor inicializado con cache de {len(self.parse_cache)} líneas pre-parseadas")
-        # --- FIN DE LA MODIFICACIÓN ---
+            logger.info(
+                f"✓ APUProcessor inicializado con cache de {len(self.parse_cache)} "
+                f"líneas pre-parseadas"
+            )
 
-        try:
-            self.parser = Lark(APU_GRAMMAR, parser="lalr", transformer=None, debug=False)
-            logger.info("Parser Lark inicializado con arquitectura de especialistas")
-        except LarkError as e:
-            logger.error(f"Error creando parser: {e}")
-            self.parser = None
+    def _detect_record_format(
+        self,
+        records: List[Dict[str, Any]]
+    ) -> Tuple[str, str]:
+        """
+        Detecta automáticamente el formato de los registros de entrada.
 
-        # Inicializar especialistas para procesamiento fallback
-        self.pattern_matcher = PatternMatcher()
-        self.units_validator = UnitsValidator()
-        self.thresholds = ValidationThresholds()
-        self.numeric_extractor = NumericFieldExtractor(
-            self.config, self.profile, self.thresholds
+        Args:
+            records: Lista de registros a analizar.
+
+        Returns:
+            Tupla (formato, descripción) donde formato es "grouped" o "flat".
+        """
+        if not records:
+            return ("unknown", "No hay registros para analizar")
+
+        first_record = records[0]
+
+        # Formato agrupado (legacy): tiene clave "lines"
+        if "lines" in first_record:
+            return (
+                "grouped",
+                "Formato agrupado (legacy): cada registro es un APU con lista de líneas"
+            )
+
+        # Formato plano (nuevo): tiene claves "insumo_line" y "apu_code"
+        if "insumo_line" in first_record and "apu_code" in first_record:
+            return (
+                "flat",
+                "Formato plano (nuevo): cada registro es un insumo individual"
+            )
+
+        # Formato desconocido
+        logger.warning(
+            f"Formato de registro desconocido. Claves encontradas: {first_record.keys()}"
         )
+        return ("unknown", "Formato no reconocido")
+
+    def _group_flat_records(
+        self,
+        flat_records: List[Dict[str, Any]]
+    ) -> List[Dict[str, Any]]:
+        """
+        Agrupa registros planos por APU.
+
+        Convierte el formato plano (nuevo) al formato agrupado que el resto
+        del procesador puede manejar, pero preservando optimizaciones como
+        el árbol Lark pre-parseado.
+
+        Args:
+            flat_records: Lista de registros en formato plano.
+
+        Returns:
+            Lista de registros en formato agrupado.
+        """
+        logger.info(f"Agrupando {len(flat_records)} registros planos por APU...")
+
+        # Agrupar por apu_code
+        grouped = defaultdict(lambda: {
+            "lines": [],
+            "_lark_trees": [],  # Preservar árboles pre-parseados
+            "metadata": {}
+        })
+
+        for record in flat_records:
+            apu_code = record.get("apu_code", "UNKNOWN")
+
+            # Agregar línea de insumo
+            insumo_line = record.get("insumo_line", "")
+            if insumo_line:
+                grouped[apu_code]["lines"].append(insumo_line)
+
+                # Preservar árbol Lark si existe
+                lark_tree = record.get("_lark_tree")
+                grouped[apu_code]["_lark_trees"].append(lark_tree)
+
+            # Preservar metadata del APU (solo la primera vez)
+            if not grouped[apu_code]["metadata"]:
+                grouped[apu_code]["metadata"] = {
+                    "apu_code": apu_code,
+                    "apu_desc": record.get("apu_desc", ""),
+                    "apu_unit": record.get("apu_unit", ""),
+                    "category": record.get("category", "INDEFINIDO"),
+                    "source_line": record.get("source_line", 0),
+                }
+
+        # Convertir a lista de registros agrupados
+        result = []
+        for apu_code, data in grouped.items():
+            record = {
+                "codigo_apu": apu_code,  # Usar nombre legacy para compatibilidad
+                "descripcion_apu": data["metadata"].get("apu_desc", ""),
+                "unidad_apu": data["metadata"].get("apu_unit", ""),
+                "lines": data["lines"],
+                "_lark_trees": data["_lark_trees"],  # Nueva clave para optimización
+                "category": data["metadata"].get("category", "INDEFINIDO"),
+                "source_line": data["metadata"].get("source_line", 0),
+            }
+            result.append(record)
+
+        logger.info(f"✓ Agrupados en {len(result)} APUs distintos")
+
+        return result
 
     def process_all(self) -> pd.DataFrame:
         """
         Procesa todos los registros de APU crudos y devuelve un DataFrame.
 
-        Itera sobre cada registro de APU, extrae el contexto y luego procesa
-        cada una de sus líneas de detalle utilizando el `APUTransformer`.
-        Finalmente, consolida todos los insumos procesados en un único
-        DataFrame de pandas.
+        Este método ahora es ADAPTATIVO:
+        - Detecta automáticamente el formato de entrada
+        - Convierte formato plano a agrupado si es necesario
+        - Reutiliza árboles Lark pre-parseados cuando están disponibles
+        - Mantiene compatibilidad con formato legacy
 
         Returns:
-            Un DataFrame con todos los insumos procesados y estructurados.
+            DataFrame con todos los insumos procesados y estructurados.
         """
-        logger.info(
-            f"Iniciando procesamiento de {len(self.raw_records)} APUs con especialistas"
-        )
+        if not self.raw_records:
+            logger.warning("No hay registros crudos para procesar")
+            return pd.DataFrame()
 
+        logger.info(f"Iniciando procesamiento de {len(self.raw_records)} registros")
+
+        # 🔥 PASO 1: Detectar formato de entrada
+        format_type, format_desc = self._detect_record_format(self.raw_records)
+        self.global_stats["format_detected"] = format_type
+
+        logger.info(f"📋 Formato detectado: {format_desc}")
+
+        # 🔥 PASO 2: Normalizar a formato agrupado si es necesario
+        if format_type == "flat":
+            processed_records = self._group_flat_records(self.raw_records)
+        elif format_type == "grouped":
+            processed_records = self.raw_records
+            logger.info("✓ Formato ya está agrupado, no se requiere conversión")
+        else:
+            logger.error(
+                "❌ Formato de entrada no reconocido. "
+                "No se puede procesar sin formato conocido."
+            )
+            return pd.DataFrame()
+
+        # 🔥 PASO 3: Procesar cada APU
         all_results = []
+        self.global_stats["total_apus"] = len(processed_records)
 
-        for i, record in enumerate(self.raw_records):
+        for i, record in enumerate(processed_records):
             try:
                 apu_context = self._extract_apu_context(record)
 
                 if "lines" in record and record["lines"]:
-                    insumos = self._process_apu_lines(record["lines"], apu_context)
+                    # Preparar cache específico para este APU
+                    apu_cache = self._prepare_apu_cache(record)
+
+                    insumos = self._process_apu_lines(
+                        record["lines"],
+                        apu_context,
+                        apu_cache
+                    )
+
                     if insumos:
                         all_results.extend(insumos)
+                else:
+                    logger.debug(
+                        f"APU {apu_context.get('codigo_apu')} no tiene líneas para procesar"
+                    )
 
-                if (i + 1) % 100 == 0:
-                    logger.info(f"Procesados {i + 1}/{len(self.raw_records)} APUs")
+                # Log de progreso
+                if (i + 1) % 50 == 0:
+                    logger.info(
+                        f"Progreso: {i + 1}/{len(processed_records)} APUs procesados "
+                        f"({len(all_results)} insumos extraídos hasta ahora)"
+                    )
 
             except Exception as e:
-                logger.error(f"Error procesando APU {i}: {e}")
+                logger.error(
+                    f"Error procesando APU {i} "
+                    f"[{record.get('codigo_apu', 'UNKNOWN')}]: {e}"
+                )
+                if self.debug_mode:
+                    import traceback
+                    logger.debug(f"Traceback:\n{traceback.format_exc()}")
                 continue
 
-        logger.info(f"Procesamiento completado: {len(all_results)} insumos extraídos")
+        # 🔥 PASO 4: Log de resultados finales
+        self.global_stats["total_insumos"] = len(all_results)
+        self._log_global_stats()
 
-        # Convertir a DataFrame
+        # 🔥 PASO 5: Convertir a DataFrame
         if all_results:
             return self._convert_to_dataframe(all_results)
         else:
-            logger.warning("No se encontraron insumos válidos")
+            logger.warning("⚠️  No se encontraron insumos válidos en ningún APU")
             return pd.DataFrame()
 
+    def _prepare_apu_cache(self, record: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Prepara el cache de parsing específico para un APU.
+
+        Si el registro tiene árboles Lark pre-parseados (_lark_trees),
+        crea un mapeo línea -> árbol para ese APU específico.
+
+        Args:
+            record: Registro del APU con posibles árboles pre-parseados.
+
+        Returns:
+            Diccionario de cache línea -> árbol para este APU.
+        """
+        apu_cache = {}
+
+        # Si el registro tiene árboles pre-parseados, mapearlos
+        if "_lark_trees" in record and record["_lark_trees"]:
+            lines = record.get("lines", [])
+            trees = record["_lark_trees"]
+
+            # Crear mapeo línea -> árbol
+            for line, tree in zip(lines, trees):
+                if tree is not None:
+                    apu_cache[line.strip()] = tree
+
+            if apu_cache:
+                logger.debug(
+                    f"✓ Cache específico de APU preparado: {len(apu_cache)} árboles"
+                )
+
+        # Combinar con cache global
+        combined_cache = {**self.parse_cache, **apu_cache}
+
+        return combined_cache
+
     def _extract_apu_context(self, record: Dict[str, Any]) -> Dict[str, Any]:
-        """Extrae el contexto relevante de un registro de APU."""
+        """
+        Extrae el contexto relevante de un registro de APU.
+
+        Soporta tanto nombres de claves legacy como nuevos.
+
+        Args:
+            record: Registro de APU (formato agrupado).
+
+        Returns:
+            Diccionario con contexto del APU normalizado.
+        """
+        # Intentar claves nuevas primero, luego legacy
         return {
-            "codigo_apu": record.get("codigo_apu", ""),
-            "descripcion_apu": record.get("descripcion_apu", ""),
-            "unidad_apu": record.get("unidad_apu", ""),
+            "codigo_apu": record.get("codigo_apu") or record.get("apu_code", ""),
+            "descripcion_apu": (
+                record.get("descripcion_apu") or
+                record.get("apu_desc", "")
+            ),
+            "unidad_apu": record.get("unidad_apu") or record.get("apu_unit", ""),
             "cantidad_apu": record.get("cantidad_apu", 1.0),
             "precio_unitario_apu": record.get("precio_unitario_apu", 0.0),
+            "categoria": record.get("category", "INDEFINIDO"),
         }
 
     def _process_apu_lines(
-        self, lines: List[str], apu_context: Dict[str, Any]
-    ) -> List[InsumoProcesado]:
+        self,
+        lines: List[str],
+        apu_context: Dict[str, Any],
+        line_cache: Optional[Dict[str, Any]] = None
+    ) -> List['InsumoProcesado']:
         """
         Procesa líneas de APU con reutilización de cache de parsing.
-
-        Si una línea ya fue parseada por ReportParserCrudo, reutilizamos
-        el árbol de parsing en lugar de parsear de nuevo.
 
         Args:
             lines: Lista de líneas a procesar.
             apu_context: Contexto del APU.
+            line_cache: Cache de árboles Lark para estas líneas específicas.
 
         Returns:
             Lista de insumos procesados.
         """
-        results = []
-        self.parsing_stats = ParsingStats()
+        if not lines:
+            return []
 
-        logger.info(
-            f"Procesando {len(lines)} líneas para APU: {apu_context.get('apu_code', 'UNKNOWN')}"
+        results = []
+        stats = ParsingStats()
+
+        # Usar cache combinado (específico del APU + global)
+        active_cache = line_cache if line_cache is not None else self.parse_cache
+
+        apu_code = apu_context.get("codigo_apu", "UNKNOWN")
+
+        logger.debug(
+            f"Procesando {len(lines)} líneas para APU: {apu_code} "
+            f"(cache: {len(active_cache)} entradas)"
         )
 
         for line_num, line in enumerate(lines, start=1):
             if not line or not line.strip():
                 continue
 
-            self.parsing_stats.total_lines += 1
+            stats.total_lines += 1
             line_clean = line.strip()
             insumo = None
 
@@ -1090,243 +1299,240 @@ class APUProcessor:
                     tree = None
                     used_cache = False
 
-                    if line_clean in self.parse_cache:
-                        tree = self.parse_cache[line_clean]
+                    if line_clean in active_cache:
+                        tree = active_cache[line_clean]
                         used_cache = True
-                        logger.debug(f"  ⚡ Línea {line_num}: Usando árbol Lark del cache")
+                        stats.cache_hits += 1
+                        logger.debug(
+                            f"  ⚡ Línea {line_num}: Usando árbol Lark del cache"
+                        )
 
                     if tree is None:
                         # Parsear normalmente
                         try:
                             tree = self.parser.parse(line_clean)
                         except LarkError as lark_error:
-                            # Si falla aquí, significa que ReportParserCrudo dejó pasar algo
+                            # Si falla aquí con validación unificada, es inesperado
                             logger.warning(
                                 f"  ⚠️  Línea {line_num}: Falló Lark pero pasó validación previa\n"
                                 f"      Error: {lark_error}\n"
-                                f"      Esto NO debería ocurrir con validación unificada"
+                                f"      Línea: {line_clean[:100]}"
                             )
-                            self.parsing_stats.lark_parse_errors += 1
+                            stats.lark_parse_errors += 1
                             continue
 
                     # Transformar árbol a insumo
                     try:
                         transformer = APUTransformer(
-                            apu_context, self.config, self.profile, self.keyword_cache
+                            apu_context,
+                            self.config,
+                            self.profile,
+                            self.keyword_cache
                         )
                         insumo = transformer.transform(tree)
 
                         if isinstance(insumo, list):
                             if insumo:
                                 insumo = insumo[0]
-                                self.parsing_stats.successful_parses += 1
+                                stats.successful_parses += 1
                             else:
-                                self.parsing_stats.empty_results += 1
+                                stats.empty_results += 1
+                                logger.debug(
+                                    f"  ⚠️  Línea {line_num}: Transformer devolvió lista vacía"
+                                )
                                 insumo = None
                         else:
-                            self.parsing_stats.successful_parses += 1
+                            stats.successful_parses += 1
 
                     except Exception as transform_error:
-                        self.parsing_stats.transformer_errors += 1
+                        stats.transformer_errors += 1
                         logger.error(
                             f"  ✗ Línea {line_num}: Error en transformer\n"
-                            f"    Error: {transform_error}\n"
+                            f"    Error: {type(transform_error).__name__}: {transform_error}\n"
                             f"    Línea: {line_clean[:100]}"
                         )
+
+                        if self.debug_mode:
+                            import traceback
+                            logger.debug(f"Traceback:\n{traceback.format_exc()}")
+
                         continue
 
-                # Agregar resultado
+                # Agregar resultado si es válido
                 if insumo:
                     insumo.line_number = line_num
                     results.append(insumo)
+                else:
+                    stats.failed_lines.append({
+                        "line_number": line_num,
+                        "content": line_clean,
+                        "apu_code": apu_code
+                    })
 
             except Exception as unexpected_error:
                 logger.error(
                     f"  🚨 Línea {line_num}: Error inesperado\n"
+                    f"    Tipo: {type(unexpected_error).__name__}\n"
                     f"    Error: {unexpected_error}\n"
                     f"    Línea: {line_clean}"
                 )
+
+                if self.debug_mode:
+                    import traceback
+                    logger.debug(f"Traceback completo:\n{traceback.format_exc()}")
+
+                stats.failed_lines.append({
+                    "line_number": line_num,
+                    "content": line_clean,
+                    "error": str(unexpected_error),
+                    "apu_code": apu_code
+                })
                 continue
 
-        self._log_parsing_stats(apu_context.get("apu_code", "UNKNOWN"))
+        # Log de estadísticas del APU
+        self._log_parsing_stats(apu_code, stats)
+
+        # Actualizar estadísticas globales
+        self._merge_stats(stats)
 
         return results
 
-    def _log_lark_error(self, error_type: str, error: LarkError, line: str, line_num: int):
+    def _merge_stats(self, apu_stats: ParsingStats):
+        """Combina estadísticas de un APU con las globales."""
+        self.parsing_stats.total_lines += apu_stats.total_lines
+        self.parsing_stats.successful_parses += apu_stats.successful_parses
+        self.parsing_stats.lark_parse_errors += apu_stats.lark_parse_errors
+        self.parsing_stats.transformer_errors += apu_stats.transformer_errors
+        self.parsing_stats.empty_results += apu_stats.empty_results
+        self.parsing_stats.cache_hits += apu_stats.cache_hits
+        self.parsing_stats.failed_lines.extend(apu_stats.failed_lines)
+
+    def _log_parsing_stats(self, apu_code: str, stats: ParsingStats):
         """
-        Logging detallado y estructurado de errores de Lark.
-
-        Args:
-            error_type: Tipo de error Lark.
-            error: La excepción de Lark.
-            line: La línea que causó el error.
-            line_num: Número de línea.
-        """
-        logger.warning(
-            f"  ✗ Línea {line_num}: {error_type}\n"
-            f"    Error: {error}\n"
-            f"    Línea: {line[:100]}{'...' if len(line) > 100 else ''}"
-        )
-
-        if self.config.get("debug_mode") and hasattr(error, "line") and hasattr(error, "column"):
-            logger.debug(f"    Posición del error: línea {error.line}, columna {error.column}")
-            if hasattr(error, "expected"):
-                logger.debug(f"    Esperaba: {error.expected}")
-
-    def _attempt_fallback(
-        self, line: str, apu_context: Dict[str, Any], line_num: int
-    ) -> Optional[InsumoProcesado]:
-        """
-        Intenta procesar la línea con el sistema de fallback.
-
-        Args:
-            line: La línea a procesar.
-            apu_context: Contexto del APU.
-            line_num: Número de línea.
-
-        Returns:
-            InsumoProcesado si el fallback tiene éxito, None en caso contrario.
-        """
-        self.parsing_stats.fallback_attempts += 1
-
-        try:
-            insumo = self._process_with_specialists(line, apu_context)
-
-            if insumo:
-                self.parsing_stats.fallback_successes += 1
-                logger.info(f"  ✓ Línea {line_num}: Fallback exitoso")
-                return insumo
-            else:
-                logger.debug(f"  ✗ Línea {line_num}: Fallback sin resultado")
-                return None
-
-        except Exception as fallback_error:
-            logger.error(f"  ✗ Línea {line_num}: Fallback falló\n" f"    Error: {fallback_error}")
-            return None
-
-    def _log_parsing_stats(self, apu_code: str):
-        """
-        Registra estadísticas detalladas del parsing del APU.
+        Registra estadísticas detalladas del parsing de un APU.
 
         Args:
             apu_code: Código del APU procesado.
+            stats: Estadísticas del procesamiento.
         """
-        stats = self.parsing_stats
-
         if stats.total_lines == 0:
             return
 
         success_rate = (
-            (stats.successful_parses / stats.total_lines * 100) if stats.total_lines > 0 else 0
+            (stats.successful_parses / stats.total_lines * 100)
+            if stats.total_lines > 0 else 0
+        )
+        cache_rate = (
+            (stats.cache_hits / stats.total_lines * 100)
+            if stats.total_lines > 0 else 0
         )
 
-        logger.info("-" * 70)
-        logger.info(f"📈 ESTADÍSTICAS DE PARSING - APU: {apu_code}")
-        logger.info("-" * 70)
-        logger.info(f"Total líneas procesadas:           {stats.total_lines}")
-        logger.info(f"✓ Parsing exitoso:                 {stats.successful_parses} ({success_rate:.1f}%)")
-        logger.info(f"✗ Errores Lark - Parse:            {stats.lark_parse_errors}")
-        logger.info(f"✗ Errores Lark - Input inesperado: {stats.lark_unexpected_input}")
-        logger.info(f"✗ Errores Lark - Char inesperado:  {stats.lark_unexpected_chars}")
-        logger.info(f"✗ Errores Transformer:             {stats.transformer_errors}")
-        logger.info(f"⚠️  Resultados vacíos:              {stats.empty_results}")
-        logger.info(f"🔄 Intentos de fallback:           {stats.fallback_attempts}")
-        logger.info(f"✓ Fallback exitoso:                {stats.fallback_successes}")
-        logger.info("-" * 70)
+        # Solo mostrar detalles si hay problemas o en modo debug
+        if success_rate < 100 or self.debug_mode:
+            logger.info("-" * 70)
+            logger.info(f"📈 APU: {apu_code}")
+            logger.info(f"   Líneas procesadas:  {stats.total_lines}")
+            logger.info(f"   ✓ Exitosos:         {stats.successful_parses} ({success_rate:.1f}%)")
+            logger.info(f"   ⚡ Cache hits:       {stats.cache_hits} ({cache_rate:.1f}%)")
 
-        # Alertas críticas
-        if stats.successful_parses == 0 and stats.total_lines > 0:
-            logger.error(
-                f"🚨 CRÍTICO: APU {apu_code} - 0% de éxito en parsing. "
-                "Posible incompatibilidad entre gramática Lark y formato de datos."
+            if stats.lark_parse_errors > 0:
+                logger.info(f"   ✗ Errores Lark:     {stats.lark_parse_errors}")
+            if stats.transformer_errors > 0:
+                logger.info(f"   ✗ Errores Trans.:   {stats.transformer_errors}")
+            if stats.empty_results > 0:
+                logger.info(f"   ⚠️  Resultados vacíos: {stats.empty_results}")
+
+            logger.info("-" * 70)
+
+    def _log_global_stats(self):
+        """Registra estadísticas globales del procesamiento."""
+        logger.info("=" * 80)
+        logger.info("📊 RESUMEN GLOBAL DE PROCESAMIENTO")
+        logger.info("=" * 80)
+        logger.info(f"Formato detectado:           {self.global_stats['format_detected']}")
+        logger.info(f"Total APUs procesados:       {self.global_stats['total_apus']}")
+        logger.info(f"Total insumos extraídos:     {self.global_stats['total_insumos']}")
+        logger.info(f"Total líneas procesadas:     {self.parsing_stats.total_lines}")
+        logger.info("")
+        logger.info("Resultados de parsing:")
+        logger.info(f"  ✓ Exitosos:                {self.parsing_stats.successful_parses}")
+        logger.info(f"  ⚡ Cache hits:              {self.parsing_stats.cache_hits}")
+        logger.info(f"  ✗ Errores Lark:            {self.parsing_stats.lark_parse_errors}")
+        logger.info(f"  ✗ Errores Transformer:     {self.parsing_stats.transformer_errors}")
+        logger.info(f"  ⚠️  Resultados vacíos:      {self.parsing_stats.empty_results}")
+        logger.info("")
+
+        if self.parsing_stats.total_lines > 0:
+            success_rate = (
+                self.parsing_stats.successful_parses /
+                self.parsing_stats.total_lines * 100
+            )
+            cache_efficiency = (
+                self.parsing_stats.cache_hits /
+                self.parsing_stats.total_lines * 100
             )
 
-        if self.config.get("debug_mode") and stats.failed_lines:
-            logger.debug("\n📋 Primeras 5 líneas fallidas:")
-            for failed in stats.failed_lines[:5]:
-                logger.debug(f"  Línea {failed['line_number']}: {failed['content'][:80]}...")
+            logger.info(f"Tasa de éxito:               {success_rate:.2f}%")
+            logger.info(f"Eficiencia de cache:         {cache_efficiency:.2f}%")
 
-    def _process_with_specialists(
-        self, line: str, apu_context: Dict[str, Any]
-    ) -> Optional[InsumoProcesado]:
-        """
-        Procesamiento de fallback usando especialistas directamente sin Lark.
+        logger.info("=" * 80)
 
-        Este método sirve como una alternativa si el parser Lark no está
-        disponible. Realiza una división simple por ';' y aplica la lógica
-        de los especialistas.
+        # Alertas
+        if self.global_stats['total_insumos'] == 0:
+            logger.error(
+                "🚨 CRÍTICO: 0 insumos extraídos.\n"
+                "   Posibles causas:\n"
+                "   1. Formato de datos incompatible con gramática\n"
+                "   2. Errores en el transformer\n"
+                "   3. Configuración de perfil incorrecta\n"
+                "   → Revise los logs detallados arriba"
+            )
+        elif success_rate < 50:
+            logger.warning(
+                f"⚠️  Tasa de éxito baja ({success_rate:.1f}%).\n"
+                f"   Considere revisar la gramática o el formato de datos."
+            )
 
-        Args:
-            line: La línea de texto a procesar.
-            apu_context: El contexto del APU.
+    def _initialize_parser(self):
+        """Inicializa el parser Lark (implementar según tu código existente)."""
+        # Placeholder - implementar según tu lógica
+        try:
+            from lark import Lark
 
-        Returns:
-            Un objeto `InsumoProcesado` o None.
-        """
-        fields = [f.strip() for f in line.split(";")]
-
-        # Filtrar trailing empty
-        while fields and not fields[-1]:
-            fields.pop()
-
-        if len(fields) < 4:
+            return Lark(
+                APU_GRAMMAR,
+                start='line',
+                parser='lalr',
+                maybe_placeholders=False,
+                cache=True,
+            )
+        except Exception as e:
+            logger.error(f"Error inicializando parser Lark: {e}")
             return None
-
-        descripcion = fields[0]
-
-        # Usar PatternMatcher para detectar ruido
-        if self.pattern_matcher.is_likely_summary(descripcion, len(fields)):
-            return None
-
-        # Extraer valores con NumericFieldExtractor
-        valores = self.numeric_extractor.extract_insumo_values(fields)
-
-        if len(valores) < 2:
-            return None
-
-        # Construir insumo
-        unidad = self.units_validator.normalize_unit(fields[1]) if len(fields) > 1 else "UND"
-        cantidad = valores[0] if valores else 1.0
-        precio = valores[1] if len(valores) > 1 else 0.0
-        total = valores[2] if len(valores) > 2 else cantidad * precio
-
-        return Otro(
-            descripcion_insumo=descripcion,
-            unidad_insumo=unidad,
-            cantidad=round(cantidad, 6),
-            precio_unitario=round(precio, 2),
-            valor_total=round(total, 2),
-            rendimiento=round(cantidad, 6),
-            formato_origen="SPECIALIST",
-            tipo_insumo="OTRO",
-            **apu_context,
-        )
 
     def _convert_to_dataframe(self, insumos: List[InsumoProcesado]) -> pd.DataFrame:
         """
         Convierte una lista de objetos `InsumoProcesado` a un DataFrame.
-
-        Args:
-            insumos: La lista de insumos.
-
-        Returns:
-            Un DataFrame de pandas con los datos estructurados.
         """
         records = []
         for insumo in insumos:
             record = {
-                "codigo_apu": getattr(insumo, "codigo_apu", ""),
-                "descripcion_apu": getattr(insumo, "descripcion_apu", ""),
-                "unidad_apu": getattr(insumo, "unidad_apu", ""),
-                "descripcion_insumo": getattr(insumo, "descripcion_insumo", ""),
-                "unidad_insumo": getattr(insumo, "unidad_insumo", ""),
-                "cantidad": getattr(insumo, "cantidad", 0.0),
-                "precio_unitario": getattr(insumo, "precio_unitario", 0.0),
-                "valor_total": getattr(insumo, "valor_total", 0.0),
-                "rendimiento": getattr(insumo, "rendimiento", 0.0),
-                "tipo_insumo": getattr(insumo, "tipo_insumo", "OTRO"),
-                "formato_origen": getattr(insumo, "formato_origen", ""),
+                "CODIGO_APU": getattr(insumo, "codigo_apu", ""),
+                "DESCRIPCION_APU": getattr(insumo, "descripcion_apu", ""),
+                "UNIDAD_APU": getattr(insumo, "unidad_apu", ""),
+                "DESCRIPCION_INSUMO": getattr(insumo, "descripcion_insumo", ""),
+                "UNIDAD_INSUMO": getattr(insumo, "unidad_insumo", ""),
+                "CANTIDAD_APU": getattr(insumo, "cantidad", 0.0),
+                "PRECIO_UNIT_APU": getattr(insumo, "precio_unitario", 0.0),
+                "VALOR_TOTAL_APU": getattr(insumo, "valor_total", 0.0),
+                "RENDIMIENTO": getattr(insumo, "rendimiento", 0.0),
+                "TIPO_INSUMO": getattr(insumo, "tipo_insumo", "OTRO"),
+                "FORMATO_ORIGEN": getattr(insumo, "formato_origen", ""),
+                "CATEGORIA": getattr(insumo, "categoria", ""),
+                "NORMALIZED_DESC": getattr(insumo, "normalized_desc", "")
             }
             records.append(record)
 
-        return pd.DataFrame(records)
+        df = pd.DataFrame(records)
+        logger.info(f"✓ DataFrame creado: {len(df)} filas, {len(df.columns)} columnas")
+        return df
