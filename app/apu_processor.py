@@ -13,14 +13,14 @@ para lograr un procesamiento robusto y flexible.
 
 import logging
 import re
+from collections import defaultdict
 from dataclasses import dataclass, field
 from enum import Enum
 from functools import lru_cache
 from typing import Any, Dict, List, Optional, Set, Tuple
-from collections import defaultdict
 
 import pandas as pd
-from lark import Lark, Token, Transformer, v_args
+from lark import Token, Transformer, v_args
 from lark.exceptions import LarkError
 
 from .schemas import Equipo, InsumoProcesado, ManoDeObra, Otro, Suministro, Transporte
