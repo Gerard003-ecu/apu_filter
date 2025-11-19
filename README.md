@@ -22,14 +22,14 @@ APU Filter es una plataforma de inteligencia de negocio diseñada para el sector
 
 APU Filter está construido sobre una arquitectura modular que separa claramente las responsabilidades, garantizando robustez y escalabilidad. Sus tres pilares fundamentales son:
 
-### 1. Parser de APU (Máquina de Estados)
-- **Componente Clave:** `app/report_parser_crudo.py`
-- **Función:** Es la primera línea de defensa del sistema, responsable de procesar los archivos de APU semi-estructurados. En lugar de depender de un formato CSV estricto, implementa una **máquina de estados** que lee el archivo línea por línea.
+### 1. Condensador de Flujo de Datos (Data Flux Condenser)
+- **Componente Clave:** `app/flux_condenser.py`
+- **Función:** Actúa como un estabilizador de señal a la entrada del sistema. En lugar de simplemente parsear, gestiona la ingesta de datos aplicando principios de física (Resistencia y Capacitancia) para modelar el flujo de información.
 - **Mecanismo:**
-    1.  **Detecta Cabeceras de APU:** Identifica el inicio de un nuevo APU buscando un patrón específico (una línea con `UNIDAD:` seguida de una con `ITEM:`).
-    2.  **Mantiene el Contexto:** Una vez dentro de un APU, asigna una categoría a cada insumo (Materiales, Mano de Obra, Equipo) basándose en palabras clave.
-    3.  **Extrae Insumos:** Parsea cada línea de insumo dentro del contexto del APU y la categoría actual, ignorando líneas irrelevantes (subtotales, decorativas, etc.).
-- **Resultado:** Transforma un archivo de texto caótico en una lista estructurada de registros listos para ser procesados.
+    1.  **Motor de Física (FluxPhysicsEngine):** Su núcleo es un motor que simula el comportamiento de un circuito RC. Calcula métricas de **saturación** y **complejidad** en tiempo real usando ecuaciones diferenciales.
+    2.  **Telemetría Avanzada:** Clasifica el flujo de datos como "Laminar", "Transitorio" o "Turbulento", permitiendo al sistema reaccionar ante datos mal formados o "ruidosos" y protegiendo los componentes posteriores.
+    3.  **Orquestación de Precisión:** Coordina dos componentes especializados: un "Guardia" (`ReportParserCrudo`) que realiza una validación inicial estricta y un "Cirujano" (`APUProcessor`) que aplica la lógica de negocio detallada.
+- **Resultado:** Garantiza que solo un flujo de datos estable y coherente ("Laminar") llegue al núcleo del sistema, mejorando drásticamente la fiabilidad del procesamiento.
 
 ### 2. Pipeline de Procesamiento de Datos
 - **Componente Clave:** `app/procesador_csv.py`
@@ -61,6 +61,7 @@ La plataforma está construida sobre una pila de tecnologías modernas de alto r
     - **Dataclasses:** Para la creación de esquemas de datos (`schemas.py`) que garantizan la consistencia y validación.
 - **Entorno y Dependencias:**
     - **Conda:** Para gestionar el entorno y las dependencias complejas con componentes binarios (ej. `faiss-cpu`).
+- **Redis:** Para la gestión de sesiones de usuario, garantizando la persistencia de datos entre solicitudes.
     - **uv & pip:** Para la gestión rápida y eficiente del resto de las dependencias de Python.
 - **Calidad de Código y Pruebas:**
     - **Pytest:** Para una suite de pruebas exhaustiva que cubre desde unidades hasta la integración completa.
@@ -104,7 +105,9 @@ graph TD
     F --> H;
     G[requirements.txt (sin faiss/torch)] --> H{Paso 4: Instalar Dependencias de la Aplicación};
     H -- "uv pip install -r" --> I[Librerías Restantes];
-    I --> J[Fin: Entorno Listo ✅];
+    I --> J{Paso 5: Instalar Servidor de Sesiones};
+    J -- "conda install -c conda-forge" --> K[Redis];
+    K --> L[Fin: Entorno Listo ✅];
 ```
 
 ### Pasos Detallados de Instalación
@@ -137,11 +140,20 @@ Instale los "engranajes" principales que requieren compilaciones y dependencias 
     ```
 
 **Paso 4: Instalar Dependencias de la Aplicación (uv)**
-Finalmente, instale todas las demás dependencias de Python puro con el "engranaje de alta velocidad".
+Instale todas las demás dependencias de Python puro con el "engranaje de alta velocidad".
 ```bash
 uv pip install -r requirements.txt
 uv pip install -r requirements-dev.txt
 ```
+
+**Paso 5: Instalar y Configurar el Servidor de Sesiones (Redis)**
+Para garantizar la persistencia de los datos del usuario entre solicitudes, la aplicación utiliza Redis.
+
+*   **Instalar `redis` (El Engranaje de Estabilidad):**
+    Es crucial instalar Redis a través del canal `conda-forge` para asegurar la compatibilidad entre diferentes sistemas operativos, incluyendo macOS y Linux.
+    ```bash
+    conda install -c conda-forge redis
+    ```
 
 **Nota Importante:** El archivo `requirements.txt` no debe contener `faiss-cpu` ni `torch`. Si alguna vez necesita regenerar este archivo (ej. usando `uv pip compile requirements.in`), asegúrese de excluir estas dos librerías para evitar conflictos de instalación.
 

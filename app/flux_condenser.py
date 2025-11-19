@@ -1,3 +1,26 @@
+"""
+Módulo de Capacitancia Lógica para el procesamiento de flujos de datos.
+
+Este módulo introduce el `DataFluxCondenser`, un componente de alto nivel que
+actúa como una fachada estabilizadora para el pipeline de procesamiento de
+Análisis de Precios Unitarios (APU). Su función principal es garantizar la
+integridad, coherencia y estabilidad del flujo de datos antes de que ingrese
+al núcleo del sistema.
+
+Principios de Diseño:
+- **Capacitancia Lógica:** Inspirado en los principios de un circuito RC,
+  el condensador "absorbe" datos crudos y los "descarga" de manera controlada,
+  filtrando el ruido y la turbulencia.
+- **Orquestación, no Implementación:** No contiene lógica de negocio de bajo
+  nivel. En su lugar, orquesta componentes especializados como `ReportParserCrudo`
+  (el "Guardia") y `APUProcessor` (el "Cirujano").
+- **Telemetría Física:** Incorpora un `FluxPhysicsEngine` para calcular
+  métricas de saturación y complejidad, proporcionando una visión cuantitativa
+  de la "salud" del flujo de datos entrante.
+- **Robustez y Tolerancia a Fallos:** Implementa validaciones estrictas en cada
+  etapa y un manejo de errores detallado para prevenir la propagación de datos
+  corruptos.
+"""
 import logging
 import math
 import time
@@ -14,51 +37,118 @@ logger = logging.getLogger(__name__)
 
 
 class ParsedData(NamedTuple):
-    """Estructura de datos resultante del parseo."""
+    """
+    Estructura de datos inmutable para los resultados del parseo inicial.
+
+    Agrupa la salida del `ReportParserCrudo` para asegurar que los datos
+    crudos y la caché de parseo se mantengan juntos a través del pipeline.
+
+    Atributos:
+        raw_records (List[Dict[str, Any]]): Lista de registros de insumos
+            extraídos del archivo de APU, sin procesamiento profundo.
+        parse_cache (Dict[str, Any]): Metadatos generados durante el parseo,
+            útiles para optimizar el procesamiento posterior (e.g., líneas
+            ya validadas por Lark).
+    """
     raw_records: List[Dict[str, Any]]
     parse_cache: Dict[str, Any]
 
 
 class DataFluxCondenserError(Exception):
-    """Excepción base para errores del condensador."""
+    """Clase base para todas las excepciones personalizadas del condensador."""
     pass
 
 
 class InvalidInputError(DataFluxCondenserError):
-    """Error de validación de entrada."""
+    """Indica un problema con los datos de entrada, como un archivo inválido."""
     pass
 
 
 class ProcessingError(DataFluxCondenserError):
-    """Error durante el procesamiento."""
+    """Señala un error durante una de las etapas de procesamiento de datos."""
     pass
 
 
 @dataclass(frozen=True)
 class CondenserConfig:
-    """Configuración validada del condensador."""
+    """
+    Configuración inmutable y validada para el `DataFluxCondenser`.
+
+    Define los umbrales operativos y comportamientos del condensador,
+    incluyendo sus parámetros para el motor de simulación física.
+
+    Atributos:
+        min_records_threshold (int): Número mínimo de registros necesarios para
+            considerar un archivo como válido para el procesamiento.
+        enable_strict_validation (bool): Si es `True`, activa validaciones
+            adicionales en el DataFrame de salida, como la detección de
+            columnas nulas.
+        log_level (str): Nivel de logging para la instancia del condensador.
+        system_capacitance (float): Parámetro físico que representa la
+            capacidad ideal del sistema para procesar registros en un ciclo.
+            Análogo a la capacitancia en Faradios.
+        base_resistance (float): Parámetro físico que representa la fricción
+            o complejidad inherente del sistema. Análogo a la resistencia
+            en Ohmios.
+    """
     min_records_threshold: int = 1
     enable_strict_validation: bool = True
     log_level: str = "INFO"
     # Configuración Física
-    system_capacitance: float = 5000.0  # Capacidad ideal (registros/ciclo)
-    base_resistance: float = 10.0      # Resistencia base del sistema
+    system_capacitance: float = 5000.0
+    base_resistance: float = 10.0
 
 
 # --- NUEVA CLASE: MOTOR DE FÍSICA ---
 class FluxPhysicsEngine:
     """
-    Simula el comportamiento físico de carga/descarga de datos
-    usando ecuaciones diferenciales de un circuito RC.
+    Simula el comportamiento de un flujo de datos usando un análogo de circuito RC.
+
+    Esta clase modela la ingesta de datos como la carga de un condensador a
+    través de una resistencia. Permite cuantificar la "saturación" del sistema
+    en función de la cantidad de datos (carga) y su complejidad inherente
+    (resistencia).
+
+    Atributos:
+        C (float): La capacitancia del sistema, análoga a la capacidad de
+            procesamiento de registros.
+        R (float): La resistencia base del sistema, análoga a la complejidad
+            mínima del procesamiento.
+        tau (float): La constante de tiempo (R * C), que caracteriza la
+            velocidad de "carga" o procesamiento del sistema.
     """
     def __init__(self, capacitance: float, resistance: float):
-        self.C = capacitance  # Faradios (Capacidad de datos)
-        self.R = resistance    # Ohmios (Fricción/Complejidad)
-        self.tau = self.R * self.C  # Constante de tiempo (Tau)
+        """
+        Inicializa el motor de física con los parámetros del circuito.
+
+        Args:
+            capacitance (float): Capacidad del sistema (análogo a Faradios).
+            resistance (float): Resistencia base del sistema (análogo a Ohmios).
+        """
+        self.C = capacitance
+        self.R = resistance
+        self.tau = self.R * self.C
 
     def calculate_saturation(self, load_size: int, complexity_factor: float) -> float:
         """
-        Calcula el índice de saturación (Voltaje) basado en la carga y complejidad.
+        Calcula el índice de saturación del sistema para una carga de datos.
+
+        La saturación se modela como el "voltaje" en un condensador que se
+        carga. Una saturación de 1.0 representa un sistema completamente
+        saturado. La resistencia dinámica aumenta con la complejidad de los
+        datos, ralentizando la "carga".
+
+        La fórmula utilizada es: V(t) = 1 - e^(-t / RC)
+
+        Args:
+            load_size (int): El número de registros a procesar (análogo al
+                tiempo de carga `t`).
+            complexity_factor (float): Un factor entre 0 y 1 que representa la
+                complejidad adicional de los datos (e.g., porcentaje de
+                líneas que requirieron un parseo complejo).
+
+        Returns:
+            float: El índice de saturación, un valor entre 0.0 y 1.0.
         """
         dynamic_R = self.R * (1 + complexity_factor)
         current_tau = dynamic_R * self.C
@@ -69,6 +159,16 @@ class FluxPhysicsEngine:
         return saturation
 
     def get_stability_status(self, saturation: float) -> str:
+        """
+        Clasifica el estado del flujo de datos basado en su índice de saturación.
+
+        Args:
+            saturation (float): El índice de saturación calculado.
+
+        Returns:
+            str: Una descripción textual del estado del flujo (Laminar,
+                 Transitorio o Turbulento).
+        """
         if saturation < 0.3: return "FLUJO LAMINAR (Estable)"
         if saturation < 0.7: return "FLUJO TRANSITORIO (Carga Media)"
         return "FLUJO TURBULENTO (Alta Saturación)"
@@ -76,7 +176,28 @@ class FluxPhysicsEngine:
 
 class DataFluxCondenser:
     """
-    Implementación de Capacitancia Lógica para el procesamiento de APUs.
+    Orquesta el pipeline de validación y procesamiento de archivos de APU.
+
+    Actúa como una fachada que encapsula la complejidad de interactuar con
+    múltiples componentes (`ReportParserCrudo`, `APUProcessor`). Su objetivo es
+    proporcionar una única interfaz (`stabilize`) para procesar un archivo de
+    forma segura y robusta.
+
+    El "Condensador" implementa una metáfora de circuito eléctrico:
+    1.  **Carga (Absorb & Filter):** El `ReportParserCrudo` absorbe la "corriente"
+        inicial, filtrando el ruido y generando una señal cruda.
+    2.  **Estabilización (Telemetría):** El `FluxPhysicsEngine` mide la
+        "tensión" y "resistencia" del flujo de datos, evaluando su estabilidad.
+    3.  **Descarga (Rectify Signal):** El `APUProcessor` procesa la señal
+        filtrada y la convierte en un DataFrame estructurado y útil.
+
+    Atributos:
+        config (Dict[str, Any]): Configuración global de la aplicación.
+        profile (Dict[str, Any]): Perfil específico para el tipo de archivo.
+        condenser_config (CondenserConfig): Configuración operativa del
+            propio condensador.
+        logger (logging.Logger): Instancia de logger para este componente.
+        physics (FluxPhysicsEngine): Motor de simulación física para telemetría.
     """
     REQUIRED_CONFIG_KEYS = {'parser_settings', 'processor_settings'}
     REQUIRED_PROFILE_KEYS = {'columns_mapping', 'validation_rules'}
@@ -87,6 +208,18 @@ class DataFluxCondenser:
         profile: Dict[str, Any],
         condenser_config: Optional[CondenserConfig] = None
     ):
+        """
+        Inicializa una nueva instancia del `DataFluxCondenser`.
+
+        Args:
+            config (Dict[str, Any]): El diccionario de configuración global de
+                la aplicación, que contiene ajustes para los subcomponentes.
+            profile (Dict[str, Any]): El perfil de procesamiento específico
+                para el archivo, que define mapeos de columnas y reglas.
+            condenser_config (Optional[CondenserConfig]): Una configuración
+                específica para el condensador. Si es `None`, se utilizarán
+                los valores por defecto de `CondenserConfig`.
+        """
         self._validate_initialization_params(config, profile)
 
         self.config = config
@@ -107,6 +240,20 @@ class DataFluxCondenser:
         config: Dict[str, Any],
         profile: Dict[str, Any]
     ) -> None:
+        """
+        Valida los parámetros de inicialización del condensador.
+
+        Verifica que `config` y `profile` sean diccionarios. En modo tolerante,
+        advierte sobre la ausencia de claves esperadas en lugar de lanzar un
+        error.
+
+        Args:
+            config (Dict[str, Any]): Diccionario de configuración global.
+            profile (Dict[str, Any]): Diccionario de perfil de archivo.
+
+        Raises:
+            InvalidInputError: Si `config` o `profile` no son diccionarios.
+        """
         if not isinstance(config, dict) or not isinstance(profile, dict):
             raise InvalidInputError("config y profile deben ser diccionarios válidos")
 
@@ -124,7 +271,26 @@ class DataFluxCondenser:
 
     def stabilize(self, file_path: str) -> pd.DataFrame:
         """
-        Proceso de Carga y Descarga con Monitoreo Físico.
+        Orquesta el ciclo completo de procesamiento de un archivo de APU.
+
+        Este es el método principal y punto de entrada del condensador. Ejecuta
+        la secuencia de validación, filtrado (absorción), telemetría física y
+        procesamiento (rectificación) para transformar un archivo crudo en un
+        DataFrame limpio y estructurado.
+
+        Args:
+            file_path (str): La ruta al archivo de APU que se va a procesar.
+
+        Returns:
+            pd.DataFrame: Un DataFrame de pandas con los datos de insumos
+            procesados y validados. Retorna un DataFrame vacío si el archivo
+            no contiene datos válidos o si el procesamiento no produce resultados.
+
+        Raises:
+            InvalidInputError: Si `file_path` no es válido (e.g., no existe,
+                es un directorio).
+            ProcessingError: Si ocurre un error irrecuperable en cualquier
+                etapa del pipeline de procesamiento.
         """
         start_time = time.time()
         self.logger.info(f"⚡ [FÍSICA] Iniciando ciclo de estabilización para: {file_path}")
