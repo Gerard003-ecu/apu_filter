@@ -129,7 +129,8 @@ class TestAPUProcessor(unittest.TestCase):
         cuadrilla_row = df[df["DESCRIPCION_INSUMO"] == "CUADRILLA PISOS"].iloc[0]
         self.assertAlmostEqual(cuadrilla_row["RENDIMIENTO"], 0.08)
         self.assertAlmostEqual(cuadrilla_row["PRECIO_UNIT_APU"], 250000.00)  # Jornal
-        self.assertAlmostEqual(cuadrilla_row["CANTIDAD_APU"], 1.0 / 0.08)  # Cantidad calculada
+        # Cantidad calculada
+        self.assertAlmostEqual(cuadrilla_row["CANTIDAD_APU"], 1.0 / 0.08)
 
 
 if __name__ == "__main__":

@@ -405,7 +405,7 @@ class BuildOutputStep(ProcessingStep):
 
 
 class PresupuestoProcessor:
-    """Procesador especializado para archivos de presupuesto con limpieza robusta de filas fantasma."""
+    """Procesador para archivos de presupuesto con limpieza de filas fantasma."""
 
     def __init__(self, config: dict, thresholds: ProcessingThresholds, profile: dict):
         self.config = config
@@ -504,7 +504,9 @@ class PresupuestoProcessor:
         df_clean = df_clean[~mask_empty]
 
         if df_clean.empty:
-            logger.warning(f"⚠️ {stage_label} DataFrame vacío después de eliminar filas vacías")
+            logger.warning(
+                f"⚠️ {stage_label} DataFrame vacío después de eliminar filas vacías"
+            )
             return pd.DataFrame()
 
         # ESTRATEGIA 3: Eliminar filas que son solo delimitadores o caracteres especiales
@@ -526,7 +528,9 @@ class PresupuestoProcessor:
         df_clean = df_clean[~mask_delimiters]
 
         if df_clean.empty:
-            logger.warning(f"⚠️ {stage_label} DataFrame vacío después de eliminar delimitadores")
+            logger.warning(
+                f"⚠️ {stage_label} DataFrame vacío después de eliminar delimitadores"
+            )
             return pd.DataFrame()
 
         # ESTRATEGIA 4: Validación de contenido mínimo
@@ -566,7 +570,9 @@ class PresupuestoProcessor:
                         row_preview = df.iloc[idx].tolist()
                         logger.debug(f"   🗑️  Fila {idx} eliminada: {row_preview}")
         else:
-            logger.debug(f"✅ {stage_label} No se encontraron filas fantasma ({rows_after} filas)")
+            logger.debug(
+                f"✅ {stage_label} No se encontraron filas fantasma ({rows_after} filas)"
+            )
 
         return df_clean
 
@@ -682,10 +688,11 @@ class PresupuestoProcessor:
         final_count = len(df)
         total_removed = initial_count - final_count
 
-        logger.info(
+        logger.info((
             f"✅ Limpieza completada: {final_count} registros válidos "
-            f"({total_removed} eliminados, {(final_count/max(initial_count, 1)*100):.1f}% conservado)"
-        )
+            f"({total_removed} eliminados, "
+            f"{(final_count/max(initial_count, 1)*100):.1f}% conservado)"
+        ))
 
         return df
 

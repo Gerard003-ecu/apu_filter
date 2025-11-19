@@ -475,11 +475,13 @@ class MonteCarloSimulator:
         cantidad_nulls = df["CANTIDAD"].isna().sum()
         if vr_total_nulls > 0:
             self.logger.warning(
-                f"VR_TOTAL: {vr_total_nulls} valores no numéricos o faltantes convertidos a NaN"
+                f"VR_TOTAL: {vr_total_nulls} valores no numéricos o faltantes "
+                f"convertidos a NaN"
             )
         if cantidad_nulls > 0:
             self.logger.warning(
-                f"CANTIDAD: {cantidad_nulls} valores no numéricos o faltantes convertidos a NaN"
+                f"CANTIDAD: {cantidad_nulls} valores no numéricos o faltantes "
+                f"convertidos a NaN"
             )
 
         # Filtrar filas que no cumplen con los requisitos básicos
@@ -501,7 +503,8 @@ class MonteCarloSimulator:
         ).sum()
         if invalid_base_costs > 0:
             self.logger.warning(
-                f"Se encontraron {invalid_base_costs} costos base inválidos (NaN/inf) que serán descartados"
+                f"Se encontraron {invalid_base_costs} costos base inválidos "
+                f"(NaN/inf) que serán descartados"
             )
             df_valid = df_valid[
                 df_valid["base_cost"].notna() & np.isfinite(df_valid["base_cost"])
@@ -511,7 +514,8 @@ class MonteCarloSimulator:
         discarded_count = initial_rows - len(df_valid)
         if discarded_count > 0:
             self.logger.warning(
-                f"Se descartaron {discarded_count}/{initial_rows} items por valores inválidos o no cumplir umbrales."
+                f"Se descartaron {discarded_count}/{initial_rows} items por "
+                f"valores inválidos o no cumplir umbrales."
             )
 
         return df_valid, discarded_count

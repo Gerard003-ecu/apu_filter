@@ -43,18 +43,18 @@ class CondenserConfig:
 class DataFluxCondenser:
     """
     Implementación de Capacitancia Lógica para el procesamiento de APUs.
-    
+
     Actúa como un condensador y estabilizador de flujo que:
     1. Absorbe la carga bruta (archivos CSV crudos).
     2. Filtra el ruido (usando ReportParserCrudo como filtro pasa-bajos).
     3. Rectifica la señal (usando APUProcessor para estructurar datos).
     4. Descarga un flujo limpio y estable (DataFrame) al sistema principal.
-    
+
     Attributes:
         config (Dict[str, Any]): Configuración del sistema.
         profile (Dict[str, Any]): Perfil de procesamiento.
         condenser_config (CondenserConfig): Configuración específica del condensador.
-        
+
     Raises:
         InvalidInputError: Si los parámetros de entrada son inválidos.
         ProcessingError: Si falla el procesamiento de datos.
@@ -72,12 +72,12 @@ class DataFluxCondenser:
     ):
         """
         Inicializa el condensador con validación de dependencias.
-        
+
         Args:
             config: Configuración general del sistema.
             profile: Perfil de procesamiento de APUs.
             condenser_config: Configuración específica del condensador.
-            
+
         Raises:
             InvalidInputError: Si config o profile son inválidos.
         """
@@ -98,11 +98,11 @@ class DataFluxCondenser:
     ) -> None:
         """
         Valida que los parámetros de inicialización sean coherentes.
-        
+
         Args:
             config: Configuración a validar.
             profile: Perfil a validar.
-            
+
         Raises:
             InvalidInputError: Si falta alguna clave requerida.
         """
@@ -127,19 +127,19 @@ class DataFluxCondenser:
     def stabilize(self, file_path: str) -> pd.DataFrame:
         """
         Proceso de Carga y Descarga del Condensador.
-        
+
         Ejecuta el ciclo completo de estabilización:
         1. Validación de entrada
         2. Filtrado de señal (parsing)
         3. Rectificación (procesamiento)
         4. Validación de salida
-        
+
         Args:
             file_path: Ruta al archivo CSV a procesar.
-            
+
         Returns:
             DataFrame estabilizado con datos procesados.
-            
+
         Raises:
             InvalidInputError: Si el archivo no existe o es inválido.
             ProcessingError: Si falla el procesamiento.
@@ -185,13 +185,13 @@ class DataFluxCondenser:
     def _validate_input_file(self, file_path: str) -> Path:
         """
         Valida que el archivo de entrada exista y sea accesible.
-        
+
         Args:
             file_path: Ruta al archivo a validar.
-            
+
         Returns:
             Path validado.
-            
+
         Raises:
             InvalidInputError: Si el archivo no existe o no es accesible.
         """
@@ -220,13 +220,13 @@ class DataFluxCondenser:
     def _absorb_and_filter(self, file_path: Path) -> ParsedData:
         """
         Usa ReportParserCrudo para filtrar el ruido de entrada.
-        
+
         Args:
             file_path: Ruta validada al archivo.
-            
+
         Returns:
             ParsedData con registros crudos y caché de parseo.
-            
+
         Raises:
             ProcessingError: Si el parseo falla.
         """
@@ -273,13 +273,13 @@ class DataFluxCondenser:
     def _validate_parsed_data(self, parsed_data: ParsedData) -> bool:
         """
         Valida que los datos parseados sean coherentes y suficientes.
-        
+
         Args:
             parsed_data: Datos parseados a validar.
-            
+
         Returns:
             True si los datos son válidos, False si están vacíos pero válidos.
-            
+
         Raises:
             ProcessingError: Si los datos están corruptos.
         """
@@ -308,13 +308,13 @@ class DataFluxCondenser:
     def _rectify_signal(self, parsed_data: ParsedData) -> pd.DataFrame:
         """
         Usa APUProcessor para convertir la señal filtrada en datos utilizables.
-        
+
         Args:
             parsed_data: Datos parseados a procesar.
-            
+
         Returns:
             DataFrame con datos procesados.
-            
+
         Raises:
             ProcessingError: Si el procesamiento falla.
         """
@@ -349,10 +349,10 @@ class DataFluxCondenser:
     def _validate_output(self, df: pd.DataFrame) -> None:
         """
         Valida el DataFrame de salida antes de retornarlo.
-        
+
         Args:
             df: DataFrame a validar.
-            
+
         Raises:
             ProcessingError: Si el DataFrame es inválido.
         """
@@ -381,7 +381,7 @@ class DataFluxCondenser:
     def get_processing_stats(self) -> Dict[str, Any]:
         """
         Retorna estadísticas del último procesamiento.
-        
+
         Returns:
             Diccionario con estadísticas de procesamiento.
         """
