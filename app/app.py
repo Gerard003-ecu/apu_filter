@@ -340,13 +340,23 @@ def create_app(config_name: str) -> Flask:
     app.config["MAX_CONTENT_LENGTH"] = MAX_CONTENT_LENGTH
     app.config["SESSION_COOKIE_HTTPONLY"] = True
 
-    # Configuración de Cookies de Sesión
-    # En Producción: Secure=True (HTTPS obligatorio)
-    # En Desarrollo: Secure=False (Permite HTTP/localhost)
-    app.config["SESSION_COOKIE_SECURE"] = (config_name == "production")
+    # 1. Estabilización de la SECRET_KEY
+    app.config["SECRET_KEY"] = os.environ.get(
+        "SECRET_KEY", "dev_key_fija_y_secreta_12345"
+    )
 
-    # Mantener Lax explícito para evitar comportamientos erráticos del navegador
-    app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
+    # 3. Configuración de Cookies Consciente del Entorno
+    if config_name == "production":
+        app.config["SESSION_COOKIE_SECURE"] = True
+        app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
+    else:  # development or testing
+        app.config["SESSION_COOKIE_SECURE"] = False
+        app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
+
+    # 4. Definición Explícita de la Cookie
+    app.config["SESSION_COOKIE_NAME"] = "apu_session"
+    app.config["SESSION_COOKIE_PATH"] = "/"
+    app.config["SESSION_COOKIE_DOMAIN"] = None
 
     # Configurar logging
     setup_logging(app)
@@ -359,7 +369,10 @@ def create_app(config_name: str) -> Flask:
     app.config["SESSION_TYPE"] = "redis"
     app.config["SESSION_PERMANENT"] = True
     app.config["SESSION_KEY_PREFIX"] = "apu_filter:session:"
-    app.config["SESSION_REDIS"] = redis.from_url(app.config["REDIS_URL"])
+
+    # 2. Inyección Explícita del Cliente Redis
+    redis_client = redis.Redis.from_url(app.config["REDIS_URL"])
+    app.config["SESSION_REDIS"] = redis_client
     app.config["PERMANENT_SESSION_LIFETIME"] = SESSION_TIMEOUT
 
     Session(app)
