@@ -1,18 +1,28 @@
-# --- Resto de dependencias de la aplicación ---
-
+# --- Framework Web y Extensiones ---
 flask
-lark
+flask-cors
+flask-session
+python-dotenv
+
+# --- Procesamiento de Datos ---
 pandas
 openpyxl
+# Pin NumPy a <2.0 para garantizar compatibilidad binaria con faiss-conda
+numpy<2.0
+
+# --- Parsing y Texto ---
+lark
 unidecode
+pdfplumber
+# Fuzzy matching (python-Levenshtein acelera fuzzywuzzy)
 fuzzywuzzy
-python-dotenv
 python-Levenshtein
-Flask-Session
+
+# --- IA y Búsqueda Semántica ---
+sentence-transformers
+# networkx a menudo tiene conflictos de versiones con torch/scikit-learn
+networkx<3.3
+
+# --- Infraestructura y Sistema ---
 redis
 psutil
-pdfplumber
-sentence-transformers
-networkx<3.3
-# Pin NumPy to a 1.x version for compatibility with faiss-cpu from conda
-numpy<2.0
