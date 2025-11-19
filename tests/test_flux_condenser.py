@@ -580,6 +580,40 @@ class TestValidateOutput:
         condenser._validate_output(df_empty)
 
 
+# ==================== TESTS: FluxPhysicsEngine ====================
+
+class TestFluxPhysicsEngine:
+    """Pruebas unitarias para el motor de física."""
+
+    # Importar math y FluxPhysicsEngine aquí para mantener el test aislado
+    import math
+    from app.flux_condenser import FluxPhysicsEngine
+
+    @pytest.fixture
+    def physics_engine(self):
+        """Instancia del motor con valores base."""
+        return self.FluxPhysicsEngine(capacitance=1000.0, resistance=10.0)
+
+    @pytest.mark.parametrize("load_size, complexity, expected_saturation", [
+        (100, 0.0, 0.00995),
+        (5000, 0.0, 0.3934),
+        (10000, 0.5, 0.4865),
+        (20000, 1.0, 0.6321),
+    ])
+    def test_calculate_saturation(self, physics_engine, load_size, complexity, expected_saturation):
+        """Debe calcular la saturación correctamente."""
+        saturation = physics_engine.calculate_saturation(load_size, complexity)
+        assert saturation == pytest.approx(expected_saturation, abs=1e-4)
+
+    @pytest.mark.parametrize("saturation, expected_status", [
+        (0.29, "FLUJO LAMINAR (Estable)"),
+        (0.69, "FLUJO TRANSITORIO (Carga Media)"),
+        (0.7, "FLUJO TURBULENTO (Alta Saturación)"),
+    ])
+    def test_get_stability_status(self, physics_engine, saturation, expected_status):
+        """Debe retornar el estado de estabilidad correcto."""
+        assert physics_engine.get_stability_status(saturation) == expected_status
+
 # ==================== TESTS DE INTEGRACIÓN (STABILIZE) ====================
 
 class TestStabilize:
@@ -616,6 +650,38 @@ class TestStabilize:
         assert len(result) == len(sample_dataframe)
         mock_parser_class.assert_called_once()
         mock_processor_class.assert_called_once()
+
+    @patch('app.flux_condenser.APUProcessor')
+    @patch('app.flux_condenser.ReportParserCrudo')
+    def test_telemetry_logging(
+        self,
+        mock_parser_class,
+        mock_processor_class,
+        condenser,
+        mock_csv_file,
+        sample_dataframe,
+        caplog
+    ):
+        """Debe registrar la telemetría física durante un flujo exitoso."""
+        # Setup: 100 registros crudos, 80 cacheados -> complejidad 0.2
+        raw_records = [{'id': i} for i in range(100)]
+        parse_cache = {f'line_{i}': 'data' for i in range(80)}
+
+        mock_parser = Mock()
+        mock_parser.parse_to_raw.return_value = raw_records
+        mock_parser.get_parse_cache.return_value = parse_cache
+        mock_parser_class.return_value = mock_parser
+
+        mock_processor = Mock()
+        mock_processor.process_all.return_value = sample_dataframe
+        mock_processor_class.return_value = mock_processor
+
+        with caplog.at_level(logging.INFO):
+            condenser.stabilize(str(mock_csv_file))
+
+        assert "📊 [TELEMETRÍA]" in caplog.text
+        assert "Complejidad: 0.20" in caplog.text
+        assert "Estado: FLUJO LAMINAR" in caplog.text
 
     def test_nonexistent_file_raises_error(self, condenser):
         """Debe fallar con archivo inexistente."""
@@ -729,8 +795,9 @@ class TestStabilize:
         with caplog.at_level(logging.INFO):
             condenser.stabilize(str(mock_csv_file))
 
-        assert "[INICIO]" in caplog.text
-        assert "[ÉXITO]" in caplog.text
+        # CORRECCIÓN: Ajustar a los nuevos mensajes de log.
+        assert "⚡ [FÍSICA] Iniciando ciclo de estabilización" in caplog.text
+        assert "✅ [ÉXITO] Flujo estabilizado" in caplog.text
         assert "registros procesados" in caplog.text
 
 
