@@ -465,12 +465,15 @@ class TestRectifySignal:
         assert len(result) == len(sample_dataframe)
 
         # Verificar que el mock fue llamado con los argumentos correctos
-        mock_processor_class.assert_called_once()
-        _, kwargs = mock_processor_class.call_args
-        assert kwargs.get('profile') == condenser.profile
-        assert isinstance(kwargs.get('config'), dict)
-        assert kwargs.get('raw_records') == sample_raw_records
-        assert kwargs.get('parse_cache') == sample_parse_cache
+        mock_processor_class.assert_called_once_with(
+            config=condenser.config,
+            profile=condenser.profile,
+            parse_cache=sample_parse_cache
+        )
+
+        # Verificar que raw_records se asignó antes de llamar a process_all
+        assert mock_processor.raw_records == sample_raw_records
+        mock_processor.process_all.assert_called_once()
 
     @patch('app.flux_condenser.APUProcessor')
     def test_processor_returns_wrong_type(
