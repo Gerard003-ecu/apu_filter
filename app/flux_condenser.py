@@ -321,12 +321,19 @@ class DataFluxCondenser:
         self.logger.debug("[FASE 2] Rectificando señal con APUProcessor...")
 
         try:
+            # 1. Instanciar APUProcessor SIN raw_records
             processor = APUProcessor(
-                raw_records=parsed_data.raw_records,
                 config=self.config,
                 profile=self.profile,
                 parse_cache=parsed_data.parse_cache
             )
+
+            # 2. Pasar raw_records directamente a process_all
+            # NOTA: Asignamos manualmente raw_records porque el nuevo APUProcessor
+            # espera que estén disponibles en self.raw_records o pasados de alguna forma.
+            # Dado que el nuevo APUProcessor adaptativo usa self.raw_records,
+            # debemos asignarlos antes de llamar a process_all.
+            processor.raw_records = parsed_data.raw_records
 
             df_result = processor.process_all()
 
