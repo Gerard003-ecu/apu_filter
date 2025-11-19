@@ -19,7 +19,7 @@ from unittest.mock import patch
 import pytest
 
 # Importar la función a testear
-from app.utils.grammar_diagnostics import diagnose_grammar_mismatches
+from dev_tools.diagnose_grammar import diagnose_grammar_mismatches
 
 # ============================================================================
 # FIXTURES
