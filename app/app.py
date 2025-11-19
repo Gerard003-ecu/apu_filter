@@ -338,8 +338,14 @@ def create_app(config_name: str) -> Flask:
     # Configuración básica
     app.config.from_object(config_by_name[config_name])
     app.config["MAX_CONTENT_LENGTH"] = MAX_CONTENT_LENGTH
-    app.config["SESSION_COOKIE_SECURE"] = config_name == "production"
     app.config["SESSION_COOKIE_HTTPONLY"] = True
+
+    # Configuración de Cookies de Sesión
+    # En Producción: Secure=True (HTTPS obligatorio)
+    # En Desarrollo: Secure=False (Permite HTTP/localhost)
+    app.config["SESSION_COOKIE_SECURE"] = (config_name == "production")
+
+    # Mantener Lax explícito para evitar comportamientos erráticos del navegador
     app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
 
     # Configurar logging
