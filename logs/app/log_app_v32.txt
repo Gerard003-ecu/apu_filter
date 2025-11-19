@@ -1,0 +1,444 @@
+/Users/gerardomayor/Documents/estru_techos/apu_filter/app/apu_processor.py:887: UserWarning: Suministro [UNKNOWN_APU_3003]: rendimiento=0.03846 no es relevante. Se recomienda usar 0.0
+  return InsumoClass(
+15:53:53 - WARNING - Formato origen 'INSUMO_BASICO' no reconocido, usando 'GENERIC'
+15:53:53 - WARNING - Formato origen 'INSUMO_BASICO' no reconocido, usando 'GENERIC'
+15:53:53 - WARNING - Formato origen 'INSUMO_BASICO' no reconocido, usando 'GENERIC'
+15:53:53 - WARNING - Formato origen 'INSUMO_BASICO' no reconocido, usando 'GENERIC'
+15:53:53 - WARNING - Formato origen 'INSUMO_BASICO' no reconocido, usando 'GENERIC'
+/Users/gerardomayor/Documents/estru_techos/apu_filter/app/apu_processor.py:887: UserWarning: Suministro [UNKNOWN_APU_3003]: rendimiento=0.07692 no es relevante. Se recomienda usar 0.0
+  return InsumoClass(
+15:53:53 - INFO - Progreso: 150/150 APUs procesados (613 insumos extraídos hasta ahora)
+15:53:53 - INFO - ================================================================================
+15:53:53 - INFO - 📊 RESUMEN GLOBAL DE PROCESAMIENTO
+15:53:53 - INFO - ================================================================================
+15:53:53 - INFO - Formato detectado:           flat
+15:53:53 - INFO - Total APUs procesados:       150
+15:53:53 - INFO - Total insumos extraídos:     613
+15:53:53 - INFO - Total líneas procesadas:     909
+15:53:53 - INFO - 
+15:53:53 - INFO - Resultados de parsing:
+15:53:53 - INFO -   ✓ Exitosos:                909
+15:53:53 - INFO -   ⚡ Cache hits:              909
+15:53:53 - INFO -   ✗ Errores Lark:            0
+15:53:53 - INFO -   ✗ Errores Transformer:     0
+15:53:53 - INFO -   ⚠️  Resultados vacíos:      0
+15:53:53 - INFO - 
+15:53:53 - INFO - Tasa de éxito:               100.00%
+15:53:53 - INFO - Eficiencia de cache:         100.00%
+15:53:53 - INFO - ================================================================================
+15:53:53 - INFO - ✓ DataFrame creado: 613 filas, 13 columnas
+15:53:53 - INFO - ✅ [ÉXITO] Flujo estabilizado en 4.37s: 613 registros procesados
+15:53:53 - INFO - ✅ DataFluxCondenser completado.
+15:53:53 - INFO - 🔗 Iniciando merge de APUs con catálogo de insumos...
+15:53:53 - INFO - ✅ Merge completado: 613 registros
+15:53:53 - INFO - 💰 Calculando costos de insumos...
+15:53:53 - INFO - ✅ Costos de insumos calculados: 613 registros
+15:53:53 - INFO - 📊 Agregando costos por APU y tipo de insumo...
+15:53:53 - INFO - ✅ Costos agregados: 146 APUs únicos
+15:53:53 - INFO - 📈 Estadísticas de costos unitarios: Max=$496,859,000.00, Avg=$13,708,322.48, Std=$67,294,294.85
+15:53:53 - WARNING - ⚠️  Se detectaron 5 APUs con costos atípicos (>215,591,207.02)
+15:53:53 - WARNING -    APU UNKNOWN_APU_2802: $276,811,976.05 (MO: $276,811,976.05, MAT: $0.00)
+15:53:53 - WARNING -    APU UNKNOWN_APU_2822: $471,641,600.00 (MO: $471,641,600.00, MAT: $0.00)
+15:53:53 - WARNING -    APU UNKNOWN_APU_2842: $496,859,000.00 (MO: $496,859,000.00, MAT: $0.00)
+15:53:53 - WARNING -    APU UNKNOWN_APU_2922: $235,820,800.00 (MO: $235,820,800.00, MAT: $0.00)
+15:53:53 - WARNING -    APU UNKNOWN_APU_2942: $248,429,500.00 (MO: $248,429,500.00, MAT: $0.00)
+15:53:54 - INFO - 📋 Clasificación de APUs:
+tipo_apu
+Instalación                   78
+Obra Completa                 45
+Suministro                    17
+Suministro (Pre-fabricado)     6
+Name: count, dtype: int64
+15:53:54 - INFO - 🔗 Realizando merge final: presupuesto + costos...
+15:53:54 - INFO - ✅ Merge 1:1 exitoso: 105 filas
+15:53:54 - INFO - 💵 Calculando valores totales del presupuesto...
+15:53:54 - INFO - 💰 COSTO TOTAL CONSOLIDADO: $533,527,531.72
+15:53:54 - INFO - 🔄 Sincronizando fuentes de datos...
+15:53:54 - INFO - ✅ Sincronización completada. Insumos: 613 -> 317
+15:53:54 - INFO - 📦 Construyendo DataFrame de APUs procesados...
+15:53:54 - INFO - ✅ APUs procesados consolidados: 146 registros
+15:53:54 - INFO - 📦 Construyendo diccionario de salida...
+15:53:54 - INFO - ✅ Diccionario de salida construido
+15:53:54 - INFO - El Agente de Validación de Datos ha iniciado.
+15:53:54 - WARNING - Valor de construcción unitario inválido en item desconocido: nan
+15:53:54 - WARNING - Valor de construcción unitario inválido en item desconocido: nan
+15:53:54 - WARNING - Valor de construcción unitario inválido en item desconocido: nan
+15:53:54 - WARNING - Valor de construcción unitario inválido en item desconocido: nan
+15:53:54 - WARNING - Valor de construcción unitario inválido en item desconocido: nan
+15:53:54 - WARNING - Valor de construcción unitario inválido en item desconocido: nan
+15:53:54 - WARNING - Valor de construcción unitario inválido en item desconocido: nan
+15:53:54 - WARNING - Valor de construcción unitario inválido en item desconocido: nan
+15:53:54 - WARNING - Valor de construcción unitario inválido en item desconocido: nan
+15:53:54 - WARNING - Valor de construcción unitario inválido en item desconocido: nan
+15:53:54 - WARNING - Valor de construcción unitario inválido en item desconocido: nan
+15:53:54 - WARNING - Valor de construcción unitario inválido en item desconocido: nan
+15:53:54 - WARNING - Valor de construcción unitario inválido en item desconocido: nan
+15:53:54 - WARNING - Valor de construcción unitario inválido en item desconocido: nan
+15:53:54 - WARNING - Valor de construcción unitario inválido en item desconocido: nan
+15:53:54 - WARNING - Valor de construcción unitario inválido en item desconocido: nan
+15:53:54 - WARNING - Valor de construcción unitario inválido en item desconocido: nan
+15:53:54 - WARNING - Valor de construcción unitario inválido en item desconocido: nan
+15:53:54 - WARNING - Valor de construcción unitario inválido en item desconocido: nan
+15:53:54 - WARNING - Valor de construcción unitario inválido en item desconocido: nan
+15:53:54 - WARNING - Valor de construcción unitario inválido en item desconocido: nan
+15:53:54 - WARNING - Valor de construcción unitario inválido en item desconocido: nan
+15:53:54 - WARNING - Valor de construcción unitario inválido en item desconocido: nan
+15:53:54 - WARNING - Valor de construcción unitario inválido en item desconocido: nan
+15:53:54 - WARNING - Valor de construcción unitario inválido en item desconocido: nan
+15:53:54 - WARNING - Valor de construcción unitario inválido en item desconocido: nan
+15:53:54 - WARNING - Valor de construcción unitario inválido en item desconocido: nan
+15:53:54 - WARNING - Valor de construcción unitario inválido en item desconocido: nan
+15:53:54 - WARNING - Valor de construcción unitario inválido en item desconocido: nan
+15:53:54 - WARNING - Cantidad inválida en insumo M.O. CORTE Y DOBLEZ: None
+15:53:54 - WARNING - Cantidad inválida en insumo TRANSPORTE CAMIONETA ESTRUTECHOS: None
+15:53:54 - WARNING - Cantidad inválida en insumo M.O. CORTE Y DOBLEZ: None
+15:53:54 - WARNING - Cantidad inválida en insumo TRANSPORTE CAMIONETA ESTRUTECHOS: None
+15:53:54 - WARNING - Cantidad inválida en insumo M.O. CORTE Y DOBLEZ: None
+15:53:54 - WARNING - Cantidad inválida en insumo TRANSPORTE CAMIONETA ESTRUTECHOS: None
+15:53:54 - WARNING - Cantidad inválida en insumo M.O. CORTE Y DOBLEZ: None
+15:53:54 - WARNING - Cantidad inválida en insumo TRANSPORTE CAMIONETA ESTRUTECHOS: None
+15:53:54 - WARNING - Cantidad inválida en insumo M.O. CORTE Y DOBLEZ: None
+15:53:54 - WARNING - Cantidad inválida en insumo TRANSPORTE CAMIONETA ESTRUTECHOS: None
+15:53:54 - WARNING - Cantidad inválida en insumo M.O. CORTE Y DOBLEZ: None
+15:53:54 - WARNING - Cantidad inválida en insumo TRANSPORTE CAMIONETA ESTRUTECHOS: None
+15:53:54 - WARNING - Cantidad inválida en insumo M.O. CORTE Y DOBLEZ: None
+15:53:54 - WARNING - Cantidad inválida en insumo TRANSPORTE CAMIONETA ESTRUTECHOS: None
+15:53:54 - WARNING - Cantidad inválida en insumo M.O. CORTE Y DOBLEZ: None
+15:53:54 - WARNING - Cantidad inválida en insumo TRANSPORTE CAMIONETA ESTRUTECHOS: None
+15:53:54 - WARNING - Cantidad inválida en insumo M.O. CORTE Y DOBLEZ: None
+15:53:54 - WARNING - Cantidad inválida en insumo TRANSPORTE CAMIONETA ESTRUTECHOS: None
+15:53:54 - WARNING - Cantidad inválida en insumo M.O. CORTE Y DOBLEZ: None
+15:53:54 - WARNING - Cantidad inválida en insumo TRANSPORTE CAMIONETA ESTRUTECHOS: None
+15:53:54 - WARNING - Cantidad inválida en insumo M.O. CORTE Y DOBLEZ: None
+15:53:54 - WARNING - Cantidad inválida en insumo TRANSPORTE CAMIONETA ESTRUTECHOS: None
+15:53:54 - WARNING - Cantidad inválida en insumo M.O. CORTE Y DOBLEZ: None
+15:53:54 - WARNING - Cantidad inválida en insumo TRANSPORTE CAMIONETA ESTRUTECHOS: None
+15:53:54 - WARNING - Cantidad inválida en insumo M.O. CORTE Y DOBLEZ: None
+15:53:54 - WARNING - Cantidad inválida en insumo TRANSPORTE CAMIONETA ESTRUTECHOS: None
+15:53:54 - WARNING - Cantidad inválida en insumo M.O. CORTE Y DOBLEZ: None
+15:53:54 - WARNING - Cantidad inválida en insumo TRANSPORTE CAMIONETA ESTRUTECHOS: None
+15:53:54 - WARNING - Cantidad inválida en insumo FLEJE DE O.60 MTS CAL. 24 (PINTURA): None
+15:53:54 - WARNING - Cantidad inválida en insumo M.O. CORTE Y DOBLEZ: None
+15:53:54 - WARNING - Cantidad inválida en insumo TRANSPORTE CAMIONETA ESTRUTECHOS: None
+15:53:54 - WARNING - Cantidad inválida en insumo FLEJE DE O.60 MTS CAL. 24 (PINTURA): None
+15:53:54 - WARNING - Cantidad inválida en insumo M.O. CORTE Y DOBLEZ: None
+15:53:54 - WARNING - Cantidad inválida en insumo TRANSPORTE CAMIONETA ESTRUTECHOS: None
+15:53:54 - WARNING - Cantidad inválida en insumo FLEJE DE O.60 MTS CAL. 24 (PINTURA): None
+15:53:54 - WARNING - Cantidad inválida en insumo M.O. CORTE Y DOBLEZ: None
+15:53:54 - WARNING - Cantidad inválida en insumo TRANSPORTE CAMIONETA ESTRUTECHOS: None
+15:53:54 - WARNING - Cantidad inválida en insumo FLEJE DE O.60 MTS CAL. 24 (PINTURA): None
+15:53:54 - WARNING - Cantidad inválida en insumo M.O. CORTE Y DOBLEZ: None
+15:53:54 - WARNING - Cantidad inválida en insumo TRANSPORTE CAMIONETA ESTRUTECHOS: None
+15:53:54 - WARNING - Cantidad inválida en insumo FLEJE DE O.60 MTS CAL. 24 (PINTURA): None
+15:53:54 - WARNING - Cantidad inválida en insumo M.O. CORTE Y DOBLEZ: None
+15:53:54 - WARNING - Cantidad inválida en insumo TRANSPORTE CAMIONETA ESTRUTECHOS: None
+15:53:54 - WARNING - Cantidad inválida en insumo FLEJE DE O.60 MTS CAL. 26 (PINTURA): None
+15:53:54 - WARNING - Cantidad inválida en insumo M.O. CORTE Y DOBLEZ: None
+15:53:54 - WARNING - Cantidad inválida en insumo TRANSPORTE CAMIONETA ESTRUTECHOS: None
+15:53:54 - WARNING - Cantidad inválida en insumo FLEJE DE O.60 MTS CAL. 26 (PINTURA): None
+15:53:54 - WARNING - Cantidad inválida en insumo M.O. CORTE Y DOBLEZ: None
+15:53:54 - WARNING - Cantidad inválida en insumo TRANSPORTE CAMIONETA ESTRUTECHOS: None
+15:53:54 - WARNING - Cantidad inválida en insumo FLEJE DE O.60 MTS CAL. 26 (PINTURA): None
+15:53:54 - WARNING - Cantidad inválida en insumo M.O. CORTE Y DOBLEZ: None
+15:53:54 - WARNING - Cantidad inválida en insumo TRANSPORTE CAMIONETA ESTRUTECHOS: None
+15:53:54 - WARNING - Cantidad inválida en insumo FLEJE DE O.60 MTS CAL. 26 (PINTURA): None
+15:53:54 - WARNING - Cantidad inválida en insumo M.O. CORTE Y DOBLEZ: None
+15:53:54 - WARNING - Cantidad inválida en insumo TRANSPORTE CAMIONETA ESTRUTECHOS: None
+15:53:54 - WARNING - Cantidad inválida en insumo FLEJE DE O.60 MTS CAL. 26 (PINTURA): None
+15:53:54 - WARNING - Cantidad inválida en insumo M.O. CORTE Y DOBLEZ: None
+15:53:54 - WARNING - Cantidad inválida en insumo TRANSPORTE CAMIONETA ESTRUTECHOS: None
+15:53:54 - WARNING - Cantidad inválida en insumo M.O. CORTE Y DOBLEZ: None
+15:53:54 - WARNING - Cantidad inválida en insumo TRANSPORTE CAMIONETA ESTRUTECHOS: None
+15:53:54 - WARNING - Cantidad inválida en insumo M.O. CORTE Y DOBLEZ: None
+15:53:54 - WARNING - Cantidad inválida en insumo TRANSPORTE CAMIONETA ESTRUTECHOS: None
+15:53:54 - WARNING - Cantidad inválida en insumo M.O. CORTE Y DOBLEZ: None
+15:53:54 - WARNING - Cantidad inválida en insumo TRANSPORTE CAMIONETA ESTRUTECHOS: None
+15:53:54 - WARNING - Cantidad inválida en insumo M.O. CORTE Y DOBLEZ: None
+15:53:54 - WARNING - Cantidad inválida en insumo TRANSPORTE CAMIONETA ESTRUTECHOS: None
+15:53:54 - WARNING - Cantidad inválida en insumo M.O. CORTE Y DOBLEZ: None
+15:53:54 - WARNING - Cantidad inválida en insumo TRANSPORTE CAMIONETA ESTRUTECHOS: None
+15:53:54 - WARNING - Cantidad inválida en insumo M.O. CORTE Y DOBLEZ: None
+15:53:54 - WARNING - Cantidad inválida en insumo TRANSPORTE CAMIONETA ESTRUTECHOS: None
+15:53:54 - WARNING - Cantidad inválida en insumo M.O. CORTE Y DOBLEZ: None
+15:53:54 - WARNING - Cantidad inválida en insumo TRANSPORTE CAMIONETA ESTRUTECHOS: None
+15:53:54 - WARNING - Cantidad inválida en insumo M.O. CORTE Y DOBLEZ: None
+15:53:54 - WARNING - Cantidad inválida en insumo TRANSPORTE CAMIONETA ESTRUTECHOS: None
+15:53:54 - WARNING - Cantidad inválida en insumo M.O. CORTE Y DOBLEZ: None
+15:53:54 - WARNING - Cantidad inválida en insumo TRANSPORTE CAMIONETA ESTRUTECHOS: None
+15:53:54 - WARNING - Cantidad inválida en insumo M.O. CORTE Y DOBLEZ: None
+15:53:54 - WARNING - Cantidad inválida en insumo TRANSPORTE CAMIONETA ESTRUTECHOS: None
+15:53:54 - WARNING - Cantidad inválida en insumo M.O. CORTE Y DOBLEZ: None
+15:53:54 - WARNING - Cantidad inválida en insumo TRANSPORTE CAMIONETA ESTRUTECHOS: None
+15:53:54 - WARNING - Cantidad inválida en insumo M.O. CORTE Y DOBLEZ: None
+15:53:54 - WARNING - Cantidad inválida en insumo TRANSPORTE CAMIONETA ESTRUTECHOS: None
+15:53:54 - WARNING - Cantidad inválida en insumo M.O. CORTE Y DOBLEZ: None
+15:53:54 - WARNING - Cantidad inválida en insumo TRANSPORTE CAMIONETA ESTRUTECHOS: None
+15:53:54 - WARNING - Cantidad inválida en insumo M.O. CORTE Y DOBLEZ: None
+15:53:54 - WARNING - Cantidad inválida en insumo TRANSPORTE CAMIONETA ESTRUTECHOS: None
+15:53:54 - WARNING - Cantidad inválida en insumo FLEJE DE O.60 MTS CAL. 24 (PINTURA): None
+15:53:54 - WARNING - Cantidad inválida en insumo M.O. CORTE Y DOBLEZ: None
+15:53:54 - WARNING - Cantidad inválida en insumo TRANSPORTE CAMIONETA ESTRUTECHOS: None
+15:53:54 - WARNING - Cantidad inválida en insumo FLEJE DE O.60 MTS CAL. 24 (PINTURA): None
+15:53:54 - WARNING - Cantidad inválida en insumo M.O. CORTE Y DOBLEZ: None
+15:53:54 - WARNING - Cantidad inválida en insumo TRANSPORTE CAMIONETA ESTRUTECHOS: None
+15:53:54 - WARNING - Cantidad inválida en insumo FLEJE DE O.60 MTS CAL. 24 (PINTURA): None
+15:53:54 - WARNING - Cantidad inválida en insumo M.O. CORTE Y DOBLEZ: None
+15:53:54 - WARNING - Cantidad inválida en insumo TRANSPORTE CAMIONETA ESTRUTECHOS: None
+15:53:54 - WARNING - Cantidad inválida en insumo FLEJE DE O.60 MTS CAL. 24 (PINTURA): None
+15:53:54 - WARNING - Cantidad inválida en insumo M.O. CORTE Y DOBLEZ: None
+15:53:54 - WARNING - Cantidad inválida en insumo TRANSPORTE CAMIONETA ESTRUTECHOS: None
+15:53:54 - WARNING - Cantidad inválida en insumo FLEJE DE O.60 MTS CAL. 24 (PINTURA): None
+15:53:54 - WARNING - Cantidad inválida en insumo M.O. CORTE Y DOBLEZ: None
+15:53:54 - WARNING - Cantidad inválida en insumo TRANSPORTE CAMIONETA ESTRUTECHOS: None
+15:53:54 - WARNING - Cantidad inválida en insumo FLEJE DE O.60 MTS CAL. 26 (PINTURA): None
+15:53:54 - WARNING - Cantidad inválida en insumo M.O. CORTE Y DOBLEZ: None
+15:53:54 - WARNING - Cantidad inválida en insumo TRANSPORTE CAMIONETA ESTRUTECHOS: None
+15:53:54 - WARNING - Cantidad inválida en insumo FLEJE DE O.60 MTS CAL. 26 (PINTURA): None
+15:53:54 - WARNING - Cantidad inválida en insumo M.O. CORTE Y DOBLEZ: None
+15:53:54 - WARNING - Cantidad inválida en insumo TRANSPORTE CAMIONETA ESTRUTECHOS: None
+15:53:54 - WARNING - Cantidad inválida en insumo FLEJE DE O.60 MTS CAL. 26 (PINTURA): None
+15:53:54 - WARNING - Cantidad inválida en insumo M.O. CORTE Y DOBLEZ: None
+15:53:54 - WARNING - Cantidad inválida en insumo TRANSPORTE CAMIONETA ESTRUTECHOS: None
+15:53:54 - WARNING - Cantidad inválida en insumo FLEJE DE O.60 MTS CAL. 26 (PINTURA): None
+15:53:54 - WARNING - Cantidad inválida en insumo M.O. CORTE Y DOBLEZ: None
+15:53:54 - WARNING - Cantidad inválida en insumo TRANSPORTE CAMIONETA ESTRUTECHOS: None
+15:53:54 - WARNING - Cantidad inválida en insumo FLEJE DE O.60 MTS CAL. 26 (PINTURA): None
+15:53:54 - WARNING - Cantidad inválida en insumo M.O. CORTE Y DOBLEZ: None
+15:53:54 - WARNING - Cantidad inválida en insumo TRANSPORTE CAMIONETA ESTRUTECHOS: None
+15:53:54 - WARNING - Cantidad inválida en insumo ALUMBAND 20 CMS X METROS: None
+15:53:54 - WARNING - Cantidad inválida en insumo M.O. 1 JEFE CUAD - 1 OFI2 - 1 AYUDANTE2 - 1 VIGIA AYUDANTE2: None
+15:53:54 - WARNING - Cantidad inválida en insumo ALQUILER ATORNILLADORAS: None
+15:53:54 - WARNING - Cantidad inválida en insumo EXTENSIONES: None
+15:53:54 - WARNING - Cantidad inválida en insumo TRANSPORTE CAMIONETA ESTRUTECHOS: None
+15:53:54 - WARNING - Cantidad inválida en insumo TRANSPORTE GRUA ESTRUTECHOS: None
+15:53:54 - WARNING - Cantidad inválida en insumo TRANSPORTES PERSONAL FUERA DE CALI ESTRUTECHOS: None
+15:53:54 - WARNING - Cantidad inválida en insumo M.O. 1 JEFE CUAD - 1 OFI2 - 1 AYUDANTE2 - 1 VIGIA AYUDANTE2: None
+15:53:54 - WARNING - Cantidad inválida en insumo ALQUILER ATORNILLADORAS: None
+15:53:54 - WARNING - Cantidad inválida en insumo ALQUILER PULIDORA: None
+15:53:54 - WARNING - Cantidad inválida en insumo EXTENSIONES: None
+15:53:54 - WARNING - Cantidad inválida en insumo TRANSPORTE GRUA ESTRUTECHOS: None
+15:53:54 - WARNING - Cantidad inválida en insumo TRANSPORTES PERSONAL FUERA DE CALI ESTRUTECHOS: None
+15:53:54 - WARNING - Cantidad inválida en insumo TRANSPORTE CAMIONETA ESTRUTECHOS: None
+15:53:54 - WARNING - Cantidad inválida en insumo M.O. 1 JEFE CUAD - 1 OFI2 - 1 AYUDANTE2 - 1 VIGIA AYUDANTE2: None
+15:53:54 - WARNING - Cantidad inválida en insumo ALQUILER ATORNILLADORAS: None
+15:53:54 - WARNING - Cantidad inválida en insumo EXTENSIONES: None
+15:53:54 - WARNING - Cantidad inválida en insumo TRANSPORTE CAMIONETA ESTRUTECHOS: None
+15:53:54 - WARNING - Cantidad inválida en insumo TRANSPORTES PERSONAL FUERA DE CALI ESTRUTECHOS: None
+15:53:54 - WARNING - Cantidad inválida en insumo TRANSPORTE GRUA ESTRUTECHOS: None
+15:53:54 - WARNING - Cantidad inválida en insumo M.O. 1 JEFE CUAD - 1 OFI2 - 1 AYUDANTE2 - 1 VIGIA AYUDANTE2: None
+15:53:54 - WARNING - Cantidad inválida en insumo ALQUILER ATORNILLADORAS: None
+15:53:54 - WARNING - Cantidad inválida en insumo EXTENSIONES: None
+15:53:54 - WARNING - Cantidad inválida en insumo TRANSPORTE CAMIONETA ESTRUTECHOS: None
+15:53:54 - WARNING - Cantidad inválida en insumo TRANSPORTES PERSONAL FUERA DE CALI ESTRUTECHOS: None
+15:53:54 - WARNING - Cantidad inválida en insumo TRANSPORTE GRUA ESTRUTECHOS: None
+15:53:54 - WARNING - Cantidad inválida en insumo M.O. 1 JEFE CUAD - 1 OFI2 - 1 AYUDANTE2 - 1 VIGIA AYUDANTE2: None
+15:53:54 - WARNING - Cantidad inválida en insumo ALQUILER ATORNILLADORAS: None
+15:53:54 - WARNING - Cantidad inválida en insumo EXTENSIONES: None
+15:53:54 - WARNING - Cantidad inválida en insumo TRANSPORTE CAMIONETA ESTRUTECHOS: None
+15:53:54 - WARNING - Cantidad inválida en insumo TRANSPORTES PERSONAL FUERA DE CALI ESTRUTECHOS: None
+15:53:54 - WARNING - Cantidad inválida en insumo TRANSPORTE GRUA ESTRUTECHOS: None
+15:53:54 - WARNING - Cantidad inválida en insumo M.O. 1 JEFE CUAD - 1 OFI2 - 1 AYUDANTE2 - 1 VIGIA AYUDANTE2: None
+15:53:54 - WARNING - Cantidad inválida en insumo ALQUILER ATORNILLADORAS: None
+15:53:54 - WARNING - Cantidad inválida en insumo EXTENSIONES: None
+15:53:54 - WARNING - Cantidad inválida en insumo TRANSPORTE CAMIONETA ESTRUTECHOS: None
+15:53:54 - WARNING - Cantidad inválida en insumo TRANSPORTES PERSONAL FUERA DE CALI ESTRUTECHOS: None
+15:53:54 - WARNING - Cantidad inválida en insumo TRANSPORTE GRUA ESTRUTECHOS: None
+15:53:54 - WARNING - Cantidad inválida en insumo SOPORTE EN PLATINA DE 1X1/8 PINTADA: None
+15:53:54 - WARNING - Cantidad inválida en insumo REMACHE ESTANCO: None
+15:53:54 - WARNING - Cantidad inválida en insumo SOSCO SENCILLO DE 4: None
+15:53:54 - WARNING - Cantidad inválida en insumo TAPAS: None
+15:53:54 - WARNING - Cantidad inválida en insumo LAMINA ADICIONAL PARA FABRICACION DE TAPAS DE 0.61: None
+15:53:54 - WARNING - Cantidad inválida en insumo M.O. 1 JEFE CUAD - 1 OFI2 - 1 AYUDANTE2 - 1 VIGIA AYUDANTE2: None
+15:53:54 - WARNING - Cantidad inválida en insumo ALQUILER DE CUERPOS DE ANDAMIOS: None
+15:53:54 - WARNING - Cantidad inválida en insumo ALQUILER DE PULIDORA: None
+15:53:54 - WARNING - Cantidad inválida en insumo BOLSA PARA LA BASURA: None
+15:53:54 - WARNING - Cantidad inválida en insumo LINEA DE VIDA HORIZONTAL: None
+15:53:54 - WARNING - Cantidad inválida en insumo BAUL DE HERRAMIENTAS: None
+15:53:54 - WARNING - Cantidad inválida en insumo EXTENSIONES: None
+15:53:54 - WARNING - Cantidad inválida en insumo ALQUILER ATORNILLADORAS: None
+15:53:54 - WARNING - Cantidad inválida en insumo TRANSPORTE CAMIONETA ESTRUTECHOS: None
+15:53:54 - WARNING - Cantidad inválida en insumo ALUMBAND 20 CMS X METROS: None
+15:53:54 - WARNING - Cantidad inválida en insumo M.O. 1 JEFE CUAD - 1 OFI2 - 1 AYUDANTE2 - 1 VIGIA AYUDANTE2: None
+15:53:54 - WARNING - Cantidad inválida en insumo ALQUILER ATORNILLADORAS: None
+15:53:54 - WARNING - Cantidad inválida en insumo EXTENSIONES: None
+15:53:54 - WARNING - Cantidad inválida en insumo TRANSPORTE CAMIONETA ESTRUTECHOS: None
+15:53:54 - WARNING - Cantidad inválida en insumo TRANSPORTE GRUA ESTRUTECHOS: None
+15:53:54 - WARNING - Cantidad inválida en insumo TRANSPORTES PERSONAL FUERA DE CALI ESTRUTECHOS: None
+15:53:54 - WARNING - Cantidad inválida en insumo M.O. 1 JEFE CUAD - 1 OFI2 - 1 AYUDANTE2 - 1 VIGIA AYUDANTE2: None
+15:53:54 - WARNING - Cantidad inválida en insumo ALQUILER ATORNILLADORAS: None
+15:53:54 - WARNING - Cantidad inválida en insumo ALQUILER PULIDORA: None
+15:53:54 - WARNING - Cantidad inválida en insumo EXTENSIONES: None
+15:53:54 - WARNING - Cantidad inválida en insumo TRANSPORTE GRUA ESTRUTECHOS: None
+15:53:54 - WARNING - Cantidad inválida en insumo TRANSPORTES PERSONAL FUERA DE CALI ESTRUTECHOS: None
+15:53:54 - WARNING - Cantidad inválida en insumo TRANSPORTE CAMIONETA ESTRUTECHOS: None
+15:53:54 - WARNING - Cantidad inválida en insumo M.O. 1 JEFE CUAD - 1 OFI2 - 1 AYUDANTE2 - 1 VIGIA AYUDANTE2: None
+15:53:54 - WARNING - Cantidad inválida en insumo ALQUILER ATORNILLADORAS: None
+15:53:54 - WARNING - Cantidad inválida en insumo EXTENSIONES: None
+15:53:54 - WARNING - Cantidad inválida en insumo TRANSPORTE CAMIONETA ESTRUTECHOS: None
+15:53:54 - WARNING - Cantidad inválida en insumo TRANSPORTES PERSONAL FUERA DE CALI ESTRUTECHOS: None
+15:53:54 - WARNING - Cantidad inválida en insumo TRANSPORTE GRUA ESTRUTECHOS: None
+15:53:54 - WARNING - Cantidad inválida en insumo M.O. 1 JEFE CUAD - 1 OFI2 - 1 AYUDANTE2 - 1 VIGIA AYUDANTE2: None
+15:53:54 - WARNING - Cantidad inválida en insumo ALQUILER ATORNILLADORAS: None
+15:53:54 - WARNING - Cantidad inválida en insumo EXTENSIONES: None
+15:53:54 - WARNING - Cantidad inválida en insumo TRANSPORTE CAMIONETA ESTRUTECHOS: None
+15:53:54 - WARNING - Cantidad inválida en insumo TRANSPORTES PERSONAL FUERA DE CALI ESTRUTECHOS: None
+15:53:54 - WARNING - Cantidad inválida en insumo TRANSPORTE GRUA ESTRUTECHOS: None
+15:53:54 - WARNING - Cantidad inválida en insumo M.O. 1 JEFE CUAD - 1 OFI2 - 1 AYUDANTE2 - 1 VIGIA AYUDANTE2: None
+15:53:54 - WARNING - Cantidad inválida en insumo ALQUILER ATORNILLADORAS: None
+15:53:54 - WARNING - Cantidad inválida en insumo EXTENSIONES: None
+15:53:54 - WARNING - Cantidad inválida en insumo TRANSPORTE CAMIONETA ESTRUTECHOS: None
+15:53:54 - WARNING - Cantidad inválida en insumo TRANSPORTES PERSONAL FUERA DE CALI ESTRUTECHOS: None
+15:53:54 - WARNING - Cantidad inválida en insumo TRANSPORTE GRUA ESTRUTECHOS: None
+15:53:54 - WARNING - Cantidad inválida en insumo M.O. 1 JEFE CUAD - 1 OFI2 - 1 AYUDANTE2 - 1 VIGIA AYUDANTE2: None
+15:53:54 - WARNING - Cantidad inválida en insumo ALQUILER ATORNILLADORAS: None
+15:53:54 - WARNING - Cantidad inválida en insumo EXTENSIONES: None
+15:53:54 - WARNING - Cantidad inválida en insumo TRANSPORTE CAMIONETA ESTRUTECHOS: None
+15:53:54 - WARNING - Cantidad inválida en insumo TRANSPORTES PERSONAL FUERA DE CALI ESTRUTECHOS: None
+15:53:54 - WARNING - Cantidad inválida en insumo TRANSPORTE GRUA ESTRUTECHOS: None
+15:53:54 - WARNING - Cantidad inválida en insumo SOPORTE EN PLATINA DE 1X1/8 PINTADA: None
+15:53:54 - WARNING - Cantidad inválida en insumo REMACHE ESTANCO: None
+15:53:54 - WARNING - Cantidad inválida en insumo SOSCO SENCILLO DE 4: None
+15:53:54 - WARNING - Cantidad inválida en insumo TAPAS: None
+15:53:54 - WARNING - Cantidad inválida en insumo LAMINA ADICIONAL PARA FABRICACION DE TAPAS DE 0.61: None
+15:53:54 - WARNING - Cantidad inválida en insumo M.O. 1 JEFE CUAD - 1 OFI2 - 1 AYUDANTE2 - 1 VIGIA AYUDANTE2: None
+15:53:54 - WARNING - Cantidad inválida en insumo ALQUILER DE CUERPOS DE ANDAMIOS: None
+15:53:54 - WARNING - Cantidad inválida en insumo PULIDORA ELECTRICA 9: None
+15:53:54 - WARNING - Cantidad inválida en insumo BOLSA DE BASURA: None
+15:53:54 - WARNING - Cantidad inválida en insumo LINEA DE VIDA HORIZONTAL: None
+15:53:54 - WARNING - Cantidad inválida en insumo LINEA DE VIDA VERTICAL: None
+15:53:54 - WARNING - Cantidad inválida en insumo BAUL DE HERRAMIENTAS: None
+15:53:54 - WARNING - Cantidad inválida en insumo EXTENSION: None
+15:53:54 - WARNING - Cantidad inválida en insumo ATORNILLADORA: None
+15:53:54 - WARNING - Cantidad inválida en insumo TRANSPORTE CAMIONETA ESTRUTECHOS: None
+15:53:54 - WARNING - Cantidad inválida en insumo LAM GALV PREPINTADA CAL 22 DE 122X305: None
+15:53:54 - WARNING - Cantidad inválida en insumo M.O. CORTE Y DOBLEZ: None
+15:53:54 - WARNING - Cantidad inválida en insumo TRANSPORTE CAMIONETA ESTRUTECHOS: None
+15:53:54 - WARNING - Cantidad inválida en insumo LAM GALV PREPINTADA CAL 22 DE 122X305: None
+15:53:54 - WARNING - Cantidad inválida en insumo M.O. CORTE Y DOBLEZ: None
+15:53:54 - WARNING - Cantidad inválida en insumo TRANSPORTE CAMIONETA ESTRUTECHOS: None
+15:53:54 - WARNING - Cantidad inválida en insumo LAM GALV PREPINTADA CAL 22 DE 122X305: None
+15:53:54 - WARNING - Cantidad inválida en insumo M.O. CORTE Y DOBLEZ: None
+15:53:54 - WARNING - Cantidad inválida en insumo TRANSPORTE CAMIONETA ESTRUTECHOS: None
+15:53:54 - WARNING - Cantidad inválida en insumo LAM GALV PREPINTADA CAL 22 DE 122X305: None
+15:53:54 - WARNING - Cantidad inválida en insumo M.O. CORTE Y DOBLEZ: None
+15:53:54 - WARNING - Cantidad inválida en insumo TRANSPORTE CAMIONETA ESTRUTECHOS: None
+15:53:54 - WARNING - Cantidad inválida en insumo M.O. CORTE Y DOBLEZ: None
+15:53:54 - WARNING - Cantidad inválida en insumo TRANSPORTE CAMIONETA ESTRUTECHOS: None
+15:53:54 - WARNING - Cantidad inválida en insumo M.O. CORTE Y DOBLEZ: None
+15:53:54 - WARNING - Cantidad inválida en insumo TRANSPORTE CAMIONETA ESTRUTECHOS: None
+15:53:54 - WARNING - Cantidad inválida en insumo M.O. CORTE Y DOBLEZ: None
+15:53:54 - WARNING - Cantidad inválida en insumo TRANSPORTE CAMIONETA ESTRUTECHOS: None
+15:53:54 - WARNING - Cantidad inválida en insumo M.O. CORTE Y DOBLEZ: None
+15:53:54 - WARNING - Cantidad inválida en insumo TRANSPORTE CAMIONETA ESTRUTECHOS: None
+15:53:54 - WARNING - Cantidad inválida en insumo SOPORTE EN PLATINA DE 1X1/8 PINTADA: None
+15:53:54 - WARNING - Cantidad inválida en insumo REMACHE ESTANCO: None
+15:53:54 - WARNING - Cantidad inválida en insumo SOSCO SENCILLO DE 4: None
+15:53:54 - WARNING - Cantidad inválida en insumo TAPAS: None
+15:53:54 - WARNING - Cantidad inválida en insumo LAMINA ADICIONAL PARA FABRICACION DE TAPAS DE 0.61: None
+15:53:54 - WARNING - Cantidad inválida en insumo M.O. 1 JEFE CUAD - 1 OFI2 - 1 AYUDANTE2 - 1 VIGIA AYUDANTE2: None
+15:53:54 - WARNING - Cantidad inválida en insumo ALQUILER DE CUERPOS DE ANDAMIOS: None
+15:53:54 - WARNING - Cantidad inválida en insumo PULIDORA ELECTRICA 9: None
+15:53:54 - WARNING - Cantidad inválida en insumo BOLSA DE BASURA: None
+15:53:54 - WARNING - Cantidad inválida en insumo LINEA DE VIDA HORIZONTAL: None
+15:53:54 - WARNING - Cantidad inválida en insumo LINEA DE VIDA VERTICAL: None
+15:53:54 - WARNING - Cantidad inválida en insumo BAUL DE HERRAMIENTAS: None
+15:53:54 - WARNING - Cantidad inválida en insumo EXTENSION: None
+15:53:54 - WARNING - Cantidad inválida en insumo ATORNILLADORA: None
+15:53:54 - WARNING - Cantidad inválida en insumo TRANSPORTE CAMIONETA ESTRUTECHOS: None
+15:53:54 - WARNING - Cantidad inválida en insumo M.O. 1 JEFE CUAD - 1 OFI2 - 1 AYUDANTE: None
+15:53:54 - WARNING - Cantidad inválida en insumo ALQUILER DE CUERPOS DE ANDAMIOS: None
+15:53:54 - WARNING - Cantidad inválida en insumo PULIDORA ELECTRICA 9: None
+15:53:54 - WARNING - Cantidad inválida en insumo BOLSA DE BASURA: None
+15:53:54 - WARNING - Cantidad inválida en insumo LINEA DE VIDA HORIZONTAL: None
+15:53:54 - WARNING - Cantidad inválida en insumo LINEA DE VIDA VERTICAL: None
+15:53:54 - WARNING - Cantidad inválida en insumo BAUL DE HERRAMIENTAS: None
+15:53:54 - WARNING - Cantidad inválida en insumo EXTENSION: None
+15:53:54 - WARNING - Cantidad inválida en insumo ATORNILLADORA: None
+15:53:54 - WARNING - Cantidad inválida en insumo TRANSPORTE CAMIONETA ESTRUTECHOS: None
+15:53:54 - WARNING - Cantidad inválida en insumo ALQUILER ATORNILLADORAS: None
+15:53:54 - WARNING - Cantidad inválida en insumo EXTENSIONES: None
+15:53:54 - WARNING - Cantidad inválida en insumo TRANSPORTE CAMIONETA ESTRUTECHOS: None
+15:53:54 - WARNING - Cantidad inválida en insumo TRANSPORTES DE ELEMENTOS FUERA DE CALI ESTRUTECHOS: None
+15:53:54 - WARNING - Cantidad inválida en insumo TRANSPORTE GRUA ESTRUTECHOS: None
+15:53:54 - WARNING - Cantidad inválida en insumo PINTURA BRONCO IMPERMEABILIZANTE: None
+15:53:54 - WARNING - Cantidad inválida en insumo M.O. 1 JEFE CUAD - 1 OFI2 - 1 AYUDANTE2 - 1 VIGIA AYUDANTE2: None
+15:53:54 - WARNING - Cantidad inválida en insumo PLATINA 1/8X1-1/2X6MT: None
+15:53:54 - WARNING - Cantidad inválida en insumo PLATINA 1/8X1-1/2X6MT: None
+15:53:54 - WARNING - Cantidad inválida en insumo TORNILLO HEX G-2 1/4 X 1-1/2: None
+15:53:54 - WARNING - Cantidad inválida en insumo TUERCA DE SEGURIDAD: None
+15:53:54 - WARNING - Cantidad inválida en insumo PINTURA BLER 2EN1 COLOR NEGRO (ANTICORROSIV. ESMALTE): None
+15:53:54 - WARNING - Cantidad inválida en insumo THINER: None
+15:53:54 - WARNING - Cantidad inválida en insumo BROCHA: None
+15:53:54 - WARNING - Cantidad inválida en insumo WIPE: None
+15:53:54 - WARNING - Cantidad inválida en insumo SOLDADURA 6011 X 1/8: None
+15:53:54 - WARNING - Cantidad inválida en insumo TRANSPORTE CAMIONETA ESTRUTECHOS: None
+15:53:54 - WARNING - Cantidad inválida en insumo M.O. 1 JEFE CUAD - 1 OFI2 - 1 AYUDANTE2 - 1 VIGIA AYUDANTE2: None
+15:53:54 - WARNING - Cantidad inválida en insumo ESCALERA EN FIBRA DE VIDRIO H=11.00MT: None
+15:53:54 - WARNING - Cantidad inválida en insumo PULIDORA ELECTRICA 9: None
+15:53:54 - WARNING - Cantidad inválida en insumo BOLSA DE BASURA: None
+15:53:54 - WARNING - Cantidad inválida en insumo MANGUERA 100MT: None
+15:53:54 - WARNING - Cantidad inválida en insumo LINEA DE VIDA HORIZONTAL: None
+15:53:54 - WARNING - Cantidad inválida en insumo BAUL DE HERRAMIENTAS: None
+15:53:54 - WARNING - Cantidad inválida en insumo LINEA DE VIDA VERTICAL: None
+15:53:54 - WARNING - Cantidad inválida en insumo ATORNILLADORA: None
+15:53:54 - WARNING - Cantidad inválida en insumo EXTENSION: None
+15:53:54 - WARNING - Cantidad inválida en insumo TABLERO ELECTRICO: None
+15:53:54 - WARNING - Cantidad inválida en insumo TRANSPORTE CAMIONETA ESTRUTECHOS: None
+15:53:54 - WARNING - Cantidad inválida en insumo PLATINA 1/8X1-1/2X6MT: None
+15:53:54 - WARNING - Cantidad inválida en insumo PLATINA 1/8X1-1/2X6MT: None
+15:53:54 - WARNING - Cantidad inválida en insumo TORNILLO HEX G-2 1/4 X 1-1/2: None
+15:53:54 - WARNING - Cantidad inválida en insumo TUERCA DE SEGURIDAD: None
+15:53:54 - WARNING - Cantidad inválida en insumo PINTURA BLER 2EN1 COLOR NEGRO (ANTICORROSIV. ESMALTE): None
+15:53:54 - WARNING - Cantidad inválida en insumo THINER: None
+15:53:54 - WARNING - Cantidad inválida en insumo BROCHA: None
+15:53:54 - WARNING - Cantidad inválida en insumo WIPE: None
+15:53:54 - WARNING - Cantidad inválida en insumo SOLDADURA 6011 X 1/8: None
+15:53:54 - WARNING - Cantidad inválida en insumo TRANSPORTE CAMIONETA ESTRUTECHOS: None
+15:53:54 - WARNING - Cantidad inválida en insumo M.O. 1 JEFE CUAD - 1 OFI2 - 1 AYUDANTE2 - 1 VIGIA AYUDANTE2: None
+15:53:54 - WARNING - Cantidad inválida en insumo ESCALERA EN FIBRA DE VIDRIO H=11.00MT: None
+15:53:54 - WARNING - Cantidad inválida en insumo PULIDORA ELECTRICA 9: None
+15:53:54 - WARNING - Cantidad inválida en insumo BOLSA DE BASURA: None
+15:53:54 - WARNING - Cantidad inválida en insumo MANGUERA 100MT: None
+15:53:54 - WARNING - Cantidad inválida en insumo LINEA DE VIDA HORIZONTAL: None
+15:53:54 - WARNING - Cantidad inválida en insumo BAUL DE HERRAMIENTAS: None
+15:53:54 - WARNING - Cantidad inválida en insumo LINEA DE VIDA VERTICAL: None
+15:53:54 - WARNING - Cantidad inválida en insumo ATORNILLADORA: None
+15:53:54 - WARNING - Cantidad inválida en insumo EXTENSION: None
+15:53:54 - WARNING - Cantidad inválida en insumo TABLERO ELECTRICO: None
+15:53:54 - WARNING - Cantidad inválida en insumo TRANSPORTE CAMIONETA ESTRUTECHOS: None
+15:53:54 - INFO - El Agente de Validación de Datos ha completado su ejecución.
+15:53:54 - INFO - 🔍 Validando datos procesados antes de guardar...
+15:53:54 - INFO - ✅ 146 APUs procesados listos para guardar
+15:53:54 - INFO - ================================================================================
+15:53:54 - INFO - 💾 Guardando archivos JSON de salida...
+15:53:54 - INFO - ================================================================================
+15:53:54 - INFO - 💾 Guardando APUs procesados en: data/processed_apus.json
+15:53:54 - INFO - ✅ processed_apus.json guardado exitosamente (146 registros, 90,552 bytes)
+15:53:54 - INFO - 💾 Guardando presupuesto final en: data/presupuesto_final.json
+15:53:54 - INFO - ✅ presupuesto_final.json guardado (105 registros, 67,121 bytes)
+15:53:54 - INFO - 💾 Guardando detalle de insumos en: data/insumos_detalle.json
+15:53:54 - INFO - ✅ insumos_detalle.json guardado (317 registros, 218,892 bytes)
+15:53:54 - INFO - ================================================================================
+15:53:54 - INFO - 📊 ESTADÍSTICAS DEL PROCESAMIENTO
+15:53:54 - INFO - ================================================================================
+15:53:54 - INFO -  📋 APUs en Presupuesto: 105
+15:53:54 - INFO -  💰 Costo Total Construcción: $nan
+15:53:54 - INFO -  🏗️ APUs Procesados: 146
+15:53:54 - INFO -  🔧 Insumos Detallados: 317
+15:53:54 - INFO -  📦 Grupos de Insumos: 4
+15:53:54 - INFO -  📦 Total Insumos: 111
+15:53:54 - INFO - 
+15:53:54 - INFO - 📁 ARCHIVOS GENERADOS:
+15:53:54 - INFO -  ✅ processed_apus: data/processed_apus.json (0.09 MB)
+15:53:54 - INFO -  ✅ presupuesto_final: data/presupuesto_final.json (0.06 MB)
+15:53:54 - INFO -  ✅ insumos_detalle: data/insumos_detalle.json (0.21 MB)
+15:53:54 - INFO - ================================================================================
+15:53:54 - INFO - ================================================================================
+15:53:54 - INFO - 🎉 PROCESAMIENTO COMPLETADO EXITOSAMENTE
+15:53:54 - INFO - ================================================================================
+15:53:54 - INFO - Archivos procesados exitosamente para sesión 8m4j-rfS
+15:53:54 - INFO - Archivos procesados exitosamente para sesión 8m4j-rfS
+15:53:54 - INFO - 127.0.0.1 - - [19/Nov/2025 15:53:54] "POST /upload HTTP/1.1" 200 -
+15:53:55 - INFO - 127.0.0.1 - - [19/Nov/2025 15:53:55] "POST /api/estimate HTTP/1.1" 401 -
+15:53:55 - INFO - 127.0.0.1 - - [19/Nov/2025 15:53:55] "POST /api/estimate HTTP/1.1" 401 -
+15:54:08 - INFO - 127.0.0.1 - - [19/Nov/2025 15:54:08] "GET /api/apu/3.3 HTTP/1.1" 401 -                                                                                     
