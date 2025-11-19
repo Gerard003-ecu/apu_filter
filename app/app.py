@@ -561,15 +561,24 @@ def create_app(config_name: str) -> Flask:
         user_data = session_data["data"]
         all_apu_details = user_data.get("apus_detail", [])
 
-        # Filtrar por código
+        # Filtrar por código (lógica de búsqueda robusta)
         apu_details = [
             item for item in all_apu_details if item.get("CODIGO_APU") == apu_code
         ]
 
         if not apu_details:
-            app.logger.warning(f"APU no encontrado: {apu_code}")
+            # Intento alternativo (cambiar punto por coma o viceversa)
+            alt_code = apu_code.replace(".", ",") if "." in apu_code else apu_code.replace(",", ".")
+            apu_details = [
+                item for item in all_apu_details if item.get("CODIGO_APU") == alt_code
+            ]
+            if apu_details:
+                apu_code = alt_code # Actualizar para usar el correcto
+
+        if not apu_details:
+            app.logger.warning(f"APU no encontrado con ninguna variante: {code}")
             return jsonify(
-                {"error": f"APU no encontrado: {apu_code}", "code": "APU_NOT_FOUND"}
+                {"error": f"APU no encontrado: {code}", "code": "APU_NOT_FOUND"}
             ), 404
 
         # Procesar detalles del APU

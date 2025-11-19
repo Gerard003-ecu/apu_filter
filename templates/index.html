@@ -310,7 +310,7 @@
 
         try {
             console.log("Iniciando procesamiento de archivos...");
-            const response = await fetch('/upload', { method: 'POST', body: formData });
+            const response = await fetch('/upload', { method: 'POST', body: formData, credentials: 'include' });
             console.log("Respuesta del servidor recibida:", response.status);
             if (!response.ok) throw new Error(`Error del servidor: ${response.statusText}`);
             
@@ -387,7 +387,8 @@
             const response = await fetch('/api/estimate', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(params)
+                body: JSON.stringify(params),
+                credentials: 'include'
             });
 
             const result = await response.json();
@@ -602,7 +603,7 @@
         modal.classList.add('flex');
 
         try {
-            const response = await fetch(`/api/apu/${encodeURIComponent(apuCode)}`);
+            const response = await fetch(`/api/apu/${encodeURIComponent(apuCode)}`, { credentials: 'include' });
 
             // --- INICIO DE LA LÓGICA DE DEPURACIÓN ---
 
