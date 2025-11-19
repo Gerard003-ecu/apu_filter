@@ -245,11 +245,58 @@ class FileValidator:
 
 
 class LoadDataStep(ProcessingStep):
+    """
+    Paso del pipeline encargado de cargar y procesar los archivos de entrada.
+
+    Este paso valida la existencia de los archivos de presupuesto, APUs e
+    insumos. Utiliza procesadores especializados para cada tipo de archivo,
+    aplicando perfiles de configuración específicos para la correcta
+    interpretación de los datos.
+
+    La carga de APUs es manejada por el `DataFluxCondenser`, que actúa como
+    una capa de estabilización para garantizar la calidad de los datos antes
+    de integrarlos al pipeline.
+    """
+
     def __init__(self, config: dict, thresholds: ProcessingThresholds):
+        """
+        Inicializa el paso de carga de datos.
+
+        Args:
+            config (dict): La configuración global de la aplicación.
+            thresholds (ProcessingThresholds): Los umbrales operativos para
+                validaciones.
+        """
         self.config = config
         self.thresholds = thresholds
 
     def execute(self, context: dict) -> dict:
+        """
+        Ejecuta la carga y procesamiento inicial de los archivos.
+
+        Orquesta la carga de los tres archivos principales:
+        1.  **Presupuesto:** Cargado por `PresupuestoProcessor`.
+        2.  **Insumos:** Cargado por `InsumosProcessor`.
+        3.  **APUs:** Procesado a través del `DataFluxCondenser` para asegurar
+            un flujo de datos estable y validado.
+
+        Valida que los DataFrames resultantes no estén vacíos y los añade al
+        contexto para los siguientes pasos del pipeline.
+
+        Args:
+            context (dict): El contexto actual del pipeline, que debe contener
+                las rutas a los archivos (`presupuesto_path`, `apus_path`,
+                `insumos_path`).
+
+        Returns:
+            dict: El contexto actualizado con los DataFrames cargados
+                (`df_presupuesto`, `df_insumos`, `df_apus_raw`).
+
+        Raises:
+            ValueError: Si alguna ruta de archivo es inválida, si un perfil de
+                configuración no se encuentra, o si un DataFrame esencial
+                está vacío después de la carga.
+        """
         presupuesto_path = context["presupuesto_path"]
         apus_path = context["apus_path"]
         insumos_path = context["insumos_path"]

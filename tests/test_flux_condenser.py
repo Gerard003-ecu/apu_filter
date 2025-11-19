@@ -1,8 +1,38 @@
 """
-Test Suite para DataFluxCondenser
-Cobertura completa de lógica, validaciones, manejo de errores y casos edge.
-"""
+Suite de Pruebas Exhaustiva para el `DataFluxCondenser`.
 
+Esta suite de pruebas verifica todos los aspectos del `DataFluxCondenser`,
+asegurando su robustez, fiabilidad y comportamiento esperado bajo una amplia
+variedad de escenarios.
+
+Cobertura de Pruebas:
+- **Inicialización:** Valida que el condensador se configure correctamente,
+  incluyendo la gestión de configuraciones personalizadas y por defecto.
+- **Validación de Entradas:** Comprueba que el manejo de rutas de archivos
+  (existentes, inexistentes, directorios, etc.) sea seguro.
+- **Flujo de Procesamiento:** Utiliza `mocks` para aislar y probar cada
+  etapa del pipeline (`_absorb_and_filter`, `_rectify_signal`), verificando
+  la correcta interacción con `ReportParserCrudo` y `APUProcessor`.
+- **Motor de Física:** Pruebas unitarias para `FluxPhysicsEngine`, asegurando
+  que los cálculos de saturación y los estados de estabilidad sean precisos.
+- **Manejo de Errores:** Confirma que las excepciones personalizadas
+  (`InvalidInputError`, `ProcessingError`) se lancen y propaguen
+  correctamente.
+- **Casos Límite (Edge Cases):** Evalúa el comportamiento con datasets
+  vacíos, muy grandes, y con datos problemáticos (e.g., columnas nulas).
+- **Telemetría y Logging:** Verifica que los mensajes de log, especialmente
+  los de telemetría física, se generen como se espera.
+
+Metodología:
+- **Fixtures de Pytest:** Se utilizan extensivamente para crear un entorno de
+  pruebas limpio y reutilizable para cada test.
+- **Mocks y Patching:** La librería `unittest.mock` se usa para aislar el
+  `DataFluxCondenser` de sus dependencias, permitiendo pruebas unitarias
+  enfocadas en su lógica de orquestación.
+- **Pruebas Parametrizadas:** `pytest.mark.parametrize` se emplea para
+  reducir código duplicado y probar múltiples variaciones de un mismo
+  escenario de forma eficiente.
+"""
 import logging
 from pathlib import Path
 from typing import Any, Dict, List
@@ -24,7 +54,13 @@ from app.flux_condenser import (
 
 @pytest.fixture
 def valid_config() -> Dict[str, Any]:
-    """Configuración válida del sistema."""
+    """
+    Proporciona una configuración de sistema válida y completa.
+
+    Returns:
+        Dict[str, Any]: Un diccionario con las claves requeridas para
+            simular una configuración real.
+    """
     return {
         'parser_settings': {
             'delimiter': ',',
@@ -40,7 +76,13 @@ def valid_config() -> Dict[str, Any]:
 
 @pytest.fixture
 def valid_profile() -> Dict[str, Any]:
-    """Perfil válido de procesamiento."""
+    """
+    Proporciona un perfil de procesamiento válido y completo.
+
+    Returns:
+        Dict[str, Any]: Un diccionario que simula un perfil de archivo
+            con mapeo de columnas y reglas de validación.
+    """
     return {
         'columns_mapping': {
             'cod_insumo': 'codigo',
@@ -55,19 +97,35 @@ def valid_profile() -> Dict[str, Any]:
 
 @pytest.fixture
 def minimal_config() -> Dict[str, Any]:
-    """Configuración mínima sin claves requeridas (modo tolerante)."""
+    """
+    Proporciona una configuración mínima para probar el modo tolerante.
+
+    Returns:
+        Dict[str, Any]: Diccionario sin las claves requeridas.
+    """
     return {'some_key': 'value'}
 
 
 @pytest.fixture
 def minimal_profile() -> Dict[str, Any]:
-    """Perfil mínimo sin claves requeridas."""
+    """
+    Proporciona un perfil mínimo para probar el modo tolerante.
+
+    Returns:
+        Dict[str, Any]: Diccionario sin las claves requeridas.
+    """
     return {'another_key': 'data'}
 
 
 @pytest.fixture
 def custom_condenser_config() -> CondenserConfig:
-    """Configuración personalizada del condensador."""
+    """
+    Crea una instancia de `CondenserConfig` con valores no predeterminados.
+
+    Returns:
+        CondenserConfig: Configuración con umbrales y niveles de log
+            personalizados para pruebas específicas.
+    """
     return CondenserConfig(
         min_records_threshold=5,
         enable_strict_validation=True,
@@ -77,19 +135,41 @@ def custom_condenser_config() -> CondenserConfig:
 
 @pytest.fixture
 def default_condenser_config() -> CondenserConfig:
-    """Configuración por defecto del condensador."""
+    """
+    Crea una instancia de `CondenserConfig` con sus valores por defecto.
+
+    Returns:
+        CondenserConfig: Configuración por defecto.
+    """
     return CondenserConfig()
 
 
 @pytest.fixture
 def condenser(valid_config, valid_profile) -> DataFluxCondenser:
-    """Instancia básica del condensador."""
+    """
+    Crea una instancia estándar del `DataFluxCondenser` para pruebas.
+
+    Utiliza la configuración y perfil válidos.
+
+    Args:
+        valid_config (Dict[str, Any]): Fixture con configuración válida.
+        valid_profile (Dict[str, Any]): Fixture con perfil válido.
+
+    Returns:
+        DataFluxCondenser: Una instancia lista para usar.
+    """
     return DataFluxCondenser(valid_config, valid_profile)
 
 
 @pytest.fixture
 def sample_raw_records() -> List[Dict[str, Any]]:
-    """Datos crudos de ejemplo."""
+    """
+    Genera una lista de registros crudos de ejemplo.
+
+    Returns:
+        List[Dict[str, Any]]: Datos que simulan la salida del
+            `ReportParserCrudo`.
+    """
     return [
         {'codigo': 'A001', 'cantidad': 10, 'precio': 100.0},
         {'codigo': 'A002', 'cantidad': 5, 'precio': 50.0},
@@ -99,7 +179,13 @@ def sample_raw_records() -> List[Dict[str, Any]]:
 
 @pytest.fixture
 def sample_parse_cache() -> Dict[str, Any]:
-    """Cache de parseo de ejemplo."""
+    """
+    Genera un diccionario de caché de parseo de ejemplo.
+
+    Returns:
+        Dict[str, Any]: Metadatos que simulan la caché del
+            `ReportParserCrudo`.
+    """
     return {
         'total_lines': 100,
         'skipped_lines': 5,
@@ -110,13 +196,31 @@ def sample_parse_cache() -> Dict[str, Any]:
 
 @pytest.fixture
 def sample_dataframe(sample_raw_records) -> pd.DataFrame:
-    """DataFrame de ejemplo."""
+    """
+    Crea un DataFrame de pandas a partir de los registros de ejemplo.
+
+    Args:
+        sample_raw_records (List[Dict[str, Any]]): Fixture con datos crudos.
+
+    Returns:
+        pd.DataFrame: DataFrame que simula la salida final del condensador.
+    """
     return pd.DataFrame(sample_raw_records)
 
 
 @pytest.fixture
 def mock_csv_file(tmp_path) -> Path:
-    """Crea un archivo CSV temporal."""
+    """
+    Crea un archivo CSV temporal en disco para pruebas de lectura.
+
+    Utiliza el fixture `tmp_path` de pytest para gestionar archivos temporales.
+
+    Args:
+        tmp_path (Path): El directorio temporal proporcionado por pytest.
+
+    Returns:
+        Path: La ruta al archivo CSV temporal creado.
+    """
     file_path = tmp_path / "test_data.csv"
     file_path.write_text(
         "codigo,cantidad,precio\n"
@@ -129,10 +233,13 @@ def mock_csv_file(tmp_path) -> Path:
 # ==================== TESTS DE INICIALIZACIÓN ====================
 
 class TestInitialization:
-    """Pruebas de inicialización del condensador."""
+    """Grupo de pruebas para la inicialización del `DataFluxCondenser`."""
 
     def test_init_with_valid_params(self, valid_config, valid_profile):
-        """Debe inicializar correctamente con parámetros válidos."""
+        """
+        Verifica que el condensador se inicialice correctamente con parámetros
+        válidos y completos.
+        """
         condenser = DataFluxCondenser(valid_config, valid_profile)
 
         assert condenser.config == valid_config
@@ -146,7 +253,10 @@ class TestInitialization:
         valid_profile,
         custom_condenser_config
     ):
-        """Debe aceptar configuración personalizada del condensador."""
+        """
+        Asegura que se pueda pasar una `CondenserConfig` personalizada y que
+        sus valores se apliquen correctamente.
+        """
         condenser = DataFluxCondenser(
             valid_config,
             valid_profile,
@@ -158,7 +268,10 @@ class TestInitialization:
         assert condenser.condenser_config.log_level == "DEBUG"
 
     def test_init_with_default_condenser_config(self, valid_config, valid_profile):
-        """Debe usar configuración por defecto si no se especifica."""
+        """
+        Verifica que se utilice la `CondenserConfig` por defecto si no se
+        proporciona una explícitamente.
+        """
         condenser = DataFluxCondenser(valid_config, valid_profile)
 
         assert condenser.condenser_config.min_records_threshold == 1
@@ -166,17 +279,25 @@ class TestInitialization:
         assert condenser.condenser_config.log_level == "INFO"
 
     def test_init_with_invalid_config_type(self, valid_profile):
-        """Debe fallar si config no es diccionario."""
+        """
+        Prueba que la inicialización falle con un `InvalidInputError` si el
+        parámetro `config` no es un diccionario.
+        """
         with pytest.raises(InvalidInputError, match="deben ser diccionarios válidos"):
             DataFluxCondenser("invalid_config", valid_profile)
 
     def test_init_with_invalid_profile_type(self, valid_config):
-        """Debe fallar si profile no es diccionario."""
+        """
+        Prueba que la inicialización falle con `InvalidInputError` si `profile`
+        no es un diccionario.
+        """
         with pytest.raises(InvalidInputError, match="deben ser diccionarios válidos"):
             DataFluxCondenser(valid_config, None)
 
     def test_init_with_none_params(self):
-        """Debe fallar si ambos parámetros son None."""
+        """
+        Asegura que la inicialización falle si `config` y `profile` son `None`.
+        """
         with pytest.raises(InvalidInputError):
             DataFluxCondenser(None, None)
 
@@ -186,7 +307,10 @@ class TestInitialization:
         minimal_profile,
         caplog
     ):
-        """Debe advertir sobre claves faltantes pero no fallar (modo tolerante)."""
+        """
+        Verifica el modo tolerante: si faltan claves requeridas en config o
+        profile, se debe registrar una advertencia en lugar de fallar.
+        """
         with caplog.at_level(logging.WARNING):
             condenser = DataFluxCondenser(minimal_config, minimal_profile)
 
@@ -195,7 +319,10 @@ class TestInitialization:
         assert "Claves faltantes en profile" in caplog.text
 
     def test_logger_configuration(self, valid_config, valid_profile):
-        """Debe configurar el logger con el nivel correcto."""
+        """
+        Comprueba que el nivel del logger se configure correctamente según
+        lo especificado en `CondenserConfig`.
+        """
         custom_config = CondenserConfig(log_level="DEBUG")
         condenser = DataFluxCondenser(valid_config, valid_profile, custom_config)
 
@@ -205,10 +332,12 @@ class TestInitialization:
 # ==================== TESTS DE VALIDACIÓN DE ARCHIVO ====================
 
 class TestInputFileValidation:
-    """Pruebas de validación de archivos de entrada."""
+    """Grupo de pruebas para el método de validación de archivos de entrada."""
 
     def test_validate_existing_csv_file(self, condenser, mock_csv_file):
-        """Debe validar archivo CSV existente."""
+        """
+        Verifica que un archivo `.csv` existente y válido pase la validación.
+        """
         result = condenser._validate_input_file(str(mock_csv_file))
 
         assert isinstance(result, Path)
@@ -216,7 +345,7 @@ class TestInputFileValidation:
         assert result.suffix == '.csv'
 
     def test_validate_txt_file(self, condenser, tmp_path):
-        """Debe aceptar archivos .txt."""
+        """Asegura que los archivos `.txt` también sean aceptados."""
         txt_file = tmp_path / "data.txt"
         txt_file.write_text("test data")
 
@@ -224,27 +353,36 @@ class TestInputFileValidation:
         assert result.suffix == '.txt'
 
     def test_validate_nonexistent_file(self, condenser):
-        """Debe fallar si el archivo no existe."""
+        """
+        Prueba que se lance `InvalidInputError` si el archivo no existe.
+        """
         with pytest.raises(InvalidInputError, match="El archivo no existe"):
             condenser._validate_input_file("/path/to/nonexistent.csv")
 
     def test_validate_directory_path(self, condenser, tmp_path):
-        """Debe fallar si la ruta es un directorio."""
+        """
+        Prueba que se lance `InvalidInputError` si la ruta es un directorio.
+        """
         with pytest.raises(InvalidInputError, match="La ruta no es un archivo"):
             condenser._validate_input_file(str(tmp_path))
 
     def test_validate_empty_string(self, condenser):
-        """Debe fallar con cadena vacía."""
+        """
+        Asegura que una cadena vacía como ruta de archivo cause un error.
+        """
         with pytest.raises(InvalidInputError, match="debe ser una cadena no vacía"):
             condenser._validate_input_file("")
 
     def test_validate_none_path(self, condenser):
-        """Debe fallar con None."""
+        """Asegura que `None` como ruta de archivo cause un error."""
         with pytest.raises(InvalidInputError, match="debe ser una cadena no vacía"):
             condenser._validate_input_file(None)
 
     def test_validate_unusual_extension_warns(self, condenser, tmp_path, caplog):
-        """Debe advertir sobre extensiones inusuales."""
+        """
+        Verifica que se registre una advertencia si el archivo tiene una
+        extensión no estándar (e.g., `.xlsx`).
+        """
         unusual_file = tmp_path / "data.xlsx"
         unusual_file.write_text("data")
 
@@ -254,7 +392,9 @@ class TestInputFileValidation:
         assert "Extensión inusual detectada" in caplog.text
 
     def test_validate_returns_path_object(self, condenser, mock_csv_file):
-        """Debe retornar objeto Path."""
+        """
+        Confirma que el método de validación retorne un objeto `pathlib.Path`.
+        """
         result = condenser._validate_input_file(str(mock_csv_file))
         assert isinstance(result, Path)
 
@@ -262,7 +402,10 @@ class TestInputFileValidation:
 # ==================== TESTS DE FILTRADO (ABSORB AND FILTER) ====================
 
 class TestAbsorbAndFilter:
-    """Pruebas del proceso de filtrado con ReportParserCrudo."""
+    """
+    Grupo de pruebas para el método `_absorb_and_filter`, que interactúa
+    con `ReportParserCrudo`.
+    """
 
     @patch('app.flux_condenser.ReportParserCrudo')
     def test_successful_parsing(
@@ -273,7 +416,10 @@ class TestAbsorbAndFilter:
         sample_raw_records,
         sample_parse_cache
     ):
-        """Debe parsear correctamente y retornar ParsedData."""
+        """
+        Simula un parseo exitoso y verifica que los datos se estructuren
+        correctamente en `ParsedData`.
+        """
         # Configurar mock
         mock_parser = Mock()
         mock_parser.parse_to_raw.return_value = sample_raw_records
