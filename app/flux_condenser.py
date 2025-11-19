@@ -1,4 +1,6 @@
 import logging
+import math
+import time
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, List, NamedTuple, Optional
@@ -38,29 +40,44 @@ class CondenserConfig:
     min_records_threshold: int = 1
     enable_strict_validation: bool = True
     log_level: str = "INFO"
+    # Configuración Física
+    system_capacitance: float = 5000.0  # Capacidad ideal (registros/ciclo)
+    base_resistance: float = 10.0      # Resistencia base del sistema
+
+
+# --- NUEVA CLASE: MOTOR DE FÍSICA ---
+class FluxPhysicsEngine:
+    """
+    Simula el comportamiento físico de carga/descarga de datos
+    usando ecuaciones diferenciales de un circuito RC.
+    """
+    def __init__(self, capacitance: float, resistance: float):
+        self.C = capacitance  # Faradios (Capacidad de datos)
+        self.R = resistance    # Ohmios (Fricción/Complejidad)
+        self.tau = self.R * self.C  # Constante de tiempo (Tau)
+
+    def calculate_saturation(self, load_size: int, complexity_factor: float) -> float:
+        """
+        Calcula el índice de saturación (Voltaje) basado en la carga y complejidad.
+        """
+        dynamic_R = self.R * (1 + complexity_factor)
+        current_tau = dynamic_R * self.C
+        t = float(load_size)
+        if current_tau == 0:
+            return 1.0 if t > 0 else 0.0
+        saturation = 1.0 - math.exp(-t / current_tau)
+        return saturation
+
+    def get_stability_status(self, saturation: float) -> str:
+        if saturation < 0.3: return "FLUJO LAMINAR (Estable)"
+        if saturation < 0.7: return "FLUJO TRANSITORIO (Carga Media)"
+        return "FLUJO TURBULENTO (Alta Saturación)"
 
 
 class DataFluxCondenser:
     """
     Implementación de Capacitancia Lógica para el procesamiento de APUs.
-
-    Actúa como un condensador y estabilizador de flujo que:
-    1. Absorbe la carga bruta (archivos CSV crudos).
-    2. Filtra el ruido (usando ReportParserCrudo como filtro pasa-bajos).
-    3. Rectifica la señal (usando APUProcessor para estructurar datos).
-    4. Descarga un flujo limpio y estable (DataFrame) al sistema principal.
-
-    Attributes:
-        config (Dict[str, Any]): Configuración del sistema.
-        profile (Dict[str, Any]): Perfil de procesamiento.
-        condenser_config (CondenserConfig): Configuración específica del condensador.
-
-    Raises:
-        InvalidInputError: Si los parámetros de entrada son inválidos.
-        ProcessingError: Si falla el procesamiento de datos.
     """
-
-    # Constantes
     REQUIRED_CONFIG_KEYS = {'parser_settings', 'processor_settings'}
     REQUIRED_PROFILE_KEYS = {'columns_mapping', 'validation_rules'}
 
@@ -70,17 +87,6 @@ class DataFluxCondenser:
         profile: Dict[str, Any],
         condenser_config: Optional[CondenserConfig] = None
     ):
-        """
-        Inicializa el condensador con validación de dependencias.
-
-        Args:
-            config: Configuración general del sistema.
-            profile: Perfil de procesamiento de APUs.
-            condenser_config: Configuración específica del condensador.
-
-        Raises:
-            InvalidInputError: Si config o profile son inválidos.
-        """
         self._validate_initialization_params(config, profile)
 
         self.config = config
@@ -89,86 +95,64 @@ class DataFluxCondenser:
         self.logger = logging.getLogger(self.__class__.__name__)
         self.logger.setLevel(self.condenser_config.log_level)
 
-        self.logger.info("DataFluxCondenser inicializado correctamente")
+        # Inicializar Motor de Física
+        self.physics = FluxPhysicsEngine(
+            capacitance=self.condenser_config.system_capacitance,
+            resistance=self.condenser_config.base_resistance
+        )
+        self.logger.info("DataFluxCondenser (con Motor Físico) inicializado")
 
     def _validate_initialization_params(
         self,
         config: Dict[str, Any],
         profile: Dict[str, Any]
     ) -> None:
-        """
-        Valida que los parámetros de inicialización sean coherentes.
-
-        Args:
-            config: Configuración a validar.
-            profile: Perfil a validar.
-
-        Raises:
-            InvalidInputError: Si falta alguna clave requerida.
-        """
         if not isinstance(config, dict) or not isinstance(profile, dict):
-            raise InvalidInputError(
-                "config y profile deben ser diccionarios válidos"
-            )
+            raise InvalidInputError("config y profile deben ser diccionarios válidos")
 
-        # Validación flexible: advertir sobre claves faltantes sin bloquear
         missing_config_keys = self.REQUIRED_CONFIG_KEYS - set(config.keys())
         if missing_config_keys:
-            logger.warning(
-                f"Claves faltantes en config (modo tolerante): {missing_config_keys}"
-            )
+            logger.warning(f"Claves faltantes en config (modo tolerante): {missing_config_keys}")
 
         missing_profile_keys = self.REQUIRED_PROFILE_KEYS - set(profile.keys())
         if missing_profile_keys:
-            logger.warning(
-                f"Claves faltantes en profile (modo tolerante): {missing_profile_keys}"
-            )
+            logger.warning(f"Claves faltantes en profile (modo tolerante): {missing_profile_keys}")
 
     def stabilize(self, file_path: str) -> pd.DataFrame:
         """
-        Proceso de Carga y Descarga del Condensador.
-
-        Ejecuta el ciclo completo de estabilización:
-        1. Validación de entrada
-        2. Filtrado de señal (parsing)
-        3. Rectificación (procesamiento)
-        4. Validación de salida
-
-        Args:
-            file_path: Ruta al archivo CSV a procesar.
-
-        Returns:
-            DataFrame estabilizado con datos procesados.
-
-        Raises:
-            InvalidInputError: Si el archivo no existe o es inválido.
-            ProcessingError: Si falla el procesamiento.
+        Proceso de Carga y Descarga con Monitoreo Físico.
         """
-        self.logger.info(
-            f"[INICIO] Ciclo de estabilización para: {file_path}"
-        )
+        start_time = time.time()
+        self.logger.info(f"⚡ [FÍSICA] Iniciando ciclo de estabilización para: {file_path}")
 
         try:
-            # Validación de entrada
             validated_path = self._validate_input_file(file_path)
-
-            # FASE 1: FILTRADO (El Guardia)
             parsed_data = self._absorb_and_filter(validated_path)
 
             if not self._validate_parsed_data(parsed_data):
-                self.logger.warning(
-                    "[ADVERTENCIA] La carga no generó señal válida (0 registros)"
-                )
+                self.logger.warning("[ADVERTENCIA] La carga no generó señal válida (0 registros)")
                 return pd.DataFrame()
 
-            # FASE 2: RECTIFICACIÓN (El Cirujano)
-            df_stabilized = self._rectify_signal(parsed_data)
-
-            # Validación de salida
-            self._validate_output(df_stabilized)
+            # --- CÁLCULO FÍSICO ---
+            total_records = len(parsed_data.raw_records)
+            cache_size = len(parsed_data.parse_cache)
+            complexity = 1.0 - (cache_size / total_records) if total_records > 0 else 0.0
+            saturation = self.physics.calculate_saturation(total_records, complexity)
+            status = self.physics.get_stability_status(saturation)
 
             self.logger.info(
-                f"[ÉXITO] Flujo estabilizado: {len(df_stabilized)} registros procesados"
+                f"📊 [TELEMETRÍA] Saturación: {saturation:.4f} | "
+                f"Complejidad: {complexity:.2f} | Estado: {status}"
+            )
+            # ----------------------
+
+            df_stabilized = self._rectify_signal(parsed_data)
+            self._validate_output(df_stabilized)
+
+            elapsed = time.time() - start_time
+            self.logger.info(
+                f"✅ [ÉXITO] Flujo estabilizado en {elapsed:.2f}s: "
+                f"{len(df_stabilized)} registros procesados"
             )
             return df_stabilized
 
