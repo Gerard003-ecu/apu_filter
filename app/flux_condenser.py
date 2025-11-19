@@ -1,12 +1,12 @@
 import logging
-from typing import Dict, Any, List, Optional, Tuple, NamedTuple
-from pathlib import Path
 from dataclasses import dataclass
+from pathlib import Path
+from typing import Any, Dict, List, NamedTuple, Optional
+
 import pandas as pd
 
-from .report_parser_crudo import ReportParserCrudo
 from .apu_processor import APUProcessor
-from .schemas import InsumoProcesado
+from .report_parser_crudo import ReportParserCrudo
 
 logger = logging.getLogger(__name__)
 
@@ -59,14 +59,14 @@ class DataFluxCondenser:
         InvalidInputError: Si los parámetros de entrada son inválidos.
         ProcessingError: Si falla el procesamiento de datos.
     """
-    
+
     # Constantes
     REQUIRED_CONFIG_KEYS = {'parser_settings', 'processor_settings'}
     REQUIRED_PROFILE_KEYS = {'columns_mapping', 'validation_rules'}
-    
+
     def __init__(
-        self, 
-        config: Dict[str, Any], 
+        self,
+        config: Dict[str, Any],
         profile: Dict[str, Any],
         condenser_config: Optional[CondenserConfig] = None
     ):
@@ -82,18 +82,18 @@ class DataFluxCondenser:
             InvalidInputError: Si config o profile son inválidos.
         """
         self._validate_initialization_params(config, profile)
-        
+
         self.config = config
         self.profile = profile
         self.condenser_config = condenser_config or CondenserConfig()
         self.logger = logging.getLogger(self.__class__.__name__)
         self.logger.setLevel(self.condenser_config.log_level)
-        
+
         self.logger.info("DataFluxCondenser inicializado correctamente")
 
     def _validate_initialization_params(
-        self, 
-        config: Dict[str, Any], 
+        self,
+        config: Dict[str, Any],
         profile: Dict[str, Any]
     ) -> None:
         """
@@ -110,14 +110,14 @@ class DataFluxCondenser:
             raise InvalidInputError(
                 "config y profile deben ser diccionarios válidos"
             )
-        
+
         # Validación flexible: advertir sobre claves faltantes sin bloquear
         missing_config_keys = self.REQUIRED_CONFIG_KEYS - set(config.keys())
         if missing_config_keys:
             logger.warning(
                 f"Claves faltantes en config (modo tolerante): {missing_config_keys}"
             )
-        
+
         missing_profile_keys = self.REQUIRED_PROFILE_KEYS - set(profile.keys())
         if missing_profile_keys:
             logger.warning(
@@ -147,14 +147,14 @@ class DataFluxCondenser:
         self.logger.info(
             f"[INICIO] Ciclo de estabilización para: {file_path}"
         )
-        
+
         try:
             # Validación de entrada
             validated_path = self._validate_input_file(file_path)
-            
+
             # FASE 1: FILTRADO (El Guardia)
             parsed_data = self._absorb_and_filter(validated_path)
-            
+
             if not self._validate_parsed_data(parsed_data):
                 self.logger.warning(
                     "[ADVERTENCIA] La carga no generó señal válida (0 registros)"
@@ -163,15 +163,15 @@ class DataFluxCondenser:
 
             # FASE 2: RECTIFICACIÓN (El Cirujano)
             df_stabilized = self._rectify_signal(parsed_data)
-            
+
             # Validación de salida
             self._validate_output(df_stabilized)
-            
+
             self.logger.info(
                 f"[ÉXITO] Flujo estabilizado: {len(df_stabilized)} registros procesados"
             )
             return df_stabilized
-            
+
         except InvalidInputError as e:
             self.logger.error(f"[ERROR] Entrada inválida: {e}")
             raise
@@ -199,21 +199,21 @@ class DataFluxCondenser:
             raise InvalidInputError(
                 f"file_path debe ser una cadena no vacía, recibido: {type(file_path)}"
             )
-        
+
         path = Path(file_path)
-        
+
         if not path.exists():
             raise InvalidInputError(f"El archivo no existe: {file_path}")
-        
+
         if not path.is_file():
             raise InvalidInputError(f"La ruta no es un archivo: {file_path}")
-        
-        if not path.suffix.lower() in {'.csv', '.txt'}:
+
+        if path.suffix.lower() not in {'.csv', '.txt'}:
             self.logger.warning(
                 f"Extensión inusual detectada: {path.suffix}. "
                 "Se esperaba .csv o .txt"
             )
-        
+
         self.logger.debug(f"[VALIDACIÓN] Archivo validado: {path}")
         return path
 
@@ -231,40 +231,40 @@ class DataFluxCondenser:
             ProcessingError: Si el parseo falla.
         """
         self.logger.debug("[FASE 1] Filtrando ruido con ReportParserCrudo...")
-        
+
         try:
             # FIX: Pasar explícitamente 'config' como argumento de palabra clave
             parser = ReportParserCrudo(
-                str(file_path), 
+                str(file_path),
                 profile=self.profile,
                 config=self.config
             )
             raw_records = parser.parse_to_raw()
             parse_cache = parser.get_parse_cache()
-            
+
             # Validación de consistencia
             if raw_records is None:
                 raw_records = []
                 self.logger.warning(
                     "[FASE 1] Parser retornó None, se asume lista vacía"
                 )
-            
+
             if parse_cache is None:
                 parse_cache = {}
                 self.logger.warning(
                     "[FASE 1] Cache retornó None, se asume diccionario vacío"
                 )
-            
+
             parsed_data = ParsedData(
                 raw_records=raw_records,
                 parse_cache=parse_cache
             )
-            
+
             self.logger.debug(
                 f"[FASE 1] Filtrado completado: {len(raw_records)} registros extraídos"
             )
             return parsed_data
-            
+
         except Exception as e:
             raise ProcessingError(
                 f"Error durante el filtrado con ReportParserCrudo: {e}"
@@ -287,21 +287,21 @@ class DataFluxCondenser:
             raise ProcessingError(
                 f"raw_records debe ser lista, recibido: {type(parsed_data.raw_records)}"
             )
-        
+
         if not isinstance(parsed_data.parse_cache, dict):
             raise ProcessingError(
                 f"parse_cache debe ser dict, recibido: {type(parsed_data.parse_cache)}"
             )
-        
+
         records_count = len(parsed_data.raw_records)
-        
+
         if records_count < self.condenser_config.min_records_threshold:
             self.logger.warning(
                 f"[VALIDACIÓN] Registros insuficientes: {records_count} < "
                 f"{self.condenser_config.min_records_threshold}"
             )
             return False
-        
+
         self.logger.debug(f"[VALIDACIÓN] Datos parseados válidos: {records_count} registros")
         return True
 
@@ -319,7 +319,7 @@ class DataFluxCondenser:
             ProcessingError: Si el procesamiento falla.
         """
         self.logger.debug("[FASE 2] Rectificando señal con APUProcessor...")
-        
+
         try:
             processor = APUProcessor(
                 raw_records=parsed_data.raw_records,
@@ -327,20 +327,20 @@ class DataFluxCondenser:
                 profile=self.profile,
                 parse_cache=parsed_data.parse_cache
             )
-            
+
             df_result = processor.process_all()
-            
+
             if not isinstance(df_result, pd.DataFrame):
                 raise ProcessingError(
                     f"APUProcessor.process_all() debe retornar DataFrame, "
                     f"recibido: {type(df_result)}"
                 )
-            
+
             self.logger.debug(
                 f"[FASE 2] Rectificación completada: {len(df_result)} registros procesados"
             )
             return df_result
-            
+
         except Exception as e:
             raise ProcessingError(
                 f"Error durante la rectificación con APUProcessor: {e}"
@@ -360,20 +360,20 @@ class DataFluxCondenser:
             raise ProcessingError(
                 f"La salida debe ser DataFrame, recibido: {type(df)}"
             )
-        
+
         if self.condenser_config.enable_strict_validation:
             if df.empty:
                 self.logger.warning(
                     "[VALIDACIÓN] DataFrame vacío generado (puede ser válido)"
                 )
-            
+
             # Validar que no haya columnas completamente nulas
             null_columns = df.columns[df.isnull().all()].tolist()
             if null_columns:
                 self.logger.warning(
                     f"[VALIDACIÓN] Columnas completamente nulas: {null_columns}"
                 )
-        
+
         self.logger.debug(
             f"[VALIDACIÓN] Salida validada: {df.shape[0]} filas, {df.shape[1]} columnas"
         )
