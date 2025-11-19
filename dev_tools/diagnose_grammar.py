@@ -22,7 +22,7 @@ def diagnose_grammar_mismatches(
     parser = Lark(grammar, start='line', parser='lalr')
 
     with open(csv_file, 'r', encoding='utf-8') as f:
-        lines = [l.strip() for l in f.readlines() if l.strip()]
+        lines = [line.strip() for line in f.readlines() if line.strip()]
 
     failed_lines = []
 
@@ -35,12 +35,16 @@ def diagnose_grammar_mismatches(
         try:
             parser.parse(line)
         except LarkError as e:
+            fields = line.split(";")
+            empty_positions = [i for i, f in enumerate(fields) if not f.strip()]
+
             failed_lines.append({
                 "line_num": idx,
                 "line": line,
                 "error": str(e),
-                "fields": line.split(";"),
-                "fields_count": len(line.split(";")),
+                "fields": fields,
+                "fields_count": len(fields),
+                "empty_field_positions": empty_positions,
             })
 
     # Generar reporte

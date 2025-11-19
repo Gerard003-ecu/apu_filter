@@ -902,7 +902,7 @@ class TestMonteCarloSimulatorIntegration:
         """Debe loggear información del proceso."""
         simulator.logger = mock_logger
 
-        result = simulator.run_simulation(valid_apu_data)
+        simulator.run_simulation(valid_apu_data)
 
         # Verificar llamadas de logging
         assert mock_logger.info.called
@@ -1399,7 +1399,7 @@ class TestFullIntegration:
 if __name__ == "__main__":
     """
     Ejecutar tests con pytest.
-    
+
     Comandos útiles:
     - pytest test_probability_models.py -v
     - pytest test_probability_models.py --cov=probability_models --cov-report=html

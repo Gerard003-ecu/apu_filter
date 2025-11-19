@@ -444,11 +444,11 @@ class NumericFieldExtractor:
         start_idx = 1 if skip_first else 0
         numeric_values = []
 
-        for field in fields[start_idx:]:
-            if not field:
+        for f in fields[start_idx:]:
+            if not f:
                 continue
 
-            value = self.parse_number_safe(field)
+            value = self.parse_number_safe(f)
             if value is not None and value >= 0:
                 numeric_values.append(value)
 
@@ -645,7 +645,9 @@ class APUTransformer(Transformer):
         # CORRECCIÓN: Filtrar los tokens SEP ('\;') que Lark incluye en `args`.
         # Lark pasa una lista plana [field, SEP, field, SEP, ...].
         # Un SEP es un Token, un field no.
-        filtered_args = [arg for arg in args if not isinstance(arg, Token) or arg.type != 'SEP']
+        filtered_args = [
+            arg for arg in args if not isinstance(arg, Token) or arg.type != 'SEP'
+        ]
 
         for arg in filtered_args:
             if isinstance(arg, list):
@@ -1297,11 +1299,9 @@ class APUProcessor:
                 if self.parser:
                     # 🔥 OPTIMIZACIÓN: Usar cache si está disponible
                     tree = None
-                    used_cache = False
 
                     if line_clean in active_cache:
                         tree = active_cache[line_clean]
-                        used_cache = True
                         stats.cache_hits += 1
                         logger.debug(
                             f"  ⚡ Línea {line_num}: Usando árbol Lark del cache"
@@ -1314,9 +1314,12 @@ class APUProcessor:
                         except LarkError as lark_error:
                             # Si falla aquí con validación unificada, es inesperado
                             logger.warning(
-                                f"  ⚠️  Línea {line_num}: Falló Lark pero pasó validación previa\n"
+                            (
+                                f"  ⚠️  Línea {line_num}: Falló Lark pero pasó "
+                                f"validación previa\n"
                                 f"      Error: {lark_error}\n"
                                 f"      Línea: {line_clean[:100]}"
+                            )
                             )
                             stats.lark_parse_errors += 1
                             continue
@@ -1338,7 +1341,8 @@ class APUProcessor:
                             else:
                                 stats.empty_results += 1
                                 logger.debug(
-                                    f"  ⚠️  Línea {line_num}: Transformer devolvió lista vacía"
+                                    f"  ⚠️  Línea {line_num}: Transformer devolvió "
+                                    f"lista vacía"
                                 )
                                 insumo = None
                         else:
@@ -1346,11 +1350,12 @@ class APUProcessor:
 
                     except Exception as transform_error:
                         stats.transformer_errors += 1
-                        logger.error(
+                        logger.error((
                             f"  ✗ Línea {line_num}: Error en transformer\n"
-                            f"    Error: {type(transform_error).__name__}: {transform_error}\n"
+                            f"    Error: {type(transform_error).__name__}: "
+                            f"{transform_error}\n"
                             f"    Línea: {line_clean[:100]}"
-                        )
+                        ))
 
                         if self.debug_mode:
                             import traceback
@@ -1432,8 +1437,12 @@ class APUProcessor:
             logger.info("-" * 70)
             logger.info(f"📈 APU: {apu_code}")
             logger.info(f"   Líneas procesadas:  {stats.total_lines}")
-            logger.info(f"   ✓ Exitosos:         {stats.successful_parses} ({success_rate:.1f}%)")
-            logger.info(f"   ⚡ Cache hits:       {stats.cache_hits} ({cache_rate:.1f}%)")
+            logger.info(
+                f"   ✓ Exitosos:         {stats.successful_parses} ({success_rate:.1f}%)"
+            )
+            logger.info(
+                f"   ⚡ Cache hits:       {stats.cache_hits} ({cache_rate:.1f}%)"
+            )
 
             if stats.lark_parse_errors > 0:
                 logger.info(f"   ✗ Errores Lark:     {stats.lark_parse_errors}")

@@ -46,13 +46,13 @@ class CleaningStats:
 class CSVCleaner:
     """
     Filtro de líneas para archivos CSV que preserva el formato original.
-    
+
     Este limpiador NO reformatea el CSV, solo actúa como filtro:
     - Lee líneas del archivo original
     - Decide si cada línea es válida
     - Escribe las líneas válidas EXACTAMENTE como las encontró
-    
-    Esto evita problemas de re-formatting que pueden romper parsers 
+
+    Esto evita problemas de re-formatting que pueden romper parsers
     posteriores que esperan un formato específico.
     """
 
@@ -74,7 +74,7 @@ class CSVCleaner:
     ):
         """
         Inicializa el limpiador de CSV.
-        
+
         Args:
             input_path: Ruta al archivo CSV de entrada
             output_path: Ruta al archivo CSV de salida
@@ -100,7 +100,7 @@ class CSVCleaner:
     def _validate_inputs(self) -> None:
         """
         Valida los parámetros de entrada antes de procesar.
-        
+
         Raises:
             ValueError: Si alguna validación falla
             FileNotFoundError: Si el archivo de entrada no existe
@@ -125,8 +125,9 @@ class CSVCleaner:
 
         if file_size > self.MAX_FILE_SIZE:
             raise ValueError(
-                f"El archivo excede el tamaño máximo permitido "
-                f"({self.MAX_FILE_SIZE / 1024 / 1024:.2f} MB): {file_size / 1024 / 1024:.2f} MB"
+                ("El archivo excede el tamaño máximo permitido "
+                 f"({self.MAX_FILE_SIZE / 1024 / 1024:.2f} MB): "
+                 f"{file_size / 1024 / 1024:.2f} MB")
             )
 
         # Validar que entrada y salida no sean el mismo archivo
@@ -174,10 +175,10 @@ class CSVCleaner:
     def _count_delimiters(self, line: str) -> int:
         """
         Cuenta el número de delimitadores en una línea.
-        
+
         Args:
             line: Línea a analizar
-            
+
         Returns:
             Número de delimitadores encontrados
         """
@@ -186,10 +187,10 @@ class CSVCleaner:
     def _is_empty_line(self, line: str) -> bool:
         """
         Determina si una línea está vacía o contiene solo espacios.
-        
+
         Args:
             line: Línea a evaluar
-            
+
         Returns:
             True si la línea está vacía o solo contiene espacios
         """
@@ -198,10 +199,10 @@ class CSVCleaner:
     def _is_comment_line(self, line: str) -> bool:
         """
         Determina si una línea es un comentario (comienza con #).
-        
+
         Args:
             line: Línea a evaluar
-            
+
         Returns:
             True si la línea es un comentario
         """
@@ -211,10 +212,10 @@ class CSVCleaner:
         """
         Determina si una línea contiene solo campos vacíos o con espacios.
         Por ejemplo: ";;;" o "  ;  ;  "
-        
+
         Args:
             line: Línea a evaluar
-            
+
         Returns:
             True si todos los campos están vacíos o solo contienen espacios
         """
@@ -228,11 +229,11 @@ class CSVCleaner:
     def _should_skip_line(self, line: str, line_num: int) -> Optional[SkipReason]:
         """
         Determina si una línea debe ser saltada y por qué razón.
-        
+
         Args:
             line: Línea a evaluar (sin el salto de línea final)
             line_num: Número de línea (para logging)
-            
+
         Returns:
             SkipReason si debe saltarse, None si es válida
         """
@@ -270,10 +271,10 @@ class CSVCleaner:
     def _process_header(self, header_line: str) -> None:
         """
         Procesa la línea de encabezado y establece la configuración esperada.
-        
+
         Args:
             header_line: Línea de encabezado (sin salto de línea)
-            
+
         Raises:
             ValueError: Si el encabezado es inválido
         """
@@ -315,14 +316,14 @@ class CSVCleaner:
     def clean(self) -> CleaningStats:
         """
         Ejecuta el proceso de limpieza del CSV.
-        
+
         IMPORTANTE: Este método NO reformatea el CSV. Lee líneas del archivo
         original y escribe las líneas válidas EXACTAMENTE como las encontró,
         preservando comillas, espacios, y cualquier otro formato.
-        
+
         Returns:
             CleaningStats con las estadísticas del proceso
-            
+
         Raises:
             ValueError: Si hay errores de validación
             IOError: Si hay errores de lectura/escritura
@@ -359,7 +360,6 @@ class CSVCleaner:
                     )
 
                 # Remover salto de línea para validación, pero guardarlo para escritura
-                line_ending = self._detect_line_ending(header_line)
                 header_clean = header_line.rstrip('\r\n')
 
                 self._process_header(header_clean)
@@ -410,10 +410,10 @@ class CSVCleaner:
     def _detect_line_ending(self, line: str) -> str:
         """
         Detecta el tipo de salto de línea usado.
-        
+
         Args:
             line: Línea a analizar
-            
+
         Returns:
             '\r\n' para Windows, '\n' para Unix
         """

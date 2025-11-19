@@ -361,7 +361,8 @@ class TestShouldSkipLine:
     def cleaner(self, sample_csv_path):
         """Prepara un limpiador con el encabezado ya procesado."""
         cleaner = CSVCleaner(str(sample_csv_path), "dummy.csv")
-        cleaner._process_header("Name;Age;City")  # Establecer el conteo esperado de delimitadores
+        # Establecer el conteo esperado de delimitadores
+        cleaner._process_header("Name;Age;City")
         return cleaner
 
     def test_valid_line_not_skipped(self, cleaner):
@@ -844,4 +845,10 @@ class TestConfiguration:
 # ============================================================================
 
 if __name__ == "__main__":
-    pytest.main([__file__, "-v", "--tb=short", "--cov=scripts.clean_csv", "--cov-report=html"])
+    pytest.main([
+        __file__,
+        "-v",
+        "--tb=short",
+        "--cov=scripts.clean_csv",
+        "--cov-report=html"
+    ])

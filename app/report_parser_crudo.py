@@ -13,7 +13,7 @@ import re
 from collections import Counter
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 from lark import Lark
 
@@ -309,8 +309,8 @@ class ReportParserCrudo:
         has_numeric = False
         numeric_pattern = re.compile(r'\d+[.,]\d+|\d+')
 
-        for field in fields[1:]:  # Saltar descripción
-            if numeric_pattern.search(field.strip()):
+        for f in fields[1:]:  # Saltar descripción
+            if numeric_pattern.search(f.strip()):
                 has_numeric = True
                 break
 
@@ -395,14 +395,17 @@ class ReportParserCrudo:
             fields: Campos de la línea.
             reason: Razón del fallo.
         """
-        if len(self.validation_stats.failed_samples) < self.config.get("max_failed_samples", 10):
+        max_samples = self.config.get("max_failed_samples", 10)
+        if len(self.validation_stats.failed_samples) < max_samples:
             self.validation_stats.failed_samples.append({
-                "line": line[:200],  # Truncar si es muy larga
+                "line": line[:200],
                 "fields": fields,
                 "fields_count": len(fields),
                 "reason": reason,
                 "has_empty_fields": any(not f.strip() for f in fields),
-                "empty_field_positions": [i for i, f in enumerate(fields) if not f.strip()],
+                "empty_field_positions": [
+                    i for i, f in enumerate(fields) if not f.strip()
+                ],
             })
 
 
@@ -415,25 +418,38 @@ class ReportParserCrudo:
         logger.info("=" * 80)
         logger.info("📊 RESUMEN DE VALIDACIÓN CON LARK")
         logger.info("=" * 80)
-        logger.info(f"Total líneas evaluadas:              {total}")
+        logger.info(f"Total líneas evaluadas: {total}")
         if total > 0:
-            logger.info(f"✓ Insumos válidos (ambas capas):     {valid} ({valid/total*100:.1f}%)")
+            valid_percent = f"({valid/total*100:.1f}%)"
+            logger.info(f"✓ Insumos válidos (ambas capas): {valid} {valid_percent}")
         else:
-            logger.info("✓ Insumos válidos (ambas capas):     0 (0.0%)")
-        logger.info(f"  - Pasaron validación básica:       {self.validation_stats.passed_basic}")
-        logger.info(f"  - Pasaron validación Lark:         {self.validation_stats.passed_lark}")
-        logger.info(f"  - Cache hits:                      {self.validation_stats.cached_parses}")
+            logger.info("✓ Insumos válidos (ambas capas): 0 (0.0%)")
+
+        logger.info(f"  - Pasaron validación básica: {self.validation_stats.passed_basic}")
+        logger.info(f"  - Pasaron validación Lark: {self.validation_stats.passed_lark}")
+        logger.info(f"  - Cache hits: {self.validation_stats.cached_parses}")
         logger.info("")
         logger.info("Rechazos por validación básica:")
-        logger.info(f"  - Campos insuficientes/vacíos:     {self.validation_stats.failed_basic_fields}")
-        logger.info(f"  - Sin datos numéricos:             {self.validation_stats.failed_basic_numeric}")
-        logger.info(f"  - Subtotales:                      {self.validation_stats.failed_basic_subtotal}")
-        logger.info(f"  - Líneas decorativas:              {self.validation_stats.failed_basic_junk}")
+        logger.info(
+            f"  - Campos insuficientes/vacíos: {self.validation_stats.failed_basic_fields}"
+        )
+        logger.info(
+            f"  - Sin datos numéricos: {self.validation_stats.failed_basic_numeric}"
+        )
+        logger.info(f"  - Subtotales: {self.validation_stats.failed_basic_subtotal}")
+        logger.info(f"  - Líneas decorativas: {self.validation_stats.failed_basic_junk}")
         logger.info("")
         logger.info("Rechazos por validación Lark:")
-        logger.info(f"  - Parse error genérico:            {self.validation_stats.failed_lark_parse}")
-        logger.info(f"  - Unexpected input:                {self.validation_stats.failed_lark_unexpected_input}")
-        logger.info(f"  - Unexpected characters:           {self.validation_stats.failed_lark_unexpected_chars}")
+        logger.info(
+            f"  - Parse error genérico: {self.validation_stats.failed_lark_parse}"
+        )
+        logger.info(
+            f"  - Unexpected input: {self.validation_stats.failed_lark_unexpected_input}"
+        )
+        logger.info(
+            "  - Unexpected characters: "
+            f"{self.validation_stats.failed_lark_unexpected_chars}"
+        )
         logger.info("=" * 80)
 
         # Mostrar muestras de fallos
@@ -724,10 +740,11 @@ class ReportParserCrudo:
                     self.raw_records.append(record)
                     self.stats["insumos_extracted"] += 1
 
-                    logger.debug(
-                        f"  ✓ Insumo válido [línea {i + 1}] [{validation_result.validation_layer}]: "
+                    logger.debug((
+                        f"  ✓ Insumo válido [línea {i + 1}] "
+                        f"[{validation_result.validation_layer}]: "
                         f"{fields[0][:40]}... ({validation_result.fields_count} campos)"
-                    )
+                    ))
                 else:
                     # ❌ LÍNEA RECHAZADA
                     logger.debug(

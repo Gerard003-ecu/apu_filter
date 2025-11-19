@@ -967,18 +967,18 @@ class TestProcessAllFilesIntegration(unittest.TestCase):
             "max_total_cost": 5e11,
         }
 
-        with patch("app.procesador_csv.ReportParserCrudo"):
-            with patch("app.procesador_csv.APUProcessor") as mock_processor_class:
-                mock_processor = MagicMock()
-                mock_processor_class.return_value = mock_processor
-                mock_processor.process_all.return_value = pd.DataFrame()  # Return empty df
+        with patch("app.procesador_csv.DataFluxCondenser") as mock_condenser_class:
+            mock_condenser_instance = MagicMock()
+            # Retorna tuplas vacías
+            mock_condenser_instance.process.return_value = (pd.DataFrame(), pd.DataFrame())
+            mock_condenser_class.return_value = mock_condenser_instance
 
-                resultado = process_all_files(
-                    self.presupuesto_path, self.apus_path, self.insumos_path, custom_config
-                )
+            resultado = process_all_files(
+                self.presupuesto_path, self.apus_path, self.insumos_path, custom_config
+            )
 
-                # Debe procesar sin errores con los umbrales personalizados
-                self.assertIsInstance(resultado, dict)
+            # Debe procesar sin errores con los umbrales personalizados
+            self.assertIsInstance(resultado, dict)
 
     def test_process_all_files_merge_error(self):
         """
@@ -999,7 +999,9 @@ class TestProcessAllFilesIntegration(unittest.TestCase):
             mock_merge.side_effect = pd.errors.MergeError("Simulated merge error")
 
             test_config = copy.deepcopy(TEST_CONFIG)
-            test_config["file_profiles"]["presupuesto_default"]["loader_params"]["header"] = 0
+            test_config["file_profiles"]["presupuesto_default"]["loader_params"][
+                "header"
+            ] = 0
 
             resultado = process_all_files(
                 self.presupuesto_path, self.apus_path, self.insumos_path, test_config

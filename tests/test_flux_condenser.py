@@ -696,7 +696,8 @@ class TestStabilize:
         mock_processor.process_all.side_effect = ZeroDivisionError("Unexpected")
         mock_processor_class.return_value = mock_processor
 
-        with pytest.raises(ProcessingError, match="Error durante la rectificación con APUProcessor: Unexpected"):
+        match_str = "Error durante la rectificación con APUProcessor: Unexpected"
+        with pytest.raises(ProcessingError, match=match_str):
             condenser.stabilize(str(mock_csv_file))
 
     @patch('app.flux_condenser.APUProcessor')

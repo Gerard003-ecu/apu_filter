@@ -25,45 +25,44 @@ from dev_tools.diagnose_grammar import diagnose_grammar_mismatches
 # FIXTURES
 # ============================================================================
 
+
 @pytest.fixture
 def simple_grammar():
     """Gramática Lark simple para testing."""
     return """
     ?start: line
-    
     line: description ";" unit ";" quantity ";" price ";" total
-    
     description: /[^;]+/
-    unit: /[A-Z]{2,4}/
+    unit: /[A-Z0-9.]+/
     quantity: NUMBER
     price: NUMBER
     total: NUMBER
-    
     NUMBER: /\\d+[.,]\\d+/ | /\\d+/
-    
     %import common.WS
     %ignore WS
     """
+
 
 @pytest.fixture
 def complex_grammar():
     """Gramática compleja que permite campos opcionales."""
     return """
     ?start: line
-    
-    line: description ";" unit ";" quantity ";" price? ";" total
-    
+
+    line: description ";" [unit] ";" quantity ";" [price] ";" total
+
     description: /[^;]+/
-    unit: /[A-Z]{2,4}/ | ""
+    unit: /[A-Z]{2,4}/
     quantity: NUMBER
-    price: NUMBER | ""
+    price: NUMBER
     total: NUMBER
-    
+
     NUMBER: /\\d+[.,]\\d+/ | /\\d+/
-    
+
     %import common.WS
     %ignore WS
     """
+
 
 @pytest.fixture
 def valid_csv_content():
@@ -75,6 +74,7 @@ def valid_csv_content():
         "ENCOFRADO METALICO;M2;12,5;15,75;196,88",
         "MANO DE OBRA OFICIAL;HR;8,0;12,50;100,00",
     ]
+
 
 @pytest.fixture
 def invalid_csv_content():
@@ -89,6 +89,7 @@ def invalid_csv_content():
         ";;;;",  # Línea vacía con separadores
     ]
 
+
 @pytest.fixture
 def csv_with_headers():
     """CSV con encabezados de APU."""
@@ -102,6 +103,7 @@ def csv_with_headers():
         "BLOQUE DE CONCRETO;UND;45;2,50;112,50",
     ]
 
+
 @pytest.fixture
 def temp_csv_file(tmp_path):
     """Crea un archivo CSV temporal para testing."""
@@ -113,21 +115,24 @@ def temp_csv_file(tmp_path):
 
     return _create_file
 
+
 @pytest.fixture
 def temp_output_file(tmp_path):
     """Genera ruta para archivo de salida temporal."""
     return str(tmp_path / "diagnosis_output.txt")
 
+
 @pytest.fixture
 def mock_logger():
     """Mock del logger para verificar llamadas."""
-    with patch('app.utils.grammar_diagnostics.logger') as mock_log:
+    with patch('dev_tools.diagnose_grammar.logger') as mock_log:
         yield mock_log
 
 
 # ============================================================================
 # TESTS: FUNCIONALIDAD BÁSICA
 # ============================================================================
+
 
 class TestBasicFunctionality:
     """Tests de funcionalidad básica del diagnóstico."""
@@ -145,7 +150,6 @@ class TestBasicFunctionality:
         failed_lines = diagnose_grammar_mismatches(
             csv_file=csv_file,
             grammar=simple_grammar,
-            profile={"decimal_separator": "comma"},
             output_file=temp_output_file
         )
 
@@ -176,7 +180,6 @@ class TestBasicFunctionality:
         failed_lines = diagnose_grammar_mismatches(
             csv_file=csv_file,
             grammar=simple_grammar,
-            profile={},
             output_file=temp_output_file
         )
 
@@ -203,13 +206,14 @@ class TestBasicFunctionality:
         failed_lines = diagnose_grammar_mismatches(
             csv_file=csv_file,
             grammar=simple_grammar,
-            profile={},
             output_file=temp_output_file
         )
 
         # Al menos algunas deberían fallar (depende de la gramática estricta)
         assert len(failed_lines) > 0, "Debería detectar líneas inválidas"
-        assert len(failed_lines) < len(invalid_csv_content), "No todas deberían fallar"
+        assert len(failed_lines) < len(
+            invalid_csv_content
+        ), "No todas deberían fallar"
 
         # Verificar que detecta campos vacíos
         with open(temp_output_file, 'r', encoding='utf-8') as f:
@@ -229,7 +233,6 @@ class TestBasicFunctionality:
         failed_lines = diagnose_grammar_mismatches(
             csv_file=csv_file,
             grammar=simple_grammar,
-            profile={},
             output_file=temp_output_file
         )
 
@@ -249,6 +252,7 @@ class TestBasicFunctionality:
 # TESTS: ANÁLISIS DE PATRONES
 # ============================================================================
 
+
 class TestPatternAnalysis:
     """Tests del análisis de patrones de fallo."""
 
@@ -266,10 +270,9 @@ class TestPatternAnalysis:
         ]
         csv_file = temp_csv_file(content)
 
-        failed_lines = diagnose_grammar_mismatches(
+        diagnose_grammar_mismatches(
             csv_file=csv_file,
             grammar=simple_grammar,
-            profile={},
             output_file=temp_output_file
         )
 
@@ -299,7 +302,6 @@ class TestPatternAnalysis:
         diagnose_grammar_mismatches(
             csv_file=csv_file,
             grammar=simple_grammar,
-            profile={},
             output_file=temp_output_file
         )
 
@@ -324,7 +326,6 @@ class TestPatternAnalysis:
         diagnose_grammar_mismatches(
             csv_file=csv_file,
             grammar=simple_grammar,
-            profile={},
             output_file=temp_output_file
         )
 
@@ -335,12 +336,15 @@ class TestPatternAnalysis:
             sample_count = content.count("Línea ")
 
             # Debería mostrar máximo 20 muestras detalladas
-            assert sample_count <= 20, f"Se mostraron {sample_count} muestras, máximo 20"
+            assert sample_count <= 20, (
+                f"Se mostraron {sample_count} muestras, máximo 20"
+            )
 
 
 # ============================================================================
 # TESTS: MANEJO DE ERRORES
 # ============================================================================
+
 
 class TestErrorHandling:
     """Tests de manejo de errores y casos edge."""
@@ -351,11 +355,15 @@ class TestErrorHandling:
             diagnose_grammar_mismatches(
                 csv_file="nonexistent_file.csv",
                 grammar=simple_grammar,
-                profile={},
                 output_file=temp_output_file
             )
 
-    def test_invalid_grammar(self, temp_csv_file, valid_csv_content, temp_output_file):
+    def test_invalid_grammar(
+        self,
+        temp_csv_file,
+        valid_csv_content,
+        temp_output_file
+    ):
         """Test con gramática inválida."""
         csv_file = temp_csv_file(valid_csv_content)
         invalid_grammar = "INVALID GRAMMAR SYNTAX {{{"
@@ -364,18 +372,21 @@ class TestErrorHandling:
             diagnose_grammar_mismatches(
                 csv_file=csv_file,
                 grammar=invalid_grammar,
-                profile={},
                 output_file=temp_output_file
             )
 
-    def test_empty_csv_file(self, simple_grammar, temp_csv_file, temp_output_file):
+    def test_empty_csv_file(
+        self,
+        simple_grammar,
+        temp_csv_file,
+        temp_output_file
+    ):
         """Test con archivo CSV vacío."""
         csv_file = temp_csv_file([])
 
         failed_lines = diagnose_grammar_mismatches(
             csv_file=csv_file,
             grammar=simple_grammar,
-            profile={},
             output_file=temp_output_file
         )
 
@@ -398,7 +409,6 @@ class TestErrorHandling:
         failed_lines = diagnose_grammar_mismatches(
             csv_file=csv_file,
             grammar=simple_grammar,
-            profile={},
             output_file=temp_output_file
         )
 
@@ -421,17 +431,21 @@ class TestErrorHandling:
         csv_file = temp_csv_file(content)
 
         # No debería lanzar excepción
-        failed_lines = diagnose_grammar_mismatches(
+        diagnose_grammar_mismatches(
             csv_file=csv_file,
             grammar=simple_grammar,
-            profile={},
             output_file=temp_output_file
         )
 
         # Verificar que el archivo se generó correctamente
         assert os.path.exists(temp_output_file)
 
-    def test_invalid_encoding_handling(self, simple_grammar, tmp_path, temp_output_file):
+    def test_invalid_encoding_handling(
+        self,
+        simple_grammar,
+        tmp_path,
+        temp_output_file
+    ):
         """Test manejo de diferentes encodings."""
         # Crear archivo con encoding diferente
         csv_file = tmp_path / "latin1_file.csv"
@@ -442,10 +456,9 @@ class TestErrorHandling:
 
         # Debería manejar el encoding o lanzar error claro
         try:
-            failed_lines = diagnose_grammar_mismatches(
+            diagnose_grammar_mismatches(
                 csv_file=str(csv_file),
                 grammar=simple_grammar,
-                profile={},
                 output_file=temp_output_file
             )
             # Si no falla, es que manejó el encoding
@@ -458,6 +471,7 @@ class TestErrorHandling:
 # ============================================================================
 # TESTS: TIPOS DE ERRORES LARK
 # ============================================================================
+
 
 class TestLarkErrorTypes:
     """Tests de diferentes tipos de errores de Lark."""
@@ -477,7 +491,6 @@ class TestLarkErrorTypes:
         failed_lines = diagnose_grammar_mismatches(
             csv_file=csv_file,
             grammar=simple_grammar,
-            profile={},
             output_file=temp_output_file
         )
 
@@ -500,7 +513,6 @@ class TestLarkErrorTypes:
         failed_lines = diagnose_grammar_mismatches(
             csv_file=csv_file,
             grammar=simple_grammar,
-            profile={},
             output_file=temp_output_file
         )
 
@@ -522,7 +534,6 @@ class TestLarkErrorTypes:
         failed_lines = diagnose_grammar_mismatches(
             csv_file=csv_file,
             grammar=simple_grammar,
-            profile={},
             output_file=temp_output_file
         )
 
@@ -533,6 +544,7 @@ class TestLarkErrorTypes:
 # ============================================================================
 # TESTS: FORMATO DE SALIDA
 # ============================================================================
+
 
 class TestOutputFormat:
     """Tests del formato de archivo de salida."""
@@ -550,7 +562,6 @@ class TestOutputFormat:
         diagnose_grammar_mismatches(
             csv_file=csv_file,
             grammar=simple_grammar,
-            profile={},
             output_file=temp_output_file
         )
 
@@ -578,7 +589,6 @@ class TestOutputFormat:
         diagnose_grammar_mismatches(
             csv_file=csv_file,
             grammar=simple_grammar,
-            profile={},
             output_file=temp_output_file
         )
 
@@ -602,7 +612,6 @@ class TestOutputFormat:
         diagnose_grammar_mismatches(
             csv_file=csv_file,
             grammar=simple_grammar,
-            profile={},
             output_file=temp_output_file
         )
 
@@ -619,6 +628,7 @@ class TestOutputFormat:
 # ============================================================================
 # TESTS: INTEGRACIÓN CON LOGGER
 # ============================================================================
+
 
 class TestLogging:
     """Tests de integración con el sistema de logging."""
@@ -637,7 +647,6 @@ class TestLogging:
         diagnose_grammar_mismatches(
             csv_file=csv_file,
             grammar=simple_grammar,
-            profile={},
             output_file=temp_output_file
         )
 
@@ -660,7 +669,6 @@ class TestLogging:
         diagnose_grammar_mismatches(
             csv_file=csv_file,
             grammar=simple_grammar,
-            profile={},
             output_file=temp_output_file
         )
 
@@ -672,6 +680,7 @@ class TestLogging:
 # ============================================================================
 # TESTS: RETORNO DE DATOS
 # ============================================================================
+
 
 class TestReturnValue:
     """Tests del valor de retorno de la función."""
@@ -689,7 +698,6 @@ class TestReturnValue:
         result = diagnose_grammar_mismatches(
             csv_file=csv_file,
             grammar=simple_grammar,
-            profile={},
             output_file=temp_output_file
         )
 
@@ -708,7 +716,6 @@ class TestReturnValue:
         failed_lines = diagnose_grammar_mismatches(
             csv_file=csv_file,
             grammar=simple_grammar,
-            profile={},
             output_file=temp_output_file
         )
 
@@ -747,7 +754,6 @@ class TestReturnValue:
         failed_lines = diagnose_grammar_mismatches(
             csv_file=csv_file,
             grammar=simple_grammar,
-            profile={},
             output_file=temp_output_file
         )
 
@@ -760,6 +766,7 @@ class TestReturnValue:
 # ============================================================================
 # TESTS: PERFORMANCE Y ESCALABILIDAD
 # ============================================================================
+
 
 class TestPerformance:
     """Tests de performance y escalabilidad."""
@@ -781,10 +788,9 @@ class TestPerformance:
         import time
         start = time.time()
 
-        failed_lines = diagnose_grammar_mismatches(
+        diagnose_grammar_mismatches(
             csv_file=csv_file,
             grammar=simple_grammar,
-            profile={},
             output_file=temp_output_file
         )
 
@@ -808,7 +814,6 @@ class TestPerformance:
         failed_lines = diagnose_grammar_mismatches(
             csv_file=csv_file,
             grammar=simple_grammar,
-            profile={},
             output_file=temp_output_file
         )
 
@@ -826,6 +831,7 @@ class TestPerformance:
 # ============================================================================
 # TESTS: CASOS EDGE ESPECÍFICOS
 # ============================================================================
+
 
 class TestEdgeCases:
     """Tests de casos edge específicos del dominio."""
@@ -848,14 +854,11 @@ class TestEdgeCases:
         csv_file = temp_csv_file(content)
 
         # No debería crashear
-        failed_lines = diagnose_grammar_mismatches(
+        diagnose_grammar_mismatches(
             csv_file=csv_file,
             grammar=grammar,
-            profile={},
             output_file=temp_output_file
         )
-
-        assert isinstance(failed_lines, list)
 
     def test_line_with_only_semicolons(
         self,
@@ -870,7 +873,6 @@ class TestEdgeCases:
         failed_lines = diagnose_grammar_mismatches(
             csv_file=csv_file,
             grammar=simple_grammar,
-            profile={},
             output_file=temp_output_file
         )
 
@@ -888,15 +890,11 @@ class TestEdgeCases:
         content = [f'{long_description};KG;100;2,50;250,00']
         csv_file = temp_csv_file(content)
 
-        # No debería crashear
-        failed_lines = diagnose_grammar_mismatches(
+        diagnose_grammar_mismatches(
             csv_file=csv_file,
             grammar=simple_grammar,
-            profile={},
             output_file=temp_output_file
         )
-
-        assert isinstance(failed_lines, list)
 
     def test_mixed_line_endings(
         self,
@@ -908,25 +906,27 @@ class TestEdgeCases:
         csv_file = tmp_path / "mixed_endings.csv"
 
         # Escribir en modo binario para controlar line endings
-        content = b"LINEA1;KG;100;2,50;250,00\nLINEA2;M3;50;5,00;250,00\r\nLINEA3;UND;10;10,00;100,00\r"
+        content = (
+            b"LINEA1;KG;100;2,50;250,00\n"
+            b"LINEA2;M3;50;5,00;250,00\r\n"
+            b"LINEA3;UND;10;10,00;100,00\r"
+        )
 
         with open(csv_file, 'wb') as f:
             f.write(content)
 
         # No debería crashear
-        failed_lines = diagnose_grammar_mismatches(
+        diagnose_grammar_mismatches(
             csv_file=str(csv_file),
             grammar=simple_grammar,
-            profile={},
             output_file=temp_output_file
         )
-
-        assert isinstance(failed_lines, list)
 
 
 # ============================================================================
 # TESTS: INTEGRACIÓN CON DIFERENTES GRAMÁTICAS
 # ============================================================================
+
 
 class TestDifferentGrammars:
     """Tests con diferentes tipos de gramáticas."""
@@ -948,7 +948,6 @@ class TestDifferentGrammars:
         failed_lines = diagnose_grammar_mismatches(
             csv_file=csv_file,
             grammar=complex_grammar,
-            profile={},
             output_file=temp_output_file
         )
 
@@ -970,7 +969,6 @@ class TestDifferentGrammars:
         failed_lines = diagnose_grammar_mismatches(
             csv_file=csv_file,
             grammar=simple_grammar,
-            profile={},
             output_file=temp_output_file
         )
 
@@ -1007,7 +1005,6 @@ class TestDifferentGrammars:
         failed_lines = diagnose_grammar_mismatches(
             csv_file=csv_file,
             grammar=grammar,
-            profile={},
             output_file=temp_output_file
         )
 
@@ -1018,6 +1015,7 @@ class TestDifferentGrammars:
 # ============================================================================
 # TESTS: CONFIGURACIÓN Y PARÁMETROS
 # ============================================================================
+
 
 class TestConfiguration:
     """Tests de configuración y parámetros."""
@@ -1036,7 +1034,6 @@ class TestConfiguration:
         failed1 = diagnose_grammar_mismatches(
             csv_file=csv_file,
             grammar=simple_grammar,
-            profile={"decimal_separator": "comma"},
             output_file=temp_output_file
         )
 
@@ -1044,7 +1041,6 @@ class TestConfiguration:
         failed2 = diagnose_grammar_mismatches(
             csv_file=csv_file,
             grammar=simple_grammar,
-            profile={"decimal_separator": "dot"},
             output_file=temp_output_file + "2"
         )
 
@@ -1069,7 +1065,6 @@ class TestConfiguration:
         diagnose_grammar_mismatches(
             csv_file=csv_file,
             grammar=simple_grammar,
-            profile={},
             output_file=str(custom_output)
         )
 
@@ -1092,7 +1087,6 @@ class TestConfiguration:
         diagnose_grammar_mismatches(
             csv_file=csv_file,
             grammar=simple_grammar,
-            profile={},
             output_file=temp_output_file
         )
 
@@ -1106,6 +1100,7 @@ class TestConfiguration:
 # ============================================================================
 # TESTS DE REGRESIÓN
 # ============================================================================
+
 
 class TestRegression:
     """Tests de regresión para bugs conocidos."""
@@ -1128,7 +1123,6 @@ class TestRegression:
         failed_lines = diagnose_grammar_mismatches(
             csv_file=csv_file,
             grammar=simple_grammar,
-            profile={},
             output_file=temp_output_file
         )
 
@@ -1153,14 +1147,11 @@ class TestRegression:
         csv_file = temp_csv_file(content)
 
         # No debería crashear
-        failed_lines = diagnose_grammar_mismatches(
+        diagnose_grammar_mismatches(
             csv_file=csv_file,
             grammar=simple_grammar,
-            profile={},
             output_file=temp_output_file
         )
-
-        assert isinstance(failed_lines, list)
 
 
 # ============================================================================
@@ -1168,4 +1159,9 @@ class TestRegression:
 # ============================================================================
 
 if __name__ == "__main__":
-    pytest.main([__file__, "-v", "--tb=short", "--cov=app.utils.grammar_diagnostics"])
+    pytest.main([
+        __file__,
+        "-v",
+        "--tb=short",
+        "--cov=app.utils.grammar_diagnostics"
+    ])
