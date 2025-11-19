@@ -92,6 +92,7 @@ class TestAPUProcessor(unittest.TestCase):
         config = TestFixtures.get_default_config()
         # El perfil ahora lleva la configuración específica del archivo
         comma_profile = {"number_format": {"decimal_separator": ","}}
+        config['profile'] = comma_profile
 
         # 2. Datos de muestra con comas como decimales y puntos como miles
         comma_records = [

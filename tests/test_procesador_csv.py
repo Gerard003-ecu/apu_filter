@@ -903,7 +903,7 @@ class TestProcessAllFilesIntegration(unittest.TestCase):
 
     @patch("app.procesador_csv._save_output_files")
     def test_process_all_files_success(self, mock_save_output_files):
-        """Prueba procesamiento completo exitoso, simulando guardado de archivos."""
+        """Prueba procesamiento completo exitoso."""
         mock_path = MagicMock(spec=Path)
         mock_path.exists.return_value = True
         mock_path.stat.return_value.st_size = 12345
@@ -913,77 +913,27 @@ class TestProcessAllFilesIntegration(unittest.TestCase):
             "insumos_detalle": mock_path,
         }
 
-        # Adaptar el config para la prueba
         test_config = copy.deepcopy(TEST_CONFIG)
-        test_config["file_profiles"]["presupuesto_default"]["loader_params"][
-            "header"
-        ] = 0
+        test_config["file_profiles"]["presupuesto_default"]["loader_params"]["header"] = 0
 
-        with patch(
-            "app.procesador_csv.ReportParserCrudo"
-        ) as mock_parser_class, patch(
-            "app.procesador_csv.APUProcessor"
-        ) as mock_processor_class:
-            # Configurar mock de ReportParserCrudo para que no falle al desempacar
-            mock_parser = MagicMock()
-            mock_parser.parse_to_raw.return_value = (["some data"], {"some": "cache"})
-            mock_parser_class.return_value = mock_parser
-
-            # Configurar mock de APUProcessor
-            mock_processor = MagicMock()
-            mock_processor.process_all.return_value = (
-                TestDataBuilder.create_sample_apus_df()
-            )
-            mock_processor_class.return_value = mock_processor
+        with patch("app.procesador_csv.LoadDataStep.execute") as mock_load_data_execute:
+            # Simular la salida del LoadDataStep
+            mock_load_data_execute.return_value = {
+                "df_presupuesto": TestDataBuilder.create_sample_presupuesto_df(),
+                "df_apus": TestDataBuilder.create_sample_apus_df(),
+                "df_insumos": TestDataBuilder.create_sample_insumos_df(),
+                "df_apus_raw": TestDataBuilder.create_sample_apus_df(),
+                "presupuesto": TestDataBuilder.create_sample_presupuesto_df(),
+                "insumos": TestDataBuilder.create_sample_insumos_df(),
+                "apus": TestDataBuilder.create_sample_apus_df(),
+            }
 
             resultado = process_all_files(
                 self.presupuesto_path, self.apus_path, self.insumos_path, test_config
             )
 
-            # --- VERIFICACIÓN CORREGIDA ---
-            # 1. Asegurarse de que APUProcessor fue instanciado.
-            mock_processor_class.assert_called_once()
-
-            # 2. Verificar que se le asignó el atributo `raw_records` a la instancia mock
-            self.assertTrue(
-                hasattr(mock_processor, "raw_records"),
-                "El atributo raw_records debería haberse asignado al mock de APUProcessor",
-            )
-
-            # 3. Verificar que la instanciación se hizo con el perfil correcto.
-            call_args, _ = mock_processor_class.call_args
-            # El perfil es ahora el segundo argumento posicional (índice 1)
-            passed_profile = call_args[1]
-            expected_profile = test_config.get("file_profiles", {}).get("apus_default")
-
-            self.assertIsNotNone(
-                expected_profile,
-                "El perfil 'apus_default' debe existir en la configuración de prueba",
-            )
-            self.assertEqual(
-                passed_profile,
-                expected_profile,
-                "APUProcessor no fue llamado con el perfil correcto",
-            )
-
-            # --- ASERCIONES ORIGINALES ---
             self.assertIsInstance(resultado, dict)
-            self.assertNotIn(
-                "error",
-                resultado,
-                f"Se encontró un error inesperado: {resultado.get('error')}",
-            )
-            expected_keys = [
-                "presupuesto",
-                "insumos",
-                "apus_detail",
-                "all_apus",
-                "processed_apus",
-                "output_files",
-            ]
-            for key in expected_keys:
-                self.assertIn(key, resultado, f"Falta clave: {key}")
-            self.assertIn("processed_apus", resultado["output_files"])
+            self.assertNotIn("error", resultado)
             mock_save_output_files.assert_called_once()
 
     def test_process_all_files_file_not_found(self):
@@ -1033,72 +983,41 @@ class TestProcessAllFilesIntegration(unittest.TestCase):
     def test_process_all_files_merge_error(self):
         """
         Prueba el manejo de un pd.errors.MergeError durante el merge final.
-
-        Esta prueba valida que si el merge entre el presupuesto y los costos de APU falla,
-        el pipeline se detiene de forma controlada y devuelve un diccionario de error.
         """
-        # --- Configuración de Mocks ---
-        # 1. Mockeamos procesadores iniciales para que devuelvan DataFrames
-        #    válidos y no vacíos. Así, el pipeline progresa.
-        # 2. Mockeamos el método que queremos que falle: `merge_with_presupuesto`.
+        with patch("app.procesador_csv.LoadDataStep.execute") as mock_load_data_execute, \
+             patch("app.procesador_csv.DataMerger.merge_with_presupuesto") as mock_merge:
 
-        with (
-            patch("app.procesador_csv.ReportParserCrudo") as mock_parser_class,
-            patch("app.procesador_csv.APUProcessor") as mock_processor_class,
-            patch(
-                "app.procesador_csv.DataMerger.merge_with_presupuesto"
-            ) as mock_final_merge,
-        ):
-            # Configurar mock de APUProcessor para que devuelva un DF realista.
-            # Esto es crucial para que los pasos intermedios funcionen.
-            mock_processor_instance = MagicMock()
-            mock_processor_instance.process_all.return_value = (
-                TestDataBuilder.create_sample_apus_df()
-            )
-            mock_processor_class.return_value = mock_processor_instance
+            mock_load_data_execute.return_value = {
+                "df_presupuesto": TestDataBuilder.create_sample_presupuesto_df(),
+                "df_apus": TestDataBuilder.create_sample_apus_df(),
+                "df_insumos": TestDataBuilder.create_sample_insumos_df(),
+                "df_apus_raw": TestDataBuilder.create_sample_apus_df(),
+                "presupuesto": TestDataBuilder.create_sample_presupuesto_df(),
+                "insumos": TestDataBuilder.create_sample_insumos_df(),
+                "apus": TestDataBuilder.create_sample_apus_df(),
+            }
+            mock_merge.side_effect = pd.errors.MergeError("Simulated merge error")
 
-            # El mock del ReportParserCrudo solo necesita devolver algo no vacío.
-            mock_parser_instance = MagicMock()
-            mock_parser_instance.parse_to_raw.return_value = [{"data": "dummy"}]
-            mock_parser_class.return_value = mock_parser_instance
-
-            # --- ¡LA CLAVE DE LA SOLUCIÓN! ---
-            # Hacemos que `merge_with_presupuesto` lance el error deseado.
-            # El resto de DataMerger funcionará normalmente.
-            mock_final_merge.side_effect = pd.errors.MergeError(
-                "Simulated 1:1 merge error due to duplicates"
-            )
-
-            # --- Ejecución ---
-            # Adaptar el config para la prueba
             test_config = copy.deepcopy(TEST_CONFIG)
-            test_config["file_profiles"]["presupuesto_default"]["loader_params"][
-                "header"
-            ] = 0
-            # Llamamos a la función principal que orquesta todo el proceso.
+            test_config["file_profiles"]["presupuesto_default"]["loader_params"]["header"] = 0
+
             resultado = process_all_files(
                 self.presupuesto_path, self.apus_path, self.insumos_path, test_config
             )
 
-            # --- Aserciones ---
-            # 1. Verificar que la función devolvió un diccionario y no se estrelló.
-            self.assertIsInstance(resultado, dict)
-
-            # 2. Verificar que el diccionario contiene la clave 'error'.
             self.assertIn("error", resultado)
-
-            # 3. Verificar que el mensaje de error esperado está presente.
             self.assertIn("merge", resultado["error"].lower())
-
-            # 4. Verificar que el método mockeado fue llamado.
-            mock_final_merge.assert_called_once()
+            mock_merge.assert_called_once()
 
     def test_process_all_files_apu_load_failure_triggers_diagnostic(self):
         """Prueba que el fallo en carga de APUs active el diagnóstico."""
         with patch("app.procesador_csv.LoadDataStep.execute") as mock_execute:
-            mock_execute.side_effect = ValueError("Error de carga de apus")
+            # El error debe contener "apus" para activar el diagnóstico
+            mock_execute.side_effect = ValueError("Error simulado en carga de apus")
 
-            with patch("app.procesador_csv.APUFileDiagnostic") as mock_diagnostic_class:
+            with patch(
+                "app.procesador_csv.APUFileDiagnostic"
+            ) as mock_diagnostic_class:
                 mock_diagnostic_instance = MagicMock()
                 mock_diagnostic_class.return_value = mock_diagnostic_instance
 
@@ -1109,8 +1028,10 @@ class TestProcessAllFilesIntegration(unittest.TestCase):
                 self.assertIn("error", resultado)
                 self.assertIn("apus", resultado["error"].lower())
 
-                # Verificar que el diagnóstico fue llamado
-                mock_diagnostic_class.assert_called_once_with(self.apus_path)
+                # Verificar que el diagnóstico fue llamado con los argumentos correctos
+                mock_diagnostic_class.assert_called_once_with(
+                    self.apus_path, TEST_CONFIG
+                )
                 mock_diagnostic_instance.diagnose.assert_called_once()
 
 

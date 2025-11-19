@@ -12,7 +12,8 @@ from scripts.diagnose_apus_file import APUFileDiagnostic
 from .apu_processor import APUProcessor
 from .data_loader import load_data
 from .data_validator import validate_and_clean_data
-from .report_parser_crudo import ParserConfig, ReportParserCrudo
+from .flux_condenser import DataFluxCondenser, CondenserConfig
+from .report_parser_crudo import ReportParserCrudo
 from .utils import (
     clean_apu_code,
     find_and_rename_columns,
@@ -291,16 +292,18 @@ class LoadDataStep(ProcessingStep):
         if not apus_profile:
             raise ValueError("No se encontró el perfil 'apus_default' en config.json")
 
-        # Paso 1: Ejecutar el "Guardia" para obtener registros crudos y el cache
-        config_obj = self.config if isinstance(self.config, ParserConfig) else ParserConfig(**self.config.get('parser_config', {}))
-        parser = ReportParserCrudo(apus_path, apus_profile, config_obj)
-        raw_records = parser.parse_to_raw()
-        parse_cache = parser.get_parse_cache() # Obtener el cache
+        # Usar el DataFluxCondenser para estabilizar el flujo de APUs
+        logger.info("⚡️ Iniciando DataFluxCondenser para procesar APUs...")
+        condenser_config_data = self.config.get('flux_condenser_config', {})
+        condenser_config = CondenserConfig(**condenser_config_data)
 
-        # Paso 2: Ejecutar el "Cirujano" adaptativo
-        processor = APUProcessor(self.config, apus_profile, parse_cache)
-        processor.raw_records = raw_records  # Asignar registros externamente
-        df_apus_raw = processor.process_all()
+        condenser = DataFluxCondenser(
+            config=self.config,
+            profile=apus_profile,
+            condenser_config=condenser_config
+        )
+        df_apus_raw = condenser.stabilize(apus_path)
+        logger.info("✅ DataFluxCondenser completado.")
 
         data_validator = DataValidator()
         validations = [
@@ -1531,7 +1534,7 @@ def _do_processing(
             logger.info("🔍 Ejecutando diagnóstico del archivo de APUs...")
             logger.info("=" * 80)
             try:
-                diagnostic = APUFileDiagnostic(apus_path)
+                diagnostic = APUFileDiagnostic(apus_path, config)
                 diagnostic.diagnose()
             except Exception as diag_e:
                 logger.error(f"❌ Error durante el diagnóstico: {diag_e}", exc_info=True)

@@ -14,7 +14,6 @@ import pytest
 from app.report_parser_crudo import (
     APUContext,
     FileReadError,
-    ParserConfig,
     ReportParserCrudo,
 )
 from tests.test_data import TEST_CONFIG
@@ -62,24 +61,6 @@ def sample_invalid_content() -> str:
 # =====================================================================
 
 
-class TestParserConfig:
-    """Pruebas para la clase ParserConfig simplificada."""
-
-    def test_default_config_creation(self):
-        """Verifica que la configuración por defecto se crea correctamente."""
-        config = ParserConfig()
-        assert config.encodings == ["utf-8", "latin1", "cp1252", "iso-8859-1"]
-        assert config.default_unit == "UND"
-        assert config.max_lines_to_process == 100000
-
-    def test_custom_config_creation(self):
-        """Verifica la creación con parámetros personalizados."""
-        config = ParserConfig(
-            encodings=["utf-8"], default_unit="UN", max_lines_to_process=5000
-        )
-        assert config.encodings == ["utf-8"]
-        assert config.default_unit == "UN"
-        assert config.max_lines_to_process == 5000
 
 
 # =====================================================================
@@ -200,7 +181,7 @@ class TestFileReading:
         content = "ITEM: TEST-002\nDescripción: Café"
         file_path.write_bytes(content.encode("latin1"))
 
-        config = ParserConfig(encodings=["latin1", "utf-8"])
+        config = {"encodings": ["latin1", "utf-8"]}
         parser = ReportParserCrudo(file_path, profile=TEST_APUS_PROFILE, config=config)
         read_content = parser._read_file_safely()
 
@@ -216,7 +197,7 @@ class TestFileReading:
         # FIX: Probar el caso de fallo limitando los encodings a uno que falle.
         # Esto valida que la excepción se lanza cuando NINGUNA codificación tiene éxito.
         profile = {"parser_strategy": "state_machine_v2"}
-        config = ParserConfig(encodings=["utf-8"])  # Solo intentar con utf-8
+        config = {"encodings": ["utf-8"]}  # Solo intentar con utf-8
         parser = ReportParserCrudo(file_path, profile=profile, config=config)
 
         with pytest.raises(FileReadError):
