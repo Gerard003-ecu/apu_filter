@@ -73,22 +73,6 @@ class ParseStrategyError(ParserError):
     pass
 
 
-@dataclass
-class ParserConfig:
-    """
-    Configuración simplificada para el parser.
-
-    Attributes:
-        encodings: Lista de codificaciones a intentar al leer el archivo.
-        default_unit: Unidad por defecto a asignar si no se puede extraer.
-        max_lines_to_process: Límite de líneas a procesar para evitar sobrecargas.
-    """
-
-    encodings: List[str] = field(
-        default_factory=lambda: ["utf-8", "latin1", "cp1252", "iso-8859-1"]
-    )
-    default_unit: str = "UND"
-    max_lines_to_process: int = 100000
 
 
 @dataclass
@@ -162,18 +146,18 @@ class ReportParserCrudo:
         self,
         file_path: Union[str, Path],
         profile: dict,
-        config: Optional[ParserConfig] = None,
+        config: Optional[Dict] = None,
     ):
         """
         Inicializa el parser.
 
         Args:
             file_path: La ruta al archivo a ser parseado.
-            config: Un objeto `ParserConfig` opcional con la configuración.
+            config: Un diccionario de configuración opcional.
         """
         self.file_path = Path(file_path)
         self.profile = profile or {}
-        self.config = config or ParserConfig()
+        self.config = config or {}
         self._validate_file_path()
 
         # --- INICIO DE LA MODIFICACIÓN ---
@@ -563,12 +547,13 @@ class ReportParserCrudo:
             FileReadError: Si no se puede leer el archivo con ninguna de las
                            codificaciones especificadas.
         """
-        # CAMBIO: Usar el encoding del perfil como primera opción
-        encodings_to_try = [self.profile.get("encoding")] + self.config.encodings
+        # Usar el encoding del perfil como primera opción, con fallback a la config general
+        default_encodings = self.config.get(
+            "encodings", ["utf-8", "latin1", "cp1252", "iso-8859-1"]
+        )
+        encodings_to_try = [self.profile.get("encoding")] + default_encodings
 
-        for encoding in filter(
-            None, encodings_to_try
-        ):  # filter(None, ...) para saltar si el perfil no tiene encoding
+        for encoding in filter(None, encodings_to_try):
             try:
                 with open(self.file_path, "r", encoding=encoding, errors="strict") as f:
                     content = f.read()

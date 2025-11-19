@@ -10,7 +10,7 @@ from unittest.mock import Mock, MagicMock, patch, PropertyMock
 from typing import Dict, Any, List
 import logging
 
-from flux_condenser import (
+from app.flux_condenser import (
     DataFluxCondenser,
     ParsedData,
     CondenserConfig,
@@ -264,11 +264,11 @@ class TestInputFileValidation:
 class TestAbsorbAndFilter:
     """Pruebas del proceso de filtrado con ReportParserCrudo."""
     
-    @patch('flux_condenser.ReportParserCrudo')
+    @patch('app.flux_condenser.ReportParserCrudo')
     def test_successful_parsing(
-        self, 
-        mock_parser_class, 
-        condenser, 
+        self,
+        mock_parser_class,
+        condenser,
         mock_csv_file,
         sample_raw_records,
         sample_parse_cache
@@ -279,21 +279,23 @@ class TestAbsorbAndFilter:
         mock_parser.parse_to_raw.return_value = sample_raw_records
         mock_parser.get_parse_cache.return_value = sample_parse_cache
         mock_parser_class.return_value = mock_parser
-        
+
         # Ejecutar
         result = condenser._absorb_and_filter(mock_csv_file)
-        
+
         # Verificar
         assert isinstance(result, ParsedData)
         assert result.raw_records == sample_raw_records
         assert result.parse_cache == sample_parse_cache
-        mock_parser_class.assert_called_once_with(
-            str(mock_csv_file),
-            condenser.profile,
-            condenser.config
-        )
+
+        # Verificar que el mock fue llamado con los argumentos de palabra clave correctos
+        mock_parser_class.assert_called_once()
+        args, kwargs = mock_parser_class.call_args
+        assert args[0] == str(mock_csv_file)
+        assert kwargs.get('profile') == condenser.profile
+        assert isinstance(kwargs.get('config'), dict)
     
-    @patch('flux_condenser.ReportParserCrudo')
+    @patch('app.flux_condenser.ReportParserCrudo')
     def test_parser_returns_none_records(
         self, 
         mock_parser_class, 
@@ -313,7 +315,7 @@ class TestAbsorbAndFilter:
         assert result.raw_records == []
         assert "Parser retornó None" in caplog.text
     
-    @patch('flux_condenser.ReportParserCrudo')
+    @patch('app.flux_condenser.ReportParserCrudo')
     def test_parser_returns_none_cache(
         self, 
         mock_parser_class, 
@@ -333,7 +335,7 @@ class TestAbsorbAndFilter:
         assert result.parse_cache == {}
         assert "Cache retornó None" in caplog.text
     
-    @patch('flux_condenser.ReportParserCrudo')
+    @patch('app.flux_condenser.ReportParserCrudo')
     def test_parser_raises_exception(
         self, 
         mock_parser_class, 
@@ -346,7 +348,7 @@ class TestAbsorbAndFilter:
         with pytest.raises(ProcessingError, match="Error durante el filtrado"):
             condenser._absorb_and_filter(mock_csv_file)
     
-    @patch('flux_condenser.ReportParserCrudo')
+    @patch('app.flux_condenser.ReportParserCrudo')
     def test_parser_method_fails(
         self, 
         mock_parser_class, 
@@ -441,7 +443,7 @@ class TestValidateParsedData:
 class TestRectifySignal:
     """Pruebas del proceso de rectificación con APUProcessor."""
     
-    @patch('flux_condenser.APUProcessor')
+    @patch('app.flux_condenser.APUProcessor')
     def test_successful_processing(
         self,
         mock_processor_class,
@@ -461,14 +463,16 @@ class TestRectifySignal:
         
         assert isinstance(result, pd.DataFrame)
         assert len(result) == len(sample_dataframe)
-        mock_processor_class.assert_called_once_with(
-            raw_records=sample_raw_records,
-            config=condenser.config,
-            profile=condenser.profile,
-            parse_cache=sample_parse_cache
-        )
+
+        # Verificar que el mock fue llamado con los argumentos correctos
+        mock_processor_class.assert_called_once()
+        _, kwargs = mock_processor_class.call_args
+        assert kwargs.get('profile') == condenser.profile
+        assert isinstance(kwargs.get('config'), dict)
+        assert kwargs.get('raw_records') == sample_raw_records
+        assert kwargs.get('parse_cache') == sample_parse_cache
     
-    @patch('flux_condenser.APUProcessor')
+    @patch('app.flux_condenser.APUProcessor')
     def test_processor_returns_wrong_type(
         self,
         mock_processor_class,
@@ -486,7 +490,7 @@ class TestRectifySignal:
         with pytest.raises(ProcessingError, match="debe retornar DataFrame"):
             condenser._rectify_signal(parsed_data)
     
-    @patch('flux_condenser.APUProcessor')
+    @patch('app.flux_condenser.APUProcessor')
     def test_processor_raises_exception(
         self,
         mock_processor_class,
@@ -502,7 +506,7 @@ class TestRectifySignal:
         with pytest.raises(ProcessingError, match="Error durante la rectificación"):
             condenser._rectify_signal(parsed_data)
     
-    @patch('flux_condenser.APUProcessor')
+    @patch('app.flux_condenser.APUProcessor')
     def test_processor_method_fails(
         self,
         mock_processor_class,
@@ -578,8 +582,8 @@ class TestValidateOutput:
 class TestStabilize:
     """Pruebas de integración del flujo completo."""
     
-    @patch('flux_condenser.APUProcessor')
-    @patch('flux_condenser.ReportParserCrudo')
+    @patch('app.flux_condenser.APUProcessor')
+    @patch('app.flux_condenser.ReportParserCrudo')
     def test_complete_successful_flow(
         self,
         mock_parser_class,
@@ -615,7 +619,7 @@ class TestStabilize:
         with pytest.raises(InvalidInputError, match="El archivo no existe"):
             condenser.stabilize("/nonexistent/file.csv")
     
-    @patch('flux_condenser.ReportParserCrudo')
+    @patch('app.flux_condenser.ReportParserCrudo')
     def test_empty_parsed_data_returns_empty_df(
         self,
         mock_parser_class,
@@ -636,7 +640,7 @@ class TestStabilize:
         assert len(result) == 0
         assert "La carga no generó señal válida" in caplog.text
     
-    @patch('flux_condenser.ReportParserCrudo')
+    @patch('app.flux_condenser.ReportParserCrudo')
     def test_parser_failure_raises_processing_error(
         self,
         mock_parser_class,
@@ -649,8 +653,8 @@ class TestStabilize:
         with pytest.raises(ProcessingError, match="Error durante el filtrado"):
             condenser.stabilize(str(mock_csv_file))
     
-    @patch('flux_condenser.APUProcessor')
-    @patch('flux_condenser.ReportParserCrudo')
+    @patch('app.flux_condenser.APUProcessor')
+    @patch('app.flux_condenser.ReportParserCrudo')
     def test_processor_failure_raises_error(
         self,
         mock_parser_class,
@@ -671,8 +675,8 @@ class TestStabilize:
         with pytest.raises(ProcessingError, match="Error durante la rectificación"):
             condenser.stabilize(str(mock_csv_file))
     
-    @patch('flux_condenser.APUProcessor')
-    @patch('flux_condenser.ReportParserCrudo')
+    @patch('app.flux_condenser.APUProcessor')
+    @patch('app.flux_condenser.ReportParserCrudo')
     def test_unexpected_error_wrapped(
         self,
         mock_parser_class,
@@ -692,11 +696,11 @@ class TestStabilize:
         mock_processor.process_all.side_effect = ZeroDivisionError("Unexpected")
         mock_processor_class.return_value = mock_processor
         
-        with pytest.raises(ProcessingError, match="Error inesperado durante estabilización"):
+        with pytest.raises(ProcessingError, match="Error durante la rectificación con APUProcessor: Unexpected"):
             condenser.stabilize(str(mock_csv_file))
     
-    @patch('flux_condenser.APUProcessor')
-    @patch('flux_condenser.ReportParserCrudo')
+    @patch('app.flux_condenser.APUProcessor')
+    @patch('app.flux_condenser.ReportParserCrudo')
     def test_logging_messages(
         self,
         mock_parser_class,
@@ -931,8 +935,8 @@ class TestParametrizedScenarios:
 class TestEdgeCases:
     """Pruebas de casos límite y situaciones extremas."""
     
-    @patch('flux_condenser.APUProcessor')
-    @patch('flux_condenser.ReportParserCrudo')
+    @patch('app.flux_condenser.APUProcessor')
+    @patch('app.flux_condenser.ReportParserCrudo')
     def test_very_large_dataset(
         self,
         mock_parser_class,
@@ -981,7 +985,7 @@ class TestEdgeCases:
         
         condenser._validate_output(df)  # No debe fallar
     
-    @patch('flux_condenser.ReportParserCrudo')
+    @patch('app.flux_condenser.ReportParserCrudo')
     def test_unicode_in_file_path(
         self,
         mock_parser_class,

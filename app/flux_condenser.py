@@ -233,10 +233,11 @@ class DataFluxCondenser:
         self.logger.debug("[FASE 1] Filtrando ruido con ReportParserCrudo...")
         
         try:
+            # FIX: Pasar explícitamente 'config' como argumento de palabra clave
             parser = ReportParserCrudo(
                 str(file_path), 
-                self.profile, 
-                self.config
+                profile=self.profile,
+                config=self.config
             )
             raw_records = parser.parse_to_raw()
             parse_cache = parser.get_parse_cache()

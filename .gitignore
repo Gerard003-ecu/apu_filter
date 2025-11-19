@@ -8,3 +8,7 @@ __pycache__
 *.log
 *.sh
 app/environment.yml
+curl_output.json
+data/insumos_detalle.json
+data/presupuesto_final.json
+data/processed_apus.json
