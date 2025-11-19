@@ -112,11 +112,15 @@ class DataFluxCondenser:
 
         missing_config_keys = self.REQUIRED_CONFIG_KEYS - set(config.keys())
         if missing_config_keys:
-            logger.warning(f"Claves faltantes en config (modo tolerante): {missing_config_keys}")
+            logger.warning(
+                f"Claves faltantes en config (modo tolerante): {missing_config_keys}"
+            )
 
         missing_profile_keys = self.REQUIRED_PROFILE_KEYS - set(profile.keys())
         if missing_profile_keys:
-            logger.warning(f"Claves faltantes en profile (modo tolerante): {missing_profile_keys}")
+            logger.warning(
+                f"Claves faltantes en profile (modo tolerante): {missing_profile_keys}"
+            )
 
     def stabilize(self, file_path: str) -> pd.DataFrame:
         """
@@ -130,7 +134,9 @@ class DataFluxCondenser:
             parsed_data = self._absorb_and_filter(validated_path)
 
             if not self._validate_parsed_data(parsed_data):
-                self.logger.warning("[ADVERTENCIA] La carga no generó señal válida (0 registros)")
+                self.logger.warning(
+                    "[ADVERTENCIA] La carga no generó señal válida (0 registros)"
+                )
                 return pd.DataFrame()
 
             # --- CÁLCULO FÍSICO ---

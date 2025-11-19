@@ -587,6 +587,7 @@ class TestFluxPhysicsEngine:
 
     # Importar math y FluxPhysicsEngine aquí para mantener el test aislado
     import math
+
     from app.flux_condenser import FluxPhysicsEngine
 
     @pytest.fixture
@@ -600,7 +601,9 @@ class TestFluxPhysicsEngine:
         (10000, 0.5, 0.4865),
         (20000, 1.0, 0.6321),
     ])
-    def test_calculate_saturation(self, physics_engine, load_size, complexity, expected_saturation):
+    def test_calculate_saturation(
+        self, physics_engine, load_size, complexity, expected_saturation
+        ):
         """Debe calcular la saturación correctamente."""
         saturation = physics_engine.calculate_saturation(load_size, complexity)
         assert saturation == pytest.approx(expected_saturation, abs=1e-4)
