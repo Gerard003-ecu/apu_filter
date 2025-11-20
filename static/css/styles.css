@@ -1,0 +1,22 @@
+:root {
+    --primary-color: #1e40af;
+    --secondary-color: #1d4ed8;
+    --success-color: #10b981;
+    --error-color: #ef4444;
+    --warning-color: #f59e0b;
+}
+.modal-overlay { transition: opacity 0.3s ease; }
+.modal-content { transition: transform 0.3s ease; }
+.tab-active { border-color: var(--primary-color); background-color: #eef2ff; color: var(--primary-color); }
+.tab-inactive { border-color: transparent; }
+.loader { border-top-color: var(--primary-color); animation: spin 1s linear infinite; }
+@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+.btn-primary { background-color: var(--primary-color); }
+.btn-primary:hover { background-color: var(--secondary-color); }
+.btn-primary:disabled { background-color: #94a3b8; cursor: not-allowed; }
+.summary-card { transition: all 0.2s ease-in-out; }
+.summary-card:hover { transform: translateY(-4px); box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1); }
+.fade-in { animation: fadeIn 0.3s ease-in; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+.error-shake { animation: shake 0.5s; }
+@keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } }

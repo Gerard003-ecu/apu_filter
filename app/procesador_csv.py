@@ -1586,7 +1586,7 @@ def _do_processing(
             logger.info("🔍 Ejecutando diagnóstico del archivo de APUs...")
             logger.info("=" * 80)
             try:
-                diagnostic = APUFileDiagnostic(apus_path, config)
+                diagnostic = APUFileDiagnostic(apus_path)
                 diagnostic.diagnose()
             except Exception as diag_e:
                 logger.error(f"❌ Error durante el diagnóstico: {diag_e}", exc_info=True)

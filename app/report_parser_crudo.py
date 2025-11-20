@@ -759,4 +759,3 @@ class ReportParserCrudo:
         self._log_validation_summary()
 
         return self.stats["insumos_extracted"] > 0
-

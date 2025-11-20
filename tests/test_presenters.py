@@ -456,11 +456,11 @@ class TestAggregation:
         processed = presenter._group_by_category(df)
 
         # Debe consolidar los dos registros de "Cemento gris" en uno
-        cement_items = [item for item in processed if item["DESCRIPCION"] == "Cemento gris"]
+        cement_items = [item for item in processed if item["descripcion"] == "Cemento gris"]
 
         assert len(cement_items) == 1
-        assert cement_items[0]["CANTIDAD"] == 75.0  # 50 + 25
-        assert cement_items[0]["VR_TOTAL"] == 750000.0  # 500000 + 250000
+        assert cement_items[0]["cantidad"] == 75.0  # 50 + 25
+        assert cement_items[0]["valor_total"] == 750000.0  # 500000 + 250000
 
     def test_group_by_category_processes_all_categories(self, presenter, valid_apu_details):
         """Debe procesar todas las categorías presentes."""
@@ -468,7 +468,7 @@ class TestAggregation:
 
         processed = presenter._group_by_category(df)
 
-        categories = {item["CATEGORIA"] for item in processed}
+        categories = {item["categoria"] for item in processed}
 
         assert "MATERIALES" in categories
         assert "MANO DE OBRA" in categories
@@ -492,7 +492,7 @@ class TestAggregation:
 
         # Verificar que las alertas se concatenaron
         cement_item = next(
-            item for item in processed if item["DESCRIPCION"] == "Cemento gris"
+            item for item in processed if item["descripcion"] == "Cemento gris"
         )
 
         assert "alerta" in cement_item
@@ -581,9 +581,9 @@ class TestBreakdownOrganization:
     def test_organize_breakdown_groups_by_category(self, presenter):
         """Debe organizar items por categoría."""
         items = [
-            {"CATEGORIA": "MATERIALES", "desc": "Item 1"},
-            {"CATEGORIA": "MATERIALES", "desc": "Item 2"},
-            {"CATEGORIA": "EQUIPO", "desc": "Item 3"},
+            {"categoria": "MATERIALES", "desc": "Item 1"},
+            {"categoria": "MATERIALES", "desc": "Item 2"},
+            {"categoria": "EQUIPO", "desc": "Item 3"},
         ]
 
         desglose = presenter._organize_breakdown(items)
@@ -596,9 +596,9 @@ class TestBreakdownOrganization:
     def test_organize_breakdown_handles_missing_category(self, presenter, mock_logger):
         """Debe asignar categoría por defecto a items sin categoría."""
         items = [
-            {"CATEGORIA": None, "desc": "Item 1"},
-            {"CATEGORIA": "", "desc": "Item 2"},
-            {"CATEGORIA": "   ", "desc": "Item 3"},
+            {"categoria": None, "desc": "Item 1"},
+            {"categoria": "", "desc": "Item 2"},
+            {"categoria": "   ", "desc": "Item 3"},
         ]
 
         presenter.logger = mock_logger
@@ -620,7 +620,7 @@ class TestBreakdownOrganization:
         self, presenter_custom_config, mock_logger
     ):
         """Debe usar categoría por defecto personalizada."""
-        items = [{"CATEGORIA": None, "desc": "Item 1"}]
+        items = [{"categoria": None, "desc": "Item 1"}]
 
         presenter_custom_config.logger = mock_logger
         desglose = presenter_custom_config._organize_breakdown(items)
@@ -746,7 +746,7 @@ class TestProcessAPUDetailsIntegration:
 
         # Verificar que el item consolidado tiene alertas
         cement_item = next(
-            item for item in result["items"] if item["DESCRIPCION"] == "Cemento gris"
+            item for item in result["items"] if item["descripcion"] == "Cemento gris"
         )
 
         assert "alerta" in cement_item
@@ -778,9 +778,9 @@ class TestProcessAPUDetailsIntegration:
 
         item = result["items"][0]
 
-        assert item["CATEGORIA"] == "MATERIALES"
-        assert item["DESCRIPCION"] == "Cemento gris"
-        assert item["UNIDAD"] == "kg"
+        assert item["categoria"] == "MATERIALES"
+        assert item["descripcion"] == "Cemento gris"
+        assert item["unidad"] == "kg"
 
 
 # ============================================================================
@@ -1005,8 +1005,8 @@ class TestPerformance:
         # Debe consolidar en un solo item
         assert result["total_items"] == 1
         cement = result["items"][0]
-        assert cement["CANTIDAD"] == 100.0
-        assert cement["VR_TOTAL"] == 10000.0
+        assert cement["cantidad"] == 100.0
+        assert cement["valor_total"] == 10000.0
 
 
 # ============================================================================

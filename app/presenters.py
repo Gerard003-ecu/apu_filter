@@ -361,11 +361,12 @@ class APUPresenter:
         # Renombrar columnas a formato de salida
         df_grouped.rename(
             columns={
-                "DESCRIPCION_INSUMO": "DESCRIPCION",
-                "CANTIDAD_APU": "CANTIDAD",
-                "VALOR_TOTAL_APU": "VR_TOTAL",
-                "UNIDAD_INSUMO": "UNIDAD",
-                "PRECIO_UNIT_APU": "VR_UNITARIO",
+                "DESCRIPCION_INSUMO": "descripcion",
+                "CANTIDAD_APU": "cantidad",
+                "VALOR_TOTAL_APU": "valor_total",
+                "UNIDAD_INSUMO": "unidad",
+                "PRECIO_UNIT_APU": "valor_unitario",
+                "CATEGORIA": "categoria",
             },
             inplace=True,
         )
@@ -485,7 +486,7 @@ class APUPresenter:
         items_sin_categoria = 0
 
         for item in items:
-            categoria = item.get("CATEGORIA")
+            categoria = item.get("categoria")
 
             # Manejar categoría None, vacía o solo espacios
             if not categoria or (isinstance(categoria, str) and not categoria.strip()):
