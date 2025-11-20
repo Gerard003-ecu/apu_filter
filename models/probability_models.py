@@ -456,15 +456,34 @@ class MonteCarloSimulator:
         Raises:
             ValueError: Si faltan columnas requeridas.
         """
-        # Validar que todos los diccionarios tengan las claves requeridas
-        # para distinguir un error estructural (clave faltante) de un
-        # problema de datos (valor NaN).
-        required_cols = {"VR_TOTAL", "CANTIDAD"}
-        if any(not required_cols.issubset(item) for item in apu_details):
-            raise ValueError("Faltan columnas requeridas")
+        vr_total_aliases = {"VR_TOTAL", "valor_total", "vr_total"}
+        cantidad_aliases = {"CANTIDAD", "cantidad"}
 
-        # Convertir a DataFrame
+        # 1. Validar que cada diccionario de entrada tenga al menos un alias para cada campo requerido.
+        for i, item in enumerate(apu_details):
+            item_keys = set(item.keys())
+            if not vr_total_aliases.intersection(item_keys):
+                raise ValueError(
+                    f"Faltan columnas requeridas (VR_TOTAL o similar) en el registro {i}"
+                )
+            if not cantidad_aliases.intersection(item_keys):
+                raise ValueError(
+                    f"Faltan columnas requeridas (CANTIDAD o similar) en el registro {i}"
+                )
+
+        # 2. Crear DataFrame y normalizar
         df = pd.DataFrame(apu_details)
+
+        vr_total_cols = [col for col in vr_total_aliases if col in df.columns]
+        cantidad_cols = [col for col in cantidad_aliases if col in df.columns]
+
+        # Coalesce: tomar el primer valor no nulo de las columnas alias
+        df["VR_TOTAL"] = df[vr_total_cols].bfill(axis=1).iloc[:, 0]
+        df["CANTIDAD"] = df[cantidad_cols].bfill(axis=1).iloc[:, 0]
+
+        # Eliminar columnas alias originales para evitar confusión
+        cols_to_drop = [col for col in vr_total_cols + cantidad_cols if col not in {"VR_TOTAL", "CANTIDAD"}]
+        df.drop(columns=cols_to_drop, inplace=True, errors='ignore')
 
         # Convertir a numérico, forzando errores a NaN
         df["VR_TOTAL"] = pd.to_numeric(df["VR_TOTAL"], errors="coerce")
