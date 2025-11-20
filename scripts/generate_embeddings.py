@@ -241,18 +241,132 @@ class EmbeddingGenerator:
         return index
 
     def validate_index(self, index: faiss.Index, embeddings: np.ndarray) -> bool:
-        """Valida el índice FAISS realizando búsquedas de prueba."""
-        self.logger.info("Validando índice FAISS...")
+        """
+        Valida el índice FAISS con tolerancia a duplicados y análisis de similitud.
+        
+        Estrategia:
+        - Acepta coincidencias exactas (mismo índice).
+        - Acepta duplicados semánticos (Similitud > 0.999).
+        - Rechaza desviaciones significativas.
+        - Reporta estadísticas detalladas.
+        
+        Args:
+            index: Índice FAISS a validar.
+            embeddings: Embeddings originales.
+            
+        Returns:
+            bool: True si la validación es exitosa.
+        """
+        self.logger.info("=" * 60)
+        self.logger.info("Iniciando validación robusta del índice FAISS...")
+        
         n_samples = min(self.config.validation_sample_size, len(embeddings))
-        sample_indices = np.random.choice(len(embeddings), n_samples, replace=False)
+        # Usar semilla fija para reproducibilidad en validación
+        rng = np.random.default_rng(42)
+        sample_indices = rng.choice(len(embeddings), n_samples, replace=False)
+        
+        # Umbrales (Para IndexFlatIP/Coseno: 1.0 es idéntico)
+        SIMILARITY_THRESHOLD = 0.999  # Aceptamos 99.9% de similitud como idéntico
+        
+        # Métricas de validación
+        stats = {
+            'exact_matches': 0,      # Mismo índice
+            'semantic_duplicates': 0, # Índice diferente, vector idéntico
+            'failures': 0,            # Validación fallida
+            'total': n_samples
+        }
+        
+        failed_cases = []
+        
         for idx in sample_indices:
             query = embeddings[idx : idx + 1].astype(np.float32)
-            _, indices = index.search(query, k=1)
-            if indices[0][0] != idx:
-                self.logger.error(f"Error de validación: índice {idx} no coincide")
-                return False
-        self.logger.info(f"Validación exitosa con {n_samples} muestras")
-        return True
+            
+            # Buscar top-5 para detectar duplicados
+            # Nota: 'distances' aquí son puntajes de similitud (cercanos a 1.0)
+            similarities, indices = index.search(query, k=5)
+            
+            top_idx = indices[0][0]
+            top_similarity = similarities[0][0]
+            
+            # CASO 1: Coincidencia exacta (esperado)
+            if top_idx == idx:
+                stats['exact_matches'] += 1
+                continue
+            
+            # CASO 2: Duplicado semántico (aceptable)
+            # Verificar si el índice correcto está en el top-5 y tiene alta similitud
+            if idx in indices[0]:
+                position = np.where(indices[0] == idx)[0][0]
+                actual_similarity = similarities[0][position]
+                
+                if actual_similarity > SIMILARITY_THRESHOLD:
+                    stats['semantic_duplicates'] += 1
+                    self.logger.warning(
+                        f"⚠️  Duplicado detectado (Índice correcto encontrado):\n"
+                        f"   Índice esperado: {idx}\n"
+                        f"   Índice retornado (Top 1): {top_idx} (Similitud: {top_similarity:.6f})\n"
+                        f"   Índice correcto en posición: {position + 1}/5 (Similitud: {actual_similarity:.6f})"
+                    )
+                    continue
+            
+            # CASO 3: Similitud casi perfecta con índice diferente
+            # (Duplicado perfecto no indexado o colisión)
+            if top_similarity > SIMILARITY_THRESHOLD:
+                stats['semantic_duplicates'] += 1
+                self.logger.warning(
+                    f"⚠️  Vector duplicado perfecto (Índice correcto NO en Top-5):\n"
+                    f"   Índice esperado: {idx}\n"
+                    f"   Índice retornado: {top_idx}\n"
+                    f"   Similitud: {top_similarity:.8f} (≈1.0, duplicado legítimo)\n"
+                    f"   Top-5 índices: {indices[0].tolist()}"
+                )
+                continue
+            
+            # CASO 4: Fallo real de validación
+            stats['failures'] += 1
+            failed_cases.append({
+                'expected_idx': idx,
+                'returned_idx': top_idx,
+                'similarity': float(top_similarity),
+                'top5_indices': indices[0].tolist()
+            })
+            
+            self.logger.error(
+                f"❌ Error de validación real:\n"
+                f"   Índice esperado: {idx}\n"
+                f"   Índice retornado: {top_idx}\n"
+                f"   Similitud: {top_similarity:.6f} (< {SIMILARITY_THRESHOLD})\n"
+            )
+        
+        # Reporte de estadísticas
+        self.logger.info("=" * 60)
+        self.logger.info("📊 Resultados de Validación:")
+        self.logger.info(f"   Total muestras: {stats['total']}")
+        self.logger.info(f"   ✅ Coincidencias exactas: {stats['exact_matches']} "
+                         f"({stats['exact_matches']/stats['total']*100:.1f}%)")
+        self.logger.info(f"   ⚠️  Duplicados semánticos: {stats['semantic_duplicates']} "
+                         f"({stats['semantic_duplicates']/stats['total']*100:.1f}%)")
+        self.logger.info(f"   ❌ Fallos reales: {stats['failures']} "
+                         f"({stats['failures']/stats['total']*100:.1f}%)")
+        
+        # Criterio de aceptación: 0 fallos reales
+        success_rate = (stats['exact_matches'] + stats['semantic_duplicates']) / stats['total']
+        
+        if stats['failures'] == 0:
+            if stats['semantic_duplicates'] > 0:
+                self.logger.warning(
+                    f"⚠️  ADVERTENCIA: Se detectaron {stats['semantic_duplicates']} duplicados.\n"
+                    f"   El sistema funciona, pero considera limpiar tus datos de APUs duplicados."
+                )
+            self.logger.info(f"✅ Validación EXITOSA (tasa de éxito funcional: {success_rate*100:.2f}%)")
+            self.logger.info("=" * 60)
+            return True
+        else:
+            self.logger.error(
+                f"❌ Validación FALLIDA: {stats['failures']} errores reales detectados"
+            )
+            self.logger.info("=" * 60)
+            return False
 
 
 class EmbeddingPipeline:
