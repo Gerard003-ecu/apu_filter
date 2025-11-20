@@ -23,6 +23,28 @@ const CONFIG = {
         'CUBIERTA': ['TST', 'PANEL SANDWICH'],
         'FACHADA': ['PANEL SANDWICH', 'LOUVER', 'PERFORADA']
     },
+    
+    // ✨ NUEVO: Mapeo Backend → Frontend para categorías de insumos
+    CATEGORY_TRANSLATION: {
+        // Clave del backend: Etiqueta para mostrar al usuario
+        'SUMINISTRO': 'MATERIALES',
+        'MANO_DE_OBRA': 'MANO DE OBRA',
+        'EQUIPO': 'EQUIPO',
+        'TRANSPORTE': 'TRANSPORTE',
+        'HERRAMIENTA': 'HERRAMIENTAS',
+        'OTROS': 'OTROS'
+    },
+    
+    // ✨ NUEVO: Orden de visualización de categorías en el modal
+    CATEGORY_DISPLAY_ORDER: [
+        'MATERIALES',      // SUMINISTRO traducido
+        'MANO DE OBRA',    // MANO_DE_OBRA traducido
+        'EQUIPO',
+        'TRANSPORTE',
+        'HERRAMIENTAS',
+        'OTROS'
+    ],
+    
     APU_TYPE_ORDER: {
         'Suministro': 1,
         'Suministro (Pre-fabricado)': 2,
@@ -136,6 +158,42 @@ const Utils = {
             "'": '&#039;'
         };
         return String(text).replace(/[&<>"']/g, m => map[m]);
+    },
+    
+    /**
+     * ✨ NUEVO: Traduce clave del backend a etiqueta del frontend
+     */
+    translateCategory(backendKey) {
+        // Normalizar la clave (uppercase, trim)
+        const normalizedKey = String(backendKey).trim().toUpperCase();
+        
+        // Buscar traducción exacta
+        if (CONFIG.CATEGORY_TRANSLATION[normalizedKey]) {
+            return CONFIG.CATEGORY_TRANSLATION[normalizedKey];
+        }
+        
+        // Fallback: intentar buscar por coincidencia parcial
+        for (const [key, label] of Object.entries(CONFIG.CATEGORY_TRANSLATION)) {
+            if (normalizedKey.includes(key) || key.includes(normalizedKey)) {
+                Logger.warn(`Traducción por coincidencia parcial: ${backendKey} → ${label}`);
+                return label;
+            }
+        }
+        
+        // Si no hay traducción, devolver la clave original capitalizada
+        Logger.warn(`Categoría desconocida sin traducción: ${backendKey}`);
+        return this.capitalizeWords(normalizedKey);
+    },
+    
+    /**
+     * ✨ NUEVO: Capitaliza palabras para etiquetas desconocidas
+     */
+    capitalizeWords(str) {
+        return str
+            .toLowerCase()
+            .split('_')
+            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+            .join(' ');
     }
 };
 
@@ -439,24 +497,61 @@ const ModalManager = {
     },
 
     /**
-     * Construir contenido del modal
+     * ✨ REFACTORIZADO: Construir contenido del modal con traducción dinámica
      */
     _buildModalContent(data) {
         const aiuPcts = StateManager.getState('aiuPercentages');
         let costoDirecto = 0;
-        const categories = data.desglose || {};
+        const categoriesBackend = data.desglose || {};
+        
+        // ✨ PASO 1: Traducir categorías del backend y agrupar datos
+        const categoriesTranslated = {};
+        
+        for (const [backendKey, items] of Object.entries(categoriesBackend)) {
+            if (!Array.isArray(items) || items.length === 0) {
+                Logger.warn(`Categoría vacía o inválida ignorada: ${backendKey}`);
+                continue;
+            }
+            
+            const frontendLabel = Utils.translateCategory(backendKey);
+            categoriesTranslated[frontendLabel] = {
+                items: items,
+                backendKey: backendKey  // Guardar referencia para debugging
+            };
+        }
+        
+        Logger.log('Categorías traducidas', {
+            backend: Object.keys(categoriesBackend),
+            frontend: Object.keys(categoriesTranslated)
+        });
+        
+        // ✨ PASO 2: Ordenar categorías según CONFIG.CATEGORY_DISPLAY_ORDER
+        const sortedCategories = Object.keys(categoriesTranslated).sort((a, b) => {
+            const indexA = CONFIG.CATEGORY_DISPLAY_ORDER.indexOf(a);
+            const indexB = CONFIG.CATEGORY_DISPLAY_ORDER.indexOf(b);
+            
+            // Si ambas están en el orden, ordenar por índice
+            if (indexA !== -1 && indexB !== -1) return indexA - indexB;
+            // Si solo A está, A va primero
+            if (indexA !== -1) return -1;
+            // Si solo B está, B va primero
+            if (indexB !== -1) return 1;
+            // Si ninguna está, orden alfabético
+            return a.localeCompare(b);
+        });
+        
         let contentHTML = '<div class="space-y-6">';
 
-        // Categorías
-        const categoryOrder = ['MATERIALES', 'MANO DE OBRA', 'EQUIPO', 'OTROS'];
-
-        categoryOrder.forEach(catName => {
-            if (!categories[catName] || !Array.isArray(categories[catName])) return;
-
-            const categoryItems = categories[catName];
+        // ✨ PASO 3: Renderizar cada categoría traducida
+        sortedCategories.forEach(categoryLabel => {
+            const categoryData = categoriesTranslated[categoryLabel];
+            const categoryItems = categoryData.items;
             let categorySubtotal = 0;
 
-            const isManoObra = catName === 'MANO DE OBRA';
+            // Detectar si es mano de obra (flexible)
+            const isManoObra = categoryLabel.toUpperCase().includes('MANO') || 
+                               categoryLabel.toUpperCase().includes('OBRA');
+
             const tableHeaders = isManoObra ? `
                 <th scope="col" class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Descripción</th>
                 <th scope="col" class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Jornal Total</th>
@@ -470,6 +565,7 @@ const ModalManager = {
             `;
 
             let tableRows = '';
+            
             categoryItems.forEach(item => {
                 const vrTotal = Utils.sanitizeNumber(item.valor_total, 0);
                 categorySubtotal += vrTotal;
@@ -480,8 +576,8 @@ const ModalManager = {
                 const descripcion = Utils.escapeHtml(item.descripcion || 'Sin descripción');
 
                 if (isManoObra) {
-                    const jornalTotal = Utils.formatCurrency(item.valor_unitario);
-                    const rendimiento = Utils.sanitizeNumber(item.RENDIMIENTO, 0).toFixed(2);
+                    const jornalTotal = Utils.formatCurrency(item.valor_unitario || 0);
+                    const rendimiento = Utils.sanitizeNumber(item.RENDIMIENTO || item.rendimiento, 0).toFixed(2);
                     tableRows += `
                         <tr class="text-sm hover:bg-gray-50">
                             <td class="py-2 px-4">${descripcion}${alertaIcon}</td>
@@ -492,7 +588,7 @@ const ModalManager = {
                     `;
                 } else {
                     const cantidad = Utils.sanitizeNumber(item.cantidad, 0).toFixed(3);
-                    const vrUnitario = Utils.formatCurrency(item.valor_unitario);
+                    const vrUnitario = Utils.formatCurrency(item.valor_unitario || 0);
                     tableRows += `
                         <tr class="text-sm hover:bg-gray-50">
                             <td class="py-2 px-4">${descripcion}${alertaIcon}</td>
@@ -508,14 +604,19 @@ const ModalManager = {
 
             contentHTML += `
                 <div class="border rounded-lg overflow-hidden">
-                    <h4 class="bg-gray-100 px-4 py-2 font-semibold text-gray-700">${catName}</h4>
+                    <h4 class="bg-gray-100 px-4 py-2 font-semibold text-gray-700 flex items-center justify-between">
+                        <span>${categoryLabel}</span>
+                        <span class="text-xs text-gray-500 font-normal" title="Clave backend: ${categoryData.backendKey}">
+                            ${categoryItems.length} ítem(s)
+                        </span>
+                    </h4>
                     <div class="overflow-x-auto">
                         <table class="min-w-full">
                             <thead class="bg-gray-50"><tr>${tableHeaders}</tr></thead>
                             <tbody class="divide-y divide-gray-200">${tableRows}</tbody>
                             <tfoot class="bg-gray-100">
                                 <tr>
-                                    <td colspan="3" class="py-2 px-4 text-right font-semibold">SUBTOTAL ${catName}</td>
+                                    <td colspan="3" class="py-2 px-4 text-right font-semibold">SUBTOTAL ${categoryLabel}</td>
                                     <td class="py-2 px-4 text-right font-semibold">${Utils.formatCurrency(categorySubtotal)}</td>
                                 </tr>
                             </tfoot>
