@@ -1,0 +1,312 @@
+# En app/presenters.py
+
+def _calculate_metadata(
+    self, df_original: pd.DataFrame, processed_items: List[Dict[str, Any]]
+) -> Dict[str, Any]:
+    """
+    Calcula metadata del procesamiento para auditoría con búsqueda flexible de claves.
+    
+    Implementa búsqueda multi-clave para compatibilidad con diferentes formatos
+    de nomenclatura (snake_case, UPPER_CASE, etc.).
+    
+    Args:
+        df_original: DataFrame original antes del procesamiento.
+        processed_items: Items después del procesamiento.
+    
+    Returns:
+        Diccionario con métricas del procesamiento:
+        - original_rows: Cantidad de filas originales
+        - processed_items: Cantidad de items procesados
+        - reduction_rate: Tasa de reducción (0-1)
+        - categories_count: Número de categorías únicas
+        - total_value: Valor total monetario
+        - avg_value_per_item: Valor promedio por item
+    
+    Note:
+        Soporta claves: 'valor_total', 'VR_TOTAL', 'ValorTotal', 'valor', 'total'
+    """
+    import logging
+    
+    logger = logging.getLogger(__name__)
+    
+    # Claves alternativas en orden de prioridad
+    VALUE_KEYS = ['valor_total', 'VR_TOTAL', 'ValorTotal', 'valor', 'total']
+    
+    def extract_total_value(item: Dict[str, Any]) -> float:
+        """
+        Extrae valor total con búsqueda flexible y conversión segura.
+        
+        Args:
+            item: Diccionario del item procesado
+            
+        Returns:
+            Valor numérico float o 0.0 si no se encuentra/convierte
+        """
+        for key in VALUE_KEYS:
+            if key in item and item[key] is not None:
+                try:
+                    return float(item[key])
+                except (ValueError, TypeError) as e:
+                    logger.warning(
+                        f"Conversión fallida para '{key}': {item[key]} - {e}"
+                    )
+                    continue
+        
+        # Diagnóstico: loguear claves disponibles si no se encuentra nada
+        if item:
+            logger.debug(
+                f"Valor total no encontrado. Claves disponibles: {list(item.keys())}"
+            )
+        return 0.0
+    
+    # === Validaciones Iniciales ===
+    original_rows = len(df_original) if df_original is not None else 0
+    processed_count = len(processed_items) if processed_items else 0
+    
+    # Caso edge: sin items procesados
+    if processed_count == 0:
+        logger.warning("Lista de processed_items vacía")
+        return {
+            "original_rows": original_rows,
+            "processed_items": 0,
+            "reduction_rate": 1.0 if original_rows > 0 else 0.0,
+            "categories_count": (
+                int(df_original["CATEGORIA"].nunique()) 
+                if original_rows > 0 and "CATEGORIA" in df_original.columns 
+                else 0
+            ),
+            "total_value": 0.0,
+            "avg_value_per_item": 0.0,
+        }
+    
+    # === Cálculos Principales ===
+    total_value = sum(extract_total_value(item) for item in processed_items)
+    
+    # Alerta si valor total es cero (posible error de datos)
+    if total_value == 0.0 and processed_count > 0:
+        sample_keys = list(processed_items[0].keys()) if processed_items else []
+        logger.error(
+            f"⚠️ ALERTA: Valor total es $0.00 con {processed_count} items. "
+            f"Claves encontradas en primer item: {sample_keys}. "
+            f"Claves esperadas: {VALUE_KEYS}"
+        )
+    
+    # Reducción de datos
+    reduction_rate = (
+        1 - (processed_count / original_rows) if original_rows > 0 else 0.0
+    )
+    
+    # Categorías únicas con manejo de errores
+    categories_count = 0
+    if original_rows > 0 and "CATEGORIA" in df_original.columns:
+        try:
+            categories_count = int(df_original["CATEGORIA"].nunique())
+        except Exception as e:
+            logger.error(f"Error contando categorías: {e}")
+    
+    # Promedio por item
+    avg_value_per_item = (
+        round(total_value / processed_count, 2) if processed_count > 0 else 0.0
+    )
+    
+    # === Construcción del Resultado ===
+    metadata = {
+        "original_rows": original_rows,
+        "processed_items": processed_count,
+        "reduction_rate": round(reduction_rate, 4),
+        "categories_count": categories_count,
+        "total_value": round(total_value, 2),
+        "avg_value_per_item": avg_value_per_item,
+    }
+    
+    logger.info(
+        f"✓ Metadata: {processed_count} items | "
+        f"Total: ${total_value:,.2f} | "
+        f"Promedio: ${avg_value_per_item:,.2f}"
+    )
+    
+    return metadata
+
+# En app/procesador_csv.py, dentro de APUCostCalculator
+
+def _aggregate_costs_by_type(self, df_merged: pd.DataFrame) -> pd.DataFrame:
+    """
+    Agrupa costos por APU y tipo de insumo con protección contra propagación de NaN.
+    
+    Implementa múltiples capas de limpieza de nulos para garantizar integridad
+    numérica en cálculos financieros.
+    
+    Args:
+        df_merged: DataFrame con costos de insumos merged
+        
+    Returns:
+        DataFrame con costos agregados por tipo (Materiales, Mano de Obra, Equipo, Otros)
+        
+    Raises:
+        ValueError: Si columnas críticas no existen en df_merged
+    """
+    logger.info("📊 Agregando costos por APU y tipo de insumo...")
+    
+    # === Validaciones Iniciales ===
+    required_cols = [
+        ColumnNames.CODIGO_APU, 
+        ColumnNames.TIPO_INSUMO, 
+        ColumnNames.COSTO_INSUMO_EN_APU
+    ]
+    
+    missing_cols = [col for col in required_cols if col not in df_merged.columns]
+    if missing_cols:
+        raise ValueError(f"Columnas faltantes en df_merged: {missing_cols}")
+    
+    if df_merged.empty:
+        logger.warning("⚠️ DataFrame vacío recibido")
+        return self._create_empty_cost_dataframe()
+    
+    # === Capa 1: Limpieza Pre-Agregación ===
+    df_clean = df_merged.copy()
+    
+    # Convertir costos a numérico y reemplazar NaN/inf por 0
+    df_clean[ColumnNames.COSTO_INSUMO_EN_APU] = (
+        pd.to_numeric(
+            df_clean[ColumnNames.COSTO_INSUMO_EN_APU], 
+            errors='coerce'
+        )
+        .fillna(0)
+        .replace([np.inf, -np.inf], 0)
+    )
+    
+    # Normalizar tipos de insumo (eliminar espacios, capitalizar)
+    df_clean[ColumnNames.TIPO_INSUMO] = (
+        df_clean[ColumnNames.TIPO_INSUMO]
+        .astype(str)
+        .str.strip()
+        .str.upper()
+    )
+    
+    # Loguear valores anómalos detectados
+    null_count = df_merged[ColumnNames.COSTO_INSUMO_EN_APU].isna().sum()
+    if null_count > 0:
+        logger.warning(f"🧹 Limpiados {null_count} valores NaN en costos")
+    
+    # === Capa 2: Agregación con Protección ===
+    try:
+        df_apu_costos = (
+            df_clean.groupby(
+                [ColumnNames.CODIGO_APU, ColumnNames.TIPO_INSUMO],
+                dropna=False  # Mantener grupos con NaN para control
+            )[ColumnNames.COSTO_INSUMO_EN_APU]
+            .sum()
+            .unstack(fill_value=0)  # Pivotear con 0 por defecto
+            .reset_index()
+        )
+    except Exception as e:
+        logger.error(f"❌ Error en agregación: {e}")
+        return self._create_empty_cost_dataframe()
+    
+    # === Capa 3: Mapeo Inteligente de Columnas ===
+    cost_cols_map = {
+        InsumoTypes.SUMINISTRO: ColumnNames.MATERIALES,
+        InsumoTypes.MANO_DE_OBRA: ColumnNames.MANO_DE_OBRA,
+        InsumoTypes.EQUIPO: ColumnNames.EQUIPO,
+        InsumoTypes.TRANSPORTE: ColumnNames.OTROS,
+        InsumoTypes.OTRO: ColumnNames.OTROS,
+    }
+    
+    # Identificar columnas no mapeadas (tipos de insumo desconocidos)
+    current_cols = set(df_apu_costos.columns) - {ColumnNames.CODIGO_APU}
+    mapped_cols = set(cost_cols_map.keys())
+    unmapped_cols = current_cols - mapped_cols
+    
+    if unmapped_cols:
+        logger.warning(
+            f"⚠️ Tipos de insumo no mapeados encontrados: {unmapped_cols}. "
+            f"Se agruparán en '{ColumnNames.OTROS}'"
+        )
+        # Agregar tipos desconocidos al mapeo como OTROS
+        for col in unmapped_cols:
+            cost_cols_map[col] = ColumnNames.OTROS
+    
+    # Aplicar mapeo
+    df_apu_costos = df_apu_costos.rename(columns=cost_cols_map)
+    
+    # === Capa 4: Consolidación Robusta de OTROS ===
+    if ColumnNames.OTROS in df_apu_costos.columns:
+        otros_data = df_apu_costos[ColumnNames.OTROS]
+        
+        # Si hay múltiples columnas OTROS (DataFrame), sumarlas
+        if isinstance(otros_data, pd.DataFrame):
+            logger.info(f"🔀 Consolidando {otros_data.shape[1]} columnas en OTROS")
+            df_apu_costos[ColumnNames.OTROS] = (
+                otros_data
+                .fillna(0)  # Limpiar NaN antes de sumar
+                .sum(axis=1)
+            )
+    
+    # === Capa 5: Garantizar Estructura Final ===
+    final_cost_cols = [
+        ColumnNames.MATERIALES,
+        ColumnNames.MANO_DE_OBRA,
+        ColumnNames.EQUIPO,
+        ColumnNames.OTROS,
+    ]
+    
+    for col in final_cost_cols:
+        if col not in df_apu_costos.columns:
+            df_apu_costos[col] = 0
+        else:
+            # Limpieza defensiva de NaN en columnas existentes
+            df_apu_costos[col] = df_apu_costos[col].fillna(0)
+    
+    # === Capa 6: Limpieza Final y Validación ===
+    # Eliminar columnas no deseadas (tipos de insumo originales si quedaron)
+    cols_to_keep = [ColumnNames.CODIGO_APU] + final_cost_cols
+    extra_cols = set(df_apu_costos.columns) - set(cols_to_keep)
+    
+    if extra_cols:
+        logger.debug(f"🗑️ Eliminando columnas extras: {extra_cols}")
+        df_apu_costos = df_apu_costos[cols_to_keep]
+    
+    # Validación anti-NaN final
+    nan_check = df_apu_costos[final_cost_cols].isna().sum().sum()
+    if nan_check > 0:
+        logger.error(
+            f"❌ ALERTA CRÍTICA: {nan_check} NaN detectados después de limpieza. "
+            f"Aplicando fillna de emergencia."
+        )
+        df_apu_costos[final_cost_cols] = df_apu_costos[final_cost_cols].fillna(0)
+    
+    # Redondear a 2 decimales (estándar financiero)
+    df_apu_costos[final_cost_cols] = df_apu_costos[final_cost_cols].round(2)
+    
+    # === Logging de Resultados ===
+    total_apus = len(df_apu_costos)
+    total_value = df_apu_costos[final_cost_cols].sum().sum()
+    
+    logger.info(
+        f"✅ Costos agregados: {total_apus} APUs únicos | "
+        f"Valor total: ${total_value:,.2f}"
+    )
+    
+    # Estadísticas por tipo de costo
+    for col in final_cost_cols:
+        col_sum = df_apu_costos[col].sum()
+        col_pct = (col_sum / total_value * 100) if total_value > 0 else 0
+        logger.debug(f"   {col}: ${col_sum:,.2f} ({col_pct:.1f}%)")
+    
+    return df_apu_costos
+
+
+def _create_empty_cost_dataframe(self) -> pd.DataFrame:
+    """
+    Crea DataFrame vacío con estructura de costos correcta.
+    
+    Returns:
+        DataFrame con columnas de costo inicializadas en 0
+    """
+    return pd.DataFrame(columns=[
+        ColumnNames.CODIGO_APU,
+        ColumnNames.MATERIALES,
+        ColumnNames.MANO_DE_OBRA,
+        ColumnNames.EQUIPO,
+        ColumnNames.OTROS,
+    ])
