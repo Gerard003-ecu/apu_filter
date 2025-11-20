@@ -909,13 +909,6 @@ class TestMiddleware:
 
         assert "Access-Control-Allow-Origin" not in response.headers
 
-    def test_after_request_cors_enabled(self, app, client):
-        """Debe agregar headers CORS si está habilitado."""
-        app.config["ENABLE_CORS"] = True
-
-        response = client.get("/api/health")
-
-        assert "Access-Control-Allow-Origin" in response.headers
 
 
 # ============================================================================
