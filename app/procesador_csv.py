@@ -907,19 +907,80 @@ class APUCostCalculator:
         return df_apu_costos, df_tiempo, df_rendimiento
 
     def _aggregate_costs_by_type(self, df_merged: pd.DataFrame) -> pd.DataFrame:
-        """Agrupa costos por APU y tipo de insumo."""
+        """
+        Agrupa costos por APU y tipo de insumo con protección contra propagación de NaN.
+
+        Implementa múltiples capas de limpieza de nulos para garantizar integridad
+        numérica en cálculos financieros.
+
+        Args:
+            df_merged: DataFrame con costos de insumos merged
+
+        Returns:
+            DataFrame con costos agregados por tipo (Materiales, Mano de Obra, Equipo, Otros)
+
+        Raises:
+            ValueError: Si columnas críticas no existen en df_merged
+        """
         logger.info("📊 Agregando costos por APU y tipo de insumo...")
 
-        df_apu_costos = (
-            df_merged.groupby([ColumnNames.CODIGO_APU, ColumnNames.TIPO_INSUMO])[
-                ColumnNames.COSTO_INSUMO_EN_APU
-            ]
-            .sum()
-            .unstack(fill_value=0)
-            .reset_index()
+        # === Validaciones Iniciales ===
+        required_cols = [
+            ColumnNames.CODIGO_APU,
+            ColumnNames.TIPO_INSUMO,
+            ColumnNames.COSTO_INSUMO_EN_APU
+        ]
+
+        missing_cols = [col for col in required_cols if col not in df_merged.columns]
+        if missing_cols:
+            raise ValueError(f"Columnas faltantes en df_merged: {missing_cols}")
+
+        if df_merged.empty:
+            logger.warning("⚠️ DataFrame vacío recibido")
+            return self._create_empty_cost_dataframe()
+
+        # === Capa 1: Limpieza Pre-Agregación ===
+        df_clean = df_merged.copy()
+
+        # Convertir costos a numérico y reemplazar NaN/inf por 0
+        df_clean[ColumnNames.COSTO_INSUMO_EN_APU] = (
+            pd.to_numeric(
+                df_clean[ColumnNames.COSTO_INSUMO_EN_APU],
+                errors='coerce'
+            )
+            .fillna(0)
+            .replace([np.inf, -np.inf], 0)
         )
 
-        # Mapear tipos de insumo a columnas de costo
+        # Normalizar tipos de insumo (eliminar espacios, capitalizar)
+        df_clean[ColumnNames.TIPO_INSUMO] = (
+            df_clean[ColumnNames.TIPO_INSUMO]
+            .astype(str)
+            .str.strip()
+            .str.upper()
+        )
+
+        # Loguear valores anómalos detectados
+        null_count = df_merged[ColumnNames.COSTO_INSUMO_EN_APU].isna().sum()
+        if null_count > 0:
+            logger.warning(f"🧹 Limpiados {null_count} valores NaN en costos")
+
+        # === Capa 2: Agregación con Protección ===
+        try:
+            df_apu_costos = (
+                df_clean.groupby(
+                    [ColumnNames.CODIGO_APU, ColumnNames.TIPO_INSUMO],
+                    dropna=False  # Mantener grupos con NaN para control
+                )[ColumnNames.COSTO_INSUMO_EN_APU]
+                .sum()
+                .unstack(fill_value=0)  # Pivotear con 0 por defecto
+                .reset_index()
+            )
+        except Exception as e:
+            logger.error(f"❌ Error en agregación: {e}")
+            return self._create_empty_cost_dataframe()
+
+        # === Capa 3: Mapeo Inteligente de Columnas ===
         cost_cols_map = {
             InsumoTypes.SUMINISTRO: ColumnNames.MATERIALES,
             InsumoTypes.MANO_DE_OBRA: ColumnNames.MANO_DE_OBRA,
@@ -928,16 +989,43 @@ class APUCostCalculator:
             InsumoTypes.OTRO: ColumnNames.OTROS,
         }
 
+        # Identificar columnas no mapeadas (tipos de insumo desconocidos)
+        current_cols = set(df_apu_costos.columns) - {ColumnNames.CODIGO_APU}
+        mapped_cols = set(cost_cols_map.keys())
+        unmapped_cols = current_cols - mapped_cols
+
+        if unmapped_cols:
+            logger.warning(
+                f"⚠️ Tipos de insumo no mapeados encontrados: {unmapped_cols}. "
+                f"Se agruparán en '{ColumnNames.OTROS}'"
+            )
+            # Agregar tipos desconocidos al mapeo como OTROS
+            for col in unmapped_cols:
+                cost_cols_map[col] = ColumnNames.OTROS
+
+        # Aplicar mapeo
         df_apu_costos = df_apu_costos.rename(columns=cost_cols_map)
 
-        # Consolidar columna OTROS si se generaron múltiples
-        if ColumnNames.OTROS in df_apu_costos.columns:
-            if isinstance(df_apu_costos[ColumnNames.OTROS], pd.DataFrame):
-                df_apu_costos[ColumnNames.OTROS] = df_apu_costos[ColumnNames.OTROS].sum(
-                    axis=1
-                )
+        # === Capa 4: Consolidación Robusta de Columnas Duplicadas ===
+        # Después de renombrar, pueden existir columnas con el mismo nombre (ej. 'TRANSPORTE' y 'OTRO'
+        # se mapean a 'OTROS'). El siguiente bloque consolida cualquier columna de costo duplicada.
+        consolidation_cols = [
+            ColumnNames.MATERIALES,
+            ColumnNames.MANO_DE_OBRA,
+            ColumnNames.EQUIPO,
+            ColumnNames.OTROS
+        ]
 
-        # Asegurar que existan todas las columnas de costo
+        for col_name in consolidation_cols:
+            if col_name in df_apu_costos.columns:
+                col_data = df_apu_costos[col_name]
+
+                # Si al seleccionar la columna obtenemos un DataFrame, significa que hay duplicados.
+                if isinstance(col_data, pd.DataFrame):
+                    logger.info(f"🔀 Consolidando {col_data.shape[1]} columnas en '{col_name}'")
+                    df_apu_costos[col_name] = col_data.fillna(0).sum(axis=1)
+
+        # === Capa 5: Garantizar Estructura Final ===
         final_cost_cols = [
             ColumnNames.MATERIALES,
             ColumnNames.MANO_DE_OBRA,
@@ -948,8 +1036,48 @@ class APUCostCalculator:
         for col in final_cost_cols:
             if col not in df_apu_costos.columns:
                 df_apu_costos[col] = 0
+            else:
+                # Limpieza defensiva de NaN en columnas existentes
+                df_apu_costos[col] = df_apu_costos[col].fillna(0)
 
-        logger.info(f"✅ Costos agregados: {len(df_apu_costos)} APUs únicos")
+        # === Capa 6: Limpieza Final y Validación ===
+        # Eliminar columnas no deseadas (tipos de insumo originales si quedaron)
+        cols_to_keep = [ColumnNames.CODIGO_APU] + final_cost_cols
+        extra_cols = set(df_apu_costos.columns) - set(cols_to_keep)
+
+        if extra_cols:
+            logger.debug(f"🗑️ Eliminando columnas extras: {extra_cols}")
+            df_apu_costos = df_apu_costos[cols_to_keep]
+
+        # Validación anti-NaN final
+        nan_check = df_apu_costos[final_cost_cols].isna().sum().sum()
+        if nan_check > 0:
+            logger.error(
+                f"❌ ALERTA CRÍTICA: {nan_check} NaN detectados después de limpieza. "
+                f"Aplicando fillna de emergencia."
+            )
+            df_apu_costos[final_cost_cols] = df_apu_costos[final_cost_cols].fillna(0)
+
+        # Redondear a 2 decimales (estándar financiero)
+        df_apu_costos[final_cost_cols] = df_apu_costos[final_cost_cols].round(2)
+
+        # === Logging de Resultados ===
+        total_apus = len(df_apu_costos)
+        total_value = df_apu_costos[final_cost_cols].sum().sum()
+
+        logger.info(
+            f"✅ Costos agregados: {total_apus} APUs únicos | "
+            f"Valor total: ${total_value:,.2f}"
+        )
+
+        # Estadísticas por tipo de costo
+        for col in final_cost_cols:
+            col_sum = df_apu_costos[col].sum()
+            # Asegurar que col_sum sea un escalar para el logging
+            log_sum = col_sum.sum() if isinstance(col_sum, pd.Series) else col_sum
+            col_pct = (log_sum / total_value * 100) if total_value > 0 else 0
+            logger.debug(f"   {col}: ${log_sum:,.2f} ({col_pct:.1f}%)")
+
         return df_apu_costos
 
     def _calculate_unit_values(self, df: pd.DataFrame) -> pd.DataFrame:
@@ -1073,6 +1201,21 @@ class APUCostCalculator:
         )
 
         return df_rendimiento
+
+    def _create_empty_cost_dataframe(self) -> pd.DataFrame:
+        """
+        Crea DataFrame vacío con estructura de costos correcta.
+
+        Returns:
+            DataFrame con columnas de costo inicializadas en 0
+        """
+        return pd.DataFrame(columns=[
+            ColumnNames.CODIGO_APU,
+            ColumnNames.MATERIALES,
+            ColumnNames.MANO_DE_OBRA,
+            ColumnNames.EQUIPO,
+            ColumnNames.OTROS,
+        ])
 
 
 class DataMerger:

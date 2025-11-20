@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+import logging
 from typing import Any, Dict, List, Optional
 
 import numpy as np
@@ -512,29 +513,123 @@ class APUPresenter:
         self, df_original: pd.DataFrame, processed_items: List[Dict[str, Any]]
     ) -> Dict[str, Any]:
         """
-        Calcula metadata del procesamiento para auditoría.
+        Calcula metadata del procesamiento para auditoría con búsqueda flexible de claves.
+
+        Implementa búsqueda multi-clave para compatibilidad con diferentes formatos
+        de nomenclatura (snake_case, UPPER_CASE, etc.).
 
         Args:
             df_original: DataFrame original antes del procesamiento.
             processed_items: Items después del procesamiento.
 
         Returns:
-            Diccionario con métricas del procesamiento.
+            Diccionario con métricas del procesamiento:
+            - original_rows: Cantidad de filas originales
+            - processed_items: Cantidad de items procesados
+            - reduction_rate: Tasa de reducción (0-1)
+            - categories_count: Número de categorías únicas
+            - total_value: Valor total monetario
+            - avg_value_per_item: Valor promedio por item
+
+        Note:
+            Soporta claves: 'valor_total', 'VR_TOTAL', 'ValorTotal', 'valor', 'total'
         """
-        total_value = sum(float(item.get("VR_TOTAL") or 0) for item in processed_items)
+        logger = logging.getLogger(__name__)
 
-        original_rows = len(df_original)
-        processed_count = len(processed_items)
+        # Claves alternativas en orden de prioridad
+        VALUE_KEYS = ['valor_total', 'VR_TOTAL', 'ValorTotal', 'valor', 'total']
 
-        return {
+        def extract_total_value(item: Dict[str, Any]) -> float:
+            """
+            Extrae valor total con búsqueda flexible y conversión segura.
+
+            Args:
+                item: Diccionario del item procesado
+
+            Returns:
+                Valor numérico float o 0.0 si no se encuentra/convierte
+            """
+            for key in VALUE_KEYS:
+                if key in item and item[key] is not None:
+                    try:
+                        return float(item[key])
+                    except (ValueError, TypeError) as e:
+                        logger.warning(
+                            f"Conversión fallida para '{key}': {item[key]} - {e}"
+                        )
+                        continue
+
+            # Diagnóstico: loguear claves disponibles si no se encuentra nada
+            if item:
+                logger.debug(
+                    f"Valor total no encontrado. Claves disponibles: {list(item.keys())}"
+                )
+            return 0.0
+
+        # === Validaciones Iniciales ===
+        original_rows = len(df_original) if df_original is not None else 0
+        processed_count = len(processed_items) if processed_items else 0
+
+        # Caso edge: sin items procesados
+        if processed_count == 0:
+            self.logger.warning("Lista de processed_items vacía")
+            return {
+                "original_rows": original_rows,
+                "processed_items": 0,
+                "reduction_rate": 1.0 if original_rows > 0 else 0.0,
+                "categories_count": (
+                    int(df_original["CATEGORIA"].nunique())
+                    if original_rows > 0 and "CATEGORIA" in df_original.columns
+                    else 0
+                ),
+                "total_value": 0.0,
+                "avg_value_per_item": 0.0,
+            }
+
+        # === Cálculos Principales ===
+        total_value = sum(extract_total_value(item) for item in processed_items)
+
+        # Alerta si valor total es cero (posible error de datos)
+        if total_value == 0.0 and processed_count > 0:
+            sample_keys = list(processed_items[0].keys()) if processed_items else []
+            self.logger.error(
+                f"⚠️ ALERTA: Valor total es $0.00 con {processed_count} items. "
+                f"Claves encontradas en primer item: {sample_keys}. "
+                f"Claves esperadas: {VALUE_KEYS}"
+            )
+
+        # Reducción de datos
+        reduction_rate = (
+            1 - (processed_count / original_rows) if original_rows > 0 else 0.0
+        )
+
+        # Categorías únicas con manejo de errores
+        categories_count = 0
+        if original_rows > 0 and "CATEGORIA" in df_original.columns:
+            try:
+                categories_count = int(df_original["CATEGORIA"].nunique())
+            except Exception as e:
+                self.logger.error(f"Error contando categorías: {e}")
+
+        # Promedio por item
+        avg_value_per_item = (
+            round(total_value / processed_count, 2) if processed_count > 0 else 0.0
+        )
+
+        # === Construcción del Resultado ===
+        metadata = {
             "original_rows": original_rows,
             "processed_items": processed_count,
-            "reduction_rate": (
-                1 - (processed_count / original_rows) if original_rows > 0 else 0
-            ),
-            "categories_count": int(df_original["CATEGORIA"].nunique()),
+            "reduction_rate": round(reduction_rate, 4),
+            "categories_count": categories_count,
             "total_value": round(total_value, 2),
-            "avg_value_per_item": (
-                round(total_value / processed_count, 2) if processed_count > 0 else 0
-            ),
+            "avg_value_per_item": avg_value_per_item,
         }
+
+        self.logger.info(
+            f"✓ Metadata: {processed_count} items | "
+            f"Total: ${total_value:,.2f} | "
+            f"Promedio: ${avg_value_per_item:,.2f}"
+        )
+
+        return metadata
