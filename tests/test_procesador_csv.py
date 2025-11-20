@@ -1032,7 +1032,7 @@ class TestProcessAllFilesIntegration(unittest.TestCase):
 
                 # Verificar que el diagnóstico fue llamado con los argumentos correctos
                 mock_diagnostic_class.assert_called_once_with(
-                    self.apus_path, TEST_CONFIG
+                    self.apus_path
                 )
                 mock_diagnostic_instance.diagnose.assert_called_once()
 

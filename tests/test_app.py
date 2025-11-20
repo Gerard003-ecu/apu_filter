@@ -353,9 +353,9 @@ class TestAPUPresenter:
 
         # Verificar estructura
         for item in result:
-            assert "DESCRIPCION" in item
-            assert "CATEGORIA" in item
-            assert "CANTIDAD" in item
+            assert "descripcion" in item
+            assert "categoria" in item
+            assert "cantidad" in item
 
     def test_group_by_category_aggregation(self, processor):
         """Debe agregar valores correctamente."""
@@ -390,8 +390,8 @@ class TestAPUPresenter:
 
         # Debe haber un solo item agregado
         assert len(result) == 1
-        assert result[0]["CANTIDAD"] == 8.0  # 5 + 3
-        assert result[0]["VR_TOTAL"] == 160000.0  # 100000 + 60000
+        assert result[0]["cantidad"] == 8.0  # 5 + 3
+        assert result[0]["valor_total"] == 160000.0  # 100000 + 60000
 
     def test_organize_breakdown(self, processor, sample_apu_data):
         """Debe organizar desglose por categoría."""
