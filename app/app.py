@@ -363,11 +363,11 @@ def create_app(config_name: str) -> Flask:
     # NUEVA CONFIGURACIÓN DE SESIÓN Y CORS (SOLUCIÓN DEFINITIVA)
     # ========================================================================
 
-    # 1. Habilitar CORS para todo, permitiendo credenciales (cookies)
-    # Esto añade automáticamente los headers Access-Control-Allow-Credentials: true
-    CORS(app, supports_credentials=True)
+    # 1. CORS Permisivo
+    from flask_cors import CORS
+    CORS(app, supports_credentials=True) # ¡CRÍTICO!
 
-    # 2. Configuración de Redis
+    # 2. Redis
     import redis
     from flask_session import Session
 
@@ -378,20 +378,19 @@ def create_app(config_name: str) -> Flask:
     app.config["SESSION_REDIS"] = redis.from_url(app.config["REDIS_URL"])
     app.config["PERMANENT_SESSION_LIFETIME"] = SESSION_TIMEOUT
 
-    # 3. Configuración de Cookie SIMPLIFICADA para Localhost
-    # Eliminamos restricciones complejas que confunden al navegador en local
+    # 3. CONFIGURACIÓN DE COOKIE "A PRUEBA DE BALAS" PARA DEV
     app.config["SESSION_COOKIE_NAME"] = "apu_session"
-    app.config["SESSION_COOKIE_HTTPONLY"] = True
     app.config["SESSION_COOKIE_PATH"] = "/"
+    app.config["SESSION_COOKIE_HTTPONLY"] = True
 
-    # IMPORTANTE: Eliminar SESSION_COOKIE_DOMAIN para que el navegador use el host actual
+    # IMPORTANTE: Eliminar dominio para que use el actual (localhost o 127.0.0.1)
     app.config["SESSION_COOKIE_DOMAIN"] = None
 
     if config_name == "production":
         app.config["SESSION_COOKIE_SECURE"] = True
         app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
     else:
-        # En desarrollo, relajamos al máximo para permitir HTTP
+        # DESARROLLO: Relajar seguridad para permitir HTTP
         app.config["SESSION_COOKIE_SECURE"] = False
         app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
 
