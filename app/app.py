@@ -152,16 +152,16 @@ def require_session(f):
 
         # Preparar datos para la función decorada
         session_data = {"data": session['processed_data']}
-        
+
         # Marcar la sesión como modificada para refrescar el TTL en Redis
         # Esto extiende automáticamente la vida de la sesión
         session.modified = True
-        
+
         current_app.logger.debug(
             f"Sesión válida encontrada: {session.sid[:8]}... "
             f"con {len(session['processed_data'])} claves"
         )
-        
+
         return f(session_data=session_data, *args, **kwargs)
 
     return decorated_function
@@ -181,7 +181,7 @@ def handle_errors(f):
         except KeyError as e:
             current_app.logger.error(f"Clave faltante en {f.__name__}: {str(e)}")
             response = {
-                "error": f"Dato requerido faltante: {str(e)}", 
+                "error": f"Dato requerido faltante: {str(e)}",
                 "code": "MISSING_KEY"
             }
             return jsonify(response), 400
@@ -190,7 +190,7 @@ def handle_errors(f):
                 f"Error no controlado en {f.__name__}: {str(e)}", exc_info=True
             )
             response = {
-                "error": "Error interno del servidor", 
+                "error": "Error interno del servidor",
                 "code": "INTERNAL_ERROR"
             }
             return jsonify(response), 500
@@ -455,7 +455,7 @@ def create_app(config_name: str) -> Flask:
     def health_check():
         """Endpoint de verificación de estado."""
         redis_client = app.config["SESSION_REDIS"]
-        
+
         try:
             # Contar sesiones activas (keys con el prefijo de sesión)
             prefix = app.config["SESSION_KEY_PREFIX"]
@@ -536,7 +536,7 @@ def create_app(config_name: str) -> Flask:
                 file_paths[name] = str(file_path)
 
             # Procesar archivos
-            app.logger.info(f"Procesando archivos para nueva sesión...")
+            app.logger.info("Procesando archivos para nueva sesión...")
 
             processed_data = process_all_files(
                 file_paths["presupuesto"],
@@ -555,10 +555,10 @@ def create_app(config_name: str) -> Flask:
         # ===================================================================
         # CAMBIO CRÍTICO: Guardar en session en lugar de Redis manual
         # ===================================================================
-        
+
         # Sanitizar datos para JSON
         sanitized_data = sanitize_for_json(processed_data)
-        
+
         # Guardar en la sesión de Flask
         # Flask-Session automáticamente:
         # 1. Crea el session.sid si no existe
@@ -567,7 +567,7 @@ def create_app(config_name: str) -> Flask:
         # 4. Crea/actualiza la cookie en el navegador
         session['processed_data'] = sanitized_data
         session.permanent = True  # Usar PERMANENT_SESSION_LIFETIME
-        
+
         app.logger.info(
             f"✅ Archivos procesados y guardados en sesión {session.sid[:8]}... | "
             f"Presupuesto: {len(sanitized_data.get('presupuesto', []))} ítems | "
@@ -614,7 +614,7 @@ def create_app(config_name: str) -> Flask:
         if not apu_details:
             # Intento alternativo (cambiar punto por coma o viceversa)
             alt_code = (
-                apu_code.replace(".", ",") if "." in apu_code 
+                apu_code.replace(".", ",") if "." in apu_code
                 else apu_code.replace(",", ".")
             )
             apu_details = [
@@ -635,7 +635,7 @@ def create_app(config_name: str) -> Flask:
         # Obtener información del presupuesto
         presupuesto_data = user_data.get("presupuesto", [])
         presupuesto_item = next(
-            (item for item in presupuesto_data if item.get("CODIGO_APU") == apu_code), 
+            (item for item in presupuesto_data if item.get("CODIGO_APU") == apu_code),
             None
         )
 
@@ -720,7 +720,7 @@ def create_app(config_name: str) -> Flask:
         """
         had_session = 'processed_data' in session
         session.clear()
-        
+
         return jsonify({
             "success": True,
             "message": "Sesión limpiada exitosamente" if had_session else "No había sesión activa",
@@ -735,7 +735,7 @@ def create_app(config_name: str) -> Flask:
         """
         if config_name == "production":
             return jsonify({"error": "Endpoint deshabilitado en producción"}), 403
-        
+
         return jsonify({
             "sid": session.sid if hasattr(session, 'sid') else None,
             "has_data": 'processed_data' in session,
