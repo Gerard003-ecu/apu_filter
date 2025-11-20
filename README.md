@@ -187,6 +187,7 @@ apu_filter/
 │   ├── report_parser_crudo.py  # Parser especializado para archivos de APU semi-estructurados
 │   ├── apu_processor.py        # Motor de transformación que aplica lógica de negocio a los datos parseados
 │   ├── estimator.py            # Lógica de estimación con búsqueda semántica y por keywords
+│   ├── flux_condenser.py       # Lógica del condensador de flujos de datos
 │   ├── data_loader.py          # Capa de abstracción para leer datos (.csv, .xlsx, .pdf)
 │   ├── schemas.py              # Definición de los esquemas de datos (dataclasses)
 │   ├── utils.py                # Funciones de utilidad generales (normalización, parsing, etc.)
