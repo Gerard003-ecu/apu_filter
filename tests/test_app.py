@@ -456,22 +456,21 @@ class TestDecorators:
     """Suite de pruebas para decoradores"""
 
     def test_require_session_decorator_no_session(self, app, client):
-        """Debe rechazar request sin sesión (resultando en sesión expirada)."""
+        """Debe rechazar request sin sesión."""
 
         @app.route("/test_no_session")
         @require_session
         def test_endpoint(session_data=None):
             return jsonify({"status": "ok"})
 
-        with patch.object(app.config["SESSION_REDIS"], "get", return_value=None):
-            response = client.get("/test_no_session")
+        response = client.get("/test_no_session")
 
         assert response.status_code == 401
         json_data = response.get_json()
-        assert "expirada" in json_data["error"].lower()
+        assert "sesión no iniciada" in json_data["error"].lower()
 
     def test_require_session_decorator_expired_session(self, app, client):
-        """Debe rechazar sesión expirada."""
+        """Debe rechazar sesión sin datos procesados."""
 
         @app.route("/test_expired_session")
         @require_session
@@ -480,13 +479,13 @@ class TestDecorators:
 
         with client.session_transaction() as sess:
             sess["user_id"] = "test_user"
+            # Sin 'processed_data' en la sesión
 
-        with patch.object(app.config["SESSION_REDIS"], "get", return_value=None):
-            response = client.get("/test_expired_session")
+        response = client.get("/test_expired_session")
 
         assert response.status_code == 401
         json_data = response.get_json()
-        assert "expirada" in json_data["error"].lower()
+        assert "sesión no iniciada" in json_data["error"].lower()
 
     def test_require_session_decorator_valid_session(self, app, client):
         """Debe permitir acceso con sesión válida."""
@@ -500,13 +499,9 @@ class TestDecorators:
 
         with client.session_transaction() as sess:
             sess["user_id"] = "test_user"
+            sess["processed_data"] = session_payload
 
-        with patch.object(
-            app.config["SESSION_REDIS"],
-            "get",
-            return_value=json.dumps(session_payload).encode("utf-8"),
-        ):
-            response = client.get("/test_valid_session")
+        response = client.get("/test_valid_session")
 
         assert response.status_code == 200
         json_data = response.get_json()
@@ -733,13 +728,9 @@ class TestEndpoints:
 
         with client.session_transaction() as sess:
             sess["user_id"] = "test_user"
+            sess["processed_data"] = sample_session_data["data"]
 
-        with patch.object(
-            app.config["SESSION_REDIS"],
-            "get",
-            return_value=json.dumps(sample_session_data["data"]).encode("utf-8"),
-        ):
-            response = client.get("/api/apu/APU-001")
+        response = client.get("/api/apu/APU-001")
 
         assert response.status_code == 200
         data = json.loads(response.data)
@@ -750,13 +741,9 @@ class TestEndpoints:
         """Debe retornar 404 para APU inexistente."""
         with client.session_transaction() as sess:
             sess["user_id"] = "test_user"
+            sess["processed_data"] = sample_session_data["data"]
 
-        with patch.object(
-            app.config["SESSION_REDIS"],
-            "get",
-            return_value=json.dumps(sample_session_data["data"]).encode("utf-8"),
-        ):
-            response = client.get("/api/apu/APU-999")
+        response = client.get("/api/apu/APU-999")
 
         assert response.status_code == 404
         data = json.loads(response.data)
@@ -771,13 +758,9 @@ class TestEndpoints:
         """Debe rechazar content-type inválido."""
         with client.session_transaction() as sess:
             sess["user_id"] = "test_user"
+            sess["processed_data"] = {"data": {}}
 
-        with patch.object(
-            app.config["SESSION_REDIS"],
-            "get",
-            return_value=json.dumps({"data": {}}).encode("utf-8"),
-        ):
-            response = client.post("/api/estimate", data="not json")
+        response = client.post("/api/estimate", data="not json")
 
         assert response.status_code == 400
         data = json.loads(response.data)
@@ -787,13 +770,9 @@ class TestEndpoints:
         """Debe rechazar petición sin parámetros."""
         with client.session_transaction() as sess:
             sess["user_id"] = "test_user"
+            sess["processed_data"] = {"data": {}}
 
-        with patch.object(
-            app.config["SESSION_REDIS"],
-            "get",
-            return_value=json.dumps({"data": {}}).encode("utf-8"),
-        ):
-            response = client.post("/api/estimate", json=None)
+        response = client.post("/api/estimate", json=None)
 
         assert response.status_code == 400
         data = json.loads(response.data)
@@ -809,15 +788,11 @@ class TestEndpoints:
 
         with client.session_transaction() as sess:
             sess["user_id"] = "test_user"
+            sess["processed_data"] = sample_session_data["data"]
 
         params = {"area_m2": 1000, "pisos": 2}
 
-        with patch.object(
-            app.config["SESSION_REDIS"],
-            "get",
-            return_value=json.dumps(sample_session_data["data"]).encode("utf-8"),
-        ):
-            response = client.post("/api/estimate", json=params)
+        response = client.post("/api/estimate", json=params)
 
         assert response.status_code == 200
         data = json.loads(response.data)
@@ -1053,37 +1028,29 @@ class TestIntegration:
     def test_full_workflow(
         self, mock_simulation, mock_process, app, client, sample_file, sample_session_data
     ):
-        """Workflow completo: upload -> detail -> estimate."""
-        # 1. Simular sesión y parchear redis
-        with client.session_transaction() as sess:
-            sess["user_id"] = "workflow_user"
+        """Workflow completo: upload -> detail."""
+        # 1. Upload: esto crea la sesión y almacena los datos
+        mock_process.return_value = sample_session_data["data"]
+        upload_response = client.post(
+            "/upload",
+            data={
+                "presupuesto": sample_file,
+                "apus": sample_file,
+                "insumos": sample_file,
+            },
+            follow_redirects=True,
+        )
 
-        with patch.object(
-            app.config["SESSION_REDIS"],
-            "get",
-            return_value=json.dumps(sample_session_data["data"]).encode("utf-8"),
-        ):
-            # 2. Upload
-            mock_process.return_value = sample_session_data["data"]
-            upload_response = client.post(
-                "/upload",
-                data={
-                    "presupuesto": sample_file,
-                    "apus": sample_file,
-                    "insumos": sample_file,
-                },
-                follow_redirects=True,
-            )
+        assert upload_response.status_code == 200
+        # El cliente de prueba ahora tiene la cookie de sesión
 
-            assert upload_response.status_code == 200
+        # 2. Get APU detail: debe funcionar con la sesión creada
+        mock_simulation.return_value = {"mean": 300000}
+        detail_response = client.get("/api/apu/APU-001")
 
-            # 3. Get APU detail
-            mock_simulation.return_value = {"mean": 300000}
-            detail_response = client.get("/api/apu/APU-001")
-
-            assert detail_response.status_code == 200
-            detail_data = json.loads(detail_response.data)
-            assert "desglose" in detail_data
+        assert detail_response.status_code == 200
+        detail_data = json.loads(detail_response.data)
+        assert "desglose" in detail_data
 
 
 # ============================================================================
