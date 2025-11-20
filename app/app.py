@@ -17,6 +17,7 @@ from typing import Optional, Tuple
 # --- Dependencias para Búsqueda Semántica ---
 import faiss
 from flask import Flask, current_app, jsonify, render_template, request, session
+from flask_cors import CORS
 from markupsafe import escape
 from sentence_transformers import SentenceTransformer
 from werkzeug.utils import secure_filename
@@ -354,26 +355,45 @@ def create_app(config_name: str) -> Flask:
         app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
 
     # 4. Definición Explícita de la Cookie
-    app.config["SESSION_COOKIE_NAME"] = "apu_session"
-    app.config["SESSION_COOKIE_PATH"] = "/"
-    app.config["SESSION_COOKIE_DOMAIN"] = None
-
     # Configurar logging
     setup_logging(app)
     app.logger.info(f"Iniciando aplicación en modo: {config_name}")
 
-    # Configurar Flask-Session
+    # ========================================================================
+    # NUEVA CONFIGURACIÓN DE SESIÓN Y CORS (SOLUCIÓN DEFINITIVA)
+    # ========================================================================
+
+    # 1. Habilitar CORS para todo, permitiendo credenciales (cookies)
+    # Esto añade automáticamente los headers Access-Control-Allow-Credentials: true
+    CORS(app, supports_credentials=True)
+
+    # 2. Configuración de Redis
     import redis
     from flask_session import Session
 
     app.config["SESSION_TYPE"] = "redis"
     app.config["SESSION_PERMANENT"] = True
+    app.config["SESSION_USE_SIGNER"] = True
     app.config["SESSION_KEY_PREFIX"] = "apu_filter:session:"
-
-    # 2. Inyección Explícita del Cliente Redis
-    redis_client = redis.Redis.from_url(app.config["REDIS_URL"])
-    app.config["SESSION_REDIS"] = redis_client
+    app.config["SESSION_REDIS"] = redis.from_url(app.config["REDIS_URL"])
     app.config["PERMANENT_SESSION_LIFETIME"] = SESSION_TIMEOUT
+
+    # 3. Configuración de Cookie SIMPLIFICADA para Localhost
+    # Eliminamos restricciones complejas que confunden al navegador en local
+    app.config["SESSION_COOKIE_NAME"] = "apu_session"
+    app.config["SESSION_COOKIE_HTTPONLY"] = True
+    app.config["SESSION_COOKIE_PATH"] = "/"
+
+    # IMPORTANTE: Eliminar SESSION_COOKIE_DOMAIN para que el navegador use el host actual
+    app.config["SESSION_COOKIE_DOMAIN"] = None
+
+    if config_name == "production":
+        app.config["SESSION_COOKIE_SECURE"] = True
+        app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
+    else:
+        # En desarrollo, relajamos al máximo para permitir HTTP
+        app.config["SESSION_COOKIE_SECURE"] = False
+        app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
 
     Session(app)
 
@@ -428,11 +448,6 @@ def create_app(config_name: str) -> Flask:
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["X-Frame-Options"] = "DENY"
         response.headers["X-XSS-Protection"] = "1; mode=block"
-
-        # CORS si es necesario (configurar según necesidades)
-        if app.config.get("ENABLE_CORS"):
-            response.headers["Access-Control-Allow-Origin"] = "*"
-            response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
 
         return response
 
