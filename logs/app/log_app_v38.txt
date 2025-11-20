@@ -1,0 +1,308 @@
+2025-11-20 18:13:54 [INFO] EmbeddingPipeline: ============================================================
+INICIANDO GENERACIÓN DE EMBEDDINGS
+============================================================
+2025-11-20 18:13:54 [INFO] __main__: Validación completada: 146/146 filas válidas
+2025-11-20 18:13:54 [INFO] EmbeddingGenerator: Cargando modelo: paraphrase-multilingual-MiniLM-L12-v2
+2025-11-20 18:13:54 [INFO] sentence_transformers.SentenceTransformer: Use pytorch device_name: cpu
+2025-11-20 18:13:54 [INFO] sentence_transformers.SentenceTransformer: Load pretrained SentenceTransformer: paraphrase-multilingual-MiniLM-L12-v2
+2025-11-20 18:14:04 [INFO] EmbeddingGenerator: Modelo cargado. Dimensión: 384
+2025-11-20 18:14:04 [INFO] EmbeddingGenerator: Generando embeddings para 146 textos...
+Batches: 100%|██████████████████████████████████████████████████████████████████████████| 1/1 [00:35<00:00, 35.52s/it]
+2025-11-20 18:14:39 [INFO] EmbeddingGenerator: Construyendo índice FAISS...
+2025-11-20 18:14:39 [INFO] EmbeddingGenerator: Índice construido. Vectores: 146
+2025-11-20 18:14:39 [INFO] EmbeddingGenerator: ============================================================
+2025-11-20 18:14:39 [INFO] EmbeddingGenerator: Iniciando validación robusta del índice FAISS...
+2025-11-20 18:14:39 [WARNING] EmbeddingGenerator: ⚠️  Duplicado detectado (Índice correcto encontrado):
+   Índice esperado: 99
+   Índice retornado (Top 1): 130 (Similitud: 1.000000)
+   Índice correcto en posición: 2/5 (Similitud: 1.000000)
+2025-11-20 18:14:39 [WARNING] EmbeddingGenerator: ⚠️  Duplicado detectado (Índice correcto encontrado):
+   Índice esperado: 34
+   Índice retornado (Top 1): 118 (Similitud: 1.000000)
+   Índice correcto en posición: 3/5 (Similitud: 1.000000)
+2025-11-20 18:14:39 [WARNING] EmbeddingGenerator: ⚠️  Duplicado detectado (Índice correcto encontrado):
+   Índice esperado: 98
+   Índice retornado (Top 1): 129 (Similitud: 1.000000)
+   Índice correcto en posición: 2/5 (Similitud: 1.000000)
+2025-11-20 18:14:39 [WARNING] EmbeddingGenerator: ⚠️  Duplicado detectado (Índice correcto encontrado):
+   Índice esperado: 20
+   Índice retornado (Top 1): 116 (Similitud: 1.000000)
+   Índice correcto en posición: 2/5 (Similitud: 1.000000)
+2025-11-20 18:14:39 [WARNING] EmbeddingGenerator: ⚠️  Duplicado detectado (Índice correcto encontrado):
+   Índice esperado: 93
+   Índice retornado (Top 1): 124 (Similitud: 1.000000)
+   Índice correcto en posición: 2/5 (Similitud: 1.000000)
+2025-11-20 18:14:39 [WARNING] EmbeddingGenerator: ⚠️  Duplicado detectado (Índice correcto encontrado):
+   Índice esperado: 96
+   Índice retornado (Top 1): 127 (Similitud: 1.000000)
+   Índice correcto en posición: 2/5 (Similitud: 1.000000)
+2025-11-20 18:14:39 [WARNING] EmbeddingGenerator: ⚠️  Duplicado detectado (Índice correcto encontrado):
+   Índice esperado: 92
+   Índice retornado (Top 1): 123 (Similitud: 1.000000)
+   Índice correcto en posición: 2/5 (Similitud: 1.000000)
+2025-11-20 18:14:39 [WARNING] EmbeddingGenerator: ⚠️  Duplicado detectado (Índice correcto encontrado):
+   Índice esperado: 30
+   Índice retornado (Top 1): 35 (Similitud: 1.000000)
+   Índice correcto en posición: 2/5 (Similitud: 1.000000)
+2025-11-20 18:14:39 [WARNING] EmbeddingGenerator: ⚠️  Duplicado detectado (Índice correcto encontrado):
+   Índice esperado: 103
+   Índice retornado (Top 1): 134 (Similitud: 1.000000)
+   Índice correcto en posición: 2/5 (Similitud: 1.000000)
+2025-11-20 18:14:39 [WARNING] EmbeddingGenerator: ⚠️  Duplicado detectado (Índice correcto encontrado):
+   Índice esperado: 102
+   Índice retornado (Top 1): 133 (Similitud: 1.000000)
+   Índice correcto en posición: 2/5 (Similitud: 1.000000)
+2025-11-20 18:14:39 [WARNING] EmbeddingGenerator: ⚠️  Duplicado detectado (Índice correcto encontrado):
+   Índice esperado: 58
+   Índice retornado (Top 1): 63 (Similitud: 1.000000)
+   Índice correcto en posición: 2/5 (Similitud: 1.000000)
+2025-11-20 18:14:39 [WARNING] EmbeddingGenerator: ⚠️  Duplicado detectado (Índice correcto encontrado):
+   Índice esperado: 32
+   Índice retornado (Top 1): 37 (Similitud: 1.000000)
+   Índice correcto en posición: 2/5 (Similitud: 1.000000)
+2025-11-20 18:14:39 [WARNING] EmbeddingGenerator: ⚠️  Duplicado detectado (Índice correcto encontrado):
+   Índice esperado: 39
+   Índice retornado (Top 1): 118 (Similitud: 1.000000)
+   Índice correcto en posición: 2/5 (Similitud: 1.000000)
+2025-11-20 18:14:39 [WARNING] EmbeddingGenerator: ⚠️  Duplicado detectado (Índice correcto encontrado):
+   Índice esperado: 25
+   Índice retornado (Top 1): 27 (Similitud: 1.000000)
+   Índice correcto en posición: 2/5 (Similitud: 1.000000)
+2025-11-20 18:14:39 [WARNING] EmbeddingGenerator: ⚠️  Duplicado detectado (Índice correcto encontrado):
+   Índice esperado: 89
+   Índice retornado (Top 1): 120 (Similitud: 1.000000)
+   Índice correcto en posición: 2/5 (Similitud: 1.000000)
+2025-11-20 18:14:39 [WARNING] EmbeddingGenerator: ⚠️  Duplicado detectado (Índice correcto encontrado):
+   Índice esperado: 101
+   Índice retornado (Top 1): 132 (Similitud: 1.000000)
+   Índice correcto en posición: 2/5 (Similitud: 1.000000)
+2025-11-20 18:14:39 [WARNING] EmbeddingGenerator: ⚠️  Duplicado detectado (Índice correcto encontrado):
+   Índice esperado: 88
+   Índice retornado (Top 1): 119 (Similitud: 1.000000)
+   Índice correcto en posición: 2/5 (Similitud: 1.000000)
+2025-11-20 18:14:39 [WARNING] EmbeddingGenerator: ⚠️  Duplicado detectado (Índice correcto encontrado):
+   Índice esperado: 82
+   Índice retornado (Top 1): 85 (Similitud: 1.000000)
+   Índice correcto en posición: 2/5 (Similitud: 1.000000)
+2025-11-20 18:14:39 [WARNING] EmbeddingGenerator: ⚠️  Duplicado detectado (Índice correcto encontrado):
+   Índice esperado: 19
+   Índice retornado (Top 1): 115 (Similitud: 1.000000)
+   Índice correcto en posición: 2/5 (Similitud: 1.000000)
+2025-11-20 18:14:39 [WARNING] EmbeddingGenerator: ⚠️  Duplicado detectado (Índice correcto encontrado):
+   Índice esperado: 33
+   Índice retornado (Top 1): 38 (Similitud: 1.000000)
+   Índice correcto en posición: 2/5 (Similitud: 1.000000)
+2025-11-20 18:14:39 [WARNING] EmbeddingGenerator: ⚠️  Duplicado detectado (Índice correcto encontrado):
+   Índice esperado: 21
+   Índice retornado (Top 1): 117 (Similitud: 1.000000)
+   Índice correcto en posición: 2/5 (Similitud: 1.000000)
+2025-11-20 18:14:39 [WARNING] EmbeddingGenerator: ⚠️  Duplicado detectado (Índice correcto encontrado):
+   Índice esperado: 94
+   Índice retornado (Top 1): 125 (Similitud: 1.000000)
+   Índice correcto en posición: 2/5 (Similitud: 1.000000)
+2025-11-20 18:14:39 [WARNING] EmbeddingGenerator: ⚠️  Duplicado detectado (Índice correcto encontrado):
+   Índice esperado: 55
+   Índice retornado (Top 1): 60 (Similitud: 1.000000)
+   Índice correcto en posición: 2/5 (Similitud: 1.000000)
+2025-11-20 18:14:39 [WARNING] EmbeddingGenerator: ⚠️  Duplicado detectado (Índice correcto encontrado):
+   Índice esperado: 31
+   Índice retornado (Top 1): 36 (Similitud: 1.000000)
+   Índice correcto en posición: 2/5 (Similitud: 1.000000)
+2025-11-20 18:14:39 [INFO] EmbeddingGenerator: ============================================================
+2025-11-20 18:14:39 [INFO] EmbeddingGenerator: 📊 Resultados de Validación:
+2025-11-20 18:14:39 [INFO] EmbeddingGenerator:    Total muestras: 100
+2025-11-20 18:14:39 [INFO] EmbeddingGenerator:    ✅ Coincidencias exactas: 76 (76.0%)
+2025-11-20 18:14:39 [INFO] EmbeddingGenerator:    ⚠️  Duplicados semánticos: 24 (24.0%)
+2025-11-20 18:14:39 [INFO] EmbeddingGenerator:    ❌ Fallos reales: 0 (0.0%)
+2025-11-20 18:14:39 [WARNING] EmbeddingGenerator: ⚠️  ADVERTENCIA: Se detectaron 24 duplicados.
+   El sistema funciona, pero considera limpiar tus datos de APUs duplicados.
+2025-11-20 18:14:39 [INFO] EmbeddingGenerator: ✅ Validación EXITOSA (tasa de éxito funcional: 100.00%)
+2025-11-20 18:14:39 [INFO] EmbeddingGenerator: ============================================================
+2025-11-20 18:14:39 [INFO] EmbeddingPipeline: Guardando índice FAISS: app/embeddings/faiss.index
+2025-11-20 18:14:40 [INFO] EmbeddingPipeline: Guardando mapeo de IDs: app/embeddings/id_map.json
+2025-11-20 18:14:40 [INFO] EmbeddingPipeline: Guardando metadata: app/embeddings/metadata.json
+2025-11-20 18:14:40 [INFO] EmbeddingPipeline: ============================================================
+✅ PROCESO COMPLETADO EXITOSAMENTE
+============================================================
+
+📊 Resumen de Métricas: {
+  "processing_time": 45.41024947166443,
+  "initial_rows": 146,
+  "valid_rows": 146,
+  "embeddings_generated": 146,
+  "embedding_dim": 384
+}
+
+18:19:01 - INFO - Iniciando aplicación en modo: default
+18:19:01 - INFO - Iniciando aplicación en modo: default
+18:19:01 - INFO - Configuración cargada exitosamente desde config.json
+18:19:01 - INFO - Configuración cargada exitosamente desde config.json
+18:19:01 - INFO - APUPresenter inicializado correctamente
+18:19:01 - INFO - APUPresenter inicializado correctamente
+18:19:01 - INFO - Iniciando carga de artefactos de búsqueda semántica...
+18:19:01 - INFO - Iniciando carga de artefactos de búsqueda semántica...
+18:19:01 - INFO - Use pytorch device_name: cpu
+18:19:01 - INFO - Load pretrained SentenceTransformer: paraphrase-multilingual-MiniLM-L12-v2
+18:19:16 - INFO - ✅ Búsqueda semántica lista. Modelo: 'paraphrase-multilingual-MiniLM-L12-v2', Vectores: 146
+18:19:16 - INFO - ✅ Búsqueda semántica lista. Modelo: 'paraphrase-multilingual-MiniLM-L12-v2', Vectores: 146
+ * Debug mode: off
+18:19:16 - INFO - WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
+ * Running on http://127.0.0.1:5002
+18:19:16 - INFO - Press CTRL+C to quit
+18:19:30 - INFO - 127.0.0.1 - - [20/Nov/2025 18:19:30] "GET / HTTP/1.1" 200 -
+18:19:32 - INFO - 127.0.0.1 - - [20/Nov/2025 18:19:32] "GET /static/css/styles.css HTTP/1.1" 304 -
+18:19:32 - INFO - 127.0.0.1 - - [20/Nov/2025 18:19:32] "GET /static/js/app.js HTTP/1.1" 304 -
+18:22:06 - INFO - Progreso: 150/150 APUs procesados (613 insumos extraídos hasta ahora)
+18:22:06 - INFO - ================================================================================
+18:22:06 - INFO - 📊 RESUMEN GLOBAL DE PROCESAMIENTO
+18:22:06 - INFO - ================================================================================
+18:22:06 - INFO - Formato detectado:           flat
+18:22:06 - INFO - Total APUs procesados:       150
+18:22:06 - INFO - Total insumos extraídos:     613
+18:22:06 - INFO - Total líneas procesadas:     909
+18:22:06 - INFO - 
+18:22:06 - INFO - Resultados de parsing:
+18:22:06 - INFO -   ✓ Exitosos:                909
+18:22:06 - INFO -   ⚡ Cache hits:              909
+18:22:06 - INFO -   ✗ Errores Lark:            0
+18:22:06 - INFO -   ✗ Errores Transformer:     0
+18:22:06 - INFO -   ⚠️  Resultados vacíos:      0
+18:22:06 - INFO - 
+18:22:06 - INFO - Tasa de éxito:               100.00%
+18:22:06 - INFO - Eficiencia de cache:         100.00%
+18:22:06 - INFO - ================================================================================
+18:22:06 - INFO - ✓ DataFrame creado: 613 filas, 13 columnas
+18:22:06 - INFO - ✅ [ÉXITO] Flujo estabilizado en 10.95s: 613 registros procesados
+18:22:06 - INFO - ✅ DataFluxCondenser completado.
+18:22:06 - INFO - 🔗 Iniciando merge de APUs con catálogo de insumos...
+18:22:06 - INFO - ✅ Merge completado: 613 registros
+18:22:06 - INFO - 💰 Calculando costos de insumos...
+18:22:06 - INFO - ✅ Costos de insumos calculados: 613 registros
+18:22:06 - INFO - 📊 Agregando costos por APU y tipo de insumo...
+18:22:06 - INFO - ✅ Costos agregados: 146 APUs únicos | Valor total: $2,001,415,081.56
+18:22:06 - INFO - 📈 Estadísticas de costos unitarios: Max=$496,859,000.00, Avg=$13,708,322.48, Std=$67,294,294.85
+18:22:06 - WARNING - ⚠️  Se detectaron 5 APUs con costos atípicos (>215,591,207.02)
+18:22:06 - WARNING -    APU UNKNOWN_APU_2802: $276,811,976.05 (MO: $276,811,976.05, MAT: $0.00)
+18:22:06 - WARNING -    APU UNKNOWN_APU_2822: $471,641,600.00 (MO: $471,641,600.00, MAT: $0.00)
+18:22:06 - WARNING -    APU UNKNOWN_APU_2842: $496,859,000.00 (MO: $496,859,000.00, MAT: $0.00)
+18:22:06 - WARNING -    APU UNKNOWN_APU_2922: $235,820,800.00 (MO: $235,820,800.00, MAT: $0.00)
+18:22:06 - WARNING -    APU UNKNOWN_APU_2942: $248,429,500.00 (MO: $248,429,500.00, MAT: $0.00)
+18:22:07 - INFO - 📋 Clasificación de APUs:
+tipo_apu
+Instalación                   78
+Obra Completa                 45
+Suministro                    17
+Suministro (Pre-fabricado)     6
+Name: count, dtype: int64
+18:22:07 - INFO - 🔗 Realizando merge final: presupuesto + costos...
+18:22:07 - INFO - ✅ Merge 1:1 exitoso: 105 filas
+18:22:07 - INFO - 💵 Calculando valores totales del presupuesto...
+18:22:07 - INFO - 💰 COSTO TOTAL CONSOLIDADO: $533,527,531.72
+18:22:07 - INFO - 🔄 Sincronizando fuentes de datos...
+18:22:07 - INFO - ✅ Sincronización completada. Insumos: 613 -> 317
+18:22:07 - INFO - 📦 Construyendo DataFrame de APUs procesados...
+18:22:07 - INFO - ✅ APUs procesados consolidados: 146 registros
+18:22:07 - INFO - 📦 Construyendo diccionario de salida...
+18:22:07 - INFO - ✅ Diccionario de salida construido
+18:22:07 - INFO - El Agente de Validación de Datos ha iniciado.
+18:22:08 - WARNING - Cantidad inválida en insumo ATORNILLADORA: None
+18:22:08 - WARNING - Cantidad inválida en insumo EXTENSION: None
+18:22:08 - WARNING - Cantidad inválida en insumo TABLERO ELECTRICO: None
+18:22:08 - WARNING - Cantidad inválida en insumo TRANSPORTE CAMIONETA ESTRUTECHOS: None
+18:22:08 - INFO - El Agente de Validación de Datos ha completado su ejecución.
+18:22:08 - INFO - 🔍 Validando datos procesados antes de guardar...
+18:22:08 - INFO - ✅ 146 APUs procesados listos para guardar
+18:22:08 - INFO - ================================================================================
+18:22:08 - INFO - 💾 Guardando archivos JSON de salida...
+18:22:08 - INFO - ================================================================================
+18:22:08 - INFO - 💾 Guardando APUs procesados en: data/processed_apus.json
+18:22:08 - INFO - ✅ processed_apus.json guardado exitosamente (146 registros, 90,375 bytes)
+18:22:08 - INFO - 💾 Guardando presupuesto final en: data/presupuesto_final.json
+18:22:08 - INFO - ✅ presupuesto_final.json guardado (105 registros, 67,026 bytes)
+18:22:08 - INFO - 💾 Guardando detalle de insumos en: data/insumos_detalle.json
+18:22:08 - INFO - ✅ insumos_detalle.json guardado (317 registros, 218,892 bytes)
+18:22:08 - INFO - ================================================================================
+18:22:08 - INFO - 📊 ESTADÍSTICAS DEL PROCESAMIENTO
+18:22:08 - INFO - ================================================================================
+18:22:08 - INFO -  📋 APUs en Presupuesto: 105
+18:22:08 - INFO -  💰 Costo Total Construcción: $nan
+18:22:08 - INFO -  🏗️ APUs Procesados: 146
+18:22:08 - INFO -  🔧 Insumos Detallados: 317
+18:22:08 - INFO -  📦 Grupos de Insumos: 4
+18:22:08 - INFO -  📦 Total Insumos: 111
+18:22:08 - INFO - 
+18:22:08 - INFO - 📁 ARCHIVOS GENERADOS:
+18:22:08 - INFO -  ✅ processed_apus: data/processed_apus.json (0.09 MB)
+18:22:08 - INFO -  ✅ presupuesto_final: data/presupuesto_final.json (0.06 MB)
+18:22:08 - INFO -  ✅ insumos_detalle: data/insumos_detalle.json (0.21 MB)
+18:22:08 - INFO - ================================================================================
+18:22:08 - INFO - ================================================================================
+18:22:09 - INFO - 🎉 PROCESAMIENTO COMPLETADO EXITOSAMENTE
+18:22:09 - INFO - ================================================================================
+18:22:09 - INFO - ✅ Archivos procesados y guardados en sesión 6LZf9VaN... | Presupuesto: 105 ítems | APUs: 317 detalles
+18:22:09 - INFO - ✅ Archivos procesados y guardados en sesión 6LZf9VaN... | Presupuesto: 105 ítems | APUs: 317 detalles
+18:22:09 - INFO - 127.0.0.1 - - [20/Nov/2025 18:22:09] "POST /upload HTTP/1.1" 200 -
+18:22:09 - INFO - Solicitud de estimación con parámetros: {'producto': 'CUBIERTA', 'material': 'TST', 'cuadrilla': '5', 'm2': 1, 'zona': 'ZONA 0', 'izaje': 'MANUAL', 'seguridad': 'NORMAL'}
+18:22:09 - INFO - Solicitud de estimación con parámetros: {'producto': 'CUBIERTA', 'material': 'TST', 'cuadrilla': '5', 'm2': 1, 'zona': 'ZONA 0', 'izaje': 'MANUAL', 'seguridad': 'NORMAL'}
+Batches: 100%|██████████████████████████████████████████████████████████████████████████| 1/1 [00:00<00:00,  1.32it/s]
+Batches: 100%|██████████████████████████████████████████████████████████████████████████| 1/1 [00:01<00:00,  1.08s/it]
+18:22:12 - INFO - Estimación calculada: Construcción=$35,172.00, Rendimiento=0.00
+18:22:12 - INFO - Estimación calculada: Construcción=$35,172.00, Rendimiento=0.00
+18:22:12 - INFO - 127.0.0.1 - - [20/Nov/2025 18:22:12] "POST /api/estimate HTTP/1.1" 200 -
+18:22:49 - INFO - Solicitud de detalle para APU: 3.3
+18:22:49 - INFO - Solicitud de detalle para APU: 3.3
+18:22:49 - INFO - Iniciando procesamiento de APU: 3.3 con 3 registros
+18:22:49 - INFO - Iniciando procesamiento de APU: 3.3 con 3 registros
+18:22:49 - INFO - ✓ Metadata: 3 items | Total: $28,091.27 | Promedio: $9,363.76
+18:22:49 - INFO - ✓ Metadata: 3 items | Total: $28,091.27 | Promedio: $9,363.76
+18:22:49 - INFO - APU 3.3 procesado exitosamente. Items: 3, Categorías: 3, Reducción: 0.0%
+18:22:49 - INFO - APU 3.3 procesado exitosamente. Items: 3, Categorías: 3, Reducción: 0.0%
+2025-11-20 18:22:49,864 - models.probability_models - INFO - MonteCarloSimulator inicializado: simulations=1000, volatility=10.00%, seed=None
+18:22:49 - INFO - MonteCarloSimulator inicializado: simulations=1000, volatility=10.00%, seed=None
+2025-11-20 18:22:49,906 - models.probability_models - INFO - Simulación completada exitosamente: 3 APUs válidos, costo medio=21,155.58
+18:22:49 - INFO - Simulación completada exitosamente: 3 APUs válidos, costo medio=21,155.58
+18:22:49 - INFO - Detalle para APU 3.3 generado exitosamente con 3 items
+18:22:49 - INFO - Detalle para APU 3.3 generado exitosamente con 3 items
+18:22:49 - INFO - 127.0.0.1 - - [20/Nov/2025 18:22:49] "GET /api/apu/3.3 HTTP/1.1" 200 -
+18:23:57 - INFO - Solicitud de estimación con parámetros: {'producto': 'FACHADA', 'material': 'PANEL SANDWICH', 'cuadrilla': '5', 'm2': 1, 'zona': 'ZONA 0', 'izaje': 'MANUAL', 'seguridad': 'NORMAL'}
+18:23:57 - INFO - Solicitud de estimación con parámetros: {'producto': 'FACHADA', 'material': 'PANEL SANDWICH', 'cuadrilla': '5', 'm2': 1, 'zona': 'ZONA 0', 'izaje': 'MANUAL', 'seguridad': 'NORMAL'}
+Batches: 100%|██████████████████████████████████████████████████████████████████████████| 1/1 [00:00<00:00,  1.46it/s]
+Batches: 100%|██████████████████████████████████████████████████████████████████████████| 1/1 [00:00<00:00,  1.56it/s]
+18:23:59 - INFO - Estimación calculada: Construcción=$0.00, Rendimiento=0.00
+18:23:59 - INFO - Estimación calculada: Construcción=$0.00, Rendimiento=0.00
+18:23:59 - INFO - 127.0.0.1 - - [20/Nov/2025 18:23:59] "POST /api/estimate HTTP/1.1" 200 -
+18:24:08 - INFO - Solicitud de estimación con parámetros: {'producto': 'CUBIERTA', 'material': 'TST', 'cuadrilla': '5', 'm2': 1, 'zona': 'ZONA 0', 'izaje': 'MANUAL', 'seguridad': 'NORMAL'}
+18:24:08 - INFO - Solicitud de estimación con parámetros: {'producto': 'CUBIERTA', 'material': 'TST', 'cuadrilla': '5', 'm2': 1, 'zona': 'ZONA 0', 'izaje': 'MANUAL', 'seguridad': 'NORMAL'}
+Batches: 100%|██████████████████████████████████████████████████████████████████████████| 1/1 [00:00<00:00,  1.56it/s]
+Batches: 100%|██████████████████████████████████████████████████████████████████████████| 1/1 [00:00<00:00,  1.13it/s]
+18:24:10 - INFO - Estimación calculada: Construcción=$35,172.00, Rendimiento=0.00
+18:24:10 - INFO - Estimación calculada: Construcción=$35,172.00, Rendimiento=0.00
+18:24:10 - INFO - 127.0.0.1 - - [20/Nov/2025 18:24:10] "POST /api/estimate HTTP/1.1" 200 -
+18:24:11 - INFO - Solicitud de estimación con parámetros: {'producto': 'CUBIERTA', 'material': 'PANEL SANDWICH', 'cuadrilla': '5', 'm2': 1, 'zona': 'ZONA 0', 'izaje': 'MANUAL', 'seguridad': 'NORMAL'}
+18:24:11 - INFO - Solicitud de estimación con parámetros: {'producto': 'CUBIERTA', 'material': 'PANEL SANDWICH', 'cuadrilla': '5', 'm2': 1, 'zona': 'ZONA 0', 'izaje': 'MANUAL', 'seguridad': 'NORMAL'}
+Batches: 100%|██████████████████████████████████████████████████████████████████████████| 1/1 [00:00<00:00,  1.36it/s]
+Batches: 100%|██████████████████████████████████████████████████████████████████████████| 1/1 [00:00<00:00,  1.74it/s]
+18:24:12 - INFO - Estimación calculada: Construcción=$0.00, Rendimiento=0.00
+18:24:12 - INFO - Estimación calculada: Construcción=$0.00, Rendimiento=0.00
+18:24:13 - INFO - 127.0.0.1 - - [20/Nov/2025 18:24:13] "POST /api/estimate HTTP/1.1" 200 -
+18:24:16 - INFO - Solicitud de estimación con parámetros: {'producto': 'CUBIERTA', 'material': 'TST', 'cuadrilla': '5', 'm2': 1, 'zona': 'ZONA 0', 'izaje': 'MANUAL', 'seguridad': 'NORMAL'}
+18:24:16 - INFO - Solicitud de estimación con parámetros: {'producto': 'CUBIERTA', 'material': 'TST', 'cuadrilla': '5', 'm2': 1, 'zona': 'ZONA 0', 'izaje': 'MANUAL', 'seguridad': 'NORMAL'}
+Batches: 100%|██████████████████████████████████████████████████████████████████████████| 1/1 [00:01<00:00,  1.07s/it]
+Batches: 100%|██████████████████████████████████████████████████████████████████████████| 1/1 [00:00<00:00,  1.80it/s]
+18:24:18 - INFO - Estimación calculada: Construcción=$35,172.00, Rendimiento=0.00
+18:24:18 - INFO - Estimación calculada: Construcción=$35,172.00, Rendimiento=0.00
+18:24:18 - INFO - 127.0.0.1 - - [20/Nov/2025 18:24:18] "POST /api/estimate HTTP/1.1" 200 -
+18:24:20 - INFO - Solicitud de estimación con parámetros: {'producto': 'CUBIERTA', 'material': 'TST', 'cuadrilla': '5', 'm2': 1, 'zona': 'ZONA 0', 'izaje': 'GRUA', 'seguridad': 'NORMAL'}
+18:24:20 - INFO - Solicitud de estimación con parámetros: {'producto': 'CUBIERTA', 'material': 'TST', 'cuadrilla': '5', 'm2': 1, 'zona': 'ZONA 0', 'izaje': 'GRUA', 'seguridad': 'NORMAL'}
+Batches: 100%|██████████████████████████████████████████████████████████████████████████| 1/1 [00:00<00:00,  1.27it/s]
+Batches: 100%|██████████████████████████████████████████████████████████████████████████| 1/1 [00:00<00:00,  1.77it/s]
+18:24:22 - INFO - Estimación calculada: Construcción=$40,172.00, Rendimiento=0.00
+18:24:22 - INFO - Estimación calculada: Construcción=$40,172.00, Rendimiento=0.00
+18:24:22 - INFO - 127.0.0.1 - - [20/Nov/2025 18:24:22] "POST /api/estimate HTTP/1.1" 200 -
+18:24:38 - INFO - Solicitud de estimación con parámetros: {'producto': 'CUBIERTA', 'material': 'TST', 'cuadrilla': '4', 'm2': 1, 'zona': 'ZONA 0', 'izaje': 'GRUA', 'seguridad': 'NORMAL'}
+18:24:38 - INFO - Solicitud de estimación con parámetros: {'producto': 'CUBIERTA', 'material': 'TST', 'cuadrilla': '4', 'm2': 1, 'zona': 'ZONA 0', 'izaje': 'GRUA', 'seguridad': 'NORMAL'}
+Batches: 100%|██████████████████████████████████████████████████████████████████████████| 1/1 [00:00<00:00,  1.41it/s]
+Batches: 100%|██████████████████████████████████████████████████████████████████████████| 1/1 [00:00<00:00,  1.53it/s]
+18:24:39 - INFO - Estimación calculada: Construcción=$40,172.00, Rendimiento=0.00
+18:24:39 - INFO - Estimación calculada: Construcción=$40,172.00, Rendimiento=0.00
+18:24:39 - INFO - 127.0.0.1 - - [20/Nov/2025 18:24:39] "POST /api/estimate HTTP/1.1" 200 -

@@ -259,15 +259,15 @@ class EmbeddingGenerator:
         """
         self.logger.info("=" * 60)
         self.logger.info("Iniciando validación robusta del índice FAISS...")
-        
+
         n_samples = min(self.config.validation_sample_size, len(embeddings))
         # Usar semilla fija para reproducibilidad en validación
         rng = np.random.default_rng(42)
         sample_indices = rng.choice(len(embeddings), n_samples, replace=False)
-        
+
         # Umbrales (Para IndexFlatIP/Coseno: 1.0 es idéntico)
         SIMILARITY_THRESHOLD = 0.999  # Aceptamos 99.9% de similitud como idéntico
-        
+
         # Métricas de validación
         stats = {
             'exact_matches': 0,      # Mismo índice
@@ -275,30 +275,30 @@ class EmbeddingGenerator:
             'failures': 0,            # Validación fallida
             'total': n_samples
         }
-        
+
         failed_cases = []
-        
+
         for idx in sample_indices:
             query = embeddings[idx : idx + 1].astype(np.float32)
-            
+
             # Buscar top-5 para detectar duplicados
             # Nota: 'distances' aquí son puntajes de similitud (cercanos a 1.0)
             similarities, indices = index.search(query, k=5)
-            
+
             top_idx = indices[0][0]
             top_similarity = similarities[0][0]
-            
+
             # CASO 1: Coincidencia exacta (esperado)
             if top_idx == idx:
                 stats['exact_matches'] += 1
                 continue
-            
+
             # CASO 2: Duplicado semántico (aceptable)
             # Verificar si el índice correcto está en el top-5 y tiene alta similitud
             if idx in indices[0]:
                 position = np.where(indices[0] == idx)[0][0]
                 actual_similarity = similarities[0][position]
-                
+
                 if actual_similarity > SIMILARITY_THRESHOLD:
                     stats['semantic_duplicates'] += 1
                     self.logger.warning(
@@ -308,7 +308,7 @@ class EmbeddingGenerator:
                         f"   Índice correcto en posición: {position + 1}/5 (Similitud: {actual_similarity:.6f})"
                     )
                     continue
-            
+
             # CASO 3: Similitud casi perfecta con índice diferente
             # (Duplicado perfecto no indexado o colisión)
             if top_similarity > SIMILARITY_THRESHOLD:
@@ -321,7 +321,7 @@ class EmbeddingGenerator:
                     f"   Top-5 índices: {indices[0].tolist()}"
                 )
                 continue
-            
+
             # CASO 4: Fallo real de validación
             stats['failures'] += 1
             failed_cases.append({
@@ -330,14 +330,14 @@ class EmbeddingGenerator:
                 'similarity': float(top_similarity),
                 'top5_indices': indices[0].tolist()
             })
-            
+
             self.logger.error(
                 f"❌ Error de validación real:\n"
                 f"   Índice esperado: {idx}\n"
                 f"   Índice retornado: {top_idx}\n"
                 f"   Similitud: {top_similarity:.6f} (< {SIMILARITY_THRESHOLD})\n"
             )
-        
+
         # Reporte de estadísticas
         self.logger.info("=" * 60)
         self.logger.info("📊 Resultados de Validación:")
@@ -355,7 +355,7 @@ class EmbeddingGenerator:
         else:
             self.logger.warning("⚠️  No se realizaron validaciones (0 muestras).")
             success_rate = 0.0
-        
+
         # Criterio de aceptación: 0 fallos reales
         if stats['failures'] == 0:
             if stats['semantic_duplicates'] > 0:

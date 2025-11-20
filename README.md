@@ -153,7 +153,7 @@ Para garantizar la persistencia de los datos del usuario entre solicitudes, la a
     Es crucial instalar Redis a través del canal `conda-forge` para asegurar la compatibilidad entre diferentes sistemas operativos, incluyendo macOS y Linux.
     ```bash
     conda install -c conda-forge redis
-    ```
+    ```ejecutar redis-server
 
 **Nota Importante:** El archivo `requirements.txt` no debe contener `faiss-cpu` ni `torch`. Si alguna vez necesita regenerar este archivo (ej. usando `uv pip compile requirements.in`), asegúrese de excluir estas dos librerías para evitar conflictos de instalación.
 
@@ -164,7 +164,7 @@ Pre-procesamiento (si los datos cambian): La búsqueda semántica requiere un í
 python scripts/generate_embeddings.py --input path/to/processed_apus.json
 
 Ejecución de la Aplicación: Con el entorno activado, inicie el servidor Flask:
-flask run
+python -m flask run --port=5002
 
 Interacción con la API:
 Un usuario sube los archivos (presupuesto, apus, insumos) al endpoint /upload.
