@@ -342,16 +342,21 @@ class EmbeddingGenerator:
         self.logger.info("=" * 60)
         self.logger.info("📊 Resultados de Validación:")
         self.logger.info(f"   Total muestras: {stats['total']}")
-        self.logger.info(f"   ✅ Coincidencias exactas: {stats['exact_matches']} "
-                         f"({stats['exact_matches']/stats['total']*100:.1f}%)")
-        self.logger.info(f"   ⚠️  Duplicados semánticos: {stats['semantic_duplicates']} "
-                         f"({stats['semantic_duplicates']/stats['total']*100:.1f}%)")
-        self.logger.info(f"   ❌ Fallos reales: {stats['failures']} "
-                         f"({stats['failures']/stats['total']*100:.1f}%)")
+
+        if stats['total'] > 0:
+            self.logger.info(f"   ✅ Coincidencias exactas: {stats['exact_matches']} "
+                             f"({stats['exact_matches']/stats['total']*100:.1f}%)")
+            self.logger.info(f"   ⚠️  Duplicados semánticos: {stats['semantic_duplicates']} "
+                             f"({stats['semantic_duplicates']/stats['total']*100:.1f}%)")
+            self.logger.info(f"   ❌ Fallos reales: {stats['failures']} "
+                             f"({stats['failures']/stats['total']*100:.1f}%)")
+
+            success_rate = (stats['exact_matches'] + stats['semantic_duplicates']) / stats['total']
+        else:
+            self.logger.warning("⚠️  No se realizaron validaciones (0 muestras).")
+            success_rate = 0.0
         
         # Criterio de aceptación: 0 fallos reales
-        success_rate = (stats['exact_matches'] + stats['semantic_duplicates']) / stats['total']
-        
         if stats['failures'] == 0:
             if stats['semantic_duplicates'] > 0:
                 self.logger.warning(

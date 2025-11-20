@@ -231,11 +231,24 @@ def test_pipeline_with_mocked_write(mock_config, sample_dataframe, tmp_path):
         # Configurar mocks correctamente
         mock_model = MagicMock()
         mock_model.get_sentence_embedding_dimension.return_value = 384
+
+        # ¡CRUCIAL! Configurar encode para devolver un array numpy del tamaño correcto
+        mock_embeddings = np.random.rand(len(sample_dataframe), 384).astype(np.float32)
+        mock_model.encode.return_value = mock_embeddings
+
         MockSentenceTransformer.return_value = mock_model
 
         # Configurar el mock del índice para que devuelva un ntotal numérico
         mock_index_instance = MagicMock()
         mock_index_instance.ntotal = len(sample_dataframe)
+
+        # Configurar search para evitar fallos en validación si se ejecuta
+        # Devolvemos coincidencia exacta para que pase la validación
+        mock_index_instance.search.side_effect = lambda query, k: (
+            np.array([[1.0] + [0.0]*(k-1)]), # Similitudes
+            np.array([[0] + [-1]*(k-1)]) # Índices (simulamos que siempre encuentra el 0 como top 1)
+        )
+
         MockIndex.return_value = mock_index_instance
 
         mock_virtual_memory.return_value.available = 8 * (1024**3)
