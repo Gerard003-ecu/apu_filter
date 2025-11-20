@@ -1,5 +1,5 @@
 """
-Módulo principal de la aplicación Flask.
+Módulo principal de la aplicación Flask - VERSIÓN CORREGIDA.
 
 Gestiona el procesamiento de archivos CSV, estimaciones y simulaciones Monte Carlo.
 """
@@ -101,60 +101,67 @@ def setup_logging(app: Flask, log_file: str = "app.log") -> None:
 
 
 # ============================================================================
-# DECORADORES Y UTILIDADES
+# DECORADORES Y UTILIDADES - VERSIÓN CORREGIDA
 # ============================================================================
 
 
 def require_session(f):
     """
-    Decorador que verifica la existencia y validez de una sesión de usuario.
-
-    Este decorador comprueba que exista un ID de sesión y que los datos
-    asociados a esa sesión estén presentes en Redis. Si la sesión es válida,
-    carga los datos y los pasa como un argumento `session_data` a la función
-    decorada. También refresca el tiempo de expiración de la sesión.
-
+    Decorador que verifica la existencia y validez de una sesión con datos procesados.
+    
+    CORRECCIÓN: Ahora usa la interfaz nativa de Flask-Session en lugar de 
+    gestión manual de Redis, eliminando el "agujero negro" de sincronización.
+    
+    Flask-Session automáticamente:
+    - Crea la sesión cuando haces session['key'] = value
+    - La persiste en Redis con el prefijo configurado
+    - La carga automáticamente en cada request
+    - Maneja la expiración según PERMANENT_SESSION_LIFETIME
+    
     Returns:
-        Una respuesta JSON de error con código 401 si la sesión no es válida,
+        Una respuesta JSON de error con código 401 si no hay datos de sesión,
         o el resultado de la función decorada si la validación es exitosa.
     """
 
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        session_id = session.sid
-        if not session_id:
-            response = {"error": "Sesión no iniciada..."}
+        # Verificar que la sesión contiene datos procesados
+        if 'processed_data' not in session:
+            response = {
+                "error": "Sesión no iniciada o datos no encontrados. "
+                        "Por favor, cargue los archivos nuevamente.",
+                "code": "SESSION_MISSING"
+            }
+            current_app.logger.warning(
+                f"Intento de acceso sin sesión válida desde {request.remote_addr}"
+            )
             return jsonify(response), 401
 
-        redis_client = current_app.config.get("SESSION_REDIS")
-        if not redis_client:
-            # En pruebas, el cliente puede no estar disponible.
-            # Simular el caso de sesión no encontrada.
-            response = {"error": "Infraestructura de sesión no disponible"}
-            return jsonify(response), 500
-
-        data_key = f"apu_filter:data:{session_id}"
-
-        try:
-            session_data_json = redis_client.get(data_key)
-        except Exception as e:
-            current_app.logger.error(f"Error al conectar con Redis: {e}")
-            response = {"error": "No se pudo conectar al servidor de sesión"}
-            return jsonify(response), 503
-
-        if not session_data_json:
-            response = {"error": "Sesión expirada o datos no encontrados..."}
+        # Verificar que los datos son válidos (no None ni vacíos)
+        if not session['processed_data'] or not isinstance(session['processed_data'], dict):
+            response = {
+                "error": "Datos de sesión corruptos. Por favor, recargue los archivos.",
+                "code": "SESSION_CORRUPTED"
+            }
+            current_app.logger.error(
+                f"Datos de sesión inválidos detectados: {type(session.get('processed_data'))}"
+            )
+            # Limpiar la sesión corrupta
+            session.clear()
             return jsonify(response), 401
 
-        try:
-            session_data = {"data": json.loads(session_data_json)}
-        except json.JSONDecodeError:
-            response = {"error": "Error al decodificar datos de sesión"}
-            return jsonify(response), 500
-
-        # Refrescar la expiración de los datos
-        redis_client.expire(data_key, SESSION_TIMEOUT)
-
+        # Preparar datos para la función decorada
+        session_data = {"data": session['processed_data']}
+        
+        # Marcar la sesión como modificada para refrescar el TTL en Redis
+        # Esto extiende automáticamente la vida de la sesión
+        session.modified = True
+        
+        current_app.logger.debug(
+            f"Sesión válida encontrada: {session.sid[:8]}... "
+            f"con {len(session['processed_data'])} claves"
+        )
+        
         return f(session_data=session_data, *args, **kwargs)
 
     return decorated_function
@@ -173,13 +180,19 @@ def handle_errors(f):
             return jsonify(response), 400
         except KeyError as e:
             current_app.logger.error(f"Clave faltante en {f.__name__}: {str(e)}")
-            response = {"error": f"Dato requerido faltante: {str(e)}", "code": "MISSING_KEY"}
+            response = {
+                "error": f"Dato requerido faltante: {str(e)}", 
+                "code": "MISSING_KEY"
+            }
             return jsonify(response), 400
         except Exception as e:
             current_app.logger.error(
                 f"Error no controlado en {f.__name__}: {str(e)}", exc_info=True
             )
-            response = {"error": "Error interno del servidor", "code": "INTERNAL_ERROR"}
+            response = {
+                "error": "Error interno del servidor", 
+                "code": "INTERNAL_ERROR"
+            }
             return jsonify(response), 500
 
     return decorated_function
@@ -339,35 +352,24 @@ def create_app(config_name: str) -> Flask:
     # Configuración básica
     app.config.from_object(config_by_name[config_name])
     app.config["MAX_CONTENT_LENGTH"] = MAX_CONTENT_LENGTH
-    app.config["SESSION_COOKIE_HTTPONLY"] = True
 
-    # 1. Estabilización de la SECRET_KEY
+    # SECRET_KEY estable
     app.config["SECRET_KEY"] = os.environ.get(
         "SECRET_KEY", "dev_key_fija_y_secreta_12345"
     )
 
-    # 3. Configuración de Cookies Consciente del Entorno
-    if config_name == "production":
-        app.config["SESSION_COOKIE_SECURE"] = True
-        app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
-    else:  # development or testing
-        app.config["SESSION_COOKIE_SECURE"] = False
-        app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
-
-    # 4. Definición Explícita de la Cookie
     # Configurar logging
     setup_logging(app)
     app.logger.info(f"Iniciando aplicación en modo: {config_name}")
 
     # ========================================================================
-    # NUEVA CONFIGURACIÓN DE SESIÓN Y CORS (SOLUCIÓN DEFINITIVA)
+    # CONFIGURACIÓN DE SESIÓN Y CORS (VERSIÓN CORREGIDA)
     # ========================================================================
 
     # 1. CORS Permisivo
-    from flask_cors import CORS
-    CORS(app, supports_credentials=True) # ¡CRÍTICO!
+    CORS(app, supports_credentials=True)
 
-    # 2. Redis
+    # 2. Redis y Flask-Session
     import redis
     from flask_session import Session
 
@@ -378,19 +380,16 @@ def create_app(config_name: str) -> Flask:
     app.config["SESSION_REDIS"] = redis.from_url(app.config["REDIS_URL"])
     app.config["PERMANENT_SESSION_LIFETIME"] = SESSION_TIMEOUT
 
-    # 3. CONFIGURACIÓN DE COOKIE "A PRUEBA DE BALAS" PARA DEV
+    # 3. Configuración de Cookie
     app.config["SESSION_COOKIE_NAME"] = "apu_session"
     app.config["SESSION_COOKIE_PATH"] = "/"
     app.config["SESSION_COOKIE_HTTPONLY"] = True
-
-    # IMPORTANTE: Eliminar dominio para que use el actual (localhost o 127.0.0.1)
     app.config["SESSION_COOKIE_DOMAIN"] = None
 
     if config_name == "production":
         app.config["SESSION_COOKIE_SECURE"] = True
         app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
     else:
-        # DESARROLLO: Relajar seguridad para permitir HTTP
         app.config["SESSION_COOKIE_SECURE"] = False
         app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
 
@@ -429,29 +428,22 @@ def create_app(config_name: str) -> Flask:
     @app.before_request
     def before_request_func():
         """Registra información de la solicitud antes de que se procese."""
-        # Logging de request
-        app.logger.debug(f"Request: {request.method} {request.path}")
+        app.logger.debug(
+            f"Request: {request.method} {request.path} | "
+            f"Session: {'✓' if 'processed_data' in session else '✗'} | "
+            f"IP: {request.remote_addr}"
+        )
 
     @app.after_request
     def after_request_func(response):
-        """
-        Añade cabeceras de seguridad a la respuesta después de cada solicitud.
-
-        Args:
-            response: El objeto de respuesta de Flask.
-
-        Returns:
-            El objeto de respuesta modificado.
-        """
-        # Headers de seguridad
+        """Añade cabeceras de seguridad a la respuesta."""
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["X-Frame-Options"] = "DENY"
         response.headers["X-XSS-Protection"] = "1; mode=block"
-
         return response
 
     # ========================================================================
-    # RUTAS PRINCIPALES
+    # RUTAS PRINCIPALES - VERSIÓN CORREGIDA
     # ========================================================================
 
     @app.route("/")
@@ -463,7 +455,14 @@ def create_app(config_name: str) -> Flask:
     def health_check():
         """Endpoint de verificación de estado."""
         redis_client = app.config["SESSION_REDIS"]
-        active_sessions = redis_client.dbsize()
+        
+        try:
+            # Contar sesiones activas (keys con el prefijo de sesión)
+            prefix = app.config["SESSION_KEY_PREFIX"]
+            active_sessions = len(redis_client.keys(f"{prefix}*"))
+        except Exception as e:
+            app.logger.error(f"Error al obtener métricas de Redis: {e}")
+            active_sessions = -1
 
         return jsonify(
             {
@@ -471,6 +470,7 @@ def create_app(config_name: str) -> Flask:
                 "active_sessions": active_sessions,
                 "timestamp": time.time(),
                 "version": app.config.get("APP_CONFIG", {}).get("version", "1.0.0"),
+                "session_timeout": SESSION_TIMEOUT,
             }
         )
 
@@ -479,10 +479,9 @@ def create_app(config_name: str) -> Flask:
     def upload_files():
         """
         Gestiona la carga de archivos de presupuesto, APU e insumos.
-
-        Valida los archivos, los guarda temporalmente, los procesa para extraer
-        y estructurar los datos, y finalmente almacena el resultado en la
-        sesión del usuario en Redis.
+        
+        CORRECCIÓN: Ahora guarda los datos en session['processed_data'] 
+        en lugar de gestionar Redis manualmente.
 
         Returns:
             Un objeto JSON con los datos procesados si el proceso es exitoso,
@@ -518,13 +517,15 @@ def create_app(config_name: str) -> Flask:
 
             files_to_process[file_name] = file
 
-        # Flask-Session maneja la creación de la sesión automáticamente
-        session_id = session.sid
+        # Flask-Session crea automáticamente el session_id al asignar datos
+        # Generar un ID temporal para el directorio de uploads
+        import uuid
+        temp_id = str(uuid.uuid4())
 
         # Procesar archivos en directorio temporal
         upload_path = Path(app.config["UPLOAD_FOLDER"])
 
-        with temporary_upload_directory(upload_path, session_id) as user_dir:
+        with temporary_upload_directory(upload_path, temp_id) as user_dir:
             file_paths = {}
 
             # Guardar archivos temporalmente
@@ -535,7 +536,7 @@ def create_app(config_name: str) -> Flask:
                 file_paths[name] = str(file_path)
 
             # Procesar archivos
-            app.logger.info(f"Procesando archivos para sesión {session_id[:8]}...")
+            app.logger.info(f"Procesando archivos para nueva sesión...")
 
             processed_data = process_all_files(
                 file_paths["presupuesto"],
@@ -551,17 +552,32 @@ def create_app(config_name: str) -> Flask:
                 {"error": processed_data["error"], "code": "PROCESSING_ERROR"}
             ), 500
 
-        # Guardar datos en Redis
-        redis_client = app.config["SESSION_REDIS"]
-        data_key = f"apu_filter:data:{session_id}"
+        # ===================================================================
+        # CAMBIO CRÍTICO: Guardar en session en lugar de Redis manual
+        # ===================================================================
+        
+        # Sanitizar datos para JSON
         sanitized_data = sanitize_for_json(processed_data)
-        redis_client.set(data_key, json.dumps(sanitized_data), ex=SESSION_TIMEOUT)
-
-        app.logger.info(f"Archivos procesados exitosamente para sesión {session_id[:8]}")
+        
+        # Guardar en la sesión de Flask
+        # Flask-Session automáticamente:
+        # 1. Crea el session.sid si no existe
+        # 2. Serializa los datos
+        # 3. Los guarda en Redis con el prefijo configurado
+        # 4. Crea/actualiza la cookie en el navegador
+        session['processed_data'] = sanitized_data
+        session.permanent = True  # Usar PERMANENT_SESSION_LIFETIME
+        
+        app.logger.info(
+            f"✅ Archivos procesados y guardados en sesión {session.sid[:8]}... | "
+            f"Presupuesto: {len(sanitized_data.get('presupuesto', []))} ítems | "
+            f"APUs: {len(sanitized_data.get('apus_detail', []))} detalles"
+        )
 
         # Preparar respuesta
-        response_data = sanitized_data
-        response_data["session_id"] = session_id
+        response_data = sanitized_data.copy()
+        response_data["session_id"] = session.sid
+        response_data["session_timeout"] = SESSION_TIMEOUT
 
         return jsonify(response_data)
 
@@ -571,10 +587,6 @@ def create_app(config_name: str) -> Flask:
     def get_apu_detail(code: str, session_data: dict = None):
         """
         Recupera y procesa los detalles de un Análisis de Precios Unitarios (APU).
-
-        Busca el APU por su código en los datos de la sesión, procesa sus
-        componentes, ejecuta una simulación Monte Carlo sobre ellos y devuelve
-        un informe detallado.
 
         Args:
             code: El código del APU a consultar.
@@ -601,12 +613,15 @@ def create_app(config_name: str) -> Flask:
 
         if not apu_details:
             # Intento alternativo (cambiar punto por coma o viceversa)
-            alt_code = apu_code.replace(".", ",") if "." in apu_code else apu_code.replace(",", ".")
+            alt_code = (
+                apu_code.replace(".", ",") if "." in apu_code 
+                else apu_code.replace(",", ".")
+            )
             apu_details = [
                 item for item in all_apu_details if item.get("CODIGO_APU") == alt_code
             ]
             if apu_details:
-                apu_code = alt_code # Actualizar para usar el correcto
+                apu_code = alt_code
 
         if not apu_details:
             app.logger.warning(f"APU no encontrado con ninguna variante: {code}")
@@ -620,7 +635,8 @@ def create_app(config_name: str) -> Flask:
         # Obtener información del presupuesto
         presupuesto_data = user_data.get("presupuesto", [])
         presupuesto_item = next(
-            (item for item in presupuesto_data if item.get("CODIGO_APU") == apu_code), None
+            (item for item in presupuesto_data if item.get("CODIGO_APU") == apu_code), 
+            None
         )
 
         # Ejecutar simulación Monte Carlo
@@ -629,9 +645,11 @@ def create_app(config_name: str) -> Flask:
         # Preparar respuesta
         response = {
             "codigo": apu_code,
-            "descripcion": presupuesto_item.get("original_description", "")
-            if presupuesto_item
-            else "",
+            "descripcion": (
+                presupuesto_item.get("original_description", "")
+                if presupuesto_item
+                else ""
+            ),
             "desglose": processed_data["desglose"],
             "simulation": simulation_results,
             "metadata": {
@@ -654,17 +672,12 @@ def create_app(config_name: str) -> Flask:
         """
         Calcula una estimación de costos y rendimientos para un proyecto.
 
-        Recibe una serie de parámetros en formato JSON, busca en los datos de
-        la sesión los APU correspondientes y calcula una estimación
-        agregada.
-
         Args:
             session_data: Los datos de la sesión del usuario, inyectados por el
                           decorador `require_session`.
 
         Returns:
-            Un objeto JSON con los resultados de la estimación, incluyendo
-            costos de construcción y rendimientos.
+            Un objeto JSON con los resultados de la estimación.
         """
         # Validar request
         if not request.is_json:
@@ -698,6 +711,38 @@ def create_app(config_name: str) -> Flask:
         )
 
         return jsonify(sanitize_for_json(result))
+
+    @app.route("/api/session/clear", methods=["POST"])
+    def clear_session():
+        """
+        Limpia la sesión actual del usuario.
+        Útil para debugging y permitir que el usuario "reinicie" sin cerrar el navegador.
+        """
+        had_session = 'processed_data' in session
+        session.clear()
+        
+        return jsonify({
+            "success": True,
+            "message": "Sesión limpiada exitosamente" if had_session else "No había sesión activa",
+            "had_session": had_session
+        })
+
+    @app.route("/api/session/info", methods=["GET"])
+    def session_info():
+        """
+        Endpoint de debugging para inspeccionar el estado de la sesión.
+        NOTA: Deshabilitar en producción por seguridad.
+        """
+        if config_name == "production":
+            return jsonify({"error": "Endpoint deshabilitado en producción"}), 403
+        
+        return jsonify({
+            "sid": session.sid if hasattr(session, 'sid') else None,
+            "has_data": 'processed_data' in session,
+            "data_keys": list(session.get('processed_data', {}).keys()) if 'processed_data' in session else [],
+            "permanent": session.permanent,
+            "modified": session.modified,
+        })
 
     # ========================================================================
     # MANEJADORES DE ERRORES
