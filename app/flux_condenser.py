@@ -8,15 +8,15 @@ integridad, coherencia y estabilidad del flujo de datos antes de que ingrese
 al núcleo del sistema.
 
 Principios de Diseño:
-- **Capacitancia Lógica:** Inspirado en los principios de un circuito RC,
+- **Capacitancia Lógica:** Inspirado en los principios de un circuito RLC,
   el condensador "absorbe" datos crudos y los "descarga" de manera controlada,
   filtrando el ruido y la turbulencia.
 - **Orquestación, no Implementación:** No contiene lógica de negocio de bajo
   nivel. En su lugar, orquesta componentes especializados como `ReportParserCrudo`
   (el "Guardia") y `APUProcessor` (el "Cirujano").
 - **Telemetría Física:** Incorpora un `FluxPhysicsEngine` para calcular
-  métricas de saturación y complejidad, proporcionando una visión cuantitativa
-  de la "salud" del flujo de datos entrante.
+  métricas de saturación, complejidad e inductancia (flyback), proporcionando
+  una visión cuantitativa de la "salud" del flujo de datos entrante.
 - **Robustez y Tolerancia a Fallos:** Implementa validaciones estrictas en cada
   etapa y un manejo de errores detallado para prevenir la propagación de datos
   corruptos.
@@ -90,88 +90,110 @@ class CondenserConfig:
         base_resistance (float): Parámetro físico que representa la fricción
             o complejidad inherente del sistema. Análogo a la resistencia
             en Ohmios.
+        system_inductance (float): Parámetro físico que representa la inercia
+            o resistencia al cambio en el flujo de datos. Análogo a la
+            inductancia en Henrios.
     """
     min_records_threshold: int = 1
     enable_strict_validation: bool = True
     log_level: str = "INFO"
-    # Configuración Física
-    system_capacitance: float = 5000.0
-    base_resistance: float = 10.0
+    # --- Configuración Física RLC ---
+    system_capacitance: float = 5000.0  # Faradios (Capacidad de carga)
+    base_resistance: float = 10.0       # Ohmios (Fricción estática)
+    system_inductance: float = 2.0      # Henrios (Inercia/Resistencia al cambio)
 
 
-# --- NUEVA CLASE: MOTOR DE FÍSICA ---
+# --- MOTOR DE FÍSICA AVANZADO (RLC) ---
 class FluxPhysicsEngine:
     """
-    Simula el comportamiento de un flujo de datos usando un análogo de circuito RC.
+    Simula el comportamiento físico RLC (Resistencia-Inductancia-Capacitancia).
 
-    Esta clase modela la ingesta de datos como la carga de un condensador a
-    través de una resistencia. Permite cuantificar la "saturación" del sistema
-    en función de la cantidad de datos (carga) y su complejidad inherente
-    (resistencia).
-
-    Atributos:
-        C (float): La capacitancia del sistema, análoga a la capacidad de
-            procesamiento de registros.
-        R (float): La resistencia base del sistema, análoga a la complejidad
-            mínima del procesamiento.
-        tau (float): La constante de tiempo (R * C), que caracteriza la
-            velocidad de "carga" o procesamiento del sistema.
+    Añade la dimensión de INDUCTANCIA (L) basada en el documento 'bobinas_fisica.pdf'.
+    Calcula la 'Tensión de Flyback' (CEMF) generada por cambios abruptos en la
+    calidad de los datos.
     """
-    def __init__(self, capacitance: float, resistance: float):
+    def __init__(self, capacitance: float, resistance: float, inductance: float):
         """
         Inicializa el motor de física con los parámetros del circuito.
 
         Args:
             capacitance (float): Capacidad del sistema (análogo a Faradios).
             resistance (float): Resistencia base del sistema (análogo a Ohmios).
+            inductance (float): Inercia del sistema (análogo a Henrios).
         """
-        self.C = capacitance
-        self.R = resistance
-        self.tau = self.R * self.C
+        self.C = capacitance  # Capacidad de absorción
+        self.R = resistance   # Resistencia base
+        self.L = inductance   # Inercia del sistema (Inductancia)
 
-    def calculate_saturation(self, load_size: int, complexity_factor: float) -> float:
+    def calculate_metrics(self, total_records: int, cache_hits: int) -> Dict[str, float]:
         """
-        Calcula el índice de saturación del sistema para una carga de datos.
-
-        La saturación se modela como el "voltaje" en un condensador que se
-        carga. Una saturación de 1.0 representa un sistema completamente
-        saturado. La resistencia dinámica aumenta con la complejidad de los
-        datos, ralentizando la "carga".
-
-        La fórmula utilizada es: V(t) = 1 - e^(-t / RC)
+        Calcula métricas físicas del flujo de datos.
 
         Args:
-            load_size (int): El número de registros a procesar (análogo al
-                tiempo de carga `t`).
-            complexity_factor (float): Un factor entre 0 y 1 que representa la
-                complejidad adicional de los datos (e.g., porcentaje de
-                líneas que requirieron un parseo complejo).
+            total_records (int): Número total de registros procesados.
+            cache_hits (int): Número de registros que aprovecharon la caché (parseo exitoso).
 
         Returns:
-            float: El índice de saturación, un valor entre 0.0 y 1.0.
+            Dict[str, float]: Diccionario con saturación, complejidad y voltaje de flyback.
         """
-        dynamic_R = self.R * (1 + complexity_factor)
-        current_tau = dynamic_R * self.C
-        t = float(load_size)
-        if current_tau == 0:
-            return 1.0 if t > 0 else 0.0
-        saturation = 1.0 - math.exp(-t / current_tau)
-        return saturation
+        if total_records == 0:
+            return {"saturation": 0.0, "complexity": 0.0, "flyback_voltage": 0.0}
 
-    def get_stability_status(self, saturation: float) -> str:
+        # 1. Resistencia Dinámica (Complejidad)
+        # R aumenta si el cache no se usa (fricción de procesamiento)
+        complexity = 1.0 - (cache_hits / total_records)
+
+        # 2. Saturación (Carga del Condensador)
+        # Vc(t) = 1 - e^(-t/RC)
+        dynamic_R = self.R * (1 + complexity * 5) # La complejidad aumenta R drásticamente
+        tau_c = dynamic_R * self.C
+        saturation = 1.0 - math.exp(-float(total_records) / tau_c)
+
+        # 3. Tensión de Flyback (Inductancia - Ley de Faraday/Lenz)
+        # V_L = -L * (di/dt)
+        # Asumimos que 'corriente' (i) es la tasa de éxito (cache_hits / total).
+        # Un cambio brusco en la calidad genera un pico de voltaje lógico.
+        # En un escenario batch, comparamos contra un "flujo ideal" (i=1.0).
+
+        current_i = cache_hits / total_records # 0.0 a 1.0
+        delta_i = 1.0 - current_i # La caída de corriente (pérdida de calidad)
+
+        # El 'dt' es inversamente proporcional al tamaño (en archivos pequeños,
+        # un error es un cambio más brusco que en grandes).
+        dt = math.log1p(total_records)
+
+        # Voltaje inducido (magnitud del pico de error)
+        flyback_voltage = self.L * (delta_i / dt) if dt > 0 else 0.0
+
+        return {
+            "saturation": saturation,
+            "complexity": complexity,
+            "flyback_voltage": flyback_voltage
+        }
+
+    def get_system_diagnosis(self, metrics: Dict[str, float]) -> str:
         """
-        Clasifica el estado del flujo de datos basado en su índice de saturación.
+        Genera un diagnóstico textual basado en las métricas físicas.
 
         Args:
-            saturation (float): El índice de saturación calculado.
+            metrics (Dict[str, float]): Diccionario con las métricas calculadas.
 
         Returns:
-            str: Una descripción textual del estado del flujo (Laminar,
-                 Transitorio o Turbulento).
+            str: Diagnóstico del estado del sistema.
         """
-        if saturation < 0.3: return "FLUJO LAMINAR (Estable)"
-        if saturation < 0.7: return "FLUJO TRANSITORIO (Carga Media)"
-        return "FLUJO TURBULENTO (Alta Saturación)"
+        v_flyback = metrics["flyback_voltage"]
+        saturation = metrics["saturation"]
+
+        # Diagnóstico basado en Flyback (Picos de tensión)
+        if v_flyback > 0.5:
+            return f"⚡ PELIGRO: PICO INDUCTIVO ALTO (vL={v_flyback:.2f}). Datos muy inestables."
+        elif v_flyback > 0.1:
+            return f"⚠️ ADVERTENCIA: Rizado Inductivo (vL={v_flyback:.2f}). Calidad variable."
+
+        # Diagnóstico basado en Saturación (Carga)
+        if saturation < 0.3: return "🌊 FLUJO LAMINAR (Estable)"
+        if saturation < 0.7: return "🌊 FLUJO TRANSITORIO (Carga Media)"
+        return "🌊 FLUJO TURBULENTO (Saturado)"
 
 
 class DataFluxCondenser:
@@ -183,12 +205,14 @@ class DataFluxCondenser:
     proporcionar una única interfaz (`stabilize`) para procesar un archivo de
     forma segura y robusta.
 
-    El "Condensador" implementa una metáfora de circuito eléctrico:
+    El "Condensador" implementa una metáfora de circuito eléctrico RLC:
     1.  **Carga (Absorb & Filter):** El `ReportParserCrudo` absorbe la "corriente"
         inicial, filtrando el ruido y generando una señal cruda.
     2.  **Estabilización (Telemetría):** El `FluxPhysicsEngine` mide la
-        "tensión" y "resistencia" del flujo de datos, evaluando su estabilidad.
-    3.  **Descarga (Rectify Signal):** El `APUProcessor` procesa la señal
+        "tensión", "resistencia" e "inductancia" del flujo de datos.
+    3.  **Protección (Flyback Diode):** Detecta picos de voltaje lógico y disipa
+        la energía para evitar fallos catastróficos.
+    4.  **Descarga (Rectify Signal):** El `APUProcessor` procesa la señal
         filtrada y la convierte en un DataFrame estructurado y útil.
 
     Atributos:
@@ -225,15 +249,17 @@ class DataFluxCondenser:
         self.config = config
         self.profile = profile
         self.condenser_config = condenser_config or CondenserConfig()
+
         self.logger = logging.getLogger(self.__class__.__name__)
         self.logger.setLevel(self.condenser_config.log_level)
 
-        # Inicializar Motor de Física
+        # Inicializar Motor de Física RLC
         self.physics = FluxPhysicsEngine(
             capacitance=self.condenser_config.system_capacitance,
-            resistance=self.condenser_config.base_resistance
+            resistance=self.condenser_config.base_resistance,
+            inductance=self.condenser_config.system_inductance # Nuevo parámetro
         )
-        self.logger.info("DataFluxCondenser (con Motor Físico) inicializado")
+        self.logger.info("DataFluxCondenser (Motor RLC Activado) inicializado")
 
     def _validate_initialization_params(
         self,
@@ -293,38 +319,52 @@ class DataFluxCondenser:
                 etapa del pipeline de procesamiento.
         """
         start_time = time.time()
-        self.logger.info(f"⚡ [FÍSICA] Iniciando ciclo de estabilización para: {file_path}")
+        path_obj = Path(file_path)
+        self.logger.info(f"⚡ [FÍSICA] Energizando circuito para: {path_obj.name}")
 
         try:
             validated_path = self._validate_input_file(file_path)
+
+            # FASE 1: ABSORCIÓN (Carga del Condensador)
             parsed_data = self._absorb_and_filter(validated_path)
 
             if not self._validate_parsed_data(parsed_data):
-                self.logger.warning(
-                    "[ADVERTENCIA] La carga no generó señal válida (0 registros)"
-                )
                 return pd.DataFrame()
 
-            # --- CÁLCULO FÍSICO ---
+            # --- CÁLCULO DE TELEMETRÍA RLC ---
             total_records = len(parsed_data.raw_records)
-            cache_size = len(parsed_data.parse_cache)
-            complexity = 1.0 - (cache_size / total_records) if total_records > 0 else 0.0
-            saturation = self.physics.calculate_saturation(total_records, complexity)
-            status = self.physics.get_stability_status(saturation)
+            cache_hits = len(parsed_data.parse_cache)
+
+            metrics = self.physics.calculate_metrics(total_records, cache_hits)
+            diagnosis = self.physics.get_system_diagnosis(metrics)
+
+            # DIODO DE RUEDA LIBRE (Flyback Diode Logic)
+            # Si el voltaje inductivo es demasiado alto, activamos el diodo de protección
+            # (en software: log de advertencia crítico o modo de fallo seguro)
+            if metrics["flyback_voltage"] > 0.8:
+                self.logger.warning(
+                    f"🛡️ [DIODO FLYBACK ACTIVADO] Se detectó un colapso masivo de calidad. "
+                    f"Disipando energía para evitar crash."
+                )
 
             self.logger.info(
-                f"📊 [TELEMETRÍA] Saturación: {saturation:.4f} | "
-                f"Complejidad: {complexity:.2f} | Estado: {status}"
+                f"🧲 [TELEMETRÍA RLC] "
+                f"Sat(C): {metrics['saturation']:.3f} | "
+                f"Comp(R): {metrics['complexity']:.3f} | "
+                f"Pico(L): {metrics['flyback_voltage']:.3f}v"
             )
+            self.logger.info(f"   Diagnóstico: {diagnosis}")
             # ----------------------
 
+            # FASE 2: DESCARGA (Rectificación)
             df_stabilized = self._rectify_signal(parsed_data)
+
             self._validate_output(df_stabilized)
 
             elapsed = time.time() - start_time
             self.logger.info(
-                f"✅ [ÉXITO] Flujo estabilizado en {elapsed:.2f}s: "
-                f"{len(df_stabilized)} registros procesados"
+                f"✅ [ÉXITO] Descarga estabilizada en {elapsed:.2f}s. "
+                f"{len(df_stabilized)} registros entregados."
             )
             return df_stabilized
 
