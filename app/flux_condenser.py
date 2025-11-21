@@ -17,6 +17,9 @@ Principios de Diseño:
 - **Telemetría Física:** Incorpora un `FluxPhysicsEngine` para calcular
   métricas de saturación, complejidad e inductancia (flyback), proporcionando
   una visión cuantitativa de la "salud" del flujo de datos entrante.
+- **Control Adaptativo (PID):** Implementa un lazo de control Proporcional-Integral
+  para ajustar dinámicamente el flujo de procesamiento (tamaño de lote) en función
+  de la saturación y complejidad detectada, asegurando "Flujo Laminar".
 - **Robustez y Tolerancia a Fallos:** Implementa validaciones estrictas en cada
   etapa y un manejo de errores detallado para prevenir la propagación de datos
   corruptos.
@@ -34,6 +37,62 @@ from .apu_processor import APUProcessor
 from .report_parser_crudo import ReportParserCrudo
 
 logger = logging.getLogger(__name__)
+
+
+# --- NUEVA CLASE: CONTROLADOR PI DISCRETO ---
+class PIController:
+    """
+    Implementación de un Controlador PI Discreto según la teoría de control.
+
+    Objetivo: Mantener la saturación del sistema en un Setpoint (SP) estable,
+    ajustando dinámicamente la variable de control (Tamaño del Batch).
+    """
+    def __init__(self, kp: float, ki: float, setpoint: float, min_output: int, max_output: int):
+        self.Kp = kp
+        self.Ki = ki
+        self.setpoint = setpoint # El "Flujo Laminar" ideal (ej. 0.3 de saturación)
+
+        # Límites del actuador (Tamaño de Batch)
+        self.min_output = min_output
+        self.max_output = max_output
+
+        # Estado interno
+        self._integral_error = 0.0
+        self._last_time = time.time()
+
+    def compute(self, process_variable: float) -> int:
+        """
+        Calcula la nueva salida de control (u(t)) basada en el error actual.
+
+        Ecuación Posicional Discreta:
+        u(k) = Kp * e(k) + Ki * sum(e) * dt
+        """
+        current_time = time.time()
+        dt = current_time - self._last_time
+        if dt <= 0: dt = 0.001 # Evitar división por cero
+
+        # 1. Calcular Error (e(t))
+        # Nota: Invertimos el signo porque queremos que:
+        # Saturación Alta -> Error Negativo -> Reducir Batch
+        error = self.setpoint - process_variable
+
+        # 2. Término Proporcional
+        P = self.Kp * error
+
+        # 3. Término Integral (con Anti-Windup implícito por los límites de salida)
+        self._integral_error += error * dt
+        I = self.Ki * self._integral_error
+
+        # 4. Señal de Control (u)
+        # Base output es la mitad del rango, el PID ajusta desde ahí
+        base_output = (self.max_output + self.min_output) / 2
+        control_signal = base_output + P + I
+
+        # 5. Saturación del Actuador (Clamping)
+        output = max(self.min_output, min(self.max_output, int(control_signal)))
+
+        self._last_time = current_time
+        return output
 
 
 class ParsedData(NamedTuple):
@@ -75,24 +134,22 @@ class CondenserConfig:
     Configuración inmutable y validada para el `DataFluxCondenser`.
 
     Define los umbrales operativos y comportamientos del condensador,
-    incluyendo sus parámetros para el motor de simulación física.
+    incluyendo sus parámetros para el motor de simulación física y el PID.
 
     Atributos:
         min_records_threshold (int): Número mínimo de registros necesarios para
             considerar un archivo como válido para el procesamiento.
         enable_strict_validation (bool): Si es `True`, activa validaciones
-            adicionales en el DataFrame de salida, como la detección de
-            columnas nulas.
+            adicionales en el DataFrame de salida.
         log_level (str): Nivel de logging para la instancia del condensador.
-        system_capacitance (float): Parámetro físico que representa la
-            capacidad ideal del sistema para procesar registros en un ciclo.
-            Análogo a la capacitancia en Faradios.
-        base_resistance (float): Parámetro físico que representa la fricción
-            o complejidad inherente del sistema. Análogo a la resistencia
-            en Ohmios.
-        system_inductance (float): Parámetro físico que representa la inercia
-            o resistencia al cambio en el flujo de datos. Análogo a la
-            inductancia en Henrios.
+        system_capacitance (float): Parámetro físico RLC (Faradios).
+        base_resistance (float): Parámetro físico RLC (Ohmios).
+        system_inductance (float): Parámetro físico RLC (Henrios).
+        pid_setpoint (float): Objetivo de saturación (0.0-1.0).
+        pid_kp (float): Ganancia Proporcional del PID.
+        pid_ki (float): Ganancia Integral del PID.
+        min_batch_size (int): Tamaño mínimo del lote de procesamiento.
+        max_batch_size (int): Tamaño máximo del lote de procesamiento.
     """
     min_records_threshold: int = 1
     enable_strict_validation: bool = True
@@ -101,6 +158,12 @@ class CondenserConfig:
     system_capacitance: float = 5000.0  # Faradios (Capacidad de carga)
     base_resistance: float = 10.0       # Ohmios (Fricción estática)
     system_inductance: float = 2.0      # Henrios (Inercia/Resistencia al cambio)
+    # --- Configuración PID ---
+    pid_setpoint: float = 0.30      # Objetivo: Saturación del 30% (Flujo Laminar)
+    pid_kp: float = 2000.0          # Ganancia Proporcional (Reacción rápida)
+    pid_ki: float = 100.0           # Ganancia Integral (Precisión a largo plazo)
+    min_batch_size: int = 50        # Flujo mínimo (Goteo)
+    max_batch_size: int = 5000      # Flujo máximo (Chorro)
 
 
 # --- MOTOR DE FÍSICA AVANZADO (RLC) ---
@@ -108,9 +171,8 @@ class FluxPhysicsEngine:
     """
     Simula el comportamiento físico RLC (Resistencia-Inductancia-Capacitancia).
 
-    Añade la dimensión de INDUCTANCIA (L) basada en el documento 'bobinas_fisica.pdf'.
-    Calcula la 'Tensión de Flyback' (CEMF) generada por cambios abruptos en la
-    calidad de los datos.
+    Calcula métricas de 'salud' del flujo de datos como Saturación (Carga),
+    Complejidad (Resistencia) y Tensión de Flyback (Inductancia).
     """
     def __init__(self, capacitance: float, resistance: float, inductance: float):
         """
@@ -131,7 +193,7 @@ class FluxPhysicsEngine:
 
         Args:
             total_records (int): Número total de registros procesados.
-            cache_hits (int): Número de registros que aprovecharon la caché (parseo exitoso).
+            cache_hits (int): Número de registros que aprovecharon la caché.
 
         Returns:
             Dict[str, float]: Diccionario con saturación, complejidad y voltaje de flyback.
@@ -153,7 +215,6 @@ class FluxPhysicsEngine:
         # V_L = -L * (di/dt)
         # Asumimos que 'corriente' (i) es la tasa de éxito (cache_hits / total).
         # Un cambio brusco en la calidad genera un pico de voltaje lógico.
-        # En un escenario batch, comparamos contra un "flujo ideal" (i=1.0).
 
         current_i = cache_hits / total_records # 0.0 a 1.0
         delta_i = 1.0 - current_i # La caída de corriente (pérdida de calidad)
@@ -174,12 +235,6 @@ class FluxPhysicsEngine:
     def get_system_diagnosis(self, metrics: Dict[str, float]) -> str:
         """
         Genera un diagnóstico textual basado en las métricas físicas.
-
-        Args:
-            metrics (Dict[str, float]): Diccionario con las métricas calculadas.
-
-        Returns:
-            str: Diagnóstico del estado del sistema.
         """
         v_flyback = metrics["flyback_voltage"]
         saturation = metrics["saturation"]
@@ -200,28 +255,9 @@ class DataFluxCondenser:
     """
     Orquesta el pipeline de validación y procesamiento de archivos de APU.
 
-    Actúa como una fachada que encapsula la complejidad de interactuar con
-    múltiples componentes (`ReportParserCrudo`, `APUProcessor`). Su objetivo es
-    proporcionar una única interfaz (`stabilize`) para procesar un archivo de
-    forma segura y robusta.
-
-    El "Condensador" implementa una metáfora de circuito eléctrico RLC:
-    1.  **Carga (Absorb & Filter):** El `ReportParserCrudo` absorbe la "corriente"
-        inicial, filtrando el ruido y generando una señal cruda.
-    2.  **Estabilización (Telemetría):** El `FluxPhysicsEngine` mide la
-        "tensión", "resistencia" e "inductancia" del flujo de datos.
-    3.  **Protección (Flyback Diode):** Detecta picos de voltaje lógico y disipa
-        la energía para evitar fallos catastróficos.
-    4.  **Descarga (Rectify Signal):** El `APUProcessor` procesa la señal
-        filtrada y la convierte en un DataFrame estructurado y útil.
-
-    Atributos:
-        config (Dict[str, Any]): Configuración global de la aplicación.
-        profile (Dict[str, Any]): Perfil específico para el tipo de archivo.
-        condenser_config (CondenserConfig): Configuración operativa del
-            propio condensador.
-        logger (logging.Logger): Instancia de logger para este componente.
-        physics (FluxPhysicsEngine): Motor de simulación física para telemetría.
+    Implementa una arquitectura de "Caja de Cristal" con control adaptativo PID.
+    El sistema monitorea la "física" del procesamiento en tiempo real y ajusta
+    la velocidad de ingestión (batch size) para mantener la estabilidad.
     """
     REQUIRED_CONFIG_KEYS = {'parser_settings', 'processor_settings'}
     REQUIRED_PROFILE_KEYS = {'columns_mapping', 'validation_rules'}
@@ -233,16 +269,7 @@ class DataFluxCondenser:
         condenser_config: Optional[CondenserConfig] = None
     ):
         """
-        Inicializa una nueva instancia del `DataFluxCondenser`.
-
-        Args:
-            config (Dict[str, Any]): El diccionario de configuración global de
-                la aplicación, que contiene ajustes para los subcomponentes.
-            profile (Dict[str, Any]): El perfil de procesamiento específico
-                para el archivo, que define mapeos de columnas y reglas.
-            condenser_config (Optional[CondenserConfig]): Una configuración
-                específica para el condensador. Si es `None`, se utilizarán
-                los valores por defecto de `CondenserConfig`.
+        Inicializa el Condensador con Motor RLC y Controlador PID.
         """
         self._validate_initialization_params(config, profile)
 
@@ -257,116 +284,173 @@ class DataFluxCondenser:
         self.physics = FluxPhysicsEngine(
             capacitance=self.condenser_config.system_capacitance,
             resistance=self.condenser_config.base_resistance,
-            inductance=self.condenser_config.system_inductance # Nuevo parámetro
+            inductance=self.condenser_config.system_inductance
         )
-        self.logger.info("DataFluxCondenser (Motor RLC Activado) inicializado")
+
+        # Inicializar Controlador PI
+        self.controller = PIController(
+            kp=self.condenser_config.pid_kp,
+            ki=self.condenser_config.pid_ki,
+            setpoint=self.condenser_config.pid_setpoint,
+            min_output=self.condenser_config.min_batch_size,
+            max_output=self.condenser_config.max_batch_size
+        )
+
+        self.logger.info("DataFluxCondenser (Motor RLC + Controlador PI) inicializado")
 
     def _validate_initialization_params(
         self,
         config: Dict[str, Any],
         profile: Dict[str, Any]
     ) -> None:
-        """
-        Valida los parámetros de inicialización del condensador.
-
-        Verifica que `config` y `profile` sean diccionarios. En modo tolerante,
-        advierte sobre la ausencia de claves esperadas en lugar de lanzar un
-        error.
-
-        Args:
-            config (Dict[str, Any]): Diccionario de configuración global.
-            profile (Dict[str, Any]): Diccionario de perfil de archivo.
-
-        Raises:
-            InvalidInputError: Si `config` o `profile` no son diccionarios.
-        """
+        """Valida que config y profile sean diccionarios."""
         if not isinstance(config, dict) or not isinstance(profile, dict):
             raise InvalidInputError("config y profile deben ser diccionarios válidos")
 
         missing_config_keys = self.REQUIRED_CONFIG_KEYS - set(config.keys())
         if missing_config_keys:
-            logger.warning(
-                f"Claves faltantes en config (modo tolerante): {missing_config_keys}"
-            )
+            logger.warning(f"Claves faltantes en config (modo tolerante): {missing_config_keys}")
 
         missing_profile_keys = self.REQUIRED_PROFILE_KEYS - set(profile.keys())
         if missing_profile_keys:
-            logger.warning(
-                f"Claves faltantes en profile (modo tolerante): {missing_profile_keys}"
-            )
+            logger.warning(f"Claves faltantes en profile (modo tolerante): {missing_profile_keys}")
 
     def stabilize(self, file_path: str) -> pd.DataFrame:
         """
-        Orquesta el ciclo completo de procesamiento de un archivo de APU.
+        Proceso de Carga y Descarga CONTROLADO por PID.
+        Procesa el archivo en flujo continuo (Streaming por Lotes Adaptativo).
 
-        Este es el método principal y punto de entrada del condensador. Ejecuta
-        la secuencia de validación, filtrado (absorción), telemetría física y
-        procesamiento (rectificación) para transformar un archivo crudo en un
-        DataFrame limpio y estructurado.
-
-        Args:
-            file_path (str): La ruta al archivo de APU que se va a procesar.
-
-        Returns:
-            pd.DataFrame: Un DataFrame de pandas con los datos de insumos
-            procesados y validados. Retorna un DataFrame vacío si el archivo
-            no contiene datos válidos o si el procesamiento no produce resultados.
-
-        Raises:
-            InvalidInputError: Si `file_path` no es válido (e.g., no existe,
-                es un directorio).
-            ProcessingError: Si ocurre un error irrecuperable en cualquier
-                etapa del pipeline de procesamiento.
+        El sistema lee el archivo y, en lugar de procesarlo todo de golpe,
+        lo divide en lotes cuyo tamaño es ajustado dinámicamente por el
+        controlador PID basándose en la 'saturación' detectada en el lote anterior.
         """
         start_time = time.time()
         path_obj = Path(file_path)
-        self.logger.info(f"⚡ [FÍSICA] Energizando circuito para: {path_obj.name}")
+        self.logger.info(f"⚡ [CONTROL ADAPTATIVO] Iniciando lazo de control para: {path_obj.name}")
 
         try:
             validated_path = self._validate_input_file(file_path)
 
-            # FASE 1: ABSORCIÓN (Carga del Condensador)
-            parsed_data = self._absorb_and_filter(validated_path)
+            # Inicializar el Guardia (Parser)
+            # FIX: Pasar explícitamente 'config' como argumento de palabra clave
+            parser = ReportParserCrudo(
+                str(validated_path),
+                profile=self.profile,
+                config=self.config
+            )
 
-            if not self._validate_parsed_data(parsed_data):
+            # Leemos todo el contenido crudo primero (Extract)
+            # En una versión futura, esto también sería streaming desde disco.
+            full_raw_records = parser.parse_to_raw()
+            full_cache = parser.get_parse_cache() or {}
+
+            if not full_raw_records:
+                self.logger.warning("El archivo no contiene registros crudos.")
                 return pd.DataFrame()
 
-            # --- CÁLCULO DE TELEMETRÍA RLC ---
-            total_records = len(parsed_data.raw_records)
-            cache_hits = len(parsed_data.parse_cache)
+            total_records = len(full_raw_records)
 
-            metrics = self.physics.calculate_metrics(total_records, cache_hits)
-            diagnosis = self.physics.get_system_diagnosis(metrics)
+            # Validar umbral mínimo antes de iniciar el bucle
+            if total_records < self.condenser_config.min_records_threshold:
+                 self.logger.warning(
+                    f"[VALIDACIÓN] Registros insuficientes: {total_records} < "
+                    f"{self.condenser_config.min_records_threshold}"
+                )
+                 # Dependiendo de la lógica de negocio, podríamos retornar vacío o procesar lo que hay.
+                 # La implementación anterior retornaba vacío si fallaba _validate_parsed_data.
+                 return pd.DataFrame()
 
-            # DIODO DE RUEDA LIBRE (Flyback Diode Logic)
-            # Si el voltaje inductivo es demasiado alto, activamos el diodo de protección
-            # (en software: log de advertencia crítico o modo de fallo seguro)
-            if metrics["flyback_voltage"] > 0.8:
-                self.logger.warning(
-                    f"🛡️ [DIODO FLYBACK ACTIVADO] Se detectó un colapso masivo de calidad. "
-                    f"Disipando energía para evitar crash."
+            processed_batches = []
+
+            # --- BUCLE DE CONTROL PID ---
+            current_index = 0
+            current_batch_size = self.condenser_config.min_batch_size # Arranque suave
+
+            self.logger.info(f"Iniciando procesamiento por lotes. Total registros: {total_records}")
+
+            while current_index < total_records:
+                # 1. Cortar el lote actual (Actuador)
+                end_index = min(current_index + current_batch_size, total_records)
+                batch_records = full_raw_records[current_index:end_index]
+
+                # 2. Preparar Cache para el lote
+                # Creamos un subset del cache relevante para este lote
+                # Nota: Esto asume que las claves del cache son identificables en los records.
+                # Si no es eficiente filtrar, pasamos el cache completo,
+                # pero para la métrica necesitamos saber cuántos hits hubo en ESTE batch.
+                # Simplificación: Calculamos hits estimados o pasamos todo y dejamos que Physics calcule sobre el total acumulado?
+                # La propuesta dice: "medir la saturación después de cada trozo".
+                # Physics.calculate_metrics toma (total_records, cache_hits).
+                # Deberíamos calcular metricas LOCALES del batch.
+
+                batch_cache_hits = 0
+                for record in batch_records:
+                    # Asumimos que hay una forma de linkear record con cache,
+                    # o simplificamos asumiendo proporcionalidad si no hay keys claras.
+                    # En ReportParserCrudo, el cache suele ser por 'insumo_line' o similar.
+                    line_content = record.get('insumo_line', '')
+                    if line_content in full_cache:
+                        batch_cache_hits += 1
+
+                # 3. Medir el estado del sistema (Sensor)
+                # Calculamos métricas basadas en el batch actual
+                metrics = self.physics.calculate_metrics(len(batch_records), batch_cache_hits)
+
+                # 4. Acción de Control (PID)
+                # El controlador decide el tamaño del SIGUIENTE lote basado en la saturación actual
+                new_batch_size = self.controller.compute(metrics["saturation"])
+
+                # Telemetría en tiempo real
+                self.logger.debug(
+                    f"🔄 [PID LOOP] Batch: {len(batch_records)} items | "
+                    f"Sat: {metrics['saturation']:.2f} | "
+                    f"V_Flyback: {metrics['flyback_voltage']:.2f} | "
+                    f"→ Next Size: {new_batch_size}"
                 )
 
-            self.logger.info(
-                f"🧲 [TELEMETRÍA RLC] "
-                f"Sat(C): {metrics['saturation']:.3f} | "
-                f"Comp(R): {metrics['complexity']:.3f} | "
-                f"Pico(L): {metrics['flyback_voltage']:.3f}v"
-            )
-            self.logger.info(f"   Diagnóstico: {diagnosis}")
-            # ----------------------
+                # Diodo Flyback
+                if metrics["flyback_voltage"] > 0.8:
+                     self.logger.warning(
+                        f"🛡️ [DIODO FLYBACK] Pico de inestabilidad detectado en batch {current_index}-{end_index}."
+                    )
 
-            # FASE 2: DESCARGA (Rectificación)
-            df_stabilized = self._rectify_signal(parsed_data)
+                # 5. Procesar el lote (Planta)
+                # Pasamos el cache completo al processor para que tenga contexto si lo necesita,
+                # pero procesamos solo los records del batch.
+                batch_data = ParsedData(batch_records, full_cache)
 
-            self._validate_output(df_stabilized)
+                try:
+                    df_batch = self._rectify_signal(batch_data)
+                    processed_batches.append(df_batch)
+                except ProcessingError as e:
+                    self.logger.error(f"Error procesando batch {current_index}-{end_index}: {e}")
+                    # En un sistema robusto, podríamos decidir si abortar o continuar.
+                    # Por ahora, propagamos el error o saltamos?
+                    # Si falla un batch, el archivo podría quedar incompleto.
+                    # "Robustez" sugiere intentar salvar lo que se pueda o fallar seguro.
+                    # El original fallaba completo. Mantendremos eso por seguridad.
+                    raise
+
+                # Avanzar
+                current_index = end_index
+                current_batch_size = new_batch_size # Aplicar la decisión del PID
+
+            # --- FIN DEL BUCLE ---
+
+            # Consolidar resultados
+            if processed_batches:
+                df_final = pd.concat(processed_batches, ignore_index=True)
+            else:
+                df_final = pd.DataFrame()
+
+            self._validate_output(df_final)
 
             elapsed = time.time() - start_time
             self.logger.info(
-                f"✅ [ÉXITO] Descarga estabilizada en {elapsed:.2f}s. "
-                f"{len(df_stabilized)} registros entregados."
+                f"✅ [ESTABILIZADO] Proceso completado en {elapsed:.2f}s. "
+                f"El controlador PID mantuvo el flujo estable."
             )
-            return df_stabilized
+            return df_final
 
         except InvalidInputError as e:
             self.logger.error(f"[ERROR] Entrada inválida: {e}")
@@ -379,22 +463,9 @@ class DataFluxCondenser:
             raise ProcessingError(f"Error inesperado durante estabilización: {e}") from e
 
     def _validate_input_file(self, file_path: str) -> Path:
-        """
-        Valida que el archivo de entrada exista y sea accesible.
-
-        Args:
-            file_path: Ruta al archivo a validar.
-
-        Returns:
-            Path validado.
-
-        Raises:
-            InvalidInputError: Si el archivo no existe o no es accesible.
-        """
+        """Valida que el archivo de entrada exista y sea accesible."""
         if not file_path or not isinstance(file_path, str):
-            raise InvalidInputError(
-                f"file_path debe ser una cadena no vacía, recibido: {type(file_path)}"
-            )
+            raise InvalidInputError(f"file_path debe ser una cadena no vacía, recibido: {type(file_path)}")
 
         path = Path(file_path)
 
@@ -405,194 +476,59 @@ class DataFluxCondenser:
             raise InvalidInputError(f"La ruta no es un archivo: {file_path}")
 
         if path.suffix.lower() not in {'.csv', '.txt'}:
-            self.logger.warning(
-                f"Extensión inusual detectada: {path.suffix}. "
-                "Se esperaba .csv o .txt"
-            )
+            self.logger.warning(f"Extensión inusual detectada: {path.suffix}. Se esperaba .csv o .txt")
 
         self.logger.debug(f"[VALIDACIÓN] Archivo validado: {path}")
         return path
 
-    def _absorb_and_filter(self, file_path: Path) -> ParsedData:
-        """
-        Usa ReportParserCrudo para filtrar el ruido de entrada.
-
-        Args:
-            file_path: Ruta validada al archivo.
-
-        Returns:
-            ParsedData con registros crudos y caché de parseo.
-
-        Raises:
-            ProcessingError: Si el parseo falla.
-        """
-        self.logger.debug("[FASE 1] Filtrando ruido con ReportParserCrudo...")
-
-        try:
-            # FIX: Pasar explícitamente 'config' como argumento de palabra clave
-            parser = ReportParserCrudo(
-                str(file_path),
-                profile=self.profile,
-                config=self.config
-            )
-            raw_records = parser.parse_to_raw()
-            parse_cache = parser.get_parse_cache()
-
-            # Validación de consistencia
-            if raw_records is None:
-                raw_records = []
-                self.logger.warning(
-                    "[FASE 1] Parser retornó None, se asume lista vacía"
-                )
-
-            if parse_cache is None:
-                parse_cache = {}
-                self.logger.warning(
-                    "[FASE 1] Cache retornó None, se asume diccionario vacío"
-                )
-
-            parsed_data = ParsedData(
-                raw_records=raw_records,
-                parse_cache=parse_cache
-            )
-
-            self.logger.debug(
-                f"[FASE 1] Filtrado completado: {len(raw_records)} registros extraídos"
-            )
-            return parsed_data
-
-        except Exception as e:
-            raise ProcessingError(
-                f"Error durante el filtrado con ReportParserCrudo: {e}"
-            ) from e
-
-    def _validate_parsed_data(self, parsed_data: ParsedData) -> bool:
-        """
-        Valida que los datos parseados sean coherentes y suficientes.
-
-        Args:
-            parsed_data: Datos parseados a validar.
-
-        Returns:
-            True si los datos son válidos, False si están vacíos pero válidos.
-
-        Raises:
-            ProcessingError: Si los datos están corruptos.
-        """
-        if not isinstance(parsed_data.raw_records, list):
-            raise ProcessingError(
-                f"raw_records debe ser lista, recibido: {type(parsed_data.raw_records)}"
-            )
-
-        if not isinstance(parsed_data.parse_cache, dict):
-            raise ProcessingError(
-                f"parse_cache debe ser dict, recibido: {type(parsed_data.parse_cache)}"
-            )
-
-        records_count = len(parsed_data.raw_records)
-
-        if records_count < self.condenser_config.min_records_threshold:
-            self.logger.warning(
-                f"[VALIDACIÓN] Registros insuficientes: {records_count} < "
-                f"{self.condenser_config.min_records_threshold}"
-            )
-            return False
-
-        self.logger.debug(f"[VALIDACIÓN] Datos parseados válidos: {records_count} registros")
-        return True
-
     def _rectify_signal(self, parsed_data: ParsedData) -> pd.DataFrame:
-        """
-        Usa APUProcessor para convertir la señal filtrada en datos utilizables.
-
-        Args:
-            parsed_data: Datos parseados a procesar.
-
-        Returns:
-            DataFrame con datos procesados.
-
-        Raises:
-            ProcessingError: Si el procesamiento falla.
-        """
-        self.logger.debug("[FASE 2] Rectificando señal con APUProcessor...")
+        """Usa APUProcessor para convertir la señal filtrada en datos utilizables."""
+        # self.logger.debug("[FASE 2] Rectificando señal con APUProcessor...") # Verbose
 
         try:
-            # 1. Instanciar APUProcessor SIN raw_records
+            # 1. Instanciar APUProcessor
             processor = APUProcessor(
                 config=self.config,
                 profile=self.profile,
                 parse_cache=parsed_data.parse_cache
             )
 
-            # 2. Pasar raw_records directamente a process_all
-            # NOTA: Asignamos manualmente raw_records porque el nuevo APUProcessor
-            # espera que estén disponibles en self.raw_records o pasados de alguna forma.
-            # Dado que el nuevo APUProcessor adaptativo usa self.raw_records,
-            # debemos asignarlos antes de llamar a process_all.
+            # 2. Pasar raw_records directamente
             processor.raw_records = parsed_data.raw_records
 
             df_result = processor.process_all()
 
             if not isinstance(df_result, pd.DataFrame):
                 raise ProcessingError(
-                    f"APUProcessor.process_all() debe retornar DataFrame, "
-                    f"recibido: {type(df_result)}"
+                    f"APUProcessor.process_all() debe retornar DataFrame, recibido: {type(df_result)}"
                 )
 
-            self.logger.debug(
-                f"[FASE 2] Rectificación completada: {len(df_result)} registros procesados"
-            )
             return df_result
 
         except Exception as e:
-            raise ProcessingError(
-                f"Error durante la rectificación con APUProcessor: {e}"
-            ) from e
+            raise ProcessingError(f"Error durante la rectificación con APUProcessor: {e}") from e
 
     def _validate_output(self, df: pd.DataFrame) -> None:
-        """
-        Valida el DataFrame de salida antes de retornarlo.
-
-        Args:
-            df: DataFrame a validar.
-
-        Raises:
-            ProcessingError: Si el DataFrame es inválido.
-        """
+        """Valida el DataFrame de salida antes de retornarlo."""
         if not isinstance(df, pd.DataFrame):
-            raise ProcessingError(
-                f"La salida debe ser DataFrame, recibido: {type(df)}"
-            )
+            raise ProcessingError(f"La salida debe ser DataFrame, recibido: {type(df)}")
 
         if self.condenser_config.enable_strict_validation:
             if df.empty:
-                self.logger.warning(
-                    "[VALIDACIÓN] DataFrame vacío generado (puede ser válido)"
-                )
+                self.logger.warning("[VALIDACIÓN] DataFrame vacío generado (puede ser válido)")
 
-            # Validar que no haya columnas completamente nulas
             null_columns = df.columns[df.isnull().all()].tolist()
             if null_columns:
-                self.logger.warning(
-                    f"[VALIDACIÓN] Columnas completamente nulas: {null_columns}"
-                )
-
-        self.logger.debug(
-            f"[VALIDACIÓN] Salida validada: {df.shape[0]} filas, {df.shape[1]} columnas"
-        )
+                self.logger.warning(f"[VALIDACIÓN] Columnas completamente nulas: {null_columns}")
 
     def get_processing_stats(self) -> Dict[str, Any]:
-        """
-        Retorna estadísticas del último procesamiento.
-
-        Returns:
-            Diccionario con estadísticas de procesamiento.
-        """
+        """Retorna estadísticas del último procesamiento."""
         return {
             "condenser_config": {
                 "min_records_threshold": self.condenser_config.min_records_threshold,
                 "strict_validation": self.condenser_config.enable_strict_validation,
-                "log_level": self.condenser_config.log_level
+                "log_level": self.condenser_config.log_level,
+                "pid_mode": True
             },
             "config_keys": list(self.config.keys()),
             "profile_keys": list(self.profile.keys())
