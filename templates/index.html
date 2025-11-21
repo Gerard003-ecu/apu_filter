@@ -3,255 +3,338 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>APU Filter | Centro de Análisis</title>
+    <title>APU Filter | Plataforma de Análisis de Ingeniería</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <!-- Preload fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 </head>
-<body class="bg-gray-100 font-sans text-gray-800">
-    <div class="container mx-auto p-4 md:p-8">
+<body class="antialiased min-h-screen flex flex-col">
+
+    <div class="container mx-auto px-4 py-8 md:py-12 max-w-7xl flex-grow">
         
-        <header class="mb-8 text-center">
-            <h1 class="text-4xl font-bold text-gray-800">APU Filter</h1>
-            <p class="text-lg text-gray-600">Centro de Análisis y Simulación para Reportes <span class="font-semibold text-gray-700">SAGUT</span></p>
+        <!-- Header Section -->
+        <header class="mb-10 flex flex-col md:flex-row justify-between items-center border-b border-gray-200 pb-6">
+            <div>
+                <h1 class="text-3xl md:text-4xl font-bold tracking-tight text-slate-900">APU Filter</h1>
+                <p class="text-slate-500 mt-1 text-lg">Centro de Análisis y Simulación <span class="font-medium text-indigo-600">SAGUT</span></p>
+            </div>
+            <div class="mt-4 md:mt-0 flex items-center space-x-2">
+                <span class="px-3 py-1 rounded-full bg-indigo-50 text-indigo-700 text-xs font-semibold border border-indigo-100">v2.0 Stable</span>
+            </div>
         </header>
 
         <!-- Carga de Archivos -->
-        <div id="upload-container" class="bg-white p-6 rounded-xl shadow-lg mb-8">
-            <h2 class="text-2xl font-semibold mb-4 border-b pb-2 text-gray-700">Cargar Archivos de Reporte</h2>
-            <div class="grid md:grid-cols-3 gap-4">
+        <div id="upload-container" class="card mb-10 fade-in">
+            <div class="flex items-center justify-between mb-6">
                 <div>
-                    <label for="presupuesto_file" class="block text-sm font-medium text-gray-700 mb-1">
-                        Presupuesto (.csv) <span class="text-red-500">*</span>
-                    </label>
-                    <input type="file" id="presupuesto_file" accept=".csv" 
-                           class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-                           aria-required="true"/>
-                    <p class="text-xs text-gray-500 mt-1" id="presupuesto-status"></p>
+                    <h2 class="text-xl font-semibold text-slate-800">Carga de Datos</h2>
+                    <p class="text-sm text-slate-500">Seleccione los archivos CSV requeridos para iniciar el análisis.</p>
                 </div>
-                <div>
-                    <label for="apus_file" class="block text-sm font-medium text-gray-700 mb-1">
-                        APUs (.csv) <span class="text-red-500">*</span>
-                    </label>
-                    <input type="file" id="apus_file" accept=".csv" 
-                           class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-                           aria-required="true"/>
-                    <p class="text-xs text-gray-500 mt-1" id="apus-status"></p>
-                </div>
-                <div>
-                    <label for="insumos_file" class="block text-sm font-medium text-gray-700 mb-1">
-                        Insumos (.csv) <span class="text-red-500">*</span>
-                    </label>
-                    <input type="file" id="insumos_file" accept=".csv" 
-                           class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-                           aria-required="true"/>
-                    <p class="text-xs text-gray-500 mt-1" id="insumos-status"></p>
+                <div class="hidden md:block">
+                    <svg class="w-8 h-8 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
                 </div>
             </div>
-            <button onclick="AppController.procesarArchivos()" id="process-btn" 
-                    class="mt-6 w-full btn-primary text-white font-bold py-3 px-4 rounded-lg transition-transform transform hover:scale-105 disabled:transform-none">
-                Procesar y Analizar Datos
-            </button>
+
+            <div class="grid md:grid-cols-3 gap-6">
+                <!-- Presupuesto Input -->
+                <div class="group">
+                    <label for="presupuesto_file" class="block text-sm font-medium text-slate-700 mb-2">
+                        Presupuesto <span class="text-xs text-slate-400 ml-1">(.csv)</span>
+                    </label>
+                    <input type="file" id="presupuesto_file" accept=".csv" 
+                           class="block w-full text-sm text-slate-500
+                                  file:mr-4 file:py-2 file:px-4
+                                  file:rounded-md file:border-0
+                                  file:text-sm file:font-semibold
+                                  file:bg-indigo-50 file:text-indigo-700
+                                  hover:file:bg-indigo-100
+                                  cursor-pointer"
+                           aria-required="true"/>
+                    <p class="text-xs text-slate-400 mt-1 h-4" id="presupuesto-status"></p>
+                </div>
+
+                <!-- APUs Input -->
+                <div class="group">
+                    <label for="apus_file" class="block text-sm font-medium text-slate-700 mb-2">
+                        APUs <span class="text-xs text-slate-400 ml-1">(.csv)</span>
+                    </label>
+                    <input type="file" id="apus_file" accept=".csv" 
+                           class="block w-full text-sm text-slate-500
+                                  file:mr-4 file:py-2 file:px-4
+                                  file:rounded-md file:border-0
+                                  file:text-sm file:font-semibold
+                                  file:bg-indigo-50 file:text-indigo-700
+                                  hover:file:bg-indigo-100
+                                  cursor-pointer"
+                           aria-required="true"/>
+                    <p class="text-xs text-slate-400 mt-1 h-4" id="apus-status"></p>
+                </div>
+
+                <!-- Insumos Input -->
+                <div class="group">
+                    <label for="insumos_file" class="block text-sm font-medium text-slate-700 mb-2">
+                        Insumos <span class="text-xs text-slate-400 ml-1">(.csv)</span>
+                    </label>
+                    <input type="file" id="insumos_file" accept=".csv" 
+                           class="block w-full text-sm text-slate-500
+                                  file:mr-4 file:py-2 file:px-4
+                                  file:rounded-md file:border-0
+                                  file:text-sm file:font-semibold
+                                  file:bg-indigo-50 file:text-indigo-700
+                                  hover:file:bg-indigo-100
+                                  cursor-pointer"
+                           aria-required="true"/>
+                    <p class="text-xs text-slate-400 mt-1 h-4" id="insumos-status"></p>
+                </div>
+            </div>
+
+            <div class="mt-8 flex justify-end">
+                <button onclick="AppController.procesarArchivos()" id="process-btn"
+                        class="btn-primary w-full md:w-auto min-w-[200px] flex justify-center items-center gap-2">
+                    <span>Procesar Datos</span>
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                </button>
+            </div>
         </div>
         
         <!-- Contenido principal -->
-        <main id="main-content" class="hidden">
-            <!-- Pestañas de Navegación -->
-            <div class="mb-6 border-b border-gray-200">
-                <nav class="-mb-px flex space-x-6" aria-label="Tabs" role="tablist">
+        <main id="main-content" class="hidden fade-in">
+
+            <!-- Navegación Tabular -->
+            <div class="mb-8">
+                <nav class="flex space-x-8 border-b border-slate-200" aria-label="Tabs" role="tablist">
                     <button onclick="AppController.switchTab('simulador')" id="tab-simulador" 
-                            class="tab-active whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm"
+                            class="tab-btn tab-active"
                             role="tab" aria-selected="true" aria-controls="content-simulador">
                         Simulador de Costos
                     </button>
                     <button onclick="AppController.switchTab('organizador')" id="tab-organizador" 
-                            class="tab-inactive text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm"
+                            class="tab-btn"
                             role="tab" aria-selected="false" aria-controls="content-organizador">
                         Organizador y Resúmenes
                     </button>
                     <button onclick="AppController.switchTab('estimador')" id="tab-estimador" 
-                            class="tab-inactive text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm"
+                            class="tab-btn"
                             role="tab" aria-selected="false" aria-controls="content-estimador">
                         Estimador Rápido
                     </button>
                 </nav>
             </div>
 
-            <!-- Contenido de las Pestañas -->
-            <div id="content-simulador" class="tab-content" role="tabpanel">
-                 <div class="bg-white p-6 rounded-xl shadow-md mb-8">
-                     <div class="flex flex-col md:flex-row justify-between items-start md:items-center">
+            <!-- Tab: Simulador -->
+            <div id="content-simulador" class="tab-content space-y-6" role="tabpanel">
+                 <!-- Panel de Control AIU -->
+                 <div class="card bg-gradient-to-r from-white to-slate-50">
+                     <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6 border-b border-slate-200 pb-4">
                         <div>
-                            <h2 class="text-2xl font-semibold">Simulador de Costos (AIU)</h2>
-                            <p class="text-sm text-gray-500">Ajusta los porcentajes para recalcular los costos en tiempo real.</p>
+                            <h2 class="text-xl font-bold text-slate-800">Simulación AIU</h2>
+                            <p class="text-sm text-slate-500">Ajuste de parámetros financieros en tiempo real.</p>
                         </div>
-                        <div class="text-right mt-4 md:mt-0">
-                            <p class="text-gray-600">Costo Total Consolidado (+AIU)</p>
-                            <p id="total-cost" class="text-3xl font-bold text-blue-800">$0</p>
+                        <div class="mt-4 lg:mt-0 flex flex-col items-end">
+                            <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Costo Total Consolidado</span>
+                            <span id="total-cost" class="text-3xl font-bold text-indigo-700 font-mono tracking-tight">$0</span>
                         </div>
                     </div>
-                    <div class="grid md:grid-cols-3 gap-6 items-end mt-4 pt-4 border-t">
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
                         <div>
-                            <label for="admin_percent" class="block text-sm font-medium text-gray-700">
+                            <label for="admin_percent" class="block text-xs font-bold text-slate-500 uppercase mb-2">
                                 Administración (%)
                             </label>
-                            <input type="number" id="admin_percent" value="9" min="0" max="100" step="0.1"
-                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2"
-                                   aria-label="Porcentaje de administración">
-                            <p class="text-xs text-gray-500 mt-1">Rango: 0-100%</p>
+                            <div class="relative rounded-md shadow-sm">
+                                <input type="number" id="admin_percent" value="9" min="0" max="100" step="0.1"
+                                       class="block w-full pr-12 sm:text-sm border-gray-300 focus:ring-indigo-500 focus:border-indigo-500 rounded-md"
+                                       aria-label="Porcentaje de administración">
+                                <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                    <span class="text-gray-500 sm:text-sm">%</span>
+                                </div>
+                            </div>
                         </div>
                         <div>
-                            <label for="imprev_percent" class="block text-sm font-medium text-gray-700">
+                            <label for="imprev_percent" class="block text-xs font-bold text-slate-500 uppercase mb-2">
                                 Imprevistos (%)
                             </label>
-                            <input type="number" id="imprev_percent" value="3" min="0" max="100" step="0.1"
-                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2"
-                                   aria-label="Porcentaje de imprevistos">
-                            <p class="text-xs text-gray-500 mt-1">Rango: 0-100%</p>
+                            <div class="relative rounded-md shadow-sm">
+                                <input type="number" id="imprev_percent" value="3" min="0" max="100" step="0.1"
+                                       class="block w-full pr-12 sm:text-sm border-gray-300 focus:ring-indigo-500 focus:border-indigo-500 rounded-md"
+                                       aria-label="Porcentaje de imprevistos">
+                                <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                    <span class="text-gray-500 sm:text-sm">%</span>
+                                </div>
+                            </div>
                         </div>
                         <div>
-                            <label for="util_percent" class="block text-sm font-medium text-gray-700">
+                            <label for="util_percent" class="block text-xs font-bold text-slate-500 uppercase mb-2">
                                 Utilidad (%)
                             </label>
-                            <input type="number" id="util_percent" value="5" min="0" max="100" step="0.1"
-                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2"
-                                   aria-label="Porcentaje de utilidad">
-                            <p class="text-xs text-gray-500 mt-1">Rango: 0-100%</p>
+                            <div class="relative rounded-md shadow-sm">
+                                <input type="number" id="util_percent" value="5" min="0" max="100" step="0.1"
+                                       class="block w-full pr-12 sm:text-sm border-gray-300 focus:ring-indigo-500 focus:border-indigo-500 rounded-md"
+                                       aria-label="Porcentaje de utilidad">
+                                <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                    <span class="text-gray-500 sm:text-sm">%</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div class="bg-white p-6 rounded-xl shadow-md">
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full divide-y divide-gray-200">
-                            <thead class="bg-gray-50">
+
+                <!-- Tabla Principal -->
+                <div class="card p-0 overflow-hidden">
+                    <div class="table-container">
+                        <table class="min-w-full divide-y divide-slate-200">
+                            <thead class="bg-slate-50">
                                 <tr>
-                                    <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Código APU</th>
-                                    <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Descripción</th>
-                                    <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vr. Suministro/Un. (+AIU)</th>
-                                    <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vr. Instalación/Un. (+AIU)</th>
-                                    <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vr. Construcción/Un. (+AIU)</th>
-                                    <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tiempo Instalación</th>
+                                    <th scope="col" class="w-24">Código</th>
+                                    <th scope="col">Descripción</th>
+                                    <th scope="col" class="text-right">Suministro (+AIU)</th>
+                                    <th scope="col" class="text-right">Instalación (+AIU)</th>
+                                    <th scope="col" class="text-right">Construcción (+AIU)</th>
+                                    <th scope="col" class="text-center w-24">Tiempo</th>
                                 </tr>
                             </thead>
-                            <tbody id="presupuesto-table-body" class="bg-white divide-y divide-gray-200"></tbody>
+                            <tbody id="presupuesto-table-body" class="bg-white divide-y divide-slate-200"></tbody>
                         </table>
                     </div>
                 </div>
             </div>
 
-            <div id="content-organizador" class="tab-content hidden" role="tabpanel">
-                <div class="bg-white p-6 rounded-xl shadow-md mb-8">
-                     <h2 class="text-2xl font-semibold">Organizador de Proyecto</h2>
-                     <p class="text-sm text-gray-500 mb-4">Asigna zonas y clasifica cada ítem. Los resúmenes se actualizarán automáticamente.</p>
-                     <div class="overflow-x-auto">
-                        <table class="min-w-full divide-y divide-gray-200">
-                            <thead class="bg-gray-50">
+            <!-- Tab: Organizador -->
+            <div id="content-organizador" class="tab-content hidden space-y-6" role="tabpanel">
+                <div class="card">
+                     <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-xl font-bold text-slate-800">Organizador de Proyecto</h2>
+                        <span class="text-sm bg-yellow-100 text-yellow-800 py-1 px-3 rounded-full font-medium">Edición Activa</span>
+                     </div>
+
+                     <div class="table-container max-h-[600px] overflow-y-auto">
+                        <table class="min-w-full">
+                            <thead>
                                 <tr>
-                                    <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Descripción</th>
-                                    <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Zona</th>
-                                    <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
-                                    <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Material</th>
+                                    <th scope="col">Descripción del Item</th>
+                                    <th scope="col" class="w-40">Zona</th>
+                                    <th scope="col" class="w-40">Tipo</th>
+                                    <th scope="col" class="w-40">Material</th>
                                 </tr>
                             </thead>
-                            <tbody id="organizer-table-body" class="bg-white divide-y divide-gray-200"></tbody>
+                            <tbody id="organizer-table-body"></tbody>
                         </table>
                     </div>
                 </div>
 
                 <div class="grid md:grid-cols-3 gap-6">
-                    <div id="summary-zona" class="summary-card bg-white p-6 rounded-xl shadow-md"></div>
-                    <div id="summary-tipo" class="summary-card bg-white p-6 rounded-xl shadow-md"></div>
-                    <div id="summary-material" class="summary-card bg-white p-6 rounded-xl shadow-md"></div>
+                    <div id="summary-zona" class="summary-card">
+                        <h3 class="text-lg font-semibold mb-4 border-b pb-2">Por Zona</h3>
+                        <!-- Content populated by JS -->
+                    </div>
+                    <div id="summary-tipo" class="summary-card">
+                        <h3 class="text-lg font-semibold mb-4 border-b pb-2">Por Tipo</h3>
+                         <!-- Content populated by JS -->
+                    </div>
+                    <div id="summary-material" class="summary-card">
+                        <h3 class="text-lg font-semibold mb-4 border-b pb-2">Por Material</h3>
+                         <!-- Content populated by JS -->
+                    </div>
                 </div>
             </div>
 
-            <div id="content-estimador" class="tab-content hidden" role="tabpanel">
-                <div class="bg-white p-6 rounded-xl shadow-md">
-                    <h2 class="text-2xl font-semibold">Estimador Rápido de Costos</h2>
-                    <p class="text-sm text-gray-500 mb-6">Selecciona los parámetros para obtener una estimación de costos por m² en tiempo real.</p>
+            <!-- Tab: Estimador -->
+            <div id="content-estimador" class="tab-content hidden space-y-6" role="tabpanel">
+                <div class="card">
+                    <div class="border-b border-slate-100 pb-4 mb-6">
+                        <h2 class="text-xl font-bold text-slate-800">Estimador Paramétrico</h2>
+                        <p class="text-sm text-slate-500">Cálculo rápido basado en datos históricos y patrones de consumo.</p>
+                    </div>
 
                     <div id="estimator-tool">
-                        <!-- Parámetros de Entrada -->
-                        <div class="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-4 border-t pt-6">
-                            <div>
-                                <label for="est-producto" class="block text-sm font-medium text-gray-700">Producto</label>
-                                <select id="est-producto" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2">
+                        <!-- Parameters Grid -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                            <div class="space-y-1">
+                                <label for="est-producto" class="text-sm font-medium text-slate-700">Producto</label>
+                                <select id="est-producto" class="block w-full rounded-md border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
                                     <option value="CUBIERTA">CUBIERTA</option>
                                     <option value="FACHADA">FACHADA</option>
                                 </select>
                             </div>
-                            <div>
-                                <label for="est-material" class="block text-sm font-medium text-gray-700">Material a Instalar</label>
-                                <select id="est-material" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2">
+                            <div class="space-y-1">
+                                <label for="est-material" class="text-sm font-medium text-slate-700">Material</label>
+                                <select id="est-material" class="block w-full rounded-md border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                                    <!-- Populated by JS -->
                                 </select>
                             </div>
-                            <div>
-                                <label for="est-cuadrilla" class="block text-sm font-medium text-gray-700">Cuadrilla de</label>
-                                <select id="est-cuadrilla" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2">
-                                    <option value="3">3</option>
-                                    <option value="4">4</option>
-                                    <option value="5" selected>5</option>
-                                    <option value="7">7</option>
-                                    <option value="9">9</option>
+                            <div class="space-y-1">
+                                <label for="est-cuadrilla" class="text-sm font-medium text-slate-700">Tamaño Cuadrilla</label>
+                                <select id="est-cuadrilla" class="block w-full rounded-md border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                                    <option value="3">3 Personas</option>
+                                    <option value="4">4 Personas</option>
+                                    <option value="5" selected>5 Personas</option>
+                                    <option value="7">7 Personas</option>
+                                    <option value="9">9 Personas</option>
                                 </select>
                             </div>
-                             <div>
-                                <label for="est-m2" class="block text-sm font-medium text-gray-700">Cantidad (m²)</label>
+                             <div class="space-y-1">
+                                <label for="est-m2" class="text-sm font-medium text-slate-700">Cantidad (m²)</label>
                                 <input type="number" id="est-m2" value="1" min="0.01" step="0.01"
-                                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2">
+                                       class="block w-full rounded-md border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
                             </div>
-                            <div>
-                                <label for="est-zona" class="block text-sm font-medium text-gray-700">Zona</label>
-                                <select id="est-zona" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2">
-                                    <option value="ZONA 0">ZONA 0</option>
+                            <div class="space-y-1">
+                                <label for="est-zona" class="text-sm font-medium text-slate-700">Zona Geográfica</label>
+                                <select id="est-zona" class="block w-full rounded-md border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                                    <option value="ZONA 0">ZONA 0 (Nivel del mar)</option>
                                     <option value="ZONA 1">ZONA 1</option>
                                     <option value="ZONA 2">ZONA 2</option>
-                                    <option value="ZONA 3">ZONA 3</option>
+                                    <option value="ZONA 3">ZONA 3 (Alta montaña)</option>
                                 </select>
                             </div>
-                            <div>
-                                <label for="est-izaje" class="block text-sm font-medium text-gray-700">Izaje</label>
-                                <select id="est-izaje" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2">
-                                    <option value="MANUAL">MANUAL</option>
-                                    <option value="GRUA">GRUA</option>
+                            <div class="space-y-1">
+                                <label for="est-izaje" class="text-sm font-medium text-slate-700">Método Izaje</label>
+                                <select id="est-izaje" class="block w-full rounded-md border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                                    <option value="MANUAL">Manual</option>
+                                    <option value="GRUA">Grúa</option>
                                 </select>
                             </div>
-                            <div>
-                                <label for="est-seguridad" class="block text-sm font-medium text-gray-700">Exigencia Seguridad</label>
-                                <select id="est-seguridad" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2">
-                                    <option value="NORMAL">NORMAL</option>
-                                    <option value="ALTA">ALTA</option>
+                            <div class="space-y-1">
+                                <label for="est-seguridad" class="text-sm font-medium text-slate-700">Nivel Seguridad</label>
+                                <select id="est-seguridad" class="block w-full rounded-md border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                                    <option value="NORMAL">Estándar</option>
+                                    <option value="ALTA">Alta Exigencia</option>
                                 </select>
                             </div>
                         </div>
 
-                        <!-- Resultados de la Estimación -->
-                        <div class="mt-8 border-t pt-6">
-                            <h3 class="text-lg font-semibold text-gray-800">Resultados de la Estimación</h3>
-                            <div id="estimator-results" class="mt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                                <div class="bg-gray-50 p-4 rounded-lg">
-                                    <p class="text-sm text-gray-600">Valor m² Suministro (+AIU)</p>
-                                    <p id="est-res-suministro" class="text-xl font-bold text-gray-800">$0</p>
+                        <!-- Resultados -->
+                        <div class="mt-8 bg-slate-50 rounded-xl p-6 border border-slate-200">
+                            <h3 class="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-4">Desglose de Costos (Por m²)</h3>
+                            <div id="estimator-results" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                                <div class="bg-white p-4 rounded-lg shadow-sm border border-slate-100">
+                                    <p class="text-xs text-slate-500 mb-1">Suministro (+AIU)</p>
+                                    <p id="est-res-suministro" class="text-xl font-bold text-slate-800 font-mono">$0</p>
                                 </div>
-                                <div class="bg-gray-50 p-4 rounded-lg">
-                                    <p class="text-sm text-gray-600">Valor m² Instalación (+AIU)</p>
-                                    <p id="est-res-instalacion" class="text-xl font-bold text-gray-800">$0</p>
+                                <div class="bg-white p-4 rounded-lg shadow-sm border border-slate-100">
+                                    <p class="text-xs text-slate-500 mb-1">Instalación (+AIU)</p>
+                                    <p id="est-res-instalacion" class="text-xl font-bold text-slate-800 font-mono">$0</p>
                                 </div>
-                                <div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                                    <p class="text-sm text-blue-700">Valor m² Construcción (+AIU)</p>
-                                    <p id="est-res-construccion" class="text-2xl font-bold text-blue-800">$0</p>
+                                <div class="bg-indigo-50 p-4 rounded-lg shadow-sm border border-indigo-100 ring-1 ring-indigo-200">
+                                    <p class="text-xs text-indigo-700 font-bold mb-1">Total Construcción</p>
+                                    <p id="est-res-construccion" class="text-2xl font-bold text-indigo-800 font-mono">$0</p>
                                 </div>
-                                <div class="bg-gray-50 p-4 rounded-lg">
-                                    <p class="text-sm text-gray-600">Tiempo Instalación (días/m²)</p>
-                                    <p id="est-res-tiempo" class="text-xl font-bold text-gray-800">0.00</p>
+                                <div class="bg-white p-4 rounded-lg shadow-sm border border-slate-100">
+                                    <p class="text-xs text-slate-500 mb-1">Rendimiento</p>
+                                    <p id="est-res-tiempo" class="text-xl font-bold text-slate-800 font-mono">0.00 <span class="text-xs font-normal text-slate-400">días/m²</span></p>
                                 </div>
                             </div>
-                            <div id="estimator-log-container" class="mt-4 hidden">
-                                <button onclick="UIManager.toggleEstimatorLog()" class="text-sm text-blue-600 hover:text-blue-800 mb-2">
-                                    <span id="log-toggle-text">▶ Mostrar Log de Cálculo</span>
+
+                            <div id="estimator-log-container" class="mt-6 pt-4 border-t border-slate-200 hidden">
+                                <button onclick="UIManager.toggleEstimatorLog()" class="flex items-center text-sm text-indigo-600 hover:text-indigo-800 transition-colors">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                    <span id="log-toggle-text">Ver Detalles de Cálculo</span>
                                 </button>
-                                <textarea id="estimator-log" readonly 
-                                          class="mt-1 block w-full rounded-md border-gray-200 bg-gray-50 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50 hidden" 
-                                          rows="10" style="font-family: monospace;"></textarea>
+                                <div id="estimator-log" class="mt-3 p-4 bg-slate-900 text-slate-300 rounded-md font-mono text-xs overflow-x-auto hidden shadow-inner">
+                                    <!-- Log content -->
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -259,19 +342,32 @@
             </div>
         </main>
 
-        <div id="status" class="text-center p-4"></div>
-        <div id="loader" class="hidden fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50">
-            <div class="loader ease-linear rounded-full border-8 border-t-8 border-gray-200 h-32 w-32"></div>
+        <footer class="mt-12 text-center text-sm text-slate-400 border-t border-gray-200 pt-6 pb-4">
+            <p>&copy; 2024 SAGUT S.A.S. - Todos los derechos reservados.</p>
+        </footer>
+
+        <!-- Loader -->
+        <div id="loader" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex flex-col items-center justify-center z-[100]">
+            <div class="loader mb-4"></div>
+            <p class="text-white font-medium tracking-wide animate-pulse">Procesando Datos...</p>
         </div>
     </div>
 
-    <div id="apu-modal" class="modal-overlay fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center p-4 z-50" role="dialog" aria-modal="true">
-        <div class="modal-content bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto transform scale-95">
-             <div class="sticky top-0 bg-white p-4 border-b flex justify-between items-center z-10">
-                <h3 id="modal-title" class="text-xl font-bold">Detalle de APU</h3>
-                <button onclick="ModalManager.close()" class="text-gray-500 hover:text-gray-800 text-2xl" aria-label="Cerrar modal">&times;</button>
+    <!-- Modal Detalle APU -->
+    <div id="apu-modal" class="modal-overlay fixed inset-0 hidden items-center justify-center p-4 z-[60]" role="dialog" aria-modal="true">
+        <div class="modal-content w-full max-w-5xl max-h-[90vh] flex flex-col overflow-hidden">
+             <!-- Header Fijo -->
+             <div class="bg-white px-6 py-4 border-b border-slate-200 flex justify-between items-center z-10">
+                <div>
+                    <h3 id="modal-title" class="text-lg font-bold text-slate-800">Detalle de APU</h3>
+                    <p class="text-xs text-slate-500">Análisis de Precio Unitario Desglosado</p>
+                </div>
+                <button onclick="ModalManager.close()" class="text-slate-400 hover:text-slate-700 transition-colors rounded-full p-1 hover:bg-slate-100" aria-label="Cerrar modal">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
             </div>
-            <div id="modal-body" class="p-6"></div>
+            <!-- Cuerpo Scrollable -->
+            <div id="modal-body" class="p-6 overflow-y-auto bg-slate-50"></div>
         </div>
     </div>
     
