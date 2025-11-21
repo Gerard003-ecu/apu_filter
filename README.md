@@ -24,12 +24,32 @@ APU Filter está construido sobre una arquitectura modular que separa claramente
 
 ### 1. Condensador de Flujo de Datos (Data Flux Condenser)
 - **Componente Clave:** `app/flux_condenser.py`
-- **Función:** Actúa como un estabilizador de señal a la entrada del sistema. En lugar de simplemente parsear, gestiona la ingesta de datos aplicando principios de física (Resistencia y Capacitancia) para modelar el flujo de información.
-- **Mecanismo:**
-    1.  **Motor de Física (FluxPhysicsEngine):** Su núcleo es un motor que simula el comportamiento de un circuito RC. Calcula métricas de **saturación** y **complejidad** en tiempo real usando ecuaciones diferenciales.
-    2.  **Telemetría Avanzada:** Clasifica el flujo de datos como "Laminar", "Transitorio" o "Turbulento", permitiendo al sistema reaccionar ante datos mal formados o "ruidosos" y protegiendo los componentes posteriores.
-    3.  **Orquestación de Precisión:** Coordina dos componentes especializados: un "Guardia" (`ReportParserCrudo`) que realiza una validación inicial estricta y un "Cirujano" (`APUProcessor`) que aplica la lógica de negocio detallada.
-- **Resultado:** Garantiza que solo un flujo de datos estable y coherente ("Laminar") llegue al núcleo del sistema, mejorando drásticamente la fiabilidad del procesamiento.
+- **Función:** Actúa como un estabilizador dinámico de señal a la entrada del sistema. Implementa una arquitectura de **"Caja de Cristal"**, transformando la ingesta de datos en un proceso observable, medible y auto-regulado mediante principios de física y teoría de control.
+
+#### ⚙️ Nivel 1: Motor de Física RLC (El Sensor)
+El sistema no ve "archivos"; ve "corrientes de energía". Modela la ingesta usando un circuito eléctrico de segundo orden para generar telemetría en tiempo real:
+
+1.  **Capacitancia ($C$) - Capacidad de Carga:**
+    *   Representa la capacidad del sistema para absorber registros.
+    *   Calcula el **Nivel de Saturación** del sistema. Un nivel bajo indica "Flujo Laminar" (estable); un nivel alto indica "Flujo Turbulento" (riesgo de desbordamiento).
+2.  **Resistencia ($R$) - Fricción de Procesamiento:**
+    *   Mide la complejidad o "suciedad" de los datos. Se calcula dinámicamente basándose en la tasa de fallos del parser y la necesidad de re-procesamiento.
+3.  **Inductancia ($L$) - Inercia de Calidad:**
+    *   **Innovación Clave:** Mide la resistencia del flujo a cambiar su estado.
+    *   Calcula la **Tensión de Flyback** (Fuerza Contra-Electromotriz) generada por cambios violentos en la calidad de los datos (ej. un archivo limpio que se corrompe súbitamente).
+    *   **Mecanismo de Protección (Diodo Flyback):** Si se detecta un pico inductivo peligroso, el sistema activa un "Diodo Lógico" para disipar la energía del error sin colapsar el proceso.
+
+#### 🧠 Nivel 2: Controlador PI Discreto (El Cerebro)
+Sobre la capa física, opera un **Lazo de Control Cerrado (Feedback Loop)** que ajusta el comportamiento del sistema en tiempo real:
+
+*   **Algoritmo:** Implementación de un controlador **Proporcional-Integral (PI)** discreto.
+*   **Setpoint:** El sistema busca mantener una saturación estable del 30% (Flujo Laminar ideal).
+*   **Variable de Control:** El tamaño del lote de procesamiento (*Batch Size*).
+*   **Comportamiento Adaptativo:**
+    *   Si los datos son limpios (baja resistencia), el controlador **acelera**, aumentando el tamaño del lote para maximizar el rendimiento.
+    *   Si detecta datos complejos o inestables (alta saturación/resistencia), el controlador **frena** suavemente, reduciendo el flujo para garantizar la precisión y prevenir errores de memoria.
+
+**Resultado:** Un sistema bi-mimético que "siente" la data y adapta su velocidad de ingestión para garantizar una estabilidad del 100% bajo cualquier condición.
 
 ### 2. Pipeline de Procesamiento de Datos
 - **Componente Clave:** `app/procesador_csv.py`
