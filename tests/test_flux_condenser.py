@@ -14,14 +14,15 @@ Cobertura de Pruebas:
   etapa del pipeline (`_absorb_and_filter`, `_rectify_signal`), verificando
   la correcta interacción con `ReportParserCrudo` y `APUProcessor`.
 - **Motor de Física:** Pruebas unitarias para `FluxPhysicsEngine`, asegurando
-  que los cálculos de saturación y los estados de estabilidad sean precisos.
+  que los cálculos de saturación y los estados de estabilidad sean precisos,
+  ahora incluyendo el cálculo de voltaje Flyback.
 - **Manejo de Errores:** Confirma que las excepciones personalizadas
   (`InvalidInputError`, `ProcessingError`) se lancen y propaguen
   correctamente.
 - **Casos Límite (Edge Cases):** Evalúa el comportamiento con datasets
   vacíos, muy grandes, y con datos problemáticos (e.g., columnas nulas).
 - **Telemetría y Logging:** Verifica que los mensajes de log, especialmente
-  los de telemetría física, se generen como se espera.
+  los de telemetría física y advertencias de flyback, se generen como se espera.
 
 Metodología:
 - **Fixtures de Pytest:** Se utilizan extensivamente para crear un entorno de
@@ -34,6 +35,7 @@ Metodología:
   escenario de forma eficiente.
 """
 import logging
+import math
 from pathlib import Path
 from typing import Any, Dict, List
 from unittest.mock import Mock, patch
@@ -45,6 +47,7 @@ from app.flux_condenser import (
     CondenserConfig,
     DataFluxCondenser,
     DataFluxCondenserError,
+    FluxPhysicsEngine,
     InvalidInputError,
     ParsedData,
     ProcessingError,
@@ -277,6 +280,9 @@ class TestInitialization:
         assert condenser.condenser_config.min_records_threshold == 1
         assert condenser.condenser_config.enable_strict_validation is True
         assert condenser.condenser_config.log_level == "INFO"
+        # Verificar defaults RLC
+        assert condenser.condenser_config.system_capacitance == 5000.0
+        assert condenser.condenser_config.system_inductance == 2.0
 
     def test_init_with_invalid_config_type(self, valid_profile):
         """
@@ -327,6 +333,13 @@ class TestInitialization:
         condenser = DataFluxCondenser(valid_config, valid_profile, custom_config)
 
         assert condenser.logger.level == logging.DEBUG
+
+    def test_physics_engine_initialization(self, valid_config, valid_profile):
+        """Verifica que el motor de física se inicialice con parámetros RLC correctos."""
+        condenser = DataFluxCondenser(valid_config, valid_profile)
+
+        assert isinstance(condenser.physics, FluxPhysicsEngine)
+        assert condenser.physics.L == 2.0  # Default inductance
 
 
 # ==================== TESTS DE VALIDACIÓN DE ARCHIVO ====================
@@ -726,42 +739,66 @@ class TestValidateOutput:
         condenser._validate_output(df_empty)
 
 
-# ==================== TESTS: FluxPhysicsEngine ====================
+# ==================== TESTS: FluxPhysicsEngine (RLC) ====================
 
 class TestFluxPhysicsEngine:
-    """Pruebas unitarias para el motor de física."""
-
-    # Importar math y FluxPhysicsEngine aquí para mantener el test aislado
-    import math
-
-    from app.flux_condenser import FluxPhysicsEngine
+    """Pruebas unitarias para el motor de física RLC."""
 
     @pytest.fixture
     def physics_engine(self):
-        """Instancia del motor con valores base."""
-        return self.FluxPhysicsEngine(capacitance=1000.0, resistance=10.0)
+        """Instancia del motor con valores base RLC."""
+        return FluxPhysicsEngine(capacitance=5000.0, resistance=10.0, inductance=2.0)
 
-    @pytest.mark.parametrize("load_size, complexity, expected_saturation", [
-        (100, 0.0, 0.00995),
-        (5000, 0.0, 0.3934),
-        (10000, 0.5, 0.4865),
-        (20000, 1.0, 0.6321),
+    @pytest.mark.parametrize("total, hits, expected_saturation", [
+        (100, 100, 0.0020),  # Complejidad 0, carga mínima -> Saturación baja
+        (100, 0, 0.0003),    # Complejidad 1 (max), carga mínima -> Saturación muy baja (carga lenta)
+        (10000, 5000, 0.0555), # Carga alta, complejidad media -> Saturación moderada
     ])
-    def test_calculate_saturation(
-        self, physics_engine, load_size, complexity, expected_saturation
-        ):
-        """Debe calcular la saturación correctamente."""
-        saturation = physics_engine.calculate_saturation(load_size, complexity)
-        assert saturation == pytest.approx(expected_saturation, abs=1e-4)
+    def test_calculate_metrics_saturation(self, physics_engine, total, hits, expected_saturation):
+        """Debe calcular saturación correctamente (approx)."""
+        metrics = physics_engine.calculate_metrics(total, hits)
+        # La saturación es sensible a la exponencial, validamos rangos o approx
+        assert metrics["saturation"] == pytest.approx(expected_saturation, abs=0.001)
 
-    @pytest.mark.parametrize("saturation, expected_status", [
-        (0.29, "FLUJO LAMINAR (Estable)"),
-        (0.69, "FLUJO TRANSITORIO (Carga Media)"),
-        (0.7, "FLUJO TURBULENTO (Alta Saturación)"),
-    ])
-    def test_get_stability_status(self, physics_engine, saturation, expected_status):
-        """Debe retornar el estado de estabilidad correcto."""
-        assert physics_engine.get_stability_status(saturation) == expected_status
+    def test_flyback_voltage_calculation(self, physics_engine):
+        """Debe calcular voltaje de flyback cuando hay caída de calidad."""
+        # Caso ideal: 100% hits -> i=1.0, delta_i=0 -> V=0
+        metrics_ideal = physics_engine.calculate_metrics(100, 100)
+        assert metrics_ideal["flyback_voltage"] == 0.0
+
+        # Caso colapso: 0% hits -> i=0.0, delta_i=1.0 -> V alto
+        metrics_crash = physics_engine.calculate_metrics(100, 0)
+        assert metrics_crash["flyback_voltage"] > 0.0
+
+        # Validación numérica manual:
+        # dt = ln(1 + 100) ≈ 4.615
+        # delta_i = 1.0
+        # V = L * (1.0 / 4.615) = 2.0 * 0.216 ≈ 0.433
+        expected_v = 2.0 * (1.0 / math.log1p(100))
+        assert metrics_crash["flyback_voltage"] == pytest.approx(expected_v, abs=0.001)
+
+    def test_get_system_diagnosis_flyback(self, physics_engine):
+        """Debe retornar diagnósticos de peligro inductivo."""
+        # Peligro Alto (>0.5)
+        metrics_high = {"saturation": 0.1, "complexity": 0.5, "flyback_voltage": 0.6}
+        diag = physics_engine.get_system_diagnosis(metrics_high)
+        assert "⚡ PELIGRO" in diag
+
+        # Advertencia (>0.1)
+        metrics_med = {"saturation": 0.1, "complexity": 0.5, "flyback_voltage": 0.2}
+        diag = physics_engine.get_system_diagnosis(metrics_med)
+        assert "⚠️ ADVERTENCIA" in diag
+
+    def test_get_system_diagnosis_saturation(self, physics_engine):
+        """Debe retornar diagnósticos de flujo normales si el voltaje es bajo."""
+        # Flujo Laminar
+        metrics_lam = {"saturation": 0.2, "complexity": 0.1, "flyback_voltage": 0.0}
+        assert "FLUJO LAMINAR" in physics_engine.get_system_diagnosis(metrics_lam)
+
+        # Flujo Turbulento
+        metrics_tur = {"saturation": 0.8, "complexity": 0.1, "flyback_voltage": 0.0}
+        assert "FLUJO TURBULENTO" in physics_engine.get_system_diagnosis(metrics_tur)
+
 
 # ==================== TESTS DE INTEGRACIÓN (STABILIZE) ====================
 
@@ -811,8 +848,8 @@ class TestStabilize:
         sample_dataframe,
         caplog
     ):
-        """Debe registrar la telemetría física durante un flujo exitoso."""
-        # Setup: 100 registros crudos, 80 cacheados -> complejidad 0.2
+        """Debe registrar la telemetría física (RLC) durante un flujo exitoso."""
+        # Setup: 100 registros crudos, 80 cacheados
         raw_records = [{'id': i} for i in range(100)]
         parse_cache = {f'line_{i}': 'data' for i in range(80)}
 
@@ -828,9 +865,41 @@ class TestStabilize:
         with caplog.at_level(logging.INFO):
             condenser.stabilize(str(mock_csv_file))
 
-        assert "📊 [TELEMETRÍA]" in caplog.text
-        assert "Complejidad: 0.20" in caplog.text
-        assert "Estado: FLUJO LAMINAR" in caplog.text
+        # Validar logs actualizados
+        assert "🧲 [TELEMETRÍA RLC]" in caplog.text
+        assert "Pico(L):" in caplog.text
+        assert "Sat(C):" in caplog.text
+
+    @patch('app.flux_condenser.APUProcessor')
+    @patch('app.flux_condenser.ReportParserCrudo')
+    def test_flyback_diode_activation(
+        self,
+        mock_parser_class,
+        mock_processor_class,
+        condenser,
+        mock_csv_file,
+        caplog
+    ):
+        """Debe activar el diodo (warning) si hay un colapso de calidad."""
+        # Usamos pocos registros para aumentar la pendiente di/dt
+        # dt = log1p(10) ≈ 2.39, delta_i=1.0, V = 2.0 * (1/2.39) ≈ 0.83 > 0.8
+        raw_records = [{'id': i} for i in range(10)]
+        parse_cache = {} # 0 hits
+
+        mock_parser = Mock()
+        mock_parser.parse_to_raw.return_value = raw_records
+        mock_parser.get_parse_cache.return_value = parse_cache
+        mock_parser_class.return_value = mock_parser
+
+        # Mocks para que pase la fase 2 aunque sea un desastre
+        mock_processor = Mock()
+        mock_processor.process_all.return_value = pd.DataFrame()
+        mock_processor_class.return_value = mock_processor
+
+        with caplog.at_level(logging.WARNING):
+            condenser.stabilize(str(mock_csv_file))
+
+        assert "🛡️ [DIODO FLYBACK ACTIVADO]" in caplog.text
 
     def test_nonexistent_file_raises_error(self, condenser):
         """Debe fallar con archivo inexistente."""
@@ -856,7 +925,7 @@ class TestStabilize:
 
         assert isinstance(result, pd.DataFrame)
         assert len(result) == 0
-        assert "La carga no generó señal válida" in caplog.text
+        assert "Registros insuficientes" in caplog.text
 
     @patch('app.flux_condenser.ReportParserCrudo')
     def test_parser_failure_raises_processing_error(
@@ -944,10 +1013,8 @@ class TestStabilize:
         with caplog.at_level(logging.INFO):
             condenser.stabilize(str(mock_csv_file))
 
-        # CORRECCIÓN: Ajustar a los nuevos mensajes de log.
-        assert "⚡ [FÍSICA] Iniciando ciclo de estabilización" in caplog.text
-        assert "✅ [ÉXITO] Flujo estabilizado" in caplog.text
-        assert "registros procesados" in caplog.text
+        assert "⚡ [FÍSICA] Energizando circuito" in caplog.text
+        assert "✅ [ÉXITO] Descarga estabilizada" in caplog.text
 
 
 # ==================== TESTS DE ESTADÍSTICAS ====================
