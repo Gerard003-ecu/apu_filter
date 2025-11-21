@@ -1,0 +1,185 @@
+# ... (Importaciones anteriores se mantienen) ...
+
+# --- NUEVA CLASE: CONTROLADOR PI DISCRETO ---
+class PIController:
+    """
+    Implementación de un Controlador PI Discreto según la teoría de control.
+    
+    Objetivo: Mantener la saturación del sistema en un Setpoint (SP) estable,
+    ajustando dinámicamente la variable de control (Tamaño del Batch).
+    """
+    def __init__(self, kp: float, ki: float, setpoint: float, min_output: int, max_output: int):
+        self.Kp = kp
+        self.Ki = ki
+        self.setpoint = setpoint # El "Flujo Laminar" ideal (ej. 0.3 de saturación)
+        
+        # Límites del actuador (Tamaño de Batch)
+        self.min_output = min_output
+        self.max_output = max_output
+        
+        # Estado interno
+        self._integral_error = 0.0
+        self._last_time = time.time()
+
+    def compute(self, process_variable: float) -> int:
+        """
+        Calcula la nueva salida de control (u(t)) basada en el error actual.
+        
+        Ecuación Posicional Discreta:
+        u(k) = Kp * e(k) + Ki * sum(e) * dt
+        """
+        current_time = time.time()
+        dt = current_time - self._last_time
+        if dt <= 0: dt = 0.001 # Evitar división por cero
+        
+        # 1. Calcular Error (e(t))
+        # Nota: Invertimos el signo porque queremos que:
+        # Saturación Alta -> Error Negativo -> Reducir Batch
+        error = self.setpoint - process_variable
+        
+        # 2. Término Proporcional
+        P = self.Kp * error
+        
+        # 3. Término Integral (con Anti-Windup implícito por los límites de salida)
+        self._integral_error += error * dt
+        I = self.Ki * self._integral_error
+        
+        # 4. Señal de Control (u)
+        # Base output es la mitad del rango, el PID ajusta desde ahí
+        base_output = (self.max_output + self.min_output) / 2
+        control_signal = base_output + P + I
+        
+        # 5. Saturación del Actuador (Clamping)
+        output = max(self.min_output, min(self.max_output, int(control_signal)))
+        
+        self._last_time = current_time
+        return output
+
+# ... (Clases ParsedData, DataFluxCondenserError, etc. siguen igual) ...
+
+@dataclass(frozen=True)
+class CondenserConfig:
+    # ... (configuración anterior) ...
+    min_records_threshold: int = 1
+    enable_strict_validation: bool = True
+    log_level: str = "INFO"
+    # Configuración Física
+    system_capacitance: float = 5000.0
+    base_resistance: float = 10.0
+    system_inductance: float = 2.0
+    # --- Configuración PID ---
+    pid_setpoint: float = 0.30      # Objetivo: Saturación del 30% (Flujo Laminar)
+    pid_kp: float = 2000.0          # Ganancia Proporcional (Reacción rápida)
+    pid_ki: float = 100.0           # Ganancia Integral (Precisión a largo plazo)
+    min_batch_size: int = 50        # Flujo mínimo (Goteo)
+    max_batch_size: int = 5000      # Flujo máximo (Chorro)
+
+
+class DataFluxCondenser:
+    # ... (__init__ y validaciones siguen igual) ...
+    
+    def __init__(self, config: Dict[str, Any], profile: Dict[str, Any], condenser_config: Optional[CondenserConfig] = None):
+        # ... (código anterior) ...
+        self.condenser_config = condenser_config or CondenserConfig()
+        
+        # Inicializar Motores
+        self.physics = FluxPhysicsEngine(
+            capacitance=self.condenser_config.system_capacitance,
+            resistance=self.condenser_config.base_resistance,
+            inductance=self.condenser_config.system_inductance
+        )
+        
+        # Inicializar Controlador PI
+        self.controller = PIController(
+            kp=self.condenser_config.pid_kp,
+            ki=self.condenser_config.pid_ki,
+            setpoint=self.condenser_config.pid_setpoint,
+            min_output=self.condenser_config.min_batch_size,
+            max_output=self.condenser_config.max_batch_size
+        )
+        
+        self.logger.info("DataFluxCondenser (Motor RLC + Controlador PI) inicializado")
+
+    def stabilize(self, file_path: str) -> pd.DataFrame:
+        """
+        Proceso de Carga y Descarga CONTROLADO por PID.
+        Ahora procesa el archivo en flujo continuo (Streaming).
+        """
+        start_time = time.time()
+        path_obj = Path(file_path)
+        self.logger.info(f"⚡ [CONTROL ADAPTATIVO] Iniciando lazo de control para: {path_obj.name}")
+        
+        try:
+            validated_path = self._validate_input_file(file_path)
+            
+            # Inicializar el Guardia (Parser)
+            parser = ReportParserCrudo(str(validated_path), profile=self.profile, config=self.config)
+            # Leemos todo el contenido crudo primero (Extract)
+            # En una versión futura ultra-optimizada, esto también sería streaming desde disco,
+            # pero por ahora hacemos streaming lógico en memoria.
+            full_raw_records = parser.parse_to_raw()
+            full_cache = parser.get_parse_cache()
+            
+            if not full_raw_records:
+                return pd.DataFrame()
+
+            total_records = len(full_raw_records)
+            processed_batches = []
+            
+            # --- BUCLE DE CONTROL PID ---
+            current_index = 0
+            current_batch_size = self.condenser_config.min_batch_size # Arranque suave
+            
+            while current_index < total_records:
+                # 1. Cortar el lote actual (Actuador)
+                end_index = min(current_index + current_batch_size, total_records)
+                batch_records = full_raw_records[current_index:end_index]
+                
+                # 2. Procesar el lote (Planta)
+                # Creamos un subset del cache relevante para este lote para medir complejidad local
+                batch_cache = {k: v for k, v in full_cache.items() if k in [r['insumo_line'] for r in batch_records]}
+                
+                # 3. Medir el estado del sistema (Sensor)
+                metrics = self.physics.calculate_metrics(len(batch_records), len(batch_cache))
+                
+                # 4. Acción de Control (PID)
+                # El controlador decide el tamaño del SIGUIENTE lote basado en la saturación actual
+                new_batch_size = self.controller.compute(metrics["saturation"])
+                
+                # Telemetría en tiempo real
+                self.logger.debug(
+                    f"🔄 [PID LOOP] Batch: {len(batch_records)} | "
+                    f"Sat: {metrics['saturation']:.2f} | "
+                    f"Error: {(self.condenser_config.pid_setpoint - metrics['saturation']):.2f} | "
+                    f"→ Nuevo Batch: {new_batch_size}"
+                )
+                
+                # Procesar y guardar resultados
+                batch_data = ParsedData(batch_records, batch_cache)
+                df_batch = self._rectify_signal(batch_data)
+                processed_batches.append(df_batch)
+                
+                # Avanzar
+                current_index = end_index
+                current_batch_size = new_batch_size # Aplicar la decisión del PID
+
+            # --- FIN DEL BUCLE ---
+            
+            # Consolidar resultados
+            if processed_batches:
+                df_final = pd.concat(processed_batches, ignore_index=True)
+            else:
+                df_final = pd.DataFrame()
+
+            self._validate_output(df_final)
+            
+            elapsed = time.time() - start_time
+            self.logger.info(
+                f"✅ [ESTABILIZADO] Proceso completado en {elapsed:.2f}s. "
+                f"El controlador PID mantuvo el flujo estable."
+            )
+            return df_final
+
+        except Exception as e:
+            self.logger.exception(f"💥 Fallo crítico en lazo de control: {e}")
+            raise ProcessingError(f"Fallo en estabilización: {e}") from e
