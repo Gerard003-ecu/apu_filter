@@ -6,9 +6,9 @@ de costos considerando incertidumbre y variabilidad.
 """
 
 import logging
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import numpy as np
 import pandas as pd
@@ -34,7 +34,10 @@ MAX_NUM_SIMULATIONS = 1_000_000
 DEFAULT_VOLATILITY = 0.10
 MAX_VOLATILITY = 1.0
 MIN_VOLATILITY = 0.0
-MEMORY_WARNING_THRESHOLD = 100_000_000  # 100M de elementos en matriz
+MEMORY_WARNING_THRESHOLD = 100_000_000  # 100M elementos
+MEMORY_HARD_LIMIT_GB = 10
+MIN_VALID_ITEMS_FOR_SIMULATION = 1
+MAX_SAFE_FLOAT = 1e15  # Valor máximo seguro para evitar overflow
 
 
 # ============================================================================
@@ -63,13 +66,14 @@ class MonteCarloConfig:
     min_quantity_threshold: float = 0.0
     random_seed: Optional[int] = None
     truncate_negative: bool = True
-    percentiles: List[int] = None
+    percentiles: List[int] = field(default_factory=lambda: [5, 25, 50, 75, 95])
 
     def __post_init__(self):
-        """Valida la configuración después de la inicialización."""
-        if self.percentiles is None:
-            self.percentiles = [5, 25, 50, 75, 95]
-
+        """Valida y normaliza la configuración después de la inicialización."""
+        # Normalizar percentiles: ordenar, eliminar duplicados, validar
+        if self.percentiles is not None:
+            self.percentiles = sorted(set(self.percentiles))
+        
         self._validate()
 
     def _validate(self):
@@ -77,27 +81,27 @@ class MonteCarloConfig:
         # Validar num_simulations
         if not isinstance(self.num_simulations, int):
             raise TypeError(
-                "num_simulations debe ser int, "
+                f"num_simulations debe ser int, "
                 f"recibido: {type(self.num_simulations).__name__}"
             )
 
         if not (MIN_NUM_SIMULATIONS <= self.num_simulations <= MAX_NUM_SIMULATIONS):
             raise ValueError(
-                f"num_simulations debe estar entre {MIN_NUM_SIMULATIONS} y "
-                f"{MAX_NUM_SIMULATIONS}, recibido: {self.num_simulations}"
+                f"num_simulations debe estar entre {MIN_NUM_SIMULATIONS:,} y "
+                f"{MAX_NUM_SIMULATIONS:,}, recibido: {self.num_simulations:,}"
             )
 
         # Validar volatility_factor
         if not isinstance(self.volatility_factor, (int, float)):
             raise TypeError(
-                "volatility_factor debe ser numérico, "
+                f"volatility_factor debe ser numérico, "
                 f"recibido: {type(self.volatility_factor).__name__}"
             )
 
         if not (MIN_VOLATILITY <= self.volatility_factor <= MAX_VOLATILITY):
             raise ValueError(
-                f"volatility_factor debe estar entre {MIN_VOLATILITY} y {MAX_VOLATILITY}, "
-                f"recibido: {self.volatility_factor}"
+                f"volatility_factor debe estar entre {MIN_VOLATILITY} y "
+                f"{MAX_VOLATILITY}, recibido: {self.volatility_factor}"
             )
 
         # Validar umbrales
@@ -114,15 +118,24 @@ class MonteCarloConfig:
             raise ValueError("min_quantity_threshold no puede ser negativo")
 
         # Validar random_seed
-        if self.random_seed is not None and not isinstance(self.random_seed, int):
-            raise TypeError("random_seed debe ser int o None")
+        if self.random_seed is not None:
+            if not isinstance(self.random_seed, int):
+                raise TypeError("random_seed debe ser int o None")
+            if self.random_seed < 0:
+                raise ValueError("random_seed no puede ser negativo")
 
         # Validar percentiles
         if not isinstance(self.percentiles, list):
             raise TypeError("percentiles debe ser una lista")
 
-        if not all(isinstance(p, int) and 0 <= p <= 100 for p in self.percentiles):
-            raise ValueError("Todos los percentiles deben ser enteros entre 0 y 100")
+        if len(self.percentiles) == 0:
+            raise ValueError("percentiles no puede estar vacía")
+
+        if not all(isinstance(p, int) for p in self.percentiles):
+            raise ValueError("Todos los percentiles deben ser enteros")
+
+        if not all(0 <= p <= 100 for p in self.percentiles):
+            raise ValueError("Todos los percentiles deben estar entre 0 y 100")
 
 
 # ============================================================================
@@ -159,8 +172,8 @@ class SimulationResult:
         """
         result = {
             "status": self.status.value,
-            "statistics": self.statistics,
-            "metadata": self.metadata,
+            "statistics": self.statistics.copy(),
+            "metadata": self.metadata.copy(),
         }
 
         if include_raw and self.raw_results is not None:
@@ -178,7 +191,9 @@ class SimulationResult:
 # ============================================================================
 
 
-def sanitize_value(value: Any) -> Optional[Union[float, int, str, list, tuple]]:
+def sanitize_value(
+    value: Any, recursive: bool = True
+) -> Optional[Union[float, int, str, list, dict]]:
     """
     Sanitiza valores para serialización, convirtiendo NaN/inf a None.
 
@@ -187,11 +202,12 @@ def sanitize_value(value: Any) -> Optional[Union[float, int, str, list, tuple]]:
 
     Args:
         value: Valor a sanitizar (cualquier tipo).
+        recursive: Si True, sanitiza recursivamente colecciones.
 
     Returns:
         - None si el valor es NaN, NA, inf o -inf
         - El valor convertido a tipo Python nativo en otros casos
-        - Colecciones (list, tuple) se retornan sin modificar
+        - Colecciones sanitizadas recursivamente si recursive=True
 
     Examples:
         >>> sanitize_value(np.nan)
@@ -200,14 +216,28 @@ def sanitize_value(value: Any) -> Optional[Union[float, int, str, list, tuple]]:
         None
         >>> sanitize_value(np.float64(10.5))
         10.5
-        >>> sanitize_value([1, 2, 3])
-        [1, 2, 3]
+        >>> sanitize_value([1, np.nan, 3])
+        [1, None, 3]
     """
-    # Colecciones se retornan sin modificar
-    if isinstance(value, (list, tuple, dict)):
+    # Sanitizar listas recursivamente
+    if isinstance(value, list):
+        if recursive:
+            return [sanitize_value(item, recursive=True) for item in value]
         return value
 
-    # Manejar arrays de numpy para evitar errores en pd.isna
+    # Sanitizar tuplas recursivamente
+    if isinstance(value, tuple):
+        if recursive:
+            return tuple(sanitize_value(item, recursive=True) for item in value)
+        return value
+
+    # Sanitizar diccionarios recursivamente
+    if isinstance(value, dict):
+        if recursive:
+            return {k: sanitize_value(v, recursive=True) for k, v in value.items()}
+        return value
+
+    # Manejar arrays de numpy (no sanitizar internamente por eficiencia)
     if isinstance(value, np.ndarray):
         return value
 
@@ -215,64 +245,71 @@ def sanitize_value(value: Any) -> Optional[Union[float, int, str, list, tuple]]:
     if isinstance(value, str):
         return value
 
-    # Verificar si es NaN o NA
-    if pd.isna(value):
+    # Verificar None explícito
+    if value is None:
         return None
+
+    # Verificar si es NaN o NA usando pandas (maneja más casos)
+    try:
+        if pd.isna(value):
+            return None
+    except (TypeError, ValueError):
+        pass
 
     # Verificar si es infinito
     try:
-        if np.isinf(value):
+        if np.isinf(float(value)):
             return None
-    except (TypeError, ValueError):
-        # El valor no es numérico, continuar
+    except (TypeError, ValueError, OverflowError):
         pass
 
     # Convertir tipos numpy a tipos nativos de Python
-    if isinstance(value, (np.floating, np.complexfloating)):
+    if isinstance(value, np.floating):
         return float(value)
     elif isinstance(value, np.integer):
         return int(value)
     elif isinstance(value, np.bool_):
         return bool(value)
+    elif isinstance(value, (np.complexfloating, complex)):
+        # Números complejos no son serializables directamente
+        return str(value)
 
     # Retornar el valor original si no necesita conversión
     return value
 
 
-def validate_apu_data_structure(
-    apu_details: Any, logger: Optional[logging.Logger] = None
-) -> bool:
+def validate_required_keys(
+    item: Dict[str, Any], 
+    required_keys_options: List[List[str]], 
+    item_index: Optional[int] = None
+) -> None:
     """
-    Valida la estructura básica de los datos APU.
+    Valida que un diccionario contenga al menos una de las opciones de claves requeridas.
 
     Args:
-        apu_details: Datos a validar.
-        logger: Logger opcional para mensajes de error.
+        item: Diccionario a validar.
+        required_keys_options: Lista de listas de opciones de claves.
+            Cada sublista representa opciones alternativas para un campo requerido.
+        item_index: Índice del item para mensajes de error más descriptivos.
 
-    Returns:
-        True si la estructura es válida, False en caso contrario.
+    Raises:
+        ValueError: Si faltan claves requeridas.
+
+    Example:
+        >>> validate_required_keys(
+        ...     {"VR_TOTAL": 100, "cantidad": 5},
+        ...     [["VR_TOTAL", "vr_total"], ["CANTIDAD", "cantidad"]]
+        ... )
     """
-    # Verificar que sea una lista
-    if not isinstance(apu_details, list):
-        if logger:
-            logger.error(
-                f"apu_details debe ser una lista, recibido: {type(apu_details).__name__}"
+    item_keys = set(item.keys())
+    index_msg = f" en índice {item_index}" if item_index is not None else ""
+
+    for key_options in required_keys_options:
+        if not any(key in item_keys for key in key_options):
+            raise ValueError(
+                f"Falta campo requerido{index_msg}. "
+                f"Se requiere al menos una de estas claves: {key_options}"
             )
-        return False
-
-    # Verificar que no esté vacía
-    if len(apu_details) == 0:
-        if logger:
-            logger.warning("apu_details está vacía")
-        return False
-
-    # Verificar que todos los elementos sean diccionarios
-    if not all(isinstance(item, dict) for item in apu_details):
-        if logger:
-            logger.error("Todos los elementos de apu_details deben ser diccionarios")
-        return False
-
-    return True
 
 
 def estimate_memory_usage(num_simulations: int, num_apus: int) -> int:
@@ -290,13 +327,36 @@ def estimate_memory_usage(num_simulations: int, num_apus: int) -> int:
     # Matriz principal: num_simulations × num_apus
     matrix_size = num_simulations * num_apus * 8
 
-    # Arrays auxiliares (aproximación)
-    auxiliary_size = num_apus * 8 * 5  # base_costs, scales, etc.
+    # Arrays auxiliares (base_costs, scales, etc.)
+    # Estimamos 10 arrays auxiliares del tamaño de num_apus
+    auxiliary_size = num_apus * 8 * 10
 
     # Array de resultados
     results_size = num_simulations * 8
 
-    return matrix_size + auxiliary_size + results_size
+    # Overhead de Python/numpy (aproximado 20%)
+    overhead = (matrix_size + auxiliary_size + results_size) * 0.2
+
+    return int(matrix_size + auxiliary_size + results_size + overhead)
+
+
+def is_numeric_valid(value: Any) -> bool:
+    """
+    Verifica si un valor es numérico válido (no NaN, no inf, finito).
+
+    Args:
+        value: Valor a verificar.
+
+    Returns:
+        True si es un número válido y finito.
+    """
+    try:
+        if pd.isna(value):
+            return False
+        float_value = float(value)
+        return np.isfinite(float_value)
+    except (TypeError, ValueError, OverflowError):
+        return False
 
 
 # ============================================================================
@@ -316,6 +376,10 @@ class MonteCarloSimulator:
         logger: Logger para registro de eventos.
         rng: Generador de números aleatorios.
     """
+
+    # Aliases de columnas soportados
+    VR_TOTAL_ALIASES = ["VR_TOTAL", "valor_total", "vr_total"]
+    CANTIDAD_ALIASES = ["CANTIDAD", "cantidad"]
 
     def __init__(
         self,
@@ -337,7 +401,7 @@ class MonteCarloSimulator:
 
         self.logger.info(
             f"MonteCarloSimulator inicializado: "
-            f"simulations={self.config.num_simulations}, "
+            f"simulations={self.config.num_simulations:,}, "
             f"volatility={self.config.volatility_factor:.2%}, "
             f"seed={self.config.random_seed}"
         )
@@ -361,7 +425,8 @@ class MonteCarloSimulator:
         Ejecuta la simulación de Monte Carlo.
 
         Args:
-            apu_details: Lista de diccionarios con claves 'VR_TOTAL' y 'CANTIDAD'.
+            apu_details: Lista de diccionarios con claves 'VR_TOTAL' y 'CANTIDAD'
+                        (o sus aliases).
 
         Returns:
             SimulationResult con estadísticas y metadata.
@@ -377,10 +442,11 @@ class MonteCarloSimulator:
             # 2. Preparar datos
             df_valid, discarded_count = self._prepare_data(apu_details)
 
-            # 3. Verificar que hay datos válidos
-            if len(df_valid) == 0:
+            # 3. Verificar que hay datos válidos suficientes
+            if len(df_valid) < MIN_VALID_ITEMS_FOR_SIMULATION:
                 return self._create_no_data_result(
-                    total_items=len(apu_details), discarded_items=discarded_count
+                    total_items=len(apu_details), 
+                    discarded_items=discarded_count
                 )
 
             # 4. Verificar uso de memoria
@@ -389,20 +455,29 @@ class MonteCarloSimulator:
             # 5. Ejecutar simulación
             simulated_costs = self._execute_simulation(df_valid)
 
-            # 6. Calcular estadísticas
+            # 6. Validar resultados de simulación
+            if len(simulated_costs) < self.config.num_simulations * 0.5:
+                self.logger.warning(
+                    f"Se perdieron más del 50% de simulaciones por valores inválidos: "
+                    f"{len(simulated_costs)}/{self.config.num_simulations}"
+                )
+
+            # 7. Calcular estadísticas
             statistics = self._calculate_statistics(simulated_costs)
 
-            # 7. Preparar metadata
+            # 8. Preparar metadata
             metadata = self._create_metadata(
                 df_valid=df_valid,
                 total_items=len(apu_details),
                 discarded_items=discarded_count,
+                simulations_completed=len(simulated_costs),
             )
 
             self.logger.info(
                 f"Simulación completada exitosamente: "
                 f"{len(df_valid)} APUs válidos, "
-                f"costo medio={statistics['mean']:,.2f}"
+                f"{len(simulated_costs):,} simulaciones, "
+                f"costo medio={statistics.get('mean', 0):,.2f}"
             )
 
             return SimulationResult(
@@ -415,10 +490,22 @@ class MonteCarloSimulator:
         except (TypeError, ValueError) as e:
             self.logger.error(f"Error de validación en simulación: {str(e)}")
             raise
-        except Exception as e:
-            self.logger.error(f"Error inesperado en simulación: {str(e)}", exc_info=True)
+        except MemoryError as e:
+            self.logger.error(f"Error de memoria en simulación: {str(e)}")
             return SimulationResult(
-                status=SimulationStatus.ERROR, statistics={}, metadata={"error": str(e)}
+                status=SimulationStatus.ERROR,
+                statistics={},
+                metadata={"error": f"MemoryError: {str(e)}"},
+            )
+        except Exception as e:
+            self.logger.error(
+                f"Error inesperado en simulación: {str(e)}", 
+                exc_info=True
+            )
+            return SimulationResult(
+                status=SimulationStatus.ERROR,
+                statistics={},
+                metadata={"error": str(e), "error_type": type(e).__name__},
             )
 
     def _validate_input_data(self, apu_details: Any) -> None:
@@ -434,16 +521,46 @@ class MonteCarloSimulator:
         """
         if not isinstance(apu_details, list):
             raise TypeError(
-                f"apu_details debe ser una lista, recibido: {type(apu_details).__name__}"
+                f"apu_details debe ser una lista, "
+                f"recibido: {type(apu_details).__name__}"
             )
 
         if len(apu_details) == 0:
             raise ValueError("apu_details no puede estar vacía")
 
         if not all(isinstance(item, dict) for item in apu_details):
-            raise TypeError("Todos los elementos de apu_details deben ser diccionarios")
+            invalid_indices = [
+                i for i, item in enumerate(apu_details) 
+                if not isinstance(item, dict)
+            ]
+            raise TypeError(
+                f"Todos los elementos de apu_details deben ser diccionarios. "
+                f"Elementos inválidos en índices: {invalid_indices[:5]}"
+            )
 
-    def _prepare_data(self, apu_details: List[Dict[str, Any]]) -> tuple[pd.DataFrame, int]:
+        # Validar que al menos algunos items tengan las claves requeridas
+        required_keys_options = [
+            self.VR_TOTAL_ALIASES,
+            self.CANTIDAD_ALIASES,
+        ]
+
+        items_with_required_keys = 0
+        for i, item in enumerate(apu_details[:10]):  # Validar primeros 10
+            try:
+                validate_required_keys(item, required_keys_options, i)
+                items_with_required_keys += 1
+            except ValueError:
+                pass
+
+        if items_with_required_keys == 0:
+            raise ValueError(
+                f"Ninguno de los primeros elementos contiene las claves requeridas. "
+                f"Se esperan claves como: {self.VR_TOTAL_ALIASES} y {self.CANTIDAD_ALIASES}"
+            )
+
+    def _prepare_data(
+        self, apu_details: List[Dict[str, Any]]
+    ) -> Tuple[pd.DataFrame, int]:
         """
         Prepara y limpia los datos para la simulación.
 
@@ -452,92 +569,199 @@ class MonteCarloSimulator:
 
         Returns:
             Tupla (DataFrame válido, número de items descartados).
-
-        Raises:
-            ValueError: Si faltan columnas requeridas.
         """
-        vr_total_aliases = {"VR_TOTAL", "valor_total", "vr_total"}
-        cantidad_aliases = {"CANTIDAD", "cantidad"}
+        self.logger.debug(f"Preparando {len(apu_details)} registros APU")
 
-        # 1. Validar que cada diccionario de entrada tenga al menos un alias para cada campo requerido.
-        for i, item in enumerate(apu_details):
-            item_keys = set(item.keys())
-            if not vr_total_aliases.intersection(item_keys):
-                raise ValueError(
-                    f"Faltan columnas requeridas (VR_TOTAL o similar) en el registro {i}"
-                )
-            if not cantidad_aliases.intersection(item_keys):
-                raise ValueError(
-                    f"Faltan columnas requeridas (CANTIDAD o similar) en el registro {i}"
-                )
-
-        # 2. Crear DataFrame y normalizar
-        df = pd.DataFrame(apu_details)
-
-        vr_total_cols = [col for col in vr_total_aliases if col in df.columns]
-        cantidad_cols = [col for col in cantidad_aliases if col in df.columns]
-
-        # Coalesce: tomar el primer valor no nulo de las columnas alias
-        df["VR_TOTAL"] = df[vr_total_cols].bfill(axis=1).iloc[:, 0]
-        df["CANTIDAD"] = df[cantidad_cols].bfill(axis=1).iloc[:, 0]
-
-        # Eliminar columnas alias originales para evitar confusión
-        cols_to_drop = [col for col in vr_total_cols + cantidad_cols if col not in {"VR_TOTAL", "CANTIDAD"}]
-        df.drop(columns=cols_to_drop, inplace=True, errors='ignore')
-
-        # Convertir a numérico, forzando errores a NaN
-        df["VR_TOTAL"] = pd.to_numeric(df["VR_TOTAL"], errors="coerce")
-        df["CANTIDAD"] = pd.to_numeric(df["CANTIDAD"], errors="coerce")
-
-        # Loggear valores no numéricos convertidos a NaN
-        vr_total_nulls = df["VR_TOTAL"].isna().sum()
-        cantidad_nulls = df["CANTIDAD"].isna().sum()
-        if vr_total_nulls > 0:
-            self.logger.warning(
-                f"VR_TOTAL: {vr_total_nulls} valores no numéricos o faltantes "
-                f"convertidos a NaN"
-            )
-        if cantidad_nulls > 0:
-            self.logger.warning(
-                f"CANTIDAD: {cantidad_nulls} valores no numéricos o faltantes "
-                f"convertidos a NaN"
-            )
-
-        # Filtrar filas que no cumplen con los requisitos básicos
+        # 1. Crear DataFrame
+        df = pd.DataFrame(apu_details).copy()
         initial_rows = len(df)
-        valid_mask = (
-            df["VR_TOTAL"].notna()
-            & df["CANTIDAD"].notna()
-            & (df["VR_TOTAL"] > self.config.min_cost_threshold)
-            & (df["CANTIDAD"] > self.config.min_quantity_threshold)
-        )
-        df_valid = df[valid_mask].copy()
 
-        # Calcular costo base
-        df_valid["base_cost"] = df_valid["VR_TOTAL"] * df_valid["CANTIDAD"]
+        # 2. Normalizar columnas (coalesce de aliases)
+        df = self._normalize_columns(df)
 
-        # Filtrar costos base que resultaron en NaN o infinito
-        invalid_base_costs = (
-            df_valid["base_cost"].isna() | np.isinf(df_valid["base_cost"])
-        ).sum()
-        if invalid_base_costs > 0:
-            self.logger.warning(
-                f"Se encontraron {invalid_base_costs} costos base inválidos "
-                f"(NaN/inf) que serán descartados"
-            )
-            df_valid = df_valid[
-                df_valid["base_cost"].notna() & np.isfinite(df_valid["base_cost"])
-            ].copy()
+        # 3. Convertir a numérico
+        df = self._convert_to_numeric(df)
 
-        # Calcular y loggear el número total de items descartados al final
+        # 4. Filtrar valores válidos
+        df_valid = self._filter_valid_rows(df)
+
+        # 5. Calcular costo base
+        df_valid = self._calculate_base_cost(df_valid)
+
+        # 6. Filtrar costos base válidos
+        df_valid = self._filter_valid_base_costs(df_valid)
+
+        # 7. Calcular items descartados
         discarded_count = initial_rows - len(df_valid)
+
         if discarded_count > 0:
+            discard_rate = (discarded_count / initial_rows) * 100
             self.logger.warning(
-                f"Se descartaron {discarded_count}/{initial_rows} items por "
-                f"valores inválidos o no cumplir umbrales."
+                f"Descartados {discarded_count}/{initial_rows} items "
+                f"({discard_rate:.1f}%) por valores inválidos o umbrales no cumplidos"
             )
 
         return df_valid, discarded_count
+
+    def _normalize_columns(self, df: pd.DataFrame) -> pd.DataFrame:
+        """
+        Normaliza nombres de columnas usando aliases.
+
+        Args:
+            df: DataFrame con columnas potencialmente con aliases.
+
+        Returns:
+            DataFrame con columnas normalizadas a VR_TOTAL y CANTIDAD.
+        """
+        df = df.copy()
+
+        # Encontrar columnas que coincidan con aliases
+        vr_total_col = None
+        cantidad_col = None
+
+        for col in df.columns:
+            if col in self.VR_TOTAL_ALIASES:
+                vr_total_col = col
+                break
+
+        for col in df.columns:
+            if col in self.CANTIDAD_ALIASES:
+                cantidad_col = col
+                break
+
+        # Si no encontramos las columnas, crear columnas vacías
+        if vr_total_col is None:
+            self.logger.warning("No se encontró columna VR_TOTAL, creando columna vacía")
+            df["VR_TOTAL"] = np.nan
+        elif vr_total_col != "VR_TOTAL":
+            df = df.rename(columns={vr_total_col: "VR_TOTAL"})
+
+        if cantidad_col is None:
+            self.logger.warning("No se encontró columna CANTIDAD, creando columna vacía")
+            df["CANTIDAD"] = np.nan
+        elif cantidad_col != "CANTIDAD":
+            df = df.rename(columns={cantidad_col: "CANTIDAD"})
+
+        return df
+
+    def _convert_to_numeric(self, df: pd.DataFrame) -> pd.DataFrame:
+        """
+        Convierte columnas a tipo numérico.
+
+        Args:
+            df: DataFrame con columnas VR_TOTAL y CANTIDAD.
+
+        Returns:
+            DataFrame con columnas convertidas a numérico.
+        """
+        df = df.copy()
+
+        # Convertir a numérico, forzando errores a NaN
+        for col in ["VR_TOTAL", "CANTIDAD"]:
+            original_nulls = df[col].isna().sum()
+            df[col] = pd.to_numeric(df[col], errors="coerce")
+            new_nulls = df[col].isna().sum()
+
+            conversion_failures = new_nulls - original_nulls
+            if conversion_failures > 0:
+                self.logger.warning(
+                    f"{col}: {conversion_failures} valores no numéricos "
+                    f"convertidos a NaN"
+                )
+
+        return df
+
+    def _filter_valid_rows(self, df: pd.DataFrame) -> pd.DataFrame:
+        """
+        Filtra filas con valores válidos que cumplen umbrales.
+
+        Args:
+            df: DataFrame con columnas numéricas.
+
+        Returns:
+            DataFrame filtrado.
+        """
+        initial_count = len(df)
+
+        # Crear máscara de validez
+        valid_mask = (
+            df["VR_TOTAL"].notna()
+            & df["CANTIDAD"].notna()
+            & np.isfinite(df["VR_TOTAL"])
+            & np.isfinite(df["CANTIDAD"])
+            & (df["VR_TOTAL"] > self.config.min_cost_threshold)
+            & (df["CANTIDAD"] > self.config.min_quantity_threshold)
+        )
+
+        df_valid = df[valid_mask].copy()
+
+        filtered_count = initial_count - len(df_valid)
+        if filtered_count > 0:
+            self.logger.debug(
+                f"Filtrados {filtered_count} registros por valores "
+                f"inválidos o umbrales"
+            )
+
+        return df_valid
+
+    def _calculate_base_cost(self, df: pd.DataFrame) -> pd.DataFrame:
+        """
+        Calcula el costo base (VR_TOTAL * CANTIDAD).
+
+        Args:
+            df: DataFrame con VR_TOTAL y CANTIDAD válidos.
+
+        Returns:
+            DataFrame con columna base_cost añadida.
+        """
+        df = df.copy()
+        
+        # Calcular costo base
+        df["base_cost"] = df["VR_TOTAL"] * df["CANTIDAD"]
+
+        # Detectar overflows (valores muy grandes)
+        overflow_mask = np.abs(df["base_cost"]) > MAX_SAFE_FLOAT
+        overflow_count = overflow_mask.sum()
+        
+        if overflow_count > 0:
+            self.logger.warning(
+                f"Se detectaron {overflow_count} valores de base_cost "
+                f"extremadamente grandes (posible overflow)"
+            )
+            # Marcar como NaN para filtrar después
+            df.loc[overflow_mask, "base_cost"] = np.nan
+
+        return df
+
+    def _filter_valid_base_costs(self, df: pd.DataFrame) -> pd.DataFrame:
+        """
+        Filtra costos base válidos (finitos, no NaN, no cero).
+
+        Args:
+            df: DataFrame con columna base_cost.
+
+        Returns:
+            DataFrame filtrado.
+        """
+        initial_count = len(df)
+
+        # Filtrar base_cost válidos
+        valid_mask = (
+            df["base_cost"].notna() 
+            & np.isfinite(df["base_cost"])
+            & (df["base_cost"] != 0)
+        )
+
+        df_valid = df[valid_mask].copy()
+
+        filtered_count = initial_count - len(df_valid)
+        if filtered_count > 0:
+            self.logger.warning(
+                f"Se descartaron {filtered_count} items por base_cost "
+                f"inválido (NaN/inf/cero)"
+            )
+
+        return df_valid
 
     def _check_memory_requirements(self, num_apus: int) -> None:
         """
@@ -547,28 +771,33 @@ class MonteCarloSimulator:
             num_apus: Número de APUs a simular.
 
         Raises:
-            MemoryError: Si la simulación requiere demasiada memoria.
+            ValueError: Si la simulación requiere demasiada memoria.
         """
-        estimated_memory = estimate_memory_usage(self.config.num_simulations, num_apus)
+        estimated_memory = estimate_memory_usage(
+            self.config.num_simulations, num_apus
+        )
 
         # Convertir a MB para logging
         estimated_mb = estimated_memory / (1024 * 1024)
 
-        self.logger.debug(f"Memoria estimada para simulación: {estimated_mb:.2f} MB")
+        self.logger.debug(
+            f"Memoria estimada para simulación: {estimated_mb:.2f} MB "
+            f"({self.config.num_simulations:,} sims × {num_apus} APUs)"
+        )
 
         # Advertir si es mucha memoria
         if estimated_memory > MEMORY_WARNING_THRESHOLD:
             self.logger.warning(
-                f"La simulación requerirá aproximadamente {estimated_mb:.2f} MB de memoria. "
-                f"Considere reducir num_simulations o el número de APUs."
+                f"⚠️  La simulación requerirá ~{estimated_mb:.2f} MB de memoria. "
+                f"Considere reducir num_simulations o filtrar más APUs."
             )
 
-        # Límite duro (opcional, ajustar según necesidad)
-        max_memory_gb = 10
-        if estimated_mb > max_memory_gb * 1024:
-            raise MemoryError(
-                f"La simulación requiere {estimated_mb:.2f} MB, "
-                f"excediendo el límite de {max_memory_gb} GB"
+        # Límite duro
+        if estimated_mb > MEMORY_HARD_LIMIT_GB * 1024:
+            raise ValueError(
+                f"La simulación requiere {estimated_mb:.2f} MB, excediendo el "
+                f"límite de {MEMORY_HARD_LIMIT_GB} GB. Reduzca num_simulations "
+                f"o el número de APUs."
             )
 
     def _execute_simulation(self, df_valid: pd.DataFrame) -> np.ndarray:
@@ -579,57 +808,141 @@ class MonteCarloSimulator:
             df_valid: DataFrame con datos válidos y preparados.
 
         Returns:
-            Array con costos totales simulados.
+            Array con costos totales simulados (solo valores válidos).
+
+        Raises:
+            RuntimeError: Si la simulación no produce resultados válidos.
         """
         # Extraer costos base
         base_costs = df_valid["base_cost"].values
 
-        # Calcular desviaciones estándar
+        # Calcular desviaciones estándar (scales)
         scales = base_costs * self.config.volatility_factor
 
-        # Validar que no haya scales inválidos
-        if np.any(scales < 0):
-            self.logger.warning("Se encontraron scales negativos, usando valor absoluto")
-            scales = np.abs(scales)
+        # Validar y corregir scales
+        scales = self._validate_and_correct_scales(scales)
 
-        # Generar simulaciones
-        # shape: (num_simulations, num_apus)
+        # Generar matriz de simulación
         self.logger.debug(
             f"Generando matriz de simulación: "
-            f"({self.config.num_simulations}, {len(base_costs)})"
+            f"({self.config.num_simulations:,} × {len(base_costs)})"
         )
 
-        simulated_costs_matrix = self.rng.normal(
-            loc=base_costs, scale=scales, size=(self.config.num_simulations, len(base_costs))
-        )
+        try:
+            simulated_costs_matrix = self.rng.normal(
+                loc=base_costs,
+                scale=scales,
+                size=(self.config.num_simulations, len(base_costs)),
+            )
+        except MemoryError as e:
+            raise MemoryError(
+                f"Memoria insuficiente para generar matriz de simulación: {e}"
+            )
 
         # Truncar negativos si está configurado
         if self.config.truncate_negative:
             negative_count = (simulated_costs_matrix < 0).sum()
             if negative_count > 0:
-                self.logger.debug(f"Truncando {negative_count} valores negativos a 0")
+                negative_pct = (negative_count / simulated_costs_matrix.size) * 100
+                self.logger.debug(
+                    f"Truncando {negative_count:,} valores negativos "
+                    f"({negative_pct:.2f}%) a 0"
+                )
                 simulated_costs_matrix = np.maximum(simulated_costs_matrix, 0)
 
         # Sumar por simulación (por fila)
         total_simulated_costs = simulated_costs_matrix.sum(axis=1)
 
         # Validar resultados
+        total_simulated_costs = self._validate_simulation_results(
+            total_simulated_costs
+        )
+
+        return total_simulated_costs
+
+    def _validate_and_correct_scales(self, scales: np.ndarray) -> np.ndarray:
+        """
+        Valida y corrige los valores de scale para la distribución normal.
+
+        Args:
+            scales: Array de desviaciones estándar.
+
+        Returns:
+            Array de scales corregidos.
+        """
+        # Verificar valores negativos
+        negative_mask = scales < 0
+        if negative_mask.any():
+            negative_count = negative_mask.sum()
+            self.logger.warning(
+                f"Corrigiendo {negative_count} scales negativos a valor absoluto"
+            )
+            scales = np.abs(scales)
+
+        # Verificar valores cero o muy pequeños
+        min_scale = 1e-10
+        zero_mask = scales < min_scale
+        if zero_mask.any():
+            zero_count = zero_mask.sum()
+            self.logger.debug(
+                f"Ajustando {zero_count} scales muy pequeños/cero a {min_scale}"
+            )
+            scales = np.maximum(scales, min_scale)
+
+        # Verificar valores NaN o inf
+        invalid_mask = ~np.isfinite(scales)
+        if invalid_mask.any():
+            invalid_count = invalid_mask.sum()
+            self.logger.warning(
+                f"Reemplazando {invalid_count} scales inválidos (NaN/inf) "
+                f"con valor mínimo"
+            )
+            scales[invalid_mask] = min_scale
+
+        return scales
+
+    def _validate_simulation_results(
+        self, total_simulated_costs: np.ndarray
+    ) -> np.ndarray:
+        """
+        Valida los resultados de la simulación y filtra valores inválidos.
+
+        Args:
+            total_simulated_costs: Array de costos totales simulados.
+
+        Returns:
+            Array filtrado con solo valores válidos.
+
+        Raises:
+            RuntimeError: Si todos los resultados son inválidos.
+        """
         if len(total_simulated_costs) == 0:
             raise RuntimeError("La simulación produjo un array vacío")
 
-        invalid_results = (
-            np.isnan(total_simulated_costs) | np.isinf(total_simulated_costs)
-        ).sum()
+        # Contar y filtrar valores inválidos
+        valid_mask = np.isfinite(total_simulated_costs)
+        invalid_count = (~valid_mask).sum()
 
-        if invalid_results > 0:
-            self.logger.error(
-                f"Se encontraron {invalid_results} resultados inválidos (NaN/inf)"
+        if invalid_count > 0:
+            invalid_pct = (invalid_count / len(total_simulated_costs)) * 100
+            self.logger.warning(
+                f"Se encontraron {invalid_count:,} resultados inválidos "
+                f"(NaN/inf) ({invalid_pct:.2f}%), filtrando..."
             )
-            # Filtrar inválidos
-            total_simulated_costs = total_simulated_costs[np.isfinite(total_simulated_costs)]
+            total_simulated_costs = total_simulated_costs[valid_mask]
 
-            if len(total_simulated_costs) == 0:
-                raise RuntimeError("Todos los resultados de simulación son inválidos")
+        if len(total_simulated_costs) == 0:
+            raise RuntimeError(
+                "Todos los resultados de simulación son inválidos (NaN/inf)"
+            )
+
+        # Advertir si se perdieron muchas simulaciones
+        loss_rate = invalid_count / self.config.num_simulations
+        if loss_rate > 0.1:  # Más del 10%
+            self.logger.warning(
+                f"⚠️  Se perdieron {loss_rate:.1%} de simulaciones por "
+                f"valores inválidos"
+            )
 
         return total_simulated_costs
 
@@ -640,41 +953,65 @@ class MonteCarloSimulator:
         Calcula estadísticas descriptivas de la simulación.
 
         Args:
-            simulated_costs: Array con costos simulados.
+            simulated_costs: Array con costos simulados válidos.
 
         Returns:
-            Diccionario con estadísticas.
+            Diccionario con estadísticas sanitizadas.
         """
+        # Estadísticas básicas
         statistics = {
             "mean": sanitize_value(float(np.mean(simulated_costs))),
             "median": sanitize_value(float(np.median(simulated_costs))),
-            "std_dev": sanitize_value(float(np.std(simulated_costs))),
-            "variance": sanitize_value(float(np.var(simulated_costs))),
+            "std_dev": sanitize_value(float(np.std(simulated_costs, ddof=1))),
+            "variance": sanitize_value(float(np.var(simulated_costs, ddof=1))),
             "min": sanitize_value(float(np.min(simulated_costs))),
             "max": sanitize_value(float(np.max(simulated_costs))),
         }
 
-        # Calcular percentiles configurados
-        for percentile in self.config.percentiles:
-            key = f"percentile_{percentile}"
-            value = float(np.percentile(simulated_costs, percentile))
-            statistics[key] = sanitize_value(value)
+        # Percentiles configurados
+        try:
+            percentile_values = np.percentile(
+                simulated_costs, self.config.percentiles
+            )
+            for percentile, value in zip(self.config.percentiles, percentile_values):
+                statistics[f"percentile_{percentile}"] = sanitize_value(float(value))
+        except Exception as e:
+            self.logger.error(f"Error calculando percentiles: {e}")
+            for percentile in self.config.percentiles:
+                statistics[f"percentile_{percentile}"] = None
 
-        # Calcular intervalo de confianza 90%
+        # Intervalos de confianza comunes
         statistics["ci_90_lower"] = statistics.get("percentile_5")
         statistics["ci_90_upper"] = statistics.get("percentile_95")
+        statistics["ci_50_lower"] = statistics.get("percentile_25")
+        statistics["ci_50_upper"] = statistics.get("percentile_75")
 
-        # Calcular coeficiente de variación
-        if statistics["mean"] and statistics["mean"] > 0:
-            cv = statistics["std_dev"] / statistics["mean"]
+        # Coeficiente de variación
+        mean_val = statistics.get("mean")
+        std_val = statistics.get("std_dev")
+        
+        if mean_val and std_val and mean_val > 0:
+            cv = std_val / mean_val
             statistics["coefficient_of_variation"] = sanitize_value(cv)
         else:
             statistics["coefficient_of_variation"] = None
 
+        # Rango intercuartílico (IQR)
+        p25 = statistics.get("percentile_25")
+        p75 = statistics.get("percentile_75")
+        if p25 is not None and p75 is not None:
+            statistics["iqr"] = sanitize_value(p75 - p25)
+        else:
+            statistics["iqr"] = None
+
         return statistics
 
     def _create_metadata(
-        self, df_valid: pd.DataFrame, total_items: int, discarded_items: int
+        self,
+        df_valid: pd.DataFrame,
+        total_items: int,
+        discarded_items: int,
+        simulations_completed: int,
     ) -> Dict[str, Any]:
         """
         Crea metadata sobre el proceso de simulación.
@@ -683,33 +1020,46 @@ class MonteCarloSimulator:
             df_valid: DataFrame con datos válidos.
             total_items: Total de items en entrada.
             discarded_items: Items descartados.
+            simulations_completed: Número de simulaciones completadas exitosamente.
 
         Returns:
-            Diccionario con metadata.
+            Diccionario con metadata sanitizada.
         """
         base_costs = df_valid["base_cost"].values
 
-        return {
-            "num_simulations": self.config.num_simulations,
+        metadata = {
+            "num_simulations_requested": self.config.num_simulations,
+            "num_simulations_completed": simulations_completed,
+            "simulation_success_rate": (
+                simulations_completed / self.config.num_simulations
+                if self.config.num_simulations > 0
+                else 0
+            ),
             "volatility_factor": self.config.volatility_factor,
             "random_seed": self.config.random_seed,
             "total_items_input": total_items,
             "valid_items": len(df_valid),
             "discarded_items": discarded_items,
-            "discard_rate": discarded_items / total_items if total_items > 0 else 0,
+            "discard_rate": (
+                discarded_items / total_items if total_items > 0 else 0
+            ),
             "min_cost_threshold": self.config.min_cost_threshold,
             "min_quantity_threshold": self.config.min_quantity_threshold,
             "truncate_negative": self.config.truncate_negative,
             "base_cost_sum": sanitize_value(float(np.sum(base_costs))),
             "base_cost_mean": sanitize_value(float(np.mean(base_costs))),
-            "base_cost_std": sanitize_value(float(np.std(base_costs))),
+            "base_cost_std": sanitize_value(float(np.std(base_costs, ddof=1))),
+            "base_cost_min": sanitize_value(float(np.min(base_costs))),
+            "base_cost_max": sanitize_value(float(np.max(base_costs))),
         }
+
+        return sanitize_value(metadata, recursive=True)
 
     def _create_no_data_result(
         self, total_items: int, discarded_items: int
     ) -> SimulationResult:
         """
-        Crea un resultado cuando no hay datos válidos.
+        Crea un resultado cuando no hay datos válidos suficientes.
 
         Args:
             total_items: Total de items en entrada.
@@ -718,12 +1068,20 @@ class MonteCarloSimulator:
         Returns:
             SimulationResult con estado NO_VALID_DATA.
         """
-        self.logger.warning(
-            f"No hay datos válidos para simulación: "
-            f"{discarded_items}/{total_items} items descartados"
-        )
+        valid_items = total_items - discarded_items
 
-        # Crear estadísticas vacías con None
+        if valid_items == 0:
+            self.logger.error(
+                f"❌ No hay datos válidos para simulación: "
+                f"{discarded_items}/{total_items} items descartados (100%)"
+            )
+        else:
+            self.logger.warning(
+                f"⚠️  Datos insuficientes para simulación: "
+                f"solo {valid_items} items válidos (mínimo: {MIN_VALID_ITEMS_FOR_SIMULATION})"
+            )
+
+        # Crear estadísticas vacías
         statistics = {
             "mean": None,
             "median": None,
@@ -736,16 +1094,30 @@ class MonteCarloSimulator:
         for percentile in self.config.percentiles:
             statistics[f"percentile_{percentile}"] = None
 
+        statistics.update({
+            "ci_90_lower": None,
+            "ci_90_upper": None,
+            "coefficient_of_variation": None,
+        })
+
         metadata = {
-            "num_simulations": self.config.num_simulations,
+            "num_simulations_requested": self.config.num_simulations,
+            "num_simulations_completed": 0,
+            "simulation_success_rate": 0.0,
             "total_items_input": total_items,
-            "valid_items": 0,
+            "valid_items": valid_items,
             "discarded_items": discarded_items,
-            "discard_rate": 1.0 if total_items > 0 else 0,
+            "discard_rate": discarded_items / total_items if total_items > 0 else 0,
+            "error_reason": (
+                "No valid data" if valid_items == 0 
+                else f"Insufficient data (minimum required: {MIN_VALID_ITEMS_FOR_SIMULATION})"
+            ),
         }
 
         return SimulationResult(
-            status=SimulationStatus.NO_VALID_DATA, statistics=statistics, metadata=metadata
+            status=SimulationStatus.NO_VALID_DATA,
+            statistics=statistics,
+            metadata=metadata,
         )
 
 
@@ -762,31 +1134,50 @@ def run_monte_carlo_simulation(
     log_warnings: bool = False,
 ) -> Dict[str, Optional[float]]:
     """
-    Ejecuta simulación de Monte Carlo (función de compatibilidad).
+    Ejecuta simulación de Monte Carlo (función de compatibilidad legacy).
 
-    NOTA: Esta función se mantiene por compatibilidad con código legacy.
-    Se recomienda usar la clase MonteCarloSimulator directamente para
-    mayor control y funcionalidad.
+    ⚠️  ADVERTENCIA: Esta función se mantiene por compatibilidad con código legacy.
+    Se recomienda usar la clase MonteCarloSimulator directamente para mayor
+    control, mejor manejo de errores y acceso a funcionalidad completa.
 
     Args:
         apu_details: Lista de diccionarios con claves 'VR_TOTAL' y 'CANTIDAD'.
         num_simulations: Número de simulaciones (default: 1000).
         volatility_factor: Factor de volatilidad 0-1 (default: 0.10).
         min_cost_threshold: Umbral mínimo de costo (default: 0.0).
-        log_warnings: Si True, muestra advertencias (default: False).
+        log_warnings: Si True, muestra advertencias en stderr (default: False).
 
     Returns:
         Diccionario con estadísticas:
-            - mean: Promedio
+            - mean: Promedio de costos simulados
             - std_dev: Desviación estándar
             - percentile_5: Percentil 5
             - percentile_95: Percentil 95
 
+        En caso de error, retorna diccionario con valores None.
+
     Raises:
-        ValueError: Si los parámetros son inválidos.
-        TypeError: Si los tipos de datos son incorrectos.
+        ValueError: Si los parámetros son inválidos (solo si son muy graves).
+        TypeError: Si los tipos de datos son incorrectos (solo si son muy graves).
+
+    Example:
+        >>> apu_data = [
+        ...     {"VR_TOTAL": 1000, "CANTIDAD": 5},
+        ...     {"VR_TOTAL": 2000, "CANTIDAD": 3},
+        ... ]
+        >>> result = run_monte_carlo_simulation(apu_data, num_simulations=5000)
+        >>> print(f"Costo promedio: {result['mean']:.2f}")
     """
     try:
+        # Validar parámetros básicos antes de crear configuración
+        if not isinstance(apu_details, list):
+            raise TypeError(
+                f"apu_details debe ser lista, recibido: {type(apu_details).__name__}"
+            )
+
+        if len(apu_details) == 0:
+            raise ValueError("apu_details no puede estar vacía")
+
         # Crear configuración
         config = MonteCarloConfig(
             num_simulations=num_simulations,
@@ -798,9 +1189,11 @@ def run_monte_carlo_simulation(
         # Configurar logger
         logger = None
         if log_warnings:
-            logger = logging.getLogger(__name__)
+            logger = logging.getLogger(f"{__name__}.legacy")
             if not logger.handlers:
                 handler = logging.StreamHandler()
+                formatter = logging.Formatter("%(levelname)s: %(message)s")
+                handler.setFormatter(formatter)
                 logger.addHandler(handler)
                 logger.setLevel(logging.WARNING)
 
@@ -816,14 +1209,40 @@ def run_monte_carlo_simulation(
             "percentile_95": result.statistics.get("percentile_95"),
         }
 
-    except Exception as e:
+    except (TypeError, ValueError) as e:
+        # Errores críticos de validación se propagan
         if log_warnings:
-            print(f"ERROR en simulación: {str(e)}")
+            logging.getLogger(__name__).error(f"ERROR en simulación: {str(e)}")
+        raise
 
-        # Retornar estructura vacía en caso de error (compatibilidad)
+    except Exception as e:
+        # Otros errores se capturan y retornan estructura vacía
+        if log_warnings:
+            logging.getLogger(__name__).error(
+                f"ERROR inesperado en simulación: {str(e)}"
+            )
+
+        # Retornar estructura vacía en caso de error (compatibilidad legacy)
         return {
             "mean": None,
             "std_dev": None,
             "percentile_5": None,
             "percentile_95": None,
         }
+
+
+# ============================================================================
+# EXPORTS
+# ============================================================================
+
+__all__ = [
+    "MonteCarloSimulator",
+    "MonteCarloConfig",
+    "SimulationResult",
+    "SimulationStatus",
+    "run_monte_carlo_simulation",
+    "sanitize_value",
+    "estimate_memory_usage",
+    "validate_required_keys",
+    "is_numeric_valid",
+]
