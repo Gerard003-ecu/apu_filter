@@ -14,7 +14,7 @@ Más allá del caos operativo, el verdadero problema es la pérdida de experienc
 *   **Reinversión Continua:** Volver a cotizar lo que ya se analizó hace un año.
 *   **Ceguera Financiera:** Ofertar basándose en promedios, ignorando la volatilidad real de los costos.
 
-## El Equipo Digital: Sus Nuevos Expertos en Costos
+## El Equipo Digital: Expertos en Costos
 
 Hemos transformado funciones de código en un equipo de agentes especializados que trabajan para proteger sus márgenes. Conozca a su nuevo personal:
 
