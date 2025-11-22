@@ -27,29 +27,29 @@ APU Filter está construido sobre una arquitectura modular que separa claramente
 - **Función:** Actúa como un estabilizador dinámico de señal a la entrada del sistema. Implementa una arquitectura de **"Caja de Cristal"**, transformando la ingesta de datos en un proceso observable, medible y auto-regulado mediante principios de física y teoría de control.
 
 #### ⚙️ Nivel 1: Motor de Física RLC (El Sensor)
-El sistema no ve "archivos"; ve "corrientes de energía". Modela la ingesta usando un circuito eléctrico de segundo orden para generar telemetría en tiempo real:
+El sistema evoluciona más allá de métricas simples hacia un **Modelo Energético Escalar**. En lugar de monitorear solo voltaje o corriente, unificamos las unidades bajo un lenguaje común: La Energía (Julios).
 
-1.  **Capacitancia ($C$) - Capacidad de Carga:**
-    *   Representa la capacidad del sistema para absorber registros.
-    *   Calcula el **Nivel de Saturación** del sistema. Un nivel bajo indica "Flujo Laminar" (estable); un nivel alto indica "Flujo Turbulento" (riesgo de desbordamiento).
-2.  **Resistencia ($R$) - Fricción de Procesamiento:**
-    *   Mide la complejidad o "suciedad" de los datos. Se calcula dinámicamente basándose en la tasa de fallos del parser y la necesidad de re-procesamiento.
-3.  **Inductancia ($L$) - Inercia de Calidad:**
-    *   **Innovación Clave:** Mide la resistencia del flujo a cambiar su estado.
-    *   Calcula la **Tensión de Flyback** (Fuerza Contra-Electromotriz) generada por cambios violentos en la calidad de los datos (ej. un archivo limpio que se corrompe súbitamente).
-    *   **Mecanismo de Protección (Diodo Flyback):** Si se detecta un pico inductivo peligroso, el sistema activa un "Diodo Lógico" para disipar la energía del error sin colapsar el proceso.
+1.  **Energía Potencial ($E_c = \frac{1}{2}CV^2$) - Presión de Datos:**
+    *   Representa la "carga de trabajo" acumulada por el volumen de registros.
+    *   Calcula la presión que ejerce el lote de datos sobre el sistema.
+2.  **Energía Cinética ($E_l = \frac{1}{2}LI^2$) - Inercia de Calidad:**
+    *   Representa el momento o "inercia" de la calidad del flujo.
+    *   Un flujo de alta calidad ($I \approx 1.0$) tiene una inercia fuerte que resiste perturbaciones, dificultando que errores menores desestabilicen el proceso.
+3.  **Potencia Disipada ($P = I_{ruido}^2 R$) - Calor/Fricción:**
+    *   **Termodinámica del Software:** Calcula el "calor" generado por la resistencia dinámica de los datos sucios.
+    *   Si el sistema gasta demasiada energía procesando basura (ruido), se genera sobrecalentamiento lógico.
 
 #### 🧠 Nivel 2: Controlador PI Discreto (El Cerebro)
-Sobre la capa física, opera un **Lazo de Control Cerrado (Feedback Loop)** que ajusta el comportamiento del sistema en tiempo real:
+Sobre la capa física, opera un **Lazo de Control Cerrado (Feedback Loop)** que ajusta el comportamiento del sistema en tiempo real, ahora con protección térmica:
 
-*   **Algoritmo:** Implementación de un controlador **Proporcional-Integral (PI)** discreto.
-*   **Setpoint:** El sistema busca mantener una saturación estable del 30% (Flujo Laminar ideal).
+*   **Algoritmo:** Controlador **Proporcional-Integral (PI)** discreto.
+*   **Setpoint:** Mantiene una saturación estable (Flujo Laminar).
 *   **Variable de Control:** El tamaño del lote de procesamiento (*Batch Size*).
-*   **Comportamiento Adaptativo:**
-    *   Si los datos son limpios (baja resistencia), el controlador **acelera**, aumentando el tamaño del lote para maximizar el rendimiento.
-    *   Si detecta datos complejos o inestables (alta saturación/resistencia), el controlador **frena** suavemente, reduciendo el flujo para garantizar la precisión y prevenir errores de memoria.
+*   **Disyuntor Térmico (Nuevo):**
+    *   Además del PID, el sistema implementa un "Diodo de Rueda Libre" térmico.
+    *   Si la **Potencia Disipada** supera un umbral crítico (> 50W), el sistema activa un freno de emergencia, reduciendo drásticamente el tamaño del lote independientemente de la saturación, para "enfriar" el proceso y evitar colapsos por calidad de datos.
 
-**Resultado:** Un sistema bi-mimético que "siente" la data y adapta su velocidad de ingestión para garantizar una estabilidad del 100% bajo cualquier condición.
+**Resultado:** Un sistema bi-mimético que no solo adapta su velocidad, sino que también gestiona su "temperatura" operativa para garantizar una estabilidad del 100% bajo cualquier condición.
 
 ### 2. Pipeline de Procesamiento de Datos
 - **Componente Clave:** `app/procesador_csv.py`
