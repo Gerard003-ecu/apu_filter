@@ -136,3 +136,80 @@ Para garantizar la persistencia de los datos del usuario entre solicitudes, la a
     ```
 
 **Nota Importante:** El archivo `requirements.txt` no debe contener `faiss-cpu` ni `torch`. Si alguna vez necesita regenerar este archivo (ej. usando `uv pip compile requirements.in`), asegúrese de excluir estas dos librerías para evitar conflictos de instalación.
+
+## Flujo de Trabajo del Proyecto
+
+El ciclo de vida del desarrollo y uso de la aplicación sigue estos pasos:
+
+1.  **Configuración:** La lógica de negocio (mapeo de columnas, umbrales, reglas del estimador) se gestiona en `app/config.json`.
+2.  **Pre-procesamiento:** Si los datos de los APUs cambian, debe regenerar los embeddings ejecutando:
+    ```bash
+    python scripts/generate_embeddings.py --input path/to/processed_apus.json
+    ```
+3.  **Ejecución de la Aplicación:** Con el entorno activado, inicie el servidor Flask:
+    ```bash
+    python -m flask run --port=5002
+    ```
+4.  **Validación y Pruebas:** Para verificar la integridad del código, ejecute la suite de pruebas completa:
+    ```bash
+    pytest -vv
+    ```
+
+## Estructura del Directorio
+
+El proyecto está organizado con una clara separación de responsabilidades para facilitar la mantenibilidad y la escalabilidad.
+
+```
+apu_filter/
+│
+├── app/                        # Lógica principal de la aplicación Flask
+│   ├── __init__.py
+│   ├── app.py                  # Factory de la app, endpoints API y carga de modelos
+│   ├── procesador_csv.py       # Orquestador del pipeline de procesamiento de datos
+│   ├── report_parser_crudo.py  # Parser especializado para archivos de APU semi-estructurados
+│   ├── apu_processor.py        # Motor de transformación que aplica lógica de negocio a los datos parseados
+│   ├── estimator.py            # Lógica de estimación con búsqueda semántica y por keywords
+│   ├── flux_condenser.py       # Lógica del condensador de flujos de datos
+│   ├── data_loader.py          # Capa de abstracción para leer datos (.csv, .xlsx, .pdf)
+│   ├── schemas.py              # Definición de los esquemas de datos (dataclasses)
+│   ├── utils.py                # Funciones de utilidad generales (normalización, parsing, etc.)
+│   ├── config.json             # Archivo de configuración de la lógica de negocio
+│   └── embeddings/             # Directorio para los artefactos de ML (índice FAISS, mapeo)
+│
+├── data/                       # Datos de entrada y resultados intermedmedios
+│   ├── presupuesto_clean.csv   # Versión sanitizada del presupuesto, lista para el pipeline
+│   ├── insumos_clean.csv       # Versión sanitizada de insumos, lista para el pipeline
+│   └── apus_clean.csv          # Versión sanitizada de apus, lista para el pipeline  
+│
+├── data_dirty/                 # Datos crudos y sin procesar
+│   ├── presupuesto.csv         # Archivo de presupuesto original con posibles errores
+│   ├── insumos.csv             # Archivo de insumos original con posibles errores
+│   └── apus.csv                # Archivo de apus original con posibles errores  
+│
+├── models/                     # Módulos de lógica de negocio y análisis avanzado
+│   ├── __init__.py
+│   └── probability_models.py   # Motor de simulación Monte Carlo para análisis de riesgos
+│
+├── scripts/                    # Herramientas de línea de comandos para desarrolladores
+│   ├── __init__.py
+│   ├── generate_embeddings.py       # Script para generar el índice de búsqueda semántica
+│   ├── diagnose_apus_file.py        # Herramienta para analizar formatos de archivo de APU
+│   ├── diagnose_insumos_file.py     # Herramienta para analizar formatos de archivo de insumos
+│   ├── diagnose_presupuesto_file.py # Herramienta para analizar formatos de archivo de presupuesto
+│   └── clean_csv.py                 # Herramienta para limpiar caracteres sucios y crear un archivo csv limpio 
+│
+├── tests/                      # Suite de pruebas completa del proyecto
+│   ├── test_app.py             # Pruebas de integración para los endpoints de la API
+│   ├── test_procesador_csv.py  # Pruebas para el orquestador del pipeline
+│   ├── test_apu_processor.py   # Pruebas para el motor de transformación
+│   ├── test_estimator.py       # Pruebas para la lógica de estimación
+│   ├── test_data_loader.py     # Pruebas para la capa de carga de datos
+│   └── test_data.py            # Datos de prueba centralizados
+│
+├── templates/                  # Plantillas HTML para la interfaz (si aplica)
+├── uploads/                    # Directorio temporal para archivos subidos
+│
+├── requirements.in             # Archivo fuente para definir dependencias
+├── requirements.txt            # Archivo de dependencias "congelado" generado por uv
+└── pyproject.toml              # Archivo de configuración del proyecto Python
+```
