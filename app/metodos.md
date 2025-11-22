@@ -4,7 +4,10 @@ Aunque nuestra prioridad es su negocio, la solidez técnica es nuestra garantía
 
 ### 1. Condensador de Flujo de Datos (Data Flux Condenser)
 - **Componente Clave:** `app/flux_condenser.py`
-- **Función:** Actúa como un estabilizador dinámico de señal a la entrada del sistema. Implementa una arquitectura de **"Caja de Cristal"**, transformando la ingesta de datos en un proceso observable, medible y auto-regulado mediante principios de física y teoría de control.
+- **Función:** Actúa como un estabilizador dinámico de señal a la entrada del sistema.
+
+#### Ingeniería de Confiabilidad (SRE) aplicada a Datos
+Esta no es una metáfora decorativa. Utilizamos ecuaciones de sistemas dinámicos para gestionar la "fricción" de los datos corruptos y evitar el sobrecalentamiento lógico del proceso. Al igual que en la ingeniería eléctrica, donde la impedancia regula el flujo de corriente para proteger los circuitos, aquí utilizamos modelos físicos para proteger la integridad del pipeline de datos ante entradas impredecibles.
 
 #### ⚙️ Nivel 1: Motor de Física RLC (El Sensor)
 El sistema evoluciona más allá de métricas simples hacia un **Modelo Energético Escalar**. En lugar de monitorear solo voltaje o corriente, unificamos las unidades bajo un lenguaje común: La Energía (Julios).

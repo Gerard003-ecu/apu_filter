@@ -1,39 +1,26 @@
-# APU Filter: Inteligencia de Costos y Estrategia de Licitación.
+# APU Filter: Capitalización de Conocimiento y Estrategia de Licitación.
 
-### Transforme el ruido de sus datos históricos en una señal clara de rentabilidad.
+### De Archivos Muertos a Memoria Viva: El Nuevo Activo Estratégico de su Constructora.
 
-Esta herramienta no es un simple parser, sino un sistema que convierte archivos muertos en activos estratégicos, eliminando la incertidumbre en la toma de decisiones.
+Ya no se trata solo de ahorrar tiempo. Se trata de convertir el histórico de presupuestos (archivos muertos) en el **Activo Estratégico** más valioso de la constructora: una **Memoria Viva** que aprende de cada proyecto para blindar la rentabilidad del siguiente.
 
-## El Problema: "El Dolor del Ingeniero de Costos"
+## El Problema: "Fuga de Capital Intelectual"
 
-Antes de hablar de la solución, entendemos el dolor diario de su operación:
+Más allá del caos operativo, el verdadero problema es la pérdida de experiencia:
 
-*   **El caos de los formatos no estandarizados:** Luchar contra Excel, PDF y CSVs corruptos.
-*   **El riesgo de depender de la memoria:** Cuando el conocimiento reside en una sola persona ("El Maestro del Excel").
-*   **La frustración operativa:** Perder tiempo limpiando datos en lugar de analizar estrategias de precios.
-*   **El miedo:** Ganar una licitación y perder dinero por errores de cálculo.
+*   **Conocimiento Fragmentado:** 20 años de experiencia atrapados en miles de Excel ilegibles.
+*   **Reinversión Continua:** Volver a cotizar lo que ya se analizó hace un año.
+*   **Ceguera Financiera:** Ofertar basándose en promedios, ignorando la volatilidad real de los costos.
 
-## La Solución: "Nuestra Refinería de Datos"
+## La Solución: Traducción de Tecnología a Valor de Negocio
 
-Hemos diseñado una arquitectura de procesamiento de señales que separa la señal del ruido.
+Hemos desplegado ingeniería avanzada para resolver desafíos de negocio específicos.
 
-### Fase 1: El Filtro de Ruido (Data Flux Condenser)
-
-Igual que un sistema de audio de alta fidelidad elimina la estática, nuestro motor de ingesta (basado en física RLC) filtra los datos corruptos y estabiliza el flujo de entrada. Garantiza que solo entre información pura al sistema.
-
-### Fase 2: El Cerebro Digital (APU Processor)
-
-No es solo un lector; es un traductor. Entiende la jerarquía oculta en sus presupuestos desordenados y la estructura automáticamente, convirtiendo texto plano en relaciones de negocio.
-
-### Fase 3: La Memoria Institucional (Búsqueda Semántica)
-
-Recupere la experiencia de 20 años de su empresa. Nuestro motor cognitivo no busca palabras, busca conceptos. Encuentre el costo real de un 'Muro' aunque en el histórico se llame 'Pantalla', evitando reinventar la rueda.
-
-## Por qué esto es Estratégico
-
-*   **Eficiencia Operativa:** Reducción del 80% en tiempos de preparación de datos.
-*   **Mitigación de Riesgo:** El "Radar Financiero" (Monte Carlo) permite visualizar la volatilidad antes de ofertar.
-*   **Activo de Conocimiento:** Centraliza la inteligencia de la compañía, haciéndola independiente de la rotación de personal.
+| Tecnología | Componente | Valor de Negocio |
+| :--- | :--- | :--- |
+| **Física RLC (Sistemas Dinámicos)** | **Data Flux Condenser** | **Motor de Ingesta a Prueba de Caos.**<br>Garantiza que el sistema procese datos sucios, incompletos o corruptos sin detenerse, asegurando continuidad operativa. |
+| **Búsqueda Semántica (Vectores)** | **Memoria Institucional** | **Inteligencia Corporativa Recuperable.**<br>Recupera la experiencia de 20 años sin depender de códigos exactos. Encuentra "Muro" aunque se haya guardado como "Pantalla". |
+| **Simulación Monte Carlo** | **Radar de Riesgo** | **Protección del Margen.**<br>Visualiza la probabilidad matemática de pérdida antes de enviar la oferta, permitiendo ajustes estratégicos basados en datos, no en intuición. |
 
 ## Ingeniería Bajo el Capó (La Validación Técnica)
 
