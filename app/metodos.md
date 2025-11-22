@@ -1,15 +1,68 @@
-## Ingeniería Bajo el Capó: La Garantía de Estabilidad
+# Ingeniería Bajo el Capó: La Garantía de Estabilidad
 
-Aunque nuestra prioridad es su negocio, la solidez técnica es nuestra garantía. APU Filter está construido sobre una arquitectura modular que separa claramente las responsabilidades, garantizando robustez y escalabilidad. Sus tres pilares fundamentales son:
+En APU Filter, la tecnología no es un adorno; es la estructura que sostiene el negocio. A continuación, detallamos cómo nuestros "Expertos Digitales" utilizan ingeniería avanzada para resolver problemas cotidianos de la construcción.
 
-### 1. Condensador de Flujo de Datos (Data Flux Condenser)
-- **Componente Clave:** `app/flux_condenser.py` (**El Estabilizador**)
-- **Función:** Actúa como un amortiguador industrial a la entrada del sistema.
+---
 
-#### La Analogía del Amortiguador Industrial
-Imagine que los datos de entrada son un vehículo transitando por un terreno agreste (archivos con formatos rotos, caracteres extraños, errores humanos). Sin suspensión, el motor (el procesador) se rompería con el primer bache.
+## 1. El Estabilizador: Física RLC aplicada a Datos
+**Componente:** `app/flux_condenser.py`
 
-Nuestro **Condensador de Flujo** funciona como una suspensión activa avanzada. Usa física real para absorber los impactos del "camino" (datos sucios), entregando un viaje suave y constante al "pasajero" (su lógica de negocio). Si el camino es muy malo, el sistema reduce la velocidad automáticamente para no volcar, pero **nunca se detiene**.
+El mayor enemigo de la gestión de datos en construcción es la inconsistencia: archivos gigantes, formatos rotos, caracteres extraños. Un sistema tradicional se bloquea (crash). Nosotros construimos un **Amortiguador Industrial**.
+
+### La Metáfora Funcional
+Imagine un sistema hidráulico en una maquinaria pesada. Si la presión del aceite sube de golpe, una válvula de alivio se abre para evitar que la tubería estalle.
+El **Data Flux Condenser** hace exactamente eso con los datos:
+
+1.  **Energía Potencial ($E_c$):** Mide la "presión" de los datos acumulados en la cola de entrada.
+2.  **Energía Cinética ($E_l$):** Mide la "inercia" o velocidad de procesamiento actual.
+3.  **Potencia Disipada ($P$):** Calcula el "calor" generado por la fricción de procesar datos sucios.
+
+### El Cerebro del Estabilizador (Controlador PID)
+Un algoritmo de control (Proporcional-Integral-Derivativo) monitorea estas energías en tiempo real.
+*   **Si los datos vienen muy sucios (Alta Fricción):** El sistema "frena" automáticamente (reduce el tamaño del lote) para procesar con más cuidado.
+*   **Si los datos fluyen bien:** El sistema acelera para maximizar el rendimiento.
+*   **Resultado:** Un flujo de datos laminar, predecible y sin caídas del servidor.
+
+---
+
+## 2. El Estratega: Estimación de "Caja Blanca"
+**Componente:** `app/estimator.py`
+
+En ingeniería, la confianza lo es todo. Un ingeniero no aceptará un precio solo porque "la máquina lo dijo". Por eso, nuestro Estratega opera bajo una filosofía de **Transparencia Radical**.
+
+### Evidencia, no Magia
+Cuando el sistema sugiere un costo, entrega un reporte forense de su decisión:
+
+#### A. Búsqueda Semántica (El Concepto)
+El sistema entiende que *"Muro en ladrillo tolete"* y *"Mampostería de arcilla"* son lo mismo, aunque no compartan palabras.
+*   **Tecnología:** Sentence-Transformers + FAISS Vector Database.
+*   **Output al Usuario:** "Encontré este ítem con una **Similitud Conceptual del 94%**".
+
+#### B. Búsqueda por Palabras Clave (El Detalle)
+Si la semántica falla, buscamos coincidencias exactas.
+*   **Output al Usuario:** "Encontré este ítem porque coincide en 3 de 4 palabras clave".
+
+#### C. Simulación de Riesgo (El Futuro)
+Usamos el Método de Monte Carlo para proyectar 1,000 escenarios posibles de variación de precios.
+*   **Output al Usuario:** "El precio base es $100, pero hay un **35% de probabilidad** de que suba a $115 debido a la volatilidad histórica".
+
+---
+
+## 3. El Director: Orquestación del Pipeline
+**Componente:** `app/pipeline_director.py` (Anteriormente `procesador_csv.py`)
+
+Para evitar el "código espagueti", hemos centralizado la lógica de control. El Director no procesa datos; él da las órdenes.
+
+### El Flujo de Mando
+El Director ejecuta un plan de obra estricto:
+
+1.  **Llamada al Guardia:** "¿El archivo es seguro?" -> *Si pasa, continúa.*
+2.  **Llamada al Estabilizador:** "Ingresa los datos controlando la presión."
+3.  **Llamada al Cirujano:** "Estandariza las descripciones y unidades."
+4.  **Llamada al Estratega:** "Calcula los costos y riesgos."
+5.  **Cierre:** "Genera el reporte final y limpia la zona de trabajo."
+
+Esta arquitectura permite que, si mañana queremos cambiar la forma en que se limpian los datos, solo hablamos con el "Cirujano", sin afectar al resto del equipo. Es modularidad real para un mantenimiento sencillo a largo plazo.
 
 #### Ingeniería de Confiabilidad (SRE) aplicada a Datos
 Esta no es una metáfora decorativa. Utilizamos ecuaciones de sistemas dinámicos para gestionar la "fricción" de los datos corruptos.
