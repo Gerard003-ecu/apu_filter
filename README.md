@@ -1,26 +1,24 @@
-# APU Filter: Plataforma de Inteligencia de Costos para Construcción
+# APU Filter: Inteligencia de Costos y Blindaje Financiero para la Construcción
+
+### Transforme sus datos históricos en una ventaja competitiva para licitaciones de Infraestructura y Proyectos Industriales.
 
 ## Resumen Ejecutivo
 
-APU Filter es una plataforma de inteligencia de negocio diseñada para el sector de la construcción. Transforma la compleja tarea de analizar los costos de un proyecto, convirtiendo los tediosos reportes de Análisis de Precios Unitarios (APU) en una fuente de datos interactiva y estratégica. No es solo un lector de archivos, es una herramienta para tomar decisiones rápidas y precisas que impactan directamente en la rentabilidad y competitividad de su empresa.
+APU Filter es la solución de negocio definitiva para mitigar el riesgo financiero en proyectos de construcción. Más allá de procesar archivos, nuestra herramienta actúa como un escudo contra la pérdida de rentabilidad y el caos administrativo, acelerando sus tiempos de licitación y eliminando la dependencia de hojas de cálculo frágiles y propensas a errores humanos.
 
-## ¿Por qué APU Filter?
+## Por qué APU Filter: Soluciones Reales a Dolores de Obra
 
-### De Horas a Segundos: Ahorro de Tiempo y Reducción de Errores
-- **Automatización Inteligente:** APU Filter automatiza el procesamiento de los complejos reportes de costos, una tarea que tradicionalmente consume horas de trabajo de ingeniería.
-- **Fiabilidad Garantizada:** Minimiza los errores humanos de transcripción y cálculo que se producen en flujos de trabajo manuales basados en Excel, garantizando cifras fiables para sus análisis.
+Hemos traducido la ingeniería de software más avanzada en soluciones directas para los problemas críticos de la gerencia de costos:
 
-### Una Herramienta de Decisión Estratégica
-- **Simulador de Costos (AIU):** No se limite a ver los costos; proyéctelos. El simulador permite analizar en tiempo real el impacto de los costos indirectos (Administración, Imprevistos, Utilidad) en la rentabilidad final del proyecto.
-- **Estimador Semántico:** Genere cotizaciones precisas para nuevos proyectos en segundos. Utilizando embeddings de texto y búsqueda vectorial (FAISS), el estimador encuentra los APUs más *conceptualmente similares*, no solo los que coinciden por palabras clave.
+| Tecnología (Lo que hacemos) | Solución de Negocio (Lo que usted obtiene) | El Valor para su Empresa |
+| :--- | :--- | :--- |
+| **Motor de Ingesta a Prueba de Caos** | **Fusible contra Datos Sucios** | Sabemos que sus históricos son un desorden. Nuestro sistema procesa archivos corruptos, formatos antiguos y PDFs sin detenerse, actuando como un fusible que protege su operación de datos "basura" y garantiza cifras limpias. |
+| **Memoria Institucional Inteligente** | **Recuperación de Experiencia** | Recupere la experiencia de 20 años de licitaciones. Encuentre precios de 'Muros' aunque en el pasado los hayan llamado 'Pantallas', evitando reinventar la rueda y cometer los mismos errores en cada concurso. |
+| **Radar de Riesgo Financiero** | **Certeza en la Oferta** | Antes de enviar su oferta al Estado o al cliente privado, conozca la probabilidad real de pérdida o ganancia proyectando la volatilidad del mercado. No apueste, invierta con datos. |
 
-### Centralización y Consistencia
-- **Lógica de Negocio Unificada:** Centralice las reglas de cálculo y análisis, que a menudo están dispersas en frágiles macros de Excel, difíciles de mantener y escalar.
-- **Fuente Única de Verdad:** Asegure que todo el equipo de costos y presupuestos trabaje con las mismas reglas y los datos más actualizados, eliminando inconsistencias.
+## Ingeniería Bajo el Capó: La Garantía de Estabilidad
 
-## Arquitectura del Proyecto
-
-APU Filter está construido sobre una arquitectura modular que separa claramente las responsabilidades, garantizando robustez y escalabilidad. Sus tres pilares fundamentales son:
+Aunque nuestra prioridad es su negocio, la solidez técnica es nuestra garantía. APU Filter está construido sobre una arquitectura modular que separa claramente las responsabilidades, garantizando robustez y escalabilidad. Sus tres pilares fundamentales son:
 
 ### 1. Condensador de Flujo de Datos (Data Flux Condenser)
 - **Componente Clave:** `app/flux_condenser.py`
@@ -87,9 +85,17 @@ La plataforma está construida sobre una pila de tecnologías modernas de alto r
     - **Pytest:** Para una suite de pruebas exhaustiva que cubre desde unidades hasta la integración completa.
     - **Ruff:** Para el formateo y linting del código, asegurando un estilo consistente y de alta calidad.
 
+## Diseñado para el Mercado 2025
+
+APU Filter está optimizado para los desafíos actuales del sector:
+
+*   **Obras Civiles e Infraestructura:** Capacidad para manejar miles de ítems y matrices complejas sin un solo error de cálculo.
+*   **Construcción Industrial:** Velocidad de respuesta crítica para clientes logísticos y de *fast-track*.
+*   **Renovación y Mantenimiento:** Inteligencia única para leer y estructurar data histórica desorganizada de proyectos anteriores.
+
 ## Instalación y Uso
 
-Esta sección describe cómo configurar un entorno de desarrollo robusto utilizando un enfoque híbrido que combina **Conda**, **pip** y **uv**. Este método es esencial para garantizar una instalación estable y reproducible.
+Esta sección describe cómo configurar el entorno técnico para su equipo de TI, garantizando una implementación robusta y segura.
 
 ### La Arquitectura de la Instalación: Una Analogía de Engranajes
 
@@ -109,8 +115,6 @@ Para entender por qué seguimos un orden de instalación específico, podemos vi
     *   **Rol:** Ensambla todos los componentes de la aplicación que son de Python puro, comunicándose directamente con el ecosistema de Python (PyPI).
     *   **Característica:** Es ultrarrápido y ágil, ideal para manejar dependencias estándar de Python, pero no tiene la fuerza para gestionar las piezas pesadas que maneja Conda.
     *   **En APU Filter:** Su tarea es instalar todo lo demás desde `requirements.txt` de forma eficiente.
-
-Este enfoque de "engranajes" asegura que cada componente se instale con la herramienta adecuada, en el orden correcto, garantizando la estabilidad y el rendimiento del sistema.
 
 ### Diagrama del Flujo de Instalación
 
@@ -173,28 +177,30 @@ Para garantizar la persistencia de los datos del usuario entre solicitudes, la a
     Es crucial instalar Redis a través del canal `conda-forge` para asegurar la compatibilidad entre diferentes sistemas operativos, incluyendo macOS y Linux.
     ```bash
     conda install -c conda-forge redis
-    ```ejecutar redis-server
+    ```
 
 **Nota Importante:** El archivo `requirements.txt` no debe contener `faiss-cpu` ni `torch`. Si alguna vez necesita regenerar este archivo (ej. usando `uv pip compile requirements.in`), asegúrese de excluir estas dos librerías para evitar conflictos de instalación.
 
-Flujo de Trabajo del Proyecto
+## Flujo de Trabajo del Proyecto
+
 El ciclo de vida del desarrollo y uso de la aplicación sigue estos pasos:
-Configuración: La lógica de negocio (mapeo de columnas, umbrales, reglas del estimador) se gestiona en app/config.json.
-Pre-procesamiento (si los datos cambian): La búsqueda semántica requiere un índice. Si los datos de los APUs cambian, debe regenerar los embeddings ejecutando:
-python scripts/generate_embeddings.py --input path/to/processed_apus.json
 
-Ejecución de la Aplicación: Con el entorno activado, inicie el servidor Flask:
-python -m flask run --port=5002
+1.  **Configuración:** La lógica de negocio (mapeo de columnas, umbrales, reglas del estimador) se gestiona en `app/config.json`.
+2.  **Pre-procesamiento:** Si los datos de los APUs cambian, debe regenerar los embeddings ejecutando:
+    ```bash
+    python scripts/generate_embeddings.py --input path/to/processed_apus.json
+    ```
+3.  **Ejecución de la Aplicación:** Con el entorno activado, inicie el servidor Flask:
+    ```bash
+    python -m flask run --port=5002
+    ```
+4.  **Validación y Pruebas:** Para verificar la integridad del código, ejecute la suite de pruebas completa:
+    ```bash
+    pytest -vv
+    ```
 
-Interacción con la API:
-Un usuario sube los archivos (presupuesto, apus, insumos) al endpoint /upload.
-La aplicación procesa los datos y los almacena en una sesión.
-El usuario interactúa con los endpoints /api/estimate y /api/apu/{code} para realizar análisis.
-Validación y Pruebas: Para verificar la integridad del código, ejecute la suite de pruebas completa:
+## Estructura del Directorio
 
-pytest -vv
-
-Estructura del Directorio
 El proyecto está organizado con una clara separación de responsabilidades para facilitar la mantenibilidad y la escalabilidad.
 
 ```
