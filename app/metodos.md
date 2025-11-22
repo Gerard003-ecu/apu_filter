@@ -31,6 +31,12 @@ Sobre la capa física, opera un **Lazo de Control Cerrado (Feedback Loop)** que 
 
 **Resultado:** Un sistema bi-mimético que no solo adapta su velocidad, sino que también gestiona su "temperatura" operativa para garantizar una estabilidad del 100% bajo cualquier condición.
 
+#### 🛡️ Resiliencia y Recuperación
+El sistema implementa mecanismos de defensa avanzados:
+*   **Anti-Windup PID:** Previene la saturación del controlador ante cargas sostenidas.
+*   **Recuperación Parcial:** Capacidad de aislar lotes corruptos y continuar el procesamiento del resto del archivo.
+*   **Protección Térmica:** Freno de emergencia automático si la disipación de energía (fricción de datos) supera los umbrales de seguridad.
+
 ### 2. Pipeline de Procesamiento de Datos
 - **Componente Clave:** `app/procesador_csv.py`
 - **Función:** Es el orquestador central que toma los datos crudos del parser y los transforma en un modelo de costos consolidado.
