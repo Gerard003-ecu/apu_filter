@@ -166,89 +166,97 @@ class CondenserConfig:
     max_batch_size: int = 5000      # Flujo máximo (Chorro)
 
 
-# --- MOTOR DE FÍSICA AVANZADO (RLC) ---
+# --- MOTOR DE FÍSICA AVANZADO (ENERGÍA) ---
 class FluxPhysicsEngine:
     """
-    Simula el comportamiento físico RLC (Resistencia-Inductancia-Capacitancia).
+    Simula el comportamiento físico RLC basándose en la ENERGÍA.
 
-    Calcula métricas de 'salud' del flujo de datos como Saturación (Carga),
-    Complejidad (Resistencia) y Tensión de Flyback (Inductancia).
+    Unifica Capacitancia e Inductancia bajo funciones escalares de Energía (Julios).
+    - Energía Potencial (Ec): Presión acumulada por el volumen de datos.
+    - Energía Cinética (El): Inercia de la calidad del flujo.
+    - Energía Disipada (Er): Calor generado por la fricción de datos sucios.
     """
     def __init__(self, capacitance: float, resistance: float, inductance: float):
-        """
-        Inicializa el motor de física con los parámetros del circuito.
-
-        Args:
-            capacitance (float): Capacidad del sistema (análogo a Faradios).
-            resistance (float): Resistencia base del sistema (análogo a Ohmios).
-            inductance (float): Inercia del sistema (análogo a Henrios).
-        """
-        self.C = capacitance  # Capacidad de absorción
-        self.R = resistance   # Resistencia base
-        self.L = inductance   # Inercia del sistema (Inductancia)
+        self.C = capacitance  # Faradios
+        self.R = resistance   # Ohmios base
+        self.L = inductance   # Henrios
 
     def calculate_metrics(self, total_records: int, cache_hits: int) -> Dict[str, float]:
         """
-        Calcula métricas físicas del flujo de datos.
-
-        Args:
-            total_records (int): Número total de registros procesados.
-            cache_hits (int): Número de registros que aprovecharon la caché.
-
-        Returns:
-            Dict[str, float]: Diccionario con saturación, complejidad y voltaje de flyback.
+        Calcula métricas vectoriales y escalares (energía) del flujo.
         """
         if total_records == 0:
-            return {"saturation": 0.0, "complexity": 0.0, "flyback_voltage": 0.0}
+            return {
+                "saturation": 0.0, "complexity": 0.0, "flyback_voltage": 0.0,
+                "potential_energy": 0.0, "kinetic_energy": 0.0, "dissipated_power": 0.0
+            }
 
-        # 1. Resistencia Dinámica (Complejidad)
-        # R aumenta si el cache no se usa (fricción de procesamiento)
-        complexity = 1.0 - (cache_hits / total_records)
+        # --- VARIABLES DE ESTADO ---
+        # Corriente (I): Calidad del flujo (0.0 a 1.0)
+        current_I = cache_hits / total_records
 
-        # 2. Saturación (Carga del Condensador)
-        # Vc(t) = 1 - e^(-t/RC)
-        dynamic_R = self.R * (1 + complexity * 5) # La complejidad aumenta R drásticamente
+        # Complejidad: Inversa a la corriente
+        complexity = 1.0 - current_I
+
+        # Resistencia Dinámica (R_dyn)
+        dynamic_R = self.R * (1 + complexity * 5)
+
+        # Saturación (V): Ecuación de carga del condensador
         tau_c = dynamic_R * self.C
-        saturation = 1.0 - math.exp(-float(total_records) / tau_c)
+        # Asumimos t = total_records (tiempo lógico)
+        saturation_V = 1.0 - math.exp(-float(total_records) / tau_c)
 
-        # 3. Tensión de Flyback (Inductancia - Ley de Faraday/Lenz)
-        # V_L = -L * (di/dt)
-        # Asumimos que 'corriente' (i) es la tasa de éxito (cache_hits / total).
-        # Un cambio brusco en la calidad genera un pico de voltaje lógico.
+        # --- CÁLCULOS DE ENERGÍA (ESCALARES) ---
 
-        current_i = cache_hits / total_records # 0.0 a 1.0
-        delta_i = 1.0 - current_i # La caída de corriente (pérdida de calidad)
+        # 1. Energía Potencial (Ec = 1/2 * C * V^2)
+        # Representa la carga de trabajo acumulada/presión
+        potential_energy = 0.5 * self.C * (saturation_V ** 2)
 
-        # El 'dt' es inversamente proporcional al tamaño (en archivos pequeños,
-        # un error es un cambio más brusco que en grandes).
+        # 2. Energía Cinética/Magnética (El = 1/2 * L * I^2)
+        # Representa el momento o inercia de la calidad.
+        # Un flujo de alta calidad (I=1) tiene alta inercia y es difícil de desestabilizar.
+        kinetic_energy = 0.5 * self.L * (current_I ** 2)
+
+        # 3. Potencia Disipada (P = I_ruido^2 * R)
+        # Usamos la "corriente de ruido" (1 - I) para calcular cuánto calor genera el error
+        noise_current = 1.0 - current_I
+        dissipated_power = (noise_current ** 2) * dynamic_R
+
+        # --- CÁLCULO DE FLYBACK (Tensión Inductiva) ---
+        # V_L = L * (di/dt) -> Cambio en la calidad
+        # Aproximación: delta_i respecto al ideal (1.0) sobre log(t)
+        delta_i = 1.0 - current_I
         dt = math.log1p(total_records)
-
-        # Voltaje inducido (magnitud del pico de error)
         flyback_voltage = self.L * (delta_i / dt) if dt > 0 else 0.0
 
         return {
-            "saturation": saturation,
+            "saturation": saturation_V,
             "complexity": complexity,
-            "flyback_voltage": flyback_voltage
+            "flyback_voltage": flyback_voltage,
+            # Métricas Energéticas
+            "potential_energy": potential_energy,
+            "kinetic_energy": kinetic_energy,
+            "dissipated_power": dissipated_power
         }
 
     def get_system_diagnosis(self, metrics: Dict[str, float]) -> str:
-        """
-        Genera un diagnóstico textual basado en las métricas físicas.
-        """
-        v_flyback = metrics["flyback_voltage"]
-        saturation = metrics["saturation"]
+        ec = metrics["potential_energy"]
+        el = metrics["kinetic_energy"]
 
-        # Diagnóstico basado en Flyback (Picos de tensión)
-        if v_flyback > 0.5:
-            return f"⚡ PELIGRO: PICO INDUCTIVO ALTO (vL={v_flyback:.2f}). Datos muy inestables."
-        elif v_flyback > 0.1:
-            return f"⚠️ ADVERTENCIA: Rizado Inductivo (vL={v_flyback:.2f}). Calidad variable."
+        # Diagnóstico basado en Balance Energético
+        # Queremos alta cinética (buen flujo) y potencial controlada (carga manejable)
 
-        # Diagnóstico basado en Saturación (Carga)
-        if saturation < 0.3: return "🌊 FLUJO LAMINAR (Estable)"
-        if saturation < 0.7: return "🌊 FLUJO TRANSITORIO (Carga Media)"
-        return "🌊 FLUJO TURBULENTO (Saturado)"
+        if el < 0.1: # Corriente (calidad) muy baja
+            return "🔴 SISTEMA ESTANCADO (Baja Inercia)"
+
+        energy_ratio = ec / el if el > 0 else float('inf')
+
+        if energy_ratio > 1000: # Mucha presión, poca inercia
+            return "🟠 SOBRECARGA DE PRESIÓN (Riesgo de ruptura)"
+        elif metrics["flyback_voltage"] > 0.5:
+            return "⚡ PICO INDUCTIVO DETECTADO"
+        else:
+            return "🟢 EQUILIBRIO ENERGÉTICO (Estable)"
 
 
 class DataFluxCondenser:
@@ -374,15 +382,6 @@ class DataFluxCondenser:
                 batch_records = full_raw_records[current_index:end_index]
 
                 # 2. Preparar Cache para el lote
-                # Creamos un subset del cache relevante para este lote
-                # Nota: Esto asume que las claves del cache son identificables en los records.
-                # Si no es eficiente filtrar, pasamos el cache completo,
-                # pero para la métrica necesitamos saber cuántos hits hubo en ESTE batch.
-                # Simplificación: Calculamos hits estimados o pasamos todo y dejamos que Physics calcule sobre el total acumulado?
-                # La propuesta dice: "medir la saturación después de cada trozo".
-                # Physics.calculate_metrics toma (total_records, cache_hits).
-                # Deberíamos calcular metricas LOCALES del batch.
-
                 batch_cache_hits = 0
                 for record in batch_records:
                     # Asumimos que hay una forma de linkear record con cache,
@@ -400,15 +399,22 @@ class DataFluxCondenser:
                 # El controlador decide el tamaño del SIGUIENTE lote basado en la saturación actual
                 new_batch_size = self.controller.compute(metrics["saturation"])
 
-                # Telemetría en tiempo real
-                self.logger.debug(
-                    f"🔄 [PID LOOP] Batch: {len(batch_records)} items | "
-                    f"Sat: {metrics['saturation']:.2f} | "
-                    f"V_Flyback: {metrics['flyback_voltage']:.2f} | "
-                    f"→ Next Size: {new_batch_size}"
+                # DIODO DE RUEDA LIBRE (Protección basada en Energía Disipada)
+                # Si se está disipando demasiada energía (calor/errores), forzamos freno
+                if metrics["dissipated_power"] > 50.0: # Umbral arbitrario de "calor"
+                    self.logger.warning(f"🔥 [SOBRECALENTAMIENTO] Disipación alta ({metrics['dissipated_power']:.1f}W). Frenando forzosamente.")
+                    new_batch_size = int(new_batch_size * 0.5)
+
+                # Telemetría Energética (NUEVO LOG)
+                self.logger.info(
+                    f"🔄 [PID] Batch: {len(batch_records)} | "
+                    f"Sat(V): {metrics['saturation']:.2f} | "
+                    f"Ec: {metrics['potential_energy']:.0f}J | "
+                    f"El: {metrics['kinetic_energy']:.2f}J | "
+                    f"→ Next: {new_batch_size}"
                 )
 
-                # Diodo Flyback
+                # Diodo Flyback (Original - mantenemos por compatibilidad de logs si se desea, pero ya no es critico)
                 if metrics["flyback_voltage"] > 0.8:
                      self.logger.warning(
                         f"🛡️ [DIODO FLYBACK] Pico de inestabilidad detectado en batch {current_index}-{end_index}."

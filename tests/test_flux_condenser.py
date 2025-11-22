@@ -3,13 +3,13 @@ Suite de Pruebas Exhaustiva para el `DataFluxCondenser`.
 
 Esta suite de pruebas verifica todos los aspectos del `DataFluxCondenser`,
 asegurando su robustez, fiabilidad y comportamiento esperado bajo una amplia
-variedad de escenarios, incluyendo el nuevo control adaptativo PID.
+variedad de escenarios, incluyendo el nuevo control adaptativo PID y el Modelo Energético Escalar.
 
 Cobertura de Pruebas:
 - **Inicialización:** Valida que el condensador se configure correctamente,
   incluyendo la gestión de configuraciones personalizadas y por defecto.
-- **Motor de Física RLC:** Pruebas unitarias para `FluxPhysicsEngine`, asegurando
-  que los cálculos de saturación, flyback y diagnósticos sean precisos.
+- **Motor de Física RLC (Energético):** Pruebas unitarias para `FluxPhysicsEngine`, asegurando
+  que los cálculos de Energía Potencial, Cinética y Potencia Disipada sean precisos.
 - **Controlador PI:** Pruebas unitarias para la clase `PIController`.
 - **Flujo de Procesamiento Adaptativo (PID):** Utiliza `mocks` para aislar y probar
   el pipeline `stabilize` en modo streaming por lotes.
@@ -130,35 +130,87 @@ class TestPIController:
 
         assert controller._integral_error > first_integral
 
-# ==================== TESTS: FluxPhysicsEngine ====================
+# ==================== TESTS: FluxPhysicsEngine (Energía Escalar) ====================
 
 class TestFluxPhysicsEngine:
-    """Pruebas del motor de física."""
+    """Pruebas del motor de física con el nuevo modelo de energía escalar."""
 
     @pytest.fixture
     def engine(self):
         return FluxPhysicsEngine(capacitance=5000, resistance=10, inductance=2.0)
 
-    def test_calculate_metrics(self, engine):
+    def test_calculate_energy_metrics(self, engine):
+        """Verifica que se calculen las métricas de energía correctamente."""
+        # Caso: 100 records, 50 hits (50% calidad)
         metrics = engine.calculate_metrics(total_records=100, cache_hits=50)
-        assert "saturation" in metrics
-        assert "complexity" in metrics
-        assert "flyback_voltage" in metrics
 
-        # Complejidad = 1 - 50/100 = 0.5
-        assert metrics["complexity"] == 0.5
+        assert "potential_energy" in metrics
+        assert "kinetic_energy" in metrics
+        assert "dissipated_power" in metrics
 
-        # Flyback > 0 porque hits < total
-        assert metrics["flyback_voltage"] > 0.0
+        # Verificamos coherencia básica
+        assert metrics["potential_energy"] > 0
+        assert metrics["kinetic_energy"] > 0
+        assert metrics["dissipated_power"] > 0
+
+        # Si la calidad es 50% (0.5), complexity es 0.5.
+        # kinetic_energy = 0.5 * L * I^2 = 0.5 * 2.0 * 0.5^2 = 0.25
+        assert math.isclose(metrics["kinetic_energy"], 0.25)
+
+    def test_calculate_metrics_ideal_flow(self, engine):
+        """Caso flujo ideal (100% hits) -> Máxima energía cinética, mínima disipación."""
+        metrics = engine.calculate_metrics(total_records=100, cache_hits=100)
+
+        # I = 1.0
+        # Kinetic = 0.5 * 2.0 * 1.0^2 = 1.0 J
+        assert math.isclose(metrics["kinetic_energy"], 1.0)
+
+        # Noise I = 0.0 -> Dissipated Power = 0.0
+        assert metrics["dissipated_power"] == 0.0
+
+    def test_calculate_metrics_dirty_flow(self, engine):
+        """Caso flujo sucio (0% hits) -> Máxima disipación."""
+        metrics = engine.calculate_metrics(total_records=100, cache_hits=0)
+
+        # I = 0.0 -> Kinetic = 0.0
+        assert metrics["kinetic_energy"] == 0.0
+
+        # Noise I = 1.0. Dynamic R será alta. Power será alto.
+        assert metrics["dissipated_power"] > 10.0 # R base es 10, dynamic es > 10
 
     def test_zero_records(self, engine):
         metrics = engine.calculate_metrics(0, 0)
         assert metrics["saturation"] == 0.0
+        assert metrics["potential_energy"] == 0.0
+        assert metrics["kinetic_energy"] == 0.0
+        assert metrics["dissipated_power"] == 0.0
+
+    def test_system_diagnosis_energy(self, engine):
+        """Prueba los diagnósticos basados en energía."""
+        # Caso normal
+        metrics = {
+            "potential_energy": 500,
+            "kinetic_energy": 1.0,
+            "flyback_voltage": 0.0
+        }
+        diag = engine.get_system_diagnosis(metrics)
+        assert "EQUILIBRIO" in diag
+
+        # Caso baja inercia
+        metrics["kinetic_energy"] = 0.05
+        diag = engine.get_system_diagnosis(metrics)
+        assert "ESTANCADO" in diag
+
+        # Caso sobrecarga de presión
+        metrics["kinetic_energy"] = 1.0
+        metrics["potential_energy"] = 2000
+        diag = engine.get_system_diagnosis(metrics)
+        assert "SOBRECARGA" in diag
 
 # ==================== TESTS: DataFluxCondenser (Integration) ====================
 
 class TestStabilizePID:
-    """Pruebas de integración para el flujo estabilizado con PID."""
+    """Pruebas de integración para el flujo estabilizado con PID y Energía."""
 
     @patch('app.flux_condenser.APUProcessor')
     @patch('app.flux_condenser.ReportParserCrudo')
@@ -181,26 +233,53 @@ class TestStabilizePID:
         # Mock Processor returns a dummy DF with same length as input batch to simulate real processing
         mock_processor = Mock()
         def process_side_effect():
-            # We need to access the set raw_records to return correct length
-            # The logic sets processor.raw_records before calling process_all
             input_len = len(mock_processor.raw_records)
             return pd.DataFrame([{'res': 1}] * input_len)
 
         mock_processor.process_all.side_effect = process_side_effect
         mock_processor_class.return_value = mock_processor
 
-        # Forzamos un batch size pequeño para asegurar múltiples iteraciones
-        # PID start batch size is min_batch_size (50 by default in CondenserConfig)
-        # Total 100 records -> Debería hacer al menos 2 batches si size se mantiene.
-
         result = condenser.stabilize(str(mock_csv_file))
 
-        # Now we expect 100 rows because the mock returns rows proportional to input
         assert len(result) == 100
-
-        # Let's verify call count.
         assert mock_processor_class.call_count >= 1
         assert mock_processor.process_all.call_count >= 1
+
+    @patch('app.flux_condenser.APUProcessor')
+    @patch('app.flux_condenser.ReportParserCrudo')
+    def test_thermal_breaker_activation(
+        self,
+        mock_parser_class,
+        mock_processor_class,
+        condenser,
+        mock_csv_file,
+        caplog,
+        sample_raw_records
+    ):
+        """
+        Verifica que el 'Disyuntor Térmico' se active si la potencia disipada es alta.
+        Simularemos una alta disipación mockeando 'physics.calculate_metrics' indirectamente
+        o manipulando los datos para que physics calcule alta disipación.
+        """
+        mock_parser = Mock()
+        mock_parser.parse_to_raw.return_value = sample_raw_records # 100 records
+        # Cache vacía -> 0 hits -> Alta fricción -> Alta disipación
+        mock_parser.get_parse_cache.return_value = {}
+        mock_parser_class.return_value = mock_parser
+
+        mock_processor = Mock()
+        mock_processor.process_all.return_value = pd.DataFrame([{'a':1}] * 10) # Dummy
+        mock_processor_class.return_value = mock_processor
+
+        # Ejecutamos
+        with caplog.at_level(logging.WARNING):
+            condenser.stabilize(str(mock_csv_file))
+
+        # Verificamos que se haya logueado el sobrecalentamiento
+        # FluxPhysicsEngine con 0 hits en 100 records y R=10 genera mucha disipación
+        # Dissipated Power = (1.0^2) * (10 * (1 + 1.0 * 5)) = 1 * 60 = 60 Watts > 50.0 Threshold
+        assert "SOBRECALENTAMIENTO" in caplog.text
+        assert "Frenando forzosamente" in caplog.text
 
     @patch('app.flux_condenser.ReportParserCrudo')
     def test_insufficient_records_returns_empty(
@@ -230,8 +309,8 @@ class TestStabilizePID:
         mock_csv_file,
         caplog
     ):
-        """Debe loguear warning si hay flyback voltage alto."""
-        # 10 records, 0 hits -> High flyback
+        """Debe loguear warning si hay flyback voltage alto (compatibilidad)."""
+        # 10 records, 0 hits -> High flyback likely
         records = [{'id': i} for i in range(10)]
 
         mock_parser = Mock()
@@ -243,9 +322,16 @@ class TestStabilizePID:
         mock_processor.process_all.return_value = pd.DataFrame()
         mock_processor_class.return_value = mock_processor
 
+        # Forzar lógica de flyback en el physics real o confiar en que 10 records y 0 hits genera flyback > 0.8?
+        # Con 10 records: I=0. dt = log1p(10) ~= 2.39. delta_i = 1.
+        # V_L = 2.0 * (1/2.39) = 0.83 > 0.8. Debería dispararse.
+
         with caplog.at_level(logging.WARNING):
             condenser.stabilize(str(mock_csv_file))
 
+        # El log puede ser el nuevo "Pico de inestabilidad" o el del physics check.
+        # En el código actualizado:
+        # if metrics["flyback_voltage"] > 0.8: log warning
         assert "DIODO FLYBACK" in caplog.text
 
 # ==================== TESTS DE INICIALIZACIÓN ====================
