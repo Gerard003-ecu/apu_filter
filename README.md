@@ -1,6 +1,8 @@
-# APU Filter: Capitalización de Conocimiento y Estrategia de Licitación.
+# APU Filter: Inteligencia de Costos y Seguridad Financiera
 
 ### De Archivos Muertos a Memoria Viva: El Nuevo Activo Estratégico de su Constructora.
+
+**"La volatilidad de los datos de APU no es un problema de software, es un problema de negocio que cuesta millones."**
 
 Ya no se trata solo de ahorrar tiempo. Se trata de convertir el histórico de presupuestos (archivos muertos) en el **Activo Estratégico** más valioso de la constructora: una **Memoria Viva** que aprende de cada proyecto para blindar la rentabilidad del siguiente.
 
@@ -12,19 +14,30 @@ Más allá del caos operativo, el verdadero problema es la pérdida de experienc
 *   **Reinversión Continua:** Volver a cotizar lo que ya se analizó hace un año.
 *   **Ceguera Financiera:** Ofertar basándose en promedios, ignorando la volatilidad real de los costos.
 
-## La Solución: Traducción de Tecnología a Valor de Negocio
+## El Equipo Digital: Sus Nuevos Expertos en Costos
 
-Hemos desplegado ingeniería avanzada para resolver desafíos de negocio específicos.
+Hemos transformado funciones de código en un equipo de agentes especializados que trabajan para proteger sus márgenes. Conozca a su nuevo personal:
 
-| Tecnología | Componente | Valor de Negocio |
+| Agente | Rol Técnico | Misión de Negocio |
 | :--- | :--- | :--- |
-| **Física RLC (Sistemas Dinámicos)** | **Data Flux Condenser** | **Motor de Ingesta a Prueba de Caos (Estabilidad).**<br>Garantiza que el sistema procese datos sucios sin detenerse. |
-| **Búsqueda Semántica (Vectores)** | **Memoria Institucional** | **Memoria Institucional Inteligente.**<br>Recupera la experiencia de 20 años sin depender de códigos exactos. |
-| **Simulación Monte Carlo** | **Radar de Riesgo** | **Radar de Riesgo Financiero.**<br>Visualiza la probabilidad de pérdida antes de ofertar. |
+| **El Guardia** | `ReportParserCrudo` | **Seguridad de Entrada.**<br>Detiene datos corruptos en la puerta. Diagnostica y filtra archivos defectuosos antes de que contaminen su base de datos maestra. |
+| **El Estabilizador** | `DataFluxCondenser` | **Protector de Márgenes.**<br>Utiliza física RLC para absorber el "ruido" de los datos sucios, asegurando que el caos de los formatos no detenga su operación ni distorsione los precios. |
+| **El Cirujano** | `APUProcessor` | **Precisión Estructural.**<br>Disecciona cada línea de costo con precisión milimétrica, separando materiales, mano de obra y equipos para un análisis granular. |
+| **El Estratega** | `Estimator` | **Inteligencia de Mercado.**<br>Utiliza búsqueda semántica para encontrar precios históricos ("Muro de ladrillo" ≈ "Mampostería tolete") y sugerir el costo óptimo basado en 20 años de experiencia. |
+
+## La Solución: Traducción de Tecnología a Valor
+
+Ingeniería avanzada aplicada a resultados financieros concretos.
+
+| Tecnología | Característica | Valor de Negocio ("El Por Qué") |
+| :--- | :--- | :--- |
+| **Física RLC** | Amortiguación de Datos | **Continuidad Operativa.**<br>Evita caídas del sistema ante archivos masivos o corruptos. Su equipo nunca deja de trabajar por "errores del sistema". |
+| **Vectores (FAISS)** | Memoria Institucional | **Velocidad de Respuesta.**<br>Recupera cotizaciones de hace 10 años en milisegundos. No reinvente la rueda; use lo que ya sabe. |
+| **Caja Blanca** | Trazabilidad Total | **Confianza en el Dato.**<br>El sistema explica sus decisiones ("Elegí este precio por una coincidencia del 95%"). Auditable y transparente. |
 
 ## Ingeniería Bajo el Capó (La Validación Técnica)
 
-La Maquinaria que hace posible la Estrategia. Usamos tecnologías avanzadas (Python, Lark, FAISS, Pandas) para garantizar la robustez y precisión que exige el sector construcción.
+Para el equipo de TI: Usamos una arquitectura modular en Python (Flask, Pandas, PyTorch/FAISS) con principios SRE (Site Reliability Engineering) para garantizar robustez. Ver `app/metodos.md` para detalles profundos sobre el Motor de Física y la Lógica de Estimación.
 
 ## Instalación y Uso
 
