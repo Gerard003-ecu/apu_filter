@@ -1,42 +1,56 @@
-# APU Filter: El Motor de Inteligencia para Licitaciones de Construcción
+# APU Filter: Inteligencia de Costos y Estrategia de Licitación.
 
-### Convierta sus archivos históricos en una ventaja competitiva. Deje de limpiar datos y empiece a ganar licitaciones.
+### Transforme el ruido de sus datos históricos en una señal clara de rentabilidad.
 
-Sabemos que la realidad de una oficina de licitaciones es el caos: gigabytes de Excels viejos con formatos rotos, la dependencia absoluta de la memoria del ingeniero jefe ("¿cuánto cobramos por ese muro hace dos años?"), y el riesgo constante de que un error de cálculo en una celda oculta cueste millones. APU Filter no es solo software; es el fin de la incertidumbre. Transformamos ese desorden en inteligencia accionable para que deje de perder tiempo arreglando archivos y se enfoque en la estrategia para ganar.
+Esta herramienta no es un simple parser, sino un sistema que convierte archivos muertos en activos estratégicos, eliminando la incertidumbre en la toma de decisiones.
 
-## Nuestros Tres Pilares de Certeza
+## El Problema: "El Dolor del Ingeniero de Costos"
 
-Hemos reemplazado la complejidad técnica por soluciones diseñadas para la obra. Así es como convertimos sus problemas en ventajas:
+Antes de hablar de la solución, entendemos el dolor diario de su operación:
 
-### 1. Motor de Ingesta a Prueba de Caos
-*(Antes: Condensador de Flujo)*
+*   **El caos de los formatos no estandarizados:** Luchar contra Excel, PDF y CSVs corruptos.
+*   **El riesgo de depender de la memoria:** Cuando el conocimiento reside en una sola persona ("El Maestro del Excel").
+*   **La frustración operativa:** Perder tiempo limpiando datos en lugar de analizar estrategias de precios.
+*   **El miedo:** Ganar una licitación y perder dinero por errores de cálculo.
 
-Su histórico de obras es desordenado. Lo entendemos. Nuestro motor actúa como una planta de tratamiento industrial que filtra automáticamente archivos corruptos, estandariza formatos antiguos y corrige errores humanos, entregando datos puros y listos para usar. Es su seguro contra la "basura" digital que sabotea los presupuestos.
+## La Solución: "Nuestra Refinería de Datos"
 
-### 2. Memoria Institucional Inteligente
-*(Antes: Búsqueda Semántica/FAISS)*
+Hemos diseñado una arquitectura de procesamiento de señales que separa la señal del ruido.
 
-No dependa de que el ingeniero jefe recuerde cuánto costó el concreto hace 3 años o de buscar en carpetas olvidadas. Nuestro sistema recupera la experiencia de toda la empresa instantáneamente. Entiende conceptos de construcción, no solo palabras clave. Si busca "Muro de contención", el sistema encontrará también "Pantalla de concreto" o "Muro pantalla", asegurando que toda la sabiduría acumulada de su empresa esté en la punta de sus dedos al cotizar.
+### Fase 1: El Filtro de Ruido (Data Flux Condenser)
 
-### 3. Radar de Riesgo Financiero
-*(Antes: Simulación Monte Carlo)*
+Igual que un sistema de audio de alta fidelidad elimina la estática, nuestro motor de ingesta (basado en física RLC) filtra los datos corruptos y estabiliza el flujo de entrada. Garantiza que solo entre información pura al sistema.
 
-Las licitaciones no son estáticas; los precios de los insumos fluctúan. Proyecte la volatilidad del mercado antes de ofertar. Nuestro radar le dice la probabilidad matemática de ganar o perder dinero con sus precios actuales. No lance una oferta al aire; conozca sus márgenes de seguridad con precisión estadística antes de comprometerse.
+### Fase 2: El Cerebro Digital (APU Processor)
 
----
+No es solo un lector; es un traductor. Entiende la jerarquía oculta en sus presupuestos desordenados y la estructura automáticamente, convirtiendo texto plano en relaciones de negocio.
 
-## Instalación y Uso: El Ensamblaje de una Grúa de Precisión
+### Fase 3: La Memoria Institucional (Búsqueda Semántica)
 
-Para desplegar esta potencia en sus servidores, utilizamos una metodología de instalación por capas, similar al montaje de una grúa torre en obra. Cada herramienta tiene un propósito estructural específico para garantizar que el sistema soporte la carga de trabajo.
+Recupere la experiencia de 20 años de su empresa. Nuestro motor cognitivo no busca palabras, busca conceptos. Encuentre el costo real de un 'Muro' aunque en el histórico se llame 'Pantalla', evitando reinventar la rueda.
+
+## Por qué esto es Estratégico
+
+*   **Eficiencia Operativa:** Reducción del 80% en tiempos de preparación de datos.
+*   **Mitigación de Riesgo:** El "Radar Financiero" (Monte Carlo) permite visualizar la volatilidad antes de ofertar.
+*   **Activo de Conocimiento:** Centraliza la inteligencia de la compañía, haciéndola independiente de la rotación de personal.
+
+## Ingeniería Bajo el Capó (La Validación Técnica)
+
+La Maquinaria que hace posible la Estrategia. Usamos tecnologías avanzadas (Python, Lark, FAISS, Pandas) para garantizar la robustez y precisión que exige el sector construcción.
+
+## Instalación y Uso
+
+Para desplegar esta potencia en sus servidores, utilizamos una metodología de instalación por capas.
 
 ### Paso 1: La Cimentación (Conda)
-Primero, instalamos la base pesada. Conda es el encargado de colocar los cimientos y el motor principal (Faiss) que soporta toda la estructura de inteligencia. Sin esta base sólida, la grúa no podría operar.
+Primero, instalamos la base pesada. Conda es el encargado de colocar los cimientos y el motor principal (Faiss).
 
 ```bash
-# Crear el terreno (Entorno)
+# Crear el entorno
 conda create --name apu_filter_env python=3.10
 
-# Ocupar el terreno (Activar)
+# Activar el entorno
 conda activate apu_filter_env
 
 # Instalar el motor principal (Faiss-cpu)
@@ -44,43 +58,32 @@ conda install -c pytorch faiss-cpu
 ```
 
 ### Paso 2: El Sistema Hidráulico (Pip específico)
-A continuación, instalamos el sistema de potencia. Usamos una configuración especial de `pip` para traer `torch` (versión CPU). Esta es la pieza de ingeniería especializada que permite "levantar" las cargas pesadas de Inteligencia Artificial sin requerir hardware de tarjetas gráficas costosas.
+Instalamos `torch` (versión CPU) para la inteligencia artificial sin requerir hardware costoso.
 
 ```bash
-# Instalar el sistema hidráulico de IA
 pip install torch --index-url https://download.pytorch.org/whl/cpu
 ```
 
 ### Paso 3: El Brazo Operativo (Uv)
-Finalmente, ensamblamos el brazo de maniobra. Usamos `uv` para el resto de los componentes porque necesitamos velocidad y agilidad en la operación diaria. Es ligero, rápido y eficiente para manejar las herramientas cotidianas del sistema.
+Usamos `uv` para velocidad y eficiencia en las dependencias restantes.
 
 ```bash
-# Instalar Redis (Sistema de control de sesiones)
+# Instalar Redis
 conda install -c conda-forge redis
 
-# Ensamblar el resto de herramientas
+# Instalar dependencias
 uv pip install -r requirements.txt
 uv pip install -r requirements-dev.txt
 ```
 
 ### Puesta en Marcha
 
-Una vez la grúa está armada, inicie operaciones:
-
-1.  **Generar la Inteligencia:** Si tiene nuevos datos históricos, procese la memoria institucional.
+1.  **Generar la Inteligencia:**
     ```bash
     python scripts/generate_embeddings.py --input data/processed_apus.json
     ```
 
-2.  **Encender Motores:** Inicie la plataforma web.
+2.  **Encender Motores:**
     ```bash
     python -m flask run --port=5002
     ```
-
----
-
-## Construido por ingenieros, para ingenieros.
-
-Entendemos el valor de su información. APU Filter funciona localmente en su infraestructura; su data estratégica nunca sale de su control ni viaja a la nube de terceros.
-
-Es hora de construir con certeza.
