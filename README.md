@@ -29,16 +29,16 @@ Hemos diseñado la arquitectura del sistema no como una colección de scripts, s
 **Misión:** Detiene los datos corruptos en la puerta. Analiza la estructura de los archivos entrantes (CSV, Excel) y decide si cumplen con los estándares mínimos de calidad. Si entra basura, sale basura; El Guardia asegura que solo entre materia prima viable.
 
 ### 3. El Estabilizador (`flux_condenser.py`)
-**Rol:** Protección de Infraestructura.
-**Misión:** Utiliza principios de **Física RLC** para actuar como un amortiguador industrial. Absorbe los picos de "ruido" (datos desordenados o masivos) y entrega un flujo laminar y constante al resto del sistema. Evita que el servidor colapse bajo presión.
+**Rol:** Control de Flujo y Resiliencia.
+**Misión:** Implementa patrones de **Backpressure y Control Adaptativo** para actuar como un amortiguador industrial. Gestiona la tasa de procesamiento dinámicamente, absorbiendo picos de carga y entregando un flujo estable al resto del sistema. Evita la saturación del servidor y garantiza la continuidad operativa, inspirándose internamente en modelos físicos de energía para tomar decisiones de regulación.
 
 ### 4. El Cirujano (`apu_processor.py`)
 **Rol:** Precisión Estructural.
 **Misión:** Con el dato ya estabilizado, el Cirujano disecciona cada línea de costo. Separa materiales, mano de obra y equipos con precisión milimétrica, normalizando unidades y descripciones para que sean comparables.
 
 ### 5. El Estratega (`estimator.py`)
-**Rol:** Inteligencia de Mercado.
-**Misión:** Es el cerebro consultivo. Utiliza **Búsqueda Semántica** para encontrar precios históricos ("Muro de ladrillo" ≈ "Mampostería tolete") y proyecta escenarios de riesgo. No solo da un precio; da una probabilidad de certeza.
+**Rol:** Inteligencia de Mercado (Caja Blanca).
+**Misión:** Es el cerebro consultivo. Utiliza **Búsqueda Semántica** para encontrar precios históricos ("Muro de ladrillo" ≈ "Mampostería tolete") y proyecta escenarios de riesgo. **No es una caja negra:** explica cada decisión, mostrando la evidencia y el nivel de certeza para que el ingeniero humano tenga la última palabra.
 
 ---
 
@@ -46,7 +46,7 @@ Hemos diseñado la arquitectura del sistema no como una colección de scripts, s
 
 | Dolor del Negocio | Solución Técnica | Beneficio Directo |
 | :--- | :--- | :--- |
-| **"Perdemos días limpiando Excels de contratistas."** | **Motor de Ingesta a Prueba de Caos** (Física RLC + PID) | **Continuidad Operativa:** Procese archivos corruptos o masivos sin que el sistema se detenga. |
+| **"Perdemos días limpiando Excels de contratistas."** | **Motor de Ingesta Resiliente** (Control Adaptativo + PID) | **Continuidad Operativa:** Procese archivos corruptos o masivos sin que el sistema se detenga. |
 | **"Cada ingeniero cotiza precios diferentes para lo mismo."** | **Memoria Institucional Inteligente** (Vectores FAISS) | **Estandarización:** Recupere la "verdad" de la empresa. Si ya se cotizó, el sistema lo sabe. |
 | **"Nos da miedo que el precio del acero suba y perdamos plata."** | **Radar de Riesgo Financiero** (Simulación Monte Carlo) | **Protección de Margen:** Conozca la probabilidad matemática de pérdida antes de enviar la oferta. |
 
@@ -54,7 +54,19 @@ Hemos diseñado la arquitectura del sistema no como una colección de scripts, s
 
 ## Ingeniería Bajo el Capó (La Validación Técnica)
 
-Para el equipo de TI: Usamos una arquitectura modular en Python (Flask, Pandas, PyTorch/FAISS) con principios SRE (Site Reliability Engineering) para garantizar robustez. Ver `app/metodos.md` para detalles profundos sobre el Motor de Física y la Lógica de Estimación.
+Para el equipo de TI: Usamos una arquitectura modular en Python (Flask, Pandas, PyTorch/FAISS) con principios SRE (Site Reliability Engineering) para garantizar robustez.
+
+### Configurabilidad Declarativa
+Creemos que las reglas de negocio no deben estar "quemadas" en el código.
+*   **Separación de Poderes:** Toda la lógica de negocio (mapeo de columnas, umbrales de validación, reglas de categorización) vive en archivos de configuración externos (`config.json`).
+*   **Adaptabilidad:** ¿Cambió el formato del Excel del proveedor? Ajuste el JSON, no el código Python. Esto permite que el sistema evolucione a la velocidad del negocio sin requerir refactorización constante.
+
+### Transparencia de Caja Blanca
+En un sector donde la responsabilidad legal es alta, "la IA lo dijo" no es una defensa válida.
+*   **Auditabilidad:** Cada estimación viene acompañada de un log de decisión detallado: "¿Por qué elegí este precio? Porque tiene una similitud semántica del 94% con el Proyecto X del año pasado".
+*   **Control Humano:** La herramienta propone, el ingeniero dispone.
+
+Ver `app/metodos.md` para detalles profundos sobre el Motor de Estabilidad y la Lógica de Estimación.
 
 ## Instalación y Uso
 
