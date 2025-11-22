@@ -27,7 +27,7 @@ Principios de Diseño:
 import logging
 import math
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, List, NamedTuple, Optional, Set
 
@@ -44,27 +44,27 @@ logger = logging.getLogger(__name__)
 # ============================================================================
 class SystemConstants:
     """Constantes del sistema para evitar números mágicos."""
-    
+
     # Límites de tiempo
     MIN_DELTA_TIME: float = 0.001  # Segundos mínimos entre cálculos PID
-    
+
     # Límites físicos
     MIN_ENERGY_THRESHOLD: float = 1e-10  # Julios mínimos para cálculos
     MAX_EXPONENTIAL_ARG: float = 100.0   # Límite para evitar overflow en exp()
-    
+
     # Diagnóstico
     LOW_INERTIA_THRESHOLD: float = 0.1
     HIGH_PRESSURE_RATIO: float = 1000.0
     HIGH_FLYBACK_THRESHOLD: float = 0.5
     OVERHEAT_POWER_THRESHOLD: float = 50.0  # Watts
-    
+
     # Control de flujo
     EMERGENCY_BRAKE_FACTOR: float = 0.5
     MAX_ITERATIONS_MULTIPLIER: int = 10  # max_iterations = total_records * multiplier
-    
+
     # Validación de archivos
     VALID_FILE_EXTENSIONS: Set[str] = {'.csv', '.txt', '.tsv'}
-    
+
     # Resistencia dinámica
     COMPLEXITY_RESISTANCE_FACTOR: float = 5.0
 
@@ -141,86 +141,86 @@ class CondenserConfig:
     min_records_threshold: int = 1
     enable_strict_validation: bool = True
     log_level: str = "INFO"
-    
+
     # Configuración Física RLC
     system_capacitance: float = 5000.0
     base_resistance: float = 10.0
     system_inductance: float = 2.0
-    
+
     # Configuración PID
     pid_setpoint: float = 0.30
     pid_kp: float = 2000.0
     pid_ki: float = 100.0
     min_batch_size: int = 50
     max_batch_size: int = 5000
-    
+
     # Configuración de recuperación
     enable_partial_recovery: bool = False
     max_failed_batches: int = 3
-    
+
     # Anti-windup
     integral_limit_factor: float = 2.0  # Múltiplo del rango de salida
-    
+
     def __post_init__(self):
         """Valida la configuración después de la inicialización."""
         self._validate_configuration()
-    
+
     def _validate_configuration(self) -> None:
         """Valida que todos los parámetros estén en rangos válidos."""
         errors = []
-        
+
         # Validar threshold
         if self.min_records_threshold < 0:
             errors.append(f"min_records_threshold debe ser >= 0, recibido: {self.min_records_threshold}")
-        
+
         # Validar parámetros físicos
         if self.system_capacitance <= 0:
             errors.append(f"system_capacitance debe ser > 0, recibido: {self.system_capacitance}")
-        
+
         if self.base_resistance <= 0:
             errors.append(f"base_resistance debe ser > 0, recibido: {self.base_resistance}")
-        
+
         if self.system_inductance <= 0:
             errors.append(f"system_inductance debe ser > 0, recibido: {self.system_inductance}")
-        
+
         # Validar PID
         if not 0.0 <= self.pid_setpoint <= 1.0:
             errors.append(f"pid_setpoint debe estar en [0.0, 1.0], recibido: {self.pid_setpoint}")
-        
+
         if self.pid_kp < 0:
             errors.append(f"pid_kp debe ser >= 0, recibido: {self.pid_kp}")
-        
+
         if self.pid_ki < 0:
             errors.append(f"pid_ki debe ser >= 0, recibido: {self.pid_ki}")
-        
+
         # Validar batch sizes
         if self.min_batch_size <= 0:
             errors.append(f"min_batch_size debe ser > 0, recibido: {self.min_batch_size}")
-        
+
         if self.max_batch_size <= 0:
             errors.append(f"max_batch_size debe ser > 0, recibido: {self.max_batch_size}")
-        
+
         if self.min_batch_size > self.max_batch_size:
             errors.append(
                 f"min_batch_size ({self.min_batch_size}) no puede ser mayor que "
                 f"max_batch_size ({self.max_batch_size})"
             )
-        
+
         # Validar recuperación
         if self.max_failed_batches < 0:
             errors.append(f"max_failed_batches debe ser >= 0, recibido: {self.max_failed_batches}")
-        
+
         if self.integral_limit_factor <= 0:
             errors.append(f"integral_limit_factor debe ser > 0, recibido: {self.integral_limit_factor}")
-        
+
         # Validar log level
         valid_log_levels = {'DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'}
         if self.log_level.upper() not in valid_log_levels:
             errors.append(f"log_level debe ser uno de {valid_log_levels}, recibido: {self.log_level}")
-        
+
         if errors:
             raise ConfigurationError(
-                f"Errores de configuración detectados:\n" + "\n".join(f"  - {e}" for e in errors)
+                "Errores de configuración detectados:\n" + "\n".join(f"  - {e}" for e in errors)
             )
 
 
@@ -237,7 +237,7 @@ class ProcessingStats:
     avg_saturation: float = 0.0
     max_dissipated_power: float = 0.0
     emergency_brakes_triggered: int = 0
-    
+
     def add_batch_stats(self, batch_size: int, saturation: float, power: float, success: bool) -> None:
         """Actualiza estadísticas con datos de un batch procesado."""
         self.total_batches += 1
@@ -246,7 +246,7 @@ class ProcessingStats:
         else:
             self.failed_records += batch_size
             self.failed_batches += 1
-        
+
         # Promedios móviles
         n = self.total_batches
         self.avg_batch_size = ((n - 1) * self.avg_batch_size + batch_size) / n
@@ -271,7 +271,7 @@ class PIController:
     - Reset capability para reutilización
     - Logging detallado de estado
     """
-    
+
     def __init__(
         self,
         kp: float,
@@ -296,28 +296,28 @@ class PIController:
             ConfigurationError: Si algún parámetro es inválido
         """
         self._validate_parameters(kp, ki, setpoint, min_output, max_output, integral_limit_factor)
-        
+
         self.Kp = kp
         self.Ki = ki
         self.setpoint = setpoint
-        
+
         self.min_output = min_output
         self.max_output = max_output
-        
+
         # Calcular salida base (punto medio del rango)
         self._base_output = (self.max_output + self.min_output) / 2.0
         self._output_range = self.max_output - self.min_output
-        
+
         # Anti-windup: Límites para el término integral
         self._integral_limit = self._output_range * integral_limit_factor
-        
+
         # Estado interno
         self._integral_error = 0.0
         self._last_time: Optional[float] = None
         self._iteration_count = 0
-        
+
         self.logger = logging.getLogger(f"{self.__class__.__name__}")
-    
+
     def _validate_parameters(
         self,
         kp: float,
@@ -329,32 +329,32 @@ class PIController:
     ) -> None:
         """Valida todos los parámetros del controlador."""
         errors = []
-        
+
         if kp < 0:
             errors.append(f"Kp debe ser >= 0, recibido: {kp}")
-        
+
         if ki < 0:
             errors.append(f"Ki debe ser >= 0, recibido: {ki}")
-        
+
         if not 0.0 <= setpoint <= 1.0:
             errors.append(f"setpoint debe estar en [0.0, 1.0], recibido: {setpoint}")
-        
+
         if min_output <= 0:
             errors.append(f"min_output debe ser > 0, recibido: {min_output}")
-        
+
         if max_output <= min_output:
             errors.append(
                 f"max_output ({max_output}) debe ser > min_output ({min_output})"
             )
-        
+
         if integral_limit_factor <= 0:
             errors.append(f"integral_limit_factor debe ser > 0, recibido: {integral_limit_factor}")
-        
+
         if errors:
             raise ConfigurationError(
-                f"Parámetros inválidos del PIController:\n" + "\n".join(f"  - {e}" for e in errors)
+                "Parámetros inválidos del PIController:\n" + "\n".join(f"  - {e}" for e in errors)
             )
-    
+
     def compute(self, process_variable: float) -> int:
         """
         Calcula la nueva salida de control (u(t)) basada en el error actual.
@@ -378,19 +378,19 @@ class PIController:
             raise ValueError(
                 f"process_variable debe ser numérico, recibido: {type(process_variable)}"
             )
-        
+
         if math.isnan(process_variable) or math.isinf(process_variable):
             self.logger.warning(
                 f"process_variable inválido ({process_variable}), usando setpoint como fallback"
             )
             process_variable = self.setpoint
-        
+
         # Normalizar a rango válido [0, 1]
         process_variable = max(0.0, min(1.0, process_variable))
-        
+
         # Calcular delta de tiempo
         current_time = time.time()
-        
+
         if self._last_time is None:
             # Primera iteración: no hay historia
             dt = SystemConstants.MIN_DELTA_TIME
@@ -400,53 +400,53 @@ class PIController:
             if dt <= 0 or dt > 3600:  # Si dt > 1 hora, algo está mal
                 self.logger.warning(f"Delta de tiempo anómalo: {dt}s, usando mínimo")
                 dt = SystemConstants.MIN_DELTA_TIME
-        
+
         # 1. Calcular Error (e(t))
         # Invertimos el signo: saturación alta -> error negativo -> reducir batch
         error = self.setpoint - process_variable
-        
+
         # 2. Término Proporcional
         P = self.Kp * error
-        
+
         # 3. Término Integral con Anti-Windup
         # Acumular error
         self._integral_error += error * dt
-        
+
         # Aplicar límites de anti-windup (clamping del integrador)
         self._integral_error = max(
             -self._integral_limit,
             min(self._integral_limit, self._integral_error)
         )
-        
+
         I = self.Ki * self._integral_error
-        
+
         # 4. Señal de Control (u)
         control_signal = self._base_output + P + I
-        
+
         # 5. Saturación del Actuador (Clamping de salida)
         output = int(round(control_signal))
         output = max(self.min_output, min(self.max_output, output))
-        
+
         # Actualizar estado
         self._last_time = current_time
         self._iteration_count += 1
-        
+
         # Logging cada 10 iteraciones para evitar spam
         if self._iteration_count % 10 == 0:
             self.logger.debug(
                 f"[PID] Iter={self._iteration_count} | PV={process_variable:.3f} | "
                 f"Error={error:.3f} | P={P:.1f} | I={I:.1f} | Out={output}"
             )
-        
+
         return output
-    
+
     def reset(self) -> None:
         """Resetea el estado interno del controlador para reutilización."""
         self._integral_error = 0.0
         self._last_time = None
         self._iteration_count = 0
         self.logger.debug("[PID] Controlador reseteado")
-    
+
     def get_state(self) -> Dict[str, Any]:
         """Retorna el estado actual del controlador para observabilidad."""
         return {
@@ -476,7 +476,7 @@ class FluxPhysicsEngine:
     - Diagnóstico basado en constantes nombradas
     - Manejo robusto de casos límite
     """
-    
+
     def __init__(self, capacitance: float, resistance: float, inductance: float):
         """
         Inicializa el motor de física con validación de parámetros.
@@ -490,17 +490,17 @@ class FluxPhysicsEngine:
             ConfigurationError: Si algún parámetro es inválido
         """
         self._validate_parameters(capacitance, resistance, inductance)
-        
+
         self.C = capacitance
         self.R = resistance
         self.L = inductance
-        
+
         self.logger = logging.getLogger(f"{self.__class__.__name__}")
-        
+
         self.logger.info(
             f"Motor RLC inicializado: C={self.C}F, R={self.R}Ω, L={self.L}H"
         )
-    
+
     def _validate_parameters(
         self,
         capacitance: float,
@@ -509,25 +509,25 @@ class FluxPhysicsEngine:
     ) -> None:
         """Valida que los parámetros físicos sean válidos."""
         errors = []
-        
+
         if capacitance <= 0:
             errors.append(f"capacitance debe ser > 0, recibido: {capacitance}")
-        
+
         if resistance <= 0:
             errors.append(f"resistance debe ser > 0, recibido: {resistance}")
-        
+
         if inductance <= 0:
             errors.append(f"inductance debe ser > 0, recibido: {inductance}")
-        
+
         for param in [capacitance, resistance, inductance]:
             if math.isnan(param) or math.isinf(param):
                 errors.append(f"Parámetro inválido (NaN o Inf): {param}")
-        
+
         if errors:
             raise ConfigurationError(
-                f"Parámetros físicos inválidos:\n" + "\n".join(f"  - {e}" for e in errors)
+                "Parámetros físicos inválidos:\n" + "\n".join(f"  - {e}" for e in errors)
             )
-    
+
     def calculate_metrics(self, total_records: int, cache_hits: int) -> Dict[str, float]:
         """
         Calcula métricas vectoriales y escalares (energía) del flujo.
@@ -546,61 +546,61 @@ class FluxPhysicsEngine:
                 f"cache_hits={cache_hits}"
             )
             return self._get_zero_metrics()
-        
+
         if cache_hits > total_records:
             self.logger.warning(
                 f"cache_hits ({cache_hits}) > total_records ({total_records}), "
                 f"normalizando a total_records"
             )
             cache_hits = total_records
-        
+
         # Caso especial: sin datos
         if total_records == 0:
             return self._get_zero_metrics()
-        
+
         try:
             # --- VARIABLES DE ESTADO ---
             # Corriente (I): Calidad del flujo (0.0 a 1.0)
             current_I = cache_hits / total_records
             current_I = max(0.0, min(1.0, current_I))  # Normalizar
-            
+
             # Complejidad: Inversa a la corriente (fracción de datos sin caché)
             complexity = 1.0 - current_I
-            
+
             # Resistencia Dinámica (R_dyn)
             dynamic_R = self.R * (1.0 + complexity * SystemConstants.COMPLEXITY_RESISTANCE_FACTOR)
-            
+
             # Saturación (V): Ecuación de carga del condensador
             # V(t) = V_max * (1 - e^(-t/τ)) donde τ = R*C
             tau_c = dynamic_R * self.C
-            
+
             # Prevenir overflow en exponencial
             exponent = -float(total_records) / tau_c if tau_c > 0 else -SystemConstants.MAX_EXPONENTIAL_ARG
             exponent = max(-SystemConstants.MAX_EXPONENTIAL_ARG, exponent)
-            
+
             saturation_V = 1.0 - math.exp(exponent)
             saturation_V = max(0.0, min(1.0, saturation_V))  # Normalizar
-            
+
             # --- CÁLCULOS DE ENERGÍA (ESCALARES) ---
-            
+
             # 1. Energía Potencial (Ec = 1/2 * C * V^2)
             potential_energy = 0.5 * self.C * (saturation_V ** 2)
-            
+
             # 2. Energía Cinética/Magnética (El = 1/2 * L * I^2)
             kinetic_energy = 0.5 * self.L * (current_I ** 2)
-            
+
             # 3. Potencia Disipada (P = I_ruido^2 * R)
             noise_current = 1.0 - current_I
             dissipated_power = (noise_current ** 2) * dynamic_R
-            
+
             # --- CÁLCULO DE FLYBACK (Tensión Inductiva) ---
             # V_L = L * (di/dt) -> Cambio en la calidad
             delta_i = 1.0 - current_I
             dt = math.log1p(total_records)  # log(1 + x) es más estable que log(x)
-            
+
             flyback_voltage = (self.L * delta_i / dt) if dt > 0 else 0.0
             flyback_voltage = max(0.0, min(10.0, flyback_voltage))  # Limitar a rango razonable
-            
+
             # Validar que no haya NaN o Inf en resultados
             metrics = {
                 "saturation": saturation_V,
@@ -610,19 +610,19 @@ class FluxPhysicsEngine:
                 "kinetic_energy": kinetic_energy,
                 "dissipated_power": dissipated_power
             }
-            
+
             # Sanitizar métricas
             for key, value in metrics.items():
                 if math.isnan(value) or math.isinf(value):
                     self.logger.warning(f"Métrica {key} inválida: {value}, reemplazando con 0.0")
                     metrics[key] = 0.0
-            
+
             return metrics
-        
+
         except Exception as e:
             self.logger.error(f"Error calculando métricas físicas: {e}", exc_info=True)
             return self._get_zero_metrics()
-    
+
     def _get_zero_metrics(self) -> Dict[str, float]:
         """Retorna un diccionario de métricas con valores en cero."""
         return {
@@ -633,7 +633,7 @@ class FluxPhysicsEngine:
             "kinetic_energy": 0.0,
             "dissipated_power": 0.0
         }
-    
+
     def get_system_diagnosis(self, metrics: Dict[str, float]) -> str:
         """
         Genera diagnóstico del sistema basado en balance energético.
@@ -648,13 +648,13 @@ class FluxPhysicsEngine:
             ec = metrics.get("potential_energy", 0.0)
             el = metrics.get("kinetic_energy", 0.0)
             flyback = metrics.get("flyback_voltage", 0.0)
-            
+
             # Prevenir división por cero
             if el < SystemConstants.MIN_ENERGY_THRESHOLD:
                 return "🔴 SISTEMA ESTANCADO (Inercia crítica baja)"
-            
+
             energy_ratio = ec / el
-            
+
             # Diagnóstico jerárquico
             if energy_ratio > SystemConstants.HIGH_PRESSURE_RATIO:
                 return "🟠 SOBRECARGA DE PRESIÓN (Riesgo de ruptura)"
@@ -664,7 +664,7 @@ class FluxPhysicsEngine:
                 return "🟡 BAJA INERCIA (Flujo débil)"
             else:
                 return "🟢 EQUILIBRIO ENERGÉTICO (Estable)"
-        
+
         except Exception as e:
             self.logger.error(f"Error en diagnóstico del sistema: {e}")
             return "❓ DIAGNÓSTICO INDETERMINADO"
@@ -689,7 +689,7 @@ class DataFluxCondenser:
     - Manejo robusto de casos límite
     - Logging estructurado
     """
-    
+
     REQUIRED_CONFIG_KEYS: Set[str] = {'parser_settings', 'processor_settings'}
     REQUIRED_PROFILE_KEYS: Set[str] = {'columns_mapping', 'validation_rules'}
 
@@ -715,7 +715,7 @@ class DataFluxCondenser:
 
         self.config = config
         self.profile = profile
-        
+
         # Inicializar configuración (esto validará los parámetros internamente)
         try:
             self.condenser_config = condenser_config or CondenserConfig()
@@ -747,7 +747,7 @@ class DataFluxCondenser:
             )
         except ConfigurationError as e:
             raise ConfigurationError(f"Error inicializando controlador PID: {e}") from e
-        
+
         # Estadísticas de procesamiento
         self._stats = ProcessingStats()
 
@@ -772,7 +772,7 @@ class DataFluxCondenser:
             raise InvalidInputError(
                 f"config debe ser un diccionario, recibido: {type(config).__name__}"
             )
-        
+
         if not isinstance(profile, dict):
             raise InvalidInputError(
                 f"profile debe ser un diccionario, recibido: {type(profile).__name__}"
@@ -812,11 +812,11 @@ class DataFluxCondenser:
         """
         start_time = time.time()
         path_obj = Path(file_path)
-        
+
         # Resetear estadísticas y controlador
         self._stats = ProcessingStats()
         self.controller.reset()
-        
+
         self.logger.info(
             f"⚡ [CONTROL ADAPTATIVO] Iniciando lazo de control para: {path_obj.name}"
         )
@@ -829,7 +829,7 @@ class DataFluxCondenser:
 
             # Fase 2: Extract - Leer contenido crudo
             full_raw_records, full_cache = self._extract_raw_data(parser)
-            
+
             if not full_raw_records:
                 self.logger.warning("El archivo no contiene registros crudos válidos.")
                 return pd.DataFrame()
@@ -866,7 +866,7 @@ class DataFluxCondenser:
                 f"✅ [ESTABILIZADO] Proceso completado en {self._stats.processing_time:.2f}s. "
                 f"Registros procesados: {self._stats.processed_records}/{total_records}"
             )
-            
+
             return df_final
 
         except (InvalidInputError, ProcessingError):
@@ -920,28 +920,28 @@ class DataFluxCondenser:
         """
         try:
             full_raw_records = parser.parse_to_raw()
-            
+
             if not isinstance(full_raw_records, list):
                 raise ProcessingError(
                     f"parse_to_raw() debe retornar lista, recibido: {type(full_raw_records).__name__}"
                 )
-            
+
             full_cache = parser.get_parse_cache() or {}
-            
+
             if not isinstance(full_cache, dict):
                 self.logger.warning(
                     f"get_parse_cache() retornó tipo inesperado: {type(full_cache).__name__}, "
                     f"usando dict vacío"
                 )
                 full_cache = {}
-            
+
             self.logger.info(
                 f"[EXTRACT] Extraídos {len(full_raw_records)} registros | "
                 f"Cache: {len(full_cache)} entradas"
             )
-            
+
             return full_raw_records, full_cache
-        
+
         except Exception as e:
             raise ProcessingError(f"Error extrayendo datos crudos: {e}") from e
 
@@ -969,7 +969,7 @@ class DataFluxCondenser:
         current_index = 0
         current_batch_size = self.condenser_config.min_batch_size
         failed_batches_count = 0
-        
+
         # Protección contra loops infinitos
         max_iterations = total_records * SystemConstants.MAX_ITERATIONS_MULTIPLIER
         iteration_count = 0
@@ -981,7 +981,7 @@ class DataFluxCondenser:
 
         while current_index < total_records:
             iteration_count += 1
-            
+
             # Protección contra loop infinito
             if iteration_count > max_iterations:
                 raise ProcessingError(
@@ -989,7 +989,7 @@ class DataFluxCondenser:
                     f"Posible loop infinito detectado. "
                     f"Índice actual: {current_index}/{total_records}"
                 )
-            
+
             # Validar que batch_size sea válido
             if current_batch_size <= 0:
                 self.logger.error(
@@ -997,27 +997,27 @@ class DataFluxCondenser:
                     f"Reseteando a mínimo: {self.condenser_config.min_batch_size}"
                 )
                 current_batch_size = self.condenser_config.min_batch_size
-            
+
             # 1. Extraer lote actual
             end_index = min(current_index + current_batch_size, total_records)
             batch_records = full_raw_records[current_index:end_index]
-            
+
             if not batch_records:
                 self.logger.warning(
                     f"Batch vacío detectado en índice {current_index}, avanzando..."
                 )
                 current_index = end_index
                 continue
-            
+
             # 2. Calcular cache hits para el lote
             batch_cache_hits = self._calculate_cache_hits(batch_records, full_cache)
-            
+
             # 3. Medir estado del sistema (Sensores)
             metrics = self.physics.calculate_metrics(len(batch_records), batch_cache_hits)
-            
+
             # 4. Acción de control PID
             new_batch_size = self.controller.compute(metrics["saturation"])
-            
+
             # 5. Protección basada en Energía Disipada (Diodo de Rueda Libre)
             if metrics["dissipated_power"] > SystemConstants.OVERHEAT_POWER_THRESHOLD:
                 self.logger.warning(
@@ -1027,7 +1027,7 @@ class DataFluxCondenser:
                 new_batch_size = int(new_batch_size * SystemConstants.EMERGENCY_BRAKE_FACTOR)
                 new_batch_size = max(self.condenser_config.min_batch_size, new_batch_size)
                 self._stats.emergency_brakes_triggered += 1
-            
+
             # 6. Telemetría
             diagnosis = self.physics.get_system_diagnosis(metrics)
             self.logger.info(
@@ -1039,30 +1039,30 @@ class DataFluxCondenser:
                 f"Disip: {metrics['dissipated_power']:.1f}W | "
                 f"→ Next: {new_batch_size} | {diagnosis}"
             )
-            
+
             # Advertencia de flyback
             if metrics["flyback_voltage"] > SystemConstants.HIGH_FLYBACK_THRESHOLD:
                 self.logger.warning(
                     f"🛡️ [DIODO FLYBACK] Pico de inestabilidad detectado "
                     f"(V_L={metrics['flyback_voltage']:.2f}V) en batch {current_index}-{end_index}"
                 )
-            
+
             # 7. Procesar el lote
             batch_data = ParsedData(batch_records, full_cache)
             batch_success = False
-            
+
             try:
                 df_batch = self._rectify_signal(batch_data)
                 processed_batches.append(df_batch)
                 batch_success = True
-                
+
             except ProcessingError as e:
                 failed_batches_count += 1
                 self.logger.error(
                     f"[ERROR] Batch {current_index}-{end_index} falló: {e} | "
                     f"Fallos acumulados: {failed_batches_count}/{self.condenser_config.max_failed_batches}"
                 )
-                
+
                 # Decidir si abortar o continuar
                 if self.condenser_config.enable_partial_recovery:
                     if failed_batches_count > self.condenser_config.max_failed_batches:
@@ -1072,12 +1072,12 @@ class DataFluxCondenser:
                         ) from e
                     else:
                         self.logger.warning(
-                            f"[RECOVERY] Continuando con siguiente batch (modo recuperación parcial)"
+                            "[RECOVERY] Continuando con siguiente batch (modo recuperación parcial)"
                         )
                 else:
                     # Modo estricto: un fallo aborta todo
                     raise
-            
+
             # 8. Actualizar estadísticas
             self._stats.add_batch_stats(
                 batch_size=len(batch_records),
@@ -1085,7 +1085,7 @@ class DataFluxCondenser:
                 power=metrics["dissipated_power"],
                 success=batch_success
             )
-            
+
             # 9. Avanzar al siguiente batch
             current_index = end_index
             current_batch_size = new_batch_size
@@ -1094,7 +1094,7 @@ class DataFluxCondenser:
             f"[PID LOOP] Completado | Batches procesados: {self._stats.total_batches} | "
             f"Batches fallidos: {self._stats.failed_batches}"
         )
-        
+
         return processed_batches
 
     def _calculate_cache_hits(
@@ -1114,7 +1114,7 @@ class DataFluxCondenser:
         """
         if not full_cache:
             return 0
-        
+
         cache_hits = 0
         for record in batch_records:
             # Intentar varias claves posibles para linkear con cache
@@ -1123,7 +1123,7 @@ class DataFluxCondenser:
                 if line_content and line_content in full_cache:
                     cache_hits += 1
                     break
-        
+
         return cache_hits
 
     def _consolidate_results(self, processed_batches: List[pd.DataFrame]) -> pd.DataFrame:
@@ -1139,24 +1139,24 @@ class DataFluxCondenser:
         if not processed_batches:
             self.logger.warning("[CONSOLIDATE] No hay batches para consolidar")
             return pd.DataFrame()
-        
+
         try:
             # Filtrar batches vacíos
             non_empty_batches = [df for df in processed_batches if not df.empty]
-            
+
             if not non_empty_batches:
                 self.logger.warning("[CONSOLIDATE] Todos los batches están vacíos")
                 return pd.DataFrame()
-            
+
             df_final = pd.concat(non_empty_batches, ignore_index=True)
-            
+
             self.logger.info(
                 f"[CONSOLIDATE] Consolidados {len(non_empty_batches)} batches → "
                 f"{len(df_final)} registros finales"
             )
-            
+
             return df_final
-        
+
         except Exception as e:
             raise ProcessingError(f"Error consolidando resultados: {e}") from e
 
@@ -1263,7 +1263,7 @@ class DataFluxCondenser:
                 self.logger.warning(
                     f"[VALIDACIÓN] Columnas completamente nulas detectadas: {null_columns}"
                 )
-            
+
             # Detectar columnas con alta proporción de nulos
             if not df.empty:
                 high_null_cols = []
@@ -1271,7 +1271,7 @@ class DataFluxCondenser:
                     null_ratio = df[col].isnull().sum() / len(df)
                     if null_ratio > 0.9:  # >90% nulos
                         high_null_cols.append((col, f"{null_ratio:.1%}"))
-                
+
                 if high_null_cols:
                     self.logger.warning(
                         f"[VALIDACIÓN] Columnas con alta proporción de nulos: {high_null_cols}"
