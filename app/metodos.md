@@ -7,7 +7,13 @@ Aunque nuestra prioridad es su negocio, la solidez técnica es nuestra garantía
 - **Función:** Actúa como un estabilizador dinámico de señal a la entrada del sistema.
 
 #### Ingeniería de Confiabilidad (SRE) aplicada a Datos
-Esta no es una metáfora decorativa. Utilizamos ecuaciones de sistemas dinámicos para gestionar la "fricción" de los datos corruptos y evitar el sobrecalentamiento lógico del proceso. Al igual que en la ingeniería eléctrica, donde la impedancia regula el flujo de corriente para proteger los circuitos, aquí utilizamos modelos físicos para proteger la integridad del pipeline de datos ante entradas impredecibles.
+Esta no es una metáfora decorativa. Utilizamos ecuaciones de sistemas dinámicos para gestionar la "fricción" de los datos corruptos y evitar el sobrecalentamiento lógico del proceso.
+
+El objetivo es que el sistema funcione con la **Confiabilidad de una Planta Industrial**:
+
+*   **Detectar Fricción:** Identificar cuándo la "suciedad" de los datos (errores de formato, caracteres extraños) está ralentizando el proceso.
+*   **Disipar Calor:** Liberar la "presión" del sistema reduciendo la velocidad de ingesta antes de que ocurra un fallo crítico (crash).
+*   **Mantener el Flujo:** Garantizar que, sin importar cuán dañados estén los archivos de entrada, el sistema procese lo que es recuperable y reporte lo que no, sin detenerse.
 
 #### ⚙️ Nivel 1: Motor de Física RLC (El Sensor)
 El sistema evoluciona más allá de métricas simples hacia un **Modelo Energético Escalar**. En lugar de monitorear solo voltaje o corriente, unificamos las unidades bajo un lenguaje común: La Energía (Julios).

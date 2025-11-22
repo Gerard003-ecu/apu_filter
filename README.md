@@ -18,9 +18,9 @@ Hemos desplegado ingeniería avanzada para resolver desafíos de negocio especí
 
 | Tecnología | Componente | Valor de Negocio |
 | :--- | :--- | :--- |
-| **Física RLC (Sistemas Dinámicos)** | **Data Flux Condenser** | **Motor de Ingesta a Prueba de Caos.**<br>Garantiza que el sistema procese datos sucios, incompletos o corruptos sin detenerse, asegurando continuidad operativa. |
-| **Búsqueda Semántica (Vectores)** | **Memoria Institucional** | **Inteligencia Corporativa Recuperable.**<br>Recupera la experiencia de 20 años sin depender de códigos exactos. Encuentra "Muro" aunque se haya guardado como "Pantalla". |
-| **Simulación Monte Carlo** | **Radar de Riesgo** | **Protección del Margen.**<br>Visualiza la probabilidad matemática de pérdida antes de enviar la oferta, permitiendo ajustes estratégicos basados en datos, no en intuición. |
+| **Física RLC (Sistemas Dinámicos)** | **Data Flux Condenser** | **Motor de Ingesta a Prueba de Caos (Estabilidad).**<br>Garantiza que el sistema procese datos sucios sin detenerse. |
+| **Búsqueda Semántica (Vectores)** | **Memoria Institucional** | **Memoria Institucional Inteligente.**<br>Recupera la experiencia de 20 años sin depender de códigos exactos. |
+| **Simulación Monte Carlo** | **Radar de Riesgo** | **Radar de Riesgo Financiero.**<br>Visualiza la probabilidad de pérdida antes de ofertar. |
 
 ## Ingeniería Bajo el Capó (La Validación Técnica)
 
