@@ -1,22 +1,19 @@
 import sys
 from pathlib import Path
-from unittest.mock import MagicMock, patch, PropertyMock
+from unittest.mock import MagicMock, patch
 from typing import Dict, Any
 
 import numpy as np
 import pandas as pd
 import pytest
-from flask import Flask
 
 # Añadir el directorio raíz del proyecto al sys.path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from app.app import create_app
 from app.estimator import (
     _calculate_match_score,
     _find_best_keyword_match,
     _find_best_semantic_match,
-    _get_search_artifacts,
     calculate_estimate,
     safe_float_conversion,
     safe_int_conversion,
@@ -26,9 +23,8 @@ from app.estimator import (
     MatchMode,
     TipoAPU,
     TipoInsumo,
-    DEFAULT_MIN_SIMILARITY,
-    DEFAULT_MIN_MATCH_PERCENTAGE,
-    DEFAULT_TOP_K,
+    SearchArtifacts,
+    DerivationDetails,
 )
 
 
@@ -153,14 +149,13 @@ def mock_id_map():
 
 
 @pytest.fixture
-def app_context(mock_embedding_model, mock_faiss_index, mock_id_map):
-    """Crea un contexto de aplicación Flask con artefactos mockeados."""
-    app = create_app("testing")
-    with app.app_context():
-        app.config["EMBEDDING_MODEL"] = mock_embedding_model
-        app.config["FAISS_INDEX"] = mock_faiss_index
-        app.config["ID_MAP"] = mock_id_map
-        yield app
+def mock_search_artifacts(mock_embedding_model, mock_faiss_index, mock_id_map):
+    """Crea artefactos de búsqueda mockeados."""
+    return SearchArtifacts(
+        model=mock_embedding_model,
+        faiss_index=mock_faiss_index,
+        id_map=mock_id_map
+    )
 
 
 @pytest.fixture
@@ -300,94 +295,101 @@ class TestFindBestKeywordMatch:
 
     def test_keyword_match_strict_success(self, sample_apu_pool):
         log = []
-        result = _find_best_keyword_match(
+        match, details = _find_best_keyword_match(
             df_pool=sample_apu_pool,
             keywords=["muro", "ladrillo", "estructural"],
             log=log,
             strict=True,
         )
-        assert result is not None
-        assert result["CODIGO_APU"] == "APU-001"
+        assert match is not None
+        assert match["CODIGO_APU"] == "APU-001"
+        assert details is not None
+        assert details.confidence_score == 1.0
         assert "✅ Match ESTRICTO encontrado (100%)" in "\n".join(log)
 
     def test_keyword_match_strict_failure(self, sample_apu_pool):
         log = []
-        result = _find_best_keyword_match(
+        match, details = _find_best_keyword_match(
             df_pool=sample_apu_pool,
             keywords=["muro", "ladrillo", "material", "inexistente"],
             log=log,
             strict=True,
         )
-        assert result is None
+        assert match is None
+        assert details is None
         assert "❌ No se encontró match estricto" in "\n".join(log)
 
     def test_keyword_match_flexible_success(self, sample_apu_pool):
         log = []
-        result = _find_best_keyword_match(
+        match, details = _find_best_keyword_match(
             df_pool=sample_apu_pool,
             keywords=["pintura", "acrilica"],
             log=log,
             strict=False,
             min_match_percentage=50.0,
         )
-        assert result is not None
-        assert result["CODIGO_APU"] == "APU-002"
+        assert match is not None
+        assert match["CODIGO_APU"] == "APU-002"
+        assert details is not None
+        assert details.confidence_score == 1.0
         assert "✅ Match FLEXIBLE encontrado" in "\n".join(log)
 
     def test_keyword_match_below_threshold(self, sample_apu_pool):
         log = []
-        result = _find_best_keyword_match(
+        match, details = _find_best_keyword_match(
             df_pool=sample_apu_pool,
             keywords=["palabra", "totalmente", "inexistente"],
             log=log,
             strict=False,
             min_match_percentage=30.0,
         )
-        assert result is None
+        assert match is None
+        assert details is None
         assert "❌ Sin match válido" in "\n".join(log)
 
     def test_keyword_match_substring_mode(self, sample_apu_pool):
         log = []
-        result = _find_best_keyword_match(
+        match, details = _find_best_keyword_match(
             df_pool=sample_apu_pool,
             keywords=["cuadrilla", "tipo", "1"],
             log=log,
             strict=False,
             match_mode=MatchMode.SUBSTRING,
         )
-        assert result is not None
-        assert result["CODIGO_APU"] == "APU-003"
+        assert match is not None
+        assert match["CODIGO_APU"] == "APU-003"
+        assert details is not None
 
     def test_keyword_match_empty_pool(self):
         log = []
-        result = _find_best_keyword_match(
+        match, details = _find_best_keyword_match(
             df_pool=pd.DataFrame(),
             keywords=["test"],
             log=log,
         )
-        assert result is None
+        assert match is None
         assert "⚠️ Pool vacío" in "\n".join(log)
 
     def test_keyword_match_invalid_keywords(self, sample_apu_pool):
         log = []
-        result = _find_best_keyword_match(
+        match, details = _find_best_keyword_match(
             df_pool=sample_apu_pool,
             keywords=[],
             log=log,
         )
-        assert result is None
+        assert match is None
         assert "⚠️ Keywords vacías" in "\n".join(log)
 
     def test_keyword_match_invalid_mode(self, sample_apu_pool):
         log = []
-        result = _find_best_keyword_match(
+        match, details = _find_best_keyword_match(
             df_pool=sample_apu_pool,
             keywords=["muro"],
             log=log,
             match_mode="invalid_mode",
         )
         # Debe usar el modo por defecto (WORDS)
-        assert "Usando 'words'" in "\n".join(log) or result is not None
+        assert "Usando 'words'" in "\n".join(log) or match is not None
 
 
 # ============================================================================
@@ -398,119 +400,129 @@ class TestFindBestKeywordMatch:
 class TestFindBestSemanticMatch:
     """Pruebas para búsqueda semántica."""
 
-    def test_semantic_match_success(self, app_context, sample_apu_pool):
+    def test_semantic_match_success(self, mock_search_artifacts, sample_apu_pool):
         log = []
-        result = _find_best_semantic_match(
+        match, details = _find_best_semantic_match(
             df_pool=sample_apu_pool,
             query_text="pintura para exteriores",
+            search_artifacts=mock_search_artifacts,
             log=log,
             min_similarity=0.8,
         )
-        assert result is not None
-        assert result["CODIGO_APU"] == "APU-002"
+        assert match is not None
+        assert match["CODIGO_APU"] == "APU-002"
+        assert details is not None
+        assert details.match_method == "SEMANTIC"
+        assert details.confidence_score >= 0.8
         assert "✅ Coincidencia semántica encontrada" in "\n".join(log)
 
-    def test_semantic_match_below_threshold(self, app_context, sample_apu_pool):
+    def test_semantic_match_below_threshold(self, mock_search_artifacts, sample_apu_pool):
         log = []
         # Mock para retornar similitud baja
         with patch.object(
-            app_context.config["FAISS_INDEX"],
+            mock_search_artifacts.faiss_index,
             "search",
             return_value=(np.array([[0.25]]), np.array([[1]])),
         ):
-            result = _find_best_semantic_match(
+            match, details = _find_best_semantic_match(
                 df_pool=sample_apu_pool,
                 query_text="algo no relacionado",
+                search_artifacts=mock_search_artifacts,
                 log=log,
                 min_similarity=0.95,
             )
-            assert result is None
+            assert match is None
+            assert details is None
             assert "❌ Sin coincidencia válida" in "\n".join(log)
 
     def test_semantic_match_no_artifacts(self, sample_apu_pool):
         """Prueba cuando no hay artefactos de búsqueda semántica."""
-        app = create_app("testing")
-        with app.app_context():
-            # No configurar artefactos
-            log = []
-            result = _find_best_semantic_match(
-                df_pool=sample_apu_pool,
-                query_text="test query",
-                log=log,
-            )
-            assert result is None
-            assert "Artefactos de búsqueda semántica no disponibles" in "\n".join(log)
-
-    def test_semantic_match_empty_pool(self, app_context):
         log = []
-        result = _find_best_semantic_match(
+        # artifacts as None
+        match, details = _find_best_semantic_match(
+            df_pool=sample_apu_pool,
+            query_text="test query",
+            search_artifacts=None,
+            log=log,
+        )
+        assert match is None
+        assert "Artefactos de búsqueda semántica no disponibles" in "\n".join(log)
+
+    def test_semantic_match_empty_pool(self, mock_search_artifacts):
+        log = []
+        match, details = _find_best_semantic_match(
             df_pool=pd.DataFrame(),
             query_text="test query",
+            search_artifacts=mock_search_artifacts,
             log=log,
         )
-        assert result is None
+        assert match is None
         assert "⚠️ Pool de APUs vacío" in "\n".join(log)
 
-    def test_semantic_match_empty_query(self, app_context, sample_apu_pool):
+    def test_semantic_match_empty_query(self, mock_search_artifacts, sample_apu_pool):
         log = []
-        result = _find_best_semantic_match(
+        match, details = _find_best_semantic_match(
             df_pool=sample_apu_pool,
             query_text="",
+            search_artifacts=mock_search_artifacts,
             log=log,
         )
-        assert result is None
+        assert match is None
         assert "⚠️ Texto de consulta vacío" in "\n".join(log)
 
-    def test_semantic_match_embedding_error(self, app_context, sample_apu_pool):
+    def test_semantic_match_embedding_error(self, mock_search_artifacts, sample_apu_pool):
         """Prueba manejo de error al generar embedding."""
         log = []
         with patch.object(
-            app_context.config["EMBEDDING_MODEL"],
+            mock_search_artifacts.model,
             "encode",
             side_effect=Exception("Model error"),
         ):
-            result = _find_best_semantic_match(
+            match, details = _find_best_semantic_match(
                 df_pool=sample_apu_pool,
                 query_text="test query",
+                search_artifacts=mock_search_artifacts,
                 log=log,
             )
-            assert result is None
+            assert match is None
             assert "❌ ERROR al generar embedding" in "\n".join(log)
 
-    def test_semantic_match_faiss_error(self, app_context, sample_apu_pool):
+    def test_semantic_match_faiss_error(self, mock_search_artifacts, sample_apu_pool):
         """Prueba manejo de error en búsqueda FAISS."""
         log = []
         with patch.object(
-            app_context.config["FAISS_INDEX"],
+            mock_search_artifacts.faiss_index,
             "search",
             side_effect=Exception("FAISS error"),
         ):
-            result = _find_best_semantic_match(
+            match, details = _find_best_semantic_match(
                 df_pool=sample_apu_pool,
                 query_text="test query",
+                search_artifacts=mock_search_artifacts,
                 log=log,
             )
-            assert result is None
+            assert match is None
             assert "❌ ERROR en búsqueda FAISS" in "\n".join(log)
 
-    def test_semantic_match_apu_not_in_pool(self, app_context, sample_apu_pool):
+    def test_semantic_match_apu_not_in_pool(self, mock_search_artifacts, sample_apu_pool):
         """Prueba cuando el APU encontrado no está en el pool filtrado."""
         log = []
         # Mock para retornar un índice que no existe en el pool
         with patch.object(
-            app_context.config["FAISS_INDEX"],
+            mock_search_artifacts.faiss_index,
             "search",
             return_value=(np.array([[0.95]]), np.array([[99]])),
         ):
             # Agregar ese índice al mapa pero con un código inexistente
-            app_context.config["ID_MAP"]["99"] = "APU-999"
+            mock_search_artifacts.id_map["99"] = "APU-999"
             
-            result = _find_best_semantic_match(
+            match, details = _find_best_semantic_match(
                 df_pool=sample_apu_pool,
                 query_text="test query",
+                search_artifacts=mock_search_artifacts,
                 log=log,
             )
-            assert result is None
+            assert match is None
             assert "⚠️ Ningún resultado de FAISS coincide con el pool" in "\n".join(log)
 
 
@@ -523,7 +535,7 @@ class TestCalculateEstimate:
     """Pruebas de integración para el estimador."""
 
     def test_calculate_estimate_full_success(
-        self, app_context, sample_apu_pool, sample_apu_detail, sample_config
+        self, mock_search_artifacts, sample_apu_pool, sample_apu_detail, sample_config
     ):
         """Prueba exitosa con todos los componentes."""
         params = {
@@ -538,7 +550,7 @@ class TestCalculateEstimate:
             "apus_detail": sample_apu_detail,
         }
 
-        result = calculate_estimate(params, data_store, sample_config)
+        result = calculate_estimate(params, data_store, sample_config, mock_search_artifacts)
 
         assert "error" not in result
         assert result["valor_construccion"] > 0
@@ -548,25 +560,26 @@ class TestCalculateEstimate:
         assert result["factores_aplicados"]["zona"] == 1.1
         assert result["factores_aplicados"]["seguridad"] == 1.15
         assert result["factores_aplicados"]["izaje"] == 50.0
+        assert "derivation_details" in result
 
     def test_calculate_estimate_missing_material(
-        self, app_context, sample_apu_pool, sample_config
+        self, mock_search_artifacts, sample_apu_pool, sample_config
     ):
         """Prueba con material faltante."""
         params = {"cuadrilla": "1"}
         data_store = {"processed_apus": sample_apu_pool.to_dict("records")}
 
-        result = calculate_estimate(params, data_store, sample_config)
+        result = calculate_estimate(params, data_store, sample_config, mock_search_artifacts)
 
         assert "error" in result
         assert "obligatorio" in result["error"]
 
-    def test_calculate_estimate_empty_apus(self, app_context, sample_config):
+    def test_calculate_estimate_empty_apus(self, mock_search_artifacts, sample_config):
         """Prueba con APUs vacíos."""
         params = {"material": "LADRILLO"}
         data_store = {"processed_apus": []}
 
-        result = calculate_estimate(params, data_store, sample_config)
+        result = calculate_estimate(params, data_store, sample_config, mock_search_artifacts)
 
         assert "error" in result
         assert "No hay datos de APU" in result["error"]
@@ -577,14 +590,14 @@ class TestCalculateEstimate:
         self,
         mock_semantic_match,
         mock_keyword_match,
-        app_context,
+        mock_search_artifacts,
         sample_apu_pool,
         sample_config,
     ):
         """Verifica que la búsqueda semántica se use primero."""
-        # Configurar mocks
-        mock_semantic_match.return_value = sample_apu_pool.iloc[0]  # Suministro
-        mock_keyword_match.return_value = sample_apu_pool.iloc[2]  # Cuadrilla
+        # Configurar mocks para devolver (match, details)
+        mock_semantic_match.return_value = (sample_apu_pool.iloc[0], DerivationDetails("SEMANTIC", 0.9, "test", "test"))  # Suministro
+        mock_keyword_match.return_value = (sample_apu_pool.iloc[2], DerivationDetails("KEYWORD", 1.0, "test", "test"))  # Cuadrilla
 
         params = {"material": "LADRILLO", "cuadrilla": "1"}
         data_store = {
@@ -592,7 +605,7 @@ class TestCalculateEstimate:
             "apus_detail": [],
         }
 
-        result = calculate_estimate(params, data_store, sample_config)
+        result = calculate_estimate(params, data_store, sample_config, mock_search_artifacts)
 
         # La búsqueda semántica se llama 2 veces: suministro y tarea
         assert mock_semantic_match.call_count == 2
@@ -610,15 +623,15 @@ class TestCalculateEstimate:
         self,
         mock_semantic_match,
         mock_keyword_match,
-        app_context,
+        mock_search_artifacts,
         sample_apu_pool,
         sample_config,
     ):
         """Verifica el fallback a keywords cuando semántica falla."""
         # Semántica falla
-        mock_semantic_match.return_value = None
+        mock_semantic_match.return_value = (None, None)
         # Keywords tiene éxito
-        mock_keyword_match.return_value = sample_apu_pool.iloc[0]
+        mock_keyword_match.return_value = (sample_apu_pool.iloc[0], DerivationDetails("KEYWORD", 1.0, "test", "test"))
 
         params = {"material": "PINTURA", "cuadrilla": "1"}
         data_store = {
@@ -626,7 +639,7 @@ class TestCalculateEstimate:
             "apus_detail": [],
         }
 
-        result = calculate_estimate(params, data_store, sample_config)
+        result = calculate_estimate(params, data_store, sample_config, mock_search_artifacts)
 
         # Semántica se intenta 2 veces (suministro y tarea)
         assert mock_semantic_match.call_count == 2
@@ -641,30 +654,30 @@ class TestCalculateEstimate:
         self, sample_apu_pool, sample_config
     ):
         """Verifica comportamiento sin artefactos semánticos."""
-        app = create_app("testing")
-        with app.app_context():
-            # No configurar artefactos semánticos
-            app.config["EMBEDDING_MODEL"] = None
-            app.config["FAISS_INDEX"] = None
-            app.config["ID_MAP"] = None
+        # No configurar artefactos semánticos
+        search_artifacts = None # Or empty SearchArtifacts(None, None, None) if strict typing
 
-            params = {"material": "LADRILLO", "cuadrilla": "1"}
-            data_store = {
-                "processed_apus": sample_apu_pool.to_dict("records"),
-                "apus_detail": [],
-            }
+        params = {"material": "LADRILLO", "cuadrilla": "1"}
+        data_store = {
+            "processed_apus": sample_apu_pool.to_dict("records"),
+            "apus_detail": [],
+        }
 
-            with patch("app.estimator._find_best_keyword_match") as mock_kw:
-                mock_kw.return_value = sample_apu_pool.iloc[0]
+        with patch("app.estimator._find_best_keyword_match") as mock_kw:
+            mock_kw.return_value = (sample_apu_pool.iloc[0], None)
 
-                result = calculate_estimate(params, data_store, sample_config)
+            # This call will internally handle None search_artifacts by logging error and falling back or returning None
+            # Wait, _find_best_semantic_match checks artifacts validity.
+            # calculate_estimate will call semantic search, fail, then fallback to keyword
+            result = calculate_estimate(params, data_store, sample_config, search_artifacts) # Pass None
 
-                # Debe usar keywords como fallback
-                assert mock_kw.call_count >= 2
-                assert "Artefactos de búsqueda semántica no disponibles" in result["log"]
+            # Debe usar keywords como fallback because semantic search returns None if artifacts are missing
+            assert mock_kw.call_count >= 2
+            # The log message comes from inside _find_best_semantic_match
+            assert "Artefactos de búsqueda semántica no disponibles" in result["log"]
 
     def test_calculate_estimate_with_rendimiento(
-        self, app_context, sample_apu_pool, sample_apu_detail, sample_config
+        self, mock_search_artifacts, sample_apu_pool, sample_apu_detail, sample_config
     ):
         """Prueba cálculo de rendimiento desde detalle."""
         params = {"material": "PINTURA", "cuadrilla": "1"}
@@ -676,21 +689,21 @@ class TestCalculateEstimate:
         with patch("app.estimator._find_best_semantic_match") as mock_sem:
             # Retornar APU-003 para cuadrilla y APU-004 para tarea
             mock_sem.side_effect = [
-                sample_apu_pool.iloc[1],  # Suministro
-                sample_apu_pool.iloc[2],  # Tarea (APU-003)
+                (sample_apu_pool.iloc[1], None),  # Suministro
+                (sample_apu_pool.iloc[2], None),  # Tarea (APU-003)
             ]
 
             with patch("app.estimator._find_best_keyword_match") as mock_kw:
-                mock_kw.return_value = sample_apu_pool.iloc[2]  # Cuadrilla
+                mock_kw.return_value = (sample_apu_pool.iloc[2], None)  # Cuadrilla
 
-                result = calculate_estimate(params, data_store, sample_config)
+                result = calculate_estimate(params, data_store, sample_config, mock_search_artifacts)
 
                 # Verificar que se calculó el rendimiento
                 assert result["rendimiento_m2_por_dia"] > 0
                 assert "Rendimiento" in result["log"]
 
     def test_calculate_estimate_default_values(
-        self, app_context, sample_apu_pool, sample_config
+        self, mock_search_artifacts, sample_apu_pool, sample_config
     ):
         """Prueba con valores por defecto."""
         params = {"material": "LADRILLO"}  # Solo material
@@ -699,7 +712,7 @@ class TestCalculateEstimate:
             "apus_detail": [],
         }
 
-        result = calculate_estimate(params, data_store, sample_config)
+        result = calculate_estimate(params, data_store, sample_config, mock_search_artifacts)
 
         # Verificar valores por defecto
         assert "factores_aplicados" in result
@@ -708,7 +721,7 @@ class TestCalculateEstimate:
         assert result["factores_aplicados"]["izaje"] == 0.0  # MANUAL
 
     def test_calculate_estimate_invalid_config_values(
-        self, app_context, sample_apu_pool
+        self, mock_search_artifacts, sample_apu_pool
     ):
         """Prueba con valores de configuración inválidos."""
         params = {"material": "LADRILLO"}
@@ -724,7 +737,7 @@ class TestCalculateEstimate:
             "estimator_rules": {},
         }
 
-        result = calculate_estimate(params, data_store, invalid_config)
+        result = calculate_estimate(params, data_store, invalid_config, mock_search_artifacts)
 
         # No debe fallar, debe ajustar a valores válidos
         assert "error" not in result or "obligatorio" in result.get("error", "")
@@ -738,7 +751,7 @@ class TestCalculateEstimate:
 class TestEdgeCases:
     """Pruebas de casos límite y situaciones especiales."""
 
-    def test_apu_with_null_values(self, app_context):
+    def test_apu_with_null_values(self, mock_search_artifacts):
         """Prueba con APUs que contienen valores nulos."""
         apu_pool_with_nulls = pd.DataFrame(
             [
@@ -755,23 +768,23 @@ class TestEdgeCases:
         )
 
         log = []
-        result = _find_best_keyword_match(
+        match, details = _find_best_keyword_match(
             df_pool=apu_pool_with_nulls,
             keywords=["test"],
             log=log,
         )
         
         # No debe crashear
-        assert result is None
+        assert match is None
 
-    def test_very_long_description(self, app_context, sample_apu_pool):
+    def test_very_long_description(self, mock_search_artifacts, sample_apu_pool):
         """Prueba con descripciones muy largas."""
         long_desc_pool = sample_apu_pool.copy()
         long_desc_pool.loc[0, "original_description"] = "A" * 1000
         long_desc_pool.loc[0, "DESC_NORMALIZED"] = "a " * 500
 
         log = []
-        result = _find_best_keyword_match(
+        match, details = _find_best_keyword_match(
             df_pool=long_desc_pool,
             keywords=["a"],
             log=log,
@@ -781,19 +794,19 @@ class TestEdgeCases:
         log_text = "\n".join(log)
         assert "..." in log_text  # Debe truncar descripciones largas
 
-    def test_special_characters_in_keywords(self, app_context, sample_apu_pool):
+    def test_special_characters_in_keywords(self, mock_search_artifacts, sample_apu_pool):
         """Prueba con caracteres especiales en keywords."""
         log = []
-        result = _find_best_keyword_match(
+        match, details = _find_best_keyword_match(
             df_pool=sample_apu_pool,
             keywords=["muro@#$%", "ladrillo!!!"],
             log=log,
         )
         
-        # No debe crashear, la normalización debe manejar esto
-        assert result is not None or "⚠️" in "\n".join(log)
+        # No debe crashear. Si no hay match, debe indicarlo en el log.
+        assert match is not None or "No se encontraron candidatos" in "\n".join(log)
 
-    def test_zero_division_scenarios(self, app_context, sample_apu_pool):
+    def test_zero_division_scenarios(self, mock_search_artifacts, sample_apu_pool):
         """Prueba escenarios que podrían causar división por cero."""
         params = {"material": "LADRILLO", "cuadrilla": "1"}
         data_store = {
@@ -808,13 +821,13 @@ class TestEdgeCases:
         }
         config = {"param_map": {}, "estimator_thresholds": {}, "estimator_rules": {}}
 
-        result = calculate_estimate(params, data_store, config)
+        result = calculate_estimate(params, data_store, config, mock_search_artifacts)
 
         # No debe crashear por división por cero
         assert "error" not in result or "obligatorio" in result.get("error", "")
         assert result.get("rendimiento_m2_por_dia", 0) == 0
 
-    def test_negative_values_in_apus(self, app_context):
+    def test_negative_values_in_apus(self, mock_search_artifacts):
         """Prueba con valores negativos (que no deberían existir)."""
         negative_pool = pd.DataFrame(
             [
@@ -835,7 +848,7 @@ class TestEdgeCases:
         data_store = {"processed_apus": negative_pool.to_dict("records")}
         config = {"param_map": {}, "estimator_thresholds": {}, "estimator_rules": {}}
 
-        result = calculate_estimate(params, data_store, config)
+        result = calculate_estimate(params, data_store, config, mock_search_artifacts)
 
         # Debe manejar valores negativos sin crashear
         # El valor final podría ser negativo o cero según la lógica
@@ -850,7 +863,7 @@ class TestEdgeCases:
 class TestPerformance:
     """Pruebas de rendimiento con datasets grandes."""
 
-    def test_large_apu_pool(self, app_context):
+    def test_large_apu_pool(self, mock_search_artifacts):
         """Prueba con un pool grande de APUs."""
         # Crear 1000 APUs
         large_pool = pd.DataFrame(
@@ -873,14 +886,14 @@ class TestPerformance:
         import time
         
         start = time.time()
-        result = _find_best_keyword_match(
+        match, details = _find_best_keyword_match(
             df_pool=large_pool,
             keywords=["descripcion", "numero", "500"],
             log=log,
         )
         elapsed = time.time() - start
 
-        assert result is not None
+        assert match is not None
         assert elapsed < 2.0  # Debe completarse en menos de 2 segundos
         print(f"\n⏱️ Búsqueda en 1000 APUs: {elapsed:.3f}s")
 

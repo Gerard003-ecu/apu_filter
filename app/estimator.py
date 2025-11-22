@@ -5,7 +5,6 @@ from dataclasses import dataclass
 
 import numpy as np
 import pandas as pd
-from flask import current_app
 from sentence_transformers import SentenceTransformer
 
 from .utils import normalize_text
@@ -71,6 +70,14 @@ TOP_K_RANGE = (1, 100)
 # ============================================================================
 
 @dataclass
+class DerivationDetails:
+    """Detalles del razonamiento para la coincidencia encontrada (White Box)."""
+    match_method: str  # "SEMANTIC", "KEYWORD", "EXACT"
+    confidence_score: float  # 0.0 - 1.0 (o 0-100 para KEYWORD, se normalizará)
+    source: str  # De dónde vino el dato
+    reasoning: str  # Frase explicativa
+
+@dataclass
 class MatchCandidate:
     """Representa un candidato de coincidencia."""
     apu: pd.Series
@@ -78,6 +85,7 @@ class MatchCandidate:
     matches: int
     percentage: float
     similarity: Optional[float] = None
+    details: Optional[DerivationDetails] = None
 
 
 @dataclass
@@ -265,7 +273,8 @@ def _create_match_candidate(
     apu: pd.Series,
     matches: int,
     percentage: float,
-    keywords_count: int
+    keywords_count: int,
+    method: str = "KEYWORD"
 ) -> Optional[MatchCandidate]:
     """
     Crea un candidato de coincidencia validado.
@@ -275,6 +284,7 @@ def _create_match_candidate(
         matches: Número de coincidencias.
         percentage: Porcentaje de cobertura.
         keywords_count: Total de keywords buscadas.
+        method: Método de coincidencia.
     
     Returns:
         MatchCandidate o None si los datos no son válidos.
@@ -284,11 +294,19 @@ def _create_match_candidate(
     if not original_desc or original_desc == "Sin descripción":
         logger.debug(f"APU {apu.get('CODIGO_APU', 'UNKNOWN')} sin descripción válida")
     
+    details = DerivationDetails(
+        match_method=method,
+        confidence_score=percentage / 100.0,
+        source="Histórico Procesado",
+        reasoning=f"Coincidencia de {matches}/{keywords_count} palabras clave ({percentage:.0f}%)"
+    )
+
     return MatchCandidate(
         apu=apu,
         description=original_desc,
         matches=matches,
-        percentage=percentage
+        percentage=percentage,
+        details=details
     )
 
 
@@ -341,7 +359,7 @@ def _find_best_keyword_match(
     strict: bool = False,
     min_match_percentage: float = DEFAULT_MIN_MATCH_PERCENTAGE,
     match_mode: str = MatchMode.WORDS,
-) -> Optional[pd.Series]:
+) -> Tuple[Optional[pd.Series], Optional[DerivationDetails]]:
     """
     Encuentra la mejor coincidencia de APU para una lista de palabras clave.
     Soporta modos: 'words' (coincidencia exacta de palabras) y 'substring'
@@ -356,20 +374,20 @@ def _find_best_keyword_match(
         match_mode: 'words' o 'substring'.
 
     Returns:
-        pd.Series o None: El APU con mejor coincidencia, o None si no cumple criterios.
+        Tuple[Optional[pd.Series], Optional[DerivationDetails]]: El APU con mejor coincidencia y sus detalles.
     """
     # ========== VALIDACIÓN DE ENTRADAS ==========
     if not isinstance(df_pool, pd.DataFrame):
         log.append("  ❌ ERROR: df_pool no es un DataFrame.")
-        return None
+        return None, None
     
     if df_pool.empty:
         log.append("  ⚠️ Pool vacío, no hay datos para buscar.")
-        return None
+        return None, None
     
     if not keywords or not any(k.strip() for k in keywords if isinstance(k, str)):
         log.append("  ⚠️ Keywords vacías o inválidas.")
-        return None
+        return None, None
     
     # Validar que match_mode sea válido
     try:
@@ -395,7 +413,7 @@ def _find_best_keyword_match(
     
     if not keywords_clean:
         log.append("  ⚠️ Después de limpieza, no hay keywords válidas.")
-        return None
+        return None, None
 
     # ========== LOG INICIAL ==========
     log.append(f"  🔍 Buscando: '{' '.join(keywords_clean)}'")
@@ -405,8 +423,8 @@ def _find_best_keyword_match(
 
     # ========== PROCESAMIENTO DE CANDIDATOS ==========
     best_match = None
-    best_score = -1
     best_percentage = -1.0
+    best_details = None
     candidates: List[MatchCandidate] = []
 
     for idx, apu in df_pool.iterrows():
@@ -419,101 +437,81 @@ def _find_best_keyword_match(
         desc_normalized = desc_normalized.strip().lower()
         matches = 0
         percentage = 0.0
+        method_name = "KEYWORD"
 
         # Calcular matches según el modo
         if mode == MatchMode.WORDS:
             desc_words = set(desc_normalized.split())
             matches, percentage = _calculate_match_score(desc_words, keywords_clean)
+            method_name = "KEYWORD"
         
         elif mode == MatchMode.SUBSTRING:
             keyword_str = " ".join(keywords_clean)
             if keyword_str in desc_normalized:
                 matches = len(keywords_clean)
                 percentage = 100.0
+                method_name = "EXACT_SUBSTRING"
             else:
                 # Búsqueda parcial: cuántas keywords están como substring
                 matches = sum(1 for kw in keywords_clean if kw in desc_normalized)
                 percentage = (matches / len(keywords_clean) * 100.0) if keywords_clean else 0.0
+                method_name = "PARTIAL_SUBSTRING"
 
         if matches == 0:
             continue
 
         # Crear y guardar candidato
-        candidate = _create_match_candidate(apu, matches, percentage, len(keywords_clean))
+        candidate = _create_match_candidate(
+            apu, matches, percentage, len(keywords_clean), method=method_name
+        )
+
         if candidate:
             candidates.append(candidate)
 
             # Actualizar mejor coincidencia
-            if (matches > best_score or 
-                (matches == best_score and percentage > best_percentage)):
+            if percentage > best_percentage:
                 best_match = apu
-                best_score = matches
                 best_percentage = percentage
+                best_details = candidate.details
 
     # ========== ORDENAR Y MOSTRAR CANDIDATOS ==========
-    candidates.sort(key=lambda x: (x.matches, x.percentage), reverse=True)
+    candidates.sort(key=lambda x: (x.percentage, x.matches), reverse=True)
     _log_top_candidates(candidates, log, top_n=3, keywords_count=len(keywords_clean))
 
     # ========== DECISIÓN FINAL ==========
     if strict:
         if best_percentage == 100.0:
             log.append("  ✅ Match ESTRICTO encontrado (100%)!")
-            return best_match
+            return best_match, best_details
         else:
             log.append(
                 f"  ❌ No se encontró match estricto. "
                 f"Mejor coincidencia: {best_percentage:.0f}%"
             )
-            return None
+            return None, None
     else:
         if best_percentage >= min_match_percentage:
             log.append(
                 f"  ✅ Match FLEXIBLE encontrado ({best_percentage:.0f}% ≥ "
                 f"{min_match_percentage:.0f}%)"
             )
-            return best_match
+            return best_match, best_details
         else:
             log.append(
                 f"  ❌ Sin match válido. Mejor: {best_percentage:.0f}% | "
                 f"Umbral: {min_match_percentage:.0f}%"
             )
-            return None
-
-
-def _get_search_artifacts() -> Optional[SearchArtifacts]:
-    """
-    Obtiene y valida los artefactos de búsqueda semántica desde Flask app.
-    
-    Returns:
-        SearchArtifacts o None si faltan componentes.
-    """
-    try:
-        model = current_app.config.get("EMBEDDING_MODEL")
-        faiss_index = current_app.config.get("FAISS_INDEX")
-        id_map = current_app.config.get("ID_MAP")
-        
-        if not all([model, faiss_index, id_map]):
-            logger.error("Faltan artefactos de búsqueda semántica en la configuración")
-            return None
-        
-        if not isinstance(id_map, dict):
-            logger.error("ID_MAP no es un diccionario válido")
-            return None
-        
-        return SearchArtifacts(model=model, faiss_index=faiss_index, id_map=id_map)
-    
-    except RuntimeError as e:
-        logger.error(f"Error al acceder a current_app: {e}")
-        return None
+            return None, None
 
 
 def _find_best_semantic_match(
     df_pool: pd.DataFrame,
     query_text: str,
+    search_artifacts: SearchArtifacts,
     log: List[str],
     min_similarity: float = DEFAULT_MIN_SIMILARITY,
     top_k: int = DEFAULT_TOP_K,
-) -> Optional[pd.Series]:
+) -> Tuple[Optional[pd.Series], Optional[DerivationDetails]]:
     """
     Encuentra la mejor coincidencia semántica para un texto de consulta.
 
@@ -523,35 +521,35 @@ def _find_best_semantic_match(
     Args:
         df_pool: DataFrame con APUs procesados a considerar.
         query_text: Texto de consulta (ej. "muro de ladrillo").
+        search_artifacts: Artefactos de búsqueda (modelo, índice, mapa).
         log: Lista de mensajes de log (mutable).
         min_similarity: Umbral mínimo de similitud de coseno [0.0-1.0].
         top_k: Número de vecinos a buscar en el índice FAISS.
 
     Returns:
-        pd.Series o None: El APU con mejor coincidencia, o None si no cumple criterios.
+        Tuple[Optional[pd.Series], Optional[DerivationDetails]]: El APU con mejor coincidencia y sus detalles.
     """
     # ========== VALIDACIÓN DE ARTEFACTOS ==========
-    artifacts = _get_search_artifacts()
-    if not artifacts:
+    if not search_artifacts or not search_artifacts.model or not search_artifacts.faiss_index:
         log.append(
             "  ❌ ERROR: Artefactos de búsqueda semántica no disponibles. "
             "Búsqueda desactivada."
         )
-        return None
+        return None, None
 
     # ========== VALIDACIÓN DE ENTRADAS ==========
     if not isinstance(df_pool, pd.DataFrame) or df_pool.empty:
         log.append("  ⚠️ Pool de APUs vacío para búsqueda semántica.")
-        return None
+        return None, None
     
     if not query_text or not isinstance(query_text, str) or not query_text.strip():
         log.append("  ⚠️ Texto de consulta vacío o inválido.")
-        return None
+        return None, None
     
     # Validar columna CODIGO_APU
     if "CODIGO_APU" not in df_pool.columns:
         log.append("  ❌ ERROR: Columna 'CODIGO_APU' no encontrada en df_pool.")
-        return None
+        return None, None
     
     # Validar rangos numéricos
     if not validate_numeric_range(min_similarity, MIN_SIMILARITY_RANGE, "min_similarity"):
@@ -572,7 +570,7 @@ def _find_best_semantic_match(
 
     # ========== GENERAR EMBEDDING ==========
     try:
-        query_embedding = artifacts.model.encode(
+        query_embedding = search_artifacts.model.encode(
             [query_clean], 
             convert_to_numpy=True, 
             normalize_embeddings=True,
@@ -581,12 +579,12 @@ def _find_best_semantic_match(
         
         if query_embedding is None or query_embedding.size == 0:
             log.append("  ❌ ERROR: Embedding generado está vacío.")
-            return None
+            return None, None
             
     except Exception as e:
         log.append(f"  ❌ ERROR al generar embedding: {type(e).__name__}: {str(e)}")
         logger.exception("Error en generación de embedding")
-        return None
+        return None, None
 
     # ========== BÚSQUEDA EN FAISS ==========
     try:
@@ -594,30 +592,30 @@ def _find_best_semantic_match(
         query_vector = query_embedding.astype(np.float32)
         
         # Ajustar top_k si es mayor que el tamaño del índice
-        index_size = artifacts.faiss_index.ntotal
+        index_size = search_artifacts.faiss_index.ntotal
         actual_k = min(top_k, index_size)
         
         if actual_k == 0:
             log.append("  ❌ ERROR: Índice FAISS vacío.")
-            return None
+            return None, None
         
-        distances, indices = artifacts.faiss_index.search(query_vector, k=actual_k)
+        distances, indices = search_artifacts.faiss_index.search(query_vector, k=actual_k)
         
         if distances is None or indices is None:
             log.append("  ❌ ERROR: FAISS retornó resultados nulos.")
-            return None
+            return None, None
             
     except Exception as e:
         log.append(f"  ❌ ERROR en búsqueda FAISS: {type(e).__name__}: {str(e)}")
         logger.exception("Error durante búsqueda en FAISS")
-        return None
+        return None, None
 
     # ========== PROCESAMIENTO DE RESULTADOS ==========
     candidates: List[MatchCandidate] = []
     
     if indices.size == 0 or distances.size == 0:
         log.append("  ⚠️ FAISS no retornó resultados.")
-        return None
+        return None, None
 
     # Crear conjunto de códigos APU del pool para búsqueda rápida
     pool_apu_codes = set(df_pool["CODIGO_APU"].astype(str))
@@ -634,7 +632,7 @@ def _find_best_semantic_match(
             continue
         
         # Obtener código APU desde el mapa
-        apu_code = artifacts.id_map.get(str(faiss_idx))
+        apu_code = search_artifacts.id_map.get(str(faiss_idx))
         
         if apu_code is None:
             logger.debug(f"Índice FAISS {faiss_idx} no encontrado en id_map")
@@ -653,18 +651,26 @@ def _find_best_semantic_match(
         apu = apu_matches.iloc[0]
         original_desc = get_safe_column_value(apu, "original_description", "Sin descripción")
         
+        details = DerivationDetails(
+            match_method="SEMANTIC",
+            confidence_score=similarity,
+            source="Vector Database (FAISS)",
+            reasoning=f"Coincidencia semántica alta con '{original_desc[:50]}...'"
+        )
+
         candidate = MatchCandidate(
             apu=apu,
             description=original_desc,
             matches=0,  # No aplica en semántica
             percentage=0.0,  # No aplica en semántica
-            similarity=similarity
+            similarity=similarity,
+            details=details
         )
         candidates.append(candidate)
 
     if not candidates:
         log.append("  ⚠️ Ningún resultado de FAISS coincide con el pool filtrado.")
-        return None
+        return None, None
 
     # ========== ORDENAR Y MOSTRAR CANDIDATOS ==========
     candidates.sort(key=lambda x: x.similarity if x.similarity else 0.0, reverse=True)
@@ -678,14 +684,14 @@ def _find_best_semantic_match(
             f"  ✅ Coincidencia semántica encontrada: "
             f"{best_candidate.similarity:.3f} ≥ {min_similarity:.2f}"
         )
-        return best_candidate.apu
+        return best_candidate.apu, best_candidate.details
     else:
         sim_value = best_candidate.similarity if best_candidate.similarity else 0.0
         log.append(
             f"  ❌ Sin coincidencia válida. Mejor similitud: "
             f"{sim_value:.3f} < {min_similarity:.2f}"
         )
-        return None
+        return None, None
 
 
 # ============================================================================
@@ -695,8 +701,9 @@ def _find_best_semantic_match(
 def calculate_estimate(
     params: Dict[str, str], 
     data_store: Dict[str, Any], 
-    config: Dict[str, Any]
-) -> Dict[str, Union[str, float, List[str]]]:
+    config: Dict[str, Any],
+    search_artifacts: SearchArtifacts
+) -> Dict[str, Union[str, float, List[str], Dict]]:
     """
     Estima el costo de construcción con una estrategia de búsqueda híbrida.
     
@@ -707,12 +714,19 @@ def calculate_estimate(
         params: Diccionario con parámetros de entrada (material, cuadrilla, etc.)
         data_store: Diccionario con datos procesados (APUs, detalles, etc.)
         config: Diccionario con configuración (umbrales, mapeos, reglas)
+        search_artifacts: Artefactos de búsqueda semántica inyectados.
 
     Returns:
-        Dict con resultados de estimación: costos, APUs encontrados, log de ejecución.
+        Dict con resultados de estimación: costos, APUs encontrados, log, y derivation_details.
     """
     log: List[str] = ["🕵️ ESTIMADOR HÍBRIDO INICIADO"]
     log.append("=" * 70)
+
+    derivation_details = {
+        "suministro": None,
+        "tarea": None,
+        "cuadrilla": None
+    }
 
     # ========== VALIDACIÓN Y CARGA DE DATOS ==========
     log.append("\n📦 CARGA Y VALIDACIÓN DE DATOS")
@@ -821,9 +835,10 @@ def calculate_estimate(
         df_suministro_pool = df_processed_apus.copy()
 
     # Intentar búsqueda semántica primero
-    apu_suministro = _find_best_semantic_match(
+    apu_suministro, details_suministro = _find_best_semantic_match(
         df_pool=df_suministro_pool,
         query_text=material_mapped,
+        search_artifacts=search_artifacts,
         log=log,
         min_similarity=min_sim_suministro,
     )
@@ -831,13 +846,16 @@ def calculate_estimate(
     # Fallback a keywords si semántica falla
     if apu_suministro is None:
         log.append("\n  🔄 Fallback: Búsqueda por palabras clave...")
-        apu_suministro = _find_best_keyword_match(
+        apu_suministro, details_suministro = _find_best_keyword_match(
             df_suministro_pool, 
             material_keywords, 
             log, 
             strict=False,
             min_match_percentage=DEFAULT_MIN_MATCH_PERCENTAGE
         )
+
+    if details_suministro:
+        derivation_details["suministro"] = details_suministro.__dict__
 
     # Extraer valores
     valor_suministro = 0.0
@@ -896,7 +914,7 @@ def calculate_estimate(
             log.append(f"  ⚠️ Error al normalizar búsqueda: {e}")
             cuadrilla_keywords = search_term.lower().split()
         
-        apu_cuadrilla = _find_best_keyword_match(
+        apu_cuadrilla, details_cuadrilla = _find_best_keyword_match(
             df_cuadrilla_pool, 
             cuadrilla_keywords, 
             log, 
@@ -904,6 +922,9 @@ def calculate_estimate(
             min_match_percentage=min_kw_cuadrilla
         )
         
+        if details_cuadrilla:
+            derivation_details["cuadrilla"] = details_cuadrilla.__dict__
+
         if apu_cuadrilla is not None:
             costo_diario_cuadrilla = safe_float_conversion(
                 apu_cuadrilla.get("VALOR_CONSTRUCCION_UN", 0.0), 
@@ -941,9 +962,10 @@ def calculate_estimate(
         df_tarea_pool = df_processed_apus.copy()
 
     # Intentar búsqueda semántica primero
-    apu_tarea = _find_best_semantic_match(
+    apu_tarea, details_tarea = _find_best_semantic_match(
         df_pool=df_tarea_pool,
         query_text=material_mapped,
+        search_artifacts=search_artifacts,
         log=log,
         min_similarity=min_sim_tarea,
     )
@@ -951,13 +973,16 @@ def calculate_estimate(
     # Fallback a keywords si semántica falla
     if apu_tarea is None:
         log.append("\n  🔄 Fallback: Búsqueda por palabras clave...")
-        apu_tarea = _find_best_keyword_match(
+        apu_tarea, details_tarea = _find_best_keyword_match(
             df_tarea_pool, 
             material_keywords, 
             log, 
             strict=False,
             min_match_percentage=DEFAULT_MIN_MATCH_PERCENTAGE
         )
+
+    if details_tarea:
+        derivation_details["tarea"] = details_tarea.__dict__
 
     # Extraer valores y calcular rendimiento
     rendimiento_dia = 0.0
@@ -1106,5 +1131,6 @@ def calculate_estimate(
             "seguridad": factor_seguridad,
             "izaje": costo_adicional_izaje,
         },
+        "derivation_details": derivation_details,
         "log": "\n".join(log),
     }

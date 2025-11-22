@@ -28,7 +28,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 from config import config_by_name
 from models.probability_models import run_monte_carlo_simulation
 
-from .estimator import calculate_estimate
+from .estimator import calculate_estimate, SearchArtifacts
 from .presenters import APUPresenter
 from .procesador_csv import process_all_files
 from .utils import sanitize_for_json
@@ -696,9 +696,22 @@ def create_app(config_name: str) -> Flask:
 
         app.logger.info(f"Solicitud de estimación con parámetros: {params}")
 
+        # Construir artefactos de búsqueda
+        search_artifacts = SearchArtifacts(
+            model=app.config.get("EMBEDDING_MODEL"),
+            faiss_index=app.config.get("FAISS_INDEX"),
+            id_map=app.config.get("ID_MAP"),
+        )
+
         # Calcular estimación
         user_data = session_data["data"]
-        result = calculate_estimate(params, user_data, app.config.get("APP_CONFIG", {}))
+
+        result = calculate_estimate(
+            params=params,
+            data_store=user_data,
+            config=app.config.get("APP_CONFIG", {}),
+            search_artifacts=search_artifacts
+        )
 
         if "error" in result:
             app.logger.warning(f"Error en estimación: {result['error']}")

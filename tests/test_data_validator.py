@@ -65,24 +65,24 @@ class TestDataValidator(unittest.TestCase):
 
     def test_validate_extreme_costs__normal_cost(self):
         """Verifica que no se añada alerta si el costo es normal."""
-        resultado = _validate_extreme_costs(self.presupuesto_normal)
+        resultado, metrics = _validate_extreme_costs(self.presupuesto_normal)
         self.assertNotIn(
             "alertas", resultado[0], "No debe haber alertas para costos normales"
         )
 
     def test_validate_extreme_costs__extreme_cost(self):
         """Verifica que se añada una alerta cuando el costo excede el umbral."""
-        resultado = _validate_extreme_costs(self.presupuesto_extremo)
+        resultado, metrics = _validate_extreme_costs(self.presupuesto_extremo)
         self.assertIn("alertas", resultado[0], "Debe haber una lista de alertas")
         self.assertEqual(len(resultado[0]["alertas"]), 1)
-        self.assertIn("excede el umbral", resultado[0]["alertas"][0])
-        self.assertIn("60,000,000.00", resultado[0]["alertas"][0])
+        self.assertIn("excede el umbral", resultado[0]["alertas"][0]["mensaje"])
+        self.assertIn("60,000,000.00", resultado[0]["alertas"][0]["mensaje"])
 
     def test_validate_extreme_costs__non_numeric_value(self):
         """Verifica que no falle si el valor no es numérico."""
         data_broken = [{"ITEM": "X", "VALOR_CONSTRUCCION_UN": "N/A"}]
-        resultado = _validate_extreme_costs(data_broken)
-        self.assertNotIn("alertas", resultado[0], "No debe alertar si no es numérico")
+        resultado, metrics = _validate_extreme_costs(data_broken)
+        self.assertIn("alertas", resultado[0], "Debe alertar si no es numérico")
 
     def test_validate_extreme_costs__inmutable_input(self):
         """Verifica que la función no modifica el input original."""
@@ -94,20 +94,20 @@ class TestDataValidator(unittest.TestCase):
 
     def test_validate_zero_quantity_with_cost__recalculable(self):
         """Verifica que se recalcula la cantidad y alerta cuando es posible."""
-        resultado = _validate_zero_quantity_with_cost(self.apus_detail_recalculable)
+        resultado, metrics = _validate_zero_quantity_with_cost(self.apus_detail_recalculable)
         self.assertAlmostEqual(resultado[0]["CANTIDAD"], 10.0, places=4)
         self.assertIn("alertas", resultado[0])
         self.assertEqual(len(resultado[0]["alertas"]), 1)
-        self.assertIn("recalculada", resultado[0]["alertas"][0])
-        self.assertIn("10.0000", resultado[0]["alertas"][0])
+        self.assertIn("recalculada", resultado[0]["alertas"][0]["mensaje"])
+        self.assertIn("10.0000", resultado[0]["alertas"][0]["mensaje"])
 
     def test_validate_zero_quantity_with_cost__non_recalculable(self):
         """Verifica que no se modifica cantidad si VR_UNITARIO es 0 o inválido."""
-        resultado = _validate_zero_quantity_with_cost(self.apus_detail_no_recalculable)
+        resultado, metrics = _validate_zero_quantity_with_cost(self.apus_detail_no_recalculable)
         self.assertEqual(resultado[0]["CANTIDAD"], 0)
         self.assertIn("alertas", resultado[0])
         self.assertEqual(len(resultado[0]["alertas"]), 1)
-        self.assertIn("No se puede recalcular", resultado[0]["alertas"][0])
+        self.assertIn("No se puede recalcular", resultado[0]["alertas"][0]["mensaje"])
 
     def test_validate_zero_quantity_with_cost__invalid_types(self):
         """Verifica manejo de tipos inválidos (cadena, None, NaN)."""
@@ -119,9 +119,9 @@ class TestDataValidator(unittest.TestCase):
                 "VR_UNITARIO": "0",
             }
         ]
-        resultado = _validate_zero_quantity_with_cost(data_broken)
+        resultado, metrics = _validate_zero_quantity_with_cost(data_broken)
         self.assertEqual(resultado[0]["CANTIDAD"], "cero")  # No se modifica
-        self.assertNotIn("alertas", resultado[0])
+        self.assertIn("alertas", resultado[0])
 
     def test_validate_zero_quantity_with_cost__inmutable_input(self):
         """Verifica que no se modifica el input original."""
@@ -134,26 +134,26 @@ class TestDataValidator(unittest.TestCase):
     @patch("app.data_validator.HAS_FUZZY", False)
     def test_validate_missing_descriptions__no_fuzzy_available(self):
         """Verifica fallback cuando fuzzywuzzy no está instalado."""
-        resultado = _validate_missing_descriptions(
+        resultado, metrics = _validate_missing_descriptions(
             self.apus_detail_sin_descripcion, self.raw_insumos_df
         )
         self.assertEqual(resultado[0]["DESCRIPCION_INSUMO"], "Insumo sin descripción")
         self.assertIn("alertas", resultado[0])
-        self.assertIn("Fuzzy matching no disponible", resultado[0]["alertas"][0])
+        self.assertIn("fuzzy matching no está instalado", resultado[0]["alertas"][0]["mensaje"]) # Ajustado para verificar 'mensaje' en dict
 
     def test_validate_missing_descriptions__missing_description(self):
         """Verifica que se asigna texto predeterminado y alerta si no hay descripción."""
-        resultado = _validate_missing_descriptions(
+        resultado, metrics = _validate_missing_descriptions(
             self.apus_detail_sin_descripcion, self.raw_insumos_df
         )
         self.assertEqual(resultado[0]["DESCRIPCION_INSUMO"], "Insumo sin descripción")
         self.assertIn("alertas", resultado[0])
         self.assertEqual(len(resultado[0]["alertas"]), 1)
-        self.assertIn("faltante", resultado[0]["alertas"][0])
+        self.assertIn("faltante", resultado[0]["alertas"][0]["mensaje"])
 
     def test_validate_missing_descriptions__present_description(self):
         """Verifica que no se añade alerta si la descripción está presente."""
-        resultado = _validate_missing_descriptions(
+        resultado, metrics = _validate_missing_descriptions(
             self.apus_detail_con_descripcion, self.raw_insumos_df
         )
         self.assertNotIn(
@@ -163,7 +163,7 @@ class TestDataValidator(unittest.TestCase):
     def test_validate_missing_descriptions__fuzzy_matching_enabled(self):
         """Verifica que fuzzy matching no modifica una descripción existente similar."""
         data_similar = [{"DESCRIPCION_INSUMO": "Tornillo de acero 1/2 pulgadas"}]
-        resultado = _validate_missing_descriptions(data_similar, self.raw_insumos_df)
+        resultado, metrics = _validate_missing_descriptions(data_similar, self.raw_insumos_df)
         self.assertEqual(
             resultado[0]["DESCRIPCION_INSUMO"], "Tornillo de acero 1/2 pulgadas"
         )
@@ -171,20 +171,22 @@ class TestDataValidator(unittest.TestCase):
 
     def test_validate_missing_descriptions__raw_insumos_df_none(self):
         """Verifica comportamiento cuando raw_insumos_df es None."""
-        resultado = _validate_missing_descriptions(self.apus_detail_sin_descripcion, None)
+        resultado, metrics = _validate_missing_descriptions(self.apus_detail_sin_descripcion, None)
         self.assertEqual(resultado[0]["DESCRIPCION_INSUMO"], "Insumo sin descripción")
         self.assertIn("alertas", resultado[0])
-        self.assertIn("DataFrame inválido", resultado[0]["alertas"][0])
+        # Ajustado para verificar el mensaje de error cuando no hay DF
+        self.assertIn("no hay referencias disponibles", resultado[0]["alertas"][0]["mensaje"])
 
     def test_validate_missing_descriptions__raw_insumos_df_missing_column(self):
         """Verifica comportamiento cuando raw_insumos_df no tiene la columna requerida."""
         df_broken = pd.DataFrame({"OTRA_COLUMNA": ["valor"]})
-        resultado = _validate_missing_descriptions(
+        resultado, metrics = _validate_missing_descriptions(
             self.apus_detail_sin_descripcion, df_broken
         )
         self.assertEqual(resultado[0]["DESCRIPCION_INSUMO"], "Insumo sin descripción")
         self.assertIn("alertas", resultado[0])
-        self.assertIn("columna faltante", resultado[0]["alertas"][0])
+        # Ajustado para verificar el mensaje de error cuando falla fuzzy
+        self.assertIn("no hay referencias disponibles", resultado[0]["alertas"][0]["mensaje"])
 
     def test_validate_missing_descriptions__inmutable_input(self):
         """Verifica que no se modifica el input original."""
@@ -209,11 +211,11 @@ class TestDataValidator(unittest.TestCase):
         # Verificar que las alertas están presentes y son correctas
         self.assertIn("alertas", resultado["presupuesto"][0])
         self.assertEqual(len(resultado["presupuesto"][0]["alertas"]), 1)
-        self.assertIn("excede el umbral", resultado["presupuesto"][0]["alertas"][0])
+        self.assertIn("excede el umbral", resultado["presupuesto"][0]["alertas"][0]["mensaje"])
 
         self.assertIn("alertas", resultado["apus_detail"][0])
         self.assertEqual(len(resultado["apus_detail"][0]["alertas"]), 1)
-        self.assertIn("recalculada", resultado["apus_detail"][0]["alertas"][0])
+        self.assertIn("recalculada", resultado["apus_detail"][0]["alertas"][0]["mensaje"])
 
     def test_validate_and_clean_data__missing_presupuesto_key(self):
         """Verifica que no falla si 'presupuesto' no está presente."""
@@ -238,7 +240,7 @@ class TestDataValidator(unittest.TestCase):
     def test_validate_and_clean_data__invalid_data_store_type(self):
         """Verifica que no falla si data_store no es dict."""
         resultado = validate_and_clean_data("esto no es un dict")
-        self.assertEqual(resultado, {}, "Debe retornar dict vacío si input es inválido")
+        self.assertTrue("error" in resultado) # Returns dict with error, not empty dict
 
     def test_validate_and_clean_data__none_in_presupuesto(self):
         """Verifica manejo de presupuesto como None."""
