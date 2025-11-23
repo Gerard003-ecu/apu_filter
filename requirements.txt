@@ -18,6 +18,8 @@ click==8.2.1
     # via flask
 cryptography==46.0.3
     # via pdfminer-six
+deprecated==1.3.1
+    # via limits
 et-xmlfile==2.0.0
     # via openpyxl
 filelock==3.20.0
@@ -28,8 +30,11 @@ flask==3.1.2
     # via
     #   -r requirements.in
     #   flask-cors
+    #   flask-limiter
     #   flask-session
 flask-cors==6.0.1
+    # via -r requirements.in
+flask-limiter==4.0.0
     # via -r requirements.in
 flask-session==0.8.0
     # via -r requirements.in
@@ -58,11 +63,17 @@ lark==1.3.1
     # via -r requirements.in
 levenshtein==0.27.1
     # via python-levenshtein
+limits==5.6.0
+    # via flask-limiter
+markdown-it-py==4.0.0
+    # via rich
 markupsafe==2.1.5
     # via
     #   flask
     #   jinja2
     #   werkzeug
+mdurl==0.1.2
+    # via markdown-it-py
 mpmath==1.3.0
     # via sympy
 msgspec==0.19.0
@@ -77,14 +88,14 @@ numpy==1.26.4
     #   scikit-learn
     #   scipy
     #   transformers
-    # via
-    # via
-    # via
 openpyxl==3.1.5
     # via -r requirements.in
+ordered-set==4.1.0
+    # via flask-limiter
 packaging==25.0
     # via
     #   huggingface-hub
+    #   limits
     #   transformers
 pandas==2.3.2
     # via -r requirements.in
@@ -100,6 +111,8 @@ psutil==7.1.3
     # via -r requirements.in
 pycparser==2.23
     # via cffi
+pygments==2.19.2
+    # via rich
 pypdfium2==5.0.0
     # via pdfplumber
 python-dateutil==2.9.0.post0
@@ -124,6 +137,8 @@ requests==2.32.5
     # via
     #   huggingface-hub
     #   transformers
+rich==14.2.0
+    # via flask-limiter
 safetensors==0.6.2
     # via transformers
 scikit-learn==1.7.2
@@ -137,11 +152,11 @@ sentence-transformers==5.1.2
 six==1.17.0
     # via python-dateutil
 sympy==1.14.0
+    # via torch
 threadpoolctl==3.6.0
     # via scikit-learn
 tokenizers==0.22.1
     # via transformers
-    # via sentence-transformers
 tqdm==4.67.1
     # via
     #   huggingface-hub
@@ -152,7 +167,9 @@ transformers==4.57.1
 typing-extensions==4.15.0
     # via
     #   cryptography
+    #   flask-limiter
     #   huggingface-hub
+    #   limits
     #   sentence-transformers
 tzdata==2025.2
     # via pandas
@@ -164,3 +181,5 @@ werkzeug==3.1.3
     # via
     #   flask
     #   flask-cors
+wrapt==2.0.1
+    # via deprecated
