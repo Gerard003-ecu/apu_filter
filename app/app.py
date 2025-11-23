@@ -1,23 +1,42 @@
 """
-Módulo principal de la aplicación Flask - VERSIÓN CORREGIDA.
+Módulo principal de la aplicación Flask - VERSIÓN REFINADA Y ROBUSTECIDA.
 
-Gestiona el procesamiento de archivos CSV, estimaciones y simulaciones Monte Carlo.
+Gestiona el procesamiento de archivos CSV, estimaciones y simulaciones Monte Carlo
+con validaciones exhaustivas, manejo de errores robusto y observabilidad mejorada.
+
+Mejoras implementadas:
+- Validación de contenido de archivos (no solo metadata)
+- Gestión de sesiones con integridad y renovación
+- Rate limiting y protección contra abuso
+- Sistema de logging con request IDs
+- Validación de esquemas de datos
+- Cleanup de recursos más seguro
+- Métricas de rendimiento
 """
 
+import hashlib
 import json
 import logging
+import mimetypes
 import os
 import sys
 import time
+import uuid
+from collections import defaultdict
 from contextlib import contextmanager
+from dataclasses import dataclass, asdict
+from datetime import datetime, timedelta
 from functools import wraps
 from pathlib import Path
-from typing import Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 # --- Dependencias para Búsqueda Semántica ---
 import faiss
-from flask import Flask, current_app, jsonify, render_template, request, session
+import pandas as pd
+from flask import Flask, current_app, g, jsonify, render_template, request, session
 from flask_cors import CORS
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 from markupsafe import escape
 from sentence_transformers import SentenceTransformer
 from werkzeug.utils import secure_filename
@@ -40,199 +59,534 @@ from .utils import sanitize_for_json
 SESSION_TIMEOUT = 3600  # 1 hora
 MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16MB máximo por archivo
 ALLOWED_EXTENSIONS = {".csv", ".xlsx", ".xls"}
+ALLOWED_MIME_TYPES = {
+    "text/csv",
+    "application/vnd.ms-excel",
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+}
+
+# Límites de rate limiting
+RATE_LIMIT_UPLOAD = "10 per hour"
+RATE_LIMIT_API = "100 per minute"
+RATE_LIMIT_ESTIMATE = "30 per hour"
+
+# Configuración de validación de datos
+MIN_ROWS_REQUIRED = 1
+MAX_ROWS_ALLOWED = 50000
+REQUIRED_COLUMNS = {
+    "presupuesto": ["CODIGO_APU"],
+    "apus": ["CODIGO_APU"],
+    "insumos": ["CODIGO_INSUMO"],
+}
 
 
 # ============================================================================
-# CONFIGURACIÓN DE LOGGING MEJORADA
+# DATACLASSES PARA VALIDACIÓN DE ESQUEMAS
 # ============================================================================
+
+
+@dataclass
+class SessionMetadata:
+    """Metadata de sesión para validación de integridad."""
+
+    session_id: str
+    created_at: float
+    last_accessed: float
+    data_hash: str
+    version: str = "2.0"
+
+    def to_dict(self) -> Dict[str, Any]:
+        return asdict(self)
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> "SessionMetadata":
+        return cls(**data)
+
+    def is_expired(self, timeout: int = SESSION_TIMEOUT) -> bool:
+        """Verifica si la sesión ha expirado."""
+        return (time.time() - self.last_accessed) > timeout
+
+    def refresh(self) -> None:
+        """Actualiza el timestamp de último acceso."""
+        self.last_accessed = time.time()
+
+
+@dataclass
+class FileValidationResult:
+    """Resultado de validación de archivo."""
+
+    is_valid: bool
+    filename: str
+    file_type: str
+    size_bytes: int
+    row_count: Optional[int] = None
+    column_count: Optional[int] = None
+    errors: List[str] = None
+    warnings: List[str] = None
+
+    def __post_init__(self):
+        if self.errors is None:
+            self.errors = []
+        if self.warnings is None:
+            self.warnings = []
+
+
+# ============================================================================
+# CONFIGURACIÓN DE LOGGING MEJORADA CON REQUEST ID
+# ============================================================================
+
+
+class RequestIdFilter(logging.Filter):
+    """Filtro para añadir request_id a los logs."""
+
+    def filter(self, record):
+        record.request_id = g.get("request_id", "N/A")
+        record.session_id = session.get("sid", "N/A")[:8] if hasattr(session, "sid") else "N/A"
+        return True
 
 
 def setup_logging(app: Flask, log_file: str = "app.log") -> None:
     """
-    Configura el sistema de logging con rotación y formatos mejorados.
+    Configura el sistema de logging con rotación, formatos mejorados y request IDs.
 
     Args:
         app: Instancia de Flask.
         log_file: Nombre del archivo de log.
     """
-    # Crear directorio de logs si no existe
     log_dir = Path("logs")
     log_dir.mkdir(exist_ok=True)
 
-    # Formato detallado para archivo
+    # Formato detallado con request_id
     file_formatter = logging.Formatter(
-        "%(asctime)s | %(name)s | %(levelname)s | %(funcName)s:%(lineno)d | %(message)s",
+        "%(asctime)s | %(request_id)s | %(session_id)s | %(name)s | "
+        "%(levelname)s | %(funcName)s:%(lineno)d | %(message)s",
         datefmt="%Y-%m-%d %H:%M:%S",
     )
 
-    # Formato simple para consola
     console_formatter = logging.Formatter(
-        "%(asctime)s - %(levelname)s - %(message)s", datefmt="%H:%M:%S"
+        "%(asctime)s [%(request_id)s] - %(levelname)s - %(message)s",
+        datefmt="%H:%M:%S",
     )
 
-    # Handler para archivo con rotación
     from logging.handlers import RotatingFileHandler
 
     file_handler = RotatingFileHandler(
         log_dir / log_file,
-        maxBytes=10 * 1024 * 1024,  # 10MB
+        maxBytes=10 * 1024 * 1024,
         backupCount=5,
     )
     file_handler.setFormatter(file_formatter)
     file_handler.setLevel(logging.DEBUG)
+    file_handler.addFilter(RequestIdFilter())
 
-    # Handler para consola
     console_handler = logging.StreamHandler()
     console_handler.setFormatter(console_formatter)
     console_handler.setLevel(logging.INFO)
+    console_handler.addFilter(RequestIdFilter())
 
-    # Configurar logger de la aplicación
     app.logger.handlers.clear()
     app.logger.addHandler(file_handler)
     app.logger.addHandler(console_handler)
     app.logger.setLevel(logging.DEBUG)
 
-    # Configurar logger raíz
     root_logger = logging.getLogger()
     root_logger.handlers.clear()
     root_logger.addHandler(file_handler)
-    root_logger.addHandler(console_handler)
+    root_logger.addFilter(RequestIdFilter())
     root_logger.setLevel(logging.INFO)
 
 
 # ============================================================================
-# DECORADORES Y UTILIDADES - VERSIÓN CORREGIDA
+# UTILIDADES DE SEGURIDAD Y VALIDACIÓN
 # ============================================================================
+
+
+def generate_data_hash(data: Dict[str, Any]) -> str:
+    """
+    Genera un hash SHA256 de los datos para verificar integridad.
+
+    Args:
+        data: Diccionario de datos a hashear.
+
+    Returns:
+        Hash hexadecimal.
+    """
+    data_str = json.dumps(data, sort_keys=True, default=str)
+    return hashlib.sha256(data_str.encode()).hexdigest()
+
+
+def validate_data_integrity(data: Dict[str, Any], expected_hash: str) -> bool:
+    """
+    Valida que los datos no hayan sido modificados.
+
+    Args:
+        data: Datos a validar.
+        expected_hash: Hash esperado.
+
+    Returns:
+        True si los datos son íntegros.
+    """
+    current_hash = generate_data_hash(data)
+    return current_hash == expected_hash
+
+
+def validate_data_schema(data: Dict[str, Any]) -> Tuple[bool, List[str]]:
+    """
+    Valida que los datos procesados tengan la estructura esperada.
+
+    Args:
+        data: Datos a validar.
+
+    Returns:
+        Tupla (es_válido, lista_de_errores).
+    """
+    errors = []
+    required_keys = ["presupuesto", "apus_detail", "insumos"]
+
+    for key in required_keys:
+        if key not in data:
+            errors.append(f"Clave requerida faltante: {key}")
+        elif not isinstance(data[key], list):
+            errors.append(f"La clave '{key}' debe ser una lista")
+        elif len(data[key]) == 0:
+            errors.append(f"La lista '{key}' está vacía")
+
+    return len(errors) == 0, errors
+
+
+# ============================================================================
+# CLASE DE MÉTRICAS DE RENDIMIENTO
+# ============================================================================
+
+
+class PerformanceMetrics:
+    """Recolector de métricas de rendimiento."""
+
+    def __init__(self):
+        self.metrics = defaultdict(list)
+
+    def record(self, metric_name: str, value: float):
+        """Registra una métrica."""
+        self.metrics[metric_name].append({
+            "value": value,
+            "timestamp": time.time()
+        })
+
+    def get_stats(self, metric_name: str) -> Dict[str, float]:
+        """Obtiene estadísticas de una métrica."""
+        values = [m["value"] for m in self.metrics.get(metric_name, [])]
+        if not values:
+            return {}
+
+        return {
+            "count": len(values),
+            "mean": sum(values) / len(values),
+            "min": min(values),
+            "max": max(values),
+        }
+
+    def cleanup_old_metrics(self, max_age_seconds: int = 3600):
+        """Limpia métricas antiguas."""
+        cutoff = time.time() - max_age_seconds
+        for metric_name in list(self.metrics.keys()):
+            self.metrics[metric_name] = [
+                m for m in self.metrics[metric_name]
+                if m["timestamp"] > cutoff
+            ]
+
+
+# ============================================================================
+# DECORADORES MEJORADOS
+# ============================================================================
+
+
+def timed(metric_name: str = None):
+    """
+    Decorador que mide el tiempo de ejecución de una función.
+
+    Args:
+        metric_name: Nombre de la métrica (si None, usa el nombre de la función).
+    """
+
+    def decorator(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            start_time = time.time()
+            result = f(*args, **kwargs)
+            elapsed = time.time() - start_time
+
+            name = metric_name or f.__name__
+            if hasattr(current_app, "metrics"):
+                current_app.metrics.record(name, elapsed)
+
+            current_app.logger.debug(f"⏱️ {name} ejecutado en {elapsed:.3f}s")
+            return result
+
+        return decorated_function
+
+    return decorator
 
 
 def require_session(f):
     """
-    Decorador que verifica la existencia y validez de una sesión con datos procesados.
-    
-    CORRECCIÓN: Ahora usa la interfaz nativa de Flask-Session en lugar de 
-    gestión manual de Redis, eliminando el "agujero negro" de sincronización.
-    
-    Flask-Session automáticamente:
-    - Crea la sesión cuando haces session['key'] = value
-    - La persiste en Redis con el prefijo configurado
-    - La carga automáticamente en cada request
-    - Maneja la expiración según PERMANENT_SESSION_LIFETIME
-    
+    Decorador mejorado que verifica sesión con validación de integridad.
+
+    Verifica:
+    - Existencia de datos de sesión
+    - Validez del esquema de datos
+    - Integridad de datos (opcional)
+    - Expiración de sesión
+    - Renueva automáticamente el TTL
+
     Returns:
-        Una respuesta JSON de error con código 401 si no hay datos de sesión,
-        o el resultado de la función decorada si la validación es exitosa.
+        Función decorada con validación de sesión robusta.
     """
 
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        # Verificar que la sesión contiene datos procesados
-        if 'processed_data' not in session:
-            response = {
-                "error": "Sesión no iniciada o datos no encontrados. "
-                        "Por favor, cargue los archivos nuevamente.",
-                "code": "SESSION_MISSING"
-            }
+        # 1. Verificar existencia de datos
+        if "processed_data" not in session:
             current_app.logger.warning(
                 f"Intento de acceso sin sesión válida desde {request.remote_addr}"
             )
-            return jsonify(response), 401
+            return jsonify({
+                "error": "Sesión no iniciada o expirada. Por favor, cargue los archivos nuevamente.",
+                "code": "SESSION_MISSING",
+            }), 401
 
-        # Verificar que los datos son válidos (no None ni vacíos)
-        if not session['processed_data'] or not isinstance(session['processed_data'], dict):
-            response = {
-                "error": "Datos de sesión corruptos. Por favor, recargue los archivos.",
-                "code": "SESSION_CORRUPTED"
-            }
-            current_app.logger.error(
-                f"Datos de sesión inválidos detectados: {type(session.get('processed_data'))}"
-            )
-            # Limpiar la sesión corrupta
+        # 2. Verificar metadata de sesión
+        if "session_metadata" not in session:
+            current_app.logger.error("Sesión sin metadata detectada")
             session.clear()
-            return jsonify(response), 401
+            return jsonify({
+                "error": "Sesión corrupta. Por favor, recargue los archivos.",
+                "code": "SESSION_CORRUPTED",
+            }), 401
 
-        # Preparar datos para la función decorada
-        session_data = {"data": session['processed_data']}
+        try:
+            metadata = SessionMetadata.from_dict(session["session_metadata"])
+        except (TypeError, KeyError) as e:
+            current_app.logger.error(f"Error al parsear metadata de sesión: {e}")
+            session.clear()
+            return jsonify({
+                "error": "Metadata de sesión inválida.",
+                "code": "SESSION_INVALID",
+            }), 401
 
-        # Marcar la sesión como modificada para refrescar el TTL en Redis
-        # Esto extiende automáticamente la vida de la sesión
+        # 3. Verificar expiración
+        if metadata.is_expired():
+            current_app.logger.info(
+                f"Sesión expirada: {metadata.session_id[:8]}... "
+                f"(última actividad hace {time.time() - metadata.last_accessed:.0f}s)"
+            )
+            session.clear()
+            return jsonify({
+                "error": "Sesión expirada. Por favor, cargue los archivos nuevamente.",
+                "code": "SESSION_EXPIRED",
+            }), 401
+
+        # 4. Validar esquema de datos
+        processed_data = session["processed_data"]
+        is_valid, errors = validate_data_schema(processed_data)
+
+        if not is_valid:
+            current_app.logger.error(
+                f"Esquema de datos inválido: {errors}"
+            )
+            session.clear()
+            return jsonify({
+                "error": "Datos de sesión corruptos.",
+                "code": "SCHEMA_INVALID",
+                "details": errors,
+            }), 401
+
+        # 5. Validar integridad (opcional, puede ser costoso)
+        if current_app.config.get("VALIDATE_SESSION_INTEGRITY", False):
+            if not validate_data_integrity(processed_data, metadata.data_hash):
+                current_app.logger.error(
+                    f"Integridad de datos comprometida para sesión {metadata.session_id[:8]}..."
+                )
+                session.clear()
+                return jsonify({
+                    "error": "Integridad de datos comprometida.",
+                    "code": "INTEGRITY_FAILED",
+                }), 401
+
+        # 6. Renovar sesión
+        metadata.refresh()
+        session["session_metadata"] = metadata.to_dict()
         session.modified = True
 
         current_app.logger.debug(
-            f"Sesión válida encontrada: {session.sid[:8]}... "
-            f"con {len(session['processed_data'])} claves"
+            f"✓ Sesión válida: {metadata.session_id[:8]}... | "
+            f"Edad: {time.time() - metadata.created_at:.0f}s"
         )
 
+        # 7. Inyectar datos en la función
+        session_data = {"data": processed_data, "metadata": metadata}
         return f(session_data=session_data, *args, **kwargs)
 
     return decorated_function
 
 
 def handle_errors(f):
-    """Decorador para manejo centralizado de errores."""
+    """Decorador mejorado para manejo centralizado de errores con contexto."""
 
     @wraps(f)
     def decorated_function(*args, **kwargs):
         try:
             return f(*args, **kwargs)
+
         except ValueError as e:
-            current_app.logger.warning(f"Error de validación en {f.__name__}: {str(e)}")
-            response = {"error": str(e), "code": "VALIDATION_ERROR"}
-            return jsonify(response), 400
+            current_app.logger.warning(
+                f"Error de validación en {f.__name__}: {str(e)}",
+                extra={"endpoint": request.endpoint, "method": request.method},
+            )
+            return jsonify({
+                "error": str(e),
+                "code": "VALIDATION_ERROR",
+                "endpoint": request.endpoint,
+            }), 400
+
         except KeyError as e:
-            current_app.logger.error(f"Clave faltante en {f.__name__}: {str(e)}")
-            response = {
+            current_app.logger.error(
+                f"Clave faltante en {f.__name__}: {str(e)}",
+                extra={"endpoint": request.endpoint},
+            )
+            return jsonify({
                 "error": f"Dato requerido faltante: {str(e)}",
-                "code": "MISSING_KEY"
-            }
-            return jsonify(response), 400
+                "code": "MISSING_KEY",
+                "key": str(e),
+            }), 400
+
+        except FileNotFoundError as e:
+            current_app.logger.error(f"Archivo no encontrado: {str(e)}")
+            return jsonify({
+                "error": "Archivo requerido no encontrado",
+                "code": "FILE_NOT_FOUND",
+            }), 404
+
+        except PermissionError as e:
+            current_app.logger.error(f"Error de permisos: {str(e)}")
+            return jsonify({
+                "error": "Error de permisos al acceder a recursos",
+                "code": "PERMISSION_DENIED",
+            }), 500
+
+        except json.JSONDecodeError as e:
+            current_app.logger.error(f"Error al parsear JSON: {str(e)}")
+            return jsonify({
+                "error": "Formato JSON inválido",
+                "code": "INVALID_JSON",
+                "details": str(e),
+            }), 400
+
+        except pd.errors.EmptyDataError as e:
+            current_app.logger.error(f"Archivo vacío: {str(e)}")
+            return jsonify({
+                "error": "El archivo proporcionado está vacío",
+                "code": "EMPTY_FILE",
+            }), 400
+
+        except pd.errors.ParserError as e:
+            current_app.logger.error(f"Error al parsear CSV/Excel: {str(e)}")
+            return jsonify({
+                "error": "Error al leer el archivo. Verifique el formato.",
+                "code": "PARSE_ERROR",
+            }), 400
+
         except Exception as e:
             current_app.logger.error(
-                f"Error no controlado en {f.__name__}: {str(e)}", exc_info=True
+                f"Error no controlado en {f.__name__}: {str(e)}",
+                exc_info=True,
+                extra={
+                    "endpoint": request.endpoint,
+                    "method": request.method,
+                    "remote_addr": request.remote_addr,
+                },
             )
-            response = {
+            return jsonify({
                 "error": "Error interno del servidor",
-                "code": "INTERNAL_ERROR"
-            }
-            return jsonify(response), 500
+                "code": "INTERNAL_ERROR",
+                "request_id": g.get("request_id", "N/A"),
+            }), 500
 
     return decorated_function
 
 
 @contextmanager
 def temporary_upload_directory(base_path: Path, session_id: str):
-    """Context manager para manejar directorios temporales de forma segura."""
+    """
+    Context manager mejorado para manejar directorios temporales de forma segura.
+
+    Mejoras:
+    - Múltiples intentos de limpieza
+    - Logging detallado de errores
+    - Validación de paths
+    - Manejo de archivos bloqueados
+    """
     user_dir = base_path / session_id
+
+    # Validar que el path no escape del directorio base
+    try:
+        user_dir = user_dir.resolve()
+        base_path = base_path.resolve()
+        if not str(user_dir).startswith(str(base_path)):
+            raise ValueError("Path traversal detectado")
+    except (ValueError, OSError) as e:
+        logging.error(f"Error de seguridad en path: {e}")
+        raise
+
     user_dir.mkdir(parents=True, exist_ok=True)
 
     try:
         yield user_dir
     finally:
-        # Limpiar archivos temporales
-        if user_dir.exists():
-            for file in user_dir.iterdir():
-                try:
-                    file.unlink()
-                except Exception as e:
-                    logging.warning(f"No se pudo eliminar {file}: {e}")
-
+        # Intentar limpiar con múltiples intentos
+        max_attempts = 3
+        for attempt in range(max_attempts):
             try:
-                user_dir.rmdir()
+                if user_dir.exists():
+                    # Eliminar archivos
+                    for file_path in user_dir.iterdir():
+                        try:
+                            if file_path.is_file():
+                                file_path.unlink()
+                            elif file_path.is_dir():
+                                import shutil
+                                shutil.rmtree(file_path)
+                        except Exception as e:
+                            logging.warning(
+                                f"Intento {attempt + 1}/{max_attempts}: "
+                                f"No se pudo eliminar {file_path}: {e}"
+                            )
+
+                    # Eliminar directorio
+                    user_dir.rmdir()
+                    logging.debug(f"Directorio temporal limpiado: {user_dir}")
+                    break
+
             except Exception as e:
-                logging.warning(f"No se pudo eliminar directorio {user_dir}: {e}")
+                if attempt == max_attempts - 1:
+                    logging.error(
+                        f"No se pudo limpiar {user_dir} después de {max_attempts} intentos: {e}"
+                    )
+                else:
+                    time.sleep(0.1)  # Pequeña pausa antes de reintentar
 
 
 # ============================================================================
-# VALIDADORES
+# VALIDADORES MEJORADOS
 # ============================================================================
 
 
 class FileValidator:
-    """Valida archivos subidos."""
+    """Validador robusto de archivos con verificación de contenido."""
 
     @staticmethod
-    def validate_file(file) -> Tuple[bool, Optional[str]]:
+    def validate_file_metadata(file) -> Tuple[bool, Optional[str]]:
         """
-        Valida que un archivo sea válido para procesamiento.
+        Valida metadata básica del archivo.
 
         Returns:
             Tupla (es_válido, mensaje_error).
@@ -248,27 +602,209 @@ class FileValidator:
         if extension not in ALLOWED_EXTENSIONS:
             return False, f"Extensión no permitida: {extension}"
 
-        # Verificar el tamaño del archivo
-        file.seek(0, 2)  # Mover al final
+        # Verificar tamaño
+        file.seek(0, 2)
         file_size = file.tell()
-        file.seek(0)  # Volver al inicio
+        file.seek(0)
+
+        if file_size == 0:
+            return False, "El archivo está vacío"
 
         if file_size > MAX_CONTENT_LENGTH:
-            return False, f"Archivo demasiado grande: {file_size / (1024 * 1024):.2f}MB"
+            size_mb = file_size / (1024 * 1024)
+            max_mb = MAX_CONTENT_LENGTH / (1024 * 1024)
+            return False, f"Archivo demasiado grande: {size_mb:.2f}MB (máx: {max_mb:.2f}MB)"
 
         return True, None
 
+    @staticmethod
+    def validate_mime_type(file) -> Tuple[bool, Optional[str]]:
+        """
+        Valida el tipo MIME del archivo.
+
+        Returns:
+            Tupla (es_válido, mensaje_error).
+        """
+        # Obtener MIME type desde el nombre del archivo
+        mime_type, _ = mimetypes.guess_type(file.filename)
+
+        if mime_type not in ALLOWED_MIME_TYPES:
+            return False, f"Tipo MIME no permitido: {mime_type}"
+
+        return True, None
+
+    @staticmethod
+    def validate_file_content(
+        file_path: Path, file_type: str, required_columns: List[str]
+    ) -> FileValidationResult:
+        """
+        Valida el contenido del archivo CSV/Excel.
+
+        Args:
+            file_path: Ruta del archivo.
+            file_type: Tipo de archivo ('presupuesto', 'apus', 'insumos').
+            required_columns: Columnas requeridas.
+
+        Returns:
+            FileValidationResult con detalles de validación.
+        """
+        result = FileValidationResult(
+            is_valid=False,
+            filename=file_path.name,
+            file_type=file_type,
+            size_bytes=file_path.stat().st_size,
+        )
+
+        try:
+            # Leer archivo
+            if file_path.suffix.lower() == ".csv":
+                df = pd.read_csv(file_path, nrows=1)
+            else:
+                df = pd.read_excel(file_path, nrows=1)
+
+            result.column_count = len(df.columns)
+
+            # Verificar columnas requeridas
+            missing_columns = set(required_columns) - set(df.columns)
+            if missing_columns:
+                result.errors.append(
+                    f"Columnas faltantes: {', '.join(missing_columns)}"
+                )
+                return result
+
+            # Leer archivo completo para validar filas
+            if file_path.suffix.lower() == ".csv":
+                df = pd.read_csv(file_path)
+            else:
+                df = pd.read_excel(file_path)
+
+            result.row_count = len(df)
+
+            # Validar cantidad de filas
+            if result.row_count < MIN_ROWS_REQUIRED:
+                result.errors.append(
+                    f"Archivo con muy pocas filas: {result.row_count} (mín: {MIN_ROWS_REQUIRED})"
+                )
+                return result
+
+            if result.row_count > MAX_ROWS_ALLOWED:
+                result.warnings.append(
+                    f"Archivo grande: {result.row_count} filas (máx recomendado: {MAX_ROWS_ALLOWED})"
+                )
+
+            # Verificar valores nulos en columnas críticas
+            for col in required_columns:
+                null_count = df[col].isnull().sum()
+                if null_count > 0:
+                    null_pct = (null_count / result.row_count) * 100
+                    if null_pct > 50:
+                        result.errors.append(
+                            f"Columna '{col}' tiene {null_pct:.1f}% valores nulos"
+                        )
+                    elif null_pct > 10:
+                        result.warnings.append(
+                            f"Columna '{col}' tiene {null_pct:.1f}% valores nulos"
+                        )
+
+            # Si no hay errores, el archivo es válido
+            result.is_valid = len(result.errors) == 0
+
+        except pd.errors.EmptyDataError:
+            result.errors.append("El archivo está vacío")
+        except pd.errors.ParserError as e:
+            result.errors.append(f"Error al parsear archivo: {str(e)}")
+        except Exception as e:
+            result.errors.append(f"Error inesperado: {str(e)}")
+
+        return result
+
+    @classmethod
+    def validate_complete(
+        cls, file, file_type: str
+    ) -> Tuple[FileValidationResult, Optional[str]]:
+        """
+        Validación completa: metadata + MIME + contenido.
+
+        Args:
+            file: Objeto de archivo de werkzeug.
+            file_type: Tipo de archivo.
+
+        Returns:
+            Tupla (FileValidationResult, path_temporal).
+        """
+        # 1. Validar metadata
+        is_valid, error = cls.validate_file_metadata(file)
+        if not is_valid:
+            return (
+                FileValidationResult(
+                    is_valid=False,
+                    filename=file.filename,
+                    file_type=file_type,
+                    size_bytes=0,
+                    errors=[error],
+                ),
+                None,
+            )
+
+        # 2. Validar MIME type
+        is_valid, error = cls.validate_mime_type(file)
+        if not is_valid:
+            return (
+                FileValidationResult(
+                    is_valid=False,
+                    filename=file.filename,
+                    file_type=file_type,
+                    size_bytes=0,
+                    errors=[error],
+                ),
+                None,
+            )
+
+        # 3. Guardar temporalmente y validar contenido
+        import tempfile
+
+        temp_dir = Path(tempfile.gettempdir()) / "apu_validation"
+        temp_dir.mkdir(exist_ok=True)
+
+        temp_file = temp_dir / secure_filename(file.filename)
+
+        try:
+            file.save(str(temp_file))
+
+            required_cols = REQUIRED_COLUMNS.get(file_type, [])
+            content_result = cls.validate_file_content(temp_file, file_type, required_cols)
+
+            return content_result, str(temp_file)
+
+        except Exception as e:
+            return (
+                FileValidationResult(
+                    is_valid=False,
+                    filename=file.filename,
+                    file_type=file_type,
+                    size_bytes=0,
+                    errors=[f"Error al guardar archivo temporal: {str(e)}"],
+                ),
+                None,
+            )
+
 
 # ============================================================================
-# CARGA DE MODELOS DE BÚSQUEDA SEMÁNTICA
+# CARGA DE MODELOS DE BÚSQUEDA SEMÁNTICA (MEJORADA)
 # ============================================================================
 
 
-def load_semantic_search_artifacts(app: Flask):
+def load_semantic_search_artifacts(app: Flask) -> bool:
     """
     Carga el índice FAISS, el mapeo de IDs y el modelo de embeddings.
-    Lee el nombre del modelo desde metadata.json para carga dinámica.
-    Si los archivos no existen, registra una advertencia y desactiva la función.
+
+    Mejoras:
+    - Validación de integridad de archivos
+    - Manejo robusto de errores
+    - Verificación de compatibilidad
+
+    Returns:
+        True si la carga fue exitosa, False en caso contrario.
     """
     app.logger.info("Iniciando carga de artefactos de búsqueda semántica...")
 
@@ -277,59 +813,105 @@ def load_semantic_search_artifacts(app: Flask):
     map_path = embeddings_dir / "id_map.json"
     metadata_path = embeddings_dir / "metadata.json"
 
-    # Establecer valores por defecto en None
+    # Valores por defecto
     app.config["FAISS_INDEX"] = None
     app.config["ID_MAP"] = None
     app.config["EMBEDDING_MODEL"] = None
+    app.config["SEMANTIC_SEARCH_ENABLED"] = False
 
     try:
-        # 1. Validar que todos los archivos necesarios existan
-        if not all([index_path.exists(), map_path.exists(), metadata_path.exists()]):
+        # 1. Validar existencia de archivos
+        missing_files = []
+        for path in [index_path, map_path, metadata_path]:
+            if not path.exists():
+                missing_files.append(path.name)
+
+        if missing_files:
             app.logger.warning(
-                "No se encontraron todos los archivos de embeddings. "
-                "La búsqueda semántica estará desactivada. "
+                f"Archivos de embeddings faltantes: {', '.join(missing_files)}. "
                 "Ejecute 'scripts/generate_embeddings.py' para generarlos."
             )
-            return
+            return False
 
-        # 2. Cargar metadata para obtener el nombre del modelo dinámicamente
+        # 2. Cargar y validar metadata
         with open(metadata_path, "r", encoding="utf-8") as f:
             metadata = json.load(f)
 
-        model_name = metadata.get("model_name")
-        if not model_name:
-            raise ValueError("El 'model_name' no se encontró en metadata.json")
+        required_metadata = ["model_name", "vector_dimension", "total_vectors"]
+        missing_metadata = [k for k in required_metadata if k not in metadata]
 
-        # 3. Cargar los artefactos
+        if missing_metadata:
+            raise ValueError(
+                f"Metadata incompleta. Faltantes: {', '.join(missing_metadata)}"
+            )
+
+        model_name = metadata["model_name"]
+        expected_dimension = metadata["vector_dimension"]
+        expected_vectors = metadata["total_vectors"]
+
+        # 3. Cargar índice FAISS
         faiss_index = faiss.read_index(str(index_path))
 
+        # Validar dimensión
+        if faiss_index.d != expected_dimension:
+            raise ValueError(
+                f"Dimensión del índice ({faiss_index.d}) no coincide "
+                f"con metadata ({expected_dimension})"
+            )
+
+        # Validar cantidad de vectores
+        if faiss_index.ntotal != expected_vectors:
+            app.logger.warning(
+                f"Cantidad de vectores ({faiss_index.ntotal}) difiere "
+                f"de metadata ({expected_vectors})"
+            )
+
+        # 4. Cargar mapeo de IDs
         with open(map_path, "r", encoding="utf-8") as f:
             id_map = json.load(f)
 
+        if len(id_map) != expected_vectors:
+            app.logger.warning(
+                f"Tamaño del mapeo ({len(id_map)}) difiere de metadata ({expected_vectors})"
+            )
+
+        # 5. Cargar modelo de embeddings
+        app.logger.info(f"Cargando modelo de embeddings: {model_name}")
         embedding_model = SentenceTransformer(model_name)
 
-        # 4. Guardar en la configuración de la app solo si todo fue exitoso
+        # Validar dimensión del modelo
+        test_embedding = embedding_model.encode(["test"])
+        if test_embedding.shape[1] != expected_dimension:
+            raise ValueError(
+                f"Dimensión del modelo ({test_embedding.shape[1]}) "
+                f"no coincide con metadata ({expected_dimension})"
+            )
+
+        # 6. Guardar en configuración
         app.config["FAISS_INDEX"] = faiss_index
         app.config["ID_MAP"] = id_map
         app.config["EMBEDDING_MODEL"] = embedding_model
+        app.config["SEMANTIC_SEARCH_ENABLED"] = True
+        app.config["EMBEDDING_METADATA"] = metadata
 
         app.logger.info(
-            f"✅ Búsqueda semántica lista. Modelo: '{model_name}', "
-            f"Vectores: {faiss_index.ntotal}"
+            f"✅ Búsqueda semántica activada | Modelo: '{model_name}' | "
+            f"Vectores: {faiss_index.ntotal} | Dimensión: {faiss_index.d}"
         )
+
+        return True
 
     except Exception as e:
         app.logger.error(
-            f"❌ Error crítico al cargar artefactos de búsqueda semántica: {e}",
+            f"❌ Error al cargar artefactos de búsqueda semántica: {e}",
             exc_info=True,
         )
-        # Asegurar que la configuración quede limpia en caso de error
         app.config["FAISS_INDEX"] = None
         app.config["ID_MAP"] = None
         app.config["EMBEDDING_MODEL"] = None
-        app.logger.warning(
-            "La funcionalidad de búsqueda semántica ha sido desactivada debido a un error."
-        )
+        app.config["SEMANTIC_SEARCH_ENABLED"] = False
+
+        return False
 
 
 # ============================================================================
@@ -339,7 +921,14 @@ def load_semantic_search_artifacts(app: Flask):
 
 def create_app(config_name: str) -> Flask:
     """
-    Crea y configura una instancia de la aplicación Flask.
+    Crea y configura una instancia de la aplicación Flask con configuración robusta.
+
+    Mejoras:
+    - Validación de configuración al inicio
+    - Sistema de métricas integrado
+    - Rate limiting configurado
+    - Logging con request IDs
+    - Gestión de sesiones mejorada
 
     Args:
         config_name: Nombre del entorno de configuración.
@@ -347,40 +936,69 @@ def create_app(config_name: str) -> Flask:
     Returns:
         Instancia configurada de Flask.
     """
-    app = Flask(__name__, static_folder='../static', static_url_path='/static')
+    app = Flask(__name__, static_folder="../static", static_url_path="/static")
 
-    # Configuración básica
+    # ========================================================================
+    # CONFIGURACIÓN BÁSICA
+    # ========================================================================
+
     app.config.from_object(config_by_name[config_name])
     app.config["MAX_CONTENT_LENGTH"] = MAX_CONTENT_LENGTH
+    app.config["VALIDATE_SESSION_INTEGRITY"] = config_name == "production"
 
-    # SECRET_KEY estable
-    app.config["SECRET_KEY"] = os.environ.get(
-        "SECRET_KEY", "dev_key_fija_y_secreta_12345"
-    )
+    # SECRET_KEY desde variable de entorno (obligatoria en producción)
+    secret_key = os.environ.get("SECRET_KEY")
+    if config_name == "production" and not secret_key:
+        raise ValueError("SECRET_KEY es obligatoria en producción")
 
-    # Configurar logging
+    app.config["SECRET_KEY"] = secret_key or "dev_key_fija_y_secreta_12345"
+
+    # ========================================================================
+    # CONFIGURACIÓN DE LOGGING
+    # ========================================================================
+
     setup_logging(app)
-    app.logger.info(f"Iniciando aplicación en modo: {config_name}")
+    app.logger.info(f"{'=' * 60}")
+    app.logger.info(f"Iniciando aplicación en modo: {config_name.upper()}")
+    app.logger.info(f"{'=' * 60}")
 
     # ========================================================================
-    # CONFIGURACIÓN DE SESIÓN Y CORS (VERSIÓN CORREGIDA)
+    # SISTEMA DE MÉTRICAS
     # ========================================================================
 
-    # 1. CORS Permisivo
+    app.metrics = PerformanceMetrics()
+
+    # ========================================================================
+    # CONFIGURACIÓN DE CORS
+    # ========================================================================
+
     CORS(app, supports_credentials=True)
 
-    # 2. Redis y Flask-Session
+    # ========================================================================
+    # CONFIGURACIÓN DE REDIS Y SESIONES
+    # ========================================================================
+
     import redis
     from flask_session import Session
+
+    redis_url = app.config.get("REDIS_URL", "redis://localhost:6379/0")
+
+    try:
+        redis_client = redis.from_url(redis_url, decode_responses=False)
+        redis_client.ping()
+        app.logger.info(f"✅ Conexión a Redis exitosa: {redis_url}")
+    except redis.ConnectionError as e:
+        app.logger.error(f"❌ Error de conexión a Redis: {e}")
+        raise
 
     app.config["SESSION_TYPE"] = "redis"
     app.config["SESSION_PERMANENT"] = True
     app.config["SESSION_USE_SIGNER"] = True
     app.config["SESSION_KEY_PREFIX"] = "apu_filter:session:"
-    app.config["SESSION_REDIS"] = redis.from_url(app.config["REDIS_URL"])
+    app.config["SESSION_REDIS"] = redis_client
     app.config["PERMANENT_SESSION_LIFETIME"] = SESSION_TIMEOUT
 
-    # 3. Configuración de Cookie
+    # Configuración de cookies
     app.config["SESSION_COOKIE_NAME"] = "apu_session"
     app.config["SESSION_COOKIE_PATH"] = "/"
     app.config["SESSION_COOKIE_HTTPONLY"] = True
@@ -388,33 +1006,52 @@ def create_app(config_name: str) -> Flask:
 
     if config_name == "production":
         app.config["SESSION_COOKIE_SECURE"] = True
-        app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
+        app.config["SESSION_COOKIE_SAMESITE"] = "Strict"
     else:
         app.config["SESSION_COOKIE_SECURE"] = False
         app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
 
     Session(app)
 
-    # Cargar configuración específica de la aplicación
+    # ========================================================================
+    # RATE LIMITING
+    # ========================================================================
+
+    limiter = Limiter(
+        app=app,
+        key_func=get_remote_address,
+        default_limits=["200 per day", "50 per hour"],
+        storage_uri=redis_url,
+    )
+
+    # ========================================================================
+    # CONFIGURACIÓN DE LA APLICACIÓN
+    # ========================================================================
+
     config_path = Path(__file__).parent / "config.json"
     try:
         with open(config_path, "r", encoding="utf-8") as f:
             app.config["APP_CONFIG"] = json.load(f)
-            app.logger.info("Configuración cargada exitosamente desde config.json")
+            app.logger.info("✅ Configuración cargada desde config.json")
     except (FileNotFoundError, json.JSONDecodeError) as e:
-        app.logger.error(f"Error al cargar config.json: {e}")
+        app.logger.error(f"❌ Error al cargar config.json: {e}")
         app.config["APP_CONFIG"] = {}
 
-    # Configurar carpeta de plantillas
+    # ========================================================================
+    # CONFIGURACIÓN DE DIRECTORIOS
+    # ========================================================================
+
     project_root = Path(__file__).parent.parent
     app.template_folder = str(project_root / "templates")
 
-    # Crear directorio de uploads si no existe
     upload_folder = Path(app.config.get("UPLOAD_FOLDER", "uploads"))
     upload_folder.mkdir(exist_ok=True)
     app.config["UPLOAD_FOLDER"] = str(upload_folder)
 
-    # Inicializar presentador de APU
+    # ========================================================================
+    # INICIALIZACIÓN DE COMPONENTES
+    # ========================================================================
+
     apu_presenter = APUPresenter(app.logger)
 
     # Cargar artefactos de búsqueda semántica
@@ -427,23 +1064,57 @@ def create_app(config_name: str) -> Flask:
 
     @app.before_request
     def before_request_func():
-        """Registra información de la solicitud antes de que se procese."""
+        """Middleware para añadir request_id y logging."""
+        # Generar request_id único
+        g.request_id = str(uuid.uuid4())[:8]
+
+        # Timestamp de inicio
+        g.start_time = time.time()
+
+        # Logging
         app.logger.debug(
-            f"Request: {request.method} {request.path} | "
+            f"➡️  Request iniciado: {request.method} {request.path} | "
             f"Session: {'✓' if 'processed_data' in session else '✗'} | "
             f"IP: {request.remote_addr}"
         )
 
     @app.after_request
     def after_request_func(response):
-        """Añade cabeceras de seguridad a la respuesta."""
+        """Middleware para añadir cabeceras de seguridad y métricas."""
+        # Cabeceras de seguridad
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["X-Frame-Options"] = "DENY"
         response.headers["X-XSS-Protection"] = "1; mode=block"
+        response.headers["X-Request-ID"] = g.get("request_id", "N/A")
+
+        # Métricas de tiempo de respuesta
+        if hasattr(g, "start_time"):
+            elapsed = time.time() - g.start_time
+            app.metrics.record("request_duration", elapsed)
+
+            app.logger.debug(
+                f"⬅️  Response: {response.status_code} | "
+                f"Tiempo: {elapsed:.3f}s | "
+                f"Size: {response.content_length or 0} bytes"
+            )
+
         return response
 
+    @app.teardown_appcontext
+    def cleanup_resources(exception=None):
+        """Cleanup de recursos al finalizar el request."""
+        if exception:
+            app.logger.error(f"Exception en teardown: {exception}")
+
+        # Cleanup de métricas antiguas cada 100 requests
+        if hasattr(app, "metrics"):
+            import random
+
+            if random.randint(1, 100) == 1:
+                app.metrics.cleanup_old_metrics()
+
     # ========================================================================
-    # RUTAS PRINCIPALES - VERSIÓN CORREGIDA
+    # RUTAS PRINCIPALES
     # ========================================================================
 
     @app.route("/")
@@ -453,190 +1124,277 @@ def create_app(config_name: str) -> Flask:
 
     @app.route("/api/health", methods=["GET"])
     def health_check():
-        """Endpoint de verificación de estado."""
+        """Endpoint de verificación de estado con métricas detalladas."""
         redis_client = app.config["SESSION_REDIS"]
 
         try:
-            # Contar sesiones activas (keys con el prefijo de sesión)
             prefix = app.config["SESSION_KEY_PREFIX"]
             active_sessions = len(redis_client.keys(f"{prefix}*"))
+            redis_healthy = True
         except Exception as e:
             app.logger.error(f"Error al obtener métricas de Redis: {e}")
             active_sessions = -1
+            redis_healthy = False
 
-        return jsonify(
-            {
-                "status": "healthy",
-                "active_sessions": active_sessions,
-                "timestamp": time.time(),
-                "version": app.config.get("APP_CONFIG", {}).get("version", "1.0.0"),
-                "session_timeout": SESSION_TIMEOUT,
+        # Métricas de rendimiento
+        metrics = {}
+        if hasattr(app, "metrics"):
+            metrics = {
+                "request_duration": app.metrics.get_stats("request_duration"),
+                "upload_duration": app.metrics.get_stats("upload_files"),
+                "estimate_duration": app.metrics.get_stats("get_estimate"),
             }
-        )
+
+        return jsonify({
+            "status": "healthy" if redis_healthy else "degraded",
+            "timestamp": time.time(),
+            "version": app.config.get("APP_CONFIG", {}).get("version", "2.0.0"),
+            "environment": config_name,
+            "redis": {
+                "healthy": redis_healthy,
+                "active_sessions": active_sessions,
+            },
+            "session_config": {
+                "timeout_seconds": SESSION_TIMEOUT,
+                "max_file_size_mb": MAX_CONTENT_LENGTH / (1024 * 1024),
+            },
+            "semantic_search": {
+                "enabled": app.config.get("SEMANTIC_SEARCH_ENABLED", False),
+                "model": app.config.get("EMBEDDING_METADATA", {}).get("model_name", "N/A"),
+            },
+            "metrics": metrics,
+        })
 
     @app.route("/upload", methods=["POST"])
+    @limiter.limit(RATE_LIMIT_UPLOAD)
     @handle_errors
+    @timed("upload_files")
     def upload_files():
         """
-        Gestiona la carga de archivos de presupuesto, APU e insumos.
-        
-        CORRECCIÓN: Ahora guarda los datos en session['processed_data'] 
-        en lugar de gestionar Redis manualmente.
+        Gestiona la carga de archivos con validación exhaustiva.
 
-        Returns:
-            Un objeto JSON con los datos procesados si el proceso es exitoso,
-            o un mensaje de error en caso contrario.
+        Mejoras:
+        - Validación de contenido de archivos
+        - Generación de metadata de sesión
+        - Hash de integridad
+        - Logging detallado
         """
+        app.logger.info("📤 Iniciando proceso de carga de archivos")
+
         # Validar archivos requeridos
         required_files = ["presupuesto", "apus", "insumos"]
         missing_files = [f for f in required_files if f not in request.files]
 
         if missing_files:
-            return jsonify(
-                {
-                    "error": f"Faltan archivos: {', '.join(missing_files)}",
-                    "code": "MISSING_FILES",
-                }
-            ), 400
+            return jsonify({
+                "error": f"Faltan archivos: {', '.join(missing_files)}",
+                "code": "MISSING_FILES",
+                "required": required_files,
+            }), 400
 
-        # Validar cada archivo
-        file_validator = FileValidator()
+        # Validar cada archivo completamente
+        validator = FileValidator()
         files_to_process = {}
+        validation_results = {}
 
-        for file_name in required_files:
-            file = request.files[file_name]
-            is_valid, error_msg = file_validator.validate_file(file)
+        for file_type in required_files:
+            file = request.files[file_type]
 
-            if not is_valid:
-                return jsonify(
-                    {
-                        "error": f"Error en archivo {file_name}: {error_msg}",
-                        "code": "INVALID_FILE",
-                    }
-                ), 400
+            validation_result, temp_path = validator.validate_complete(file, file_type)
+            validation_results[file_type] = validation_result
 
-            files_to_process[file_name] = file
+            if not validation_result.is_valid:
+                app.logger.warning(
+                    f"Archivo '{file_type}' inválido: {validation_result.errors}"
+                )
+                return jsonify({
+                    "error": f"Archivo '{file_type}' inválido",
+                    "code": "INVALID_FILE",
+                    "details": validation_result.errors,
+                    "warnings": validation_result.warnings,
+                }), 400
 
-        # Flask-Session crea automáticamente el session_id al asignar datos
-        # Generar un ID temporal para el directorio de uploads
-        import uuid
-        temp_id = str(uuid.uuid4())
+            if validation_result.warnings:
+                app.logger.warning(
+                    f"Advertencias para '{file_type}': {validation_result.warnings}"
+                )
 
-        # Procesar archivos en directorio temporal
+            files_to_process[file_type] = temp_path
+
+        # Generar ID de sesión
+        session_id = str(uuid.uuid4())
+
+        # Procesar archivos
         upload_path = Path(app.config["UPLOAD_FOLDER"])
 
-        with temporary_upload_directory(upload_path, temp_id) as user_dir:
+        with temporary_upload_directory(upload_path, session_id) as user_dir:
+            # Copiar archivos validados al directorio de sesión
             file_paths = {}
+            for file_type, temp_path in files_to_process.items():
+                import shutil
 
-            # Guardar archivos temporalmente
-            for name, file in files_to_process.items():
-                filename = secure_filename(file.filename)
-                file_path = user_dir / filename
-                file.save(str(file_path))
-                file_paths[name] = str(file_path)
+                dest_path = user_dir / Path(temp_path).name
+                shutil.copy2(temp_path, dest_path)
+                file_paths[file_type] = str(dest_path)
+
+                # Limpiar archivo temporal de validación
+                try:
+                    Path(temp_path).unlink()
+                except Exception as e:
+                    app.logger.warning(f"No se pudo eliminar temp file: {e}")
 
             # Procesar archivos
-            app.logger.info("Procesando archivos para nueva sesión...")
+            app.logger.info(f"Procesando archivos para sesión {session_id[:8]}...")
 
+            start_processing = time.time()
             processed_data = process_all_files(
                 file_paths["presupuesto"],
                 file_paths["apus"],
                 file_paths["insumos"],
                 config=app.config.get("APP_CONFIG", {}),
             )
+            processing_time = time.time() - start_processing
 
-        # Verificar errores en el procesamiento
+            app.logger.info(f"Procesamiento completado en {processing_time:.2f}s")
+
+        # Verificar errores en procesamiento
         if "error" in processed_data:
             app.logger.error(f"Error de procesamiento: {processed_data['error']}")
-            return jsonify(
-                {"error": processed_data["error"], "code": "PROCESSING_ERROR"}
-            ), 500
+            return jsonify({
+                "error": processed_data["error"],
+                "code": "PROCESSING_ERROR",
+            }), 500
 
-        # ===================================================================
-        # CAMBIO CRÍTICO: Guardar en session en lugar de Redis manual
-        # ===================================================================
+        # Validar esquema de datos procesados
+        is_valid_schema, schema_errors = validate_data_schema(processed_data)
+        if not is_valid_schema:
+            app.logger.error(f"Esquema inválido: {schema_errors}")
+            return jsonify({
+                "error": "Datos procesados con esquema inválido",
+                "code": "INVALID_SCHEMA",
+                "details": schema_errors,
+            }), 500
 
-        # Sanitizar datos para JSON
+        # Sanitizar datos
         sanitized_data = sanitize_for_json(processed_data)
 
-        # Guardar en la sesión de Flask
-        # Flask-Session automáticamente:
-        # 1. Crea el session.sid si no existe
-        # 2. Serializa los datos
-        # 3. Los guarda en Redis con el prefijo configurado
-        # 4. Crea/actualiza la cookie en el navegador
-        session['processed_data'] = sanitized_data
-        session.permanent = True  # Usar PERMANENT_SESSION_LIFETIME
-
-        app.logger.info(
-            f"✅ Archivos procesados y guardados en sesión {session.sid[:8]}... | "
-            f"Presupuesto: {len(sanitized_data.get('presupuesto', []))} ítems | "
-            f"APUs: {len(sanitized_data.get('apus_detail', []))} detalles"
+        # Generar metadata de sesión
+        data_hash = generate_data_hash(sanitized_data)
+        metadata = SessionMetadata(
+            session_id=session_id,
+            created_at=time.time(),
+            last_accessed=time.time(),
+            data_hash=data_hash,
         )
 
+        # Guardar en sesión
+        session["processed_data"] = sanitized_data
+        session["session_metadata"] = metadata.to_dict()
+        session.permanent = True
+
         # Preparar respuesta
-        response_data = sanitized_data.copy()
-        response_data["session_id"] = session.sid
-        response_data["session_timeout"] = SESSION_TIMEOUT
+        response_data = {
+            "success": True,
+            "session_id": session_id,
+            "metadata": {
+                "created_at": metadata.created_at,
+                "session_timeout": SESSION_TIMEOUT,
+                "data_hash": data_hash[:16],  # Primeros 16 caracteres
+            },
+            "summary": {
+                "presupuesto_items": len(sanitized_data.get("presupuesto", [])),
+                "apu_details": len(sanitized_data.get("apus_detail", [])),
+                "insumos": len(sanitized_data.get("insumos", [])),
+            },
+            "validation": {
+                file_type: {
+                    "rows": result.row_count,
+                    "columns": result.column_count,
+                    "warnings": result.warnings,
+                }
+                for file_type, result in validation_results.items()
+            },
+            "processing_time": processing_time,
+        }
+
+        # Incluir datos completos si se solicita
+        if request.args.get("include_data") == "true":
+            response_data["data"] = sanitized_data
+
+        app.logger.info(
+            f"✅ Archivos procesados exitosamente | Sesión: {session_id[:8]}... | "
+            f"Items: {response_data['summary']}"
+        )
 
         return jsonify(response_data)
 
     @app.route("/api/apu/<code>", methods=["GET"])
+    @limiter.limit(RATE_LIMIT_API)
     @require_session
     @handle_errors
+    @timed("get_apu_detail")
     def get_apu_detail(code: str, session_data: dict = None):
         """
-        Recupera y procesa los detalles de un Análisis de Precios Unitarios (APU).
+        Recupera y procesa los detalles de un APU con manejo robusto de variantes de código.
 
-        Args:
-            code: El código del APU a consultar.
-            session_data: Los datos de la sesión del usuario, inyectados por el
-                          decorador `require_session`.
-
-        Returns:
-            Un objeto JSON con el desglose detallado del APU, los resultados de
-            la simulación y metadatos asociados.
+        Mejoras:
+        - Búsqueda con normalización de códigos
+        - Logging detallado
+        - Caché de resultados (futuro)
         """
-        app.logger.info(f"Solicitud de detalle para APU: {code}")
+        app.logger.info(f"🔍 Solicitud de detalle para APU: {code}")
 
-        # Decodificar código
-        apu_code = code.replace("%2C", ",")
+        # Normalizar código
+        apu_code = code.replace("%2C", ",").strip()
 
-        # Obtener datos del APU
+        # Obtener datos
         user_data = session_data["data"]
         all_apu_details = user_data.get("apus_detail", [])
 
-        # Filtrar por código (lógica de búsqueda robusta)
-        apu_details = [
-            item for item in all_apu_details if item.get("CODIGO_APU") == apu_code
+        # Estrategia de búsqueda multi-nivel
+        search_variants = [
+            apu_code,
+            apu_code.replace(".", ","),
+            apu_code.replace(",", "."),
+            apu_code.upper(),
+            apu_code.lower(),
         ]
 
-        if not apu_details:
-            # Intento alternativo (cambiar punto por coma o viceversa)
-            alt_code = (
-                apu_code.replace(".", ",") if "." in apu_code
-                else apu_code.replace(",", ".")
-            )
-            apu_details = [
-                item for item in all_apu_details if item.get("CODIGO_APU") == alt_code
+        apu_details = None
+        matched_code = None
+
+        for variant in search_variants:
+            matches = [
+                item for item in all_apu_details
+                if item.get("CODIGO_APU", "").strip() == variant
             ]
-            if apu_details:
-                apu_code = alt_code
+            if matches:
+                apu_details = matches
+                matched_code = variant
+                app.logger.debug(f"APU encontrado con variante: {variant}")
+                break
 
         if not apu_details:
-            app.logger.warning(f"APU no encontrado con ninguna variante: {code}")
-            return jsonify(
-                {"error": f"APU no encontrado: {code}", "code": "APU_NOT_FOUND"}
-            ), 404
+            app.logger.warning(
+                f"❌ APU no encontrado después de intentar variantes: {search_variants}"
+            )
+            return jsonify({
+                "error": f"APU no encontrado: {code}",
+                "code": "APU_NOT_FOUND",
+                "searched_variants": search_variants,
+            }), 404
 
-        # Procesar detalles del APU
-        processed_data = apu_presenter.process_apu_details(apu_details, apu_code)
+        # Procesar detalles
+        processed_data = apu_presenter.process_apu_details(apu_details, matched_code)
 
-        # Obtener información del presupuesto
+        # Buscar en presupuesto
         presupuesto_data = user_data.get("presupuesto", [])
         presupuesto_item = next(
-            (item for item in presupuesto_data if item.get("CODIGO_APU") == apu_code),
-            None
+            (
+                item for item in presupuesto_data
+                if item.get("CODIGO_APU", "").strip() == matched_code
+            ),
+            None,
         )
 
         # Ejecutar simulación Monte Carlo
@@ -644,7 +1402,8 @@ def create_app(config_name: str) -> Flask:
 
         # Preparar respuesta
         response = {
-            "codigo": apu_code,
+            "codigo": matched_code,
+            "codigo_original": apu_code,
             "descripcion": (
                 presupuesto_item.get("original_description", "")
                 if presupuesto_item
@@ -655,53 +1414,70 @@ def create_app(config_name: str) -> Flask:
             "metadata": {
                 "total_items": processed_data["total_items"],
                 "categorias": list(processed_data["desglose"].keys()),
+                "presupuesto_encontrado": presupuesto_item is not None,
             },
         }
 
         app.logger.info(
-            f"Detalle para APU {apu_code} generado exitosamente "
-            f"con {processed_data['total_items']} items"
+            f"✅ Detalle para APU {matched_code} generado exitosamente | "
+            f"Items: {processed_data['total_items']}"
         )
 
         return jsonify(sanitize_for_json(response))
 
     @app.route("/api/estimate", methods=["POST"])
+    @limiter.limit(RATE_LIMIT_ESTIMATE)
     @require_session
     @handle_errors
+    @timed("get_estimate")
     def get_estimate(session_data: dict = None):
         """
-        Calcula una estimación de costos y rendimientos para un proyecto.
+        Calcula estimación de costos con validación de parámetros.
 
-        Args:
-            session_data: Los datos de la sesión del usuario, inyectados por el
-                          decorador `require_session`.
-
-        Returns:
-            Un objeto JSON con los resultados de la estimación.
+        Mejoras:
+        - Validación de parámetros de entrada
+        - Manejo de búsqueda semántica opcional
+        - Logging detallado
         """
-        # Validar request
+        # Validar Content-Type
         if not request.is_json:
-            return jsonify(
-                {
-                    "error": "Content-Type debe ser application/json",
-                    "code": "INVALID_CONTENT_TYPE",
-                }
-            ), 400
+            return jsonify({
+                "error": "Content-Type debe ser application/json",
+                "code": "INVALID_CONTENT_TYPE",
+            }), 400
 
         params = request.get_json()
         if not params:
-            return jsonify(
-                {"error": "No se proporcionaron parámetros", "code": "NO_PARAMS"}
-            ), 400
+            return jsonify({
+                "error": "No se proporcionaron parámetros",
+                "code": "NO_PARAMS",
+            }), 400
 
-        app.logger.info(f"Solicitud de estimación con parámetros: {params}")
+        # Validar parámetros requeridos
+        required_params = ["area_m2"]  # Ajustar según necesidades reales
+        missing_params = [p for p in required_params if p not in params]
+
+        if missing_params:
+            return jsonify({
+                "error": f"Parámetros faltantes: {', '.join(missing_params)}",
+                "code": "MISSING_PARAMS",
+                "required": required_params,
+            }), 400
+
+        app.logger.info(f"📊 Solicitud de estimación con parámetros: {params}")
 
         # Construir artefactos de búsqueda
-        search_artifacts = SearchArtifacts(
-            model=app.config.get("EMBEDDING_MODEL"),
-            faiss_index=app.config.get("FAISS_INDEX"),
-            id_map=app.config.get("ID_MAP"),
-        )
+        search_enabled = app.config.get("SEMANTIC_SEARCH_ENABLED", False)
+
+        if search_enabled:
+            search_artifacts = SearchArtifacts(
+                model=app.config.get("EMBEDDING_MODEL"),
+                faiss_index=app.config.get("FAISS_INDEX"),
+                id_map=app.config.get("ID_MAP"),
+            )
+        else:
+            search_artifacts = None
+            app.logger.warning("Búsqueda semántica desactivada, usando búsqueda exacta")
 
         # Calcular estimación
         user_data = session_data["data"]
@@ -710,51 +1486,102 @@ def create_app(config_name: str) -> Flask:
             params=params,
             data_store=user_data,
             config=app.config.get("APP_CONFIG", {}),
-            search_artifacts=search_artifacts
+            search_artifacts=search_artifacts,
         )
 
         if "error" in result:
-            app.logger.warning(f"Error en estimación: {result['error']}")
+            app.logger.warning(f"⚠️  Error en estimación: {result['error']}")
             return jsonify(result), 400
 
+        # Añadir metadata
+        result["metadata"] = {
+            "semantic_search_used": search_enabled,
+            "timestamp": time.time(),
+            "request_id": g.get("request_id", "N/A"),
+        }
+
         app.logger.info(
-            f"Estimación calculada: Construcción="
-            f"${result.get('valor_construccion', 0):,.2f}, "
-            f"Rendimiento={result.get('rendimiento_m2_por_dia', 0):.2f}"
+            f"✅ Estimación calculada | Construcción: ${result.get('valor_construccion', 0):,.2f} | "
+            f"Rendimiento: {result.get('rendimiento_m2_por_dia', 0):.2f}"
         )
 
         return jsonify(sanitize_for_json(result))
 
     @app.route("/api/session/clear", methods=["POST"])
+    @handle_errors
     def clear_session():
-        """
-        Limpia la sesión actual del usuario.
-        Útil para debugging y permitir que el usuario "reinicie" sin cerrar el navegador.
-        """
-        had_session = 'processed_data' in session
+        """Limpia la sesión actual con logging."""
+        session_id = session.get("sid", "N/A")[:8] if hasattr(session, "sid") else "N/A"
+        had_session = "processed_data" in session
+
         session.clear()
+
+        app.logger.info(
+            f"🗑️  Sesión limpiada | ID: {session_id} | "
+            f"Tenía datos: {had_session}"
+        )
 
         return jsonify({
             "success": True,
             "message": "Sesión limpiada exitosamente" if had_session else "No había sesión activa",
-            "had_session": had_session
+            "had_session": had_session,
+            "session_id": session_id,
         })
 
     @app.route("/api/session/info", methods=["GET"])
     def session_info():
-        """
-        Endpoint de debugging para inspeccionar el estado de la sesión.
-        NOTA: Deshabilitar en producción por seguridad.
-        """
+        """Endpoint de debugging para inspeccionar sesión (solo dev)."""
         if config_name == "production":
             return jsonify({"error": "Endpoint deshabilitado en producción"}), 403
 
-        return jsonify({
-            "sid": session.sid if hasattr(session, 'sid') else None,
-            "has_data": 'processed_data' in session,
-            "data_keys": list(session.get('processed_data', {}).keys()) if 'processed_data' in session else [],
+        has_data = "processed_data" in session
+        has_metadata = "session_metadata" in session
+
+        info = {
+            "sid": session.sid if hasattr(session, "sid") else None,
+            "has_data": has_data,
+            "has_metadata": has_metadata,
             "permanent": session.permanent,
             "modified": session.modified,
+        }
+
+        if has_data:
+            info["data_keys"] = list(session["processed_data"].keys())
+            info["data_summary"] = {
+                key: len(value) if isinstance(value, list) else type(value).__name__
+                for key, value in session["processed_data"].items()
+            }
+
+        if has_metadata:
+            metadata = SessionMetadata.from_dict(session["session_metadata"])
+            info["metadata"] = {
+                "session_id": metadata.session_id[:8],
+                "created_at": datetime.fromtimestamp(metadata.created_at).isoformat(),
+                "last_accessed": datetime.fromtimestamp(metadata.last_accessed).isoformat(),
+                "age_seconds": time.time() - metadata.created_at,
+                "is_expired": metadata.is_expired(),
+            }
+
+        return jsonify(info)
+
+    @app.route("/api/metrics", methods=["GET"])
+    def get_metrics():
+        """Endpoint para obtener métricas de rendimiento (solo dev)."""
+        if config_name == "production":
+            return jsonify({"error": "Endpoint deshabilitado en producción"}), 403
+
+        if not hasattr(app, "metrics"):
+            return jsonify({"error": "Sistema de métricas no disponible"}), 503
+
+        all_metrics = {}
+        for metric_name in ["request_duration", "upload_files", "get_estimate", "get_apu_detail"]:
+            stats = app.metrics.get_stats(metric_name)
+            if stats:
+                all_metrics[metric_name] = stats
+
+        return jsonify({
+            "metrics": all_metrics,
+            "timestamp": time.time(),
         })
 
     # ========================================================================
@@ -764,36 +1591,54 @@ def create_app(config_name: str) -> Flask:
     @app.errorhandler(404)
     def not_found(error):
         """Maneja errores 404."""
-        return jsonify(
-            {
-                "error": "Recurso no encontrado",
-                "code": "NOT_FOUND",
-                "path": escape(request.path),
-            }
-        ), 404
+        app.logger.warning(f"404 Not Found: {request.path}")
+        return jsonify({
+            "error": "Recurso no encontrado",
+            "code": "NOT_FOUND",
+            "path": escape(request.path),
+            "request_id": g.get("request_id", "N/A"),
+        }), 404
 
     @app.errorhandler(413)
     def request_entity_too_large(error):
         """Maneja errores de tamaño de archivo."""
         max_mb = MAX_CONTENT_LENGTH / (1024 * 1024)
-        return jsonify(
-            {
-                "error": f"Archivo demasiado grande. Máximo: {max_mb:.1f}MB",
-                "code": "FILE_TOO_LARGE",
-            }
-        ), 413
+        app.logger.warning(f"413 Request Too Large: {request.path}")
+        return jsonify({
+            "error": f"Archivo demasiado grande. Máximo: {max_mb:.1f}MB",
+            "code": "FILE_TOO_LARGE",
+            "max_size_bytes": MAX_CONTENT_LENGTH,
+        }), 413
+
+    @app.errorhandler(429)
+    def ratelimit_handler(error):
+        """Maneja errores de rate limiting."""
+        app.logger.warning(
+            f"429 Rate Limit Exceeded: {request.remote_addr} - {request.path}"
+        )
+        return jsonify({
+            "error": "Demasiadas solicitudes. Por favor, intente más tarde.",
+            "code": "RATE_LIMIT_EXCEEDED",
+            "retry_after": error.description,
+        }), 429
 
     @app.errorhandler(500)
     def internal_error(error):
         """Maneja errores internos del servidor."""
         app.logger.error(f"Error 500: {str(error)}", exc_info=True)
-        return jsonify(
-            {
-                "error": "Error interno del servidor",
-                "code": "INTERNAL_ERROR",
-                "message": "Por favor, contacte al administrador si el problema persiste",
-            }
-        ), 500
+        return jsonify({
+            "error": "Error interno del servidor",
+            "code": "INTERNAL_ERROR",
+            "message": "Por favor, contacte al administrador si el problema persiste",
+            "request_id": g.get("request_id", "N/A"),
+        }), 500
+
+    # ========================================================================
+    # FINALIZACIÓN
+    # ========================================================================
+
+    app.logger.info("✅ Aplicación inicializada exitosamente")
+    app.logger.info(f"{'=' * 60}")
 
     return app
 
@@ -803,6 +1648,5 @@ def create_app(config_name: str) -> Flask:
 # ============================================================================
 
 if __name__ == "__main__":
-    # Solo para desarrollo/debugging
     app = create_app("development")
-    app.run(debug=True, host="0.0.0.0", port=5000)
+    app.run(debug=True, host="0.0.0.0", port=5000, use_reloader=True)
