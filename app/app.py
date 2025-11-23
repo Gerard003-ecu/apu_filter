@@ -76,7 +76,7 @@ RATE_LIMIT_ESTIMATE = "30 per hour"
 MIN_ROWS_REQUIRED = 1
 MAX_ROWS_ALLOWED = 50000
 REQUIRED_COLUMNS = {
-    "presupuesto": ["CODIGO_APU"],
+    "presupuesto": [],  # Validación flexible en FileValidator
     "apus": ["CODIGO_APU"],
     "insumos": ["CODIGO_INSUMO"],
 }
@@ -697,10 +697,23 @@ class FileValidator:
             result.column_count = len(df.columns)
 
             # Verificar columnas requeridas
-            missing_columns = set(required_columns) - set(df.columns)
-            if missing_columns:
-                result.errors.append(f"Columnas faltantes: {', '.join(missing_columns)}")
-                return result
+            if file_type == "presupuesto":
+                # Lógica flexible para presupuesto: acepta ITEM o CODIGO_APU
+                has_item = "ITEM" in df.columns
+                has_codigo = "CODIGO_APU" in df.columns
+
+                if not (has_item or has_codigo):
+                    result.errors.append(
+                        "Columnas faltantes: Se requiere 'CODIGO_APU' o 'ITEM'"
+                    )
+                    return result
+            else:
+                missing_columns = set(required_columns) - set(df.columns)
+                if missing_columns:
+                    result.errors.append(
+                        f"Columnas faltantes: {', '.join(missing_columns)}"
+                    )
+                    return result
 
             # Leer archivo completo para validar filas
             if file_path.suffix.lower() == ".csv":
