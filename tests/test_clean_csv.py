@@ -16,6 +16,7 @@ from scripts.clean_csv import CleaningStats, CSVCleaner, SkipReason, main
 # FIXTURES
 # ============================================================================
 
+
 @pytest.fixture
 def temp_dir():
     """Crea un directorio temporal para las pruebas."""
@@ -34,7 +35,7 @@ John Doe;30;New York
 Jane Smith;25;Los Angeles
 Bob Johnson;35;Chicago"""
 
-    csv_path.write_text(content, encoding='utf-8')
+    csv_path.write_text(content, encoding="utf-8")
     return csv_path
 
 
@@ -52,7 +53,7 @@ def problematic_csv_path(temp_dir):
         "   ;   ;   \n"
         "Alice;28;Boston\n"
     )
-    csv_path.write_text(content, encoding='utf-8')
+    csv_path.write_text(content, encoding="utf-8")
     return csv_path
 
 
@@ -60,7 +61,7 @@ def problematic_csv_path(temp_dir):
 def empty_csv_path(temp_dir):
     """Crea un archivo CSV vacío."""
     csv_path = temp_dir / "empty.csv"
-    csv_path.write_text("", encoding='utf-8')
+    csv_path.write_text("", encoding="utf-8")
     return csv_path
 
 
@@ -68,7 +69,7 @@ def empty_csv_path(temp_dir):
 def header_only_csv_path(temp_dir):
     """Crea un CSV solo con encabezado."""
     csv_path = temp_dir / "header_only.csv"
-    csv_path.write_text("Name;Age;City\n", encoding='utf-8')
+    csv_path.write_text("Name;Age;City\n", encoding="utf-8")
     return csv_path
 
 
@@ -78,7 +79,7 @@ def duplicate_headers_csv_path(temp_dir):
     csv_path = temp_dir / "duplicate_headers.csv"
     content = """Name;Age;Name;City
 John;30;Doe;NYC"""
-    csv_path.write_text(content, encoding='utf-8')
+    csv_path.write_text(content, encoding="utf-8")
     return csv_path
 
 
@@ -86,7 +87,7 @@ John;30;Doe;NYC"""
 def large_csv_path(temp_dir):
     """Crea un CSV grande para probar límites."""
     csv_path = temp_dir / "large.csv"
-    with open(csv_path, 'w', encoding='utf-8') as f:
+    with open(csv_path, "w", encoding="utf-8") as f:
         f.write("Col1;Col2;Col3\n")
         for i in range(1000):
             f.write(f"Value{i};Data{i};Info{i}\n")
@@ -100,7 +101,7 @@ def comma_delimited_csv_path(temp_dir):
     content = """Name,Age,City
 John Doe,30,New York
 Jane Smith,25,Los Angeles"""
-    csv_path.write_text(content, encoding='utf-8')
+    csv_path.write_text(content, encoding="utf-8")
     return csv_path
 
 
@@ -113,6 +114,7 @@ def output_path(temp_dir):
 # ============================================================================
 # TESTS DE CleaningStats
 # ============================================================================
+
 
 class TestCleaningStats:
     """Pruebas para la clase CleaningStats."""
@@ -169,6 +171,7 @@ class TestCleaningStats:
 # TESTS DE VALIDACIÓN
 # ============================================================================
 
+
 class TestValidations:
     """Pruebas para el método _validate_inputs."""
 
@@ -176,30 +179,21 @@ class TestValidations:
         """Verifica error cuando el archivo de entrada no existe."""
         nonexistent = temp_dir / "nonexistent.csv"
 
-        cleaner = CSVCleaner(
-            input_path=str(nonexistent),
-            output_path=str(output_path)
-        )
+        cleaner = CSVCleaner(input_path=str(nonexistent), output_path=str(output_path))
 
         with pytest.raises(FileNotFoundError, match="no existe"):
             cleaner._validate_inputs()
 
     def test_input_is_directory(self, temp_dir, output_path):
         """Verifica error cuando la entrada es un directorio."""
-        cleaner = CSVCleaner(
-            input_path=str(temp_dir),
-            output_path=str(output_path)
-        )
+        cleaner = CSVCleaner(input_path=str(temp_dir), output_path=str(output_path))
 
         with pytest.raises(ValueError, match="no es un archivo"):
             cleaner._validate_inputs()
 
     def test_empty_input_file(self, empty_csv_path, output_path):
         """Verifica error cuando el archivo está vacío."""
-        cleaner = CSVCleaner(
-            input_path=str(empty_csv_path),
-            output_path=str(output_path)
-        )
+        cleaner = CSVCleaner(input_path=str(empty_csv_path), output_path=str(output_path))
 
         with pytest.raises(ValueError, match="está vacío"):
             cleaner._validate_inputs()
@@ -207,12 +201,10 @@ class TestValidations:
     def test_output_already_exists_no_overwrite(self, sample_csv_path, temp_dir):
         """Verifica error cuando el archivo de salida existe sin overwrite."""
         output = temp_dir / "existing.csv"
-        output.write_text("existing content", encoding='utf-8')
+        output.write_text("existing content", encoding="utf-8")
 
         cleaner = CSVCleaner(
-            input_path=str(sample_csv_path),
-            output_path=str(output),
-            overwrite=False
+            input_path=str(sample_csv_path), output_path=str(output), overwrite=False
         )
 
         with pytest.raises(ValueError, match="ya existe"):
@@ -221,12 +213,10 @@ class TestValidations:
     def test_output_already_exists_with_overwrite(self, sample_csv_path, temp_dir):
         """Verifica que con overwrite=True no hay error."""
         output = temp_dir / "existing.csv"
-        output.write_text("existing content", encoding='utf-8')
+        output.write_text("existing content", encoding="utf-8")
 
         cleaner = CSVCleaner(
-            input_path=str(sample_csv_path),
-            output_path=str(output),
-            overwrite=True
+            input_path=str(sample_csv_path), output_path=str(output), overwrite=True
         )
 
         # No debe lanzar excepción
@@ -236,10 +226,7 @@ class TestValidations:
         """Verifica error cuando el directorio de salida no existe."""
         output = temp_dir / "nonexistent_dir" / "output.csv"
 
-        cleaner = CSVCleaner(
-            input_path=str(sample_csv_path),
-            output_path=str(output)
-        )
+        cleaner = CSVCleaner(input_path=str(sample_csv_path), output_path=str(output))
 
         with pytest.raises(ValueError, match="directorio de salida no existe"):
             cleaner._validate_inputs()
@@ -247,9 +234,7 @@ class TestValidations:
     def test_empty_delimiter(self, sample_csv_path, output_path):
         """Verifica error con delimitador vacío."""
         cleaner = CSVCleaner(
-            input_path=str(sample_csv_path),
-            output_path=str(output_path),
-            delimiter=""
+            input_path=str(sample_csv_path), output_path=str(output_path), delimiter=""
         )
 
         with pytest.raises(ValueError, match="no puede estar vacío"):
@@ -258,9 +243,7 @@ class TestValidations:
     def test_multi_character_delimiter(self, sample_csv_path, output_path):
         """Verifica error con delimitador de múltiples caracteres."""
         cleaner = CSVCleaner(
-            input_path=str(sample_csv_path),
-            output_path=str(output_path),
-            delimiter=";;"
+            input_path=str(sample_csv_path), output_path=str(output_path), delimiter=";;"
         )
 
         with pytest.raises(ValueError, match="un solo carácter"):
@@ -269,20 +252,17 @@ class TestValidations:
     def test_same_input_output_file(self, sample_csv_path):
         """Verifica error cuando entrada y salida son el mismo archivo."""
         cleaner = CSVCleaner(
-            input_path=str(sample_csv_path),
-            output_path=str(sample_csv_path)
+            input_path=str(sample_csv_path), output_path=str(sample_csv_path)
         )
 
         with pytest.raises(ValueError, match="no pueden ser el mismo"):
             cleaner._validate_inputs()
 
-    @patch('scripts.clean_csv.logger')
+    @patch("scripts.clean_csv.logger")
     def test_unusual_delimiter_warning(self, mock_logger, sample_csv_path, output_path):
         """Verifica advertencia con delimitador inusual."""
         cleaner = CSVCleaner(
-            input_path=str(sample_csv_path),
-            output_path=str(output_path),
-            delimiter="@"
+            input_path=str(sample_csv_path), output_path=str(output_path), delimiter="@"
         )
 
         cleaner._validate_inputs()
@@ -294,13 +274,13 @@ class TestValidations:
 
     def test_valid_delimiters_no_warning(self, sample_csv_path, output_path):
         """Verifica que delimitadores válidos no generen advertencia."""
-        valid_delimiters = [';', ',', '\t', '|']
+        valid_delimiters = [";", ",", "\t", "|"]
 
         for delimiter in valid_delimiters:
             cleaner = CSVCleaner(
                 input_path=str(sample_csv_path),
                 output_path=str(output_path),
-                delimiter=delimiter
+                delimiter=delimiter,
             )
             # No debe lanzar excepción
             cleaner._validate_inputs()
@@ -309,6 +289,7 @@ class TestValidations:
 # ============================================================================
 # TESTS DE PROCESAMIENTO DE ENCABEZADO
 # ============================================================================
+
 
 class TestProcessHeader:
     """Pruebas para el método _process_header."""
@@ -337,7 +318,7 @@ class TestProcessHeader:
         with pytest.raises(ValueError, match="contiene solo espacios en blanco"):
             cleaner._process_header("   ;   ;   ")
 
-    @patch('scripts.clean_csv.logger')
+    @patch("scripts.clean_csv.logger")
     def test_duplicate_headers_warning(self, mock_logger, duplicate_headers_csv_path):
         """Verifica que se emite una advertencia con encabezados duplicados."""
         cleaner = CSVCleaner(str(duplicate_headers_csv_path), "dummy.csv")
@@ -353,6 +334,7 @@ class TestProcessHeader:
 # ============================================================================
 # TESTS DE VALIDACIÓN DE LÍNEAS
 # ============================================================================
+
 
 class TestShouldSkipLine:
     """Pruebas para el método _should_skip_line."""
@@ -420,6 +402,7 @@ class TestShouldSkipLine:
 # TESTS DE LIMPIEZA COMPLETA
 # ============================================================================
 
+
 class TestCleanMethod:
     """Pruebas para el método clean (integración)."""
 
@@ -428,11 +411,11 @@ class TestCleanMethod:
         input_content = (
             '"Name";"Age";"City"\n'
             ' "John Doe" ; 30 ; "New York" \n'
-            '# Comment to be skipped\n'
+            "# Comment to be skipped\n"
             '"Jane Smith";25;"Los Angeles"\n'
         )
         input_path = temp_dir / "input.csv"
-        input_path.write_text(input_content, encoding='utf-8')
+        input_path.write_text(input_content, encoding="utf-8")
 
         cleaner = CSVCleaner(str(input_path), str(output_path))
         stats = cleaner.clean()
@@ -440,7 +423,7 @@ class TestCleanMethod:
         assert stats.rows_written == 2
         assert stats.rows_skipped == 1
 
-        output_content = output_path.read_text(encoding='utf-8')
+        output_content = output_path.read_text(encoding="utf-8")
 
         expected_output = (
             '"Name";"Age";"City"\n'
@@ -465,7 +448,7 @@ class TestCleanMethod:
         assert stats.skip_reasons[SkipReason.WHITESPACE_ONLY] == 1
 
         # Verificar contenido
-        output_content = output_path.read_text(encoding='utf-8')
+        output_content = output_path.read_text(encoding="utf-8")
         expected_content = (
             "Name;Age;City\n"
             "John Doe;30;New York\n"
@@ -479,13 +462,13 @@ class TestCleanMethod:
         cleaner = CSVCleaner(
             input_path=str(comma_delimited_csv_path),
             output_path=str(output_path),
-            delimiter=','
+            delimiter=",",
         )
         stats = cleaner.clean()
         assert stats.rows_written == 2
 
-        original_content = comma_delimited_csv_path.read_text(encoding='utf-8')
-        output_content = output_path.read_text(encoding='utf-8')
+        original_content = comma_delimited_csv_path.read_text(encoding="utf-8")
+        output_content = output_path.read_text(encoding="utf-8")
         assert original_content == output_content
 
     def test_clean_header_only_csv(self, header_only_csv_path, output_path):
@@ -494,7 +477,7 @@ class TestCleanMethod:
         stats = cleaner.clean()
         assert stats.rows_written == 0
 
-        output_content = output_path.read_text(encoding='utf-8')
+        output_content = output_path.read_text(encoding="utf-8")
         assert output_content == "Name;Age;City\n"
 
     def test_clean_non_strict_mode(self, problematic_csv_path, output_path):
@@ -502,7 +485,7 @@ class TestCleanMethod:
         cleaner = CSVCleaner(
             input_path=str(problematic_csv_path),
             output_path=str(output_path),
-            strict_mode=False
+            strict_mode=False,
         )
         stats = cleaner.clean()
 
@@ -510,7 +493,7 @@ class TestCleanMethod:
         assert stats.rows_written == 4
         assert stats.skip_reasons[SkipReason.INCONSISTENT_DELIMITERS] == 0
 
-        output_content = output_path.read_text(encoding='utf-8')
+        output_content = output_path.read_text(encoding="utf-8")
         assert "Bob Johnson;35;Chicago;Extra Column" in output_content
 
     def test_statistics_accuracy(self, problematic_csv_path, output_path):
@@ -534,17 +517,19 @@ class TestCleanMethod:
 # TESTS DE MANEJO DE ERRORES
 # ============================================================================
 
+
 class TestErrorHandling:
     """Pruebas para manejo de errores."""
 
     def test_permission_denied_raises_ioerror(self, temp_dir):
         """Verifica que un error de permisos lanza IOError."""
         input_file = temp_dir / "no_read.csv"
-        input_file.write_text("header\ndata", encoding='utf-8')
+        input_file.write_text("header\ndata", encoding="utf-8")
         output_file = temp_dir / "output.csv"
 
         import platform
-        if platform.system() != 'Windows':
+
+        if platform.system() != "Windows":
             input_file.chmod(0o000)
 
             cleaner = CSVCleaner(str(input_file), str(output_file))
@@ -559,24 +544,21 @@ class TestErrorHandling:
 # TESTS DE LÍNEA DE COMANDOS (main)
 # ============================================================================
 
+
 class TestMainFunction:
     """Pruebas para la función main."""
 
     def test_main_help(self):
         """Verifica que --help funciona."""
         with pytest.raises(SystemExit) as exc_info:
-            with patch('sys.argv', ['clean_csv.py', '--help']):
+            with patch("sys.argv", ["clean_csv.py", "--help"]):
                 main()
 
         assert exc_info.value.code == 0
 
     def test_main_success(self, sample_csv_path, output_path):
         """Verifica ejecución exitosa desde main."""
-        with patch('sys.argv', [
-            'clean_csv.py',
-            str(sample_csv_path),
-            str(output_path)
-        ]):
+        with patch("sys.argv", ["clean_csv.py", str(sample_csv_path), str(output_path)]):
             with pytest.raises(SystemExit) as exc_info:
                 main()
 
@@ -585,12 +567,10 @@ class TestMainFunction:
 
     def test_main_with_delimiter_option(self, comma_delimited_csv_path, output_path):
         """Verifica opción de delimitador desde CLI."""
-        with patch('sys.argv', [
-            'clean_csv.py',
-            str(comma_delimited_csv_path),
-            str(output_path),
-            '-d', ','
-        ]):
+        with patch(
+            "sys.argv",
+            ["clean_csv.py", str(comma_delimited_csv_path), str(output_path), "-d", ","],
+        ):
             with pytest.raises(SystemExit) as exc_info:
                 main()
 
@@ -599,14 +579,9 @@ class TestMainFunction:
     def test_main_with_overwrite_option(self, sample_csv_path, temp_dir):
         """Verifica opción de sobrescritura."""
         output = temp_dir / "existing.csv"
-        output.write_text("old content", encoding='utf-8')
+        output.write_text("old content", encoding="utf-8")
 
-        with patch('sys.argv', [
-            'clean_csv.py',
-            str(sample_csv_path),
-            str(output),
-            '-o'
-        ]):
+        with patch("sys.argv", ["clean_csv.py", str(sample_csv_path), str(output), "-o"]):
             with pytest.raises(SystemExit) as exc_info:
                 main()
 
@@ -618,12 +593,9 @@ class TestMainFunction:
 
     def test_main_with_verbose_option(self, sample_csv_path, output_path):
         """Verifica opción verbose."""
-        with patch('sys.argv', [
-            'clean_csv.py',
-            str(sample_csv_path),
-            str(output_path),
-            '-v'
-        ]):
+        with patch(
+            "sys.argv", ["clean_csv.py", str(sample_csv_path), str(output_path), "-v"]
+        ):
             with pytest.raises(SystemExit) as exc_info:
                 main()
 
@@ -631,12 +603,10 @@ class TestMainFunction:
 
     def test_main_with_no_strict_option(self, problematic_csv_path, output_path):
         """Verifica opción no-strict."""
-        with patch('sys.argv', [
-            'clean_csv.py',
-            str(problematic_csv_path),
-            str(output_path),
-            '--no-strict'
-        ]):
+        with patch(
+            "sys.argv",
+            ["clean_csv.py", str(problematic_csv_path), str(output_path), "--no-strict"],
+        ):
             with pytest.raises(SystemExit) as exc_info:
                 main()
 
@@ -644,11 +614,14 @@ class TestMainFunction:
 
     def test_main_file_not_found_error(self, temp_dir):
         """Verifica error de archivo no encontrado desde CLI."""
-        with patch('sys.argv', [
-            'clean_csv.py',
-            str(temp_dir / "nonexistent.csv"),
-            str(temp_dir / "output.csv")
-        ]):
+        with patch(
+            "sys.argv",
+            [
+                "clean_csv.py",
+                str(temp_dir / "nonexistent.csv"),
+                str(temp_dir / "output.csv"),
+            ],
+        ):
             with pytest.raises(SystemExit) as exc_info:
                 main()
 
@@ -656,16 +629,8 @@ class TestMainFunction:
 
     def test_main_keyboard_interrupt(self, sample_csv_path, output_path):
         """Verifica manejo de Ctrl+C."""
-        with patch('sys.argv', [
-            'clean_csv.py',
-            str(sample_csv_path),
-            str(output_path)
-        ]):
-            with patch.object(
-                CSVCleaner,
-                'clean',
-                side_effect=KeyboardInterrupt()
-            ):
+        with patch("sys.argv", ["clean_csv.py", str(sample_csv_path), str(output_path)]):
+            with patch.object(CSVCleaner, "clean", side_effect=KeyboardInterrupt()):
                 with pytest.raises(SystemExit) as exc_info:
                     main()
 
@@ -675,6 +640,7 @@ class TestMainFunction:
 # ============================================================================
 # TESTS DE INTEGRACIÓN AVANZADOS
 # ============================================================================
+
 
 class TestAdvancedIntegration:
     """Pruebas de integración más complejas."""
@@ -686,12 +652,9 @@ class TestAdvancedIntegration:
 Test;"Quote ""inside"" quote"
 Test2;Line with; semicolon
 Test3;Emoji 😀"""
-        input_file.write_text(content, encoding='utf-8')
+        input_file.write_text(content, encoding="utf-8")
 
-        cleaner = CSVCleaner(
-            input_path=str(input_file),
-            output_path=str(output_path)
-        )
+        cleaner = CSVCleaner(input_path=str(input_file), output_path=str(output_path))
 
         stats = cleaner.clean()
 
@@ -702,12 +665,9 @@ Test3;Emoji 😀"""
         input_file = temp_dir / "mixed_endings.csv"
         # Mezclar \n y \r\n
         content = "Name;Age\nJohn;30\r\nJane;25\n"
-        input_file.write_bytes(content.encode('utf-8'))
+        input_file.write_bytes(content.encode("utf-8"))
 
-        cleaner = CSVCleaner(
-            input_path=str(input_file),
-            output_path=str(output_path)
-        )
+        cleaner = CSVCleaner(input_path=str(input_file), output_path=str(output_path))
 
         stats = cleaner.clean()
 
@@ -720,37 +680,31 @@ Test3;Emoji 😀"""
 José;São Paulo
 François;Montréal
 北京;中国"""
-        input_file.write_text(content, encoding='utf-8')
+        input_file.write_text(content, encoding="utf-8")
 
-        cleaner = CSVCleaner(
-            input_path=str(input_file),
-            output_path=str(output_path)
-        )
+        cleaner = CSVCleaner(input_path=str(input_file), output_path=str(output_path))
 
         stats = cleaner.clean()
 
         assert stats.rows_written == 3
 
         # Verificar que los caracteres se mantuvieron
-        with open(output_path, 'r', encoding='utf-8') as f:
+        with open(output_path, "r", encoding="utf-8") as f:
             content = f.read()
 
-        assert 'José' in content
-        assert '北京' in content
+        assert "José" in content
+        assert "北京" in content
 
     def test_very_long_lines(self, temp_dir, output_path):
         """Verifica manejo de líneas muy largas."""
         input_file = temp_dir / "long_lines.csv"
         long_value = "x" * 10000
 
-        with open(input_file, 'w', encoding='utf-8') as f:
+        with open(input_file, "w", encoding="utf-8") as f:
             f.write("Col1;Col2;Col3\n")
             f.write(f"{long_value};data;data\n")
 
-        cleaner = CSVCleaner(
-            input_path=str(input_file),
-            output_path=str(output_path)
-        )
+        cleaner = CSVCleaner(input_path=str(input_file), output_path=str(output_path))
 
         stats = cleaner.clean()
 
@@ -760,6 +714,7 @@ François;Montréal
 # ============================================================================
 # TESTS DE PERFORMANCE
 # ============================================================================
+
 
 class TestPerformance:
     """Pruebas de rendimiento."""
@@ -771,15 +726,12 @@ class TestPerformance:
         input_file = temp_dir / "very_large.csv"
 
         # Crear archivo con 10,000 filas
-        with open(input_file, 'w', encoding='utf-8') as f:
+        with open(input_file, "w", encoding="utf-8") as f:
             f.write("Col1;Col2;Col3;Col4;Col5\n")
             for i in range(10000):
                 f.write(f"Val{i};Data{i};Info{i};Test{i};More{i}\n")
 
-        cleaner = CSVCleaner(
-            input_path=str(input_file),
-            output_path=str(output_path)
-        )
+        cleaner = CSVCleaner(input_path=str(input_file), output_path=str(output_path))
 
         start_time = time.time()
         stats = cleaner.clean()
@@ -794,31 +746,30 @@ class TestPerformance:
 # TESTS DE CONFIGURACIÓN
 # ============================================================================
 
+
 class TestConfiguration:
     """Pruebas de diferentes configuraciones."""
 
-    @pytest.mark.parametrize("delimiter", [';', ',', '\t', '|'])
+    @pytest.mark.parametrize("delimiter", [";", ",", "\t", "|"])
     def test_different_delimiters(self, temp_dir, delimiter):
         """Prueba con diferentes delimitadores."""
         input_file = temp_dir / f"delim_{ord(delimiter)}.csv"
         output_file = temp_dir / f"out_{ord(delimiter)}.csv"
 
         # Crear CSV con el delimitador específico
-        with open(input_file, 'w', encoding='utf-8') as f:
+        with open(input_file, "w", encoding="utf-8") as f:
             f.write(f"Name{delimiter}Age{delimiter}City\n")
             f.write(f"John{delimiter}30{delimiter}NYC\n")
 
         cleaner = CSVCleaner(
-            input_path=str(input_file),
-            output_path=str(output_file),
-            delimiter=delimiter
+            input_path=str(input_file), output_path=str(output_file), delimiter=delimiter
         )
 
         stats = cleaner.clean()
 
         assert stats.rows_written == 1
 
-    @pytest.mark.parametrize("encoding", ['utf-8', 'latin-1', 'cp1252'])
+    @pytest.mark.parametrize("encoding", ["utf-8", "latin-1", "cp1252"])
     def test_different_encodings(self, temp_dir, encoding):
         """Prueba con diferentes encodings."""
         input_file = temp_dir / f"enc_{encoding}.csv"
@@ -828,9 +779,7 @@ class TestConfiguration:
             input_file.write_text("Name;City\nTest;Test\n", encoding=encoding)
 
             cleaner = CSVCleaner(
-                input_path=str(input_file),
-                output_path=str(output_file),
-                encoding=encoding
+                input_path=str(input_file), output_path=str(output_file), encoding=encoding
             )
 
             stats = cleaner.clean()
@@ -845,10 +794,6 @@ class TestConfiguration:
 # ============================================================================
 
 if __name__ == "__main__":
-    pytest.main([
-        __file__,
-        "-v",
-        "--tb=short",
-        "--cov=scripts.clean_csv",
-        "--cov-report=html"
-    ])
+    pytest.main(
+        [__file__, "-v", "--tb=short", "--cov=scripts.clean_csv", "--cov-report=html"]
+    )

@@ -19,6 +19,7 @@ Cobertura de Pruebas:
 - **Validaciones y Errores:** Confirma que las excepciones personalizadas
   (`InvalidInputError`, `ProcessingError`) se lancen y propaguen correctamente.
 """
+
 import logging
 import math
 import time
@@ -44,18 +45,18 @@ from app.flux_condenser import (
 @pytest.fixture
 def valid_config() -> Dict[str, Any]:
     return {
-        'parser_settings': {'delimiter': ',', 'encoding': 'utf-8'},
-        'processor_settings': {'validate_types': True, 'skip_empty': False},
-        'additional_key': 'value'
+        "parser_settings": {"delimiter": ",", "encoding": "utf-8"},
+        "processor_settings": {"validate_types": True, "skip_empty": False},
+        "additional_key": "value",
     }
 
 
 @pytest.fixture
 def valid_profile() -> Dict[str, Any]:
     return {
-        'columns_mapping': {'cod_insumo': 'codigo', 'descripcion': 'desc'},
-        'validation_rules': {'required_fields': ['codigo', 'cantidad']},
-        'extra_config': 'data'
+        "columns_mapping": {"cod_insumo": "codigo", "descripcion": "desc"},
+        "validation_rules": {"required_fields": ["codigo", "cantidad"]},
+        "extra_config": "data",
     }
 
 
@@ -67,27 +68,21 @@ def condenser(valid_config, valid_profile) -> DataFluxCondenser:
 @pytest.fixture
 def sample_raw_records() -> List[Dict[str, Any]]:
     return [
-        {
-            'codigo': f'A{i}',
-            'cantidad': 10,
-            'precio': 100.0,
-            'insumo_line': f'line_{i}'
-        }
+        {"codigo": f"A{i}", "cantidad": 10, "precio": 100.0, "insumo_line": f"line_{i}"}
         for i in range(100)
     ]
 
 
 @pytest.fixture
 def sample_parse_cache() -> Dict[str, Any]:
-    return {f'line_{i}': 'data' for i in range(100)}
+    return {f"line_{i}": "data" for i in range(100)}
 
 
 @pytest.fixture
 def mock_csv_file(tmp_path) -> Path:
     file_path = tmp_path / "test_data.csv"
     file_path.write_text(
-        "codigo,cantidad,precio\n" +
-        "\n".join([f"A{i},10,100.0" for i in range(100)])
+        "codigo,cantidad,precio\n" + "\n".join([f"A{i},10,100.0" for i in range(100)])
     )
     return file_path
 
@@ -138,9 +133,7 @@ class TestPIController:
 
     def test_initialization_errors(self):
         with pytest.raises(ConfigurationError, match="min_output"):
-            PIController(
-                kp=1.0, ki=0.1, setpoint=0.5, min_output=0, max_output=100
-            )
+            PIController(kp=1.0, ki=0.1, setpoint=0.5, min_output=0, max_output=100)
 
     def test_compute_increase(self):
         """
@@ -185,11 +178,9 @@ class TestPIController:
 
     def test_zero_division_protection(self):
         """Testea que no falle con valores raros."""
-        controller = PIController(
-            kp=1.0, ki=0.1, setpoint=0.5, min_output=1, max_output=100
-        )
+        controller = PIController(kp=1.0, ki=0.1, setpoint=0.5, min_output=1, max_output=100)
         # NaN should act as fallback to setpoint (no error)
-        output = controller.compute(float('nan'))
+        output = controller.compute(float("nan"))
         assert output > 0
 
 
@@ -201,9 +192,7 @@ class TestFluxPhysicsEngine:
 
     @pytest.fixture
     def engine(self):
-        return FluxPhysicsEngine(
-            capacitance=5000, resistance=10, inductance=2.0
-        )
+        return FluxPhysicsEngine(capacitance=5000, resistance=10, inductance=2.0)
 
     def test_calculate_energy_metrics(self, engine):
         """Verifica que se calculen las métricas de energía correctamente."""
@@ -233,8 +222,8 @@ class TestFluxPhysicsEngine:
         # 1. Equilibrio: Energía cinética normal, potencial controlada
         metrics = {
             "potential_energy": 500,  # Ec
-            "kinetic_energy": 1.0,    # El -> Ratio = 500. Ratio < 1000.
-            "flyback_voltage": 0.0
+            "kinetic_energy": 1.0,  # El -> Ratio = 500. Ratio < 1000.
+            "flyback_voltage": 0.0,
         }
         diag = engine.get_system_diagnosis(metrics)
         assert "EQUILIBRIO" in diag
@@ -243,7 +232,7 @@ class TestFluxPhysicsEngine:
         metrics_stalled = {
             "potential_energy": 0.0,
             "kinetic_energy": 0.0,  # < MIN_ENERGY_THRESHOLD (1e-10)
-            "flyback_voltage": 0.0
+            "flyback_voltage": 0.0,
         }
         diag = engine.get_system_diagnosis(metrics_stalled)
         assert "ESTANCADO" in diag
@@ -251,8 +240,8 @@ class TestFluxPhysicsEngine:
         # 3. Sobrecarga: Ratio Ec/El muy alto
         metrics_overload = {
             "potential_energy": 2000,
-            "kinetic_energy": 1.0,   # Ratio = 2000 > 1000
-            "flyback_voltage": 0.0
+            "kinetic_energy": 1.0,  # Ratio = 2000 > 1000
+            "flyback_voltage": 0.0,
         }
         diag = engine.get_system_diagnosis(metrics_overload)
         assert "SOBRECARGA" in diag
@@ -261,7 +250,7 @@ class TestFluxPhysicsEngine:
         metrics_low = {
             "potential_energy": 1.0,
             "kinetic_energy": 0.05,  # < 0.1 (LOW_INERTIA) pero > 1e-10.
-            "flyback_voltage": 0.0
+            "flyback_voltage": 0.0,
         }
         diag = engine.get_system_diagnosis(metrics_low)
         assert "BAJA INERCIA" in diag
@@ -273,8 +262,8 @@ class TestFluxPhysicsEngine:
 class TestStabilizePID:
     """Pruebas de integración para el flujo estabilizado con PID y Energía."""
 
-    @patch('app.flux_condenser.APUProcessor')
-    @patch('app.flux_condenser.ReportParserCrudo')
+    @patch("app.flux_condenser.APUProcessor")
+    @patch("app.flux_condenser.ReportParserCrudo")
     def test_stabilize_runs_in_batches(
         self,
         mock_parser_class,
@@ -282,7 +271,7 @@ class TestStabilizePID:
         condenser,
         mock_csv_file,
         sample_raw_records,
-        sample_parse_cache
+        sample_parse_cache,
     ):
         """Debe procesar todos los registros en lotes."""
         # Setup mocks
@@ -300,7 +289,7 @@ class TestStabilizePID:
             else:
                 # Fallback si es un Mock (no debería ocurrir con el código actual)
                 input_len = 0
-            return pd.DataFrame([{'res': 1}] * input_len)
+            return pd.DataFrame([{"res": 1}] * input_len)
 
         mock_processor.process_all.side_effect = process_side_effect
         mock_processor_class.return_value = mock_processor
@@ -310,8 +299,8 @@ class TestStabilizePID:
         assert len(result) == 100
         assert mock_processor_class.call_count >= 1
 
-    @patch('app.flux_condenser.APUProcessor')
-    @patch('app.flux_condenser.ReportParserCrudo')
+    @patch("app.flux_condenser.APUProcessor")
+    @patch("app.flux_condenser.ReportParserCrudo")
     def test_thermal_breaker_activation(
         self,
         mock_parser_class,
@@ -319,7 +308,7 @@ class TestStabilizePID:
         condenser,
         mock_csv_file,
         caplog,
-        sample_raw_records
+        sample_raw_records,
     ):
         """Verifica que el 'Disyuntor Térmico' frene el proceso."""
         mock_parser = Mock()
@@ -328,7 +317,7 @@ class TestStabilizePID:
         mock_parser_class.return_value = mock_parser
 
         mock_processor = Mock()
-        mock_processor.process_all.return_value = pd.DataFrame([{'a': 1}] * 10)
+        mock_processor.process_all.return_value = pd.DataFrame([{"a": 1}] * 10)
         mock_processor_class.return_value = mock_processor
 
         with caplog.at_level(logging.WARNING):
@@ -337,13 +326,9 @@ class TestStabilizePID:
         assert "SOBRECALENTAMIENTO" in caplog.text
         assert "Aplicando freno de emergencia" in caplog.text
 
-    @patch('app.flux_condenser.ReportParserCrudo')
+    @patch("app.flux_condenser.ReportParserCrudo")
     def test_insufficient_records_returns_empty(
-        self,
-        mock_parser_class,
-        condenser,
-        mock_csv_file,
-        caplog
+        self, mock_parser_class, condenser, mock_csv_file, caplog
     ):
         mock_parser = Mock()
         mock_parser.parse_to_raw.return_value = []

@@ -46,10 +46,14 @@ from app.presenters import APUPresenter
 def app():
     """Fixture que crea instancia de la aplicación Flask para tests."""
     # Usar fakeredis para simular Redis en memoria y mockear limiter
-    with patch("redis.from_url") as mock_from_url, \
-         patch("flask_limiter.Limiter.init_app"), \
-         patch("flask_limiter.Limiter.limit", side_effect=lambda *args, **kwargs: lambda func: func):
-
+    with (
+        patch("redis.from_url") as mock_from_url,
+        patch("flask_limiter.Limiter.init_app"),
+        patch(
+            "flask_limiter.Limiter.limit",
+            side_effect=lambda *args, **kwargs: lambda func: func,
+        ),
+    ):
         import fakeredis
 
         fake_redis_client = fakeredis.FakeStrictRedis()
@@ -140,9 +144,7 @@ def sample_csv_content():
 def sample_file(sample_csv_content):
     """Fixture que crea un archivo FileStorage de prueba."""
     return FileStorage(
-        stream=BytesIO(sample_csv_content),
-        filename="test.csv",
-        content_type="text/csv"
+        stream=BytesIO(sample_csv_content), filename="test.csv", content_type="text/csv"
     )
 
 
@@ -211,6 +213,7 @@ class TestSetupLogging:
     def test_setup_logging_console_handler(self, app):
         """Debe configurar handler de consola."""
         from logging import StreamHandler
+
         setup_logging(app)
         has_stream_handler = any(isinstance(h, StreamHandler) for h in app.logger.handlers)
         assert has_stream_handler
@@ -423,6 +426,7 @@ class TestDecorators:
 
     def test_require_session_decorator_no_session(self, app, client):
         """Debe rechazar request sin sesión."""
+
         @app.route("/test_no_session")
         @require_session
         def test_endpoint(session_data=None):
@@ -435,6 +439,7 @@ class TestDecorators:
 
     def test_require_session_decorator_expired_session(self, app, client):
         """Debe rechazar sesión sin metadata o expirada."""
+
         @app.route("/test_expired_session")
         @require_session
         def test_endpoint(session_data=None):
@@ -450,18 +455,23 @@ class TestDecorators:
 
     def test_require_session_decorator_valid_session(self, app, client):
         """Debe permitir acceso con sesión válida."""
+
         @app.route("/test_valid_session")
         @require_session
         def test_endpoint(session_data=None):
             return jsonify({"status": "ok", "data": session_data["data"]})
 
-        session_payload = {"presupuesto": [], "apus_detail": [], "insumos": []}
+        session_payload = {
+            "presupuesto": [{"CODIGO_APU": "1"}],
+            "apus_detail": [{"CODIGO_APU": "1"}],
+            "insumos": [{"CODIGO_INSUMO": "1"}],
+        }
         metadata = {
             "session_id": "sid",
             "created_at": time.time(),
             "last_accessed": time.time(),
             "data_hash": "hash",
-            "version": "2.0"
+            "version": "2.0",
         }
 
         with client.session_transaction() as sess:
@@ -476,6 +486,7 @@ class TestDecorators:
 
     def test_handle_errors_decorator_value_error(self, app, client):
         """Debe manejar ValueError."""
+
         @app.route("/test_value_error")
         @handle_errors
         def test_endpoint():
@@ -488,6 +499,7 @@ class TestDecorators:
 
     def test_handle_errors_decorator_key_error(self, app, client):
         """Debe manejar KeyError."""
+
         @app.route("/test_key_error")
         @handle_errors
         def test_endpoint():
@@ -500,6 +512,7 @@ class TestDecorators:
 
     def test_handle_errors_decorator_generic_error(self, app, client):
         """Debe manejar errores genéricos."""
+
         @app.route("/test_generic_error")
         @handle_errors
         def test_endpoint():
@@ -512,6 +525,7 @@ class TestDecorators:
 
     def test_handle_errors_decorator_success(self, app, client):
         """Debe permitir ejecución exitosa."""
+
         @app.route("/test_success")
         @handle_errors
         def test_endpoint():
@@ -633,9 +647,15 @@ class TestEndpoints:
         }
 
         # Crear archivos separados para evitar consumo de stream compartido
-        f1 = FileStorage(stream=BytesIO(sample_csv_content), filename="p.csv", content_type="text/csv")
-        f2 = FileStorage(stream=BytesIO(sample_csv_content), filename="a.csv", content_type="text/csv")
-        f3 = FileStorage(stream=BytesIO(sample_csv_content), filename="i.csv", content_type="text/csv")
+        f1 = FileStorage(
+            stream=BytesIO(sample_csv_content), filename="p.csv", content_type="text/csv"
+        )
+        f2 = FileStorage(
+            stream=BytesIO(sample_csv_content), filename="a.csv", content_type="text/csv"
+        )
+        f3 = FileStorage(
+            stream=BytesIO(sample_csv_content), filename="i.csv", content_type="text/csv"
+        )
 
         response = client.post(
             "/upload",
@@ -649,9 +669,15 @@ class TestEndpoints:
         """Debe manejar error de procesamiento."""
         mock_process.return_value = {"error": "Error al procesar archivos"}
 
-        f1 = FileStorage(stream=BytesIO(sample_csv_content), filename="p.csv", content_type="text/csv")
-        f2 = FileStorage(stream=BytesIO(sample_csv_content), filename="a.csv", content_type="text/csv")
-        f3 = FileStorage(stream=BytesIO(sample_csv_content), filename="i.csv", content_type="text/csv")
+        f1 = FileStorage(
+            stream=BytesIO(sample_csv_content), filename="p.csv", content_type="text/csv"
+        )
+        f2 = FileStorage(
+            stream=BytesIO(sample_csv_content), filename="a.csv", content_type="text/csv"
+        )
+        f3 = FileStorage(
+            stream=BytesIO(sample_csv_content), filename="i.csv", content_type="text/csv"
+        )
 
         response = client.post(
             "/upload",
@@ -677,7 +703,7 @@ class TestEndpoints:
             "created_at": time.time(),
             "last_accessed": time.time(),
             "data_hash": "hash",
-            "version": "2.0"
+            "version": "2.0",
         }
 
         with client.session_transaction() as sess:
@@ -697,7 +723,7 @@ class TestEndpoints:
             "created_at": time.time(),
             "last_accessed": time.time(),
             "data_hash": "hash",
-            "version": "2.0"
+            "version": "2.0",
         }
         with client.session_transaction() as sess:
             sess["user_id"] = "test_user"
@@ -721,11 +747,15 @@ class TestEndpoints:
             "created_at": time.time(),
             "last_accessed": time.time(),
             "data_hash": "hash",
-            "version": "2.0"
+            "version": "2.0",
         }
         with client.session_transaction() as sess:
             sess["user_id"] = "test_user"
-            sess["processed_data"] = {"presupuesto":["a"], "apus_detail":["b"], "insumos":["c"]}
+            sess["processed_data"] = {
+                "presupuesto": ["a"],
+                "apus_detail": ["b"],
+                "insumos": ["c"],
+            }
             sess["session_metadata"] = metadata
 
         response = client.post("/api/estimate", data="not json")
@@ -740,11 +770,15 @@ class TestEndpoints:
             "created_at": time.time(),
             "last_accessed": time.time(),
             "data_hash": "hash",
-            "version": "2.0"
+            "version": "2.0",
         }
         with client.session_transaction() as sess:
             sess["user_id"] = "test_user"
-            sess["processed_data"] = {"presupuesto":["a"], "apus_detail":["b"], "insumos":["c"]}
+            sess["processed_data"] = {
+                "presupuesto": ["a"],
+                "apus_detail": ["b"],
+                "insumos": ["c"],
+            }
             sess["session_metadata"] = metadata
 
         response = client.post("/api/estimate", json=None)
@@ -765,7 +799,7 @@ class TestEndpoints:
             "created_at": time.time(),
             "last_accessed": time.time(),
             "data_hash": "hash",
-            "version": "2.0"
+            "version": "2.0",
         }
 
         with client.session_transaction() as sess:
@@ -812,6 +846,7 @@ class TestErrorHandlers:
 
     def test_500_handler(self, app, client):
         """Debe manejar error 500."""
+
         @app.route("/test_500")
         def test_500():
             raise Exception("Test internal error")
@@ -861,7 +896,11 @@ class TestSemanticSearch:
 
     @patch("pathlib.Path.exists")
     @patch("faiss.read_index")
-    @patch("builtins.open", new_callable=mock_open, read_data='{"model_name": "test-model", "vector_dimension": 128, "total_vectors": 1000}')
+    @patch(
+        "builtins.open",
+        new_callable=mock_open,
+        read_data='{"model_name": "test-model", "vector_dimension": 128, "total_vectors": 1000}',
+    )
     @patch("app.app.SentenceTransformer")
     def test_load_semantic_search_success(
         self, mock_transformer, mock_file, mock_faiss, mock_exists, app
@@ -881,16 +920,20 @@ class TestSemanticSearch:
         # Need to populate the file read with valid ID map list
         file_read_mock = mock_file.return_value
         file_read_mock.read.side_effect = [
-            '{"model_name": "test-model", "vector_dimension": 128, "total_vectors": 1000}', # metadata
-            json.dumps([str(i) for i in range(1000)]) # id_map
+            '{"model_name": "test-model", "vector_dimension": 128, "total_vectors": 1000}',  # metadata
+            json.dumps([str(i) for i in range(1000)]),  # id_map
         ]
 
         # Actually we need separate opens. This mocks all opens.
         # Let's just mock json.load instead to return dict for metadata and list for map.
         with patch("json.load") as mock_json:
             mock_json.side_effect = [
-                {"model_name": "test-model", "vector_dimension": 128, "total_vectors": 1000}, # metadata
-                [str(i) for i in range(1000)] # id_map
+                {
+                    "model_name": "test-model",
+                    "vector_dimension": 128,
+                    "total_vectors": 1000,
+                },  # metadata
+                [str(i) for i in range(1000)],  # id_map
             ]
             load_semantic_search_artifacts(app)
 
@@ -990,16 +1033,28 @@ class TestIntegration:
     @patch("app.app.process_all_files")
     @patch("app.app.run_monte_carlo_simulation")
     def test_full_workflow(
-        self, mock_simulation, mock_process, app, client, sample_csv_content, sample_session_data
+        self,
+        mock_simulation,
+        mock_process,
+        app,
+        client,
+        sample_csv_content,
+        sample_session_data,
     ):
         """Workflow completo: upload -> detail."""
         # 1. Upload: esto crea la sesión y almacena los datos
         mock_process.return_value = sample_session_data["data"]
 
         # Archivos separados
-        f1 = FileStorage(stream=BytesIO(sample_csv_content), filename="p.csv", content_type="text/csv")
-        f2 = FileStorage(stream=BytesIO(sample_csv_content), filename="a.csv", content_type="text/csv")
-        f3 = FileStorage(stream=BytesIO(sample_csv_content), filename="i.csv", content_type="text/csv")
+        f1 = FileStorage(
+            stream=BytesIO(sample_csv_content), filename="p.csv", content_type="text/csv"
+        )
+        f2 = FileStorage(
+            stream=BytesIO(sample_csv_content), filename="a.csv", content_type="text/csv"
+        )
+        f3 = FileStorage(
+            stream=BytesIO(sample_csv_content), filename="i.csv", content_type="text/csv"
+        )
 
         upload_response = client.post(
             "/upload",
@@ -1047,7 +1102,11 @@ class TestSecurity:
         )
         response = client.post(
             "/upload",
-            data={"presupuesto": traversal_file, "apus": sample_file, "insumos": sample_file},
+            data={
+                "presupuesto": traversal_file,
+                "apus": sample_file,
+                "insumos": sample_file,
+            },
         )
         assert response.status_code in [400, 500]
 
@@ -1093,8 +1152,10 @@ class TestPerformance:
     def test_multiple_concurrent_requests(self, client):
         """Debe manejar múltiples requests."""
         import concurrent.futures
+
         def make_request():
             return client.get("/api/health")
+
         with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
             futures = [executor.submit(make_request) for _ in range(10)]
             responses = [f.result() for f in futures]

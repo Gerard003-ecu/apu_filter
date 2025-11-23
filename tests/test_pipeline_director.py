@@ -8,20 +8,20 @@ Incluye:
 """
 
 import unittest
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
+
 import pandas as pd
+
 from app.pipeline_director import (
-    PipelineDirector,
-    ProcessingStep,
     LoadDataStep,
     MergeDataStep,
-    CalculateCostsStep,
-    FinalMergeStep,
-    BuildOutputStep,
-    ProcessingThresholds
+    PipelineDirector,
+    ProcessingStep,
+    ProcessingThresholds,
 )
 from app.telemetry import TelemetryContext
 from tests.test_data import TEST_CONFIG
+
 
 class MockStep(ProcessingStep):
     def __init__(self, config, thresholds):
@@ -33,6 +33,7 @@ class MockStep(ProcessingStep):
         context["mock_executed"] = True
         telemetry.end_step("mock_step", "success")
         return context
+
 
 class TestPipelineDirector(unittest.TestCase):
     def setUp(self):
@@ -61,7 +62,9 @@ class TestPipelineDirector(unittest.TestCase):
     @patch("app.pipeline_director.CalculateCostsStep")
     @patch("app.pipeline_director.FinalMergeStep")
     @patch("app.pipeline_director.BuildOutputStep")
-    def test_default_pipeline_execution(self, MockBuild, MockFinal, MockCalc, MockMerge, MockLoad):
+    def test_default_pipeline_execution(
+        self, MockBuild, MockFinal, MockCalc, MockMerge, MockLoad
+    ):
         """Verify default pipeline execution order."""
         # Setup mocks behavior
         mock_load_instance = MockLoad.return_value
@@ -104,9 +107,11 @@ class TestPipelineDirector(unittest.TestCase):
 
     def test_error_handling(self):
         """Verify that errors in steps are recorded in telemetry."""
+
         class ErrorStep(ProcessingStep):
             def __init__(self, config, thresholds):
                 pass
+
             def execute(self, context, telemetry):
                 raise ValueError("Step failed")
 
@@ -118,6 +123,7 @@ class TestPipelineDirector(unittest.TestCase):
 
         assert len(self.telemetry.errors) > 0
         assert self.telemetry.errors[0]["step"] == "error_step"
+
 
 class TestProcessingSteps(unittest.TestCase):
     """Test individual steps signature updates."""
@@ -144,7 +150,7 @@ class TestProcessingSteps(unittest.TestCase):
         context = {
             "presupuesto_path": "p.csv",
             "apus_path": "a.csv",
-            "insumos_path": "i.csv"
+            "insumos_path": "i.csv",
         }
 
         step.execute(context, self.telemetry)
@@ -162,6 +168,7 @@ class TestProcessingSteps(unittest.TestCase):
             context = {"df_apus_raw": pd.DataFrame(), "df_insumos": pd.DataFrame()}
             step.execute(context, self.telemetry)
             assert "merge_data" in [s["step"] for s in self.telemetry.steps]
+
 
 if __name__ == "__main__":
     unittest.main()
