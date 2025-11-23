@@ -430,6 +430,49 @@ class TelemetryContext:
             
             logger.info(f"[{self.request_id}] Telemetry context reset")
 
+    def get_business_report(self) -> Dict[str, Any]:
+        """
+        Generates a business-friendly report based on technical metrics.
+        Translates physical engineering metrics into business health indicators.
+
+        Returns:
+            Dictionary containing status, message, and translated metrics.
+        """
+        with self._lock:
+            # 1. Extract raw metrics (safely)
+            saturation = float(self.metrics.get("flux_condenser.avg_saturation", 0.0))
+            flyback_voltage = float(self.metrics.get("flux_condenser.max_flyback_voltage", 0.0))
+            dissipated_power = float(self.metrics.get("flux_condenser.max_dissipated_power", 0.0))
+            kinetic_energy = float(self.metrics.get("flux_condenser.avg_kinetic_energy", 0.0))
+
+            # 2. Translate to Business Terms
+            business_metrics = {
+                "Carga del Sistema": f"{saturation * 100:.1f}%",
+                "Índice de Inestabilidad": f"{flyback_voltage:.4f}",
+                "Fricción de Datos": f"{dissipated_power:.2f}",
+                "Velocidad de Procesamiento": f"{kinetic_energy:.2f}"
+            }
+
+            # 3. Determine Status (Traffic Light Logic)
+            status = "OPTIMO"
+            message = "Procesamiento estable y fluido."
+
+            # CRITICAL check (Highest priority)
+            if flyback_voltage > 0.5 or dissipated_power > 50.0:
+                status = "CRITICO"
+                message = "Archivo inestable o con baja calidad de datos."
+
+            # WARNING check
+            elif saturation > 0.9:
+                status = "ADVERTENCIA"
+                message = "Sistema operando a máxima capacidad."
+
+            return {
+                "status": status,
+                "message": message,
+                "metrics": business_metrics
+            }
+
     # ========== Validation and Helper Methods ==========
 
     def _validate_step_name(self, step_name: str) -> bool:

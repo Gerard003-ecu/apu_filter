@@ -832,7 +832,7 @@ class TestValueSanitization:
         """Verify long strings are truncated."""
         long_string = "x" * 15000
         result = ctx._sanitize_value(long_string)
-        assert len(result) <= 10010  # 10000 + "...<truncated>"
+        assert len(result) <= 10014  # 10000 + "...<truncated>" (14 chars)
 
     def test_sanitize_list(self, ctx):
         """Verify lists are sanitized recursively."""
@@ -1020,15 +1020,12 @@ class TestIntegration:
 
     def test_error_recovery_workflow(self, ctx):
         """Test workflow with error and recovery."""
-        with ctx.step("attempt_1", error_status=StepStatus.WARNING):
-            ctx.record_error("attempt_1", "Temporary failure", error_type="TransientError")
-            raise RuntimeError("Temporary issue")
-        
-        # Continue despite error (caught and re-raised by context manager)
         try:
-            pass  # Error was already raised
+            with ctx.step("attempt_1", error_status=StepStatus.WARNING):
+                ctx.record_error("attempt_1", "Temporary failure", error_type="TransientError")
+                raise RuntimeError("Temporary issue")
         except RuntimeError:
-            pass
+            pass  # Expected exception
         
         # Retry succeeds
         with ctx.step("attempt_2"):
@@ -1036,7 +1033,7 @@ class TestIntegration:
         
         summary = ctx.get_summary()
         assert summary["total_steps"] == 2
-        assert summary["total_errors"] == 1
+        assert summary["total_errors"] == 2  # One explicit, one from context manager
         assert summary["step_statuses"]["warning"] == 1
         assert summary["step_statuses"]["success"] == 1
 
@@ -1075,6 +1072,69 @@ class TestPerformance:
         # Should export quickly
         assert duration < 0.1
         assert isinstance(data, dict)
+
+
+# ========== Business Logic Tests ==========
+
+class TestBusinessLogic:
+    """Tests for business logic translation."""
+
+    def test_get_business_report_optimal(self, ctx):
+        """Verify report for optimal conditions."""
+        # Inject "good" metrics
+        ctx.record_metric("flux_condenser", "avg_saturation", 0.5)
+        ctx.record_metric("flux_condenser", "max_flyback_voltage", 0.02)
+        ctx.record_metric("flux_condenser", "max_dissipated_power", 10.0)
+        ctx.record_metric("flux_condenser", "avg_kinetic_energy", 100.0)
+
+        report = ctx.get_business_report()
+
+        assert report["status"] == "OPTIMO"
+        assert report["message"] == "Procesamiento estable y fluido."
+        assert report["metrics"]["Carga del Sistema"] == "50.0%"
+        assert report["metrics"]["Índice de Inestabilidad"] == "0.0200"
+        assert report["metrics"]["Fricción de Datos"] == "10.00"
+
+    def test_get_business_report_warning_saturation(self, ctx):
+        """Verify report for high saturation warning."""
+        ctx.record_metric("flux_condenser", "avg_saturation", 0.95)
+        ctx.record_metric("flux_condenser", "max_flyback_voltage", 0.1)
+        ctx.record_metric("flux_condenser", "max_dissipated_power", 20.0)
+
+        report = ctx.get_business_report()
+
+        assert report["status"] == "ADVERTENCIA"
+        assert report["message"] == "Sistema operando a máxima capacidad."
+
+    def test_get_business_report_critical_voltage(self, ctx):
+        """Verify report for critical flyback voltage."""
+        ctx.record_metric("flux_condenser", "avg_saturation", 0.5)
+        ctx.record_metric("flux_condenser", "max_flyback_voltage", 0.6) # > 0.5
+        ctx.record_metric("flux_condenser", "max_dissipated_power", 10.0)
+
+        report = ctx.get_business_report()
+
+        assert report["status"] == "CRITICO"
+        assert report["message"] == "Archivo inestable o con baja calidad de datos."
+
+    def test_get_business_report_critical_power(self, ctx):
+        """Verify report for critical dissipated power."""
+        ctx.record_metric("flux_condenser", "avg_saturation", 0.5)
+        ctx.record_metric("flux_condenser", "max_flyback_voltage", 0.1)
+        ctx.record_metric("flux_condenser", "max_dissipated_power", 60.0) # > 50.0
+
+        report = ctx.get_business_report()
+
+        assert report["status"] == "CRITICO"
+        assert report["message"] == "Archivo inestable o con baja calidad de datos."
+
+    def test_get_business_report_missing_metrics(self, ctx):
+        """Verify report handles missing metrics gracefully."""
+        # No metrics recorded
+        report = ctx.get_business_report()
+
+        assert report["status"] == "OPTIMO" # Default
+        assert report["metrics"]["Carga del Sistema"] == "0.0%"
 
 
 if __name__ == "__main__":

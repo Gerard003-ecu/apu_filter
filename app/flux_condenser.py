@@ -236,9 +236,11 @@ class ProcessingStats:
     avg_batch_size: float = 0.0
     avg_saturation: float = 0.0
     max_dissipated_power: float = 0.0
+    max_flyback_voltage: float = 0.0
+    avg_kinetic_energy: float = 0.0
     emergency_brakes_triggered: int = 0
 
-    def add_batch_stats(self, batch_size: int, saturation: float, power: float, success: bool) -> None:
+    def add_batch_stats(self, batch_size: int, saturation: float, power: float, flyback: float, kinetic: float, success: bool) -> None:
         """Actualiza estadísticas con datos de un batch procesado."""
         self.total_batches += 1
         if success:
@@ -251,7 +253,9 @@ class ProcessingStats:
         n = self.total_batches
         self.avg_batch_size = ((n - 1) * self.avg_batch_size + batch_size) / n
         self.avg_saturation = ((n - 1) * self.avg_saturation + saturation) / n
+        self.avg_kinetic_energy = ((n - 1) * self.avg_kinetic_energy + kinetic) / n
         self.max_dissipated_power = max(self.max_dissipated_power, power)
+        self.max_flyback_voltage = max(self.max_flyback_voltage, flyback)
 
 
 # ============================================================================
@@ -1083,6 +1087,8 @@ class DataFluxCondenser:
                 batch_size=len(batch_records),
                 saturation=metrics["saturation"],
                 power=metrics["dissipated_power"],
+                flyback=metrics["flyback_voltage"],
+                kinetic=metrics["kinetic_energy"],
                 success=batch_success
             )
 
@@ -1323,6 +1329,8 @@ class DataFluxCondenser:
                 "avg_batch_size": self._stats.avg_batch_size,
                 "avg_saturation": self._stats.avg_saturation,
                 "max_dissipated_power": self._stats.max_dissipated_power,
+                "max_flyback_voltage": self._stats.max_flyback_voltage,
+                "avg_kinetic_energy": self._stats.avg_kinetic_energy,
                 "emergency_brakes_triggered": self._stats.emergency_brakes_triggered
             },
             "controller_state": self.controller.get_state(),
