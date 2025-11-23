@@ -203,6 +203,15 @@ class LoadDataStep(ProcessingStep):
                 condenser_config=condenser_config
             )
             df_apus_raw = condenser.stabilize(apus_path)
+
+            # Extract and record condenser stats for Business Telemetry
+            stats = condenser.get_processing_stats()
+            telemetry.record_metric("flux_condenser", "avg_saturation", stats.get("avg_saturation", 0.0))
+            telemetry.record_metric("flux_condenser", "max_flyback_voltage", stats.get("max_flyback_voltage", 0.0))
+            telemetry.record_metric("flux_condenser", "max_dissipated_power", stats.get("max_dissipated_power", 0.0))
+            telemetry.record_metric("flux_condenser", "avg_kinetic_energy", stats.get("avg_kinetic_energy", 0.0))
+            telemetry.record_metric("flux_condenser", "avg_batch_size", stats.get("avg_batch_size", 0))
+
             telemetry.record_metric("load_data", "apus_raw_rows", len(df_apus_raw))
             logger.info("✅ DataFluxCondenser completado.")
 

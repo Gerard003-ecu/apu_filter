@@ -1330,6 +1330,7 @@ def create_app(config_name: str) -> Flask:
                 "apu_details": len(sanitized_data.get("apus_detail", [])),
                 "insumos": len(sanitized_data.get("insumos", [])),
             },
+            "health_report": g.telemetry.get_business_report(),
             "validation": {
                 file_type: {
                     "rows": result.row_count,
