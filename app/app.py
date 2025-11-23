@@ -48,6 +48,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 from config import config_by_name
 from models.probability_models import run_monte_carlo_simulation
 
+from .data_loader import LoadStatus, load_data  # Nueva importación para carga robusta
 from .estimator import SearchArtifacts, calculate_estimate
 from .pipeline_director import process_all_files  # Ahora usa la versión refactorizada
 from .presenters import APUPresenter
@@ -670,7 +671,7 @@ class FileValidator:
         file_path: Path, file_type: str, required_columns: List[str]
     ) -> FileValidationResult:
         """
-        Valida el contenido del archivo CSV/Excel.
+        Valida el contenido del archivo CSV/Excel utilizando data_loader robusto.
 
         Args:
             file_path: Ruta del archivo.
@@ -688,11 +689,34 @@ class FileValidator:
         )
 
         try:
-            # Leer archivo
-            if file_path.suffix.lower() == ".csv":
-                df = pd.read_csv(file_path, nrows=1)
-            else:
-                df = pd.read_excel(file_path, nrows=1)
+            # Usar load_data para validación robusta y detección automática de separadores
+            # Leemos solo una muestra inicial para validar estructura
+            # Nota: load_data maneja automáticamente nrows para CSV si se pasa en kwargs,
+            # pero para validación completa inicial cargamos todo con manejo de errores optimizado en data_loader
+            # Sin embargo, para no saturar memoria en validación, idealmente data_loader soportaría nrows.
+            # load_data pasa **kwargs a pd.read_csv/excel.
+
+            # Primero intentamos carga ligera para validación de estructura
+            load_result = load_data(file_path, nrows=10)
+
+            if load_result.status != LoadStatus.SUCCESS:
+                error_msg = load_result.error_message or "Error desconocido al cargar archivo"
+                if load_result.status == LoadStatus.EMPTY:
+                    result.errors.append("El archivo está vacío")
+                else:
+                    result.errors.append(f"Error de carga: {error_msg}")
+                return result
+
+            # Obtener DataFrame (puede ser dict si es excel con múltiples hojas, tomamos la primera o única)
+            df = load_result.data
+            if isinstance(df, dict):
+                # Si hay múltiples hojas, usamos la primera que no esté vacía
+                first_sheet = next(iter(df.values()))
+                df = first_sheet
+
+            if df is None or df.empty:
+                result.errors.append("El archivo no contiene datos legibles")
+                return result
 
             result.column_count = len(df.columns)
 
@@ -715,13 +739,20 @@ class FileValidator:
                     )
                     return result
 
-            # Leer archivo completo para validar filas
-            if file_path.suffix.lower() == ".csv":
-                df = pd.read_csv(file_path)
-            else:
-                df = pd.read_excel(file_path)
+            # Si la estructura es válida, cargamos el archivo completo para validación de volumen y nulos
+            # Esto es necesario para tener el row_count real y estadísticas de nulos
+            # Si el archivo es muy grande, load_data ya tiene advertencias, pero aquí necesitamos números exactos
+            full_load_result = load_data(file_path)
 
-            result.row_count = len(df)
+            if full_load_result.status != LoadStatus.SUCCESS:
+                result.errors.append("Error al leer el archivo completo para validación")
+                return result
+
+            df_full = full_load_result.data
+            if isinstance(df_full, dict):
+                df_full = next(iter(df_full.values()))
+
+            result.row_count = len(df_full)
 
             # Validar cantidad de filas
             if result.row_count < MIN_ROWS_REQUIRED:
@@ -737,27 +768,24 @@ class FileValidator:
 
             # Verificar valores nulos en columnas críticas
             for col in required_columns:
-                null_count = df[col].isnull().sum()
-                if null_count > 0:
-                    null_pct = (null_count / result.row_count) * 100
-                    if null_pct > 50:
-                        result.errors.append(
-                            f"Columna '{col}' tiene {null_pct:.1f}% valores nulos"
-                        )
-                    elif null_pct > 10:
-                        result.warnings.append(
-                            f"Columna '{col}' tiene {null_pct:.1f}% valores nulos"
-                        )
+                if col in df_full.columns:
+                    null_count = df_full[col].isnull().sum()
+                    if null_count > 0:
+                        null_pct = (null_count / result.row_count) * 100
+                        if null_pct > 50:
+                            result.errors.append(
+                                f"Columna '{col}' tiene {null_pct:.1f}% valores nulos"
+                            )
+                        elif null_pct > 10:
+                            result.warnings.append(
+                                f"Columna '{col}' tiene {null_pct:.1f}% valores nulos"
+                            )
 
             # Si no hay errores, el archivo es válido
             result.is_valid = len(result.errors) == 0
 
-        except pd.errors.EmptyDataError:
-            result.errors.append("El archivo está vacío")
-        except pd.errors.ParserError as e:
-            result.errors.append(f"Error al parsear archivo: {str(e)}")
         except Exception as e:
-            result.errors.append(f"Error inesperado: {str(e)}")
+            result.errors.append(f"Error inesperado durante validación: {str(e)}")
 
         return result
 
