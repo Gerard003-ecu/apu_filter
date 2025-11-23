@@ -1,0 +1,21 @@
+14:33:36 [SYSTEM] - INFO - ============================================================
+14:33:36 [SYSTEM] - INFO - Iniciando aplicación en modo: DEFAULT
+14:33:36 [SYSTEM] - INFO - ============================================================
+14:33:37 [SYSTEM] - INFO - ✅ Conexión a Redis exitosa: redis://127.0.0.1:6379/0
+14:33:37 [SYSTEM] - INFO - ✅ Configuración cargada desde config.json
+14:33:37 [SYSTEM] - INFO - APUPresenter inicializado correctamente
+14:33:37 [SYSTEM] - INFO - Iniciando carga de artefactos de búsqueda semántica...
+14:33:37 [SYSTEM] - ERROR - ❌ Error al cargar artefactos de búsqueda semántica: Metadata incompleta. Faltantes: vector_dimension, total_vectors
+Traceback (most recent call last):
+  File "/home/gerardo/Documentos/GitHub/apu_filter/app/app.py", line 874, in load_semantic_search_artifacts
+    raise ValueError(
+ValueError: Metadata incompleta. Faltantes: vector_dimension, total_vectors
+14:33:37 [SYSTEM] - INFO - ✅ Aplicación inicializada exitosamente
+14:33:37 [SYSTEM] - INFO - ============================================================
+ * Debug mode: off
+14:34:40 [SYSTEM] - INFO - 📊 Telemetry for b37f37bf: {"request_id": "b37f37bf", "steps": [], "metrics": {}, "errors": [], "total_duration_seconds": 0, "created_at": 1869.256632531, "age_seconds": 0.136045}
+14:34:41 [SYSTEM] - INFO - 📊 Telemetry for ad88d3e3: {"request_id": "ad88d3e3", "steps": [], "metrics": {}, "errors": [], "total_duration_seconds": 0, "created_at": 1870.309271709, "age_seconds": 0.170373}
+14:34:41 [SYSTEM] - INFO - 📊 Telemetry for 3d1d73bc: {"request_id": "3d1d73bc", "steps": [], "metrics": {}, "errors": [], "total_duration_seconds": 0, "created_at": 1870.370276599, "age_seconds": 0.145075}
+14:35:34 [523e4b2d] - INFO - 📤 Iniciando proceso de carga de archivos
+14:35:34 [523e4b2d] - WARNING - Archivo 'presupuesto' inválido: ['Columnas faltantes: CODIGO_APU']
+14:35:34 [SYSTEM] - INFO - 📊 Telemetry for 523e4b2d: {"request_id": "523e4b2d", "steps": [], "metrics": {}, "errors": [{"step": "upload_request_validation", "message": "Invalid file: presupuesto", "timestamp": "2025-11-23T19:35:34.953828", "perf_counter": 1924.324989825}], "total_duration_seconds": 0, "created_at": 1924.256579266, "age_seconds": 0.078337, "active_timers": ["upload_request_validation"]}
