@@ -1,6 +1,7 @@
 # --- Framework Web y Extensiones ---
 flask
 flask-cors
+flask-limiter
 flask-session
 python-dotenv
 
