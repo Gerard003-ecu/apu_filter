@@ -646,7 +646,7 @@ class APUTransformer(Transformer):
         # Lark pasa una lista plana [field, SEP, field, SEP, ...].
         # Un SEP es un Token, un field no.
         filtered_args = [
-            arg for arg in args if not isinstance(arg, Token) or arg.type != 'SEP'
+            arg for arg in args if not isinstance(arg, Token) or arg.type != "SEP"
         ]
 
         for arg in filtered_args:
@@ -949,6 +949,7 @@ class APUTransformer(Transformer):
 # PROCESADOR PRINCIPAL - COMPATIBLE CON LoadDataStep
 # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
+
 class APUProcessor:
     """
     Procesador de APUs con soporte para múltiples formatos de entrada.
@@ -962,7 +963,7 @@ class APUProcessor:
         self,
         config,
         profile: Optional[Dict[str, Any]] = None,
-        parse_cache: Optional[Dict[str, Any]] = None
+        parse_cache: Optional[Dict[str, Any]] = None,
     ):
         """
         Inicializa el procesador con cache opcional de parsing.
@@ -999,10 +1000,7 @@ class APUProcessor:
                 f"líneas pre-parseadas"
             )
 
-    def _detect_record_format(
-        self,
-        records: List[Dict[str, Any]]
-    ) -> Tuple[str, str]:
+    def _detect_record_format(self, records: List[Dict[str, Any]]) -> Tuple[str, str]:
         """
         Detecta automáticamente el formato de los registros de entrada.
 
@@ -1021,15 +1019,12 @@ class APUProcessor:
         if "lines" in first_record:
             return (
                 "grouped",
-                "Formato agrupado (legacy): cada registro es un APU con lista de líneas"
+                "Formato agrupado (legacy): cada registro es un APU con lista de líneas",
             )
 
         # Formato plano (nuevo): tiene claves "insumo_line" y "apu_code"
         if "insumo_line" in first_record and "apu_code" in first_record:
-            return (
-                "flat",
-                "Formato plano (nuevo): cada registro es un insumo individual"
-            )
+            return ("flat", "Formato plano (nuevo): cada registro es un insumo individual")
 
         # Formato desconocido
         logger.warning(
@@ -1038,8 +1033,7 @@ class APUProcessor:
         return ("unknown", "Formato no reconocido")
 
     def _group_flat_records(
-        self,
-        flat_records: List[Dict[str, Any]]
+        self, flat_records: List[Dict[str, Any]]
     ) -> List[Dict[str, Any]]:
         """
         Agrupa registros planos por APU.
@@ -1057,11 +1051,13 @@ class APUProcessor:
         logger.info(f"Agrupando {len(flat_records)} registros planos por APU...")
 
         # Agrupar por apu_code
-        grouped = defaultdict(lambda: {
-            "lines": [],
-            "_lark_trees": [],  # Preservar árboles pre-parseados
-            "metadata": {}
-        })
+        grouped = defaultdict(
+            lambda: {
+                "lines": [],
+                "_lark_trees": [],  # Preservar árboles pre-parseados
+                "metadata": {},
+            }
+        )
 
         for record in flat_records:
             apu_code = record.get("apu_code", "UNKNOWN")
@@ -1154,9 +1150,7 @@ class APUProcessor:
                     apu_cache = self._prepare_apu_cache(record)
 
                     insumos = self._process_apu_lines(
-                        record["lines"],
-                        apu_context,
-                        apu_cache
+                        record["lines"], apu_context, apu_cache
                     )
 
                     if insumos:
@@ -1175,11 +1169,11 @@ class APUProcessor:
 
             except Exception as e:
                 logger.error(
-                    f"Error procesando APU {i} "
-                    f"[{record.get('codigo_apu', 'UNKNOWN')}]: {e}"
+                    f"Error procesando APU {i} [{record.get('codigo_apu', 'UNKNOWN')}]: {e}"
                 )
                 if self.debug_mode:
                     import traceback
+
                     logger.debug(f"Traceback:\n{traceback.format_exc()}")
                 continue
 
@@ -1244,10 +1238,7 @@ class APUProcessor:
         # Intentar claves nuevas primero, luego legacy
         return {
             "codigo_apu": record.get("codigo_apu") or record.get("apu_code", ""),
-            "descripcion_apu": (
-                record.get("descripcion_apu") or
-                record.get("apu_desc", "")
-            ),
+            "descripcion_apu": (record.get("descripcion_apu") or record.get("apu_desc", "")),
             "unidad_apu": record.get("unidad_apu") or record.get("apu_unit", ""),
             "cantidad_apu": record.get("cantidad_apu", 1.0),
             "precio_unitario_apu": record.get("precio_unitario_apu", 0.0),
@@ -1258,8 +1249,8 @@ class APUProcessor:
         self,
         lines: List[str],
         apu_context: Dict[str, Any],
-        line_cache: Optional[Dict[str, Any]] = None
-    ) -> List['InsumoProcesado']:
+        line_cache: Optional[Dict[str, Any]] = None,
+    ) -> List["InsumoProcesado"]:
         """
         Procesa líneas de APU con reutilización de cache de parsing.
 
@@ -1303,9 +1294,7 @@ class APUProcessor:
                     if line_clean in active_cache:
                         tree = active_cache[line_clean]
                         stats.cache_hits += 1
-                        logger.debug(
-                            f"  ⚡ Línea {line_num}: Usando árbol Lark del cache"
-                        )
+                        logger.debug(f"  ⚡ Línea {line_num}: Usando árbol Lark del cache")
 
                     if tree is None:
                         # Parsear normalmente
@@ -1314,12 +1303,12 @@ class APUProcessor:
                         except LarkError as lark_error:
                             # Si falla aquí con validación unificada, es inesperado
                             logger.warning(
-                            (
-                                f"  ⚠️  Línea {line_num}: Falló Lark pero pasó "
-                                f"validación previa\n"
-                                f"      Error: {lark_error}\n"
-                                f"      Línea: {line_clean[:100]}"
-                            )
+                                (
+                                    f"  ⚠️  Línea {line_num}: Falló Lark pero pasó "
+                                    f"validación previa\n"
+                                    f"      Error: {lark_error}\n"
+                                    f"      Línea: {line_clean[:100]}"
+                                )
                             )
                             stats.lark_parse_errors += 1
                             continue
@@ -1327,10 +1316,7 @@ class APUProcessor:
                     # Transformar árbol a insumo
                     try:
                         transformer = APUTransformer(
-                            apu_context,
-                            self.config,
-                            self.profile,
-                            self.keyword_cache
+                            apu_context, self.config, self.profile, self.keyword_cache
                         )
                         insumo = transformer.transform(tree)
 
@@ -1350,15 +1336,18 @@ class APUProcessor:
 
                     except Exception as transform_error:
                         stats.transformer_errors += 1
-                        logger.error((
-                            f"  ✗ Línea {line_num}: Error en transformer\n"
-                            f"    Error: {type(transform_error).__name__}: "
-                            f"{transform_error}\n"
-                            f"    Línea: {line_clean[:100]}"
-                        ))
+                        logger.error(
+                            (
+                                f"  ✗ Línea {line_num}: Error en transformer\n"
+                                f"    Error: {type(transform_error).__name__}: "
+                                f"{transform_error}\n"
+                                f"    Línea: {line_clean[:100]}"
+                            )
+                        )
 
                         if self.debug_mode:
                             import traceback
+
                             logger.debug(f"Traceback:\n{traceback.format_exc()}")
 
                         continue
@@ -1368,11 +1357,13 @@ class APUProcessor:
                     insumo.line_number = line_num
                     results.append(insumo)
                 else:
-                    stats.failed_lines.append({
-                        "line_number": line_num,
-                        "content": line_clean,
-                        "apu_code": apu_code
-                    })
+                    stats.failed_lines.append(
+                        {
+                            "line_number": line_num,
+                            "content": line_clean,
+                            "apu_code": apu_code,
+                        }
+                    )
 
             except Exception as unexpected_error:
                 logger.error(
@@ -1384,14 +1375,17 @@ class APUProcessor:
 
                 if self.debug_mode:
                     import traceback
+
                     logger.debug(f"Traceback completo:\n{traceback.format_exc()}")
 
-                stats.failed_lines.append({
-                    "line_number": line_num,
-                    "content": line_clean,
-                    "error": str(unexpected_error),
-                    "apu_code": apu_code
-                })
+                stats.failed_lines.append(
+                    {
+                        "line_number": line_num,
+                        "content": line_clean,
+                        "error": str(unexpected_error),
+                        "apu_code": apu_code,
+                    }
+                )
                 continue
 
         # Log de estadísticas del APU
@@ -1425,11 +1419,11 @@ class APUProcessor:
 
         success_rate = (
             (stats.successful_parses / stats.total_lines * 100)
-            if stats.total_lines > 0 else 0
+            if stats.total_lines > 0
+            else 0
         )
         cache_rate = (
-            (stats.cache_hits / stats.total_lines * 100)
-            if stats.total_lines > 0 else 0
+            (stats.cache_hits / stats.total_lines * 100) if stats.total_lines > 0 else 0
         )
 
         # Solo mostrar detalles si hay problemas o en modo debug
@@ -1440,9 +1434,7 @@ class APUProcessor:
             logger.info(
                 f"   ✓ Exitosos:         {stats.successful_parses} ({success_rate:.1f}%)"
             )
-            logger.info(
-                f"   ⚡ Cache hits:       {stats.cache_hits} ({cache_rate:.1f}%)"
-            )
+            logger.info(f"   ⚡ Cache hits:       {stats.cache_hits} ({cache_rate:.1f}%)")
 
             if stats.lark_parse_errors > 0:
                 logger.info(f"   ✗ Errores Lark:     {stats.lark_parse_errors}")
@@ -1473,12 +1465,10 @@ class APUProcessor:
 
         if self.parsing_stats.total_lines > 0:
             success_rate = (
-                self.parsing_stats.successful_parses /
-                self.parsing_stats.total_lines * 100
+                self.parsing_stats.successful_parses / self.parsing_stats.total_lines * 100
             )
             cache_efficiency = (
-                self.parsing_stats.cache_hits /
-                self.parsing_stats.total_lines * 100
+                self.parsing_stats.cache_hits / self.parsing_stats.total_lines * 100
             )
 
             logger.info(f"Tasa de éxito:               {success_rate:.2f}%")
@@ -1487,7 +1477,7 @@ class APUProcessor:
         logger.info("=" * 80)
 
         # Alertas
-        if self.global_stats['total_insumos'] == 0:
+        if self.global_stats["total_insumos"] == 0:
             logger.error(
                 "🚨 CRÍTICO: 0 insumos extraídos.\n"
                 "   Posibles causas:\n"
@@ -1510,8 +1500,8 @@ class APUProcessor:
 
             return Lark(
                 APU_GRAMMAR,
-                start='line',
-                parser='lalr',
+                start="line",
+                parser="lalr",
                 maybe_placeholders=False,
                 cache=True,
             )
@@ -1538,7 +1528,7 @@ class APUProcessor:
                 "TIPO_INSUMO": getattr(insumo, "tipo_insumo", "OTRO"),
                 "FORMATO_ORIGEN": getattr(insumo, "formato_origen", ""),
                 "CATEGORIA": getattr(insumo, "categoria", ""),
-                "NORMALIZED_DESC": getattr(insumo, "normalized_desc", "")
+                "NORMALIZED_DESC": getattr(insumo, "normalized_desc", ""),
             }
             records.append(record)
 

@@ -70,10 +70,14 @@ class MonteCarloConfig:
 
     def __post_init__(self):
         """Valida y normaliza la configuración después de la inicialización."""
-        # Normalizar percentiles: ordenar, eliminar duplicados, validar
+        # Validar que sea lista antes de cualquier transformación
+        if not isinstance(self.percentiles, list):
+            raise TypeError("percentiles debe ser una lista")
+
+        # Normalizar percentiles: ordenar, eliminar duplicados
         if self.percentiles is not None:
             self.percentiles = sorted(set(self.percentiles))
-        
+
         self._validate()
 
     def _validate(self):
@@ -279,9 +283,9 @@ def sanitize_value(
 
 
 def validate_required_keys(
-    item: Dict[str, Any], 
-    required_keys_options: List[List[str]], 
-    item_index: Optional[int] = None
+    item: Dict[str, Any],
+    required_keys_options: List[List[str]],
+    item_index: Optional[int] = None,
 ) -> None:
     """
     Valida que un diccionario contenga al menos una de las opciones de claves requeridas.
@@ -445,8 +449,7 @@ class MonteCarloSimulator:
             # 3. Verificar que hay datos válidos suficientes
             if len(df_valid) < MIN_VALID_ITEMS_FOR_SIMULATION:
                 return self._create_no_data_result(
-                    total_items=len(apu_details), 
-                    discarded_items=discarded_count
+                    total_items=len(apu_details), discarded_items=discarded_count
                 )
 
             # 4. Verificar uso de memoria
@@ -498,10 +501,7 @@ class MonteCarloSimulator:
                 metadata={"error": f"MemoryError: {str(e)}"},
             )
         except Exception as e:
-            self.logger.error(
-                f"Error inesperado en simulación: {str(e)}", 
-                exc_info=True
-            )
+            self.logger.error(f"Error inesperado en simulación: {str(e)}", exc_info=True)
             return SimulationResult(
                 status=SimulationStatus.ERROR,
                 statistics={},
@@ -521,8 +521,7 @@ class MonteCarloSimulator:
         """
         if not isinstance(apu_details, list):
             raise TypeError(
-                f"apu_details debe ser una lista, "
-                f"recibido: {type(apu_details).__name__}"
+                f"apu_details debe ser una lista, recibido: {type(apu_details).__name__}"
             )
 
         if len(apu_details) == 0:
@@ -530,8 +529,7 @@ class MonteCarloSimulator:
 
         if not all(isinstance(item, dict) for item in apu_details):
             invalid_indices = [
-                i for i, item in enumerate(apu_details) 
-                if not isinstance(item, dict)
+                i for i, item in enumerate(apu_details) if not isinstance(item, dict)
             ]
             raise TypeError(
                 f"Todos los elementos de apu_details deben ser diccionarios. "
@@ -558,9 +556,7 @@ class MonteCarloSimulator:
                 f"Se esperan claves como: {self.VR_TOTAL_ALIASES} y {self.CANTIDAD_ALIASES}"
             )
 
-    def _prepare_data(
-        self, apu_details: List[Dict[str, Any]]
-    ) -> Tuple[pd.DataFrame, int]:
+    def _prepare_data(self, apu_details: List[Dict[str, Any]]) -> Tuple[pd.DataFrame, int]:
         """
         Prepara y limpia los datos para la simulación.
 
@@ -665,8 +661,7 @@ class MonteCarloSimulator:
             conversion_failures = new_nulls - original_nulls
             if conversion_failures > 0:
                 self.logger.warning(
-                    f"{col}: {conversion_failures} valores no numéricos "
-                    f"convertidos a NaN"
+                    f"{col}: {conversion_failures} valores no numéricos convertidos a NaN"
                 )
 
         return df
@@ -698,8 +693,7 @@ class MonteCarloSimulator:
         filtered_count = initial_count - len(df_valid)
         if filtered_count > 0:
             self.logger.debug(
-                f"Filtrados {filtered_count} registros por valores "
-                f"inválidos o umbrales"
+                f"Filtrados {filtered_count} registros por valores inválidos o umbrales"
             )
 
         return df_valid
@@ -715,14 +709,14 @@ class MonteCarloSimulator:
             DataFrame con columna base_cost añadida.
         """
         df = df.copy()
-        
+
         # Calcular costo base
         df["base_cost"] = df["VR_TOTAL"] * df["CANTIDAD"]
 
         # Detectar overflows (valores muy grandes)
         overflow_mask = np.abs(df["base_cost"]) > MAX_SAFE_FLOAT
         overflow_count = overflow_mask.sum()
-        
+
         if overflow_count > 0:
             self.logger.warning(
                 f"Se detectaron {overflow_count} valores de base_cost "
@@ -747,9 +741,7 @@ class MonteCarloSimulator:
 
         # Filtrar base_cost válidos
         valid_mask = (
-            df["base_cost"].notna() 
-            & np.isfinite(df["base_cost"])
-            & (df["base_cost"] != 0)
+            df["base_cost"].notna() & np.isfinite(df["base_cost"]) & (df["base_cost"] != 0)
         )
 
         df_valid = df[valid_mask].copy()
@@ -773,9 +765,7 @@ class MonteCarloSimulator:
         Raises:
             ValueError: Si la simulación requiere demasiada memoria.
         """
-        estimated_memory = estimate_memory_usage(
-            self.config.num_simulations, num_apus
-        )
+        estimated_memory = estimate_memory_usage(self.config.num_simulations, num_apus)
 
         # Convertir a MB para logging
         estimated_mb = estimated_memory / (1024 * 1024)
@@ -835,9 +825,7 @@ class MonteCarloSimulator:
                 size=(self.config.num_simulations, len(base_costs)),
             )
         except MemoryError as e:
-            raise MemoryError(
-                f"Memoria insuficiente para generar matriz de simulación: {e}"
-            )
+            raise MemoryError(f"Memoria insuficiente para generar matriz de simulación: {e}")
 
         # Truncar negativos si está configurado
         if self.config.truncate_negative:
@@ -854,9 +842,7 @@ class MonteCarloSimulator:
         total_simulated_costs = simulated_costs_matrix.sum(axis=1)
 
         # Validar resultados
-        total_simulated_costs = self._validate_simulation_results(
-            total_simulated_costs
-        )
+        total_simulated_costs = self._validate_simulation_results(total_simulated_costs)
 
         return total_simulated_costs
 
@@ -894,16 +880,13 @@ class MonteCarloSimulator:
         if invalid_mask.any():
             invalid_count = invalid_mask.sum()
             self.logger.warning(
-                f"Reemplazando {invalid_count} scales inválidos (NaN/inf) "
-                f"con valor mínimo"
+                f"Reemplazando {invalid_count} scales inválidos (NaN/inf) con valor mínimo"
             )
             scales[invalid_mask] = min_scale
 
         return scales
 
-    def _validate_simulation_results(
-        self, total_simulated_costs: np.ndarray
-    ) -> np.ndarray:
+    def _validate_simulation_results(self, total_simulated_costs: np.ndarray) -> np.ndarray:
         """
         Valida los resultados de la simulación y filtra valores inválidos.
 
@@ -932,16 +915,13 @@ class MonteCarloSimulator:
             total_simulated_costs = total_simulated_costs[valid_mask]
 
         if len(total_simulated_costs) == 0:
-            raise RuntimeError(
-                "Todos los resultados de simulación son inválidos (NaN/inf)"
-            )
+            raise RuntimeError("Todos los resultados de simulación son inválidos (NaN/inf)")
 
         # Advertir si se perdieron muchas simulaciones
         loss_rate = invalid_count / self.config.num_simulations
         if loss_rate > 0.1:  # Más del 10%
             self.logger.warning(
-                f"⚠️  Se perdieron {loss_rate:.1%} de simulaciones por "
-                f"valores inválidos"
+                f"⚠️  Se perdieron {loss_rate:.1%} de simulaciones por valores inválidos"
             )
 
         return total_simulated_costs
@@ -970,9 +950,7 @@ class MonteCarloSimulator:
 
         # Percentiles configurados
         try:
-            percentile_values = np.percentile(
-                simulated_costs, self.config.percentiles
-            )
+            percentile_values = np.percentile(simulated_costs, self.config.percentiles)
             for percentile, value in zip(self.config.percentiles, percentile_values):
                 statistics[f"percentile_{percentile}"] = sanitize_value(float(value))
         except Exception as e:
@@ -989,7 +967,7 @@ class MonteCarloSimulator:
         # Coeficiente de variación
         mean_val = statistics.get("mean")
         std_val = statistics.get("std_dev")
-        
+
         if mean_val and std_val and mean_val > 0:
             cv = std_val / mean_val
             statistics["coefficient_of_variation"] = sanitize_value(cv)
@@ -1040,9 +1018,7 @@ class MonteCarloSimulator:
             "total_items_input": total_items,
             "valid_items": len(df_valid),
             "discarded_items": discarded_items,
-            "discard_rate": (
-                discarded_items / total_items if total_items > 0 else 0
-            ),
+            "discard_rate": (discarded_items / total_items if total_items > 0 else 0),
             "min_cost_threshold": self.config.min_cost_threshold,
             "min_quantity_threshold": self.config.min_quantity_threshold,
             "truncate_negative": self.config.truncate_negative,
@@ -1094,11 +1070,13 @@ class MonteCarloSimulator:
         for percentile in self.config.percentiles:
             statistics[f"percentile_{percentile}"] = None
 
-        statistics.update({
-            "ci_90_lower": None,
-            "ci_90_upper": None,
-            "coefficient_of_variation": None,
-        })
+        statistics.update(
+            {
+                "ci_90_lower": None,
+                "ci_90_upper": None,
+                "coefficient_of_variation": None,
+            }
+        )
 
         metadata = {
             "num_simulations_requested": self.config.num_simulations,
@@ -1109,7 +1087,8 @@ class MonteCarloSimulator:
             "discarded_items": discarded_items,
             "discard_rate": discarded_items / total_items if total_items > 0 else 0,
             "error_reason": (
-                "No valid data" if valid_items == 0 
+                "No valid data"
+                if valid_items == 0
                 else f"Insufficient data (minimum required: {MIN_VALID_ITEMS_FOR_SIMULATION})"
             ),
         }
@@ -1210,17 +1189,21 @@ def run_monte_carlo_simulation(
         }
 
     except (TypeError, ValueError) as e:
-        # Errores críticos de validación se propagan
+        # Errores críticos de validación se capturan para compatibilidad legacy
         if log_warnings:
             logging.getLogger(__name__).error(f"ERROR en simulación: {str(e)}")
-        raise
+
+        return {
+            "mean": None,
+            "std_dev": None,
+            "percentile_5": None,
+            "percentile_95": None,
+        }
 
     except Exception as e:
         # Otros errores se capturan y retornan estructura vacía
         if log_warnings:
-            logging.getLogger(__name__).error(
-                f"ERROR inesperado en simulación: {str(e)}"
-            )
+            logging.getLogger(__name__).error(f"ERROR inesperado en simulación: {str(e)}")
 
         # Retornar estructura vacía en caso de error (compatibilidad legacy)
         return {

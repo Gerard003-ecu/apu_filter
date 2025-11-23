@@ -243,17 +243,17 @@ class EmbeddingGenerator:
     def validate_index(self, index: faiss.Index, embeddings: np.ndarray) -> bool:
         """
         Valida el índice FAISS con tolerancia a duplicados y análisis de similitud.
-        
+
         Estrategia:
         - Acepta coincidencias exactas (mismo índice).
         - Acepta duplicados semánticos (Similitud > 0.999).
         - Rechaza desviaciones significativas.
         - Reporta estadísticas detalladas.
-        
+
         Args:
             index: Índice FAISS a validar.
             embeddings: Embeddings originales.
-            
+
         Returns:
             bool: True si la validación es exitosa.
         """
@@ -270,10 +270,10 @@ class EmbeddingGenerator:
 
         # Métricas de validación
         stats = {
-            'exact_matches': 0,      # Mismo índice
-            'semantic_duplicates': 0, # Índice diferente, vector idéntico
-            'failures': 0,            # Validación fallida
-            'total': n_samples
+            "exact_matches": 0,  # Mismo índice
+            "semantic_duplicates": 0,  # Índice diferente, vector idéntico
+            "failures": 0,  # Validación fallida
+            "total": n_samples,
         }
 
         failed_cases = []
@@ -290,7 +290,7 @@ class EmbeddingGenerator:
 
             # CASO 1: Coincidencia exacta (esperado)
             if top_idx == idx:
-                stats['exact_matches'] += 1
+                stats["exact_matches"] += 1
                 continue
 
             # CASO 2: Duplicado semántico (aceptable)
@@ -300,7 +300,7 @@ class EmbeddingGenerator:
                 actual_similarity = similarities[0][position]
 
                 if actual_similarity > SIMILARITY_THRESHOLD:
-                    stats['semantic_duplicates'] += 1
+                    stats["semantic_duplicates"] += 1
                     self.logger.warning(
                         f"⚠️  Duplicado detectado (Índice correcto encontrado):\n"
                         f"   Índice esperado: {idx}\n"
@@ -312,7 +312,7 @@ class EmbeddingGenerator:
             # CASO 3: Similitud casi perfecta con índice diferente
             # (Duplicado perfecto no indexado o colisión)
             if top_similarity > SIMILARITY_THRESHOLD:
-                stats['semantic_duplicates'] += 1
+                stats["semantic_duplicates"] += 1
                 self.logger.warning(
                     f"⚠️  Vector duplicado perfecto (Índice correcto NO en Top-5):\n"
                     f"   Índice esperado: {idx}\n"
@@ -323,13 +323,15 @@ class EmbeddingGenerator:
                 continue
 
             # CASO 4: Fallo real de validación
-            stats['failures'] += 1
-            failed_cases.append({
-                'expected_idx': idx,
-                'returned_idx': top_idx,
-                'similarity': float(top_similarity),
-                'top5_indices': indices[0].tolist()
-            })
+            stats["failures"] += 1
+            failed_cases.append(
+                {
+                    "expected_idx": idx,
+                    "returned_idx": top_idx,
+                    "similarity": float(top_similarity),
+                    "top5_indices": indices[0].tolist(),
+                }
+            )
 
             self.logger.error(
                 f"❌ Error de validación real:\n"
@@ -343,27 +345,37 @@ class EmbeddingGenerator:
         self.logger.info("📊 Resultados de Validación:")
         self.logger.info(f"   Total muestras: {stats['total']}")
 
-        if stats['total'] > 0:
-            self.logger.info(f"   ✅ Coincidencias exactas: {stats['exact_matches']} "
-                             f"({stats['exact_matches']/stats['total']*100:.1f}%)")
-            self.logger.info(f"   ⚠️  Duplicados semánticos: {stats['semantic_duplicates']} "
-                             f"({stats['semantic_duplicates']/stats['total']*100:.1f}%)")
-            self.logger.info(f"   ❌ Fallos reales: {stats['failures']} "
-                             f"({stats['failures']/stats['total']*100:.1f}%)")
+        if stats["total"] > 0:
+            self.logger.info(
+                f"   ✅ Coincidencias exactas: {stats['exact_matches']} "
+                f"({stats['exact_matches'] / stats['total'] * 100:.1f}%)"
+            )
+            self.logger.info(
+                f"   ⚠️  Duplicados semánticos: {stats['semantic_duplicates']} "
+                f"({stats['semantic_duplicates'] / stats['total'] * 100:.1f}%)"
+            )
+            self.logger.info(
+                f"   ❌ Fallos reales: {stats['failures']} "
+                f"({stats['failures'] / stats['total'] * 100:.1f}%)"
+            )
 
-            success_rate = (stats['exact_matches'] + stats['semantic_duplicates']) / stats['total']
+            success_rate = (stats["exact_matches"] + stats["semantic_duplicates"]) / stats[
+                "total"
+            ]
         else:
             self.logger.warning("⚠️  No se realizaron validaciones (0 muestras).")
             success_rate = 0.0
 
         # Criterio de aceptación: 0 fallos reales
-        if stats['failures'] == 0:
-            if stats['semantic_duplicates'] > 0:
+        if stats["failures"] == 0:
+            if stats["semantic_duplicates"] > 0:
                 self.logger.warning(
                     f"⚠️  ADVERTENCIA: Se detectaron {stats['semantic_duplicates']} duplicados.\n"
                     f"   El sistema funciona, pero considera limpiar tus datos de APUs duplicados."
                 )
-            self.logger.info(f"✅ Validación EXITOSA (tasa de éxito funcional: {success_rate*100:.2f}%)")
+            self.logger.info(
+                f"✅ Validación EXITOSA (tasa de éxito funcional: {success_rate * 100:.2f}%)"
+            )
             self.logger.info("=" * 60)
             return True
         else:

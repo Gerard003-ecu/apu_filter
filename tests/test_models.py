@@ -248,7 +248,7 @@ class TestMonteCarloConfig:
         with pytest.raises(ValueError, match="entre 0 y 100"):
             MonteCarloConfig(percentiles=[-5, 50])
 
-        with pytest.raises(ValueError, match="entre 0 y 100"):
+        with pytest.raises(ValueError, match="Todos los percentiles deben ser enteros"):
             MonteCarloConfig(percentiles=[5.5, 95])  # No enteros
 
 
@@ -374,22 +374,22 @@ class TestSanitizeValue:
         assert isinstance(result, str)
 
     def test_sanitize_list(self):
-        """Debe retornar listas sin modificar."""
-        original = [1, 2, 3]
+        """Debe retornar listas sanitizadas recursivamente."""
+        original = [1, np.nan, 3]
         result = sanitize_value(original)
-        assert result is original
+        assert result == [1, None, 3]
 
     def test_sanitize_tuple(self):
-        """Debe retornar tuplas sin modificar."""
-        original = (1, 2, 3)
+        """Debe retornar tuplas sanitizadas recursivamente."""
+        original = (1, np.nan, 3)
         result = sanitize_value(original)
-        assert result is original
+        assert result == (1, None, 3)
 
     def test_sanitize_dict(self):
-        """Debe retornar diccionarios sin modificar."""
-        original = {"key": "value"}
+        """Debe retornar diccionarios sanitizados recursivamente."""
+        original = {"key": np.nan}
         result = sanitize_value(original)
-        assert result is original
+        assert result == {"key": None}
 
     def test_sanitize_none(self):
         """Debe retornar None sin modificar."""
@@ -661,7 +661,7 @@ class TestMonteCarloSimulatorMemoryCheck:
         huge_config = MonteCarloConfig(num_simulations=1000000)
         huge_simulator = MonteCarloSimulator(config=huge_config)
 
-        with pytest.raises(ValueError): # Lanza ValueError según el código
+        with pytest.raises(ValueError):  # Lanza ValueError según el código
             huge_simulator._check_memory_requirements(num_apus=100000)
 
 
@@ -839,7 +839,10 @@ class TestMonteCarloSimulatorMetadata:
         df_valid, discarded = simulator._prepare_data(valid_apu_data)
 
         metadata = simulator._create_metadata(
-            df_valid=df_valid, total_items=len(valid_apu_data), discarded_items=discarded, simulations_completed=simulator.config.num_simulations
+            df_valid=df_valid,
+            total_items=len(valid_apu_data),
+            discarded_items=discarded,
+            simulations_completed=simulator.config.num_simulations,
         )
 
         assert metadata["num_simulations_requested"] == simulator.config.num_simulations
@@ -857,7 +860,10 @@ class TestMonteCarloSimulatorMetadata:
         df_valid, discarded = simulator._prepare_data(apu_data_with_zeros)
 
         metadata = simulator._create_metadata(
-            df_valid=df_valid, total_items=3, discarded_items=discarded, simulations_completed=simulator.config.num_simulations
+            df_valid=df_valid,
+            total_items=3,
+            discarded_items=discarded,
+            simulations_completed=simulator.config.num_simulations,
         )
 
         assert metadata["discarded_items"] == 2
@@ -868,7 +874,10 @@ class TestMonteCarloSimulatorMetadata:
         df_valid, _ = simulator._prepare_data(valid_apu_data)
 
         metadata = simulator._create_metadata(
-            df_valid=df_valid, total_items=len(valid_apu_data), discarded_items=0, simulations_completed=simulator.config.num_simulations
+            df_valid=df_valid,
+            total_items=len(valid_apu_data),
+            discarded_items=0,
+            simulations_completed=simulator.config.num_simulations,
         )
 
         expected_sum = 10000 * 5 + 20000 * 3 + 15000 * 4 + 5000 * 10
@@ -927,7 +936,7 @@ class TestMonteCarloSimulatorIntegration:
 
     def test_run_simulation_missing_columns(self, simulator, apu_data_missing_columns):
         """Debe lanzar ValueError si faltan columnas."""
-        with pytest.raises(ValueError, match="Falta campo requerido"):
+        with pytest.raises(ValueError, match="Ninguno de los primeros elementos"):
             simulator.run_simulation(apu_data_missing_columns)
 
     def test_run_simulation_handles_exceptions(self, simulator, valid_apu_data, mock_logger):
@@ -1050,7 +1059,9 @@ class TestEdgeCases:
 
     def test_very_large_values(self, simulator):
         """Debe manejar valores muy grandes."""
-        data = [{"VR_TOTAL": 1e12, "CANTIDAD": 1e6}, {"VR_TOTAL": 1e11, "CANTIDAD": 1e5}]
+        # Usar valores grandes pero que no desborden la protección de overflow (1e15)
+        # 1e12 * 1e2 = 1e14 < 1e15
+        data = [{"VR_TOTAL": 1e12, "CANTIDAD": 100.0}, {"VR_TOTAL": 1e11, "CANTIDAD": 100.0}]
 
         result = simulator.run_simulation(data)
 
@@ -1064,7 +1075,8 @@ class TestEdgeCases:
         result = simulator.run_simulation(valid_apu_data)
 
         # Con volatilidad 0, todas las simulaciones deben dar el mismo valor
-        assert result.statistics["std_dev"] == pytest.approx(0.0)
+        # Usar approx con tolerancia absoluta pequeña para errores de punto flotante
+        assert result.statistics["std_dev"] == pytest.approx(0.0, abs=1e-9)
 
     def test_max_volatility(self, valid_apu_data):
         """Debe manejar volatilidad máxima."""

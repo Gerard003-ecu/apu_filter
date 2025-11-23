@@ -245,8 +245,10 @@ def test_pipeline_with_mocked_write(mock_config, sample_dataframe, tmp_path):
         # Configurar search para evitar fallos en validación si se ejecuta
         # Devolvemos coincidencia exacta para que pase la validación
         mock_index_instance.search.side_effect = lambda query, k: (
-            np.array([[1.0] + [0.0]*(k-1)]), # Similitudes
-            np.array([[0] + [-1]*(k-1)]) # Índices (simulamos que siempre encuentra el 0 como top 1)
+            np.array([[1.0] + [0.0] * (k - 1)]),  # Similitudes
+            np.array(
+                [[0] + [-1] * (k - 1)]
+            ),  # Índices (simulamos que siempre encuentra el 0 como top 1)
         )
 
         MockIndex.return_value = mock_index_instance
