@@ -40,6 +40,13 @@
       }
     }
   },
+  "pipeline_recipe": [
+    {"step": "load_data", "enabled": true},
+    {"step": "merge_data", "enabled": true},
+    {"step": "calculate_costs", "enabled": true},
+    {"step": "final_merge", "enabled": true},
+    {"step": "build_output", "enabled": true}
+  ],
   "clean_apu_code_params": {
     "presupuesto_item": {
       "min_length": 1,

@@ -12,6 +12,7 @@ Mejoras implementadas:
 - Validación de esquemas de datos
 - Cleanup de recursos más seguro
 - Métricas de rendimiento
+- Telemetría unificada ("Pasaporte")
 """
 
 import hashlib
@@ -49,8 +50,9 @@ from models.probability_models import run_monte_carlo_simulation
 
 from .estimator import calculate_estimate, SearchArtifacts
 from .presenters import APUPresenter
-from .procesador_csv import process_all_files
+from .pipeline_director import process_all_files  # Ahora usa la versión refactorizada
 from .utils import sanitize_for_json
+from .telemetry import TelemetryContext  # Nueva importación
 
 # ============================================================================
 # CONSTANTES Y CONFIGURACIÓN
@@ -140,8 +142,13 @@ class RequestIdFilter(logging.Filter):
     """Filtro para añadir request_id a los logs."""
 
     def filter(self, record):
-        record.request_id = g.get("request_id", "N/A")
-        record.session_id = session.get("sid", "N/A")[:8] if hasattr(session, "sid") else "N/A"
+        try:
+            record.request_id = g.get("request_id", "N/A")
+            record.session_id = session.get("sid", "N/A")[:8] if hasattr(session, "sid") else "N/A"
+        except RuntimeError:
+            # Handle cases outside of application context (e.g., startup logging)
+            record.request_id = "SYSTEM"
+            record.session_id = "N/A"
         return True
 
 
@@ -1071,6 +1078,9 @@ def create_app(config_name: str) -> Flask:
         # Timestamp de inicio
         g.start_time = time.time()
 
+        # Inicializar TelemetryContext
+        g.telemetry = TelemetryContext(request_id=g.request_id)
+
         # Logging
         app.logger.debug(
             f"➡️  Request iniciado: {request.method} {request.path} | "
@@ -1105,6 +1115,13 @@ def create_app(config_name: str) -> Flask:
         """Cleanup de recursos al finalizar el request."""
         if exception:
             app.logger.error(f"Exception en teardown: {exception}")
+            if hasattr(g, "telemetry"):
+                g.telemetry.record_error("app_teardown", str(exception))
+
+        # Log telemetría
+        if hasattr(g, "telemetry"):
+            telemetry_data = g.telemetry.to_dict()
+            app.logger.info(f"📊 Telemetry for {g.request_id}: {json.dumps(telemetry_data, default=str)}")
 
         # Cleanup de métricas antiguas cada 100 requests
         if hasattr(app, "metrics"):
@@ -1166,26 +1183,23 @@ def create_app(config_name: str) -> Flask:
         })
 
     @app.route("/upload", methods=["POST"])
-    @limiter.limit(RATE_LIMIT_UPLOAD)
+    @limiter.limit(RATE_LIMIT_UPLOAD, exempt_when=lambda: current_app.config.get("TESTING"))
     @handle_errors
     @timed("upload_files")
     def upload_files():
         """
-        Gestiona la carga de archivos con validación exhaustiva.
-
-        Mejoras:
-        - Validación de contenido de archivos
-        - Generación de metadata de sesión
-        - Hash de integridad
-        - Logging detallado
+        Gestiona la carga de archivos con validación exhaustiva y telemetría.
         """
         app.logger.info("📤 Iniciando proceso de carga de archivos")
+        g.telemetry.start_step("upload_request_validation")
 
         # Validar archivos requeridos
         required_files = ["presupuesto", "apus", "insumos"]
         missing_files = [f for f in required_files if f not in request.files]
 
         if missing_files:
+            g.telemetry.record_error("upload_request_validation", "Missing files")
+            g.telemetry.end_step("upload_request_validation", "error")
             return jsonify({
                 "error": f"Faltan archivos: {', '.join(missing_files)}",
                 "code": "MISSING_FILES",
@@ -1207,6 +1221,7 @@ def create_app(config_name: str) -> Flask:
                 app.logger.warning(
                     f"Archivo '{file_type}' inválido: {validation_result.errors}"
                 )
+                g.telemetry.record_error("upload_request_validation", f"Invalid file: {file_type}")
                 return jsonify({
                     "error": f"Archivo '{file_type}' inválido",
                     "code": "INVALID_FILE",
@@ -1220,6 +1235,8 @@ def create_app(config_name: str) -> Flask:
                 )
 
             files_to_process[file_type] = temp_path
+
+        g.telemetry.end_step("upload_request_validation", "success")
 
         # Generar ID de sesión
         session_id = str(uuid.uuid4())
@@ -1247,28 +1264,35 @@ def create_app(config_name: str) -> Flask:
             app.logger.info(f"Procesando archivos para sesión {session_id[:8]}...")
 
             start_processing = time.time()
+            # Pasamos g.telemetry al procesador
             processed_data = process_all_files(
                 file_paths["presupuesto"],
                 file_paths["apus"],
                 file_paths["insumos"],
                 config=app.config.get("APP_CONFIG", {}),
+                telemetry=g.telemetry
             )
             processing_time = time.time() - start_processing
+            g.telemetry.record_metric("app", "total_processing_time", processing_time)
 
             app.logger.info(f"Procesamiento completado en {processing_time:.2f}s")
 
         # Verificar errores en procesamiento
         if "error" in processed_data:
             app.logger.error(f"Error de procesamiento: {processed_data['error']}")
+            g.telemetry.record_error("processing_pipeline", processed_data["error"])
             return jsonify({
                 "error": processed_data["error"],
                 "code": "PROCESSING_ERROR",
             }), 500
 
+        g.telemetry.start_step("response_preparation")
+
         # Validar esquema de datos procesados
         is_valid_schema, schema_errors = validate_data_schema(processed_data)
         if not is_valid_schema:
             app.logger.error(f"Esquema inválido: {schema_errors}")
+            g.telemetry.record_error("response_preparation", "Invalid schema")
             return jsonify({
                 "error": "Datos procesados con esquema inválido",
                 "code": "INVALID_SCHEMA",
@@ -1325,23 +1349,20 @@ def create_app(config_name: str) -> Flask:
             f"✅ Archivos procesados exitosamente | Sesión: {session_id[:8]}... | "
             f"Items: {response_data['summary']}"
         )
+        g.telemetry.end_step("response_preparation", "success")
 
         return jsonify(response_data)
 
     @app.route("/api/apu/<code>", methods=["GET"])
-    @limiter.limit(RATE_LIMIT_API)
+    @limiter.limit(RATE_LIMIT_API, exempt_when=lambda: current_app.config.get("TESTING"))
     @require_session
     @handle_errors
     @timed("get_apu_detail")
     def get_apu_detail(code: str, session_data: dict = None):
         """
         Recupera y procesa los detalles de un APU con manejo robusto de variantes de código.
-
-        Mejoras:
-        - Búsqueda con normalización de códigos
-        - Logging detallado
-        - Caché de resultados (futuro)
         """
+        g.telemetry.start_step("get_apu_detail")
         app.logger.info(f"🔍 Solicitud de detalle para APU: {code}")
 
         # Normalizar código
@@ -1378,6 +1399,8 @@ def create_app(config_name: str) -> Flask:
             app.logger.warning(
                 f"❌ APU no encontrado después de intentar variantes: {search_variants}"
             )
+            g.telemetry.record_error("get_apu_detail", "APU not found")
+            g.telemetry.end_step("get_apu_detail", "not_found")
             return jsonify({
                 "error": f"APU no encontrado: {code}",
                 "code": "APU_NOT_FOUND",
@@ -1422,25 +1445,24 @@ def create_app(config_name: str) -> Flask:
             f"✅ Detalle para APU {matched_code} generado exitosamente | "
             f"Items: {processed_data['total_items']}"
         )
+        g.telemetry.end_step("get_apu_detail", "success")
 
         return jsonify(sanitize_for_json(response))
 
     @app.route("/api/estimate", methods=["POST"])
-    @limiter.limit(RATE_LIMIT_ESTIMATE)
+    @limiter.limit(RATE_LIMIT_ESTIMATE, exempt_when=lambda: current_app.config.get("TESTING"))
     @require_session
     @handle_errors
     @timed("get_estimate")
     def get_estimate(session_data: dict = None):
         """
         Calcula estimación de costos con validación de parámetros.
-
-        Mejoras:
-        - Validación de parámetros de entrada
-        - Manejo de búsqueda semántica opcional
-        - Logging detallado
         """
+        g.telemetry.start_step("get_estimate")
+
         # Validar Content-Type
         if not request.is_json:
+            g.telemetry.end_step("get_estimate", "error")
             return jsonify({
                 "error": "Content-Type debe ser application/json",
                 "code": "INVALID_CONTENT_TYPE",
@@ -1448,6 +1470,7 @@ def create_app(config_name: str) -> Flask:
 
         params = request.get_json()
         if not params:
+            g.telemetry.end_step("get_estimate", "error")
             return jsonify({
                 "error": "No se proporcionaron parámetros",
                 "code": "NO_PARAMS",
@@ -1458,6 +1481,8 @@ def create_app(config_name: str) -> Flask:
         missing_params = [p for p in required_params if p not in params]
 
         if missing_params:
+            g.telemetry.record_error("get_estimate", f"Missing params: {missing_params}")
+            g.telemetry.end_step("get_estimate", "error")
             return jsonify({
                 "error": f"Parámetros faltantes: {', '.join(missing_params)}",
                 "code": "MISSING_PARAMS",
@@ -1491,6 +1516,8 @@ def create_app(config_name: str) -> Flask:
 
         if "error" in result:
             app.logger.warning(f"⚠️  Error en estimación: {result['error']}")
+            g.telemetry.record_error("get_estimate", result['error'])
+            g.telemetry.end_step("get_estimate", "logic_error")
             return jsonify(result), 400
 
         # Añadir metadata
@@ -1504,6 +1531,8 @@ def create_app(config_name: str) -> Flask:
             f"✅ Estimación calculada | Construcción: ${result.get('valor_construccion', 0):,.2f} | "
             f"Rendimiento: {result.get('rendimiento_m2_por_dia', 0):.2f}"
         )
+
+        g.telemetry.end_step("get_estimate", "success")
 
         return jsonify(sanitize_for_json(result))
 
