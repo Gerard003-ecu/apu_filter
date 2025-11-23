@@ -1,7 +1,7 @@
 import logging
-from typing import Dict, List, Optional, Tuple, Union, Any
-from enum import Enum
 from dataclasses import dataclass
+from enum import Enum
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import numpy as np
 import pandas as pd
@@ -16,14 +16,17 @@ logger = logging.getLogger(__name__)
 # CONSTANTES Y ENUMERACIONES
 # ============================================================================
 
+
 class MatchMode(str, Enum):
     """Modos de coincidencia soportados."""
+
     WORDS = "words"
     SUBSTRING = "substring"
 
 
 class TipoAPU(str, Enum):
     """Tipos de APU disponibles."""
+
     SUMINISTRO = "Suministro"
     SUMINISTRO_PREFABRICADO = "Suministro (Pre-fabricado)"
     INSTALACION = "Instalación"
@@ -31,6 +34,7 @@ class TipoAPU(str, Enum):
 
 class TipoInsumo(str, Enum):
     """Tipos de insumo en APU."""
+
     MANO_OBRA = "MANO DE OBRA"
     EQUIPO = "EQUIPO"
     MATERIAL = "MATERIAL"
@@ -42,14 +46,10 @@ REQUIRED_COLUMNS_APU = [
     "DESC_NORMALIZED",
     "original_description",
     "tipo_apu",
-    "UNIDAD"
+    "UNIDAD",
 ]
 
-REQUIRED_COLUMNS_DETAIL = [
-    "CODIGO_APU",
-    "TIPO_INSUMO",
-    "CANTIDAD_APU"
-]
+REQUIRED_COLUMNS_DETAIL = ["CODIGO_APU", "TIPO_INSUMO", "CANTIDAD_APU"]
 
 # Valores por defecto
 DEFAULT_MIN_SIMILARITY = 0.5
@@ -69,17 +69,21 @@ TOP_K_RANGE = (1, 100)
 # CLASES DE DATOS
 # ============================================================================
 
+
 @dataclass
 class DerivationDetails:
     """Detalles del razonamiento para la coincidencia encontrada (White Box)."""
+
     match_method: str  # "SEMANTIC", "KEYWORD", "EXACT"
     confidence_score: float  # 0.0 - 1.0 (o 0-100 para KEYWORD, se normalizará)
     source: str  # De dónde vino el dato
     reasoning: str  # Frase explicativa
 
+
 @dataclass
 class MatchCandidate:
     """Representa un candidato de coincidencia."""
+
     apu: pd.Series
     description: str
     matches: int
@@ -91,6 +95,7 @@ class MatchCandidate:
 @dataclass
 class SearchArtifacts:
     """Artefactos necesarios para búsqueda semántica."""
+
     model: SentenceTransformer
     faiss_index: Any
     id_map: Dict[str, str]
@@ -100,20 +105,21 @@ class SearchArtifacts:
 # FUNCIONES AUXILIARES DE VALIDACIÓN Y CONVERSIÓN
 # ============================================================================
 
+
 def safe_float_conversion(value: Any, default: float = 0.0) -> float:
     """
     Convierte un valor a float de forma segura.
-    
+
     Args:
         value: Valor a convertir.
         default: Valor por defecto si la conversión falla.
-    
+
     Returns:
         float: Valor convertido o default.
     """
     if value is None or pd.isna(value):
         return default
-    
+
     try:
         result = float(value)
         return result if not np.isnan(result) and not np.isinf(result) else default
@@ -125,17 +131,17 @@ def safe_float_conversion(value: Any, default: float = 0.0) -> float:
 def safe_int_conversion(value: Any, default: int = 0) -> int:
     """
     Convierte un valor a int de forma segura.
-    
+
     Args:
         value: Valor a convertir.
         default: Valor por defecto si la conversión falla.
-    
+
     Returns:
         int: Valor convertido o default.
     """
     if value is None or pd.isna(value):
         return default
-    
+
     try:
         return int(value)
     except (ValueError, TypeError):
@@ -144,25 +150,23 @@ def safe_int_conversion(value: Any, default: int = 0) -> int:
 
 
 def validate_dataframe_columns(
-    df: pd.DataFrame, 
-    required_columns: List[str], 
-    df_name: str = "DataFrame"
+    df: pd.DataFrame, required_columns: List[str], df_name: str = "DataFrame"
 ) -> bool:
     """
     Valida que un DataFrame contenga las columnas requeridas.
-    
+
     Args:
         df: DataFrame a validar.
         required_columns: Lista de columnas requeridas.
         df_name: Nombre del DataFrame para mensajes de error.
-    
+
     Returns:
         bool: True si todas las columnas están presentes.
     """
     if not isinstance(df, pd.DataFrame):
         logger.error(f"{df_name} no es un DataFrame válido.")
         return False
-    
+
     missing_cols = set(required_columns) - set(df.columns)
     if missing_cols:
         logger.warning(
@@ -170,23 +174,21 @@ def validate_dataframe_columns(
             f"Columnas disponibles: {list(df.columns)}"
         )
         return False
-    
+
     return True
 
 
 def validate_numeric_range(
-    value: float, 
-    valid_range: Tuple[float, float], 
-    param_name: str
+    value: float, valid_range: Tuple[float, float], param_name: str
 ) -> bool:
     """
     Valida que un valor numérico esté dentro de un rango válido.
-    
+
     Args:
         value: Valor a validar.
         valid_range: Tupla (min, max) del rango válido.
         param_name: Nombre del parámetro para mensajes.
-    
+
     Returns:
         bool: True si el valor está en el rango.
     """
@@ -200,28 +202,25 @@ def validate_numeric_range(
 
 
 def get_safe_column_value(
-    row: pd.Series, 
-    column: str, 
-    default: Any = "", 
-    expected_type: type = str
+    row: pd.Series, column: str, default: Any = "", expected_type: type = str
 ) -> Any:
     """
     Obtiene un valor de una columna de forma segura con tipo esperado.
-    
+
     Args:
         row: Serie de pandas (fila).
         column: Nombre de la columna.
         default: Valor por defecto.
         expected_type: Tipo esperado del valor.
-    
+
     Returns:
         Valor de la columna o default si no existe/es inválido.
     """
     value = row.get(column, default)
-    
+
     if pd.isna(value):
         return default
-    
+
     if not isinstance(value, expected_type):
         try:
             if expected_type == str:
@@ -232,13 +231,14 @@ def get_safe_column_value(
                 return safe_int_conversion(value, default)
         except Exception:
             return default
-    
+
     return value if not (isinstance(value, str) and not value.strip()) else default
 
 
 # ============================================================================
 # FUNCIONES DE BÚSQUEDA Y MATCHING
 # ============================================================================
+
 
 def _calculate_match_score(desc_words: set, keywords: List[str]) -> Tuple[int, float]:
     """
@@ -255,17 +255,17 @@ def _calculate_match_score(desc_words: set, keywords: List[str]) -> Tuple[int, f
     if not isinstance(desc_words, set):
         logger.warning("desc_words no es un set, convirtiendo...")
         desc_words = set(desc_words) if desc_words else set()
-    
+
     if not desc_words or not keywords:
         return 0, 0.0
 
     # Calcular coincidencias
     matches = sum(1 for keyword in keywords if keyword and keyword in desc_words)
-    
+
     # Prevenir división por cero
     total_keywords = len(keywords)
     percentage = (matches / total_keywords * 100.0) if total_keywords > 0 else 0.0
-    
+
     return matches, percentage
 
 
@@ -274,31 +274,31 @@ def _create_match_candidate(
     matches: int,
     percentage: float,
     keywords_count: int,
-    method: str = "KEYWORD"
+    method: str = "KEYWORD",
 ) -> Optional[MatchCandidate]:
     """
     Crea un candidato de coincidencia validado.
-    
+
     Args:
         apu: Serie con datos del APU.
         matches: Número de coincidencias.
         percentage: Porcentaje de cobertura.
         keywords_count: Total de keywords buscadas.
         method: Método de coincidencia.
-    
+
     Returns:
         MatchCandidate o None si los datos no son válidos.
     """
     original_desc = get_safe_column_value(apu, "original_description", "Sin descripción")
-    
+
     if not original_desc or original_desc == "Sin descripción":
         logger.debug(f"APU {apu.get('CODIGO_APU', 'UNKNOWN')} sin descripción válida")
-    
+
     details = DerivationDetails(
         match_method=method,
         confidence_score=percentage / 100.0,
         source="Histórico Procesado",
-        reasoning=f"Coincidencia de {matches}/{keywords_count} palabras clave ({percentage:.0f}%)"
+        reasoning=f"Coincidencia de {matches}/{keywords_count} palabras clave ({percentage:.0f}%)",
     )
 
     return MatchCandidate(
@@ -306,19 +306,16 @@ def _create_match_candidate(
         description=original_desc,
         matches=matches,
         percentage=percentage,
-        details=details
+        details=details,
     )
 
 
 def _log_top_candidates(
-    candidates: List[MatchCandidate], 
-    log: List[str], 
-    top_n: int = 3,
-    keywords_count: int = 0
+    candidates: List[MatchCandidate], log: List[str], top_n: int = 3, keywords_count: int = 0
 ) -> None:
     """
     Registra los mejores candidatos en el log.
-    
+
     Args:
         candidates: Lista de candidatos.
         log: Lista de mensajes de log.
@@ -328,17 +325,15 @@ def _log_top_candidates(
     if not candidates:
         log.append("  📋 No se encontraron candidatos.")
         return
-    
+
     display_count = min(top_n, len(candidates))
     log.append(f"  📋 Top {display_count} candidatos:")
-    
+
     for i, cand in enumerate(candidates[:display_count], 1):
         desc_snippet = (
-            f"{cand.description[:60]}..." 
-            if len(cand.description) > 60 
-            else cand.description
+            f"{cand.description[:60]}..." if len(cand.description) > 60 else cand.description
         )
-        
+
         if cand.similarity is not None:
             log.append(
                 f"    {i}. Sim: {cand.similarity:.3f} | "
@@ -380,37 +375,33 @@ def _find_best_keyword_match(
     if not isinstance(df_pool, pd.DataFrame):
         log.append("  ❌ ERROR: df_pool no es un DataFrame.")
         return None, None
-    
+
     if df_pool.empty:
         log.append("  ⚠️ Pool vacío, no hay datos para buscar.")
         return None, None
-    
+
     if not keywords or not any(k.strip() for k in keywords if isinstance(k, str)):
         log.append("  ⚠️ Keywords vacías o inválidas.")
         return None, None
-    
+
     # Validar que match_mode sea válido
     try:
         mode = MatchMode(match_mode)
     except ValueError:
         log.append(f"  ❌ ERROR: Modo '{match_mode}' no válido. Usando '{MatchMode.WORDS}'.")
         mode = MatchMode.WORDS
-    
+
     # Validar rango de min_match_percentage
     if not validate_numeric_range(
-        min_match_percentage, 
-        MIN_MATCH_PERCENTAGE_RANGE, 
-        "min_match_percentage"
+        min_match_percentage, MIN_MATCH_PERCENTAGE_RANGE, "min_match_percentage"
     ):
         min_match_percentage = DEFAULT_MIN_MATCH_PERCENTAGE
-    
+
     # ========== PREPARACIÓN DE KEYWORDS ==========
     keywords_clean = [
-        k.strip().lower() 
-        for k in keywords 
-        if isinstance(k, str) and k.strip()
+        k.strip().lower() for k in keywords if isinstance(k, str) and k.strip()
     ]
-    
+
     if not keywords_clean:
         log.append("  ⚠️ Después de limpieza, no hay keywords válidas.")
         return None, None
@@ -430,7 +421,7 @@ def _find_best_keyword_match(
     for idx, apu in df_pool.iterrows():
         # Obtener descripción normalizada de forma segura
         desc_normalized = get_safe_column_value(apu, "DESC_NORMALIZED", "")
-        
+
         if not desc_normalized:
             continue
 
@@ -444,7 +435,7 @@ def _find_best_keyword_match(
             desc_words = set(desc_normalized.split())
             matches, percentage = _calculate_match_score(desc_words, keywords_clean)
             method_name = "KEYWORD"
-        
+
         elif mode == MatchMode.SUBSTRING:
             keyword_str = " ".join(keywords_clean)
             if keyword_str in desc_normalized:
@@ -454,7 +445,9 @@ def _find_best_keyword_match(
             else:
                 # Búsqueda parcial: cuántas keywords están como substring
                 matches = sum(1 for kw in keywords_clean if kw in desc_normalized)
-                percentage = (matches / len(keywords_clean) * 100.0) if keywords_clean else 0.0
+                percentage = (
+                    (matches / len(keywords_clean) * 100.0) if keywords_clean else 0.0
+                )
                 method_name = "PARTIAL_SUBSTRING"
 
         if matches == 0:
@@ -530,7 +523,11 @@ def _find_best_semantic_match(
         Tuple[Optional[pd.Series], Optional[DerivationDetails]]: El APU con mejor coincidencia y sus detalles.
     """
     # ========== VALIDACIÓN DE ARTEFACTOS ==========
-    if not search_artifacts or not search_artifacts.model or not search_artifacts.faiss_index:
+    if (
+        not search_artifacts
+        or not search_artifacts.model
+        or not search_artifacts.faiss_index
+    ):
         log.append(
             "  ❌ ERROR: Artefactos de búsqueda semántica no disponibles. "
             "Búsqueda desactivada."
@@ -541,25 +538,25 @@ def _find_best_semantic_match(
     if not isinstance(df_pool, pd.DataFrame) or df_pool.empty:
         log.append("  ⚠️ Pool de APUs vacío para búsqueda semántica.")
         return None, None
-    
+
     if not query_text or not isinstance(query_text, str) or not query_text.strip():
         log.append("  ⚠️ Texto de consulta vacío o inválido.")
         return None, None
-    
+
     # Validar columna CODIGO_APU
     if "CODIGO_APU" not in df_pool.columns:
         log.append("  ❌ ERROR: Columna 'CODIGO_APU' no encontrada en df_pool.")
         return None, None
-    
+
     # Validar rangos numéricos
     if not validate_numeric_range(min_similarity, MIN_SIMILARITY_RANGE, "min_similarity"):
         log.append(f"  ⚠️ min_similarity ajustado a {DEFAULT_MIN_SIMILARITY}")
         min_similarity = DEFAULT_MIN_SIMILARITY
-    
+
     if not validate_numeric_range(top_k, TOP_K_RANGE, "top_k"):
         log.append(f"  ⚠️ top_k ajustado a {DEFAULT_TOP_K}")
         top_k = DEFAULT_TOP_K
-    
+
     top_k = max(1, min(int(top_k), 100))  # Asegurar rango seguro
 
     # ========== LOG INICIAL ==========
@@ -571,16 +568,16 @@ def _find_best_semantic_match(
     # ========== GENERAR EMBEDDING ==========
     try:
         query_embedding = search_artifacts.model.encode(
-            [query_clean], 
-            convert_to_numpy=True, 
+            [query_clean],
+            convert_to_numpy=True,
             normalize_embeddings=True,
-            show_progress_bar=False
+            show_progress_bar=False,
         )
-        
+
         if query_embedding is None or query_embedding.size == 0:
             log.append("  ❌ ERROR: Embedding generado está vacío.")
             return None, None
-            
+
     except Exception as e:
         log.append(f"  ❌ ERROR al generar embedding: {type(e).__name__}: {str(e)}")
         logger.exception("Error en generación de embedding")
@@ -590,21 +587,21 @@ def _find_best_semantic_match(
     try:
         # Asegurar tipo correcto para FAISS
         query_vector = query_embedding.astype(np.float32)
-        
+
         # Ajustar top_k si es mayor que el tamaño del índice
         index_size = search_artifacts.faiss_index.ntotal
         actual_k = min(top_k, index_size)
-        
+
         if actual_k == 0:
             log.append("  ❌ ERROR: Índice FAISS vacío.")
             return None, None
-        
+
         distances, indices = search_artifacts.faiss_index.search(query_vector, k=actual_k)
-        
+
         if distances is None or indices is None:
             log.append("  ❌ ERROR: FAISS retornó resultados nulos.")
             return None, None
-            
+
     except Exception as e:
         log.append(f"  ❌ ERROR en búsqueda FAISS: {type(e).__name__}: {str(e)}")
         logger.exception("Error durante búsqueda en FAISS")
@@ -612,7 +609,7 @@ def _find_best_semantic_match(
 
     # ========== PROCESAMIENTO DE RESULTADOS ==========
     candidates: List[MatchCandidate] = []
-    
+
     if indices.size == 0 or distances.size == 0:
         log.append("  ⚠️ FAISS no retornó resultados.")
         return None, None
@@ -623,39 +620,39 @@ def _find_best_semantic_match(
     for i in range(len(indices[0])):
         faiss_idx = int(indices[0][i])
         similarity = float(distances[0][i])
-        
+
         # Validar que la similitud esté en rango razonable
         if not (0.0 <= similarity <= 1.0):
             log.append(
                 f"  ⚠️ Similitud fuera de rango para índice {faiss_idx}: {similarity:.3f}"
             )
             continue
-        
+
         # Obtener código APU desde el mapa
         apu_code = search_artifacts.id_map.get(str(faiss_idx))
-        
+
         if apu_code is None:
             logger.debug(f"Índice FAISS {faiss_idx} no encontrado en id_map")
             continue
-        
+
         # Verificar si el APU está en el pool actual (optimizado)
         if apu_code not in pool_apu_codes:
             continue
-        
+
         # Buscar el APU en el DataFrame
         apu_matches = df_pool[df_pool["CODIGO_APU"] == apu_code]
-        
+
         if apu_matches.empty:
             continue
-        
+
         apu = apu_matches.iloc[0]
         original_desc = get_safe_column_value(apu, "original_description", "Sin descripción")
-        
+
         details = DerivationDetails(
             match_method="SEMANTIC",
             confidence_score=similarity,
             source="Vector Database (FAISS)",
-            reasoning=f"Coincidencia semántica alta con '{original_desc[:50]}...'"
+            reasoning=f"Coincidencia semántica alta con '{original_desc[:50]}...'",
         )
 
         candidate = MatchCandidate(
@@ -664,7 +661,7 @@ def _find_best_semantic_match(
             matches=0,  # No aplica en semántica
             percentage=0.0,  # No aplica en semántica
             similarity=similarity,
-            details=details
+            details=details,
         )
         candidates.append(candidate)
 
@@ -678,7 +675,7 @@ def _find_best_semantic_match(
 
     # ========== SELECCIÓN FINAL ==========
     best_candidate = candidates[0]
-    
+
     if best_candidate.similarity and best_candidate.similarity >= min_similarity:
         log.append(
             f"  ✅ Coincidencia semántica encontrada: "
@@ -698,15 +695,16 @@ def _find_best_semantic_match(
 # FUNCIÓN PRINCIPAL DE ESTIMACIÓN
 # ============================================================================
 
+
 def calculate_estimate(
-    params: Dict[str, str], 
-    data_store: Dict[str, Any], 
+    params: Dict[str, str],
+    data_store: Dict[str, Any],
     config: Dict[str, Any],
-    search_artifacts: SearchArtifacts
+    search_artifacts: SearchArtifacts,
 ) -> Dict[str, Union[str, float, List[str], Dict]]:
     """
     Estima el costo de construcción con una estrategia de búsqueda híbrida.
-    
+
     Prioriza la búsqueda semántica y recurre a la búsqueda por palabras clave
     si la primera no produce resultados satisfactorios.
 
@@ -722,31 +720,25 @@ def calculate_estimate(
     log: List[str] = ["🕵️ ESTIMADOR HÍBRIDO INICIADO"]
     log.append("=" * 70)
 
-    derivation_details = {
-        "suministro": None,
-        "tarea": None,
-        "cuadrilla": None
-    }
+    derivation_details = {"suministro": None, "tarea": None, "cuadrilla": None}
 
     # ========== VALIDACIÓN Y CARGA DE DATOS ==========
     log.append("\n📦 CARGA Y VALIDACIÓN DE DATOS")
     log.append("-" * 70)
-    
+
     # Validar y cargar APUs procesados
     df_processed_apus = pd.DataFrame(data_store.get("processed_apus", []))
-    
+
     if df_processed_apus.empty:
         error_msg = "No hay datos de APU procesados disponibles."
         log.append(f"  ❌ ERROR: {error_msg}")
         return {"error": error_msg, "log": "\n".join(log)}
-    
+
     log.append(f"  ✓ APUs cargados: {len(df_processed_apus)} registros")
-    
+
     # Validar columnas requeridas (solo advertencia, no bloquear)
     has_required_cols = validate_dataframe_columns(
-        df_processed_apus, 
-        REQUIRED_COLUMNS_APU, 
-        "df_processed_apus"
+        df_processed_apus, REQUIRED_COLUMNS_APU, "df_processed_apus"
     )
     if not has_required_cols:
         log.append("  ⚠️ Algunas columnas esperadas no están presentes")
@@ -754,20 +746,22 @@ def calculate_estimate(
     # ========== EXTRACCIÓN Y VALIDACIÓN DE PARÁMETROS ==========
     log.append("\n🎛️ EXTRACCIÓN DE PARÁMETROS")
     log.append("-" * 70)
-    
+
     # Parámetros principales
     material = (params.get("material", "") or "").strip().upper()
     cuadrilla = (params.get("cuadrilla", "0") or "0").strip()
     zona = (params.get("zona", DEFAULT_ZONA) or DEFAULT_ZONA).strip().upper()
     izaje = (params.get("izaje", DEFAULT_IZAJE) or DEFAULT_IZAJE).strip().upper()
-    seguridad = (params.get("seguridad", DEFAULT_SEGURIDAD) or DEFAULT_SEGURIDAD).strip().upper()
-    
+    seguridad = (
+        (params.get("seguridad", DEFAULT_SEGURIDAD) or DEFAULT_SEGURIDAD).strip().upper()
+    )
+
     log.append(f"  • Material: '{material}'")
     log.append(f"  • Cuadrilla: '{cuadrilla}'")
     log.append(f"  • Zona: '{zona}'")
     log.append(f"  • Izaje: '{izaje}'")
     log.append(f"  • Seguridad: '{seguridad}'")
-    
+
     if not material:
         error_msg = "El parámetro 'material' es obligatorio y no puede estar vacío."
         log.append(f"  ❌ ERROR: {error_msg}")
@@ -778,42 +772,39 @@ def calculate_estimate(
     material_mapped = (
         param_map.get("material", {}).get(material, material) or material
     ).strip()
-    
+
     log.append(f"  • Material mapeado: '{material_mapped}'")
-    
+
     # Generar keywords normalizadas
     try:
         material_keywords = normalize_text(material_mapped).split()
     except Exception as e:
         log.append(f"  ⚠️ Error al normalizar material: {e}")
         material_keywords = material_mapped.lower().split()
-    
+
     log.append(f"  • Keywords: {material_keywords}")
 
     # ========== EXTRACCIÓN DE UMBRALES ==========
     log.append("\n⚙️ CONFIGURACIÓN DE UMBRALES")
     log.append("-" * 70)
-    
+
     thresholds = config.get("estimator_thresholds", {})
-    
+
     min_sim_suministro = safe_float_conversion(
-        thresholds.get("min_semantic_similarity_suministro", 0.30), 
-        0.30
+        thresholds.get("min_semantic_similarity_suministro", 0.30), 0.30
     )
     min_sim_tarea = safe_float_conversion(
-        thresholds.get("min_semantic_similarity_tarea", 0.40), 
-        0.40
+        thresholds.get("min_semantic_similarity_tarea", 0.40), 0.40
     )
     min_kw_cuadrilla = safe_float_conversion(
-        thresholds.get("min_keyword_match_percentage_cuadrilla", 50.0), 
-        50.0
+        thresholds.get("min_keyword_match_percentage_cuadrilla", 50.0), 50.0
     )
-    
+
     # Validar rangos
     min_sim_suministro = max(0.0, min(1.0, min_sim_suministro))
     min_sim_tarea = max(0.0, min(1.0, min_sim_tarea))
     min_kw_cuadrilla = max(0.0, min(100.0, min_kw_cuadrilla))
-    
+
     log.append(f"  • Similitud mínima (Suministro): {min_sim_suministro:.2f}")
     log.append(f"  • Similitud mínima (Tarea): {min_sim_tarea:.2f}")
     log.append(f"  • Match mínimo (Cuadrilla): {min_kw_cuadrilla:.0f}%")
@@ -822,9 +813,9 @@ def calculate_estimate(
     log.append("\n" + "=" * 70)
     log.append("🎯 BÚSQUEDA #1: SUMINISTRO")
     log.append("=" * 70)
-    
+
     supply_types = [TipoAPU.SUMINISTRO.value, TipoAPU.SUMINISTRO_PREFABRICADO.value]
-    
+
     if "tipo_apu" in df_processed_apus.columns:
         df_suministro_pool = df_processed_apus[
             df_processed_apus["tipo_apu"].isin(supply_types)
@@ -847,11 +838,11 @@ def calculate_estimate(
     if apu_suministro is None:
         log.append("\n  🔄 Fallback: Búsqueda por palabras clave...")
         apu_suministro, details_suministro = _find_best_keyword_match(
-            df_suministro_pool, 
-            material_keywords, 
-            log, 
+            df_suministro_pool,
+            material_keywords,
+            log,
             strict=False,
-            min_match_percentage=DEFAULT_MIN_MATCH_PERCENTAGE
+            min_match_percentage=DEFAULT_MIN_MATCH_PERCENTAGE,
         )
 
     if details_suministro:
@@ -861,22 +852,15 @@ def calculate_estimate(
     valor_suministro = 0.0
     apu_suministro_desc = "No encontrado"
     apu_suministro_codigo = "N/A"
-    
+
     if apu_suministro is not None:
         valor_suministro = safe_float_conversion(
-            apu_suministro.get("VALOR_SUMINISTRO_UN", 0.0), 
-            0.0
+            apu_suministro.get("VALOR_SUMINISTRO_UN", 0.0), 0.0
         )
         apu_suministro_desc = get_safe_column_value(
-            apu_suministro, 
-            "original_description", 
-            "Sin descripción"
+            apu_suministro, "original_description", "Sin descripción"
         )
-        apu_suministro_codigo = get_safe_column_value(
-            apu_suministro, 
-            "CODIGO_APU", 
-            "N/A"
-        )
+        apu_suministro_codigo = get_safe_column_value(apu_suministro, "CODIGO_APU", "N/A")
         log.append(f"\n  ✅ APU encontrado: {apu_suministro_codigo}")
         log.append(f"  💰 Valor Suministro: ${valor_suministro:,.2f}")
     else:
@@ -886,17 +870,17 @@ def calculate_estimate(
     log.append("\n" + "=" * 70)
     log.append("🎯 BÚSQUEDA #2: CUADRILLA")
     log.append("=" * 70)
-    
+
     costo_diario_cuadrilla = 0.0
     apu_cuadrilla_desc = "No encontrada"
     apu_cuadrilla_codigo = "N/A"
-    
+
     # Validar si se especificó cuadrilla
     cuadrilla_num = safe_int_conversion(cuadrilla, 0)
-    
+
     if cuadrilla_num > 0:
         log.append(f"  👷 Buscando cuadrilla #{cuadrilla}")
-        
+
         if "UNIDAD" in df_processed_apus.columns:
             df_cuadrilla_pool = df_processed_apus[
                 df_processed_apus["UNIDAD"].astype(str).str.upper().str.strip() == "DIA"
@@ -905,7 +889,7 @@ def calculate_estimate(
         else:
             log.append("  ⚠️ Columna 'UNIDAD' no encontrada")
             df_cuadrilla_pool = df_processed_apus.copy()
-        
+
         # Búsqueda por keywords (más precisa para cuadrillas)
         search_term = f"cuadrilla {cuadrilla}"
         try:
@@ -913,33 +897,26 @@ def calculate_estimate(
         except Exception as e:
             log.append(f"  ⚠️ Error al normalizar búsqueda: {e}")
             cuadrilla_keywords = search_term.lower().split()
-        
+
         apu_cuadrilla, details_cuadrilla = _find_best_keyword_match(
-            df_cuadrilla_pool, 
-            cuadrilla_keywords, 
-            log, 
+            df_cuadrilla_pool,
+            cuadrilla_keywords,
+            log,
             strict=False,
-            min_match_percentage=min_kw_cuadrilla
+            min_match_percentage=min_kw_cuadrilla,
         )
-        
+
         if details_cuadrilla:
             derivation_details["cuadrilla"] = details_cuadrilla.__dict__
 
         if apu_cuadrilla is not None:
             costo_diario_cuadrilla = safe_float_conversion(
-                apu_cuadrilla.get("VALOR_CONSTRUCCION_UN", 0.0), 
-                0.0
+                apu_cuadrilla.get("VALOR_CONSTRUCCION_UN", 0.0), 0.0
             )
             apu_cuadrilla_desc = get_safe_column_value(
-                apu_cuadrilla, 
-                "original_description", 
-                "Sin descripción"
+                apu_cuadrilla, "original_description", "Sin descripción"
             )
-            apu_cuadrilla_codigo = get_safe_column_value(
-                apu_cuadrilla, 
-                "CODIGO_APU", 
-                "N/A"
-            )
+            apu_cuadrilla_codigo = get_safe_column_value(apu_cuadrilla, "CODIGO_APU", "N/A")
             log.append(f"\n  ✅ APU encontrado: {apu_cuadrilla_codigo}")
             log.append(f"  💰 Costo Cuadrilla: ${costo_diario_cuadrilla:,.2f}/día")
         else:
@@ -951,7 +928,7 @@ def calculate_estimate(
     log.append("\n" + "=" * 70)
     log.append("🎯 BÚSQUEDA #3: TAREA (RENDIMIENTO)")
     log.append("=" * 70)
-    
+
     if "tipo_apu" in df_processed_apus.columns:
         df_tarea_pool = df_processed_apus[
             df_processed_apus["tipo_apu"] == TipoAPU.INSTALACION.value
@@ -974,11 +951,11 @@ def calculate_estimate(
     if apu_tarea is None:
         log.append("\n  🔄 Fallback: Búsqueda por palabras clave...")
         apu_tarea, details_tarea = _find_best_keyword_match(
-            df_tarea_pool, 
-            material_keywords, 
-            log, 
+            df_tarea_pool,
+            material_keywords,
+            log,
             strict=False,
-            min_match_percentage=DEFAULT_MIN_MATCH_PERCENTAGE
+            min_match_percentage=DEFAULT_MIN_MATCH_PERCENTAGE,
         )
 
     if details_tarea:
@@ -989,52 +966,54 @@ def calculate_estimate(
     costo_equipo = 0.0
     apu_tarea_desc = "No encontrado"
     apu_tarea_codigo = "N/A"
-    
+
     if apu_tarea is not None:
         apu_tarea_desc = get_safe_column_value(
-            apu_tarea, 
-            "original_description", 
-            "Sin descripción"
+            apu_tarea, "original_description", "Sin descripción"
         )
         apu_tarea_codigo = get_safe_column_value(apu_tarea, "CODIGO_APU", "N/A")
-        
+
         costo_equipo = safe_float_conversion(apu_tarea.get("EQUIPO", 0.0), 0.0)
-        
+
         log.append(f"\n  ✅ APU encontrado: {apu_tarea_codigo}")
         log.append(f"  🛠️ Costo Equipo: ${costo_equipo:,.2f}")
-        
+
         # Calcular rendimiento desde detalle de APUs
         log.append("\n  📊 Calculando rendimiento desde detalle...")
         apus_detail_list = data_store.get("apus_detail", [])
-        
+
         if apus_detail_list:
             try:
                 df_detail = pd.DataFrame(apus_detail_list)
-                
-                if validate_dataframe_columns(df_detail, REQUIRED_COLUMNS_DETAIL, "df_detail"):
+
+                if validate_dataframe_columns(
+                    df_detail, REQUIRED_COLUMNS_DETAIL, "df_detail"
+                ):
                     # Filtrar mano de obra para este APU
                     mano_obra = df_detail[
-                        (df_detail["CODIGO_APU"] == apu_tarea_codigo) &
-                        (df_detail["TIPO_INSUMO"] == TipoInsumo.MANO_OBRA.value)
+                        (df_detail["CODIGO_APU"] == apu_tarea_codigo)
+                        & (df_detail["TIPO_INSUMO"] == TipoInsumo.MANO_OBRA.value)
                     ]
-                    
+
                     if not mano_obra.empty:
                         tiempo_total = sum(
-                            safe_float_conversion(cant, 0.0) 
+                            safe_float_conversion(cant, 0.0)
                             for cant in mano_obra["CANTIDAD_APU"]
                         )
-                        
+
                         if tiempo_total > 0:
                             rendimiento_dia = 1.0 / tiempo_total
                             log.append(f"  ⏱️ Rendimiento: {rendimiento_dia:.4f} un/día")
-                            log.append(f"  ⏱️ Tiempo total mano de obra: {tiempo_total:.4f} días/un")
+                            log.append(
+                                f"  ⏱️ Tiempo total mano de obra: {tiempo_total:.4f} días/un"
+                            )
                         else:
                             log.append("  ⚠️ Tiempo total de mano de obra es cero")
                     else:
                         log.append("  ⚠️ No se encontró mano de obra para este APU")
                 else:
                     log.append("  ⚠️ Detalle de APUs no tiene columnas requeridas")
-                    
+
             except Exception as e:
                 log.append(f"  ❌ ERROR al calcular rendimiento: {e}")
                 logger.exception("Error en cálculo de rendimiento")
@@ -1047,28 +1026,23 @@ def calculate_estimate(
     log.append("\n" + "=" * 70)
     log.append("🧮 CÁLCULO FINAL DE COSTOS")
     log.append("=" * 70)
-    
+
     # Obtener reglas de negocio
     rules = config.get("estimator_rules", {})
-    
+
     # Factores de ajuste
-    factor_zona = safe_float_conversion(
-        rules.get("factores_zona", {}).get(zona, 1.0), 
-        1.0
-    )
+    factor_zona = safe_float_conversion(rules.get("factores_zona", {}).get(zona, 1.0), 1.0)
     costo_adicional_izaje = safe_float_conversion(
-        rules.get("costo_adicional_izaje", {}).get(izaje, 0.0), 
-        0.0
+        rules.get("costo_adicional_izaje", {}).get(izaje, 0.0), 0.0
     )
     factor_seguridad = safe_float_conversion(
-        rules.get("factor_seguridad", {}).get(seguridad, 1.0), 
-        1.0
+        rules.get("factor_seguridad", {}).get(seguridad, 1.0), 1.0
     )
-    
+
     log.append(f"  📍 Factor Zona ({zona}): {factor_zona:.2f}")
     log.append(f"  🏗️ Costo Adicional Izaje ({izaje}): ${costo_adicional_izaje:,.2f}")
     log.append(f"  🦺 Factor Seguridad ({seguridad}): {factor_seguridad:.2f}")
-    
+
     # Cálculo de costo de mano de obra
     if rendimiento_dia > 0 and costo_diario_cuadrilla > 0:
         costo_mo_base = costo_diario_cuadrilla / rendimiento_dia
@@ -1079,29 +1053,31 @@ def calculate_estimate(
             log.append("  ⚠️ Rendimiento no disponible, costo MO = 0")
         if costo_diario_cuadrilla <= 0:
             log.append("  ⚠️ Costo cuadrilla no disponible, costo MO = 0")
-    
+
     # Aplicar factor de seguridad
     costo_mo_ajustado = costo_mo_base * factor_seguridad
     if factor_seguridad != 1.0:
         log.append(f"  👷 Costo MO Ajustado (seguridad): ${costo_mo_ajustado:,.2f}")
-    
+
     # Calcular valor de instalación
-    valor_instalacion = (costo_mo_ajustado + costo_equipo) * factor_zona + costo_adicional_izaje
-    
+    valor_instalacion = (
+        costo_mo_ajustado + costo_equipo
+    ) * factor_zona + costo_adicional_izaje
+
     log.append(f"\n  🔧 Valor Instalación: ${valor_instalacion:,.2f}")
     log.append(f"     ├─ MO Ajustada: ${costo_mo_ajustado:,.2f}")
     log.append(f"     ├─ Equipo: ${costo_equipo:,.2f}")
     log.append(f"     ├─ Factor Zona: x{factor_zona:.2f}")
     log.append(f"     └─ Izaje: +${costo_adicional_izaje:,.2f}")
-    
+
     # Calcular valor total
     valor_construccion = valor_suministro + valor_instalacion
-    
+
     # Validar que no haya valores negativos
     if valor_construccion < 0:
         log.append("\n  ⚠️ ADVERTENCIA: Valor de construcción negativo, ajustando a 0")
         valor_construccion = 0.0
-    
+
     log.append("\n" + "=" * 70)
     log.append(f"💰 VALOR TOTAL CONSTRUCCIÓN: ${valor_construccion:,.2f}")
     log.append(f"   ├─ Suministro: ${valor_suministro:,.2f}")
@@ -1114,7 +1090,7 @@ def calculate_estimate(
         f"Tarea: {apu_tarea_desc} ({apu_tarea_codigo}) | "
         f"Cuadrilla: {apu_cuadrilla_desc} ({apu_cuadrilla_codigo})"
     )
-    
+
     return {
         "valor_suministro": round(valor_suministro, 2),
         "valor_instalacion": round(valor_instalacion, 2),

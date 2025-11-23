@@ -537,7 +537,7 @@ class APUPresenter:
         logger = logging.getLogger(__name__)
 
         # Claves alternativas en orden de prioridad
-        VALUE_KEYS = ['valor_total', 'VR_TOTAL', 'ValorTotal', 'valor', 'total']
+        VALUE_KEYS = ["valor_total", "VR_TOTAL", "ValorTotal", "valor", "total"]
 
         def extract_total_value(item: Dict[str, Any]) -> float:
             """
@@ -554,9 +554,7 @@ class APUPresenter:
                     try:
                         return float(item[key])
                     except (ValueError, TypeError) as e:
-                        logger.warning(
-                            f"Conversión fallida para '{key}': {item[key]} - {e}"
-                        )
+                        logger.warning(f"Conversión fallida para '{key}': {item[key]} - {e}")
                         continue
 
             # Diagnóstico: loguear claves disponibles si no se encuentra nada
@@ -599,9 +597,7 @@ class APUPresenter:
             )
 
         # Reducción de datos
-        reduction_rate = (
-            1 - (processed_count / original_rows) if original_rows > 0 else 0.0
-        )
+        reduction_rate = 1 - (processed_count / original_rows) if original_rows > 0 else 0.0
 
         # Categorías únicas con manejo de errores
         categories_count = 0

@@ -7,15 +7,13 @@ from pathlib import Path
 from typing import Dict, Optional
 
 # Configuración de logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(levelname)s: %(message)s'
-)
+logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 logger = logging.getLogger(__name__)
 
 
 class SkipReason(Enum):
     """Razones por las que una fila puede ser saltada."""
+
     EMPTY = "Línea vacía"
     COMMENT = "Comentario"
     INCONSISTENT_DELIMITERS = "Número inconsistente de delimitadores"
@@ -25,6 +23,7 @@ class SkipReason(Enum):
 @dataclass
 class CleaningStats:
     """Estadísticas del proceso de limpieza."""
+
     rows_written: int = 0
     rows_skipped: int = 0
     skip_reasons: Dict[SkipReason, int] = None
@@ -57,7 +56,7 @@ class CSVCleaner:
     """
 
     # Delimitadores válidos comunes
-    VALID_DELIMITERS = {';', ',', '\t', '|'}
+    VALID_DELIMITERS = {";", ",", "\t", "|"}
 
     # Tamaño máximo de archivo (100MB por defecto)
     MAX_FILE_SIZE = 100 * 1024 * 1024
@@ -66,11 +65,11 @@ class CSVCleaner:
         self,
         input_path: str,
         output_path: str,
-        delimiter: str = ';',
-        encoding: str = 'utf-8',
+        delimiter: str = ";",
+        encoding: str = "utf-8",
         overwrite: bool = False,
         strict_mode: bool = True,
-        verbose: bool = False
+        verbose: bool = False,
     ):
         """
         Inicializa el limpiador de CSV.
@@ -107,34 +106,28 @@ class CSVCleaner:
         """
         # Validar archivo de entrada
         if not self.input_path.exists():
-            raise FileNotFoundError(
-                f"El archivo de entrada no existe: {self.input_path}"
-            )
+            raise FileNotFoundError(f"El archivo de entrada no existe: {self.input_path}")
 
         if not self.input_path.is_file():
-            raise ValueError(
-                f"La ruta de entrada no es un archivo: {self.input_path}"
-            )
+            raise ValueError(f"La ruta de entrada no es un archivo: {self.input_path}")
 
         # Validar tamaño del archivo
         file_size = self.input_path.stat().st_size
         if file_size == 0:
-            raise ValueError(
-                f"El archivo de entrada está vacío: {self.input_path}"
-            )
+            raise ValueError(f"El archivo de entrada está vacío: {self.input_path}")
 
         if file_size > self.MAX_FILE_SIZE:
             raise ValueError(
-                ("El archivo excede el tamaño máximo permitido "
-                 f"({self.MAX_FILE_SIZE / 1024 / 1024:.2f} MB): "
-                 f"{file_size / 1024 / 1024:.2f} MB")
+                (
+                    "El archivo excede el tamaño máximo permitido "
+                    f"({self.MAX_FILE_SIZE / 1024 / 1024:.2f} MB): "
+                    f"{file_size / 1024 / 1024:.2f} MB"
+                )
             )
 
         # Validar que entrada y salida no sean el mismo archivo
         if self.input_path.resolve() == self.output_path.resolve():
-            raise ValueError(
-                "El archivo de entrada y salida no pueden ser el mismo"
-            )
+            raise ValueError("El archivo de entrada y salida no pueden ser el mismo")
 
         # Validar archivo de salida
         if self.output_path.exists() and not self.overwrite:
@@ -146,23 +139,17 @@ class CSVCleaner:
         # Validar que se pueda escribir en el directorio de salida
         output_dir = self.output_path.parent
         if not output_dir.exists():
-            raise ValueError(
-                f"El directorio de salida no existe: {output_dir}"
-            )
+            raise ValueError(f"El directorio de salida no existe: {output_dir}")
 
         if not output_dir.is_dir():
-            raise ValueError(
-                f"La ruta padre de salida no es un directorio: {output_dir}"
-            )
+            raise ValueError(f"La ruta padre de salida no es un directorio: {output_dir}")
 
         # Validar delimitador
         if not self.delimiter:
             raise ValueError("El delimitador no puede estar vacío")
 
         if len(self.delimiter) != 1:
-            raise ValueError(
-                f"El delimitador debe ser un solo carácter: '{self.delimiter}'"
-            )
+            raise ValueError(f"El delimitador debe ser un solo carácter: '{self.delimiter}'")
 
         if self.delimiter not in self.VALID_DELIMITERS:
             logger.warning(
@@ -206,7 +193,7 @@ class CSVCleaner:
         Returns:
             True si la línea es un comentario
         """
-        return line.strip().startswith('#')
+        return line.strip().startswith("#")
 
     def _is_all_whitespace_fields(self, line: str) -> bool:
         """
@@ -280,14 +267,10 @@ class CSVCleaner:
         """
         # Validar que el header no esté completamente vacío
         if self._is_empty_line(header_line):
-            raise ValueError(
-                "El encabezado del CSV está vacío"
-            )
+            raise ValueError("El encabezado del CSV está vacío")
 
         if self._is_all_whitespace_fields(header_line):
-            raise ValueError(
-                "El encabezado del CSV contiene solo espacios en blanco"
-            )
+            raise ValueError("El encabezado del CSV contiene solo espacios en blanco")
 
         # Contar delimitadores en el header para validación futura
         self.expected_delimiter_count = self._count_delimiters(header_line)
@@ -306,12 +289,9 @@ class CSVCleaner:
         column_names_stripped = [col.strip() for col in column_names]
         if len(column_names_stripped) != len(set(column_names_stripped)):
             duplicates = [
-                col for col in column_names_stripped
-                if column_names_stripped.count(col) > 1
+                col for col in column_names_stripped if column_names_stripped.count(col) > 1
             ]
-            logger.warning(
-                f"⚠️  Encabezados duplicados detectados: {set(duplicates)}"
-            )
+            logger.warning(f"⚠️  Encabezados duplicados detectados: {set(duplicates)}")
 
     def clean(self) -> CleaningStats:
         """
@@ -338,29 +318,25 @@ class CSVCleaner:
         logger.info("   Modo filtro: PRESERVA FORMATO ORIGINAL")
 
         try:
-            with open(
-                self.input_path,
-                'r',
-                encoding=self.encoding,
-                errors='replace'
-            ) as infile, \
-                 open(
-                     self.output_path,
-                     'w',
-                     encoding=self.encoding,
-                     newline=''  # Importante: preservar los saltos de línea originales
-                 ) as outfile:
-
+            with (
+                open(
+                    self.input_path, "r", encoding=self.encoding, errors="replace"
+                ) as infile,
+                open(
+                    self.output_path,
+                    "w",
+                    encoding=self.encoding,
+                    newline="",  # Importante: preservar los saltos de línea originales
+                ) as outfile,
+            ):
                 # Procesar encabezado
                 header_line = infile.readline()
 
                 if not header_line:
-                    raise ValueError(
-                        "El archivo CSV está vacío o no contiene encabezado"
-                    )
+                    raise ValueError("El archivo CSV está vacío o no contiene encabezado")
 
                 # Remover salto de línea para validación, pero guardarlo para escritura
-                header_clean = header_line.rstrip('\r\n')
+                header_clean = header_line.rstrip("\r\n")
 
                 self._process_header(header_clean)
 
@@ -372,7 +348,7 @@ class CSVCleaner:
 
                 for raw_line in infile:
                     # Remover salto de línea solo para validación
-                    line_clean = raw_line.rstrip('\r\n')
+                    line_clean = raw_line.rstrip("\r\n")
 
                     # Si la línea está completamente vacía (EOF), saltar
                     if not raw_line:
@@ -395,17 +371,13 @@ class CSVCleaner:
             return self.stats
 
         except PermissionError as e:
-            raise IOError(
-                f"Permiso denegado al acceder a los archivos: {e}"
-            )
+            raise IOError(f"Permiso denegado al acceder a los archivos: {e}")
         except UnicodeDecodeError as e:
             raise ValueError(
                 f"Error de codificación. Intente con un encoding diferente: {e}"
             )
         except Exception as e:
-            raise RuntimeError(
-                f"Error inesperado durante la limpieza: {e}"
-            )
+            raise RuntimeError(f"Error inesperado durante la limpieza: {e}")
 
     def _detect_line_ending(self, line: str) -> str:
         """
@@ -417,13 +389,13 @@ class CSVCleaner:
         Returns:
             '\r\n' para Windows, '\n' para Unix
         """
-        if line.endswith('\r\n'):
-            return '\r\n'
-        elif line.endswith('\n'):
-            return '\n'
-        elif line.endswith('\r'):
-            return '\r'
-        return '\n'  # Default
+        if line.endswith("\r\n"):
+            return "\r\n"
+        elif line.endswith("\n"):
+            return "\n"
+        elif line.endswith("\r"):
+            return "\r"
+        return "\n"  # Default
 
     def _print_summary(self) -> None:
         """Imprime un resumen detallado del proceso de limpieza."""
@@ -440,8 +412,7 @@ class CSVCleaner:
         # Advertencia si no se escribió ninguna fila
         if self.stats.rows_written == 0:
             logger.warning(
-                "⚠️  No se escribió ninguna fila de datos. "
-                "Verifique el archivo de entrada."
+                "⚠️  No se escribió ninguna fila de datos. Verifique el archivo de entrada."
             )
 
 
@@ -450,7 +421,7 @@ def main():
     import argparse
 
     parser = argparse.ArgumentParser(
-        description='Filtro de líneas para archivos CSV (preserva formato original)',
+        description="Filtro de líneas para archivos CSV (preserva formato original)",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Ejemplos de uso:
@@ -464,41 +435,33 @@ IMPORTANTE:
   y escribe las líneas válidas EXACTAMENTE como las encontró, preservando
   comillas, espacios, y cualquier otro formato. Solo actúa como filtro
   de líneas problemáticas.
-        """
+        """,
     )
 
+    parser.add_argument("input_file", help="Archivo CSV de entrada")
+    parser.add_argument("output_file", help="Archivo CSV de salida")
     parser.add_argument(
-        'input_file',
-        help='Archivo CSV de entrada'
+        "-d", "--delimiter", default=";", help='Delimitador del CSV (por defecto: ";")'
     )
     parser.add_argument(
-        'output_file',
-        help='Archivo CSV de salida'
+        "-e",
+        "--encoding",
+        default="utf-8",
+        help="Codificación del archivo (por defecto: utf-8)",
     )
     parser.add_argument(
-        '-d', '--delimiter',
-        default=';',
-        help='Delimitador del CSV (por defecto: ";")'
+        "-o",
+        "--overwrite",
+        action="store_true",
+        help="Sobrescribir archivo de salida si existe",
     )
     parser.add_argument(
-        '-e', '--encoding',
-        default='utf-8',
-        help='Codificación del archivo (por defecto: utf-8)'
+        "--no-strict",
+        action="store_true",
+        help="No validar estrictamente el número de delimitadores",
     )
     parser.add_argument(
-        '-o', '--overwrite',
-        action='store_true',
-        help='Sobrescribir archivo de salida si existe'
-    )
-    parser.add_argument(
-        '--no-strict',
-        action='store_true',
-        help='No validar estrictamente el número de delimitadores'
-    )
-    parser.add_argument(
-        '-v', '--verbose',
-        action='store_true',
-        help='Modo verbose para debugging'
+        "-v", "--verbose", action="store_true", help="Modo verbose para debugging"
     )
 
     args = parser.parse_args()
@@ -511,7 +474,7 @@ IMPORTANTE:
             encoding=args.encoding,
             overwrite=args.overwrite,
             strict_mode=not args.no_strict,
-            verbose=args.verbose
+            verbose=args.verbose,
         )
 
         cleaner.clean()
@@ -527,6 +490,7 @@ IMPORTANTE:
         logger.error(f"❌ Error inesperado: {e}")
         if args.verbose:
             import traceback
+
             traceback.print_exc()
         sys.exit(1)
 

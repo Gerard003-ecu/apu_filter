@@ -1,4 +1,3 @@
-
 import time
 
 from playwright.sync_api import expect, sync_playwright
@@ -36,7 +35,7 @@ def run(playwright):
                     }
                 }
             }
-            """
+            """,
         )
 
     # Intercept the APU detail API call
@@ -69,6 +68,7 @@ def run(playwright):
     print("Screenshot taken: verification_insight_box.png")
 
     browser.close()
+
 
 with sync_playwright() as playwright:
     run(playwright)

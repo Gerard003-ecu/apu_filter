@@ -25,6 +25,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class LineValidationResult:
     """Resultado detallado de la validación de una línea."""
+
     is_valid: bool
     reason: str = ""
     fields_count: int = 0
@@ -36,6 +37,7 @@ class LineValidationResult:
 @dataclass
 class ValidationStats:
     """Estadísticas detalladas de validación."""
+
     total_evaluated: int = 0
     passed_basic: int = 0
     passed_lark: int = 0
@@ -71,8 +73,6 @@ class ParseStrategyError(ParserError):
     """Indica un error en la lógica de la estrategia de parseo."""
 
     pass
-
-
 
 
 @dataclass
@@ -162,6 +162,7 @@ class ReportParserCrudo:
 
         # --- INICIO DE LA MODIFICACIÓN ---
         from .apu_processor import APU_GRAMMAR  # Importar la gramática
+
         self.lark_parser = self._initialize_lark_parser(APU_GRAMMAR)
         self._parse_cache: Dict[str, Tuple[bool, Any]] = {}
         self.validation_stats = ValidationStats()
@@ -185,12 +186,13 @@ class ReportParserCrudo:
             if grammar is None:
                 # Cargar desde el mismo lugar que APUProcessor
                 from .apu_processor import APU_GRAMMAR
+
                 grammar = APU_GRAMMAR
 
             parser = Lark(
                 grammar,
-                start='line',
-                parser='lalr',
+                start="line",
+                parser="lalr",
                 # Usar las mismas opciones que APUProcessor
                 maybe_placeholders=False,
                 cache=True,
@@ -207,9 +209,7 @@ class ReportParserCrudo:
             return None
 
     def _validate_with_lark(
-        self,
-        line: str,
-        use_cache: bool = True
+        self, line: str, use_cache: bool = True
     ) -> tuple[bool, Optional[Any], str]:
         """
         Valida una línea usando el parser Lark.
@@ -262,11 +262,7 @@ class ReportParserCrudo:
 
             return (False, None, f"Lark {error_type}: {error_msg}")
 
-    def _validate_basic_structure(
-        self,
-        line: str,
-        fields: List[str]
-    ) -> tuple[bool, str]:
+    def _validate_basic_structure(self, line: str, fields: List[str]) -> tuple[bool, str]:
         """
         Validación básica PRE-Lark para filtrado rápido.
 
@@ -292,8 +288,13 @@ class ReportParserCrudo:
         # Validación 3: Detectar subtotales/totales
         line_upper = line.upper()
         subtotal_keywords = [
-            "SUBTOTAL", "TOTAL", "SUMA", "SUMATORIA",
-            "COSTO DIRECTO", "COSTO TOTAL", "PRECIO TOTAL"
+            "SUBTOTAL",
+            "TOTAL",
+            "SUMA",
+            "SUMATORIA",
+            "COSTO DIRECTO",
+            "COSTO TOTAL",
+            "PRECIO TOTAL",
         ]
 
         if any(keyword in line_upper for keyword in subtotal_keywords):
@@ -307,7 +308,7 @@ class ReportParserCrudo:
 
         # Validación 5: Al menos un campo numérico
         has_numeric = False
-        numeric_pattern = re.compile(r'\d+[.,]\d+|\d+')
+        numeric_pattern = re.compile(r"\d+[.,]\d+|\d+")
 
         for f in fields[1:]:  # Saltar descripción
             if numeric_pattern.search(f.strip()):
@@ -321,11 +322,7 @@ class ReportParserCrudo:
         self.validation_stats.passed_basic += 1
         return (True, "")
 
-    def _validate_insumo_line(
-        self,
-        line: str,
-        fields: List[str]
-    ) -> LineValidationResult:
+    def _validate_insumo_line(self, line: str, fields: List[str]) -> LineValidationResult:
         """
         Validación UNIFICADA de una línea candidata a insumo.
 
@@ -350,7 +347,7 @@ class ReportParserCrudo:
                 is_valid=False,
                 reason=f"Básica: {basic_reason}",
                 fields_count=len(fields),
-                validation_layer="basic"
+                validation_layer="basic",
             )
 
         # CAPA 2: Validación Lark (el juez final)
@@ -367,7 +364,7 @@ class ReportParserCrudo:
                 fields_count=len(fields),
                 has_numeric_fields=True,
                 validation_layer="both",
-                lark_tree=lark_tree
+                lark_tree=lark_tree,
             )
         else:
             # Fallo en Lark
@@ -378,15 +375,10 @@ class ReportParserCrudo:
                 reason=f"Lark: {lark_reason}",
                 fields_count=len(fields),
                 has_numeric_fields=True,
-                validation_layer="lark_failed"
+                validation_layer="lark_failed",
             )
 
-    def _record_failed_sample(
-        self,
-        line: str,
-        fields: List[str],
-        reason: str
-    ):
+    def _record_failed_sample(self, line: str, fields: List[str], reason: str):
         """
         Registra una muestra de línea fallida para análisis posterior.
 
@@ -397,18 +389,18 @@ class ReportParserCrudo:
         """
         max_samples = self.config.get("max_failed_samples", 10)
         if len(self.validation_stats.failed_samples) < max_samples:
-            self.validation_stats.failed_samples.append({
-                "line": line[:200],
-                "fields": fields,
-                "fields_count": len(fields),
-                "reason": reason,
-                "has_empty_fields": any(not f.strip() for f in fields),
-                "empty_field_positions": [
-                    i for i, f in enumerate(fields) if not f.strip()
-                ],
-            })
-
-
+            self.validation_stats.failed_samples.append(
+                {
+                    "line": line[:200],
+                    "fields": fields,
+                    "fields_count": len(fields),
+                    "reason": reason,
+                    "has_empty_fields": any(not f.strip() for f in fields),
+                    "empty_field_positions": [
+                        i for i, f in enumerate(fields) if not f.strip()
+                    ],
+                }
+            )
 
     def _log_validation_summary(self):
         """Registra un resumen detallado de la validación."""
@@ -420,7 +412,7 @@ class ReportParserCrudo:
         logger.info("=" * 80)
         logger.info(f"Total líneas evaluadas: {total}")
         if total > 0:
-            valid_percent = f"({valid/total*100:.1f}%)"
+            valid_percent = f"({valid / total * 100:.1f}%)"
             logger.info(f"✓ Insumos válidos (ambas capas): {valid} {valid_percent}")
         else:
             logger.info("✓ Insumos válidos (ambas capas): 0 (0.0%)")
@@ -433,16 +425,12 @@ class ReportParserCrudo:
         logger.info(
             f"  - Campos insuficientes/vacíos: {self.validation_stats.failed_basic_fields}"
         )
-        logger.info(
-            f"  - Sin datos numéricos: {self.validation_stats.failed_basic_numeric}"
-        )
+        logger.info(f"  - Sin datos numéricos: {self.validation_stats.failed_basic_numeric}")
         logger.info(f"  - Subtotales: {self.validation_stats.failed_basic_subtotal}")
         logger.info(f"  - Líneas decorativas: {self.validation_stats.failed_basic_junk}")
         logger.info("")
         logger.info("Rechazos por validación Lark:")
-        logger.info(
-            f"  - Parse error genérico: {self.validation_stats.failed_lark_parse}"
-        )
+        logger.info(f"  - Parse error genérico: {self.validation_stats.failed_lark_parse}")
         logger.info(
             f"  - Unexpected input: {self.validation_stats.failed_lark_unexpected_input}"
         )
@@ -463,7 +451,7 @@ class ReportParserCrudo:
                 logger.info(f"  Razón: {sample['reason']}")
                 logger.info(f"  Campos: {sample['fields_count']}")
                 logger.info(f"  Campos vacíos: {sample['has_empty_fields']}")
-                if sample['has_empty_fields']:
+                if sample["has_empty_fields"]:
                     logger.info(f"  Posiciones vacías: {sample['empty_field_positions']}")
                 logger.info(f"  Contenido: {sample['line']}")
                 logger.info(f"  Campos: {sample['fields']}")
@@ -482,7 +470,7 @@ class ReportParserCrudo:
             )
         elif total > 0 and valid < total * 0.5:
             logger.warning(
-                f"⚠️  Tasa de validación baja: {valid/total*100:.1f}%\n"
+                f"⚠️  Tasa de validación baja: {valid / total * 100:.1f}%\n"
                 f"   Considere revisar la gramática o el formato de datos"
             )
 
@@ -740,11 +728,13 @@ class ReportParserCrudo:
                     self.raw_records.append(record)
                     self.stats["insumos_extracted"] += 1
 
-                    logger.debug((
-                        f"  ✓ Insumo válido [línea {i + 1}] "
-                        f"[{validation_result.validation_layer}]: "
-                        f"{fields[0][:40]}... ({validation_result.fields_count} campos)"
-                    ))
+                    logger.debug(
+                        (
+                            f"  ✓ Insumo válido [línea {i + 1}] "
+                            f"[{validation_result.validation_layer}]: "
+                            f"{fields[0][:40]}... ({validation_result.fields_count} campos)"
+                        )
+                    )
                 else:
                     # ❌ LÍNEA RECHAZADA
                     logger.debug(

@@ -25,11 +25,11 @@ import time
 import uuid
 from collections import defaultdict
 from contextlib import contextmanager
-from dataclasses import dataclass, asdict
-from datetime import datetime, timedelta
+from dataclasses import asdict, dataclass
+from datetime import datetime
 from functools import wraps
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple
 
 # --- Dependencias para Búsqueda Semántica ---
 import faiss
@@ -48,11 +48,11 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 from config import config_by_name
 from models.probability_models import run_monte_carlo_simulation
 
-from .estimator import calculate_estimate, SearchArtifacts
-from .presenters import APUPresenter
+from .estimator import SearchArtifacts, calculate_estimate
 from .pipeline_director import process_all_files  # Ahora usa la versión refactorizada
-from .utils import sanitize_for_json
+from .presenters import APUPresenter
 from .telemetry import TelemetryContext  # Nueva importación
+from .utils import sanitize_for_json
 
 # ============================================================================
 # CONSTANTES Y CONFIGURACIÓN
@@ -144,7 +144,9 @@ class RequestIdFilter(logging.Filter):
     def filter(self, record):
         try:
             record.request_id = g.get("request_id", "N/A")
-            record.session_id = session.get("sid", "N/A")[:8] if hasattr(session, "sid") else "N/A"
+            record.session_id = (
+                session.get("sid", "N/A")[:8] if hasattr(session, "sid") else "N/A"
+            )
         except RuntimeError:
             # Handle cases outside of application context (e.g., startup logging)
             record.request_id = "SYSTEM"
@@ -274,10 +276,7 @@ class PerformanceMetrics:
 
     def record(self, metric_name: str, value: float):
         """Registra una métrica."""
-        self.metrics[metric_name].append({
-            "value": value,
-            "timestamp": time.time()
-        })
+        self.metrics[metric_name].append({"value": value, "timestamp": time.time()})
 
     def get_stats(self, metric_name: str) -> Dict[str, float]:
         """Obtiene estadísticas de una métrica."""
@@ -297,8 +296,7 @@ class PerformanceMetrics:
         cutoff = time.time() - max_age_seconds
         for metric_name in list(self.metrics.keys()):
             self.metrics[metric_name] = [
-                m for m in self.metrics[metric_name]
-                if m["timestamp"] > cutoff
+                m for m in self.metrics[metric_name] if m["timestamp"] > cutoff
             ]
 
 
@@ -356,29 +354,35 @@ def require_session(f):
             current_app.logger.warning(
                 f"Intento de acceso sin sesión válida desde {request.remote_addr}"
             )
-            return jsonify({
-                "error": "Sesión no iniciada o expirada. Por favor, cargue los archivos nuevamente.",
-                "code": "SESSION_MISSING",
-            }), 401
+            return jsonify(
+                {
+                    "error": "Sesión no iniciada o expirada. Por favor, cargue los archivos nuevamente.",
+                    "code": "SESSION_MISSING",
+                }
+            ), 401
 
         # 2. Verificar metadata de sesión
         if "session_metadata" not in session:
             current_app.logger.error("Sesión sin metadata detectada")
             session.clear()
-            return jsonify({
-                "error": "Sesión corrupta. Por favor, recargue los archivos.",
-                "code": "SESSION_CORRUPTED",
-            }), 401
+            return jsonify(
+                {
+                    "error": "Sesión corrupta. Por favor, recargue los archivos.",
+                    "code": "SESSION_CORRUPTED",
+                }
+            ), 401
 
         try:
             metadata = SessionMetadata.from_dict(session["session_metadata"])
         except (TypeError, KeyError) as e:
             current_app.logger.error(f"Error al parsear metadata de sesión: {e}")
             session.clear()
-            return jsonify({
-                "error": "Metadata de sesión inválida.",
-                "code": "SESSION_INVALID",
-            }), 401
+            return jsonify(
+                {
+                    "error": "Metadata de sesión inválida.",
+                    "code": "SESSION_INVALID",
+                }
+            ), 401
 
         # 3. Verificar expiración
         if metadata.is_expired():
@@ -387,25 +391,27 @@ def require_session(f):
                 f"(última actividad hace {time.time() - metadata.last_accessed:.0f}s)"
             )
             session.clear()
-            return jsonify({
-                "error": "Sesión expirada. Por favor, cargue los archivos nuevamente.",
-                "code": "SESSION_EXPIRED",
-            }), 401
+            return jsonify(
+                {
+                    "error": "Sesión expirada. Por favor, cargue los archivos nuevamente.",
+                    "code": "SESSION_EXPIRED",
+                }
+            ), 401
 
         # 4. Validar esquema de datos
         processed_data = session["processed_data"]
         is_valid, errors = validate_data_schema(processed_data)
 
         if not is_valid:
-            current_app.logger.error(
-                f"Esquema de datos inválido: {errors}"
-            )
+            current_app.logger.error(f"Esquema de datos inválido: {errors}")
             session.clear()
-            return jsonify({
-                "error": "Datos de sesión corruptos.",
-                "code": "SCHEMA_INVALID",
-                "details": errors,
-            }), 401
+            return jsonify(
+                {
+                    "error": "Datos de sesión corruptos.",
+                    "code": "SCHEMA_INVALID",
+                    "details": errors,
+                }
+            ), 401
 
         # 5. Validar integridad (opcional, puede ser costoso)
         if current_app.config.get("VALIDATE_SESSION_INTEGRITY", False):
@@ -414,10 +420,12 @@ def require_session(f):
                     f"Integridad de datos comprometida para sesión {metadata.session_id[:8]}..."
                 )
                 session.clear()
-                return jsonify({
-                    "error": "Integridad de datos comprometida.",
-                    "code": "INTEGRITY_FAILED",
-                }), 401
+                return jsonify(
+                    {
+                        "error": "Integridad de datos comprometida.",
+                        "code": "INTEGRITY_FAILED",
+                    }
+                ), 401
 
         # 6. Renovar sesión
         metadata.refresh()
@@ -449,58 +457,72 @@ def handle_errors(f):
                 f"Error de validación en {f.__name__}: {str(e)}",
                 extra={"endpoint": request.endpoint, "method": request.method},
             )
-            return jsonify({
-                "error": str(e),
-                "code": "VALIDATION_ERROR",
-                "endpoint": request.endpoint,
-            }), 400
+            return jsonify(
+                {
+                    "error": str(e),
+                    "code": "VALIDATION_ERROR",
+                    "endpoint": request.endpoint,
+                }
+            ), 400
 
         except KeyError as e:
             current_app.logger.error(
                 f"Clave faltante en {f.__name__}: {str(e)}",
                 extra={"endpoint": request.endpoint},
             )
-            return jsonify({
-                "error": f"Dato requerido faltante: {str(e)}",
-                "code": "MISSING_KEY",
-                "key": str(e),
-            }), 400
+            return jsonify(
+                {
+                    "error": f"Dato requerido faltante: {str(e)}",
+                    "code": "MISSING_KEY",
+                    "key": str(e),
+                }
+            ), 400
 
         except FileNotFoundError as e:
             current_app.logger.error(f"Archivo no encontrado: {str(e)}")
-            return jsonify({
-                "error": "Archivo requerido no encontrado",
-                "code": "FILE_NOT_FOUND",
-            }), 404
+            return jsonify(
+                {
+                    "error": "Archivo requerido no encontrado",
+                    "code": "FILE_NOT_FOUND",
+                }
+            ), 404
 
         except PermissionError as e:
             current_app.logger.error(f"Error de permisos: {str(e)}")
-            return jsonify({
-                "error": "Error de permisos al acceder a recursos",
-                "code": "PERMISSION_DENIED",
-            }), 500
+            return jsonify(
+                {
+                    "error": "Error de permisos al acceder a recursos",
+                    "code": "PERMISSION_DENIED",
+                }
+            ), 500
 
         except json.JSONDecodeError as e:
             current_app.logger.error(f"Error al parsear JSON: {str(e)}")
-            return jsonify({
-                "error": "Formato JSON inválido",
-                "code": "INVALID_JSON",
-                "details": str(e),
-            }), 400
+            return jsonify(
+                {
+                    "error": "Formato JSON inválido",
+                    "code": "INVALID_JSON",
+                    "details": str(e),
+                }
+            ), 400
 
         except pd.errors.EmptyDataError as e:
             current_app.logger.error(f"Archivo vacío: {str(e)}")
-            return jsonify({
-                "error": "El archivo proporcionado está vacío",
-                "code": "EMPTY_FILE",
-            }), 400
+            return jsonify(
+                {
+                    "error": "El archivo proporcionado está vacío",
+                    "code": "EMPTY_FILE",
+                }
+            ), 400
 
         except pd.errors.ParserError as e:
             current_app.logger.error(f"Error al parsear CSV/Excel: {str(e)}")
-            return jsonify({
-                "error": "Error al leer el archivo. Verifique el formato.",
-                "code": "PARSE_ERROR",
-            }), 400
+            return jsonify(
+                {
+                    "error": "Error al leer el archivo. Verifique el formato.",
+                    "code": "PARSE_ERROR",
+                }
+            ), 400
 
         except Exception as e:
             current_app.logger.error(
@@ -512,11 +534,13 @@ def handle_errors(f):
                     "remote_addr": request.remote_addr,
                 },
             )
-            return jsonify({
-                "error": "Error interno del servidor",
-                "code": "INTERNAL_ERROR",
-                "request_id": g.get("request_id", "N/A"),
-            }), 500
+            return jsonify(
+                {
+                    "error": "Error interno del servidor",
+                    "code": "INTERNAL_ERROR",
+                    "request_id": g.get("request_id", "N/A"),
+                }
+            ), 500
 
     return decorated_function
 
@@ -561,6 +585,7 @@ def temporary_upload_directory(base_path: Path, session_id: str):
                                 file_path.unlink()
                             elif file_path.is_dir():
                                 import shutil
+
                                 shutil.rmtree(file_path)
                         except Exception as e:
                             logging.warning(
@@ -674,9 +699,7 @@ class FileValidator:
             # Verificar columnas requeridas
             missing_columns = set(required_columns) - set(df.columns)
             if missing_columns:
-                result.errors.append(
-                    f"Columnas faltantes: {', '.join(missing_columns)}"
-                )
+                result.errors.append(f"Columnas faltantes: {', '.join(missing_columns)}")
                 return result
 
             # Leer archivo completo para validar filas
@@ -1121,7 +1144,9 @@ def create_app(config_name: str) -> Flask:
         # Log telemetría
         if hasattr(g, "telemetry"):
             telemetry_data = g.telemetry.to_dict()
-            app.logger.info(f"📊 Telemetry for {g.request_id}: {json.dumps(telemetry_data, default=str)}")
+            app.logger.info(
+                f"📊 Telemetry for {g.request_id}: {json.dumps(telemetry_data, default=str)}"
+            )
 
         # Cleanup de métricas antiguas cada 100 requests
         if hasattr(app, "metrics"):
@@ -1162,25 +1187,29 @@ def create_app(config_name: str) -> Flask:
                 "estimate_duration": app.metrics.get_stats("get_estimate"),
             }
 
-        return jsonify({
-            "status": "healthy" if redis_healthy else "degraded",
-            "timestamp": time.time(),
-            "version": app.config.get("APP_CONFIG", {}).get("version", "2.0.0"),
-            "environment": config_name,
-            "redis": {
-                "healthy": redis_healthy,
-                "active_sessions": active_sessions,
-            },
-            "session_config": {
-                "timeout_seconds": SESSION_TIMEOUT,
-                "max_file_size_mb": MAX_CONTENT_LENGTH / (1024 * 1024),
-            },
-            "semantic_search": {
-                "enabled": app.config.get("SEMANTIC_SEARCH_ENABLED", False),
-                "model": app.config.get("EMBEDDING_METADATA", {}).get("model_name", "N/A"),
-            },
-            "metrics": metrics,
-        })
+        return jsonify(
+            {
+                "status": "healthy" if redis_healthy else "degraded",
+                "timestamp": time.time(),
+                "version": app.config.get("APP_CONFIG", {}).get("version", "2.0.0"),
+                "environment": config_name,
+                "redis": {
+                    "healthy": redis_healthy,
+                    "active_sessions": active_sessions,
+                },
+                "session_config": {
+                    "timeout_seconds": SESSION_TIMEOUT,
+                    "max_file_size_mb": MAX_CONTENT_LENGTH / (1024 * 1024),
+                },
+                "semantic_search": {
+                    "enabled": app.config.get("SEMANTIC_SEARCH_ENABLED", False),
+                    "model": app.config.get("EMBEDDING_METADATA", {}).get(
+                        "model_name", "N/A"
+                    ),
+                },
+                "metrics": metrics,
+            }
+        )
 
     @app.route("/upload", methods=["POST"])
     @limiter.limit(RATE_LIMIT_UPLOAD, exempt_when=lambda: current_app.config.get("TESTING"))
@@ -1200,11 +1229,13 @@ def create_app(config_name: str) -> Flask:
         if missing_files:
             g.telemetry.record_error("upload_request_validation", "Missing files")
             g.telemetry.end_step("upload_request_validation", "error")
-            return jsonify({
-                "error": f"Faltan archivos: {', '.join(missing_files)}",
-                "code": "MISSING_FILES",
-                "required": required_files,
-            }), 400
+            return jsonify(
+                {
+                    "error": f"Faltan archivos: {', '.join(missing_files)}",
+                    "code": "MISSING_FILES",
+                    "required": required_files,
+                }
+            ), 400
 
         # Validar cada archivo completamente
         validator = FileValidator()
@@ -1221,13 +1252,17 @@ def create_app(config_name: str) -> Flask:
                 app.logger.warning(
                     f"Archivo '{file_type}' inválido: {validation_result.errors}"
                 )
-                g.telemetry.record_error("upload_request_validation", f"Invalid file: {file_type}")
-                return jsonify({
-                    "error": f"Archivo '{file_type}' inválido",
-                    "code": "INVALID_FILE",
-                    "details": validation_result.errors,
-                    "warnings": validation_result.warnings,
-                }), 400
+                g.telemetry.record_error(
+                    "upload_request_validation", f"Invalid file: {file_type}"
+                )
+                return jsonify(
+                    {
+                        "error": f"Archivo '{file_type}' inválido",
+                        "code": "INVALID_FILE",
+                        "details": validation_result.errors,
+                        "warnings": validation_result.warnings,
+                    }
+                ), 400
 
             if validation_result.warnings:
                 app.logger.warning(
@@ -1270,7 +1305,7 @@ def create_app(config_name: str) -> Flask:
                 file_paths["apus"],
                 file_paths["insumos"],
                 config=app.config.get("APP_CONFIG", {}),
-                telemetry=g.telemetry
+                telemetry=g.telemetry,
             )
             processing_time = time.time() - start_processing
             g.telemetry.record_metric("app", "total_processing_time", processing_time)
@@ -1281,10 +1316,12 @@ def create_app(config_name: str) -> Flask:
         if "error" in processed_data:
             app.logger.error(f"Error de procesamiento: {processed_data['error']}")
             g.telemetry.record_error("processing_pipeline", processed_data["error"])
-            return jsonify({
-                "error": processed_data["error"],
-                "code": "PROCESSING_ERROR",
-            }), 500
+            return jsonify(
+                {
+                    "error": processed_data["error"],
+                    "code": "PROCESSING_ERROR",
+                }
+            ), 500
 
         g.telemetry.start_step("response_preparation")
 
@@ -1293,11 +1330,13 @@ def create_app(config_name: str) -> Flask:
         if not is_valid_schema:
             app.logger.error(f"Esquema inválido: {schema_errors}")
             g.telemetry.record_error("response_preparation", "Invalid schema")
-            return jsonify({
-                "error": "Datos procesados con esquema inválido",
-                "code": "INVALID_SCHEMA",
-                "details": schema_errors,
-            }), 500
+            return jsonify(
+                {
+                    "error": "Datos procesados con esquema inválido",
+                    "code": "INVALID_SCHEMA",
+                    "details": schema_errors,
+                }
+            ), 500
 
         # Sanitizar datos
         sanitized_data = sanitize_for_json(processed_data)
@@ -1387,7 +1426,8 @@ def create_app(config_name: str) -> Flask:
 
         for variant in search_variants:
             matches = [
-                item for item in all_apu_details
+                item
+                for item in all_apu_details
                 if item.get("CODIGO_APU", "").strip() == variant
             ]
             if matches:
@@ -1402,11 +1442,13 @@ def create_app(config_name: str) -> Flask:
             )
             g.telemetry.record_error("get_apu_detail", "APU not found")
             g.telemetry.end_step("get_apu_detail", "not_found")
-            return jsonify({
-                "error": f"APU no encontrado: {code}",
-                "code": "APU_NOT_FOUND",
-                "searched_variants": search_variants,
-            }), 404
+            return jsonify(
+                {
+                    "error": f"APU no encontrado: {code}",
+                    "code": "APU_NOT_FOUND",
+                    "searched_variants": search_variants,
+                }
+            ), 404
 
         # Procesar detalles
         processed_data = apu_presenter.process_apu_details(apu_details, matched_code)
@@ -1415,7 +1457,8 @@ def create_app(config_name: str) -> Flask:
         presupuesto_data = user_data.get("presupuesto", [])
         presupuesto_item = next(
             (
-                item for item in presupuesto_data
+                item
+                for item in presupuesto_data
                 if item.get("CODIGO_APU", "").strip() == matched_code
             ),
             None,
@@ -1429,9 +1472,7 @@ def create_app(config_name: str) -> Flask:
             "codigo": matched_code,
             "codigo_original": apu_code,
             "descripcion": (
-                presupuesto_item.get("original_description", "")
-                if presupuesto_item
-                else ""
+                presupuesto_item.get("original_description", "") if presupuesto_item else ""
             ),
             "desglose": processed_data["desglose"],
             "simulation": simulation_results,
@@ -1451,7 +1492,9 @@ def create_app(config_name: str) -> Flask:
         return jsonify(sanitize_for_json(response))
 
     @app.route("/api/estimate", methods=["POST"])
-    @limiter.limit(RATE_LIMIT_ESTIMATE, exempt_when=lambda: current_app.config.get("TESTING"))
+    @limiter.limit(
+        RATE_LIMIT_ESTIMATE, exempt_when=lambda: current_app.config.get("TESTING")
+    )
     @require_session
     @handle_errors
     @timed("get_estimate")
@@ -1464,18 +1507,22 @@ def create_app(config_name: str) -> Flask:
         # Validar Content-Type
         if not request.is_json:
             g.telemetry.end_step("get_estimate", "error")
-            return jsonify({
-                "error": "Content-Type debe ser application/json",
-                "code": "INVALID_CONTENT_TYPE",
-            }), 400
+            return jsonify(
+                {
+                    "error": "Content-Type debe ser application/json",
+                    "code": "INVALID_CONTENT_TYPE",
+                }
+            ), 400
 
         params = request.get_json()
         if not params:
             g.telemetry.end_step("get_estimate", "error")
-            return jsonify({
-                "error": "No se proporcionaron parámetros",
-                "code": "NO_PARAMS",
-            }), 400
+            return jsonify(
+                {
+                    "error": "No se proporcionaron parámetros",
+                    "code": "NO_PARAMS",
+                }
+            ), 400
 
         # Validar parámetros requeridos
         required_params = ["area_m2"]  # Ajustar según necesidades reales
@@ -1484,11 +1531,13 @@ def create_app(config_name: str) -> Flask:
         if missing_params:
             g.telemetry.record_error("get_estimate", f"Missing params: {missing_params}")
             g.telemetry.end_step("get_estimate", "error")
-            return jsonify({
-                "error": f"Parámetros faltantes: {', '.join(missing_params)}",
-                "code": "MISSING_PARAMS",
-                "required": required_params,
-            }), 400
+            return jsonify(
+                {
+                    "error": f"Parámetros faltantes: {', '.join(missing_params)}",
+                    "code": "MISSING_PARAMS",
+                    "required": required_params,
+                }
+            ), 400
 
         app.logger.info(f"📊 Solicitud de estimación con parámetros: {params}")
 
@@ -1517,7 +1566,7 @@ def create_app(config_name: str) -> Flask:
 
         if "error" in result:
             app.logger.warning(f"⚠️  Error en estimación: {result['error']}")
-            g.telemetry.record_error("get_estimate", result['error'])
+            g.telemetry.record_error("get_estimate", result["error"])
             g.telemetry.end_step("get_estimate", "logic_error")
             return jsonify(result), 400
 
@@ -1547,16 +1596,19 @@ def create_app(config_name: str) -> Flask:
         session.clear()
 
         app.logger.info(
-            f"🗑️  Sesión limpiada | ID: {session_id} | "
-            f"Tenía datos: {had_session}"
+            f"🗑️  Sesión limpiada | ID: {session_id} | Tenía datos: {had_session}"
         )
 
-        return jsonify({
-            "success": True,
-            "message": "Sesión limpiada exitosamente" if had_session else "No había sesión activa",
-            "had_session": had_session,
-            "session_id": session_id,
-        })
+        return jsonify(
+            {
+                "success": True,
+                "message": "Sesión limpiada exitosamente"
+                if had_session
+                else "No había sesión activa",
+                "had_session": had_session,
+                "session_id": session_id,
+            }
+        )
 
     @app.route("/api/session/info", methods=["GET"])
     def session_info():
@@ -1604,15 +1656,22 @@ def create_app(config_name: str) -> Flask:
             return jsonify({"error": "Sistema de métricas no disponible"}), 503
 
         all_metrics = {}
-        for metric_name in ["request_duration", "upload_files", "get_estimate", "get_apu_detail"]:
+        for metric_name in [
+            "request_duration",
+            "upload_files",
+            "get_estimate",
+            "get_apu_detail",
+        ]:
             stats = app.metrics.get_stats(metric_name)
             if stats:
                 all_metrics[metric_name] = stats
 
-        return jsonify({
-            "metrics": all_metrics,
-            "timestamp": time.time(),
-        })
+        return jsonify(
+            {
+                "metrics": all_metrics,
+                "timestamp": time.time(),
+            }
+        )
 
     # ========================================================================
     # MANEJADORES DE ERRORES
@@ -1622,23 +1681,27 @@ def create_app(config_name: str) -> Flask:
     def not_found(error):
         """Maneja errores 404."""
         app.logger.warning(f"404 Not Found: {request.path}")
-        return jsonify({
-            "error": "Recurso no encontrado",
-            "code": "NOT_FOUND",
-            "path": escape(request.path),
-            "request_id": g.get("request_id", "N/A"),
-        }), 404
+        return jsonify(
+            {
+                "error": "Recurso no encontrado",
+                "code": "NOT_FOUND",
+                "path": escape(request.path),
+                "request_id": g.get("request_id", "N/A"),
+            }
+        ), 404
 
     @app.errorhandler(413)
     def request_entity_too_large(error):
         """Maneja errores de tamaño de archivo."""
         max_mb = MAX_CONTENT_LENGTH / (1024 * 1024)
         app.logger.warning(f"413 Request Too Large: {request.path}")
-        return jsonify({
-            "error": f"Archivo demasiado grande. Máximo: {max_mb:.1f}MB",
-            "code": "FILE_TOO_LARGE",
-            "max_size_bytes": MAX_CONTENT_LENGTH,
-        }), 413
+        return jsonify(
+            {
+                "error": f"Archivo demasiado grande. Máximo: {max_mb:.1f}MB",
+                "code": "FILE_TOO_LARGE",
+                "max_size_bytes": MAX_CONTENT_LENGTH,
+            }
+        ), 413
 
     @app.errorhandler(429)
     def ratelimit_handler(error):
@@ -1646,22 +1709,26 @@ def create_app(config_name: str) -> Flask:
         app.logger.warning(
             f"429 Rate Limit Exceeded: {request.remote_addr} - {request.path}"
         )
-        return jsonify({
-            "error": "Demasiadas solicitudes. Por favor, intente más tarde.",
-            "code": "RATE_LIMIT_EXCEEDED",
-            "retry_after": error.description,
-        }), 429
+        return jsonify(
+            {
+                "error": "Demasiadas solicitudes. Por favor, intente más tarde.",
+                "code": "RATE_LIMIT_EXCEEDED",
+                "retry_after": error.description,
+            }
+        ), 429
 
     @app.errorhandler(500)
     def internal_error(error):
         """Maneja errores internos del servidor."""
         app.logger.error(f"Error 500: {str(error)}", exc_info=True)
-        return jsonify({
-            "error": "Error interno del servidor",
-            "code": "INTERNAL_ERROR",
-            "message": "Por favor, contacte al administrador si el problema persiste",
-            "request_id": g.get("request_id", "N/A"),
-        }), 500
+        return jsonify(
+            {
+                "error": "Error interno del servidor",
+                "code": "INTERNAL_ERROR",
+                "message": "Por favor, contacte al administrador si el problema persiste",
+                "request_id": g.get("request_id", "N/A"),
+            }
+        ), 500
 
     # ========================================================================
     # FINALIZACIÓN

@@ -1,7 +1,6 @@
 import sys
 from pathlib import Path
 from unittest.mock import MagicMock, patch
-from typing import Dict, Any
 
 import numpy as np
 import pandas as pd
@@ -11,22 +10,21 @@ import pytest
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from app.estimator import (
+    DerivationDetails,
+    MatchMode,
+    SearchArtifacts,
+    TipoAPU,
+    TipoInsumo,
     _calculate_match_score,
     _find_best_keyword_match,
     _find_best_semantic_match,
     calculate_estimate,
+    get_safe_column_value,
     safe_float_conversion,
     safe_int_conversion,
     validate_dataframe_columns,
     validate_numeric_range,
-    get_safe_column_value,
-    MatchMode,
-    TipoAPU,
-    TipoInsumo,
-    SearchArtifacts,
-    DerivationDetails,
 )
-
 
 # ============================================================================
 # PYTEST FIXTURES
@@ -152,9 +150,7 @@ def mock_id_map():
 def mock_search_artifacts(mock_embedding_model, mock_faiss_index, mock_id_map):
     """Crea artefactos de búsqueda mockeados."""
     return SearchArtifacts(
-        model=mock_embedding_model,
-        faiss_index=mock_faiss_index,
-        id_map=mock_id_map
+        model=mock_embedding_model, faiss_index=mock_faiss_index, id_map=mock_id_map
     )
 
 
@@ -248,7 +244,7 @@ class TestValidations:
 
     def test_get_safe_column_value(self):
         row = pd.Series({"name": "test", "value": 42, "empty": None})
-        
+
         assert get_safe_column_value(row, "name", "default") == "test"
         assert get_safe_column_value(row, "value", 0, int) == 42
         assert get_safe_column_value(row, "empty", "default") == "default"
@@ -515,7 +511,7 @@ class TestFindBestSemanticMatch:
         ):
             # Agregar ese índice al mapa pero con un código inexistente
             mock_search_artifacts.id_map["99"] = "APU-999"
-            
+
             match, details = _find_best_semantic_match(
                 df_pool=sample_apu_pool,
                 query_text="test query",
@@ -596,8 +592,14 @@ class TestCalculateEstimate:
     ):
         """Verifica que la búsqueda semántica se use primero."""
         # Configurar mocks para devolver (match, details)
-        mock_semantic_match.return_value = (sample_apu_pool.iloc[0], DerivationDetails("SEMANTIC", 0.9, "test", "test"))  # Suministro
-        mock_keyword_match.return_value = (sample_apu_pool.iloc[2], DerivationDetails("KEYWORD", 1.0, "test", "test"))  # Cuadrilla
+        mock_semantic_match.return_value = (
+            sample_apu_pool.iloc[0],
+            DerivationDetails("SEMANTIC", 0.9, "test", "test"),
+        )  # Suministro
+        mock_keyword_match.return_value = (
+            sample_apu_pool.iloc[2],
+            DerivationDetails("KEYWORD", 1.0, "test", "test"),
+        )  # Cuadrilla
 
         params = {"material": "LADRILLO", "cuadrilla": "1"}
         data_store = {
@@ -609,10 +611,10 @@ class TestCalculateEstimate:
 
         # La búsqueda semántica se llama 2 veces: suministro y tarea
         assert mock_semantic_match.call_count == 2
-        
+
         # La búsqueda por keywords se llama solo para cuadrilla
         assert mock_keyword_match.call_count == 1
-        
+
         # Verificar que se llamó con keywords de cuadrilla
         call_args = mock_keyword_match.call_args[0]
         assert "cuadrilla" in " ".join(call_args[1])
@@ -631,7 +633,10 @@ class TestCalculateEstimate:
         # Semántica falla
         mock_semantic_match.return_value = (None, None)
         # Keywords tiene éxito
-        mock_keyword_match.return_value = (sample_apu_pool.iloc[0], DerivationDetails("KEYWORD", 1.0, "test", "test"))
+        mock_keyword_match.return_value = (
+            sample_apu_pool.iloc[0],
+            DerivationDetails("KEYWORD", 1.0, "test", "test"),
+        )
 
         params = {"material": "PINTURA", "cuadrilla": "1"}
         data_store = {
@@ -643,19 +648,19 @@ class TestCalculateEstimate:
 
         # Semántica se intenta 2 veces (suministro y tarea)
         assert mock_semantic_match.call_count == 2
-        
+
         # Keywords se usa 3 veces (fallback suministro, cuadrilla, fallback tarea)
         assert mock_keyword_match.call_count == 3
-        
+
         # Verificar mensaje de fallback en log
         assert "Fallback: Búsqueda por palabras clave" in result["log"]
 
-    def test_calculate_estimate_no_semantic_artifacts(
-        self, sample_apu_pool, sample_config
-    ):
+    def test_calculate_estimate_no_semantic_artifacts(self, sample_apu_pool, sample_config):
         """Verifica comportamiento sin artefactos semánticos."""
         # No configurar artefactos semánticos
-        search_artifacts = None # Or empty SearchArtifacts(None, None, None) if strict typing
+        search_artifacts = (
+            None  # Or empty SearchArtifacts(None, None, None) if strict typing
+        )
 
         params = {"material": "LADRILLO", "cuadrilla": "1"}
         data_store = {
@@ -669,7 +674,9 @@ class TestCalculateEstimate:
             # This call will internally handle None search_artifacts by logging error and falling back or returning None
             # Wait, _find_best_semantic_match checks artifacts validity.
             # calculate_estimate will call semantic search, fail, then fallback to keyword
-            result = calculate_estimate(params, data_store, sample_config, search_artifacts) # Pass None
+            result = calculate_estimate(
+                params, data_store, sample_config, search_artifacts
+            )  # Pass None
 
             # Debe usar keywords como fallback because semantic search returns None if artifacts are missing
             assert mock_kw.call_count >= 2
@@ -696,7 +703,9 @@ class TestCalculateEstimate:
             with patch("app.estimator._find_best_keyword_match") as mock_kw:
                 mock_kw.return_value = (sample_apu_pool.iloc[2], None)  # Cuadrilla
 
-                result = calculate_estimate(params, data_store, sample_config, mock_search_artifacts)
+                result = calculate_estimate(
+                    params, data_store, sample_config, mock_search_artifacts
+                )
 
                 # Verificar que se calculó el rendimiento
                 assert result["rendimiento_m2_por_dia"] > 0
@@ -726,7 +735,7 @@ class TestCalculateEstimate:
         """Prueba con valores de configuración inválidos."""
         params = {"material": "LADRILLO"}
         data_store = {"processed_apus": sample_apu_pool.to_dict("records")}
-        
+
         # Configuración con valores inválidos
         invalid_config = {
             "param_map": {},
@@ -737,7 +746,9 @@ class TestCalculateEstimate:
             "estimator_rules": {},
         }
 
-        result = calculate_estimate(params, data_store, invalid_config, mock_search_artifacts)
+        result = calculate_estimate(
+            params, data_store, invalid_config, mock_search_artifacts
+        )
 
         # No debe fallar, debe ajustar a valores válidos
         assert "error" not in result or "obligatorio" in result.get("error", "")
@@ -773,7 +784,7 @@ class TestEdgeCases:
             keywords=["test"],
             log=log,
         )
-        
+
         # No debe crashear
         assert match is None
 
@@ -789,7 +800,7 @@ class TestEdgeCases:
             keywords=["a"],
             log=log,
         )
-        
+
         # Verificar que el log trunca correctamente
         log_text = "\n".join(log)
         assert "..." in log_text  # Debe truncar descripciones largas
@@ -802,7 +813,7 @@ class TestEdgeCases:
             keywords=["muro@#$%", "ladrillo!!!"],
             log=log,
         )
-        
+
         # No debe crashear. Si no hay match, debe indicarlo en el log.
         assert match is not None or "No se encontraron candidatos" in "\n".join(log)
 
@@ -874,7 +885,9 @@ class TestPerformance:
                     "DESC_NORMALIZED": f"descripcion apu numero {i}",
                     "VALOR_SUMINISTRO_UN": i * 10,
                     "VALOR_CONSTRUCCION_UN": i * 15,
-                    "tipo_apu": TipoAPU.SUMINISTRO.value if i % 2 == 0 else TipoAPU.INSTALACION.value,
+                    "tipo_apu": TipoAPU.SUMINISTRO.value
+                    if i % 2 == 0
+                    else TipoAPU.INSTALACION.value,
                     "EQUIPO": i * 5,
                     "UNIDAD": "M2",
                 }
@@ -884,7 +897,7 @@ class TestPerformance:
 
         log = []
         import time
-        
+
         start = time.time()
         match, details = _find_best_keyword_match(
             df_pool=large_pool,

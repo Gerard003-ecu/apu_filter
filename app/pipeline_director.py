@@ -1,3 +1,14 @@
+"""
+Módulo Director de Pipeline.
+
+Este módulo orquesta el flujo completo de procesamiento de datos, desde la carga
+de archivos crudos hasta la generación de estructuras de datos validadas y listas
+para su consumo por el frontend o análisis posteriores.
+
+Implementa el patrón "Pipeline" donde cada paso es una unidad discreta de trabajo
+que recibe un contexto, lo transforma y lo pasa al siguiente paso.
+"""
+
 import logging
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
@@ -7,7 +18,6 @@ from typing import Dict, List, Optional, Tuple, Type
 import numpy as np
 import pandas as pd
 
-from scripts.diagnose_apus_file import APUFileDiagnostic
 from app.telemetry import TelemetryContext
 
 from .data_loader import load_data
@@ -24,8 +34,13 @@ logger = logging.getLogger(__name__)
 
 # ==================== CONSTANTES Y CLASES AUXILIARES ====================
 
+
 class ColumnNames:
-    """Nombres de columnas estandarizados."""
+    """
+    Constantes para nombres de columnas estandarizados en todo el sistema.
+    Facilita la refactorización y evita errores por cadenas mágicas.
+    """
+
     CODIGO_APU = "CODIGO_APU"
     DESCRIPCION_APU = "DESCRIPCION_APU"
     DESCRIPCION_SECUNDARIA = "descripcion_secundaria"
@@ -60,22 +75,42 @@ class ColumnNames:
     RENDIMIENTO = "RENDIMIENTO"
     RENDIMIENTO_DIA = "RENDIMIENTO_DIA"
 
+
 class InsumoTypes:
+    """Tipos de insumos reconocidos por el sistema."""
+
     SUMINISTRO = "SUMINISTRO"
     MANO_DE_OBRA = "MANO_DE_OBRA"
     EQUIPO = "EQUIPO"
     TRANSPORTE = "TRANSPORTE"
     OTRO = "OTRO"
 
+
 class APUTypes:
+    """Clasificación de tipos de APU."""
+
     INSTALACION = "Instalación"
     SUMINISTRO = "Suministro"
     SUMINISTRO_PREFABRICADO = "Suministro (Pre-fabricado)"
     OBRA_COMPLETA = "Obra Completa"
     INDEFINIDO = "Indefinido"
 
+
 @dataclass
 class ProcessingThresholds:
+    """
+    Umbrales configurables para la validación y limpieza de datos.
+
+    Attributes:
+        outlier_std_multiplier: Desviaciones estándar para detectar outliers.
+        max_quantity: Cantidad máxima permitida.
+        max_cost_per_item: Costo unitario máximo permitido.
+        max_total_cost: Costo total máximo permitido.
+        instalacion_mo_threshold: Umbral % MO para considerar Instalación.
+        suministro_mat_threshold: Umbral % Materiales para Suministro.
+        # ... otros umbrales ...
+    """
+
     outlier_std_multiplier: float = 3.0
     max_quantity: float = 1e6
     max_cost_per_item: float = 1e9
@@ -87,18 +122,39 @@ class ProcessingThresholds:
     prefabricado_mo_min: float = 15.0
     max_header_search_rows: int = 10
 
+
 # ==================== CLASE BASE REFACTORIZADA ====================
 
+
 class ProcessingStep(ABC):
+    """Clase base abstracta para un paso del pipeline de procesamiento."""
+
     @abstractmethod
     def execute(self, context: dict, telemetry: TelemetryContext) -> dict:
+        """
+        Ejecuta la lógica del paso.
+
+        Args:
+            context: Diccionario con el estado actual del procesamiento.
+            telemetry: Contexto de telemetría para registrar métricas y errores.
+
+        Returns:
+            El contexto actualizado (puede ser el mismo objeto modificado).
+        """
         pass
+
 
 # ==================== VALIDADORES ====================
 
+
 class DataValidator:
+    """Utilidades para validación de DataFrames."""
+
     @staticmethod
-    def validate_dataframe_not_empty(df: pd.DataFrame, name: str) -> Tuple[bool, Optional[str]]:
+    def validate_dataframe_not_empty(
+        df: pd.DataFrame, name: str
+    ) -> Tuple[bool, Optional[str]]:
+        """Verifica que un DataFrame no esté vacío."""
         if df is None or df.empty:
             error_msg = f"DataFrame '{name}' está vacío o es None"
             logger.error(f"❌ {error_msg}")
@@ -106,7 +162,10 @@ class DataValidator:
         return True, None
 
     @staticmethod
-    def validate_required_columns(df: pd.DataFrame, required_cols: List[str], df_name: str) -> Tuple[bool, Optional[str]]:
+    def validate_required_columns(
+        df: pd.DataFrame, required_cols: List[str], df_name: str
+    ) -> Tuple[bool, Optional[str]]:
+        """Verifica que un DataFrame tenga las columnas requeridas."""
         missing_cols = [col for col in required_cols if col not in df.columns]
         if missing_cols:
             error_msg = f"Faltan columnas requeridas en '{df_name}': {missing_cols}"
@@ -115,20 +174,30 @@ class DataValidator:
         return True, None
 
     @staticmethod
-    def detect_and_log_duplicates(df: pd.DataFrame, subset_cols: List[str], df_name: str, keep: str = "first") -> pd.DataFrame:
+    def detect_and_log_duplicates(
+        df: pd.DataFrame, subset_cols: List[str], df_name: str, keep: str = "first"
+    ) -> pd.DataFrame:
+        """Detecta, loguea y elimina duplicados en un DataFrame."""
         duplicates = df[df.duplicated(subset=subset_cols, keep=False)]
         if not duplicates.empty:
             unique_dupes = duplicates[subset_cols[0]].unique()
-            logger.warning(f"⚠️  Se encontraron {len(duplicates)} filas duplicadas en '{df_name}' por {subset_cols}. Se conservará: '{keep}'")
+            logger.warning(
+                f"⚠️  Se encontraron {len(duplicates)} filas duplicadas en '{df_name}' "
+                f"por {subset_cols}. Se conservará: '{keep}'"
+            )
             logger.debug(f"Valores duplicados en '{df_name}': {unique_dupes.tolist()[:10]}")
             df_clean = df.drop_duplicates(subset=subset_cols, keep=keep)
             logger.info(f"✅ Duplicados eliminados: {len(df)} -> {len(df_clean)} filas")
             return df_clean
         return df
 
+
 class FileValidator:
+    """Utilidades para validación de existencia de archivos."""
+
     @staticmethod
     def validate_file_exists(file_path: str, file_type: str) -> Tuple[bool, Optional[str]]:
+        """Verifica que un archivo exista en la ruta dada."""
         path = Path(file_path)
         if not path.exists():
             error_msg = f"Archivo de {file_type} no encontrado: {file_path}"
@@ -141,14 +210,22 @@ class FileValidator:
         logger.debug(f"✅ Archivo de {file_type} validado: {file_path}")
         return True, None
 
+
 # ==================== IMPLEMENTACIÓN DE PASOS ====================
 
+
 class LoadDataStep(ProcessingStep):
+    """
+    Paso de Carga de Datos.
+    Carga los archivos CSV/Excel de presupuesto, APUs e insumos.
+    """
+
     def __init__(self, config: dict, thresholds: ProcessingThresholds):
         self.config = config
         self.thresholds = thresholds
 
     def execute(self, context: dict, telemetry: TelemetryContext) -> dict:
+        """Ejecuta la carga y validación inicial de archivos."""
         telemetry.start_step("load_data")
         try:
             presupuesto_path = context["presupuesto_path"]
@@ -175,7 +252,9 @@ class LoadDataStep(ProcessingStep):
             if not presupuesto_profile:
                 raise ValueError("No se encontró 'presupuesto_default' en config")
 
-            p_processor = PresupuestoProcessor(self.config, self.thresholds, presupuesto_profile)
+            p_processor = PresupuestoProcessor(
+                self.config, self.thresholds, presupuesto_profile
+            )
             df_presupuesto = p_processor.process(presupuesto_path)
             telemetry.record_metric("load_data", "presupuesto_rows", len(df_presupuesto))
 
@@ -194,40 +273,58 @@ class LoadDataStep(ProcessingStep):
                 raise ValueError("No se encontró 'apus_default' en config")
 
             logger.info("⚡️ Iniciando DataFluxCondenser para APUs...")
-            condenser_config_data = self.config.get('flux_condenser_config', {})
+            condenser_config_data = self.config.get("flux_condenser_config", {})
             condenser_config = CondenserConfig(**condenser_config_data)
 
             condenser = DataFluxCondenser(
-                config=self.config,
-                profile=apus_profile,
-                condenser_config=condenser_config
+                config=self.config, profile=apus_profile, condenser_config=condenser_config
             )
             df_apus_raw = condenser.stabilize(apus_path)
 
             # Extract and record condenser stats for Business Telemetry
             stats = condenser.get_processing_stats()
-            telemetry.record_metric("flux_condenser", "avg_saturation", stats.get("avg_saturation", 0.0))
-            telemetry.record_metric("flux_condenser", "max_flyback_voltage", stats.get("max_flyback_voltage", 0.0))
-            telemetry.record_metric("flux_condenser", "max_dissipated_power", stats.get("max_dissipated_power", 0.0))
-            telemetry.record_metric("flux_condenser", "avg_kinetic_energy", stats.get("avg_kinetic_energy", 0.0))
-            telemetry.record_metric("flux_condenser", "avg_batch_size", stats.get("avg_batch_size", 0))
+            telemetry.record_metric(
+                "flux_condenser", "avg_saturation", stats.get("avg_saturation", 0.0)
+            )
+            telemetry.record_metric(
+                "flux_condenser",
+                "max_flyback_voltage",
+                stats.get("max_flyback_voltage", 0.0),
+            )
+            telemetry.record_metric(
+                "flux_condenser",
+                "max_dissipated_power",
+                stats.get("max_dissipated_power", 0.0),
+            )
+            telemetry.record_metric(
+                "flux_condenser", "avg_kinetic_energy", stats.get("avg_kinetic_energy", 0.0)
+            )
+            telemetry.record_metric(
+                "flux_condenser", "avg_batch_size", stats.get("avg_batch_size", 0)
+            )
 
             telemetry.record_metric("load_data", "apus_raw_rows", len(df_apus_raw))
             logger.info("✅ DataFluxCondenser completado.")
 
             # Validación final de carga
             data_validator = DataValidator()
-            for df, name in [(df_presupuesto, "presupuesto"), (df_insumos, "insumos"), (df_apus_raw, "APUs")]:
+            for df, name in [
+                (df_presupuesto, "presupuesto"),
+                (df_insumos, "insumos"),
+                (df_apus_raw, "APUs"),
+            ]:
                 is_valid, error = data_validator.validate_dataframe_not_empty(df, name)
                 if not is_valid:
                     telemetry.record_error("load_data", error)
                     raise ValueError(error)
 
-            context.update({
-                "df_presupuesto": df_presupuesto,
-                "df_insumos": df_insumos,
-                "df_apus_raw": df_apus_raw
-            })
+            context.update(
+                {
+                    "df_presupuesto": df_presupuesto,
+                    "df_insumos": df_insumos,
+                    "df_apus_raw": df_apus_raw,
+                }
+            )
             telemetry.end_step("load_data", "success")
             return context
 
@@ -236,13 +333,20 @@ class LoadDataStep(ProcessingStep):
             telemetry.end_step("load_data", "error")
             raise
 
+
 class MergeDataStep(ProcessingStep):
+    """
+    Paso de Fusión de Datos.
+    Combina los datos crudos de APUs con la base de datos de insumos.
+    """
+
     def __init__(self, config: dict, thresholds: ProcessingThresholds):
         # config se añade para compatibilidad con signature dinámica, aunque no se use
         self.config = config
         self.thresholds = thresholds
 
     def execute(self, context: dict, telemetry: TelemetryContext) -> dict:
+        """Ejecuta la fusión de DataFrames."""
         telemetry.start_step("merge_data")
         try:
             df_apus_raw = context["df_apus_raw"]
@@ -261,12 +365,19 @@ class MergeDataStep(ProcessingStep):
             telemetry.end_step("merge_data", "error")
             raise
 
+
 class CalculateCostsStep(ProcessingStep):
+    """
+    Paso de Cálculo de Costos.
+    Calcula costos unitarios, tiempos y rendimientos de los APUs.
+    """
+
     def __init__(self, config: dict, thresholds: ProcessingThresholds):
         self.config = config
         self.thresholds = thresholds
 
     def execute(self, context: dict, telemetry: TelemetryContext) -> dict:
+        """Ejecuta los cálculos de costos y tiempos."""
         telemetry.start_step("calculate_costs")
         try:
             df_merged = context["df_merged"]
@@ -275,14 +386,18 @@ class CalculateCostsStep(ProcessingStep):
             cost_calculator = APUCostCalculator(self.config, self.thresholds)
             df_apu_costos, df_tiempo, df_rendimiento = cost_calculator.calculate(df_merged)
 
-            telemetry.record_metric("calculate_costs", "costos_calculated", len(df_apu_costos))
+            telemetry.record_metric(
+                "calculate_costs", "costos_calculated", len(df_apu_costos)
+            )
 
-            context.update({
-                "df_merged": df_merged,
-                "df_apu_costos": df_apu_costos,
-                "df_tiempo": df_tiempo,
-                "df_rendimiento": df_rendimiento
-            })
+            context.update(
+                {
+                    "df_merged": df_merged,
+                    "df_apu_costos": df_apu_costos,
+                    "df_tiempo": df_tiempo,
+                    "df_rendimiento": df_rendimiento,
+                }
+            )
             telemetry.end_step("calculate_costs", "success")
             return context
         except Exception as e:
@@ -290,12 +405,19 @@ class CalculateCostsStep(ProcessingStep):
             telemetry.end_step("calculate_costs", "error")
             raise
 
+
 class FinalMergeStep(ProcessingStep):
+    """
+    Paso de Fusión Final.
+    Integra los costos calculados con el presupuesto original.
+    """
+
     def __init__(self, config: dict, thresholds: ProcessingThresholds):
         self.config = config
         self.thresholds = thresholds
 
     def execute(self, context: dict, telemetry: TelemetryContext) -> dict:
+        """Ejecuta la fusión final con el presupuesto."""
         telemetry.start_step("final_merge")
         try:
             df_presupuesto = context["df_presupuesto"]
@@ -319,12 +441,19 @@ class FinalMergeStep(ProcessingStep):
             telemetry.end_step("final_merge", "error")
             raise
 
+
 class BuildOutputStep(ProcessingStep):
+    """
+    Paso de Construcción de Salida.
+    Prepara y valida el diccionario final de resultados para el cliente.
+    """
+
     def __init__(self, config: dict, thresholds: ProcessingThresholds):
         self.config = config
         self.thresholds = thresholds
 
     def execute(self, context: dict, telemetry: TelemetryContext) -> dict:
+        """Construye y valida la estructura de salida."""
         telemetry.start_step("build_output")
         try:
             df_final = context["df_final"]
@@ -355,10 +484,16 @@ class BuildOutputStep(ProcessingStep):
             telemetry.end_step("build_output", "error")
             raise
 
+
 # ==================== PIPELINE DIRECTOR ====================
 
+
 class PipelineDirector:
-    """Orquesta la ejecución del pipeline basado en la receta configurada."""
+    """
+    Orquesta la ejecución secuencial de los pasos del pipeline.
+    Utiliza una 'receta' de configuración para determinar el orden y
+    activación de los pasos.
+    """
 
     STEP_REGISTRY: Dict[str, Type[ProcessingStep]] = {
         "load_data": LoadDataStep,
@@ -374,6 +509,7 @@ class PipelineDirector:
         self.thresholds = self._load_thresholds(config)
 
     def _load_thresholds(self, config: dict) -> ProcessingThresholds:
+        """Carga y configura los umbrales de procesamiento."""
         thresholds = ProcessingThresholds()
         if "processing_thresholds" in config:
             for key, value in config["processing_thresholds"].items():
@@ -382,16 +518,27 @@ class PipelineDirector:
         return thresholds
 
     def execute(self, initial_context: dict) -> dict:
+        """
+        Ejecuta el pipeline completo.
+
+        Args:
+            initial_context: Estado inicial (rutas de archivos).
+
+        Returns:
+            Contexto final con los resultados del procesamiento.
+        """
         recipe = self.config.get("pipeline_recipe", [])
         if not recipe:
-            logger.warning("No 'pipeline_recipe' found in config. Using default hardcoded flow.")
+            logger.warning(
+                "No 'pipeline_recipe' found in config. Using default hardcoded flow."
+            )
             # Fallback to default flow equivalent to recipe
             recipe = [
                 {"step": "load_data", "enabled": True},
                 {"step": "merge_data", "enabled": True},
                 {"step": "calculate_costs", "enabled": True},
                 {"step": "final_merge", "enabled": True},
-                {"step": "build_output", "enabled": True}
+                {"step": "build_output", "enabled": True},
             ]
 
         context = initial_context.copy()
@@ -405,12 +552,12 @@ class PipelineDirector:
             step_class = self.STEP_REGISTRY.get(step_name)
             if not step_class:
                 logger.error(f"Unknown step in recipe: {step_name}")
-                self.telemetry.record_error("pipeline_director", f"Unknown step: {step_name}")
+                self.telemetry.record_error(
+                    "pipeline_director", f"Unknown step: {step_name}"
+                )
                 continue
 
             # Instanciación dinámica
-            # Asumimos que todos los steps aceptan (config, thresholds) en __init__
-            # Si hay steps con init diferente, habría que refinar la factory logic
             step_instance = step_class(self.config, self.thresholds)
 
             logger.info(f"▶️ Executing step: {step_name}")
@@ -423,10 +570,12 @@ class PipelineDirector:
 
         return context
 
+
 # ==================== CLASES DE SOPORTE (Legacy Refactored) ====================
 # (Se mantienen las clases PresupuestoProcessor, InsumosProcessor, etc.
 # tal cual estaban, ya que no requieren cambios en sus métodos internos,
 # solo son llamadas por los Steps refactorizados)
+
 
 class PresupuestoProcessor:
     def __init__(self, config: dict, thresholds: ProcessingThresholds, profile: dict):
@@ -467,14 +616,16 @@ class PresupuestoProcessor:
             return pd.DataFrame()
 
     def _clean_phantom_rows(self, df: pd.DataFrame) -> pd.DataFrame:
-        if df is None or df.empty: return pd.DataFrame()
-        df_clean = df.dropna(how='all')
+        if df is None or df.empty:
+            return pd.DataFrame()
+        df_clean = df.dropna(how="all")
 
         def is_empty_row(row):
             for val in row:
                 if pd.notna(val):
                     val_str = str(val).strip()
-                    if val_str and val_str not in ['', 'nan', 'None', 'NaN']: return False
+                    if val_str and val_str not in ["", "nan", "None", "NaN"]:
+                        return False
             return True
 
         mask_empty = df_clean.apply(is_empty_row, axis=1)
@@ -486,23 +637,47 @@ class PresupuestoProcessor:
         return find_and_rename_columns(df, column_map)
 
     def _validate_required_columns(self, df: pd.DataFrame) -> bool:
-        return self.validator.validate_required_columns(df, [ColumnNames.CODIGO_APU], "presupuesto")[0]
+        return self.validator.validate_required_columns(
+            df, [ColumnNames.CODIGO_APU], "presupuesto"
+        )[0]
 
     def _clean_and_convert_data(self, df: pd.DataFrame) -> pd.DataFrame:
-        clean_code_params = self.config.get("clean_apu_code_params", {}).get("presupuesto_item", {})
-        df[ColumnNames.CODIGO_APU] = df[ColumnNames.CODIGO_APU].astype(str).apply(lambda c: clean_apu_code(c, **clean_code_params))
-        mask_valid = (df[ColumnNames.CODIGO_APU].notna()) & (df[ColumnNames.CODIGO_APU] != "") & (df[ColumnNames.CODIGO_APU] != "nan")
+        clean_code_params = self.config.get("clean_apu_code_params", {}).get(
+            "presupuesto_item", {}
+        )
+        df[ColumnNames.CODIGO_APU] = (
+            df[ColumnNames.CODIGO_APU]
+            .astype(str)
+            .apply(lambda c: clean_apu_code(c, **clean_code_params))
+        )
+        mask_valid = (
+            (df[ColumnNames.CODIGO_APU].notna())
+            & (df[ColumnNames.CODIGO_APU] != "")
+            & (df[ColumnNames.CODIGO_APU] != "nan")
+        )
         df = df[mask_valid].copy()
 
         if ColumnNames.CANTIDAD_PRESUPUESTO in df.columns:
-            qty = df[ColumnNames.CANTIDAD_PRESUPUESTO].astype(str).str.strip().str.replace(",", ".", regex=False)
-            qty = qty.str.replace(r"[^\d.-]", "", regex=True).str.replace(r"\.(?=.*\.)", "", regex=True)
-            df[ColumnNames.CANTIDAD_PRESUPUESTO] = pd.to_numeric(qty, errors="coerce").fillna(0)
+            qty = (
+                df[ColumnNames.CANTIDAD_PRESUPUESTO]
+                .astype(str)
+                .str.strip()
+                .str.replace(",", ".", regex=False)
+            )
+            qty = qty.str.replace(r"[^\d.-]", "", regex=True).str.replace(
+                r"\.(?=.*\.)", "", regex=True
+            )
+            df[ColumnNames.CANTIDAD_PRESUPUESTO] = pd.to_numeric(
+                qty, errors="coerce"
+            ).fillna(0)
 
         return df
 
     def _remove_duplicates(self, df: pd.DataFrame) -> pd.DataFrame:
-        return self.validator.detect_and_log_duplicates(df, [ColumnNames.CODIGO_APU], "presupuesto")
+        return self.validator.detect_and_log_duplicates(
+            df, [ColumnNames.CODIGO_APU], "presupuesto"
+        )
+
 
 class InsumosProcessor:
     def __init__(self, thresholds: ProcessingThresholds, profile: dict):
@@ -513,7 +688,8 @@ class InsumosProcessor:
     def process(self, file_path: str) -> pd.DataFrame:
         try:
             records = self._parse_file(file_path)
-            if not records: return pd.DataFrame()
+            if not records:
+                return pd.DataFrame()
             df = pd.DataFrame(records)
             df = self._rename_and_select_columns(df)
             df = self._convert_and_normalize(df)
@@ -528,7 +704,7 @@ class InsumosProcessor:
             with open(file_path, "r", encoding=encoding) as f:
                 lines = f.readlines()
         except Exception:
-             with open(file_path, "r", encoding="utf-8", errors="replace") as f:
+            with open(file_path, "r", encoding="utf-8", errors="replace") as f:
                 lines = f.readlines()
 
         records = []
@@ -536,7 +712,8 @@ class InsumosProcessor:
         header = None
         for line in lines:
             parts = [p.strip().replace('"', "") for p in line.strip().split(";")]
-            if not any(parts): continue
+            if not any(parts):
+                continue
             if parts[0].startswith("G"):
                 current_group = parts[1]
                 header = None
@@ -552,45 +729,91 @@ class InsumosProcessor:
         return records
 
     def _rename_and_select_columns(self, df: pd.DataFrame) -> pd.DataFrame:
-        df = df.rename(columns={"DESCRIPCION": ColumnNames.DESCRIPCION_INSUMO, "VR. UNIT.": ColumnNames.VR_UNITARIO_INSUMO})
-        return df[[ColumnNames.GRUPO_INSUMO, ColumnNames.DESCRIPCION_INSUMO, ColumnNames.VR_UNITARIO_INSUMO]]
+        df = df.rename(
+            columns={
+                "DESCRIPCION": ColumnNames.DESCRIPCION_INSUMO,
+                "VR. UNIT.": ColumnNames.VR_UNITARIO_INSUMO,
+            }
+        )
+        return df[
+            [
+                ColumnNames.GRUPO_INSUMO,
+                ColumnNames.DESCRIPCION_INSUMO,
+                ColumnNames.VR_UNITARIO_INSUMO,
+            ]
+        ]
 
     def _convert_and_normalize(self, df: pd.DataFrame) -> pd.DataFrame:
-        df[ColumnNames.VR_UNITARIO_INSUMO] = pd.to_numeric(df[ColumnNames.VR_UNITARIO_INSUMO].astype(str).str.replace(",", "."), errors="coerce")
-        df[ColumnNames.DESCRIPCION_INSUMO_NORM] = normalize_text_series(df[ColumnNames.DESCRIPCION_INSUMO])
+        df[ColumnNames.VR_UNITARIO_INSUMO] = pd.to_numeric(
+            df[ColumnNames.VR_UNITARIO_INSUMO].astype(str).str.replace(",", "."),
+            errors="coerce",
+        )
+        df[ColumnNames.DESCRIPCION_INSUMO_NORM] = normalize_text_series(
+            df[ColumnNames.DESCRIPCION_INSUMO]
+        )
         return df.dropna(subset=[ColumnNames.DESCRIPCION_INSUMO])
 
     def _remove_duplicates(self, df: pd.DataFrame) -> pd.DataFrame:
-        return df.sort_values(ColumnNames.VR_UNITARIO_INSUMO, ascending=False).drop_duplicates(subset=[ColumnNames.DESCRIPCION_INSUMO_NORM], keep="first")
+        return df.sort_values(
+            ColumnNames.VR_UNITARIO_INSUMO, ascending=False
+        ).drop_duplicates(subset=[ColumnNames.DESCRIPCION_INSUMO_NORM], keep="first")
+
 
 class DataMerger:
     def __init__(self, thresholds: ProcessingThresholds):
         self.thresholds = thresholds
 
-    def merge_apus_with_insumos(self, df_apus: pd.DataFrame, df_insumos: pd.DataFrame) -> pd.DataFrame:
+    def merge_apus_with_insumos(
+        self, df_apus: pd.DataFrame, df_insumos: pd.DataFrame
+    ) -> pd.DataFrame:
         if ColumnNames.NORMALIZED_DESC not in df_apus.columns:
-            df_apus[ColumnNames.NORMALIZED_DESC] = normalize_text_series(df_apus[ColumnNames.DESCRIPCION_INSUMO])
+            df_apus[ColumnNames.NORMALIZED_DESC] = normalize_text_series(
+                df_apus[ColumnNames.DESCRIPCION_INSUMO]
+            )
 
-        df_merged = pd.merge(df_apus, df_insumos, left_on=ColumnNames.NORMALIZED_DESC, right_on=ColumnNames.DESCRIPCION_INSUMO_NORM, how="left", suffixes=("_apu", ""), validate="m:1")
+        df_merged = pd.merge(
+            df_apus,
+            df_insumos,
+            left_on=ColumnNames.NORMALIZED_DESC,
+            right_on=ColumnNames.DESCRIPCION_INSUMO_NORM,
+            how="left",
+            suffixes=("_apu", ""),
+            validate="m:1",
+        )
 
         df_merged[ColumnNames.TIPO_INSUMO] = df_merged[ColumnNames.CATEGORIA]
-        df_merged[ColumnNames.DESCRIPCION_INSUMO] = df_merged[ColumnNames.DESCRIPCION_INSUMO].fillna(df_merged[f"{ColumnNames.DESCRIPCION_INSUMO}_apu"])
+        df_merged[ColumnNames.DESCRIPCION_INSUMO] = df_merged[
+            ColumnNames.DESCRIPCION_INSUMO
+        ].fillna(df_merged[f"{ColumnNames.DESCRIPCION_INSUMO}_apu"])
         if f"{ColumnNames.UNIDAD_INSUMO}_apu" in df_merged.columns:
-            df_merged = df_merged.rename(columns={f"{ColumnNames.UNIDAD_INSUMO}_apu": ColumnNames.UNIDAD_INSUMO})
+            df_merged = df_merged.rename(
+                columns={f"{ColumnNames.UNIDAD_INSUMO}_apu": ColumnNames.UNIDAD_INSUMO}
+            )
         return df_merged
 
-    def merge_with_presupuesto(self, df_presupuesto: pd.DataFrame, df_apu_costos: pd.DataFrame) -> pd.DataFrame:
+    def merge_with_presupuesto(
+        self, df_presupuesto: pd.DataFrame, df_apu_costos: pd.DataFrame
+    ) -> pd.DataFrame:
         try:
-            return pd.merge(df_presupuesto, df_apu_costos, on=ColumnNames.CODIGO_APU, how="left", validate="1:1")
+            return pd.merge(
+                df_presupuesto,
+                df_apu_costos,
+                on=ColumnNames.CODIGO_APU,
+                how="left",
+                validate="1:1",
+            )
         except pd.errors.MergeError:
             raise
+
 
 class APUCostCalculator:
     def __init__(self, config: dict, thresholds: ProcessingThresholds):
         self.config = config
         self.thresholds = thresholds
 
-    def calculate(self, df_merged: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+    def calculate(
+        self, df_merged: pd.DataFrame
+    ) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
         df_apu_costos = self._aggregate_costs(df_merged)
         df_apu_costos = self._calculate_unit_values(df_apu_costos)
         df_apu_costos = self._classify_apus(df_apu_costos)
@@ -600,17 +823,28 @@ class APUCostCalculator:
 
     def _aggregate_costs(self, df_merged: pd.DataFrame) -> pd.DataFrame:
         df = df_merged.copy()
-        df[ColumnNames.COSTO_INSUMO_EN_APU] = pd.to_numeric(df[ColumnNames.COSTO_INSUMO_EN_APU], errors='coerce').fillna(0)
-        df[ColumnNames.TIPO_INSUMO] = df[ColumnNames.TIPO_INSUMO].astype(str).str.strip().str.upper()
+        df[ColumnNames.COSTO_INSUMO_EN_APU] = pd.to_numeric(
+            df[ColumnNames.COSTO_INSUMO_EN_APU], errors="coerce"
+        ).fillna(0)
+        df[ColumnNames.TIPO_INSUMO] = (
+            df[ColumnNames.TIPO_INSUMO].astype(str).str.strip().str.upper()
+        )
 
-        costs = df.groupby([ColumnNames.CODIGO_APU, ColumnNames.TIPO_INSUMO])[ColumnNames.COSTO_INSUMO_EN_APU].sum().unstack(fill_value=0).reset_index()
+        costs = (
+            df.groupby([ColumnNames.CODIGO_APU, ColumnNames.TIPO_INSUMO])[
+                ColumnNames.COSTO_INSUMO_EN_APU
+            ]
+            .sum()
+            .unstack(fill_value=0)
+            .reset_index()
+        )
 
         mapping = {
             InsumoTypes.SUMINISTRO: ColumnNames.MATERIALES,
             InsumoTypes.MANO_DE_OBRA: ColumnNames.MANO_DE_OBRA,
             InsumoTypes.EQUIPO: ColumnNames.EQUIPO,
             InsumoTypes.TRANSPORTE: ColumnNames.OTROS,
-            InsumoTypes.OTRO: ColumnNames.OTROS
+            InsumoTypes.OTRO: ColumnNames.OTROS,
         }
 
         # Mapear columnas existentes
@@ -624,15 +858,27 @@ class APUCostCalculator:
                 if target != col:
                     costs.drop(columns=[col], inplace=True)
 
-        for req in [ColumnNames.MATERIALES, ColumnNames.MANO_DE_OBRA, ColumnNames.EQUIPO, ColumnNames.OTROS]:
-            if req not in costs.columns: costs[req] = 0.0
+        for req in [
+            ColumnNames.MATERIALES,
+            ColumnNames.MANO_DE_OBRA,
+            ColumnNames.EQUIPO,
+            ColumnNames.OTROS,
+        ]:
+            if req not in costs.columns:
+                costs[req] = 0.0
 
         return costs
 
     def _calculate_unit_values(self, df: pd.DataFrame) -> pd.DataFrame:
         df[ColumnNames.VALOR_SUMINISTRO_UN] = df[ColumnNames.MATERIALES]
-        df[ColumnNames.VALOR_INSTALACION_UN] = df[ColumnNames.MANO_DE_OBRA] + df[ColumnNames.EQUIPO]
-        df[ColumnNames.VALOR_CONSTRUCCION_UN] = df[ColumnNames.VALOR_SUMINISTRO_UN] + df[ColumnNames.VALOR_INSTALACION_UN] + df[ColumnNames.OTROS]
+        df[ColumnNames.VALOR_INSTALACION_UN] = (
+            df[ColumnNames.MANO_DE_OBRA] + df[ColumnNames.EQUIPO]
+        )
+        df[ColumnNames.VALOR_CONSTRUCCION_UN] = (
+            df[ColumnNames.VALOR_SUMINISTRO_UN]
+            + df[ColumnNames.VALOR_INSTALACION_UN]
+            + df[ColumnNames.OTROS]
+        )
         return df
 
     def _classify_apus(self, df: pd.DataFrame) -> pd.DataFrame:
@@ -641,57 +887,98 @@ class APUCostCalculator:
         return df
 
     def _calculate_time(self, df: pd.DataFrame) -> pd.DataFrame:
-        return df[df[ColumnNames.TIPO_INSUMO] == InsumoTypes.MANO_DE_OBRA].groupby(ColumnNames.CODIGO_APU)[ColumnNames.CANTIDAD_APU].sum().reset_index().rename(columns={ColumnNames.CANTIDAD_APU: ColumnNames.TIEMPO_INSTALACION})
+        return (
+            df[df[ColumnNames.TIPO_INSUMO] == InsumoTypes.MANO_DE_OBRA]
+            .groupby(ColumnNames.CODIGO_APU)[ColumnNames.CANTIDAD_APU]
+            .sum()
+            .reset_index()
+            .rename(columns={ColumnNames.CANTIDAD_APU: ColumnNames.TIEMPO_INSTALACION})
+        )
 
     def _calculate_performance(self, df: pd.DataFrame) -> pd.DataFrame:
         if ColumnNames.RENDIMIENTO in df.columns:
-            return df[df[ColumnNames.TIPO_INSUMO] == InsumoTypes.MANO_DE_OBRA].groupby(ColumnNames.CODIGO_APU)[ColumnNames.RENDIMIENTO].sum().reset_index().rename(columns={ColumnNames.RENDIMIENTO: ColumnNames.RENDIMIENTO_DIA})
+            return (
+                df[df[ColumnNames.TIPO_INSUMO] == InsumoTypes.MANO_DE_OBRA]
+                .groupby(ColumnNames.CODIGO_APU)[ColumnNames.RENDIMIENTO]
+                .sum()
+                .reset_index()
+                .rename(columns={ColumnNames.RENDIMIENTO: ColumnNames.RENDIMIENTO_DIA})
+            )
         return pd.DataFrame()
+
 
 # ==================== FUNCIONES AUXILIARES ====================
 
-def calculate_insumo_costs(df: pd.DataFrame, thresholds: ProcessingThresholds) -> pd.DataFrame:
-    for col in [ColumnNames.CANTIDAD_APU, ColumnNames.VR_UNITARIO_INSUMO, ColumnNames.VALOR_TOTAL_APU]:
-        if col not in df.columns: df[col] = 0
 
-    costo = np.where(df[ColumnNames.VR_UNITARIO_INSUMO].notna() & (df[ColumnNames.VR_UNITARIO_INSUMO] != 0),
-                     df[ColumnNames.CANTIDAD_APU] * df[ColumnNames.VR_UNITARIO_INSUMO],
-                     df[ColumnNames.VALOR_TOTAL_APU])
+def calculate_insumo_costs(
+    df: pd.DataFrame, thresholds: ProcessingThresholds
+) -> pd.DataFrame:
+    for col in [
+        ColumnNames.CANTIDAD_APU,
+        ColumnNames.VR_UNITARIO_INSUMO,
+        ColumnNames.VALOR_TOTAL_APU,
+    ]:
+        if col not in df.columns:
+            df[col] = 0
+
+    costo = np.where(
+        df[ColumnNames.VR_UNITARIO_INSUMO].notna()
+        & (df[ColumnNames.VR_UNITARIO_INSUMO] != 0),
+        df[ColumnNames.CANTIDAD_APU] * df[ColumnNames.VR_UNITARIO_INSUMO],
+        df[ColumnNames.VALOR_TOTAL_APU],
+    )
     df[ColumnNames.COSTO_INSUMO_EN_APU] = pd.Series(costo).fillna(0)
 
     # Calcular VR_UNITARIO_FINAL
     df[ColumnNames.VR_UNITARIO_FINAL] = df[ColumnNames.VR_UNITARIO_INSUMO].fillna(0)
     return df
 
+
 def group_and_split_description(df: pd.DataFrame) -> pd.DataFrame:
     if ColumnNames.DESCRIPCION_APU in df.columns:
         df[ColumnNames.ORIGINAL_DESCRIPTION] = df[ColumnNames.DESCRIPCION_APU]
     return df
 
-def calculate_total_costs(df: pd.DataFrame, thresholds: ProcessingThresholds) -> pd.DataFrame:
+
+def calculate_total_costs(
+    df: pd.DataFrame, thresholds: ProcessingThresholds
+) -> pd.DataFrame:
     if ColumnNames.CANTIDAD_PRESUPUESTO in df.columns:
-        qty = pd.to_numeric(df[ColumnNames.CANTIDAD_PRESUPUESTO], errors='coerce').fillna(0)
-        df[ColumnNames.VALOR_CONSTRUCCION_TOTAL] = df[ColumnNames.VALOR_CONSTRUCCION_UN] * qty
+        qty = pd.to_numeric(df[ColumnNames.CANTIDAD_PRESUPUESTO], errors="coerce").fillna(0)
+        df[ColumnNames.VALOR_CONSTRUCCION_TOTAL] = (
+            df[ColumnNames.VALOR_CONSTRUCCION_UN] * qty
+        )
     return df
 
+
 def build_processed_apus_dataframe(df_costs, df_raw, df_time, df_perf):
-    return df_costs.copy() # Simplificado
+    return df_costs.copy()  # Simplificado
+
 
 def synchronize_data_sources(df_merged, df_final):
     valid_codes = df_final[ColumnNames.CODIGO_APU].unique()
     return df_merged[df_merged[ColumnNames.CODIGO_APU].isin(valid_codes)].copy()
+
 
 def build_output_dictionary(df_final, df_insumos, df_merged, df_raw, df_proc):
     return {
         "presupuesto": df_final.to_dict("records"),
         "processed_apus": df_proc.to_dict("records"),
         "apus_detail": df_merged.to_dict("records"),
-        "insumos": {}
+        "insumos": {},
     }
+
 
 # ==================== ENTRY POINT ====================
 
-def process_all_files(presupuesto_path: str, apus_path: str, insumos_path: str, config: dict, telemetry: TelemetryContext) -> dict:
+
+def process_all_files(
+    presupuesto_path: str,
+    apus_path: str,
+    insumos_path: str,
+    config: dict,
+    telemetry: TelemetryContext,
+) -> dict:
     """
     Entry point refactorizado para usar PipelineDirector y Telemetry.
     """
@@ -712,8 +999,10 @@ def process_all_files(presupuesto_path: str, apus_path: str, insumos_path: str, 
         # Guardado de archivos (lógica simplificada integrada aquí o delegada)
         output_dir = Path(config.get("output_dir", "data"))
         output_files = {
-            "processed_apus": output_dir / config.get("processed_apus_file", "processed_apus.json"),
-            "presupuesto_final": output_dir / config.get("presupuesto_final_file", "presupuesto_final.json"),
+            "processed_apus": output_dir
+            / config.get("processed_apus_file", "processed_apus.json"),
+            "presupuesto_final": output_dir
+            / config.get("presupuesto_final_file", "presupuesto_final.json"),
         }
 
         _save_output_files(final_result, output_files, config)
@@ -724,8 +1013,10 @@ def process_all_files(presupuesto_path: str, apus_path: str, insumos_path: str, 
         logger.error(f"❌ Error en process_all_files: {e}")
         return {"error": str(e)}
 
+
 def _save_output_files(result, output_files, config):
     import json
+
     for name, path in output_files.items():
         if name in result and result[name]:
             path.parent.mkdir(parents=True, exist_ok=True)
