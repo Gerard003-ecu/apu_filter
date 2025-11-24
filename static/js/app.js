@@ -862,6 +862,61 @@ const TableController = {
     },
 
     /**
+     * Actualizar tabla de insumos (Nueva funcionalidad)
+     */
+    updateInsumosTable() {
+        const tableBody = document.getElementById('insumos-table-body');
+        if (!tableBody) return;
+
+        const rawData = StateManager.getState('rawData');
+        const insumos = rawData.insumos || {};
+
+        tableBody.innerHTML = '';
+
+        // Ordenar categorías según configuración
+        const sortedCategories = Object.keys(insumos).sort((a, b) => {
+            const indexA = CONFIG.CATEGORY_DISPLAY_ORDER.indexOf(Utils.translateCategory(a));
+            const indexB = CONFIG.CATEGORY_DISPLAY_ORDER.indexOf(Utils.translateCategory(b));
+            if (indexA !== -1 && indexB !== -1) return indexA - indexB;
+            return a.localeCompare(b);
+        });
+
+        if (sortedCategories.length === 0) {
+            tableBody.innerHTML = '<tr><td colspan="3" class="px-6 py-4 text-center text-gray-500">No hay datos de insumos disponibles.</td></tr>';
+            return;
+        }
+
+        sortedCategories.forEach(category => {
+            const items = insumos[category];
+            if (!Array.isArray(items) || items.length === 0) return;
+
+            const translatedCategory = Utils.translateCategory(category);
+
+            // Header de Grupo
+            const groupHeader = document.createElement('tr');
+            groupHeader.className = 'bg-gray-100';
+            groupHeader.innerHTML = `
+                <td colspan="3" class="px-6 py-2 text-sm font-bold text-gray-700 uppercase tracking-wide border-b border-gray-200">
+                    ${Utils.escapeHtml(translatedCategory)} <span class="text-xs font-normal text-gray-500 ml-2">(${items.length})</span>
+                </td>
+            `;
+            tableBody.appendChild(groupHeader);
+
+            // Items del Grupo
+            items.forEach(item => {
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-gray-50 transition-colors border-b border-gray-100';
+                row.innerHTML = `
+                    <td class="px-6 py-3 text-xs text-gray-400 font-mono">${Utils.escapeHtml(item.GRUPO_INSUMO || '-')}</td>
+                    <td class="px-6 py-3 text-sm text-gray-700">${Utils.escapeHtml(item.DESCRIPCION_INSUMO || 'Sin descripción')}</td>
+                    <td class="px-6 py-3 text-sm text-gray-900 text-right font-medium font-mono">${Utils.formatCurrency(item.VR_UNITARIO_INSUMO)}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+        });
+    },
+
+    /**
      * Actualizar datos de un ítem
      */
     _updateItemData(index, field, value) {
@@ -1162,7 +1217,9 @@ const AppController = {
         try {
             Logger.log("Iniciando procesamiento de archivos");
 
-            const response = await fetch(CONFIG.API_ENDPOINTS.UPLOAD, {
+            // Solicitamos include_data=true para recibir 'data' con presupuesto e insumos
+            const uploadUrl = `${CONFIG.API_ENDPOINTS.UPLOAD}?include_data=true`;
+            const response = await fetch(uploadUrl, {
                 method: 'POST',
                 body: formData,
                 credentials: 'include'
@@ -1176,18 +1233,31 @@ const AppController = {
             }
 
             const rawData = await response.json();
-            Logger.log("Datos JSON recibidos correctamente");
+            Logger.log("Datos JSON recibidos correctamente", rawData);
+            console.log("Upload Response:", rawData); // Para depuración en consola del navegador
 
             if (rawData.error) {
                 throw new Error(rawData.error);
             }
 
+            // Manejo del Reporte de Salud
+            if (rawData.health_report) {
+                this._displayHealthReport(rawData.health_report);
+            }
+
+            // Extraer datos (ahora vienen dentro de 'data')
+            const responseData = rawData.data || {};
+
             // Validar estructura de datos
-            Utils.validateDataStructure(rawData, ['presupuesto']);
+            // Ahora validamos sobre responseData, no rawData raíz
+            if (!responseData.presupuesto) {
+                throw new Error("La respuesta del servidor no contiene datos de presupuesto.");
+            }
 
-            const budgetData = Utils.deepClone(rawData.presupuesto);
+            const budgetData = Utils.deepClone(responseData.presupuesto);
 
-            StateManager.setState({ rawData, budgetData });
+            // Guardamos responseData como 'rawData' en el estado para compatibilidad con el resto de la app
+            StateManager.setState({ rawData: responseData, budgetData });
 
             UIManager.toggleMainContent(true);
             UIManager.showStatus("¡Análisis completado! Ya puedes simular costos y organizar tu proyecto.", 'success');
@@ -1207,6 +1277,51 @@ const AppController = {
             UIManager.toggleLoader(false);
             UIManager.toggleProcessButton(true);
         }
+    },
+
+    /**
+     * Mostrar reporte de salud
+     */
+    _displayHealthReport(report) {
+        const container = document.getElementById('health-report-container');
+        if (!container) return;
+
+        const statusColors = {
+            'OPTIMAL': 'bg-green-100 text-green-800 border-green-200',
+            'WARNING': 'bg-yellow-100 text-yellow-800 border-yellow-200',
+            'CRITICAL': 'bg-red-100 text-red-800 border-red-200'
+        };
+
+        const statusIcons = {
+            'OPTIMAL': '✅',
+            'WARNING': '⚠️',
+            'CRITICAL': '🚨'
+        };
+
+        const colorClass = statusColors[report.status] || 'bg-gray-100 text-gray-800';
+        const icon = statusIcons[report.status] || 'ℹ️';
+
+        container.innerHTML = `
+            <div class="border-l-4 p-4 ${colorClass} rounded-r shadow-sm mb-6 fade-in">
+                <div class="flex items-start">
+                    <span class="text-2xl mr-3">${icon}</span>
+                    <div class="flex-grow">
+                        <h4 class="font-bold text-sm uppercase tracking-wide opacity-80 mb-1">Diagnóstico del Sistema</h4>
+                        <p class="font-medium text-lg">${Utils.escapeHtml(report.message)}</p>
+                        ${report.indicators ? `
+                            <div class="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+                                ${Object.entries(report.indicators).map(([k, v]) => `
+                                    <div class="bg-white/50 px-2 py-1 rounded">
+                                        <span class="font-semibold">${k}:</span> ${v}
+                                    </div>
+                                `).join('')}
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+            </div>
+        `;
+        container.classList.remove('hidden');
     },
 
     /**
@@ -1245,6 +1360,7 @@ const AppController = {
         try {
             TableController.updateSimulatorTable();
             TableController.updateOrganizerTable();
+            TableController.updateInsumosTable(); // ✨ Invocamos la nueva tabla
             SummaryController.updateSummaries();
 
             if (EstimatorController._isInitialized) {
@@ -1260,7 +1376,7 @@ const AppController = {
      * Cambiar pestaña activa
      */
     switchTab(tabName) {
-        const validTabs = ['simulador', 'organizador', 'estimador'];
+        const validTabs = ['simulador', 'organizador', 'estimador', 'insumos'];
 
         if (!validTabs.includes(tabName)) {
             Logger.warn(`Pestaña inválida: ${tabName}`);
