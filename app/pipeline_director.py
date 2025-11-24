@@ -598,8 +598,11 @@ class PresupuestoProcessor:
                 return pd.DataFrame()
 
             df_renamed = self._rename_columns(df_clean)
-            if not self._validate_required_columns(df_renamed):
-                return pd.DataFrame()
+            is_valid, error_msg = self.validator.validate_required_columns(
+                df_renamed, [ColumnNames.CODIGO_APU], "presupuesto"
+            )
+            if not is_valid:
+                raise ValueError(error_msg)
 
             df_converted = self._clean_and_convert_data(df_renamed)
             df_final = self._remove_duplicates(df_converted)
@@ -613,6 +616,9 @@ class PresupuestoProcessor:
 
         except Exception as e:
             logger.error(f"❌ Error fatal procesando presupuesto: {e}", exc_info=True)
+            # Re-raise ValueError for proper error reporting in Telemetry
+            if isinstance(e, ValueError):
+                raise
             return pd.DataFrame()
 
     def _clean_phantom_rows(self, df: pd.DataFrame) -> pd.DataFrame:

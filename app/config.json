@@ -22,7 +22,6 @@
       "description": "Perfil para presupuesto CSV estándar.",
       "loader_params": {
         "header": 0,
-        "sep": ";",
         "encoding": "UTF-8-SIG"
       }
     },
