@@ -908,30 +908,26 @@ def load_semantic_search_artifacts(app: Flask) -> bool:
         with open(metadata_path, "r", encoding="utf-8") as f:
             metadata = json.load(f)
 
-        required_metadata = ["model_name", "vector_dimension", "total_vectors"]
-        missing_metadata = [k for k in required_metadata if k not in metadata]
+        # Validación flexible de metadata (soporta alias y campos opcionales)
+        model_name = metadata.get("model_name")
+        expected_vectors = metadata.get("total_vectors") or metadata.get("vector_count")
+        expected_dimension = metadata.get("vector_dimension")
 
-        if missing_metadata:
-            raise ValueError(
-                f"Metadata incompleta. Faltantes: {', '.join(missing_metadata)}"
-            )
-
-        model_name = metadata["model_name"]
-        expected_dimension = metadata["vector_dimension"]
-        expected_vectors = metadata["total_vectors"]
+        if not model_name:
+            raise ValueError("Metadata incompleta: Falta 'model_name'")
 
         # 3. Cargar índice FAISS
         faiss_index = faiss.read_index(str(index_path))
 
-        # Validar dimensión
-        if faiss_index.d != expected_dimension:
+        # Validar dimensión (si está en metadata)
+        if expected_dimension and faiss_index.d != expected_dimension:
             raise ValueError(
                 f"Dimensión del índice ({faiss_index.d}) no coincide "
                 f"con metadata ({expected_dimension})"
             )
 
-        # Validar cantidad de vectores
-        if faiss_index.ntotal != expected_vectors:
+        # Validar cantidad de vectores (si está en metadata)
+        if expected_vectors is not None and faiss_index.ntotal != expected_vectors:
             app.logger.warning(
                 f"Cantidad de vectores ({faiss_index.ntotal}) difiere "
                 f"de metadata ({expected_vectors})"
@@ -1286,31 +1282,55 @@ def create_app(config_name: str) -> Flask:
         for file_type in required_files:
             file = request.files[file_type]
 
-            validation_result, temp_path = validator.validate_complete(file, file_type)
-            validation_results[file_type] = validation_result
-
-            if not validation_result.is_valid:
-                app.logger.warning(
-                    f"Archivo '{file_type}' inválido: {validation_result.errors}"
-                )
+            # 1. Validar metadata básica (tamaño, extensión)
+            is_valid_meta, error_meta = validator.validate_file_metadata(file)
+            if not is_valid_meta:
                 g.telemetry.record_error(
-                    "upload_request_validation", f"Invalid file: {file_type}"
+                    "upload_request_validation", f"Invalid metadata: {file_type}"
                 )
                 return jsonify(
                     {
-                        "error": f"Archivo '{file_type}' inválido",
+                        "error": error_meta,
                         "code": "INVALID_FILE",
-                        "details": validation_result.errors,
-                        "warnings": validation_result.warnings,
+                        "file": file_type
                     }
                 ), 400
 
-            if validation_result.warnings:
-                app.logger.warning(
-                    f"Advertencias para '{file_type}': {validation_result.warnings}"
+            # 2. Validar MIME type
+            is_valid_mime, error_mime = validator.validate_mime_type(file)
+            if not is_valid_mime:
+                g.telemetry.record_error(
+                    "upload_request_validation", f"Invalid mime: {file_type}"
                 )
+                return jsonify(
+                    {
+                        "error": error_mime,
+                        "code": "INVALID_MIME",
+                        "file": file_type
+                    }
+                ), 400
 
-            files_to_process[file_type] = temp_path
+            # 3. Guardar temporalmente SIN validar contenido estricto (permitiendo columnas flexibles)
+            import tempfile
+            temp_dir = Path(tempfile.gettempdir()) / "apu_validation"
+            temp_dir.mkdir(exist_ok=True)
+            temp_path = temp_dir / secure_filename(file.filename)
+
+            try:
+                file.save(str(temp_path))
+            except Exception as e:
+                app.logger.error(f"Error al guardar archivo temporal {file_type}: {e}")
+                return jsonify({"error": "Error interno al guardar archivo", "code": "SAVE_ERROR"}), 500
+
+            # Registrar resultado exitoso para mantener compatibilidad
+            validation_results[file_type] = FileValidationResult(
+                is_valid=True,
+                filename=file.filename,
+                file_type=file_type,
+                size_bytes=Path(temp_path).stat().st_size
+            )
+
+            files_to_process[file_type] = str(temp_path)
 
         g.telemetry.end_step("upload_request_validation", "success")
 
