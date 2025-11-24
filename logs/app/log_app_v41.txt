@@ -1,0 +1,158 @@
+INICIANDO GENERACIÓN DE EMBEDDINGS
+============================================================
+2025-11-24 10:23:39 [INFO] __main__: Validación completada: 146/146 filas válidas
+2025-11-24 10:23:39 [INFO] EmbeddingGenerator: Cargando modelo: paraphrase-multilingual-MiniLM-L12-v2
+2025-11-24 10:23:39 [INFO] sentence_transformers.SentenceTransformer: Use pytorch device_name: cpu
+2025-11-24 10:23:39 [INFO] sentence_transformers.SentenceTransformer: Load pretrained SentenceTransformer: paraphrase-multilingual-MiniLM-L12-v2
+2025-11-24 10:23:50 [INFO] EmbeddingGenerator: Modelo cargado. Dimensión: 384
+2025-11-24 10:23:50 [INFO] EmbeddingGenerator: Generando embeddings para 146 textos...
+Batches: 100%|██████████████████████████████████████████████████████████████████████████| 1/1 [00:32<00:00, 32.85s/it]
+2025-11-24 10:24:23 [INFO] EmbeddingGenerator: Construyendo índice FAISS...
+2025-11-24 10:24:23 [INFO] EmbeddingGenerator: Índice construido. Vectores: 146
+2025-11-24 10:24:23 [INFO] EmbeddingGenerator: ============================================================
+2025-11-24 10:24:23 [INFO] EmbeddingGenerator: Iniciando validación robusta del índice FAISS...
+2025-11-24 10:24:23 [WARNING] EmbeddingGenerator: ⚠️  Duplicado detectado (Índice correcto encontrado):
+   Índice esperado: 99
+   Índice retornado (Top 1): 130 (Similitud: 1.000000)
+   Índice correcto en posición: 2/5 (Similitud: 1.000000)
+2025-11-24 10:24:23 [WARNING] EmbeddingGenerator: ⚠️  Duplicado detectado (Índice correcto encontrado):
+   Índice esperado: 34
+   Índice retornado (Top 1): 118 (Similitud: 1.000000)
+   Índice correcto en posición: 3/5 (Similitud: 1.000000)
+2025-11-24 10:24:23 [WARNING] EmbeddingGenerator: ⚠️  Duplicado detectado (Índice correcto encontrado):
+   Índice esperado: 98
+   Índice retornado (Top 1): 129 (Similitud: 1.000000)
+   Índice correcto en posición: 2/5 (Similitud: 1.000000)
+2025-11-24 10:24:23 [WARNING] EmbeddingGenerator: ⚠️  Duplicado detectado (Índice correcto encontrado):
+   Índice esperado: 20
+   Índice retornado (Top 1): 116 (Similitud: 1.000000)
+   Índice correcto en posición: 2/5 (Similitud: 1.000000)
+2025-11-24 10:24:23 [WARNING] EmbeddingGenerator: ⚠️  Duplicado detectado (Índice correcto encontrado):
+   Índice esperado: 93
+   Índice retornado (Top 1): 124 (Similitud: 1.000000)
+   Índice correcto en posición: 2/5 (Similitud: 1.000000)
+2025-11-24 10:24:23 [WARNING] EmbeddingGenerator: ⚠️  Duplicado detectado (Índice correcto encontrado):
+   Índice esperado: 96
+   Índice retornado (Top 1): 127 (Similitud: 1.000000)
+   Índice correcto en posición: 2/5 (Similitud: 1.000000)
+2025-11-24 10:24:23 [WARNING] EmbeddingGenerator: ⚠️  Duplicado detectado (Índice correcto encontrado):
+   Índice esperado: 92
+   Índice retornado (Top 1): 123 (Similitud: 1.000000)
+   Índice correcto en posición: 2/5 (Similitud: 1.000000)
+2025-11-24 10:24:23 [WARNING] EmbeddingGenerator: ⚠️  Duplicado detectado (Índice correcto encontrado):
+   Índice esperado: 30
+   Índice retornado (Top 1): 35 (Similitud: 1.000000)
+   Índice correcto en posición: 2/5 (Similitud: 1.000000)
+2025-11-24 10:24:23 [WARNING] EmbeddingGenerator: ⚠️  Duplicado detectado (Índice correcto encontrado):
+   Índice esperado: 103
+   Índice retornado (Top 1): 134 (Similitud: 1.000000)
+   Índice correcto en posición: 2/5 (Similitud: 1.000000)
+2025-11-24 10:24:23 [WARNING] EmbeddingGenerator: ⚠️  Duplicado detectado (Índice correcto encontrado):
+   Índice esperado: 102
+   Índice retornado (Top 1): 133 (Similitud: 1.000000)
+   Índice correcto en posición: 2/5 (Similitud: 1.000000)
+2025-11-24 10:24:23 [WARNING] EmbeddingGenerator: ⚠️  Duplicado detectado (Índice correcto encontrado):
+   Índice esperado: 58
+   Índice retornado (Top 1): 63 (Similitud: 1.000000)
+   Índice correcto en posición: 2/5 (Similitud: 1.000000)
+2025-11-24 10:24:23 [WARNING] EmbeddingGenerator: ⚠️  Duplicado detectado (Índice correcto encontrado):
+   Índice esperado: 32
+   Índice retornado (Top 1): 37 (Similitud: 1.000000)
+   Índice correcto en posición: 2/5 (Similitud: 1.000000)
+2025-11-24 10:24:23 [WARNING] EmbeddingGenerator: ⚠️  Duplicado detectado (Índice correcto encontrado):
+   Índice esperado: 39
+   Índice retornado (Top 1): 118 (Similitud: 1.000000)
+   Índice correcto en posición: 2/5 (Similitud: 1.000000)
+2025-11-24 10:24:23 [WARNING] EmbeddingGenerator: ⚠️  Duplicado detectado (Índice correcto encontrado):
+   Índice esperado: 25
+   Índice retornado (Top 1): 27 (Similitud: 1.000000)
+   Índice correcto en posición: 2/5 (Similitud: 1.000000)
+2025-11-24 10:24:23 [WARNING] EmbeddingGenerator: ⚠️  Duplicado detectado (Índice correcto encontrado):
+   Índice esperado: 89
+   Índice retornado (Top 1): 120 (Similitud: 1.000000)
+   Índice correcto en posición: 2/5 (Similitud: 1.000000)
+2025-11-24 10:24:23 [WARNING] EmbeddingGenerator: ⚠️  Duplicado detectado (Índice correcto encontrado):
+   Índice esperado: 101
+   Índice retornado (Top 1): 132 (Similitud: 1.000000)
+   Índice correcto en posición: 2/5 (Similitud: 1.000000)
+2025-11-24 10:24:23 [WARNING] EmbeddingGenerator: ⚠️  Duplicado detectado (Índice correcto encontrado):
+   Índice esperado: 88
+   Índice retornado (Top 1): 119 (Similitud: 1.000000)
+   Índice correcto en posición: 2/5 (Similitud: 1.000000)
+2025-11-24 10:24:23 [WARNING] EmbeddingGenerator: ⚠️  Duplicado detectado (Índice correcto encontrado):
+   Índice esperado: 82
+   Índice retornado (Top 1): 85 (Similitud: 1.000000)
+   Índice correcto en posición: 2/5 (Similitud: 1.000000)
+2025-11-24 10:24:23 [WARNING] EmbeddingGenerator: ⚠️  Duplicado detectado (Índice correcto encontrado):
+   Índice esperado: 19
+   Índice retornado (Top 1): 115 (Similitud: 1.000000)
+   Índice correcto en posición: 2/5 (Similitud: 1.000000)
+2025-11-24 10:24:23 [WARNING] EmbeddingGenerator: ⚠️  Duplicado detectado (Índice correcto encontrado):
+   Índice esperado: 33
+   Índice retornado (Top 1): 38 (Similitud: 1.000000)
+   Índice correcto en posición: 2/5 (Similitud: 1.000000)
+2025-11-24 10:24:23 [WARNING] EmbeddingGenerator: ⚠️  Duplicado detectado (Índice correcto encontrado):
+   Índice esperado: 21
+   Índice retornado (Top 1): 117 (Similitud: 1.000000)
+   Índice correcto en posición: 2/5 (Similitud: 1.000000)
+2025-11-24 10:24:23 [WARNING] EmbeddingGenerator: ⚠️  Duplicado detectado (Índice correcto encontrado):
+   Índice esperado: 94
+   Índice retornado (Top 1): 125 (Similitud: 1.000000)
+   Índice correcto en posición: 2/5 (Similitud: 1.000000)
+2025-11-24 10:24:23 [WARNING] EmbeddingGenerator: ⚠️  Duplicado detectado (Índice correcto encontrado):
+   Índice esperado: 55
+   Índice retornado (Top 1): 60 (Similitud: 1.000000)
+   Índice correcto en posición: 2/5 (Similitud: 1.000000)
+2025-11-24 10:24:23 [WARNING] EmbeddingGenerator: ⚠️  Duplicado detectado (Índice correcto encontrado):
+   Índice esperado: 31
+   Índice retornado (Top 1): 36 (Similitud: 1.000000)
+   Índice correcto en posición: 2/5 (Similitud: 1.000000)
+2025-11-24 10:24:23 [INFO] EmbeddingGenerator: ============================================================
+2025-11-24 10:24:23 [INFO] EmbeddingGenerator: 📊 Resultados de Validación:
+2025-11-24 10:24:23 [INFO] EmbeddingGenerator:    Total muestras: 100
+2025-11-24 10:24:23 [INFO] EmbeddingGenerator:    ✅ Coincidencias exactas: 76 (76.0%)
+2025-11-24 10:24:23 [INFO] EmbeddingGenerator:    ⚠️  Duplicados semánticos: 24 (24.0%)
+2025-11-24 10:24:23 [INFO] EmbeddingGenerator:    ❌ Fallos reales: 0 (0.0%)
+2025-11-24 10:24:23 [WARNING] EmbeddingGenerator: ⚠️  ADVERTENCIA: Se detectaron 24 duplicados.
+   El sistema funciona, pero considera limpiar tus datos de APUs duplicados.
+2025-11-24 10:24:23 [INFO] EmbeddingGenerator: ✅ Validación EXITOSA (tasa de éxito funcional: 100.00%)
+2025-11-24 10:24:23 [INFO] EmbeddingGenerator: ============================================================
+2025-11-24 10:24:23 [INFO] __main__: Backup creado: app/embeddings/faiss_backup_20251124_102423.index
+2025-11-24 10:24:23 [INFO] __main__: Backup creado: app/embeddings/id_map_backup_20251124_102423.json
+2025-11-24 10:24:23 [INFO] __main__: Backup creado: app/embeddings/metadata_backup_20251124_102423.json
+2025-11-24 10:24:23 [INFO] EmbeddingPipeline: Guardando índice FAISS: app/embeddings/faiss.index
+2025-11-24 10:24:23 [INFO] EmbeddingPipeline: Guardando mapeo de IDs: app/embeddings/id_map.json
+2025-11-24 10:24:23 [INFO] EmbeddingPipeline: Guardando metadata: app/embeddings/metadata.json
+2025-11-24 10:24:23 [INFO] EmbeddingPipeline: ============================================================
+✅ PROCESO COMPLETADO EXITOSAMENTE
+============================================================
+
+📊 Resumen de Métricas: {
+  "processing_time": 43.99019742012024,
+  "initial_rows": 146,
+  "valid_rows": 146,
+  "embeddings_generated": 146,
+  "embedding_dim": 384
+}
+(apu_filter_env) gerardo@gerardo-Satellite-C845:~/Documentos/GitHub/apu_filter$ python -m flask run --port=5002
+10:35:57 [SYSTEM] - INFO - ============================================================
+10:35:57 [SYSTEM] - INFO - Iniciando aplicación en modo: DEFAULT
+10:35:57 [SYSTEM] - INFO - ============================================================
+10:35:57 [SYSTEM] - INFO - ✅ Conexión a Redis exitosa: redis://127.0.0.1:6379/0
+10:35:57 [SYSTEM] - INFO - ✅ Configuración cargada desde config.json
+10:35:57 [SYSTEM] - INFO - APUPresenter inicializado correctamente
+10:35:57 [SYSTEM] - INFO - Iniciando carga de artefactos de búsqueda semántica...
+10:35:57 [SYSTEM] - ERROR - ❌ Error al cargar artefactos de búsqueda semántica: Metadata incompleta. Faltantes: vector_dimension, total_vectors
+Traceback (most recent call last):
+  File "/home/gerardo/Documentos/GitHub/apu_filter/app/app.py", line 915, in load_semantic_search_artifacts
+    raise ValueError(
+ValueError: Metadata incompleta. Faltantes: vector_dimension, total_vectors
+10:35:57 [SYSTEM] - INFO - ✅ Aplicación inicializada exitosamente
+10:35:57 [SYSTEM] - INFO - ============================================================
+ * Debug mode: off
+10:36:07 [SYSTEM] - INFO - 📊 Telemetry for 8bcb48ae: {"request_id": "8bcb48ae", "steps": [], "metrics": {}, "errors": [], "total_duration_seconds": 0, "created_at": 5089.341865671, "age_seconds": 0.072692}
+10:36:07 [SYSTEM] - INFO - 📊 Telemetry for 1fc8af5c: {"request_id": "1fc8af5c", "steps": [], "metrics": {}, "errors": [], "total_duration_seconds": 0, "created_at": 5089.740525452, "age_seconds": 0.173178}
+10:36:07 [SYSTEM] - INFO - 📊 Telemetry for 5b717556: {"request_id": "5b717556", "steps": [], "metrics": {}, "errors": [], "total_duration_seconds": 0, "created_at": 5089.77869831, "age_seconds": 0.146717}
+10:36:26 [c2936302] - INFO - 📤 Iniciando proceso de carga de archivos
+10:36:26 [c2936302] - WARNING - Archivo 'apus' inválido: ['Columnas faltantes: CODIGO_APU']
+10:36:26 [SYSTEM] - INFO - 📊 Telemetry for c2936302: {"request_id": "c2936302", "steps": [], "metrics": {}, "errors": [{"step": "upload_request_validation", "message": "Invalid file: apus", "timestamp": "2025-11-24T15:36:26.765211", "perf_counter": 5109.075732741}], "total_duration_seconds": 0, "created_at": 5108.569769244, "age_seconds": 0.514258, "active_timers": ["upload_request_validation"]}
