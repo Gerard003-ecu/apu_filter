@@ -1,0 +1,25 @@
+11:26:51 [SYSTEM] - INFO - ============================================================
+11:26:51 [SYSTEM] - INFO - Iniciando aplicación en modo: DEFAULT
+11:26:51 [SYSTEM] - INFO - ============================================================
+11:26:51 [SYSTEM] - INFO - ✅ Conexión a Redis exitosa: redis://127.0.0.1:6379/0
+11:26:51 [SYSTEM] - INFO - ✅ Configuración cargada desde config.json
+11:26:51 [SYSTEM] - INFO - APUPresenter inicializado correctamente
+11:26:51 [SYSTEM] - INFO - Iniciando carga de artefactos de búsqueda semántica...
+11:26:51 [SYSTEM] - INFO - Cargando modelo de embeddings: paraphrase-multilingual-MiniLM-L12-v2
+Batches: 100%|██████████████████████████████████████████████████████████████████████████| 1/1 [00:00<00:00, 14.01it/s]
+11:26:59 [SYSTEM] - ERROR - ❌ Error al cargar artefactos de búsqueda semántica: Dimensión del modelo (384) no coincide con metadata (None)
+Traceback (most recent call last):
+  File "/home/gerardo/Documentos/GitHub/apu_filter/app/app.py", line 952, in load_semantic_search_artifacts
+    raise ValueError(
+ValueError: Dimensión del modelo (384) no coincide con metadata (None)
+11:26:59 [SYSTEM] - INFO - ✅ Aplicación inicializada exitosamente
+11:26:59 [SYSTEM] - INFO - ============================================================
+ * Debug mode: off
+11:27:15 [SYSTEM] - INFO - 📊 Telemetry for da97f3a4: {"request_id": "da97f3a4", "steps": [], "metrics": {}, "errors": [], "total_duration_seconds": 0, "created_at": 6180.748495178, "age_seconds": 0.032021}
+11:27:15 [SYSTEM] - INFO - 📊 Telemetry for 3bf7c282: {"request_id": "3bf7c282", "steps": [], "metrics": {}, "errors": [], "total_duration_seconds": 0, "created_at": 6181.222411538, "age_seconds": 0.110863}
+11:27:15 [SYSTEM] - INFO - 📊 Telemetry for 5adf27ec: {"request_id": "5adf27ec", "steps": [], "metrics": {}, "errors": [], "total_duration_seconds": 0, "created_at": 6181.254744096, "age_seconds": 0.133845}
+11:27:28 [86e79155] - INFO - 📤 Iniciando proceso de carga de archivos
+11:27:28 [86e79155] - INFO - Procesando archivos para sesión 671be5cf...
+11:27:29 [86e79155] - INFO - Procesamiento completado en 0.15s
+11:27:29 [86e79155] - ERROR - Error de procesamiento: 'DataFluxCondenser' object has no attribute 'logger'
+11:27:29 [SYSTEM] - INFO - 📊 Telemetry for 86e79155: {"request_id": "86e79155", "steps": [{"step": "upload_request_validation", "status": "success", "duration_seconds": 0.014579, "timestamp": "2025-11-24T16:27:28.880591", "perf_counter": 6194.648772273}, {"step": "load_data", "status": "success", "duration_seconds": 0.146543, "timestamp": "2025-11-24T16:27:29.050713", "perf_counter": 6194.818889417}], "metrics": {"load_data.presupuesto_rows": 0, "load_data.insumos_rows": 115, "app.total_processing_time": 0.1486492156982422}, "errors": [{"step": "load_data", "message": "'DataFluxCondenser' object has no attribute 'logger'", "timestamp": "2025-11-24T16:27:29.049990", "perf_counter": 6194.818178071}, {"step": "load_data", "message": "'DataFluxCondenser' object has no attribute 'logger'", "timestamp": "2025-11-24T16:27:29.051348", "perf_counter": 6194.819528397}, {"step": "processing_pipeline", "message": "'DataFluxCondenser' object has no attribute 'logger'", "timestamp": "2025-11-24T16:27:29.054885", "perf_counter": 6194.823070974}], "total_duration_seconds": 0.161122, "created_at": 6194.625378988, "age_seconds": 0.200918}
