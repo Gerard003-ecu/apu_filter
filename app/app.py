@@ -251,15 +251,19 @@ def validate_data_schema(data: Dict[str, Any]) -> Tuple[bool, List[str]]:
         Tupla (es_válido, lista_de_errores).
     """
     errors = []
-    required_keys = ["presupuesto", "apus_detail", "insumos"]
 
-    for key in required_keys:
+    # Validar listas
+    for key in ["presupuesto", "apus_detail"]:
         if key not in data:
             errors.append(f"Clave requerida faltante: {key}")
         elif not isinstance(data[key], list):
             errors.append(f"La clave '{key}' debe ser una lista")
-        elif len(data[key]) == 0:
-            errors.append(f"La lista '{key}' está vacía")
+
+    # Validar diccionario de insumos
+    if "insumos" not in data:
+        errors.append("Clave requerida faltante: insumos")
+    elif not isinstance(data["insumos"], dict):
+        errors.append("La clave 'insumos' debe ser un diccionario agrupado")
 
     return len(errors) == 0, errors
 

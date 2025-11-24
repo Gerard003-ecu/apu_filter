@@ -128,7 +128,7 @@ def sample_session_data():
                     "UNIDAD_INSUMO": "M3",
                 },
             ],
-            "insumos": [{"CODIGO_INSUMO": "INS-001", "DESCRIPCION": "Cemento"}],
+            "insumos": {"MATERIALES": [{"CODIGO_INSUMO": "INS-001", "DESCRIPCION": "Cemento"}]},
             "summary": {"total_apus": 1, "total_insumos": 2},
         }
     }
@@ -464,7 +464,7 @@ class TestDecorators:
         session_payload = {
             "presupuesto": [{"CODIGO_APU": "1"}],
             "apus_detail": [{"CODIGO_APU": "1"}],
-            "insumos": [{"CODIGO_INSUMO": "1"}],
+            "insumos": {"MATERIALES": [{"CODIGO_INSUMO": "1"}]},
         }
         metadata = {
             "session_id": "sid",
@@ -642,7 +642,7 @@ class TestEndpoints:
         mock_process.return_value = {
             "presupuesto": [{"CODIGO_APU": "1"}],
             "apus_detail": [{"CODIGO_APU": "1"}],
-            "insumos": [{"CODIGO_INSUMO": "1"}],
+            "insumos": {"MATERIALES": [{"CODIGO_INSUMO": "1"}]},
             "summary": {"total_apus": 0},
         }
 
@@ -754,7 +754,7 @@ class TestEndpoints:
             sess["processed_data"] = {
                 "presupuesto": ["a"],
                 "apus_detail": ["b"],
-                "insumos": ["c"],
+                "insumos": {"CAT": [{"id": 1}]},
             }
             sess["session_metadata"] = metadata
 
@@ -777,7 +777,7 @@ class TestEndpoints:
             sess["processed_data"] = {
                 "presupuesto": ["a"],
                 "apus_detail": ["b"],
-                "insumos": ["c"],
+                "insumos": {"CAT": [{"id": 1}]},
             }
             sess["session_metadata"] = metadata
 
@@ -1064,8 +1064,13 @@ class TestIntegration:
 
         assert upload_response.status_code == 200
 
+        # Simular que el cliente guarda la cookie de sesión automáticamente
+        # Pero como estamos usando mocks de Redis, necesitamos asegurarnos
+        # que el endpoint de detalle pueda acceder a la sesión.
+        # En los tests de integración con cliente de prueba, el cliente maneja las cookies.
+
         # 2. Get APU detail: debe funcionar con la sesión creada
-        mock_simulation.return_value = {"mean": 300000}
+        mock_simulation.return_value = {"mean": 300000, "std": 0, "percentiles": {}}
         detail_response = client.get("/api/apu/APU-001")
 
         assert detail_response.status_code == 200
