@@ -1598,8 +1598,11 @@ def create_app(config_name: str) -> Flask:
                 }
             ), 400
 
-        # Validar parámetros requeridos
-        required_params = ["area_m2"]  # Ajustar según necesidades reales
+        # Validar parámetros requeridos (aceptar m2 como alias de area_m2)
+        if "m2" in params and "area_m2" not in params:
+            params["area_m2"] = params["m2"]
+
+        required_params = ["area_m2"]
         missing_params = [p for p in required_params if p not in params]
 
         if missing_params:
