@@ -699,7 +699,7 @@ class FileValidator:
             # Primero intentamos carga ligera para validación de estructura
             load_result = load_data(file_path, nrows=10)
 
-            if load_result.status != LoadStatus.SUCCESS:
+            if load_result.status.value != "SUCCESS":
                 error_msg = load_result.error_message or "Error desconocido al cargar archivo"
                 if load_result.status == LoadStatus.EMPTY:
                     result.errors.append("El archivo está vacío")
@@ -744,7 +744,7 @@ class FileValidator:
             # Si el archivo es muy grande, load_data ya tiene advertencias, pero aquí necesitamos números exactos
             full_load_result = load_data(file_path)
 
-            if full_load_result.status != LoadStatus.SUCCESS:
+            if full_load_result.status.value != "SUCCESS":
                 result.errors.append("Error al leer el archivo completo para validación")
                 return result
 

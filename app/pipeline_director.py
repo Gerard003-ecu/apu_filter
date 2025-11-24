@@ -588,8 +588,15 @@ class PresupuestoProcessor:
         try:
             loader_params = self.profile.get("loader_params", {})
             logger.info(f"📥 Cargando presupuesto con perfil: {loader_params}")
-            df = load_data(path, **loader_params)
+            load_result = load_data(path, **loader_params)
 
+            if load_result.status.value != "SUCCESS":
+                logger.error(
+                    f"Error cargando presupuesto: {load_result.error_message or 'Estado desconocido'}"
+                )
+                return pd.DataFrame()
+
+            df = load_result.data
             if df is None or df.empty:
                 return pd.DataFrame()
 

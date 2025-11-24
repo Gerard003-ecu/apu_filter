@@ -188,6 +188,8 @@ class FileManager:
     @staticmethod
     def load_data(file_path: Path) -> pd.DataFrame:
         """Carga datos desde archivo JSON o CSV."""
+        # This method shadows the global load_data but implements simple loading logic
+        # for the script's specific needs. It returns a DataFrame directly.
         if not file_path.exists():
             raise FileNotFoundError(f"El archivo no existe: {file_path}")
         try:
