@@ -753,10 +753,8 @@ class DataFluxCondenser:
             InvalidInputError: Si config o profile son inválidos
             ConfigurationError: Si condenser_config es inválido
         """
-        self._validate_initialization_params(config, profile)
-
-        self.config = config
-        self.profile = profile
+        # Inicializar logger lo primero para evitar errores en validaciones que lo usen
+        self.logger = logging.getLogger(self.__class__.__name__)
 
         # Inicializar configuración (esto validará los parámetros internamente)
         try:
@@ -764,8 +762,13 @@ class DataFluxCondenser:
         except ConfigurationError as e:
             raise ConfigurationError(f"Error en configuración del condensador: {e}") from e
 
-        self.logger = logging.getLogger(self.__class__.__name__)
+        # Ajustar nivel de log una vez tenemos la configuración
         self.logger.setLevel(self.condenser_config.log_level)
+
+        self._validate_initialization_params(config, profile)
+
+        self.config = config
+        self.profile = profile
 
         # Inicializar Motor de Física RLC
         try:
