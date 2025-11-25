@@ -730,11 +730,12 @@ class InsumosProcessor:
             # Detección de Grupo
             # El formato observado es "G;MATERIALES;;..." o similar.
             # A veces puede ser "G1;MATERIALES"
-            first_col = parts[0].upper()
+            first_col = parts[0].strip().upper()
             if first_col.startswith("G") and len(parts) > 1:
                 # Intentar obtener el nombre del grupo de la segunda columna
                 candidate_group = parts[1].strip()
                 if candidate_group:
+                    logger.debug(f"🔍 Candidato a grupo detectado: '{parts[0]}' -> Grupo: '{candidate_group}'")
                     current_group = candidate_group
                     logger.info(f"📂 Grupo detectado: {current_group}")
                     header = None # Reset header al cambiar de grupo

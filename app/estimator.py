@@ -958,6 +958,58 @@ def calculate_estimate(
             min_match_percentage=DEFAULT_MIN_MATCH_PERCENTAGE,
         )
 
+    # Fallback #2: Promedio de Históricos (Si Tarea específica no encontrada)
+    if apu_tarea is None:
+        log.append("\n  ⚠️ Tarea específica no encontrada. Intentando promedio de históricos...")
+
+        # Estrategia: Buscar cualquier APU (no solo instalación) que coincida con las keywords
+        # y que tenga rendimiento calculado.
+
+        # 1. Buscar coincidencia amplia en todo el pool procesado
+        potential_matches = []
+        try:
+            # Usar una búsqueda simple de contains para filtrar candidatos rápidos
+            keywords_regex = "|".join([k for k in material_keywords if len(k) > 3])
+            if keywords_regex:
+                mask_keywords = df_processed_apus["DESC_NORMALIZED"].str.contains(keywords_regex, case=False, regex=True)
+                df_candidates = df_processed_apus[mask_keywords].copy()
+            else:
+                df_candidates = pd.DataFrame() # No keywords útiles
+
+            # 2. Filtrar los que tengan RENDIMIENTO_DIA > 0
+            if "RENDIMIENTO_DIA" in df_candidates.columns:
+                df_candidates = df_candidates[df_candidates["RENDIMIENTO_DIA"] > 0]
+
+            if not df_candidates.empty:
+                 avg_rendimiento = df_candidates["RENDIMIENTO_DIA"].mean()
+                 count_matches = len(df_candidates)
+
+                 log.append(f"  📊 Encontrados {count_matches} items similares con rendimiento.")
+                 log.append(f"  ⏱️ Rendimiento promedio estimado: {avg_rendimiento:.4f} un/día")
+
+                 # Crear un 'apu_tarea' sintético con el rendimiento promedio
+                 apu_tarea = pd.Series({
+                     "CODIGO_APU": "EST-AVG",
+                     "original_description": f"Estimación Promedio ({count_matches} items similares)",
+                     "RENDIMIENTO_DIA": avg_rendimiento,
+                     "EQUIPO": 0.0 # Asumimos 0 si es promedio genérico
+                 })
+
+                 details_tarea = DerivationDetails(
+                    match_method="HISTORICAL_AVERAGE",
+                    confidence_score=0.5, # Confianza media/baja
+                    source="Promedio Histórico",
+                    reasoning=f"Promedio de {count_matches} items similares encontrados en histórico."
+                 )
+
+                 # Forzamos que se use este rendimiento más abajo
+                 rendimiento_dia = avg_rendimiento
+            else:
+                 log.append("  ❌ No se encontraron items similares con rendimiento para promediar.")
+
+        except Exception as e:
+            log.append(f"  ⚠️ Error en cálculo de promedio histórico: {e}")
+
     if details_tarea:
         derivation_details["tarea"] = details_tarea.__dict__
 
@@ -978,47 +1030,51 @@ def calculate_estimate(
         log.append(f"\n  ✅ APU encontrado: {apu_tarea_codigo}")
         log.append(f"  🛠️ Costo Equipo: ${costo_equipo:,.2f}")
 
-        # Calcular rendimiento desde detalle de APUs
-        log.append("\n  📊 Calculando rendimiento desde detalle...")
-        apus_detail_list = data_store.get("apus_detail", [])
-
-        if apus_detail_list:
-            try:
-                df_detail = pd.DataFrame(apus_detail_list)
-
-                if validate_dataframe_columns(
-                    df_detail, REQUIRED_COLUMNS_DETAIL, "df_detail"
-                ):
-                    # Filtrar mano de obra para este APU
-                    mano_obra = df_detail[
-                        (df_detail["CODIGO_APU"] == apu_tarea_codigo)
-                        & (df_detail["TIPO_INSUMO"] == TipoInsumo.MANO_OBRA.value)
-                    ]
-
-                    if not mano_obra.empty:
-                        tiempo_total = sum(
-                            safe_float_conversion(cant, 0.0)
-                            for cant in mano_obra["CANTIDAD_APU"]
-                        )
-
-                        if tiempo_total > 0:
-                            rendimiento_dia = 1.0 / tiempo_total
-                            log.append(f"  ⏱️ Rendimiento: {rendimiento_dia:.4f} un/día")
-                            log.append(
-                                f"  ⏱️ Tiempo total mano de obra: {tiempo_total:.4f} días/un"
-                            )
-                        else:
-                            log.append("  ⚠️ Tiempo total de mano de obra es cero")
-                    else:
-                        log.append("  ⚠️ No se encontró mano de obra para este APU")
-                else:
-                    log.append("  ⚠️ Detalle de APUs no tiene columnas requeridas")
-
-            except Exception as e:
-                log.append(f"  ❌ ERROR al calcular rendimiento: {e}")
-                logger.exception("Error en cálculo de rendimiento")
+        # Si ya calculamos rendimiento promedio en el fallback, no necesitamos recalcular desde detalle
+        if apu_tarea_codigo == "EST-AVG" and rendimiento_dia > 0:
+             log.append(f"  ⚡ Usando rendimiento promedio pre-calculado: {rendimiento_dia:.4f}")
         else:
-            log.append("  ⚠️ No hay datos de detalle de APUs disponibles")
+             # Calcular rendimiento desde detalle de APUs
+             log.append("\n  📊 Calculando rendimiento desde detalle...")
+             apus_detail_list = data_store.get("apus_detail", [])
+
+             if apus_detail_list:
+                try:
+                    df_detail = pd.DataFrame(apus_detail_list)
+
+                    if validate_dataframe_columns(
+                        df_detail, REQUIRED_COLUMNS_DETAIL, "df_detail"
+                    ):
+                        # Filtrar mano de obra para este APU
+                        mano_obra = df_detail[
+                            (df_detail["CODIGO_APU"] == apu_tarea_codigo)
+                            & (df_detail["TIPO_INSUMO"] == TipoInsumo.MANO_OBRA.value)
+                        ]
+
+                        if not mano_obra.empty:
+                            tiempo_total = sum(
+                                safe_float_conversion(cant, 0.0)
+                                for cant in mano_obra["CANTIDAD_APU"]
+                            )
+
+                            if tiempo_total > 0:
+                                rendimiento_dia = 1.0 / tiempo_total
+                                log.append(f"  ⏱️ Rendimiento: {rendimiento_dia:.4f} un/día")
+                                log.append(
+                                    f"  ⏱️ Tiempo total mano de obra: {tiempo_total:.4f} días/un"
+                                )
+                            else:
+                                log.append("  ⚠️ Tiempo total de mano de obra es cero")
+                        else:
+                            log.append("  ⚠️ No se encontró mano de obra para este APU")
+                    else:
+                        log.append("  ⚠️ Detalle de APUs no tiene columnas requeridas")
+
+                except Exception as e:
+                    log.append(f"  ❌ ERROR al calcular rendimiento: {e}")
+                    logger.exception("Error en cálculo de rendimiento")
+             else:
+                log.append("  ⚠️ No hay datos de detalle de APUs disponibles")
     else:
         log.append("\n  ❌ No se encontró APU de tarea")
 
