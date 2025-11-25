@@ -717,22 +717,65 @@ class InsumosProcessor:
         records = []
         current_group = None
         header = None
+
         for line in lines:
-            parts = [p.strip().replace('"', "") for p in line.strip().split(";")]
+            clean_line = line.strip()
+            if not clean_line:
+                continue
+
+            parts = [p.strip().replace('"', "") for p in clean_line.split(";")]
             if not any(parts):
                 continue
-            if parts[0].startswith("G"):
-                current_group = parts[1]
-                header = None
+
+            # Detección de Grupo
+            # El formato observado es "G;MATERIALES;;..." o similar.
+            # A veces puede ser "G1;MATERIALES"
+            first_col = parts[0].upper()
+            if first_col.startswith("G") and len(parts) > 1:
+                # Intentar obtener el nombre del grupo de la segunda columna
+                candidate_group = parts[1].strip()
+                if candidate_group:
+                    current_group = candidate_group
+                    logger.info(f"📂 Grupo detectado: {current_group}")
+                    header = None # Reset header al cambiar de grupo
+                    continue
+
+            # Detección de Encabezado
+            # Buscamos coincidencia parcial de columnas clave
+            if "CODIGO" in first_col and len(parts) >= 2 and "DESCRIPCION" in parts[1].upper():
+                header = parts
+                logger.info(f"📋 Encabezado detectado para grupo {current_group}: {header}")
                 continue
-            if "CODIGO" in parts[0] and "DESCRIPCION" in parts[1]:
-                header = ["CODIGO", "DESCRIPCION", "UND", "CANT.", "VR. UNIT."]
-                continue
+
+            # Procesamiento de Datos
             if header and current_group:
+                # Validar que la línea parezca datos (ej. código no vacío)
+                if not parts[0]:
+                    continue
+
                 record = {ColumnNames.GRUPO_INSUMO: current_group}
-                for i, col in enumerate(header):
-                    record[col] = parts[i] if i < len(parts) else None
-                records.append(record)
+
+                # Mapeo por índice basado en el encabezado detectado
+                for i, col_name in enumerate(header):
+                    if i < len(parts):
+                        # Normalizar nombres de columnas para el dict interno
+                        clean_col = col_name.upper().replace(".", "").strip()
+                        if "DESCRIPCION" in clean_col:
+                            record["DESCRIPCION"] = parts[i]
+                        elif "VR" in clean_col and "UNIT" in clean_col:
+                             record["VR. UNIT."] = parts[i]
+                        elif "UND" in clean_col:
+                             record["UND"] = parts[i]
+                        elif "CODIGO" in clean_col:
+                             record["CODIGO"] = parts[i]
+                        elif "CANT" in clean_col:
+                             record["CANTIDAD"] = parts[i]
+
+                # Solo agregamos si tenemos al menos descripción y valor
+                if "DESCRIPCION" in record:
+                    records.append(record)
+
+        logger.info(f"✅ Total insumos extraídos: {len(records)}")
         return records
 
     def _rename_and_select_columns(self, df: pd.DataFrame) -> pd.DataFrame:
@@ -740,13 +783,23 @@ class InsumosProcessor:
             columns={
                 "DESCRIPCION": ColumnNames.DESCRIPCION_INSUMO,
                 "VR. UNIT.": ColumnNames.VR_UNITARIO_INSUMO,
+                "CODIGO": "CODIGO", # Mantener CODIGO si existe
+                "CANTIDAD": "CANTIDAD"
             }
         )
+        # Asegurar que CODIGO y CANTIDAD existan si no vinieron en el archivo
+        if "CODIGO" not in df.columns:
+            df["CODIGO"] = None
+        if "CANTIDAD" not in df.columns:
+            df["CANTIDAD"] = 0
+
         return df[
             [
                 ColumnNames.GRUPO_INSUMO,
                 ColumnNames.DESCRIPCION_INSUMO,
                 ColumnNames.VR_UNITARIO_INSUMO,
+                "CODIGO",
+                "CANTIDAD"
             ]
         ]
 
@@ -889,8 +942,50 @@ class APUCostCalculator:
         return df
 
     def _classify_apus(self, df: pd.DataFrame) -> pd.DataFrame:
-        # Simplificado para brevedad, usando lógica por defecto
+        """
+        Clasifica los APUs según la proporción de costos (Materiales vs Mano de Obra/Equipo).
+        Utiliza las reglas definidas en la configuración.
+        """
+        if df.empty:
+            return df
+
+        # Asegurar que existen las columnas de costos
+        for col in [ColumnNames.VALOR_CONSTRUCCION_UN, ColumnNames.VALOR_SUMINISTRO_UN, ColumnNames.VALOR_INSTALACION_UN]:
+            if col not in df.columns:
+                df[col] = 0.0
+
+        # Calcular porcentajes
+        # Evitar división por cero
+        total_cost = df[ColumnNames.VALOR_CONSTRUCCION_UN].replace(0, 1)
+
+        df["porcentaje_materiales"] = (df[ColumnNames.VALOR_SUMINISTRO_UN] / total_cost) * 100
+        df["porcentaje_mo_eq"] = (df[ColumnNames.VALOR_INSTALACION_UN] / total_cost) * 100
+
+        # Default classification
         df[ColumnNames.TIPO_APU] = APUTypes.OBRA_COMPLETA
+
+        # Aplicar reglas desde config
+        rules = self.config.get("apu_classification_rules", [])
+        if not rules:
+            logger.warning("⚠️ No se encontraron reglas de clasificación de APUs en config.")
+            return df
+
+        # Iterar reglas y aplicar máscaras
+        for rule in rules:
+            try:
+                condition = rule.get("condition")
+                type_name = rule.get("type")
+
+                if condition and type_name:
+                    # Evaluar condición de forma vectorizada
+                    mask = df.eval(condition)
+                    df.loc[mask, ColumnNames.TIPO_APU] = type_name
+            except Exception as e:
+                logger.error(f"❌ Error aplicando regla de clasificación '{rule}': {e}")
+
+        # Limpieza de columnas temporales
+        df.drop(columns=["porcentaje_materiales", "porcentaje_mo_eq"], inplace=True, errors="ignore")
+
         return df
 
     def _calculate_time(self, df: pd.DataFrame) -> pd.DataFrame:
