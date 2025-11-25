@@ -850,7 +850,7 @@ class APUTransformer(Transformer):
             Un objeto `InsumoProcesado` (o una de sus subclases) o None.
         """
         try:
-            if len(tokens) < 4:
+            if len(tokens) < 3:  # Flexibilizado a 3
                 return None
 
             descripcion = tokens[0]
@@ -858,48 +858,39 @@ class APUTransformer(Transformer):
                 self.units_validator.normalize_unit(tokens[1]) if len(tokens) > 1 else "UND"
             )
 
-            # Usar NumericFieldExtractor para valores
+            # Si la unidad es '%' o es un tipo OTRO, usar lógica especial
+            tipo_insumo = self._classify_insumo(descripcion)
+            if unidad == "%" or tipo_insumo == TipoInsumo.OTRO:
+                return self._build_insumo_porcentual_o_indirecto(tokens, tipo_insumo, unidad)
+
+            # Lógica estándar para insumos normales
             valores = self.numeric_extractor.extract_insumo_values(tokens)
 
             if len(valores) < 2:
                 return None
 
-            # Interpretar valores en función del número de campos numéricos detectados
             cantidad, precio, total = 0.0, 0.0, 0.0
-
             if len(valores) == 4:
-                # Formato: [Cantidad, Desperdicio, Precio, Total]
-                cantidad = valores[0]
-                # Se ignora el desperdicio (valores[1])
-                precio = valores[2]
-                total = valores[3]
+                cantidad, _, precio, total = valores
             elif len(valores) == 3:
-                # Formato: [Cantidad, Precio, Total]
-                cantidad = valores[0]
-                precio = valores[1]
-                total = valores[2]
+                cantidad, precio, total = valores
             elif len(valores) == 2:
-                # Formato: [Cantidad, Precio]
-                cantidad = valores[0]
-                precio = valores[1]
+                cantidad, precio = valores
                 total = cantidad * precio
             else:
-                return None  # No hay suficientes datos para continuar
+                return None
 
-            # Verificación de sanidad matemática: recalcular el precio unitario
-            # basado en el total, que es el campo más fiable.
             if cantidad > 0 and total > 0:
                 precio = total / cantidad
 
             if total <= 0 or cantidad <= 0:
                 return None
 
-            tipo_insumo = self._classify_insumo(descripcion)
             InsumoClass = self._get_insumo_class(tipo_insumo)
-
             context = self.apu_context.copy()
             context.pop("cantidad_apu", None)
             context.pop("precio_unitario_apu", None)
+
             return InsumoClass(
                 descripcion_insumo=descripcion,
                 unidad_insumo=unidad,
@@ -913,8 +904,51 @@ class APUTransformer(Transformer):
             )
 
         except Exception as e:
-            logger.error(f"Error construyendo INSUMO_BASICO: {e}")
+            logger.error(f"Error construyendo INSUMO_BASICO: {e} en línea {tokens}")
             return None
+
+
+    def _build_insumo_porcentual_o_indirecto(
+        self, tokens: List[str], tipo_insumo: TipoInsumo, unidad: str
+    ) -> Optional[InsumoProcesado]:
+        """
+        Construye un insumo para líneas porcentuales o indirectas.
+        La prioridad es extraer un `valor_total` válido.
+        """
+        descripcion = tokens[0]
+        # Extraer todos los valores numéricos sin descartar el primero
+        valores = self.numeric_extractor.extract_all_numeric_values(tokens, skip_first=False)
+
+        if not valores:
+            return None # Si no hay ningún número, no podemos hacer nada
+
+        # El valor total suele ser el último o el único número significativo
+        total = valores[-1]
+
+        if total <= 0:
+            return None
+
+        # Para estos tipos, la cantidad y el precio unitario son menos importantes.
+        # Los establecemos de forma que el valor total sea el protagonista.
+        cantidad = 1.0
+        precio = total
+
+        InsumoClass = self._get_insumo_class(tipo_insumo)
+        context = self.apu_context.copy()
+        context.pop("cantidad_apu", None)
+        context.pop("precio_unitario_apu", None)
+
+        return InsumoClass(
+            descripcion_insumo=descripcion,
+            unidad_insumo=unidad,
+            cantidad=round(cantidad, 6),
+            precio_unitario=round(precio, 2),
+            valor_total=round(total, 2),
+            rendimiento=0.0,  # No aplica rendimiento
+            formato_origen="INSUMO_INDIRECTO",
+            tipo_insumo=tipo_insumo.value,
+            **context,
+        )
 
     @lru_cache(maxsize=2048)
     def _classify_insumo(self, descripcion: str) -> TipoInsumo:
@@ -932,11 +966,11 @@ class APUTransformer(Transformer):
 
         desc_upper = descripcion.upper()
 
-        # CAMBIO: Leer reglas desde la config
         rules = self.config.get("apu_processor_rules", {})
         special_cases = rules.get("special_cases", {})
         mo_keywords = rules.get("mo_keywords", [])
         equipo_keywords = rules.get("equipo_keywords", [])
+        otro_keywords = rules.get("otro_keywords", []) # Nueva línea
 
         for case, tipo_str in special_cases.items():
             if case in desc_upper:
@@ -946,6 +980,8 @@ class APUTransformer(Transformer):
             return TipoInsumo.MANO_DE_OBRA
         if any(kw in desc_upper for kw in equipo_keywords):
             return TipoInsumo.EQUIPO
+        if any(kw in desc_upper for kw in otro_keywords): # Nueva línea
+            return TipoInsumo.OTRO # Nueva línea
 
         return TipoInsumo.SUMINISTRO
 
