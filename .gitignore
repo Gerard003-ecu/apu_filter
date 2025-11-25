@@ -13,3 +13,5 @@ data/insumos_detalle.json
 data/presupuesto_final.json
 data/processed_apus.json
 logs/app.log.1
+test-results/
+verify_frontend.spec.js

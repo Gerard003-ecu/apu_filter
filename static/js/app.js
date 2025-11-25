@@ -32,16 +32,16 @@ const CONFIG = {
         'EQUIPO': 'EQUIPO',
         'TRANSPORTE': 'TRANSPORTE',
         'HERRAMIENTA': 'HERRAMIENTAS',
-        'OTROS': 'OTROS'
+        'OTROS': 'OTROS / INDIRECTOS'
     },
     
-    // ✨ NUEVO: Orden de visualización de categorías en el modal
-    CATEGORY_DISPLAY_ORDER: [
-        'MATERIALES',      // SUMINISTRO traducido
-        'MANO DE OBRA',    // MANO_DE_OBRA traducido
+    // ✨ REFACTORIZADO: Orden de visualización por clave de backend para mayor claridad
+    CATEGORY_KEY_ORDER: [
+        'SUMINISTRO',
+        'MANO_DE_OBRA',
         'EQUIPO',
         'TRANSPORTE',
-        'HERRAMIENTAS',
+        'HERRAMIENTA',
         'OTROS'
     ],
     
@@ -504,18 +504,10 @@ const ModalManager = {
         let costoDirecto = 0;
         const categoriesBackend = data.desglose || {};
         
-        // 1. Traducir y Agrupar (Igual que antes)
-        const categoriesTranslated = {};
-        for (const [backendKey, items] of Object.entries(categoriesBackend)) {
-            if (!Array.isArray(items) || items.length === 0) continue;
-            const frontendLabel = Utils.translateCategory(backendKey);
-            categoriesTranslated[frontendLabel] = { items: items, backendKey: backendKey };
-        }
-        
-        // 2. Ordenar (Igual que antes)
-        const sortedCategories = Object.keys(categoriesTranslated).sort((a, b) => {
-            const indexA = CONFIG.CATEGORY_DISPLAY_ORDER.indexOf(a);
-            const indexB = CONFIG.CATEGORY_DISPLAY_ORDER.indexOf(b);
+        // 2. ✨ REFACTORIZADO: Ordenar por clave de backend, no por etiqueta traducida
+        const sortedBackendKeys = Object.keys(categoriesBackend).sort((a, b) => {
+            const indexA = CONFIG.CATEGORY_KEY_ORDER.indexOf(a.toUpperCase());
+            const indexB = CONFIG.CATEGORY_KEY_ORDER.indexOf(b.toUpperCase());
             if (indexA !== -1 && indexB !== -1) return indexA - indexB;
             if (indexA !== -1) return -1;
             if (indexB !== -1) return 1;
@@ -524,10 +516,12 @@ const ModalManager = {
         
         let contentHTML = '<div class="space-y-6">';
 
-        // 3. Renderizar Tablas (Igual que antes)
-        sortedCategories.forEach(categoryLabel => {
-            const categoryData = categoriesTranslated[categoryLabel];
-            const categoryItems = categoryData.items;
+        // 3. ✨ REFACTORIZADO: Iterar sobre las claves ordenadas y luego traducir
+        sortedBackendKeys.forEach(backendKey => {
+            const categoryItems = categoriesBackend[backendKey];
+            if (!Array.isArray(categoryItems) || categoryItems.length === 0) return;
+
+            const categoryLabel = Utils.translateCategory(backendKey);
             let categorySubtotal = 0;
             const isManoObra = categoryLabel.toUpperCase().includes('MANO') || categoryLabel.toUpperCase().includes('OBRA');
 
@@ -873,11 +867,13 @@ const TableController = {
 
         tableBody.innerHTML = '';
 
-        // Ordenar categorías según configuración
+        // ✨ REFACTORIZADO: Ordenar por clave de backend para consistencia
         const sortedCategories = Object.keys(insumos).sort((a, b) => {
-            const indexA = CONFIG.CATEGORY_DISPLAY_ORDER.indexOf(Utils.translateCategory(a));
-            const indexB = CONFIG.CATEGORY_DISPLAY_ORDER.indexOf(Utils.translateCategory(b));
+            const indexA = CONFIG.CATEGORY_KEY_ORDER.indexOf(a.toUpperCase());
+            const indexB = CONFIG.CATEGORY_KEY_ORDER.indexOf(b.toUpperCase());
             if (indexA !== -1 && indexB !== -1) return indexA - indexB;
+            if (indexA !== -1) return -1;
+            if (indexB !== -1) return 1;
             return a.localeCompare(b);
         });
 
