@@ -65,7 +65,10 @@
       "M.O.", "MANO DE OBRA", "OFICIAL", "AYUDANTE", "MAESTRO", "CUADRILLA"
     ],
     "equipo_keywords": [
-      "EQUIPO", "HERRAMIENTA", "ANDAMIO", "MAQUINARIA"
+      "EQUIPO", "HERRAMIENTA", "ANDAMIO", "MAQUINARIA", "HERRAMIENTA MENOR"
+    ],
+    "otro_keywords": [
+        "IMPUESTOS", "RETENCIONES", "POLIZAS", "ADMINISTRACION", "AIU"
     ]
   },
   "estimator_thresholds": {

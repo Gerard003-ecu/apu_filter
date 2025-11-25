@@ -70,7 +70,7 @@ UNIDADES_TRANSPORTE: Final[Set[str]] = frozenset(
 )
 
 UNIDADES_GENERICAS: Final[Set[str]] = frozenset(
-    {"UNIDAD", "UND", "U", "PAR", "JUEGO", "KIT"}
+    {"UNIDAD", "UND", "U", "PAR", "JUEGO", "KIT", "%"}
 )
 
 # Mapeo completo de normalización de unidades
