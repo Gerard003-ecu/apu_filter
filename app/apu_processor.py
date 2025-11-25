@@ -864,18 +864,34 @@ class APUTransformer(Transformer):
             if len(valores) < 2:
                 return None
 
-            # Interpretar valores
-            cantidad = valores[0] if len(valores) > 0 else 1.0
-            precio = valores[1] if len(valores) > 1 else 0.0
-            total = valores[2] if len(valores) > 2 else cantidad * precio
+            # Interpretar valores en función del número de campos numéricos detectados
+            cantidad, precio, total = 0.0, 0.0, 0.0
 
-            # Corregir si es necesario
-            if total == 0 and cantidad > 0 and precio > 0:
+            if len(valores) == 4:
+                # Formato: [Cantidad, Desperdicio, Precio, Total]
+                cantidad = valores[0]
+                # Se ignora el desperdicio (valores[1])
+                precio = valores[2]
+                total = valores[3]
+            elif len(valores) == 3:
+                # Formato: [Cantidad, Precio, Total]
+                cantidad = valores[0]
+                precio = valores[1]
+                total = valores[2]
+            elif len(valores) == 2:
+                # Formato: [Cantidad, Precio]
+                cantidad = valores[0]
+                precio = valores[1]
                 total = cantidad * precio
-            elif precio == 0 and cantidad > 0 and total > 0:
+            else:
+                return None  # No hay suficientes datos para continuar
+
+            # Verificación de sanidad matemática: recalcular el precio unitario
+            # basado en el total, que es el campo más fiable.
+            if cantidad > 0 and total > 0:
                 precio = total / cantidad
 
-            if total <= 0:
+            if total <= 0 or cantidad <= 0:
                 return None
 
             tipo_insumo = self._classify_insumo(descripcion)
