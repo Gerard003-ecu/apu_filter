@@ -122,7 +122,9 @@ class TestAPUProcessor(unittest.TestCase):
         # Verificar el parseo correcto de 'CONCRETO'
         concreto_row = df[df["DESCRIPCION_INSUMO"] == "CONCRETO ESPECIAL"].iloc[0]
         self.assertAlmostEqual(concreto_row["CANTIDAD_APU"], 0.15)
-        self.assertAlmostEqual(concreto_row["PRECIO_UNIT_APU"], 850123.50)
+        # ASERCIÓN CORREGIDA: La nueva lógica recalcula el precio unitario
+        # para que sea matemáticamente consistente (total / cantidad).
+        self.assertAlmostEqual(concreto_row["PRECIO_UNIT_APU"], 850123.53)
         self.assertAlmostEqual(concreto_row["VALOR_TOTAL_APU"], 127518.53)
 
         # Verificar el parseo correcto de 'CUADRILLA' (Mano de Obra)
