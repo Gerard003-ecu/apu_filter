@@ -1,0 +1,59 @@
+11:58:31 [SYSTEM] - INFO - ============================================================
+11:58:31 [SYSTEM] - INFO - Iniciando aplicación en modo: DEFAULT
+11:58:31 [SYSTEM] - INFO - ============================================================
+11:58:31 [SYSTEM] - INFO - ✅ Conexión a Redis exitosa: redis://127.0.0.1:6379/0
+11:58:31 [SYSTEM] - INFO - ✅ Configuración cargada desde config.json
+11:58:31 [SYSTEM] - INFO - APUPresenter inicializado correctamente
+11:58:31 [SYSTEM] - INFO - Iniciando carga de artefactos de búsqueda semántica...
+11:58:31 [SYSTEM] - INFO - Cargando modelo de embeddings: paraphrase-multilingual-MiniLM-L12-v2
+Batches: 100%|██████████████████████████████████████████████████████████████████████████| 1/1 [00:00<00:00,  1.93it/s]
+11:58:46 [SYSTEM] - INFO - ✅ Búsqueda semántica activada | Modelo: 'paraphrase-multilingual-MiniLM-L12-v2' | Vectores: 146 | Dimensión: 384
+11:58:46 [SYSTEM] - INFO - ✅ Aplicación inicializada exitosamente
+11:58:46 [SYSTEM] - INFO - ============================================================
+ * Debug mode: off
+11:59:29 [8ac53d9b] - INFO - Procesamiento completado en 8.55s
+11:59:29 [8ac53d9b] - INFO - ✅ Archivos procesados exitosamente | Sesión: 1a05b63e... | Items: {'presupuesto_items': 105, 'apu_details': 317, 'insumos': 0}
+11:59:29 [SYSTEM] - INFO - 📊 Telemetry for 8ac53d9b: {"request_id": "8ac53d9b", "steps": [{"step": "upload_request_validation", "status": "success", "duration_seconds": 0.131285, "timestamp": "2025-11-25T16:59:21.141133", "perf_counter": 18817.770538098}, {"step": "load_data", "status": "success", "duration_seconds": 7.722105, "timestamp": "2025-11-25T16:59:28.934374", "perf_counter": 18825.5637813}, {"step": "merge_data", "status": "success", "duration_seconds": 0.019181, "timestamp": "2025-11-25T16:59:28.956243", "perf_counter": 18825.585646488}, {"step": "calculate_costs", "status": "success", "duration_seconds": 0.16157, "timestamp": "2025-11-25T16:59:29.119130", "perf_counter": 18825.748533642}, {"step": "final_merge", "status": "success", "duration_seconds": 0.027744, "timestamp": "2025-11-25T16:59:29.148520", "perf_counter": 18825.777927423}, {"step": "build_output", "status": "success", "duration_seconds": 0.563933, "timestamp": "2025-11-25T16:59:29.716344", "perf_counter": 18826.345756822}, {"step": "response_preparation", "status": "success", "duration_seconds": 0.162865, "timestamp": "2025-11-25T16:59:29.912061", "perf_counter": 18826.54146506}], "metrics": {"load_data.presupuesto_rows": 105, "load_data.insumos_rows": 115, "flux_condenser.avg_saturation": 0.0, "flux_condenser.max_flyback_voltage": 0.0, "flux_condenser.max_dissipated_power": 0.0, "flux_condenser.avg_kinetic_energy": 0.0, "flux_condenser.avg_batch_size": 0, "load_data.apus_raw_rows": 604, "merge_data.merged_rows": 604, "calculate_costs.costos_calculated": 146, "final_merge.final_rows": 105, "app.total_processing_time": 8.54726243019104}, "errors": [], "total_duration_seconds": 8.788683, "created_at": 18817.610753585, "age_seconds": 8.967072}
+11:59:30 [f643cd72] - INFO - 📊 Solicitud de estimación con parámetros: {'producto': 'CUBIERTA', 'material': 'TST', 'cuadrilla': '5', 'm2': 1, 'zona': 'ZONA 0', 'izaje': 'MANUAL', 'seguridad': 'NORMAL', 'area_m2': 1}
+11:59:30 [f643cd72] - INFO - ✅ Estimación calculada | Construcción: $39,151.64 | Rendimiento: 0.00
+11:59:30 [SYSTEM] - INFO - 📊 Telemetry for f643cd72: {"request_id": "f643cd72", "steps": [{"step": "get_estimate", "status": "success", "duration_seconds": 0.665875, "timestamp": "2025-11-25T16:59:30.869236", "perf_counter": 18827.498646344}], "metrics": {}, "errors": [], "total_duration_seconds": 0.665875, "created_at": 18826.827966716, "age_seconds": 0.684926}
+11:59:51 [b9577c60] - INFO - 🔍 Solicitud de detalle para APU: 3.1
+11:59:51 [b9577c60] - INFO - Iniciando procesamiento de APU: 3.1 con 3 registros
+11:59:51 [b9577c60] - INFO - ✓ Metadata: 3 items | Total: $70,359.38 | Promedio: $23,453.13
+11:59:51 [b9577c60] - INFO - APU 3.1 procesado exitosamente. Items: 3, Categorías: 3, Reducción: 0.0%
+2025-11-25 11:59:51,548 - models.probability_models - INFO - MonteCarloSimulator inicializado: simulations=1,000, volatility=10.00%, seed=None
+2025-11-25 11:59:51,601 - models.probability_models - INFO - Simulación completada exitosamente: 3 APUs válidos, 1,000 simulaciones, costo medio=163,859.14
+11:59:51 [b9577c60] - INFO - ✅ Detalle para APU 3.1 generado exitosamente | Items: 3
+11:59:51 [SYSTEM] - INFO - 📊 Telemetry for b9577c60: {"request_id": "b9577c60", "steps": [{"step": "get_apu_detail", "status": "success", "duration_seconds": 0.4262, "timestamp": "2025-11-25T16:59:51.609186", "perf_counter": 18848.2385886}], "metrics": {}, "errors": [], "total_duration_seconds": 0.4262, "created_at": 18847.798220617, "age_seconds": 0.454472}
+12:00:15 [977fe8a1] - INFO - 🔍 Solicitud de detalle para APU: 4.2
+12:00:15 [977fe8a1] - INFO - Iniciando procesamiento de APU: 4.2 con 3 registros
+12:00:15 [977fe8a1] - INFO - ✓ Metadata: 3 items | Total: $28,985.49 | Promedio: $9,661.83
+12:00:15 [977fe8a1] - INFO - APU 4.2 procesado exitosamente. Items: 3, Categorías: 3, Reducción: 0.0%
+2025-11-25 12:00:15,473 - models.probability_models - INFO - MonteCarloSimulator inicializado: simulations=1,000, volatility=10.00%, seed=None
+2025-11-25 12:00:15,498 - models.probability_models - INFO - Simulación completada exitosamente: 3 APUs válidos, 1,000 simulaciones, costo medio=44,390.35
+12:00:15 [977fe8a1] - INFO - ✅ Detalle para APU 4.2 generado exitosamente | Items: 3
+12:00:15 [SYSTEM] - INFO - 📊 Telemetry for 977fe8a1: {"request_id": "977fe8a1", "steps": [{"step": "get_apu_detail", "status": "success", "duration_seconds": 0.242714, "timestamp": "2025-11-25T17:00:15.500872", "perf_counter": 18872.130279176}], "metrics": {}, "errors": [], "total_duration_seconds": 0.242714, "created_at": 18871.872553563, "age_seconds": 0.272655}
+12:00:24 [b45f89a9] - INFO - 🔍 Solicitud de detalle para APU: 3.1
+12:00:24 [b45f89a9] - INFO - Iniciando procesamiento de APU: 3.1 con 3 registros
+12:00:24 [b45f89a9] - INFO - ✓ Metadata: 3 items | Total: $70,359.38 | Promedio: $23,453.13
+12:00:24 [b45f89a9] - INFO - APU 3.1 procesado exitosamente. Items: 3, Categorías: 3, Reducción: 0.0%
+2025-11-25 12:00:24,582 - models.probability_models - INFO - MonteCarloSimulator inicializado: simulations=1,000, volatility=10.00%, seed=None
+2025-11-25 12:00:24,616 - models.probability_models - INFO - Simulación completada exitosamente: 3 APUs válidos, 1,000 simulaciones, costo medio=164,216.36
+12:00:24 [b45f89a9] - INFO - ✅ Detalle para APU 3.1 generado exitosamente | Items: 3
+12:00:24 [SYSTEM] - INFO - 📊 Telemetry for b45f89a9: {"request_id": "b45f89a9", "steps": [{"step": "get_apu_detail", "status": "success", "duration_seconds": 0.302543, "timestamp": "2025-11-25T17:00:24.619486", "perf_counter": 18881.248890888}], "metrics": {}, "errors": [], "total_duration_seconds": 0.302543, "created_at": 18880.929749076, "age_seconds": 0.327207}
+12:00:46 [33a580c1] - INFO - 🔍 Solicitud de detalle para APU: 3.1
+12:00:46 [33a580c1] - INFO - Iniciando procesamiento de APU: 3.1 con 3 registros
+12:00:46 [33a580c1] - INFO - ✓ Metadata: 3 items | Total: $70,359.38 | Promedio: $23,453.13
+12:00:46 [33a580c1] - INFO - APU 3.1 procesado exitosamente. Items: 3, Categorías: 3, Reducción: 0.0%
+2025-11-25 12:00:46,928 - models.probability_models - INFO - MonteCarloSimulator inicializado: simulations=1,000, volatility=10.00%, seed=None
+2025-11-25 12:00:46,963 - models.probability_models - INFO - Simulación completada exitosamente: 3 APUs válidos, 1,000 simulaciones, costo medio=163,434.14
+12:00:46 [33a580c1] - INFO - ✅ Detalle para APU 3.1 generado exitosamente | Items: 3
+12:00:46 [SYSTEM] - INFO - 📊 Telemetry for 33a580c1: {"request_id": "33a580c1", "steps": [{"step": "get_apu_detail", "status": "success", "duration_seconds": 0.230945, "timestamp": "2025-11-25T17:00:46.965081", "perf_counter": 18903.594484216}], "metrics": {}, "errors": [], "total_duration_seconds": 0.230945, "created_at": 18903.357538542, "age_seconds": 0.250121}
+12:01:49 [82868912] - INFO - 🔍 Solicitud de detalle para APU: 3.2
+12:01:49 [82868912] - INFO - Iniciando procesamiento de APU: 3.2 con 3 registros
+12:01:50 [82868912] - INFO - ✓ Metadata: 3 items | Total: $34,746.13 | Promedio: $11,582.04
+12:01:50 [82868912] - INFO - APU 3.2 procesado exitosamente. Items: 3, Categorías: 3, Reducción: 0.0%
+2025-11-25 12:01:50,635 - models.probability_models - INFO - MonteCarloSimulator inicializado: simulations=1,000, volatility=10.00%, seed=None
+2025-11-25 12:01:50,742 - models.probability_models - INFO - Simulación completada exitosamente: 3 APUs válidos, 1,000 simulaciones, costo medio=50,230.38
+12:01:50 [82868912] - INFO - ✅ Detalle para APU 3.2 generado exitosamente | Items: 3
+12:01:50 [SYSTEM] - INFO - 📊 Telemetry for 82868912: {"request_id": "82868912", "steps": [{"step": "get_apu_detail", "status": "success", "duration_seconds": 1.366679, "timestamp": "2025-11-25T17:01:50.745768", "perf_counter": 18967.375172567}], "metrics": {}, "errors": [], "total_duration_seconds": 1.366679, "created_at": 18965.962389022, "age_seconds": 1.421831}
