@@ -1,3 +1,7 @@
+<div align="center">
+  <img src="logos/vector_3D.png" alt="APU Filter: Estabilización de Flujo de Datos para Construcción" width="75%">
+</div>
+
 # APU Filter: Inteligencia de Costos y Blindaje Financiero
 
 ### De Archivos Muertos a Memoria Viva: El Nuevo Activo Estratégico de su Constructora.
@@ -54,6 +58,10 @@ Hemos diseñado la arquitectura del sistema no como una colección de scripts, s
 
 ## Ingeniería Bajo el Capó (La Validación Técnica)
 
+<div align="center">
+  <img src="logos/vector_2D.png" alt="APU Filter: Logo Vectorial" width="60%">
+</div>
+
 Para el equipo de TI: Usamos una arquitectura modular en Python (Flask, Pandas, PyTorch/FAISS) con principios SRE (Site Reliability Engineering) para garantizar robustez.
 
 ### Configurabilidad Declarativa
@@ -68,51 +76,92 @@ En un sector donde la responsabilidad legal es alta, "la IA lo dijo" no es una d
 
 Ver `app/metodos.md` para detalles profundos sobre el Motor de Estabilidad y la Lógica de Estimación.
 
-## Instalación y Uso
+## Guía de Configuración Detallada
 
-Para desplegar esta potencia en sus servidores, utilizamos una metodología de instalación por capas.
+Para garantizar un entorno de trabajo limpio y funcional, siga estos pasos exactos.
 
-### Paso 1: La Cimentación (Conda)
-Primero, instalamos la base pesada. Conda es el encargado de colocar los cimientos y el motor principal (Faiss).
+### Paso 1: Descargar e Instalar Miniconda
+Este paso prepara la base de Conda. Se recomienda limpiar instalaciones previas para evitar conflictos.
 
 ```bash
-# Crear el entorno
+# Limpiar cualquier instalación anterior (opcional, pero recomendado)
+rm -rf $HOME/miniconda3
+
+# Descargar y ejecutar el instalador en modo no interactivo
+curl -O https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
+bash Miniconda3-latest-Linux-x86_64.sh -b -p $HOME/miniconda3
+
+# Inicializar Conda para el shell de forma permanente
+$HOME/miniconda3/bin/conda init bash
+
+# ¡Crucial! Cierra y vuelve a abrir tu terminal, o recarga tu shell:
+# source ~/.bashrc
+```
+*Después de reiniciar el terminal, Conda estará disponible.*
+
+### Paso 2: Crear y Activar el Entorno del Proyecto
+Ahora crearemos un entorno aislado con la versión de Python correcta.
+
+```bash
+# Aceptar Términos de Servicio y configurar 'yes' automático para modo no interactivo
+conda config --set always_yes yes
+conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/main
+conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/r
+
+# Crear el entorno con Python 3.10
 conda create --name apu_filter_env python=3.10
 
 # Activar el entorno
 conda activate apu_filter_env
+```
 
-# Instalar el motor principal (Faiss-cpu)
+### Paso 3: Instalar Dependencias Especiales y Redis
+Este es el paso más crítico. Instalamos los paquetes complejos en el orden correcto.
+
+```bash
+# Activar el entorno para asegurar que las dependencias se instalen en el lugar correcto
+conda activate apu_filter_env
+
+# Instalar faiss-cpu con Conda (desde el canal de PyTorch)
 conda install -c pytorch faiss-cpu
-```
 
-### Paso 2: El Sistema Hidráulico (Pip específico)
-Instalamos `torch` (versión CPU) para la inteligencia artificial sin requerir hardware costoso.
-
-```bash
+# Instalar torch (versión CPU) usando el índice específico
 pip install torch --index-url https://download.pytorch.org/whl/cpu
+
+# Instalar Redis (desde el canal de conda-forge para mayor compatibilidad)
+conda install -c conda-forge redis
 ```
 
-### Paso 3: El Brazo Operativo (Uv)
-Usamos `uv` para velocidad y eficiencia en las dependencias restantes.
+### Paso 4: Instalar el Resto de Dependencias
+Finalmente, instalamos las librerías de la aplicación usando `uv`.
 
 ```bash
-# Instalar Redis
-conda install -c conda-forge redis
+# Activar el entorno para asegurar que las dependencias se instalen en el lugar correcto
+conda activate apu_filter_env
 
-# Instalar dependencias
+# Asegurarse de que requirements.txt no contenga paquetes especiales
+sed -i -e '/faiss-cpu/d' -e '/torch/d' -e '/triton/d' -e '/nvidia-/d' requirements.txt
+
+# Instalar uv y las dependencias restantes
+pip install uv
 uv pip install -r requirements.txt
 uv pip install -r requirements-dev.txt
 ```
 
 ### Puesta en Marcha
 
-1.  **Generar la Inteligencia:**
+1.  **Verificación del Entorno:**
+    ```bash
+    python -m pytest
+    ```
+    *No se esperan errores de entorno (`ModuleNotFoundError`), solo posibles errores de lógica (`AssertionError`).*
+
+2.  **Generar la Inteligencia:**
     ```bash
     python scripts/generate_embeddings.py --input data/processed_apus.json
     ```
 
-2.  **Encender Motores:**
+3.  **Encender Motores:**
     ```bash
     python -m flask run --port=5002
     ```
