@@ -1,0 +1,19 @@
+# Use a slim Python base image
+FROM python:3.10-slim
+
+# Set the working directory in the container
+WORKDIR /app
+
+# Create a non-root user
+RUN useradd -ms /bin/bash apu_user
+USER apu_user
+
+# Copy the agent code into the container
+COPY --chown=apu_user:apu_user agent/ /app/agent/
+COPY --chown=apu_user:apu_user requirements-agent.txt .
+
+# Install dependencies
+RUN pip install --no-cache-dir -r requirements-agent.txt
+
+# Set the entrypoint to run the orchestrator
+ENTRYPOINT ["python", "-u", "-m", "agent.orchestrator"]

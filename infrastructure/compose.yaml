@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: apu_redis
+    networks:
+      - apu_net
+
+  apu_core:
+    build:
+      context: .
+      dockerfile: infrastructure/Dockerfile.core
+    container_name: apu_core
+    ports:
+      - "5002:5002"
+    depends_on:
+      - redis
+    volumes:
+      - ./data:/app/data
+    networks:
+      - apu_net
+    environment:
+      - FLASK_ENV=development
+      - REDIS_URL=redis://redis:6379/0
+
+  apu_agent:
+    build:
+      context: .
+      dockerfile: infrastructure/Dockerfile.agent
+    container_name: apu_agent
+    depends_on:
+      - apu_core
+    environment:
+      - CORE_API_URL=http://apu_core:5002
+    networks:
+      - apu_net
+
+networks:
+  apu_net:
+    driver: bridge
