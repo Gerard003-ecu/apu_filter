@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 def test_pipeline():
     # Mock config and context
-    with open("app/config.json", "r") as f:
+    with open("config/config_rules.json", "r") as f:
         config = json.load(f)
 
     # Setup test paths - assuming data is in data/ or data_dirty/

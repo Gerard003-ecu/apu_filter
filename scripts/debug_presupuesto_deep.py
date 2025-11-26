@@ -13,7 +13,7 @@ from app.utils import find_and_rename_columns
 def debug_presupuesto():
     # 1. Configuración
     file_path = "data/presupuesto_clean.csv"  # Asegúrate que esta ruta sea correcta
-    config_path = "app/config.json"
+    config_path = "config/config_rules.json"
     
     print(f"🔍 Analizando archivo: {file_path}")
     
