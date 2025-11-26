@@ -72,9 +72,9 @@ class StepStatus(Enum):
         if not isinstance(value, str):
             return cls.SUCCESS
 
-        value_lower = value.lower().strip()
+        value_stripped = value.strip()
         for status in cls:
-            if status.value == value_lower:
+            if status.value == value_stripped:
                 return status
 
         return cls.SUCCESS
@@ -478,7 +478,7 @@ class TelemetryContext:
 
                 self.end_step(step_name, final_status, error_metadata)
 
-                if exception_occurred and captured_exception:
+                if exception_occurred and capture_exception_details and captured_exception:
                     self.record_error(
                         step_name=step_name,
                         error_message=str(captured_exception),
@@ -1209,7 +1209,7 @@ class TelemetryContext:
                 logger.debug(f"Failed to serialize datetime-like object: {e}")
 
         # Manejar objetos con __dict__
-        if hasattr(value, "__dict__"):
+        if hasattr(value, "__dict__") and value.__dict__:
             try:
                 return self._sanitize_value(
                     {"__class__": type(value).__name__, **value.__dict__},
