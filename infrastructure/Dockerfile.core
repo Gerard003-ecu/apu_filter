@@ -1,0 +1,53 @@
+# Etapa 1: Base
+FROM python:3.10-slim AS base
+
+# Definir variables de entorno
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
+ENV FLASK_APP=app.app
+
+# Crear usuario no-root
+RUN addgroup --system apu_user && adduser --system --group apu_user
+
+# Etapa 2: Dependencias
+FROM base AS builder
+
+# Instalar herramientas de construcción si son necesarias
+# RUN apt-get update && apt-get install -y --no-install-recommends gcc
+
+# Instalar uv
+RUN pip install uv
+
+# Copiar archivos de dependencias
+WORKDIR /app
+COPY requirements.txt .
+
+# Instalar dependencias
+RUN uv pip install --no-cache-dir --requirement requirements.txt
+
+# Etapa 3: Aplicación
+FROM base AS final
+
+# Crear directorio de la aplicación
+WORKDIR /app
+
+# Copiar dependencias instaladas de la etapa anterior
+COPY --from=builder /usr/local/lib/python3.10/site-packages /usr/local/lib/python3.10/site-packages
+COPY --from=builder /usr/local/bin /usr/local/bin
+
+# Copiar código de la aplicación
+COPY app/ ./app
+COPY config/ ./config
+COPY wsgi.py .
+
+# Cambiar propietario de los archivos
+RUN chown -R apu_user:apu_user /app
+
+# Cambiar a usuario no-root
+USER apu_user
+
+# Exponer el puerto
+EXPOSE 5002
+
+# Comando de ejecución
+CMD ["gunicorn", "--workers", "4", "--bind", "0.0.0.0:5002", "wsgi:app"]

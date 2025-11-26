@@ -1,0 +1,47 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Entornos virtuales y dependencias
+.venv
+venv/
+env/
+miniconda3/
+
+# Caché de Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Artefactos de construcción e instalación
+*.egg-info/
+build/
+dist/
+wheels/
+*.egg
+
+# Archivos de datos sensibles o brutos
+data_dirty/
+dump.rdb
+
+# Logs
+logs/
+
+# Configuraciones locales
+.env
+*.env.local
+
+# Artefactos de testing
+.pytest_cache/
+htmlcov/
+.coverage
+
+# Archivos de IDE
+.idea/
+.vscode/
+
+# Documentación autogenerada
+docs/_build/
+site/

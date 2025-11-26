@@ -27,3 +27,4 @@ networkx<3.3
 # --- Infraestructura y Sistema ---
 redis
 psutil
+gunicorn

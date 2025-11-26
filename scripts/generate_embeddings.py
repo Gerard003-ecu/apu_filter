@@ -478,7 +478,7 @@ def main():
 
     # Cargar configuración desde JSON como base
     try:
-        config_path = Path(__file__).resolve().parent.parent / "app" / "config.json"
+        config_path = Path(__file__).resolve().parent.parent / "config" / "config_rules.json"
         with open(config_path, "r", encoding="utf-8") as f:
             json_config = json.load(f).get("embedding_generation", {})
     except (FileNotFoundError, json.JSONDecodeError):

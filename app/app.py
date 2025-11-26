@@ -45,7 +45,7 @@ from werkzeug.utils import secure_filename
 # Configuración del path del sistema
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from config import config_by_name
+from config.config_app import config_by_name
 from models.probability_models import run_monte_carlo_simulation
 
 from .data_loader import LoadStatus, load_data  # Nueva importación para carga robusta
@@ -1108,13 +1108,13 @@ def create_app(config_name: str) -> Flask:
     # CONFIGURACIÓN DE LA APLICACIÓN
     # ========================================================================
 
-    config_path = Path(__file__).parent / "config.json"
+    config_path = Path(__file__).parent.parent / "config" / "config_rules.json"
     try:
         with open(config_path, "r", encoding="utf-8") as f:
             app.config["APP_CONFIG"] = json.load(f)
-            app.logger.info("✅ Configuración cargada desde config.json")
+            app.logger.info("✅ Configuración cargada desde config_rules.json")
     except (FileNotFoundError, json.JSONDecodeError) as e:
-        app.logger.error(f"❌ Error al cargar config.json: {e}")
+        app.logger.error(f"❌ Error al cargar config_rules.json: {e}")
         app.config["APP_CONFIG"] = {}
 
     # ========================================================================

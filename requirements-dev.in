@@ -1,5 +1,6 @@
+# Herramientas de prueba y calidad
+pytest
+ruff
+parameterized
 chardet
 fakeredis
-ruff
-pytest
-parameterized
