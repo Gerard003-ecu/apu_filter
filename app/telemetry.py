@@ -23,6 +23,7 @@ logger = logging.getLogger(__name__)
 
 # ========== Constantes de Configuración ==========
 
+
 class TelemetryDefaults:
     """Constantes de configuración por defecto para telemetría."""
 
@@ -131,11 +132,13 @@ class TelemetryContext:
     metadata: Dict[str, Any] = field(default_factory=dict)
 
     # Umbrales de negocio (configurables por instancia)
-    business_thresholds: Dict[str, float] = field(default_factory=lambda: {
-        "critical_flyback_voltage": BusinessThresholds.CRITICAL_FLYBACK_VOLTAGE,
-        "critical_dissipated_power": BusinessThresholds.CRITICAL_DISSIPATED_POWER,
-        "warning_saturation": BusinessThresholds.WARNING_SATURATION,
-    })
+    business_thresholds: Dict[str, float] = field(
+        default_factory=lambda: {
+            "critical_flyback_voltage": BusinessThresholds.CRITICAL_FLYBACK_VOLTAGE,
+            "critical_dissipated_power": BusinessThresholds.CRITICAL_DISSIPATED_POWER,
+            "warning_saturation": BusinessThresholds.WARNING_SATURATION,
+        }
+    )
 
     def __post_init__(self) -> None:
         """Valida el estado inicial y sanitiza las entradas."""
@@ -235,11 +238,15 @@ class TelemetryContext:
             ("metrics", dict, {}),
             ("errors", list, []),
             ("metadata", dict, {}),
-            ("business_thresholds", dict, {
-                "critical_flyback_voltage": BusinessThresholds.CRITICAL_FLYBACK_VOLTAGE,
-                "critical_dissipated_power": BusinessThresholds.CRITICAL_DISSIPATED_POWER,
-                "warning_saturation": BusinessThresholds.WARNING_SATURATION,
-            }),
+            (
+                "business_thresholds",
+                dict,
+                {
+                    "critical_flyback_voltage": BusinessThresholds.CRITICAL_FLYBACK_VOLTAGE,
+                    "critical_dissipated_power": BusinessThresholds.CRITICAL_DISSIPATED_POWER,
+                    "warning_saturation": BusinessThresholds.WARNING_SATURATION,
+                },
+            ),
         ]
 
         for attr_name, expected_type, default_value in collections_config:
@@ -253,9 +260,7 @@ class TelemetryContext:
 
     # ========== Gestión de Pasos ==========
 
-    def start_step(
-        self, step_name: str, metadata: Optional[Dict[str, Any]] = None
-    ) -> bool:
+    def start_step(self, step_name: str, metadata: Optional[Dict[str, Any]] = None) -> bool:
         """
         Marca el inicio de un paso de procesamiento.
 
@@ -328,9 +333,7 @@ class TelemetryContext:
             else:
                 duration = end_time - step_info.start_time
                 # Combinar metadatos de inicio y fin
-                combined_metadata = self._merge_metadata(
-                    step_info.metadata, metadata
-                )
+                combined_metadata = self._merge_metadata(step_info.metadata, metadata)
 
             # Aplicar límite max_steps (FIFO)
             self._enforce_limit_fifo(
@@ -596,9 +599,7 @@ class TelemetryContext:
 
         return True
 
-    def get_metric(
-        self, component: str, metric_name: str, default: Any = None
-    ) -> Any:
+    def get_metric(self, component: str, metric_name: str, default: Any = None) -> Any:
         """
         Obtiene el valor de una métrica.
 
@@ -688,21 +689,21 @@ class TelemetryContext:
         """Construye el diccionario de datos del error."""
         error_data = {
             "step": step_name,
-            "message": error_message[:TelemetryDefaults.MAX_MESSAGE_LENGTH],
+            "message": error_message[: TelemetryDefaults.MAX_MESSAGE_LENGTH],
             "timestamp": datetime.utcnow().isoformat(),
             "perf_counter": time.perf_counter(),
         }
 
         # Determinar tipo de error
         if error_type:
-            error_data["type"] = str(error_type)[:TelemetryDefaults.MAX_NAME_LENGTH]
+            error_data["type"] = str(error_type)[: TelemetryDefaults.MAX_NAME_LENGTH]
         elif exception:
             error_data["type"] = type(exception).__name__
 
         # Agregar detalles de la excepción
         if exception:
             error_data["exception_details"] = str(exception)[
-                :TelemetryDefaults.MAX_EXCEPTION_DETAIL_LENGTH
+                : TelemetryDefaults.MAX_EXCEPTION_DETAIL_LENGTH
             ]
 
             if include_traceback:
@@ -749,7 +750,9 @@ class TelemetryContext:
             return {
                 "step_name": step_name,
                 "duration_so_far": step_info.get_duration(),
-                "metadata": copy.deepcopy(step_info.metadata) if step_info.metadata else None,
+                "metadata": copy.deepcopy(step_info.metadata)
+                if step_info.metadata
+                else None,
             }
 
     def has_step(self, step_name: str) -> bool:
@@ -807,9 +810,7 @@ class TelemetryContext:
                 )
                 return True
             else:
-                logger.debug(
-                    f"[{self.request_id}] Cannot cancel '{step_name}': not active"
-                )
+                logger.debug(f"[{self.request_id}] Cannot cancel '{step_name}': not active")
                 return False
 
     def clear_active_timers(self) -> int:
@@ -839,9 +840,7 @@ class TelemetryContext:
             Diccionario con estadísticas resumidas.
         """
         with self._lock:
-            total_duration = sum(
-                s.get("duration_seconds", 0) for s in self.steps
-            )
+            total_duration = sum(s.get("duration_seconds", 0) for s in self.steps)
 
             step_statuses: Dict[str, int] = {}
             for step in self.steps:
@@ -878,9 +877,7 @@ class TelemetryContext:
             Representación en diccionario adecuada para serialización JSON.
         """
         with self._lock:
-            total_duration = sum(
-                s.get("duration_seconds", 0) for s in self.steps
-            )
+            total_duration = sum(s.get("duration_seconds", 0) for s in self.steps)
 
             result = {
                 "request_id": self.request_id,
@@ -1008,9 +1005,7 @@ class TelemetryContext:
             "Velocidad de Procesamiento": f"{raw_metrics['kinetic_energy']:.2f}",
         }
 
-    def _determine_business_status(
-        self, raw_metrics: Dict[str, float]
-    ) -> tuple[str, str]:
+    def _determine_business_status(self, raw_metrics: Dict[str, float]) -> tuple[str, str]:
         """Determina el estado de negocio basado en métricas y umbrales."""
         thresholds = self.business_thresholds
 
@@ -1040,7 +1035,10 @@ class TelemetryContext:
 
         # Verificación de errores registrados
         if self.errors:
-            return "ADVERTENCIA", f"Se registraron {len(self.errors)} error(es) durante el procesamiento."
+            return (
+                "ADVERTENCIA",
+                f"Se registraron {len(self.errors)} error(es) durante el procesamiento.",
+            )
 
         return "OPTIMO", "Procesamiento estable y fluido."
 
@@ -1182,8 +1180,7 @@ class TelemetryContext:
             max_size = TelemetryDefaults.MAX_COLLECTION_SIZE
             limited_list = list(value)[:max_size]
             result = [
-                self._sanitize_value(v, max_depth, current_depth + 1)
-                for v in limited_list
+                self._sanitize_value(v, max_depth, current_depth + 1) for v in limited_list
             ]
             if len(value) > max_size:
                 result.append(f"<... {len(value) - max_size} more items>")

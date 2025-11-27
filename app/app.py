@@ -704,7 +704,9 @@ class FileValidator:
             load_result = load_data(file_path, nrows=10)
 
             if load_result.status.value != "SUCCESS":
-                error_msg = load_result.error_message or "Error desconocido al cargar archivo"
+                error_msg = (
+                    load_result.error_message or "Error desconocido al cargar archivo"
+                )
                 if load_result.status == LoadStatus.EMPTY:
                     result.errors.append("El archivo está vacío")
                 else:
@@ -738,9 +740,7 @@ class FileValidator:
             else:
                 missing_columns = set(required_columns) - set(df.columns)
                 if missing_columns:
-                    result.errors.append(
-                        f"Columnas faltantes: {', '.join(missing_columns)}"
-                    )
+                    result.errors.append(f"Columnas faltantes: {', '.join(missing_columns)}")
                     return result
 
             # Si la estructura es válida, cargamos el archivo completo para validación de volumen y nulos
@@ -913,7 +913,9 @@ def load_semantic_search_artifacts(app: Flask) -> bool:
             with open(metadata_path, "r", encoding="utf-8") as f:
                 metadata = json.load(f)
         except Exception as e:
-            app.logger.warning(f"Error cargando metadata.json: {e}. Usando valores por defecto.")
+            app.logger.warning(
+                f"Error cargando metadata.json: {e}. Usando valores por defecto."
+            )
             metadata = {}
 
         # Validación flexible de metadata (soporta alias y campos opcionales)
@@ -922,8 +924,10 @@ def load_semantic_search_artifacts(app: Flask) -> bool:
         expected_dimension = metadata.get("vector_dimension") or 384  # Default seguro
 
         if not model_name:
-            app.logger.warning("Metadata incompleta: Falta 'model_name'. Asumiendo 'all-MiniLM-L6-v2'")
-            model_name = 'all-MiniLM-L6-v2'
+            app.logger.warning(
+                "Metadata incompleta: Falta 'model_name'. Asumiendo 'all-MiniLM-L6-v2'"
+            )
+            model_name = "all-MiniLM-L6-v2"
 
         # 3. Cargar índice FAISS
         faiss_index = faiss.read_index(str(index_path))
@@ -1302,11 +1306,7 @@ def create_app(config_name: str) -> Flask:
                     "upload_request_validation", f"Invalid metadata: {file_type}"
                 )
                 return jsonify(
-                    {
-                        "error": error_meta,
-                        "code": "INVALID_FILE",
-                        "file": file_type
-                    }
+                    {"error": error_meta, "code": "INVALID_FILE", "file": file_type}
                 ), 400
 
             # 2. Validar MIME type
@@ -1316,15 +1316,12 @@ def create_app(config_name: str) -> Flask:
                     "upload_request_validation", f"Invalid mime: {file_type}"
                 )
                 return jsonify(
-                    {
-                        "error": error_mime,
-                        "code": "INVALID_MIME",
-                        "file": file_type
-                    }
+                    {"error": error_mime, "code": "INVALID_MIME", "file": file_type}
                 ), 400
 
             # 3. Guardar temporalmente SIN validar contenido estricto (permitiendo columnas flexibles)
             import tempfile
+
             temp_dir = Path(tempfile.gettempdir()) / "apu_validation"
             temp_dir.mkdir(exist_ok=True)
             temp_path = temp_dir / secure_filename(file.filename)
@@ -1333,14 +1330,16 @@ def create_app(config_name: str) -> Flask:
                 file.save(str(temp_path))
             except Exception as e:
                 app.logger.error(f"Error al guardar archivo temporal {file_type}: {e}")
-                return jsonify({"error": "Error interno al guardar archivo", "code": "SAVE_ERROR"}), 500
+                return jsonify(
+                    {"error": "Error interno al guardar archivo", "code": "SAVE_ERROR"}
+                ), 500
 
             # Registrar resultado exitoso para mantener compatibilidad
             validation_results[file_type] = FileValidationResult(
                 is_valid=True,
                 filename=file.filename,
                 file_type=file_type,
-                size_bytes=Path(temp_path).stat().st_size
+                size_bytes=Path(temp_path).stat().st_size,
             )
 
             files_to_process[file_type] = str(temp_path)
