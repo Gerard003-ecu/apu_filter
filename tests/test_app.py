@@ -128,7 +128,9 @@ def sample_session_data():
                     "UNIDAD_INSUMO": "M3",
                 },
             ],
-            "insumos": {"MATERIALES": [{"CODIGO_INSUMO": "INS-001", "DESCRIPCION": "Cemento"}]},
+            "insumos": {
+                "MATERIALES": [{"CODIGO_INSUMO": "INS-001", "DESCRIPCION": "Cemento"}]
+            },
             "summary": {"total_apus": 1, "total_insumos": 2},
         }
     }

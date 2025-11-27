@@ -907,7 +907,6 @@ class APUTransformer(Transformer):
             logger.error(f"Error construyendo INSUMO_BASICO: {e} en línea {tokens}")
             return None
 
-
     def _build_insumo_porcentual_o_indirecto(
         self, tokens: List[str], tipo_insumo: TipoInsumo, unidad: str
     ) -> Optional[InsumoProcesado]:
@@ -920,7 +919,7 @@ class APUTransformer(Transformer):
         valores = self.numeric_extractor.extract_all_numeric_values(tokens, skip_first=False)
 
         if not valores:
-            return None # Si no hay ningún número, no podemos hacer nada
+            return None  # Si no hay ningún número, no podemos hacer nada
 
         # El valor total suele ser el último o el único número significativo
         total = valores[-1]
@@ -970,7 +969,7 @@ class APUTransformer(Transformer):
         special_cases = rules.get("special_cases", {})
         mo_keywords = rules.get("mo_keywords", [])
         equipo_keywords = rules.get("equipo_keywords", [])
-        otro_keywords = rules.get("otro_keywords", []) # Nueva línea
+        otro_keywords = rules.get("otro_keywords", [])  # Nueva línea
 
         for case, tipo_str in special_cases.items():
             if case in desc_upper:
@@ -980,8 +979,8 @@ class APUTransformer(Transformer):
             return TipoInsumo.MANO_DE_OBRA
         if any(kw in desc_upper for kw in equipo_keywords):
             return TipoInsumo.EQUIPO
-        if any(kw in desc_upper for kw in otro_keywords): # Nueva línea
-            return TipoInsumo.OTRO # Nueva línea
+        if any(kw in desc_upper for kw in otro_keywords):  # Nueva línea
+            return TipoInsumo.OTRO  # Nueva línea
 
         return TipoInsumo.SUMINISTRO
 

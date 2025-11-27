@@ -735,15 +735,21 @@ class InsumosProcessor:
                 # Intentar obtener el nombre del grupo de la segunda columna
                 candidate_group = parts[1].strip()
                 if candidate_group:
-                    logger.debug(f"🔍 Candidato a grupo detectado: '{parts[0]}' -> Grupo: '{candidate_group}'")
+                    logger.debug(
+                        f"🔍 Candidato a grupo detectado: '{parts[0]}' -> Grupo: '{candidate_group}'"
+                    )
                     current_group = candidate_group
                     logger.info(f"📂 Grupo detectado: {current_group}")
-                    header = None # Reset header al cambiar de grupo
+                    header = None  # Reset header al cambiar de grupo
                     continue
 
             # Detección de Encabezado
             # Buscamos coincidencia parcial de columnas clave
-            if "CODIGO" in first_col and len(parts) >= 2 and "DESCRIPCION" in parts[1].upper():
+            if (
+                "CODIGO" in first_col
+                and len(parts) >= 2
+                and "DESCRIPCION" in parts[1].upper()
+            ):
                 header = parts
                 logger.info(f"📋 Encabezado detectado para grupo {current_group}: {header}")
                 continue
@@ -764,13 +770,13 @@ class InsumosProcessor:
                         if "DESCRIPCION" in clean_col:
                             record["DESCRIPCION"] = parts[i]
                         elif "VR" in clean_col and "UNIT" in clean_col:
-                             record["VR. UNIT."] = parts[i]
+                            record["VR. UNIT."] = parts[i]
                         elif "UND" in clean_col:
-                             record["UND"] = parts[i]
+                            record["UND"] = parts[i]
                         elif "CODIGO" in clean_col:
-                             record["CODIGO"] = parts[i]
+                            record["CODIGO"] = parts[i]
                         elif "CANT" in clean_col:
-                             record["CANTIDAD"] = parts[i]
+                            record["CANTIDAD"] = parts[i]
 
                 # Solo agregamos si tenemos al menos descripción y valor
                 if "DESCRIPCION" in record:
@@ -784,8 +790,8 @@ class InsumosProcessor:
             columns={
                 "DESCRIPCION": ColumnNames.DESCRIPCION_INSUMO,
                 "VR. UNIT.": ColumnNames.VR_UNITARIO_INSUMO,
-                "CODIGO": "CODIGO", # Mantener CODIGO si existe
-                "CANTIDAD": "CANTIDAD"
+                "CODIGO": "CODIGO",  # Mantener CODIGO si existe
+                "CANTIDAD": "CANTIDAD",
             }
         )
         # Asegurar que CODIGO y CANTIDAD existan si no vinieron en el archivo
@@ -800,7 +806,7 @@ class InsumosProcessor:
                 ColumnNames.DESCRIPCION_INSUMO,
                 ColumnNames.VR_UNITARIO_INSUMO,
                 "CODIGO",
-                "CANTIDAD"
+                "CANTIDAD",
             ]
         ]
 
@@ -951,7 +957,11 @@ class APUCostCalculator:
             return df
 
         # Asegurar que existen las columnas de costos
-        for col in [ColumnNames.VALOR_CONSTRUCCION_UN, ColumnNames.VALOR_SUMINISTRO_UN, ColumnNames.VALOR_INSTALACION_UN]:
+        for col in [
+            ColumnNames.VALOR_CONSTRUCCION_UN,
+            ColumnNames.VALOR_SUMINISTRO_UN,
+            ColumnNames.VALOR_INSTALACION_UN,
+        ]:
             if col not in df.columns:
                 df[col] = 0.0
 
@@ -959,7 +969,9 @@ class APUCostCalculator:
         # Evitar división por cero
         total_cost = df[ColumnNames.VALOR_CONSTRUCCION_UN].replace(0, 1)
 
-        df["porcentaje_materiales"] = (df[ColumnNames.VALOR_SUMINISTRO_UN] / total_cost) * 100
+        df["porcentaje_materiales"] = (
+            df[ColumnNames.VALOR_SUMINISTRO_UN] / total_cost
+        ) * 100
         df["porcentaje_mo_eq"] = (df[ColumnNames.VALOR_INSTALACION_UN] / total_cost) * 100
 
         # Default classification
@@ -985,7 +997,11 @@ class APUCostCalculator:
                 logger.error(f"❌ Error aplicando regla de clasificación '{rule}': {e}")
 
         # Limpieza de columnas temporales
-        df.drop(columns=["porcentaje_materiales", "porcentaje_mo_eq"], inplace=True, errors="ignore")
+        df.drop(
+            columns=["porcentaje_materiales", "porcentaje_mo_eq"],
+            inplace=True,
+            errors="ignore",
+        )
 
         return df
 

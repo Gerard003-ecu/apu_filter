@@ -44,6 +44,10 @@ Hemos diseñado la arquitectura del sistema no como una colección de scripts, s
 **Rol:** Inteligencia de Mercado (Caja Blanca).
 **Misión:** Es el cerebro consultivo. Utiliza **Búsqueda Semántica** para encontrar precios históricos ("Muro de ladrillo" ≈ "Mampostería tolete") y proyecta escenarios de riesgo. **No es una caja negra:** explica cada decisión, mostrando la evidencia y el nivel de certeza para que el ingeniero humano tenga la última palabra.
 
+### 6. El Orquestador Autónomo (`agent/orchestrator.py`)
+**Rol:** Coordinación Agéntica.
+**Misión:** Actúa como el sistema nervioso central para microservicios autónomos, coordinando tareas complejas, monitoreando el estado del sistema y tomando decisiones basadas en retroalimentación en tiempo real.
+
 ---
 
 ## Soluciones Reales a Dolores de Obra

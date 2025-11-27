@@ -21,7 +21,6 @@ from app.telemetry import (
     TelemetryDefaults,
 )
 
-
 # ========== Fixtures ==========
 
 
@@ -429,9 +428,7 @@ class TestStepTracking:
 
         assert ctx.steps[0]["status"] == StepStatus.SUCCESS.value
 
-    def test_end_step_non_string_status_defaults_to_success(
-        self, ctx: TelemetryContext
-    ):
+    def test_end_step_non_string_status_defaults_to_success(self, ctx: TelemetryContext):
         """Verify non-string status defaults to success."""
         ctx.start_step("test_step")
         ctx.end_step("test_step", 123)
@@ -535,9 +532,7 @@ class TestStepContextManager:
         with ctx.step("test") as yielded_ctx:
             assert yielded_ctx is ctx
 
-    def test_context_manager_capture_exception_details_true(
-        self, ctx: TelemetryContext
-    ):
+    def test_context_manager_capture_exception_details_true(self, ctx: TelemetryContext):
         """Verify exception details are captured when enabled."""
         with pytest.raises(ValueError):
             with ctx.step("test_op", capture_exception_details=True):
@@ -548,9 +543,7 @@ class TestStepContextManager:
         assert "error_type" in ctx.steps[0]["metadata"]
         assert ctx.steps[0]["metadata"]["error_type"] == "ValueError"
 
-    def test_context_manager_capture_exception_details_false(
-        self, ctx: TelemetryContext
-    ):
+    def test_context_manager_capture_exception_details_false(self, ctx: TelemetryContext):
         """Verify exception details are not captured when disabled."""
         with pytest.raises(ValueError):
             with ctx.step("test_op", capture_exception_details=False):

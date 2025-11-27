@@ -105,11 +105,27 @@ El sistema implementa mecanismos de defensa avanzados:
 *   **Recuperación Parcial:** Capacidad de aislar lotes corruptos y continuar el procesamiento del resto del archivo.
 *   **Protección Térmica:** Freno de emergencia automático si la disipación de energía (fricción de datos) supera los umbrales de seguridad.
 
+---
+
+## 4. El Agente: Orquestación Autónoma
+**Componente:** `agent/orchestrator.py`
+
+La evolución de APU Filter introduce capacidades agénticas para coordinar tareas complejas de manera autónoma. El Orquestador actúa como un sistema nervioso central que conecta los microservicios y asegura la coherencia del flujo de trabajo.
+
+### Responsabilidades Clave:
+*   **Coordinación de Tareas:** Descompone objetivos de alto nivel en pasos ejecutables.
+*   **Monitoreo de Estado:** Supervisa la salud de los procesos en tiempo real.
+*   **Toma de Decisiones:** Ajusta dinámicamente la ruta de ejecución basándose en la retroalimentación del sistema (feedback loops).
+
+---
+
 ## Tecnologías Utilizadas
 
 La plataforma está construida sobre una pila de tecnologías modernas de alto rendimiento:
 
 - **Backend:** **Flask** para la API web.
+- **Inteligencia Artificial y Agentes:**
+    - **Microservicios Agénticos:** Arquitectura modular para tareas autónomas.
 - **Análisis de Datos y ML:**
     - **Pandas:** Utilizado como la base para la manipulación de datos.
     - **Sentence-Transformers:** Para la generación de embeddings de texto que potencian la búsqueda semántica.
@@ -220,10 +236,14 @@ El proyecto está organizado con una clara separación de responsabilidades para
 ```
 apu_filter/
 │
+├── agent/                      # Módulo de Inteligencia Artificial y Agentes
+│   ├── __init__.py
+│   └── orchestrator.py         # Orquestador autónomo de microservicios
+│
 ├── app/                        # Lógica principal de la aplicación Flask
 │   ├── __init__.py
 │   ├── app.py                  # Factory de la app, endpoints API y carga de modelos
-│   ├── procesador_csv.py       # Orquestador del pipeline de procesamiento de datos
+│   ├── pipeline_director.py    # Orquestador del pipeline de procesamiento de datos
 │   ├── report_parser_crudo.py  # Parser especializado para archivos de APU semi-estructurados
 │   ├── apu_processor.py        # Motor de transformación que aplica lógica de negocio a los datos parseados
 │   ├── estimator.py            # Lógica de estimación con búsqueda semántica y por keywords
@@ -258,10 +278,11 @@ apu_filter/
 │
 ├── tests/                      # Suite de pruebas completa del proyecto
 │   ├── test_app.py             # Pruebas de integración para los endpoints de la API
-│   ├── test_procesador_csv.py  # Pruebas para el orquestador del pipeline
+│   ├── test_pipeline_director.py  # Pruebas para el orquestador del pipeline
 │   ├── test_apu_processor.py   # Pruebas para el motor de transformación
 │   ├── test_estimator.py       # Pruebas para la lógica de estimación
 │   ├── test_data_loader.py     # Pruebas para la capa de carga de datos
+│   ├── test_orchestrator.py    # Pruebas para el orquestador agéntico
 │   └── test_data.py            # Datos de prueba centralizados
 │
 ├── templates/                  # Plantillas HTML para la interfaz (si aplica)
