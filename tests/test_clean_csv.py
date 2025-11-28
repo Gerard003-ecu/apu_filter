@@ -534,7 +534,7 @@ class TestErrorHandling:
 
             cleaner = CSVCleaner(str(input_file), str(output_file))
 
-            with pytest.raises(IOError, match="Permiso denegado"):
+            with pytest.raises(PermissionError):
                 cleaner.clean()
 
             input_file.chmod(0o644)

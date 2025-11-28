@@ -16,7 +16,7 @@ import tempfile
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
-from typing import Dict, Optional, TextIO
+from typing import Any, Dict, Optional, TextIO
 
 # Configuración de logging con handler específico para evitar afectar otros módulos
 logger = logging.getLogger(__name__)
@@ -67,6 +67,17 @@ class CleaningStats:
         self.rows_written = 0
         self.rows_skipped = 0
         self.skip_reasons = {reason: 0 for reason in SkipReason}
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Convierte las estadísticas a un diccionario serializable."""
+        return {
+            "rows_written": self.rows_written,
+            "rows_skipped": self.rows_skipped,
+            "total_processed": self.total_processed,
+            "skip_reasons": {
+                reason.name: count for reason, count in self.skip_reasons.items()
+            },
+        }
 
 
 class CSVCleaner:

@@ -985,9 +985,13 @@ class InsumosFileDiagnostic:
 
     def to_dict(self) -> Dict[str, Any]:
         """Exporta resultado como diccionario."""
+        stats_dict = asdict(self.stats)
+        # Fix Counters being mishandled by asdict in some environments
+        stats_dict["column_distribution"] = dict(self.stats.column_distribution)
+
         return {
             "file_path": str(self.file_path),
-            "stats": asdict(self.stats),
+            "stats": stats_dict,
             "groups": [
                 {
                     "name": g.name,

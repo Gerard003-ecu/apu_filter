@@ -764,6 +764,25 @@ class APUFileDiagnostic:
         """Construye resultado de fallo."""
         return DiagnosticResult(success=False, stats=self.stats, errors=self.errors)
 
+    def to_dict(self) -> Dict[str, Any]:
+        """Exporta el último resultado a diccionario."""
+        # Si no hay resultado (no se corrió diagnose), devuelve básico
+        from dataclasses import asdict
+
+        stats_dict = asdict(self.stats)
+        # Fix Counters being mishandled by asdict in some environments
+        stats_dict["column_counts"] = dict(self.stats.column_counts)
+        stats_dict["categories"] = dict(self.stats.categories)
+
+        return {
+            "success": not bool(self.errors),
+            "stats": stats_dict,
+            "patterns": [asdict(p) for p in self.patterns],
+            "recommendations": self.recommendations,
+            "errors": self.errors,
+            "sample_lines": self.sample_lines,
+        }
+
 
 def main():
     """Función principal para ejecución standalone."""

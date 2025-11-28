@@ -53,6 +53,7 @@ from .estimator import SearchArtifacts, calculate_estimate
 from .pipeline_director import process_all_files  # Ahora usa la versión refactorizada
 from .presenters import APUPresenter
 from .telemetry import TelemetryContext  # Nueva importación
+from .tools_interface import clean_file, diagnose_file, get_telemetry_status
 from .utils import sanitize_for_json
 
 # ============================================================================
@@ -1748,6 +1749,134 @@ def create_app(config_name: str) -> Flask:
                 "timestamp": time.time(),
             }
         )
+
+    # ========================================================================
+    # ENDPOINTS DE HERRAMIENTAS (Pivotes del Agente)
+    # ========================================================================
+
+    @app.route("/api/tools/diagnose", methods=["POST"])
+    @limiter.limit(
+        "20 per minute", exempt_when=lambda: current_app.config.get("TESTING")
+    )
+    @handle_errors
+    def tool_diagnose():
+        """
+        Pivote 2: Diagnóstico de archivos.
+        Recibe un archivo y devuelve su análisis estructural.
+        """
+        if "file" not in request.files:
+            return jsonify({"error": "No file part", "code": "MISSING_FILE"}), 400
+
+        file = request.files["file"]
+        file_type = request.form.get("type", "apus")  # apus, insumos, presupuesto
+
+        if file.filename == "":
+            return jsonify({"error": "No selected file", "code": "NO_FILE"}), 400
+
+        # Guardar temporalmente
+        import tempfile
+
+        temp_dir = Path(tempfile.gettempdir()) / "apu_tools"
+        temp_dir.mkdir(exist_ok=True)
+        temp_path = temp_dir / secure_filename(file.filename)
+
+        try:
+            file.save(str(temp_path))
+
+            # Ejecutar herramienta
+            result = diagnose_file(temp_path, file_type)
+
+            # Limpiar
+            try:
+                temp_path.unlink()
+            except Exception as e:
+                app.logger.warning(f"Failed to delete temp file: {e}")
+
+            if not result.get("success", False):
+                return jsonify(result), 400
+
+            return jsonify(result)
+
+        except Exception as e:
+            app.logger.error(f"Error in diagnose tool: {e}")
+            return jsonify({"error": str(e), "code": "TOOL_ERROR"}), 500
+
+    @app.route("/api/tools/clean", methods=["POST"])
+    @limiter.limit(
+        "10 per minute", exempt_when=lambda: current_app.config.get("TESTING")
+    )
+    @handle_errors
+    def tool_clean():
+        """
+        Pivote 3: Saneamiento de archivos.
+        Recibe un archivo sucio y devuelve estadísticas de limpieza.
+        (En un escenario real, devolvería el archivo limpio o un link para descargarlo).
+        """
+        if "file" not in request.files:
+            return jsonify({"error": "No file part", "code": "MISSING_FILE"}), 400
+
+        file = request.files["file"]
+        delimiter = request.form.get("delimiter", ";")
+        encoding = request.form.get("encoding", "utf-8")
+
+        if file.filename == "":
+            return jsonify({"error": "No selected file", "code": "NO_FILE"}), 400
+
+        # Guardar temporalmente
+        import tempfile
+
+        temp_dir = Path(tempfile.gettempdir()) / "apu_tools"
+        temp_dir.mkdir(exist_ok=True)
+        temp_path = temp_dir / secure_filename(file.filename)
+        output_path = temp_dir / f"clean_{secure_filename(file.filename)}"
+
+        try:
+            file.save(str(temp_path))
+
+            # Ejecutar herramienta
+            result = clean_file(
+                temp_path,
+                output_path=output_path,
+                delimiter=delimiter,
+                encoding=encoding,
+            )
+
+            # Limpiar input
+            try:
+                temp_path.unlink()
+            except Exception:
+                pass
+
+            # En esta implementación de referencia, devolvemos las stats
+            # y eliminamos el output para no llenar el disco.
+            # En producción, se subiría a S3 o se devolvería con send_file.
+            if result.get("success"):
+                try:
+                    Path(result["output_path"]).unlink()
+                except Exception:
+                    pass
+                result["message"] = "File cleaned successfully (temp file deleted)"
+            else:
+                return jsonify(result), 400
+
+            return jsonify(result)
+
+        except Exception as e:
+            app.logger.error(f"Error in clean tool: {e}")
+            return jsonify({"error": str(e), "code": "TOOL_ERROR"}), 500
+
+    @app.route("/api/telemetry/status", methods=["GET"])
+    @handle_errors
+    def tool_telemetry_status():
+        """
+        Pivote 1: Telemetría (El Sensor).
+        Devuelve el Vector de Estado del sistema.
+        """
+        # Usamos el contexto de telemetría actual (g.telemetry)
+        # o uno nuevo si no hay activo
+        context = getattr(g, "telemetry", None)
+        status = get_telemetry_status(context)
+        return jsonify(status)
 
     # ========================================================================
     # MANEJADORES DE ERRORES
