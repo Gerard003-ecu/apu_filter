@@ -14,8 +14,10 @@ from pathlib import Path
 from typing import Any, Dict
 from unittest.mock import MagicMock, Mock, patch, PropertyMock
 
+import app.tools_interface  # Import module for patching
+
 # Módulo bajo prueba
-from scripts.tools_interface import (
+from app.tools_interface import (
     FileType,
     DiagnosticError,
     FileNotFoundDiagnosticError,
@@ -35,6 +37,7 @@ from scripts.tools_interface import (
     _generate_output_path,
     _VALID_DELIMITERS,
     _SUPPORTED_ENCODINGS,
+    _DIAGNOSTIC_REGISTRY,
 )
 
 
@@ -459,37 +462,42 @@ class TestDiagnoseFile:
         assert result["success"] is False
         assert "must be string or FileType" in result["error"]
 
-    @patch("scripts.tools_interface.APUFileDiagnostic")
+    @patch("app.tools_interface._DIAGNOSTIC_REGISTRY")
     def test_apus_diagnosis_success(
         self, 
-        mock_diagnostic_class: MagicMock,
+        mock_registry: MagicMock,
         temp_csv_file: Path,
         mock_diagnostic_result: Dict[str, Any]
     ):
         """Verifica diagnóstico exitoso de archivo APUS."""
-        # Configurar mock
         mock_instance = MagicMock()
         mock_instance.to_dict.return_value = mock_diagnostic_result
-        mock_diagnostic_class.return_value = mock_instance
+        mock_class = MagicMock(return_value=mock_instance)
+
+        # Configurar el registro mock
+        mock_registry.get.return_value = mock_class
         
         result = diagnose_file(temp_csv_file, "apus")
         
         assert result["success"] is True
         assert result["file_type"] == "apus"
         assert "total_rows" in result
+        mock_class.assert_called_once_with(str(temp_csv_file))
         mock_instance.diagnose.assert_called_once()
 
-    @patch("scripts.tools_interface.InsumosFileDiagnostic")
+    @patch("app.tools_interface._DIAGNOSTIC_REGISTRY")
     def test_insumos_diagnosis_success(
         self,
-        mock_diagnostic_class: MagicMock,
+        mock_registry: MagicMock,
         temp_csv_file: Path,
         mock_diagnostic_result: Dict[str, Any]
     ):
         """Verifica diagnóstico exitoso de archivo Insumos."""
         mock_instance = MagicMock()
         mock_instance.to_dict.return_value = mock_diagnostic_result
-        mock_diagnostic_class.return_value = mock_instance
+        mock_class = MagicMock(return_value=mock_instance)
+
+        mock_registry.get.return_value = mock_class
         
         result = diagnose_file(temp_csv_file, "insumos")
         
@@ -497,17 +505,19 @@ class TestDiagnoseFile:
         assert result["file_type"] == "insumos"
         mock_instance.diagnose.assert_called_once()
 
-    @patch("scripts.tools_interface.PresupuestoFileDiagnostic")
+    @patch("app.tools_interface._DIAGNOSTIC_REGISTRY")
     def test_presupuesto_diagnosis_success(
         self,
-        mock_diagnostic_class: MagicMock,
+        mock_registry: MagicMock,
         temp_csv_file: Path,
         mock_diagnostic_result: Dict[str, Any]
     ):
         """Verifica diagnóstico exitoso de archivo Presupuesto."""
         mock_instance = MagicMock()
         mock_instance.to_dict.return_value = mock_diagnostic_result
-        mock_diagnostic_class.return_value = mock_instance
+        mock_class = MagicMock(return_value=mock_instance)
+
+        mock_registry.get.return_value = mock_class
         
         result = diagnose_file(temp_csv_file, "presupuesto")
         
@@ -515,31 +525,34 @@ class TestDiagnoseFile:
         assert result["file_type"] == "presupuesto"
         mock_instance.diagnose.assert_called_once()
 
-    @patch("scripts.tools_interface.APUFileDiagnostic")
+    @patch("app.tools_interface._DIAGNOSTIC_REGISTRY")
     def test_diagnosis_with_file_type_enum(
         self,
-        mock_diagnostic_class: MagicMock,
+        mock_registry: MagicMock,
         temp_csv_file: Path,
         mock_diagnostic_result: Dict[str, Any]
     ):
         """Verifica diagnóstico usando FileType enum."""
         mock_instance = MagicMock()
         mock_instance.to_dict.return_value = mock_diagnostic_result
-        mock_diagnostic_class.return_value = mock_instance
+        mock_class = MagicMock(return_value=mock_instance)
+
+        mock_registry.get.return_value = mock_class
         
         result = diagnose_file(temp_csv_file, FileType.APUS)
         
         assert result["success"] is True
         assert result["file_type"] == "apus"
 
-    @patch("scripts.tools_interface.APUFileDiagnostic")
+    @patch("app.tools_interface._DIAGNOSTIC_REGISTRY")
     def test_diagnosis_io_error(
         self,
-        mock_diagnostic_class: MagicMock,
+        mock_registry: MagicMock,
         temp_csv_file: Path
     ):
         """Verifica manejo de errores de I/O durante diagnóstico."""
-        mock_diagnostic_class.side_effect = IOError("Cannot read file")
+        mock_class = MagicMock(side_effect=IOError("Cannot read file"))
+        mock_registry.get.return_value = mock_class
         
         result = diagnose_file(temp_csv_file, "apus")
         
@@ -547,31 +560,34 @@ class TestDiagnoseFile:
         assert "Cannot read file" in result["error"]
         assert result.get("error_category") == "io_error"
 
-    @patch("scripts.tools_interface.APUFileDiagnostic")
+    @patch("app.tools_interface._DIAGNOSTIC_REGISTRY")
     def test_diagnosis_unexpected_error(
         self,
-        mock_diagnostic_class: MagicMock,
+        mock_registry: MagicMock,
         temp_csv_file: Path
     ):
         """Verifica manejo de errores inesperados."""
-        mock_diagnostic_class.side_effect = RuntimeError("Unexpected")
+        mock_class = MagicMock(side_effect=RuntimeError("Unexpected"))
+        mock_registry.get.return_value = mock_class
         
         result = diagnose_file(temp_csv_file, "apus")
         
         assert result["success"] is False
         assert result.get("error_category") == "unexpected"
 
-    @patch("scripts.tools_interface.APUFileDiagnostic")
+    @patch("app.tools_interface._DIAGNOSTIC_REGISTRY")
     def test_diagnosis_includes_file_path(
         self,
-        mock_diagnostic_class: MagicMock,
+        mock_registry: MagicMock,
         temp_csv_file: Path,
         mock_diagnostic_result: Dict[str, Any]
     ):
         """Verifica que la respuesta incluye la ruta del archivo."""
         mock_instance = MagicMock()
         mock_instance.to_dict.return_value = mock_diagnostic_result
-        mock_diagnostic_class.return_value = mock_instance
+        mock_class = MagicMock(return_value=mock_instance)
+
+        mock_registry.get.return_value = mock_class
         
         result = diagnose_file(temp_csv_file, "apus")
         
@@ -595,7 +611,7 @@ class TestCleanFile:
         assert result["success"] is False
         assert "not found" in result["error"]
 
-    @patch("scripts.tools_interface.CSVCleaner")
+    @patch("app.tools_interface.CSVCleaner")
     def test_clean_success_auto_output(
         self,
         mock_cleaner_class: MagicMock,
@@ -612,7 +628,7 @@ class TestCleanFile:
         assert "_clean" in result["output_path"]
         mock_cleaner_class.return_value.clean.assert_called_once()
 
-    @patch("scripts.tools_interface.CSVCleaner")
+    @patch("app.tools_interface.CSVCleaner")
     def test_clean_success_custom_output(
         self,
         mock_cleaner_class: MagicMock,
@@ -629,7 +645,7 @@ class TestCleanFile:
         assert result["success"] is True
         assert str(output_path) in result["output_path"]
 
-    @patch("scripts.tools_interface.CSVCleaner")
+    @patch("app.tools_interface.CSVCleaner")
     def test_clean_with_custom_delimiter(
         self,
         mock_cleaner_class: MagicMock,
@@ -646,7 +662,7 @@ class TestCleanFile:
         call_kwargs = mock_cleaner_class.call_args[1]
         assert call_kwargs["delimiter"] == ","
 
-    @patch("scripts.tools_interface.CSVCleaner")
+    @patch("app.tools_interface.CSVCleaner")
     def test_clean_with_custom_encoding(
         self,
         mock_cleaner_class: MagicMock,
@@ -690,7 +706,7 @@ class TestCleanFile:
         assert result["success"] is False
         assert "cannot be the same" in result["error"]
 
-    @patch("scripts.tools_interface.CSVCleaner")
+    @patch("app.tools_interface.CSVCleaner")
     def test_output_file_exists_no_overwrite(
         self,
         mock_cleaner_class: MagicMock,
@@ -710,7 +726,7 @@ class TestCleanFile:
         assert result["success"] is False
         assert "already exists" in result["error"]
 
-    @patch("scripts.tools_interface.CSVCleaner")
+    @patch("app.tools_interface.CSVCleaner")
     def test_creates_output_directory(
         self,
         mock_cleaner_class: MagicMock,
@@ -728,7 +744,7 @@ class TestCleanFile:
         assert result["success"] is True
         assert output_path.parent.exists()
 
-    @patch("scripts.tools_interface.CSVCleaner")
+    @patch("app.tools_interface.CSVCleaner")
     def test_clean_io_error(
         self,
         mock_cleaner_class: MagicMock,
@@ -743,7 +759,7 @@ class TestCleanFile:
         assert "Disk full" in result["error"]
         assert result.get("error_category") == "io_error"
 
-    @patch("scripts.tools_interface.CSVCleaner")
+    @patch("app.tools_interface.CSVCleaner")
     def test_clean_unexpected_error(
         self,
         mock_cleaner_class: MagicMock,
@@ -757,7 +773,7 @@ class TestCleanFile:
         assert result["success"] is False
         assert result.get("error_category") == "unexpected"
 
-    @patch("scripts.tools_interface.CSVCleaner")
+    @patch("app.tools_interface.CSVCleaner")
     def test_clean_includes_input_path(
         self,
         mock_cleaner_class: MagicMock,
@@ -771,7 +787,7 @@ class TestCleanFile:
         
         assert "input_path" in result
 
-    @patch("scripts.tools_interface.CSVCleaner")
+    @patch("app.tools_interface.CSVCleaner")
     def test_clean_stats_dict_fallback(
         self,
         mock_cleaner_class: MagicMock,
@@ -923,12 +939,12 @@ class TestIsValidFileType:
 class TestIntegration:
     """Pruebas de integración entre componentes."""
 
-    @patch("scripts.tools_interface.APUFileDiagnostic")
-    @patch("scripts.tools_interface.CSVCleaner")
+    @patch("app.tools_interface._DIAGNOSTIC_REGISTRY")
+    @patch("app.tools_interface.CSVCleaner")
     def test_diagnose_then_clean_workflow(
         self,
         mock_cleaner_class: MagicMock,
-        mock_diagnostic_class: MagicMock,
+        mock_registry: MagicMock,
         temp_csv_file: Path,
         tmp_path: Path,
         mock_diagnostic_result: Dict[str, Any],
@@ -938,7 +954,9 @@ class TestIntegration:
         # Configurar mocks
         mock_diag_instance = MagicMock()
         mock_diag_instance.to_dict.return_value = mock_diagnostic_result
-        mock_diagnostic_class.return_value = mock_diag_instance
+        mock_class = MagicMock(return_value=mock_diag_instance)
+
+        mock_registry.get.return_value = mock_class
         
         mock_cleaner_class.return_value.clean.return_value = mock_cleaning_stats
         
@@ -954,7 +972,7 @@ class TestIntegration:
 
     def test_all_file_types_have_diagnostics(self):
         """Verifica que todos los FileType tienen diagnóstico registrado."""
-        from scripts.tools_interface import _DIAGNOSTIC_REGISTRY
+        from app.tools_interface import _DIAGNOSTIC_REGISTRY
         
         for file_type in FileType:
             assert file_type in _DIAGNOSTIC_REGISTRY, \
@@ -979,10 +997,10 @@ class TestIntegration:
 class TestLogging:
     """Pruebas para verificar logging apropiado."""
 
-    @patch("scripts.tools_interface.APUFileDiagnostic")
+    @patch("app.tools_interface._DIAGNOSTIC_REGISTRY")
     def test_diagnose_logs_start_and_completion(
         self,
-        mock_diagnostic_class: MagicMock,
+        mock_registry: MagicMock,
         temp_csv_file: Path,
         mock_diagnostic_result: Dict[str, Any],
         caplog
@@ -990,7 +1008,9 @@ class TestLogging:
         """Verifica que diagnóstico registra inicio y fin."""
         mock_instance = MagicMock()
         mock_instance.to_dict.return_value = mock_diagnostic_result
-        mock_diagnostic_class.return_value = mock_instance
+        mock_class = MagicMock(return_value=mock_instance)
+
+        mock_registry.get.return_value = mock_class
         
         with caplog.at_level(logging.INFO):
             diagnose_file(temp_csv_file, "apus")
@@ -998,7 +1018,7 @@ class TestLogging:
         assert "Starting" in caplog.text
         assert "completed" in caplog.text
 
-    @patch("scripts.tools_interface.CSVCleaner")
+    @patch("app.tools_interface.CSVCleaner")
     def test_clean_logs_start_and_completion(
         self,
         mock_cleaner_class: MagicMock,
@@ -1044,10 +1064,10 @@ class TestEdgeCases:
         
         assert result["success"] is False
 
-    @patch("scripts.tools_interface.APUFileDiagnostic")
+    @patch("app.tools_interface._DIAGNOSTIC_REGISTRY")
     def test_diagnose_file_with_special_characters(
         self,
-        mock_diagnostic_class: MagicMock,
+        mock_registry: MagicMock,
         tmp_path: Path,
         mock_diagnostic_result: Dict[str, Any]
     ):
@@ -1057,13 +1077,15 @@ class TestEdgeCases:
         
         mock_instance = MagicMock()
         mock_instance.to_dict.return_value = mock_diagnostic_result
-        mock_diagnostic_class.return_value = mock_instance
+        mock_class = MagicMock(return_value=mock_instance)
+
+        mock_registry.get.return_value = mock_class
         
         result = diagnose_file(special_file, "apus")
         
         assert result["success"] is True
 
-    @patch("scripts.tools_interface.CSVCleaner")
+    @patch("app.tools_interface.CSVCleaner")
     def test_clean_file_with_unicode_path(
         self,
         mock_cleaner_class: MagicMock,
@@ -1084,10 +1106,12 @@ class TestEdgeCases:
         """Verifica que acepta objetos Path directamente."""
         # Solo verificar que no lanza excepción por el tipo
         # El archivo existe, pero sin mock fallará en el diagnóstico real
-        with patch("scripts.tools_interface.APUFileDiagnostic") as mock:
+        with patch("app.tools_interface._DIAGNOSTIC_REGISTRY") as mock_registry:
             mock_instance = MagicMock()
             mock_instance.to_dict.return_value = {}
-            mock.return_value = mock_instance
+            mock_class = MagicMock(return_value=mock_instance)
+
+            mock_registry.get.return_value = mock_class
             
             result = diagnose_file(temp_csv_file, FileType.APUS)
             
