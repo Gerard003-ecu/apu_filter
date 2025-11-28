@@ -6,7 +6,7 @@
 
 # --- Strict Mode & Error Handling ---
 set -euo pipefail
-IFS=$'\n\t'
+IFS=$' \n\t'
 
 # --- Script Metadata ---
 readonly SCRIPT_NAME="$(basename "${BASH_SOURCE[0]}")"
@@ -526,9 +526,17 @@ install_pytorch() {
     local install_start
     install_start=$(date +%s)
 
-    if ! $pip_cmd install torch torchvision torchaudio --index-url "$PYTORCH_INDEX_URL" >> "$LOG_FILE" 2>&1; then
-        log_error "Fallo al instalar PyTorch"
-        exit 1
+    # Handle 'uv pip' vs 'pip' correctly
+    if [[ "$pip_cmd" == "uv pip" ]]; then
+        if ! uv pip install torch torchvision torchaudio --index-url "$PYTORCH_INDEX_URL" >> "$LOG_FILE" 2>&1; then
+            log_error "Fallo al instalar PyTorch"
+            exit 1
+        fi
+    else
+        if ! $pip_cmd install torch torchvision torchaudio --index-url "$PYTORCH_INDEX_URL" >> "$LOG_FILE" 2>&1; then
+            log_error "Fallo al instalar PyTorch"
+            exit 1
+        fi
     fi
 
     # Verify installation
