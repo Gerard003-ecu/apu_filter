@@ -16,7 +16,7 @@ from contextlib import contextmanager
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, Union
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 logger = logging.getLogger(__name__)
 
@@ -1005,7 +1005,7 @@ class TelemetryContext:
             "Velocidad de Procesamiento": f"{raw_metrics['kinetic_energy']:.2f}",
         }
 
-    def _determine_business_status(self, raw_metrics: Dict[str, float]) -> tuple[str, str]:
+    def _determine_business_status(self, raw_metrics: Dict[str, float]) -> Tuple[str, str]:
         """Determina el estado de negocio basado en métricas y umbrales."""
         thresholds = self.business_thresholds
 
