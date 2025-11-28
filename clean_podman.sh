@@ -6,7 +6,7 @@
 set -euo pipefail
 
 LOG_DIR="./logs"
-COMPOSE_FILE="infrastructure/compose.yaml"
+COMPOSE_FILE="compose.yaml"
 COLOR_RED='\033[0;31m'
 COLOR_GREEN='\033[0;32m'
 COLOR_RESET='\033[0m'

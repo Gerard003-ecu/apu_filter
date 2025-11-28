@@ -1,0 +1,61 @@
+[2025-11-28 17:14:28] [INFO] === Iniciando Despliegue de APU Filter Ecosystem ===
+[2025-11-28 17:14:28] [INFO] Log file: ./logs/podman_start_20251128_171427.log
+[2025-11-28 17:14:28] [INFO] Limpiando contenedores previos...
+Error: no container with name or ID "apu_redis" found: no such container
+Error: no container with name or ID "apu_core" found: no such container
+Error: no container with name or ID "apu_agent" found: no such container
+Error: no container with ID or name "apu_agent" found: no such container
+Error: no container with ID or name "apu_core" found: no such container
+Error: no container with ID or name "apu_redis" found: no such container
+Error: no pod with name or ID pod_apu_filter found: no such pod
+[2025-11-28 17:14:31] [INFO] Construyendo imágenes (Core & Agent)...
+STEP 1/8: FROM python:3.10-slim
+[1/3] STEP 1/5: FROM python:3.10-slim AS base
+STEP 2/8: WORKDIR /app
+--> Using cache 91b76dd98444da5255544d178d7f6dd7bea6d86f515fbe1d1c14687a6e3a37a6
+--> 91b76dd98444
+STEP 3/8: RUN useradd -ms /bin/bash apu_user
+--> Using cache 718fe36a5de4181bf85354277f3795cc343ed385e98e0ebd3ccdaafaec57cb12
+--> 718fe36a5de4
+STEP 4/8: USER apu_user
+[1/3] STEP 2/5: ENV PYTHONDONTWRITEBYTECODE 1
+--> Using cache 4a9040e2052d2a53030f71340b2874628d63c2d6f34f31145e70a48d5f1be333
+--> 4a9040e2052d
+[1/3] STEP 3/5: ENV PYTHONUNBUFFERED 1
+--> Using cache 7f3ff0b2f47da0a4369c6e88c830ffd828f1c75c40d92fda4faa14c4485de2f8
+--> 7f3ff0b2f47d
+[1/3] STEP 4/5: ENV FLASK_APP=app.app
+--> Using cache e2feacd8f2a007f9030a56bc07d82f6b00ab72d501ac08785d70e7caddf717c6
+--> e2feacd8f2a0
+[1/3] STEP 5/5: RUN addgroup --system apu_user && adduser --system --group apu_user
+--> Using cache 02b7f051bad167277f207993a8f09c8a1a7cc7456ea7306ecfd0ad452171fa6a
+--> 02b7f051bad1
+[2/3] STEP 1/5: FROM 02b7f051bad167277f207993a8f09c8a1a7cc7456ea7306ecfd0ad452171fa6a AS builder
+[2/3] STEP 2/5: RUN pip install uv
+--> Using cache 3756677d17f91b1420356e61bce6538eff242be403f146500fe6430222539af2
+--> 3756677d17f9
+[2/3] STEP 3/5: WORKDIR /app
+--> Using cache 9eb08a99531ac0c8e537c665e770e890abe4388ae421b8eab94cc6fa603dda23
+--> 9eb08a99531a
+[2/3] STEP 4/5: COPY requirements.txt .
+--> Using cache 55b8301adc1617b89f53fc2da06c2028c787c8fcdcf6633d68762050ea25f8dd
+--> 55b8301adc16
+STEP 5/8: COPY --chown=apu_user:apu_user agent/ /app/agent/
+--> Using cache 8b21ac574a0df5ed10b4998233a337f7e2c6bb22699940d94e71d966c22392d7
+--> 8b21ac574a0d
+[2/3] STEP 5/5: RUN uv pip install --system --no-cache-dir --index-url https://download.pytorch.org/whl/cpu --requirement requirements.txt
+--> Using cache 53d7fc9e0478b85cf879b79e26694c101a01a01c4ab5d31a00fd691fb563d875
+--> 53d7fc9e0478
+STEP 6/8: COPY --chown=apu_user:apu_user requirements-agent.txt .
+Using Python 3.10.19 environment at: /usr/local
+--> Using cache 139d60f8078988c3add8a037ddedba08f053032fc67dddc21422b5186c8d4a40
+--> 139d60f80789
+STEP 7/8: RUN uv pip install --system --no-cache-dir --index-url https://download.pytorch.org/whl/cpu --requirement requirements.txt
+  × No solution found when resolving dependencies:
+  ╰─▶ Because async-timeout was not found in the package registry and you
+      require async-timeout==5.0.1, we can conclude that your requirements
+      are unsatisfiable.
+Error: building at STEP "RUN uv pip install --system --no-cache-dir --index-url https://download.pytorch.org/whl/cpu --requirement requirements.txt": while running runtime: exit status 1
+/bin/sh: 1: uv: not found
+Error: building at STEP "RUN uv pip install --system --no-cache-dir --index-url https://download.pytorch.org/whl/cpu --requirement requirements.txt": while running runtime: exit status 127
+[2025-11-28 17:14:42] [ERROR] Fallo en la construcción. Revisa el log.
