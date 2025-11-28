@@ -1,40 +1,57 @@
 version: '3.8'
 
 services:
+  # 1. LA MEMORIA (Redis)
   redis:
-    image: redis:7-alpine
+    image: docker.io/library/redis:7-alpine
     container_name: apu_redis
+    ports:
+      - "6379:6379"
     networks:
       - apu_net
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
 
+  # 2. EL NÚCLEO (Core)
   apu_core:
     build:
-      context: .
-      dockerfile: infrastructure/Dockerfile.core
+      context: ../          # <--- CAMBIO CLAVE: Subir a la raíz del proyecto
+      dockerfile: infrastructure/Dockerfile.core  # Ruta relativa desde la raíz
     container_name: apu_core
     ports:
       - "5002:5002"
+    environment:
+      - REDIS_URL=redis://apu_redis:6379/0
+      - FLASK_ENV=production
+      - PYTHONUNBUFFERED=1
     depends_on:
-      - redis
-    volumes:
-      - ./data:/app/data
+      redis:
+        condition: service_healthy
     networks:
       - apu_net
-    environment:
-      - FLASK_ENV=development
-      - REDIS_URL=redis://redis:6379/0
+    volumes:
+      - ../data:/app/data   # <--- CAMBIO: ../data para apuntar a la raíz real
+      - ../logs:/app/logs   # <--- CAMBIO: ../logs para apuntar a la raíz real
 
+  # 3. EL AGENTE (Agent)
   apu_agent:
     build:
-      context: .
+      context: ../          # <--- CAMBIO CLAVE
       dockerfile: infrastructure/Dockerfile.agent
     container_name: apu_agent
-    depends_on:
-      - apu_core
     environment:
       - CORE_API_URL=http://apu_core:5002
+      - PYTHONUNBUFFERED=1
+      # - LLM_API_KEY=${LLM_API_KEY}  # Descomentar cuando tengas la key
+    depends_on:
+      - apu_core
     networks:
       - apu_net
+    volumes:
+      - ../logs:/app/logs
 
 networks:
   apu_net:
