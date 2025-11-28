@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  redis:
+    image: docker.io/library/redis:7-alpine
+    container_name: apu_redis
+    ports:
+      - "6379:6379"
+    networks:
+      - apu_net
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  apu_core:
+    build:
+      context: .                      # Contexto es la carpeta actual (raíz)
+      dockerfile: infrastructure/Dockerfile.core
+    container_name: apu_core
+    ports:
+      - "5002:5002"
+    environment:
+      - REDIS_URL=redis://apu_redis:6379/0
+      - FLASK_ENV=production
+      - PYTHONUNBUFFERED=1
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - apu_net
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+
+  apu_agent:
+    build:
+      context: .                      # Contexto es la carpeta actual (raíz)
+      dockerfile: infrastructure/Dockerfile.agent
+    container_name: apu_agent
+    environment:
+      - CORE_API_URL=http://apu_core:5002
+      - PYTHONUNBUFFERED=1
+    depends_on:
+      - apu_core
+    networks:
+      - apu_net
+    volumes:
+      - ./logs:/app/logs
+
+networks:
+  apu_net:
+    driver: bridge

@@ -1,0 +1,34 @@
+=== Iniciando APU Filter (Podman) ===
+🚀 Construyendo y levantando...
+Traceback (most recent call last):
+  File "/home/gerardo/miniconda3/envs/apu_filter_env/bin/podman-compose", line 7, in <module>
+    sys.exit(main())
+  File "/home/gerardo/miniconda3/envs/apu_filter_env/lib/python3.10/site-packages/podman_compose.py", line 4256, in main
+    asyncio.run(async_main())
+  File "/home/gerardo/miniconda3/envs/apu_filter_env/lib/python3.10/asyncio/runners.py", line 44, in run
+    return loop.run_until_complete(main)
+  File "/home/gerardo/miniconda3/envs/apu_filter_env/lib/python3.10/asyncio/base_events.py", line 649, in run_until_complete
+    return future.result()
+  File "/home/gerardo/miniconda3/envs/apu_filter_env/lib/python3.10/site-packages/podman_compose.py", line 4252, in async_main
+    await podman_compose.run()
+  File "/home/gerardo/miniconda3/envs/apu_filter_env/lib/python3.10/site-packages/podman_compose.py", line 2072, in run
+    retcode = await cmd(self, args)
+  File "/home/gerardo/miniconda3/envs/apu_filter_env/lib/python3.10/site-packages/podman_compose.py", line 3111, in compose_up
+    build_exit_code = await compose.commands["build"](compose, build_args)
+  File "/home/gerardo/miniconda3/envs/apu_filter_env/lib/python3.10/site-packages/podman_compose.py", line 2986, in compose_build
+    s = await t
+  File "/home/gerardo/miniconda3/envs/apu_filter_env/lib/python3.10/asyncio/tasks.py", line 571, in _wait_for_one
+    return f.result()  # May raise f.exception().
+  File "/home/gerardo/miniconda3/envs/apu_filter_env/lib/python3.10/site-packages/podman_compose.py", line 2960, in build_one
+    build_args = container_to_build_args(
+  File "/home/gerardo/miniconda3/envs/apu_filter_env/lib/python3.10/site-packages/podman_compose.py", line 2902, in container_to_build_args
+    raise OSError(f"Dockerfile not found in {dockerfile}")
+OSError: Dockerfile not found in /home/gerardo/Documentos/GitHub/apu_filter/infrastructure/infrastructure/Dockerfile.core
+ERROR:asyncio:Task exception was never retrieved
+future: <Task finished name='Task-8' coro=<build_one() done, defined at /home/gerardo/miniconda3/envs/apu_filter_env/lib/python3.10/site-packages/podman_compose.py:2946> exception=OSError('Dockerfile not found in /home/gerardo/Documentos/GitHub/apu_filter/infrastructure/infrastructure/Dockerfile.agent')>
+Traceback (most recent call last):
+  File "/home/gerardo/miniconda3/envs/apu_filter_env/lib/python3.10/site-packages/podman_compose.py", line 2960, in build_one
+    build_args = container_to_build_args(
+  File "/home/gerardo/miniconda3/envs/apu_filter_env/lib/python3.10/site-packages/podman_compose.py", line 2902, in container_to_build_args
+    raise OSError(f"Dockerfile not found in {dockerfile}")
+OSError: Dockerfile not found in /home/gerardo/Documentos/GitHub/apu_filter/infrastructure/infrastructure/Dockerfile.agent
