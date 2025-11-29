@@ -21,7 +21,14 @@ COPY requirements.txt .
 
 # Instalar dependencias
 RUN pip install uv
-RUN uv pip install --system --no-cache-dir --index-url https://download.pytorch.org/whl/cpu --extra-index-url https://pypi.org/simple --requirement requirements.txt
+
+# PASO 1: Instalar PyTorch CPU explícitamente usando pip estándar
+# Esto garantiza que solo bajamos los binarios ligeros de CPU
+RUN pip install --no-cache-dir torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
+
+# PASO 2: Instalar el resto de dependencias con uv (rápido)
+# uv detectará que torch ya está instalado y lo respetará
+RUN uv pip install --system --no-cache-dir --requirement requirements.txt
 
 # Etapa 3: Aplicación
 FROM base AS final
