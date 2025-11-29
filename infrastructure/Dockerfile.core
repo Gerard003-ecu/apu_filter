@@ -21,7 +21,7 @@ COPY requirements.txt .
 
 # Instalar dependencias
 RUN pip install uv
-RUN uv pip install --system --no-cache-dir --index-url https://download.pytorch.org/whl/cpu --requirement requirements.txt
+RUN uv pip install --system --no-cache-dir --index-url https://download.pytorch.org/whl/cpu --extra-index-url https://pypi.org/simple --requirement requirements.txt
 
 # Etapa 3: Aplicación
 FROM base AS final
