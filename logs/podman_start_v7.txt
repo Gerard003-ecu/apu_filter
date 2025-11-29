@@ -1,0 +1,190 @@
+[2025-11-28 23:41:26] [INFO] === Iniciando Despliegue de APU Filter Ecosystem ===
+[2025-11-28 23:41:27] [INFO] Log file: ./logs/podman_start_20251128_234126.log
+[2025-11-28 23:41:27] [INFO] Limpiando contenedores previos...
+Error: no container with name or ID "apu_core" found: no such container
+Error: no container with name or ID "apu_agent" found: no such container
+Error: no container with name or ID "apu_redis" found: no such container
+Error: no container with ID or name "apu_agent" found: no such container
+Error: no container with ID or name "apu_core" found: no such container
+Error: no container with ID or name "apu_redis" found: no such container
+Error: no pod with name or ID pod_apu_filter found: no such pod
+[2025-11-28 23:41:30] [INFO] Construyendo imágenes (Core & Agent)...
+[1/3] STEP 1/5: FROM python:3.10-slim AS base
+[1/3] STEP 2/5: ENV PYTHONDONTWRITEBYTECODE 1
+--> Using cache 4a9040e2052d2a53030f71340b2874628d63c2d6f34f31145e70a48d5f1be333
+--> 4a9040e2052d
+[1/3] STEP 3/5: ENV PYTHONUNBUFFERED 1
+--> Using cache 7f3ff0b2f47da0a4369c6e88c830ffd828f1c75c40d92fda4faa14c4485de2f8
+--> 7f3ff0b2f47d
+[1/3] STEP 4/5: ENV FLASK_APP=app.app
+--> Using cache e2feacd8f2a007f9030a56bc07d82f6b00ab72d501ac08785d70e7caddf717c6
+--> e2feacd8f2a0
+[1/3] STEP 5/5: RUN addgroup --system apu_user && adduser --system --group apu_user
+--> Using cache 02b7f051bad167277f207993a8f09c8a1a7cc7456ea7306ecfd0ad452171fa6a
+--> 02b7f051bad1
+[2/3] STEP 1/6: FROM 02b7f051bad167277f207993a8f09c8a1a7cc7456ea7306ecfd0ad452171fa6a AS builder
+[2/3] STEP 2/6: WORKDIR /app
+--> Using cache be3116cc64f378a08a8b4d6d3f137daba31a7cb63f027b2843649133debfc46e
+--> be3116cc64f3
+[2/3] STEP 3/6: COPY requirements.txt .
+STEP 1/13: FROM python:3.10-slim
+STEP 2/13: WORKDIR /app
+--> Using cache 91b76dd98444da5255544d178d7f6dd7bea6d86f515fbe1d1c14687a6e3a37a6
+--> 91b76dd98444
+STEP 3/13: RUN useradd -ms /bin/bash apu_user
+--> Using cache 718fe36a5de4181bf85354277f3795cc343ed385e98e0ebd3ccdaafaec57cb12
+--> 718fe36a5de4
+STEP 4/13: COPY --chown=apu_user:apu_user agent/ /app/agent/
+--> Using cache 903165b630d61940ac5aedade551b9a2b35249c30036b1cda7e33426bb0b5fe6
+--> 903165b630d6
+[2/3] STEP 4/6: RUN pip install uv
+--> Using cache 962f57ae384a03117ad8654a14af6f7b3bf89389bbde3bad33d3c4a712fe6ffc
+--> 962f57ae384a
+[2/3] STEP 5/6: RUN pip install --no-cache-dir torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
+--> Using cache c3a769be02cbd56b91a602e9985cd9979191b59c8edbc1d4122b111e4833dca3
+--> c3a769be02cb
+STEP 5/13: COPY --chown=apu_user:apu_user requirements-agent.txt .
+--> Using cache 5b33684f6a58be88d41b8ae82a047616c9a5d256f730ca55eacfd7269ececed0
+--> 5b33684f6a58
+STEP 6/13: COPY --chown=apu_user:apu_user requirements.txt .
+Looking in indexes: https://download.pytorch.org/whl/cpu
+--> Using cache bdd5a3b243aa4d79fb748d251d5e2f23a80587a16d54ce315275864961a8e251
+--> bdd5a3b243aa
+STEP 7/13: RUN pip install uv
+Collecting torch
+  Obtaining dependency information for torch from https://download.pytorch.org/whl/cpu/torch-2.9.1%2Bcpu-cp310-cp310-manylinux_2_28_x86_64.whl.metadata
+  Downloading https://download.pytorch.org/whl/cpu/torch-2.9.1%2Bcpu-cp310-cp310-manylinux_2_28_x86_64.whl.metadata (29 kB)
+Collecting torchvision
+  Obtaining dependency information for torchvision from https://download.pytorch.org/whl/cpu/torchvision-0.24.1%2Bcpu-cp310-cp310-manylinux_2_28_x86_64.whl.metadata
+  Downloading https://download.pytorch.org/whl/cpu/torchvision-0.24.1%2Bcpu-cp310-cp310-manylinux_2_28_x86_64.whl.metadata (5.9 kB)
+Collecting torchaudio
+  Obtaining dependency information for torchaudio from https://download.pytorch.org/whl/cpu/torchaudio-2.9.1%2Bcpu-cp310-cp310-manylinux_2_28_x86_64.whl.metadata
+  Downloading https://download.pytorch.org/whl/cpu/torchaudio-2.9.1%2Bcpu-cp310-cp310-manylinux_2_28_x86_64.whl.metadata (6.9 kB)
+Collecting typing-extensions>=4.10.0
+  Obtaining dependency information for typing-extensions>=4.10.0 from https://download.pytorch.org/whl/typing_extensions-4.15.0-py3-none-any.whl.metadata
+  Downloading https://download.pytorch.org/whl/typing_extensions-4.15.0-py3-none-any.whl.metadata (3.3 kB)
+Discarding https://download.pytorch.org/whl/typing_extensions-4.15.0-py3-none-any.whl (from https://download.pytorch.org/whl/cpu/typing-extensions/): Requested typing-extensions>=4.10.0 from https://download.pytorch.org/whl/typing_extensions-4.15.0-py3-none-any.whl (from torch) has inconsistent Name: expected 'typing-extensions', but metadata has 'typing_extensions'
+  Obtaining dependency information for typing-extensions>=4.10.0 from https://download.pytorch.org/whl/typing_extensions-4.14.0-py3-none-any.whl.metadata
+  Downloading https://download.pytorch.org/whl/typing_extensions-4.14.0-py3-none-any.whl.metadata (3.0 kB)
+Discarding https://download.pytorch.org/whl/typing_extensions-4.14.0-py3-none-any.whl (from https://download.pytorch.org/whl/cpu/typing-extensions/): Requested typing-extensions>=4.10.0 from https://download.pytorch.org/whl/typing_extensions-4.14.0-py3-none-any.whl (from torch) has inconsistent Name: expected 'typing-extensions', but metadata has 'typing_extensions'
+  Obtaining dependency information for typing-extensions>=4.10.0 from https://download.pytorch.org/whl/typing_extensions-4.12.2-py3-none-any.whl.metadata
+  Downloading https://download.pytorch.org/whl/typing_extensions-4.12.2-py3-none-any.whl.metadata (3.0 kB)
+Discarding https://download.pytorch.org/whl/typing_extensions-4.12.2-py3-none-any.whl (from https://download.pytorch.org/whl/cpu/typing-extensions/): Requested typing-extensions>=4.10.0 from https://download.pytorch.org/whl/typing_extensions-4.12.2-py3-none-any.whl (from torch) has inconsistent Name: expected 'typing-extensions', but metadata has 'typing_extensions'
+Collecting torch
+  Obtaining dependency information for torch from https://download.pytorch.org/whl/cpu/torch-2.9.0%2Bcpu-cp310-cp310-manylinux_2_28_x86_64.whl.metadata
+  Downloading https://download.pytorch.org/whl/cpu/torch-2.9.0%2Bcpu-cp310-cp310-manylinux_2_28_x86_64.whl.metadata (29 kB)
+  Obtaining dependency information for torch from https://download.pytorch.org/whl/cpu/torch-2.8.0%2Bcpu-cp310-cp310-manylinux_2_28_x86_64.whl.metadata
+  Downloading https://download.pytorch.org/whl/cpu/torch-2.8.0%2Bcpu-cp310-cp310-manylinux_2_28_x86_64.whl.metadata (29 kB)
+  Obtaining dependency information for torch from https://download.pytorch.org/whl/cpu/torch-2.7.1%2Bcpu-cp310-cp310-manylinux_2_28_x86_64.whl.metadata
+  Downloading https://download.pytorch.org/whl/cpu/torch-2.7.1%2Bcpu-cp310-cp310-manylinux_2_28_x86_64.whl.metadata (27 kB)
+  Obtaining dependency information for torch from https://download.pytorch.org/whl/cpu/torch-2.7.0%2Bcpu-cp310-cp310-manylinux_2_28_x86_64.whl.metadata
+  Downloading https://download.pytorch.org/whl/cpu/torch-2.7.0%2Bcpu-cp310-cp310-manylinux_2_28_x86_64.whl.metadata (27 kB)
+  Obtaining dependency information for torch from https://download.pytorch.org/whl/cpu/torch-2.6.0%2Bcpu-cp310-cp310-linux_x86_64.whl.metadata
+  Downloading https://download.pytorch.org/whl/cpu/torch-2.6.0%2Bcpu-cp310-cp310-linux_x86_64.whl.metadata (26 kB)
+  Downloading https://download.pytorch.org/whl/cpu/torch-2.5.1%2Bcpu-cp310-cp310-linux_x86_64.whl (174.7 MB)
+Collecting uv
+  Downloading uv-0.9.13-py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (21.7 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 21.7/21.7 MB 435.3 kB/s eta 0:00:00
+Installing collected packages: uv
+Successfully installed uv-0.9.13
+WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv
+
+[notice] A new release of pip is available: 23.0.1 -> 25.3
+[notice] To update, run: pip install --upgrade pip
+--> d82c30db0b94
+STEP 8/13: RUN chown -R apu_user:apu_user /app
+--> 3a8500a51ce0
+STEP 9/13: USER apu_user
+--> 369bb6ab00d4
+STEP 10/13: RUN pip install --no-cache-dir torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
+Defaulting to user installation because normal site-packages is not writeable
+Looking in indexes: https://download.pytorch.org/whl/cpu
+Collecting torch
+  Obtaining dependency information for torch from https://download.pytorch.org/whl/cpu/torch-2.9.1%2Bcpu-cp310-cp310-manylinux_2_28_x86_64.whl.metadata
+  Downloading https://download.pytorch.org/whl/cpu/torch-2.9.1%2Bcpu-cp310-cp310-manylinux_2_28_x86_64.whl.metadata (29 kB)
+Collecting torchvision
+  Obtaining dependency information for torchvision from https://download.pytorch.org/whl/cpu/torchvision-0.24.1%2Bcpu-cp310-cp310-manylinux_2_28_x86_64.whl.metadata
+  Downloading https://download.pytorch.org/whl/cpu/torchvision-0.24.1%2Bcpu-cp310-cp310-manylinux_2_28_x86_64.whl.metadata (5.9 kB)
+Collecting torchaudio
+  Obtaining dependency information for torchaudio from https://download.pytorch.org/whl/cpu/torchaudio-2.9.1%2Bcpu-cp310-cp310-manylinux_2_28_x86_64.whl.metadata
+  Downloading https://download.pytorch.org/whl/cpu/torchaudio-2.9.1%2Bcpu-cp310-cp310-manylinux_2_28_x86_64.whl.metadata (6.9 kB)
+Collecting filelock
+  Obtaining dependency information for filelock from https://download.pytorch.org/whl/filelock-3.19.1-py3-none-any.whl.metadata
+  Downloading https://download.pytorch.org/whl/filelock-3.19.1-py3-none-any.whl.metadata (2.1 kB)
+Collecting sympy>=1.13.3
+  Obtaining dependency information for sympy>=1.13.3 from https://download.pytorch.org/whl/sympy-1.14.0-py3-none-any.whl.metadata
+  Downloading https://download.pytorch.org/whl/sympy-1.14.0-py3-none-any.whl.metadata (12 kB)
+Collecting fsspec>=0.8.5
+  Obtaining dependency information for fsspec>=0.8.5 from https://download.pytorch.org/whl/fsspec-2025.9.0-py3-none-any.whl.metadata
+  Downloading https://download.pytorch.org/whl/fsspec-2025.9.0-py3-none-any.whl.metadata (10 kB)
+Collecting networkx>=2.5.1
+  Obtaining dependency information for networkx>=2.5.1 from https://download.pytorch.org/whl/networkx-3.5-py3-none-any.whl.metadata
+  Downloading https://download.pytorch.org/whl/networkx-3.5-py3-none-any.whl.metadata (6.3 kB)
+Collecting jinja2
+  Obtaining dependency information for jinja2 from https://download.pytorch.org/whl/jinja2-3.1.6-py3-none-any.whl.metadata
+  Downloading https://download.pytorch.org/whl/jinja2-3.1.6-py3-none-any.whl.metadata (2.9 kB)
+Discarding https://download.pytorch.org/whl/jinja2-3.1.6-py3-none-any.whl (from https://download.pytorch.org/whl/cpu/jinja2/): Requested jinja2 from https://download.pytorch.org/whl/jinja2-3.1.6-py3-none-any.whl (from torch) has inconsistent Name: expected 'jinja2', but metadata has 'Jinja2'
+  Obtaining dependency information for jinja2 from https://download.pytorch.org/whl/Jinja2-3.1.4-py3-none-any.whl.metadata
+  Downloading https://download.pytorch.org/whl/Jinja2-3.1.4-py3-none-any.whl.metadata (2.6 kB)
+Discarding https://download.pytorch.org/whl/Jinja2-3.1.4-py3-none-any.whl#sha256=bc5dd2abb727a5319567b7a813e6a2e7318c39f4f487cfe6c89c6f9c7d25197d (from https://download.pytorch.org/whl/cpu/jinja2/): Requested jinja2 from https://download.pytorch.org/whl/Jinja2-3.1.4-py3-none-any.whl#sha256=bc5dd2abb727a5319567b7a813e6a2e7318c39f4f487cfe6c89c6f9c7d25197d (from torch) has inconsistent Name: expected 'jinja2', but metadata has 'Jinja2'
+  Downloading https://download.pytorch.org/whl/Jinja2-3.1.3-py3-none-any.whl (133 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 133.2/133.2 kB 1.1 MB/s eta 0:00:00
+Downloading https://download.pytorch.org/whl/numpy-2.1.2-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (16.3 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 16.3/16.3 MB 554.4 kB/s eta 0:00:00
+Installing collected packages: mpmath, typing-extensions, sympy, pillow, numpy, networkx, MarkupSafe, fsspec, filelock, jinja2, torch, torchvision, torchaudio
+  WARNING: The script isympy is installed in '/home/apu_user/.local/bin' which is not on PATH.
+  Consider adding this directory to PATH or, if you prefer to suppress this warning, use --no-warn-script-location.
+  WARNING: The scripts f2py and numpy-config are installed in '/home/apu_user/.local/bin' which is not on PATH.
+  Consider adding this directory to PATH or, if you prefer to suppress this warning, use --no-warn-script-location.
+Successfully installed MarkupSafe-2.1.5 filelock-3.19.1 fsspec-2025.9.0 jinja2-3.1.3 mpmath-1.3.0 networkx-3.3 numpy-2.1.2 pillow-11.3.0 sympy-1.13.1 torch-2.5.1+cpu torchaudio-2.5.1+cpu torchvision-0.20.1+cpu typing-extensions-4.9.0
+WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv
+  WARNING: The scripts convert-caffe2-to-onnx, convert-onnx-to-caffe2, torchfrtrace and torchrun are installed in '/home/apu_user/.local/bin' which is not on PATH.
+  Consider adding this directory to PATH or, if you prefer to suppress this warning, use --no-warn-script-location.
+Successfully installed MarkupSafe-2.1.5 filelock-3.19.1 fsspec-2025.9.0 jinja2-3.1.3 mpmath-1.3.0 networkx-3.3 numpy-2.1.2 pillow-11.3.0 sympy-1.13.1 torch-2.5.1+cpu torchaudio-2.5.1+cpu torchvision-0.20.1+cpu typing-extensions-4.9.0
+--> 137867e19405
+[2/3] STEP 6/6: RUN uv pip install --system --no-cache-dir --requirement requirements.txt
+Using Python 3.10.19 environment at: /usr/local
+Resolved 88 packages in 21.13s
+Downloading nvidia-cuda-nvrtc-cu12 (84.0MiB)
+Downloading nvidia-nvshmem-cu12 (118.9MiB)
+Downloading pandas (12.2MiB)
+Downloading transformers (11.4MiB)
+Downloading nvidia-cublas-cu12 (566.8MiB)
+Downloading cryptography (4.3MiB)
+Downloading nvidia-cufft-cu12 (184.2MiB)
+Downloading nvidia-cusparse-cu12 (274.9MiB)
+Downloading pygments (1.2MiB)
+Downloading pdfminer-six (5.4MiB)
+Downloading scikit-learn (9.2MiB)
+Downloading scipy (35.9MiB)
+Downloading nvidia-nccl-cu12 (307.4MiB)
+Downloading torch (858.1MiB)
+Downloading sympy (6.0MiB)
+Downloading triton (162.4MiB)
+Downloading nvidia-cusparselt-cu12 (273.9MiB)
+Downloading rapidfuzz (3.0MiB)
+Downloading pypdfium2 (2.9MiB)
+Downloading tokenizers (3.1MiB)
+Downloading nvidia-cuda-cupti-cu12 (9.8MiB)
+Downloading nvidia-nvjitlink-cu12 (37.4MiB)
+Downloading nvidia-cusolver-cu12 (255.1MiB)
+Downloading nvidia-cudnn-cu12 (674.0MiB)
+Downloading nvidia-cufile-cu12 (1.1MiB)
+Downloading hf-xet (3.2MiB)
+Downloading nvidia-curand-cu12 (60.7MiB)
+Traceback (most recent call last):
+  File "/home/gerardo/miniconda3/envs/apu_filter_env/bin/podman-compose", line 7, in <module>
+    sys.exit(main())
+  File "/home/gerardo/miniconda3/envs/apu_filter_env/lib/python3.10/site-packages/podman_compose.py", line 4256, in main
+    asyncio.run(async_main())
+  File "/home/gerardo/miniconda3/envs/apu_filter_env/lib/python3.10/asyncio/runners.py", line 44, in run
+    return loop.run_until_complete(main)
+  File "/home/gerardo/miniconda3/envs/apu_filter_env/lib/python3.10/asyncio/base_events.py", line 636, in run_until_complete
+    self.run_forever()
+  File "/home/gerardo/miniconda3/envs/apu_filter_env/lib/python3.10/asyncio/base_events.py", line 603, in run_forever
+    self._run_once()
+  File "/home/gerardo/miniconda3/envs/apu_filter_env/lib/python3.10/asyncio/base_events.py", line 1871, in _run_once
+    event_list = self._selector.select(timeout)
+  File "/home/gerardo/miniconda3/envs/apu_filter_env/lib/python3.10/selectors.py", line 469, in select
+    fd_event_list = self._selector.poll(timeout, max_ev)
+KeyboardInterrupt
