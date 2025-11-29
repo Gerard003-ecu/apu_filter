@@ -2,7 +2,7 @@
 #    uv pip compile requirements.in -o requirements.txt
 async-timeout>=4.0.3
     # via redis
-blinker==1.9.0
+blinker>=1.6
     # via flask
 cachelib==0.13.0
     # via flask-session
@@ -135,7 +135,7 @@ pyyaml==6.0.3
     #   transformers
 rapidfuzz==3.14.1
     # via levenshtein
-redis>=5.0.0
+redis>=5.0
     # via -r requirements.in
 regex==2025.11.3
     # via transformers

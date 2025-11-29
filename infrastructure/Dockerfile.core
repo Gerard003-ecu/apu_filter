@@ -15,14 +15,12 @@ FROM base AS builder
 # Instalar herramientas de construcción si son necesarias
 # RUN apt-get update && apt-get install -y --no-install-recommends gcc
 
-# Instalar uv
-RUN pip install uv
-
 # Copiar archivos de dependencias
 WORKDIR /app
 COPY requirements.txt .
 
 # Instalar dependencias
+RUN pip install uv
 RUN uv pip install --system --no-cache-dir --index-url https://download.pytorch.org/whl/cpu --requirement requirements.txt
 
 # Etapa 3: Aplicación
