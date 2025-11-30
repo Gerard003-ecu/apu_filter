@@ -21,6 +21,7 @@ python-Levenshtein
 
 # --- IA y Búsqueda Semántica ---
 sentence-transformers
+faiss-cpu
 # networkx a menudo tiene conflictos de versiones con torch/scikit-learn
 networkx<3.3
 
