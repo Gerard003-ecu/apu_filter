@@ -18,23 +18,28 @@ RUN echo "torch==2.5.1+cpu" > constraints.txt && \
     echo "torchvision==0.20.1+cpu" >> constraints.txt && \
     echo "torchaudio==2.5.1+cpu" >> constraints.txt
 
-# 5. Instalar el resto usando constraints
-# Agregamos --extra-index-url para que pueda verificar la metadata de torch cpu si es necesario
-RUN pip install --no-cache-dir -r requirements.txt -c constraints.txt --extra-index-url https://download.pytorch.org/whl/cpu
+# 5. Instalar uv (Acelerador)
+RUN pip install uv
 
-# 5. Crear usuario y cambiar permisos AL FINAL
+# 6. Instalar el resto usando uv (RÁPIDO) + Constraints (SEGURO)
+# uv respetará las versiones fijadas en constraints.txt (torch cpu)
+RUN uv pip install --system --no-cache-dir \
+    --requirement requirements.txt \
+    --constraint constraints.txt
+
+# 7. Crear usuario y cambiar permisos AL FINAL
 RUN useradd -ms /bin/bash apu_user && \
     chown -R apu_user:apu_user /app
 
-# 6. Cambiar a usuario no privilegiado
+# 8. Cambiar a usuario no privilegiado
 USER apu_user
 
-# 7. Copiar código
+# 9. Copiar código
 COPY --chown=apu_user:apu_user app/ /app/app/
 COPY --chown=apu_user:apu_user config/ /app/config/
 COPY --chown=apu_user:apu_user wsgi.py /app/wsgi.py
 
-# 8. Configuración final
+# 10. Configuración final
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONPATH=/app
 ENV FLASK_APP=app.app
