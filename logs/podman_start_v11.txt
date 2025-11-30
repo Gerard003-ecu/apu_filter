@@ -1,0 +1,548 @@
+[2025-11-30 16:56:45] [INFO] === Iniciando Despliegue de APU Filter Ecosystem ===
+[2025-11-30 16:56:45] [INFO] Log file: ./logs/podman_start_20251130_165645.log
+[2025-11-30 16:56:45] [INFO] Limpiando contenedores previos...
+podman-compose version: 1.0.6
+['podman', '--version', '']
+using podman version: 4.9.3
+** excluding:  set()
+podman stop -t 10 apu_agent
+Error: no container with name or ID "apu_agent" found: no such container
+exit code: 125
+podman stop -t 10 apu_core
+Error: no container with name or ID "apu_core" found: no such container
+exit code: 125
+podman stop -t 10 apu_redis
+Error: no container with name or ID "apu_redis" found: no such container
+exit code: 125
+podman rm apu_agent
+Error: no container with ID or name "apu_agent" found: no such container
+exit code: 1
+podman rm apu_core
+Error: no container with ID or name "apu_core" found: no such container
+exit code: 1
+podman rm apu_redis
+Error: no container with ID or name "apu_redis" found: no such container
+exit code: 1
+['podman', 'ps', '--filter', 'label=io.podman.compose.project=apu-filter', '-a', '--format', '{{ .Names }}']
+[2025-11-30 16:56:47] [INFO] Construyendo imágenes (Core & Agent)...
+podman-compose version: 1.0.6
+['podman', '--version', '']
+using podman version: 4.9.3
+podman build -f ./infrastructure/Dockerfile.core -t apu_filter_core:latest --build-arg WORKERS=4 --build-arg PORT=5002 --build-arg TIMEOUT=120 .
+STEP 1/29: FROM python:3.10-slim
+STEP 2/29: LABEL maintainer="equipo-desarrollo"       version="2.0"       description="Core API - Flask con PyTorch CPU"       service.port="5002"
+--> 7dc8900196fd
+STEP 3/29: ARG WORKERS=4
+--> e4aaa5033d3b
+STEP 4/29: ARG PORT=5002
+--> aafc9e3b0ea1
+STEP 5/29: ARG TIMEOUT=120
+--> 278106b495e8
+STEP 6/29: ENV PYTHONUNBUFFERED=1     PYTHONDONTWRITEBYTECODE=1     PYTHONPATH=/app     PIP_NO_CACHE_DIR=1     PIP_DISABLE_PIP_VERSION_CHECK=1     PIP_ROOT_USER_ACTION=ignore     FLASK_APP=app.app     FLASK_ENV=production     GUNICORN_WORKERS=${WORKERS}     GUNICORN_PORT=${PORT}     GUNICORN_TIMEOUT=${TIMEOUT}
+--> 73c7c9fc9111
+STEP 7/29: WORKDIR /app
+--> 9169df955649
+STEP 8/29: RUN apt-get update &&     apt-get install -y --no-install-recommends         curl     && apt-get clean     && rm -rf /var/lib/apt/lists/*
+Hit:1 http://deb.debian.org/debian trixie InRelease
+Get:2 http://deb.debian.org/debian trixie-updates InRelease [47.3 kB]
+Get:3 http://deb.debian.org/debian-security trixie-security InRelease [43.4 kB]
+Get:4 http://deb.debian.org/debian trixie/main amd64 Packages [9670 kB]
+Get:5 http://deb.debian.org/debian trixie-updates/main amd64 Packages [5412 B]
+Get:6 http://deb.debian.org/debian-security trixie-security/main amd64 Packages [76.0 kB]
+Fetched 9842 kB in 12s (789 kB/s)
+Reading package lists...
+Reading package lists...
+Building dependency tree...
+Reading state information...
+The following additional packages will be installed:
+  libbrotli1 libcom-err2 libcurl4t64 libgnutls30t64 libgssapi-krb5-2 libidn2-0
+  libk5crypto3 libkeyutils1 libkrb5-3 libkrb5support0 libldap2 libnghttp2-14
+  libnghttp3-9 libp11-kit0 libpsl5t64 librtmp1 libsasl2-2 libsasl2-modules-db
+  libssh2-1t64 libtasn1-6 libunistring5
+Suggested packages:
+  gnutls-bin krb5-doc krb5-user
+Recommended packages:
+  bash-completion krb5-locales libldap-common publicsuffix libsasl2-modules
+The following NEW packages will be installed:
+  curl libbrotli1 libcom-err2 libcurl4t64 libgnutls30t64 libgssapi-krb5-2
+  libidn2-0 libk5crypto3 libkeyutils1 libkrb5-3 libkrb5support0 libldap2
+  libnghttp2-14 libnghttp3-9 libp11-kit0 libpsl5t64 librtmp1 libsasl2-2
+  libsasl2-modules-db libssh2-1t64 libtasn1-6 libunistring5
+0 upgraded, 22 newly installed, 0 to remove and 0 not upgraded.
+Need to get 4882 kB of archives.
+After this operation, 14.7 MB of additional disk space will be used.
+Get:1 http://deb.debian.org/debian trixie/main amd64 libbrotli1 amd64 1.1.0-2+b7 [307 kB]
+Get:2 http://deb.debian.org/debian trixie/main amd64 libkrb5support0 amd64 1.21.3-5 [33.0 kB]
+Get:3 http://deb.debian.org/debian trixie/main amd64 libcom-err2 amd64 1.47.2-3+b3 [25.0 kB]
+Get:4 http://deb.debian.org/debian trixie/main amd64 libk5crypto3 amd64 1.21.3-5 [81.5 kB]
+Get:5 http://deb.debian.org/debian trixie/main amd64 libkeyutils1 amd64 1.6.3-6 [9456 B]
+Get:6 http://deb.debian.org/debian trixie/main amd64 libkrb5-3 amd64 1.21.3-5 [326 kB]
+Get:7 http://deb.debian.org/debian trixie/main amd64 libgssapi-krb5-2 amd64 1.21.3-5 [138 kB]
+Get:8 http://deb.debian.org/debian trixie/main amd64 libunistring5 amd64 1.3-2 [477 kB]
+Get:9 http://deb.debian.org/debian trixie/main amd64 libidn2-0 amd64 2.3.8-2 [109 kB]
+Get:10 http://deb.debian.org/debian trixie/main amd64 libsasl2-modules-db amd64 2.1.28+dfsg1-9 [19.8 kB]
+Get:11 http://deb.debian.org/debian trixie/main amd64 libsasl2-2 amd64 2.1.28+dfsg1-9 [57.5 kB]
+Get:12 http://deb.debian.org/debian trixie/main amd64 libldap2 amd64 2.6.10+dfsg-1 [194 kB]
+Get:13 http://deb.debian.org/debian trixie/main amd64 libnghttp2-14 amd64 1.64.0-1.1 [76.0 kB]
+Get:14 http://deb.debian.org/debian trixie/main amd64 libnghttp3-9 amd64 1.8.0-1 [67.7 kB]
+Get:15 http://deb.debian.org/debian trixie/main amd64 libpsl5t64 amd64 0.21.2-1.1+b1 [57.2 kB]
+Get:16 http://deb.debian.org/debian trixie/main amd64 libp11-kit0 amd64 0.25.5-3 [425 kB]
+Get:17 http://deb.debian.org/debian trixie/main amd64 libtasn1-6 amd64 4.20.0-2 [49.9 kB]
+Get:18 http://deb.debian.org/debian trixie/main amd64 libgnutls30t64 amd64 3.8.9-3 [1465 kB]
+Get:19 http://deb.debian.org/debian trixie/main amd64 librtmp1 amd64 2.4+20151223.gitfa8646d.1-2+b5 [58.8 kB]
+Get:20 http://deb.debian.org/debian trixie/main amd64 libssh2-1t64 amd64 1.11.1-1 [245 kB]
+Get:21 http://deb.debian.org/debian trixie/main amd64 libcurl4t64 amd64 8.14.1-2+deb13u2 [391 kB]
+Get:22 http://deb.debian.org/debian trixie/main amd64 curl amd64 8.14.1-2+deb13u2 [270 kB]
+debconf: unable to initialize frontend: Dialog
+debconf: (TERM is not set, so the dialog frontend is not usable.)
+debconf: falling back to frontend: Readline
+debconf: unable to initialize frontend: Readline
+debconf: (Can't locate Term/ReadLine.pm in @INC (you may need to install the Term::ReadLine module) (@INC entries checked: /etc/perl /usr/local/lib/x86_64-linux-gnu/perl/5.40.1 /usr/local/share/perl/5.40.1 /usr/lib/x86_64-linux-gnu/perl5/5.40 /usr/share/perl5 /usr/lib/x86_64-linux-gnu/perl-base /usr/lib/x86_64-linux-gnu/perl/5.40 /usr/share/perl/5.40 /usr/local/lib/site_perl) at /usr/share/perl5/Debconf/FrontEnd/Readline.pm line 8, <STDIN> line 22.)
+debconf: falling back to frontend: Teletype
+debconf: unable to initialize frontend: Teletype
+debconf: (This frontend requires a controlling tty.)
+debconf: falling back to frontend: Noninteractive
+Fetched 4882 kB in 5s (910 kB/s)
+Selecting previously unselected package libbrotli1:amd64.
+(Reading database ... 
+(Reading database ... 5%
+(Reading database ... 10%
+(Reading database ... 15%
+(Reading database ... 20%
+(Reading database ... 25%
+(Reading database ... 30%
+(Reading database ... 35%
+(Reading database ... 40%
+(Reading database ... 45%
+(Reading database ... 50%
+(Reading database ... 55%
+(Reading database ... 60%
+(Reading database ... 65%
+(Reading database ... 70%
+(Reading database ... 75%
+(Reading database ... 80%
+(Reading database ... 85%
+(Reading database ... 90%
+(Reading database ... 95%
+(Reading database ... 100%
+(Reading database ... 5644 files and directories currently installed.)
+Preparing to unpack .../00-libbrotli1_1.1.0-2+b7_amd64.deb ...
+Unpacking libbrotli1:amd64 (1.1.0-2+b7) ...
+Selecting previously unselected package libkrb5support0:amd64.
+Preparing to unpack .../01-libkrb5support0_1.21.3-5_amd64.deb ...
+Unpacking libkrb5support0:amd64 (1.21.3-5) ...
+Selecting previously unselected package libcom-err2:amd64.
+Preparing to unpack .../02-libcom-err2_1.47.2-3+b3_amd64.deb ...
+Unpacking libcom-err2:amd64 (1.47.2-3+b3) ...
+Selecting previously unselected package libk5crypto3:amd64.
+Preparing to unpack .../03-libk5crypto3_1.21.3-5_amd64.deb ...
+Unpacking libk5crypto3:amd64 (1.21.3-5) ...
+Selecting previously unselected package libkeyutils1:amd64.
+Preparing to unpack .../04-libkeyutils1_1.6.3-6_amd64.deb ...
+Unpacking libkeyutils1:amd64 (1.6.3-6) ...
+Selecting previously unselected package libkrb5-3:amd64.
+Preparing to unpack .../05-libkrb5-3_1.21.3-5_amd64.deb ...
+Unpacking libkrb5-3:amd64 (1.21.3-5) ...
+Selecting previously unselected package libgssapi-krb5-2:amd64.
+Preparing to unpack .../06-libgssapi-krb5-2_1.21.3-5_amd64.deb ...
+Unpacking libgssapi-krb5-2:amd64 (1.21.3-5) ...
+Selecting previously unselected package libunistring5:amd64.
+Preparing to unpack .../07-libunistring5_1.3-2_amd64.deb ...
+Unpacking libunistring5:amd64 (1.3-2) ...
+Selecting previously unselected package libidn2-0:amd64.
+Preparing to unpack .../08-libidn2-0_2.3.8-2_amd64.deb ...
+Unpacking libidn2-0:amd64 (2.3.8-2) ...
+Selecting previously unselected package libsasl2-modules-db:amd64.
+Preparing to unpack .../09-libsasl2-modules-db_2.1.28+dfsg1-9_amd64.deb ...
+Unpacking libsasl2-modules-db:amd64 (2.1.28+dfsg1-9) ...
+Selecting previously unselected package libsasl2-2:amd64.
+Preparing to unpack .../10-libsasl2-2_2.1.28+dfsg1-9_amd64.deb ...
+Unpacking libsasl2-2:amd64 (2.1.28+dfsg1-9) ...
+Selecting previously unselected package libldap2:amd64.
+Preparing to unpack .../11-libldap2_2.6.10+dfsg-1_amd64.deb ...
+Unpacking libldap2:amd64 (2.6.10+dfsg-1) ...
+Selecting previously unselected package libnghttp2-14:amd64.
+Preparing to unpack .../12-libnghttp2-14_1.64.0-1.1_amd64.deb ...
+Unpacking libnghttp2-14:amd64 (1.64.0-1.1) ...
+Selecting previously unselected package libnghttp3-9:amd64.
+Preparing to unpack .../13-libnghttp3-9_1.8.0-1_amd64.deb ...
+Unpacking libnghttp3-9:amd64 (1.8.0-1) ...
+Selecting previously unselected package libpsl5t64:amd64.
+Preparing to unpack .../14-libpsl5t64_0.21.2-1.1+b1_amd64.deb ...
+Unpacking libpsl5t64:amd64 (0.21.2-1.1+b1) ...
+Selecting previously unselected package libp11-kit0:amd64.
+Preparing to unpack .../15-libp11-kit0_0.25.5-3_amd64.deb ...
+Unpacking libp11-kit0:amd64 (0.25.5-3) ...
+Selecting previously unselected package libtasn1-6:amd64.
+Preparing to unpack .../16-libtasn1-6_4.20.0-2_amd64.deb ...
+Unpacking libtasn1-6:amd64 (4.20.0-2) ...
+Selecting previously unselected package libgnutls30t64:amd64.
+Preparing to unpack .../17-libgnutls30t64_3.8.9-3_amd64.deb ...
+Unpacking libgnutls30t64:amd64 (3.8.9-3) ...
+Selecting previously unselected package librtmp1:amd64.
+Preparing to unpack .../18-librtmp1_2.4+20151223.gitfa8646d.1-2+b5_amd64.deb ...
+Unpacking librtmp1:amd64 (2.4+20151223.gitfa8646d.1-2+b5) ...
+Selecting previously unselected package libssh2-1t64:amd64.
+Preparing to unpack .../19-libssh2-1t64_1.11.1-1_amd64.deb ...
+Unpacking libssh2-1t64:amd64 (1.11.1-1) ...
+Selecting previously unselected package libcurl4t64:amd64.
+Preparing to unpack .../20-libcurl4t64_8.14.1-2+deb13u2_amd64.deb ...
+Unpacking libcurl4t64:amd64 (8.14.1-2+deb13u2) ...
+Selecting previously unselected package curl.
+Preparing to unpack .../21-curl_8.14.1-2+deb13u2_amd64.deb ...
+Unpacking curl (8.14.1-2+deb13u2) ...
+Setting up libkeyutils1:amd64 (1.6.3-6) ...
+Setting up libbrotli1:amd64 (1.1.0-2+b7) ...
+Setting up libnghttp2-14:amd64 (1.64.0-1.1) ...
+Setting up libcom-err2:amd64 (1.47.2-3+b3) ...
+Setting up libkrb5support0:amd64 (1.21.3-5) ...
+Setting up libsasl2-modules-db:amd64 (2.1.28+dfsg1-9) ...
+Setting up libp11-kit0:amd64 (0.25.5-3) ...
+Setting up libunistring5:amd64 (1.3-2) ...
+Setting up libk5crypto3:amd64 (1.21.3-5) ...
+Setting up libsasl2-2:amd64 (2.1.28+dfsg1-9) ...
+Setting up libnghttp3-9:amd64 (1.8.0-1) ...
+Setting up libtasn1-6:amd64 (4.20.0-2) ...
+Setting up libkrb5-3:amd64 (1.21.3-5) ...
+Setting up libssh2-1t64:amd64 (1.11.1-1) ...
+Setting up libldap2:amd64 (2.6.10+dfsg-1) ...
+Setting up libidn2-0:amd64 (2.3.8-2) ...
+Setting up libgssapi-krb5-2:amd64 (1.21.3-5) ...
+Setting up libgnutls30t64:amd64 (3.8.9-3) ...
+Setting up libpsl5t64:amd64 (0.21.2-1.1+b1) ...
+Setting up librtmp1:amd64 (2.4+20151223.gitfa8646d.1-2+b5) ...
+Setting up libcurl4t64:amd64 (8.14.1-2+deb13u2) ...
+Setting up curl (8.14.1-2+deb13u2) ...
+Processing triggers for libc-bin (2.41-12) ...
+--> 9b6937e3ad53
+STEP 9/29: COPY requirements.txt ./
+--> d0eab6cc6ba2
+STEP 10/29: RUN sed -i -E '/^torch([>=<~!]|==|$)/d; /^torchvision/d; /^torchaudio/d'     requirements.txt &&     echo "=== requirements.txt (limpio) ===" &&     cat requirements.txt
+=== requirements.txt (limpio) ===
+# This file was autogenerated by uv via the following command:
+#    uv pip compile requirements.in -o requirements.txt
+async-timeout>=4.0.3
+    # via redis
+blinker>=1.6
+    # via flask
+cachelib>=0.13.0
+    # via flask-session
+certifi>=2025.10.5
+    # via requests
+cffi>=2.0.0
+    # via cryptography
+charset-normalizer>=2.1.1
+    # via
+    #   pdfminer-six
+    #   requests
+click>=8.2.1
+    # via flask
+cryptography>=46.0.3
+    # via pdfminer-six
+deprecated>=1.3.1
+    # via limits
+et-xmlfile>=2.0.0
+    # via openpyxl
+filelock>=3.20.0
+    # via
+    #   huggingface-hub
+    #   transformers
+flask>=3.1.2
+    # via
+    #   -r requirements.in
+    #   flask-cors
+    #   flask-limiter
+    #   flask-session
+flask-cors>=6.0.1
+    # via -r requirements.in
+flask-limiter>=4.0.0
+    # via -r requirements.in
+flask-session>=0.8.0
+    # via -r requirements.in
+fsspec>=2025.10.0
+    # via
+    #   huggingface-hub
+fuzzywuzzy>=0.18.0
+    # via -r requirements.in
+gunicorn>=23.0.0
+    # via -r requirements.in
+hf-xet>=1.2.0
+    # via huggingface-hub
+huggingface-hub>=0.36.0
+    # via
+    #   sentence-transformers
+    #   tokenizers
+    #   transformers
+idna>=3.11
+    # via requests
+itsdangerous>=2.2.0
+    # via flask
+jinja2>=3.1.6
+    # via
+    #   flask
+joblib>=1.5.2
+    # via scikit-learn
+lark>=1.3.1
+    # via -r requirements.in
+levenshtein>=0.27.1
+    # via python-levenshtein
+limits>=5.6.0
+    # via flask-limiter
+markdown-it-py>=4.0.0
+    # via rich
+markupsafe>=2.1.5
+    # via
+    #   flask
+    #   jinja2
+    #   werkzeug
+mdurl>=0.1.2
+    # via markdown-it-py
+mpmath>=1.3.0
+    # via sympy
+msgspec>=0.19.0
+    # via flask-session
+networkx>=3.2.1
+    # via
+    #   -r requirements.in
+numpy>=1.26.4
+    # via
+    #   -r requirements.in
+    #   pandas
+    #   scikit-learn
+    #   scipy
+    #   transformers
+    # via
+    # via
+    # via
+openpyxl>=3.1.5
+    # via -r requirements.in
+ordered-set>=4.1.0
+    # via flask-limiter
+packaging>=25.0
+    # via
+    #   gunicorn
+    #   huggingface-hub
+    #   limits
+    #   transformers
+pandas>=2.3.2
+    # via -r requirements.in
+pdfminer-six>=20251107
+    # via pdfplumber
+pdfplumber>=0.11.8
+    # via -r requirements.in
+pillow>=11.3.0
+    # via
+    #   pdfplumber
+    #   sentence-transformers
+psutil>=7.1.3
+    # via -r requirements.in
+pycparser>=2.23
+    # via cffi
+pygments>=2.19.2
+    # via rich
+pypdfium2>=5.0.0
+    # via pdfplumber
+python-dateutil>=2.9.0.post0
+    # via pandas
+python-dotenv>=0.21.0
+    # via -r requirements.in
+python-levenshtein>=0.27.1
+    # via -r requirements.in
+pytz>=2025.2
+    # via pandas
+pyyaml>=6.0.3
+    # via
+    #   huggingface-hub
+    #   transformers
+rapidfuzz>=3.14.1
+    # via levenshtein
+redis>=5.0
+    # via -r requirements.in
+regex>=2025.11.3
+    # via transformers
+requests>=2.32.5
+    # via
+    #   huggingface-hub
+    #   transformers
+rich>=14.2.0
+    # via flask-limiter
+safetensors>=0.6.2
+    # via transformers
+scikit-learn>=1.7.2
+    # via sentence-transformers
+scipy>=1.15.3
+    # via
+    #   scikit-learn
+    #   sentence-transformers
+sentence-transformers>=5.1.2
+    # via -r requirements.in
+six>=1.17.0
+    # via python-dateutil
+sympy>=1.14.0
+threadpoolctl>=3.6.0
+    # via scikit-learn
+tokenizers>=0.22.1
+    # via transformers
+    # via sentence-transformers
+tqdm>=4.67.1
+    # via
+    #   huggingface-hub
+    #   sentence-transformers
+    #   transformers
+transformers>=4.57.1
+    # via sentence-transformers
+typing-extensions>=4.15.0
+    # via
+    #   cryptography
+    #   flask-limiter
+    #   huggingface-hub
+    #   limits
+    #   sentence-transformers
+tzdata>=2025.2
+    # via pandas
+unidecode>=1.4.0
+    # via -r requirements.in
+urllib3>=2.5.0
+    # via requests
+werkzeug>=3.1.3
+    # via
+    #   flask
+    #   flask-cors
+wrapt>=2.0.1
+    # via deprecated
+--> c3242cfdfa9e
+STEP 11/29: RUN cat > constraints.txt << 'CONSTRAINTS_EOF'
+--> 3d7512c9e3b9
+STEP 12/29: torch==2.5.1+cpu
+time="2025-11-30T16:57:25-05:00" level=error msg="+(UNHANDLED LOGLEVEL) &imagebuilder.Step{Env:[]string{\"WORKERS=4\", \"PORT=5002\", \"TIMEOUT=120\", \"PATH=/usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin\", \"LANG=C.UTF-8\", \"GPG_KEY=A035C8C19219BA821ECEA86B64E628F8D684696D\", \"PYTHON_VERSION=3.10.19\", \"PYTHON_SHA256=c8f4a596572201d81dd7df91f70e177e19a70f1d489968b54b5fbbf29a97c076\", \"PYTHONUNBUFFERED=1\", \"PYTHONDONTWRITEBYTECODE=1\", \"PYTHONPATH=/app\", \"PIP_NO_CACHE_DIR=1\", \"PIP_DISABLE_PIP_VERSION_CHECK=1\", \"PIP_ROOT_USER_ACTION=ignore\", \"FLASK_APP=app.app\", \"FLASK_ENV=production\", \"GUNICORN_WORKERS=4\", \"GUNICORN_PORT=5002\", \"GUNICORN_TIMEOUT=120\"}, Command:\"torch==2.5.1+cpu\", Args:[]string{\"\"}, Flags:[]string(nil), Attrs:map[string]bool(nil), Message:\"TORCH==2.5.1+CPU \", Original:\"torch==2.5.1+cpu\"}"
+Error: building at STEP "TORCH==2.5.1+CPU ": Build error: Unknown instruction: "TORCH==2.5.1+CPU" &imagebuilder.Step{Env:[]string{"WORKERS=4", "PORT=5002", "TIMEOUT=120", "PATH=/usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin", "LANG=C.UTF-8", "GPG_KEY=A035C8C19219BA821ECEA86B64E628F8D684696D", "PYTHON_VERSION=3.10.19", "PYTHON_SHA256=c8f4a596572201d81dd7df91f70e177e19a70f1d489968b54b5fbbf29a97c076", "PYTHONUNBUFFERED=1", "PYTHONDONTWRITEBYTECODE=1", "PYTHONPATH=/app", "PIP_NO_CACHE_DIR=1", "PIP_DISABLE_PIP_VERSION_CHECK=1", "PIP_ROOT_USER_ACTION=ignore", "FLASK_APP=app.app", "FLASK_ENV=production", "GUNICORN_WORKERS=4", "GUNICORN_PORT=5002", "GUNICORN_TIMEOUT=120"}, Command:"torch==2.5.1+cpu", Args:[]string{""}, Flags:[]string(nil), Attrs:map[string]bool(nil), Message:"TORCH==2.5.1+CPU ", Original:"torch==2.5.1+cpu"}
+exit code: 125
+podman build -f ./infrastructure/Dockerfile.agent -t apu_filter_agent:latest .
+STEP 1/22: FROM python:3.10-slim
+STEP 2/22: LABEL maintainer="equipo-desarrollo"       version="2.0"       description="Agente orquestador con PyTorch CPU"
+--> 73117b467f59
+STEP 3/22: ENV PYTHONUNBUFFERED=1     PYTHONDONTWRITEBYTECODE=1     PYTHONPATH=/app     PIP_NO_CACHE_DIR=1     PIP_DISABLE_PIP_VERSION_CHECK=1     PIP_ROOT_USER_ACTION=ignore
+--> aa59e8e8debb
+STEP 4/22: WORKDIR /app
+--> afc3edd010c3
+STEP 5/22: COPY requirements.txt requirements-agent.txt ./
+--> 8707e088f704
+STEP 6/22: RUN sed -i -E '/^torch([>=<~!]|$)/d; /^torchvision/d; /^torchaudio/d'     requirements.txt requirements-agent.txt
+--> ddb8ebeee387
+STEP 7/22: RUN cat > constraints.txt << 'CONSTRAINTS_EOF'
+--> cc2be7d97b22
+STEP 8/22: torch==2.5.1+cpu
+time="2025-11-30T16:57:29-05:00" level=error msg="+(UNHANDLED LOGLEVEL) &imagebuilder.Step{Env:[]string{\"PATH=/usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin\", \"LANG=C.UTF-8\", \"GPG_KEY=A035C8C19219BA821ECEA86B64E628F8D684696D\", \"PYTHON_VERSION=3.10.19\", \"PYTHON_SHA256=c8f4a596572201d81dd7df91f70e177e19a70f1d489968b54b5fbbf29a97c076\", \"PYTHONUNBUFFERED=1\", \"PYTHONDONTWRITEBYTECODE=1\", \"PYTHONPATH=/app\", \"PIP_NO_CACHE_DIR=1\", \"PIP_DISABLE_PIP_VERSION_CHECK=1\", \"PIP_ROOT_USER_ACTION=ignore\"}, Command:\"torch==2.5.1+cpu\", Args:[]string{\"\"}, Flags:[]string(nil), Attrs:map[string]bool(nil), Message:\"TORCH==2.5.1+CPU \", Original:\"torch==2.5.1+cpu\"}"
+Error: building at STEP "TORCH==2.5.1+CPU ": Build error: Unknown instruction: "TORCH==2.5.1+CPU" &imagebuilder.Step{Env:[]string{"PATH=/usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin", "LANG=C.UTF-8", "GPG_KEY=A035C8C19219BA821ECEA86B64E628F8D684696D", "PYTHON_VERSION=3.10.19", "PYTHON_SHA256=c8f4a596572201d81dd7df91f70e177e19a70f1d489968b54b5fbbf29a97c076", "PYTHONUNBUFFERED=1", "PYTHONDONTWRITEBYTECODE=1", "PYTHONPATH=/app", "PIP_NO_CACHE_DIR=1", "PIP_DISABLE_PIP_VERSION_CHECK=1", "PIP_ROOT_USER_ACTION=ignore"}, Command:"torch==2.5.1+cpu", Args:[]string{""}, Flags:[]string(nil), Attrs:map[string]bool(nil), Message:"TORCH==2.5.1+CPU ", Original:"torch==2.5.1+cpu"}
+exit code: 125
+[2025-11-30 16:57:30] [SUCCESS] Imágenes construidas.
+[2025-11-30 16:57:30] [INFO] Levantando servicios...
+podman-compose version: 1.0.6
+['podman', '--version', '']
+using podman version: 4.9.3
+** excluding:  set()
+['podman', 'inspect', '-t', 'image', '-f', '{{.Id}}', 'apu_filter_core:latest']
+Error: apu_filter_core:latest: image not known
+podman build -f ./infrastructure/Dockerfile.core -t apu_filter_core:latest --build-arg WORKERS=4 --build-arg PORT=5002 --build-arg TIMEOUT=120 .
+STEP 1/29: FROM python:3.10-slim
+STEP 2/29: LABEL maintainer="equipo-desarrollo"       version="2.0"       description="Core API - Flask con PyTorch CPU"       service.port="5002"
+--> Using cache 7dc8900196fdeaf8c3517e46962d3e8d7be18b54d7b23e50ebc6778eac225977
+--> 7dc8900196fd
+STEP 3/29: ARG WORKERS=4
+--> Using cache e4aaa5033d3b406ec7fd71a8790ce1c6ce7611a7b14a0738b8ca19b234395ef4
+--> e4aaa5033d3b
+STEP 4/29: ARG PORT=5002
+--> Using cache aafc9e3b0ea1ac1c3a1c7a229b2c40668660a20ac9900352edd50b24e2bd2814
+--> aafc9e3b0ea1
+STEP 5/29: ARG TIMEOUT=120
+--> Using cache 278106b495e85a5e336041a5b54380d57be23929852d5321a7ce2afdabf3cf1a
+--> 278106b495e8
+STEP 6/29: ENV PYTHONUNBUFFERED=1     PYTHONDONTWRITEBYTECODE=1     PYTHONPATH=/app     PIP_NO_CACHE_DIR=1     PIP_DISABLE_PIP_VERSION_CHECK=1     PIP_ROOT_USER_ACTION=ignore     FLASK_APP=app.app     FLASK_ENV=production     GUNICORN_WORKERS=${WORKERS}     GUNICORN_PORT=${PORT}     GUNICORN_TIMEOUT=${TIMEOUT}
+--> Using cache 73c7c9fc9111a87f13383e17f773cd20e08cffabfafcd2523dbef822fbfed349
+--> 73c7c9fc9111
+STEP 7/29: WORKDIR /app
+--> Using cache 9169df955649ba5494088a72474437901eb0d5cd1282f3e497898e8d323ea186
+--> 9169df955649
+STEP 8/29: RUN apt-get update &&     apt-get install -y --no-install-recommends         curl     && apt-get clean     && rm -rf /var/lib/apt/lists/*
+--> Using cache 9b6937e3ad5309e3690b24330b44780547ebd60e8400b75779095a973112041a
+--> 9b6937e3ad53
+STEP 9/29: COPY requirements.txt ./
+--> Using cache d0eab6cc6ba2aa401293c446141e2e26583e0e2b9a92ce8d6681e421b62ece62
+--> d0eab6cc6ba2
+STEP 10/29: RUN sed -i -E '/^torch([>=<~!]|==|$)/d; /^torchvision/d; /^torchaudio/d'     requirements.txt &&     echo "=== requirements.txt (limpio) ===" &&     cat requirements.txt
+--> Using cache c3242cfdfa9e107b16ab94767879264b6d2407cbc1fc982dfad484df78f561c1
+--> c3242cfdfa9e
+STEP 11/29: RUN cat > constraints.txt << 'CONSTRAINTS_EOF'
+--> Using cache 3d7512c9e3b9e47fc028bd2741dee66e2db563f1bc45aa9b14139dc910dc33f5
+--> 3d7512c9e3b9
+STEP 12/29: torch==2.5.1+cpu
+time="2025-11-30T16:57:32-05:00" level=error msg="+(UNHANDLED LOGLEVEL) &imagebuilder.Step{Env:[]string{\"WORKERS=4\", \"PORT=5002\", \"TIMEOUT=120\", \"PATH=/usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin\", \"LANG=C.UTF-8\", \"GPG_KEY=A035C8C19219BA821ECEA86B64E628F8D684696D\", \"PYTHON_VERSION=3.10.19\", \"PYTHON_SHA256=c8f4a596572201d81dd7df91f70e177e19a70f1d489968b54b5fbbf29a97c076\", \"PYTHONUNBUFFERED=1\", \"PYTHONDONTWRITEBYTECODE=1\", \"PYTHONPATH=/app\", \"PIP_NO_CACHE_DIR=1\", \"PIP_DISABLE_PIP_VERSION_CHECK=1\", \"PIP_ROOT_USER_ACTION=ignore\", \"FLASK_APP=app.app\", \"FLASK_ENV=production\", \"GUNICORN_WORKERS=4\", \"GUNICORN_PORT=5002\", \"GUNICORN_TIMEOUT=120\"}, Command:\"torch==2.5.1+cpu\", Args:[]string{\"\"}, Flags:[]string(nil), Attrs:map[string]bool(nil), Message:\"TORCH==2.5.1+CPU \", Original:\"torch==2.5.1+cpu\"}"
+Error: building at STEP "TORCH==2.5.1+CPU ": Build error: Unknown instruction: "TORCH==2.5.1+CPU" &imagebuilder.Step{Env:[]string{"WORKERS=4", "PORT=5002", "TIMEOUT=120", "PATH=/usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin", "LANG=C.UTF-8", "GPG_KEY=A035C8C19219BA821ECEA86B64E628F8D684696D", "PYTHON_VERSION=3.10.19", "PYTHON_SHA256=c8f4a596572201d81dd7df91f70e177e19a70f1d489968b54b5fbbf29a97c076", "PYTHONUNBUFFERED=1", "PYTHONDONTWRITEBYTECODE=1", "PYTHONPATH=/app", "PIP_NO_CACHE_DIR=1", "PIP_DISABLE_PIP_VERSION_CHECK=1", "PIP_ROOT_USER_ACTION=ignore", "FLASK_APP=app.app", "FLASK_ENV=production", "GUNICORN_WORKERS=4", "GUNICORN_PORT=5002", "GUNICORN_TIMEOUT=120"}, Command:"torch==2.5.1+cpu", Args:[]string{""}, Flags:[]string(nil), Attrs:map[string]bool(nil), Message:"TORCH==2.5.1+CPU ", Original:"torch==2.5.1+cpu"}
+exit code: 125
+['podman', 'inspect', '-t', 'image', '-f', '{{.Id}}', 'apu_filter_agent:latest']
+Error: apu_filter_agent:latest: image not known
+podman build -f ./infrastructure/Dockerfile.agent -t apu_filter_agent:latest .
+STEP 1/22: FROM python:3.10-slim
+STEP 2/22: LABEL maintainer="equipo-desarrollo"       version="2.0"       description="Agente orquestador con PyTorch CPU"
+--> Using cache 73117b467f59a0dc905a6c6cb97f74f5f201dd0c65f8a1d62a30cc6061acd5aa
+--> 73117b467f59
+STEP 3/22: ENV PYTHONUNBUFFERED=1     PYTHONDONTWRITEBYTECODE=1     PYTHONPATH=/app     PIP_NO_CACHE_DIR=1     PIP_DISABLE_PIP_VERSION_CHECK=1     PIP_ROOT_USER_ACTION=ignore
+--> Using cache aa59e8e8debbefce59624240b3a94ee230aec36a8ab8095946cc5a8602a503bd
+--> aa59e8e8debb
+STEP 4/22: WORKDIR /app
+--> Using cache afc3edd010c35cd4a753a1a07b259b8ba9318a19b3dc6fb4b613de09b01663ca
+--> afc3edd010c3
+STEP 5/22: COPY requirements.txt requirements-agent.txt ./
+--> Using cache 8707e088f7044b42ef34e9d239b72265dfa5e491e940c110480458d034e80ed5
+--> 8707e088f704
+STEP 6/22: RUN sed -i -E '/^torch([>=<~!]|$)/d; /^torchvision/d; /^torchaudio/d'     requirements.txt requirements-agent.txt
+--> Using cache ddb8ebeee3872d9c0dda85a6a930fc992a77ac72e025085b4a6f426255237e09
+--> ddb8ebeee387
+STEP 7/22: RUN cat > constraints.txt << 'CONSTRAINTS_EOF'
+--> Using cache cc2be7d97b224e952251dcdb80c4270c4faff468ce30fba6d7155639a68de2f3
+--> cc2be7d97b22
+STEP 8/22: torch==2.5.1+cpu
+time="2025-11-30T16:57:33-05:00" level=error msg="+(UNHANDLED LOGLEVEL) &imagebuilder.Step{Env:[]string{\"PATH=/usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin\", \"LANG=C.UTF-8\", \"GPG_KEY=A035C8C19219BA821ECEA86B64E628F8D684696D\", \"PYTHON_VERSION=3.10.19\", \"PYTHON_SHA256=c8f4a596572201d81dd7df91f70e177e19a70f1d489968b54b5fbbf29a97c076\", \"PYTHONUNBUFFERED=1\", \"PYTHONDONTWRITEBYTECODE=1\", \"PYTHONPATH=/app\", \"PIP_NO_CACHE_DIR=1\", \"PIP_DISABLE_PIP_VERSION_CHECK=1\", \"PIP_ROOT_USER_ACTION=ignore\"}, Command:\"torch==2.5.1+cpu\", Args:[]string{\"\"}, Flags:[]string(nil), Attrs:map[string]bool(nil), Message:\"TORCH==2.5.1+CPU \", Original:\"torch==2.5.1+cpu\"}"
+Error: building at STEP "TORCH==2.5.1+CPU ": Build error: Unknown instruction: "TORCH==2.5.1+CPU" &imagebuilder.Step{Env:[]string{"PATH=/usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin", "LANG=C.UTF-8", "GPG_KEY=A035C8C19219BA821ECEA86B64E628F8D684696D", "PYTHON_VERSION=3.10.19", "PYTHON_SHA256=c8f4a596572201d81dd7df91f70e177e19a70f1d489968b54b5fbbf29a97c076", "PYTHONUNBUFFERED=1", "PYTHONDONTWRITEBYTECODE=1", "PYTHONPATH=/app", "PIP_NO_CACHE_DIR=1", "PIP_DISABLE_PIP_VERSION_CHECK=1", "PIP_ROOT_USER_ACTION=ignore"}, Command:"torch==2.5.1+cpu", Args:[]string{""}, Flags:[]string(nil), Attrs:map[string]bool(nil), Message:"TORCH==2.5.1+CPU ", Original:"torch==2.5.1+cpu"}
+exit code: 125
+['podman', 'ps', '--filter', 'label=io.podman.compose.project=apu-filter', '-a', '--format', '{{ index .Labels "io.podman.compose.config-hash"}}']
+podman volume inspect apu_redis_data || podman volume create apu_redis_data
+['podman', 'volume', 'inspect', 'apu_redis_data']
+Error: no such volume apu_redis_data
+['podman', 'volume', 'create', '--label', 'io.podman.compose.project=apu-filter', '--label', 'com.docker.compose.project=apu-filter', '--driver', 'local', 'apu_redis_data']
+['podman', 'volume', 'inspect', 'apu_redis_data']
+['podman', 'network', 'exists', 'apu_network']
+['podman', 'network', 'create', '--label', 'io.podman.compose.project=apu-filter', '--label', 'com.docker.compose.project=apu-filter', '--driver', 'bridge', '--subnet', '172.28.0.0/16', 'apu_network']
+['podman', 'network', 'exists', 'apu_network']
+podman run --name=apu_redis -d --label io.podman.compose.config-hash=9fc007ead89c644d40282f7646e669cb97a687004c70bcffbf7318dcc6fa03f4 --label io.podman.compose.project=apu-filter --label io.podman.compose.version=1.0.6 --label PODMAN_SYSTEMD_UNIT=podman-compose@apu-filter.service --label com.docker.compose.project=apu-filter --label com.docker.compose.project.working_dir=/home/gerardo/Documentos/GitHub/apu_filter --label com.docker.compose.project.config_files=compose.yaml --label com.docker.compose.container-number=1 --label com.docker.compose.service=redis -v apu_redis_data:/data:Z --net apu_network --network-alias redis -p 6379:6379 --hostname apu_redis --restart unless-stopped --cpus 0.5 -m 512m --memory-reservation 128m --healthcheck-command /bin/sh -c redis-cli' 'ping --healthcheck-interval 10s --healthcheck-timeout 5s --healthcheck-start-period 10s --healthcheck-retries 5 docker.io/library/redis:7-alpine redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+Trying to pull docker.io/library/redis:7-alpine...
+Getting image source signatures
+Copying blob sha256:232f7549c9b07a752bb00c7d7a61b3bfe6af3f15a711ba643c132f0e51922a64
+Copying blob sha256:60c57c0072ef228501beec5a8bee0d7ecc882dee9afd91fc7a58e3f9d9da64c5
+Copying blob sha256:f637881d1138581d892d9eb942c56e0ccc7758fe3bdc0f1e6cd66059fdfd8185
+Copying blob sha256:380e8aa8b1fdbd2887f9b1fa3e9d3cba192f9ff87956981dc8bd73cc6da39bfc
+Copying blob sha256:fc4343b4accd46fa853b1de6ee0ca92ab1f7080db3af6c4948678534d69cc159
+Copying blob sha256:c70aae7b5e0d75367bcf5d40074ae8e28d17793c251e0d505321aa8ea4fd91fd
+Copying blob sha256:4f4fb700ef54461cfa02571ae0db9a0dc1e0cdb5577484a6d75e68dc38e8acc1
+Copying blob sha256:d75b3becd998021da3bbfcb31fa6580676396f5244243670f57920652cce8038
+Copying config sha256:13105d2858ded45aedf7b24f0870e6a4e7ce4964924bffce68e562ca72149f1e
+Writing manifest to image destination
+dcced7ce75e17cb8dd85da93b224469427126c7b1458d9626fdc28325993221c
+exit code: 0
+['podman', 'network', 'exists', 'apu_network']
+podman run --name=apu_core -d --requires=apu_redis --label io.podman.compose.config-hash=9fc007ead89c644d40282f7646e669cb97a687004c70bcffbf7318dcc6fa03f4 --label io.podman.compose.project=apu-filter --label io.podman.compose.version=1.0.6 --label PODMAN_SYSTEMD_UNIT=podman-compose@apu-filter.service --label com.docker.compose.project=apu-filter --label com.docker.compose.project.working_dir=/home/gerardo/Documentos/GitHub/apu_filter --label com.docker.compose.project.config_files=compose.yaml --label com.docker.compose.container-number=1 --label com.docker.compose.service=apu_core --env-file /home/gerardo/Documentos/GitHub/apu_filter/.env -e REDIS_URL=redis://apu_redis:6379/0 -e FLASK_ENV=production -e FLASK_APP=app.app -e PYTHONUNBUFFERED=1 -e PYTHONPATH=/app -e GUNICORN_WORKERS=4 -e GUNICORN_PORT=5002 -e GUNICORN_TIMEOUT=120 -e LOG_LEVEL=info -v /home/gerardo/Documentos/GitHub/apu_filter/data:/app/data:Z -v /home/gerardo/Documentos/GitHub/apu_filter/logs:/app/logs:Z -v /home/gerardo/Documentos/GitHub/apu_filter/config:/app/config:Z,ro --net apu_network --network-alias apu_core -p 5002:5002 --hostname apu_core --pull never --restart unless-stopped --cpus 2.0 -m 4g --memory-reservation 2g --healthcheck-command /bin/sh -c curl' '-f' 'http://localhost:5002/health --healthcheck-interval 30s --healthcheck-timeout 10s --healthcheck-start-period 60s --healthcheck-retries 3 apu_filter_core:latest
+Error: apu_filter_core:latest: image not known
+exit code: 125
+podman start apu_core
+Error: no container with name or ID "apu_core" found: no such container
+exit code: 125
+['podman', 'network', 'exists', 'apu_network']
+podman run --name=apu_agent -d --requires=apu_core,apu_redis --label io.podman.compose.config-hash=9fc007ead89c644d40282f7646e669cb97a687004c70bcffbf7318dcc6fa03f4 --label io.podman.compose.project=apu-filter --label io.podman.compose.version=1.0.6 --label PODMAN_SYSTEMD_UNIT=podman-compose@apu-filter.service --label com.docker.compose.project=apu-filter --label com.docker.compose.project.working_dir=/home/gerardo/Documentos/GitHub/apu_filter --label com.docker.compose.project.config_files=compose.yaml --label com.docker.compose.container-number=1 --label com.docker.compose.service=apu_agent --env-file /home/gerardo/Documentos/GitHub/apu_filter/.env -e CORE_API_URL=http://apu_core:5002 -e REDIS_URL=redis://apu_redis:6379/0 -e PYTHONUNBUFFERED=1 -e PYTHONPATH=/app -e LOG_LEVEL=info -v /home/gerardo/Documentos/GitHub/apu_filter/logs:/app/logs:Z -v /home/gerardo/Documentos/GitHub/apu_filter/data:/app/data:Z,ro --net apu_network --network-alias apu_agent --hostname apu_agent --pull never --restart unless-stopped --cpus 1.0 -m 2g --memory-reservation 1g --healthcheck-command /bin/sh -c python' '-c' ''import sys; sys.exit(0)' --healthcheck-interval 30s --healthcheck-timeout 10s --healthcheck-start-period 30s --healthcheck-retries 3 apu_filter_agent:latest
+Error: apu_filter_agent:latest: image not known
+exit code: 125
+podman start apu_agent
+Error: no container with name or ID "apu_agent" found: no such container
+exit code: 125
+[2025-11-30 16:58:01] [INFO] Esperando estabilización (10s)...
+[2025-11-30 16:58:11] [INFO] Estado de los contenedores:
+[2025-11-30 16:58:13] [SUCCESS] === APU Filter Ecosystem Operativo ===
