@@ -1,62 +1,39 @@
-# Etapa 1: Base
-FROM python:3.10-slim AS base
+FROM python:3.10-slim
 
-# Definir variables de entorno
-ENV PYTHONDONTWRITEBYTECODE 1
-ENV PYTHONUNBUFFERED 1
-ENV FLASK_APP=app.app
-
-# Crear usuario no-root
-RUN addgroup --system apu_user && adduser --system --group apu_user
-
-# Etapa 2: Dependencias
-FROM base AS builder
-
-# Instalar herramientas de construcción si son necesarias
-# RUN apt-get update && apt-get install -y --no-install-recommends gcc
-
-# Copiar archivos de dependencias
 WORKDIR /app
-COPY requirements.txt .
 
-# Instalar dependencias
+# 1. Instalar herramientas base y uv como ROOT
 RUN pip install uv
 
-# PASO 1: Instalar PyTorch CPU explícitamente usando pip estándar
-# Esto garantiza que solo bajamos los binarios ligeros de CPU
+# 2. Instalar Torch CPU LIGERO (Forzado)
+# Usamos pip estándar con --no-cache-dir para ahorrar espacio
 RUN pip install --no-cache-dir torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
 
-# PASO 2: Instalar el resto de dependencias con uv (rápido)
-# Usamos "Doble Candado": Forzamos índice CPU también aquí para evitar que
-# uv resuelva versiones de PyPI (con CUDA) para dependencias transitivas.
-RUN uv pip install --system --no-cache-dir \
-    --index-url https://download.pytorch.org/whl/cpu \
-    --extra-index-url https://pypi.org/simple \
-    --requirement requirements.txt
+# 3. Copiar requirements
+COPY requirements.txt .
 
-# Etapa 3: Aplicación
-FROM base AS final
+# 4. Instalar resto de dependencias con uv como ROOT
+# Usamos --system para instalar globalmente
+# IMPORTANTE: No reinstalar torch
+RUN uv pip install --system --no-cache-dir --requirement requirements.txt
 
-# Crear directorio de la aplicación
-WORKDIR /app
+# 5. Crear usuario y cambiar permisos AL FINAL
+RUN useradd -ms /bin/bash apu_user && \
+    chown -R apu_user:apu_user /app
 
-# Copiar dependencias instaladas de la etapa anterior
-COPY --from=builder /usr/local/lib/python3.10/site-packages /usr/local/lib/python3.10/site-packages
-COPY --from=builder /usr/local/bin /usr/local/bin
-
-# Copiar código de la aplicación
-COPY app/ ./app
-COPY config/ ./config
-COPY wsgi.py .
-
-# Cambiar propietario de los archivos
-RUN chown -R apu_user:apu_user /app
-
-# Cambiar a usuario no-root
+# 6. Cambiar a usuario no privilegiado
 USER apu_user
 
-# Exponer el puerto
+# 7. Copiar código
+COPY --chown=apu_user:apu_user app/ /app/app/
+COPY --chown=apu_user:apu_user config/ /app/config/
+COPY --chown=apu_user:apu_user wsgi.py /app/wsgi.py
+
+# 8. Configuración final
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONPATH=/app
+ENV FLASK_APP=app.app
 EXPOSE 5002
 
-# Comando de ejecución
+# Entrypoint
 CMD ["gunicorn", "--workers", "4", "--bind", "0.0.0.0:5002", "wsgi:app"]
