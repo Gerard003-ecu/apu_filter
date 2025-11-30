@@ -44,16 +44,13 @@ RUN sed -i -E '/^torch([>=<~!]|$)/d; /^torchvision/d; /^torchaudio/d' \
     requirements.txt requirements-agent.txt
 
 # =============================================================================
-# FASE 2: CREAR ARCHIVO DE CONSTRAINTS (CANDADO DE VERSIONES)
+# FASE 2: CREAR ARCHIVO DE CONSTRAINTS (Sintaxis segura)
 # =============================================================================
 # Este archivo BLOQUEA las versiones de PyTorch para que ningún
 # instalador (pip, uv) pueda cambiarlas accidentalmente
-RUN cat > constraints.txt << 'CONSTRAINTS_EOF'
-# === VERSIONES BLOQUEADAS - NO MODIFICAR ===
-torch==2.5.1+cpu
-torchvision==0.20.1+cpu
-torchaudio==2.5.1+cpu
-CONSTRAINTS_EOF
+RUN echo "torch==2.5.1+cpu" > constraints.txt && \
+    echo "torchvision==0.20.1+cpu" >> constraints.txt && \
+    echo "torchaudio==2.5.1+cpu" >> constraints.txt
 
 # =============================================================================
 # FASE 3: INSTALAR PyTorch CPU (pip vanilla - más estable para PyTorch)
