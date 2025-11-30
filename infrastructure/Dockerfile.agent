@@ -1,52 +1,155 @@
+# =============================================================================
+# DOCKERFILE OPTIMIZADO - Agente con PyTorch CPU
+# =============================================================================
+# Versión: 2.0
+# Resuelve:
+#   ✓ Conflictos de índices PyPI vs PyTorch (certifi, urllib3, etc.)
+#   ✓ Bloqueo estricto de versiones PyTorch CPU
+#   ✓ Instalación rápida con uv
+#   ✓ Seguridad con usuario no privilegiado
+#   ✓ Optimización de capas de cache
+# =============================================================================
+
 FROM python:3.10-slim
+
+# -----------------------------------------------------------------------------
+# METADATOS
+# -----------------------------------------------------------------------------
+LABEL maintainer="equipo-desarrollo" \
+      version="2.0" \
+      description="Agente orquestador con PyTorch CPU"
+
+# -----------------------------------------------------------------------------
+# VARIABLES DE ENTORNO (consolidadas para reducir capas)
+# -----------------------------------------------------------------------------
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONPATH=/app \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    # Evita warnings de pip sobre root
+    PIP_ROOT_USER_ACTION=ignore
 
 WORKDIR /app
 
-# 1. Copiar requirements
-COPY requirements.txt .
-COPY requirements-agent.txt .
+# =============================================================================
+# FASE 1: PREPARACIÓN DE ARCHIVOS DE DEPENDENCIAS
+# =============================================================================
+# Copiar requirements primero (optimiza cache de Docker)
+COPY requirements.txt requirements-agent.txt ./
 
-# 2. Limpiar requirements (borrar torch explícito para evitar conflictos)
-RUN sed -i '/torch/d' requirements.txt
+# Limpiar referencias a torch/torchvision/torchaudio de AMBOS archivos
+# Usamos patrón más robusto que captura variaciones
+RUN sed -i -E '/^torch([>=<~!]|$)/d; /^torchvision/d; /^torchaudio/d' \
+    requirements.txt requirements-agent.txt
 
-# 3. Instalar Torch CPU explícitamente
-# Fijamos versiones específicas para asegurar estabilidad
-RUN pip install --no-cache-dir torch==2.5.1+cpu torchvision==0.20.1+cpu torchaudio==2.5.1+cpu --index-url https://download.pytorch.org/whl/cpu
+# =============================================================================
+# FASE 2: CREAR ARCHIVO DE CONSTRAINTS (CANDADO DE VERSIONES)
+# =============================================================================
+# Este archivo BLOQUEA las versiones de PyTorch para que ningún
+# instalador (pip, uv) pueda cambiarlas accidentalmente
+RUN cat > constraints.txt << 'CONSTRAINTS_EOF'
+# === VERSIONES BLOQUEADAS - NO MODIFICAR ===
+torch==2.5.1+cpu
+torchvision==0.20.1+cpu
+torchaudio==2.5.1+cpu
+CONSTRAINTS_EOF
 
-# 4. Crear archivo de constraints (EL CANDADO)
-# Esto le prohíbe a pip instalar cualquier otra versión de torch
-RUN echo "torch==2.5.1+cpu" > constraints.txt && \
-    echo "torchvision==0.20.1+cpu" >> constraints.txt && \
-    echo "torchaudio==2.5.1+cpu" >> constraints.txt
+# =============================================================================
+# FASE 3: INSTALAR PyTorch CPU (pip vanilla - más estable para PyTorch)
+# =============================================================================
+# Usamos pip directamente para PyTorch porque:
+# 1. El índice de PyTorch tiene peculiaridades que pip maneja mejor
+# 2. Establecemos las versiones base ANTES de usar uv
+RUN pip install --no-cache-dir \
+    torch==2.5.1+cpu \
+    torchvision==0.20.1+cpu \
+    torchaudio==2.5.1+cpu \
+    --index-url https://download.pytorch.org/whl/cpu && \
+    # Verificación de instalación
+    python -c "import torch; print(f'✓ PyTorch {torch.__version__} instalado correctamente')"
 
-# 5. Instalar uv (Acelerador)
-RUN pip install uv
+# =============================================================================
+# FASE 4: INSTALAR UV (Acelerador de instalación)
+# =============================================================================
+RUN pip install --no-cache-dir uv && \
+    uv --version
 
-# 6. Instalar el resto usando uv (RÁPIDO) + Constraints (SEGURO)
-# uv respetará las versiones fijadas en constraints.txt (torch cpu)
+# =============================================================================
+# FASE 5: INSTALAR DEPENDENCIAS CON UV (RÁPIDO + SEGURO)
+# =============================================================================
+# 
+# FLAGS CRÍTICOS EXPLICADOS:
+# ┌─────────────────────────────────────────────────────────────────────────┐
+# │ --index-strategy unsafe-best-match                                      │
+# │   → Permite que uv resuelva paquetes de CUALQUIER índice               │
+# │   → Soluciona conflictos cuando certifi/urllib3 aparecen en            │
+# │     PyPI Y en download.pytorch.org con metadatos diferentes            │
+# │                                                                         │
+# │ --constraint constraints.txt                                            │
+# │   → BLOQUEA versiones de torch/torchvision/torchaudio                  │
+# │   → Ninguna dependencia transitiva puede cambiar estas versiones       │
+# │                                                                         │
+# │ --extra-index-url (NO --index-url)                                      │
+# │   → Añade PyTorch como índice ADICIONAL, no como reemplazo             │
+# │   → PyPI sigue siendo el índice principal                              │
+# └─────────────────────────────────────────────────────────────────────────┘
+
+# Instalar requirements principales
 RUN uv pip install --system --no-cache-dir \
-    --requirement requirements.txt \
+    --index-strategy unsafe-best-match \
     --constraint constraints.txt \
-    --extra-index-url https://download.pytorch.org/whl/cpu
+    --extra-index-url https://download.pytorch.org/whl/cpu \
+    -r requirements.txt
 
+# Instalar requirements del agente
 RUN uv pip install --system --no-cache-dir \
-    --requirement requirements-agent.txt \
+    --index-strategy unsafe-best-match \
     --constraint constraints.txt \
-    --extra-index-url https://download.pytorch.org/whl/cpu
+    --extra-index-url https://download.pytorch.org/whl/cpu \
+    -r requirements-agent.txt
 
-# 7. Crear usuario y cambiar permisos AL FINAL
-RUN useradd -ms /bin/bash apu_user && \
+# =============================================================================
+# FASE 6: VERIFICACIÓN DE INTEGRIDAD
+# =============================================================================
+# Verificar que PyTorch CPU sigue siendo la versión correcta
+RUN python -c "\
+import torch; \
+assert '+cpu' in torch.__version__, f'ERROR: PyTorch NO es CPU: {torch.__version__}'; \
+print(f'✓ Verificación exitosa: torch=={torch.__version__}')"
+
+# =============================================================================
+# FASE 7: CONFIGURACIÓN DE SEGURIDAD
+# =============================================================================
+# Crear usuario no privilegiado
+RUN useradd \
+    --create-home \
+    --shell /bin/bash \
+    --uid 1000 \
+    --user-group \
+    apu_user && \
+    # Asegurar propiedad del directorio de trabajo
     chown -R apu_user:apu_user /app
 
-# 8. Cambiar a usuario no privilegiado
+# Limpiar archivos temporales de construcción
+RUN rm -f constraints.txt requirements.txt requirements-agent.txt
+
+# Cambiar a usuario no privilegiado
 USER apu_user
 
-# 9. Copiar código
+# =============================================================================
+# FASE 8: COPIAR CÓDIGO DE APLICACIÓN
+# =============================================================================
+# Se copia AL FINAL para maximizar cache de capas anteriores
 COPY --chown=apu_user:apu_user agent/ /app/agent/
 
-# 10. Configuración final
-ENV PYTHONUNBUFFERED=1
-ENV PYTHONPATH=/app
+# =============================================================================
+# FASE 9: HEALTHCHECK (Opcional pero recomendado)
+# =============================================================================
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD python -c "import sys; sys.exit(0)" || exit 1
 
-# Entrypoint
+# =============================================================================
+# PUNTO DE ENTRADA
+# =============================================================================
 ENTRYPOINT ["python", "-u", "-m", "agent.orchestrator"]

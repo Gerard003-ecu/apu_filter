@@ -1,50 +1,212 @@
+# =============================================================================
+# DOCKERFILE.CORE - API Flask con PyTorch CPU
+# =============================================================================
+# Versión: 2.0
+# Servicio: Core API (Flask + Gunicorn)
+# Puerto: 5002
+# Resuelve:
+#   ✓ Conflictos de índices PyPI vs PyTorch (certifi, urllib3, etc.)
+#   ✓ Bloqueo estricto de versiones PyTorch CPU
+#   ✓ Configuración robusta de Gunicorn para producción
+#   ✓ Healthcheck HTTP integrado
+#   ✓ Seguridad con usuario no privilegiado
+# =============================================================================
+
 FROM python:3.10-slim
+
+# -----------------------------------------------------------------------------
+# METADATOS
+# -----------------------------------------------------------------------------
+LABEL maintainer="equipo-desarrollo" \
+      version="2.0" \
+      description="Core API - Flask con PyTorch CPU" \
+      service.port="5002"
+
+# -----------------------------------------------------------------------------
+# ARGUMENTOS DE BUILD (configurables)
+# -----------------------------------------------------------------------------
+ARG WORKERS=4
+ARG PORT=5002
+ARG TIMEOUT=120
+
+# -----------------------------------------------------------------------------
+# VARIABLES DE ENTORNO
+# -----------------------------------------------------------------------------
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONPATH=/app \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    PIP_ROOT_USER_ACTION=ignore \
+    # Flask
+    FLASK_APP=app.app \
+    FLASK_ENV=production \
+    # Gunicorn
+    GUNICORN_WORKERS=${WORKERS} \
+    GUNICORN_PORT=${PORT} \
+    GUNICORN_TIMEOUT=${TIMEOUT}
 
 WORKDIR /app
 
-# 1. Copiar requirements
-COPY requirements.txt .
+# =============================================================================
+# FASE 1: INSTALAR DEPENDENCIAS DEL SISTEMA
+# =============================================================================
+# curl: necesario para healthcheck
+# Limpiamos cache de apt para reducir tamaño de imagen
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        curl \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
-# 2. Limpiar requirements (borrar torch explícito para evitar conflictos)
-RUN sed -i '/torch/d' requirements.txt
+# =============================================================================
+# FASE 2: PREPARACIÓN DE ARCHIVOS DE DEPENDENCIAS
+# =============================================================================
+COPY requirements.txt ./
 
-# 3. Instalar Torch CPU explícitamente
-# Fijamos versiones específicas para asegurar estabilidad
-RUN pip install --no-cache-dir torch==2.5.1+cpu torchvision==0.20.1+cpu torchaudio==2.5.1+cpu --index-url https://download.pytorch.org/whl/cpu
+# Limpiar referencias a torch/torchvision/torchaudio
+# Patrón robusto que captura: torch, torch==x.x, torch>=x.x, etc.
+RUN sed -i -E '/^torch([>=<~!]|==|$)/d; /^torchvision/d; /^torchaudio/d' \
+    requirements.txt && \
+    # Mostrar contenido limpio para debugging
+    echo "=== requirements.txt (limpio) ===" && \
+    cat requirements.txt
 
-# 4. Crear archivo de constraints (EL CANDADO)
-# Esto le prohíbe a pip instalar cualquier otra versión de torch
-RUN echo "torch==2.5.1+cpu" > constraints.txt && \
-    echo "torchvision==0.20.1+cpu" >> constraints.txt && \
-    echo "torchaudio==2.5.1+cpu" >> constraints.txt
+# =============================================================================
+# FASE 3: CREAR ARCHIVO DE CONSTRAINTS (CANDADO DE VERSIONES)
+# =============================================================================
+RUN cat > constraints.txt << 'CONSTRAINTS_EOF'
+# === VERSIONES BLOQUEADAS - PyTorch CPU ===
+# Estas versiones NO pueden ser modificadas por pip/uv
+torch==2.5.1+cpu
+torchvision==0.20.1+cpu
+torchaudio==2.5.1+cpu
+CONSTRAINTS_EOF
 
-# 5. Instalar uv (Acelerador)
-RUN pip install uv
+# =============================================================================
+# FASE 4: INSTALAR PyTorch CPU
+# =============================================================================
+# Usamos pip vanilla para PyTorch (más estable con su índice especial)
+RUN pip install --no-cache-dir \
+    torch==2.5.1+cpu \
+    torchvision==0.20.1+cpu \
+    torchaudio==2.5.1+cpu \
+    --index-url https://download.pytorch.org/whl/cpu && \
+    # Verificación inmediata
+    python -c "import torch; print(f'✓ PyTorch {torch.__version__} (CPU) instalado')"
 
-# 6. Instalar el resto usando uv (RÁPIDO) + Constraints (SEGURO)
-# uv respetará las versiones fijadas en constraints.txt (torch cpu)
+# =============================================================================
+# FASE 5: INSTALAR UV (Acelerador)
+# =============================================================================
+RUN pip install --no-cache-dir uv && \
+    echo "✓ uv $(uv --version) instalado"
+
+# =============================================================================
+# FASE 6: INSTALAR DEPENDENCIAS CON UV
+# =============================================================================
+# 
+# FLAGS CRÍTICOS:
+# ┌─────────────────────────────────────────────────────────────────────────┐
+# │ --index-strategy unsafe-best-match                                      │
+# │   → SOLUCIONA el error de certifi/urllib3 entre índices                │
+# │   → Permite que uv elija la mejor versión de cualquier fuente          │
+# │                                                                         │
+# │ --constraint constraints.txt                                            │
+# │   → Garantiza que torch==2.5.1+cpu NUNCA sea sobrescrito              │
+# │                                                                         │
+# │ --extra-index-url (NO --index-url)                                      │
+# │   → PyPI es primario, PyTorch es secundario                            │
+# └─────────────────────────────────────────────────────────────────────────┘
+#
 RUN uv pip install --system --no-cache-dir \
-    --requirement requirements.txt \
+    --index-strategy unsafe-best-match \
     --constraint constraints.txt \
-    --extra-index-url https://download.pytorch.org/whl/cpu
+    --extra-index-url https://download.pytorch.org/whl/cpu \
+    -r requirements.txt
 
-# 7. Crear usuario y cambiar permisos AL FINAL
-RUN useradd -ms /bin/bash apu_user && \
+# Asegurar gunicorn está instalado (por si no está en requirements)
+RUN uv pip install --system --no-cache-dir gunicorn
+
+# =============================================================================
+# FASE 7: VERIFICACIÓN DE INTEGRIDAD
+# =============================================================================
+RUN python -c "\
+import torch; \
+import flask; \
+# Verificar que PyTorch es CPU
+assert '+cpu' in torch.__version__, f'ERROR: PyTorch NO es CPU: {torch.__version__}'; \
+print(f'✓ torch=={torch.__version__}'); \
+print(f'✓ flask=={flask.__version__}'); \
+print('✓ Todas las verificaciones pasaron')"
+
+# =============================================================================
+# FASE 8: CONFIGURACIÓN DE SEGURIDAD
+# =============================================================================
+# Crear usuario no privilegiado con UID fijo (mejor para volúmenes)
+RUN useradd \
+    --create-home \
+    --shell /bin/bash \
+    --uid 1000 \
+    --user-group \
+    apu_user && \
     chown -R apu_user:apu_user /app
 
-# 8. Cambiar a usuario no privilegiado
+# Limpiar archivos de build
+RUN rm -f constraints.txt requirements.txt
+
+# =============================================================================
+# FASE 9: COPIAR CÓDIGO DE APLICACIÓN
+# =============================================================================
+# Usuario no privilegiado a partir de aquí
 USER apu_user
 
-# 9. Copiar código
+# Copiar código con propietario correcto
 COPY --chown=apu_user:apu_user app/ /app/app/
 COPY --chown=apu_user:apu_user config/ /app/config/
 COPY --chown=apu_user:apu_user wsgi.py /app/wsgi.py
 
-# 10. Configuración final
-ENV PYTHONUNBUFFERED=1
-ENV PYTHONPATH=/app
-ENV FLASK_APP=app.app
-EXPOSE 5002
+# =============================================================================
+# FASE 10: CONFIGURACIÓN DE RED
+# =============================================================================
+# Documentar puerto expuesto (TCP por defecto)
+EXPOSE ${GUNICORN_PORT}/tcp
 
-# Entrypoint
-CMD ["gunicorn", "--workers", "4", "--bind", "0.0.0.0:5002", "wsgi:app"]
+# =============================================================================
+# FASE 11: HEALTHCHECK
+# =============================================================================
+# Verificar que la API responde correctamente
+# Ajustar el endpoint según tu aplicación (ej: /health, /api/health, /)
+HEALTHCHECK --interval=30s \
+            --timeout=10s \
+            --start-period=40s \
+            --retries=3 \
+    CMD curl --fail --silent --show-error \
+        http://localhost:${GUNICORN_PORT}/health \
+        || exit 1
+
+# =============================================================================
+# FASE 12: PUNTO DE ENTRADA
+# =============================================================================
+# Configuración robusta de Gunicorn para producción:
+#
+# --workers: Número de procesos worker (CPU cores * 2 + 1 es común)
+# --bind: Interface y puerto
+# --timeout: Tiempo máximo por request (importante para ML)
+# --graceful-timeout: Tiempo para cerrar conexiones en shutdown
+# --keep-alive: Mantener conexiones HTTP vivas
+# --access-logfile -: Logs a stdout (para Docker)
+# --error-logfile -: Errores a stderr (para Docker)
+# --capture-output: Capturar print() de la app
+# --preload: Cargar app antes de fork (ahorra memoria con ML models)
+#
+CMD ["sh", "-c", "gunicorn \
+    --workers ${GUNICORN_WORKERS} \
+    --bind 0.0.0.0:${GUNICORN_PORT} \
+    --timeout ${GUNICORN_TIMEOUT} \
+    --graceful-timeout 30 \
+    --keep-alive 5 \
+    --access-logfile - \
+    --error-logfile - \
+    --capture-output \
+    --preload \
+    wsgi:app"]
