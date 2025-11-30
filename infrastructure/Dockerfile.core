@@ -5,16 +5,22 @@ WORKDIR /app
 # 1. Copiar requirements
 COPY requirements.txt .
 
-# 2. CIRUGÍA: Eliminar cualquier línea que pida torch/torchvision/torchaudio del archivo
-# Esto evita que pip intente reinstalar la versión de GPU desde PyPI
+# 2. Limpiar requirements (borrar torch explícito para evitar conflictos)
 RUN sed -i '/torch/d' requirements.txt
 
-# 3. Instalar Torch CPU explícitamente desde el índice de CPU
-RUN pip install --no-cache-dir torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
+# 3. Instalar Torch CPU explícitamente
+# Fijamos versiones específicas para asegurar estabilidad
+RUN pip install --no-cache-dir torch==2.5.1+cpu torchvision==0.20.1+cpu torchaudio==2.5.1+cpu --index-url https://download.pytorch.org/whl/cpu
 
-# 4. Instalar el resto de requerimientos
-# Al haber borrado torch del txt, pip usará la versión CPU que acabamos de instalar
-RUN pip install --no-cache-dir -r requirements.txt
+# 4. Crear archivo de constraints (EL CANDADO)
+# Esto le prohíbe a pip instalar cualquier otra versión de torch
+RUN echo "torch==2.5.1+cpu" > constraints.txt && \
+    echo "torchvision==0.20.1+cpu" >> constraints.txt && \
+    echo "torchaudio==2.5.1+cpu" >> constraints.txt
+
+# 5. Instalar el resto usando constraints
+# Agregamos --extra-index-url para que pueda verificar la metadata de torch cpu si es necesario
+RUN pip install --no-cache-dir -r requirements.txt -c constraints.txt --extra-index-url https://download.pytorch.org/whl/cpu
 
 # 5. Crear usuario y cambiar permisos AL FINAL
 RUN useradd -ms /bin/bash apu_user && \
