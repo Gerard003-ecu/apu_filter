@@ -25,7 +25,8 @@ RUN pip install uv
 # uv respetará las versiones fijadas en constraints.txt (torch cpu)
 RUN uv pip install --system --no-cache-dir \
     --requirement requirements.txt \
-    --constraint constraints.txt
+    --constraint constraints.txt \
+    --extra-index-url https://download.pytorch.org/whl/cpu
 
 # 7. Crear usuario y cambiar permisos AL FINAL
 RUN useradd -ms /bin/bash apu_user && \
