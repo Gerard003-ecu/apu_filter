@@ -15,6 +15,7 @@ services:
       retries: 5
 
   apu_core:
+    image: localhost/apu_filter_core:latest
     build:
       context: .                      # Contexto es la carpeta actual (raíz)
       dockerfile: infrastructure/Dockerfile.core
@@ -35,6 +36,7 @@ services:
       - ./logs:/app/logs
 
   apu_agent:
+    image: localhost/apu_filter_agent:latest
     build:
       context: .                      # Contexto es la carpeta actual (raíz)
       dockerfile: infrastructure/Dockerfile.agent
