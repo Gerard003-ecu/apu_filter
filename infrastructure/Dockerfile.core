@@ -2,20 +2,19 @@ FROM python:3.10-slim
 
 WORKDIR /app
 
-# 1. Instalar herramientas base y uv como ROOT
-RUN pip install uv
-
-# 2. Instalar Torch CPU LIGERO (Forzado)
-# Usamos pip estándar con --no-cache-dir para ahorrar espacio
-RUN pip install --no-cache-dir torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
-
-# 3. Copiar requirements
+# 1. Copiar requirements
 COPY requirements.txt .
 
-# 4. Instalar resto de dependencias con uv como ROOT
-# Usamos --system para instalar globalmente
-# IMPORTANTE: No reinstalar torch
-RUN uv pip install --system --no-cache-dir --requirement requirements.txt
+# 2. CIRUGÍA: Eliminar cualquier línea que pida torch/torchvision/torchaudio del archivo
+# Esto evita que pip intente reinstalar la versión de GPU desde PyPI
+RUN sed -i '/torch/d' requirements.txt
+
+# 3. Instalar Torch CPU explícitamente desde el índice de CPU
+RUN pip install --no-cache-dir torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
+
+# 4. Instalar el resto de requerimientos
+# Al haber borrado torch del txt, pip usará la versión CPU que acabamos de instalar
+RUN pip install --no-cache-dir -r requirements.txt
 
 # 5. Crear usuario y cambiar permisos AL FINAL
 RUN useradd -ms /bin/bash apu_user && \
