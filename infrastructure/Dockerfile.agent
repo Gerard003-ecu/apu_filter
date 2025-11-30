@@ -1,31 +1,37 @@
-# Use a slim Python base image
 FROM python:3.10-slim
 
-# Set the working directory in the container
 WORKDIR /app
 
-# Create a non-root user
-RUN useradd -ms /bin/bash apu_user
-
-# Copy the agent code into the container
-COPY --chown=apu_user:apu_user agent/ /app/agent/
-COPY --chown=apu_user:apu_user requirements-agent.txt .
-COPY --chown=apu_user:apu_user requirements.txt .
-
-# Install dependencies
+# 1. Instalar herramientas base y uv como ROOT
 RUN pip install uv
-RUN chown -R apu_user:apu_user /app
-USER apu_user
 
-# PASO 1: Instalar PyTorch CPU explícitamente
+# 2. Instalar Torch CPU LIGERO (Forzado)
+# Usamos pip estándar con --no-cache-dir para ahorrar espacio
 RUN pip install --no-cache-dir torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
 
-# PASO 2: Instalar dependencias del agente
-COPY --chown=apu_user:apu_user requirements-agent.txt .
-RUN uv pip install --system --no-cache-dir \
-    --index-url https://download.pytorch.org/whl/cpu \
-    --extra-index-url https://pypi.org/simple \
-    --requirement requirements-agent.txt
+# 3. Copiar requirements
+COPY requirements.txt .
+COPY requirements-agent.txt .
 
-# Set the entrypoint to run the orchestrator
+# 4. Instalar resto de dependencias con uv como ROOT
+# Usamos --system para instalar globalmente
+# IMPORTANTE: No reinstalar torch
+RUN uv pip install --system --no-cache-dir --requirement requirements.txt
+RUN uv pip install --system --no-cache-dir --requirement requirements-agent.txt
+
+# 5. Crear usuario y cambiar permisos AL FINAL
+RUN useradd -ms /bin/bash apu_user && \
+    chown -R apu_user:apu_user /app
+
+# 6. Cambiar a usuario no privilegiado
+USER apu_user
+
+# 7. Copiar código
+COPY --chown=apu_user:apu_user agent/ /app/agent/
+
+# 8. Configuración final
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONPATH=/app
+
+# Entrypoint
 ENTRYPOINT ["python", "-u", "-m", "agent.orchestrator"]
