@@ -1,0 +1,300 @@
+[2025-11-30 13:18:02] [INFO] === Iniciando Despliegue de APU Filter Ecosystem ===
+[2025-11-30 13:18:02] [INFO] Log file: ./logs/podman_start_20251130_131802.log
+[2025-11-30 13:18:02] [INFO] Limpiando contenedores previos...
+podman-compose version: 1.0.6
+['podman', '--version', '']
+using podman version: 4.9.3
+** excluding:  set()
+podman stop -t 10 apu_agent
+Error: no container with name or ID "apu_agent" found: no such container
+exit code: 125
+podman stop -t 10 apu_core
+Error: no container with name or ID "apu_core" found: no such container
+exit code: 125
+podman stop -t 10 apu_redis
+Error: no container with name or ID "apu_redis" found: no such container
+exit code: 125
+podman rm apu_agent
+Error: no container with ID or name "apu_agent" found: no such container
+exit code: 1
+podman rm apu_core
+Error: no container with ID or name "apu_core" found: no such container
+exit code: 1
+podman rm apu_redis
+Error: no container with ID or name "apu_redis" found: no such container
+exit code: 1
+['podman', 'ps', '--filter', 'label=io.podman.compose.project=apu_filter', '-a', '--format', '{{ .Names }}']
+[2025-11-30 13:18:05] [INFO] Construyendo imágenes (Core & Agent)...
+podman-compose version: 1.0.6
+['podman', '--version', '']
+using podman version: 4.9.3
+podman build -f ./infrastructure/Dockerfile.core -t apu_filter_apu_core .
+STEP 1/18: FROM python:3.10-slim
+STEP 2/18: WORKDIR /app
+--> Using cache c4e717189f0b56ee4062d22d3d8c266ad16c6303a5055d192f6f5d73080cd6c8
+--> c4e717189f0b
+STEP 3/18: COPY requirements.txt .
+--> Using cache 5e0159b59af2d560fd15cae75ad374dce5dba1983de75069469944160c7764e9
+--> 5e0159b59af2
+STEP 4/18: RUN sed -i '/torch/d' requirements.txt
+--> Using cache 542a5179f98445558240ebb68c5bd290eb3e27104332076e86eda75d31633b26
+--> 542a5179f984
+STEP 5/18: RUN pip install --no-cache-dir torch==2.5.1+cpu torchvision==0.20.1+cpu torchaudio==2.5.1+cpu --index-url https://download.pytorch.org/whl/cpu
+--> Using cache e7a9ef4ffa356c0282cbfa0d282f4c409432feada3a4db22e2284189efb2ca54
+--> e7a9ef4ffa35
+STEP 6/18: RUN echo "torch==2.5.1+cpu" > constraints.txt &&     echo "torchvision==0.20.1+cpu" >> constraints.txt &&     echo "torchaudio==2.5.1+cpu" >> constraints.txt
+--> Using cache cd7286a653d86aee57ce2e4d0d72ad2983efa1286de0576c150801455e7fdce3
+--> cd7286a653d8
+STEP 7/18: RUN pip install uv
+Collecting uv
+  Downloading uv-0.9.13-py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (21.7 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 21.7/21.7 MB 2.0 MB/s eta 0:00:00
+Installing collected packages: uv
+Successfully installed uv-0.9.13
+WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv
+
+[notice] A new release of pip is available: 23.0.1 -> 25.3
+[notice] To update, run: pip install --upgrade pip
+--> 33bafdd3e581
+STEP 8/18: RUN uv pip install --system --no-cache-dir     --requirement requirements.txt     --constraint constraints.txt
+Using Python 3.10.19 environment at: /usr/local
+  × No solution found when resolving dependencies:
+  ╰─▶ Because torch==2.5.1+cpu depends on sympy==1.13.1 and
+      sentence-transformers==5.1.2 depends on torch==2.5.1+cpu, we can
+      conclude that sentence-transformers==5.1.2 depends on sympy==1.13.1.
+      And because only sentence-transformers<=5.1.2 is available, we can
+      conclude that sentence-transformers>=5.1.2 depends on sympy==1.13.1.
+      And because you require sentence-transformers>=5.1.2 and sympy>=1.14.0,
+      we can conclude that your requirements are unsatisfiable.
+Error: building at STEP "RUN uv pip install --system --no-cache-dir     --requirement requirements.txt     --constraint constraints.txt": while running runtime: exit status 1
+exit code: 1
+podman build -f ./infrastructure/Dockerfile.agent -t apu_filter_apu_agent .
+STEP 1/16: FROM python:3.10-slim
+STEP 2/16: WORKDIR /app
+--> Using cache c4e717189f0b56ee4062d22d3d8c266ad16c6303a5055d192f6f5d73080cd6c8
+--> c4e717189f0b
+STEP 3/16: COPY requirements.txt .
+--> Using cache 5e0159b59af2d560fd15cae75ad374dce5dba1983de75069469944160c7764e9
+--> 5e0159b59af2
+STEP 4/16: COPY requirements-agent.txt .
+--> cc87ce0472f8
+STEP 5/16: RUN sed -i '/torch/d' requirements.txt
+--> 36ec060c5373
+STEP 6/16: RUN pip install --no-cache-dir torch==2.5.1+cpu torchvision==0.20.1+cpu torchaudio==2.5.1+cpu --index-url https://download.pytorch.org/whl/cpu
+Looking in indexes: https://download.pytorch.org/whl/cpu
+Collecting torch==2.5.1+cpu
+  Downloading https://download.pytorch.org/whl/cpu/torch-2.5.1%2Bcpu-cp310-cp310-linux_x86_64.whl (174.7 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 174.7/174.7 MB 2.4 MB/s eta 0:00:00
+Collecting torchvision==0.20.1+cpu
+  Downloading https://download.pytorch.org/whl/cpu/torchvision-0.20.1%2Bcpu-cp310-cp310-linux_x86_64.whl (1.8 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.8/1.8 MB 2.4 MB/s eta 0:00:00
+Collecting torchaudio==2.5.1+cpu
+  Downloading https://download.pytorch.org/whl/cpu/torchaudio-2.5.1%2Bcpu-cp310-cp310-linux_x86_64.whl (1.7 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.7/1.7 MB 2.0 MB/s eta 0:00:00
+Collecting sympy==1.13.1
+  Downloading https://download.pytorch.org/whl/sympy-1.13.1-py3-none-any.whl (6.2 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 6.2/6.2 MB 2.3 MB/s eta 0:00:00
+Collecting typing-extensions>=4.8.0
+  Obtaining dependency information for typing-extensions>=4.8.0 from https://download.pytorch.org/whl/typing_extensions-4.15.0-py3-none-any.whl.metadata
+  Downloading https://download.pytorch.org/whl/typing_extensions-4.15.0-py3-none-any.whl.metadata (3.3 kB)
+Discarding https://download.pytorch.org/whl/typing_extensions-4.15.0-py3-none-any.whl (from https://download.pytorch.org/whl/cpu/typing-extensions/): Requested typing-extensions>=4.8.0 from https://download.pytorch.org/whl/typing_extensions-4.15.0-py3-none-any.whl (from torch==2.5.1+cpu) has inconsistent Name: expected 'typing-extensions', but metadata has 'typing_extensions'
+  Obtaining dependency information for typing-extensions>=4.8.0 from https://download.pytorch.org/whl/typing_extensions-4.14.0-py3-none-any.whl.metadata
+  Downloading https://download.pytorch.org/whl/typing_extensions-4.14.0-py3-none-any.whl.metadata (3.0 kB)
+Discarding https://download.pytorch.org/whl/typing_extensions-4.14.0-py3-none-any.whl (from https://download.pytorch.org/whl/cpu/typing-extensions/): Requested typing-extensions>=4.8.0 from https://download.pytorch.org/whl/typing_extensions-4.14.0-py3-none-any.whl (from torch==2.5.1+cpu) has inconsistent Name: expected 'typing-extensions', but metadata has 'typing_extensions'
+  Obtaining dependency information for typing-extensions>=4.8.0 from https://download.pytorch.org/whl/typing_extensions-4.12.2-py3-none-any.whl.metadata
+  Downloading https://download.pytorch.org/whl/typing_extensions-4.12.2-py3-none-any.whl.metadata (3.0 kB)
+Discarding https://download.pytorch.org/whl/typing_extensions-4.12.2-py3-none-any.whl (from https://download.pytorch.org/whl/cpu/typing-extensions/): Requested typing-extensions>=4.8.0 from https://download.pytorch.org/whl/typing_extensions-4.12.2-py3-none-any.whl (from torch==2.5.1+cpu) has inconsistent Name: expected 'typing-extensions', but metadata has 'typing_extensions'
+  Downloading https://download.pytorch.org/whl/typing_extensions-4.9.0-py3-none-any.whl (32 kB)
+Collecting fsspec
+  Obtaining dependency information for fsspec from https://download.pytorch.org/whl/fsspec-2025.9.0-py3-none-any.whl.metadata
+  Downloading https://download.pytorch.org/whl/fsspec-2025.9.0-py3-none-any.whl.metadata (10 kB)
+Collecting filelock
+  Obtaining dependency information for filelock from https://download.pytorch.org/whl/filelock-3.19.1-py3-none-any.whl.metadata
+  Downloading https://download.pytorch.org/whl/filelock-3.19.1-py3-none-any.whl.metadata (2.1 kB)
+Collecting jinja2
+  Obtaining dependency information for jinja2 from https://download.pytorch.org/whl/jinja2-3.1.6-py3-none-any.whl.metadata
+  Downloading https://download.pytorch.org/whl/jinja2-3.1.6-py3-none-any.whl.metadata (2.9 kB)
+Discarding https://download.pytorch.org/whl/jinja2-3.1.6-py3-none-any.whl (from https://download.pytorch.org/whl/cpu/jinja2/): Requested jinja2 from https://download.pytorch.org/whl/jinja2-3.1.6-py3-none-any.whl (from torch==2.5.1+cpu) has inconsistent Name: expected 'jinja2', but metadata has 'Jinja2'
+  Obtaining dependency information for jinja2 from https://download.pytorch.org/whl/Jinja2-3.1.4-py3-none-any.whl.metadata
+  Downloading https://download.pytorch.org/whl/Jinja2-3.1.4-py3-none-any.whl.metadata (2.6 kB)
+Discarding https://download.pytorch.org/whl/Jinja2-3.1.4-py3-none-any.whl#sha256=bc5dd2abb727a5319567b7a813e6a2e7318c39f4f487cfe6c89c6f9c7d25197d (from https://download.pytorch.org/whl/cpu/jinja2/): Requested jinja2 from https://download.pytorch.org/whl/Jinja2-3.1.4-py3-none-any.whl#sha256=bc5dd2abb727a5319567b7a813e6a2e7318c39f4f487cfe6c89c6f9c7d25197d (from torch==2.5.1+cpu) has inconsistent Name: expected 'jinja2', but metadata has 'Jinja2'
+  Downloading https://download.pytorch.org/whl/Jinja2-3.1.3-py3-none-any.whl (133 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 133.2/133.2 kB 2.5 MB/s eta 0:00:00
+Collecting networkx
+  Obtaining dependency information for networkx from https://download.pytorch.org/whl/networkx-3.5-py3-none-any.whl.metadata
+  Downloading https://download.pytorch.org/whl/networkx-3.5-py3-none-any.whl.metadata (6.3 kB)
+Collecting numpy
+  Obtaining dependency information for numpy from https://download.pytorch.org/whl/numpy-2.1.2-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata
+  Downloading https://download.pytorch.org/whl/numpy-2.1.2-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (60 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 60.9/60.9 kB 2.6 MB/s eta 0:00:00
+Collecting pillow!=8.3.*,>=5.3.0
+  Obtaining dependency information for pillow!=8.3.*,>=5.3.0 from https://download.pytorch.org/whl/pillow-11.3.0-cp310-cp310-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl.metadata
+  Downloading https://download.pytorch.org/whl/pillow-11.3.0-cp310-cp310-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl.metadata (9.0 kB)
+Collecting mpmath<1.4,>=1.1.0
+  Downloading https://download.pytorch.org/whl/mpmath-1.3.0-py3-none-any.whl (536 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 536.2/536.2 kB 2.3 MB/s eta 0:00:00
+Collecting MarkupSafe>=2.0
+  Downloading https://download.pytorch.org/whl/MarkupSafe-2.1.5-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (25 kB)
+Collecting networkx
+  Obtaining dependency information for networkx from https://download.pytorch.org/whl/networkx-3.3-py3-none-any.whl.metadata
+  Downloading https://download.pytorch.org/whl/networkx-3.3-py3-none-any.whl.metadata (5.1 kB)
+Downloading https://download.pytorch.org/whl/pillow-11.3.0-cp310-cp310-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl (6.6 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 6.6/6.6 MB 2.0 MB/s eta 0:00:00
+Downloading https://download.pytorch.org/whl/filelock-3.19.1-py3-none-any.whl (15 kB)
+Downloading https://download.pytorch.org/whl/fsspec-2025.9.0-py3-none-any.whl (199 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 199.3/199.3 kB 3.7 MB/s eta 0:00:00
+Downloading https://download.pytorch.org/whl/networkx-3.3-py3-none-any.whl (1.7 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.7/1.7 MB 2.5 MB/s eta 0:00:00
+Downloading https://download.pytorch.org/whl/numpy-2.1.2-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (16.3 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 16.3/16.3 MB 2.5 MB/s eta 0:00:00
+Downloading https://download.pytorch.org/whl/pillow-11.3.0-cp310-cp310-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl (6.6 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 6.6/6.6 MB 2.2 MB/s eta 0:00:00
+Downloading https://download.pytorch.org/whl/filelock-3.19.1-py3-none-any.whl (15 kB)
+Downloading https://download.pytorch.org/whl/fsspec-2025.9.0-py3-none-any.whl (199 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 199.3/199.3 kB 2.8 MB/s eta 0:00:00
+Downloading https://download.pytorch.org/whl/networkx-3.3-py3-none-any.whl (1.7 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.7/1.7 MB 2.4 MB/s eta 0:00:00
+Downloading https://download.pytorch.org/whl/numpy-2.1.2-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (16.3 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 16.3/16.3 MB 2.3 MB/s eta 0:00:00
+Installing collected packages: mpmath, typing-extensions, sympy, pillow, numpy, networkx, MarkupSafe, fsspec, filelock, jinja2, torch, torchvision, torchaudio
+Successfully installed MarkupSafe-2.1.5 filelock-3.19.1 fsspec-2025.9.0 jinja2-3.1.3 mpmath-1.3.0 networkx-3.3 numpy-2.1.2 pillow-11.3.0 sympy-1.13.1 torch-2.5.1+cpu torchaudio-2.5.1+cpu torchvision-0.20.1+cpu typing-extensions-4.9.0
+WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv
+--> 8833032fe362
+STEP 7/16: RUN echo "torch==2.5.1+cpu" > constraints.txt &&     echo "torchvision==0.20.1+cpu" >> constraints.txt &&     echo "torchaudio==2.5.1+cpu" >> constraints.txt
+--> abcbf7d9403b
+STEP 8/16: RUN pip install uv
+Collecting uv
+  Downloading uv-0.9.13-py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (21.7 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 21.7/21.7 MB 1.7 MB/s eta 0:00:00
+Installing collected packages: uv
+Successfully installed uv-0.9.13
+WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv
+
+[notice] A new release of pip is available: 23.0.1 -> 25.3
+[notice] To update, run: pip install --upgrade pip
+--> 813129329b42
+STEP 9/16: RUN uv pip install --system --no-cache-dir     --requirement requirements.txt     --constraint constraints.txt
+Using Python 3.10.19 environment at: /usr/local
+  × No solution found when resolving dependencies:
+  ╰─▶ Because torch==2.5.1+cpu depends on sympy==1.13.1 and
+      sentence-transformers==5.1.2 depends on torch==2.5.1+cpu, we can
+      conclude that sentence-transformers==5.1.2 depends on sympy==1.13.1.
+      And because only sentence-transformers<=5.1.2 is available, we can
+      conclude that sentence-transformers>=5.1.2 depends on sympy==1.13.1.
+      And because you require sentence-transformers>=5.1.2 and sympy>=1.14.0,
+      we can conclude that your requirements are unsatisfiable.
+Error: building at STEP "RUN uv pip install --system --no-cache-dir     --requirement requirements.txt     --constraint constraints.txt": while running runtime: exit status 1
+exit code: 1
+[2025-11-30 13:24:08] [SUCCESS] Imágenes construidas.
+[2025-11-30 13:24:08] [INFO] Levantando servicios...
+podman-compose version: 1.0.6
+['podman', '--version', '']
+using podman version: 4.9.3
+** excluding:  set()
+['podman', 'inspect', '-t', 'image', '-f', '{{.Id}}', 'apu_filter_apu_core']
+Error: apu_filter_apu_core: image not known
+podman build -f ./infrastructure/Dockerfile.core -t apu_filter_apu_core .
+STEP 1/18: FROM python:3.10-slim
+STEP 2/18: WORKDIR /app
+--> Using cache c4e717189f0b56ee4062d22d3d8c266ad16c6303a5055d192f6f5d73080cd6c8
+--> c4e717189f0b
+STEP 3/18: COPY requirements.txt .
+--> Using cache 5e0159b59af2d560fd15cae75ad374dce5dba1983de75069469944160c7764e9
+--> 5e0159b59af2
+STEP 4/18: RUN sed -i '/torch/d' requirements.txt
+--> Using cache 542a5179f98445558240ebb68c5bd290eb3e27104332076e86eda75d31633b26
+--> 542a5179f984
+STEP 5/18: RUN pip install --no-cache-dir torch==2.5.1+cpu torchvision==0.20.1+cpu torchaudio==2.5.1+cpu --index-url https://download.pytorch.org/whl/cpu
+--> Using cache e7a9ef4ffa356c0282cbfa0d282f4c409432feada3a4db22e2284189efb2ca54
+--> e7a9ef4ffa35
+STEP 6/18: RUN echo "torch==2.5.1+cpu" > constraints.txt &&     echo "torchvision==0.20.1+cpu" >> constraints.txt &&     echo "torchaudio==2.5.1+cpu" >> constraints.txt
+--> Using cache cd7286a653d86aee57ce2e4d0d72ad2983efa1286de0576c150801455e7fdce3
+--> cd7286a653d8
+STEP 7/18: RUN pip install uv
+--> Using cache 33bafdd3e58100bb913122e30be9b9e8af284bb3c3ca4397ee3ef904e2a19a1c
+--> 33bafdd3e581
+STEP 8/18: RUN uv pip install --system --no-cache-dir     --requirement requirements.txt     --constraint constraints.txt
+Using Python 3.10.19 environment at: /usr/local
+  × No solution found when resolving dependencies:
+  ╰─▶ Because torch==2.5.1+cpu depends on sympy==1.13.1 and
+      sentence-transformers==5.1.2 depends on torch==2.5.1+cpu, we can
+      conclude that sentence-transformers==5.1.2 depends on sympy==1.13.1.
+      And because only sentence-transformers<=5.1.2 is available, we can
+      conclude that sentence-transformers>=5.1.2 depends on sympy==1.13.1.
+      And because you require sentence-transformers>=5.1.2 and sympy>=1.14.0,
+      we can conclude that your requirements are unsatisfiable.
+Error: building at STEP "RUN uv pip install --system --no-cache-dir     --requirement requirements.txt     --constraint constraints.txt": while running runtime: exit status 1
+exit code: 1
+['podman', 'inspect', '-t', 'image', '-f', '{{.Id}}', 'apu_filter_apu_agent']
+Error: apu_filter_apu_agent: image not known
+podman build -f ./infrastructure/Dockerfile.agent -t apu_filter_apu_agent .
+STEP 1/16: FROM python:3.10-slim
+STEP 2/16: WORKDIR /app
+--> Using cache c4e717189f0b56ee4062d22d3d8c266ad16c6303a5055d192f6f5d73080cd6c8
+--> c4e717189f0b
+STEP 3/16: COPY requirements.txt .
+--> Using cache 5e0159b59af2d560fd15cae75ad374dce5dba1983de75069469944160c7764e9
+--> 5e0159b59af2
+STEP 4/16: COPY requirements-agent.txt .
+--> Using cache cc87ce0472f8471629453f02be66d61539d370156503ed4aa7938b1f7640472d
+--> cc87ce0472f8
+STEP 5/16: RUN sed -i '/torch/d' requirements.txt
+--> Using cache 36ec060c53735da8cd172fe91e0d4cd78e3ed03599ef6bbe1971f0c2df67f49e
+--> 36ec060c5373
+STEP 6/16: RUN pip install --no-cache-dir torch==2.5.1+cpu torchvision==0.20.1+cpu torchaudio==2.5.1+cpu --index-url https://download.pytorch.org/whl/cpu
+--> Using cache 8833032fe362adf070112a7fc9b419abef4900264fa57f9c3d3df949564ef281
+--> 8833032fe362
+STEP 7/16: RUN echo "torch==2.5.1+cpu" > constraints.txt &&     echo "torchvision==0.20.1+cpu" >> constraints.txt &&     echo "torchaudio==2.5.1+cpu" >> constraints.txt
+--> Using cache abcbf7d9403b71dff3608d4520cbdd09d07c5d040f09a719476f0b0250b7e01b
+--> abcbf7d9403b
+STEP 8/16: RUN pip install uv
+--> Using cache 813129329b4254692a97f41bba31ef4cf4f94c7bfed4bd4569dfb025a591da7c
+--> 813129329b42
+STEP 9/16: RUN uv pip install --system --no-cache-dir     --requirement requirements.txt     --constraint constraints.txt
+Using Python 3.10.19 environment at: /usr/local
+  × No solution found when resolving dependencies:
+  ╰─▶ Because torch==2.5.1+cpu depends on sympy==1.13.1 and
+      sentence-transformers==5.1.2 depends on torch==2.5.1+cpu, we can
+      conclude that sentence-transformers==5.1.2 depends on sympy==1.13.1.
+      And because only sentence-transformers<=5.1.2 is available, we can
+      conclude that sentence-transformers>=5.1.2 depends on sympy==1.13.1.
+      And because you require sentence-transformers>=5.1.2 and sympy>=1.14.0,
+      we can conclude that your requirements are unsatisfiable.
+Error: building at STEP "RUN uv pip install --system --no-cache-dir     --requirement requirements.txt     --constraint constraints.txt": while running runtime: exit status 1
+exit code: 1
+['podman', 'ps', '--filter', 'label=io.podman.compose.project=apu_filter', '-a', '--format', '{{ index .Labels "io.podman.compose.config-hash"}}']
+['podman', 'network', 'exists', 'apu_filter_apu_net']
+['podman', 'network', 'create', '--label', 'io.podman.compose.project=apu_filter', '--label', 'com.docker.compose.project=apu_filter', '--driver', 'bridge', 'apu_filter_apu_net']
+['podman', 'network', 'exists', 'apu_filter_apu_net']
+podman run --name=apu_redis -d --label io.podman.compose.config-hash=c5ab52760f1b3c18bd894ac0db3a13ca200e1d6ae2446c712911e216c225d286 --label io.podman.compose.project=apu_filter --label io.podman.compose.version=1.0.6 --label PODMAN_SYSTEMD_UNIT=podman-compose@apu_filter.service --label com.docker.compose.project=apu_filter --label com.docker.compose.project.working_dir=/home/gerardo/Documentos/GitHub/apu_filter --label com.docker.compose.project.config_files=compose.yaml --label com.docker.compose.container-number=1 --label com.docker.compose.service=redis --net apu_filter_apu_net --network-alias redis -p 6379:6379 --healthcheck-command /bin/sh -c redis-cli' 'ping --healthcheck-interval 5s --healthcheck-timeout 3s --healthcheck-retries 5 docker.io/library/redis:7-alpine
+Trying to pull docker.io/library/redis:7-alpine...
+Getting image source signatures
+Copying blob sha256:232f7549c9b07a752bb00c7d7a61b3bfe6af3f15a711ba643c132f0e51922a64
+Copying blob sha256:60c57c0072ef228501beec5a8bee0d7ecc882dee9afd91fc7a58e3f9d9da64c5
+Copying blob sha256:f637881d1138581d892d9eb942c56e0ccc7758fe3bdc0f1e6cd66059fdfd8185
+Copying blob sha256:380e8aa8b1fdbd2887f9b1fa3e9d3cba192f9ff87956981dc8bd73cc6da39bfc
+Copying blob sha256:fc4343b4accd46fa853b1de6ee0ca92ab1f7080db3af6c4948678534d69cc159
+Copying blob sha256:c70aae7b5e0d75367bcf5d40074ae8e28d17793c251e0d505321aa8ea4fd91fd
+Copying blob sha256:4f4fb700ef54461cfa02571ae0db9a0dc1e0cdb5577484a6d75e68dc38e8acc1
+Copying blob sha256:d75b3becd998021da3bbfcb31fa6580676396f5244243670f57920652cce8038
+Copying config sha256:13105d2858ded45aedf7b24f0870e6a4e7ce4964924bffce68e562ca72149f1e
+Writing manifest to image destination
+7d3d072d9cfb159432da4c077fddc838eb721cee250a18eca201e10e0ca154be
+exit code: 0
+['podman', 'network', 'exists', 'apu_filter_apu_net']
+podman run --name=apu_core -d --requires=apu_redis --label io.podman.compose.config-hash=c5ab52760f1b3c18bd894ac0db3a13ca200e1d6ae2446c712911e216c225d286 --label io.podman.compose.project=apu_filter --label io.podman.compose.version=1.0.6 --label PODMAN_SYSTEMD_UNIT=podman-compose@apu_filter.service --label com.docker.compose.project=apu_filter --label com.docker.compose.project.working_dir=/home/gerardo/Documentos/GitHub/apu_filter --label com.docker.compose.project.config_files=compose.yaml --label com.docker.compose.container-number=1 --label com.docker.compose.service=apu_core -e REDIS_URL=redis://apu_redis:6379/0 -e FLASK_ENV=production -e PYTHONUNBUFFERED=1 -v /home/gerardo/Documentos/GitHub/apu_filter/data:/app/data -v /home/gerardo/Documentos/GitHub/apu_filter/logs:/app/logs --net apu_filter_apu_net --network-alias apu_core -p 5002:5002 apu_filter_apu_core
+Error: short-name "apu_filter_apu_core" did not resolve to an alias and no unqualified-search registries are defined in "/etc/containers/registries.conf"
+exit code: 125
+podman start apu_core
+Error: no container with name or ID "apu_core" found: no such container
+exit code: 125
+['podman', 'network', 'exists', 'apu_filter_apu_net']
+podman run --name=apu_agent -d --requires=apu_redis,apu_core --label io.podman.compose.config-hash=c5ab52760f1b3c18bd894ac0db3a13ca200e1d6ae2446c712911e216c225d286 --label io.podman.compose.project=apu_filter --label io.podman.compose.version=1.0.6 --label PODMAN_SYSTEMD_UNIT=podman-compose@apu_filter.service --label com.docker.compose.project=apu_filter --label com.docker.compose.project.working_dir=/home/gerardo/Documentos/GitHub/apu_filter --label com.docker.compose.project.config_files=compose.yaml --label com.docker.compose.container-number=1 --label com.docker.compose.service=apu_agent -e CORE_API_URL=http://apu_core:5002 -e PYTHONUNBUFFERED=1 -v /home/gerardo/Documentos/GitHub/apu_filter/logs:/app/logs --net apu_filter_apu_net --network-alias apu_agent apu_filter_apu_agent
+Error: short-name "apu_filter_apu_agent" did not resolve to an alias and no unqualified-search registries are defined in "/etc/containers/registries.conf"
+exit code: 125
+podman start apu_agent
+Error: no container with name or ID "apu_agent" found: no such container
+exit code: 125
+[2025-11-30 13:24:48] [INFO] Esperando estabilización (10s)...
+[2025-11-30 13:24:58] [INFO] Estado de los contenedores:
+[2025-11-30 13:25:00] [SUCCESS] === APU Filter Ecosystem Operativo ===
