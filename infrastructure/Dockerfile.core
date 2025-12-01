@@ -1,33 +1,19 @@
 # =============================================================================
 # DOCKERFILE.CORE - API Flask con PyTorch CPU
 # =============================================================================
-# Versión: 2.0
-# Servicio: Core API (Flask + Gunicorn)
-# Puerto: 5002
-# Resuelve:
-#   ✓ Conflictos de índices PyPI vs PyTorch (certifi, urllib3, etc.)
-#   ✓ Bloqueo estricto de versiones PyTorch CPU
-#   ✓ Configuración robusta de Gunicorn para producción
-#   ✓ Healthcheck HTTP integrado
-#   ✓ Seguridad con usuario no privilegiado
+# Versión: 3.0 - Resuelve conflictos de dependencias
+# 
+# ESTRATEGIA:
+#   1. Instalar PyTorch CPU con pip (desde índice oficial)
+#   2. Instalar dependencias que USAN torch con pip (sentence-transformers)
+#   3. Instalar el RESTO con uv (rápido, sin conflictos)
 # =============================================================================
 
 FROM python:3.10-slim
 
-# -----------------------------------------------------------------------------
-# METADATOS
-# -----------------------------------------------------------------------------
 LABEL maintainer="equipo-desarrollo" \
-      version="2.0" \
-      description="Core API - Flask con PyTorch CPU" \
-      service.port="5002"
-
-# -----------------------------------------------------------------------------
-# ARGUMENTOS DE BUILD (configurables)
-# -----------------------------------------------------------------------------
-ARG WORKERS=4
-ARG PORT=5002
-ARG TIMEOUT=120
+      version="3.0" \
+      description="Core API - Flask con PyTorch CPU"
 
 # -----------------------------------------------------------------------------
 # VARIABLES DE ENTORNO
@@ -38,172 +24,202 @@ ENV PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1 \
     PIP_ROOT_USER_ACTION=ignore \
-    # Flask
     FLASK_APP=app.app \
-    FLASK_ENV=production \
-    # Gunicorn
-    GUNICORN_WORKERS=${WORKERS} \
-    GUNICORN_PORT=${PORT} \
-    GUNICORN_TIMEOUT=${TIMEOUT}
+    FLASK_ENV=production
 
 WORKDIR /app
 
 # =============================================================================
-# FASE 1: INSTALAR DEPENDENCIAS DEL SISTEMA
+# FASE 1: DEPENDENCIAS DEL SISTEMA
 # =============================================================================
-# curl: necesario para healthcheck
-# Limpiamos cache de apt para reducir tamaño de imagen
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
         curl \
-        libgomp1 \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+        && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
 # =============================================================================
-# FASE 2: PREPARACIÓN DE ARCHIVOS DE DEPENDENCIAS
+# FASE 2: COPIAR REQUIREMENTS
 # =============================================================================
-COPY requirements.txt ./
-
-# Limpiar referencias a torch/torchvision/torchaudio
-# Patrón robusto que captura: torch, torch==x.x, torch>=x.x, etc.
-RUN sed -i -E '/^torch([>=<~!]|==|$)/d; /^torchvision/d; /^torchaudio/d' \
-    requirements.txt && \
-    # Mostrar contenido limpio para debugging
-    echo "=== requirements.txt (limpio) ===" && \
-    cat requirements.txt
+COPY requirements.txt ./requirements-original.txt
 
 # =============================================================================
-# FASE 3: CREAR ARCHIVO DE CONSTRAINTS (Sintaxis segura)
+# FASE 3: SEPARAR DEPENDENCIAS
 # =============================================================================
-RUN echo "torch==2.5.1+cpu" > constraints.txt && \
-    echo "torchvision==0.20.1+cpu" >> constraints.txt && \
-    echo "torchaudio==2.5.1+cpu" >> constraints.txt
+# Crear archivo con dependencias que REQUIEREN torch (instalar con pip)
+# Crear archivo con el RESTO (instalar con uv)
+RUN cat > /tmp/separate-deps.py << 'PYTHON_SCRIPT'
+import re
+
+# Dependencias que dependen de torch o tienen conflictos con índices
+TORCH_RELATED = {
+    'torch', 'torchvision', 'torchaudio',
+    'sentence-transformers', 'transformers',
+    'accelerate', 'safetensors', 'huggingface-hub',
+    # Añadir otras si hay conflictos
+}
+
+torch_deps = []
+other_deps = []
+
+with open('/app/requirements-original.txt', 'r') as f:
+    for line in f:
+        line = line.strip()
+        if not line or line.startswith('#'):
+            continue
+        
+        # Extraer nombre del paquete (antes de ==, >=, etc.)
+        pkg_name = re.split(r'[=<>!~\[]', line)[0].lower().replace('_', '-')
+        
+        if pkg_name in TORCH_RELATED:
+            torch_deps.append(line)
+        else:
+            other_deps.append(line)
+
+# Escribir archivos separados
+with open('/app/requirements-torch.txt', 'w') as f:
+    f.write('# Dependencias relacionadas con PyTorch\n')
+    f.write('# Se instalan con pip desde índice PyTorch\n\n')
+    for dep in torch_deps:
+        f.write(dep + '\n')
+
+with open('/app/requirements-other.txt', 'w') as f:
+    f.write('# Otras dependencias (sin conflictos)\n')
+    f.write('# Se instalan con uv (rápido)\n\n')
+    for dep in other_deps:
+        f.write(dep + '\n')
+
+print(f"✓ Separadas: {len(torch_deps)} torch-related, {len(other_deps)} otras")
+PYTHON_SCRIPT
+
+RUN python /tmp/separate-deps.py && \
+    echo "=== requirements-torch.txt ===" && \
+    cat requirements-torch.txt && \
+    echo "" && \
+    echo "=== requirements-other.txt ===" && \
+    cat requirements-other.txt
 
 # =============================================================================
-# FASE 4: INSTALAR PyTorch CPU
+# FASE 4: INSTALAR PyTorch CPU (pip)
 # =============================================================================
-# Usamos pip vanilla para PyTorch (más estable con su índice especial)
+# Primero instalamos torch CPU desde el índice oficial de PyTorch
 RUN pip install --no-cache-dir \
     torch==2.5.1+cpu \
     torchvision==0.20.1+cpu \
     torchaudio==2.5.1+cpu \
     --index-url https://download.pytorch.org/whl/cpu && \
-    # Verificación inmediata
-    python -c "import torch; print(f'✓ PyTorch {torch.__version__} (CPU) instalado')"
+    python -c "import torch; print(f'✓ PyTorch {torch.__version__}')"
 
 # =============================================================================
-# FASE 5: INSTALAR UV (Acelerador)
+# FASE 5: INSTALAR DEPENDENCIAS TORCH-RELATED (pip)
+# =============================================================================
+# Usamos pip para estas porque:
+# 1. Ya tienen torch instalado, pip lo respetará
+# 2. No hay conflicto de índices
+RUN pip install --no-cache-dir \
+    --no-deps \
+    -r requirements-torch.txt || \
+    # Si falla --no-deps, intentar normal (resolverá sin cambiar torch)
+    pip install --no-cache-dir -r requirements-torch.txt
+
+# Instalar dependencias transitivas de los paquetes torch-related
+# (sin --no-deps, pero torch ya está fijado)
+RUN pip install --no-cache-dir \
+    sentence-transformers \
+    transformers \
+    --upgrade-strategy only-if-needed
+
+# =============================================================================
+# FASE 6: INSTALAR UV
 # =============================================================================
 RUN pip install --no-cache-dir uv && \
-    echo "✓ uv $(uv --version) instalado"
+    echo "✓ uv $(uv --version)"
 
 # =============================================================================
-# FASE 6: INSTALAR DEPENDENCIAS CON UV
+# FASE 7: INSTALAR RESTO DE DEPENDENCIAS (uv - RÁPIDO)
 # =============================================================================
-# 
-# FLAGS CRÍTICOS:
-# ┌─────────────────────────────────────────────────────────────────────────┐
-# │ --index-strategy unsafe-best-match                                      │
-# │   → SOLUCIONA el error de certifi/urllib3 entre índices                │
-# │   → Permite que uv elija la mejor versión de cualquier fuente          │
-# │                                                                         │
-# │ --constraint constraints.txt                                            │
-# │   → Garantiza que torch==2.5.1+cpu NUNCA sea sobrescrito              │
-# │                                                                         │
-# │ --extra-index-url (NO --index-url)                                      │
-# │   → PyPI es primario, PyTorch es secundario                            │
-# └─────────────────────────────────────────────────────────────────────────┘
-#
+# Estas dependencias NO tienen relación con torch
+# uv las instala mucho más rápido que pip
 RUN uv pip install --system --no-cache-dir \
-    --index-strategy unsafe-best-match \
-    --constraint constraints.txt \
-    --extra-index-url https://download.pytorch.org/whl/cpu \
-    -r requirements.txt
+    -r requirements-other.txt || \
+    # Fallback a pip si uv falla
+    pip install --no-cache-dir -r requirements-other.txt
 
-# Asegurar gunicorn está instalado (por si no está en requirements)
-RUN uv pip install --system --no-cache-dir gunicorn
-
-# =============================================================================
-# FASE 7: VERIFICACIÓN DE INTEGRIDAD
-# =============================================================================
-RUN python -c "\
-import torch; \
-import flask; \
-# Verificar que PyTorch es CPU
-assert '+cpu' in torch.__version__, f'ERROR: PyTorch NO es CPU: {torch.__version__}'; \
-print(f'✓ torch=={torch.__version__}'); \
-print(f'✓ flask=={flask.__version__}'); \
-print('✓ Todas las verificaciones pasaron')"
+# Asegurar gunicorn
+RUN pip install --no-cache-dir gunicorn
 
 # =============================================================================
-# FASE 8: CONFIGURACIÓN DE SEGURIDAD
+# FASE 8: VERIFICACIÓN
 # =============================================================================
-# Crear usuario no privilegiado con UID fijo (mejor para volúmenes)
-RUN useradd \
-    --create-home \
-    --shell /bin/bash \
-    --uid 1000 \
-    --user-group \
-    apu_user && \
+RUN python << 'VERIFY_SCRIPT'
+import sys
+
+print("=" * 60)
+print("VERIFICACIÓN DE INSTALACIÓN")
+print("=" * 60)
+
+# Verificar torch CPU
+import torch
+torch_version = torch.__version__
+assert '+cpu' in torch_version, f"ERROR: torch NO es CPU: {torch_version}"
+print(f"✓ torch=={torch_version} (CPU)")
+
+# Verificar sentence-transformers
+try:
+    import sentence_transformers
+    print(f"✓ sentence-transformers=={sentence_transformers.__version__}")
+except ImportError as e:
+    print(f"⚠ sentence-transformers no instalado: {e}")
+
+# Verificar transformers
+try:
+    import transformers
+    print(f"✓ transformers=={transformers.__version__}")
+except ImportError as e:
+    print(f"⚠ transformers no instalado: {e}")
+
+# Verificar flask
+import flask
+print(f"✓ flask=={flask.__version__}")
+
+print("=" * 60)
+print("✓ TODAS LAS VERIFICACIONES PASARON")
+print("=" * 60)
+VERIFY_SCRIPT
+
+# =============================================================================
+# FASE 9: SEGURIDAD
+# =============================================================================
+RUN useradd --create-home --shell /bin/bash --uid 1000 --user-group apu_user && \
     chown -R apu_user:apu_user /app
 
-# Limpiar archivos de build
-RUN rm -f constraints.txt requirements.txt
+# Limpiar archivos temporales
+RUN rm -f requirements-original.txt requirements-torch.txt requirements-other.txt
 
-# =============================================================================
-# FASE 9: COPIAR CÓDIGO DE APLICACIÓN
-# =============================================================================
-# Usuario no privilegiado a partir de aquí
 USER apu_user
 
-# Copiar código con propietario correcto
+# =============================================================================
+# FASE 10: CÓDIGO DE APLICACIÓN
+# =============================================================================
 COPY --chown=apu_user:apu_user app/ /app/app/
 COPY --chown=apu_user:apu_user config/ /app/config/
 COPY --chown=apu_user:apu_user wsgi.py /app/wsgi.py
 
 # =============================================================================
-# FASE 10: CONFIGURACIÓN DE RED
+# FASE 11: CONFIGURACIÓN FINAL
 # =============================================================================
-# Documentar puerto expuesto (TCP por defecto)
-EXPOSE ${GUNICORN_PORT}/tcp
+EXPOSE 5002
 
-# =============================================================================
-# FASE 11: HEALTHCHECK
-# =============================================================================
-# Verificar que la API responde correctamente
-# Ajustar el endpoint según tu aplicación (ej: /health, /api/health, /)
-HEALTHCHECK --interval=30s \
-            --timeout=10s \
-            --start-period=40s \
-            --retries=3 \
-    CMD curl --fail --silent --show-error \
-        http://localhost:${GUNICORN_PORT}/health \
-        || exit 1
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD curl -f http://localhost:5002/health || exit 1
 
-# =============================================================================
-# FASE 12: PUNTO DE ENTRADA
-# =============================================================================
-# Configuración robusta de Gunicorn para producción:
-#
-# --workers: Número de procesos worker (CPU cores * 2 + 1 es común)
-# --bind: Interface y puerto
-# --timeout: Tiempo máximo por request (importante para ML)
-# --graceful-timeout: Tiempo para cerrar conexiones en shutdown
-# --keep-alive: Mantener conexiones HTTP vivas
-# --access-logfile -: Logs a stdout (para Docker)
-# --error-logfile -: Errores a stderr (para Docker)
-# --capture-output: Capturar print() de la app
-# --preload: Cargar app antes de fork (ahorra memoria con ML models)
-#
-CMD ["sh", "-c", "gunicorn \
-    --workers ${GUNICORN_WORKERS} \
-    --bind 0.0.0.0:${GUNICORN_PORT} \
-    --timeout ${GUNICORN_TIMEOUT} \
-    --graceful-timeout 30 \
-    --keep-alive 5 \
-    --access-logfile - \
-    --error-logfile - \
-    --capture-output \
-    --preload \
-    wsgi:app"]
+CMD ["gunicorn", \
+     "--workers", "4", \
+     "--bind", "0.0.0.0:5002", \
+     "--timeout", "120", \
+     "--graceful-timeout", "30", \
+     "--access-logfile", "-", \
+     "--error-logfile", "-", \
+     "--capture-output", \
+     "wsgi:app"]

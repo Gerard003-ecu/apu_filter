@@ -1,44 +1,35 @@
 # =============================================================================
 # COMPOSE.YAML - APU Filter Stack
 # =============================================================================
-# Compatibilidad: Docker Compose v2+, Podman Compose
+# Versión: 3.0
 # 
-# NOTA: 'version' ya no es necesario en Compose moderno
-#       https://docs.docker.com/compose/compose-file/04-version-and-name/
+# IMPORTANTE: NO usar 'image:' junto con 'build:' en podman-compose
+#             O usar la convención de nombres correcta
 # =============================================================================
 
-# -----------------------------------------------------------------------------
-# NOMBRE DEL PROYECTO (opcional, pero recomendado)
-# -----------------------------------------------------------------------------
-name: apu-filter
+name: apu
 
-# -----------------------------------------------------------------------------
-# SERVICIOS
-# -----------------------------------------------------------------------------
 services:
   # ===========================================================================
-  # REDIS - Cache y Message Broker
+  # REDIS
   # ===========================================================================
   redis:
     image: docker.io/library/redis:7-alpine
     container_name: apu_redis
-    hostname: apu_redis
+    hostname: redis
     
-    ports:
-      - "6379:6379"
-    
-    # Comando con configuraciones de producción
     command: >
       redis-server
       --appendonly yes
       --maxmemory 256mb
       --maxmemory-policy allkeys-lru
     
-    # Persistencia de datos
-    volumes:
-      - redis_data:/data:Z
+    ports:
+      - "6379:6379"
     
-    # Health check robusto
+    volumes:
+      - redis_data:/data
+    
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
@@ -46,186 +37,103 @@ services:
       retries: 5
       start_period: 10s
     
-    # Reinicio automático
     restart: unless-stopped
-    
-    # Recursos limitados
-    deploy:
-      resources:
-        limits:
-          cpus: '0.5'
-          memory: 512M
-        reservations:
-          cpus: '0.25'
-          memory: 128M
     
     networks:
       - apu_net
 
   # ===========================================================================
-  # APU CORE - API Flask Principal
+  # APU CORE
   # ===========================================================================
-  apu_core:
-    # ✅ CORRECTO: Sin prefijo "localhost/"
-    image: apu_filter_core:latest
-    
+  # OPCIÓN A: Solo build (podman-compose nombra automáticamente)
+  core:
     build:
       context: .
       dockerfile: infrastructure/Dockerfile.core
-      args:
-        WORKERS: 4
-        PORT: 5002
-        TIMEOUT: 120
+    
+    # NO usar 'image:' aquí - podman-compose asignará: apu_core:latest
     
     container_name: apu_core
-    hostname: apu_core
-    
-    # ⚠️ IMPORTANTE: No buscar en registries remotos
-    pull_policy: never
+    hostname: core
     
     ports:
       - "5002:5002"
     
     environment:
-      # Redis
-      - REDIS_URL=redis://apu_redis:6379/0
-      # Flask
+      - REDIS_URL=redis://redis:6379/0
       - FLASK_ENV=production
-      - FLASK_APP=app.app
-      # Python
       - PYTHONUNBUFFERED=1
-      - PYTHONPATH=/app
-      # Gunicorn
-      - GUNICORN_WORKERS=4
-      - GUNICORN_PORT=5002
-      - GUNICORN_TIMEOUT=120
-      # Logging
-      - LOG_LEVEL=info
     
-    # Variables sensibles desde archivo externo
     env_file:
       - .env
     
-    # Esperar a que Redis esté HEALTHY (no solo iniciado)
     depends_on:
       redis:
         condition: service_healthy
     
-    # Health check HTTP
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5002/health"]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 60s  # Tiempo para cargar modelos ML
+      start_period: 90s  # Más tiempo para cargar modelos ML
     
-    # Volúmenes con :Z para SELinux
     volumes:
       - ./data:/app/data:Z
       - ./logs:/app/logs:Z
-      - ./config:/app/config:ro,Z  # Solo lectura para config
+      - ./config:/app/config:ro,Z
     
-    # Reinicio automático
     restart: unless-stopped
-    
-    # Recursos (ajustar según modelo ML)
-    deploy:
-      resources:
-        limits:
-          cpus: '2.0'
-          memory: 4G
-        reservations:
-          cpus: '1.0'
-          memory: 2G
     
     networks:
       - apu_net
 
   # ===========================================================================
-  # APU AGENT - Agente Orquestador
+  # APU AGENT
   # ===========================================================================
-  apu_agent:
-    # ✅ CORRECTO: Sin prefijo "localhost/"
-    image: apu_filter_agent:latest
-    
+  agent:
     build:
       context: .
       dockerfile: infrastructure/Dockerfile.agent
     
-    container_name: apu_agent
-    hostname: apu_agent
+    # NO usar 'image:' aquí - podman-compose asignará: apu_agent:latest
     
-    # ⚠️ IMPORTANTE: No buscar en registries remotos
-    pull_policy: never
+    container_name: apu_agent
+    hostname: agent
     
     environment:
-      # API Core
-      - CORE_API_URL=http://apu_core:5002
-      # Redis (si el agente también lo usa)
-      - REDIS_URL=redis://apu_redis:6379/0
-      # Python
+      - CORE_API_URL=http://core:5002
+      - REDIS_URL=redis://redis:6379/0
       - PYTHONUNBUFFERED=1
-      - PYTHONPATH=/app
-      # Logging
-      - LOG_LEVEL=info
     
-    # Variables sensibles
     env_file:
       - .env
     
-    # Esperar a que Core esté HEALTHY (no solo iniciado)
     depends_on:
-      apu_core:
+      core:
         condition: service_healthy
       redis:
         condition: service_healthy
     
-    # Health check (ajustar según el agente)
-    healthcheck:
-      test: ["CMD", "python", "-c", "import sys; sys.exit(0)"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 30s
-    
-    # Volúmenes
     volumes:
       - ./logs:/app/logs:Z
-      - ./data:/app/data:ro,Z  # Solo lectura si no escribe
     
-    # Reinicio automático
     restart: unless-stopped
-    
-    # Recursos
-    deploy:
-      resources:
-        limits:
-          cpus: '1.0'
-          memory: 2G
-        reservations:
-          cpus: '0.5'
-          memory: 1G
     
     networks:
       - apu_net
 
-# -----------------------------------------------------------------------------
+# =============================================================================
 # REDES
-# -----------------------------------------------------------------------------
+# =============================================================================
 networks:
   apu_net:
     driver: bridge
-    # Nombre explícito para evitar prefijos automáticos
     name: apu_network
-    ipam:
-      driver: default
-      config:
-        - subnet: 172.28.0.0/16
 
-# -----------------------------------------------------------------------------
-# VOLÚMENES PERSISTENTES
-# -----------------------------------------------------------------------------
+# =============================================================================
+# VOLÚMENES
+# =============================================================================
 volumes:
   redis_data:
-    driver: local
     name: apu_redis_data
