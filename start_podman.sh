@@ -1,7 +1,7 @@
 #!/bin/bash
 # ==============================================================================
 # Script de Orquestación para APU Filter Ecosystem
-# Versión: 2.0.0 (Adapted)
+# Versión: 2.1.0 (Adapted - Registry Config)
 # ==============================================================================
 
 # --- Strict Mode ---
@@ -12,6 +12,7 @@ IFS=$'\n\t'
 # Rutas relativas desde la raíz del proyecto
 readonly LOG_DIR="./logs"
 readonly COMPOSE_FILE="compose.yaml"
+readonly REGISTRY_SETUP_SCRIPT="scripts/setup_podman_registry.sh"
 readonly SCRIPT_PID=$$
 readonly LOG_FILE="${LOG_DIR}/podman_start_$(date +%Y%m%d_%H%M%S).log"
 
@@ -49,6 +50,17 @@ main() {
     
     log_info "=== Iniciando Despliegue de APU Filter Ecosystem ==="
     log_info "Log file: $LOG_FILE"
+
+    # 0. Configurar Registries de Podman (Paso Nuevo)
+    log_info "Verificando configuración de registros..."
+    if [[ -f "$REGISTRY_SETUP_SCRIPT" ]]; then
+        # Ejecutar script de configuración
+        log_info "Ejecutando setup_podman_registry.sh..."
+        bash "$REGISTRY_SETUP_SCRIPT" >> "$LOG_FILE" 2>&1
+        log_success "Configuración de registros aplicada."
+    else
+        log_warn "No se encontró $REGISTRY_SETUP_SCRIPT. Asumiendo configuración manual."
+    fi
 
     # 1. Validar archivo compose
     if [[ ! -f "$COMPOSE_FILE" ]]; then

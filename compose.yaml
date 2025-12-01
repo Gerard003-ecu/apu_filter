@@ -1,20 +1,19 @@
 # =============================================================================
-# COMPOSE.YAML - APU Filter Stack (Podman Compatible)
+# COMPOSE.YAML - APU Filter Stack
 # =============================================================================
-# Versión: 4.0 - Nombres cualificados para Podman
+# Versión: 5.0 - Compatible con Podman configurado
 #
-# IMPORTANTE: Usamos localhost/ como prefijo para indicar imágenes locales
-#             Esto es REQUERIDO por Podman para evitar ambigüedad
+# REQUISITO: Ejecutar primero la configuración de registries (ver arriba)
+#            O usar el script build-and-run.sh
 # =============================================================================
 
 name: apu
 
 services:
   # ===========================================================================
-  # REDIS - Cache y Message Broker
+  # REDIS
   # ===========================================================================
   redis:
-    # Nombre completamente cualificado (FQDN) para Docker Hub
     image: docker.io/library/redis:7-alpine
     container_name: apu_redis
     hostname: redis
@@ -39,23 +38,19 @@ services:
       start_period: 10s
     
     restart: unless-stopped
-    
     networks:
       - apu_net
 
   # ===========================================================================
-  # APU CORE - API Flask Principal
+  # APU CORE
   # ===========================================================================
   core:
-    # localhost/ indica que es una imagen LOCAL (no de un registry remoto)
-    image: localhost/apu-core:latest
+    # Nombre simple - Podman lo buscará localmente primero
+    image: apu-core:latest
     
     build:
       context: .
       dockerfile: infrastructure/Dockerfile.core
-      # Forzar que el build use el nombre especificado en 'image:'
-      tags:
-        - localhost/apu-core:latest
     
     container_name: apu_core
     hostname: core
@@ -89,22 +84,19 @@ services:
       - ./config:/app/config:ro,Z
     
     restart: unless-stopped
-    
     networks:
       - apu_net
 
   # ===========================================================================
-  # APU AGENT - Agente Orquestador
+  # APU AGENT
   # ===========================================================================
   agent:
-    # localhost/ indica que es una imagen LOCAL
-    image: localhost/apu-agent:latest
-    
+    # Nombre simple - Podman lo buscará localmente primero
+    image: apu-agent:latest
+
     build:
       context: .
       dockerfile: infrastructure/Dockerfile.agent
-      tags:
-        - localhost/apu-agent:latest
     
     container_name: apu_agent
     hostname: agent
@@ -128,21 +120,14 @@ services:
       - ./logs:/app/logs:Z
     
     restart: unless-stopped
-    
     networks:
       - apu_net
 
-# =============================================================================
-# REDES
-# =============================================================================
 networks:
   apu_net:
     driver: bridge
     name: apu_network
 
-# =============================================================================
-# VOLÚMENES
-# =============================================================================
 volumes:
   redis_data:
     name: apu_redis_data
