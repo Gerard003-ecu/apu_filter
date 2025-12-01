@@ -52,6 +52,10 @@ services:
     build:
       context: .
       dockerfile: infrastructure/Dockerfile.core
+      args:
+        WORKERS: 4
+        PORT: 5002
+        TIMEOUT: 120
     
     container_name: apu_core
     hostname: core
