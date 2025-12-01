@@ -1,13 +1,13 @@
 # =============================================================================
 # DOCKERFILE.CORE - API Flask con PyTorch CPU
 # =============================================================================
-# Versión: 5.0 - Usa CONSTRAINTS para forzar versiones
+# Versión: 6.0 - Protección total contra reinstalación de torch
 # =============================================================================
 
 FROM python:3.10-slim
 
 LABEL maintainer="equipo-desarrollo" \
-      version="5.0" \
+      version="6.0" \
       description="Core API - Flask con PyTorch CPU"
 
 ENV PYTHONUNBUFFERED=1 \
@@ -30,34 +30,29 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 # =============================================================================
-# FASE 2: Copiar requirements
+# FASE 2: Copiar y LIMPIAR requirements
 # =============================================================================
-COPY requirements.txt ./requirements.txt
+COPY requirements.txt ./requirements-original.txt
+
+# Eliminar TODAS las dependencias problemáticas del requirements.txt
+# Estas se instalarán manualmente con versiones controladas
+RUN grep -v -E "^(torch|torchvision|torchaudio|sentence-transformers|transformers|accelerate|huggingface-hub|safetensors|sympy)" \
+    requirements-original.txt > requirements.txt || true
+
+# Mostrar qué quedó (para debug)
+RUN echo "=== requirements.txt limpio ===" && cat requirements.txt && echo "==="
 
 # =============================================================================
-# FASE 3: Limpiar requirements de TODAS las referencias a torch
+# FASE 3: Crear CONSTRAINTS (CANDADO INQUEBRANTABLE)
 # =============================================================================
-RUN sed -i '/^torch/d' requirements.txt && \
-    sed -i '/^torchvision/d' requirements.txt && \
-    sed -i '/^torchaudio/d' requirements.txt && \
-    sed -i '/^sentence-transformers/d' requirements.txt && \
-    sed -i '/^transformers/d' requirements.txt && \
-    sed -i '/^accelerate/d' requirements.txt && \
-    sed -i '/^huggingface-hub/d' requirements.txt && \
-    sed -i '/^safetensors/d' requirements.txt && \
-    sed -i '/^sympy/d' requirements.txt
+RUN echo "torch==2.5.1+cpu" > /tmp/constraints.txt && \
+    echo "torchvision==0.20.1+cpu" >> /tmp/constraints.txt && \
+    echo "torchaudio==2.5.1+cpu" >> /tmp/constraints.txt && \
+    echo "sympy==1.13.1" >> /tmp/constraints.txt && \
+    cat /tmp/constraints.txt
 
 # =============================================================================
-# FASE 4: Crear archivo de CONSTRAINTS (CANDADO DE VERSIONES)
-# =============================================================================
-# Este archivo PROHÍBE a pip instalar otras versiones
-RUN echo "torch==2.5.1+cpu" > /app/constraints.txt && \
-    echo "torchvision==0.20.1+cpu" >> /app/constraints.txt && \
-    echo "torchaudio==2.5.1+cpu" >> /app/constraints.txt && \
-    echo "sympy==1.13.1" >> /app/constraints.txt
-
-# =============================================================================
-# FASE 5: Instalar PyTorch CPU
+# FASE 4: Instalar PyTorch CPU PRIMERO
 # =============================================================================
 RUN pip install \
     torch==2.5.1+cpu \
@@ -65,13 +60,14 @@ RUN pip install \
     torchaudio==2.5.1+cpu \
     --index-url https://download.pytorch.org/whl/cpu
 
-RUN python -c "import torch; print(f'PyTorch {torch.__version__} instalado')"
+# Verificación inmediata
+RUN python -c "import torch; print(f'[OK] PyTorch {torch.__version__}')"
 
 # =============================================================================
-# FASE 6: Instalar dependencias ML (con constraint)
+# FASE 5: Instalar paquetes ML con CONSTRAINT
 # =============================================================================
 RUN pip install \
-    -c /app/constraints.txt \
+    -c /tmp/constraints.txt \
     sentence-transformers \
     transformers \
     accelerate \
@@ -79,46 +75,43 @@ RUN pip install \
     safetensors
 
 # =============================================================================
-# FASE 7: Instalar resto de dependencias (CON CONSTRAINT)
+# FASE 6: Instalar resto con CONSTRAINT
 # =============================================================================
-# El flag -c /app/constraints.txt FUERZA las versiones de torch
 RUN pip install \
-    -c /app/constraints.txt \
+    -c /tmp/constraints.txt \
     -r requirements.txt
 
-# Asegurar gunicorn
+# Gunicorn
 RUN pip install gunicorn
 
 # =============================================================================
-# FASE 8: Verificación ESTRICTA
+# FASE 7: VERIFICACIÓN ESTRICTA (falla el build si torch cambió)
 # =============================================================================
 RUN python -c "\
 import torch; \
-version = torch.__version__; \
-print(f'torch version: {version}'); \
-assert version == '2.5.1+cpu', f'ERROR: Esperado 2.5.1+cpu, encontrado {version}'; \
-print('OK: torch==2.5.1+cpu verificado')"
+v = torch.__version__; \
+print(f'Verificando torch: {v}'); \
+assert v == '2.5.1+cpu', f'FALLO: torch es {v}, debería ser 2.5.1+cpu'; \
+print('[OK] torch==2.5.1+cpu confirmado')"
 
 # =============================================================================
-# FASE 9: Usuario no privilegiado
+# FASE 8: Usuario no privilegiado
 # =============================================================================
 RUN useradd --create-home --shell /bin/bash --uid 1000 --user-group apu_user && \
-    chown -R apu_user:apu_user /app
-
-# Limpiar constraints (ya no se necesita)
-RUN rm -f /app/constraints.txt
+    chown -R apu_user:apu_user /app && \
+    rm -f /tmp/constraints.txt requirements-original.txt
 
 USER apu_user
 
 # =============================================================================
-# FASE 10: Copiar código
+# FASE 9: Copiar código
 # =============================================================================
 COPY --chown=apu_user:apu_user app/ /app/app/
 COPY --chown=apu_user:apu_user config/ /app/config/
 COPY --chown=apu_user:apu_user wsgi.py /app/wsgi.py
 
 # =============================================================================
-# FASE 11: Configuración final
+# FASE 10: Configuración final
 # =============================================================================
 EXPOSE 5002
 
