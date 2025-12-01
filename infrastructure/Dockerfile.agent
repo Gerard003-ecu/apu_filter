@@ -33,7 +33,17 @@ ENV PYTHONUNBUFFERED=1 \
 WORKDIR /app
 
 # =============================================================================
-# FASE 1: PREPARACIÓN DE ARCHIVOS DE DEPENDENCIAS
+# FASE 1: INSTALAR DEPENDENCIAS DEL SISTEMA
+# =============================================================================
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        curl \
+        libgomp1 \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# =============================================================================
+# FASE 2: PREPARACIÓN DE ARCHIVOS DE DEPENDENCIAS
 # =============================================================================
 # Copiar requirements primero (optimiza cache de Docker)
 COPY requirements.txt requirements-agent.txt ./
@@ -44,7 +54,7 @@ RUN sed -i -E '/^torch([>=<~!]|$)/d; /^torchvision/d; /^torchaudio/d' \
     requirements.txt requirements-agent.txt
 
 # =============================================================================
-# FASE 2: CREAR ARCHIVO DE CONSTRAINTS (Sintaxis segura)
+# FASE 3: CREAR ARCHIVO DE CONSTRAINTS (Sintaxis segura)
 # =============================================================================
 # Este archivo BLOQUEA las versiones de PyTorch para que ningún
 # instalador (pip, uv) pueda cambiarlas accidentalmente
@@ -53,7 +63,7 @@ RUN echo "torch==2.5.1+cpu" > constraints.txt && \
     echo "torchaudio==2.5.1+cpu" >> constraints.txt
 
 # =============================================================================
-# FASE 3: INSTALAR PyTorch CPU (pip vanilla - más estable para PyTorch)
+# FASE 4: INSTALAR PyTorch CPU (pip vanilla - más estable para PyTorch)
 # =============================================================================
 # Usamos pip directamente para PyTorch porque:
 # 1. El índice de PyTorch tiene peculiaridades que pip maneja mejor
@@ -67,13 +77,13 @@ RUN pip install --no-cache-dir \
     python -c "import torch; print(f'✓ PyTorch {torch.__version__} instalado correctamente')"
 
 # =============================================================================
-# FASE 4: INSTALAR UV (Acelerador de instalación)
+# FASE 5: INSTALAR UV (Acelerador de instalación)
 # =============================================================================
 RUN pip install --no-cache-dir uv && \
     uv --version
 
 # =============================================================================
-# FASE 5: INSTALAR DEPENDENCIAS CON UV (RÁPIDO + SEGURO)
+# FASE 6: INSTALAR DEPENDENCIAS CON UV (RÁPIDO + SEGURO)
 # =============================================================================
 # 
 # FLAGS CRÍTICOS EXPLICADOS:
@@ -107,7 +117,7 @@ RUN uv pip install --system --no-cache-dir \
     -r requirements-agent.txt
 
 # =============================================================================
-# FASE 6: VERIFICACIÓN DE INTEGRIDAD
+# FASE 7: VERIFICACIÓN DE INTEGRIDAD
 # =============================================================================
 # Verificar que PyTorch CPU sigue siendo la versión correcta
 RUN python -c "\
@@ -116,7 +126,7 @@ assert '+cpu' in torch.__version__, f'ERROR: PyTorch NO es CPU: {torch.__version
 print(f'✓ Verificación exitosa: torch=={torch.__version__}')"
 
 # =============================================================================
-# FASE 7: CONFIGURACIÓN DE SEGURIDAD
+# FASE 8: CONFIGURACIÓN DE SEGURIDAD
 # =============================================================================
 # Crear usuario no privilegiado
 RUN useradd \
@@ -135,13 +145,13 @@ RUN rm -f constraints.txt requirements.txt requirements-agent.txt
 USER apu_user
 
 # =============================================================================
-# FASE 8: COPIAR CÓDIGO DE APLICACIÓN
+# FASE 9: COPIAR CÓDIGO DE APLICACIÓN
 # =============================================================================
 # Se copia AL FINAL para maximizar cache de capas anteriores
 COPY --chown=apu_user:apu_user agent/ /app/agent/
 
 # =============================================================================
-# FASE 9: HEALTHCHECK (Opcional pero recomendado)
+# FASE 10: HEALTHCHECK (Opcional pero recomendado)
 # =============================================================================
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD python -c "import sys; sys.exit(0)" || exit 1
