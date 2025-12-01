@@ -1,19 +1,20 @@
 # =============================================================================
-# COMPOSE.YAML - APU Filter Stack
+# COMPOSE.YAML - APU Filter Stack (Podman Compatible)
 # =============================================================================
-# Versión: 3.0
-# 
-# IMPORTANTE: NO usar 'image:' junto con 'build:' en podman-compose
-#             O usar la convención de nombres correcta
+# Versión: 4.0 - Nombres cualificados para Podman
+#
+# IMPORTANTE: Usamos localhost/ como prefijo para indicar imágenes locales
+#             Esto es REQUERIDO por Podman para evitar ambigüedad
 # =============================================================================
 
 name: apu
 
 services:
   # ===========================================================================
-  # REDIS
+  # REDIS - Cache y Message Broker
   # ===========================================================================
   redis:
+    # Nombre completamente cualificado (FQDN) para Docker Hub
     image: docker.io/library/redis:7-alpine
     container_name: apu_redis
     hostname: redis
@@ -43,15 +44,18 @@ services:
       - apu_net
 
   # ===========================================================================
-  # APU CORE
+  # APU CORE - API Flask Principal
   # ===========================================================================
-  # OPCIÓN A: Solo build (podman-compose nombra automáticamente)
   core:
+    # localhost/ indica que es una imagen LOCAL (no de un registry remoto)
+    image: localhost/apu-core:latest
+    
     build:
       context: .
       dockerfile: infrastructure/Dockerfile.core
-    
-    # NO usar 'image:' aquí - podman-compose asignará: apu_core:latest
+      # Forzar que el build use el nombre especificado en 'image:'
+      tags:
+        - localhost/apu-core:latest
     
     container_name: apu_core
     hostname: core
@@ -63,6 +67,7 @@ services:
       - REDIS_URL=redis://redis:6379/0
       - FLASK_ENV=production
       - PYTHONUNBUFFERED=1
+      - PYTHONPATH=/app
     
     env_file:
       - .env
@@ -76,7 +81,7 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 90s  # Más tiempo para cargar modelos ML
+      start_period: 90s
     
     volumes:
       - ./data:/app/data:Z
@@ -89,14 +94,17 @@ services:
       - apu_net
 
   # ===========================================================================
-  # APU AGENT
+  # APU AGENT - Agente Orquestador
   # ===========================================================================
   agent:
+    # localhost/ indica que es una imagen LOCAL
+    image: localhost/apu-agent:latest
+    
     build:
       context: .
       dockerfile: infrastructure/Dockerfile.agent
-    
-    # NO usar 'image:' aquí - podman-compose asignará: apu_agent:latest
+      tags:
+        - localhost/apu-agent:latest
     
     container_name: apu_agent
     hostname: agent
@@ -105,6 +113,7 @@ services:
       - CORE_API_URL=http://core:5002
       - REDIS_URL=redis://redis:6379/0
       - PYTHONUNBUFFERED=1
+      - PYTHONPATH=/app
     
     env_file:
       - .env
