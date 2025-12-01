@@ -47,6 +47,7 @@ services:
   core:
     # Nombre simple - Podman lo buscará localmente primero
     image: apu-core:latest
+    pull_policy: build
     
     build:
       context: .
@@ -93,6 +94,7 @@ services:
   agent:
     # Nombre simple - Podman lo buscará localmente primero
     image: apu-agent:latest
+    pull_policy: build
 
     build:
       context: .
