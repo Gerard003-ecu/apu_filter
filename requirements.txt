@@ -153,11 +153,8 @@ scipy>=1.15.3
     # via
     #   scikit-learn
     #   sentence-transformers
-sentence-transformers>=5.1.2
-    # via -r requirements.in
 six>=1.17.0
     # via python-dateutil
-sympy>=1.14.0
 threadpoolctl>=3.6.0
     # via scikit-learn
 tokenizers>=0.22.1
@@ -168,8 +165,6 @@ tqdm>=4.67.1
     #   huggingface-hub
     #   sentence-transformers
     #   transformers
-transformers>=4.57.1
-    # via sentence-transformers
 typing-extensions>=4.15.0
     # via
     #   cryptography

@@ -1,13 +1,13 @@
 # =============================================================================
 # DOCKERFILE.AGENT - Agente Orquestador con PyTorch CPU
 # =============================================================================
-# Versión: 4.0 - Sin heredocs (compatible con Podman 4.x)
+# Versión: 5.0 - Usa CONSTRAINTS para forzar versiones
 # =============================================================================
 
 FROM python:3.10-slim
 
 LABEL maintainer="equipo-desarrollo" \
-      version="4.0" \
+      version="5.0" \
       description="Agente orquestador con PyTorch CPU"
 
 ENV PYTHONUNBUFFERED=1 \
@@ -26,16 +26,30 @@ COPY requirements.txt ./requirements.txt
 COPY requirements-agent.txt ./requirements-agent.txt
 
 # =============================================================================
-# FASE 2: Limpiar torch de requirements
+# FASE 2: Limpiar requirements de referencias a torch y relacionados
 # =============================================================================
 RUN sed -i '/^torch/d' requirements.txt requirements-agent.txt && \
     sed -i '/^torchvision/d' requirements.txt requirements-agent.txt && \
-    sed -i '/^torchaudio/d' requirements.txt requirements-agent.txt
+    sed -i '/^torchaudio/d' requirements.txt requirements-agent.txt && \
+    sed -i '/^sentence-transformers/d' requirements.txt requirements-agent.txt && \
+    sed -i '/^transformers/d' requirements.txt requirements-agent.txt && \
+    sed -i '/^accelerate/d' requirements.txt requirements-agent.txt && \
+    sed -i '/^huggingface-hub/d' requirements.txt requirements-agent.txt && \
+    sed -i '/^safetensors/d' requirements.txt requirements-agent.txt && \
+    sed -i '/^sympy/d' requirements.txt requirements-agent.txt
 
 # =============================================================================
-# FASE 3: Instalar PyTorch CPU
+# FASE 3: Crear archivo de CONSTRAINTS
 # =============================================================================
-RUN pip install --no-cache-dir \
+RUN echo "torch==2.5.1+cpu" > /app/constraints.txt && \
+    echo "torchvision==0.20.1+cpu" >> /app/constraints.txt && \
+    echo "torchaudio==2.5.1+cpu" >> /app/constraints.txt && \
+    echo "sympy==1.13.1" >> /app/constraints.txt
+
+# =============================================================================
+# FASE 4: Instalar PyTorch CPU
+# =============================================================================
+RUN pip install \
     torch==2.5.1+cpu \
     torchvision==0.20.1+cpu \
     torchaudio==2.5.1+cpu \
@@ -44,9 +58,10 @@ RUN pip install --no-cache-dir \
 RUN python -c "import torch; print(f'PyTorch {torch.__version__} instalado')"
 
 # =============================================================================
-# FASE 4: Instalar dependencias que usan torch
+# FASE 5: Instalar dependencias ML (con constraint)
 # =============================================================================
-RUN pip install --no-cache-dir \
+RUN pip install \
+    -c /app/constraints.txt \
     sentence-transformers \
     transformers \
     accelerate \
@@ -54,30 +69,36 @@ RUN pip install --no-cache-dir \
     safetensors
 
 # =============================================================================
-# FASE 5: Instalar resto de dependencias
+# FASE 6: Instalar resto de dependencias (CON CONSTRAINT)
 # =============================================================================
-RUN pip install --no-cache-dir -r requirements.txt
-RUN pip install --no-cache-dir -r requirements-agent.txt
+RUN pip install -c /app/constraints.txt -r requirements.txt
+RUN pip install -c /app/constraints.txt -r requirements-agent.txt
 
 # =============================================================================
-# FASE 6: Verificación
+# FASE 7: Verificación ESTRICTA
 # =============================================================================
-RUN python -c "import torch; assert '+cpu' in torch.__version__; print(f'OK: {torch.__version__}')"
+RUN python -c "\
+import torch; \
+version = torch.__version__; \
+assert version == '2.5.1+cpu', f'ERROR: {version}'; \
+print('OK: torch==2.5.1+cpu')"
 
 # =============================================================================
-# FASE 7: Usuario no privilegiado
+# FASE 8: Usuario no privilegiado
 # =============================================================================
 RUN useradd --create-home --shell /bin/bash --uid 1000 --user-group apu_user && \
     chown -R apu_user:apu_user /app
 
+RUN rm -f /app/constraints.txt
+
 USER apu_user
 
 # =============================================================================
-# FASE 8: Copiar código
+# FASE 9: Copiar código
 # =============================================================================
 COPY --chown=apu_user:apu_user agent/ /app/agent/
 
 # =============================================================================
-# FASE 9: Entrypoint
+# FASE 10: Entrypoint
 # =============================================================================
 ENTRYPOINT ["python", "-u", "-m", "agent.orchestrator"]

@@ -1,16 +1,15 @@
 # =============================================================================
 # DOCKERFILE.CORE - API Flask con PyTorch CPU
 # =============================================================================
-# Versión: 4.0 - Sin heredocs (compatible con Podman 4.x)
+# Versión: 5.0 - Usa CONSTRAINTS para forzar versiones
 # =============================================================================
 
 FROM python:3.10-slim
 
 LABEL maintainer="equipo-desarrollo" \
-      version="4.0" \
+      version="5.0" \
       description="Core API - Flask con PyTorch CPU"
 
-# Variables de entorno
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PYTHONPATH=/app \
@@ -36,28 +35,43 @@ RUN apt-get update && \
 COPY requirements.txt ./requirements.txt
 
 # =============================================================================
-# FASE 3: Limpiar torch de requirements (evitar conflictos)
+# FASE 3: Limpiar requirements de TODAS las referencias a torch
 # =============================================================================
 RUN sed -i '/^torch/d' requirements.txt && \
     sed -i '/^torchvision/d' requirements.txt && \
-    sed -i '/^torchaudio/d' requirements.txt
+    sed -i '/^torchaudio/d' requirements.txt && \
+    sed -i '/^sentence-transformers/d' requirements.txt && \
+    sed -i '/^transformers/d' requirements.txt && \
+    sed -i '/^accelerate/d' requirements.txt && \
+    sed -i '/^huggingface-hub/d' requirements.txt && \
+    sed -i '/^safetensors/d' requirements.txt && \
+    sed -i '/^sympy/d' requirements.txt
 
 # =============================================================================
-# FASE 4: Instalar PyTorch CPU PRIMERO
+# FASE 4: Crear archivo de CONSTRAINTS (CANDADO DE VERSIONES)
 # =============================================================================
-RUN pip install --no-cache-dir \
+# Este archivo PROHÍBE a pip instalar otras versiones
+RUN echo "torch==2.5.1+cpu" > /app/constraints.txt && \
+    echo "torchvision==0.20.1+cpu" >> /app/constraints.txt && \
+    echo "torchaudio==2.5.1+cpu" >> /app/constraints.txt && \
+    echo "sympy==1.13.1" >> /app/constraints.txt
+
+# =============================================================================
+# FASE 5: Instalar PyTorch CPU
+# =============================================================================
+RUN pip install \
     torch==2.5.1+cpu \
     torchvision==0.20.1+cpu \
     torchaudio==2.5.1+cpu \
     --index-url https://download.pytorch.org/whl/cpu
 
-# Verificar instalación
 RUN python -c "import torch; print(f'PyTorch {torch.__version__} instalado')"
 
 # =============================================================================
-# FASE 5: Instalar dependencias que usan torch (con pip, respeta torch instalado)
+# FASE 6: Instalar dependencias ML (con constraint)
 # =============================================================================
-RUN pip install --no-cache-dir \
+RUN pip install \
+    -c /app/constraints.txt \
     sentence-transformers \
     transformers \
     accelerate \
@@ -65,39 +79,46 @@ RUN pip install --no-cache-dir \
     safetensors
 
 # =============================================================================
-# FASE 6: Instalar resto de dependencias
+# FASE 7: Instalar resto de dependencias (CON CONSTRAINT)
 # =============================================================================
-RUN pip install --no-cache-dir -r requirements.txt
+# El flag -c /app/constraints.txt FUERZA las versiones de torch
+RUN pip install \
+    -c /app/constraints.txt \
+    -r requirements.txt
 
 # Asegurar gunicorn
-RUN pip install --no-cache-dir gunicorn
+RUN pip install gunicorn
 
 # =============================================================================
-# FASE 7: Verificación final
+# FASE 8: Verificación ESTRICTA
 # =============================================================================
 RUN python -c "\
 import torch; \
-import flask; \
-assert '+cpu' in torch.__version__, 'PyTorch no es CPU'; \
-print(f'OK: torch=={torch.__version__}, flask=={flask.__version__}')"
+version = torch.__version__; \
+print(f'torch version: {version}'); \
+assert version == '2.5.1+cpu', f'ERROR: Esperado 2.5.1+cpu, encontrado {version}'; \
+print('OK: torch==2.5.1+cpu verificado')"
 
 # =============================================================================
-# FASE 8: Usuario no privilegiado
+# FASE 9: Usuario no privilegiado
 # =============================================================================
 RUN useradd --create-home --shell /bin/bash --uid 1000 --user-group apu_user && \
     chown -R apu_user:apu_user /app
 
+# Limpiar constraints (ya no se necesita)
+RUN rm -f /app/constraints.txt
+
 USER apu_user
 
 # =============================================================================
-# FASE 9: Copiar código
+# FASE 10: Copiar código
 # =============================================================================
 COPY --chown=apu_user:apu_user app/ /app/app/
 COPY --chown=apu_user:apu_user config/ /app/config/
 COPY --chown=apu_user:apu_user wsgi.py /app/wsgi.py
 
 # =============================================================================
-# FASE 10: Configuración final
+# FASE 11: Configuración final
 # =============================================================================
 EXPOSE 5002
 
