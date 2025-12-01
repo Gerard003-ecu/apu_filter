@@ -1,10 +1,10 @@
 # =============================================================================
 # COMPOSE.YAML - APU Filter Stack
 # =============================================================================
-# Versión: 5.0 - Compatible con Podman configurado
+# Versión: 6.0 - Solución definitiva para Podman
 #
-# REQUISITO: Ejecutar primero la configuración de registries (ver arriba)
-#            O usar el script build-and-run.sh
+# CLAVE: pull_policy: never
+#        Esto IMPIDE que Podman intente buscar en registries remotos
 # =============================================================================
 
 name: apu
@@ -45,17 +45,16 @@ services:
   # APU CORE
   # ===========================================================================
   core:
-    # Nombre simple - Podman lo buscará localmente primero
     image: apu-core:latest
-    pull_policy: build
+    
+    # ═══════════════════════════════════════════════════════════════════════
+    # CLAVE: never = No buscar en registries, usar SOLO imagen local
+    # ═══════════════════════════════════════════════════════════════════════
+    pull_policy: never
     
     build:
       context: .
       dockerfile: infrastructure/Dockerfile.core
-      args:
-        WORKERS: 4
-        PORT: 5002
-        TIMEOUT: 120
     
     container_name: apu_core
     hostname: core
@@ -96,10 +95,13 @@ services:
   # APU AGENT
   # ===========================================================================
   agent:
-    # Nombre simple - Podman lo buscará localmente primero
     image: apu-agent:latest
-    pull_policy: build
-
+    
+    # ═══════════════════════════════════════════════════════════════════════
+    # CLAVE: never = No buscar en registries, usar SOLO imagen local
+    # ═══════════════════════════════════════════════════════════════════════
+    pull_policy: never
+    
     build:
       context: .
       dockerfile: infrastructure/Dockerfile.agent
