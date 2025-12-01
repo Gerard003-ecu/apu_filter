@@ -1,0 +1,155 @@
+# Solución: Configurar Podman
+
+Paso 1: Crear archivo de configuración de registries
+# Crear directorio de configuración si no existe
+mkdir -p ~/.config/containers/registries.conf.d/
+
+Paso 2: Crear archivo de configuración
+cat > ~/.config/containers/registries.conf.d/000-local.conf << 'EOF'
+# =============================================================================
+# Configuración de Registries para Podman
+# =============================================================================
+# Este archivo permite usar nombres cortos (sin prefijo de registry)
+# para imágenes construidas localmente.
+# =============================================================================
+
+# Permitir nombres cortos sin preguntar
+# Opciones: "enforcing" (rechaza), "permissive" (permite), "disabled"
+short-name-mode = "permissive"
+
+# Lista de registries donde buscar imágenes sin prefijo
+# (en orden de prioridad)
+unqualified-search-registries = ["docker.io"]
+EOF
+
+Paso 3: Verificar configuración
+# Verificar que Podman lee la configuración
+podman info | grep -A5 "registries"
+
+compose.yaml - Con Nombres Simples
+
+# =============================================================================
+# COMPOSE.YAML - APU Filter Stack
+# =============================================================================
+# Versión: 5.0 - Compatible con Podman configurado
+#
+# REQUISITO: Ejecutar primero la configuración de registries (ver arriba)
+#            O usar el script build-and-run.sh
+# =============================================================================
+
+name: apu
+
+services:
+  # ===========================================================================
+  # REDIS
+  # ===========================================================================
+  redis:
+    image: docker.io/library/redis:7-alpine
+    container_name: apu_redis
+    hostname: redis
+    
+    command: >
+      redis-server
+      --appendonly yes
+      --maxmemory 256mb
+      --maxmemory-policy allkeys-lru
+    
+    ports:
+      - "6379:6379"
+    
+    volumes:
+      - redis_data:/data
+    
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    
+    restart: unless-stopped
+    networks:
+      - apu_net
+
+  # ===========================================================================
+  # APU CORE
+  # ===========================================================================
+  core:
+    # Nombre simple - Podman lo buscará localmente primero
+    image: apu-core:latest
+    
+    container_name: apu_core
+    hostname: core
+    
+    ports:
+      - "5002:5002"
+    
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      - FLASK_ENV=production
+      - PYTHONUNBUFFERED=1
+      - PYTHONPATH=/app
+    
+    env_file:
+      - .env
+    
+    depends_on:
+      redis:
+        condition: service_healthy
+    
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 90s
+    
+    volumes:
+      - ./data:/app/data:Z
+      - ./logs:/app/logs:Z
+      - ./config:/app/config:ro,Z
+    
+    restart: unless-stopped
+    networks:
+      - apu_net
+
+  # ===========================================================================
+  # APU AGENT
+  # ===========================================================================
+  agent:
+    # Nombre simple - Podman lo buscará localmente primero
+    image: apu-agent:latest
+    
+    container_name: apu_agent
+    hostname: agent
+    
+    environment:
+      - CORE_API_URL=http://core:5002
+      - REDIS_URL=redis://redis:6379/0
+      - PYTHONUNBUFFERED=1
+      - PYTHONPATH=/app
+    
+    env_file:
+      - .env
+    
+    depends_on:
+      core:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    
+    volumes:
+      - ./logs:/app/logs:Z
+    
+    restart: unless-stopped
+    networks:
+      - apu_net
+
+networks:
+  apu_net:
+    driver: bridge
+    name: apu_network
+
+volumes:
+  redis_data:
+    name: apu_redis_data
