@@ -98,6 +98,7 @@ print('[OK] torch==2.5.1+cpu confirmado')"
 # FASE 8: Usuario no privilegiado
 # =============================================================================
 RUN useradd --create-home --shell /bin/bash --uid 1000 --user-group apu_user && \
+    mkdir -p /app/logs /app/data && \
     chown -R apu_user:apu_user /app && \
     rm -f /tmp/constraints.txt requirements-original.txt
 
