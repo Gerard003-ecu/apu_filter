@@ -82,6 +82,7 @@ print('[OK] torch==2.5.1+cpu')"
 # FASE 8: Usuario
 # =============================================================================
 RUN useradd --create-home --shell /bin/bash --uid 1000 --user-group apu_user && \
+    mkdir -p /app/logs /app/data && \
     chown -R apu_user:apu_user /app && \
     rm -f /tmp/constraints.txt req-*-original.txt
 
