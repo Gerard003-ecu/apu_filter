@@ -39,6 +39,7 @@ services:
       - FLASK_ENV=production
       - PYTHONUNBUFFERED=1
       - PYTHONPATH=/app
+      - SECRET_KEY=apu_super_secret_key_2025_change_me_in_prod
     # env_file:
     #  - .env
     depends_on:
