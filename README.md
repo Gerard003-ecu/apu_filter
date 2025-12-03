@@ -20,33 +20,39 @@ Creamos APU Filter para eliminar esa fricción. No reemplazamos a sus ingenieros
 
 ---
 
+## Arquitectura del Ecosistema
+
+La arquitectura del proyecto ha evolucionado a un sistema de microservicios orquestado, diseñado para alta disponibilidad y separación de responsabilidades. La **Tríada Operativa** se compone de:
+
+1.  **El Núcleo (Core):** Servidor Flask + Gunicorn (Puerto 5002). Procesa la física de los datos, la lógica de negocio (Flux Physics, Pipeline) y expone la API.
+2.  **La Memoria (Redis):** Gestión de sesiones, colas de mensajes y caché de alta velocidad para la comunicación eficiente entre procesos.
+3.  **El Agente (Agent):** Orquestador inteligente (`agent/apu_agent.py`) que monitorea la salud del sistema, optimiza el flujo de datos y gestiona tareas asíncronas de mantenimiento.
+
+---
+
 ## Su Nuevo Equipo Digital
 
-Hemos diseñado la arquitectura del sistema no como una colección de scripts, sino como un **Equipo de Expertos** especializados. Cada módulo tiene una responsabilidad única y reporta a un Director central.
+Internamente, el Núcleo (Core) opera no como scripts aislados, sino como un **Equipo de Expertos** especializados.
 
 ### 1. El Director (`pipeline_director.py`)
 **Rol:** Orquestador del Flujo.
-**Misión:** Es el jefe de obra digital. No toca los materiales, pero asegura que cada especialista entre en el momento exacto. Define la secuencia: Carga -> Limpieza -> Estabilización -> Cirugía -> Estimación. Garantiza que el proceso sea ordenado y auditable.
+**Misión:** Es el jefe de obra digital. Define la secuencia: Carga -> Limpieza -> Estabilización -> Cirugía -> Estimación. Garantiza que el proceso sea ordenado y auditable.
 
 ### 2. El Guardia (`report_parser_crudo.py`)
 **Rol:** Seguridad de Entrada.
-**Misión:** Detiene los datos corruptos en la puerta. Analiza la estructura de los archivos entrantes (CSV, Excel) y decide si cumplen con los estándares mínimos de calidad. Si entra basura, sale basura; El Guardia asegura que solo entre materia prima viable.
+**Misión:** Detiene los datos corruptos en la puerta. Analiza la estructura de los archivos entrantes (CSV, Excel) y decide si cumplen con los estándares mínimos de calidad.
 
 ### 3. El Estabilizador (`flux_condenser.py`)
 **Rol:** Control de Flujo y Resiliencia.
-**Misión:** Implementa patrones de **Backpressure y Control Adaptativo** para actuar como un amortiguador industrial. Gestiona la tasa de procesamiento dinámicamente, absorbiendo picos de carga y entregando un flujo estable al resto del sistema. Evita la saturación del servidor y garantiza la continuidad operativa, inspirándose internamente en modelos físicos de energía para tomar decisiones de regulación.
+**Misión:** Implementa patrones de **Backpressure y Control Adaptativo** para actuar como un amortiguador industrial. Gestiona la tasa de procesamiento dinámicamente, absorbiendo picos de carga.
 
 ### 4. El Cirujano (`apu_processor.py`)
 **Rol:** Precisión Estructural.
-**Misión:** Con el dato ya estabilizado, el Cirujano disecciona cada línea de costo. Separa materiales, mano de obra y equipos con precisión milimétrica, normalizando unidades y descripciones para que sean comparables.
+**Misión:** Con el dato ya estabilizado, disecciona cada línea de costo. Separa materiales, mano de obra y equipos con precisión milimétrica, normalizando unidades y descripciones.
 
 ### 5. El Estratega (`estimator.py`)
 **Rol:** Inteligencia de Mercado (Caja Blanca).
-**Misión:** Es el cerebro consultivo. Utiliza **Búsqueda Semántica** para encontrar precios históricos ("Muro de ladrillo" ≈ "Mampostería tolete") y proyecta escenarios de riesgo. **No es una caja negra:** explica cada decisión, mostrando la evidencia y el nivel de certeza para que el ingeniero humano tenga la última palabra.
-
-### 6. El Orquestador Autónomo (`agent/orchestrator.py`)
-**Rol:** Coordinación Agéntica.
-**Misión:** Actúa como el sistema nervioso central para microservicios autónomos, coordinando tareas complejas, monitoreando el estado del sistema y tomando decisiones basadas en retroalimentación en tiempo real.
+**Misión:** Utiliza **Búsqueda Semántica** para encontrar precios históricos y proyecta escenarios de riesgo. Muestra la evidencia y el nivel de certeza para que el ingeniero humano tenga la última palabra.
 
 ---
 
@@ -57,6 +63,56 @@ Hemos diseñado la arquitectura del sistema no como una colección de scripts, s
 | **"Perdemos días limpiando Excels de contratistas."** | **Motor de Ingesta Resiliente** (Control Adaptativo + PID) | **Continuidad Operativa:** Procese archivos corruptos o masivos sin que el sistema se detenga. |
 | **"Cada ingeniero cotiza precios diferentes para lo mismo."** | **Memoria Institucional Inteligente** (Vectores FAISS) | **Estandarización:** Recupere la "verdad" de la empresa. Si ya se cotizó, el sistema lo sabe. |
 | **"Nos da miedo que el precio del acero suba y perdamos plata."** | **Radar de Riesgo Financiero** (Simulación Monte Carlo) | **Protección de Margen:** Conozca la probabilidad matemática de pérdida antes de enviar la oferta. |
+
+---
+
+## Instalación: El Enfoque Dual
+
+Seleccione el método de despliegue que mejor se adapte a sus necesidades.
+
+### A. Despliegue Rápido / Producción (Recomendado)
+Ideal para demostraciones, pruebas de integración y entornos estables. Utiliza contenedores aislados para garantizar que "funcione en todas partes".
+
+**Requisitos:** [Podman](https://podman.io/) (o Docker) y `podman-compose`.
+
+1.  **Ejecutar el script de arranque:**
+    ```bash
+    ./start_podman.sh
+    ```
+    Este comando automatiza todo el ciclo de vida:
+    *   Configura los registros de contenedores (automáticamente vía `scripts/setup_podman_registry.sh`).
+    *   Construye las imágenes del Core y el Agente.
+    *   Levanta la infraestructura completa (Core, Redis, Agent) en una red orquestada.
+
+2.  **Verificar:** El sistema estará disponible en `http://localhost:5002`.
+
+### B. Modo Desarrollador / Ingeniería
+Ideal para modificar el código fuente, depurar lógica interna o correr la suite de pruebas unitarias.
+
+**Requisitos:** [Miniconda](https://docs.conda.io/en/latest/miniconda.html) (o Anaconda).
+
+1.  **Ejecutar el script de entorno:**
+    ```bash
+    ./start_conda.sh
+    ```
+    Este script realiza una configuración profunda:
+    *   Crea un entorno aislado (`apu_filter_env`).
+    *   Instala dependencias complejas (PyTorch CPU, FAISS, Redis) y optimizadas con `uv`.
+    *   Prepara los datos y genera embeddings iniciales.
+
+2.  **Activar el entorno:**
+    ```bash
+    conda activate apu_filter_env
+    ```
+
+3.  **Ejecutar pruebas o servidor:**
+    ```bash
+    # Correr pruebas
+    python -m pytest
+
+    # Levantar servidor manualmente
+    python -m flask run --port=5002
+    ```
 
 ---
 
@@ -79,93 +135,3 @@ En un sector donde la responsabilidad legal es alta, "la IA lo dijo" no es una d
 *   **Control Humano:** La herramienta propone, el ingeniero dispone.
 
 Ver `app/metodos.md` para detalles profundos sobre el Motor de Estabilidad y la Lógica de Estimación.
-
-## Guía de Configuración Detallada
-
-Para garantizar un entorno de trabajo limpio y funcional, siga estos pasos exactos.
-
-### Paso 1: Descargar e Instalar Miniconda
-Este paso prepara la base de Conda. Se recomienda limpiar instalaciones previas para evitar conflictos.
-
-```bash
-# Limpiar cualquier instalación anterior (opcional, pero recomendado)
-rm -rf $HOME/miniconda3
-
-# Descargar y ejecutar el instalador en modo no interactivo
-curl -O https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
-bash Miniconda3-latest-Linux-x86_64.sh -b -p $HOME/miniconda3
-
-# Inicializar Conda para el shell de forma permanente
-$HOME/miniconda3/bin/conda init bash
-
-# ¡Crucial! Cierra y vuelve a abrir tu terminal, o recarga tu shell:
-# source ~/.bashrc
-```
-*Después de reiniciar el terminal, Conda estará disponible.*
-
-### Paso 2: Crear y Activar el Entorno del Proyecto
-Ahora crearemos un entorno aislado con la versión de Python correcta.
-
-```bash
-# Aceptar Términos de Servicio y configurar 'yes' automático para modo no interactivo
-conda config --set always_yes yes
-conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/main
-conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/r
-
-# Crear el entorno con Python 3.10
-conda create --name apu_filter_env python=3.10
-
-# Activar el entorno
-conda activate apu_filter_env
-```
-
-### Paso 3: Instalar Dependencias Especiales y Redis
-Este es el paso más crítico. Instalamos los paquetes complejos en el orden correcto.
-
-```bash
-# Activar el entorno para asegurar que las dependencias se instalen en el lugar correcto
-conda activate apu_filter_env
-
-# Instalar faiss-cpu con Conda (desde el canal de PyTorch)
-conda install -c pytorch faiss-cpu
-
-# Instalar torch (versión CPU) usando el índice específico
-pip install torch --index-url https://download.pytorch.org/whl/cpu
-
-# Instalar Redis (desde el canal de conda-forge para mayor compatibilidad)
-conda install -c conda-forge redis
-```
-
-### Paso 4: Instalar el Resto de Dependencias
-Finalmente, instalamos las librerías de la aplicación usando `uv`.
-
-```bash
-# Activar el entorno para asegurar que las dependencias se instalen en el lugar correcto
-conda activate apu_filter_env
-
-# Asegurarse de que requirements.txt no contenga paquetes especiales
-sed -i -e '/faiss-cpu/d' -e '/torch/d' -e '/triton/d' -e '/nvidia-/d' requirements.txt
-
-# Instalar uv y las dependencias restantes
-pip install uv
-uv pip install -r requirements.txt
-uv pip install -r requirements-dev.txt
-```
-
-### Puesta en Marcha
-
-1.  **Verificación del Entorno:**
-    ```bash
-    python -m pytest
-    ```
-    *No se esperan errores de entorno (`ModuleNotFoundError`), solo posibles errores de lógica (`AssertionError`).*
-
-2.  **Generar la Inteligencia:**
-    ```bash
-    python scripts/generate_embeddings.py --input data/processed_apus.json
-    ```
-
-3.  **Encender Motores:**
-    ```bash
-    python -m flask run --port=5002
-    ```
