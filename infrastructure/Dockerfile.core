@@ -108,6 +108,7 @@ USER apu_user
 # =============================================================================
 COPY --chown=apu_user:apu_user app/ /app/app/
 COPY --chown=apu_user:apu_user config/ /app/config/
+COPY --chown=apu_user:apu_user models/ /app/models/
 COPY --chown=apu_user:apu_user wsgi.py /app/wsgi.py
 
 # =============================================================================
