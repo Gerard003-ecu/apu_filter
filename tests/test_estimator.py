@@ -23,7 +23,6 @@ from app.estimator import (
     safe_float_conversion,
     safe_int_conversion,
     validate_dataframe_columns,
-    validate_numeric_range,
 )
 
 # ============================================================================
@@ -118,6 +117,8 @@ def mock_embedding_model():
     model = MagicMock()
     # Simular embedding normalizado
     model.encode.return_value = np.random.rand(1, 384).astype(np.float32)
+    # Simular dimensión del modelo para validación
+    model.get_sentence_embedding_dimension.return_value = 384
     return model
 
 
@@ -224,23 +225,15 @@ class TestValidations:
 
     def test_validate_dataframe_columns_success(self):
         df = pd.DataFrame({"A": [1], "B": [2], "C": [3]})
-        assert validate_dataframe_columns(df, ["A", "B"], "test_df") is True
+        assert validate_dataframe_columns(df, ["A", "B"], "test_df")[0] is True
 
     def test_validate_dataframe_columns_missing(self):
         df = pd.DataFrame({"A": [1], "B": [2]})
-        assert validate_dataframe_columns(df, ["A", "B", "C"], "test_df") is False
+        assert validate_dataframe_columns(df, ["A", "B", "C"], "test_df", strict=True)[0] is False
 
     def test_validate_dataframe_columns_not_dataframe(self):
-        assert validate_dataframe_columns(None, ["A"], "test") is False
-        assert validate_dataframe_columns([], ["A"], "test") is False
-
-    def test_validate_numeric_range_valid(self):
-        assert validate_numeric_range(0.5, (0.0, 1.0), "similarity") is True
-        assert validate_numeric_range(50, (0, 100), "percentage") is True
-
-    def test_validate_numeric_range_invalid(self):
-        assert validate_numeric_range(1.5, (0.0, 1.0), "similarity") is False
-        assert validate_numeric_range(-10, (0, 100), "percentage") is False
+        assert validate_dataframe_columns(None, ["A"], "test")[0] is False
+        assert validate_dataframe_columns([], ["A"], "test")[0] is False
 
     def test_get_safe_column_value(self):
         row = pd.Series({"name": "test", "value": 42, "empty": None})
@@ -301,7 +294,9 @@ class TestFindBestKeywordMatch:
         assert match["CODIGO_APU"] == "APU-001"
         assert details is not None
         assert details.confidence_score == 1.0
-        assert "✅ Match ESTRICTO encontrado (100%)" in "\n".join(log)
+        # Check for early exit or explicit match
+        log_content = "\n".join(log)
+        assert "Early exit: Match perfecto encontrado" in log_content or "Match ESTRICTO encontrado" in log_content
 
     def test_keyword_match_strict_failure(self, sample_apu_pool):
         log = []
@@ -442,7 +437,7 @@ class TestFindBestSemanticMatch:
             log=log,
         )
         assert match is None
-        assert "Artefactos de búsqueda semántica no disponibles" in "\n".join(log)
+        assert "SearchArtifacts es None" in "\n".join(log)
 
     def test_semantic_match_empty_pool(self, mock_search_artifacts):
         log = []
@@ -681,7 +676,7 @@ class TestCalculateEstimate:
             # Debe usar keywords como fallback because semantic search returns None if artifacts are missing
             assert mock_kw.call_count >= 2
             # The log message comes from inside _find_best_semantic_match
-            assert "Artefactos de búsqueda semántica no disponibles" in result["log"]
+            assert "SearchArtifacts es None" in result["log"]
 
     def test_calculate_estimate_with_rendimiento(
         self, mock_search_artifacts, sample_apu_pool, sample_apu_detail, sample_config
@@ -792,12 +787,13 @@ class TestEdgeCases:
         """Prueba con descripciones muy largas."""
         long_desc_pool = sample_apu_pool.copy()
         long_desc_pool.loc[0, "original_description"] = "A" * 1000
-        long_desc_pool.loc[0, "DESC_NORMALIZED"] = "a " * 500
+        # Use a long word that won't be filtered out by length check (<2 chars)
+        long_desc_pool.loc[0, "DESC_NORMALIZED"] = "longword " * 500
 
         log = []
         match, details = _find_best_keyword_match(
             df_pool=long_desc_pool,
-            keywords=["a"],
+            keywords=["longword"],
             log=log,
         )
 
