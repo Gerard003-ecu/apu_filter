@@ -368,7 +368,7 @@ class AutonomousAgent:
         url = url.strip()
         
         # Agregar esquema si falta
-        if not url.startswith(("http://", "https://")):
+        if not url.lower().startswith(("http://", "https://")):
             url = f"http://{url}"
 
         # Validar estructura

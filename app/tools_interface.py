@@ -1060,8 +1060,14 @@ def get_telemetry_status(
         }
 
         # Asegurar valores por defecto para campos críticos
-        result.setdefault("status", "ACTIVE")
-        result.setdefault("system_health", "HEALTHY")
+        # Si report no trae status, sobrescribimos el IDLE de base_status con ACTIVE
+        if "status" not in report:
+            result["status"] = "ACTIVE"
+
+        # Si report no trae system_health, sobrescribimos el UNKNOWN de base_status con HEALTHY
+        if "system_health" not in report:
+            result["system_health"] = "HEALTHY"
+
         result.setdefault("message", "Telemetry context active")
 
         return result
