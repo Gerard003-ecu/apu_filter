@@ -259,6 +259,12 @@ class TelemetryContext:
         - Validación de tipo
         - Validación de longitud
         - Validación de contenido (no solo espacios)
+
+        Args:
+            request_id: El ID a validar.
+
+        Returns:
+            bool: True si es válido, False en caso contrario.
         """
         if not isinstance(request_id, str):
             return False
@@ -676,7 +682,7 @@ class TelemetryContext:
                     )
                     duration = 0.0
 
-            # Aplicar límite FIFO
+            # Aplicar límites FIFO
             removed = self._enforce_limit_fifo(
                 self.steps,
                 self.max_steps,

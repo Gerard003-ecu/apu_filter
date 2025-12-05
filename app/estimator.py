@@ -432,6 +432,15 @@ def safe_int_conversion(
     - Validación de rango opcional
     - Manejo de tipos especiales
     - Conversión desde float con truncamiento explícito
+
+    Args:
+        value: El valor a convertir.
+        default: Valor por defecto en caso de fallo.
+        min_value: Valor mínimo aceptable.
+        max_value: Valor máximo aceptable.
+
+    Returns:
+        El entero convertido o el valor por defecto.
     """
     if value is None or pd.isna(value):
         return default

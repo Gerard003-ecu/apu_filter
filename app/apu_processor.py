@@ -571,6 +571,7 @@ class NumericFieldExtractor:
 class APUTransformer(Transformer):
     """
     Orquestador que coordina a los especialistas para transformar una línea.
+
     ROBUSTECIDO: Manejo defensivo de tokens, validación estricta y logging mejorado.
     """
 
@@ -587,7 +588,18 @@ class APUTransformer(Transformer):
         profile: Dict[str, Any],
         keyword_cache: Any,
     ):
-        """Inicializa el Transformer con validación de parámetros."""
+        """
+        Inicializa el Transformer con validación de parámetros.
+
+        Args:
+            apu_context: Contexto del APU.
+            config: Configuración global.
+            profile: Perfil de procesamiento.
+            keyword_cache: Caché de palabras clave.
+
+        Raises:
+            RuntimeError: Si ocurre un error al inicializar los especialistas.
+        """
         # ROBUSTECIDO: Validación defensiva de parámetros de entrada
         if apu_context is None:
             logger.warning("apu_context es None, usando diccionario vacío")
@@ -614,7 +626,12 @@ class APUTransformer(Transformer):
         super().__init__()
 
     def _load_validation_thresholds(self) -> ValidationThresholds:
-        """Carga los umbrales de validación desde la configuración."""
+        """
+        Carga los umbrales de validación desde la configuración.
+
+        Returns:
+            ValidationThresholds: Objeto con los umbrales configurados.
+        """
         mo_config = self.config.get("validation_thresholds", {}).get("MANO_DE_OBRA", {})
         return ValidationThresholds(
             min_jornal=mo_config.get("min_jornal", 50000),
@@ -633,6 +650,12 @@ class APUTransformer(Transformer):
         - Eliminación de código muerto (bytes no esperados en Lark)
         - Logging específico para casos inesperados
         - Sanitización de salida
+
+        Args:
+            item: El item a extraer (Token, string, list, etc.).
+
+        Returns:
+            El valor extraído como string.
         """
         if item is None:
             return ""
@@ -679,6 +702,12 @@ class APUTransformer(Transformer):
         - Manejo de lista vacía
         - Manejo de múltiples elementos en args
         - Validación de longitud máxima
+
+        Args:
+            args: Lista de argumentos parseados.
+
+        Returns:
+            El contenido del campo procesado.
         """
         if not args:
             return ""
@@ -701,11 +730,27 @@ class APUTransformer(Transformer):
         return result
 
     def field_with_value(self, args: List[Any]) -> str:
-        """Procesa un campo que tiene valor explícito."""
+        """
+        Procesa un campo que tiene valor explícito.
+
+        Args:
+            args: Argumentos del campo.
+
+        Returns:
+            Valor del campo.
+        """
         return self.field(args)
 
     def field_empty(self, args: List[Any]) -> str:
-        """Procesa un campo vacío explícito."""
+        """
+        Procesa un campo vacío explícito.
+
+        Args:
+            args: Argumentos (ignorados).
+
+        Returns:
+            Cadena vacía.
+        """
         return ""
 
     def line(self, args: List[Any]) -> Optional[InsumoProcesado]:
@@ -717,6 +762,12 @@ class APUTransformer(Transformer):
         - Manejo defensivo de estructuras inesperadas
         - Validación temprana de campos mínimos
         - Logging detallado para diagnóstico
+
+        Args:
+            args: Argumentos parseados de la línea.
+
+        Returns:
+            Objeto InsumoProcesado si la línea es válida, None en caso contrario.
         """
         if not args:
             logger.debug("line() recibió args vacío")
@@ -794,6 +845,12 @@ class APUTransformer(Transformer):
         - Manejo de lista vacía
         - Manejo de lista con solo elementos vacíos
         - Preservación de campos vacíos intermedios (importante para estructura)
+
+        Args:
+            tokens: Lista de tokens/campos.
+
+        Returns:
+            Lista de tokens sin elementos vacíos al final.
         """
         if not tokens:
             return []
@@ -863,7 +920,16 @@ class APUTransformer(Transformer):
         return FormatoLinea.DESCONOCIDO
 
     def _is_noise_line(self, descripcion: str, num_fields: int) -> bool:
-        """Detecta si una línea es ruido (encabezado, resumen, etc.)."""
+        """
+        Detecta si una línea es ruido (encabezado, resumen, etc.).
+
+        Args:
+            descripcion: Descripción de la línea.
+            num_fields: Número de campos en la línea.
+
+        Returns:
+            True si es ruido, False si es contenido útil.
+        """
         if self.pattern_matcher.is_likely_summary(descripcion, num_fields):
             logger.debug(f"Línea de resumen ignorada: {descripcion[:30]}...")
             return True
@@ -879,7 +945,15 @@ class APUTransformer(Transformer):
         return False
 
     def _validate_mo_format(self, fields: List[str]) -> bool:
-        """Valida el formato de Mano de Obra usando el NumericFieldExtractor."""
+        """
+        Valida el formato de Mano de Obra usando el NumericFieldExtractor.
+
+        Args:
+            fields: Lista de campos.
+
+        Returns:
+            True si el formato es válido para Mano de Obra.
+        """
         if len(fields) < 5:
             return False
 
@@ -898,6 +972,13 @@ class APUTransformer(Transformer):
         - Try/except específico por tipo de formato
         - Logging con contexto completo
         - Validación de resultado antes de retornar
+
+        Args:
+            formato: El formato detectado.
+            tokens: Los tokens/campos de la línea.
+
+        Returns:
+            Objeto InsumoProcesado construido o None.
         """
         builder_map = {
             FormatoLinea.MO_COMPLETA: self._build_mo_completa,
@@ -1073,6 +1154,14 @@ class APUTransformer(Transformer):
         """
         Construye un insumo para líneas porcentuales o indirectas.
         La prioridad es extraer un `valor_total` válido.
+
+        Args:
+            tokens: Campos de la línea.
+            tipo_insumo: Tipo de insumo clasificado.
+            unidad: Unidad del insumo.
+
+        Returns:
+            Objeto InsumoProcesado o None.
         """
         descripcion = tokens[0]
         # Extraer todos los valores numéricos sin descartar el primero
@@ -1145,7 +1234,15 @@ class APUTransformer(Transformer):
         return TipoInsumo.SUMINISTRO
 
     def _get_insumo_class(self, tipo_insumo: TipoInsumo):
-        """Obtiene la clase de `schemas` correspondiente a un `TipoInsumo`."""
+        """
+        Obtiene la clase de `schemas` correspondiente a un `TipoInsumo`.
+
+        Args:
+            tipo_insumo: El enum del tipo de insumo.
+
+        Returns:
+            La clase correspondiente (ManoDeObra, Equipo, etc.).
+        """
         class_mapping = {
             TipoInsumo.MANO_DE_OBRA: ManoDeObra,
             TipoInsumo.EQUIPO: Equipo,
@@ -1465,6 +1562,14 @@ class APUProcessor:
         - Manejo específico de cada tipo de error Lark
         - Límites de tiempo y recursos
         - Estadísticas detalladas
+
+        Args:
+            lines: Lista de líneas de texto a procesar.
+            apu_context: Contexto del APU.
+            line_cache: Cache específico para estas líneas.
+
+        Returns:
+            Lista de objetos InsumoProcesado.
         """
         if not lines:
             return []
@@ -1566,6 +1671,12 @@ class APUProcessor:
         ROBUSTECIDO:
         - Verificación de tipos de cache
         - Límite de tamaño para evitar uso excesivo de memoria
+
+        Args:
+            line_cache: Cache específico.
+
+        Returns:
+            Cache combinado y validado.
         """
         MAX_CACHE_SIZE = 50000  # Límite razonable
 
@@ -1592,7 +1703,15 @@ class APUProcessor:
         return combined
 
     def _is_valid_line(self, line: Any) -> bool:
-        """Verifica si una línea es válida para procesamiento."""
+        """
+        Verifica si una línea es válida para procesamiento.
+
+        Args:
+            line: La línea a validar.
+
+        Returns:
+            True si es válida, False en caso contrario.
+        """
         if line is None:
             return False
         if not isinstance(line, str):
@@ -1610,6 +1729,12 @@ class APUProcessor:
         Computa una clave de cache para una línea.
 
         ROBUSTECIDO: Normalización para mejorar hit rate.
+
+        Args:
+            line: La línea de texto.
+
+        Returns:
+            La clave normalizada para el cache.
         """
         # Normalizar espacios múltiples y case para mejor cache hit
         normalized = " ".join(line.split())
@@ -1620,6 +1745,12 @@ class APUProcessor:
         Verifica que un árbol Lark del cache es válido y usable.
 
         ROBUSTECIDO: Verificación de estructura del árbol.
+
+        Args:
+            tree: El árbol a validar.
+
+        Returns:
+            True si es un árbol Lark válido.
         """
         if tree is None:
             return False
@@ -1645,6 +1776,14 @@ class APUProcessor:
         - Manejo de cada tipo de excepción Lark
         - Logging contextual
         - Actualización de estadísticas específicas
+
+        Args:
+            line: Línea a parsear.
+            line_num: Número de línea (para logging).
+            stats: Objeto de estadísticas.
+
+        Returns:
+            Árbol Lark si el parseo es exitoso, None en caso contrario.
         """
         from lark.exceptions import (
             UnexpectedCharacters,
@@ -1714,6 +1853,16 @@ class APUProcessor:
         - Manejo de lista vs objeto único
         - Validación de resultado
         - Estadísticas detalladas
+
+        Args:
+            tree: El árbol Lark.
+            transformer: El transformer a usar.
+            line: La línea original (para logging).
+            line_num: Número de línea.
+            stats: Objeto de estadísticas.
+
+        Returns:
+            Objeto InsumoProcesado o None.
         """
         try:
             result = transformer.transform(tree)
@@ -1759,6 +1908,12 @@ class APUProcessor:
         Valida que un insumo tiene los campos mínimos requeridos.
 
         ROBUSTECIDO: Verificación de campos obligatorios.
+
+        Args:
+            insumo: El objeto insumo a validar.
+
+        Returns:
+            True si es válido, False en caso contrario.
         """
         if insumo is None:
             return False
@@ -1789,7 +1944,16 @@ class APUProcessor:
         apu_code: str,
         stats: ParsingStats,
     ) -> None:
-        """Maneja errores inesperados de forma centralizada."""
+        """
+        Maneja errores inesperados de forma centralizada.
+
+        Args:
+            error: La excepción capturada.
+            line_num: Número de línea.
+            line: Contenido de la línea.
+            apu_code: Código del APU.
+            stats: Objeto de estadísticas.
+        """
         logger.error(
             f"  🚨 Línea {line_num}: Error inesperado\n"
             f"    APU: {apu_code}\n"
@@ -1811,7 +1975,12 @@ class APUProcessor:
         })
 
     def _merge_stats(self, apu_stats: ParsingStats):
-        """Combina estadísticas de un APU con las globales."""
+        """
+        Combina estadísticas de un APU con las globales.
+
+        Args:
+            apu_stats: Estadísticas del APU a combinar.
+        """
         self.parsing_stats.total_lines += apu_stats.total_lines
         self.parsing_stats.successful_parses += apu_stats.successful_parses
         self.parsing_stats.lark_parse_errors += apu_stats.lark_parse_errors
@@ -1915,6 +2084,9 @@ class APUProcessor:
         - Manejo específico de diferentes tipos de errores Lark
         - Configuración optimizada para rendimiento y diagnóstico
         - Fallback informativo en caso de fallo
+
+        Returns:
+            El parser Lark inicializado o None.
         """
         try:
             from lark import Lark
@@ -1992,6 +2164,12 @@ class APUProcessor:
     def _convert_to_dataframe(self, insumos: List[InsumoProcesado]) -> pd.DataFrame:
         """
         Convierte una lista de objetos `InsumoProcesado` a un DataFrame.
+
+        Args:
+            insumos: Lista de insumos procesados.
+
+        Returns:
+            DataFrame de Pandas con los datos.
         """
         records = []
         for insumo in insumos:

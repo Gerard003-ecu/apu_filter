@@ -352,6 +352,14 @@ class PIController:
         - Validación de todos los parámetros
         - Cálculo seguro de límites internos
         - Inicialización de historial para diagnóstico
+
+        Args:
+            kp: Ganancia Proporcional.
+            ki: Ganancia Integral.
+            setpoint: Punto de ajuste (target).
+            min_output: Salida mínima permitida.
+            max_output: Salida máxima permitida.
+            integral_limit_factor: Factor para limitar el término integral.
         """
         self._validate_parameters(
             kp, ki, setpoint, min_output, max_output, integral_limit_factor
@@ -457,10 +465,10 @@ class PIController:
         - Historial para diagnóstico
 
         Args:
-            process_variable: Valor actual del proceso (saturación medida)
+            process_variable: Valor actual del proceso (saturación medida).
 
         Returns:
-            Señal de control (batch size) en rango válido
+            Señal de control (batch size) en rango válido.
         """
         self._iteration_count += 1
 
@@ -701,6 +709,11 @@ class FluxPhysicsEngine:
         ROBUSTECIDO:
         - Validación de rangos físicamente plausibles
         - Cálculo de constantes derivadas
+
+        Args:
+            capacitance: Capacitancia (Faradios).
+            resistance: Resistencia (Ohmios).
+            inductance: Inductancia (Henrios).
         """
         self._validate_parameters(capacitance, resistance, inductance)
 
@@ -1070,6 +1083,11 @@ class DataFluxCondenser:
         - Validación de tipos antes de cualquier operación
         - Inicialización segura de componentes
         - Fallbacks para configuración faltante
+
+        Args:
+            config: Configuración global del sistema.
+            profile: Perfil de procesamiento específico.
+            condenser_config: Configuración específica del condensador.
         """
         # Inicializar logger primero (para usar en validaciones)
         self.logger = logging.getLogger(self.__class__.__name__)
