@@ -22,17 +22,26 @@ import os
 import signal
 import sys
 import time
+import uuid
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum, auto
-from typing import Any, Callable, Dict, Optional
+from typing import Any, Callable, Dict, Optional, Tuple
 from urllib.parse import urlparse
 
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
-from agent.topological_analyzer import SystemTopology, PersistenceHomology, MetricState
+from agent.topological_analyzer import (
+    SystemTopology,
+    PersistenceHomology,
+    MetricState,
+    HealthLevel,
+    BettiNumbers,
+    TopologicalHealth,
+    PersistenceAnalysisResult,
+)
 
 
 # ============================================================================
@@ -256,6 +265,43 @@ class AgentMetrics:
         }
 
 
+@dataclass
+class TopologicalDiagnosis:
+    """
+    Diagnóstico topológico estructurado para el ciclo OODA.
+
+    Encapsula toda la información topológica relevante para la toma de decisiones.
+    """
+    health: TopologicalHealth
+    voltage_persistence: PersistenceAnalysisResult
+    saturation_persistence: PersistenceAnalysisResult
+    summary: str
+    recommended_status: SystemStatus
+
+    @property
+    def is_structurally_healthy(self) -> bool:
+        """Sistema estructuralmente sano (conectado, sin fragmentación)."""
+        return self.health.betti.is_connected
+
+    @property
+    def has_retry_loops(self) -> bool:
+        """Hay patrones de reintentos detectados."""
+        return len(self.health.request_loops) > 0
+
+    def to_log_dict(self) -> Dict[str, Any]:
+        """Serializa para logging estructurado."""
+        return {
+            "betti": {"b0": self.health.betti.b0, "b1": self.health.betti.b1},
+            "health_score": round(self.health.health_score, 3),
+            "health_level": self.health.level.name,
+            "voltage_state": self.voltage_persistence.state.name,
+            "saturation_state": self.saturation_persistence.state.name,
+            "disconnected_nodes": list(self.health.disconnected_nodes),
+            "retry_loops": len(self.health.request_loops),
+            "recommended_status": self.recommended_status.name,
+        }
+
+
 # ============================================================================
 # AUTONOMOUS AGENT - Implementación Principal
 # ============================================================================
@@ -288,12 +334,18 @@ class AutonomousAgent:
     MAX_CONSECUTIVE_FAILURES: int = 5
     DEBOUNCE_WINDOW_SECONDS: int = 60
 
+    # Nuevas constantes para análisis topológico
+    TOPOLOGY_HEALTH_CRITICAL_THRESHOLD: float = 0.4
+    TOPOLOGY_HEALTH_WARNING_THRESHOLD: float = 0.7
+    PERSISTENCE_WINDOW_SIZE: int = 20
+
     def __init__(
         self,
         core_api_url: Optional[str] = None,
         check_interval: Optional[int] = None,
         request_timeout: Optional[int] = None,
-        thresholds: Optional[ThresholdConfig] = None
+        thresholds: Optional[ThresholdConfig] = None,
+        persistence_window: Optional[int] = None,
     ) -> None:
         """
         Inicializa el agente autónomo.
@@ -303,6 +355,7 @@ class AutonomousAgent:
             check_interval: Intervalo entre ciclos (segundos)
             request_timeout: Timeout de requests (segundos)
             thresholds: Configuración de umbrales de análisis
+            persistence_window: Tamaño de ventana para homología persistente
             
         Raises:
             ValueError: Si la configuración es inválida
@@ -335,20 +388,25 @@ class AutonomousAgent:
         self._last_decision: Optional[AgentDecision] = None
         self._last_decision_time: Optional[datetime] = None
         self._last_status: Optional[SystemStatus] = None
-        self._last_diagnosis: Optional[str] = None  # Almacena diagnóstico topológico
+        self._last_diagnosis: Optional[TopologicalDiagnosis] = None
         self._metrics = AgentMetrics()
 
-        # Componentes de análisis topológico
-        self.topology = SystemTopology()
-        self.persistence = PersistenceHomology(window_size=20)
+        # Configuración de ventana de persistencia
+        window_size = persistence_window or self._parse_positive_int(
+            None,
+            os.getenv("PERSISTENCE_WINDOW_SIZE"),
+            self.PERSISTENCE_WINDOW_SIZE,
+            "persistence_window"
+        )
 
-        # Inicializar topología esperada (Agent -> Core -> Subsistemas)
-        # Asumimos estado inicial conectado para evitar alertas prematuras al arranque
-        self.topology.update_connectivity([
-            ("Agent", "Core"),
-            ("Core", "Redis"),
-            ("Core", "Filesystem")
-        ])
+        # Componentes de análisis topológico
+        self.topology = SystemTopology(
+            max_history=100,  # Historial amplio para detección de loops
+        )
+        self.persistence = PersistenceHomology(window_size=window_size)
+
+        # Establecer topología inicial esperada
+        self._initialize_expected_topology()
 
         # Sesión HTTP con reintentos
         self._session = self._create_robust_session()
@@ -361,7 +419,36 @@ class AutonomousAgent:
             f"AutonomousAgent inicializado | "
             f"Core: {self.core_api_url} | "
             f"Intervalo: {self.check_interval}s | "
-            f"Timeout: {self.request_timeout}s"
+            f"Timeout: {self.request_timeout}s | "
+            f"Ventana Persistencia: {window_size}"
+        )
+
+    def _initialize_expected_topology(self) -> None:
+        """
+        Establece la topología inicial esperada del sistema.
+
+        La topología esperada representa el estado ideal del sistema:
+        Agent -> Core -> {Redis, Filesystem}
+        """
+        initial_connections = [
+            ("Agent", "Core"),
+            ("Core", "Redis"),
+            ("Core", "Filesystem"),
+        ]
+
+        edges_added, warnings = self.topology.update_connectivity(
+            initial_connections,
+            validate_nodes=True,
+            auto_add_nodes=True
+        )
+
+        if warnings:
+            for warn in warnings:
+                logger.warning(f"[TOPO-INIT] {warn}")
+
+        logger.debug(
+            f"[TOPO-INIT] Topología inicial establecida: "
+            f"{edges_added} conexiones activas"
         )
 
     @staticmethod
@@ -493,13 +580,16 @@ class AutonomousAgent:
         """
         OBSERVE - Primera fase del ciclo OODA.
         
-        Realiza una solicitud GET al endpoint de telemetría del Core
-        y retorna datos estructurados y validados.
-        Además, alimenta la topología con el estado de conectividad.
+        Realiza una solicitud GET al endpoint de telemetría del Core.
+        Registra el request para detección de patrones de reintentos.
+        Actualiza la topología basándose en el resultado.
         
         Returns:
             TelemetryData si exitoso, None si hay error
         """
+        # Generar ID único para tracking de este request
+        request_id = f"obs_{uuid.uuid4().hex[:8]}_{int(time.time())}"
+
         try:
             response = self._session.get(
                 self.telemetry_endpoint,
@@ -512,9 +602,7 @@ class AutonomousAgent:
                     f"[OBSERVE] HTTP {response.status_code}: "
                     f"{response.text[:100] if response.text else 'Sin cuerpo'}"
                 )
-                self._metrics.record_failure()
-                # Registrar posible desconexión si falla
-                # Nota: la desconexión total se decide en Orient basado en persistencia de fallos
+                self._handle_observation_failure(request_id, f"HTTP_{response.status_code}")
                 return None
 
             # Parsear JSON
@@ -522,147 +610,369 @@ class AutonomousAgent:
                 raw_data = response.json()
             except ValueError as e:
                 logger.warning(f"[OBSERVE] Respuesta JSON inválida: {e}")
-                self._metrics.record_failure()
+                self._handle_observation_failure(request_id, "INVALID_JSON")
                 return None
 
             # Estructurar y validar datos
             telemetry = TelemetryData.from_dict(raw_data)
 
             if telemetry:
-                self._metrics.record_success()
-
-                # Topología: Registrar conexión exitosa Agent -> Core
-                # Asumimos que si el Core responde, sus subsistemas están accesibles
-                # (idealmente esto vendría en la telemetría, pero por ahora lo inferimos para evitar b0 > 1)
-                self.topology.update_connectivity([
-                    ("Agent", "Core"),
-                    ("Core", "Redis"),
-                    ("Core", "Filesystem")
-                ])
-
-                logger.debug(
-                    f"[OBSERVE] Datos recibidos: "
-                    f"voltage={telemetry.flyback_voltage:.3f}, "
-                    f"saturation={telemetry.saturation:.3f}"
-                )
+                self._handle_observation_success(request_id, telemetry)
             else:
-                self._metrics.record_failure()
+                self._handle_observation_failure(request_id, "INVALID_TELEMETRY")
+                return None
 
             return telemetry
 
         except requests.exceptions.Timeout:
             logger.warning(f"[OBSERVE] Timeout después de {self.request_timeout}s")
-            self._metrics.record_failure()
+            self._handle_observation_failure(request_id, "TIMEOUT")
             return None
 
         except requests.exceptions.ConnectionError as e:
             logger.warning(f"[OBSERVE] Error de conexión: {type(e).__name__}")
-            self._metrics.record_failure()
+            self._handle_observation_failure(request_id, "CONNECTION_ERROR")
             return None
 
         except requests.exceptions.RequestException as e:
             logger.error(f"[OBSERVE] Error inesperado: {e}")
-            self._metrics.record_failure()
+            self._handle_observation_failure(request_id, "REQUEST_ERROR")
             return None
+
+    def _handle_observation_success(
+        self,
+        request_id: str,
+        telemetry: TelemetryData
+    ) -> None:
+        """
+        Maneja una observación exitosa actualizando métricas y topología.
+
+        Args:
+            request_id: ID del request para tracking
+            telemetry: Datos de telemetría recibidos
+        """
+        self._metrics.record_success()
+
+        # Registrar request exitoso (no genera loops porque IDs son únicos)
+        self.topology.record_request(request_id)
+
+        # Actualizar topología: conexión Agent-Core confirmada
+        # Inferimos estado de subsistemas desde la respuesta del Core
+        active_connections = [("Agent", "Core")]
+
+        # Si la telemetría incluye estado de subsistemas, usarlo
+        raw = telemetry.raw_data
+        if raw.get("redis_connected", True):
+            active_connections.append(("Core", "Redis"))
+        if raw.get("filesystem_accessible", True):
+            active_connections.append(("Core", "Filesystem"))
+
+        self.topology.update_connectivity(
+            active_connections,
+            validate_nodes=True,
+            auto_add_nodes=False
+        )
+
+        logger.debug(
+            f"[OBSERVE] ✓ Datos recibidos: "
+            f"voltage={telemetry.flyback_voltage:.3f}, "
+            f"saturation={telemetry.saturation:.3f}"
+        )
+
+    def _handle_observation_failure(
+        self,
+        request_id: str,
+        failure_type: str
+    ) -> None:
+        """
+        Maneja una observación fallida actualizando métricas y topología.
+
+        Args:
+            request_id: ID del request para tracking
+            failure_type: Tipo de fallo para diagnóstico
+        """
+        self._metrics.record_failure()
+
+        # Registrar request fallido con tipo de error para detección de patrones
+        # Usamos el tipo de fallo como "request_id" para detectar fallos repetitivos
+        self.topology.record_request(f"FAIL_{failure_type}")
+
+        # Si hay fallos consecutivos significativos, degradar topología
+        if self._metrics.consecutive_failures >= self.MAX_CONSECUTIVE_FAILURES:
+            logger.warning(
+                f"[TOPO] Degradando topología: "
+                f"{self._metrics.consecutive_failures} fallos consecutivos"
+            )
+            # Remover conexión Agent-Core para reflejar desconexión
+            self.topology.remove_edge("Agent", "Core")
 
     def orient(self, telemetry: Optional[TelemetryData]) -> SystemStatus:
         """
-        ORIENT - Segunda fase del ciclo OODA (Lógica Topológica).
+        ORIENT - Segunda fase del ciclo OODA (Motor Topológico).
         
-        Analiza los datos usando Persistence Homology y Betti Numbers.
-        Sustituye umbrales simples por análisis de estabilidad y estructura.
+        Analiza el estado del sistema usando:
+        1. Invariantes topológicos (números de Betti, salud topológica)
+        2. Homología persistente (patrones estructurales vs ruido)
+        3. Detección de loops de reintentos
         
         Args:
-            telemetry: Datos de telemetría (puede ser None)
+            telemetry: Datos de telemetría (puede ser None si falló observe)
             
         Returns:
-            Estado del sistema determinado
+            Estado del sistema determinado por análisis topológico
         """
-        self._last_diagnosis = None
+        # Obtener salud topológica completa
+        topo_health = self.topology.get_topological_health()
 
-        # 1. Alimentar la Topología y verificar integridad
-        if telemetry is None:
-            # Si hay fallo, y persiste, cortamos la arista
-            if self._metrics.consecutive_failures >= self.MAX_CONSECUTIVE_FAILURES:
-                 self.topology.remove_edge("Agent", "Core")
-
-        # Obtener invariantes topológicos
-        betti = self.topology.calculate_betti_numbers()
-        b0, b1 = betti.b0, betti.b1
-
-        # Diagnóstico Topológico 1: Conectividad (b0)
-        if b0 > 1:
-            self._last_diagnosis = f"Fragmentación Topológica (b0={b0})"
-            logger.warning(f"[TOPO] ✂️ {self._last_diagnosis} - Desconexión detectada")
-            return SystemStatus.DISCONNECTED
-
-        if telemetry is None:
-            return SystemStatus.UNKNOWN
-
-        # 2. Ingesta para Homología Persistente
-        self.persistence.add_reading("flyback_voltage", telemetry.flyback_voltage)
-        self.persistence.add_reading("saturation", telemetry.saturation)
-
-        # 3. Análisis de Persistencia
-        # "Flyback Voltage" -> Buscamos inestabilidad (excursiones persistentes)
-        voltage_analysis = self.persistence.analyze_persistence(
+        # Preparar análisis de persistencia (pueden ser vacíos si no hay datos)
+        voltage_analysis = self._analyze_metric_persistence(
             "flyback_voltage",
-            threshold=self.thresholds.flyback_voltage_warning,
-            critical_ratio=0.5 # 50% de la ventana activa = Crítico
+            telemetry.flyback_voltage if telemetry else None,
+            self.thresholds.flyback_voltage_warning
         )
 
-        # "Saturation" -> Buscamos saturación (excursiones persistentes)
-        saturation_analysis = self.persistence.analyze_persistence(
+        saturation_analysis = self._analyze_metric_persistence(
             "saturation",
-            threshold=self.thresholds.saturation_warning
+            telemetry.saturation if telemetry else None,
+            self.thresholds.saturation_warning
         )
 
-        # 4. Determinación de Estado (Lógica del Ingeniero Senior)
+        # Determinar estado y construir diagnóstico
+        status, summary = self._evaluate_system_state(
+            telemetry=telemetry,
+            topo_health=topo_health,
+            voltage_analysis=voltage_analysis,
+            saturation_analysis=saturation_analysis
+        )
 
-        # Salvaguarda: Umbrales Críticos Instantáneos (Safety Net)
-        # Asegura respuesta inmediata ante condiciones peligrosas, independiente de la persistencia
+        # Almacenar diagnóstico completo
+        self._last_diagnosis = TopologicalDiagnosis(
+            health=topo_health,
+            voltage_persistence=voltage_analysis,
+            saturation_persistence=saturation_analysis,
+            summary=summary,
+            recommended_status=status
+        )
+
+        # Log estructurado del diagnóstico
+        if status != SystemStatus.NOMINAL:
+            logger.info(
+                f"[ORIENT] Diagnóstico: {self._last_diagnosis.to_log_dict()}"
+            )
+
+        return status
+
+    def _analyze_metric_persistence(
+        self,
+        metric_name: str,
+        current_value: Optional[float],
+        threshold: float
+    ) -> PersistenceAnalysisResult:
+        """
+        Analiza la persistencia de una métrica alimentando nuevos datos.
+
+        Args:
+            metric_name: Nombre de la métrica
+            current_value: Valor actual (None si no hay datos)
+            threshold: Umbral para análisis de excursiones
+
+        Returns:
+            Resultado del análisis de persistencia
+        """
+        # Alimentar nuevo dato si existe
+        if current_value is not None:
+            self.persistence.add_reading(metric_name, current_value)
+
+        # Obtener análisis
+        return self.persistence.analyze_persistence(
+            metric_name,
+            threshold=threshold,
+            noise_ratio=0.2,
+            critical_ratio=0.5
+        )
+
+    def _evaluate_system_state(
+        self,
+        telemetry: Optional[TelemetryData],
+        topo_health: TopologicalHealth,
+        voltage_analysis: PersistenceAnalysisResult,
+        saturation_analysis: PersistenceAnalysisResult
+    ) -> Tuple[SystemStatus, str]:
+        """
+        Evalúa el estado del sistema integrando todas las fuentes de análisis.
+
+        Jerarquía de evaluación (prioridad descendente):
+        1. Fragmentación topológica (b0 > 1)
+        2. Umbrales críticos instantáneos (safety net)
+        3. Salud topológica crítica (health_score < 0.4)
+        4. Patrones de persistencia (CRITICAL/FEATURE)
+        5. Loops de reintentos
+        6. Estado nominal
+
+        Args:
+            telemetry: Datos de telemetría actuales
+            topo_health: Salud topológica del sistema
+            voltage_analysis: Análisis de persistencia de voltaje
+            saturation_analysis: Análisis de persistencia de saturación
+
+        Returns:
+            Tupla (SystemStatus, resumen_diagnóstico)
+        """
+        betti = topo_health.betti
+
+        # =====================================================================
+        # 1. FRAGMENTACIÓN TOPOLÓGICA (Máxima prioridad)
+        # =====================================================================
+        if not betti.is_connected:
+            disconnected = ", ".join(topo_health.disconnected_nodes) or "desconocidos"
+            summary = (
+                f"Fragmentación Topológica: β₀={betti.b0} componentes. "
+                f"Nodos desconectados: [{disconnected}]"
+            )
+            logger.warning(f"[TOPO] ✂️ {summary}")
+            return SystemStatus.DISCONNECTED, summary
+
+        # =====================================================================
+        # 2. VERIFICAR DATOS DE TELEMETRÍA
+        # =====================================================================
+        if telemetry is None:
+            # Sin datos pero conectado = estado desconocido
+            if self._metrics.consecutive_failures > 0:
+                summary = f"Sin telemetría ({self._metrics.consecutive_failures} fallos)"
+            else:
+                summary = "Esperando datos de telemetría"
+            return SystemStatus.UNKNOWN, summary
+
+        # =====================================================================
+        # 3. UMBRALES CRÍTICOS INSTANTÁNEOS (Safety Net)
+        # =====================================================================
         if telemetry.flyback_voltage > self.thresholds.flyback_voltage_critical:
-             self._last_diagnosis = f"Voltaje Crítico Instantáneo ({telemetry.flyback_voltage:.2f})"
-             return SystemStatus.CRITICO
+            summary = (
+                f"Voltaje Crítico Instantáneo: "
+                f"{telemetry.flyback_voltage:.3f} > "
+                f"{self.thresholds.flyback_voltage_critical}"
+            )
+            logger.critical(f"[SAFETY] 🚨 {summary}")
+            return SystemStatus.CRITICO, summary
 
         if telemetry.saturation > self.thresholds.saturation_critical:
-             self._last_diagnosis = f"Saturación Crítica Instantánea ({telemetry.saturation:.2f})"
-             return SystemStatus.CRITICO
+            summary = (
+                f"Saturación Crítica Instantánea: "
+                f"{telemetry.saturation:.3f} > "
+                f"{self.thresholds.saturation_critical}"
+            )
+            logger.critical(f"[SAFETY] 🚨 {summary}")
+            return SystemStatus.CRITICO, summary
 
-        # Caso: Saturación Persistente (Warning sostenido)
+        # =====================================================================
+        # 4. SALUD TOPOLÓGICA GENERAL
+        # =====================================================================
+        if topo_health.level == HealthLevel.CRITICAL:
+            summary = (
+                f"Salud Topológica Crítica: score={topo_health.health_score:.2f}. "
+                f"Diagnósticos: {topo_health.diagnostics}"
+            )
+            logger.warning(f"[TOPO] 🔴 {summary}")
+            return SystemStatus.CRITICO, summary
+
+        # =====================================================================
+        # 5. ANÁLISIS DE PERSISTENCIA
+        # =====================================================================
+
+        # Saturación persistente (más grave que inestabilidad)
         if saturation_analysis.state == MetricState.CRITICAL:
-            lifespan = saturation_analysis.metadata.get('active_duration', 'unknown')
-            self._last_diagnosis = f"Saturación Persistente (Vida: {lifespan})"
-            return SystemStatus.SATURADO
+            duration = saturation_analysis.metadata.get('active_duration', '?')
+            summary = (
+                f"Saturación Persistente Crítica: "
+                f"excursión activa por {duration} muestras"
+            )
+            logger.warning(f"[PERSIST] 🟠 {summary}")
+            return SystemStatus.SATURADO, summary
 
-        # Caso: Inestabilidad de Voltaje (Critical o Feature)
-        # "Si Persistencia de Flyback es CRITICAL o FEATURE -> SystemStatus.INESTABLE"
-        if voltage_analysis.state in (MetricState.CRITICAL, MetricState.FEATURE):
-            lifespan = voltage_analysis.max_lifespan
-            if voltage_analysis.state == MetricState.CRITICAL:
-                lifespan = voltage_analysis.metadata.get('active_duration', 'unknown')
+        if saturation_analysis.state == MetricState.FEATURE:
+            summary = (
+                f"Saturación con Patrón Estructural: "
+                f"{saturation_analysis.feature_count} característica(s), "
+                f"persistencia total={saturation_analysis.total_persistence:.1f}"
+            )
+            logger.warning(f"[PERSIST] 🟡 {summary}")
+            return SystemStatus.SATURADO, summary
 
-            self._last_diagnosis = f"Inestabilidad de Voltaje Persistente (Estado: {voltage_analysis.state.name}, Vida: {lifespan})"
-            logger.warning(f"[TOPO] ⚠️ {self._last_diagnosis}")
-            return SystemStatus.INESTABLE
+        # Inestabilidad de voltaje
+        if voltage_analysis.state == MetricState.CRITICAL:
+            duration = voltage_analysis.metadata.get('active_duration', '?')
+            summary = (
+                f"Inestabilidad de Voltaje Crítica: "
+                f"excursión activa por {duration} muestras"
+            )
+            logger.warning(f"[PERSIST] 🟠 {summary}")
+            return SystemStatus.INESTABLE, summary
 
-        # Caso: Ruido (Noise) -> Ignorar
+        if voltage_analysis.state == MetricState.FEATURE:
+            summary = (
+                f"Inestabilidad de Voltaje Estructural: "
+                f"{voltage_analysis.feature_count} característica(s), "
+                f"max_lifespan={voltage_analysis.max_lifespan:.1f}"
+            )
+            logger.warning(f"[PERSIST] 🟡 {summary}")
+            return SystemStatus.INESTABLE, summary
+
+        # =====================================================================
+        # 6. DETECCIÓN DE LOOPS DE REINTENTOS
+        # =====================================================================
+        if topo_health.request_loops:
+            worst_loop = topo_health.request_loops[0]  # Ya ordenados por frecuencia
+            if worst_loop.count >= 5:
+                summary = (
+                    f"Patrón de Reintentos Detectado: "
+                    f"'{worst_loop.request_id}' apareció {worst_loop.count} veces"
+                )
+                logger.warning(f"[TOPO] 🔄 {summary}")
+                # Los loops de error indican inestabilidad
+                if worst_loop.request_id.startswith("FAIL_"):
+                    return SystemStatus.INESTABLE, summary
+
+        # =====================================================================
+        # 7. SALUD TOPOLÓGICA DEGRADADA (pero no crítica)
+        # =====================================================================
+        if topo_health.level == HealthLevel.UNHEALTHY:
+            summary = (
+                f"Salud Topológica Degradada: score={topo_health.health_score:.2f}"
+            )
+            logger.info(f"[TOPO] 🟡 {summary}")
+            # No es crítico, pero vale la pena monitorear
+            # Continuamos a evaluar como NOMINAL por ahora
+
+        # =====================================================================
+        # 8. RUIDO - Ignorar (inmunidad a falsos positivos)
+        # =====================================================================
         if voltage_analysis.state == MetricState.NOISE:
-            logger.debug("[TOPO] Ruido transitorio detectado en voltaje - Ignorando (Inmune a falsos positivos)")
-            return SystemStatus.NOMINAL
+            logger.debug(
+                f"[PERSIST] Ruido en voltaje ignorado: "
+                f"{voltage_analysis.noise_count} excursiones cortas"
+            )
 
         if saturation_analysis.state == MetricState.NOISE:
-             logger.debug("[TOPO] Ruido transitorio detectado en saturación - Ignorando")
-             return SystemStatus.NOMINAL
+            logger.debug(
+                f"[PERSIST] Ruido en saturación ignorado: "
+                f"{saturation_analysis.noise_count} excursiones cortas"
+            )
 
-        # Estado Base
-        return SystemStatus.NOMINAL
+        # =====================================================================
+        # 9. ESTADO NOMINAL
+        # =====================================================================
+        summary = (
+            f"Sistema Nominal: β₀={betti.b0}, β₁={betti.b1}, "
+            f"health={topo_health.health_score:.2f}"
+        )
+        return SystemStatus.NOMINAL, summary
 
     def decide(self, status: SystemStatus) -> AgentDecision:
         """
         DECIDE - Tercera fase del ciclo OODA.
         
-        Determina la acción a tomar basada en el estado del sistema.
+        Mapea el estado del sistema a una decisión de acción.
+        Considera el contexto topológico para decisiones más informadas.
         
         Args:
             status: Estado actual del sistema
@@ -670,6 +980,7 @@ class AutonomousAgent:
         Returns:
             Decisión a ejecutar
         """
+        # Mapeo base de estados a decisiones
         decision_mapping: Dict[SystemStatus, AgentDecision] = {
             SystemStatus.NOMINAL: AgentDecision.HEARTBEAT,
             SystemStatus.INESTABLE: AgentDecision.RECOMENDAR_LIMPIEZA,
@@ -680,6 +991,19 @@ class AutonomousAgent:
         }
 
         decision = decision_mapping.get(status, AgentDecision.WAIT)
+
+        # Ajustar decisión basándose en contexto topológico
+        if self._last_diagnosis and decision == AgentDecision.HEARTBEAT:
+            # Aunque nominal, si hay loops de error, considerar advertencia
+            if self._last_diagnosis.has_retry_loops:
+                loops = self._last_diagnosis.health.request_loops
+                error_loops = [l for l in loops if l.request_id.startswith("FAIL_")]
+                if error_loops:
+                    logger.debug(
+                        f"[DECIDE] Sistema nominal pero con {len(error_loops)} "
+                        f"patrones de error en historial"
+                    )
+
         self._metrics.record_decision(decision)
         self._last_status = status
 
@@ -689,8 +1013,8 @@ class AutonomousAgent:
         """
         ACT - Cuarta fase del ciclo OODA.
         
-        Ejecuta la acción decidida. Implementa debounce para evitar
-        spam de acciones repetitivas.
+        Ejecuta la acción decidida con información topológica enriquecida.
+        Implementa debounce para evitar spam de acciones repetitivas.
         
         Args:
             decision: Decisión a ejecutar
@@ -703,44 +1027,21 @@ class AutonomousAgent:
             logger.debug(f"[ACT] Acción suprimida por debounce: {decision.name}")
             return False
 
-        # Incluir diagnóstico en logs si existe
-        diagnosis_msg = f" - {self._last_diagnosis}" if self._last_diagnosis else ""
+        # Construir mensaje de diagnóstico enriquecido
+        diagnosis_msg = self._build_diagnosis_message()
 
-        # Mapa de acciones
-        # Usamos lambdas o wrappers para inyectar el contexto de logging si es necesario
+        # Ejecutar acción según decisión
+        action_handlers = {
+            AgentDecision.HEARTBEAT: self._act_heartbeat,
+            AgentDecision.RECOMENDAR_LIMPIEZA: self._act_recomendar_limpieza,
+            AgentDecision.RECOMENDAR_REDUCIR_VELOCIDAD: self._act_recomendar_reducir_velocidad,
+            AgentDecision.ALERTA_CRITICA: self._act_alerta_critica,
+            AgentDecision.RECONNECT: self._act_reconnect,
+            AgentDecision.WAIT: self._act_wait,
+        }
 
-        if decision == AgentDecision.HEARTBEAT:
-             logger.info("[BRAIN] ✅ Sistema NOMINAL - Operación estable")
-
-        elif decision == AgentDecision.RECOMENDAR_LIMPIEZA:
-             logger.warning(
-                f"[BRAIN] ⚠️ INESTABILIDAD PERSISTENTE{diagnosis_msg} - "
-                "Se recomienda revisión y limpieza de CSV"
-            )
-             self._notify_external_system("instability_detected")
-
-        elif decision == AgentDecision.RECOMENDAR_REDUCIR_VELOCIDAD:
-             logger.warning(
-                f"[BRAIN] ⚠️ SATURACIÓN DETECTADA{diagnosis_msg} - "
-                "Se recomienda reducir la velocidad de carga"
-            )
-             self._notify_external_system("saturation_detected")
-
-        elif decision == AgentDecision.ALERTA_CRITICA:
-             logger.critical(
-                f"[BRAIN] 🚨 ALERTA CRÍTICA{diagnosis_msg} - "
-                "Sistema en estado crítico. Intervención inmediata requerida."
-            )
-             self._notify_external_system("critical_alert")
-
-        elif decision == AgentDecision.RECONNECT:
-             logger.warning(
-                f"[BRAIN] 🔄 Conexión perdida con Core{diagnosis_msg}. "
-                f"Reintentando..."
-            )
-
-        elif decision == AgentDecision.WAIT:
-             logger.info("[BRAIN] ⏳ Esperando datos de telemetría...")
+        handler = action_handlers.get(decision, self._act_wait)
+        handler(diagnosis_msg)
 
         # Actualizar estado para debounce
         self._last_decision = decision
@@ -777,19 +1078,122 @@ class AutonomousAgent:
         elapsed = datetime.now() - self._last_decision_time
         return elapsed < timedelta(seconds=self.DEBOUNCE_WINDOW_SECONDS)
 
-    # =========================================================================
-    # ACTION HANDLERS - (Legacy methods removed in favor of inline logic in act)
-    # =========================================================================
-
-    def _notify_external_system(self, event_type: str) -> None:
+    def _build_diagnosis_message(self) -> str:
         """
-        Hook para notificaciones externas (webhooks, etc).
+        Construye mensaje de diagnóstico estructurado desde el análisis topológico.
+
+        Returns:
+            Mensaje formateado para logging
+        """
+        if not self._last_diagnosis:
+            return ""
+
+        diag = self._last_diagnosis
+        parts = [diag.summary]
+
+        # Agregar contexto de Betti si es relevante
+        betti = diag.health.betti
+        if not betti.is_ideal:
+            parts.append(f"[β₀={betti.b0}, β₁={betti.b1}]")
+
+        # Agregar health score si no es óptimo
+        if diag.health.health_score < 0.9:
+            parts.append(f"[health={diag.health.health_score:.2f}]")
+
+        return " | ".join(parts)
+
+    def _act_heartbeat(self, diagnosis_msg: str) -> None:
+        """Acción: Sistema nominal."""
+        health_indicator = "✅"
+        if self._last_diagnosis and self._last_diagnosis.health.health_score < 1.0:
+            health_indicator = "✅" if self._last_diagnosis.health.health_score >= 0.9 else "🟢"
+
+        logger.info(
+            f"[BRAIN] {health_indicator} Sistema NOMINAL - Operación estable"
+        )
+
+    def _act_recomendar_limpieza(self, diagnosis_msg: str) -> None:
+        """Acción: Recomendar limpieza por inestabilidad."""
+        logger.warning(
+            f"[BRAIN] ⚠️ INESTABILIDAD DETECTADA - {diagnosis_msg}"
+        )
+        logger.warning(
+            "[BRAIN] → Recomendación: Revisar y limpiar datos CSV"
+        )
+        self._notify_external_system("instability_detected", {
+            "diagnosis": diagnosis_msg,
+            "voltage_state": self._last_diagnosis.voltage_persistence.state.name
+            if self._last_diagnosis else None
+        })
+
+    def _act_recomendar_reducir_velocidad(self, diagnosis_msg: str) -> None:
+        """Acción: Recomendar reducir velocidad por saturación."""
+        logger.warning(
+            f"[BRAIN] ⚠️ SATURACIÓN DETECTADA - {diagnosis_msg}"
+        )
+        logger.warning(
+            "[BRAIN] → Recomendación: Reducir velocidad de carga"
+        )
+        self._notify_external_system("saturation_detected", {
+            "diagnosis": diagnosis_msg,
+            "saturation_state": self._last_diagnosis.saturation_persistence.state.name
+            if self._last_diagnosis else None
+        })
+
+    def _act_alerta_critica(self, diagnosis_msg: str) -> None:
+        """Acción: Alerta crítica."""
+        logger.critical(
+            f"[BRAIN] 🚨 ALERTA CRÍTICA - {diagnosis_msg}"
+        )
+        logger.critical(
+            "[BRAIN] → Intervención inmediata requerida"
+        )
+        self._notify_external_system("critical_alert", {
+            "diagnosis": diagnosis_msg,
+            "health_score": self._last_diagnosis.health.health_score
+            if self._last_diagnosis else None,
+            "betti": self._last_diagnosis.health.betti.b0
+            if self._last_diagnosis else None
+        })
+
+    def _act_reconnect(self, diagnosis_msg: str) -> None:
+        """Acción: Intentar reconexión."""
+        logger.warning(
+            f"[BRAIN] 🔄 Conexión perdida - {diagnosis_msg}"
+        )
+        logger.warning(
+            f"[BRAIN] → Reintentando conexión con Core..."
+        )
+        # Restaurar topología esperada para próximo intento
+        self._initialize_expected_topology()
+
+    def _act_wait(self, diagnosis_msg: str) -> None:
+        """Acción: Esperar datos."""
+        logger.info("[BRAIN] ⏳ Esperando datos de telemetría...")
+
+    def _notify_external_system(
+        self,
+        event_type: str,
+        context: Optional[Dict[str, Any]] = None
+    ) -> None:
+        """
+        Hook para notificaciones externas (webhooks, métricas, etc).
         
         Args:
             event_type: Tipo de evento a notificar
+            context: Contexto adicional del evento
         """
-        # Placeholder para integración futura
-        logger.debug(f"[NOTIFY] Evento: {event_type}")
+        # Registrar para métricas/observabilidad
+        log_data = {"event": event_type}
+        if context:
+            log_data.update(context)
+
+        logger.debug(f"[NOTIFY] {log_data}")
+
+        # Placeholder para integración futura con:
+        # - Webhooks
+        # - Sistemas de alertas (PagerDuty, OpsGenie)
+        # - Métricas (Prometheus, DataDog)
 
     # =========================================================================
     # LIFECYCLE METHODS - Control del ciclo de vida
@@ -797,10 +1201,10 @@ class AutonomousAgent:
 
     def health_check(self) -> bool:
         """
-        Verifica conectividad con el Core antes de iniciar.
+        Verifica conectividad con el Core y estado topológico inicial.
         
         Returns:
-            True si el Core es accesible, False en caso contrario
+            True si el Core es accesible y la topología es válida
         """
         logger.info(f"Ejecutando health check: {self.telemetry_endpoint}")
 
@@ -811,7 +1215,17 @@ class AutonomousAgent:
             )
 
             if response.ok:
-                logger.info("✅ Health check exitoso - Core accesible")
+                # Actualizar topología con conexión confirmada
+                self._initialize_expected_topology()
+
+                # Verificar salud topológica
+                topo_health = self.topology.get_topological_health()
+
+                logger.info(
+                    f"✅ Health check exitoso - "
+                    f"Core accesible, topología: {topo_health.level.name} "
+                    f"(score={topo_health.health_score:.2f})"
+                )
                 return True
             else:
                 logger.warning(
@@ -821,23 +1235,115 @@ class AutonomousAgent:
 
         except requests.exceptions.RequestException as e:
             logger.error(f"❌ Health check fallido: {e}")
+
+            # Degradar topología
+            self.topology.remove_edge("Agent", "Core")
+            topo_health = self.topology.get_topological_health()
+
+            logger.error(
+                f"Topología degradada: β₀={topo_health.betti.b0}, "
+                f"health={topo_health.health_score:.2f}"
+            )
             return False
 
     def get_metrics(self) -> Dict[str, Any]:
         """
-        Retorna las métricas actuales del agente.
+        Retorna las métricas completas del agente incluyendo estado topológico.
         
         Returns:
-            Diccionario con todas las métricas
+            Diccionario con métricas del agente y análisis topológico
         """
         metrics = self._metrics.to_dict()
+
+        # Información básica del agente
         metrics.update({
             "core_api_url": self.core_api_url,
             "check_interval": self.check_interval,
             "is_running": self._running,
             "last_status": self._last_status.name if self._last_status else None,
         })
+
+        # Métricas topológicas
+        topo_health = self.topology.get_topological_health()
+        metrics["topology"] = {
+            "betti_b0": topo_health.betti.b0,
+            "betti_b1": topo_health.betti.b1,
+            "is_connected": topo_health.betti.is_connected,
+            "is_ideal": topo_health.betti.is_ideal,
+            "health_score": round(topo_health.health_score, 3),
+            "health_level": topo_health.level.name,
+            "disconnected_nodes": list(topo_health.disconnected_nodes),
+            "missing_edges": [list(e) for e in topo_health.missing_edges],
+            "request_loops_count": len(topo_health.request_loops),
+            "euler_characteristic": topo_health.betti.euler_characteristic,
+        }
+
+        # Métricas de persistencia
+        persistence_metrics = {}
+        for metric_name in ["flyback_voltage", "saturation"]:
+            stats = self.persistence.get_statistics(metric_name)
+            if stats:
+                persistence_metrics[metric_name] = {
+                    "samples": stats["count"],
+                    "min": round(stats["min"], 4),
+                    "max": round(stats["max"], 4),
+                    "mean": round(stats["mean"], 4),
+                    "std": round(stats["std"], 4),
+                }
+
+        if persistence_metrics:
+            metrics["persistence"] = persistence_metrics
+
+        # Último diagnóstico
+        if self._last_diagnosis:
+            metrics["last_diagnosis"] = {
+                "summary": self._last_diagnosis.summary,
+                "recommended_status": self._last_diagnosis.recommended_status.name,
+                "voltage_state": self._last_diagnosis.voltage_persistence.state.name,
+                "saturation_state": self._last_diagnosis.saturation_persistence.state.name,
+            }
+
         return metrics
+
+    def get_topological_summary(self) -> Dict[str, Any]:
+        """
+        Retorna un resumen del estado topológico actual.
+
+        Útil para dashboards y monitoreo en tiempo real.
+
+        Returns:
+            Resumen topológico estructurado
+        """
+        health = self.topology.get_topological_health()
+
+        return {
+            "timestamp": datetime.now().isoformat(),
+            "betti_numbers": {
+                "b0": health.betti.b0,
+                "b1": health.betti.b1,
+                "interpretation": {
+                    "b0": "conectado" if health.betti.is_connected else f"{health.betti.b0} fragmentos",
+                    "b1": "acíclico" if health.betti.is_acyclic else f"{health.betti.b1} ciclos",
+                }
+            },
+            "health": {
+                "score": health.health_score,
+                "level": health.level.name,
+                "is_healthy": health.is_healthy,
+            },
+            "issues": {
+                "disconnected_nodes": list(health.disconnected_nodes),
+                "missing_connections": [f"{u}-{v}" for u, v in health.missing_edges],
+                "diagnostics": health.diagnostics,
+            },
+            "retry_patterns": [
+                {
+                    "request_id": loop.request_id,
+                    "count": loop.count,
+                }
+                for loop in health.request_loops[:5]  # Top 5
+            ],
+        }
 
     def run(self, skip_health_check: bool = False) -> None:
         """
