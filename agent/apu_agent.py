@@ -14,6 +14,7 @@ Mejoras implementadas:
 - Validación robusta de telemetría
 - Métricas internas del agente
 - Health check inicial
+- Integración de Motor Topológico (Persistence Homology + Betti Numbers)
 """
 
 import logging
@@ -31,7 +32,7 @@ import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
-from agent.topological_analyzer import SystemTopology, PersistenceHomology
+from agent.topological_analyzer import SystemTopology, PersistenceHomology, MetricState
 
 
 # ============================================================================
@@ -334,11 +335,20 @@ class AutonomousAgent:
         self._last_decision: Optional[AgentDecision] = None
         self._last_decision_time: Optional[datetime] = None
         self._last_status: Optional[SystemStatus] = None
+        self._last_diagnosis: Optional[str] = None  # Almacena diagnóstico topológico
         self._metrics = AgentMetrics()
 
         # Componentes de análisis topológico
         self.topology = SystemTopology()
         self.persistence = PersistenceHomology(window_size=20)
+
+        # Inicializar topología esperada (Agent -> Core -> Subsistemas)
+        # Asumimos estado inicial conectado para evitar alertas prematuras al arranque
+        self.topology.update_connectivity([
+            ("Agent", "Core"),
+            ("Core", "Redis"),
+            ("Core", "Filesystem")
+        ])
 
         # Sesión HTTP con reintentos
         self._session = self._create_robust_session()
@@ -485,6 +495,7 @@ class AutonomousAgent:
         
         Realiza una solicitud GET al endpoint de telemetría del Core
         y retorna datos estructurados y validados.
+        Además, alimenta la topología con el estado de conectividad.
         
         Returns:
             TelemetryData si exitoso, None si hay error
@@ -502,6 +513,8 @@ class AutonomousAgent:
                     f"{response.text[:100] if response.text else 'Sin cuerpo'}"
                 )
                 self._metrics.record_failure()
+                # Registrar posible desconexión si falla
+                # Nota: la desconexión total se decide en Orient basado en persistencia de fallos
                 return None
 
             # Parsear JSON
@@ -517,6 +530,16 @@ class AutonomousAgent:
 
             if telemetry:
                 self._metrics.record_success()
+
+                # Topología: Registrar conexión exitosa Agent -> Core
+                # Asumimos que si el Core responde, sus subsistemas están accesibles
+                # (idealmente esto vendría en la telemetría, pero por ahora lo inferimos para evitar b0 > 1)
+                self.topology.update_connectivity([
+                    ("Agent", "Core"),
+                    ("Core", "Redis"),
+                    ("Core", "Filesystem")
+                ])
+
                 logger.debug(
                     f"[OBSERVE] Datos recibidos: "
                     f"voltage={telemetry.flyback_voltage:.3f}, "
@@ -544,9 +567,10 @@ class AutonomousAgent:
 
     def orient(self, telemetry: Optional[TelemetryData]) -> SystemStatus:
         """
-        ORIENT - Segunda fase del ciclo OODA.
+        ORIENT - Segunda fase del ciclo OODA (Lógica Topológica).
         
-        Analiza los datos de telemetría usando Topología y Análisis de Umbrales.
+        Analiza los datos usando Persistence Homology y Betti Numbers.
+        Sustituye umbrales simples por análisis de estabilidad y estructura.
         
         Args:
             telemetry: Datos de telemetría (puede ser None)
@@ -554,94 +578,84 @@ class AutonomousAgent:
         Returns:
             Estado del sistema determinado
         """
-        # 1. Actualizar Topología (Grafo de Conectividad)
-        if telemetry:
-            # Construimos el grafo de servicios activos
-            # Agent -> Core (Confirmado por el hecho de tener telemetry)
-            # Core -> Redis (Asumido por ahora, futuro: leer de telemetry.raw_data['services']['redis'])
-            # Core -> Filesystem (Asumido, el core siempre tiene acceso a disco si está vivo)
+        self._last_diagnosis = None
 
-            active_connections = [
-                ("Agent", "Core"),
-                ("Core", "Redis"),
-                ("Core", "Filesystem")
-            ]
-            self.topology.update_connectivity(active_connections)
-
-            # Registrar request_id si existe para análisis de ciclos
-            if "request_id" in telemetry.raw_data:
-                self.topology.record_request(telemetry.raw_data["request_id"])
-        else:
-            # Solo declaramos desconexión si fallan muchos intentos consecutivos
-            # para evitar "parpadeo" topológico
+        # 1. Alimentar la Topología y verificar integridad
+        if telemetry is None:
+            # Si hay fallo, y persiste, cortamos la arista
             if self._metrics.consecutive_failures >= self.MAX_CONSECUTIVE_FAILURES:
-                self.topology.update_connectivity([])
+                 self.topology.remove_edge("Agent", "Core")
 
-        # 2. Calcular Invariantes Topológicos (Betti Numbers)
-        b0, b1 = self.topology.calculate_betti_numbers()
+        # Obtener invariantes topológicos
+        betti = self.topology.calculate_betti_numbers()
+        b0, b1 = betti.b0, betti.b1
 
-        logger.info(f"[TOPO] 🧩 Invariantes: b0={b0} (Conexo), b1={b1} (Acíclico)")
-
-        # Regla Topológica 1: Ruptura de Conectividad
+        # Diagnóstico Topológico 1: Conectividad (b0)
         if b0 > 1:
-            logger.warning("[TOPO] Ruptura Topológica detectada (b0 > 1)")
+            self._last_diagnosis = f"Fragmentación Topológica (b0={b0})"
+            logger.warning(f"[TOPO] ✂️ {self._last_diagnosis} - Desconexión detectada")
             return SystemStatus.DISCONNECTED
 
-        # Sin datos disponibles pero b0=1 (¿extraño?), fallback a lógica clásica
         if telemetry is None:
-            if self._metrics.consecutive_failures >= self.MAX_CONSECUTIVE_FAILURES:
-                return SystemStatus.DISCONNECTED
             return SystemStatus.UNKNOWN
 
-        # 3. Análisis de Homología Persistente (Códigos de Barras)
-        voltage = telemetry.flyback_voltage
-        saturation = telemetry.saturation
+        # 2. Ingesta para Homología Persistente
+        self.persistence.add_reading("flyback_voltage", telemetry.flyback_voltage)
+        self.persistence.add_reading("saturation", telemetry.saturation)
 
-        self.persistence.add_reading("voltage", voltage)
-        self.persistence.add_reading("saturation", saturation)
-
-        voltage_persistence = self.persistence.analyze_persistence(
-            "voltage", self.thresholds.flyback_voltage_warning
-        )
-        saturation_persistence = self.persistence.analyze_persistence(
-            "saturation", self.thresholds.saturation_warning
+        # 3. Análisis de Persistencia
+        # "Flyback Voltage" -> Buscamos inestabilidad (excursiones persistentes)
+        voltage_analysis = self.persistence.analyze_persistence(
+            "flyback_voltage",
+            threshold=self.thresholds.flyback_voltage_warning,
+            critical_ratio=0.5 # 50% de la ventana activa = Crítico
         )
 
-        if voltage_persistence == "FEATURE" or saturation_persistence == "FEATURE":
-            logger.warning(
-                f"[TOPO] 📊 Persistencia de Inestabilidad: Alta (Barra larga detectada). "
-                f"V:{voltage_persistence} S:{saturation_persistence}"
-            )
-            # Características persistentes indican problemas estructurales (Inestable/Crítico)
-            # Escalamos la gravedad si es persistente
+        # "Saturation" -> Buscamos saturación (excursiones persistentes)
+        saturation_analysis = self.persistence.analyze_persistence(
+            "saturation",
+            threshold=self.thresholds.saturation_warning
+        )
 
-        # 4. Evaluación Clásica de Umbrales (con contexto topológico)
-        is_voltage_critical = voltage > self.thresholds.flyback_voltage_critical
-        is_voltage_warning = voltage > self.thresholds.flyback_voltage_warning
-        is_saturation_critical = saturation > self.thresholds.saturation_critical
-        is_saturation_warning = saturation > self.thresholds.saturation_warning
+        # 4. Determinación de Estado (Lógica del Ingeniero Senior)
 
-        # Clasificación
-        if is_voltage_critical or is_saturation_critical:
-            # Si es persistente, es aún más grave, pero CRITICO es el tope
-            return SystemStatus.CRITICO
+        # Salvaguarda: Umbrales Críticos Instantáneos (Safety Net)
+        # Asegura respuesta inmediata ante condiciones peligrosas, independiente de la persistencia
+        if telemetry.flyback_voltage > self.thresholds.flyback_voltage_critical:
+             self._last_diagnosis = f"Voltaje Crítico Instantáneo ({telemetry.flyback_voltage:.2f})"
+             return SystemStatus.CRITICO
 
-        if is_voltage_warning and is_saturation_warning:
-            return SystemStatus.CRITICO
+        if telemetry.saturation > self.thresholds.saturation_critical:
+             self._last_diagnosis = f"Saturación Crítica Instantánea ({telemetry.saturation:.2f})"
+             return SystemStatus.CRITICO
 
-        # Si hay warnings persistentes (FEATURES), escalamos a INESTABLE
-        if voltage_persistence == "FEATURE" or saturation_persistence == "FEATURE":
-             return SystemStatus.INESTABLE
-
-        if is_voltage_warning:
-            # Si es solo ruido, quizás podríamos ignorarlo, pero por seguridad mantenemos warning
-            if voltage_persistence == "NOISE":
-                logger.info("[TOPO] Warning de voltaje clasificado como RUIDO (transitorio)")
-            return SystemStatus.INESTABLE
-
-        if is_saturation_warning:
+        # Caso: Saturación Persistente (Warning sostenido)
+        if saturation_analysis.state == MetricState.CRITICAL:
+            lifespan = saturation_analysis.metadata.get('active_duration', 'unknown')
+            self._last_diagnosis = f"Saturación Persistente (Vida: {lifespan})"
             return SystemStatus.SATURADO
 
+        # Caso: Inestabilidad de Voltaje (Critical o Feature)
+        # "Si Persistencia de Flyback es CRITICAL o FEATURE -> SystemStatus.INESTABLE"
+        if voltage_analysis.state in (MetricState.CRITICAL, MetricState.FEATURE):
+            lifespan = voltage_analysis.max_lifespan
+            if voltage_analysis.state == MetricState.CRITICAL:
+                lifespan = voltage_analysis.metadata.get('active_duration', 'unknown')
+
+            self._last_diagnosis = f"Inestabilidad de Voltaje Persistente (Estado: {voltage_analysis.state.name}, Vida: {lifespan})"
+            logger.warning(f"[TOPO] ⚠️ {self._last_diagnosis}")
+            return SystemStatus.INESTABLE
+
+        # Caso: Ruido (Noise) -> Ignorar
+        if voltage_analysis.state == MetricState.NOISE:
+            logger.debug("[TOPO] Ruido transitorio detectado en voltaje - Ignorando (Inmune a falsos positivos)")
+            return SystemStatus.NOMINAL
+
+        if saturation_analysis.state == MetricState.NOISE:
+             logger.debug("[TOPO] Ruido transitorio detectado en saturación - Ignorando")
+             return SystemStatus.NOMINAL
+
+        # Estado Base
         return SystemStatus.NOMINAL
 
     def decide(self, status: SystemStatus) -> AgentDecision:
@@ -689,18 +703,44 @@ class AutonomousAgent:
             logger.debug(f"[ACT] Acción suprimida por debounce: {decision.name}")
             return False
 
-        # Mapa de acciones
-        action_handlers: Dict[AgentDecision, Callable[[], None]] = {
-            AgentDecision.HEARTBEAT: self._action_heartbeat,
-            AgentDecision.RECOMENDAR_LIMPIEZA: self._action_recommend_cleanup,
-            AgentDecision.RECOMENDAR_REDUCIR_VELOCIDAD: self._action_recommend_slowdown,
-            AgentDecision.ALERTA_CRITICA: self._action_critical_alert,
-            AgentDecision.WAIT: self._action_wait,
-            AgentDecision.RECONNECT: self._action_reconnect,
-        }
+        # Incluir diagnóstico en logs si existe
+        diagnosis_msg = f" - {self._last_diagnosis}" if self._last_diagnosis else ""
 
-        handler = action_handlers.get(decision, self._action_wait)
-        handler()
+        # Mapa de acciones
+        # Usamos lambdas o wrappers para inyectar el contexto de logging si es necesario
+
+        if decision == AgentDecision.HEARTBEAT:
+             logger.info("[BRAIN] ✅ Sistema NOMINAL - Operación estable")
+
+        elif decision == AgentDecision.RECOMENDAR_LIMPIEZA:
+             logger.warning(
+                f"[BRAIN] ⚠️ INESTABILIDAD PERSISTENTE{diagnosis_msg} - "
+                "Se recomienda revisión y limpieza de CSV"
+            )
+             self._notify_external_system("instability_detected")
+
+        elif decision == AgentDecision.RECOMENDAR_REDUCIR_VELOCIDAD:
+             logger.warning(
+                f"[BRAIN] ⚠️ SATURACIÓN DETECTADA{diagnosis_msg} - "
+                "Se recomienda reducir la velocidad de carga"
+            )
+             self._notify_external_system("saturation_detected")
+
+        elif decision == AgentDecision.ALERTA_CRITICA:
+             logger.critical(
+                f"[BRAIN] 🚨 ALERTA CRÍTICA{diagnosis_msg} - "
+                "Sistema en estado crítico. Intervención inmediata requerida."
+            )
+             self._notify_external_system("critical_alert")
+
+        elif decision == AgentDecision.RECONNECT:
+             logger.warning(
+                f"[BRAIN] 🔄 Conexión perdida con Core{diagnosis_msg}. "
+                f"Reintentando..."
+            )
+
+        elif decision == AgentDecision.WAIT:
+             logger.info("[BRAIN] ⏳ Esperando datos de telemetría...")
 
         # Actualizar estado para debounce
         self._last_decision = decision
@@ -738,49 +778,8 @@ class AutonomousAgent:
         return elapsed < timedelta(seconds=self.DEBOUNCE_WINDOW_SECONDS)
 
     # =========================================================================
-    # ACTION HANDLERS - Implementación de acciones
+    # ACTION HANDLERS - (Legacy methods removed in favor of inline logic in act)
     # =========================================================================
-
-    def _action_heartbeat(self) -> None:
-        """Acción: Sistema en estado nominal."""
-        logger.info("[BRAIN] ✅ Sistema NOMINAL - Operación normal")
-
-    def _action_recommend_cleanup(self) -> None:
-        """Acción: Recomendar limpieza por inestabilidad."""
-        logger.warning(
-            "[BRAIN] ⚠️ INESTABILIDAD DETECTADA - "
-            "Se recomienda revisión y limpieza de CSV"
-        )
-        # TODO: Implementar POST a /api/tools/clean cuando esté disponible
-        self._notify_external_system("instability_detected")
-
-    def _action_recommend_slowdown(self) -> None:
-        """Acción: Recomendar reducir velocidad por saturación."""
-        logger.warning(
-            "[BRAIN] ⚠️ SATURACIÓN DETECTADA - "
-            "Se recomienda reducir la velocidad de carga"
-        )
-        self._notify_external_system("saturation_detected")
-
-    def _action_critical_alert(self) -> None:
-        """Acción: Alerta crítica - intervención requerida."""
-        logger.critical(
-            "[BRAIN] 🚨 ALERTA CRÍTICA - "
-            "Sistema en estado crítico. Intervención inmediata requerida."
-        )
-        self._notify_external_system("critical_alert")
-
-    def _action_wait(self) -> None:
-        """Acción: Esperar disponibilidad de datos."""
-        logger.info("[BRAIN] ⏳ Esperando datos de telemetría...")
-
-    def _action_reconnect(self) -> None:
-        """Acción: Intentar reconexión con el Core."""
-        logger.warning(
-            f"[BRAIN] 🔄 Conexión perdida con Core "
-            f"({self._metrics.consecutive_failures} fallos consecutivos). "
-            f"Reintentando..."
-        )
 
     def _notify_external_system(self, event_type: str) -> None:
         """
