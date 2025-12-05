@@ -31,6 +31,8 @@ import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
+from agent.topological_analyzer import SystemTopology, PersistenceHomology
+
 
 # ============================================================================
 # LOGGING CONFIGURATION
@@ -334,6 +336,10 @@ class AutonomousAgent:
         self._last_status: Optional[SystemStatus] = None
         self._metrics = AgentMetrics()
 
+        # Componentes de análisis topológico
+        self.topology = SystemTopology()
+        self.persistence = PersistenceHomology(window_size=20)
+
         # Sesión HTTP con reintentos
         self._session = self._create_robust_session()
 
@@ -540,8 +546,7 @@ class AutonomousAgent:
         """
         ORIENT - Segunda fase del ciclo OODA.
         
-        Analiza los datos de telemetría y determina el estado del sistema
-        basándose en los umbrales configurados.
+        Analiza los datos de telemetría usando Topología y Análisis de Umbrales.
         
         Args:
             telemetry: Datos de telemetría (puede ser None)
@@ -549,37 +554,89 @@ class AutonomousAgent:
         Returns:
             Estado del sistema determinado
         """
-        # Sin datos disponibles
+        # 1. Actualizar Topología (Grafo de Conectividad)
+        if telemetry:
+            # Construimos el grafo de servicios activos
+            # Agent -> Core (Confirmado por el hecho de tener telemetry)
+            # Core -> Redis (Asumido por ahora, futuro: leer de telemetry.raw_data['services']['redis'])
+            # Core -> Filesystem (Asumido, el core siempre tiene acceso a disco si está vivo)
+
+            active_connections = [
+                ("Agent", "Core"),
+                ("Core", "Redis"),
+                ("Core", "Filesystem")
+            ]
+            self.topology.update_connectivity(active_connections)
+
+            # Registrar request_id si existe para análisis de ciclos
+            if "request_id" in telemetry.raw_data:
+                self.topology.record_request(telemetry.raw_data["request_id"])
+        else:
+            # Solo declaramos desconexión si fallan muchos intentos consecutivos
+            # para evitar "parpadeo" topológico
+            if self._metrics.consecutive_failures >= self.MAX_CONSECUTIVE_FAILURES:
+                self.topology.update_connectivity([])
+
+        # 2. Calcular Invariantes Topológicos (Betti Numbers)
+        b0, b1 = self.topology.calculate_betti_numbers()
+
+        logger.info(f"[TOPO] 🧩 Invariantes: b0={b0} (Conexo), b1={b1} (Acíclico)")
+
+        # Regla Topológica 1: Ruptura de Conectividad
+        if b0 > 1:
+            logger.warning("[TOPO] Ruptura Topológica detectada (b0 > 1)")
+            return SystemStatus.DISCONNECTED
+
+        # Sin datos disponibles pero b0=1 (¿extraño?), fallback a lógica clásica
         if telemetry is None:
             if self._metrics.consecutive_failures >= self.MAX_CONSECUTIVE_FAILURES:
                 return SystemStatus.DISCONNECTED
             return SystemStatus.UNKNOWN
 
-        # Evaluar condiciones contra umbrales
+        # 3. Análisis de Homología Persistente (Códigos de Barras)
         voltage = telemetry.flyback_voltage
         saturation = telemetry.saturation
 
+        self.persistence.add_reading("voltage", voltage)
+        self.persistence.add_reading("saturation", saturation)
+
+        voltage_persistence = self.persistence.analyze_persistence(
+            "voltage", self.thresholds.flyback_voltage_warning
+        )
+        saturation_persistence = self.persistence.analyze_persistence(
+            "saturation", self.thresholds.saturation_warning
+        )
+
+        if voltage_persistence == "FEATURE" or saturation_persistence == "FEATURE":
+            logger.warning(
+                f"[TOPO] 📊 Persistencia de Inestabilidad: Alta (Barra larga detectada). "
+                f"V:{voltage_persistence} S:{saturation_persistence}"
+            )
+            # Características persistentes indican problemas estructurales (Inestable/Crítico)
+            # Escalamos la gravedad si es persistente
+
+        # 4. Evaluación Clásica de Umbrales (con contexto topológico)
         is_voltage_critical = voltage > self.thresholds.flyback_voltage_critical
         is_voltage_warning = voltage > self.thresholds.flyback_voltage_warning
         is_saturation_critical = saturation > self.thresholds.saturation_critical
         is_saturation_warning = saturation > self.thresholds.saturation_warning
 
-        # Clasificación por prioridad (de más grave a menos grave)
+        # Clasificación
         if is_voltage_critical or is_saturation_critical:
-            logger.debug(
-                f"[ORIENT] CRÍTICO: voltage={voltage:.3f} "
-                f"(crítico>{self.thresholds.flyback_voltage_critical}), "
-                f"saturation={saturation:.3f} "
-                f"(crítico>{self.thresholds.saturation_critical})"
-            )
+            # Si es persistente, es aún más grave, pero CRITICO es el tope
             return SystemStatus.CRITICO
 
         if is_voltage_warning and is_saturation_warning:
-            # Ambos problemas simultáneos = estado crítico
-            logger.debug("[ORIENT] CRÍTICO: ambas métricas en warning simultáneamente")
             return SystemStatus.CRITICO
 
+        # Si hay warnings persistentes (FEATURES), escalamos a INESTABLE
+        if voltage_persistence == "FEATURE" or saturation_persistence == "FEATURE":
+             return SystemStatus.INESTABLE
+
         if is_voltage_warning:
+            # Si es solo ruido, quizás podríamos ignorarlo, pero por seguridad mantenemos warning
+            if voltage_persistence == "NOISE":
+                logger.info("[TOPO] Warning de voltaje clasificado como RUIDO (transitorio)")
             return SystemStatus.INESTABLE
 
         if is_saturation_warning:
