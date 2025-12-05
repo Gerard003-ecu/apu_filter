@@ -617,7 +617,7 @@ class TestSystemTopologyHealth:
     def test_fragmented_topology_unhealthy(self, fragmented_topology):
         """Fragmentación degrada la salud."""
         health = fragmented_topology.get_topological_health()
-        assert health.level in (HealthLevel.DEGRADED, HealthLevel.UNHEALTHY, HealthLevel.CRITICAL)
+        assert health.level in (HealthLevel.DEGRADED, HealthLevel.UNHEALTHY)
         assert health.health_score < 0.9
         assert len(health.disconnected_nodes) > 0
         assert "connectivity" in health.diagnostics or \
@@ -931,8 +931,7 @@ class TestPersistenceHomologyAnalysis:
             "cpu", threshold=0.5, noise_ratio=0.6
         )
         # noise_limit = 6, excursión activa de 5 => aún no es feature
-        if "noise_limit" in result.metadata:
-            assert result.metadata["noise_limit"] == 6
+        assert result.metadata["noise_limit"] == 6
 
     def test_result_metadata(self, persistence_with_data):
         """El resultado incluye metadata útil."""
