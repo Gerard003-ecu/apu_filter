@@ -91,6 +91,7 @@ class APUContext:
     apu_desc: str
     apu_unit: str
     source_line: int
+    default_unit: str = "UND"
 
     def __post_init__(self):
         """Realiza validación y normalización después de la inicialización."""
@@ -109,6 +110,7 @@ class APUContext:
 class ReportParserCrudo:
     """
     Parser robusto tipo máquina de estados para archivos APU semi-estructurados.
+
     ROBUSTECIDO: Constantes centralizadas, límites de recursos, manejo defensivo.
     """
 
@@ -165,6 +167,11 @@ class ReportParserCrudo:
         - Validación defensiva de todos los parámetros
         - Inicialización segura de componentes
         - Manejo de errores en importaciones
+
+        Args:
+            file_path: Ruta al archivo a procesar.
+            profile: Perfil de configuración.
+            config: Configuración global.
         """
         # ROBUSTECIDO: Conversión segura de file_path
         if file_path is None:
@@ -452,6 +459,12 @@ class ReportParserCrudo:
         - Normalización de espacios para mejor hit rate
         - Límite de longitud de clave
         - Coherente con APUProcessor
+
+        Args:
+            line: Línea original.
+
+        Returns:
+            Clave de cache normalizada.
         """
         # Normalizar espacios múltiples
         normalized = " ".join(line.split())
@@ -472,6 +485,11 @@ class ReportParserCrudo:
         ROBUSTECIDO:
         - Límite de tamaño de cache
         - Evicción LRU simplificada
+
+        Args:
+            key: Clave de cache.
+            is_valid: Si el resultado es válido.
+            tree: Árbol Lark (si aplica).
         """
         # Verificar límite de cache
         if len(self._parse_cache) >= self._MAX_CACHE_SIZE:
@@ -492,6 +510,12 @@ class ReportParserCrudo:
         ROBUSTECIDO:
         - Verificación de estructura básica
         - Coherente con APUProcessor
+
+        Args:
+            tree: Árbol Lark a validar.
+
+        Returns:
+            True si es válido, False en caso contrario.
         """
         if tree is None:
             return False
@@ -1175,6 +1199,14 @@ class ReportParserCrudo:
         - Manejo de campos faltantes
         - Validación de valores extraídos
         - Valores por defecto seguros
+
+        Args:
+            header_line: Línea con la descripción.
+            item_line: Línea con el item.
+            line_number: Número de línea.
+
+        Returns:
+            Objeto APUContext si es válido, None en caso contrario.
         """
         try:
             # Extraer descripción
@@ -1229,6 +1261,16 @@ class ReportParserCrudo:
         ROBUSTECIDO:
         - Validación de todos los campos
         - Estructura coherente con APUProcessor
+
+        Args:
+            context: Contexto del APU.
+            category: Categoría del insumo.
+            line: Línea del insumo.
+            line_number: Número de línea.
+            validation_result: Resultado de la validación.
+
+        Returns:
+            Diccionario con el registro del insumo.
         """
         return {
             "apu_code": context.apu_code,
