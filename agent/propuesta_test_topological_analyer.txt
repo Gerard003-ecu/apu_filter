@@ -133,7 +133,7 @@ class TestBettiNumbers:
         """Valores negativos deben lanzar excepción."""
         with pytest.raises(ValueError, match="no pueden ser negativos"):
             BettiNumbers(b0=-1, b1=0)
-        
+
         with pytest.raises(ValueError, match="no pueden ser negativos"):
             BettiNumbers(b0=1, b1=-1)
 
@@ -168,7 +168,7 @@ class TestBettiNumbers:
         ideal = BettiNumbers(b0=1, b1=0)
         assert "✓" in str(ideal)
         assert "β₀=1" in str(ideal)
-        
+
         non_ideal = BettiNumbers(b0=2, b1=1)
         assert "⚠" in str(non_ideal)
 
@@ -209,7 +209,7 @@ class TestPersistenceInterval:
         """Representación en string."""
         finite = PersistenceInterval(birth=3, death=7, dimension=0)
         assert str(finite) == "[3, 7)"
-        
+
         infinite = PersistenceInterval(birth=3, death=-1, dimension=0)
         assert str(infinite) == "[3, ∞)"
 
@@ -241,7 +241,7 @@ class TestSystemTopologyInit:
         """max_history < 1 debe lanzar excepción."""
         with pytest.raises(ValueError, match="max_history debe ser >= 1"):
             SystemTopology(max_history=0)
-        
+
         with pytest.raises(ValueError, match="max_history debe ser >= 1"):
             SystemTopology(max_history=-5)
 
@@ -337,7 +337,7 @@ class TestSystemTopologyConnectivity:
         """Update limpia conexiones anteriores."""
         initial_edges = len(connected_topology.edges)
         assert initial_edges == 3
-        
+
         connected_topology.update_connectivity([("Agent", "Core")])
         assert len(connected_topology.edges) == 1
 
@@ -464,7 +464,7 @@ class TestSystemTopologyBettiNumbers:
             ("Core", "Filesystem"),
             ("Filesystem", "Redis"),  # Ciclo 2 (compartido)
         ], validate_nodes=False)
-        
+
         betti = empty_topology.calculate_betti_numbers()
         # 5 aristas, 4 nodos, 1 componente => β₁ = 5 - 4 + 1 = 2
         assert betti.b1 == 2
@@ -473,7 +473,7 @@ class TestSystemTopologyBettiNumbers:
         """Excluir nodos aislados del cálculo."""
         betti_with_isolated = fragmented_topology.calculate_betti_numbers(include_isolated=True)
         betti_without_isolated = fragmented_topology.calculate_betti_numbers(include_isolated=False)
-        
+
         # Con aislados: 3 componentes (Agent-Core, Redis, Filesystem)
         assert betti_with_isolated.b0 == 3
         # Sin aislados: solo los conectados (Agent-Core) = 1 componente
@@ -534,7 +534,7 @@ class TestSystemTopologyCyclesAndAnomalies:
         """Sin loops si cada request es único."""
         for i in range(10):
             empty_topology.record_request(f"unique_req_{i}")
-        
+
         loops = empty_topology.detect_request_loops(threshold=3)
         assert len(loops) == 0
 
@@ -542,11 +542,11 @@ class TestSystemTopologyCyclesAndAnomalies:
         """Detectar loops cuando hay repeticiones."""
         empty_topology.record_request("normal_1")
         empty_topology.record_request("normal_2")
-        
+
         # Simular reintentos
         for _ in range(5):
             empty_topology.record_request("retry_req")
-        
+
         loops = empty_topology.detect_request_loops(threshold=3)
         assert len(loops) == 1
         assert loops[0].request_id == "retry_req"
@@ -558,12 +558,12 @@ class TestSystemTopologyCyclesAndAnomalies:
             empty_topology.record_request("retry_a")
         for _ in range(5):
             empty_topology.record_request("retry_b")
-        
+
         # Con threshold=4, solo retry_b es loop
         loops = empty_topology.detect_request_loops(threshold=4)
         assert len(loops) == 1
         assert loops[0].request_id == "retry_b"
-        
+
         # Con threshold=3, ambos son loops
         loops = empty_topology.detect_request_loops(threshold=3)
         assert len(loops) == 2
@@ -592,7 +592,7 @@ class TestSystemTopologyCyclesAndAnomalies:
         """Limpiar historial de requests."""
         for i in range(10):
             empty_topology.record_request(f"req_{i}")
-        
+
         empty_topology.clear_request_history()
         loops = empty_topology.detect_request_loops(threshold=1)
         assert len(loops) == 0
@@ -636,7 +636,7 @@ class TestSystemTopologyHealth:
         # Simular reintentos
         for _ in range(5):
             connected_topology.record_request("failing_request")
-        
+
         health = connected_topology.get_topological_health()
         # Aunque la topología es ideal, los loops afectan
         assert len(health.request_loops) > 0
@@ -717,7 +717,7 @@ class TestPersistenceHomologyInit:
         """window_size muy pequeño debe lanzar excepción."""
         with pytest.raises(ValueError, match="window_size debe ser"):
             PersistenceHomology(window_size=2)
-        
+
         with pytest.raises(ValueError, match="window_size debe ser"):
             PersistenceHomology(window_size=0)
 
@@ -771,7 +771,7 @@ class TestPersistenceHomologyData:
         empty_persistence.add_reading("cpu", 0.5)
         buffer1 = empty_persistence.get_buffer("cpu")
         buffer2 = empty_persistence.get_buffer("cpu")
-        
+
         buffer1.append(999)
         assert buffer2[-1] != 999
 
@@ -783,7 +783,7 @@ class TestPersistenceHomologyData:
         """El tamaño de ventana se respeta."""
         for i in range(20):  # window_size = 10
             empty_persistence.add_reading("cpu", i)
-        
+
         buffer = empty_persistence.get_buffer("cpu")
         assert len(buffer) == 10
         assert buffer[0] == 10  # Los primeros 10 se perdieron
@@ -792,7 +792,7 @@ class TestPersistenceHomologyData:
         """Limpiar métrica específica."""
         empty_persistence.add_reading("cpu", 0.5)
         empty_persistence.add_reading("mem", 0.3)
-        
+
         assert empty_persistence.clear_metric("cpu") is True
         assert "cpu" not in empty_persistence.metrics
         assert "mem" in empty_persistence.metrics
@@ -815,17 +815,17 @@ class TestPersistenceHomologyIntervals:
         """Sin excursiones = diagrama vacío."""
         for _ in range(10):
             empty_persistence.add_reading("cpu", 0.3)
-        
+
         diagram = empty_persistence.get_persistence_diagram("cpu", threshold=0.5)
         assert len(diagram) == 0
 
     def test_single_finite_excursion(self, empty_persistence):
         """Una excursión finita = un intervalo cerrado."""
         values = [0.3, 0.3, 0.7, 0.8, 0.6, 0.3, 0.3]
-        #               ^    ^    ^   
+        #               ^    ^    ^
         #             birth      death
         empty_persistence.add_readings_batch("cpu", values)
-        
+
         diagram = empty_persistence.get_persistence_diagram("cpu", threshold=0.5)
         assert len(diagram) == 1
         assert diagram[0].birth == 2
@@ -836,7 +836,7 @@ class TestPersistenceHomologyIntervals:
         """Excursión activa = intervalo abierto (death=-1)."""
         values = [0.3, 0.3, 0.7, 0.8, 0.9]
         empty_persistence.add_readings_batch("cpu", values)
-        
+
         diagram = empty_persistence.get_persistence_diagram("cpu", threshold=0.5)
         assert len(diagram) == 1
         assert diagram[0].is_alive is True
@@ -847,7 +847,7 @@ class TestPersistenceHomologyIntervals:
         values = [0.3, 0.7, 0.3, 0.8, 0.9, 0.3, 0.6, 0.3]
         #              [1,2)     [3,   5)      [6,7)
         empty_persistence.add_readings_batch("cpu", values)
-        
+
         diagram = empty_persistence.get_persistence_diagram("cpu", threshold=0.5)
         assert len(diagram) == 3
 
@@ -855,7 +855,7 @@ class TestPersistenceHomologyIntervals:
         """Amplitud máxima se registra correctamente."""
         values = [0.3, 0.6, 0.9, 0.7, 0.3]  # max above threshold = 0.9 - 0.5 = 0.4
         empty_persistence.add_readings_batch("cpu", values)
-        
+
         diagram = empty_persistence.get_persistence_diagram("cpu", threshold=0.5)
         assert len(diagram) == 1
         assert diagram[0].amplitude == pytest.approx(0.4, rel=0.01)
@@ -877,7 +877,7 @@ class TestPersistenceHomologyAnalysis:
         """Todo bajo umbral = STABLE."""
         for _ in range(10):
             empty_persistence.add_reading("cpu", 0.3)
-        
+
         result = empty_persistence.analyze_persistence("cpu", threshold=0.5)
         assert result.state == MetricState.STABLE
         assert result.feature_count == 0
@@ -886,7 +886,7 @@ class TestPersistenceHomologyAnalysis:
     def test_unknown_insufficient_data(self, empty_persistence):
         """Datos insuficientes = UNKNOWN."""
         empty_persistence.add_reading("cpu", 0.5)
-        
+
         result = empty_persistence.analyze_persistence("cpu", threshold=0.5)
         assert result.state == MetricState.UNKNOWN
 
@@ -895,7 +895,7 @@ class TestPersistenceHomologyAnalysis:
         # window=10, noise_ratio=0.2 => noise_limit=2
         values = [0.3] * 7 + [0.7] + [0.3] * 2  # Excursión de 1
         empty_persistence.add_readings_batch("cpu", values)
-        
+
         result = empty_persistence.analyze_persistence("cpu", threshold=0.5)
         # La última lectura es 0.3, así que no hay excursión activa
         # Pero hubo una excursión de duración 1, que es < 2 => NOISE
@@ -906,7 +906,7 @@ class TestPersistenceHomologyAnalysis:
         # window=10, noise_ratio=0.2 => noise_limit=2
         values = [0.3] * 5 + [0.7] * 5  # Excursión de 5, termina activa
         empty_persistence.add_readings_batch("cpu", values)
-        
+
         result = empty_persistence.analyze_persistence("cpu", threshold=0.5)
         # 5 >= 2 => FEATURE o CRITICAL (si está activa y es larga)
         assert result.state in (MetricState.FEATURE, MetricState.CRITICAL)
@@ -916,7 +916,7 @@ class TestPersistenceHomologyAnalysis:
         # window=10, critical_ratio=0.5 => critical_limit=5
         values = [0.3] * 2 + [0.8] * 8  # Activa por 8 puntos
         empty_persistence.add_readings_batch("cpu", values)
-        
+
         result = empty_persistence.analyze_persistence("cpu", threshold=0.5)
         assert result.state == MetricState.CRITICAL
         assert result.active_count > 0
@@ -925,7 +925,7 @@ class TestPersistenceHomologyAnalysis:
         """Ratios personalizados funcionan."""
         values = [0.3] * 5 + [0.7] * 5
         empty_persistence.add_readings_batch("cpu", values)
-        
+
         # Con noise_ratio alto, más cosas son "noise"
         result = empty_persistence.analyze_persistence(
             "cpu", threshold=0.5, noise_ratio=0.6
@@ -953,7 +953,7 @@ class TestPersistenceHomologyStatistics:
         """Estadísticas básicas correctas."""
         values = [1, 2, 3, 4, 5]
         empty_persistence.add_readings_batch("test", values)
-        
+
         stats = empty_persistence.get_statistics("test")
         assert stats["min"] == 1
         assert stats["max"] == 5
@@ -965,7 +965,7 @@ class TestPersistenceHomologyStatistics:
         """Desviación estándar correcta."""
         values = [2, 4, 6, 8]  # mean=5, var=5
         empty_persistence.add_readings_batch("test", values)
-        
+
         stats = empty_persistence.get_statistics("test")
         assert stats["std"] == pytest.approx(2.236, rel=0.01)
 
@@ -973,7 +973,7 @@ class TestPersistenceHomologyStatistics:
         """Mediana con número par de elementos."""
         values = [1, 2, 3, 4]  # median = (2+3)/2 = 2.5
         empty_persistence.add_readings_batch("test", values)
-        
+
         stats = empty_persistence.get_statistics("test")
         assert stats["median"] == 2.5
 
@@ -987,7 +987,7 @@ class TestPersistenceHomologyStatistics:
         #              [1,      3)      [4,   6)
         # lifespans = 2, 2 => total = 4
         empty_persistence.add_readings_batch("test", values)
-        
+
         intervals = empty_persistence.get_persistence_diagram("test", 0.5)
         total = empty_persistence.compute_total_persistence(intervals)
         assert total == 4
@@ -997,7 +997,7 @@ class TestPersistenceHomologyStatistics:
         # Dos intervalos de igual duración => máxima entropía para 2 elementos
         values = [0.3, 0.7, 0.8, 0.3, 0.7, 0.8, 0.3]
         empty_persistence.add_readings_batch("test", values)
-        
+
         intervals = empty_persistence.get_persistence_diagram("test", 0.5)
         entropy = empty_persistence.compute_persistence_entropy(intervals)
         # Con 2 intervalos iguales, H = 1.0 (normalizada)
@@ -1008,19 +1008,19 @@ class TestPersistenceHomologyStatistics:
         # Métrica 1: una excursión larga
         values1 = [0.3] * 5 + [0.7] * 4 + [0.3]
         empty_persistence.add_readings_batch("m1", values1)
-        
+
         # Métrica 2: igual
         values2 = [0.3] * 5 + [0.7] * 4 + [0.3]
         empty_persistence.add_readings_batch("m2", values2)
-        
+
         # Distancia 0 para diagramas iguales
         dist = empty_persistence.compare_diagrams("m1", "m2", 0.5)
         assert dist == pytest.approx(0, abs=0.01)
-        
+
         # Métrica 3: diferente
         values3 = [0.3] * 8 + [0.7] * 2
         empty_persistence.add_readings_batch("m3", values3)
-        
+
         dist13 = empty_persistence.compare_diagrams("m1", "m3", 0.5)
         assert dist13 > 0
 
@@ -1036,7 +1036,7 @@ class TestUtilityFunctions:
         """Crear topología simple predefinida."""
         topo = create_simple_topology()
         assert len(topo.edges) == 3
-        
+
         betti = topo.calculate_betti_numbers()
         assert betti.is_ideal is True
 
@@ -1046,7 +1046,7 @@ class TestUtilityFunctions:
             PersistenceInterval(birth=0, death=5, dimension=0),
             PersistenceInterval(birth=2, death=7, dimension=0),
         ]
-        
+
         dist = compute_wasserstein_distance(intervals, intervals)
         assert dist == 0
 
@@ -1060,7 +1060,7 @@ class TestUtilityFunctions:
         intervals = [
             PersistenceInterval(birth=0, death=5, dimension=0),
         ]
-        
+
         dist = compute_wasserstein_distance(intervals, [])
         assert dist > 0
 
@@ -1068,7 +1068,7 @@ class TestUtilityFunctions:
         """Wasserstein de diagramas diferentes."""
         intervals1 = [PersistenceInterval(birth=0, death=10, dimension=0)]
         intervals2 = [PersistenceInterval(birth=0, death=5, dimension=0)]
-        
+
         dist = compute_wasserstein_distance(intervals1, intervals2)
         assert dist == pytest.approx(5, rel=0.01)
 
@@ -1089,64 +1089,64 @@ class TestIntegration:
         """Flujo completo de análisis topológico."""
         # 1. Crear topología
         topo = SystemTopology()
-        
+
         # 2. Simular conexiones dinámicas
         topo.update_connectivity([
             ("Agent", "Core"),
             ("Core", "Redis"),
             ("Core", "Filesystem"),
         ])
-        
+
         # 3. Verificar salud inicial
         health = topo.get_topological_health()
         assert health.is_healthy
-        
+
         # 4. Simular problema: Redis se desconecta
         topo.update_connectivity([
             ("Agent", "Core"),
             ("Core", "Filesystem"),
         ])
-        
+
         health = topo.get_topological_health()
         assert not health.is_healthy
         assert len(health.disconnected_nodes) > 0
-        
+
         # 5. Simular reintentos fallidos
         for _ in range(10):
             topo.record_request("redis_connect_retry")
-        
+
         loops = topo.detect_request_loops()
         assert len(loops) > 0
 
     def test_persistence_degradation_detection(self):
         """Detectar degradación progresiva con persistencia."""
         ph = PersistenceHomology(window_size=30)
-        
+
         # Fase 1: Sistema estable
         for _ in range(10):
             ph.add_reading("latency", 50)
-        
+
         result = ph.analyze_persistence("latency", threshold=100)
         assert result.state == MetricState.STABLE
-        
+
         # Fase 2: Degradación comienza
         for _ in range(5):
             ph.add_reading("latency", 80)
-        
+
         result = ph.analyze_persistence("latency", threshold=100)
         assert result.state == MetricState.STABLE  # Aún bajo umbral
-        
+
         # Fase 3: Problema evidente
         for _ in range(10):
             ph.add_reading("latency", 150)
-        
+
         result = ph.analyze_persistence("latency", threshold=100)
         assert result.state in (MetricState.FEATURE, MetricState.CRITICAL)
-        
+
         # Fase 4: Recuperación
         for _ in range(10):
             ph.add_reading("latency", 50)
-        
+
         result = ph.analyze_persistence("latency", threshold=100)
         # Debería ver la característica pasada como FEATURE, no CRITICAL
         assert result.feature_count >= 1 or result.state == MetricState.STABLE
@@ -1154,17 +1154,17 @@ class TestIntegration:
     def test_multi_metric_analysis(self):
         """Análisis de múltiples métricas correlacionadas."""
         ph = PersistenceHomology(window_size=20)
-        
+
         # Simular correlación CPU/Memoria
         for i in range(20):
             cpu = 30 + (i % 5) * 10 + (20 if 10 <= i <= 15 else 0)
             mem = 40 + (i % 5) * 5 + (15 if 10 <= i <= 15 else 0)
             ph.add_reading("cpu", cpu)
             ph.add_reading("mem", mem)
-        
+
         cpu_result = ph.analyze_persistence("cpu", threshold=60)
         mem_result = ph.analyze_persistence("mem", threshold=60)
-        
+
         # Ambas deberían mostrar patrones similares
         assert cpu_result.state == mem_result.state or \
                abs(cpu_result.feature_count - mem_result.feature_count) <= 1
@@ -1181,7 +1181,7 @@ class TestEdgeCases:
         """Topología con un solo nodo conectado."""
         topo = SystemTopology()
         topo.update_connectivity([])  # Sin aristas
-        
+
         betti = topo.calculate_betti_numbers()
         assert betti.b0 == 4  # Todos aislados
         assert betti.b1 == 0
@@ -1196,7 +1196,7 @@ class TestEdgeCases:
             for j in range(i + 1, len(nodes))
         ]
         topo.update_connectivity(edges)
-        
+
         betti = topo.calculate_betti_numbers()
         # 4 nodos, 6 aristas, 1 componente => β₁ = 6 - 4 + 1 = 3
         assert betti.b0 == 1
@@ -1205,10 +1205,10 @@ class TestEdgeCases:
     def test_persistence_constant_above_threshold(self):
         """Métrica constantemente sobre umbral."""
         ph = PersistenceHomology(window_size=10)
-        
+
         for _ in range(10):
             ph.add_reading("high", 100)
-        
+
         result = ph.analyze_persistence("high", threshold=50)
         assert result.state == MetricState.CRITICAL
         assert result.active_count == 1
@@ -1216,11 +1216,11 @@ class TestEdgeCases:
     def test_persistence_oscillating(self):
         """Métrica oscilante alrededor del umbral."""
         ph = PersistenceHomology(window_size=10)
-        
+
         for i in range(10):
             value = 0.6 if i % 2 == 0 else 0.4
             ph.add_reading("osc", value)
-        
+
         result = ph.analyze_persistence("osc", threshold=0.5)
         # Muchas excursiones cortas = ruido
         assert result.noise_count >= result.feature_count
@@ -1228,10 +1228,10 @@ class TestEdgeCases:
     def test_large_history(self):
         """Historia grande de requests."""
         topo = SystemTopology(max_history=1000)
-        
+
         for i in range(1000):
             topo.record_request(f"req_{i % 100}")  # 100 IDs únicos, cada uno 10 veces
-        
+
         loops = topo.detect_request_loops(threshold=5)
         # Todos deberían aparecer como loops (10 >= 5)
         assert len(loops) == 100

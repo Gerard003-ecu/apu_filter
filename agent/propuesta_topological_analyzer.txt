@@ -69,7 +69,7 @@ class HealthLevel(Enum):
 class BettiNumbers:
     """
     Números de Betti del sistema.
-    
+
     Invariantes topológicos que caracterizan la "forma" del grafo de servicios.
     """
     b0: int  # Componentes conexas
@@ -110,7 +110,7 @@ class BettiNumbers:
 class PersistenceInterval:
     """
     Intervalo de nacimiento-muerte para homología persistente.
-    
+
     Representa una característica topológica en el diagrama de persistencia.
     Un punto (birth, death) en el diagrama.
     """
@@ -208,9 +208,9 @@ class SystemTopology:
     """
 
     REQUIRED_NODES: FrozenSet[str] = frozenset({
-        "Agent", 
-        "Core", 
-        "Redis", 
+        "Agent",
+        "Core",
+        "Redis",
         "Filesystem"
     })
 
@@ -222,7 +222,7 @@ class SystemTopology:
     })
 
     def __init__(
-        self, 
+        self,
         max_history: int = 50,
         custom_nodes: Optional[Set[str]] = None,
         custom_topology: Optional[Set[Tuple[str, str]]] = None
@@ -451,7 +451,7 @@ class SystemTopology:
     # -------------------------------------------------------------------------
 
     def calculate_betti_numbers(
-        self, 
+        self,
         include_isolated: bool = True
     ) -> BettiNumbers:
         """
@@ -498,9 +498,9 @@ class SystemTopology:
         b1 = max(0, b1)
 
         return BettiNumbers(
-            b0=b0, 
-            b1=b1, 
-            num_vertices=num_vertices, 
+            b0=b0,
+            b1=b1,
+            num_vertices=num_vertices,
             num_edges=num_edges
         )
 
@@ -526,7 +526,7 @@ class SystemTopology:
     # -------------------------------------------------------------------------
 
     def detect_request_loops(
-        self, 
+        self,
         threshold: int = 3,
         window: Optional[int] = None
     ) -> List[RequestLoopInfo]:
@@ -872,8 +872,8 @@ class PersistenceHomology:
         return True
 
     def add_readings_batch(
-        self, 
-        metric_name: str, 
+        self,
+        metric_name: str,
         values: List[float]
     ) -> int:
         """
@@ -1341,7 +1341,7 @@ def compute_wasserstein_distance(
 def create_simple_topology() -> SystemTopology:
     """
     Crea una topología simple con conexiones default.
-    
+
     Útil para testing y ejemplos.
     """
     topology = SystemTopology()
@@ -1359,32 +1359,32 @@ def create_simple_topology() -> SystemTopology:
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
-    
+
     # Ejemplo de SystemTopology
     print("=" * 60)
     print("DEMO: SystemTopology")
     print("=" * 60)
-    
+
     topology = SystemTopology()
-    
+
     # Estado inicial (sin conexiones)
     print(f"\nEstado inicial: {topology}")
     health = topology.get_topological_health()
     print(f"Salud: {health.level.name} (score: {health.health_score:.2f})")
     print(f"Diagnósticos: {health.diagnostics}")
-    
+
     # Agregar conexiones
     topology.update_connectivity([
         ("Agent", "Core"),
         ("Core", "Redis"),
         ("Core", "Filesystem")
     ])
-    
+
     print(f"\nCon conexiones: {topology}")
     health = topology.get_topological_health()
     print(f"Salud: {health.level.name} (score: {health.health_score:.2f})")
     print(f"Betti: {health.betti}")
-    
+
     # Simular ciclo
     topology.update_connectivity([
         ("Agent", "Core"),
@@ -1392,23 +1392,23 @@ if __name__ == "__main__":
         ("Core", "Filesystem"),
         ("Redis", "Agent")  # Crea un ciclo
     ])
-    
+
     print(f"\nCon ciclo: {topology}")
     betti = topology.calculate_betti_numbers()
     print(f"Betti: {betti}")
     print(f"Ciclos encontrados: {topology.find_structural_cycles()}")
-    
+
     # Ejemplo de PersistenceHomology
     print("\n" + "=" * 60)
     print("DEMO: PersistenceHomology")
     print("=" * 60)
-    
+
     ph = PersistenceHomology(window_size=20)
-    
+
     # Simular datos con excursión
     import random
     random.seed(42)
-    
+
     for i in range(20):
         # Valor base con ruido
         value = 50 + random.gauss(0, 5)
@@ -1416,11 +1416,11 @@ if __name__ == "__main__":
         if 8 <= i <= 14:
             value += 30
         ph.add_reading("cpu_usage", value)
-    
+
     print(f"\nDatos de CPU simulados")
     stats = ph.get_statistics("cpu_usage")
     print(f"Estadísticas: {stats}")
-    
+
     result = ph.analyze_persistence("cpu_usage", threshold=70)
     print(f"\nAnálisis (umbral=70):")
     print(f"  Estado: {result.state.name}")
