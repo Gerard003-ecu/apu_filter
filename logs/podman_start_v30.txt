@@ -1,0 +1,102 @@
+[2025-12-06 18:05:13 +0000] [1] [INFO] Starting gunicorn 23.0.0
+[2025-12-06 18:05:13 +0000] [1] [INFO] Listening at: http://0.0.0.0:5002 (1)
+[2025-12-06 18:05:13 +0000] [1] [INFO] Using worker: sync
+[2025-12-06 18:05:13 +0000] [5] [INFO] Booting worker with pid: 5
+[2025-12-06 18:05:13 +0000] [6] [INFO] Booting worker with pid: 6
+[2025-12-06 18:05:13 +0000] [7] [INFO] Booting worker with pid: 7
+[2025-12-06 18:05:13 +0000] [8] [INFO] Booting worker with pid: 8
+2025-12-06 18:05:56,819 - root - WARNING - ⚠️ chardet no disponible. Instalar con: pip install chardet
+2025-12-06 18:05:56,924 - root - WARNING - ⚠️ chardet no disponible. Instalar con: pip install chardet
+2025-12-06 18:05:57,033 - root - WARNING - ⚠️ chardet no disponible. Instalar con: pip install chardet
+2025-12-06 18:05:57,100 - root - WARNING - ⚠️ chardet no disponible. Instalar con: pip install chardet
+18:05:57 [SYSTEM] - INFO - ============================================================
+18:05:57 [SYSTEM] - INFO - Iniciando aplicación en modo: PRODUCTION
+18:05:57 [SYSTEM] - INFO - ============================================================
+2025-12-06 18:05:57,166 - root - WARNING - ⚠️ chardet no disponible. Instalar con: pip install chardet
+2025-12-06 18:05:57,286 - root - WARNING - ⚠️ chardet no disponible. Instalar con: pip install chardet
+18:05:57 [SYSTEM] - INFO - ============================================================
+18:05:57 [SYSTEM] - INFO - Iniciando aplicación en modo: PRODUCTION
+18:05:57 [SYSTEM] - INFO - ============================================================
+2025-12-06 18:05:57,414 - root - WARNING - ⚠️ chardet no disponible. Instalar con: pip install chardet
+2025-12-06 18:05:57,661 - root - WARNING - ⚠️ chardet no disponible. Instalar con: pip install chardet
+2025-12-06 18:05:57,764 - root - WARNING - ⚠️ chardet no disponible. Instalar con: pip install chardet
+18:05:57 [SYSTEM] - INFO - ✅ Conexión a Redis exitosa: redis://redis:6379/0
+18:05:57 [SYSTEM] - INFO - ✅ Conexión a Redis exitosa: redis://redis:6379/0
+18:05:57 [SYSTEM] - INFO - ============================================================
+18:05:57 [SYSTEM] - INFO - Iniciando aplicación en modo: PRODUCTION
+18:05:57 [SYSTEM] - INFO - ============================================================
+18:05:57 [SYSTEM] - INFO - ✅ Configuración cargada desde config_rules.json
+18:05:57 [SYSTEM] - INFO - APUPresenter inicializado correctamente
+18:05:57 [SYSTEM] - INFO - Iniciando carga de artefactos de búsqueda semántica...
+18:05:57 [SYSTEM] - INFO - Cargando modelo de embeddings: paraphrase-multilingual-MiniLM-L12-v2
+18:05:58 [SYSTEM] - INFO - ✅ Conexión a Redis exitosa: redis://redis:6379/0
+18:05:58 [SYSTEM] - INFO - ✅ Configuración cargada desde config_rules.json
+18:05:58 [SYSTEM] - INFO - APUPresenter inicializado correctamente
+18:05:58 [SYSTEM] - INFO - Iniciando carga de artefactos de búsqueda semántica...
+18:05:58 [SYSTEM] - INFO - Cargando modelo de embeddings: paraphrase-multilingual-MiniLM-L12-v2
+2025-12-06 18:05:58,413 - root - WARNING - ⚠️ chardet no disponible. Instalar con: pip install chardet
+2025-12-06 18:05:58,462 - root - WARNING - ⚠️ chardet no disponible. Instalar con: pip install chardet
+18:05:58 [SYSTEM] - INFO - ✅ Configuración cargada desde config_rules.json
+18:05:58 [SYSTEM] - INFO - APUPresenter inicializado correctamente
+18:05:58 [SYSTEM] - INFO - Iniciando carga de artefactos de búsqueda semántica...
+18:05:58 [SYSTEM] - INFO - Cargando modelo de embeddings: paraphrase-multilingual-MiniLM-L12-v2
+2025-12-06 18:05:58,540 - root - WARNING - ⚠️ chardet no disponible. Instalar con: pip install chardet
+18:05:58 [SYSTEM] - INFO - ============================================================
+18:05:58 [SYSTEM] - INFO - Iniciando aplicación en modo: PRODUCTION
+18:05:58 [SYSTEM] - INFO - ============================================================
+18:05:58 [SYSTEM] - INFO - ✅ Conexión a Redis exitosa: redis://redis:6379/0
+18:05:58 [SYSTEM] - INFO - ✅ Configuración cargada desde config_rules.json
+18:05:58 [SYSTEM] - INFO - APUPresenter inicializado correctamente
+18:05:58 [SYSTEM] - INFO - Iniciando carga de artefactos de búsqueda semántica...
+18:05:58 [SYSTEM] - INFO - Cargando modelo de embeddings: paraphrase-multilingual-MiniLM-L12-v2
+
+2025-12-06 18:05:17,035 - INFO - [AutonomousAgent] - AutonomousAgent inicializado | Core: http://core:5002 | Intervalo: 10s | Timeout: 5s | Ventana Persistencia: 20
+2025-12-06 18:05:17,037 - INFO - [AutonomousAgent] - Ejecutando health check: http://core:5002/api/telemetry/status
+2025-12-06 18:05:22,069 - WARNING - [urllib3.connectionpool] - Retrying (Retry(total=2, connect=None, read=None, redirect=None, status=None)) after connection broken by 'ReadTimeoutError("HTTPConnectionPool(host='core', port=5002): Read timed out. (read timeout=5)")': /api/telemetry/status
+2025-12-06 18:05:28,080 - WARNING - [urllib3.connectionpool] - Retrying (Retry(total=1, connect=None, read=None, redirect=None, status=None)) after connection broken by 'ReadTimeoutError("HTTPConnectionPool(host='core', port=5002): Read timed out. (read timeout=5)")': /api/telemetry/status
+2025-12-06 18:05:35,092 - WARNING - [urllib3.connectionpool] - Retrying (Retry(total=0, connect=None, read=None, redirect=None, status=None)) after connection broken by 'ReadTimeoutError("HTTPConnectionPool(host='core', port=5002): Read timed out. (read timeout=5)")': /api/telemetry/status
+2025-12-06 18:05:40,110 - ERROR - [AutonomousAgent] - ❌ Health check fallido: HTTPConnectionPool(host='core', port=5002): Max retries exceeded with url: /api/telemetry/status (Caused by ReadTimeoutError("HTTPConnectionPool(host='core', port=5002): Read timed out. (read timeout=5)"))
+2025-12-06 18:05:40,113 - ERROR - [AutonomousAgent] - Topología degradada: β₀=2, health=0.48
+2025-12-06 18:05:40,117 - WARNING - [AutonomousAgent] - Iniciando agente a pesar de health check fallido...
+2025-12-06 18:05:40,117 - INFO - [AutonomousAgent] - 🚀 Iniciando OODA Loop...
+2025-12-06 18:05:45,127 - WARNING - [urllib3.connectionpool] - Retrying (Retry(total=2, connect=None, read=None, redirect=None, status=None)) after connection broken by 'ReadTimeoutError("HTTPConnectionPool(host='core', port=5002): Read timed out. (read timeout=5)")': /api/telemetry/status
+2025-12-06 18:05:51,139 - WARNING - [urllib3.connectionpool] - Retrying (Retry(total=1, connect=None, read=None, redirect=None, status=None)) after connection broken by 'ReadTimeoutError("HTTPConnectionPool(host='core', port=5002): Read timed out. (read timeout=5)")': /api/telemetry/status
+2025-12-06 18:05:58,166 - WARNING - [urllib3.connectionpool] - Retrying (Retry(total=0, connect=None, read=None, redirect=None, status=None)) after connection broken by 'ReadTimeoutError("HTTPConnectionPool(host='core', port=5002): Read timed out. (read timeout=5)")': /api/telemetry/status
+2025-12-06 18:06:03,178 - WARNING - [AutonomousAgent] - [OBSERVE] Error de conexión: ConnectionError
+2025-12-06 18:06:03,178 - WARNING - [AutonomousAgent] - [TOPO] ✂️ Fragmentación Topológica: β₀=2 componentes. Nodos desconectados: [Agent]
+2025-12-06 18:06:03,179 - INFO - [AutonomousAgent] - [ORIENT] Diagnóstico: {'betti': {'b0': 2, 'b1': 0}, 'health_score': 0.48, 'health_level': 'UNHEALTHY', 'voltage_state': 'UNKNOWN', 'saturation_state': 'UNKNOWN', 'disconnected_nodes': ['Agent'], 'retry_loops': 0, 'recommended_status': 'DISCONNECTED'}
+2025-12-06 18:06:03,179 - WARNING - [AutonomousAgent] - [BRAIN] 🔄 Conexión perdida - Fragmentación Topológica: β₀=2 componentes. Nodos desconectados: [Agent] | [β₀=2, β₁=0] | [health=0.48]
+2025-12-06 18:06:03,180 - WARNING - [AutonomousAgent] - [BRAIN] → Reintentando conexión con Core...
+2025-12-06 18:06:08,190 - WARNING - [urllib3.connectionpool] - Retrying (Retry(total=2, connect=None, read=None, redirect=None, status=None)) after connection broken by 'ReadTimeoutError("HTTPConnectionPool(host='core', port=5002): Read timed out. (read timeout=5)")': /api/telemetry/status
+2025-12-06 18:06:14,201 - WARNING - [urllib3.connectionpool] - Retrying (Retry(total=1, connect=None, read=None, redirect=None, status=None)) after connection broken by 'ReadTimeoutError("HTTPConnectionPool(host='core', port=5002): Read timed out. (read timeout=5)")': /api/telemetry/status
+2025-12-06 18:06:21,213 - WARNING - [urllib3.connectionpool] - Retrying (Retry(total=0, connect=None, read=None, redirect=None, status=None)) after connection broken by 'ReadTimeoutError("HTTPConnectionPool(host='core', port=5002): Read timed out. (read timeout=5)")': /api/telemetry/status
+2025-12-06 18:06:26,229 - WARNING - [AutonomousAgent] - [OBSERVE] Error de conexión: ConnectionError
+2025-12-06 18:06:26,230 - INFO - [AutonomousAgent] - [ORIENT] Diagnóstico: {'betti': {'b0': 1, 'b1': 0}, 'health_score': 1.0, 'health_level': 'HEALTHY', 'voltage_state': 'UNKNOWN', 'saturation_state': 'UNKNOWN', 'disconnected_nodes': [], 'retry_loops': 0, 'recommended_status': 'UNKNOWN'}
+2025-12-06 18:06:26,231 - INFO - [AutonomousAgent] - [BRAIN] ⏳ Esperando datos de telemetría...
+2025-12-06 18:06:31,242 - WARNING - [urllib3.connectionpool] - Retrying (Retry(total=2, connect=None, read=None, redirect=None, status=None)) after connection broken by 'ReadTimeoutError("HTTPConnectionPool(host='core', port=5002): Read timed out. (read timeout=5)")': /api/telemetry/status
+2025-12-06 18:06:37,252 - WARNING - [urllib3.connectionpool] - Retrying (Retry(total=1, connect=None, read=None, redirect=None, status=None)) after connection broken by 'ReadTimeoutError("HTTPConnectionPool(host='core', port=5002): Read timed out. (read timeout=5)")': /api/telemetry/status
+2025-12-06 18:06:44,263 - WARNING - [urllib3.connectionpool] - Retrying (Retry(total=0, connect=None, read=None, redirect=None, status=None)) after connection broken by 'ReadTimeoutError("HTTPConnectionPool(host='core', port=5002): Read timed out. (read timeout=5)")': /api/telemetry/status
+2025-12-06 18:06:49,317 - WARNING - [AutonomousAgent] - [OBSERVE] Error de conexión: ConnectionError
+2025-12-06 18:06:49,323 - INFO - [AutonomousAgent] - [ORIENT] Diagnóstico: {'betti': {'b0': 1, 'b1': 0}, 'health_score': 0.95, 'health_level': 'HEALTHY', 'voltage_state': 'UNKNOWN', 'saturation_state': 'UNKNOWN', 'disconnected_nodes': [], 'retry_loops': 1, 'recommended_status': 'UNKNOWN'}
+2025-12-06 18:06:54,342 - WARNING - [urllib3.connectionpool] - Retrying (Retry(total=2, connect=None, read=None, redirect=None, status=None)) after connection broken by 'ReadTimeoutError("HTTPConnectionPool(host='core', port=5002): Read timed out. (read timeout=5)")': /api/telemetry/status
+2025-12-06 18:07:00,352 - WARNING - [urllib3.connectionpool] - Retrying (Retry(total=1, connect=None, read=None, redirect=None, status=None)) after connection broken by 'ReadTimeoutError("HTTPConnectionPool(host='core', port=5002): Read timed out. (read timeout=5)")': /api/telemetry/status
+2025-12-06 18:07:07,363 - WARNING - [urllib3.connectionpool] - Retrying (Retry(total=0, connect=None, read=None, redirect=None, status=None)) after connection broken by 'ReadTimeoutError("HTTPConnectionPool(host='core', port=5002): Read timed out. (read timeout=5)")': /api/telemetry/status
+2025-12-06 18:07:12,373 - WARNING - [AutonomousAgent] - [OBSERVE] Error de conexión: ConnectionError
+2025-12-06 18:07:12,376 - INFO - [AutonomousAgent] - [ORIENT] Diagnóstico: {'betti': {'b0': 1, 'b1': 0}, 'health_score': 0.95, 'health_level': 'HEALTHY', 'voltage_state': 'UNKNOWN', 'saturation_state': 'UNKNOWN', 'disconnected_nodes': [], 'retry_loops': 1, 'recommended_status': 'UNKNOWN'}
+2025-12-06 18:07:17,388 - WARNING - [urllib3.connectionpool] - Retrying (Retry(total=2, connect=None, read=None, redirect=None, status=None)) after connection broken by 'ReadTimeoutError("HTTPConnectionPool(host='core', port=5002): Read timed out. (read timeout=5)")': /api/telemetry/status
+2025-12-06 18:07:23,398 - WARNING - [urllib3.connectionpool] - Retrying (Retry(total=1, connect=None, read=None, redirect=None, status=None)) after connection broken by 'ReadTimeoutError("HTTPConnectionPool(host='core', port=5002): Read timed out. (read timeout=5)")': /api/telemetry/status
+2025-12-06 18:07:30,408 - WARNING - [urllib3.connectionpool] - Retrying (Retry(total=0, connect=None, read=None, redirect=None, status=None)) after connection broken by 'ReadTimeoutError("HTTPConnectionPool(host='core', port=5002): Read timed out. (read timeout=5)")': /api/telemetry/status
+2025-12-06 18:07:35,418 - WARNING - [AutonomousAgent] - [OBSERVE] Error de conexión: ConnectionError
+2025-12-06 18:07:35,419 - WARNING - [AutonomousAgent] - [TOPO] Degradando topología: 5 fallos consecutivos
+2025-12-06 18:07:35,422 - WARNING - [AutonomousAgent] - [TOPO] ✂️ Fragmentación Topológica: β₀=2 componentes. Nodos desconectados: [Agent]
+2025-12-06 18:07:35,425 - INFO - [AutonomousAgent] - [ORIENT] Diagnóstico: {'betti': {'b0': 2, 'b1': 0}, 'health_score': 0.43, 'health_level': 'UNHEALTHY', 'voltage_state': 'UNKNOWN', 'saturation_state': 'UNKNOWN', 'disconnected_nodes': ['Agent'], 'retry_loops': 1, 'recommended_status': 'DISCONNECTED'}
+2025-12-06 18:07:35,428 - WARNING - [AutonomousAgent] - [BRAIN] 🔄 Conexión perdida - Fragmentación Topológica: β₀=2 componentes. Nodos desconectados: [Agent] | [β₀=2, β₁=0] | [health=0.43]
+2025-12-06 18:07:35,430 - WARNING - [AutonomousAgent] - [BRAIN] → Reintentando conexión con Core...
+2025-12-06 18:07:40,444 - WARNING - [urllib3.connectionpool] - Retrying (Retry(total=2, connect=None, read=None, redirect=None, status=None)) after connection broken by 'ReadTimeoutError("HTTPConnectionPool(host='core', port=5002): Read timed out. (read timeout=5)")': /api/telemetry/status
+2025-12-06 18:07:46,459 - WARNING - [urllib3.connectionpool] - Retrying (Retry(total=1, connect=None, read=None, redirect=None, status=None)) after connection broken by 'ReadTimeoutError("HTTPConnectionPool(host='core', port=5002): Read timed out. (read timeout=5)")': /api/telemetry/status
+
+
+CONTAINER ID  IMAGE                             COMMAND               CREATED        STATUS                   PORTS                   NAMES
+04c2ac6a97da  docker.io/library/redis:7-alpine  redis-server --ap...  3 minutes ago  Up 3 minutes (healthy)   0.0.0.0:6379->6379/tcp  apu_redis
+5de123ebcb5c  localhost/apu-core:latest         gunicorn --worker...  3 minutes ago  Up 3 minutes (starting)  0.0.0.0:5002->5002/tcp  apu_core
+290a862c596a  localhost/apu-agent:latest                              3 minutes ago  Up 3 minutes                                     apu_agent
