@@ -93,4 +93,4 @@ USER apu_user
 # =============================================================================
 COPY --chown=apu_user:apu_user agent/ /app/agent/
 
-ENTRYPOINT ["python", "-u", "-m", "agent.orchestrator"]
+ENTRYPOINT ["python", "-u", "-m", "agent.apu_agent"]
