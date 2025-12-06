@@ -40,6 +40,8 @@ services:
       - PYTHONUNBUFFERED=1
       - PYTHONPATH=/app
       - SECRET_KEY=apu_super_secret_key_2025_change_me_in_prod
+    security_opt:
+      - seccomp=unconfined
     # env_file:
     #  - .env
     depends_on:
@@ -73,6 +75,8 @@ services:
       - REQUEST_TIMEOUT=30
       - PYTHONUNBUFFERED=1
       - PYTHONPATH=/app
+    security_opt:
+      - seccomp=unconfined
     #env_file:
     #  - .env
     depends_on:

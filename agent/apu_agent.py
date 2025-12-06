@@ -51,18 +51,21 @@ from agent.topological_analyzer import (
 def setup_logging() -> logging.Logger:
     """Configura y retorna el logger del agente."""
     log_level = os.getenv("LOG_LEVEL", "INFO").upper()
-    
+
     logging.basicConfig(
         level=getattr(logging, log_level, logging.INFO),
         format="%(asctime)s - %(levelname)s - [%(name)s] - %(message)s",
         handlers=[logging.StreamHandler(sys.stdout)]
     )
-    
+
     return logging.getLogger("AutonomousAgent")
 
 
 logger = setup_logging()
 
+# ============================================================================
+# ENUMS - Estados y Decisiones tipados
+# ============================================================================
 
 # ============================================================================
 # ENUMS - Estados y Decisiones tipados
@@ -96,7 +99,7 @@ class AgentDecision(Enum):
 class ThresholdConfig:
     """
     Configuración inmutable de umbrales para análisis de telemetría.
-    
+
     Attributes:
         flyback_voltage_warning: Umbral de advertencia para voltaje (default: 0.5)
         flyback_voltage_critical: Umbral crítico para voltaje (default: 0.8)
@@ -135,7 +138,7 @@ class ThresholdConfig:
 class TelemetryData:
     """
     Datos de telemetría estructurados y validados.
-    
+
     Attributes:
         flyback_voltage: Voltaje de flyback normalizado [0, 1]
         saturation: Nivel de saturación normalizado [0, 1]
@@ -156,10 +159,10 @@ class TelemetryData:
     def from_dict(cls, data: Dict[str, Any]) -> Optional["TelemetryData"]:
         """
         Factory method: crea instancia desde diccionario con validación.
-        
+
         Args:
             data: Diccionario con datos de telemetría
-            
+
         Returns:
             TelemetryData si los datos son válidos, None en caso contrario
         """
@@ -176,7 +179,7 @@ class TelemetryData:
             missing_fields.append("flyback_voltage")
         if saturation is None:
             missing_fields.append("saturation")
-            
+
         if missing_fields:
             logger.warning(f"[TELEMETRY] Campos faltantes: {missing_fields}")
             return None
@@ -206,7 +209,7 @@ class TelemetryData:
 class AgentMetrics:
     """
     Métricas internas del agente para observabilidad.
-    
+
     Permite monitorear el comportamiento y salud del propio agente.
     """
     cycles_executed: int = 0
@@ -309,9 +312,9 @@ class TopologicalDiagnosis:
 class AutonomousAgent:
     """
     Agente autónomo que opera bajo un ciclo OODA (Observe, Orient, Decide, Act).
-    
+
     Monitorea la salud del Core y toma decisiones basadas en métricas de telemetría.
-    
+
     Características:
         - Ciclo OODA continuo con manejo robusto de errores
         - Configuración flexible via variables de entorno
@@ -319,7 +322,7 @@ class AutonomousAgent:
         - Graceful shutdown ante señales del sistema
         - Métricas internas para observabilidad
         - Debounce de decisiones para evitar spam
-    
+
     Environment Variables:
         CORE_API_URL: URL del API del Core (default: http://localhost:5002)
         CHECK_INTERVAL: Intervalo entre ciclos en segundos (default: 10)
@@ -349,14 +352,14 @@ class AutonomousAgent:
     ) -> None:
         """
         Inicializa el agente autónomo.
-        
+
         Args:
             core_api_url: URL del API del Core
             check_interval: Intervalo entre ciclos (segundos)
             request_timeout: Timeout de requests (segundos)
             thresholds: Configuración de umbrales de análisis
             persistence_window: Tamaño de ventana para homología persistente
-            
+
         Raises:
             ValueError: Si la configuración es inválida
         """
@@ -455,13 +458,13 @@ class AutonomousAgent:
     def _validate_and_normalize_url(url: str) -> str:
         """
         Valida y normaliza la URL del API.
-        
+
         Args:
             url: URL a validar
-            
+
         Returns:
             URL normalizada
-            
+
         Raises:
             ValueError: Si la URL es inválida
         """
@@ -469,7 +472,7 @@ class AutonomousAgent:
             raise ValueError("CORE_API_URL no puede estar vacía")
 
         url = url.strip()
-        
+
         # Agregar esquema si falta
         if not url.lower().startswith(("http://", "https://")):
             url = f"http://{url}"
@@ -495,7 +498,7 @@ class AutonomousAgent:
     ) -> int:
         """
         Parsea un entero positivo desde múltiples fuentes.
-        
+
         Prioridad: explicit > env_value > default
         """
         if explicit is not None:
@@ -519,7 +522,7 @@ class AutonomousAgent:
     def _create_robust_session(self) -> requests.Session:
         """
         Crea una sesión HTTP con política de reintentos y backoff.
-        
+
         Returns:
             Sesión configurada con retry logic
         """
@@ -538,7 +541,7 @@ class AutonomousAgent:
             pool_connections=10,
             pool_maxsize=10
         )
-        
+
         session.mount("http://", adapter)
         session.mount("https://", adapter)
 
@@ -547,7 +550,7 @@ class AutonomousAgent:
     def _setup_signal_handlers(self) -> None:
         """Configura manejadores para shutdown graceful."""
         signals_to_handle = [signal.SIGINT, signal.SIGTERM]
-        
+
         for sig in signals_to_handle:
             self._original_handlers[sig] = signal.signal(sig, self._handle_shutdown)
 
@@ -559,7 +562,7 @@ class AutonomousAgent:
     def _handle_shutdown(self, signum: int, frame: Any) -> None:
         """
         Manejador de señales de terminación.
-        
+
         Args:
             signum: Número de señal recibida
             frame: Stack frame (no usado)
@@ -568,7 +571,7 @@ class AutonomousAgent:
             sig_name = signal.Signals(signum).name
         except ValueError:
             sig_name = str(signum)
-            
+
         logger.info(f"Señal {sig_name} recibida. Iniciando shutdown graceful...")
         self._running = False
 
@@ -579,11 +582,11 @@ class AutonomousAgent:
     def observe(self) -> Optional[TelemetryData]:
         """
         OBSERVE - Primera fase del ciclo OODA.
-        
+
         Realiza una solicitud GET al endpoint de telemetría del Core.
         Registra el request para detección de patrones de reintentos.
         Actualiza la topología basándose en el resultado.
-        
+
         Returns:
             TelemetryData si exitoso, None si hay error
         """
@@ -709,15 +712,15 @@ class AutonomousAgent:
     def orient(self, telemetry: Optional[TelemetryData]) -> SystemStatus:
         """
         ORIENT - Segunda fase del ciclo OODA (Motor Topológico).
-        
+
         Analiza el estado del sistema usando:
         1. Invariantes topológicos (números de Betti, salud topológica)
         2. Homología persistente (patrones estructurales vs ruido)
         3. Detección de loops de reintentos
-        
+
         Args:
             telemetry: Datos de telemetría (puede ser None si falló observe)
-            
+
         Returns:
             Estado del sistema determinado por análisis topológico
         """
@@ -970,13 +973,13 @@ class AutonomousAgent:
     def decide(self, status: SystemStatus) -> AgentDecision:
         """
         DECIDE - Tercera fase del ciclo OODA.
-        
+
         Mapea el estado del sistema a una decisión de acción.
         Considera el contexto topológico para decisiones más informadas.
-        
+
         Args:
             status: Estado actual del sistema
-            
+
         Returns:
             Decisión a ejecutar
         """
@@ -1012,13 +1015,13 @@ class AutonomousAgent:
     def act(self, decision: AgentDecision) -> bool:
         """
         ACT - Cuarta fase del ciclo OODA.
-        
+
         Ejecuta la acción decidida con información topológica enriquecida.
         Implementa debounce para evitar spam de acciones repetitivas.
-        
+
         Args:
             decision: Decisión a ejecutar
-            
+
         Returns:
             True si la acción fue ejecutada, False si fue suprimida
         """
@@ -1052,12 +1055,12 @@ class AutonomousAgent:
     def _should_debounce(self, decision: AgentDecision) -> bool:
         """
         Determina si una acción debe ser suprimida por debounce.
-        
+
         Las alertas críticas y reconexiones nunca se suprimen.
-        
+
         Args:
             decision: Decisión a evaluar
-            
+
         Returns:
             True si debe suprimirse, False en caso contrario
         """
@@ -1178,7 +1181,7 @@ class AutonomousAgent:
     ) -> None:
         """
         Hook para notificaciones externas (webhooks, métricas, etc).
-        
+
         Args:
             event_type: Tipo de evento a notificar
             context: Contexto adicional del evento
@@ -1202,7 +1205,7 @@ class AutonomousAgent:
     def health_check(self) -> bool:
         """
         Verifica conectividad con el Core y estado topológico inicial.
-        
+
         Returns:
             True si el Core es accesible y la topología es válida
         """
@@ -1249,7 +1252,7 @@ class AutonomousAgent:
     def get_metrics(self) -> Dict[str, Any]:
         """
         Retorna las métricas completas del agente incluyendo estado topológico.
-        
+
         Returns:
             Diccionario con métricas del agente y análisis topológico
         """
@@ -1348,7 +1351,7 @@ class AutonomousAgent:
     def run(self, skip_health_check: bool = False) -> None:
         """
         Bucle principal del agente - Ejecuta el ciclo OODA continuamente.
-        
+
         Args:
             skip_health_check: Si True, omite verificación inicial
         """
@@ -1371,7 +1374,7 @@ class AutonomousAgent:
                     # ═══════════════════════════════════════
                     # CICLO OODA
                     # ═══════════════════════════════════════
-                    
+
                     # 1. OBSERVE
                     telemetry = self.observe()
 
@@ -1437,7 +1440,7 @@ class AutonomousAgent:
 def main() -> int:
     """
     Punto de entrada principal.
-    
+
     Returns:
         Código de salida (0=éxito, 1=error)
     """

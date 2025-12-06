@@ -1,7 +1,7 @@
 #!/bin/bash
 # ==============================================================================
 # Script de Orquestación para APU Filter Ecosystem
-# Versión: 2.1.0 (Adapted - Registry Config)
+# Versión: 2.2.0 (Security Fixes & Manual Build)
 # ==============================================================================
 
 # --- Strict Mode ---
@@ -44,27 +44,31 @@ log_warn()    { _log "WARN"    "${COLORS[YELLOW]}" "$1"; }
 log_error()   { _log "ERROR"   "${COLORS[RED]}"    "$1" >&2; }
 
 # --- Main Logic ---
-prepare_volumes() {
-    log_info "Preparando directorios de volúmenes..."
-    mkdir -p logs data
-    # Dar permisos amplios para evitar conflictos de UID entre host y contenedor
-    chmod 777 logs data
-    log_success "Permisos de volúmenes actualizados."
-}
 
 main() {
-    prepare_volumes
+    # 1. Preparación del Host (Fix Permisos)
+    # Se ejecuta antes de crear el log file para asegurar que el directorio exista
+    if [[ ! -d "logs" ]]; then
+        mkdir -p logs
+    fi
 
-    mkdir -p "$LOG_DIR"
+    mkdir -p data
+
+    # Abrir permisos explícitamente para evitar problemas de escritura en contenedores
+    # Esto es crítico para Gunicorn y otros procesos que corren como non-root
+    chmod -R 777 logs data
+
+    # Iniciar logging
     touch "$LOG_FILE"
     
     log_info "=== Iniciando Despliegue de APU Filter Ecosystem ==="
     log_info "Log file: $LOG_FILE"
+    log_info "Preparando directorios de volúmenes..."
+    log_success "Permisos de volúmenes actualizados (chmod 777)."
 
-    # 0. Configurar Registries de Podman (Paso Nuevo)
+    # 2. Configurar Registries de Podman
     log_info "Verificando configuración de registros..."
     if [[ -f "$REGISTRY_SETUP_SCRIPT" ]]; then
-        # Ejecutar script de configuración
         log_info "Ejecutando setup_podman_registry.sh..."
         bash "$REGISTRY_SETUP_SCRIPT" >> "$LOG_FILE" 2>&1
         log_success "Configuración de registros aplicada."
@@ -72,33 +76,51 @@ main() {
         log_warn "No se encontró $REGISTRY_SETUP_SCRIPT. Asumiendo configuración manual."
     fi
 
-    # 1. Validar archivo compose
+    # 3. Validar archivo compose
     if [[ ! -f "$COMPOSE_FILE" ]]; then
         log_error "No se encuentra el archivo: $COMPOSE_FILE"
         log_error "Asegúrate de ejecutar este script desde la raíz del proyecto."
         exit 1
     fi
 
-    # 2. Limpieza previa
+    # 4. Limpieza previa
     log_info "Limpiando contenedores previos..."
     podman-compose -f "$COMPOSE_FILE" down --remove-orphans >> "$LOG_FILE" 2>&1 || true
 
-    # 3. Construcción
-    log_info "Construyendo imágenes (Core & Agent)..."
-    if ! podman-compose -f "$COMPOSE_FILE" build >> "$LOG_FILE" 2>&1; then
-        log_error "Fallo en la construcción. Revisa el log."
+    # 5. Construcción Manual con Bypass de Seguridad (Fix Seccomp)
+    log_info "Construyendo imágenes (Core & Agent) con seccomp=unconfined..."
+
+    # Construir Core
+    log_info "Construyendo apu-core:latest..."
+    if ! podman build \
+        --security-opt seccomp=unconfined \
+        -f infrastructure/Dockerfile.core \
+        -t apu-core:latest . >> "$LOG_FILE" 2>&1; then
+        log_error "Fallo en la construcción de Core. Revisa el log."
         exit 1
     fi
-    log_success "Imágenes construidas."
+    log_success "Imagen apu-core:latest construida."
 
-    # 4. Inicio
+    # Construir Agent
+    log_info "Construyendo apu-agent:latest..."
+    if ! podman build \
+        --security-opt seccomp=unconfined \
+        -f infrastructure/Dockerfile.agent \
+        -t apu-agent:latest . >> "$LOG_FILE" 2>&1; then
+        log_error "Fallo en la construcción de Agent. Revisa el log."
+        exit 1
+    fi
+    log_success "Imagen apu-agent:latest construida."
+
+    # 6. Inicio (Orquestación)
     log_info "Levantando servicios..."
+    # Usamos podman-compose up -d, confiando en que usará las imágenes locales
     if ! podman-compose -f "$COMPOSE_FILE" up -d >> "$LOG_FILE" 2>&1; then
         log_error "Fallo al iniciar servicios."
         exit 1
     fi
 
-    # 5. Verificación de Salud
+    # 7. Verificación de Salud
     log_info "Esperando estabilización (10s)..."
     sleep 10
 
@@ -108,5 +130,5 @@ main() {
     log_success "=== APU Filter Ecosystem Operativo ==="
 }
 
-# Ejecutar main sin argumentos para evitar errores de parsing
+# Ejecutar main
 main
