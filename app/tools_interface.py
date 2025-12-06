@@ -234,7 +234,7 @@ def _normalize_path(file_path: Union[str, Path]) -> Path:
 
     try:
         path = Path(file_path) if isinstance(file_path, str) else file_path
-        
+
         # Expandir ~ a home directory
         path = path.expanduser()
 
@@ -639,7 +639,7 @@ def _validate_output_path(
     # Comparar rutas de forma segura
     try:
         input_resolved = input_path.resolve()
-        
+
         if output_path.exists():
             output_resolved = output_path.resolve()
         else:

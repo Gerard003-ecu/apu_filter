@@ -143,7 +143,7 @@ class TestThresholdConfig(TestFixtures):
     def test_default_values(self):
         """Verifica valores por defecto de ThresholdConfig."""
         config = ThresholdConfig()
-        
+
         assert config.flyback_voltage_warning == 0.5
         assert config.flyback_voltage_critical == 0.8
         assert config.saturation_warning == 0.9
@@ -157,7 +157,7 @@ class TestThresholdConfig(TestFixtures):
             saturation_warning=0.7,
             saturation_critical=0.85
         )
-        
+
         assert config.flyback_voltage_warning == 0.3
         assert config.flyback_voltage_critical == 0.6
         assert config.saturation_warning == 0.7
@@ -188,7 +188,7 @@ class TestTelemetryData(TestFixtures):
     def test_from_dict_valid_data(self, nominal_response_data):
         """Verifica parsing exitoso de datos válidos."""
         result = TelemetryData.from_dict(nominal_response_data)
-        
+
         assert result is not None
         assert result.flyback_voltage == 0.3
         assert result.saturation == 0.5
@@ -213,7 +213,7 @@ class TestTelemetryData(TestFixtures):
         """Verifica clampeo de flyback_voltage a [0, 1]."""
         data = {"flyback_voltage": voltage, "saturation": 0.5}
         result = TelemetryData.from_dict(data)
-        
+
         assert result is not None
         assert result.flyback_voltage == expected
 
@@ -233,7 +233,7 @@ class TestAgentInitialization(TestFixtures):
                 check_interval=30,
                 request_timeout=10
             )
-            
+
             assert agent.core_api_url == "http://explicit:8000"
             assert agent.check_interval == 30
             assert agent.request_timeout == 10
@@ -243,7 +243,7 @@ class TestAgentInitialization(TestFixtures):
         """Verifica inicialización desde variables de entorno."""
         with patch.object(AutonomousAgent, '_setup_signal_handlers'):
             agent = AutonomousAgent()
-            
+
             assert agent.core_api_url == "http://test-core:5000"
             assert agent.check_interval == 1
             assert agent.request_timeout == 1
@@ -298,7 +298,7 @@ class TestObserve(TestFixtures):
     def test_observe_degrades_topology_on_repeated_failures(self, agent):
         """Verifica que múltiples fallos cortan la conexión Agent-Core."""
         agent._session.get.side_effect = requests.exceptions.Timeout()
-        
+
         # Simular fallos hasta el límite
         for _ in range(agent.MAX_CONSECUTIVE_FAILURES):
             agent.observe()
@@ -326,7 +326,7 @@ class TestOrient(TestFixtures):
         )
 
         status = agent.orient(TelemetryData(flyback_voltage=0.1, saturation=0.1))
-        
+
         assert status == SystemStatus.DISCONNECTED
         assert "Fragmentación" in agent._last_diagnosis.summary
 
@@ -334,12 +334,12 @@ class TestOrient(TestFixtures):
         """Prioridad 2: Safety Net (Voltaje Crítico Instantáneo) -> CRITICO."""
         # Topología sana
         agent.topology.get_topological_health.return_value.betti = BettiNumbers(b0=1, b1=0)
-        
+
         # Voltaje dispara safety net
         telemetry = TelemetryData(flyback_voltage=0.9, saturation=0.1) # > 0.8 critical
-        
+
         status = agent.orient(telemetry)
-        
+
         assert status == SystemStatus.CRITICO
         assert "Instantáneo" in agent._last_diagnosis.summary
 
@@ -357,11 +357,11 @@ class TestOrient(TestFixtures):
                 state=MetricState.STABLE, intervals=tuple(), feature_count=0,
                 noise_count=0, active_count=0, max_lifespan=0, total_persistence=0, metadata={}
             )
-        
+
         mock_persistence.analyze_persistence.side_effect = side_effect
-        
+
         status = agent.orient(TelemetryData(flyback_voltage=0.4, saturation=0.2))
-        
+
         assert status == SystemStatus.INESTABLE
         assert "Inestabilidad" in agent._last_diagnosis.summary
 
@@ -369,7 +369,7 @@ class TestOrient(TestFixtures):
         """Prioridad 5: Loops de Reintentos de Error -> INESTABLE."""
         # Simular loop de errores
         loop_info = RequestLoopInfo(request_id="FAIL_TIMEOUT", count=6, first_seen=0, last_seen=10)
-        
+
         mock_topology.get_topological_health.return_value = TopologicalHealth(
             betti=BettiNumbers(b0=1, b1=0),
             disconnected_nodes=frozenset(),
@@ -380,7 +380,7 @@ class TestOrient(TestFixtures):
         )
 
         status = agent.orient(TelemetryData(flyback_voltage=0.2, saturation=0.2))
-        
+
         assert status == SystemStatus.INESTABLE
         assert "Patrón de Reintentos" in agent._last_diagnosis.summary
 
@@ -392,12 +392,12 @@ class TestOrient(TestFixtures):
             intervals=tuple(), feature_count=0, noise_count=5, active_count=0,
             max_lifespan=2, total_persistence=10, metadata={}
         )
-        
+
         status = agent.orient(TelemetryData(flyback_voltage=0.55, saturation=0.2))
         # 0.55 es warning, pero si el análisis dice NOISE, debe ser NOMINAL
         # Nota: La lógica actual en _evaluate_system_state usa el estado de persistencia
         # para decidir. Si es NOISE, cae al final -> NOMINAL.
-        
+
         assert status == SystemStatus.NOMINAL
 
 
@@ -429,7 +429,7 @@ class TestAct(TestFixtures):
             recommended_status=SystemStatus.INESTABLE
         )
         agent._last_diagnosis = diagnosis
-        
+
         import logging
         with caplog.at_level(logging.WARNING):
             agent.act(AgentDecision.RECOMENDAR_LIMPIEZA)
@@ -442,7 +442,7 @@ class TestAct(TestFixtures):
     def test_debounce_logic_respects_critical_alerts(self, agent):
         """Verifica que ALERTA_CRITICA salta el debounce."""
         decision = AgentDecision.ALERTA_CRITICA
-        
+
         assert agent.act(decision) is True
         # Inmediatamente otra vez
         assert agent.act(decision) is True
@@ -457,7 +457,7 @@ class TestIntegration(TestFixtures):
     def test_get_metrics_includes_topology(self, agent):
         """Verifica que get_metrics incluye sección de topología."""
         metrics = agent.get_metrics()
-        
+
         assert "topology" in metrics
         assert "persistence" in metrics
         assert metrics["topology"]["betti_b0"] == 1
