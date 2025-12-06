@@ -1,130 +1,91 @@
 # =============================================================================
 # COMPOSE.YAML - APU Filter Stack
 # =============================================================================
-# Versión: 5.0 - Compatible con Podman configurado
-#
-# REQUISITO: Ejecutar primero la configuración de registries (ver arriba)
-#            O usar el script build-and-run.sh
-# =============================================================================
 
 name: apu
 
 services:
-  # ===========================================================================
-  # REDIS
-  # ===========================================================================
   redis:
     image: docker.io/library/redis:7-alpine
     container_name: apu_redis
     hostname: redis
-    
-    command: >
-      redis-server
-      --appendonly yes
-      --maxmemory 256mb
-      --maxmemory-policy allkeys-lru
-    
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
     ports:
       - "6379:6379"
-    
     volumes:
       - redis_data:/data
-    
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 10s
-    
     restart: unless-stopped
     networks:
       - apu_net
 
-  # ===========================================================================
-  # APU CORE
-  # ===========================================================================
   core:
-    # Nombre simple - Podman lo buscará localmente primero
     image: apu-core:latest
-    pull_policy: build
-    
+    pull_policy: never
     build:
       context: .
       dockerfile: infrastructure/Dockerfile.core
-      args:
-        WORKERS: 4
-        PORT: 5002
-        TIMEOUT: 120
-    
     container_name: apu_core
     hostname: core
-    
     ports:
       - "5002:5002"
-    
     environment:
       - REDIS_URL=redis://redis:6379/0
       - FLASK_ENV=production
       - PYTHONUNBUFFERED=1
       - PYTHONPATH=/app
-    
-    env_file:
-      - .env
-    
+      - SECRET_KEY=apu_super_secret_key_2025_change_me_in_prod
+    security_opt:
+      - seccomp=unconfined
+    # env_file:
+    #  - .env
     depends_on:
       redis:
         condition: service_healthy
-    
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5002/health"]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 90s
-    
+      start_period: 300s
     volumes:
       - ./data:/app/data:Z
       - ./logs:/app/logs:Z
       - ./config:/app/config:ro,Z
-    
     restart: unless-stopped
     networks:
       - apu_net
 
-  # ===========================================================================
-  # APU AGENT
-  # ===========================================================================
   agent:
-    # Nombre simple - Podman lo buscará localmente primero
     image: apu-agent:latest
-    pull_policy: build
-
+    pull_policy: never
     build:
       context: .
       dockerfile: infrastructure/Dockerfile.agent
-    
     container_name: apu_agent
     hostname: agent
-    
     environment:
       - CORE_API_URL=http://core:5002
       - REDIS_URL=redis://redis:6379/0
+      - REQUEST_TIMEOUT=30
       - PYTHONUNBUFFERED=1
       - PYTHONPATH=/app
-    
-    env_file:
-      - .env
-    
+    security_opt:
+      - seccomp=unconfined
+    #env_file:
+    #  - .env
     depends_on:
       core:
         condition: service_healthy
       redis:
         condition: service_healthy
-    
     volumes:
       - ./logs:/app/logs:Z
-    
     restart: unless-stopped
     networks:
       - apu_net

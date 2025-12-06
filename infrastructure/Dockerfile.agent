@@ -1,13 +1,13 @@
 # =============================================================================
-# DOCKERFILE.AGENT - Agente Orquestador con PyTorch CPU
+# DOCKERFILE.AGENT - Agente con PyTorch CPU
 # =============================================================================
-# Versión: 3.0 - Resuelve conflictos de dependencias
+# Versión: 6.0
 # =============================================================================
 
-FROM python:3.10-slim
+FROM public.ecr.aws/docker/library/python:3.10-slim
 
 LABEL maintainer="equipo-desarrollo" \
-      version="3.0" \
+      version="6.0" \
       description="Agente orquestador con PyTorch CPU"
 
 ENV PYTHONUNBUFFERED=1 \
@@ -20,117 +20,78 @@ ENV PYTHONUNBUFFERED=1 \
 WORKDIR /app
 
 # =============================================================================
-# FASE 1: COPIAR REQUIREMENTS
+# FASE 1: Copiar requirements
 # =============================================================================
-COPY requirements.txt ./requirements-base.txt
-COPY requirements-agent.txt ./requirements-agent.txt
-
-# =============================================================================
-# FASE 2: SCRIPT DE SEPARACIÓN DE DEPENDENCIAS
-# =============================================================================
-RUN cat > /tmp/separate-deps.py << 'PYTHON_SCRIPT'
-import re
-
-TORCH_RELATED = {
-    'torch', 'torchvision', 'torchaudio',
-    'sentence-transformers', 'transformers',
-    'accelerate', 'safetensors', 'huggingface-hub',
-}
-
-def process_file(input_file, torch_output, other_output):
-    torch_deps = []
-    other_deps = []
-    
-    try:
-        with open(input_file, 'r') as f:
-            for line in f:
-                line = line.strip()
-                if not line or line.startswith('#') or line.startswith('-r'):
-                    continue
-                pkg_name = re.split(r'[=<>!~\[]', line)[0].lower().replace('_', '-')
-                if pkg_name in TORCH_RELATED:
-                    torch_deps.append(line)
-                else:
-                    other_deps.append(line)
-    except FileNotFoundError:
-        pass
-    
-    with open(torch_output, 'a') as f:
-        for dep in torch_deps:
-            f.write(dep + '\n')
-    
-    with open(other_output, 'a') as f:
-        for dep in other_deps:
-            f.write(dep + '\n')
-    
-    return len(torch_deps), len(other_deps)
-
-# Inicializar archivos
-open('/app/requirements-torch.txt', 'w').close()
-open('/app/requirements-other.txt', 'w').close()
-
-# Procesar ambos archivos
-t1, o1 = process_file('/app/requirements-base.txt', 
-                       '/app/requirements-torch.txt', 
-                       '/app/requirements-other.txt')
-t2, o2 = process_file('/app/requirements-agent.txt', 
-                       '/app/requirements-torch.txt', 
-                       '/app/requirements-other.txt')
-
-print(f"✓ Total: {t1+t2} torch-related, {o1+o2} otras")
-PYTHON_SCRIPT
-
-RUN python /tmp/separate-deps.py
+COPY requirements.txt ./req-base-original.txt
+COPY requirements-agent.txt ./req-agent-original.txt
 
 # =============================================================================
-# FASE 3: INSTALAR PyTorch CPU
+# FASE 2: Limpiar requirements de dependencias problemáticas
 # =============================================================================
-RUN pip install --no-cache-dir \
+RUN grep -v -E "^(torch|torchvision|torchaudio|sentence-transformers|transformers|accelerate|huggingface-hub|safetensors|sympy)" \
+    req-base-original.txt > requirements.txt || true && \
+    grep -v -E "^(torch|torchvision|torchaudio|sentence-transformers|transformers|accelerate|huggingface-hub|safetensors|sympy)" \
+    req-agent-original.txt > requirements-agent.txt || true
+
+# =============================================================================
+# FASE 3: Crear CONSTRAINTS
+# =============================================================================
+RUN echo "torch==2.5.1+cpu" > /tmp/constraints.txt && \
+    echo "torchvision==0.20.1+cpu" >> /tmp/constraints.txt && \
+    echo "torchaudio==2.5.1+cpu" >> /tmp/constraints.txt && \
+    echo "sympy==1.13.1" >> /tmp/constraints.txt
+
+# =============================================================================
+# FASE 4: Instalar PyTorch CPU
+# =============================================================================
+RUN pip install \
     torch==2.5.1+cpu \
     torchvision==0.20.1+cpu \
     torchaudio==2.5.1+cpu \
-    --index-url https://download.pytorch.org/whl/cpu && \
-    python -c "import torch; print(f'✓ PyTorch {torch.__version__}')"
+    --index-url https://download.pytorch.org/whl/cpu
+
+RUN python -c "import torch; print(f'[OK] PyTorch {torch.__version__}')"
 
 # =============================================================================
-# FASE 4: INSTALAR DEPENDENCIAS TORCH-RELATED (pip)
+# FASE 5: Instalar paquetes ML con CONSTRAINT
 # =============================================================================
-RUN if [ -s requirements-torch.txt ]; then \
-        pip install --no-cache-dir -r requirements-torch.txt; \
-    fi
+RUN pip install \
+    -c /tmp/constraints.txt \
+    sentence-transformers \
+    transformers \
+    accelerate \
+    huggingface-hub \
+    safetensors
 
 # =============================================================================
-# FASE 5: INSTALAR RESTO CON UV (o pip como fallback)
+# FASE 6: Instalar resto con CONSTRAINT
 # =============================================================================
-RUN pip install --no-cache-dir uv && \
-    if [ -s requirements-other.txt ]; then \
-        uv pip install --system --no-cache-dir -r requirements-other.txt || \
-        pip install --no-cache-dir -r requirements-other.txt; \
-    fi
+RUN pip install -c /tmp/constraints.txt -r requirements.txt || true
+RUN pip install -c /tmp/constraints.txt -r requirements-agent.txt || true
 
 # =============================================================================
-# FASE 6: VERIFICACIÓN
+# FASE 7: Verificación
 # =============================================================================
 RUN python -c "\
 import torch; \
-assert '+cpu' in torch.__version__, f'ERROR: torch NO es CPU: {torch.__version__}'; \
-print(f'✓ torch=={torch.__version__} (CPU)')"
+v = torch.__version__; \
+assert v == '2.5.1+cpu', f'FALLO: {v}'; \
+print('[OK] torch==2.5.1+cpu')"
 
 # =============================================================================
-# FASE 7: SEGURIDAD
+# FASE 8: Usuario
 # =============================================================================
 RUN useradd --create-home --shell /bin/bash --uid 1000 --user-group apu_user && \
+    mkdir -p /app/logs /app/data && \
+    chmod 777 /app/logs /app/data && \
     chown -R apu_user:apu_user /app && \
-    rm -f requirements-*.txt
+    rm -f /tmp/constraints.txt req-*-original.txt
 
 USER apu_user
 
 # =============================================================================
-# FASE 8: CÓDIGO
+# FASE 9: Código
 # =============================================================================
 COPY --chown=apu_user:apu_user agent/ /app/agent/
 
-# =============================================================================
-# FASE 9: ENTRYPOINT
-# =============================================================================
-ENTRYPOINT ["python", "-u", "-m", "agent.orchestrator"]
+ENTRYPOINT ["python", "-u", "-m", "agent.apu_agent"]

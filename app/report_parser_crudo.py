@@ -91,6 +91,7 @@ class APUContext:
     apu_desc: str
     apu_unit: str
     source_line: int
+    default_unit: str = "UND"
 
     def __post_init__(self):
         """Realiza validación y normalización después de la inicialización."""
@@ -110,17 +111,22 @@ class ReportParserCrudo:
     """
     Parser robusto tipo máquina de estados para archivos APU semi-estructurados.
 
-    Esta clase procesa un archivo línea por línea, identificando bloques que
-    pertenecen a un APU específico. Utiliza un enfoque de máquina de estados
-    simple:
-    1. Busca un encabezado de APU (líneas con "UNIDAD:" y "ITEM:").
-    2. Una vez en un contexto de APU, procesa las líneas subsecuentes como
-       posibles insumos, categorías o líneas de "ruido" a ignorar.
-    3. Repite el proceso hasta el final del archivo.
-
-    El resultado es una lista de registros "crudos", donde cada registro
-    contiene la línea del insumo y el contexto del APU al que pertenece.
+    ROBUSTECIDO: Constantes centralizadas, límites de recursos, manejo defensivo.
     """
+
+    # ═══════════════════════════════════════════════════════════════════════════
+    # CONSTANTES DE CLASE
+    # ═══════════════════════════════════════════════════════════════════════════
+
+    # Límites de recursos
+    _MAX_CACHE_SIZE: int = 50000
+    _MAX_FAILED_SAMPLES: int = 20
+    _MAX_LINE_LENGTH: int = 5000
+    _MIN_FIELDS_FOR_INSUMO: int = 5
+    _MIN_LINE_LENGTH: int = 3
+
+    # Configuración de validación
+    _CACHE_KEY_MAX_LENGTH: int = 2000
 
     CATEGORY_KEYWORDS = {
         "MATERIALES": {"MATERIALES", "MATERIAL", "MAT.", "INSUMOS"},
@@ -131,7 +137,7 @@ class ReportParserCrudo:
         "OTROS": {"OTROS", "OTRO", "VARIOS", "ADICIONALES"},
     }
 
-    JUNK_KEYWORDS = {
+    JUNK_KEYWORDS = frozenset({  # ROBUSTECIDO: frozenset para inmutabilidad y rendimiento
         "SUBTOTAL",
         "COSTO DIRECTO",
         "DESCRIPCION",
@@ -140,7 +146,13 @@ class ReportParserCrudo:
         "TOTAL",
         "IVA",
         "AIU",
-    }
+    })
+
+    # Patrones pre-compilados para rendimiento
+    _NUMERIC_PATTERN = re.compile(r"\d+[.,]\d+|\d+")
+    _DECORATIVE_PATTERN = re.compile(r"^[=\-_\s*]+$")
+    _UNIT_PATTERN = re.compile(r"UNIDAD:\s*(\S+)", re.IGNORECASE)
+    _ITEM_PATTERN = re.compile(r"ITEM:\s*([\S,]+)", re.IGNORECASE)
 
     def __init__(
         self,
@@ -149,73 +161,179 @@ class ReportParserCrudo:
         config: Optional[Dict] = None,
     ):
         """
-        Inicializa el parser.
+        Inicializa el parser con validación exhaustiva de parámetros.
+
+        ROBUSTECIDO:
+        - Validación defensiva de todos los parámetros
+        - Inicialización segura de componentes
+        - Manejo de errores en importaciones
 
         Args:
-            file_path: La ruta al archivo a ser parseado.
-            config: Un diccionario de configuración opcional.
+            file_path: Ruta al archivo a procesar.
+            profile: Perfil de configuración.
+            config: Configuración global.
         """
-        self.file_path = Path(file_path)
+        # ROBUSTECIDO: Conversión segura de file_path
+        if file_path is None:
+            raise ValueError("file_path no puede ser None")
+        self.file_path = Path(file_path) if not isinstance(file_path, Path) else file_path
+
+        # ROBUSTECIDO: Validación de tipos para profile y config
+        if profile is not None and not isinstance(profile, dict):
+            logger.warning(f"profile no es dict ({type(profile).__name__}), usando vacío")
+            profile = {}
+        if config is not None and not isinstance(config, dict):
+            logger.warning(f"config no es dict ({type(config).__name__}), usando vacío")
+            config = {}
+
         self.profile = profile or {}
         self.config = config or {}
+
+        # Validar archivo antes de continuar
         self._validate_file_path()
 
-        # --- INICIO DE LA MODIFICACIÓN ---
-        from .apu_processor import APU_GRAMMAR  # Importar la gramática
-
-        self.lark_parser = self._initialize_lark_parser(APU_GRAMMAR)
+        # ROBUSTECIDO: Inicialización segura del parser Lark
+        self.lark_parser: Optional[Lark] = None
         self._parse_cache: Dict[str, Tuple[bool, Any]] = {}
         self.validation_stats = ValidationStats()
-        # --- FIN DE LA MODIFICACIÓN ---
 
+        try:
+            from .apu_processor import APU_GRAMMAR
+            self.lark_parser = self._initialize_lark_parser(APU_GRAMMAR)
+        except ImportError as ie:
+            logger.error(
+                f"No se pudo importar APU_GRAMMAR: {ie}\n"
+                f"  El parser funcionará sin validación Lark"
+            )
+        except Exception as e:
+            logger.error(
+                f"Error inicializando parser Lark: {e}\n"
+                f"  El parser funcionará sin validación Lark"
+            )
+
+        # Estado del parser
         self.raw_records: List[Dict[str, Any]] = []
         self.stats: Counter = Counter()
         self._parsed: bool = False
+
+        # ROBUSTECIDO: Modo debug desde config
+        self.debug_mode = self.config.get("debug_mode", False)
+
+        logger.debug(
+            f"ReportParserCrudo inicializado:\n"
+            f"  Archivo: {self.file_path.name}\n"
+            f"  Lark parser: {'✓' if self.lark_parser else '✗'}\n"
+            f"  Debug mode: {self.debug_mode}"
+        )
 
     def _initialize_lark_parser(self, grammar: Optional[str] = None) -> Optional[Lark]:
         """
         Inicializa el parser Lark con la MISMA gramática que usa APUProcessor.
 
+        ROBUSTECIDO:
+        - Validación exhaustiva de gramática
+        - Manejo específico de cada tipo de error Lark
+        - Test de sanidad post-creación
+        - Configuración coherente con APUProcessor
+
         Args:
-            grammar: String con la gramática Lark. Si es None, se carga desde archivo.
+            grammar: String con la gramática Lark.
 
         Returns:
             Instancia de Lark o None si falla la inicialización.
         """
         try:
-            if grammar is None:
-                # Cargar desde el mismo lugar que APUProcessor
-                from .apu_processor import APU_GRAMMAR
-
-                grammar = APU_GRAMMAR
-
-            parser = Lark(
-                grammar,
-                start="line",
-                parser="lalr",
-                # Usar las mismas opciones que APUProcessor
-                maybe_placeholders=False,
-                cache=True,
+            from lark import Lark
+            from lark.exceptions import GrammarError, ConfigurationError
+        except ImportError as ie:
+            logger.error(
+                f"No se pudo importar Lark: {ie}\n"
+                f"  Ejecute: pip install lark"
             )
+            return None
+
+        # ROBUSTECIDO: Obtener gramática si no se proporcionó
+        if grammar is None:
+            try:
+                from .apu_processor import APU_GRAMMAR
+                grammar = APU_GRAMMAR
+            except ImportError:
+                logger.error("No se pudo importar APU_GRAMMAR desde apu_processor")
+                return None
+
+        # ROBUSTECIDO: Validar que la gramática no está vacía
+        if not grammar or not isinstance(grammar, str) or not grammar.strip():
+            logger.error("La gramática proporcionada está vacía o no es válida")
+            return None
+
+        try:
+            # ROBUSTECIDO: Configuración idéntica a APUProcessor para coherencia
+            parser_config = {
+                "start": "line",
+                "parser": "lalr",
+                "maybe_placeholders": False,
+                "propagate_positions": False,
+                "cache": True,
+            }
+
+            parser = Lark(grammar, **parser_config)
+
+            # ROBUSTECIDO: Validación post-creación
+            if parser is None:
+                logger.error("Lark retornó None al crear parser")
+                return None
+
+            # ROBUSTECIDO: Test de sanidad con línea simple
+            try:
+                test_line = "descripcion;unidad;1;100;100"
+                test_result = parser.parse(test_line)
+                if test_result is None:
+                    logger.warning(
+                        "Test de sanidad del parser retornó None "
+                        "(puede ser comportamiento esperado)"
+                    )
+            except Exception as test_error:
+                # No es crítico si el test falla con datos genéricos
+                logger.debug(f"Test de sanidad falló (esperado en algunos casos): {test_error}")
 
             logger.info("✓ Parser Lark inicializado correctamente para pre-validación")
             return parser
 
+        except GrammarError as ge:
+            logger.error(
+                f"Error de gramática Lark:\n"
+                f"  Mensaje: {ge}\n"
+                f"  Revise que APU_GRAMMAR sea válida"
+            )
+            return None
+
+        except ConfigurationError as ce:
+            logger.error(f"Error de configuración Lark: {ce}")
+            return None
+
         except Exception as e:
             logger.error(
-                f"✗ Error al inicializar parser Lark: {e}\n"
-                f"  Continuando SIN validación Lark (modo permisivo forzado)"
+                f"Error inesperado inicializando parser Lark:\n"
+                f"  Tipo: {type(e).__name__}\n"
+                f"  Error: {e}"
             )
+            if self.config.get("debug_mode", False):
+                import traceback
+                logger.debug(f"Traceback:\n{traceback.format_exc()}")
             return None
 
     def _validate_with_lark(
         self, line: str, use_cache: bool = True
-    ) -> tuple[bool, Optional[Any], str]:
+    ) -> Tuple[bool, Optional[Any], str]:
         """
         Valida una línea usando el parser Lark.
 
-        Esta es la validación CRÍTICA que garantiza que solo pasamos líneas
-        que APUProcessor podrá procesar exitosamente.
+        ROBUSTECIDO:
+        - Manejo específico de cada tipo de excepción Lark
+        - Validación de estructura del árbol resultante
+        - Límites de cache
+        - Normalización de clave de cache
+        - Logging contextual
 
         Args:
             line: Línea a validar.
@@ -224,49 +342,206 @@ class ReportParserCrudo:
         Returns:
             Tupla (es_válida, árbol_parsing, razón_fallo)
         """
-        if not self.lark_parser:
+        # ROBUSTECIDO: Verificar disponibilidad del parser
+        if self.lark_parser is None:
             return (True, None, "Lark no disponible - validación omitida")
 
-        # Verificar cache
-        if use_cache and line in self._parse_cache:
-            self.validation_stats.cached_parses += 1
-            is_valid, tree = self._parse_cache[line]
-            return (is_valid, tree, "" if is_valid else "Cached failure")
+        # ROBUSTECIDO: Validar entrada
+        if not line or not isinstance(line, str):
+            return (False, None, "Línea vacía o tipo inválido")
 
         line_clean = line.strip()
+
+        # ROBUSTECIDO: Validar longitud antes de procesar
+        if len(line_clean) > self._MAX_LINE_LENGTH:
+            logger.debug(f"Línea excede longitud máxima: {len(line_clean)} > {self._MAX_LINE_LENGTH}")
+            return (False, None, f"Línea demasiado larga: {len(line_clean)} caracteres")
+
+        if len(line_clean) < self._MIN_LINE_LENGTH:
+            return (False, None, f"Línea demasiado corta: {len(line_clean)} caracteres")
+
+        # ROBUSTECIDO: Normalizar clave de cache para mejor hit rate
+        cache_key = self._compute_cache_key(line_clean)
+
+        # Verificar cache con validación
+        if use_cache and cache_key in self._parse_cache:
+            self.validation_stats.cached_parses += 1
+            cached_result = self._parse_cache[cache_key]
+
+            # ROBUSTECIDO: Validar estructura del resultado cacheado
+            if isinstance(cached_result, tuple) and len(cached_result) == 2:
+                is_valid, tree = cached_result
+                return (is_valid, tree, "" if is_valid else "Cached failure")
+            else:
+                # Cache corrupto, eliminar entrada
+                logger.debug(f"Entrada de cache corrupta para: {cache_key[:50]}...")
+                del self._parse_cache[cache_key]
+
+        # ROBUSTECIDO: Importar excepciones específicas de Lark
+        from lark.exceptions import (
+            UnexpectedCharacters,
+            UnexpectedToken,
+            UnexpectedInput,
+            UnexpectedEOF,
+            LarkError,
+        )
 
         try:
             tree = self.lark_parser.parse(line_clean)
 
+            # ROBUSTECIDO: Validar que el árbol tiene estructura esperada
+            if not self._is_valid_tree(tree):
+                logger.debug(f"Árbol Lark inválido para: {line_clean[:50]}...")
+                if use_cache:
+                    self._cache_result(cache_key, False, None)
+                return (False, None, "Árbol de parsing inválido")
+
             # Cache de éxito
             if use_cache:
-                self._parse_cache[line] = (True, tree)
+                self._cache_result(cache_key, True, tree)
 
             return (True, tree, "")
 
-        except Exception as e:
-            # Cache de fallo
+        except UnexpectedCharacters as uc:
+            self.validation_stats.failed_lark_unexpected_chars += 1
+            error_msg = (
+                f"Carácter inesperado en columna {uc.column}: "
+                f"'{line_clean[max(0, uc.column-5):uc.column+5]}'"
+            )
             if use_cache:
-                self._parse_cache[line] = (False, None)
+                self._cache_result(cache_key, False, None)
+            return (False, None, f"Lark UnexpectedCharacters: {error_msg}")
 
-            error_type = type(e).__name__
-            error_msg = str(e)
+        except UnexpectedToken as ut:
+            self.validation_stats.failed_lark_parse += 1
+            error_msg = f"Token inesperado '{ut.token}', esperado: {ut.expected}"
+            if use_cache:
+                self._cache_result(cache_key, False, None)
+            return (False, None, f"Lark UnexpectedToken: {error_msg}")
 
-            # Clasificar tipo de error
-            if "UnexpectedInput" in error_type:
-                self.validation_stats.failed_lark_unexpected_input += 1
-            elif "UnexpectedCharacters" in error_type:
-                self.validation_stats.failed_lark_unexpected_chars += 1
-            else:
-                self.validation_stats.failed_lark_parse += 1
+        except UnexpectedEOF as ueof:
+            self.validation_stats.failed_lark_parse += 1
+            error_msg = f"Fin de entrada inesperado, esperado: {ueof.expected}"
+            if use_cache:
+                self._cache_result(cache_key, False, None)
+            return (False, None, f"Lark UnexpectedEOF: {error_msg}")
 
-            return (False, None, f"Lark {error_type}: {error_msg}")
+        except UnexpectedInput as ui:
+            self.validation_stats.failed_lark_unexpected_input += 1
+            if use_cache:
+                self._cache_result(cache_key, False, None)
+            return (False, None, f"Lark UnexpectedInput: {ui}")
 
-    def _validate_basic_structure(self, line: str, fields: List[str]) -> tuple[bool, str]:
+        except LarkError as le:
+            self.validation_stats.failed_lark_parse += 1
+            if use_cache:
+                self._cache_result(cache_key, False, None)
+            return (False, None, f"Lark Error genérico: {le}")
+
+        except Exception as e:
+            # Error completamente inesperado
+            self.validation_stats.failed_lark_parse += 1
+            logger.error(
+                f"Error inesperado en validación Lark:\n"
+                f"  Tipo: {type(e).__name__}\n"
+                f"  Error: {e}\n"
+                f"  Línea: {line_clean[:100]}"
+            )
+            if use_cache:
+                self._cache_result(cache_key, False, None)
+            return (False, None, f"Error inesperado: {type(e).__name__}: {e}")
+
+    def _compute_cache_key(self, line: str) -> str:
+        """
+        Computa una clave de cache normalizada para una línea.
+
+        ROBUSTECIDO:
+        - Normalización de espacios para mejor hit rate
+        - Límite de longitud de clave
+        - Coherente con APUProcessor
+
+        Args:
+            line: Línea original.
+
+        Returns:
+            Clave de cache normalizada.
+        """
+        # Normalizar espacios múltiples
+        normalized = " ".join(line.split())
+
+        # Limitar longitud de clave
+        if len(normalized) > self._CACHE_KEY_MAX_LENGTH:
+            # Usar hash para claves muy largas
+            import hashlib
+            hash_suffix = hashlib.md5(normalized.encode()).hexdigest()[:16]
+            normalized = normalized[:self._CACHE_KEY_MAX_LENGTH - 20] + f"...[{hash_suffix}]"
+
+        return normalized
+
+    def _cache_result(self, key: str, is_valid: bool, tree: Any) -> None:
+        """
+        Almacena un resultado en cache con control de tamaño.
+
+        ROBUSTECIDO:
+        - Límite de tamaño de cache
+        - Evicción LRU simplificada
+
+        Args:
+            key: Clave de cache.
+            is_valid: Si el resultado es válido.
+            tree: Árbol Lark (si aplica).
+        """
+        # Verificar límite de cache
+        if len(self._parse_cache) >= self._MAX_CACHE_SIZE:
+            # Evicción simple: eliminar 10% de las entradas más antiguas
+            keys_to_remove = list(self._parse_cache.keys())[: self._MAX_CACHE_SIZE // 10]
+            for k in keys_to_remove:
+                del self._parse_cache[k]
+            logger.debug(
+                f"Cache de parsing purgado: eliminadas {len(keys_to_remove)} entradas"
+            )
+
+        self._parse_cache[key] = (is_valid, tree)
+
+    def _is_valid_tree(self, tree: Any) -> bool:
+        """
+        Verifica que un árbol Lark es válido y usable.
+
+        ROBUSTECIDO:
+        - Verificación de estructura básica
+        - Coherente con APUProcessor
+
+        Args:
+            tree: Árbol Lark a validar.
+
+        Returns:
+            True si es válido, False en caso contrario.
+        """
+        if tree is None:
+            return False
+
+        try:
+            # Un árbol Lark válido debe tener estos atributos
+            if not hasattr(tree, "data"):
+                return False
+            if not hasattr(tree, "children"):
+                return False
+            # Verificar que data es un string (nombre de la regla)
+            if not isinstance(tree.data, str):
+                return False
+            return True
+        except Exception:
+            return False
+
+    def _validate_basic_structure(self, line: str, fields: List[str]) -> Tuple[bool, str]:
         """
         Validación básica PRE-Lark para filtrado rápido.
 
-        Esta validación es RÁPIDA y elimina casos obvios antes de invocar Lark.
+        ROBUSTECIDO:
+        - Uso de constantes de clase
+        - Patrones pre-compilados
+        - Validaciones adicionales de seguridad
+        - Logging mejorado
 
         Args:
             line: Línea completa.
@@ -275,19 +550,36 @@ class ReportParserCrudo:
         Returns:
             Tupla (es_válida, razón_si_inválida)
         """
-        # Validación 1: Número mínimo de campos
-        if len(fields) < 5:
+        # ROBUSTECIDO: Validar entrada
+        if not line or not isinstance(line, str):
             self.validation_stats.failed_basic_fields += 1
-            return (False, f"Insuficientes campos: {len(fields)} < 5")
+            return (False, "Línea vacía o tipo inválido")
 
-        # Validación 2: Campo de descripción no vacío
-        if not fields[0] or not fields[0].strip():
+        if not fields or not isinstance(fields, list):
+            self.validation_stats.failed_basic_fields += 1
+            return (False, "Campos vacíos o tipo inválido")
+
+        # Validación 1: Número mínimo de campos (usando constante)
+        if len(fields) < self._MIN_FIELDS_FOR_INSUMO:
+            self.validation_stats.failed_basic_fields += 1
+            return (False, f"Insuficientes campos: {len(fields)} < {self._MIN_FIELDS_FOR_INSUMO}")
+
+        # Validación 2: Campo de descripción no vacío y razonable
+        first_field = fields[0] if fields else ""
+        if not first_field or not first_field.strip():
             self.validation_stats.failed_basic_fields += 1
             return (False, "Campo de descripción vacío")
 
-        # Validación 3: Detectar subtotales/totales
+        # ROBUSTECIDO: Descripción demasiado corta
+        if len(first_field.strip()) < 2:
+            self.validation_stats.failed_basic_fields += 1
+            return (False, f"Descripción demasiado corta: '{first_field}'")
+
+        # Validación 3: Detectar subtotales/totales (case-insensitive)
         line_upper = line.upper()
-        subtotal_keywords = [
+
+        # ROBUSTECIDO: Lista extendida de keywords de subtotal
+        subtotal_keywords = frozenset({
             "SUBTOTAL",
             "TOTAL",
             "SUMA",
@@ -295,29 +587,36 @@ class ReportParserCrudo:
             "COSTO DIRECTO",
             "COSTO TOTAL",
             "PRECIO TOTAL",
-        ]
+            "VALOR TOTAL",
+            "GRAN TOTAL",
+        })
 
-        if any(keyword in line_upper for keyword in subtotal_keywords):
-            self.validation_stats.failed_basic_subtotal += 1
-            return (False, "Línea de subtotal/total")
+        for keyword in subtotal_keywords:
+            if keyword in line_upper:
+                self.validation_stats.failed_basic_subtotal += 1
+                return (False, f"Línea de subtotal/total: contiene '{keyword}'")
 
-        # Validación 4: Líneas decorativas
+        # Validación 4: Líneas decorativas (usando patrón pre-compilado)
         if self._is_junk_line(line_upper):
             self.validation_stats.failed_basic_junk += 1
             return (False, "Línea decorativa/separador")
 
-        # Validación 5: Al menos un campo numérico
+        # Validación 5: Al menos un campo numérico (usando patrón pre-compilado)
         has_numeric = False
-        numeric_pattern = re.compile(r"\d+[.,]\d+|\d+")
-
         for f in fields[1:]:  # Saltar descripción
-            if numeric_pattern.search(f.strip()):
+            if f and self._NUMERIC_PATTERN.search(f.strip()):
                 has_numeric = True
                 break
 
         if not has_numeric:
             self.validation_stats.failed_basic_numeric += 1
             return (False, "Sin campos numéricos detectables")
+
+        # ROBUSTECIDO: Validación adicional - campos no demasiado largos
+        for i, f in enumerate(fields):
+            if len(f) > 500:
+                self.validation_stats.failed_basic_fields += 1
+                return (False, f"Campo {i} excesivamente largo: {len(f)} caracteres")
 
         self.validation_stats.passed_basic += 1
         return (True, "")
@@ -326,9 +625,11 @@ class ReportParserCrudo:
         """
         Validación UNIFICADA de una línea candidata a insumo.
 
-        Estrategia de validación en dos capas:
-        1. Validación básica (rápida, filtro de casos obvios)
-        2. Validación Lark (estricta, garantiza compatibilidad)
+        ROBUSTECIDO:
+        - Manejo defensivo de entradas
+        - Estrategia de validación en dos capas claramente definida
+        - Resultado detallado para diagnóstico
+        - Coherente con validación de APUProcessor
 
         Args:
             line: La línea original completa.
@@ -339,7 +640,26 @@ class ReportParserCrudo:
         """
         self.validation_stats.total_evaluated += 1
 
+        # ROBUSTECIDO: Validación de entrada
+        if not line or not isinstance(line, str):
+            return LineValidationResult(
+                is_valid=False,
+                reason="Línea vacía o tipo inválido",
+                fields_count=0,
+                validation_layer="input_validation",
+            )
+
+        if not fields or not isinstance(fields, list):
+            return LineValidationResult(
+                is_valid=False,
+                reason="Campos vacíos o tipo inválido",
+                fields_count=0,
+                validation_layer="input_validation",
+            )
+
+        # ═══════════════════════════════════════════════════════════════════════════
         # CAPA 1: Validación básica (filtro rápido)
+        # ═══════════════════════════════════════════════════════════════════════════
         basic_valid, basic_reason = self._validate_basic_structure(line, fields)
 
         if not basic_valid:
@@ -347,16 +667,18 @@ class ReportParserCrudo:
                 is_valid=False,
                 reason=f"Básica: {basic_reason}",
                 fields_count=len(fields),
-                validation_layer="basic",
+                has_numeric_fields=False,
+                validation_layer="basic_failed",
             )
 
+        # ═══════════════════════════════════════════════════════════════════════════
         # CAPA 2: Validación Lark (el juez final)
+        # ═══════════════════════════════════════════════════════════════════════════
         lark_valid, lark_tree, lark_reason = self._validate_with_lark(line)
 
         if lark_valid:
             self.validation_stats.passed_lark += 1
-            if basic_valid:
-                self.validation_stats.passed_both += 1
+            self.validation_stats.passed_both += 1
 
             return LineValidationResult(
                 is_valid=True,
@@ -367,40 +689,66 @@ class ReportParserCrudo:
                 lark_tree=lark_tree,
             )
         else:
-            # Fallo en Lark
+            # Fallo en Lark - registrar para análisis
             self._record_failed_sample(line, fields, lark_reason)
 
             return LineValidationResult(
                 is_valid=False,
                 reason=f"Lark: {lark_reason}",
                 fields_count=len(fields),
-                has_numeric_fields=True,
+                has_numeric_fields=True,  # Pasó validación básica, tiene numéricos
                 validation_layer="lark_failed",
             )
 
-    def _record_failed_sample(self, line: str, fields: List[str], reason: str):
+    def _record_failed_sample(self, line: str, fields: List[str], reason: str) -> None:
         """
         Registra una muestra de línea fallida para análisis posterior.
+
+        ROBUSTECIDO:
+        - Límite de muestras configurable
+        - Truncamiento seguro de contenido
+        - Información adicional de diagnóstico
+        - Manejo defensivo de campos
 
         Args:
             line: Línea que falló.
             fields: Campos de la línea.
             reason: Razón del fallo.
         """
-        max_samples = self.config.get("max_failed_samples", 10)
-        if len(self.validation_stats.failed_samples) < max_samples:
-            self.validation_stats.failed_samples.append(
-                {
-                    "line": line[:200],
-                    "fields": fields,
-                    "fields_count": len(fields),
-                    "reason": reason,
-                    "has_empty_fields": any(not f.strip() for f in fields),
-                    "empty_field_positions": [
-                        i for i, f in enumerate(fields) if not f.strip()
-                    ],
-                }
-            )
+        max_samples = self.config.get("max_failed_samples", self._MAX_FAILED_SAMPLES)
+
+        if len(self.validation_stats.failed_samples) >= max_samples:
+            return  # Ya tenemos suficientes muestras
+
+        # ROBUSTECIDO: Validación defensiva
+        safe_line = line[:200] if isinstance(line, str) else str(line)[:200]
+        safe_fields = []
+        empty_positions = []
+
+        if isinstance(fields, list):
+            for i, f in enumerate(fields):
+                if isinstance(f, str):
+                    safe_fields.append(f[:100] if len(f) > 100 else f)
+                    if not f.strip():
+                        empty_positions.append(i)
+                else:
+                    safe_fields.append(str(f)[:100])
+
+        safe_reason = reason[:300] if isinstance(reason, str) else str(reason)[:300]
+
+        sample = {
+            "line": safe_line,
+            "fields": safe_fields,
+            "fields_count": len(fields) if isinstance(fields, list) else 0,
+            "reason": safe_reason,
+            "has_empty_fields": bool(empty_positions),
+            "empty_field_positions": empty_positions,
+            # ROBUSTECIDO: Información adicional
+            "line_length": len(line) if isinstance(line, str) else 0,
+            "first_field_preview": safe_fields[0][:50] if safe_fields else "",
+        }
+
+        self.validation_stats.failed_samples.append(sample)
 
     def _log_validation_summary(self):
         """Registra un resumen detallado de la validación."""
@@ -478,14 +826,46 @@ class ReportParserCrudo:
         """
         Retorna el cache de parsing para reutilización en APUProcessor.
 
+        ROBUSTECIDO:
+        - Validación de estructura del cache
+        - Filtrado de entradas inválidas
+        - Coherente con estructura esperada por APUProcessor
+
         Returns:
-            Diccionario con líneas parseadas y sus árboles Lark.
+            Diccionario con líneas parseadas y sus árboles Lark válidos.
         """
-        return {
-            line: tree
-            for line, (is_valid, tree) in self._parse_cache.items()
-            if is_valid and tree is not None
-        }
+        valid_cache = {}
+        invalid_count = 0
+
+        for line, cached_value in self._parse_cache.items():
+            # ROBUSTECIDO: Validar estructura de cada entrada
+            if not isinstance(cached_value, tuple) or len(cached_value) != 2:
+                invalid_count += 1
+                continue
+
+            is_valid, tree = cached_value
+
+            if not is_valid:
+                continue
+
+            if tree is None:
+                continue
+
+            # ROBUSTECIDO: Validar que el árbol es usable
+            if not self._is_valid_tree(tree):
+                invalid_count += 1
+                continue
+
+            # ROBUSTECIDO: Usar clave normalizada coherente con APUProcessor
+            normalized_key = self._compute_cache_key(line)
+            valid_cache[normalized_key] = tree
+
+        if invalid_count > 0:
+            logger.debug(f"Cache: {invalid_count} entradas inválidas filtradas")
+
+        logger.info(f"Cache de parsing exportado: {len(valid_cache)} árboles válidos")
+
+        return valid_cache
 
     def _validate_file_path(self) -> None:
         """Valida que la ruta del archivo sea un archivo válido y no vacío."""
@@ -598,8 +978,10 @@ class ReportParserCrudo:
         """
         Determina si una línea debe ser ignorada por ser "ruido".
 
-        Se considera "ruido" a líneas vacías, subtotales, totales, o líneas
-        puramente decorativas (ej. '-----').
+        ROBUSTECIDO:
+        - Uso de frozenset para keywords (rendimiento)
+        - Patrón pre-compilado para decorativas
+        - Validación de entrada
 
         Args:
             line_upper: La línea de texto en mayúsculas.
@@ -607,22 +989,37 @@ class ReportParserCrudo:
         Returns:
             True si la línea es "ruido", False en caso contrario.
         """
-        if len(line_upper.strip()) < 3:
+        # ROBUSTECIDO: Validar entrada
+        if not line_upper or not isinstance(line_upper, str):
+            return True  # Línea vacía o inválida es ruido
+
+        stripped = line_upper.strip()
+
+        # Líneas muy cortas
+        if len(stripped) < self._MIN_LINE_LENGTH:
             return True
+
+        # Keywords de ruido (usando frozenset para O(1) lookup)
         for keyword in self.JUNK_KEYWORDS:
             if keyword in line_upper:
                 return True
-        # Lines with decorative characters
-        if re.search(r"^[=\-_\s*]+$", line_upper):
+
+        # Líneas decorativas (usando patrón pre-compilado)
+        if self._DECORATIVE_PATTERN.search(stripped):
             return True
+
         return False
 
     def _parse_by_lines(self, lines: List[str]) -> bool:
         """
         Máquina de estados con validación UNIFICADA usando Lark.
 
-        Cambio crítico: Ahora usa el MISMO parser que APUProcessor para
-        garantizar que solo se extraen líneas que serán procesables.
+        ROBUSTECIDO:
+        - Validación de entrada
+        - Manejo defensivo de contexto APU
+        - Logging mejorado con contexto
+        - Límites de procesamiento
+        - Coherente con validación de APUProcessor
 
         Args:
             lines: La lista de todas las líneas del archivo.
@@ -630,52 +1027,91 @@ class ReportParserCrudo:
         Returns:
             True si se extrajo al menos un insumo válido, False en caso contrario.
         """
+        # ROBUSTECIDO: Validar entrada
+        if not lines or not isinstance(lines, list):
+            logger.warning("_parse_by_lines: lista de líneas vacía o inválida")
+            return False
+
         current_apu_context: Optional[APUContext] = None
         current_category = "INDEFINIDO"
+        total_lines = len(lines)
+
+        # ROBUSTECIDO: Límite de líneas para evitar procesamiento infinito
+        max_lines = self.config.get("max_lines_to_process", 1_000_000)
+        if total_lines > max_lines:
+            logger.warning(
+                f"Archivo muy grande ({total_lines} líneas), "
+                f"procesando solo las primeras {max_lines}"
+            )
+            lines = lines[:max_lines]
+            total_lines = max_lines
+
+        logger.info(f"Iniciando parsing de {total_lines} líneas con validación Lark")
+
         i = 0
+        consecutive_errors = 0
+        max_consecutive_errors = 100  # Límite de errores consecutivos
 
-        logger.info(f"Iniciando parsing de {len(lines)} líneas con validación Lark")
+        while i < total_lines:
+            # ROBUSTECIDO: Verificar límite de errores consecutivos
+            if consecutive_errors >= max_consecutive_errors:
+                logger.error(
+                    f"Demasiados errores consecutivos ({consecutive_errors}), "
+                    f"abortando parsing en línea {i}"
+                )
+                break
 
-        while i < len(lines):
-            line = lines[i].strip()
+            line = lines[i]
+
+            # ROBUSTECIDO: Validar tipo de línea
+            if not isinstance(line, str):
+                logger.debug(f"Línea {i+1}: tipo inválido {type(line).__name__}, saltando")
+                i += 1
+                consecutive_errors += 1
+                continue
+
+            line = line.strip()
 
             if not line:
                 i += 1
+                consecutive_errors = 0  # Reset en líneas vacías (normales)
                 continue
 
-            # Estado 1: Buscar encabezado de APU
-            is_header_line = "UNIDAD:" in line.upper()
-            is_item_line_next = (i + 1) < len(lines) and "ITEM:" in lines[i + 1].upper()
+            # ═══════════════════════════════════════════════════════════════════════
+            # ESTADO 1: Buscar encabezado de APU
+            # ═══════════════════════════════════════════════════════════════════════
+            line_upper = line.upper()
+            is_header_line = "UNIDAD:" in line_upper
+            is_item_line_next = (
+                (i + 1) < total_lines
+                and isinstance(lines[i + 1], str)
+                and "ITEM:" in lines[i + 1].upper()
+            )
 
             if is_header_line and is_item_line_next:
                 header_line = line
                 item_line = lines[i + 1].strip()
 
                 try:
-                    apu_desc = header_line.split(";")[0].strip()
-                    unit_match = re.search(r"UNIDAD:\s*(\S+)", header_line, re.IGNORECASE)
-                    apu_unit = (
-                        unit_match.group(1) if unit_match else self.config.default_unit
+                    # ROBUSTECIDO: Extracción con manejo de errores
+                    apu_context_result = self._extract_apu_header(
+                        header_line, item_line, i + 1
                     )
 
-                    item_match = re.search(r"ITEM:\s*([\S,]+)", item_line, re.IGNORECASE)
-                    apu_code_raw = (
-                        item_match.group(1) if item_match else f"UNKNOWN_APU_{i + 1}"
-                    )
-                    apu_code = clean_apu_code(apu_code_raw)
+                    if apu_context_result is not None:
+                        current_apu_context = apu_context_result
+                        current_category = "INDEFINIDO"
+                        self.stats["apus_detected"] += 1
+                        consecutive_errors = 0
 
-                    current_apu_context = APUContext(
-                        apu_code=apu_code,
-                        apu_desc=apu_desc,
-                        apu_unit=apu_unit,
-                        source_line=i + 1,
-                    )
-                    current_category = "INDEFINIDO"
-                    self.stats["apus_detected"] += 1
-
-                    logger.info(
-                        f"✓ APU detectado [línea {i + 1}]: {apu_code} - {apu_desc[:50]}"
-                    )
+                        logger.info(
+                            f"✓ APU detectado [línea {i + 1}]: "
+                            f"{current_apu_context.apu_code} - "
+                            f"{current_apu_context.apu_desc[:50]}"
+                        )
+                    else:
+                        logger.warning(f"Encabezado APU inválido en línea {i + 1}")
+                        consecutive_errors += 1
 
                     i += 2
                     continue
@@ -685,13 +1121,14 @@ class ReportParserCrudo:
                         f"✗ Fallo al parsear encabezado de APU en línea {i + 1}: {e}"
                     )
                     current_apu_context = None
+                    consecutive_errors += 1
                     i += 1
                     continue
 
-            # Estado 2: Procesar líneas dentro de contexto de APU
-            if current_apu_context:
-                line_upper = line.upper()
-
+            # ═══════════════════════════════════════════════════════════════════════
+            # ESTADO 2: Procesar líneas dentro de contexto de APU
+            # ═══════════════════════════════════════════════════════════════════════
+            if current_apu_context is not None:
                 # Detectar categoría
                 new_category = self._detect_category(line_upper)
                 if new_category:
@@ -699,49 +1136,50 @@ class ReportParserCrudo:
                     self.stats[f"category_{current_category}"] += 1
                     logger.debug(f"  → Categoría: {current_category}")
                     i += 1
+                    consecutive_errors = 0
                     continue
 
                 # Detectar ruido
                 if self._is_junk_line(line_upper):
                     self.stats["junk_lines_skipped"] += 1
                     i += 1
+                    consecutive_errors = 0
                     continue
 
+                # ═══════════════════════════════════════════════════════════════════
                 # 🔥 VALIDACIÓN CRÍTICA CON LARK
+                # ═══════════════════════════════════════════════════════════════════
                 fields = [f.strip() for f in line.split(";")]
                 validation_result = self._validate_insumo_line(line, fields)
 
                 if validation_result.is_valid:
                     # ✅ LÍNEA VÁLIDA - Garantizada procesable por APUProcessor
-                    record = {
-                        "apu_code": current_apu_context.apu_code,
-                        "apu_desc": current_apu_context.apu_desc,
-                        "apu_unit": current_apu_context.apu_unit,
-                        "category": current_category,
-                        "insumo_line": line,
-                        "source_line": i + 1,
-                        "fields_count": validation_result.fields_count,
-                        "validation_layer": validation_result.validation_layer,
-                        # 🔥 OPTIMIZACIÓN: Guardar árbol de parsing para reutilizar
-                        "_lark_tree": validation_result.lark_tree,
-                    }
+                    record = self._build_insumo_record(
+                        current_apu_context,
+                        current_category,
+                        line,
+                        i + 1,
+                        validation_result
+                    )
                     self.raw_records.append(record)
                     self.stats["insumos_extracted"] += 1
+                    consecutive_errors = 0
 
-                    logger.debug(
-                        (
+                    if self.debug_mode:
+                        logger.debug(
                             f"  ✓ Insumo válido [línea {i + 1}] "
                             f"[{validation_result.validation_layer}]: "
                             f"{fields[0][:40]}... ({validation_result.fields_count} campos)"
                         )
-                    )
                 else:
                     # ❌ LÍNEA RECHAZADA
-                    logger.debug(
-                        f"  ✗ Rechazada [línea {i + 1}]: {validation_result.reason}\n"
-                        f"    Contenido: {line[:80]}..."
-                    )
+                    if self.debug_mode:
+                        logger.debug(
+                            f"  ✗ Rechazada [línea {i + 1}]: {validation_result.reason}\n"
+                            f"    Contenido: {line[:80]}..."
+                        )
                     self.stats["lines_ignored_in_context"] += 1
+                    # No incrementar consecutive_errors para rechazos válidos
 
             i += 1
 
@@ -749,3 +1187,100 @@ class ReportParserCrudo:
         self._log_validation_summary()
 
         return self.stats["insumos_extracted"] > 0
+
+
+    def _extract_apu_header(
+        self, header_line: str, item_line: str, line_number: int
+    ) -> Optional[APUContext]:
+        """
+        Extrae información del encabezado APU de forma segura.
+
+        ROBUSTECIDO:
+        - Manejo de campos faltantes
+        - Validación de valores extraídos
+        - Valores por defecto seguros
+
+        Args:
+            header_line: Línea con la descripción.
+            item_line: Línea con el item.
+            line_number: Número de línea.
+
+        Returns:
+            Objeto APUContext si es válido, None en caso contrario.
+        """
+        try:
+            # Extraer descripción
+            parts = header_line.split(";")
+            apu_desc = parts[0].strip() if parts else ""
+
+            # Extraer unidad
+            unit_match = self._UNIT_PATTERN.search(header_line)
+            default_unit = self.config.get("default_unit", "UND")
+            apu_unit = unit_match.group(1).strip() if unit_match else default_unit
+
+            # Extraer código
+            item_match = self._ITEM_PATTERN.search(item_line)
+            if item_match:
+                apu_code_raw = item_match.group(1)
+            else:
+                apu_code_raw = f"UNKNOWN_APU_{line_number}"
+
+            apu_code = clean_apu_code(apu_code_raw)
+
+            # Validar que tenemos un código válido
+            if not apu_code or len(apu_code) < 2:
+                logger.warning(f"Código APU inválido extraído: '{apu_code}'")
+                return None
+
+            return APUContext(
+                apu_code=apu_code,
+                apu_desc=apu_desc,
+                apu_unit=apu_unit,
+                source_line=line_number,
+            )
+
+        except ValueError as ve:
+            logger.debug(f"Validación de APUContext falló: {ve}")
+            return None
+        except Exception as e:
+            logger.warning(f"Error extrayendo encabezado APU: {e}")
+            return None
+
+
+    def _build_insumo_record(
+        self,
+        context: APUContext,
+        category: str,
+        line: str,
+        line_number: int,
+        validation_result: LineValidationResult,
+    ) -> Dict[str, Any]:
+        """
+        Construye un registro de insumo de forma estructurada.
+
+        ROBUSTECIDO:
+        - Validación de todos los campos
+        - Estructura coherente con APUProcessor
+
+        Args:
+            context: Contexto del APU.
+            category: Categoría del insumo.
+            line: Línea del insumo.
+            line_number: Número de línea.
+            validation_result: Resultado de la validación.
+
+        Returns:
+            Diccionario con el registro del insumo.
+        """
+        return {
+            "apu_code": context.apu_code,
+            "apu_desc": context.apu_desc,
+            "apu_unit": context.apu_unit,
+            "category": category,
+            "insumo_line": line,
+            "source_line": line_number,
+            "fields_count": validation_result.fields_count,
+            "validation_layer": validation_result.validation_layer,
+            # 🔥 OPTIMIZACIÓN: Guardar árbol de parsing para reutilizar
+            "_lark_tree": validation_result.lark_tree,
+        }

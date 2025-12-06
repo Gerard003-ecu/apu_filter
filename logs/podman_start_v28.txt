@@ -1,0 +1,399 @@
+[INFO   ] === Iniciando Despliegue de APU Filter Ecosystem ===
+[INFO   ] Log file: ./logs/podman_start_20251202_224422.log
+[INFO   ] Verificando configuración de registros...
+[INFO   ] Ejecutando setup_podman_registry.sh...
+[SUCCESS] Configuración de registros aplicada.
+[INFO   ] Limpiando contenedores previos...
+[INFO   ] Construyendo imágenes (Core & Agent)...
+[SUCCESS] Imágenes construidas.
+[INFO   ] Levantando servicios...
+[INFO   ] Esperando estabilización (10s)...
+[INFO   ] Estado de los contenedores:
+podman-compose version: 1.0.6
+['podman', '--version', '']
+using podman version: 4.9.3
+podman ps -a --filter label=io.podman.compose.project=apu
+CONTAINER ID  IMAGE                             COMMAND               CREATED         STATUS                    PORTS                   NAMES
+fa45d4f136a8  docker.io/library/redis:7-alpine  redis-server --ap...  17 seconds ago  Up 17 seconds (healthy)   0.0.0.0:6379->6379/tcp  apu_redis
+e738418c7f3d  localhost/apu-core:latest         gunicorn --worker...  15 seconds ago  Up 14 seconds (starting)  0.0.0.0:5002->5002/tcp  apu_core
+738581028c88  localhost/apu-agent:latest                              12 seconds ago  Exited (1) 1 second ago                           apu_agent
+exit code: 0
+[SUCCESS] === APU Filter Ecosystem Operativo ===
+(base) gerardo@gerardo-Satellite-C845:~/Documentos/GitHub/apu_filter$ podman logs apu_core
+[2025-12-03 04:12:06 +0000] [1] [INFO] Starting gunicorn 23.0.0
+[2025-12-03 04:12:06 +0000] [1] [INFO] Listening at: http://0.0.0.0:5002 (1)
+[2025-12-03 04:12:06 +0000] [1] [INFO] Using worker: sync
+[2025-12-03 04:12:06 +0000] [5] [INFO] Booting worker with pid: 5
+[2025-12-03 04:12:06 +0000] [6] [INFO] Booting worker with pid: 6
+[2025-12-03 04:12:06 +0000] [7] [INFO] Booting worker with pid: 7
+[2025-12-03 04:12:06 +0000] [8] [INFO] Booting worker with pid: 8
+2025-12-03 04:13:26,069 - root - WARNING - ⚠️ chardet no disponible. Instalar con: pip install chardet
+2025-12-03 04:13:26,178 - root - WARNING - ⚠️ chardet no disponible. Instalar con: pip install chardet
+2025-12-03 04:13:26,269 - root - WARNING - ⚠️ chardet no disponible. Instalar con: pip install chardet
+2025-12-03 04:13:26,310 - root - WARNING - ⚠️ chardet no disponible. Instalar con: pip install chardet
+2025-12-03 04:13:26,320 - root - WARNING - ⚠️ chardet no disponible. Instalar con: pip install chardet
+2025-12-03 04:13:26,344 - root - WARNING - ⚠️ chardet no disponible. Instalar con: pip install chardet
+[2025-12-03 04:13:26 +0000] [5] [ERROR] Exception in worker process
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.10/site-packages/gunicorn/arbiter.py", line 608, in spawn_worker
+    worker.init_process()
+  File "/usr/local/lib/python3.10/site-packages/gunicorn/workers/base.py", line 135, in init_process
+    self.load_wsgi()
+  File "/usr/local/lib/python3.10/site-packages/gunicorn/workers/base.py", line 147, in load_wsgi
+    self.wsgi = self.app.wsgi()
+  File "/usr/local/lib/python3.10/site-packages/gunicorn/app/base.py", line 66, in wsgi
+    self.callable = self.load()
+  File "/usr/local/lib/python3.10/site-packages/gunicorn/app/wsgiapp.py", line 57, in load
+    return self.load_wsgiapp()
+  File "/usr/local/lib/python3.10/site-packages/gunicorn/app/wsgiapp.py", line 47, in load_wsgiapp
+    return util.import_app(self.app_uri)
+  File "/usr/local/lib/python3.10/site-packages/gunicorn/util.py", line 370, in import_app
+    mod = importlib.import_module(module)
+  File "/usr/local/lib/python3.10/importlib/__init__.py", line 126, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "<frozen importlib._bootstrap>", line 1050, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1027, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1006, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 688, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 883, in exec_module
+  File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
+  File "/app/wsgi.py", line 8, in <module>
+    app = create_app(config_name)
+  File "/app/app/app.py", line 1045, in create_app
+    setup_logging(app)
+  File "/app/app/app.py", line 184, in setup_logging
+    file_handler = RotatingFileHandler(
+  File "/usr/local/lib/python3.10/logging/handlers.py", line 155, in __init__
+    BaseRotatingHandler.__init__(self, filename, mode, encoding=encoding,
+  File "/usr/local/lib/python3.10/logging/handlers.py", line 58, in __init__
+    logging.FileHandler.__init__(self, filename, mode=mode,
+  File "/usr/local/lib/python3.10/logging/__init__.py", line 1169, in __init__
+    StreamHandler.__init__(self, self._open())
+  File "/usr/local/lib/python3.10/logging/__init__.py", line 1201, in _open
+    return open_func(self.baseFilename, self.mode,
+PermissionError: [Errno 13] Permission denied: '/app/logs/app.log'
+[2025-12-03 04:13:26 +0000] [5] [INFO] Worker exiting (pid: 5)
+2025-12-03 04:13:26,489 - root - WARNING - ⚠️ chardet no disponible. Instalar con: pip install chardet
+2025-12-03 04:13:26,503 - root - WARNING - ⚠️ chardet no disponible. Instalar con: pip install chardet
+[2025-12-03 04:13:26 +0000] [8] [ERROR] Exception in worker process
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.10/site-packages/gunicorn/arbiter.py", line 608, in spawn_worker
+    worker.init_process()
+  File "/usr/local/lib/python3.10/site-packages/gunicorn/workers/base.py", line 135, in init_process
+    self.load_wsgi()
+  File "/usr/local/lib/python3.10/site-packages/gunicorn/workers/base.py", line 147, in load_wsgi
+    self.wsgi = self.app.wsgi()
+  File "/usr/local/lib/python3.10/site-packages/gunicorn/app/base.py", line 66, in wsgi
+    self.callable = self.load()
+  File "/usr/local/lib/python3.10/site-packages/gunicorn/app/wsgiapp.py", line 57, in load
+    return self.load_wsgiapp()
+  File "/usr/local/lib/python3.10/site-packages/gunicorn/app/wsgiapp.py", line 47, in load_wsgiapp
+    return util.import_app(self.app_uri)
+  File "/usr/local/lib/python3.10/site-packages/gunicorn/util.py", line 370, in import_app
+    mod = importlib.import_module(module)
+  File "/usr/local/lib/python3.10/importlib/__init__.py", line 126, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "<frozen importlib._bootstrap>", line 1050, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1027, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1006, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 688, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 883, in exec_module
+  File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
+  File "/app/wsgi.py", line 8, in <module>
+    app = create_app(config_name)
+  File "/app/app/app.py", line 1045, in create_app
+    setup_logging(app)
+  File "/app/app/app.py", line 184, in setup_logging
+    file_handler = RotatingFileHandler(
+  File "/usr/local/lib/python3.10/logging/handlers.py", line 155, in __init__
+    BaseRotatingHandler.__init__(self, filename, mode, encoding=encoding,
+  File "/usr/local/lib/python3.10/logging/handlers.py", line 58, in __init__
+    logging.FileHandler.__init__(self, filename, mode=mode,
+  File "/usr/local/lib/python3.10/logging/__init__.py", line 1169, in __init__
+    StreamHandler.__init__(self, self._open())
+  File "/usr/local/lib/python3.10/logging/__init__.py", line 1201, in _open
+    return open_func(self.baseFilename, self.mode,
+PermissionError: [Errno 13] Permission denied: '/app/logs/app.log'
+[2025-12-03 04:13:26 +0000] [8] [INFO] Worker exiting (pid: 8)
+2025-12-03 04:13:26,659 - root - WARNING - ⚠️ chardet no disponible. Instalar con: pip install chardet
+[2025-12-03 04:13:26 +0000] [6] [ERROR] Exception in worker process
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.10/site-packages/gunicorn/arbiter.py", line 608, in spawn_worker
+    worker.init_process()
+  File "/usr/local/lib/python3.10/site-packages/gunicorn/workers/base.py", line 135, in init_process
+    self.load_wsgi()
+  File "/usr/local/lib/python3.10/site-packages/gunicorn/workers/base.py", line 147, in load_wsgi
+    self.wsgi = self.app.wsgi()
+  File "/usr/local/lib/python3.10/site-packages/gunicorn/app/base.py", line 66, in wsgi
+    self.callable = self.load()
+  File "/usr/local/lib/python3.10/site-packages/gunicorn/app/wsgiapp.py", line 57, in load
+    return self.load_wsgiapp()
+  File "/usr/local/lib/python3.10/site-packages/gunicorn/app/wsgiapp.py", line 47, in load_wsgiapp
+    return util.import_app(self.app_uri)
+  File "/usr/local/lib/python3.10/site-packages/gunicorn/util.py", line 370, in import_app
+    mod = importlib.import_module(module)
+  File "/usr/local/lib/python3.10/importlib/__init__.py", line 126, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "<frozen importlib._bootstrap>", line 1050, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1027, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1006, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 688, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 883, in exec_module
+  File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
+  File "/app/wsgi.py", line 8, in <module>
+    app = create_app(config_name)
+  File "/app/app/app.py", line 1045, in create_app
+    setup_logging(app)
+  File "/app/app/app.py", line 184, in setup_logging
+    file_handler = RotatingFileHandler(
+  File "/usr/local/lib/python3.10/logging/handlers.py", line 155, in __init__
+    BaseRotatingHandler.__init__(self, filename, mode, encoding=encoding,
+  File "/usr/local/lib/python3.10/logging/handlers.py", line 58, in __init__
+    logging.FileHandler.__init__(self, filename, mode=mode,
+  File "/usr/local/lib/python3.10/logging/__init__.py", line 1169, in __init__
+    StreamHandler.__init__(self, self._open())
+  File "/usr/local/lib/python3.10/logging/__init__.py", line 1201, in _open
+    return open_func(self.baseFilename, self.mode,
+PermissionError: [Errno 13] Permission denied: '/app/logs/app.log'
+[2025-12-03 04:13:26 +0000] [6] [INFO] Worker exiting (pid: 6)
+2025-12-03 04:13:27,741 - root - WARNING - ⚠️ chardet no disponible. Instalar con: pip install chardet
+2025-12-03 04:13:27,896 - root - WARNING - ⚠️ chardet no disponible. Instalar con: pip install chardet
+2025-12-03 04:13:28,052 - root - WARNING - ⚠️ chardet no disponible. Instalar con: pip install chardet
+[2025-12-03 04:13:28 +0000] [7] [ERROR] Exception in worker process
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.10/site-packages/gunicorn/arbiter.py", line 608, in spawn_worker
+    worker.init_process()
+  File "/usr/local/lib/python3.10/site-packages/gunicorn/workers/base.py", line 135, in init_process
+    self.load_wsgi()
+  File "/usr/local/lib/python3.10/site-packages/gunicorn/workers/base.py", line 147, in load_wsgi
+    self.wsgi = self.app.wsgi()
+  File "/usr/local/lib/python3.10/site-packages/gunicorn/app/base.py", line 66, in wsgi
+    self.callable = self.load()
+  File "/usr/local/lib/python3.10/site-packages/gunicorn/app/wsgiapp.py", line 57, in load
+    return self.load_wsgiapp()
+  File "/usr/local/lib/python3.10/site-packages/gunicorn/app/wsgiapp.py", line 47, in load_wsgiapp
+    return util.import_app(self.app_uri)
+  File "/usr/local/lib/python3.10/site-packages/gunicorn/util.py", line 370, in import_app
+    mod = importlib.import_module(module)
+  File "/usr/local/lib/python3.10/importlib/__init__.py", line 126, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "<frozen importlib._bootstrap>", line 1050, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1027, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1006, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 688, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 883, in exec_module
+  File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
+  File "/app/wsgi.py", line 8, in <module>
+    app = create_app(config_name)
+  File "/app/app/app.py", line 1045, in create_app
+    setup_logging(app)
+  File "/app/app/app.py", line 184, in setup_logging
+    file_handler = RotatingFileHandler(
+  File "/usr/local/lib/python3.10/logging/handlers.py", line 155, in __init__
+    BaseRotatingHandler.__init__(self, filename, mode, encoding=encoding,
+  File "/usr/local/lib/python3.10/logging/handlers.py", line 58, in __init__
+    logging.FileHandler.__init__(self, filename, mode=mode,
+  File "/usr/local/lib/python3.10/logging/__init__.py", line 1169, in __init__
+    StreamHandler.__init__(self, self._open())
+  File "/usr/local/lib/python3.10/logging/__init__.py", line 1201, in _open
+    return open_func(self.baseFilename, self.mode,
+PermissionError: [Errno 13] Permission denied: '/app/logs/app.log'
+[2025-12-03 04:13:28 +0000] [7] [INFO] Worker exiting (pid: 7)
+[2025-12-03 04:13:33 +0000] [1] [ERROR] Worker (pid:5) exited with code 3
+[2025-12-03 04:13:33 +0000] [1] [ERROR] Worker (pid:8) was sent SIGTERM!
+[2025-12-03 04:13:33 +0000] [1] [ERROR] Worker (pid:6) was sent SIGTERM!
+[2025-12-03 04:13:33 +0000] [1] [ERROR] Worker (pid:7) was sent SIGTERM!
+[2025-12-03 04:13:33 +0000] [1] [ERROR] Shutting down: Master
+[2025-12-03 04:13:33 +0000] [1] [ERROR] Reason: Worker failed to boot.
+[2025-12-03 04:13:35 +0000] [1] [INFO] Starting gunicorn 23.0.0
+[2025-12-03 04:13:35 +0000] [1] [INFO] Listening at: http://0.0.0.0:5002 (1)
+[2025-12-03 04:13:35 +0000] [1] [INFO] Using worker: sync
+[2025-12-03 04:13:35 +0000] [5] [INFO] Booting worker with pid: 5
+[2025-12-03 04:13:35 +0000] [6] [INFO] Booting worker with pid: 6
+[2025-12-03 04:13:35 +0000] [8] [INFO] Booting worker with pid: 8
+[2025-12-03 04:13:36 +0000] [9] [INFO] Booting worker with pid: 9
+2025-12-03 04:14:51,525 - root - WARNING - ⚠️ chardet no disponible. Instalar con: pip install chardet
+2025-12-03 04:14:51,691 - root - WARNING - ⚠️ chardet no disponible. Instalar con: pip install chardet
+2025-12-03 04:14:51,829 - root - WARNING - ⚠️ chardet no disponible. Instalar con: pip install chardet
+[2025-12-03 04:14:51 +0000] [8] [ERROR] Exception in worker process
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.10/site-packages/gunicorn/arbiter.py", line 608, in spawn_worker
+    worker.init_process()
+  File "/usr/local/lib/python3.10/site-packages/gunicorn/workers/base.py", line 135, in init_process
+    self.load_wsgi()
+  File "/usr/local/lib/python3.10/site-packages/gunicorn/workers/base.py", line 147, in load_wsgi
+    self.wsgi = self.app.wsgi()
+  File "/usr/local/lib/python3.10/site-packages/gunicorn/app/base.py", line 66, in wsgi
+    self.callable = self.load()
+  File "/usr/local/lib/python3.10/site-packages/gunicorn/app/wsgiapp.py", line 57, in load
+    return self.load_wsgiapp()
+  File "/usr/local/lib/python3.10/site-packages/gunicorn/app/wsgiapp.py", line 47, in load_wsgiapp
+    return util.import_app(self.app_uri)
+  File "/usr/local/lib/python3.10/site-packages/gunicorn/util.py", line 370, in import_app
+    mod = importlib.import_module(module)
+  File "/usr/local/lib/python3.10/importlib/__init__.py", line 126, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "<frozen importlib._bootstrap>", line 1050, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1027, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1006, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 688, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 883, in exec_module
+  File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
+  File "/app/wsgi.py", line 8, in <module>
+    app = create_app(config_name)
+  File "/app/app/app.py", line 1045, in create_app
+    setup_logging(app)
+  File "/app/app/app.py", line 184, in setup_logging
+    file_handler = RotatingFileHandler(
+  File "/usr/local/lib/python3.10/logging/handlers.py", line 155, in __init__
+    BaseRotatingHandler.__init__(self, filename, mode, encoding=encoding,
+  File "/usr/local/lib/python3.10/logging/handlers.py", line 58, in __init__
+    logging.FileHandler.__init__(self, filename, mode=mode,
+  File "/usr/local/lib/python3.10/logging/__init__.py", line 1169, in __init__
+    StreamHandler.__init__(self, self._open())
+  File "/usr/local/lib/python3.10/logging/__init__.py", line 1201, in _open
+    return open_func(self.baseFilename, self.mode,
+PermissionError: [Errno 13] Permission denied: '/app/logs/app.log'
+[2025-12-03 04:14:51 +0000] [8] [INFO] Worker exiting (pid: 8)
+2025-12-03 04:14:52,970 - root - WARNING - ⚠️ chardet no disponible. Instalar con: pip install chardet
+2025-12-03 04:14:53,044 - root - WARNING - ⚠️ chardet no disponible. Instalar con: pip install chardet
+2025-12-03 04:14:53,125 - root - WARNING - ⚠️ chardet no disponible. Instalar con: pip install chardet
+[2025-12-03 04:14:53 +0000] [6] [ERROR] Exception in worker process
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.10/site-packages/gunicorn/arbiter.py", line 608, in spawn_worker
+    worker.init_process()
+  File "/usr/local/lib/python3.10/site-packages/gunicorn/workers/base.py", line 135, in init_process
+    self.load_wsgi()
+  File "/usr/local/lib/python3.10/site-packages/gunicorn/workers/base.py", line 147, in load_wsgi
+    self.wsgi = self.app.wsgi()
+  File "/usr/local/lib/python3.10/site-packages/gunicorn/app/base.py", line 66, in wsgi
+    self.callable = self.load()
+  File "/usr/local/lib/python3.10/site-packages/gunicorn/app/wsgiapp.py", line 57, in load
+    return self.load_wsgiapp()
+  File "/usr/local/lib/python3.10/site-packages/gunicorn/app/wsgiapp.py", line 47, in load_wsgiapp
+    return util.import_app(self.app_uri)
+  File "/usr/local/lib/python3.10/site-packages/gunicorn/util.py", line 370, in import_app
+    mod = importlib.import_module(module)
+  File "/usr/local/lib/python3.10/importlib/__init__.py", line 126, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "<frozen importlib._bootstrap>", line 1050, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1027, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1006, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 688, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 883, in exec_module
+  File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
+  File "/app/wsgi.py", line 8, in <module>
+    app = create_app(config_name)
+  File "/app/app/app.py", line 1045, in create_app
+    setup_logging(app)
+  File "/app/app/app.py", line 184, in setup_logging
+    file_handler = RotatingFileHandler(
+  File "/usr/local/lib/python3.10/logging/handlers.py", line 155, in __init__
+    BaseRotatingHandler.__init__(self, filename, mode, encoding=encoding,
+  File "/usr/local/lib/python3.10/logging/handlers.py", line 58, in __init__
+    logging.FileHandler.__init__(self, filename, mode=mode,
+  File "/usr/local/lib/python3.10/logging/__init__.py", line 1169, in __init__
+    StreamHandler.__init__(self, self._open())
+  File "/usr/local/lib/python3.10/logging/__init__.py", line 1201, in _open
+    return open_func(self.baseFilename, self.mode,
+PermissionError: [Errno 13] Permission denied: '/app/logs/app.log'
+[2025-12-03 04:14:53 +0000] [6] [INFO] Worker exiting (pid: 6)
+2025-12-03 04:14:54,089 - root - WARNING - ⚠️ chardet no disponible. Instalar con: pip install chardet
+2025-12-03 04:14:54,216 - root - WARNING - ⚠️ chardet no disponible. Instalar con: pip install chardet
+2025-12-03 04:14:54,321 - root - WARNING - ⚠️ chardet no disponible. Instalar con: pip install chardet
+[2025-12-03 04:14:54 +0000] [5] [ERROR] Exception in worker process
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.10/site-packages/gunicorn/arbiter.py", line 608, in spawn_worker
+    worker.init_process()
+  File "/usr/local/lib/python3.10/site-packages/gunicorn/workers/base.py", line 135, in init_process
+    self.load_wsgi()
+  File "/usr/local/lib/python3.10/site-packages/gunicorn/workers/base.py", line 147, in load_wsgi
+    self.wsgi = self.app.wsgi()
+  File "/usr/local/lib/python3.10/site-packages/gunicorn/app/base.py", line 66, in wsgi
+    self.callable = self.load()
+  File "/usr/local/lib/python3.10/site-packages/gunicorn/app/wsgiapp.py", line 57, in load
+    return self.load_wsgiapp()
+  File "/usr/local/lib/python3.10/site-packages/gunicorn/app/wsgiapp.py", line 47, in load_wsgiapp
+    return util.import_app(self.app_uri)
+  File "/usr/local/lib/python3.10/site-packages/gunicorn/util.py", line 370, in import_app
+    mod = importlib.import_module(module)
+  File "/usr/local/lib/python3.10/importlib/__init__.py", line 126, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "<frozen importlib._bootstrap>", line 1050, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1027, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1006, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 688, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 883, in exec_module
+  File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
+  File "/app/wsgi.py", line 8, in <module>
+    app = create_app(config_name)
+  File "/app/app/app.py", line 1045, in create_app
+    setup_logging(app)
+  File "/app/app/app.py", line 184, in setup_logging
+    file_handler = RotatingFileHandler(
+  File "/usr/local/lib/python3.10/logging/handlers.py", line 155, in __init__
+    BaseRotatingHandler.__init__(self, filename, mode, encoding=encoding,
+  File "/usr/local/lib/python3.10/logging/handlers.py", line 58, in __init__
+    logging.FileHandler.__init__(self, filename, mode=mode,
+  File "/usr/local/lib/python3.10/logging/__init__.py", line 1169, in __init__
+    StreamHandler.__init__(self, self._open())
+  File "/usr/local/lib/python3.10/logging/__init__.py", line 1201, in _open
+    return open_func(self.baseFilename, self.mode,
+PermissionError: [Errno 13] Permission denied: '/app/logs/app.log'
+[2025-12-03 04:14:54 +0000] [5] [INFO] Worker exiting (pid: 5)
+2025-12-03 04:14:56,237 - root - WARNING - ⚠️ chardet no disponible. Instalar con: pip install chardet
+2025-12-03 04:14:56,346 - root - WARNING - ⚠️ chardet no disponible. Instalar con: pip install chardet
+2025-12-03 04:14:56,458 - root - WARNING - ⚠️ chardet no disponible. Instalar con: pip install chardet
+[2025-12-03 04:14:56 +0000] [9] [ERROR] Exception in worker process
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.10/site-packages/gunicorn/arbiter.py", line 608, in spawn_worker
+    worker.init_process()
+  File "/usr/local/lib/python3.10/site-packages/gunicorn/workers/base.py", line 135, in init_process
+    self.load_wsgi()
+  File "/usr/local/lib/python3.10/site-packages/gunicorn/workers/base.py", line 147, in load_wsgi
+    self.wsgi = self.app.wsgi()
+  File "/usr/local/lib/python3.10/site-packages/gunicorn/app/base.py", line 66, in wsgi
+    self.callable = self.load()
+  File "/usr/local/lib/python3.10/site-packages/gunicorn/app/wsgiapp.py", line 57, in load
+    return self.load_wsgiapp()
+  File "/usr/local/lib/python3.10/site-packages/gunicorn/app/wsgiapp.py", line 47, in load_wsgiapp
+    return util.import_app(self.app_uri)
+  File "/usr/local/lib/python3.10/site-packages/gunicorn/util.py", line 370, in import_app
+    mod = importlib.import_module(module)
+  File "/usr/local/lib/python3.10/importlib/__init__.py", line 126, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "<frozen importlib._bootstrap>", line 1050, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1027, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1006, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 688, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 883, in exec_module
+  File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
+  File "/app/wsgi.py", line 8, in <module>
+    app = create_app(config_name)
+  File "/app/app/app.py", line 1045, in create_app
+    setup_logging(app)
+  File "/app/app/app.py", line 184, in setup_logging
+    file_handler = RotatingFileHandler(
+  File "/usr/local/lib/python3.10/logging/handlers.py", line 155, in __init__
+    BaseRotatingHandler.__init__(self, filename, mode, encoding=encoding,
+  File "/usr/local/lib/python3.10/logging/handlers.py", line 58, in __init__
+    logging.FileHandler.__init__(self, filename, mode=mode,
+  File "/usr/local/lib/python3.10/logging/__init__.py", line 1169, in __init__
+    StreamHandler.__init__(self, self._open())
+  File "/usr/local/lib/python3.10/logging/__init__.py", line 1201, in _open
+    return open_func(self.baseFilename, self.mode,
+PermissionError: [Errno 13] Permission denied: '/app/logs/app.log'
+[2025-12-03 04:14:56 +0000] [9] [INFO] Worker exiting (pid: 9)
+[2025-12-03 04:14:58 +0000] [1] [ERROR] Worker (pid:8) exited with code 3
+[2025-12-03 04:14:58 +0000] [1] [ERROR] Worker (pid:6) was sent SIGTERM!
+[2025-12-03 04:14:58 +0000] [1] [ERROR] Worker (pid:5) was sent SIGTERM!
+[2025-12-03 04:14:58 +0000] [1] [ERROR] Worker (pid:9) was sent SIGTERM!
+[2025-12-03 04:14:58 +0000] [1] [ERROR] Shutting down: Master
+[2025-12-03 04:14:58 +0000] [1] [ERROR] Reason: Worker failed to boot.
+[2025-12-03 04:15:01 +0000] [1] [INFO] Starting gunicorn 23.0.0
+[2025-12-03 04:15:01 +0000] [1] [INFO] Listening at: http://0.0.0.0:5002 (1)
+[2025-12-03 04:15:01 +0000] [1] [INFO] Using worker: sync
+[2025-12-03 04:15:01 +0000] [5] [INFO] Booting worker with pid: 5
+[2025-12-03 04:15:01 +0000] [6] [INFO] Booting worker with pid: 6
+[2025-12-03 04:15:01 +0000] [8] [INFO] Booting worker with pid: 8
+[2025-12-03 04:15:01 +0000] [9] [INFO] Booting worker with pid: 9

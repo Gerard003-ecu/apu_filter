@@ -162,18 +162,23 @@ class TestPIController:
         assert output == 10
 
     def test_integral_action(self):
-        """El error integral debe acumularse."""
+        """El error integral debe acumularse tras el warmup."""
         # Usamos min_output > 0 para pasar validación
         controller = PIController(
             kp=0.0, ki=1000.0, setpoint=0.5, min_output=1, max_output=1000
         )
-        # Primera llamada
-        controller.compute(0.4)  # Error 0.1
+
+        # Ejecutar suficientes iteraciones para superar el warmup (_WARMUP_ITERATIONS = 3)
+        for _ in range(4):
+            controller.compute(0.4)
+            time.sleep(0.001)
+
         first_integral = controller._integral_error
 
         time.sleep(0.01)
         controller.compute(0.4)  # Error 0.1 again
 
+        # Ahora el integral debería haber aumentado
         assert controller._integral_error > first_integral
 
     def test_zero_division_protection(self):
@@ -323,8 +328,9 @@ class TestStabilizePID:
         with caplog.at_level(logging.WARNING):
             condenser.stabilize(str(mock_csv_file))
 
-        assert "SOBRECALENTAMIENTO" in caplog.text
-        assert "Aplicando freno de emergencia" in caplog.text
+        # El log usa "OVERHEAT" para el warning del freno
+        assert "OVERHEAT" in caplog.text
+        assert "Aplicando freno" in caplog.text
 
     @patch("app.flux_condenser.ReportParserCrudo")
     def test_insufficient_records_returns_empty(

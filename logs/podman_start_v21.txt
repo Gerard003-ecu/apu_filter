@@ -1,0 +1,59 @@
+
+
+--> abe9d7b0635e
+Successfully tagged localhost/apu-core:latest
+abe9d7b0635e795be8682d7f313b3a116e1491afcb422a196fe7dc424f14688d
+exit code: 0
+
+Successfully tagged localhost/apu-agent:latest
+35ebac9534e42763cd42f641f410a4ef03eaffdec82ebc93fd0e544c96a9c8a0
+exit code: 0
+[2025-12-01 15:50:37] [SUCCESS] Imágenes construidas.
+[2025-12-01 15:50:37] [INFO] Levantando servicios...
+podman-compose version: 1.0.6
+['podman', '--version', '']
+using podman version: 4.9.3
+** excluding:  set()
+['podman', 'inspect', '-t', 'image', '-f', '{{.Id}}', 'apu-core:latest']
+['podman', 'inspect', '-t', 'image', '-f', '{{.Id}}', 'apu-agent:latest']
+['podman', 'ps', '--filter', 'label=io.podman.compose.project=apu', '-a', '--format', '{{ index .Labels "io.podman.compose.config-hash"}}']
+podman volume inspect apu_redis_data || podman volume create apu_redis_data
+['podman', 'volume', 'inspect', 'apu_redis_data']
+Error: no such volume apu_redis_data
+['podman', 'volume', 'create', '--label', 'io.podman.compose.project=apu', '--label', 'com.docker.compose.project=apu', 'apu_redis_data']
+['podman', 'volume', 'inspect', 'apu_redis_data']
+['podman', 'network', 'exists', 'apu_network']
+['podman', 'network', 'create', '--label', 'io.podman.compose.project=apu', '--label', 'com.docker.compose.project=apu', '--driver', 'bridge', 'apu_network']
+['podman', 'network', 'exists', 'apu_network']
+podman run --name=apu_redis -d --label io.podman.compose.config-hash=9852a367cfb12d1faeae8a17142e5ef5423b05343c7958af7c8bd4b60f8df610 --label io.podman.compose.project=apu --label io.podman.compose.version=1.0.6 --label PODMAN_SYSTEMD_UNIT=podman-compose@apu.service --label com.docker.compose.project=apu --label com.docker.compose.project.working_dir=/home/gerardo/Documentos/GitHub/apu_filter --label com.docker.compose.project.config_files=compose.yaml --label com.docker.compose.container-number=1 --label com.docker.compose.service=redis -v apu_redis_data:/data --net apu_network --network-alias redis -p 6379:6379 --hostname redis --restart unless-stopped --healthcheck-command /bin/sh -c redis-cli' 'ping --healthcheck-interval 10s --healthcheck-timeout 5s --healthcheck-start-period 10s --healthcheck-retries 5 docker.io/library/redis:7-alpine redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+Trying to pull docker.io/library/redis:7-alpine...
+Getting image source signatures
+Copying blob sha256:232f7549c9b07a752bb00c7d7a61b3bfe6af3f15a711ba643c132f0e51922a64
+Copying blob sha256:60c57c0072ef228501beec5a8bee0d7ecc882dee9afd91fc7a58e3f9d9da64c5
+Copying blob sha256:f637881d1138581d892d9eb942c56e0ccc7758fe3bdc0f1e6cd66059fdfd8185
+Copying blob sha256:380e8aa8b1fdbd2887f9b1fa3e9d3cba192f9ff87956981dc8bd73cc6da39bfc
+Copying blob sha256:fc4343b4accd46fa853b1de6ee0ca92ab1f7080db3af6c4948678534d69cc159
+Copying blob sha256:c70aae7b5e0d75367bcf5d40074ae8e28d17793c251e0d505321aa8ea4fd91fd
+Copying blob sha256:4f4fb700ef54461cfa02571ae0db9a0dc1e0cdb5577484a6d75e68dc38e8acc1
+Copying blob sha256:d75b3becd998021da3bbfcb31fa6580676396f5244243670f57920652cce8038
+Copying config sha256:13105d2858ded45aedf7b24f0870e6a4e7ce4964924bffce68e562ca72149f1e
+Writing manifest to image destination
+03136c48dd8c4d0987bc0bd5566296e654302d666b26c7b159fe7ae54b301761
+exit code: 0
+['podman', 'network', 'exists', 'apu_network']
+podman run --name=apu_core -d --requires=apu_redis --label io.podman.compose.config-hash=9852a367cfb12d1faeae8a17142e5ef5423b05343c7958af7c8bd4b60f8df610 --label io.podman.compose.project=apu --label io.podman.compose.version=1.0.6 --label PODMAN_SYSTEMD_UNIT=podman-compose@apu.service --label com.docker.compose.project=apu --label com.docker.compose.project.working_dir=/home/gerardo/Documentos/GitHub/apu_filter --label com.docker.compose.project.config_files=compose.yaml --label com.docker.compose.container-number=1 --label com.docker.compose.service=core --env-file /home/gerardo/Documentos/GitHub/apu_filter/.env -e REDIS_URL=redis://redis:6379/0 -e FLASK_ENV=production -e PYTHONUNBUFFERED=1 -e PYTHONPATH=/app -v /home/gerardo/Documentos/GitHub/apu_filter/data:/app/data:Z -v /home/gerardo/Documentos/GitHub/apu_filter/logs:/app/logs:Z -v /home/gerardo/Documentos/GitHub/apu_filter/config:/app/config:Z,ro --net apu_network --network-alias core -p 5002:5002 --hostname core --pull never --restart unless-stopped --healthcheck-command /bin/sh -c curl' '-f' 'http://localhost:5002/health --healthcheck-interval 30s --healthcheck-timeout 10s --healthcheck-start-period 90s --healthcheck-retries 3 apu-core:latest
+Error: parsing file "/home/gerardo/Documentos/GitHub/apu_filter/.env": open /home/gerardo/Documentos/GitHub/apu_filter/.env: no such file or directory
+exit code: 125
+podman start apu_core
+Error: no container with name or ID "apu_core" found: no such container
+exit code: 125
+['podman', 'network', 'exists', 'apu_network']
+podman run --name=apu_agent -d --requires=apu_core,apu_redis --label io.podman.compose.config-hash=9852a367cfb12d1faeae8a17142e5ef5423b05343c7958af7c8bd4b60f8df610 --label io.podman.compose.project=apu --label io.podman.compose.version=1.0.6 --label PODMAN_SYSTEMD_UNIT=podman-compose@apu.service --label com.docker.compose.project=apu --label com.docker.compose.project.working_dir=/home/gerardo/Documentos/GitHub/apu_filter --label com.docker.compose.project.config_files=compose.yaml --label com.docker.compose.container-number=1 --label com.docker.compose.service=agent --env-file /home/gerardo/Documentos/GitHub/apu_filter/.env -e CORE_API_URL=http://core:5002 -e REDIS_URL=redis://redis:6379/0 -e PYTHONUNBUFFERED=1 -e PYTHONPATH=/app -v /home/gerardo/Documentos/GitHub/apu_filter/logs:/app/logs:Z --net apu_network --network-alias agent --hostname agent --pull never --restart unless-stopped apu-agent:latest
+Error: parsing file "/home/gerardo/Documentos/GitHub/apu_filter/.env": open /home/gerardo/Documentos/GitHub/apu_filter/.env: no such file or directory
+exit code: 125
+podman start apu_agent
+Error: no container with name or ID "apu_agent" found: no such container
+exit code: 125
+[2025-12-01 15:51:20] [INFO] Esperando estabilización (10s)...
+[2025-12-01 15:51:30] [INFO] Estado de los contenedores:
+[2025-12-01 15:51:32] [SUCCESS] === APU Filter Ecosystem Operativo ===

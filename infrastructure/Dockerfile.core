@@ -1,23 +1,15 @@
 # =============================================================================
 # DOCKERFILE.CORE - API Flask con PyTorch CPU
 # =============================================================================
-# Versión: 3.0 - Resuelve conflictos de dependencias
-# 
-# ESTRATEGIA:
-#   1. Instalar PyTorch CPU con pip (desde índice oficial)
-#   2. Instalar dependencias que USAN torch con pip (sentence-transformers)
-#   3. Instalar el RESTO con uv (rápido, sin conflictos)
+# Versión: 6.0 - Protección total contra reinstalación de torch
 # =============================================================================
 
-FROM python:3.10-slim
+FROM public.ecr.aws/docker/library/python:3.10-slim
 
 LABEL maintainer="equipo-desarrollo" \
-      version="3.0" \
+      version="6.0" \
       description="Core API - Flask con PyTorch CPU"
 
-# -----------------------------------------------------------------------------
-# VARIABLES DE ENTORNO
-# -----------------------------------------------------------------------------
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PYTHONPATH=/app \
@@ -30,196 +22,107 @@ ENV PYTHONUNBUFFERED=1 \
 WORKDIR /app
 
 # =============================================================================
-# FASE 1: DEPENDENCIAS DEL SISTEMA
+# FASE 1: Dependencias del sistema
 # =============================================================================
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-        curl \
-        && \
+    apt-get install -y --no-install-recommends curl && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
 # =============================================================================
-# FASE 2: COPIAR REQUIREMENTS
+# FASE 2: Copiar y LIMPIAR requirements
 # =============================================================================
 COPY requirements.txt ./requirements-original.txt
 
-# =============================================================================
-# FASE 3: SEPARAR DEPENDENCIAS
-# =============================================================================
-# Crear archivo con dependencias que REQUIEREN torch (instalar con pip)
-# Crear archivo con el RESTO (instalar con uv)
-RUN cat > /tmp/separate-deps.py << 'PYTHON_SCRIPT'
-import re
+# Eliminar TODAS las dependencias problemáticas del requirements.txt
+# Estas se instalarán manualmente con versiones controladas
+RUN grep -v -E "^(torch|torchvision|torchaudio|sentence-transformers|transformers|accelerate|huggingface-hub|safetensors|sympy)" \
+    requirements-original.txt > requirements.txt || true
 
-# Dependencias que dependen de torch o tienen conflictos con índices
-TORCH_RELATED = {
-    'torch', 'torchvision', 'torchaudio',
-    'sentence-transformers', 'transformers',
-    'accelerate', 'safetensors', 'huggingface-hub',
-    # Añadir otras si hay conflictos
-}
-
-torch_deps = []
-other_deps = []
-
-with open('/app/requirements-original.txt', 'r') as f:
-    for line in f:
-        line = line.strip()
-        if not line or line.startswith('#'):
-            continue
-        
-        # Extraer nombre del paquete (antes de ==, >=, etc.)
-        pkg_name = re.split(r'[=<>!~\[]', line)[0].lower().replace('_', '-')
-        
-        if pkg_name in TORCH_RELATED:
-            torch_deps.append(line)
-        else:
-            other_deps.append(line)
-
-# Escribir archivos separados
-with open('/app/requirements-torch.txt', 'w') as f:
-    f.write('# Dependencias relacionadas con PyTorch\n')
-    f.write('# Se instalan con pip desde índice PyTorch\n\n')
-    for dep in torch_deps:
-        f.write(dep + '\n')
-
-with open('/app/requirements-other.txt', 'w') as f:
-    f.write('# Otras dependencias (sin conflictos)\n')
-    f.write('# Se instalan con uv (rápido)\n\n')
-    for dep in other_deps:
-        f.write(dep + '\n')
-
-print(f"✓ Separadas: {len(torch_deps)} torch-related, {len(other_deps)} otras")
-PYTHON_SCRIPT
-
-RUN python /tmp/separate-deps.py && \
-    echo "=== requirements-torch.txt ===" && \
-    cat requirements-torch.txt && \
-    echo "" && \
-    echo "=== requirements-other.txt ===" && \
-    cat requirements-other.txt
+# Mostrar qué quedó (para debug)
+RUN echo "=== requirements.txt limpio ===" && cat requirements.txt && echo "==="
 
 # =============================================================================
-# FASE 4: INSTALAR PyTorch CPU (pip)
+# FASE 3: Crear CONSTRAINTS (CANDADO INQUEBRANTABLE)
 # =============================================================================
-# Primero instalamos torch CPU desde el índice oficial de PyTorch
-RUN pip install --no-cache-dir \
+RUN echo "torch==2.5.1+cpu" > /tmp/constraints.txt && \
+    echo "torchvision==0.20.1+cpu" >> /tmp/constraints.txt && \
+    echo "torchaudio==2.5.1+cpu" >> /tmp/constraints.txt && \
+    echo "sympy==1.13.1" >> /tmp/constraints.txt && \
+    cat /tmp/constraints.txt
+
+# =============================================================================
+# FASE 4: Instalar PyTorch CPU PRIMERO
+# =============================================================================
+RUN pip install \
     torch==2.5.1+cpu \
     torchvision==0.20.1+cpu \
     torchaudio==2.5.1+cpu \
-    --index-url https://download.pytorch.org/whl/cpu && \
-    python -c "import torch; print(f'✓ PyTorch {torch.__version__}')"
+    --index-url https://download.pytorch.org/whl/cpu
+
+# Verificación inmediata
+RUN python -c "import torch; print(f'[OK] PyTorch {torch.__version__}')"
 
 # =============================================================================
-# FASE 5: INSTALAR DEPENDENCIAS TORCH-RELATED (pip)
+# FASE 5: Instalar paquetes ML con CONSTRAINT
 # =============================================================================
-# Usamos pip para estas porque:
-# 1. Ya tienen torch instalado, pip lo respetará
-# 2. No hay conflicto de índices
-RUN pip install --no-cache-dir \
-    --no-deps \
-    -r requirements-torch.txt || \
-    # Si falla --no-deps, intentar normal (resolverá sin cambiar torch)
-    pip install --no-cache-dir -r requirements-torch.txt
-
-# Instalar dependencias transitivas de los paquetes torch-related
-# (sin --no-deps, pero torch ya está fijado)
-RUN pip install --no-cache-dir \
+RUN pip install \
+    -c /tmp/constraints.txt \
     sentence-transformers \
     transformers \
-    --upgrade-strategy only-if-needed
+    accelerate \
+    huggingface-hub \
+    safetensors
 
 # =============================================================================
-# FASE 6: INSTALAR UV
+# FASE 6: Instalar resto con CONSTRAINT
 # =============================================================================
-RUN pip install --no-cache-dir uv && \
-    echo "✓ uv $(uv --version)"
+RUN pip install \
+    -c /tmp/constraints.txt \
+    -r requirements.txt
 
-# =============================================================================
-# FASE 7: INSTALAR RESTO DE DEPENDENCIAS (uv - RÁPIDO)
-# =============================================================================
-# Estas dependencias NO tienen relación con torch
-# uv las instala mucho más rápido que pip
-RUN uv pip install --system --no-cache-dir \
-    -r requirements-other.txt || \
-    # Fallback a pip si uv falla
-    pip install --no-cache-dir -r requirements-other.txt
-
-# Asegurar gunicorn
-RUN pip install --no-cache-dir gunicorn
+# Gunicorn
+RUN pip install gunicorn
 
 # =============================================================================
-# FASE 8: VERIFICACIÓN
+# FASE 7: VERIFICACIÓN ESTRICTA (falla el build si torch cambió)
 # =============================================================================
-RUN python << 'VERIFY_SCRIPT'
-import sys
-
-print("=" * 60)
-print("VERIFICACIÓN DE INSTALACIÓN")
-print("=" * 60)
-
-# Verificar torch CPU
-import torch
-torch_version = torch.__version__
-assert '+cpu' in torch_version, f"ERROR: torch NO es CPU: {torch_version}"
-print(f"✓ torch=={torch_version} (CPU)")
-
-# Verificar sentence-transformers
-try:
-    import sentence_transformers
-    print(f"✓ sentence-transformers=={sentence_transformers.__version__}")
-except ImportError as e:
-    print(f"⚠ sentence-transformers no instalado: {e}")
-
-# Verificar transformers
-try:
-    import transformers
-    print(f"✓ transformers=={transformers.__version__}")
-except ImportError as e:
-    print(f"⚠ transformers no instalado: {e}")
-
-# Verificar flask
-import flask
-print(f"✓ flask=={flask.__version__}")
-
-print("=" * 60)
-print("✓ TODAS LAS VERIFICACIONES PASARON")
-print("=" * 60)
-VERIFY_SCRIPT
+RUN python -c "\
+import torch; \
+v = torch.__version__; \
+print(f'Verificando torch: {v}'); \
+assert v == '2.5.1+cpu', f'FALLO: torch es {v}, debería ser 2.5.1+cpu'; \
+print('[OK] torch==2.5.1+cpu confirmado')"
 
 # =============================================================================
-# FASE 9: SEGURIDAD
+# FASE 8: Usuario no privilegiado
 # =============================================================================
 RUN useradd --create-home --shell /bin/bash --uid 1000 --user-group apu_user && \
-    chown -R apu_user:apu_user /app
+    mkdir -p /app/logs /app/data && \
+    chmod 777 /app/logs /app/data && \
+    chown -R apu_user:apu_user /app && \
+    rm -f /tmp/constraints.txt requirements-original.txt
 
-# Limpiar archivos temporales
-RUN rm -f requirements-original.txt requirements-torch.txt requirements-other.txt
+# Declarar volúmenes para persistencia de datos y logs
+VOLUME ["/app/logs", "/app/data"]
 
 USER apu_user
 
 # =============================================================================
-# FASE 10: CÓDIGO DE APLICACIÓN
+# FASE 9: Copiar código
 # =============================================================================
 COPY --chown=apu_user:apu_user app/ /app/app/
 COPY --chown=apu_user:apu_user config/ /app/config/
+COPY --chown=apu_user:apu_user models/ /app/models/
+COPY --chown=apu_user:apu_user scripts/ /app/scripts/
 COPY --chown=apu_user:apu_user wsgi.py /app/wsgi.py
 
 # =============================================================================
-# FASE 11: CONFIGURACIÓN FINAL
+# FASE 10: Configuración final
 # =============================================================================
 EXPOSE 5002
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
     CMD curl -f http://localhost:5002/health || exit 1
 
-CMD ["gunicorn", \
-     "--workers", "4", \
-     "--bind", "0.0.0.0:5002", \
-     "--timeout", "120", \
-     "--graceful-timeout", "30", \
-     "--access-logfile", "-", \
-     "--error-logfile", "-", \
-     "--capture-output", \
-     "wsgi:app"]
+CMD ["gunicorn", "--workers", "4", "--bind", "0.0.0.0:5002", "--timeout", "300", "--preload", "wsgi:app"]

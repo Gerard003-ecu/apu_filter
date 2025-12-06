@@ -1,0 +1,1263 @@
+[2025-12-02 16:46:27] [INFO] === Iniciando Despliegue de APU Filter Ecosystem ===
+[2025-12-02 16:46:27] [INFO] Log file: ./logs/podman_start_20251202_164627.log
+[2025-12-02 16:46:27] [INFO] Verificando configuración de registros...
+[2025-12-02 16:46:27] [INFO] Ejecutando setup_podman_registry.sh...
+Configuración de registros de Podman aplicada correctamente.
+[2025-12-02 16:46:28] [SUCCESS] Configuración de registros aplicada.
+[2025-12-02 16:46:28] [INFO] Limpiando contenedores previos...
+podman-compose version: 1.0.6
+['podman', '--version', '']
+using podman version: 4.9.3
+** excluding:  set()
+podman stop -t 10 apu_agent
+Error: no container with name or ID "apu_agent" found: no such container
+exit code: 125
+podman stop -t 10 apu_core
+Error: no container with name or ID "apu_core" found: no such container
+exit code: 125
+podman stop -t 10 apu_redis
+Error: no container with name or ID "apu_redis" found: no such container
+exit code: 125
+podman rm apu_agent
+Error: no container with ID or name "apu_agent" found: no such container
+exit code: 1
+podman rm apu_core
+Error: no container with ID or name "apu_core" found: no such container
+exit code: 1
+podman rm apu_redis
+Error: no container with ID or name "apu_redis" found: no such container
+exit code: 1
+['podman', 'ps', '--filter', 'label=io.podman.compose.project=apu', '-a', '--format', '{{ .Names }}']
+[2025-12-02 16:46:31] [INFO] Construyendo imágenes (Core & Agent)...
+podman-compose version: 1.0.6
+['podman', '--version', '']
+using podman version: 4.9.3
+podman build -f ./infrastructure/Dockerfile.core -t apu-core:latest .
+STEP 1/23: FROM python:3.10-slim
+STEP 2/23: LABEL maintainer="equipo-desarrollo"       version="6.0"       description="Core API - Flask con PyTorch CPU"
+--> 1db6420fb787
+STEP 3/23: ENV PYTHONUNBUFFERED=1     PYTHONDONTWRITEBYTECODE=1     PYTHONPATH=/app     PIP_NO_CACHE_DIR=1     PIP_DISABLE_PIP_VERSION_CHECK=1     PIP_ROOT_USER_ACTION=ignore     FLASK_APP=app.app     FLASK_ENV=production
+--> 2e4fbc74493e
+STEP 4/23: WORKDIR /app
+--> 8201c0fd382a
+STEP 5/23: RUN apt-get update &&     apt-get install -y --no-install-recommends curl &&     apt-get clean &&     rm -rf /var/lib/apt/lists/*
+Ign:1 http://deb.debian.org/debian trixie InRelease
+Ign:2 http://deb.debian.org/debian trixie-updates InRelease
+Ign:3 http://deb.debian.org/debian-security trixie-security InRelease
+Ign:3 http://deb.debian.org/debian-security trixie-security InRelease
+Ign:2 http://deb.debian.org/debian trixie-updates InRelease
+Ign:1 http://deb.debian.org/debian trixie InRelease
+Ign:1 http://deb.debian.org/debian trixie InRelease
+Ign:2 http://deb.debian.org/debian trixie-updates InRelease
+Ign:3 http://deb.debian.org/debian-security trixie-security InRelease
+Err:3 http://deb.debian.org/debian-security trixie-security InRelease
+  Temporary failure resolving 'deb.debian.org'
+Err:2 http://deb.debian.org/debian trixie-updates InRelease
+  Temporary failure resolving 'deb.debian.org'
+Err:1 http://deb.debian.org/debian trixie InRelease
+  Temporary failure resolving 'deb.debian.org'
+Reading package lists...
+W: Failed to fetch http://deb.debian.org/debian/dists/trixie/InRelease  Temporary failure resolving 'deb.debian.org'
+W: Failed to fetch http://deb.debian.org/debian/dists/trixie-updates/InRelease  Temporary failure resolving 'deb.debian.org'
+W: Failed to fetch http://deb.debian.org/debian-security/dists/trixie-security/InRelease  Temporary failure resolving 'deb.debian.org'
+W: Some index files failed to download. They have been ignored, or old ones used instead.
+Reading package lists...
+Building dependency tree...
+Reading state information...
+E: Unable to locate package curl
+Error: building at STEP "RUN apt-get update &&     apt-get install -y --no-install-recommends curl &&     apt-get clean &&     rm -rf /var/lib/apt/lists/*": while running runtime: exit status 100
+exit code: 100
+podman build -f ./infrastructure/Dockerfile.agent -t apu-agent:latest .
+STEP 1/18: FROM python:3.10-slim
+STEP 2/18: LABEL maintainer="equipo-desarrollo"       version="6.0"       description="Agente orquestador con PyTorch CPU"
+--> Using cache 1110e037ee0d9ef16fc8171ba329166bc44f7495aac3d7a1cd6f320d2b0f08b4
+--> 1110e037ee0d
+STEP 3/18: ENV PYTHONUNBUFFERED=1     PYTHONDONTWRITEBYTECODE=1     PYTHONPATH=/app     PIP_NO_CACHE_DIR=1     PIP_DISABLE_PIP_VERSION_CHECK=1     PIP_ROOT_USER_ACTION=ignore
+--> Using cache af9bc8ed4acd65de6e6de8aa9fdf4bb4d8292c520a9ffd4351361afd52c897b2
+--> af9bc8ed4acd
+STEP 4/18: WORKDIR /app
+--> Using cache 45f8d3c1eabbf0eec3e2d18ab7d651c9c68402a1aa3202a66a0e0ecb1d6ab399
+--> 45f8d3c1eabb
+STEP 5/18: COPY requirements.txt ./req-base-original.txt
+--> Using cache c22d86a83e598fbb022ff79af6ea72f101f96df4c5d43fa276e52dd653e7375f
+--> c22d86a83e59
+STEP 6/18: COPY requirements-agent.txt ./req-agent-original.txt
+--> Using cache 0a2abfe1271b7738b7f36019ac657be7a948210c83de446b9f9fa164e4946780
+--> 0a2abfe1271b
+STEP 7/18: RUN grep -v -E "^(torch|torchvision|torchaudio|sentence-transformers|transformers|accelerate|huggingface-hub|safetensors|sympy)"     req-base-original.txt > requirements.txt || true &&     grep -v -E "^(torch|torchvision|torchaudio|sentence-transformers|transformers|accelerate|huggingface-hub|safetensors|sympy)"     req-agent-original.txt > requirements-agent.txt || true
+--> Using cache 4963d17d7f836f8a64e2202bcd7328d6ff8b80007faf5aa39e1134a27affaf2d
+--> 4963d17d7f83
+STEP 8/18: RUN echo "torch==2.5.1+cpu" > /tmp/constraints.txt &&     echo "torchvision==0.20.1+cpu" >> /tmp/constraints.txt &&     echo "torchaudio==2.5.1+cpu" >> /tmp/constraints.txt &&     echo "sympy==1.13.1" >> /tmp/constraints.txt
+--> Using cache b48e54e49315fb53baef6ee2b39a5a36fff98cd14265ffcac805def6acb33d16
+--> b48e54e49315
+STEP 9/18: RUN pip install     torch==2.5.1+cpu     torchvision==0.20.1+cpu     torchaudio==2.5.1+cpu     --index-url https://download.pytorch.org/whl/cpu
+Looking in indexes: https://download.pytorch.org/whl/cpu
+WARNING: Retrying (Retry(total=4, connect=None, read=None, redirect=None, status=None)) after connection broken by 'NewConnectionError('<pip._vendor.urllib3.connection.HTTPSConnection object at 0x70801de4a7d0>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution')': /whl/cpu/torch/
+WARNING: Retrying (Retry(total=3, connect=None, read=None, redirect=None, status=None)) after connection broken by 'NewConnectionError('<pip._vendor.urllib3.connection.HTTPSConnection object at 0x70801de490f0>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution')': /whl/cpu/torch/
+WARNING: Retrying (Retry(total=2, connect=None, read=None, redirect=None, status=None)) after connection broken by 'NewConnectionError('<pip._vendor.urllib3.connection.HTTPSConnection object at 0x70801de4bb50>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution')': /whl/cpu/torch/
+WARNING: Retrying (Retry(total=1, connect=None, read=None, redirect=None, status=None)) after connection broken by 'NewConnectionError('<pip._vendor.urllib3.connection.HTTPSConnection object at 0x70801de4abc0>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution')': /whl/cpu/torch/
+WARNING: Retrying (Retry(total=0, connect=None, read=None, redirect=None, status=None)) after connection broken by 'NewConnectionError('<pip._vendor.urllib3.connection.HTTPSConnection object at 0x70801de4a9b0>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution')': /whl/cpu/torch/
+ERROR: Could not find a version that satisfies the requirement torch==2.5.1+cpu (from versions: none)
+ERROR: No matching distribution found for torch==2.5.1+cpu
+Error: building at STEP "RUN pip install     torch==2.5.1+cpu     torchvision==0.20.1+cpu     torchaudio==2.5.1+cpu     --index-url https://download.pytorch.org/whl/cpu": while running runtime: exit status 1
+exit code: 1
+[2025-12-02 16:47:01] [SUCCESS] Imágenes construidas.
+[2025-12-02 16:47:01] [INFO] Levantando servicios...
+podman-compose version: 1.0.6
+['podman', '--version', '']
+using podman version: 4.9.3
+** excluding:  set()
+['podman', 'inspect', '-t', 'image', '-f', '{{.Id}}', 'apu-core:latest']
+Error: apu-core:latest: image not known
+podman build -f ./infrastructure/Dockerfile.core -t apu-core:latest .
+STEP 1/23: FROM python:3.10-slim
+STEP 2/23: LABEL maintainer="equipo-desarrollo"       version="6.0"       description="Core API - Flask con PyTorch CPU"
+--> Using cache 1db6420fb7875d2dca3471a0b8ab752abe505e62a8b2173eec46e496a7ccd521
+--> 1db6420fb787
+STEP 3/23: ENV PYTHONUNBUFFERED=1     PYTHONDONTWRITEBYTECODE=1     PYTHONPATH=/app     PIP_NO_CACHE_DIR=1     PIP_DISABLE_PIP_VERSION_CHECK=1     PIP_ROOT_USER_ACTION=ignore     FLASK_APP=app.app     FLASK_ENV=production
+--> Using cache 2e4fbc74493effb18e3ebd9c0abb2a805fd61670f0d8d5db41d44f990fb456ea
+--> 2e4fbc74493e
+STEP 4/23: WORKDIR /app
+--> Using cache 8201c0fd382a708e31e6789e3df594cf25c416355596d00377b5a60eec95c7ff
+--> 8201c0fd382a
+STEP 5/23: RUN apt-get update &&     apt-get install -y --no-install-recommends curl &&     apt-get clean &&     rm -rf /var/lib/apt/lists/*
+Ign:1 http://deb.debian.org/debian trixie InRelease
+Ign:2 http://deb.debian.org/debian trixie-updates InRelease
+Ign:3 http://deb.debian.org/debian-security trixie-security InRelease
+Get:3 http://deb.debian.org/debian-security trixie-security InRelease [43.4 kB]
+Get:2 http://deb.debian.org/debian trixie-updates InRelease [47.3 kB]
+Hit:1 http://deb.debian.org/debian trixie InRelease
+Get:4 http://deb.debian.org/debian-security trixie-security/main amd64 Packages [76.0 kB]
+Get:5 http://deb.debian.org/debian trixie-updates/main amd64 Packages [5412 B]
+Get:6 http://deb.debian.org/debian trixie/main amd64 Packages [9670 kB]
+Fetched 9842 kB in 22s (444 kB/s)
+Reading package lists...
+Reading package lists...
+Building dependency tree...
+Reading state information...
+The following additional packages will be installed:
+  libbrotli1 libcom-err2 libcurl4t64 libgnutls30t64 libgssapi-krb5-2 libidn2-0
+  libk5crypto3 libkeyutils1 libkrb5-3 libkrb5support0 libldap2 libnghttp2-14
+  libnghttp3-9 libp11-kit0 libpsl5t64 librtmp1 libsasl2-2 libsasl2-modules-db
+  libssh2-1t64 libtasn1-6 libunistring5
+Suggested packages:
+  gnutls-bin krb5-doc krb5-user
+Recommended packages:
+  bash-completion krb5-locales libldap-common publicsuffix libsasl2-modules
+The following NEW packages will be installed:
+  curl libbrotli1 libcom-err2 libcurl4t64 libgnutls30t64 libgssapi-krb5-2
+  libidn2-0 libk5crypto3 libkeyutils1 libkrb5-3 libkrb5support0 libldap2
+  libnghttp2-14 libnghttp3-9 libp11-kit0 libpsl5t64 librtmp1 libsasl2-2
+  libsasl2-modules-db libssh2-1t64 libtasn1-6 libunistring5
+0 upgraded, 22 newly installed, 0 to remove and 0 not upgraded.
+Need to get 4882 kB of archives.
+After this operation, 14.7 MB of additional disk space will be used.
+Get:1 http://deb.debian.org/debian trixie/main amd64 libbrotli1 amd64 1.1.0-2+b7 [307 kB]
+Get:2 http://deb.debian.org/debian trixie/main amd64 libkrb5support0 amd64 1.21.3-5 [33.0 kB]
+Get:3 http://deb.debian.org/debian trixie/main amd64 libcom-err2 amd64 1.47.2-3+b3 [25.0 kB]
+Get:4 http://deb.debian.org/debian trixie/main amd64 libk5crypto3 amd64 1.21.3-5 [81.5 kB]
+Get:5 http://deb.debian.org/debian trixie/main amd64 libkeyutils1 amd64 1.6.3-6 [9456 B]
+Get:6 http://deb.debian.org/debian trixie/main amd64 libkrb5-3 amd64 1.21.3-5 [326 kB]
+Get:7 http://deb.debian.org/debian trixie/main amd64 libgssapi-krb5-2 amd64 1.21.3-5 [138 kB]
+Get:8 http://deb.debian.org/debian trixie/main amd64 libunistring5 amd64 1.3-2 [477 kB]
+Get:9 http://deb.debian.org/debian trixie/main amd64 libidn2-0 amd64 2.3.8-2 [109 kB]
+Get:10 http://deb.debian.org/debian trixie/main amd64 libsasl2-modules-db amd64 2.1.28+dfsg1-9 [19.8 kB]
+Get:11 http://deb.debian.org/debian trixie/main amd64 libsasl2-2 amd64 2.1.28+dfsg1-9 [57.5 kB]
+Get:12 http://deb.debian.org/debian trixie/main amd64 libldap2 amd64 2.6.10+dfsg-1 [194 kB]
+Get:13 http://deb.debian.org/debian trixie/main amd64 libnghttp2-14 amd64 1.64.0-1.1 [76.0 kB]
+Get:14 http://deb.debian.org/debian trixie/main amd64 libnghttp3-9 amd64 1.8.0-1 [67.7 kB]
+Get:15 http://deb.debian.org/debian trixie/main amd64 libpsl5t64 amd64 0.21.2-1.1+b1 [57.2 kB]
+Get:16 http://deb.debian.org/debian trixie/main amd64 libp11-kit0 amd64 0.25.5-3 [425 kB]
+Get:17 http://deb.debian.org/debian trixie/main amd64 libtasn1-6 amd64 4.20.0-2 [49.9 kB]
+Get:18 http://deb.debian.org/debian trixie/main amd64 libgnutls30t64 amd64 3.8.9-3 [1465 kB]
+Get:19 http://deb.debian.org/debian trixie/main amd64 librtmp1 amd64 2.4+20151223.gitfa8646d.1-2+b5 [58.8 kB]
+Get:20 http://deb.debian.org/debian trixie/main amd64 libssh2-1t64 amd64 1.11.1-1 [245 kB]
+Get:21 http://deb.debian.org/debian trixie/main amd64 libcurl4t64 amd64 8.14.1-2+deb13u2 [391 kB]
+Get:22 http://deb.debian.org/debian trixie/main amd64 curl amd64 8.14.1-2+deb13u2 [270 kB]
+debconf: unable to initialize frontend: Dialog
+debconf: (TERM is not set, so the dialog frontend is not usable.)
+debconf: falling back to frontend: Readline
+debconf: unable to initialize frontend: Readline
+debconf: (Can't locate Term/ReadLine.pm in @INC (you may need to install the Term::ReadLine module) (@INC entries checked: /etc/perl /usr/local/lib/x86_64-linux-gnu/perl/5.40.1 /usr/local/share/perl/5.40.1 /usr/lib/x86_64-linux-gnu/perl5/5.40 /usr/share/perl5 /usr/lib/x86_64-linux-gnu/perl-base /usr/lib/x86_64-linux-gnu/perl/5.40 /usr/share/perl/5.40 /usr/local/lib/site_perl) at /usr/share/perl5/Debconf/FrontEnd/Readline.pm line 8, <STDIN> line 22.)
+debconf: falling back to frontend: Teletype
+debconf: unable to initialize frontend: Teletype
+debconf: (This frontend requires a controlling tty.)
+debconf: falling back to frontend: Noninteractive
+Fetched 4882 kB in 6s (786 kB/s)
+Selecting previously unselected package libbrotli1:amd64.
+(Reading database ...
+(Reading database ... 5%
+(Reading database ... 10%
+(Reading database ... 15%
+(Reading database ... 20%
+(Reading database ... 25%
+(Reading database ... 30%
+(Reading database ... 35%
+(Reading database ... 40%
+(Reading database ... 45%
+(Reading database ... 50%
+(Reading database ... 55%
+(Reading database ... 60%
+(Reading database ... 65%
+(Reading database ... 70%
+(Reading database ... 75%
+(Reading database ... 80%
+(Reading database ... 85%
+(Reading database ... 90%
+(Reading database ... 95%
+(Reading database ... 100%
+(Reading database ... 5644 files and directories currently installed.)
+Preparing to unpack .../00-libbrotli1_1.1.0-2+b7_amd64.deb ...
+Unpacking libbrotli1:amd64 (1.1.0-2+b7) ...
+Selecting previously unselected package libkrb5support0:amd64.
+Preparing to unpack .../01-libkrb5support0_1.21.3-5_amd64.deb ...
+Unpacking libkrb5support0:amd64 (1.21.3-5) ...
+Selecting previously unselected package libcom-err2:amd64.
+Preparing to unpack .../02-libcom-err2_1.47.2-3+b3_amd64.deb ...
+Unpacking libcom-err2:amd64 (1.47.2-3+b3) ...
+Selecting previously unselected package libk5crypto3:amd64.
+Preparing to unpack .../03-libk5crypto3_1.21.3-5_amd64.deb ...
+Unpacking libk5crypto3:amd64 (1.21.3-5) ...
+Selecting previously unselected package libkeyutils1:amd64.
+Preparing to unpack .../04-libkeyutils1_1.6.3-6_amd64.deb ...
+Unpacking libkeyutils1:amd64 (1.6.3-6) ...
+Selecting previously unselected package libkrb5-3:amd64.
+Preparing to unpack .../05-libkrb5-3_1.21.3-5_amd64.deb ...
+Unpacking libkrb5-3:amd64 (1.21.3-5) ...
+Selecting previously unselected package libgssapi-krb5-2:amd64.
+Preparing to unpack .../06-libgssapi-krb5-2_1.21.3-5_amd64.deb ...
+Unpacking libgssapi-krb5-2:amd64 (1.21.3-5) ...
+Selecting previously unselected package libunistring5:amd64.
+Preparing to unpack .../07-libunistring5_1.3-2_amd64.deb ...
+Unpacking libunistring5:amd64 (1.3-2) ...
+Selecting previously unselected package libidn2-0:amd64.
+Preparing to unpack .../08-libidn2-0_2.3.8-2_amd64.deb ...
+Unpacking libidn2-0:amd64 (2.3.8-2) ...
+Selecting previously unselected package libsasl2-modules-db:amd64.
+Preparing to unpack .../09-libsasl2-modules-db_2.1.28+dfsg1-9_amd64.deb ...
+Unpacking libsasl2-modules-db:amd64 (2.1.28+dfsg1-9) ...
+Selecting previously unselected package libsasl2-2:amd64.
+Preparing to unpack .../10-libsasl2-2_2.1.28+dfsg1-9_amd64.deb ...
+Unpacking libsasl2-2:amd64 (2.1.28+dfsg1-9) ...
+Selecting previously unselected package libldap2:amd64.
+Preparing to unpack .../11-libldap2_2.6.10+dfsg-1_amd64.deb ...
+Unpacking libldap2:amd64 (2.6.10+dfsg-1) ...
+Selecting previously unselected package libnghttp2-14:amd64.
+Preparing to unpack .../12-libnghttp2-14_1.64.0-1.1_amd64.deb ...
+Unpacking libnghttp2-14:amd64 (1.64.0-1.1) ...
+Selecting previously unselected package libnghttp3-9:amd64.
+Preparing to unpack .../13-libnghttp3-9_1.8.0-1_amd64.deb ...
+Unpacking libnghttp3-9:amd64 (1.8.0-1) ...
+Selecting previously unselected package libpsl5t64:amd64.
+Preparing to unpack .../14-libpsl5t64_0.21.2-1.1+b1_amd64.deb ...
+Unpacking libpsl5t64:amd64 (0.21.2-1.1+b1) ...
+Selecting previously unselected package libp11-kit0:amd64.
+Preparing to unpack .../15-libp11-kit0_0.25.5-3_amd64.deb ...
+Unpacking libp11-kit0:amd64 (0.25.5-3) ...
+Selecting previously unselected package libtasn1-6:amd64.
+Preparing to unpack .../16-libtasn1-6_4.20.0-2_amd64.deb ...
+Unpacking libtasn1-6:amd64 (4.20.0-2) ...
+Selecting previously unselected package libgnutls30t64:amd64.
+Preparing to unpack .../17-libgnutls30t64_3.8.9-3_amd64.deb ...
+Unpacking libgnutls30t64:amd64 (3.8.9-3) ...
+Selecting previously unselected package librtmp1:amd64.
+Preparing to unpack .../18-librtmp1_2.4+20151223.gitfa8646d.1-2+b5_amd64.deb ...
+Unpacking librtmp1:amd64 (2.4+20151223.gitfa8646d.1-2+b5) ...
+Selecting previously unselected package libssh2-1t64:amd64.
+Preparing to unpack .../19-libssh2-1t64_1.11.1-1_amd64.deb ...
+Unpacking libssh2-1t64:amd64 (1.11.1-1) ...
+Selecting previously unselected package libcurl4t64:amd64.
+Preparing to unpack .../20-libcurl4t64_8.14.1-2+deb13u2_amd64.deb ...
+Unpacking libcurl4t64:amd64 (8.14.1-2+deb13u2) ...
+Selecting previously unselected package curl.
+Preparing to unpack .../21-curl_8.14.1-2+deb13u2_amd64.deb ...
+Unpacking curl (8.14.1-2+deb13u2) ...
+Setting up libkeyutils1:amd64 (1.6.3-6) ...
+Setting up libbrotli1:amd64 (1.1.0-2+b7) ...
+Setting up libnghttp2-14:amd64 (1.64.0-1.1) ...
+Setting up libcom-err2:amd64 (1.47.2-3+b3) ...
+Setting up libkrb5support0:amd64 (1.21.3-5) ...
+Setting up libsasl2-modules-db:amd64 (2.1.28+dfsg1-9) ...
+Setting up libp11-kit0:amd64 (0.25.5-3) ...
+Setting up libunistring5:amd64 (1.3-2) ...
+Setting up libk5crypto3:amd64 (1.21.3-5) ...
+Setting up libsasl2-2:amd64 (2.1.28+dfsg1-9) ...
+Setting up libnghttp3-9:amd64 (1.8.0-1) ...
+Setting up libtasn1-6:amd64 (4.20.0-2) ...
+Setting up libkrb5-3:amd64 (1.21.3-5) ...
+Setting up libssh2-1t64:amd64 (1.11.1-1) ...
+Setting up libldap2:amd64 (2.6.10+dfsg-1) ...
+Setting up libidn2-0:amd64 (2.3.8-2) ...
+Setting up libgssapi-krb5-2:amd64 (1.21.3-5) ...
+Setting up libgnutls30t64:amd64 (3.8.9-3) ...
+Setting up libpsl5t64:amd64 (0.21.2-1.1+b1) ...
+Setting up librtmp1:amd64 (2.4+20151223.gitfa8646d.1-2+b5) ...
+Setting up libcurl4t64:amd64 (8.14.1-2+deb13u2) ...
+Setting up curl (8.14.1-2+deb13u2) ...
+Processing triggers for libc-bin (2.41-12) ...
+--> 4377222d0924
+STEP 6/23: COPY requirements.txt ./requirements-original.txt
+--> e18201114083
+STEP 7/23: RUN grep -v -E "^(torch|torchvision|torchaudio|sentence-transformers|transformers|accelerate|huggingface-hub|safetensors|sympy)"     requirements-original.txt > requirements.txt || true
+--> 691d6ea49288
+STEP 8/23: RUN echo "=== requirements.txt limpio ===" && cat requirements.txt && echo "==="
+=== requirements.txt limpio ===
+# This file was autogenerated by uv via the following command:
+#    uv pip compile requirements.in -o requirements.txt
+async-timeout>=4.0.3
+    # via redis
+blinker>=1.6
+    # via flask
+cachelib>=0.13.0
+    # via flask-session
+certifi>=2025.10.5
+    # via requests
+cffi>=2.0.0
+    # via cryptography
+charset-normalizer>=2.1.1
+    # via
+    #   pdfminer-six
+    #   requests
+click>=8.2.1
+    # via flask
+cryptography>=46.0.3
+    # via pdfminer-six
+deprecated>=1.3.1
+    # via limits
+et-xmlfile>=2.0.0
+    # via openpyxl
+filelock>=3.20.0
+    # via
+    #   huggingface-hub
+    #   transformers
+flask>=3.1.2
+    # via
+    #   -r requirements.in
+    #   flask-cors
+    #   flask-limiter
+    #   flask-session
+flask-cors>=6.0.1
+    # via -r requirements.in
+flask-limiter>=4.0.0
+    # via -r requirements.in
+flask-session>=0.8.0
+    # via -r requirements.in
+fsspec>=2025.10.0
+    # via
+    #   huggingface-hub
+fuzzywuzzy>=0.18.0
+    # via -r requirements.in
+gunicorn>=23.0.0
+    # via -r requirements.in
+hf-xet>=1.2.0
+    # via huggingface-hub
+    # via
+    #   sentence-transformers
+    #   tokenizers
+    #   transformers
+idna>=3.11
+    # via requests
+itsdangerous>=2.2.0
+    # via flask
+jinja2>=3.1.6
+    # via
+    #   flask
+joblib>=1.5.2
+    # via scikit-learn
+lark>=1.3.1
+    # via -r requirements.in
+levenshtein>=0.27.1
+    # via python-levenshtein
+limits>=5.6.0
+    # via flask-limiter
+markdown-it-py>=4.0.0
+    # via rich
+markupsafe>=2.1.5
+    # via
+    #   flask
+    #   jinja2
+    #   werkzeug
+mdurl>=0.1.2
+    # via markdown-it-py
+mpmath>=1.3.0
+    # via sympy
+msgspec>=0.19.0
+    # via flask-session
+networkx>=3.2.1
+    # via
+    #   -r requirements.in
+numpy>=1.26.4
+    # via
+    #   -r requirements.in
+    #   pandas
+    #   scikit-learn
+    #   scipy
+    #   transformers
+    # via
+    # via
+    # via
+openpyxl>=3.1.5
+    # via -r requirements.in
+ordered-set>=4.1.0
+    # via flask-limiter
+packaging>=25.0
+    # via
+    #   gunicorn
+    #   huggingface-hub
+    #   limits
+    #   transformers
+pandas>=2.3.2
+    # via -r requirements.in
+pdfminer-six>=20251107
+    # via pdfplumber
+pdfplumber>=0.11.8
+    # via -r requirements.in
+pillow>=11.3.0
+    # via
+    #   pdfplumber
+    #   sentence-transformers
+psutil>=7.1.3
+    # via -r requirements.in
+pycparser>=2.23
+    # via cffi
+pygments>=2.19.2
+    # via rich
+pypdfium2>=5.0.0
+    # via pdfplumber
+python-dateutil>=2.9.0.post0
+    # via pandas
+python-dotenv>=0.21.0
+    # via -r requirements.in
+python-levenshtein>=0.27.1
+    # via -r requirements.in
+pytz>=2025.2
+    # via pandas
+pyyaml>=6.0.3
+    # via
+    #   huggingface-hub
+    #   transformers
+rapidfuzz>=3.14.1
+    # via levenshtein
+redis>=5.0
+    # via -r requirements.in
+regex>=2025.11.3
+    # via transformers
+requests>=2.32.5
+    # via
+    #   huggingface-hub
+    #   transformers
+rich>=14.2.0
+    # via flask-limiter
+    # via transformers
+scikit-learn>=1.7.2
+    # via sentence-transformers
+scipy>=1.15.3
+    # via
+    #   scikit-learn
+    #   sentence-transformers
+six>=1.17.0
+    # via python-dateutil
+threadpoolctl>=3.6.0
+    # via scikit-learn
+tokenizers>=0.22.1
+    # via transformers
+    # via sentence-transformers
+tqdm>=4.67.1
+    # via
+    #   huggingface-hub
+    #   sentence-transformers
+    #   transformers
+typing-extensions>=4.15.0
+    # via
+    #   cryptography
+    #   flask-limiter
+    #   huggingface-hub
+    #   limits
+    #   sentence-transformers
+tzdata>=2025.2
+    # via pandas
+unidecode>=1.4.0
+    # via -r requirements.in
+urllib3>=2.5.0
+    # via requests
+werkzeug>=3.1.3
+    # via
+    #   flask
+    #   flask-cors
+wrapt>=2.0.1
+    # via deprecated
+faiss-cpu>=1.7.4
+===
+--> 01f8558dd4fd
+STEP 9/23: RUN echo "torch==2.5.1+cpu" > /tmp/constraints.txt &&     echo "torchvision==0.20.1+cpu" >> /tmp/constraints.txt &&     echo "torchaudio==2.5.1+cpu" >> /tmp/constraints.txt &&     echo "sympy==1.13.1" >> /tmp/constraints.txt &&     cat /tmp/constraints.txt
+torch==2.5.1+cpu
+torchvision==0.20.1+cpu
+torchaudio==2.5.1+cpu
+sympy==1.13.1
+--> 9bd67ad3de64
+STEP 10/23: RUN pip install     torch==2.5.1+cpu     torchvision==0.20.1+cpu     torchaudio==2.5.1+cpu     --index-url https://download.pytorch.org/whl/cpu
+Looking in indexes: https://download.pytorch.org/whl/cpu
+Collecting torch==2.5.1+cpu
+  Downloading https://download.pytorch.org/whl/cpu/torch-2.5.1%2Bcpu-cp310-cp310-linux_x86_64.whl (174.7 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 174.7/174.7 MB 2.0 MB/s eta 0:00:00
+Collecting torchvision==0.20.1+cpu
+  Downloading https://download.pytorch.org/whl/cpu/torchvision-0.20.1%2Bcpu-cp310-cp310-linux_x86_64.whl (1.8 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.8/1.8 MB 1.1 MB/s eta 0:00:00
+Collecting torchaudio==2.5.1+cpu
+  Downloading https://download.pytorch.org/whl/cpu/torchaudio-2.5.1%2Bcpu-cp310-cp310-linux_x86_64.whl (1.7 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.7/1.7 MB 1.6 MB/s eta 0:00:00
+Collecting networkx
+  Obtaining dependency information for networkx from https://download.pytorch.org/whl/networkx-3.5-py3-none-any.whl.metadata
+  Downloading https://download.pytorch.org/whl/networkx-3.5-py3-none-any.whl.metadata (6.3 kB)
+Collecting jinja2
+  Obtaining dependency information for jinja2 from https://download.pytorch.org/whl/jinja2-3.1.6-py3-none-any.whl.metadata
+  Downloading https://download.pytorch.org/whl/jinja2-3.1.6-py3-none-any.whl.metadata (2.9 kB)
+Discarding https://download.pytorch.org/whl/jinja2-3.1.6-py3-none-any.whl (from https://download.pytorch.org/whl/cpu/jinja2/): Requested jinja2 from https://download.pytorch.org/whl/jinja2-3.1.6-py3-none-any.whl (from torch==2.5.1+cpu) has inconsistent Name: expected 'jinja2', but metadata has 'Jinja2'
+  Obtaining dependency information for jinja2 from https://download.pytorch.org/whl/Jinja2-3.1.4-py3-none-any.whl.metadata
+  Downloading https://download.pytorch.org/whl/Jinja2-3.1.4-py3-none-any.whl.metadata (2.6 kB)
+Discarding https://download.pytorch.org/whl/Jinja2-3.1.4-py3-none-any.whl#sha256=bc5dd2abb727a5319567b7a813e6a2e7318c39f4f487cfe6c89c6f9c7d25197d (from https://download.pytorch.org/whl/cpu/jinja2/): Requested jinja2 from https://download.pytorch.org/whl/Jinja2-3.1.4-py3-none-any.whl#sha256=bc5dd2abb727a5319567b7a813e6a2e7318c39f4f487cfe6c89c6f9c7d25197d (from torch==2.5.1+cpu) has inconsistent Name: expected 'jinja2', but metadata has 'Jinja2'
+  Downloading https://download.pytorch.org/whl/Jinja2-3.1.3-py3-none-any.whl (133 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 133.2/133.2 kB 2.6 MB/s eta 0:00:00
+Collecting fsspec
+  Obtaining dependency information for fsspec from https://download.pytorch.org/whl/fsspec-2025.9.0-py3-none-any.whl.metadata
+  Downloading https://download.pytorch.org/whl/fsspec-2025.9.0-py3-none-any.whl.metadata (10 kB)
+Collecting sympy==1.13.1
+  Downloading https://download.pytorch.org/whl/sympy-1.13.1-py3-none-any.whl (6.2 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 6.2/6.2 MB 1.9 MB/s eta 0:00:00
+Collecting typing-extensions>=4.8.0
+  Obtaining dependency information for typing-extensions>=4.8.0 from https://download.pytorch.org/whl/typing_extensions-4.15.0-py3-none-any.whl.metadata
+  Downloading https://download.pytorch.org/whl/typing_extensions-4.15.0-py3-none-any.whl.metadata (3.3 kB)
+Discarding https://download.pytorch.org/whl/typing_extensions-4.15.0-py3-none-any.whl (from https://download.pytorch.org/whl/cpu/typing-extensions/): Requested typing-extensions>=4.8.0 from https://download.pytorch.org/whl/typing_extensions-4.15.0-py3-none-any.whl (from torch==2.5.1+cpu) has inconsistent Name: expected 'typing-extensions', but metadata has 'typing_extensions'
+  Obtaining dependency information for typing-extensions>=4.8.0 from https://download.pytorch.org/whl/typing_extensions-4.14.0-py3-none-any.whl.metadata
+  Downloading https://download.pytorch.org/whl/typing_extensions-4.14.0-py3-none-any.whl.metadata (3.0 kB)
+Discarding https://download.pytorch.org/whl/typing_extensions-4.14.0-py3-none-any.whl (from https://download.pytorch.org/whl/cpu/typing-extensions/): Requested typing-extensions>=4.8.0 from https://download.pytorch.org/whl/typing_extensions-4.14.0-py3-none-any.whl (from torch==2.5.1+cpu) has inconsistent Name: expected 'typing-extensions', but metadata has 'typing_extensions'
+  Obtaining dependency information for typing-extensions>=4.8.0 from https://download.pytorch.org/whl/typing_extensions-4.12.2-py3-none-any.whl.metadata
+  Downloading https://download.pytorch.org/whl/typing_extensions-4.12.2-py3-none-any.whl.metadata (3.0 kB)
+Discarding https://download.pytorch.org/whl/typing_extensions-4.12.2-py3-none-any.whl (from https://download.pytorch.org/whl/cpu/typing-extensions/): Requested typing-extensions>=4.8.0 from https://download.pytorch.org/whl/typing_extensions-4.12.2-py3-none-any.whl (from torch==2.5.1+cpu) has inconsistent Name: expected 'typing-extensions', but metadata has 'typing_extensions'
+  Downloading https://download.pytorch.org/whl/typing_extensions-4.9.0-py3-none-any.whl (32 kB)
+Collecting filelock
+  Obtaining dependency information for filelock from https://download.pytorch.org/whl/filelock-3.19.1-py3-none-any.whl.metadata
+  Downloading https://download.pytorch.org/whl/filelock-3.19.1-py3-none-any.whl.metadata (2.1 kB)
+Collecting pillow!=8.3.*,>=5.3.0
+  Obtaining dependency information for pillow!=8.3.*,>=5.3.0 from https://download.pytorch.org/whl/pillow-11.3.0-cp310-cp310-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl.metadata
+  Downloading https://download.pytorch.org/whl/pillow-11.3.0-cp310-cp310-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl.metadata (9.0 kB)
+Collecting numpy
+  Obtaining dependency information for numpy from https://download.pytorch.org/whl/numpy-2.1.2-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata
+  Downloading https://download.pytorch.org/whl/numpy-2.1.2-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (60 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 60.9/60.9 kB 8.2 MB/s eta 0:00:00
+Collecting mpmath<1.4,>=1.1.0
+  Downloading https://download.pytorch.org/whl/mpmath-1.3.0-py3-none-any.whl (536 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 536.2/536.2 kB 1.6 MB/s eta 0:00:00
+Collecting MarkupSafe>=2.0
+  Downloading https://download.pytorch.org/whl/MarkupSafe-2.1.5-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (25 kB)
+Collecting networkx
+  Obtaining dependency information for networkx from https://download.pytorch.org/whl/networkx-3.3-py3-none-any.whl.metadata
+  Downloading https://download.pytorch.org/whl/networkx-3.3-py3-none-any.whl.metadata (5.1 kB)
+Downloading https://download.pytorch.org/whl/pillow-11.3.0-cp310-cp310-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl (6.6 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 6.6/6.6 MB 1.8 MB/s eta 0:00:00
+Downloading https://download.pytorch.org/whl/filelock-3.19.1-py3-none-any.whl (15 kB)
+Downloading https://download.pytorch.org/whl/fsspec-2025.9.0-py3-none-any.whl (199 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 199.3/199.3 kB 3.2 MB/s eta 0:00:00
+Downloading https://download.pytorch.org/whl/networkx-3.3-py3-none-any.whl (1.7 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.7/1.7 MB 1.5 MB/s eta 0:00:00
+Downloading https://download.pytorch.org/whl/numpy-2.1.2-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (16.3 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 16.3/16.3 MB 1.5 MB/s eta 0:00:00
+Downloading https://download.pytorch.org/whl/pillow-11.3.0-cp310-cp310-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl (6.6 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 6.6/6.6 MB 1.7 MB/s eta 0:00:00
+Downloading https://download.pytorch.org/whl/filelock-3.19.1-py3-none-any.whl (15 kB)
+Downloading https://download.pytorch.org/whl/fsspec-2025.9.0-py3-none-any.whl (199 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 199.3/199.3 kB 2.6 MB/s eta 0:00:00
+Downloading https://download.pytorch.org/whl/networkx-3.3-py3-none-any.whl (1.7 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.7/1.7 MB 2.2 MB/s eta 0:00:00
+Downloading https://download.pytorch.org/whl/numpy-2.1.2-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (16.3 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 16.3/16.3 MB 2.1 MB/s eta 0:00:00
+Installing collected packages: mpmath, typing-extensions, sympy, pillow, numpy, networkx, MarkupSafe, fsspec, filelock, jinja2, torch, torchvision, torchaudio
+Successfully installed MarkupSafe-2.1.5 filelock-3.19.1 fsspec-2025.9.0 jinja2-3.1.3 mpmath-1.3.0 networkx-3.3 numpy-2.1.2 pillow-11.3.0 sympy-1.13.1 torch-2.5.1+cpu torchaudio-2.5.1+cpu torchvision-0.20.1+cpu typing-extensions-4.9.0
+--> aaab5e6b48ad
+STEP 11/23: RUN python -c "import torch; print(f'[OK] PyTorch {torch.__version__}')"
+[OK] PyTorch 2.5.1+cpu
+--> bcb998441bdf
+STEP 12/23: RUN pip install     -c /tmp/constraints.txt     sentence-transformers     transformers     accelerate     huggingface-hub     safetensors
+Collecting sentence-transformers
+  Downloading sentence_transformers-5.1.2-py3-none-any.whl (488 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 488.0/488.0 kB 1.9 MB/s eta 0:00:00
+Collecting transformers
+  Downloading transformers-4.57.3-py3-none-any.whl (12.0 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 12.0/12.0 MB 2.6 MB/s eta 0:00:00
+Collecting accelerate
+  Downloading accelerate-1.12.0-py3-none-any.whl (380 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 380.9/380.9 kB 3.8 MB/s eta 0:00:00
+Collecting huggingface-hub
+  Downloading huggingface_hub-1.1.7-py3-none-any.whl (516 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 516.2/516.2 kB 2.1 MB/s eta 0:00:00
+Collecting safetensors
+  Downloading safetensors-0.7.0-cp38-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (507 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 507.2/507.2 kB 1.6 MB/s eta 0:00:00
+Collecting scipy
+  Downloading scipy-1.15.3-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (37.7 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 37.7/37.7 MB 2.2 MB/s eta 0:00:00
+Collecting scikit-learn
+  Downloading scikit_learn-1.7.2-cp310-cp310-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (9.7 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 9.7/9.7 MB 2.3 MB/s eta 0:00:00
+Collecting tqdm
+  Downloading tqdm-4.67.1-py3-none-any.whl (78 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 78.5/78.5 kB 1.2 MB/s eta 0:00:00
+Requirement already satisfied: typing_extensions>=4.5.0 in /usr/local/lib/python3.10/site-packages (from sentence-transformers) (4.9.0)
+Requirement already satisfied: torch>=1.11.0 in /usr/local/lib/python3.10/site-packages (from sentence-transformers) (2.5.1+cpu)
+Requirement already satisfied: Pillow in /usr/local/lib/python3.10/site-packages (from sentence-transformers) (11.3.0)
+Requirement already satisfied: filelock in /usr/local/lib/python3.10/site-packages (from transformers) (3.19.1)
+Collecting requests
+  Downloading requests-2.32.5-py3-none-any.whl (64 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 64.7/64.7 kB 2.2 MB/s eta 0:00:00
+Collecting regex!=2019.12.17
+  Downloading regex-2025.11.3-cp310-cp310-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (791 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 791.7/791.7 kB 2.3 MB/s eta 0:00:00
+Requirement already satisfied: numpy>=1.17 in /usr/local/lib/python3.10/site-packages (from transformers) (2.1.2)
+Collecting tokenizers<=0.23.0,>=0.22.0
+  Downloading tokenizers-0.22.1-cp39-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (3.3 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 3.3/3.3 MB 2.1 MB/s eta 0:00:00
+Collecting packaging>=20.0
+  Downloading packaging-25.0-py3-none-any.whl (66 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 66.5/66.5 kB 3.7 MB/s eta 0:00:00
+Collecting pyyaml>=5.1
+  Downloading pyyaml-6.0.3-cp310-cp310-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (770 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 770.3/770.3 kB 2.0 MB/s eta 0:00:00
+Collecting huggingface-hub
+  Downloading huggingface_hub-0.36.0-py3-none-any.whl (566 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 566.1/566.1 kB 2.0 MB/s eta 0:00:00
+Collecting psutil
+  Downloading psutil-7.1.3-cp36-abi3-manylinux2010_x86_64.manylinux_2_12_x86_64.manylinux_2_28_x86_64.whl (263 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 263.3/263.3 kB 9.5 MB/s eta 0:00:00
+Collecting hf-xet<2.0.0,>=1.1.3
+  Downloading hf_xet-1.2.0-cp37-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (3.3 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 3.3/3.3 MB 2.5 MB/s eta 0:00:00
+Requirement already satisfied: fsspec>=2023.5.0 in /usr/local/lib/python3.10/site-packages (from huggingface-hub) (2025.9.0)
+Requirement already satisfied: jinja2 in /usr/local/lib/python3.10/site-packages (from torch>=1.11.0->sentence-transformers) (3.1.3)
+Requirement already satisfied: sympy==1.13.1 in /usr/local/lib/python3.10/site-packages (from torch>=1.11.0->sentence-transformers) (1.13.1)
+Requirement already satisfied: networkx in /usr/local/lib/python3.10/site-packages (from torch>=1.11.0->sentence-transformers) (3.3)
+Requirement already satisfied: mpmath<1.4,>=1.1.0 in /usr/local/lib/python3.10/site-packages (from sympy==1.13.1->torch>=1.11.0->sentence-transformers) (1.3.0)
+Collecting charset_normalizer<4,>=2
+  Downloading charset_normalizer-3.4.4-cp310-cp310-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (153 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 153.6/153.6 kB 3.1 MB/s eta 0:00:00
+Collecting urllib3<3,>=1.21.1
+  Downloading urllib3-2.5.0-py3-none-any.whl (129 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 129.8/129.8 kB 2.6 MB/s eta 0:00:00
+Collecting certifi>=2017.4.17
+  Downloading certifi-2025.11.12-py3-none-any.whl (159 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 159.4/159.4 kB 2.4 MB/s eta 0:00:00
+Collecting idna<4,>=2.5
+  Downloading idna-3.11-py3-none-any.whl (71 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 71.0/71.0 kB 4.5 MB/s eta 0:00:00
+Collecting joblib>=1.2.0
+  Downloading joblib-1.5.2-py3-none-any.whl (308 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 308.4/308.4 kB 1.8 MB/s eta 0:00:00
+Collecting threadpoolctl>=3.1.0
+  Downloading threadpoolctl-3.6.0-py3-none-any.whl (18 kB)
+Requirement already satisfied: MarkupSafe>=2.0 in /usr/local/lib/python3.10/site-packages (from jinja2->torch>=1.11.0->sentence-transformers) (2.1.5)
+Installing collected packages: urllib3, tqdm, threadpoolctl, scipy, safetensors, regex, pyyaml, psutil, packaging, joblib, idna, hf-xet, charset_normalizer, certifi, scikit-learn, requests, huggingface-hub, tokenizers, accelerate, transformers, sentence-transformers
+Successfully installed accelerate-1.12.0 certifi-2025.11.12 charset_normalizer-3.4.4 hf-xet-1.2.0 huggingface-hub-0.36.0 idna-3.11 joblib-1.5.2 packaging-25.0 psutil-7.1.3 pyyaml-6.0.3 regex-2025.11.3 requests-2.32.5 safetensors-0.7.0 scikit-learn-1.7.2 scipy-1.15.3 sentence-transformers-5.1.2 threadpoolctl-3.6.0 tokenizers-0.22.1 tqdm-4.67.1 transformers-4.57.3 urllib3-2.5.0
+--> 07fdf16dbdbb
+STEP 13/23: RUN pip install     -c /tmp/constraints.txt     -r requirements.txt
+Collecting async-timeout>=4.0.3
+  Downloading async_timeout-5.0.1-py3-none-any.whl (6.2 kB)
+Collecting blinker>=1.6
+  Downloading blinker-1.9.0-py3-none-any.whl (8.5 kB)
+Collecting cachelib>=0.13.0
+  Downloading cachelib-0.13.0-py3-none-any.whl (20 kB)
+Requirement already satisfied: certifi>=2025.10.5 in /usr/local/lib/python3.10/site-packages (from -r requirements.txt (line 9)) (2025.11.12)
+Collecting cffi>=2.0.0
+  Downloading cffi-2.0.0-cp310-cp310-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (216 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 216.5/216.5 kB 1.5 MB/s eta 0:00:00
+Requirement already satisfied: charset-normalizer>=2.1.1 in /usr/local/lib/python3.10/site-packages (from -r requirements.txt (line 13)) (3.4.4)
+Collecting click>=8.2.1
+  Downloading click-8.3.1-py3-none-any.whl (108 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 108.3/108.3 kB 1.9 MB/s eta 0:00:00
+Collecting cryptography>=46.0.3
+  Downloading cryptography-46.0.3-cp38-abi3-manylinux_2_34_x86_64.whl (4.5 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 4.5/4.5 MB 1.8 MB/s eta 0:00:00
+Collecting deprecated>=1.3.1
+  Downloading deprecated-1.3.1-py2.py3-none-any.whl (11 kB)
+Collecting et-xmlfile>=2.0.0
+  Downloading et_xmlfile-2.0.0-py3-none-any.whl (18 kB)
+Collecting filelock>=3.20.0
+  Downloading filelock-3.20.0-py3-none-any.whl (16 kB)
+Collecting flask>=3.1.2
+  Downloading flask-3.1.2-py3-none-any.whl (103 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 103.3/103.3 kB 3.6 MB/s eta 0:00:00
+Collecting flask-cors>=6.0.1
+  Downloading flask_cors-6.0.1-py3-none-any.whl (13 kB)
+Collecting flask-limiter>=4.0.0
+  Downloading flask_limiter-4.0.0-py3-none-any.whl (29 kB)
+Collecting flask-session>=0.8.0
+  Downloading flask_session-0.8.0-py3-none-any.whl (24 kB)
+Collecting fsspec>=2025.10.0
+  Downloading fsspec-2025.10.0-py3-none-any.whl (200 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 201.0/201.0 kB 2.5 MB/s eta 0:00:00
+Collecting fuzzywuzzy>=0.18.0
+  Downloading fuzzywuzzy-0.18.0-py2.py3-none-any.whl (18 kB)
+Collecting gunicorn>=23.0.0
+  Downloading gunicorn-23.0.0-py3-none-any.whl (85 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 85.0/85.0 kB 18.4 MB/s eta 0:00:00
+Requirement already satisfied: hf-xet>=1.2.0 in /usr/local/lib/python3.10/site-packages (from -r requirements.txt (line 48)) (1.2.0)
+Requirement already satisfied: idna>=3.11 in /usr/local/lib/python3.10/site-packages (from -r requirements.txt (line 54)) (3.11)
+Collecting itsdangerous>=2.2.0
+  Downloading itsdangerous-2.2.0-py3-none-any.whl (16 kB)
+Collecting jinja2>=3.1.6
+  Downloading jinja2-3.1.6-py3-none-any.whl (134 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 134.9/134.9 kB 1.9 MB/s eta 0:00:00
+Requirement already satisfied: joblib>=1.5.2 in /usr/local/lib/python3.10/site-packages (from -r requirements.txt (line 61)) (1.5.2)
+Collecting lark>=1.3.1
+  Downloading lark-1.3.1-py3-none-any.whl (113 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 113.2/113.2 kB 5.5 MB/s eta 0:00:00
+Collecting levenshtein>=0.27.1
+  Downloading levenshtein-0.27.3-cp310-cp310-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl (153 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 153.1/153.1 kB 8.3 MB/s eta 0:00:00
+Collecting limits>=5.6.0
+  Downloading limits-5.6.0-py3-none-any.whl (60 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 60.6/60.6 kB 2.4 MB/s eta 0:00:00
+Collecting markdown-it-py>=4.0.0
+  Downloading markdown_it_py-4.0.0-py3-none-any.whl (87 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 87.3/87.3 kB 16.7 MB/s eta 0:00:00
+Requirement already satisfied: markupsafe>=2.1.5 in /usr/local/lib/python3.10/site-packages (from -r requirements.txt (line 71)) (2.1.5)
+Collecting mdurl>=0.1.2
+  Downloading mdurl-0.1.2-py3-none-any.whl (10.0 kB)
+Requirement already satisfied: mpmath>=1.3.0 in /usr/local/lib/python3.10/site-packages (from -r requirements.txt (line 78)) (1.3.0)
+Collecting msgspec>=0.19.0
+  Downloading msgspec-0.20.0-cp310-cp310-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (222 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 222.7/222.7 kB 2.6 MB/s eta 0:00:00
+Requirement already satisfied: networkx>=3.2.1 in /usr/local/lib/python3.10/site-packages (from -r requirements.txt (line 82)) (3.3)
+Requirement already satisfied: numpy>=1.26.4 in /usr/local/lib/python3.10/site-packages (from -r requirements.txt (line 85)) (2.1.2)
+Collecting openpyxl>=3.1.5
+  Downloading openpyxl-3.1.5-py2.py3-none-any.whl (250 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 250.9/250.9 kB 3.1 MB/s eta 0:00:00
+Collecting ordered-set>=4.1.0
+  Downloading ordered_set-4.1.0-py3-none-any.whl (7.6 kB)
+Requirement already satisfied: packaging>=25.0 in /usr/local/lib/python3.10/site-packages (from -r requirements.txt (line 99)) (25.0)
+Collecting pandas>=2.3.2
+  Downloading pandas-2.3.3-cp310-cp310-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl (12.8 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 12.8/12.8 MB 2.4 MB/s eta 0:00:00
+Collecting pdfminer-six>=20251107
+  Downloading pdfminer_six-20251107-py3-none-any.whl (5.6 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 5.6/5.6 MB 2.2 MB/s eta 0:00:00
+Collecting pdfplumber>=0.11.8
+  Downloading pdfplumber-0.11.8-py3-none-any.whl (60 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 60.0/60.0 kB 176.4 kB/s eta 0:00:00
+Requirement already satisfied: pillow>=11.3.0 in /usr/local/lib/python3.10/site-packages (from -r requirements.txt (line 111)) (11.3.0)
+Requirement already satisfied: psutil>=7.1.3 in /usr/local/lib/python3.10/site-packages (from -r requirements.txt (line 115)) (7.1.3)
+Collecting pycparser>=2.23
+  Downloading pycparser-2.23-py3-none-any.whl (118 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 118.1/118.1 kB 9.7 MB/s eta 0:00:00
+Collecting pygments>=2.19.2
+  Downloading pygments-2.19.2-py3-none-any.whl (1.2 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.2/1.2 MB 2.3 MB/s eta 0:00:00
+Collecting pypdfium2>=5.0.0
+  Downloading pypdfium2-5.1.0-py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (3.0 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 3.0/3.0 MB 1.8 MB/s eta 0:00:00
+Collecting python-dateutil>=2.9.0.post0
+  Downloading python_dateutil-2.9.0.post0-py2.py3-none-any.whl (229 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 229.9/229.9 kB 2.8 MB/s eta 0:00:00
+Collecting python-dotenv>=0.21.0
+  Downloading python_dotenv-1.2.1-py3-none-any.whl (21 kB)
+Collecting python-levenshtein>=0.27.1
+  Downloading python_levenshtein-0.27.3-py3-none-any.whl (9.5 kB)
+Collecting pytz>=2025.2
+  Downloading pytz-2025.2-py2.py3-none-any.whl (509 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 509.2/509.2 kB 1.8 MB/s eta 0:00:00
+Requirement already satisfied: pyyaml>=6.0.3 in /usr/local/lib/python3.10/site-packages (from -r requirements.txt (line 131)) (6.0.3)
+Collecting rapidfuzz>=3.14.1
+  Downloading rapidfuzz-3.14.3-cp310-cp310-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl (3.2 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 3.2/3.2 MB 1.8 MB/s eta 0:00:00
+Collecting redis>=5.0
+  Downloading redis-7.1.0-py3-none-any.whl (354 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 354.2/354.2 kB 2.8 MB/s eta 0:00:00
+Requirement already satisfied: regex>=2025.11.3 in /usr/local/lib/python3.10/site-packages (from -r requirements.txt (line 139)) (2025.11.3)
+Requirement already satisfied: requests>=2.32.5 in /usr/local/lib/python3.10/site-packages (from -r requirements.txt (line 141)) (2.32.5)
+Collecting rich>=14.2.0
+  Downloading rich-14.2.0-py3-none-any.whl (243 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 243.4/243.4 kB 2.2 MB/s eta 0:00:00
+Requirement already satisfied: scikit-learn>=1.7.2 in /usr/local/lib/python3.10/site-packages (from -r requirements.txt (line 148)) (1.7.2)
+Requirement already satisfied: scipy>=1.15.3 in /usr/local/lib/python3.10/site-packages (from -r requirements.txt (line 150)) (1.15.3)
+Collecting six>=1.17.0
+  Downloading six-1.17.0-py2.py3-none-any.whl (11 kB)
+Requirement already satisfied: threadpoolctl>=3.6.0 in /usr/local/lib/python3.10/site-packages (from -r requirements.txt (line 156)) (3.6.0)
+Requirement already satisfied: tokenizers>=0.22.1 in /usr/local/lib/python3.10/site-packages (from -r requirements.txt (line 158)) (0.22.1)
+Requirement already satisfied: tqdm>=4.67.1 in /usr/local/lib/python3.10/site-packages (from -r requirements.txt (line 161)) (4.67.1)
+Collecting typing-extensions>=4.15.0
+  Downloading typing_extensions-4.15.0-py3-none-any.whl (44 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 44.6/44.6 kB 9.2 MB/s eta 0:00:00
+Collecting tzdata>=2025.2
+  Downloading tzdata-2025.2-py2.py3-none-any.whl (347 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 347.8/347.8 kB 5.7 MB/s eta 0:00:00
+Collecting unidecode>=1.4.0
+  Downloading Unidecode-1.4.0-py3-none-any.whl (235 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 235.8/235.8 kB 2.8 MB/s eta 0:00:00
+Requirement already satisfied: urllib3>=2.5.0 in /usr/local/lib/python3.10/site-packages (from -r requirements.txt (line 177)) (2.5.0)
+Collecting werkzeug>=3.1.3
+  Downloading werkzeug-3.1.4-py3-none-any.whl (224 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 225.0/225.0 kB 2.7 MB/s eta 0:00:00
+Collecting wrapt>=2.0.1
+  Downloading wrapt-2.0.1-cp310-cp310-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl (113 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 113.7/113.7 kB 3.4 MB/s eta 0:00:00
+Collecting faiss-cpu>=1.7.4
+  Downloading faiss_cpu-1.13.0-cp39-abi3-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl (23.6 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 23.6/23.6 MB 2.5 MB/s eta 0:00:00
+Requirement already satisfied: huggingface-hub<2.0,>=0.16.4 in /usr/local/lib/python3.10/site-packages (from tokenizers>=0.22.1->-r requirements.txt (line 158)) (0.36.0)
+Installing collected packages: pytz, fuzzywuzzy, wrapt, werkzeug, unidecode, tzdata, typing-extensions, six, rapidfuzz, python-dotenv, pypdfium2, pygments, pycparser, ordered-set, msgspec, mdurl, lark, jinja2, itsdangerous, gunicorn, fsspec, filelock, faiss-cpu, et-xmlfile, click, cachelib, blinker, async-timeout, redis, python-dateutil, openpyxl, markdown-it-py, levenshtein, flask, deprecated, cffi, rich, python-levenshtein, pandas, limits, flask-session, flask-cors, cryptography, pdfminer-six, flask-limiter, pdfplumber
+  Attempting uninstall: typing-extensions
+    Found existing installation: typing_extensions 4.9.0
+    Uninstalling typing_extensions-4.9.0:
+      Successfully uninstalled typing_extensions-4.9.0
+  Attempting uninstall: jinja2
+    Found existing installation: Jinja2 3.1.3
+    Uninstalling Jinja2-3.1.3:
+      Successfully uninstalled Jinja2-3.1.3
+  Attempting uninstall: fsspec
+    Found existing installation: fsspec 2025.9.0
+    Uninstalling fsspec-2025.9.0:
+      Successfully uninstalled fsspec-2025.9.0
+  Attempting uninstall: filelock
+    Found existing installation: filelock 3.19.1
+    Uninstalling filelock-3.19.1:
+      Successfully uninstalled filelock-3.19.1
+Successfully installed async-timeout-5.0.1 blinker-1.9.0 cachelib-0.13.0 cffi-2.0.0 click-8.3.1 cryptography-46.0.3 deprecated-1.3.1 et-xmlfile-2.0.0 faiss-cpu-1.13.0 filelock-3.20.0 flask-3.1.2 flask-cors-6.0.1 flask-limiter-4.0.0 flask-session-0.8.0 fsspec-2025.10.0 fuzzywuzzy-0.18.0 gunicorn-23.0.0 itsdangerous-2.2.0 jinja2-3.1.6 lark-1.3.1 levenshtein-0.27.3 limits-5.6.0 markdown-it-py-4.0.0 mdurl-0.1.2 msgspec-0.20.0 openpyxl-3.1.5 ordered-set-4.1.0 pandas-2.3.3 pdfminer-six-20251107 pdfplumber-0.11.8 pycparser-2.23 pygments-2.19.2 pypdfium2-5.1.0 python-dateutil-2.9.0.post0 python-dotenv-1.2.1 python-levenshtein-0.27.3 pytz-2025.2 rapidfuzz-3.14.3 redis-7.1.0 rich-14.2.0 six-1.17.0 typing-extensions-4.15.0 tzdata-2025.2 unidecode-1.4.0 werkzeug-3.1.4 wrapt-2.0.1
+--> e977688cb4c5
+STEP 14/23: RUN pip install gunicorn
+Requirement already satisfied: gunicorn in /usr/local/lib/python3.10/site-packages (23.0.0)
+Requirement already satisfied: packaging in /usr/local/lib/python3.10/site-packages (from gunicorn) (25.0)
+--> 3355627accae
+STEP 15/23: RUN python -c "import torch; v = torch.__version__; print(f'Verificando torch: {v}'); assert v == '2.5.1+cpu', f'FALLO: torch es {v}, debería ser 2.5.1+cpu'; print('[OK] torch==2.5.1+cpu confirmado')"
+Verificando torch: 2.5.1+cpu
+[OK] torch==2.5.1+cpu confirmado
+--> 91423f0d8369
+STEP 16/23: RUN useradd --create-home --shell /bin/bash --uid 1000 --user-group apu_user &&     chown -R apu_user:apu_user /app &&     rm -f /tmp/constraints.txt requirements-original.txt
+--> dccb5d36c3e4
+STEP 17/23: USER apu_user
+--> 3b3c0373fb14
+STEP 18/23: COPY --chown=apu_user:apu_user app/ /app/app/
+--> dd0adc541c1b
+STEP 19/23: COPY --chown=apu_user:apu_user config/ /app/config/
+--> 98500b5d8c46
+STEP 20/23: COPY --chown=apu_user:apu_user wsgi.py /app/wsgi.py
+--> 989fc0ff2a74
+STEP 21/23: EXPOSE 5002
+--> 8c13cc391958
+STEP 22/23: HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3     CMD curl -f http://localhost:5002/health || exit 1
+time="2025-12-02T17:01:56-05:00" level=warning msg="HEALTHCHECK is not supported for OCI image format and will be ignored. Must use `docker` format"
+--> 53cfe7800a47
+STEP 23/23: CMD ["gunicorn", "--workers", "4", "--bind", "0.0.0.0:5002", "--timeout", "120", "wsgi:app"]
+COMMIT apu-core:latest
+time="2025-12-02T17:01:57-05:00" level=warning msg="HEALTHCHECK is not supported for OCI image format and will be ignored. Must use `docker` format"
+--> 373348759748
+Successfully tagged localhost/apu-core:latest
+373348759748e3405266ee9d5a232b42bfbceca56f1d586331a565483ab47c53
+exit code: 0
+['podman', 'inspect', '-t', 'image', '-f', '{{.Id}}', 'apu-agent:latest']
+Error: apu-agent:latest: image not known
+podman build -f ./infrastructure/Dockerfile.agent -t apu-agent:latest .
+STEP 1/18: FROM python:3.10-slim
+STEP 2/18: LABEL maintainer="equipo-desarrollo"       version="6.0"       description="Agente orquestador con PyTorch CPU"
+--> Using cache 1110e037ee0d9ef16fc8171ba329166bc44f7495aac3d7a1cd6f320d2b0f08b4
+--> 1110e037ee0d
+STEP 3/18: ENV PYTHONUNBUFFERED=1     PYTHONDONTWRITEBYTECODE=1     PYTHONPATH=/app     PIP_NO_CACHE_DIR=1     PIP_DISABLE_PIP_VERSION_CHECK=1     PIP_ROOT_USER_ACTION=ignore
+--> Using cache af9bc8ed4acd65de6e6de8aa9fdf4bb4d8292c520a9ffd4351361afd52c897b2
+--> af9bc8ed4acd
+STEP 4/18: WORKDIR /app
+--> Using cache 45f8d3c1eabbf0eec3e2d18ab7d651c9c68402a1aa3202a66a0e0ecb1d6ab399
+--> 45f8d3c1eabb
+STEP 5/18: COPY requirements.txt ./req-base-original.txt
+--> Using cache c22d86a83e598fbb022ff79af6ea72f101f96df4c5d43fa276e52dd653e7375f
+--> c22d86a83e59
+STEP 6/18: COPY requirements-agent.txt ./req-agent-original.txt
+--> Using cache 0a2abfe1271b7738b7f36019ac657be7a948210c83de446b9f9fa164e4946780
+--> 0a2abfe1271b
+STEP 7/18: RUN grep -v -E "^(torch|torchvision|torchaudio|sentence-transformers|transformers|accelerate|huggingface-hub|safetensors|sympy)"     req-base-original.txt > requirements.txt || true &&     grep -v -E "^(torch|torchvision|torchaudio|sentence-transformers|transformers|accelerate|huggingface-hub|safetensors|sympy)"     req-agent-original.txt > requirements-agent.txt || true
+--> Using cache 4963d17d7f836f8a64e2202bcd7328d6ff8b80007faf5aa39e1134a27affaf2d
+--> 4963d17d7f83
+STEP 8/18: RUN echo "torch==2.5.1+cpu" > /tmp/constraints.txt &&     echo "torchvision==0.20.1+cpu" >> /tmp/constraints.txt &&     echo "torchaudio==2.5.1+cpu" >> /tmp/constraints.txt &&     echo "sympy==1.13.1" >> /tmp/constraints.txt
+--> Using cache b48e54e49315fb53baef6ee2b39a5a36fff98cd14265ffcac805def6acb33d16
+--> b48e54e49315
+STEP 9/18: RUN pip install     torch==2.5.1+cpu     torchvision==0.20.1+cpu     torchaudio==2.5.1+cpu     --index-url https://download.pytorch.org/whl/cpu
+Looking in indexes: https://download.pytorch.org/whl/cpu
+Collecting torch==2.5.1+cpu
+  Downloading https://download.pytorch.org/whl/cpu/torch-2.5.1%2Bcpu-cp310-cp310-linux_x86_64.whl (174.7 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 174.7/174.7 MB 1.1 MB/s eta 0:00:00
+Collecting torchvision==0.20.1+cpu
+  Downloading https://download.pytorch.org/whl/cpu/torchvision-0.20.1%2Bcpu-cp310-cp310-linux_x86_64.whl (1.8 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.8/1.8 MB 1.1 MB/s eta 0:00:00
+Collecting torchaudio==2.5.1+cpu
+  Downloading https://download.pytorch.org/whl/cpu/torchaudio-2.5.1%2Bcpu-cp310-cp310-linux_x86_64.whl (1.7 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.7/1.7 MB 1.5 MB/s eta 0:00:00
+Collecting jinja2
+  Obtaining dependency information for jinja2 from https://download.pytorch.org/whl/jinja2-3.1.6-py3-none-any.whl.metadata
+  Downloading https://download.pytorch.org/whl/jinja2-3.1.6-py3-none-any.whl.metadata (2.9 kB)
+Discarding https://download.pytorch.org/whl/jinja2-3.1.6-py3-none-any.whl (from https://download.pytorch.org/whl/cpu/jinja2/): Requested jinja2 from https://download.pytorch.org/whl/jinja2-3.1.6-py3-none-any.whl (from torch==2.5.1+cpu) has inconsistent Name: expected 'jinja2', but metadata has 'Jinja2'
+  Obtaining dependency information for jinja2 from https://download.pytorch.org/whl/Jinja2-3.1.4-py3-none-any.whl.metadata
+  Downloading https://download.pytorch.org/whl/Jinja2-3.1.4-py3-none-any.whl.metadata (2.6 kB)
+Discarding https://download.pytorch.org/whl/Jinja2-3.1.4-py3-none-any.whl#sha256=bc5dd2abb727a5319567b7a813e6a2e7318c39f4f487cfe6c89c6f9c7d25197d (from https://download.pytorch.org/whl/cpu/jinja2/): Requested jinja2 from https://download.pytorch.org/whl/Jinja2-3.1.4-py3-none-any.whl#sha256=bc5dd2abb727a5319567b7a813e6a2e7318c39f4f487cfe6c89c6f9c7d25197d (from torch==2.5.1+cpu) has inconsistent Name: expected 'jinja2', but metadata has 'Jinja2'
+  Downloading https://download.pytorch.org/whl/Jinja2-3.1.3-py3-none-any.whl (133 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 133.2/133.2 kB 7.5 MB/s eta 0:00:00
+Collecting typing-extensions>=4.8.0
+  Obtaining dependency information for typing-extensions>=4.8.0 from https://download.pytorch.org/whl/typing_extensions-4.15.0-py3-none-any.whl.metadata
+  Downloading https://download.pytorch.org/whl/typing_extensions-4.15.0-py3-none-any.whl.metadata (3.3 kB)
+Discarding https://download.pytorch.org/whl/typing_extensions-4.15.0-py3-none-any.whl (from https://download.pytorch.org/whl/cpu/typing-extensions/): Requested typing-extensions>=4.8.0 from https://download.pytorch.org/whl/typing_extensions-4.15.0-py3-none-any.whl (from torch==2.5.1+cpu) has inconsistent Name: expected 'typing-extensions', but metadata has 'typing_extensions'
+  Obtaining dependency information for typing-extensions>=4.8.0 from https://download.pytorch.org/whl/typing_extensions-4.14.0-py3-none-any.whl.metadata
+  Downloading https://download.pytorch.org/whl/typing_extensions-4.14.0-py3-none-any.whl.metadata (3.0 kB)
+Discarding https://download.pytorch.org/whl/typing_extensions-4.14.0-py3-none-any.whl (from https://download.pytorch.org/whl/cpu/typing-extensions/): Requested typing-extensions>=4.8.0 from https://download.pytorch.org/whl/typing_extensions-4.14.0-py3-none-any.whl (from torch==2.5.1+cpu) has inconsistent Name: expected 'typing-extensions', but metadata has 'typing_extensions'
+  Obtaining dependency information for typing-extensions>=4.8.0 from https://download.pytorch.org/whl/typing_extensions-4.12.2-py3-none-any.whl.metadata
+  Downloading https://download.pytorch.org/whl/typing_extensions-4.12.2-py3-none-any.whl.metadata (3.0 kB)
+Discarding https://download.pytorch.org/whl/typing_extensions-4.12.2-py3-none-any.whl (from https://download.pytorch.org/whl/cpu/typing-extensions/): Requested typing-extensions>=4.8.0 from https://download.pytorch.org/whl/typing_extensions-4.12.2-py3-none-any.whl (from torch==2.5.1+cpu) has inconsistent Name: expected 'typing-extensions', but metadata has 'typing_extensions'
+  Downloading https://download.pytorch.org/whl/typing_extensions-4.9.0-py3-none-any.whl (32 kB)
+Collecting networkx
+  Obtaining dependency information for networkx from https://download.pytorch.org/whl/networkx-3.5-py3-none-any.whl.metadata
+  Downloading https://download.pytorch.org/whl/networkx-3.5-py3-none-any.whl.metadata (6.3 kB)
+Collecting fsspec
+  Obtaining dependency information for fsspec from https://download.pytorch.org/whl/fsspec-2025.9.0-py3-none-any.whl.metadata
+  Downloading https://download.pytorch.org/whl/fsspec-2025.9.0-py3-none-any.whl.metadata (10 kB)
+Collecting filelock
+  Obtaining dependency information for filelock from https://download.pytorch.org/whl/filelock-3.19.1-py3-none-any.whl.metadata
+  Downloading https://download.pytorch.org/whl/filelock-3.19.1-py3-none-any.whl.metadata (2.1 kB)
+Collecting sympy==1.13.1
+  Downloading https://download.pytorch.org/whl/sympy-1.13.1-py3-none-any.whl (6.2 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 6.2/6.2 MB 1.5 MB/s eta 0:00:00
+Collecting pillow!=8.3.*,>=5.3.0
+  Obtaining dependency information for pillow!=8.3.*,>=5.3.0 from https://download.pytorch.org/whl/pillow-11.3.0-cp310-cp310-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl.metadata
+  Downloading https://download.pytorch.org/whl/pillow-11.3.0-cp310-cp310-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl.metadata (9.0 kB)
+Collecting numpy
+  Obtaining dependency information for numpy from https://download.pytorch.org/whl/numpy-2.1.2-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata
+  Downloading https://download.pytorch.org/whl/numpy-2.1.2-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (60 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 60.9/60.9 kB 2.8 MB/s eta 0:00:00
+Collecting mpmath<1.4,>=1.1.0
+  Downloading https://download.pytorch.org/whl/mpmath-1.3.0-py3-none-any.whl (536 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 536.2/536.2 kB 1.4 MB/s eta 0:00:00
+Collecting MarkupSafe>=2.0
+  Downloading https://download.pytorch.org/whl/MarkupSafe-2.1.5-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (25 kB)
+Collecting networkx
+  Obtaining dependency information for networkx from https://download.pytorch.org/whl/networkx-3.3-py3-none-any.whl.metadata
+  Downloading https://download.pytorch.org/whl/networkx-3.3-py3-none-any.whl.metadata (5.1 kB)
+Downloading https://download.pytorch.org/whl/pillow-11.3.0-cp310-cp310-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl (6.6 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 6.6/6.6 MB 1.9 MB/s eta 0:00:00
+Downloading https://download.pytorch.org/whl/filelock-3.19.1-py3-none-any.whl (15 kB)
+Downloading https://download.pytorch.org/whl/fsspec-2025.9.0-py3-none-any.whl (199 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 199.3/199.3 kB 974.8 kB/s eta 0:00:00
+Downloading https://download.pytorch.org/whl/networkx-3.3-py3-none-any.whl (1.7 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.7/1.7 MB 2.1 MB/s eta 0:00:00
+Downloading https://download.pytorch.org/whl/numpy-2.1.2-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (16.3 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 16.3/16.3 MB 2.0 MB/s eta 0:00:00
+Downloading https://download.pytorch.org/whl/pillow-11.3.0-cp310-cp310-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl (6.6 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 6.6/6.6 MB 2.1 MB/s eta 0:00:00
+Downloading https://download.pytorch.org/whl/filelock-3.19.1-py3-none-any.whl (15 kB)
+Downloading https://download.pytorch.org/whl/fsspec-2025.9.0-py3-none-any.whl (199 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 199.3/199.3 kB 2.3 MB/s eta 0:00:00
+Downloading https://download.pytorch.org/whl/networkx-3.3-py3-none-any.whl (1.7 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.7/1.7 MB 1.8 MB/s eta 0:00:00
+Downloading https://download.pytorch.org/whl/numpy-2.1.2-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (16.3 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 16.3/16.3 MB 1.9 MB/s eta 0:00:00
+Installing collected packages: mpmath, typing-extensions, sympy, pillow, numpy, networkx, MarkupSafe, fsspec, filelock, jinja2, torch, torchvision, torchaudio
+Successfully installed MarkupSafe-2.1.5 filelock-3.19.1 fsspec-2025.9.0 jinja2-3.1.3 mpmath-1.3.0 networkx-3.3 numpy-2.1.2 pillow-11.3.0 sympy-1.13.1 torch-2.5.1+cpu torchaudio-2.5.1+cpu torchvision-0.20.1+cpu typing-extensions-4.9.0
+--> a50315bc5031
+STEP 10/18: RUN python -c "import torch; print(f'[OK] PyTorch {torch.__version__}')"
+[OK] PyTorch 2.5.1+cpu
+--> 04495ca54145
+STEP 11/18: RUN pip install     -c /tmp/constraints.txt     sentence-transformers     transformers     accelerate     huggingface-hub     safetensors
+Collecting sentence-transformers
+  Downloading sentence_transformers-5.1.2-py3-none-any.whl (488 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 488.0/488.0 kB 1.3 MB/s eta 0:00:00
+Collecting transformers
+  Downloading transformers-4.57.3-py3-none-any.whl (12.0 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 12.0/12.0 MB 1.9 MB/s eta 0:00:00
+Collecting accelerate
+  Downloading accelerate-1.12.0-py3-none-any.whl (380 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 380.9/380.9 kB 2.1 MB/s eta 0:00:00
+Collecting huggingface-hub
+  Downloading huggingface_hub-1.1.7-py3-none-any.whl (516 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 516.2/516.2 kB 2.2 MB/s eta 0:00:00
+Collecting safetensors
+  Downloading safetensors-0.7.0-cp38-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (507 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 507.2/507.2 kB 1.5 MB/s eta 0:00:00
+Requirement already satisfied: Pillow in /usr/local/lib/python3.10/site-packages (from sentence-transformers) (11.3.0)
+Requirement already satisfied: typing_extensions>=4.5.0 in /usr/local/lib/python3.10/site-packages (from sentence-transformers) (4.9.0)
+Collecting scipy
+  Downloading scipy-1.15.3-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (37.7 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 37.7/37.7 MB 1.7 MB/s eta 0:00:00
+Requirement already satisfied: torch>=1.11.0 in /usr/local/lib/python3.10/site-packages (from sentence-transformers) (2.5.1+cpu)
+Collecting tqdm
+  Downloading tqdm-4.67.1-py3-none-any.whl (78 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 78.5/78.5 kB 1.7 MB/s eta 0:00:00
+Collecting scikit-learn
+  Downloading scikit_learn-1.7.2-cp310-cp310-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (9.7 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 9.7/9.7 MB 1.6 MB/s eta 0:00:00
+Collecting packaging>=20.0
+  Downloading packaging-25.0-py3-none-any.whl (66 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 66.5/66.5 kB 1.8 MB/s eta 0:00:00
+Collecting requests
+  Downloading requests-2.32.5-py3-none-any.whl (64 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 64.7/64.7 kB 2.1 MB/s eta 0:00:00
+Collecting huggingface-hub
+  Downloading huggingface_hub-0.36.0-py3-none-any.whl (566 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 566.1/566.1 kB 2.3 MB/s eta 0:00:00
+Requirement already satisfied: numpy>=1.17 in /usr/local/lib/python3.10/site-packages (from transformers) (2.1.2)
+Collecting regex!=2019.12.17
+  Downloading regex-2025.11.3-cp310-cp310-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (791 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 791.7/791.7 kB 825.4 kB/s eta 0:00:00
+Collecting pyyaml>=5.1
+  Downloading pyyaml-6.0.3-cp310-cp310-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (770 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 770.3/770.3 kB 1.2 MB/s eta 0:00:00
+Requirement already satisfied: filelock in /usr/local/lib/python3.10/site-packages (from transformers) (3.19.1)
+Collecting tokenizers<=0.23.0,>=0.22.0
+  Downloading tokenizers-0.22.1-cp39-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (3.3 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 3.3/3.3 MB 1.2 MB/s eta 0:00:00
+Collecting psutil
+  Downloading psutil-7.1.3-cp36-abi3-manylinux2010_x86_64.manylinux_2_12_x86_64.manylinux_2_28_x86_64.whl (263 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 263.3/263.3 kB 1.6 MB/s eta 0:00:00
+Collecting hf-xet<2.0.0,>=1.1.3
+  Downloading hf_xet-1.2.0-cp37-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (3.3 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 3.3/3.3 MB 1.4 MB/s eta 0:00:00
+Requirement already satisfied: fsspec>=2023.5.0 in /usr/local/lib/python3.10/site-packages (from huggingface-hub) (2025.9.0)
+Requirement already satisfied: jinja2 in /usr/local/lib/python3.10/site-packages (from torch>=1.11.0->sentence-transformers) (3.1.3)
+Requirement already satisfied: networkx in /usr/local/lib/python3.10/site-packages (from torch>=1.11.0->sentence-transformers) (3.3)
+Requirement already satisfied: sympy==1.13.1 in /usr/local/lib/python3.10/site-packages (from torch>=1.11.0->sentence-transformers) (1.13.1)
+Requirement already satisfied: mpmath<1.4,>=1.1.0 in /usr/local/lib/python3.10/site-packages (from sympy==1.13.1->torch>=1.11.0->sentence-transformers) (1.3.0)
+Collecting certifi>=2017.4.17
+  Downloading certifi-2025.11.12-py3-none-any.whl (159 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 159.4/159.4 kB 1.0 MB/s eta 0:00:00
+Collecting idna<4,>=2.5
+  Downloading idna-3.11-py3-none-any.whl (71 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 71.0/71.0 kB 1.7 MB/s eta 0:00:00
+Collecting urllib3<3,>=1.21.1
+  Downloading urllib3-2.5.0-py3-none-any.whl (129 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 129.8/129.8 kB 1.7 MB/s eta 0:00:00
+Collecting charset_normalizer<4,>=2
+  Downloading charset_normalizer-3.4.4-cp310-cp310-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (153 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 153.6/153.6 kB 1.4 MB/s eta 0:00:00
+Collecting joblib>=1.2.0
+  Downloading joblib-1.5.2-py3-none-any.whl (308 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 308.4/308.4 kB 1.1 MB/s eta 0:00:00
+Collecting threadpoolctl>=3.1.0
+  Downloading threadpoolctl-3.6.0-py3-none-any.whl (18 kB)
+Requirement already satisfied: MarkupSafe>=2.0 in /usr/local/lib/python3.10/site-packages (from jinja2->torch>=1.11.0->sentence-transformers) (2.1.5)
+Installing collected packages: urllib3, tqdm, threadpoolctl, scipy, safetensors, regex, pyyaml, psutil, packaging, joblib, idna, hf-xet, charset_normalizer, certifi, scikit-learn, requests, huggingface-hub, tokenizers, accelerate, transformers, sentence-transformers
+Successfully installed accelerate-1.12.0 certifi-2025.11.12 charset_normalizer-3.4.4 hf-xet-1.2.0 huggingface-hub-0.36.0 idna-3.11 joblib-1.5.2 packaging-25.0 psutil-7.1.3 pyyaml-6.0.3 regex-2025.11.3 requests-2.32.5 safetensors-0.7.0 scikit-learn-1.7.2 scipy-1.15.3 sentence-transformers-5.1.2 threadpoolctl-3.6.0 tokenizers-0.22.1 tqdm-4.67.1 transformers-4.57.3 urllib3-2.5.0
+--> ffb437c798db
+STEP 12/18: RUN pip install -c /tmp/constraints.txt -r requirements.txt || true
+Collecting async-timeout>=4.0.3
+  Downloading async_timeout-5.0.1-py3-none-any.whl (6.2 kB)
+Collecting blinker>=1.6
+  Downloading blinker-1.9.0-py3-none-any.whl (8.5 kB)
+Collecting cachelib>=0.13.0
+  Downloading cachelib-0.13.0-py3-none-any.whl (20 kB)
+Requirement already satisfied: certifi>=2025.10.5 in /usr/local/lib/python3.10/site-packages (from -r requirements.txt (line 9)) (2025.11.12)
+Collecting cffi>=2.0.0
+  Downloading cffi-2.0.0-cp310-cp310-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (216 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 216.5/216.5 kB 1.2 MB/s eta 0:00:00
+Requirement already satisfied: charset-normalizer>=2.1.1 in /usr/local/lib/python3.10/site-packages (from -r requirements.txt (line 13)) (3.4.4)
+Collecting click>=8.2.1
+  Downloading click-8.3.1-py3-none-any.whl (108 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 108.3/108.3 kB 1.9 MB/s eta 0:00:00
+Collecting cryptography>=46.0.3
+  Downloading cryptography-46.0.3-cp38-abi3-manylinux_2_34_x86_64.whl (4.5 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 4.5/4.5 MB 1.6 MB/s eta 0:00:00
+Collecting deprecated>=1.3.1
+  Downloading deprecated-1.3.1-py2.py3-none-any.whl (11 kB)
+Collecting et-xmlfile>=2.0.0
+  Downloading et_xmlfile-2.0.0-py3-none-any.whl (18 kB)
+Collecting filelock>=3.20.0
+  Downloading filelock-3.20.0-py3-none-any.whl (16 kB)
+Collecting flask>=3.1.2
+  Downloading flask-3.1.2-py3-none-any.whl (103 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 103.3/103.3 kB 1.1 MB/s eta 0:00:00
+Collecting flask-cors>=6.0.1
+  Downloading flask_cors-6.0.1-py3-none-any.whl (13 kB)
+Collecting flask-limiter>=4.0.0
+  Downloading flask_limiter-4.0.0-py3-none-any.whl (29 kB)
+Collecting flask-session>=0.8.0
+  Downloading flask_session-0.8.0-py3-none-any.whl (24 kB)
+Collecting fsspec>=2025.10.0
+  Downloading fsspec-2025.10.0-py3-none-any.whl (200 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 201.0/201.0 kB 1.6 MB/s eta 0:00:00
+Collecting fuzzywuzzy>=0.18.0
+  Downloading fuzzywuzzy-0.18.0-py2.py3-none-any.whl (18 kB)
+Collecting gunicorn>=23.0.0
+  Downloading gunicorn-23.0.0-py3-none-any.whl (85 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 85.0/85.0 kB 2.7 MB/s eta 0:00:00
+Requirement already satisfied: hf-xet>=1.2.0 in /usr/local/lib/python3.10/site-packages (from -r requirements.txt (line 48)) (1.2.0)
+Requirement already satisfied: idna>=3.11 in /usr/local/lib/python3.10/site-packages (from -r requirements.txt (line 54)) (3.11)
+Collecting itsdangerous>=2.2.0
+  Downloading itsdangerous-2.2.0-py3-none-any.whl (16 kB)
+Collecting jinja2>=3.1.6
+  Downloading jinja2-3.1.6-py3-none-any.whl (134 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 134.9/134.9 kB 1.4 MB/s eta 0:00:00
+Requirement already satisfied: joblib>=1.5.2 in /usr/local/lib/python3.10/site-packages (from -r requirements.txt (line 61)) (1.5.2)
+Collecting lark>=1.3.1
+  Downloading lark-1.3.1-py3-none-any.whl (113 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 113.2/113.2 kB 2.3 MB/s eta 0:00:00
+Collecting levenshtein>=0.27.1
+  Downloading levenshtein-0.27.3-cp310-cp310-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl (153 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 153.1/153.1 kB 923.4 kB/s eta 0:00:00
+Collecting limits>=5.6.0
+  Downloading limits-5.6.0-py3-none-any.whl (60 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 60.6/60.6 kB 1.9 MB/s eta 0:00:00
+Collecting markdown-it-py>=4.0.0
+  Downloading markdown_it_py-4.0.0-py3-none-any.whl (87 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 87.3/87.3 kB 1.5 MB/s eta 0:00:00
+Requirement already satisfied: markupsafe>=2.1.5 in /usr/local/lib/python3.10/site-packages (from -r requirements.txt (line 71)) (2.1.5)
+Collecting mdurl>=0.1.2
+  Downloading mdurl-0.1.2-py3-none-any.whl (10.0 kB)
+Requirement already satisfied: mpmath>=1.3.0 in /usr/local/lib/python3.10/site-packages (from -r requirements.txt (line 78)) (1.3.0)
+Collecting msgspec>=0.19.0
+  Downloading msgspec-0.20.0-cp310-cp310-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (222 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 222.7/222.7 kB 3.0 MB/s eta 0:00:00
+Requirement already satisfied: networkx>=3.2.1 in /usr/local/lib/python3.10/site-packages (from -r requirements.txt (line 82)) (3.3)
+Requirement already satisfied: numpy>=1.26.4 in /usr/local/lib/python3.10/site-packages (from -r requirements.txt (line 85)) (2.1.2)
+Collecting openpyxl>=3.1.5
+  Downloading openpyxl-3.1.5-py2.py3-none-any.whl (250 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 250.9/250.9 kB 15.0 MB/s eta 0:00:00
+Collecting ordered-set>=4.1.0
+  Downloading ordered_set-4.1.0-py3-none-any.whl (7.6 kB)
+Requirement already satisfied: packaging>=25.0 in /usr/local/lib/python3.10/site-packages (from -r requirements.txt (line 99)) (25.0)
+Collecting pandas>=2.3.2
+  Downloading pandas-2.3.3-cp310-cp310-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl (12.8 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 12.8/12.8 MB 2.0 MB/s eta 0:00:00
+Collecting pdfminer-six>=20251107
+  Downloading pdfminer_six-20251107-py3-none-any.whl (5.6 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 5.6/5.6 MB 1.5 MB/s eta 0:00:00
+Collecting pdfplumber>=0.11.8
+  Downloading pdfplumber-0.11.8-py3-none-any.whl (60 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 60.0/60.0 kB 2.6 MB/s eta 0:00:00
+Requirement already satisfied: pillow>=11.3.0 in /usr/local/lib/python3.10/site-packages (from -r requirements.txt (line 111)) (11.3.0)
+Requirement already satisfied: psutil>=7.1.3 in /usr/local/lib/python3.10/site-packages (from -r requirements.txt (line 115)) (7.1.3)
+Collecting pycparser>=2.23
+  Downloading pycparser-2.23-py3-none-any.whl (118 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 118.1/118.1 kB 2.1 MB/s eta 0:00:00
+Collecting pygments>=2.19.2
+  Downloading pygments-2.19.2-py3-none-any.whl (1.2 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.2/1.2 MB 1.8 MB/s eta 0:00:00
+Collecting pypdfium2>=5.0.0
+  Downloading pypdfium2-5.1.0-py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (3.0 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 3.0/3.0 MB 943.5 kB/s eta 0:00:00
+Collecting python-dateutil>=2.9.0.post0
+  Downloading python_dateutil-2.9.0.post0-py2.py3-none-any.whl (229 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 229.9/229.9 kB 1.5 MB/s eta 0:00:00
+Collecting python-dotenv>=0.21.0
+  Downloading python_dotenv-1.2.1-py3-none-any.whl (21 kB)
+Collecting python-levenshtein>=0.27.1
+  Downloading python_levenshtein-0.27.3-py3-none-any.whl (9.5 kB)
+Collecting pytz>=2025.2
+  Downloading pytz-2025.2-py2.py3-none-any.whl (509 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 509.2/509.2 kB 1.4 MB/s eta 0:00:00
+Requirement already satisfied: pyyaml>=6.0.3 in /usr/local/lib/python3.10/site-packages (from -r requirements.txt (line 131)) (6.0.3)
+Collecting rapidfuzz>=3.14.1
+  Downloading rapidfuzz-3.14.3-cp310-cp310-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl (3.2 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 3.2/3.2 MB 802.1 kB/s eta 0:00:00
+Collecting redis>=5.0
+  Downloading redis-7.1.0-py3-none-any.whl (354 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 354.2/354.2 kB 1.4 MB/s eta 0:00:00
+Requirement already satisfied: regex>=2025.11.3 in /usr/local/lib/python3.10/site-packages (from -r requirements.txt (line 139)) (2025.11.3)
+Requirement already satisfied: requests>=2.32.5 in /usr/local/lib/python3.10/site-packages (from -r requirements.txt (line 141)) (2.32.5)
+Collecting rich>=14.2.0
+  Downloading rich-14.2.0-py3-none-any.whl (243 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 243.4/243.4 kB 778.4 kB/s eta 0:00:00
+Requirement already satisfied: scikit-learn>=1.7.2 in /usr/local/lib/python3.10/site-packages (from -r requirements.txt (line 148)) (1.7.2)
+Requirement already satisfied: scipy>=1.15.3 in /usr/local/lib/python3.10/site-packages (from -r requirements.txt (line 150)) (1.15.3)
+Collecting six>=1.17.0
+  Downloading six-1.17.0-py2.py3-none-any.whl (11 kB)
+Requirement already satisfied: threadpoolctl>=3.6.0 in /usr/local/lib/python3.10/site-packages (from -r requirements.txt (line 156)) (3.6.0)
+Requirement already satisfied: tokenizers>=0.22.1 in /usr/local/lib/python3.10/site-packages (from -r requirements.txt (line 158)) (0.22.1)
+Requirement already satisfied: tqdm>=4.67.1 in /usr/local/lib/python3.10/site-packages (from -r requirements.txt (line 161)) (4.67.1)
+Collecting typing-extensions>=4.15.0
+  Downloading typing_extensions-4.15.0-py3-none-any.whl (44 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 44.6/44.6 kB 750.6 kB/s eta 0:00:00
+Collecting tzdata>=2025.2
+  Downloading tzdata-2025.2-py2.py3-none-any.whl (347 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 347.8/347.8 kB 747.7 kB/s eta 0:00:00
+Collecting unidecode>=1.4.0
+  Downloading Unidecode-1.4.0-py3-none-any.whl (235 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 235.8/235.8 kB 1.1 MB/s eta 0:00:00
+Requirement already satisfied: urllib3>=2.5.0 in /usr/local/lib/python3.10/site-packages (from -r requirements.txt (line 177)) (2.5.0)
+Collecting werkzeug>=3.1.3
+  Downloading werkzeug-3.1.4-py3-none-any.whl (224 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 225.0/225.0 kB 541.7 kB/s eta 0:00:00
+Collecting wrapt>=2.0.1
+  Downloading wrapt-2.0.1-cp310-cp310-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl (113 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 113.7/113.7 kB 439.0 kB/s eta 0:00:00
+Collecting faiss-cpu>=1.7.4
+  Downloading faiss_cpu-1.13.0-cp39-abi3-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl (23.6 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 23.6/23.6 MB 2.0 MB/s eta 0:00:00
+Requirement already satisfied: huggingface-hub<2.0,>=0.16.4 in /usr/local/lib/python3.10/site-packages (from tokenizers>=0.22.1->-r requirements.txt (line 158)) (0.36.0)
+Installing collected packages: pytz, fuzzywuzzy, wrapt, werkzeug, unidecode, tzdata, typing-extensions, six, rapidfuzz, python-dotenv, pypdfium2, pygments, pycparser, ordered-set, msgspec, mdurl, lark, jinja2, itsdangerous, gunicorn, fsspec, filelock, faiss-cpu, et-xmlfile, click, cachelib, blinker, async-timeout, redis, python-dateutil, openpyxl, markdown-it-py, levenshtein, flask, deprecated, cffi, rich, python-levenshtein, pandas, limits, flask-session, flask-cors, cryptography, pdfminer-six, flask-limiter, pdfplumber
+  Attempting uninstall: typing-extensions
+    Found existing installation: typing_extensions 4.9.0
+    Uninstalling typing_extensions-4.9.0:
+      Successfully uninstalled typing_extensions-4.9.0
+  Attempting uninstall: jinja2
+    Found existing installation: Jinja2 3.1.3
+    Uninstalling Jinja2-3.1.3:
+      Successfully uninstalled Jinja2-3.1.3
+  Attempting uninstall: fsspec
+    Found existing installation: fsspec 2025.9.0
+    Uninstalling fsspec-2025.9.0:
+      Successfully uninstalled fsspec-2025.9.0
+  Attempting uninstall: filelock
+    Found existing installation: filelock 3.19.1
+    Uninstalling filelock-3.19.1:
+      Successfully uninstalled filelock-3.19.1
+Successfully installed async-timeout-5.0.1 blinker-1.9.0 cachelib-0.13.0 cffi-2.0.0 click-8.3.1 cryptography-46.0.3 deprecated-1.3.1 et-xmlfile-2.0.0 faiss-cpu-1.13.0 filelock-3.20.0 flask-3.1.2 flask-cors-6.0.1 flask-limiter-4.0.0 flask-session-0.8.0 fsspec-2025.10.0 fuzzywuzzy-0.18.0 gunicorn-23.0.0 itsdangerous-2.2.0 jinja2-3.1.6 lark-1.3.1 levenshtein-0.27.3 limits-5.6.0 markdown-it-py-4.0.0 mdurl-0.1.2 msgspec-0.20.0 openpyxl-3.1.5 ordered-set-4.1.0 pandas-2.3.3 pdfminer-six-20251107 pdfplumber-0.11.8 pycparser-2.23 pygments-2.19.2 pypdfium2-5.1.0 python-dateutil-2.9.0.post0 python-dotenv-1.2.1 python-levenshtein-0.27.3 pytz-2025.2 rapidfuzz-3.14.3 redis-7.1.0 rich-14.2.0 six-1.17.0 typing-extensions-4.15.0 tzdata-2025.2 unidecode-1.4.0 werkzeug-3.1.4 wrapt-2.0.1
+--> a698d3ed64ba
+STEP 13/18: RUN pip install -c /tmp/constraints.txt -r requirements-agent.txt || true
+Requirement already satisfied: requests in /usr/local/lib/python3.10/site-packages (from -r requirements-agent.txt (line 1)) (2.32.5)
+Collecting schedule
+  Downloading schedule-1.2.2-py3-none-any.whl (12 kB)
+Requirement already satisfied: idna<4,>=2.5 in /usr/local/lib/python3.10/site-packages (from requests->-r requirements-agent.txt (line 1)) (3.11)
+Requirement already satisfied: charset_normalizer<4,>=2 in /usr/local/lib/python3.10/site-packages (from requests->-r requirements-agent.txt (line 1)) (3.4.4)
+Requirement already satisfied: certifi>=2017.4.17 in /usr/local/lib/python3.10/site-packages (from requests->-r requirements-agent.txt (line 1)) (2025.11.12)
+Requirement already satisfied: urllib3<3,>=1.21.1 in /usr/local/lib/python3.10/site-packages (from requests->-r requirements-agent.txt (line 1)) (2.5.0)
+Installing collected packages: schedule
+Successfully installed schedule-1.2.2
+--> b06b8177dc3f
+STEP 14/18: RUN python -c "import torch; v = torch.__version__; assert v == '2.5.1+cpu', f'FALLO: {v}'; print('[OK] torch==2.5.1+cpu')"
+[OK] torch==2.5.1+cpu
+--> 1c0e7fc79a8c
+STEP 15/18: RUN useradd --create-home --shell /bin/bash --uid 1000 --user-group apu_user &&     chown -R apu_user:apu_user /app &&     rm -f /tmp/constraints.txt req-*-original.txt
+--> 5dcbc7fce88a
+STEP 16/18: USER apu_user
+--> 2d084cf2e1c3
+STEP 17/18: COPY --chown=apu_user:apu_user agent/ /app/agent/
+--> a04dee0de273
+STEP 18/18: ENTRYPOINT ["python", "-u", "-m", "agent.orchestrator"]
+COMMIT apu-agent:latest
+--> a16308cac541
+Successfully tagged localhost/apu-agent:latest
+a16308cac54127e16d3de1fbf9731baa22fae4873c155b70c7d0d44d0e80918c
+exit code: 0
+['podman', 'ps', '--filter', 'label=io.podman.compose.project=apu', '-a', '--format', '{{ index .Labels "io.podman.compose.config-hash"}}']
+podman volume inspect apu_redis_data || podman volume create apu_redis_data
+['podman', 'volume', 'inspect', 'apu_redis_data']
+Error: no such volume apu_redis_data
+['podman', 'volume', 'create', '--label', 'io.podman.compose.project=apu', '--label', 'com.docker.compose.project=apu', 'apu_redis_data']
+['podman', 'volume', 'inspect', 'apu_redis_data']
+['podman', 'network', 'exists', 'apu_network']
+podman run --name=apu_redis -d --label io.podman.compose.config-hash=4934d530fa0d1d28ed20d2836593cc701710206f6ba552c3998555ac3cf1bc58 --label io.podman.compose.project=apu --label io.podman.compose.version=1.0.6 --label PODMAN_SYSTEMD_UNIT=podman-compose@apu.service --label com.docker.compose.project=apu --label com.docker.compose.project.working_dir=/home/gerardo/Documentos/GitHub/apu_filter --label com.docker.compose.project.config_files=compose.yaml --label com.docker.compose.container-number=1 --label com.docker.compose.service=redis -v apu_redis_data:/data --net apu_network --network-alias redis -p 6379:6379 --hostname redis --restart unless-stopped --healthcheck-command /bin/sh -c redis-cli' 'ping --healthcheck-interval 10s --healthcheck-timeout 5s --healthcheck-start-period 10s --healthcheck-retries 5 docker.io/library/redis:7-alpine redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+Trying to pull docker.io/library/redis:7-alpine...
+Getting image source signatures
+Copying blob sha256:60c57c0072ef228501beec5a8bee0d7ecc882dee9afd91fc7a58e3f9d9da64c5
+Copying blob sha256:232f7549c9b07a752bb00c7d7a61b3bfe6af3f15a711ba643c132f0e51922a64
+Copying blob sha256:f637881d1138581d892d9eb942c56e0ccc7758fe3bdc0f1e6cd66059fdfd8185
+Copying blob sha256:380e8aa8b1fdbd2887f9b1fa3e9d3cba192f9ff87956981dc8bd73cc6da39bfc
+Copying blob sha256:fc4343b4accd46fa853b1de6ee0ca92ab1f7080db3af6c4948678534d69cc159
+Copying blob sha256:c70aae7b5e0d75367bcf5d40074ae8e28d17793c251e0d505321aa8ea4fd91fd
+Copying blob sha256:4f4fb700ef54461cfa02571ae0db9a0dc1e0cdb5577484a6d75e68dc38e8acc1
+Copying blob sha256:d75b3becd998021da3bbfcb31fa6580676396f5244243670f57920652cce8038
+Copying config sha256:13105d2858ded45aedf7b24f0870e6a4e7ce4964924bffce68e562ca72149f1e
+Writing manifest to image destination
+e4ef2c8d5eba9110129b87604421c6be7937b8d930c0c7acc93996578e8f3381
+exit code: 0
+['podman', 'network', 'exists', 'apu_network']
+podman run --name=apu_core -d --requires=apu_redis --label io.podman.compose.config-hash=4934d530fa0d1d28ed20d2836593cc701710206f6ba552c3998555ac3cf1bc58 --label io.podman.compose.project=apu --label io.podman.compose.version=1.0.6 --label PODMAN_SYSTEMD_UNIT=podman-compose@apu.service --label com.docker.compose.project=apu --label com.docker.compose.project.working_dir=/home/gerardo/Documentos/GitHub/apu_filter --label com.docker.compose.project.config_files=compose.yaml --label com.docker.compose.container-number=1 --label com.docker.compose.service=core -e REDIS_URL=redis://redis:6379/0 -e FLASK_ENV=production -e PYTHONUNBUFFERED=1 -e PYTHONPATH=/app -v /home/gerardo/Documentos/GitHub/apu_filter/data:/app/data:Z -v /home/gerardo/Documentos/GitHub/apu_filter/logs:/app/logs:Z -v /home/gerardo/Documentos/GitHub/apu_filter/config:/app/config:Z,ro --net apu_network --network-alias core -p 5002:5002 --hostname core --pull never --restart unless-stopped --healthcheck-command /bin/sh -c curl' '-f' 'http://localhost:5002/health --healthcheck-interval 30s --healthcheck-timeout 10s --healthcheck-start-period 90s --healthcheck-retries 3 apu-core:latest
+3d7ddc9ba5d6b0a4389a52ba73f3828245e299368d2d628f3b0dc995f701ead4
+exit code: 0
+['podman', 'network', 'exists', 'apu_network']
+podman run --name=apu_agent -d --requires=apu_redis,apu_core --label io.podman.compose.config-hash=4934d530fa0d1d28ed20d2836593cc701710206f6ba552c3998555ac3cf1bc58 --label io.podman.compose.project=apu --label io.podman.compose.version=1.0.6 --label PODMAN_SYSTEMD_UNIT=podman-compose@apu.service --label com.docker.compose.project=apu --label com.docker.compose.project.working_dir=/home/gerardo/Documentos/GitHub/apu_filter --label com.docker.compose.project.config_files=compose.yaml --label com.docker.compose.container-number=1 --label com.docker.compose.service=agent -e CORE_API_URL=http://core:5002 -e REDIS_URL=redis://redis:6379/0 -e PYTHONUNBUFFERED=1 -e PYTHONPATH=/app -v /home/gerardo/Documentos/GitHub/apu_filter/logs:/app/logs:Z --net apu_network --network-alias agent --hostname agent --pull never --restart unless-stopped apu-agent:latest
+909e731e91df44ad39b967e7fc3a314696b8d8dbbf7a53c0999a220ebddb0a85
+exit code: 0
+[2025-12-02 17:16:40] [INFO] Esperando estabilización (10s)...
+[2025-12-02 17:16:51] [INFO] Estado de los contenedores:
+[2025-12-02 17:16:54] [SUCCESS] === APU Filter Ecosystem Operativo ===

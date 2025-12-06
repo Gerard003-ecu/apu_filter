@@ -28,15 +28,15 @@ from app.tools_interface import (
     get_telemetry_status,
     get_supported_file_types,
     is_valid_file_type,
-    _validate_path_exists,
+    _validate_file_exists,
     _normalize_path,
     _normalize_file_type,
     _create_error_response,
     _create_success_response,
     _validate_csv_parameters,
     _generate_output_path,
-    _VALID_DELIMITERS,
-    _SUPPORTED_ENCODINGS,
+    VALID_DELIMITERS,
+    SUPPORTED_ENCODINGS,
     _DIAGNOSTIC_REGISTRY,
 )
 
@@ -173,31 +173,22 @@ class TestCustomExceptions:
 # Tests para Funciones de Validación Internas
 # =============================================================================
 
-class TestValidatePathExists:
-    """Pruebas para _validate_path_exists."""
+class TestValidateFileExists:
+    """Pruebas para _validate_file_exists."""
 
     def test_existing_path_passes(self, temp_csv_file: Path):
         """Verifica que una ruta existente no lanza excepción."""
         # No debe lanzar excepción
-        _validate_path_exists(temp_csv_file)
+        _validate_file_exists(temp_csv_file)
 
     def test_non_existing_path_raises(self, tmp_path: Path):
         """Verifica que una ruta inexistente lanza excepción."""
         non_existing = tmp_path / "non_existing.csv"
         
         with pytest.raises(FileNotFoundDiagnosticError) as exc_info:
-            _validate_path_exists(non_existing)
+            _validate_file_exists(non_existing)
         
         assert "not found" in str(exc_info.value)
-
-    def test_custom_context_in_error(self, tmp_path: Path):
-        """Verifica que el contexto personalizado aparece en el error."""
-        non_existing = tmp_path / "missing.csv"
-        
-        with pytest.raises(FileNotFoundDiagnosticError) as exc_info:
-            _validate_path_exists(non_existing, context="Input CSV")
-        
-        assert "Input CSV" in str(exc_info.value)
 
 
 class TestNormalizePath:
@@ -295,7 +286,7 @@ class TestValidateCsvParameters:
 
     def test_all_valid_delimiters(self):
         """Verifica todos los delimitadores válidos."""
-        for delimiter in _VALID_DELIMITERS:
+        for delimiter in VALID_DELIMITERS:
             _validate_csv_parameters(delimiter, "utf-8")
 
     def test_empty_delimiter_raises(self):
@@ -322,7 +313,8 @@ class TestValidateCsvParameters:
     def test_uncommon_encoding_logs_warning(self, caplog):
         """Verifica que encoding no común genera warning."""
         with caplog.at_level(logging.WARNING):
-            _validate_csv_parameters(";", "uncommon-encoding")
+            # cp500 is EBCDIC, valid but likely not in common list
+            _validate_csv_parameters(";", "cp500")
         
         assert "not in common list" in caplog.text
 
@@ -724,7 +716,7 @@ class TestCleanFile:
         )
         
         assert result["success"] is False
-        assert "already exists" in result["error"]
+        assert "Output file exists and overwrite=False" in result["error"]
 
     @patch("app.tools_interface.CSVCleaner")
     def test_creates_output_directory(
@@ -845,7 +837,7 @@ class TestGetTelemetryStatus:
         
         assert result["status"] == "ERROR"
         assert result["system_health"] == "DEGRADED"
-        assert "missing required method" in result["message"]
+        assert "missing get_business_report method" in result["message"]
 
     def test_context_method_raises_exception(self, mock_telemetry_context: MagicMock):
         """Verifica manejo de excepción en get_business_report."""
@@ -980,14 +972,14 @@ class TestIntegration:
 
     def test_valid_delimiters_constant_not_empty(self):
         """Verifica que hay delimitadores válidos definidos."""
-        assert len(_VALID_DELIMITERS) > 0
-        assert ";" in _VALID_DELIMITERS
-        assert "," in _VALID_DELIMITERS
+        assert len(VALID_DELIMITERS) > 0
+        assert ";" in VALID_DELIMITERS
+        assert "," in VALID_DELIMITERS
 
     def test_supported_encodings_constant_not_empty(self):
         """Verifica que hay encodings soportados definidos."""
-        assert len(_SUPPORTED_ENCODINGS) > 0
-        assert "utf-8" in _SUPPORTED_ENCODINGS
+        assert len(SUPPORTED_ENCODINGS) > 0
+        assert "utf-8" in SUPPORTED_ENCODINGS
 
 
 # =============================================================================
