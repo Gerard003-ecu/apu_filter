@@ -16,3 +16,5 @@ logs/app.log.1
 test-results/
 verify_frontend.spec.js
 Miniconda3-latest-Linux-x86_64.sh
+logs/
+data/
