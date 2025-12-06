@@ -50,7 +50,7 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 90s
+      start_period: 300s
     volumes:
       - ./data:/app/data:Z
       - ./logs:/app/logs:Z
@@ -70,6 +70,7 @@ services:
     environment:
       - CORE_API_URL=http://core:5002
       - REDIS_URL=redis://redis:6379/0
+      - REQUEST_TIMEOUT=30
       - PYTHONUNBUFFERED=1
       - PYTHONPATH=/app
     #env_file:

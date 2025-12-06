@@ -4,7 +4,7 @@
 # Versión: 6.0 - Protección total contra reinstalación de torch
 # =============================================================================
 
-FROM python:3.10-slim
+FROM public.ecr.aws/docker/library/python:3.10-slim
 
 LABEL maintainer="equipo-desarrollo" \
       version="6.0" \
@@ -124,4 +124,4 @@ EXPOSE 5002
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
     CMD curl -f http://localhost:5002/health || exit 1
 
-CMD ["gunicorn", "--workers", "4", "--bind", "0.0.0.0:5002", "--timeout", "120", "wsgi:app"]
+CMD ["gunicorn", "--workers", "4", "--bind", "0.0.0.0:5002", "--timeout", "300", "--preload", "wsgi:app"]

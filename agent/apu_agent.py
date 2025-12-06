@@ -330,7 +330,7 @@ class AutonomousAgent:
     # Configuración por defecto
     DEFAULT_CORE_URL: str = "http://localhost:5002"
     DEFAULT_CHECK_INTERVAL: int = 10
-    DEFAULT_REQUEST_TIMEOUT: int = 5
+    DEFAULT_REQUEST_TIMEOUT: int = 10
     MAX_CONSECUTIVE_FAILURES: int = 5
     DEBOUNCE_WINDOW_SECONDS: int = 60
 
