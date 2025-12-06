@@ -44,7 +44,17 @@ log_warn()    { _log "WARN"    "${COLORS[YELLOW]}" "$1"; }
 log_error()   { _log "ERROR"   "${COLORS[RED]}"    "$1" >&2; }
 
 # --- Main Logic ---
+prepare_volumes() {
+    log_info "Preparando directorios de volúmenes..."
+    mkdir -p logs data
+    # Dar permisos amplios para evitar conflictos de UID entre host y contenedor
+    chmod 777 logs data
+    log_success "Permisos de volúmenes actualizados."
+}
+
 main() {
+    prepare_volumes
+
     mkdir -p "$LOG_DIR"
     touch "$LOG_FILE"
     
