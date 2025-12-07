@@ -1102,11 +1102,25 @@ def create_app(config_name: str) -> Flask:
     # RATE LIMITING
     # ========================================================================
 
+    def is_internal_traffic():
+        """
+        Determina si el tráfico es interno y debe ser eximido del rate limiting.
+        """
+        # Eximir por User-Agent específico (Alternativa simple y robusta)
+        if request.headers.get("User-Agent") == "APU-Agent-Internal":
+            return True
+
+        # Eximir por IP interna (Opcional, si se requiere más adelante)
+        # remote_addr = get_remote_address()
+        # return remote_addr.startswith(("10.", "172.16.", "192.168."))
+        return False
+
     limiter = Limiter(
         app=app,
         key_func=get_remote_address,
         default_limits=["200 per day", "50 per hour"],
         storage_uri=redis_url,
+        default_limits_exempt_when=is_internal_traffic,
     )
 
     # ========================================================================
