@@ -216,9 +216,13 @@ class SystemTopology:
 
     # Topología esperada: árbol con Core como hub
     EXPECTED_TOPOLOGY: FrozenSet[Tuple[str, str]] = frozenset({
-        ("Agent", "Core"),
+        # Plano de Datos (La Base)
         ("Core", "Redis"),
         ("Core", "Filesystem"),
+        # Plano de Control (La Cúspide - El Agente observa todo)
+        ("Agent", "Core"),
+        ("Agent", "Redis"),      # Nueva conexión lógica
+        ("Agent", "Filesystem")  # Nueva conexión lógica
     })
 
     def __init__(
@@ -640,6 +644,113 @@ class SystemTopology:
                 unexpected.add((u, v))
 
         return frozenset(unexpected)
+
+    # -------------------------------------------------------------------------
+    # Visualización
+    # -------------------------------------------------------------------------
+
+    def visualize_topology(self, output_path: str = "data/topology_status.png") -> bool:
+        """
+        Genera una imagen PNG del grafo actual vs esperado.
+
+        Las aristas existentes se dibujan en VERDE.
+        Las aristas faltantes se dibujan en ROJO PUNTEADO.
+
+        Args:
+            output_path: Ruta donde guardar la imagen.
+
+        Returns:
+            True si se generó correctamente.
+        """
+        try:
+            import matplotlib.pyplot as plt
+            # Usar backend no interactivo para evitar errores en entornos sin display
+            plt.switch_backend('Agg')
+        except ImportError:
+            logger.error("matplotlib no está instalado, no se puede visualizar")
+            return False
+
+        try:
+            # Crear figura
+            plt.figure(figsize=(10, 8))
+
+            # Crear grafo compuesto (actual + esperado)
+            viz_graph = nx.Graph()
+
+            # Agregar todos los nodos (actuales y esperados)
+            all_nodes = set(self._graph.nodes())
+            for u, v in self._expected_topology:
+                all_nodes.add(u)
+                all_nodes.add(v)
+            viz_graph.add_nodes_from(all_nodes)
+
+            # Clasificar aristas
+            existing_edges = []
+            missing_edges = []
+
+            # Aristas existentes (Verde)
+            for u, v in self._graph.edges():
+                viz_graph.add_edge(u, v)
+                existing_edges.append((u, v))
+
+            # Aristas faltantes (Rojo Punteado)
+            for u, v in self._expected_topology:
+                if not self._graph.has_edge(u, v):
+                    viz_graph.add_edge(u, v)
+                    missing_edges.append((u, v))
+
+            # Calcular layout
+            pos = nx.spring_layout(viz_graph, seed=42)  # Seed para consistencia
+
+            # Dibujar Nodos
+            nx.draw_networkx_nodes(
+                viz_graph, pos,
+                node_size=2000,
+                node_color='lightblue',
+                edgecolors='black'
+            )
+            nx.draw_networkx_labels(viz_graph, pos)
+
+            # Dibujar Aristas Existentes
+            if existing_edges:
+                nx.draw_networkx_edges(
+                    viz_graph, pos,
+                    edgelist=existing_edges,
+                    edge_color='green',
+                    width=2,
+                    style='solid',
+                    label='Activa'
+                )
+
+            # Dibujar Aristas Faltantes
+            if missing_edges:
+                nx.draw_networkx_edges(
+                    viz_graph, pos,
+                    edgelist=missing_edges,
+                    edge_color='red',
+                    width=2,
+                    style='dashed',
+                    label='Faltante'
+                )
+
+            plt.title(f"Estado Topológico del Sistema (Betti: {self.calculate_betti_numbers()})")
+            plt.legend(loc='upper right')
+            plt.axis('off')
+
+            # Asegurar directorio
+            import os
+            os.makedirs(os.path.dirname(output_path), exist_ok=True)
+
+            plt.savefig(output_path)
+            plt.close()
+
+            logger.info(f"Visualización guardada en: {output_path}")
+            return True
+
+        except Exception as e:
+            logger.error(f"Error generando visualización: {e}")
+            plt.close()
+            return False
 
     # -------------------------------------------------------------------------
     # Análisis de Salud
