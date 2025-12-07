@@ -545,6 +545,12 @@ class AutonomousAgent:
         session.mount("http://", adapter)
         session.mount("https://", adapter)
 
+        # Configurar cabeceras predeterminadas (Pasaporte Interno)
+        session.headers.update({
+            "User-Agent": "APU-Agent-Internal",
+            "Content-Type": "application/json"
+        })
+
         return session
 
     def _setup_signal_handlers(self) -> None:
