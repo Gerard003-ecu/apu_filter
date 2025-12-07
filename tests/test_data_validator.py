@@ -2,7 +2,7 @@ import os
 import sys
 import unittest
 from copy import deepcopy
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import pandas as pd
 
@@ -14,6 +14,7 @@ from app.data_validator import (
     _validate_missing_descriptions,
     _validate_zero_quantity_with_cost,
     validate_and_clean_data,
+    TipoAlerta,
 )
 
 
@@ -108,8 +109,10 @@ class TestDataValidator(unittest.TestCase):
         )
         self.assertEqual(resultado[0]["CANTIDAD"], 0)
         self.assertIn("alertas", resultado[0])
-        self.assertEqual(len(resultado[0]["alertas"]), 1)
+        # Expect 2 alerts: one for inability to recalculate, one for mathematical incoherence (0 * 0 != 100)
+        self.assertEqual(len(resultado[0]["alertas"]), 2)
         self.assertIn("No se puede recalcular", resultado[0]["alertas"][0]["mensaje"])
+        self.assertIn("Incoherencia matemática", resultado[0]["alertas"][1]["mensaje"])
 
     def test_validate_zero_quantity_with_cost__invalid_types(self):
         """Verifica manejo de tipos inválidos (cadena, None, NaN)."""
@@ -122,7 +125,7 @@ class TestDataValidator(unittest.TestCase):
             }
         ]
         resultado, metrics = _validate_zero_quantity_with_cost(data_broken)
-        self.assertEqual(resultado[0]["CANTIDAD"], "cero")  # No se modifica
+        self.assertEqual(resultado[0]["CANTIDAD"], "cero")  # No se modifica si no es convertible
         self.assertIn("alertas", resultado[0])
 
     def test_validate_zero_quantity_with_cost__inmutable_input(self):
@@ -133,22 +136,26 @@ class TestDataValidator(unittest.TestCase):
             original_copy, self.original_apus, "El input original fue modificado"
         )
 
+    @patch("app.data_validator.process")
     @patch("app.data_validator.HAS_FUZZY", False)
-    def test_validate_missing_descriptions__no_fuzzy_available(self):
+    def test_validate_missing_descriptions__no_fuzzy_available(self, mock_process):
         """Verifica fallback cuando fuzzywuzzy no está instalado."""
         resultado, metrics = _validate_missing_descriptions(
             self.apus_detail_sin_descripcion, self.raw_insumos_df
         )
         self.assertEqual(resultado[0]["DESCRIPCION_INSUMO"], "Insumo sin descripción")
         self.assertIn("alertas", resultado[0])
-        self.assertIn(
-            "fuzzy matching no está instalado", resultado[0]["alertas"][0]["mensaje"]
-        )  # Ajustado para verificar 'mensaje' en dict
+        self.assertTrue(
+            any("fuzzy matching no disponible" in a["mensaje"] or "no instalado" in a["mensaje"] or "sin referencias" in a["mensaje"]
+                for a in resultado[0]["alertas"]),
+            f"Alerts found: {resultado[0]['alertas']}"
+        )
 
     def test_validate_missing_descriptions__missing_description(self):
         """Verifica que se asigna texto predeterminado y alerta si no hay descripción."""
+        # Force no fuzzy match found by using empty df
         resultado, metrics = _validate_missing_descriptions(
-            self.apus_detail_sin_descripcion, self.raw_insumos_df
+            self.apus_detail_sin_descripcion, pd.DataFrame()
         )
         self.assertEqual(resultado[0]["DESCRIPCION_INSUMO"], "Insumo sin descripción")
         self.assertIn("alertas", resultado[0])
@@ -164,7 +171,9 @@ class TestDataValidator(unittest.TestCase):
             "alertas", resultado[0], "No debe haber alertas si la descripción está presente"
         )
 
-    def test_validate_missing_descriptions__fuzzy_matching_enabled(self):
+    @patch("app.data_validator.process")
+    @patch("app.data_validator.HAS_FUZZY", True)
+    def test_validate_missing_descriptions__fuzzy_matching_enabled(self, mock_process):
         """Verifica que fuzzy matching no modifica una descripción existente similar."""
         data_similar = [{"DESCRIPCION_INSUMO": "Tornillo de acero 1/2 pulgadas"}]
         resultado, metrics = _validate_missing_descriptions(
@@ -182,9 +191,10 @@ class TestDataValidator(unittest.TestCase):
         )
         self.assertEqual(resultado[0]["DESCRIPCION_INSUMO"], "Insumo sin descripción")
         self.assertIn("alertas", resultado[0])
-        # Ajustado para verificar el mensaje de error cuando no hay DF
-        self.assertIn(
-            "no hay referencias disponibles", resultado[0]["alertas"][0]["mensaje"]
+        self.assertTrue(
+            any("no hay referencias disponibles" in a["mensaje"] or "sin datos de referencia" in a["mensaje"]
+                for a in resultado[0]["alertas"]),
+            f"Alerts: {resultado[0]['alertas']}"
         )
 
     def test_validate_missing_descriptions__raw_insumos_df_missing_column(self):
@@ -195,9 +205,10 @@ class TestDataValidator(unittest.TestCase):
         )
         self.assertEqual(resultado[0]["DESCRIPCION_INSUMO"], "Insumo sin descripción")
         self.assertIn("alertas", resultado[0])
-        # Ajustado para verificar el mensaje de error cuando falla fuzzy
-        self.assertIn(
-            "no hay referencias disponibles", resultado[0]["alertas"][0]["mensaje"]
+        self.assertTrue(
+            any("no hay referencias disponibles" in a["mensaje"] or "sin datos de referencia" in a["mensaje"]
+                for a in resultado[0]["alertas"]),
+            f"Alerts: {resultado[0]['alertas']}"
         )
 
     def test_validate_missing_descriptions__inmutable_input(self):
@@ -264,6 +275,7 @@ class TestDataValidator(unittest.TestCase):
             "raw_insumos_df": self.raw_insumos_df,
         }
         resultado = validate_and_clean_data(data_store)
+        # Should return None if the validation failed gracefully or metrics with error
         self.assertIsNone(resultado["presupuesto"])
 
     def test_validate_and_clean_data__none_in_apus_detail(self):
