@@ -101,6 +101,79 @@ def diagnose_grammar_mismatches(
         if stripped_line.strip():  # Solo incluir líneas no vacías
             processed_lines.append((idx, stripped_line))
 
+    Returns:
+        Lista de diccionarios con información de las líneas fallidas.
+    
+    Raises:
+        FileNotFoundError: Si el archivo CSV no existe.
+        ValueError: Si la gramática es inválida o vacía.
+        RuntimeError: Si hay problemas al crear el parser.
+    """
+    # Validación de parámetros
+    if not csv_file or not isinstance(csv_file, str):
+        raise ValueError("csv_file debe ser una cadena no vacía")
+    
+    if not grammar or not isinstance(grammar, str):
+        raise ValueError("grammar debe ser una cadena no vacía")
+    
+    if not output_file or not isinstance(output_file, str):
+        raise ValueError("output_file debe ser una cadena no vacía")
+    
+    if not isinstance(max_sample_lines, int) or max_sample_lines <= 0:
+        raise ValueError("max_sample_lines debe ser un entero positivo")
+    
+    if skip_header_patterns is not None and not isinstance(skip_header_patterns, list):
+        raise ValueError("skip_header_patterns debe ser una lista de cadenas o None")
+    
+    if not isinstance(encoding, str):
+        raise ValueError("encoding debe ser una cadena")
+    
+    csv_path = Path(csv_file)
+    if not csv_path.exists():
+        raise FileNotFoundError(f"El archivo CSV no existe: {csv_file}")
+    
+    if not csv_path.is_file():
+        raise FileNotFoundError(f"La ruta no es un archivo: {csv_file}")
+    
+    # Validar gramática creando un parser temporal
+    try:
+        temp_parser = Lark(grammar, start="line", parser="lalr")
+        del temp_parser
+    except Exception as e:
+        raise ValueError(f"Gramática Lark inválida: {str(e)}")
+    
+    # Configurar patrones de encabezado por defecto
+    if skip_header_patterns is None:
+        skip_header_patterns = ["UNIDAD:", "ITEM:"]
+    
+    # Crear el parser
+    try:
+        parser = Lark(grammar, start="line", parser="lalr")
+    except Exception as e:
+        raise RuntimeError(f"Error al crear el parser Lark: {str(e)}")
+    
+    # Leer archivo CSV
+    try:
+        with open(csv_file, "r", encoding=encoding, newline='') as f:
+            raw_lines = f.readlines()
+    except UnicodeDecodeError:
+        # Intentar con codificación alternativa
+        try:
+            with open(csv_file, "r", encoding="latin-1", newline='') as f:
+                raw_lines = f.readlines()
+            logger.warning(f"Archivo {csv_file} leído con codificación latin-1 en lugar de {encoding}")
+        except UnicodeDecodeError:
+            raise UnicodeDecodeError(f"No se pudo leer el archivo {csv_file} con las codificaciones UTF-8 o Latin-1")
+    except IOError as e:
+        raise IOError(f"Error al leer el archivo CSV: {str(e)}")
+    
+    # Filtrar y limpiar líneas
+    processed_lines = []
+    for idx, line in enumerate(raw_lines, 1):
+        stripped_line = line.rstrip('\n\r')  # Eliminar solo saltos de línea, mantener espacios en blanco dentro de la línea
+        if stripped_line.strip():  # Solo incluir líneas no vacías
+            processed_lines.append((idx, stripped_line))
+    
     failed_lines = []
     analyzed_count = 0
 
