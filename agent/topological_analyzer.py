@@ -78,8 +78,28 @@ class BettiNumbers:
     num_edges: int = 0
 
     def __post_init__(self):
+        """Validación post-inicialización de invariantes."""
         if self.b0 < 0 or self.b1 < 0:
             raise ValueError("Los números de Betti no pueden ser negativos")
+
+        if self.num_vertices < 0 or self.num_edges < 0:
+            raise ValueError("El número de vértices y aristas no puede ser negativo")
+
+        # Invariante: β₀ ≤ |V| (máximo una componente por vértice)
+        if self.num_vertices > 0 and self.b0 > self.num_vertices:
+            raise ValueError(
+                f"β₀={self.b0} no puede exceder el número de vértices={self.num_vertices}"
+            )
+
+        # Invariante: para grafos simples, β₁ = |E| - |V| + β₀
+        # Si tenemos vértices y aristas, verificar consistencia
+        if self.num_vertices > 0 and self.num_edges >= 0:
+            expected_b1 = self.num_edges - self.num_vertices + self.b0
+            if expected_b1 >= 0 and self.b1 != expected_b1:
+                raise ValueError(
+                    f"Inconsistencia en Euler-Poincaré: β₁={self.b1} "
+                    f"esperado={expected_b1} (|E|={self.num_edges}, |V|={self.num_vertices}, β₀={self.b0})"
+                )
 
     @property
     def is_connected(self) -> bool:
@@ -292,16 +312,28 @@ class SystemTopology:
         Returns:
             True si se agregó, False si ya existía o es inválido.
         """
-        if not node or not isinstance(node, str) or not node.strip():
-            logger.warning(f"Intento de agregar nodo inválido: {repr(node)}")
+        # Validación de tipo estricta
+        if not isinstance(node, str):
+            logger.warning(f"Intento de agregar nodo con tipo inválido: {type(node).__name__}")
             return False
 
-        node = node.strip()
-        if node in self._graph:
+        # Validación de contenido
+        node_cleaned = node.strip()
+        if not node_cleaned:
+            logger.warning(f"Intento de agregar nodo vacío o solo espacios: {repr(node)}")
             return False
 
-        self._graph.add_node(node)
-        logger.debug(f"Nodo agregado dinámicamente: {node}")
+        # Validación de caracteres problemáticos (opcional pero recomendada)
+        if any(c in node_cleaned for c in '\x00\n\r\t'):
+            logger.warning(f"Nodo contiene caracteres de control no permitidos: {repr(node)}")
+            return False
+
+        if node_cleaned in self._graph:
+            logger.debug(f"Nodo ya existe, ignorando: {node_cleaned}")
+            return False
+
+        self._graph.add_node(node_cleaned)
+        logger.debug(f"Nodo agregado dinámicamente: {node_cleaned}")
         return True
 
     def remove_node(self, node: str) -> bool:
@@ -314,12 +346,28 @@ class SystemTopology:
         Returns:
             True si se eliminó correctamente.
         """
+        # Validación de tipo
+        if not isinstance(node, str):
+            logger.warning(f"Tipo inválido para remove_node: {type(node).__name__}")
+            return False
+
+        node = node.strip()
+
+        if not node:
+            return False
+
         if node in self.REQUIRED_NODES:
             logger.warning(f"No se puede eliminar nodo requerido: {node}")
             return False
 
         if node not in self._graph:
+            logger.debug(f"Nodo no existe, nada que eliminar: {node}")
             return False
+
+        # Registrar aristas que se perderán (para debugging/auditoría)
+        lost_edges = list(self._graph.edges(node))
+        if lost_edges:
+            logger.debug(f"Eliminando nodo {node} con {len(lost_edges)} aristas asociadas")
 
         self._graph.remove_node(node)
         logger.debug(f"Nodo eliminado: {node}")
@@ -342,6 +390,9 @@ class SystemTopology:
         """
         Actualiza las conexiones del grafo basado en la telemetría.
 
+        La operación es atómica: si hay errores críticos, el estado anterior
+        se preserva.
+
         Args:
             active_connections: Lista de pares (origen, destino) activos.
             validate_nodes: Si True, valida que los nodos existan.
@@ -350,74 +401,174 @@ class SystemTopology:
         Returns:
             Tupla (edges_added, warnings) con número de aristas agregadas
             y lista de advertencias.
+
+        Raises:
+            TypeError: Si active_connections no es iterable.
         """
+        # Validación de entrada principal
+        if active_connections is None:
+            logger.warning("active_connections es None, tratando como lista vacía")
+            active_connections = []
+
+        if not hasattr(active_connections, '__iter__'):
+            raise TypeError(
+                f"active_connections debe ser iterable, recibido: {type(active_connections).__name__}"
+            )
+
         warnings: List[str] = []
         valid_edges: List[Tuple[str, str]] = []
+        nodes_to_add: Set[str] = set()
 
-        for item in active_connections:
+        for idx, item in enumerate(active_connections):
             # Validar formato de arista
-            if not isinstance(item, (tuple, list)) or len(item) != 2:
-                warnings.append(f"Formato de arista inválido: {repr(item)}")
+            if not isinstance(item, (tuple, list)):
+                warnings.append(f"[{idx}] Formato de arista inválido (no es tupla/lista): {repr(item)}")
+                continue
+
+            if len(item) != 2:
+                warnings.append(f"[{idx}] Arista debe tener exactamente 2 elementos: {repr(item)}")
                 continue
 
             src, dst = item
 
-            # Validar tipos
+            # Validar tipos de nodos
             if not isinstance(src, str) or not isinstance(dst, str):
-                warnings.append(f"Nodos deben ser strings: ({repr(src)}, {repr(dst)})")
+                warnings.append(
+                    f"[{idx}] Nodos deben ser strings: ({type(src).__name__}, {type(dst).__name__})"
+                )
                 continue
 
             src, dst = src.strip(), dst.strip()
 
+            # Validar nodos no vacíos
+            if not src or not dst:
+                warnings.append(f"[{idx}] Nodos no pueden ser vacíos después de strip")
+                continue
+
             # Evitar auto-loops
             if src == dst:
-                warnings.append(f"Auto-loop ignorado: {src}")
+                warnings.append(f"[{idx}] Auto-loop ignorado: {src}")
                 continue
 
             # Validar existencia de nodos
             if validate_nodes:
-                nodes_to_check = [(src, "origen"), (dst, "destino")]
-                skip_edge = False
+                missing_nodes = []
 
-                for node, role in nodes_to_check:
+                for node, role in [(src, "origen"), (dst, "destino")]:
                     if node not in self._graph:
                         if auto_add_nodes:
-                            self.add_node(node)
-                            warnings.append(f"Nodo {role} agregado automáticamente: {node}")
+                            nodes_to_add.add(node)
+                            warnings.append(f"[{idx}] Nodo {role} será agregado: {node}")
                         else:
-                            warnings.append(f"Nodo {role} no existe: {node}")
-                            skip_edge = True
-                            break
+                            missing_nodes.append(f"{role}={node}")
 
-                if skip_edge:
+                if missing_nodes and not auto_add_nodes:
+                    warnings.append(f"[{idx}] Nodos faltantes: {', '.join(missing_nodes)}")
                     continue
 
             valid_edges.append((src, dst))
 
-        # Actualizar grafo atómicamente
-        self._graph.clear_edges()
-        self._graph.add_edges_from(valid_edges)
+        # Fase de commit atómico
+        # Guardar estado previo para rollback en caso de error
+        previous_edges = list(self._graph.edges())
+
+        try:
+            # Agregar nodos nuevos primero
+            for node in nodes_to_add:
+                self._graph.add_node(node)
+
+            # Actualizar aristas
+            self._graph.clear_edges()
+            self._graph.add_edges_from(valid_edges)
+
+        except Exception as e:
+            # Rollback: restaurar estado anterior
+            logger.error(f"Error durante actualización, ejecutando rollback: {e}")
+            self._graph.clear_edges()
+            self._graph.add_edges_from(previous_edges)
+            raise RuntimeError(f"Fallo en update_connectivity, estado restaurado: {e}") from e
 
         for warn in warnings:
             logger.warning(warn)
 
-        logger.debug(f"Conectividad actualizada: {len(valid_edges)} aristas activas")
+        logger.debug(
+            f"Conectividad actualizada: {len(valid_edges)} aristas activas, "
+            f"{len(nodes_to_add)} nodos agregados, {len(warnings)} advertencias"
+        )
         return len(valid_edges), warnings
 
     def add_edge(self, src: str, dst: str) -> bool:
-        """Agrega una arista individual si los nodos existen."""
-        if src not in self._graph or dst not in self._graph:
+        """
+        Agrega una arista individual si los nodos existen.
+
+        Args:
+            src: Nodo origen.
+            dst: Nodo destino.
+
+        Returns:
+            True si se agregó correctamente.
+        """
+        # Validación de tipos
+        if not isinstance(src, str) or not isinstance(dst, str):
+            logger.warning(
+                f"add_edge requiere strings: src={type(src).__name__}, dst={type(dst).__name__}"
+            )
             return False
+
+        src, dst = src.strip(), dst.strip()
+
+        if not src or not dst:
+            logger.warning("add_edge: nodos no pueden ser vacíos")
+            return False
+
+        if src not in self._graph:
+            logger.debug(f"add_edge: nodo origen no existe: {src}")
+            return False
+
+        if dst not in self._graph:
+            logger.debug(f"add_edge: nodo destino no existe: {dst}")
+            return False
+
         if src == dst:
+            logger.warning(f"add_edge: auto-loop no permitido: {src}")
             return False
+
+        if self._graph.has_edge(src, dst):
+            logger.debug(f"add_edge: arista ya existe: ({src}, {dst})")
+            return False
+
         self._graph.add_edge(src, dst)
         return True
 
     def remove_edge(self, src: str, dst: str) -> bool:
-        """Elimina una arista si existe."""
+        """
+        Elimina una arista si existe.
+
+        Args:
+            src: Nodo origen.
+            dst: Nodo destino.
+
+        Returns:
+            True si se eliminó correctamente.
+        """
+        # Validación de tipos
+        if not isinstance(src, str) or not isinstance(dst, str):
+            logger.warning(
+                f"remove_edge requiere strings: src={type(src).__name__}, dst={type(dst).__name__}"
+            )
+            return False
+
+        src, dst = src.strip(), dst.strip()
+
+        if not src or not dst:
+            return False
+
         if self._graph.has_edge(src, dst):
             self._graph.remove_edge(src, dst)
+            logger.debug(f"Arista eliminada: ({src}, {dst})")
             return True
+
+        logger.debug(f"remove_edge: arista no existe: ({src}, {dst})")
         return False
 
     # -------------------------------------------------------------------------
@@ -465,41 +616,58 @@ class SystemTopology:
         - β₀ = número de componentes conexas
         - β₁ = |E| - |V| + β₀ (del teorema de Euler-Poincaré)
 
-        Interpretación del sistema:
-        - β₀ = 1: Sistema totalmente conectado (Ideal)
-        - β₀ > 1: Partición de red o servicios aislados
-        - β₁ = 0: Arquitectura en árbol (Ideal)
-        - β₁ > 0: Existen ciclos (dependencias circulares)
-
         Args:
             include_isolated: Si True, incluye nodos sin conexiones.
+                          Si False, solo considera nodos con grado > 0.
 
         Returns:
             BettiNumbers con β₀ y β₁.
+
+        Note:
+            Para grafos vacíos (sin nodos) retorna β₀=0, β₁=0.
+            Para grafos con solo nodos aislados y include_isolated=False,
+            retorna β₀=0, β₁=0.
         """
         if include_isolated:
             subgraph = self._graph
         else:
             # Solo nodos con al menos una conexión
-            connected_nodes = [n for n in self._graph.nodes() if self._graph.degree(n) > 0]
+            connected_nodes = [
+                n for n in self._graph.nodes()
+                if self._graph.degree(n) > 0
+            ]
+            if not connected_nodes:
+                # Todos los nodos están aislados
+                return BettiNumbers(b0=0, b1=0, num_vertices=0, num_edges=0)
             subgraph = self._graph.subgraph(connected_nodes)
 
         num_vertices = subgraph.number_of_nodes()
         num_edges = subgraph.number_of_edges()
 
+        # Caso: grafo vacío
         if num_vertices == 0:
             return BettiNumbers(b0=0, b1=0, num_vertices=0, num_edges=0)
 
         # β₀: Componentes conexas
-        b0 = nx.number_connected_components(subgraph)
+        # Para un grafo vacío de aristas pero con nodos, cada nodo es una componente
+        if num_edges == 0:
+            b0 = num_vertices  # Cada nodo aislado es una componente
+            b1 = 0  # Sin aristas no hay ciclos
+        else:
+            b0 = nx.number_connected_components(subgraph)
+            # β₁: Usando fórmula de Euler para grafos
+            # χ = |V| - |E| = β₀ - β₁
+            # Por tanto: β₁ = |E| - |V| + β₀
+            b1 = num_edges - num_vertices + b0
 
-        # β₁: Usando fórmula de Euler para grafos
-        # χ = |V| - |E| = β₀ - β₁
-        # Por tanto: β₁ = |E| - |V| + β₀
-        b1 = num_edges - num_vertices + b0
-
-        # Por definición, β₁ ≥ 0 para grafos válidos
-        b1 = max(0, b1)
+        # Invariante: β₁ ≥ 0 para grafos simples no dirigidos
+        # Si b1 < 0, indica inconsistencia (no debería ocurrir)
+        if b1 < 0:
+            logger.warning(
+                f"β₁ calculado como negativo ({b1}), ajustando a 0. "
+                f"Esto sugiere inconsistencia: |V|={num_vertices}, |E|={num_edges}, β₀={b0}"
+            )
+            b1 = 0
 
         return BettiNumbers(
             b0=b0,
@@ -537,12 +705,11 @@ class SystemTopology:
         """
         Detecta patrones de reintentos en el historial de requests.
 
-        Nota: Esto representa "ciclos" en el espacio de fase del flujo
-        de datos, NO ciclos topológicos del grafo (que son β₁).
-
         Args:
             threshold: Número mínimo de repeticiones para considerar un loop.
+                       Valores < 2 se ajustan automáticamente a 2.
             window: Ventana de análisis (None = todo el historial).
+                    Valores <= 0 se tratan como None.
 
         Returns:
             Lista de RequestLoopInfo ordenada por frecuencia descendente.
@@ -550,13 +717,40 @@ class SystemTopology:
         if not self._request_history:
             return []
 
+        # Validación y normalización de threshold
+        if not isinstance(threshold, int):
+            try:
+                threshold = int(threshold)
+            except (TypeError, ValueError):
+                logger.warning(f"threshold inválido: {threshold}, usando default=3")
+                threshold = 3
+
+        # Mínimo significativo es 2 (una repetición)
         if threshold < 2:
+            logger.debug(f"threshold={threshold} ajustado a 2 (mínimo significativo)")
             threshold = 2
+
+        # Validación y normalización de window
+        if window is not None:
+            if not isinstance(window, int):
+                try:
+                    window = int(window)
+                except (TypeError, ValueError):
+                    logger.warning(f"window inválido: {window}, usando todo el historial")
+                    window = None
+
+            if window is not None and window <= 0:
+                logger.debug(f"window={window} no válido, usando todo el historial")
+                window = None
 
         # Obtener ventana de análisis
         history = list(self._request_history)
+
         if window and window < len(history):
             history = history[-window:]
+
+        if not history:
+            return []
 
         # Agrupar por request_id
         request_info: Dict[str, Dict] = {}
@@ -582,7 +776,8 @@ class SystemTopology:
             if info['count'] >= threshold
         ]
 
-        return sorted(loops, key=lambda x: x.count, reverse=True)
+        # Ordenamiento estable: primero por count (desc), luego por last_seen (desc)
+        return sorted(loops, key=lambda x: (x.count, x.last_seen), reverse=True)
 
     def find_structural_cycles(self) -> List[List[str]]:
         """
@@ -760,12 +955,8 @@ class SystemTopology:
         """
         Calcula un resumen completo de la salud topológica del sistema.
 
-        El score de salud se calcula considerando:
-        - Conectividad (β₀ = 1 es ideal)
-        - Ausencia de ciclos (β₁ = 0 es ideal)
-        - Nodos desconectados
-        - Conexiones faltantes
-        - Bucles de reintentos
+        El score de salud se calcula con penalizaciones acotadas para evitar
+        scores negativos extremos antes del clamp final.
 
         Returns:
             TopologicalHealth con métricas agregadas y diagnósticos.
@@ -779,9 +970,21 @@ class SystemTopology:
         score = 1.0
         diagnostics: Dict[str, str] = {}
 
+        # Definir pesos y caps para cada categoría de penalización
+        # Esto garantiza que ninguna categoría individual domine el score
+
+        PENALTY_CAPS = {
+            'connectivity': 0.35,      # Máximo 35% por fragmentación
+            'cycles': 0.15,            # Máximo 15% por ciclos
+            'disconnected': 0.20,      # Máximo 20% por nodos aislados
+            'missing_edges': 0.20,     # Máximo 20% por conexiones faltantes
+            'retry_loops': 0.10,       # Máximo 10% por bucles de reintentos
+        }
+
         # Penalizar por componentes desconectados (muy grave)
         if betti.b0 > 1:
-            penalty = 0.25 * (betti.b0 - 1)
+            raw_penalty = 0.20 * (betti.b0 - 1)
+            penalty = min(raw_penalty, PENALTY_CAPS['connectivity'])
             score -= penalty
             diagnostics["connectivity"] = (
                 f"Sistema fragmentado en {betti.b0} componentes (-{penalty:.2f})"
@@ -789,45 +992,64 @@ class SystemTopology:
 
         # Penalizar por ciclos estructurales
         if betti.b1 > 0:
-            penalty = 0.10 * min(betti.b1, 3)  # Cap en 3 ciclos
+            raw_penalty = 0.08 * betti.b1
+            penalty = min(raw_penalty, PENALTY_CAPS['cycles'])
             score -= penalty
             diagnostics["cycles"] = (
                 f"{betti.b1} ciclo(s) detectado(s) (-{penalty:.2f})"
             )
 
-        # Penalizar por nodos desconectados
+        # Penalizar por nodos requeridos desconectados
         if disconnected:
-            penalty = 0.15 * len(disconnected)
+            num_disconnected = len(disconnected)
+            num_required = len(self.REQUIRED_NODES)
+            # Proporcional a la fracción de nodos requeridos afectados
+            if num_required > 0:
+                raw_penalty = PENALTY_CAPS['disconnected'] * (num_disconnected / num_required)
+            else:
+                raw_penalty = 0.05 * num_disconnected
+            penalty = min(raw_penalty, PENALTY_CAPS['disconnected'])
             score -= penalty
             diagnostics["disconnected"] = (
-                f"Nodos aislados: {', '.join(disconnected)} (-{penalty:.2f})"
+                f"Nodos aislados: {', '.join(sorted(disconnected))} (-{penalty:.2f})"
             )
 
         # Penalizar por conexiones esperadas faltantes
         if missing:
-            penalty = 0.12 * len(missing)
+            num_missing = len(missing)
+            num_expected = len(self._expected_topology)
+            # Proporcional a la fracción de topología faltante
+            if num_expected > 0:
+                raw_penalty = PENALTY_CAPS['missing_edges'] * (num_missing / num_expected)
+            else:
+                raw_penalty = 0.10 * num_missing
+            penalty = min(raw_penalty, PENALTY_CAPS['missing_edges'])
             score -= penalty
-            edges_str = ', '.join(f"{u}-{v}" for u, v in missing)
+            edges_str = ', '.join(f"{u}-{v}" for u, v in sorted(missing))
             diagnostics["missing_edges"] = (
                 f"Conexiones faltantes: {edges_str} (-{penalty:.2f})"
             )
 
-        # Penalizar por bucles de reintentos
+        # Penalizar por bucles de reintentos (indicador de problemas de flujo)
         if loops:
-            penalty = 0.05 * min(len(loops), 5)  # Cap en 5 loops
+            # Considerar tanto cantidad como severidad (frecuencia)
+            total_retries = sum(loop.count for loop in loops)
+            raw_penalty = 0.02 * len(loops) + 0.005 * min(total_retries, 20)
+            penalty = min(raw_penalty, PENALTY_CAPS['retry_loops'])
             score -= penalty
             diagnostics["retry_loops"] = (
-                f"{len(loops)} patrón(es) de reintento (-{penalty:.2f})"
+                f"{len(loops)} patrón(es) de reintento, {total_retries} total (-{penalty:.2f})"
             )
 
+        # Clamp final (aunque con caps no debería ser necesario ir a negativo)
         score = max(0.0, min(1.0, score))
 
-        # Determinar nivel de salud
-        if score >= 0.9:
+        # Determinar nivel de salud con histéresis implícita en los umbrales
+        if score >= 0.85:
             level = HealthLevel.HEALTHY
-        elif score >= 0.7:
+        elif score >= 0.65:
             level = HealthLevel.DEGRADED
-        elif score >= 0.4:
+        elif score >= 0.35:
             level = HealthLevel.UNHEALTHY
         else:
             level = HealthLevel.CRITICAL
@@ -840,7 +1062,7 @@ class SystemTopology:
             disconnected_nodes=disconnected,
             missing_edges=missing,
             request_loops=tuple(loops),
-            health_score=score,
+            health_score=round(score, 4),  # Redondear para evitar ruido flotante
             level=level,
             diagnostics=diagnostics
         )
@@ -946,38 +1168,57 @@ class PersistenceHomology:
         Agrega una lectura al buffer de una métrica.
 
         Args:
-            metric_name: Nombre de la métrica.
-            value: Valor de la lectura.
+            metric_name: Nombre de la métrica (no vacío).
+            value: Valor de la lectura (numérico finito, infinitos se capean).
 
         Returns:
-            True si se agregó correctamente.
+            True si se agregó correctamente, False si se rechazó.
         """
-        # Validar nombre
-        if not metric_name or not isinstance(metric_name, str):
-            logger.warning(f"Nombre de métrica inválido: {repr(metric_name)}")
+        # Validar nombre de métrica
+        if not isinstance(metric_name, str):
+            logger.warning(
+                f"Nombre de métrica debe ser string: {type(metric_name).__name__}"
+            )
             return False
 
         metric_name = metric_name.strip()
         if not metric_name:
+            logger.warning("Nombre de métrica vacío rechazado")
             return False
 
         # Validar valor numérico
         if not isinstance(value, (int, float)):
-            logger.warning(f"Valor no numérico para {metric_name}: {repr(value)}")
+            logger.warning(f"Valor no numérico para {metric_name}: {type(value).__name__}")
             return False
 
+        # Convertir int a float para consistencia
+        value = float(value)
+
+        # Rechazar NaN estrictamente
         if math.isnan(value):
-            logger.warning(f"Valor NaN ignorado para {metric_name}")
+            logger.warning(f"Valor NaN rechazado para {metric_name}")
             return False
 
-        # Manejar infinitos con cap
+        # Manejar infinitos con cap logarítmico para preservar orden de magnitud
         if math.isinf(value):
-            logger.warning(f"Valor infinito detectado para {metric_name}, aplicando cap")
-            value = math.copysign(1e308, value)
+            # Usar un valor grande pero representable
+            MAX_FINITE = 1e100  # Más conservador que 1e308
+            capped_value = math.copysign(MAX_FINITE, value)
+            logger.warning(
+                f"Valor infinito para {metric_name} capeado a {capped_value:.2e}"
+            )
+            value = capped_value
 
-        # Agregar al buffer
+        # Detectar valores extremos que podrían causar problemas numéricos
+        if abs(value) > 1e100:
+            logger.debug(
+                f"Valor extremo detectado para {metric_name}: {value:.2e}"
+            )
+
+        # Agregar al buffer (crear si no existe)
         if metric_name not in self._buffers:
             self._buffers[metric_name] = deque(maxlen=self.window_size)
+            logger.debug(f"Nuevo buffer creado para métrica: {metric_name}")
 
         self._buffers[metric_name].append(value)
         return True
@@ -1027,11 +1268,16 @@ class PersistenceHomology:
         """
         Calcula intervalos de persistencia para una serie de datos.
 
-        Identifica todas las excursiones sobre el umbral y registra
-        su nacimiento/muerte como características 0-dimensionales.
+        Identifica todas las excursiones estrictamente por encima del umbral
+        y registra su nacimiento/muerte como características 0-dimensionales.
+
+        Comportamiento en casos límite:
+        - Valores exactamente iguales al threshold se consideran "por debajo"
+        - Múltiples excursiones consecutivas se fusionan en una sola
+        - La última excursión puede quedar "viva" (death=-1)
 
         Args:
-            data: Lista de valores.
+            data: Lista de valores numéricos.
             threshold: Umbral de referencia.
 
         Returns:
@@ -1040,24 +1286,52 @@ class PersistenceHomology:
         if not data:
             return []
 
+        # Validar que threshold sea numérico y finito
+        if not isinstance(threshold, (int, float)) or math.isnan(threshold):
+            logger.warning(f"Threshold inválido: {threshold}, usando 0.0")
+            threshold = 0.0
+
+        if math.isinf(threshold):
+            # Con threshold infinito, ningún valor finito puede excederlo
+            if threshold > 0:
+                return []  # +inf: nada está por encima
+            # -inf: todo está por encima (una sola excursión)
+            return [PersistenceInterval(
+                birth=0,
+                death=-1,
+                dimension=0,
+                amplitude=max(data) - threshold if data else 0.0
+            )]
+
         intervals: List[PersistenceInterval] = []
         above = False
         birth_idx = 0
         max_amplitude = 0.0
+        current_max_value = threshold  # Track del valor máximo durante excursión
 
         for i, value in enumerate(data):
-            is_above = value > threshold
+            # Manejar NaN en datos: tratar como "por debajo" del threshold
+            if math.isnan(value):
+                is_above = False
+            else:
+                is_above = value > threshold  # Estrictamente mayor
 
             if is_above and not above:
-                # Nacimiento: cruce ascendente
+                # Nacimiento: primer cruce ascendente
                 birth_idx = i
                 max_amplitude = value - threshold
+                current_max_value = value
                 above = True
+
             elif is_above and above:
-                # Actualizar amplitud máxima
-                max_amplitude = max(max_amplitude, value - threshold)
+                # Continúa por encima: actualizar amplitud máxima
+                amplitude = value - threshold
+                if amplitude > max_amplitude:
+                    max_amplitude = amplitude
+                    current_max_value = value
+
             elif not is_above and above:
-                # Muerte: cruce descendente
+                # Muerte: cruce descendente (o NaN)
                 intervals.append(PersistenceInterval(
                     birth=birth_idx,
                     death=i,
@@ -1066,12 +1340,13 @@ class PersistenceHomology:
                 ))
                 above = False
                 max_amplitude = 0.0
+                current_max_value = threshold
 
-        # Característica aún viva
+        # Característica aún viva al final de la serie
         if above:
             intervals.append(PersistenceInterval(
                 birth=birth_idx,
-                death=-1,  # Indica que sigue viva
+                death=-1,  # Marca como viva
                 dimension=0,
                 amplitude=max_amplitude
             ))
@@ -1184,16 +1459,19 @@ class PersistenceHomology:
         Análisis completo de persistencia para una métrica.
 
         Clasificación topológica:
+        - UNKNOWN: Datos insuficientes para análisis
         - STABLE: Sin excursiones sobre el umbral
         - NOISE: Solo excursiones de vida corta (< noise_ratio * window)
         - FEATURE: Excursiones de vida larga (patrón estructural)
-        - CRITICAL: Excursión activa y persistente (> critical_ratio * window)
+        - CRITICAL: Excursión activa prolongada (> critical_ratio * window)
 
         Args:
             metric_name: Nombre de la métrica.
             threshold: Umbral de referencia.
             noise_ratio: Proporción para considerar ruido (default 20%).
+                     Se clampea a [0.05, 0.5].
             critical_ratio: Proporción para considerar crítico (default 50%).
+                        Se clampea a [noise_ratio, 0.9].
 
         Returns:
             PersistenceAnalysisResult con análisis completo.
@@ -1208,94 +1486,121 @@ class PersistenceHomology:
                 feature_count=0,
                 noise_count=0,
                 active_count=0,
-                max_lifespan=0,
-                total_persistence=0,
-                metadata={"reason": "insufficient_data", "samples": len(buffer) if buffer else 0}
+                max_lifespan=0.0,
+                total_persistence=0.0,
+                metadata={
+                    "reason": "insufficient_data",
+                    "samples": len(buffer) if buffer else 0,
+                    "minimum_required": self.MIN_WINDOW_SIZE
+                }
             )
 
-        # Validar ratios
-        noise_ratio = max(0.05, min(0.5, noise_ratio))
-        critical_ratio = max(noise_ratio, min(0.9, critical_ratio))
+        # Validar y normalizar ratios
+        noise_ratio = float(max(0.05, min(0.5, noise_ratio)))
+        critical_ratio = float(max(noise_ratio + 0.1, min(0.9, critical_ratio)))
+
+        # Garantizar orden lógico
+        if critical_ratio <= noise_ratio:
+            critical_ratio = min(0.9, noise_ratio + 0.2)
 
         data = list(buffer)
+        data_length = len(data)
         intervals = self._compute_persistence_intervals(data, threshold)
 
-        # Sin excursiones
+        # Sin excursiones: sistema estable
         if not intervals:
+            data_max = max(data) if data else 0.0
             return PersistenceAnalysisResult(
                 state=MetricState.STABLE,
                 intervals=tuple(),
                 feature_count=0,
                 noise_count=0,
                 active_count=0,
-                max_lifespan=0,
-                total_persistence=0,
+                max_lifespan=0.0,
+                total_persistence=0.0,
                 metadata={
                     "reason": "below_threshold",
-                    "max_value": max(data),
-                    "threshold": threshold
+                    "max_value": data_max,
+                    "threshold": threshold,
+                    "margin": threshold - data_max
                 }
             )
 
-        # Calcular límites
-        noise_limit = max(1, int(self.window_size * noise_ratio))
-        critical_limit = int(self.window_size * critical_ratio)
+        # Calcular límites basados en tamaño efectivo de datos
+        noise_limit = max(1, int(data_length * noise_ratio))
+        critical_limit = max(noise_limit + 1, int(data_length * critical_ratio))
 
         # Clasificar intervalos
         noise_intervals: List[PersistenceInterval] = []
         feature_intervals: List[PersistenceInterval] = []
         active_intervals: List[PersistenceInterval] = []
 
-        data_length = len(data)
+        critical_active: Optional[PersistenceInterval] = None
 
         for interval in intervals:
             if interval.is_alive:
-                # Característica activa
                 actual_lifespan = data_length - interval.birth
                 active_intervals.append(interval)
 
-                # Verificar si es crítica
+                # Verificar si es crítica (activa y muy persistente)
                 if actual_lifespan >= critical_limit:
-                    return PersistenceAnalysisResult(
-                        state=MetricState.CRITICAL,
-                        intervals=tuple(intervals),
-                        feature_count=len(feature_intervals),
-                        noise_count=len(noise_intervals),
-                        active_count=len(active_intervals),
-                        max_lifespan=float('inf'),
-                        total_persistence=self.compute_total_persistence(intervals),
-                        metadata={
-                            "reason": "persistent_active_excursion",
-                            "active_duration": actual_lifespan,
-                            "critical_threshold": critical_limit,
-                            "birth_index": interval.birth
-                        }
-                    )
+                    critical_active = interval
             else:
-                # Característica finalizada
+                # Característica finalizada: clasificar por duración
                 if interval.lifespan >= noise_limit:
                     feature_intervals.append(interval)
                 else:
                     noise_intervals.append(interval)
 
-        # Calcular métricas
-        max_lifespan = 0.0
-        if feature_intervals:
-            max_lifespan = max(i.lifespan for i in feature_intervals)
-        elif noise_intervals:
-            max_lifespan = max(i.lifespan for i in noise_intervals)
+        # Si hay una excursión crítica activa, retornar inmediatamente
+        if critical_active is not None:
+            actual_lifespan = data_length - critical_active.birth
+            return PersistenceAnalysisResult(
+                state=MetricState.CRITICAL,
+                intervals=tuple(intervals),
+                feature_count=len(feature_intervals),
+                noise_count=len(noise_intervals),
+                active_count=len(active_intervals),
+                max_lifespan=float('inf'),
+                total_persistence=self.compute_total_persistence(
+                    intervals,
+                    include_active=True,
+                    active_lifespan_estimate=actual_lifespan
+                ),
+                metadata={
+                    "reason": "persistent_active_excursion",
+                    "active_duration": actual_lifespan,
+                    "critical_threshold": critical_limit,
+                    "birth_index": critical_active.birth,
+                    "amplitude": critical_active.amplitude
+                }
+            )
 
+        # Calcular métricas agregadas
+        all_finite_lifespans = [
+            i.lifespan for i in intervals if not i.is_alive
+        ]
+        max_lifespan = max(all_finite_lifespans) if all_finite_lifespans else 0.0
         total_persistence = self.compute_total_persistence(intervals)
 
-        # Determinar estado final
-        if feature_intervals or (active_intervals and any(
-            data_length - i.birth >= noise_limit for i in active_intervals
-        )):
+        # Determinar estado final con lógica clara
+        # Prioridad: features > active significativas > noise > stable
+        has_features = len(feature_intervals) > 0
+        has_significant_active = any(
+            data_length - i.birth >= noise_limit
+            for i in active_intervals
+        )
+        has_noise = len(noise_intervals) > 0 or len(active_intervals) > 0
+
+        if has_features or has_significant_active:
             state = MetricState.FEATURE
-        elif noise_intervals or active_intervals:
+            reason = "structural_pattern_detected"
+        elif has_noise:
             state = MetricState.NOISE
+            reason = "transient_excursions_only"
         else:
             state = MetricState.STABLE
+            reason = "no_significant_excursions"
 
         return PersistenceAnalysisResult(
             state=state,
@@ -1306,10 +1611,13 @@ class PersistenceHomology:
             max_lifespan=max_lifespan,
             total_persistence=total_persistence,
             metadata={
+                "reason": reason,
                 "noise_limit": noise_limit,
                 "critical_limit": critical_limit,
                 "window_size": self.window_size,
-                "data_length": data_length
+                "data_length": data_length,
+                "noise_ratio_used": noise_ratio,
+                "critical_ratio_used": critical_ratio
             }
         )
 
@@ -1317,37 +1625,77 @@ class PersistenceHomology:
         """
         Estadísticas descriptivas del buffer de una métrica.
 
+        Usa varianza muestral (n-1) para estimación no sesgada.
+        Incluye percentiles adicionales para mejor caracterización.
+
         Returns:
-            Dict con min, max, mean, std, median o None si no hay datos.
+            Dict con estadísticas o None si no hay datos.
         """
         buffer = self._buffers.get(metric_name)
         if not buffer:
             return None
 
-        data = sorted(buffer)
+        data = list(buffer)
         n = len(data)
 
         if n == 0:
             return None
 
-        mean = sum(data) / n
-        variance = sum((x - mean) ** 2 for x in data) / n
+        # Caso especial: un solo dato
+        if n == 1:
+            value = data[0]
+            return {
+                "min": value,
+                "max": value,
+                "mean": value,
+                "std": 0.0,
+                "variance": 0.0,
+                "median": value,
+                "count": 1,
+                "range": 0.0,
+                "p25": value,
+                "p75": value,
+                "iqr": 0.0
+            }
 
-        # Mediana
-        mid = n // 2
-        if n % 2 == 0:
-            median = (data[mid - 1] + data[mid]) / 2
-        else:
-            median = data[mid]
+        data_sorted = sorted(data)
+
+        # Media
+        mean = sum(data_sorted) / n
+
+        # Varianza muestral (dividir por n-1 para estimador no sesgado)
+        variance = sum((x - mean) ** 2 for x in data_sorted) / (n - 1)
+        std = variance ** 0.5
+
+        # Función auxiliar para percentiles
+        def percentile(sorted_data: List[float], p: float) -> float:
+            """Calcula el percentil p (0-100) usando interpolación lineal."""
+            if not sorted_data:
+                return 0.0
+            k = (len(sorted_data) - 1) * (p / 100.0)
+            f = int(k)
+            c = f + 1 if f + 1 < len(sorted_data) else f
+            if f == c:
+                return sorted_data[f]
+            return sorted_data[f] * (c - k) + sorted_data[c] * (k - f)
+
+        # Calcular percentiles
+        p25 = percentile(data_sorted, 25)
+        median = percentile(data_sorted, 50)
+        p75 = percentile(data_sorted, 75)
 
         return {
-            "min": data[0],
-            "max": data[-1],
+            "min": data_sorted[0],
+            "max": data_sorted[-1],
             "mean": mean,
-            "std": variance ** 0.5,
+            "std": std,
+            "variance": variance,
             "median": median,
             "count": n,
-            "range": data[-1] - data[0]
+            "range": data_sorted[-1] - data_sorted[0],
+            "p25": p25,
+            "p75": p75,
+            "iqr": p75 - p25  # Rango intercuartílico
         }
 
     def compare_diagrams(
@@ -1399,52 +1747,82 @@ def compute_wasserstein_distance(
     p: int = 2
 ) -> float:
     """
-    Calcula la distancia p-Wasserstein entre dos diagramas de persistencia.
+    Calcula la distancia p-Wasserstein aproximada entre dos diagramas de persistencia.
 
-    W_p = (Σ |l1_i - l2_i|^p)^(1/p)
+    Esta es una aproximación que compara distribuciones ordenadas de duraciones.
+    La distancia real de Wasserstein requiere resolver un problema de
+    matching óptimo, pero esta aproximación es computacionalmente eficiente
+    y proporciona una métrica útil para comparar complejidad topológica.
 
-    Esta es una aproximación que compara distribuciones de duraciones.
+    W_p ≈ (Σ |l1_i - l2_i|^p)^(1/p)
 
     Args:
         intervals1: Primer diagrama de persistencia.
         intervals2: Segundo diagrama de persistencia.
-        p: Orden de la norma (default=2).
+        p: Orden de la norma (debe ser >= 1, default=2).
 
     Returns:
-        Distancia de Wasserstein aproximada.
+        Distancia de Wasserstein aproximada (>= 0).
+
+    Raises:
+        ValueError: Si p < 1.
     """
+    # Validación de parámetro p
+    if not isinstance(p, (int, float)):
+        raise TypeError(f"p debe ser numérico, recibido: {type(p).__name__}")
+
     if p < 1:
         raise ValueError(f"p debe ser >= 1, recibido: {p}")
 
+    # Convertir a float para cálculos
+    p = float(p)
+
+    # Caso trivial: ambos vacíos
     if not intervals1 and not intervals2:
         return 0.0
 
-    # Extraer duraciones finitas
+    # Extraer duraciones finitas de cada diagrama
     def get_lifespans(intervals: List[PersistenceInterval]) -> List[float]:
-        return sorted([i.lifespan for i in intervals if not i.is_alive])
+        lifespans = []
+        for i in intervals:
+            if not i.is_alive:
+                lifespan = i.lifespan
+                # Validar que lifespan sea finito y no negativo
+                if math.isfinite(lifespan) and lifespan >= 0:
+                    lifespans.append(lifespan)
+        return sorted(lifespans)
 
     lifespans1 = get_lifespans(intervals1)
     lifespans2 = get_lifespans(intervals2)
 
+    # Ambos sin intervalos finitos
     if not lifespans1 and not lifespans2:
         return 0.0
 
-    # Un diagrama vacío: distancia es la suma de duraciones del otro
+    # Un diagrama vacío: la distancia es la norma-p del otro
+    # (matching con la diagonal, que tiene lifespan 0)
     if not lifespans1:
-        return sum(l ** p for l in lifespans2) ** (1/p)
+        return sum(l ** p for l in lifespans2) ** (1.0 / p)
     if not lifespans2:
-        return sum(l ** p for l in lifespans1) ** (1/p)
+        return sum(l ** p for l in lifespans1) ** (1.0 / p)
 
-    # Igualar longitudes con padding
+    # Igualar longitudes con padding de ceros (matching con diagonal)
     max_len = max(len(lifespans1), len(lifespans2))
-    lifespans1.extend([0.0] * (max_len - len(lifespans1)))
-    lifespans2.extend([0.0] * (max_len - len(lifespans2)))
 
-    # Calcular distancia
-    distance = sum(
-        abs(l1 - l2) ** p
-        for l1, l2 in zip(lifespans1, lifespans2)
-    ) ** (1/p)
+    # Extender con ceros para matching
+    padded1 = lifespans1 + [0.0] * (max_len - len(lifespans1))
+    padded2 = lifespans2 + [0.0] * (max_len - len(lifespans2))
+
+    # Calcular distancia con manejo de overflow
+    try:
+        total = sum(
+            abs(l1 - l2) ** p
+            for l1, l2 in zip(padded1, padded2)
+        )
+        distance = total ** (1.0 / p)
+    except OverflowError:
+        logger.warning("Overflow en cálculo de Wasserstein, retornando infinito")
+        return float('inf')
 
     return distance
 
