@@ -40,6 +40,7 @@ services:
       - PYTHONUNBUFFERED=1
       - PYTHONPATH=/app
       - SECRET_KEY=apu_super_secret_key_2025_change_me_in_prod
+      - TOKENIZERS_PARALLELISM=false
     security_opt:
       - seccomp=unconfined
     # env_file:
@@ -81,7 +82,7 @@ services:
     #  - .env
     depends_on:
       core:
-        condition: service_healthy
+        condition: service_started
       redis:
         condition: service_healthy
     volumes:
@@ -94,6 +95,7 @@ networks:
   apu_net:
     driver: bridge
     name: apu_network
+    dns_enabled: true
 
 volumes:
   redis_data:

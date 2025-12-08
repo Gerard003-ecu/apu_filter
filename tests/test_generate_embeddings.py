@@ -5,6 +5,7 @@ import sys
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
+import faiss
 import numpy as np
 import pandas as pd
 import pytest
@@ -138,10 +139,16 @@ class TestEmbeddingGenerator:
 # --- Prueba de Integración del Pipeline ---
 
 
-@patch("scripts.generate_embeddings.faiss")
+@patch("scripts.generate_embeddings.faiss.write_index")
+@patch("scripts.generate_embeddings.faiss.IndexFlatIP")
 @patch("scripts.generate_embeddings.SentenceTransformer")
 def test_pipeline_run_integration(
-    MockSentenceTransformer, mock_faiss, mock_config, sample_dataframe, tmp_path
+    MockSentenceTransformer,
+    MockIndexFlatIP,
+    mock_write_index,
+    mock_config,
+    sample_dataframe,
+    tmp_path,
 ):
     """
     Prueba el flujo completo del pipeline `run()`, mockeando las dependencias externas.
@@ -155,16 +162,17 @@ def test_pipeline_run_integration(
     MockSentenceTransformer.return_value = mock_model
 
     # Mock para FAISS
-    mock_index = MagicMock()
+    mock_index = MagicMock(spec=faiss.Index)
+    mock_index.d = 384
     mock_index.ntotal = len(sample_dataframe)
     # Simular la búsqueda para la validación
     mock_index.search.side_effect = lambda query, k: (
         np.array([[0.99]]),
         np.array([[np.where(np.all(mock_embeddings == query, axis=1))[0][0]]]),
     )
-    mock_faiss.IndexFlatIP.return_value = mock_index
+    MockIndexFlatIP.return_value = mock_index
     # Configurar el mock de write_index para que cree el archivo
-    mock_faiss.write_index.side_effect = lambda index, path: Path(path).touch()
+    mock_write_index.side_effect = lambda index, path: Path(path).touch()
 
     # Mock para psutil (MemoryMonitor)
     with patch("scripts.generate_embeddings.psutil.virtual_memory") as mock_virtual_memory:
@@ -180,12 +188,14 @@ def test_pipeline_run_integration(
 
         # --- Verificaciones ---
         # Verificar que el modelo fue cargado
-        MockSentenceTransformer.assert_called_with(mock_config.model_name)
+        MockSentenceTransformer.assert_called_with(
+            mock_config.model_name, device="cpu"
+        )
 
         # Verificar que el índice fue construido y guardado
-        mock_faiss.IndexFlatIP.assert_called_with(384)
+        MockIndexFlatIP.assert_called_with(384)
         mock_index.add.assert_called_once()
-        mock_faiss.write_index.assert_called_with(
+        mock_write_index.assert_called_with(
             mock_index, str(mock_config.output_dir / "faiss.index")
         )
 
@@ -233,13 +243,16 @@ def test_pipeline_with_mocked_write(mock_config, sample_dataframe, tmp_path):
         mock_model.get_sentence_embedding_dimension.return_value = 384
 
         # ¡CRUCIAL! Configurar encode para devolver un array numpy del tamaño correcto
-        mock_embeddings = np.random.rand(len(sample_dataframe), 384).astype(np.float32)
+        mock_embeddings = np.random.rand(len(sample_dataframe), 384).astype(
+            np.float32
+        )
         mock_model.encode.return_value = mock_embeddings
 
         MockSentenceTransformer.return_value = mock_model
 
         # Configurar el mock del índice para que devuelva un ntotal numérico
-        mock_index_instance = MagicMock()
+        mock_index_instance = MagicMock(spec=faiss.Index)
+        mock_index_instance.d = 384
         mock_index_instance.ntotal = len(sample_dataframe)
 
         # Configurar search para evitar fallos en validación si se ejecuta

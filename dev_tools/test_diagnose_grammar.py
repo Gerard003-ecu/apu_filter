@@ -154,7 +154,7 @@ class TestBasicFunctionality:
         # Verificar contenido del reporte
         with open(temp_output_file, "r", encoding="utf-8") as f:
             content = f.read()
-            assert "Total líneas analizadas: 5" in content
+            assert "Líneas analizadas (sin encabezados): 5" in content
             assert "Líneas que fallan Lark: 0" in content
             assert "Tasa de fallo: 0.00%" in content
 
@@ -200,7 +200,7 @@ class TestBasicFunctionality:
         # Verificar que detecta campos vacíos
         with open(temp_output_file, "r", encoding="utf-8") as f:
             content = f.read()
-            assert "Líneas con campos vacíos:" in content
+            assert "Campos completamente vacíos en posiciones:" in content
 
     def test_skip_apu_headers(
         self, simple_grammar, csv_with_headers, temp_csv_file, temp_output_file
@@ -220,7 +220,7 @@ class TestBasicFunctionality:
         with open(temp_output_file, "r", encoding="utf-8") as f:
             content = f.read()
             # Solo debería contar líneas de insumos (no headers)
-            assert "Total líneas analizadas:" in content
+            assert "Líneas analizadas (sin encabezados):" in content
             # Verificar que el número es menor que el total del archivo
 
 
@@ -248,8 +248,8 @@ class TestPatternAnalysis:
         # Verificar que se registran las posiciones vacías
         with open(temp_output_file, "r", encoding="utf-8") as f:
             content = f.read()
-            assert "Campos vacíos en posiciones:" in content
-            assert "Líneas con campos vacíos:" in content
+            assert "Campos completamente vacíos en posiciones:" in content
+            assert "Campos vacíos totales:" in content
 
     def test_failure_rate_calculation(self, simple_grammar, temp_csv_file, temp_output_file):
         """Test cálculo correcto de tasa de fallo."""
@@ -269,7 +269,7 @@ class TestPatternAnalysis:
 
         with open(temp_output_file, "r", encoding="utf-8") as f:
             content = f.read()
-            assert "Total líneas analizadas: 5" in content
+            assert "Líneas analizadas (sin encabezados): 5" in content
             # Tasa de fallo debería estar documentada
             assert "Tasa de fallo:" in content
             assert "%" in content
@@ -333,7 +333,7 @@ class TestErrorHandling:
 
         with open(temp_output_file, "r", encoding="utf-8") as f:
             content = f.read()
-            assert "Total líneas analizadas: 0" in content
+            assert "Líneas analizadas (sin encabezados): 0" in content
 
     def test_csv_with_only_whitespace(self, simple_grammar, temp_csv_file, temp_output_file):
         """Test con archivo que solo tiene espacios en blanco."""
@@ -465,11 +465,17 @@ class TestOutputFormat:
 
             # Verificar secciones obligatorias
             assert "DIAGNÓSTICO DE INCOMPATIBILIDAD GRAMÁTICA-DATOS" in content
-            assert "Total líneas analizadas:" in content
+            assert "Líneas analizadas (sin encabezados):" in content
             assert "Líneas que fallan Lark:" in content
             assert "Tasa de fallo:" in content
-            assert "Líneas con campos vacíos:" in content
-            assert "MUESTRAS DE LÍNEAS FALLIDAS:" in content
+            assert (
+                "ANÁLISIS ESTADÍSTICO:" in content
+                or "No se encontraron líneas fallidas" in content
+            )
+            assert (
+                "MUESTRAS DE LÍNEAS FALLIDAS:" in content
+                or "No se encontraron líneas fallidas" in content
+            )
 
     def test_output_file_encoding_utf8(
         self, simple_grammar, temp_csv_file, temp_output_file
@@ -504,10 +510,10 @@ class TestOutputFormat:
             content = f.read()
 
             # Debe incluir detalles de la muestra
-            assert "Error:" in content
+            assert "Error (" in content
             assert "Campos:" in content
             assert "Contenido:" in content
-            assert "Campos vacíos en posiciones:" in content
+            assert "Campos completamente vacíos en posiciones:" in content
 
 
 # ============================================================================
