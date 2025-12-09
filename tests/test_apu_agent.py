@@ -195,14 +195,26 @@ class TestTelemetryData(TestFixtures):
         assert result.raw_data == nominal_response_data
 
     @pytest.mark.parametrize("invalid_data", [
-        None, {}, [], "string", 123,
-        {"flyback_voltage": 0.5}, # missing saturation
-        {"saturation": 0.5}, # missing voltage
+        None, [], "string", 123
     ])
     def test_from_dict_invalid_data_returns_none(self, invalid_data):
-        """Verifica que datos inválidos retornan None."""
+        """Verifica que tipos de datos inválidos retornan None."""
         result = TelemetryData.from_dict(invalid_data)
         assert result is None
+
+    @pytest.mark.parametrize("input_data,expected_flyback,expected_saturation", [
+        ({}, 0.0, 0.0),
+        ({"flyback_voltage": 0.5}, 0.5, 0.0),
+        ({"saturation": 0.5}, 0.0, 0.5),
+        ({"metrics": {"flyback_voltage": 0.7}}, 0.7, 0.0),
+        ({"flux_condenser.max_flyback_voltage": 0.8}, 0.8, 0.0),
+    ])
+    def test_from_dict_missing_data_returns_defaults(self, input_data, expected_flyback, expected_saturation):
+        """Verifica que datos faltantes retornan defaults (0.0/IDLE)."""
+        result = TelemetryData.from_dict(input_data)
+        assert result is not None
+        assert result.flyback_voltage == expected_flyback
+        assert result.saturation == expected_saturation
 
     @pytest.mark.parametrize("voltage,expected", [
         (1.5, 1.0),    # Clamp superior
