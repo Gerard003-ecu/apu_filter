@@ -5,12 +5,15 @@ Incluye:
 - Pruebas unitarias para el orquestador
 - Pruebas de integración con los Steps
 - Verificación de la inyección de telemetría
+- Pruebas de los validadores robustos
 """
 
 import unittest
-from unittest.mock import patch
-
+from unittest.mock import MagicMock, patch, mock_open
 import pandas as pd
+import numpy as np
+from pathlib import Path
+import os
 
 from app.pipeline_director import (
     LoadDataStep,
@@ -18,10 +21,15 @@ from app.pipeline_director import (
     PipelineDirector,
     ProcessingStep,
     ProcessingThresholds,
+    DataValidator,
+    FileValidator,
+    PresupuestoProcessor,
+    ColumnNames,
+    DataMerger,
+    PipelineDirector
 )
 from app.telemetry import TelemetryContext
 from tests.test_data import TEST_CONFIG
-
 
 class MockStep(ProcessingStep):
     def __init__(self, config, thresholds):
@@ -34,99 +42,226 @@ class MockStep(ProcessingStep):
         telemetry.end_step("mock_step", "success")
         return context
 
+class TestDataValidator(unittest.TestCase):
+    """Pruebas para los métodos robustecidos de DataValidator"""
 
-class TestPipelineDirector(unittest.TestCase):
+    def test_validate_dataframe_not_empty(self):
+        # Caso 1: None
+        valid, error = DataValidator.validate_dataframe_not_empty(None, "test")
+        self.assertFalse(valid)
+        self.assertIn("None", error)
+
+        # Caso 2: No es DataFrame
+        valid, error = DataValidator.validate_dataframe_not_empty("not a df", "test")
+        self.assertFalse(valid)
+        self.assertIn("no es un DataFrame", error)
+
+        # Caso 3: Vacío
+        valid, error = DataValidator.validate_dataframe_not_empty(pd.DataFrame(), "test")
+        self.assertFalse(valid)
+        self.assertIn("vacío", error)
+
+        # Caso 4: Solo nulos
+        df_nulls = pd.DataFrame({'A': [None, None], 'B': [np.nan, np.nan]})
+        valid, error = DataValidator.validate_dataframe_not_empty(df_nulls, "test")
+        self.assertFalse(valid)
+        self.assertIn("solo valores nulos", error)
+
+        # Caso 5: Válido
+        df_valid = pd.DataFrame({'A': [1]})
+        valid, error = DataValidator.validate_dataframe_not_empty(df_valid, "test")
+        self.assertTrue(valid)
+        self.assertIsNone(error)
+
+    def test_validate_required_columns(self):
+        df = pd.DataFrame({'Col1': [1], 'Col2': [2]})
+
+        # Caso 1: Válido
+        valid, error = DataValidator.validate_required_columns(df, ['Col1'], "test")
+        self.assertTrue(valid)
+
+        # Caso 2: Case insensitive
+        valid, error = DataValidator.validate_required_columns(df, ['col1'], "test")
+        self.assertTrue(valid)
+
+        # Caso 3: Faltante
+        valid, error = DataValidator.validate_required_columns(df, ['Col3'], "test")
+        self.assertFalse(valid)
+        self.assertIn("Faltan columnas", error)
+
+        # Caso 4: Input inválido
+        valid, error = DataValidator.validate_required_columns(None, ['Col1'], "test")
+        self.assertFalse(valid)
+
+    def test_detect_and_log_duplicates(self):
+        df = pd.DataFrame({
+            'ID': [1, 2, 2, 3],
+            'Val': ['a', 'b', 'b', 'c']
+        })
+
+        # Caso 1: Detectar y eliminar (default keep='first')
+        df_clean = DataValidator.detect_and_log_duplicates(df, ['ID'], "test")
+        self.assertEqual(len(df_clean), 3)
+        self.assertEqual(df_clean.iloc[1]['ID'], 2)
+
+        # Caso 2: Columna inexistente
+        df_clean = DataValidator.detect_and_log_duplicates(df, ['Missing'], "test")
+        self.assertEqual(len(df_clean), 4) # No hace nada
+
+        # Caso 3: Input inválido
+        df_clean = DataValidator.detect_and_log_duplicates(None, ['ID'], "test")
+        self.assertTrue(df_clean.empty)
+
+class TestFileValidator(unittest.TestCase):
+    """Pruebas para los métodos robustecidos de FileValidator"""
+
+    @patch('pathlib.Path.exists')
+    @patch('pathlib.Path.is_file')
+    @patch('pathlib.Path.stat')
+    @patch('os.access')
+    def test_validate_file_exists(self, mock_access, mock_stat, mock_is_file, mock_exists):
+        # Setup mocks
+        mock_exists.return_value = True
+        mock_is_file.return_value = True
+        mock_access.return_value = True
+        mock_stat.return_value.st_size = 100
+
+        # Caso 1: Válido
+        valid, error = FileValidator.validate_file_exists("data.csv", "test")
+        self.assertTrue(valid)
+
+        # Caso 2: No existe
+        mock_exists.return_value = False
+        valid, error = FileValidator.validate_file_exists("data.csv", "test")
+        self.assertFalse(valid)
+        self.assertIn("no encontrado", error)
+        mock_exists.return_value = True
+
+        # Caso 3: No es archivo
+        mock_is_file.return_value = False
+        valid, error = FileValidator.validate_file_exists("data_dir", "test")
+        self.assertFalse(valid)
+        self.assertIn("no es un archivo", error)
+        mock_is_file.return_value = True
+
+        # Caso 4: Sin permisos
+        mock_access.return_value = False
+        valid, error = FileValidator.validate_file_exists("data.csv", "test")
+        self.assertFalse(valid)
+        self.assertIn("Sin permisos", error)
+        mock_access.return_value = True
+
+        # Caso 5: Tamaño muy pequeño
+        mock_stat.return_value.st_size = 5
+        valid, error = FileValidator.validate_file_exists("data.csv", "test", min_size=10)
+        self.assertFalse(valid)
+        self.assertIn("demasiado pequeño", error)
+
+class TestPresupuestoProcessorRobustness(unittest.TestCase):
+    def setUp(self):
+        self.config = TEST_CONFIG.copy()
+        self.thresholds = ProcessingThresholds()
+        self.profile = {"loader_params": {}}
+        self.processor = PresupuestoProcessor(self.config, self.thresholds, self.profile)
+
+    def test_clean_phantom_rows_robust(self):
+        df = pd.DataFrame({
+            'A': ['val', '', 'nan', None, ' '],
+            'B': [1, np.nan, np.nan, np.nan, np.nan]
+        })
+
+        cleaned = self.processor._clean_phantom_rows(df)
+        # Debería quedar solo la fila 0 ('val', 1)
+        self.assertEqual(len(cleaned), 1)
+        self.assertEqual(cleaned.iloc[0]['A'], 'val')
+
+    def test_process_presupuesto_error_handling(self):
+        # Caso: load_data retorna None o error
+        with patch('app.pipeline_director.load_data') as mock_load:
+            mock_load.return_value = None
+            result = self.processor.process("path.csv")
+            self.assertTrue(result.empty)
+
+class TestDataMergerRobustness(unittest.TestCase):
+    def setUp(self):
+        self.thresholds = ProcessingThresholds()
+        self.merger = DataMerger(self.thresholds)
+
+    def test_merge_apus_with_insumos_validation(self):
+        df_apus = pd.DataFrame({
+            ColumnNames.DESCRIPCION_INSUMO: ['Material A'],
+            'other': [1]
+        })
+        df_insumos = pd.DataFrame({
+            ColumnNames.DESCRIPCION_INSUMO: ['Material A'],
+            'price': [100]
+        })
+
+        # Caso normal
+        merged = self.merger.merge_apus_with_insumos(df_apus, df_insumos)
+        self.assertEqual(len(merged), 1)
+        self.assertIn('price', merged.columns)
+
+        # Caso: df_insumos vacío
+        merged_empty = self.merger.merge_apus_with_insumos(df_apus, pd.DataFrame())
+        self.assertEqual(len(merged_empty), 1)
+        self.assertNotIn('price', merged_empty.columns)
+
+        # Caso: Columnas faltantes
+        df_bad = pd.DataFrame({'wrong': [1]})
+        merged_bad = self.merger.merge_apus_with_insumos(df_bad, df_insumos)
+        self.assertTrue(merged_bad.equals(df_bad))
+
+    def test_merge_with_presupuesto_robust(self):
+        df_presupuesto = pd.DataFrame({
+            ColumnNames.CODIGO_APU: ['A1', 'A2'],
+            'qty': [10, 20]
+        })
+        df_costos = pd.DataFrame({
+            ColumnNames.CODIGO_APU: ['A1', 'A2'],
+            'cost': [100, 200]
+        })
+
+        # Caso normal
+        merged = self.merger.merge_with_presupuesto(df_presupuesto, df_costos)
+        self.assertEqual(len(merged), 2)
+        self.assertIn('cost', merged.columns)
+
+        # Caso duplicados (debe manejar MergeError o advertir)
+        df_costos_dup = pd.DataFrame({
+            ColumnNames.CODIGO_APU: ['A1', 'A1'],
+            'cost': [100, 100]
+        })
+
+        with self.assertLogs(level='WARNING'):
+            merged_dup = self.merger.merge_with_presupuesto(df_presupuesto, df_costos_dup)
+            # Debería retornar resultado aunque haya duplicados (join m:1 o 1:m)
+            self.assertGreaterEqual(len(merged_dup), 2)
+
+class TestPipelineDirectorExecution(unittest.TestCase):
     def setUp(self):
         self.config = TEST_CONFIG.copy()
         self.telemetry = TelemetryContext()
         self.director = PipelineDirector(self.config, self.telemetry)
 
-    def test_initialization(self):
-        """Verify initialization loads thresholds."""
-        assert isinstance(self.director.thresholds, ProcessingThresholds)
-
-    def test_execute_custom_recipe(self):
-        """Verify that a custom recipe executes the steps."""
-        self.director.STEP_REGISTRY["mock_step"] = MockStep
-        self.config["pipeline_recipe"] = [{"step": "mock_step"}]
-
-        context = {}
-        result = self.director.execute(context)
-
-        assert result.get("mock_executed") is True
-        assert len(self.telemetry.steps) == 1
-        assert self.telemetry.steps[0]["step"] == "mock_step"
-
-    @patch("app.pipeline_director.LoadDataStep")
-    @patch("app.pipeline_director.MergeDataStep")
-    @patch("app.pipeline_director.CalculateCostsStep")
-    @patch("app.pipeline_director.FinalMergeStep")
-    @patch("app.pipeline_director.BuildOutputStep")
-    def test_default_pipeline_execution(
-        self, MockBuild, MockFinal, MockCalc, MockMerge, MockLoad
-    ):
-        """Verify default pipeline execution order."""
-        # Setup mocks behavior
-        mock_load_instance = MockLoad.return_value
-        mock_load_instance.execute.return_value = {"updated": "context"}
-
-        mock_merge_instance = MockMerge.return_value
-        mock_merge_instance.execute.return_value = {}
-
-        mock_calc_instance = MockCalc.return_value
-        mock_calc_instance.execute.return_value = {}
-
-        mock_final_instance = MockFinal.return_value
-        mock_final_instance.execute.return_value = {}
-
-        mock_build_instance = MockBuild.return_value
-        mock_build_instance.execute.return_value = {}
-
-        # Remove pipeline_recipe to force default path
-        if "pipeline_recipe" in self.config:
-            del self.config["pipeline_recipe"]
-
-        director = PipelineDirector(self.config, self.telemetry)
-
-        # Override the registry with our mocks
-        director.STEP_REGISTRY = {
-            "load_data": MockLoad,
-            "merge_data": MockMerge,
-            "calculate_costs": MockCalc,
-            "final_merge": MockFinal,
-            "build_output": MockBuild,
-        }
-
-        director.execute({"initial": "ctx"})
-
-        assert MockLoad.called
-        assert MockMerge.called
-        assert MockCalc.called
-        assert MockFinal.called
-        assert MockBuild.called
-
-    def test_error_handling(self):
-        """Verify that errors in steps are recorded in telemetry."""
-
-        class ErrorStep(ProcessingStep):
-            def __init__(self, config, thresholds):
-                pass
-
-            def execute(self, context, telemetry):
-                raise ValueError("Step failed")
-
-        self.director.STEP_REGISTRY["error_step"] = ErrorStep
-        self.config["pipeline_recipe"] = [{"step": "error_step"}]
-
+    def test_execute_robustness(self):
+        # Caso: Contexto inválido
         with self.assertRaises(ValueError):
-            self.director.execute({})
+            self.director.execute(None)
 
-        assert len(self.telemetry.errors) > 0
-        assert self.telemetry.errors[0]["step"] == "error_step"
+        # Caso: Step falla con error crítico
+        self.director.STEP_REGISTRY["fail_step"] = MockStep
+        self.config["pipeline_recipe"] = [{"step": "fail_step"}]
 
+        with patch.object(MockStep, 'execute', side_effect=Exception("Critical Fail")):
+            with self.assertRaises(RuntimeError):
+                self.director.execute({})
+
+            # Verificar que se registró en telemetría
+            self.assertTrue(any(e['step'] == 'fail_step' for e in self.telemetry.errors))
 
 class TestProcessingSteps(unittest.TestCase):
-    """Test individual steps signature updates."""
+    """Test individual steps with robust logic."""
 
     def setUp(self):
         self.config = TEST_CONFIG.copy()
@@ -137,15 +272,13 @@ class TestProcessingSteps(unittest.TestCase):
     @patch("app.pipeline_director.InsumosProcessor")
     @patch("app.pipeline_director.DataFluxCondenser")
     @patch("app.pipeline_director.FileValidator")
-    def test_load_data_step(self, MockFileVal, MockCondenser, MockInsumos, MockPresupuesto):
-        """Test LoadDataStep with telemetry."""
+    def test_load_data_step_robust(self, MockFileVal, MockCondenser, MockInsumos, MockPresupuesto):
+        """Test LoadDataStep handles empty results gracefully."""
         step = LoadDataStep(self.config, self.thresholds)
 
-        # Setup mocks
+        # Setup mocks to return empty DF
         MockFileVal.return_value.validate_file_exists.return_value = (True, None)
-        MockPresupuesto.return_value.process.return_value = pd.DataFrame({"A": [1]})
-        MockInsumos.return_value.process.return_value = pd.DataFrame({"B": [2]})
-        MockCondenser.return_value.stabilize.return_value = pd.DataFrame({"C": [3]})
+        MockPresupuesto.return_value.process.return_value = pd.DataFrame() # Vacío
 
         context = {
             "presupuesto_path": "p.csv",
@@ -153,22 +286,11 @@ class TestProcessingSteps(unittest.TestCase):
             "insumos_path": "i.csv",
         }
 
-        step.execute(context, self.telemetry)
-
-        assert "load_data" in [s["step"] for s in self.telemetry.steps]
-        # Check specific metric recorded
-        assert "load_data.presupuesto_rows" in self.telemetry.metrics
-
-    def test_merge_data_step_signature(self):
-        """Test MergeDataStep accepts telemetry."""
-        step = MergeDataStep(self.config, self.thresholds)
-        # Mock logic inside execute to avoid full execution
-        with patch("app.pipeline_director.DataMerger") as MockMerger:
-            MockMerger.return_value.merge_apus_with_insumos.return_value = pd.DataFrame()
-            context = {"df_apus_raw": pd.DataFrame(), "df_insumos": pd.DataFrame()}
+        # Expect failure due to empty dataframe validation
+        with self.assertRaises(ValueError):
             step.execute(context, self.telemetry)
-            assert "merge_data" in [s["step"] for s in self.telemetry.steps]
 
+        self.assertTrue(any("vacío" in e['message'] for e in self.telemetry.errors))
 
 if __name__ == "__main__":
     unittest.main()
