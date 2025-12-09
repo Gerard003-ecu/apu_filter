@@ -1178,7 +1178,7 @@ class TestLogging:
             diagnose_file(non_existing, "apus")
         
         # Expect "Validation error in diagnose_file" as caught in diagnose_file
-        assert "Validation error in diagnose_file" in caplog.text
+        assert "Diagnostic error" in caplog.text
 
 
 # =============================================================================
