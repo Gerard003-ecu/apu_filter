@@ -11,6 +11,7 @@ Este módulo proporciona funciones de alto nivel para:
 import codecs
 import logging
 import os
+import sys
 from enum import Enum
 from pathlib import Path
 from typing import (
@@ -201,18 +202,23 @@ def _validate_path_not_empty(file_path: Union[str, Path, None]) -> None:
 
     Raises:
         ValueError: Si la ruta está vacía o es None
+        TypeError: Si el tipo no es str ni Path
     """
     if file_path is None:
         raise ValueError("File path cannot be None")
 
     if isinstance(file_path, str):
-        if not file_path.strip():
-            raise ValueError("File path cannot be empty string")
+        # Validar string vacío o solo espacios
+        if not file_path or not file_path.strip():
+            raise ValueError("File path cannot be empty or whitespace-only string")
     elif isinstance(file_path, Path):
-        if str(file_path) in ("", "."):
+        # Path vacío se representa como "." internamente
+        path_str = str(file_path)
+        if path_str in ("", ".") or not path_str.strip():
             raise ValueError("File path cannot be empty")
     else:
-        raise ValueError(
+        # Separar TypeError de ValueError para mejor semántica
+        raise TypeError(
             f"File path must be str or Path, got: {type(file_path).__name__}"
         )
 
@@ -238,20 +244,44 @@ def _normalize_path(file_path: Union[str, Path]) -> Path:
         # Expandir ~ a home directory
         path = path.expanduser()
 
-        # Intentar resolver la ruta si es posible
+        # Estrategia de resolución en cascada
+        resolved_path: Optional[Path] = None
+
         try:
-            if path.exists() or path.parent.exists():
-                path = path.resolve()
-        except (OSError, RuntimeError):
-            # Mantener path sin resolver si hay error de permisos o recursión
-            pass
+            # Caso 1: El archivo existe - resolver directamente
+            if path.exists():
+                resolved_path = path.resolve(strict=True)
+            # Caso 2: El parent existe - resolver parent y añadir nombre
+            elif path.parent and path.parent != path and path.parent.exists():
+                resolved_path = path.parent.resolve(strict=True) / path.name
+            # Caso 3: Resolver sin verificar existencia
+            else:
+                resolved_path = path.resolve(strict=False)
+        except OSError:
+            # Permisos u otros errores de OS
+            resolved_path = None
+        except RuntimeError:
+            # Recursión excesiva en symlinks
+            resolved_path = None
 
-        return path
+        # Usar ruta resuelta o la original expandida
+        return resolved_path if resolved_path is not None else path
 
-    except (TypeError, ValueError) as e:
-        raise ValueError(f"Invalid path '{file_path}': {e}") from e
+    except TypeError as e:
+        raise ValueError(f"Invalid path type for '{file_path}': {e}") from e
+    except ValueError as e:
+        raise ValueError(f"Invalid path value '{file_path}': {e}") from e
     except OSError as e:
         raise ValueError(f"OS error processing path '{file_path}': {e}") from e
+
+
+def _safe_stat(path: Path) -> bool:
+    """Helper para verificar si stat() es accesible."""
+    try:
+        path.stat()
+        return True
+    except OSError:
+        return False
 
 
 def _validate_file_exists(path: Path) -> None:
@@ -265,76 +295,123 @@ def _validate_file_exists(path: Path) -> None:
         FileNotFoundDiagnosticError: Si el archivo no existe
         FileValidationError: Si no es archivo o no es legible
     """
-    if not path.exists():
+    # Verificar existencia primero
+    try:
+        exists = path.exists()
+    except OSError as e:
+        raise FileValidationError(
+            f"Cannot verify path existence: {path}",
+            details={"path": str(path), "error": str(e)}
+        )
+
+    if not exists:
+        # Calcular parent_exists de forma segura
+        parent_exists = False
+        try:
+            if path.parent and path.parent != path:
+                parent_exists = path.parent.exists()
+        except OSError:
+            pass  # No crítico, solo informativo
+
         raise FileNotFoundDiagnosticError(
             f"File not found: {path}",
             details={
                 "path": str(path),
-                "parent_exists": path.parent.exists() if path.parent else False
+                "parent_exists": parent_exists,
+                "parent_path": str(path.parent) if path.parent else None
             }
         )
 
-    if not path.is_file():
+    # Verificar que sea archivo (no directorio/symlink roto)
+    try:
+        is_file = path.is_file()
+    except OSError as e:
+        raise FileValidationError(
+            f"Cannot determine if path is file: {path}",
+            details={"path": str(path), "error": str(e)}
+        )
+
+    if not is_file:
         raise FileValidationError(
             f"Path exists but is not a file: {path}",
             details={
                 "path": str(path),
                 "is_directory": path.is_dir(),
-                "is_symlink": path.is_symlink()
+                "is_symlink": path.is_symlink(),
+                "is_mount": path.is_mount() if hasattr(path, 'is_mount') else None
             }
         )
 
+    # Verificar permisos de lectura
     if not os.access(path, os.R_OK):
         raise FileValidationError(
             f"File exists but is not readable (permission denied): {path}",
-            details={"path": str(path)}
+            details={
+                "path": str(path),
+                "file_mode": oct(path.stat().st_mode) if _safe_stat(path) else None
+            }
         )
 
 
 def _validate_file_size(
     path: Path,
     max_size: int = MAX_FILE_SIZE_BYTES
-) -> int:
+) -> Tuple[int, bool]:
     """
     Valida que el archivo no exceda el tamaño máximo.
 
     Args:
         path: Ruta del archivo
-        max_size: Tamaño máximo en bytes
+        max_size: Tamaño máximo en bytes (debe ser > 0)
 
     Returns:
-        Tamaño del archivo en bytes
+        Tupla (tamaño_en_bytes, is_empty)
 
     Raises:
-        FileValidationError: Si excede el tamaño o está vacío
+        FileValidationError: Si excede el tamaño o max_size inválido
+        ValueError: Si max_size <= 0
     """
+    # Validar max_size primero
+    if max_size <= 0:
+        raise ValueError(
+            f"max_size must be positive, got: {max_size}"
+        )
+
     try:
-        file_size = path.stat().st_size
+        stat_result = path.stat()
+        file_size = stat_result.st_size
     except OSError as e:
         raise FileValidationError(
             f"Cannot determine file size: {path}",
             details={"path": str(path), "error": str(e)}
         ) from e
 
-    if file_size == 0:
-        logger.warning(f"File is empty: {path}")
-        # No lanzamos excepción, pero advertimos
+    is_empty = file_size == 0
+
+    if is_empty:
+        logger.warning(
+            f"File is empty (0 bytes): {path}. "
+            f"Processing may produce unexpected results."
+        )
 
     if file_size > max_size:
+        # Cálculo seguro de MB (max_size ya validado > 0)
         max_mb = max_size / (1024 * 1024)
         file_mb = file_size / (1024 * 1024)
         raise FileValidationError(
-            f"File size ({file_mb:.2f} MB) exceeds maximum ({max_mb:.2f} MB): {path}",
+            f"File size ({file_mb:.2f} MB) exceeds maximum "
+            f"({max_mb:.2f} MB): {path}",
             details={
                 "path": str(path),
                 "file_size_bytes": file_size,
-                "file_size_mb": file_mb,
+                "file_size_mb": round(file_mb, 2),
                 "max_size_bytes": max_size,
-                "max_size_mb": max_mb
+                "max_size_mb": round(max_mb, 2),
+                "excess_bytes": file_size - max_size
             }
         )
 
-    return file_size
+    return file_size, is_empty
 
 
 def _validate_file_extension(
@@ -389,40 +466,63 @@ def _validate_encoding(encoding: str) -> str:
         encoding: Encoding a validar
 
     Returns:
-        Encoding normalizado
+        Nombre canónico del encoding (normalizado por Python)
 
     Raises:
         ValueError: Si el encoding es inválido o desconocido
     """
-    if not encoding:
-        raise ValueError("Encoding cannot be empty")
+    if encoding is None:
+        raise ValueError("Encoding cannot be None")
 
     if not isinstance(encoding, str):
         raise ValueError(
             f"Encoding must be string, got: {type(encoding).__name__}"
         )
 
-    encoding_normalized = encoding.strip().lower()
+    encoding_stripped = encoding.strip()
+
+    if not encoding_stripped:
+        raise ValueError("Encoding cannot be empty or whitespace-only")
+
+    encoding_normalized = encoding_stripped.lower()
 
     # Verificar que Python reconozca el encoding
     try:
         codec_info = codecs.lookup(encoding_normalized)
-        # Usar el nombre canónico del codec
+        # Usar el nombre canónico del codec para consistencia
         canonical_name = codec_info.name
     except LookupError as e:
+        # Sugerir encodings similares si es posible
+        suggestions = [
+            enc for enc in SUPPORTED_ENCODINGS
+            if encoding_normalized in enc or enc in encoding_normalized
+        ]
+        suggestion_msg = (
+            f" Did you mean: {', '.join(suggestions)}?"
+            if suggestions else ""
+        )
         raise ValueError(
-            f"Unknown encoding: '{encoding}'. "
-            f"Python cannot find a codec for this encoding."
+            f"Unknown encoding: '{encoding}'.{suggestion_msg}"
+        ) from e
+
+    # Verificar que el codec pueda realmente decodificar
+    try:
+        codecs.decode(b'test', encoding=encoding_normalized, errors='strict')
+    except Exception as e:
+        raise ValueError(
+            f"Encoding '{encoding}' is registered but cannot decode: {e}"
         ) from e
 
     # Advertir si no está en la lista de encodings comunes
-    if encoding_normalized not in SUPPORTED_ENCODINGS:
+    if canonical_name not in SUPPORTED_ENCODINGS and encoding_normalized not in SUPPORTED_ENCODINGS:
         logger.warning(
             f"Encoding '{encoding}' (canonical: '{canonical_name}') "
-            f"is valid but not in common list. Proceeding anyway."
+            f"is valid but not in recommended list: {sorted(SUPPORTED_ENCODINGS)}. "
+            f"Proceeding with caution."
         )
 
-    return encoding_normalized
+    # Retornar nombre canónico para consistencia
+    return canonical_name
 
 
 def _validate_delimiter(delimiter: str) -> str:
@@ -578,12 +678,37 @@ def _create_success_response(
 
     Returns:
         Diccionario con estructura de éxito consistente
+
+    Raises:
+        ValueError: Si data contiene claves reservadas
     """
+    RESERVED_KEYS: frozenset[str] = frozenset({"success", "error", "error_type"})
+
     if not isinstance(data, dict):
         logger.warning(
-            f"Expected dict for data, got {type(data).__name__}. Converting."
+            f"Expected dict for data, got {type(data).__name__}. "
+            f"Wrapping in 'result' key."
         )
-        data = {"data": data}
+        data = {"result": data}
+
+    # Detectar colisiones con claves reservadas
+    conflicting_keys = set(data.keys()) & RESERVED_KEYS
+    if conflicting_keys:
+        logger.warning(
+            f"Data contains reserved keys {conflicting_keys}. "
+            f"These will be prefixed with 'data_' to avoid conflicts."
+        )
+        data = {
+            (f"data_{k}" if k in RESERVED_KEYS else k): v
+            for k, v in data.items()
+        }
+
+    # Detectar colisiones entre data y extras
+    extras_conflicting = set(data.keys()) & set(extras.keys())
+    if extras_conflicting:
+        logger.debug(
+            f"Keys {extras_conflicting} in data will be overwritten by extras"
+        )
 
     response: Dict[str, Any] = {"success": True}
     response.update(data)
@@ -636,33 +761,51 @@ def _validate_output_path(
         FileExistsError: Si el archivo existe y overwrite=False
         PermissionError: Si no hay permisos de escritura
     """
-    # Comparar rutas de forma segura
+
+    def _normalize_for_comparison(p: Path) -> str:
+        """Normaliza ruta para comparación cross-platform."""
+        try:
+            resolved = p.resolve() if p.exists() else p.absolute()
+            path_str = str(resolved)
+            # En Windows, normalizar case
+            if sys.platform == 'win32':
+                path_str = path_str.lower()
+            return path_str
+        except OSError:
+            return str(p)
+
+    # Comparar rutas de forma segura y cross-platform
     try:
-        input_resolved = input_path.resolve()
+        input_normalized = _normalize_for_comparison(input_path)
+        output_normalized = _normalize_for_comparison(output_path)
 
-        if output_path.exists():
-            output_resolved = output_path.resolve()
-        else:
-            # Para archivos que no existen, resolver el padre
-            output_resolved = (
-                output_path.parent.resolve() / output_path.name
-                if output_path.parent.exists()
-                else output_path
-            )
-
-        if input_resolved == output_resolved:
+        if input_normalized == output_normalized:
             raise ValueError(
-                "Output path cannot be the same as input path. "
-                "Use a different path or let it auto-generate."
+                f"Output path cannot be the same as input path: '{input_path}'. "
+                f"Use a different filename or directory."
             )
     except OSError as e:
-        logger.warning(f"Could not fully resolve paths for comparison: {e}")
+        logger.warning(
+            f"Could not fully resolve paths for comparison: {e}. "
+            f"Proceeding with basic comparison."
+        )
+        # Comparación básica como fallback
+        if str(input_path) == str(output_path):
+            raise ValueError(
+                "Output path appears to be the same as input path."
+            )
 
     # Verificar sobrescritura
     if output_path.exists():
+        if not output_path.is_file():
+            raise ValueError(
+                f"Output path exists but is not a file: {output_path}"
+            )
+
         if not overwrite:
             raise FileExistsError(
-                f"Output file exists and overwrite=False: {output_path}"
+                f"Output file already exists and overwrite=False: {output_path}. "
+                f"Set overwrite=True or choose a different output path."
             )
 
         if not os.access(output_path, os.W_OK):
@@ -709,25 +852,69 @@ def _extract_diagnostic_result(diagnostic: Any) -> Dict[str, Any]:
         diagnostic: Objeto diagnóstico
 
     Returns:
-        Diccionario con resultados
+        Diccionario con resultados (siempre incluye 'diagnostic_completed')
     """
-    if hasattr(diagnostic, 'to_dict') and callable(diagnostic.to_dict):
-        try:
-            result = diagnostic.to_dict()
-            if isinstance(result, dict):
-                return result
-            logger.warning(
-                f"to_dict() returned {type(result).__name__}, expected dict"
-            )
-            return {"raw_result": result}
-        except Exception as e:
-            logger.warning(f"Error calling to_dict(): {e}")
-            return {"diagnostic_completed": True, "to_dict_error": str(e)}
+    base_result: Dict[str, Any] = {
+        "diagnostic_completed": True,
+        "diagnostic_class": type(diagnostic).__name__
+    }
 
-    logger.warning(
-        f"Diagnostic {type(diagnostic).__name__} lacks to_dict() method"
-    )
-    return {"diagnostic_completed": True}
+    if not hasattr(diagnostic, 'to_dict'):
+        logger.warning(
+            f"Diagnostic {type(diagnostic).__name__} lacks to_dict() method. "
+            f"Returning minimal result."
+        )
+        return base_result
+
+    if not callable(diagnostic.to_dict):
+        logger.warning(
+            f"Diagnostic {type(diagnostic).__name__}.to_dict is not callable. "
+            f"Returning minimal result."
+        )
+        return {**base_result, "to_dict_not_callable": True}
+
+    try:
+        result = diagnostic.to_dict()
+
+        if result is None:
+            logger.warning(
+                f"Diagnostic {type(diagnostic).__name__}.to_dict() returned None"
+            )
+            return {**base_result, "to_dict_returned_none": True}
+
+        if not isinstance(result, dict):
+            logger.warning(
+                f"to_dict() returned {type(result).__name__}, expected dict. "
+                f"Wrapping result."
+            )
+            return {
+                **base_result,
+                "raw_result": result,
+                "result_type": type(result).__name__
+            }
+
+        # Validar que tenga al menos algún contenido útil
+        if not result:
+            logger.warning(
+                f"Diagnostic {type(diagnostic).__name__}.to_dict() "
+                f"returned empty dict"
+            )
+            return {**base_result, "empty_result": True}
+
+        # Merge con base_result, pero sin sobrescribir datos del diagnóstico
+        return {**base_result, **result}
+
+    except Exception as e:
+        logger.warning(
+            f"Error calling {type(diagnostic).__name__}.to_dict(): {e}",
+            exc_info=True
+        )
+        return {
+            **base_result,
+            "diagnostic_completed": False,
+            "to_dict_error": str(e),
+            "to_dict_error_type": type(e).__name__
+        }
 
 
 def _extract_cleaning_stats(stats: Any) -> Dict[str, Any]:
@@ -812,18 +999,54 @@ def diagnose_file(
             max_file_size if max_file_size is not None
             else MAX_FILE_SIZE_BYTES
         )
-        _validate_file_size(path, effective_max)
+        file_size, is_empty = _validate_file_size(path, effective_max)
+
+        # Warning adicional para archivos vacíos
+        if is_empty:
+            logger.warning(
+                f"Diagnosing empty file: {path}. Results may be limited."
+            )
 
         # Obtener clase diagnóstica
         diagnostic_class = _get_diagnostic_class(normalized_type)
 
-        # Ejecutar diagnóstico
+        # Ejecutar diagnóstico con validación de instanciación
         logger.info(
-            f"Starting {normalized_type.value} diagnosis for: {path}"
+            f"Starting {normalized_type.value} diagnosis for: {path} "
+            f"({file_size} bytes)"
         )
 
-        diagnostic = diagnostic_class(str(path))
-        diagnostic.diagnose()
+        try:
+            diagnostic = diagnostic_class(str(path))
+        except TypeError as e:
+            raise DiagnosticError(
+                f"Failed to instantiate {diagnostic_class.__name__}: {e}",
+                details={
+                    "diagnostic_class": diagnostic_class.__name__,
+                    "file_path": str(path),
+                    "error": str(e)
+                }
+            ) from e
+
+        # Verificar que diagnose() existe y es callable
+        if not hasattr(diagnostic, 'diagnose') or not callable(diagnostic.diagnose):
+            raise DiagnosticError(
+                f"Diagnostic class {diagnostic_class.__name__} "
+                f"does not have a callable diagnose() method",
+                details={"diagnostic_class": diagnostic_class.__name__}
+            )
+
+        try:
+            diagnostic.diagnose()
+        except Exception as e:
+            raise DiagnosticError(
+                f"Diagnosis execution failed: {e}",
+                details={
+                    "diagnostic_class": diagnostic_class.__name__,
+                    "file_path": str(path),
+                    "error_type": type(e).__name__
+                }
+            ) from e
 
         # Extraer resultados
         result_data = _extract_diagnostic_result(diagnostic)
@@ -833,8 +1056,13 @@ def diagnose_file(
         return _create_success_response(
             result_data,
             file_type=normalized_type.value,
-            file_path=str(path)
+            file_path=str(path),
+            file_size_bytes=file_size
         )
+
+    except DiagnosticError as e:
+        logger.warning(f"Diagnostic error: {e}")
+        return _create_error_response(e, error_category="diagnostic")
 
     except (
         FileNotFoundDiagnosticError,
@@ -842,7 +1070,7 @@ def diagnose_file(
         FileValidationError
     ) as e:
         logger.warning(f"Validation error in diagnose_file: {e}")
-        return _create_error_response(e)
+        return _create_error_response(e, error_category="validation")
 
     except ValueError as e:
         logger.warning(f"Value error in diagnose_file: {e}")
@@ -912,7 +1140,7 @@ def clean_file(
             max_file_size if max_file_size is not None
             else MAX_FILE_SIZE_BYTES
         )
-        _validate_file_size(input_p, effective_max)
+        input_size, _ = _validate_file_size(input_p, effective_max)
 
         # Validar parámetros CSV
         validated_delimiter, validated_encoding = _validate_csv_parameters(
@@ -934,23 +1162,65 @@ def clean_file(
         logger.info(
             f"Starting CSV cleaning: {input_p} -> {output_p} "
             f"(delimiter={repr(validated_delimiter)}, "
-            f"encoding='{validated_encoding}')"
+            f"encoding='{validated_encoding}', "
+            f"input_size={input_size} bytes)"
         )
 
-        cleaner = CSVCleaner(
-            input_path=str(input_p),
-            output_path=str(output_p),
-            delimiter=validated_delimiter,
-            encoding=validated_encoding,
-            overwrite=overwrite,
-        )
+        try:
+            cleaner = CSVCleaner(
+                input_path=str(input_p),
+                output_path=str(output_p),
+                delimiter=validated_delimiter,
+                encoding=validated_encoding,
+                overwrite=overwrite,
+            )
+        except TypeError as e:
+            raise CleaningError(
+                f"Failed to instantiate CSVCleaner: {e}",
+                details={"error": str(e)}
+            ) from e
 
-        stats = cleaner.clean()
+        try:
+            stats = cleaner.clean()
+        except Exception as e:
+            raise CleaningError(
+                f"Cleaning execution failed: {e}",
+                details={"error_type": type(e).__name__, "error": str(e)}
+            ) from e
+
+        # Verificar que el archivo de salida fue creado
+        if not output_p.exists():
+            raise CleaningError(
+                f"Cleaning completed but output file was not created: {output_p}",
+                details={
+                    "input_path": str(input_p),
+                    "output_path": str(output_p)
+                }
+            )
+
+        # Obtener estadísticas del archivo de salida
+        try:
+            output_size = output_p.stat().st_size
+        except OSError as e:
+            logger.warning(f"Could not get output file size: {e}")
+            output_size = None
 
         # Extraer estadísticas
         result_data = _extract_cleaning_stats(stats)
 
-        logger.info(f"CSV cleaning completed successfully: {output_p}")
+        # Añadir métricas de archivos
+        result_data["input_size_bytes"] = input_size
+        if output_size is not None:
+            result_data["output_size_bytes"] = output_size
+            if input_size > 0:
+                result_data["size_reduction_pct"] = round(
+                    (1 - output_size / input_size) * 100, 2
+                )
+
+        logger.info(
+            f"CSV cleaning completed successfully: {output_p} "
+            f"(output_size={output_size} bytes)"
+        )
 
         return _create_success_response(
             result_data,
@@ -958,9 +1228,13 @@ def clean_file(
             input_path=str(input_p)
         )
 
+    except CleaningError as e:
+        logger.error(f"Cleaning error: {e}")
+        return _create_error_response(e, error_category="cleaning")
+
     except (FileNotFoundDiagnosticError, FileValidationError) as e:
         logger.warning(f"File validation error in clean_file: {e}")
-        return _create_error_response(e)
+        return _create_error_response(e, error_category="validation")
 
     except (ValueError, FileExistsError) as e:
         logger.warning(f"Validation error in clean_file: {e}")
@@ -1000,7 +1274,8 @@ def get_telemetry_status(
         >>> status = get_telemetry_status()
         >>> print(status['status'])  # 'IDLE'
     """
-    base_status: Dict[str, Any] = {
+    # Estado base para contexto ausente
+    IDLE_STATUS: Dict[str, Any] = {
         "status": "IDLE",
         "message": "No active processing context",
         "system_health": "UNKNOWN",
@@ -1009,78 +1284,88 @@ def get_telemetry_status(
 
     if telemetry_context is None:
         logger.debug("Telemetry status requested without active context")
-        return base_status.copy()
+        return IDLE_STATUS.copy()
 
-    # Verificar método requerido
-    report_method = getattr(telemetry_context, 'get_business_report', None)
+    context_type = type(telemetry_context).__name__
 
-    if report_method is None:
-        context_type = type(telemetry_context).__name__
+    # Verificar que el método exista
+    if not hasattr(telemetry_context, 'get_business_report'):
         logger.warning(
-            f"Telemetry context missing 'get_business_report'. "
-            f"Type: {context_type}"
+            f"Telemetry context ({context_type}) missing 'get_business_report' method"
         )
         return {
-            **base_status,
             "status": "ERROR",
-            "message": (
-                f"Invalid telemetry context ({context_type}): "
-                f"missing get_business_report method"
-            ),
+            "message": f"Invalid telemetry context ({context_type}): missing get_business_report method",
             "system_health": "DEGRADED",
+            "has_active_context": False,
+            "error_type": "MissingMethodError"
         }
 
+    report_method = getattr(telemetry_context, 'get_business_report')
+
     if not callable(report_method):
-        logger.warning("get_business_report is not callable")
+        logger.warning(
+            f"get_business_report on {context_type} is not callable"
+        )
         return {
-            **base_status,
             "status": "ERROR",
             "message": "get_business_report is not callable",
             "system_health": "DEGRADED",
+            "has_active_context": False,
+            "error_type": "NotCallableError"
         }
 
     try:
         report = report_method()
 
-        # Validar y normalizar el reporte
+        # Normalizar el reporte
         if report is None:
-            logger.warning("Telemetry report returned None")
+            logger.warning(f"Telemetry report from {context_type} returned None")
             report = {}
         elif not isinstance(report, dict):
             logger.warning(
-                f"Telemetry report is {type(report).__name__}, not dict"
+                f"Telemetry report is {type(report).__name__}, expected dict. Converting."
             )
-            report = {"raw_report": str(report)}
+            report = {"raw_report": report, "raw_report_type": type(report).__name__}
 
-        # Construir respuesta con valores por defecto
+        # Construir respuesta con prioridad clara:
+        # 1. Valores del reporte tienen prioridad
+        # 2. Valores por defecto solo si no existen en reporte
         result: Dict[str, Any] = {
-            **base_status,
-            **report,
             "has_active_context": True,
         }
 
-        # Asegurar valores por defecto para campos críticos
-        # Si report no trae status, sobrescribimos el IDLE de base_status con ACTIVE
-        if "status" not in report:
-            result["status"] = "ACTIVE"
+        # Añadir datos del reporte primero
+        result.update(report)
 
-        # Si report no trae system_health, sobrescribimos el UNKNOWN de base_status con HEALTHY
-        if "system_health" not in report:
-            result["system_health"] = "HEALTHY"
-
+        # Establecer defaults SOLO si no vienen en el reporte
+        result.setdefault("status", "ACTIVE")
         result.setdefault("message", "Telemetry context active")
+        result.setdefault("system_health", "HEALTHY")
+
+        # Validar que status tenga valor válido
+        valid_statuses = {"ACTIVE", "IDLE", "ERROR", "PENDING", "PROCESSING"}
+        if result.get("status") not in valid_statuses:
+            logger.warning(
+                f"Unknown status '{result.get('status')}' in telemetry report. "
+                f"Valid values: {valid_statuses}"
+            )
 
         return result
 
     except Exception as e:
-        logger.error(f"Error retrieving telemetry report: {e}", exc_info=True)
+        logger.error(
+            f"Error retrieving telemetry report from {context_type}: {e}",
+            exc_info=True
+        )
         return {
-            **base_status,
             "status": "ERROR",
             "message": f"Failed to retrieve telemetry: {e}",
             "system_health": "DEGRADED",
+            "has_active_context": True,  # El contexto existe, solo falló
             "error": str(e),
             "error_type": type(e).__name__,
+            "context_type": context_type
         }
 
 
@@ -1176,64 +1461,98 @@ def validate_file_for_processing(
         ...     print(f"Size: {result['size']} bytes")
     """
     errors: List[str] = []
+    size: Optional[int] = None
+    extension: Optional[str] = None
 
+    # Normalizar ruta
     try:
         path = _normalize_path(file_path)
-    except ValueError as e:
+    except (ValueError, TypeError) as e:
         return {
             "valid": False,
-            "path": str(file_path),
-            "errors": [str(e)],
+            "path": str(file_path) if file_path is not None else None,
+            "errors": [f"Invalid path: {e}"],
         }
 
-    # Validar existencia
-    if not path.exists():
+    # Validar existencia y accesibilidad
+    try:
+        exists = path.exists()
+    except OSError as e:
+        errors.append(f"Cannot check file existence: {e}")
+        exists = False
+
+    if not exists:
         errors.append(f"File does not exist: {path}")
-    elif not path.is_file():
-        errors.append(f"Path is not a file: {path}")
-    elif not os.access(path, os.R_OK):
-        errors.append(f"File is not readable: {path}")
     else:
-        # Validar extensión
-        if check_extension:
-            extension = path.suffix.lower()
-            if extension not in VALID_EXTENSIONS:
-                errors.append(
-                    f"Invalid extension '{extension}'. "
-                    f"Valid: {sorted(VALID_EXTENSIONS)}"
-                )
-
-        # Validar tamaño
         try:
-            size = path.stat().st_size
-            effective_max = (
-                max_size if max_size is not None
-                else MAX_FILE_SIZE_BYTES
-            )
-
-            if size > effective_max:
-                max_mb = effective_max / (1024 * 1024)
-                file_mb = size / (1024 * 1024)
-                errors.append(
-                    f"File too large: {file_mb:.2f} MB (max: {max_mb:.2f} MB)"
-                )
-            elif size == 0:
-                errors.append("File is empty")
-
+            is_file = path.is_file()
         except OSError as e:
-            errors.append(f"Cannot read file stats: {e}")
-            size = 0
+            errors.append(f"Cannot determine if path is file: {e}")
+            is_file = False
 
+        if not is_file:
+            errors.append(f"Path is not a file: {path}")
+        else:
+            # Verificar permisos
+            if not os.access(path, os.R_OK):
+                errors.append(f"File is not readable: {path}")
+            else:
+                # Solo validar extensión y tamaño si el archivo es accesible
+
+                # Validar extensión
+                extension = path.suffix.lower()
+                if check_extension and extension not in VALID_EXTENSIONS:
+                    errors.append(
+                        f"Invalid extension '{extension}'. "
+                        f"Valid: {sorted(VALID_EXTENSIONS)}"
+                    )
+
+                # Validar tamaño
+                try:
+                    size = path.stat().st_size
+                    effective_max = (
+                        max_size if max_size is not None
+                        else MAX_FILE_SIZE_BYTES
+                    )
+
+                    if effective_max <= 0:
+                        errors.append(f"Invalid max_size: {effective_max}")
+                    elif size > effective_max:
+                        max_mb = effective_max / (1024 * 1024)
+                        file_mb = size / (1024 * 1024)
+                        errors.append(
+                            f"File too large: {file_mb:.2f} MB "
+                            f"(max: {max_mb:.2f} MB)"
+                        )
+                    elif size == 0:
+                        # Warning, no error - archivos vacíos pueden ser válidos
+                        logger.warning(f"File is empty: {path}")
+
+                except OSError as e:
+                    errors.append(f"Cannot read file stats: {e}")
+
+    # Construir respuesta
     if errors:
-        return {
+        response: Dict[str, Any] = {
             "valid": False,
             "path": str(path),
             "errors": errors,
         }
+        # Incluir información parcial si está disponible
+        if size is not None:
+            response["size"] = size
+        if extension is not None:
+            response["extension"] = extension
+        return response
+
+    # Éxito - size y extension garantizados no-None aquí
+    assert size is not None, "size should be defined at this point"
+    assert extension is not None, "extension should be defined at this point"
 
     return {
         "valid": True,
         "path": str(path),
         "size": size,
-        "extension": path.suffix.lower(),
+        "extension": extension,
+        "size_mb": round(size / (1024 * 1024), 2),
     }
