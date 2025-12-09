@@ -15,6 +15,7 @@ Mejoras implementadas:
 - Métricas internas del agente
 - Health check inicial
 - Integración de Motor Topológico (Persistence Homology + Betti Numbers)
+- Tolerancia a estado IDLE (Métricas opcionales)
 """
 
 import logging
@@ -62,10 +63,6 @@ def setup_logging() -> logging.Logger:
 
 
 logger = setup_logging()
-
-# ============================================================================
-# ENUMS - Estados y Decisiones tipados
-# ============================================================================
 
 # ============================================================================
 # ENUMS - Estados y Decisiones tipados
@@ -159,6 +156,7 @@ class TelemetryData:
     def from_dict(cls, data: Dict[str, Any]) -> Optional["TelemetryData"]:
         """
         Factory method: crea instancia desde diccionario con validación.
+        Tolera ausencia de métricas asumiendo estado IDLE (0.0).
 
         Args:
             data: Diccionario con datos de telemetría
@@ -170,19 +168,35 @@ class TelemetryData:
             logger.warning(f"[TELEMETRY] Tipo inválido: esperado dict, recibido {type(data).__name__}")
             return None
 
-        flyback = data.get("flyback_voltage")
-        saturation = data.get("saturation")
+        # Estrategia de extracción flexible
+        # 1. Buscar en 'metrics' (estructura anidada común)
+        # 2. Buscar en la raíz (estructura plana)
+        metrics_source = data.get("metrics", data)
 
-        # Validar campos requeridos
-        missing_fields = []
+        if not isinstance(metrics_source, dict):
+            # Si 'metrics' existe pero no es dict, volver a la raíz
+            metrics_source = data
+
+        # Extracción con defaults seguros (0.0 = Reposo/Nominal)
+        # Soporta claves directas o anidadas tipo 'flux_condenser.x'
+        flyback = metrics_source.get("flux_condenser.max_flyback_voltage",
+                  metrics_source.get("flyback_voltage"))
+
+        saturation = metrics_source.get("flux_condenser.avg_saturation",
+                     metrics_source.get("saturation"))
+
+        # Si no se encontraron los valores explícitos, usar default 0.0 y loguear debug
+        is_idle = False
         if flyback is None:
-            missing_fields.append("flyback_voltage")
-        if saturation is None:
-            missing_fields.append("saturation")
+            flyback = 0.0
+            is_idle = True
 
-        if missing_fields:
-            logger.warning(f"[TELEMETRY] Campos faltantes: {missing_fields}")
-            return None
+        if saturation is None:
+            saturation = 0.0
+            is_idle = True
+
+        if is_idle:
+             logger.debug("[TELEMETRY] Métricas no encontradas, asumiendo estado IDLE (flyback=0.0, saturation=0.0)")
 
         # Intentar conversión a float
         try:
