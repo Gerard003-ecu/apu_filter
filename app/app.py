@@ -20,6 +20,10 @@ import json
 import logging
 import mimetypes
 import os
+
+# Forzar modo secuencial para evitar deadlocks con Gunicorn
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
+
 import sys
 import time
 import uuid
