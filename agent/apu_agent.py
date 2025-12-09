@@ -367,6 +367,7 @@ class AutonomousAgent:
         self.core_api_url = self._validate_and_normalize_url(
             core_api_url or os.getenv("CORE_API_URL", self.DEFAULT_CORE_URL)
         )
+        logger.debug(f"DEBUG: Connecting to Core API at: {self.core_api_url}")
         self.telemetry_endpoint = f"{self.core_api_url}/api/telemetry/status"
 
         # Configuración de tiempos

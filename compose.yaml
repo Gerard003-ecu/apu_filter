@@ -71,7 +71,7 @@ services:
     container_name: apu_agent
     hostname: agent
     environment:
-      - CORE_API_URL=http://core:5002
+      - CORE_API_URL=http://apu_core:5002
       - REDIS_URL=redis://redis:6379/0
       - REQUEST_TIMEOUT=30
       - PYTHONUNBUFFERED=1
