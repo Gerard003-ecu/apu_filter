@@ -610,64 +610,96 @@ class SystemTopology:
         include_isolated: bool = True
     ) -> BettiNumbers:
         """
-        Calcula los números de Betti del sistema actual.
+        Calcula los números de Betti del sistema actual con validación rigurosa.
 
-        Matemáticamente para un grafo G = (V, E):
+        Para un grafo G = (V, E):
         - β₀ = número de componentes conexas
-        - β₁ = |E| - |V| + β₀ (del teorema de Euler-Poincaré)
+        - β₁ = |E| - |V| + β₀ (Teorema de Euler-Poincaré)
+
+        Casos especiales manejados:
+        1. Grafo vacío (sin nodos): β₀=0, β₁=0
+        2. Nodos aislados: cada uno es una componente conexa
+        3. Grafos no conexos: se calcula correctamente β₁ por componente
+        4. Consistencia con fórmula de Euler para grafos
 
         Args:
-            include_isolated: Si True, incluye nodos sin conexiones.
-                          Si False, solo considera nodos con grado > 0.
+            include_isolated: Si True, incluye nodos sin conexiones como componentes.
 
         Returns:
-            BettiNumbers con β₀ y β₁.
+            BettiNumbers válidos y consistentes.
 
-        Note:
-            Para grafos vacíos (sin nodos) retorna β₀=0, β₁=0.
-            Para grafos con solo nodos aislados y include_isolated=False,
-            retorna β₀=0, β₁=0.
+        Raises:
+            RuntimeError: Si hay inconsistencia matemática irreconciliable.
         """
+        # Caso especial: grafo vacío
+        if self._graph.number_of_nodes() == 0:
+            return BettiNumbers(b0=0, b1=0, num_vertices=0, num_edges=0)
+
+        # Determinar subgrafo a analizar
         if include_isolated:
             subgraph = self._graph
         else:
-            # Solo nodos con al menos una conexión
-            connected_nodes = [
-                n for n in self._graph.nodes()
-                if self._graph.degree(n) > 0
-            ]
+            # Solo nodos con grado > 0
+            connected_nodes = [n for n in self._graph.nodes()
+                               if self._graph.degree(n) > 0]
             if not connected_nodes:
-                # Todos los nodos están aislados
                 return BettiNumbers(b0=0, b1=0, num_vertices=0, num_edges=0)
             subgraph = self._graph.subgraph(connected_nodes)
 
         num_vertices = subgraph.number_of_nodes()
         num_edges = subgraph.number_of_edges()
 
-        # Caso: grafo vacío
-        if num_vertices == 0:
-            return BettiNumbers(b0=0, b1=0, num_vertices=0, num_edges=0)
-
-        # β₀: Componentes conexas
-        # Para un grafo vacío de aristas pero con nodos, cada nodo es una componente
+        # Caso 1: Sin aristas (todos nodos aislados)
         if num_edges == 0:
-            b0 = num_vertices  # Cada nodo aislado es una componente
-            b1 = 0  # Sin aristas no hay ciclos
+            # Cada nodo aislado es una componente conexa
+            b0 = num_vertices
+            b1 = 0
         else:
-            b0 = nx.number_connected_components(subgraph)
-            # β₁: Usando fórmula de Euler para grafos
-            # χ = |V| - |E| = β₀ - β₁
-            # Por tanto: β₁ = |E| - |V| + β₀
+            # Calcular componentes conexas usando algoritmo robusto
+            try:
+                b0 = nx.number_connected_components(subgraph)
+            except nx.NetworkXError as e:
+                logger.error(f"Error calculando componentes conexas: {e}")
+                # Fallback: contar nodos con grado > 0
+                b0 = len([n for n in subgraph.nodes() if subgraph.degree(n) > 0]) or 1
+
+            # Calcular β₁ usando fórmula de Euler-Poincaré
+            # χ = |V| - |E| = β₀ - β₁  =>  β₁ = |E| - |V| + β₀
             b1 = num_edges - num_vertices + b0
 
-        # Invariante: β₁ ≥ 0 para grafos simples no dirigidos
-        # Si b1 < 0, indica inconsistencia (no debería ocurrir)
-        if b1 < 0:
-            logger.warning(
-                f"β₁ calculado como negativo ({b1}), ajustando a 0. "
-                f"Esto sugiere inconsistencia: |V|={num_vertices}, |E|={num_edges}, β₀={b0}"
+            # Validación: β₁ debe ser ≥ 0 para grafos simples
+            if b1 < 0:
+                # Esto indica inconsistencia en los datos o cálculo
+                logger.warning(
+                    f"β₁ negativo calculado ({b1}). Recalculando con enfoque conservador. "
+                    f"V={num_vertices}, E={num_edges}, β₀={b0}"
+                )
+
+                # Enfoque conservador: β₁ = max(0, número de ciclos fundamentales)
+                try:
+                    # Contar ciclos fundamentales usando base de ciclos
+                    cycles = nx.cycle_basis(subgraph)
+                    b1 = len(cycles)
+                except nx.NetworkXError:
+                    # Si falla, usar fórmula ajustada
+                    b1 = max(0, num_edges - num_vertices + b0)
+
+        # Validación final de consistencia
+        if b0 < 0 or b1 < 0:
+            raise RuntimeError(
+                f"Números de Betti inválidos: β₀={b0}, β₁={b1}. "
+                f"Verifique la integridad del grafo."
             )
-            b1 = 0
+
+        # Verificar invariante: β₀ ≤ |V|
+        if b0 > num_vertices:
+            logger.warning(
+                f"β₀ ({b0}) > número de vértices ({num_vertices}). "
+                f"Ajustando β₀ = {num_vertices}"
+            )
+            b0 = num_vertices
+            # Recalcular β₁ para mantener consistencia
+            b1 = max(0, num_edges - num_vertices + b0)
 
         return BettiNumbers(
             b0=b0,
@@ -700,84 +732,160 @@ class SystemTopology:
     def detect_request_loops(
         self,
         threshold: int = 3,
-        window: Optional[int] = None
+        window: Optional[int] = None,
+        min_time_between_repeats: Optional[int] = None
     ) -> List[RequestLoopInfo]:
         """
-        Detecta patrones de reintentos en el historial de requests.
+        Detecta patrones de reintentos con análisis temporal robusto.
+
+        Mejoras:
+        1. Análisis de frecuencia temporal (no solo conteo)
+        2. Detección de patrones periódicos
+        3. Filtrado por densidad temporal
+        4. Clasificación por severidad
 
         Args:
-            threshold: Número mínimo de repeticiones para considerar un loop.
-                       Valores < 2 se ajustan automáticamente a 2.
-            window: Ventana de análisis (None = todo el historial).
-                    Valores <= 0 se tratan como None.
+            threshold: Mínimo número de repeticiones para considerar loop.
+            window: Ventana temporal de análisis (en índices).
+            min_time_between_repeats: Mínimo tiempo entre repeticiones para
+                                    considerar loop válido (evita falsos positivos).
 
         Returns:
-            Lista de RequestLoopInfo ordenada por frecuencia descendente.
+            Lista de RequestLoopInfo ordenada por severidad.
         """
         if not self._request_history:
             return []
 
-        # Validación y normalización de threshold
-        if not isinstance(threshold, int):
-            try:
-                threshold = int(threshold)
-            except (TypeError, ValueError):
-                logger.warning(f"threshold inválido: {threshold}, usando default=3")
-                threshold = 3
+        # Validación de parámetros
+        threshold = max(2, int(threshold)) if isinstance(threshold, (int, float)) else 3
 
-        # Mínimo significativo es 2 (una repetición)
-        if threshold < 2:
-            logger.debug(f"threshold={threshold} ajustado a 2 (mínimo significativo)")
-            threshold = 2
-
-        # Validación y normalización de window
         if window is not None:
-            if not isinstance(window, int):
-                try:
-                    window = int(window)
-                except (TypeError, ValueError):
-                    logger.warning(f"window inválido: {window}, usando todo el historial")
+            try:
+                window = int(window)
+                if window <= 0:
                     window = None
-
-            if window is not None and window <= 0:
-                logger.debug(f"window={window} no válido, usando todo el historial")
+            except (TypeError, ValueError):
                 window = None
 
-        # Obtener ventana de análisis
-        history = list(self._request_history)
+        if min_time_between_repeats is not None:
+            try:
+                min_time_between_repeats = int(min_time_between_repeats)
+                if min_time_between_repeats < 0:
+                    min_time_between_repeats = None
+            except (TypeError, ValueError):
+                min_time_between_repeats = None
 
+        # Obtener historial dentro de ventana
+        history = list(self._request_history)
         if window and window < len(history):
             history = history[-window:]
 
-        if not history:
+        if len(history) < threshold:
             return []
 
-        # Agrupar por request_id
-        request_info: Dict[str, Dict] = {}
-        for idx, req_id in history:
-            if req_id not in request_info:
-                request_info[req_id] = {
-                    'count': 0,
-                    'first': idx,
-                    'last': idx
-                }
-            request_info[req_id]['count'] += 1
-            request_info[req_id]['last'] = idx
+        # Agrupar por request_id con análisis temporal
+        request_analysis: Dict[str, Dict] = {}
 
-        # Filtrar y ordenar
-        loops = [
-            RequestLoopInfo(
+        for idx, req_id in history:
+            if req_id not in request_analysis:
+                request_analysis[req_id] = {
+                    'count': 0,
+                    'indices': [],
+                    'first': idx,
+                    'last': idx,
+                    'intervals': []
+                }
+
+            info = request_analysis[req_id]
+            info['count'] += 1
+            info['indices'].append(idx)
+            info['last'] = idx
+
+            # Calcular intervalos entre ocurrencias
+            if len(info['indices']) > 1:
+                last_idx = info['indices'][-2]
+                interval = idx - last_idx
+                info['intervals'].append(interval)
+
+        # Filtrar y clasificar loops
+        loops = []
+
+        for req_id, info in request_analysis.items():
+            if info['count'] < threshold:
+                continue
+
+            # Análisis de patrones temporales
+            indices = info['indices']
+            intervals = info['intervals']
+
+            # Calcular métricas de regularidad
+            if intervals:
+                avg_interval = sum(intervals) / len(intervals)
+                if len(intervals) > 1:
+                    # Desviación estándar de intervalos (medida de regularidad)
+                    interval_variance = sum((i - avg_interval) ** 2 for i in intervals) / len(intervals)
+                    interval_std = interval_variance ** 0.5
+                    regularity = avg_interval / (interval_std + 1e-10)  # Coeficiente de variación inverso
+                else:
+                    interval_std = 0.0
+                    regularity = 1.0
+            else:
+                avg_interval = 0.0
+                interval_std = 0.0
+                regularity = 1.0
+
+            # Calcular densidad temporal
+            time_span = info['last'] - info['first'] + 1
+            if time_span > 0:
+                density = info['count'] / time_span
+            else:
+                density = 1.0
+
+            # Filtrar por mínimo tiempo entre repeticiones si se especifica
+            if min_time_between_repeats is not None and intervals:
+                min_observed_interval = min(intervals)
+                if min_observed_interval < min_time_between_repeats:
+                    # Los reintentos están demasiado cerca, podría no ser un loop significativo
+                    logger.debug(
+                        f"Request {req_id} tiene intervalo mínimo {min_observed_interval} < "
+                        f"{min_time_between_repeats}, filtrando"
+                    )
+                    continue
+
+            # Calcular severidad compuesta
+            # Factores: frecuencia, regularidad, densidad
+            frequency_score = min(1.0, info['count'] / 10.0)  # Normalizado a máx 10 repeticiones
+            regularity_score = min(1.0, regularity / 5.0)  # Normalizado
+            density_score = min(1.0, density * 5.0)  # Normalizado
+
+            severity = 0.5 * frequency_score + 0.3 * regularity_score + 0.2 * density_score
+
+            # Crear objeto de información extendido
+            loop_info = RequestLoopInfo(
                 request_id=req_id,
                 count=info['count'],
                 first_seen=info['first'],
                 last_seen=info['last']
             )
-            for req_id, info in request_info.items()
-            if info['count'] >= threshold
-        ]
 
-        # Ordenamiento estable: primero por count (desc), luego por last_seen (desc)
-        return sorted(loops, key=lambda x: (x.count, x.last_seen), reverse=True)
+            # Agregar metadatos adicionales (podría extenderse la clase si fuera necesario)
+            # Por ahora usamos un atributo adicional no oficial para análisis
+            setattr(loop_info, '_metadata', {
+                'avg_interval': avg_interval,
+                'interval_std': interval_std,
+                'regularity': regularity,
+                'density': density,
+                'severity': severity
+            })
+
+            loops.append(loop_info)
+
+        # Ordenar por severidad (primario) y luego por frecuencia (secundario)
+        def get_severity(loop: RequestLoopInfo) -> float:
+            metadata = getattr(loop, '_metadata', {})
+            return metadata.get('severity', 0.0)
+
+        return sorted(loops, key=lambda x: (get_severity(x), x.count), reverse=True)
 
     def find_structural_cycles(self) -> List[List[str]]:
         """
@@ -953,116 +1061,170 @@ class SystemTopology:
 
     def get_topological_health(self) -> TopologicalHealth:
         """
-        Calcula un resumen completo de la salud topológica del sistema.
+        Calcula salud topológica con modelo de penalizaciones normalizado.
 
-        El score de salud se calcula con penalizaciones acotadas para evitar
-        scores negativos extremos antes del clamp final.
+        Modelo matemático:
+        Score = 1.0 - Σ(penalización_i × peso_i)
+
+        Donde:
+        - penalización_i ∈ [0, 1] (normalizada por máximo posible)
+        - peso_i ∈ [0, 1] con Σpesos_i = 1.0
+
+        Pesos configurados:
+        - Fragmentación (β₀ > 1): 0.35
+        - Ciclos estructurales (β₁ > 0): 0.20
+        - Nodos requeridos desconectados: 0.25
+        - Conexiones esperadas faltantes: 0.15
+        - Bucles de reintento: 0.05
 
         Returns:
-            TopologicalHealth con métricas agregadas y diagnósticos.
+            TopologicalHealth con score matemáticamente fundamentado.
         """
+        # Calcular métricas base
         betti = self.calculate_betti_numbers()
         disconnected = self.get_disconnected_nodes()
         missing = self.get_missing_connections()
         loops = self.detect_request_loops()
 
-        # Calcular score de salud (0.0 a 1.0)
-        score = 1.0
-        diagnostics: Dict[str, str] = {}
-
-        # Definir pesos y caps para cada categoría de penalización
-        # Esto garantiza que ninguna categoría individual domine el score
-
-        PENALTY_CAPS = {
-            'connectivity': 0.35,      # Máximo 35% por fragmentación
-            'cycles': 0.15,            # Máximo 15% por ciclos
-            'disconnected': 0.20,      # Máximo 20% por nodos aislados
-            'missing_edges': 0.20,     # Máximo 20% por conexiones faltantes
-            'retry_loops': 0.10,       # Máximo 10% por bucles de reintentos
+        # Configuración de pesos (deben sumar 1.0)
+        WEIGHTS = {
+            'fragmentation': 0.35,    # β₀ > 1
+            'cycles': 0.20,           # β₁ > 0
+            'disconnected': 0.25,      # Nodos requeridos aislados
+            'missing_edges': 0.15,     # Topología esperada incompleta
+            'retry_loops': 0.05        # Patrones de reintento
         }
 
-        # Penalizar por componentes desconectados (muy grave)
+        # Verificar que pesos suman 1.0
+        weight_sum = sum(WEIGHTS.values())
+        if abs(weight_sum - 1.0) > 1e-10:
+            logger.warning(f"Pesos no suman 1.0 ({weight_sum}), normalizando")
+            WEIGHTS = {k: v/weight_sum for k, v in WEIGHTS.items()}
+
+        diagnostics = {}
+        penalty_score = 0.0
+
+        # 1. Penalización por fragmentación (β₀ > 1)
         if betti.b0 > 1:
-            raw_penalty = 0.20 * (betti.b0 - 1)
-            penalty = min(raw_penalty, PENALTY_CAPS['connectivity'])
-            score -= penalty
-            diagnostics["connectivity"] = (
-                f"Sistema fragmentado en {betti.b0} componentes (-{penalty:.2f})"
+            # Normalizar: máximo fragmentación = todos nodos aislados
+            max_components = betti.num_vertices
+            actual_components = betti.b0
+            if max_components > 0:
+                # penalización = (componentes - 1) / (nodos - 1)
+                # Esto da 0 para 1 componente, ~1 para todos nodos aislados
+                fragmentation_penalty = min(1.0, (actual_components - 1) / (max_components - 1))
+            else:
+                fragmentation_penalty = 0.0
+
+            penalty_score += fragmentation_penalty * WEIGHTS['fragmentation']
+            diagnostics['fragmentation'] = (
+                f"Sistema fragmentado en {betti.b0} componentes "
+                f"(penalización: {fragmentation_penalty:.3f})"
             )
 
-        # Penalizar por ciclos estructurales
+        # 2. Penalización por ciclos estructurales
         if betti.b1 > 0:
-            raw_penalty = 0.08 * betti.b1
-            penalty = min(raw_penalty, PENALTY_CAPS['cycles'])
-            score -= penalty
-            diagnostics["cycles"] = (
-                f"{betti.b1} ciclo(s) detectado(s) (-{penalty:.2f})"
+            # Normalizar por máximo de ciclos posibles en grafo simple
+            # Para grafo completo K_n: máximo ciclos = combinaciones
+            n = betti.num_vertices
+            if n >= 3:
+                # Máximo teórico de ciclos fundamentales ≈ C(n,3) para grafo completo
+                max_cycles_approx = math.comb(n, 3) if n <= 20 else n * (n-1) * (n-2) // 6
+                if max_cycles_approx > 0:
+                    cycles_penalty = min(1.0, betti.b1 / max_cycles_approx)
+                else:
+                    cycles_penalty = 0.0
+            else:
+                cycles_penalty = 1.0 if betti.b1 > 0 else 0.0
+
+            penalty_score += cycles_penalty * WEIGHTS['cycles']
+            diagnostics['cycles'] = (
+                f"{betti.b1} ciclo(s) estructural(es) "
+                f"(penalización: {cycles_penalty:.3f})"
             )
 
-        # Penalizar por nodos requeridos desconectados
+        # 3. Penalización por nodos requeridos desconectados
         if disconnected:
             num_disconnected = len(disconnected)
             num_required = len(self.REQUIRED_NODES)
-            # Proporcional a la fracción de nodos requeridos afectados
+
             if num_required > 0:
-                raw_penalty = PENALTY_CAPS['disconnected'] * (num_disconnected / num_required)
+                disconnected_penalty = num_disconnected / num_required
             else:
-                raw_penalty = 0.05 * num_disconnected
-            penalty = min(raw_penalty, PENALTY_CAPS['disconnected'])
-            score -= penalty
-            diagnostics["disconnected"] = (
-                f"Nodos aislados: {', '.join(sorted(disconnected))} (-{penalty:.2f})"
+                disconnected_penalty = 0.0
+
+            penalty_score += disconnected_penalty * WEIGHTS['disconnected']
+            nodes_str = ', '.join(sorted(disconnected))
+            diagnostics['disconnected'] = (
+                f"{num_disconnected}/{num_required} nodos requeridos desconectados: {nodes_str} "
+                f"(penalización: {disconnected_penalty:.3f})"
             )
 
-        # Penalizar por conexiones esperadas faltantes
+        # 4. Penalización por conexiones esperadas faltantes
         if missing:
             num_missing = len(missing)
             num_expected = len(self._expected_topology)
-            # Proporcional a la fracción de topología faltante
+
             if num_expected > 0:
-                raw_penalty = PENALTY_CAPS['missing_edges'] * (num_missing / num_expected)
+                missing_penalty = num_missing / num_expected
             else:
-                raw_penalty = 0.10 * num_missing
-            penalty = min(raw_penalty, PENALTY_CAPS['missing_edges'])
-            score -= penalty
+                missing_penalty = 0.0
+
+            penalty_score += missing_penalty * WEIGHTS['missing_edges']
             edges_str = ', '.join(f"{u}-{v}" for u, v in sorted(missing))
-            diagnostics["missing_edges"] = (
-                f"Conexiones faltantes: {edges_str} (-{penalty:.2f})"
+            diagnostics['missing_edges'] = (
+                f"{num_missing}/{num_expected} conexiones esperadas faltantes: {edges_str} "
+                f"(penalización: {missing_penalty:.3f})"
             )
 
-        # Penalizar por bucles de reintentos (indicador de problemas de flujo)
+        # 5. Penalización por bucles de reintento
         if loops:
-            # Considerar tanto cantidad como severidad (frecuencia)
             total_retries = sum(loop.count for loop in loops)
-            raw_penalty = 0.02 * len(loops) + 0.005 * min(total_retries, 20)
-            penalty = min(raw_penalty, PENALTY_CAPS['retry_loops'])
-            score -= penalty
-            diagnostics["retry_loops"] = (
-                f"{len(loops)} patrón(es) de reintento, {total_retries} total (-{penalty:.2f})"
+            unique_loops = len(loops)
+
+            # Modelo combinado: considera tanto frecuencia como cantidad de bucles únicos
+            # Normalizar por capacidad del historial
+            max_retries = self._max_history
+            if max_retries > 0:
+                retry_frequency_penalty = min(1.0, total_retries / (2 * max_retries))
+            else:
+                retry_frequency_penalty = 0.0
+
+            # Penalización por diversidad de bucles
+            loop_diversity_penalty = min(1.0, unique_loops / 5.0)  # Máximo 5 bucles únicos
+
+            # Combinar ambas penalizaciones
+            retry_penalty = 0.7 * retry_frequency_penalty + 0.3 * loop_diversity_penalty
+
+            penalty_score += retry_penalty * WEIGHTS['retry_loops']
+            diagnostics['retry_loops'] = (
+                f"{unique_loops} patrón(es) de reintento, {total_retries} intentos totales "
+                f"(penalización: {retry_penalty:.3f})"
             )
 
-        # Clamp final (aunque con caps no debería ser necesario ir a negativo)
-        score = max(0.0, min(1.0, score))
+        # Calcular score final (asegurar [0, 1])
+        health_score = max(0.0, min(1.0, 1.0 - penalty_score))
 
-        # Determinar nivel de salud con histéresis implícita en los umbrales
-        if score >= 0.85:
+        # Determinar nivel con histéresis y márgenes
+        if health_score >= 0.90:
             level = HealthLevel.HEALTHY
-        elif score >= 0.65:
+        elif health_score >= 0.70:
             level = HealthLevel.DEGRADED
-        elif score >= 0.35:
+        elif health_score >= 0.40:
             level = HealthLevel.UNHEALTHY
         else:
             level = HealthLevel.CRITICAL
 
+        # Si no hay diagnósticos, sistema está óptimo
         if not diagnostics:
-            diagnostics["status"] = "Sistema operando óptimamente"
+            diagnostics['status'] = "Sistema topológicamente óptimo"
 
         return TopologicalHealth(
             betti=betti,
             disconnected_nodes=disconnected,
             missing_edges=missing,
             request_loops=tuple(loops),
-            health_score=round(score, 4),  # Redondear para evitar ruido flotante
+            health_score=round(health_score, 4),
             level=level,
             diagnostics=diagnostics
         )
@@ -1266,92 +1428,159 @@ class PersistenceHomology:
         threshold: float
     ) -> List[PersistenceInterval]:
         """
-        Calcula intervalos de persistencia para una serie de datos.
+        Calcula intervalos de persistencia con manejo riguroso de casos límite.
 
-        Identifica todas las excursiones estrictamente por encima del umbral
-        y registra su nacimiento/muerte como características 0-dimensionales.
-
-        Comportamiento en casos límite:
-        - Valores exactamente iguales al threshold se consideran "por debajo"
-        - Múltiples excursiones consecutivas se fusionan en una sola
-        - La última excursión puede quedar "viva" (death=-1)
+        Mejoras implementadas:
+        1. Validación exhaustiva de inputs
+        2. Manejo de NaN, ±Inf, y valores extremos
+        3. Detección robusta de cruces por umbral
+        4. Fusión de excursiones adyacentes
+        5. Cálculo preciso de amplitud
 
         Args:
-            data: Lista de valores numéricos.
-            threshold: Umbral de referencia.
+            data: Lista de valores de serie temporal.
+            threshold: Umbral para detección de excursiones.
 
         Returns:
-            Lista de intervalos ordenados por nacimiento.
+            Lista de intervalos de persistencia válidos y consistentes.
         """
+        # Validación exhaustiva de inputs
+        if not isinstance(data, list):
+            raise TypeError(f"data debe ser lista, recibido: {type(data).__name__}")
+
         if not data:
             return []
 
-        # Validar que threshold sea numérico y finito
-        if not isinstance(threshold, (int, float)) or math.isnan(threshold):
-            logger.warning(f"Threshold inválido: {threshold}, usando 0.0")
+        # Validar y normalizar threshold
+        try:
+            threshold = float(threshold)
+        except (TypeError, ValueError):
+            logger.warning(f"threshold inválido {threshold}, usando 0.0")
             threshold = 0.0
 
+        # Manejar threshold infinito
         if math.isinf(threshold):
-            # Con threshold infinito, ningún valor finito puede excederlo
-            if threshold > 0:
-                return []  # +inf: nada está por encima
-            # -inf: todo está por encima (una sola excursión)
-            return [PersistenceInterval(
-                birth=0,
-                death=-1,
-                dimension=0,
-                amplitude=max(data) - threshold if data else 0.0
-            )]
+            if threshold > 0:  # +inf
+                # Ningún valor finito puede exceder +inf
+                return []
+            else:  # -inf
+                # Todos los valores están por encima
+                valid_data = [x for x in data if not math.isnan(x)]
+                if not valid_data:
+                    return []
+                max_val = max(valid_data)
+                return [PersistenceInterval(
+                    birth=0,
+                    death=-1,  # Siempre vivo
+                    dimension=0,
+                    amplitude=max_val - threshold if math.isfinite(max_val) else 0.0
+                )]
 
-        intervals: List[PersistenceInterval] = []
-        above = False
-        birth_idx = 0
-        max_amplitude = 0.0
-        current_max_value = threshold  # Track del valor máximo durante excursión
+        # Preprocesar datos: manejar NaN y valores extremos
+        processed_data = []
+        nan_indices = []
 
         for i, value in enumerate(data):
-            # Manejar NaN en datos: tratar como "por debajo" del threshold
             if math.isnan(value):
+                nan_indices.append(i)
+                # Para análisis de persistencia, NaN se trata como valor ausente
+                # Usamos un valor sentinela que indica "no disponible"
+                processed_data.append(None)
+            else:
+                # Convertir a float y capar valores extremos pero preservando signo
+                if math.isinf(value):
+                    capped = math.copysign(1e100, value)
+                    logger.debug(f"Valor infinito en índice {i} capeado a {capped}")
+                    processed_data.append(capped)
+                else:
+                    processed_data.append(float(value))
+
+        # Algoritmo principal de detección de excursiones
+        intervals: List[PersistenceInterval] = []
+        in_excursion = False
+        birth_idx = 0
+        current_max = -math.inf
+        current_amplitude = 0.0
+
+        for i, value in enumerate(processed_data):
+            # Determinar si estamos por encima del umbral
+            # None (NaN) siempre cuenta como por debajo
+            if value is None:
                 is_above = False
             else:
-                is_above = value > threshold  # Estrictamente mayor
+                is_above = value > threshold
 
-            if is_above and not above:
-                # Nacimiento: primer cruce ascendente
+            # Transición: inicia excursión
+            if is_above and not in_excursion:
                 birth_idx = i
-                max_amplitude = value - threshold
-                current_max_value = value
-                above = True
+                current_max = value
+                current_amplitude = value - threshold
+                in_excursion = True
 
-            elif is_above and above:
-                # Continúa por encima: actualizar amplitud máxima
-                amplitude = value - threshold
-                if amplitude > max_amplitude:
-                    max_amplitude = amplitude
-                    current_max_value = value
+            # Dentro de excursión
+            elif is_above and in_excursion:
+                if value > current_max:
+                    current_max = value
+                    current_amplitude = value - threshold
 
-            elif not is_above and above:
-                # Muerte: cruce descendente (o NaN)
+            # Transición: termina excursión
+            elif not is_above and in_excursion:
+                # Verificar que la excursión tiene duración mínima
+                duration = i - birth_idx
+                if duration > 0:  # Excursión no instantánea
+                    intervals.append(PersistenceInterval(
+                        birth=birth_idx,
+                        death=i,
+                        dimension=0,
+                        amplitude=current_amplitude
+                    ))
+                in_excursion = False
+                current_max = -math.inf
+                current_amplitude = 0.0
+
+        # Excursión activa al final de la serie
+        if in_excursion:
+            duration = len(data) - birth_idx
+            if duration > 0:
                 intervals.append(PersistenceInterval(
                     birth=birth_idx,
-                    death=i,
+                    death=-1,  # Indica que sigue activa
                     dimension=0,
-                    amplitude=max_amplitude
+                    amplitude=current_amplitude
                 ))
-                above = False
-                max_amplitude = 0.0
-                current_max_value = threshold
 
-        # Característica aún viva al final de la serie
-        if above:
-            intervals.append(PersistenceInterval(
-                birth=birth_idx,
-                death=-1,  # Marca como viva
-                dimension=0,
-                amplitude=max_amplitude
-            ))
+        # Fusión de excursiones adyacentes (separadas por NaN o valores en threshold)
+        if intervals and nan_indices:
+            merged_intervals = []
+            current = intervals[0]
 
-        return intervals
+            for next_interval in intervals[1:]:
+                # Verificar si las excursiones están adyacentes o muy cercanas
+                gap = next_interval.birth - current.death
+                if 0 <= gap <= 1 and current.death >= 0:  # next_interval no es activo
+                    # Fusionar: extender muerte y tomar máxima amplitud
+                    merged_amplitude = max(current.amplitude, next_interval.amplitude)
+                    merged = PersistenceInterval(
+                        birth=current.birth,
+                        death=next_interval.death,
+                        dimension=0,
+                        amplitude=merged_amplitude
+                    )
+                    current = merged
+                else:
+                    merged_intervals.append(current)
+                    current = next_interval
+
+            merged_intervals.append(current)
+            intervals = merged_intervals
+
+        # Validación final: eliminar excursiones con amplitud no positiva
+        valid_intervals = [
+            interval for interval in intervals
+            if interval.amplitude > 0 or interval.is_alive
+        ]
+
+        return valid_intervals
 
     def get_persistence_diagram(
         self,
@@ -1456,29 +1685,40 @@ class PersistenceHomology:
         critical_ratio: float = 0.5
     ) -> PersistenceAnalysisResult:
         """
-        Análisis completo de persistencia para una métrica.
+        Análisis de persistencia con clasificación probabilística robusta.
 
-        Clasificación topológica:
-        - UNKNOWN: Datos insuficientes para análisis
-        - STABLE: Sin excursiones sobre el umbral
-        - NOISE: Solo excursiones de vida corta (< noise_ratio * window)
-        - FEATURE: Excursiones de vida larga (patrón estructural)
-        - CRITICAL: Excursión activa prolongada (> critical_ratio * window)
+        Modelo de clasificación:
+        1. STABLE: P(excursión) < 0.1 y persistencia_total < umbral_ruido
+        2. NOISE: Excursiones de vida corta (< noise_ratio × ventana)
+        3. FEATURE: Excursiones de vida larga con alta persistencia
+        4. CRITICAL: Excursión activa prolongada (> critical_ratio × ventana)
+        5. UNKNOWN: Datos insuficientes o inválidos
 
         Args:
             metric_name: Nombre de la métrica.
-            threshold: Umbral de referencia.
-            noise_ratio: Proporción para considerar ruido (default 20%).
-                     Se clampea a [0.05, 0.5].
-            critical_ratio: Proporción para considerar crítico (default 50%).
-                        Se clampea a [noise_ratio, 0.9].
+            threshold: Umbral para detección de excursiones.
+            noise_ratio: Ratio para clasificar ruido (default 0.2 = 20%).
+            critical_ratio: Ratio para clasificar crítico (default 0.5 = 50%).
 
         Returns:
-            PersistenceAnalysisResult con análisis completo.
+            PersistenceAnalysisResult con clasificación fundamentada.
         """
+        # Validación de parámetros
+        if noise_ratio <= 0 or noise_ratio >= 1:
+            logger.warning(f"noise_ratio inválido {noise_ratio}, usando 0.2")
+            noise_ratio = 0.2
+
+        if critical_ratio <= noise_ratio or critical_ratio >= 1:
+            logger.warning(
+                f"critical_ratio inválido {critical_ratio} (debe ser > {noise_ratio}), "
+                f"usando {noise_ratio + 0.3}"
+            )
+            critical_ratio = min(0.9, noise_ratio + 0.3)
+
+        # Obtener datos
         buffer = self._buffers.get(metric_name)
 
-        # Datos insuficientes
+        # Caso: datos insuficientes
         if not buffer or len(buffer) < self.MIN_WINDOW_SIZE:
             return PersistenceAnalysisResult(
                 state=MetricState.UNKNOWN,
@@ -1491,25 +1731,33 @@ class PersistenceHomology:
                 metadata={
                     "reason": "insufficient_data",
                     "samples": len(buffer) if buffer else 0,
-                    "minimum_required": self.MIN_WINDOW_SIZE
+                    "minimum_required": self.MIN_WINDOW_SIZE,
+                    "confidence": 0.0
                 }
             )
 
-        # Validar y normalizar ratios
-        noise_ratio = float(max(0.05, min(0.5, noise_ratio)))
-        critical_ratio = float(max(noise_ratio + 0.1, min(0.9, critical_ratio)))
-
-        # Garantizar orden lógico
-        if critical_ratio <= noise_ratio:
-            critical_ratio = min(0.9, noise_ratio + 0.2)
-
         data = list(buffer)
         data_length = len(data)
+
+        # Calcular estadísticas básicas para contexto
+        try:
+            stats = self.get_statistics(metric_name) or {}
+            data_mean = stats.get('mean', 0.0)
+            data_std = stats.get('std', 0.0)
+        except Exception:
+            data_mean = sum(data) / len(data) if data else 0.0
+            data_std = 0.0
+
+        # Calcular intervalos de persistencia
         intervals = self._compute_persistence_intervals(data, threshold)
 
-        # Sin excursiones: sistema estable
+        # Caso: sin excursiones
         if not intervals:
-            data_max = max(data) if data else 0.0
+            # Verificar si el sistema está genuinamente estable
+            # o si el threshold es demasiado alto
+            max_value = max(data) if data else 0.0
+            threshold_margin = threshold - max_value
+
             return PersistenceAnalysisResult(
                 state=MetricState.STABLE,
                 intervals=tuple(),
@@ -1519,42 +1767,45 @@ class PersistenceHomology:
                 max_lifespan=0.0,
                 total_persistence=0.0,
                 metadata={
-                    "reason": "below_threshold",
-                    "max_value": data_max,
+                    "reason": "no_excursions",
+                    "max_value": max_value,
                     "threshold": threshold,
-                    "margin": threshold - data_max
+                    "margin": threshold_margin,
+                    "mean": data_mean,
+                    "std": data_std,
+                    "confidence": 0.95 if threshold_margin > 2 * data_std else 0.70
                 }
             )
 
-        # Calcular límites basados en tamaño efectivo de datos
+        # Calcular límites basados en ratios
         noise_limit = max(1, int(data_length * noise_ratio))
         critical_limit = max(noise_limit + 1, int(data_length * critical_ratio))
 
         # Clasificar intervalos
-        noise_intervals: List[PersistenceInterval] = []
-        feature_intervals: List[PersistenceInterval] = []
-        active_intervals: List[PersistenceInterval] = []
-
-        critical_active: Optional[PersistenceInterval] = None
+        noise_intervals = []
+        feature_intervals = []
+        active_intervals = []
 
         for interval in intervals:
             if interval.is_alive:
-                actual_lifespan = data_length - interval.birth
                 active_intervals.append(interval)
-
-                # Verificar si es crítica (activa y muy persistente)
-                if actual_lifespan >= critical_limit:
-                    critical_active = interval
             else:
-                # Característica finalizada: clasificar por duración
                 if interval.lifespan >= noise_limit:
                     feature_intervals.append(interval)
                 else:
                     noise_intervals.append(interval)
 
-        # Si hay una excursión crítica activa, retornar inmediatamente
-        if critical_active is not None:
-            actual_lifespan = data_length - critical_active.birth
+        # Determinar si hay excursión crítica activa
+        critical_active = None
+        for interval in active_intervals:
+            active_duration = data_length - interval.birth
+            if active_duration >= critical_limit:
+                critical_active = interval
+                break
+
+        # Si hay excursión crítica activa, clasificar como CRITICAL inmediatamente
+        if critical_active:
+            active_duration = data_length - critical_active.birth
             return PersistenceAnalysisResult(
                 state=MetricState.CRITICAL,
                 intervals=tuple(intervals),
@@ -1565,42 +1816,95 @@ class PersistenceHomology:
                 total_persistence=self.compute_total_persistence(
                     intervals,
                     include_active=True,
-                    active_lifespan_estimate=actual_lifespan
+                    active_lifespan_estimate=active_duration
                 ),
                 metadata={
                     "reason": "persistent_active_excursion",
-                    "active_duration": actual_lifespan,
-                    "critical_threshold": critical_limit,
+                    "active_duration": active_duration,
+                    "critical_limit": critical_limit,
                     "birth_index": critical_active.birth,
-                    "amplitude": critical_active.amplitude
+                    "amplitude": critical_active.amplitude,
+                    "confidence": 0.99
                 }
             )
 
-        # Calcular métricas agregadas
-        all_finite_lifespans = [
-            i.lifespan for i in intervals if not i.is_alive
-        ]
-        max_lifespan = max(all_finite_lifespans) if all_finite_lifespans else 0.0
+        # Calcular métricas de persistencia
         total_persistence = self.compute_total_persistence(intervals)
 
-        # Determinar estado final con lógica clara
-        # Prioridad: features > active significativas > noise > stable
-        has_features = len(feature_intervals) > 0
-        has_significant_active = any(
-            data_length - i.birth >= noise_limit
-            for i in active_intervals
-        )
-        has_noise = len(noise_intervals) > 0 or len(active_intervals) > 0
-
-        if has_features or has_significant_active:
-            state = MetricState.FEATURE
-            reason = "structural_pattern_detected"
-        elif has_noise:
-            state = MetricState.NOISE
-            reason = "transient_excursions_only"
+        # Calcular persistencia máxima entre intervalos finitos
+        finite_intervals = [i for i in intervals if not i.is_alive]
+        if finite_intervals:
+            max_lifespan = max(i.lifespan for i in finite_intervals)
+            avg_lifespan = sum(i.lifespan for i in finite_intervals) / len(finite_intervals)
         else:
+            max_lifespan = 0.0
+            avg_lifespan = 0.0
+
+        # Calcular métricas de distribución
+        if finite_intervals:
+            lifespans = [i.lifespan for i in finite_intervals]
+            persistence_entropy = self.compute_persistence_entropy(intervals)
+        else:
+            persistence_entropy = 0.0
+
+        # Lógica de clasificación basada en múltiples factores
+        has_features = len(feature_intervals) > 0
+        has_active = len(active_intervals) > 0
+        has_noise = len(noise_intervals) > 0
+
+        # Calcular score de confianza para cada estado
+        scores = {
+            'STABLE': 0.0,
+            'NOISE': 0.0,
+            'FEATURE': 0.0
+        }
+
+        # Factor 1: Proporción de datos en excursión
+        total_excursion_points = sum(
+            (i.death if i.death >= 0 else data_length) - i.birth
+            for i in intervals
+        )
+        excursion_ratio = total_excursion_points / data_length if data_length > 0 else 0.0
+
+        # Factor 2: Persistencia normalizada
+        max_possible_persistence = data_length * len(intervals) if intervals else 1
+        normalized_persistence = total_persistence / max_possible_persistence if max_possible_persistence > 0 else 0.0
+
+        # Asignar scores
+        if excursion_ratio < 0.1 and normalized_persistence < 0.2:
+            scores['STABLE'] = 0.8
+
+        if has_noise and not has_features and not has_active:
+            scores['NOISE'] = 0.7 + 0.3 * min(1.0, excursion_ratio)
+
+        if has_features or (has_active and avg_lifespan > noise_limit):
+            feature_score = 0.6
+            feature_score += 0.2 * min(1.0, normalized_persistence)
+            feature_score += 0.2 * min(1.0, persistence_entropy)
+            scores['FEATURE'] = feature_score
+
+        # Determinar estado final
+        if scores['FEATURE'] >= 0.5:
+            state = MetricState.FEATURE
+            reason = "structural_features_detected"
+            confidence = scores['FEATURE']
+        elif scores['NOISE'] >= 0.5:
+            state = MetricState.NOISE
+            reason = "transient_noise_dominant"
+            confidence = scores['NOISE']
+        elif scores['STABLE'] >= 0.5:
             state = MetricState.STABLE
-            reason = "no_significant_excursions"
+            reason = "system_stable"
+            confidence = scores['STABLE']
+        else:
+            # Caso ambiguo: usar heurística conservadora
+            if has_active:
+                state = MetricState.FEATURE
+                reason = "active_excursion_with_ambiguity"
+            else:
+                state = MetricState.NOISE
+                reason = "ambiguous_pattern_default_to_noise"
+            confidence = 0.4
 
         return PersistenceAnalysisResult(
             state=state,
@@ -1612,12 +1916,17 @@ class PersistenceHomology:
             total_persistence=total_persistence,
             metadata={
                 "reason": reason,
+                "confidence": round(confidence, 3),
+                "excursion_ratio": round(excursion_ratio, 3),
+                "normalized_persistence": round(normalized_persistence, 3),
+                "persistence_entropy": round(persistence_entropy, 3),
                 "noise_limit": noise_limit,
                 "critical_limit": critical_limit,
-                "window_size": self.window_size,
                 "data_length": data_length,
-                "noise_ratio_used": noise_ratio,
-                "critical_ratio_used": critical_ratio
+                "statistics": {
+                    "mean": round(data_mean, 3),
+                    "std": round(data_std, 3)
+                }
             }
         )
 
