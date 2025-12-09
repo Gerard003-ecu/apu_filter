@@ -35,6 +35,8 @@ from app.tools_interface import (
     _create_success_response,
     _validate_csv_parameters,
     _generate_output_path,
+    _validate_file_size,
+    validate_file_for_processing,
     VALID_DELIMITERS,
     SUPPORTED_ENCODINGS,
     _DIAGNOSTIC_REGISTRY,
@@ -190,6 +192,26 @@ class TestValidateFileExists:
         
         assert "not found" in str(exc_info.value)
 
+class TestValidateFileSize:
+    """Pruebas para _validate_file_size."""
+
+    def test_valid_size(self, temp_csv_file: Path):
+        """Verifica tamaño válido."""
+        size, is_empty = _validate_file_size(temp_csv_file)
+        assert size > 0
+        assert is_empty is False
+
+    def test_empty_file(self, temp_empty_file: Path):
+        """Verifica archivo vacío."""
+        size, is_empty = _validate_file_size(temp_empty_file)
+        assert size == 0
+        assert is_empty is True
+
+    def test_file_too_large(self, temp_csv_file: Path):
+        """Verifica archivo demasiado grande."""
+        with pytest.raises(DiagnosticError) as exc_info:
+            _validate_file_size(temp_csv_file, max_size=1)
+        assert "exceeds maximum" in str(exc_info.value)
 
 class TestNormalizePath:
     """Pruebas para _normalize_path."""
@@ -316,7 +338,7 @@ class TestValidateCsvParameters:
             # cp500 is EBCDIC, valid but likely not in common list
             _validate_csv_parameters(";", "cp500")
         
-        assert "not in common list" in caplog.text
+        assert "not in recommended list" in caplog.text
 
 
 class TestGenerateOutputPath:
@@ -611,14 +633,39 @@ class TestCleanFile:
         mock_cleaning_stats: MagicMock
     ):
         """Verifica limpieza exitosa con output auto-generado."""
-        mock_cleaner_class.return_value.clean.return_value = mock_cleaning_stats
+        mock_cleaner_instance = mock_cleaner_class.return_value
+        mock_cleaner_instance.clean.return_value = mock_cleaning_stats
+
+        # Side effect to create the output file
+        def side_effect():
+            # Generate the expected output path and create it
+            input_path = Path(mock_cleaner_instance.input_path)
+            # This logic assumes the default suffix _clean
+            # In the actual code, CSVCleaner handles this, but here we mock it.
+            # We need to access the output_path passed to CSVCleaner constructor or rely on tools_interface logic
+            # tools_interface calculates output_path before init CSVCleaner.
+            # We can get it from call args.
+
+            # However, since clean_file logic calls _generate_output_path before instantiating cleaner,
+            # we can't easily know the path inside side_effect without inspecting call args of init.
+            # But wait, we are mocking clean().
+
+            # Cleaner was instantiated with output_path.
+            call_args = mock_cleaner_class.call_args
+            if call_args:
+                output_path_str = call_args.kwargs.get('output_path')
+                if output_path_str:
+                    Path(output_path_str).touch()
+            return mock_cleaning_stats
+
+        mock_cleaner_instance.clean.side_effect = side_effect
         
         result = clean_file(temp_csv_file)
         
         assert result["success"] is True
         assert "output_path" in result
         assert "_clean" in result["output_path"]
-        mock_cleaner_class.return_value.clean.assert_called_once()
+        mock_cleaner_instance.clean.assert_called_once()
 
     @patch("app.tools_interface.CSVCleaner")
     def test_clean_success_custom_output(
@@ -629,9 +676,15 @@ class TestCleanFile:
         mock_cleaning_stats: MagicMock
     ):
         """Verifica limpieza exitosa con output personalizado."""
-        mock_cleaner_class.return_value.clean.return_value = mock_cleaning_stats
+        mock_cleaner_instance = mock_cleaner_class.return_value
         output_path = tmp_path / "custom_output.csv"
         
+        def side_effect():
+            output_path.touch()
+            return mock_cleaning_stats
+
+        mock_cleaner_instance.clean.side_effect = side_effect
+
         result = clean_file(temp_csv_file, output_path=output_path)
         
         assert result["success"] is True
@@ -645,7 +698,16 @@ class TestCleanFile:
         mock_cleaning_stats: MagicMock
     ):
         """Verifica limpieza con delimitador personalizado."""
-        mock_cleaner_class.return_value.clean.return_value = mock_cleaning_stats
+        mock_cleaner_instance = mock_cleaner_class.return_value
+
+        def side_effect():
+            # Create dummy output file
+            # Assuming default name
+            output_p = temp_csv_file.with_name(f"{temp_csv_file.stem}_clean{temp_csv_file.suffix}")
+            output_p.touch()
+            return mock_cleaning_stats
+
+        mock_cleaner_instance.clean.side_effect = side_effect
         
         result = clean_file(temp_csv_file, delimiter=",")
         
@@ -662,13 +724,21 @@ class TestCleanFile:
         mock_cleaning_stats: MagicMock
     ):
         """Verifica limpieza con encoding personalizado."""
-        mock_cleaner_class.return_value.clean.return_value = mock_cleaning_stats
+        mock_cleaner_instance = mock_cleaner_class.return_value
+
+        def side_effect():
+            output_p = temp_csv_file.with_name(f"{temp_csv_file.stem}_clean{temp_csv_file.suffix}")
+            output_p.touch()
+            return mock_cleaning_stats
+
+        mock_cleaner_instance.clean.side_effect = side_effect
         
         result = clean_file(temp_csv_file, encoding="latin-1")
         
         assert result["success"] is True
         call_kwargs = mock_cleaner_class.call_args[1]
-        assert call_kwargs["encoding"] == "latin-1"
+        # Python canonicalizes 'latin-1' to 'iso8859-1'
+        assert call_kwargs["encoding"] in ["latin-1", "iso8859-1"]
 
     def test_invalid_delimiter(self, temp_csv_file: Path):
         """Verifica rechazo de delimitador inválido."""
@@ -716,7 +786,7 @@ class TestCleanFile:
         )
         
         assert result["success"] is False
-        assert "Output file exists and overwrite=False" in result["error"]
+        assert "Output file already exists and overwrite=False" in result["error"]
 
     @patch("app.tools_interface.CSVCleaner")
     def test_creates_output_directory(
@@ -727,9 +797,14 @@ class TestCleanFile:
         mock_cleaning_stats: MagicMock
     ):
         """Verifica que se crea el directorio de salida si no existe."""
-        mock_cleaner_class.return_value.clean.return_value = mock_cleaning_stats
-        
+        mock_cleaner_instance = mock_cleaner_class.return_value
         output_path = tmp_path / "new_dir" / "subdir" / "output.csv"
+
+        def side_effect():
+            output_path.touch()
+            return mock_cleaning_stats
+
+        mock_cleaner_instance.clean.side_effect = side_effect
         
         result = clean_file(temp_csv_file, output_path=output_path)
         
@@ -749,7 +824,8 @@ class TestCleanFile:
         
         assert result["success"] is False
         assert "Disk full" in result["error"]
-        assert result.get("error_category") == "io_error"
+        # Wrapped in CleaningError
+        assert result.get("error_category") == "cleaning"
 
     @patch("app.tools_interface.CSVCleaner")
     def test_clean_unexpected_error(
@@ -758,12 +834,20 @@ class TestCleanFile:
         temp_csv_file: Path
     ):
         """Verifica manejo de errores inesperados durante limpieza."""
+        # Note: unexpected errors inside clean() are wrapped in CleaningError with category 'cleaning' in the new implementation
+        # However, run time error is caught by outer try/except in clean_file if it propagates?
+        # In clean_file:
+        # try: cleaner = ...
+        # try: stats = cleaner.clean() except Exception as e: raise CleaningError(...)
+        # except CleaningError as e: return ... error_category="cleaning"
+        # except Exception as e: return ... error_category="unexpected" (This is for unexpected errors OUTSIDE the try/catch blocks that wrap cleaning)
+
         mock_cleaner_class.return_value.clean.side_effect = RuntimeError("Unexpected")
         
         result = clean_file(temp_csv_file)
         
         assert result["success"] is False
-        assert result.get("error_category") == "unexpected"
+        assert result.get("error_category") == "cleaning"
 
     @patch("app.tools_interface.CSVCleaner")
     def test_clean_includes_input_path(
@@ -773,7 +857,15 @@ class TestCleanFile:
         mock_cleaning_stats: MagicMock
     ):
         """Verifica que la respuesta incluye la ruta de entrada."""
-        mock_cleaner_class.return_value.clean.return_value = mock_cleaning_stats
+        mock_cleaner_instance = mock_cleaner_class.return_value
+
+        def side_effect():
+            # Assuming default name
+            output_p = temp_csv_file.with_name(f"{temp_csv_file.stem}_clean{temp_csv_file.suffix}")
+            output_p.touch()
+            return mock_cleaning_stats
+
+        mock_cleaner_instance.clean.side_effect = side_effect
         
         result = clean_file(temp_csv_file)
         
@@ -788,7 +880,15 @@ class TestCleanFile:
         """Verifica fallback cuando stats no tiene to_dict()."""
         # Stats sin método to_dict
         mock_stats = {"rows": 100}
-        mock_cleaner_class.return_value.clean.return_value = mock_stats
+        mock_cleaner_instance = mock_cleaner_class.return_value
+
+        def side_effect():
+            # Assuming default name
+            output_p = temp_csv_file.with_name(f"{temp_csv_file.stem}_clean{temp_csv_file.suffix}")
+            output_p.touch()
+            return mock_stats
+
+        mock_cleaner_instance.clean.side_effect = side_effect
         
         result = clean_file(temp_csv_file)
         
@@ -923,6 +1023,30 @@ class TestIsValidFileType:
         assert is_valid_file_type(None) is False
         assert is_valid_file_type([]) is False
 
+class TestValidateFileForProcessing:
+    """Pruebas para validate_file_for_processing."""
+
+    def test_valid_file(self, temp_csv_file: Path):
+        """Verifica validación exitosa."""
+        result = validate_file_for_processing(temp_csv_file)
+        assert result["valid"] is True
+        assert "size" in result
+        assert "extension" in result
+
+    def test_file_not_found(self, tmp_path: Path):
+        """Verifica validación de archivo inexistente."""
+        non_existing = tmp_path / "missing.csv"
+        result = validate_file_for_processing(non_existing)
+        assert result["valid"] is False
+        assert "File does not exist" in str(result["errors"])
+
+    def test_invalid_extension(self, tmp_path: Path):
+        """Verifica validación de extensión."""
+        invalid_ext = tmp_path / "test.invalid"
+        invalid_ext.touch()
+        result = validate_file_for_processing(invalid_ext)
+        assert result["valid"] is False
+        assert "Invalid extension" in str(result["errors"])
 
 # =============================================================================
 # Tests de Integración
@@ -950,8 +1074,18 @@ class TestIntegration:
 
         mock_registry.get.return_value = mock_class
         
-        mock_cleaner_class.return_value.clean.return_value = mock_cleaning_stats
+        mock_cleaner_instance = mock_cleaner_class.return_value
+        mock_cleaner_instance.clean.return_value = mock_cleaning_stats
         
+        # Side effect to create output file
+        def side_effect():
+             # Assuming default name
+            output_p = temp_csv_file.with_name(f"{temp_csv_file.stem}_clean{temp_csv_file.suffix}")
+            output_p.touch()
+            return mock_cleaning_stats
+
+        mock_cleaner_instance.clean.side_effect = side_effect
+
         # Paso 1: Diagnóstico
         diag_result = diagnose_file(temp_csv_file, "apus")
         assert diag_result["success"] is True
@@ -1019,8 +1153,17 @@ class TestLogging:
         caplog
     ):
         """Verifica que limpieza registra inicio y fin."""
-        mock_cleaner_class.return_value.clean.return_value = mock_cleaning_stats
+        mock_cleaner_instance = mock_cleaner_class.return_value
+        mock_cleaner_instance.clean.return_value = mock_cleaning_stats
         
+        def side_effect():
+            # Assuming default name
+            output_p = temp_csv_file.with_name(f"{temp_csv_file.stem}_clean{temp_csv_file.suffix}")
+            output_p.touch()
+            return mock_cleaning_stats
+
+        mock_cleaner_instance.clean.side_effect = side_effect
+
         with caplog.at_level(logging.INFO):
             clean_file(temp_csv_file)
         
@@ -1034,7 +1177,8 @@ class TestLogging:
         with caplog.at_level(logging.WARNING):
             diagnose_file(non_existing, "apus")
         
-        assert "Validation error" in caplog.text
+        # Expect "Validation error in diagnose_file" as caught in diagnose_file
+        assert "Validation error in diagnose_file" in caplog.text
 
 
 # =============================================================================
@@ -1088,7 +1232,16 @@ class TestEdgeCases:
         unicode_file = tmp_path / "datos_日本語.csv"
         unicode_file.write_text("data", encoding="utf-8")
         
-        mock_cleaner_class.return_value.clean.return_value = mock_cleaning_stats
+        mock_cleaner_instance = mock_cleaner_class.return_value
+        mock_cleaner_instance.clean.return_value = mock_cleaning_stats
+
+        def side_effect():
+            # Assuming default name
+            output_p = unicode_file.with_name(f"{unicode_file.stem}_clean{unicode_file.suffix}")
+            output_p.touch()
+            return mock_cleaning_stats
+
+        mock_cleaner_instance.clean.side_effect = side_effect
         
         result = clean_file(unicode_file)
         
