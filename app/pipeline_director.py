@@ -858,20 +858,29 @@ class PresupuestoProcessor:
                 logger.warning("⚠️ Archivo de presupuesto cargado está vacío")
                 return pd.DataFrame()
 
+            logger.info(f"📊 DataFrame cargado: {len(df)} filas. Columnas: {list(df.columns)}")
+
             # Pipeline de procesamiento con validaciones intermedias
             df_clean = self._clean_phantom_rows(df)
+            logger.info(f"👻 Filas tras limpieza fantasma: {len(df_clean)}")
+
             if df_clean.empty:
                 logger.warning("⚠️ DataFrame vacío después de limpiar filas fantasma")
                 return pd.DataFrame()
 
             df_renamed = self._rename_columns(df_clean)
-            if not self._validate_required_columns(df_renamed):
-                logger.error("❌ Validación de columnas requeridas falló")
+            logger.info(f"🏷️ Columnas tras renombrado: {list(df_renamed.columns)}")
+
+            valid_cols, error_msg = self._validate_required_columns(df_renamed)
+            if not valid_cols:
+                logger.error(f"❌ Validación de columnas requeridas falló: {error_msg}")
                 return pd.DataFrame()
 
             df_converted = self._clean_and_convert_data(df_renamed)
+            logger.info(f"🔢 Filas tras conversión de datos: {len(df_converted)}")
+
             if df_converted.empty:
-                logger.warning("⚠️ DataFrame vacío después de conversión de datos")
+                logger.warning("⚠️ Conversión eliminó todas las filas. Verifique limpieza de códigos.")
                 return pd.DataFrame()
 
             df_final = self._remove_duplicates(df_converted)
@@ -937,10 +946,10 @@ class PresupuestoProcessor:
         column_map = self.config.get("presupuesto_column_map", {})
         return find_and_rename_columns(df, column_map)
 
-    def _validate_required_columns(self, df: pd.DataFrame) -> bool:
+    def _validate_required_columns(self, df: pd.DataFrame) -> Tuple[bool, Optional[str]]:
         return self.validator.validate_required_columns(
             df, [ColumnNames.CODIGO_APU], "presupuesto"
-        )[0]
+        )
 
     def _clean_and_convert_data(self, df: pd.DataFrame) -> pd.DataFrame:
         """Limpia y convierte datos con validaciones robustas."""
