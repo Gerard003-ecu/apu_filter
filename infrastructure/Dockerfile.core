@@ -101,6 +101,7 @@ RUN useradd --create-home --shell /bin/bash --uid 1000 --user-group apu_user && 
     mkdir -p /app/logs /app/data/uploads && \
     chmod 777 /app/logs /app/data && \
     chown -R apu_user:apu_user /app && \
+    chown -R apu_user:apu_user /app/data && \
     rm -f /tmp/constraints.txt requirements-original.txt
 
 # Declarar volúmenes para persistencia de datos y logs

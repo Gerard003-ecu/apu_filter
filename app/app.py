@@ -1150,7 +1150,7 @@ def create_app(config_name: str) -> Flask:
     if os.environ.get("FLASK_ENV") == "production":
         upload_folder = Path("/app/data/uploads")
     else:
-        upload_folder = Path(app.config.get("UPLOAD_FOLDER", "uploads"))
+        upload_folder = Path(app.config.get("UPLOAD_FOLDER", "data/uploads"))
 
     upload_folder.mkdir(parents=True, exist_ok=True)
     app.config["UPLOAD_FOLDER"] = str(upload_folder)
