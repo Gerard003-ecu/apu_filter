@@ -952,30 +952,82 @@ class SystemTopology:
     # Visualización
     # -------------------------------------------------------------------------
 
-    def visualize_topology(self, output_path: str = "data/topology_status.png") -> bool:
+    def visualize_topology(
+        self,
+        output_path: str = "data/topology_status.png",
+        figsize: Tuple[int, int] = (10, 8),
+        dpi: int = 100
+    ) -> bool:
         """
         Genera una imagen PNG del grafo actual vs esperado.
 
         Las aristas existentes se dibujan en VERDE.
         Las aristas faltantes se dibujan en ROJO PUNTEADO.
+        Las aristas inesperadas se dibujan en NARANJA.
 
         Args:
             output_path: Ruta donde guardar la imagen.
+            figsize: Tamaño de la figura (ancho, alto) en pulgadas.
+            dpi: Resolución de la imagen.
 
         Returns:
-            True si se generó correctamente.
+            True si se generó correctamente, False en caso contrario.
         """
-        try:
-            import matplotlib.pyplot as plt
-            # Usar backend no interactivo para evitar errores en entornos sin display
-            plt.switch_backend('Agg')
-        except ImportError:
-            logger.error("matplotlib no está instalado, no se puede visualizar")
+        # Validación de parámetros
+        if not isinstance(output_path, str):
+            logger.error(f"output_path debe ser string, recibido: {type(output_path).__name__}")
             return False
 
+        output_path = output_path.strip()
+        if not output_path:
+            logger.error("output_path no puede ser vacío")
+            return False
+
+        # Validar extensión
+        valid_extensions = {'.png', '.jpg', '.jpeg', '.pdf', '.svg'}
+        import os
+        _, ext = os.path.splitext(output_path.lower())
+        if ext not in valid_extensions:
+            logger.warning(
+                f"Extensión '{ext}' no reconocida, agregando '.png'"
+            )
+            output_path = output_path + '.png'
+
+        # Validar figsize y dpi
+        try:
+            figsize = (int(figsize[0]), int(figsize[1]))
+            if figsize[0] <= 0 or figsize[1] <= 0:
+                raise ValueError("Dimensiones deben ser positivas")
+        except (TypeError, IndexError, ValueError) as e:
+            logger.warning(f"figsize inválido: {e}, usando default (10, 8)")
+            figsize = (10, 8)
+
+        try:
+            dpi = int(dpi)
+            if dpi <= 0:
+                raise ValueError("DPI debe ser positivo")
+        except (TypeError, ValueError) as e:
+            logger.warning(f"dpi inválido: {e}, usando default 100")
+            dpi = 100
+
+        # Importar matplotlib con manejo de errores
+        try:
+            import matplotlib
+            matplotlib.use('Agg')  # Backend no interactivo antes de importar pyplot
+            import matplotlib.pyplot as plt
+        except ImportError:
+            logger.error(
+                "matplotlib no está instalado. Instalar con: pip install matplotlib"
+            )
+            return False
+        except Exception as e:
+            logger.error(f"Error configurando matplotlib: {e}")
+            return False
+
+        fig = None
         try:
             # Crear figura
-            plt.figure(figsize=(10, 8))
+            fig, ax = plt.subplots(figsize=figsize)
 
             # Crear grafo compuesto (actual + esperado)
             viz_graph = nx.Graph()
@@ -990,70 +1042,144 @@ class SystemTopology:
             # Clasificar aristas
             existing_edges = []
             missing_edges = []
+            unexpected_edges = []
 
-            # Aristas existentes (Verde)
+            # Normalizar aristas esperadas para comparación
+            expected_normalized = {
+                tuple(sorted([u, v])) for u, v in self._expected_topology
+            }
+
+            # Aristas existentes
             for u, v in self._graph.edges():
                 viz_graph.add_edge(u, v)
-                existing_edges.append((u, v))
+                normalized = tuple(sorted([u, v]))
+                if normalized in expected_normalized:
+                    existing_edges.append((u, v))
+                else:
+                    unexpected_edges.append((u, v))
 
-            # Aristas faltantes (Rojo Punteado)
+            # Aristas faltantes
             for u, v in self._expected_topology:
                 if not self._graph.has_edge(u, v):
                     viz_graph.add_edge(u, v)
                     missing_edges.append((u, v))
 
-            # Calcular layout
-            pos = nx.spring_layout(viz_graph, seed=42)  # Seed para consistencia
+            # Calcular layout con seed para reproducibilidad
+            try:
+                pos = nx.spring_layout(viz_graph, seed=42, k=2.0)
+            except Exception:
+                # Fallback a layout circular si spring falla
+                pos = nx.circular_layout(viz_graph)
 
-            # Dibujar Nodos
+            # Colorear nodos según estado
+            node_colors = []
+            for node in viz_graph.nodes():
+                if node not in self._graph:
+                    node_colors.append('lightgray')  # Nodo no existe
+                elif self._graph.degree(node) == 0:
+                    node_colors.append('salmon')  # Nodo aislado
+                elif node in self.REQUIRED_NODES:
+                    node_colors.append('lightblue')  # Nodo requerido conectado
+                else:
+                    node_colors.append('lightgreen')  # Nodo dinámico
+
+            # Dibujar nodos
             nx.draw_networkx_nodes(
-                viz_graph, pos,
+                viz_graph, pos, ax=ax,
                 node_size=2000,
-                node_color='lightblue',
-                edgecolors='black'
+                node_color=node_colors,
+                edgecolors='black',
+                linewidths=2
             )
-            nx.draw_networkx_labels(viz_graph, pos)
+            nx.draw_networkx_labels(viz_graph, pos, ax=ax, font_size=10)
 
-            # Dibujar Aristas Existentes
+            # Dibujar aristas existentes (Verde)
             if existing_edges:
                 nx.draw_networkx_edges(
-                    viz_graph, pos,
+                    viz_graph, pos, ax=ax,
                     edgelist=existing_edges,
                     edge_color='green',
-                    width=2,
+                    width=2.5,
                     style='solid',
-                    label='Activa'
+                    alpha=0.8
                 )
 
-            # Dibujar Aristas Faltantes
+            # Dibujar aristas faltantes (Rojo punteado)
             if missing_edges:
                 nx.draw_networkx_edges(
-                    viz_graph, pos,
+                    viz_graph, pos, ax=ax,
                     edgelist=missing_edges,
                     edge_color='red',
                     width=2,
                     style='dashed',
-                    label='Faltante'
+                    alpha=0.7
                 )
 
-            plt.title(f"Estado Topológico del Sistema (Betti: {self.calculate_betti_numbers()})")
-            plt.legend(loc='upper right')
-            plt.axis('off')
+            # Dibujar aristas inesperadas (Naranja)
+            if unexpected_edges:
+                nx.draw_networkx_edges(
+                    viz_graph, pos, ax=ax,
+                    edgelist=unexpected_edges,
+                    edge_color='orange',
+                    width=2,
+                    style='dotted',
+                    alpha=0.7
+                )
 
-            # Asegurar directorio
-            import os
-            os.makedirs(os.path.dirname(output_path), exist_ok=True)
+            # Título con información de Betti
+            betti = self.calculate_betti_numbers()
+            title = (
+                f"Estado Topológico del Sistema\n"
+                f"β₀={betti.b0} (componentes), β₁={betti.b1} (ciclos), "
+                f"χ={betti.euler_characteristic}"
+            )
+            ax.set_title(title, fontsize=12, fontweight='bold')
 
-            plt.savefig(output_path)
-            plt.close()
+            # Leyenda
+            from matplotlib.lines import Line2D
+            legend_elements = [
+                Line2D([0], [0], color='green', linewidth=2, label='Conexión Activa'),
+                Line2D([0], [0], color='red', linewidth=2, linestyle='--', label='Conexión Faltante'),
+                Line2D([0], [0], color='orange', linewidth=2, linestyle=':', label='Conexión Inesperada'),
+            ]
+            ax.legend(handles=legend_elements, loc='upper right', fontsize=9)
+
+            ax.axis('off')
+            plt.tight_layout()
+
+            # Asegurar directorio existe
+            output_dir = os.path.dirname(output_path)
+            if output_dir:  # Si hay directorio (no es solo nombre de archivo)
+                try:
+                    os.makedirs(output_dir, exist_ok=True)
+                except OSError as e:
+                    logger.error(f"No se pudo crear directorio '{output_dir}': {e}")
+                    return False
+
+            # Guardar figura
+            try:
+                plt.savefig(output_path, dpi=dpi, bbox_inches='tight',
+                           facecolor='white', edgecolor='none')
+            except PermissionError:
+                logger.error(f"Sin permisos para escribir en: {output_path}")
+                return False
+            except OSError as e:
+                logger.error(f"Error de sistema guardando imagen: {e}")
+                return False
 
             logger.info(f"Visualización guardada en: {output_path}")
             return True
 
         except Exception as e:
-            logger.error(f"Error generando visualización: {e}")
-            plt.close()
+            logger.error(f"Error generando visualización: {e}", exc_info=True)
             return False
+
+        finally:
+            # Limpieza garantizada de recursos de matplotlib
+            if fig is not None:
+                plt.close(fig)
+            else:
+                plt.close('all')
 
     # -------------------------------------------------------------------------
     # Análisis de Salud
@@ -1243,22 +1369,80 @@ class SystemTopology:
         return matrix
 
     def to_dict(self) -> Dict:
-        """Serializa el estado actual a un diccionario."""
+        """
+        Serializa el estado actual a un diccionario.
+
+        Incluye toda la información necesaria para reconstruir o debuggear
+        el estado topológico del sistema.
+
+        Returns:
+            Dict con estado completo serializable a JSON.
+        """
+        # Calcular Betti una sola vez (optimización)
+        betti = self.calculate_betti_numbers()
+
+        # Obtener health de forma lazy solo si es necesario
+        disconnected = self.get_disconnected_nodes()
+        missing = self.get_missing_connections()
+        unexpected = self.get_unexpected_connections()
+
         return {
-            "nodes": list(self._graph.nodes()),
-            "edges": list(self._graph.edges()),
+            "nodes": sorted(self._graph.nodes()),  # Ordenado para consistencia
+            "edges": sorted(
+                [tuple(sorted(e)) for e in self._graph.edges()]
+            ),  # Normalizado y ordenado
             "betti_numbers": {
-                "b0": self.calculate_betti_numbers().b0,
-                "b1": self.calculate_betti_numbers().b1,
+                "b0": betti.b0,
+                "b1": betti.b1,
+                "num_vertices": betti.num_vertices,
+                "num_edges": betti.num_edges,
+                "euler_characteristic": betti.euler_characteristic,
+                "is_connected": betti.is_connected,
+                "is_acyclic": betti.is_acyclic,
+                "is_ideal": betti.is_ideal,
             },
-            "request_history_size": len(self._request_history),
+            "topology_status": {
+                "disconnected_nodes": sorted(disconnected),
+                "missing_connections": sorted(
+                    [tuple(sorted(e)) for e in missing]
+                ),
+                "unexpected_connections": sorted(
+                    [tuple(sorted(e)) for e in unexpected]
+                ),
+            },
+            "request_history": {
+                "size": len(self._request_history),
+                "max_size": self._max_history,
+                "current_index": self._request_index,
+            },
+            "configuration": {
+                "required_nodes": sorted(self.REQUIRED_NODES),
+                "expected_topology_size": len(self._expected_topology),
+            }
         }
 
     def __repr__(self) -> str:
-        betti = self.calculate_betti_numbers()
+        """
+        Representación string del objeto para debugging.
+
+        Diseñado para nunca fallar, incluso si el estado interno es inconsistente.
+        """
+        try:
+            node_count = len(self._graph.nodes())
+            edge_count = len(self._graph.edges())
+        except Exception:
+            node_count = "?"
+            edge_count = "?"
+
+        try:
+            betti = self.calculate_betti_numbers()
+            betti_str = str(betti)
+        except Exception as e:
+            betti_str = f"BettiError({type(e).__name__})"
+
         return (
-            f"SystemTopology(nodes={len(self._graph.nodes())}, "
-            f"edges={len(self._graph.edges())}, {betti})"
+            f"SystemTopology(nodes={node_count}, "
+            f"edges={edge_count}, {betti_str})"
         )
 
 
@@ -2011,17 +2195,66 @@ class PersistenceHomology:
         self,
         metric1: str,
         metric2: str,
-        threshold: float
+        threshold: float,
+        method: str = "wasserstein"
     ) -> float:
         """
-        Compara dos diagramas de persistencia usando distancia de bottleneck simplificada.
+        Compara dos diagramas de persistencia usando distancia seleccionada.
+
+        Métodos disponibles:
+        - "wasserstein": Distancia de Wasserstein-1 aproximada (default)
+        - "bottleneck": Distancia bottleneck simplificada (máximo de diferencias)
+
+        Args:
+            metric1: Nombre de la primera métrica.
+            metric2: Nombre de la segunda métrica.
+            threshold: Umbral para generación de diagramas.
+            method: Método de comparación ("wasserstein" o "bottleneck").
 
         Returns:
-            Distancia entre diagramas (0 = idénticos).
+            Distancia entre diagramas (0 = idénticos, mayor = más diferentes).
+            Retorna -1.0 si hay error en los parámetros.
         """
+        # Validar nombres de métricas
+        if not isinstance(metric1, str) or not isinstance(metric2, str):
+            logger.warning(
+                f"Nombres de métricas deben ser strings: "
+                f"metric1={type(metric1).__name__}, metric2={type(metric2).__name__}"
+            )
+            return -1.0
+
+        metric1 = metric1.strip()
+        metric2 = metric2.strip()
+
+        if not metric1 or not metric2:
+            logger.warning("Nombres de métricas no pueden ser vacíos")
+            return -1.0
+
+        # Validar threshold
+        try:
+            threshold = float(threshold)
+        except (TypeError, ValueError):
+            logger.warning(f"threshold debe ser numérico, recibido: {type(threshold).__name__}")
+            return -1.0
+
+        if math.isnan(threshold):
+            logger.warning("threshold no puede ser NaN")
+            return -1.0
+
+        # Validar método
+        valid_methods = {"wasserstein", "bottleneck"}
+        if method not in valid_methods:
+            logger.warning(
+                f"Método '{method}' no válido. Usando 'wasserstein'. "
+                f"Opciones: {valid_methods}"
+            )
+            method = "wasserstein"
+
+        # Obtener diagramas
         diagram1 = self.get_persistence_diagram(metric1, threshold)
         diagram2 = self.get_persistence_diagram(metric2, threshold)
 
+        # Casos especiales: ambos vacíos
         if not diagram1 and not diagram2:
             return 0.0
 
@@ -2029,15 +2262,32 @@ class PersistenceHomology:
         lifespans1 = sorted([i.lifespan for i in diagram1 if not i.is_alive])
         lifespans2 = sorted([i.lifespan for i in diagram2 if not i.is_alive])
 
+        # Ambos sin intervalos finitos
         if not lifespans1 and not lifespans2:
-            return 0.0
+            # Comparar por número de intervalos activos
+            active1 = len([i for i in diagram1 if i.is_alive])
+            active2 = len([i for i in diagram2 if i.is_alive])
+            return float(abs(active1 - active2))
 
-        # Distancia de Wasserstein-1 aproximada
+        # Igualar longitudes con padding
         max_len = max(len(lifespans1), len(lifespans2))
-        lifespans1.extend([0] * (max_len - len(lifespans1)))
-        lifespans2.extend([0] * (max_len - len(lifespans2)))
+        lifespans1.extend([0.0] * (max_len - len(lifespans1)))
+        lifespans2.extend([0.0] * (max_len - len(lifespans2)))
 
-        return sum(abs(l1 - l2) for l1, l2 in zip(lifespans1, lifespans2))
+        # Calcular distancia según método
+        if method == "wasserstein":
+            # Distancia de Wasserstein-1 (suma de diferencias absolutas)
+            return sum(abs(l1 - l2) for l1, l2 in zip(lifespans1, lifespans2))
+
+        elif method == "bottleneck":
+            # Distancia bottleneck (máxima diferencia)
+            if not lifespans1 or not lifespans2:
+                # Uno vacío: máximo del otro
+                return max(lifespans1 + lifespans2) if (lifespans1 or lifespans2) else 0.0
+            return max(abs(l1 - l2) for l1, l2 in zip(lifespans1, lifespans2))
+
+        # Fallback (no debería llegar aquí)
+        return 0.0
 
     def __repr__(self) -> str:
         return (
