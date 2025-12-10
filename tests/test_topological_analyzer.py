@@ -1193,6 +1193,30 @@ class TestSystemTopologyHealth:
 class TestSystemTopologyUtilities:
     """Tests de métodos de utilidad."""
 
+    def test_visualize_topology_basic(self, tree_topology, tmp_path):
+        """Visualización básica."""
+        output = tmp_path / "graph.png"
+        assert tree_topology.visualize_topology(str(output)) is True
+        assert output.exists()
+
+    def test_visualize_topology_correction(self, tree_topology, tmp_path):
+        """Corrección de extensión."""
+        output = tmp_path / "graph.txt"
+        assert tree_topology.visualize_topology(str(output)) is True
+        assert (tmp_path / "graph.txt.png").exists()
+
+    def test_visualize_topology_invalid(self, tree_topology):
+        """Argumentos inválidos."""
+        assert tree_topology.visualize_topology(None) is False
+        assert tree_topology.visualize_topology("") is False
+
+    def test_visualize_topology_no_matplotlib(self, tree_topology, tmp_path):
+        """Manejo sin matplotlib."""
+        from unittest import mock
+        import sys
+        with mock.patch.dict(sys.modules, {'matplotlib': None}):
+            assert tree_topology.visualize_topology(str(tmp_path / "t.png")) is False
+
     def test_cyclomatic_complexity_tree(self, tree_topology):
         """Complejidad ciclomática de un árbol."""
         cc = tree_topology.calculate_cyclomatic_complexity()
@@ -1218,14 +1242,23 @@ class TestSystemTopologyUtilities:
         assert "nodes" in data
         assert "edges" in data
         assert "betti_numbers" in data
+        assert "topology_status" in data
+        assert "request_history" in data
+        assert "configuration" in data
         assert len(data["nodes"]) == 4
+        assert data["betti_numbers"]["b0"] == 1
 
-    def test_repr(self, pyramid_topology):
-        """Representación en string."""
+    def test_repr_robustness(self, pyramid_topology):
+        """Representación en string robusta."""
         repr_str = repr(pyramid_topology)
         assert "SystemTopology" in repr_str
-        assert "nodes=" in repr_str
-        assert "edges=" in repr_str
+        assert "nodes=4" in repr_str
+
+        # Test error handling
+        from unittest import mock
+        with mock.patch.object(pyramid_topology, 'calculate_betti_numbers', side_effect=ValueError("Test")):
+            repr_fail = repr(pyramid_topology)
+            assert "BettiError(ValueError)" in repr_fail
 
 
 # =============================================================================
@@ -1649,9 +1682,13 @@ class TestPersistenceHomologyStatistics:
         values2 = [0.3] * 5 + [0.7] * 4 + [0.3]
         empty_persistence.add_readings_batch("m2", values2)
 
-        # Distancia 0 para diagramas iguales
+        # Distancia 0 para diagramas iguales (Wasserstein default)
         dist = empty_persistence.compare_diagrams("m1", "m2", 0.5)
         assert dist == pytest.approx(0, abs=0.01)
+
+        # Bottleneck
+        dist_bn = empty_persistence.compare_diagrams("m1", "m2", 0.5, method="bottleneck")
+        assert dist_bn == pytest.approx(0, abs=0.01)
 
         # Métrica 3: diferente
         values3 = [0.3] * 8 + [0.7] * 2
@@ -1659,6 +1696,11 @@ class TestPersistenceHomologyStatistics:
 
         dist13 = empty_persistence.compare_diagrams("m1", "m3", 0.5)
         assert dist13 > 0
+
+    def test_compare_diagrams_invalid(self, empty_persistence):
+        """Validación de inputs en compare_diagrams."""
+        assert empty_persistence.compare_diagrams("", "m2", 0.5) == -1.0
+        assert empty_persistence.compare_diagrams("m1", "m2", "nan") == -1.0
 
 
 # =============================================================================
