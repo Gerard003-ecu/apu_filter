@@ -11,6 +11,7 @@ que recibe un contexto, lo transforma y lo pasa al siguiente paso.
 
 import logging
 import os
+import sys
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from pathlib import Path
@@ -31,7 +32,16 @@ from .utils import (
     sanitize_for_json,
 )
 
+# Configuración explícita para debug
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+
+# Asegurar que tenga un handler si no tiene
+if not logger.handlers:
+    handler = logging.StreamHandler(sys.stdout)
+    handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
+    logger.addHandler(handler)
+
 
 # ==================== CONSTANTES Y CLASES AUXILIARES ====================
 
