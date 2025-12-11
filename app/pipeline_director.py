@@ -979,15 +979,26 @@ class PresupuestoProcessor:
             return pd.DataFrame()
 
         try:
+            # Wrapper seguro para limpieza
+            def safe_clean(code):
+                try:
+                    return clean_apu_code(code, **clean_code_params)
+                except (ValueError, TypeError):
+                    # No loguear cada error para no saturar, o loguear a nivel debug
+                    return None
+
             df[ColumnNames.CODIGO_APU] = (
                 df[ColumnNames.CODIGO_APU]
                 .fillna('')
                 .astype(str)
-                .apply(lambda c: clean_apu_code(c, **clean_code_params))
+                .apply(safe_clean)
             )
         except Exception as e:
             logger.error(f"❌ Error limpiando códigos APU: {e}")
             return pd.DataFrame()
+
+        # Eliminar filas donde la limpieza retornó None
+        df = df.dropna(subset=[ColumnNames.CODIGO_APU])
 
         # ROBUSTECIDO: Filtrar códigos inválidos de forma más clara
         invalid_codes = {'', 'nan', 'none', 'null'}
