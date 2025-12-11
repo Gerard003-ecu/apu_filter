@@ -448,6 +448,12 @@ class LoadDataStep(ProcessingStep):
             i_processor = InsumosProcessor(self.thresholds, insumos_profile)
             df_insumos = i_processor.process(insumos_path)
 
+            # --- LOG DE DIAGNÓSTICO ---
+            logger.info(f"🐛 DIAG: [LoadDataStep] Insumos extraídos: {len(df_insumos)} filas.")
+            if not df_insumos.empty:
+                logger.info(f"🐛 DIAG: [LoadDataStep] Estructura de insumos (head(1)): {df_insumos.head(1).to_dict('records')}")
+            # --- FIN LOG ---
+
             if df_insumos is None or df_insumos.empty:
                 error = "Procesamiento de insumos retornó DataFrame vacío"
                 telemetry.record_error("load_data", error)
@@ -547,6 +553,10 @@ class MergeDataStep(ProcessingStep):
         try:
             df_apus_raw = context["df_apus_raw"]
             df_insumos = context["df_insumos"]
+
+            # --- LOG DE DIAGNÓSTICO ---
+            logger.info(f"🐛 DIAG: [MergeDataStep] Recibidos {len(df_insumos)} insumos del contexto.")
+            # --- FIN LOG ---
 
             merger = DataMerger(self.thresholds)
             df_merged = merger.merge_apus_with_insumos(df_apus_raw, df_insumos)
@@ -1233,6 +1243,15 @@ class DataMerger:
                 df_apus[ColumnNames.DESCRIPCION_INSUMO]
             )
 
+        # --- LOG DE DIAGNÓSTICO ---
+        logger.info(f"🐛 DIAG: [DataMerger] Pre-merge df_apus: {len(df_apus)} filas, Columnas: {list(df_apus.columns)}")
+        logger.info(f"🐛 DIAG: [DataMerger] Pre-merge df_insumos: {len(df_insumos)} filas, Columnas: {list(df_insumos.columns)}")
+        if not df_apus.empty:
+            logger.info(f"🐛 DIAG: [DataMerger] Muestra APUs NORMALIZED_DESC: {df_apus[ColumnNames.NORMALIZED_DESC].head(3).tolist()}")
+        if not df_insumos.empty:
+            logger.info(f"🐛 DIAG: [DataMerger] Muestra Insumos DESCRIPCION_INSUMO_NORM: {df_insumos[ColumnNames.DESCRIPCION_INSUMO_NORM].head(3).tolist()}")
+        # --- FIN LOG ---
+
         try:
             # ROBUSTECIDO: Merge con manejo de errores
             df_merged = pd.merge(
@@ -1257,6 +1276,10 @@ class DataMerger:
         except Exception as e:
             logger.error(f"❌ Error en merge APUs-Insumos: {e}")
             return df_apus
+
+        # --- LOG DE DIAGNÓSTICO ---
+        logger.info(f"🐛 DIAG: [DataMerger] Post-merge df_merged: {len(df_merged)} filas.")
+        # --- FIN LOG ---
 
         # ROBUSTECIDO: Consolidar columnas de forma segura
 
