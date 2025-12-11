@@ -1366,6 +1366,12 @@ class APUCostCalculator:
         return df_apu_costos, df_tiempo, df_rendimiento
 
     def _aggregate_costs(self, df_merged: pd.DataFrame) -> pd.DataFrame:
+        """
+        Agrega costos por tipo de insumo, agrupándolos en las categorías canónicas:
+        MATERIALES, MANO_DE_OBRA, EQUIPO y OTROS.
+
+        Incluye lógica robusta (fallback) para mapear nombres de columnas no estándar.
+        """
         df = df_merged.copy()
         df[ColumnNames.COSTO_INSUMO_EN_APU] = pd.to_numeric(
             df[ColumnNames.COSTO_INSUMO_EN_APU], errors="coerce"
@@ -1374,6 +1380,7 @@ class APUCostCalculator:
             df[ColumnNames.TIPO_INSUMO].astype(str).str.strip().str.upper()
         )
 
+        # Agrupar por APU y Tipo de Insumo
         costs = (
             df.groupby([ColumnNames.CODIGO_APU, ColumnNames.TIPO_INSUMO])[
                 ColumnNames.COSTO_INSUMO_EN_APU
@@ -1383,7 +1390,9 @@ class APUCostCalculator:
             .reset_index()
         )
 
-        mapping = {
+        # 1. Definición de Mappings
+        # Mapping estricto (prioridad alta)
+        strict_mapping = {
             InsumoTypes.SUMINISTRO: ColumnNames.MATERIALES,
             InsumoTypes.MANO_DE_OBRA: ColumnNames.MANO_DE_OBRA,
             InsumoTypes.EQUIPO: ColumnNames.EQUIPO,
@@ -1391,27 +1400,71 @@ class APUCostCalculator:
             InsumoTypes.OTRO: ColumnNames.OTROS,
         }
 
-        # Mapear columnas existentes
-        for col in costs.columns:
-            if col in mapping:
-                target = mapping[col]
-                if target in costs.columns:
-                    costs[target] += costs[col]
-                else:
-                    costs[target] = costs[col]
-                if target != col:
-                    costs.drop(columns=[col], inplace=True)
+        # Palabras clave para fallback (prioridad media)
+        # Se verifica presencia del string en el nombre de la columna
+        keywords_mo = ["MANO", "OBRERO", "CUADRILLA", "AYUDANTE", "OFICIAL", "PEON"]
+        keywords_equipo = ["EQUIPO", "HERRAMIENTA", "MAQUINARIA"]
+        keywords_material = [
+            "MATERIAL",
+            "SUMINISTRO",
+            "INSUMO",
+            "CONCRETO",
+            "ACERO",
+            "CEMENTO",
+            "LADRILLO",
+        ]
 
-        for req in [
+        # 2. Preparación del DataFrame destino
+        # Inicializamos con CODIGO_APU
+        target_df = costs[[ColumnNames.CODIGO_APU]].copy()
+
+        # Inicializamos columnas canónicas en 0.0
+        canonical_cols = [
             ColumnNames.MATERIALES,
             ColumnNames.MANO_DE_OBRA,
             ColumnNames.EQUIPO,
             ColumnNames.OTROS,
-        ]:
-            if req not in costs.columns:
-                costs[req] = 0.0
+        ]
+        for col in canonical_cols:
+            target_df[col] = 0.0
 
-        return costs
+        # Contadores para diagnóstico
+        mapped_stats = {col: 0 for col in canonical_cols}
+
+        # 3. Proceso de Mapeo
+        source_cols = [c for c in costs.columns if c != ColumnNames.CODIGO_APU]
+
+        for col in source_cols:
+            target = None
+            col_upper = str(col).upper().strip()
+
+            # A. Intento exacto
+            if col_upper in strict_mapping:
+                target = strict_mapping[col_upper]
+
+            # B. Intento por palabras clave (Fallback)
+            if not target:
+                if any(k in col_upper for k in keywords_mo):
+                    target = ColumnNames.MANO_DE_OBRA
+                elif any(k in col_upper for k in keywords_equipo):
+                    target = ColumnNames.EQUIPO
+                elif any(k in col_upper for k in keywords_material):
+                    target = ColumnNames.MATERIALES
+                else:
+                    # C. Default
+                    target = ColumnNames.OTROS
+
+            # Acumular valor
+            if target:
+                # costs[col] es la columna origen, target_df[target] es el acumulador
+                target_df[target] += costs[col].fillna(0.0)
+                mapped_stats[target] += 1
+                logger.debug(f"🧩 Columna de costo '{col}' mapeada a '{target}'")
+
+        # Logging de resumen
+        logger.info(f"📊 Resumen de agrupación de costos: {mapped_stats}")
+
+        return target_df
 
     def _calculate_unit_values(self, df: pd.DataFrame) -> pd.DataFrame:
         df[ColumnNames.VALOR_SUMINISTRO_UN] = df[ColumnNames.MATERIALES]
