@@ -1259,10 +1259,60 @@ class DataMerger:
             return df_apus
 
         # ROBUSTECIDO: Consolidar columnas de forma segura
+
+        # Estrategia de asignación de TIPO_INSUMO:
+        # 1. GRUPO_INSUMO (del maestro de insumos): Es la fuente más confiable.
+        # 2. CATEGORIA (del APU): Fallback si no cruzó con insumos.
+        # 3. OTRO: Default.
+
+        # Inicializar serie si no existe
+        if ColumnNames.TIPO_INSUMO not in df_merged.columns:
+            df_merged[ColumnNames.TIPO_INSUMO] = np.nan
+
+        # 1. Intentar mapear desde GRUPO_INSUMO
+        if ColumnNames.GRUPO_INSUMO in df_merged.columns:
+            # Diccionario de mapeo canónico
+            # Claves: Valores crudos esperados en GRUPO_INSUMO (insumos.csv)
+            # Valores: InsumoTypes canónicos para el calculador
+            group_mapping = {
+                "MATERIALES": InsumoTypes.SUMINISTRO,
+                "MANO DE OBRA": InsumoTypes.MANO_DE_OBRA,
+                "EQUIPO": InsumoTypes.EQUIPO,
+                "EQUIPOS": InsumoTypes.EQUIPO,
+                "HERRAMIENTA": InsumoTypes.EQUIPO,
+                "HERRAMIENTAS": InsumoTypes.EQUIPO,
+                "MAQUINARIA": InsumoTypes.EQUIPO,
+                "TRANSPORTE": InsumoTypes.TRANSPORTE,
+                "TRANSPORTES": InsumoTypes.TRANSPORTE
+            }
+
+            def map_group_canonical(val):
+                if pd.isna(val) or not isinstance(val, str):
+                    return None
+                val_upper = val.strip().upper()
+                return group_mapping.get(val_upper, None) # Retorna None si no hay match exacto
+
+            # Aplicar mapeo
+            mapped_types = df_merged[ColumnNames.GRUPO_INSUMO].apply(map_group_canonical)
+
+            # Asignar donde tengamos match
+            df_merged[ColumnNames.TIPO_INSUMO] = df_merged[ColumnNames.TIPO_INSUMO].fillna(mapped_types)
+
+            # Si GRUPO_INSUMO existe pero no hizo match en el diccionario,
+            # podríamos querer usar el valor crudo como fallback para que el fuzzy match del calculador lo intente?
+            # Por ahora, dejaremos que el paso 2 (CATEGORIA) intente llenar los huecos.
+            # O mejor, si mapped_types es nulo pero GRUPO_INSUMO no, usamos GRUPO_INSUMO directo (normalizado)
+
+            mask_still_na = df_merged[ColumnNames.TIPO_INSUMO].isna() & df_merged[ColumnNames.GRUPO_INSUMO].notna()
+            if mask_still_na.any():
+                df_merged.loc[mask_still_na, ColumnNames.TIPO_INSUMO] = df_merged.loc[mask_still_na, ColumnNames.GRUPO_INSUMO].astype(str).str.upper().str.strip()
+
+        # 2. Fallback a CATEGORIA
         if ColumnNames.CATEGORIA in df_merged.columns:
-            df_merged[ColumnNames.TIPO_INSUMO] = df_merged[ColumnNames.CATEGORIA]
-        elif ColumnNames.TIPO_INSUMO not in df_merged.columns:
-            df_merged[ColumnNames.TIPO_INSUMO] = InsumoTypes.OTRO
+             df_merged[ColumnNames.TIPO_INSUMO] = df_merged[ColumnNames.TIPO_INSUMO].fillna(df_merged[ColumnNames.CATEGORIA])
+
+        # 3. Default final
+        df_merged[ColumnNames.TIPO_INSUMO] = df_merged[ColumnNames.TIPO_INSUMO].fillna(InsumoTypes.OTRO)
 
         # Consolidar descripción
         desc_col_apu = f"{ColumnNames.DESCRIPCION_INSUMO}_apu"
