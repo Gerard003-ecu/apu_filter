@@ -11,6 +11,7 @@ que recibe un contexto, lo transforma y lo pasa al siguiente paso.
 
 import logging
 import os
+import re
 import sys
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
@@ -1239,9 +1240,28 @@ class DataMerger:
 
         # Crear columna normalizada en APUs si no existe
         if ColumnNames.NORMALIZED_DESC not in df_apus.columns:
-            df_apus[ColumnNames.NORMALIZED_DESC] = normalize_text_series(
-                df_apus[ColumnNames.DESCRIPCION_INSUMO]
-            )
+            # LIMPIEZA DE PREFIJOS:
+            # Eliminamos prefijos comunes (M.O., EQUIPO, TRANSPORTE, etc.) antes de normalizar
+            # para aumentar la probabilidad de match con la base maestra de insumos.
+
+            def clean_prefixes(text):
+                if pd.isna(text):
+                    return text
+                text = str(text)
+                # Patrones a eliminar (case insensitive)
+                # ^M\.?O\.?\s+ -> M.O., MO., M.O, MO seguido de espacio
+                # ^MANO\s+DE\s+OBRA\s+ -> MANO DE OBRA
+                # ^EQUIPO\s+ -> EQUIPO
+                # ^TRANSPORTE\s+ -> TRANSPORTE
+                # ^MATERIAL\s+ -> MATERIAL
+                patterns = r'^(?:M\.?O\.?|MANO\s+DE\s+OBRA|EQUIPO|TRANSPORTE|MATERIAL)\s+'
+                return re.sub(patterns, '', text, flags=re.IGNORECASE).strip()
+
+            # 1. Aplicar limpieza
+            cleaned_series = df_apus[ColumnNames.DESCRIPCION_INSUMO].apply(clean_prefixes)
+
+            # 2. Normalizar la serie limpia
+            df_apus[ColumnNames.NORMALIZED_DESC] = normalize_text_series(cleaned_series)
 
         # --- LOG DE DIAGNÓSTICO ---
         logger.info(f"🐛 DIAG: [DataMerger] Pre-merge df_apus: {len(df_apus)} filas, Columnas: {list(df_apus.columns)}")
