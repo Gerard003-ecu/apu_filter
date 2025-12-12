@@ -130,11 +130,44 @@
       "AGREGADO", "CONCRETO", "MALLA", "PERNO", "VARILLA"
     ]
   },
-  "apu_classification_rules": [
-    { "type": "Instalación", "condition": "porcentaje_mo_eq > 75.0" },
-    { "type": "Suministro", "condition": "porcentaje_materiales > 75.0 and porcentaje_mo_eq < 15.0" },
-    { "type": "Suministro (Pre-fabricado)", "condition": "porcentaje_materiales > 65.0 and porcentaje_mo_eq > 15.0" }
-  ],
+  "apu_classification_rules": {
+    "version": "2.0",
+    "description": "Reglas relajadas con umbrales del 60% y categoría mixta",
+    "rules": [
+      {
+        "type": "INSTALACION",
+        "priority": 1,
+        "condition": "porcentaje_mo_eq >= 60.0",
+        "description": "Predomina mano de obra/equipo (≥60%)"
+      },
+      {
+        "type": "SUMINISTRO",
+        "priority": 2,
+        "condition": "porcentaje_materiales >= 60.0 and porcentaje_mo_eq <= 15.0",
+        "description": "Predomina material puro, poca MO (≤15%)"
+      },
+      {
+        "type": "SUMINISTRO_PREFABRICADO",
+        "priority": 3,
+        "condition": "porcentaje_materiales >= 55.0 and porcentaje_mo_eq >= 15.0 and porcentaje_mo_eq < 40.0",
+        "description": "Material con moderada MO para prefabricación"
+      },
+      {
+        "type": "CONSTRUCCION_MIXTO",
+        "priority": 4,
+        "condition": "(porcentaje_materiales >= 40.0 and porcentaje_materiales <= 60.0) or (porcentaje_mo_eq >= 40.0 and porcentaje_mo_eq <= 60.0)",
+        "description": "Balance entre materiales y MO/equipo"
+      },
+      {
+        "type": "OBRA_COMPLETA",
+        "priority": 5,
+        "condition": "porcentaje_materiales > 0 and porcentaje_mo_eq > 0",
+        "description": "Cualquier APU con costos válidos (fallback seguro)"
+      }
+    ],
+    "default_type": "INDEFINIDO",
+    "zero_cost_type": "SIN_COSTO"
+  },
   "embedding_generation": {
     "model_name": "paraphrase-multilingual-MiniLM-L12-v2",
     "input_file": "data/processed_apus.json",

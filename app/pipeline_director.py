@@ -37,6 +37,7 @@ from .utils import (
 from app.constants import ColumnNames, InsumoType, ProcessingThresholds
 from app.patterns import RegexPatterns
 from app.validators import DataFrameValidator
+from app.classifiers.apu_classifier import APUClassifier
 
 # Configuración explícita para debug
 logger = logging.getLogger(__name__)
@@ -1402,6 +1403,11 @@ class APUCostCalculator(BaseCostProcessor):
         self._setup_categoria_mapping()
         self._quality_metrics = {}
 
+        # Inicializar clasificador
+        config_path = config.get('classification_rules_path',
+                                'config/config_rules.json')
+        self.classifier = APUClassifier(config_path)
+
     def _setup_categoria_mapping(self):
         """Configura mapeo usando Enum"""
         self._tipo_to_categoria = {
@@ -1519,25 +1525,54 @@ class APUCostCalculator(BaseCostProcessor):
         return df
 
     def _classify_apus(self, df: pd.DataFrame) -> pd.DataFrame:
-        """Clasifica APUs basado en la composición de sus costos."""
-        df = df.copy()
+        """
+        Clasifica APUs usando el clasificador configurable
 
-        # Calcular porcentajes
-        total = df[ColumnNames.VALOR_CONSTRUCCION_UN].replace(0, 1) # Evitar div/0
+        Args:
+            df: DataFrame con costos calculados
 
-        pct_materiales = df[ColumnNames.VALOR_SUMINISTRO_UN] / total
-        pct_mo_eq = df[ColumnNames.VALOR_INSTALACION_UN] / total
+        Returns:
+            DataFrame con columna TIPO_APU añadida
+        """
+        if df.empty:
+            logger.warning("DataFrame vacío en clasificación")
+            return df
 
-        conditions = [
-            (pct_materiales > self.thresholds.suministro_mat_threshold),
-            (pct_mo_eq > self.thresholds.instalacion_mo_threshold)
+        # Validar columnas requeridas
+        required = [
+            ColumnNames.VALOR_CONSTRUCCION_UN,
+            ColumnNames.VALOR_SUMINISTRO_UN,
+            ColumnNames.VALOR_INSTALACION_UN
         ]
 
-        choices = ["SUMINISTRO", "INSTALACION"]
+        for col in required:
+            if col not in df.columns:
+                logger.error(f"❌ Columna requerida faltante: {col}")
+                df[ColumnNames.TIPO_APU] = self.classifier.default_type
+                return df
 
-        df[ColumnNames.TIPO_APU] = np.select(conditions, choices, default="CONSTRUCCION")
+        # Clasificar usando el clasificador dedicado
+        df_classified = self.classifier.classify_dataframe(
+            df=df,
+            col_total=ColumnNames.VALOR_CONSTRUCCION_UN,
+            col_materiales=ColumnNames.VALOR_SUMINISTRO_UN,
+            col_mo_eq=ColumnNames.VALOR_INSTALACION_UN,
+            output_col=ColumnNames.TIPO_APU
+        )
 
-        return df
+        # Validación de cobertura
+        total_apus = len(df_classified)
+        valid_apus = df_classified[
+            (df_classified[ColumnNames.TIPO_APU] != self.classifier.default_type) &
+            (df_classified[ColumnNames.TIPO_APU] != self.classifier.zero_cost_type)
+        ].shape[0]
+
+        coverage = (valid_apus / total_apus * 100) if total_apus > 0 else 0
+
+        if coverage < 90:
+            logger.warning(f"⚠️ Cobertura de clasificación baja: {coverage:.1f}%")
+
+        return df_classified
 
     def _calculate_time(self, df: pd.DataFrame) -> pd.DataFrame:
         if ColumnNames.RENDIMIENTO not in df.columns:
