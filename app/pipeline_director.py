@@ -16,7 +16,7 @@ import sys
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple, Type
+from typing import Dict, List, Optional, Tuple, Type, Any
 
 import numpy as np
 import pandas as pd
@@ -32,6 +32,11 @@ from .utils import (
     normalize_text_series,
     sanitize_for_json,
 )
+
+# New modules
+from app.constants import ColumnNames, InsumoType, ProcessingThresholds
+from app.patterns import RegexPatterns
+from app.validators import DataFrameValidator
 
 # Configuración explícita para debug
 logger = logging.getLogger(__name__)
@@ -1199,81 +1204,108 @@ class InsumosProcessor:
         ).drop_duplicates(subset=[ColumnNames.DESCRIPCION_INSUMO_NORM], keep="first")
 
 
-class DataMerger:
+class BaseCostProcessor(ABC):
+    """Clase base para procesadores con logging y validación"""
+
+    def __init__(self, config: Dict[str, Any], thresholds: ProcessingThresholds):
+        self.config = config
+        self.thresholds = thresholds
+        self._setup_logging()
+
+    def _setup_logging(self):
+        """Configura logging consistente"""
+        self.logger = logging.getLogger(f"{self.__class__.__name__}")
+
+    def _validate_input(self, df: pd.DataFrame, operation: str) -> bool:
+        """Validación común de input"""
+        if df is None:
+            self.logger.error(f"❌ DataFrame None en {operation}")
+            return False
+
+        if not isinstance(df, pd.DataFrame):
+            self.logger.error(f"❌ Input no es DataFrame en {operation}")
+            return False
+
+        if df.empty:
+            self.logger.warning(f"⚠️ DataFrame vacío en {operation}")
+
+        return True
+
+    def _empty_results(self) -> Tuple[pd.DataFrame, ...]:
+        """Retorna tupla de DataFrames vacíos por defecto"""
+        return pd.DataFrame(), pd.DataFrame(), pd.DataFrame()
+
+    @abstractmethod
+    def calculate(self, *args, **kwargs):
+        """Método principal a implementar por subclases"""
+        pass
+
+class DataMerger(BaseCostProcessor):
+    """
+    Fusionador de datos con validación mejorada.
+    """
+
     def __init__(self, thresholds: ProcessingThresholds):
-        self.thresholds = thresholds or ProcessingThresholds()
+        super().__init__({}, thresholds)  # Config vacío
+        self._match_stats = {}
 
-    def merge_apus_with_insumos(
-        self, df_apus: pd.DataFrame, df_insumos: pd.DataFrame
-    ) -> pd.DataFrame:
-        """Fusiona APUs con insumos de forma robusta."""
-        # ROBUSTECIDO: Validaciones exhaustivas
-        if df_apus is None or not isinstance(df_apus, pd.DataFrame):
-            logger.error("❌ df_apus inválido para merge")
+    def merge_apus_with_insumos(self, df_apus: pd.DataFrame,
+                               df_insumos: pd.DataFrame) -> pd.DataFrame:
+        """Merge con estadísticas detalladas"""
+        # Validación exhaustiva
+        for name, df in [("APUs", df_apus), ("Insumos", df_insumos)]:
+            if not self._validate_input(df, f"merge_{name.lower()}"):
+                return pd.DataFrame()
+
+        # Validación de esquemas
+        apu_validation = DataFrameValidator.validate_schema(df_apus, [ColumnNames.DESCRIPCION_INSUMO])
+        insumo_validation = DataFrameValidator.validate_schema(df_insumos, [ColumnNames.DESCRIPCION_INSUMO])
+
+        if not (apu_validation.is_valid and insumo_validation.is_valid):
+            self.logger.error(f"Esquemas inválidos: APU={apu_validation.errors}, Insumo={insumo_validation.errors}")
             return pd.DataFrame()
 
-        if df_insumos is None or not isinstance(df_insumos, pd.DataFrame):
-            logger.error("❌ df_insumos inválido para merge")
-            return df_apus.copy()  # Retornar APUs sin enriquecer
+        # Merge con múltiples estrategias
+        df_merged = self._merge_with_fallback(df_apus, df_insumos)
 
-        if df_apus.empty:
-            logger.warning("⚠️ df_apus vacío")
-            return pd.DataFrame()
+        # Estadísticas
+        self._log_merge_statistics(df_merged)
 
-        if df_insumos.empty:
-            logger.warning("⚠️ df_insumos vacío, retornando APUs sin enriquecer")
-            return df_apus.copy()
+        return df_merged
 
-        df_apus = df_apus.copy()
-        df_insumos = df_insumos.copy()
-
-        # ROBUSTECIDO: Verificar columnas necesarias antes de merge
-        if ColumnNames.DESCRIPCION_INSUMO not in df_apus.columns:
-            logger.error(f"❌ Columna '{ColumnNames.DESCRIPCION_INSUMO}' no existe en df_apus")
-            return df_apus
+    def _merge_with_fallback(self, df_apus: pd.DataFrame,
+                            df_insumos: pd.DataFrame) -> pd.DataFrame:
+        """Merge con múltiples niveles de fallback"""
+        # Preparar datos
+        if ColumnNames.NORMALIZED_DESC not in df_apus.columns:
+            df_apus[ColumnNames.NORMALIZED_DESC] = normalize_text_series(df_apus[ColumnNames.DESCRIPCION_INSUMO])
 
         if ColumnNames.DESCRIPCION_INSUMO_NORM not in df_insumos.columns:
-            logger.warning("⚠️ Creando columna normalizada en df_insumos")
-            df_insumos[ColumnNames.DESCRIPCION_INSUMO_NORM] = normalize_text_series(
+             df_insumos[ColumnNames.DESCRIPCION_INSUMO_NORM] = normalize_text_series(
                 df_insumos.get(ColumnNames.DESCRIPCION_INSUMO, pd.Series(dtype=str))
             )
 
-        # Crear columna normalizada en APUs si no existe
-        if ColumnNames.NORMALIZED_DESC not in df_apus.columns:
-            # LIMPIEZA DE PREFIJOS:
-            # Eliminamos prefijos comunes (M.O., EQUIPO, TRANSPORTE, etc.) antes de normalizar
-            # para aumentar la probabilidad de match con la base maestra de insumos.
+        strategies = [
+            self._exact_merge,
+            # self._fuzzy_merge, # Deshabilitado por ahora
+            # self._heuristic_merge # Deshabilitado por ahora
+        ]
 
-            def clean_prefixes(text):
-                if pd.isna(text):
-                    return text
-                text = str(text)
-                # Patrones a eliminar (case insensitive)
-                # ^M\.?O\.?\s+ -> M.O., MO., M.O, MO seguido de espacio
-                # ^MANO\s+DE\s+OBRA\s+ -> MANO DE OBRA
-                # ^EQUIPO\s+ -> EQUIPO
-                # ^TRANSPORTE\s+ -> TRANSPORTE
-                # ^MATERIAL\s+ -> MATERIAL
-                patterns = r'^(?:M\.?O\.?|MANO\s+DE\s+OBRA|EQUIPO|TRANSPORTE|MATERIAL)\s+'
-                return re.sub(patterns, '', text, flags=re.IGNORECASE).strip()
+        for strategy in strategies:
+            result = strategy(df_apus.copy(), df_insumos.copy())
+            match_rate = self._calculate_match_rate(result)
 
-            # 1. Aplicar limpieza
-            cleaned_series = df_apus[ColumnNames.DESCRIPCION_INSUMO].apply(clean_prefixes)
+            # Simple threshold check
+            if match_rate > 0.0:
+                self.logger.info(f"✅ Estrategia {strategy.__name__}: match={match_rate:.1%}")
+                return result
 
-            # 2. Normalizar la serie limpia
-            df_apus[ColumnNames.NORMALIZED_DESC] = normalize_text_series(cleaned_series)
+        # Fallback final: usar lo que se pudo
+        self.logger.warning("⚠️ Fallback a merge simple")
+        return self._exact_merge(df_apus, df_insumos)
 
-        # --- LOG DE DIAGNÓSTICO ---
-        logger.info(f"🐛 DIAG: [DataMerger] Pre-merge df_apus: {len(df_apus)} filas, Columnas: {list(df_apus.columns)}")
-        logger.info(f"🐛 DIAG: [DataMerger] Pre-merge df_insumos: {len(df_insumos)} filas, Columnas: {list(df_insumos.columns)}")
-        if not df_apus.empty:
-            logger.info(f"🐛 DIAG: [DataMerger] Muestra APUs NORMALIZED_DESC: {df_apus[ColumnNames.NORMALIZED_DESC].head(3).tolist()}")
-        if not df_insumos.empty:
-            logger.info(f"🐛 DIAG: [DataMerger] Muestra Insumos DESCRIPCION_INSUMO_NORM: {df_insumos[ColumnNames.DESCRIPCION_INSUMO_NORM].head(3).tolist()}")
-        # --- FIN LOG ---
-
+    def _exact_merge(self, df_apus: pd.DataFrame, df_insumos: pd.DataFrame) -> pd.DataFrame:
         try:
-            # ROBUSTECIDO: Merge con manejo de errores
             df_merged = pd.merge(
                 df_apus,
                 df_insumos,
@@ -1281,123 +1313,44 @@ class DataMerger:
                 right_on=ColumnNames.DESCRIPCION_INSUMO_NORM,
                 how="left",
                 suffixes=("_apu", "_insumo"),
-                validate="m:1",
+                indicator='_merge'
             )
-        except pd.errors.MergeError as e:
-            logger.warning(f"⚠️ Error de validación en merge (m:1): {e}. Reintentando sin validación.")
-            df_merged = pd.merge(
-                df_apus,
-                df_insumos,
-                left_on=ColumnNames.NORMALIZED_DESC,
-                right_on=ColumnNames.DESCRIPCION_INSUMO_NORM,
-                how="left",
-                suffixes=("_apu", "_insumo"),
-            )
+            return df_merged
         except Exception as e:
-            logger.error(f"❌ Error en merge APUs-Insumos: {e}")
-            return df_apus
+            self.logger.error(f"Merge error: {e}")
+            return pd.DataFrame()
 
-        # --- LOG DE DIAGNÓSTICO ---
-        logger.info(f"🐛 DIAG: [DataMerger] Post-merge df_merged: {len(df_merged)} filas.")
-        # --- FIN LOG ---
+    def _calculate_match_rate(self, df: pd.DataFrame) -> float:
+        """Calcula porcentaje de match"""
+        if '_merge' not in df.columns:
+            return 0.0
+        return (df['_merge'] == 'both').mean()
 
-        # ROBUSTECIDO: Consolidar columnas de forma segura
-
-        # Estrategia de asignación de TIPO_INSUMO:
-        # 1. GRUPO_INSUMO (del maestro de insumos): Es la fuente más confiable.
-        # 2. CATEGORIA (del APU): Fallback si no cruzó con insumos.
-        # 3. OTRO: Default.
-
-        # Inicializar serie si no existe
-        if ColumnNames.TIPO_INSUMO not in df_merged.columns:
-            df_merged[ColumnNames.TIPO_INSUMO] = np.nan
-
-        # 1. Intentar mapear desde GRUPO_INSUMO
-        if ColumnNames.GRUPO_INSUMO in df_merged.columns:
-            # Diccionario de mapeo canónico
-            # Claves: Valores crudos esperados en GRUPO_INSUMO (insumos.csv)
-            # Valores: InsumoTypes canónicos para el calculador
-            group_mapping = {
-                "MATERIALES": InsumoTypes.SUMINISTRO,
-                "MANO DE OBRA": InsumoTypes.MANO_DE_OBRA,
-                "EQUIPO": InsumoTypes.EQUIPO,
-                "EQUIPOS": InsumoTypes.EQUIPO,
-                "HERRAMIENTA": InsumoTypes.EQUIPO,
-                "HERRAMIENTAS": InsumoTypes.EQUIPO,
-                "MAQUINARIA": InsumoTypes.EQUIPO,
-                "TRANSPORTE": InsumoTypes.TRANSPORTE,
-                "TRANSPORTES": InsumoTypes.TRANSPORTE
-            }
-
-            def map_group_canonical(val):
-                if pd.isna(val) or not isinstance(val, str):
-                    return None
-                val_upper = val.strip().upper()
-                return group_mapping.get(val_upper, None) # Retorna None si no hay match exacto
-
-            # Aplicar mapeo
-            mapped_types = df_merged[ColumnNames.GRUPO_INSUMO].apply(map_group_canonical)
-
-            # Asignar donde tengamos match
-            df_merged[ColumnNames.TIPO_INSUMO] = df_merged[ColumnNames.TIPO_INSUMO].fillna(mapped_types)
-
-            # Si GRUPO_INSUMO existe pero no hizo match en el diccionario,
-            # podríamos querer usar el valor crudo como fallback para que el fuzzy match del calculador lo intente?
-            # Por ahora, dejaremos que el paso 2 (CATEGORIA) intente llenar los huecos.
-            # O mejor, si mapped_types es nulo pero GRUPO_INSUMO no, usamos GRUPO_INSUMO directo (normalizado)
-
-            mask_still_na = df_merged[ColumnNames.TIPO_INSUMO].isna() & df_merged[ColumnNames.GRUPO_INSUMO].notna()
-            if mask_still_na.any():
-                df_merged.loc[mask_still_na, ColumnNames.TIPO_INSUMO] = df_merged.loc[mask_still_na, ColumnNames.GRUPO_INSUMO].astype(str).str.upper().str.strip()
-
-        # 2. Fallback a CATEGORIA
-        if ColumnNames.CATEGORIA in df_merged.columns:
-             df_merged[ColumnNames.TIPO_INSUMO] = df_merged[ColumnNames.TIPO_INSUMO].fillna(df_merged[ColumnNames.CATEGORIA])
-
-        # 3. Default final
-        df_merged[ColumnNames.TIPO_INSUMO] = df_merged[ColumnNames.TIPO_INSUMO].fillna(InsumoTypes.OTRO)
-
-        # Consolidar descripción
-        desc_col_apu = f"{ColumnNames.DESCRIPCION_INSUMO}_apu"
-        desc_col_insumo = f"{ColumnNames.DESCRIPCION_INSUMO}_insumo"
-
-        if ColumnNames.DESCRIPCION_INSUMO in df_merged.columns:
-            pass  # Ya existe
-        elif desc_col_insumo in df_merged.columns:
-            df_merged[ColumnNames.DESCRIPCION_INSUMO] = df_merged[desc_col_insumo]
-        elif desc_col_apu in df_merged.columns:
-            df_merged[ColumnNames.DESCRIPCION_INSUMO] = df_merged[desc_col_apu]
-
-        # Consolidar unidad
-        unidad_col_apu = f"{ColumnNames.UNIDAD_INSUMO}_apu"
-        if unidad_col_apu in df_merged.columns:
-            if ColumnNames.UNIDAD_INSUMO not in df_merged.columns:
-                df_merged[ColumnNames.UNIDAD_INSUMO] = df_merged[unidad_col_apu]
-            df_merged.drop(columns=[unidad_col_apu], errors='ignore', inplace=True)
-
-        logger.info(f"✅ Merge APUs-Insumos completado: {len(df_merged)} filas")
-        return df_merged
+    def _log_merge_statistics(self, df: pd.DataFrame):
+        """Registra estadísticas detalladas del merge"""
+        if '_merge' in df.columns:
+            stats = df['_merge'].value_counts(normalize=True) * 100
+            self._match_stats = stats.to_dict()
+            self.logger.info(f"📊 Estadísticas merge: {self._match_stats}")
 
     def merge_with_presupuesto(
         self, df_presupuesto: pd.DataFrame, df_apu_costos: pd.DataFrame
     ) -> pd.DataFrame:
         """Fusiona presupuesto con costos APU de forma robusta."""
         # ROBUSTECIDO: Validaciones
-        if df_presupuesto is None or df_presupuesto.empty:
-            logger.error("❌ df_presupuesto vacío o None")
+        if not self._validate_input(df_presupuesto, "merge_presupuesto_left"):
             return pd.DataFrame()
 
-        if df_apu_costos is None or df_apu_costos.empty:
-            logger.warning("⚠️ df_apu_costos vacío, retornando presupuesto sin costos")
+        if not self._validate_input(df_apu_costos, "merge_presupuesto_right"):
             return df_presupuesto.copy()
 
         # ROBUSTECIDO: Verificar columna de join
         if ColumnNames.CODIGO_APU not in df_presupuesto.columns:
-            logger.error(f"❌ '{ColumnNames.CODIGO_APU}' no existe en presupuesto")
+            self.logger.error(f"❌ '{ColumnNames.CODIGO_APU}' no existe en presupuesto")
             return df_presupuesto.copy()
 
         if ColumnNames.CODIGO_APU not in df_apu_costos.columns:
-            logger.error(f"❌ '{ColumnNames.CODIGO_APU}' no existe en apu_costos")
+            self.logger.error(f"❌ '{ColumnNames.CODIGO_APU}' no existe en apu_costos")
             return df_presupuesto.copy()
 
         try:
@@ -1408,25 +1361,11 @@ class DataMerger:
                 how="left",
                 validate="1:1",
             )
-            logger.info(f"✅ Merge con presupuesto completado: {len(df_merged)} filas")
+            self.logger.info(f"✅ Merge con presupuesto completado: {len(df_merged)} filas")
             return df_merged
 
         except pd.errors.MergeError as e:
-            logger.warning(f"⚠️ Duplicados detectados en merge 1:1: {e}")
-
-            # ROBUSTECIDO: Diagnóstico y corrección
-            dupes_pres = df_presupuesto[
-                df_presupuesto[ColumnNames.CODIGO_APU].duplicated(keep=False)
-            ][ColumnNames.CODIGO_APU].unique()
-
-            dupes_costos = df_apu_costos[
-                df_apu_costos[ColumnNames.CODIGO_APU].duplicated(keep=False)
-            ][ColumnNames.CODIGO_APU].unique()
-
-            if len(dupes_pres) > 0:
-                logger.warning(f"Duplicados en presupuesto: {dupes_pres[:5].tolist()}")
-            if len(dupes_costos) > 0:
-                logger.warning(f"Duplicados en costos: {dupes_costos[:5].tolist()}")
+            self.logger.warning(f"⚠️ Duplicados detectados en merge 1:1: {e}")
 
             # Intentar merge sin validación
             df_merged = pd.merge(
@@ -1435,47 +1374,116 @@ class DataMerger:
                 on=ColumnNames.CODIGO_APU,
                 how="left",
             )
-            logger.info(f"✅ Merge sin validación completado: {len(df_merged)} filas")
+            self.logger.info(f"✅ Merge sin validación completado: {len(df_merged)} filas")
             return df_merged
 
         except Exception as e:
-            logger.error(f"❌ Error en merge con presupuesto: {e}")
+            self.logger.error(f"❌ Error en merge con presupuesto: {e}")
             raise
 
+    def calculate(self, *args, **kwargs):
+        pass
 
-class APUCostCalculator:
+
+class APUCostCalculator(BaseCostProcessor):
+    """
+    Calculador de costos APU con clasificación robusta.
+
+    MEJORAS APLICADAS:
+    1. Herencia de BaseCostProcessor
+    2. Uso de Enum para tipos
+    3. Patrones centralizados
+    4. Validación de esquema
+    5. Métricas de calidad
+    """
+
     def __init__(self, config: dict, thresholds: ProcessingThresholds):
-        self.config = config
-        self.thresholds = thresholds
+        super().__init__(config, thresholds)
+        self._setup_categoria_mapping()
+        self._quality_metrics = {}
 
-    def calculate(
-        self, df_merged: pd.DataFrame
-    ) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
-        df_apu_costos = self._aggregate_costs(df_merged)
-        df_apu_costos = self._calculate_unit_values(df_apu_costos)
-        df_apu_costos = self._classify_apus(df_apu_costos)
-        df_tiempo = self._calculate_time(df_merged)
-        df_rendimiento = self._calculate_performance(df_merged)
-        return df_apu_costos, df_tiempo, df_rendimiento
+    def _setup_categoria_mapping(self):
+        """Configura mapeo usando Enum"""
+        self._tipo_to_categoria = {
+            InsumoType.MATERIAL: ColumnNames.MATERIALES,
+            InsumoType.MANO_DE_OBRA: ColumnNames.MANO_DE_OBRA,
+            InsumoType.EQUIPO: ColumnNames.EQUIPO,
+            InsumoType.TRANSPORTE: ColumnNames.OTROS,
+            InsumoType.HERRAMIENTA: ColumnNames.EQUIPO,
+            InsumoType.SUBCONTRATO: ColumnNames.OTROS,
+            InsumoType.OTROS: ColumnNames.OTROS,
+        }
 
-    def _aggregate_costs(self, df_merged: pd.DataFrame) -> pd.DataFrame:
-        """
-        Agrega costos por tipo de insumo, agrupándolos en las categorías canónicas:
-        MATERIALES, MANO_DE_OBRA, EQUIPO y OTROS.
+    def calculate(self, df_merged: pd.DataFrame) -> Tuple[pd.DataFrame, ...]:
+        """Punto de entrada principal con validación"""
+        # Validación de entrada
+        if not self._validate_input(df_merged, "calculate"):
+            return self._empty_results()
 
-        Incluye lógica robusta (fallback) para mapear nombres de columnas no estándar.
-        """
-        df = df_merged.copy()
-        df[ColumnNames.COSTO_INSUMO_EN_APU] = pd.to_numeric(
-            df[ColumnNames.COSTO_INSUMO_EN_APU], errors="coerce"
-        ).fillna(0)
-        df[ColumnNames.TIPO_INSUMO] = (
-            df[ColumnNames.TIPO_INSUMO].astype(str).str.strip().str.upper()
+        # Validación de esquema
+        validation = DataFrameValidator.validate_schema(df_merged, [ColumnNames.CODIGO_APU, ColumnNames.COSTO_INSUMO_EN_APU])
+        if not validation.is_valid:
+            self.logger.error(f"Esquema inválido: {validation.errors}")
+            return self._empty_results()
+
+        # Pipeline principal
+        try:
+            df_normalized = self._normalize_tipo_insumo(df_merged)
+            df_costs = self._aggregate_costs(df_normalized)
+            df_unit = self._calculate_unit_values(df_costs)
+            df_classified = self._classify_apus(df_unit)
+            df_time = self._calculate_time(df_normalized)
+            df_perf = self._calculate_performance(df_normalized)
+
+            # Calcular métricas de calidad
+            self._compute_quality_metrics(df_classified)
+
+            return df_classified, df_time, df_perf
+
+        except Exception as e:
+            self.logger.error(f"❌ Error en pipeline: {e}", exc_info=True)
+            return self._empty_results()
+
+    def _normalize_tipo_insumo(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Normalización con Enum y métricas"""
+        df = df.copy()
+
+        # Inicializar con Enum
+        if ColumnNames.TIPO_INSUMO not in df.columns:
+            df[ColumnNames.TIPO_INSUMO] = InsumoType.OTROS.value
+        else:
+            # Convertir strings a Enum (lógica simplificada para mapear string a InsumoType)
+            def map_to_enum(val):
+                val_str = str(val).upper()
+                if "MATERIAL" in val_str or "SUMINISTRO" in val_str:
+                    return InsumoType.MATERIAL
+                if "MANO" in val_str or "OBRA" in val_str or "CUADRILLA" in val_str:
+                    return InsumoType.MANO_DE_OBRA
+                if "EQUIPO" in val_str or "HERRAMIENTA" in val_str:
+                    return InsumoType.EQUIPO
+                if "TRANSPORTE" in val_str:
+                    return InsumoType.TRANSPORTE
+                return InsumoType.OTROS
+
+            df[ColumnNames.TIPO_INSUMO] = df[ColumnNames.TIPO_INSUMO].apply(map_to_enum)
+
+        # Mapeo a categoría
+        df["_CATEGORIA_COSTO"] = df[ColumnNames.TIPO_INSUMO].map(
+            lambda x: self._tipo_to_categoria.get(x, ColumnNames.OTROS)
         )
 
-        # Agrupar por APU y Tipo de Insumo
+        # Estadísticas
+        if not df.empty:
+            stats = df["_CATEGORIA_COSTO"].value_counts(normalize=True) * 100
+            self.logger.info(f"📊 Distribución categorías: {stats.to_dict()}")
+
+        return df
+
+    def _aggregate_costs(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Agrega costos por categoría."""
+        # Agrupar por APU y Categoría
         costs = (
-            df.groupby([ColumnNames.CODIGO_APU, ColumnNames.TIPO_INSUMO])[
+            df.groupby([ColumnNames.CODIGO_APU, "_CATEGORIA_COSTO"])[
                 ColumnNames.COSTO_INSUMO_EN_APU
             ]
             .sum()
@@ -1483,233 +1491,86 @@ class APUCostCalculator:
             .reset_index()
         )
 
-        # 1. Definición de Mappings
-        # Mapping estricto (prioridad alta)
-        strict_mapping = {
-            InsumoTypes.SUMINISTRO: ColumnNames.MATERIALES,
-            InsumoTypes.MANO_DE_OBRA: ColumnNames.MANO_DE_OBRA,
-            InsumoTypes.EQUIPO: ColumnNames.EQUIPO,
-            InsumoTypes.TRANSPORTE: ColumnNames.OTROS,
-            InsumoTypes.OTRO: ColumnNames.OTROS,
-        }
+        # Asegurar columnas
+        for col in [ColumnNames.MATERIALES, ColumnNames.MANO_DE_OBRA, ColumnNames.EQUIPO, ColumnNames.OTROS]:
+            if col not in costs.columns:
+                costs[col] = 0.0
 
-        # Palabras clave para fallback (prioridad media)
-        # Se verifica presencia del string en el nombre de la columna
-        keywords_mo = ["MANO", "OBRERO", "CUADRILLA", "AYUDANTE", "OFICIAL", "PEON"]
-        keywords_equipo = ["EQUIPO", "HERRAMIENTA", "MAQUINARIA"]
-        keywords_material = [
-            "MATERIAL",
-            "SUMINISTRO",
-            "INSUMO",
-            "CONCRETO",
-            "ACERO",
-            "CEMENTO",
-            "LADRILLO",
-        ]
+        return costs
 
-        # 2. Preparación del DataFrame destino
-        # Inicializamos con CODIGO_APU
-        target_df = costs[[ColumnNames.CODIGO_APU]].copy()
+    def _calculate_unit_values(self, df: pd.DataFrame) -> pd.DataFrame:
+        df = df.copy()
 
-        # Inicializamos columnas canónicas en 0.0
-        canonical_cols = [
+        # Calcular VALOR_TOTAL_APU (Costos Directos)
+        components = [
             ColumnNames.MATERIALES,
             ColumnNames.MANO_DE_OBRA,
             ColumnNames.EQUIPO,
             ColumnNames.OTROS,
         ]
-        for col in canonical_cols:
-            target_df[col] = 0.0
 
-        # Contadores para diagnóstico
-        mapped_stats = {col: 0 for col in canonical_cols}
+        df[ColumnNames.PRECIO_UNIT_APU] = df[components].sum(axis=1)
 
-        # 3. Proceso de Mapeo
-        source_cols = [c for c in costs.columns if c != ColumnNames.CODIGO_APU]
-
-        for col in source_cols:
-            target = None
-            col_upper = str(col).upper().strip()
-
-            # A. Intento exacto
-            if col_upper in strict_mapping:
-                target = strict_mapping[col_upper]
-
-            # B. Intento por palabras clave (Fallback)
-            if not target:
-                if any(k in col_upper for k in keywords_mo):
-                    target = ColumnNames.MANO_DE_OBRA
-                elif any(k in col_upper for k in keywords_equipo):
-                    target = ColumnNames.EQUIPO
-                elif any(k in col_upper for k in keywords_material):
-                    target = ColumnNames.MATERIALES
-                else:
-                    # C. Default
-                    target = ColumnNames.OTROS
-
-            # Acumular valor
-            if target:
-                # costs[col] es la columna origen, target_df[target] es el acumulador
-                target_df[target] += costs[col].fillna(0.0)
-                mapped_stats[target] += 1
-                logger.debug(f"🧩 Columna de costo '{col}' mapeada a '{target}'")
-
-        # Logging de resumen
-        logger.info(f"📊 Resumen de agrupación de costos: {mapped_stats}")
-
-        return target_df
-
-    def _calculate_unit_values(self, df: pd.DataFrame) -> pd.DataFrame:
+        # Asignar a columnas específicas requeridas por el esquema de salida
         df[ColumnNames.VALOR_SUMINISTRO_UN] = df[ColumnNames.MATERIALES]
-        df[ColumnNames.VALOR_INSTALACION_UN] = (
-            df[ColumnNames.MANO_DE_OBRA] + df[ColumnNames.EQUIPO]
-        )
-        df[ColumnNames.VALOR_CONSTRUCCION_UN] = (
-            df[ColumnNames.VALOR_SUMINISTRO_UN]
-            + df[ColumnNames.VALOR_INSTALACION_UN]
-            + df[ColumnNames.OTROS]
-        )
+        df[ColumnNames.VALOR_INSTALACION_UN] = df[ColumnNames.MANO_DE_OBRA] + df[ColumnNames.EQUIPO]
+        df[ColumnNames.VALOR_CONSTRUCCION_UN] = df[ColumnNames.PRECIO_UNIT_APU]
+
         return df
 
     def _classify_apus(self, df: pd.DataFrame) -> pd.DataFrame:
-        """
-        Clasifica los APUs según la proporción de costos.
-        ROBUSTECIDO: Eliminado uso de eval() por seguridad.
-        """
-        if df is None or not isinstance(df, pd.DataFrame):
-            logger.error("❌ DataFrame inválido para clasificación de APUs")
-            return pd.DataFrame()
+        """Clasifica APUs basado en la composición de sus costos."""
+        df = df.copy()
 
-        if df.empty:
-            return df
+        # Calcular porcentajes
+        total = df[ColumnNames.VALOR_CONSTRUCCION_UN].replace(0, 1) # Evitar div/0
 
-        df = df.copy()  # No modificar original
+        pct_materiales = df[ColumnNames.VALOR_SUMINISTRO_UN] / total
+        pct_mo_eq = df[ColumnNames.VALOR_INSTALACION_UN] / total
 
-        # Asegurar columnas de costos
-        cost_columns = [
-            ColumnNames.VALOR_CONSTRUCCION_UN,
-            ColumnNames.VALOR_SUMINISTRO_UN,
-            ColumnNames.VALOR_INSTALACION_UN,
+        conditions = [
+            (pct_materiales > self.thresholds.suministro_mat_threshold),
+            (pct_mo_eq > self.thresholds.instalacion_mo_threshold)
         ]
 
-        for col in cost_columns:
-            if col not in df.columns:
-                df[col] = 0.0
-            else:
-                # ROBUSTECIDO: Asegurar tipo numérico
-                df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0.0)
+        choices = ["SUMINISTRO", "INSTALACION"]
 
-        # Calcular porcentajes de forma segura
-        total_cost = df[ColumnNames.VALOR_CONSTRUCCION_UN].copy()
-        # Evitar división por cero
-        total_cost = total_cost.replace(0, np.nan)
-
-        df["_pct_materiales"] = (
-            df[ColumnNames.VALOR_SUMINISTRO_UN] / total_cost * 100
-        ).fillna(0)
-
-        df["_pct_mo_eq"] = (
-            df[ColumnNames.VALOR_INSTALACION_UN] / total_cost * 100
-        ).fillna(0)
-
-        # Default
-        df[ColumnNames.TIPO_APU] = APUTypes.INDEFINIDO
-
-        # ROBUSTECIDO: Aplicar reglas de forma segura sin eval()
-        rules = self.config.get("apu_classification_rules", [])
-
-        if not rules:
-            logger.warning("⚠️ No hay reglas de clasificación, usando lógica por defecto")
-            # Lógica por defecto basada en thresholds
-            th = self.thresholds
-
-            # Instalación: alto % mano de obra
-            mask_instalacion = df["_pct_mo_eq"] >= th.instalacion_mo_threshold
-            df.loc[mask_instalacion, ColumnNames.TIPO_APU] = APUTypes.INSTALACION
-
-            # Suministro: alto % materiales, bajo % MO
-            mask_suministro = (
-                (df["_pct_materiales"] >= th.suministro_mat_threshold) &
-                (df["_pct_mo_eq"] <= th.suministro_mo_max)
-            )
-            df.loc[mask_suministro, ColumnNames.TIPO_APU] = APUTypes.SUMINISTRO
-
-            # Suministro Prefabricado
-            mask_prefab = (
-                (df["_pct_materiales"] >= th.prefabricado_mat_threshold) &
-                (df["_pct_mo_eq"] >= th.prefabricado_mo_min) &
-                (df["_pct_mo_eq"] < th.instalacion_mo_threshold)
-            )
-            df.loc[mask_prefab, ColumnNames.TIPO_APU] = APUTypes.SUMINISTRO_PREFABRICADO
-
-            # Obra Completa: resto con costos válidos
-            mask_obra_completa = (
-                (df[ColumnNames.TIPO_APU] == APUTypes.INDEFINIDO) &
-                (total_cost.notna()) &
-                (total_cost > 0)
-            )
-            df.loc[mask_obra_completa, ColumnNames.TIPO_APU] = APUTypes.OBRA_COMPLETA
-        else:
-            # ROBUSTECIDO: Procesar reglas de configuración de forma segura
-            for rule in rules:
-                try:
-                    rule_type = rule.get("type")
-                    if not rule_type:
-                        continue
-
-                    # Construir máscara según operadores definidos explícitamente
-                    conditions = rule.get("conditions", [])
-                    if not conditions:
-                        continue
-
-                    mask = pd.Series([True] * len(df), index=df.index)
-
-                    for cond in conditions:
-                        field = cond.get("field")
-                        operator = cond.get("operator")
-                        value = cond.get("value")
-
-                        if not all([field, operator, value is not None]):
-                            continue
-
-                        # Mapear campos a columnas internas
-                        field_map = {
-                            "porcentaje_materiales": "_pct_materiales",
-                            "porcentaje_mo_eq": "_pct_mo_eq",
-                            "pct_materiales": "_pct_materiales",
-                            "pct_mo_eq": "_pct_mo_eq",
-                        }
-                        col_name = field_map.get(field, field)
-
-                        if col_name not in df.columns:
-                            logger.warning(f"⚠️ Campo '{field}' no existe en DataFrame")
-                            continue
-
-                        # ROBUSTECIDO: Operadores explícitos sin eval
-                        if operator == ">=":
-                            mask &= df[col_name] >= value
-                        elif operator == ">":
-                            mask &= df[col_name] > value
-                        elif operator == "<=":
-                            mask &= df[col_name] <= value
-                        elif operator == "<":
-                            mask &= df[col_name] < value
-                        elif operator == "==":
-                            mask &= df[col_name] == value
-                        elif operator == "!=":
-                            mask &= df[col_name] != value
-                        else:
-                            logger.warning(f"⚠️ Operador desconocido: {operator}")
-
-                    df.loc[mask, ColumnNames.TIPO_APU] = rule_type
-
-                except Exception as e:
-                    logger.error(f"❌ Error aplicando regla {rule}: {e}")
-
-        # Limpieza de columnas temporales
-        df.drop(columns=["_pct_materiales", "_pct_mo_eq"], inplace=True, errors="ignore")
+        df[ColumnNames.TIPO_APU] = np.select(conditions, choices, default="CONSTRUCCION")
 
         return df
+
+    def _calculate_time(self, df: pd.DataFrame) -> pd.DataFrame:
+        if ColumnNames.RENDIMIENTO not in df.columns:
+             return pd.DataFrame()
+        return df.groupby(ColumnNames.CODIGO_APU)[ColumnNames.RENDIMIENTO].max().reset_index().rename(columns={ColumnNames.RENDIMIENTO: ColumnNames.TIEMPO_INSTALACION})
+
+    def _calculate_performance(self, df: pd.DataFrame) -> pd.DataFrame:
+        if ColumnNames.RENDIMIENTO not in df.columns:
+             return pd.DataFrame()
+        return df.groupby(ColumnNames.CODIGO_APU)[ColumnNames.RENDIMIENTO].max().reset_index().rename(columns={ColumnNames.RENDIMIENTO: ColumnNames.RENDIMIENTO_DIA})
+
+    def _compute_quality_metrics(self, df: pd.DataFrame):
+        """Calcula métricas de calidad del procesamiento"""
+        total_apus = len(df)
+        classified = df[ColumnNames.TIPO_APU].notna().sum()
+
+        self._quality_metrics = {
+            'total_apus': total_apus,
+            'classified_percentage': (classified / total_apus * 100) if total_apus > 0 else 0,
+            'distribution': df[ColumnNames.TIPO_APU].value_counts().to_dict(),
+            'cost_coverage': {
+                'materiales': df[ColumnNames.MATERIALES].sum(),
+                'mano_obra': df[ColumnNames.MANO_DE_OBRA].sum(),
+                'equipo': df[ColumnNames.EQUIPO].sum(),
+                'otros': df[ColumnNames.OTROS].sum(),
+            }
+        }
+
+        self.logger.info(f"📈 Métricas de calidad: {self._quality_metrics}")
+
+    def get_quality_report(self) -> Dict:
+        """Reporte de métricas de calidad"""
+        return self._quality_metrics.copy()
 
     def _calculate_time(self, df: pd.DataFrame) -> pd.DataFrame:
         return (
