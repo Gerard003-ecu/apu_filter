@@ -1,0 +1,422 @@
+### 1. Modificar config/config_rules.json:
+
+{
+  "apu_classification_rules": {
+    "version": "2.0",
+    "description": "Reglas relajadas con umbrales del 60% y categoría mixta",
+    "rules": [
+      {
+        "type": "INSTALACION",
+        "priority": 1,
+        "condition": "porcentaje_mo_eq >= 60.0",
+        "description": "Predomina mano de obra/equipo (≥60%)"
+      },
+      {
+        "type": "SUMINISTRO",
+        "priority": 2,
+        "condition": "porcentaje_materiales >= 60.0 AND porcentaje_mo_eq <= 15.0",
+        "description": "Predomina material puro, poca MO (≤15%)"
+      },
+      {
+        "type": "SUMINISTRO_PREFABRICADO",
+        "priority": 3,
+        "condition": "porcentaje_materiales >= 55.0 AND porcentaje_mo_eq >= 15.0 AND porcentaje_mo_eq < 40.0",
+        "description": "Material con moderada MO para prefabricación"
+      },
+      {
+        "type": "CONSTRUCCION_MIXTO",
+        "priority": 4,
+        "condition": "(porcentaje_materiales >= 40.0 AND porcentaje_materiales <= 60.0) OR (porcentaje_mo_eq >= 40.0 AND porcentaje_mo_eq <= 60.0)",
+        "description": "Balance entre materiales y MO/equipo"
+      },
+      {
+        "type": "OBRA_COMPLETA",
+        "priority": 5,
+        "condition": "porcentaje_materiales > 0 AND porcentaje_mo_eq > 0",
+        "description": "Cualquier APU con costos válidos (fallback seguro)"
+      }
+    ],
+    "default_type": "INDEFINIDO",
+    "zero_cost_type": "SIN_COSTO"
+  }
+}
+
+### 2. Implementar APUClassifier (Clase Dedicada):
+
+# app/classifiers/apu_classifier.py
+import pandas as pd
+import numpy as np
+import logging
+from typing import Dict, List, Optional
+from dataclasses import dataclass
+import json
+from pathlib import Path
+
+logger = logging.getLogger(__name__)
+
+@dataclass
+class ClassificationRule:
+    """Estructura para reglas de clasificación"""
+    rule_type: str
+    priority: int
+    condition: str
+    description: str
+    
+    def evaluate(self, pct_materiales: float, pct_mo_eq: float) -> bool:
+        """Evalúa la condición con los porcentajes"""
+        try:
+            # Variables disponibles para evaluación
+            porcentaje_materiales = pct_materiales * 100  # Convertir a porcentaje
+            porcentaje_mo_eq = pct_mo_eq * 100
+            
+            # Evaluar condición (usar eval con contexto restringido)
+            safe_dict = {
+                'porcentaje_materiales': porcentaje_materiales,
+                'porcentaje_mo_eq': porcentaje_mo_eq
+            }
+            return eval(self.condition, {"__builtins__": {}}, safe_dict)
+        except Exception as e:
+            logger.error(f"Error evaluando regla {self.rule_type}: {e}")
+            return False
+
+
+class APUClassifier:
+    """Clasificador robusto de APUs basado en reglas configurables"""
+    
+    def __init__(self, config_path: Optional[str] = None):
+        self.rules: List[ClassificationRule] = []
+        self.default_type = "INDEFINIDO"
+        self.zero_cost_type = "SIN_COSTO"
+        
+        self._load_config(config_path)
+        self._validate_rules()
+    
+    def _load_config(self, config_path: Optional[str]):
+        """Carga reglas desde archivo JSON"""
+        if config_path and Path(config_path).exists():
+            try:
+                with open(config_path, 'r', encoding='utf-8') as f:
+                    config = json.load(f)
+                
+                rules_config = config.get('apu_classification_rules', {})
+                
+                # Cargar reglas
+                for rule_dict in rules_config.get('rules', []):
+                    rule = ClassificationRule(
+                        rule_type=rule_dict['type'],
+                        priority=rule_dict.get('priority', 99),
+                        condition=rule_dict['condition'],
+                        description=rule_dict.get('description', '')
+                    )
+                    self.rules.append(rule)
+                
+                # Ordenar por prioridad (menor = primero)
+                self.rules.sort(key=lambda x: x.priority)
+                
+                # Cargar configuraciones adicionales
+                self.default_type = rules_config.get('default_type', 'INDEFINIDO')
+                self.zero_cost_type = rules_config.get('zero_cost_type', 'SIN_COSTO')
+                
+                logger.info(f"✅ Cargadas {len(self.rules)} reglas de clasificación")
+                
+            except Exception as e:
+                logger.error(f"❌ Error cargando configuración: {e}")
+                self._load_default_rules()
+        else:
+            logger.warning("⚠️ No se encontró archivo de configuración, usando reglas por defecto")
+            self._load_default_rules()
+    
+    def _load_default_rules(self):
+        """Reglas por defecto (más permisivas)"""
+        self.rules = [
+            ClassificationRule(
+                rule_type="INSTALACION",
+                priority=1,
+                condition="porcentaje_mo_eq >= 60.0",
+                description="Predomina mano de obra/equipo"
+            ),
+            ClassificationRule(
+                rule_type="SUMINISTRO",
+                priority=2,
+                condition="porcentaje_materiales >= 60.0",
+                description="Predomina materiales"
+            ),
+            ClassificationRule(
+                rule_type="CONSTRUCCION_MIXTO",
+                priority=3,
+                condition="(porcentaje_materiales >= 40.0 AND porcentaje_materiales <= 60.0) OR (porcentaje_mo_eq >= 40.0 AND porcentaje_mo_eq <= 60.0)",
+                description="Balance entre materiales y MO"
+            ),
+            ClassificationRule(
+                rule_type="OBRA_COMPLETA",
+                priority=4,
+                condition="porcentaje_materiales > 0 AND porcentaje_mo_eq > 0",
+                description="Cualquier APU con costos válidos"
+            )
+        ]
+        self.default_type = "INDEFINIDO"
+        self.zero_cost_type = "SIN_COSTO"
+    
+    def _validate_rules(self):
+        """Valida que las reglas sean coherentes"""
+        if not self.rules:
+            raise ValueError("No hay reglas de clasificación definidas")
+        
+        # Verificar que no haya tipos duplicados
+        types = [rule.rule_type for rule in self.rules]
+        if len(types) != len(set(types)):
+            logger.warning("⚠️ Hay tipos de reglas duplicados")
+    
+    def classify_single(self, pct_materiales: float, pct_mo_eq: float, 
+                       total_cost: float = 1.0) -> str:
+        """
+        Clasifica un único APU basado en sus porcentajes
+        
+        Args:
+            pct_materiales: Porcentaje de materiales (0-1)
+            pct_mo_eq: Porcentaje de MO+equipo (0-1)
+            total_cost: Costo total para detectar APUs sin costo
+        
+        Returns:
+            Tipo de APU clasificado
+        """
+        # Caso especial: sin costo
+        if total_cost <= 0:
+            return self.zero_cost_type
+        
+        # Aplicar reglas en orden de prioridad
+        for rule in self.rules:
+            if rule.evaluate(pct_materiales, pct_mo_eq):
+                return rule.rule_type
+        
+        # Fallback final
+        return self.default_type
+    
+    def classify_dataframe(self, df: pd.DataFrame, 
+                          col_total: str = 'VALOR_CONSTRUCCION_UN',
+                          col_materiales: str = 'VALOR_SUMINISTRO_UN',
+                          col_mo_eq: str = 'VALOR_INSTALACION_UN',
+                          output_col: str = 'TIPO_APU') -> pd.DataFrame:
+        """
+        Clasifica un DataFrame completo de APUs
+        
+        Args:
+            df: DataFrame con costos de APUs
+            col_total: Columna con costo total
+            col_materiales: Columna con costo de materiales
+            col_mo_eq: Columna con costo de MO+equipo
+            output_col: Columna de salida para el tipo
+        
+        Returns:
+            DataFrame con columna de clasificación añadida
+        """
+        df = df.copy()
+        
+        # Verificar columnas requeridas
+        required_cols = [col_total, col_materiales, col_mo_eq]
+        missing_cols = [col for col in required_cols if col not in df.columns]
+        
+        if missing_cols:
+            logger.error(f"❌ Columnas faltantes: {missing_cols}")
+            df[output_col] = self.default_type
+            return df
+        
+        # Calcular porcentajes evitando división por cero
+        df['_total_safe'] = df[col_total].replace(0, np.nan)
+        
+        df['_pct_materiales'] = df[col_materiales] / df['_total_safe']
+        df['_pct_mo_eq'] = df[col_mo_eq] / df['_total_safe']
+        
+        # Rellenar NaN con 0 (para APUs sin costo)
+        df[['_pct_materiales', '_pct_mo_eq']] = df[['_pct_materiales', '_pct_mo_eq']].fillna(0)
+        
+        # Aplicar clasificación a cada fila
+        df[output_col] = df.apply(
+            lambda row: self.classify_single(
+                row['_pct_materiales'],
+                row['_pct_mo_eq'],
+                row[col_total]
+            ),
+            axis=1
+        )
+        
+        # Limpiar columnas temporales
+        df.drop(['_total_safe', '_pct_materiales', '_pct_mo_eq'], 
+                axis=1, inplace=True, errors='ignore')
+        
+        # Estadísticas
+        self._log_classification_stats(df[output_col])
+        
+        return df
+    
+    def _log_classification_stats(self, series: pd.Series):
+        """Registra estadísticas de clasificación"""
+        stats = series.value_counts()
+        total = len(series)
+        
+        logger.info("📊 ESTADÍSTICAS DE CLASIFICACIÓN:")
+        for tipo, count in stats.items():
+            percentage = (count / total) * 100
+            logger.info(f"  {tipo}: {count} APUs ({percentage:.1f}%)")
+        
+        # Alertas importantes
+        indefinidos = stats.get(self.default_type, 0)
+        if indefinidos > 0:
+            pct_indef = (indefinidos / total) * 100
+            logger.warning(f"⚠️ {indefinidos} APUs ({pct_indef:.1f}%) clasificados como {self.default_type}")
+        
+        sin_costo = stats.get(self.zero_cost_type, 0)
+        if sin_costo > 0:
+            logger.warning(f"⚠️ {sin_costo} APUs sin costo ({self.zero_cost_type})")
+
+
+### 3. Modificar APUCostCalculator._classify_apus:
+
+# En app/pipeline_director.py
+class APUCostCalculator(BaseCostProcessor):
+    
+    def __init__(self, config: dict, thresholds: 'ProcessingThresholds'):
+        super().__init__(config, thresholds)
+        self._setup_categoria_mapping()
+        self._quality_metrics = {}
+        
+        # Inicializar clasificador
+        config_path = config.get('classification_rules_path', 
+                                'config/config_rules.json')
+        self.classifier = APUClassifier(config_path)
+    
+    def _classify_apus(self, df: pd.DataFrame) -> pd.DataFrame:
+        """
+        Clasifica APUs usando el clasificador configurable
+        
+        Args:
+            df: DataFrame con costos calculados
+        
+        Returns:
+            DataFrame con columna TIPO_APU añadida
+        """
+        if df.empty:
+            logger.warning("DataFrame vacío en clasificación")
+            return df
+        
+        # Validar columnas requeridas
+        required = [
+            ColumnNames.VALOR_CONSTRUCCION_UN,
+            ColumnNames.VALOR_SUMINISTRO_UN,
+            ColumnNames.VALOR_INSTALACION_UN
+        ]
+        
+        for col in required:
+            if col not in df.columns:
+                logger.error(f"❌ Columna requerida faltante: {col}")
+                df[ColumnNames.TIPO_APU] = self.classifier.default_type
+                return df
+        
+        # Clasificar usando el clasificador dedicado
+        df_classified = self.classifier.classify_dataframe(
+            df=df,
+            col_total=ColumnNames.VALOR_CONSTRUCCION_UN,
+            col_materiales=ColumnNames.VALOR_SUMINISTRO_UN,
+            col_mo_eq=ColumnNames.VALOR_INSTALACION_UN,
+            output_col=ColumnNames.TIPO_APU
+        )
+        
+        # Validación de cobertura
+        total_apus = len(df_classified)
+        valid_apus = df_classified[
+            (df_classified[ColumnNames.TIPO_APU] != self.classifier.default_type) &
+            (df_classified[ColumnNames.TIPO_APU] != self.classifier.zero_cost_type)
+        ].shape[0]
+        
+        coverage = (valid_apus / total_apus * 100) if total_apus > 0 else 0
+        
+        if coverage < 90:
+            logger.warning(f"⚠️ Cobertura de clasificación baja: {coverage:.1f}%")
+        
+        return df_classified
+
+
+### 4. Tests de Validación:
+
+# tests/test_apu_classifier.py
+import pytest
+import pandas as pd
+import numpy as np
+from app.classifiers.apu_classifier import APUClassifier
+
+def test_classifier_with_various_scenarios():
+    """Test del clasificador con múltiples escenarios"""
+    classifier = APUClassifier()
+    
+    # Casos de prueba
+    test_cases = [
+        # (pct_mat, pct_mo_eq, expected_type, description)
+        (0.70, 0.10, "SUMINISTRO", "Predominio material puro"),
+        (0.65, 0.25, "SUMINISTRO_PREFABRICADO", "Material con MO moderada"),
+        (0.30, 0.65, "INSTALACION", "Predominio MO/equipo"),
+        (0.50, 0.45, "CONSTRUCCION_MIXTO", "Balance 50/50"),
+        (0.55, 0.40, "CONSTRUCCION_MIXTO", "Límite superior mixto"),
+        (0.45, 0.35, "OBRA_COMPLETA", "Caso intermedio"),
+        (0.00, 0.00, "SIN_COSTO", "Sin costo"),
+        (0.90, 0.05, "SUMINISTRO", "Material muy alto, MO baja"),
+    ]
+    
+    for pct_mat, pct_mo_eq, expected, desc in test_cases:
+        result = classifier.classify_single(pct_mat, pct_mo_eq)
+        assert result == expected, f"Fallo en {desc}: esperado {expected}, obtenido {result}"
+
+def test_dataframe_classification():
+    """Test de clasificación de DataFrame completo"""
+    classifier = APUClassifier()
+    
+    # Crear DataFrame de prueba
+    df = pd.DataFrame({
+        'VALOR_CONSTRUCCION_UN': [100, 200, 150, 300, 0],
+        'VALOR_SUMINISTRO_UN': [70, 120, 45, 180, 0],
+        'VALOR_INSTALACION_UN': [30, 80, 105, 120, 0]
+    })
+    
+    df_classified = classifier.classify_dataframe(df)
+    
+    # Verificar que todos tienen clasificación
+    assert 'TIPO_APU' in df_classified.columns
+    assert df_classified['TIPO_APU'].isna().sum() == 0
+    
+    # Verificar el APU sin costo
+    assert df_classified.iloc[4]['TIPO_APU'] == 'SIN_COSTO'
+
+def test_config_loading():
+    """Test de carga de configuración desde JSON"""
+    import tempfile
+    import json
+    
+    # Crear archivo de configuración temporal
+    config = {
+        "apu_classification_rules": {
+            "rules": [
+                {
+                    "type": "TEST_TYPE",
+                    "priority": 1,
+                    "condition": "porcentaje_materiales >= 50.0",
+                    "description": "Test rule"
+                }
+            ],
+            "default_type": "TEST_DEFAULT"
+        }
+    }
+    
+    with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+        json.dump(config, f)
+        config_path = f.name
+    
+    try:
+        classifier = APUClassifier(config_path)
+        assert len(classifier.rules) == 1
+        assert classifier.rules[0].rule_type == "TEST_TYPE"
+        assert classifier.default_type == "TEST_DEFAULT"
+    finally:
+        import os
+        os.unlink(config_path)
+
+if __name__ == "__main__":
+    pytest.main([__file__, "-v"])
