@@ -12,6 +12,14 @@ class ColumnNames:
     GRUPO_INSUMO: Final[str] = 'GRUPO_INSUMO'
     CODIGO: Final[str] = 'CODIGO'
 
+    # Columnas usadas en PipelineDirector
+    CODIGO_APU: Final[str] = "CODIGO_APU"
+    DESCRIPCION_APU: Final[str] = "DESCRIPCION_APU"
+    CANTIDAD_PRESUPUESTO: Final[str] = "CANTIDAD_PRESUPUESTO"
+    DESCRIPCION_INSUMO: Final[str] = "DESCRIPCION_INSUMO"
+    COSTO_INSUMO_EN_APU: Final[str] = "COSTO_INSUMO_EN_APU"
+    CANTIDAD_APU: Final[str] = "CANTIDAD_APU"
+
     # Columnas calculadas
     VALOR_MATERIALES: Final[str] = 'Valor_Materiales'
     VALOR_MANO_OBRA: Final[str] = 'Valor_Mano_de_Obra'
