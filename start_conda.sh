@@ -607,6 +607,9 @@ install_project_dependencies() {
     else
         log_info "Omitiendo dependencias de desarrollo (--skip-dev)"
     fi
+
+    log_step "Instalando librerías de visualización y ciencia..."
+    uv pip install matplotlib scipy networkx
 }
 
 # ==============================================================================
