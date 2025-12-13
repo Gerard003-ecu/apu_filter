@@ -26,6 +26,20 @@ Para gestionar estas variables, utilizamos un algoritmo de control **Proporciona
 
 > **Nota Técnica (Inspiración Interna):** Bajo el capó, modelamos estas métricas usando ecuaciones análogas a un circuito eléctrico RLC (Resistencia-Inductancia-Capacitancia) para calcular la "Energía" del sistema, lo que nos permite predecir saturaciones antes de que ocurran.
 
+#### ⚙️ Motor de Física de Flujo (Energy-Based RLC)
+A diferencia de los sistemas tradicionales que solo miden métricas discretas como el uso de memoria o CPU, nuestro sistema modela el flujo de datos como un sistema físico. No solo medimos el "voltaje" (carga), sino el **Balance Energético** total.
+
+*   **Energía Potencial ($E_p$):** La presión acumulada por el volumen de datos en cola.
+*   **Energía Cinética ($E_k$):** La inercia del procesamiento de calidad.
+*   **Potencia Disipada ($P_{diss}$):** La energía perdida por fricción (procesamiento de datos basura).
+
+Esta perspectiva termodinámica nos permite detectar "sobrecalentamientos" lógicos antes de que se conviertan en fallos del sistema.
+
+#### 🧠 Controlador PID Discreto con Anti-windup
+El cerebro que ajusta el flujo no es un simple `if/else`. Es un controlador PID completo que ajusta el tamaño del lote en tiempo real.
+*   **Anti-windup:** Implementamos lógica avanzada para evitar que el término integral se acumule infinitamente cuando el sistema está saturado, garantizando una recuperación rápida después de picos de carga.
+*   **Filtrado de Ruido:** El controlador utiliza medias móviles exponenciales para ignorar fluctuaciones transitorias y responder solo a tendencias reales.
+
 ---
 
 ## 2. El Estratega: Estimación de "Caja Blanca"

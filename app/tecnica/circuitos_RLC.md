@@ -42,16 +42,146 @@ En un circuito inductivo, un cambio brusco en la corriente genera un pico de vol
     $$ V_L = L \frac{di}{dt} $$
 *   **Interpretación:** Un "Pico Inductivo" o Flyback indica una inestabilidad severa. El sistema detecta estos picos para anticipar fallos en el procesamiento antes de que saturen el buffer.
 
-## Diagnóstico Energético
+## Simulación Numérica (MATLAB / Octave)
 
-El sistema evalúa la salud del flujo basándose en el balance de estas energías:
+El siguiente script de MATLAB/Octave replica la lógica exacta implementada en el `FluxPhysicsEngine` (Python), permitiendo verificar el comportamiento del modelo físico bajo condiciones controladas.
 
-| Estado | Condición Física | Significado |
-| :--- | :--- | :--- |
-| **🟢 EQUILIBRIO** | Balance $E_c / E_l$ normal | Flujo estable y laminar. |
-| **🟡 BAJA INERCIA** | $E_l < Umbral$ | Flujo débil o intermitente. |
-| **🟠 SOBRECARGA** | $E_c \gg E_l$ | Presión excesiva, riesgo de cuello de botella. |
-| **⚡ PICO INDUCTIVO** | $V_{flyback} > Umbral$ | Caída súbita de calidad, inestabilidad crítica. |
-| **🔥 SOBRECALENTAMIENTO** | $P_{disipada} > Umbral$ | Datos muy sucios consumiendo recursos excesivos. |
+```matlab
+% Simulación de Motor de Física de Flujo (RLC Energético)
+% Replica la lógica de 'app/flux_condenser.py'
+clear; clc;
 
-Este modelo físico permite al `DataFluxCondenser` tomar decisiones de control (como activar el freno de emergencia o ajustar el PID) basándose en la "física" real del procesamiento de datos.
+% =========================================================================
+% 1. Configuración de Constantes del Sistema (SystemConstants)
+% =========================================================================
+% Parámetros Físicos Base
+C = 5000.0;          % Capacitancia (Faradios)
+R_base = 10.0;       % Resistencia Base (Ohmios)
+L = 2.0;             % Inductancia (Henrios)
+
+% Factores de Ajuste
+COMPLEXITY_RESISTANCE_FACTOR = 5.0;  % Aumento de R por complejidad
+MAX_FLYBACK_VOLTAGE = 10.0;          % Límite de tensión inductiva (V)
+
+% Entradas de Simulación (Datos del Batch)
+total_records = 500;                 % Tamaño del lote
+cache_hits = 450;                    % Aciertos en caché (Calidad)
+last_current = 0.8;                  % Corriente anterior (t-1)
+dt = 0.1;                            % Delta tiempo (s)
+
+% =========================================================================
+% 2. Cálculo de Variables de Estado
+% =========================================================================
+
+% A. Calidad del Flujo (Corriente I)
+% Rango: [0.0, 1.0]
+current_I = cache_hits / total_records;
+
+% B. Factor de Complejidad (Ruido)
+complexity = 1.0 - current_I;
+
+% C. Resistencia Dinámica (R_dyn)
+% Aumenta con la complejidad de los datos
+R_dyn = R_base * (1.0 + complexity * COMPLEXITY_RESISTANCE_FACTOR);
+
+% =========================================================================
+% 3. Ecuaciones del Circuito RLC (Amortiguamiento)
+% =========================================================================
+
+% D. Frecuencia Natural (omega_n)
+omega_n = 1.0 / sqrt(L * C);
+
+% E. Constante de Amortiguamiento (zeta)
+% Para RLC serie: zeta = (R / 2) * sqrt(C / L)
+damping_ratio = (R_dyn / 2.0) * sqrt(C / L);
+
+% F. Frecuencia Amortiguada (omega_d)
+if damping_ratio < 1.0
+    % Sistema Subamortiguado
+    omega_d = omega_n * sqrt(1.0 - damping_ratio^2);
+else
+    % Sistema Sobreamortiguado o Crítico
+    omega_d = 0.0;
+end
+
+% =========================================================================
+% 4. Cálculo de Saturación (Respuesta al Escalón)
+% =========================================================================
+
+% Tiempo normalizado por constante de tiempo (tau = R*C)
+t_normalized = double(total_records) / (R_dyn * C);
+
+if damping_ratio < 1.0
+    % Subamortiguado: Oscila antes de estabilizarse
+    exp_term = exp(-damping_ratio * omega_n * t_normalized);
+    sin_term = sin(omega_d * t_normalized + atan2(omega_d, damping_ratio * omega_n));
+    saturation_V = 1.0 - (exp_term * sin_term / sqrt(1 - damping_ratio^2));
+
+elseif abs(damping_ratio - 1.0) < 1e-6
+    % Críticamente Amortiguado: Convergencia más rápida sin oscilación
+    exp_term = exp(-omega_n * t_normalized);
+    saturation_V = 1.0 - (1.0 + omega_n * t_normalized) * exp_term;
+
+else
+    % Sobreamortiguado: Convergencia lenta
+    s1 = -omega_n * (damping_ratio - sqrt(damping_ratio^2 - 1));
+    s2 = -omega_n * (damping_ratio + sqrt(damping_ratio^2 - 1));
+    A = s2 / (s2 - s1);
+    B = s1 / (s1 - s2);
+    saturation_V = 1.0 - (A * exp(s1 * t_normalized) + B * exp(s2 * t_normalized));
+end
+
+% Clamping de saturación [0, 1]
+saturation_V = max(0.0, min(1.0, saturation_V));
+
+% =========================================================================
+% 5. Cálculo de Energías y Potencia
+% =========================================================================
+
+% G. Energía Potencial (Normalizada)
+% Ec = 0.5 * C * V^2 / C -> 0.5 * V^2
+E_c = 0.5 * (saturation_V^2);
+
+% H. Energía Cinética (Normalizada)
+% El = 0.5 * L * I^2 / L -> 0.5 * I^2
+E_l = 0.5 * (current_I^2);
+
+% I. Potencia Disipada
+% P = I_ruido^2 * R
+P_diss = (complexity^2) * R_dyn;
+
+% J. Tensión de Flyback (Inducción)
+% V_L = L * di/dt
+di_dt = (current_I - last_current) / dt;
+V_flyback = abs(L * di_dt);
+V_flyback = min(V_flyback, MAX_FLYBACK_VOLTAGE);
+
+% =========================================================================
+% 6. Reporte de Resultados
+% =========================================================================
+fprintf('\n--- Resultados de Simulación Física ---\n');
+fprintf('Entrada: %d registros, %d hits\n', total_records, cache_hits);
+fprintf('---------------------------------------\n');
+fprintf('Parámetros RLC:\n');
+fprintf('  R_dyn (Resistencia Dinámica): %.4f Ohmios\n', R_dyn);
+fprintf('  Zeta (Amortiguamiento):       %.4f\n', damping_ratio);
+fprintf('  Omega_n (Freq. Natural):      %.4f rad/s\n', omega_n);
+fprintf('\nVariables de Estado:\n');
+fprintf('  Corriente (Calidad):          %.2f (%.1f%%)\n', current_I, current_I*100);
+fprintf('  Saturación (Voltaje):         %.4f\n', saturation_V);
+fprintf('\nEnergía y Potencia:\n');
+fprintf('  Energía Potencial (Ec):       %.4e J (norm)\n', E_c);
+fprintf('  Energía Cinética (El):        %.4e J (norm)\n', E_l);
+fprintf('  Potencia Disipada (Pdiss):    %.4f W\n', P_diss);
+fprintf('  Voltaje Flyback:              %.4f V\n', V_flyback);
+fprintf('---------------------------------------\n');
+
+% Diagnóstico Simple
+if P_diss > 50.0
+    fprintf('STATUS: [CRITICAL] SOBRECALENTAMIENTO\n');
+elseif E_l < 0.1
+    fprintf('STATUS: [WARNING] BAJA INERCIA\n');
+else
+    fprintf('STATUS: [OK] SISTEMA ESTABLE\n');
+end
+```
