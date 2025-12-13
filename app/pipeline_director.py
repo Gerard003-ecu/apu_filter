@@ -655,6 +655,67 @@ class FinalMergeStep(ProcessingStep):
             raise
 
 
+class BusinessTopologyStep(ProcessingStep):
+    """
+    Paso de Análisis Topológico de Negocio.
+    Audita la integridad estructural del presupuesto detectando ciclos y nodos aislados.
+    """
+
+    def __init__(self, config: dict, thresholds: ProcessingThresholds):
+        self.config = config
+        self.thresholds = thresholds
+
+    def execute(self, context: dict, telemetry: TelemetryContext) -> dict:
+        """Ejecuta el análisis topológico."""
+        telemetry.start_step("business_topology")
+        try:
+            # Importación diferida para evitar dependencias circulares
+            from agent.business_topology import BudgetGraphBuilder, BusinessTopologicalAnalyzer
+
+            df_presupuesto = context.get("df_presupuesto")
+            # df_merged contiene la relación APU -> Insumo tras el cruce inicial
+            df_apus_detail = context.get("df_merged")
+
+            if df_presupuesto is None or df_apus_detail is None:
+                telemetry.record_error("business_topology", "DataFrames requeridos no disponibles")
+                telemetry.end_step("business_topology", "skipped")
+                return context
+
+            logger.info("🏗️ Construyendo grafo de topología de negocio...")
+            builder = BudgetGraphBuilder()
+            graph = builder.build(df_presupuesto, df_apus_detail)
+
+            logger.info("🧠 Analizando integridad estructural...")
+            analyzer = BusinessTopologicalAnalyzer(telemetry)
+            analysis_result = analyzer.analyze_structural_integrity(graph)
+            audit_report = analyzer.get_audit_report(analysis_result)
+
+            # Loguear reporte humano
+            for line in audit_report:
+                if "Alerta" in line:
+                    logger.warning(f"🚨 TOPOLOGY: {line}")
+                elif "Aviso" in line:
+                    logger.info(f"📢 TOPOLOGY: {line}")
+                else:
+                    logger.info(f"✅ TOPOLOGY: {line}")
+
+            # Guardar en contexto para el reporte final
+            context["topology_report"] = {
+                "metrics": analysis_result,
+                "human_report": audit_report
+            }
+
+            telemetry.end_step("business_topology", "success")
+            return context
+
+        except Exception as e:
+            logger.error(f"❌ Error en análisis topológico: {e}", exc_info=True)
+            telemetry.record_error("business_topology", str(e))
+            telemetry.end_step("business_topology", "error")
+            # No bloqueamos el pipeline por errores de análisis
+            return context
+
+
 class BuildOutputStep(ProcessingStep):
     """
     Paso de Construcción de Salida.
@@ -713,6 +774,7 @@ class PipelineDirector:
         "merge_data": MergeDataStep,
         "calculate_costs": CalculateCostsStep,
         "final_merge": FinalMergeStep,
+        "business_topology": BusinessTopologyStep,
         "build_output": BuildOutputStep,
     }
 
@@ -750,6 +812,7 @@ class PipelineDirector:
                 {"step": "merge_data", "enabled": True},
                 {"step": "calculate_costs", "enabled": True},
                 {"step": "final_merge", "enabled": True},
+                {"step": "business_topology", "enabled": True},
                 {"step": "build_output", "enabled": True},
             ]
 
