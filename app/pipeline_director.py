@@ -1316,6 +1316,21 @@ class DataMerger(BaseCostProcessor):
                 suffixes=("_apu", "_insumo"),
                 indicator='_merge'
             )
+
+            # Prioridad: 1. Maestro (_insumo), 2. Original APU (_apu), 3. Normalizada
+            df_merged[ColumnNames.DESCRIPCION_INSUMO] = df_merged[f"{ColumnNames.DESCRIPCION_INSUMO}_insumo"].fillna(
+                df_merged[f"{ColumnNames.DESCRIPCION_INSUMO}_apu"]
+            ).fillna(df_merged[ColumnNames.NORMALIZED_DESC])
+
+            # Verificación de nulos
+            null_descriptions = df_merged[ColumnNames.DESCRIPCION_INSUMO].isnull().sum()
+            empty_descriptions = (df_merged[ColumnNames.DESCRIPCION_INSUMO] == '').sum()
+            total_null_empty = null_descriptions + empty_descriptions
+            if total_null_empty > 0:
+                self.logger.warning(f"⚠️ {total_null_empty} insumos con descripción nula/vacía tras merge.")
+            else:
+                self.logger.info("✅ Descripciones de insumos asignadas correctamente en merge.")
+
             return df_merged
         except Exception as e:
             self.logger.error(f"Merge error: {e}")
