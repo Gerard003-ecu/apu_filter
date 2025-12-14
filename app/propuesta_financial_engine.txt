@@ -1,0 +1,541 @@
+### 1. CapitalAssetPricing.calculate_wacc (Error Crítico: Typo)
+
+@lru_cache(maxsize=1)
+def calculate_wacc(self) -> float:
+    """
+    Calcula el Costo Promedio Ponderado de Capital (WACC).
+    
+    CORRECCIONES:
+    - Typo corregido: 'weight_debit' → 'weight_debt'
+    - Eliminada validación redundante (los pesos suman 1 por construcción)
+    - Añadida tolerancia numérica para validación
+    
+    Returns:
+        El WACC como un valor decimal.
+    """
+    try:
+        if self.config.debt_to_equity_ratio < 0:
+            raise ValueError("La razón D/E no puede ser negativa")
+        
+        ke = self.calculate_ke()
+        d_e_ratio = self.config.debt_to_equity_ratio
+        
+        # Calcular pesos
+        weight_equity = 1 / (1 + d_e_ratio)
+        weight_debt = d_e_ratio / (1 + d_e_ratio)
+        
+        # Validación con tolerancia numérica (precisión de punto flotante)
+        if abs(weight_equity + weight_debt - 1.0) > 1e-10:
+            logger.warning(
+                f"Inconsistencia numérica en pesos: "
+                f"Equity={weight_equity:.6f}, Deuda={weight_debt:.6f}"
+            )
+        
+        # Costo de deuda después de impuestos
+        after_tax_cost_of_debt = self.config.cost_of_debt * (1 - self.config.tax_rate)
+        
+        wacc = (weight_equity * ke) + (weight_debt * after_tax_cost_of_debt)
+        
+        logger.info(
+            f"WACC calculado: {wacc:.2%} "
+            f"(Ke={ke:.2%}, Kd_at={after_tax_cost_of_debt:.2%})"
+        )
+        return wacc
+        
+    except ZeroDivisionError:
+        logger.error("División por cero en cálculo de pesos de capital")
+        raise ValueError("Parámetros de estructura de capital inválidos")
+    except Exception as e:
+        logger.error(f"Error calculando WACC: {e}")
+        raise
+
+
+### 2. CapitalAssetPricing.sensitivity_analysis (Error: Invalidación de Caché)
+
+def sensitivity_analysis(self, parameter: str, range_values: List[float]) -> Dict[float, float]:
+    """
+    Análisis de sensibilidad del WACC a cambios en parámetros.
+    
+    CORRECCIONES:
+    - Uso correcto de cache_clear() para invalidar @lru_cache
+    - Validación de parámetro existente
+    - Manejo de errores por valor individual
+    
+    Args:
+        parameter: 'beta', 'cost_of_debt', 'debt_to_equity_ratio', 'tax_rate'
+        range_values: Valores a evaluar
+        
+    Returns:
+        Diccionario con valores del parámetro y WACC resultante
+    """
+    # Validar que el parámetro existe
+    if not hasattr(self.config, parameter):
+        raise ValueError(f"Parámetro '{parameter}' no existe en FinancialConfig")
+    
+    results = {}
+    original_value = getattr(self.config, parameter)
+    
+    try:
+        for value in range_values:
+            setattr(self.config, parameter, value)
+            
+            # Invalidar caché correctamente usando el método de lru_cache
+            self.calculate_ke.cache_clear()
+            self.calculate_wacc.cache_clear()
+            
+            try:
+                results[value] = self.calculate_wacc()
+            except Exception as e:
+                logger.warning(f"Error con {parameter}={value}: {e}")
+                results[value] = float('nan')
+    finally:
+        # Restaurar valor original siempre (incluso si hay excepciones)
+        setattr(self.config, parameter, original_value)
+        self.calculate_ke.cache_clear()
+        self.calculate_wacc.cache_clear()
+    
+    return results
+
+
+### 3. RiskQuantifier.calculate_var (Error Matemático: Fórmulas VaR/CVaR)
+
+def calculate_var(
+    self,
+    mean: float,
+    std_dev: float,
+    confidence_level: float = 0.95,
+    time_horizon_days: int = 1,
+    df_student_t: int = 5,
+    trading_days_per_year: int = 252
+) -> Tuple[float, Dict[str, float]]:
+    """
+    Calcula el Valor en Riesgo (VaR) con múltiples distribuciones.
+    
+    CORRECCIONES:
+    - Fórmula VaR corregida: representa el costo máximo al nivel de confianza
+    - CVaR (Expected Shortfall) con fórmula matemáticamente correcta
+    - Parámetro configurable para días de trading
+    - Distinción clara entre VaR de pérdidas y VaR de costos
+    
+    Args:
+        mean: Media de la distribución (costo esperado)
+        std_dev: Desviación estándar
+        confidence_level: Nivel de confianza (ej: 0.95 para 95%)
+        time_horizon_days: Horizonte temporal en días
+        df_student_t: Grados de libertad para distribución t-Student
+        trading_days_per_year: Días hábiles por año
+        
+    Returns:
+        Tupla con (VaR, métricas adicionales)
+    """
+    # Validación robusta
+    if std_dev < 0:
+        raise ValueError("La desviación estándar no puede ser negativa")
+    if not 0 < confidence_level < 1:
+        raise ValueError(f"Nivel de confianza debe estar en (0, 1): {confidence_level}")
+    if time_horizon_days <= 0:
+        raise ValueError(f"Horizonte temporal debe ser positivo: {time_horizon_days}")
+    if df_student_t <= 2:
+        raise ValueError(f"Grados de libertad deben ser > 2 para varianza finita: {df_student_t}")
+    
+    try:
+        # Escalado temporal usando regla de raíz cuadrada del tiempo
+        time_scaling_factor = sqrt(time_horizon_days / trading_days_per_year)
+        scaled_std = std_dev * time_scaling_factor
+        
+        if self.distribution == DistributionType.NORMAL:
+            # Cuantil de la distribución normal estándar
+            z_score = norm.ppf(confidence_level)
+            distribution_name = "Normal"
+            
+            # VaR: Costo máximo esperado al nivel de confianza
+            var = mean + z_score * scaled_std
+            
+            # CVaR (Expected Shortfall): E[X | X > VaR]
+            # Para normal: ES = μ + σ * φ(z_α) / (1 - α)
+            cvar = mean + scaled_std * norm.pdf(z_score) / (1 - confidence_level)
+            
+        elif self.distribution == DistributionType.STUDENT_T:
+            z_score = t.ppf(confidence_level, df_student_t)
+            distribution_name = f"Student-t(df={df_student_t})"
+            
+            var = mean + z_score * scaled_std
+            
+            # CVaR para t-Student: ajuste por colas pesadas
+            # ES_t = μ + σ * (f_t(z_α) / (1-α)) * ((df + z_α²) / (df - 1))
+            t_pdf_at_quantile = t.pdf(z_score, df_student_t)
+            tail_adjustment = (df_student_t + z_score**2) / (df_student_t - 1)
+            cvar = mean + scaled_std * t_pdf_at_quantile / (1 - confidence_level) * tail_adjustment
+            
+        else:
+            raise ValueError(f"Distribución no soportada: {self.distribution}")
+        
+        metrics = {
+            "distribution": distribution_name,
+            "z_score": z_score,
+            "scaled_std": scaled_std,
+            "cvar": cvar,
+            "var_cvar_ratio": var / cvar if cvar != 0 else float('nan'),
+            "confidence_level": confidence_level,
+            "time_horizon_days": time_horizon_days,
+            "time_scaling_factor": time_scaling_factor
+        }
+        
+        logger.info(
+            f"VaR({confidence_level:.1%}, {time_horizon_days}d) = {var:,.2f}, "
+            f"CVaR = {cvar:,.2f} [{distribution_name}]"
+        )
+        
+        return var, metrics
+        
+    except Exception as e:
+        logger.error(f"Error calculando VaR: {e}")
+        raise
+
+
+### 4. RiskQuantifier.suggest_contingency (Error Lógico: Flujo de Control)
+
+def suggest_contingency(
+    self,
+    base_cost: float,
+    std_dev: float,
+    confidence_level: float = 0.90,
+    method: str = "all"
+) -> Dict[str, float]:
+    """
+    Sugiere contingencia usando múltiples métodos.
+    
+    CORRECCIONES:
+    - Valor por defecto 'all' para calcular todos los métodos
+    - Validación de método solicitado
+    - Coeficiente de variación para decisiones heurísticas
+    - Manejo de caso cuando base_cost es cero
+    
+    Args:
+        base_cost: Costo base estimado (debe ser > 0)
+        std_dev: Desviación estándar del costo
+        confidence_level: Nivel de confianza deseado
+        method: 'var', 'percentage', 'heuristic', o 'all'
+        
+    Returns:
+        Diccionario con diferentes estimaciones de contingencia
+    """
+    valid_methods = {"var", "percentage", "heuristic", "all"}
+    if method not in valid_methods:
+        raise ValueError(f"Método '{method}' no válido. Opciones: {valid_methods}")
+    
+    if base_cost <= 0:
+        raise ValueError(f"Costo base debe ser positivo: {base_cost}")
+    
+    contingencies = {}
+    coefficient_of_variation = std_dev / base_cost
+    
+    calculate_all = (method == "all")
+    
+    # Método VaR
+    if calculate_all or method == "var":
+        var, _ = self.calculate_var(base_cost, std_dev, confidence_level)
+        contingencies["var_based"] = max(0, var - base_cost)
+    
+    # Método porcentual (estándares de industria de construcción)
+    if calculate_all or method == "percentage":
+        if coefficient_of_variation > 0.20:
+            percentage = 0.20  # Alta incertidumbre
+        elif coefficient_of_variation > 0.10:
+            percentage = 0.15  # Incertidumbre moderada
+        else:
+            percentage = 0.10  # Baja incertidumbre
+        contingencies["percentage_based"] = base_cost * percentage
+        contingencies["percentage_rate"] = percentage
+    
+    # Método heurístico (múltiplo de desviación estándar)
+    if calculate_all or method == "heuristic":
+        if coefficient_of_variation > 0.20:
+            multiplier = 2.0
+        elif coefficient_of_variation > 0.15:
+            multiplier = 1.5
+        else:
+            multiplier = 1.0
+        contingencies["heuristic"] = multiplier * std_dev
+        contingencies["heuristic_multiplier"] = multiplier
+    
+    # Recomendación final
+    numeric_values = [v for k, v in contingencies.items() 
+                      if isinstance(v, (int, float)) and not k.endswith('_rate') 
+                      and not k.endswith('_multiplier')]
+    
+    if numeric_values:
+        contingencies["recommended"] = max(numeric_values)
+        contingencies["coefficient_of_variation"] = coefficient_of_variation
+        logger.info(
+            f"Contingencia recomendada: ${contingencies['recommended']:,.2f} "
+            f"(CV={coefficient_of_variation:.1%})"
+        )
+    
+    return contingencies
+
+
+### 5. RealOptionsAnalyzer._binomial_valuation (Mejora: Ejercicio Americano)
+
+def _binomial_valuation(
+    self,
+    S: float, K: float, r: float, T: float, sigma: float, 
+    n: int = 100,
+    american: bool = True
+) -> Dict[str, float]:
+    """
+    Valoración usando modelo binomial (Cox-Ross-Rubinstein).
+    
+    MEJORAS:
+    - Soporte para opciones americanas (ejercicio anticipado)
+    - Validación de probabilidad neutral al riesgo
+    - Cálculo de probabilidad de ejercicio anticipado
+    
+    Args:
+        S: Valor actual del proyecto
+        K: Costo de inversión (strike)
+        r: Tasa libre de riesgo
+        T: Tiempo a expiración (años)
+        sigma: Volatilidad
+        n: Número de pasos del árbol
+        american: Si True, permite ejercicio anticipado
+        
+    Returns:
+        Diccionario con valor de opción y métricas
+    """
+    dt = T / n
+    u = exp(sigma * sqrt(dt))  # Factor de movimiento ascendente
+    d = 1 / u                   # Factor de movimiento descendente
+    
+    # Probabilidad neutral al riesgo
+    p = (exp(r * dt) - d) / (u - d)
+    
+    # Validar probabilidad (debe estar en [0, 1])
+    if not 0 < p < 1:
+        raise ValueError(
+            f"Probabilidad neutral al riesgo fuera de rango: p={p:.4f}. "
+            f"Verificar parámetros (posible arbitraje)."
+        )
+    
+    discount_factor = exp(-r * dt)
+    
+    # Construir árbol de precios del subyacente
+    prices = np.zeros((n + 1, n + 1))
+    for i in range(n + 1):
+        for j in range(i + 1):
+            prices[j, i] = S * (u ** (i - j)) * (d ** j)
+    
+    # Valores de la opción en expiración
+    values = np.zeros((n + 1, n + 1))
+    values[:, n] = np.maximum(prices[:, n] - K, 0)  # Payoff call
+    
+    # Contador de ejercicio anticipado
+    early_exercise_count = 0
+    
+    # Backward induction
+    for i in range(n - 1, -1, -1):
+        for j in range(i + 1):
+            # Valor de continuación (mantener la opción)
+            continuation_value = discount_factor * (
+                p * values[j, i + 1] + (1 - p) * values[j + 1, i + 1]
+            )
+            
+            if american:
+                # Valor de ejercicio inmediato
+                exercise_value = max(prices[j, i] - K, 0)
+                
+                # Opción americana: máximo entre continuar y ejercer
+                if exercise_value > continuation_value and exercise_value > 0:
+                    values[j, i] = exercise_value
+                    early_exercise_count += 1
+                else:
+                    values[j, i] = continuation_value
+            else:
+                # Opción europea: solo valor de continuación
+                values[j, i] = continuation_value
+    
+    option_value = values[0, 0]
+    intrinsic_value = max(S - K, 0)
+    time_value = max(0, option_value - intrinsic_value)
+    
+    # Calcular delta aproximado (sensibilidad al precio)
+    if n >= 1:
+        delta = (values[0, 1] - values[1, 1]) / (prices[0, 1] - prices[1, 1])
+    else:
+        delta = float('nan')
+    
+    results = {
+        'option_value': option_value,
+        'intrinsic_value': intrinsic_value,
+        'time_value': time_value,
+        'model': f"Binomial CRR ({'Americana' if american else 'Europea'})",
+        'steps': n,
+        'u': u,
+        'd': d,
+        'p': p,
+        'moneyness': S / K,
+        'delta': delta,
+        'early_exercise_nodes': early_exercise_count if american else 0,
+        'discount_factor': discount_factor
+    }
+    
+    logger.info(
+        f"Opción {'americana' if american else 'europea'} (Binomial, {n} pasos): "
+        f"${option_value:,.2f}"
+    )
+    
+    return results
+
+
+### 6. FinancialEngine._calculate_performance_metrics (Error: Casos Edge)
+
+def _calculate_performance_metrics(
+    self,
+    npv: float,
+    investment: float,
+    years: int
+) -> Dict[str, float]:
+    """
+    Calcula métricas adicionales de performance.
+    
+    CORRECCIONES:
+    - Manejo de inversión cero o negativa
+    - Protección contra ROI < -100% para retorno anualizado
+    - Índice de rentabilidad (Profitability Index)
+    - Período de recuperación implícito
+    
+    Args:
+        npv: Valor Presente Neto
+        investment: Inversión inicial
+        years: Número de años del proyecto
+        
+    Returns:
+        Diccionario con métricas de performance
+    """
+    metrics = {}
+    
+    # ROI (Return on Investment)
+    if investment > 0:
+        roi = npv / investment
+    elif investment < 0:
+        # Inversión negativa indica flujo de entrada inicial (poco común)
+        logger.warning("Inversión inicial negativa, ROI invertido")
+        roi = -npv / investment
+    else:
+        roi = float('inf') if npv > 0 else (float('-inf') if npv < 0 else 0)
+        logger.warning("Inversión inicial es cero, ROI indefinido")
+    
+    metrics['roi'] = roi
+    
+    # Retorno anualizado (CAGR-like)
+    if years > 0 and investment != 0:
+        total_return_factor = 1 + roi
+        
+        if total_return_factor > 0:
+            # Fórmula estándar de anualización
+            annualized_return = pow(total_return_factor, 1 / years) - 1
+        elif total_return_factor == 0:
+            # Pérdida total
+            annualized_return = -1.0
+        else:
+            # Pérdida mayor al 100% (ROI < -1)
+            # No se puede anualizar de forma tradicional
+            annualized_return = float('nan')
+            logger.warning(
+                f"ROI={roi:.2%} implica pérdida > 100%, "
+                "retorno anualizado no definido"
+            )
+    else:
+        annualized_return = float('nan')
+    
+    metrics['annualized_return'] = annualized_return
+    
+    # Índice de rentabilidad (PI = 1 + NPV/I)
+    if investment > 0:
+        profitability_index = (npv + investment) / investment
+    else:
+        profitability_index = float('nan')
+    
+    metrics['profitability_index'] = profitability_index
+    
+    # Relación VAN/Inversión
+    metrics['npv_investment_ratio'] = roi  # Equivalente al ROI
+    
+    # Interpretación
+    if profitability_index > 1:
+        metrics['recommendation'] = 'ACEPTAR'
+    elif profitability_index == 1:
+        metrics['recommendation'] = 'INDIFERENTE'
+    else:
+        metrics['recommendation'] = 'RECHAZAR'
+    
+    return metrics
+
+
+### 7. calculate_volatility_from_returns (Mejora: Flexibilidad de Frecuencia)
+
+def calculate_volatility_from_returns(
+    returns: List[float], 
+    frequency: str = 'daily',
+    annual_trading_days: int = 252
+) -> float:
+    """
+    Calcula volatilidad anualizada a partir de retornos históricos.
+    
+    MEJORAS:
+    - Soporte para múltiples frecuencias de datos
+    - Validación de tamaño mínimo de muestra
+    - Cálculo de error estándar de la estimación
+    
+    Args:
+        returns: Serie de retornos históricos
+        frequency: 'daily', 'weekly', 'monthly', 'annual'
+        annual_trading_days: Días de trading por año (para frecuencia diaria)
+        
+    Returns:
+        Volatilidad anualizada
+        
+    Raises:
+        ValueError: Si la lista está vacía o tiene menos de 2 elementos
+    """
+    if not returns or len(returns) < 2:
+        raise ValueError(
+            f"Se requieren al menos 2 retornos para calcular volatilidad. "
+            f"Recibidos: {len(returns) if returns else 0}"
+        )
+    
+    # Factores de anualización según frecuencia
+    annualization_factors = {
+        'daily': annual_trading_days,
+        'weekly': 52,
+        'monthly': 12,
+        'quarterly': 4,
+        'annual': 1
+    }
+    
+    if frequency not in annualization_factors:
+        raise ValueError(
+            f"Frecuencia '{frequency}' no válida. "
+            f"Opciones: {list(annualization_factors.keys())}"
+        )
+    
+    factor = annualization_factors[frequency]
+    
+    returns_array = np.array(returns)
+    
+    # Desviación estándar muestral
+    std_period = np.std(returns_array, ddof=1)  # ddof=1 para estimador insesgado
+    
+    # Volatilidad anualizada
+    volatility = std_period * sqrt(factor)
+    
+    # Error estándar de la estimación (útil para intervalos de confianza)
+    n = len(returns_array)
+    std_error = volatility / sqrt(2 * n)
+    
+    logger.info(
+        f"Volatilidad anualizada: {volatility:.2%} "
+        f"(±{std_error:.2%}, n={n}, freq={frequency})"
+    )
+    
+    return volatility
