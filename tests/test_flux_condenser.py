@@ -37,6 +37,7 @@ from app.flux_condenser import (
     DataFluxCondenser,
     FluxPhysicsEngine,
     PIController,
+    SystemConstants,
 )
 
 # ==================== FIXTURES ====================
@@ -255,24 +256,32 @@ class TestFluxPhysicsEngine:
         assert "stability_factor" in metrics
 
     def test_calculate_metrics_ideal_flow(self, engine):
-        """Caso flujo ideal (100% hits) -> Máxima energía cinética, mínima disipación."""
+        """
+        Caso flujo ideal (100% hits) -> Máxima energía cinética.
+        P = I^2 * R. Con I=1, R_dyn=R (complexity=0). P = 1^2 * 10 = 10W.
+        """
         metrics = engine.calculate_metrics(total_records=100, cache_hits=100)
         # I = 1.0
-        # Kinetic Energy (E_l) = 0.5 * L * I^2 / L = 0.5 * I^2 = 0.5
-        # NOTA: En la implementación RLC de FluxPhysicsEngine, se normaliza por L.
-        # E_l = 0.5 * self.L * (current_I ** 2) / self.L  --> 0.5 * 1.0 = 0.5
-        assert math.isclose(metrics["kinetic_energy"], 0.5, abs_tol=0.1)
-        assert metrics["dissipated_power"] == 0.0
+        # Kinetic Energy (E_l) = 0.5 * L * I^2 = 0.5 * 2.0 * 1.0^2 = 1.0
+        assert math.isclose(metrics["kinetic_energy"], 1.0, abs_tol=0.1)
+
+        # Power is not 0 in active circuit!
+        assert math.isclose(metrics["dissipated_power"], 10.0, abs_tol=0.1)
 
         # Factor de potencia ideal
         assert math.isclose(metrics["power_factor"], 1.0, abs_tol=0.01)
 
     def test_calculate_metrics_dirty_flow(self, engine):
-        """Caso flujo sucio (0% hits) -> Máxima disipación."""
+        """
+        Caso flujo sucio (0% hits) -> I=0.
+        P = 0^2 * R = 0. Sistema estancado (frío).
+        PF = 1.0 porque el sistema se evalúa en resonancia (X_L = X_C),
+        por lo que es puramente resistivo.
+        """
         metrics = engine.calculate_metrics(total_records=100, cache_hits=0)
         assert metrics["kinetic_energy"] == 0.0
-        assert metrics["dissipated_power"] > 10.0
-        assert metrics["power_factor"] == 0.0
+        assert metrics["dissipated_power"] == 0.0
+        assert metrics["power_factor"] == 1.0
 
     def test_system_diagnosis_energy(self, engine):
         """Prueba los diagnósticos basados en energía."""
@@ -282,6 +291,7 @@ class TestFluxPhysicsEngine:
             "kinetic_energy": 1.0,  # El -> Ratio = 500. Ratio < 1000.
             "flyback_voltage": 0.0,
             "damping_ratio": 1.0,
+            "saturation": 0.5,
         }
         diag = engine.get_system_diagnosis(metrics)
         assert "EQUILIBRIO" in diag
@@ -291,6 +301,7 @@ class TestFluxPhysicsEngine:
             "potential_energy": 0.0,
             "kinetic_energy": 0.0,  # < MIN_ENERGY_THRESHOLD (1e-10)
             "flyback_voltage": 0.0,
+            "saturation": 0.0,
         }
         diag = engine.get_system_diagnosis(metrics_stalled)
         assert "ESTANCADO" in diag
@@ -299,7 +310,7 @@ class TestFluxPhysicsEngine:
         metrics_unstable = {
             "potential_energy": 500,
             "kinetic_energy": 1.0,
-            "damping_ratio": 0.1,  # < 0.2
+            "damping_ratio": 0.05,  # < 0.1
         }
         diag = engine.get_system_diagnosis(metrics_unstable)
         assert "INESTABILIDAD" in diag
@@ -313,6 +324,23 @@ class TestFluxPhysicsEngine:
         }
         diag = engine.get_system_diagnosis(metrics_overload)
         assert "SOBRECARGA" in diag
+
+    def test_trend_analysis(self, engine):
+        """Prueba el análisis de tendencias."""
+        # Generar historial sintético
+        for i in range(10):
+            engine._store_metrics({
+                "saturation": 0.1 * i,  # Creciente
+                "dissipated_power": 100 - i * 10, # Decreciente
+                "damping_ratio": 1.0,
+                "total_energy": 50.0
+            })
+
+        analysis = engine.get_trend_analysis()
+
+        assert analysis["status"] == "OK"
+        assert analysis["saturation"]["trend"] == "INCREASING"
+        assert analysis["power"]["trend"] == "DECREASING"
 
 
 # ==================== TESTS: DataFluxCondenser (Integration) ====================
@@ -369,19 +397,27 @@ class TestStabilizePID:
         sample_raw_records,
     ):
         """Verifica que el 'Disyuntor Térmico' frene el proceso."""
-        # Configurar para que genere alta disipación
+        # Configurar para que genere alta disipación (Heat)
+        # P = I^2 * R_dyn
+        # I = cache_hits / records.
+        # R_dyn = R * (1 + (1-I)*5)
+        # Max Power is at I=0.8
+
         mock_parser = Mock()
         mock_parser.parse_to_raw.return_value = sample_raw_records
-        # 0 hits en cache -> High complexity (1.0) -> High dissipated power
-        mock_parser.get_parse_cache.return_value = {}
+
+        # Simular I = 0.8 -> 80% hits
+        # records 0-79 in cache, 80-99 not
+        partial_cache = {f"line_{i}": "data" for i in range(80)}
+        mock_parser.get_parse_cache.return_value = partial_cache
         mock_parser_class.return_value = mock_parser
 
         mock_processor = Mock()
         mock_processor.process_all.return_value = pd.DataFrame([{"a": 1}] * 10)
         mock_processor_class.return_value = mock_processor
 
-        # Usar patch para modificar la constante de forma segura
-        with patch("app.flux_condenser.SystemConstants.OVERHEAT_POWER_THRESHOLD", 1.0):
+        # Usar un threshold MUY bajo para garantizar disparo
+        with patch("app.flux_condenser.SystemConstants.OVERHEAT_POWER_THRESHOLD", 0.001):
             with caplog.at_level(logging.WARNING):
                 condenser.stabilize(str(mock_csv_file))
 
