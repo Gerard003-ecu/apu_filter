@@ -30,6 +30,7 @@ import math
 import os
 import random
 import time
+from collections import deque
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, List, NamedTuple, Optional, Set, Tuple
@@ -716,211 +717,365 @@ class FluxPhysicsEngine:
             resistance: Resistencia (Ohmios).
             inductance: Inductancia (Henrios).
         """
+        # Validación ANTES de asignaciones
+        self._init_warnings: List[str] = []
         self._validate_parameters(capacitance, resistance, inductance)
 
         self.C = float(capacitance)
         self.R = float(resistance)
         self.L = float(inductance)
 
-        # Constantes derivadas pre-calculadas
-        self._tau_base = self.R * self.C  # Constante de tiempo base
-        self._resonant_freq = 1.0 / (2.0 * math.pi * math.sqrt(self.L * self.C))
+        # Constantes derivadas pre-calculadas con protección
+        self._tau_base = self.R * self.C
 
-        # Historial para análisis de tendencias
-        self._metrics_history: List[Dict[str, float]] = []
+        # Frecuencia resonante: f_0 = 1 / (2π√(LC))
+        lc_product = self.L * self.C
+        self._resonant_freq = 1.0 / (2.0 * math.pi * math.sqrt(lc_product))
+
+        # Factor de calidad del circuito: Q = (1/R) * √(L/C)
+        self._quality_factor = (1.0 / self.R) * math.sqrt(self.L / self.C)
+
+        # Estado temporal para derivadas
+        self._last_current: float = 0.0
+        self._last_time: float = time.time()
+        self._initialized_temporal: bool = False
+
+        # Historial para análisis de tendencias (usar deque para O(1) en ambos extremos)
+        self._metrics_history: deque = deque(maxlen=self._MAX_METRICS_HISTORY)
 
         self.logger = logging.getLogger(f"{self.__class__.__name__}")
+
+        # Procesar warnings acumulados durante validación
+        for warning in self._init_warnings:
+            self.logger.warning(f"Plausibilidad: {warning}")
+
         self.logger.info(
-            f"Motor RLC inicializado: C={self.C}F, R={self.R}Ω, L={self.L}H | "
-            f"τ_base={self._tau_base:.2f}s, f_res={self._resonant_freq:.4f}Hz"
+            f"Motor RLC inicializado: C={self.C:.2e}F, R={self.R:.2e}Ω, L={self.L:.2e}H | "
+            f"τ={self._tau_base:.4f}s, f₀={self._resonant_freq:.4f}Hz, Q={self._quality_factor:.2f}"
         )
 
     def _validate_parameters(
         self, capacitance: float, resistance: float, inductance: float
     ) -> None:
-        """Valida parámetros físicos con rangos plausibles."""
-        errors = []
+        """
+        Valida parámetros físicos con rangos plausibles.
 
-        for name, value in [
-            ("capacitance", capacitance),
-            ("resistance", resistance),
-            ("inductance", inductance),
-        ]:
+        Rangos industriales típicos:
+        - Capacitancia: 1e-12 F (pF) a 10 F (supercapacitores)
+        - Resistencia: 1e-6 Ω (μΩ) a 1e9 Ω (GΩ)
+        - Inductancia: 1e-9 H (nH) a 1e3 H (kH)
+
+        Raises:
+            ConfigurationError: Si los parámetros son inválidos.
+        """
+        errors: List[str] = []
+        warnings: List[str] = []
+
+        # Definición con rangos plausibles
+        params_spec = [
+            ("capacitance", capacitance, 1e-15, 1e2),
+            ("resistance", resistance, 1e-6, 1e12),
+            ("inductance", inductance, 1e-12, 1e6),
+        ]
+
+        for name, value, min_plausible, max_plausible in params_spec:
+            # Validación de tipo
             if not isinstance(value, (int, float)):
-                errors.append(f"{name} debe ser numérico, recibido: {type(value).__name__}")
+                errors.append(
+                    f"{name} debe ser numérico, recibido: {type(value).__name__}"
+                )
                 continue
 
-            if math.isnan(value) or math.isinf(value):
-                errors.append(f"{name} no puede ser NaN o Inf: {value}")
+            # Conversión segura a float para comparaciones
+            try:
+                float_val = float(value)
+            except (ValueError, TypeError) as e:
+                errors.append(f"{name} no convertible a float: {e}")
                 continue
 
-            if value <= 0:
-                errors.append(f"{name} debe ser > 0, recibido: {value}")
+            # Validación de valores especiales IEEE 754
+            if math.isnan(float_val):
+                errors.append(f"{name} no puede ser NaN")
+                continue
+            if math.isinf(float_val):
+                errors.append(f"{name} no puede ser Inf: {float_val}")
+                continue
 
-        # Validar rangos físicamente plausibles (advertencias, no errores)
+            # Validación de positividad estricta
+            if float_val <= 0:
+                errors.append(f"{name} debe ser > 0, recibido: {float_val}")
+                continue
+
+            # Advertencias de plausibilidad física (no bloquean)
+            if float_val < min_plausible:
+                warnings.append(
+                    f"{name}={float_val:.2e} < mínimo plausible {min_plausible:.2e}"
+                )
+            elif float_val > max_plausible:
+                warnings.append(
+                    f"{name}={float_val:.2e} > máximo plausible {max_plausible:.2e}"
+                )
+
+        # Validación cruzada: factor de calidad Q razonable
+        if not errors:
+            try:
+                Q = (1.0 / float(resistance)) * math.sqrt(float(inductance) / float(capacitance))
+                if Q > 1000:
+                    warnings.append(f"Factor Q={Q:.1f} extremadamente alto (posible inestabilidad)")
+                elif Q < 0.01:
+                    warnings.append(f"Factor Q={Q:.4f} extremadamente bajo (sistema sobreamortiguado)")
+            except (ZeroDivisionError, ValueError):
+                pass  # Ya capturado en validaciones anteriores
+
         if errors:
             raise ConfigurationError(
                 "Parámetros físicos inválidos:\n" + "\n".join(f"  - {e}" for e in errors)
             )
 
+        # Almacenar warnings para el logger (se procesarán post-init)
+        self._init_warnings = warnings
+
     def calculate_metrics(self, total_records: int, cache_hits: int) -> Dict[str, float]:
         """
-        Modelo físico mejorado:
-        - Sistema de segundo orden (RLC) completo.
-        - Resonancia y amortiguamiento.
-        - Energías normalizadas por capacitancia.
+        Modelo físico RLC de segundo orden corregido.
+
+        El sistema modela:
+        - total_records: Análogo a "carga total" o demanda del sistema
+        - cache_hits: Análogo a "flujo efectivo" o corriente útil
+
+        Returns:
+            Dict[str, float]: Métricas físicas del sistema.
         """
-        # Validación mejorada
-        if total_records <= 0:
+        # ================ VALIDACIÓN DE ENTRADA ================
+        if not isinstance(total_records, (int, float)) or total_records <= 0:
+            self.logger.debug(f"total_records inválido: {total_records}")
             return self._get_zero_metrics()
 
-        cache_hits = max(0, min(total_records, cache_hits))
+        if not isinstance(cache_hits, (int, float)):
+            cache_hits = 0
+
+        # Sanitización de cache_hits
+        cache_hits = int(max(0, min(total_records, cache_hits)))
+        total_records = int(total_records)
 
         try:
-            # ================ PARÁMETROS DEL SISTEMA RLC ================
-            # Calidad del flujo (0-1)
+            # ================ PARÁMETROS DEL SISTEMA ================
+            # Corriente normalizada (eficiencia del flujo) ∈ [0, 1]
             current_I = cache_hits / total_records
 
-            # Factor de complejidad (ruido)
+            # Factor de complejidad (pérdidas/ineficiencia) ∈ [0, 1]
             complexity = 1.0 - current_I
 
-            # Resistencia dinámica (aumenta con complejidad)
+            # Resistencia dinámica: aumenta con complejidad
             R_dyn = self.R * (
                 1.0 + complexity * SystemConstants.COMPLEXITY_RESISTANCE_FACTOR
             )
 
-            # ================ ECUACIONES DEL CIRCUITO RLC ================
-            # Constante de amortiguamiento (ζ)
-            # Para circuito RLC serie: ζ = R/(2) * sqrt(C/L)
-            damping_ratio = (R_dyn / 2.0) * math.sqrt(self.C / self.L)
+            # ================ PARÁMETROS RLC CORREGIDOS ================
+            # Factor de amortiguamiento: ζ = R/(2) * √(C/L) = R / (2√(L/C))
+            # Equivalente a: ζ = R / (2 * Z₀) donde Z₀ = √(L/C) es impedancia característica
+            impedance_char = math.sqrt(self.L / self.C)
+            damping_ratio = R_dyn / (2.0 * impedance_char)
 
-            # Frecuencia natural (ω_n)
+            # Frecuencia natural angular: ωₙ = 1/√(LC)
             omega_n = 1.0 / math.sqrt(self.L * self.C)
 
-            # Frecuencia amortiguada (ω_d)
-            if damping_ratio < 1.0:  # Sistema subamortiguado
-                omega_d = omega_n * math.sqrt(1.0 - damping_ratio**2)
-            else:  # Sobreamortiguado
+            # Frecuencia amortiguada: ωd = ωₙ√(1-ζ²) solo si ζ < 1
+            if damping_ratio < 1.0:
+                omega_d = omega_n * math.sqrt(max(0.0, 1.0 - damping_ratio**2))
+            else:
                 omega_d = 0.0
 
-            # ================ SATURACIÓN (RESPUESTA AL ESCALÓN) ================
-            # Modelo de respuesta al escalón de sistema de segundo orden
-            if total_records > 0:
-                # Tiempo normalizado por constante de tiempo
-                t_normalized = float(total_records) / (R_dyn * self.C)
+            # ================ RESPUESTA AL ESCALÓN (SATURACIÓN) ================
+            # Tiempo característico del sistema basado en registros procesados
+            # Interpretación: cada registro representa un "quantum" temporal
+            tau_effective = R_dyn * self.C
+            t_normalized = float(total_records) / max(1.0, tau_effective * 1000.0)
 
-                if damping_ratio < 1.0:  # Subamortiguado
-                    exp_term = math.exp(-damping_ratio * omega_n * t_normalized)
-                    sin_term = math.sin(
-                        omega_d * t_normalized + math.atan2(omega_d, damping_ratio * omega_n)
-                    )
-                    saturation_V = 1.0 - exp_term * sin_term / math.sqrt(
-                        1 - damping_ratio**2
-                    )
-                elif abs(damping_ratio - 1.0) < 1e-6:  # Críticamente amortiguado
-                    exp_term = math.exp(-omega_n * t_normalized)
-                    saturation_V = 1.0 - (1.0 + omega_n * t_normalized) * exp_term
-                else:  # Sobreamortiguado
-                    s1 = -omega_n * (damping_ratio - math.sqrt(damping_ratio**2 - 1))
-                    s2 = -omega_n * (damping_ratio + math.sqrt(damping_ratio**2 - 1))
-                    A = s2 / (s2 - s1)
-                    B = s1 / (s1 - s2)
-                    saturation_V = 1.0 - (
-                        A * math.exp(s1 * t_normalized) + B * math.exp(s2 * t_normalized)
-                    )
+            # Limitar t_normalized para evitar overflow en exp()
+            t_normalized = min(t_normalized, 50.0)
+
+            if damping_ratio < 1.0:
+                # SUBAMORTIGUADO: oscilaciones decrecientes
+                # y(t) = 1 - (e^(-ζωₙt) / √(1-ζ²)) * sin(ωd*t + φ)
+                # donde φ = arccos(ζ)
+                zeta_omega_t = damping_ratio * omega_n * t_normalized
+
+                # Protección contra overflow
+                if zeta_omega_t > 700:
+                    exp_term = 0.0
+                else:
+                    exp_term = math.exp(-zeta_omega_t)
+
+                sqrt_term = math.sqrt(max(1e-10, 1.0 - damping_ratio**2))
+
+                # Fase correcta: φ = arccos(ζ)
+                phase = math.acos(min(1.0, max(-1.0, damping_ratio)))
+
+                sin_arg = omega_d * t_normalized + phase
+                sin_term = math.sin(sin_arg)
+
+                saturation_V = 1.0 - (exp_term / sqrt_term) * sin_term
+
+            elif abs(damping_ratio - 1.0) < 0.05:
+                # CRÍTICAMENTE AMORTIGUADO: respuesta más rápida sin oscilación
+                # y(t) = 1 - (1 + ωₙt) * e^(-ωₙt)
+                omega_t = omega_n * t_normalized
+
+                if omega_t > 700:
+                    saturation_V = 1.0
+                else:
+                    exp_term = math.exp(-omega_t)
+                    saturation_V = 1.0 - (1.0 + omega_t) * exp_term
+
             else:
-                saturation_V = 0.0
+                # SOBREAMORTIGUADO: respuesta lenta sin oscilación
+                # y(t) = 1 - (s₂/(s₂-s₁))e^(s₁t) + (s₁/(s₂-s₁))e^(s₂t)
+                discriminant = math.sqrt(max(0.0, damping_ratio**2 - 1.0))
+                s1 = -omega_n * (damping_ratio - discriminant)
+                s2 = -omega_n * (damping_ratio + discriminant)
 
-            # Limitar saturación [0, 1]
+                # Protección división por cero
+                s_diff = s2 - s1
+                if abs(s_diff) < 1e-10:
+                    saturation_V = 1.0 - math.exp(s1 * t_normalized)
+                else:
+                    # Protección overflow
+                    exp_s1 = math.exp(max(-700, min(700, s1 * t_normalized)))
+                    exp_s2 = math.exp(max(-700, min(700, s2 * t_normalized)))
+
+                    A = s2 / s_diff
+                    B = -s1 / s_diff
+                    saturation_V = 1.0 - (A * exp_s1 + B * exp_s2)
+
+            # Clamp saturación a [0, 1]
             saturation_V = max(0.0, min(1.0, saturation_V))
 
-            # ================ ENERGÍAS Y POTENCIA ================
-            # Energía en capacitor (normalizada)
-            E_c = 0.5 * self.C * (saturation_V**2) / self.C  # Normalizada por C
+            # ================ ENERGÍAS FÍSICAS REALES ================
+            # Energía almacenada en capacitor: E_C = ½CV²
+            E_capacitor = 0.5 * self.C * (saturation_V ** 2)
 
-            # Energía en inductor (normalizada)
-            E_l = 0.5 * self.L * (current_I**2) / self.L  # Normalizada por L
+            # Energía almacenada en inductor: E_L = ½LI²
+            E_inductor = 0.5 * self.L * (current_I ** 2)
 
-            # Potencia disipada en resistor
-            P_diss = (complexity**2) * R_dyn
+            # Energía total del sistema
+            E_total = E_capacitor + E_inductor
 
-            # Factor de potencia del sistema
-            power_factor = current_I / math.sqrt(current_I**2 + complexity**2 + 1e-10)
+            # Potencia disipada instantánea: P = I²R
+            P_dissipated = (current_I ** 2) * R_dyn
 
-            # ================ TENSIÓN DE FLYBACK (L·di/dt) ================
-            # Calcular di/dt estimado
-            if not hasattr(self, "_last_current"):
-                self._last_current = current_I
-                self._last_time = time.time()
+            # Factor de potencia: cos(φ) = R/Z = P_real/P_aparente
+            impedance_total = math.sqrt(R_dyn**2 + (omega_n * self.L - 1/(omega_n * self.C))**2)
+            power_factor = R_dyn / max(1e-10, impedance_total)
+            power_factor = max(0.0, min(1.0, power_factor))
 
+            # ================ TENSIÓN DE FLYBACK (di/dt) ================
             current_time = time.time()
-            dt = max(0.001, current_time - self._last_time)
-            di_dt = (current_I - self._last_current) / dt
 
-            # Tensión inductiva (protegida)
+            if not self._initialized_temporal:
+                self._last_current = current_I
+                self._last_time = current_time
+                self._initialized_temporal = True
+                di_dt = 0.0
+            else:
+                dt = current_time - self._last_time
+                dt = max(1e-6, dt)  # Mínimo 1μs para evitar división por cero
+
+                di_dt = (current_I - self._last_current) / dt
+
+                self._last_current = current_I
+                self._last_time = current_time
+
+            # Tensión inductiva: V_L = L * (di/dt)
             V_flyback = abs(self.L * di_dt)
             V_flyback = min(V_flyback, SystemConstants.MAX_FLYBACK_VOLTAGE)
 
-            # Actualizar para próxima iteración
-            self._last_current = current_I
-            self._last_time = current_time
+            # ================ MÉTRICAS DE ESTABILIDAD CORREGIDAS ================
+            # Factor de estabilidad: MAYOR amortiguamiento = MÁS estable
+            # Normalizado: 0 = inestable (ζ→0), 1 = muy estable (ζ≥1)
+            if damping_ratio >= 1.0:
+                stability_factor = 1.0
+            else:
+                stability_factor = damping_ratio  # Lineal para ζ ∈ [0,1)
 
-            # ================ MÉTRICAS DE CALIDAD ================
-            # Factor de estabilidad (0=inestable, 1=estable)
-            stability_factor = math.exp(-damping_ratio)
+            # Margen de fase aproximado para sistema de 2do orden
+            # PM ≈ arctan(2ζ / √(√(1+4ζ⁴) - 2ζ²)) en grados
+            if damping_ratio > 0:
+                inner = math.sqrt(max(0.0, math.sqrt(1 + 4*damping_ratio**4) - 2*damping_ratio**2))
+                if inner > 1e-10:
+                    phase_margin = math.degrees(math.atan(2 * damping_ratio / inner))
+                else:
+                    phase_margin = 90.0  # Sistema muy amortiguado
+            else:
+                phase_margin = 0.0  # Sistema marginal
 
-            # Margen de fase estimado
-            phase_margin = 90.0 if damping_ratio < 0.7 else 180.0 * (1.0 - damping_ratio)
+            phase_margin = max(0.0, min(90.0, phase_margin))
+
+            # ================ CLASIFICACIÓN DEL SISTEMA ================
+            if damping_ratio < 0.7:
+                system_type = "UNDERDAMPED"
+            elif damping_ratio < 1.1:
+                system_type = "CRITICALLY_DAMPED"
+            else:
+                system_type = "OVERDAMPED"
 
             # ================ CONSTRUIR RESULTADOS ================
             metrics = {
-                # Métricas principales
+                # Métricas principales normalizadas
                 "saturation": self._sanitize_metric(saturation_V, 0.0, 1.0),
                 "complexity": self._sanitize_metric(complexity, 0.0, 1.0),
-                "flyback_voltage": self._sanitize_metric(
-                    V_flyback, 0.0, SystemConstants.MAX_FLYBACK_VOLTAGE
-                ),
-                "potential_energy": self._sanitize_metric(E_c, 0.0, 1e10),
-                "kinetic_energy": self._sanitize_metric(E_l, 0.0, 1e10),
-                "dissipated_power": self._sanitize_metric(P_diss, 0.0, 1e6),
-                # Parámetros del sistema
                 "current_I": self._sanitize_metric(current_I, 0.0, 1.0),
-                "dynamic_resistance": self._sanitize_metric(R_dyn, 0.0, 1e6),
-                "damping_ratio": self._sanitize_metric(damping_ratio, 0.0, 10.0),
-                "natural_frequency": self._sanitize_metric(omega_n, 0.0, 1e6),
-                "damped_frequency": self._sanitize_metric(omega_d, 0.0, 1e6),
+
+                # Energías (en Joules)
+                "potential_energy": self._sanitize_metric(E_capacitor, 0.0, 1e10),
+                "kinetic_energy": self._sanitize_metric(E_inductor, 0.0, 1e10),
+                "total_energy": self._sanitize_metric(E_total, 0.0, 1e10),
+
+                # Potencia y voltaje
+                "dissipated_power": self._sanitize_metric(P_dissipated, 0.0, 1e6),
+                "flyback_voltage": self._sanitize_metric(V_flyback, 0.0, SystemConstants.MAX_FLYBACK_VOLTAGE),
+
+                # Parámetros del sistema RLC
+                "dynamic_resistance": self._sanitize_metric(R_dyn, 0.0, 1e9),
+                "damping_ratio": self._sanitize_metric(damping_ratio, 0.0, 100.0),
+                "natural_frequency": self._sanitize_metric(omega_n, 0.0, 1e9),
+                "damped_frequency": self._sanitize_metric(omega_d, 0.0, 1e9),
+
                 # Métricas de calidad
                 "power_factor": self._sanitize_metric(power_factor, 0.0, 1.0),
                 "stability_factor": self._sanitize_metric(stability_factor, 0.0, 1.0),
                 "phase_margin": self._sanitize_metric(phase_margin, 0.0, 90.0),
-                # Diagnóstico
-                "system_type": (
-                    "UNDERDAMPED"
-                    if damping_ratio < 0.7
-                    else "CRITICALLY_DAMPED"
-                    if abs(damping_ratio - 1.0) < 0.1
-                    else "OVERDAMPED"
-                ),
+
+                # Clasificación
+                "system_type": system_type,
             }
 
             # Almacenar en historial
             self._store_metrics(metrics)
 
-            # Diagnóstico en tiempo real
-            if damping_ratio < 0.5:
-                self.logger.debug(
-                    f"Sistema subamortiguado (ζ={damping_ratio:.2f}) - posibles oscilaciones"
+            # Diagnóstico selectivo
+            if damping_ratio < 0.3:
+                self.logger.warning(
+                    f"Sistema muy subamortiguado (ζ={damping_ratio:.3f}) - riesgo de oscilaciones"
                 )
-            elif damping_ratio > 2.0:
+            elif damping_ratio > 5.0:
                 self.logger.debug(
-                    f"Sistema sobreamortiguado (ζ={damping_ratio:.2f}) - respuesta lenta"
+                    f"Sistema muy sobreamortiguado (ζ={damping_ratio:.2f}) - respuesta lenta"
                 )
 
             return metrics
 
-        except (OverflowError, ValueError, ZeroDivisionError) as e:
-            self.logger.error(f"Error en modelo físico: {e}. Usando modelo simplificado.")
-            # Fallback a modelo de primer orden (implementado internamente)
+        except OverflowError as e:
+            self.logger.error(f"Overflow en cálculo físico: {e}")
+            return self._get_zero_metrics()
+        except ValueError as e:
+            self.logger.error(f"ValueError en modelo físico: {e}")
+            return self._get_zero_metrics()
+        except ZeroDivisionError as e:
+            self.logger.error(f"División por cero en modelo físico: {e}")
+            return self._get_zero_metrics()
+        except Exception as e:
+            self.logger.error(f"Error inesperado en modelo físico: {type(e).__name__}: {e}")
             return self._get_zero_metrics()
 
     def _sanitize_metric(self, value: float, min_val: float, max_val: float) -> float:
@@ -942,150 +1097,317 @@ class FluxPhysicsEngine:
         return max(min_val, min(max_val, value))
 
     def _get_zero_metrics(self) -> Dict[str, float]:
-        """Retorna métricas en estado cero (seguro)."""
+        """
+        Retorna métricas en estado cero/inicial (seguro y neutral).
+
+        Returns:
+            Dict[str, float]: Diccionario con valores por defecto seguros.
+        """
         return {
+            # Métricas principales
             "saturation": 0.0,
-            "complexity": 0.0,
-            "flyback_voltage": 0.0,
+            "complexity": 1.0,  # Sin datos = máxima incertidumbre
+            "current_I": 0.0,
+
+            # Energías
             "potential_energy": 0.0,
             "kinetic_energy": 0.0,
+            "total_energy": 0.0,
+
+            # Potencia y voltaje
             "dissipated_power": 0.0,
-            "current_I": 0.0,
+            "flyback_voltage": 0.0,
+
+            # Parámetros del sistema (valores nominales)
             "dynamic_resistance": self.R,
-            "damping_ratio": 1.0,  # Valor seguro
-            "natural_frequency": 0.0,
+            "damping_ratio": 1.0,  # Críticamente amortiguado = estable por defecto
+            "natural_frequency": self._resonant_freq * 2.0 * math.pi,
             "damped_frequency": 0.0,
-            "power_factor": 0.0,
-            "stability_factor": 0.0,
-            "phase_margin": 45.0,
-            "system_type": "UNKNOWN",
+
+            # Métricas de calidad (valores conservadores)
+            "power_factor": 1.0,  # Ideal por defecto
+            "stability_factor": 1.0,  # Estable por defecto
+            "phase_margin": 45.0,  # Margen razonable
+
+            # Clasificación
+            "system_type": "INITIAL",
         }
 
     def _store_metrics(self, metrics: Dict[str, float]) -> None:
-        """Almacena métricas en historial con buffer circular."""
-        timestamped = {**metrics, "_timestamp": time.time()}
-        self._metrics_history.append(timestamped)
+        """
+        Almacena métricas en historial con buffer circular eficiente.
 
-        if len(self._metrics_history) > self._MAX_METRICS_HISTORY:
-            self._metrics_history.pop(0)
+        Usa deque con maxlen para O(1) en inserción y eliminación automática.
+
+        Args:
+            metrics: Diccionario de métricas a almacenar.
+        """
+        # Crear copia con timestamp para evitar mutaciones externas
+        timestamped = {
+            **{k: v for k, v in metrics.items() if k != "system_type"},
+            "_timestamp": time.time(),
+            "_system_type": metrics.get("system_type", "UNKNOWN"),
+        }
+
+        # deque con maxlen maneja automáticamente el límite
+        self._metrics_history.append(timestamped)
 
     def get_system_diagnosis(self, metrics: Dict[str, float]) -> str:
         """
-        Genera diagnóstico del sistema con múltiples niveles.
+        Genera diagnóstico jerárquico del sistema.
 
         Args:
             metrics: Diccionario de métricas actuales.
 
         Returns:
-            str: Diagnóstico textual.
+            str: Diagnóstico textual con emoji indicador de severidad.
         """
-        # Validar entrada
-        if not isinstance(metrics, dict):
-            return "❓ DIAGNÓSTICO NO DISPONIBLE (métricas inválidas)"
+        # Validación de entrada robusta
+        if not isinstance(metrics, dict) or not metrics:
+            return "❓ DIAGNÓSTICO NO DISPONIBLE (métricas inválidas o vacías)"
 
         try:
-            # Extraer métricas con valores por defecto seguros
-            ec = metrics.get("potential_energy", 0.0)
-            el = metrics.get("kinetic_energy", 0.0)
-            flyback = metrics.get("flyback_voltage", 0.0)
-            power = metrics.get("dissipated_power", 0.0)
-            saturation = metrics.get("saturation", 0.0)
-            damping = metrics.get("damping_ratio", 1.0)
+            # Extracción segura con valores por defecto conservadores
+            def safe_get(key: str, default: float) -> float:
+                val = metrics.get(key, default)
+                if not isinstance(val, (int, float)):
+                    return default
+                if math.isnan(val) or math.isinf(val):
+                    return default
+                return float(val)
 
-            # Sanitizar valores
-            ec = 0.0 if (math.isnan(ec) or math.isinf(ec)) else ec
-            el = 0.0 if (math.isnan(el) or math.isinf(el)) else el
-            flyback = 0.0 if (math.isnan(flyback) or math.isinf(flyback)) else flyback
-            power = 0.0 if (math.isnan(power) or math.isinf(power)) else power
+            ec = safe_get("potential_energy", 0.0)
+            el = safe_get("kinetic_energy", 0.0)
+            flyback = safe_get("flyback_voltage", 0.0)
+            power = safe_get("dissipated_power", 0.0)
+            saturation = safe_get("saturation", 0.0)
+            damping = safe_get("damping_ratio", 1.0)
+            total_energy = safe_get("total_energy", ec + el)
 
-            # ═══════════════════════════════════════════════════════════════════
-            # DIAGNÓSTICO JERÁRQUICO (de más crítico a menos)
-            # ═══════════════════════════════════════════════════════════════════
+            # ═══════════════════════════════════════════════════════════════
+            # DIAGNÓSTICO JERÁRQUICO (orden de criticidad descendente)
+            # ═══════════════════════════════════════════════════════════════
 
-            # 1. CRÍTICO: Sobrecalentamiento
+            # NIVEL CRÍTICO (🔴)
+
+            # 1. Sobrecalentamiento térmico
             if power > SystemConstants.OVERHEAT_POWER_THRESHOLD:
-                return f"🔴 SOBRECALENTAMIENTO CRÍTICO (P={power:.1f}W)"
+                return f"🔴 SOBRECALENTAMIENTO CRÍTICO (P={power:.2f}W > {SystemConstants.OVERHEAT_POWER_THRESHOLD}W)"
 
-            # 2. CRÍTICO: Sistema estancado
-            if el < SystemConstants.MIN_ENERGY_THRESHOLD:
-                return "🔴 SISTEMA ESTANCADO (Inercia crítica baja)"
+            # 2. Inestabilidad dinámica severa
+            if damping < 0.1:
+                return f"🔴 INESTABILIDAD SEVERA (ζ={damping:.3f} → oscilaciones divergentes)"
 
-            # 3. CRÍTICO: Inestabilidad
-            if damping < 0.2:
-                return f"🔴 INESTABILIDAD (ζ={damping:.2f})"
+            # 3. Sistema sin energía cinética (estancado)
+            if el < SystemConstants.MIN_ENERGY_THRESHOLD and saturation < 0.1:
+                return "🔴 SISTEMA ESTANCADO (sin inercia ni saturación)"
 
-            # 4. ADVERTENCIA: Sobrepresión
-            energy_ratio = ec / el if el > SystemConstants.MIN_ENERGY_THRESHOLD else 0.0
-            if energy_ratio > SystemConstants.HIGH_PRESSURE_RATIO:
-                return f"🟠 SOBRECARGA DE PRESIÓN (ratio={energy_ratio:.1f})"
+            # NIVEL ADVERTENCIA (🟠)
 
-            # 5. ADVERTENCIA: Pico inductivo
+            # 4. Inestabilidad moderada
+            if damping < 0.3:
+                return f"🟠 INESTABILIDAD MODERADA (ζ={damping:.2f} → oscilaciones persistentes)"
+
+            # 5. Sobrepresión energética (más potencial que cinética)
+            if el > SystemConstants.MIN_ENERGY_THRESHOLD:
+                energy_ratio = ec / el
+                if energy_ratio > SystemConstants.HIGH_PRESSURE_RATIO:
+                    return f"🟠 SOBRECARGA POTENCIAL (Ec/El={energy_ratio:.1f}x)"
+
+            # 6. Pico inductivo significativo
             if flyback > SystemConstants.HIGH_FLYBACK_THRESHOLD:
-                return f"⚡ PICO INDUCTIVO (V_L={flyback:.2f}V)"
+                return f"⚡ PICO INDUCTIVO ALTO (V_L={flyback:.2f}V)"
 
-            # 6. ADVERTENCIA: Saturación alta
-            if saturation > 0.9:
-                return f"🟡 SATURACIÓN ALTA ({saturation:.1%})"
+            # NIVEL PRECAUCIÓN (🟡)
 
-            # 7. INFO: Baja inercia
-            if el < SystemConstants.LOW_INERTIA_THRESHOLD:
-                return f"🟡 BAJA INERCIA (El={el:.3f}J)"
+            # 7. Saturación muy alta
+            if saturation > 0.95:
+                return f"🟡 SATURACIÓN LÍMITE ({saturation:.1%})"
 
-            # 8. INFO: Oscilatorio
+            # 8. Baja inercia operativa
+            if el < SystemConstants.LOW_INERTIA_THRESHOLD and el > 0:
+                return f"🟡 INERCIA BAJA (El={el:.4f}J)"
+
+            # 9. Sistema subamortiguado (oscilatorio)
             if damping < 0.7:
-                return f"🔵 RÉGIMEN OSCILATORIO (ζ={damping:.2f})"
+                return f"🔵 RÉGIMEN OSCILATORIO (ζ={damping:.2f}, respuesta con overshoot)"
 
-            # 9. OK: Sistema estable
-            return f"🟢 EQUILIBRIO ENERGÉTICO (Sat={saturation:.1%})"
+            # 10. Sistema sobreamortiguado (lento)
+            if damping > 2.0:
+                return f"🔵 RÉGIMEN LENTO (ζ={damping:.2f}, respuesta amortiguada)"
+
+            # NIVEL OK (🟢)
+
+            # Sistema en equilibrio saludable
+            efficiency = saturation * 100
+            return f"🟢 EQUILIBRIO NOMINAL (η={efficiency:.1f}%, ζ={damping:.2f})"
 
         except Exception as e:
-            self.logger.error(f"Error en diagnóstico: {e}")
-            return "❓ DIAGNÓSTICO INDETERMINADO"
+            self.logger.error(f"Error en diagnóstico: {type(e).__name__}: {e}")
+            return f"❓ ERROR DE DIAGNÓSTICO ({type(e).__name__})"
 
     def get_trend_analysis(self) -> Dict[str, Any]:
         """
         Analiza tendencias basadas en historial de métricas.
 
+        Calcula estadísticas móviles y detecta patrones de comportamiento.
+
         Returns:
-            Dict[str, Any]: Diccionario con análisis de tendencias.
+            Dict[str, Any]: Análisis de tendencias con estadísticas.
         """
-        if len(self._metrics_history) < 5:
-            return {"status": "INSUFFICIENT_DATA", "samples": len(self._metrics_history)}
+        history_len = len(self._metrics_history)
 
-        recent = self._metrics_history[-20:]
+        if history_len < 5:
+            return {
+                "status": "INSUFFICIENT_DATA",
+                "samples": history_len,
+                "message": f"Se requieren al menos 5 muestras, hay {history_len}",
+            }
 
-        # Calcular tendencias
-        saturations = [m["saturation"] for m in recent]
-        powers = [m["dissipated_power"] for m in recent]
+        try:
+            # Tomar las últimas N muestras (máximo 20)
+            sample_size = min(20, history_len)
+            recent = list(self._metrics_history)[-sample_size:]
 
-        avg_saturation = sum(saturations) / len(saturations)
-        saturation_trend = saturations[-1] - saturations[0]
+            def extract_series(key: str, default: float = 0.0) -> List[float]:
+                """Extrae serie temporal de una métrica con manejo de errores."""
+                series = []
+                for m in recent:
+                    val = m.get(key, default)
+                    if isinstance(val, (int, float)) and not (math.isnan(val) or math.isinf(val)):
+                        series.append(float(val))
+                    else:
+                        series.append(default)
+                return series
 
-        avg_power = sum(powers) / len(powers)
-        power_trend = powers[-1] - powers[0]
+            def calc_stats(series: List[float]) -> Dict[str, float]:
+                """Calcula estadísticas de una serie."""
+                if not series:
+                    return {"current": 0.0, "average": 0.0, "min": 0.0, "max": 0.0, "std": 0.0}
 
-        return {
-            "status": "OK",
-            "samples": len(self._metrics_history),
-            "saturation": {
-                "current": saturations[-1],
-                "average": avg_saturation,
-                "trend": "INCREASING"
-                if saturation_trend > 0.05
-                else "DECREASING"
-                if saturation_trend < -0.05
-                else "STABLE",
-            },
-            "power": {
-                "current": powers[-1],
-                "average": avg_power,
-                "trend": "INCREASING"
-                if power_trend > 1.0
-                else "DECREASING"
-                if power_trend < -1.0
-                else "STABLE",
-            },
-        }
+                n = len(series)
+                avg = sum(series) / n
+                variance = sum((x - avg) ** 2 for x in series) / n
+                std = math.sqrt(variance)
+
+                return {
+                    "current": series[-1],
+                    "average": avg,
+                    "min": min(series),
+                    "max": max(series),
+                    "std": std,
+                }
+
+            def detect_trend(series: List[float], threshold: float = 0.05) -> str:
+                """Detecta tendencia usando regresión lineal simple."""
+                if len(series) < 3:
+                    return "INSUFFICIENT"
+
+                n = len(series)
+                x_mean = (n - 1) / 2.0
+                y_mean = sum(series) / n
+
+                # Pendiente: Σ(x-x̄)(y-ȳ) / Σ(x-x̄)²
+                numerator = sum((i - x_mean) * (series[i] - y_mean) for i in range(n))
+                denominator = sum((i - x_mean) ** 2 for i in range(n))
+
+                if abs(denominator) < 1e-10:
+                    return "STABLE"
+
+                slope = numerator / denominator
+
+                # Normalizar pendiente por el rango de valores
+                value_range = max(series) - min(series) if max(series) != min(series) else 1.0
+                normalized_slope = slope * n / value_range
+
+                if normalized_slope > threshold:
+                    return "INCREASING"
+                elif normalized_slope < -threshold:
+                    return "DECREASING"
+                else:
+                    return "STABLE"
+
+            # Extraer series
+            saturations = extract_series("saturation", 0.0)
+            powers = extract_series("dissipated_power", 0.0)
+            dampings = extract_series("damping_ratio", 1.0)
+            energies = extract_series("total_energy", 0.0)
+
+            # Calcular timestamps para tasa de muestreo
+            timestamps = extract_series("_timestamp", time.time())
+            if len(timestamps) >= 2:
+                time_span = timestamps[-1] - timestamps[0]
+                sample_rate = (len(timestamps) - 1) / max(0.001, time_span)
+            else:
+                time_span = 0.0
+                sample_rate = 0.0
+
+            return {
+                "status": "OK",
+                "samples": history_len,
+                "window_size": sample_size,
+                "time_span_seconds": round(time_span, 2),
+                "sample_rate_hz": round(sample_rate, 3),
+
+                "saturation": {
+                    **calc_stats(saturations),
+                    "trend": detect_trend(saturations, 0.03),
+                },
+                "power": {
+                    **calc_stats(powers),
+                    "trend": detect_trend(powers, 0.1),
+                },
+                "damping": {
+                    **calc_stats(dampings),
+                    "trend": detect_trend(dampings, 0.05),
+                },
+                "energy": {
+                    **calc_stats(energies),
+                    "trend": detect_trend(energies, 0.05),
+                },
+
+                # Alertas basadas en tendencias
+                "alerts": self._generate_trend_alerts(saturations, powers, dampings),
+            }
+
+        except Exception as e:
+            self.logger.error(f"Error en análisis de tendencias: {type(e).__name__}: {e}")
+            return {
+                "status": "ERROR",
+                "samples": history_len,
+                "error": str(e),
+            }
+
+    def _generate_trend_alerts(
+        self,
+        saturations: List[float],
+        powers: List[float],
+        dampings: List[float]
+    ) -> List[str]:
+        """Genera alertas basadas en análisis de tendencias."""
+        alerts = []
+
+        if len(saturations) >= 3:
+            # Alerta si saturación está cayendo consistentemente
+            if all(saturations[i] > saturations[i+1] for i in range(-3, -1)):
+                alerts.append("⚠️ Saturación en descenso sostenido")
+
+            # Alerta si saturación muy alta y estable (posible cuello de botella)
+            if min(saturations[-5:]) > 0.9:
+                alerts.append("⚠️ Saturación persistentemente alta (>90%)")
+
+        if len(powers) >= 3:
+            # Alerta si potencia disipada creciendo
+            if all(powers[i] < powers[i+1] for i in range(-3, -1)):
+                alerts.append("🔥 Potencia disipada en aumento")
+
+        if len(dampings) >= 3:
+            # Alerta si amortiguamiento cayendo (hacia inestabilidad)
+            if all(dampings[i] > dampings[i+1] for i in range(-3, -1)):
+                if dampings[-1] < 0.5:
+                    alerts.append("⚡ Sistema aproximándose a inestabilidad")
+
+        return alerts
 
 
 # ============================================================================
@@ -1203,41 +1525,83 @@ class DataFluxCondenser:
             profile: Perfil de procesamiento.
 
         Raises:
-            InvalidInputError: Si hay errores en los parámetros.
+            InvalidInputError: Si hay errores críticos en los parámetros.
         """
-        errors = []
+        errors: List[str] = []
+        self._init_warnings: List[str] = []
 
-        # Validar config
+        # ═══════════════════════════════════════════════════════════════════
+        # VALIDACIÓN DE CONFIG
+        # ═══════════════════════════════════════════════════════════════════
         if config is None:
             errors.append("config no puede ser None")
         elif not isinstance(config, dict):
             errors.append(f"config debe ser dict, recibido: {type(config).__name__}")
+        else:
+            # Verificar claves requeridas
+            missing_config = self.REQUIRED_CONFIG_KEYS - set(config.keys())
+            if missing_config:
+                self._init_warnings.append(
+                    f"Claves faltantes en config: {missing_config}"
+                )
 
-        # Validar profile
+            # Validar tipos de valores críticos
+            if "parser_settings" in config:
+                if not isinstance(config["parser_settings"], dict):
+                    self._init_warnings.append(
+                        f"parser_settings debe ser dict, recibido: "
+                        f"{type(config['parser_settings']).__name__}"
+                    )
+
+            if "processor_settings" in config:
+                if not isinstance(config["processor_settings"], dict):
+                    self._init_warnings.append(
+                        f"processor_settings debe ser dict, recibido: "
+                        f"{type(config['processor_settings']).__name__}"
+                    )
+
+        # ═══════════════════════════════════════════════════════════════════
+        # VALIDACIÓN DE PROFILE
+        # ═══════════════════════════════════════════════════════════════════
         if profile is None:
             errors.append("profile no puede ser None")
         elif not isinstance(profile, dict):
             errors.append(f"profile debe ser dict, recibido: {type(profile).__name__}")
+        else:
+            # Verificar claves requeridas
+            missing_profile = self.REQUIRED_PROFILE_KEYS - set(profile.keys())
+            if missing_profile:
+                self._init_warnings.append(
+                    f"Claves faltantes en profile: {missing_profile}"
+                )
 
+            # Validar estructura de columns_mapping
+            if "columns_mapping" in profile:
+                mapping = profile["columns_mapping"]
+                if not isinstance(mapping, dict):
+                    self._init_warnings.append(
+                        f"columns_mapping debe ser dict, recibido: {type(mapping).__name__}"
+                    )
+                elif not mapping:
+                    self._init_warnings.append("columns_mapping está vacío")
+
+            # Validar estructura de validation_rules
+            if "validation_rules" in profile:
+                rules = profile["validation_rules"]
+                if not isinstance(rules, (dict, list)):
+                    self._init_warnings.append(
+                        f"validation_rules debe ser dict o list, recibido: {type(rules).__name__}"
+                    )
+
+        # Lanzar errores críticos
         if errors:
             raise InvalidInputError(
                 "Errores de inicialización:\n" + "\n".join(f"  - {e}" for e in errors)
             )
 
-        # Advertencias para claves faltantes (modo tolerante)
-        if isinstance(config, dict):
-            missing_config = self.REQUIRED_CONFIG_KEYS - set(config.keys())
-            if missing_config:
-                self.logger.warning(
-                    f"Claves faltantes en config (modo tolerante): {missing_config}"
-                )
-
-        if isinstance(profile, dict):
-            missing_profile = self.REQUIRED_PROFILE_KEYS - set(profile.keys())
-            if missing_profile:
-                self.logger.warning(
-                    f"Claves faltantes en profile (modo tolerante): {missing_profile}"
-                )
+        # Registrar warnings (el logger ya existe en este punto)
+        for warning in self._init_warnings:
+            self.logger.warning(f"[INIT] {warning}")
 
     def stabilize(self, file_path: str) -> pd.DataFrame:
         """
@@ -1376,14 +1740,67 @@ class DataFluxCondenser:
             )
 
     def _cleanup_after_processing(self) -> None:
-        """Limpieza después del procesamiento (exitoso o fallido)."""
-        # Liberar referencias grandes
-        pass  # Placeholder para limpieza específica si es necesaria
+        """
+        Limpieza después del procesamiento (exitoso o fallido).
+
+        Libera referencias a objetos grandes y resetea estado temporal
+        para permitir reutilización eficiente de memoria.
+        """
+        # Limpiar caché de claves normalizadas (puede ser grande)
+        if hasattr(self, "_cache_keys_normalized"):
+            self._cache_keys_normalized.clear()
+            del self._cache_keys_normalized
+
+        # Limpiar estado temporal del controlador de saturación
+        if hasattr(self, "_last_saturation"):
+            del self._last_saturation
+
+        # Forzar garbage collection para objetos grandes si el procesamiento fue extenso
+        if self._stats.total_records > 10000:
+            import gc
+            gc.collect()
+
+        self.logger.debug("[CLEANUP] Limpieza post-procesamiento completada")
 
     def _create_empty_result(self) -> pd.DataFrame:
-        """Crea un DataFrame vacío con estructura esperada."""
-        self._stats.processing_time = time.time() - (self._start_time or time.time())
-        return pd.DataFrame()
+        """
+        Crea un DataFrame vacío con metadatos de diagnóstico.
+
+        Returns:
+            pd.DataFrame: DataFrame vacío con atributos de contexto.
+        """
+        elapsed = time.time() - (self._start_time or time.time())
+        self._stats.processing_time = elapsed
+
+        # Crear DataFrame vacío con estructura base esperada
+        df_empty = pd.DataFrame()
+
+        # Agregar metadatos como atributos (accesibles vía df.attrs)
+        df_empty.attrs["_condenser_metadata"] = {
+            "status": "EMPTY_RESULT",
+            "processing_time_seconds": round(elapsed, 3),
+            "reason": self._determine_empty_reason(),
+            "timestamp": time.time(),
+            "condenser_version": getattr(self, "_version", "1.0.0"),
+        }
+
+        self.logger.info(
+            f"[EMPTY_RESULT] Retornando DataFrame vacío. "
+            f"Razón: {df_empty.attrs['_condenser_metadata']['reason']}"
+        )
+
+        return df_empty
+
+    def _determine_empty_reason(self) -> str:
+        """Determina la razón del resultado vacío basándose en el estado."""
+        if self._stats.total_records == 0:
+            return "NO_RECORDS_EXTRACTED"
+        elif self._stats.total_records < self.condenser_config.min_records_threshold:
+            return f"BELOW_THRESHOLD ({self._stats.total_records} < {self.condenser_config.min_records_threshold})"
+        elif self._stats.failed_batches > 0 and self._stats.processed_records == 0:
+            return "ALL_BATCHES_FAILED"
+        else:
+            return "UNKNOWN"
 
     def _validate_input_file(self, file_path: str) -> Path:
         """
@@ -1393,64 +1810,123 @@ class DataFluxCondenser:
             file_path: Ruta al archivo.
 
         Returns:
-            Path: Objeto Path validado.
+            Path: Objeto Path validado y resuelto.
 
         Raises:
-            InvalidInputError: Si el archivo es inválido.
+            InvalidInputError: Si el archivo es inválido o inaccesible.
         """
-        # Validar tipo
+        # ═══════════════════════════════════════════════════════════════════
+        # VALIDACIÓN DE TIPO Y FORMATO
+        # ═══════════════════════════════════════════════════════════════════
         if not isinstance(file_path, (str, Path)):
             raise InvalidInputError(
                 f"file_path debe ser str o Path, recibido: {type(file_path).__name__}"
             )
 
-        if isinstance(file_path, str) and not file_path.strip():
-            raise InvalidInputError("file_path no puede ser una cadena vacía")
+        if isinstance(file_path, str):
+            stripped = file_path.strip()
+            if not stripped:
+                raise InvalidInputError("file_path no puede ser una cadena vacía")
+            # Detectar caracteres problemáticos
+            if any(c in stripped for c in ["\x00", "\n", "\r"]):
+                raise InvalidInputError("file_path contiene caracteres de control inválidos")
+            path = Path(stripped)
+        else:
+            path = file_path
 
-        path = Path(file_path)
+        # ═══════════════════════════════════════════════════════════════════
+        # RESOLUCIÓN Y EXISTENCIA
+        # ═══════════════════════════════════════════════════════════════════
+        try:
+            # Resolver enlaces simbólicos para obtener ruta real
+            resolved_path = path.resolve()
+        except (OSError, RuntimeError) as e:
+            raise InvalidInputError(f"Error resolviendo ruta: {e}") from e
 
-        # Verificar existencia
-        if not path.exists():
+        if not resolved_path.exists():
             raise InvalidInputError(f"El archivo no existe: {path}")
 
-        # Verificar que es archivo (no directorio)
-        if not path.is_file():
-            raise InvalidInputError(f"La ruta no es un archivo: {path}")
+        # Verificar que es archivo (no directorio, dispositivo, etc.)
+        if not resolved_path.is_file():
+            if resolved_path.is_dir():
+                raise InvalidInputError(f"La ruta es un directorio, no un archivo: {path}")
+            elif resolved_path.is_symlink():
+                raise InvalidInputError(f"Enlace simbólico roto: {path}")
+            else:
+                raise InvalidInputError(f"La ruta no es un archivo regular: {path}")
 
-        # Verificar accesibilidad
+        # ═══════════════════════════════════════════════════════════════════
+        # PERMISOS DE ACCESO
+        # ═══════════════════════════════════════════════════════════════════
         try:
-            if not os.access(path, os.R_OK):
-                raise InvalidInputError(f"El archivo no es legible: {path}")
-        except Exception as e:
-            raise InvalidInputError(f"Error verificando acceso a archivo: {e}") from e
+            if not os.access(resolved_path, os.R_OK):
+                raise InvalidInputError(f"Sin permisos de lectura: {path}")
+        except OSError as e:
+            raise InvalidInputError(f"Error verificando permisos: {e}") from e
 
-        # Verificar tamaño
+        # Verificar que no está bloqueado (intento de apertura)
+        header = b""
         try:
-            file_size = path.stat().st_size
+            with open(resolved_path, "rb") as f:
+                # Leer solo los primeros bytes para verificar acceso
+                header = f.read(16)
+        except PermissionError as e:
+            raise InvalidInputError(f"Archivo bloqueado o sin permisos: {e}") from e
+        except IOError as e:
+            raise InvalidInputError(f"Error de I/O al verificar archivo: {e}") from e
+
+        # ═══════════════════════════════════════════════════════════════════
+        # VALIDACIÓN DE TAMAÑO
+        # ═══════════════════════════════════════════════════════════════════
+        try:
+            file_stat = resolved_path.stat()
+            file_size = file_stat.st_size
+            file_size_mb = file_size / (1024 * 1024)
 
             if file_size < SystemConstants.MIN_FILE_SIZE_BYTES:
                 raise InvalidInputError(
-                    f"Archivo demasiado pequeño ({file_size} bytes): {path}"
+                    f"Archivo demasiado pequeño ({file_size} bytes < "
+                    f"{SystemConstants.MIN_FILE_SIZE_BYTES} bytes): {path}"
                 )
 
-            file_size_mb = file_size / (1024 * 1024)
             if file_size_mb > SystemConstants.MAX_FILE_SIZE_MB:
                 self.logger.warning(
-                    f"Archivo grande ({file_size_mb:.1f} MB > "
-                    f"{SystemConstants.MAX_FILE_SIZE_MB} MB): {path}"
+                    f"[VALIDATE] Archivo grande: {file_size_mb:.1f} MB > "
+                    f"{SystemConstants.MAX_FILE_SIZE_MB} MB límite recomendado"
                 )
-        except OSError as e:
-            raise InvalidInputError(f"Error obteniendo tamaño del archivo: {e}") from e
 
-        # Verificar extensión (advertencia, no error)
-        if path.suffix.lower() not in SystemConstants.VALID_FILE_EXTENSIONS:
+            # Verificar que el archivo no fue modificado recientemente (posible escritura en curso)
+            mtime = file_stat.st_mtime
+            if time.time() - mtime < 1.0:  # Modificado hace menos de 1 segundo
+                self.logger.warning(
+                    f"[VALIDATE] Archivo modificado recientemente, "
+                    f"posible escritura en curso: {path}"
+                )
+
+        except OSError as e:
+            raise InvalidInputError(f"Error obteniendo información del archivo: {e}") from e
+
+        # ═══════════════════════════════════════════════════════════════════
+        # VALIDACIÓN DE EXTENSIÓN Y CONTENIDO
+        # ═══════════════════════════════════════════════════════════════════
+        suffix_lower = resolved_path.suffix.lower()
+        if suffix_lower not in SystemConstants.VALID_FILE_EXTENSIONS:
             self.logger.warning(
-                f"Extensión no estándar: {path.suffix}. "
+                f"[VALIDATE] Extensión no estándar: '{suffix_lower}'. "
                 f"Esperadas: {SystemConstants.VALID_FILE_EXTENSIONS}"
             )
 
-        self.logger.debug(f"[VALIDATE] Archivo validado: {path}")
-        return path
+        # Detectar si es archivo binario (puede indicar formato incorrecto)
+        if header:
+            # Bytes nulos indican archivo binario
+            null_ratio = header.count(b"\x00") / len(header)
+            if null_ratio > 0.3:
+                self.logger.warning(
+                    f"[VALIDATE] Archivo posiblemente binario (null ratio: {null_ratio:.1%})"
+                )
+
+        self.logger.debug(f"[VALIDATE] Archivo validado: {resolved_path} ({file_size_mb:.2f} MB)")
+        return resolved_path
 
     def _initialize_parser(self, validated_path: Path) -> ReportParserCrudo:
         """
@@ -1558,10 +2034,13 @@ class DataFluxCondenser:
         total_records: int,
     ) -> List[pd.DataFrame]:
         """
-        Procesamiento por lotes con:
-        - Algoritmo de backoff exponencial para fallos.
-        - Balanceo de carga adaptativo.
-        - Predicción de tiempo restante.
+        Procesamiento por lotes con control PID adaptativo.
+
+        Características:
+        - Backoff exponencial para fallos con recuperación gradual.
+        - Balanceo de carga adaptativo basado en throughput.
+        - Predicción de tiempo restante con ventana móvil.
+        - Protección contra pérdida de datos.
 
         Args:
             raw_records: Lista de registros crudos.
@@ -1571,240 +2050,295 @@ class DataFluxCondenser:
         Returns:
             List[pd.DataFrame]: Lista de DataFrames procesados.
         """
+        # ═══════════════════════════════════════════════════════════════════
+        # INICIALIZACIÓN DE ESTADO
+        # ═══════════════════════════════════════════════════════════════════
         processed_batches: List[pd.DataFrame] = []
         current_index = 0
         current_batch_size = self.condenser_config.min_batch_size
+
+        # Contadores de fallos
         failed_batches_count = 0
         consecutive_failures = 0
+        skipped_records = 0
 
-        # Historial para predicción
-        batch_times: List[float] = []
-        batch_sizes: List[int] = []
+        # Historial para estadísticas (ventana fija)
+        HISTORY_WINDOW = 10
+        batch_times: deque = deque(maxlen=HISTORY_WINDOW)
+        batch_sizes: deque = deque(maxlen=HISTORY_WINDOW)
+        complexity_history: deque = deque(maxlen=HISTORY_WINDOW)
+
+        # Inicializar estado de saturación
+        self._last_saturation: float = 0.5  # Valor neutral inicial
 
         # Algoritmo de backoff
         backoff_factor = 1.0
-        min_backoff_batch = max(1, self.condenser_config.min_batch_size // 2)
+        max_backoff_factor = 8.0
+        min_backoff_batch = max(1, self.condenser_config.min_batch_size // 4)
 
-        # Estadísticas para balanceo
+        # Tiempo de inicio para métricas
         total_start_time = time.time()
-        records_per_second = 0.0
 
-        # Límite dinámico de iteraciones basado en complejidad
-        avg_complexity = 0.5  # Estimación inicial
-        complexity_adjusted_limit = int(
-            total_records
-            * SystemConstants.MAX_ITERATIONS_MULTIPLIER
-            * (1.0 + avg_complexity)
+        # ═══════════════════════════════════════════════════════════════════
+        # CÁLCULO DE LÍMITE DE ITERACIONES DINÁMICO
+        # ═══════════════════════════════════════════════════════════════════
+        # Límite base: permite cierto overhead por reintentos
+        base_iterations = int(
+            math.ceil(total_records / max(1, self.condenser_config.min_batch_size))
         )
+        # Factor de seguridad para reintentos y batches pequeños
+        max_iterations = int(base_iterations * SystemConstants.MAX_ITERATIONS_MULTIPLIER * 1.5)
+        # Límite absoluto para prevenir loops infinitos
+        absolute_max = max(max_iterations, total_records * 3)
 
         self.logger.info(
             f"[PID_LOOP] Iniciando | Registros: {total_records:,} | "
             f"Batch inicial: {current_batch_size} | "
-            f"Límite de iteraciones: {complexity_adjusted_limit:,}"
+            f"Límite iteraciones: {max_iterations:,}"
         )
 
         iteration = 0
-        while current_index < total_records and iteration < complexity_adjusted_limit:
+        while current_index < total_records and iteration < absolute_max:
             iteration += 1
             batch_start_time = time.time()
 
-            # ================ PREDICCIÓN DE TIEMPO RESTANTE ================
-            if len(batch_times) >= 3:
-                avg_time_per_record = (
-                    np.mean([t / s for t, s in zip(batch_times[-3:], batch_sizes[-3:])])
-                    if "np" in globals()
-                    else 1.0
-                )
+            # ═══════════════════════════════════════════════════════════════
+            # VERIFICACIÓN DE TIMEOUT GLOBAL
+            # ═══════════════════════════════════════════════════════════════
+            self._check_timeout(f"batch {iteration}")
 
-                records_remaining = total_records - current_index
-                estimated_time_remaining = records_remaining * avg_time_per_record
+            # ═══════════════════════════════════════════════════════════════
+            # PREDICCIÓN DE TIEMPO RESTANTE
+            # ═══════════════════════════════════════════════════════════════
+            if len(batch_times) >= 3 and len(batch_sizes) >= 3:
+                # Calcular tiempo promedio por registro
+                total_batch_time = sum(batch_times)
+                total_batch_records = sum(batch_sizes)
 
-                if iteration % 10 == 0:
-                    self.logger.info(
-                        f"📈 Progreso: {current_index:,}/{total_records:,} "
-                        f"({current_index / total_records * 100:.1f}%) | "
-                        f"ETA: {estimated_time_remaining:.1f}s"
-                    )
+                if total_batch_records > 0:
+                    avg_time_per_record = total_batch_time / total_batch_records
+                    records_remaining = total_records - current_index
+                    estimated_time_remaining = records_remaining * avg_time_per_record
 
-            # ================ AJUSTE DINÁMICO DE BATCH SIZE ================
-            # Basado en rendimiento reciente
+                    if iteration % 10 == 0:
+                        progress_pct = (current_index / total_records) * 100
+                        self.logger.info(
+                            f"📈 Progreso: {current_index:,}/{total_records:,} "
+                            f"({progress_pct:.1f}%) | ETA: {estimated_time_remaining:.1f}s"
+                        )
+
+            # ═══════════════════════════════════════════════════════════════
+            # AJUSTE DINÁMICO DE BATCH SIZE BASADO EN RENDIMIENTO
+            # ═══════════════════════════════════════════════════════════════
             if len(batch_times) >= 5:
-                recent_efficiency = [
-                    s / t if t > 0 else s for t, s in zip(batch_times[-5:], batch_sizes[-5:])
-                ]
-                avg_efficiency = sum(recent_efficiency) / len(recent_efficiency)
+                recent_times = list(batch_times)[-5:]
+                recent_sizes = list(batch_sizes)[-5:]
 
-                # Ajustar batch size si eficiencia baja
-                if avg_efficiency < 10:  # Menos de 10 registros/segundo
+                # Eficiencia = registros por segundo
+                efficiencies = [
+                    s / max(0.001, t) for t, s in zip(recent_times, recent_sizes)
+                ]
+                avg_efficiency = sum(efficiencies) / len(efficiencies)
+
+                # Ajustar batch size según eficiencia
+                if avg_efficiency < 10:  # < 10 rec/s: reducir
+                    reduction = max(0.7, 1.0 - (10 - avg_efficiency) / 100)
                     current_batch_size = max(
-                        min_backoff_batch, int(current_batch_size * 0.8)
+                        min_backoff_batch,
+                        int(current_batch_size * reduction)
                     )
                     self.logger.debug(
-                        f"Eficiencia baja ({avg_efficiency:.1f} rec/s), reduciendo batch"
+                        f"Eficiencia baja ({avg_efficiency:.1f} rec/s), "
+                        f"reduciendo batch a {current_batch_size}"
+                    )
+                elif avg_efficiency > 500 and consecutive_failures == 0:  # > 500 rec/s: aumentar
+                    current_batch_size = min(
+                        self.condenser_config.max_batch_size,
+                        int(current_batch_size * 1.2)
                     )
 
-            # ================ EXTRAER LOTE CON PADDING INTELIGENTE ================
+            # ═══════════════════════════════════════════════════════════════
+            # EXTRAER LOTE
+            # ═══════════════════════════════════════════════════════════════
             end_index = min(current_index + current_batch_size, total_records)
-
-            # Intentar alinear a límites naturales (p.ej., múltiplos de 100)
-            if (total_records - end_index) > 100:
-                # Buscar punto de alineación natural (fin de sección)
-                remaining = total_records - end_index
-                if remaining > current_batch_size * 0.3:
-                    # Extender batch para incluir sección completa
-                    potential_end = min(end_index + (100 - (end_index % 100)), total_records)
-                    if potential_end - current_index <= self.condenser_config.max_batch_size:
-                        end_index = potential_end
-
             batch_records = raw_records[current_index:end_index]
 
             if not batch_records:
+                self.logger.warning(f"[PID_LOOP] Batch vacío en índice {current_index}")
                 current_index = end_index
                 continue
 
-            # ================ CÁLCULO DE MÉTRICAS CON PONDERACIÓN ================
+            actual_batch_size = len(batch_records)
+
+            # ═══════════════════════════════════════════════════════════════
+            # CÁLCULO DE MÉTRICAS FÍSICAS
+            # ═══════════════════════════════════════════════════════════════
             cache_hits = self._calculate_cache_hits(batch_records, cache)
 
-            # Ponderar por importancia del batch (primero/último son más críticos)
-            position_factor = 1.0
-            if current_index < total_records * 0.1:  # Primer 10%
-                position_factor = 1.2  # Más conservador al inicio
-            elif current_index > total_records * 0.9:  # Último 10%
-                position_factor = 1.1  # Cuidado al final
+            # Métricas sin factor de posición artificial
+            metrics = self.physics.calculate_metrics(actual_batch_size, cache_hits)
 
-            metrics = self.physics.calculate_metrics(
-                len(batch_records) * position_factor, cache_hits
-            )
+            # Actualizar historial de complejidad
+            current_complexity = metrics.get("complexity", 0.5)
+            complexity_history.append(current_complexity)
 
-            # ================ CONTROL PID CON LIMITADORES DINÁMICOS ================
-            saturation = metrics["saturation"]
+            # ═══════════════════════════════════════════════════════════════
+            # CONTROL PID CON SUAVIZADO
+            # ═══════════════════════════════════════════════════════════════
+            saturation = metrics.get("saturation", 0.5)
 
-            # Limitar cambios bruscos en saturación
-            if hasattr(self, "_last_saturation"):
-                saturation_change = abs(saturation - self._last_saturation)
-                if saturation_change > 0.3:  # Cambio mayor al 30%
-                    saturation = self._last_saturation + math.copysign(
-                        0.3, saturation - self._last_saturation
-                    )
-                    self.logger.debug(
-                        f"Limiting saturation change: {saturation_change:.2f} -> 0.3"
-                    )
+            # Suavizado exponencial para evitar cambios bruscos
+            alpha = 0.3  # Factor de suavizado (0 = sin cambio, 1 = cambio completo)
+            smoothed_saturation = alpha * saturation + (1 - alpha) * self._last_saturation
 
-            new_batch_size = self.controller.compute(saturation)
-            self._last_saturation = saturation
-
-            # Freno de emergencia por sobrecalentamiento
-            if metrics["dissipated_power"] > SystemConstants.OVERHEAT_POWER_THRESHOLD:
-                self.logger.warning(
-                    f"🔥 [OVERHEAT] P={metrics['dissipated_power']:.1f}W - Aplicando freno"
+            # Limitar cambio máximo por iteración
+            max_change = 0.2
+            if abs(smoothed_saturation - self._last_saturation) > max_change:
+                smoothed_saturation = self._last_saturation + math.copysign(
+                    max_change, smoothed_saturation - self._last_saturation
                 )
-                new_batch_size = max(
+
+            pid_output = self.controller.compute(smoothed_saturation)
+            self._last_saturation = smoothed_saturation
+
+            # ═══════════════════════════════════════════════════════════════
+            # FRENO DE EMERGENCIA POR SOBRECALENTAMIENTO
+            # ═══════════════════════════════════════════════════════════════
+            dissipated_power = metrics.get("dissipated_power", 0.0)
+            if dissipated_power > SystemConstants.OVERHEAT_POWER_THRESHOLD:
+                self.logger.warning(
+                    f"🔥 [OVERHEAT] P={dissipated_power:.1f}W > "
+                    f"{SystemConstants.OVERHEAT_POWER_THRESHOLD}W - Aplicando freno"
+                )
+                pid_output = max(
                     self.condenser_config.min_batch_size,
-                    int(new_batch_size * SystemConstants.EMERGENCY_BRAKE_FACTOR),
+                    int(pid_output * SystemConstants.EMERGENCY_BRAKE_FACTOR)
                 )
                 self._stats.emergency_brakes_triggered += 1
 
-            # ================ GESTIÓN DE FALLOS CON BACKOFF EXPONENCIAL ================
+            # ═══════════════════════════════════════════════════════════════
+            # PROCESAR BATCH
+            # ═══════════════════════════════════════════════════════════════
             batch_result = self._process_single_batch(
                 batch_records, cache, current_index, end_index
             )
 
             batch_time = time.time() - batch_start_time
 
+            # ═══════════════════════════════════════════════════════════════
+            # MANEJO DE RESULTADO
+            # ═══════════════════════════════════════════════════════════════
             if batch_result.success:
+                # Reset de estado de fallo
                 consecutive_failures = 0
-                backoff_factor = 1.0  # Reset backoff
+                backoff_factor = max(1.0, backoff_factor * 0.5)  # Recuperación gradual
 
-                if batch_result.dataframe is not None:
+                if batch_result.dataframe is not None and not batch_result.dataframe.empty:
                     processed_batches.append(batch_result.dataframe)
+                    self._stats.processed_records += batch_result.records_processed
 
-                    # Actualizar estadísticas de rendimiento
-                    batch_times.append(batch_time)
-                    batch_sizes.append(len(batch_records))
+                # Actualizar historial
+                batch_times.append(batch_time)
+                batch_sizes.append(actual_batch_size)
 
-                    # Calcular throughput
-                    if len(batch_times) >= 2:
-                        total_time = sum(batch_times[-10:])
-                        total_records_processed = sum(batch_sizes[-10:])
-                        records_per_second = (
-                            total_records_processed / total_time if total_time > 0 else 0
-                        )
+                # Calcular nuevo batch size basado en PID
+                new_batch_size = int(pid_output)
 
-                        # Ajuste adaptativo basado en throughput
-                        if records_per_second > 1000:  # Alto throughput
-                            new_batch_size = min(
-                                self.condenser_config.max_batch_size,
-                                int(new_batch_size * 1.1),
-                            )
             else:
                 consecutive_failures += 1
                 failed_batches_count += 1
 
-                # Backoff exponencial con jitter
-                backoff_factor *= 2.0
-                jitter = 0.9 + (random.random() * 0.2) if "random" in globals() else 1.0
-                current_batch_size = max(
-                    min_backoff_batch,
-                    int(self.condenser_config.min_batch_size * backoff_factor * jitter),
-                )
+                # Backoff exponencial con límite
+                backoff_factor = min(max_backoff_factor, backoff_factor * 2.0)
+
+                # Reducir batch size con jitter para evitar patrones repetitivos
+                jitter = 0.9 + (hash(str(iteration)) % 20) / 100.0  # 0.9-1.09
+                reduced_size = int(current_batch_size / backoff_factor * jitter)
+                new_batch_size = max(min_backoff_batch, reduced_size)
 
                 self.logger.warning(
-                    f"Batch fallido (#{consecutive_failures}). "
-                    f"Backoff: {backoff_factor:.1f}x, nuevo batch: {current_batch_size}"
+                    f"[BATCH_FAIL] #{consecutive_failures} en índice {current_index}. "
+                    f"Backoff: {backoff_factor:.1f}x, próximo batch: {new_batch_size}. "
+                    f"Error: {batch_result.error_message[:100] if batch_result.error_message else 'N/A'}"
                 )
 
-                # Si hay muchos fallos consecutivos, reconsiderar estrategia
-                if consecutive_failures >= 3:
-                    self.logger.error("Múltiples fallos consecutivos. Re-evaluando...")
-                    # Reducir batch size drásticamente
-                    current_batch_size = min_backoff_batch
-                    # Saltar registros problemáticos
-                    current_index += (
-                        len(batch_records) // 2
-                    )  # Saltar mitad del batch fallido
+                # Estrategia de recuperación por fallos múltiples
+                if consecutive_failures >= 5:
+                    # Registrar registros que serán saltados
+                    skip_count = min(actual_batch_size, 10)
+                    skipped_records += skip_count
+                    self.logger.error(
+                        f"[RECOVERY] {consecutive_failures} fallos consecutivos. "
+                        f"Saltando {skip_count} registros problemáticos."
+                    )
 
-            # ================ ACTUALIZAR ESTADÍSTICAS ================
+                    # Avanzar parcialmente (no saltar todo el batch)
+                    current_index += skip_count
+                    new_batch_size = min_backoff_batch
+                    consecutive_failures = 3  # Reducir pero no resetear
+
+            # ═══════════════════════════════════════════════════════════════
+            # ACTUALIZAR ESTADÍSTICAS
+            # ═══════════════════════════════════════════════════════════════
             self._stats.add_batch_stats(
-                batch_size=len(batch_records),
-                saturation=saturation,
-                power=metrics["dissipated_power"],
-                flyback=metrics["flyback_voltage"],
-                kinetic=metrics["kinetic_energy"],
+                batch_size=actual_batch_size,
+                saturation=smoothed_saturation,
+                power=dissipated_power,
+                flyback=metrics.get("flyback_voltage", 0.0),
+                kinetic=metrics.get("kinetic_energy", 0.0),
                 success=batch_result.success,
             )
 
-            # ================ LOGGING INTELIGENTE ================
-            log_interval = 5 if batch_time > 1.0 else 20
-            if iteration % log_interval == 0 or iteration <= 5:
+            # ═══════════════════════════════════════════════════════════════
+            # LOGGING ADAPTATIVO
+            # ═══════════════════════════════════════════════════════════════
+            log_frequency = max(1, min(50, total_records // 100))
+            if iteration % log_frequency == 0 or iteration <= 3 or consecutive_failures > 0:
+                throughput = actual_batch_size / max(0.001, batch_time)
                 self.logger.info(
-                    f"🔄 [{iteration}/{complexity_adjusted_limit}] "
-                    f"Batch: {len(batch_records):,} rec | "
-                    f"Sat: {saturation:.1%} | "
-                    f"Time: {batch_time:.2f}s | "
-                    f"Throughput: {records_per_second:.1f} rec/s | "
+                    f"🔄 [{iteration}] Idx: {current_index:,}-{end_index:,} | "
+                    f"Sat: {smoothed_saturation:.1%} | "
+                    f"Time: {batch_time:.3f}s | "
+                    f"Speed: {throughput:.0f} rec/s | "
                     f"Next: {new_batch_size:,}"
                 )
 
-            # ================ ACTUALIZAR PARA SIGUIENTE ITERACIÓN ================
+            # ═══════════════════════════════════════════════════════════════
+            # PREPARAR SIGUIENTE ITERACIÓN
+            # ═══════════════════════════════════════════════════════════════
             current_index = end_index
+            current_batch_size = max(
+                self.condenser_config.min_batch_size,
+                min(self.condenser_config.max_batch_size, new_batch_size)
+            )
 
-            if batch_result.success:
-                current_batch_size = min(
-                    self.condenser_config.max_batch_size,
-                    max(self.condenser_config.min_batch_size, new_batch_size),
-                )
+        # ═══════════════════════════════════════════════════════════════════
+        # VALIDACIÓN DE TERMINACIÓN
+        # ═══════════════════════════════════════════════════════════════════
+        if iteration >= absolute_max:
+            self.logger.error(
+                f"[PID_LOOP] Límite de iteraciones alcanzado: {iteration}. "
+                f"Procesados: {current_index}/{total_records}"
+            )
 
-        # ================ RESUMEN FINAL ================
+        # ═══════════════════════════════════════════════════════════════════
+        # RESUMEN FINAL
+        # ═══════════════════════════════════════════════════════════════════
         total_time = time.time() - total_start_time
-        overall_throughput = (
-            self._stats.processed_records / total_time if total_time > 0 else 0
+        overall_throughput = self._stats.processed_records / max(0.001, total_time)
+
+        # Calcular complejidad promedio real
+        avg_complexity = (
+            sum(complexity_history) / len(complexity_history)
+            if complexity_history else 0.5
         )
 
         self.logger.info(
             f"✅ [PID_LOOP] Completado en {total_time:.1f}s | "
             f"Throughput: {overall_throughput:.1f} rec/s | "
             f"Batches: {self._stats.total_batches} (fallidos: {failed_batches_count}) | "
-            f"Eficiencia: {self._stats.processed_records / total_records * 100:.1f}%"
+            f"Saltados: {skipped_records} | "
+            f"Complejidad promedio: {avg_complexity:.2f}"
         )
 
         return processed_batches
@@ -1858,94 +2392,153 @@ class DataFluxCondenser:
         cache: Dict[str, Any],
     ) -> int:
         """
-        Calculo mejorado de cache hits con:
-        - Búsqueda aproximada (fuzzy matching).
-        - Ponderación por tipo de dato.
-        - Preprocesamiento de claves.
+        Cálculo eficiente de cache hits con múltiples estrategias.
+
+        Estrategias de búsqueda (en orden de prioridad):
+        1. Coincidencia exacta por clave canónica
+        2. Coincidencia por hash de contenido
+        3. Coincidencia parcial limitada (solo si cache es pequeño)
 
         Args:
             batch_records: Registros del batch actual.
             cache: Caché disponible.
 
         Returns:
-            int: Número estimado de hits en caché.
+            int: Número de hits en caché (entero, redondeado hacia arriba).
         """
+        # Validaciones tempranas
         if not cache or not isinstance(cache, dict):
             return 0
 
         if not batch_records or not isinstance(batch_records, list):
             return 0
 
-        # Preprocesar claves del cache para búsqueda rápida
-        if not hasattr(self, "_cache_keys_normalized"):
-            self._cache_keys_normalized = {}
-            for key, value in cache.items():
-                if isinstance(key, str):
-                    # Normalizar: minúsculas, sin espacios extra
-                    normalized = key.lower().strip()
-                    if len(normalized) > 3:  # Ignorar claves muy cortas
-                        self._cache_keys_normalized[normalized] = value
+        cache_size = len(cache)
+        batch_size = len(batch_records)
 
-        cache_hits = 0
-        possible_keys = ["insumo_line", "line", "raw_line", "content", "text", "data"]
+        # ═══════════════════════════════════════════════════════════════════
+        # PREPARAR ÍNDICE DE CACHE (con invalidación)
+        # ═══════════════════════════════════════════════════════════════════
+        # Verificar si necesitamos reconstruir el índice
+        cache_hash = hash(frozenset(cache.keys())) if cache_size < 10000 else id(cache)
+
+        if (
+            not hasattr(self, "_cache_index")
+            or not hasattr(self, "_cache_hash")
+            or self._cache_hash != cache_hash
+        ):
+            self._cache_hash = cache_hash
+            self._cache_index = {
+                "exact": set(),      # Claves normalizadas para búsqueda exacta
+                "hashes": set(),     # Hashes conocidos
+                "prefixes": set(),   # Prefijos de 20 chars (para búsqueda rápida)
+            }
+
+            for key, value in cache.items():
+                if isinstance(key, str) and len(key) > 3:
+                    normalized = key.lower().strip()
+                    self._cache_index["exact"].add(normalized)
+
+                    # Almacenar prefijo para búsqueda rápida
+                    if len(normalized) >= 20:
+                        self._cache_index["prefixes"].add(normalized[:20])
+
+                # Indexar valores hash si existen
+                if isinstance(value, dict) and "hash" in value:
+                    h = value["hash"]
+                    if isinstance(h, (str, int)):
+                        self._cache_index["hashes"].add(str(h))
+
+        # ═══════════════════════════════════════════════════════════════════
+        # CONTAR HITS
+        # ═══════════════════════════════════════════════════════════════════
+        exact_hits = 0
+        partial_hits = 0.0
+
+        # Claves a buscar en registros
+        search_keys = ("insumo_line", "line", "raw_line", "content", "text", "data", "key")
 
         for record in batch_records:
             if not isinstance(record, dict):
                 continue
 
-            record_hit = False
+            found_hit = False
 
-            # Estrategia 1: Búsqueda exacta en claves conocidas
-            for key in possible_keys:
-                if key in record:
-                    content = record[key]
-                    if isinstance(content, str):
-                        normalized_content = content.lower().strip()
-                        if normalized_content in self._cache_keys_normalized:
-                            cache_hits += 1
-                            record_hit = True
-                            break
+            # Estrategia 1: Búsqueda exacta por claves conocidas
+            for key in search_keys:
+                if key not in record:
+                    continue
 
-            if record_hit:
+                content = record[key]
+                if not isinstance(content, str) or len(content) <= 3:
+                    continue
+
+                normalized = content.lower().strip()
+
+                if normalized in self._cache_index["exact"]:
+                    exact_hits += 1
+                    found_hit = True
+                    break
+
+            if found_hit:
                 continue
 
-            # Estrategia 2: Búsqueda aproximada (substrings)
-            if not record_hit:
-                for key, value in record.items():
-                    if isinstance(value, str) and len(value) > 10:
-                        # Buscar fragmentos largos en cache
-                        for cache_key in self._cache_keys_normalized:
-                            if value[:50] in cache_key or cache_key in value[:50]:
-                                cache_hits += 0.5  # Hit parcial
-                                break
+            # Estrategia 2: Búsqueda por hash
+            record_hash = record.get("hash")
+            if record_hash is not None:
+                str_hash = str(record_hash)
+                if str_hash in self._cache_index["hashes"]:
+                    exact_hits += 1
+                    continue
 
-            # Estrategia 3: Hash de contenido
-            if not record_hit and "hash" in record:
-                content_hash = record.get("hash")
-                if isinstance(content_hash, (str, int)):
-                    str_hash = str(content_hash)
-                    if str_hash in cache or f"hash_{str_hash}" in cache:
-                        cache_hits += 1
+            # Estrategia 3: Búsqueda por prefijo (solo si cache pequeño)
+            if cache_size < 1000 and self._cache_index["prefixes"]:
+                for key in search_keys:
+                    if key not in record:
+                        continue
 
-        # Ajustar por tamaño del batch
-        if len(batch_records) > 0:
-            hit_ratio = cache_hits / len(batch_records)
+                    content = record[key]
+                    if not isinstance(content, str) or len(content) < 20:
+                        continue
 
-            # Penalizar ratios muy bajos (posible problema de cache)
-            if hit_ratio < 0.1 and len(batch_records) > 100:
-                self.logger.debug(f"Cache hit ratio bajo: {hit_ratio:.1%}")
+                    prefix = content.lower().strip()[:20]
+                    if prefix in self._cache_index["prefixes"]:
+                        partial_hits += 0.5
+                        break
 
-        return int(cache_hits)
+        # ═══════════════════════════════════════════════════════════════════
+        # CALCULAR RESULTADO FINAL
+        # ═══════════════════════════════════════════════════════════════════
+        total_hits = exact_hits + partial_hits
+
+        # Logging de diagnóstico para ratios anómalos
+        if batch_size > 50:
+            hit_ratio = total_hits / batch_size
+            if hit_ratio < 0.05:
+                self.logger.debug(
+                    f"[CACHE] Hit ratio bajo: {hit_ratio:.1%} "
+                    f"({total_hits:.1f}/{batch_size})"
+                )
+            elif hit_ratio > 0.95:
+                self.logger.debug(
+                    f"[CACHE] Hit ratio muy alto: {hit_ratio:.1%} - verificar cache"
+                )
+
+        # Redondear hacia arriba para no subestimar hits
+        return int(math.ceil(total_hits))
 
     def _consolidate_results(self, processed_batches: List[pd.DataFrame]) -> pd.DataFrame:
         """
-        Consolida múltiples DataFrames en uno solo.
+        Consolida múltiples DataFrames con validación de esquema.
 
         Args:
             processed_batches: Lista de DataFrames de los lotes procesados.
 
         Returns:
-            pd.DataFrame: DataFrame consolidado.
+            pd.DataFrame: DataFrame consolidado y validado.
+
+        Raises:
+            ProcessingError: Si hay error de consolidación irrecuperable.
         """
         if not processed_batches:
             self.logger.warning("[CONSOLIDATE] Sin batches para consolidar")
@@ -1956,48 +2549,128 @@ class DataFluxCondenser:
                 f"processed_batches debe ser list, recibido: {type(processed_batches).__name__}"
             )
 
-        # Verificar límite de batches
-        if len(processed_batches) > SystemConstants.MAX_BATCHES_TO_CONSOLIDATE:
+        # ═══════════════════════════════════════════════════════════════════
+        # FILTRAR Y VALIDAR BATCHES
+        # ═══════════════════════════════════════════════════════════════════
+        valid_batches: List[pd.DataFrame] = []
+        total_rows_before = 0
+        column_sets: List[Set[str]] = []
+        skipped_reasons: Dict[str, int] = {}
+
+        for i, batch in enumerate(processed_batches):
+            # Validar tipo
+            if not isinstance(batch, pd.DataFrame):
+                reason = f"no_dataframe_{type(batch).__name__}"
+                skipped_reasons[reason] = skipped_reasons.get(reason, 0) + 1
+                continue
+
+            # Saltar vacíos
+            if batch.empty:
+                skipped_reasons["empty"] = skipped_reasons.get("empty", 0) + 1
+                continue
+
+            # Validar que tiene columnas
+            if len(batch.columns) == 0:
+                skipped_reasons["no_columns"] = skipped_reasons.get("no_columns", 0) + 1
+                continue
+
+            valid_batches.append(batch)
+            total_rows_before += len(batch)
+            column_sets.append(set(batch.columns))
+
+        if skipped_reasons:
+            self.logger.warning(f"[CONSOLIDATE] Batches saltados: {skipped_reasons}")
+
+        if not valid_batches:
+            self.logger.warning("[CONSOLIDATE] Todos los batches inválidos o vacíos")
+            return pd.DataFrame()
+
+        # ═══════════════════════════════════════════════════════════════════
+        # VERIFICAR LÍMITE DE BATCHES
+        # ═══════════════════════════════════════════════════════════════════
+        if len(valid_batches) > SystemConstants.MAX_BATCHES_TO_CONSOLIDATE:
             self.logger.warning(
-                f"[CONSOLIDATE] Demasiados batches ({len(processed_batches)}), "
-                f"usando los últimos {SystemConstants.MAX_BATCHES_TO_CONSOLIDATE}"
+                f"[CONSOLIDATE] Demasiados batches ({len(valid_batches)}). "
+                f"Submuestreando uniformemente a {SystemConstants.MAX_BATCHES_TO_CONSOLIDATE}"
             )
-            processed_batches = processed_batches[
-                -SystemConstants.MAX_BATCHES_TO_CONSOLIDATE :
-            ]
+            # Submuestreo uniforme en lugar de truncar al final
+            step = len(valid_batches) / SystemConstants.MAX_BATCHES_TO_CONSOLIDATE
+            indices = [int(i * step) for i in range(SystemConstants.MAX_BATCHES_TO_CONSOLIDATE)]
+            valid_batches = [valid_batches[i] for i in indices]
 
-        try:
-            # Filtrar batches válidos
-            valid_batches = []
-            for i, batch in enumerate(processed_batches):
-                if not isinstance(batch, pd.DataFrame):
-                    self.logger.warning(
-                        f"[CONSOLIDATE] Batch {i} no es DataFrame, ignorando"
-                    )
-                    continue
-                if batch.empty:
-                    continue
-                valid_batches.append(batch)
+        # ═══════════════════════════════════════════════════════════════════
+        # ANALIZAR CONSISTENCIA DE ESQUEMAS
+        # ═══════════════════════════════════════════════════════════════════
+        if len(column_sets) > 1:
+            # Encontrar columnas comunes y divergentes
+            common_columns = column_sets[0].intersection(*column_sets[1:])
+            all_columns = column_sets[0].union(*column_sets[1:])
+            extra_columns = all_columns - common_columns
 
-            if not valid_batches:
-                self.logger.warning(
-                    "[CONSOLIDATE] Todos los batches están vacíos o inválidos"
+            if extra_columns:
+                self.logger.info(
+                    f"[CONSOLIDATE] Esquemas divergentes. "
+                    f"Comunes: {len(common_columns)}, Extras: {len(extra_columns)}"
                 )
-                return pd.DataFrame()
 
-            # Concatenar
-            df_final = pd.concat(valid_batches, ignore_index=True)
+                # Las columnas extras serán NaN donde no existan
+                if len(extra_columns) > len(common_columns):
+                    self.logger.warning(
+                        "[CONSOLIDATE] Más columnas extras que comunes, "
+                        "posible inconsistencia de datos"
+                    )
+
+        # ═══════════════════════════════════════════════════════════════════
+        # CONCATENAR CON MANEJO DE MEMORIA
+        # ═══════════════════════════════════════════════════════════════════
+        try:
+            # Estimar memoria requerida
+            estimated_rows = sum(len(b) for b in valid_batches)
+            avg_cols = sum(len(b.columns) for b in valid_batches) / len(valid_batches)
+
+            # Si es muy grande, concatenar en chunks
+            CHUNK_SIZE = 50
+            if len(valid_batches) > CHUNK_SIZE:
+                self.logger.info(
+                    f"[CONSOLIDATE] Concatenación por chunks ({len(valid_batches)} batches)"
+                )
+
+                intermediate_results = []
+                for i in range(0, len(valid_batches), CHUNK_SIZE):
+                    chunk = valid_batches[i:i + CHUNK_SIZE]
+                    chunk_df = pd.concat(chunk, ignore_index=True, sort=False)
+                    intermediate_results.append(chunk_df)
+
+                df_final = pd.concat(intermediate_results, ignore_index=True, sort=False)
+            else:
+                df_final = pd.concat(valid_batches, ignore_index=True, sort=False)
+
+            # Validar resultado
+            total_rows_after = len(df_final)
+
+            if total_rows_after < total_rows_before * 0.95:
+                self.logger.warning(
+                    f"[CONSOLIDATE] Pérdida de filas durante concatenación: "
+                    f"{total_rows_before} → {total_rows_after} "
+                    f"({(1 - total_rows_after/total_rows_before)*100:.1f}% perdido)"
+                )
 
             self.logger.info(
-                f"[CONSOLIDATE] {len(valid_batches)} batches → {len(df_final)} registros"
+                f"[CONSOLIDATE] {len(valid_batches)} batches → "
+                f"{len(df_final):,} registros, {len(df_final.columns)} columnas"
             )
 
             return df_final
 
         except MemoryError as e:
-            raise ProcessingError(f"Error de memoria consolidando resultados: {e}") from e
+            raise ProcessingError(
+                f"Error de memoria consolidando {len(valid_batches)} batches "
+                f"(~{estimated_rows:,} filas): {e}"
+            ) from e
         except Exception as e:
-            raise ProcessingError(f"Error consolidando resultados: {e}") from e
+            raise ProcessingError(
+                f"Error consolidando resultados: {type(e).__name__}: {e}"
+            ) from e
 
     def _rectify_signal(self, parsed_data: ParsedData) -> pd.DataFrame:
         """
@@ -2050,42 +2723,115 @@ class DataFluxCondenser:
 
     def _validate_output(self, df: pd.DataFrame) -> None:
         """
-        Valida el DataFrame de salida.
+        Valida el DataFrame de salida con múltiples criterios de calidad.
 
         Args:
             df: DataFrame a validar.
+
+        Raises:
+            ProcessingError: Si el DataFrame no pasa validación estricta.
         """
         if not isinstance(df, pd.DataFrame):
             raise ProcessingError(
                 f"Salida debe ser DataFrame, recibido: {type(df).__name__}"
             )
 
-        if not self.condenser_config.enable_strict_validation:
-            return
-
+        # DataFrame vacío es válido (pero se registra)
         if df.empty:
-            self.logger.warning("[VALIDATE] DataFrame de salida vacío")
+            self.logger.warning("[VALIDATE_OUTPUT] DataFrame de salida vacío")
             return
 
-        # Analizar columnas
         total_rows = len(df)
-        problematic_columns = []
+        total_cols = len(df.columns)
+
+        # ═══════════════════════════════════════════════════════════════════
+        # ANÁLISIS DE CALIDAD DE DATOS
+        # ═══════════════════════════════════════════════════════════════════
+        quality_issues: List[str] = []
+        warnings: List[str] = []
+
+        # Análisis por columna
+        null_analysis = {}
+        dtype_analysis = {}
 
         for col in df.columns:
             try:
-                null_count = df[col].isnull().sum()
+                col_data = df[col]
+                null_count = col_data.isnull().sum()
                 null_ratio = null_count / total_rows
 
-                if null_ratio == 1.0:
-                    problematic_columns.append((col, "100% nulos"))
-                elif null_ratio > 0.9:
-                    problematic_columns.append((col, f"{null_ratio:.1%} nulos"))
-            except Exception:
-                continue
+                null_analysis[col] = {
+                    "count": int(null_count),
+                    "ratio": round(null_ratio, 4),
+                }
 
-        if problematic_columns:
+                # Clasificar problemas
+                if null_ratio == 1.0:
+                    quality_issues.append(f"Columna '{col}': 100% nulos")
+                elif null_ratio > 0.9:
+                    warnings.append(f"Columna '{col}': {null_ratio:.1%} nulos")
+
+                # Analizar tipos de datos
+                dtype_analysis[col] = str(col_data.dtype)
+
+                # Detectar columnas con un solo valor único (posible constante o error)
+                if null_ratio < 1.0:
+                    nunique = col_data.nunique(dropna=True)
+                    if nunique == 1 and total_rows > 10:
+                        warnings.append(f"Columna '{col}': solo 1 valor único (constante)")
+                    elif nunique == total_rows and total_rows > 100:
+                        # Todos valores únicos - posible ID o timestamp
+                        pass  # Esto es esperado para algunas columnas
+
+            except Exception as e:
+                warnings.append(f"Error analizando columna '{col}': {e}")
+
+        # ═══════════════════════════════════════════════════════════════════
+        # ANÁLISIS GLOBAL
+        # ═══════════════════════════════════════════════════════════════════
+
+        # Verificar filas duplicadas
+        try:
+            duplicate_count = df.duplicated().sum()
+            duplicate_ratio = duplicate_count / total_rows
+            if duplicate_ratio > 0.5:
+                warnings.append(f"Alto ratio de duplicados: {duplicate_ratio:.1%}")
+        except Exception:
+            pass  # Algunos DataFrames no soportan duplicated()
+
+        # Verificar uso de memoria
+        try:
+            memory_mb = df.memory_usage(deep=True).sum() / (1024 * 1024)
+            if memory_mb > 500:
+                warnings.append(f"DataFrame grande en memoria: {memory_mb:.1f} MB")
+        except Exception:
+            pass
+
+        # ═══════════════════════════════════════════════════════════════════
+        # REPORTAR RESULTADOS
+        # ═══════════════════════════════════════════════════════════════════
+        if warnings:
             self.logger.warning(
-                f"[VALIDATE] Columnas problemáticas: {problematic_columns[:10]}"
+                f"[VALIDATE_OUTPUT] {len(warnings)} advertencias:\n  - "
+                + "\n  - ".join(warnings[:10])  # Limitar a 10
+            )
+
+        if quality_issues:
+            issue_msg = f"[VALIDATE_OUTPUT] {len(quality_issues)} problemas de calidad:\n  - " + \
+                        "\n  - ".join(quality_issues[:5])
+
+            if self.condenser_config.enable_strict_validation:
+                self.logger.error(issue_msg)
+                raise ProcessingError(
+                    f"Validación estricta fallida: {len(quality_issues)} problemas de calidad"
+                )
+            else:
+                self.logger.warning(issue_msg)
+
+        # Resumen positivo si todo está bien
+        if not quality_issues and not warnings:
+            self.logger.debug(
+                f"[VALIDATE_OUTPUT] OK: {total_rows:,} filas × {total_cols} columnas"
             )
 
     def _log_final_stats(self) -> None:
@@ -2154,8 +2900,41 @@ class DataFluxCondenser:
         }
 
     def reset(self) -> None:
-        """Resetea el estado del condensador para reutilización."""
+        """
+        Resetea completamente el estado del condensador para reutilización.
+
+        Limpia:
+        - Estado del controlador PID
+        - Estadísticas de procesamiento
+        - Caches internos
+        - Variables temporales
+        """
+        # Reset controlador PID
         self.controller.reset()
+
+        # Reset estadísticas
         self._stats = ProcessingStats()
         self._start_time = None
-        self.logger.info("[RESET] Condensador reseteado")
+
+        # Limpiar caches
+        if hasattr(self, "_cache_keys_normalized"):
+            self._cache_keys_normalized.clear()
+            del self._cache_keys_normalized
+
+        if hasattr(self, "_cache_index"):
+            del self._cache_index
+
+        if hasattr(self, "_cache_hash"):
+            del self._cache_hash
+
+        # Limpiar estado temporal
+        if hasattr(self, "_last_saturation"):
+            del self._last_saturation
+
+        # Reset del motor de física también
+        if hasattr(self.physics, "_last_current"):
+            self.physics._last_current = 0.0
+            self.physics._last_time = time.time()
+            self.physics._initialized_temporal = False
+
+        self.logger.info("[RESET] Condensador reseteado completamente")
