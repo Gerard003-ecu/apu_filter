@@ -57,7 +57,12 @@ from .estimator import SearchArtifacts, calculate_estimate
 from .pipeline_director import process_all_files  # Ahora usa la versión refactorizada
 from .presenters import APUPresenter
 from .telemetry import TelemetryContext  # Nueva importación
-from .tools_interface import clean_file, diagnose_file, get_telemetry_status
+from .tools_interface import (
+    analyze_financial_viability,
+    clean_file,
+    diagnose_file,
+    get_telemetry_status,
+)
 from .utils import sanitize_for_json
 
 # ============================================================================
@@ -1895,6 +1900,39 @@ def create_app(config_name: str) -> Flask:
         context = getattr(g, "telemetry", None)
         status = get_telemetry_status(context)
         return jsonify(status)
+
+    @app.route("/api/tools/financial_analysis", methods=["POST"])
+    @limiter.limit("30 per minute", exempt_when=lambda: current_app.config.get("TESTING"))
+    @handle_errors
+    def tool_financial_analysis():
+        """
+        Pivote 4: Análisis de Viabilidad Financiera.
+        Recibe un monto, desviación y tiempo, y devuelve un análisis financiero.
+        """
+        if not request.is_json:
+            return jsonify({"error": "Content-Type must be application/json", "code": "INVALID_CONTENT_TYPE"}), 400
+
+        data = request.get_json()
+        amount = data.get("amount")
+        std_dev = data.get("std_dev")
+        time_years = data.get("time")
+
+        if not all([amount, std_dev, time_years]):
+            return jsonify({"error": "Faltan parámetros: amount, std_dev, time", "code": "MISSING_PARAMS"}), 400
+
+        try:
+            amount = float(amount)
+            std_dev = float(std_dev)
+            time_years = int(time_years)
+        except (ValueError, TypeError):
+            return jsonify({"error": "Parámetros deben ser numéricos", "code": "INVALID_PARAMS"}), 400
+
+        result = analyze_financial_viability(amount, std_dev, time_years)
+
+        if not result.get("success"):
+            return jsonify(result), 400
+
+        return jsonify(result)
 
     # ========================================================================
     # MANEJADORES DE ERRORES
