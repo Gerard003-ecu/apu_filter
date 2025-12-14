@@ -49,6 +49,7 @@ class ConstructionRiskReport:
         circular_risks (List[str]): Riesgos de cálculo circular (ciclos).
         complexity_level (str): Nivel de complejidad (Baja, Media, Alta).
         details (Dict[str, Any]): Metadatos para serialización y visualización.
+        financial_risk_level (Optional[str]): Nivel de riesgo financiero ('Bajo', 'Medio', 'Alto', 'CATÁSTROFICO').
     """
 
     integrity_score: float
@@ -56,6 +57,7 @@ class ConstructionRiskReport:
     circular_risks: List[str]
     complexity_level: str
     details: Dict[str, Any] = field(default_factory=dict)
+    financial_risk_level: Optional[str] = None
 
 
 class BudgetGraphBuilder:
@@ -477,12 +479,15 @@ class BusinessTopologicalAnalyzer:
             "euler": f"Característica de Euler: {metrics.euler_characteristic}",
         }
 
-    def generate_executive_report(self, graph: nx.DiGraph) -> ConstructionRiskReport:
+    def generate_executive_report(
+        self, graph: nx.DiGraph, financial_metrics: Optional[Dict[str, Any]] = None
+    ) -> ConstructionRiskReport:
         """
-        Genera un reporte de riesgos traducido a lenguaje de construcción.
+        Genera un reporte de riesgos combinando análisis topológico y financiero.
 
         Args:
             graph (nx.DiGraph): Grafo a reportar.
+            financial_metrics (Optional[Dict[str, Any]]): Métricas financieras opcionales.
 
         Returns:
             ConstructionRiskReport: Objeto de reporte estructurado.
@@ -491,61 +496,58 @@ class BusinessTopologicalAnalyzer:
         cycles, _ = self._detect_cycles(graph)
         anomalies = self._classify_anomalous_nodes(graph)
 
-        # Calcular puntuaciones y niveles
+        # 1. Análisis de Integridad Estructural (Topológico)
         integrity_score = 100.0
-
-        # Penalizaciones
         if metrics.beta_1 > 0:
-            integrity_score -= 50  # Crítico: Referencias circulares
-
+            integrity_score -= 50
         isolated_count = len(anomalies["isolated_nodes"])
-        if isolated_count > 0:
-            integrity_score -= min(30, isolated_count * 2)
-
+        integrity_score -= min(30, isolated_count * 2)
         orphan_count = len(anomalies["orphan_insumos"])
-        if orphan_count > 0:
-            integrity_score -= min(20, orphan_count * 1)
-
+        integrity_score -= min(20, orphan_count * 1)
         integrity_score = max(0, integrity_score)
 
-        # Nivel de Complejidad basado en densidad/beta_1
-        density = nx.density(graph)
-        if metrics.beta_1 > 0:
-            complexity = "Alta (Crítica)"
-        elif density > 0.1:
-            complexity = "Alta"
-        elif density > 0.05:
-            complexity = "Media"
-        else:
-            complexity = "Baja"
+        density = nx.density(graph) if graph else 0.0
+        complexity = "Alta (Crítica)" if metrics.beta_1 > 0 else ("Alta" if density > 0.1 else "Media" if density > 0.05 else "Baja")
 
-        # Traducir alertas
         waste_alerts = []
         if isolated_count > 0:
-            waste_alerts.append(
-                f"Alerta: {isolated_count} Insumos en base de datos no se utilizan en el presupuesto."
-            )
+            waste_alerts.append(f"Alerta: {isolated_count} Insumos no utilizados.")
         if orphan_count > 0:
-            waste_alerts.append(
-                f"Alerta: {orphan_count} Recursos definidos sin asignación a APUs."
-            )
+            waste_alerts.append(f"Alerta: {orphan_count} Recursos sin asignación a APUs.")
 
-        circular_risks = []
-        if metrics.beta_1 > 0:
-            circular_risks.append(
-                "CRÍTICO: Se detectaron referencias circulares en los precios unitarios."
-            )
+        circular_risks = ["CRÍTICO: Referencias circulares detectadas."] if metrics.beta_1 > 0 else []
+
+        # 2. Análisis de Riesgo Financiero
+        financial_risk = None
+        if financial_metrics:
+            volatility = financial_metrics.get("volatility", 0.0)
+            roi = financial_metrics.get("roi", 0.0)
+
+            if roi < 0:
+                financial_risk = "CRÍTICO"
+            elif volatility > 0.20:
+                financial_risk = "ALTO"
+            elif volatility > 0.10:
+                financial_risk = "MEDIO"
+            else:
+                financial_risk = "BAJO"
+
+            # 3. Combinación de Riesgos
+            if metrics.beta_1 > 0 and financial_risk == "ALTO":
+                financial_risk = "CATÁSTROFICO"
 
         return ConstructionRiskReport(
             integrity_score=integrity_score,
             waste_alerts=waste_alerts,
             circular_risks=circular_risks,
             complexity_level=complexity,
+            financial_risk_level=financial_risk,
             details={
                 "metrics": asdict(metrics),
                 "cycles": cycles,
                 "anomalies": anomalies,
                 "density": density,
+                "financial_metrics_input": financial_metrics or {},
             },
         )
 
