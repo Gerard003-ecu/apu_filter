@@ -9,39 +9,37 @@ Evalúa la lógica robusta de:
 """
 
 import logging
-import pytest
 from pathlib import Path
 from typing import Any, Dict
-from unittest.mock import MagicMock, Mock, patch, PropertyMock
+from unittest.mock import MagicMock, patch
 
-import app.tools_interface  # Import module for patching
+import pytest
 
 # Módulo bajo prueba
 from app.tools_interface import (
-    FileType,
+    _DIAGNOSTIC_REGISTRY,
+    SUPPORTED_ENCODINGS,
+    VALID_DELIMITERS,
+    CleaningError,
     DiagnosticError,
     FileNotFoundDiagnosticError,
+    FileType,
     UnsupportedFileTypeError,
-    CleaningError,
-    diagnose_file,
-    clean_file,
-    get_telemetry_status,
-    get_supported_file_types,
-    is_valid_file_type,
-    _validate_file_exists,
-    _normalize_path,
-    _normalize_file_type,
     _create_error_response,
     _create_success_response,
-    _validate_csv_parameters,
     _generate_output_path,
+    _normalize_file_type,
+    _normalize_path,
+    _validate_csv_parameters,
+    _validate_file_exists,
     _validate_file_size,
+    clean_file,
+    diagnose_file,
+    get_supported_file_types,
+    get_telemetry_status,
+    is_valid_file_type,
     validate_file_for_processing,
-    VALID_DELIMITERS,
-    SUPPORTED_ENCODINGS,
-    _DIAGNOSTIC_REGISTRY,
 )
-
 
 # =============================================================================
 # Fixtures
@@ -160,13 +158,13 @@ class TestCustomExceptions:
     def test_exception_messages(self):
         """Verifica que las excepciones preservan mensajes."""
         msg = "Test error message"
-        
+
         exc1 = DiagnosticError(msg)
         assert str(exc1) == msg
-        
+
         exc2 = FileNotFoundDiagnosticError(msg)
         assert str(exc2) == msg
-        
+
         exc3 = UnsupportedFileTypeError(msg)
         assert str(exc3) == msg
 
@@ -186,10 +184,10 @@ class TestValidateFileExists:
     def test_non_existing_path_raises(self, tmp_path: Path):
         """Verifica que una ruta inexistente lanza excepción."""
         non_existing = tmp_path / "non_existing.csv"
-        
+
         with pytest.raises(FileNotFoundDiagnosticError) as exc_info:
             _validate_file_exists(non_existing)
-        
+
         assert "not found" in str(exc_info.value)
 
 class TestValidateFileSize:
@@ -230,7 +228,7 @@ class TestNormalizePath:
         """Verifica que string vacío lanza excepción."""
         with pytest.raises(ValueError) as exc_info:
             _normalize_path("")
-        
+
         assert "cannot be empty" in str(exc_info.value)
 
     def test_none_raises(self):
@@ -243,7 +241,7 @@ class TestNormalizePath:
         # Crear archivo para que exista
         test_file = tmp_path / "relative_test.csv"
         test_file.touch()
-        
+
         result = _normalize_path(test_file)
         assert result.is_absolute()
 
@@ -277,7 +275,7 @@ class TestNormalizeFileType:
         """Verifica que string inválido lanza excepción."""
         with pytest.raises(UnsupportedFileTypeError) as exc_info:
             _normalize_file_type("invalid_type")
-        
+
         error_msg = str(exc_info.value)
         assert "Unknown file type" in error_msg
         assert "invalid_type" in error_msg
@@ -287,7 +285,7 @@ class TestNormalizeFileType:
         """Verifica que tipos no-string lanzan excepción."""
         with pytest.raises(UnsupportedFileTypeError) as exc_info:
             _normalize_file_type(123)
-        
+
         assert "must be string or FileType" in str(exc_info.value)
 
     def test_none_raises(self):
@@ -315,21 +313,21 @@ class TestValidateCsvParameters:
         """Verifica que delimitador vacío lanza excepción."""
         with pytest.raises(ValueError) as exc_info:
             _validate_csv_parameters("", "utf-8")
-        
+
         assert "Delimiter cannot be empty" in str(exc_info.value)
 
     def test_invalid_delimiter_raises(self):
         """Verifica que delimitador inválido lanza excepción."""
         with pytest.raises(ValueError) as exc_info:
             _validate_csv_parameters("@", "utf-8")
-        
+
         assert "Invalid delimiter" in str(exc_info.value)
 
     def test_empty_encoding_raises(self):
         """Verifica que encoding vacío lanza excepción."""
         with pytest.raises(ValueError) as exc_info:
             _validate_csv_parameters(";", "")
-        
+
         assert "Encoding cannot be empty" in str(exc_info.value)
 
     def test_uncommon_encoding_logs_warning(self, caplog):
@@ -337,7 +335,7 @@ class TestValidateCsvParameters:
         with caplog.at_level(logging.WARNING):
             # cp500 is EBCDIC, valid but likely not in common list
             _validate_csv_parameters(";", "cp500")
-        
+
         assert "not in recommended list" in caplog.text
 
 
@@ -348,7 +346,7 @@ class TestGenerateOutputPath:
         """Verifica sufijo por defecto '_clean'."""
         input_path = tmp_path / "data.csv"
         result = _generate_output_path(input_path)
-        
+
         assert result.name == "data_clean.csv"
         assert result.parent == input_path.parent
 
@@ -356,21 +354,21 @@ class TestGenerateOutputPath:
         """Verifica sufijo personalizado."""
         input_path = tmp_path / "data.csv"
         result = _generate_output_path(input_path, suffix="_processed")
-        
+
         assert result.name == "data_processed.csv"
 
     def test_preserves_extension(self, tmp_path: Path):
         """Verifica que preserva la extensión original."""
         input_path = tmp_path / "data.txt"
         result = _generate_output_path(input_path)
-        
+
         assert result.suffix == ".txt"
 
     def test_complex_filename(self, tmp_path: Path):
         """Verifica manejo de nombres complejos."""
         input_path = tmp_path / "my.data.file.csv"
         result = _generate_output_path(input_path)
-        
+
         assert result.name == "my.data.file_clean.csv"
 
 
@@ -384,7 +382,7 @@ class TestCreateErrorResponse:
     def test_basic_error_response(self):
         """Verifica estructura básica de respuesta de error."""
         result = _create_error_response("Something went wrong")
-        
+
         assert result["success"] is False
         assert result["error"] == "Something went wrong"
         assert "error_type" in result
@@ -393,7 +391,7 @@ class TestCreateErrorResponse:
         """Verifica respuesta con excepción."""
         exc = ValueError("Invalid value")
         result = _create_error_response(exc)
-        
+
         assert result["success"] is False
         assert result["error"] == "Invalid value"
         assert result["error_type"] == "ValueError"
@@ -401,11 +399,11 @@ class TestCreateErrorResponse:
     def test_extra_fields(self):
         """Verifica que campos extra se incluyen."""
         result = _create_error_response(
-            "Error", 
+            "Error",
             error_category="validation",
             field="username"
         )
-        
+
         assert result["error_category"] == "validation"
         assert result["field"] == "username"
 
@@ -417,7 +415,7 @@ class TestCreateSuccessResponse:
         """Verifica estructura básica de respuesta exitosa."""
         data = {"rows": 100, "processed": True}
         result = _create_success_response(data)
-        
+
         assert result["success"] is True
         assert result["rows"] == 100
         assert result["processed"] is True
@@ -430,7 +428,7 @@ class TestCreateSuccessResponse:
             output_path="/tmp/output.csv",
             duration_ms=150
         )
-        
+
         assert result["output_path"] == "/tmp/output.csv"
         assert result["duration_ms"] == 150
 
@@ -438,7 +436,7 @@ class TestCreateSuccessResponse:
         """Verifica que data tiene prioridad sobre extras."""
         data = {"key": "from_data"}
         result = _create_success_response(data, key="from_extra")
-        
+
         # El comportamiento depende de la implementación
         # En el código actual, extras van después, así que sobrescriben
         assert "key" in result
@@ -454,9 +452,9 @@ class TestDiagnoseFile:
     def test_file_not_found(self, tmp_path: Path):
         """Verifica manejo de archivo inexistente."""
         non_existing = tmp_path / "non_existing.csv"
-        
+
         result = diagnose_file(non_existing, "apus")
-        
+
         assert result["success"] is False
         assert "not found" in result["error"]
         assert result["error_type"] == "FileNotFoundDiagnosticError"
@@ -464,7 +462,7 @@ class TestDiagnoseFile:
     def test_invalid_file_type(self, temp_csv_file: Path):
         """Verifica manejo de tipo de archivo inválido."""
         result = diagnose_file(temp_csv_file, "invalid_type")
-        
+
         assert result["success"] is False
         assert "Unknown file type" in result["error"]
         assert result["error_type"] == "UnsupportedFileTypeError"
@@ -472,13 +470,13 @@ class TestDiagnoseFile:
     def test_invalid_file_type_type(self, temp_csv_file: Path):
         """Verifica manejo de tipo no-string para file_type."""
         result = diagnose_file(temp_csv_file, 123)
-        
+
         assert result["success"] is False
         assert "must be string or FileType" in result["error"]
 
     @patch("app.tools_interface._DIAGNOSTIC_REGISTRY")
     def test_apus_diagnosis_success(
-        self, 
+        self,
         mock_registry: MagicMock,
         temp_csv_file: Path,
         mock_diagnostic_result: Dict[str, Any]
@@ -490,9 +488,9 @@ class TestDiagnoseFile:
 
         # Configurar el registro mock
         mock_registry.get.return_value = mock_class
-        
+
         result = diagnose_file(temp_csv_file, "apus")
-        
+
         assert result["success"] is True
         assert result["file_type"] == "apus"
         assert "total_rows" in result
@@ -512,9 +510,9 @@ class TestDiagnoseFile:
         mock_class = MagicMock(return_value=mock_instance)
 
         mock_registry.get.return_value = mock_class
-        
+
         result = diagnose_file(temp_csv_file, "insumos")
-        
+
         assert result["success"] is True
         assert result["file_type"] == "insumos"
         mock_instance.diagnose.assert_called_once()
@@ -532,9 +530,9 @@ class TestDiagnoseFile:
         mock_class = MagicMock(return_value=mock_instance)
 
         mock_registry.get.return_value = mock_class
-        
+
         result = diagnose_file(temp_csv_file, "presupuesto")
-        
+
         assert result["success"] is True
         assert result["file_type"] == "presupuesto"
         mock_instance.diagnose.assert_called_once()
@@ -552,9 +550,9 @@ class TestDiagnoseFile:
         mock_class = MagicMock(return_value=mock_instance)
 
         mock_registry.get.return_value = mock_class
-        
+
         result = diagnose_file(temp_csv_file, FileType.APUS)
-        
+
         assert result["success"] is True
         assert result["file_type"] == "apus"
 
@@ -567,9 +565,9 @@ class TestDiagnoseFile:
         """Verifica manejo de errores de I/O durante diagnóstico."""
         mock_class = MagicMock(side_effect=IOError("Cannot read file"))
         mock_registry.get.return_value = mock_class
-        
+
         result = diagnose_file(temp_csv_file, "apus")
-        
+
         assert result["success"] is False
         assert "Cannot read file" in result["error"]
         assert result.get("error_category") == "io_error"
@@ -583,9 +581,9 @@ class TestDiagnoseFile:
         """Verifica manejo de errores inesperados."""
         mock_class = MagicMock(side_effect=RuntimeError("Unexpected"))
         mock_registry.get.return_value = mock_class
-        
+
         result = diagnose_file(temp_csv_file, "apus")
-        
+
         assert result["success"] is False
         assert result.get("error_category") == "unexpected"
 
@@ -602,9 +600,9 @@ class TestDiagnoseFile:
         mock_class = MagicMock(return_value=mock_instance)
 
         mock_registry.get.return_value = mock_class
-        
+
         result = diagnose_file(temp_csv_file, "apus")
-        
+
         assert "file_path" in result
         assert str(temp_csv_file) in result["file_path"]
 
@@ -619,9 +617,9 @@ class TestCleanFile:
     def test_input_file_not_found(self, tmp_path: Path):
         """Verifica manejo de archivo de entrada inexistente."""
         non_existing = tmp_path / "non_existing.csv"
-        
+
         result = clean_file(non_existing)
-        
+
         assert result["success"] is False
         assert "not found" in result["error"]
 
@@ -659,9 +657,9 @@ class TestCleanFile:
             return mock_cleaning_stats
 
         mock_cleaner_instance.clean.side_effect = side_effect
-        
+
         result = clean_file(temp_csv_file)
-        
+
         assert result["success"] is True
         assert "output_path" in result
         assert "_clean" in result["output_path"]
@@ -678,7 +676,7 @@ class TestCleanFile:
         """Verifica limpieza exitosa con output personalizado."""
         mock_cleaner_instance = mock_cleaner_class.return_value
         output_path = tmp_path / "custom_output.csv"
-        
+
         def side_effect():
             output_path.touch()
             return mock_cleaning_stats
@@ -686,7 +684,7 @@ class TestCleanFile:
         mock_cleaner_instance.clean.side_effect = side_effect
 
         result = clean_file(temp_csv_file, output_path=output_path)
-        
+
         assert result["success"] is True
         assert str(output_path) in result["output_path"]
 
@@ -708,9 +706,9 @@ class TestCleanFile:
             return mock_cleaning_stats
 
         mock_cleaner_instance.clean.side_effect = side_effect
-        
+
         result = clean_file(temp_csv_file, delimiter=",")
-        
+
         assert result["success"] is True
         # Verificar que se pasó el delimitador correcto
         call_kwargs = mock_cleaner_class.call_args[1]
@@ -732,9 +730,9 @@ class TestCleanFile:
             return mock_cleaning_stats
 
         mock_cleaner_instance.clean.side_effect = side_effect
-        
+
         result = clean_file(temp_csv_file, encoding="latin-1")
-        
+
         assert result["success"] is True
         call_kwargs = mock_cleaner_class.call_args[1]
         # Python canonicalizes 'latin-1' to 'iso8859-1'
@@ -743,28 +741,28 @@ class TestCleanFile:
     def test_invalid_delimiter(self, temp_csv_file: Path):
         """Verifica rechazo de delimitador inválido."""
         result = clean_file(temp_csv_file, delimiter="@")
-        
+
         assert result["success"] is False
         assert "Invalid delimiter" in result["error"]
 
     def test_empty_delimiter(self, temp_csv_file: Path):
         """Verifica rechazo de delimitador vacío."""
         result = clean_file(temp_csv_file, delimiter="")
-        
+
         assert result["success"] is False
         assert "Delimiter cannot be empty" in result["error"]
 
     def test_empty_encoding(self, temp_csv_file: Path):
         """Verifica rechazo de encoding vacío."""
         result = clean_file(temp_csv_file, encoding="")
-        
+
         assert result["success"] is False
         assert "Encoding cannot be empty" in result["error"]
 
     def test_same_input_output_path(self, temp_csv_file: Path):
         """Verifica rechazo cuando input y output son iguales."""
         result = clean_file(temp_csv_file, output_path=temp_csv_file)
-        
+
         assert result["success"] is False
         assert "cannot be the same" in result["error"]
 
@@ -778,13 +776,13 @@ class TestCleanFile:
         """Verifica error cuando output existe y overwrite=False."""
         output_path = tmp_path / "existing_output.csv"
         output_path.touch()  # Crear archivo existente
-        
+
         result = clean_file(
-            temp_csv_file, 
-            output_path=output_path, 
+            temp_csv_file,
+            output_path=output_path,
             overwrite=False
         )
-        
+
         assert result["success"] is False
         assert "Output file already exists and overwrite=False" in result["error"]
 
@@ -805,9 +803,9 @@ class TestCleanFile:
             return mock_cleaning_stats
 
         mock_cleaner_instance.clean.side_effect = side_effect
-        
+
         result = clean_file(temp_csv_file, output_path=output_path)
-        
+
         assert result["success"] is True
         assert output_path.parent.exists()
 
@@ -819,9 +817,9 @@ class TestCleanFile:
     ):
         """Verifica manejo de errores de I/O durante limpieza."""
         mock_cleaner_class.return_value.clean.side_effect = IOError("Disk full")
-        
+
         result = clean_file(temp_csv_file)
-        
+
         assert result["success"] is False
         assert "Disk full" in result["error"]
         # Wrapped in CleaningError
@@ -843,9 +841,9 @@ class TestCleanFile:
         # except Exception as e: return ... error_category="unexpected" (This is for unexpected errors OUTSIDE the try/catch blocks that wrap cleaning)
 
         mock_cleaner_class.return_value.clean.side_effect = RuntimeError("Unexpected")
-        
+
         result = clean_file(temp_csv_file)
-        
+
         assert result["success"] is False
         assert result.get("error_category") == "cleaning"
 
@@ -866,9 +864,9 @@ class TestCleanFile:
             return mock_cleaning_stats
 
         mock_cleaner_instance.clean.side_effect = side_effect
-        
+
         result = clean_file(temp_csv_file)
-        
+
         assert "input_path" in result
 
     @patch("app.tools_interface.CSVCleaner")
@@ -889,9 +887,9 @@ class TestCleanFile:
             return mock_stats
 
         mock_cleaner_instance.clean.side_effect = side_effect
-        
+
         result = clean_file(temp_csv_file)
-        
+
         # Debería manejar el caso sin to_dict
         assert result["success"] is True
 
@@ -906,7 +904,7 @@ class TestGetTelemetryStatus:
     def test_no_context_returns_idle(self):
         """Verifica estado IDLE cuando no hay contexto."""
         result = get_telemetry_status()
-        
+
         assert result["status"] == "IDLE"
         assert result["system_health"] == "UNKNOWN"
         assert result["has_active_context"] is False
@@ -915,14 +913,14 @@ class TestGetTelemetryStatus:
     def test_none_context_returns_idle(self):
         """Verifica estado IDLE con contexto None explícito."""
         result = get_telemetry_status(None)
-        
+
         assert result["status"] == "IDLE"
         assert result["has_active_context"] is False
 
     def test_valid_context_returns_report(self, mock_telemetry_context: MagicMock):
         """Verifica que contexto válido retorna su reporte."""
         result = get_telemetry_status(mock_telemetry_context)
-        
+
         assert result["status"] == "ACTIVE"
         assert result["system_health"] == "HEALTHY"
         assert result["has_active_context"] is True
@@ -932,9 +930,9 @@ class TestGetTelemetryStatus:
     def test_context_without_method(self):
         """Verifica manejo de contexto sin método requerido."""
         invalid_context = MagicMock(spec=[])  # Sin get_business_report
-        
+
         result = get_telemetry_status(invalid_context)
-        
+
         assert result["status"] == "ERROR"
         assert result["system_health"] == "DEGRADED"
         assert "missing get_business_report method" in result["message"]
@@ -942,9 +940,9 @@ class TestGetTelemetryStatus:
     def test_context_method_raises_exception(self, mock_telemetry_context: MagicMock):
         """Verifica manejo de excepción en get_business_report."""
         mock_telemetry_context.get_business_report.side_effect = RuntimeError("DB Error")
-        
+
         result = get_telemetry_status(mock_telemetry_context)
-        
+
         assert result["status"] == "ERROR"
         assert result["system_health"] == "DEGRADED"
         assert "DB Error" in result.get("error", "")
@@ -952,9 +950,9 @@ class TestGetTelemetryStatus:
     def test_context_returns_non_dict(self, mock_telemetry_context: MagicMock):
         """Verifica manejo cuando reporte no es diccionario."""
         mock_telemetry_context.get_business_report.return_value = "string report"
-        
+
         result = get_telemetry_status(mock_telemetry_context)
-        
+
         assert result["has_active_context"] is True
         assert "raw_report" in result
 
@@ -963,9 +961,9 @@ class TestGetTelemetryStatus:
         mock_telemetry_context.get_business_report.return_value = {
             "custom_metric": 123
         }
-        
+
         result = get_telemetry_status(mock_telemetry_context)
-        
+
         assert result["status"] == "ACTIVE"  # Default añadido
         assert result["system_health"] == "HEALTHY"  # Default añadido
         assert result["custom_metric"] == 123
@@ -986,7 +984,7 @@ class TestGetSupportedFileTypes:
     def test_contains_all_types(self):
         """Verifica que contiene todos los tipos esperados."""
         result = get_supported_file_types()
-        
+
         assert "apus" in result
         assert "insumos" in result
         assert "presupuesto" in result
@@ -1073,10 +1071,10 @@ class TestIntegration:
         mock_class = MagicMock(return_value=mock_diag_instance)
 
         mock_registry.get.return_value = mock_class
-        
+
         mock_cleaner_instance = mock_cleaner_class.return_value
         mock_cleaner_instance.clean.return_value = mock_cleaning_stats
-        
+
         # Side effect to create output file
         def side_effect():
              # Assuming default name
@@ -1089,7 +1087,7 @@ class TestIntegration:
         # Paso 1: Diagnóstico
         diag_result = diagnose_file(temp_csv_file, "apus")
         assert diag_result["success"] is True
-        
+
         # Paso 2: Limpieza (solo si diagnóstico exitoso)
         if diag_result["success"]:
             clean_result = clean_file(temp_csv_file)
@@ -1098,8 +1096,7 @@ class TestIntegration:
 
     def test_all_file_types_have_diagnostics(self):
         """Verifica que todos los FileType tienen diagnóstico registrado."""
-        from app.tools_interface import _DIAGNOSTIC_REGISTRY
-        
+
         for file_type in FileType:
             assert file_type in _DIAGNOSTIC_REGISTRY, \
                 f"FileType.{file_type.name} not in _DIAGNOSTIC_REGISTRY"
@@ -1137,10 +1134,10 @@ class TestLogging:
         mock_class = MagicMock(return_value=mock_instance)
 
         mock_registry.get.return_value = mock_class
-        
+
         with caplog.at_level(logging.INFO):
             diagnose_file(temp_csv_file, "apus")
-        
+
         assert "Starting" in caplog.text
         assert "completed" in caplog.text
 
@@ -1155,7 +1152,7 @@ class TestLogging:
         """Verifica que limpieza registra inicio y fin."""
         mock_cleaner_instance = mock_cleaner_class.return_value
         mock_cleaner_instance.clean.return_value = mock_cleaning_stats
-        
+
         def side_effect():
             # Assuming default name
             output_p = temp_csv_file.with_name(f"{temp_csv_file.stem}_clean{temp_csv_file.suffix}")
@@ -1166,17 +1163,17 @@ class TestLogging:
 
         with caplog.at_level(logging.INFO):
             clean_file(temp_csv_file)
-        
+
         assert "Starting CSV cleaning" in caplog.text
         assert "completed" in caplog.text
 
     def test_validation_errors_logged_as_warning(self, tmp_path: Path, caplog):
         """Verifica que errores de validación se loguean como warning."""
         non_existing = tmp_path / "missing.csv"
-        
+
         with caplog.at_level(logging.WARNING):
             diagnose_file(non_existing, "apus")
-        
+
         # Expect "Validation error in diagnose_file" as caught in diagnose_file
         assert "Diagnostic error" in caplog.text
 
@@ -1191,13 +1188,13 @@ class TestEdgeCases:
     def test_diagnose_empty_file_path(self):
         """Verifica manejo de ruta vacía en diagnóstico."""
         result = diagnose_file("", "apus")
-        
+
         assert result["success"] is False
 
     def test_clean_empty_file_path(self):
         """Verifica manejo de ruta vacía en limpieza."""
         result = clean_file("")
-        
+
         assert result["success"] is False
 
     @patch("app.tools_interface._DIAGNOSTIC_REGISTRY")
@@ -1210,15 +1207,15 @@ class TestEdgeCases:
         """Verifica manejo de rutas con caracteres especiales."""
         special_file = tmp_path / "archivo con espacios y ñ.csv"
         special_file.write_text("data", encoding="utf-8")
-        
+
         mock_instance = MagicMock()
         mock_instance.to_dict.return_value = mock_diagnostic_result
         mock_class = MagicMock(return_value=mock_instance)
 
         mock_registry.get.return_value = mock_class
-        
+
         result = diagnose_file(special_file, "apus")
-        
+
         assert result["success"] is True
 
     @patch("app.tools_interface.CSVCleaner")
@@ -1231,7 +1228,7 @@ class TestEdgeCases:
         """Verifica manejo de rutas con caracteres unicode."""
         unicode_file = tmp_path / "datos_日本語.csv"
         unicode_file.write_text("data", encoding="utf-8")
-        
+
         mock_cleaner_instance = mock_cleaner_class.return_value
         mock_cleaner_instance.clean.return_value = mock_cleaning_stats
 
@@ -1242,9 +1239,9 @@ class TestEdgeCases:
             return mock_cleaning_stats
 
         mock_cleaner_instance.clean.side_effect = side_effect
-        
+
         result = clean_file(unicode_file)
-        
+
         assert result["success"] is True
 
     def test_diagnose_with_path_object(self, temp_csv_file: Path):
@@ -1257,9 +1254,9 @@ class TestEdgeCases:
             mock_class = MagicMock(return_value=mock_instance)
 
             mock_registry.get.return_value = mock_class
-            
+
             result = diagnose_file(temp_csv_file, FileType.APUS)
-            
+
             assert "success" in result
 
 

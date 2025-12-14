@@ -11,17 +11,21 @@ que recibe un contexto, lo transforma y lo pasa al siguiente paso.
 
 import logging
 import os
-import re
 import sys
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple, Type, Any
+from typing import Any, Dict, List, Optional, Tuple, Type
 
 import numpy as np
 import pandas as pd
 
+from app.classifiers.apu_classifier import APUClassifier
+
+# Nuevos módulos
+from app.constants import ColumnNames, InsumoType, ProcessingThresholds
 from app.telemetry import TelemetryContext
+from app.validators import DataFrameValidator
 
 from .data_loader import load_data
 from .data_validator import validate_and_clean_data
@@ -32,12 +36,6 @@ from .utils import (
     normalize_text_series,
     sanitize_for_json,
 )
-
-# Nuevos módulos
-from app.constants import ColumnNames, InsumoType, ProcessingThresholds
-from app.patterns import RegexPatterns
-from app.validators import DataFrameValidator
-from app.classifiers.apu_classifier import APUClassifier
 
 # Configuración explícita para debug
 logger = logging.getLogger(__name__)
@@ -670,7 +668,10 @@ class BusinessTopologyStep(ProcessingStep):
         telemetry.start_step("business_topology")
         try:
             # Importación diferida para evitar dependencias circulares
-            from agent.business_topology import BudgetGraphBuilder, BusinessTopologicalAnalyzer
+            from agent.business_topology import (
+                BudgetGraphBuilder,
+                BusinessTopologicalAnalyzer,
+            )
 
             df_presupuesto = context.get("df_presupuesto")
             # df_merged contiene la relación APU -> Insumo tras el cruce inicial
@@ -1905,7 +1906,7 @@ def _save_output_files(
             path = Path(path)
             try:
                 path.parent.mkdir(parents=True, exist_ok=True)
-            except PermissionError as e:
+            except PermissionError:
                 logger.error(f"❌ Sin permisos para crear directorio: {path.parent}")
                 save_status[name] = False
                 continue

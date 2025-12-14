@@ -307,7 +307,7 @@ def assess_data_quality(
     metrics.quality_score = valid_count / metrics.total_records if metrics.total_records > 0 else 0.0
 
     # Log de resultados
-    log.append(f"  📊 Calidad de datos:")
+    log.append("  📊 Calidad de datos:")
     log.append(f"     ├─ Total registros: {metrics.total_records}")
     log.append(f"     ├─ Registros válidos: {metrics.valid_records} ({metrics.quality_score*100:.1f}%)")
     log.append(f"     ├─ Códigos faltantes: {metrics.missing_codes}")
@@ -789,7 +789,7 @@ def _find_best_keyword_match(
                 apu, matches, percentage, len(keywords_clean), method=method_name
             )
             if candidate:
-                log.append(f"  ⚡ Early exit: Match perfecto encontrado")
+                log.append("  ⚡ Early exit: Match perfecto encontrado")
                 return candidate.apu, candidate.details
 
         # Crear candidato
@@ -1047,7 +1047,7 @@ def _find_best_semantic_match(
         try:
             faiss_idx = int(indices[0][i])
             similarity = float(distances[0][i])
-        except (ValueError, TypeError, IndexError) as e:
+        except (ValueError, TypeError, IndexError):
             invalid_indices += 1
             continue
 

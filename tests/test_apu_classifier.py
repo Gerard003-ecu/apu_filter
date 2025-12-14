@@ -1,7 +1,8 @@
-import pytest
-import pandas as pd
-import numpy as np
 import os
+
+import pandas as pd
+import pytest
+
 from app.classifiers.apu_classifier import APUClassifier
 
 CONFIG_PATH = "config/config_rules.json"
@@ -59,8 +60,8 @@ def test_dataframe_classification():
 
 def test_config_loading():
     """Test de carga de configuración desde JSON"""
-    import tempfile
     import json
+    import tempfile
 
     # Crear archivo de configuración temporal
     config = {

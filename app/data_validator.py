@@ -5,8 +5,7 @@ import unicodedata
 from copy import deepcopy
 from dataclasses import dataclass, field
 from enum import Enum
-from functools import lru_cache
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
 import pandas as pd
@@ -1240,7 +1239,7 @@ def validate_and_clean_data(
                     presupuesto_data
                 )
                 metricas_totales["presupuesto"] = metrics_presupuesto.to_dict()
-                logger.info(f"Validación de presupuesto exitosa.")
+                logger.info("Validación de presupuesto exitosa.")
                 if telemetry_context:
                     telemetry_context.record_metric("validation", "presupuesto_items", metrics_presupuesto.total_items_procesados)
                     telemetry_context.record_metric("validation", "presupuesto_alerts", metrics_presupuesto.items_con_alertas)

@@ -1787,9 +1787,9 @@ class APUProcessor:
         """
         from lark.exceptions import (
             UnexpectedCharacters,
-            UnexpectedToken,
-            UnexpectedInput,
             UnexpectedEOF,
+            UnexpectedInput,
+            UnexpectedToken,
         )
 
         try:
@@ -2090,7 +2090,7 @@ class APUProcessor:
         """
         try:
             from lark import Lark
-            from lark.exceptions import GrammarError, ConfigurationError
+            from lark.exceptions import ConfigurationError, GrammarError
 
             # ROBUSTECIDO: Validar que la gramática no está vacía
             if not APU_GRAMMAR or not APU_GRAMMAR.strip():

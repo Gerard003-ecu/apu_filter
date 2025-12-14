@@ -244,7 +244,7 @@ class ReportParserCrudo:
         """
         try:
             from lark import Lark
-            from lark.exceptions import GrammarError, ConfigurationError
+            from lark.exceptions import ConfigurationError, GrammarError
         except ImportError as ie:
             logger.error(
                 f"No se pudo importar Lark: {ie}\n"
@@ -379,11 +379,11 @@ class ReportParserCrudo:
 
         # ROBUSTECIDO: Importar excepciones específicas de Lark
         from lark.exceptions import (
-            UnexpectedCharacters,
-            UnexpectedToken,
-            UnexpectedInput,
-            UnexpectedEOF,
             LarkError,
+            UnexpectedCharacters,
+            UnexpectedEOF,
+            UnexpectedInput,
+            UnexpectedToken,
         )
 
         try:

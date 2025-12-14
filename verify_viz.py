@@ -1,6 +1,7 @@
 
-import sys
 import logging
+import sys
+
 from agent.topological_analyzer import SystemTopology
 
 # Configurar logging

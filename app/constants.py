@@ -1,5 +1,6 @@
 from enum import Enum
-from typing import Set, Dict, Final
+from typing import Final
+
 
 class ColumnNames:
     """Nombres de columnas estandarizados."""

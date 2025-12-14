@@ -28,8 +28,8 @@ Principios de Diseño:
 import logging
 import math
 import os
-import time
 import random
+import time
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, List, NamedTuple, Optional, Set, Tuple

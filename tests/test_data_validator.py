@@ -2,7 +2,7 @@ import os
 import sys
 import unittest
 from copy import deepcopy
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pandas as pd
 
@@ -14,7 +14,6 @@ from app.data_validator import (
     _validate_missing_descriptions,
     _validate_zero_quantity_with_cost,
     validate_and_clean_data,
-    TipoAlerta,
 )
 
 

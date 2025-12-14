@@ -12,15 +12,15 @@ import pytest
 
 # Importar el módulo bajo prueba
 from app.data_loader import (
+    DataQualityMetrics,
+    FileFormat,
+    FileMetadata,
+    LoadResult,
     LoadStatus,
     load_data,
     load_from_csv,
     load_from_pdf,
     load_from_xlsx,
-    FileMetadata,
-    FileFormat,
-    LoadResult,
-    DataQualityMetrics
 )
 
 # ─────────────────────────────────────────────────────────────

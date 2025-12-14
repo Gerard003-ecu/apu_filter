@@ -27,7 +27,6 @@ from enum import Enum, auto
 from typing import (
     Dict,
     FrozenSet,
-    Iterator,
     List,
     Optional,
     Set,
@@ -2465,12 +2464,12 @@ if __name__ == "__main__":
             value += 30
         ph.add_reading("cpu_usage", value)
 
-    print(f"\nDatos de CPU simulados")
+    print("\nDatos de CPU simulados")
     stats = ph.get_statistics("cpu_usage")
     print(f"Estadísticas: {stats}")
 
     result = ph.analyze_persistence("cpu_usage", threshold=70)
-    print(f"\nAnálisis (umbral=70):")
+    print("\nAnálisis (umbral=70):")
     print(f"  Estado: {result.state.name}")
     print(f"  Intervalos: {len(result.intervals)}")
     print(f"  Features: {result.feature_count}, Noise: {result.noise_count}")

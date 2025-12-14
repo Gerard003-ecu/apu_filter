@@ -10,21 +10,15 @@ Suite actualizada que valida:
 - Configuración y validación de datos (Tests restaurados)
 """
 
-import os
-import signal
-import threading
-import time
-import uuid
-from datetime import datetime, timedelta
-from typing import Any, Dict, Optional
-from unittest.mock import MagicMock, Mock, patch, call, PropertyMock
+from datetime import datetime
+from typing import Any, Dict
+from unittest.mock import MagicMock, Mock, patch
 
 import pytest
 import requests
 
 from agent.apu_agent import (
     AgentDecision,
-    AgentMetrics,
     AutonomousAgent,
     SystemStatus,
     TelemetryData,
@@ -36,10 +30,9 @@ from agent.topological_analyzer import (
     HealthLevel,
     MetricState,
     PersistenceAnalysisResult,
-    TopologicalHealth,
     RequestLoopInfo,
+    TopologicalHealth,
 )
-
 
 # =============================================================================
 # FIXTURES Y MOCKS

@@ -25,28 +25,21 @@ Estructura:
 """
 
 import math
+
 import pytest
-from collections import deque
-from typing import List, Tuple
 
 from agent.topological_analyzer import (
-    # Clases principales
-    SystemTopology,
-    PersistenceHomology,
-    # Enums
-    MetricState,
-    HealthLevel,
     # Dataclasses
     BettiNumbers,
+    HealthLevel,
+    # Enums
+    MetricState,
+    PersistenceHomology,
     PersistenceInterval,
-    RequestLoopInfo,
-    TopologicalHealth,
-    PersistenceAnalysisResult,
-    # Utilidades
+    SystemTopology,
     compute_wasserstein_distance,
     create_simple_topology,
 )
-
 
 # =============================================================================
 # FIXTURES
@@ -1212,8 +1205,8 @@ class TestSystemTopologyUtilities:
 
     def test_visualize_topology_no_matplotlib(self, tree_topology, tmp_path):
         """Manejo sin matplotlib."""
-        from unittest import mock
         import sys
+        from unittest import mock
         with mock.patch.dict(sys.modules, {'matplotlib': None}):
             assert tree_topology.visualize_topology(str(tmp_path / "t.png")) is False
 

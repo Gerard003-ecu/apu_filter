@@ -1,6 +1,7 @@
 import re
 from typing import Pattern
 
+
 class RegexPatterns:
     """Patrones regex pre-compilados para alto rendimiento."""
 

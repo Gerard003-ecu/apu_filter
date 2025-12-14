@@ -1,17 +1,15 @@
-import pytest
-import pandas as pd
+from unittest.mock import MagicMock, Mock
+
 import networkx as nx
-import math
-from typing import Dict, Any, List
-from unittest.mock import Mock, MagicMock
+import pandas as pd
+import pytest
 
 from agent.business_topology import (
     BudgetGraphBuilder,
     BusinessTopologicalAnalyzer,
-    TopologicalMetrics
+    TopologicalMetrics,
 )
 from app.constants import ColumnNames
-
 
 # =============================================================================
 # FIXTURES COMPARTIDAS

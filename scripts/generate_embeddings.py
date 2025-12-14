@@ -6,7 +6,8 @@ import sys
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Dict, List, Optional, Union, Any
+from typing import Any, Dict, List, Optional, Union
+
 import faiss
 import numpy as np
 import pandas as pd
@@ -51,7 +52,7 @@ def setup_logging(log_level: str = "INFO", log_file: Optional[Path] = None) -> N
         raise TypeError("log_file debe ser una instancia de pathlib.Path o None")
 
     handlers = []
-    
+
     # Console handler con colores
     console_handler = logging.StreamHandler(sys.stdout)
     console_formatter = ColoredFormatter(
@@ -60,7 +61,7 @@ def setup_logging(log_level: str = "INFO", log_file: Optional[Path] = None) -> N
     )
     console_handler.setFormatter(console_formatter)
     handlers.append(console_handler)
-    
+
     # File handler si se especifica
     if log_file:
         try:
@@ -103,53 +104,53 @@ class ScriptConfig:
     min_text_length: int = field(default=3, repr=False)
     max_text_length: int = field(default=5000, repr=False)
     validation_sample_size: int = field(default=100, repr=False)
-    
+
     def __post_init__(self):
         """Validaciones posteriores a la inicialización."""
         # Validar tipos
         if not isinstance(self.model_name, str) or not self.model_name.strip():
             raise ValueError("model_name debe ser una cadena no vacía")
-        
+
         if not isinstance(self.input_file, Path):
             raise TypeError("input_file debe ser una instancia de pathlib.Path")
-        
+
         if not isinstance(self.output_dir, Path):
             raise TypeError("output_dir debe ser una instancia de pathlib.Path")
-        
+
         if not isinstance(self.text_column, str) or not self.text_column.strip():
             raise ValueError("text_column debe ser una cadena no vacía")
-        
+
         if not isinstance(self.id_column, str) or not self.id_column.strip():
             raise ValueError("id_column debe ser una cadena no vacía")
-        
+
         if not isinstance(self.max_batch_size, int) or self.max_batch_size <= 0:
             raise ValueError("max_batch_size debe ser un entero positivo")
-        
+
         if not isinstance(self.memory_limit_gb, (int, float)) or self.memory_limit_gb <= 0:
             raise ValueError("memory_limit_gb debe ser un número positivo")
-        
+
         if not isinstance(self.backup_enabled, bool):
             raise TypeError("backup_enabled debe ser booleano")
-        
+
         if not isinstance(self.normalize_embeddings, bool):
             raise TypeError("normalize_embeddings debe ser booleano")
-        
+
         if not isinstance(self.show_progress, bool):
             raise TypeError("show_progress debe ser booleano")
-        
+
         if not isinstance(self.min_text_length, int) or self.min_text_length < 0:
             raise ValueError("min_text_length debe ser un entero no negativo")
-        
+
         if not isinstance(self.max_text_length, int) or self.max_text_length <= 0:
             raise ValueError("max_text_length debe ser un entero positivo")
-        
+
         if not isinstance(self.validation_sample_size, int) or self.validation_sample_size <= 0:
             raise ValueError("validation_sample_size debe ser un entero positivo")
-        
+
         # Validar rutas
         if self.input_file.suffix.lower() not in ['.csv', '.json']:
             raise ValueError(f"Formato de archivo no soportado: {self.input_file.suffix}")
-        
+
         # Normalizar rutas absolutas
         self.input_file = self.input_file.resolve()
         self.output_dir = self.output_dir.resolve()
@@ -581,7 +582,7 @@ class EmbeddingGenerator:
 
         self.logger.info("=" * 80)
         self.logger.info("Iniciando validación robusta del índice FAISS...")
-        
+
         n_samples = min(self.config.validation_sample_size, len(embeddings))
         if n_samples == 0:
             self.logger.warning("No hay suficientes embeddings para validación")
@@ -590,10 +591,10 @@ class EmbeddingGenerator:
         # Usar semilla fija para reproducibilidad en validación
         rng = np.random.default_rng(42)
         sample_indices = rng.choice(len(embeddings), n_samples, replace=False)
-        
+
         # Umbrales (Para IndexFlatIP/Coseno: 1.0 es idéntico)
         SIMILARITY_THRESHOLD = 0.999  # Aceptamos 99.9% de similitud como idéntico
-        
+
         # Métricas de validación
         stats = {
             "exact_matches": 0,  # Mismo índice
@@ -601,7 +602,7 @@ class EmbeddingGenerator:
             "failures": 0,  # Validación fallida
             "total": n_samples,
         }
-        
+
         failed_cases = []
 
         # Preparar embeddings para búsqueda (asegurar tipo float32)
@@ -621,12 +622,12 @@ class EmbeddingGenerator:
 
             top_idx = indices[0][0]
             top_similarity = similarities[0][0]
-            
+
             # CASO 1: Coincidencia exacta (esperado)
             if top_idx == idx:
                 stats["exact_matches"] += 1
                 continue
-            
+
             # CASO 2: Duplicado semántico (aceptable)
             # Verificar si el índice correcto está en el top-k y tiene alta similitud
             if idx in indices[0]:
@@ -641,7 +642,7 @@ class EmbeddingGenerator:
                         f"   Índice correcto en posición: {position + 1}/5 (Similitud: {actual_similarity:.6f})"
                     )
                     continue
-            
+
             # CASO 3: Similitud casi perfecta con índice diferente
             # (Duplicado perfecto no indexado o colisión)
             if top_similarity > SIMILARITY_THRESHOLD:
@@ -654,7 +655,7 @@ class EmbeddingGenerator:
                     f"   Top-5 índices: {indices[0].tolist()}"
                 )
                 continue
-            
+
             # CASO 4: Fallo real de validación
             stats["failures"] += 1
             failed_cases.append({
@@ -670,12 +671,12 @@ class EmbeddingGenerator:
                 f"   Similitud: {top_similarity:.6f} (< {SIMILARITY_THRESHOLD})\n"
                 f"   Top-5: {indices[0].tolist()}"
             )
-        
+
         # Reporte de estadísticas
         self.logger.info("=" * 80)
         self.logger.info("📊 Resultados de Validación:")
         self.logger.info(f"   Total muestras: {stats['total']}")
-        
+
         if stats["total"] > 0:
             success_rate = (stats["exact_matches"] + stats["semantic_duplicates"]) / stats["total"]
             self.logger.info(
@@ -693,7 +694,7 @@ class EmbeddingGenerator:
         else:
             self.logger.warning("⚠️  No se realizaron validaciones (0 muestras).")
             success_rate = 0.0
-        
+
         # Criterio de aceptación: 0 fallos reales
         if stats["failures"] == 0:
             if stats["semantic_duplicates"] > 0:
@@ -912,7 +913,7 @@ def main():
     parser = argparse.ArgumentParser(
         description="Genera embeddings para búsqueda semántica."
     )
-    
+
     # Cargar configuración desde JSON como base
     try:
         config_path = Path(__file__).resolve().parent.parent / "config" / "config_rules.json"
@@ -920,7 +921,7 @@ def main():
     except Exception as e:
         logging.error(f"Error al cargar configuración desde JSON: {e}")
         json_config = {}
-    
+
     # Definir argumentos permitiendo sobreescritura
     parser.add_argument("--input_file", type=Path, default=json_config.get("input_file"))
     parser.add_argument("--output_dir", type=Path, default=json_config.get("output_dir"))
@@ -950,7 +951,7 @@ def main():
     )
 
     args = parser.parse_args()
-    
+
     # Validar que los argumentos requeridos tengan valor
     required_args = ["input_file", "output_dir", "model_name", "text_column", "id_column"]
     missing_args = [arg for arg in required_args if getattr(args, arg) is None]

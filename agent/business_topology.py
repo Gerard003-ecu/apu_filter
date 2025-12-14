@@ -1,11 +1,13 @@
+import logging
+import textwrap
+from dataclasses import asdict, dataclass, field
+from typing import Any, Dict, List, Optional, Tuple
+
 import networkx as nx
 import pandas as pd
-import logging
-from typing import Dict, List, Optional, Any, Tuple
-from dataclasses import dataclass, asdict, field
-from app.telemetry import TelemetryContext
+
 from app.constants import ColumnNames
-import textwrap
+from app.telemetry import TelemetryContext
 
 logger = logging.getLogger(__name__)
 

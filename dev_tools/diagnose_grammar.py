@@ -1,11 +1,11 @@
 import logging
 import os
 import sys
-from typing import List, Dict, Any, Optional
 from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 from lark import Lark
-from lark.exceptions import LarkError, UnexpectedEOF, UnexpectedCharacters
+from lark.exceptions import LarkError, UnexpectedCharacters, UnexpectedEOF
 
 logger = logging.getLogger(__name__)
 
@@ -100,7 +100,7 @@ def diagnose_grammar_mismatches(
         stripped_line = line.rstrip('\n\r')  # Eliminar solo saltos de línea, mantener espacios en blanco dentro de la línea
         if stripped_line.strip():  # Solo incluir líneas no vacías
             processed_lines.append((idx, stripped_line))
-    
+
     failed_lines = []
     analyzed_count = 0
 
@@ -293,7 +293,7 @@ def _write_statistical_analysis(f, failed_lines: List[Dict[str, Any]]) -> None:
     f.write(f"Total de líneas fallidas: {len(failed_lines)}\n")
 
     if error_type_counts:
-        f.write(f"Tipos de error:\n")
+        f.write("Tipos de error:\n")
         for err_type, count in sorted(error_type_counts.items(), key=lambda x: x[1], reverse=True):
             f.write(f"  - {err_type}: {count} ({count/len(failed_lines)*100:.1f}%)\n")
 
@@ -303,7 +303,7 @@ def _write_statistical_analysis(f, failed_lines: List[Dict[str, Any]]) -> None:
     f.write(f"Líneas que comienzan con ';': {leading_semicolon_count}\n")
 
     if field_count_distribution:
-        f.write(f"Distribución de cantidad de campos:\n")
+        f.write("Distribución de cantidad de campos:\n")
         for count, freq in sorted(field_count_distribution.items()):
             f.write(f"  - {count} campos: {freq} líneas\n")
 

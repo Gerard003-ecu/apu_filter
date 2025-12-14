@@ -27,7 +27,7 @@ import uuid
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum, auto
-from typing import Any, Callable, Dict, Optional, Tuple
+from typing import Any, Dict, Optional, Tuple
 from urllib.parse import urlparse
 
 import requests
@@ -35,15 +35,13 @@ from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
 from agent.topological_analyzer import (
-    SystemTopology,
-    PersistenceHomology,
-    MetricState,
     HealthLevel,
-    BettiNumbers,
-    TopologicalHealth,
+    MetricState,
     PersistenceAnalysisResult,
+    PersistenceHomology,
+    SystemTopology,
+    TopologicalHealth,
 )
-
 
 # ============================================================================
 # LOGGING CONFIGURATION
@@ -1186,7 +1184,7 @@ class AutonomousAgent:
             f"[BRAIN] 🔄 Conexión perdida - {diagnosis_msg}"
         )
         logger.warning(
-            f"[BRAIN] → Reintentando conexión con Core..."
+            "[BRAIN] → Reintentando conexión con Core..."
         )
         # Restaurar topología esperada para próximo intento
         self._initialize_expected_topology()

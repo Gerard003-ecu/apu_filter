@@ -1,6 +1,11 @@
-import pytest
 import networkx as nx
-from agent.business_topology import BusinessTopologicalAnalyzer, ConstructionRiskReport, TopologicalMetrics
+import pytest
+
+from agent.business_topology import (
+    BusinessTopologicalAnalyzer,
+    ConstructionRiskReport,
+)
+
 
 class TestExecutiveReport:
 
