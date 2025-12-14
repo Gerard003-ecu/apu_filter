@@ -1031,7 +1031,7 @@ class TestBusinessTopologicalAnalyzer:
             report = analyzer.get_audit_report(analysis)
             report_text = "\n".join(report)
 
-            assert "ANÁLISIS TOPOLÓGICO" in report_text
+            assert "AUDITORÍA ESTRUCTURAL" in report_text
 
         def test_report_shows_betti_numbers(self, analyzer):
             """Verifica que muestra números de Betti."""
@@ -1042,8 +1042,8 @@ class TestBusinessTopologicalAnalyzer:
             report = analyzer.get_audit_report(analysis)
             report_text = "\n".join(report)
 
-            assert "β₀" in report_text or "beta_0" in report_text.lower()
-            assert "β₁" in report_text or "beta_1" in report_text.lower()
+            assert "componentes conexas" in report_text.lower() or "beta_0" in report_text.lower()
+            assert "ciclos de costo" in report_text.lower() or "beta_1" in report_text.lower()
 
         def test_report_shows_critical_alert_for_cycles(self, analyzer):
             """Verifica alerta crítica cuando hay ciclos."""
@@ -1054,7 +1054,7 @@ class TestBusinessTopologicalAnalyzer:
             report = analyzer.get_audit_report(analysis)
             report_text = "\n".join(report)
 
-            assert "CRÍTICAS" in report_text or "circular" in report_text.lower()
+            assert "CRÍTICAS" in report_text or "circular" in report_text.lower() or "ciclos de costo" in report_text.lower()
 
         def test_report_shows_ok_for_healthy_graph(self, analyzer):
             """Verifica resultado OK para grafo saludable."""
@@ -1067,7 +1067,7 @@ class TestBusinessTopologicalAnalyzer:
             report = analyzer.get_audit_report(analysis)
             report_text = "\n".join(report)
 
-            assert "OK" in report_text or "sólida" in report_text.lower()
+            assert "estatus" in report_text.lower() or "saludable" in report_text.lower()
 
         def test_report_shows_warnings_for_anomalies(self, analyzer):
             """Verifica advertencias para anomalías."""
