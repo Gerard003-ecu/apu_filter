@@ -15,6 +15,7 @@ from app.constants import ColumnNames
 # FIXTURES COMPARTIDAS
 # =============================================================================
 
+
 class TestTopologicalMetricsDataclass:
     """Pruebas para el dataclass TopologicalMetrics."""
 
@@ -63,6 +64,7 @@ class TestTopologicalMetricsDataclass:
 # PRUEBAS PARA BudgetGraphBuilder
 # =============================================================================
 
+
 class TestBudgetGraphBuilder:
     """Pruebas para la clase BudgetGraphBuilder."""
 
@@ -82,32 +84,38 @@ class TestBudgetGraphBuilder:
         def builder(self):
             return BudgetGraphBuilder()
 
-        @pytest.mark.parametrize("input_value,expected", [
-            ("  APU-001  ", "APU-001"),
-            ("APU-001", "APU-001"),
-            ("", ""),
-            ("   ", ""),
-            (None, ""),
-            (float('nan'), ""),
-            (123, "123"),
-            (12.5, "12.5"),
-        ])
+        @pytest.mark.parametrize(
+            "input_value,expected",
+            [
+                ("  APU-001  ", "APU-001"),
+                ("APU-001", "APU-001"),
+                ("", ""),
+                ("   ", ""),
+                (None, ""),
+                (float("nan"), ""),
+                (123, "123"),
+                (12.5, "12.5"),
+            ],
+        )
         def test_sanitize_code(self, builder, input_value, expected):
             """Verifica sanitización de códigos con diversos inputs."""
             result = builder._sanitize_code(input_value)
             assert result == expected
 
-        @pytest.mark.parametrize("input_value,default,expected", [
-            (10.5, 0.0, 10.5),
-            ("10.5", 0.0, 10.5),
-            (10, 0.0, 10.0),
-            (None, 0.0, 0.0),
-            (None, 5.0, 5.0),
-            (float('nan'), 0.0, 0.0),
-            ("invalid", 0.0, 0.0),
-            ("", 0.0, 0.0),
-            ([], 0.0, 0.0),
-        ])
+        @pytest.mark.parametrize(
+            "input_value,default,expected",
+            [
+                (10.5, 0.0, 10.5),
+                ("10.5", 0.0, 10.5),
+                (10, 0.0, 10.0),
+                (None, 0.0, 0.0),
+                (None, 5.0, 5.0),
+                (float("nan"), 0.0, 0.0),
+                ("invalid", 0.0, 0.0),
+                ("", 0.0, 0.0),
+                ([], 0.0, 0.0),
+            ],
+        )
         def test_safe_float(self, builder, input_value, default, expected):
             """Verifica conversión segura a float."""
             result = builder._safe_float(input_value, default)
@@ -131,10 +139,12 @@ class TestBudgetGraphBuilder:
 
         def test_create_apu_attributes_primary(self, builder):
             """Verifica atributos de APU desde fuente primaria."""
-            row = pd.Series({
-                ColumnNames.DESCRIPCION_APU: "Construcción Muro",
-                ColumnNames.CANTIDAD_PRESUPUESTO: 100.0
-            })
+            row = pd.Series(
+                {
+                    ColumnNames.DESCRIPCION_APU: "Construcción Muro",
+                    ColumnNames.CANTIDAD_PRESUPUESTO: 100.0,
+                }
+            )
 
             attrs = builder._create_apu_attributes(
                 row, source="presupuesto_df", idx=5, inferred=False
@@ -162,10 +172,12 @@ class TestBudgetGraphBuilder:
 
         def test_create_insumo_attributes(self, builder):
             """Verifica atributos de nodo INSUMO."""
-            row = pd.Series({
-                ColumnNames.TIPO_INSUMO: "Material",
-                ColumnNames.COSTO_INSUMO_EN_APU: 150.75
-            })
+            row = pd.Series(
+                {
+                    ColumnNames.TIPO_INSUMO: "Material",
+                    ColumnNames.COSTO_INSUMO_EN_APU: 150.75,
+                }
+            )
 
             attrs = builder._create_insumo_attributes(
                 row, insumo_desc="Cemento Portland", source="apus_detail_df", idx=3
@@ -200,8 +212,7 @@ class TestBudgetGraphBuilder:
             G.add_node("Insumo-1", type="INSUMO")
 
             is_new = builder._upsert_edge(
-                G, "APU-1", "Insumo-1",
-                unit_cost=100.0, quantity=5.0, idx=0
+                G, "APU-1", "Insumo-1", unit_cost=100.0, quantity=5.0, idx=0
             )
 
             assert is_new is True
@@ -263,19 +274,23 @@ class TestBudgetGraphBuilder:
 
         def test_build_with_valid_data(self, builder):
             """Construcción con datos válidos completos."""
-            df_presupuesto = pd.DataFrame({
-                ColumnNames.CODIGO_APU: ["APU-001", "APU-002"],
-                ColumnNames.DESCRIPCION_APU: ["Muro", "Columna"],
-                ColumnNames.CANTIDAD_PRESUPUESTO: [10.0, 5.0]
-            })
+            df_presupuesto = pd.DataFrame(
+                {
+                    ColumnNames.CODIGO_APU: ["APU-001", "APU-002"],
+                    ColumnNames.DESCRIPCION_APU: ["Muro", "Columna"],
+                    ColumnNames.CANTIDAD_PRESUPUESTO: [10.0, 5.0],
+                }
+            )
 
-            df_detail = pd.DataFrame({
-                ColumnNames.CODIGO_APU: ["APU-001", "APU-001", "APU-002"],
-                ColumnNames.DESCRIPCION_INSUMO: ["Ladrillo", "Cemento", "Acero"],
-                ColumnNames.TIPO_INSUMO: ["Material", "Material", "Material"],
-                ColumnNames.CANTIDAD_APU: [100.0, 20.0, 50.0],
-                ColumnNames.COSTO_INSUMO_EN_APU: [1.5, 25.0, 30.0]
-            })
+            df_detail = pd.DataFrame(
+                {
+                    ColumnNames.CODIGO_APU: ["APU-001", "APU-001", "APU-002"],
+                    ColumnNames.DESCRIPCION_INSUMO: ["Ladrillo", "Cemento", "Acero"],
+                    ColumnNames.TIPO_INSUMO: ["Material", "Material", "Material"],
+                    ColumnNames.CANTIDAD_APU: [100.0, 20.0, 50.0],
+                    ColumnNames.COSTO_INSUMO_EN_APU: [1.5, 25.0, 30.0],
+                }
+            )
 
             G = builder.build(df_presupuesto, df_detail)
 
@@ -293,19 +308,26 @@ class TestBudgetGraphBuilder:
 
         def test_build_with_inferred_apu(self, builder):
             """APU presente en detail pero no en presupuesto se infiere."""
-            df_presupuesto = pd.DataFrame({
-                ColumnNames.CODIGO_APU: ["APU-001"],
-                ColumnNames.DESCRIPCION_APU: ["Muro"],
-                ColumnNames.CANTIDAD_PRESUPUESTO: [10.0]
-            })
+            df_presupuesto = pd.DataFrame(
+                {
+                    ColumnNames.CODIGO_APU: ["APU-001"],
+                    ColumnNames.DESCRIPCION_APU: ["Muro"],
+                    ColumnNames.CANTIDAD_PRESUPUESTO: [10.0],
+                }
+            )
 
-            df_detail = pd.DataFrame({
-                ColumnNames.CODIGO_APU: ["APU-001", "APU-999"],  # APU-999 no está en presupuesto
-                ColumnNames.DESCRIPCION_INSUMO: ["Ladrillo", "Arena"],
-                ColumnNames.TIPO_INSUMO: ["Material", "Material"],
-                ColumnNames.CANTIDAD_APU: [100.0, 50.0],
-                ColumnNames.COSTO_INSUMO_EN_APU: [1.5, 10.0]
-            })
+            df_detail = pd.DataFrame(
+                {
+                    ColumnNames.CODIGO_APU: [
+                        "APU-001",
+                        "APU-999",
+                    ],  # APU-999 no está en presupuesto
+                    ColumnNames.DESCRIPCION_INSUMO: ["Ladrillo", "Arena"],
+                    ColumnNames.TIPO_INSUMO: ["Material", "Material"],
+                    ColumnNames.CANTIDAD_APU: [100.0, 50.0],
+                    ColumnNames.COSTO_INSUMO_EN_APU: [1.5, 10.0],
+                }
+            )
 
             G = builder.build(df_presupuesto, df_detail)
 
@@ -317,13 +339,15 @@ class TestBudgetGraphBuilder:
             """Construcción con presupuesto vacío pero detail con datos."""
             df_presupuesto = pd.DataFrame()
 
-            df_detail = pd.DataFrame({
-                ColumnNames.CODIGO_APU: ["APU-001"],
-                ColumnNames.DESCRIPCION_INSUMO: ["Ladrillo"],
-                ColumnNames.TIPO_INSUMO: ["Material"],
-                ColumnNames.CANTIDAD_APU: [100.0],
-                ColumnNames.COSTO_INSUMO_EN_APU: [1.5]
-            })
+            df_detail = pd.DataFrame(
+                {
+                    ColumnNames.CODIGO_APU: ["APU-001"],
+                    ColumnNames.DESCRIPCION_INSUMO: ["Ladrillo"],
+                    ColumnNames.TIPO_INSUMO: ["Material"],
+                    ColumnNames.CANTIDAD_APU: [100.0],
+                    ColumnNames.COSTO_INSUMO_EN_APU: [1.5],
+                }
+            )
 
             G = builder.build(df_presupuesto, df_detail)
 
@@ -332,11 +356,13 @@ class TestBudgetGraphBuilder:
 
         def test_build_with_empty_detail(self, builder):
             """Construcción con detail vacío produce APUs sin aristas."""
-            df_presupuesto = pd.DataFrame({
-                ColumnNames.CODIGO_APU: ["APU-001", "APU-002"],
-                ColumnNames.DESCRIPCION_APU: ["Muro", "Columna"],
-                ColumnNames.CANTIDAD_PRESUPUESTO: [10.0, 5.0]
-            })
+            df_presupuesto = pd.DataFrame(
+                {
+                    ColumnNames.CODIGO_APU: ["APU-001", "APU-002"],
+                    ColumnNames.DESCRIPCION_APU: ["Muro", "Columna"],
+                    ColumnNames.CANTIDAD_PRESUPUESTO: [10.0, 5.0],
+                }
+            )
 
             df_detail = pd.DataFrame()
 
@@ -361,20 +387,24 @@ class TestBudgetGraphBuilder:
 
         def test_build_edge_accumulation(self, builder):
             """Verifica acumulación correcta en aristas duplicadas."""
-            df_presupuesto = pd.DataFrame({
-                ColumnNames.CODIGO_APU: ["APU-001"],
-                ColumnNames.DESCRIPCION_APU: ["Muro"],
-                ColumnNames.CANTIDAD_PRESUPUESTO: [10.0]
-            })
+            df_presupuesto = pd.DataFrame(
+                {
+                    ColumnNames.CODIGO_APU: ["APU-001"],
+                    ColumnNames.DESCRIPCION_APU: ["Muro"],
+                    ColumnNames.CANTIDAD_PRESUPUESTO: [10.0],
+                }
+            )
 
             # Mismo insumo aparece 3 veces para el mismo APU
-            df_detail = pd.DataFrame({
-                ColumnNames.CODIGO_APU: ["APU-001", "APU-001", "APU-001"],
-                ColumnNames.DESCRIPCION_INSUMO: ["Ladrillo", "Ladrillo", "Ladrillo"],
-                ColumnNames.TIPO_INSUMO: ["Material", "Material", "Material"],
-                ColumnNames.CANTIDAD_APU: [100.0, 50.0, 25.0],
-                ColumnNames.COSTO_INSUMO_EN_APU: [1.5, 1.5, 1.5]
-            })
+            df_detail = pd.DataFrame(
+                {
+                    ColumnNames.CODIGO_APU: ["APU-001", "APU-001", "APU-001"],
+                    ColumnNames.DESCRIPCION_INSUMO: ["Ladrillo", "Ladrillo", "Ladrillo"],
+                    ColumnNames.TIPO_INSUMO: ["Material", "Material", "Material"],
+                    ColumnNames.CANTIDAD_APU: [100.0, 50.0, 25.0],
+                    ColumnNames.COSTO_INSUMO_EN_APU: [1.5, 1.5, 1.5],
+                }
+            )
 
             G = builder.build(df_presupuesto, df_detail)
 
@@ -385,19 +415,23 @@ class TestBudgetGraphBuilder:
 
         def test_build_handles_nan_values(self, builder):
             """Construcción maneja valores NaN correctamente."""
-            df_presupuesto = pd.DataFrame({
-                ColumnNames.CODIGO_APU: ["APU-001", None, "APU-002"],
-                ColumnNames.DESCRIPCION_APU: ["Muro", "Invalid", "Columna"],
-                ColumnNames.CANTIDAD_PRESUPUESTO: [10.0, float('nan'), 5.0]
-            })
+            df_presupuesto = pd.DataFrame(
+                {
+                    ColumnNames.CODIGO_APU: ["APU-001", None, "APU-002"],
+                    ColumnNames.DESCRIPCION_APU: ["Muro", "Invalid", "Columna"],
+                    ColumnNames.CANTIDAD_PRESUPUESTO: [10.0, float("nan"), 5.0],
+                }
+            )
 
-            df_detail = pd.DataFrame({
-                ColumnNames.CODIGO_APU: ["APU-001"],
-                ColumnNames.DESCRIPCION_INSUMO: ["Ladrillo"],
-                ColumnNames.TIPO_INSUMO: ["Material"],
-                ColumnNames.CANTIDAD_APU: [float('nan')],  # NaN quantity
-                ColumnNames.COSTO_INSUMO_EN_APU: [1.5]
-            })
+            df_detail = pd.DataFrame(
+                {
+                    ColumnNames.CODIGO_APU: ["APU-001"],
+                    ColumnNames.DESCRIPCION_INSUMO: ["Ladrillo"],
+                    ColumnNames.TIPO_INSUMO: ["Material"],
+                    ColumnNames.CANTIDAD_APU: [float("nan")],  # NaN quantity
+                    ColumnNames.COSTO_INSUMO_EN_APU: [1.5],
+                }
+            )
 
             G = builder.build(df_presupuesto, df_detail)
 
@@ -442,6 +476,7 @@ class TestBudgetGraphBuilder:
 # =============================================================================
 # PRUEBAS PARA BusinessTopologicalAnalyzer
 # =============================================================================
+
 
 class TestBusinessTopologicalAnalyzer:
     """Pruebas para la clase BusinessTopologicalAnalyzer."""
@@ -527,7 +562,7 @@ class TestBusinessTopologicalAnalyzer:
             assert metrics.beta_0 == 1
             # Con MultiGraph:
             assert metrics.beta_1 == 1
-            assert metrics.euler_characteristic == 0 # 2 - 2 = 0
+            assert metrics.euler_characteristic == 0  # 2 - 2 = 0
 
         def test_triangle_cycle(self, analyzer):
             """
@@ -610,12 +645,14 @@ class TestBusinessTopologicalAnalyzer:
             V=5, E=4, β₀=1, χ=1, β₁=0 (es un árbol expandido)
             """
             G = nx.DiGraph()
-            G.add_edges_from([
-                ("APU-1", "Insumo-A"),
-                ("APU-1", "Insumo-B"),
-                ("APU-2", "Insumo-B"),
-                ("APU-2", "Insumo-C")
-            ])
+            G.add_edges_from(
+                [
+                    ("APU-1", "Insumo-A"),
+                    ("APU-1", "Insumo-B"),
+                    ("APU-2", "Insumo-B"),
+                    ("APU-2", "Insumo-C"),
+                ]
+            )
 
             metrics = analyzer.calculate_betti_numbers(G)
 
@@ -674,11 +711,16 @@ class TestBusinessTopologicalAnalyzer:
             # Grafo con múltiples ciclos
             G = nx.DiGraph()
             # Múltiples ciclos pequeños
-            G.add_edges_from([
-                (1, 2), (2, 1),  # Ciclo 1
-                (3, 4), (4, 3),  # Ciclo 2
-                (5, 6), (6, 5),  # Ciclo 3
-            ])
+            G.add_edges_from(
+                [
+                    (1, 2),
+                    (2, 1),  # Ciclo 1
+                    (3, 4),
+                    (4, 3),  # Ciclo 2
+                    (5, 6),
+                    (6, 5),  # Ciclo 3
+                ]
+            )
 
             cycles, truncated = analyzer._detect_cycles(G)
 
@@ -771,12 +813,14 @@ class TestBusinessTopologicalAnalyzer:
             """Identifica recursos con mayor in-degree."""
             G = nx.DiGraph()
             # Insumo crítico usado por 3 APUs
-            G.add_edges_from([
-                ("APU-1", "CRITICAL-INSUMO"),
-                ("APU-2", "CRITICAL-INSUMO"),
-                ("APU-3", "CRITICAL-INSUMO"),
-                ("APU-1", "NORMAL-INSUMO")
-            ])
+            G.add_edges_from(
+                [
+                    ("APU-1", "CRITICAL-INSUMO"),
+                    ("APU-2", "CRITICAL-INSUMO"),
+                    ("APU-3", "CRITICAL-INSUMO"),
+                    ("APU-1", "NORMAL-INSUMO"),
+                ]
+            )
             for node in G.nodes():
                 if node.startswith("APU"):
                     G.nodes[node]["type"] = "APU"
@@ -881,7 +925,10 @@ class TestBusinessTopologicalAnalyzer:
 
             interp = analyzer._interpret_topology(metrics)
 
-            assert "conexo" in interp["beta_0"].lower() or "conectado" in interp["beta_0"].lower()
+            assert (
+                "conexo" in interp["beta_0"].lower()
+                or "conectado" in interp["beta_0"].lower()
+            )
 
         def test_disconnected_interpretation(self, analyzer):
             """Interpreta correctamente espacio desconexo."""
@@ -907,7 +954,10 @@ class TestBusinessTopologicalAnalyzer:
 
             interp = analyzer._interpret_topology(metrics)
 
-            assert "acíclic" in interp["beta_1"].lower() or "sin ciclo" in interp["beta_1"].lower()
+            assert (
+                "acíclic" in interp["beta_1"].lower()
+                or "sin ciclo" in interp["beta_1"].lower()
+            )
 
     # -------------------------------------------------------------------------
     # Pruebas del análisis de integridad estructural
@@ -1040,8 +1090,13 @@ class TestBusinessTopologicalAnalyzer:
             report = analyzer.get_audit_report(analysis)
             report_text = "\n".join(report)
 
-            assert "componentes conexas" in report_text.lower() or "beta_0" in report_text.lower()
-            assert "ciclos de costo" in report_text.lower() or "beta_1" in report_text.lower()
+            assert (
+                "componentes conexas" in report_text.lower()
+                or "beta_0" in report_text.lower()
+            )
+            assert (
+                "ciclos de costo" in report_text.lower() or "beta_1" in report_text.lower()
+            )
 
         def test_report_shows_critical_alert_for_cycles(self, analyzer):
             """Verifica alerta crítica cuando hay ciclos."""
@@ -1052,7 +1107,11 @@ class TestBusinessTopologicalAnalyzer:
             report = analyzer.get_audit_report(analysis)
             report_text = "\n".join(report)
 
-            assert "CRÍTICAS" in report_text or "circular" in report_text.lower() or "ciclos de costo" in report_text.lower()
+            assert (
+                "CRÍTICAS" in report_text
+                or "circular" in report_text.lower()
+                or "ciclos de costo" in report_text.lower()
+            )
 
         def test_report_shows_ok_for_healthy_graph(self, analyzer):
             """Verifica resultado OK para grafo saludable."""
@@ -1087,6 +1146,7 @@ class TestBusinessTopologicalAnalyzer:
 # PRUEBAS DE INTEGRACIÓN
 # =============================================================================
 
+
 class TestIntegration:
     """Pruebas de integración entre Builder y Analyzer."""
 
@@ -1101,19 +1161,23 @@ class TestIntegration:
     def test_full_pipeline(self, builder, analyzer):
         """Pipeline completo: construcción → análisis → reporte."""
         # Datos de prueba
-        df_presupuesto = pd.DataFrame({
-            ColumnNames.CODIGO_APU: ["APU-001", "APU-002"],
-            ColumnNames.DESCRIPCION_APU: ["Muro de ladrillo", "Columna de concreto"],
-            ColumnNames.CANTIDAD_PRESUPUESTO: [100.0, 50.0]
-        })
+        df_presupuesto = pd.DataFrame(
+            {
+                ColumnNames.CODIGO_APU: ["APU-001", "APU-002"],
+                ColumnNames.DESCRIPCION_APU: ["Muro de ladrillo", "Columna de concreto"],
+                ColumnNames.CANTIDAD_PRESUPUESTO: [100.0, 50.0],
+            }
+        )
 
-        df_detail = pd.DataFrame({
-            ColumnNames.CODIGO_APU: ["APU-001", "APU-001", "APU-002", "APU-002"],
-            ColumnNames.DESCRIPCION_INSUMO: ["Ladrillo", "Cemento", "Cemento", "Acero"],
-            ColumnNames.TIPO_INSUMO: ["Material", "Material", "Material", "Material"],
-            ColumnNames.CANTIDAD_APU: [1000.0, 50.0, 100.0, 200.0],
-            ColumnNames.COSTO_INSUMO_EN_APU: [0.5, 25.0, 25.0, 15.0]
-        })
+        df_detail = pd.DataFrame(
+            {
+                ColumnNames.CODIGO_APU: ["APU-001", "APU-001", "APU-002", "APU-002"],
+                ColumnNames.DESCRIPCION_INSUMO: ["Ladrillo", "Cemento", "Cemento", "Acero"],
+                ColumnNames.TIPO_INSUMO: ["Material", "Material", "Material", "Material"],
+                ColumnNames.CANTIDAD_APU: [1000.0, 50.0, 100.0, 200.0],
+                ColumnNames.COSTO_INSUMO_EN_APU: [0.5, 25.0, 25.0, 15.0],
+            }
+        )
 
         # Construir grafo
         G = builder.build(df_presupuesto, df_detail)
@@ -1134,19 +1198,23 @@ class TestIntegration:
 
     def test_pipeline_with_anomalies(self, builder, analyzer):
         """Pipeline con datos que generan anomalías."""
-        df_presupuesto = pd.DataFrame({
-            ColumnNames.CODIGO_APU: ["APU-001", "APU-EMPTY"],
-            ColumnNames.DESCRIPCION_APU: ["Muro", "Sin insumos"],
-            ColumnNames.CANTIDAD_PRESUPUESTO: [100.0, 50.0]
-        })
+        df_presupuesto = pd.DataFrame(
+            {
+                ColumnNames.CODIGO_APU: ["APU-001", "APU-EMPTY"],
+                ColumnNames.DESCRIPCION_APU: ["Muro", "Sin insumos"],
+                ColumnNames.CANTIDAD_PRESUPUESTO: [100.0, 50.0],
+            }
+        )
 
-        df_detail = pd.DataFrame({
-            ColumnNames.CODIGO_APU: ["APU-001"],
-            ColumnNames.DESCRIPCION_INSUMO: ["Ladrillo"],
-            ColumnNames.TIPO_INSUMO: ["Material"],
-            ColumnNames.CANTIDAD_APU: [1000.0],
-            ColumnNames.COSTO_INSUMO_EN_APU: [0.5]
-        })
+        df_detail = pd.DataFrame(
+            {
+                ColumnNames.CODIGO_APU: ["APU-001"],
+                ColumnNames.DESCRIPCION_INSUMO: ["Ladrillo"],
+                ColumnNames.TIPO_INSUMO: ["Material"],
+                ColumnNames.CANTIDAD_APU: [1000.0],
+                ColumnNames.COSTO_INSUMO_EN_APU: [0.5],
+            }
+        )
 
         G = builder.build(df_presupuesto, df_detail)
         analysis = analyzer.analyze_structural_integrity(G)
@@ -1158,19 +1226,23 @@ class TestIntegration:
 
     def test_pipeline_preserves_edge_metadata(self, builder, analyzer):
         """Verifica que los metadatos de aristas se preservan."""
-        df_presupuesto = pd.DataFrame({
-            ColumnNames.CODIGO_APU: ["APU-001"],
-            ColumnNames.DESCRIPCION_APU: ["Muro"],
-            ColumnNames.CANTIDAD_PRESUPUESTO: [10.0]
-        })
+        df_presupuesto = pd.DataFrame(
+            {
+                ColumnNames.CODIGO_APU: ["APU-001"],
+                ColumnNames.DESCRIPCION_APU: ["Muro"],
+                ColumnNames.CANTIDAD_PRESUPUESTO: [10.0],
+            }
+        )
 
-        df_detail = pd.DataFrame({
-            ColumnNames.CODIGO_APU: ["APU-001", "APU-001"],
-            ColumnNames.DESCRIPCION_INSUMO: ["Cemento", "Cemento"],
-            ColumnNames.TIPO_INSUMO: ["Material", "Material"],
-            ColumnNames.CANTIDAD_APU: [50.0, 30.0],
-            ColumnNames.COSTO_INSUMO_EN_APU: [25.0, 25.0]
-        })
+        df_detail = pd.DataFrame(
+            {
+                ColumnNames.CODIGO_APU: ["APU-001", "APU-001"],
+                ColumnNames.DESCRIPCION_INSUMO: ["Cemento", "Cemento"],
+                ColumnNames.TIPO_INSUMO: ["Material", "Material"],
+                ColumnNames.CANTIDAD_APU: [50.0, 30.0],
+                ColumnNames.COSTO_INSUMO_EN_APU: [25.0, 25.0],
+            }
+        )
 
         G = builder.build(df_presupuesto, df_detail)
 
@@ -1184,6 +1256,7 @@ class TestIntegration:
 # =============================================================================
 # PRUEBAS DE CASOS EDGE
 # =============================================================================
+
 
 class TestEdgeCases:
     """Pruebas de casos límite y edge cases."""
@@ -1204,22 +1277,26 @@ class TestEdgeCases:
 
         apu_codes = [f"APU-{i:04d}" for i in range(n_apus)]
 
-        df_presupuesto = pd.DataFrame({
-            ColumnNames.CODIGO_APU: apu_codes,
-            ColumnNames.DESCRIPCION_APU: [f"Actividad {i}" for i in range(n_apus)],
-            ColumnNames.CANTIDAD_PRESUPUESTO: [100.0] * n_apus
-        })
+        df_presupuesto = pd.DataFrame(
+            {
+                ColumnNames.CODIGO_APU: apu_codes,
+                ColumnNames.DESCRIPCION_APU: [f"Actividad {i}" for i in range(n_apus)],
+                ColumnNames.CANTIDAD_PRESUPUESTO: [100.0] * n_apus,
+            }
+        )
 
         detail_rows = []
         for apu in apu_codes:
             for j in range(n_insumos_per_apu):
-                detail_rows.append({
-                    ColumnNames.CODIGO_APU: apu,
-                    ColumnNames.DESCRIPCION_INSUMO: f"Insumo-{j:03d}",
-                    ColumnNames.TIPO_INSUMO: "Material",
-                    ColumnNames.CANTIDAD_APU: 10.0,
-                    ColumnNames.COSTO_INSUMO_EN_APU: 5.0
-                })
+                detail_rows.append(
+                    {
+                        ColumnNames.CODIGO_APU: apu,
+                        ColumnNames.DESCRIPCION_INSUMO: f"Insumo-{j:03d}",
+                        ColumnNames.TIPO_INSUMO: "Material",
+                        ColumnNames.CANTIDAD_APU: 10.0,
+                        ColumnNames.COSTO_INSUMO_EN_APU: 5.0,
+                    }
+                )
 
         df_detail = pd.DataFrame(detail_rows)
 
@@ -1232,19 +1309,25 @@ class TestEdgeCases:
 
     def test_unicode_in_descriptions(self, builder):
         """Verifica manejo de caracteres Unicode."""
-        df_presupuesto = pd.DataFrame({
-            ColumnNames.CODIGO_APU: ["APU-001"],
-            ColumnNames.DESCRIPCION_APU: ["Construcción de muro con ladrillo cerámico 中文 émoji 🧱"],
-            ColumnNames.CANTIDAD_PRESUPUESTO: [10.0]
-        })
+        df_presupuesto = pd.DataFrame(
+            {
+                ColumnNames.CODIGO_APU: ["APU-001"],
+                ColumnNames.DESCRIPCION_APU: [
+                    "Construcción de muro con ladrillo cerámico 中文 émoji 🧱"
+                ],
+                ColumnNames.CANTIDAD_PRESUPUESTO: [10.0],
+            }
+        )
 
-        df_detail = pd.DataFrame({
-            ColumnNames.CODIGO_APU: ["APU-001"],
-            ColumnNames.DESCRIPCION_INSUMO: ["Ladrillo cerámico 日本語 árabe عربي"],
-            ColumnNames.TIPO_INSUMO: ["Material"],
-            ColumnNames.CANTIDAD_APU: [100.0],
-            ColumnNames.COSTO_INSUMO_EN_APU: [1.5]
-        })
+        df_detail = pd.DataFrame(
+            {
+                ColumnNames.CODIGO_APU: ["APU-001"],
+                ColumnNames.DESCRIPCION_INSUMO: ["Ladrillo cerámico 日本語 árabe عربي"],
+                ColumnNames.TIPO_INSUMO: ["Material"],
+                ColumnNames.CANTIDAD_APU: [100.0],
+                ColumnNames.COSTO_INSUMO_EN_APU: [1.5],
+            }
+        )
 
         G = builder.build(df_presupuesto, df_detail)
 
@@ -1252,11 +1335,13 @@ class TestEdgeCases:
 
     def test_special_characters_in_codes(self, builder):
         """Verifica manejo de caracteres especiales en códigos."""
-        df_presupuesto = pd.DataFrame({
-            ColumnNames.CODIGO_APU: ["APU/001", "APU-002.1", "APU#003"],
-            ColumnNames.DESCRIPCION_APU: ["A", "B", "C"],
-            ColumnNames.CANTIDAD_PRESUPUESTO: [1.0, 1.0, 1.0]
-        })
+        df_presupuesto = pd.DataFrame(
+            {
+                ColumnNames.CODIGO_APU: ["APU/001", "APU-002.1", "APU#003"],
+                ColumnNames.DESCRIPCION_APU: ["A", "B", "C"],
+                ColumnNames.CANTIDAD_PRESUPUESTO: [1.0, 1.0, 1.0],
+            }
+        )
 
         G = builder.build(df_presupuesto, pd.DataFrame())
 
@@ -1266,19 +1351,23 @@ class TestEdgeCases:
 
     def test_zero_quantities_and_costs(self, builder):
         """Verifica manejo de cantidades y costos en cero."""
-        df_presupuesto = pd.DataFrame({
-            ColumnNames.CODIGO_APU: ["APU-001"],
-            ColumnNames.DESCRIPCION_APU: ["Test"],
-            ColumnNames.CANTIDAD_PRESUPUESTO: [0.0]
-        })
+        df_presupuesto = pd.DataFrame(
+            {
+                ColumnNames.CODIGO_APU: ["APU-001"],
+                ColumnNames.DESCRIPCION_APU: ["Test"],
+                ColumnNames.CANTIDAD_PRESUPUESTO: [0.0],
+            }
+        )
 
-        df_detail = pd.DataFrame({
-            ColumnNames.CODIGO_APU: ["APU-001"],
-            ColumnNames.DESCRIPCION_INSUMO: ["Insumo-Zero"],
-            ColumnNames.TIPO_INSUMO: ["Material"],
-            ColumnNames.CANTIDAD_APU: [0.0],
-            ColumnNames.COSTO_INSUMO_EN_APU: [0.0]
-        })
+        df_detail = pd.DataFrame(
+            {
+                ColumnNames.CODIGO_APU: ["APU-001"],
+                ColumnNames.DESCRIPCION_INSUMO: ["Insumo-Zero"],
+                ColumnNames.TIPO_INSUMO: ["Material"],
+                ColumnNames.CANTIDAD_APU: [0.0],
+                ColumnNames.COSTO_INSUMO_EN_APU: [0.0],
+            }
+        )
 
         G = builder.build(df_presupuesto, df_detail)
 
@@ -1288,19 +1377,23 @@ class TestEdgeCases:
 
     def test_negative_values(self, builder):
         """Verifica manejo de valores negativos (edge case)."""
-        df_presupuesto = pd.DataFrame({
-            ColumnNames.CODIGO_APU: ["APU-001"],
-            ColumnNames.DESCRIPCION_APU: ["Test"],
-            ColumnNames.CANTIDAD_PRESUPUESTO: [-10.0]  # Negativo
-        })
+        df_presupuesto = pd.DataFrame(
+            {
+                ColumnNames.CODIGO_APU: ["APU-001"],
+                ColumnNames.DESCRIPCION_APU: ["Test"],
+                ColumnNames.CANTIDAD_PRESUPUESTO: [-10.0],  # Negativo
+            }
+        )
 
-        df_detail = pd.DataFrame({
-            ColumnNames.CODIGO_APU: ["APU-001"],
-            ColumnNames.DESCRIPCION_INSUMO: ["Insumo"],
-            ColumnNames.TIPO_INSUMO: ["Material"],
-            ColumnNames.CANTIDAD_APU: [-5.0],
-            ColumnNames.COSTO_INSUMO_EN_APU: [10.0]
-        })
+        df_detail = pd.DataFrame(
+            {
+                ColumnNames.CODIGO_APU: ["APU-001"],
+                ColumnNames.DESCRIPCION_INSUMO: ["Insumo"],
+                ColumnNames.TIPO_INSUMO: ["Material"],
+                ColumnNames.CANTIDAD_APU: [-5.0],
+                ColumnNames.COSTO_INSUMO_EN_APU: [10.0],
+            }
+        )
 
         G = builder.build(df_presupuesto, df_detail)
 
@@ -1311,11 +1404,13 @@ class TestEdgeCases:
 
     def test_duplicate_apu_codes_in_presupuesto(self, builder):
         """Verifica que códigos duplicados en presupuesto se manejan."""
-        df_presupuesto = pd.DataFrame({
-            ColumnNames.CODIGO_APU: ["APU-001", "APU-001", "APU-002"],
-            ColumnNames.DESCRIPCION_APU: ["Primera", "Duplicada", "Otra"],
-            ColumnNames.CANTIDAD_PRESUPUESTO: [10.0, 20.0, 5.0]
-        })
+        df_presupuesto = pd.DataFrame(
+            {
+                ColumnNames.CODIGO_APU: ["APU-001", "APU-001", "APU-002"],
+                ColumnNames.DESCRIPCION_APU: ["Primera", "Duplicada", "Otra"],
+                ColumnNames.CANTIDAD_PRESUPUESTO: [10.0, 20.0, 5.0],
+            }
+        )
 
         G = builder.build(df_presupuesto, pd.DataFrame())
 

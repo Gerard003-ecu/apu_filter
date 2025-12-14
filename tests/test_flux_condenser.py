@@ -193,7 +193,9 @@ class TestPIController:
 
     def test_ema_filter(self):
         """Testea el suavizado de la entrada (EMA)."""
-        controller = PIController(kp=1.0, ki=0.0, setpoint=0.5, min_output=10, max_output=100)
+        controller = PIController(
+            kp=1.0, ki=0.0, setpoint=0.5, min_output=10, max_output=100
+        )
 
         # Primera iteración toma el valor directo
         controller.compute(0.0)
@@ -206,19 +208,23 @@ class TestPIController:
         controller.compute(1.0)
 
         # Accedemos a variable interna para verificar filtrado si es posible
-        if hasattr(controller, '_pv_filtered'):
+        if hasattr(controller, "_pv_filtered"):
             assert 0.2 < controller._pv_filtered < 0.4
 
     def test_soft_anti_windup(self):
         """Testea el anti-windup con tanh."""
         controller = PIController(
-            kp=1.0, ki=1000.0, setpoint=0.5, min_output=1, max_output=100,
-            integral_limit_factor=1.0
+            kp=1.0,
+            ki=1000.0,
+            setpoint=0.5,
+            min_output=1,
+            max_output=100,
+            integral_limit_factor=1.0,
         )
 
         # Forzar saturación integral
         for _ in range(10):
-            controller.compute(0.0) # Error grande positivo
+            controller.compute(0.0)  # Error grande positivo
 
         # El integral no debería explotar
         assert controller._integral_error < (controller._integral_limit * 1.5)
@@ -293,7 +299,7 @@ class TestFluxPhysicsEngine:
         metrics_unstable = {
             "potential_energy": 500,
             "kinetic_energy": 1.0,
-            "damping_ratio": 0.1, # < 0.2
+            "damping_ratio": 0.1,  # < 0.2
         }
         diag = engine.get_system_diagnosis(metrics_unstable)
         assert "INESTABILIDAD" in diag

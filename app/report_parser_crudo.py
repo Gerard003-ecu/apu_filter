@@ -137,16 +137,18 @@ class ReportParserCrudo:
         "OTROS": {"OTROS", "OTRO", "VARIOS", "ADICIONALES"},
     }
 
-    JUNK_KEYWORDS = frozenset({  # ROBUSTECIDO: frozenset para inmutabilidad y rendimiento
-        "SUBTOTAL",
-        "COSTO DIRECTO",
-        "DESCRIPCION",
-        "IMPUESTOS",
-        "POLIZAS",
-        "TOTAL",
-        "IVA",
-        "AIU",
-    })
+    JUNK_KEYWORDS = frozenset(
+        {  # ROBUSTECIDO: frozenset para inmutabilidad y rendimiento
+            "SUBTOTAL",
+            "COSTO DIRECTO",
+            "DESCRIPCION",
+            "IMPUESTOS",
+            "POLIZAS",
+            "TOTAL",
+            "IVA",
+            "AIU",
+        }
+    )
 
     # Patrones pre-compilados para rendimiento
     _NUMERIC_PATTERN = re.compile(r"\d+[.,]\d+|\d+")
@@ -199,6 +201,7 @@ class ReportParserCrudo:
 
         try:
             from .apu_processor import APU_GRAMMAR
+
             self.lark_parser = self._initialize_lark_parser(APU_GRAMMAR)
         except ImportError as ie:
             logger.error(
@@ -246,16 +249,14 @@ class ReportParserCrudo:
             from lark import Lark
             from lark.exceptions import ConfigurationError, GrammarError
         except ImportError as ie:
-            logger.error(
-                f"No se pudo importar Lark: {ie}\n"
-                f"  Ejecute: pip install lark"
-            )
+            logger.error(f"No se pudo importar Lark: {ie}\n  Ejecute: pip install lark")
             return None
 
         # ROBUSTECIDO: Obtener gramática si no se proporcionó
         if grammar is None:
             try:
                 from .apu_processor import APU_GRAMMAR
+
                 grammar = APU_GRAMMAR
             except ImportError:
                 logger.error("No se pudo importar APU_GRAMMAR desde apu_processor")
@@ -294,7 +295,9 @@ class ReportParserCrudo:
                     )
             except Exception as test_error:
                 # No es crítico si el test falla con datos genéricos
-                logger.debug(f"Test de sanidad falló (esperado en algunos casos): {test_error}")
+                logger.debug(
+                    f"Test de sanidad falló (esperado en algunos casos): {test_error}"
+                )
 
             logger.info("✓ Parser Lark inicializado correctamente para pre-validación")
             return parser
@@ -319,6 +322,7 @@ class ReportParserCrudo:
             )
             if self.config.get("debug_mode", False):
                 import traceback
+
                 logger.debug(f"Traceback:\n{traceback.format_exc()}")
             return None
 
@@ -354,7 +358,9 @@ class ReportParserCrudo:
 
         # ROBUSTECIDO: Validar longitud antes de procesar
         if len(line_clean) > self._MAX_LINE_LENGTH:
-            logger.debug(f"Línea excede longitud máxima: {len(line_clean)} > {self._MAX_LINE_LENGTH}")
+            logger.debug(
+                f"Línea excede longitud máxima: {len(line_clean)} > {self._MAX_LINE_LENGTH}"
+            )
             return (False, None, f"Línea demasiado larga: {len(line_clean)} caracteres")
 
         if len(line_clean) < self._MIN_LINE_LENGTH:
@@ -406,7 +412,7 @@ class ReportParserCrudo:
             self.validation_stats.failed_lark_unexpected_chars += 1
             error_msg = (
                 f"Carácter inesperado en columna {uc.column}: "
-                f"'{line_clean[max(0, uc.column-5):uc.column+5]}'"
+                f"'{line_clean[max(0, uc.column - 5) : uc.column + 5]}'"
             )
             if use_cache:
                 self._cache_result(cache_key, False, None)
@@ -473,8 +479,11 @@ class ReportParserCrudo:
         if len(normalized) > self._CACHE_KEY_MAX_LENGTH:
             # Usar hash para claves muy largas
             import hashlib
+
             hash_suffix = hashlib.md5(normalized.encode()).hexdigest()[:16]
-            normalized = normalized[:self._CACHE_KEY_MAX_LENGTH - 20] + f"...[{hash_suffix}]"
+            normalized = (
+                normalized[: self._CACHE_KEY_MAX_LENGTH - 20] + f"...[{hash_suffix}]"
+            )
 
         return normalized
 
@@ -562,7 +571,10 @@ class ReportParserCrudo:
         # Validación 1: Número mínimo de campos (usando constante)
         if len(fields) < self._MIN_FIELDS_FOR_INSUMO:
             self.validation_stats.failed_basic_fields += 1
-            return (False, f"Insuficientes campos: {len(fields)} < {self._MIN_FIELDS_FOR_INSUMO}")
+            return (
+                False,
+                f"Insuficientes campos: {len(fields)} < {self._MIN_FIELDS_FOR_INSUMO}",
+            )
 
         # Validación 2: Campo de descripción no vacío y razonable
         first_field = fields[0] if fields else ""
@@ -579,17 +591,19 @@ class ReportParserCrudo:
         line_upper = line.upper()
 
         # ROBUSTECIDO: Lista extendida de keywords de subtotal
-        subtotal_keywords = frozenset({
-            "SUBTOTAL",
-            "TOTAL",
-            "SUMA",
-            "SUMATORIA",
-            "COSTO DIRECTO",
-            "COSTO TOTAL",
-            "PRECIO TOTAL",
-            "VALOR TOTAL",
-            "GRAN TOTAL",
-        })
+        subtotal_keywords = frozenset(
+            {
+                "SUBTOTAL",
+                "TOTAL",
+                "SUMA",
+                "SUMATORIA",
+                "COSTO DIRECTO",
+                "COSTO TOTAL",
+                "PRECIO TOTAL",
+                "VALOR TOTAL",
+                "GRAN TOTAL",
+            }
+        )
 
         for keyword in subtotal_keywords:
             if keyword in line_upper:
@@ -1065,7 +1079,7 @@ class ReportParserCrudo:
 
             # ROBUSTECIDO: Validar tipo de línea
             if not isinstance(line, str):
-                logger.debug(f"Línea {i+1}: tipo inválido {type(line).__name__}, saltando")
+                logger.debug(f"Línea {i + 1}: tipo inválido {type(line).__name__}, saltando")
                 i += 1
                 consecutive_errors += 1
                 continue
@@ -1155,11 +1169,7 @@ class ReportParserCrudo:
                 if validation_result.is_valid:
                     # ✅ LÍNEA VÁLIDA - Garantizada procesable por APUProcessor
                     record = self._build_insumo_record(
-                        current_apu_context,
-                        current_category,
-                        line,
-                        i + 1,
-                        validation_result
+                        current_apu_context, current_category, line, i + 1, validation_result
                     )
                     self.raw_records.append(record)
                     self.stats["insumos_extracted"] += 1
@@ -1187,7 +1197,6 @@ class ReportParserCrudo:
         self._log_validation_summary()
 
         return self.stats["insumos_extracted"] > 0
-
 
     def _extract_apu_header(
         self, header_line: str, item_line: str, line_number: int
@@ -1245,7 +1254,6 @@ class ReportParserCrudo:
         except Exception as e:
             logger.warning(f"Error extrayendo encabezado APU: {e}")
             return None
-
 
     def _build_insumo_record(
         self,

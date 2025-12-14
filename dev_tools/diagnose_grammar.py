@@ -9,13 +9,14 @@ from lark.exceptions import LarkError, UnexpectedCharacters, UnexpectedEOF
 
 logger = logging.getLogger(__name__)
 
+
 def diagnose_grammar_mismatches(
     csv_file: str,
     grammar: str,
     output_file: str = "grammar_diagnosis.txt",
     max_sample_lines: int = 20,
     skip_header_patterns: Optional[List[str]] = None,
-    encoding: str = "utf-8"
+    encoding: str = "utf-8",
 ) -> List[Dict[str, Any]]:
     """
     Diagnóstica líneas que fallan parsing Lark para ajustar gramática.
@@ -81,23 +82,29 @@ def diagnose_grammar_mismatches(
 
     # Leer archivo CSV
     try:
-        with open(csv_file, "r", encoding=encoding, newline='') as f:
+        with open(csv_file, "r", encoding=encoding, newline="") as f:
             raw_lines = f.readlines()
     except UnicodeDecodeError:
         # Intentar con codificación alternativa
         try:
-            with open(csv_file, "r", encoding="latin-1", newline='') as f:
+            with open(csv_file, "r", encoding="latin-1", newline="") as f:
                 raw_lines = f.readlines()
-            logger.warning(f"Archivo {csv_file} leído con codificación latin-1 en lugar de {encoding}")
+            logger.warning(
+                f"Archivo {csv_file} leído con codificación latin-1 en lugar de {encoding}"
+            )
         except UnicodeDecodeError:
-            raise UnicodeDecodeError(f"No se pudo leer el archivo {csv_file} con las codificaciones UTF-8 o Latin-1")
+            raise UnicodeDecodeError(
+                f"No se pudo leer el archivo {csv_file} con las codificaciones UTF-8 o Latin-1"
+            )
     except IOError as e:
         raise IOError(f"Error al leer el archivo CSV: {str(e)}")
 
     # Filtrar y limpiar líneas
     processed_lines = []
     for idx, line in enumerate(raw_lines, 1):
-        stripped_line = line.rstrip('\n\r')  # Eliminar solo saltos de línea, mantener espacios en blanco dentro de la línea
+        stripped_line = line.rstrip(
+            "\n\r"
+        )  # Eliminar solo saltos de línea, mantener espacios en blanco dentro de la línea
         if stripped_line.strip():  # Solo incluir líneas no vacías
             processed_lines.append((idx, stripped_line))
 
@@ -131,40 +138,44 @@ def diagnose_grammar_mismatches(
                     else:  # Campo con solo espacios
                         whitespace_only_positions.append(i)
 
-            failed_lines.append({
-                "line_num": original_idx,
-                "line": line,
-                "error": str(e),
-                "error_type": type(e).__name__,
-                "fields": fields,
-                "fields_count": len(fields),
-                "empty_field_positions": empty_positions,
-                "whitespace_only_positions": whitespace_only_positions,
-                "line_length": len(line),
-                "field_lengths": [len(f) for f in fields],
-                "has_trailing_semicolon": line.endswith(';'),
-                "has_leading_semicolon": line.startswith(';'),
-            })
+            failed_lines.append(
+                {
+                    "line_num": original_idx,
+                    "line": line,
+                    "error": str(e),
+                    "error_type": type(e).__name__,
+                    "fields": fields,
+                    "fields_count": len(fields),
+                    "empty_field_positions": empty_positions,
+                    "whitespace_only_positions": whitespace_only_positions,
+                    "line_length": len(line),
+                    "field_lengths": [len(f) for f in fields],
+                    "has_trailing_semicolon": line.endswith(";"),
+                    "has_leading_semicolon": line.startswith(";"),
+                }
+            )
         except Exception as e:
             logger.error(f"Error inesperado al parsear línea {original_idx}: {str(e)}")
             # Añadir como línea fallida con error genérico
             fields = line.split(";")
             empty_positions = [i for i, f in enumerate(fields) if not f.strip()]
 
-            failed_lines.append({
-                "line_num": original_idx,
-                "line": line,
-                "error": f"Error inesperado: {str(e)}",
-                "error_type": "UnexpectedError",
-                "fields": fields,
-                "fields_count": len(fields),
-                "empty_field_positions": empty_positions,
-                "whitespace_only_positions": [],
-                "line_length": len(line),
-                "field_lengths": [len(f) for f in fields],
-                "has_trailing_semicolon": line.endswith(';'),
-                "has_leading_semicolon": line.startswith(';'),
-            })
+            failed_lines.append(
+                {
+                    "line_num": original_idx,
+                    "line": line,
+                    "error": f"Error inesperado: {str(e)}",
+                    "error_type": "UnexpectedError",
+                    "fields": fields,
+                    "fields_count": len(fields),
+                    "empty_field_positions": empty_positions,
+                    "whitespace_only_positions": [],
+                    "line_length": len(line),
+                    "field_lengths": [len(f) for f in fields],
+                    "has_trailing_semicolon": line.endswith(";"),
+                    "has_leading_semicolon": line.startswith(";"),
+                }
+            )
 
     # Generar reporte detallado
     _generate_detailed_report(
@@ -173,10 +184,12 @@ def diagnose_grammar_mismatches(
         analyzed_lines=analyzed_count,
         failed_lines=failed_lines,
         max_sample_lines=max_sample_lines,
-        encoding_used=encoding
+        encoding_used=encoding,
     )
 
-    logger.info(f"✓ Diagnóstico completado. Líneas analizadas: {analyzed_count}, Fallidas: {len(failed_lines)}")
+    logger.info(
+        f"✓ Diagnóstico completado. Líneas analizadas: {analyzed_count}, Fallidas: {len(failed_lines)}"
+    )
     logger.info(f"✓ Reporte guardado en: {output_file}")
 
     return failed_lines
@@ -188,7 +201,7 @@ def _generate_detailed_report(
     analyzed_lines: int,
     failed_lines: List[Dict[str, Any]],
     max_sample_lines: int,
-    encoding_used: str
+    encoding_used: str,
 ) -> None:
     """
     Genera un reporte detallado de las líneas fallidas.
@@ -207,7 +220,9 @@ def _generate_detailed_report(
             f.write("DIAGNÓSTICO DE INCOMPATIBILIDAD GRAMÁTICA-DATOS\n")
             f.write("=" * 120 + "\n\n")
 
-            f.write(f"Archivo analizado: {os.path.basename(output_file.replace('grammar_diagnosis.txt', '')) if 'grammar_diagnosis.txt' in output_file else 'Desconocido'}\n")
+            f.write(
+                f"Archivo analizado: {os.path.basename(output_file.replace('grammar_diagnosis.txt', '')) if 'grammar_diagnosis.txt' in output_file else 'Desconocido'}\n"
+            )
             f.write(f"Codificación usada: {encoding_used}\n")
             f.write(f"Total líneas en archivo: {total_lines}\n")
             f.write(f"Líneas analizadas (sin encabezados): {analyzed_lines}\n")
@@ -231,28 +246,40 @@ def _generate_detailed_report(
                 for fl in sample_lines:
                     f.write(f"\nLínea {fl['line_num']}:\n")
                     f.write(f"  Error ({fl['error_type']}): {fl['error']}\n")
-                    f.write(f"  Campos: {fl['fields_count']} | Longitud línea: {fl['line_length']}\n")
+                    f.write(
+                        f"  Campos: {fl['fields_count']} | Longitud línea: {fl['line_length']}\n"
+                    )
                     f.write(f"  Contenido: {repr(fl['line'])}\n")
 
-                    if fl['fields_count'] > 0:
-                        f.write(f"  Campos (longitudes): {list(zip(range(fl['fields_count']), fl['field_lengths']))}\n")
+                    if fl["fields_count"] > 0:
+                        f.write(
+                            f"  Campos (longitudes): {list(zip(range(fl['fields_count']), fl['field_lengths']))}\n"
+                        )
 
                     # Mostrar campos vacíos y con solo espacios
-                    if fl['empty_field_positions']:
-                        f.write(f"  ⚠️  Campos completamente vacíos en posiciones: {fl['empty_field_positions']}\n")
-                    if fl['whitespace_only_positions']:
-                        f.write(f"  ⚠️  Campos con solo espacios en posiciones: {fl['whitespace_only_positions']}\n")
+                    if fl["empty_field_positions"]:
+                        f.write(
+                            f"  ⚠️  Campos completamente vacíos en posiciones: {fl['empty_field_positions']}\n"
+                        )
+                    if fl["whitespace_only_positions"]:
+                        f.write(
+                            f"  ⚠️  Campos con solo espacios en posiciones: {fl['whitespace_only_positions']}\n"
+                        )
 
                     # Mostrar características especiales
                     special_features = []
-                    if fl['has_trailing_semicolon']:
+                    if fl["has_trailing_semicolon"]:
                         special_features.append("termina en ;")
-                    if fl['has_leading_semicolon']:
+                    if fl["has_leading_semicolon"]:
                         special_features.append("comienza con ;")
                     if special_features:
-                        f.write(f"  💡 Características especiales: {', '.join(special_features)}\n")
+                        f.write(
+                            f"  💡 Características especiales: {', '.join(special_features)}\n"
+                        )
             else:
-                f.write("✓ No se encontraron líneas fallidas - la gramática es compatible con todos los datos analizados.\n")
+                f.write(
+                    "✓ No se encontraron líneas fallidas - la gramática es compatible con todos los datos analizados.\n"
+                )
 
     except IOError as e:
         logger.error(f"Error al escribir el archivo de reporte: {str(e)}")
@@ -270,21 +297,23 @@ def _write_statistical_analysis(f, failed_lines: List[Dict[str, Any]]) -> None:
     # Contar tipos de error
     error_type_counts = {}
     for fl in failed_lines:
-        err_type = fl['error_type']
+        err_type = fl["error_type"]
         error_type_counts[err_type] = error_type_counts.get(err_type, 0) + 1
 
     # Contar campos vacíos
-    total_empty_fields = sum(len(fl['empty_field_positions']) for fl in failed_lines)
-    total_whitespace_fields = sum(len(fl['whitespace_only_positions']) for fl in failed_lines)
+    total_empty_fields = sum(len(fl["empty_field_positions"]) for fl in failed_lines)
+    total_whitespace_fields = sum(
+        len(fl["whitespace_only_positions"]) for fl in failed_lines
+    )
 
     # Contar patrones de fallo comunes
-    trailing_semicolon_count = sum(1 for fl in failed_lines if fl['has_trailing_semicolon'])
-    leading_semicolon_count = sum(1 for fl in failed_lines if fl['has_leading_semicolon'])
+    trailing_semicolon_count = sum(1 for fl in failed_lines if fl["has_trailing_semicolon"])
+    leading_semicolon_count = sum(1 for fl in failed_lines if fl["has_leading_semicolon"])
 
     # Distribución de cantidad de campos
     field_count_distribution = {}
     for fl in failed_lines:
-        count = fl['fields_count']
+        count = fl["fields_count"]
         field_count_distribution[count] = field_count_distribution.get(count, 0) + 1
 
     # Escribir análisis
@@ -294,8 +323,10 @@ def _write_statistical_analysis(f, failed_lines: List[Dict[str, Any]]) -> None:
 
     if error_type_counts:
         f.write("Tipos de error:\n")
-        for err_type, count in sorted(error_type_counts.items(), key=lambda x: x[1], reverse=True):
-            f.write(f"  - {err_type}: {count} ({count/len(failed_lines)*100:.1f}%)\n")
+        for err_type, count in sorted(
+            error_type_counts.items(), key=lambda x: x[1], reverse=True
+        ):
+            f.write(f"  - {err_type}: {count} ({count / len(failed_lines) * 100:.1f}%)\n")
 
     f.write(f"Campos vacíos totales: {total_empty_fields}\n")
     f.write(f"Campos con solo espacios: {total_whitespace_fields}\n")
@@ -315,8 +346,7 @@ if __name__ == "__main__":
     sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
     logging.basicConfig(
-        level=logging.INFO,
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+        level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
     )
 
     if len(sys.argv) < 2:
@@ -341,11 +371,11 @@ if __name__ == "__main__":
 
     try:
         failed_lines = diagnose_grammar_mismatches(
-            csv_file=file_to_diagnose,
-            grammar=APU_GRAMMAR,
-            output_file=output_file
+            csv_file=file_to_diagnose, grammar=APU_GRAMMAR, output_file=output_file
         )
-        logger.info(f"Diagnóstico completado. Se encontraron {len(failed_lines)} líneas fallidas.")
+        logger.info(
+            f"Diagnóstico completado. Se encontraron {len(failed_lines)} líneas fallidas."
+        )
     except Exception as e:
         logger.error(f"Error durante el diagnóstico: {str(e)}")
         sys.exit(1)

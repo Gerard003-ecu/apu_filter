@@ -38,6 +38,7 @@ from agent.topological_analyzer import (
 # FIXTURES Y MOCKS
 # =============================================================================
 
+
 class TestFixtures:
     """Clase base con fixtures reutilizables."""
 
@@ -45,8 +46,11 @@ class TestFixtures:
     def clean_env(self, monkeypatch):
         """Limpia variables de entorno."""
         env_vars = [
-            "CORE_API_URL", "CHECK_INTERVAL", "REQUEST_TIMEOUT",
-            "LOG_LEVEL", "PERSISTENCE_WINDOW_SIZE"
+            "CORE_API_URL",
+            "CHECK_INTERVAL",
+            "REQUEST_TIMEOUT",
+            "LOG_LEVEL",
+            "PERSISTENCE_WINDOW_SIZE",
         ]
         for var in env_vars:
             monkeypatch.delenv(var, raising=False)
@@ -63,7 +67,7 @@ class TestFixtures:
     @pytest.fixture
     def mock_topology(self):
         """Mock de SystemTopology."""
-        with patch('agent.apu_agent.SystemTopology') as mock:
+        with patch("agent.apu_agent.SystemTopology") as mock:
             instance = mock.return_value
             # Default healthy state
             instance.get_topological_health.return_value = TopologicalHealth(
@@ -73,7 +77,7 @@ class TestFixtures:
                 request_loops=tuple(),
                 health_score=1.0,
                 level=HealthLevel.HEALTHY,
-                diagnostics={}
+                diagnostics={},
             )
             instance.calculate_betti_numbers.return_value = BettiNumbers(b0=1, b1=0)
             # Fix: update_connectivity must return a tuple (count, warnings)
@@ -83,7 +87,7 @@ class TestFixtures:
     @pytest.fixture
     def mock_persistence(self):
         """Mock de PersistenceHomology."""
-        with patch('agent.apu_agent.PersistenceHomology') as mock:
+        with patch("agent.apu_agent.PersistenceHomology") as mock:
             instance = mock.return_value
             # Default stable state
             instance.analyze_persistence.return_value = PersistenceAnalysisResult(
@@ -94,7 +98,7 @@ class TestFixtures:
                 active_count=0,
                 max_lifespan=0,
                 total_persistence=0,
-                metadata={}
+                metadata={},
             )
             yield instance
 
@@ -103,16 +107,14 @@ class TestFixtures:
         """
         Agente configurado con mocks topológicos.
         """
-        with patch.object(AutonomousAgent, '_setup_signal_handlers'):
+        with patch.object(AutonomousAgent, "_setup_signal_handlers"):
             agent = AutonomousAgent(
-                core_api_url="http://test-core:5000",
-                check_interval=1,
-                request_timeout=1
+                core_api_url="http://test-core:5000", check_interval=1, request_timeout=1
             )
             # Mock session
             agent._session = MagicMock()
             yield agent
-            if hasattr(agent, '_session') and agent._session:
+            if hasattr(agent, "_session") and agent._session:
                 agent._session.close()
 
     @pytest.fixture
@@ -122,13 +124,14 @@ class TestFixtures:
             "saturation": 0.5,
             "timestamp": datetime.now().isoformat(),
             "redis_connected": True,
-            "filesystem_accessible": True
+            "filesystem_accessible": True,
         }
 
 
 # =============================================================================
 # TESTS: THRESHOLD CONFIG (Restaurados)
 # =============================================================================
+
 
 class TestThresholdConfig(TestFixtures):
     """Tests para la configuración de umbrales."""
@@ -148,7 +151,7 @@ class TestThresholdConfig(TestFixtures):
             flyback_voltage_warning=0.3,
             flyback_voltage_critical=0.6,
             saturation_warning=0.7,
-            saturation_critical=0.85
+            saturation_critical=0.85,
         )
 
         assert config.flyback_voltage_warning == 0.3
@@ -156,24 +159,27 @@ class TestThresholdConfig(TestFixtures):
         assert config.saturation_warning == 0.7
         assert config.saturation_critical == 0.85
 
-    @pytest.mark.parametrize("warning,critical", [
-        (0.6, 0.5),  # warning >= critical
-        (0.5, 0.5),  # warning == critical
-        (-0.1, 0.5), # warning negativo
-        (0.5, 1.1),  # critical > 1.0
-    ])
+    @pytest.mark.parametrize(
+        "warning,critical",
+        [
+            (0.6, 0.5),  # warning >= critical
+            (0.5, 0.5),  # warning == critical
+            (-0.1, 0.5),  # warning negativo
+            (0.5, 1.1),  # critical > 1.0
+        ],
+    )
     def test_invalid_voltage_thresholds_rejected(self, warning, critical):
         """Verifica rechazo de umbrales de voltaje inválidos."""
         with pytest.raises(ValueError):
             ThresholdConfig(
-                flyback_voltage_warning=warning,
-                flyback_voltage_critical=critical
+                flyback_voltage_warning=warning, flyback_voltage_critical=critical
             )
 
 
 # =============================================================================
 # TESTS: TELEMETRY DATA (Restaurados)
 # =============================================================================
+
 
 class TestTelemetryData(TestFixtures):
     """Tests para el parsing y validación de datos de telemetría."""
@@ -187,33 +193,39 @@ class TestTelemetryData(TestFixtures):
         assert result.saturation == 0.5
         assert result.raw_data == nominal_response_data
 
-    @pytest.mark.parametrize("invalid_data", [
-        None, [], "string", 123
-    ])
+    @pytest.mark.parametrize("invalid_data", [None, [], "string", 123])
     def test_from_dict_invalid_data_returns_none(self, invalid_data):
         """Verifica que tipos de datos inválidos retornan None."""
         result = TelemetryData.from_dict(invalid_data)
         assert result is None
 
-    @pytest.mark.parametrize("input_data,expected_flyback,expected_saturation", [
-        ({}, 0.0, 0.0),
-        ({"flyback_voltage": 0.5}, 0.5, 0.0),
-        ({"saturation": 0.5}, 0.0, 0.5),
-        ({"metrics": {"flyback_voltage": 0.7}}, 0.7, 0.0),
-        ({"flux_condenser.max_flyback_voltage": 0.8}, 0.8, 0.0),
-    ])
-    def test_from_dict_missing_data_returns_defaults(self, input_data, expected_flyback, expected_saturation):
+    @pytest.mark.parametrize(
+        "input_data,expected_flyback,expected_saturation",
+        [
+            ({}, 0.0, 0.0),
+            ({"flyback_voltage": 0.5}, 0.5, 0.0),
+            ({"saturation": 0.5}, 0.0, 0.5),
+            ({"metrics": {"flyback_voltage": 0.7}}, 0.7, 0.0),
+            ({"flux_condenser.max_flyback_voltage": 0.8}, 0.8, 0.0),
+        ],
+    )
+    def test_from_dict_missing_data_returns_defaults(
+        self, input_data, expected_flyback, expected_saturation
+    ):
         """Verifica que datos faltantes retornan defaults (0.0/IDLE)."""
         result = TelemetryData.from_dict(input_data)
         assert result is not None
         assert result.flyback_voltage == expected_flyback
         assert result.saturation == expected_saturation
 
-    @pytest.mark.parametrize("voltage,expected", [
-        (1.5, 1.0),    # Clamp superior
-        (-0.5, 0.0),   # Clamp inferior
-        (0.5, 0.5),    # Sin cambio
-    ])
+    @pytest.mark.parametrize(
+        "voltage,expected",
+        [
+            (1.5, 1.0),  # Clamp superior
+            (-0.5, 0.0),  # Clamp inferior
+            (0.5, 0.5),  # Sin cambio
+        ],
+    )
     def test_voltage_clamping(self, voltage, expected):
         """Verifica clampeo de flyback_voltage a [0, 1]."""
         data = {"flyback_voltage": voltage, "saturation": 0.5}
@@ -227,16 +239,17 @@ class TestTelemetryData(TestFixtures):
 # TESTS: AGENT INITIALIZATION (Restaurados)
 # =============================================================================
 
+
 class TestAgentInitialization(TestFixtures):
     """Tests de inicialización y configuración del agente."""
 
-    def test_initialization_with_explicit_params(self, clean_env, mock_topology, mock_persistence):
+    def test_initialization_with_explicit_params(
+        self, clean_env, mock_topology, mock_persistence
+    ):
         """Verifica inicialización con parámetros explícitos."""
-        with patch.object(AutonomousAgent, '_setup_signal_handlers'):
+        with patch.object(AutonomousAgent, "_setup_signal_handlers"):
             agent = AutonomousAgent(
-                core_api_url="http://explicit:8000",
-                check_interval=30,
-                request_timeout=10
+                core_api_url="http://explicit:8000", check_interval=30, request_timeout=10
             )
 
             assert agent.core_api_url == "http://explicit:8000"
@@ -246,7 +259,7 @@ class TestAgentInitialization(TestFixtures):
 
     def test_initialization_from_env_vars(self, mock_env, mock_topology, mock_persistence):
         """Verifica inicialización desde variables de entorno."""
-        with patch.object(AutonomousAgent, '_setup_signal_handlers'):
+        with patch.object(AutonomousAgent, "_setup_signal_handlers"):
             agent = AutonomousAgent()
 
             assert agent.core_api_url == "http://test-core:5000"
@@ -257,6 +270,7 @@ class TestAgentInitialization(TestFixtures):
 # =============================================================================
 # TESTS: OBSERVE (Integración Topológica)
 # =============================================================================
+
 
 class TestObserve(TestFixtures):
     """Tests para la fase OBSERVE con lógica de tracking."""
@@ -315,6 +329,7 @@ class TestObserve(TestFixtures):
 # TESTS: ORIENT (Lógica Topológica Robusta)
 # =============================================================================
 
+
 class TestOrient(TestFixtures):
     """Tests para la fase ORIENT con prioridades topológicas."""
 
@@ -327,7 +342,7 @@ class TestOrient(TestFixtures):
             missing_edges=frozenset(),
             request_loops=tuple(),
             health_score=0.5,
-            level=HealthLevel.CRITICAL
+            level=HealthLevel.CRITICAL,
         )
 
         status = agent.orient(TelemetryData(flyback_voltage=0.1, saturation=0.1))
@@ -341,7 +356,7 @@ class TestOrient(TestFixtures):
         agent.topology.get_topological_health.return_value.betti = BettiNumbers(b0=1, b1=0)
 
         # Voltaje dispara safety net
-        telemetry = TelemetryData(flyback_voltage=0.9, saturation=0.1) # > 0.8 critical
+        telemetry = TelemetryData(flyback_voltage=0.9, saturation=0.1)  # > 0.8 critical
 
         status = agent.orient(telemetry)
 
@@ -350,17 +365,29 @@ class TestOrient(TestFixtures):
 
     def test_orient_priority_4_persistence_instability(self, agent, mock_persistence):
         """Prioridad 4: Inestabilidad Persistente (Feature/Critical) -> INESTABLE."""
+
         # Configurar persistencia para reportar FEATURE en voltaje
         def side_effect(metric, **kwargs):
             if metric == "flyback_voltage":
                 return PersistenceAnalysisResult(
                     state=MetricState.FEATURE,
-                    intervals=tuple(), feature_count=1, noise_count=0, active_count=0,
-                    max_lifespan=10, total_persistence=50, metadata={}
+                    intervals=tuple(),
+                    feature_count=1,
+                    noise_count=0,
+                    active_count=0,
+                    max_lifespan=10,
+                    total_persistence=50,
+                    metadata={},
                 )
             return PersistenceAnalysisResult(
-                state=MetricState.STABLE, intervals=tuple(), feature_count=0,
-                noise_count=0, active_count=0, max_lifespan=0, total_persistence=0, metadata={}
+                state=MetricState.STABLE,
+                intervals=tuple(),
+                feature_count=0,
+                noise_count=0,
+                active_count=0,
+                max_lifespan=0,
+                total_persistence=0,
+                metadata={},
             )
 
         mock_persistence.analyze_persistence.side_effect = side_effect
@@ -373,15 +400,17 @@ class TestOrient(TestFixtures):
     def test_orient_priority_5_retry_loops(self, agent, mock_topology):
         """Prioridad 5: Loops de Reintentos de Error -> INESTABLE."""
         # Simular loop de errores
-        loop_info = RequestLoopInfo(request_id="FAIL_TIMEOUT", count=6, first_seen=0, last_seen=10)
+        loop_info = RequestLoopInfo(
+            request_id="FAIL_TIMEOUT", count=6, first_seen=0, last_seen=10
+        )
 
         mock_topology.get_topological_health.return_value = TopologicalHealth(
             betti=BettiNumbers(b0=1, b1=0),
             disconnected_nodes=frozenset(),
             missing_edges=frozenset(),
-            request_loops=(loop_info,), # Loop presente
+            request_loops=(loop_info,),  # Loop presente
             health_score=0.8,
-            level=HealthLevel.DEGRADED
+            level=HealthLevel.DEGRADED,
         )
 
         status = agent.orient(TelemetryData(flyback_voltage=0.2, saturation=0.2))
@@ -394,8 +423,13 @@ class TestOrient(TestFixtures):
         # Configurar persistencia para reportar NOISE
         mock_persistence.analyze_persistence.return_value = PersistenceAnalysisResult(
             state=MetricState.NOISE,
-            intervals=tuple(), feature_count=0, noise_count=5, active_count=0,
-            max_lifespan=2, total_persistence=10, metadata={}
+            intervals=tuple(),
+            feature_count=0,
+            noise_count=5,
+            active_count=0,
+            max_lifespan=2,
+            total_persistence=10,
+            metadata={},
         )
 
         status = agent.orient(TelemetryData(flyback_voltage=0.55, saturation=0.2))
@@ -410,6 +444,7 @@ class TestOrient(TestFixtures):
 # TESTS: ACT (Diagnósticos Enriquecidos)
 # =============================================================================
 
+
 class TestAct(TestFixtures):
     """Tests para la fase ACT con mensajes enriquecidos."""
 
@@ -418,24 +453,41 @@ class TestAct(TestFixtures):
         # Preparar un diagnóstico rico
         diagnosis = TopologicalDiagnosis(
             health=TopologicalHealth(
-                betti=BettiNumbers(b0=1, b1=1), # Ciclo
-                disconnected_nodes=frozenset(), missing_edges=frozenset(),
-                request_loops=tuple(), health_score=0.8, level=HealthLevel.DEGRADED, diagnostics={}
+                betti=BettiNumbers(b0=1, b1=1),  # Ciclo
+                disconnected_nodes=frozenset(),
+                missing_edges=frozenset(),
+                request_loops=tuple(),
+                health_score=0.8,
+                level=HealthLevel.DEGRADED,
+                diagnostics={},
             ),
             voltage_persistence=PersistenceAnalysisResult(
-                state=MetricState.FEATURE, intervals=tuple(), feature_count=1, noise_count=0,
-                active_count=0, max_lifespan=10, total_persistence=10, metadata={}
+                state=MetricState.FEATURE,
+                intervals=tuple(),
+                feature_count=1,
+                noise_count=0,
+                active_count=0,
+                max_lifespan=10,
+                total_persistence=10,
+                metadata={},
             ),
             saturation_persistence=PersistenceAnalysisResult(
-                state=MetricState.STABLE, intervals=tuple(), feature_count=0, noise_count=0,
-                active_count=0, max_lifespan=0, total_persistence=0, metadata={}
+                state=MetricState.STABLE,
+                intervals=tuple(),
+                feature_count=0,
+                noise_count=0,
+                active_count=0,
+                max_lifespan=0,
+                total_persistence=0,
+                metadata={},
             ),
             summary="Test Diagnosis Summary",
-            recommended_status=SystemStatus.INESTABLE
+            recommended_status=SystemStatus.INESTABLE,
         )
         agent._last_diagnosis = diagnosis
 
         import logging
+
         with caplog.at_level(logging.WARNING):
             agent.act(AgentDecision.RECOMENDAR_LIMPIEZA)
 
@@ -457,8 +509,8 @@ class TestAct(TestFixtures):
 # TESTS: INTEGRACIÓN Y MÉTRICAS
 # =============================================================================
 
-class TestIntegration(TestFixtures):
 
+class TestIntegration(TestFixtures):
     def test_get_metrics_includes_topology(self, agent):
         """Verifica que get_metrics incluye sección de topología."""
         metrics = agent.get_metrics()
@@ -474,6 +526,7 @@ class TestIntegration(TestFixtures):
         # Se llama en __init__ para establecer Agent->Core, Core->Redis, etc.
         # Verificamos que se llamó al menos una vez
         assert agent.topology.update_connectivity.call_count >= 1
+
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

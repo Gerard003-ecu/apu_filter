@@ -188,9 +188,7 @@ def test_pipeline_run_integration(
 
         # --- Verificaciones ---
         # Verificar que el modelo fue cargado
-        MockSentenceTransformer.assert_called_with(
-            mock_config.model_name, device="cpu"
-        )
+        MockSentenceTransformer.assert_called_with(mock_config.model_name, device="cpu")
 
         # Verificar que el índice fue construido y guardado
         MockIndexFlatIP.assert_called_with(384)
@@ -243,9 +241,7 @@ def test_pipeline_with_mocked_write(mock_config, sample_dataframe, tmp_path):
         mock_model.get_sentence_embedding_dimension.return_value = 384
 
         # ¡CRUCIAL! Configurar encode para devolver un array numpy del tamaño correcto
-        mock_embeddings = np.random.rand(len(sample_dataframe), 384).astype(
-            np.float32
-        )
+        mock_embeddings = np.random.rand(len(sample_dataframe), 384).astype(np.float32)
         mock_model.encode.return_value = mock_embeddings
 
         MockSentenceTransformer.return_value = mock_model

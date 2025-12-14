@@ -18,13 +18,15 @@ def test_pipeline():
     # Setup test paths - assuming data is in data/ or data_dirty/
     # We need to ensure these files exist or use dummy ones if real ones aren't available
     # Based on file list: data/ likely has clean files, data_dirty has originals.
-    # The user mentioned "InsumosProcessor returning 0 items" implies we should test with the file that caused issues.
+    # The user mentioned "InsumosProcessor returning 0 items" implies we should test
+    # with the file that caused issues.
     # However, for a quick verify, we can check what files we have.
 
-    # Use clean files if available as they are likely the intended input for the pipeline after cleaning scripts
+    # Use clean files if available as they are likely the intended input for the pipeline
+    # after cleaning scripts
     # The user mentioned issues with InsumosProcessor parsing 'insumos.csv' (or clean version).
-    # Let's use the ones in data/ which are likely the 'clean' ones but named differently or the ones the app uses.
-    # The code usually expects them in data/
+    # Let's use the ones in data/ which are likely the 'clean' ones but named differently
+    # or the ones the app uses. The code usually expects them in data/
     presupuesto_path = "data/presupuesto_clean.csv"
     apus_path = "data/apus_clean.csv"
     insumos_path = "data/insumos_clean.csv"
@@ -62,7 +64,8 @@ def test_pipeline():
                 logger.info(f"✅ APU Types Distribution:\n{counts}")
                 if len(counts) > 1:
                     logger.info(
-                        "✅ Classification logic seems to be working (more than one type found)."
+                        "✅ Classification logic seems to be working "
+                        "(more than one type found)."
                     )
                 else:
                     logger.warning(
@@ -75,9 +78,8 @@ def test_pipeline():
 
         # Verification 3: Output files
         output_dir = config["output_dir"]
-        processed_file = os.path.join(
-            output_dir, config.get("processed_apus_file", "processed_apus.json")
-        )
+        # Removed unused variable `processed_file`
+        os.path.join(output_dir, config.get("processed_apus_file", "processed_apus.json"))
 
         # We need to manually save it as the director only returns context,
         # process_all_files handles saving usually.

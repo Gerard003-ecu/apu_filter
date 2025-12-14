@@ -691,7 +691,9 @@ class APUTransformer(Transformer):
         try:
             return str(item).strip()
         except Exception as e:
-            logger.warning(f"No se pudo convertir a string: {type(item).__name__}, error: {e}")
+            logger.warning(
+                f"No se pudo convertir a string: {type(item).__name__}, error: {e}"
+            )
             return ""
 
     def field(self, args: List[Any]) -> str:
@@ -725,7 +727,7 @@ class APUTransformer(Transformer):
             logger.warning(
                 f"Campo truncado de {len(result)} a {self._MAX_DESCRIPTION_LENGTH} caracteres"
             )
-            result = result[:self._MAX_DESCRIPTION_LENGTH]
+            result = result[: self._MAX_DESCRIPTION_LENGTH]
 
         return result
 
@@ -1014,11 +1016,11 @@ class APUTransformer(Transformer):
         except Exception as e:
             # Errores inesperados - log completo
             logger.error(
-                f"Error inesperado construyendo {formato.value}: "
-                f"{type(e).__name__}: {e}"
+                f"Error inesperado construyendo {formato.value}: {type(e).__name__}: {e}"
             )
             if self.config.get("debug_mode", False):
                 import traceback
+
                 logger.debug(f"Traceback:\n{traceback.format_exc()}")
             return None
 
@@ -1643,12 +1645,14 @@ class APUProcessor:
                         logger.debug(f"  ⚠️ Línea {line_num}: Insumo inválido descartado")
                         stats.empty_results += 1
                 else:
-                    stats.failed_lines.append({
-                        "line_number": line_num,
-                        "content": line_clean[:100],
-                        "apu_code": apu_code,
-                        "reason": "transform_returned_none",
-                    })
+                    stats.failed_lines.append(
+                        {
+                            "line_number": line_num,
+                            "content": line_clean[:100],
+                            "apu_code": apu_code,
+                            "reason": "transform_returned_none",
+                        }
+                    )
 
             except Exception as unexpected_error:
                 self._handle_unexpected_error(
@@ -1799,7 +1803,7 @@ class APUProcessor:
             stats.lark_unexpected_chars += 1
             logger.debug(
                 f"  ✗ Línea {line_num}: Carácter inesperado en posición {uc.column}\n"
-                f"    Contexto: ...{line[max(0, uc.column-10):uc.column+10]}..."
+                f"    Contexto: ...{line[max(0, uc.column - 10) : uc.column + 10]}..."
             )
             return None
 
@@ -1900,6 +1904,7 @@ class APUProcessor:
             )
             if self.debug_mode:
                 import traceback
+
                 logger.debug(f"Traceback:\n{traceback.format_exc()}")
             return None
 
@@ -1964,15 +1969,18 @@ class APUProcessor:
 
         if self.debug_mode:
             import traceback
+
             logger.debug(f"Traceback completo:\n{traceback.format_exc()}")
 
-        stats.failed_lines.append({
-            "line_number": line_num,
-            "content": line[:100],
-            "error": str(error),
-            "error_type": type(error).__name__,
-            "apu_code": apu_code,
-        })
+        stats.failed_lines.append(
+            {
+                "line_number": line_num,
+                "content": line[:100],
+                "error": str(error),
+                "error_type": type(error).__name__,
+                "apu_code": apu_code,
+            }
+        )
 
     def _merge_stats(self, apu_stats: ParsingStats):
         """
@@ -2144,10 +2152,7 @@ class APUProcessor:
             return None
 
         except ImportError as ie:
-            logger.error(
-                f"No se pudo importar Lark: {ie}\n"
-                f"  Ejecute: pip install lark"
-            )
+            logger.error(f"No se pudo importar Lark: {ie}\n  Ejecute: pip install lark")
             return None
 
         except Exception as e:
@@ -2158,6 +2163,7 @@ class APUProcessor:
             )
             if self.config.get("debug_mode", False):
                 import traceback
+
                 logger.debug(f"Traceback:\n{traceback.format_exc()}")
             return None
 

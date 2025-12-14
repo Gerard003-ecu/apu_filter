@@ -377,7 +377,9 @@ class PIController:
 
         # Cálculos derivados con protección
         self._base_output = (self.max_output + self.min_output) / 2.0
-        self._output_range = max(1, self.max_output - self.min_output)  # Evitar división por 0
+        self._output_range = max(
+            1, self.max_output - self.min_output
+        )  # Evitar división por 0
         self._integral_limit = self._output_range * max(0.1, integral_limit_factor)
 
         # Estado interno
@@ -448,7 +450,9 @@ class PIController:
             errors.append(f"max_output ({max_output}) debe ser > min_output ({min_output})")
 
         if integral_limit_factor <= 0:
-            errors.append(f"integral_limit_factor debe ser > 0, recibido: {integral_limit_factor}")
+            errors.append(
+                f"integral_limit_factor debe ser > 0, recibido: {integral_limit_factor}"
+            )
 
         if errors:
             raise ConfigurationError(
@@ -467,7 +471,7 @@ class PIController:
 
         # ==================== FILTRADO DE ENTRADA ====================
         # Filtro EMA para suavizar ruido (α=0.3)
-        if not hasattr(self, '_pv_filtered'):
+        if not hasattr(self, "_pv_filtered"):
             self._pv_filtered = process_variable
         else:
             alpha = 0.3
@@ -478,13 +482,13 @@ class PIController:
         # Validación reforzada
         if math.isnan(process_variable) or math.isinf(process_variable):
             self.logger.warning("PV inválido, usando setpoint con decaimiento")
-            process_variable = self.setpoint * (0.9 ** self._iteration_count)
+            process_variable = self.setpoint * (0.9**self._iteration_count)
 
         # ==================== CÁLCULO DE ERROR CON HISTÉRESIS ====================
         error = self.setpoint - process_variable
 
         # Histéresis para evitar oscilaciones menores al 1%
-        if hasattr(self, '_last_error') and self._last_error is not None:
+        if hasattr(self, "_last_error") and self._last_error is not None:
             error_change = abs(error - self._last_error)
             if error_change < 0.01:  # 1% de umbral
                 error = self._last_error  # Mantener error anterior
@@ -497,17 +501,18 @@ class PIController:
             error_derivative = 0.0
         else:
             dt = current_time - self._last_time
-            dt = max(SystemConstants.MIN_DELTA_TIME,
-                    min(dt, SystemConstants.MAX_DELTA_TIME))
+            dt = max(SystemConstants.MIN_DELTA_TIME, min(dt, SystemConstants.MAX_DELTA_TIME))
 
             # Cálculo de derivada con filtro (evita ruido)
             if self._last_error is not None:
                 raw_derivative = (error - self._last_error) / dt
                 # Filtro de primer orden para derivada
-                if not hasattr(self, '_derivative_filtered'):
+                if not hasattr(self, "_derivative_filtered"):
                     self._derivative_filtered = raw_derivative
                 else:
-                    self._derivative_filtered = 0.7 * raw_derivative + 0.3 * self._derivative_filtered
+                    self._derivative_filtered = (
+                        0.7 * raw_derivative + 0.3 * self._derivative_filtered
+                    )
                 error_derivative = self._derivative_filtered
             else:
                 error_derivative = 0.0
@@ -531,8 +536,7 @@ class PIController:
             excess_ratio = abs(self._integral_error) / self._integral_limit
             # Soft clipping: tanh
             self._integral_error = math.copysign(
-                self._integral_limit * math.tanh(excess_ratio),
-                self._integral_error
+                self._integral_limit * math.tanh(excess_ratio), self._integral_error
             )
 
         # ==================== CÁLCULO DE SALIDA ====================
@@ -554,13 +558,18 @@ class PIController:
                 self.logger.debug("Stall detection - boosting integral")
 
         # ==================== SATURACIÓN Y REDONDEO INTELIGENTE ====================
-        output = int(np.round(control_signal)) if 'np' in globals() else int(round(control_signal))
+        output = (
+            int(np.round(control_signal))
+            if "np" in globals()
+            else int(round(control_signal))
+        )
 
         # Evitar cambios bruscos (limitación de slew rate)
-        if hasattr(self, '_last_output') and self._last_output is not None:
+        if hasattr(self, "_last_output") and self._last_output is not None:
             max_change = max(50, self._output_range * 0.1)  # Máximo 10% del rango o 50
-            output = self._last_output + max(-max_change,
-                                            min(max_change, output - self._last_output))
+            output = self._last_output + max(
+                -max_change, min(max_change, output - self._last_output)
+            )
 
         output = max(self.min_output, min(self.max_output, output))
         self._last_output = output
@@ -575,7 +584,9 @@ class PIController:
             "pv": process_variable,
             "error": error,
             "error_derivative": error_derivative,
-            "P": P, "I": I, "D": D,
+            "P": P,
+            "I": I,
+            "D": D,
             "output": output,
             "integral": self._integral_error,
             "dt": dt,
@@ -609,9 +620,12 @@ class PIController:
         self._history.clear()
 
         # Reset variables adicionales de estado
-        if hasattr(self, '_pv_filtered'): del self._pv_filtered
-        if hasattr(self, '_derivative_filtered'): del self._derivative_filtered
-        if hasattr(self, '_last_output'): del self._last_output
+        if hasattr(self, "_pv_filtered"):
+            del self._pv_filtered
+        if hasattr(self, "_derivative_filtered"):
+            del self._derivative_filtered
+        if hasattr(self, "_last_output"):
+            del self._last_output
 
         self.logger.debug("[PID] Controlador reseteado")
 
@@ -645,7 +659,7 @@ class PIController:
         if not self._history:
             return {"status": "NO_DATA", "message": "Sin historial disponible"}
 
-        recent = self._history[-min(20, len(self._history)):]
+        recent = self._history[-min(20, len(self._history)) :]
 
         avg_error = sum(h["error"] for h in recent) / len(recent)
         avg_output = sum(h["output"] for h in recent) / len(recent)
@@ -654,7 +668,7 @@ class PIController:
         # Detectar oscilaciones
         sign_changes = 0
         for i in range(1, len(recent)):
-            if recent[i]["error"] * recent[i-1]["error"] < 0:
+            if recent[i]["error"] * recent[i - 1]["error"] < 0:
                 sign_changes += 1
 
         oscillating = sign_changes > len(recent) * 0.4
@@ -667,8 +681,10 @@ class PIController:
             "sign_changes": sign_changes,
             "is_oscillating": oscillating,
             "recommendation": (
-                "Reducir Kp si hay oscilaciones" if oscillating
-                else "Sistema estable" if abs(avg_error) < 0.1
+                "Reducir Kp si hay oscilaciones"
+                if oscillating
+                else "Sistema estable"
+                if abs(avg_error) < 0.1
                 else "Aumentar Ki si error persistente"
             ),
         }
@@ -769,7 +785,9 @@ class FluxPhysicsEngine:
             complexity = 1.0 - current_I
 
             # Resistencia dinámica (aumenta con complejidad)
-            R_dyn = self.R * (1.0 + complexity * SystemConstants.COMPLEXITY_RESISTANCE_FACTOR)
+            R_dyn = self.R * (
+                1.0 + complexity * SystemConstants.COMPLEXITY_RESISTANCE_FACTOR
+            )
 
             # ================ ECUACIONES DEL CIRCUITO RLC ================
             # Constante de amortiguamiento (ζ)
@@ -793,20 +811,23 @@ class FluxPhysicsEngine:
 
                 if damping_ratio < 1.0:  # Subamortiguado
                     exp_term = math.exp(-damping_ratio * omega_n * t_normalized)
-                    sin_term = math.sin(omega_d * t_normalized + math.atan2(
-                        omega_d, damping_ratio * omega_n
-                    ))
-                    saturation_V = 1.0 - exp_term * sin_term / math.sqrt(1 - damping_ratio**2)
+                    sin_term = math.sin(
+                        omega_d * t_normalized + math.atan2(omega_d, damping_ratio * omega_n)
+                    )
+                    saturation_V = 1.0 - exp_term * sin_term / math.sqrt(
+                        1 - damping_ratio**2
+                    )
                 elif abs(damping_ratio - 1.0) < 1e-6:  # Críticamente amortiguado
                     exp_term = math.exp(-omega_n * t_normalized)
                     saturation_V = 1.0 - (1.0 + omega_n * t_normalized) * exp_term
                 else:  # Sobreamortiguado
                     s1 = -omega_n * (damping_ratio - math.sqrt(damping_ratio**2 - 1))
                     s2 = -omega_n * (damping_ratio + math.sqrt(damping_ratio**2 - 1))
-                    A = (s2 / (s2 - s1))
-                    B = (s1 / (s1 - s2))
-                    saturation_V = 1.0 - (A * math.exp(s1 * t_normalized) +
-                                        B * math.exp(s2 * t_normalized))
+                    A = s2 / (s2 - s1)
+                    B = s1 / (s1 - s2)
+                    saturation_V = 1.0 - (
+                        A * math.exp(s1 * t_normalized) + B * math.exp(s2 * t_normalized)
+                    )
             else:
                 saturation_V = 0.0
 
@@ -815,20 +836,20 @@ class FluxPhysicsEngine:
 
             # ================ ENERGÍAS Y POTENCIA ================
             # Energía en capacitor (normalizada)
-            E_c = 0.5 * self.C * (saturation_V ** 2) / self.C  # Normalizada por C
+            E_c = 0.5 * self.C * (saturation_V**2) / self.C  # Normalizada por C
 
             # Energía en inductor (normalizada)
-            E_l = 0.5 * self.L * (current_I ** 2) / self.L  # Normalizada por L
+            E_l = 0.5 * self.L * (current_I**2) / self.L  # Normalizada por L
 
             # Potencia disipada en resistor
-            P_diss = (complexity ** 2) * R_dyn
+            P_diss = (complexity**2) * R_dyn
 
             # Factor de potencia del sistema
             power_factor = current_I / math.sqrt(current_I**2 + complexity**2 + 1e-10)
 
             # ================ TENSIÓN DE FLYBACK (L·di/dt) ================
             # Calcular di/dt estimado
-            if not hasattr(self, '_last_current'):
+            if not hasattr(self, "_last_current"):
                 self._last_current = current_I
                 self._last_time = time.time()
 
@@ -856,29 +877,30 @@ class FluxPhysicsEngine:
                 # Métricas principales
                 "saturation": self._sanitize_metric(saturation_V, 0.0, 1.0),
                 "complexity": self._sanitize_metric(complexity, 0.0, 1.0),
-                "flyback_voltage": self._sanitize_metric(V_flyback, 0.0, SystemConstants.MAX_FLYBACK_VOLTAGE),
+                "flyback_voltage": self._sanitize_metric(
+                    V_flyback, 0.0, SystemConstants.MAX_FLYBACK_VOLTAGE
+                ),
                 "potential_energy": self._sanitize_metric(E_c, 0.0, 1e10),
                 "kinetic_energy": self._sanitize_metric(E_l, 0.0, 1e10),
                 "dissipated_power": self._sanitize_metric(P_diss, 0.0, 1e6),
-
                 # Parámetros del sistema
                 "current_I": self._sanitize_metric(current_I, 0.0, 1.0),
                 "dynamic_resistance": self._sanitize_metric(R_dyn, 0.0, 1e6),
                 "damping_ratio": self._sanitize_metric(damping_ratio, 0.0, 10.0),
                 "natural_frequency": self._sanitize_metric(omega_n, 0.0, 1e6),
                 "damped_frequency": self._sanitize_metric(omega_d, 0.0, 1e6),
-
                 # Métricas de calidad
                 "power_factor": self._sanitize_metric(power_factor, 0.0, 1.0),
                 "stability_factor": self._sanitize_metric(stability_factor, 0.0, 1.0),
                 "phase_margin": self._sanitize_metric(phase_margin, 0.0, 90.0),
-
                 # Diagnóstico
                 "system_type": (
-                    "UNDERDAMPED" if damping_ratio < 0.7 else
-                    "CRITICALLY_DAMPED" if abs(damping_ratio - 1.0) < 0.1 else
-                    "OVERDAMPED"
-                )
+                    "UNDERDAMPED"
+                    if damping_ratio < 0.7
+                    else "CRITICALLY_DAMPED"
+                    if abs(damping_ratio - 1.0) < 0.1
+                    else "OVERDAMPED"
+                ),
             }
 
             # Almacenar en historial
@@ -886,9 +908,13 @@ class FluxPhysicsEngine:
 
             # Diagnóstico en tiempo real
             if damping_ratio < 0.5:
-                self.logger.debug(f"Sistema subamortiguado (ζ={damping_ratio:.2f}) - posibles oscilaciones")
+                self.logger.debug(
+                    f"Sistema subamortiguado (ζ={damping_ratio:.2f}) - posibles oscilaciones"
+                )
             elif damping_ratio > 2.0:
-                self.logger.debug(f"Sistema sobreamortiguado (ζ={damping_ratio:.2f}) - respuesta lenta")
+                self.logger.debug(
+                    f"Sistema sobreamortiguado (ζ={damping_ratio:.2f}) - respuesta lenta"
+                )
 
             return metrics
 
@@ -897,9 +923,7 @@ class FluxPhysicsEngine:
             # Fallback a modelo de primer orden (implementado internamente)
             return self._get_zero_metrics()
 
-    def _sanitize_metric(
-        self, value: float, min_val: float, max_val: float
-    ) -> float:
+    def _sanitize_metric(self, value: float, min_val: float, max_val: float) -> float:
         """
         Sanitiza un valor de métrica asegurando que sea válido.
 
@@ -934,7 +958,7 @@ class FluxPhysicsEngine:
             "power_factor": 0.0,
             "stability_factor": 0.0,
             "phase_margin": 45.0,
-            "system_type": "UNKNOWN"
+            "system_type": "UNKNOWN",
         }
 
     def _store_metrics(self, metrics: Dict[str, float]) -> None:
@@ -1046,14 +1070,20 @@ class FluxPhysicsEngine:
             "saturation": {
                 "current": saturations[-1],
                 "average": avg_saturation,
-                "trend": "INCREASING" if saturation_trend > 0.05 else
-                         "DECREASING" if saturation_trend < -0.05 else "STABLE",
+                "trend": "INCREASING"
+                if saturation_trend > 0.05
+                else "DECREASING"
+                if saturation_trend < -0.05
+                else "STABLE",
             },
             "power": {
                 "current": powers[-1],
                 "average": avg_power,
-                "trend": "INCREASING" if power_trend > 1.0 else
-                         "DECREASING" if power_trend < -1.0 else "STABLE",
+                "trend": "INCREASING"
+                if power_trend > 1.0
+                else "DECREASING"
+                if power_trend < -1.0
+                else "STABLE",
             },
         }
 
@@ -1283,7 +1313,7 @@ class DataFluxCondenser:
                     f"[STABILIZE] Excede límite de registros: {total_records} > "
                     f"{SystemConstants.MAX_RECORDS_LIMIT}. Truncando."
                 )
-                raw_records = raw_records[:SystemConstants.MAX_RECORDS_LIMIT]
+                raw_records = raw_records[: SystemConstants.MAX_RECORDS_LIMIT]
                 total_records = len(raw_records)
 
             # ═══════════════════════════════════════════════════════════════════
@@ -1506,7 +1536,7 @@ class DataFluxCondenser:
                     f"[EXTRACT] Cache muy grande ({len(cache)} entradas), truncando a {SystemConstants.MAX_CACHE_SIZE}"
                 )
                 # Mantener las últimas entradas
-                cache_items = list(cache.items())[-SystemConstants.MAX_CACHE_SIZE:]
+                cache_items = list(cache.items())[-SystemConstants.MAX_CACHE_SIZE :]
                 cache = dict(cache_items)
 
             self.logger.info(
@@ -1562,8 +1592,9 @@ class DataFluxCondenser:
         # Límite dinámico de iteraciones basado en complejidad
         avg_complexity = 0.5  # Estimación inicial
         complexity_adjusted_limit = int(
-            total_records * SystemConstants.MAX_ITERATIONS_MULTIPLIER *
-            (1.0 + avg_complexity)
+            total_records
+            * SystemConstants.MAX_ITERATIONS_MULTIPLIER
+            * (1.0 + avg_complexity)
         )
 
         self.logger.info(
@@ -1579,9 +1610,11 @@ class DataFluxCondenser:
 
             # ================ PREDICCIÓN DE TIEMPO RESTANTE ================
             if len(batch_times) >= 3:
-                avg_time_per_record = np.mean([
-                    t / s for t, s in zip(batch_times[-3:], batch_sizes[-3:])
-                ]) if 'np' in globals() else 1.0
+                avg_time_per_record = (
+                    np.mean([t / s for t, s in zip(batch_times[-3:], batch_sizes[-3:])])
+                    if "np" in globals()
+                    else 1.0
+                )
 
                 records_remaining = total_records - current_index
                 estimated_time_remaining = records_remaining * avg_time_per_record
@@ -1589,7 +1622,7 @@ class DataFluxCondenser:
                 if iteration % 10 == 0:
                     self.logger.info(
                         f"📈 Progreso: {current_index:,}/{total_records:,} "
-                        f"({current_index/total_records*100:.1f}%) | "
+                        f"({current_index / total_records * 100:.1f}%) | "
                         f"ETA: {estimated_time_remaining:.1f}s"
                     )
 
@@ -1597,18 +1630,18 @@ class DataFluxCondenser:
             # Basado en rendimiento reciente
             if len(batch_times) >= 5:
                 recent_efficiency = [
-                    s / t if t > 0 else s
-                    for t, s in zip(batch_times[-5:], batch_sizes[-5:])
+                    s / t if t > 0 else s for t, s in zip(batch_times[-5:], batch_sizes[-5:])
                 ]
                 avg_efficiency = sum(recent_efficiency) / len(recent_efficiency)
 
                 # Ajustar batch size si eficiencia baja
                 if avg_efficiency < 10:  # Menos de 10 registros/segundo
                     current_batch_size = max(
-                        min_backoff_batch,
-                        int(current_batch_size * 0.8)
+                        min_backoff_batch, int(current_batch_size * 0.8)
                     )
-                    self.logger.debug(f"Eficiencia baja ({avg_efficiency:.1f} rec/s), reduciendo batch")
+                    self.logger.debug(
+                        f"Eficiencia baja ({avg_efficiency:.1f} rec/s), reduciendo batch"
+                    )
 
             # ================ EXTRAER LOTE CON PADDING INTELIGENTE ================
             end_index = min(current_index + current_batch_size, total_records)
@@ -1619,10 +1652,7 @@ class DataFluxCondenser:
                 remaining = total_records - end_index
                 if remaining > current_batch_size * 0.3:
                     # Extender batch para incluir sección completa
-                    potential_end = min(
-                        end_index + (100 - (end_index % 100)),
-                        total_records
-                    )
+                    potential_end = min(end_index + (100 - (end_index % 100)), total_records)
                     if potential_end - current_index <= self.condenser_config.max_batch_size:
                         end_index = potential_end
 
@@ -1643,19 +1673,22 @@ class DataFluxCondenser:
                 position_factor = 1.1  # Cuidado al final
 
             metrics = self.physics.calculate_metrics(
-                len(batch_records) * position_factor,
-                cache_hits
+                len(batch_records) * position_factor, cache_hits
             )
 
             # ================ CONTROL PID CON LIMITADORES DINÁMICOS ================
             saturation = metrics["saturation"]
 
             # Limitar cambios bruscos en saturación
-            if hasattr(self, '_last_saturation'):
+            if hasattr(self, "_last_saturation"):
                 saturation_change = abs(saturation - self._last_saturation)
                 if saturation_change > 0.3:  # Cambio mayor al 30%
-                    saturation = self._last_saturation + math.copysign(0.3, saturation - self._last_saturation)
-                    self.logger.debug(f"Limiting saturation change: {saturation_change:.2f} -> 0.3")
+                    saturation = self._last_saturation + math.copysign(
+                        0.3, saturation - self._last_saturation
+                    )
+                    self.logger.debug(
+                        f"Limiting saturation change: {saturation_change:.2f} -> 0.3"
+                    )
 
             new_batch_size = self.controller.compute(saturation)
             self._last_saturation = saturation
@@ -1667,7 +1700,7 @@ class DataFluxCondenser:
                 )
                 new_batch_size = max(
                     self.condenser_config.min_batch_size,
-                    int(new_batch_size * SystemConstants.EMERGENCY_BRAKE_FACTOR)
+                    int(new_batch_size * SystemConstants.EMERGENCY_BRAKE_FACTOR),
                 )
                 self._stats.emergency_brakes_triggered += 1
 
@@ -1693,13 +1726,15 @@ class DataFluxCondenser:
                     if len(batch_times) >= 2:
                         total_time = sum(batch_times[-10:])
                         total_records_processed = sum(batch_sizes[-10:])
-                        records_per_second = total_records_processed / total_time if total_time > 0 else 0
+                        records_per_second = (
+                            total_records_processed / total_time if total_time > 0 else 0
+                        )
 
                         # Ajuste adaptativo basado en throughput
                         if records_per_second > 1000:  # Alto throughput
                             new_batch_size = min(
                                 self.condenser_config.max_batch_size,
-                                int(new_batch_size * 1.1)
+                                int(new_batch_size * 1.1),
                             )
             else:
                 consecutive_failures += 1
@@ -1707,10 +1742,10 @@ class DataFluxCondenser:
 
                 # Backoff exponencial con jitter
                 backoff_factor *= 2.0
-                jitter = 0.9 + (random.random() * 0.2) if 'random' in globals() else 1.0
+                jitter = 0.9 + (random.random() * 0.2) if "random" in globals() else 1.0
                 current_batch_size = max(
                     min_backoff_batch,
-                    int(self.condenser_config.min_batch_size * backoff_factor * jitter)
+                    int(self.condenser_config.min_batch_size * backoff_factor * jitter),
                 )
 
                 self.logger.warning(
@@ -1724,7 +1759,9 @@ class DataFluxCondenser:
                     # Reducir batch size drásticamente
                     current_batch_size = min_backoff_batch
                     # Saltar registros problemáticos
-                    current_index += len(batch_records) // 2  # Saltar mitad del batch fallido
+                    current_index += (
+                        len(batch_records) // 2
+                    )  # Saltar mitad del batch fallido
 
             # ================ ACTUALIZAR ESTADÍSTICAS ================
             self._stats.add_batch_stats(
@@ -1754,18 +1791,20 @@ class DataFluxCondenser:
             if batch_result.success:
                 current_batch_size = min(
                     self.condenser_config.max_batch_size,
-                    max(self.condenser_config.min_batch_size, new_batch_size)
+                    max(self.condenser_config.min_batch_size, new_batch_size),
                 )
 
         # ================ RESUMEN FINAL ================
         total_time = time.time() - total_start_time
-        overall_throughput = self._stats.processed_records / total_time if total_time > 0 else 0
+        overall_throughput = (
+            self._stats.processed_records / total_time if total_time > 0 else 0
+        )
 
         self.logger.info(
             f"✅ [PID_LOOP] Completado en {total_time:.1f}s | "
             f"Throughput: {overall_throughput:.1f} rec/s | "
             f"Batches: {self._stats.total_batches} (fallidos: {failed_batches_count}) | "
-            f"Eficiencia: {self._stats.processed_records/total_records*100:.1f}%"
+            f"Eficiencia: {self._stats.processed_records / total_records * 100:.1f}%"
         )
 
         return processed_batches
@@ -1838,7 +1877,7 @@ class DataFluxCondenser:
             return 0
 
         # Preprocesar claves del cache para búsqueda rápida
-        if not hasattr(self, '_cache_keys_normalized'):
+        if not hasattr(self, "_cache_keys_normalized"):
             self._cache_keys_normalized = {}
             for key, value in cache.items():
                 if isinstance(key, str):
@@ -1881,8 +1920,8 @@ class DataFluxCondenser:
                                 break
 
             # Estrategia 3: Hash de contenido
-            if not record_hit and 'hash' in record:
-                content_hash = record.get('hash')
+            if not record_hit and "hash" in record:
+                content_hash = record.get("hash")
                 if isinstance(content_hash, (str, int)):
                     str_hash = str(content_hash)
                     if str_hash in cache or f"hash_{str_hash}" in cache:
@@ -1898,9 +1937,7 @@ class DataFluxCondenser:
 
         return int(cache_hits)
 
-    def _consolidate_results(
-        self, processed_batches: List[pd.DataFrame]
-    ) -> pd.DataFrame:
+    def _consolidate_results(self, processed_batches: List[pd.DataFrame]) -> pd.DataFrame:
         """
         Consolida múltiples DataFrames en uno solo.
 
@@ -1925,21 +1962,27 @@ class DataFluxCondenser:
                 f"[CONSOLIDATE] Demasiados batches ({len(processed_batches)}), "
                 f"usando los últimos {SystemConstants.MAX_BATCHES_TO_CONSOLIDATE}"
             )
-            processed_batches = processed_batches[-SystemConstants.MAX_BATCHES_TO_CONSOLIDATE:]
+            processed_batches = processed_batches[
+                -SystemConstants.MAX_BATCHES_TO_CONSOLIDATE :
+            ]
 
         try:
             # Filtrar batches válidos
             valid_batches = []
             for i, batch in enumerate(processed_batches):
                 if not isinstance(batch, pd.DataFrame):
-                    self.logger.warning(f"[CONSOLIDATE] Batch {i} no es DataFrame, ignorando")
+                    self.logger.warning(
+                        f"[CONSOLIDATE] Batch {i} no es DataFrame, ignorando"
+                    )
                     continue
                 if batch.empty:
                     continue
                 valid_batches.append(batch)
 
             if not valid_batches:
-                self.logger.warning("[CONSOLIDATE] Todos los batches están vacíos o inválidos")
+                self.logger.warning(
+                    "[CONSOLIDATE] Todos los batches están vacíos o inválidos"
+                )
                 return pd.DataFrame()
 
             # Concatenar

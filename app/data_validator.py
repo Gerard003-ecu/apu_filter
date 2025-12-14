@@ -19,6 +19,7 @@ except ImportError:
 # Optional fuzzy matching
 try:
     from fuzzywuzzy import process
+
     HAS_FUZZY = True
 except ImportError:
     HAS_FUZZY = False
@@ -41,12 +42,31 @@ MAX_IDENTIFICADOR_LENGTH = 100
 MAX_FUZZY_ATTEMPTS_PER_BATCH = 1000
 
 # Constante extendida de valores a tratar como inválidos en descripciones
-VALORES_DESCRIPCION_INVALIDOS = frozenset([
-    "nan", "none", "null", "", "n/a", "na", "n.a.", "n.a",
-    "-", "--", "---", ".", "..", "...",
-    "undefined", "sin descripcion", "sin descripción",
-    "no aplica", "no disponible", "pendiente",
-])
+VALORES_DESCRIPCION_INVALIDOS = frozenset(
+    [
+        "nan",
+        "none",
+        "null",
+        "",
+        "n/a",
+        "na",
+        "n.a.",
+        "n.a",
+        "-",
+        "--",
+        "---",
+        ".",
+        "..",
+        "...",
+        "undefined",
+        "sin descripcion",
+        "sin descripción",
+        "no aplica",
+        "no disponible",
+        "pendiente",
+    ]
+)
+
 
 # ============================================================================
 # ENUMS Y DATACLASSES
@@ -100,9 +120,11 @@ class ValidationMetrics:
             "alertas_por_tipo": self.alertas_por_tipo,
         }
 
+
 @dataclass
 class CampoFaltanteInfo:
     """Información detallada sobre un campo faltante o inválido"""
+
     nombre: str
     motivo: str  # "faltante", "none", "vacio", "nan"
     valor_actual: Any = None
@@ -170,7 +192,9 @@ def _agregar_alerta(
         bool: True si la alerta fue agregada, False si fue ignorada (duplicado o límite)
     """
     if not isinstance(item, dict):
-        logger.warning(f"Intento de agregar alerta a un item que no es diccionario: {type(item)}")
+        logger.warning(
+            f"Intento de agregar alerta a un item que no es diccionario: {type(item)}"
+        )
         return False
 
     if "alertas" not in item:
@@ -230,8 +254,7 @@ def _validar_campos_requeridos(
     if not isinstance(item, dict):
         logger.error(f"Item '{nombre_item}' no es un diccionario: {type(item)}")
         return [
-            CampoFaltanteInfo(campo, "item_invalido", None)
-            for campo in campos_requeridos
+            CampoFaltanteInfo(campo, "item_invalido", None) for campo in campos_requeridos
         ]
 
     campos_problematicos = []
@@ -285,7 +308,11 @@ def _validar_coherencia_matematica(
             (es_coherente, diferencia_porcentual, mensaje_detalle)
     """
     # Validar que todos los valores sean números válidos
-    valores = {"cantidad": cantidad, "precio_unitario": precio_unitario, "valor_total": valor_total}
+    valores = {
+        "cantidad": cantidad,
+        "precio_unitario": precio_unitario,
+        "valor_total": valor_total,
+    }
     for nombre, valor in valores.items():
         if not _es_numero_valido(valor):
             return True, None, f"Valor inválido en {nombre}: {valor}"
@@ -314,9 +341,13 @@ def _validar_coherencia_matematica(
     # Caso: valor_esperado ≈ 0 pero valor_total no
     if abs(valor_esperado) < TOLERANCIA_COMPARACION_FLOAT:
         if abs(valor_total) >= TOLERANCIA_COMPARACION_FLOAT:
-            return False, None, (
-                f"Valor esperado es ~0 (cantidad={cantidad}, precio={precio_unitario}) "
-                f"pero valor_total={valor_total}"
+            return (
+                False,
+                None,
+                (
+                    f"Valor esperado es ~0 (cantidad={cantidad}, precio={precio_unitario}) "
+                    f"pero valor_total={valor_total}"
+                ),
             )
         return True, 0.0, "Valor esperado y valor total son ambos ~0"
 
@@ -324,8 +355,10 @@ def _validar_coherencia_matematica(
     if abs(valor_total) < TOLERANCIA_COMPARACION_FLOAT:
         if abs(valor_esperado) >= TOLERANCIA_COMPARACION_FLOAT:
             diferencia_pct = 100.0  # 100% de diferencia
-            return False, diferencia_pct, (
-                f"Valor total es ~0 pero valor esperado es {valor_esperado:.2f}"
+            return (
+                False,
+                diferencia_pct,
+                (f"Valor total es ~0 pero valor esperado es {valor_esperado:.2f}"),
             )
 
     # Calcular diferencia porcentual usando el valor más grande como referencia
@@ -384,10 +417,10 @@ def _limpiar_y_validar_descripcion(
             pass  # Continuar sin normalización si falla
 
     # Eliminar caracteres de control (excepto espacios, tabs, newlines)
-    descripcion_str = re.sub(r'[\x00-\x08\x0b\x0c\x0e-\x1f\x7f-\x9f]', '', descripcion_str)
+    descripcion_str = re.sub(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f-\x9f]", "", descripcion_str)
 
     # Normalizar espacios: múltiples espacios/tabs/newlines a un solo espacio
-    descripcion_str = re.sub(r'\s+', ' ', descripcion_str)
+    descripcion_str = re.sub(r"\s+", " ", descripcion_str)
 
     # Strip de espacios al inicio y final
     descripcion_str = descripcion_str.strip()
@@ -413,7 +446,7 @@ def _limpiar_y_validar_descripcion(
         )
         # Truncar en un límite de palabra si es posible
         descripcion_truncada = descripcion_str[:max_length]
-        ultimo_espacio = descripcion_truncada.rfind(' ')
+        ultimo_espacio = descripcion_truncada.rfind(" ")
         if ultimo_espacio > max_length * 0.8:  # Solo si no perdemos mucho
             descripcion_str = descripcion_truncada[:ultimo_espacio].rstrip() + "..."
         else:
@@ -444,7 +477,14 @@ def _obtener_identificador_item(
         return f"<no-dict:{type(item).__name__}>"
 
     if campos_prioritarios is None:
-        campos_prioritarios = ["ITEM", "ID", "CODIGO", "DESCRIPCION_INSUMO", "DESCRIPCION", "NOMBRE"]
+        campos_prioritarios = [
+            "ITEM",
+            "ID",
+            "CODIGO",
+            "DESCRIPCION_INSUMO",
+            "DESCRIPCION",
+            "NOMBRE",
+        ]
 
     for campo in campos_prioritarios:
         if campo not in item:
@@ -555,7 +595,9 @@ def _validate_extreme_costs(
             try:
                 valor = float(valor_limpio)
                 item[campo_costo] = valor  # Actualizar con valor convertido
-                logger.debug(f"Valor convertido de string a float en item '{item_id}': {valor}")
+                logger.debug(
+                    f"Valor convertido de string a float en item '{item_id}': {valor}"
+                )
             except (ValueError, TypeError):
                 logger.warning(
                     f"Valor de costo no convertible en item '{item_id}': '{valor}'"
@@ -642,8 +684,7 @@ def _validate_extreme_costs(
 
     # Actualizar contador de items con alertas
     metrics.items_con_alertas = sum(
-        1 for item in result
-        if isinstance(item, dict) and item.get("alertas")
+        1 for item in result if isinstance(item, dict) and item.get("alertas")
     )
 
     logger.info(
@@ -731,7 +772,9 @@ def _validate_zero_quantity_with_cost(
 
         cantidad, cantidad_valida = _convertir_a_numero(cantidad_raw, "CANTIDAD")
         valor_total, valor_total_valido = _convertir_a_numero(valor_total_raw, "VALOR_TOTAL")
-        precio_unitario, precio_unitario_valido = _convertir_a_numero(precio_unitario_raw, "VR_UNITARIO")
+        precio_unitario, precio_unitario_valido = _convertir_a_numero(
+            precio_unitario_raw, "VR_UNITARIO"
+        )
 
         # Registrar campos con problemas de conversión
         campos_con_problemas = []
@@ -786,7 +829,9 @@ def _validate_zero_quantity_with_cost(
         if precio_unitario < 0:
             alerta_msg = f"Precio unitario negativo detectado: {precio_unitario:,.2f}"
             _agregar_alerta(insumo, alerta_msg, TipoAlerta.COSTO_NEGATIVO, metrics)
-            logger.error(f"Precio unitario negativo en insumo '{item_id}': {precio_unitario}")
+            logger.error(
+                f"Precio unitario negativo en insumo '{item_id}': {precio_unitario}"
+            )
             metrics.costos_negativos += 1
             alertas_agregadas += 1
 
@@ -813,7 +858,9 @@ def _validate_zero_quantity_with_cost(
                         f"Cantidad recalculada de {cantidad_anterior} a {nueva_cantidad:.6f} "
                         f"(valor total: {valor_total:,.2f}, precio unitario: {precio_unitario:,.2f})"
                     )
-                    _agregar_alerta(insumo, alerta_msg, TipoAlerta.CANTIDAD_RECALCULADA, metrics)
+                    _agregar_alerta(
+                        insumo, alerta_msg, TipoAlerta.CANTIDAD_RECALCULADA, metrics
+                    )
                     logger.info(f"Insumo '{item_id}': {alerta_msg}")
                     metrics.cantidades_recalculadas += 1
                 else:
@@ -821,7 +868,9 @@ def _validate_zero_quantity_with_cost(
                         f"Cantidad calculada es inválida o muy grande: {nueva_cantidad}. "
                         f"No se modificó el valor original."
                     )
-                    _agregar_alerta(insumo, alerta_msg, TipoAlerta.CANTIDAD_INVALIDA, metrics)
+                    _agregar_alerta(
+                        insumo, alerta_msg, TipoAlerta.CANTIDAD_INVALIDA, metrics
+                    )
                     logger.warning(f"Insumo '{item_id}': {alerta_msg}")
             else:
                 alerta_msg = (
@@ -850,14 +899,15 @@ def _validate_zero_quantity_with_cost(
                 if mensaje_detalle:
                     alerta_msg += f" ({mensaje_detalle})"
 
-                _agregar_alerta(insumo, alerta_msg, TipoAlerta.INCOHERENCIA_MATEMATICA, metrics)
+                _agregar_alerta(
+                    insumo, alerta_msg, TipoAlerta.INCOHERENCIA_MATEMATICA, metrics
+                )
                 logger.warning(f"Insumo '{item_id}': {alerta_msg}")
                 metrics.incoherencias_matematicas += 1
 
     # Actualizar contador de items con alertas
     metrics.items_con_alertas = sum(
-        1 for item in result
-        if isinstance(item, dict) and item.get("alertas")
+        1 for item in result if isinstance(item, dict) and item.get("alertas")
     )
 
     logger.info(
@@ -913,14 +963,10 @@ def _validate_missing_descriptions(
         if "DESCRIPCION_INSUMO" in raw_insumos_df.columns:
             try:
                 descripciones_series = (
-                    raw_insumos_df["DESCRIPCION_INSUMO"]
-                    .dropna()
-                    .astype(str)
-                    .str.strip()
+                    raw_insumos_df["DESCRIPCION_INSUMO"].dropna().astype(str).str.strip()
                 )
                 descripciones_series = descripciones_series[
-                    (descripciones_series != "") &
-                    (descripciones_series.str.len() >= 2)
+                    (descripciones_series != "") & (descripciones_series.str.len() >= 2)
                 ]
 
                 for desc in descripciones_series.unique():
@@ -1005,7 +1051,9 @@ def _validate_missing_descriptions(
             continue
 
         descripcion_original = insumo.get("DESCRIPCION_INSUMO")
-        descripcion_limpia, es_valida, motivo = _limpiar_y_validar_descripcion(descripcion_original)
+        descripcion_limpia, es_valida, motivo = _limpiar_y_validar_descripcion(
+            descripcion_original
+        )
 
         if es_valida and descripcion_limpia:
             # La descripción es válida
@@ -1013,7 +1061,9 @@ def _validate_missing_descriptions(
                 insumo["DESCRIPCION_INSUMO"] = descripcion_limpia
                 # Solo loggear si hubo cambio significativo
                 if motivo:
-                    logger.debug(f"Descripción limpiada ({motivo}): '{descripcion_original}' -> '{descripcion_limpia}'")
+                    logger.debug(
+                        f"Descripción limpiada ({motivo}): '{descripcion_original}' -> '{descripcion_limpia}'"
+                    )
             continue
 
         # Descripción faltante o inválida - intentar corrección
@@ -1034,7 +1084,9 @@ def _validate_missing_descriptions(
                             f"'{descripcion_original}' -> '{desc_corregida}' "
                             f"(similitud: {similitud}%)"
                         )
-                        _agregar_alerta(insumo, alerta_msg, TipoAlerta.DESCRIPCION_CORREGIDA, metrics)
+                        _agregar_alerta(
+                            insumo, alerta_msg, TipoAlerta.DESCRIPCION_CORREGIDA, metrics
+                        )
                         logger.info(f"Insumo '{item_id}': {alerta_msg}")
                         metrics.descripciones_corregidas += 1
                         descripcion_encontrada = True
@@ -1052,7 +1104,9 @@ def _validate_missing_descriptions(
                         continue
 
                     resultado = _buscar_con_fuzzy(texto_busqueda)
-                    if resultado and resultado[1] >= fuzzy_threshold + 10:  # Umbral más alto para campos alternativos
+                    if (
+                        resultado and resultado[1] >= fuzzy_threshold + 10
+                    ):  # Umbral más alto para campos alternativos
                         desc_corregida, similitud = resultado
                         insumo["DESCRIPCION_INSUMO"] = desc_corregida
                         alerta_msg = (
@@ -1060,7 +1114,9 @@ def _validate_missing_descriptions(
                             f"'{texto_busqueda}' -> '{desc_corregida}' "
                             f"(similitud: {similitud}%)"
                         )
-                        _agregar_alerta(insumo, alerta_msg, TipoAlerta.DESCRIPCION_CORREGIDA, metrics)
+                        _agregar_alerta(
+                            insumo, alerta_msg, TipoAlerta.DESCRIPCION_CORREGIDA, metrics
+                        )
                         logger.info(f"Insumo '{item_id}': {alerta_msg}")
                         metrics.descripciones_corregidas += 1
                         descripcion_encontrada = True
@@ -1088,8 +1144,7 @@ def _validate_missing_descriptions(
 
     # Actualizar contador de items con alertas
     metrics.items_con_alertas = sum(
-        1 for item in result
-        if isinstance(item, dict) and item.get("alertas")
+        1 for item in result if isinstance(item, dict) and item.get("alertas")
     )
 
     logger.info(
@@ -1155,7 +1210,9 @@ def validate_and_clean_data(
         }
         if telemetry_context:
             telemetry_context.record_error("validate_data", "data_store is None")
-            telemetry_context.end_step("validate_data", "failure", metadata=error_result["validation_summary"])
+            telemetry_context.end_step(
+                "validate_data", "failure", metadata=error_result["validation_summary"]
+            )
         return error_result
 
     if not isinstance(data_store, dict):
@@ -1169,8 +1226,12 @@ def validate_and_clean_data(
             },
         }
         if telemetry_context:
-            telemetry_context.record_error("validate_data", f"Invalid data_store type: {type(data_store)}")
-            telemetry_context.end_step("validate_data", "failure", metadata=error_result["validation_summary"])
+            telemetry_context.record_error(
+                "validate_data", f"Invalid data_store type: {type(data_store)}"
+            )
+            telemetry_context.end_step(
+                "validate_data", "failure", metadata=error_result["validation_summary"]
+            )
         return error_result
 
     if not data_store:
@@ -1184,7 +1245,9 @@ def validate_and_clean_data(
             }
         }
         if telemetry_context:
-            telemetry_context.end_step("validate_data", "success", metadata=result["validation_summary"])
+            telemetry_context.end_step(
+                "validate_data", "success", metadata=result["validation_summary"]
+            )
         return result
 
     # Crear copia profunda para evitar efectos secundarios
@@ -1200,11 +1263,17 @@ def validate_and_clean_data(
                 "errores": [str(e)],
             },
             # Retornar datos originales como fallback
-            **{k: v for k, v in data_store.items() if k not in ("validation_summary", "validation_metrics")},
+            **{
+                k: v
+                for k, v in data_store.items()
+                if k not in ("validation_summary", "validation_metrics")
+            },
         }
         if telemetry_context:
             telemetry_context.record_error("validate_data", f"Deepcopy failed: {e}")
-            telemetry_context.end_step("validate_data", "failure", metadata=error_result["validation_summary"])
+            telemetry_context.end_step(
+                "validate_data", "failure", metadata=error_result["validation_summary"]
+            )
         return error_result
 
     # Inicializar contenedor de métricas y errores
@@ -1227,7 +1296,9 @@ def validate_and_clean_data(
 
         # Validar que presupuesto tenga el tipo esperado
         if not isinstance(presupuesto_data, list):
-            error_msg = f"'presupuesto' no es una lista (tipo: {type(presupuesto_data).__name__})"
+            error_msg = (
+                f"'presupuesto' no es una lista (tipo: {type(presupuesto_data).__name__})"
+            )
             logger.error(error_msg)
             errores_validacion.append(error_msg)
             metricas_totales["presupuesto"] = {"error": error_msg, "items_procesados": 0}
@@ -1241,8 +1312,16 @@ def validate_and_clean_data(
                 metricas_totales["presupuesto"] = metrics_presupuesto.to_dict()
                 logger.info("Validación de presupuesto exitosa.")
                 if telemetry_context:
-                    telemetry_context.record_metric("validation", "presupuesto_items", metrics_presupuesto.total_items_procesados)
-                    telemetry_context.record_metric("validation", "presupuesto_alerts", metrics_presupuesto.items_con_alertas)
+                    telemetry_context.record_metric(
+                        "validation",
+                        "presupuesto_items",
+                        metrics_presupuesto.total_items_procesados,
+                    )
+                    telemetry_context.record_metric(
+                        "validation",
+                        "presupuesto_alerts",
+                        metrics_presupuesto.items_con_alertas,
+                    )
             except Exception as e:
                 error_msg = f"Error crítico al validar presupuesto: {str(e)}"
                 logger.error(error_msg, exc_info=True)
@@ -1260,7 +1339,11 @@ def validate_and_clean_data(
                 logger.warning("Continuando con datos originales de presupuesto.")
 
         if telemetry_context:
-            status = "failure" if metricas_totales.get("presupuesto", {}).get("error") else "success"
+            status = (
+                "failure"
+                if metricas_totales.get("presupuesto", {}).get("error")
+                else "success"
+            )
             telemetry_context.end_step("validate_presupuesto", status)
 
     elif "presupuesto" not in result:
@@ -1284,7 +1367,10 @@ def validate_and_clean_data(
             error_msg = f"'apus_detail' no es una lista (tipo: {type(apus_data).__name__})"
             logger.error(error_msg)
             errores_validacion.append(error_msg)
-            metricas_totales["apus_detail_cantidad"] = {"error": error_msg, "items_procesados": 0}
+            metricas_totales["apus_detail_cantidad"] = {
+                "error": error_msg,
+                "items_procesados": 0,
+            }
             if telemetry_context:
                 telemetry_context.record_error("validate_apus_quantities", error_msg)
         else:
@@ -1295,13 +1381,22 @@ def validate_and_clean_data(
                 metricas_totales["apus_detail_cantidad"] = metrics_cantidad.to_dict()
                 logger.info("Validación de cantidades exitosa.")
                 if telemetry_context:
-                    telemetry_context.record_metric("validation", "apus_items", metrics_cantidad.total_items_procesados)
-                    telemetry_context.record_metric("validation", "apus_recalculated", metrics_cantidad.cantidades_recalculadas)
+                    telemetry_context.record_metric(
+                        "validation", "apus_items", metrics_cantidad.total_items_procesados
+                    )
+                    telemetry_context.record_metric(
+                        "validation",
+                        "apus_recalculated",
+                        metrics_cantidad.cantidades_recalculadas,
+                    )
             except Exception as e:
                 error_msg = f"Error crítico al validar cantidades: {str(e)}"
                 logger.error(error_msg, exc_info=True)
                 errores_validacion.append(error_msg)
-                metricas_totales["apus_detail_cantidad"] = {"error": str(e), "items_procesados": 0}
+                metricas_totales["apus_detail_cantidad"] = {
+                    "error": str(e),
+                    "items_procesados": 0,
+                }
                 if telemetry_context:
                     telemetry_context.record_error("validate_apus_quantities", error_msg)
 
@@ -1314,7 +1409,11 @@ def validate_and_clean_data(
                 logger.warning("Continuando con datos parcialmente validados.")
 
         if telemetry_context:
-            status = "failure" if metricas_totales.get("apus_detail_cantidad", {}).get("error") else "success"
+            status = (
+                "failure"
+                if metricas_totales.get("apus_detail_cantidad", {}).get("error")
+                else "success"
+            )
             telemetry_context.end_step("validate_apus_quantities", status)
 
     # ========================================================================
@@ -1332,19 +1431,31 @@ def validate_and_clean_data(
 
         if not isinstance(apus_data, list):
             # Si ya se registró error arriba, no duplicar
-            if "apus_detail_cantidad" not in metricas_totales or "error" not in metricas_totales.get("apus_detail_cantidad", {}):
-                error_msg = f"'apus_detail' no es una lista (tipo: {type(apus_data).__name__})"
+            if (
+                "apus_detail_cantidad" not in metricas_totales
+                or "error" not in metricas_totales.get("apus_detail_cantidad", {})
+            ):
+                error_msg = (
+                    f"'apus_detail' no es una lista (tipo: {type(apus_data).__name__})"
+                )
                 logger.error(error_msg)
                 errores_validacion.append(error_msg)
-            metricas_totales["apus_detail_descripcion"] = {"error": "apus_detail inválido", "items_procesados": 0}
+            metricas_totales["apus_detail_descripcion"] = {
+                "error": "apus_detail inválido",
+                "items_procesados": 0,
+            }
             if telemetry_context:
-                telemetry_context.record_error("validate_apus_descriptions", "apus_detail is not a list")
+                telemetry_context.record_error(
+                    "validate_apus_descriptions", "apus_detail is not a list"
+                )
         else:
             try:
                 raw_insumos_df = result.get("raw_insumos_df")
 
                 # Validar tipo de raw_insumos_df
-                if raw_insumos_df is not None and not isinstance(raw_insumos_df, pd.DataFrame):
+                if raw_insumos_df is not None and not isinstance(
+                    raw_insumos_df, pd.DataFrame
+                ):
                     logger.warning(
                         f"raw_insumos_df no es un DataFrame (tipo: {type(raw_insumos_df).__name__}). "
                         "Fuzzy matching no estará disponible."
@@ -1358,12 +1469,19 @@ def validate_and_clean_data(
                 metricas_totales["apus_detail_descripcion"] = metrics_descripcion.to_dict()
                 logger.info("Validación de descripciones exitosa.")
                 if telemetry_context:
-                    telemetry_context.record_metric("validation", "descriptions_corrected", metrics_descripcion.descripciones_corregidas)
+                    telemetry_context.record_metric(
+                        "validation",
+                        "descriptions_corrected",
+                        metrics_descripcion.descripciones_corregidas,
+                    )
             except Exception as e:
                 error_msg = f"Error crítico al validar descripciones: {str(e)}"
                 logger.error(error_msg, exc_info=True)
                 errores_validacion.append(error_msg)
-                metricas_totales["apus_detail_descripcion"] = {"error": str(e), "items_procesados": 0}
+                metricas_totales["apus_detail_descripcion"] = {
+                    "error": str(e),
+                    "items_procesados": 0,
+                }
                 if telemetry_context:
                     telemetry_context.record_error("validate_apus_descriptions", error_msg)
 
@@ -1376,7 +1494,11 @@ def validate_and_clean_data(
                 logger.warning("Continuando con datos parcialmente validados.")
 
         if telemetry_context:
-            status = "failure" if metricas_totales.get("apus_detail_descripcion", {}).get("error") else "success"
+            status = (
+                "failure"
+                if metricas_totales.get("apus_detail_descripcion", {}).get("error")
+                else "success"
+            )
             telemetry_context.end_step("validate_apus_descriptions", status)
 
     elif "apus_detail" not in result:
@@ -1396,18 +1518,15 @@ def validate_and_clean_data(
         return metricas.get(key, default)
 
     total_items = sum(
-        _safe_get_metric(m, "total_items_procesados")
-        for m in metricas_totales.values()
+        _safe_get_metric(m, "total_items_procesados") for m in metricas_totales.values()
     )
 
     total_alertas = sum(
-        _safe_get_metric(m, "items_con_alertas")
-        for m in metricas_totales.values()
+        _safe_get_metric(m, "items_con_alertas") for m in metricas_totales.values()
     )
 
     total_errores_items = sum(
-        _safe_get_metric(m, "items_con_errores")
-        for m in metricas_totales.values()
+        _safe_get_metric(m, "items_con_errores") for m in metricas_totales.values()
     )
 
     tiene_errores_criticos = len(errores_validacion) > 0
@@ -1418,13 +1537,13 @@ def validate_and_clean_data(
         porcentaje_alertas = round((total_alertas / total_items * 100), 2)
 
     validaciones_exitosas = [
-        k for k, v in metricas_totales.items()
+        k
+        for k, v in metricas_totales.items()
         if v and isinstance(v, dict) and "error" not in v
     ]
 
     validaciones_fallidas = [
-        k for k, v in metricas_totales.items()
-        if v and isinstance(v, dict) and "error" in v
+        k for k, v in metricas_totales.items() if v and isinstance(v, dict) and "error" in v
     ]
 
     resumen = {
@@ -1458,6 +1577,8 @@ def validate_and_clean_data(
         telemetry_context.record_metric("validation", "total_processed", total_items)
         telemetry_context.record_metric("validation", "total_alerts", total_alertas)
         telemetry_context.record_metric("validation", "total_errors", total_errores_items)
-        telemetry_context.end_step("validate_data", "success" if resumen["exito"] else "warning", metadata=resumen)
+        telemetry_context.end_step(
+            "validate_data", "success" if resumen["exito"] else "warning", metadata=resumen
+        )
 
     return result

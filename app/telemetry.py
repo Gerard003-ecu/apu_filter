@@ -192,8 +192,8 @@ class TelemetryContext:
         - Logging de estado inicial
         """
         # Asegurar que el lock existe antes de cualquier operación
-        if not hasattr(self, '_lock') or self._lock is None:
-            object.__setattr__(self, '_lock', threading.RLock())
+        if not hasattr(self, "_lock") or self._lock is None:
+            object.__setattr__(self, "_lock", threading.RLock())
 
         # Validar y corregir request_id
         self._validate_and_fix_request_id()
@@ -208,15 +208,13 @@ class TelemetryContext:
         self._validate_and_fix_business_thresholds()
 
         # Inicializar _active_steps si no existe
-        if not hasattr(self, '_active_steps') or self._active_steps is None:
-            object.__setattr__(self, '_active_steps', {})
+        if not hasattr(self, "_active_steps") or self._active_steps is None:
+            object.__setattr__(self, "_active_steps", {})
 
         # Validar created_at
         if not isinstance(self.created_at, (int, float)) or self.created_at <= 0:
-            object.__setattr__(self, 'created_at', time.perf_counter())
-            logger.warning(
-                f"[{self.request_id}] Invalid created_at, reset to current time"
-            )
+            object.__setattr__(self, "created_at", time.perf_counter())
+            logger.warning(f"[{self.request_id}] Invalid created_at, reset to current time")
 
         logger.debug(
             f"[{self.request_id}] TelemetryContext initialized: "
@@ -241,15 +239,13 @@ class TelemetryContext:
                 f"Invalid request_id provided (type={type(original_id).__name__}, "
                 f"value={repr(original_id)[:50]}), generated new: {new_id}"
             )
-            object.__setattr__(self, 'request_id', new_id)
+            object.__setattr__(self, "request_id", new_id)
         else:
             # Sanitizar caracteres problemáticos
             sanitized = self._sanitize_request_id(self.request_id)
             if sanitized != self.request_id:
-                logger.debug(
-                    f"Request ID sanitized: '{self.request_id}' -> '{sanitized}'"
-                )
-                object.__setattr__(self, 'request_id', sanitized)
+                logger.debug(f"Request ID sanitized: '{self.request_id}' -> '{sanitized}'")
+                object.__setattr__(self, "request_id", sanitized)
 
     def _is_valid_request_id(self, request_id: Any) -> bool:
         """
@@ -280,11 +276,8 @@ class TelemetryContext:
     def _sanitize_request_id(self, request_id: str) -> str:
         """Sanitiza el request_id eliminando caracteres problemáticos."""
         # Eliminar caracteres de control y espacios excesivos
-        sanitized = ''.join(
-            c for c in request_id
-            if c.isprintable() and c not in '\r\n\t'
-        )
-        return sanitized.strip()[:TelemetryDefaults.MAX_REQUEST_ID_LENGTH]
+        sanitized = "".join(c for c in request_id if c.isprintable() and c not in "\r\n\t")
+        return sanitized.strip()[: TelemetryDefaults.MAX_REQUEST_ID_LENGTH]
 
     def _validate_and_fix_limits(self) -> None:
         """
@@ -298,12 +291,24 @@ class TelemetryContext:
         max_multiplier = TelemetryDefaults.MAX_LIMIT_MULTIPLIER
 
         limit_configs = [
-            ('max_steps', 1, TelemetryDefaults.MAX_STEPS * max_multiplier,
-             TelemetryDefaults.MAX_STEPS),
-            ('max_errors', 1, TelemetryDefaults.MAX_ERRORS * max_multiplier,
-             TelemetryDefaults.MAX_ERRORS),
-            ('max_metrics', 1, TelemetryDefaults.MAX_METRICS * max_multiplier,
-             TelemetryDefaults.MAX_METRICS),
+            (
+                "max_steps",
+                1,
+                TelemetryDefaults.MAX_STEPS * max_multiplier,
+                TelemetryDefaults.MAX_STEPS,
+            ),
+            (
+                "max_errors",
+                1,
+                TelemetryDefaults.MAX_ERRORS * max_multiplier,
+                TelemetryDefaults.MAX_ERRORS,
+            ),
+            (
+                "max_metrics",
+                1,
+                TelemetryDefaults.MAX_METRICS * max_multiplier,
+                TelemetryDefaults.MAX_METRICS,
+            ),
         ]
 
         for attr_name, min_val, max_val, default in limit_configs:
@@ -331,7 +336,7 @@ class TelemetryContext:
         - Logging detallado
         """
         # Obtener request_id de forma segura
-        request_id = getattr(self, 'request_id', 'UNKNOWN')
+        request_id = getattr(self, "request_id", "UNKNOWN")
 
         # Validar tipo
         if not isinstance(value, (int, float)):
@@ -353,15 +358,11 @@ class TelemetryContext:
 
         # Validar rango
         if int_value < min_val:
-            logger.warning(
-                f"[{request_id}] {name}={int_value} below minimum {min_val}"
-            )
+            logger.warning(f"[{request_id}] {name}={int_value} below minimum {min_val}")
             return min_val
 
         if int_value > max_val:
-            logger.warning(
-                f"[{request_id}] {name}={int_value} above maximum {max_val}"
-            )
+            logger.warning(f"[{request_id}] {name}={int_value} above maximum {max_val}")
             return max_val
 
         return int_value
@@ -375,7 +376,7 @@ class TelemetryContext:
         - Inicialización segura
         - Preservación de datos válidos cuando es posible
         """
-        request_id = getattr(self, 'request_id', 'UNKNOWN')
+        request_id = getattr(self, "request_id", "UNKNOWN")
 
         collections_config = [
             ("steps", list, []),
@@ -400,11 +401,9 @@ class TelemetryContext:
                 )
                 object.__setattr__(self, attr_name, converted)
 
-    def _try_convert_collection(
-        self, value: Any, target_type: type, attr_name: str
-    ) -> Any:
+    def _try_convert_collection(self, value: Any, target_type: type, attr_name: str) -> Any:
         """Intenta convertir un valor al tipo de colección objetivo."""
-        request_id = getattr(self, 'request_id', 'UNKNOWN')
+        request_id = getattr(self, "request_id", "UNKNOWN")
 
         try:
             if target_type == list:
@@ -416,7 +415,7 @@ class TelemetryContext:
                     )
                     return result
             elif target_type == dict:
-                if hasattr(value, '__dict__'):
+                if hasattr(value, "__dict__"):
                     result = dict(value.__dict__)
                     logger.info(
                         f"[{request_id}] Converted {attr_name} from "
@@ -435,17 +434,19 @@ class TelemetryContext:
 
     def _validate_and_fix_business_thresholds(self) -> None:
         """Valida y corrige los umbrales de negocio."""
-        request_id = getattr(self, 'request_id', 'UNKNOWN')
+        request_id = getattr(self, "request_id", "UNKNOWN")
 
         if not isinstance(self.business_thresholds, dict):
-            logger.warning(
-                f"[{request_id}] business_thresholds must be dict, resetting"
+            logger.warning(f"[{request_id}] business_thresholds must be dict, resetting")
+            object.__setattr__(
+                self,
+                "business_thresholds",
+                {
+                    "critical_flyback_voltage": BusinessThresholds.CRITICAL_FLYBACK_VOLTAGE,
+                    "critical_dissipated_power": BusinessThresholds.CRITICAL_DISSIPATED_POWER,
+                    "warning_saturation": BusinessThresholds.WARNING_SATURATION,
+                },
             )
-            object.__setattr__(self, 'business_thresholds', {
-                "critical_flyback_voltage": BusinessThresholds.CRITICAL_FLYBACK_VOLTAGE,
-                "critical_dissipated_power": BusinessThresholds.CRITICAL_DISSIPATED_POWER,
-                "warning_saturation": BusinessThresholds.WARNING_SATURATION,
-            })
             return
 
         # Validar cada umbral
@@ -459,17 +460,11 @@ class TelemetryContext:
             value = self.business_thresholds.get(key)
             if not isinstance(value, (int, float)) or value < 0:
                 self.business_thresholds[key] = default
-                logger.debug(
-                    f"[{request_id}] Fixed threshold {key}: {value} -> {default}"
-                )
+                logger.debug(f"[{request_id}] Fixed threshold {key}: {value} -> {default}")
 
     # ========== Gestión de Pasos ==========
 
-    def start_step(
-        self,
-        step_name: str,
-        metadata: Optional[Dict[str, Any]] = None
-    ) -> bool:
+    def start_step(self, step_name: str, metadata: Optional[Dict[str, Any]] = None) -> bool:
         """
         Marca el inicio de un paso de procesamiento.
 
@@ -583,18 +578,16 @@ class TelemetryContext:
                 f"(active for {duration:.1f}s)"
             )
             # Registrar como paso fallido
-            self._force_end_step(step_name, StepStatus.FAILURE, {
-                "reason": "stale_cleanup",
-                "duration_before_cleanup": duration
-            })
+            self._force_end_step(
+                step_name,
+                StepStatus.FAILURE,
+                {"reason": "stale_cleanup", "duration_before_cleanup": duration},
+            )
 
         return len(stale_steps)
 
     def _force_end_step(
-        self,
-        step_name: str,
-        status: StepStatus,
-        metadata: Optional[Dict[str, Any]] = None
+        self, step_name: str, status: StepStatus, metadata: Optional[Dict[str, Any]] = None
     ) -> None:
         """Fuerza el fin de un paso sin validaciones adicionales."""
         end_time = time.perf_counter()
@@ -705,7 +698,9 @@ class TelemetryContext:
             self.steps.append(step_data)
 
             # Log con nivel apropiado según status
-            log_func = logger.info if status_value == StepStatus.SUCCESS.value else logger.warning
+            log_func = (
+                logger.info if status_value == StepStatus.SUCCESS.value else logger.warning
+            )
             log_func(
                 f"[{self.request_id}] Finished step: {step_name} ({status_value}) "
                 f"in {duration:.6f}s"
@@ -780,9 +775,7 @@ class TelemetryContext:
         - Logging batch para muchas eliminaciones
         """
         if not isinstance(collection, list):
-            logger.error(
-                f"[{self.request_id}] _enforce_limit_fifo: collection is not list"
-            )
+            logger.error(f"[{self.request_id}] _enforce_limit_fifo: collection is not list")
             return 0
 
         if max_size <= 0:
@@ -800,7 +793,9 @@ class TelemetryContext:
 
             try:
                 removed = collection.pop(0)
-                removed_id = identifier_func(removed) if callable(identifier_func) else "unknown"
+                removed_id = (
+                    identifier_func(removed) if callable(identifier_func) else "unknown"
+                )
                 removed_ids.append(removed_id)
                 removed_count += 1
             except Exception as e:
@@ -875,9 +870,7 @@ class TelemetryContext:
         try:
             started = self.start_step(step_name, metadata)
         except Exception as e:
-            logger.error(
-                f"[{self.request_id}] Exception in start_step('{step_name}'): {e}"
-            )
+            logger.error(f"[{self.request_id}] Exception in start_step('{step_name}'): {e}")
             if not suppress_start_failure:
                 raise
 
@@ -918,8 +911,12 @@ class TelemetryContext:
                     )
 
                 # Registrar error si corresponde
-                if (exception_occurred and auto_record_error and
-                    capture_exception_details and isinstance(captured_exception, Exception)):
+                if (
+                    exception_occurred
+                    and auto_record_error
+                    and capture_exception_details
+                    and isinstance(captured_exception, Exception)
+                ):
                     try:
                         self.record_error(
                             step_name=step_name,
@@ -938,7 +935,7 @@ class TelemetryContext:
         try:
             return {
                 "error_type": type(exc).__name__,
-                "error_message": str(exc)[:TelemetryDefaults.MAX_EXCEPTION_DETAIL_LENGTH],
+                "error_message": str(exc)[: TelemetryDefaults.MAX_EXCEPTION_DETAIL_LENGTH],
                 "is_base_exception": not isinstance(exc, Exception),
             }
         except Exception:
@@ -1089,9 +1086,7 @@ class TelemetryContext:
             return False
 
         if isinstance(increment, float) and (math.isnan(increment) or math.isinf(increment)):
-            logger.error(
-                f"[{self.request_id}] increment cannot be NaN or Inf: {increment}"
-            )
+            logger.error(f"[{self.request_id}] increment cannot be NaN or Inf: {increment}")
             return False
 
         key = f"{component}.{metric_name}"
@@ -1136,11 +1131,13 @@ class TelemetryContext:
                         logger.warning(
                             f"[{self.request_id}] Metric '{key}' overflow detected, clamping"
                         )
-                        new_value = TelemetryDefaults.MAX_METRIC_VALUE if increment > 0 else TelemetryDefaults.MIN_METRIC_VALUE
-                    elif math.isnan(new_value):
-                        logger.error(
-                            f"[{self.request_id}] Metric '{key}' resulted in NaN"
+                        new_value = (
+                            TelemetryDefaults.MAX_METRIC_VALUE
+                            if increment > 0
+                            else TelemetryDefaults.MIN_METRIC_VALUE
                         )
+                    elif math.isnan(new_value):
+                        logger.error(f"[{self.request_id}] Metric '{key}' resulted in NaN")
                         return False
 
             except OverflowError:
@@ -1152,7 +1149,7 @@ class TelemetryContext:
             # Aplicar límites
             new_value = max(
                 TelemetryDefaults.MIN_METRIC_VALUE,
-                min(TelemetryDefaults.MAX_METRIC_VALUE, new_value)
+                min(TelemetryDefaults.MAX_METRIC_VALUE, new_value),
             )
 
             self.metrics[key] = new_value
@@ -1254,9 +1251,7 @@ class TelemetryContext:
         # Validar severity
         valid_severities = {"ERROR", "WARNING", "CRITICAL", "INFO"}
         if severity not in valid_severities:
-            logger.debug(
-                f"[{self.request_id}] Invalid severity '{severity}', using 'ERROR'"
-            )
+            logger.debug(f"[{self.request_id}] Invalid severity '{severity}', using 'ERROR'")
             severity = "ERROR"
 
         with self._lock:
@@ -1348,7 +1343,7 @@ class TelemetryContext:
         """
         error_data = {
             "step": step_name,
-            "message": error_message[:TelemetryDefaults.MAX_MESSAGE_LENGTH],
+            "message": error_message[: TelemetryDefaults.MAX_MESSAGE_LENGTH],
             "timestamp": datetime.utcnow().isoformat(),
             "perf_counter": time.perf_counter(),
             "severity": severity,
@@ -1356,7 +1351,7 @@ class TelemetryContext:
 
         # Determinar tipo de error
         if error_type:
-            error_data["type"] = str(error_type)[:TelemetryDefaults.MAX_NAME_LENGTH]
+            error_data["type"] = str(error_type)[: TelemetryDefaults.MAX_NAME_LENGTH]
         elif exception:
             error_data["type"] = type(exception).__name__
 
@@ -1364,7 +1359,9 @@ class TelemetryContext:
         if exception:
             try:
                 exc_str = str(exception)
-                error_data["exception_details"] = exc_str[:TelemetryDefaults.MAX_EXCEPTION_DETAIL_LENGTH]
+                error_data["exception_details"] = exc_str[
+                    : TelemetryDefaults.MAX_EXCEPTION_DETAIL_LENGTH
+                ]
             except Exception as e:
                 error_data["exception_details"] = f"<failed to stringify: {e}>"
 
@@ -1373,9 +1370,9 @@ class TelemetryContext:
                 error_data["traceback"] = self._capture_traceback_safe(exception)
 
             # Agregar atributos adicionales de la excepción
-            if hasattr(exception, '__cause__') and exception.__cause__:
+            if hasattr(exception, "__cause__") and exception.__cause__:
                 error_data["cause"] = str(exception.__cause__)[:200]
-            if hasattr(exception, '__context__') and exception.__context__:
+            if hasattr(exception, "__context__") and exception.__context__:
                 error_data["context"] = str(exception.__context__)[:200]
 
         # Sanitizar y agregar metadata
@@ -1393,12 +1390,10 @@ class TelemetryContext:
         """Captura el traceback de forma segura."""
         try:
             tb_lines = traceback.format_exception(
-                type(exception),
-                exception,
-                exception.__traceback__
+                type(exception), exception, exception.__traceback__
             )
             tb_str = "".join(tb_lines)
-            return tb_str[:TelemetryDefaults.MAX_TRACEBACK_LENGTH]
+            return tb_str[: TelemetryDefaults.MAX_TRACEBACK_LENGTH]
         except Exception as tb_error:
             logger.debug(f"[{self.request_id}] Failed to capture traceback: {tb_error}")
             return f"<traceback capture failed: {tb_error}>"
@@ -1649,13 +1644,14 @@ class TelemetryContext:
 
         # Manejar sets y frozensets
         if isinstance(value, (set, frozenset)):
-            items = list(value)[:TelemetryDefaults.MAX_COLLECTION_SIZE]
+            items = list(value)[: TelemetryDefaults.MAX_COLLECTION_SIZE]
             result = [
-                self._sanitize_value(v, max_depth, current_depth + 1, _seen)
-                for v in items
+                self._sanitize_value(v, max_depth, current_depth + 1, _seen) for v in items
             ]
             if len(value) > TelemetryDefaults.MAX_COLLECTION_SIZE:
-                result.append(f"<... {len(value) - TelemetryDefaults.MAX_COLLECTION_SIZE} more>")
+                result.append(
+                    f"<... {len(value) - TelemetryDefaults.MAX_COLLECTION_SIZE} more>"
+                )
             return result
 
         # Manejar listas y tuplas
@@ -1686,7 +1682,9 @@ class TelemetryContext:
         # Manejar objetos con _asdict (namedtuple, etc.)
         if hasattr(value, "_asdict"):
             try:
-                return self._sanitize_value(value._asdict(), max_depth, current_depth + 1, _seen)
+                return self._sanitize_value(
+                    value._asdict(), max_depth, current_depth + 1, _seen
+                )
             except Exception:
                 pass
 
@@ -1710,18 +1708,14 @@ class TelemetryContext:
         max_len = TelemetryDefaults.MAX_STRING_LENGTH
 
         # Eliminar caracteres nulos y de control problemáticos
-        cleaned = ''.join(c for c in value if c.isprintable() or c in '\n\t\r')
+        cleaned = "".join(c for c in value if c.isprintable() or c in "\n\t\r")
 
         if len(cleaned) > max_len:
             return cleaned[:max_len] + "...<truncated>"
         return cleaned
 
     def _sanitize_bytes(
-        self,
-        value: bytes,
-        max_depth: int,
-        current_depth: int,
-        _seen: set
+        self, value: bytes, max_depth: int, current_depth: int, _seen: set
     ) -> Union[str, Dict[str, Any]]:
         """Sanitiza un valor de bytes."""
         try:
@@ -1737,11 +1731,7 @@ class TelemetryContext:
             }
 
     def _sanitize_sequence(
-        self,
-        value: Union[list, tuple],
-        max_depth: int,
-        current_depth: int,
-        _seen: set
+        self, value: Union[list, tuple], max_depth: int, current_depth: int, _seen: set
     ) -> List[Any]:
         """Sanitiza una secuencia (lista o tupla)."""
         max_size = TelemetryDefaults.MAX_COLLECTION_SIZE
@@ -1763,11 +1753,7 @@ class TelemetryContext:
         return result
 
     def _sanitize_dict(
-        self,
-        value: dict,
-        max_depth: int,
-        current_depth: int,
-        _seen: set
+        self, value: dict, max_depth: int, current_depth: int, _seen: set
     ) -> Dict[str, Any]:
         """Sanitiza un diccionario."""
         max_size = TelemetryDefaults.MAX_DICT_KEYS
@@ -1778,10 +1764,12 @@ class TelemetryContext:
         for k, v in items:
             try:
                 # Convertir clave a string
-                str_key = str(k)[:TelemetryDefaults.MAX_NAME_LENGTH]
+                str_key = str(k)[: TelemetryDefaults.MAX_NAME_LENGTH]
 
                 # Sanitizar valor
-                sanitized_value = self._sanitize_value(v, max_depth, current_depth + 1, _seen)
+                sanitized_value = self._sanitize_value(
+                    v, max_depth, current_depth + 1, _seen
+                )
                 result[str_key] = sanitized_value
 
             except Exception as e:
@@ -1846,7 +1834,8 @@ class TelemetryContext:
 
                 # Contar pasos activos obsoletos
                 stale_count = sum(
-                    1 for info in self._active_steps.values()
+                    1
+                    for info in self._active_steps.values()
                     if info.get_duration() > TelemetryDefaults.STALE_STEP_THRESHOLD
                 )
 
@@ -2109,9 +2098,7 @@ class TelemetryContext:
                     return default
                 return parsed
             except (ValueError, TypeError):
-                logger.debug(
-                    f"[{self.request_id}] Cannot convert '{value}' to float"
-                )
+                logger.debug(f"[{self.request_id}] Cannot convert '{value}' to float")
                 return default
 
         return default
@@ -2129,9 +2116,7 @@ class TelemetryContext:
             "Tiempo de Proceso": f"{raw_metrics['processing_time']:.2f}s",
         }
 
-    def _determine_business_status(
-        self, raw_metrics: Dict[str, float]
-    ) -> Tuple[str, str]:
+    def _determine_business_status(self, raw_metrics: Dict[str, float]) -> Tuple[str, str]:
         """Determina el estado de negocio basado en métricas y umbrales."""
         thresholds = self.business_thresholds
 
@@ -2150,10 +2135,16 @@ class TelemetryContext:
 
         # Verificación CRÍTICA (Prioridad más alta)
         if raw_metrics["flyback_voltage"] > critical_flyback:
-            return "CRITICO", f"Alta inestabilidad detectada (V={raw_metrics['flyback_voltage']:.2f})"
+            return (
+                "CRITICO",
+                f"Alta inestabilidad detectada (V={raw_metrics['flyback_voltage']:.2f})",
+            )
 
         if raw_metrics["dissipated_power"] > critical_power:
-            return "CRITICO", f"Fricción de datos excesiva (P={raw_metrics['dissipated_power']:.1f})"
+            return (
+                "CRITICO",
+                f"Fricción de datos excesiva (P={raw_metrics['dissipated_power']:.1f})",
+            )
 
         # Verificación de errores críticos
         if len(self.errors) >= BusinessThresholds.CRITICAL_ERROR_COUNT:
@@ -2161,21 +2152,24 @@ class TelemetryContext:
 
         # Verificación de ADVERTENCIA
         if raw_metrics["saturation"] > warning_saturation:
-            return "ADVERTENCIA", f"Sistema operando a {raw_metrics['saturation']*100:.0f}% de capacidad"
+            return (
+                "ADVERTENCIA",
+                f"Sistema operando a {raw_metrics['saturation'] * 100:.0f}% de capacidad",
+            )
 
         # Verificación de tasa de fallos
         step_stats = self._calculate_step_statistics()
         if step_stats["failure_rate"] > BusinessThresholds.WARNING_STEP_FAILURE_RATIO:
             return (
                 "ADVERTENCIA",
-                f"Alta tasa de fallos: {step_stats['failure_rate']*100:.1f}%"
+                f"Alta tasa de fallos: {step_stats['failure_rate'] * 100:.1f}%",
             )
 
         # Verificación de errores menores
         if self.errors:
             return (
                 "ADVERTENCIA",
-                f"Se registraron {len(self.errors)} error(es) durante el procesamiento"
+                f"Se registraron {len(self.errors)} error(es) durante el procesamiento",
             )
 
         return "OPTIMO", "Procesamiento estable y fluido"
@@ -2309,7 +2303,7 @@ class TelemetryContext:
                             {
                                 "reason": "context_exit",
                                 "had_exception": exc_val is not None,
-                            }
+                            },
                         )
                     except Exception as end_error:
                         logger.error(
