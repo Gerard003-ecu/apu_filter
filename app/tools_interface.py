@@ -32,6 +32,9 @@ from scripts.diagnose_apus_file import APUFileDiagnostic
 from scripts.diagnose_insumos_file import InsumosFileDiagnostic
 from scripts.diagnose_presupuesto_file import PresupuestoFileDiagnostic
 
+# Integración del Motor Financiero
+from .financial_engine import FinancialConfig, FinancialEngine
+
 logger = logging.getLogger(__name__)
 
 
@@ -1473,3 +1476,69 @@ def validate_file_for_processing(
         "extension": extension,
         "size_mb": round(size / (1024 * 1024), 2),
     }
+
+
+def analyze_financial_viability(
+    amount: float, std_dev: float, time_years: int
+) -> Dict[str, Any]:
+    """
+    Ejecuta un análisis de viabilidad financiera para un monto y riesgo dados.
+
+    Args:
+        amount (float): Monto de la inversión inicial.
+        std_dev (float): Desviación estándar del costo.
+        time_years (int): Horizonte del proyecto en años.
+
+    Returns:
+        Dict[str, Any]: Reporte financiero simplificado.
+    """
+    try:
+        # Validación de parámetros
+        if amount <= 0:
+            raise ValueError("El monto debe ser un número positivo.")
+        if std_dev < 0:
+            raise ValueError("La desviación estándar no puede ser negativa.")
+        if not 1 <= time_years <= 50:
+            raise ValueError("El tiempo en años debe estar entre 1 y 50.")
+
+        # Configuración estándar
+        config = FinancialConfig(project_life_years=time_years)
+        engine = FinancialEngine(config)
+
+        # Simular flujos de caja (simplificación: se asume un retorno anual del 20%)
+        # En un caso real, esto provendría de un modelo más complejo.
+        annual_return = amount * 0.20
+        cash_flows = [annual_return] * time_years
+
+        # Volatilidad (simplificación: se asume un 30%)
+        volatility = 0.30
+
+        # Ejecutar análisis
+        analysis = engine.analyze_project(
+            initial_investment=amount,
+            expected_cash_flows=cash_flows,
+            cost_std_dev=std_dev,
+            project_volatility=volatility,
+        )
+
+        # Construir respuesta simplificada
+        report = {
+            "success": True,
+            "parameters": {
+                "initial_investment": amount,
+                "cost_std_dev": std_dev,
+                "project_life_years": time_years,
+            },
+            "results": {
+                "wacc": analysis.get("wacc"),
+                "npv": analysis.get("npv"),
+                "total_value_with_option": analysis.get("total_value"),
+                "contingency_recommended": analysis.get("contingency", {}).get("recommended"),
+                "recommendation": analysis.get("performance", {}).get("recommendation"),
+            },
+        }
+        return report
+
+    except Exception as e:
+        logger.error(f"Error en análisis financiero: {e}", exc_info=True)
+        return _create_error_response(e, error_category="financial_analysis")

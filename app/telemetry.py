@@ -2030,6 +2030,9 @@ class TelemetryContext:
                 # Calcular estadísticas de pasos
                 step_stats = self._calculate_step_statistics()
 
+                # Determinar salud financiera
+                financial_health = self._determine_financial_health()
+
                 # Construir reporte
                 return {
                     "status": status,
@@ -2046,6 +2049,7 @@ class TelemetryContext:
                         "total_duration": step_stats["total_duration"],
                         "success_rate": step_stats["success_rate"],
                     },
+                    "financial_health": financial_health,
                     "health": self._assess_health(),
                     "timestamp": datetime.utcnow().isoformat(),
                 }
@@ -2173,6 +2177,46 @@ class TelemetryContext:
             )
 
         return "OPTIMO", "Procesamiento estable y fluido"
+
+    def _determine_financial_health(self) -> Dict[str, Any]:
+        """
+        Determina la salud financiera basada en métricas financieras.
+        """
+        financial_metrics = {
+            "roi": self.get_metric("financial", "roi"),
+            "volatility": self.get_metric("financial", "volatility"),
+            "npv": self.get_metric("financial", "npv"),
+        }
+
+        # Filtrar métricas no presentes
+        present_metrics = {k: v for k, v in financial_metrics.items() if v is not None}
+
+        if not present_metrics:
+            return {
+                "status": "NO_DISPONIBLE",
+                "message": "No hay métricas financieras registradas.",
+                "metrics": {}
+            }
+
+        status = "OPTIMO"
+        message = "Proyecto viable."
+
+        # Lógica de semáforo (de más crítico a menos)
+        if "roi" in present_metrics and present_metrics["roi"] < 0:
+            status = "CRITICO"
+            message = "Destrucción de Valor proyectada."
+        elif "volatility" in present_metrics and present_metrics["volatility"] > 0.20:
+            status = "ADVERTENCIA"
+            message = "Alta volatilidad de mercado."
+        elif "npv" in present_metrics and present_metrics["npv"] > 0:
+            # Esta es la condición base para OPTIMO, ya está por defecto
+            pass
+
+        return {
+            "status": status,
+            "message": message,
+            "metrics": present_metrics
+        }
 
     def _calculate_step_statistics(self) -> Dict[str, Any]:
         """Calcula estadísticas de pasos de forma segura."""
