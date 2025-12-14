@@ -13,7 +13,7 @@ import logging
 import os
 import sys
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Type
 
@@ -706,22 +706,32 @@ class BusinessTopologyStep(ProcessingStep):
 
             logger.info("🧠 Analizando integridad estructural...")
             analyzer = BusinessTopologicalAnalyzer(telemetry)
+
+            # Análisis estructural completo (metrics + anomalies)
             analysis_result = analyzer.analyze_structural_integrity(graph)
-            audit_report = analyzer.get_audit_report(analysis_result)
+
+            # Generar reporte ejecutivo (ConstructionRiskReport)
+            exec_report = analyzer.generate_executive_report(graph)
+
+            # Generar reporte humano ASCII para logs
+            audit_report_lines = analyzer.get_audit_report(analysis_result)
 
             # Loguear reporte humano
-            for line in audit_report:
-                if "Alerta" in line:
+            for line in audit_report_lines:
+                if "Alerta" in line or "CRÍTICO" in line or "❌" in line:
                     logger.warning(f"🚨 TOPOLOGY: {line}")
-                elif "Aviso" in line:
+                elif "Aviso" in line or "⚠" in line:
                     logger.info(f"📢 TOPOLOGY: {line}")
                 else:
                     logger.info(f"✅ TOPOLOGY: {line}")
 
             # Guardar en contexto para el reporte final
+            context["business_topology_report"] = exec_report
+
+            # Mantener compatibilidad si otros sistemas usan topology_report
             context["topology_report"] = {
                 "metrics": analysis_result,
-                "human_report": audit_report,
+                "human_report": audit_report_lines,
             }
 
             telemetry.end_step("business_topology", "success")
@@ -768,6 +778,10 @@ class BuildOutputStep(ProcessingStep):
 
             validated_result = validate_and_clean_data(result_dict)
             validated_result["raw_insumos_df"] = df_insumos.to_dict("records")
+
+            # Integrar reporte de auditoría si existe
+            if "business_topology_report" in context:
+                validated_result["audit_report"] = asdict(context["business_topology_report"])
 
             context["final_result"] = validated_result
             telemetry.end_step("build_output", "success")
