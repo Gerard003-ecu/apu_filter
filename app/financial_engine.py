@@ -688,14 +688,18 @@ class FinancialEngine:
         
         if investment > 0:
             roi = npv / investment
-            metrics['profitability_index'] = (npv + investment) / investment
+            pi = (npv + investment) / investment
+            metrics['profitability_index'] = pi
+            metrics['recommendation'] = 'ACEPTAR' if pi > 1 else 'RECHAZAR'
         elif investment < 0:
             logger.warning("Inversión inicial negativa, ROI invertido")
             roi = -npv / investment
             metrics['profitability_index'] = float('nan')
+            metrics['recommendation'] = 'REVISAR' # Casuística no estándar
         else:
             roi = float('inf') if npv > 0 else (float('-inf') if npv < 0 else 0)
             metrics['profitability_index'] = float('nan')
+            metrics['recommendation'] = 'REVISAR' # Indefinido
             logger.warning("Inversión inicial es cero, ROI y PI indefinidos")
         
         metrics['roi'] = roi
