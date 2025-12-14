@@ -704,7 +704,7 @@ def _generate_trend_alerts(
     return alerts
 
 
-### DataFluxCondenser
+### Clase DataFluxCondenser
 
 # 1. _validate_initialization_params (Robustecido)
 
