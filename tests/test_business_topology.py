@@ -21,7 +21,7 @@ class TestTopologicalMetricsDataclass:
     """Pruebas para el dataclass TopologicalMetrics."""
 
     def test_dataclass_creation(self):
-        """Verifica creación correcta del dataclass."""
+        """Verifica la creación correcta del dataclass."""
         metrics = TopologicalMetrics(beta_0=2, beta_1=1, euler_characteristic=1)
 
         assert metrics.beta_0 == 2
@@ -150,7 +150,7 @@ class TestBudgetGraphBuilder:
             assert attrs["quantity"] == 100.0
 
         def test_create_apu_attributes_inferred(self, builder):
-            """Verifica atributos de APU inferido (sin description ni quantity)."""
+            """Verifica atributos de APU inferido (sin descripción ni cantidad)."""
             row = pd.Series({})
 
             attrs = builder._create_apu_attributes(
@@ -587,7 +587,7 @@ class TestBusinessTopologicalAnalyzer:
             Verifica que χ = β₀ - β₁ = V - E para varios grafos.
             """
             test_cases = [
-                # (edges, expected_beta_0, expected_beta_1)
+                # (aristas, beta_0_esperado, beta_1_esperado)
                 ([], 0, 0),  # Grafo vacío
                 ([("A", "B")], 1, 0),  # Una arista
                 ([("A", "B"), ("B", "C"), ("C", "A")], 1, 1),  # Triángulo

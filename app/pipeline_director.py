@@ -33,7 +33,7 @@ from .utils import (
     sanitize_for_json,
 )
 
-# New modules
+# Nuevos módulos
 from app.constants import ColumnNames, InsumoType, ProcessingThresholds
 from app.patterns import RegexPatterns
 from app.validators import DataFrameValidator
@@ -217,7 +217,7 @@ class DataValidator:
             logger.warning(f"⚠️ Lista de columnas requeridas vacía para '{df_name}'")
             return True, None
 
-        # ROBUSTECIDO: Normalizar nombres para comparación case-insensitive
+        # ROBUSTECIDO: Normalizar nombres para comparación insensible a mayúsculas
         df_cols_upper = {col.upper().strip(): col for col in df.columns}
         missing_cols = []
 
@@ -1269,7 +1269,7 @@ class InsumosProcessor:
 
 
 class BaseCostProcessor(ABC):
-    """Clase base para procesadores con logging y validación"""
+    """Clase base para procesadores con logging y validación."""
 
     def __init__(self, config: Dict[str, Any], thresholds: ProcessingThresholds):
         self.config = config
@@ -1277,11 +1277,11 @@ class BaseCostProcessor(ABC):
         self._setup_logging()
 
     def _setup_logging(self):
-        """Configura logging consistente"""
+        """Configura logging consistente."""
         self.logger = logging.getLogger(f"{self.__class__.__name__}")
 
     def _validate_input(self, df: pd.DataFrame, operation: str) -> bool:
-        """Validación común de input"""
+        """Validación común de input."""
         if df is None:
             self.logger.error(f"❌ DataFrame None en {operation}")
             return False
@@ -1296,12 +1296,12 @@ class BaseCostProcessor(ABC):
         return True
 
     def _empty_results(self) -> Tuple[pd.DataFrame, ...]:
-        """Retorna tupla de DataFrames vacíos por defecto"""
+        """Retorna tupla de DataFrames vacíos por defecto."""
         return pd.DataFrame(), pd.DataFrame(), pd.DataFrame()
 
     @abstractmethod
     def calculate(self, *args, **kwargs):
-        """Método principal a implementar por subclases"""
+        """Método principal a implementar por subclases."""
         pass
 
 class DataMerger(BaseCostProcessor):
@@ -1315,7 +1315,7 @@ class DataMerger(BaseCostProcessor):
 
     def merge_apus_with_insumos(self, df_apus: pd.DataFrame,
                                df_insumos: pd.DataFrame) -> pd.DataFrame:
-        """Merge con estadísticas detalladas"""
+        """Merge con estadísticas detalladas."""
         # Validación exhaustiva
         for name, df in [("APUs", df_apus), ("Insumos", df_insumos)]:
             if not self._validate_input(df, f"merge_{name.lower()}"):
@@ -1339,7 +1339,7 @@ class DataMerger(BaseCostProcessor):
 
     def _merge_with_fallback(self, df_apus: pd.DataFrame,
                             df_insumos: pd.DataFrame) -> pd.DataFrame:
-        """Merge con múltiples niveles de fallback"""
+        """Merge con múltiples niveles de fallback."""
         # Preparar datos
         if ColumnNames.NORMALIZED_DESC not in df_apus.columns:
             df_apus[ColumnNames.NORMALIZED_DESC] = normalize_text_series(df_apus[ColumnNames.DESCRIPCION_INSUMO])
@@ -1359,7 +1359,7 @@ class DataMerger(BaseCostProcessor):
             result = strategy(df_apus.copy(), df_insumos.copy())
             match_rate = self._calculate_match_rate(result)
 
-            # Simple threshold check
+            # Verificación de umbral simple
             if match_rate > 0.0:
                 self.logger.info(f"✅ Estrategia {strategy.__name__}: match={match_rate:.1%}")
                 return result
@@ -1400,13 +1400,13 @@ class DataMerger(BaseCostProcessor):
             return pd.DataFrame()
 
     def _calculate_match_rate(self, df: pd.DataFrame) -> float:
-        """Calcula porcentaje de match"""
+        """Calcula porcentaje de match."""
         if '_merge' not in df.columns:
             return 0.0
         return (df['_merge'] == 'both').mean()
 
     def _log_merge_statistics(self, df: pd.DataFrame):
-        """Registra estadísticas detalladas del merge"""
+        """Registra estadísticas detalladas del merge."""
         if '_merge' in df.columns:
             stats = df['_merge'].value_counts(normalize=True) * 100
             self._match_stats = stats.to_dict()
@@ -1469,11 +1469,11 @@ class APUCostCalculator(BaseCostProcessor):
     Calculador de costos APU con clasificación robusta.
 
     MEJORAS APLICADAS:
-    1. Herencia de BaseCostProcessor
-    2. Uso de Enum para tipos
-    3. Patrones centralizados
-    4. Validación de esquema
-    5. Métricas de calidad
+    1. Herencia de BaseCostProcessor.
+    2. Uso de Enum para tipos.
+    3. Patrones centralizados.
+    4. Validación de esquema.
+    5. Métricas de calidad.
     """
 
     def __init__(self, config: dict, thresholds: ProcessingThresholds):
@@ -1487,7 +1487,7 @@ class APUCostCalculator(BaseCostProcessor):
         self.classifier = APUClassifier(config_path)
 
     def _setup_categoria_mapping(self):
-        """Configura mapeo usando Enum"""
+        """Configura mapeo usando Enum."""
         self._tipo_to_categoria = {
             InsumoType.MATERIAL: ColumnNames.MATERIALES,
             InsumoType.MANO_DE_OBRA: ColumnNames.MANO_DE_OBRA,
@@ -1499,7 +1499,7 @@ class APUCostCalculator(BaseCostProcessor):
         }
 
     def calculate(self, df_merged: pd.DataFrame) -> Tuple[pd.DataFrame, ...]:
-        """Punto de entrada principal con validación"""
+        """Punto de entrada principal con validación."""
         # Validación de entrada
         if not self._validate_input(df_merged, "calculate"):
             return self._empty_results()
@@ -1529,7 +1529,7 @@ class APUCostCalculator(BaseCostProcessor):
             return self._empty_results()
 
     def _normalize_tipo_insumo(self, df: pd.DataFrame) -> pd.DataFrame:
-        """Normalización con Enum y métricas"""
+        """Normalización con Enum y métricas."""
         df = df.copy()
 
         # Inicializar con Enum
@@ -1604,13 +1604,13 @@ class APUCostCalculator(BaseCostProcessor):
 
     def _classify_apus(self, df: pd.DataFrame) -> pd.DataFrame:
         """
-        Clasifica APUs usando el clasificador configurable
+        Clasifica APUs usando el clasificador configurable.
 
         Args:
-            df: DataFrame con costos calculados
+            df: DataFrame con costos calculados.
 
         Returns:
-            DataFrame con columna TIPO_APU añadida
+            DataFrame con columna TIPO_APU añadida.
         """
         if df.empty:
             logger.warning("DataFrame vacío en clasificación")
@@ -1663,7 +1663,7 @@ class APUCostCalculator(BaseCostProcessor):
         return df.groupby(ColumnNames.CODIGO_APU)[ColumnNames.RENDIMIENTO].max().reset_index().rename(columns={ColumnNames.RENDIMIENTO: ColumnNames.RENDIMIENTO_DIA})
 
     def _compute_quality_metrics(self, df: pd.DataFrame):
-        """Calcula métricas de calidad del procesamiento"""
+        """Calcula métricas de calidad del procesamiento."""
         total_apus = len(df)
         classified = df[ColumnNames.TIPO_APU].notna().sum()
 
@@ -1682,7 +1682,7 @@ class APUCostCalculator(BaseCostProcessor):
         self.logger.info(f"📈 Métricas de calidad: {self._quality_metrics}")
 
     def get_quality_report(self) -> Dict:
-        """Reporte de métricas de calidad"""
+        """Reporte de métricas de calidad."""
         return self._quality_metrics.copy()
 
     def _calculate_time(self, df: pd.DataFrame) -> pd.DataFrame:
