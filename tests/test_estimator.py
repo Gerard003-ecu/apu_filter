@@ -229,7 +229,10 @@ class TestValidations:
 
     def test_validate_dataframe_columns_missing(self):
         df = pd.DataFrame({"A": [1], "B": [2]})
-        assert validate_dataframe_columns(df, ["A", "B", "C"], "test_df", strict=True)[0] is False
+        assert (
+            validate_dataframe_columns(df, ["A", "B", "C"], "test_df", strict=True)[0]
+            is False
+        )
 
     def test_validate_dataframe_columns_not_dataframe(self):
         assert validate_dataframe_columns(None, ["A"], "test")[0] is False
@@ -296,7 +299,10 @@ class TestFindBestKeywordMatch:
         assert details.confidence_score == 1.0
         # Check for early exit or explicit match
         log_content = "\n".join(log)
-        assert "Early exit: Match perfecto encontrado" in log_content or "Match ESTRICTO encontrado" in log_content
+        assert (
+            "Early exit: Match perfecto encontrado" in log_content
+            or "Match ESTRICTO encontrado" in log_content
+        )
 
     def test_keyword_match_strict_failure(self, sample_apu_pool):
         log = []
@@ -541,6 +547,10 @@ class TestCalculateEstimate:
             "apus_detail": sample_apu_detail,
         }
 
+        # Removed unused variable `result`
+        calculate_estimate(params, data_store, sample_config, mock_search_artifacts)
+
+        # La búsqueda semántica se llama 2 veces: suministro y tarea
         result = calculate_estimate(params, data_store, sample_config, mock_search_artifacts)
 
         assert "error" not in result
@@ -602,7 +612,8 @@ class TestCalculateEstimate:
             "apus_detail": [],
         }
 
-        result = calculate_estimate(params, data_store, sample_config, mock_search_artifacts)
+        # Removed unused variable `result`
+        calculate_estimate(params, data_store, sample_config, mock_search_artifacts)
 
         # La búsqueda semántica se llama 2 veces: suministro y tarea
         assert mock_semantic_match.call_count == 2
@@ -666,14 +677,16 @@ class TestCalculateEstimate:
         with patch("app.estimator._find_best_keyword_match") as mock_kw:
             mock_kw.return_value = (sample_apu_pool.iloc[0], None)
 
-            # This call will internally handle None search_artifacts by logging error and falling back or returning None
+            # This call will internally handle None search_artifacts by logging error
+            # and falling back or returning None
             # Wait, _find_best_semantic_match checks artifacts validity.
             # calculate_estimate will call semantic search, fail, then fallback to keyword
             result = calculate_estimate(
                 params, data_store, sample_config, search_artifacts
             )  # Pass None
 
-            # Debe usar keywords como fallback because semantic search returns None if artifacts are missing
+            # Debe usar keywords como fallback because semantic search returns None
+            # if artifacts are missing
             assert mock_kw.call_count >= 2
             # The log message comes from inside _find_best_semantic_match
             assert "SearchArtifacts es None" in result["log"]

@@ -108,7 +108,8 @@ class TestDataValidator(unittest.TestCase):
         )
         self.assertEqual(resultado[0]["CANTIDAD"], 0)
         self.assertIn("alertas", resultado[0])
-        # Expect 2 alerts: one for inability to recalculate, one for mathematical incoherence (0 * 0 != 100)
+        # Expect 2 alerts: one for inability to recalculate, one for mathematical
+        # incoherence (0 * 0 != 100)
         self.assertEqual(len(resultado[0]["alertas"]), 2)
         self.assertIn("No se puede recalcular", resultado[0]["alertas"][0]["mensaje"])
         self.assertIn("Incoherencia matemática", resultado[0]["alertas"][1]["mensaje"])
@@ -124,7 +125,9 @@ class TestDataValidator(unittest.TestCase):
             }
         ]
         resultado, metrics = _validate_zero_quantity_with_cost(data_broken)
-        self.assertEqual(resultado[0]["CANTIDAD"], "cero")  # No se modifica si no es convertible
+        self.assertEqual(
+            resultado[0]["CANTIDAD"], "cero"
+        )  # No se modifica si no es convertible
         self.assertIn("alertas", resultado[0])
 
     def test_validate_zero_quantity_with_cost__inmutable_input(self):
@@ -145,9 +148,13 @@ class TestDataValidator(unittest.TestCase):
         self.assertEqual(resultado[0]["DESCRIPCION_INSUMO"], "Insumo sin descripción")
         self.assertIn("alertas", resultado[0])
         self.assertTrue(
-            any("fuzzy matching no disponible" in a["mensaje"] or "no instalado" in a["mensaje"] or "sin referencias" in a["mensaje"]
-                for a in resultado[0]["alertas"]),
-            f"Alerts found: {resultado[0]['alertas']}"
+            any(
+                "fuzzy matching no disponible" in a["mensaje"]
+                or "no instalado" in a["mensaje"]
+                or "sin referencias" in a["mensaje"]
+                for a in resultado[0]["alertas"]
+            ),
+            f"Alerts found: {resultado[0]['alertas']}",
         )
 
     def test_validate_missing_descriptions__missing_description(self):
@@ -191,9 +198,12 @@ class TestDataValidator(unittest.TestCase):
         self.assertEqual(resultado[0]["DESCRIPCION_INSUMO"], "Insumo sin descripción")
         self.assertIn("alertas", resultado[0])
         self.assertTrue(
-            any("no hay referencias disponibles" in a["mensaje"] or "sin datos de referencia" in a["mensaje"]
-                for a in resultado[0]["alertas"]),
-            f"Alerts: {resultado[0]['alertas']}"
+            any(
+                "no hay referencias disponibles" in a["mensaje"]
+                or "sin datos de referencia" in a["mensaje"]
+                for a in resultado[0]["alertas"]
+            ),
+            f"Alerts: {resultado[0]['alertas']}",
         )
 
     def test_validate_missing_descriptions__raw_insumos_df_missing_column(self):
@@ -205,9 +215,12 @@ class TestDataValidator(unittest.TestCase):
         self.assertEqual(resultado[0]["DESCRIPCION_INSUMO"], "Insumo sin descripción")
         self.assertIn("alertas", resultado[0])
         self.assertTrue(
-            any("no hay referencias disponibles" in a["mensaje"] or "sin datos de referencia" in a["mensaje"]
-                for a in resultado[0]["alertas"]),
-            f"Alerts: {resultado[0]['alertas']}"
+            any(
+                "no hay referencias disponibles" in a["mensaje"]
+                or "sin datos de referencia" in a["mensaje"]
+                for a in resultado[0]["alertas"]
+            ),
+            f"Alerts: {resultado[0]['alertas']}",
         )
 
     def test_validate_missing_descriptions__inmutable_input(self):

@@ -47,6 +47,7 @@ from agent.topological_analyzer import (
 # LOGGING CONFIGURATION
 # ============================================================================
 
+
 def setup_logging() -> logging.Logger:
     """Configura y retorna el logger del agente."""
     log_level = os.getenv("LOG_LEVEL", "INFO").upper()
@@ -54,7 +55,7 @@ def setup_logging() -> logging.Logger:
     logging.basicConfig(
         level=getattr(logging, log_level, logging.INFO),
         format="%(asctime)s - %(levelname)s - [%(name)s] - %(message)s",
-        handlers=[logging.StreamHandler(sys.stdout)]
+        handlers=[logging.StreamHandler(sys.stdout)],
     )
 
     return logging.getLogger("AutonomousAgent")
@@ -66,8 +67,10 @@ logger = setup_logging()
 # ENUMS - Estados y Decisiones tipados
 # ============================================================================
 
+
 class SystemStatus(Enum):
     """Estados posibles del sistema monitoreado."""
+
     NOMINAL = auto()
     INESTABLE = auto()
     SATURADO = auto()
@@ -78,6 +81,7 @@ class SystemStatus(Enum):
 
 class AgentDecision(Enum):
     """Decisiones que el agente puede tomar."""
+
     HEARTBEAT = auto()
     RECOMENDAR_LIMPIEZA = auto()
     RECOMENDAR_REDUCIR_VELOCIDAD = auto()
@@ -90,6 +94,7 @@ class AgentDecision(Enum):
 # DATA CLASSES - Estructuras de datos tipadas
 # ============================================================================
 
+
 @dataclass(frozen=True)
 class ThresholdConfig:
     """
@@ -101,6 +106,7 @@ class ThresholdConfig:
         saturation_warning: Umbral de advertencia para saturación (default: 0.9)
         saturation_critical: Umbral crítico para saturación (default: 0.95)
     """
+
     flyback_voltage_warning: float = 0.5
     flyback_voltage_critical: float = 0.8
     saturation_warning: float = 0.9
@@ -109,14 +115,10 @@ class ThresholdConfig:
     def __post_init__(self) -> None:
         """Valida coherencia de umbrales tras inicialización."""
         self._validate_threshold_pair(
-            "flyback_voltage",
-            self.flyback_voltage_warning,
-            self.flyback_voltage_critical
+            "flyback_voltage", self.flyback_voltage_warning, self.flyback_voltage_critical
         )
         self._validate_threshold_pair(
-            "saturation",
-            self.saturation_warning,
-            self.saturation_critical
+            "saturation", self.saturation_warning, self.saturation_critical
         )
 
     @staticmethod
@@ -140,6 +142,7 @@ class TelemetryData:
         timestamp: Momento de la captura
         raw_data: Datos originales sin procesar
     """
+
     flyback_voltage: float
     saturation: float
     timestamp: datetime = field(default_factory=datetime.now)
@@ -163,7 +166,9 @@ class TelemetryData:
             TelemetryData si los datos son válidos, None en caso contrario
         """
         if not isinstance(data, dict):
-            logger.warning(f"[TELEMETRY] Tipo inválido: esperado dict, recibido {type(data).__name__}")
+            logger.warning(
+                f"[TELEMETRY] Tipo inválido: esperado dict, recibido {type(data).__name__}"
+            )
             return None
 
         # Estrategia de extracción flexible
@@ -177,11 +182,13 @@ class TelemetryData:
 
         # Extracción con defaults seguros (0.0 = Reposo/Nominal)
         # Soporta claves directas o anidadas tipo 'flux_condenser.x'
-        flyback = metrics_source.get("flux_condenser.max_flyback_voltage",
-                  metrics_source.get("flyback_voltage"))
+        flyback = metrics_source.get(
+            "flux_condenser.max_flyback_voltage", metrics_source.get("flyback_voltage")
+        )
 
-        saturation = metrics_source.get("flux_condenser.avg_saturation",
-                     metrics_source.get("saturation"))
+        saturation = metrics_source.get(
+            "flux_condenser.avg_saturation", metrics_source.get("saturation")
+        )
 
         # Si no se encontraron los valores explícitos, usar default 0.0 y loguear debug
         is_idle = False
@@ -194,7 +201,9 @@ class TelemetryData:
             is_idle = True
 
         if is_idle:
-             logger.debug("[TELEMETRY] Métricas no encontradas, asumiendo estado IDLE (flyback=0.0, saturation=0.0)")
+            logger.debug(
+                "[TELEMETRY] Métricas no encontradas, asumiendo estado IDLE (flyback=0.0, saturation=0.0)"
+            )
 
         # Intentar conversión a float
         try:
@@ -210,11 +219,7 @@ class TelemetryData:
         if not (0 <= saturation_float <= 1.0):
             logger.warning(f"[TELEMETRY] saturation={saturation_float} fuera de [0,1]")
 
-        return cls(
-            flyback_voltage=flyback_float,
-            saturation=saturation_float,
-            raw_data=data
-        )
+        return cls(flyback_voltage=flyback_float, saturation=saturation_float, raw_data=data)
 
 
 @dataclass
@@ -224,6 +229,7 @@ class AgentMetrics:
 
     Permite monitorear el comportamiento y salud del propio agente.
     """
+
     cycles_executed: int = 0
     successful_observations: int = 0
     failed_observations: int = 0
@@ -273,10 +279,11 @@ class AgentMetrics:
             "consecutive_failures": self.consecutive_failures,
             "last_successful_observation": (
                 self.last_successful_observation.isoformat()
-                if self.last_successful_observation else None
+                if self.last_successful_observation
+                else None
             ),
             "decisions_count": self.decisions_count.copy(),
-            "uptime_seconds": round(self.uptime_seconds, 2)
+            "uptime_seconds": round(self.uptime_seconds, 2),
         }
 
 
@@ -287,6 +294,7 @@ class TopologicalDiagnosis:
 
     Encapsula toda la información topológica relevante para la toma de decisiones.
     """
+
     health: TopologicalHealth
     voltage_persistence: PersistenceAnalysisResult
     saturation_persistence: PersistenceAnalysisResult
@@ -320,6 +328,7 @@ class TopologicalDiagnosis:
 # ============================================================================
 # AUTONOMOUS AGENT - Implementación Principal
 # ============================================================================
+
 
 class AutonomousAgent:
     """
@@ -387,13 +396,13 @@ class AutonomousAgent:
             check_interval,
             os.getenv("CHECK_INTERVAL"),
             self.DEFAULT_CHECK_INTERVAL,
-            "check_interval"
+            "check_interval",
         )
         self.request_timeout = self._parse_positive_int(
             request_timeout,
             os.getenv("REQUEST_TIMEOUT"),
             self.DEFAULT_REQUEST_TIMEOUT,
-            "request_timeout"
+            "request_timeout",
         )
 
         # Configuración de umbrales
@@ -412,7 +421,7 @@ class AutonomousAgent:
             None,
             os.getenv("PERSISTENCE_WINDOW_SIZE"),
             self.PERSISTENCE_WINDOW_SIZE,
-            "persistence_window"
+            "persistence_window",
         )
 
         # Componentes de análisis topológico
@@ -453,9 +462,7 @@ class AutonomousAgent:
         ]
 
         edges_added, warnings = self.topology.update_connectivity(
-            initial_connections,
-            validate_nodes=True,
-            auto_add_nodes=True
+            initial_connections, validate_nodes=True, auto_add_nodes=True
         )
 
         if warnings:
@@ -463,8 +470,7 @@ class AutonomousAgent:
                 logger.warning(f"[TOPO-INIT] {warn}")
 
         logger.debug(
-            f"[TOPO-INIT] Topología inicial establecida: "
-            f"{edges_added} conexiones activas"
+            f"[TOPO-INIT] Topología inicial establecida: {edges_added} conexiones activas"
         )
 
     @staticmethod
@@ -504,10 +510,7 @@ class AutonomousAgent:
 
     @staticmethod
     def _parse_positive_int(
-        explicit: Optional[int],
-        env_value: Optional[str],
-        default: int,
-        name: str
+        explicit: Optional[int], env_value: Optional[str], default: int, name: str
     ) -> int:
         """
         Parsea un entero positivo desde múltiples fuentes.
@@ -546,23 +549,20 @@ class AutonomousAgent:
             backoff_factor=0.5,  # 0.5s, 1s, 2s
             status_forcelist=[500, 502, 503, 504],
             allowed_methods=["GET", "POST"],
-            raise_on_status=False
+            raise_on_status=False,
         )
 
         adapter = HTTPAdapter(
-            max_retries=retry_strategy,
-            pool_connections=10,
-            pool_maxsize=10
+            max_retries=retry_strategy, pool_connections=10, pool_maxsize=10
         )
 
         session.mount("http://", adapter)
         session.mount("https://", adapter)
 
         # Configurar cabeceras predeterminadas (Pasaporte Interno)
-        session.headers.update({
-            "User-Agent": "APU-Agent-Internal",
-            "Content-Type": "application/json"
-        })
+        session.headers.update(
+            {"User-Agent": "APU-Agent-Internal", "Content-Type": "application/json"}
+        )
 
         return session
 
@@ -614,8 +614,7 @@ class AutonomousAgent:
 
         try:
             response = self._session.get(
-                self.telemetry_endpoint,
-                timeout=self.request_timeout
+                self.telemetry_endpoint, timeout=self.request_timeout
             )
 
             # Verificar código de respuesta
@@ -661,11 +660,7 @@ class AutonomousAgent:
             self._handle_observation_failure(request_id, "REQUEST_ERROR")
             return None
 
-    def _handle_observation_success(
-        self,
-        request_id: str,
-        telemetry: TelemetryData
-    ) -> None:
+    def _handle_observation_success(self, request_id: str, telemetry: TelemetryData) -> None:
         """
         Maneja una observación exitosa actualizando métricas y topología.
 
@@ -690,9 +685,7 @@ class AutonomousAgent:
             active_connections.append(("Core", "Filesystem"))
 
         self.topology.update_connectivity(
-            active_connections,
-            validate_nodes=True,
-            auto_add_nodes=False
+            active_connections, validate_nodes=True, auto_add_nodes=False
         )
 
         logger.debug(
@@ -701,11 +694,7 @@ class AutonomousAgent:
             f"saturation={telemetry.saturation:.3f}"
         )
 
-    def _handle_observation_failure(
-        self,
-        request_id: str,
-        failure_type: str
-    ) -> None:
+    def _handle_observation_failure(self, request_id: str, failure_type: str) -> None:
         """
         Maneja una observación fallida actualizando métricas y topología.
 
@@ -750,13 +739,13 @@ class AutonomousAgent:
         voltage_analysis = self._analyze_metric_persistence(
             "flyback_voltage",
             telemetry.flyback_voltage if telemetry else None,
-            self.thresholds.flyback_voltage_warning
+            self.thresholds.flyback_voltage_warning,
         )
 
         saturation_analysis = self._analyze_metric_persistence(
             "saturation",
             telemetry.saturation if telemetry else None,
-            self.thresholds.saturation_warning
+            self.thresholds.saturation_warning,
         )
 
         # Determinar estado y construir diagnóstico
@@ -764,7 +753,7 @@ class AutonomousAgent:
             telemetry=telemetry,
             topo_health=topo_health,
             voltage_analysis=voltage_analysis,
-            saturation_analysis=saturation_analysis
+            saturation_analysis=saturation_analysis,
         )
 
         # Almacenar diagnóstico completo
@@ -773,22 +762,17 @@ class AutonomousAgent:
             voltage_persistence=voltage_analysis,
             saturation_persistence=saturation_analysis,
             summary=summary,
-            recommended_status=status
+            recommended_status=status,
         )
 
         # Log estructurado del diagnóstico
         if status != SystemStatus.NOMINAL:
-            logger.info(
-                f"[ORIENT] Diagnóstico: {self._last_diagnosis.to_log_dict()}"
-            )
+            logger.info(f"[ORIENT] Diagnóstico: {self._last_diagnosis.to_log_dict()}")
 
         return status
 
     def _analyze_metric_persistence(
-        self,
-        metric_name: str,
-        current_value: Optional[float],
-        threshold: float
+        self, metric_name: str, current_value: Optional[float], threshold: float
     ) -> PersistenceAnalysisResult:
         """
         Analiza la persistencia de una métrica alimentando nuevos datos.
@@ -807,10 +791,7 @@ class AutonomousAgent:
 
         # Obtener análisis
         return self.persistence.analyze_persistence(
-            metric_name,
-            threshold=threshold,
-            noise_ratio=0.2,
-            critical_ratio=0.5
+            metric_name, threshold=threshold, noise_ratio=0.2, critical_ratio=0.5
         )
 
     def _evaluate_system_state(
@@ -818,7 +799,7 @@ class AutonomousAgent:
         telemetry: Optional[TelemetryData],
         topo_health: TopologicalHealth,
         voltage_analysis: PersistenceAnalysisResult,
-        saturation_analysis: PersistenceAnalysisResult
+        saturation_analysis: PersistenceAnalysisResult,
     ) -> Tuple[SystemStatus, str]:
         """
         Evalúa el estado del sistema integrando todas las fuentes de análisis.
@@ -903,10 +884,9 @@ class AutonomousAgent:
 
         # Saturación persistente (más grave que inestabilidad)
         if saturation_analysis.state == MetricState.CRITICAL:
-            duration = saturation_analysis.metadata.get('active_duration', '?')
+            duration = saturation_analysis.metadata.get("active_duration", "?")
             summary = (
-                f"Saturación Persistente Crítica: "
-                f"excursión activa por {duration} muestras"
+                f"Saturación Persistente Crítica: excursión activa por {duration} muestras"
             )
             logger.warning(f"[PERSIST] 🟠 {summary}")
             return SystemStatus.SATURADO, summary
@@ -922,10 +902,9 @@ class AutonomousAgent:
 
         # Inestabilidad de voltaje
         if voltage_analysis.state == MetricState.CRITICAL:
-            duration = voltage_analysis.metadata.get('active_duration', '?')
+            duration = voltage_analysis.metadata.get("active_duration", "?")
             summary = (
-                f"Inestabilidad de Voltaje Crítica: "
-                f"excursión activa por {duration} muestras"
+                f"Inestabilidad de Voltaje Crítica: excursión activa por {duration} muestras"
             )
             logger.warning(f"[PERSIST] 🟠 {summary}")
             return SystemStatus.INESTABLE, summary
@@ -958,9 +937,7 @@ class AutonomousAgent:
         # 7. SALUD TOPOLÓGICA DEGRADADA (pero no crítica)
         # =====================================================================
         if topo_health.level == HealthLevel.UNHEALTHY:
-            summary = (
-                f"Salud Topológica Degradada: score={topo_health.health_score:.2f}"
-            )
+            summary = f"Salud Topológica Degradada: score={topo_health.health_score:.2f}"
             logger.info(f"[TOPO] 🟡 {summary}")
             # No es crítico, pero vale la pena monitorear
             # Continuamos a evaluar como NOMINAL por ahora
@@ -1128,64 +1105,61 @@ class AutonomousAgent:
         """Acción: Sistema nominal."""
         health_indicator = "✅"
         if self._last_diagnosis and self._last_diagnosis.health.health_score < 1.0:
-            health_indicator = "✅" if self._last_diagnosis.health.health_score >= 0.9 else "🟢"
+            health_indicator = (
+                "✅" if self._last_diagnosis.health.health_score >= 0.9 else "🟢"
+            )
 
-        logger.info(
-            f"[BRAIN] {health_indicator} Sistema NOMINAL - Operación estable"
-        )
+        logger.info(f"[BRAIN] {health_indicator} Sistema NOMINAL - Operación estable")
 
     def _act_recomendar_limpieza(self, diagnosis_msg: str) -> None:
         """Acción: Recomendar limpieza por inestabilidad."""
-        logger.warning(
-            f"[BRAIN] ⚠️ INESTABILIDAD DETECTADA - {diagnosis_msg}"
+        logger.warning(f"[BRAIN] ⚠️ INESTABILIDAD DETECTADA - {diagnosis_msg}")
+        logger.warning("[BRAIN] → Recomendación: Revisar y limpiar datos CSV")
+        self._notify_external_system(
+            "instability_detected",
+            {
+                "diagnosis": diagnosis_msg,
+                "voltage_state": self._last_diagnosis.voltage_persistence.state.name
+                if self._last_diagnosis
+                else None,
+            },
         )
-        logger.warning(
-            "[BRAIN] → Recomendación: Revisar y limpiar datos CSV"
-        )
-        self._notify_external_system("instability_detected", {
-            "diagnosis": diagnosis_msg,
-            "voltage_state": self._last_diagnosis.voltage_persistence.state.name
-            if self._last_diagnosis else None
-        })
 
     def _act_recomendar_reducir_velocidad(self, diagnosis_msg: str) -> None:
         """Acción: Recomendar reducir velocidad por saturación."""
-        logger.warning(
-            f"[BRAIN] ⚠️ SATURACIÓN DETECTADA - {diagnosis_msg}"
+        logger.warning(f"[BRAIN] ⚠️ SATURACIÓN DETECTADA - {diagnosis_msg}")
+        logger.warning("[BRAIN] → Recomendación: Reducir velocidad de carga")
+        self._notify_external_system(
+            "saturation_detected",
+            {
+                "diagnosis": diagnosis_msg,
+                "saturation_state": self._last_diagnosis.saturation_persistence.state.name
+                if self._last_diagnosis
+                else None,
+            },
         )
-        logger.warning(
-            "[BRAIN] → Recomendación: Reducir velocidad de carga"
-        )
-        self._notify_external_system("saturation_detected", {
-            "diagnosis": diagnosis_msg,
-            "saturation_state": self._last_diagnosis.saturation_persistence.state.name
-            if self._last_diagnosis else None
-        })
 
     def _act_alerta_critica(self, diagnosis_msg: str) -> None:
         """Acción: Alerta crítica."""
-        logger.critical(
-            f"[BRAIN] 🚨 ALERTA CRÍTICA - {diagnosis_msg}"
+        logger.critical(f"[BRAIN] 🚨 ALERTA CRÍTICA - {diagnosis_msg}")
+        logger.critical("[BRAIN] → Intervención inmediata requerida")
+        self._notify_external_system(
+            "critical_alert",
+            {
+                "diagnosis": diagnosis_msg,
+                "health_score": self._last_diagnosis.health.health_score
+                if self._last_diagnosis
+                else None,
+                "betti": self._last_diagnosis.health.betti.b0
+                if self._last_diagnosis
+                else None,
+            },
         )
-        logger.critical(
-            "[BRAIN] → Intervención inmediata requerida"
-        )
-        self._notify_external_system("critical_alert", {
-            "diagnosis": diagnosis_msg,
-            "health_score": self._last_diagnosis.health.health_score
-            if self._last_diagnosis else None,
-            "betti": self._last_diagnosis.health.betti.b0
-            if self._last_diagnosis else None
-        })
 
     def _act_reconnect(self, diagnosis_msg: str) -> None:
         """Acción: Intentar reconexión."""
-        logger.warning(
-            f"[BRAIN] 🔄 Conexión perdida - {diagnosis_msg}"
-        )
-        logger.warning(
-            "[BRAIN] → Reintentando conexión con Core..."
-        )
+        logger.warning(f"[BRAIN] 🔄 Conexión perdida - {diagnosis_msg}")
+        logger.warning("[BRAIN] → Reintentando conexión con Core...")
         # Restaurar topología esperada para próximo intento
         self._initialize_expected_topology()
 
@@ -1194,9 +1168,7 @@ class AutonomousAgent:
         logger.info("[BRAIN] ⏳ Esperando datos de telemetría...")
 
     def _notify_external_system(
-        self,
-        event_type: str,
-        context: Optional[Dict[str, Any]] = None
+        self, event_type: str, context: Optional[Dict[str, Any]] = None
     ) -> None:
         """
         Hook para notificaciones externas (webhooks, métricas, etc).
@@ -1232,8 +1204,7 @@ class AutonomousAgent:
 
         try:
             response = self._session.get(
-                self.telemetry_endpoint,
-                timeout=self.request_timeout
+                self.telemetry_endpoint, timeout=self.request_timeout
             )
 
             if response.ok:
@@ -1278,12 +1249,14 @@ class AutonomousAgent:
         metrics = self._metrics.to_dict()
 
         # Información básica del agente
-        metrics.update({
-            "core_api_url": self.core_api_url,
-            "check_interval": self.check_interval,
-            "is_running": self._running,
-            "last_status": self._last_status.name if self._last_status else None,
-        })
+        metrics.update(
+            {
+                "core_api_url": self.core_api_url,
+                "check_interval": self.check_interval,
+                "is_running": self._running,
+                "last_status": self._last_status.name if self._last_status else None,
+            }
+        )
 
         # Métricas topológicas
         topo_health = self.topology.get_topological_health()
@@ -1344,9 +1317,13 @@ class AutonomousAgent:
                 "b0": health.betti.b0,
                 "b1": health.betti.b1,
                 "interpretation": {
-                    "b0": "conectado" if health.betti.is_connected else f"{health.betti.b0} fragmentos",
-                    "b1": "acíclico" if health.betti.is_acyclic else f"{health.betti.b1} ciclos",
-                }
+                    "b0": "conectado"
+                    if health.betti.is_connected
+                    else f"{health.betti.b0} fragmentos",
+                    "b1": "acíclico"
+                    if health.betti.is_acyclic
+                    else f"{health.betti.b1} ciclos",
+                },
             },
             "health": {
                 "score": health.health_score,
@@ -1377,9 +1354,7 @@ class AutonomousAgent:
         # Health check inicial
         if not skip_health_check:
             if not self.health_check():
-                logger.warning(
-                    "Iniciando agente a pesar de health check fallido..."
-                )
+                logger.warning("Iniciando agente a pesar de health check fallido...")
 
         self._running = True
         logger.info("🚀 Iniciando OODA Loop...")
@@ -1409,7 +1384,7 @@ class AutonomousAgent:
                 except Exception as e:
                     logger.error(
                         f"Error en ciclo OODA #{self._metrics.cycles_executed}: {e}",
-                        exc_info=True
+                        exc_info=True,
                     )
 
                 # Sleep adaptativo (considera duración del ciclo)
@@ -1455,6 +1430,7 @@ class AutonomousAgent:
 # ============================================================================
 # ENTRY POINT
 # ============================================================================
+
 
 def main() -> int:
     """

@@ -1777,9 +1777,7 @@ def create_app(config_name: str) -> Flask:
     # ========================================================================
 
     @app.route("/api/tools/diagnose", methods=["POST"])
-    @limiter.limit(
-        "20 per minute", exempt_when=lambda: current_app.config.get("TESTING")
-    )
+    @limiter.limit("20 per minute", exempt_when=lambda: current_app.config.get("TESTING"))
     @handle_errors
     def tool_diagnose():
         """
@@ -1824,9 +1822,7 @@ def create_app(config_name: str) -> Flask:
             return jsonify({"error": str(e), "code": "TOOL_ERROR"}), 500
 
     @app.route("/api/tools/clean", methods=["POST"])
-    @limiter.limit(
-        "10 per minute", exempt_when=lambda: current_app.config.get("TESTING")
-    )
+    @limiter.limit("10 per minute", exempt_when=lambda: current_app.config.get("TESTING"))
     @handle_errors
     def tool_clean():
         """

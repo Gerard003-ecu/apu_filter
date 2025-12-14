@@ -10,6 +10,7 @@ class ValidationResult:
     errors: List[str]
     warnings: List[str]
 
+
 class DataFrameValidator:
     """Validador de DataFrames con reglas de negocio."""
 
@@ -22,13 +23,15 @@ class DataFrameValidator:
             return ValidationResult(
                 is_valid=False,
                 errors=[f"Faltan columnas requeridas: {missing}"],
-                warnings=[]
+                warnings=[],
             )
 
         return ValidationResult(True, [], [])
 
     @staticmethod
-    def check_data_quality(df: pd.DataFrame, critical_columns: List[str]) -> ValidationResult:
+    def check_data_quality(
+        df: pd.DataFrame, critical_columns: List[str]
+    ) -> ValidationResult:
         """Verifica calidad de datos (nulls, tipos, etc)."""
         errors = []
         warnings = []

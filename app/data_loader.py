@@ -168,7 +168,7 @@ class FileMetadata:
                 if readable:
                     # Verificar permisos de lectura intentando abrir el archivo
                     try:
-                        with open(path, 'rb') as f:
+                        with open(path, "rb") as f:
                             f.read(1)  # Leer 1 byte para verificar
                     except (IOError, PermissionError):
                         readable = False
@@ -263,7 +263,9 @@ class LoadResult:
         """
         result = {
             "status": self.status.value if self.status else "UNKNOWN",
-            "load_time_seconds": round(self.load_time_seconds, 3) if self.load_time_seconds else 0,
+            "load_time_seconds": round(self.load_time_seconds, 3)
+            if self.load_time_seconds
+            else 0,
             "encoding_used": self.encoding_used,
             "delimiter_used": self.delimiter_used,
             "sheets_loaded": self.sheets_loaded,
@@ -275,7 +277,9 @@ class LoadResult:
         if self.file_metadata is not None:
             result["file_path"] = str(self.file_metadata.path)
             result["file_size_mb"] = round(self.file_metadata.size_mb, 2)
-            result["format"] = self.file_metadata.format.value if self.file_metadata.format else "UNKNOWN"
+            result["format"] = (
+                self.file_metadata.format.value if self.file_metadata.format else "UNKNOWN"
+            )
         else:
             result["file_path"] = None
             result["file_size_mb"] = 0
@@ -299,11 +303,13 @@ class LoadResult:
         elif isinstance(self.data, pd.DataFrame):
             result["has_data"] = not self.data.empty
             result["data_type"] = "DataFrame"
-            result["data_shape"] = {"rows": len(self.data), "columns": len(self.data.columns)}
+            result["data_shape"] = {
+                "rows": len(self.data),
+                "columns": len(self.data.columns),
+            }
         elif isinstance(self.data, dict):
             result["has_data"] = any(
-                isinstance(v, pd.DataFrame) and not v.empty
-                for v in self.data.values()
+                isinstance(v, pd.DataFrame) and not v.empty for v in self.data.values()
             )
             result["data_type"] = "Dict[str, DataFrame]"
             result["data_shape"] = {
@@ -364,12 +370,14 @@ def _validate_file_path(path: PathType) -> Path:
         raise ValueError(f"No se puede crear Path desde '{path}': {e}")
 
     # Verificar caracteres problemáticos (principalmente en Windows)
-    problematic_chars = ['<', '>', ':', '"', '|', '?', '*']
+    problematic_chars = ["<", ">", ":", '"', "|", "?", "*"]
     path_str = str(path)
     for char in problematic_chars:
-        if char in path_str and char != ':':  # ':' es válido en Windows para unidades
+        if char in path_str and char != ":":  # ':' es válido en Windows para unidades
             # Solo advertir, no fallar (puede ser válido en algunos sistemas)
-            logger.warning(f"La ruta contiene carácter potencialmente problemático: '{char}'")
+            logger.warning(
+                f"La ruta contiene carácter potencialmente problemático: '{char}'"
+            )
 
     # Resolver ruta (convertir a absoluta, resolver symlinks)
     try:
@@ -416,13 +424,15 @@ def _validate_file_path(path: PathType) -> Path:
 
     if not is_file:
         if resolved_path.is_dir():
-            raise IsADirectoryError(f"La ruta apunta a un directorio, no a un archivo: {resolved_path}")
+            raise IsADirectoryError(
+                f"La ruta apunta a un directorio, no a un archivo: {resolved_path}"
+            )
         else:
             raise ValueError(f"La ruta no apunta a un archivo regular: {resolved_path}")
 
     # Verificar permisos de lectura intentando abrir el archivo
     try:
-        with open(resolved_path, 'rb') as f:
+        with open(resolved_path, "rb") as f:
             # Intentar leer un byte para verificar acceso real
             f.read(1)
     except PermissionError:
@@ -485,7 +495,9 @@ def _validate_file_size(
     # Advertencias para archivos muy pequeños (posiblemente corruptos)
     MIN_REASONABLE_SIZE_BYTES = 10  # Menos de 10 bytes es sospechoso
     if 0 < metadata.size_bytes < MIN_REASONABLE_SIZE_BYTES:
-        msg = f"Archivo sospechosamente pequeño ({metadata.size_bytes} bytes): {metadata.path}"
+        msg = (
+            f"Archivo sospechosamente pequeño ({metadata.size_bytes} bytes): {metadata.path}"
+        )
         logger.warning(msg)
         warnings.append(msg)
 
@@ -538,7 +550,7 @@ def _analyze_dataframe_quality(
         )
         # Aplanar para análisis
         try:
-            flat_columns = ['_'.join(map(str, col)).strip('_') for col in df.columns.values]
+            flat_columns = ["_".join(map(str, col)).strip("_") for col in df.columns.values]
             metrics.total_columns = len(flat_columns)
         except Exception as e:
             logger.warning(f"Error al aplanar MultiIndex: {e}")
@@ -567,7 +579,7 @@ def _analyze_dataframe_quality(
     try:
         if not isinstance(df.columns, pd.MultiIndex):
             # Convertir columnas a strings para comparación
-            col_strings = [str(c) if c is not None else '' for c in df.columns]
+            col_strings = [str(c) if c is not None else "" for c in df.columns]
             seen = set()
             duplicates = []
             for col in col_strings:
@@ -577,7 +589,9 @@ def _analyze_dataframe_quality(
 
             if duplicates:
                 metrics.duplicate_columns = list(set(duplicates))
-                metrics.add_warning(f"Columnas duplicadas encontradas: {metrics.duplicate_columns}")
+                metrics.add_warning(
+                    f"Columnas duplicadas encontradas: {metrics.duplicate_columns}"
+                )
     except Exception as e:
         logger.warning(f"Error al detectar columnas duplicadas: {e}")
 
@@ -587,7 +601,9 @@ def _analyze_dataframe_quality(
         all_null_cols = df.columns[all_null_mask].tolist()
         if all_null_cols:
             metrics.columns_with_all_nulls = [str(c) for c in all_null_cols]
-            metrics.add_warning(f"Columnas con todos valores nulos: {metrics.columns_with_all_nulls}")
+            metrics.add_warning(
+                f"Columnas con todos valores nulos: {metrics.columns_with_all_nulls}"
+            )
     except Exception as e:
         logger.warning(f"Error al detectar columnas totalmente nulas: {e}")
 
@@ -595,10 +611,10 @@ def _analyze_dataframe_quality(
     try:
         empty_cols = []
         for i, col in enumerate(df.columns):
-            col_str = str(col) if col is not None else ''
+            col_str = str(col) if col is not None else ""
             col_str = col_str.strip()
 
-            if not col_str or col_str.lower() in ('nan', 'none', 'null', 'unnamed'):
+            if not col_str or col_str.lower() in ("nan", "none", "null", "unnamed"):
                 empty_cols.append(f"Column_{i}" if not col_str else col_str)
 
         if empty_cols:
@@ -630,7 +646,9 @@ def _analyze_dataframe_quality(
         logger.warning(f"No se pudo calcular uso de memoria: {e}")
         # Estimación aproximada
         try:
-            metrics.memory_usage_mb = (df.size * 8) / (1024 * 1024)  # Asumiendo 8 bytes por elemento
+            metrics.memory_usage_mb = (df.size * 8) / (
+                1024 * 1024
+            )  # Asumiendo 8 bytes por elemento
         except Exception:
             metrics.memory_usage_mb = 0.0
 
@@ -649,8 +667,7 @@ def _analyze_dataframe_quality(
 
     if metrics.total_rows < MIN_ROWS_WARNING:
         metrics.add_warning(
-            f"Muy pocas filas: {metrics.total_rows} "
-            f"(mínimo esperado: {MIN_ROWS_WARNING})"
+            f"Muy pocas filas: {metrics.total_rows} (mínimo esperado: {MIN_ROWS_WARNING})"
         )
 
     # Advertencia de nulos
@@ -722,7 +739,9 @@ def _clean_dataframe(
         logger.info("Aplanando MultiIndex en columnas")
         try:
             df_clean.columns = [
-                '_'.join(str(level) for level in col if pd.notna(level) and str(level).strip())
+                "_".join(
+                    str(level) for level in col if pd.notna(level) and str(level).strip()
+                )
                 for col in df_clean.columns.values
             ]
         except Exception as e:
@@ -737,7 +756,7 @@ def _clean_dataframe(
                 nuevas_columnas.append(f"Unnamed_{i}")
             else:
                 col_str = str(col).strip()
-                if not col_str or col_str.lower() in ('nan', 'none', 'null'):
+                if not col_str or col_str.lower() in ("nan", "none", "null"):
                     nuevas_columnas.append(f"Unnamed_{i}")
                 else:
                     nuevas_columnas.append(col_str)
@@ -784,7 +803,7 @@ def _clean_dataframe(
     if remove_empty_rows:
         try:
             rows_before = len(df_clean)
-            df_clean = df_clean.dropna(how='all')
+            df_clean = df_clean.dropna(how="all")
             rows_removed = rows_before - len(df_clean)
 
             if rows_removed > 0:
@@ -842,7 +861,7 @@ def _detect_csv_delimiter(
     for encoding in encodings_to_try:
         try:
             lines = []
-            with open(path, 'r', encoding=encoding, errors='strict') as f:
+            with open(path, "r", encoding=encoding, errors="strict") as f:
                 for _ in range(sample_size):
                     try:
                         line = f.readline()
@@ -899,7 +918,9 @@ def _detect_csv_delimiter(
 
                 # Calcular varianza para medir consistencia
                 if len(non_zero_counts) > 1:
-                    variance = sum((c - avg_count) ** 2 for c in non_zero_counts) / len(non_zero_counts)
+                    variance = sum((c - avg_count) ** 2 for c in non_zero_counts) / len(
+                        non_zero_counts
+                    )
                     # Normalizar varianza
                     consistency_score = 1 / (1 + variance)
                 else:
@@ -992,10 +1013,14 @@ def load_from_csv(
     logger.info(f"Cargando CSV: {path} ({metadata.size_mb:.2f} MB)")
 
     # Limpiar kwargs de conflictos
-    safe_kwargs = {k: v for k, v in kwargs.items() if k not in ('sep', 'encoding', 'delimiter')}
+    safe_kwargs = {
+        k: v for k, v in kwargs.items() if k not in ("sep", "encoding", "delimiter")
+    }
 
-    if 'sep' in kwargs or 'delimiter' in kwargs:
-        logger.warning("Parámetros 'sep' o 'delimiter' en kwargs serán ignorados. Use el parámetro 'sep' directo.")
+    if "sep" in kwargs or "delimiter" in kwargs:
+        logger.warning(
+            "Parámetros 'sep' o 'delimiter' en kwargs serán ignorados. Use el parámetro 'sep' directo."
+        )
 
     # Determinar encodings a probar
     if encoding:
@@ -1013,7 +1038,9 @@ def load_from_csv(
         detected_delim, detected_encoding = _detect_csv_delimiter(path)
         if detected_delim:
             # Priorizar el delimitador detectado
-            delimiters_to_try = [detected_delim] + [d for d in COMMON_DELIMITERS if d != detected_delim]
+            delimiters_to_try = [detected_delim] + [
+                d for d in COMMON_DELIMITERS if d != detected_delim
+            ]
             if detected_encoding and detected_encoding not in encodings_to_try:
                 encodings_to_try.insert(0, detected_encoding)
         else:
@@ -1041,8 +1068,8 @@ def load_from_csv(
                     path,
                     sep=delim,
                     encoding=enc,
-                    on_bad_lines='warn',  # Python 3.9+ pandas
-                    **safe_kwargs
+                    on_bad_lines="warn",  # Python 3.9+ pandas
+                    **safe_kwargs,
                 )
 
                 # Verificar que la carga tenga sentido
@@ -1051,7 +1078,9 @@ def load_from_csv(
                     # Verificar si la única columna contiene el delimitador esperado
                     col_name = str(df.columns[0])
                     if any(d in col_name for d in COMMON_DELIMITERS if d != delim):
-                        attempts_log.append(f"{attempt_info}: solo 1 columna, posible delimitador incorrecto")
+                        attempts_log.append(
+                            f"{attempt_info}: solo 1 columna, posible delimitador incorrecto"
+                        )
                         continue
 
                 # Limpiar y analizar
@@ -1228,8 +1257,7 @@ def load_from_xlsx(
         for sheet in sheets_to_check:
             if isinstance(sheet, str) and sheet not in available_sheets:
                 error_msg = (
-                    f"Hoja '{sheet}' no encontrada. "
-                    f"Hojas disponibles: {available_sheets}"
+                    f"Hoja '{sheet}' no encontrada. Hojas disponibles: {available_sheets}"
                 )
                 logger.error(error_msg)
                 return LoadResult(
@@ -1243,7 +1271,7 @@ def load_from_xlsx(
             elif isinstance(sheet, int) and (sheet < 0 or sheet >= len(available_sheets)):
                 error_msg = (
                     f"Índice de hoja {sheet} fuera de rango. "
-                    f"Rango válido: 0-{len(available_sheets)-1}"
+                    f"Rango válido: 0-{len(available_sheets) - 1}"
                 )
                 logger.error(error_msg)
                 return LoadResult(
@@ -1261,14 +1289,17 @@ def load_from_xlsx(
 
         # Manejar contraseña (solo para openpyxl/.xlsx)
         if password:
-            if path.suffix.lower() == '.xlsx':
+            if path.suffix.lower() == ".xlsx":
                 try:
                     from openpyxl import load_workbook
+
                     # Verificar que la contraseña funciona
                     wb = load_workbook(path, read_only=True, password=password)
                     wb.close()
                 except ImportError:
-                    warnings_list.append("openpyxl no instalado, no se puede usar contraseña")
+                    warnings_list.append(
+                        "openpyxl no instalado, no se puede usar contraseña"
+                    )
                 except Exception as e:
                     return LoadResult(
                         status=LoadStatus.FAILED,
@@ -1364,7 +1395,11 @@ def load_from_xlsx(
 
             # Determinar nombre de hoja para logging
             if isinstance(sheet_name, int) and available_sheets:
-                actual_sheet_name = available_sheets[sheet_name] if sheet_name < len(available_sheets) else str(sheet_name)
+                actual_sheet_name = (
+                    available_sheets[sheet_name]
+                    if sheet_name < len(available_sheets)
+                    else str(sheet_name)
+                )
             else:
                 actual_sheet_name = str(sheet_name) if sheet_name is not None else "default"
 
@@ -1479,10 +1514,7 @@ def load_from_pdf(
     try:
         import pdfplumber
     except ImportError:
-        error_msg = (
-            "pdfplumber no está instalado. "
-            "Instale con: pip install pdfplumber"
-        )
+        error_msg = "pdfplumber no está instalado. Instale con: pip install pdfplumber"
         logger.error(error_msg)
         return LoadResult(
             status=LoadStatus.FAILED,
@@ -1534,7 +1566,7 @@ def load_from_pdf(
         # Configurar kwargs para pdfplumber
         open_kwargs = {}
         if password:
-            open_kwargs['password'] = password
+            open_kwargs["password"] = password
 
         with pdfplumber.open(path, **open_kwargs) as pdf:
             total_pages = len(pdf.pages)
@@ -1548,10 +1580,12 @@ def load_from_pdf(
                     if isinstance(p, int) and 0 <= p < total_pages:
                         pages_to_process_indices.append(p)
                     else:
-                        warnings_list.append(f"Página {p} ignorada (fuera de rango 0-{total_pages-1})")
+                        warnings_list.append(
+                            f"Página {p} ignorada (fuera de rango 0-{total_pages - 1})"
+                        )
 
                 if not pages_to_process_indices:
-                    error_msg = f"Ninguna página válida especificada. Rango válido: 0-{total_pages-1}"
+                    error_msg = f"Ninguna página válida especificada. Rango válido: 0-{total_pages - 1}"
                     return LoadResult(
                         status=LoadStatus.FAILED,
                         data=None,
@@ -1569,7 +1603,9 @@ def load_from_pdf(
                 end_page = min(total_pages, page_range.stop)
 
                 if start_page >= total_pages:
-                    error_msg = f"Página inicial {page_range.start} excede total ({total_pages})"
+                    error_msg = (
+                        f"Página inicial {page_range.start} excede total ({total_pages})"
+                    )
                     return LoadResult(
                         status=LoadStatus.FAILED,
                         data=None,
@@ -1634,23 +1670,28 @@ def load_from_pdf(
 
                                 # Asegurar número correcto de headers
                                 if table[1:]:  # Si hay datos
-                                    max_cols = max(len(row) if row else 0 for row in table[1:])
+                                    max_cols = max(
+                                        len(row) if row else 0 for row in table[1:]
+                                    )
                                     while len(headers) < max_cols:
                                         headers.append(f"Col_{len(headers)}")
 
-                                df_table = pd.DataFrame(table[1:], columns=headers[:len(table[0]) if table[0] else 0])
+                                df_table = pd.DataFrame(
+                                    table[1:],
+                                    columns=headers[: len(table[0]) if table[0] else 0],
+                                )
                             else:
                                 df_table = pd.DataFrame(table)
 
                             if not df_table.empty:
                                 # Limpiar datos de la tabla
-                                df_table = df_table.replace('', pd.NA)
-                                df_table = df_table.dropna(how='all')
+                                df_table = df_table.replace("", pd.NA)
+                                df_table = df_table.dropna(how="all")
 
                                 if not df_table.empty:
                                     # Agregar metadata de origen
-                                    df_table['_source_page'] = page_num
-                                    df_table['_source_table'] = table_idx + 1
+                                    df_table["_source_page"] = page_num
+                                    df_table["_source_table"] = table_idx + 1
 
                                     tables_data.append(df_table)
                                     logger.debug(
@@ -1659,7 +1700,9 @@ def load_from_pdf(
                                     )
 
                         except Exception as e:
-                            error_info = f"Error en tabla {table_idx + 1} de página {page_num}: {e}"
+                            error_info = (
+                                f"Error en tabla {table_idx + 1} de página {page_num}: {e}"
+                            )
                             logger.warning(error_info)
                             extraction_errors.append(error_info)
                             continue
@@ -1732,7 +1775,7 @@ def load_from_pdf(
             all_columns.update(df.columns)
 
         # Excluir columnas de metadata para alineación
-        data_columns = [c for c in all_columns if not c.startswith('_source_')]
+        data_columns = [c for c in all_columns if not c.startswith("_source_")]
 
         combined_df = pd.concat(tables_data, ignore_index=True, sort=False)
         combined_df = _clean_dataframe(combined_df, remove_empty_rows=True)
@@ -1820,7 +1863,9 @@ def load_data(
     logger.info("=" * 80)
 
     if telemetry_context:
-        telemetry_context.start_step("load_data", {"path": str(path), "format_hint": format_hint})
+        telemetry_context.start_step(
+            "load_data", {"path": str(path), "format_hint": format_hint}
+        )
 
     # Validación inicial de path
     if path is None:
@@ -1915,15 +1960,15 @@ def load_data(
         format_hint_normalized = format_hint.strip().upper()
 
         format_mapping = {
-            'CSV': FileFormat.CSV,
-            'TXT': FileFormat.CSV,
-            'TSV': FileFormat.CSV,
-            'EXCEL': FileFormat.EXCEL,
-            'XLSX': FileFormat.EXCEL,
-            'XLS': FileFormat.EXCEL,
-            'XLSM': FileFormat.EXCEL,
-            'XLSB': FileFormat.EXCEL,
-            'PDF': FileFormat.PDF,
+            "CSV": FileFormat.CSV,
+            "TXT": FileFormat.CSV,
+            "TSV": FileFormat.CSV,
+            "EXCEL": FileFormat.EXCEL,
+            "XLSX": FileFormat.EXCEL,
+            "XLS": FileFormat.EXCEL,
+            "XLSM": FileFormat.EXCEL,
+            "XLSB": FileFormat.EXCEL,
+            "PDF": FileFormat.PDF,
         }
 
         if format_hint_normalized in format_mapping:
@@ -1950,12 +1995,12 @@ def load_data(
 
         # Sugerencias para extensiones comunes no soportadas
         common_suggestions = {
-            '.json': "Use json.load() o pd.read_json()",
-            '.xml': "Use pd.read_xml() o lxml",
-            '.parquet': "Use pd.read_parquet()",
-            '.feather': "Use pd.read_feather()",
-            '.pickle': "Use pd.read_pickle()",
-            '.pkl': "Use pd.read_pickle()",
+            ".json": "Use json.load() o pd.read_json()",
+            ".xml": "Use pd.read_xml() o lxml",
+            ".parquet": "Use pd.read_parquet()",
+            ".feather": "Use pd.read_feather()",
+            ".pickle": "Use pd.read_pickle()",
+            ".pkl": "Use pd.read_pickle()",
         }
 
         if extension in common_suggestions:
@@ -1975,9 +2020,7 @@ def load_data(
             telemetry_context.end_step("load_data", "failure", metadata=result.to_dict())
         return result
 
-    logger.info(
-        f"Formato: {file_format.value}, Tamaño: {metadata.size_mb:.2f} MB"
-    )
+    logger.info(f"Formato: {file_format.value}, Tamaño: {metadata.size_mb:.2f} MB")
 
     # Si solo validación, retornar aquí
     if validate_only:
@@ -2012,11 +2055,33 @@ def load_data(
             return result
 
     # Filtrar kwargs según formato
-    csv_params = {'sep', 'encoding', 'auto_detect', 'max_retries', 'header', 'names',
-                  'index_col', 'usecols', 'dtype', 'skiprows', 'nrows', 'na_values'}
-    excel_params = {'sheet_name', 'password', 'header', 'names', 'index_col',
-                    'usecols', 'dtype', 'skiprows', 'nrows', 'na_values'}
-    pdf_params = {'page_range', 'pages', 'table_settings', 'max_pages', 'password'}
+    csv_params = {
+        "sep",
+        "encoding",
+        "auto_detect",
+        "max_retries",
+        "header",
+        "names",
+        "index_col",
+        "usecols",
+        "dtype",
+        "skiprows",
+        "nrows",
+        "na_values",
+    }
+    excel_params = {
+        "sheet_name",
+        "password",
+        "header",
+        "names",
+        "index_col",
+        "usecols",
+        "dtype",
+        "skiprows",
+        "nrows",
+        "na_values",
+    }
+    pdf_params = {"page_range", "pages", "table_settings", "max_pages", "password"}
 
     # Cargar según formato
     try:
@@ -2053,7 +2118,7 @@ def load_data(
         ignored_params = set(kwargs.keys()) - all_valid_params
         if ignored_params:
             logger.warning(f"Parámetros ignorados (no aplicables): {ignored_params}")
-            if hasattr(result, 'warnings'):
+            if hasattr(result, "warnings"):
                 result.warnings.append(f"Parámetros ignorados: {ignored_params}")
 
     except Exception as e:
@@ -2086,7 +2151,9 @@ def load_data(
             for warning in result.quality_metrics.warnings[:5]:
                 logger.warning(f"  - {warning}")
             if len(result.quality_metrics.warnings) > 5:
-                logger.warning(f"  ... y {len(result.quality_metrics.warnings) - 5} advertencias más")
+                logger.warning(
+                    f"  ... y {len(result.quality_metrics.warnings) - 5} advertencias más"
+                )
 
     if result.error_message:
         logger.error(f"Error: {result.error_message}")
@@ -2094,12 +2161,22 @@ def load_data(
     logger.info("=" * 80)
 
     if telemetry_context:
-        status_str = "success" if result.status == LoadStatus.SUCCESS else "warning" if result.status == LoadStatus.PARTIAL_SUCCESS else "failure"
+        status_str = (
+            "success"
+            if result.status == LoadStatus.SUCCESS
+            else "warning"
+            if result.status == LoadStatus.PARTIAL_SUCCESS
+            else "failure"
+        )
 
         # Registrar métricas
         if result.quality_metrics:
-            telemetry_context.record_metric("loader", "rows_loaded", result.quality_metrics.total_rows)
-            telemetry_context.record_metric("loader", "cols_loaded", result.quality_metrics.total_columns)
+            telemetry_context.record_metric(
+                "loader", "rows_loaded", result.quality_metrics.total_rows
+            )
+            telemetry_context.record_metric(
+                "loader", "cols_loaded", result.quality_metrics.total_columns
+            )
             telemetry_context.record_metric("loader", "file_size_mb", metadata.size_mb)
 
         telemetry_context.end_step("load_data", status_str, metadata=result.to_dict())
@@ -2147,17 +2224,21 @@ def get_file_info(path: PathType) -> Dict[str, Any]:
     try:
         metadata = FileMetadata.from_path(path_obj)
 
-        result.update({
-            "exists": metadata.exists,
-            "size_mb": round(metadata.size_mb, 4),
-            "size_bytes": metadata.size_bytes,
-            "format": metadata.format.value,
-            "readable": metadata.readable,
-            "is_symlink": metadata.is_symlink,
-            "supported": metadata.format != FileFormat.UNKNOWN,
-            "modified_time": metadata.modified_time.isoformat() if metadata.modified_time else None,
-            "error": metadata.error,
-        })
+        result.update(
+            {
+                "exists": metadata.exists,
+                "size_mb": round(metadata.size_mb, 4),
+                "size_bytes": metadata.size_bytes,
+                "format": metadata.format.value,
+                "readable": metadata.readable,
+                "is_symlink": metadata.is_symlink,
+                "supported": metadata.format != FileFormat.UNKNOWN,
+                "modified_time": metadata.modified_time.isoformat()
+                if metadata.modified_time
+                else None,
+                "error": metadata.error,
+            }
+        )
 
         # Información adicional
         if metadata.exists:
@@ -2217,7 +2298,8 @@ def validate_file_before_load(
             if path_obj.parent.exists():
                 try:
                     similar = [
-                        f.name for f in path_obj.parent.iterdir()
+                        f.name
+                        for f in path_obj.parent.iterdir()
                         if f.is_file() and f.suffix == path_obj.suffix
                     ][:5]
                     if similar:
@@ -2255,7 +2337,9 @@ def validate_file_before_load(
         if metadata.size_bytes == 0:
             errors.append("Archivo vacío (0 bytes)")
         else:
-            errors.append(f"Archivo muy pequeño: {metadata.size_bytes} bytes (mínimo: {min_size_bytes})")
+            errors.append(
+                f"Archivo muy pequeño: {metadata.size_bytes} bytes (mínimo: {min_size_bytes})"
+            )
         return False, errors, warnings
 
     if metadata.size_mb > MAX_FILE_SIZE_MB:
@@ -2275,13 +2359,15 @@ def validate_file_before_load(
     # Verificar lectura
     if check_readable:
         try:
-            with open(path_obj, 'rb') as f:
+            with open(path_obj, "rb") as f:
                 header = f.read(1024)  # Leer primeros 1KB
 
                 # Verificar si parece ser binario corrupto
-                null_count = header.count(b'\x00')
+                null_count = header.count(b"\x00")
                 if null_count > len(header) * 0.5:
-                    warnings.append("Archivo parece contener muchos bytes nulos (posible corrupción)")
+                    warnings.append(
+                        "Archivo parece contener muchos bytes nulos (posible corrupción)"
+                    )
 
         except PermissionError:
             errors.append(f"Sin permisos de lectura: {path_obj}")
@@ -2293,19 +2379,19 @@ def validate_file_before_load(
     # Verificaciones específicas por formato
     if metadata.format == FileFormat.PDF:
         try:
-            with open(path_obj, 'rb') as f:
+            with open(path_obj, "rb") as f:
                 header = f.read(8)
-                if not header.startswith(b'%PDF'):
+                if not header.startswith(b"%PDF"):
                     warnings.append("Archivo no comienza con firma PDF estándar")
         except Exception:
             pass
 
     elif metadata.format == FileFormat.EXCEL:
         try:
-            with open(path_obj, 'rb') as f:
+            with open(path_obj, "rb") as f:
                 header = f.read(4)
                 # ZIP signature para xlsx, OLE signature para xls
-                if not (header.startswith(b'PK') or header.startswith(b'\xD0\xCF\x11\xE0')):
+                if not (header.startswith(b"PK") or header.startswith(b"\xd0\xcf\x11\xe0")):
                     warnings.append("Archivo no tiene firma Excel esperada")
         except Exception:
             pass

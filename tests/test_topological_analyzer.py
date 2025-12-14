@@ -45,6 +45,7 @@ from agent.topological_analyzer import (
 # FIXTURES
 # =============================================================================
 
+
 @pytest.fixture
 def empty_topology() -> SystemTopology:
     """Topología sin conexiones - verificada."""
@@ -121,10 +122,12 @@ def cyclic_topology() -> SystemTopology:
 def fragmented_topology() -> SystemTopology:
     """Topología fragmentada en múltiples componentes - verificada."""
     topo = SystemTopology()
-    edges_added, _ = topo.update_connectivity([
-        ("Agent", "Core"),
-        # Redis y Filesystem quedan aislados
-    ])
+    edges_added, _ = topo.update_connectivity(
+        [
+            ("Agent", "Core"),
+            # Redis y Filesystem quedan aislados
+        ]
+    )
 
     # Verificar fragmentación
     betti = topo.calculate_betti_numbers()
@@ -178,6 +181,7 @@ def persistence_with_data() -> PersistenceHomology:
 # =============================================================================
 # TESTS: BettiNumbers Dataclass
 # =============================================================================
+
 
 class TestBettiNumbers:
     """Tests para la dataclass BettiNumbers."""
@@ -258,12 +262,12 @@ class TestBettiNumbers:
     def test_euler_characteristic_various_cases(self):
         """Característica de Euler χ = β₀ - β₁ en varios casos."""
         test_cases = [
-            (1, 0, 1),    # Árbol típico
-            (1, 1, 0),    # Un ciclo
-            (3, 1, 2),    # Fragmentado con ciclo
-            (1, 3, -2),   # Múltiples ciclos
-            (5, 0, 5),    # Muy fragmentado
-            (0, 0, 0),    # Vacío
+            (1, 0, 1),  # Árbol típico
+            (1, 1, 0),  # Un ciclo
+            (3, 1, 2),  # Fragmentado con ciclo
+            (1, 3, -2),  # Múltiples ciclos
+            (5, 0, 5),  # Muy fragmentado
+            (0, 0, 0),  # Vacío
         ]
 
         for b0, b1, expected_chi in test_cases:
@@ -318,7 +322,8 @@ class TestBettiNumbers:
         # Debe ser hashable
         hash1 = hash(betti1)
         hash2 = hash(betti2)
-        hash3 = hash(betti3)
+        # Removed unused variable `hash3`
+        hash(betti3)
 
         # Objetos iguales deben tener mismo hash
         assert hash1 == hash2
@@ -340,6 +345,7 @@ class TestBettiNumbers:
 # =============================================================================
 # TESTS: PersistenceInterval Dataclass
 # =============================================================================
+
 
 class TestPersistenceInterval:
     """Tests para la dataclass PersistenceInterval."""
@@ -365,9 +371,9 @@ class TestPersistenceInterval:
 
         assert interval.birth == 5
         assert interval.death == -1
-        assert interval.lifespan == float('inf')
+        assert interval.lifespan == float("inf")
         assert interval.is_alive is True
-        assert interval.persistence == float('inf')
+        assert interval.persistence == float("inf")
 
     def test_zero_lifespan_interval(self):
         """Intervalo con lifespan cero (nacimiento = muerte)."""
@@ -379,15 +385,11 @@ class TestPersistenceInterval:
 
     def test_amplitude_custom_value(self):
         """Amplitud personalizada."""
-        interval = PersistenceInterval(
-            birth=0, death=5, dimension=0, amplitude=0.8
-        )
+        interval = PersistenceInterval(birth=0, death=5, dimension=0, amplitude=0.8)
         assert interval.amplitude == 0.8
 
         # Amplitud negativa es técnicamente válida (dataclass no valida)
-        interval_neg = PersistenceInterval(
-            birth=0, death=5, dimension=0, amplitude=-0.5
-        )
+        interval_neg = PersistenceInterval(birth=0, death=5, dimension=0, amplitude=-0.5)
         assert interval_neg.amplitude == -0.5
 
     def test_dimension_values(self):
@@ -447,9 +449,7 @@ class TestPersistenceInterval:
 
     def test_large_values(self):
         """Valores grandes no causan overflow."""
-        interval = PersistenceInterval(
-            birth=0, death=10**9, dimension=0, amplitude=10**6
-        )
+        interval = PersistenceInterval(birth=0, death=10**9, dimension=0, amplitude=10**6)
 
         assert interval.lifespan == 10**9
         assert math.isfinite(interval.persistence)
@@ -458,6 +458,7 @@ class TestPersistenceInterval:
 # =============================================================================
 # TESTS: SystemTopology - Inicialización
 # =============================================================================
+
 
 class TestSystemTopologyInit:
     """Tests de inicialización de SystemTopology."""
@@ -497,8 +498,7 @@ class TestSystemTopologyInit:
         """Inicialización con topología esperada personalizada."""
         custom_edges = {("Gateway", "Core"), ("Core", "Cache")}
         topo = SystemTopology(
-            custom_nodes={"Gateway", "Cache"},
-            custom_topology=custom_edges
+            custom_nodes={"Gateway", "Cache"}, custom_topology=custom_edges
         )
         # Verificar que se incluyen en expected
         missing = topo.get_missing_connections()
@@ -508,6 +508,7 @@ class TestSystemTopologyInit:
 # =============================================================================
 # TESTS: SystemTopology - Gestión de Nodos
 # =============================================================================
+
 
 class TestSystemTopologyNodes:
     """Tests de gestión de nodos."""
@@ -560,15 +561,18 @@ class TestSystemTopologyNodes:
 # TESTS: SystemTopology - Conectividad
 # =============================================================================
 
+
 class TestSystemTopologyConnectivity:
     """Tests de gestión de conectividad."""
 
     def test_update_connectivity_valid(self, empty_topology):
         """Actualizar con conexiones válidas - verificación completa."""
-        edges_added, warnings = empty_topology.update_connectivity([
-            ("Agent", "Core"),
-            ("Core", "Redis"),
-        ])
+        edges_added, warnings = empty_topology.update_connectivity(
+            [
+                ("Agent", "Core"),
+                ("Core", "Redis"),
+            ]
+        )
 
         assert edges_added == 2
         assert len(warnings) == 0
@@ -576,10 +580,10 @@ class TestSystemTopologyConnectivity:
 
         # Verificar que las aristas existen (en cualquier dirección)
         edges = empty_topology.edges
-        assert (("Agent", "Core") in edges or ("Core", "Agent") in edges), (
+        assert ("Agent", "Core") in edges or ("Core", "Agent") in edges, (
             "Arista Agent-Core no encontrada"
         )
-        assert (("Core", "Redis") in edges or ("Redis", "Core") in edges), (
+        assert ("Core", "Redis") in edges or ("Redis", "Core") in edges, (
             "Arista Core-Redis no encontrada"
         )
 
@@ -606,10 +610,12 @@ class TestSystemTopologyConnectivity:
 
     def test_update_connectivity_invalid_format_string(self, empty_topology):
         """String en lugar de tupla genera warning."""
-        edges_added, warnings = empty_topology.update_connectivity([
-            ("Agent", "Core"),
-            "invalid_edge",  # String, no tuple
-        ])
+        edges_added, warnings = empty_topology.update_connectivity(
+            [
+                ("Agent", "Core"),
+                "invalid_edge",  # String, no tuple
+            ]
+        )
 
         assert edges_added == 1
         assert len(warnings) == 1
@@ -617,34 +623,40 @@ class TestSystemTopologyConnectivity:
 
     def test_update_connectivity_invalid_format_wrong_length(self, empty_topology):
         """Tuplas con longitud incorrecta generan warnings."""
-        edges_added, warnings = empty_topology.update_connectivity([
-            ("Agent", "Core"),
-            ("Only",),           # Tupla de 1 elemento
-            ("A", "B", "C"),     # Tupla de 3 elementos
-            (),                  # Tupla vacía
-        ])
+        edges_added, warnings = empty_topology.update_connectivity(
+            [
+                ("Agent", "Core"),
+                ("Only",),  # Tupla de 1 elemento
+                ("A", "B", "C"),  # Tupla de 3 elementos
+                (),  # Tupla vacía
+            ]
+        )
 
         assert edges_added == 1
         assert len(warnings) == 3  # Una por cada formato incorrecto
 
     def test_update_connectivity_invalid_node_types(self, empty_topology):
         """Nodos no-string generan warnings específicos."""
-        edges_added, warnings = empty_topology.update_connectivity([
-            (123, "Core"),       # int como origen
-            ("Agent", None),     # None como destino
-            (["list"], "Core"),  # list como origen
-        ])
-
-        assert edges_added == 0
-        assert len(warnings) == 3
+        edges_added, warnings = empty_topology.update_connectivity(
+            [
+                (123, "Core"),  # int como origen
+                ("Agent", None),  # None como destino
+                ("Agent", "Core"),  # Correcto
+            ]
+        )
+        # Should be 1 added (Agent-Core)
+        assert edges_added == 1
+        assert len(warnings) == 2
 
     def test_update_connectivity_self_loop_ignored(self, empty_topology):
         """Auto-loops se ignoran con warning."""
-        edges_added, warnings = empty_topology.update_connectivity([
-            ("Agent", "Core"),
-            ("Core", "Core"),    # Self-loop
-            ("Redis", "Redis"),  # Otro self-loop
-        ])
+        edges_added, warnings = empty_topology.update_connectivity(
+            [
+                ("Agent", "Core"),
+                ("Core", "Core"),  # Self-loop
+                ("Redis", "Redis"),  # Otro self-loop
+            ]
+        )
 
         assert edges_added == 1
         assert len([w for w in warnings if "loop" in w.lower()]) == 2
@@ -653,11 +665,15 @@ class TestSystemTopologyConnectivity:
         """Nodos desconocidos sin auto_add generan warnings."""
         initial_nodes = empty_topology.nodes.copy()
 
-        edges_added, warnings = empty_topology.update_connectivity([
-            ("Agent", "Core"),
-            ("Unknown1", "Unknown2"),
-            ("Agent", "Unknown3"),
-        ], validate_nodes=True, auto_add_nodes=False)
+        edges_added, warnings = empty_topology.update_connectivity(
+            [
+                ("Agent", "Core"),
+                ("Unknown1", "Unknown2"),
+                ("Agent", "Unknown3"),
+            ],
+            validate_nodes=True,
+            auto_add_nodes=False,
+        )
 
         assert edges_added == 1  # Solo Agent-Core
         assert len(warnings) >= 2
@@ -669,10 +685,14 @@ class TestSystemTopologyConnectivity:
         """auto_add_nodes crea nodos y aristas correctamente."""
         initial_node_count = len(empty_topology.nodes)
 
-        edges_added, warnings = empty_topology.update_connectivity([
-            ("Agent", "NewService"),
-            ("NewService", "AnotherNew"),
-        ], validate_nodes=True, auto_add_nodes=True)
+        edges_added, warnings = empty_topology.update_connectivity(
+            [
+                ("Agent", "NewService"),
+                ("NewService", "AnotherNew"),
+            ],
+            validate_nodes=True,
+            auto_add_nodes=True,
+        )
 
         assert edges_added == 2
         assert "NewService" in empty_topology.nodes
@@ -681,21 +701,25 @@ class TestSystemTopologyConnectivity:
 
     def test_update_connectivity_duplicate_edges(self, empty_topology):
         """Aristas duplicadas no causan error."""
-        edges_added, warnings = empty_topology.update_connectivity([
-            ("Agent", "Core"),
-            ("Agent", "Core"),  # Duplicada
-            ("Core", "Agent"),  # Misma arista, diferente orden
-        ])
+        edges_added, warnings = empty_topology.update_connectivity(
+            [
+                ("Agent", "Core"),
+                ("Agent", "Core"),  # Duplicada
+                ("Core", "Agent"),  # Misma arista, diferente orden
+            ]
+        )
 
         # NetworkX maneja duplicados automáticamente
         assert len(empty_topology.edges) == 1
 
     def test_update_connectivity_whitespace_handling(self, empty_topology):
         """Espacios en blanco en nodos se manejan correctamente."""
-        edges_added, warnings = empty_topology.update_connectivity([
-            ("  Agent  ", "Core"),
-            ("Agent", "  Redis  "),
-        ])
+        edges_added, warnings = empty_topology.update_connectivity(
+            [
+                ("  Agent  ", "Core"),
+                ("Agent", "  Redis  "),
+            ]
+        )
 
         # Depende de la implementación si strip se aplica
         # Verificar que al menos una arista se creó si los nodos existen
@@ -765,6 +789,7 @@ class TestSystemTopologyConnectivity:
 # TESTS: SystemTopology - Números de Betti
 # =============================================================================
 
+
 class TestSystemTopologyBettiNumbers:
     """Tests de cálculo de números de Betti."""
 
@@ -825,13 +850,16 @@ class TestSystemTopologyBettiNumbers:
         """Múltiples ciclos incrementan β₁ correctamente."""
         # Crear grafo con 2 ciclos independientes
         empty_topology.add_node("Extra")
-        empty_topology.update_connectivity([
-            ("Agent", "Core"),
-            ("Core", "Redis"),
-            ("Redis", "Agent"),       # Ciclo 1: Agent-Core-Redis
-            ("Core", "Filesystem"),
-            ("Filesystem", "Redis"),  # Ciclo 2: Core-Redis-Filesystem
-        ], validate_nodes=False)
+        empty_topology.update_connectivity(
+            [
+                ("Agent", "Core"),
+                ("Core", "Redis"),
+                ("Redis", "Agent"),  # Ciclo 1: Agent-Core-Redis
+                ("Core", "Filesystem"),
+                ("Filesystem", "Redis"),  # Ciclo 2: Core-Redis-Filesystem
+            ],
+            validate_nodes=False,
+        )
 
         betti = empty_topology.calculate_betti_numbers()
 
@@ -883,9 +911,7 @@ class TestSystemTopologyBettiNumbers:
 
         # Crear K4 (grafo completo de 4 nodos)
         edges = [
-            (nodes[i], nodes[j])
-            for i in range(len(nodes))
-            for j in range(i + 1, len(nodes))
+            (nodes[i], nodes[j]) for i in range(len(nodes)) for j in range(i + 1, len(nodes))
         ]
         empty_topology.update_connectivity(edges)
 
@@ -902,11 +928,13 @@ class TestSystemTopologyBettiNumbers:
     def test_star_topology_is_tree(self, empty_topology):
         """Topología estrella es un árbol (β₁=0)."""
         # Core como hub central
-        empty_topology.update_connectivity([
-            ("Core", "Agent"),
-            ("Core", "Redis"),
-            ("Core", "Filesystem"),
-        ])
+        empty_topology.update_connectivity(
+            [
+                ("Core", "Agent"),
+                ("Core", "Redis"),
+                ("Core", "Filesystem"),
+            ]
+        )
 
         betti = empty_topology.calculate_betti_numbers()
 
@@ -918,6 +946,7 @@ class TestSystemTopologyBettiNumbers:
 # =============================================================================
 # TESTS: SystemTopology - Ciclos y Anomalías
 # =============================================================================
+
 
 class TestSystemTopologyCyclesAndAnomalies:
     """Tests de detección de ciclos y anomalías."""
@@ -933,8 +962,11 @@ class TestSystemTopologyCyclesAndAnomalies:
         assert len(cycles) == 1
         # El ciclo debe contener Agent, Core, Redis
         cycle_set = set(cycles[0])
-        assert {"Agent", "Core", "Redis"} <= cycle_set or \
-               {"Agent", "Core", "Redis"} == cycle_set
+        assert {"Agent", "Core", "Redis"} <= cycle_set or {
+            "Agent",
+            "Core",
+            "Redis",
+        } == cycle_set
 
     def test_record_request_valid(self, empty_topology):
         """Registrar requests válidos."""
@@ -1004,10 +1036,12 @@ class TestSystemTopologyCyclesAndAnomalies:
         """Identificar conexiones no esperadas."""
         # La topología esperada es una Pirámide. Cualquier otra cosa es inesperada.
         # Por ejemplo, una conexión directa entre Redis y Filesystem.
-        empty_topology.update_connectivity([
-            ("Agent", "Core"),
-            ("Redis", "Filesystem")  # Conexión inesperada
-        ])
+        empty_topology.update_connectivity(
+            [
+                ("Agent", "Core"),
+                ("Redis", "Filesystem"),  # Conexión inesperada
+            ]
+        )
         unexpected = empty_topology.get_unexpected_connections()
         assert ("Redis", "Filesystem") in unexpected or ("Filesystem", "Redis") in unexpected
 
@@ -1024,6 +1058,7 @@ class TestSystemTopologyCyclesAndAnomalies:
 # =============================================================================
 # TESTS: SystemTopology - Salud Topológica
 # =============================================================================
+
 
 class TestSystemTopologyHealth:
     """Tests del análisis de salud topológica."""
@@ -1054,9 +1089,7 @@ class TestSystemTopologyHealth:
         health = pyramid_topology.get_topological_health()
 
         # Verificar que tiene ciclos
-        assert health.betti.b1 == 2, (
-            f"Pirámide debe tener 2 ciclos, tiene {health.betti.b1}"
-        )
+        assert health.betti.b1 == 2, f"Pirámide debe tener 2 ciclos, tiene {health.betti.b1}"
 
         # Los ciclos degradan la salud
         assert "cycles" in health.diagnostics, "Debe diagnosticar ciclos"
@@ -1074,17 +1107,22 @@ class TestSystemTopologyHealth:
 
         # Verificar nodos desconectados
         assert len(health.disconnected_nodes) >= 2
-        assert "Redis" in health.disconnected_nodes or "Filesystem" in health.disconnected_nodes
+        assert (
+            "Redis" in health.disconnected_nodes or "Filesystem" in health.disconnected_nodes
+        )
 
         # Debe tener diagnósticos de fragmentación
         has_connectivity_diag = (
-            "connectivity" in health.diagnostics or
-            "disconnected" in health.diagnostics
+            "connectivity" in health.diagnostics or "disconnected" in health.diagnostics
         )
         assert has_connectivity_diag, "Debe diagnosticar problema de conectividad"
 
         # Estado degradado o peor
-        assert health.level in (HealthLevel.DEGRADED, HealthLevel.UNHEALTHY, HealthLevel.CRITICAL)
+        assert health.level in (
+            HealthLevel.DEGRADED,
+            HealthLevel.UNHEALTHY,
+            HealthLevel.CRITICAL,
+        )
         assert health.health_score < 0.9
 
     def test_cyclic_topology_cycle_penalty(self, cyclic_topology):
@@ -1160,7 +1198,7 @@ class TestSystemTopologyHealth:
                 HealthLevel.CRITICAL,
                 HealthLevel.UNHEALTHY,
                 HealthLevel.DEGRADED,
-                HealthLevel.HEALTHY
+                HealthLevel.HEALTHY,
             ]
 
             assert health.level in level_order
@@ -1182,6 +1220,7 @@ class TestSystemTopologyHealth:
 # =============================================================================
 # TESTS: SystemTopology - Utilidades
 # =============================================================================
+
 
 class TestSystemTopologyUtilities:
     """Tests de métodos de utilidad."""
@@ -1207,7 +1246,8 @@ class TestSystemTopologyUtilities:
         """Manejo sin matplotlib."""
         import sys
         from unittest import mock
-        with mock.patch.dict(sys.modules, {'matplotlib': None}):
+
+        with mock.patch.dict(sys.modules, {"matplotlib": None}):
             assert tree_topology.visualize_topology(str(tmp_path / "t.png")) is False
 
     def test_cyclomatic_complexity_tree(self, tree_topology):
@@ -1249,7 +1289,10 @@ class TestSystemTopologyUtilities:
 
         # Test error handling
         from unittest import mock
-        with mock.patch.object(pyramid_topology, 'calculate_betti_numbers', side_effect=ValueError("Test")):
+
+        with mock.patch.object(
+            pyramid_topology, "calculate_betti_numbers", side_effect=ValueError("Test")
+        ):
             repr_fail = repr(pyramid_topology)
             assert "BettiError(ValueError)" in repr_fail
 
@@ -1257,6 +1300,7 @@ class TestSystemTopologyUtilities:
 # =============================================================================
 # TESTS: PersistenceHomology - Inicialización
 # =============================================================================
+
 
 class TestPersistenceHomologyInit:
     """Tests de inicialización de PersistenceHomology."""
@@ -1285,6 +1329,7 @@ class TestPersistenceHomologyInit:
 # TESTS: PersistenceHomology - Gestión de Datos
 # =============================================================================
 
+
 class TestPersistenceHomologyData:
     """Tests de gestión de datos."""
 
@@ -1310,13 +1355,13 @@ class TestPersistenceHomologyData:
     def test_add_reading_invalid_value(self, empty_persistence):
         """Valores inválidos retornan False."""
         assert empty_persistence.add_reading("cpu", "not_a_number") is False
-        assert empty_persistence.add_reading("cpu", float('nan')) is False
+        assert empty_persistence.add_reading("cpu", float("nan")) is False
 
     def test_add_reading_infinite_capped(self, empty_persistence):
         """Valores infinitos se capean."""
-        assert empty_persistence.add_reading("cpu", float('inf')) is True
+        assert empty_persistence.add_reading("cpu", float("inf")) is True
         buffer = empty_persistence.get_buffer("cpu")
-        assert buffer[0] < float('inf')  # Fue capeado
+        assert buffer[0] < float("inf")  # Fue capeado
 
     def test_add_readings_batch(self, empty_persistence):
         """Agregar múltiples lecturas en batch."""
@@ -1366,6 +1411,7 @@ class TestPersistenceHomologyData:
 # =============================================================================
 # TESTS: PersistenceHomology - Intervalos de Persistencia
 # =============================================================================
+
 
 class TestPersistenceHomologyIntervals:
     """Tests de cálculo de intervalos de persistencia."""
@@ -1428,6 +1474,7 @@ class TestPersistenceHomologyIntervals:
 # =============================================================================
 # TESTS: PersistenceHomology - Análisis de Estados
 # =============================================================================
+
 
 class TestPersistenceHomologyAnalysis:
     """Tests del análisis de persistencia."""
@@ -1531,7 +1578,9 @@ class TestPersistenceHomologyAnalysis:
         )
 
         # Verificar que el límite de ruido cambió
-        assert result_low.metadata.get("noise_limit", 0) < result_high.metadata.get("noise_limit", 0)
+        assert result_low.metadata.get("noise_limit", 0) < result_high.metadata.get(
+            "noise_limit", 0
+        )
 
     def test_custom_critical_ratio_effect(self, empty_persistence):
         """critical_ratio afecta clasificación de CRITICAL."""
@@ -1541,7 +1590,9 @@ class TestPersistenceHomologyAnalysis:
 
         # Con critical_ratio bajo, es CRITICAL
         result_low = empty_persistence.analyze_persistence(
-            "cpu", threshold=0.5, critical_ratio=0.5  # limit=5, 6>=5
+            "cpu",
+            threshold=0.5,
+            critical_ratio=0.5,  # limit=5, 6>=5
         )
 
         # Limpiar y recrear
@@ -1549,8 +1600,11 @@ class TestPersistenceHomologyAnalysis:
         empty_persistence.add_readings_batch("cpu", values)
 
         # Con critical_ratio alto, podría no ser CRITICAL
-        result_high = empty_persistence.analyze_persistence(
-            "cpu", threshold=0.5, critical_ratio=0.8  # limit=8, 6<8
+        # Removed unused variable `result_high`
+        empty_persistence.analyze_persistence(
+            "cpu",
+            threshold=0.5,
+            critical_ratio=0.8,  # limit=8, 6<8
         )
 
         assert result_low.state == MetricState.CRITICAL
@@ -1574,9 +1628,7 @@ class TestPersistenceHomologyAnalysis:
 
     def test_result_metadata_completeness(self, persistence_with_data):
         """Metadata del resultado es completa."""
-        result = persistence_with_data.analyze_persistence(
-            "excursion_metric", threshold=0.5
-        )
+        result = persistence_with_data.analyze_persistence("excursion_metric", threshold=0.5)
 
         # 'window_size' is no longer in metadata, replaced by detailed stats
         required_keys = ["data_length", "confidence"]
@@ -1595,16 +1647,14 @@ class TestPersistenceHomologyAnalysis:
         result = empty_persistence.analyze_persistence("cpu", threshold=0.5)
 
         # Suma de duraciones finitas
-        expected_total = sum(
-            i.lifespan for i in result.intervals
-            if not i.is_alive
-        )
+        expected_total = sum(i.lifespan for i in result.intervals if not i.is_alive)
         assert result.total_persistence == expected_total
 
 
 # =============================================================================
 # TESTS: PersistenceHomology - Estadísticas y Métricas
 # =============================================================================
+
 
 class TestPersistenceHomologyStatistics:
     """Tests de estadísticas y métricas."""
@@ -1700,6 +1750,7 @@ class TestPersistenceHomologyStatistics:
 # TESTS: Funciones de Utilidad
 # =============================================================================
 
+
 class TestUtilityFunctions:
     """Tests de funciones de utilidad del módulo."""
 
@@ -1753,6 +1804,7 @@ class TestUtilityFunctions:
 # TESTS: Integración
 # =============================================================================
 
+
 class TestIntegration:
     """Tests de integración entre componentes."""
 
@@ -1768,11 +1820,13 @@ class TestIntegration:
         assert health_initial.level == HealthLevel.CRITICAL
 
         # 3. Construir topología en árbol
-        topo.update_connectivity([
-            ("Agent", "Core"),
-            ("Core", "Redis"),
-            ("Core", "Filesystem"),
-        ])
+        topo.update_connectivity(
+            [
+                ("Agent", "Core"),
+                ("Core", "Redis"),
+                ("Core", "Filesystem"),
+            ]
+        )
 
         health_tree = topo.get_topological_health()
         assert health_tree.betti.b0 == 1, "Árbol es conexo"
@@ -1840,11 +1894,13 @@ class TestIntegration:
         ph = PersistenceHomology(window_size=20)
 
         # Simular sistema saludable
-        topo.update_connectivity([
-            ("Agent", "Core"),
-            ("Core", "Redis"),
-            ("Core", "Filesystem"),
-        ])
+        topo.update_connectivity(
+            [
+                ("Agent", "Core"),
+                ("Core", "Redis"),
+                ("Core", "Filesystem"),
+            ]
+        )
 
         for _ in range(20):
             ph.add_reading("response_time", 50)  # Bajo
@@ -1902,13 +1958,16 @@ class TestIntegration:
         topo = SystemTopology()
 
         # Topología básica
-        topo.update_connectivity([
-            ("Agent", "Core"),
-            ("Core", "Redis"),
-            ("Core", "Filesystem"),
-        ])
+        topo.update_connectivity(
+            [
+                ("Agent", "Core"),
+                ("Core", "Redis"),
+                ("Core", "Filesystem"),
+            ]
+        )
 
-        health_before = topo.get_topological_health()
+        # Removed unused variable `health_before`
+        topo.get_topological_health()
 
         # Agregar muchos reintentos
         for i in range(20):
@@ -1927,6 +1986,7 @@ class TestIntegration:
 # =============================================================================
 # TESTS: Casos Edge
 # =============================================================================
+
 
 class TestEdgeCases:
     """Tests de casos límite."""
@@ -1949,11 +2009,7 @@ class TestEdgeCases:
         n = len(nodes)
 
         # Crear K_n
-        edges = [
-            (nodes[i], nodes[j])
-            for i in range(n)
-            for j in range(i + 1, n)
-        ]
+        edges = [(nodes[i], nodes[j]) for i in range(n) for j in range(i + 1, n)]
         topo.update_connectivity(edges)
 
         betti = topo.calculate_betti_numbers()

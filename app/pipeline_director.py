@@ -44,7 +44,9 @@ logger.setLevel(logging.INFO)
 # Asegurar que tenga un handler si no tiene
 if not logger.handlers:
     handler = logging.StreamHandler(sys.stdout)
-    handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
+    handler.setFormatter(
+        logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+    )
     logger.addHandler(handler)
 
 
@@ -188,7 +190,7 @@ class DataValidator:
             return False, error_msg
 
         # ROBUSTECIDO: Verificar que no sea solo columnas sin datos útiles
-        if df.dropna(how='all').empty:
+        if df.dropna(how="all").empty:
             error_msg = f"DataFrame '{name}' contiene solo valores nulos"
             logger.error(f"❌ {error_msg}")
             return False, error_msg
@@ -250,7 +252,9 @@ class DataValidator:
             return df
 
         if not subset_cols:
-            logger.warning(f"⚠️ No se especificaron columnas para detectar duplicados en '{df_name}'")
+            logger.warning(
+                f"⚠️ No se especificaron columnas para detectar duplicados en '{df_name}'"
+            )
             return df
 
         # ROBUSTECIDO: Verificar que las columnas existan
@@ -285,7 +289,9 @@ class DataValidator:
 
                 df_clean = df.drop_duplicates(subset=subset_cols, keep=keep)
                 rows_removed = len(df) - len(df_clean)
-                logger.info(f"✅ Duplicados eliminados en '{df_name}': {rows_removed} filas removidas")
+                logger.info(
+                    f"✅ Duplicados eliminados en '{df_name}': {rows_removed} filas removidas"
+                )
                 return df_clean
             return df
         except Exception as e:
@@ -298,14 +304,14 @@ class FileValidator:
 
     # ROBUSTECIDO: Constantes para validación
     MIN_FILE_SIZE_BYTES = 10  # Archivo debe tener al menos 10 bytes
-    VALID_EXTENSIONS = {'.csv', '.xlsx', '.xls', '.json'}
+    VALID_EXTENSIONS = {".csv", ".xlsx", ".xls", ".json"}
 
     @staticmethod
     def validate_file_exists(
         file_path: str,
         file_type: str,
         check_extension: bool = True,
-        min_size: Optional[int] = None
+        min_size: Optional[int] = None,
     ) -> Tuple[bool, Optional[str]]:
         """Verifica que un archivo exista y sea accesible."""
         # ROBUSTECIDO: Validar entrada
@@ -350,7 +356,9 @@ class FileValidator:
         try:
             file_size = path.stat().st_size
             if file_size < min_size:
-                error_msg = f"Archivo de {file_type} demasiado pequeño ({file_size} bytes): {path}"
+                error_msg = (
+                    f"Archivo de {file_type} demasiado pequeño ({file_size} bytes): {path}"
+                )
                 logger.error(f"❌ {error_msg}")
                 return False, error_msg
         except OSError as e:
@@ -454,9 +462,13 @@ class LoadDataStep(ProcessingStep):
             df_insumos = i_processor.process(insumos_path)
 
             # --- LOG DE DIAGNÓSTICO ---
-            logger.info(f"🐛 DIAG: [LoadDataStep] Insumos extraídos: {len(df_insumos)} filas.")
+            logger.info(
+                f"🐛 DIAG: [LoadDataStep] Insumos extraídos: {len(df_insumos)} filas."
+            )
             if not df_insumos.empty:
-                logger.info(f"🐛 DIAG: [LoadDataStep] Estructura de insumos (head(1)): {df_insumos.head(1).to_dict('records')}")
+                logger.info(
+                    f"🐛 DIAG: [LoadDataStep] Estructura de insumos (head(1)): {df_insumos.head(1).to_dict('records')}"
+                )
             # --- FIN LOG ---
 
             if df_insumos is None or df_insumos.empty:
@@ -525,11 +537,13 @@ class LoadDataStep(ProcessingStep):
 
             # ROBUSTECIDO: Actualizar contexto de forma inmutable
             context = {**context}
-            context.update({
-                "df_presupuesto": df_presupuesto,
-                "df_insumos": df_insumos,
-                "df_apus_raw": df_apus_raw,
-            })
+            context.update(
+                {
+                    "df_presupuesto": df_presupuesto,
+                    "df_insumos": df_insumos,
+                    "df_apus_raw": df_apus_raw,
+                }
+            )
 
             telemetry.end_step("load_data", "success")
             return context
@@ -560,7 +574,9 @@ class MergeDataStep(ProcessingStep):
             df_insumos = context["df_insumos"]
 
             # --- LOG DE DIAGNÓSTICO ---
-            logger.info(f"🐛 DIAG: [MergeDataStep] Recibidos {len(df_insumos)} insumos del contexto.")
+            logger.info(
+                f"🐛 DIAG: [MergeDataStep] Recibidos {len(df_insumos)} insumos del contexto."
+            )
             # --- FIN LOG ---
 
             merger = DataMerger(self.thresholds)
@@ -678,7 +694,9 @@ class BusinessTopologyStep(ProcessingStep):
             df_apus_detail = context.get("df_merged")
 
             if df_presupuesto is None or df_apus_detail is None:
-                telemetry.record_error("business_topology", "DataFrames requeridos no disponibles")
+                telemetry.record_error(
+                    "business_topology", "DataFrames requeridos no disponibles"
+                )
                 telemetry.end_step("business_topology", "skipped")
                 return context
 
@@ -703,7 +721,7 @@ class BusinessTopologyStep(ProcessingStep):
             # Guardar en contexto para el reporte final
             context["topology_report"] = {
                 "metrics": analysis_result,
-                "human_report": audit_report
+                "human_report": audit_report,
             }
 
             telemetry.end_step("business_topology", "success")
@@ -802,7 +820,9 @@ class PipelineDirector:
             raise ValueError("Contexto inicial es None")
 
         if not isinstance(initial_context, dict):
-            raise ValueError(f"Contexto inicial debe ser dict, recibido: {type(initial_context)}")
+            raise ValueError(
+                f"Contexto inicial debe ser dict, recibido: {type(initial_context)}"
+            )
 
         recipe = self.config.get("pipeline_recipe", [])
 
@@ -879,9 +899,7 @@ class PipelineDirector:
 
                 # ROBUSTECIDO: Registrar pasos ejecutados para diagnóstico
                 self.telemetry.record_metric(
-                    "pipeline_director",
-                    "executed_steps_before_failure",
-                    len(executed_steps)
+                    "pipeline_director", "executed_steps_before_failure", len(executed_steps)
                 )
 
                 # ROBUSTECIDO: Información de diagnóstico
@@ -894,7 +912,9 @@ class PipelineDirector:
 
                 raise RuntimeError(error_msg) from e
 
-        logger.info(f"🎉 Pipeline completado exitosamente. Pasos ejecutados: {len(executed_steps)}")
+        logger.info(
+            f"🎉 Pipeline completado exitosamente. Pasos ejecutados: {len(executed_steps)}"
+        )
         return context
 
 
@@ -933,14 +953,14 @@ class PresupuestoProcessor:
                 logger.error("❌ load_data retornó None")
                 return pd.DataFrame()
 
-            if not hasattr(load_result, 'status') or not hasattr(load_result, 'data'):
+            if not hasattr(load_result, "status") or not hasattr(load_result, "data"):
                 logger.error("❌ Estructura de load_result inválida")
                 return pd.DataFrame()
 
             # ROBUSTECIDO: Comparación segura de status
-            status_value = getattr(load_result.status, 'value', str(load_result.status))
+            status_value = getattr(load_result.status, "value", str(load_result.status))
             if status_value != "SUCCESS":
-                error_msg = getattr(load_result, 'error_message', 'Error desconocido')
+                error_msg = getattr(load_result, "error_message", "Error desconocido")
                 logger.error(f"Error cargando presupuesto: {error_msg}")
                 return pd.DataFrame()
 
@@ -949,7 +969,9 @@ class PresupuestoProcessor:
                 logger.warning("⚠️ Archivo de presupuesto cargado está vacío")
                 return pd.DataFrame()
 
-            logger.info(f"📊 DataFrame cargado: {len(df)} filas. Columnas: {list(df.columns)}")
+            logger.info(
+                f"📊 DataFrame cargado: {len(df)} filas. Columnas: {list(df.columns)}"
+            )
 
             # Pipeline de procesamiento con validaciones intermedias
             df_clean = self._clean_phantom_rows(df)
@@ -971,7 +993,9 @@ class PresupuestoProcessor:
             logger.info(f"🔢 Filas tras conversión de datos: {len(df_converted)}")
 
             if df_converted.empty:
-                logger.warning("⚠️ Conversión eliminó todas las filas. Verifique limpieza de códigos.")
+                logger.warning(
+                    "⚠️ Conversión eliminó todas las filas. Verifique limpieza de códigos."
+                )
                 return pd.DataFrame()
 
             df_final = self._remove_duplicates(df_converted)
@@ -1017,12 +1041,11 @@ class PresupuestoProcessor:
         # ROBUSTECIDO: Vectorizar la detección de filas vacías
         # Convertir a string y verificar si todos los valores son vacíos
         str_df = df_clean.astype(str)
-        empty_patterns = {'', 'nan', 'none', 'nat', '<na>'}
+        empty_patterns = {"", "nan", "none", "nat", "<na>"}
 
         # Crear máscara vectorizada
         is_empty_mask = str_df.apply(
-            lambda col: col.str.strip().str.lower().isin(empty_patterns),
-            axis=0
+            lambda col: col.str.strip().str.lower().isin(empty_patterns), axis=0
         ).all(axis=1)
 
         df_clean = df_clean[~is_empty_mask]
@@ -1069,10 +1092,7 @@ class PresupuestoProcessor:
                     return None
 
             df[ColumnNames.CODIGO_APU] = (
-                df[ColumnNames.CODIGO_APU]
-                .fillna('')
-                .astype(str)
-                .apply(safe_clean)
+                df[ColumnNames.CODIGO_APU].fillna("").astype(str).apply(safe_clean)
             )
         except Exception as e:
             logger.error(f"❌ Error limpiando códigos APU: {e}")
@@ -1082,11 +1102,10 @@ class PresupuestoProcessor:
         df = df.dropna(subset=[ColumnNames.CODIGO_APU])
 
         # ROBUSTECIDO: Filtrar códigos inválidos de forma más clara
-        invalid_codes = {'', 'nan', 'none', 'null'}
-        mask_valid = (
-            df[ColumnNames.CODIGO_APU].notna() &
-            ~df[ColumnNames.CODIGO_APU].str.strip().str.lower().isin(invalid_codes)
-        )
+        invalid_codes = {"", "nan", "none", "null"}
+        mask_valid = df[ColumnNames.CODIGO_APU].notna() & ~df[
+            ColumnNames.CODIGO_APU
+        ].str.strip().str.lower().isin(invalid_codes)
 
         df = df[mask_valid].copy()
 
@@ -1114,7 +1133,9 @@ class PresupuestoProcessor:
                 mask_invalid_qty = df[ColumnNames.CANTIDAD_PRESUPUESTO] > max_qty
                 if mask_invalid_qty.any():
                     count = mask_invalid_qty.sum()
-                    logger.warning(f"⚠️ {count} cantidades exceden máximo ({max_qty}), se limitarán")
+                    logger.warning(
+                        f"⚠️ {count} cantidades exceden máximo ({max_qty}), se limitarán"
+                    )
                     df.loc[mask_invalid_qty, ColumnNames.CANTIDAD_PRESUPUESTO] = max_qty
 
             except Exception as e:
@@ -1305,6 +1326,7 @@ class BaseCostProcessor(ABC):
         """Método principal a implementar por subclases."""
         pass
 
+
 class DataMerger(BaseCostProcessor):
     """
     Fusionador de datos con validación mejorada.
@@ -1314,8 +1336,9 @@ class DataMerger(BaseCostProcessor):
         super().__init__({}, thresholds)  # Config vacío
         self._match_stats = {}
 
-    def merge_apus_with_insumos(self, df_apus: pd.DataFrame,
-                               df_insumos: pd.DataFrame) -> pd.DataFrame:
+    def merge_apus_with_insumos(
+        self, df_apus: pd.DataFrame, df_insumos: pd.DataFrame
+    ) -> pd.DataFrame:
         """Merge con estadísticas detalladas."""
         # Validación exhaustiva
         for name, df in [("APUs", df_apus), ("Insumos", df_insumos)]:
@@ -1323,11 +1346,17 @@ class DataMerger(BaseCostProcessor):
                 return pd.DataFrame()
 
         # Validación de esquemas
-        apu_validation = DataFrameValidator.validate_schema(df_apus, [ColumnNames.DESCRIPCION_INSUMO])
-        insumo_validation = DataFrameValidator.validate_schema(df_insumos, [ColumnNames.DESCRIPCION_INSUMO])
+        apu_validation = DataFrameValidator.validate_schema(
+            df_apus, [ColumnNames.DESCRIPCION_INSUMO]
+        )
+        insumo_validation = DataFrameValidator.validate_schema(
+            df_insumos, [ColumnNames.DESCRIPCION_INSUMO]
+        )
 
         if not (apu_validation.is_valid and insumo_validation.is_valid):
-            self.logger.error(f"Esquemas inválidos: APU={apu_validation.errors}, Insumo={insumo_validation.errors}")
+            self.logger.error(
+                f"Esquemas inválidos: APU={apu_validation.errors}, Insumo={insumo_validation.errors}"
+            )
             return pd.DataFrame()
 
         # Merge con múltiples estrategias
@@ -1338,15 +1367,18 @@ class DataMerger(BaseCostProcessor):
 
         return df_merged
 
-    def _merge_with_fallback(self, df_apus: pd.DataFrame,
-                            df_insumos: pd.DataFrame) -> pd.DataFrame:
+    def _merge_with_fallback(
+        self, df_apus: pd.DataFrame, df_insumos: pd.DataFrame
+    ) -> pd.DataFrame:
         """Merge con múltiples niveles de fallback."""
         # Preparar datos
         if ColumnNames.NORMALIZED_DESC not in df_apus.columns:
-            df_apus[ColumnNames.NORMALIZED_DESC] = normalize_text_series(df_apus[ColumnNames.DESCRIPCION_INSUMO])
+            df_apus[ColumnNames.NORMALIZED_DESC] = normalize_text_series(
+                df_apus[ColumnNames.DESCRIPCION_INSUMO]
+            )
 
         if ColumnNames.DESCRIPCION_INSUMO_NORM not in df_insumos.columns:
-             df_insumos[ColumnNames.DESCRIPCION_INSUMO_NORM] = normalize_text_series(
+            df_insumos[ColumnNames.DESCRIPCION_INSUMO_NORM] = normalize_text_series(
                 df_insumos.get(ColumnNames.DESCRIPCION_INSUMO, pd.Series(dtype=str))
             )
 
@@ -1362,7 +1394,9 @@ class DataMerger(BaseCostProcessor):
 
             # Verificación de umbral simple
             if match_rate > 0.0:
-                self.logger.info(f"✅ Estrategia {strategy.__name__}: match={match_rate:.1%}")
+                self.logger.info(
+                    f"✅ Estrategia {strategy.__name__}: match={match_rate:.1%}"
+                )
                 return result
 
         # Fallback final: usar lo que se pudo
@@ -1378,22 +1412,28 @@ class DataMerger(BaseCostProcessor):
                 right_on=ColumnNames.DESCRIPCION_INSUMO_NORM,
                 how="left",
                 suffixes=("_apu", "_insumo"),
-                indicator='_merge'
+                indicator="_merge",
             )
 
             # Prioridad: 1. Maestro (_insumo), 2. Original APU (_apu), 3. Normalizada
-            df_merged[ColumnNames.DESCRIPCION_INSUMO] = df_merged[f"{ColumnNames.DESCRIPCION_INSUMO}_insumo"].fillna(
-                df_merged[f"{ColumnNames.DESCRIPCION_INSUMO}_apu"]
-            ).fillna(df_merged[ColumnNames.NORMALIZED_DESC])
+            df_merged[ColumnNames.DESCRIPCION_INSUMO] = (
+                df_merged[f"{ColumnNames.DESCRIPCION_INSUMO}_insumo"]
+                .fillna(df_merged[f"{ColumnNames.DESCRIPCION_INSUMO}_apu"])
+                .fillna(df_merged[ColumnNames.NORMALIZED_DESC])
+            )
 
             # Verificación de nulos
             null_descriptions = df_merged[ColumnNames.DESCRIPCION_INSUMO].isnull().sum()
-            empty_descriptions = (df_merged[ColumnNames.DESCRIPCION_INSUMO] == '').sum()
+            empty_descriptions = (df_merged[ColumnNames.DESCRIPCION_INSUMO] == "").sum()
             total_null_empty = null_descriptions + empty_descriptions
             if total_null_empty > 0:
-                self.logger.warning(f"⚠️ {total_null_empty} insumos con descripción nula/vacía tras merge.")
+                self.logger.warning(
+                    f"⚠️ {total_null_empty} insumos con descripción nula/vacía tras merge."
+                )
             else:
-                self.logger.info("✅ Descripciones de insumos asignadas correctamente en merge.")
+                self.logger.info(
+                    "✅ Descripciones de insumos asignadas correctamente en merge."
+                )
 
             return df_merged
         except Exception as e:
@@ -1402,14 +1442,14 @@ class DataMerger(BaseCostProcessor):
 
     def _calculate_match_rate(self, df: pd.DataFrame) -> float:
         """Calcula porcentaje de match."""
-        if '_merge' not in df.columns:
+        if "_merge" not in df.columns:
             return 0.0
-        return (df['_merge'] == 'both').mean()
+        return (df["_merge"] == "both").mean()
 
     def _log_merge_statistics(self, df: pd.DataFrame):
         """Registra estadísticas detalladas del merge."""
-        if '_merge' in df.columns:
-            stats = df['_merge'].value_counts(normalize=True) * 100
+        if "_merge" in df.columns:
+            stats = df["_merge"].value_counts(normalize=True) * 100
             self._match_stats = stats.to_dict()
             self.logger.info(f"📊 Estadísticas merge: {self._match_stats}")
 
@@ -1483,8 +1523,7 @@ class APUCostCalculator(BaseCostProcessor):
         self._quality_metrics = {}
 
         # Inicializar clasificador
-        config_path = config.get('classification_rules_path',
-                                'config/config_rules.json')
+        config_path = config.get("classification_rules_path", "config/config_rules.json")
         self.classifier = APUClassifier(config_path)
 
     def _setup_categoria_mapping(self):
@@ -1506,7 +1545,9 @@ class APUCostCalculator(BaseCostProcessor):
             return self._empty_results()
 
         # Validación de esquema
-        validation = DataFrameValidator.validate_schema(df_merged, [ColumnNames.CODIGO_APU, ColumnNames.COSTO_INSUMO_EN_APU])
+        validation = DataFrameValidator.validate_schema(
+            df_merged, [ColumnNames.CODIGO_APU, ColumnNames.COSTO_INSUMO_EN_APU]
+        )
         if not validation.is_valid:
             self.logger.error(f"Esquema inválido: {validation.errors}")
             return self._empty_results()
@@ -1577,7 +1618,12 @@ class APUCostCalculator(BaseCostProcessor):
         )
 
         # Asegurar columnas
-        for col in [ColumnNames.MATERIALES, ColumnNames.MANO_DE_OBRA, ColumnNames.EQUIPO, ColumnNames.OTROS]:
+        for col in [
+            ColumnNames.MATERIALES,
+            ColumnNames.MANO_DE_OBRA,
+            ColumnNames.EQUIPO,
+            ColumnNames.OTROS,
+        ]:
             if col not in costs.columns:
                 costs[col] = 0.0
 
@@ -1598,7 +1644,9 @@ class APUCostCalculator(BaseCostProcessor):
 
         # Asignar a columnas específicas requeridas por el esquema de salida
         df[ColumnNames.VALOR_SUMINISTRO_UN] = df[ColumnNames.MATERIALES]
-        df[ColumnNames.VALOR_INSTALACION_UN] = df[ColumnNames.MANO_DE_OBRA] + df[ColumnNames.EQUIPO]
+        df[ColumnNames.VALOR_INSTALACION_UN] = (
+            df[ColumnNames.MANO_DE_OBRA] + df[ColumnNames.EQUIPO]
+        )
         df[ColumnNames.VALOR_CONSTRUCCION_UN] = df[ColumnNames.PRECIO_UNIT_APU]
 
         return df
@@ -1621,7 +1669,7 @@ class APUCostCalculator(BaseCostProcessor):
         required = [
             ColumnNames.VALOR_CONSTRUCCION_UN,
             ColumnNames.VALOR_SUMINISTRO_UN,
-            ColumnNames.VALOR_INSTALACION_UN
+            ColumnNames.VALOR_INSTALACION_UN,
         ]
 
         for col in required:
@@ -1636,14 +1684,14 @@ class APUCostCalculator(BaseCostProcessor):
             col_total=ColumnNames.VALOR_CONSTRUCCION_UN,
             col_materiales=ColumnNames.VALOR_SUMINISTRO_UN,
             col_mo_eq=ColumnNames.VALOR_INSTALACION_UN,
-            output_col=ColumnNames.TIPO_APU
+            output_col=ColumnNames.TIPO_APU,
         )
 
         # Validación de cobertura
         total_apus = len(df_classified)
         valid_apus = df_classified[
-            (df_classified[ColumnNames.TIPO_APU] != self.classifier.default_type) &
-            (df_classified[ColumnNames.TIPO_APU] != self.classifier.zero_cost_type)
+            (df_classified[ColumnNames.TIPO_APU] != self.classifier.default_type)
+            & (df_classified[ColumnNames.TIPO_APU] != self.classifier.zero_cost_type)
         ].shape[0]
 
         coverage = (valid_apus / total_apus * 100) if total_apus > 0 else 0
@@ -1655,13 +1703,23 @@ class APUCostCalculator(BaseCostProcessor):
 
     def _calculate_time(self, df: pd.DataFrame) -> pd.DataFrame:
         if ColumnNames.RENDIMIENTO not in df.columns:
-             return pd.DataFrame()
-        return df.groupby(ColumnNames.CODIGO_APU)[ColumnNames.RENDIMIENTO].max().reset_index().rename(columns={ColumnNames.RENDIMIENTO: ColumnNames.TIEMPO_INSTALACION})
+            return pd.DataFrame()
+        return (
+            df.groupby(ColumnNames.CODIGO_APU)[ColumnNames.RENDIMIENTO]
+            .max()
+            .reset_index()
+            .rename(columns={ColumnNames.RENDIMIENTO: ColumnNames.TIEMPO_INSTALACION})
+        )
 
     def _calculate_performance(self, df: pd.DataFrame) -> pd.DataFrame:
         if ColumnNames.RENDIMIENTO not in df.columns:
-             return pd.DataFrame()
-        return df.groupby(ColumnNames.CODIGO_APU)[ColumnNames.RENDIMIENTO].max().reset_index().rename(columns={ColumnNames.RENDIMIENTO: ColumnNames.RENDIMIENTO_DIA})
+            return pd.DataFrame()
+        return (
+            df.groupby(ColumnNames.CODIGO_APU)[ColumnNames.RENDIMIENTO]
+            .max()
+            .reset_index()
+            .rename(columns={ColumnNames.RENDIMIENTO: ColumnNames.RENDIMIENTO_DIA})
+        )
 
     def _compute_quality_metrics(self, df: pd.DataFrame):
         """Calcula métricas de calidad del procesamiento."""
@@ -1669,15 +1727,17 @@ class APUCostCalculator(BaseCostProcessor):
         classified = df[ColumnNames.TIPO_APU].notna().sum()
 
         self._quality_metrics = {
-            'total_apus': total_apus,
-            'classified_percentage': (classified / total_apus * 100) if total_apus > 0 else 0,
-            'distribution': df[ColumnNames.TIPO_APU].value_counts().to_dict(),
-            'cost_coverage': {
-                'materiales': df[ColumnNames.MATERIALES].sum(),
-                'mano_obra': df[ColumnNames.MANO_DE_OBRA].sum(),
-                'equipo': df[ColumnNames.EQUIPO].sum(),
-                'otros': df[ColumnNames.OTROS].sum(),
-            }
+            "total_apus": total_apus,
+            "classified_percentage": (classified / total_apus * 100)
+            if total_apus > 0
+            else 0,
+            "distribution": df[ColumnNames.TIPO_APU].value_counts().to_dict(),
+            "cost_coverage": {
+                "materiales": df[ColumnNames.MATERIALES].sum(),
+                "mano_obra": df[ColumnNames.MANO_DE_OBRA].sum(),
+                "equipo": df[ColumnNames.EQUIPO].sum(),
+                "otros": df[ColumnNames.OTROS].sum(),
+            },
         }
 
         self.logger.info(f"📈 Métricas de calidad: {self._quality_metrics}")
@@ -1736,7 +1796,7 @@ def calculate_insumo_costs(
             df[col] = 0.0
         else:
             # Convertir a numérico de forma segura
-            df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0.0)
+            df[col] = pd.to_numeric(df[col], errors="coerce").fillna(0.0)
 
     # ROBUSTECIDO: Validar rangos antes de calcular
     max_cost = thresholds.max_cost_per_item
@@ -1747,30 +1807,27 @@ def calculate_insumo_costs(
     df[ColumnNames.VR_UNITARIO_INSUMO] = df[ColumnNames.VR_UNITARIO_INSUMO].clip(0, max_cost)
 
     # ROBUSTECIDO: Calcular costo con manejo explícito de casos
-    tiene_precio = (
-        df[ColumnNames.VR_UNITARIO_INSUMO].notna() &
-        (df[ColumnNames.VR_UNITARIO_INSUMO] > 0)
+    tiene_precio = df[ColumnNames.VR_UNITARIO_INSUMO].notna() & (
+        df[ColumnNames.VR_UNITARIO_INSUMO] > 0
     )
 
     # Calcular costo: cantidad * precio unitario si hay precio, sino usar valor total
     df[ColumnNames.COSTO_INSUMO_EN_APU] = np.where(
         tiene_precio,
         df[ColumnNames.CANTIDAD_APU] * df[ColumnNames.VR_UNITARIO_INSUMO],
-        df[ColumnNames.VALOR_TOTAL_APU]
+        df[ColumnNames.VALOR_TOTAL_APU],
     )
 
     # ROBUSTECIDO: Validar resultado y limitar
     df[ColumnNames.COSTO_INSUMO_EN_APU] = (
-        pd.to_numeric(df[ColumnNames.COSTO_INSUMO_EN_APU], errors='coerce')
+        pd.to_numeric(df[ColumnNames.COSTO_INSUMO_EN_APU], errors="coerce")
         .fillna(0.0)
         .clip(0, thresholds.max_total_cost)
     )
 
     # VR_UNITARIO_FINAL
     df[ColumnNames.VR_UNITARIO_FINAL] = (
-        df[ColumnNames.VR_UNITARIO_INSUMO]
-        .fillna(0.0)
-        .clip(0, max_cost)
+        df[ColumnNames.VR_UNITARIO_INSUMO].fillna(0.0).clip(0, max_cost)
     )
 
     # ROBUSTECIDO: Log de estadísticas para monitoreo
@@ -1866,11 +1923,7 @@ def process_all_files(
         return {"error": str(e)}
 
 
-def _save_output_files(
-    result: dict,
-    output_files: dict,
-    config: dict
-) -> Dict[str, bool]:
+def _save_output_files(result: dict, output_files: dict, config: dict) -> Dict[str, bool]:
     """
     Guarda archivos de salida de forma robusta.
     Retorna diccionario con estado de cada archivo.
@@ -1924,7 +1977,7 @@ def _save_output_files(
                 continue
 
             # ROBUSTECIDO: Escritura atómica con archivo temporal
-            temp_path = path.with_suffix('.tmp')
+            temp_path = path.with_suffix(".tmp")
 
             try:
                 with open(temp_path, "w", encoding="utf-8") as f:
@@ -1933,7 +1986,7 @@ def _save_output_files(
                         f,
                         indent=2,
                         ensure_ascii=False,
-                        default=str  # Fallback para tipos no serializables
+                        default=str,  # Fallback para tipos no serializables
                     )
 
                 # Mover archivo temporal a destino final

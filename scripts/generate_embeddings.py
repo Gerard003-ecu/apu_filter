@@ -17,9 +17,11 @@ from sentence_transformers import SentenceTransformer
 # Configuración del path para importar desde la app
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
+
 # --- Configuración de Logging Mejorada ---
 class ColoredFormatter(logging.Formatter):
     """Formatter personalizado con colores para mejor legibilidad"""
+
     COLORS = {
         "DEBUG": "\033[36m",  # Cyan
         "INFO": "\033[32m",  # Verde
@@ -45,7 +47,9 @@ def setup_logging(log_level: str = "INFO", log_file: Optional[Path] = None) -> N
     # Validar nivel de log
     valid_levels = ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
     if log_level.upper() not in valid_levels:
-        raise ValueError(f"Nivel de log inválido: {log_level}. Debe ser uno de: {valid_levels}")
+        raise ValueError(
+            f"Nivel de log inválido: {log_level}. Debe ser uno de: {valid_levels}"
+        )
 
     # Validar archivo de log
     if log_file is not None and not isinstance(log_file, Path):
@@ -56,8 +60,7 @@ def setup_logging(log_level: str = "INFO", log_file: Optional[Path] = None) -> N
     # Console handler con colores
     console_handler = logging.StreamHandler(sys.stdout)
     console_formatter = ColoredFormatter(
-        "%(asctime)s [%(levelname)s] %(name)s: %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S"
+        "%(asctime)s [%(levelname)s] %(name)s: %(message)s", datefmt="%Y-%m-%d %H:%M:%S"
     )
     console_handler.setFormatter(console_formatter)
     handlers.append(console_handler)
@@ -66,10 +69,10 @@ def setup_logging(log_level: str = "INFO", log_file: Optional[Path] = None) -> N
     if log_file:
         try:
             log_file.parent.mkdir(parents=True, exist_ok=True)
-            file_handler = logging.FileHandler(log_file, mode='a', encoding='utf-8')
+            file_handler = logging.FileHandler(log_file, mode="a", encoding="utf-8")
             file_formatter = logging.Formatter(
                 "%(asctime)s [%(levelname)s] %(name)s: %(message)s",
-                datefmt="%Y-%m-%d %H:%M:%S"
+                datefmt="%Y-%m-%d %H:%M:%S",
             )
             file_handler.setFormatter(file_formatter)
             handlers.append(file_handler)
@@ -83,13 +86,16 @@ def setup_logging(log_level: str = "INFO", log_file: Optional[Path] = None) -> N
         root_logger.removeHandler(handler)
         handler.close()
 
-    logging.basicConfig(level=getattr(logging, log_level.upper()), handlers=handlers, force=True)
+    logging.basicConfig(
+        level=getattr(logging, log_level.upper()), handlers=handlers, force=True
+    )
 
 
 # --- Configuración y Constantes ---
 @dataclass
 class ScriptConfig:
     """Configuración del script, combinando JSON y argumentos de línea de comandos."""
+
     model_name: str
     input_file: Path
     output_dir: Path
@@ -144,11 +150,14 @@ class ScriptConfig:
         if not isinstance(self.max_text_length, int) or self.max_text_length <= 0:
             raise ValueError("max_text_length debe ser un entero positivo")
 
-        if not isinstance(self.validation_sample_size, int) or self.validation_sample_size <= 0:
+        if (
+            not isinstance(self.validation_sample_size, int)
+            or self.validation_sample_size <= 0
+        ):
             raise ValueError("validation_sample_size debe ser un entero positivo")
 
         # Validar rutas
-        if self.input_file.suffix.lower() not in ['.csv', '.json']:
+        if self.input_file.suffix.lower() not in [".csv", ".json"]:
             raise ValueError(f"Formato de archivo no soportado: {self.input_file.suffix}")
 
         # Normalizar rutas absolutas
@@ -194,11 +203,14 @@ class ScriptConfig:
         if not isinstance(self.max_text_length, int) or self.max_text_length <= 0:
             raise ValueError("max_text_length debe ser un entero positivo")
 
-        if not isinstance(self.validation_sample_size, int) or self.validation_sample_size <= 0:
+        if (
+            not isinstance(self.validation_sample_size, int)
+            or self.validation_sample_size <= 0
+        ):
             raise ValueError("validation_sample_size debe ser un entero positivo")
 
         # Validar rutas
-        if self.input_file.suffix.lower() not in ['.csv', '.json']:
+        if self.input_file.suffix.lower() not in [".csv", ".json"]:
             raise ValueError(f"Formato de archivo no soportado: {self.input_file.suffix}")
 
         # Normalizar rutas absolutas
@@ -209,32 +221,38 @@ class ScriptConfig:
 # --- Excepciones Personalizadas ---
 class EmbeddingGenerationError(Exception):
     """Excepción base para errores en la generación de embeddings"""
+
     pass
 
 
 class DataValidationError(EmbeddingGenerationError):
     """Error en la validación de datos de entrada"""
+
     pass
 
 
 class ModelLoadError(EmbeddingGenerationError):
     """Error al cargar el modelo de embeddings"""
+
     pass
 
 
 class InsufficientMemoryError(EmbeddingGenerationError):
     """Error por memoria insuficiente"""
+
     pass
 
 
 class ConfigurationError(EmbeddingGenerationError):
     """Error en la configuración del script"""
+
     pass
 
 
 # --- Utilidades ---
 class DataValidator:
     """Validador de datos de entrada"""
+
     @staticmethod
     def validate_dataframe(
         df: pd.DataFrame, text_column: str, id_column: str, config: ScriptConfig
@@ -272,7 +290,9 @@ class DataValidator:
         # Verificar que las columnas existen
         missing_columns = [col for col in [text_column, id_column] if col not in df.columns]
         if missing_columns:
-            raise DataValidationError(f"Columnas faltantes en el DataFrame: {missing_columns}")
+            raise DataValidationError(
+                f"Columnas faltantes en el DataFrame: {missing_columns}"
+            )
 
         initial_rows = len(df)
         if initial_rows == 0:
@@ -282,26 +302,40 @@ class DataValidator:
         df_clean = df.dropna(subset=[text_column, id_column]).copy()
         removed_nulls = initial_rows - len(df_clean)
         if removed_nulls > 0:
-            logger.warning(f"Se eliminaron {removed_nulls} filas con valores nulos en las columnas '{text_column}' o '{id_column}'")
+            logger.warning(
+                f"Se eliminaron {removed_nulls} filas con valores nulos en las columnas '{text_column}' o '{id_column}'"
+            )
 
         # Eliminar duplicados basados en la columna de ID
-        df_clean = df_clean.drop_duplicates(subset=[id_column], keep="first").reset_index(drop=True)
+        df_clean = df_clean.drop_duplicates(subset=[id_column], keep="first").reset_index(
+            drop=True
+        )
         removed_duplicates = initial_rows - removed_nulls - len(df_clean)
         if removed_duplicates > 0:
-            logger.warning(f"Se eliminaron {removed_duplicates} filas duplicadas según la columna '{id_column}'")
+            logger.warning(
+                f"Se eliminaron {removed_duplicates} filas duplicadas según la columna '{id_column}'"
+            )
 
         # Convertir la columna de texto a string para garantizar consistencia
         df_clean[text_column] = df_clean[text_column].astype(str)
 
         # Aplicar filtros de longitud de texto
         df_clean["text_length"] = df_clean[text_column].str.len()
-        df_filtered = df_clean[
-            df_clean["text_length"].between(config.min_text_length, config.max_text_length)
-        ].drop("text_length", axis=1).reset_index(drop=True)
+        df_filtered = (
+            df_clean[
+                df_clean["text_length"].between(
+                    config.min_text_length, config.max_text_length
+                )
+            ]
+            .drop("text_length", axis=1)
+            .reset_index(drop=True)
+        )
 
         removed_by_length = len(df_clean) - len(df_filtered)
         if removed_by_length > 0:
-            logger.warning(f"Se eliminaron {removed_by_length} filas fuera del rango de longitud de texto [{config.min_text_length}, {config.max_text_length}]")
+            logger.warning(
+                f"Se eliminaron {removed_by_length} filas fuera del rango de longitud de texto [{config.min_text_length}, {config.max_text_length}]"
+            )
 
         if df_filtered.empty:
             raise DataValidationError(
@@ -309,12 +343,15 @@ class DataValidator:
                 f"Original: {initial_rows}, nulos: {removed_nulls}, duplicados: {removed_duplicates}, longitud: {removed_by_length}"
             )
 
-        logger.info(f"Validación completada: {len(df_filtered)}/{initial_rows} filas válidas ({len(df_filtered)/initial_rows*100:.2f}%)")
+        logger.info(
+            f"Validación completada: {len(df_filtered)}/{initial_rows} filas válidas ({len(df_filtered) / initial_rows * 100:.2f}%)"
+        )
         return df_filtered
 
 
 class MemoryMonitor:
     """Monitor de memoria del sistema"""
+
     @staticmethod
     def check_memory_availability(estimated_size_gb: float, limit_gb: float) -> None:
         """
@@ -352,6 +389,7 @@ class MemoryMonitor:
 
 class FileManager:
     """Gestor de archivos con backup y validación"""
+
     @staticmethod
     def create_backup(file_path: Path) -> Optional[Path]:
         """
@@ -367,7 +405,9 @@ class FileManager:
             raise TypeError("file_path debe ser una instancia de pathlib.Path")
 
         if not file_path.exists():
-            logging.getLogger(__name__).debug(f"No se puede crear backup, archivo no existe: {file_path}")
+            logging.getLogger(__name__).debug(
+                f"No se puede crear backup, archivo no existe: {file_path}"
+            )
             return None
 
         try:
@@ -383,7 +423,6 @@ class FileManager:
             logger = logging.getLogger(__name__)
             logger.error(f"Error al crear backup de {file_path}: {e}")
             raise
-
 
     @staticmethod
     def load_data(file_path: Path) -> pd.DataFrame:
@@ -421,7 +460,9 @@ class FileManager:
             if df.empty:
                 raise DataValidationError(f"El archivo {file_path} está vacío")
 
-            logging.getLogger(__name__).info(f"Datos cargados exitosamente: {len(df)} filas, {len(df.columns)} columnas")
+            logging.getLogger(__name__).info(
+                f"Datos cargados exitosamente: {len(df)} filas, {len(df.columns)} columnas"
+            )
             return df
 
         except UnicodeDecodeError:
@@ -429,12 +470,18 @@ class FileManager:
             try:
                 if file_path.suffix.lower() == ".csv":
                     df = pd.read_csv(file_path, encoding="latin-1")
-                    logging.getLogger(__name__).warning(f"Archivo {file_path} leído con codificación latin-1")
+                    logging.getLogger(__name__).warning(
+                        f"Archivo {file_path} leído con codificación latin-1"
+                    )
                     return df
                 else:
-                    raise DataValidationError(f"No se pudo leer el archivo JSON {file_path} con codificaciones UTF-8 o Latin-1")
+                    raise DataValidationError(
+                        f"No se pudo leer el archivo JSON {file_path} con codificaciones UTF-8 o Latin-1"
+                    )
             except UnicodeDecodeError:
-                raise DataValidationError(f"No se pudo leer el archivo {file_path} con las codificaciones UTF-8 o Latin-1")
+                raise DataValidationError(
+                    f"No se pudo leer el archivo {file_path} con las codificaciones UTF-8 o Latin-1"
+                )
         except pd.errors.EmptyDataError:
             raise DataValidationError(f"El archivo {file_path} está vacío o corrupto")
         except Exception as e:
@@ -443,6 +490,7 @@ class FileManager:
 
 class EmbeddingGenerator:
     """Generador de embeddings con manejo robusto"""
+
     def __init__(self, config: ScriptConfig):
         if not isinstance(config, ScriptConfig):
             raise TypeError("config debe ser una instancia de ScriptConfig")
@@ -455,10 +503,12 @@ class EmbeddingGenerator:
         """Carga el modelo de sentence-transformers."""
         try:
             self.logger.info(f"Cargando modelo: {self.config.model_name}")
-            self.model = SentenceTransformer(self.config.model_name, device='cpu')
+            self.model = SentenceTransformer(self.config.model_name, device="cpu")
             embedding_dim = self.model.get_sentence_embedding_dimension()
             if embedding_dim is None:
-                raise ModelLoadError(f"El modelo {self.config.model_name} no devolvió una dimensión de embeddings válida")
+                raise ModelLoadError(
+                    f"El modelo {self.config.model_name} no devolvió una dimensión de embeddings válida"
+                )
             self.logger.info(f"Modelo cargado exitosamente. Dimensión: {embedding_dim}")
         except Exception as e:
             raise ModelLoadError(f"Error al cargar modelo '{self.config.model_name}': {e}")
@@ -531,7 +581,9 @@ class EmbeddingGenerator:
             raise TypeError("embeddings debe ser un array numpy")
 
         if embeddings.ndim != 2 or embeddings.shape[0] == 0:
-            raise ValueError(f"embeddings debe ser un array 2D no vacío, forma actual: {embeddings.shape}")
+            raise ValueError(
+                f"embeddings debe ser un array 2D no vacío, forma actual: {embeddings.shape}"
+            )
 
         self.logger.info("Construyendo índice FAISS...")
 
@@ -544,9 +596,13 @@ class EmbeddingGenerator:
         index.add(embeddings_float32)
 
         if index.ntotal != len(embeddings):
-            raise RuntimeError(f"Error al añadir embeddings al índice: esperados {len(embeddings)}, añadidos {index.ntotal}")
+            raise RuntimeError(
+                f"Error al añadir embeddings al índice: esperados {len(embeddings)}, añadidos {index.ntotal}"
+            )
 
-        self.logger.info(f"Índice construido exitosamente. Vectores: {index.ntotal}, Dimensión: {embedding_dim}")
+        self.logger.info(
+            f"Índice construido exitosamente. Vectores: {index.ntotal}, Dimensión: {embedding_dim}"
+        )
         return index
 
     def validate_index(self, index: faiss.Index, embeddings: np.ndarray) -> bool:
@@ -557,11 +613,11 @@ class EmbeddingGenerator:
         - Acepta duplicados semánticos (Similitud > 0.999).
         - Rechaza desviaciones significativas.
         - Reporta estadísticas detalladas.
-        
+
         Args:
             index: Índice FAISS a validar.
             embeddings: Embeddings originales.
-            
+
         Returns:
             bool: True si la validación es exitosa.
         """
@@ -572,13 +628,19 @@ class EmbeddingGenerator:
             raise TypeError("embeddings debe ser un array numpy")
 
         if embeddings.ndim != 2 or embeddings.shape[0] == 0:
-            raise ValueError(f"embeddings debe ser un array 2D no vacío, forma actual: {embeddings.shape}")
+            raise ValueError(
+                f"embeddings debe ser un array 2D no vacío, forma actual: {embeddings.shape}"
+            )
 
         if index.d != embeddings.shape[1]:
-            raise ValueError(f"Dimensión del índice ({index.d}) no coincide con embeddings ({embeddings.shape[1]})")
+            raise ValueError(
+                f"Dimensión del índice ({index.d}) no coincide con embeddings ({embeddings.shape[1]})"
+            )
 
         if index.ntotal != len(embeddings):
-            raise ValueError(f"Número de vectores en índice ({index.ntotal}) no coincide con embeddings ({len(embeddings)})")
+            raise ValueError(
+                f"Número de vectores en índice ({index.ntotal}) no coincide con embeddings ({len(embeddings)})"
+            )
 
         self.logger.info("=" * 80)
         self.logger.info("Iniciando validación robusta del índice FAISS...")
@@ -658,12 +720,14 @@ class EmbeddingGenerator:
 
             # CASO 4: Fallo real de validación
             stats["failures"] += 1
-            failed_cases.append({
-                "expected_idx": int(idx),
-                "returned_idx": int(top_idx),
-                "similarity": float(top_similarity),
-                "top5_indices": indices[0].tolist(),
-            })
+            failed_cases.append(
+                {
+                    "expected_idx": int(idx),
+                    "returned_idx": int(top_idx),
+                    "similarity": float(top_similarity),
+                    "top5_indices": indices[0].tolist(),
+                }
+            )
             self.logger.error(
                 f"❌ Error de validación real:\n"
                 f"   Índice esperado: {idx}\n"
@@ -678,7 +742,9 @@ class EmbeddingGenerator:
         self.logger.info(f"   Total muestras: {stats['total']}")
 
         if stats["total"] > 0:
-            success_rate = (stats["exact_matches"] + stats["semantic_duplicates"]) / stats["total"]
+            success_rate = (stats["exact_matches"] + stats["semantic_duplicates"]) / stats[
+                "total"
+            ]
             self.logger.info(
                 f"   ✅ Coincidencias exactas: {stats['exact_matches']} "
                 f"({stats['exact_matches'] / stats['total'] * 100:.1f}%)"
@@ -717,6 +783,7 @@ class EmbeddingGenerator:
 
 class EmbeddingPipeline:
     """Pipeline principal para la generación de embeddings"""
+
     def __init__(self, config: ScriptConfig):
         if not isinstance(config, ScriptConfig):
             raise TypeError("config debe ser una instancia de ScriptConfig")
@@ -801,7 +868,9 @@ class EmbeddingPipeline:
         # Calcular métricas finales
         metrics = {
             "processing_time": round(time.time() - start_time, 2),
-            "initial_rows": len(FileManager.load_data(self.config.input_file)),  # Recargar para métrica original
+            "initial_rows": len(
+                FileManager.load_data(self.config.input_file)
+            ),  # Recargar para métrica original
             "valid_rows": len(df),
             "embeddings_generated": len(embeddings),
             "embedding_dim": embedding_dim,
@@ -893,7 +962,9 @@ def load_config_from_json(config_path: Path) -> Dict[str, Any]:
         raise TypeError("config_path debe ser una instancia de pathlib.Path")
 
     if not config_path.exists():
-        logging.getLogger(__name__).warning(f"Archivo de configuración no encontrado: {config_path}")
+        logging.getLogger(__name__).warning(
+            f"Archivo de configuración no encontrado: {config_path}"
+        )
         return {}
 
     try:
@@ -904,7 +975,9 @@ def load_config_from_json(config_path: Path) -> Dict[str, Any]:
         logging.getLogger(__name__).error(f"Error al decodificar JSON en {config_path}: {e}")
         raise
     except Exception as e:
-        logging.getLogger(__name__).error(f"Error al leer el archivo de configuración {config_path}: {e}")
+        logging.getLogger(__name__).error(
+            f"Error al leer el archivo de configuración {config_path}: {e}"
+        )
         raise
 
 
@@ -946,9 +1019,7 @@ def main():
     parser.add_argument(
         "--no-normalize", action="store_true", help="No normalizar los embeddings"
     )
-    parser.add_argument(
-        "--log-file", type=Path, help="Ruta opcional para archivo de logs"
-    )
+    parser.add_argument("--log-file", type=Path, help="Ruta opcional para archivo de logs")
 
     args = parser.parse_args()
 
@@ -993,7 +1064,12 @@ def main():
         metrics = pipeline.run()
         print("\n📊 Resumen de Métricas:", json.dumps(metrics, indent=2, default=str))
         sys.exit(0)
-    except (EmbeddingGenerationError, FileNotFoundError, ValueError, ConfigurationError) as e:
+    except (
+        EmbeddingGenerationError,
+        FileNotFoundError,
+        ValueError,
+        ConfigurationError,
+    ) as e:
         logging.error(f"Error de ejecución: {e}")
         sys.exit(1)
     except Exception as e:

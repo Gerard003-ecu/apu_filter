@@ -8,7 +8,6 @@ from agent.business_topology import (
 
 
 class TestExecutiveReport:
-
     @pytest.fixture
     def analyzer(self):
         return BusinessTopologicalAnalyzer()
@@ -22,10 +21,17 @@ class TestExecutiveReport:
         G.add_edge("APU2", "Insumo3")
 
         # Add types
-        nx.set_node_attributes(G, {
-            "APU1": "APU", "APU2": "APU",
-            "Insumo1": "INSUMO", "Insumo2": "INSUMO", "Insumo3": "INSUMO"
-        }, "type")
+        nx.set_node_attributes(
+            G,
+            {
+                "APU1": "APU",
+                "APU2": "APU",
+                "Insumo1": "INSUMO",
+                "Insumo2": "INSUMO",
+                "Insumo3": "INSUMO",
+            },
+            "type",
+        )
 
         report = analyzer.generate_executive_report(G)
 
@@ -37,13 +43,15 @@ class TestExecutiveReport:
 
         audit_lines = analyzer.get_audit_report(G)
         assert any("AUDITORÍA ESTRUCTURAL DEL PRESUPUESTO" in line for line in audit_lines)
-        assert any("Estructura de Costos Saludable y Auditable" in line for line in audit_lines)
+        assert any(
+            "Estructura de Costos Saludable y Auditable" in line for line in audit_lines
+        )
 
     def test_circular_reference(self, analyzer):
         """Test detection of circular references (errors)"""
         G = nx.DiGraph()
         G.add_edge("APU1", "APU2")
-        G.add_edge("APU2", "APU1") # Cycle
+        G.add_edge("APU2", "APU1")  # Cycle
 
         nx.set_node_attributes(G, {"APU1": "APU", "APU2": "APU"}, "type")
 
@@ -87,7 +95,9 @@ class TestExecutiveReport:
         report = analyzer.generate_executive_report(G)
 
         # Should trigger orphan alert
-        assert any("Recursos definidos sin asignación" in alert for alert in report.waste_alerts)
+        assert any(
+            "Recursos definidos sin asignación" in alert for alert in report.waste_alerts
+        )
 
     def test_integration_backward_compatibility(self, analyzer):
         """Test that old analyze method output can still be processed by get_audit_report"""

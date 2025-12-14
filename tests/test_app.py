@@ -922,7 +922,8 @@ class TestSemanticSearch:
         # Need to populate the file read with valid ID map list
         file_read_mock = mock_file.return_value
         file_read_mock.read.side_effect = [
-            '{"model_name": "test-model", "vector_dimension": 128, "total_vectors": 1000}',  # metadata
+            # metadata
+            '{"model_name": "test-model", "vector_dimension": 128, "total_vectors": 1000}',
             json.dumps([str(i) for i in range(1000)]),  # id_map
         ]
 

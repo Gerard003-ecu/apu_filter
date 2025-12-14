@@ -170,20 +170,14 @@ class CSVCleaner:
 
         # Validar archivo de entrada existe
         if not self.input_path.exists():
-            raise FileNotFoundError(
-                f"El archivo de entrada no existe: {self.input_path}"
-            )
+            raise FileNotFoundError(f"El archivo de entrada no existe: {self.input_path}")
 
         if not self.input_path.is_file():
-            raise ValueError(
-                f"La ruta de entrada no es un archivo: {self.input_path}"
-            )
+            raise ValueError(f"La ruta de entrada no es un archivo: {self.input_path}")
 
         # Validar permisos de lectura
         if not os.access(self.input_path, os.R_OK):
-            raise PermissionError(
-                f"Sin permisos de lectura para: {self.input_path}"
-            )
+            raise PermissionError(f"Sin permisos de lectura para: {self.input_path}")
 
         # Validar tamaño del archivo
         try:
@@ -206,9 +200,7 @@ class CSVCleaner:
             input_resolved = self.input_path.resolve()
             output_resolved = self.output_path.resolve()
             if input_resolved == output_resolved:
-                raise ValueError(
-                    "El archivo de entrada y salida no pueden ser el mismo"
-                )
+                raise ValueError("El archivo de entrada y salida no pueden ser el mismo")
         except OSError as e:
             raise ValueError(f"Error resolviendo rutas de archivos: {e}")
 
@@ -225,15 +217,11 @@ class CSVCleaner:
             raise ValueError(f"El directorio de salida no existe: {output_dir}")
 
         if not output_dir.is_dir():
-            raise ValueError(
-                f"La ruta padre de salida no es un directorio: {output_dir}"
-            )
+            raise ValueError(f"La ruta padre de salida no es un directorio: {output_dir}")
 
         # Validar permisos de escritura en directorio de salida
         if not os.access(output_dir, os.W_OK):
-            raise PermissionError(
-                f"Sin permisos de escritura en directorio: {output_dir}"
-            )
+            raise PermissionError(f"Sin permisos de escritura en directorio: {output_dir}")
 
         # Validar delimitador
         if not self.delimiter:
@@ -389,9 +377,7 @@ class CSVCleaner:
             raise ValueError("El encabezado del CSV está vacío")
 
         if self._is_all_whitespace_fields(header_line):
-            raise ValueError(
-                "El encabezado del CSV contiene solo espacios en blanco"
-            )
+            raise ValueError("El encabezado del CSV contiene solo espacios en blanco")
 
         # Contar delimitadores en el header para validación futura
         self.expected_delimiter_count = self._count_delimiters(header_line)
@@ -411,9 +397,7 @@ class CSVCleaner:
         logger.info(f"✅ Encabezado detectado con {num_columns} columnas")
 
         if self.verbose:
-            logger.debug(
-                f"Delimitadores en encabezado: {self.expected_delimiter_count}"
-            )
+            logger.debug(f"Delimitadores en encabezado: {self.expected_delimiter_count}")
             # Mostrar solo las primeras columnas si hay muchas
             if num_columns > 10:
                 logger.debug(f"Primeras 10 columnas: {column_names[:10]}")
@@ -436,9 +420,7 @@ class CSVCleaner:
         # Advertir sobre columnas vacías
         empty_columns = [i for i, col in enumerate(column_names_stripped) if not col]
         if empty_columns:
-            logger.warning(
-                f"⚠️  Columnas con nombre vacío en posiciones: {empty_columns}"
-            )
+            logger.warning(f"⚠️  Columnas con nombre vacío en posiciones: {empty_columns}")
 
     def _create_temp_file(self) -> TextIO:
         """
@@ -533,7 +515,6 @@ class CSVCleaner:
                 encoding=self.encoding,
                 errors="replace",
             ) as infile:
-
                 # Preparar archivo de salida
                 if self.use_atomic_write:
                     outfile = self._create_temp_file()
@@ -549,9 +530,7 @@ class CSVCleaner:
                 header_line = infile.readline()
 
                 if not header_line:
-                    raise ValueError(
-                        "El archivo CSV está vacío o no contiene encabezado"
-                    )
+                    raise ValueError("El archivo CSV está vacío o no contiene encabezado")
 
                 # Remover salto de línea para validación
                 header_clean = header_line.rstrip("\r\n")
@@ -747,6 +726,7 @@ Códigos de salida:
         logger.error(f"❌ Error inesperado: {type(e).__name__}: {e}")
         if args.verbose:
             import traceback
+
             traceback.print_exc()
         sys.exit(1)
 

@@ -23,7 +23,8 @@ from models.probability_models import (
     estimate_memory_usage,
     run_monte_carlo_simulation,
     sanitize_value,
-    # validate_apu_data_structure, # Esta función no existe en models/probability_models.py, fue un error en el test
+    # validate_apu_data_structure,
+    # Esta función no existe en models/probability_models.py, fue un error en el test
 )
 
 # ============================================================================
@@ -420,7 +421,8 @@ class TestSanitizeValue:
 class TestValidateAPUDataStructure:
     """Tests para validación de estructura de datos."""
 
-    # La función validate_apu_data_structure no fue exportada, usaremos el método interno de MonteCarloSimulator
+    # La función validate_apu_data_structure no fue exportada, usaremos el
+    # método interno de MonteCarloSimulator
 
     def test_validate_valid_data(self, simulator, valid_apu_data):
         """Debe retornar True para datos válidos."""
@@ -569,7 +571,8 @@ class TestMonteCarloSimulatorDataPreparation:
     def test_prepare_data_missing_columns(self, simulator, apu_data_missing_columns):
         """Debe lanzar error si faltan columnas."""
         # El comportamiento actual crea columnas NaN y filtra
-        # No lanza error en _prepare_data, pero _validate_input_data debería haberlo atrapado antes
+        # No lanza error en _prepare_data, pero _validate_input_data debería haberlo
+        # atrapado antes
         # Si llamamos _prepare_data directamente:
         df_valid, discarded = simulator._prepare_data(apu_data_missing_columns)
         # Se descartan por no tener valores validos
@@ -1193,7 +1196,10 @@ class TestParametrized:
         result = simulator.run_simulation(valid_apu_data)
 
         # Puede o no tener datos válidos dependiendo del umbral
-        assert result.status in [SimulationStatus.SUCCESS, SimulationStatus.NO_VALID_DATA]
+        assert result.status in [
+            SimulationStatus.SUCCESS,
+            SimulationStatus.NO_VALID_DATA,
+        ]
 
     @pytest.mark.parametrize("seed", [None, 0, 42, 12345, 99999])
     def test_various_random_seeds(self, valid_apu_data, seed):
