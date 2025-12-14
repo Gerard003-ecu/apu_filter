@@ -7,7 +7,14 @@ import numpy as np
 import pandas as pd
 from sentence_transformers import SentenceTransformer
 
+from .financial_engine import (
+    CapitalAssetPricing,
+    FinancialConfig,
+    RealOptionsAnalyzer,
+    RiskQuantifier,
+)
 from .utils import normalize_text
+from models.probability_models import run_monte_carlo_simulation
 
 logger = logging.getLogger(__name__)
 
@@ -1693,6 +1700,89 @@ def calculate_estimate(
         f"Cuadrilla: {apu_cuadrilla_desc[:50]} ({apu_cuadrilla_codigo})"
     )
 
+    # ═══════════════════════════════════════════════════════════════════════════
+    # ANÁLISIS FINANCIERO ADICIONAL
+    # ═══════════════════════════════════════════════════════════════════════════
+    log.append("\n" + "=" * 70)
+    log.append("📈 ANÁLISIS DE VIABILIDAD FINANCIERA")
+    log.append("=" * 70)
+
+    financial_analysis = {}
+
+    # 1. Obtener insumos para Monte Carlo
+    apu_codes_for_simulation = [c for c in [apu_suministro_codigo, apu_tarea_codigo] if c and c not in ["N/A", "EST-AVG"]]
+
+    if apu_codes_for_simulation:
+        all_insumos = data_store.get("apus_detail", [])
+        insumos_for_simulation = [
+            item for item in all_insumos
+            if item.get("CODIGO_APU") in apu_codes_for_simulation
+        ]
+        log.append(f"  🔍 Insumos para simulación: {len(insumos_for_simulation)} items de {len(apu_codes_for_simulation)} APUs")
+
+        if insumos_for_simulation:
+            # 2. Ejecutar simulación de Monte Carlo
+            mc_results = run_monte_carlo_simulation(insumos_for_simulation)
+            mc_stats = mc_results.get("statistics", {})
+            mean_cost = mc_stats.get("mean", valor_construccion)
+            std_dev = mc_stats.get("std_dev", 0)
+            log.append(f"  📊 Resultados Monte Carlo: media=${mean_cost:,.2f}, std_dev=${std_dev:,.2f}")
+
+            # 3. Configurar y ejecutar motor financiero
+            try:
+                # Extraer parámetros financieros opcionales del request
+                config_params = {
+                    "risk_free_rate": safe_float_conversion(params.get("risk_free_rate"), 0.04),
+                    "market_premium": safe_float_conversion(params.get("market_premium"), 0.06),
+                    "beta": safe_float_conversion(params.get("beta"), 1.2),
+                    "tax_rate": safe_float_conversion(params.get("tax_rate"), 0.30),
+                    "cost_of_debt": safe_float_conversion(params.get("cost_of_debt"), 0.08),
+                    "debt_to_equity_ratio": safe_float_conversion(params.get("debt_to_equity_ratio"), 0.6),
+                }
+                fin_config = FinancialConfig(**config_params)
+
+                # Instanciar motores
+                capm_engine = CapitalAssetPricing(fin_config)
+                risk_engine = RiskQuantifier()
+                options_engine = RealOptionsAnalyzer()
+
+                # Calcular métricas
+                wacc = capm_engine.calculate_wacc()
+                var_95 = risk_engine.calculate_var(mean_cost, std_dev, confidence_level=0.95)
+                contingency = risk_engine.suggest_contingency(std_dev)
+
+                # Para la opción de esperar, se asumen algunos valores
+                # (ej. valor del proyecto es un % sobre el costo, volatilidad derivada de std_dev)
+                project_value = mean_cost * 1.15  # Asumiendo un 15% de margen
+                volatility = (std_dev / mean_cost) if mean_cost > 0 else 0
+
+                option_value = options_engine.value_option_to_wait(
+                    project_value=project_value,
+                    investment_cost=mean_cost,
+                    risk_free_rate=fin_config.risk_free_rate,
+                    time_to_expire_years=1.0,  # Asumimos 1 año para decidir
+                    volatility=volatility
+                )
+
+                financial_analysis = {
+                    "wacc": round(wacc, 4),
+                    "var_95": round(var_95, 2),
+                    "suggested_contingency": round(contingency, 2),
+                    "option_to_wait_value": round(option_value, 2) if option_value is not None else None,
+                    "monte_carlo_mean": round(mean_cost, 2),
+                    "monte_carlo_std_dev": round(std_dev, 2)
+                }
+                log.append(f"  ✅ Análisis financiero completado. WACC: {wacc:.2%}, VaR: ${var_95:,.2f}")
+
+            except Exception as e:
+                log.append(f"  ❌ Error en el motor financiero: {e}")
+                logger.error(f"Error en FinancialEngine: {e}", exc_info=True)
+        else:
+            log.append("  ⚠️ No se encontraron insumos detallados para la simulación financiera.")
+    else:
+        log.append("  ⚠️ No se encontraron APUs válidos para ejecutar el análisis financiero.")
+
+
     return {
         "valor_suministro": round(valor_suministro, 2),
         "valor_instalacion": round(valor_instalacion, 2),
@@ -1709,6 +1799,7 @@ def calculate_estimate(
             "seguridad": factor_seguridad,
             "izaje": costo_adicional_izaje,
         },
+        "financial_analysis": financial_analysis,
         "data_quality": {
             "total_apus": quality_metrics.total_records,
             "valid_apus": quality_metrics.valid_records,
