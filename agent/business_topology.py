@@ -11,42 +11,78 @@ logger = logging.getLogger(__name__)
 
 @dataclass(frozen=True)
 class TopologicalMetrics:
-    """Invariant Topological Metrics for Business Graph."""
-    beta_0: int  # Number of connected components (fragmentation)
-    beta_1: int  # Number of independent cycles (loop complexity)
-    euler_characteristic: int     # Euler Characteristic (beta_0 - beta_1)
+    """
+    Métricas Topológicas Invariantes para el Grafo de Negocio.
+
+    Attributes:
+        beta_0 (int): Número de componentes conexas (fragmentación).
+        beta_1 (int): Número de ciclos independientes (complejidad de bucles).
+        euler_characteristic (int): Característica de Euler (beta_0 - beta_1).
+    """
+    beta_0: int
+    beta_1: int
+    euler_characteristic: int
 
     @property
     def is_connected(self) -> bool:
+        """Determina si el grafo está conectado (tiene una sola componente)."""
         return self.beta_0 == 1
 
     @property
     def is_simply_connected(self) -> bool:
+        """Determina si el grafo es simplemente conexo (conexo y sin ciclos)."""
         return self.beta_0 == 1 and self.beta_1 == 0
 
 @dataclass
 class ConstructionRiskReport:
-    """Reporte Ejecutivo de Riesgos de Construcción."""
-    integrity_score: float  # 0-100
-    waste_alerts: List[str]  # Possible waste (isolated nodes)
-    circular_risks: List[str]  # Calculation errors (cycles)
-    complexity_level: str  # Baja, Media, Alta
+    """
+    Reporte Ejecutivo de Riesgos de Construcción.
 
-    # Metadata for serialization/display
+    Attributes:
+        integrity_score (float): Puntuación de integridad (0-100).
+        waste_alerts (List[str]): Alertas de posible desperdicio (nodos aislados).
+        circular_risks (List[str]): Riesgos de cálculo circular (ciclos).
+        complexity_level (str): Nivel de complejidad (Baja, Media, Alta).
+        details (Dict[str, Any]): Metadatos para serialización y visualización.
+    """
+    integrity_score: float
+    waste_alerts: List[str]
+    circular_risks: List[str]
+    complexity_level: str
     details: Dict[str, Any] = field(default_factory=dict)
 
 class BudgetGraphBuilder:
-    """Construye el Grafo del Presupuesto (Business Topology) Version 2."""
+    """Construye el Grafo del Presupuesto (Topología de Negocio) Versión 2."""
 
     def __init__(self):
+        """Inicializa el constructor del grafo."""
         self.logger = logging.getLogger(self.__class__.__name__)
 
     def _sanitize_code(self, value: Any) -> str:
+        """
+        Sanitiza el código o identificador asegurando que sea una cadena limpia.
+
+        Args:
+            value (Any): Valor a sanitizar.
+
+        Returns:
+            str: Cadena sanitizada o vacía si el valor es nulo.
+        """
         if pd.isna(value) or value is None:
             return ""
         return str(value).strip()
 
     def _safe_float(self, value: Any, default: float = 0.0) -> float:
+        """
+        Convierte un valor a float de manera segura.
+
+        Args:
+            value (Any): Valor a convertir.
+            default (float): Valor por defecto si falla la conversión.
+
+        Returns:
+            float: Valor numérico convertido.
+        """
         try:
             if pd.isna(value):
                 return default
@@ -55,6 +91,18 @@ class BudgetGraphBuilder:
             return default
 
     def _create_apu_attributes(self, row: pd.Series, source: str, idx: int, inferred: bool) -> Dict[str, Any]:
+        """
+        Crea el diccionario de atributos para un nodo APU.
+
+        Args:
+            row (pd.Series): Fila de datos del APU.
+            source (str): Fuente de los datos ('presupuesto' o 'detail').
+            idx (int): Índice original en el DataFrame.
+            inferred (bool): Indica si el APU fue inferido desde detalles.
+
+        Returns:
+            Dict[str, Any]: Diccionario de atributos del nodo.
+        """
         attrs = {
             "type": "APU",
             "source": source,
@@ -67,6 +115,18 @@ class BudgetGraphBuilder:
         return attrs
 
     def _create_insumo_attributes(self, row: pd.Series, insumo_desc: str, source: str, idx: int) -> Dict[str, Any]:
+        """
+        Crea el diccionario de atributos para un nodo Insumo.
+
+        Args:
+            row (pd.Series): Fila de datos del insumo.
+            insumo_desc (str): Descripción del insumo.
+            source (str): Fuente de los datos.
+            idx (int): Índice original en el DataFrame.
+
+        Returns:
+            Dict[str, Any]: Diccionario de atributos del nodo.
+        """
         return {
             "type": "INSUMO",
             "description": insumo_desc,
@@ -79,18 +139,28 @@ class BudgetGraphBuilder:
     def _upsert_edge(self, G: nx.DiGraph, u: str, v: str, unit_cost: float, quantity: float, idx: int) -> bool:
         """
         Inserta o actualiza una arista acumulando cantidades y costos.
-        Retorna True si es una nueva arista, False si se actualizó.
+
+        Args:
+            G (nx.DiGraph): El grafo dirigido.
+            u (str): Nodo origen (APU).
+            v (str): Nodo destino (Insumo).
+            unit_cost (float): Costo unitario.
+            quantity (float): Cantidad.
+            idx (int): Índice del registro original.
+
+        Returns:
+            bool: True si es una nueva arista, False si se actualizó una existente.
         """
         total_cost = unit_cost * quantity
         is_new = False
 
         if G.has_edge(u, v):
             edge_data = G[u][v]
-            # Accumulate
+            # Acumular
             new_qty = edge_data['quantity'] + quantity
             new_total = edge_data['total_cost'] + total_cost
 
-            # Update attributes
+            # Actualizar atributos
             G[u][v]['quantity'] = new_qty
             G[u][v]['total_cost'] = new_total
             G[u][v]['occurrence_count'] += 1
@@ -110,6 +180,15 @@ class BudgetGraphBuilder:
         return is_new
 
     def _compute_graph_statistics(self, G: nx.DiGraph) -> Dict[str, int]:
+        """
+        Calcula estadísticas básicas del grafo construido.
+
+        Args:
+            G (nx.DiGraph): El grafo construido.
+
+        Returns:
+            Dict[str, int]: Estadísticas (conteo de nodos APU, Insumos, etc.).
+        """
         apu_nodes = [n for n, d in G.nodes(data=True) if d.get('type') == 'APU']
         insumo_nodes = [n for n, d in G.nodes(data=True) if d.get('type') == 'INSUMO']
         inferred_apus = [n for n in apu_nodes if G.nodes[n].get('inferred', False)]
@@ -124,10 +203,17 @@ class BudgetGraphBuilder:
 
     def build(self, presupuesto_df: pd.DataFrame, apus_detail_df: pd.DataFrame) -> nx.DiGraph:
         """
-        Construye un grafo dirigido optimizado.
+        Construye un grafo dirigido optimizado a partir de los DataFrames.
+
+        Args:
+            presupuesto_df (pd.DataFrame): DataFrame del presupuesto.
+            apus_detail_df (pd.DataFrame): DataFrame con el detalle de los APUs.
+
+        Returns:
+            nx.DiGraph: Grafo dirigido representando la topología del presupuesto.
         """
         G = nx.DiGraph(name="BudgetTopology")
-        self.logger.info("Iniciando construcción del Budget Graph V2...")
+        self.logger.info("Iniciando construcción del Grafo de Presupuesto V2...")
 
         # 1. Agregar nodos APU desde presupuesto
         if presupuesto_df is not None and not presupuesto_df.empty:
@@ -137,7 +223,7 @@ class BudgetGraphBuilder:
                     continue
 
                 attrs = self._create_apu_attributes(row, source="presupuesto", idx=idx, inferred=False)
-                # Use add_node which updates attributes if exists
+                # Usar add_node actualiza atributos si ya existe
                 G.add_node(apu_code, **attrs)
 
         # 2. Procesar detalle de APUs
@@ -149,19 +235,19 @@ class BudgetGraphBuilder:
                 if not apu_code or not insumo_desc:
                     continue
 
-                # Ensure APU node exists (inference)
+                # Asegurar que el nodo APU existe (inferencia)
                 if apu_code not in G:
                     attrs = self._create_apu_attributes(row, source="detail", idx=idx, inferred=True)
                     G.add_node(apu_code, **attrs)
 
-                # Ensure Insumo node exists
-                # Using description as ID for consistency with V1
+                # Asegurar que el nodo Insumo existe
+                # Usando la descripción como ID por consistencia con V1
                 insumo_id = insumo_desc
                 if insumo_id not in G:
                     attrs = self._create_insumo_attributes(row, insumo_desc, source="detail", idx=idx)
                     G.add_node(insumo_id, **attrs)
 
-                # Upsert Edge
+                # Insertar o actualizar arista
                 qty = self._safe_float(row.get(ColumnNames.CANTIDAD_APU))
                 cost = self._safe_float(row.get(ColumnNames.COSTO_INSUMO_EN_APU))
 
@@ -175,13 +261,26 @@ class BusinessTopologicalAnalyzer:
     """Analizador de topología de negocio V2 con Telemetría Granular."""
 
     def __init__(self, telemetry: Optional[TelemetryContext] = None, max_cycles: int = 100):
+        """
+        Inicializa el analizador topológico.
+
+        Args:
+            telemetry (Optional[TelemetryContext]): Contexto para registrar métricas.
+            max_cycles (int): Número máximo de ciclos a detectar antes de truncar.
+        """
         self.telemetry = telemetry
         self.max_cycles = max_cycles
         self.logger = logging.getLogger(self.__class__.__name__)
 
     def calculate_betti_numbers(self, graph: nx.DiGraph) -> TopologicalMetrics:
         """
-        Calcula métricas topológicas invariantes (Betti Numbers).
+        Calcula métricas topológicas invariantes (Números de Betti).
+
+        Args:
+            graph (nx.DiGraph): El grafo a analizar.
+
+        Returns:
+            TopologicalMetrics: Métricas calculadas (beta_0, beta_1, Euler).
         """
         if graph.number_of_nodes() == 0:
             return TopologicalMetrics(0, 0, 0)
@@ -193,13 +292,13 @@ class BusinessTopologicalAnalyzer:
         # Beta 0: Componentes Conexas
         beta_0 = nx.number_connected_components(undirected)
 
-        # Counts
+        # Conteos
         n_edges = undirected.number_of_edges()
         n_nodes = undirected.number_of_nodes()
 
         # Beta 1: Ciclos
-        # Euler Characteristic chi = V - E = beta_0 - beta_1 (for 1D complex)
-        # So beta_1 = beta_0 - V + E
+        # Característica de Euler chi = V - E = beta_0 - beta_1 (para complejos 1D)
+        # Por lo tanto, beta_1 = beta_0 - V + E
         beta_1 = max(0, beta_0 - n_nodes + n_edges)
 
         chi = beta_0 - beta_1
@@ -210,13 +309,20 @@ class BusinessTopologicalAnalyzer:
             euler_characteristic=chi
         )
 
-    # Alias for backward compatibility if needed, but the proposal doesn't use it.
-    # We will keep it but delegating.
     def calculate_metrics(self, graph: nx.DiGraph) -> TopologicalMetrics:
+        """Alias para compatibilidad hacia atrás."""
         return self.calculate_betti_numbers(graph)
 
     def _detect_cycles(self, graph: nx.DiGraph) -> Tuple[List[str], bool]:
-        """Detecta ciclos y retorna una lista de representaciones string y un flag si fue truncado."""
+        """
+        Detecta ciclos en el grafo.
+
+        Args:
+            graph (nx.DiGraph): Grafo a analizar.
+
+        Returns:
+            Tuple[List[str], bool]: Lista de ciclos (strings) y flag de truncamiento.
+        """
         cycles = []
         truncated = False
         try:
@@ -226,15 +332,23 @@ class BusinessTopologicalAnalyzer:
                 truncated = True
 
             for cycle in raw_cycles:
-                # Add start node to end to close the loop in representation
+                # Agregar nodo inicial al final para cerrar el bucle en la representación
                 cycle_repr = cycle + [cycle[0]]
                 cycles.append(" → ".join(map(str, cycle_repr)))
         except Exception as e:
-            self.logger.error(f"Error detecting cycles: {e}")
+            self.logger.error(f"Error detectando ciclos: {e}")
         return cycles, truncated
 
     def _classify_anomalous_nodes(self, graph: nx.DiGraph) -> Dict[str, List[Dict[str, Any]]]:
-        """Clasifica nodos en categorías anómalas."""
+        """
+        Clasifica nodos en categorías anómalas.
+
+        Args:
+            graph (nx.DiGraph): Grafo a analizar.
+
+        Returns:
+            Dict[str, List[Dict[str, Any]]]: Diccionario con listas de nodos aislados, huérfanos y vacíos.
+        """
         isolated_nodes = []
         orphan_insumos = []
         empty_apus = []
@@ -260,7 +374,7 @@ class BusinessTopologicalAnalyzer:
             if data.get("type") == "INSUMO" and in_degrees.get(node, 0) == 0 and not is_isolated:
                 orphan_insumos.append(node_info)
             elif data.get("type") == "INSUMO" and is_isolated:
-                 # Isolated insumos are also orphans
+                 # Insumos aislados también son huérfanos
                  orphan_insumos.append(node_info)
 
             if data.get("type") == "APU" and out_degrees.get(node, 0) == 0:
@@ -273,7 +387,16 @@ class BusinessTopologicalAnalyzer:
         }
 
     def _identify_critical_resources(self, graph: nx.DiGraph, top_n: int = 5) -> List[Dict[str, Any]]:
-        """Identifica recursos críticos (alto in-degree)."""
+        """
+        Identifica recursos críticos (alto grado de entrada).
+
+        Args:
+            graph (nx.DiGraph): Grafo a analizar.
+            top_n (int): Número de recursos top a retornar.
+
+        Returns:
+            List[Dict[str, Any]]: Lista de recursos críticos con su grado.
+        """
         resources = []
         for node, data in graph.nodes(data=True):
             if data.get("type") == "INSUMO":
@@ -289,6 +412,15 @@ class BusinessTopologicalAnalyzer:
         return resources[:top_n]
 
     def _compute_connectivity_analysis(self, graph: nx.DiGraph) -> Dict[str, Any]:
+        """
+        Calcula métricas de conectividad y componentes fuertemente conexas.
+
+        Args:
+            graph (nx.DiGraph): Grafo a analizar.
+
+        Returns:
+            Dict[str, Any]: Diccionario con resultados de conectividad.
+        """
         return {
             "is_dag": nx.is_directed_acyclic_graph(graph),
             "num_wcc": nx.number_weakly_connected_components(graph),
@@ -298,26 +430,41 @@ class BusinessTopologicalAnalyzer:
         }
 
     def _interpret_topology(self, metrics: TopologicalMetrics) -> Dict[str, str]:
+        """
+        Genera interpretaciones legibles por humanos de las métricas.
+
+        Args:
+            metrics (TopologicalMetrics): Métricas a interpretar.
+
+        Returns:
+            Dict[str, str]: Interpretaciones de beta_0, beta_1 y euler.
+        """
         return {
             "beta_0": f"{metrics.beta_0} componente(s) conexa(s). {'Espacio conexo' if metrics.is_connected else 'Espacio fragmentado'}.",
-            "beta_1": f"{metrics.beta_1} ciclo(s) independiente(s). {'Estructura acíclica' if metrics.beta_1 == 0 else 'Complejidad ciclica presente'}.",
+            "beta_1": f"{metrics.beta_1} ciclo(s) independiente(s). {'Estructura acíclica' if metrics.beta_1 == 0 else 'Complejidad cíclica presente'}.",
             "euler": f"Característica de Euler: {metrics.euler_characteristic}"
         }
 
     def generate_executive_report(self, graph: nx.DiGraph) -> ConstructionRiskReport:
         """
         Genera un reporte de riesgos traducido a lenguaje de construcción.
+
+        Args:
+            graph (nx.DiGraph): Grafo a reportar.
+
+        Returns:
+            ConstructionRiskReport: Objeto de reporte estructurado.
         """
         metrics = self.calculate_betti_numbers(graph)
         cycles, _ = self._detect_cycles(graph)
         anomalies = self._classify_anomalous_nodes(graph)
 
-        # Calculate scores and levels
+        # Calcular puntuaciones y niveles
         integrity_score = 100.0
 
-        # Penalties
+        # Penalizaciones
         if metrics.beta_1 > 0:
-            integrity_score -= 50  # Critical: Circular references
+            integrity_score -= 50  # Crítico: Referencias circulares
 
         isolated_count = len(anomalies['isolated_nodes'])
         if isolated_count > 0:
@@ -329,7 +476,7 @@ class BusinessTopologicalAnalyzer:
 
         integrity_score = max(0, integrity_score)
 
-        # Complexity Level based on density/beta_1
+        # Nivel de Complejidad basado en densidad/beta_1
         density = nx.density(graph)
         if metrics.beta_1 > 0:
             complexity = "Alta (Crítica)"
@@ -340,7 +487,7 @@ class BusinessTopologicalAnalyzer:
         else:
             complexity = "Baja"
 
-        # Translate alerts
+        # Traducir alertas
         waste_alerts = []
         if isolated_count > 0:
             waste_alerts.append(f"Alerta: {isolated_count} Insumos en base de datos no se utilizan en el presupuesto.")
@@ -365,7 +512,15 @@ class BusinessTopologicalAnalyzer:
         )
 
     def analyze_structural_integrity(self, graph: nx.DiGraph) -> Dict[str, Any]:
-        """Ejecuta análisis completo y emite telemetría."""
+        """
+        Ejecuta análisis completo y emite telemetría.
+
+        Args:
+            graph (nx.DiGraph): Grafo a analizar.
+
+        Returns:
+            Dict[str, Any]: Resultados detallados y métricas planas para telemetría.
+        """
         metrics = self.calculate_betti_numbers(graph)
         cycles, cycles_truncated = self._detect_cycles(graph)
         anomalies = self._classify_anomalous_nodes(graph)
@@ -373,10 +528,10 @@ class BusinessTopologicalAnalyzer:
         connectivity = self._compute_connectivity_analysis(graph)
         interpretation = self._interpret_topology(metrics)
 
-        # Executive report for telemetry enhancement
+        # Reporte ejecutivo para mejora de telemetría
         exec_report = self.generate_executive_report(graph)
 
-        # Structure for report
+        # Estructura para reporte
         details = {
             "topology": {
                 "betti_numbers": asdict(metrics),
@@ -398,7 +553,7 @@ class BusinessTopologicalAnalyzer:
             "executive_report": asdict(exec_report)
         }
 
-        # Flat metrics for telemetry/convenience
+        # Métricas planas para telemetría/conveniencia
         flat_results = {
             "business.betti_b0": metrics.beta_0,
             "business.betti_b1": metrics.beta_1,
@@ -412,7 +567,7 @@ class BusinessTopologicalAnalyzer:
             "details": details
         }
 
-        # Telemetry
+        # Telemetría
         if self.telemetry:
             for k, v in flat_results.items():
                 if isinstance(v, (int, float)):
@@ -421,7 +576,7 @@ class BusinessTopologicalAnalyzer:
         return flat_results
 
     def analyze(self, graph: nx.DiGraph) -> Dict[str, Any]:
-        """Backward compatibility wrapper for analyze."""
+        """Wrapper de compatibilidad para análisis."""
         new_result = self.analyze_structural_integrity(graph)
 
         metrics = TopologicalMetrics(
@@ -429,11 +584,11 @@ class BusinessTopologicalAnalyzer:
             beta_1=new_result["business.betti_b1"],
             euler_characteristic=new_result["business.euler_characteristic"]
         )
-        # Add old fields that were in V1 but not strict topological invariants
+        # Agregar campos antiguos que estaban en V1 pero no son invariantes topológicos estrictos
         metrics_dict = asdict(metrics)
         metrics_dict["density"] = new_result["details"]["graph_summary"]["density"]
         metrics_dict["is_dag"] = bool(new_result["business.is_dag"])
-        # Chi was aliased to euler_characteristic
+        # Chi fue alias de euler_characteristic
         metrics_dict["chi"] = metrics.euler_characteristic
 
         anomalies = {
@@ -449,8 +604,15 @@ class BusinessTopologicalAnalyzer:
         }
 
     def get_audit_report(self, analysis_result_or_graph: Any) -> List[str]:
-        """Genera un reporte ASCII art profesional enfocado en construcción."""
+        """
+        Genera un reporte ASCII art profesional enfocado en construcción.
 
+        Args:
+            analysis_result_or_graph (Any): Grafo o resultado de análisis.
+
+        Returns:
+            List[str]: Líneas del reporte formateado.
+        """
         exec_report = None
 
         if isinstance(analysis_result_or_graph, nx.DiGraph):
@@ -475,7 +637,7 @@ class BusinessTopologicalAnalyzer:
                     cycles_list = er_dict.get("details", {}).get("cycles", [])
                     density = er_dict.get("details", {}).get("density", 0.0)
                 elif "metrics" in analysis_result_or_graph:
-                    # Backward compatibility
+                    # Compatibilidad hacia atrás
                     m = analysis_result_or_graph["metrics"]
                     a = analysis_result_or_graph["anomalies"]
                     cycles_list = a.get("cycles", [])
@@ -550,14 +712,14 @@ class BusinessTopologicalAnalyzer:
             lines.append("├──────────────────────────────────────────────────┤")
             lines.append("│ [POSIBLE DESPERDICIO / ALERTAS]                  │")
 
-            # Use explicit labels as requested if counts > 0
+            # Usar etiquetas explícitas si counts > 0
             if iso_count > 0:
                  lines.append(f"│ ⚠ Recursos Fantasma (Sin uso): {iso_count:<18}│")
 
             if empty_count > 0:
                  lines.append(f"│ ⚠ APUs Vacíos:          {empty_count:<25}│")
 
-            # Also show the detailed alerts, but wrapped
+            # Mostrar alertas detalladas, con wrap
             for alert in exec_report.waste_alerts:
                  wrapped_lines = textwrap.wrap(alert, width=44)
                  for line in wrapped_lines:

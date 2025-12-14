@@ -131,7 +131,7 @@ class ParsedData(NamedTuple):
     Agrupa la salida del `ReportParserCrudo` para asegurar que los datos
     crudos y la caché de parseo se mantengan juntos a través del pipeline.
 
-    Atributos:
+    Attributes:
         raw_records (List[Dict[str, Any]]): Lista de registros de insumos
             extraídos del archivo de APU, sin procesamiento profundo.
         parse_cache (Dict[str, Any]): Metadatos generados durante el parseo,
@@ -151,7 +151,7 @@ class CondenserConfig:
     Define los umbrales operativos y comportamientos del condensador,
     incluyendo sus parámetros para el motor de simulación física y el PID.
 
-    Atributos:
+    Attributes:
         min_records_threshold (int): Número mínimo de registros necesarios para
             considerar un archivo como válido para el procesamiento.
         enable_strict_validation (bool): Si es `True`, activa validaciones
@@ -167,6 +167,7 @@ class CondenserConfig:
         max_batch_size (int): Tamaño máximo del lote de procesamiento.
         enable_partial_recovery (bool): Permite continuar procesamiento si falla un batch.
         max_failed_batches (int): Máximo de batches que pueden fallar antes de abortar.
+        integral_limit_factor (float): Factor para limitar la parte integral (anti-windup).
     """
 
     min_records_threshold: int = 1
@@ -333,7 +334,7 @@ class PIController:
 
     ROBUSTECIDO:
     - Validación exhaustiva en cada cómputo
-    - Manejo de edge cases (NaN, Inf, valores extremos)
+    - Manejo de casos límite (NaN, Inf, valores extremos)
     - Anti-windup con múltiples estrategias
     - Historial de estados para diagnóstico
     - Reset seguro con preservación de configuración
@@ -355,15 +356,10 @@ class PIController:
         """
         Inicializa el controlador PI con validación exhaustiva.
 
-        ROBUSTECIDO:
-        - Validación de todos los parámetros
-        - Cálculo seguro de límites internos
-        - Inicialización de historial para diagnóstico
-
         Args:
             kp: Ganancia Proporcional.
             ki: Ganancia Integral.
-            setpoint: Punto de ajuste (target).
+            setpoint: Punto de ajuste (objetivo).
             min_output: Salida mínima permitida.
             max_output: Salida máxima permitida.
             integral_limit_factor: Factor para limitar el término integral.
@@ -463,9 +459,9 @@ class PIController:
     def compute(self, process_variable: float) -> int:
         """
         Calcula la nueva salida de control con mejoras:
-        - Filtro de media móvil exponencial para ruido
-        - Derivada de error para detección de oscilaciones
-        - Reset adaptativo del integrador
+        - Filtro de media móvil exponencial para ruido.
+        - Derivada de error para detección de oscilaciones.
+        - Reset adaptativo del integrador.
         """
         self._iteration_count += 1
 
@@ -517,7 +513,7 @@ class PIController:
                 error_derivative = 0.0
 
         # ==================== ANTI-WINDUP MEJORADO ====================
-        # Reset condicional del integrador si error persiste por mucho tiempo
+        # Reset condicional del integrador si el error persiste por mucho tiempo
         if abs(self._integral_error) > self._integral_limit * 0.8:
             if abs(error) < 0.05:  # Error pequeño pero integrador grande
                 self._integral_error *= 0.5  # Reducir integrador gradualmente
@@ -553,8 +549,8 @@ class PIController:
         if len(self._history) >= 3:
             last_outputs = [h["output"] for h in self._history[-3:]]
             if len(set(last_outputs)) == 1 and abs(error) > 0.1:
-                # Output estancado pero error persistente
-                self._integral_error *= 1.2  # Boost al integrador
+                # Salida estancada pero error persistente
+                self._integral_error *= 1.2  # Impulso al integrador
                 self.logger.debug("Stall detection - boosting integral")
 
         # ==================== SATURACIÓN Y REDONDEO INTELIGENTE ====================
@@ -573,7 +569,7 @@ class PIController:
         self._last_time = current_time
         self._last_error = error
 
-        # Historial para análisis de Fourier básico
+        # Historial para análisis básico
         history_entry = {
             "iteration": self._iteration_count,
             "pv": process_variable,
@@ -620,7 +616,7 @@ class PIController:
         self.logger.debug("[PID] Controlador reseteado")
 
     def get_state(self) -> Dict[str, Any]:
-        """Retorna estado completo del controlador para observabilidad."""
+        """Retorna el estado completo del controlador para observabilidad."""
         return {
             "parameters": {
                 "Kp": self.Kp,
@@ -645,7 +641,7 @@ class PIController:
         }
 
     def get_diagnostics(self) -> Dict[str, Any]:
-        """Retorna diagnósticos del controlador basados en historial."""
+        """Retorna diagnósticos del controlador basados en el historial."""
         if not self._history:
             return {"status": "NO_DATA", "message": "Sin historial disponible"}
 
@@ -686,11 +682,11 @@ class FluxPhysicsEngine:
     Simula el comportamiento físico RLC basándose en la ENERGÍA.
 
     ROBUSTECIDO:
-    - Validación exhaustiva de entradas
-    - Protección contra overflow/underflow
-    - Métricas normalizadas y sanitizadas
-    - Diagnóstico mejorado con múltiples niveles
-    - Historial de métricas para análisis de tendencias
+    - Validación exhaustiva de entradas.
+    - Protección contra overflow/underflow.
+    - Métricas normalizadas y sanitizadas.
+    - Diagnóstico mejorado con múltiples niveles.
+    - Historial de métricas para análisis de tendencias.
     """
 
     _MAX_METRICS_HISTORY: int = 100
@@ -698,10 +694,6 @@ class FluxPhysicsEngine:
     def __init__(self, capacitance: float, resistance: float, inductance: float):
         """
         Inicializa el motor de física con validación exhaustiva.
-
-        ROBUSTECIDO:
-        - Validación de rangos físicamente plausibles
-        - Cálculo de constantes derivadas
 
         Args:
             capacitance: Capacitancia (Faradios).
@@ -758,9 +750,9 @@ class FluxPhysicsEngine:
     def calculate_metrics(self, total_records: int, cache_hits: int) -> Dict[str, float]:
         """
         Modelo físico mejorado:
-        - Sistema de segundo orden (RLC) completo
-        - Resonancia y amortiguamiento
-        - Energías normalizadas por capacitancia
+        - Sistema de segundo orden (RLC) completo.
+        - Resonancia y amortiguamiento.
+        - Energías normalizadas por capacitancia.
         """
         # Validación mejorada
         if total_records <= 0:
@@ -911,9 +903,13 @@ class FluxPhysicsEngine:
         """
         Sanitiza un valor de métrica asegurando que sea válido.
 
-        ROBUSTECIDO:
-        - Manejo de NaN/Inf
-        - Clamping a rango válido
+        Args:
+            value: Valor a sanitizar.
+            min_val: Valor mínimo permitido.
+            max_val: Valor máximo permitido.
+
+        Returns:
+            float: Valor sanitizado.
         """
         if math.isnan(value) or math.isinf(value):
             self.logger.debug(f"Métrica inválida ({value}), reemplazando con 0.0")
@@ -953,10 +949,11 @@ class FluxPhysicsEngine:
         """
         Genera diagnóstico del sistema con múltiples niveles.
 
-        ROBUSTECIDO:
-        - Validación de métricas de entrada
-        - Diagnóstico jerárquico
-        - Análisis de tendencias si hay historial
+        Args:
+            metrics: Diccionario de métricas actuales.
+
+        Returns:
+            str: Diagnóstico textual.
         """
         # Validar entrada
         if not isinstance(metrics, dict):
@@ -1026,7 +1023,7 @@ class FluxPhysicsEngine:
         Analiza tendencias basadas en historial de métricas.
 
         Returns:
-            Diccionario con análisis de tendencias
+            Dict[str, Any]: Diccionario con análisis de tendencias.
         """
         if len(self._metrics_history) < 5:
             return {"status": "INSUFFICIENT_DATA", "samples": len(self._metrics_history)}
@@ -1069,11 +1066,11 @@ class DataFluxCondenser:
     Orquesta el pipeline de validación y procesamiento de archivos de APU.
 
     ROBUSTECIDO:
-    - Validación exhaustiva en cada etapa
-    - Timeouts y límites de recursos
-    - Recuperación parcial mejorada
-    - Métricas de calidad de datos
-    - Logging estructurado con contexto
+    - Validación exhaustiva en cada etapa.
+    - Timeouts y límites de recursos.
+    - Recuperación parcial mejorada.
+    - Métricas de calidad de datos.
+    - Logging estructurado con contexto.
     """
 
     REQUIRED_CONFIG_KEYS: Set[str] = {"parser_settings", "processor_settings"}
@@ -1087,11 +1084,6 @@ class DataFluxCondenser:
     ):
         """
         Inicializa el Condensador con validación exhaustiva.
-
-        ROBUSTECIDO:
-        - Validación de tipos antes de cualquier operación
-        - Inicialización segura de componentes
-        - Fallbacks para configuración faltante
 
         Args:
             config: Configuración global del sistema.
@@ -1176,10 +1168,12 @@ class DataFluxCondenser:
         """
         Valida parámetros de inicialización con mensajes detallados.
 
-        ROBUSTECIDO:
-        - Validación de tipos
-        - Advertencias para claves faltantes (no errores)
-        - Verificación de estructura básica
+        Args:
+            config: Configuración global.
+            profile: Perfil de procesamiento.
+
+        Raises:
+            InvalidInputError: Si hay errores en los parámetros.
         """
         errors = []
 
@@ -1219,21 +1213,17 @@ class DataFluxCondenser:
         """
         Proceso principal de estabilización con control PID.
 
-        ROBUSTECIDO:
-        - Timeout de procesamiento
-        - Validación exhaustiva en cada fase
-        - Recuperación de errores con cleanup
-        - Métricas de calidad en resultado
+        Orquesta el flujo: validar -> parsear -> extraer -> procesar lotes -> consolidar.
 
         Args:
-            file_path: Ruta al archivo de APU a procesar
+            file_path: Ruta al archivo de APU a procesar.
 
         Returns:
-            DataFrame con los datos procesados
+            pd.DataFrame: DataFrame con los datos procesados.
 
         Raises:
-            InvalidInputError: Si el archivo es inválido
-            ProcessingError: Si ocurre un error durante el procesamiento
+            InvalidInputError: Si el archivo es inválido.
+            ProcessingError: Si ocurre un error durante el procesamiento.
         """
         self._start_time = time.time()
 
@@ -1332,7 +1322,7 @@ class DataFluxCondenser:
             self.logger.exception(f"[STABILIZE] Error inesperado: {e}")
             raise ProcessingError(f"Error inesperado durante estabilización: {e}") from e
         finally:
-            # Cleanup
+            # Limpieza
             self._cleanup_after_processing()
 
     def _check_timeout(self, phase: str) -> None:
@@ -1340,10 +1330,10 @@ class DataFluxCondenser:
         Verifica si se ha excedido el timeout de procesamiento.
 
         Args:
-            phase: Nombre de la fase actual para logging
+            phase: Nombre de la fase actual para logging.
 
         Raises:
-            ProcessingError: Si se excede el timeout
+            ProcessingError: Si se excede el timeout.
         """
         if self._start_time is None:
             return
@@ -1369,20 +1359,14 @@ class DataFluxCondenser:
         """
         Valida el archivo de entrada exhaustivamente.
 
-        ROBUSTECIDO:
-        - Validación de tipo de entrada
-        - Verificación de existencia y accesibilidad
-        - Validación de tamaño
-        - Verificación de extensión
-
         Args:
-            file_path: Ruta al archivo
+            file_path: Ruta al archivo.
 
         Returns:
-            Path validado
+            Path: Objeto Path validado.
 
         Raises:
-            InvalidInputError: Si el archivo es inválido
+            InvalidInputError: Si el archivo es inválido.
         """
         # Validar tipo
         if not isinstance(file_path, (str, Path)):
@@ -1442,10 +1426,11 @@ class DataFluxCondenser:
         """
         Inicializa el parser con manejo robusto de errores.
 
-        ROBUSTECIDO:
-        - Validación de path
-        - Manejo específico de errores de inicialización
-        - Logging detallado
+        Args:
+            validated_path: Ruta validada del archivo.
+
+        Returns:
+            ReportParserCrudo: Instancia del parser inicializada.
         """
         if not isinstance(validated_path, Path):
             raise ProcessingError(
@@ -1477,10 +1462,11 @@ class DataFluxCondenser:
         """
         Extrae datos crudos del parser con validación.
 
-        ROBUSTECIDO:
-        - Validación de tipo del parser (Duck Typing para soportar Mocks)
-        - Validación de resultados
-        - Límite de tamaño de cache
+        Args:
+            parser: Instancia del parser.
+
+        Returns:
+            Tuple[List, Dict]: Lista de registros y caché de parseo.
         """
         # Validación relajada para permitir Mocks en tests
         if not hasattr(parser, "parse_to_raw") or not hasattr(parser, "get_parse_cache"):
@@ -1503,7 +1489,7 @@ class DataFluxCondenser:
                     f"parse_to_raw() debe retornar list, recibido: {type(raw_records).__name__}"
                 )
 
-            # Obtener cache
+            # Obtener caché
             cache = parser.get_parse_cache()
 
             if cache is None:
@@ -1514,7 +1500,7 @@ class DataFluxCondenser:
                 )
                 cache = {}
 
-            # Limitar tamaño de cache
+            # Limitar tamaño de caché
             if len(cache) > SystemConstants.MAX_CACHE_SIZE:
                 self.logger.warning(
                     f"[EXTRACT] Cache muy grande ({len(cache)} entradas), truncando a {SystemConstants.MAX_CACHE_SIZE}"
@@ -1543,9 +1529,17 @@ class DataFluxCondenser:
     ) -> List[pd.DataFrame]:
         """
         Procesamiento por lotes con:
-        - Algoritmo de backoff exponencial para fallos
-        - Balanceo de carga adaptativo
-        - Predicción de tiempo restante
+        - Algoritmo de backoff exponencial para fallos.
+        - Balanceo de carga adaptativo.
+        - Predicción de tiempo restante.
+
+        Args:
+            raw_records: Lista de registros crudos.
+            cache: Caché de parseo.
+            total_records: Número total de registros.
+
+        Returns:
+            List[pd.DataFrame]: Lista de DataFrames procesados.
         """
         processed_batches: List[pd.DataFrame] = []
         current_index = 0
@@ -1786,10 +1780,14 @@ class DataFluxCondenser:
         """
         Procesa un batch individual con manejo de errores.
 
-        ROBUSTECIDO:
-        - Encapsulación de errores
-        - Resultado estructurado
-        - Validación de salida
+        Args:
+            batch_records: Registros del batch.
+            cache: Caché de parseo.
+            start_idx: Índice inicial.
+            end_idx: Índice final.
+
+        Returns:
+            BatchResult: Resultado del procesamiento del batch.
         """
         try:
             batch_data = ParsedData(batch_records, cache)
@@ -1822,9 +1820,16 @@ class DataFluxCondenser:
     ) -> int:
         """
         Calculo mejorado de cache hits con:
-        - Búsqueda aproximada (fuzzy matching)
-        - Ponderación por tipo de dato
-        - Preprocesamiento de claves
+        - Búsqueda aproximada (fuzzy matching).
+        - Ponderación por tipo de dato.
+        - Preprocesamiento de claves.
+
+        Args:
+            batch_records: Registros del batch actual.
+            cache: Caché disponible.
+
+        Returns:
+            int: Número estimado de hits en caché.
         """
         if not cache or not isinstance(cache, dict):
             return 0
@@ -1899,11 +1904,11 @@ class DataFluxCondenser:
         """
         Consolida múltiples DataFrames en uno solo.
 
-        ROBUSTECIDO:
-        - Validación de entrada
-        - Filtrado de batches inválidos
-        - Manejo de límites de memoria
-        - Deduplicación opcional
+        Args:
+            processed_batches: Lista de DataFrames de los lotes procesados.
+
+        Returns:
+            pd.DataFrame: DataFrame consolidado.
         """
         if not processed_batches:
             self.logger.warning("[CONSOLIDATE] Sin batches para consolidar")
@@ -1955,10 +1960,11 @@ class DataFluxCondenser:
         """
         Convierte datos parseados usando APUProcessor.
 
-        ROBUSTECIDO:
-        - Validación de entrada
-        - Manejo de errores específicos del processor
-        - Validación de salida
+        Args:
+            parsed_data: Datos parseados crudos y cache.
+
+        Returns:
+            pd.DataFrame: DataFrame con los datos procesados.
         """
         if not isinstance(parsed_data, ParsedData):
             raise ProcessingError(
@@ -2003,10 +2009,8 @@ class DataFluxCondenser:
         """
         Valida el DataFrame de salida.
 
-        ROBUSTECIDO:
-        - Validación de tipo
-        - Análisis de calidad de columnas
-        - Advertencias detalladas
+        Args:
+            df: DataFrame a validar.
         """
         if not isinstance(df, pd.DataFrame):
             raise ProcessingError(
@@ -2069,10 +2073,8 @@ class DataFluxCondenser:
         """
         Retorna estadísticas completas del procesamiento.
 
-        ROBUSTECIDO:
-        - Inclusión de estado del controlador
-        - Diagnósticos del motor físico
-        - Métricas de calidad
+        Returns:
+            Dict[str, Any]: Diccionario con configuración, estadísticas, estado del controlador y física.
         """
         success_rate = (
             self._stats.processed_records / self._stats.total_records
