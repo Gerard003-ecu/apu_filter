@@ -2,9 +2,10 @@ import networkx as nx
 import pandas as pd
 import logging
 from typing import Dict, List, Optional, Any, Tuple
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass, asdict, field
 from app.telemetry import TelemetryContext
 from app.constants import ColumnNames
+import textwrap
 
 logger = logging.getLogger(__name__)
 
@@ -22,6 +23,17 @@ class TopologicalMetrics:
     @property
     def is_simply_connected(self) -> bool:
         return self.beta_0 == 1 and self.beta_1 == 0
+
+@dataclass
+class ConstructionRiskReport:
+    """Reporte Ejecutivo de Riesgos de Construcción."""
+    integrity_score: float  # 0-100
+    waste_alerts: List[str]  # Possible waste (isolated nodes)
+    circular_risks: List[str]  # Calculation errors (cycles)
+    complexity_level: str  # Baja, Media, Alta
+
+    # Metadata for serialization/display
+    details: Dict[str, Any] = field(default_factory=dict)
 
 class BudgetGraphBuilder:
     """Construye el Grafo del Presupuesto (Business Topology) Version 2."""
@@ -174,14 +186,6 @@ class BusinessTopologicalAnalyzer:
         if graph.number_of_nodes() == 0:
             return TopologicalMetrics(0, 0, 0)
 
-        # Convert to MultiGraph to preserve edge multiplicity logic if needed,
-        # but typical Betti calculation on abstract simplicial complex from graph
-        # usually considers 1-skeleton.
-        # However, for cycle detection in business logic, parallel edges matter?
-        # Usually not for Betti_1 of the underlying graph unless they form distinct cycles.
-        # But let's follow the standard graph topology definition where multigraphs have distinct edges.
-        # If A->B and B->A, that's a cycle.
-
         undirected = nx.MultiGraph()
         undirected.add_nodes_from(graph.nodes(data=True))
         undirected.add_edges_from(graph.edges(data=True))
@@ -197,12 +201,6 @@ class BusinessTopologicalAnalyzer:
         # Euler Characteristic chi = V - E = beta_0 - beta_1 (for 1D complex)
         # So beta_1 = beta_0 - V + E
         beta_1 = max(0, beta_0 - n_nodes + n_edges)
-
-        chi = n_nodes - n_edges # Wait, definition varies.
-        # Usually Chi = Sum((-1)^k * beta_k). For graph: beta_0 - beta_1.
-        # And Chi = V - E.
-        # So beta_0 - beta_1 = V - E => beta_1 = beta_0 - V + E.
-        # Let's use Chi = beta_0 - beta_1 as the "Topological Euler Characteristic".
 
         chi = beta_0 - beta_1
 
@@ -260,10 +258,6 @@ class BusinessTopologicalAnalyzer:
                 isolated_nodes.append(node_info)
 
             if data.get("type") == "INSUMO" and in_degrees.get(node, 0) == 0 and not is_isolated:
-                # Insumo that is not isolated but has no incoming edges?
-                # Wait, Insumos usually come from APUs.
-                # If it's connected to something (out > 0) but in=0? Insumos usually don't have out edges in this model (APU->Insumo).
-                # The prompt test says "orphans detected" -> in_degree = 0.
                 orphan_insumos.append(node_info)
             elif data.get("type") == "INSUMO" and is_isolated:
                  # Isolated insumos are also orphans
@@ -310,6 +304,66 @@ class BusinessTopologicalAnalyzer:
             "euler": f"Característica de Euler: {metrics.euler_characteristic}"
         }
 
+    def generate_executive_report(self, graph: nx.DiGraph) -> ConstructionRiskReport:
+        """
+        Genera un reporte de riesgos traducido a lenguaje de construcción.
+        """
+        metrics = self.calculate_betti_numbers(graph)
+        cycles, _ = self._detect_cycles(graph)
+        anomalies = self._classify_anomalous_nodes(graph)
+
+        # Calculate scores and levels
+        integrity_score = 100.0
+
+        # Penalties
+        if metrics.beta_1 > 0:
+            integrity_score -= 50  # Critical: Circular references
+
+        isolated_count = len(anomalies['isolated_nodes'])
+        if isolated_count > 0:
+            integrity_score -= min(30, isolated_count * 2)
+
+        orphan_count = len(anomalies['orphan_insumos'])
+        if orphan_count > 0:
+             integrity_score -= min(20, orphan_count * 1)
+
+        integrity_score = max(0, integrity_score)
+
+        # Complexity Level based on density/beta_1
+        density = nx.density(graph)
+        if metrics.beta_1 > 0:
+            complexity = "Alta (Crítica)"
+        elif density > 0.1:
+            complexity = "Alta"
+        elif density > 0.05:
+            complexity = "Media"
+        else:
+            complexity = "Baja"
+
+        # Translate alerts
+        waste_alerts = []
+        if isolated_count > 0:
+            waste_alerts.append(f"Alerta: {isolated_count} Insumos en base de datos no se utilizan en el presupuesto.")
+        if orphan_count > 0:
+            waste_alerts.append(f"Alerta: {orphan_count} Recursos definidos sin asignación a APUs.")
+
+        circular_risks = []
+        if metrics.beta_1 > 0:
+            circular_risks.append("CRÍTICO: Se detectaron referencias circulares en los precios unitarios.")
+
+        return ConstructionRiskReport(
+            integrity_score=integrity_score,
+            waste_alerts=waste_alerts,
+            circular_risks=circular_risks,
+            complexity_level=complexity,
+            details={
+                "metrics": asdict(metrics),
+                "cycles": cycles,
+                "anomalies": anomalies,
+                "density": density
+            }
+        )
+
     def analyze_structural_integrity(self, graph: nx.DiGraph) -> Dict[str, Any]:
         """Ejecuta análisis completo y emite telemetría."""
         metrics = self.calculate_betti_numbers(graph)
@@ -318,6 +372,9 @@ class BusinessTopologicalAnalyzer:
         critical = self._identify_critical_resources(graph)
         connectivity = self._compute_connectivity_analysis(graph)
         interpretation = self._interpret_topology(metrics)
+
+        # Executive report for telemetry enhancement
+        exec_report = self.generate_executive_report(graph)
 
         # Structure for report
         details = {
@@ -337,7 +394,8 @@ class BusinessTopologicalAnalyzer:
                 "nodes": graph.number_of_nodes(),
                 "edges": graph.number_of_edges(),
                 "density": nx.density(graph)
-            }
+            },
+            "executive_report": asdict(exec_report)
         }
 
         # Flat metrics for telemetry/convenience
@@ -350,6 +408,7 @@ class BusinessTopologicalAnalyzer:
             "business.isolated_count": len(anomalies["isolated_nodes"]),
             "business.orphan_insumos_count": len(anomalies["orphan_insumos"]),
             "business.empty_apus_count": len(anomalies["empty_apus"]),
+            "business.integrity_score": exec_report.integrity_score,
             "details": details
         }
 
@@ -364,10 +423,6 @@ class BusinessTopologicalAnalyzer:
     def analyze(self, graph: nx.DiGraph) -> Dict[str, Any]:
         """Backward compatibility wrapper for analyze."""
         new_result = self.analyze_structural_integrity(graph)
-
-        # Map to old structure:
-        # metrics: {beta_0, beta_1, chi, density, is_dag}
-        # anomalies: {cycles, isolates_count, orphan_insumos_count, empty_apus_count}
 
         metrics = TopologicalMetrics(
             beta_0=new_result["business.betti_b0"],
@@ -394,84 +449,119 @@ class BusinessTopologicalAnalyzer:
         }
 
     def get_audit_report(self, analysis_result_or_graph: Any) -> List[str]:
-        """Genera un reporte ASCII art profesional."""
+        """Genera un reporte ASCII art profesional enfocado en construcción."""
+
+        exec_report = None
 
         if isinstance(analysis_result_or_graph, nx.DiGraph):
-            res = self.analyze_structural_integrity(analysis_result_or_graph)
+            exec_report = self.generate_executive_report(analysis_result_or_graph)
+            metrics_dict = exec_report.details.get("metrics", {})
+            anomalies = exec_report.details.get("anomalies", {})
+            cycles_list = exec_report.details.get("cycles", [])
+            density = exec_report.details.get("density", 0.0)
         else:
-            # If it's the old structure from `analyze` wrapper, we need to adapt or just fail/warn.
-            # But the test calls `analyze_structural_integrity` then passes result here.
-            # If someone passes the result of `analyze` (backward compat), it has 'metrics' and 'anomalies'.
-            if "details" not in analysis_result_or_graph and "metrics" in analysis_result_or_graph:
-                 # Reconstruct minimal details for reporting
-                 m = analysis_result_or_graph["metrics"]
-                 a = analysis_result_or_graph["anomalies"]
-                 res = {
-                     "details": {
-                         "topology": {"betti_numbers": m},
-                         "anomalies": {
-                             "isolated_nodes": [{}] * a.get("isolates_count", 0),
-                             "orphan_insumos": [{}] * a.get("orphan_insumos_count", 0),
-                             "empty_apus": [{}] * a.get("empty_apus_count", 0)
-                         },
-                         "cycles": {"count": len(a.get("cycles", [])), "list": a.get("cycles", [])},
-                         "connectivity": {"is_dag": m.get("is_dag", True)},
-                         "graph_summary": {"density": m.get("density", 0.0)}
-                     }
-                 }
-            else:
-                res = analysis_result_or_graph
+            if isinstance(analysis_result_or_graph, dict):
+                if "details" in analysis_result_or_graph and "executive_report" in analysis_result_or_graph["details"]:
+                    er_dict = analysis_result_or_graph["details"]["executive_report"]
+                    exec_report = ConstructionRiskReport(
+                        integrity_score=er_dict.get("integrity_score", 0.0),
+                        waste_alerts=er_dict.get("waste_alerts", []),
+                        circular_risks=er_dict.get("circular_risks", []),
+                        complexity_level=er_dict.get("complexity_level", "Desconocida"),
+                        details=er_dict.get("details", {})
+                    )
+                    metrics_dict = er_dict.get("details", {}).get("metrics", {})
+                    anomalies = er_dict.get("details", {}).get("anomalies", {})
+                    cycles_list = er_dict.get("details", {}).get("cycles", [])
+                    density = er_dict.get("details", {}).get("density", 0.0)
+                elif "metrics" in analysis_result_or_graph:
+                    # Backward compatibility
+                    m = analysis_result_or_graph["metrics"]
+                    a = analysis_result_or_graph["anomalies"]
+                    cycles_list = a.get("cycles", [])
 
-        details = res.get("details", {})
-        m = details.get("topology", {}).get("betti_numbers", {})
-        a = details.get("anomalies", {})
-        c = details.get("cycles", {})
-        conn = details.get("connectivity", {})
-        summ = details.get("graph_summary", {})
+                    beta_1 = m.get("beta_1", 0)
+                    isolated_count = a.get("isolates_count", 0)
 
-        # Handle fallback if 'details' not present (e.g. if old analyze was called)
-        if not details:
-            # Fallback logic could go here
-            pass
+                    integrity_score = 100.0
+                    if beta_1 > 0: integrity_score -= 50
+                    if isolated_count > 0: integrity_score -= min(30, isolated_count * 2)
+
+                    waste_alerts = []
+                    if isolated_count > 0: waste_alerts.append(f"Alerta: {isolated_count} Insumos en base de datos no se utilizan en el presupuesto.")
+
+                    circular_risks = []
+                    if beta_1 > 0: circular_risks.append("CRÍTICO: Se detectaron referencias circulares en los precios unitarios.")
+
+                    exec_report = ConstructionRiskReport(
+                        integrity_score=integrity_score,
+                        waste_alerts=waste_alerts,
+                        circular_risks=circular_risks,
+                        complexity_level="Desconocida",
+                        details={}
+                    )
+                    metrics_dict = m
+                    anomalies = {
+                        "isolated_nodes": [{}] * isolated_count,
+                        "orphan_insumos": [{}] * a.get("orphan_insumos_count", 0),
+                        "empty_apus": [{}] * a.get("empty_apus_count", 0)
+                    }
+                    density = m.get("density", 0.0)
+                else:
+                    return ["Error: Formato de análisis no reconocido."]
+
+        if exec_report is None:
+             return ["Error: No se pudo generar el reporte ejecutivo."]
 
         lines = []
         lines.append("┌──────────────────────────────────────────────────┐")
-        lines.append("│      REPORTE DE TOPOLOGÍA DE NEGOCIO (V2)        │")
+        lines.append("│      AUDITORÍA ESTRUCTURAL DEL PRESUPUESTO       │")
         lines.append("├──────────────────────────────────────────────────┤")
-        lines.append("│ [ANÁLISIS TOPOLÓGICO]                            │")
-        lines.append(f"│ β₀ (Componentes):       {m.get('beta_0', 0):<25}│")
-        lines.append(f"│ β₁ (Ciclos):            {m.get('beta_1', 0):<25}│")
-        lines.append(f"│ χ  (Euler):             {m.get('euler_characteristic', 0):<25}│")
-        lines.append(f"│ Densidad:               {summ.get('density', 0):.4f}                   │")
+        lines.append(f"│ PUNTUACIÓN DE INTEGRIDAD: {exec_report.integrity_score:>6.1f} / 100.0          │")
+        lines.append(f"│ Nivel de Complejidad:     {exec_report.complexity_level:<23}│")
+        lines.append("├──────────────────────────────────────────────────┤")
+        lines.append("│ [MÉTRICAS TÉCNICAS]                              │")
+        lines.append(f"│ Ciclos de Costo (Errores): {metrics_dict.get('beta_1', 0):<22}│")
+        lines.append(f"│ Componentes Conexas:       {metrics_dict.get('beta_0', 0):<22}│")
+        lines.append(f"│ Densidad de Conexiones:    {density:.4f}                │")
         lines.append("├──────────────────────────────────────────────────┤")
 
-        if not conn.get('is_dag', True) or c.get('count', 0) > 0:
-            lines.append("│ [ALERTAS CRÍTICAS]                               │")
-            lines.append(f"│ ❌ CICLOS DETECTADOS:    {c.get('count', 0):<25}│")
-            for i, cycle in enumerate(c.get('list', [])[:3]):
-                # cycle string is already formatted
-                # Truncate if too long for box
+        if exec_report.circular_risks:
+            lines.append("│ [ERRORES CRÍTICOS]                               │")
+            for risk in exec_report.circular_risks:
+                wrapped_lines = textwrap.wrap(risk, width=44)
+                for line in wrapped_lines:
+                    lines.append(f"│ ❌ {line:<44} │")
+
+            for i, cycle in enumerate(cycles_list[:3]):
                 c_str = cycle
                 if len(c_str) > 38:
                     c_str = c_str[:35] + "..."
                 lines.append(f"│    {i+1}. {c_str:<38} │")
         else:
             lines.append("│ [ESTADO]                                         │")
-            lines.append("│ ✅ Grafo Acíclico (DAG) - Estructura Sólida      │")
+            lines.append("│ ✅ Estructura de Costos Saludable y Auditable.   │")
 
-        iso_count = len(a.get('isolated_nodes', []))
-        orphan_count = len(a.get('orphan_insumos', []))
-        empty_count = len(a.get('empty_apus', []))
+        iso_count = len(anomalies.get('isolated_nodes', []))
+        orphan_count = len(anomalies.get('orphan_insumos', []))
+        empty_count = len(anomalies.get('empty_apus', []))
 
-        if iso_count > 0 or orphan_count > 0 or empty_count > 0:
+        if exec_report.waste_alerts or iso_count > 0 or orphan_count > 0 or empty_count > 0:
             lines.append("├──────────────────────────────────────────────────┤")
-            lines.append("│ [ADVERTENCIAS]                                   │")
-            if orphan_count:
-                lines.append(f"│ ⚠ Insumos Huérfanos:    {orphan_count:<25}│")
-            if empty_count:
-                lines.append(f"│ ⚠ APUs Vacíos:          {empty_count:<25}│")
-            if iso_count:
-                 lines.append(f"│ ⚠ Nodos Aislados:       {iso_count:<25}│")
+            lines.append("│ [POSIBLE DESPERDICIO / ALERTAS]                  │")
+
+            # Use explicit labels as requested if counts > 0
+            if iso_count > 0:
+                 lines.append(f"│ ⚠ Recursos Fantasma (Sin uso): {iso_count:<18}│")
+
+            if empty_count > 0:
+                 lines.append(f"│ ⚠ APUs Vacíos:          {empty_count:<25}│")
+
+            # Also show the detailed alerts, but wrapped
+            for alert in exec_report.waste_alerts:
+                 wrapped_lines = textwrap.wrap(alert, width=44)
+                 for line in wrapped_lines:
+                     lines.append(f"│ ⚠ {line:<44} │")
 
         lines.append("└──────────────────────────────────────────────────┘")
 
