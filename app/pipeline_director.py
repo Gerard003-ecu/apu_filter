@@ -9,9 +9,12 @@ Implementa el patrón "Pipeline" donde cada paso es una unidad discreta de traba
 que recibe un contexto, lo transforma y lo pasa al siguiente paso.
 """
 
+import enum
 import logging
 import os
+import pickle
 import sys
+import uuid
 from abc import ABC, abstractmethod
 from dataclasses import asdict, dataclass
 from pathlib import Path
@@ -795,6 +798,20 @@ class BuildOutputStep(ProcessingStep):
 # ==================== PIPELINE DIRECTOR ====================
 
 
+class PipelineSteps(str, enum.Enum):
+    """
+    Define los identificadores únicos para cada paso del pipeline.
+    Funciona como una 'API' pública para el orquestador.
+    """
+
+    LOAD_DATA = "load_data"
+    MERGE_DATA = "merge_data"
+    CALCULATE_COSTS = "calculate_costs"
+    FINAL_MERGE = "final_merge"
+    BUSINESS_TOPOLOGY = "business_topology"
+    BUILD_OUTPUT = "build_output"
+
+
 class PipelineDirector:
     """
     Orquesta la ejecución secuencial de los pasos del pipeline.
@@ -815,6 +832,8 @@ class PipelineDirector:
         self.config = config
         self.telemetry = telemetry
         self.thresholds = self._load_thresholds(config)
+        self.session_dir = Path(config.get("session_dir", "data/sessions"))
+        self.session_dir.mkdir(parents=True, exist_ok=True)
 
     def _load_thresholds(self, config: dict) -> ProcessingThresholds:
         """Carga y configura los umbrales de procesamiento."""
@@ -825,111 +844,129 @@ class PipelineDirector:
                     setattr(thresholds, key, value)
         return thresholds
 
-    def execute(self, initial_context: dict) -> dict:
-        """
-        Ejecuta el pipeline completo con manejo robusto de errores.
-        """
-        # ROBUSTECIDO: Validar contexto inicial
-        if initial_context is None:
-            raise ValueError("Contexto inicial es None")
+    def _save_context_state(self, session_id: str, context: dict):
+        """Guarda el estado del contexto en un archivo pickle."""
+        if not session_id:
+            logger.error("❌ session_id es inválido para guardar contexto")
+            return
+        try:
+            session_file = self.session_dir / f"{session_id}.pkl"
+            with open(session_file, "wb") as f:
+                pickle.dump(context, f)
+            logger.debug(f"💾 Contexto guardado para sesión: {session_id}")
+        except Exception as e:
+            logger.error(f"🔥 Error guardando contexto para {session_id}: {e}")
+            raise
 
-        if not isinstance(initial_context, dict):
-            raise ValueError(
-                f"Contexto inicial debe ser dict, recibido: {type(initial_context)}"
-            )
+    def _load_context_state(self, session_id: str) -> dict:
+        """Carga el estado del contexto desde un archivo pickle."""
+        if not session_id:
+            logger.error("❌ session_id es inválido para cargar contexto")
+            return {}
+        try:
+            session_file = self.session_dir / f"{session_id}.pkl"
+            if session_file.exists():
+                with open(session_file, "rb") as f:
+                    context = pickle.load(f)
+                logger.debug(f"🧠 Contexto cargado para sesión: {session_id}")
+                return context
+            return {}
+        except (pickle.UnpicklingError, EOFError) as e:
+            logger.error(f"🔥 Contexto corrupto para {session_id}, iniciando de cero: {e}")
+            return {}
+        except Exception as e:
+            logger.error(f"🔥 Error cargando contexto para {session_id}: {e}")
+            raise
+
+    def run_single_step(
+        self,
+        step_name: str,
+        session_id: str,
+        initial_context: Optional[Dict[str, Any]] = None,
+    ) -> Dict[str, Any]:
+        """
+        Ejecuta un único pivote de la matriz del pipeline.
+        1. Carga el contexto previo asociado al session_id.
+        2. Ejecuta el ProcessingStep específico.
+        3. Guarda el nuevo contexto resultante.
+        4. Retorna el resultado del paso y métricas.
+        """
+        # Cargar contexto o usar inicial
+        context = self._load_context_state(session_id)
+        if initial_context:
+            context.update(initial_context)
+
+        # Validar paso
+        if step_name not in self.STEP_REGISTRY:
+            error_msg = f"Paso desconocido o no registrado: {step_name}"
+            logger.error(f"❌ {error_msg}")
+            return {"status": "error", "step": step_name, "error": error_msg}
+
+        step_class = self.STEP_REGISTRY.get(step_name)
+
+        logger.info(f"▶️ Ejecutando paso atómico: {step_name} (Sesión: {session_id})")
+
+        try:
+            step_instance = step_class(self.config, self.thresholds)
+            updated_context = step_instance.execute(context, self.telemetry)
+
+            if updated_context is None:
+                raise ValueError("Paso retornó contexto None")
+
+            self._save_context_state(session_id, updated_context)
+            logger.info(f"✅ Paso completado: {step_name}")
+            return {
+                "status": "success",
+                "step": step_name,
+                "session_id": session_id,
+                "context_keys": list(updated_context.keys()),
+            }
+
+        except Exception as e:
+            error_msg = f"Error en paso '{step_name}': {e}"
+            logger.error(f"🔥 {error_msg}", exc_info=True)
+            self.telemetry.record_error(step_name, str(e))
+            return {"status": "error", "step": step_name, "error": error_msg}
+
+    def execute_pipeline_orchestrated(self, initial_context: dict) -> dict:
+        """
+        Ejecuta el pipeline completo de forma orquestada, paso a paso.
+        Utiliza run_single_step internamente para persistir el estado.
+        """
+        session_id = str(uuid.uuid4())
+        logger.info(f"🚀 Iniciando pipeline orquestado con Sesión ID: {session_id}")
 
         recipe = self.config.get("pipeline_recipe", [])
-
         if not recipe:
             logger.warning("No 'pipeline_recipe' en config. Usando flujo por defecto.")
             recipe = [
-                {"step": "load_data", "enabled": True},
-                {"step": "merge_data", "enabled": True},
-                {"step": "calculate_costs", "enabled": True},
-                {"step": "final_merge", "enabled": True},
-                {"step": "business_topology", "enabled": True},
-                {"step": "build_output", "enabled": True},
+                {"step": step.value, "enabled": True} for step in PipelineSteps
             ]
 
-        # ROBUSTECIDO: Validar receta
-        if not isinstance(recipe, list):
-            raise ValueError("pipeline_recipe debe ser una lista")
-
-        # Crear copia inmutable del contexto
-        context = dict(initial_context)
-        executed_steps = []  # Para tracking y posible rollback
-
+        context = initial_context
         for step_idx, step_config in enumerate(recipe):
-            # ROBUSTECIDO: Validar configuración del paso
-            if not isinstance(step_config, dict):
-                logger.warning(f"⚠️ Configuración de paso #{step_idx} inválida, saltando")
-                continue
-
             step_name = step_config.get("step")
-            if not step_name:
-                logger.warning(f"⚠️ Paso #{step_idx} sin nombre, saltando")
-                continue
-
             if not step_config.get("enabled", True):
                 logger.info(f"⏭️ Saltando paso deshabilitado: {step_name}")
                 continue
 
-            step_class = self.STEP_REGISTRY.get(step_name)
-            if not step_class:
-                error_msg = f"Paso desconocido en receta: {step_name}"
-                logger.error(f"❌ {error_msg}")
-                self.telemetry.record_error("pipeline_director", error_msg)
+            logger.info(f"▶️ Orquestando paso [{step_idx + 1}/{len(recipe)}]: {step_name}")
 
-                # ROBUSTECIDO: Decidir si continuar o fallar
-                if step_config.get("required", True):
-                    raise ValueError(error_msg)
-                continue
+            # Para el primer paso, pasamos el contexto inicial
+            current_context = context if step_idx == 0 else None
 
-            logger.info(f"▶️ Ejecutando paso [{step_idx + 1}/{len(recipe)}]: {step_name}")
+            result = self.run_single_step(step_name, session_id, initial_context=current_context)
 
-            try:
-                # Instanciar paso
-                step_instance = step_class(self.config, self.thresholds)
-
-                # Ejecutar con timeout implícito si es necesario
-                context = step_instance.execute(context, self.telemetry)
-
-                # ROBUSTECIDO: Validar que context sigue siendo válido
-                if context is None:
-                    raise ValueError(f"Paso '{step_name}' retornó contexto None")
-
-                if not isinstance(context, dict):
-                    raise ValueError(
-                        f"Paso '{step_name}' retornó tipo inválido: {type(context)}"
-                    )
-
-                executed_steps.append(step_name)
-                logger.info(f"✅ Paso completado: {step_name}")
-
-            except Exception as e:
-                error_msg = f"Error crítico en paso '{step_name}': {e}"
+            if result["status"] == "error":
+                error_msg = f"Fallo en pipeline orquestado en paso '{step_name}': {result['error']}"
                 logger.critical(f"🔥 {error_msg}")
-                self.telemetry.record_error(step_name, str(e))
+                # El contexto con el error ya fue logueado por run_single_step
+                raise RuntimeError(error_msg)
 
-                # ROBUSTECIDO: Registrar pasos ejecutados para diagnóstico
-                self.telemetry.record_metric(
-                    "pipeline_director", "executed_steps_before_failure", len(executed_steps)
-                )
-
-                # ROBUSTECIDO: Información de diagnóstico
-                context["_pipeline_error"] = {
-                    "step": step_name,
-                    "step_index": step_idx,
-                    "error": str(e),
-                    "executed_steps": executed_steps,
-                }
-
-                raise RuntimeError(error_msg) from e
-
-        logger.info(
-            f"🎉 Pipeline completado exitosamente. Pasos ejecutados: {len(executed_steps)}"
-        )
-        return context
+        # Al final, cargar el contexto completo y retornarlo
+        final_context = self._load_context_state(session_id)
+        logger.info(f"🎉 Pipeline orquestado completado (Sesión: {session_id})")
+        return final_context
 
 
 # ==================== CLASES DE SOPORTE (Legacy Refactored) ====================
