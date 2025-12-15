@@ -314,7 +314,7 @@ class TopologicalDiagnosis:
     def to_log_dict(self) -> Dict[str, Any]:
         """Serializa para logging estructurado."""
         return {
-            "betti": {"b0": self.health.betti.b0, "b1": self.health.betti.b1},
+            "betti": {"b0": self.health.betti.b0},
             "health_score": round(self.health.health_score, 3),
             "health_level": self.health.level.name,
             "voltage_state": self.voltage_persistence.state.name,
@@ -732,8 +732,8 @@ class AutonomousAgent:
         Returns:
             Estado del sistema determinado por análisis topológico
         """
-        # Obtener salud topológica completa
-        topo_health = self.topology.get_topological_health()
+        # Obtener salud topológica completa (sin análisis de ciclos de negocio)
+        topo_health = self.topology.get_topological_health(calculate_b1=False)
 
         # Preparar análisis de persistencia (pueden ser vacíos si no hay datos)
         voltage_analysis = self._analyze_metric_persistence(
@@ -961,7 +961,7 @@ class AutonomousAgent:
         # 9. ESTADO NOMINAL
         # =====================================================================
         summary = (
-            f"Sistema Nominal: β₀={betti.b0}, β₁={betti.b1}, "
+            f"Sistema Nominal: β₀={betti.b0} (conectado), "
             f"health={topo_health.health_score:.2f}"
         )
         return SystemStatus.NOMINAL, summary
@@ -1093,7 +1093,7 @@ class AutonomousAgent:
         # Agregar contexto de Betti si es relevante
         betti = diag.health.betti
         if not betti.is_ideal:
-            parts.append(f"[β₀={betti.b0}, β₁={betti.b1}]")
+            parts.append(f"[β₀={betti.b0}]")
 
         # Agregar health score si no es óptimo
         if diag.health.health_score < 0.9:
@@ -1114,7 +1114,7 @@ class AutonomousAgent:
     def _act_recomendar_limpieza(self, diagnosis_msg: str) -> None:
         """Acción: Recomendar limpieza por inestabilidad."""
         logger.warning(f"[BRAIN] ⚠️ INESTABILIDAD DETECTADA - {diagnosis_msg}")
-        logger.warning("[BRAIN] → Recomendación: Revisar y limpiar datos CSV")
+        logger.warning("[BRAIN] → Recomendación: Investigar origen de inestabilidad de datos")
         self._notify_external_system(
             "instability_detected",
             {
@@ -1211,8 +1211,8 @@ class AutonomousAgent:
                 # Actualizar topología con conexión confirmada
                 self._initialize_expected_topology()
 
-                # Verificar salud topológica
-                topo_health = self.topology.get_topological_health()
+                # Verificar salud topológica (modo sistema)
+                topo_health = self.topology.get_topological_health(calculate_b1=False)
 
                 logger.info(
                     f"✅ Health check exitoso - "
@@ -1231,7 +1231,7 @@ class AutonomousAgent:
 
             # Degradar topología
             self.topology.remove_edge("Agent", "Core")
-            topo_health = self.topology.get_topological_health()
+            topo_health = self.topology.get_topological_health(calculate_b1=False)
 
             logger.error(
                 f"Topología degradada: β₀={topo_health.betti.b0}, "
@@ -1258,11 +1258,11 @@ class AutonomousAgent:
             }
         )
 
-        # Métricas topológicas
-        topo_health = self.topology.get_topological_health()
+        # Métricas topológicas (modo sistema)
+        topo_health = self.topology.get_topological_health(calculate_b1=False)
         metrics["topology"] = {
             "betti_b0": topo_health.betti.b0,
-            "betti_b1": topo_health.betti.b1,
+            "betti_b1": topo_health.betti.b1,  # Será 0, pero se mantiene por consistencia
             "is_connected": topo_health.betti.is_connected,
             "is_ideal": topo_health.betti.is_ideal,
             "health_score": round(topo_health.health_score, 3),
@@ -1315,14 +1315,10 @@ class AutonomousAgent:
             "timestamp": datetime.now().isoformat(),
             "betti_numbers": {
                 "b0": health.betti.b0,
-                "b1": health.betti.b1,
                 "interpretation": {
                     "b0": "conectado"
                     if health.betti.is_connected
                     else f"{health.betti.b0} fragmentos",
-                    "b1": "acíclico"
-                    if health.betti.is_acyclic
-                    else f"{health.betti.b1} ciclos",
                 },
             },
             "health": {

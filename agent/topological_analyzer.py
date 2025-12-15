@@ -621,7 +621,9 @@ class SystemTopology:
     # Cálculos Topológicos (Números de Betti)
     # -------------------------------------------------------------------------
 
-    def calculate_betti_numbers(self, include_isolated: bool = True) -> BettiNumbers:
+    def calculate_betti_numbers(
+        self, include_isolated: bool = True, calculate_b1: bool = True
+    ) -> BettiNumbers:
         """
         Calcula los números de Betti del sistema actual con validación rigurosa.
 
@@ -637,6 +639,7 @@ class SystemTopology:
 
         Args:
             include_isolated: Si True, incluye nodos sin conexiones como componentes.
+            calculate_b1: Si True, calcula β₁ (ciclos); si no, β₁ es 0.
 
         Returns:
             BettiNumbers válidos y consistentes.
@@ -675,26 +678,28 @@ class SystemTopology:
                 # Fallback: contar nodos con grado > 0
                 b0 = len([n for n in subgraph.nodes() if subgraph.degree(n) > 0]) or 1
 
-            # Calcular β₁ usando fórmula de Euler-Poincaré
-            # χ = |V| - |E| = β₀ - β₁  =>  β₁ = |E| - |V| + β₀
-            b1 = num_edges - num_vertices + b0
+            b1 = 0
+            if calculate_b1:
+                # Calcular β₁ usando fórmula de Euler-Poincaré
+                # χ = |V| - |E| = β₀ - β₁  =>  β₁ = |E| - |V| + β₀
+                b1 = num_edges - num_vertices + b0
 
-            # Validación: β₁ debe ser ≥ 0 para grafos simples
-            if b1 < 0:
-                # Esto indica inconsistencia en los datos o cálculo
-                logger.warning(
-                    f"β₁ negativo calculado ({b1}). Recalculando con enfoque conservador. "
-                    f"V={num_vertices}, E={num_edges}, β₀={b0}"
-                )
+                # Validación: β₁ debe ser ≥ 0 para grafos simples
+                if b1 < 0:
+                    # Esto indica inconsistencia en los datos o cálculo
+                    logger.warning(
+                        f"β₁ negativo calculado ({b1}). Recalculando con enfoque conservador. "
+                        f"V={num_vertices}, E={num_edges}, β₀={b0}"
+                    )
 
-                # Enfoque conservador: β₁ = max(0, número de ciclos fundamentales)
-                try:
-                    # Contar ciclos fundamentales usando base de ciclos
-                    cycles = nx.cycle_basis(subgraph)
-                    b1 = len(cycles)
-                except nx.NetworkXError:
-                    # Si falla, usar fórmula ajustada
-                    b1 = max(0, num_edges - num_vertices + b0)
+                    # Enfoque conservador: β₁ = max(0, número de ciclos fundamentales)
+                    try:
+                        # Contar ciclos fundamentales usando base de ciclos
+                        cycles = nx.cycle_basis(subgraph)
+                        b1 = len(cycles)
+                    except nx.NetworkXError:
+                        # Si falla, usar fórmula ajustada
+                        b1 = max(0, num_edges - num_vertices + b0)
 
         # Validación final de consistencia
         if b0 < 0 or b1 < 0:
@@ -710,8 +715,9 @@ class SystemTopology:
                 f"Ajustando β₀ = {num_vertices}"
             )
             b0 = num_vertices
-            # Recalcular β₁ para mantener consistencia
-            b1 = max(0, num_edges - num_vertices + b0)
+            if calculate_b1:
+                # Recalcular β₁ para mantener consistencia
+                b1 = max(0, num_edges - num_vertices + b0)
 
         return BettiNumbers(b0=b0, b1=b1, num_vertices=num_vertices, num_edges=num_edges)
 
@@ -1230,7 +1236,7 @@ class SystemTopology:
     # Análisis de Salud
     # -------------------------------------------------------------------------
 
-    def get_topological_health(self) -> TopologicalHealth:
+    def get_topological_health(self, calculate_b1: bool = True) -> TopologicalHealth:
         """
         Calcula salud topológica con modelo de penalizaciones normalizado.
 
@@ -1241,35 +1247,51 @@ class SystemTopology:
         - penalización_i ∈ [0, 1] (normalizada por máximo posible)
         - peso_i ∈ [0, 1] con Σpesos_i = 1.0
 
-        Pesos configurados:
+        Pesos configurados (con/sin β₁):
         - Fragmentación (β₀ > 1): 0.35
-        - Ciclos estructurales (β₁ > 0): 0.20
+        - Ciclos estructurales (β₁ > 0): 0.20 (solo si calculate_b1=True)
         - Nodos requeridos desconectados: 0.25
         - Conexiones esperadas faltantes: 0.15
         - Bucles de reintento: 0.05
+
+        Args:
+            calculate_b1: Si True, incluye la penalización por ciclos (β₁).
 
         Returns:
             TopologicalHealth con score matemáticamente fundamentado.
         """
         # Calcular métricas base
-        betti = self.calculate_betti_numbers()
+        betti = self.calculate_betti_numbers(calculate_b1=calculate_b1)
         disconnected = self.get_disconnected_nodes()
         missing = self.get_missing_connections()
         loops = self.detect_request_loops()
 
         # Configuración de pesos (deben sumar 1.0)
-        WEIGHTS = {
-            "fragmentation": 0.35,  # β₀ > 1
-            "cycles": 0.20,  # β₁ > 0
-            "disconnected": 0.25,  # Nodos requeridos aislados
-            "missing_edges": 0.15,  # Topología esperada incompleta
-            "retry_loops": 0.05,  # Patrones de reintento
-        }
+        if calculate_b1:
+            WEIGHTS = {
+                "fragmentation": 0.35,
+                "cycles": 0.20,
+                "disconnected": 0.25,
+                "missing_edges": 0.15,
+                "retry_loops": 0.05,
+            }
+        else:
+            base_weights = {
+                "fragmentation": 0.35,
+                "disconnected": 0.25,
+                "missing_edges": 0.15,
+                "retry_loops": 0.05,
+            }
+            total_weight = sum(base_weights.values())
+            WEIGHTS = {k: v / total_weight for k, v in base_weights.items()}
+            WEIGHTS["cycles"] = 0.0
 
         # Verificar que pesos suman 1.0
         weight_sum = sum(WEIGHTS.values())
         if abs(weight_sum - 1.0) > 1e-10:
-            logger.warning(f"Pesos no suman 1.0 ({weight_sum}), normalizando")
+            logger.warning(
+                f"Pesos re-normalizados no suman 1.0 ({weight_sum}), re-ajustando"
+            )
             WEIGHTS = {k: v / weight_sum for k, v in WEIGHTS.items()}
 
         diagnostics = {}
@@ -1295,8 +1317,8 @@ class SystemTopology:
                 f"(penalización: {fragmentation_penalty:.3f})"
             )
 
-        # 2. Penalización por ciclos estructurales
-        if betti.b1 > 0:
+        # 2. Penalización por ciclos estructurales (solo si se calcula b1)
+        if calculate_b1 and betti.b1 > 0:
             # Normalizar por máximo de ciclos posibles en grafo simple
             # Para grafo completo K_n: máximo ciclos = combinaciones
             n = betti.num_vertices

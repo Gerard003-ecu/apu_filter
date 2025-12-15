@@ -493,7 +493,7 @@ class TestAct(TestFixtures):
 
         # Verificar contenido del log
         assert "Test Diagnosis Summary" in caplog.text
-        assert "β₀=1, β₁=1" in caplog.text  # Detalles Betti
+        assert "[β₀=1]" in caplog.text
         assert "health=0.80" in caplog.text
 
     def test_debounce_logic_respects_critical_alerts(self, agent):
