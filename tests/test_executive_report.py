@@ -74,7 +74,7 @@ class TestExecutiveReport:
 
         assert report.integrity_score < 100.0
         assert len(report.waste_alerts) > 0
-        assert "no se utilizan" in report.waste_alerts[0]
+        assert "Insumos no utilizados" in report.waste_alerts[0]
 
         audit_lines = analyzer.get_audit_report(G)
         assert any("POSIBLE DESPERDICIO" in line for line in audit_lines)
@@ -95,8 +95,9 @@ class TestExecutiveReport:
         report = analyzer.generate_executive_report(G)
 
         # Should trigger orphan alert
+        assert len(report.waste_alerts) > 0
         assert any(
-            "Recursos definidos sin asignación" in alert for alert in report.waste_alerts
+            "Recursos sin asignación" in alert for alert in report.waste_alerts
         )
 
     def test_integration_backward_compatibility(self, analyzer):

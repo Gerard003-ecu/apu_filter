@@ -671,8 +671,8 @@ class FinalMergeStep(ProcessingStep):
 
 class BusinessTopologyStep(ProcessingStep):
     """
-    Paso de Análisis Topológico de Negocio.
-    Audita la integridad estructural del presupuesto detectando ciclos y nodos aislados.
+    Paso de Análisis de Negocio.
+    Utiliza el BusinessAgent para auditar la integridad estructural y evaluar riesgos.
     """
 
     def __init__(self, config: dict, thresholds: ProcessingThresholds):
@@ -680,65 +680,41 @@ class BusinessTopologyStep(ProcessingStep):
         self.thresholds = thresholds
 
     def execute(self, context: dict, telemetry: TelemetryContext) -> dict:
-        """Ejecuta el análisis topológico."""
+        """Ejecuta la evaluación del BusinessAgent."""
         telemetry.start_step("business_topology")
         try:
-            # Importación diferida para evitar dependencias circulares
-            from agent.business_topology import (
-                BudgetGraphBuilder,
-                BusinessTopologicalAnalyzer,
-            )
+            # Importación del nuevo agente
+            from app.business_agent import BusinessAgent
 
-            df_presupuesto = context.get("df_presupuesto")
-            # df_merged contiene la relación APU -> Insumo tras el cruce inicial
-            df_apus_detail = context.get("df_merged")
+            logger.info("🤖 Desplegando BusinessAgent para evaluación de proyecto...")
 
-            if df_presupuesto is None or df_apus_detail is None:
-                telemetry.record_error(
-                    "business_topology", "DataFrames requeridos no disponibles"
-                )
-                telemetry.end_step("business_topology", "skipped")
-                return context
+            # Instanciar el agente con la configuración y telemetría actuales
+            agent = BusinessAgent(config=self.config, telemetry=telemetry)
 
-            logger.info("🏗️ Construyendo grafo de topología de negocio...")
-            builder = BudgetGraphBuilder()
-            graph = builder.build(df_presupuesto, df_apus_detail)
+            # El agente ejecuta la evaluación completa
+            report = agent.evaluate_project(context)
 
-            logger.info("🧠 Analizando integridad estructural...")
-            analyzer = BusinessTopologicalAnalyzer(telemetry)
+            if report:
+                logger.info("✅ BusinessAgent completó la evaluación.")
+                # Guardar el reporte en el contexto
+                context["business_topology_report"] = report
 
-            # Análisis estructural completo (metrics + anomalies)
-            analysis_result = analyzer.analyze_structural_integrity(graph)
+                # Opcional: Loguear un resumen si es necesario
+                # (el reporte ASCII ahora se podría generar desde el reporte si se necesita)
+                logger.info(f"Puntuación de Integridad: {report.integrity_score:.2f}/100")
+                if report.waste_alerts:
+                    logger.warning(f"Alertas de Desperdicio: {len(report.waste_alerts)}")
+                if report.circular_risks:
+                    logger.critical(f"Riesgos Circulares: {len(report.circular_risks)}")
 
-            # Generar reporte ejecutivo (ConstructionRiskReport)
-            exec_report = analyzer.generate_executive_report(graph)
-
-            # Generar reporte humano ASCII para logs
-            audit_report_lines = analyzer.get_audit_report(analysis_result)
-
-            # Loguear reporte humano
-            for line in audit_report_lines:
-                if "Alerta" in line or "CRÍTICO" in line or "❌" in line:
-                    logger.warning(f"🚨 TOPOLOGY: {line}")
-                elif "Aviso" in line or "⚠" in line:
-                    logger.info(f"📢 TOPOLOGY: {line}")
-                else:
-                    logger.info(f"✅ TOPOLOGY: {line}")
-
-            # Guardar en contexto para el reporte final
-            context["business_topology_report"] = exec_report
-
-            # Mantener compatibilidad si otros sistemas usan topology_report
-            context["topology_report"] = {
-                "metrics": analysis_result,
-                "human_report": audit_report_lines,
-            }
+            else:
+                logger.warning("⚠️ El BusinessAgent no generó un reporte.")
 
             telemetry.end_step("business_topology", "success")
             return context
 
         except Exception as e:
-            logger.error(f"❌ Error en análisis topológico: {e}", exc_info=True)
+            logger.error(f"❌ Error en BusinessTopologyStep con BusinessAgent: {e}", exc_info=True)
             telemetry.record_error("business_topology", str(e))
             telemetry.end_step("business_topology", "error")
             # No bloqueamos el pipeline por errores de análisis
