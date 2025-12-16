@@ -58,6 +58,7 @@ class ConstructionRiskReport:
     complexity_level: str
     details: Dict[str, Any] = field(default_factory=dict)
     financial_risk_level: Optional[str] = None
+    strategic_narrative: Optional[str] = None
 
 
 class BudgetGraphBuilder:
@@ -507,7 +508,11 @@ class BusinessTopologicalAnalyzer:
         integrity_score = max(0, integrity_score)
 
         density = nx.density(graph) if graph else 0.0
-        complexity = "Alta (Crítica)" if metrics.beta_1 > 0 else ("Alta" if density > 0.1 else "Media" if density > 0.05 else "Baja")
+        complexity = (
+            "Alta (Crítica)"
+            if metrics.beta_1 > 0
+            else ("Alta" if density > 0.1 else "Media" if density > 0.05 else "Baja")
+        )
 
         waste_alerts = []
         if isolated_count > 0:
@@ -515,7 +520,9 @@ class BusinessTopologicalAnalyzer:
         if orphan_count > 0:
             waste_alerts.append(f"Alerta: {orphan_count} Recursos sin asignación a APUs.")
 
-        circular_risks = ["CRÍTICO: Referencias circulares detectadas."] if metrics.beta_1 > 0 else []
+        circular_risks = (
+            ["CRÍTICO: Referencias circulares detectadas."] if metrics.beta_1 > 0 else []
+        )
 
         # 2. Análisis de Riesgo Financiero
         financial_risk = None
