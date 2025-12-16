@@ -26,7 +26,9 @@ La arquitectura del proyecto ha evolucionado a un sistema de microservicios orqu
 
 1.  **El Núcleo (Core):** Servidor Flask + Gunicorn (Puerto 5002). Procesa la física de los datos, la lógica de negocio (Flux Physics, Pipeline) y expone la API.
 2.  **La Memoria (Redis):** Gestión de sesiones, colas de mensajes y caché de alta velocidad para la comunicación eficiente entre procesos.
-3.  **El Agente (Agent):** Orquestador inteligente (`agent/apu_agent.py`) que monitorea la salud del sistema, optimiza el flujo de datos y gestiona tareas asíncronas de mantenimiento.
+3.  **El Agente (Agent):** Orquestador inteligente dividido en responsabilidades claras:
+    *   **APU Agent (SRE):** Monitorea la salud técnica (`agent/apu_agent.py`), optimiza el flujo de datos y gestiona tareas de mantenimiento.
+    *   **Business Agent (CFO):** Ejecuta la lógica financiera y estratégica (`agent/business_agent.py`), aplicando WACC, VaR y análisis topológico de costos.
 
 ---
 

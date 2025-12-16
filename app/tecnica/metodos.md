@@ -70,16 +70,21 @@ Usamos el Método de Monte Carlo para proyectar 1,000 escenarios posibles de var
 
 Para evitar el "código espagueti", hemos centralizado la lógica de control. El Director no procesa datos; él da las órdenes.
 
-### El Flujo de Mando Declarativo
-El Director ejecuta un plan de obra estricto definido en `config.json` (Configurabilidad Declarativa):
+## 4. Orquestación Granular: El Pipeline como Máquina de Estados
 
-1.  **Llamada al Guardia:** "¿El archivo cumple las reglas definidas en `parser_settings`?"
-2.  **Llamada al Estabilizador:** "Ingresa los datos controlando la presión según los umbrales PID."
-3.  **Llamada al Cirujano:** "Estandariza usando el `columns_mapping` configurado."
-4.  **Llamada al Estratega:** "Calcula los costos."
-5.  **Cierre:** "Genera el reporte final."
+A diferencia de los scripts lineales tradicionales, el `PipelineDirector` implementa una arquitectura de **Ejecución Atómica con Persistencia de Estado**.
 
-Esta arquitectura permite que, si mañana queremos cambiar la forma en que se limpian los datos, solo ajustamos el archivo de configuración JSON, sin tocar una sola línea de código Python.
+*   **Atomicidad:** Cada paso (ej. `CalculateCosts`) es una unidad discreta que recibe un contexto, lo procesa y retorna un nuevo estado.
+*   **Persistencia:** Entre pasos, el "Vector de Estado" se serializa (Redis/Pickle). Esto permite al Agente intervenir, reintentar un paso específico o pausar el flujo sin perder datos.
+*   **Método:** `run_single_step(step_name)` permite la ejecución quirúrgica de procesos.
+
+## 5. Motor de Inteligencia Financiera (Financial Engine)
+
+Superando la estimación de costos determinista, este módulo inyecta variables estocásticas de mercado:
+
+*   **WACC (Weighted Average Cost of Capital):** Descuenta los flujos de caja futuros basándose en la estructura de capital y riesgo país.
+*   **VaR (Value at Risk):** Utiliza simulaciones de Monte Carlo para determinar la pérdida máxima probable con un 95% de confianza.
+*   **Opciones Reales:** Valora la flexibilidad estratégica (ej. la opción de esperar o expandir) utilizando modelos binomiales, transformando la incertidumbre en un valor cuantificable.
 
 #### Mecanismos de Defensa (SRE)
 Esta no es una metáfora decorativa. Utilizamos lógica de sistemas dinámicos para proteger la infraestructura:
