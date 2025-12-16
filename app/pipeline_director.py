@@ -1929,7 +1929,7 @@ def process_all_files(
     }
 
     try:
-        final_context = director.execute(initial_context)
+        final_context = director.execute_pipeline_orchestrated(initial_context)
         final_result = final_context.get("final_result", {})
 
         # Guardado de archivos (lógica simplificada integrada aquí o delegada)
