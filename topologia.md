@@ -87,5 +87,24 @@ El Agente (`apu_agent.py`) asegura la coherencia causal entre el diagnóstico ma
 4.  **Act (Actuar):** Ejecuta el vector de transformación correspondiente de la MIC.
     *   La decisión se proyecta en una llamada a función (ej. `tools_interface.clean_file`) que altera la realidad física, cerrando el bucle.
 
+## 5. El Espacio Vectorial de Control y la Dualidad de Matrices (MICs)
+
+La arquitectura evoluciona de una matriz única a un sistema de **Matrices de Interacción Central (MIC)** que operan sobre el Vector de Estado del Proyecto ($\vec{S}$).
+
+### 5.1 MIC Tools ($M_T$): La Matriz Diagonal de Mantenimiento
+Operada por el **APU Agent (SRE)**. Es una matriz diagonal donde cada elemento $T_{ii}$ representa una herramienta discreta e independiente. Su función es la **Estabilización**.
+*   **Operación:** $M_T \cdot \vec{S}_{inestable} = \vec{S}_{estable}$
+*   **Componentes:** Diagnóstico, Limpieza, Telemetría.
+*   **Naturaleza:** Acceso Aleatorio (Random Access).
+
+### 5.2 MIC Pipeline ($M_P$): La Matriz de Transformación de Valor
+Operada por el **Business Agent (CFO)** y el Director. Es una matriz de transformación compuesta (Grafo Dirigido) que convierte datos crudos en valor estratégico.
+*   **Operación:** $M_P \cdot \vec{S}_{datos} = \vec{S}_{valor}$
+*   **Componentes:** Ingesta $\to$ Condensador $\to$ Cálculo $\to$ Auditoría Financiera.
+*   **Naturaleza:** Secuencial y Granular (Step-by-Step).
+
+### 5.3 Dinámica del Sistema
+El sistema completo se comporta como un operador en un espacio vectorial $R^n$, donde el objetivo es maximizar la magnitud del vector de "Valor de Negocio" mientras se minimiza la componente de "Entropía/Riesgo".
+
 ---
 *Este documento especifica la arquitectura lógica versión 2.0, donde la Topología Algebraica no es solo una métrica, sino el motor de razonamiento del Agente Autónomo.*
