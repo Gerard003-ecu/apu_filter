@@ -35,7 +35,21 @@ Esta estructura garantiza que $\beta_1$ sea 0 en operación normal (estructura d
 
 ---
 
-## 3. Semántica de Homología Persistente (TDA - Topological Data Analysis)
+## 3. Topología Piramidal del Negocio (Jerarquía de Mando)
+
+Para evaluar la solidez de un proyecto, el sistema impone una estructura topológica jerárquica sobre los datos del presupuesto, transformando una lista plana en un **Grafo Dirigido Estratificado**.
+
+### 3.1 Niveles de la Pirámide
+El grafo se organiza en cuatro estratos de abstracción:
+*   **Nivel 0 (Raíz - $\Omega$):** El Proyecto Total. Es el nodo fuente único que garantiza la conexidad teórica ($\beta_0=1$).
+*   **Nivel 1 (Estrategia):** Capítulos o Fases (ej. "Cimentación", "Estructura"). Agrupan lógica constructiva.
+*   **Nivel 2 (Táctica):** Los APUs (Análisis de Precios Unitarios). Son las actividades ejecutables.
+*   **Nivel 3 (Logística):** Los Insumos. Son los recursos atómicos (Materiales, Mano de Obra).
+
+### 3.2 Estabilidad Estructural ($\Psi$)
+Definimos la estabilidad de la pirámide como la relación entre la amplitud de la base logística y la complejidad de la gestión táctica. Una "Pirámide Invertida" (pocos insumos críticos sosteniendo muchas actividades) es topológicamente inestable y presenta alto riesgo de cadena de suministro.
+
+## 4. Semántica de Homología Persistente (TDA - Topological Data Analysis)
 
 Para filtrar el ruido inherente a la telemetría (voltaje, saturación), utilizamos **Homología Persistente**. Este método analiza la evolución de la topología a través de una "filtración" de niveles, permitiendo separar señales vitales del ruido de fondo.
 
@@ -61,7 +75,7 @@ El `PersistenceHomology` clasifica el estado de cada métrica:
 
 ---
 
-## 4. El Ciclo OODA y la Matriz de Interacción Central (MIC)
+## 5. El Ciclo OODA y la Matriz de Interacción Central (MIC)
 
 La inteligencia del sistema reside en la integración del análisis topológico dentro de un ciclo de decisión OODA (Observe, Orient, Decide, Act).
 
@@ -87,7 +101,7 @@ El Agente (`apu_agent.py`) asegura la coherencia causal entre el diagnóstico ma
 4.  **Act (Actuar):** Ejecuta el vector de transformación correspondiente de la MIC.
     *   La decisión se proyecta en una llamada a función (ej. `tools_interface.clean_file`) que altera la realidad física, cerrando el bucle.
 
-## 5. El Espacio Vectorial de Control y la Dualidad de Matrices (MICs)
+## 6. El Espacio Vectorial de Control y la Dualidad de Matrices (MICs)
 
 La arquitectura evoluciona de una matriz única a un sistema de **Matrices de Interacción Central (MIC)** que operan sobre el Vector de Estado del Proyecto ($\vec{S}$).
 
