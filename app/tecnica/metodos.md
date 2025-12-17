@@ -124,6 +124,21 @@ El sistema implementa mecanismos de defensa avanzados:
 *   **Recuperación Parcial:** Capacidad de aislar lotes corruptos y continuar el procesamiento del resto del archivo.
 *   **Protección Térmica:** Freno de emergencia automático si la disipación de energía (fricción de datos) supera los umbrales de seguridad.
 
+### Métrica de Estabilidad Piramidal (`pyramid_stability`)
+
+El sistema calcula un índice de robustez arquitectónica del presupuesto utilizando la siguiente relación:
+
+$$ \Psi = \frac{N_{insumos}}{N_{apus}} \times \frac{1}{\rho} $$
+
+Donde:
+*   $N_{insumos}$: Cantidad de recursos únicos (Amplitud de base).
+*   $N_{apus}$: Cantidad de actividades (Complejidad táctica).
+*   $\rho$: Densidad del grafo (Interconectividad).
+
+**Interpretación:**
+*   **$\Psi > 10$ (Sólida):** Base ancha. El proyecto tiene recursos diversificados y dependencias claras.
+*   **$\Psi < 1$ (Invertida):** Base estrecha. El proyecto depende críticamente de muy pocos recursos altamente conectados. Un fallo en el suministro de un insumo clave podría detener múltiples frentes de obra.
+
 ---
 
 ## 4. El Agente: Orquestación Autónoma
