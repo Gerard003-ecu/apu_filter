@@ -62,11 +62,12 @@ class ConstructionRiskReport:
 
 
 class BudgetGraphBuilder:
-    """Construye el Grafo del Presupuesto (Topología de Negocio) Versión 2."""
+    """Construye el Grafo del Presupuesto (Topología de Negocio) Versión 2 con estructura Piramidal."""
 
     def __init__(self):
         """Inicializa el constructor del grafo."""
         self.logger = logging.getLogger(self.__class__.__name__)
+        self.ROOT_NODE = "PROYECTO_TOTAL"
 
     def _sanitize_code(self, value: Any) -> str:
         """
@@ -100,27 +101,41 @@ class BudgetGraphBuilder:
         except (ValueError, TypeError):
             return default
 
-    def _create_apu_attributes(
-        self, row: pd.Series, source: str, idx: int, inferred: bool
+    def _create_node_attributes(
+        self,
+        node_type: str,
+        level: int,
+        source: str = "generated",
+        idx: int = -1,
+        inferred: bool = False,
+        **kwargs
     ) -> Dict[str, Any]:
         """
-        Crea el diccionario de atributos para un nodo APU.
-
-        Args:
-            row (pd.Series): Fila de datos del APU.
-            source (str): Fuente de los datos ('presupuesto' o 'detail').
-            idx (int): Índice original en el DataFrame.
-            inferred (bool): Indica si el APU fue inferido desde detalles.
-
-        Returns:
-            Dict[str, Any]: Diccionario de atributos del nodo.
+        Helper para crear atributos de nodos consistentemente.
         """
         attrs = {
-            "type": "APU",
+            "type": node_type,
+            "level": level,
             "source": source,
             "original_index": idx,
             "inferred": inferred,
         }
+        attrs.update(kwargs)
+        return attrs
+
+    def _create_apu_attributes(
+        self, row: pd.Series, source: str, idx: int, inferred: bool
+    ) -> Dict[str, Any]:
+        """
+        Crea el diccionario de atributos para un nodo APU (Nivel 2).
+        """
+        attrs = self._create_node_attributes(
+            node_type="APU",
+            level=2,
+            source=source,
+            idx=idx,
+            inferred=inferred
+        )
         if not inferred:
             attrs["description"] = self._sanitize_code(row.get(ColumnNames.DESCRIPCION_APU))
             attrs["quantity"] = self._safe_float(row.get(ColumnNames.CANTIDAD_PRESUPUESTO))
@@ -130,42 +145,23 @@ class BudgetGraphBuilder:
         self, row: pd.Series, insumo_desc: str, source: str, idx: int
     ) -> Dict[str, Any]:
         """
-        Crea el diccionario de atributos para un nodo Insumo.
-
-        Args:
-            row (pd.Series): Fila de datos del insumo.
-            insumo_desc (str): Descripción del insumo.
-            source (str): Fuente de los datos.
-            idx (int): Índice original en el DataFrame.
-
-        Returns:
-            Dict[str, Any]: Diccionario de atributos del nodo.
+        Crea el diccionario de atributos para un nodo Insumo (Nivel 3).
         """
-        return {
-            "type": "INSUMO",
-            "description": insumo_desc,
-            "tipo_insumo": self._sanitize_code(row.get(ColumnNames.TIPO_INSUMO)),
-            "unit_cost": self._safe_float(row.get(ColumnNames.COSTO_INSUMO_EN_APU)),
-            "source": source,
-            "original_index": idx,
-        }
+        return self._create_node_attributes(
+            node_type="INSUMO",
+            level=3,
+            source=source,
+            idx=idx,
+            description=insumo_desc,
+            tipo_insumo=self._sanitize_code(row.get(ColumnNames.TIPO_INSUMO)),
+            unit_cost=self._safe_float(row.get(ColumnNames.COSTO_INSUMO_EN_APU))
+        )
 
     def _upsert_edge(
         self, G: nx.DiGraph, u: str, v: str, unit_cost: float, quantity: float, idx: int
     ) -> bool:
         """
         Inserta o actualiza una arista acumulando cantidades y costos.
-
-        Args:
-            G (nx.DiGraph): El grafo dirigido.
-            u (str): Nodo origen (APU).
-            v (str): Nodo destino (Insumo).
-            unit_cost (float): Costo unitario.
-            quantity (float): Cantidad.
-            idx (int): Índice del registro original.
-
-        Returns:
-            bool: True si es una nueva arista, False si se actualizó una existente.
         """
         total_cost = unit_cost * quantity
         is_new = False
@@ -198,18 +194,14 @@ class BudgetGraphBuilder:
     def _compute_graph_statistics(self, G: nx.DiGraph) -> Dict[str, int]:
         """
         Calcula estadísticas básicas del grafo construido.
-
-        Args:
-            G (nx.DiGraph): El grafo construido.
-
-        Returns:
-            Dict[str, int]: Estadísticas (conteo de nodos APU, Insumos, etc.).
         """
         apu_nodes = [n for n, d in G.nodes(data=True) if d.get("type") == "APU"]
         insumo_nodes = [n for n, d in G.nodes(data=True) if d.get("type") == "INSUMO"]
         inferred_apus = [n for n in apu_nodes if G.nodes[n].get("inferred", False)]
+        chapter_nodes = [n for n, d in G.nodes(data=True) if d.get("type") == "CAPITULO"]
 
         return {
+            "chapter_count": len(chapter_nodes),
             "apu_count": len(apu_nodes),
             "insumo_count": len(insumo_nodes),
             "inferred_count": len(inferred_apus),
@@ -221,32 +213,58 @@ class BudgetGraphBuilder:
         self, presupuesto_df: pd.DataFrame, apus_detail_df: pd.DataFrame
     ) -> nx.DiGraph:
         """
-        Construye un grafo dirigido optimizado a partir de los DataFrames.
-
-        Args:
-            presupuesto_df (pd.DataFrame): DataFrame del presupuesto.
-            apus_detail_df (pd.DataFrame): DataFrame con el detalle de los APUs.
-
-        Returns:
-            nx.DiGraph: Grafo dirigido representando la topología del presupuesto.
+        Construye un grafo dirigido piramidal a partir de los DataFrames.
+        Estructura: Proyecto (L0) -> [Capítulos (L1)] -> APUs (L2) -> Insumos (L3)
         """
         G = nx.DiGraph(name="BudgetTopology")
-        self.logger.info("Iniciando construcción del Grafo de Presupuesto V2...")
+        self.logger.info("Iniciando construcción del Grafo Piramidal de Presupuesto...")
 
-        # 1. Agregar nodos APU desde presupuesto
+        # 0. Nodo Raíz: PROYECTO_TOTAL (Nivel 0)
+        G.add_node(self.ROOT_NODE, type="ROOT", level=0, description="Proyecto Completo")
+
+        # 1. Procesar Presupuesto (Niveles 1 y 2)
         if presupuesto_df is not None and not presupuesto_df.empty:
             for idx, row in presupuesto_df.iterrows():
                 apu_code = self._sanitize_code(row.get(ColumnNames.CODIGO_APU))
                 if not apu_code:
                     continue
 
+                # Crear nodo APU (Nivel 2)
                 attrs = self._create_apu_attributes(
                     row, source="presupuesto", idx=idx, inferred=False
                 )
-                # Usar add_node actualiza atributos si ya existe
                 G.add_node(apu_code, **attrs)
 
-        # 2. Procesar detalle de APUs
+                # Gestionar Jerarquía de Capítulos (Nivel 1)
+                # Intentamos detectar columnas que sugieran agrupación ("CAPITULO", "TITULO", etc.)
+                # Por defecto buscamos 'CAPITULO' o 'CATEGORIA' si existen en el DF
+                chapter_name = None
+                possible_chapter_cols = ["CAPITULO", "CATEGORIA", "TITULO"]
+                for col in possible_chapter_cols:
+                    if col in presupuesto_df.columns:
+                        val = self._sanitize_code(row.get(col))
+                        if val:
+                            chapter_name = val
+                            break
+
+                if chapter_name:
+                    # Crear nodo Capítulo si no existe
+                    if chapter_name not in G:
+                        G.add_node(chapter_name,
+                                   type="CAPITULO",
+                                   level=1,
+                                   description=f"Capítulo: {chapter_name}")
+                        # Conectar Raíz -> Capítulo
+                        if not G.has_edge(self.ROOT_NODE, chapter_name):
+                            G.add_edge(self.ROOT_NODE, chapter_name, relation="CONTAINS")
+
+                    # Conectar Capítulo -> APU
+                    G.add_edge(chapter_name, apu_code, relation="CONTAINS")
+                else:
+                    # Si no hay capítulo, conectar Raíz -> APU directo (bypass nivel 1)
+                    G.add_edge(self.ROOT_NODE, apu_code, relation="CONTAINS")
+
+        # 2. Procesar detalle de APUs (Nivel 3: Insumos)
         if apus_detail_df is not None and not apus_detail_df.empty:
             for idx, row in apus_detail_df.iterrows():
                 apu_code = self._sanitize_code(row.get(ColumnNames.CODIGO_APU))
@@ -255,15 +273,17 @@ class BudgetGraphBuilder:
                 if not apu_code or not insumo_desc:
                     continue
 
-                # Asegurar que el nodo APU existe (inferencia)
+                # Asegurar que el nodo APU existe (inferencia si no estaba en presupuesto)
                 if apu_code not in G:
                     attrs = self._create_apu_attributes(
                         row, source="detail", idx=idx, inferred=True
                     )
                     G.add_node(apu_code, **attrs)
+                    # Conectar APU inferido al Raíz por defecto (ya que no sabemos capítulo)
+                    if not G.has_edge(self.ROOT_NODE, apu_code):
+                        G.add_edge(self.ROOT_NODE, apu_code, relation="CONTAINS_INFERRED")
 
                 # Asegurar que el nodo Insumo existe
-                # Usando la descripción como ID por consistencia con V1
                 insumo_id = insumo_desc
                 if insumo_id not in G:
                     attrs = self._create_insumo_attributes(
@@ -271,14 +291,14 @@ class BudgetGraphBuilder:
                     )
                     G.add_node(insumo_id, **attrs)
 
-                # Insertar o actualizar arista
+                # Insertar o actualizar arista APU -> Insumo
                 qty = self._safe_float(row.get(ColumnNames.CANTIDAD_APU))
                 cost = self._safe_float(row.get(ColumnNames.COSTO_INSUMO_EN_APU))
 
                 self._upsert_edge(G, apu_code, insumo_id, cost, qty, idx)
 
         stats = self._compute_graph_statistics(G)
-        self.logger.info(f"Grafo construido: {stats}")
+        self.logger.info(f"Grafo Piramidal construido: {stats}")
         return G
 
 
@@ -329,6 +349,37 @@ class BusinessTopologicalAnalyzer:
         chi = beta_0 - beta_1
 
         return TopologicalMetrics(beta_0=beta_0, beta_1=beta_1, euler_characteristic=chi)
+
+    def calculate_pyramid_stability(self, graph: nx.DiGraph) -> float:
+        """
+        Calcula la estabilidad de la estructura piramidal.
+        Stability = (Num_Insumos / Num_APUs) * (1 / Densidad)
+
+        Una pirámide estable tiene una base amplia (muchos insumos soportando APUs)
+        y una jerarquía definida (densidad baja, tipo árbol).
+        """
+        apu_nodes = [n for n, d in graph.nodes(data=True) if d.get("type") == "APU"]
+        insumo_nodes = [n for n, d in graph.nodes(data=True) if d.get("type") == "INSUMO"]
+
+        num_apus = len(apu_nodes)
+        num_insumos = len(insumo_nodes)
+
+        if num_apus == 0:
+            return 0.0
+
+        density = nx.density(graph)
+        if density == 0:
+            return 0.0 # Grafo desconectado o sin aristas
+
+        # Base to Apex Ratio
+        base_ratio = num_insumos / num_apus
+
+        # Stability Factor
+        # Invertimos la densidad porque un árbol (ideal) es sparse.
+        # Si la densidad es alta, tiende a ser un grafo completo (mesh), no jerárquico.
+        stability = base_ratio * (1.0 / max(0.0001, density))
+
+        return stability
 
     def calculate_metrics(self, graph: nx.DiGraph) -> TopologicalMetrics:
         """Alias para compatibilidad hacia atrás."""
@@ -388,6 +439,10 @@ class BusinessTopologicalAnalyzer:
                 "in_degree": in_degrees.get(node, 0),
                 "out_degree": out_degrees.get(node, 0),
             }
+
+            # Ajuste para Root Node: No es aislado, es el origen
+            if data.get("type") == "ROOT":
+                continue
 
             is_isolated = (in_degrees.get(node, 0) == 0) and (out_degrees.get(node, 0) == 0)
 
@@ -496,6 +551,7 @@ class BusinessTopologicalAnalyzer:
         metrics = self.calculate_betti_numbers(graph)
         cycles, _ = self._detect_cycles(graph)
         anomalies = self._classify_anomalous_nodes(graph)
+        pyramid_stability = self.calculate_pyramid_stability(graph)
 
         # 1. Análisis de Integridad Estructural (Topológico)
         integrity_score = 100.0
@@ -519,6 +575,12 @@ class BusinessTopologicalAnalyzer:
             waste_alerts.append(f"Alerta: {isolated_count} Insumos no utilizados.")
         if orphan_count > 0:
             waste_alerts.append(f"Alerta: {orphan_count} Recursos sin asignación a APUs.")
+
+        # Alerta de Estabilidad Piramidal
+        # Umbrales heurísticos: Una estabilidad muy baja indica una pirámide invertida o muy densa
+        # Una estabilidad muy alta indica un grafo muy disperso (poco conectado)
+        if pyramid_stability < 10.0 and graph.number_of_nodes() > 10:
+             waste_alerts.append(f"Alerta Estructural: Baja estabilidad piramidal ({pyramid_stability:.1f}). Posible estructura invertida o excesivamente compleja.")
 
         circular_risks = (
             ["CRÍTICO: Referencias circulares detectadas."] if metrics.beta_1 > 0 else []
@@ -554,6 +616,7 @@ class BusinessTopologicalAnalyzer:
                 "cycles": cycles,
                 "anomalies": anomalies,
                 "density": density,
+                "pyramid_stability": pyramid_stability,
                 "financial_metrics_input": financial_metrics or {},
             },
         )
@@ -574,6 +637,7 @@ class BusinessTopologicalAnalyzer:
         critical = self._identify_critical_resources(graph)
         connectivity = self._compute_connectivity_analysis(graph)
         interpretation = self._interpret_topology(metrics)
+        pyramid_stability = self.calculate_pyramid_stability(graph)
 
         # Reporte ejecutivo para mejora de telemetría
         exec_report = self.generate_executive_report(graph)
@@ -589,6 +653,7 @@ class BusinessTopologicalAnalyzer:
                 "nodes": graph.number_of_nodes(),
                 "edges": graph.number_of_edges(),
                 "density": nx.density(graph),
+                "pyramid_stability": pyramid_stability,
             },
             "executive_report": asdict(exec_report),
         }
@@ -604,6 +669,7 @@ class BusinessTopologicalAnalyzer:
             "business.orphan_insumos_count": len(anomalies["orphan_insumos"]),
             "business.empty_apus_count": len(anomalies["empty_apus"]),
             "business.integrity_score": exec_report.integrity_score,
+            "business.pyramid_stability": pyramid_stability,
             "details": details,
         }
 
@@ -651,6 +717,7 @@ class BusinessTopologicalAnalyzer:
             List[str]: Líneas del reporte formateado.
         """
         exec_report = None
+        pyramid_stability = 0.0
 
         if isinstance(analysis_result_or_graph, nx.DiGraph):
             exec_report = self.generate_executive_report(analysis_result_or_graph)
@@ -658,6 +725,7 @@ class BusinessTopologicalAnalyzer:
             anomalies = exec_report.details.get("anomalies", {})
             cycles_list = exec_report.details.get("cycles", [])
             density = exec_report.details.get("density", 0.0)
+            pyramid_stability = exec_report.details.get("pyramid_stability", 0.0)
         else:
             if isinstance(analysis_result_or_graph, dict):
                 if (
@@ -676,6 +744,7 @@ class BusinessTopologicalAnalyzer:
                     anomalies = er_dict.get("details", {}).get("anomalies", {})
                     cycles_list = er_dict.get("details", {}).get("cycles", [])
                     density = er_dict.get("details", {}).get("density", 0.0)
+                    pyramid_stability = er_dict.get("details", {}).get("pyramid_stability", 0.0)
                 elif "metrics" in analysis_result_or_graph:
                     # Compatibilidad hacia atrás
                     m = analysis_result_or_graph["metrics"]
@@ -736,6 +805,7 @@ class BusinessTopologicalAnalyzer:
         lines.append(f"│ Ciclos de Costo (Errores): {metrics_dict.get('beta_1', 0):<22}│")
         lines.append(f"│ Componentes Conexas:       {metrics_dict.get('beta_0', 0):<22}│")
         lines.append(f"│ Densidad de Conexiones:    {density:.4f}                │")
+        lines.append(f"│ Estabilidad Piramidal:     {pyramid_stability:.2f}                │")
         lines.append("├──────────────────────────────────────────────────┤")
 
         if exec_report.circular_risks:
