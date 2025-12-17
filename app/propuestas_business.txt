@@ -1,0 +1,1975 @@
+### Clase SemanticTranslator
+
+def translate_topology(self, metrics: TopologicalMetrics) -> str:
+    """
+    Convierte métricas topológicas en frases de riesgo operativo.
+
+    Interpretación topológica algebraica:
+    - β₀ (Betti 0): Componentes conexas → fragmentación organizacional
+    - β₁ (Betti 1): Ciclos independientes → redundancias/bucles de proceso
+    - χ = β₀ - β₁: Característica de Euler → complejidad estructural neta
+
+    Args:
+        metrics (TopologicalMetrics): Métricas calculadas (beta_0, beta_1).
+
+    Returns:
+        str: Frase interpretativa enfocada en la eficiencia de procesos.
+    """
+    # Validación de entrada
+    if metrics is None:
+        return "Error Crítico: No se pudieron calcular las métricas topológicas del presupuesto."
+
+    beta_0 = getattr(metrics, 'beta_0', 0)
+    beta_1 = getattr(metrics, 'beta_1', 0)
+
+    # Caso degenerado: espacio topológico vacío
+    if beta_0 == 0:
+        return (
+            "Advertencia Crítica: El presupuesto no contiene estructura analizable "
+            "(espacio topológico vacío). Verifique la integridad de los datos."
+        )
+
+    narrative_parts = []
+
+    # Característica de Euler: invariante topológico global
+    euler_characteristic = beta_0 - beta_1
+
+    # Análisis de Ciclos (β₁) - Primer grupo de homología
+    if beta_1 > 0:
+        # Clasificación por severidad basada en densidad de ciclos
+        if beta_1 >= 3:
+            severidad = "alta"
+            impacto = "significativos"
+        elif beta_1 == 2:
+            severidad = "moderada"
+            impacto = "considerables"
+        else:
+            severidad = "baja"
+            impacto = "menores"
+
+        narrative_parts.append(
+            f"Alerta de Flujo (severidad {severidad}): Detectamos {beta_1} ciclo(s) "
+            f"independiente(s) en el complejo simplicial del presupuesto. Esto indica "
+            f"redundancias topológicas en aprobación de materiales con sobrecostos {impacto} "
+            "por retrabajos potenciales."
+        )
+    else:
+        narrative_parts.append(
+            "Eficiencia de Flujo: La estructura del presupuesto es topológicamente acíclica "
+            "(H₁ trivial), garantizando ausencia de bucles redundantes en procesos."
+        )
+
+    # Análisis de Componentes Conexas (β₀) - Grupo de homología H₀
+    if beta_0 > 1:
+        # La fragmentación escala cuadráticamente en complejidad de coordinación
+        complejidad_coordinacion = beta_0 * (beta_0 - 1) // 2
+        nivel = "crítica" if beta_0 > 3 else "moderada"
+
+        narrative_parts.append(
+            f"Islas de Información (fragmentación {nivel}): Existen {beta_0} componentes "
+            f"conexas disjuntas, generando {complejidad_coordinacion} interfaz(ces) de "
+            "coordinación potencial. Indica partidas presupuestarias sin integración de recursos."
+        )
+    else:  # beta_0 == 1: espacio conexo
+        narrative_parts.append(
+            "Integridad Estructural: El presupuesto forma un espacio conexo (β₀=1), "
+            "indicando cohesión total en la planificación de recursos."
+        )
+
+    # Síntesis usando característica de Euler como diagnóstico global
+    if euler_characteristic < 0:
+        narrative_parts.append(
+            f"Diagnóstico Topológico (χ={euler_characteristic}): Predominan los ciclos "
+            "sobre la fragmentación. Priorizar simplificación de flujos de aprobación."
+        )
+    elif euler_characteristic > 1:
+        narrative_parts.append(
+            f"Diagnóstico Topológico (χ={euler_characteristic}): Predomina la fragmentación "
+            "sobre los ciclos. Priorizar integración de componentes aisladas."
+        )
+
+    return " ".join(narrative_parts)
+
+
+def translate_financial(self, metrics: Dict[str, Any]) -> str:
+    """
+    Convierte métricas financieras (VaR, WACC, NPV, TIR) en consejos de inversión.
+
+    Args:
+        metrics (Dict[str, Any]): Diccionario con métricas financieras.
+
+    Returns:
+        str: Recomendación estratégica financiera.
+    """
+    if not metrics:
+        return "Error: No se dispone de métricas financieras para análisis."
+
+    narrative_parts = []
+
+    # Extracción segura con estructura defensiva
+    var_metrics = metrics.get("var_metrics", {})
+    contingency = metrics.get("contingency", {})
+    performance = metrics.get("performance", {})
+
+    var_value = metrics.get("var", 0.0)
+    var_percentage = var_metrics.get("var_percentage", 0.0)
+    cvar = var_metrics.get("cvar", 0.0)  # Expected Shortfall
+
+    recommended_contingency = contingency.get("recommended", 0.0)
+    percentage_rate = contingency.get("percentage_rate", 0.10)
+
+    npv = performance.get("npv", 0.0)
+    irr = performance.get("irr")
+    recommendation = performance.get("recommendation", "")
+
+    # 1. Análisis de viabilidad primaria
+    if recommendation == "RECHAZAR":
+        irr_text = f", TIR: {irr * 100:.2f}%" if irr is not None else ""
+        narrative_parts.append(
+            f"⛔ Alerta de Viabilidad: Los indicadores financieros no cumplen criterios "
+            f"mínimos de rentabilidad (VPN: ${npv:,.2f}{irr_text}). "
+            "Proyecto financieramente inviable en condiciones actuales."
+        )
+    elif recommendation == "REVISAR":
+        irr_text = f", TIR: {irr * 100:.2f}%" if irr is not None else ""
+        narrative_parts.append(
+            f"⚠️ Precaución: Proyecto en zona marginal de rentabilidad "
+            f"(VPN: ${npv:,.2f}{irr_text}). Requiere revisión de supuestos."
+        )
+
+    # 2. Análisis de Value at Risk (VaR) y CVaR
+    if var_value > 0:
+        # Umbral de riesgo: VaR > 20% de inversión es alto
+        if var_percentage > 0.20:
+            nivel_riesgo = "alto"
+            emoji = "🔴"
+        elif var_percentage > 0.10:
+            nivel_riesgo = "moderado"
+            emoji = "🟡"
+        else:
+            nivel_riesgo = "controlado"
+            emoji = "🟢"
+
+        cvar_text = f" CVaR: ${cvar:,.2f}." if cvar > 0 else ""
+        narrative_parts.append(
+            f"{emoji} Exposición al Riesgo ({nivel_riesgo}): VaR₉₅ = ${var_value:,.2f} "
+            f"({var_percentage * 100:.1f}% de inversión).{cvar_text} "
+            "Representa pérdida máxima esperada con 95% de confianza."
+        )
+
+    # 3. Recomendación de contingencia
+    if recommended_contingency > 0:
+        pct_str = f"{percentage_rate * 100:.1f}%"
+        # Justificación basada en nivel de contingencia
+        if percentage_rate >= 0.15:
+            justificacion = "alta volatilidad detectada en proveedores críticos"
+        elif percentage_rate >= 0.10:
+            justificacion = "variabilidad moderada en costos de materiales"
+        else:
+            justificacion = "cobertura estándar de imprevistos"
+
+        narrative_parts.append(
+            f"💰 Fondo de Contingencia: Reservar ${recommended_contingency:,.2f} "
+            f"(+{pct_str}) por {justificacion}."
+        )
+    elif recommendation not in ("RECHAZAR",):
+        narrative_parts.append(
+            "✅ Solidez Financiera: Niveles de riesgo dentro de parámetros aceptables. "
+            "No se requiere contingencia adicional sobre provisiones estándar."
+        )
+
+    return " ".join(narrative_parts) if narrative_parts else "Análisis financiero completado sin alertas."
+
+
+def _get_market_context(self, seed: Optional[int] = None) -> str:
+    """
+    Obtiene contexto de mercado externo para enriquecer el análisis.
+
+    En producción, se integrará con APIs de commodities (ej. Steel Index),
+    indicadores macroeconómicos y feeds de noticias sectoriales.
+
+    Args:
+        seed (Optional[int]): Semilla para reproducibilidad en pruebas.
+            None = selección basada en timestamp.
+
+    Returns:
+        str: Resumen de tendencias de mercado relevantes.
+    """
+    # Catálogo de tendencias con categoría, texto e impacto
+    tendencias_catalogo = [
+        ("materiales", "Tendencia alcista en acero (+2.5% mensual)", "alto", ["acero", "estructuras"]),
+        ("materiales", "Estabilidad en precios del cemento", "bajo", ["cemento", "obra gris"]),
+        ("financiero", "Volatilidad en tipo de cambio moderada", "medio", ["importaciones"]),
+        ("laboral", "Escasez de mano de obra calificada en la región", "alto", ["cronograma"]),
+        ("energia", "Incremento en costos energéticos (+1.8% trimestral)", "medio", ["operación"]),
+        ("logistica", "Retrasos en cadena de suministro global", "alto", ["materiales importados"]),
+        ("regulatorio", "Nuevas normativas ambientales en trámite", "medio", ["permisos"]),
+    ]
+
+    # Reproducibilidad controlada
+    rng = random.Random(seed) if seed is not None else random.Random()
+
+    # Seleccionar 2-3 tendencias diversificadas por categoría
+    categorias_vistas = set()
+    seleccionadas = []
+
+    tendencias_shuffled = tendencias_catalogo.copy()
+    rng.shuffle(tendencias_shuffled)
+
+    for tendencia in tendencias_shuffled:
+        categoria = tendencia[0]
+        if categoria not in categorias_vistas and len(seleccionadas) < 3:
+            seleccionadas.append(tendencia)
+            categorias_vistas.add(categoria)
+
+    # Construcción de narrativa
+    textos = [t[1] for t in seleccionadas]
+    alertas_altas = [t[3] for t in seleccionadas if t[2] == "alto"]
+
+    contexto_parts = [f"Contexto de Mercado: {'; '.join(textos)}."]
+
+    if alertas_altas:
+        areas_impactadas = set()
+        for areas in alertas_altas:
+            areas_impactadas.update(areas)
+        contexto_parts.append(
+            f"⚠️ Áreas de monitoreo prioritario: {', '.join(sorted(areas_impactadas))}."
+        )
+
+    contexto_parts.append(
+        "Recomendación: Revisar índices de inflación sectorial y actualizar "
+        "proyecciones trimestralmente."
+    )
+
+    return " ".join(contexto_parts)
+
+
+def compose_narrative(
+    self, topo_metrics: TopologicalMetrics, fin_metrics: Dict[str, Any]
+) -> str:
+    """
+    Compone narrativa estratégica integrando análisis topológico y financiero.
+
+    La conclusión implementa una matriz de decisión 2x2:
+    - Eje X: Riesgo estructural (topológico) → f(β₀, β₁)
+    - Eje Y: Riesgo financiero → f(recommendation, VaR)
+
+    Args:
+        topo_metrics (TopologicalMetrics): Métricas de estructura topológica.
+        fin_metrics (Dict[str, Any]): Métricas financieras.
+
+    Returns:
+        str: Reporte ejecutivo coherente y accionable.
+    """
+    # Generar componentes narrativos
+    topo_text = self.translate_topology(topo_metrics)
+    fin_text = self.translate_financial(fin_metrics)
+    market_text = self._get_market_context()
+
+    # Extracción segura de métricas para evaluación
+    beta_0 = getattr(topo_metrics, 'beta_0', 1) if topo_metrics else 1
+    beta_1 = getattr(topo_metrics, 'beta_1', 0) if topo_metrics else 0
+
+    # Cálculo de score de riesgo estructural normalizado
+    # Penaliza tanto fragmentación (β₀ > 1) como ciclos (β₁ > 0)
+    score_fragmentacion = max(0, beta_0 - 1)  # 0 si está conectado
+    score_ciclos = beta_1
+    riesgo_estructural_score = score_fragmentacion + (score_ciclos * 1.5)  # Ciclos pesan más
+    riesgo_estructural = riesgo_estructural_score > 0
+
+    # Evaluación de riesgo financiero
+    performance = fin_metrics.get("performance", {}) if fin_metrics else {}
+    recomendacion = performance.get("recommendation", "APROBAR")
+    var_pct = fin_metrics.get("var_metrics", {}).get("var_percentage", 0) if fin_metrics else 0
+
+    riesgo_financiero_alto = recomendacion == "RECHAZAR" or var_pct > 0.25
+    riesgo_financiero_medio = recomendacion == "REVISAR" or var_pct > 0.15
+    riesgo_financiero = riesgo_financiero_alto or riesgo_financiero_medio
+
+    # Matriz de decisión para conclusión
+    if riesgo_estructural and riesgo_financiero_alto:
+        conclusion = (
+            "⛔ ALERTA CRÍTICA: El proyecto presenta deficiencias simultáneas en "
+            "estructura operativa Y viabilidad financiera. Se recomienda NO proceder "
+            "sin reestructuración integral del presupuesto y revisión del modelo de negocio."
+        )
+        nivel = "CRÍTICO"
+        color = "🔴"
+    elif riesgo_estructural and riesgo_financiero_medio:
+        conclusion = (
+            "🟠 RIESGO ELEVADO: Confluyen problemas estructurales con indicadores "
+            "financieros marginales. Requiere plan de mitigación antes de aprobación."
+        )
+        nivel = "ALTO"
+        color = "🟠"
+    elif riesgo_estructural:
+        detalles = []
+        if beta_1 > 0:
+            detalles.append(f"{beta_1} ciclo(s) redundante(s)")
+        if beta_0 > 1:
+            detalles.append(f"{beta_0} componentes fragmentadas")
+        detalle_str = " y ".join(detalles)
+
+        conclusion = (
+            f"⚠️ ATENCIÓN ESTRUCTURAL: Proyecto financieramente viable pero con "
+            f"deficiencias topológicas ({detalle_str}). Optimizar estructura "
+            "de procesos antes de ejecución."
+        )
+        nivel = "MODERADO"
+        color = "🟡"
+    elif riesgo_financiero:
+        conclusion = (
+            "⚠️ PRECAUCIÓN FINANCIERA: Estructura operativa sólida, pero indicadores "
+            "financieros sugieren revisar supuestos de rentabilidad o incrementar contingencias."
+        )
+        nivel = "MODERADO"
+        color = "🟡"
+    else:
+        conclusion = (
+            "✅ PROYECTO VIABLE: Tanto la estructura topológica (conexa, acíclica) "
+            "como los indicadores financieros se encuentran en parámetros óptimos. "
+            "Proceder según plan."
+        )
+        nivel = "BAJO"
+        color = "🟢"
+
+    # Construcción del reporte ejecutivo estructurado
+    narrative = (
+        f"{'═' * 70}\n"
+        f"                    AUDITORÍA ESTRATÉGICA DE PROYECTO\n"
+        f"                    {color} Nivel de Riesgo Global: {nivel}\n"
+        f"{'═' * 70}\n\n"
+        f"┌{'─' * 68}┐\n"
+        f"│ 1. ANÁLISIS TOPOLÓGICO (Estructura Operativa)                      │\n"
+        f"└{'─' * 68}┘\n"
+        f"   β₀={beta_0} (componentes) | β₁={beta_1} (ciclos) | χ={beta_0 - beta_1} (Euler)\n\n"
+        f"   {topo_text}\n\n"
+        f"┌{'─' * 68}┐\n"
+        f"│ 2. ANÁLISIS FINANCIERO                                             │\n"
+        f"└{'─' * 68}┘\n"
+        f"   {fin_text}\n\n"
+        f"┌{'─' * 68}┐\n"
+        f"│ 3. CONTEXTO DE MERCADO                                             │\n"
+        f"└{'─' * 68}┘\n"
+        f"   {market_text}\n\n"
+        f"{'═' * 70}\n"
+        f"CONCLUSIÓN EJECUTIVA:\n\n"
+        f"{conclusion}\n"
+        f"{'═' * 70}"
+    )
+
+    return narrative
+
+
+###Clase BusinessAgent
+
+def evaluate_project(self, context: Dict[str, Any]) -> Optional[ConstructionRiskReport]:
+    """
+    Ejecuta evaluación integral del proyecto combinando análisis topológico y financiero.
+
+    Pipeline de evaluación:
+    1. Validación y preparación de datos
+    2. Construcción del complejo simplicial (grafo de presupuesto)
+    3. Cálculo de invariantes topológicos (números de Betti)
+    4. Análisis financiero (VaR, NPV, TIR)
+    5. Síntesis y generación de narrativa estratégica
+
+    Args:
+        context (Dict[str, Any]): Contexto del pipeline conteniendo:
+            - df_presupuesto (DataFrame): Estructura del presupuesto
+            - df_merged (DataFrame): Detalle de APUs
+            - initial_investment (float, opcional): Inversión inicial
+            - cash_flows (List[float], opcional): Flujos de caja proyectados
+            - project_duration_years (int, opcional): Duración del proyecto
+            - project_volatility (float, opcional): Volatilidad estimada
+
+    Returns:
+        Optional[ConstructionRiskReport]: Reporte de riesgos o None si falla.
+    """
+    logger.info("🤖 Iniciando evaluación de negocio del proyecto...")
+
+    # === FASE 0: Validación de Entradas ===
+    df_presupuesto = context.get("df_presupuesto")
+    df_apus_detail = context.get("df_merged")
+
+    if df_presupuesto is None or df_apus_detail is None:
+        logger.warning("DataFrames requeridos no disponibles para BusinessAgent.")
+        return None
+
+    if hasattr(df_presupuesto, 'empty') and df_presupuesto.empty:
+        logger.warning("DataFrame de presupuesto está vacío.")
+        return None
+
+    try:
+        # === FASE 1: Construcción Topológica ===
+        logger.info("🏗️  Paso 1: Construyendo complejo simplicial del presupuesto...")
+        graph = self.graph_builder.build(df_presupuesto, df_apus_detail)
+
+        if graph is None:
+            logger.error("El constructor de grafos retornó None.")
+            return None
+
+        num_nodes = graph.number_of_nodes()
+        num_edges = graph.number_of_edges()
+
+        if num_nodes == 0:
+            logger.warning("Grafo construido sin nodos. Verificar datos de entrada.")
+            return None
+
+        logger.debug(f"   Grafo construido: {num_nodes} nodos, {num_edges} aristas")
+
+        # Cálculo de números de Betti (invariantes topológicos)
+        topo_metrics = self.topological_analyzer.calculate_betti_numbers(graph)
+
+        if topo_metrics is None:
+            logger.warning("No se pudieron calcular métricas topológicas.")
+            # Continuar con métricas por defecto
+            from agent.business_topology import TopologicalMetrics
+            topo_metrics = TopologicalMetrics(beta_0=1, beta_1=0)
+
+        logger.debug(f"   Métricas topológicas: β₀={topo_metrics.beta_0}, β₁={topo_metrics.beta_1}")
+
+        # === FASE 2: Análisis Financiero ===
+        logger.info("💰  Paso 2: Ejecutando análisis financiero...")
+
+        # Inferencia inteligente de inversión inicial
+        initial_investment = context.get("initial_investment")
+        if initial_investment is None:
+            # Buscar en columnas comunes del presupuesto
+            columnas_costo = ["costo_total", "valor", "total", "monto", "presupuesto"]
+            for col in columnas_costo:
+                if col in df_presupuesto.columns:
+                    initial_investment = float(df_presupuesto[col].sum())
+                    logger.info(f"   Inversión inicial inferida de '{col}': ${initial_investment:,.2f}")
+                    break
+            else:
+                initial_investment = 1_000_000.0
+                logger.warning(f"   Inversión inicial no encontrada. Usando fallback: ${initial_investment:,.2f}")
+
+        # Validación de inversión
+        if initial_investment <= 0:
+            logger.error("Inversión inicial debe ser positiva.")
+            return None
+
+        # Generación de flujos de caja si no proporcionados
+        cash_flows = context.get("cash_flows")
+        if cash_flows is None:
+            duration = context.get("project_duration_years", 5)
+            return_factor = context.get("expected_return_factor", 0.28)
+            decay_rate = context.get("cash_flow_decay", 0.05)
+
+            # Modelo de flujos con decaimiento exponencial suave
+            cash_flows = [
+                initial_investment * return_factor * ((1 - decay_rate) ** i)
+                for i in range(duration)
+            ]
+            logger.debug(f"   Flujos generados: {[f'${cf:,.0f}' for cf in cash_flows]}")
+
+        # Parámetros de riesgo
+        project_volatility = context.get("project_volatility", 0.20)
+        cost_std_dev = context.get("cost_std_dev")
+        if cost_std_dev is None:
+            # Heurística: mayor fragmentación topológica = mayor incertidumbre
+            base_std = 0.12
+            fragmentacion_penalty = 0.02 * max(0, topo_metrics.beta_0 - 1)
+            ciclos_penalty = 0.03 * topo_metrics.beta_1
+            cost_std_dev = initial_investment * (base_std + fragmentacion_penalty + ciclos_penalty)
+
+        # Ejecución del motor financiero
+        financial_metrics = self.financial_engine.analyze_project(
+            initial_investment=initial_investment,
+            expected_cash_flows=cash_flows,
+            cost_std_dev=cost_std_dev,
+            project_volatility=project_volatility,
+        )
+
+        # === FASE 3: Generación de Reporte Integrado ===
+        logger.info("🧠  Paso 3: Sintetizando inteligencia de negocio...")
+
+        report = self.topological_analyzer.generate_executive_report(
+            graph, financial_metrics
+        )
+
+        if report is None:
+            logger.error("Generación de reporte ejecutivo falló.")
+            return None
+
+        # Enriquecimiento con narrativa estratégica
+        strategic_narrative = self.translator.compose_narrative(
+            topo_metrics, financial_metrics
+        )
+
+        # Actualización del reporte (compatible con dataclass mutable)
+        if hasattr(report, 'strategic_narrative'):
+            report.strategic_narrative = strategic_narrative
+
+        # Persistencia de metadatos para serialización y auditoría
+        if hasattr(report, 'details') and isinstance(report.details, dict):
+            euler_char = topo_metrics.beta_0 - topo_metrics.beta_1
+
+            report.details["strategic_narrative"] = strategic_narrative
+            report.details["topological_analysis"] = {
+                "beta_0_components": topo_metrics.beta_0,
+                "beta_1_cycles": topo_metrics.beta_1,
+                "euler_characteristic": euler_char,
+                "is_connected": topo_metrics.beta_0 == 1,
+                "is_acyclic": topo_metrics.beta_1 == 0,
+                "graph_nodes": num_nodes,
+                "graph_edges": num_edges,
+            }
+            report.details["financial_analysis"] = {
+                "initial_investment": initial_investment,
+                "var_95": financial_metrics.get("var", 0.0),
+                "var_percentage": financial_metrics.get("var_metrics", {}).get("var_percentage", 0.0),
+                "npv": financial_metrics.get("performance", {}).get("npv", 0.0),
+                "irr": financial_metrics.get("performance", {}).get("irr"),
+                "recommendation": financial_metrics.get("performance", {}).get("recommendation", "N/A"),
+                "contingency_recommended": financial_metrics.get("contingency", {}).get("recommended", 0.0),
+            }
+            report.details["evaluation_metadata"] = {
+                "cost_std_dev_used": cost_std_dev,
+                "volatility_used": project_volatility,
+                "cash_flows_generated": cash_flows is None,
+            }
+
+        logger.info("✅ Evaluación de negocio completada exitosamente.")
+        logger.info(f"   Resumen: β₀={topo_metrics.beta_0}, β₁={topo_metrics.beta_1}, "
+                    f"Recomendación={financial_metrics.get('performance', {}).get('recommendation', 'N/A')}")
+
+        return report
+
+    except ValueError as ve:
+        logger.error(f"❌ Error de validación: {ve}", exc_info=True)
+        self.telemetry.record_error("business_agent_validation", str(ve))
+        return None
+
+    except KeyError as ke:
+        logger.error(f"❌ Campo requerido no encontrado: {ke}", exc_info=True)
+        self.telemetry.record_error("business_agent_missing_field", str(ke))
+        return None
+
+    except TypeError as te:
+        logger.error(f"❌ Error de tipo en datos: {te}", exc_info=True)
+        self.telemetry.record_error("business_agent_type_error", str(te))
+        return None
+
+    except Exception as e:
+        logger.error(f"❌ Error inesperado en evaluación: {e}", exc_info=True)
+        self.telemetry.record_error("business_agent_unexpected", str(e))
+        return None
+
+
+#### business_topology.py ####
+
+Clase BudgetGraphBuilder
+
+def _sanitize_code(self, value: Any) -> str:
+    """
+    Sanitiza el código o identificador asegurando que sea una cadena limpia.
+
+    Aplica normalización Unicode y elimina caracteres de control.
+
+    Args:
+        value (Any): Valor a sanitizar.
+
+    Returns:
+        str: Cadena sanitizada o vacía si el valor es nulo/inválido.
+    """
+    if value is None or (isinstance(value, float) and pd.isna(value)):
+        return ""
+
+    try:
+        sanitized = str(value).strip()
+        # Eliminar caracteres de control y normalizar espacios
+        sanitized = " ".join(sanitized.split())
+        # Limitar longitud para prevenir problemas de memoria
+        max_length = 500
+        if len(sanitized) > max_length:
+            self.logger.warning(
+                f"Código truncado de {len(sanitized)} a {max_length} caracteres"
+            )
+            sanitized = sanitized[:max_length]
+        return sanitized
+    except Exception as e:
+        self.logger.debug(f"Error sanitizando valor '{value}': {e}")
+        return ""
+
+
+def _safe_float(self, value: Any, default: float = 0.0) -> float:
+    """
+    Convierte un valor a float de manera segura con validación extendida.
+
+    Args:
+        value (Any): Valor a convertir.
+        default (float): Valor por defecto si falla la conversión.
+
+    Returns:
+        float: Valor numérico convertido, garantizado finito.
+    """
+    if value is None:
+        return default
+
+    try:
+        if isinstance(value, (int, float)):
+            result = float(value)
+        elif isinstance(value, str):
+            # Limpiar formato de moneda/separadores
+            cleaned = value.strip().replace(",", "").replace("$", "").replace(" ", "")
+            if not cleaned or cleaned in ("-", ".", "N/A", "n/a", "NA"):
+                return default
+            result = float(cleaned)
+        elif pd.isna(value):
+            return default
+        else:
+            result = float(value)
+
+        # Validar que sea un número finito
+        import math
+        if math.isnan(result) or math.isinf(result):
+            self.logger.debug(f"Valor no finito detectado: {value} -> usando default")
+            return default
+
+        return result
+
+    except (ValueError, TypeError, AttributeError) as e:
+        self.logger.debug(f"Conversión fallida para '{value}': {e}")
+        return default
+
+
+def _create_apu_attributes(
+    self, row: pd.Series, source: str, idx: int, inferred: bool
+) -> Dict[str, Any]:
+    """
+    Crea el diccionario de atributos para un nodo APU.
+
+    Args:
+        row (pd.Series): Fila de datos del APU.
+        source (str): Fuente de los datos ('presupuesto' o 'detail').
+        idx (int): Índice original en el DataFrame.
+        inferred (bool): Indica si el APU fue inferido desde detalles.
+
+    Returns:
+        Dict[str, Any]: Diccionario de atributos del nodo con metadatos completos.
+    """
+    attrs = {
+        "type": "APU",
+        "source": source,
+        "original_index": idx,
+        "inferred": inferred,
+        "created_at": pd.Timestamp.now().isoformat(),
+    }
+
+    if not inferred:
+        descripcion = self._sanitize_code(row.get(ColumnNames.DESCRIPCION_APU))
+        cantidad = self._safe_float(row.get(ColumnNames.CANTIDAD_PRESUPUESTO))
+
+        attrs["description"] = descripcion
+        attrs["quantity"] = cantidad
+
+        # Metadatos adicionales si están disponibles
+        if ColumnNames.UNIDAD in row.index:
+            attrs["unit"] = self._sanitize_code(row.get(ColumnNames.UNIDAD))
+
+        # Flag de completitud
+        attrs["is_complete"] = bool(descripcion and cantidad > 0)
+    else:
+        attrs["description"] = ""
+        attrs["quantity"] = 0.0
+        attrs["is_complete"] = False
+
+    return attrs
+
+
+def _create_insumo_attributes(
+    self, row: pd.Series, insumo_desc: str, source: str, idx: int
+) -> Dict[str, Any]:
+    """
+    Crea el diccionario de atributos para un nodo Insumo.
+
+    Args:
+        row (pd.Series): Fila de datos del insumo.
+        insumo_desc (str): Descripción del insumo.
+        source (str): Fuente de los datos.
+        idx (int): Índice original en el DataFrame.
+
+    Returns:
+        Dict[str, Any]: Diccionario de atributos del nodo con clasificación.
+    """
+    tipo_insumo = self._sanitize_code(row.get(ColumnNames.TIPO_INSUMO))
+    unit_cost = self._safe_float(row.get(ColumnNames.COSTO_INSUMO_EN_APU))
+
+    # Clasificación de tipo de insumo para análisis posterior
+    tipo_normalizado = tipo_insumo.upper() if tipo_insumo else "DESCONOCIDO"
+    categorias_conocidas = {
+        "MATERIAL": ["MATERIAL", "MAT", "MATERIALES"],
+        "MANO_OBRA": ["MANO DE OBRA", "MO", "LABOR", "MANO OBRA"],
+        "EQUIPO": ["EQUIPO", "EQ", "EQUIPOS", "HERRAMIENTA"],
+        "TRANSPORTE": ["TRANSPORTE", "TRANS", "FLETE"],
+        "SUBCONTRATO": ["SUBCONTRATO", "SC", "SUBCONTRATOS"],
+    }
+
+    categoria = "OTRO"
+    for cat, aliases in categorias_conocidas.items():
+        if any(alias in tipo_normalizado for alias in aliases):
+            categoria = cat
+            break
+
+    return {
+        "type": "INSUMO",
+        "description": insumo_desc,
+        "tipo_insumo": tipo_insumo,
+        "tipo_categoria": categoria,
+        "unit_cost": unit_cost,
+        "source": source,
+        "original_index": idx,
+        "is_priced": unit_cost > 0,
+    }
+
+
+def _upsert_edge(
+    self, G: nx.DiGraph, u: str, v: str, unit_cost: float, quantity: float, idx: int
+) -> bool:
+    """
+    Inserta o actualiza una arista acumulando cantidades y costos.
+
+    Implementa semántica de agregación para múltiples ocurrencias
+    del mismo par APU-Insumo, manteniendo trazabilidad.
+
+    Args:
+        G (nx.DiGraph): El grafo dirigido.
+        u (str): Nodo origen (APU).
+        v (str): Nodo destino (Insumo).
+        unit_cost (float): Costo unitario.
+        quantity (float): Cantidad.
+        idx (int): Índice del registro original.
+
+    Returns:
+        bool: True si es una nueva arista, False si se actualizó existente.
+    """
+    # Validación de nodos
+    if not u or not v:
+        self.logger.debug(f"Arista ignorada: nodo vacío (u='{u}', v='{v}')")
+        return False
+
+    # Validar valores numéricos
+    if quantity < 0:
+        self.logger.warning(f"Cantidad negativa detectada ({quantity}) en {u}->{v}")
+        quantity = abs(quantity)
+
+    if unit_cost < 0:
+        self.logger.warning(f"Costo negativo detectado ({unit_cost}) en {u}->{v}")
+        unit_cost = abs(unit_cost)
+
+    total_cost = unit_cost * quantity
+    is_new = False
+
+    if G.has_edge(u, v):
+        edge_data = G[u][v]
+
+        # Acumular valores
+        prev_qty = edge_data.get("quantity", 0.0)
+        prev_total = edge_data.get("total_cost", 0.0)
+        prev_count = edge_data.get("occurrence_count", 1)
+
+        new_qty = prev_qty + quantity
+        new_total = prev_total + total_cost
+
+        # Calcular costo unitario promedio ponderado
+        if new_qty > 0:
+            weighted_avg_cost = new_total / new_qty
+        else:
+            weighted_avg_cost = unit_cost
+
+        # Actualizar atributos
+        G[u][v].update({
+            "quantity": new_qty,
+            "total_cost": new_total,
+            "unit_cost_avg": weighted_avg_cost,
+            "occurrence_count": prev_count + 1,
+        })
+
+        # Mantener historial de índices
+        if "original_indices" in G[u][v]:
+            G[u][v]["original_indices"].append(idx)
+        else:
+            G[u][v]["original_indices"] = [idx]
+
+    else:
+        is_new = True
+        G.add_edge(
+            u,
+            v,
+            quantity=quantity,
+            unit_cost=unit_cost,
+            unit_cost_avg=unit_cost,
+            total_cost=total_cost,
+            occurrence_count=1,
+            original_indices=[idx],
+            is_zero_cost=unit_cost == 0,
+            is_zero_quantity=quantity == 0,
+        )
+
+    return is_new
+
+
+def _compute_graph_statistics(self, G: nx.DiGraph) -> Dict[str, Any]:
+    """
+    Calcula estadísticas comprehensivas del grafo construido.
+
+    Args:
+        G (nx.DiGraph): El grafo construido.
+
+    Returns:
+        Dict[str, Any]: Estadísticas detalladas para diagnóstico.
+    """
+    # Clasificación de nodos por tipo
+    apu_nodes = []
+    insumo_nodes = []
+    insumo_by_category = {}
+
+    for n, data in G.nodes(data=True):
+        node_type = data.get("type")
+        if node_type == "APU":
+            apu_nodes.append(n)
+        elif node_type == "INSUMO":
+            insumo_nodes.append(n)
+            categoria = data.get("tipo_categoria", "OTRO")
+            insumo_by_category[categoria] = insumo_by_category.get(categoria, 0) + 1
+
+    # APUs inferidos vs declarados
+    inferred_apus = [n for n in apu_nodes if G.nodes[n].get("inferred", False)]
+    declared_apus = [n for n in apu_nodes if not G.nodes[n].get("inferred", False)]
+
+    # Análisis de completitud
+    complete_apus = [n for n in apu_nodes if G.nodes[n].get("is_complete", False)]
+    priced_insumos = [n for n in insumo_nodes if G.nodes[n].get("is_priced", False)]
+
+    # Análisis de aristas
+    total_cost = sum(
+        data.get("total_cost", 0) for _, _, data in G.edges(data=True)
+    )
+    zero_cost_edges = sum(
+        1 for _, _, data in G.edges(data=True) if data.get("is_zero_cost", False)
+    )
+
+    return {
+        "apu_count": len(apu_nodes),
+        "apu_declared": len(declared_apus),
+        "apu_inferred": len(inferred_apus),
+        "apu_complete": len(complete_apus),
+        "insumo_count": len(insumo_nodes),
+        "insumo_priced": len(priced_insumos),
+        "insumo_by_category": insumo_by_category,
+        "total_nodes": G.number_of_nodes(),
+        "total_edges": G.number_of_edges(),
+        "total_cost_computed": total_cost,
+        "zero_cost_edges": zero_cost_edges,
+        "data_quality_score": (
+            (len(complete_apus) / max(1, len(apu_nodes))) * 50 +
+            (len(priced_insumos) / max(1, len(insumo_nodes))) * 50
+        ),
+    }
+
+
+def build(
+    self, presupuesto_df: pd.DataFrame, apus_detail_df: pd.DataFrame
+) -> nx.DiGraph:
+    """
+    Construye un grafo dirigido representando la topología del presupuesto.
+
+    El grafo resultante es un complejo simplicial 1-dimensional donde:
+    - Vértices (0-simplices): APUs e Insumos
+    - Aristas (1-simplices): Relaciones de composición APU → Insumo
+
+    Args:
+        presupuesto_df (pd.DataFrame): DataFrame del presupuesto con APUs.
+        apus_detail_df (pd.DataFrame): DataFrame con el detalle de composición.
+
+    Returns:
+        nx.DiGraph: Grafo dirigido bipartito (APU → Insumo).
+
+    Raises:
+        ValueError: Si ambos DataFrames son nulos o vacíos.
+    """
+    G = nx.DiGraph(name="BudgetTopology")
+    G.graph["build_timestamp"] = pd.Timestamp.now().isoformat()
+    G.graph["version"] = "2.1"
+
+    self.logger.info("Iniciando construcción del Grafo de Presupuesto V2.1...")
+
+    # Validación de entrada
+    presupuesto_valid = presupuesto_df is not None and not presupuesto_df.empty
+    detail_valid = apus_detail_df is not None and not apus_detail_df.empty
+
+    if not presupuesto_valid and not detail_valid:
+        self.logger.warning("Ambos DataFrames vacíos. Retornando grafo vacío.")
+        G.graph["status"] = "empty"
+        return G
+
+    # Contadores para diagnóstico
+    stats = {
+        "presupuesto_rows_processed": 0,
+        "presupuesto_rows_skipped": 0,
+        "detail_rows_processed": 0,
+        "detail_rows_skipped": 0,
+        "edges_created": 0,
+        "edges_updated": 0,
+    }
+
+    # ════════════════════════════════════════════════════════════════
+    # FASE 1: Agregar nodos APU desde presupuesto (fuente autoritativa)
+    # ════════════════════════════════════════════════════════════════
+    if presupuesto_valid:
+        self.logger.debug(f"Procesando {len(presupuesto_df)} filas de presupuesto...")
+
+        for idx, row in presupuesto_df.iterrows():
+            apu_code = self._sanitize_code(row.get(ColumnNames.CODIGO_APU))
+
+            if not apu_code:
+                stats["presupuesto_rows_skipped"] += 1
+                continue
+
+            attrs = self._create_apu_attributes(
+                row, source="presupuesto", idx=idx, inferred=False
+            )
+
+            # add_node actualiza atributos si el nodo ya existe
+            if apu_code in G:
+                # Preservar datos existentes, actualizar con nuevos
+                existing = G.nodes[apu_code]
+                existing.update(attrs)
+            else:
+                G.add_node(apu_code, **attrs)
+
+            stats["presupuesto_rows_processed"] += 1
+
+    # ════════════════════════════════════════════════════════════════
+    # FASE 2: Procesar detalle de APUs (relaciones APU → Insumo)
+    # ════════════════════════════════════════════════════════════════
+    if detail_valid:
+        self.logger.debug(f"Procesando {len(apus_detail_df)} filas de detalle...")
+
+        for idx, row in apus_detail_df.iterrows():
+            apu_code = self._sanitize_code(row.get(ColumnNames.CODIGO_APU))
+            insumo_desc = self._sanitize_code(row.get(ColumnNames.DESCRIPCION_INSUMO))
+
+            if not apu_code or not insumo_desc:
+                stats["detail_rows_skipped"] += 1
+                continue
+
+            # Asegurar que el nodo APU existe (inferencia si es necesario)
+            if apu_code not in G:
+                attrs = self._create_apu_attributes(
+                    row, source="detail", idx=idx, inferred=True
+                )
+                G.add_node(apu_code, **attrs)
+                self.logger.debug(f"APU inferido desde detalle: {apu_code}")
+
+            # Asegurar que el nodo Insumo existe
+            # Usando descripción como ID por diseño (consistencia con V1)
+            insumo_id = insumo_desc
+            if insumo_id not in G:
+                attrs = self._create_insumo_attributes(
+                    row, insumo_desc, source="detail", idx=idx
+                )
+                G.add_node(insumo_id, **attrs)
+
+            # Insertar o actualizar arista APU → Insumo
+            qty = self._safe_float(row.get(ColumnNames.CANTIDAD_APU))
+            cost = self._safe_float(row.get(ColumnNames.COSTO_INSUMO_EN_APU))
+
+            is_new = self._upsert_edge(G, apu_code, insumo_id, cost, qty, idx)
+
+            if is_new:
+                stats["edges_created"] += 1
+            else:
+                stats["edges_updated"] += 1
+
+            stats["detail_rows_processed"] += 1
+
+    # ════════════════════════════════════════════════════════════════
+    # FASE 3: Calcular estadísticas y metadatos del grafo
+    # ════════════════════════════════════════════════════════════════
+    graph_stats = self._compute_graph_statistics(G)
+    graph_stats.update(stats)
+
+    G.graph["statistics"] = graph_stats
+    G.graph["status"] = "built"
+
+    self.logger.info(
+        f"Grafo construido: {graph_stats['total_nodes']} nodos "
+        f"({graph_stats['apu_count']} APUs, {graph_stats['insumo_count']} Insumos), "
+        f"{graph_stats['total_edges']} aristas. "
+        f"Calidad: {graph_stats['data_quality_score']:.1f}/100"
+    )
+
+    return G
+
+
+## Clase BusinessTopologicalAnalyzer
+
+def calculate_betti_numbers(self, graph: nx.DiGraph) -> TopologicalMetrics:
+    """
+    Calcula los números de Betti del complejo simplicial 1-dimensional.
+
+    Fundamento topológico algebraico:
+    - El grafo G define un complejo simplicial K donde:
+      - K₀ = vértices (0-simplices)
+      - K₁ = aristas (1-simplices)
+    
+    - Los números de Betti son los rangos de los grupos de homología:
+      - β₀ = rango(H₀) = #componentes conexas
+      - β₁ = rango(H₁) = #ciclos independientes
+    
+    - Para complejos 1D: β₁ = |E| - |V| + β₀ (de χ = β₀ - β₁)
+
+    Args:
+        graph (nx.DiGraph): El grafo dirigido a analizar.
+
+    Returns:
+        TopologicalMetrics: Invariantes topológicos calculados.
+    """
+    # Caso degenerado: espacio vacío
+    if graph is None or graph.number_of_nodes() == 0:
+        self.logger.debug("Grafo vacío: retornando métricas triviales")
+        return TopologicalMetrics(beta_0=0, beta_1=0, euler_characteristic=0)
+
+    # Convertir a grafo no dirigido para análisis topológico
+    # La topología del espacio subyacente ignora orientación
+    # Usamos Graph simple para evitar contar aristas múltiples
+    undirected = graph.to_undirected(as_view=False)
+
+    # Si hay multi-aristas, las colapsamos para el análisis topológico
+    if isinstance(undirected, nx.MultiGraph):
+        undirected = nx.Graph(undirected)
+
+    n_vertices = undirected.number_of_nodes()
+    n_edges = undirected.number_of_edges()
+
+    # ════════════════════════════════════════════════════════════════
+    # β₀: Número de componentes conexas (rango de H₀)
+    # ════════════════════════════════════════════════════════════════
+    # Cada componente conexa contribuye un generador al grupo H₀
+    beta_0 = nx.number_connected_components(undirected)
+
+    # ════════════════════════════════════════════════════════════════
+    # β₁: Número de ciclos independientes (rango de H₁)
+    # ════════════════════════════════════════════════════════════════
+    # De la característica de Euler-Poincaré para complejos 1D:
+    #   χ = |V| - |E| = β₀ - β₁
+    # Despejando:
+    #   β₁ = β₀ - |V| + |E| = β₀ + |E| - |V|
+    # 
+    # Interpretación: β₁ cuenta los "agujeros" 1-dimensionales
+    # Equivalente al número ciclomático para grafos conexos
+    beta_1 = beta_0 + n_edges - n_vertices
+
+    # Validación: β₁ ≥ 0 siempre (invariante topológico)
+    if beta_1 < 0:
+        self.logger.error(
+            f"Error matemático: β₁ negativo ({beta_1}). "
+            f"V={n_vertices}, E={n_edges}, β₀={beta_0}. Forzando a 0."
+        )
+        beta_1 = 0
+
+    # ════════════════════════════════════════════════════════════════
+    # χ: Característica de Euler (invariante topológico fundamental)
+    # ════════════════════════════════════════════════════════════════
+    euler_characteristic = beta_0 - beta_1
+
+    # Verificación de consistencia: χ = V - E para complejos 1D
+    expected_euler = n_vertices - n_edges
+    if euler_characteristic != expected_euler:
+        self.logger.warning(
+            f"Inconsistencia en Euler: calculado={euler_characteristic}, "
+            f"esperado (V-E)={expected_euler}"
+        )
+
+    metrics = TopologicalMetrics(
+        beta_0=beta_0,
+        beta_1=beta_1,
+        euler_characteristic=euler_characteristic
+    )
+
+    self.logger.debug(
+        f"Métricas topológicas: β₀={beta_0}, β₁={beta_1}, χ={euler_characteristic} "
+        f"(V={n_vertices}, E={n_edges})"
+    )
+
+    return metrics
+
+
+def _detect_cycles(self, graph: nx.DiGraph) -> Tuple[List[str], bool, List[List[str]]]:
+    """
+    Detecta ciclos en el grafo con análisis de criticidad.
+
+    Los ciclos en un grafo de presupuesto indican:
+    - Dependencias circulares en precios unitarios
+    - Posibles errores de cálculo recursivo
+    - Complejidad estructural que dificulta auditoría
+
+    Args:
+        graph (nx.DiGraph): Grafo a analizar.
+
+    Returns:
+        Tuple[List[str], bool, List[List[str]]]: 
+            - Lista de ciclos formateados (strings)
+            - Flag indicando si se truncó la lista
+            - Lista de ciclos raw (listas de nodos)
+    """
+    cycles_formatted = []
+    cycles_raw = []
+    truncated = False
+
+    if graph is None or graph.number_of_nodes() == 0:
+        return cycles_formatted, truncated, cycles_raw
+
+    try:
+        # Detectar ciclos simples (sin repetición de nodos excepto inicio/fin)
+        all_cycles = list(nx.simple_cycles(graph))
+
+        if len(all_cycles) > self.max_cycles:
+            truncated = True
+            self.logger.warning(
+                f"Detectados {len(all_cycles)} ciclos, truncando a {self.max_cycles}"
+            )
+            all_cycles = all_cycles[:self.max_cycles]
+
+        # Ordenar por longitud (ciclos más cortos son más críticos)
+        all_cycles.sort(key=len)
+
+        for cycle in all_cycles:
+            cycles_raw.append(cycle)
+
+            # Formatear para visualización: cerrar el ciclo
+            cycle_display = cycle + [cycle[0]] if cycle else []
+
+            # Enriquecer con tipos de nodo
+            formatted_parts = []
+            for node in cycle_display:
+                node_type = graph.nodes.get(node, {}).get("type", "?")
+                type_indicator = "📦" if node_type == "APU" else "🔧" if node_type == "INSUMO" else "❓"
+                formatted_parts.append(f"{type_indicator}{node}")
+
+            cycles_formatted.append(" → ".join(formatted_parts))
+
+    except nx.NetworkXError as e:
+        self.logger.error(f"Error de NetworkX detectando ciclos: {e}")
+    except Exception as e:
+        self.logger.error(f"Error inesperado detectando ciclos: {e}", exc_info=True)
+
+    return cycles_formatted, truncated, cycles_raw
+
+
+def _classify_anomalous_nodes(
+    self, graph: nx.DiGraph
+) -> Dict[str, List[Dict[str, Any]]]:
+    """
+    Clasifica nodos en categorías anómalas con diagnóstico enriquecido.
+
+    Categorías de anomalía:
+    - Aislados: Sin conexiones (grado total = 0)
+    - Huérfanos: Insumos sin APU que los consuma
+    - Vacíos: APUs sin insumos asignados
+    - Sumideros: Nodos con solo entradas (sin salidas)
+    - Fuentes puras: Nodos con solo salidas (sin entradas)
+
+    Args:
+        graph (nx.DiGraph): Grafo a analizar.
+
+    Returns:
+        Dict[str, List[Dict[str, Any]]]: Diccionario categorizado de anomalías.
+    """
+    result = {
+        "isolated_nodes": [],
+        "orphan_insumos": [],
+        "empty_apus": [],
+        "sink_nodes": [],
+        "source_nodes": [],
+    }
+
+    if graph is None or graph.number_of_nodes() == 0:
+        return result
+
+    in_degrees = dict(graph.in_degree())
+    out_degrees = dict(graph.out_degree())
+
+    for node, data in graph.nodes(data=True):
+        in_deg = in_degrees.get(node, 0)
+        out_deg = out_degrees.get(node, 0)
+        total_deg = in_deg + out_deg
+        node_type = data.get("type", "UNKNOWN")
+
+        node_info = {
+            "id": node,
+            "type": node_type,
+            "description": data.get("description", "")[:100],  # Truncar descripciones largas
+            "inferred": data.get("inferred", False),
+            "in_degree": in_deg,
+            "out_degree": out_deg,
+            "source": data.get("source", "unknown"),
+        }
+
+        # Clasificación mutuamente excluyente por prioridad
+        is_isolated = total_deg == 0
+
+        if is_isolated:
+            result["isolated_nodes"].append(node_info)
+            # Los aislados también pueden clasificarse secundariamente
+            if node_type == "INSUMO":
+                result["orphan_insumos"].append(node_info)
+            elif node_type == "APU":
+                result["empty_apus"].append(node_info)
+        else:
+            # Análisis de nodos no aislados
+            if node_type == "INSUMO" and in_deg == 0:
+                # Insumo que existe pero ningún APU lo referencia
+                result["orphan_insumos"].append(node_info)
+
+            if node_type == "APU" and out_deg == 0:
+                # APU sin insumos asignados
+                result["empty_apus"].append(node_info)
+
+            # Clasificación topológica adicional
+            if in_deg == 0 and out_deg > 0:
+                result["source_nodes"].append(node_info)
+
+            if out_deg == 0 and in_deg > 0:
+                result["sink_nodes"].append(node_info)
+
+    # Ordenar por relevancia (inferred primero, luego alfabético)
+    for key in result:
+        result[key].sort(key=lambda x: (not x["inferred"], x["id"]))
+
+    return result
+
+
+def _identify_critical_resources(
+    self, graph: nx.DiGraph, top_n: int = 10
+) -> List[Dict[str, Any]]:
+    """
+    Identifica recursos críticos basado en centralidad topológica.
+
+    Un recurso es crítico si:
+    - Alto grado de entrada (muchos APUs lo usan)
+    - Alto costo total acumulado
+    - Pertenece a categoría crítica (ej. materiales estructurales)
+
+    Args:
+        graph (nx.DiGraph): Grafo a analizar.
+        top_n (int): Número de recursos top a retornar.
+
+    Returns:
+        List[Dict[str, Any]]: Lista de recursos críticos con métricas.
+    """
+    resources = []
+
+    if graph is None or graph.number_of_nodes() == 0:
+        return resources
+
+    for node, data in graph.nodes(data=True):
+        if data.get("type") != "INSUMO":
+            continue
+
+        in_degree = graph.in_degree(node)
+        if in_degree == 0:
+            continue  # Ignorar recursos no utilizados
+
+        # Calcular costo total acumulado desde aristas entrantes
+        total_cost = 0.0
+        total_quantity = 0.0
+        apu_consumers = []
+
+        for pred in graph.predecessors(node):
+            edge_data = graph[pred][node]
+            total_cost += edge_data.get("total_cost", 0.0)
+            total_quantity += edge_data.get("quantity", 0.0)
+            apu_consumers.append(pred)
+
+        # Score compuesto de criticidad
+        # Normalizado: in_degree tiene peso 1, costo tiene peso variable
+        criticality_score = in_degree + (total_cost / 10000) if total_cost > 0 else in_degree
+
+        resources.append({
+            "id": node,
+            "description": data.get("description", "")[:80],
+            "tipo_insumo": data.get("tipo_insumo", "N/A"),
+            "tipo_categoria": data.get("tipo_categoria", "OTRO"),
+            "in_degree": in_degree,
+            "total_cost": total_cost,
+            "total_quantity": total_quantity,
+            "unit_cost": data.get("unit_cost", 0.0),
+            "apu_consumers": apu_consumers[:5],  # Top 5 consumidores
+            "criticality_score": criticality_score,
+        })
+
+    # Ordenar por score de criticidad descendente
+    resources.sort(key=lambda x: x["criticality_score"], reverse=True)
+
+    return resources[:top_n]
+
+
+def _compute_connectivity_analysis(self, graph: nx.DiGraph) -> Dict[str, Any]:
+    """
+    Calcula métricas de conectividad y análisis de componentes.
+
+    Args:
+        graph (nx.DiGraph): Grafo a analizar.
+
+    Returns:
+        Dict[str, Any]: Resultados comprehensivos de conectividad.
+    """
+    if graph is None or graph.number_of_nodes() == 0:
+        return {
+            "is_dag": True,
+            "is_weakly_connected": False,
+            "is_strongly_connected": False,
+            "num_weakly_connected_components": 0,
+            "num_strongly_connected_components": 0,
+            "num_non_trivial_scc": 0,
+            "largest_wcc_size": 0,
+            "largest_scc_size": 0,
+            "non_trivial_scc": [],
+            "connectivity_ratio": 0.0,
+        }
+
+    # Componentes débilmente conexas (ignoran dirección)
+    wcc = list(nx.weakly_connected_components(graph))
+    num_wcc = len(wcc)
+    largest_wcc_size = max(len(c) for c in wcc) if wcc else 0
+
+    # Componentes fuertemente conexas (respetan dirección)
+    scc = list(nx.strongly_connected_components(graph))
+    num_scc = len(scc)
+    largest_scc_size = max(len(c) for c in scc) if scc else 0
+
+    # SCC no triviales (más de 1 nodo = contienen ciclos)
+    non_trivial_scc = [list(c) for c in scc if len(c) > 1]
+
+    # Ratio de conectividad: qué fracción del grafo está en la componente más grande
+    total_nodes = graph.number_of_nodes()
+    connectivity_ratio = largest_wcc_size / total_nodes if total_nodes > 0 else 0.0
+
+    return {
+        "is_dag": nx.is_directed_acyclic_graph(graph),
+        "is_weakly_connected": nx.is_weakly_connected(graph),
+        "is_strongly_connected": nx.is_strongly_connected(graph) if total_nodes > 0 else False,
+        "num_weakly_connected_components": num_wcc,
+        "num_strongly_connected_components": num_scc,
+        "num_non_trivial_scc": len(non_trivial_scc),
+        "largest_wcc_size": largest_wcc_size,
+        "largest_scc_size": largest_scc_size,
+        "non_trivial_scc": non_trivial_scc[:10],  # Limitar para serialización
+        "connectivity_ratio": connectivity_ratio,
+    }
+
+
+def _interpret_topology(self, metrics: TopologicalMetrics) -> Dict[str, str]:
+    """
+    Genera interpretaciones de negocio para métricas topológicas.
+
+    Traduce invariantes algebraicos a lenguaje de gestión de proyectos.
+
+    Args:
+        metrics (TopologicalMetrics): Métricas a interpretar.
+
+    Returns:
+        Dict[str, str]: Interpretaciones categorizadas.
+    """
+    interpretations = {}
+
+    # ════════════════════════════════════════════════════════════════
+    # Interpretación de β₀ (Componentes Conexas)
+    # ════════════════════════════════════════════════════════════════
+    if metrics.beta_0 == 0:
+        interpretations["beta_0"] = (
+            "⚠️ CRÍTICO: Presupuesto vacío o sin estructura. "
+            "No hay partidas ni recursos definidos."
+        )
+        interpretations["beta_0_action"] = "Verificar integridad de datos de entrada."
+    elif metrics.beta_0 == 1:
+        interpretations["beta_0"] = (
+            "✅ ÓPTIMO: Presupuesto completamente integrado (espacio conexo). "
+            "Todas las partidas y recursos están interrelacionados."
+        )
+        interpretations["beta_0_action"] = "Ninguna acción requerida."
+    elif metrics.beta_0 <= 3:
+        interpretations["beta_0"] = (
+            f"⚠️ ATENCIÓN: Presupuesto fragmentado en {metrics.beta_0} secciones independientes. "
+            "Posibles partidas sin recursos asignados o recursos huérfanos."
+        )
+        interpretations["beta_0_action"] = "Revisar asignación de recursos a todas las partidas."
+    else:
+        interpretations["beta_0"] = (
+            f"🔴 CRÍTICO: Alta fragmentación ({metrics.beta_0} componentes). "
+            "Indica problemas graves de integración en el presupuesto."
+        )
+        interpretations["beta_0_action"] = "Auditoría completa de estructura presupuestaria requerida."
+
+    # ════════════════════════════════════════════════════════════════
+    # Interpretación de β₁ (Ciclos Independientes)
+    # ════════════════════════════════════════════════════════════════
+    if metrics.beta_1 == 0:
+        interpretations["beta_1"] = (
+            "✅ ÓPTIMO: Estructura acíclica (árbol/bosque). "
+            "No hay referencias circulares en precios unitarios."
+        )
+        interpretations["beta_1_action"] = "Ninguna acción requerida."
+    elif metrics.beta_1 <= 2:
+        interpretations["beta_1"] = (
+            f"⚠️ ATENCIÓN: {metrics.beta_1} ciclo(s) detectado(s). "
+            "Posibles dependencias circulares o redundancias en estructura de costos."
+        )
+        interpretations["beta_1_action"] = "Revisar APUs involucrados en ciclos para eliminar redundancias."
+    else:
+        interpretations["beta_1"] = (
+            f"🔴 CRÍTICO: {metrics.beta_1} ciclos independientes. "
+            "Alta complejidad estructural que dificulta auditoría y puede causar errores de cálculo."
+        )
+        interpretations["beta_1_action"] = "Reestructurar urgentemente la composición de precios unitarios."
+
+    # ════════════════════════════════════════════════════════════════
+    # Interpretación de χ (Característica de Euler)
+    # ════════════════════════════════════════════════════════════════
+    chi = metrics.euler_characteristic
+
+    if chi > 0:
+        interpretations["euler"] = (
+            f"χ = {chi}: Topología dominada por fragmentación sobre ciclos. "
+            "Estructura tipo 'bosque' (múltiples árboles desconectados)."
+        )
+    elif chi == 0:
+        interpretations["euler"] = (
+            f"χ = {chi}: Balance entre componentes y ciclos. "
+            "Cada componente conexa tiene exactamente un ciclo en promedio."
+        )
+    else:
+        interpretations["euler"] = (
+            f"χ = {chi}: Topología dominada por ciclos. "
+            "Estructura altamente interconectada con múltiples bucles."
+        )
+
+    # Síntesis ejecutiva
+    if metrics.is_simply_connected:
+        interpretations["summary"] = (
+            "📊 RESUMEN: Topología ideal (conexa y acíclica). "
+            "El presupuesto tiene estructura óptima para auditoría y control."
+        )
+    elif metrics.is_connected:
+        interpretations["summary"] = (
+            "📊 RESUMEN: Presupuesto integrado pero con complejidad cíclica. "
+            "Requiere revisión de dependencias circulares."
+        )
+    else:
+        interpretations["summary"] = (
+            "📊 RESUMEN: Presupuesto fragmentado. "
+            "Priorizar integración antes de abordar ciclos."
+        )
+
+    return interpretations
+
+
+def generate_executive_report(
+    self, graph: nx.DiGraph, financial_metrics: Optional[Dict[str, Any]] = None
+) -> ConstructionRiskReport:
+    """
+    Genera reporte ejecutivo integrando análisis topológico y financiero.
+
+    El score de integridad se calcula como:
+    - Base: 100 puntos
+    - Penalizaciones:
+      - Ciclos (β₁ > 0): -20 puntos por ciclo (max -50)
+      - Nodos aislados: -2 puntos cada uno (max -30)
+      - Insumos huérfanos: -1 punto cada uno (max -15)
+      - APUs vacíos: -3 puntos cada uno (max -20)
+      - Fragmentación (β₀ > 1): -5 puntos por componente extra (max -25)
+
+    Args:
+        graph (nx.DiGraph): Grafo a reportar.
+        financial_metrics (Optional[Dict[str, Any]]): Métricas financieras.
+
+    Returns:
+        ConstructionRiskReport: Reporte estructurado con diagnóstico completo.
+    """
+    # Calcular todas las métricas necesarias
+    metrics = self.calculate_betti_numbers(graph)
+    cycles_formatted, cycles_truncated, cycles_raw = self._detect_cycles(graph)
+    anomalies = self._classify_anomalous_nodes(graph)
+    critical_resources = self._identify_critical_resources(graph)
+    connectivity = self._compute_connectivity_analysis(graph)
+    interpretation = self._interpret_topology(metrics)
+
+    # ════════════════════════════════════════════════════════════════
+    # CÁLCULO DE SCORE DE INTEGRIDAD ESTRUCTURAL
+    # ════════════════════════════════════════════════════════════════
+    integrity_score = 100.0
+    penalty_breakdown = {}
+
+    # Penalización por ciclos (crítico)
+    if metrics.beta_1 > 0:
+        cycle_penalty = min(50, metrics.beta_1 * 20)
+        integrity_score -= cycle_penalty
+        penalty_breakdown["cycles"] = -cycle_penalty
+
+    # Penalización por fragmentación
+    if metrics.beta_0 > 1:
+        frag_penalty = min(25, (metrics.beta_0 - 1) * 5)
+        integrity_score -= frag_penalty
+        penalty_breakdown["fragmentation"] = -frag_penalty
+
+    # Penalización por nodos aislados
+    isolated_count = len(anomalies.get("isolated_nodes", []))
+    if isolated_count > 0:
+        iso_penalty = min(30, isolated_count * 2)
+        integrity_score -= iso_penalty
+        penalty_breakdown["isolated_nodes"] = -iso_penalty
+
+    # Penalización por insumos huérfanos
+    orphan_count = len(anomalies.get("orphan_insumos", []))
+    if orphan_count > 0:
+        orphan_penalty = min(15, orphan_count)
+        integrity_score -= orphan_penalty
+        penalty_breakdown["orphan_insumos"] = -orphan_penalty
+
+    # Penalización por APUs vacíos
+    empty_count = len(anomalies.get("empty_apus", []))
+    if empty_count > 0:
+        empty_penalty = min(20, empty_count * 3)
+        integrity_score -= empty_penalty
+        penalty_breakdown["empty_apus"] = -empty_penalty
+
+    integrity_score = max(0.0, integrity_score)
+
+    # ════════════════════════════════════════════════════════════════
+    # DETERMINACIÓN DE NIVEL DE COMPLEJIDAD
+    # ════════════════════════════════════════════════════════════════
+    density = nx.density(graph) if graph.number_of_nodes() > 0 else 0.0
+
+    if metrics.beta_1 > 2:
+        complexity = "Crítica"
+    elif metrics.beta_1 > 0:
+        complexity = "Alta"
+    elif density > 0.15:
+        complexity = "Alta"
+    elif density > 0.08:
+        complexity = "Media"
+    elif density > 0.03:
+        complexity = "Baja"
+    else:
+        complexity = "Mínima"
+
+    # ════════════════════════════════════════════════════════════════
+    # GENERACIÓN DE ALERTAS
+    # ════════════════════════════════════════════════════════════════
+    waste_alerts = []
+    circular_risks = []
+
+    # Alertas de desperdicio
+    if isolated_count > 0:
+        waste_alerts.append(
+            f"⚠️ {isolated_count} recurso(s) definido(s) pero sin uso en ninguna partida."
+        )
+
+    if orphan_count > isolated_count:  # Evitar duplicar aislados
+        extra_orphans = orphan_count - isolated_count
+        if extra_orphans > 0:
+            waste_alerts.append(
+                f"⚠️ {extra_orphans} insumo(s) referenciado(s) pero sin APU asignado."
+            )
+
+    if empty_count > 0:
+        waste_alerts.append(
+            f"⚠️ {empty_count} APU(s) sin insumos asignados (partidas vacías)."
+        )
+
+    # Alertas de riesgo circular
+    if metrics.beta_1 > 0:
+        circular_risks.append(
+            f"🔴 CRÍTICO: {metrics.beta_1} ciclo(s) de referencia circular detectado(s)."
+        )
+        if len(cycles_formatted) > 0:
+            circular_risks.append(
+                f"   Ejemplo: {cycles_formatted[0][:80]}{'...' if len(cycles_formatted[0]) > 80 else ''}"
+            )
+        if cycles_truncated:
+            circular_risks.append(
+                f"   (Lista truncada: >{self.max_cycles} ciclos detectados)"
+            )
+
+    # ════════════════════════════════════════════════════════════════
+    # ANÁLISIS DE RIESGO FINANCIERO
+    # ════════════════════════════════════════════════════════════════
+    financial_risk = None
+
+    if financial_metrics:
+        # Extraer métricas clave
+        var_pct = financial_metrics.get("var_metrics", {}).get("var_percentage", 0.0)
+        performance = financial_metrics.get("performance", {})
+        recommendation = performance.get("recommendation", "")
+        npv = performance.get("npv", 0.0)
+        irr = performance.get("irr")
+
+        # Determinar nivel de riesgo financiero
+        if recommendation == "RECHAZAR" or (irr is not None and irr < 0):
+            financial_risk = "CRÍTICO"
+        elif var_pct > 0.25 or recommendation == "REVISAR":
+            financial_risk = "ALTO"
+        elif var_pct > 0.15:
+            financial_risk = "MEDIO"
+        elif var_pct > 0.08:
+            financial_risk = "BAJO"
+        else:
+            financial_risk = "MÍNIMO"
+
+        # Combinación de riesgos: topológico + financiero
+        if metrics.beta_1 > 0 and financial_risk in ("ALTO", "CRÍTICO"):
+            financial_risk = "CATASTRÓFICO"
+            circular_risks.append(
+                "💀 ALERTA MÁXIMA: Riesgo estructural Y financiero convergente."
+            )
+
+    # ════════════════════════════════════════════════════════════════
+    # CONSTRUCCIÓN DEL REPORTE
+    # ════════════════════════════════════════════════════════════════
+    details = {
+        "metrics": {
+            "beta_0": metrics.beta_0,
+            "beta_1": metrics.beta_1,
+            "euler_characteristic": metrics.euler_characteristic,
+            "is_connected": metrics.is_connected,
+            "is_simply_connected": metrics.is_simply_connected,
+        },
+        "interpretation": interpretation,
+        "cycles": {
+            "count": len(cycles_formatted),
+            "truncated": cycles_truncated,
+            "list": cycles_formatted[:10],  # Limitar para serialización
+        },
+        "anomalies": {
+            "isolated_count": isolated_count,
+            "orphan_count": orphan_count,
+            "empty_apus_count": empty_count,
+            "source_nodes_count": len(anomalies.get("source_nodes", [])),
+            "sink_nodes_count": len(anomalies.get("sink_nodes", [])),
+            "details": {k: v[:5] for k, v in anomalies.items()},  # Top 5 de cada categoría
+        },
+        "critical_resources": critical_resources[:5],
+        "connectivity": connectivity,
+        "graph_summary": {
+            "nodes": graph.number_of_nodes(),
+            "edges": graph.number_of_edges(),
+            "density": density,
+        },
+        "scoring": {
+            "base": 100.0,
+            "penalties": penalty_breakdown,
+            "final": integrity_score,
+        },
+        "financial_metrics_input": financial_metrics or {},
+    }
+
+    return ConstructionRiskReport(
+        integrity_score=round(integrity_score, 2),
+        waste_alerts=waste_alerts,
+        circular_risks=circular_risks,
+        complexity_level=complexity,
+        financial_risk_level=financial_risk,
+        details=details,
+        strategic_narrative=None,  # Se llena desde BusinessAgent
+    )
+
+
+def analyze_structural_integrity(self, graph: nx.DiGraph) -> Dict[str, Any]:
+    """
+    Ejecuta análisis estructural completo con telemetría.
+
+    Orquesta todos los análisis parciales y genera métricas
+    para dashboards y sistemas de monitoreo.
+
+    Args:
+        graph (nx.DiGraph): Grafo a analizar.
+
+    Returns:
+        Dict[str, Any]: Resultados completos con métricas planas para telemetría.
+    """
+    # Generar reporte ejecutivo (incluye todos los análisis)
+    exec_report = self.generate_executive_report(graph)
+    metrics_dict = exec_report.details.get("metrics", {})
+    anomalies = exec_report.details.get("anomalies", {})
+    cycles_info = exec_report.details.get("cycles", {})
+    connectivity = exec_report.details.get("connectivity", {})
+    graph_summary = exec_report.details.get("graph_summary", {})
+    interpretation = exec_report.details.get("interpretation", {})
+
+    # Estructura detallada para consumidores avanzados
+    details = {
+        "topology": {
+            "betti_numbers": metrics_dict,
+            "interpretation": interpretation,
+        },
+        "cycles": cycles_info,
+        "connectivity": connectivity,
+        "anomalies": anomalies,
+        "critical_resources": exec_report.details.get("critical_resources", []),
+        "graph_summary": graph_summary,
+        "executive_report": {
+            "integrity_score": exec_report.integrity_score,
+            "complexity_level": exec_report.complexity_level,
+            "waste_alerts": exec_report.waste_alerts,
+            "circular_risks": exec_report.circular_risks,
+            "financial_risk_level": exec_report.financial_risk_level,
+            "scoring": exec_report.details.get("scoring", {}),
+        },
+    }
+
+    # Métricas planas para telemetría y dashboards
+    flat_metrics = {
+        # Topología
+        "business.betti_b0": metrics_dict.get("beta_0", 0),
+        "business.betti_b1": metrics_dict.get("beta_1", 0),
+        "business.euler_characteristic": metrics_dict.get("euler_characteristic", 0),
+        "business.is_connected": 1 if metrics_dict.get("is_connected") else 0,
+        "business.is_simply_connected": 1 if metrics_dict.get("is_simply_connected") else 0,
+        # Ciclos
+        "business.cycles_count": cycles_info.get("count", 0),
+        "business.cycles_truncated": 1 if cycles_info.get("truncated") else 0,
+        # Conectividad
+        "business.is_dag": 1 if connectivity.get("is_dag") else 0,
+        "business.num_wcc": connectivity.get("num_weakly_connected_components", 0),
+        "business.num_scc": connectivity.get("num_strongly_connected_components", 0),
+        "business.connectivity_ratio": connectivity.get("connectivity_ratio", 0.0),
+        # Anomalías
+        "business.isolated_count": anomalies.get("isolated_count", 0),
+        "business.orphan_insumos_count": anomalies.get("orphan_count", 0),
+        "business.empty_apus_count": anomalies.get("empty_apus_count", 0),
+        # Grafo
+        "business.node_count": graph_summary.get("nodes", 0),
+        "business.edge_count": graph_summary.get("edges", 0),
+        "business.density": graph_summary.get("density", 0.0),
+        # Scoring
+        "business.integrity_score": exec_report.integrity_score,
+    }
+
+    # Emitir telemetría
+    if self.telemetry:
+        for key, value in flat_metrics.items():
+            if isinstance(value, (int, float)):
+                try:
+                    self.telemetry.record_metric(key, value)
+                except Exception as e:
+                    self.logger.debug(f"Error registrando métrica {key}: {e}")
+
+    # Resultado combinado
+    return {
+        **flat_metrics,
+        "details": details,
+    }
+
+
+def get_audit_report(self, analysis_result_or_graph: Any) -> List[str]:
+    """
+    Genera reporte de auditoría en formato ASCII profesional.
+
+    Soporta múltiples formatos de entrada para compatibilidad:
+    - nx.DiGraph: Genera análisis completo
+    - Dict con 'details': Usa reporte ejecutivo existente
+    - Dict con 'metrics': Formato legacy V1
+
+    Args:
+        analysis_result_or_graph: Grafo o resultado de análisis previo.
+
+    Returns:
+        List[str]: Líneas del reporte formateado para consola/logs.
+    """
+    exec_report = None
+    metrics_dict = {}
+    anomalies = {}
+    cycles_list = []
+    density = 0.0
+    interpretation = {}
+    critical_resources = []
+
+    # ════════════════════════════════════════════════════════════════
+    # NORMALIZACIÓN DE ENTRADA
+    # ════════════════════════════════════════════════════════════════
+    if isinstance(analysis_result_or_graph, nx.DiGraph):
+        # Entrada es grafo: generar análisis completo
+        exec_report = self.generate_executive_report(analysis_result_or_graph)
+        details = exec_report.details
+        metrics_dict = details.get("metrics", {})
+        anomalies = details.get("anomalies", {})
+        cycles_list = details.get("cycles", {}).get("list", [])
+        density = details.get("graph_summary", {}).get("density", 0.0)
+        interpretation = details.get("interpretation", {})
+        critical_resources = details.get("critical_resources", [])
+
+    elif isinstance(analysis_result_or_graph, dict):
+        if "details" in analysis_result_or_graph:
+            # Formato V2: resultado de analyze_structural_integrity
+            details = analysis_result_or_graph.get("details", {})
+            er = details.get("executive_report", {})
+
+            exec_report = ConstructionRiskReport(
+                integrity_score=er.get("integrity_score", 0.0),
+                waste_alerts=er.get("waste_alerts", []),
+                circular_risks=er.get("circular_risks", []),
+                complexity_level=er.get("complexity_level", "Desconocida"),
+                financial_risk_level=er.get("financial_risk_level"),
+                details=details,
+            )
+            metrics_dict = details.get("topology", {}).get("betti_numbers", {})
+            anomalies = details.get("anomalies", {})
+            cycles_list = details.get("cycles", {}).get("list", [])
+            density = details.get("graph_summary", {}).get("density", 0.0)
+            interpretation = details.get("topology", {}).get("interpretation", {})
+            critical_resources = details.get("critical_resources", [])
+
+        elif "metrics" in analysis_result_or_graph:
+            # Formato legacy V1
+            m = analysis_result_or_graph["metrics"]
+            a = analysis_result_or_graph.get("anomalies", {})
+
+            beta_0 = m.get("beta_0", 1)
+            beta_1 = m.get("beta_1", 0)
+            cycles_list = a.get("cycles", [])
+            isolated_count = a.get("isolates_count", 0)
+
+            # Reconstruir score
+            integrity_score = 100.0
+            if beta_1 > 0:
+                integrity_score -= min(50, beta_1 * 20)
+            if isolated_count > 0:
+                integrity_score -= min(30, isolated_count * 2)
+
+            exec_report = ConstructionRiskReport(
+                integrity_score=max(0, integrity_score),
+                waste_alerts=[f"⚠️ {isolated_count} recursos no utilizados"] if isolated_count > 0 else [],
+                circular_risks=[f"🔴 {beta_1} ciclos detectados"] if beta_1 > 0 else [],
+                complexity_level="Alta" if beta_1 > 0 else "Normal",
+                details={},
+            )
+            metrics_dict = m
+            anomalies = {
+                "isolated_count": isolated_count,
+                "orphan_count": a.get("orphan_insumos_count", 0),
+                "empty_apus_count": a.get("empty_apus_count", 0),
+            }
+            density = m.get("density", 0.0)
+        else:
+            return ["❌ Error: Formato de análisis no reconocido."]
+    else:
+        return ["❌ Error: Tipo de entrada no soportado."]
+
+    if exec_report is None:
+        return ["❌ Error: No se pudo generar el reporte ejecutivo."]
+
+    # ════════════════════════════════════════════════════════════════
+    # GENERACIÓN DEL REPORTE ASCII
+    # ════════════════════════════════════════════════════════════════
+    width = 60
+    lines = []
+
+    # Función helper para centrar texto
+    def center(text: str, w: int = width - 4) -> str:
+        return text.center(w)
+
+    # Función helper para línea con bordes
+    def bordered(text: str, prefix: str = "│ ", suffix: str = " │") -> str:
+        available = width - len(prefix) - len(suffix)
+        return f"{prefix}{text:<{available}}{suffix}"
+
+    # Determinar emoji de estado
+    if exec_report.integrity_score >= 80:
+        status_emoji = "✅"
+        status_text = "SALUDABLE"
+    elif exec_report.integrity_score >= 50:
+        status_emoji = "⚠️"
+        status_text = "REQUIERE ATENCIÓN"
+    else:
+        status_emoji = "🔴"
+        status_text = "CRÍTICO"
+
+    # Header
+    lines.append("┌" + "─" * (width - 2) + "┐")
+    lines.append(bordered(center("AUDITORÍA ESTRUCTURAL DEL PRESUPUESTO")))
+    lines.append(bordered(center(f"{status_emoji} Estado: {status_text}")))
+    lines.append("├" + "─" * (width - 2) + "┤")
+
+    # Score de integridad
+    score = exec_report.integrity_score
+    bar_length = 30
+    filled = int((score / 100) * bar_length)
+    bar = "█" * filled + "░" * (bar_length - filled)
+    lines.append(bordered(f"INTEGRIDAD: [{bar}] {score:.1f}/100"))
+    lines.append(bordered(f"Complejidad: {exec_report.complexity_level}"))
+
+    if exec_report.financial_risk_level:
+        lines.append(bordered(f"Riesgo Financiero: {exec_report.financial_risk_level}"))
+
+    # Métricas topológicas
+    lines.append("├" + "─" * (width - 2) + "┤")
+    lines.append(bordered("📊 MÉTRICAS TOPOLÓGICAS"))
+    lines.append(bordered(f"   β₀ (Componentes): {metrics_dict.get('beta_0', 'N/A')}"))
+    lines.append(bordered(f"   β₁ (Ciclos):      {metrics_dict.get('beta_1', 'N/A')}"))
+    lines.append(bordered(f"   χ  (Euler):       {metrics_dict.get('euler_characteristic', 'N/A')}"))
+    lines.append(bordered(f"   Densidad:         {density:.4f}"))
+
+    # Diagnóstico
+    if interpretation:
+        lines.append("├" + "─" * (width - 2) + "┤")
+        lines.append(bordered("🔍 DIAGNÓSTICO"))
+        for key in ["beta_0", "beta_1"]:
+            if key in interpretation:
+                # Wrap texto largo
+                text = interpretation[key]
+                wrapped = textwrap.wrap(text, width=width - 8)
+                for line in wrapped:
+                    lines.append(bordered(f"   {line}"))
+
+    # Riesgos circulares
+    if exec_report.circular_risks:
+        lines.append("├" + "─" * (width - 2) + "┤")
+        lines.append(bordered("🔴 ERRORES CRÍTICOS"))
+        for risk in exec_report.circular_risks[:3]:
+            wrapped = textwrap.wrap(risk, width=width - 8)
+            for line in wrapped:
+                lines.append(bordered(f"   {line}"))
+
+        # Mostrar primeros ciclos
+        for i, cycle in enumerate(cycles_list[:3]):
+            cycle_short = cycle if len(cycle) <= 45 else cycle[:42] + "..."
+            lines.append(bordered(f"   {i+1}. {cycle_short}"))
+
+    # Alertas de desperdicio
+    if exec_report.waste_alerts:
+        lines.append("├" + "─" * (width - 2) + "┤")
+        lines.append(bordered("⚠️ ALERTAS DE DESPERDICIO"))
+        for alert in exec_report.waste_alerts[:5]:
+            wrapped = textwrap.wrap(alert, width=width - 8)
+            for line in wrapped:
+                lines.append(bordered(f"   {line}"))
+
+    # Recursos críticos
+    if critical_resources:
+        lines.append("├" + "─" * (width - 2) + "┤")
+        lines.append(bordered("📌 RECURSOS CRÍTICOS (Top 3)"))
+        for i, res in enumerate(critical_resources[:3]):
+            res_name = res.get("id", "N/A")[:35]
+            in_deg = res.get("in_degree", 0)
+            lines.append(bordered(f"   {i+1}. {res_name} ({in_deg} APUs)"))
+
+    # Estado final
+    lines.append("├" + "─" * (width - 2) + "┤")
+    if not exec_report.circular_risks and not exec_report.waste_alerts:
+        lines.append(bordered("✅ Estructura de costos saludable y auditable"))
+    elif exec_report.circular_risks:
+        lines.append(bordered("❌ ACCIÓN REQUERIDA: Resolver referencias circulares"))
+    else:
+        lines.append(bordered("⚠️ RECOMENDACIÓN: Revisar recursos no utilizados"))
+
+    # Footer
+    lines.append("└" + "─" * (width - 2) + "┘")
+
+    return lines
+
+
