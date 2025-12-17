@@ -294,17 +294,20 @@ class TestBudgetGraphBuilder:
 
             G = builder.build(df_presupuesto, df_detail)
 
-            # Verificar nodos
-            assert G.number_of_nodes() == 5  # 2 APUs + 3 Insumos
+            # Verificar nodos (2 APUs + 3 Insumos + 1 Root = 6)
+            assert G.number_of_nodes() == 6
             assert G.nodes["APU-001"]["type"] == "APU"
             assert G.nodes["APU-001"]["inferred"] is False
             assert G.nodes["Ladrillo"]["type"] == "INSUMO"
+            assert "PROYECTO_TOTAL" in G
 
-            # Verificar aristas
-            assert G.number_of_edges() == 3
+            # Verificar aristas (3 de detalles + 2 de raíz a APUs = 5)
+            assert G.number_of_edges() == 5
             assert G.has_edge("APU-001", "Ladrillo")
             assert G.has_edge("APU-001", "Cemento")
             assert G.has_edge("APU-002", "Acero")
+            assert G.has_edge("PROYECTO_TOTAL", "APU-001")
+            assert G.has_edge("PROYECTO_TOTAL", "APU-002")
 
         def test_build_with_inferred_apu(self, builder):
             """APU presente en detail pero no en presupuesto se infiere."""
@@ -351,8 +354,9 @@ class TestBudgetGraphBuilder:
 
             G = builder.build(df_presupuesto, df_detail)
 
-            assert G.number_of_nodes() == 2  # 1 APU inferido + 1 Insumo
+            assert G.number_of_nodes() == 3  # 1 APU inferido + 1 Insumo + 1 Root
             assert G.nodes["APU-001"]["inferred"] is True
+            assert "PROYECTO_TOTAL" in G
 
         def test_build_with_empty_detail(self, builder):
             """Construcción con detail vacío produce APUs sin aristas."""
@@ -368,21 +372,23 @@ class TestBudgetGraphBuilder:
 
             G = builder.build(df_presupuesto, df_detail)
 
-            assert G.number_of_nodes() == 2
-            assert G.number_of_edges() == 0
+            assert G.number_of_nodes() == 3  # 2 APUs + 1 Root
+            assert G.number_of_edges() == 2  # Root -> APU1, Root -> APU2
 
         def test_build_with_both_empty(self, builder):
-            """Construcción con ambos DataFrames vacíos produce grafo vacío."""
+            """Construcción con ambos DataFrames vacíos produce grafo vacío (solo root)."""
             G = builder.build(pd.DataFrame(), pd.DataFrame())
 
-            assert G.number_of_nodes() == 0
+            assert G.number_of_nodes() == 1  # Solo Root
+            assert "PROYECTO_TOTAL" in G
             assert G.number_of_edges() == 0
 
         def test_build_with_none_inputs(self, builder):
-            """Construcción con inputs None no lanza excepción."""
+            """Construcción con inputs None no lanza excepción (solo root)."""
             G = builder.build(None, None)
 
-            assert G.number_of_nodes() == 0
+            assert G.number_of_nodes() == 1
+            assert "PROYECTO_TOTAL" in G
             assert G.number_of_edges() == 0
 
         def test_build_edge_accumulation(self, builder):
@@ -1189,10 +1195,18 @@ class TestIntegration:
         report = analyzer.get_audit_report(analysis)
 
         # Verificaciones
-        assert G.number_of_nodes() == 5  # 2 APUs + 3 Insumos
-        assert G.number_of_edges() == 4  # 4 relaciones
+        assert G.number_of_nodes() == 6  # 2 APUs + 3 Insumos + 1 Root
+        assert G.number_of_edges() == 6  # 4 detalles + 2 raíz
         assert analysis["business.betti_b0"] == 1  # Conectado
-        assert analysis["business.betti_b1"] == 0  # Sin ciclos
+
+        # Nota sobre Betti_1:
+        # En la topología actual, la presencia de "Cemento" compartido por APU-001 y APU-002
+        # más el nodo Root conectado a ambos APUs, crea un ciclo no dirigido (bucle):
+        # Root -> APU-001 -> Cemento <- APU-002 <- Root
+        # Como calculate_betti_numbers usa un grafo no dirigido subyacente (MultiGraph),
+        # esto cuenta como 1 ciclo (beta_1 = 1).
+        # Euler = 1 - 1 = 0
+        assert analysis["business.betti_b1"] == 1
         assert analysis["business.is_dag"] == 1
         assert len(report) > 0
 
@@ -1219,10 +1233,14 @@ class TestIntegration:
         G = builder.build(df_presupuesto, df_detail)
         analysis = analyzer.analyze_structural_integrity(G)
 
-        # APU-EMPTY no tiene insumos
+        # APU-EMPTY no tiene insumos (out_degree = 0)
         assert analysis["business.empty_apus_count"] >= 1
-        # Dos componentes (APU-EMPTY está aislado)
-        assert analysis["business.betti_b0"] == 2
+
+        # Con la raíz "PROYECTO_TOTAL" conectando a todos los APUs,
+        # APU-EMPTY ya no está topológicamente aislado (tiene in-degree desde raíz),
+        # por lo que todo debería ser 1 sola componente conexa.
+        # Ajustamos el test para reflejar la nueva topología.
+        assert analysis["business.betti_b0"] == 1
 
     def test_pipeline_preserves_edge_metadata(self, builder, analyzer):
         """Verifica que los metadatos de aristas se preservan."""
@@ -1304,7 +1322,8 @@ class TestEdgeCases:
         G = builder.build(df_presupuesto, df_detail)
         analysis = analyzer.analyze_structural_integrity(G)
 
-        assert G.number_of_nodes() == n_apus + n_insumos_per_apu
+        # +1 por Root Node
+        assert G.number_of_nodes() == n_apus + n_insumos_per_apu + 1
         assert "business.betti_b0" in analysis
 
     def test_unicode_in_descriptions(self, builder):
@@ -1331,7 +1350,7 @@ class TestEdgeCases:
 
         G = builder.build(df_presupuesto, df_detail)
 
-        assert G.number_of_nodes() == 2
+        assert G.number_of_nodes() == 3  # APU + Insumo + Root
 
     def test_special_characters_in_codes(self, builder):
         """Verifica manejo de caracteres especiales en códigos."""
@@ -1398,7 +1417,7 @@ class TestEdgeCases:
         G = builder.build(df_presupuesto, df_detail)
 
         # Debería procesar sin error
-        assert G.number_of_nodes() == 2
+        assert G.number_of_nodes() == 3 # APU + Insumo + Root
         edge = G["APU-001"]["Insumo"]
         assert edge["total_cost"] == -50.0  # -5 * 10
 
