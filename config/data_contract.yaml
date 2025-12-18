@@ -1,0 +1,17 @@
+# Data Contract Definition
+# Version: 1.0
+
+schema_policy:
+  required_columns:
+    - CODIGO_APU
+    - DESCRIPCION_APU
+    - UNIDAD_APU
+    - CANTIDAD_PRESUPUESTO
+
+quality_policy:
+  max_nulls_percentage: 5.0
+  allow_negative_values: false
+
+semantic_policy:
+  enable_ontology_check: true
+  strict_mode: false

@@ -1,0 +1,13 @@
+{
+  "ontology_version": "1.0",
+  "domains": {
+    "CIMENTACION": {
+      "required_keywords": ["CONCRETO", "ACERO", "EXCAVACION"],
+      "forbidden_keywords": ["PINTURA", "CUBIERTA"]
+    },
+    "ACABADOS": {
+      "required_keywords": ["ESTUCO", "PINTURA", "CERAMICA", "PISO"],
+      "forbidden_keywords": ["CIMENTACION", "VIGA"]
+    }
+  }
+}
