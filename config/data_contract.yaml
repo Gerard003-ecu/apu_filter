@@ -1,0 +1,11 @@
+contract_version: "1.0"
+domain: "construction_cost"
+schema_policy:
+  required_columns: ["CODIGO_APU", "DESCRIPCION", "UNIDAD", "VALOR_TOTAL"]
+quality_policy:
+  max_null_percentage: 5.0
+  allow_negative_costs: false
+  allow_zero_quantities: false
+semantic_policy:
+  description_min_length: 5
+  forbidden_terms: ["TBD", "PENDIENTE", "ERROR"]

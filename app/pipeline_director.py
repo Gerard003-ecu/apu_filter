@@ -29,6 +29,7 @@ from app.classifiers.apu_classifier import APUClassifier
 from app.constants import ColumnNames, InsumoType, ProcessingThresholds
 from app.telemetry import TelemetryContext
 from app.validators import DataFrameValidator
+from app.governance import GovernanceEngine
 
 from .data_loader import load_data
 from .data_validator import validate_and_clean_data
@@ -558,6 +559,68 @@ class LoadDataStep(ProcessingStep):
             raise
 
 
+class GovernanceStep(ProcessingStep):
+    """
+    Paso de Gobernanza.
+    Aplica 'Policy as Code' para validar el cumplimiento del Contrato de Datos.
+    Actúa como Gatekeeper: Soft Block si el score es bajo.
+    """
+
+    def __init__(self, config: dict, thresholds: ProcessingThresholds):
+        self.config = config
+        self.thresholds = thresholds
+        # Cargar contrato desde configuración o usar default
+        contract_path = config.get("data_contract_path", "config/data_contract.yaml")
+        self.engine = GovernanceEngine(contract_path)
+        self.min_score = config.get("governance_min_score", 80.0)
+
+    def execute(self, context: dict, telemetry: TelemetryContext) -> dict:
+        telemetry.start_step("governance_check")
+        logger.info("⚖️ Iniciando GovernanceEngine...")
+
+        try:
+            # Validar principalmente el DataFrame de Presupuesto como punto de entrada crítico
+            df_presupuesto = context.get("df_presupuesto")
+
+            report = self.engine.enforce_policy(df_presupuesto, "presupuesto")
+
+            # Registrar métricas y reporte en contexto
+            context["governance_report"] = report.to_dict()
+            telemetry.record_metric("governance_check", "compliance_score", report.score)
+
+            logger.info(f"📊 Compliance Score: {report.score:.1f}/100 - Status: {report.status}")
+
+            if report.violations:
+                logger.warning(f"⚠️ Se encontraron {len(report.violations)} violaciones al contrato.")
+                for v in report.violations:
+                    logger.warning(f"   - [{v['severity']}] {v['check']}: {v['detail']}")
+
+            # Lógica de Gatekeeper
+            if report.score < self.min_score:
+                msg = f"ADVERTENCIA SEVERA DE GOBERNANZA: Score {report.score} inferior al umbral {self.min_score}"
+                logger.error(f"⛔ {msg}")
+                telemetry.record_error("governance_check", msg)
+                # Soft Block: Permitimos continuar pero marcamos el error en telemetría
+                # En un modo Hard Block, aquí haríamos raise ValueError(msg)
+
+            if report.status == "BLOCKED":
+                 msg = "BLOQUEO POR GOBERNANZA: Violaciones críticas detectadas."
+                 logger.error(f"⛔ {msg}")
+                 telemetry.record_error("governance_check", msg)
+                 # Soft Block request: "aunque permita continuar"
+
+            telemetry.end_step("governance_check", "success")
+            return context
+
+        except Exception as e:
+            logger.error(f"❌ Error en GovernanceStep: {e}", exc_info=True)
+            telemetry.record_error("governance_check", str(e))
+            telemetry.end_step("governance_check", "error")
+            # No detener pipeline por fallo en motor de gobernanza (fail open vs fail closed decision)
+            # En este caso 'fail open' para no detener producción, pero logueando error.
+            return context
+
+
 class MergeDataStep(ProcessingStep):
     """
     Paso de Fusión de Datos.
@@ -781,6 +844,7 @@ class PipelineSteps(str, enum.Enum):
     """
 
     LOAD_DATA = "load_data"
+    GOVERNANCE = "governance"
     MERGE_DATA = "merge_data"
     CALCULATE_COSTS = "calculate_costs"
     FINAL_MERGE = "final_merge"
@@ -797,6 +861,7 @@ class PipelineDirector:
 
     STEP_REGISTRY: Dict[str, Type[ProcessingStep]] = {
         "load_data": LoadDataStep,
+        "governance": GovernanceStep,
         "merge_data": MergeDataStep,
         "calculate_costs": CalculateCostsStep,
         "final_merge": FinalMergeStep,
