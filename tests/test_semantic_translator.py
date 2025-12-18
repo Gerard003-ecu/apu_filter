@@ -1,4 +1,3 @@
-
 import pytest
 import networkx as nx
 from agent.business_topology import TopologicalMetrics
