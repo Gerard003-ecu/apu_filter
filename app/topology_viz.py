@@ -32,6 +32,15 @@ class NodeType(str, Enum):
     UNKNOWN = "UNKNOWN"
 
 
+class NodeColor(str, Enum):
+    """Colores para visualización de nodos."""
+    RED = "#EF4444"     # Ciclos, Islas (Riesgo)
+    BLUE = "#3B82F6"    # APU (Normal)
+    ORANGE = "#F97316"  # Insumo (Recurso)
+    BLACK = "#1E293B"   # Raíz / Presupuesto / Capítulos
+    GRAY = "#9CA3AF"    # Desconocido / Vacío
+
+
 class NodeClass(str, Enum):
     """Clases CSS para visualización de nodos."""
     NORMAL = "normal"
@@ -65,6 +74,7 @@ class CytoscapeNode:
     id: str
     label: str
     node_type: str
+    color: str
     level: int = 0
     cost: float = 0.0
     classes: List[str] = field(default_factory=list)
@@ -76,6 +86,7 @@ class CytoscapeNode:
                 "id": self.id,
                 "label": self.label,
                 "type": self.node_type,
+                "color": self.color,
                 "level": self.level,
                 "cost": self.cost,
             },
@@ -308,7 +319,7 @@ def build_node_element(
     Args:
         node_id: Identificador del nodo.
         attrs: Atributos del nodo del grafo.
-        anomaly_data: Datos de anomalías para determinar clases.
+        anomaly_data: Datos de anomalías para determinar clases y colores.
 
     Returns:
         CytoscapeNode configurado.
@@ -316,6 +327,7 @@ def build_node_element(
     node_id_str = str(node_id)
     node_type = _get_node_type(attrs)
     classes = _determine_node_classes(node_id_str, node_type, anomaly_data)
+    color = _determine_node_color(node_id_str, node_type, anomaly_data)
     label = _build_node_label(node_id_str, attrs)
     cost = _get_node_cost(attrs)
     level = _safe_get_int(attrs, "level", 0)
@@ -324,6 +336,7 @@ def build_node_element(
         id=node_id_str,
         label=label,
         node_type=node_type,
+        color=color,
         level=level,
         cost=cost,
         classes=classes
@@ -372,14 +385,6 @@ def _determine_node_classes(
 ) -> List[str]:
     """
     Determina las clases CSS para un nodo basado en su estado.
-
-    Args:
-        node_id: ID del nodo.
-        node_type: Tipo del nodo.
-        anomaly_data: Datos de anomalías.
-
-    Returns:
-        Lista de clases CSS.
     """
     classes = [node_type]
 
@@ -396,16 +401,41 @@ def _determine_node_classes(
     return classes
 
 
+def _determine_node_color(
+    node_id: str,
+    node_type: str,
+    anomaly_data: AnomalyData
+) -> str:
+    """
+    Determina el color del nodo basado en su tipo y estado.
+
+    Reglas:
+    1. Rojo si es ciclo o isla (Riesgo).
+    2. Negro si es Raíz/Budget/Capítulo.
+    3. Azul si es APU.
+    4. Naranja si es Insumo.
+    """
+    # 1. Chequeo de Estado (Rojo)
+    if node_id in anomaly_data.nodes_in_cycles:
+        return NodeColor.RED.value
+    if node_id in anomaly_data.isolated_ids or node_id in anomaly_data.orphan_ids:
+        return NodeColor.RED.value
+
+    # 2. Chequeo de Tipo
+    if node_type in [NodeType.BUDGET.value, NodeType.CHAPTER.value, NodeType.ITEM.value]:
+        return NodeColor.BLACK.value
+    elif node_type == NodeType.APU.value:
+        return NodeColor.BLUE.value
+    elif node_type == NodeType.INSUMO.value:
+        return NodeColor.ORANGE.value
+
+    # Default
+    return NodeColor.GRAY.value
+
+
 def _build_node_label(node_id: str, attrs: Dict[str, Any]) -> str:
     """
     Construye la etiqueta del nodo con truncado seguro.
-
-    Args:
-        node_id: ID del nodo.
-        attrs: Atributos del nodo.
-
-    Returns:
-        Etiqueta formateada.
     """
     description = attrs.get("description")
 
@@ -430,14 +460,6 @@ def _build_node_label(node_id: str, attrs: Dict[str, Any]) -> str:
 def _get_node_cost(attrs: Dict[str, Any]) -> float:
     """
     Obtiene el costo del nodo de forma segura.
-
-    Intenta obtener total_cost primero, luego unit_cost.
-
-    Args:
-        attrs: Atributos del nodo.
-
-    Returns:
-        Costo como float.
     """
     total_cost = _safe_get_float(attrs, "total_cost", None)
     if total_cost is not None:
@@ -451,22 +473,10 @@ def _get_node_cost(attrs: Dict[str, Any]) -> float:
 
 
 def _safe_get_float(data: Dict[str, Any], key: str, default: Optional[float]) -> Optional[float]:
-    """
-    Obtiene un valor float de un diccionario de forma segura.
-
-    Args:
-        data: Diccionario fuente.
-        key: Clave a buscar.
-        default: Valor por defecto si no existe o no es convertible.
-
-    Returns:
-        Valor como float o default.
-    """
+    """Obtiene un valor float de forma segura."""
     value = data.get(key)
-
     if value is None:
         return default
-
     try:
         return float(value)
     except (ValueError, TypeError):
@@ -474,22 +484,10 @@ def _safe_get_float(data: Dict[str, Any], key: str, default: Optional[float]) ->
 
 
 def _safe_get_int(data: Dict[str, Any], key: str, default: int) -> int:
-    """
-    Obtiene un valor int de un diccionario de forma segura.
-
-    Args:
-        data: Diccionario fuente.
-        key: Clave a buscar.
-        default: Valor por defecto si no existe o no es convertible.
-
-    Returns:
-        Valor como int o default.
-    """
+    """Obtiene un valor int de forma segura."""
     value = data.get(key)
-
     if value is None:
         return default
-
     try:
         return int(value)
     except (ValueError, TypeError):
@@ -503,15 +501,6 @@ def _safe_get_int(data: Dict[str, Any], key: str, default: int) -> int:
 def build_graph_from_session(data: Dict[str, Any]) -> nx.DiGraph:
     """
     Construye el grafo de presupuesto desde los datos de sesión.
-
-    Args:
-        data: Datos de sesión validados.
-
-    Returns:
-        Grafo NetworkX construido.
-
-    Raises:
-        ValueError: Si no se puede construir el grafo.
     """
     df_presupuesto, df_apus_detail = extract_dataframes_from_session(data)
 
@@ -531,12 +520,6 @@ def build_graph_from_session(data: Dict[str, Any]) -> nx.DiGraph:
 def analyze_graph_for_visualization(graph: nx.DiGraph) -> AnomalyData:
     """
     Analiza el grafo para obtener datos de visualización.
-
-    Args:
-        graph: Grafo a analizar.
-
-    Returns:
-        AnomalyData con información para colorear nodos.
     """
     try:
         analyzer = BusinessTopologicalAnalyzer()
@@ -553,13 +536,6 @@ def convert_graph_to_cytoscape_elements(
 ) -> List[Dict[str, Any]]:
     """
     Convierte el grafo a formato de elementos de Cytoscape.js.
-
-    Args:
-        graph: Grafo NetworkX.
-        anomaly_data: Datos de anomalías para visualización.
-
-    Returns:
-        Lista de elementos (nodos y aristas) para Cytoscape.js.
     """
     elements = []
 
@@ -570,9 +546,14 @@ def convert_graph_to_cytoscape_elements(
             elements.append(node_element.to_dict())
         except Exception as e:
             logger.warning(f"Error procesando nodo '{node_id}': {e}")
-            # Añadir nodo mínimo para no perder la estructura
+            # Añadir nodo mínimo de fallback
             elements.append({
-                "data": {"id": str(node_id), "label": str(node_id), "type": "UNKNOWN"},
+                "data": {
+                    "id": str(node_id),
+                    "label": str(node_id),
+                    "type": "UNKNOWN",
+                    "color": NodeColor.GRAY.value
+                },
                 "classes": "UNKNOWN normal"
             })
 
@@ -583,7 +564,6 @@ def convert_graph_to_cytoscape_elements(
             elements.append(edge_element.to_dict())
         except Exception as e:
             logger.warning(f"Error procesando arista '{source}' -> '{target}': {e}")
-            # Añadir arista mínima
             elements.append({
                 "data": {"source": str(source), "target": str(target), "cost": 0}
             })
@@ -592,16 +572,6 @@ def convert_graph_to_cytoscape_elements(
 
 
 def create_error_response(message: str, status_code: int) -> Tuple[Response, int]:
-    """
-    Crea una respuesta de error estandarizada.
-
-    Args:
-        message: Mensaje de error.
-        status_code: Código HTTP.
-
-    Returns:
-        Tupla (Response, status_code).
-    """
     return jsonify({
         "error": message,
         "elements": [],
@@ -610,15 +580,6 @@ def create_error_response(message: str, status_code: int) -> Tuple[Response, int
 
 
 def create_success_response(elements: List[Dict[str, Any]]) -> Response:
-    """
-    Crea una respuesta exitosa estandarizada.
-
-    Args:
-        elements: Lista de elementos de Cytoscape.
-
-    Returns:
-        Response JSON.
-    """
     return jsonify({
         "elements": elements,
         "count": len(elements),
@@ -630,27 +591,10 @@ def create_success_response(elements: List[Dict[str, Any]]) -> Response:
 # ENDPOINT PRINCIPAL
 # =============================================================================
 
-@topology_bp.route('/api/visualization/topology', methods=['GET'])
-def get_topology_data() -> Tuple[Response, int]:
+@topology_bp.route('/api/visualization/project-graph', methods=['GET'])
+def get_project_graph() -> Tuple[Response, int]:
     """
     Endpoint para obtener la estructura del grafo para Cytoscape.js.
-
-    Returns:
-        JSON con elementos del grafo o error.
-
-    Response Format (éxito):
-        {
-            "elements": [...],
-            "count": int,
-            "success": true
-        }
-
-    Response Format (error):
-        {
-            "error": str,
-            "elements": [],
-            "success": false
-        }
     """
     # Verificar existencia de datos en sesión
     if SessionKeys.PROCESSED_DATA not in session:

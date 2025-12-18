@@ -7,7 +7,7 @@ Cobertura:
 - Extracción: extract_dataframes_from_session, extract_anomaly_data
 - Construcción: build_node_element, build_edge_element
 - Helpers: _safe_get_float, _safe_get_int, _build_node_label, etc.
-- Endpoints: get_topology_data, get_topology_stats
+- Endpoints: get_project_graph, get_topology_stats
 - Integración: flujos completos
 """
 
@@ -24,6 +24,7 @@ from app.topology_viz import (
     # Constantes
     NodeType,
     NodeClass,
+    NodeColor,
     SessionKeys,
     LABEL_MAX_LENGTH,
     LABEL_ELLIPSIS,
@@ -45,6 +46,7 @@ from app.topology_viz import (
     build_edge_element,
     _get_node_type,
     _determine_node_classes,
+    _determine_node_color,
     _build_node_label,
     _get_node_cost,
     _safe_get_float,
@@ -203,6 +205,14 @@ class TestConstants:
         assert NodeClass.ISOLATED.value == "isolated"
         assert NodeClass.EMPTY.value == "empty"
 
+    def test_node_color_values(self):
+        """Verifica valores de NodeColor."""
+        assert NodeColor.RED.value == "#EF4444"
+        assert NodeColor.BLUE.value == "#3B82F6"
+        assert NodeColor.ORANGE.value == "#F97316"
+        assert NodeColor.BLACK.value == "#1E293B"
+        assert NodeColor.GRAY.value == "#9CA3AF"
+
     def test_session_keys(self):
         """Verifica claves de sesión."""
         assert SessionKeys.PROCESSED_DATA == "processed_data"
@@ -225,11 +235,12 @@ class TestCytoscapeNode:
 
     def test_default_values(self):
         """Verifica valores por defecto."""
-        node = CytoscapeNode(id="N1", label="Node 1", node_type="APU")
+        node = CytoscapeNode(id="N1", label="Node 1", node_type="APU", color="#3B82F6")
 
         assert node.id == "N1"
         assert node.label == "Node 1"
         assert node.node_type == "APU"
+        assert node.color == "#3B82F6"
         assert node.level == 0
         assert node.cost == 0.0
         assert node.classes == []
@@ -240,6 +251,7 @@ class TestCytoscapeNode:
             id="N1",
             label="Node 1",
             node_type="CHAPTER",
+            color="#1E293B",
             level=2,
             cost=1500.50,
             classes=["CHAPTER", "normal"]
@@ -248,6 +260,7 @@ class TestCytoscapeNode:
         assert node.level == 2
         assert node.cost == 1500.50
         assert "CHAPTER" in node.classes
+        assert node.color == "#1E293B"
 
     def test_to_dict_structure(self):
         """Verifica estructura de to_dict."""
@@ -255,6 +268,7 @@ class TestCytoscapeNode:
             id="N1",
             label="Test Node",
             node_type="APU",
+            color="#3B82F6",
             level=3,
             cost=100.0,
             classes=["APU", "cycle"]
@@ -267,13 +281,14 @@ class TestCytoscapeNode:
         assert result["data"]["id"] == "N1"
         assert result["data"]["label"] == "Test Node"
         assert result["data"]["type"] == "APU"
+        assert result["data"]["color"] == "#3B82F6"
         assert result["data"]["level"] == 3
         assert result["data"]["cost"] == 100.0
         assert result["classes"] == "APU cycle"
 
     def test_to_dict_empty_classes(self):
         """Verifica to_dict con clases vacías."""
-        node = CytoscapeNode(id="N1", label="N1", node_type="APU", classes=[])
+        node = CytoscapeNode(id="N1", label="N1", node_type="APU", color="#3B82F6", classes=[])
 
         result = node.to_dict()
 
@@ -695,7 +710,7 @@ class TestSafeGetInt:
 
 
 # =============================================================================
-# TESTS: Construcción de Labels
+# TESTS: Construcción de Labels y Colores
 # =============================================================================
 
 class TestBuildNodeLabel:
@@ -740,6 +755,40 @@ class TestBuildNodeLabel:
         result = _build_node_label("NODE01", {"description": 12345})
 
         assert "12345" in result
+
+
+class TestDetermineNodeColor:
+    """Pruebas para _determine_node_color."""
+
+    def test_red_for_cycles(self, sample_anomaly_data):
+        """Verifica color rojo para ciclos."""
+        color = _determine_node_color("CYC01", "APU", sample_anomaly_data)
+        assert color == NodeColor.RED.value
+
+    def test_red_for_isolated(self, sample_anomaly_data):
+        """Verifica color rojo para aislados."""
+        color = _determine_node_color("ISO01", "INSUMO", sample_anomaly_data)
+        assert color == NodeColor.RED.value
+
+    def test_black_for_budget(self, sample_anomaly_data):
+        """Verifica color negro para nodos raíz/presupuesto."""
+        color = _determine_node_color("ROOT", "BUDGET", sample_anomaly_data)
+        assert color == NodeColor.BLACK.value
+
+    def test_blue_for_apu(self, sample_anomaly_data):
+        """Verifica color azul para APUs normales."""
+        color = _determine_node_color("APU01", "APU", sample_anomaly_data)
+        assert color == NodeColor.BLUE.value
+
+    def test_orange_for_insumo(self, sample_anomaly_data):
+        """Verifica color naranja para insumos normales."""
+        color = _determine_node_color("INS01", "INSUMO", sample_anomaly_data)
+        assert color == NodeColor.ORANGE.value
+
+    def test_gray_for_unknown(self, sample_anomaly_data):
+        """Verifica color gris para desconocidos."""
+        color = _determine_node_color("UNKNOWN", "OTHER", sample_anomaly_data)
+        assert color == NodeColor.GRAY.value
 
 
 # =============================================================================
@@ -857,6 +906,7 @@ class TestBuildNodeElement:
         assert node.level == 3
         assert node.cost == 500
         assert "APU" in node.classes
+        assert node.color == NodeColor.BLUE.value
 
     def test_handles_empty_attrs(self):
         """Verifica manejo de atributos vacíos."""
@@ -992,6 +1042,7 @@ class TestConvertGraphToCytoscapeElements:
             assert "id" in node["data"]
             assert "label" in node["data"]
             assert "type" in node["data"]
+            assert "color" in node["data"]
 
     def test_edges_have_correct_structure(self, sample_graph):
         """Verifica estructura correcta de aristas."""
@@ -1053,12 +1104,12 @@ class TestCreateSuccessResponse:
 # TESTS: Endpoints
 # =============================================================================
 
-class TestGetTopologyDataEndpoint:
-    """Pruebas para el endpoint get_topology_data."""
+class TestGetProjectGraphEndpoint:
+    """Pruebas para el endpoint get_project_graph (renombrado de get_topology_data)."""
 
     def test_returns_404_without_session(self, client):
         """Verifica 404 sin datos en sesión."""
-        response = client.get('/api/visualization/topology')
+        response = client.get('/api/visualization/project-graph')
 
         assert response.status_code == 404
         data = response.get_json()
@@ -1070,7 +1121,7 @@ class TestGetTopologyDataEndpoint:
         with client.session_transaction() as sess:
             sess[SessionKeys.PROCESSED_DATA] = "invalid_data"
 
-        response = client.get('/api/visualization/topology')
+        response = client.get('/api/visualization/project-graph')
 
         assert response.status_code == 400
 
@@ -1091,7 +1142,7 @@ class TestGetTopologyDataEndpoint:
         with client.session_transaction() as sess:
             sess[SessionKeys.PROCESSED_DATA] = valid_session_data
 
-        response = client.get('/api/visualization/topology')
+        response = client.get('/api/visualization/project-graph')
 
         assert response.status_code == 200
         data = response.get_json()
@@ -1112,7 +1163,7 @@ class TestGetTopologyDataEndpoint:
         with client.session_transaction() as sess:
             sess[SessionKeys.PROCESSED_DATA] = valid_session_data
 
-        response = client.get('/api/visualization/topology')
+        response = client.get('/api/visualization/project-graph')
 
         assert response.status_code == 200
         data = response.get_json()
@@ -1127,7 +1178,7 @@ class TestGetTopologyDataEndpoint:
         with client.session_transaction() as sess:
             sess[SessionKeys.PROCESSED_DATA] = valid_session_data
 
-        response = client.get('/api/visualization/topology')
+        response = client.get('/api/visualization/project-graph')
 
         assert response.status_code == 400
         data = response.get_json()
@@ -1141,7 +1192,7 @@ class TestGetTopologyDataEndpoint:
         with client.session_transaction() as sess:
             sess[SessionKeys.PROCESSED_DATA] = valid_session_data
 
-        response = client.get('/api/visualization/topology')
+        response = client.get('/api/visualization/project-graph')
 
         assert response.status_code == 500
         data = response.get_json()
@@ -1221,7 +1272,7 @@ class TestIntegration:
             sess[SessionKeys.PROCESSED_DATA] = valid_session_data
 
         # Ejecutar request
-        response = client.get('/api/visualization/topology')
+        response = client.get('/api/visualization/project-graph')
 
         # Verificar
         assert response.status_code == 200
@@ -1240,6 +1291,7 @@ class TestIntegration:
             id="TEST",
             label="Test Node",
             node_type="APU",
+            color="#3B82F6",
             level=1,
             cost=100.0,
             classes=["APU", "normal"]
@@ -1260,4 +1312,5 @@ class TestIntegration:
 
         assert len(parsed) == 2
         assert parsed[0]["data"]["id"] == "TEST"
+        assert parsed[0]["data"]["color"] == "#3B82F6"
         assert parsed[1]["data"]["source"] == "A"
