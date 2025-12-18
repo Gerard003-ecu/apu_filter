@@ -64,6 +64,7 @@ from .tools_interface import (
     get_telemetry_status,
 )
 from .utils import sanitize_for_json
+from .topology_viz import topology_bp  # Importar el nuevo blueprint
 
 # ============================================================================
 # CONSTANTES Y CONFIGURACIÓN
@@ -1236,6 +1237,9 @@ def create_app(config_name: str) -> Flask:
 
             if random.randint(1, 100) == 1:
                 app.metrics.cleanup_old_metrics()
+
+    # Registrar Blueprints
+    app.register_blueprint(topology_bp)
 
     # ========================================================================
     # RUTAS PRINCIPALES
