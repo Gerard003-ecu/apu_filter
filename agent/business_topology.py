@@ -352,34 +352,38 @@ class BusinessTopologicalAnalyzer:
 
     def calculate_pyramid_stability(self, graph: nx.DiGraph) -> float:
         """
-        Calcula la estabilidad de la estructura piramidal.
-        Stability = (Num_Insumos / Num_APUs) * (1 / Densidad)
+        Calcula el Índice de Estabilidad Piramidal (Psi).
 
-        Una pirámide estable tiene una base amplia (muchos insumos soportando APUs)
-        y una jerarquía definida (densidad baja, tipo árbol).
+        Fórmula: Psi = (Num_Insumos / Num_APUs) * (1 / Densidad)
+
+        Interpretación:
+        - Psi > 10: Estructura Robusta (Base ancha, bajo acoplamiento).
+        - Psi < 1: Pirámide Invertida (Base estrecha, alto riesgo de colapso).
+
+        Args:
+            graph: Grafo del presupuesto.
+
+        Returns:
+            float: Valor de estabilidad (0.0 si no se puede calcular).
         """
-        apu_nodes = [n for n, d in graph.nodes(data=True) if d.get("type") == "APU"]
-        insumo_nodes = [n for n, d in graph.nodes(data=True) if d.get("type") == "INSUMO"]
+        # 1. Contar nodos por tipo
+        nodes_data = graph.nodes(data=True)
+        num_apus = sum(1 for _, d in nodes_data if d.get("type") == "APU")
+        num_insumos = sum(1 for _, d in nodes_data if d.get("type") == "INSUMO")
 
-        num_apus = len(apu_nodes)
-        num_insumos = len(insumo_nodes)
-
+        # 2. Validaciones para evitar división por cero
         if num_apus == 0:
             return 0.0
 
         density = nx.density(graph)
         if density == 0:
-            return 0.0 # Grafo desconectado o sin aristas
+            return 0.0  # Grafo desconectado/vacío no es estable
 
-        # Base to Apex Ratio
+        # 3. Cálculo
         base_ratio = num_insumos / num_apus
+        stability = base_ratio * (1.0 / density)
 
-        # Stability Factor
-        # Invertimos la densidad porque un árbol (ideal) es sparse.
-        # Si la densidad es alta, tiende a ser un grafo completo (mesh), no jerárquico.
-        stability = base_ratio * (1.0 / max(0.0001, density))
-
-        return stability
+        return round(stability, 2)
 
     def calculate_metrics(self, graph: nx.DiGraph) -> TopologicalMetrics:
         """Alias para compatibilidad hacia atrás."""
