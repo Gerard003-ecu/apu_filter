@@ -1,88 +1,72 @@
 
 import pytest
-import logging
-from app.business_agent import SemanticTranslator, TopologicalMetrics
-
-# Configure logging to see output if needed
-logging.basicConfig(level=logging.INFO)
+import networkx as nx
+from agent.business_topology import TopologicalMetrics
+from app.semantic_translator import SemanticTranslator
 
 class TestSemanticTranslator:
     def setup_method(self):
         self.translator = SemanticTranslator()
 
-    def test_translate_topology_redundancies(self):
-        # Case: Betti 1 > 0 (Cycles/Redundancies)
-        metrics = TopologicalMetrics(beta_0=1, beta_1=3, euler_characteristic=-2)
-        text = self.translator.translate_topology(metrics)
-        assert "Alerta de Flujo" in text
-        assert "3 redundancias" in text
-        assert "procesos aislados" not in text
+    def test_translate_topology_with_cycles(self):
+        metrics = TopologicalMetrics(beta_0=1, beta_1=2, euler_characteristic=-1)
+        narrative = self.translator.translate_topology(metrics, stability=5.0)
 
-    def test_translate_topology_islands(self):
-        # Case: Betti 0 > 1 (Disconnected components)
-        metrics = TopologicalMetrics(beta_0=4, beta_1=0, euler_characteristic=4)
-        text = self.translator.translate_topology(metrics)
-        assert "Islas de Información" in text
-        assert "4 partes del presupuesto aisladas" in text
-        assert "Eficiencia de Flujo" in text # Beta 1 is 0
+        assert "Bloqueos Logísticos Detectados" in narrative
+        assert "2 dependencias circulares" in narrative
 
-    def test_translate_topology_optimal(self):
-        # Case: Connected and Acyclic
+    def test_translate_topology_clean(self):
+        # stability > 20.0 triggers "Sólida"
         metrics = TopologicalMetrics(beta_0=1, beta_1=0, euler_characteristic=1)
-        text = self.translator.translate_topology(metrics)
-        assert "Eficiencia de Flujo" in text
-        assert "Integridad" in text
+        narrative = self.translator.translate_topology(metrics, stability=25.0)
 
-    def test_translate_financial_high_risk(self):
+        assert "Flujo Logístico Optimizado" in narrative
+        assert "Cohesión del Proyecto" in narrative
+        assert "Robustez de Cadena de Suministro (Sólida)" in narrative
+
+    def test_translate_financial_success(self):
         metrics = {
+            "wacc": 0.12,
             "var": 50000.0,
-            "contingency": {
-                "recommended": 15000.0,
-                "percentage_rate": 0.08
-            },
-            "performance": {"recommendation": "ACEPTAR"}
+            "contingency": {"recommended": 60000.0},
+            "performance": {"recommendation": "ACEPTAR", "profitability_index": 1.25}
         }
-        text = self.translator.translate_financial(metrics)
-        assert "Advertencia" in text
-        assert "aumentar el fondo de contingencia en un 8.0%" in text
-        assert "$15,000.00" in text
 
-    def test_translate_financial_low_risk(self):
-        metrics = {
-            "var": 1000.0,
-            "contingency": {
-                "recommended": 0.0
-            },
-            "performance": {"recommendation": "ACEPTAR"}
-        }
-        text = self.translator.translate_financial(metrics)
-        assert "Solidez Financiera" in text
+        narrative = self.translator.translate_financial(metrics)
 
-    def test_compose_narrative(self):
-        topo_metrics = TopologicalMetrics(beta_0=1, beta_1=2, euler_characteristic=-1)
+        # Checking with Markdown formatting
+        assert "**Costo de Oportunidad del Capital (WACC)**: 12.00%" in narrative
+        assert "Exposición al Riesgo Financiero" in narrative
+        assert "Veredicto de Viabilidad" in narrative
+        assert "FINANCIERAMENTE VIABLE" in narrative
+
+    def test_compose_strategic_narrative(self):
+        topo_metrics = TopologicalMetrics(beta_0=1, beta_1=0, euler_characteristic=1)
         fin_metrics = {
-            "var": 20000.0,
-            "contingency": {"recommended": 5000.0},
-             "performance": {"recommendation": "ACEPTAR"}
+            "wacc": 0.10,
+            "var": 1000.0,
+            "contingency": {"recommended": 1500.0},
+            "performance": {"recommendation": "ACEPTAR"}
         }
 
-        narrative = self.translator.compose_narrative(topo_metrics, fin_metrics)
+        full_report = self.translator.compose_strategic_narrative(topo_metrics, fin_metrics, stability=12.0)
 
-        assert "AUDITORÍA ESTRATÉGICA" in narrative
-        assert "1. Estructura Operativa" in narrative
-        assert "2. Análisis Financiero" in narrative
-        assert "3. Visión de Mercado" in narrative
-        assert "CONCLUSIÓN" in narrative
-        assert "desafíos estructurales" in narrative # Due to beta_1 > 0
+        assert "INFORME DE INTELIGENCIA ESTRATÉGICA" in full_report
+        assert "Salud Estructural y Operativa" in full_report
+        assert "Análisis de Viabilidad Económica" in full_report
+        assert "Inteligencia de Mercado" in full_report
+        assert "LUZ VERDE" in full_report
 
-    def test_market_context(self):
-        text = self.translator._get_market_context()
-        assert "Contexto de Mercado" in text
-        assert len(text) > 20
+    def test_revisar_status(self):
+        topo_metrics = TopologicalMetrics(beta_0=1, beta_1=0, euler_characteristic=1)
+        fin_metrics = {
+            "wacc": 0.10,
+            "var": 1000.0,
+            "contingency": {"recommended": 1500.0},
+            "performance": {"recommendation": "REVISAR"}
+        }
 
-if __name__ == "__main__":
-    # Manually run if executed as script
-    t = TestSemanticTranslator()
-    t.setup_method()
-    t.test_translate_topology_redundancies()
-    print("Tests passed manually.")
+        full_report = self.translator.compose_strategic_narrative(topo_metrics, fin_metrics, stability=12.0)
+
+        assert "EVALUACIÓN INCOMPLETA" in full_report
+        assert "LUZ VERDE" not in full_report
