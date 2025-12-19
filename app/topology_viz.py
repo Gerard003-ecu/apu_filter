@@ -592,6 +592,7 @@ def create_success_response(elements: List[Dict[str, Any]]) -> Response:
 # =============================================================================
 
 @topology_bp.route('/api/visualization/project-graph', methods=['GET'])
+@topology_bp.route('/api/visualization/topology', methods=['GET'])
 def get_project_graph() -> Tuple[Response, int]:
     """
     Endpoint para obtener la estructura del grafo para Cytoscape.js.
