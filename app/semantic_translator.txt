@@ -11,7 +11,7 @@ import logging
 import random
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, List, Optional, Callable
+from typing import Any, Callable, Dict, List, Optional
 
 from agent.business_topology import TopologicalMetrics
 
@@ -29,7 +29,7 @@ class FinancialVerdict(Enum):
 class StabilityThresholds:
     """
     Umbrales para interpretación del índice de estabilidad piramidal (Ψ).
-    
+
     Fundamentación topológica:
     - Ψ < critical: Pirámide invertida (más APUs compuestos que insumos base)
     - critical ≤ Ψ < solid: Estructura equilibrada
@@ -43,7 +43,7 @@ class StabilityThresholds:
 class TopologicalThresholds:
     """
     Umbrales para interpretación de números de Betti.
-    
+
     Fundamentación:
     - β₀: Componentes conexos (fragmentación si > 1)
     - β₁: Ciclos independientes (dependencias circulares si > 0)
@@ -55,7 +55,7 @@ class TopologicalThresholds:
 class SemanticTranslator:
     """
     Traductor semántico que convierte métricas técnicas en narrativa estratégica.
-    
+
     Attributes:
         stability_thresholds: Configuración de umbrales de estabilidad.
         topo_thresholds: Configuración de umbrales topológicos.
@@ -71,7 +71,7 @@ class SemanticTranslator:
     ):
         """
         Inicializa el traductor con configuración opcional.
-        
+
         Args:
             stability_thresholds: Umbrales personalizados de estabilidad.
             topo_thresholds: Umbrales personalizados topológicos.
@@ -81,15 +81,15 @@ class SemanticTranslator:
         self.stability_thresholds = stability_thresholds or StabilityThresholds()
         self.topo_thresholds = topo_thresholds or TopologicalThresholds()
         self._market_provider = market_provider
-        
+
         if random_seed is not None:
             self._rng = random.Random(random_seed)
         else:
             self._rng = random.Random()
 
     def translate_topology(
-        self, 
-        metrics: TopologicalMetrics, 
+        self,
+        metrics: TopologicalMetrics,
         stability: float = 0.0
     ) -> str:
         """
@@ -111,7 +111,7 @@ class SemanticTranslator:
             ValueError: Si las métricas son topológicamente inválidas.
         """
         self._validate_topological_metrics(metrics, stability)
-        
+
         narrative_parts: List[str] = []
 
         # 1. β₁ (Primer número de Betti: ciclos) → Bloqueos Logísticos
@@ -126,17 +126,17 @@ class SemanticTranslator:
         return "\n".join(narrative_parts)
 
     def _validate_topological_metrics(
-        self, 
-        metrics: TopologicalMetrics, 
+        self,
+        metrics: TopologicalMetrics,
         stability: float
     ) -> None:
         """
         Valida la coherencia matemática de las métricas topológicas.
-        
+
         Args:
             metrics: Métricas de Betti a validar.
             stability: Índice de estabilidad a validar.
-            
+
         Raises:
             ValueError: Si alguna métrica viola invariantes topológicos.
         """
@@ -144,19 +144,19 @@ class SemanticTranslator:
             raise ValueError(
                 f"Se esperaba TopologicalMetrics, se recibió {type(metrics).__name__}"
             )
-        
+
         if metrics.beta_0 < 0:
             raise ValueError(
                 f"β₀ debe ser no-negativo (recibido: {metrics.beta_0}). "
                 "Los números de Betti son invariantes topológicos ≥ 0."
             )
-        
+
         if metrics.beta_1 < 0:
             raise ValueError(
                 f"β₁ debe ser no-negativo (recibido: {metrics.beta_1}). "
                 "Los números de Betti son invariantes topológicos ≥ 0."
             )
-        
+
         if stability < 0:
             raise ValueError(
                 f"Estabilidad Ψ debe ser no-negativa (recibido: {stability:.4f}). "
@@ -166,7 +166,7 @@ class SemanticTranslator:
     def _translate_cycles(self, beta_1: int) -> str:
         """
         Traduce β₁ (ciclos independientes) a narrativa de bloqueos logísticos.
-        
+
         En topología algebraica, β₁ cuenta los "agujeros" 1-dimensionales,
         que en el contexto de dependencias representan ciclos cerrados
         sin punto de entrada/salida único.
@@ -187,20 +187,20 @@ class SemanticTranslator:
     def _translate_connectivity(self, beta_0: int) -> str:
         """
         Traduce β₀ (componentes conexos) a narrativa de coherencia del alcance.
-        
+
         En topología algebraica, β₀ cuenta las "piezas" desconectadas del espacio.
         β₀ = 1 indica un proyecto cohesivo; β₀ > 1 indica fragmentación;
         β₀ = 0 indicaría un presupuesto vacío (caso degenerado).
         """
         optimal = self.topo_thresholds.connected_components_optimal
-        
+
         if beta_0 == 0:
             logger.warning("β₀ = 0 detectado: el espacio topológico está vacío.")
             return (
                 "⚠️ **Estructura Vacía**: El análisis topológico indica ausencia "
                 "de componentes. Verificar que el presupuesto contenga datos válidos."
             )
-        
+
         if beta_0 > optimal:
             fragmentation_level = "severa" if beta_0 > 3 else "moderada"
             return (
@@ -209,7 +209,7 @@ class SemanticTranslator:
                 "Esto sugiere que hay insumos o APUs sin trazabilidad clara "
                 "hacia el proyecto central."
             )
-        
+
         return (
             "🔗 **Cohesión del Proyecto**: La totalidad del alcance está "
             "conectada en una estructura unificada (β₀ = 1)."
@@ -218,12 +218,12 @@ class SemanticTranslator:
     def _translate_stability(self, stability: float) -> str:
         """
         Traduce el índice de estabilidad piramidal (Ψ) a narrativa de robustez.
-        
+
         El índice Ψ mide la proporción entre insumos elementales (base)
         y actividades compuestas (APUs). Una pirámide sana tiene base ancha.
         """
         thresholds = self.stability_thresholds
-        
+
         if stability < thresholds.critical:
             return (
                 f"📉 **Robustez de Cadena de Suministro (Crítica)**: "
@@ -232,7 +232,7 @@ class SemanticTranslator:
                 "de los APUs definidos (Pirámide Invertida). "
                 f"Umbral mínimo recomendado: Ψ ≥ {thresholds.critical:.1f}."
             )
-        
+
         if stability >= thresholds.solid:
             return (
                 f"🛡️ **Robustez de Cadena de Suministro (Sólida)**: "
@@ -240,7 +240,7 @@ class SemanticTranslator:
                 "indicando una base de recursos diversificada y resiliente "
                 "ante interrupciones en la cadena de suministro."
             )
-        
+
         return (
             f"⚖️ **Robustez de Cadena de Suministro (Equilibrada)**: "
             f"El índice de estabilidad (Ψ = {stability:.2f}) muestra una "
@@ -269,7 +269,7 @@ class SemanticTranslator:
             ValueError: Si la estructura de métricas es inválida.
         """
         validated = self._validate_financial_metrics(metrics)
-        
+
         narrative_parts: List[str] = []
 
         # 1. WACC → Costo de Oportunidad del Capital
@@ -293,10 +293,10 @@ class SemanticTranslator:
     def _validate_financial_metrics(self, metrics: Dict[str, Any]) -> Dict[str, Any]:
         """
         Valida y extrae métricas financieras con valores por defecto seguros.
-        
+
         Returns:
             Diccionario normalizado con claves garantizadas.
-            
+
         Raises:
             ValueError: Si métricas críticas están ausentes o son inválidas.
         """
@@ -304,23 +304,23 @@ class SemanticTranslator:
             raise ValueError(
                 f"Se esperaba dict de métricas, se recibió {type(metrics).__name__}"
             )
-        
+
         wacc = metrics.get("wacc")
         if wacc is None:
             logger.warning("WACC no especificado, usando valor por defecto 0.0")
             wacc = 0.0
         elif not isinstance(wacc, (int, float)):
             raise ValueError(f"WACC debe ser numérico, recibido: {type(wacc).__name__}")
-        
+
         contingency = metrics.get("contingency", {})
         if not isinstance(contingency, dict):
             contingency = {}
         contingency_recommended = contingency.get("recommended", 0.0)
-        
+
         performance = metrics.get("performance", {})
         if not isinstance(performance, dict):
             performance = {}
-        
+
         recommendation_raw = performance.get("recommendation", "REVISAR")
         try:
             recommendation = FinancialVerdict(recommendation_raw)
@@ -329,11 +329,11 @@ class SemanticTranslator:
                 f"Recomendación '{recommendation_raw}' no reconocida, usando REVISAR"
             )
             recommendation = FinancialVerdict.REVIEW
-        
+
         profitability_index = performance.get("profitability_index", 0.0)
         if not isinstance(profitability_index, (int, float)):
             profitability_index = 0.0
-        
+
         return {
             "wacc": float(wacc),
             "contingency_recommended": float(contingency_recommended),
@@ -348,7 +348,7 @@ class SemanticTranslator:
             wacc_assessment = " (elevado para el sector)"
         elif wacc < 0.05:
             wacc_assessment = " (competitivo)"
-        
+
         return (
             f"💰 **Costo de Oportunidad del Capital (WACC)**: {wacc:.2%}{wacc_assessment}. "
             "Este es el rendimiento mínimo que el proyecto debe generar para "
@@ -362,7 +362,7 @@ class SemanticTranslator:
                 "📊 **Exposición al Riesgo Financiero**: No se ha calculado "
                 "contingencia. Revisar parámetros de VaR y volatilidad."
             )
-        
+
         return (
             f"📊 **Exposición al Riesgo Financiero**: Se estima una contingencia "
             f"sugerida de ${contingency_recommended:,.2f} (basada en VaR y "
@@ -370,8 +370,8 @@ class SemanticTranslator:
         )
 
     def _translate_verdict(
-        self, 
-        recommendation: FinancialVerdict, 
+        self,
+        recommendation: FinancialVerdict,
         profitability_index: float
     ) -> str:
         """Traduce la recomendación financiera a veredicto ejecutivo."""
@@ -398,10 +398,10 @@ class SemanticTranslator:
     def _get_market_context(self) -> str:
         """
         Obtiene inteligencia de mercado externa.
-        
+
         Si se inyectó un proveedor personalizado, lo utiliza.
         De lo contrario, simula con tendencias predefinidas.
-        
+
         Returns:
             Narrativa de contexto de mercado.
         """
@@ -412,24 +412,24 @@ class SemanticTranslator:
             except Exception as e:
                 logger.error(f"Error obteniendo contexto de mercado: {e}")
                 return "🌍 **Contexto de Mercado**: No disponible temporalmente."
-        
+
         tendencias = [
             "📈 Inflación en materiales de acero (+2.5% m/m). "
             "Se sugiere stockeo anticipado.",
-            
+
             "📉 Tipo de cambio favorable para importaciones. "
             "Oportunidad de negociar con proveedores extranjeros.",
-            
+
             "⚠️ Escasez de mano de obra calificada en la región. "
             "Considerar ajustar rendimientos en APUs.",
-            
+
             "⚖️ Estabilidad en precios del cemento y agregados. "
             "Momento oportuno para contratos a largo plazo.",
-            
+
             "🌪️ Alta volatilidad energética proyectada para el próximo trimestre. "
             "Evaluar cláusulas de ajuste en contratos."
         ]
-        
+
         selected_trend = self._rng.choice(tendencias)
         return f"🌍 **Contexto de Mercado**: {selected_trend}"
 
@@ -457,7 +457,7 @@ class SemanticTranslator:
             ValueError: Si las métricas son inválidas.
         """
         errors: List[str] = []
-        
+
         # Traducción con manejo de errores granular
         try:
             topo_narrative = self.translate_topology(topo_metrics, stability)
@@ -465,16 +465,16 @@ class SemanticTranslator:
             logger.error(f"Error en traducción topológica: {e}")
             errors.append(f"⚠️ Error en análisis estructural: {e}")
             topo_narrative = "❌ No se pudo generar el análisis estructural."
-        
+
         try:
             fin_narrative = self.translate_financial(fin_metrics)
         except ValueError as e:
             logger.error(f"Error en traducción financiera: {e}")
             errors.append(f"⚠️ Error en análisis financiero: {e}")
             fin_narrative = "❌ No se pudo generar el análisis financiero."
-        
+
         market_narrative = self._get_market_context()
-        
+
         # Consejo final solo si ambas traducciones fueron exitosas
         if not errors:
             final_advice = self._generate_final_advice(topo_metrics, fin_metrics)
@@ -485,7 +485,8 @@ class SemanticTranslator:
             )
 
         sections = [
-            "## 🏗️ INFORME DE INTELIGENCIA ESTRATÉGICA\n",
+            "## 🏗️ INFORME DE INTELIGENCIA ESTRATÉGICA",
+            "",
             "### 1. Salud Estructural y Operativa",
             topo_narrative,
             "",
@@ -498,7 +499,7 @@ class SemanticTranslator:
             "### 💡 Recomendación Estratégica",
             final_advice
         ]
-        
+
         return "\n".join(sections)
 
     def _generate_final_advice(
@@ -508,28 +509,28 @@ class SemanticTranslator:
     ) -> str:
         """
         Genera una recomendación estratégica de cierre basada en la matriz de decisión.
-        
+
         La lógica sigue una tabla de verdad bidimensional:
-        
+
         |              | β₁ > 0 (Ciclos)      | β₁ = 0 (Sin ciclos)  |
         |--------------|----------------------|----------------------|
         | RECHAZAR     | Inviable total       | Revisar finanzas     |
         | REVISAR      | Cautela + auditar    | Evaluación pendiente |
         | ACEPTAR      | Cautela + corregir   | Luz verde            |
-        
+
         Args:
             topo_metrics: Métricas topológicas validadas.
             fin_metrics: Métricas financieras.
-            
+
         Returns:
             Frase de cierre contundente y accionable.
         """
         beta_1 = topo_metrics.beta_1
         has_cycles = beta_1 > self.topo_thresholds.cycles_optimal
-        
+
         performance = fin_metrics.get("performance", {})
         recommendation_raw = performance.get("recommendation", "REVISAR")
-        
+
         try:
             recommendation = FinancialVerdict(recommendation_raw)
         except ValueError:
