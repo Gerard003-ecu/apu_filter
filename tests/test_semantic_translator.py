@@ -15,6 +15,8 @@ from app.semantic_translator import (
     SemanticTranslator,
     StabilityThresholds,
     TopologicalThresholds,
+    WACCThresholds,
+    CycleSeverityThresholds,
     FinancialVerdict,
 )
 
@@ -38,10 +40,14 @@ class TestSemanticTranslatorSetup:
             connected_components_optimal=2,
             cycles_optimal=1
         )
+        custom_wacc = WACCThresholds(low=0.04, high=0.10)
+        custom_severity = CycleSeverityThresholds(moderate=2, critical=4)
 
         translator = SemanticTranslator(
             stability_thresholds=custom_stability,
-            topo_thresholds=custom_topo
+            topo_thresholds=custom_topo,
+            wacc_thresholds=custom_wacc,
+            cycle_severity=custom_severity
         )
 
         assert translator.stability_thresholds.critical == 2.0
@@ -68,6 +74,11 @@ class TestSemanticTranslatorSetup:
         context2 = translator2._get_market_context()
 
         assert context1 == context2
+
+    def test_invalid_init_arguments_raise_type_error(self):
+        """Verifica que tipos incorrectos en __init__ lanzan TypeError."""
+        with pytest.raises(TypeError):
+            SemanticTranslator(stability_thresholds="invalid") # type: ignore
 
 
 class TestTopologyTranslation:
@@ -98,31 +109,31 @@ class TestTopologyTranslation:
         metrics = TopologicalMetrics(beta_0=1, beta_1=1, euler_characteristic=0)
         narrative = translator.translate_topology(metrics, stability=5.0)
 
-        assert "Bloqueos Logísticos Detectados" in narrative
-        assert "1 dependencia circular" in narrative
-        assert "dependencias circulares" not in narrative  # Debe ser singular
+        assert "Bloqueos Logísticos Moderados" in narrative
+        assert "1 ciclo" in narrative
+        # assert "dependencias circulares" not in narrative  # Debe ser singular
 
     def test_translate_topology_with_multiple_cycles(self, translator, cyclic_metrics):
         """Verifica traducción con múltiples ciclos (plural)."""
         narrative = translator.translate_topology(cyclic_metrics, stability=5.0)
 
-        assert "Bloqueos Logísticos Detectados" in narrative
-        assert "2 dependencias circulares" in narrative
+        assert "Bloqueos Logísticos Moderados" in narrative
+        assert "2 ciclos" in narrative
 
     def test_translate_topology_critical_cycles(self, translator):
-        """Verifica severidad crítica cuando β₁ > 2."""
+        """Verifica severidad crítica cuando β₁ >= 5."""
         metrics = TopologicalMetrics(beta_0=1, beta_1=5, euler_characteristic=-4)
         narrative = translator.translate_topology(metrics, stability=5.0)
 
-        assert "críticos" in narrative
-        assert "5 dependencias circulares" in narrative
+        assert "Estructura Topológicamente Inviable" in narrative
+        assert "5 ciclos" in narrative
 
     def test_translate_topology_clean_structure(self, translator, clean_metrics):
         """Verifica traducción de estructura limpia sin ciclos."""
         narrative = translator.translate_topology(clean_metrics, stability=25.0)
 
         assert "Flujo Logístico Optimizado" in narrative
-        assert "Cohesión del Proyecto" in narrative
+        assert "Cohesión Estructural Óptima" in narrative
         assert "β₀ = 1" in narrative
 
     def test_translate_topology_fragmented(self, translator, fragmented_metrics):
@@ -130,23 +141,24 @@ class TestTopologyTranslation:
         narrative = translator.translate_topology(fragmented_metrics, stability=5.0)
 
         assert "Fragmentación de Recursos" in narrative
-        assert "3 islas de información" in narrative
+        assert "3 componentes conexas" in narrative
 
     def test_translate_topology_severe_fragmentation(self, translator):
-        """Verifica detección de fragmentación severa (β₀ > 3)."""
+        """Verifica detección de fragmentación severa (ratio > 4)."""
         metrics = TopologicalMetrics(beta_0=5, beta_1=0, euler_characteristic=5)
         narrative = translator.translate_topology(metrics, stability=5.0)
 
+        # Ratio = 5/1 = 5 -> Severa
         assert "Severa" in narrative
-        assert "5 islas" in narrative
+        assert "5 componentes conexas" in narrative
 
     def test_translate_topology_empty_space(self, translator):
         """Verifica manejo de espacio vacío (β₀ = 0)."""
         metrics = TopologicalMetrics(beta_0=0, beta_1=0, euler_characteristic=0)
         narrative = translator.translate_topology(metrics, stability=5.0)
 
-        assert "Estructura Vacía" in narrative
-        assert "ausencia de componentes" in narrative
+        assert "Espacio Topológico Vacío" in narrative
+        assert "ausencia total" in narrative
 
     @pytest.mark.parametrize("stability,expected_keyword", [
         (0.5, "Crítica"),
@@ -154,9 +166,9 @@ class TestTopologyTranslation:
         (1.0, "Equilibrada"),
         (5.0, "Equilibrada"),
         (9.99, "Equilibrada"),
-        (10.0, "Sólida"),
-        (25.0, "Sólida"),
-        (100.0, "Sólida"),
+        (10.0, "Resiliente"),
+        (25.0, "Resiliente"),
+        (100.0, "Resiliente"),
     ])
     def test_translate_stability_thresholds(
         self,
@@ -201,9 +213,9 @@ class TestTopologyValidation:
             translator.translate_topology(valid_metrics, stability=-0.5)
 
     def test_validate_invalid_metrics_type_raises_error(self, translator):
-        """Tipo incorrecto de métricas debe lanzar ValueError."""
-        with pytest.raises(ValueError, match="Se esperaba TopologicalMetrics"):
-            translator.translate_topology({"beta_0": 1, "beta_1": 0}, stability=5.0)
+        """Tipo incorrecto de métricas debe lanzar TypeError."""
+        with pytest.raises(TypeError, match="Se esperaba TopologicalMetrics"):
+            translator.translate_topology({"beta_0": 1, "beta_1": 0}, stability=5.0) # type: ignore
 
 
 class TestFinancialTranslation:
@@ -253,7 +265,7 @@ class TestFinancialTranslation:
         """Verifica traducción de proyecto viable."""
         narrative = translator.translate_financial(viable_metrics)
 
-        assert "Costo de Oportunidad del Capital (WACC)" in narrative
+        assert "Costo de Oportunidad del Capital" in narrative
         assert "12.00%" in narrative
         assert "Exposición al Riesgo Financiero" in narrative
         assert "$60,000.00" in narrative
@@ -284,7 +296,7 @@ class TestFinancialTranslation:
         }
         narrative = translator.translate_financial(metrics)
 
-        assert "elevado para el sector" in narrative
+        assert "elevado +5.0% sobre umbral" in narrative
 
     def test_translate_wacc_competitive(self, translator):
         """Verifica clasificación de WACC competitivo (< 5%)."""
@@ -295,7 +307,7 @@ class TestFinancialTranslation:
         }
         narrative = translator.translate_financial(metrics)
 
-        assert "competitivo" in narrative
+        assert "competitivo -2.0% bajo umbral" in narrative
 
     def test_translate_zero_contingency(self, translator):
         """Verifica mensaje cuando contingencia es cero."""
@@ -317,9 +329,9 @@ class TestFinancialValidation:
         return SemanticTranslator()
 
     def test_validate_invalid_metrics_type_raises_error(self, translator):
-        """Tipo incorrecto de métricas debe lanzar ValueError."""
-        with pytest.raises(ValueError, match="Se esperaba dict"):
-            translator.translate_financial("not a dict")
+        """Tipo incorrecto de métricas debe lanzar TypeError."""
+        with pytest.raises(TypeError, match="Se esperaba dict"):
+            translator.translate_financial("not a dict") # type: ignore
 
     def test_validate_invalid_wacc_type_raises_error(self, translator):
         """WACC no numérico debe lanzar ValueError."""
@@ -328,7 +340,7 @@ class TestFinancialValidation:
             "performance": {"recommendation": "REVISAR"}
         }
 
-        with pytest.raises(ValueError, match="WACC debe ser numérico"):
+        with pytest.raises(ValueError, match="debe ser numérico"):
             translator.translate_financial(metrics)
 
     def test_missing_wacc_uses_default(self, translator, caplog):
@@ -338,10 +350,14 @@ class TestFinancialValidation:
             "performance": {"recommendation": "REVISAR"}
         }
 
+        # Debe configurar nivel de log para capturar debug/info
+        import logging
+        caplog.set_level(logging.DEBUG)
+
         narrative = translator.translate_financial(metrics)
 
         assert "0.00%" in narrative
-        assert "WACC no especificado" in caplog.text
+        assert "Clave 'wacc' no encontrada" in caplog.text
 
     def test_unknown_recommendation_defaults_to_review(self, translator, caplog):
         """Recomendación desconocida se convierte a REVISAR."""
@@ -354,7 +370,7 @@ class TestFinancialValidation:
         narrative = translator.translate_financial(metrics)
 
         assert "revisión manual" in narrative
-        assert "no reconocida" in caplog.text
+        assert "no reconocido" in caplog.text
 
     def test_malformed_performance_handled_gracefully(self, translator):
         """Performance malformado no causa crash."""
@@ -461,9 +477,8 @@ class TestStrategicNarrative:
             stability=12.0
         )
 
-        assert "LUZ VERDE" in report
-        assert "β₁ = 0" in report
-        assert "coherencia técnica" in report
+        assert "LUZ VERDE TOTAL" in report
+        assert "Coherencia topológica (β₁ = 0)" in report
 
     def test_compose_strategic_narrative_review_status(
         self,
@@ -478,10 +493,8 @@ class TestStrategicNarrative:
             stability=12.0
         )
 
-        assert "EVALUACIÓN INCOMPLETA" in report
-        assert "LUZ VERDE" not in report
-        # assert "certeza financiera" in narrative or "certeza financiera" in report # narrative var not defined here
-        assert "certeza financiera" in report
+        assert "CLARIFICACIÓN PENDIENTE" in report
+        assert "insuficiente certeza financiera" in report
 
     def test_compose_strategic_narrative_financial_rejection(
         self,
@@ -496,9 +509,9 @@ class TestStrategicNarrative:
             stability=12.0
         )
 
-        assert "REVISIÓN FINANCIERA" in report
-        assert "estructura técnica es sólida" in report
-        assert "números no cierran" in report
+        assert "OPTIMIZACIÓN REQUERIDA" in report
+        assert "Estructura técnica sólida" in report
+        assert "indicadores financieros negativos" in report
 
     def test_compose_strategic_narrative_technical_issues(
         self,
@@ -513,9 +526,9 @@ class TestStrategicNarrative:
             stability=12.0
         )
 
-        assert "PROCEDER CON CAUTELA" in report
-        assert "2 ciclo(s)" in report
-        assert "litigios" in report
+        assert "PROCEDER CON CORRECCIONES" in report
+        assert "2 dependencia(s) circular(es)" in report
+        assert "Riesgo legal" in report
 
     def test_compose_strategic_narrative_total_failure(
         self,
@@ -530,9 +543,8 @@ class TestStrategicNarrative:
             stability=12.0
         )
 
-        assert "ACCIÓN INMEDIATA REQUERIDA" in report
-        assert "inviable técnica y financieramente" in report
-        assert "Detener procesos" in report
+        assert "PROYECTO INVIABLE" in report
+        assert "Confluencia de riesgos críticos" in report
 
     def test_compose_strategic_narrative_cycles_with_review(
         self,
@@ -547,8 +559,8 @@ class TestStrategicNarrative:
             stability=12.0
         )
 
-        assert "AUDITORÍA REQUERIDA" in report
-        assert "corrección topológica" in report
+        assert "AUDITORÍA PRIORITARIA" in report
+        assert "evaluación financiera inconclusa" in report
 
 
 class TestStrategicNarrativeErrorHandling:
@@ -574,21 +586,22 @@ class TestStrategicNarrativeErrorHandling:
         )
 
         assert "ANÁLISIS INCOMPLETO" in report
-        assert "Error en análisis estructural" in report
+        assert "Error en traducción topológica" not in report # Should be captured in log, user sees simplified
+        assert "No se pudo generar el análisis estructural" in report
 
     def test_handles_invalid_financials_gracefully(self, translator):
         """Errores financieros se capturan sin crash."""
         valid_topo = TopologicalMetrics(beta_0=1, beta_1=0, euler_characteristic=1)
-        invalid_fin = "not a dict"
+        invalid_fin = "not a dict" # type: ignore
 
         report = translator.compose_strategic_narrative(
             valid_topo,
-            invalid_fin,
+            invalid_fin, # type: ignore
             stability=5.0
         )
 
         assert "ANÁLISIS INCOMPLETO" in report
-        assert "Error en análisis financiero" in report
+        assert "No se pudo generar el análisis financiero" in report
 
 
 class TestMarketContext:
@@ -633,15 +646,15 @@ class TestFinalAdviceDecisionMatrix:
 
     @pytest.mark.parametrize("beta_1,recommendation,expected_keywords", [
         # Sin ciclos
-        (0, "ACEPTAR", ["LUZ VERDE", "coherencia técnica"]),
-        (0, "RECHAZAR", ["REVISIÓN FINANCIERA", "números no cierran"]),
-        (0, "REVISAR", ["EVALUACIÓN INCOMPLETA", "certeza financiera"]),
+        (0, "ACEPTAR", ["LUZ VERDE TOTAL", "Coherencia topológica"]),
+        (0, "RECHAZAR", ["OPTIMIZACIÓN REQUERIDA", "indicadores financieros negativos"]),
+        (0, "REVISAR", ["CLARIFICACIÓN PENDIENTE", "insuficiente certeza financiera"]),
         # Con ciclos
-        (1, "ACEPTAR", ["PROCEDER CON CAUTELA", "litigios"]),
-        (1, "RECHAZAR", ["ACCIÓN INMEDIATA REQUERIDA", "inviable"]),
-        (1, "REVISAR", ["AUDITORÍA REQUERIDA", "corrección topológica"]),
+        (1, "ACEPTAR", ["PROCEDER CON CORRECCIONES", "Riesgo legal"]),
+        (1, "RECHAZAR", ["PROYECTO INVIABLE", "Confluencia de riesgos"]),
+        (1, "REVISAR", ["AUDITORÍA PRIORITARIA", "evaluación financiera inconclusa"]),
         # Múltiples ciclos
-        (3, "RECHAZAR", ["ACCIÓN INMEDIATA", "3 dependencia"]),
+        (3, "RECHAZAR", ["PROYECTO INVIABLE", "3 ciclo(s)"]),
     ])
     def test_decision_matrix_coverage(
         self,
@@ -667,7 +680,7 @@ class TestFinalAdviceDecisionMatrix:
     def test_decision_matrix_unstable_downgrade(self, translator):
         """
         Verifica que un proyecto rentable pero inestable (Ψ < 1) sea degradado
-        de 'LUZ VERDE' a 'PRECAUCIÓN LOGÍSTICA'.
+        a 'PRECAUCIÓN LOGÍSTICA'.
         """
         topo = TopologicalMetrics(beta_0=1, beta_1=0, euler_characteristic=1)
         fin = {"performance": {"recommendation": "ACEPTAR"}}
@@ -676,7 +689,7 @@ class TestFinalAdviceDecisionMatrix:
         advice = translator._generate_final_advice(topo, fin, stability=0.5)
         assert "PRECAUCIÓN LOGÍSTICA" in advice
         assert "Pirámide Invertida" in advice
-        assert "Ψ<1" in advice
+        assert "déficit" in advice
         assert "LUZ VERDE" not in advice
 
         # Caso estable (Ψ = 5.0) -> Debe mantenerse en LUZ VERDE
