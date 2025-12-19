@@ -1901,7 +1901,7 @@ def build_output_dictionary(df_final, df_insumos, df_merged, df_raw, df_proc):
         "presupuesto": df_final.to_dict("records"),
         "processed_apus": df_proc.to_dict("records"),
         "apus_detail": df_merged.to_dict("records"),
-        "insumos": {},
+        "insumos": df_insumos.to_dict("records"),
     }
 
 

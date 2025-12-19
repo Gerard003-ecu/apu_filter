@@ -694,6 +694,9 @@ class AutonomousAgent:
             f"saturation={telemetry.saturation:.3f}"
         )
 
+        # Reset memory of traumatic startup failures upon success
+        self.topology.clear_request_history()
+
     def _handle_observation_failure(self, request_id: str, failure_type: str) -> None:
         """
         Maneja una observación fallida actualizando métricas y topología.

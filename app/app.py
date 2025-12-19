@@ -1484,6 +1484,7 @@ def create_app(config_name: str) -> Flask:
                 for file_type, result in validation_results.items()
             },
             "processing_time": processing_time,
+            "audit_report": sanitized_data.get("audit_report"),
         }
 
         # Incluir datos completos si se solicita
