@@ -16,9 +16,10 @@ from pathlib import Path
 
 # Asegurar que la raíz del proyecto esté en sys.path
 # Asumiendo estructura: /app/app/topology_viz.py -> raíz es /app
-ROOT_DIR = Path(__file__).resolve().parent.parent
-if str(ROOT_DIR) not in sys.path:
-    sys.path.insert(0, str(ROOT_DIR))
+# Se incluye 'agent' explícitamente para asegurar visibilidad en contenedores
+root_path = Path(__file__).resolve().parent.parent
+if str(root_path) not in sys.path:
+    sys.path.insert(0, str(root_path))
 
 from agent.business_topology import BudgetGraphBuilder, BusinessTopologicalAnalyzer
 
