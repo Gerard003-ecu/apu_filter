@@ -658,7 +658,27 @@ class TestFinalAdviceDecisionMatrix:
         )
         fin = {"performance": {"recommendation": recommendation}}
 
-        advice = translator._generate_final_advice(topo, fin)
+        # Usamos stability=10.0 para asegurar que no caiga en el caso de pirámide invertida
+        advice = translator._generate_final_advice(topo, fin, stability=10.0)
 
         for keyword in expected_keywords:
             assert keyword in advice, f"'{keyword}' no encontrado en: {advice}"
+
+    def test_decision_matrix_unstable_downgrade(self, translator):
+        """
+        Verifica que un proyecto rentable pero inestable (Ψ < 1) sea degradado
+        de 'LUZ VERDE' a 'PRECAUCIÓN LOGÍSTICA'.
+        """
+        topo = TopologicalMetrics(beta_0=1, beta_1=0, euler_characteristic=1)
+        fin = {"performance": {"recommendation": "ACEPTAR"}}
+
+        # Caso inestable (Ψ = 0.5)
+        advice = translator._generate_final_advice(topo, fin, stability=0.5)
+        assert "PRECAUCIÓN LOGÍSTICA" in advice
+        assert "Pirámide Invertida" in advice
+        assert "Ψ<1" in advice
+        assert "LUZ VERDE" not in advice
+
+        # Caso estable (Ψ = 5.0) -> Debe mantenerse en LUZ VERDE
+        advice_stable = translator._generate_final_advice(topo, fin, stability=5.0)
+        assert "LUZ VERDE" in advice_stable
