@@ -113,6 +113,7 @@ USER apu_user
 # FASE 9: Copiar código
 # =============================================================================
 COPY --chown=apu_user:apu_user app/ /app/app/
+COPY --chown=apu_user:apu_user agent/ /app/agent/
 COPY --chown=apu_user:apu_user templates/ /app/templates/
 COPY --chown=apu_user:apu_user static/ /app/static/
 COPY --chown=apu_user:apu_user config/ /app/config/
