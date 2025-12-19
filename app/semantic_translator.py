@@ -477,7 +477,11 @@ class SemanticTranslator:
 
         # Consejo final solo si ambas traducciones fueron exitosas
         if not errors:
-            final_advice = self._generate_final_advice(topo_metrics, fin_metrics)
+            final_advice = self._generate_final_advice(
+                topo_metrics,
+                fin_metrics,
+                stability
+            )
         else:
             final_advice = (
                 "⚠️ **ANÁLISIS INCOMPLETO**: Se detectaron errores en el procesamiento. "
@@ -505,28 +509,29 @@ class SemanticTranslator:
     def _generate_final_advice(
         self,
         topo_metrics: TopologicalMetrics,
-        fin_metrics: Dict[str, Any]
+        fin_metrics: Dict[str, Any],
+        stability: float = 0.0
     ) -> str:
         """
         Genera una recomendación estratégica de cierre basada en la matriz de decisión.
 
-        La lógica sigue una tabla de verdad bidimensional:
+        La lógica sigue una tabla de verdad tridimensional (Ciclos, Finanzas, Estabilidad).
 
-        |              | β₁ > 0 (Ciclos)      | β₁ = 0 (Sin ciclos)  |
-        |--------------|----------------------|----------------------|
-        | RECHAZAR     | Inviable total       | Revisar finanzas     |
-        | REVISAR      | Cautela + auditar    | Evaluación pendiente |
-        | ACEPTAR      | Cautela + corregir   | Luz verde            |
+        Nueva dimensión de Estabilidad (Ψ):
+        Si Ψ < 1 (Pirámide Invertida), cualquier "LUZ VERDE" se degrada a
+        "PRECAUCIÓN LOGÍSTICA" para prevenir fragilidad estructural.
 
         Args:
             topo_metrics: Métricas topológicas validadas.
             fin_metrics: Métricas financieras.
+            stability: Índice de estabilidad piramidal (Ψ).
 
         Returns:
             Frase de cierre contundente y accionable.
         """
         beta_1 = topo_metrics.beta_1
         has_cycles = beta_1 > self.topo_thresholds.cycles_optimal
+        is_unstable = stability < self.stability_thresholds.critical
 
         performance = fin_metrics.get("performance", {})
         recommendation_raw = performance.get("recommendation", "REVISAR")
@@ -536,7 +541,16 @@ class SemanticTranslator:
         except ValueError:
             recommendation = FinancialVerdict.REVIEW
 
-        # Matriz de decisión explícita
+        # Caso especial: Degradar LUZ VERDE si es inestable
+        if not has_cycles and recommendation == FinancialVerdict.ACCEPT and is_unstable:
+            return (
+                "⚠️ **PRECAUCIÓN LOGÍSTICA**: El proyecto es rentable, pero su "
+                "estructura de 'Pirámide Invertida' (Ψ<1) lo hace extremadamente "
+                "frágil ante fallos de suministro. Se requiere diversificar "
+                "proveedores antes de proceder."
+            )
+
+        # Matriz de decisión explícita (para casos estándar)
         decision_matrix = {
             (True, FinancialVerdict.REJECT): (
                 "❌ **ACCIÓN INMEDIATA REQUERIDA**: El proyecto es inviable "
