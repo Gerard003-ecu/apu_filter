@@ -11,6 +11,14 @@ from flask import Blueprint, jsonify, session, current_app, Response
 import networkx as nx
 import pandas as pd
 import logging
+import sys
+from pathlib import Path
+
+# Asegurar que la raíz del proyecto esté en sys.path
+# Asumiendo estructura: /app/app/topology_viz.py -> raíz es /app
+ROOT_DIR = Path(__file__).resolve().parent.parent
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR))
 
 from agent.business_topology import BudgetGraphBuilder, BusinessTopologicalAnalyzer
 
