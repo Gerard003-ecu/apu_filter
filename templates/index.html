@@ -24,6 +24,30 @@
             border-radius: 0.5rem;
             border: 1px solid #e2e8f0;
         }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .loader {
+            border: 3px solid #f3f3f3;
+            border-radius: 50%;
+            border-top: 3px solid #3498db;
+            width: 24px;
+            height: 24px;
+            -webkit-animation: spin 1s linear infinite; /* Safari */
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body class="antialiased min-h-screen flex flex-col bg-slate-50">
@@ -100,7 +124,7 @@
                         <span class="text-2xl">🧠</span>
                         <h2 class="text-lg font-bold text-slate-800">Narrativa Estratégica</h2>
                     </div>
-                    <div id="strategic-narrative" class="prose prose-sm text-slate-600 max-w-none">
+                    <div id="strategic-narrative" class="prose prose-sm text-slate-600 max-w-none whitespace-pre-wrap">
                         <p class="animate-pulse">Esperando análisis del Business Agent...</p>
                     </div>
                 </div>
@@ -109,9 +133,9 @@
                 <div class="md:col-span-4 space-y-4">
                     <!-- Tarjeta Semáforo Viabilidad -->
                     <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
-                        <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Viabilidad Financiera</h3>
+                        <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Riesgo Financiero</h3>
                         <div class="flex items-center justify-between">
-                            <span id="viability-score" class="text-3xl font-black text-slate-800">--</span>
+                            <span id="financial-risk-level" class="text-3xl font-black text-slate-800">--</span>
                             <div id="viability-indicator" class="h-4 w-4 rounded-full bg-slate-200"></div>
                         </div>
                         <p id="viability-text" class="text-xs text-slate-500 mt-2">Sin datos suficientes</p>
@@ -120,15 +144,27 @@
                     <!-- Tarjeta Integridad Estructural -->
                     <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
                         <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Integridad Estructural</h3>
-                        <div class="flex items-center gap-4">
+                        <div class="flex items-center gap-4 mb-3">
                              <div class="flex-1 bg-slate-100 rounded-full h-2">
                                 <div id="integrity-bar" class="bg-indigo-600 h-2 rounded-full" style="width: 0%"></div>
                             </div>
                             <span id="integrity-value" class="text-sm font-bold text-indigo-700">0%</span>
                         </div>
-                        <div class="flex justify-between mt-2 text-xs text-slate-500">
-                             <span>Ψ: <span id="psi-score">--</span></span>
-                             <span>β1: <span id="beta1-score">--</span></span>
+
+                        <!-- KPIs Específicos -->
+                        <div class="grid grid-cols-3 gap-2 text-center">
+                            <div class="bg-slate-50 p-2 rounded-lg border border-slate-100">
+                                <span class="block text-xs text-slate-400">β₀ (Cohesión)</span>
+                                <span id="beta0-score" class="text-sm font-bold text-slate-700">--</span>
+                            </div>
+                            <div class="bg-slate-50 p-2 rounded-lg border border-slate-100">
+                                <span class="block text-xs text-slate-400">β₁ (Ciclos)</span>
+                                <span id="beta1-score" class="text-sm font-bold text-slate-700">--</span>
+                            </div>
+                            <div class="bg-slate-50 p-2 rounded-lg border border-slate-100">
+                                <span class="block text-xs text-slate-400">Ψ (Estabilidad)</span>
+                                <span id="psi-score" class="text-sm font-bold text-slate-700">--</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -141,10 +177,10 @@
                         <span class="text-2xl">🕸️</span>
                         <h2 class="text-lg font-bold text-slate-800">Topología del Presupuesto</h2>
                     </div>
-                    <div class="flex gap-2 text-xs">
+                    <div class="flex flex-wrap gap-2 text-xs">
                         <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-blue-500"></span> APU</span>
                         <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-orange-500"></span> Insumo</span>
-                        <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-red-500"></span> Riesgo (Ciclo/Isla)</span>
+                        <span class="flex items-center gap-1 border border-red-500 px-1 rounded"><span class="w-2 h-2 rounded-full bg-red-500"></span> Riesgo (Ciclo/Isla)</span>
                         <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-slate-800"></span> Estructura</span>
                     </div>
                 </div>
@@ -301,14 +337,16 @@
         document.addEventListener('DOMContentLoaded', () => {
             console.log("Dashboard Topológico Inicializado");
 
-            // Sobrescribir el estilo de Cytoscape en CONFIG si existe
+            // Sobrescribir el estilo de Cytoscape en CONFIG si existe (o definirlo)
             if (typeof CONFIG !== 'undefined') {
-                CONFIG.API_ENDPOINTS.TOPOLOGY = '/api/visualization/project-graph';
+                CONFIG.API_ENDPOINTS.TOPOLOGY = '/api/visualization/topology'; // Actualizado al endpoint alias
+                // Estilos específicos para la topología
                 CONFIG.CYTOSCAPE_STYLE = [
+                    // Estilo Base
                     {
                         selector: 'node',
                         style: {
-                            'background-color': 'data(color)', // Usar color enviado por backend
+                            'background-color': 'data(color)',
                             'label': 'data(label)',
                             'color': '#475569',
                             'font-size': '10px',
@@ -317,9 +355,52 @@
                             'width': '40px',
                             'height': '40px',
                             'text-wrap': 'wrap',
-                            'text-max-width': '80px'
+                            'text-max-width': '80px',
+                            'border-width': 1,
+                            'border-color': '#e2e8f0'
                         }
                     },
+                    // APU (Azul)
+                    {
+                        selector: 'node[type="APU"]',
+                        style: {
+                            'width': '50px',
+                            'height': '50px',
+                            'font-weight': 'bold',
+                            'background-color': '#3b82f6'
+                        }
+                    },
+                    // Insumo (Naranja)
+                    {
+                        selector: 'node[type="INSUMO"]',
+                        style: {
+                            'shape': 'round-diamond',
+                            'width': '35px',
+                            'height': '35px',
+                            'background-color': '#f97316'
+                        }
+                    },
+                    // Ciclos (Rojo y Borde Grueso) - Solicitud específica
+                    {
+                        selector: 'node.cycle',
+                        style: {
+                            'border-width': 4,
+                            'border-color': '#991b1b', // Rojo oscuro
+                            'background-color': '#ef4444', // Rojo
+                            'width': '60px',
+                            'height': '60px',
+                            'z-index': 10
+                        }
+                    },
+                     // Aislados (Gris)
+                    {
+                        selector: 'node.isolated',
+                        style: {
+                            'background-color': '#9ca3af',
+                            'opacity': 0.7
+                        }
+                    },
+                    // Aristas
                     {
                         selector: 'edge',
                         style: {
@@ -334,30 +415,57 @@
             }
         });
 
-        // Extender el UIManager para manejar la tabla de APUs y métricas adicionales
+        // Extender UIManager para actualizar los nuevos KPIs y paneles
         if (typeof UIManager !== 'undefined') {
              const originalUpdateStrategicLevel = UIManager.updateStrategicLevel;
 
              UIManager.updateStrategicLevel = function(report) {
-                 originalUpdateStrategicLevel(report);
+                 // Llamar al original
+                 if(originalUpdateStrategicLevel) originalUpdateStrategicLevel(report);
 
-                 // Actualizar métricas adicionales si existen en el reporte
-                 if (report && report.executive_report && report.executive_report.details && report.executive_report.details.metrics) {
-                     const metrics = report.executive_report.details.metrics;
-                     const psiEl = document.getElementById('psi-score');
-                     const beta1El = document.getElementById('beta1-score');
+                 console.log("Actualizando Dashboard con reporte:", report);
 
-                     if (psiEl) psiEl.textContent = metrics.pyramid_stability ? metrics.pyramid_stability.toFixed(2) : '--';
-                     if (beta1El) beta1El.textContent = metrics.beta_1 !== undefined ? metrics.beta_1 : '--';
-                 }
+                 if (report && report.executive_report) {
+                     const execReport = report.executive_report;
 
-                 // Llenar tabla de APUs si hay datos disponibles (simulación básica por ahora)
-                 // En una implementación real, esto vendría de una API paginada
-                 // Aquí simulamos llenado si no hay datos reales aún
-                 const tbody = document.getElementById('apu-table-body');
-                 if(tbody && report.executive_report && !tbody.querySelector('td.text-gray-900')) {
-                     // Solo mensaje placeholder si no hay lógica de tabla real en frontend aún
-                     // La tabla real requeriría lógica de paginación en JS
+                     // 1. Panel de Estrategia (Narrativa)
+                     const narrativeEl = document.getElementById('strategic-narrative');
+                     if (narrativeEl && execReport.strategic_narrative) {
+                         narrativeEl.innerHTML = execReport.strategic_narrative
+                             .replace(/\n/g, '<br>')
+                             .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                     }
+
+                     // 2. Financial Risk Level (Semáforo)
+                     const riskEl = document.getElementById('financial-risk-level');
+                     const indicatorEl = document.getElementById('viability-indicator');
+
+                     if (riskEl) {
+                         riskEl.textContent = execReport.financial_risk_level || 'N/A';
+
+                         // Colores basados en nivel de riesgo
+                         let colorClass = 'bg-slate-200';
+                         if (execReport.financial_risk_level === 'BAJO') colorClass = 'bg-green-500';
+                         else if (execReport.financial_risk_level === 'MEDIO') colorClass = 'bg-yellow-500';
+                         else if (execReport.financial_risk_level === 'ALTO' || execReport.financial_risk_level === 'CRÍTICO') colorClass = 'bg-red-500';
+
+                         if(indicatorEl) {
+                             indicatorEl.className = `h-4 w-4 rounded-full ${colorClass}`;
+                         }
+                     }
+
+                     // 3. KPIs Topológicos
+                     if (execReport.details && execReport.details.metrics) {
+                         const metrics = execReport.details.metrics;
+
+                         const psiEl = document.getElementById('psi-score');
+                         const beta0El = document.getElementById('beta0-score');
+                         const beta1El = document.getElementById('beta1-score');
+
+                         if (psiEl) psiEl.textContent = metrics.pyramid_stability ? metrics.pyramid_stability.toFixed(2) : '--';
+                         if (beta0El) beta0El.textContent = metrics.beta_0 !== undefined ? metrics.beta_0 : '--';
+                         if (beta1El) beta1El.textContent = metrics.beta_1 !== undefined ? metrics.beta_1 : '--';
+                     }
                  }
              };
         }
