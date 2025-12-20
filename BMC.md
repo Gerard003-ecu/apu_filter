@@ -1,65 +1,105 @@
 # Business Model Canvas (BMC) - Traducción de Arquitectura a Valor
 
-Este documento traduce la arquitectura de microservicios del proyecto a bloques de valor de negocio, utilizando el marco del Business Model Canvas (BMC). El objetivo es comunicar cómo cada componente tecnológico genera valor tangible para el cliente y el negocio, dejando de ser una "caja negra" técnica.
+Este documento traduce la arquitectura de microservicios del proyecto a bloques de valor de negocio, utilizando el marco del Business Model Canvas (BMC). Transforma componentes técnicos en un "Equipo de Expertos Digitales" que genera valor tangible, dejando de ser una "caja negra" para convertirse en un activo estratégico.
 
 ---
 
-### 1. `flux_condenser.py`
+### 1. Propuesta de Valor (El Corazón)
+*Microservicios que eliminan la incertidumbre y garantizan un "Costo Sano".*
 
-*   **Traducción al Negocio (Valor):** **Gestor de Volatilidad de Mercado.**
-    *   Este componente no solo "limpia datos"; actúa como un estabilizador que absorbe el caos y la incertidumbre de los precios históricos y los datos de entrada. Modela el flujo de datos como un circuito RLC, utilizando un motor de física para "descargar" la información de manera controlada. Esto garantiza que los modelos predictivos no se alimenten de ruido, aumentando la confiabilidad de las estimaciones.
-
-*   **Bloque del BMC:** **Propuesta de Valor.**
-    *   **Beneficio:** Reducción de la Incertidumbre y Aumento de la Confiabilidad del Dato. El cliente no compra Python, compra certeza. Este módulo le entrega datos estables sobre los cuales puede tomar decisiones estratégicas.
-
----
-
-### 2. `data_validator.py`
-
-*   **Traducción al Negocio (Valor):** **Auditor de Lógica Financiera.**
-    *   Este microservicio va más allá de la simple validación de sintaxis. Actúa como el "Revisor Fiscal" del código, verificando que las ecuaciones fundamentales de costos (e.g., `Cantidad × Precio Unitario ≈ Valor Total`) tengan coherencia matemática y financiera. Detecta anomalías, costos irrazonables y cantidades ilógicas que podrían distorsionar una licitación.
-
-*   **Bloque del BMC:** **Actividades Clave.**
-    *   **Beneficio:** Control de Calidad y Auditoría de Riesgos. Asegura la integridad lógica de los datos financieros, previniendo errores costosos derivados de datos inconsistentes. Es una actividad clave para garantizar la precisión del producto final.
+*   **Gestor de Volatilidad (`flux_condenser.py`):**
+    *   **Función:** Estabilizador de mercado basado en física (circuitos RLC).
+    *   **Valor:** No vende código, vende **certeza**. Absorbe el caos de precios y garantiza que el sistema no colapse ante picos de carga, entregando datos libres de "ruido" estadístico.
+*   **Analista de Viabilidad (`financial_engine.py`):**
+    *   **Función:** Cálculo de WACC, VaR y Opciones Reales.
+    *   **Valor:** Eleva la propuesta de "calcular costos" a **"blindar la inversión"**. Asegura que el proyecto sea financiera y técnicamente viable.
+*   **Integridad Estructural (`agent/business_topology.py`):**
+    *   **Función:** Auditoría topológica ($\beta_n$).
+    *   **Valor:** Garantiza un presupuesto sin "grietas" lógicas (referencias circulares), previniendo litigios y errores catastróficos.
 
 ---
 
-### 3. `estimator.py`
+### 2. Segmentos de Clientes
+*Adaptabilidad a actores específicos del sector construcción.*
 
-*   **Traducción al Negocio (Valor):** **Navegador Estratégico (El Copiloto).**
-    *   Este componente no es un oráculo que impone una verdad absoluta. Es un GPS estratégico que utiliza una búsqueda híbrida (semántica y por palabras clave) y análisis financiero avanzado (Simulación de Monte Carlo, VaR) para trazar la ruta de costos más probable. Comunica no solo una estimación, sino también el margen de error y el riesgo asociado (`"Esta es la ruta más probable, con una probabilidad de éxito del X%"`).
-
-*   **Bloque del BMC:** **Recursos Clave.**
-    *   **Beneficio:** Inteligencia de Negocio y Activos de Conocimiento. Transforma datos crudos en un activo de conocimiento estratégico. Le permite al cliente navegar la incertidumbre de una licitación con una comprensión clara de los riesgos y oportunidades.
-
----
-
-### 4. `pipeline_director.py`
-
-*   **Traducción al Negocio (Valor):** **Motor de Eficiencia Operativa.**
-    *   Este módulo es el sistema nervioso central que orquesta todos los pasos del procesamiento de datos de forma automática. Su función es eliminar la "carpintería" manual y repetitiva, liberando al ingeniero de costos para que se enfoque en tareas de alto valor: pensar, analizar y tomar decisiones estratégicas, en lugar de digitar y corregir datos.
-
-*   **Bloque del BMC:** **Estructura de Costos.**
-    *   **Beneficio:** Reducción de Horas/Hombre en Licitaciones. Al automatizar el flujo de trabajo, reduce drásticamente el tiempo y el costo operativo asociado a la preparación de un presupuesto, impactando directamente en la estructura de costos del cliente.
+*   **Grandes Constructoras (Sistemas Legados):**
+    *   **Dolor:** Integración de datos "basura" de múltiples fuentes.
+    *   **Solución:** "El Portero" (`ReportParserCrudo`) y "El Cirujano" (`APUProcessor`) limpian y estandarizan formatos inconsistentes (PDFs corruptos, Excel).
+*   **Pequeños Contratistas:**
+    *   **Dolor:** Falta de departamentos de TI complejos.
+    *   **Solución:** Interfaz simplificada y "El Copiloto" (`estimator.py`) para usabilidad inmediata sin barreras técnicas.
 
 ---
 
-### 5. `financial_engine.py`
+### 3. Canales
+*Medios de entrega de valor e información.*
 
-*   **Traducción al Negocio (Valor):** **Analista de Viabilidad Financiera.**
-    *   Este motor transforma una estimación técnica de costos en un análisis completo de viabilidad de inversión. No solo responde a la pregunta "¿cuánto cuesta?", sino a la más importante: "¿es una buena inversión?". Utiliza métricas financieras estándar como WACC (Costo de Oportunidad del Capital), VaR (Valor en Riesgo) y Opciones Reales para cuantificar el riesgo financiero, evaluar la rentabilidad ajustada al riesgo y valorar la flexibilidad estratégica del proyecto.
-
-*   **Bloque del BMC:** **Propuesta de Valor / Relaciones con Clientes.**
-    *   **Beneficio:** Empodera la Toma de Decisiones Estratégicas. Eleva la conversación desde un nivel puramente técnico a uno estratégico y financiero. Proporciona a los ejecutivos y clientes la confianza de que el proyecto no solo es técnicamente sólido, sino también financieramente viable y alineado con sus objetivos de negocio.
+*   **Visualización Topológica (`topology_viz.py`):**
+    *   **Función:** Mapas de calor y grafos.
+    *   **Valor:** Traduce matemáticas complejas en **semáforos visuales** (Rojo=Riesgo, Verde=Estabilidad) que un gerente interpreta en segundos.
+*   **API Presenter ("El Director de Orquesta"):**
+    *   **Función:** Unificación de respuestas.
+    *   **Valor:** Entrega una "sinfonía armónica" de datos, independientemente de la complejidad de las fuentes subyacentes.
 
 ---
 
-### 6. `agent/business_topology.py`
+### 4. Relaciones con Clientes
+*De proveedor de software a Socio Estratégico.*
 
-*   **Traducción al Negocio (Valor):** **Auditor de Integridad Estructural.**
-    *   Este componente actúa como un "ingeniero estructural" para el presupuesto. En lugar de revisar los montos, analiza las conexiones entre ellos. Mediante topología de grafos, detecta fallos lógicos críticos que son invisibles para un análisis tradicional, como:
-        *   **Dependencias Circulares:** Costos que se referencian entre sí, creando bucles infinitos que hacen el presupuesto incalculable.
-        *   **Recursos Fantasma:** Materiales o mano de obra que existen en la base de datos pero no se utilizan en ninguna tarea, representando un desperdicio financiero.
+*   **El Copiloto (`estimator.py`):**
+    *   **Estilo:** Colaborativo, no impositivo.
+    *   **Valor:** Sugiere rutas y probabilidades ("35% riesgo de sobrecosto"), **empoderando** al usuario en lugar de reemplazarlo.
+*   **Transparencia Radical (Caja Blanca):**
+    *   **Estilo:** Auditabilidad total.
+    *   **Valor:** Construye confianza al mostrar la lógica detrás de cada cálculo, actuando como un libro abierto.
 
-*   **Bloque del BMC:** **Actividades Clave / Propuesta de Valor.**
-    *   **Beneficio:** Mitigación de Riesgos Estructurales y Aseguramiento de la Coherencia. Garantiza que el presupuesto es lógicamente sólido, auditable y libre de errores estructurales que podrían invalidar toda la estimación. Proporciona una capa de confianza sobre la coherencia interna del proyecto.
+---
+
+### 5. Fuentes de Ingresos
+*Monetización basada en protección de valor.*
+
+*   **Protección de Márgenes:**
+    *   **Modelo:** El servicio se justifica no como gasto operativo, sino como **póliza de seguro** contra la pérdida de rentabilidad en proyectos multimillonarios.
+    *   **Driver:** Detección de "Recursos Fantasma" y viabilidad financiera.
+
+---
+
+### 6. Recursos Clave
+*Activos tecnológicos transformados en activos de conocimiento.*
+
+*   **Inteligencia de Mercado (Embeddings + `estimator.py`):**
+    *   **Recurso:** Base de datos vectorial y búsqueda semántica.
+    *   **Valor:** Capitaliza la experiencia histórica ("Este proyecto se parece al del 2021"), convirtiendo datos pasados en ventaja competitiva.
+*   **Talento Digital (La Malla Agéntica):**
+    *   **Recurso:** `BusinessAgent` (CFO) y `APUAgent` (SRE).
+    *   **Valor:** Recursos únicos que imitan la labor de auditores y expertos humanos disponibles 24/7.
+
+---
+
+### 7. Actividades Clave
+*Automatización y aseguramiento crítico.*
+
+*   **Control de Calidad (`data_validator.py`):**
+    *   **Actividad:** "Revisor Fiscal Digital".
+    *   **Valor:** Revisa coherencia matemática y financiera en tiempo real (e.g., costos negativos).
+*   **Mitigación de Riesgos:**
+    *   **Actividad:** Simulaciones Monte Carlo y Análisis Topológico.
+    *   **Valor:** Ejecución constante de escenarios de estrés para asegurar la salud del proyecto.
+
+---
+
+### 8. Socios Clave
+*Ecosistema tecnológico.*
+
+*   **Infraestructura Cloud (AWS/GPU):**
+    *   **Rol:** Potencia de cálculo.
+    *   **Valor:** Escalamiento eficiente para procesos de IA (Trainium/Inferentia) necesarios para la viabilidad técnica.
+
+---
+
+### 9. Estructura de Costos
+*Eficiencia y optimización.*
+
+*   **Motor de Eficiencia (`pipeline_director.py`):**
+    *   **Impacto:** Reducción de OPEX.
+    *   **Valor:** Elimina la "carpintería" manual, transformando costos variables de horas-hombre en costos fijos tecnológicos altamente eficientes.
