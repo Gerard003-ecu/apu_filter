@@ -499,10 +499,37 @@ class LoadDataStep(ProcessingStep):
             condenser = DataFluxCondenser(
                 config=self.config, profile=apus_profile, condenser_config=condenser_config
             )
-            df_apus_raw = condenser.stabilize(apus_path)
 
-            # ROBUSTECIDO: Verificar stats antes de registrar
-            stats = condenser.get_processing_stats() or {}
+            # Definir callback para actualización en tiempo real
+            def progress_callback(processing_stats):
+                try:
+                    # Registrar métricas en telemetría local
+                    for metric_name, attr_name, default_value in [
+                        ("avg_saturation", "avg_saturation", 0.0),
+                        ("max_flyback_voltage", "max_flyback_voltage", 0.0),
+                        ("max_dissipated_power", "max_dissipated_power", 0.0),
+                        ("avg_kinetic_energy", "avg_kinetic_energy", 0.0),
+                    ]:
+                        val = getattr(processing_stats, attr_name, default_value)
+                        telemetry.record_metric("flux_condenser", metric_name, val)
+
+                    # Persistir a Redis
+                    from flask import current_app, g
+                    import json
+                    if current_app:
+                        redis_client = current_app.config.get("SESSION_REDIS")
+                        if redis_client and hasattr(g, 'telemetry'):
+                            metrics_data = json.dumps(g.telemetry.metrics)
+                            redis_client.set("apu_filter:global_metrics", metrics_data, ex=3600)
+                except Exception:
+                    pass # Silenciar errores en callback para no afectar performance
+
+            df_apus_raw = condenser.stabilize(apus_path, on_progress=progress_callback)
+
+            # Registrar estadísticas finales completas (manteniendo lógica existente)
+            full_stats = condenser.get_processing_stats() or {}
+            stats = full_stats.get("statistics", {})
+
             for metric_name, default_value in [
                 ("avg_saturation", 0.0),
                 ("max_flyback_voltage", 0.0),
@@ -717,7 +744,9 @@ class BusinessTopologyStep(ProcessingStep):
             return context
 
         except Exception as e:
-            logger.error(f"❌ Error en BusinessTopologyStep con BusinessAgent: {e}", exc_info=True)
+            logger.error(
+                f"❌ Error en BusinessTopologyStep con BusinessAgent: {e}", exc_info=True
+            )
             telemetry.record_error("business_topology", str(e))
             telemetry.end_step("business_topology", "error")
             # No bloqueamos el pipeline por errores de análisis
@@ -760,7 +789,9 @@ class BuildOutputStep(ProcessingStep):
 
             # Integrar reporte de auditoría si existe
             if "business_topology_report" in context:
-                validated_result["audit_report"] = asdict(context["business_topology_report"])
+                validated_result["audit_report"] = asdict(
+                    context["business_topology_report"]
+                )
 
             context["final_result"] = validated_result
             telemetry.end_step("build_output", "success")
@@ -915,9 +946,7 @@ class PipelineDirector:
         recipe = self.config.get("pipeline_recipe", [])
         if not recipe:
             logger.warning("No 'pipeline_recipe' en config. Usando flujo por defecto.")
-            recipe = [
-                {"step": step.value, "enabled": True} for step in PipelineSteps
-            ]
+            recipe = [{"step": step.value, "enabled": True} for step in PipelineSteps]
 
         context = initial_context
         for step_idx, step_config in enumerate(recipe):
@@ -931,10 +960,14 @@ class PipelineDirector:
             # Para el primer paso, pasamos el contexto inicial
             current_context = context if step_idx == 0 else None
 
-            result = self.run_single_step(step_name, session_id, initial_context=current_context)
+            result = self.run_single_step(
+                step_name, session_id, initial_context=current_context
+            )
 
             if result["status"] == "error":
-                error_msg = f"Fallo en pipeline orquestado en paso '{step_name}': {result['error']}"
+                error_msg = (
+                    f"Fallo en pipeline orquestado en paso '{step_name}': {result['error']}"
+                )
                 logger.critical(f"🔥 {error_msg}")
                 # El contexto con el error ya fue logueado por run_single_step
                 raise RuntimeError(error_msg)
@@ -1897,11 +1930,23 @@ def synchronize_data_sources(df_merged, df_final):
 
 
 def build_output_dictionary(df_final, df_insumos, df_merged, df_raw, df_proc):
+    # Agrupar insumos por GRUPO_INSUMO para cumplir con el esquema del GovernanceEngine
+    insumos_grouped = {}
+    if not df_insumos.empty and ColumnNames.GRUPO_INSUMO in df_insumos.columns:
+        insumos_grouped = (
+            df_insumos.groupby(ColumnNames.GRUPO_INSUMO)
+            .apply(lambda x: x.to_dict("records"))
+            .to_dict()
+        )
+    elif not df_insumos.empty:
+        # Fallback si no hay columna de grupo, poner todo bajo 'GENERAL'
+        insumos_grouped = {"GENERAL": df_insumos.to_dict("records")}
+
     return {
         "presupuesto": df_final.to_dict("records"),
         "processed_apus": df_proc.to_dict("records"),
         "apus_detail": df_merged.to_dict("records"),
-        "insumos": df_insumos.to_dict("records"),
+        "insumos": insumos_grouped,
     }
 
 
