@@ -186,7 +186,7 @@ class SemanticTranslator:
         if beta_1 <= self.topo_thresholds.cycles_optimal:
             return (
                 "✅ **Integridad Estructural (Genus 0)**: No se detectan socavones lógicos "
-                "(β₁ = 0). La Trazabilidad de Carga (costos) fluye verticalmente desde la "
+                "(β₁ = 0). La Trazabilidad de Carga de Costos fluye verticalmente desde la "
                 "Cimentación hasta el Ápice sin recirculaciones."
             )
 
@@ -197,15 +197,15 @@ class SemanticTranslator:
             return (
                 f"🔶 **Falla Estructural Local ({genus_label})**: Se detectaron {beta_1} "
                 "socavones lógicos en la estructura de costos. Estos 'agujeros' impiden "
-                "el cálculo lineal de cargas y deben ser rellenados (corregidos) para "
+                "la correcta Trazabilidad de Carga de Costos y deben ser rellenados (corregidos) para "
                 "evitar asentamientos diferenciales en el presupuesto."
             )
         else:
             return (
                 f"🚨 **Estructura Geológicamente Inestable ({genus_label})**: Se detectó un "
-                f"Genus de {beta_1}, lo que indica una estructura tipo 'esponja' en lugar "
+                f"Genus Estructural de {beta_1}, lo que indica una estructura tipo 'esponja' en lugar "
                 "de sólida. Existen múltiples bucles de retroalimentación de costos que "
-                "hacen colapsar cualquier intento de valoración estática."
+                "impiden la Trazabilidad de Carga de Costos y hacen colapsar cualquier valoración estática."
             )
 
     def _classify_cycle_severity(self, beta_1: int) -> str:
@@ -355,6 +355,7 @@ class SemanticTranslator:
         Compone el reporte ejecutivo con metáforas de ingeniería estructural.
         """
         sections = []
+        is_analysis_valid = True
         errors = []
 
         # Header
@@ -368,6 +369,7 @@ class SemanticTranslator:
             error_msg = f"Error analizando estructura: {e}"
             sections.append(f"❌ {error_msg}")
             errors.append(error_msg)
+            is_analysis_valid = False
         sections.append("")
 
         # 2. Finanzas
@@ -378,6 +380,7 @@ class SemanticTranslator:
             error_msg = f"Error analizando finanzas: {e}"
             sections.append(f"❌ {error_msg}")
             errors.append(error_msg)
+            is_analysis_valid = False
         sections.append("")
 
         # 3. Mercado
@@ -387,15 +390,7 @@ class SemanticTranslator:
 
         # 4. Recomendación
         sections.append("### 💡 Dictamen del Ingeniero Jefe")
-
-        if errors:
-            sections.append(
-                "⚠️ **ANÁLISIS INCOMPLETO**: No es posible emitir un certificado de solidez "
-                "debido a errores en los cálculos previos.\n"
-                f"**Fallos detectados**: {'; '.join(errors)}"
-            )
-        else:
-            sections.append(self._generate_final_advice(topo_metrics, fin_metrics, stability))
+        sections.append(self._generate_final_advice(topo_metrics, fin_metrics, stability, is_analysis_valid))
 
         return "\n".join(sections)
 
@@ -410,9 +405,17 @@ class SemanticTranslator:
         self,
         topo_metrics: TopologicalMetrics,
         fin_metrics: Dict[str, Any],
-        stability: float
+        stability: float,
+        is_valid_analysis: bool = True
     ) -> str:
         """Genera el dictamen final basado en la solidez de la pirámide."""
+
+        if not is_valid_analysis:
+            return (
+                "⚠️ ANÁLISIS ESTRUCTURAL INTERRUMPIDO: Se detectaron inconsistencias matemáticas "
+                "o falta de datos críticos que impiden certificar la solidez del proyecto. "
+                "Revise los errores en las secciones técnicas."
+            )
 
         # Factores de decisión
         has_holes = topo_metrics.beta_1 > 0
