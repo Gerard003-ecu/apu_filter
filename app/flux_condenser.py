@@ -33,7 +33,7 @@ import time
 from collections import deque
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, List, NamedTuple, Optional, Set, Tuple
+from typing import Any, Callable, Dict, List, NamedTuple, Optional, Set, Tuple
 
 # Manejo opcional de numpy para optimización matemática
 try:
@@ -1603,7 +1603,11 @@ class DataFluxCondenser:
         for warning in self._init_warnings:
             self.logger.warning(f"[INIT] {warning}")
 
-    def stabilize(self, file_path: str) -> pd.DataFrame:
+    def stabilize(
+        self,
+        file_path: str,
+        on_progress: Optional[Callable[[ProcessingStats], None]] = None,
+    ) -> pd.DataFrame:
         """
         Proceso principal de estabilización con control PID.
 
@@ -1611,6 +1615,7 @@ class DataFluxCondenser:
 
         Args:
             file_path: Ruta al archivo de APU a procesar.
+            on_progress: Callback opcional para reportar progreso en tiempo real.
 
         Returns:
             pd.DataFrame: DataFrame con los datos procesados.
@@ -1684,7 +1689,7 @@ class DataFluxCondenser:
             # FASE 5: Procesamiento por lotes con PID
             # ═══════════════════════════════════════════════════════════════════
             processed_batches = self._process_batches_with_pid(
-                raw_records, cache, total_records
+                raw_records, cache, total_records, on_progress
             )
             self._check_timeout("procesamiento por lotes")
 
@@ -2032,6 +2037,7 @@ class DataFluxCondenser:
         raw_records: List[Dict[str, Any]],
         cache: Dict[str, Any],
         total_records: int,
+        on_progress: Optional[Callable[[ProcessingStats], None]] = None,
     ) -> List[pd.DataFrame]:
         """
         Procesamiento por lotes con control PID adaptativo.
@@ -2046,6 +2052,7 @@ class DataFluxCondenser:
             raw_records: Lista de registros crudos.
             cache: Caché de parseo.
             total_records: Número total de registros.
+            on_progress: Callback para reportar progreso.
 
         Returns:
             List[pd.DataFrame]: Lista de DataFrames procesados.
@@ -2290,7 +2297,7 @@ class DataFluxCondenser:
             )
 
             # ═══════════════════════════════════════════════════════════════
-            # LOGGING ADAPTATIVO
+            # LOGGING ADAPTATIVO Y CALLBACK DE PROGRESO
             # ═══════════════════════════════════════════════════════════════
             log_frequency = max(1, min(50, total_records // 100))
             if iteration % log_frequency == 0 or iteration <= 3 or consecutive_failures > 0:
@@ -2302,6 +2309,13 @@ class DataFluxCondenser:
                     f"Speed: {throughput:.0f} rec/s | "
                     f"Next: {new_batch_size:,}"
                 )
+
+            # Reportar progreso en tiempo real
+            if on_progress:
+                try:
+                    on_progress(self._stats)
+                except Exception as e:
+                    self.logger.warning(f"⚠️ Error en callback de progreso: {e}")
 
             # ═══════════════════════════════════════════════════════════════
             # PREPARAR SIGUIENTE ITERACIÓN
