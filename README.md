@@ -1,139 +1,78 @@
 <div align="center">
-  <img src="logos/vector_3D.png" alt="APU Filter: Estabilización de Flujo de Datos para Construcción" width="75%">
+  <img src="logos/vector_3D.png" alt="APU Filter: Consejo de Sabios Digitales" width="75%">
 </div>
 
-# APU Filter: Inteligencia de Costos y Blindaje Financiero
+# APU Filter: Consejo de Sabios Digitales
 
-### De Archivos Muertos a Memoria Viva: El Nuevo Activo Estratégico de su Constructora.
+### De Software a Equipo de Élite: Su Protección contra la Incertidumbre.
 
-**"La volatilidad de los datos de APU no es un problema de software, es un problema de negocio que cuesta millones."**
+**"Usted no está instalando un software; está convocando a un Consejo de Sabios Digitales. Liderados por un Presidente Estratégico y coordinados por un Director de Operaciones, este equipo de élite protege la rentabilidad de su obra."**
 
-En el sector de la construcción en Colombia, ganar una licitación con el precio incorrecto es peor que perderla. **APU Filter** no es otro software de gestión; es una plataforma de **Inteligencia de Costos** diseñada para transformar el caos de sus presupuestos históricos en una ventaja competitiva, protegiendo sus márgenes de utilidad contra la incertidumbre.
-
----
-
-## El Manifiesto: Por Qué Construimos Esto
-
-Los ingenieros de costos pasan el **40% de su tiempo** limpiando hojas de cálculo rotas y el otro **40%** reinventando la rueda (cotizando ítems que la empresa ya ha comprado mil veces).
-
-Creamos APU Filter para eliminar esa fricción. No reemplazamos a sus ingenieros; extendemos y amplificamos su capacidad para tomar decisiones. Convertimos terabytes de "archivos muertos" (PDFs, Excels viejos) en una **Memoria Institucional Viva** que responde preguntas críticas en segundos.
+En el sector de la construcción, el riesgo no es solo técnico, es existencial. **APU Filter** transforma la gestión de presupuestos dejando de ser una tarea solitaria para convertirse en una deliberación estratégica respaldada por evidencia.
 
 ---
 
-## Arquitectura del Ecosistema
+## El Consejo de Sabios: ¿Quién es Quién?
 
-La arquitectura del proyecto ha evolucionado a un sistema de microservicios orquestado, diseñado para alta disponibilidad y separación de responsabilidades. La **Tríada Operativa** se compone de:
+El sistema no opera como un conjunto de scripts; funciona como un organigrama corporativo de alto rendimiento donde cada microservicio es un experto con una responsabilidad clara y auditada.
 
-1.  **El Núcleo (Core):** Servidor Flask + Gunicorn (Puerto 5002). Procesa la física de los datos, la lógica de negocio (Flux Physics, Pipeline) y expone la API.
-2.  **La Memoria (Redis):** Gestión de sesiones, colas de mensajes y caché de alta velocidad para la comunicación eficiente entre procesos.
-3.  **El Agente (Agent):** Orquestador inteligente dividido en responsabilidades claras:
-    *   **APU Agent (SRE):** Monitorea la salud técnica (`agent/apu_agent.py`), optimiza el flujo de datos y gestiona tareas de mantenimiento.
-    *   **Business Agent (CFO):** Ejecuta la lógica financiera y estratégica (`agent/business_agent.py`), aplicando WACC, VaR y análisis topológico de costos.
+### 1. El Presidente (BusinessAgent)
+**Rol:** Estrategia y Toma de Decisiones.
+**Misión:** No se pierde en los detalles operativos. Recibe los informes de todos los especialistas, aplica las reglas de negocio (La Constitución del Proyecto) y emite el **Veredicto Final**. Garantiza que la viabilidad técnica y financiera estén alineadas antes de dar luz verde.
 
----
+### 2. El Director de Operaciones (PipelineDirector)
+**Rol:** Orquestación y Rigor.
+**Misión:** Es el jefe de gabinete. Asegura que el "Orden del Día" se cumpla estrictamente. Coordina que los datos fluyan desde el Portero hasta el Intérprete sin cuellos de botella, garantizando que el proceso sea repetible y auditable.
 
-## Su Nuevo Equipo Digital
+### 3. El Portero (ReportParser & DataLoader)
+**Rol:** Seguridad y Admisión.
+**Misión:** Detiene el caos en la entrada. Revisa credenciales (formatos de archivo) y rechaza cualquier dato corrupto o mal formado antes de que pueda contaminar la deliberación del Consejo. "Si no es íntegro, no entra".
 
-Internamente, el Núcleo (Core) opera no como scripts aislados, sino como un **Equipo de Expertos** especializados.
+### 4. El Verificador de Hechos (DataValidator)
+**Rol:** Auditoría Forense.
+**Misión:** El "fact-checker" implacable. Examina cada cifra y descripción validada por el Portero para asegurar coherencia matemática y lógica (e.g., precios negativos, insumos fantasmas) antes de pasar al análisis profundo.
 
-### 1. El Director (`pipeline_director.py`)
-**Rol:** Orquestador del Flujo.
-**Misión:** Es el jefe de obra digital. Define la secuencia: Carga -> Limpieza -> Estabilización -> Cirugía -> Estimación. Garantiza que el proceso sea ordenado y auditable.
+### 5. El Cirujano (APUProcessor)
+**Rol:** Anatomía de Costos.
+**Misión:** Disecciona el presupuesto con precisión quirúrgica. Separa materiales, mano de obra y equipos, normalizando la información para que el resto del consejo trabaje sobre datos limpios y estandarizados.
 
-### 2. El Guardia (`report_parser_crudo.py`)
-**Rol:** Seguridad de Entrada.
-**Misión:** Detiene los datos corruptos en la puerta. Analiza la estructura de los archivos entrantes (CSV, Excel) y decide si cumplen con los estándares mínimos de calidad.
+### 6. El Ingeniero Estructural (TopologicalAnalyzer)
+**Rol:** Integridad del Sistema (Topología).
+**Misión:** No mira el precio del ladrillo, sino la estabilidad del edificio presupuestal. Usa matemáticas avanzadas (Números de Betti) para radiografiar el esqueleto del proyecto, detectando "socavones lógicos" (ciclos, dependencias circulares) y "pirámides invertidas" (riesgos sistémicos).
 
-### 3. El Estabilizador (`flux_condenser.py`)
-**Rol:** Control de Flujo y Resiliencia.
-**Misión:** Implementa patrones de **Backpressure y Control Adaptativo** para actuar como un amortiguador industrial. Gestiona la tasa de procesamiento dinámicamente, absorbiendo picos de carga.
-
-### 4. El Cirujano (`apu_processor.py`)
-**Rol:** Precisión Estructural.
-**Misión:** Con el dato ya estabilizado, disecciona cada línea de costo. Separa materiales, mano de obra y equipos con precisión milimétrica, normalizando unidades y descripciones.
-
-### 5. El Estratega (`estimator.py`)
-**Rol:** Inteligencia de Mercado (Caja Blanca).
-**Misión:** Utiliza **Búsqueda Semántica** para encontrar precios históricos y proyecta escenarios de riesgo. Muestra la evidencia y el nivel de certeza para que el ingeniero humano tenga la última palabra.
+### 7. El Intérprete Diplomático (SemanticTranslator)
+**Rol:** Comunicación y Claridad.
+**Misión:** Traduce la complejidad técnica en órdenes de mando. Convierte un "Beta-1 positivo" en una alerta de negocio clara: "Riesgo de bloqueo por dependencia circular en proveedores". Es la voz del Consejo hacia el usuario humano.
 
 ---
 
-## Soluciones Reales a Dolores de Obra
+## Caja Blanca y Auditabilidad: Confianza basada en Evidencia
 
-| Dolor del Negocio | Solución Técnica | Beneficio Directo |
-| :--- | :--- | :--- |
-| **"Perdemos días limpiando Excels de contratistas."** | **Motor de Ingesta Resiliente** (Control Adaptativo + PID) | **Continuidad Operativa:** Procese archivos corruptos o masivos sin que el sistema se detenga. |
-| **"Cada ingeniero cotiza precios diferentes para lo mismo."** | **Memoria Institucional Inteligente** (Vectores FAISS) | **Estandarización:** Recupere la "verdad" de la empresa. Si ya se cotizó, el sistema lo sabe. |
-| **"Nos da miedo que el precio del acero suba y perdamos plata."** | **Radar de Riesgo Financiero** (Simulación Monte Carlo) | **Protección de Margen:** Conozca la probabilidad matemática de pérdida antes de enviar la oferta. |
+Este Consejo no pide actos de fe. Opera bajo un principio de **Caja Blanca**:
 
----
-
-## Instalación: El Enfoque Dual
-
-Seleccione el método de despliegue que mejor se adapte a sus necesidades.
-
-### A. Despliegue Rápido / Producción (Recomendado)
-Ideal para demostraciones, pruebas de integración y entornos estables. Utiliza contenedores aislados para garantizar que "funcione en todas partes".
-
-**Requisitos:** [Podman](https://podman.io/) (o Docker) y `podman-compose`.
-
-1.  **Ejecutar el script de arranque:**
-    ```bash
-    ./start_podman.sh
-    ```
-    Este comando automatiza todo el ciclo de vida:
-    *   Configura los registros de contenedores (automáticamente vía `scripts/setup_podman_registry.sh`).
-    *   Construye las imágenes del Core y el Agente.
-    *   Levanta la infraestructura completa (Core, Redis, Agent) en una red orquestada.
-
-2.  **Verificar:** El sistema estará disponible en `http://localhost:5002`.
-
-### B. Modo Desarrollador / Ingeniería
-Ideal para modificar el código fuente, depurar lógica interna o correr la suite de pruebas unitarias.
-
-**Requisitos:** [Miniconda](https://docs.conda.io/en/latest/miniconda.html) (o Anaconda).
-
-1.  **Ejecutar el script de entorno:**
-    ```bash
-    ./start_conda.sh
-    ```
-    Este script realiza una configuración profunda:
-    *   Crea un entorno aislado (`apu_filter_env`).
-    *   Instala dependencias complejas (PyTorch CPU, FAISS, Redis) y optimizadas con `uv`.
-    *   Prepara los datos y genera embeddings iniciales.
-
-2.  **Activar el entorno:**
-    ```bash
-    conda activate apu_filter_env
-    ```
-
-3.  **Ejecutar pruebas o servidor:**
-    ```bash
-    # Correr pruebas
-    python -m pytest
-
-    # Levantar servidor manualmente
-    python -m flask run --port=5002
-    ```
+*   **Evidencia, no Adivinación:** Cuando el Intérprete emite una alerta, no es una opinión. Está respaldada por la "radiografía" del Ingeniero Estructural y la auditoría del Verificador.
+*   **Trazabilidad:** Cada decisión es rastreable. Si el Presidente rechaza un presupuesto, usted sabrá exactamente qué insumo, qué regla y qué riesgo detonó la decisión.
+*   **Estándar de Comunicación:** El Consejo siempre habla en formato: **Diagnóstico -> Impacto -> Acción**. Nunca le daremos un problema sin una solución recomendada.
 
 ---
 
-## Ingeniería Bajo el Capó (La Validación Técnica)
+## Instalación del Entorno de Consejería
 
-<div align="center">
-  <img src="logos/vector_2D.png" alt="APU Filter: Logo Vectorial" width="60%">
-</div>
+Para convocar a su Consejo, seleccione el método de despliegue:
 
-Para el equipo de TI: Usamos una arquitectura modular en Python (Flask, Pandas, PyTorch/FAISS) con principios SRE (Site Reliability Engineering) para garantizar robustez.
+### A. Sala de Juntas Ejecutiva (Producción con Podman)
+Despliegue rápido y aislado.
+```bash
+./start_podman.sh
+```
 
-### Configurabilidad Declarativa
-Creemos que las reglas de negocio no deben estar "quemadas" en el código.
-*   **Separación de Poderes:** Toda la lógica de negocio (mapeo de columnas, umbrales de validación, reglas de categorización) vive en archivos de configuración externos (`config.json`).
-*   **Adaptabilidad:** ¿Cambió el formato del Excel del proveedor? Ajuste el JSON, no el código Python. Esto permite que el sistema evolucione a la velocidad del negocio sin requerir refactorización constante.
+### B. Laboratorio de Investigación (Desarrollo con Conda)
+Acceso profundo a la lógica de los expertos.
+```bash
+./start_conda.sh
+conda activate apu_filter_env
+```
 
-### Transparencia de Caja Blanca
-En un sector donde la responsabilidad legal es alta, "la IA lo dijo" no es una defensa válida.
-*   **Auditabilidad:** Cada estimación viene acompañada de un log de decisión detallado: "¿Por qué elegí este precio? Porque tiene una similitud semántica del 94% con el Proyecto X del año pasado".
-*   **Control Humano:** La herramienta propone, el ingeniero dispone.
+---
 
-Ver `app/metodos.md` para detalles profundos sobre el Motor de Estabilidad y la Lógica de Estimación.
+*APU Filter: Transformando el Silencio Técnico en Sabiduría Accionable.*
