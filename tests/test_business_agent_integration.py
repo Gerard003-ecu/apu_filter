@@ -47,10 +47,10 @@ class TestBusinessAgentIntegration:
         assert report.strategic_narrative is not None
         assert "INFORME DE INGENIERÍA ESTRATÉGICA" in report.strategic_narrative
         # Verify narrative contains topology and finance parts
-        assert "Salud Estructural y Operativa" in report.strategic_narrative
-        assert "Análisis de Viabilidad Económica" in report.strategic_narrative
-        assert "Inteligencia de Mercado" in report.strategic_narrative
-        assert "Recomendación Estratégica" in report.strategic_narrative
+        assert "Auditoría de Integridad Estructural" in report.strategic_narrative
+        assert "Análisis de Cargas Financieras" in report.strategic_narrative
+        assert "Geotecnia de Mercado" in report.strategic_narrative
+        assert "Dictamen del Ingeniero Jefe" in report.strategic_narrative
 
         # Verify details were populated
         assert "metrics" in report.details
