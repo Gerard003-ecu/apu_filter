@@ -607,7 +607,8 @@ class TestExtractNodesFromCycles:
 
     def test_handles_single_node_string(self):
         """Verifica manejo de string con un solo nodo."""
-        cycles = ["A"]
+        # Un ciclo debe tener al menos 2 nodos "A -> A"
+        cycles = [f"A {CYCLE_SEPARATOR} A"]
 
         result = _extract_nodes_from_cycles(cycles)
 
@@ -954,9 +955,9 @@ class TestBuildEdgeElement:
     def test_builds_complete_edge(self, sample_anomaly_data):
         """Verifica construcción de arista completa."""
         attrs = {"total_cost": 250}
+        anomaly_data = AnomalyData()
 
-        # Fix: Now requires anomaly_data
-        edge = build_edge_element("A", "B", attrs, sample_anomaly_data)
+        edge = build_edge_element("A", "B", attrs, anomaly_data)
 
         assert isinstance(edge, CytoscapeEdge)
         assert edge.source == "A"
@@ -965,15 +966,13 @@ class TestBuildEdgeElement:
 
     def test_handles_empty_attrs(self, sample_anomaly_data):
         """Verifica manejo de atributos vacíos."""
-        # Fix: Now requires anomaly_data
-        edge = build_edge_element("A", "B", {}, sample_anomaly_data)
+        edge = build_edge_element("A", "B", {}, AnomalyData())
 
         assert edge.cost == 0.0
 
     def test_converts_to_string(self, sample_anomaly_data):
         """Verifica conversión a string."""
-        # Fix: Now requires anomaly_data
-        edge = build_edge_element(123, 456, {}, sample_anomaly_data)
+        edge = build_edge_element(123, 456, {}, AnomalyData())
 
         assert edge.source == "123"
         assert edge.target == "456"
@@ -1121,9 +1120,10 @@ class TestCreateSuccessResponse:
         elements = [{"data": {"id": "A"}}, {"data": {"id": "B"}}]
 
         with flask_app.app_context():
-            response = create_success_response(elements)
+            response, status = create_success_response(elements)
             data = response.get_json()
 
+            assert status == 200
             assert data["elements"] == elements
             assert data["count"] == 2
             assert data["success"] is True
