@@ -72,4 +72,4 @@ Cada microservicio actúa como un estado autónomo dentro del Consejo, con sus p
 
 ---
 
-*Este documento es la referencia técnica suprema para entender cómo el Consejo piensa, decide y protege.*
+*Este documento es la referencia técnica para entender cómo el Consejo piensa, decide y protege.*
