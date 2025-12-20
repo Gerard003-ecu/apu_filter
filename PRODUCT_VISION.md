@@ -44,4 +44,4 @@ El sistema evoluciona de analista a vigía. Utiliza la Memoria Operativa y datos
 
 ## El Objetivo Final: La Caja de Cristal
 
-A través de estas tres fases, nuestro compromiso inquebrantable es mantener el principio de **Caja de Cristal**. A medida que la inteligencia del sistema crece, también lo hace su transparencia. Nunca seremos una "Caja Negra" mágica; siempre seremos un **Microscopio Estructural** que le permite ver, entender y controlar la anatomía financiera de su negocio.
+A través de estas tres fases, nuestro compromiso es mantener el principio de **Caja de Cristal**. A medida que la inteligencia del sistema crece, también lo hace su transparencia. Nunca seremos una "Caja Negra" mágica; siempre seremos un **Microscopio Estructural** que le permite ver, entender y controlar la anatomía financiera de su negocio.
