@@ -1420,7 +1420,7 @@ def create_app(config_name: str) -> Flask:
                 redis_client = current_app.config.get("SESSION_REDIS")
                 if redis_client:
                     metrics_data = json.dumps(g.telemetry.metrics)
-                    redis_client.set("apu_filter:global_metrics", metrics_data, ex=3600)
+                    redis_client.set("apu_filter:global_metrics", metrics_data, ex=30)
                     app.logger.info(
                         "📡 Métricas globales persistidas en Redis para el Agente"
                     )
@@ -1915,20 +1915,20 @@ def create_app(config_name: str) -> Flask:
         # Usamos el contexto de telemetría actual (g.telemetry)
         context = getattr(g, "telemetry", None)
 
-        # Si la telemetría local está vacía (petición aislada del Agente),
-        # intentamos leer la telemetría global de Redis.
-        if context and not context.metrics:
-            try:
-                redis_client = current_app.config.get("SESSION_REDIS")
-                if redis_client:
-                    global_metrics_json = redis_client.get("apu_filter:global_metrics")
-                    if global_metrics_json:
-                        global_metrics = json.loads(global_metrics_json)
-                        # Inyectar métricas globales en el contexto local temporalmente
-                        context.metrics = global_metrics
-                        current_app.logger.debug("📡 Telemetría global recuperada de Redis")
-            except Exception as e:
-                current_app.logger.warning(f"⚠️ Error leyendo telemetría global: {e}")
+        # Priorizar Redis para visibilidad del Agente
+        # Siempre intentamos leer primero de Redis porque el Agente consulta
+        # en requests aislados que tienen contexto local vacío.
+        try:
+            redis_client = current_app.config.get("SESSION_REDIS")
+            if redis_client:
+                global_metrics_json = redis_client.get("apu_filter:global_metrics")
+                if global_metrics_json and context:
+                    global_metrics = json.loads(global_metrics_json)
+                    # Sobrescribir/Inyectar métricas globales en el contexto local
+                    context.metrics = global_metrics
+                    current_app.logger.debug("📡 Telemetría global recuperada de Redis (Prioridad)")
+        except Exception as e:
+            current_app.logger.warning(f"⚠️ Error leyendo telemetría global: {e}")
 
         status = get_telemetry_status(context)
         return jsonify(status)

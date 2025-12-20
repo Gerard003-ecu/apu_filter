@@ -520,7 +520,7 @@ class LoadDataStep(ProcessingStep):
                         redis_client = current_app.config.get("SESSION_REDIS")
                         if redis_client and hasattr(g, 'telemetry'):
                             metrics_data = json.dumps(g.telemetry.metrics)
-                            redis_client.set("apu_filter:global_metrics", metrics_data, ex=3600)
+                            redis_client.set("apu_filter:global_metrics", metrics_data, ex=30)
                 except Exception:
                     pass # Silenciar errores en callback para no afectar performance
 
