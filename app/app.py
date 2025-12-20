@@ -63,8 +63,8 @@ from .tools_interface import (
     diagnose_file,
     get_telemetry_status,
 )
-from .utils import sanitize_for_json
 from .topology_viz import topology_bp  # Importar el nuevo blueprint
+from .utils import sanitize_for_json
 
 # ============================================================================
 # CONSTANTES Y CONFIGURACIÓN
@@ -1415,6 +1415,18 @@ def create_app(config_name: str) -> Flask:
             processing_time = time.time() - start_processing
             g.telemetry.record_metric("app", "total_processing_time", processing_time)
 
+            # Persistir métricas globales en Redis para visibilidad del Agente
+            try:
+                redis_client = current_app.config.get("SESSION_REDIS")
+                if redis_client:
+                    metrics_data = json.dumps(g.telemetry.metrics)
+                    redis_client.set("apu_filter:global_metrics", metrics_data, ex=3600)
+                    app.logger.info(
+                        "📡 Métricas globales persistidas en Redis para el Agente"
+                    )
+            except Exception as e:
+                app.logger.warning(f"⚠️ No se pudo persistir telemetría global: {e}")
+
             app.logger.info(f"Procesamiento completado en {processing_time:.2f}s")
 
         # Verificar errores en procesamiento
@@ -1901,8 +1913,23 @@ def create_app(config_name: str) -> Flask:
         Devuelve el Vector de Estado del sistema.
         """
         # Usamos el contexto de telemetría actual (g.telemetry)
-        # o uno nuevo si no hay activo
         context = getattr(g, "telemetry", None)
+
+        # Si la telemetría local está vacía (petición aislada del Agente),
+        # intentamos leer la telemetría global de Redis.
+        if context and not context.metrics:
+            try:
+                redis_client = current_app.config.get("SESSION_REDIS")
+                if redis_client:
+                    global_metrics_json = redis_client.get("apu_filter:global_metrics")
+                    if global_metrics_json:
+                        global_metrics = json.loads(global_metrics_json)
+                        # Inyectar métricas globales en el contexto local temporalmente
+                        context.metrics = global_metrics
+                        current_app.logger.debug("📡 Telemetría global recuperada de Redis")
+            except Exception as e:
+                current_app.logger.warning(f"⚠️ Error leyendo telemetría global: {e}")
+
         status = get_telemetry_status(context)
         return jsonify(status)
 
@@ -1915,7 +1942,12 @@ def create_app(config_name: str) -> Flask:
         Recibe un monto, desviación y tiempo, y devuelve un análisis financiero.
         """
         if not request.is_json:
-            return jsonify({"error": "Content-Type must be application/json", "code": "INVALID_CONTENT_TYPE"}), 400
+            return jsonify(
+                {
+                    "error": "Content-Type must be application/json",
+                    "code": "INVALID_CONTENT_TYPE",
+                }
+            ), 400
 
         data = request.get_json()
         amount = data.get("amount")
@@ -1923,14 +1955,21 @@ def create_app(config_name: str) -> Flask:
         time_years = data.get("time")
 
         if not all([amount, std_dev, time_years]):
-            return jsonify({"error": "Faltan parámetros: amount, std_dev, time", "code": "MISSING_PARAMS"}), 400
+            return jsonify(
+                {
+                    "error": "Faltan parámetros: amount, std_dev, time",
+                    "code": "MISSING_PARAMS",
+                }
+            ), 400
 
         try:
             amount = float(amount)
             std_dev = float(std_dev)
             time_years = int(time_years)
         except (ValueError, TypeError):
-            return jsonify({"error": "Parámetros deben ser numéricos", "code": "INVALID_PARAMS"}), 400
+            return jsonify(
+                {"error": "Parámetros deben ser numéricos", "code": "INVALID_PARAMS"}
+            ), 400
 
         result = analyze_financial_viability(amount, std_dev, time_years)
 
