@@ -1,35 +1,47 @@
-# PRODUCT_VISION.md
+# Visión del Producto: El Centinela de Portafolios
 
-## 1. La Tesis: Del Caos a la Inteligencia
+**APU Filter** no es una herramienta para una sola vez; es un sistema vivo diseñado para evolucionar junto con la madurez digital de la constructora. Nuestra visión es transformar el análisis de costos de un evento reactivo a una capacidad organizacional proactiva.
 
-**La gestión de costos en construcción no es un problema de cálculo, es un problema de caos de información.**
-
-Las empresas constructoras pierden millones no por no saber sumar, sino por no recordar lo que ya saben. Presupuestos antiguos, PDFs olvidados y hojas de cálculo dispersas constituyen un cementerio de datos valiosos: "archivos muertos".
-
-**APU_filter** transforma estos archivos muertos en una **Memoria Viva**. No somos un simple filtro; somos el sistema inmunológico financiero de su empresa. Convertimos la experiencia histórica en un **Activo Estratégico** que protege el margen de utilidad y blinda sus operaciones contra la incertidumbre del mercado.
+Esta hoja de ruta define las tres fases de evolución del sistema, desde el diagnóstico inmediato hasta la inteligencia predictiva.
 
 ---
 
-## 2. Su Nuevo Equipo de Expertos Digitales
+## Fase 1: Asesoría Reactiva (El Estado Actual)
+*El asesor al que llamas para una consulta experta.*
 
-Olvídese de scripts y servidores. Al integrar APU_filter, usted está contratando al equipo de ingeniería de costos más sofisticado del mundo, disponible 24/7. Cada componente de nuestra arquitectura es un especialista dedicado a una misión crítica.
+En esta fase, el sistema actúa como un auditor superdotado que revisa un presupuesto específico en tiempo real.
 
-| El Rol | Componentes Técnicos | La Misión |
-| :--- | :--- | :--- |
-| **El Portero**<br>*(The Gatekeeper)* | `ReportParserCrudo`<br>`CSVCleaner` | **La primera línea de defensa.**<br>Rechaza el ruido y la data corrupta antes de que contamine su sistema. Garantiza que solo entre información con potencial de valor, actuando como un filtro de calidad implacable desde el primer byte. |
-| **El Cirujano**<br>*(The Surgeon)* | `APUProcessor` | **Precisión milimétrica.**<br>Disecciona cada ítem de costo con destreza quirúrgica, separando materiales, mano de obra y equipos. Normaliza el caos de descripciones heterogéneas para revelar la estructura anatómica real de sus costos. |
-| **El Auditor**<br>*(The Auditor)* | `DataValidator`<br>`FluxCondenser` (Telemetría) | **El guardián de la coherencia.**<br>Detecta anomalías financieras (costos cero, valores negativos) y protege la estabilidad del sistema ante cargas masivas. Utiliza física de fluidos aplicada a datos para asegurar que su información fluya sin turbulencias ni errores críticos. |
-| **El Estratega**<br>*(The Strategist)* | `Estimator`<br>`Semantic Search` | **Inteligencia de mercado.**<br>No busca por palabras, busca por significado. Conecta la necesidad actual con la experiencia histórica de la empresa para sugerir el precio ganador, transformando datos pasados en ventajas competitivas futuras. |
-| **El Director**<br>*(The Conductor)* | `PipelineDirector` | **Orquestación sin fricción.**<br>Sincroniza a todos los expertos para entregar una sinfonía de datos lista para la toma de decisiones. Asegura que el flujo de valor sea continuo, eficiente y transparente. |
+*   **Enfoque:** Diagnóstico puntual ("Foto").
+*   **Valor:** Detección inmediata de errores, validación de integridad y análisis de riesgos ocultos en un solo archivo.
+*   **Rol del Consejo:** Deliberación sobre el caso presentado.
+*   **Interacción:** El usuario sube un archivo -> El sistema emite un Veredicto.
+
+## Fase 2: Memoria Operativa (Persistencia)
+*El sistema que recuerda y aprende.*
+
+El Consejo deja de tener amnesia entre sesiones. Empieza a recordar proyectos pasados para contextualizar los nuevos.
+
+*   **Enfoque:** Telemetría Histórica ("Película").
+*   **Capacidades:**
+    *   **Benchmarking Interno:** "Este proyecto hospitalario tiene un 15% más de fragmentación que sus 3 hospitales anteriores."
+    *   **Detección de Patrones:** Identificación de insumos o APUs que sistemáticamente generan problemas.
+    *   **Trazabilidad de Portafolio:** Tableros que muestran la salud de múltiples proyectos simultáneamente.
+*   **Valor:** Convertir la experiencia pasada en activos de datos.
+
+## Fase 3: Gobernanza Proactiva (El Centinela)
+*El guardián que anticipa el riesgo antes de que ocurra.*
+
+El sistema evoluciona de analista a vigía. Utiliza la Memoria Operativa y datos externos para predecir riesgos y sugerir defensas antes de que se consolide el presupuesto.
+
+*   **Enfoque:** Predicción y Prevención ("Radar").
+*   **Capacidades:**
+    *   **Alertas Zonales:** "Dada la volatilidad histórica de precios en la Zona 3, se recomienda aumentar la contingencia de acero en un 5%."
+    *   **Simulación de Escenarios:** "¿Qué pasa con la estabilidad del portafolio si el cemento sube un 10%?"
+    *   **Gobernanza Automática:** Bloqueo preventivo de presupuestos que violan políticas corporativas críticas.
+*   **Valor:** Gestión de riesgos estratégica y protección activa del margen de beneficio.
 
 ---
 
-## 3. La Promesa de Valor
+## El Objetivo Final: La Caja de Cristal
 
-El resultado de APU_filter no es un Excel más limpio. Es una transformación operativa que entrega:
-
-*   **Velocidad**: Capacidad para licitar en horas, no en días, respondiendo al mercado con agilidad letal.
-*   **Certeza**: Reducción drástica del riesgo de pérdida por errores de estimación o datos basura.
-*   **Continuidad**: El conocimiento queda institucionalizado en la empresa, no secuestrado en la cabeza de un empleado. Construimos **Resiliencia Operativa**.
-
-**APU_filter**: Su Memoria Institucional, activada.
+A través de estas tres fases, nuestro compromiso inquebrantable es mantener el principio de **Caja de Cristal**. A medida que la inteligencia del sistema crece, también lo hace su transparencia. Nunca seremos una "Caja Negra" mágica; siempre seremos un **Microscopio Estructural** que le permite ver, entender y controlar la anatomía financiera de su negocio.

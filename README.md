@@ -6,7 +6,7 @@
 
 ### De Software a Equipo de Élite: Su Protección que mitiga la Incertidumbre.
 
-**"Usted no está instalando un software; está convocando a un Consejo de Sabios Digitales. Liderados por un Presidente Estratégico y coordinados por un Director de Operaciones, este equipo de élite protege la rentabilidad de su obra."**
+**"Bienvenido a la sala del Consejo de APUfilter. Aquí, un grupo de expertos digitales delibera para proteger la integridad de su presupuesto."**
 
 En el sector de la construcción, el riesgo no es solo técnico, es existencial. **APU Filter** transforma la gestión de presupuestos dejando de ser una tarea solitaria para convertirse en una deliberación estratégica respaldada por evidencia.
 
@@ -21,12 +21,12 @@ El sistema no opera como un conjunto de scripts; funciona como un organigrama co
 **Misión:** No se pierde en los detalles operativos. Recibe los informes de todos los especialistas, aplica las reglas de negocio (La Constitución del Proyecto) y emite el **Veredicto Final**. Garantiza que la viabilidad técnica y financiera estén alineadas antes de dar luz verde.
 
 ### 2. El Director de Operaciones (PipelineDirector)
-**Rol:** Orquestación y Rigor.
+**Rol:** Garante del Protocolo.
 **Misión:** Es el jefe de gabinete. Asegura que el "Orden del Día" se cumpla estrictamente. Coordina que los datos fluyan desde el Portero hasta el Intérprete sin cuellos de botella, garantizando que el proceso sea repetible y auditable.
 
-### 3. El Portero (ReportParser & DataLoader)
-**Rol:** Seguridad y Admisión.
-**Misión:** Detiene el caos en la entrada. Revisa credenciales (formatos de archivo) y rechaza cualquier dato corrupto o mal formado antes de que pueda contaminar la deliberación del Consejo. "Si no es íntegro, no entra".
+### 3. El Guardián de la Evidencia (Flux Condenser)
+**Rol:** Evidencia y Trazabilidad.
+**Misión:** Su función no es solo técnica, es asegurar que cada dato tenga respaldo antes de ser procesado. Actúa como el notario del sistema, garantizando que cada entrada tenga un origen claro y validado.
 
 ### 4. El Verificador de Hechos (DataValidator)
 **Rol:** Auditoría Forense.
@@ -36,22 +36,22 @@ El sistema no opera como un conjunto de scripts; funciona como un organigrama co
 **Rol:** Anatomía de Costos.
 **Misión:** Disecciona el presupuesto con precisión quirúrgica. Separa materiales, mano de obra y equipos, normalizando la información para que el resto del consejo trabaje sobre datos limpios y estandarizados.
 
-### 6. El Ingeniero Estructural (TopologicalAnalyzer)
-**Rol:** Integridad del Sistema (Topología).
-**Misión:** No mira el precio del ladrillo, sino la estabilidad del edificio presupuestal. Usa matemáticas avanzadas (Números de Betti) para radiografiar el esqueleto del proyecto, detectando "socavones lógicos" (ciclos, dependencias circulares) y "pirámides invertidas" (riesgos sistémicos).
+### 6. El Estratega (TopologicalAnalyzer)
+**Rol:** Análisis Estructural Oculto.
+**Misión:** Radiografía el esqueleto oculto del proyecto. Ve el mapa completo de conexiones invisibles y utiliza topología algebraica para detectar vulnerabilidades sistémicas que escapan al ojo humano.
 
-### 7. El Intérprete Diplomático (SemanticTranslator)
+### 7. El Intérprete (SemanticTranslator)
 **Rol:** Comunicación y Claridad.
-**Misión:** Traduce la complejidad técnica en órdenes de mando. Convierte un "Beta-1 positivo" en una alerta de negocio clara: "Riesgo de bloqueo por dependencia circular en proveedores". Es la voz del Consejo hacia el usuario humano.
+**Misión:** Traduce hallazgos complejos en inteligencia accionable. Su trabajo no es dar datos crudos, sino convertir las métricas del Estratega y el Guardián en un lenguaje de negocio claro para la toma de decisiones.
 
 ---
 
-## Caja Blanca y Auditabilidad: Confianza basada en Evidencia
+## Caja de Cristal y Auditabilidad: Confianza basada en Evidencia
 
-Este Consejo no pide actos de fe. Opera bajo un principio de **Caja Blanca**:
+Este Consejo no pide actos de fe. Opera bajo un principio de **Caja de Cristal**:
 
-*   **Evidencia, no Adivinación:** Cuando el Intérprete emite una alerta, no es una opinión. Está respaldada por la "radiografía" del Ingeniero Estructural y la auditoría del Verificador.
-*   **Trazabilidad:** Cada decisión es rastreable. Si el Presidente rechaza un presupuesto, usted sabrá exactamente qué insumo, qué regla y qué riesgo detonó la decisión.
+*   **Evidencia, no Adivinación:** Cuando el Intérprete emite una alerta, no es una opinión. Está respaldada por la "radiografía" del Estratega y la auditoría del Guardián.
+*   **Trazabilidad:** Cada decisión es rastreable a través del Protocolo de Vuelo del Director de Operaciones.
 *   **Estándar de Comunicación:** El Consejo siempre habla en formato: **Diagnóstico -> Impacto -> Acción**. Nunca le daremos un problema sin una solución recomendada.
 
 ---
