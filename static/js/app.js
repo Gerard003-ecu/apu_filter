@@ -13,6 +13,7 @@ const CONFIG = {
     MAX_FILE_SIZE: 10 * 1024 * 1024, // 10MB
     ALLOWED_FILE_TYPES: ['.csv'],
     CYTOSCAPE_STYLE: [
+        // --- Estilos Base ---
         {
             selector: 'node',
             style: {
@@ -25,79 +26,118 @@ const CONFIG = {
                 'width': '40px',
                 'height': '40px',
                 'text-wrap': 'wrap',
-                'text-max-width': '80px'
+                'text-max-width': '80px',
+                'border-width': 1,
+                'border-color': '#cbd5e1'
             }
         },
+        // --- Niveles Jerárquicos ---
         {
-            selector: 'node[type="ROOT"]',
+            selector: 'node[level=0]', // PROYECTO TOTAL
             style: {
-                'background-color': '#4f46e5',
-                'width': '60px',
-                'height': '60px',
+                'background-color': '#1e293b', // Slate 900
+                'width': '80px',
+                'height': '80px',
+                'font-size': '12px',
                 'font-weight': 'bold',
-                'color': '#ffffff'
+                'color': '#ffffff',
+                'border-width': 2,
+                'border-color': '#0f172a'
             }
         },
         {
-            selector: 'node[type="CAPITULO"]',
+            selector: 'node[type="CAPITULO"]', // Nivel 1
             style: {
-                'background-color': '#0ea5e9',
+                'background-color': '#3b82f6', // Blue 500
                 'shape': 'hexagon',
-                'width': '50px',
-                'height': '50px'
+                'width': '60px',
+                'height': '60px'
             }
         },
         {
-            selector: 'node[type="APU"]',
+            selector: 'node[type="APU"]', // Nivel 2
             style: {
-                'background-color': '#10b981',
+                'background-color': '#10b981', // Emerald 500
                 'shape': 'round-rectangle',
-                'width': '40px',
-                'height': '30px'
+                'width': '50px',
+                'height': '40px'
             }
         },
         {
-            selector: 'node[type="INSUMO"]',
+            selector: 'node[type="INSUMO"]', // Nivel 3
             style: {
-                'background-color': '#f59e0b',
+                'background-color': '#f97316', // Orange 500
                 'shape': 'ellipse',
-                'width': '20px',
-                'height': '20px',
+                'width': '30px',
+                'height': '30px',
                 'font-size': '8px'
             }
         },
+
+        // --- Estilos Forenses (Caja de Cristal) ---
         {
-            selector: 'node.cycle',
+            selector: '.circular-dependency-node',
             style: {
-                'background-color': '#ef4444',
-                'border-width': 3,
-                'border-color': '#7f1d1d',
-                'label': 'data(label)\n(CICLO)'
+                'background-color': '#ef4444', // Red 500
+                'border-width': '6px',
+                'border-color': '#991b1b', // Red 800
+                'width': '70px',
+                'height': '70px',
+                'label': 'data(label)',
+                'font-weight': 'bold',
+                'color': '#991b1b'
             }
         },
         {
-            selector: 'node.isolated',
+            selector: '.inverted-pyramid-stress',
             style: {
-                'background-color': '#cbd5e1',
-                'opacity': 0.6
+                'background-color': '#f59e0b', // Amber 500
+                'shape': 'diamond',
+                // Mapeo dinámico: Mayor peso financiero = Mayor tamaño visual
+                // Usamos un rango seguro para evitar nodos infinitos
+                'width': 'mapData(weight, 0, 100000000, 60, 150)',
+                'height': 'mapData(weight, 0, 100000000, 60, 150)',
+                'border-width': '2px',
+                'border-color': '#d97706',
+                'label': 'data(label)'
             }
         },
+        {
+            selector: '.isolated',
+            style: {
+                'background-color': '#e2e8f0', // Slate 200
+                'opacity': 0.5,
+                'border-style': 'dashed'
+            }
+        },
+
+        // --- Aristas ---
         {
             selector: 'edge',
             style: {
                 'width': 1,
-                'line-color': '#cbd5e1',
+                'line-color': '#cbd5e1', // Slate 300
                 'target-arrow-color': '#cbd5e1',
                 'target-arrow-shape': 'triangle',
-                'curve-style': 'bezier'
+                'curve-style': 'bezier',
+                'arrow-scale': 1.5
             }
         },
         {
-            selector: 'edge[cost > 1000000]',
+            selector: 'edge[?is_evidence]',
+            style: {
+                'width': 4,
+                'line-color': '#ef4444', // Red 500
+                'target-arrow-color': '#ef4444',
+                'line-style': 'dashed',
+                'target-arrow-shape': 'triangle-backcurve'
+            }
+        },
+        {
+            selector: 'edge[cost > 1000000]', // High value paths
             style: {
                 'width': 3,
-                'line-color': '#6366f1',
-                'target-arrow-color': '#6366f1'
+                'line-color': '#6366f1' // Indigo 500
             }
         }
     ]
@@ -162,19 +202,29 @@ const UIManager = {
         const textEl = document.getElementById('viability-text');
 
         if (report) {
-            // Narrativa
+            // Narrativa con Interacción para Evidencia
             if (report.strategic_narrative) {
-                narrativeEl.innerHTML = `<p>${report.strategic_narrative}</p>`;
+                // Inyectamos un botón/enlace para ver evidencia si la narrativa menciona riesgos
+                let html = `<p>${report.strategic_narrative}</p>`;
+                if (html.includes('Riesgo') || html.includes('Ciclo') || html.includes('Pirámide')) {
+                    html += `<div class="mt-3">
+                                <button onclick="TopologyController.focusEvidence()" class="text-xs bg-red-50 text-red-600 px-3 py-1 rounded border border-red-200 hover:bg-red-100 transition-colors font-medium flex items-center gap-1">
+                                    <span>🔍</span> Ver Evidencia Forense en Grafo
+                                </button>
+                             </div>`;
+                }
+                narrativeEl.innerHTML = html;
             } else if (report.executive_report?.circular_risks?.length > 0) {
                  narrativeEl.innerHTML = `<p class="text-red-600 font-bold">⚠️ Se han detectado riesgos estructurales críticos.</p>
-                                          <ul class="list-disc pl-5 mt-2 text-sm">${report.executive_report.circular_risks.map(r => `<li>${r}</li>`).join('')}</ul>`;
+                                          <ul class="list-disc pl-5 mt-2 text-sm">${report.executive_report.circular_risks.map(r => `<li>${r}</li>`).join('')}</ul>
+                                          <button onclick="TopologyController.focusEvidence()" class="mt-2 text-sm text-indigo-600 underline">Ver Nodos Afectados</button>`;
             } else {
                  narrativeEl.innerHTML = `<p>El análisis preliminar indica una estructura estable. Se recomienda revisar las alertas operativas.</p>`;
             }
 
             // Viabilidad
             const integrity = report.business_integrity_score || report.executive_report?.integrity_score || 0;
-            scoreEl.textContent = `${Math.round(integrity)}/100`;
+            if(scoreEl) scoreEl.textContent = `${Math.round(integrity)}/100`;
 
             // Barra de integridad
             const barEl = document.getElementById('integrity-bar');
@@ -229,23 +279,33 @@ const TopologyController = {
                 this.cy.destroy();
             }
 
+            // Configuración del Layout Piramidal (Breadthfirst)
+            // Se asume que el backend envía 'level' (0=Proyecto, 1=Capítulo, 2=APU, 3=Insumo)
+            const layoutConfig = {
+                name: 'breadthfirst',
+                directed: true,
+                padding: 40,
+                spacingFactor: 1.5, // Mayor separación vertical
+                animate: true,
+                animationDuration: 1000,
+                roots: 'node[level=0]', // Raíz forzada en la cima
+                avoidOverlap: true
+            };
+
             this.cy = cytoscape({
                 container: container,
                 elements: elements,
                 style: CONFIG.CYTOSCAPE_STYLE,
-                layout: {
-                    name: 'cose',
-                    animate: false,
-                    nodeDimensionsIncludeLabels: true,
-                    idealEdgeLength: 100,
-                    edgeElasticity: 0.45,
-                    nestingFactor: 0.1,
-                },
-                minZoom: 0.2,
-                maxZoom: 3,
+                layout: layoutConfig,
+                minZoom: 0.1,
+                maxZoom: 4,
+                wheelSensitivity: 0.2
             });
 
             this._setupEvents();
+
+            // Ajustar vista inicial
+            this.cy.fit();
 
         } catch (error) {
             console.error("Topology Error:", error);
@@ -274,20 +334,56 @@ const TopologyController = {
         const data = node.data();
         const detailsPanel = document.getElementById('node-details');
 
-        document.getElementById('nd-label').textContent = data.label.replace('\n', ' ');
+        document.getElementById('nd-label').textContent = data.label ? data.label.replace('\n', ' ') : data.id;
         document.getElementById('nd-type').textContent = data.type;
         document.getElementById('nd-cost').textContent = Utils.formatCurrency(data.cost || 0);
 
         // Mostrar botón de acción si es necesario
         const actionBtn = document.getElementById('nd-action-btn');
-        if (node.hasClass('cycle') || node.hasClass('isolated')) {
+        if (node.hasClass('circular-dependency-node') || node.hasClass('inverted-pyramid-stress')) {
             actionBtn.classList.remove('hidden');
-            actionBtn.onclick = () => alert(`Acción correctiva iniciada para ${data.id}`);
+            actionBtn.textContent = "Ver Análisis de Impacto";
+            actionBtn.onclick = () => alert(`Análisis para ${data.id}: \nCosto: ${Utils.formatCurrency(data.cost)}\nNivel de Estrés: ALTO`);
         } else {
             actionBtn.classList.add('hidden');
         }
 
         detailsPanel.classList.remove('hidden');
+    },
+
+    // Función para "Hacer Zoom a la Evidencia"
+    focusEvidence() {
+        if (!this.cy) return;
+
+        // Seleccionar nodos con evidencia o clases de riesgo
+        const evidenceNodes = this.cy.elements('node[?is_evidence], .circular-dependency-node, .inverted-pyramid-stress');
+
+        if (evidenceNodes.length > 0) {
+            this.cy.animate({
+                fit: {
+                    eles: evidenceNodes,
+                    padding: 80
+                },
+                duration: 1200,
+                easing: 'ease-in-out-cubic'
+            });
+
+            // Efecto visual temporal
+            const originalBorder = evidenceNodes.style('border-color');
+            evidenceNodes.animate({
+                style: { 'border-color': '#fbbf24', 'border-width': 10 } // Flash Amber
+            }, {
+                duration: 500,
+                complete: () => {
+                    evidenceNodes.animate({
+                         style: { 'border-color': originalBorder, 'border-width': 6 }
+                    }, { duration: 500 });
+                }
+            });
+
+        } else {
+            UIManager.showStatus("No hay evidencia forense crítica visible en este momento.", "info");
+        }
     }
 };
 

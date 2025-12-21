@@ -126,7 +126,7 @@ class TestTopologyTranslation:
         narrative = translator.translate_topology(metrics, stability=5.0)
 
         assert "Estructura Geológicamente Inestable" in narrative
-        assert "Genus de 5" in narrative
+        assert "Genus Estructural de 5" in narrative
 
     def test_translate_topology_clean_structure(self, translator, clean_metrics):
         """Verifica traducción de estructura limpia sin ciclos."""
@@ -525,6 +525,20 @@ class TestStrategicNarrativeErrorHandling:
         )
 
         assert "Error analizando finanzas" in report
+
+    def test_interrupted_analysis_verdict(self, translator):
+        """Verifica que el veredicto final bloquee si hay errores."""
+        invalid_topo = TopologicalMetrics(beta_0=-1, beta_1=0, euler_characteristic=-1)
+        valid_fin = {"performance": {"recommendation": "ACEPTAR"}}
+
+        report = translator.compose_strategic_narrative(
+            invalid_topo,
+            valid_fin,
+            stability=5.0
+        )
+
+        assert "⚠️ ANÁLISIS ESTRUCTURAL INTERRUMPIDO" in report
+        assert "impiden certificar la solidez" in report
 
 
 class TestMarketContext:
