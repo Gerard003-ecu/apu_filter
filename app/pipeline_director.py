@@ -500,8 +500,8 @@ class LoadDataStep(ProcessingStep):
                 config=self.config, profile=apus_profile, condenser_config=condenser_config
             )
 
-            # Definir callback para actualización en tiempo real
-            def progress_callback(processing_stats):
+            # Callback 1: Para estadísticas acumuladas (existente)
+            def on_progress_stats(processing_stats):
                 try:
                     # Registrar métricas en telemetría local
                     for metric_name, attr_name, default_value in [
@@ -512,19 +512,40 @@ class LoadDataStep(ProcessingStep):
                     ]:
                         val = getattr(processing_stats, attr_name, default_value)
                         telemetry.record_metric("flux_condenser", metric_name, val)
+                except Exception:
+                    pass
 
-                    # Persistir a Redis
-                    from flask import current_app, g
+            # Callback 2: Para telemetría en tiempo real a Redis (NUEVO)
+            def _publish_telemetry(metrics: Dict[str, Any]):
+                try:
                     import json
+                    import time
+                    from flask import current_app
+
+                    # Preparar payload
+                    payload = {
+                        **metrics,
+                        "_timestamp": time.time(),
+                        "_source": "flux_condenser_realtime"
+                    }
+
+                    # Serializar
+                    data_str = json.dumps(payload, default=str)
+
+                    # Publicar a Redis
                     if current_app:
                         redis_client = current_app.config.get("SESSION_REDIS")
-                        if redis_client and hasattr(g, 'telemetry'):
-                            metrics_data = json.dumps(g.telemetry.metrics)
-                            redis_client.set("apu_filter:global_metrics", metrics_data, ex=3600)
+                        if redis_client:
+                            # Escribir con expiración corta (60s)
+                            redis_client.set("apu_filter:global_metrics", data_str, ex=60)
                 except Exception:
-                    pass # Silenciar errores en callback para no afectar performance
+                    pass # Fail silently to avoid interrupting pipeline
 
-            df_apus_raw = condenser.stabilize(apus_path, on_progress=progress_callback)
+            df_apus_raw = condenser.stabilize(
+                apus_path,
+                on_progress=on_progress_stats,
+                progress_callback=_publish_telemetry
+            )
 
             # Registrar estadísticas finales completas (manteniendo lógica existente)
             full_stats = condenser.get_processing_stats() or {}

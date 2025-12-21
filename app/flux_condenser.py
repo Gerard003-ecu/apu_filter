@@ -1607,6 +1607,7 @@ class DataFluxCondenser:
         self,
         file_path: str,
         on_progress: Optional[Callable[[ProcessingStats], None]] = None,
+        progress_callback: Optional[Callable[[Dict[str, Any]], None]] = None,
     ) -> pd.DataFrame:
         """
         Proceso principal de estabilización con control PID.
@@ -1689,7 +1690,11 @@ class DataFluxCondenser:
             # FASE 5: Procesamiento por lotes con PID
             # ═══════════════════════════════════════════════════════════════════
             processed_batches = self._process_batches_with_pid(
-                raw_records, cache, total_records, on_progress
+                raw_records,
+                cache,
+                total_records,
+                on_progress,
+                progress_callback=progress_callback,
             )
             self._check_timeout("procesamiento por lotes")
 
@@ -2038,6 +2043,7 @@ class DataFluxCondenser:
         cache: Dict[str, Any],
         total_records: int,
         on_progress: Optional[Callable[[ProcessingStats], None]] = None,
+        progress_callback: Optional[Callable[[Dict[str, Any]], None]] = None,
     ) -> List[pd.DataFrame]:
         """
         Procesamiento por lotes con control PID adaptativo.
@@ -2184,6 +2190,9 @@ class DataFluxCondenser:
 
             # Métricas sin factor de posición artificial
             metrics = self.physics.calculate_metrics(actual_batch_size, cache_hits)
+
+            if progress_callback:
+                progress_callback(metrics)
 
             # Actualizar historial de complejidad
             current_complexity = metrics.get("complexity", 0.5)
