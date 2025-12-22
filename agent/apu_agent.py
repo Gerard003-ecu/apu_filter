@@ -1343,6 +1343,40 @@ class AutonomousAgent:
             ],
         }
 
+    def _wait_for_startup(self) -> None:
+        """
+        Implementa el 'Modo de Espera de Arranque' para manejar el Cold Start del Core.
+        Tolera 'Connection refused' y espera pacientemente.
+        """
+        logger.info("Iniciando protocolo de espera de arranque (Cold Start)...")
+
+        backoff = 5
+
+        while self._running:
+            try:
+                response = self._session.get(
+                    self.telemetry_endpoint, timeout=self.request_timeout
+                )
+
+                if response.ok:
+                    logger.info("✅ Core detectado y operativo (200 OK).")
+                    return
+                else:
+                    logger.info(
+                        f"Esperando a que el Core inicie... (HTTP {response.status_code})"
+                    )
+
+            except requests.exceptions.ConnectionError:
+                # Manejo específico para Cold Start (Connection refused)
+                logger.info(
+                    "Esperando a que el Core inicie (Cold Start)... [Conexión rechazada]"
+                )
+            except requests.exceptions.RequestException as e:
+                logger.info(f"Esperando disponibilidad del Core... [{type(e).__name__}]")
+
+            # Backoff de 5 segundos como solicitado
+            time.sleep(backoff)
+
     def run(self, skip_health_check: bool = False) -> None:
         """
         Bucle principal del agente - Ejecuta el ciclo OODA continuamente.
@@ -1350,12 +1384,16 @@ class AutonomousAgent:
         Args:
             skip_health_check: Si True, omite verificación inicial
         """
-        # Health check inicial
-        if not skip_health_check:
-            if not self.health_check():
-                logger.warning("Iniciando agente a pesar de health check fallido...")
-
+        # Habilitar flag de ejecución para permitir shutdown durante espera
         self._running = True
+
+        # Health check inicial con tolerancia a Cold Start
+        if not skip_health_check:
+            self._wait_for_startup()
+            # Una vez conectado, ejecutamos el health check estándar para inicializar topología
+            if not self.health_check():
+                logger.warning("Iniciando agente con advertencias de salud...")
+
         logger.info("🚀 Iniciando OODA Loop...")
 
         try:
