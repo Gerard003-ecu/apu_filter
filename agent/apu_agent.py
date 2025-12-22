@@ -1354,7 +1354,8 @@ class AutonomousAgent:
 
         while self._running:
             try:
-                response = self._session.get(
+                # Usamos una sesión fresca para el handshake inicial para evitar envenenamiento del pool
+                response = requests.get(
                     self.telemetry_endpoint, timeout=self.request_timeout
                 )
 
