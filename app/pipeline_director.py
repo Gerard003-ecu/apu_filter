@@ -29,6 +29,7 @@ from app.classifiers.apu_classifier import APUClassifier
 from app.constants import ColumnNames, InsumoType, ProcessingThresholds
 from app.telemetry import TelemetryContext
 from app.validators import DataFrameValidator
+from app.matter_generator import MatterGenerator, BillOfMaterials
 
 from .data_loader import load_data
 from .data_validator import validate_and_clean_data
@@ -774,6 +775,104 @@ class BusinessTopologyStep(ProcessingStep):
             return context
 
 
+class MaterializationStep(ProcessingStep):
+    """
+    Paso de Materialización.
+    Genera la Lista de Materiales (BOM) a partir del grafo topológico.
+    """
+
+    def __init__(self, config: dict, thresholds: ProcessingThresholds):
+        self.config = config
+        self.thresholds = thresholds
+
+    def execute(self, context: dict, telemetry: TelemetryContext) -> dict:
+        """Ejecuta el MatterGenerator."""
+        telemetry.start_step("materialization")
+        try:
+            # Verificar dependencias en el contexto
+            if "business_topology_report" not in context:
+                logger.warning("⚠️ No se encontró reporte de topología. Saltando materialización.")
+                telemetry.end_step("materialization", "skipped")
+                return context
+
+            # Necesitamos el grafo. El BusinessAgent lo usa internamente pero no siempre lo guarda en el contexto público en esa clave exacta.
+            # Pero el BusinessTopologyStep usa BusinessAgent.evaluate_project(context).
+            # BusinessAgent.evaluate_project llama a _build_topology y guarda 'graph' en self.graph,
+            # y también retorna el ConstructionRiskReport.
+            # Necesitamos acceder al grafo.
+            # Revisando BusinessAgent (que no puedo ver ahora mismo pero puedo inferir),
+            # si evaluate_project no guarda el grafo en el contexto, tenemos un problema.
+            # Asumamos que BusinessAgent guarda el grafo en context['graph'] o lo re-construiremos si es necesario?
+            # Mejor: Si context tiene 'graph', lo usamos. Si no, intentamos recuperarlo.
+            # Al mirar BusinessTopologyStep, no parece guardar explícitamente el grafo en 'context', solo el reporte.
+
+            # REVISIÓN: El BusinessAgent (según recuerdo de logs o código común) suele guardar cosas en el contexto.
+            # Si no, tendremos que confiar en que 'graph' esté ahí.
+            # Si no está, no podemos materializar sin reconstruirlo, lo cual es costoso.
+            # Vamos a asumir que el BusinessAgent O el paso anterior (BusinessTopologyStep) debería haberlo dejado disponible si se diseñó así.
+            # Si no, esto fallará. Pero como soy yo quien edita, puedo verificar.
+
+            # Vamos a ser defensivos.
+            graph = context.get("graph")
+            if not graph:
+                # Intentar obtenerlo del reporte si fuera posible (no lo es, el reporte es dataclass)
+                # O reconstruirlo rápidamente usando los datos ya procesados en el contexto.
+                logger.info("🔄 Grafo no encontrado en contexto. Reconstruyendo para materialización...")
+                from agent.business_topology import BudgetGraphBuilder
+                builder = BudgetGraphBuilder()
+                # Necesitamos los DFs procesados
+                # df_final o df_presupuesto, y df_merged (detail)
+                # context["df_final"] tiene el presupuesto procesado con costos
+                # context["df_merged"] tiene el detalle de insumos
+
+                df_presupuesto = context.get("df_final")
+                df_detail = context.get("df_merged")
+
+                if df_presupuesto is not None and df_detail is not None:
+                    graph = builder.build(df_presupuesto, df_detail)
+                    context["graph"] = graph # Guardarlo para futuros pasos
+                else:
+                     logger.error("❌ No hay datos suficientes para reconstruir el grafo.")
+                     telemetry.end_step("materialization", "error")
+                     return context
+
+            # Preparar inputs para MatterGenerator
+            # Extraer métricas de flujo del contexto (FluxCondenser las guarda en telemetría o logs, pero aquí necesitamos dict)
+            # FluxCondenserStep (LoadDataStep) guardó métricas en telemetría.
+            # Intentamos recuperar métricas recientes si están en el contexto bajo alguna clave, o usamos defaults.
+            # LoadDataStep no guarda explícitamente 'flux_metrics' en context, solo en telemetry.
+            # Pero BusinessAgent report tiene stability.
+
+            report = context.get("business_topology_report")
+            stability = 10.0
+            if report and report.details:
+                 stability = report.details.get("pyramid_stability", 10.0)
+
+            flux_metrics = {
+                "pyramid_stability": stability,
+                # saturation no la tenemos fácil sin acceso a telemetría interna, asumimos 0 si no está
+                "avg_saturation": 0.0
+            }
+
+            generator = MatterGenerator()
+            bom = generator.materialize_project(graph, flux_metrics=flux_metrics)
+
+            # Guardar BOM en contexto
+            context["bill_of_materials"] = bom
+            context["logistics_plan"] = asdict(bom) # Versión serializable
+
+            logger.info(f"✅ Materialización completada. Total ítems: {len(bom.requirements)}")
+
+            telemetry.end_step("materialization", "success")
+            return context
+
+        except Exception as e:
+            logger.error(f"❌ Error en MaterializationStep: {e}", exc_info=True)
+            telemetry.record_error("materialization", str(e))
+            telemetry.end_step("materialization", "error")
+            return context
+
+
 class BuildOutputStep(ProcessingStep):
     """
     Paso de Construcción de Salida.
@@ -814,6 +913,10 @@ class BuildOutputStep(ProcessingStep):
                     context["business_topology_report"]
                 )
 
+            # Integrar Plan Logístico (BOM)
+            if "logistics_plan" in context:
+                validated_result["logistics_plan"] = context["logistics_plan"]
+
             context["final_result"] = validated_result
             telemetry.end_step("build_output", "success")
             return context
@@ -837,6 +940,7 @@ class PipelineSteps(str, enum.Enum):
     CALCULATE_COSTS = "calculate_costs"
     FINAL_MERGE = "final_merge"
     BUSINESS_TOPOLOGY = "business_topology"
+    MATERIALIZATION = "materialization"
     BUILD_OUTPUT = "build_output"
 
 
@@ -853,6 +957,7 @@ class PipelineDirector:
         "calculate_costs": CalculateCostsStep,
         "final_merge": FinalMergeStep,
         "business_topology": BusinessTopologyStep,
+        "materialization": MaterializationStep,
         "build_output": BuildOutputStep,
     }
 

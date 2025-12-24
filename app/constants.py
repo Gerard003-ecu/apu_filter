@@ -15,6 +15,7 @@ class ColumnNames:
     # Cantidades
     CANTIDAD_APU: Final[str] = "CANTIDAD_APU"
     CANTIDAD_PRESUPUESTO: Final[str] = "CANTIDAD_PRESUPUESTO"
+    CANTIDAD_TOTAL_REQUERIDA: Final[str] = "CANTIDAD_TOTAL_REQUERIDA"
 
     # Insumos
     GRUPO_INSUMO: Final[str] = "GRUPO_INSUMO"
