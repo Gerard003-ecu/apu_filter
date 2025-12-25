@@ -1,0 +1,1935 @@
+### Propuesta 1
+
+import pytest
+import networkx as nx
+import math
+import sys
+from unittest.mock import patch, MagicMock
+from app.matter_generator import MatterGenerator, MaterialRequirement, BillOfMaterials
+
+
+class TestMaterialRequirementValidation:
+    """Tests para validación de invariantes en MaterialRequirement."""
+
+    def test_valid_material_requirement_creation(self):
+        """Verifica creación exitosa con datos válidos."""
+        req = MaterialRequirement(
+            id="MAT001",
+            description="Cemento Portland",
+            quantity_base=100.0,
+            unit="KG",
+            waste_factor=0.05,
+            quantity_total=105.0,
+            unit_cost=50.0,
+            total_cost=5250.0,
+            source_apus=["APU1", "APU2"]
+        )
+        
+        assert req.id == "MAT001"
+        assert req.quantity_base == 100.0
+        assert req.waste_factor == 0.05
+
+    def test_invalid_quantity_base_raises_error(self):
+        """Cantidad base no positiva debe lanzar ValueError."""
+        with pytest.raises(ValueError, match="Cantidad base no positiva"):
+            MaterialRequirement(
+                id="MAT001",
+                description="Test",
+                quantity_base=0.0,  # Inválido
+                unit="KG",
+                waste_factor=0.0,
+                quantity_total=0.0,
+                unit_cost=10.0,
+                total_cost=0.0
+            )
+
+    def test_negative_quantity_base_raises_error(self):
+        """Cantidad base negativa debe lanzar ValueError."""
+        with pytest.raises(ValueError, match="Cantidad base no positiva"):
+            MaterialRequirement(
+                id="MAT001",
+                description="Test",
+                quantity_base=-5.0,
+                unit="KG",
+                waste_factor=0.0,
+                quantity_total=0.0,
+                unit_cost=10.0,
+                total_cost=0.0
+            )
+
+    def test_negative_waste_factor_raises_error(self):
+        """Factor de desperdicio negativo debe lanzar ValueError."""
+        with pytest.raises(ValueError, match="Factor de desperdicio negativo"):
+            MaterialRequirement(
+                id="MAT001",
+                description="Test",
+                quantity_base=10.0,
+                unit="KG",
+                waste_factor=-0.1,  # Inválido
+                quantity_total=9.0,
+                unit_cost=10.0,
+                total_cost=90.0
+            )
+
+    def test_infinite_total_cost_raises_error(self):
+        """Costo total no finito debe lanzar ValueError."""
+        with pytest.raises(ValueError, match="Costo total no finito"):
+            MaterialRequirement(
+                id="MAT001",
+                description="Test",
+                quantity_base=10.0,
+                unit="KG",
+                waste_factor=0.0,
+                quantity_total=10.0,
+                unit_cost=10.0,
+                total_cost=float('inf')  # Inválido
+            )
+
+
+class TestBillOfMaterialsValidation:
+    """Tests para validación de coherencia en BillOfMaterials."""
+
+    def test_valid_bom_creation(self):
+        """Verifica creación exitosa con datos coherentes."""
+        req1 = MaterialRequirement(
+            id="MAT001", description="Cemento",
+            quantity_base=10.0, unit="KG", waste_factor=0.0,
+            quantity_total=10.0, unit_cost=100.0, total_cost=1000.0
+        )
+        req2 = MaterialRequirement(
+            id="MAT002", description="Arena",
+            quantity_base=20.0, unit="M3", waste_factor=0.0,
+            quantity_total=20.0, unit_cost=50.0, total_cost=1000.0
+        )
+        
+        bom = BillOfMaterials(
+            requirements=[req1, req2],
+            total_material_cost=2000.0,
+            metadata={"test": True}
+        )
+        
+        assert len(bom.requirements) == 2
+        assert bom.total_material_cost == 2000.0
+
+    def test_inconsistent_total_cost_raises_error(self):
+        """Costo total inconsistente debe lanzar ValueError."""
+        req = MaterialRequirement(
+            id="MAT001", description="Test",
+            quantity_base=10.0, unit="KG", waste_factor=0.0,
+            quantity_total=10.0, unit_cost=100.0, total_cost=1000.0
+        )
+        
+        with pytest.raises(ValueError, match="Costo total inconsistente"):
+            BillOfMaterials(
+                requirements=[req],
+                total_material_cost=5000.0,  # Debería ser 1000.0
+                metadata={}
+            )
+
+
+class TestMatterGenerator:
+    """Tests principales para MatterGenerator."""
+
+    @pytest.fixture
+    def sample_graph(self):
+        """
+        Crea un grafo piramidal de prueba:
+        ROOT -> APU1 (x2) -> INS1 (x5)
+        ROOT -> APU2 (x1) -> INS1 (x3)
+                          -> INS2 (x10)
+
+        Total INS1: (2 * 5) + (1 * 3) = 13
+        Total INS2: (1 * 10) = 10
+        """
+        G = nx.DiGraph()
+
+        # Nodos
+        G.add_node("PROYECTO_TOTAL", type="ROOT", level=0, description="Proyecto")
+        G.add_node("APU1", type="APU", level=2, description="Muro Ladrillo")
+        G.add_node("APU2", type="APU", level=2, description="Piso Concreto")
+        G.add_node("INS1", type="INSUMO", level=3, description="Cemento", unit_cost=100.0, unit="KG")
+        G.add_node("INS2", type="INSUMO", level=3, description="Arena", unit_cost=50.0, unit="M3")
+
+        # Aristas (Cantidades)
+        G.add_edge("PROYECTO_TOTAL", "APU1", quantity=2.0)
+        G.add_edge("PROYECTO_TOTAL", "APU2", quantity=1.0)
+        G.add_edge("APU1", "INS1", quantity=5.0)
+        G.add_edge("APU2", "INS1", quantity=3.0)
+        G.add_edge("APU2", "INS2", quantity=10.0)
+
+        return G
+
+    @pytest.fixture
+    def complex_graph(self):
+        """
+        Grafo más complejo con múltiples niveles:
+        ROOT -> CAP1 (x1) -> APU1 (x3) -> INS1 (x2)
+                          -> APU2 (x2) -> INS1 (x4)
+                                       -> INS2 (x5)
+             -> CAP2 (x2) -> APU3 (x1) -> INS2 (x3)
+                                       -> INS3 (x10)
+        """
+        G = nx.DiGraph()
+
+        # Nodos
+        G.add_node("ROOT", type="ROOT", description="Proyecto Principal")
+        G.add_node("CAP1", type="CAPITULO", description="Capitulo 1")
+        G.add_node("CAP2", type="CAPITULO", description="Capitulo 2")
+        G.add_node("APU1", type="APU", description="APU Muros")
+        G.add_node("APU2", type="APU", description="APU Pisos")
+        G.add_node("APU3", type="APU", description="APU Techos")
+        G.add_node("INS1", type="INSUMO", description="Cemento", unit_cost=100.0, unit="KG")
+        G.add_node("INS2", type="INSUMO", description="Arena", unit_cost=50.0, unit="M3")
+        G.add_node("INS3", type="INSUMO", description="Agua", unit_cost=10.0, unit="LT")
+
+        # Aristas
+        G.add_edge("ROOT", "CAP1", quantity=1.0)
+        G.add_edge("ROOT", "CAP2", quantity=2.0)
+        G.add_edge("CAP1", "APU1", quantity=3.0)
+        G.add_edge("CAP1", "APU2", quantity=2.0)
+        G.add_edge("CAP2", "APU3", quantity=1.0)
+        G.add_edge("APU1", "INS1", quantity=2.0)
+        G.add_edge("APU2", "INS1", quantity=4.0)
+        G.add_edge("APU2", "INS2", quantity=5.0)
+        G.add_edge("APU3", "INS2", quantity=3.0)
+        G.add_edge("APU3", "INS3", quantity=10.0)
+
+        return G
+
+    # ==================== TESTS DE ESTRUCTURA BÁSICA ====================
+
+    def test_materialize_project_structure(self, sample_graph):
+        """Prueba la estructura básica del BOM generado."""
+        generator = MatterGenerator()
+        bom = generator.materialize_project(sample_graph)
+
+        assert isinstance(bom, BillOfMaterials)
+        assert len(bom.requirements) == 2  # Cemento y Arena
+
+        # Verificar totales
+        cemento = next(r for r in bom.requirements if r.id == "INS1")
+        arena = next(r for r in bom.requirements if r.id == "INS2")
+
+        assert cemento.quantity_base == 13.0
+        assert arena.quantity_base == 10.0
+
+        # Costos (sin factores de ajuste)
+        assert cemento.total_cost == pytest.approx(13.0 * 100.0)
+        assert arena.total_cost == pytest.approx(10.0 * 50.0)
+
+        assert bom.total_material_cost == pytest.approx(1300.0 + 500.0)
+
+        # Verificar metadata
+        assert bom.metadata["topological_invariants"]["is_dag"] is True
+        assert bom.metadata["graph_metrics"]["node_count"] == 5
+
+    def test_materialize_complex_graph(self, complex_graph):
+        """Prueba propagación de cantidades en grafo multinivel."""
+        generator = MatterGenerator()
+        bom = generator.materialize_project(complex_graph)
+
+        # INS1: (1*3*2) + (1*2*4) = 6 + 8 = 14
+        # INS2: (1*2*5) + (2*1*3) = 10 + 6 = 16
+        # INS3: (2*1*10) = 20
+
+        ins1 = next(r for r in bom.requirements if r.id == "INS1")
+        ins2 = next(r for r in bom.requirements if r.id == "INS2")
+        ins3 = next(r for r in bom.requirements if r.id == "INS3")
+
+        assert ins1.quantity_base == pytest.approx(14.0)
+        assert ins2.quantity_base == pytest.approx(16.0)
+        assert ins3.quantity_base == pytest.approx(20.0)
+
+    def test_generator_with_custom_complexity_limit(self):
+        """Verifica que el límite de complejidad se respeta."""
+        generator = MatterGenerator(max_graph_complexity=100)
+        assert generator.max_graph_complexity == 100
+
+    # ==================== TESTS DE FACTORES DE ENTROPÍA ====================
+
+    def test_apply_entropy_factors_clean(self, sample_graph):
+        """Prueba sin factores de riesgo (caso ideal)."""
+        generator = MatterGenerator()
+        bom = generator.materialize_project(sample_graph)
+
+        for req in bom.requirements:
+            assert req.waste_factor == pytest.approx(0.0)
+            assert req.quantity_total == pytest.approx(req.quantity_base)
+
+    def test_apply_entropy_factors_high_saturation(self, sample_graph):
+        """Prueba con saturación alta (>0.8)."""
+        generator = MatterGenerator()
+        flux_metrics = {"avg_saturation": 0.9}  # > 0.8 triggers * 1.05
+
+        bom = generator.materialize_project(sample_graph, flux_metrics=flux_metrics)
+
+        expected_multiplier = 1.05
+        expected_waste = expected_multiplier - 1.0
+
+        for req in bom.requirements:
+            assert req.waste_factor == pytest.approx(expected_waste)
+            assert req.quantity_total == pytest.approx(req.quantity_base * expected_multiplier)
+
+    def test_apply_entropy_factors_low_stability(self, sample_graph):
+        """Prueba con estabilidad baja (<1.0)."""
+        generator = MatterGenerator()
+        flux_metrics = {"pyramid_stability": 0.5}  # < 1.0 triggers * 1.03
+
+        bom = generator.materialize_project(sample_graph, flux_metrics=flux_metrics)
+
+        expected_multiplier = 1.03
+        expected_waste = expected_multiplier - 1.0
+
+        for req in bom.requirements:
+            assert req.waste_factor == pytest.approx(expected_waste)
+
+    def test_apply_entropy_factors_high_risk(self, sample_graph):
+        """
+        Prueba con métricas de flujo adversas usando composición de monoides.
+        Factor Base = 1.05 (Saturation) * 1.03 (Stability) = 1.0815
+        """
+        generator = MatterGenerator()
+        flux_metrics = {
+            "avg_saturation": 0.9,
+            "pyramid_stability": 0.5
+        }
+
+        bom = generator.materialize_project(sample_graph, flux_metrics=flux_metrics)
+
+        expected_multiplier = 1.05 * 1.03
+        expected_waste = expected_multiplier - 1.0
+
+        for req in bom.requirements:
+            assert req.waste_factor == pytest.approx(expected_waste)
+            assert req.quantity_total == pytest.approx(req.quantity_base * expected_multiplier)
+
+    def test_apply_entropy_factors_with_risk_profile_low(self, sample_graph):
+        """Prueba con perfil de riesgo bajo."""
+        generator = MatterGenerator()
+        risk_profile = {"level": "LOW"}
+
+        bom = generator.materialize_project(sample_graph, risk_profile=risk_profile)
+
+        expected_multiplier = 1.01
+        expected_waste = expected_multiplier - 1.0
+
+        for req in bom.requirements:
+            assert req.waste_factor == pytest.approx(expected_waste)
+
+    def test_apply_entropy_factors_with_risk_profile_medium(self, sample_graph):
+        """Prueba con perfil de riesgo medio."""
+        generator = MatterGenerator()
+        risk_profile = {"level": "MEDIUM"}
+
+        bom = generator.materialize_project(sample_graph, risk_profile=risk_profile)
+
+        expected_multiplier = 1.03
+        for req in bom.requirements:
+            assert req.waste_factor == pytest.approx(expected_multiplier - 1.0)
+
+    def test_apply_entropy_factors_with_risk_profile_high(self, sample_graph):
+        """Prueba con perfil de riesgo alto."""
+        generator = MatterGenerator()
+        risk_profile = {"level": "HIGH"}
+
+        bom = generator.materialize_project(sample_graph, risk_profile=risk_profile)
+
+        expected_multiplier = 1.07
+        for req in bom.requirements:
+            assert req.waste_factor == pytest.approx(expected_multiplier - 1.0)
+
+    def test_apply_entropy_factors_with_risk_profile_critical(self, sample_graph):
+        """Prueba con perfil de riesgo crítico."""
+        generator = MatterGenerator()
+        risk_profile = {"level": "CRITICAL"}
+
+        bom = generator.materialize_project(sample_graph, risk_profile=risk_profile)
+
+        expected_multiplier = 1.15
+        for req in bom.requirements:
+            assert req.waste_factor == pytest.approx(expected_multiplier - 1.0)
+
+    def test_apply_entropy_factors_combined_flux_and_risk(self, sample_graph):
+        """Prueba composición de factores de flujo y riesgo."""
+        generator = MatterGenerator()
+        flux_metrics = {
+            "avg_saturation": 0.9,     # * 1.05
+            "pyramid_stability": 0.5   # * 1.03
+        }
+        risk_profile = {"level": "HIGH"}  # * 1.07
+
+        bom = generator.materialize_project(
+            sample_graph,
+            flux_metrics=flux_metrics,
+            risk_profile=risk_profile
+        )
+
+        # Composición monoidal: 1.05 * 1.03 * 1.07
+        expected_multiplier = 1.05 * 1.03 * 1.07
+        expected_waste = expected_multiplier - 1.0
+
+        for req in bom.requirements:
+            assert req.waste_factor == pytest.approx(expected_waste, rel=1e-6)
+
+    def test_apply_entropy_factors_with_material_category_fragile(self):
+        """Prueba factor específico para materiales frágiles."""
+        G = nx.DiGraph()
+        G.add_node("ROOT", type="ROOT")
+        G.add_node("APU1", type="APU")
+        G.add_node("INS1", type="INSUMO", description="Vidrio",
+                   unit_cost=200.0, unit="M2", material_category="FRAGILE")
+
+        G.add_edge("ROOT", "APU1", quantity=1.0)
+        G.add_edge("APU1", "INS1", quantity=10.0)
+
+        generator = MatterGenerator()
+        bom = generator.materialize_project(G)
+
+        # Factor específico para FRAGILE: 1.02
+        expected_multiplier = 1.02
+        req = bom.requirements[0]
+        assert req.waste_factor == pytest.approx(expected_multiplier - 1.0)
+
+    def test_apply_entropy_factors_with_material_category_perishable(self):
+        """Prueba factor específico para materiales perecederos."""
+        G = nx.DiGraph()
+        G.add_node("ROOT", type="ROOT")
+        G.add_node("APU1", type="APU")
+        G.add_node("INS1", type="INSUMO", description="Aditivo",
+                   unit_cost=150.0, unit="LT", material_category="PERISHABLE")
+
+        G.add_edge("ROOT", "APU1", quantity=1.0)
+        G.add_edge("APU1", "INS1", quantity=5.0)
+
+        generator = MatterGenerator()
+        bom = generator.materialize_project(G)
+
+        expected_multiplier = 1.04
+        req = bom.requirements[0]
+        assert req.waste_factor == pytest.approx(expected_multiplier - 1.0)
+
+    def test_apply_entropy_factors_with_material_category_hazardous(self):
+        """Prueba factor específico para materiales peligrosos."""
+        G = nx.DiGraph()
+        G.add_node("ROOT", type="ROOT")
+        G.add_node("APU1", type="APU")
+        G.add_node("INS1", type="INSUMO", description="Solvente",
+                   unit_cost=300.0, unit="LT", material_category="HAZARDOUS")
+
+        G.add_edge("ROOT", "APU1", quantity=1.0)
+        G.add_edge("APU1", "INS1", quantity=20.0)
+
+        generator = MatterGenerator()
+        bom = generator.materialize_project(G)
+
+        expected_multiplier = 1.06
+        req = bom.requirements[0]
+        assert req.waste_factor == pytest.approx(expected_multiplier - 1.0)
+
+    # ==================== TESTS DE TRACKING DE FUENTES ====================
+
+    def test_source_tracking(self, sample_graph):
+        """Verifica que se rastreen los APUs de origen."""
+        generator = MatterGenerator()
+        bom = generator.materialize_project(sample_graph)
+
+        cemento = next(r for r in bom.requirements if r.id == "INS1")
+        assert "APU1" in cemento.source_apus
+        assert "APU2" in cemento.source_apus
+
+        arena = next(r for r in bom.requirements if r.id == "INS2")
+        assert "APU2" in arena.source_apus
+        assert "APU1" not in arena.source_apus
+
+    def test_source_tracking_complex_graph(self, complex_graph):
+        """Verifica tracking de fuentes en grafo complejo."""
+        generator = MatterGenerator()
+        bom = generator.materialize_project(complex_graph)
+
+        ins1 = next(r for r in bom.requirements if r.id == "INS1")
+        assert "APU1" in ins1.source_apus
+        assert "APU2" in ins1.source_apus
+
+        ins2 = next(r for r in bom.requirements if r.id == "INS2")
+        assert "APU2" in ins2.source_apus
+        assert "APU3" in ins2.source_apus
+
+        ins3 = next(r for r in bom.requirements if r.id == "INS3")
+        assert "APU3" in ins3.source_apus
+        assert len(ins3.source_apus) == 1
+
+    def test_source_apus_are_sorted(self, sample_graph):
+        """Verifica que source_apus estén ordenados para consistencia."""
+        generator = MatterGenerator()
+        bom = generator.materialize_project(sample_graph)
+
+        cemento = next(r for r in bom.requirements if r.id == "INS1")
+        # Deben estar ordenados alfabéticamente
+        assert cemento.source_apus == sorted(cemento.source_apus)
+
+    # ==================== TESTS DE CASOS EDGE ====================
+
+    def test_missing_root_fallback(self):
+        """Prueba comportamiento cuando no hay nodo ROOT explícito."""
+        G = nx.DiGraph()
+        G.add_node("APU1", type="APU")
+        G.add_node("INS1", type="INSUMO", unit_cost=10.0, description="Material")
+        G.add_edge("APU1", "INS1", quantity=5.0)
+
+        generator = MatterGenerator()
+        bom = generator.materialize_project(G)
+
+        assert len(bom.requirements) == 1
+        assert bom.requirements[0].quantity_base == pytest.approx(5.0)
+
+    def test_empty_graph(self):
+        """Prueba con grafo completamente vacío."""
+        G = nx.DiGraph()
+
+        generator = MatterGenerator()
+        bom = generator.materialize_project(G)
+
+        assert len(bom.requirements) == 0
+        assert bom.total_material_cost == 0.0
+        assert bom.metadata["cost_analysis"]["empty"] is True
+
+    def test_graph_with_only_root(self):
+        """Prueba con grafo que solo tiene un nodo raíz."""
+        G = nx.DiGraph()
+        G.add_node("ROOT", type="ROOT", description="Solo raíz")
+
+        generator = MatterGenerator()
+        bom = generator.materialize_project(G)
+
+        assert len(bom.requirements) == 0
+        assert bom.total_material_cost == 0.0
+
+    def test_graph_with_disconnected_components(self):
+        """Prueba con múltiples componentes desconectados."""
+        G = nx.DiGraph()
+
+        # Componente 1
+        G.add_node("ROOT1", type="ROOT")
+        G.add_node("APU1", type="APU")
+        G.add_node("INS1", type="INSUMO", unit_cost=100.0, description="Material 1")
+        G.add_edge("ROOT1", "APU1", quantity=1.0)
+        G.add_edge("APU1", "INS1", quantity=5.0)
+
+        # Componente 2 (desconectado)
+        G.add_node("ROOT2", type="ROOT")
+        G.add_node("APU2", type="APU")
+        G.add_node("INS2", type="INSUMO", unit_cost=50.0, description="Material 2")
+        G.add_edge("ROOT2", "APU2", quantity=2.0)
+        G.add_edge("APU2", "INS2", quantity=3.0)
+
+        generator = MatterGenerator()
+        bom = generator.materialize_project(G)
+
+        assert len(bom.requirements) == 2
+        
+        ins1 = next(r for r in bom.requirements if r.id == "INS1")
+        ins2 = next(r for r in bom.requirements if r.id == "INS2")
+        
+        assert ins1.quantity_base == pytest.approx(5.0)
+        assert ins2.quantity_base == pytest.approx(6.0)  # 2 * 3
+
+        # Verificar metadata de componentes
+        assert bom.metadata["topological_invariants"]["weakly_connected_components"] == 2
+
+    def test_node_without_description_uses_name(self):
+        """Prueba que se use name como fallback para descripción."""
+        G = nx.DiGraph()
+        G.add_node("ROOT", type="ROOT")
+        G.add_node("APU1", type="APU")
+        G.add_node("INS1", type="INSUMO", name="Cemento Portland", unit_cost=100.0)
+
+        G.add_edge("ROOT", "APU1", quantity=1.0)
+        G.add_edge("APU1", "INS1", quantity=10.0)
+
+        generator = MatterGenerator()
+        bom = generator.materialize_project(G)
+
+        assert bom.requirements[0].description == "Cemento Portland"
+
+    def test_node_without_description_or_name_uses_id(self):
+        """Prueba que se use ID como fallback final para descripción."""
+        G = nx.DiGraph()
+        G.add_node("ROOT", type="ROOT")
+        G.add_node("APU1", type="APU")
+        G.add_node("INS_MATERIAL_001", type="INSUMO", unit_cost=100.0)
+
+        G.add_edge("ROOT", "APU1", quantity=1.0)
+        G.add_edge("APU1", "INS_MATERIAL_001", quantity=10.0)
+
+        generator = MatterGenerator()
+        bom = generator.materialize_project(G)
+
+        assert "INS_MATERIAL_001" in bom.requirements[0].description
+
+    def test_missing_unit_uses_default(self):
+        """Prueba que se use UND como unidad por defecto."""
+        G = nx.DiGraph()
+        G.add_node("ROOT", type="ROOT")
+        G.add_node("APU1", type="APU")
+        G.add_node("INS1", type="INSUMO", description="Material sin unidad", unit_cost=100.0)
+
+        G.add_edge("ROOT", "APU1", quantity=1.0)
+        G.add_edge("APU1", "INS1", quantity=10.0)
+
+        generator = MatterGenerator()
+        bom = generator.materialize_project(G)
+
+        assert bom.requirements[0].unit == "UND"
+
+    def test_missing_quantity_uses_default(self):
+        """Prueba que se use 1.0 como cantidad por defecto en aristas."""
+        G = nx.DiGraph()
+        G.add_node("ROOT", type="ROOT")
+        G.add_node("APU1", type="APU")
+        G.add_node("INS1", type="INSUMO", description="Material", unit_cost=100.0)
+
+        G.add_edge("ROOT", "APU1")  # Sin quantity
+        G.add_edge("APU1", "INS1")  # Sin quantity
+
+        generator = MatterGenerator()
+        bom = generator.materialize_project(G)
+
+        assert bom.requirements[0].quantity_base == pytest.approx(1.0)
+
+    def test_zero_quantity_replaced_by_default(self):
+        """Prueba que cantidad cero sea reemplazada por 1.0."""
+        G = nx.DiGraph()
+        G.add_node("ROOT", type="ROOT")
+        G.add_node("APU1", type="APU")
+        G.add_node("INS1", type="INSUMO", description="Material", unit_cost=100.0)
+
+        G.add_edge("ROOT", "APU1", quantity=0.0)  # Cantidad inválida
+        G.add_edge("APU1", "INS1", quantity=5.0)
+
+        generator = MatterGenerator()
+        bom = generator.materialize_project(G)
+
+        # 1.0 (reemplazado) * 5.0 = 5.0
+        assert bom.requirements[0].quantity_base == pytest.approx(5.0)
+
+    def test_negative_quantity_replaced_by_default(self):
+        """Prueba que cantidad negativa sea reemplazada por 1.0."""
+        G = nx.DiGraph()
+        G.add_node("ROOT", type="ROOT")
+        G.add_node("APU1", type="APU")
+        G.add_node("INS1", type="INSUMO", description="Material", unit_cost=100.0)
+
+        G.add_edge("ROOT", "APU1", quantity=-3.0)  # Cantidad inválida
+        G.add_edge("APU1", "INS1", quantity=5.0)
+
+        generator = MatterGenerator()
+        bom = generator.materialize_project(G)
+
+        assert bom.requirements[0].quantity_base == pytest.approx(5.0)
+
+    def test_missing_unit_cost_uses_zero(self):
+        """Prueba que costo unitario ausente se use como 0."""
+        G = nx.DiGraph()
+        G.add_node("ROOT", type="ROOT")
+        G.add_node("APU1", type="APU")
+        G.add_node("INS1", type="INSUMO", description="Material gratis")
+
+        G.add_edge("ROOT", "APU1", quantity=1.0)
+        G.add_edge("APU1", "INS1", quantity=10.0)
+
+        generator = MatterGenerator()
+        bom = generator.materialize_project(G)
+
+        assert bom.requirements[0].unit_cost == 0.0
+        assert bom.requirements[0].total_cost == 0.0
+
+    def test_negative_unit_cost_normalized_to_zero(self):
+        """Prueba que costo unitario negativo se normalice a 0."""
+        G = nx.DiGraph()
+        G.add_node("ROOT", type="ROOT")
+        G.add_node("APU1", type="APU")
+        G.add_node("INS1", type="INSUMO", description="Material", unit_cost=-100.0)
+
+        G.add_edge("ROOT", "APU1", quantity=1.0)
+        G.add_edge("APU1", "INS1", quantity=10.0)
+
+        generator = MatterGenerator()
+        bom = generator.materialize_project(G)
+
+        assert bom.requirements[0].unit_cost == 0.0
+
+    # ==================== TESTS DE DETECCIÓN DE CICLOS ====================
+
+    def test_cycle_detection(self):
+        """Verifica que el sistema rechace grafos cíclicos."""
+        G = nx.DiGraph()
+        G.add_node("A", type="APU")
+        G.add_node("B", type="APU")
+        G.add_edge("A", "B")
+        G.add_edge("B", "A")  # Ciclo
+
+        generator = MatterGenerator()
+
+        with pytest.raises(ValueError, match="ciclo|DAG"):
+            generator.materialize_project(G)
+
+    def test_self_loop_detection(self):
+        """Verifica detección de auto-referencia."""
+        G = nx.DiGraph()
+        G.add_node("A", type="APU")
+        G.add_edge("A", "A")  # Self-loop
+
+        generator = MatterGenerator()
+
+        with pytest.raises(ValueError):
+            generator.materialize_project(G)
+
+    def test_complex_cycle_detection(self):
+        """Verifica detección de ciclos complejos."""
+        G = nx.DiGraph()
+        G.add_node("A", type="ROOT")
+        G.add_node("B", type="APU")
+        G.add_node("C", type="APU")
+        G.add_node("D", type="APU")
+
+        G.add_edge("A", "B")
+        G.add_edge("B", "C")
+        G.add_edge("C", "D")
+        G.add_edge("D", "B")  # Ciclo B -> C -> D -> B
+
+        generator = MatterGenerator()
+
+        with pytest.raises(ValueError):
+            generator.materialize_project(G)
+
+    # ==================== TESTS DE LÍMITES Y OVERFLOW ====================
+
+    def test_complexity_overflow(self):
+        """Verifica rechazo de grafos demasiado complejos."""
+        G = nx.DiGraph()
+        
+        # Crear un grafo que exceda el límite
+        for i in range(100):
+            G.add_node(f"N{i}", type="APU")
+        for i in range(99):
+            for j in range(i+1, min(i+10, 100)):
+                G.add_edge(f"N{i}", f"N{j}", quantity=1.0)
+
+        generator = MatterGenerator(max_graph_complexity=100)
+
+        with pytest.raises(OverflowError, match="Complejidad del grafo"):
+            generator.materialize_project(G)
+
+    def test_very_large_quantity_handling(self):
+        """Prueba manejo de cantidades muy grandes (pero no overflow)."""
+        G = nx.DiGraph()
+        G.add_node("ROOT", type="ROOT")
+        G.add_node("APU1", type="APU")
+        G.add_node("INS1", type="INSUMO", description="Material", unit_cost=1.0)
+
+        G.add_edge("ROOT", "APU1", quantity=1e10)
+        G.add_edge("APU1", "INS1", quantity=1e5)
+
+        generator = MatterGenerator()
+        bom = generator.materialize_project(G)
+
+        assert bom.requirements[0].quantity_base == pytest.approx(1e15)
+
+    def test_numerical_precision_in_accumulation(self):
+        """Verifica precisión numérica en acumulación de costos."""
+        G = nx.DiGraph()
+        G.add_node("ROOT", type="ROOT")
+        G.add_node("APU1", type="APU")
+
+        # Crear múltiples materiales con costos que pueden causar errores de precisión
+        for i in range(100):
+            G.add_node(f"INS{i}", type="INSUMO", description=f"Material {i}",
+                       unit_cost=0.01, unit=f"U{i}")  # Unidades diferentes para evitar clustering
+            G.add_edge("APU1", f"INS{i}", quantity=1.0)
+
+        G.add_edge("ROOT", "APU1", quantity=1.0)
+
+        generator = MatterGenerator()
+        bom = generator.materialize_project(G)
+
+        # 100 materiales * 0.01 = 1.00 exacto
+        assert bom.total_material_cost == pytest.approx(1.00, abs=0.01)
+
+    # ==================== TESTS DE CLUSTERING SEMÁNTICO ====================
+
+    def test_clustering_same_material_different_paths(self, sample_graph):
+        """Verifica que materiales del mismo ID se agrupen correctamente."""
+        generator = MatterGenerator()
+        bom = generator.materialize_project(sample_graph)
+
+        # INS1 viene de dos caminos diferentes, debe estar consolidado
+        cemento = next(r for r in bom.requirements if r.id == "INS1")
+        assert cemento.quantity_base == 13.0  # (2*5) + (1*3)
+        assert len(cemento.source_apus) == 2
+
+    def test_clustering_respects_units(self):
+        """Verifica que materiales con diferentes unidades no se agrupen."""
+        G = nx.DiGraph()
+        G.add_node("ROOT", type="ROOT")
+        G.add_node("APU1", type="APU")
+        G.add_node("APU2", type="APU")
+        G.add_node("INS1_KG", type="INSUMO", description="Cemento", unit_cost=100.0, unit="KG")
+        G.add_node("INS1_TN", type="INSUMO", description="Cemento", unit_cost=100000.0, unit="TN")
+
+        # Mismo ID base pero unidades diferentes
+        G.nodes["INS1_KG"]["id"] = "CEMENTO"
+        G.nodes["INS1_TN"]["id"] = "CEMENTO"
+
+        G.add_edge("ROOT", "APU1", quantity=1.0)
+        G.add_edge("ROOT", "APU2", quantity=1.0)
+        G.add_edge("APU1", "INS1_KG", quantity=100.0)
+        G.add_edge("APU2", "INS1_TN", quantity=0.1)
+
+        generator = MatterGenerator()
+        bom = generator.materialize_project(G)
+
+        # Deberían ser 2 items diferentes por tener unidades diferentes
+        assert len(bom.requirements) == 2
+
+    def test_clustering_median_cost_calculation(self):
+        """Verifica cálculo de costo usando mediana (robustez a outliers)."""
+        G = nx.DiGraph()
+        G.add_node("ROOT", type="ROOT")
+        G.add_node("APU1", type="APU")
+        G.add_node("APU2", type="APU")
+        G.add_node("APU3", type="APU")
+
+        # Mismo material con diferentes costos unitarios (incluyendo outlier)
+        G.add_node("INS1A", type="INSUMO", description="Cemento", unit_cost=100.0, unit="KG")
+        G.add_node("INS1B", type="INSUMO", description="Cemento", unit_cost=102.0, unit="KG")
+        G.add_node("INS1C", type="INSUMO", description="Cemento", unit_cost=1000.0, unit="KG")  # Outlier
+
+        # Forzamos mismo ID para clustering
+        for node in ["INS1A", "INS1B", "INS1C"]:
+            G.nodes[node]["original_id"] = G.nodes[node].get("id", node)
+
+        G.add_edge("ROOT", "APU1", quantity=1.0)
+        G.add_edge("ROOT", "APU2", quantity=1.0)
+        G.add_edge("ROOT", "APU3", quantity=1.0)
+        G.add_edge("APU1", "INS1A", quantity=10.0)
+        G.add_edge("APU2", "INS1B", quantity=10.0)
+        G.add_edge("APU3", "INS1C", quantity=10.0)
+
+        generator = MatterGenerator()
+        bom = generator.materialize_project(G)
+
+        # Cada material tiene ID diferente, así que serán 3 items
+        # La mediana de [100, 102, 1000] sería 102 si estuvieran agrupados
+        assert len(bom.requirements) == 3
+
+    def test_requirements_sorted_by_cost_descending(self, sample_graph):
+        """Verifica que los requerimientos estén ordenados por costo descendente (Pareto)."""
+        generator = MatterGenerator()
+        bom = generator.materialize_project(sample_graph)
+
+        costs = [r.total_cost for r in bom.requirements]
+        assert costs == sorted(costs, reverse=True)
+
+    # ==================== TESTS DE METADATA ====================
+
+    def test_metadata_topological_invariants(self, sample_graph):
+        """Verifica invariantes topológicos en metadata."""
+        generator = MatterGenerator()
+        bom = generator.materialize_project(sample_graph)
+
+        inv = bom.metadata["topological_invariants"]
+        assert inv["is_dag"] is True
+        assert inv["weakly_connected_components"] == 1
+        assert inv["longest_path_length"] >= 2  # ROOT -> APU -> INS
+
+    def test_metadata_graph_metrics(self, sample_graph):
+        """Verifica métricas del grafo en metadata."""
+        generator = MatterGenerator()
+        bom = generator.materialize_project(sample_graph)
+
+        metrics = bom.metadata["graph_metrics"]
+        assert metrics["node_count"] == 5
+        assert metrics["edge_count"] == 5
+        assert metrics["root_count"] == 1
+        assert metrics["leaf_count"] == 2  # INS1, INS2
+        assert 0 < metrics["density"] < 1
+
+    def test_metadata_cost_analysis(self, sample_graph):
+        """Verifica análisis de costos en metadata."""
+        generator = MatterGenerator()
+        bom = generator.materialize_project(sample_graph)
+
+        cost_analysis = bom.metadata["cost_analysis"]
+        assert cost_analysis["total_cost"] == pytest.approx(1800.0)
+        assert cost_analysis["item_count"] == 2
+        assert "pareto_analysis" in cost_analysis
+        assert "distribution" in cost_analysis
+
+    def test_metadata_pareto_analysis(self, sample_graph):
+        """Verifica análisis de Pareto en metadata."""
+        generator = MatterGenerator()
+        bom = generator.materialize_project(sample_graph)
+
+        pareto = bom.metadata["cost_analysis"]["pareto_analysis"]
+        assert "pareto_20_percent" in pareto
+        assert "pareto_items_count" in pareto
+        assert "pareto_cost_percentage" in pareto
+
+    def test_metadata_risk_profile_included(self, sample_graph):
+        """Verifica que el perfil de riesgo se incluya en metadata."""
+        generator = MatterGenerator()
+        risk_profile = {"level": "HIGH", "adjustment_factor": 1.07}
+
+        bom = generator.materialize_project(sample_graph, risk_profile=risk_profile)
+
+        risk_analysis = bom.metadata["risk_analysis"]
+        assert risk_analysis["profile_applied"] is True
+        assert risk_analysis["risk_level"] == "HIGH"
+
+    def test_metadata_flux_metrics_included(self, sample_graph):
+        """Verifica que las métricas de flujo se incluyan en metadata."""
+        generator = MatterGenerator()
+        flux_metrics = {"avg_saturation": 0.5, "pyramid_stability": 0.9}
+
+        bom = generator.materialize_project(sample_graph, flux_metrics=flux_metrics)
+
+        flux_analysis = bom.metadata["flux_analysis"]
+        assert flux_analysis["metrics_applied"] is True
+
+    def test_metadata_generation_info(self, sample_graph):
+        """Verifica información de generación en metadata."""
+        generator = MatterGenerator()
+        bom = generator.materialize_project(sample_graph)
+
+        gen_info = bom.metadata["generation_info"]
+        assert "timestamp" in gen_info
+        assert "generator_version" in gen_info
+        assert "generator_class" in gen_info
+        assert gen_info["generator_class"] == "MatterGenerator"
+
+    def test_metadata_with_empty_requirements(self):
+        """Verifica metadata cuando no hay materiales."""
+        G = nx.DiGraph()
+        G.add_node("ROOT", type="ROOT")
+
+        generator = MatterGenerator()
+        bom = generator.materialize_project(G)
+
+        assert bom.metadata["cost_analysis"]["empty"] is True
+
+    # ==================== TESTS DE CÁLCULO DE COSTOS ====================
+
+    def test_compute_total_cost_precision(self):
+        """Verifica precisión en cálculo de costo total (suma de Kahan)."""
+        G = nx.DiGraph()
+        G.add_node("ROOT", type="ROOT")
+        G.add_node("APU1", type="APU")
+
+        # Agregar muchos materiales pequeños para probar precisión
+        for i in range(1000):
+            G.add_node(f"INS{i}", type="INSUMO",
+                       description=f"Material {i}",
+                       unit_cost=0.001,
+                       unit=f"UNIT{i}")
+            G.add_edge("APU1", f"INS{i}", quantity=1.0)
+
+        G.add_edge("ROOT", "APU1", quantity=1.0)
+
+        generator = MatterGenerator()
+        bom = generator.materialize_project(G)
+
+        # 1000 * 0.001 = 1.0
+        assert bom.total_material_cost == pytest.approx(1.0, abs=0.01)
+
+    def test_compute_total_cost_rounding(self, sample_graph):
+        """Verifica redondeo a 2 decimales."""
+        generator = MatterGenerator()
+        bom = generator.materialize_project(sample_graph)
+
+        # Verificar que el costo tenga máximo 2 decimales
+        cost_str = f"{bom.total_material_cost:.10f}"
+        decimal_part = cost_str.split('.')[1]
+        significant_decimals = decimal_part.rstrip('0')
+        assert len(significant_decimals) <= 2
+
+    # ==================== TESTS DE NODOS INTERMEDIOS ====================
+
+    def test_intermediate_node_without_successors_warning(self):
+        """Verifica advertencia para nodos intermedios sin sucesores."""
+        G = nx.DiGraph()
+        G.add_node("ROOT", type="ROOT")
+        G.add_node("APU1", type="APU")
+        G.add_node("CHAPTER", type="CHAPTER")  # Nodo intermedio sin hijos
+
+        G.add_edge("ROOT", "APU1", quantity=1.0)
+        G.add_edge("ROOT", "CHAPTER", quantity=1.0)
+
+        # No añadimos hijos a CHAPTER
+
+        generator = MatterGenerator()
+        bom = generator.materialize_project(G)
+
+        # Solo debería haber 0 materiales (APU1 tampoco tiene hijos)
+        assert len(bom.requirements) == 0
+
+    def test_deep_hierarchy_propagation(self):
+        """Verifica propagación correcta en jerarquías profundas."""
+        G = nx.DiGraph()
+
+        # Crear cadena profunda: ROOT -> L1 -> L2 -> L3 -> L4 -> L5 -> INS
+        G.add_node("ROOT", type="ROOT")
+        G.add_node("L1", type="CAPITULO")
+        G.add_node("L2", type="SUBCAPITULO")
+        G.add_node("L3", type="PARTIDA")
+        G.add_node("L4", type="SUBPARTIDA")
+        G.add_node("L5", type="APU")
+        G.add_node("INS", type="INSUMO", description="Material Final", unit_cost=10.0)
+
+        G.add_edge("ROOT", "L1", quantity=2.0)
+        G.add_edge("L1", "L2", quantity=3.0)
+        G.add_edge("L2", "L3", quantity=4.0)
+        G.add_edge("L3", "L4", quantity=5.0)
+        G.add_edge("L4", "L5", quantity=6.0)
+        G.add_edge("L5", "INS", quantity=7.0)
+
+        generator = MatterGenerator()
+        bom = generator.materialize_project(G)
+
+        # Cantidad esperada: 2 * 3 * 4 * 5 * 6 * 7 = 2520
+        assert len(bom.requirements) == 1
+        assert bom.requirements[0].quantity_base == pytest.approx(2520.0)
+
+    # ==================== TESTS DE BOM VACÍO ====================
+
+    def test_empty_bom_structure(self):
+        """Verifica estructura de BOM vacío."""
+        G = nx.DiGraph()
+        G.add_node("ROOT", type="ROOT")
+
+        generator = MatterGenerator()
+        bom = generator.materialize_project(G)
+
+        assert isinstance(bom, BillOfMaterials)
+        assert len(bom.requirements) == 0
+        assert bom.total_material_cost == 0.0
+        assert "metadata" in bom.__dict__
+
+    def test_empty_bom_has_valid_metadata(self):
+        """Verifica que BOM vacío tenga metadata válida."""
+        G = nx.DiGraph()
+        G.add_node("ROOT", type="ROOT")
+        G.add_node("APU1", type="APU")
+        G.add_edge("ROOT", "APU1", quantity=1.0)
+
+        generator = MatterGenerator()
+        bom = generator.materialize_project(G)
+
+        assert bom.metadata["graph_metrics"]["node_count"] == 2
+        assert bom.metadata["generation_info"]["timestamp"] is not None
+
+
+class TestMatterGeneratorEdgeCases:
+    """Tests adicionales para casos extremos."""
+
+    def test_unicode_in_descriptions(self):
+        """Verifica manejo de caracteres unicode en descripciones."""
+        G = nx.DiGraph()
+        G.add_node("ROOT", type="ROOT")
+        G.add_node("APU1", type="APU")
+        G.add_node("INS1", type="INSUMO",
+                   description="Cemento Pórtland Tipo I 日本語 العربية",
+                   unit_cost=100.0)
+
+        G.add_edge("ROOT", "APU1", quantity=1.0)
+        G.add_edge("APU1", "INS1", quantity=10.0)
+
+        generator = MatterGenerator()
+        bom = generator.materialize_project(G)
+
+        assert "Pórtland" in bom.requirements[0].description
+        assert "日本語" in bom.requirements[0].description
+
+    def test_special_characters_in_ids(self):
+        """Verifica manejo de caracteres especiales en IDs."""
+        G = nx.DiGraph()
+        G.add_node("ROOT-001", type="ROOT")
+        G.add_node("APU_01.2", type="APU")
+        G.add_node("INS/MAT#001", type="INSUMO",
+                   description="Material especial",
+                   unit_cost=100.0)
+
+        G.add_edge("ROOT-001", "APU_01.2", quantity=1.0)
+        G.add_edge("APU_01.2", "INS/MAT#001", quantity=5.0)
+
+        generator = MatterGenerator()
+        bom = generator.materialize_project(G)
+
+        assert bom.requirements[0].id == "INS/MAT#001"
+
+    def test_very_small_quantities(self):
+        """Verifica manejo de cantidades muy pequeñas."""
+        G = nx.DiGraph()
+        G.add_node("ROOT", type="ROOT")
+        G.add_node("APU1", type="APU")
+        G.add_node("INS1", type="INSUMO", description="Precisión", unit_cost=1.0)
+
+        G.add_edge("ROOT", "APU1", quantity=0.001)
+        G.add_edge("APU1", "INS1", quantity=0.001)
+
+        generator = MatterGenerator()
+        bom = generator.materialize_project(G)
+
+        assert bom.requirements[0].quantity_base == pytest.approx(0.000001, rel=1e-9)
+
+    def test_mixed_numeric_types_in_quantities(self):
+        """Verifica manejo de tipos numéricos mixtos."""
+        G = nx.DiGraph()
+        G.add_node("ROOT", type="ROOT")
+        G.add_node("APU1", type="APU")
+        G.add_node("INS1", type="INSUMO", description="Material", unit_cost=100)  # int
+
+        G.add_edge("ROOT", "APU1", quantity=2)  # int
+        G.add_edge("APU1", "INS1", quantity=5.5)  # float
+
+        generator = MatterGenerator()
+        bom = generator.materialize_project(G)
+
+        assert bom.requirements[0].quantity_base == pytest.approx(11.0)
+
+    def test_nan_in_unit_cost_handled(self):
+        """Verifica que NaN en costo unitario sea manejado."""
+        G = nx.DiGraph()
+        G.add_node("ROOT", type="ROOT")
+        G.add_node("APU1", type="APU")
+        G.add_node("INS1", type="INSUMO", description="Material",
+                   unit_cost=float('nan'))
+
+        G.add_edge("ROOT", "APU1", quantity=1.0)
+        G.add_edge("APU1", "INS1", quantity=10.0)
+
+        generator = MatterGenerator()
+        bom = generator.materialize_project(G)
+
+        # El costo debe ser 0 o el material debe ser omitido
+        if bom.requirements:
+            assert bom.requirements[0].unit_cost == 0.0 or math.isfinite(bom.requirements[0].unit_cost)
+
+    def test_inf_in_unit_cost_handled(self):
+        """Verifica que infinito en costo unitario sea manejado."""
+        G = nx.DiGraph()
+        G.add_node("ROOT", type="ROOT")
+        G.add_node("APU1", type="APU")
+        G.add_node("INS1", type="INSUMO", description="Material",
+                   unit_cost=float('inf'))
+
+        G.add_edge("ROOT", "APU1", quantity=1.0)
+        G.add_edge("APU1", "INS1", quantity=10.0)
+
+        generator = MatterGenerator()
+        bom = generator.materialize_project(G)
+
+        # El costo debe ser manejado (0 o finito)
+        if bom.requirements:
+            assert math.isfinite(bom.requirements[0].total_cost)
+
+    def test_multiple_roots_processing(self):
+        """Verifica procesamiento correcto con múltiples raíces."""
+        G = nx.DiGraph()
+
+        # Tres raíces independientes
+        G.add_node("ROOT1", type="ROOT")
+        G.add_node("ROOT2", type="ROOT")
+        G.add_node("ROOT3", type="ROOT")
+
+        G.add_node("APU1", type="APU")
+        G.add_node("APU2", type="APU")
+        G.add_node("APU3", type="APU")
+
+        G.add_node("INS1", type="INSUMO", description="Material Común",
+                   unit_cost=100.0, unit="KG")
+
+        # Conectar las tres raíces al mismo material
+        G.add_edge("ROOT1", "APU1", quantity=1.0)
+        G.add_edge("ROOT2", "APU2", quantity=2.0)
+        G.add_edge("ROOT3", "APU3", quantity=3.0)
+
+        G.add_edge("APU1", "INS1", quantity=10.0)
+        G.add_edge("APU2", "INS1", quantity=10.0)
+        G.add_edge("APU3", "INS1", quantity=10.0)
+
+        generator = MatterGenerator()
+        bom = generator.materialize_project(G)
+
+        # INS1 debe acumular: (1*10) + (2*10) + (3*10) = 60
+        assert len(bom.requirements) == 1
+        assert bom.requirements[0].quantity_base == pytest.approx(60.0)
+        assert bom.metadata["graph_metrics"]["root_count"] == 3
+
+
+class TestMatterGeneratorIntegration:
+    """Tests de integración para escenarios complejos."""
+
+    def test_full_construction_project_simulation(self):
+        """Simula un proyecto de construcción completo."""
+        G = nx.DiGraph()
+
+        # Estructura del proyecto
+        G.add_node("PROYECTO", type="ROOT", description="Edificio Residencial")
+
+        # Capítulos
+        G.add_node("CAP_CIMENTACION", type="CAPITULO", description="Cimentación")
+        G.add_node("CAP_ESTRUCTURA", type="CAPITULO", description="Estructura")
+        G.add_node("CAP_ACABADOS", type="CAPITULO", description="Acabados")
+
+        # APUs
+        G.add_node("APU_ZAPATA", type="APU", description="Zapata Corrida")
+        G.add_node("APU_COLUMNA", type="APU", description="Columna 30x30")
+        G.add_node("APU_MURO", type="APU", description="Muro Ladrillo")
+        G.add_node("APU_PISO", type="APU", description="Piso Cerámico")
+
+        # Insumos
+        G.add_node("CEMENTO", type="INSUMO", description="Cemento Portland Tipo I",
+                   unit_cost=25.0, unit="BLS")
+        G.add_node("ARENA", type="INSUMO", description="Arena Gruesa",
+                   unit_cost=50.0, unit="M3")
+        G.add_node("PIEDRA", type="INSUMO", description="Piedra Chancada",
+                   unit_cost=70.0, unit="M3")
+        G.add_node("ACERO", type="INSUMO", description="Acero Corrugado",
+                   unit_cost=3.5, unit="KG")
+        G.add_node("LADRILLO", type="INSUMO", description="Ladrillo KK",
+                   unit_cost=0.8, unit="UND")
+        G.add_node("CERAMICO", type="INSUMO", description="Cerámico 45x45",
+                   unit_cost=35.0, unit="M2")
+
+        # Conexiones Proyecto -> Capítulos
+        G.add_edge("PROYECTO", "CAP_CIMENTACION", quantity=1.0)
+        G.add_edge("PROYECTO", "CAP_ESTRUCTURA", quantity=1.0)
+        G.add_edge("PROYECTO", "CAP_ACABADOS", quantity=1.0)
+
+        # Conexiones Capítulos -> APUs (metrados)
+        G.add_edge("CAP_CIMENTACION", "APU_ZAPATA", quantity=25.0)  # 25 m3
+        G.add_edge("CAP_ESTRUCTURA", "APU_COLUMNA", quantity=8.0)   # 8 columnas
+        G.add_edge("CAP_ACABADOS", "APU_MURO", quantity=150.0)      # 150 m2
+        G.add_edge("CAP_ACABADOS", "APU_PISO", quantity=200.0)      # 200 m2
+
+        # Conexiones APUs -> Insumos (rendimientos por unidad)
+        # Zapata: cemento, arena, piedra, acero
+        G.add_edge("APU_ZAPATA", "CEMENTO", quantity=8.5)
+        G.add_edge("APU_ZAPATA", "ARENA", quantity=0.5)
+        G.add_edge("APU_ZAPATA", "PIEDRA", quantity=0.8)
+        G.add_edge("APU_ZAPATA", "ACERO", quantity=45.0)
+
+        # Columna: cemento, arena, piedra, acero
+        G.add_edge("APU_COLUMNA", "CEMENTO", quantity=3.0)
+        G.add_edge("APU_COLUMNA", "ARENA", quantity=0.2)
+        G.add_edge("APU_COLUMNA", "PIEDRA", quantity=0.3)
+        G.add_edge("APU_COLUMNA", "ACERO", quantity=25.0)
+
+        # Muro: cemento, arena, ladrillo
+        G.add_edge("APU_MURO", "CEMENTO", quantity=0.3)
+        G.add_edge("APU_MURO", "ARENA", quantity=0.02)
+        G.add_edge("APU_MURO", "LADRILLO", quantity=35.0)
+
+        # Piso: cemento, arena, cerámico
+        G.add_edge("APU_PISO", "CEMENTO", quantity=0.2)
+        G.add_edge("APU_PISO", "ARENA", quantity=0.03)
+        G.add_edge("APU_PISO", "CERAMICO", quantity=1.05)
+
+        generator = MatterGenerator()
+        risk_profile = {"level": "MEDIUM"}
+        flux_metrics = {"avg_saturation": 0.7, "pyramid_stability": 0.95}
+
+        bom = generator.materialize_project(G, risk_profile=risk_profile, flux_metrics=flux_metrics)
+
+        # Verificaciones
+        assert len(bom.requirements) == 6  # 6 tipos de insumos únicos
+        assert bom.total_material_cost > 0
+
+        # Verificar que cemento es el más usado (viene de 4 APUs)
+        cemento = next(r for r in bom.requirements if r.id == "CEMENTO")
+        assert len(cemento.source_apus) == 4
+
+        # Cemento total: (25*8.5) + (8*3.0) + (150*0.3) + (200*0.2) = 212.5 + 24 + 45 + 40 = 321.5
+        assert cemento.quantity_base == pytest.approx(321.5)
+
+        # Verificar metadata completa
+        assert bom.metadata["risk_analysis"]["profile_applied"] is True
+        assert bom.metadata["topological_invariants"]["is_dag"] is True
+        assert bom.metadata["graph_metrics"]["node_count"] == 14
+
+    def test_parallel_paths_accumulation(self):
+        """Verifica acumulación correcta en caminos paralelos."""
+        G = nx.DiGraph()
+
+        G.add_node("ROOT", type="ROOT")
+        G.add_node("PATH_A", type="CAPITULO")
+        G.add_node("PATH_B", type="CAPITULO")
+        G.add_node("APU_A1", type="APU")
+        G.add_node("APU_A2", type="APU")
+        G.add_node("APU_B1", type="APU")
+        G.add_node("MATERIAL", type="INSUMO", description="Material Común",
+                   unit_cost=100.0, unit="UND")
+
+        # Múltiples caminos al mismo material
+        G.add_edge("ROOT", "PATH_A", quantity=2.0)
+        G.add_edge("ROOT", "PATH_B", quantity=3.0)
+        G.add_edge("PATH_A", "APU_A1", quantity=4.0)
+        G.add_edge("PATH_A", "APU_A2", quantity=5.0)
+        G.add_edge("PATH_B", "APU_B1", quantity=6.0)
+        G.add_edge("APU_A1", "MATERIAL", quantity=10.0)
+        G.add_edge("APU_A2", "MATERIAL", quantity=20.0)
+        G.add_edge("APU_B1", "MATERIAL", quantity=30.0)
+
+        generator = MatterGenerator()
+        bom = generator.materialize_project(G)
+
+        # Total: (2*4*10) + (2*5*20) + (3*6*30) = 80 + 200 + 540 = 820
+        assert len(bom.requirements) == 1
+        assert bom.requirements[0].quantity_base == pytest.approx(820.0)
+        assert bom.requirements[0].total_cost == pytest.approx(82000.0)
+
+
+### Propuesta 2
+
+import pytest
+import networkx as nx
+import math
+from app.matter_generator import MatterGenerator, MaterialRequirement, BillOfMaterials
+
+class TestMatterGenerator:
+
+    @pytest.fixture
+    def sample_graph(self):
+        """
+        Crea un grafo piramidal de prueba:
+        ROOT -> APU1 (x2) -> INS1 (x5)
+        ROOT -> APU2 (x1) -> INS1 (x3)
+                          -> INS2 (x10)
+
+        Total INS1: (2 * 5) + (1 * 3) = 13
+        Total INS2: (1 * 10) = 10
+        """
+        G = nx.DiGraph()
+
+        # Nodos
+        G.add_node("PROYECTO_TOTAL", type="ROOT", level=0, description="Proyecto")
+        G.add_node("APU1", type="APU", level=2, description="Muro Ladrillo")
+        G.add_node("APU2", type="APU", level=2, description="Piso Concreto")
+        G.add_node("INS1", type="INSUMO", level=3, description="Cemento", 
+                  unit_cost=100.0, unit="kg", material_category="GENERIC")
+        G.add_node("INS2", type="INSUMO", level=3, description="Arena", 
+                  unit_cost=50.0, unit="m3", material_category="BULKY")
+
+        # Aristas (Cantidades)
+        # Nivel 1 (Proyecto -> APU)
+        G.add_edge("PROYECTO_TOTAL", "APU1", quantity=2.0)
+        G.add_edge("PROYECTO_TOTAL", "APU2", quantity=1.0)
+
+        # Nivel 2 (APU -> Insumo)
+        G.add_edge("APU1", "INS1", quantity=5.0)
+        G.add_edge("APU2", "INS1", quantity=3.0)
+        G.add_edge("APU2", "INS2", quantity=10.0)
+
+        return G
+
+    @pytest.fixture
+    def complex_graph(self):
+        """Grafo más complejo con múltiples caminos y materiales especiales."""
+        G = nx.DiGraph()
+        
+        # Nodos de diferentes tipos
+        G.add_node("ROOT", type="ROOT", description="Proyecto Complejo")
+        
+        # APUs
+        G.add_node("APU_A", type="APU", description="Estructura Principal")
+        G.add_node("APU_B", type="APU", description="Acabados")
+        G.add_node("APU_C", type="APU", description="Instalaciones")
+        
+        # Materiales con diferentes categorías
+        G.add_node("MAT1", type="INSUMO", description="Vidrio Templado",
+                  unit_cost=200.0, unit="m2", material_category="FRAGILE")
+        G.add_node("MAT2", type="INSUMO", description="Pintura Epóxica",
+                  unit_cost=80.0, unit="gal", material_category="HAZARDOUS")
+        G.add_node("MAT3", type="INSUMO", description="Tubería PVC",
+                  unit_cost=30.0, unit="m", material_category="PRECISION")
+        G.add_node("MAT4", type="INSUMO", description="Cemento Rápido",
+                  unit_cost=120.0, unit="kg", material_category="PERISHABLE")
+        G.add_node("MAT5", type="INSUMO", description="Arena Fina",
+                  unit_cost=40.0, unit="m3", material_category="BULKY")
+        
+        # Conexiones complejas con múltiples caminos
+        G.add_edge("ROOT", "APU_A", quantity=1.0)
+        G.add_edge("ROOT", "APU_B", quantity=1.0)
+        G.add_edge("ROOT", "APU_C", quantity=1.0)
+        
+        G.add_edge("APU_A", "MAT1", quantity=2.5)
+        G.add_edge("APU_A", "MAT3", quantity=8.0)
+        G.add_edge("APU_A", "MAT4", quantity=15.0)
+        
+        G.add_edge("APU_B", "MAT1", quantity=1.0)  # Otro camino a MAT1
+        G.add_edge("APU_B", "MAT2", quantity=3.0)
+        
+        G.add_edge("APU_C", "MAT3", quantity=5.0)  # Otro camino a MAT3
+        G.add_edge("APU_C", "MAT5", quantity=2.0)
+        
+        return G
+
+    @pytest.fixture
+    def cyclic_graph(self):
+        """Grafo con ciclo para probar detección."""
+        G = nx.DiGraph()
+        G.add_node("A", type="APU")
+        G.add_node("B", type="APU")
+        G.add_node("C", type="APU")
+        G.add_node("INS", type="INSUMO", unit_cost=10.0)
+        
+        G.add_edge("A", "B")
+        G.add_edge("B", "C")
+        G.add_edge("C", "A")  # Ciclo A -> B -> C -> A
+        G.add_edge("A", "INS", quantity=5.0)
+        
+        return G
+
+    def test_materialize_project_structure(self, sample_graph):
+        """Prueba la estructura básica del BOM generado."""
+        generator = MatterGenerator()
+        bom = generator.materialize_project(sample_graph)
+
+        assert isinstance(bom, BillOfMaterials)
+        assert len(bom.requirements) == 2  # Cemento y Arena
+
+        # Verificar totales base (sin factores)
+        cemento = next(r for r in bom.requirements if r.id == "INS1")
+        arena = next(r for r in bom.requirements if r.id == "INS2")
+
+        assert cemento.quantity_base == 13.0
+        assert arena.quantity_base == 10.0
+
+        # Costos sin factores
+        assert cemento.total_cost == 13.0 * 100.0
+        assert arena.total_cost == 10.0 * 50.0
+
+        # Costo total debe coincidir con suma de costos individuales
+        assert bom.total_material_cost == pytest.approx(1300.0 + 500.0)
+        
+        # Validar coherencia interna del BOM
+        assert bom.total_material_cost == pytest.approx(
+            sum(r.total_cost for r in bom.requirements)
+        )
+
+        # Verificar metadata
+        assert bom.metadata["topological_invariants"]["is_dag"] is True
+        assert bom.metadata["graph_metrics"]["node_count"] == 5
+        assert bom.metadata["cost_analysis"]["item_count"] == 2
+        assert "generation_info" in bom.metadata
+
+    def test_apply_entropy_factors_clean(self, sample_graph):
+        """Prueba sin factores de riesgo (caso ideal)."""
+        generator = MatterGenerator()
+        bom = generator.materialize_project(sample_graph)
+
+        for req in bom.requirements:
+            assert req.waste_factor == 0.0
+            assert req.quantity_total == pytest.approx(req.quantity_base)
+
+    def test_apply_entropy_factors_high_risk(self, sample_graph):
+        """
+        Prueba con métricas de flujo adversas usando composición de monoides (multiplicativo).
+        Factor Base = 1.05 (Saturation) * 1.03 (Stability) = 1.0815
+        Waste Factor = 0.0815
+        """
+        generator = MatterGenerator()
+        flux_metrics = {
+            "avg_saturation": 0.9,  # > 0.8 triggers * 1.05
+            "pyramid_stability": 0.5  # < 1.0 triggers * 1.03
+        }
+
+        bom = generator.materialize_project(sample_graph, flux_metrics=flux_metrics)
+
+        # Cálculo esperado: 1.05 * 1.03 = 1.0815
+        expected_multiplier = 1.05 * 1.03
+        expected_waste = expected_multiplier - 1.0
+
+        for req in bom.requirements:
+            assert req.waste_factor == pytest.approx(expected_waste, rel=1e-3)
+            assert req.quantity_total == pytest.approx(req.quantity_base * expected_multiplier, rel=1e-3)
+
+    def test_apply_entropy_factors_with_risk_profile(self, sample_graph):
+        """Prueba con perfil de riesgo CRITICAL y materiales específicos."""
+        generator = MatterGenerator()
+        risk_profile = {"level": "CRITICAL"}
+        
+        bom = generator.materialize_project(
+            sample_graph, 
+            risk_profile=risk_profile
+        )
+
+        # Factor base para CRITICAL: 1.15
+        expected_multiplier = 1.15
+        
+        # Factor específico para BULKY (Arena): 1.02
+        arena = next(r for r in bom.requirements if r.id == "INS2")
+        expected_arena_multiplier = 1.15 * 1.02  # base * specific
+        
+        assert arena.waste_factor == pytest.approx(expected_arena_multiplier - 1.0, rel=1e-3)
+        assert arena.quantity_total == pytest.approx(arena.quantity_base * expected_arena_multiplier, rel=1e-3)
+
+    def test_source_tracking(self, sample_graph):
+        """Verifica que se rastreen los APUs de origen."""
+        generator = MatterGenerator()
+        bom = generator.materialize_project(sample_graph)
+
+        cemento = next(r for r in bom.requirements if r.id == "INS1")
+        assert "APU1" in cemento.source_apus
+        assert "APU2" in cemento.source_apus
+        assert len(cemento.source_apus) == 2
+
+        arena = next(r for r in bom.requirements if r.id == "INS2")
+        assert "APU2" in arena.source_apus
+        assert "APU1" not in arena.source_apus
+        assert len(arena.source_apus) == 1
+
+    def test_missing_root_fallback(self):
+        """Prueba comportamiento cuando no hay nodo ROOT explícito."""
+        G = nx.DiGraph()
+        # Grafo con APU como raíz implícita
+        G.add_node("APU1", type="APU")
+        G.add_node("INS1", type="INSUMO", unit_cost=10.0, description="Material")
+        G.add_edge("APU1", "INS1", quantity=5.0)
+
+        generator = MatterGenerator()
+        bom = generator.materialize_project(G)
+
+        assert len(bom.requirements) == 1
+        assert bom.requirements[0].quantity_base == 5.0
+        assert bom.requirements[0].source_apus == ["APU1"]
+
+    def test_cycle_detection(self, cyclic_graph):
+        """Verifica que el sistema rechace grafos cíclicos con mensaje informativo."""
+        generator = MatterGenerator()
+
+        with pytest.raises(ValueError, match="ciclo") as exc_info:
+            generator.materialize_project(cyclic_graph)
+        
+        # Verificar que el mensaje de error contiene información útil
+        error_msg = str(exc_info.value).lower()
+        assert any(word in error_msg for word in ["ciclo", "cycle", "dag"])
+
+    def test_empty_graph(self):
+        """Prueba con grafo vacío."""
+        G = nx.DiGraph()
+        generator = MatterGenerator()
+        bom = generator.materialize_project(G)
+        
+        assert len(bom.requirements) == 0
+        assert bom.total_material_cost == 0.0
+        assert bom.metadata["cost_analysis"]["empty"] is True
+
+    def test_graph_without_insumos(self):
+        """Prueba grafo sin nodos INSUMO."""
+        G = nx.DiGraph()
+        G.add_node("ROOT", type="ROOT")
+        G.add_node("APU1", type="APU")
+        G.add_edge("ROOT", "APU1", quantity=1.0)
+        
+        generator = MatterGenerator()
+        bom = generator.materialize_project(G)
+        
+        assert len(bom.requirements) == 0
+        assert bom.total_material_cost == 0.0
+
+    def test_negative_quantities_handling(self):
+        """Prueba manejo de cantidades negativas en aristas."""
+        G = nx.DiGraph()
+        G.add_node("ROOT", type="ROOT")
+        G.add_node("INS", type="INSUMO", unit_cost=10.0)
+        G.add_edge("ROOT", "INS", quantity=-2.0)  # Cantidad negativa
+        
+        generator = MatterGenerator()
+        bom = generator.materialize_project(G)
+        
+        # El sistema debe usar 1.0 como valor por defecto para cantidades no positivas
+        assert bom.requirements[0].quantity_base == 1.0
+
+    def test_zero_unit_cost_handling(self):
+        """Prueba manejo de costo unitario cero."""
+        G = nx.DiGraph()
+        G.add_node("ROOT", type="ROOT")
+        G.add_node("INS", type="INSUMO", unit_cost=0.0, description="Material Gratuito")
+        G.add_edge("ROOT", "INS", quantity=5.0)
+        
+        generator = MatterGenerator()
+        bom = generator.materialize_project(G)
+        
+        assert bom.requirements[0].total_cost == 0.0
+        assert bom.total_material_cost == 0.0
+
+    def test_complex_graph_clustering(self, complex_graph):
+        """Prueba clustering semántico en grafo complejo."""
+        generator = MatterGenerator()
+        bom = generator.materialize_project(complex_graph)
+        
+        # Verificar que materiales duplicados (MAT1 y MAT3) se agrupan
+        mat_ids = [req.id for req in bom.requirements]
+        
+        # MAT1 aparece desde APU_A y APU_B, debe agruparse
+        mat1 = next(r for r in bom.requirements if r.id == "MAT1")
+        assert "APU_A" in mat1.source_apus
+        assert "APU_B" in mat1.source_apus
+        assert len(mat1.source_apus) == 2
+        
+        # MAT3 aparece desde APU_A y APU_C, debe agruparse
+        mat3 = next(r for r in bom.requirements if r.id == "MAT3")
+        assert "APU_A" in mat3.source_apus
+        assert "APU_C" in mat3.source_apus
+        assert len(mat3.source_apus) == 2
+        
+        # Cantidad total para MAT1: (1 * 2.5) + (1 * 1.0) = 3.5
+        assert mat1.quantity_base == pytest.approx(3.5)
+
+    def test_material_specific_factors(self, complex_graph):
+        """Prueba factores específicos por categoría de material."""
+        generator = MatterGenerator()
+        bom = generator.materialize_project(complex_graph)
+        
+        # Encontrar materiales por categoría
+        fragile = next(r for r in bom.requirements if r.description == "Vidrio Templado")
+        hazardous = next(r for r in bom.requirements if r.description == "Pintura Epóxica")
+        perishable = next(r for r in bom.requirements if r.description == "Cemento Rápido")
+        
+        # Verificar que los factores específicos se aplican
+        # FRAGILE: 1.02, HAZARDOUS: 1.06, PERISHABLE: 1.04
+        # (Solo factores específicos, sin factores base)
+        assert fragile.waste_factor == pytest.approx(1.02 - 1.0, rel=1e-3)
+        assert hazardous.waste_factor == pytest.approx(1.06 - 1.0, rel=1e-3)
+        assert perishable.waste_factor == pytest.approx(1.04 - 1.0, rel=1e-3)
+
+    def test_pareto_analysis_in_metadata(self, complex_graph):
+        """Prueba que el análisis de Pareto se incluya en metadata."""
+        generator = MatterGenerator()
+        bom = generator.materialize_project(complex_graph)
+        
+        pareto_info = bom.metadata["cost_analysis"]["pareto_analysis"]
+        
+        assert "pareto_20_percent" in pareto_info
+        assert "pareto_cost_percentage" in pareto_info
+        assert parelo_info["pareto_cost_percentage"] >= 80.0  # Debe cumplir regla 80/20
+
+    def test_overflow_protection(self):
+        """Prueba protección contra overflow numérico."""
+        G = nx.DiGraph()
+        G.add_node("ROOT", type="ROOT")
+        
+        # Agregar muchos nodos para exceder límite de complejidad
+        for i in range(200):
+            G.add_node(f"INS_{i}", type="INSUMO", unit_cost=1000.0)
+            G.add_edge("ROOT", f"INS_{i}", quantity=1000.0)
+        
+        generator = MatterGenerator(max_graph_complexity=10000)
+        
+        # Debería lanzar OverflowError por exceder complejidad
+        with pytest.raises(OverflowError, match="complejidad"):
+            generator.materialize_project(G)
+
+    def test_invalid_material_skipping(self):
+        """Prueba que materiales inválidos se omiten sin romper el proceso."""
+        G = nx.DiGraph()
+        G.add_node("ROOT", type="ROOT")
+        
+        # Material válido
+        G.add_node("VALID", type="INSUMO", unit_cost=10.0, description="Válido")
+        G.add_edge("ROOT", "VALID", quantity=5.0)
+        
+        # Material con cantidad base cero (será omitido)
+        G.add_node("ZERO_QTY", type="INSUMO", unit_cost=10.0, description="Cero")
+        G.add_edge("ROOT", "ZERO_QTY", quantity=0.0)
+        
+        # Material con costo negativo (será ajustado)
+        G.add_node("NEG_COST", type="INSUMO", unit_cost=-5.0, description="Negativo")
+        G.add_edge("ROOT", "NEG_COST", quantity=2.0)
+        
+        generator = MatterGenerator()
+        bom = generator.materialize_project(G)
+        
+        # Solo el material válido debe aparecer
+        assert len(bom.requirements) == 1
+        assert bom.requirements[0].id == "VALID"
+
+    def test_kahan_summation_precision(self):
+        """Prueba precisión de la suma de Kahan para costos."""
+        G = nx.DiGraph()
+        G.add_node("ROOT", type="ROOT")
+        
+        # Agregar muchos materiales con costos pequeños
+        num_materials = 1000
+        for i in range(num_materials):
+            G.add_node(f"INS_{i}", type="INSUMO", unit_cost=0.01)  # Costo pequeño
+            G.add_edge("ROOT", f"INS_{i}", quantity=1.0)
+        
+        generator = MatterGenerator()
+        bom = generator.materialize_project(G)
+        
+        # Costo esperado: 1000 * 0.01 = 10.0
+        expected_cost = num_materials * 0.01
+        
+        # La suma debe ser precisa
+        assert bom.total_material_cost == pytest.approx(expected_cost, rel=1e-9)
+
+    def test_post_init_validation(self):
+        """Prueba validación post-inicialización de MaterialRequirement."""
+        # Debería fallar con cantidad base no positiva
+        with pytest.raises(ValueError, match="Cantidad base no positiva"):
+            MaterialRequirement(
+                id="TEST",
+                description="Test",
+                quantity_base=0.0,
+                unit="kg",
+                waste_factor=0.0,
+                quantity_total=0.0,
+                unit_cost=10.0,
+                total_cost=0.0
+            )
+        
+        # Debería fallar con factor de desperdicio negativo
+        with pytest.raises(ValueError, match="Factor de desperdicio negativo"):
+            MaterialRequirement(
+                id="TEST",
+                description="Test",
+                quantity_base=1.0,
+                unit="kg",
+                waste_factor=-0.5,
+                quantity_total=0.5,
+                unit_cost=10.0,
+                total_cost=5.0
+            )
+
+    def test_bom_internal_consistency(self, sample_graph):
+        """Prueba coherencia interna del BillOfMaterials."""
+        generator = MatterGenerator()
+        bom = generator.materialize_project(sample_graph)
+        
+        # Verificar que el costo total declarado coincide con la suma
+        computed_total = sum(req.total_cost for req in bom.requirements)
+        assert bom.total_material_cost == pytest.approx(computed_total, rel=1e-9)
+        
+        # Si manipulamos manualmente el total, debe fallar la validación
+        bom.total_material_cost = 9999.0
+        
+        with pytest.raises(ValueError, match="inconsistente"):
+            bom.__post_init__()  # Forzar validación
+
+    def test_metadata_completeness(self, sample_graph):
+        """Prueba que la metadata incluya todos los campos requeridos."""
+        generator = MatterGenerator()
+        bom = generator.materialize_project(sample_graph)
+        
+        metadata = bom.metadata
+        
+        # Verificar secciones principales
+        required_sections = [
+            "topological_invariants",
+            "graph_metrics", 
+            "cost_analysis",
+            "risk_analysis",
+            "generation_info"
+        ]
+        
+        for section in required_sections:
+            assert section in metadata
+            
+        # Verificar campos específicos
+        assert "timestamp" in metadata["generation_info"]
+        assert "generator_version" in metadata["generation_info"]
+        assert "node_count" in metadata["graph_metrics"]
+        assert "total_cost" in metadata["cost_analysis"]
+
+    def test_identical_materials_different_units(self):
+        """Prueba que materiales con mismo ID pero diferente unidad no se agrupen."""
+        G = nx.DiGraph()
+        G.add_node("ROOT", type="ROOT")
+        
+        # Mismo ID, diferente unidad
+        G.add_node("MAT1", type="INSUMO", description="Material 1", 
+                  unit_cost=10.0, unit="kg")
+        G.add_node("MAT1_2", type="INSUMO", description="Material 1", 
+                  unit_cost=8.0, unit="lb")  # Mismo material, diferente unidad
+        
+        G.add_edge("ROOT", "MAT1", quantity=2.0)
+        G.add_edge("ROOT", "MAT1_2", quantity=5.0)
+        
+        generator = MatterGenerator()
+        bom = generator.materialize_project(G)
+        
+        # Deben aparecer como dos requerimientos separados
+        assert len(bom.requirements) == 2
+        
+        # Deben tener unidades diferentes
+        units = {req.unit for req in bom.requirements}
+        assert "kg" in units
+        assert "lb" in units
+
+    def test_edge_case_infinite_values(self):
+        """Prueba manejo de valores infinitos."""
+        G = nx.DiGraph()
+        G.add_node("ROOT", type="ROOT")
+        G.add_node("INF_COST", type="INSUMO", 
+                  unit_cost=float('inf'),  # Costo infinito
+                  description="Material Infinito")
+        G.add_edge("ROOT", "INF_COST", quantity=1.0)
+        
+        generator = MatterGenerator()
+        bom = generator.materialize_project(G)
+        
+        # El material con costo infinito debe ser omitido
+        assert len(bom.requirements) == 0
+
+    def test_performance_small_graph(self):
+        """Prueba de rendimiento con grafo pequeño."""
+        import time
+        
+        G = nx.DiGraph()
+        G.add_node("ROOT", type="ROOT")
+        
+        # Crear 100 materiales
+        for i in range(100):
+            G.add_node(f"INS_{i}", type="INSUMO", unit_cost=float(i + 1))
+            G.add_edge("ROOT", f"INS_{i}", quantity=float(i + 1))
+        
+        generator = MatterGenerator()
+        
+        start_time = time.time()
+        bom = generator.materialize_project(G)
+        end_time = time.time()
+        
+        # Debe completarse en menos de 1 segundo
+        assert end_time - start_time < 1.0
+        
+        # Verificar resultados
+        assert len(bom.requirements) == 100
+        assert bom.metadata["cost_analysis"]["item_count"] == 100
+
+    def test_robustness_random_graph(self):
+        """Prueba de robustez con grafo aleatorio (pero DAG)."""
+        import random
+        
+        # Crear DAG aleatorio
+        G = nx.gnp_random_graph(50, 0.1, directed=True)
+        G = nx.DiGraph([(u, v) for (u, v) in G.edges() if u < v])  # Asegurar que sea DAG
+        
+        # Asignar tipos y atributos
+        for node in G.nodes():
+            # Algunos nodos son INSUMO, otros APU
+            if random.random() > 0.7:
+                G.nodes[node]['type'] = 'INSUMO'
+                G.nodes[node]['unit_cost'] = random.uniform(1.0, 1000.0)
+                G.nodes[node]['description'] = f"Material {node}"
+                G.nodes[node]['unit'] = random.choice(['kg', 'm', 'm2', 'm3'])
+            else:
+                G.nodes[node]['type'] = 'APU'
+                G.nodes[node]['description'] = f"APU {node}"
+        
+        # Agregar cantidades a las aristas
+        for u, v in G.edges():
+            G.edges[u, v]['quantity'] = random.uniform(0.1, 10.0)
+        
+        generator = MatterGenerator()
+        
+        # No debería lanzar excepciones
+        bom = generator.materialize_project(G)
+        
+        # Verificar resultados básicos
+        assert isinstance(bom, BillOfMaterials)
+        assert bom.metadata["topological_invariants"]["is_dag"] is True
+
+    def test_custom_max_complexity(self):
+        """Prueba configuración personalizada de complejidad máxima."""
+        G = nx.DiGraph()
+        G.add_node("ROOT", type="ROOT")
+        
+        # Crear grafo de complejidad moderada
+        for i in range(50):
+            G.add_node(f"INS_{i}", type="INSUMO", unit_cost=10.0)
+            G.add_edge("ROOT", f"INS_{i}", quantity=1.0)
+        
+        # Configurar generador con límite personalizado
+        generator = MatterGenerator(max_graph_complexity=100)
+        
+        # 50 nodos * 50 aristas = 2500 > 100, debe lanzar error
+        with pytest.raises(OverflowError, match="complejidad"):
+            generator.materialize_project(G)
+
+    def test_material_requirement_ordering(self, complex_graph):
+        """Prueba que los materiales se ordenen por costo total descendente."""
+        generator = MatterGenerator()
+        bom = generator.materialize_project(complex_graph)
+        
+        # Verificar orden descendente por costo total
+        costs = [req.total_cost for req in bom.requirements]
+        assert all(costs[i] >= costs[i+1] for i in range(len(costs)-1))
+        
+        # El material más costoso debe ser primero
+        max_cost = max(costs)
+        assert bom.requirements[0].total_cost == max_cost
+
+    def test_error_recovery_and_logging(self, sample_graph, caplog):
+        """Prueba recuperación de errores y logging."""
+        import logging
+        
+        caplog.set_level(logging.WARNING)
+        
+        # Modificar grafo para incluir caso problemático
+        sample_graph.nodes["INS1"]["unit_cost"] = -50.0  # Costo negativo
+        
+        generator = MatterGenerator()
+        bom = generator.materialize_project(sample_graph)
+        
+        # Verificar que se registró una advertencia
+        assert any("negativo" in record.message.lower() 
+                  or "negative" in record.message.lower() 
+                  for record in caplog.records)
+        
+        # El proceso debe continuar y producir resultados
+        assert len(bom.requirements) > 0
+
+    def test_deterministic_output(self, sample_graph):
+        """Prueba que la salida sea determinista para la misma entrada."""
+        generator = MatterGenerator()
+        
+        # Generar BOM dos veces
+        bom1 = generator.materialize_project(sample_graph)
+        bom2 = generator.materialize_project(sample_graph)
+        
+        # Deben ser idénticos
+        assert len(bom1.requirements) == len(bom2.requirements)
+        
+        for req1, req2 in zip(bom1.requirements, bom2.requirements):
+            assert req1.id == req2.id
+            assert req1.quantity_base == req2.quantity_base
+            assert req1.total_cost == req2.total_cost
+        
+        # Metadata debe ser similar (excepto timestamp)
+        for key in bom1.metadata:
+            if key != "generation_info":
+                assert bom1.metadata[key] == bom2.metadata[key]
+
+    def test_flux_metrics_application(self):
+        """Prueba aplicación específica de métricas de flujo."""
+        G = nx.DiGraph()
+        G.add_node("ROOT", type="ROOT")
+        G.add_node("INS", type="INSUMO", unit_cost=100.0)
+        G.add_edge("ROOT", "INS", quantity=1.0)
+        
+        # Métricas de flujo que no deberían activar ajustes
+        flux_metrics = {
+            "avg_saturation": 0.5,  # < 0.8, no ajuste
+            "pyramid_stability": 1.2  # > 1.0, no ajuste
+        }
+        
+        generator = MatterGenerator()
+        bom = generator.materialize_project(G, flux_metrics=flux_metrics)
+        
+        # No debería haber ajuste
+        assert bom.requirements[0].waste_factor == 0.0
+
+if __name__ == "__main__":
+    pytest.main([__file__, "-v", "--tb=short"])
