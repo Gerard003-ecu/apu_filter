@@ -1,0 +1,1692 @@
+# --- ScriptConfig (corregido: un solo __post_init__) ---
+@dataclass
+class ScriptConfig:
+    """Configuración del script, combinando JSON y argumentos de línea de comandos."""
+
+    model_name: str
+    input_file: Path
+    output_dir: Path
+    text_column: str
+    id_column: str
+    max_batch_size: int
+    memory_limit_gb: float
+    backup_enabled: bool = True
+    normalize_embeddings: bool = True
+    show_progress: bool = True
+    min_text_length: int = field(default=3, repr=False)
+    max_text_length: int = field(default=5000, repr=False)
+    validation_sample_size: int = field(default=100, repr=False)
+
+    def __post_init__(self):
+        """Validaciones posteriores a la inicialización."""
+        self._validate_string_fields()
+        self._validate_numeric_fields()
+        self._validate_boolean_fields()
+        self._validate_paths()
+        self._validate_text_length_range()
+
+    def _validate_string_fields(self) -> None:
+        """Valida campos de tipo string."""
+        string_fields = [
+            ("model_name", self.model_name),
+            ("text_column", self.text_column),
+            ("id_column", self.id_column),
+        ]
+        for field_name, value in string_fields:
+            if not isinstance(value, str) or not value.strip():
+                raise ValueError(f"{field_name} debe ser una cadena no vacía")
+
+    def _validate_numeric_fields(self) -> None:
+        """Valida campos numéricos."""
+        if not isinstance(self.max_batch_size, int) or self.max_batch_size <= 0:
+            raise ValueError("max_batch_size debe ser un entero positivo")
+
+        if not isinstance(self.memory_limit_gb, (int, float)) or self.memory_limit_gb <= 0:
+            raise ValueError("memory_limit_gb debe ser un número positivo")
+
+        if not isinstance(self.min_text_length, int) or self.min_text_length < 0:
+            raise ValueError("min_text_length debe ser un entero no negativo")
+
+        if not isinstance(self.max_text_length, int) or self.max_text_length <= 0:
+            raise ValueError("max_text_length debe ser un entero positivo")
+
+        if not isinstance(self.validation_sample_size, int) or self.validation_sample_size <= 0:
+            raise ValueError("validation_sample_size debe ser un entero positivo")
+
+    def _validate_boolean_fields(self) -> None:
+        """Valida campos booleanos."""
+        boolean_fields = [
+            ("backup_enabled", self.backup_enabled),
+            ("normalize_embeddings", self.normalize_embeddings),
+            ("show_progress", self.show_progress),
+        ]
+        for field_name, value in boolean_fields:
+            if not isinstance(value, bool):
+                raise TypeError(f"{field_name} debe ser booleano")
+
+    def _validate_paths(self) -> None:
+        """Valida y normaliza rutas."""
+        if not isinstance(self.input_file, Path):
+            raise TypeError("input_file debe ser una instancia de pathlib.Path")
+
+        if not isinstance(self.output_dir, Path):
+            raise TypeError("output_dir debe ser una instancia de pathlib.Path")
+
+        supported_formats = [".csv", ".json"]
+        if self.input_file.suffix.lower() not in supported_formats:
+            raise ValueError(
+                f"Formato de archivo no soportado: {self.input_file.suffix}. "
+                f"Formatos válidos: {supported_formats}"
+            )
+
+        self.input_file = self.input_file.resolve()
+        self.output_dir = self.output_dir.resolve()
+
+    def _validate_text_length_range(self) -> None:
+        """Valida coherencia entre longitudes mínima y máxima de texto."""
+        if self.min_text_length >= self.max_text_length:
+            raise ValueError(
+                f"min_text_length ({self.min_text_length}) debe ser menor que "
+                f"max_text_length ({self.max_text_length})"
+            )
+
+
+### data validator
+
+# --- DataValidator.validate_dataframe (corregido cálculo de duplicados) ---
+class DataValidator:
+    """Validador de datos de entrada"""
+
+    @staticmethod
+    def validate_dataframe(
+        df: pd.DataFrame, text_column: str, id_column: str, config: ScriptConfig
+    ) -> pd.DataFrame:
+        """
+        Valida y limpia el DataFrame de entrada.
+
+        Args:
+            df: DataFrame a validar
+            text_column: Nombre de la columna de texto
+            id_column: Nombre de la columna de ID
+            config: Configuración del script
+
+        Returns:
+            DataFrame validado y limpio
+
+        Raises:
+            DataValidationError: Si hay problemas con los datos
+            TypeError: Si df no es un DataFrame
+        """
+        DataValidator._validate_inputs(df, text_column, id_column, config)
+
+        logger = logging.getLogger(__name__)
+        initial_rows = len(df)
+
+        if initial_rows == 0:
+            raise DataValidationError("El DataFrame está vacío")
+
+        # Verificar columnas requeridas
+        DataValidator._check_required_columns(df, text_column, id_column)
+
+        # Pipeline de limpieza con tracking de métricas
+        df_clean, removed_nulls = DataValidator._remove_null_rows(
+            df, text_column, id_column, logger
+        )
+
+        rows_after_nulls = len(df_clean)
+        df_clean, removed_duplicates = DataValidator._remove_duplicate_rows(
+            df_clean, id_column, logger
+        )
+
+        rows_after_duplicates = len(df_clean)
+        df_clean[text_column] = df_clean[text_column].astype(str)
+
+        df_filtered, removed_by_length = DataValidator._filter_by_text_length(
+            df_clean, text_column, config, logger
+        )
+
+        # Validar que quedan datos
+        if df_filtered.empty:
+            raise DataValidationError(
+                f"No quedan datos válidos después de aplicar los filtros. "
+                f"Original: {initial_rows}, nulos: {removed_nulls}, "
+                f"duplicados: {removed_duplicates}, longitud: {removed_by_length}"
+            )
+
+        valid_ratio = len(df_filtered) / initial_rows
+        logger.info(
+            f"Validación completada: {len(df_filtered)}/{initial_rows} filas válidas "
+            f"({valid_ratio * 100:.2f}%)"
+        )
+        return df_filtered
+
+    @staticmethod
+    def _validate_inputs(
+        df: pd.DataFrame, text_column: str, id_column: str, config: ScriptConfig
+    ) -> None:
+        """Valida los parámetros de entrada."""
+        if not isinstance(df, pd.DataFrame):
+            raise TypeError("df debe ser un DataFrame de pandas")
+
+        if not isinstance(text_column, str) or not text_column.strip():
+            raise ValueError("text_column debe ser una cadena no vacía")
+
+        if not isinstance(id_column, str) or not id_column.strip():
+            raise ValueError("id_column debe ser una cadena no vacía")
+
+        if not isinstance(config, ScriptConfig):
+            raise TypeError("config debe ser una instancia de ScriptConfig")
+
+    @staticmethod
+    def _check_required_columns(
+        df: pd.DataFrame, text_column: str, id_column: str
+    ) -> None:
+        """Verifica que las columnas requeridas existan."""
+        missing_columns = [
+            col for col in [text_column, id_column] if col not in df.columns
+        ]
+        if missing_columns:
+            raise DataValidationError(
+                f"Columnas faltantes en el DataFrame: {missing_columns}"
+            )
+
+    @staticmethod
+    def _remove_null_rows(
+        df: pd.DataFrame, text_column: str, id_column: str, logger: logging.Logger
+    ) -> tuple[pd.DataFrame, int]:
+        """Elimina filas con valores nulos en columnas críticas."""
+        initial_count = len(df)
+        df_clean = df.dropna(subset=[text_column, id_column]).copy()
+        removed_count = initial_count - len(df_clean)
+
+        if removed_count > 0:
+            logger.warning(
+                f"Se eliminaron {removed_count} filas con valores nulos en "
+                f"'{text_column}' o '{id_column}'"
+            )
+        return df_clean, removed_count
+
+    @staticmethod
+    def _remove_duplicate_rows(
+        df: pd.DataFrame, id_column: str, logger: logging.Logger
+    ) -> tuple[pd.DataFrame, int]:
+        """Elimina filas duplicadas basadas en la columna de ID."""
+        initial_count = len(df)
+        df_clean = df.drop_duplicates(subset=[id_column], keep="first").reset_index(
+            drop=True
+        )
+        removed_count = initial_count - len(df_clean)
+
+        if removed_count > 0:
+            logger.warning(
+                f"Se eliminaron {removed_count} filas duplicadas según '{id_column}'"
+            )
+        return df_clean, removed_count
+
+    @staticmethod
+    def _filter_by_text_length(
+        df: pd.DataFrame, text_column: str, config: ScriptConfig, logger: logging.Logger
+    ) -> tuple[pd.DataFrame, int]:
+        """Filtra filas por longitud de texto."""
+        initial_count = len(df)
+        text_lengths = df[text_column].str.len()
+
+        mask = text_lengths.between(config.min_text_length, config.max_text_length)
+        df_filtered = df[mask].reset_index(drop=True)
+        removed_count = initial_count - len(df_filtered)
+
+        if removed_count > 0:
+            logger.warning(
+                f"Se eliminaron {removed_count} filas fuera del rango de longitud "
+                f"[{config.min_text_length}, {config.max_text_length}]"
+            )
+        return df_filtered, removed_count
+
+
+### FileManager
+
+# --- FileManager.load_data (simplificado manejo de codificaciones) ---
+class FileManager:
+    """Gestor de archivos con backup y validación"""
+
+    SUPPORTED_ENCODINGS = ["utf-8", "latin-1", "cp1252"]
+
+    @staticmethod
+    def create_backup(file_path: Path) -> Optional[Path]:
+        """Crea un backup del archivo si existe."""
+        if not isinstance(file_path, Path):
+            raise TypeError("file_path debe ser una instancia de pathlib.Path")
+
+        logger = logging.getLogger(__name__)
+
+        if not file_path.exists():
+            logger.debug(f"No se puede crear backup, archivo no existe: {file_path}")
+            return None
+
+        try:
+            timestamp = time.strftime("%Y%m%d_%H%M%S")
+            backup_path = file_path.with_name(
+                f"{file_path.stem}_backup_{timestamp}{file_path.suffix}"
+            )
+            shutil.copy2(file_path, backup_path)
+            logger.info(f"Backup creado: {backup_path}")
+            return backup_path
+        except (OSError, IOError) as e:
+            logger.error(f"Error al crear backup de {file_path}: {e}")
+            raise
+
+    @staticmethod
+    def load_data(file_path: Path) -> pd.DataFrame:
+        """
+        Carga datos desde archivo JSON o CSV con detección automática de codificación.
+
+        Args:
+            file_path: Ruta del archivo a cargar
+
+        Returns:
+            DataFrame con los datos cargados
+        """
+        if not isinstance(file_path, Path):
+            raise TypeError("file_path debe ser una instancia de pathlib.Path")
+
+        if not file_path.exists():
+            raise FileNotFoundError(f"El archivo no existe: {file_path}")
+
+        if not file_path.is_file():
+            raise FileNotFoundError(f"La ruta no es un archivo: {file_path}")
+
+        logger = logging.getLogger(__name__)
+        suffix = file_path.suffix.lower()
+
+        if suffix == ".json":
+            df = FileManager._load_json(file_path, logger)
+        elif suffix == ".csv":
+            df = FileManager._load_csv(file_path, logger)
+        else:
+            raise ValueError(f"Formato de archivo no soportado: {suffix}")
+
+        if df.empty:
+            raise DataValidationError(f"El archivo {file_path} está vacío")
+
+        logger.info(
+            f"Datos cargados: {len(df)} filas, {len(df.columns)} columnas desde {file_path.name}"
+        )
+        return df
+
+    @staticmethod
+    def _load_json(file_path: Path, logger: logging.Logger) -> pd.DataFrame:
+        """Carga un archivo JSON."""
+        try:
+            return pd.read_json(file_path, encoding="utf-8")
+        except (ValueError, UnicodeDecodeError) as e:
+            raise DataValidationError(f"Error al leer JSON {file_path}: {e}")
+        except pd.errors.EmptyDataError:
+            raise DataValidationError(f"El archivo JSON {file_path} está vacío o corrupto")
+
+    @staticmethod
+    def _load_csv(file_path: Path, logger: logging.Logger) -> pd.DataFrame:
+        """Carga un archivo CSV con detección automática de codificación."""
+        last_error = None
+
+        for encoding in FileManager.SUPPORTED_ENCODINGS:
+            try:
+                df = pd.read_csv(file_path, encoding=encoding)
+                if encoding != "utf-8":
+                    logger.warning(f"Archivo {file_path.name} leído con codificación {encoding}")
+                return df
+            except UnicodeDecodeError as e:
+                last_error = e
+                continue
+            except pd.errors.EmptyDataError:
+                raise DataValidationError(f"El archivo CSV {file_path} está vacío o corrupto")
+
+        raise DataValidationError(
+            f"No se pudo leer {file_path} con codificaciones: "
+            f"{FileManager.SUPPORTED_ENCODINGS}. Último error: {last_error}"
+        )
+
+
+### embeddingsgenerator
+
+# --- EmbeddingGenerator (modularizado validate_index) ---
+@dataclass
+class ValidationStats:
+    """Estadísticas de validación del índice FAISS."""
+    exact_matches: int = 0
+    semantic_duplicates: int = 0
+    failures: int = 0
+    total: int = 0
+
+    @property
+    def success_rate(self) -> float:
+        """Calcula la tasa de éxito."""
+        if self.total == 0:
+            return 0.0
+        return (self.exact_matches + self.semantic_duplicates) / self.total
+
+    @property
+    def is_valid(self) -> bool:
+        """Determina si la validación es exitosa (0 fallos reales)."""
+        return self.failures == 0
+
+
+class EmbeddingGenerator:
+    """Generador de embeddings con manejo robusto"""
+
+    SIMILARITY_THRESHOLD = 0.999  # Umbral para considerar vectores idénticos
+    TOP_K_SEARCH = 5  # Número de vecinos a buscar en validación
+
+    def __init__(self, config: ScriptConfig):
+        if not isinstance(config, ScriptConfig):
+            raise TypeError("config debe ser una instancia de ScriptConfig")
+
+        self.config = config
+        self.logger = logging.getLogger(self.__class__.__name__)
+        self.model: Optional[SentenceTransformer] = None
+
+    def load_model(self) -> None:
+        """Carga el modelo de sentence-transformers."""
+        try:
+            self.logger.info(f"Cargando modelo: {self.config.model_name}")
+            self.model = SentenceTransformer(self.config.model_name, device="cpu")
+            embedding_dim = self.model.get_sentence_embedding_dimension()
+
+            if embedding_dim is None or embedding_dim <= 0:
+                raise ModelLoadError(
+                    f"El modelo {self.config.model_name} no devolvió una dimensión válida"
+                )
+            self.logger.info(f"Modelo cargado. Dimensión: {embedding_dim}")
+        except ModelLoadError:
+            raise
+        except Exception as e:
+            raise ModelLoadError(f"Error al cargar modelo '{self.config.model_name}': {e}")
+
+    def generate_embeddings(self, texts: List[str]) -> np.ndarray:
+        """Genera embeddings en batches con validación mejorada."""
+        self._validate_texts_input(texts)
+
+        if not self.model:
+            raise RuntimeError("El modelo no ha sido cargado. Llame a load_model() primero")
+
+        # Filtrar y reportar textos vacíos
+        valid_texts, empty_count = self._filter_empty_texts(texts)
+        if empty_count > 0:
+            self.logger.warning(f"Se encontraron {empty_count} textos vacíos o con solo espacios")
+
+        if not valid_texts:
+            raise ValueError("No hay textos válidos para generar embeddings")
+
+        self.logger.info(f"Generando embeddings para {len(valid_texts)} textos...")
+
+        try:
+            embeddings = self.model.encode(
+                valid_texts,
+                batch_size=self.config.max_batch_size,
+                show_progress_bar=self.config.show_progress,
+                convert_to_numpy=True,
+                normalize_embeddings=self.config.normalize_embeddings,
+                convert_to_tensor=False,
+            )
+
+            embeddings = np.asarray(embeddings, dtype=np.float32)
+
+            if embeddings.size == 0:
+                raise RuntimeError("Los embeddings generados están vacíos")
+
+            self.logger.info(f"Embeddings generados: shape={embeddings.shape}")
+            return embeddings
+
+        except RuntimeError:
+            raise
+        except Exception as e:
+            raise RuntimeError(f"Error al generar embeddings: {e}")
+
+    def _validate_texts_input(self, texts: List[str]) -> None:
+        """Valida el parámetro de entrada de textos."""
+        if not isinstance(texts, list):
+            raise TypeError("texts debe ser una lista de cadenas")
+
+        if not texts:
+            raise ValueError("La lista de textos no puede estar vacía")
+
+        if not all(isinstance(t, str) for t in texts):
+            raise TypeError("Todos los elementos de texts deben ser cadenas")
+
+    def _filter_empty_texts(self, texts: List[str]) -> tuple[List[str], int]:
+        """Filtra textos vacíos y retorna los válidos con conteo de eliminados."""
+        valid_texts = [t for t in texts if t.strip()]
+        empty_count = len(texts) - len(valid_texts)
+        return valid_texts, empty_count
+
+    def build_faiss_index(self, embeddings: np.ndarray) -> faiss.Index:
+        """Construye un índice FAISS."""
+        self._validate_embeddings_array(embeddings)
+
+        self.logger.info("Construyendo índice FAISS...")
+
+        embedding_dim = embeddings.shape[1]
+        index = faiss.IndexFlatIP(embedding_dim)
+
+        embeddings_float32 = np.ascontiguousarray(embeddings.astype(np.float32))
+        index.add(embeddings_float32)
+
+        if index.ntotal != len(embeddings):
+            raise RuntimeError(
+                f"Error al añadir embeddings: esperados {len(embeddings)}, "
+                f"añadidos {index.ntotal}"
+            )
+
+        self.logger.info(
+            f"Índice construido. Vectores: {index.ntotal}, Dimensión: {embedding_dim}"
+        )
+        return index
+
+    def _validate_embeddings_array(self, embeddings: np.ndarray) -> None:
+        """Valida el array de embeddings."""
+        if not isinstance(embeddings, np.ndarray):
+            raise TypeError("embeddings debe ser un array numpy")
+
+        if embeddings.ndim != 2:
+            raise ValueError(f"embeddings debe ser 2D, actual: {embeddings.ndim}D")
+
+        if embeddings.shape[0] == 0:
+            raise ValueError("embeddings no puede estar vacío")
+
+    def validate_index(self, index: faiss.Index, embeddings: np.ndarray) -> bool:
+        """
+        Valida el índice FAISS con tolerancia a duplicados.
+
+        Args:
+            index: Índice FAISS a validar.
+            embeddings: Embeddings originales.
+
+        Returns:
+            bool: True si la validación es exitosa.
+        """
+        self._validate_index_inputs(index, embeddings)
+
+        self.logger.info("=" * 80)
+        self.logger.info("Iniciando validación del índice FAISS...")
+
+        n_samples = min(self.config.validation_sample_size, len(embeddings))
+        if n_samples == 0:
+            self.logger.warning("No hay suficientes embeddings para validación")
+            return True
+
+        sample_indices = self._get_validation_sample_indices(len(embeddings), n_samples)
+        embeddings_float32 = np.ascontiguousarray(embeddings.astype(np.float32))
+
+        stats = self._run_validation_loop(index, embeddings_float32, sample_indices)
+        self._log_validation_results(stats)
+
+        return stats.is_valid
+
+    def _validate_index_inputs(self, index: faiss.Index, embeddings: np.ndarray) -> None:
+        """Valida las entradas del método validate_index."""
+        if not isinstance(index, faiss.Index):
+            raise TypeError("index debe ser una instancia de faiss.Index")
+
+        self._validate_embeddings_array(embeddings)
+
+        if index.d != embeddings.shape[1]:
+            raise ValueError(
+                f"Dimensión del índice ({index.d}) no coincide con "
+                f"embeddings ({embeddings.shape[1]})"
+            )
+
+        if index.ntotal != len(embeddings):
+            raise ValueError(
+                f"Vectores en índice ({index.ntotal}) no coinciden con "
+                f"embeddings ({len(embeddings)})"
+            )
+
+    def _get_validation_sample_indices(self, total: int, n_samples: int) -> np.ndarray:
+        """Obtiene índices de muestra para validación con semilla fija."""
+        rng = np.random.default_rng(42)
+        return rng.choice(total, n_samples, replace=False)
+
+    def _run_validation_loop(
+        self,
+        index: faiss.Index,
+        embeddings: np.ndarray,
+        sample_indices: np.ndarray
+    ) -> ValidationStats:
+        """Ejecuta el loop principal de validación."""
+        stats = ValidationStats(total=len(sample_indices))
+        k = min(self.TOP_K_SEARCH, index.ntotal)
+
+        for idx in sample_indices:
+            query = embeddings[idx : idx + 1]
+
+            try:
+                similarities, indices = index.search(query, k=k)
+            except Exception as e:
+                self.logger.error(f"Error en búsqueda para índice {idx}: {e}")
+                stats.failures += 1
+                continue
+
+            classification = self._classify_search_result(
+                idx, indices[0], similarities[0]
+            )
+            self._update_stats(stats, classification, idx, indices[0], similarities[0])
+
+        return stats
+
+    def _classify_search_result(
+        self,
+        expected_idx: int,
+        result_indices: np.ndarray,
+        result_similarities: np.ndarray
+    ) -> str:
+        """Clasifica el resultado de búsqueda."""
+        top_idx = result_indices[0]
+        top_similarity = result_similarities[0]
+
+        # Coincidencia exacta
+        if top_idx == expected_idx:
+            return "exact_match"
+
+        # Índice correcto en top-k con alta similitud
+        if expected_idx in result_indices:
+            position = np.where(result_indices == expected_idx)[0][0]
+            if result_similarities[position] > self.SIMILARITY_THRESHOLD:
+                return "semantic_duplicate"
+
+        # Similitud casi perfecta (duplicado semántico)
+        if top_similarity > self.SIMILARITY_THRESHOLD:
+            return "semantic_duplicate"
+
+        # Fallo real
+        return "failure"
+
+    def _update_stats(
+        self,
+        stats: ValidationStats,
+        classification: str,
+        expected_idx: int,
+        result_indices: np.ndarray,
+        result_similarities: np.ndarray
+    ) -> None:
+        """Actualiza estadísticas según clasificación."""
+        if classification == "exact_match":
+            stats.exact_matches += 1
+        elif classification == "semantic_duplicate":
+            stats.semantic_duplicates += 1
+            self.logger.debug(
+                f"⚠️ Duplicado detectado: esperado={expected_idx}, "
+                f"top={result_indices[0]}, similitud={result_similarities[0]:.6f}"
+            )
+        else:
+            stats.failures += 1
+            self.logger.error(
+                f"❌ Fallo de validación: esperado={expected_idx}, "
+                f"top={result_indices[0]}, similitud={result_similarities[0]:.6f}, "
+                f"top-5={result_indices.tolist()}"
+            )
+
+    def _log_validation_results(self, stats: ValidationStats) -> None:
+        """Registra los resultados de validación."""
+        self.logger.info("=" * 80)
+        self.logger.info("📊 Resultados de Validación:")
+        self.logger.info(f"   Total muestras: {stats.total}")
+
+        if stats.total > 0:
+            exact_pct = stats.exact_matches / stats.total * 100
+            dup_pct = stats.semantic_duplicates / stats.total * 100
+            fail_pct = stats.failures / stats.total * 100
+
+            self.logger.info(f"   ✅ Coincidencias exactas: {stats.exact_matches} ({exact_pct:.1f}%)")
+            self.logger.info(f"   ⚠️  Duplicados semánticos: {stats.semantic_duplicates} ({dup_pct:.1f}%)")
+            self.logger.info(f"   ❌ Fallos reales: {stats.failures} ({fail_pct:.1f}%)")
+
+        if stats.is_valid:
+            if stats.semantic_duplicates > 0:
+                self.logger.warning(
+                    f"⚠️ Se detectaron {stats.semantic_duplicates} duplicados. "
+                    "Considera limpiar datos duplicados."
+                )
+            self.logger.info(f"✅ Validación EXITOSA (tasa: {stats.success_rate * 100:.2f}%)")
+        else:
+            self.logger.error(f"❌ Validación FALLIDA: {stats.failures} errores detectados")
+
+        self.logger.info("=" * 80)
+
+
+### EmbeddingPipeline
+
+# --- EmbeddingPipeline (optimizado, sin recarga innecesaria) ---
+class EmbeddingPipeline:
+    """Pipeline principal para la generación de embeddings"""
+
+    MEMORY_OVERHEAD_FACTOR = 6.0  # Factor para operaciones temporales
+
+    def __init__(self, config: ScriptConfig):
+        if not isinstance(config, ScriptConfig):
+            raise TypeError("config debe ser una instancia de ScriptConfig")
+
+        self.config = config
+        self.logger = logging.getLogger(self.__class__.__name__)
+        self.generator = EmbeddingGenerator(config)
+
+    def estimate_memory_usage(self, n_samples: int, embedding_dim: int) -> float:
+        """
+        Estima el uso de memoria en GB.
+
+        El factor de overhead (6.0x) contempla:
+        - Embeddings originales (1x)
+        - Copia float32 para FAISS (1x)
+        - Índice FAISS (1x)
+        - Buffers temporales del modelo (2x)
+        - Overhead de Python/NumPy (1x)
+        """
+        if not isinstance(n_samples, int) or n_samples < 0:
+            raise ValueError("n_samples debe ser un entero no negativo")
+
+        if not isinstance(embedding_dim, int) or embedding_dim <= 0:
+            raise ValueError("embedding_dim debe ser un entero positivo")
+
+        bytes_per_embedding = embedding_dim * 4  # float32 = 4 bytes
+        total_bytes = n_samples * bytes_per_embedding * self.MEMORY_OVERHEAD_FACTOR
+        return total_bytes / (1024**3)
+
+    def run(self) -> Dict[str, Union[str, int, float]]:
+        """
+        Ejecuta el pipeline completo.
+
+        Returns:
+            Diccionario con métricas del proceso
+        """
+        start_time = time.time()
+        self._log_header("INICIANDO GENERACIÓN DE EMBEDDINGS")
+
+        # Cargar datos (guardando conteo inicial antes de validación)
+        df_raw = FileManager.load_data(self.config.input_file)
+        initial_rows = len(df_raw)
+
+        # Validar datos
+        df = DataValidator.validate_dataframe(
+            df_raw, self.config.text_column, self.config.id_column, self.config
+        )
+        del df_raw  # Liberar memoria
+
+        # Cargar modelo y obtener dimensión
+        self.generator.load_model()
+        embedding_dim = self.generator.model.get_sentence_embedding_dimension()
+
+        # Verificar memoria disponible
+        estimated_memory = self.estimate_memory_usage(len(df), embedding_dim)
+        MemoryMonitor.check_memory_availability(
+            estimated_memory, self.config.memory_limit_gb
+        )
+
+        # Generar embeddings
+        texts = df[self.config.text_column].tolist()
+        embeddings = self.generator.generate_embeddings(texts)
+
+        # Construir y validar índice
+        index = self.generator.build_faiss_index(embeddings)
+
+        if not self.generator.validate_index(index, embeddings):
+            raise EmbeddingGenerationError("La validación del índice FAISS falló")
+
+        # Crear mapeo de IDs
+        id_map = self._create_id_map(df)
+
+        # Guardar artefactos
+        self.save_artifacts(index, id_map)
+
+        # Métricas finales
+        metrics = {
+            "processing_time_seconds": round(time.time() - start_time, 2),
+            "initial_rows": initial_rows,
+            "valid_rows": len(df),
+            "validation_rate_pct": round(len(df) / initial_rows * 100, 2),
+            "embeddings_generated": len(embeddings),
+            "embedding_dim": embedding_dim,
+            "index_vectors": index.ntotal,
+            "id_map_size": len(id_map),
+            "estimated_memory_gb": round(estimated_memory, 3),
+        }
+
+        self._log_header("✅ PROCESO COMPLETADO EXITOSAMENTE")
+        return metrics
+
+    def _create_id_map(self, df: pd.DataFrame) -> Dict[str, str]:
+        """Crea el mapeo de índices a IDs."""
+        return {
+            str(i): str(apu_id)
+            for i, apu_id in enumerate(df[self.config.id_column])
+            if pd.notna(apu_id) and str(apu_id).strip()
+        }
+
+    def _log_header(self, message: str) -> None:
+        """Registra un mensaje con formato de encabezado."""
+        self.logger.info("=" * 80)
+        self.logger.info(message)
+        self.logger.info("=" * 80)
+
+    def save_artifacts(self, index: faiss.Index, id_map: Dict[str, str]) -> None:
+        """
+        Guarda los artefactos con manejo transaccional básico.
+
+        Usa archivos temporales para garantizar atomicidad.
+        """
+        self._validate_artifacts(index, id_map)
+
+        self.config.output_dir.mkdir(parents=True, exist_ok=True)
+
+        # Definir rutas
+        paths = {
+            "index": self.config.output_dir / "faiss.index",
+            "id_map": self.config.output_dir / "id_map.json",
+            "metadata": self.config.output_dir / "metadata.json",
+        }
+
+        temp_paths = {
+            key: path.with_suffix(f"{path.suffix}.tmp")
+            for key, path in paths.items()
+        }
+
+        try:
+            # Crear backups si está habilitado
+            if self.config.backup_enabled:
+                for path in paths.values():
+                    FileManager.create_backup(path)
+
+            # Escribir a archivos temporales primero
+            self._write_temp_files(index, id_map, temp_paths)
+
+            # Mover archivos temporales a destinos finales (operación atómica en la mayoría de sistemas)
+            for key in paths:
+                if temp_paths[key].exists():
+                    temp_paths[key].replace(paths[key])
+                    self.logger.info(f"Guardado: {paths[key]}")
+
+        except Exception as e:
+            # Limpiar archivos temporales en caso de error
+            for temp_path in temp_paths.values():
+                if temp_path.exists():
+                    temp_path.unlink()
+            raise RuntimeError(f"Error al guardar artefactos: {e}")
+
+    def _validate_artifacts(self, index: faiss.Index, id_map: Dict[str, str]) -> None:
+        """Valida los artefactos antes de guardar."""
+        if not isinstance(index, faiss.Index):
+            raise TypeError("index debe ser una instancia de faiss.Index")
+
+        if not isinstance(id_map, dict):
+            raise TypeError("id_map debe ser un diccionario")
+
+        if not all(isinstance(k, str) and isinstance(v, str) for k, v in id_map.items()):
+            raise TypeError("id_map debe contener solo cadenas como claves y valores")
+
+    def _write_temp_files(
+        self,
+        index: faiss.Index,
+        id_map: Dict[str, str],
+        temp_paths: Dict[str, Path]
+    ) -> None:
+        """Escribe archivos temporales."""
+        # Guardar índice FAISS
+        faiss.write_index(index, str(temp_paths["index"]))
+
+        # Guardar mapeo de IDs
+        with open(temp_paths["id_map"], "w", encoding="utf-8") as f:
+            json.dump(id_map, f, indent=2, ensure_ascii=False)
+
+        # Guardar metadatos
+        metadata = {
+            "model_name": self.config.model_name,
+            "creation_date": time.strftime("%Y-%m-%d %H:%M:%S"),
+            "vector_count": index.ntotal,
+            "embedding_dimension": index.d,
+            "text_column": self.config.text_column,
+            "id_column": self.config.id_column,
+            "max_batch_size": self.config.max_batch_size,
+            "normalize_embeddings": self.config.normalize_embeddings,
+            "input_file": str(self.config.input_file),
+        }
+
+        with open(temp_paths["metadata"], "w", encoding="utf-8") as f:
+            json.dump(metadata, f, indent=2, ensure_ascii=False)
+
+
+### Propuesta métodos test_generate_embeddings
+
+
+import json
+import sys
+from pathlib import Path
+from unittest.mock import MagicMock, patch, call
+
+import faiss
+import numpy as np
+import pandas as pd
+import pytest
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+from scripts.generate_embeddings import (
+    DataValidationError,
+    DataValidator,
+    EmbeddingGenerator,
+    EmbeddingPipeline,
+    FileManager,
+    MemoryMonitor,
+    InsufficientMemoryError,
+    ModelLoadError,
+    ScriptConfig,
+    ValidationStats,
+)
+
+
+# --- Fixtures ---
+
+
+@pytest.fixture
+def mock_config(tmp_path):
+    """Fixture para crear una configuración de prueba."""
+    return ScriptConfig(
+        model_name="mock-model",
+        input_file=tmp_path / "input.json",
+        output_dir=tmp_path / "output",
+        text_column="description",
+        id_column="id",
+        max_batch_size=32,
+        memory_limit_gb=1.0,
+        normalize_embeddings=True,
+        min_text_length=3,
+        max_text_length=5000,
+    )
+
+
+@pytest.fixture
+def sample_dataframe():
+    """Fixture para un DataFrame de ejemplo."""
+    return pd.DataFrame(
+        {
+            "id": [f"ID{i}" for i in range(10)],
+            "description": [f"This is test description number {i}." for i in range(10)],
+        }
+    )
+
+
+@pytest.fixture
+def sample_dataframe_with_issues():
+    """Fixture para un DataFrame con datos problemáticos."""
+    return pd.DataFrame(
+        {
+            "id": ["ID0", "ID1", "ID1", "ID3", None, "ID5", "ID6", "ID7", "ID8", "ID9"],
+            "description": [
+                "Valid description one",
+                "Valid description two",
+                "Duplicate ID entry",
+                None,  # Null en descripción
+                "Null ID entry",
+                "ab",  # Muy corto (< min_text_length=3)
+                "Valid description six",
+                "Valid description seven",
+                "Valid description eight",
+                "Valid description nine",
+            ],
+        }
+    )
+
+
+@pytest.fixture
+def mock_embedding_generator(mock_config):
+    """Fixture para un EmbeddingGenerator con modelo mockeado."""
+    with patch("scripts.generate_embeddings.SentenceTransformer") as MockSentenceTransformer:
+        mock_model = MagicMock()
+        mock_model.encode.return_value = np.random.rand(10, 384).astype(np.float32)
+        mock_model.get_sentence_embedding_dimension.return_value = 384
+        MockSentenceTransformer.return_value = mock_model
+
+        generator = EmbeddingGenerator(mock_config)
+        generator.load_model()
+        return generator
+
+
+# --- Pruebas de ScriptConfig ---
+
+
+class TestScriptConfig:
+    """Pruebas para la configuración del script."""
+
+    def test_config_creation_success(self, tmp_path):
+        """La configuración debe crearse correctamente con valores válidos."""
+        config = ScriptConfig(
+            model_name="test-model",
+            input_file=tmp_path / "test.json",
+            output_dir=tmp_path / "output",
+            text_column="text",
+            id_column="id",
+            max_batch_size=64,
+            memory_limit_gb=2.0,
+        )
+        assert config.model_name == "test-model"
+        assert config.max_batch_size == 64
+        assert config.min_text_length == 3  # Valor por defecto
+        assert config.max_text_length == 5000  # Valor por defecto
+
+    def test_config_invalid_model_name_raises_error(self, tmp_path):
+        """Debe lanzar error con model_name vacío."""
+        with pytest.raises(ValueError, match="model_name debe ser una cadena no vacía"):
+            ScriptConfig(
+                model_name="",
+                input_file=tmp_path / "test.json",
+                output_dir=tmp_path / "output",
+                text_column="text",
+                id_column="id",
+                max_batch_size=64,
+                memory_limit_gb=2.0,
+            )
+
+    def test_config_invalid_batch_size_raises_error(self, tmp_path):
+        """Debe lanzar error con batch_size no positivo."""
+        with pytest.raises(ValueError, match="max_batch_size debe ser un entero positivo"):
+            ScriptConfig(
+                model_name="model",
+                input_file=tmp_path / "test.json",
+                output_dir=tmp_path / "output",
+                text_column="text",
+                id_column="id",
+                max_batch_size=0,
+                memory_limit_gb=2.0,
+            )
+
+    def test_config_invalid_text_length_range_raises_error(self, tmp_path):
+        """Debe lanzar error si min_text_length >= max_text_length."""
+        with pytest.raises(ValueError, match="min_text_length.*debe ser menor que"):
+            ScriptConfig(
+                model_name="model",
+                input_file=tmp_path / "test.json",
+                output_dir=tmp_path / "output",
+                text_column="text",
+                id_column="id",
+                max_batch_size=64,
+                memory_limit_gb=2.0,
+                min_text_length=100,
+                max_text_length=50,
+            )
+
+    def test_config_unsupported_file_format_raises_error(self, tmp_path):
+        """Debe lanzar error con formato de archivo no soportado."""
+        with pytest.raises(ValueError, match="Formato de archivo no soportado"):
+            ScriptConfig(
+                model_name="model",
+                input_file=tmp_path / "test.txt",
+                output_dir=tmp_path / "output",
+                text_column="text",
+                id_column="id",
+                max_batch_size=64,
+                memory_limit_gb=2.0,
+            )
+
+    def test_config_paths_are_resolved(self, tmp_path):
+        """Las rutas deben resolverse a rutas absolutas."""
+        config = ScriptConfig(
+            model_name="model",
+            input_file=tmp_path / "test.json",
+            output_dir=tmp_path / "output",
+            text_column="text",
+            id_column="id",
+            max_batch_size=64,
+            memory_limit_gb=2.0,
+        )
+        assert config.input_file.is_absolute()
+        assert config.output_dir.is_absolute()
+
+
+# --- Pruebas de ValidationStats ---
+
+
+class TestValidationStats:
+    """Pruebas para la clase ValidationStats."""
+
+    def test_success_rate_calculation(self):
+        """Debe calcular correctamente la tasa de éxito."""
+        stats = ValidationStats(exact_matches=80, semantic_duplicates=15, failures=5, total=100)
+        assert stats.success_rate == 0.95
+
+    def test_success_rate_zero_total(self):
+        """Debe retornar 0 si total es 0."""
+        stats = ValidationStats(exact_matches=0, semantic_duplicates=0, failures=0, total=0)
+        assert stats.success_rate == 0.0
+
+    def test_is_valid_no_failures(self):
+        """Debe ser válido si no hay fallos."""
+        stats = ValidationStats(exact_matches=90, semantic_duplicates=10, failures=0, total=100)
+        assert stats.is_valid is True
+
+    def test_is_valid_with_failures(self):
+        """No debe ser válido si hay fallos."""
+        stats = ValidationStats(exact_matches=90, semantic_duplicates=5, failures=5, total=100)
+        assert stats.is_valid is False
+
+
+# --- Pruebas de DataValidator ---
+
+
+class TestDataValidator:
+    """Pruebas para el validador de datos."""
+
+    def test_validate_dataframe_success(self, sample_dataframe, mock_config):
+        """La validación debe pasar con datos correctos."""
+        validated_df = DataValidator.validate_dataframe(
+            sample_dataframe, "description", "id", mock_config
+        )
+        assert len(validated_df) == 10
+        assert "description" in validated_df.columns
+        assert "id" in validated_df.columns
+
+    def test_validate_dataframe_missing_column_raises_error(
+        self, sample_dataframe, mock_config
+    ):
+        """Debe lanzar error si falta una columna requerida."""
+        df = sample_dataframe.drop(columns=["description"])
+        with pytest.raises(DataValidationError, match="Columnas faltantes"):
+            DataValidator.validate_dataframe(df, "description", "id", mock_config)
+
+    def test_validate_dataframe_removes_nulls(self, sample_dataframe, mock_config):
+        """Debe eliminar filas con valores nulos en columnas clave."""
+        sample_dataframe.loc[0, "description"] = None
+        validated_df = DataValidator.validate_dataframe(
+            sample_dataframe, "description", "id", mock_config
+        )
+        assert len(validated_df) == 9
+
+    def test_validate_dataframe_removes_duplicates(self, mock_config):
+        """Debe eliminar filas duplicadas por ID, conservando la primera."""
+        df = pd.DataFrame(
+            {
+                "id": ["ID1", "ID1", "ID2"],
+                "description": ["First", "Duplicate", "Third"],
+            }
+        )
+        validated_df = DataValidator.validate_dataframe(df, "description", "id", mock_config)
+        assert len(validated_df) == 2
+        assert validated_df[validated_df["id"] == "ID1"]["description"].values[0] == "First"
+
+    def test_validate_dataframe_filters_by_text_length(self, mock_config):
+        """Debe filtrar textos fuera del rango de longitud."""
+        df = pd.DataFrame(
+            {
+                "id": ["ID1", "ID2", "ID3"],
+                "description": ["ab", "Valid text here", "x" * 6000],  # muy corto, válido, muy largo
+            }
+        )
+        # Ajustar config para prueba
+        mock_config.min_text_length = 3
+        mock_config.max_text_length = 5000
+
+        validated_df = DataValidator.validate_dataframe(df, "description", "id", mock_config)
+        assert len(validated_df) == 1
+        assert validated_df["id"].values[0] == "ID2"
+
+    def test_validate_dataframe_empty_raises_error(self, mock_config):
+        """Debe lanzar error si el DataFrame está vacío."""
+        df = pd.DataFrame(columns=["id", "description"])
+        with pytest.raises(DataValidationError, match="DataFrame está vacío"):
+            DataValidator.validate_dataframe(df, "description", "id", mock_config)
+
+    def test_validate_dataframe_all_filtered_raises_error(self, mock_config):
+        """Debe lanzar error si todos los datos son filtrados."""
+        df = pd.DataFrame(
+            {
+                "id": [None, None],
+                "description": ["test", "test2"],
+            }
+        )
+        with pytest.raises(DataValidationError, match="No quedan datos válidos"):
+            DataValidator.validate_dataframe(df, "description", "id", mock_config)
+
+    def test_validate_dataframe_invalid_df_type_raises_error(self, mock_config):
+        """Debe lanzar error si df no es un DataFrame."""
+        with pytest.raises(TypeError, match="df debe ser un DataFrame"):
+            DataValidator.validate_dataframe([], "description", "id", mock_config)
+
+    def test_validate_dataframe_combined_cleaning(self, sample_dataframe_with_issues, mock_config):
+        """Debe manejar correctamente múltiples tipos de datos problemáticos."""
+        # DataFrame tiene: 1 duplicado, 2 nulos, 1 texto muy corto
+        validated_df = DataValidator.validate_dataframe(
+            sample_dataframe_with_issues, "description", "id", mock_config
+        )
+        # Esperado: 10 - 2 nulos - 1 duplicado - 1 corto = 6
+        assert len(validated_df) == 6
+
+
+# --- Pruebas de FileManager ---
+
+
+class TestFileManager:
+    """Pruebas para el gestor de archivos."""
+
+    def test_load_data_json_success(self, tmp_path, sample_dataframe):
+        """Debe cargar correctamente un archivo JSON."""
+        file_path = tmp_path / "test.json"
+        sample_dataframe.to_json(file_path, orient="records")
+
+        df = FileManager.load_data(file_path)
+        assert len(df) == len(sample_dataframe)
+        assert list(df.columns) == list(sample_dataframe.columns)
+
+    def test_load_data_csv_success(self, tmp_path, sample_dataframe):
+        """Debe cargar correctamente un archivo CSV."""
+        file_path = tmp_path / "test.csv"
+        sample_dataframe.to_csv(file_path, index=False)
+
+        df = FileManager.load_data(file_path)
+        assert len(df) == len(sample_dataframe)
+
+    def test_load_data_file_not_found_raises_error(self, tmp_path):
+        """Debe lanzar error si el archivo no existe."""
+        with pytest.raises(FileNotFoundError, match="archivo no existe"):
+            FileManager.load_data(tmp_path / "nonexistent.json")
+
+    def test_load_data_unsupported_format_raises_error(self, tmp_path):
+        """Debe lanzar error con formato no soportado."""
+        file_path = tmp_path / "test.xml"
+        file_path.touch()
+        with pytest.raises(ValueError, match="Formato de archivo no soportado"):
+            FileManager.load_data(file_path)
+
+    def test_load_data_empty_file_raises_error(self, tmp_path):
+        """Debe lanzar error si el archivo está vacío."""
+        file_path = tmp_path / "empty.json"
+        file_path.write_text("[]")
+        with pytest.raises(DataValidationError, match="está vacío"):
+            FileManager.load_data(file_path)
+
+    def test_create_backup_success(self, tmp_path):
+        """Debe crear un backup correctamente."""
+        original_file = tmp_path / "original.json"
+        original_file.write_text('{"test": "data"}')
+
+        backup_path = FileManager.create_backup(original_file)
+
+        assert backup_path is not None
+        assert backup_path.exists()
+        assert "_backup_" in backup_path.name
+        assert backup_path.read_text() == '{"test": "data"}'
+
+    def test_create_backup_nonexistent_file_returns_none(self, tmp_path):
+        """Debe retornar None si el archivo no existe."""
+        result = FileManager.create_backup(tmp_path / "nonexistent.json")
+        assert result is None
+
+    def test_create_backup_invalid_path_type_raises_error(self):
+        """Debe lanzar error si file_path no es Path."""
+        with pytest.raises(TypeError, match="debe ser una instancia de pathlib.Path"):
+            FileManager.create_backup("/some/string/path")
+
+
+# --- Pruebas de MemoryMonitor ---
+
+
+class TestMemoryMonitor:
+    """Pruebas para el monitor de memoria."""
+
+    def test_check_memory_exceeds_limit_raises_error(self):
+        """Debe lanzar error si el uso estimado excede el límite."""
+        with pytest.raises(InsufficientMemoryError, match="límite configurado"):
+            MemoryMonitor.check_memory_availability(10.0, 5.0)
+
+    def test_check_memory_exceeds_available_raises_error(self):
+        """Debe lanzar error si excede el 80% de memoria disponible."""
+        with patch("scripts.generate_embeddings.psutil.virtual_memory") as mock_mem:
+            mock_mem.return_value.available = 2 * (1024**3)  # 2 GB
+            with pytest.raises(InsufficientMemoryError, match="umbral de seguridad"):
+                MemoryMonitor.check_memory_availability(2.0, 10.0)
+
+    def test_check_memory_success(self):
+        """No debe lanzar error si hay suficiente memoria."""
+        with patch("scripts.generate_embeddings.psutil.virtual_memory") as mock_mem:
+            mock_mem.return_value.available = 16 * (1024**3)  # 16 GB
+            # No debe lanzar excepción
+            MemoryMonitor.check_memory_availability(1.0, 8.0)
+
+    def test_check_memory_invalid_params_raises_error(self):
+        """Debe lanzar error con parámetros inválidos."""
+        with pytest.raises(ValueError, match="estimated_size_gb"):
+            MemoryMonitor.check_memory_availability(-1.0, 5.0)
+
+        with pytest.raises(ValueError, match="limit_gb"):
+            MemoryMonitor.check_memory_availability(1.0, 0)
+
+
+# --- Pruebas de EmbeddingGenerator ---
+
+
+class TestEmbeddingGenerator:
+    """Pruebas para el generador de embeddings."""
+
+    def test_load_model_success(self, mock_config):
+        """Debe cargar un modelo mockeado sin errores."""
+        with patch("scripts.generate_embeddings.SentenceTransformer") as MockSentenceTransformer:
+            mock_model = MagicMock()
+            mock_model.get_sentence_embedding_dimension.return_value = 384
+            MockSentenceTransformer.return_value = mock_model
+
+            generator = EmbeddingGenerator(mock_config)
+            generator.load_model()
+
+            assert generator.model is not None
+            MockSentenceTransformer.assert_called_with(mock_config.model_name, device="cpu")
+
+    def test_load_model_failure_raises_error(self, mock_config):
+        """Debe lanzar ModelLoadError si falla la carga."""
+        with patch(
+            "scripts.generate_embeddings.SentenceTransformer",
+            side_effect=Exception("mock error"),
+        ):
+            generator = EmbeddingGenerator(mock_config)
+            with pytest.raises(ModelLoadError, match="Error al cargar modelo"):
+                generator.load_model()
+
+    def test_load_model_invalid_dimension_raises_error(self, mock_config):
+        """Debe lanzar error si la dimensión del modelo es inválida."""
+        with patch("scripts.generate_embeddings.SentenceTransformer") as MockSentenceTransformer:
+            mock_model = MagicMock()
+            mock_model.get_sentence_embedding_dimension.return_value = None
+            MockSentenceTransformer.return_value = mock_model
+
+            generator = EmbeddingGenerator(mock_config)
+            with pytest.raises(ModelLoadError, match="dimensión válida"):
+                generator.load_model()
+
+    def test_generate_embeddings_success(self, mock_embedding_generator):
+        """Debe generar embeddings con el formato correcto."""
+        texts = ["hello world"] * 10
+        embeddings = mock_embedding_generator.generate_embeddings(texts)
+
+        assert isinstance(embeddings, np.ndarray)
+        assert embeddings.shape == (10, 384)
+        assert embeddings.dtype == np.float32
+
+    def test_generate_embeddings_without_model_raises_error(self, mock_config):
+        """Debe lanzar error si el modelo no está cargado."""
+        generator = EmbeddingGenerator(mock_config)
+        with pytest.raises(RuntimeError, match="modelo no ha sido cargado"):
+            generator.generate_embeddings(["test"])
+
+    def test_generate_embeddings_empty_list_raises_error(self, mock_embedding_generator):
+        """Debe lanzar error con lista vacía."""
+        with pytest.raises(ValueError, match="lista de textos no puede estar vacía"):
+            mock_embedding_generator.generate_embeddings([])
+
+    def test_generate_embeddings_invalid_type_raises_error(self, mock_embedding_generator):
+        """Debe lanzar error si texts no es una lista."""
+        with pytest.raises(TypeError, match="texts debe ser una lista"):
+            mock_embedding_generator.generate_embeddings("not a list")
+
+    def test_generate_embeddings_non_string_elements_raises_error(self, mock_embedding_generator):
+        """Debe lanzar error si hay elementos no string."""
+        with pytest.raises(TypeError, match="elementos de texts deben ser cadenas"):
+            mock_embedding_generator.generate_embeddings(["valid", 123, "another"])
+
+    def test_build_faiss_index_success(self, mock_embedding_generator):
+        """Debe construir un índice FAISS correctamente."""
+        embeddings = np.random.rand(10, 384).astype(np.float32)
+
+        with patch("scripts.generate_embeddings.faiss") as mock_faiss:
+            mock_index = MagicMock()
+            mock_index.ntotal = 10
+            mock_faiss.IndexFlatIP.return_value = mock_index
+
+            index = mock_embedding_generator.build_faiss_index(embeddings)
+
+            mock_faiss.IndexFlatIP.assert_called_with(384)
+            mock_index.add.assert_called_once()
+            assert index.ntotal == 10
+
+    def test_build_faiss_index_invalid_array_raises_error(self, mock_embedding_generator):
+        """Debe lanzar error con array inválido."""
+        with pytest.raises(TypeError, match="debe ser un array numpy"):
+            mock_embedding_generator.build_faiss_index([[1, 2, 3]])
+
+        with pytest.raises(ValueError, match="debe ser 2D"):
+            mock_embedding_generator.build_faiss_index(np.array([1, 2, 3]))
+
+        with pytest.raises(ValueError, match="no puede estar vacío"):
+            mock_embedding_generator.build_faiss_index(np.array([]).reshape(0, 384))
+
+    def test_validate_index_success(self, mock_config):
+        """Debe validar correctamente un índice consistente."""
+        embeddings = np.random.rand(50, 128).astype(np.float32)
+
+        # Crear índice real para prueba
+        index = faiss.IndexFlatIP(128)
+        index.add(embeddings)
+
+        generator = EmbeddingGenerator(mock_config)
+        result = generator.validate_index(index, embeddings)
+
+        assert result is True
+
+    def test_validate_index_dimension_mismatch_raises_error(self, mock_config):
+        """Debe lanzar error si las dimensiones no coinciden."""
+        embeddings = np.random.rand(10, 128).astype(np.float32)
+        index = faiss.IndexFlatIP(256)  # Dimensión diferente
+
+        generator = EmbeddingGenerator(mock_config)
+        with pytest.raises(ValueError, match="Dimensión del índice.*no coincide"):
+            generator.validate_index(index, embeddings)
+
+    def test_validate_index_count_mismatch_raises_error(self, mock_config):
+        """Debe lanzar error si el número de vectores no coincide."""
+        embeddings = np.random.rand(10, 128).astype(np.float32)
+        index = faiss.IndexFlatIP(128)
+        index.add(np.random.rand(5, 128).astype(np.float32))  # Solo 5 vectores
+
+        generator = EmbeddingGenerator(mock_config)
+        with pytest.raises(ValueError, match="Vectores en índice.*no coinciden"):
+            generator.validate_index(index, embeddings)
+
+
+# --- Pruebas de EmbeddingPipeline ---
+
+
+class TestEmbeddingPipeline:
+    """Pruebas para el pipeline de embeddings."""
+
+    def test_estimate_memory_usage(self, mock_config):
+        """Debe estimar correctamente el uso de memoria."""
+        pipeline = EmbeddingPipeline(mock_config)
+
+        # 1000 samples * 384 dims * 4 bytes * 6 factor / 1024^3
+        expected_gb = (1000 * 384 * 4 * 6.0) / (1024**3)
+        result = pipeline.estimate_memory_usage(1000, 384)
+
+        assert abs(result - expected_gb) < 0.001
+
+    def test_estimate_memory_invalid_params_raises_error(self, mock_config):
+        """Debe lanzar error con parámetros inválidos."""
+        pipeline = EmbeddingPipeline(mock_config)
+
+        with pytest.raises(ValueError, match="n_samples"):
+            pipeline.estimate_memory_usage(-1, 384)
+
+        with pytest.raises(ValueError, match="embedding_dim"):
+            pipeline.estimate_memory_usage(100, 0)
+
+    def test_create_id_map(self, mock_config, sample_dataframe):
+        """Debe crear correctamente el mapeo de IDs."""
+        pipeline = EmbeddingPipeline(mock_config)
+        id_map = pipeline._create_id_map(sample_dataframe)
+
+        assert len(id_map) == 10
+        assert id_map["0"] == "ID0"
+        assert id_map["9"] == "ID9"
+        assert all(isinstance(k, str) and isinstance(v, str) for k, v in id_map.items())
+
+
+# --- Prueba de Integración del Pipeline ---
+
+
+@patch("scripts.generate_embeddings.faiss.write_index")
+@patch("scripts.generate_embeddings.faiss.IndexFlatIP")
+@patch("scripts.generate_embeddings.SentenceTransformer")
+def test_pipeline_run_integration(
+    MockSentenceTransformer,
+    MockIndexFlatIP,
+    mock_write_index,
+    mock_config,
+    sample_dataframe,
+    tmp_path,
+):
+    """
+    Prueba el flujo completo del pipeline `run()`, mockeando las dependencias externas.
+    """
+    # --- Configuración de Mocks ---
+    mock_model = MagicMock()
+    mock_embeddings = np.random.rand(len(sample_dataframe), 384).astype(np.float32)
+    mock_model.encode.return_value = mock_embeddings
+    mock_model.get_sentence_embedding_dimension.return_value = 384
+    MockSentenceTransformer.return_value = mock_model
+
+    # Mock para FAISS
+    mock_index = MagicMock(spec=faiss.Index)
+    mock_index.d = 384
+    mock_index.ntotal = len(sample_dataframe)
+
+    # Simular búsqueda para validación (coincidencia exacta)
+    def mock_search(query, k):
+        # Encontrar el índice del embedding que coincide
+        for i, emb in enumerate(mock_embeddings):
+            if np.allclose(query[0], emb):
+                return np.array([[1.0] + [0.0] * (k - 1)]), np.array([[i] + [-1] * (k - 1)])
+        return np.array([[0.0] * k]), np.array([[-1] * k])
+
+    mock_index.search.side_effect = mock_search
+    MockIndexFlatIP.return_value = mock_index
+
+    # Configurar write_index para crear el archivo temporal y luego renombrarlo
+    def mock_write_index_fn(index, path):
+        Path(path).touch()
+
+    mock_write_index.side_effect = mock_write_index_fn
+
+    with patch("scripts.generate_embeddings.psutil.virtual_memory") as mock_virtual_memory:
+        mock_virtual_memory.return_value.available = 8 * (1024**3)
+
+        # --- Preparación de Archivos de Entrada ---
+        input_file = mock_config.input_file
+        sample_dataframe.to_json(input_file, orient="records")
+
+        # --- Ejecución del Pipeline ---
+        pipeline = EmbeddingPipeline(mock_config)
+        metrics = pipeline.run()
+
+        # --- Verificaciones del Modelo ---
+        MockSentenceTransformer.assert_called_with(mock_config.model_name, device="cpu")
+
+        # --- Verificaciones del Índice ---
+        MockIndexFlatIP.assert_called_with(384)
+        mock_index.add.assert_called_once()
+
+        # Verificar que write_index fue llamado con archivo temporal
+        write_call_args = mock_write_index.call_args[0]
+        assert write_call_args[0] == mock_index
+        assert ".tmp" in write_call_args[1]
+
+        # --- Verificación de Archivos de Salida ---
+        output_dir = mock_config.output_dir
+        assert (output_dir / "faiss.index").exists()
+        assert (output_dir / "id_map.json").exists()
+        assert (output_dir / "metadata.json").exists()
+
+        # --- Verificar contenido de id_map.json ---
+        with open(output_dir / "id_map.json", "r", encoding="utf-8") as f:
+            id_map = json.load(f)
+            assert len(id_map) == len(sample_dataframe)
+            assert id_map["0"] == "ID0"
+            assert id_map[str(len(sample_dataframe) - 1)] == f"ID{len(sample_dataframe) - 1}"
+
+        # --- Verificar contenido de metadata.json ---
+        with open(output_dir / "metadata.json", "r", encoding="utf-8") as f:
+            metadata = json.load(f)
+            assert metadata["model_name"] == "mock-model"
+            assert metadata["vector_count"] == len(sample_dataframe)
+            assert metadata["embedding_dimension"] == 384
+            assert metadata["text_column"] == "description"
+            assert metadata["id_column"] == "id"
+            assert "creation_date" in metadata
+
+        # --- Verificar métricas de retorno (nombres actualizados) ---
+        assert metrics["embeddings_generated"] == len(sample_dataframe)
+        assert metrics["valid_rows"] == len(sample_dataframe)
+        assert metrics["initial_rows"] == len(sample_dataframe)
+        assert "processing_time_seconds" in metrics
+        assert "validation_rate_pct" in metrics
+        assert metrics["validation_rate_pct"] == 100.0
+        assert "estimated_memory_gb" in metrics
+        assert metrics["embedding_dim"] == 384
+        assert metrics["index_vectors"] == len(sample_dataframe)
+
+
+@patch("scripts.generate_embeddings.faiss.write_index")
+@patch("scripts.generate_embeddings.faiss.IndexFlatIP")
+@patch("scripts.generate_embeddings.SentenceTransformer")
+def test_pipeline_run_with_data_cleaning(
+    MockSentenceTransformer,
+    MockIndexFlatIP,
+    mock_write_index,
+    mock_config,
+    sample_dataframe_with_issues,
+    tmp_path,
+):
+    """
+    Prueba el pipeline con datos que requieren limpieza.
+    """
+    # Configurar mocks
+    mock_model = MagicMock()
+    # El DataFrame limpio tendrá 6 filas
+    expected_valid_rows = 6
+    mock_embeddings = np.random.rand(expected_valid_rows, 384).astype(np.float32)
+    mock_model.encode.return_value = mock_embeddings
+    mock_model.get_sentence_embedding_dimension.return_value = 384
+    MockSentenceTransformer.return_value = mock_model
+
+    mock_index = MagicMock(spec=faiss.Index)
+    mock_index.d = 384
+    mock_index.ntotal = expected_valid_rows
+
+    def mock_search(query, k):
+        for i, emb in enumerate(mock_embeddings):
+            if np.allclose(query[0], emb):
+                return np.array([[1.0] + [0.0] * (k - 1)]), np.array([[i] + [-1] * (k - 1)])
+        return np.array([[0.0] * k]), np.array([[-1] * k])
+
+    mock_index.search.side_effect = mock_search
+    MockIndexFlatIP.return_value = mock_index
+    mock_write_index.side_effect = lambda idx, path: Path(path).touch()
+
+    with patch("scripts.generate_embeddings.psutil.virtual_memory") as mock_mem:
+        mock_mem.return_value.available = 8 * (1024**3)
+
+        input_file = mock_config.input_file
+        sample_dataframe_with_issues.to_json(input_file, orient="records")
+
+        pipeline = EmbeddingPipeline(mock_config)
+        metrics = pipeline.run()
+
+        # Verificar que se procesaron las filas correctas
+        assert metrics["initial_rows"] == 10
+        assert metrics["valid_rows"] == expected_valid_rows
+        assert metrics["validation_rate_pct"] == 60.0
+        assert metrics["embeddings_generated"] == expected_valid_rows
+
+
+@patch("scripts.generate_embeddings.faiss.write_index")
+@patch("scripts.generate_embeddings.faiss.IndexFlatIP")
+@patch("scripts.generate_embeddings.SentenceTransformer")
+def test_pipeline_backup_creation(
+    MockSentenceTransformer,
+    MockIndexFlatIP,
+    mock_write_index,
+    mock_config,
+    sample_dataframe,
+):
+    """
+    Prueba que el pipeline crea backups cuando está habilitado.
+    """
+    # Configurar mocks
+    mock_model = MagicMock()
+    mock_embeddings = np.random.rand(len(sample_dataframe), 384).astype(np.float32)
+    mock_model.encode.return_value = mock_embeddings
+    mock_model.get_sentence_embedding_dimension.return_value = 384
+    MockSentenceTransformer.return_value = mock_model
+
+    mock_index = MagicMock(spec=faiss.Index)
+    mock_index.d = 384
+    mock_index.ntotal = len(sample_dataframe)
+
+    def mock_search(query, k):
+        for i, emb in enumerate(mock_embeddings):
+            if np.allclose(query[0], emb):
+                return np.array([[1.0] + [0.0] * (k - 1)]), np.array([[i] + [-1] * (k - 1)])
+        return np.array([[0.0] * k]), np.array([[-1] * k])
+
+    mock_index.search.side_effect = mock_search
+    MockIndexFlatIP.return_value = mock_index
+    mock_write_index.side_effect = lambda idx, path: Path(path).touch()
+
+    with patch("scripts.generate_embeddings.psutil.virtual_memory") as mock_mem:
+        mock_mem.return_value.available = 8 * (1024**3)
+
+        # Crear archivos existentes para que se generen backups
+        mock_config.output_dir.mkdir(parents=True, exist_ok=True)
+        existing_index = mock_config.output_dir / "faiss.index"
+        existing_id_map = mock_config.output_dir / "id_map.json"
+        existing_index.write_text("old index")
+        existing_id_map.write_text('{"old": "map"}')
+
+        input_file = mock_config.input_file
+        sample_dataframe.to_json(input_file, orient="records")
+
+        # Asegurar que backup está habilitado
+        mock_config.backup_enabled = True
+
+        pipeline = EmbeddingPipeline(mock_config)
+        pipeline.run()
+
+        # Verificar que se crearon backups
+        backup_files = list(mock_config.output_dir.glob("*_backup_*"))
+        assert len(backup_files) >= 2  # Al menos index y id_map
+
+
+@patch("scripts.generate_embeddings.faiss.write_index")
+@patch("scripts.generate_embeddings.faiss.IndexFlatIP")
+@patch("scripts.generate_embeddings.SentenceTransformer")
+def test_pipeline_no_backup_when_disabled(
+    MockSentenceTransformer,
+    MockIndexFlatIP,
+    mock_write_index,
+    mock_config,
+    sample_dataframe,
+):
+    """
+    Prueba que no se crean backups cuando está deshabilitado.
+    """
+    # Configurar mocks
+    mock_model = MagicMock()
+    mock_embeddings = np.random.rand(len(sample_dataframe), 384).astype(np.float32)
+    mock_model.encode.return_value = mock_embeddings
+    mock_model.get_sentence_embedding_dimension.return_value = 384
+    MockSentenceTransformer.return_value = mock_model
+
+    mock_index = MagicMock(spec=faiss.Index)
+    mock_index.d = 384
+    mock_index.ntotal = len(sample_dataframe)
+
+    def mock_search(query, k):
+        for i, emb in enumerate(mock_embeddings):
+            if np.allclose(query[0], emb):
+                return np.array([[1.0] + [0.0] * (k - 1)]), np.array([[i] + [-1] * (k - 1)])
+        return np.array([[0.0] * k]), np.array([[-1] * k])
+
+    mock_index.search.side_effect = mock_search
+    MockIndexFlatIP.return_value = mock_index
+    mock_write_index.side_effect = lambda idx, path: Path(path).touch()
+
+    with patch("scripts.generate_embeddings.psutil.virtual_memory") as mock_mem:
+        mock_mem.return_value.available = 8 * (1024**3)
+
+        # Crear archivos existentes
+        mock_config.output_dir.mkdir(parents=True, exist_ok=True)
+        existing_index = mock_config.output_dir / "faiss.index"
+        existing_index.write_text("old index")
+
+        input_file = mock_config.input_file
+        sample_dataframe.to_json(input_file, orient="records")
+
+        # Deshabilitar backups
+        mock_config.backup_enabled = False
+
+        pipeline = EmbeddingPipeline(mock_config)
+        pipeline.run()
+
+        # Verificar que NO se crearon backups
+        backup_files = list(mock_config.output_dir.glob("*_backup_*"))
+        assert len(backup_files) == 0
