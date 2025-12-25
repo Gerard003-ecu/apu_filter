@@ -73,4 +73,4 @@ Es uno de los roles más operativos, su trabajo no es aportar más sabiduría es
 
 
 Este es su equipo. Están listos para deliberar. Siguiente paso: Ahora que conoce al equipo, es hora de ver cómo piensan. Pase al Nivel 3: El Lenguaje Secreto
-Pase al **[Nivel 3: El Lenguaje Secreto (ARCHITECTURE_DEEP_DIVE.md)](ARCHITECTURE_DEEP_DIVE.md)** para entender cómo piensan.
+Pase al **[Nivel 3: El Lenguaje Secreto](LENGUAJE_CONSEJO.md)** para entender cómo piensan.
