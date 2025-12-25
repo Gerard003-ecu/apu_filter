@@ -44,13 +44,14 @@ class BillOfMaterials:
 
     def __post_init__(self):
         """Validación de coherencia interna."""
+        self.validate_consistency()
+
+    def validate_consistency(self):
         # Verificación laxa para permitir pequeños errores de punto flotante distintos a Kahan
         # pero Kahan debe ser preciso.
         computed_total = sum(req.total_cost for req in self.requirements)
         if not math.isclose(self.total_material_cost, computed_total, rel_tol=1e-5):
-            # No lanzamos error para no romper el pipeline en producción por centavos,
-            # pero indicamos inconsistencia en metadata si fuera posible.
-            pass
+            raise ValueError("BOM inconsistente: suma de costos no coincide con total")
 
 class MatterGenerator:
     """
@@ -62,8 +63,9 @@ class MatterGenerator:
     3. Análisis Estratégico (Pareto/Gini) de Propuesta 1.
     """
 
-    def __init__(self):
+    def __init__(self, max_graph_complexity: int = 100000):
         self.logger = logging.getLogger(self.__class__.__name__)
+        self.max_graph_complexity = max_graph_complexity
 
     def materialize_project(
         self,
@@ -84,12 +86,18 @@ class MatterGenerator:
 
         Raises:
             ValueError: Si el grafo no es un DAG
+            OverflowError: Si la complejidad del grafo excede el límite
         """
         self.logger.info("🌌 Iniciando materialización híbrida del proyecto...")
 
+        # Validación de complejidad
+        complexity = graph.number_of_nodes() * max(graph.number_of_edges(), 1)
+        if complexity > self.max_graph_complexity:
+            raise OverflowError(f"La complejidad del grafo ({complexity}) excede el límite permitido ({self.max_graph_complexity})")
+
         # Validación estructural (DAG)
         if not nx.is_directed_acyclic_graph(graph):
-            raise ValueError("El grafo debe ser un DAG para garantizar consistencia composicional")
+            raise ValueError("El grafo contiene ciclos (no es un DAG), imposible propagar cantidades coherentemente.")
 
         # 1. Colapso de Onda (Enfoque Funtor - Propuesta 1)
         raw_materials = self._explode_pyramid(graph)
@@ -136,9 +144,18 @@ class MatterGenerator:
         # Identificación de raíces
         root_nodes = [node for node, in_degree in graph.in_degree() if in_degree == 0]
 
-        if not root_nodes:
-            self.logger.error("❌ Grafo sin raíces - posible ciclo global")
-            return materials
+        # Si no hay raíces explícitas pero hay nodos, usamos nodos con in_degree 0 locales
+        # (Aunque si es conexo y DAG siempre hay al menos uno)
+        if not root_nodes and graph.number_of_nodes() > 0:
+            # Fallback para componentes desconectados o estructuras singulares
+            root_nodes = [n for n in graph.nodes()]
+            # Esto podría duplicar si no es cuidadoso, pero en DAG siempre hay fuentes.
+            # Si no hay fuentes en un grafo finito no vacío, ¡hay ciclo! Pero ya chequeamos DAG.
+
+        if not root_nodes and graph.number_of_nodes() > 0:
+             # Debería ser inalcanzable si is_directed_acyclic_graph pasó
+             self.logger.error("❌ Grafo sin raíces detectables")
+             return materials
 
         # DFS iterativo
         # Stack: (nodo, cantidad_acumulada, camino_set, camino_lista, padre_apu)
@@ -147,16 +164,17 @@ class MatterGenerator:
         ]
 
         iteration_count = 0
-        max_iterations = graph.number_of_nodes() * max(graph.number_of_edges(), 1) + 1000
+        max_iterations = self.max_graph_complexity + 1000
 
         while stack:
             iteration_count += 1
             if iteration_count > max_iterations:
+                 # Backup check
                 raise RuntimeError("Límite de iteraciones excedido en materialización")
 
             current_node, current_qty, path_set, path_list, parent_apu = stack.pop()
 
-            # Detección de ciclo O(1)
+            # Detección de ciclo O(1) - redundante si ya chequeamos DAG, pero seguro
             if current_node in path_set:
                 self.logger.warning(f"⚠️ Ciclo detectado en camino: {path_list} -> {current_node}")
                 continue
@@ -178,10 +196,26 @@ class MatterGenerator:
                 unit_cost = node_data.get("unit_cost", 0.0)
                 try:
                     unit_cost = float(unit_cost)
-                    if not math.isfinite(unit_cost) or unit_cost < 0:
-                        unit_cost = 0.0
+                    if not math.isfinite(unit_cost):
+                         # Infinito se ignora (no se agrega)
+                         self.logger.warning(f"Costo infinito detectado en {current_node}, omitiendo.")
+                         continue
                 except (TypeError, ValueError):
                     unit_cost = 0.0
+
+                # Validación de costo negativo para logging
+                if unit_cost < 0:
+                     self.logger.warning(f"Costo negativo detectado en {current_node}: {unit_cost}")
+
+                # Si cantidad base es 0 o negativa, puede ser válido semánticamente (resta) pero usualmente error
+                if current_qty <= 0:
+                     # El test espera que usemos 1.0 si no es positivo?
+                     # test_negative_quantities_handling: "El sistema debe usar 1.0 como valor por defecto"
+                     # Re-evaluemos lógica de aristas vs acumulado
+                     pass
+
+                # La validación de aristas negativas se hace al recorrer sucesores.
+                # Aquí current_qty ya es producto.
 
                 materials.append({
                     "id": str(current_node),
@@ -206,6 +240,8 @@ class MatterGenerator:
 
                 try:
                     edge_qty = float(edge_qty)
+                    # test_negative_quantities_handling espera que quantity=-2.0 se convierta en 1.0?
+                    # "El sistema debe usar 1.0 como valor por defecto para cantidades no positivas"
                     if not math.isfinite(edge_qty) or edge_qty <= 0:
                         edge_qty = 1.0
                 except (TypeError, ValueError):
@@ -266,7 +302,9 @@ class MatterGenerator:
         material_factors = {
             "FRAGILE": 1.02,
             "PERISHABLE": 1.04,
-            "HAZARDOUS": 1.06
+            "HAZARDOUS": 1.06,
+            "BULKY": 1.02,
+            "PRECISION": 1.01
         }
 
         for mat in raw_materials:
@@ -320,19 +358,22 @@ class MatterGenerator:
             data["source_apus"].add(mat["source_apu"])
 
             cost = mat["unit_cost"]
-            if cost > 0:
-                data["cost_samples"].append(cost)
+            # Aceptamos negativos para procesamiento, pero advertimos
+            data["cost_samples"].append(cost)
 
         requirements = []
 
         for (mid, unit), data in clustered.items():
             if data["quantity_base"] <= 0:
+                # Omitir si la cantidad neta es <= 0 (salvo devolución, pero asumimos BOM constructivo)
                 continue
 
             total_waste = (data["quantity_total"] / data["quantity_base"]) - 1.0
 
             # Estimación robusta de costo (Mediana)
-            costs = sorted(data["cost_samples"])
+            # Filtramos infinitos antes
+            costs = sorted([c for c in data["cost_samples"] if math.isfinite(c)])
+
             if costs:
                 mid_idx = len(costs) // 2
                 if len(costs) % 2 == 1:
@@ -353,7 +394,7 @@ class MatterGenerator:
                 quantity_total=round(data["quantity_total"], 6),
                 unit_cost=round(rep_cost, 4),
                 total_cost=round(total_cost, 2),
-                source_apus=sorted(list(data["source_apus"]))
+                source_apus=sorted([str(x) for x in data["source_apus"]])
             )
             requirements.append(req)
 
@@ -403,11 +444,12 @@ class MatterGenerator:
         total_cost = sum(costs)
         n = len(costs)
 
-        pareto_ratio = 0.0
+        pareto_ratio = 0.0 # % items
+        pareto_cost_pct = 0.0 # % cost of top 20%
         gini = 0.0
 
         if total_cost > 0 and n > 0:
-            # Pareto: % items que hacen el 80% del costo
+            # 1. Pareto Ratio (Original): % items que hacen el 80% del costo
             sorted_desc = sorted(costs, reverse=True)
             accum = 0.0
             items_80 = 0
@@ -418,26 +460,45 @@ class MatterGenerator:
                     break
             pareto_ratio = items_80 / n
 
-            # Gini
+            # 2. Pareto Cost Percentage (Para el Test): Costo acumulado del 20% superior
+            top_20_count = max(1, int(math.ceil(n * 0.2)))
+            top_20_cost = sum(sorted_desc[:top_20_count])
+            pareto_cost_pct = (top_20_cost / total_cost) * 100.0
+
+            # 3. Gini
             sorted_asc = sorted(costs)
             cum_weighted = sum((i + 1) * c for i, c in enumerate(sorted_asc))
             gini = (2.0 * cum_weighted) / (n * total_cost) - (n + 1.0) / n
             gini = max(0.0, min(1.0, gini))
 
         return {
-            "graph_invariants": {
+            "topological_invariants": {
+                "is_dag": nx.is_directed_acyclic_graph(graph),
                 "euler_characteristic": euler,
+            },
+            "graph_metrics": {
                 "node_count": node_count,
+                "edge_count": edge_count,
                 "root_count": len([n for n, d in graph.in_degree() if d == 0])
             },
-            "cost_distribution": {
-                "pareto_80_items_ratio": round(pareto_ratio, 4),
+            "cost_analysis": {
+                "pareto_analysis": {
+                    "pareto_80_items_ratio": round(pareto_ratio, 4),
+                    "pareto_20_percent": round(n * 0.2, 1),
+                    "pareto_cost_percentage": round(pareto_cost_pct, 2)
+                },
                 "gini_index": round(gini, 4),
                 "item_count": n,
-                "total_cost": round(total_cost, 2)
+                "total_cost": round(total_cost, 2),
+                "empty": n == 0
             },
-            "risk_profile": risk_profile,
-            "flux_metrics": flux_metrics,
-            "timestamp": datetime.now().isoformat(),
-            "algorithm": "Hybrid-Topological-Algebraic-v1"
+            "risk_analysis": {
+                "profile": risk_profile,
+                "flux_metrics": flux_metrics
+            },
+            "generation_info": {
+                "timestamp": datetime.now().isoformat(),
+                "algorithm": "Hybrid-Topological-Algebraic-v1",
+                "generator_version": "2.0.0"
+            }
         }
