@@ -93,6 +93,19 @@ Esta no es una metáfora decorativa. Utilizamos lógica de sistemas dinámicos p
 *   **Anti-Windup:** Evita que el controlador PID se quede "pegado" tratando de corregir errores acumulados pasados, manteniendo la respuesta ágil ante cambios presentes.
 *   **Recuperación Parcial:** Si un lote de datos está corrupto, el sistema lo aísla y continúa con el resto del archivo, en lugar de fallar todo el proceso.
 
+---
+
+## 6. Métricas de Concentración Logística (El Alquimista)
+
+Para garantizar la viabilidad logística, el sistema aplica métricas económicas clásicas al flujo de materiales.
+
+### Métricas de Concentración Logística
+
+*   **Índice de Gini ($G$):** Mide la desigualdad en la distribución del presupuesto.
+    *   $G \approx 1$: Pocos materiales consumen todo el presupuesto (Alto Riesgo de Abastecimiento).
+    *   $G \approx 0$: Costo distribuido uniformemente.
+*   **Ratio de Pareto:** Porcentaje de ítems que constituyen el 80% del costo total. Permite enfocar la gestión de compras en los insumos críticos.
+
 #### ⚙️ Nivel 1: Motor de Física RLC (El Sensor)
 El sistema evoluciona más allá de métricas simples hacia un **Modelo Energético Escalar**. En lugar de monitorear solo voltaje o corriente, unificamos las unidades bajo un lenguaje común: La Energía (Julios).
 
