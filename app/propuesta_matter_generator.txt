@@ -519,3 +519,905 @@ def _compute_pareto_distribution(
 
 ### Propuesta 2
 
+import networkx as nx
+import logging
+import math
+from collections import defaultdict
+from typing import Dict, List, Any, Optional, Set, Tuple
+from dataclasses import dataclass, field
+from datetime import datetime
+
+@dataclass
+class MaterialRequirement:
+    """
+    Representa un requerimiento de material consolidado con validación de invariantes.
+    """
+    id: str
+    description: str
+    quantity_base: float
+    unit: str
+    waste_factor: float
+    quantity_total: float
+    unit_cost: float
+    total_cost: float
+    source_apus: List[str] = field(default_factory=list)
+    
+    def __post_init__(self):
+        """Validación de invariantes después de la inicialización."""
+        if self.quantity_base <= 0:
+            raise ValueError(f"Cantidad base no positiva para material {self.id}")
+        if self.waste_factor < 0:
+            raise ValueError(f"Factor de desperdicio negativo para material {self.id}")
+        if not math.isfinite(self.total_cost):
+            raise ValueError(f"Costo total no finito para material {self.id}")
+
+@dataclass
+class BillOfMaterials:
+    """
+    Lista de materiales final con metadata de generación y validación topológica.
+    """
+    requirements: List[MaterialRequirement]
+    total_material_cost: float
+    metadata: Dict[str, Any]
+    
+    def __post_init__(self):
+        """Validación de coherencia interna."""
+        computed_total = sum(req.total_cost for req in self.requirements)
+        if not math.isclose(self.total_material_cost, computed_total, rel_tol=1e-9):
+            raise ValueError(
+                f"Costo total inconsistente: declarado={self.total_material_cost}, "
+                f"calculado={computed_total}"
+            )
+
+class MatterGenerator:
+    """
+    Motor de Materialización con fundamentos topológicos robustos.
+    Transforma la estructura del grafo en BOM usando un colapso de onda determinístico.
+    Implementa un funtor F: Graph → Set(Material) preservando la estructura composicional.
+    """
+
+    def __init__(self, max_graph_complexity: int = 10000):
+        """
+        Args:
+            max_graph_complexity: Límite de nodos*aristas para prevenir explosión combinatoria
+        """
+        self.logger = logging.getLogger(self.__class__.__name__)
+        self.max_graph_complexity = max_graph_complexity
+
+    def materialize_project(
+        self,
+        graph: nx.DiGraph,
+        risk_profile: Optional[Dict[str, Any]] = None,
+        flux_metrics: Optional[Dict[str, Any]] = None
+    ) -> BillOfMaterials:
+        """
+        Orquesta la transformación del Grafo en BOM con validaciones robustas.
+        
+        Teorema: Para un DAG G, existe un único morfismo F: G → BOM que preserva
+        la estructura monoidal de composición de materiales.
+        
+        Args:
+            graph: Grafo topológico (presumiblemente un DAG de composición)
+            risk_profile: Perfil de riesgo para ajuste de factores
+            flux_metrics: Métricas de estabilidad/fricción
+            
+        Returns:
+            BillOfMaterials: La lista de compras consolidada con metadata completa
+            
+        Raises:
+            ValueError: Si el grafo no es un DAG o contiene ciclos prohibidos
+            OverflowError: Si la complejidad del grafo excede límites seguros
+        """
+        self.logger.info("🌌 Iniciando materialización del proyecto...")
+
+        # Validación de complejidad del grafo
+        complexity = graph.number_of_nodes() * graph.number_of_edges()
+        if complexity > self.max_graph_complexity:
+            raise OverflowError(
+                f"Complejidad del grafo ({complexity}) excede el límite "
+                f"({self.max_graph_complexity})"
+            )
+
+        # Validación de la estructura del grafo (debe ser DAG para composición)
+        if not nx.is_directed_acyclic_graph(graph):
+            # Intentamos detectar ciclos específicos para mejor diagnóstico
+            try:
+                cycles = list(nx.simple_cycles(graph))
+                raise ValueError(
+                    f"El grafo contiene {len(cycles)} ciclos. "
+                    f"Primer ciclo: {cycles[0] if cycles else 'N/A'}"
+                )
+            except (nx.NetworkXNoCycle, ValueError):
+                raise ValueError(
+                    "El grafo debe ser un DAG para garantizar consistencia composicional"
+                )
+
+        # 1. Colapso de Onda (Recorrido topológico del Grafo)
+        raw_materials = self._explode_pyramid(graph)
+        self.logger.info(f"🧱 Materiales brutos extraídos: {len(raw_materials)}")
+
+        if not raw_materials:
+            self.logger.warning("⚠️ No se encontraron materiales en el grafo")
+            # Retornamos BOM vacío pero válido
+            return self._empty_bom(graph, risk_profile, flux_metrics)
+
+        # 2. Aplicación de Entropía (Factores de Seguridad con monoides)
+        adjusted_materials = self._apply_entropy_factors(
+            raw_materials,
+            flux_metrics,
+            risk_profile
+        )
+
+        # 3. Clustering Semántico (Agrupación con kernel categórico)
+        final_requirements = self._cluster_semantically(adjusted_materials)
+        self.logger.info(f"🛒 Requerimientos consolidados: {len(final_requirements)}")
+
+        # 4. Cálculo de Totales con validación numérica
+        total_cost = self._compute_total_cost(final_requirements)
+
+        # 5. Generación de metadata con invariantes topológicos
+        metadata = self._generate_metadata(
+            graph, risk_profile, flux_metrics, final_requirements
+        )
+
+        return BillOfMaterials(
+            requirements=final_requirements,
+            total_material_cost=total_cost,
+            metadata=metadata
+        )
+
+    def _explode_pyramid(self, graph: nx.DiGraph) -> List[Dict[str, Any]]:
+        """
+        Recorre el grafo desde raíces usando teoría de categorías para propagación.
+        
+        Implementa un funtor F: Graph → Set(Material) donde:
+        - Objetos: Nodos del grafo
+        - Morfismos: Aristas con cantidades
+        - F(nodo): Material terminal (si es INSUMO) o composición recursiva
+        
+        Teorema: Para cada nodo raíz r, el camino único a un nodo terminal t
+        define una composición monoidal de cantidades.
+        
+        Returns:
+            Lista de materiales brutos con trazabilidad completa
+        """
+        materials = []
+
+        # Identificación de raíces: nodos con degree de entrada 0
+        root_nodes = [node for node, in_degree in graph.in_degree() if in_degree == 0]
+
+        if not root_nodes:
+            self.logger.error("❌ Grafo no tiene raíces (nodos sin predecesores)")
+            return materials
+
+        self.logger.debug(f"Encontradas {len(root_nodes)} raíces: {root_nodes}")
+
+        # Usamos BFS con queue para procesamiento en niveles (topológico natural)
+        # Estructura: (nodo, cantidad_acumulada, camino, padre_apu, profundidad)
+        from collections import deque
+        queue = deque()
+        for root in root_nodes:
+            queue.append((root, 1.0, [], None, 0))
+
+        # Track de visitas por camino para prevenir ciclos en DAGs malformados
+        visited_in_path = set()
+        MAX_DEPTH = len(graph.nodes())  # Profundidad máxima razonable
+
+        while queue:
+            current_node, current_qty, current_path, parent_apu, depth = queue.popleft()
+            
+            # Validación de profundidad para prevenir recursión infinita
+            if depth > MAX_DEPTH:
+                self.logger.error(f"Profundidad excesiva en nodo {current_node}")
+                continue
+
+            # Verificación de ciclo en el camino actual
+            if current_node in current_path:
+                path_key = tuple(current_path + [current_node])
+                if path_key not in visited_in_path:
+                    self.logger.warning(f"Ciclo detectado en camino: {path_key}")
+                    visited_in_path.add(path_key)
+                continue
+
+            node_data = graph.nodes[current_node]
+            node_type = node_data.get("type", "UNDEFINED")
+            new_path = current_path + [current_node]
+            new_depth = depth + 1
+
+            # Si es nodo terminal (INSUMO), registramos material
+            if node_type == "INSUMO":
+                # Validación exhaustiva de atributos requeridos
+                description = node_data.get("description", "")
+                if not description:
+                    description = node_data.get("name", str(current_node))
+
+                unit = node_data.get("unit", "UND")
+                unit_cost = float(node_data.get("unit_cost", 0.0))
+                
+                # Validación de valores numéricos
+                if unit_cost < 0:
+                    self.logger.warning(f"Costo unitario negativo en {current_node}: {unit_cost}")
+                    unit_cost = 0.0
+
+                materials.append({
+                    "id": str(current_node),
+                    "description": description,
+                    "base_qty": current_qty,
+                    "unit_cost": unit_cost,
+                    "source_apu": parent_apu or "ROOT",
+                    "unit": unit,
+                    "node_data": node_data.copy(),
+                    "composition_path": new_path,
+                    "depth": depth
+                })
+                continue
+
+            # Para nodos no terminales, expandimos hijos
+            successors = list(graph.successors(current_node))
+            
+            # Si no hay sucesores y no es INSUMO, es un nodo intermedio inválido
+            if not successors and node_type != "INSUMO":
+                self.logger.warning(
+                    f"Nodo no-terminal sin sucesores: {current_node} (tipo: {node_type})"
+                )
+                continue
+
+            # Expandimos hijos con propagación de cantidades
+            for successor in successors:
+                edge_key = (current_node, successor)
+                
+                if not graph.has_edge(current_node, successor):
+                    self.logger.error(f"Arista no encontrada: {edge_key}")
+                    continue
+
+                edge_data = graph.edges[edge_key]
+                edge_qty = float(edge_data.get("quantity", 1.0))
+
+                # Validación: cantidad debe ser positiva
+                if edge_qty <= 0:
+                    self.logger.warning(
+                        f"Cantidad no positiva en arista {edge_key}: {edge_qty}. "
+                        f"Usando 1.0 como valor por defecto."
+                    )
+                    edge_qty = 1.0
+
+                # Si el nodo actual es APU, lo registramos como padre para materiales hijos
+                next_parent = current_node if node_type == "APU" else parent_apu
+
+                # Calculamos nueva cantidad (composición de morfismos)
+                # Usamos multiplicación precisa para evitar drift numérico
+                new_qty = current_qty * edge_qty
+
+                # Validación de overflow numérico
+                if new_qty > 1e100 or not math.isfinite(new_qty):
+                    self.logger.error(
+                        f"Desbordamiento numérico en nodo {successor}: {new_qty}"
+                    )
+                    new_qty = current_qty  # Fallback al valor anterior
+
+                queue.append((successor, new_qty, new_path, next_parent, new_depth))
+
+        return materials
+
+    def _apply_entropy_factors(
+        self,
+        raw_materials: List[Dict[str, Any]],
+        flux_metrics: Optional[Dict[str, Any]],
+        risk_profile: Optional[Dict[str, Any]] = None
+    ) -> List[Dict[str, Any]]:
+        """
+        Aplica factores de entropía usando un monoide de transformación.
+        
+        Definimos el monoide (M, ×) donde:
+        - M = ℝ⁺ (números reales positivos)
+        - Operación: multiplicación
+        - Elemento identidad: 1.0
+        
+        Cada factor es un morfismo f: Material → Material que escala la cantidad.
+        La composición de factores es conmutativa: f ∘ g = g ∘ f.
+        
+        Returns:
+            Materiales con factores aplicados y trazabilidad de transformaciones
+        """
+        # Grupo de factores base con elemento identidad 1.0
+        base_factor = 1.0  # Elemento neutro del grupo
+        
+        # Registro de factores aplicados para trazabilidad
+        factor_log = {
+            "base_factor": base_factor,
+            "flux_adjustments": [],
+            "risk_adjustment": None,
+            "material_adjustments": {}
+        }
+
+        # Aplicamos factores de flux_metrics (si existen)
+        if flux_metrics:
+            # Factor de saturación (fricción del sistema)
+            saturation = flux_metrics.get("avg_saturation", 0.0)
+            if saturation > 0.8:
+                adjustment = 1.05  # +5% por saturación
+                base_factor *= adjustment
+                factor_log["flux_adjustments"].append(
+                    f"saturation_{saturation:.2f}:x{adjustment}"
+                )
+
+            # Factor de estabilidad estructural
+            stability = flux_metrics.get("pyramid_stability", 1.0)
+            if stability < 1.0:
+                adjustment = 1.03  # +3% por inestabilidad
+                base_factor *= adjustment
+                factor_log["flux_adjustments"].append(
+                    f"stability_{stability:.2f}:x{adjustment}"
+                )
+
+        # Aplicamos factores de riesgo (si existen)
+        if risk_profile:
+            risk_level = risk_profile.get("level", "MEDIUM")
+            risk_multipliers = {
+                "LOW": 1.01,    # +1%
+                "MEDIUM": 1.03,  # +3%
+                "HIGH": 1.07,    # +7%
+                "CRITICAL": 1.15 # +15%
+            }
+            adjustment = risk_multipliers.get(risk_level, 1.03)
+            base_factor *= adjustment
+            factor_log["risk_adjustment"] = f"{risk_level}:x{adjustment}"
+
+        # Factor de material específico (basado en propiedades categóricas del material)
+        processed_materials = []
+        material_categories = set()
+
+        for mat in raw_materials:
+            # Clonamos el material para no modificar el original
+            processed = mat.copy()
+            
+            # Determinamos la categoría del material
+            material_type = mat.get("node_data", {}).get("material_category", "GENERIC")
+            material_categories.add(material_type)
+            
+            # Mapeo categórico de factores específicos
+            type_multipliers = {
+                "FRAGILE": 1.02,      # +2% por fragilidad
+                "PERISHABLE": 1.04,    # +4% por caducidad
+                "HAZARDOUS": 1.06,     # +6% por manejo especial
+                "PRECISION": 1.03,     # +3% por tolerancias estrechas
+                "BULKY": 1.02,         # +2% por volumen
+                "GENERIC": 1.0         # Sin ajuste
+            }
+            
+            specific_factor = type_multipliers.get(material_type, 1.0)
+            
+            # Registramos el ajuste específico
+            if material_type not in factor_log["material_adjustments"]:
+                factor_log["material_adjustments"][material_type] = specific_factor
+
+            # Composición de factores: f_total = f_base * f_específico
+            # Esto forma un morfismo compuesto en la categoría de transformaciones
+            total_multiplier = base_factor * specific_factor
+            
+            # Validación: el multiplicador debe ser positivo
+            if total_multiplier <= 0:
+                self.logger.error(
+                    f"Multiplicador no positivo para material {mat['id']}: "
+                    f"{total_multiplier}. Usando 1.0"
+                )
+                total_multiplier = 1.0
+
+            total_waste_factor = total_multiplier - 1.0
+            
+            # Cálculo de cantidad total con validación
+            base_qty = mat["base_qty"]
+            total_qty = base_qty * total_multiplier
+            
+            if not math.isfinite(total_qty):
+                self.logger.error(
+                    f"Cantidad total no finita para material {mat['id']}. "
+                    f"Usando cantidad base."
+                )
+                total_qty = base_qty
+                total_waste_factor = 0.0
+
+            processed["waste_factor"] = total_waste_factor
+            processed["total_qty"] = total_qty
+            
+            # Preservamos los factores aplicados para trazabilidad
+            processed["applied_factors"] = {
+                "base": base_factor,
+                "specific": specific_factor,
+                "material_type": material_type,
+                "total_multiplier": total_multiplier,
+                "factor_log": factor_log.copy()
+            }
+
+            processed_materials.append(processed)
+
+        self.logger.debug(
+            f"Aplicados factores a {len(processed_materials)} materiales. "
+            f"Categorías encontradas: {material_categories}"
+        )
+
+        return processed_materials
+
+    def _cluster_semantically(
+        self, 
+        materials: List[Dict[str, Any]]
+    ) -> List[MaterialRequirement]:
+        """
+        Agrupa materiales usando un kernel de equivalencia categórica.
+        
+        Definimos la relación de equivalencia ∼ donde:
+        m1 ∼ m2 ⇔ (id(m1) = id(m2)) ∧ (unit(m1) = unit(m2))
+        
+        El espacio cociente Material/∼ forma una categoría donde los objetos
+        son clases de equivalencia y los morfismos son sumas de cantidades.
+        
+        Returns:
+            Lista de requerimientos de material consolidados
+        """
+        # Diccionario de agrupación: clave -> datos agregados
+        clustered = defaultdict(lambda: {
+            "id": None,
+            "description": None,
+            "quantity_base": 0.0,
+            "quantity_total": 0.0,
+            "unit_cost_samples": [],
+            "source_apus": set(),
+            "unit": None,
+            "composition_paths": [],
+            "applied_factors": []
+        })
+        
+        # Contadores para estadísticas
+        merge_count = 0
+        
+        for mat in materials:
+            # Clave canónica: tupla (id, unidad) para agrupación fuerte
+            canonical_key = (mat["id"], mat.get("unit", "UND"))
+            data = clustered[canonical_key]
+            
+            # Inicialización en primera ocurrencia
+            if data["id"] is None:
+                data["id"] = mat["id"]
+                data["description"] = mat["description"]
+                data["unit"] = mat.get("unit", "UND")
+            
+            # Validación de consistencia de descripción
+            elif data["description"] != mat["description"]:
+                self.logger.warning(
+                    f"Descripción inconsistente para material {mat['id']}: "
+                    f"'{data['description']}' vs '{mat['description']}'. "
+                    f"Manteniendo la primera."
+                )
+            
+            # Acumulación de cantidades (operación del monoide aditivo)
+            # Validamos que las cantidades sean finitas
+            base_qty = mat["base_qty"]
+            total_qty = mat["total_qty"]
+            
+            if not math.isfinite(base_qty):
+                self.logger.error(f"Cantidad base no finita para material {mat['id']}")
+                base_qty = 0.0
+            if not math.isfinite(total_qty):
+                self.logger.error(f"Cantidad total no finita para material {mat['id']}")
+                total_qty = 0.0
+            
+            data["quantity_base"] += base_qty
+            data["quantity_total"] += total_qty
+            
+            # Validación de overflow en acumulación
+            if data["quantity_base"] > 1e100 or data["quantity_total"] > 1e100:
+                raise OverflowError(
+                    f"Overflow en acumulación de cantidades para material {mat['id']}"
+                )
+            
+            # Acumulación de APUs de origen
+            data["source_apus"].add(mat["source_apu"])
+            
+            # Muestras de costo unitario para análisis estadístico
+            unit_cost = mat["unit_cost"]
+            if math.isfinite(unit_cost) and unit_cost >= 0:
+                data["unit_cost_samples"].append(unit_cost)
+            else:
+                self.logger.warning(
+                    f"Costo unitario inválido para material {mat['id']}: {unit_cost}"
+                )
+            
+            # Preservamos algunos paths para debugging (limitado)
+            if len(data["composition_paths"]) < 5:
+                data["composition_paths"].append(mat.get("composition_path", []))
+            
+            # Preservamos factores aplicados para trazabilidad
+            data["applied_factors"].append(mat.get("applied_factors", {}))
+            
+            # Estadísticas de merging
+            if len(data["unit_cost_samples"]) > 1:
+                merge_count += 1
+        
+        self.logger.debug(
+            f"Clusterización completada: {len(clustered)} grupos únicos, "
+            f"{merge_count} merges realizados"
+        )
+        
+        # Procesamiento post-agrupación
+        requirements = []
+        skipped_materials = 0
+        
+        for (mat_id, unit), data in clustered.items():
+            # Validación: cantidad base debe ser positiva
+            if data["quantity_base"] <= 0:
+                self.logger.warning(
+                    f"Material {mat_id} tiene cantidad base no positiva: "
+                    f"{data['quantity_base']}. Saltando."
+                )
+                skipped_materials += 1
+                continue
+            
+            # Recalculamos waste_factor a partir de cantidades agregadas
+            # Esto es más preciso que promediar factores individuales
+            try:
+                total_waste = (data["quantity_total"] / data["quantity_base"]) - 1.0
+                
+                # Validación de waste_factor
+                if total_waste < -0.5 or total_waste > 10.0:  # Límites razonables
+                    self.logger.warning(
+                        f"Factor de desperdicio anómalo para {mat_id}: {total_waste:.3f}"
+                    )
+                    # Ajustamos a un valor razonable
+                    total_waste = max(0.0, min(total_waste, 2.0))
+            except ZeroDivisionError:
+                self.logger.error(f"División por cero al calcular waste_factor para {mat_id}")
+                total_waste = 0.0
+            
+            # Calculamos costo unitario representativo
+            # Usamos la mediana para ser robustos a outliers
+            cost_samples = data["unit_cost_samples"]
+            representative_cost = 0.0
+            
+            if cost_samples:
+                try:
+                    # Filtramos valores no finitos
+                    valid_costs = [c for c in cost_samples if math.isfinite(c) and c >= 0]
+                    
+                    if not valid_costs:
+                        self.logger.warning(f"Sin costos válidos para {mat_id}")
+                        representative_cost = 0.0
+                    else:
+                        # Calculamos mediana de costos válidos
+                        sorted_costs = sorted(valid_costs)
+                        mid = len(sorted_costs) // 2
+                        if len(sorted_costs) % 2 == 0:
+                            representative_cost = (sorted_costs[mid-1] + sorted_costs[mid]) / 2
+                        else:
+                            representative_cost = sorted_costs[mid]
+                        
+                        # También calculamos desviación para logging
+                        if len(valid_costs) > 1:
+                            mean_cost = sum(valid_costs) / len(valid_costs)
+                            variance = sum((c - mean_cost) ** 2 for c in valid_costs) / len(valid_costs)
+                            std_dev = math.sqrt(variance)
+                            
+                            if std_dev / mean_cost > 0.1:  # >10% de variación relativa
+                                self.logger.info(
+                                    f"Alta variación en costos para {mat_id}: "
+                                    f"media={mean_cost:.2f}, σ={std_dev:.2f} "
+                                    f"(CV={(std_dev/mean_cost)*100:.1f}%)"
+                                )
+                except Exception as e:
+                    self.logger.error(f"Error calculando costo para {mat_id}: {e}")
+                    representative_cost = 0.0
+            else:
+                self.logger.warning(f"Sin muestras de costo para {mat_id}")
+                representative_cost = 0.0
+            
+            # Validamos el costo unitario
+            if representative_cost < 0 or not math.isfinite(representative_cost):
+                self.logger.warning(
+                    f"Costo unitario inválido para {mat_id}: {representative_cost}. "
+                    f"Ajustando a 0.0"
+                )
+                representative_cost = 0.0
+            
+            # Calculamos costo total con validación
+            total_cost = data["quantity_total"] * representative_cost
+            if not math.isfinite(total_cost) or total_cost < 0:
+                self.logger.error(
+                    f"Costo total inválido para {mat_id}: {total_cost}. "
+                    f"Ajustando a 0.0"
+                )
+                total_cost = 0.0
+            
+            # Creamos el requerimiento con validación automática vía __post_init__
+            try:
+                req = MaterialRequirement(
+                    id=data["id"],
+                    description=data["description"] or f"Material {data['id']}",
+                    quantity_base=data["quantity_base"],
+                    unit=data["unit"],
+                    waste_factor=total_waste,
+                    quantity_total=data["quantity_total"],
+                    unit_cost=representative_cost,
+                    total_cost=total_cost,
+                    source_apus=sorted(data["source_apus"])  # Ordenamos para consistencia
+                )
+                requirements.append(req)
+            except ValueError as e:
+                self.logger.error(f"Error creando requerimiento para {mat_id}: {e}")
+                skipped_materials += 1
+        
+        # Ordenamiento por criterio de Pareto (costo total descendente)
+        # También consideramos número de APUs como desempate (más APUs = más crítico)
+        requirements.sort(
+            key=lambda x: (x.total_cost, -len(x.source_apus), x.id),
+            reverse=True
+        )
+        
+        if skipped_materials > 0:
+            self.logger.warning(f"Se omitieron {skipped_materials} materiales inválidos")
+        
+        return requirements
+
+    def _compute_total_cost(self, requirements: List[MaterialRequirement]) -> float:
+        """
+        Calcula el costo total con validación numérica robusta.
+        
+        Implementa suma en doble precisión con verificación de overflow
+        y compensación de Kahan para minimizar errores de punto flotante.
+        
+        Teorema: La suma de costos finitos es conmutativa y asociativa.
+        
+        Returns:
+            Costo total redondeado a 2 decimales para representación monetaria
+        """
+        # Algoritmo de suma de Kahan para alta precisión
+        total = 0.0
+        compensation = 0.0
+        
+        for req in requirements:
+            # Validación: costo debe ser finito y no negativo
+            if not math.isfinite(req.total_cost):
+                self.logger.error(f"Costo no finito en material {req.id}: {req.total_cost}")
+                continue
+            
+            if req.total_cost < 0:
+                self.logger.warning(f"Costo negativo en material {req.id}: {req.total_cost}")
+                # Consideramos el valor absoluto para el total
+                y = -req.total_cost - compensation
+            else:
+                y = req.total_cost - compensation
+            
+            t = total + y
+            compensation = (t - total) - y
+            total = t
+            
+            # Verificación de overflow
+            if math.isinf(total):
+                raise OverflowError(
+                    f"Overflow en cálculo de costo total al procesar {req.id}"
+                )
+        
+        # Redondeo a 2 decimales para representación monetaria
+        # Usamos round-half-even (banker's rounding) para minimizar sesgo
+        total_rounded = round(total, 2)
+        
+        # Validación de que el redondeo no introduce error significativo
+        rounding_error = abs(total - total_rounded)
+        if rounding_error > 0.01:  # Más de 1 céntimo de error
+            self.logger.warning(
+                f"Error de redondeo significativo: {rounding_error:.6f}. "
+                f"Original: {total:.6f}, Redondeado: {total_rounded:.6f}"
+            )
+        
+        return total_rounded
+
+    def _generate_metadata(
+        self,
+        graph: nx.DiGraph,
+        risk_profile: Optional[Dict[str, Any]],
+        flux_metrics: Optional[Dict[str, Any]],
+        requirements: List[MaterialRequirement]
+    ) -> Dict[str, Any]:
+        """
+        Genera metadata con invariantes topológicos y métricas de calidad.
+        
+        Calcula invariantes homológicos del grafo (número de Betti 0 = componentes conexas)
+        y métricas de distribución de Pareto para análisis de costos.
+        
+        Returns:
+            Diccionario de metadata con estructura jerárquica
+        """
+        metadata = {
+            "topological_invariants": {},
+            "graph_metrics": {},
+            "cost_analysis": {},
+            "risk_analysis": {},
+            "generation_info": {}
+        }
+        
+        # 1. Invariantes topológicos del grafo
+        try:
+            # Número de componentes débilmente conexas (β₀ para grafo no dirigido)
+            undirected_graph = graph.to_undirected()
+            num_components = nx.number_connected_components(undirected_graph)
+            
+            # Longitud del camino más largo en el DAG
+            if nx.is_directed_acyclic_graph(graph):
+                try:
+                    longest_path_length = nx.dag_longest_path_length(graph)
+                    longest_path_nodes = nx.dag_longest_path(graph)
+                except (nx.NetworkXError, ValueError):
+                    longest_path_length = None
+                    longest_path_nodes = []
+            else:
+                longest_path_length = None
+                longest_path_nodes = []
+            
+            metadata["topological_invariants"].update({
+                "weakly_connected_components": num_components,
+                "is_dag": nx.is_directed_acyclic_graph(graph),
+                "longest_path_length": longest_path_length,
+                "longest_path_sample": longest_path_nodes[:5] if longest_path_nodes else []
+            })
+        except Exception as e:
+            self.logger.error(f"Error calculando invariantes topológicos: {e}")
+            metadata["topological_invariants"]["error"] = str(e)
+        
+        # 2. Métricas básicas del grafo
+        try:
+            root_nodes = [node for node, in_degree in graph.in_degree() if in_degree == 0]
+            leaf_nodes = [node for node, out_degree in graph.out_degree() if out_degree == 0]
+            
+            # Distribución de grados
+            in_degrees = [d for _, d in graph.in_degree()]
+            out_degrees = [d for _, d in graph.out_degree()]
+            
+            metadata["graph_metrics"].update({
+                "node_count": graph.number_of_nodes(),
+                "edge_count": graph.number_of_edges(),
+                "density": nx.density(graph),
+                "root_count": len(root_nodes),
+                "leaf_count": len(leaf_nodes),
+                "avg_in_degree": sum(in_degrees) / len(in_degrees) if in_degrees else 0,
+                "avg_out_degree": sum(out_degrees) / len(out_degrees) if out_degrees else 0,
+                "max_in_degree": max(in_degrees) if in_degrees else 0,
+                "max_out_degree": max(out_degrees) if out_degrees else 0,
+                "root_sample": root_nodes[:5] if root_nodes else [],
+                "leaf_sample": leaf_nodes[:5] if leaf_nodes else []
+            })
+        except Exception as e:
+            self.logger.error(f"Error calculando métricas de grafo: {e}")
+            metadata["graph_metrics"]["error"] = str(e)
+        
+        # 3. Análisis de costos y distribución de Pareto
+        if requirements:
+            try:
+                costs = [r.total_cost for r in requirements]
+                base_quantities = [r.quantity_base for r in requirements]
+                total_quantities = [r.quantity_total for r in requirements]
+                
+                total_cost = sum(costs)
+                total_base_qty = sum(base_quantities)
+                total_qty = sum(total_quantities)
+                
+                if total_cost > 0 and costs:
+                    # Análisis de Pareto (80/20)
+                    sorted_costs = sorted(costs, reverse=True)
+                    cumulative_cost = 0
+                    pareto_index = 0
+                    
+                    for i, cost in enumerate(sorted_costs):
+                        cumulative_cost += cost
+                        if cumulative_cost / total_cost >= 0.8:
+                            pareto_index = i + 1
+                            break
+                    
+                    pareto_20_percent = pareto_index / len(costs)
+                    pareto_items = sorted_costs[:pareto_index] if pareto_index > 0 else []
+                    pareto_cost = sum(pareto_items)
+                    
+                    # Métricas de distribución
+                    if len(costs) > 1:
+                        mean_cost = total_cost / len(costs)
+                        variance = sum((c - mean_cost) ** 2 for c in costs) / len(costs)
+                        std_dev = math.sqrt(variance)
+                        cv = (std_dev / mean_cost) * 100 if mean_cost > 0 else 0
+                    else:
+                        mean_cost = total_cost if costs else 0
+                        variance = 0
+                        std_dev = 0
+                        cv = 0
+                    
+                    # Waste analysis
+                    total_waste = total_qty - total_base_qty
+                    avg_waste_factor = (total_waste / total_base_qty) if total_base_qty > 0 else 0
+                    
+                    metadata["cost_analysis"].update({
+                        "total_cost": total_cost,
+                        "item_count": len(requirements),
+                        "unique_materials": len(set(r.id for r in requirements)),
+                        "unique_apus": len(set().union(*[r.source_apus for r in requirements])),
+                        "total_base_quantity": total_base_qty,
+                        "total_quantity": total_qty,
+                        "total_waste": total_waste,
+                        "avg_waste_factor": avg_waste_factor,
+                        "pareto_analysis": {
+                            "pareto_20_percent": pareto_20_percent,
+                            "pareto_items_count": pareto_index,
+                            "pareto_cost_percentage": (pareto_cost / total_cost) * 100,
+                            "pareto_cost_absolute": pareto_cost
+                        },
+                        "distribution": {
+                            "mean_cost": mean_cost,
+                            "median_cost": sorted_costs[len(sorted_costs)//2] if sorted_costs else 0,
+                            "std_dev_cost": std_dev,
+                            "coefficient_variation": cv,
+                            "min_cost": min(costs) if costs else 0,
+                            "max_cost": max(costs) if costs else 0,
+                            "cost_range": max(costs) - min(costs) if costs else 0
+                        }
+                    })
+                else:
+                    metadata["cost_analysis"].update({
+                        "total_cost": 0.0,
+                        "item_count": len(requirements),
+                        "error": "Costo total cero o negativo"
+                    })
+            except Exception as e:
+                self.logger.error(f"Error en análisis de costos: {e}")
+                metadata["cost_analysis"]["error"] = str(e)
+        else:
+            metadata["cost_analysis"] = {"empty": True, "item_count": 0}
+        
+        # 4. Análisis de riesgo
+        if risk_profile:
+            metadata["risk_analysis"] = {
+                "profile_applied": True,
+                "risk_level": risk_profile.get("level", "UNKNOWN"),
+                "adjustment_factor": risk_profile.get("adjustment_factor", 1.0),
+                "raw_profile": {k: v for k, v in risk_profile.items() 
+                               if not isinstance(v, (dict, list)) or k == "level"}
+            }
+        else:
+            metadata["risk_analysis"] = {"profile_applied": False}
+        
+        # 5. Información de generación
+        metadata["generation_info"] = {
+            "timestamp": datetime.now().isoformat(),
+            "generator_version": "3.0-topology-algebraic",
+            "generator_class": self.__class__.__name__,
+            "python_version": f"{sys.version_info.major}.{sys.version_info.minor}",
+            "networkx_version": nx.__version__
+        }
+        
+        # 6. Flux metrics (si existen)
+        if flux_metrics:
+            metadata["flux_analysis"] = {
+                "metrics_applied": True,
+                "key_metrics": {k: v for k, v in flux_metrics.items() 
+                               if not isinstance(v, (dict, list)) or k in ["avg_saturation", "pyramid_stability"]}
+            }
+        else:
+            metadata["flux_analysis"] = {"metrics_applied": False}
+        
+        return metadata
+
+    def _empty_bom(
+        self,
+        graph: nx.DiGraph,
+        risk_profile: Optional[Dict[str, Any]],
+        flux_metrics: Optional[Dict[str, Any]]
+    ) -> BillOfMaterials:
+        """
+        Crea un BOM vacío pero válido cuando no hay materiales.
+        
+        Esto preserva la estructura del contrato incluso en casos degenerados.
+        """
+        metadata = self._generate_metadata(graph, risk_profile, flux_metrics, [])
+        
+        return BillOfMaterials(
+            requirements=[],
+            total_material_cost=0.0,
+            metadata=metadata
+        )
+
+# Nota: Se requiere importar sys al inicio del módulo para la metadata
+import sys
