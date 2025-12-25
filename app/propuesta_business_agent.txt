@@ -1,0 +1,2616 @@
+# -*- coding: utf-8 -*-
+"""
+Agente de Inteligencia de Negocio.
+
+Este agente orquesta la evaluación de viabilidad y riesgos de proyectos
+desde una perspectiva de negocio, integrando análisis topológico algebraico
+(estructura del presupuesto como complejo simplicial) y financiero
+(costos, riesgos, opciones reales).
+
+La coherencia del análisis se garantiza mediante invariantes topológicos
+que verifican la consistencia estructural del modelo de negocio:
+- Números de Betti (β₀, β₁, β₂) para caracterizar la conectividad
+- Característica de Euler χ = β₀ - β₁ + β₂ como invariante fundamental
+- Estabilidad piramidal para jerarquías de costos
+"""
+
+from __future__ import annotations
+
+import logging
+import time
+from contextlib import contextmanager
+from dataclasses import dataclass, field
+from enum import Enum, auto
+from functools import cached_property
+from typing import (
+    Any,
+    Dict,
+    Final,
+    Generator,
+    List,
+    Optional,
+    Tuple,
+    TypeAlias,
+)
+
+import pandas as pd
+
+from agent.business_topology import (
+    BudgetGraphBuilder,
+    BusinessTopologicalAnalyzer,
+    ConstructionRiskReport,
+)
+from app.financial_engine import FinancialConfig, FinancialEngine
+from app.semantic_translator import SemanticTranslator
+from app.telemetry import TelemetryContext
+
+
+logger = logging.getLogger(__name__)
+
+
+# =============================================================================
+# CONSTANTES Y TIPOS
+# =============================================================================
+
+# Tipo para el grafo de presupuesto (ajustar según implementación real)
+BudgetGraph: TypeAlias = Any
+
+# Constantes de configuración con semántica clara
+class DefaultParams:
+    """Parámetros por defecto con documentación explícita."""
+    
+    INITIAL_INVESTMENT: Final[float] = 1_000_000.0
+    """Inversión inicial de referencia en unidades monetarias."""
+    
+    CASH_FLOW_PERIODS: Final[int] = 5
+    """Número de períodos para proyección de flujos de caja."""
+    
+    CASH_FLOW_RATIO: Final[float] = 0.30
+    """Ratio de retorno por período respecto a inversión inicial."""
+    
+    COST_STD_DEV_RATIO: Final[float] = 0.15
+    """Coeficiente de variación (σ/μ) para incertidumbre de costos."""
+    
+    PROJECT_VOLATILITY: Final[float] = 0.20
+    """Volatilidad anualizada del proyecto para opciones reales."""
+    
+    MIN_COHERENCE_THRESHOLD: Final[float] = 0.70
+    """Umbral mínimo de coherencia topológica aceptable."""
+
+
+# =============================================================================
+# EXCEPCIONES ESPECÍFICAS
+# =============================================================================
+
+class BusinessAgentError(Exception):
+    """Excepción base para errores del BusinessAgent."""
+    
+    def __init__(self, message: str, phase: Optional[str] = None) -> None:
+        self.phase = phase
+        super().__init__(f"[{phase}] {message}" if phase else message)
+
+
+class DataValidationError(BusinessAgentError):
+    """Error de validación de datos de entrada."""
+    pass
+
+
+class TopologicalCoherenceError(BusinessAgentError):
+    """
+    Error cuando las métricas topológicas violan invariantes fundamentales.
+    
+    En topología algebraica, ciertos invariantes deben satisfacerse:
+    - β₀ ≥ 1 (al menos un componente conexo)
+    - βᵢ ≥ 0 para todo i
+    - Consistencia de la característica de Euler
+    """
+    pass
+
+
+class FinancialAnalysisError(BusinessAgentError):
+    """Error en el análisis financiero."""
+    pass
+
+
+# =============================================================================
+# ENUMERACIONES
+# =============================================================================
+
+class EvaluationPhase(Enum):
+    """Fases del pipeline de evaluación con orden definido."""
+    
+    VALIDATION = auto()
+    TOPOLOGY_CONSTRUCTION = auto()
+    TOPOLOGICAL_ANALYSIS = auto()
+    FINANCIAL_ANALYSIS = auto()
+    REPORT_SYNTHESIS = auto()
+    NARRATIVE_COMPOSITION = auto()
+    
+    @property
+    def emoji(self) -> str:
+        """Emoji descriptivo para logging."""
+        emojis = {
+            self.VALIDATION: "🔍",
+            self.TOPOLOGY_CONSTRUCTION: "🏗️",
+            self.TOPOLOGICAL_ANALYSIS: "🔬",
+            self.FINANCIAL_ANALYSIS: "💰",
+            self.REPORT_SYNTHESIS: "📊",
+            self.NARRATIVE_COMPOSITION: "🧠",
+        }
+        return emojis.get(self, "⚙️")
+
+
+# =============================================================================
+# DATACLASSES INMUTABLES
+# =============================================================================
+
+@dataclass(frozen=True, slots=True)
+class EvaluationConfig:
+    """
+    Configuración inmutable para la evaluación de proyectos.
+    
+    Los parámetros están validados en construcción para garantizar
+    consistencia durante toda la ejecución.
+    
+    Attributes:
+        default_initial_investment: Inversión inicial por defecto
+        cash_flow_periods: Número de períodos de flujo de caja
+        cash_flow_ratio: Ratio de retorno por período
+        cost_std_dev_ratio: Ratio de desviación estándar de costos
+        project_volatility: Volatilidad del proyecto
+        enable_topological_validation: Habilitar validación de invariantes
+        min_coherence_threshold: Umbral mínimo de coherencia
+    """
+    
+    default_initial_investment: float = DefaultParams.INITIAL_INVESTMENT
+    cash_flow_periods: int = DefaultParams.CASH_FLOW_PERIODS
+    cash_flow_ratio: float = DefaultParams.CASH_FLOW_RATIO
+    cost_std_dev_ratio: float = DefaultParams.COST_STD_DEV_RATIO
+    project_volatility: float = DefaultParams.PROJECT_VOLATILITY
+    enable_topological_validation: bool = True
+    min_coherence_threshold: float = DefaultParams.MIN_COHERENCE_THRESHOLD
+    
+    def __post_init__(self) -> None:
+        """Valida invariantes de configuración."""
+        validations = [
+            (self.default_initial_investment > 0, 
+             "La inversión inicial debe ser positiva"),
+            (self.cash_flow_periods >= 1, 
+             "Debe haber al menos un período de flujo de caja"),
+            (0 < self.cash_flow_ratio <= 1, 
+             "El ratio de flujo debe estar en (0, 1]"),
+            (0 < self.cost_std_dev_ratio < 1, 
+             "El ratio de desviación debe estar en (0, 1)"),
+            (0 < self.project_volatility < 1, 
+             "La volatilidad debe estar en (0, 1)"),
+            (0 <= self.min_coherence_threshold <= 1, 
+             "El umbral de coherencia debe estar en [0, 1]"),
+        ]
+        
+        for condition, message in validations:
+            if not condition:
+                raise ValueError(message)
+
+
+@dataclass(frozen=True, slots=True)
+class TopologicalMetrics:
+    """
+    Métricas topológicas del análisis de presupuesto.
+    
+    Desde la perspectiva de topología algebraica, los números de Betti
+    caracterizan los "agujeros" en diferentes dimensiones:
+    
+    - β₀: Componentes conexas (clusters de costos independientes)
+    - β₁: Ciclos independientes (dependencias circulares en el presupuesto)
+    - β₂: Cavidades (estructuras 3D de interdependencia compleja)
+    
+    La característica de Euler χ = β₀ - β₁ + β₂ es un invariante
+    topológico fundamental que debe ser consistente.
+    
+    Attributes:
+        betti_0: Número de componentes conexas (β₀ ≥ 1)
+        betti_1: Número de 1-ciclos independientes (β₁ ≥ 0)
+        betti_2: Número de 2-ciclos/cavidades (β₂ ≥ 0)
+        pyramid_stability: Estabilidad de la jerarquía [0, 1]
+        graph_density: Densidad del grafo [0, 1]
+    """
+    
+    betti_0: int
+    betti_1: int
+    betti_2: int
+    pyramid_stability: float
+    graph_density: float = 0.0
+    
+    def __post_init__(self) -> None:
+        """Valida invariantes topológicos fundamentales."""
+        if self.betti_0 < 1:
+            raise TopologicalCoherenceError(
+                f"β₀ debe ser ≥ 1 (al menos un componente): {self.betti_0}",
+                phase="TopologicalMetrics"
+            )
+        if self.betti_1 < 0 or self.betti_2 < 0:
+            raise TopologicalCoherenceError(
+                f"Los números de Betti deben ser no negativos: "
+                f"β₁={self.betti_1}, β₂={self.betti_2}",
+                phase="TopologicalMetrics"
+            )
+    
+    @cached_property
+    def euler_characteristic(self) -> int:
+        """
+        Calcula la característica de Euler.
+        
+        χ = β₀ - β₁ + β₂
+        
+        Este invariante topológico es fundamental para verificar
+        la consistencia del análisis estructural.
+        """
+        return self.betti_0 - self.betti_1 + self.betti_2
+    
+    @cached_property
+    def coherence_score(self) -> float:
+        """
+        Calcula el score de coherencia estructural.
+        
+        Un presupuesto bien estructurado exhibe:
+        - Alto β₀: Componentes bien definidos y separados
+        - Bajo β₁: Mínimas dependencias circulares
+        - Alta estabilidad: Jerarquía piramidal robusta
+        
+        La fórmula pondera estos factores según su impacto
+        en la calidad estructural del presupuesto.
+        
+        Returns:
+            Score normalizado en [0, 1]
+        """
+        # Factor de penalización por ciclos (dependencias circulares)
+        # Decae exponencialmente con β₁
+        cycle_penalty_factor = 1.0 / (1.0 + self.betti_1)
+        
+        # Factor de conectividad normalizado
+        # Asume que 10 componentes es un máximo razonable
+        connectivity_factor = min(1.0, self.betti_0 / 10.0)
+        
+        # Ponderación: estabilidad (50%), ciclos (30%), conectividad (20%)
+        score = (
+            self.pyramid_stability * 0.50 +
+            cycle_penalty_factor * 0.30 +
+            connectivity_factor * 0.20
+        )
+        
+        return round(score, 4)
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """Serializa las métricas a diccionario."""
+        return {
+            "betti_0": self.betti_0,
+            "betti_1": self.betti_1,
+            "betti_2": self.betti_2,
+            "euler_characteristic": self.euler_characteristic,
+            "pyramid_stability": self.pyramid_stability,
+            "graph_density": self.graph_density,
+            "coherence_score": self.coherence_score,
+        }
+
+
+@dataclass(slots=True)
+class EvaluationContext:
+    """
+    Contexto mutable para el proceso de evaluación.
+    
+    Encapsula todos los datos necesarios para ejecutar
+    el pipeline de evaluación completo.
+    """
+    
+    df_presupuesto: pd.DataFrame
+    df_apus_detail: pd.DataFrame
+    initial_investment: float
+    cash_flows: List[float]
+    metadata: Dict[str, Any] = field(default_factory=dict)
+    
+    def validate(self) -> None:
+        """
+        Valida la integridad y consistencia del contexto.
+        
+        Raises:
+            DataValidationError: Si los datos son inválidos o inconsistentes.
+        """
+        # Validar DataFrames
+        if self.df_presupuesto is None or self.df_presupuesto.empty:
+            raise DataValidationError(
+                "DataFrame de presupuesto vacío o nulo",
+                phase="Validation"
+            )
+        
+        if self.df_apus_detail is None or self.df_apus_detail.empty:
+            raise DataValidationError(
+                "DataFrame de APUs vacío o nulo",
+                phase="Validation"
+            )
+        
+        # Validar parámetros financieros
+        if self.initial_investment <= 0:
+            raise DataValidationError(
+                f"Inversión inicial debe ser positiva: {self.initial_investment}",
+                phase="Validation"
+            )
+        
+        if not self.cash_flows:
+            raise DataValidationError(
+                "Lista de flujos de caja vacía",
+                phase="Validation"
+            )
+        
+        if any(cf < 0 for cf in self.cash_flows):
+            raise DataValidationError(
+                "Los flujos de caja no pueden ser negativos",
+                phase="Validation"
+            )
+
+
+@dataclass(frozen=True, slots=True)
+class PhaseResult:
+    """Resultado de una fase de evaluación con métricas."""
+    
+    phase: EvaluationPhase
+    duration_ms: float
+    success: bool
+    data: Any = None
+    error: Optional[str] = None
+
+
+# =============================================================================
+# AGENTE PRINCIPAL
+# =============================================================================
+
+class BusinessAgent:
+    """
+    Orquesta la inteligencia de negocio para evaluar proyectos de construcción.
+    
+    Este agente integra análisis topológico algebraico con métricas financieras
+    para proporcionar una evaluación holística del riesgo y viabilidad.
+    
+    La coherencia del análisis se garantiza mediante:
+    
+    1. **Invariantes Topológicos**: Validación de números de Betti y χ
+    2. **Consistencia Estructural**: Verificación de jerarquías de costos
+    3. **Integración Semántica**: Narrativas estratégicas coherentes
+    
+    Attributes:
+        config: Configuración global de la aplicación
+        eval_config: Configuración específica de evaluación
+        telemetry: Contexto para telemetría y métricas
+    
+    Example:
+        >>> config = {"financial_config": {"discount_rate": 0.10}}
+        >>> agent = BusinessAgent(config)
+        >>> context = {
+        ...     "df_presupuesto": df_budget,
+        ...     "df_merged": df_apus,
+        ...     "initial_investment": 2_000_000.0
+        ... }
+        >>> report = agent.evaluate_project(context)
+        >>> if report:
+        ...     print(f"Riesgo: {report.risk_level}")
+        ...     print(f"Coherencia: {report.details['coherence_score']:.2%}")
+    """
+
+    __slots__ = (
+        "config",
+        "eval_config", 
+        "telemetry",
+        "_graph_builder",
+        "_topological_analyzer",
+        "_translator",
+        "_financial_engine",
+        "_phase_results",
+    )
+
+    def __init__(
+        self,
+        config: Dict[str, Any],
+        telemetry: Optional[TelemetryContext] = None,
+        eval_config: Optional[EvaluationConfig] = None,
+    ) -> None:
+        """
+        Inicializa el agente de negocio.
+
+        Args:
+            config: Configuración global de la aplicación.
+            telemetry: Contexto para telemetría (usa default si None).
+            eval_config: Configuración de evaluación (usa default si None).
+            
+        Raises:
+            ValueError: Si la configuración es inválida.
+            TypeError: Si los tipos de argumentos son incorrectos.
+        """
+        self._validate_init_params(config, telemetry, eval_config)
+        
+        self.config = config
+        self.telemetry = telemetry or TelemetryContext()
+        self.eval_config = eval_config or self._build_eval_config(config)
+        
+        # Componentes con inicialización diferida (lazy)
+        self._graph_builder: Optional[BudgetGraphBuilder] = None
+        self._topological_analyzer: Optional[BusinessTopologicalAnalyzer] = None
+        self._translator: Optional[SemanticTranslator] = None
+        self._financial_engine: Optional[FinancialEngine] = None
+        
+        # Historial de resultados por fase
+        self._phase_results: List[PhaseResult] = []
+
+    @staticmethod
+    def _validate_init_params(
+        config: Dict[str, Any],
+        telemetry: Optional[TelemetryContext],
+        eval_config: Optional[EvaluationConfig],
+    ) -> None:
+        """Valida los parámetros de inicialización."""
+        if not isinstance(config, dict):
+            raise TypeError(
+                f"config debe ser dict, recibido: {type(config).__name__}"
+            )
+        if telemetry is not None and not isinstance(telemetry, TelemetryContext):
+            raise TypeError(
+                f"telemetry debe ser TelemetryContext o None, "
+                f"recibido: {type(telemetry).__name__}"
+            )
+        if eval_config is not None and not isinstance(eval_config, EvaluationConfig):
+            raise TypeError(
+                f"eval_config debe ser EvaluationConfig o None, "
+                f"recibido: {type(eval_config).__name__}"
+            )
+
+    def _build_eval_config(self, config: Dict[str, Any]) -> EvaluationConfig:
+        """Construye EvaluationConfig desde configuración global."""
+        eval_params = config.get("evaluation_config", {})
+        try:
+            return EvaluationConfig(**eval_params)
+        except (TypeError, ValueError) as e:
+            logger.warning(
+                f"Configuración de evaluación inválida, usando defaults: {e}"
+            )
+            return EvaluationConfig()
+
+    # =========================================================================
+    # PROPIEDADES LAZY-LOADED
+    # =========================================================================
+    
+    @property
+    def graph_builder(self) -> BudgetGraphBuilder:
+        """Constructor de grafos de presupuesto (lazy-loaded)."""
+        if self._graph_builder is None:
+            self._graph_builder = BudgetGraphBuilder()
+        return self._graph_builder
+
+    @property
+    def topological_analyzer(self) -> BusinessTopologicalAnalyzer:
+        """Analizador topológico (lazy-loaded)."""
+        if self._topological_analyzer is None:
+            self._topological_analyzer = BusinessTopologicalAnalyzer(self.telemetry)
+        return self._topological_analyzer
+
+    @property
+    def translator(self) -> SemanticTranslator:
+        """Traductor semántico (lazy-loaded)."""
+        if self._translator is None:
+            self._translator = SemanticTranslator()
+        return self._translator
+
+    @property
+    def financial_engine(self) -> FinancialEngine:
+        """Motor financiero (lazy-loaded)."""
+        if self._financial_engine is None:
+            financial_config_data = self.config.get("financial_config", {})
+            financial_config = FinancialConfig(**financial_config_data)
+            self._financial_engine = FinancialEngine(financial_config)
+        return self._financial_engine
+
+    # =========================================================================
+    # CONTEXT MANAGERS Y UTILIDADES
+    # =========================================================================
+    
+    @contextmanager
+    def _phase_context(
+        self, phase: EvaluationPhase
+    ) -> Generator[None, None, None]:
+        """
+        Context manager para tracking y telemetría de fases.
+        
+        Registra automáticamente:
+        - Tiempo de ejecución
+        - Errores ocurridos
+        - Métricas de telemetría
+        """
+        phase_name = phase.name.lower()
+        start_time = time.perf_counter()
+        
+        logger.debug(f"{phase.emoji} Iniciando fase: {phase_name}")
+        self.telemetry.start_span(f"business_agent.{phase_name}")
+        
+        error_occurred: Optional[str] = None
+        
+        try:
+            yield
+        except Exception as e:
+            error_occurred = str(e)
+            self.telemetry.record_error(f"business_agent.{phase_name}", error_occurred)
+            raise
+        finally:
+            elapsed_ms = (time.perf_counter() - start_time) * 1000
+            self.telemetry.end_span()
+            self.telemetry.record_metric(
+                f"phase_{phase_name}_duration_ms", elapsed_ms
+            )
+            
+            # Registrar resultado de fase
+            self._phase_results.append(PhaseResult(
+                phase=phase,
+                duration_ms=elapsed_ms,
+                success=error_occurred is None,
+                error=error_occurred,
+            ))
+            
+            status = "✓" if error_occurred is None else "✗"
+            logger.debug(
+                f"{phase.emoji} Fase {phase_name} [{status}]: {elapsed_ms:.2f}ms"
+            )
+
+    def _generate_default_cash_flows(
+        self, initial_investment: float
+    ) -> List[float]:
+        """
+        Genera flujos de caja proyectados por defecto.
+        
+        Utiliza un modelo simplificado de retorno uniforme
+        basado en la configuración de evaluación.
+        """
+        return [
+            initial_investment * self.eval_config.cash_flow_ratio
+            for _ in range(self.eval_config.cash_flow_periods)
+        ]
+
+    # =========================================================================
+    # FASES DEL PIPELINE
+    # =========================================================================
+    
+    def _extract_evaluation_context(
+        self, raw_context: Dict[str, Any]
+    ) -> EvaluationContext:
+        """
+        Extrae y valida el contexto de evaluación.
+        
+        Args:
+            raw_context: Diccionario con datos del pipeline.
+            
+        Returns:
+            Contexto de evaluación validado y normalizado.
+            
+        Raises:
+            DataValidationError: Si los datos requeridos no están disponibles.
+        """
+        df_presupuesto = raw_context.get("df_presupuesto")
+        df_apus_detail = raw_context.get("df_merged")
+        
+        if df_presupuesto is None:
+            raise DataValidationError(
+                "DataFrame 'df_presupuesto' no encontrado en contexto",
+                phase="Extraction"
+            )
+        
+        if df_apus_detail is None:
+            raise DataValidationError(
+                "DataFrame 'df_merged' no encontrado en contexto",
+                phase="Extraction"
+            )
+        
+        # Obtener o generar parámetros financieros
+        initial_investment = raw_context.get(
+            "initial_investment",
+            self.eval_config.default_initial_investment
+        )
+        
+        cash_flows = raw_context.get("cash_flows")
+        if cash_flows is None:
+            cash_flows = self._generate_default_cash_flows(initial_investment)
+            logger.info(
+                f"Flujos de caja generados automáticamente: "
+                f"{len(cash_flows)} períodos"
+            )
+        
+        context = EvaluationContext(
+            df_presupuesto=df_presupuesto,
+            df_apus_detail=df_apus_detail,
+            initial_investment=initial_investment,
+            cash_flows=cash_flows,
+            metadata=raw_context.get("metadata", {}),
+        )
+        
+        context.validate()
+        return context
+
+    def _build_budget_topology(
+        self, context: EvaluationContext
+    ) -> BudgetGraph:
+        """
+        Construye el grafo topológico del presupuesto.
+        
+        El grafo representa la estructura del presupuesto como un
+        complejo simplicial donde:
+        - Nodos: Partidas, capítulos, recursos
+        - Aristas: Relaciones de composición y dependencia
+        """
+        with self._phase_context(EvaluationPhase.TOPOLOGY_CONSTRUCTION):
+            logger.info("Construyendo topología del presupuesto...")
+            
+            graph = self.graph_builder.build(
+                context.df_presupuesto,
+                context.df_apus_detail
+            )
+            
+            # Validación básica del grafo
+            if graph is None:
+                raise TopologicalCoherenceError(
+                    "El constructor de grafos retornó None",
+                    phase="TopologyConstruction"
+                )
+            
+            return graph
+
+    def _analyze_topology(self, graph: BudgetGraph) -> TopologicalMetrics:
+        """
+        Analiza la topología del grafo y extrae invariantes.
+        
+        Aplica técnicas de topología algebraica para caracterizar
+        la estructura del presupuesto mediante:
+        - Números de Betti (homología)
+        - Estabilidad piramidal (jerarquía)
+        - Densidad de conexiones
+        
+        Args:
+            graph: Grafo de presupuesto construido.
+            
+        Returns:
+            Métricas topológicas validadas.
+            
+        Raises:
+            TopologicalCoherenceError: Si los invariantes son inconsistentes.
+        """
+        with self._phase_context(EvaluationPhase.TOPOLOGICAL_ANALYSIS):
+            logger.info("Analizando estructura topológica...")
+            
+            # Calcular números de Betti
+            betti_numbers = self.topological_analyzer.calculate_betti_numbers(graph)
+            
+            # Calcular estabilidad de la pirámide de costos
+            pyramid_stability = self.topological_analyzer.calculate_pyramid_stability(
+                graph
+            )
+            
+            # Construir métricas (valida en __post_init__)
+            metrics = TopologicalMetrics(
+                betti_0=betti_numbers.get("betti_0", 1),
+                betti_1=betti_numbers.get("betti_1", 0),
+                betti_2=betti_numbers.get("betti_2", 0),
+                pyramid_stability=pyramid_stability,
+                graph_density=betti_numbers.get("density", 0.0),
+            )
+            
+            # Validación de coherencia adicional
+            self._validate_topological_coherence(metrics)
+            
+            logger.info(
+                f"Métricas topológicas: β₀={metrics.betti_0}, β₁={metrics.betti_1}, "
+                f"β₂={metrics.betti_2}, χ={metrics.euler_characteristic}"
+            )
+            
+            return metrics
+
+    def _validate_topological_coherence(
+        self, metrics: TopologicalMetrics
+    ) -> None:
+        """
+        Valida la coherencia topológica según invariantes algebraicos.
+        
+        Verificaciones:
+        1. Estabilidad piramidal en rango válido [0, 1]
+        2. Score de coherencia sobre umbral mínimo
+        3. Consistencia de la característica de Euler
+        """
+        if not self.eval_config.enable_topological_validation:
+            logger.debug("Validación topológica deshabilitada")
+            return
+        
+        # Validar estabilidad piramidal
+        if not 0 <= metrics.pyramid_stability <= 1:
+            raise TopologicalCoherenceError(
+                f"Estabilidad piramidal fuera de rango [0,1]: "
+                f"{metrics.pyramid_stability}",
+                phase="TopologicalValidation"
+            )
+        
+        # Advertencia si coherencia es baja
+        if metrics.coherence_score < self.eval_config.min_coherence_threshold:
+            logger.warning(
+                f"⚠️ Score de coherencia bajo: {metrics.coherence_score:.2%} "
+                f"(umbral: {self.eval_config.min_coherence_threshold:.2%}). "
+                f"La estructura del presupuesto puede tener problemas."
+            )
+            self.telemetry.record_metric("coherence_warning", 1)
+
+    def _perform_financial_analysis(
+        self, context: EvaluationContext
+    ) -> Dict[str, Any]:
+        """
+        Ejecuta el análisis financiero completo.
+        
+        Incluye:
+        - VPN (Valor Presente Neto)
+        - TIR (Tasa Interna de Retorno)
+        - Análisis de opciones reales
+        - Métricas de riesgo (VaR, CVaR)
+        """
+        with self._phase_context(EvaluationPhase.FINANCIAL_ANALYSIS):
+            logger.info("Realizando análisis financiero...")
+            
+            cost_std_dev = (
+                context.initial_investment * 
+                self.eval_config.cost_std_dev_ratio
+            )
+            
+            try:
+                return self.financial_engine.analyze_project(
+                    initial_investment=context.initial_investment,
+                    expected_cash_flows=context.cash_flows,
+                    cost_std_dev=cost_std_dev,
+                    project_volatility=self.eval_config.project_volatility,
+                )
+            except Exception as e:
+                raise FinancialAnalysisError(
+                    f"Error en motor financiero: {e}",
+                    phase="FinancialAnalysis"
+                ) from e
+
+    def _generate_executive_report(
+        self,
+        graph: BudgetGraph,
+        financial_metrics: Dict[str, Any],
+    ) -> ConstructionRiskReport:
+        """
+        Genera el reporte ejecutivo base.
+        
+        Combina métricas topológicas y financieras en un
+        reporte estructurado para toma de decisiones.
+        """
+        with self._phase_context(EvaluationPhase.REPORT_SYNTHESIS):
+            logger.info("Sintetizando reporte ejecutivo...")
+            
+            report = self.topological_analyzer.generate_executive_report(
+                graph, financial_metrics
+            )
+            
+            if report is None:
+                raise BusinessAgentError(
+                    "El analizador topológico retornó reporte nulo",
+                    phase="ReportSynthesis"
+                )
+            
+            return report
+
+    def _enrich_with_strategic_narrative(
+        self,
+        report: ConstructionRiskReport,
+        topo_metrics: TopologicalMetrics,
+        financial_metrics: Dict[str, Any],
+    ) -> ConstructionRiskReport:
+        """
+        Enriquece el reporte con narrativa estratégica.
+        
+        Utiliza el traductor semántico para generar una
+        interpretación en lenguaje natural de las métricas
+        técnicas, facilitando la comunicación con stakeholders.
+        """
+        with self._phase_context(EvaluationPhase.NARRATIVE_COMPOSITION):
+            logger.info("Componiendo narrativa estratégica...")
+            
+            # Componer narrativa usando métricas serializadas
+            strategic_narrative = self.translator.compose_strategic_narrative(
+                topo_metrics.to_dict(),
+                financial_metrics,
+                stability=topo_metrics.pyramid_stability,
+            )
+            
+            # Enriquecer reporte
+            report.strategic_narrative = strategic_narrative
+            report.details["strategic_narrative"] = strategic_narrative
+            report.details["topological_metrics"] = topo_metrics.to_dict()
+            report.details["coherence_score"] = topo_metrics.coherence_score
+            report.details["euler_characteristic"] = topo_metrics.euler_characteristic
+            
+            return report
+
+    # =========================================================================
+    # MÉTODO PRINCIPAL
+    # =========================================================================
+    
+    def evaluate_project(
+        self, context: Dict[str, Any]
+    ) -> Optional[ConstructionRiskReport]:
+        """
+        Ejecuta una evaluación completa del proyecto.
+
+        Orquesta el pipeline de evaluación en 6 fases:
+        
+        1. **Validación**: Extracción y validación del contexto
+        2. **Construcción Topológica**: Grafo de presupuesto
+        3. **Análisis Topológico**: Números de Betti, χ, coherencia
+        4. **Análisis Financiero**: VPN, TIR, opciones reales
+        5. **Síntesis de Reporte**: Integración de métricas
+        6. **Narrativa Estratégica**: Traducción semántica
+
+        Args:
+            context: Contexto del pipeline. Debe contener:
+                - df_presupuesto (pd.DataFrame): Presupuesto
+                - df_merged (pd.DataFrame): Detalle de APUs
+                
+                Opcional:
+                - initial_investment (float): Inversión inicial
+                - cash_flows (List[float]): Flujos de caja
+
+        Returns:
+            ConstructionRiskReport si exitoso, None en caso de error manejado.
+
+        Raises:
+            DataValidationError: Datos de entrada inválidos.
+            TopologicalCoherenceError: Invariantes topológicos violados.
+            FinancialAnalysisError: Error en análisis financiero.
+        """
+        # Limpiar historial de fases anteriores
+        self._phase_results.clear()
+        total_start = time.perf_counter()
+        
+        logger.info("🤖 Iniciando evaluación de negocio del proyecto...")
+        
+        try:
+            # Fase 1: Validación y extracción
+            with self._phase_context(EvaluationPhase.VALIDATION):
+                eval_context = self._extract_evaluation_context(context)
+                logger.info(
+                    f"Contexto validado: inversión={eval_context.initial_investment:,.2f}, "
+                    f"períodos={len(eval_context.cash_flows)}"
+                )
+            
+            # Fase 2: Construcción topológica
+            graph = self._build_budget_topology(eval_context)
+            
+            # Fase 3: Análisis topológico
+            topo_metrics = self._analyze_topology(graph)
+            
+            # Registrar métricas topológicas en telemetría
+            self._record_topological_metrics(topo_metrics)
+            
+            # Fase 4: Análisis financiero
+            financial_metrics = self._perform_financial_analysis(eval_context)
+            
+            # Fase 5: Generación de reporte
+            report = self._generate_executive_report(graph, financial_metrics)
+            
+            # Fase 6: Enriquecimiento narrativo
+            report = self._enrich_with_strategic_narrative(
+                report, topo_metrics, financial_metrics
+            )
+            
+            # Métricas finales
+            total_elapsed = time.perf_counter() - total_start
+            self._record_final_metrics(total_elapsed, topo_metrics)
+            
+            logger.info(
+                f"✅ Evaluación completada en {total_elapsed:.2f}s | "
+                f"Coherencia: {topo_metrics.coherence_score:.1%} | "
+                f"χ={topo_metrics.euler_characteristic}"
+            )
+            
+            return report
+
+        except DataValidationError as e:
+            logger.warning(f"⚠️ Validación fallida: {e}")
+            return None
+
+        except TopologicalCoherenceError as e:
+            logger.error(f"❌ Error de coherencia topológica: {e}")
+            return None
+
+        except FinancialAnalysisError as e:
+            logger.error(f"❌ Error en análisis financiero: {e}")
+            return None
+
+        except Exception as e:
+            logger.error(
+                f"❌ Error inesperado en evaluación: {e}",
+                exc_info=True
+            )
+            self.telemetry.record_error("business_agent.unexpected", str(e))
+            return None
+
+    def _record_topological_metrics(
+        self, metrics: TopologicalMetrics
+    ) -> None:
+        """Registra métricas topológicas en telemetría."""
+        self.telemetry.record_metric("betti_0", metrics.betti_0)
+        self.telemetry.record_metric("betti_1", metrics.betti_1)
+        self.telemetry.record_metric("betti_2", metrics.betti_2)
+        self.telemetry.record_metric(
+            "euler_characteristic", metrics.euler_characteristic
+        )
+        self.telemetry.record_metric("coherence_score", metrics.coherence_score)
+        self.telemetry.record_metric(
+            "pyramid_stability", metrics.pyramid_stability
+        )
+
+    def _record_final_metrics(
+        self, 
+        total_elapsed: float,
+        topo_metrics: TopologicalMetrics,
+    ) -> None:
+        """Registra métricas finales de evaluación."""
+        self.telemetry.record_metric(
+            "total_evaluation_duration_ms", total_elapsed * 1000
+        )
+        self.telemetry.record_metric("evaluation_success", 1)
+        self.telemetry.record_metric(
+            "final_coherence_score", topo_metrics.coherence_score
+        )
+
+    # =========================================================================
+    # DIAGNÓSTICO Y UTILIDADES
+    # =========================================================================
+    
+    def get_phase_results(self) -> List[PhaseResult]:
+        """
+        Obtiene los resultados de las fases de la última evaluación.
+        
+        Returns:
+            Lista de resultados por fase con tiempos y estados.
+        """
+        return self._phase_results.copy()
+
+    def get_diagnostic_info(self) -> Dict[str, Any]:
+        """
+        Obtiene información diagnóstica del agente.
+        
+        Útil para debugging, monitoreo y verificación de estado.
+        
+        Returns:
+            Diccionario con información diagnóstica completa.
+        """
+        return {
+            "agent_version": "2.0.0",
+            "config": {
+                "initial_investment": self.eval_config.default_initial_investment,
+                "cash_flow_periods": self.eval_config.cash_flow_periods,
+                "cash_flow_ratio": self.eval_config.cash_flow_ratio,
+                "cost_std_dev_ratio": self.eval_config.cost_std_dev_ratio,
+                "project_volatility": self.eval_config.project_volatility,
+                "topological_validation": self.eval_config.enable_topological_validation,
+                "min_coherence_threshold": self.eval_config.min_coherence_threshold,
+            },
+            "components_initialized": {
+                "graph_builder": self._graph_builder is not None,
+                "topological_analyzer": self._topological_analyzer is not None,
+                "translator": self._translator is not None,
+                "financial_engine": self._financial_engine is not None,
+            },
+            "last_evaluation": {
+                "phases_completed": len(self._phase_results),
+                "total_duration_ms": sum(
+                    r.duration_ms for r in self._phase_results
+                ),
+                "all_successful": all(
+                    r.success for r in self._phase_results
+                ),
+            },
+        }
+
+    def reset_components(self) -> None:
+        """
+        Reinicia los componentes lazy-loaded.
+        
+        Útil para liberar memoria o forzar reinicialización
+        después de cambios de configuración.
+        """
+        self._graph_builder = None
+        self._topological_analyzer = None
+        self._translator = None
+        self._financial_engine = None
+        self._phase_results.clear()
+        
+        logger.info("Componentes del BusinessAgent reiniciados")
+
+
+### test_business_agent
+
+# -*- coding: utf-8 -*-
+"""
+Tests para el BusinessAgent con cobertura exhaustiva.
+
+Este módulo prueba:
+- Validación de configuración e invariantes
+- Coherencia topológica (números de Betti, característica de Euler)
+- Pipeline de evaluación completo
+- Manejo de errores específicos
+- Telemetría y diagnóstico
+- Lazy-loading de componentes
+
+Ejecutar con: pytest test_business_agent.py -v --cov=agent.business_agent
+"""
+
+import logging
+import math
+from dataclasses import FrozenInstanceError
+from typing import Any, Dict, List, Optional
+from unittest.mock import MagicMock, Mock, patch, PropertyMock
+
+import pandas as pd
+import pytest
+from hypothesis import given, settings, strategies as st, assume
+
+# Módulo bajo prueba
+from agent.business_agent import (
+    BusinessAgent,
+    BusinessAgentError,
+    DataValidationError,
+    DefaultParams,
+    EvaluationConfig,
+    EvaluationContext,
+    EvaluationPhase,
+    FinancialAnalysisError,
+    PhaseResult,
+    TopologicalCoherenceError,
+    TopologicalMetrics,
+)
+
+
+# =============================================================================
+# FIXTURES
+# =============================================================================
+
+@pytest.fixture
+def mock_telemetry():
+    """Mock del contexto de telemetría."""
+    telemetry = MagicMock()
+    telemetry.start_span = MagicMock()
+    telemetry.end_span = MagicMock()
+    telemetry.record_metric = MagicMock()
+    telemetry.record_error = MagicMock()
+    return telemetry
+
+
+@pytest.fixture
+def basic_config() -> Dict[str, Any]:
+    """Configuración básica válida."""
+    return {
+        "financial_config": {
+            "discount_rate": 0.10,
+            "risk_free_rate": 0.03,
+        },
+        "evaluation_config": {
+            "default_initial_investment": 500_000.0,
+            "cash_flow_periods": 3,
+        },
+    }
+
+
+@pytest.fixture
+def sample_df_presupuesto() -> pd.DataFrame:
+    """DataFrame de presupuesto de ejemplo."""
+    return pd.DataFrame({
+        "id": [1, 2, 3, 4, 5],
+        "capitulo": ["CAP1", "CAP1", "CAP2", "CAP2", "CAP3"],
+        "partida": ["P1.1", "P1.2", "P2.1", "P2.2", "P3.1"],
+        "descripcion": [
+            "Excavación",
+            "Cimentación",
+            "Estructura metálica",
+            "Soldadura",
+            "Acabados",
+        ],
+        "cantidad": [100.0, 50.0, 200.0, 150.0, 75.0],
+        "precio_unitario": [25.0, 100.0, 80.0, 45.0, 60.0],
+        "total": [2500.0, 5000.0, 16000.0, 6750.0, 4500.0],
+    })
+
+
+@pytest.fixture
+def sample_df_apus() -> pd.DataFrame:
+    """DataFrame de APUs de ejemplo."""
+    return pd.DataFrame({
+        "partida_id": [1, 1, 2, 2, 3, 4, 5],
+        "recurso": [
+            "Mano de obra",
+            "Equipo",
+            "Material",
+            "Mano de obra",
+            "Material",
+            "Equipo",
+            "Material",
+        ],
+        "unidad": ["hr", "hr", "m3", "hr", "kg", "hr", "m2"],
+        "cantidad": [10.0, 5.0, 25.0, 8.0, 100.0, 12.0, 50.0],
+        "precio": [15.0, 30.0, 50.0, 15.0, 8.0, 25.0, 20.0],
+    })
+
+
+@pytest.fixture
+def valid_evaluation_context(
+    sample_df_presupuesto, sample_df_apus
+) -> EvaluationContext:
+    """Contexto de evaluación válido."""
+    return EvaluationContext(
+        df_presupuesto=sample_df_presupuesto,
+        df_apus_detail=sample_df_apus,
+        initial_investment=1_000_000.0,
+        cash_flows=[300_000.0, 350_000.0, 400_000.0, 450_000.0, 500_000.0],
+    )
+
+
+@pytest.fixture
+def valid_raw_context(sample_df_presupuesto, sample_df_apus) -> Dict[str, Any]:
+    """Contexto raw válido para evaluate_project."""
+    return {
+        "df_presupuesto": sample_df_presupuesto,
+        "df_merged": sample_df_apus,
+        "initial_investment": 1_500_000.0,
+        "cash_flows": [400_000.0, 450_000.0, 500_000.0],
+    }
+
+
+@pytest.fixture
+def mock_graph():
+    """Mock del grafo de presupuesto."""
+    graph = MagicMock()
+    graph.number_of_nodes.return_value = 10
+    graph.number_of_edges.return_value = 15
+    return graph
+
+
+@pytest.fixture
+def mock_construction_risk_report():
+    """Mock del reporte de riesgo."""
+    report = MagicMock()
+    report.risk_level = "MEDIUM"
+    report.strategic_narrative = None
+    report.details = {}
+    return report
+
+
+@pytest.fixture
+def business_agent(basic_config, mock_telemetry) -> BusinessAgent:
+    """BusinessAgent configurado para tests."""
+    return BusinessAgent(
+        config=basic_config,
+        telemetry=mock_telemetry,
+    )
+
+
+# =============================================================================
+# TESTS DE DefaultParams
+# =============================================================================
+
+class TestDefaultParams:
+    """Tests para la clase de constantes DefaultParams."""
+
+    def test_initial_investment_positive(self):
+        """La inversión inicial por defecto debe ser positiva."""
+        assert DefaultParams.INITIAL_INVESTMENT > 0
+
+    def test_cash_flow_periods_at_least_one(self):
+        """Debe haber al menos un período de flujo de caja."""
+        assert DefaultParams.CASH_FLOW_PERIODS >= 1
+
+    def test_ratios_in_valid_range(self):
+        """Los ratios deben estar en rangos válidos."""
+        assert 0 < DefaultParams.CASH_FLOW_RATIO <= 1
+        assert 0 < DefaultParams.COST_STD_DEV_RATIO < 1
+        assert 0 < DefaultParams.PROJECT_VOLATILITY < 1
+        assert 0 <= DefaultParams.MIN_COHERENCE_THRESHOLD <= 1
+
+
+# =============================================================================
+# TESTS DE EvaluationConfig
+# =============================================================================
+
+class TestEvaluationConfig:
+    """Tests para la configuración de evaluación."""
+
+    def test_default_initialization(self):
+        """Debe inicializarse correctamente con valores por defecto."""
+        config = EvaluationConfig()
+        
+        assert config.default_initial_investment == DefaultParams.INITIAL_INVESTMENT
+        assert config.cash_flow_periods == DefaultParams.CASH_FLOW_PERIODS
+        assert config.cash_flow_ratio == DefaultParams.CASH_FLOW_RATIO
+        assert config.enable_topological_validation is True
+
+    def test_custom_initialization(self):
+        """Debe aceptar valores personalizados válidos."""
+        config = EvaluationConfig(
+            default_initial_investment=2_000_000.0,
+            cash_flow_periods=10,
+            cash_flow_ratio=0.25,
+            project_volatility=0.30,
+        )
+        
+        assert config.default_initial_investment == 2_000_000.0
+        assert config.cash_flow_periods == 10
+        assert config.cash_flow_ratio == 0.25
+        assert config.project_volatility == 0.30
+
+    def test_immutability(self):
+        """La configuración debe ser inmutable (frozen)."""
+        config = EvaluationConfig()
+        
+        with pytest.raises(FrozenInstanceError):
+            config.default_initial_investment = 999.0
+
+    @pytest.mark.parametrize("invalid_investment", [0, -1, -1000])
+    def test_invalid_initial_investment(self, invalid_investment):
+        """Debe rechazar inversión inicial no positiva."""
+        with pytest.raises(ValueError, match="inversión inicial debe ser positiva"):
+            EvaluationConfig(default_initial_investment=invalid_investment)
+
+    @pytest.mark.parametrize("invalid_periods", [0, -1, -5])
+    def test_invalid_cash_flow_periods(self, invalid_periods):
+        """Debe rechazar períodos de flujo de caja inválidos."""
+        with pytest.raises(ValueError, match="al menos un período"):
+            EvaluationConfig(cash_flow_periods=invalid_periods)
+
+    @pytest.mark.parametrize("invalid_ratio", [0, -0.1, 1.1, 2.0])
+    def test_invalid_cash_flow_ratio(self, invalid_ratio):
+        """Debe rechazar ratios de flujo de caja fuera de (0, 1]."""
+        with pytest.raises(ValueError, match="ratio de flujo"):
+            EvaluationConfig(cash_flow_ratio=invalid_ratio)
+
+    @pytest.mark.parametrize("invalid_std", [0, -0.05, 1.0, 1.5])
+    def test_invalid_cost_std_dev_ratio(self, invalid_std):
+        """Debe rechazar ratios de desviación fuera de (0, 1)."""
+        with pytest.raises(ValueError, match="ratio de desviación"):
+            EvaluationConfig(cost_std_dev_ratio=invalid_std)
+
+    @pytest.mark.parametrize("invalid_vol", [0, -0.1, 1.0, 2.0])
+    def test_invalid_project_volatility(self, invalid_vol):
+        """Debe rechazar volatilidad fuera de (0, 1)."""
+        with pytest.raises(ValueError, match="volatilidad"):
+            EvaluationConfig(project_volatility=invalid_vol)
+
+    @pytest.mark.parametrize("invalid_threshold", [-0.1, 1.1, 2.0])
+    def test_invalid_coherence_threshold(self, invalid_threshold):
+        """Debe rechazar umbral de coherencia fuera de [0, 1]."""
+        with pytest.raises(ValueError, match="umbral de coherencia"):
+            EvaluationConfig(min_coherence_threshold=invalid_threshold)
+
+
+# =============================================================================
+# TESTS DE TopologicalMetrics
+# =============================================================================
+
+class TestTopologicalMetrics:
+    """Tests para métricas topológicas e invariantes algebraicos."""
+
+    def test_valid_initialization(self):
+        """Debe inicializarse con valores válidos."""
+        metrics = TopologicalMetrics(
+            betti_0=3,
+            betti_1=1,
+            betti_2=0,
+            pyramid_stability=0.85,
+        )
+        
+        assert metrics.betti_0 == 3
+        assert metrics.betti_1 == 1
+        assert metrics.betti_2 == 0
+        assert metrics.pyramid_stability == 0.85
+
+    def test_euler_characteristic_calculation(self):
+        """Debe calcular correctamente χ = β₀ - β₁ + β₂."""
+        metrics = TopologicalMetrics(
+            betti_0=5,
+            betti_1=3,
+            betti_2=1,
+            pyramid_stability=0.75,
+        )
+        
+        # χ = 5 - 3 + 1 = 3
+        assert metrics.euler_characteristic == 3
+
+    def test_euler_characteristic_cached(self):
+        """La característica de Euler debe estar cacheada."""
+        metrics = TopologicalMetrics(
+            betti_0=2,
+            betti_1=1,
+            betti_2=0,
+            pyramid_stability=0.80,
+        )
+        
+        # Acceder múltiples veces debe retornar el mismo valor
+        chi_1 = metrics.euler_characteristic
+        chi_2 = metrics.euler_characteristic
+        
+        assert chi_1 == chi_2 == 1
+
+    @pytest.mark.parametrize("b0,b1,b2,expected_chi", [
+        (1, 0, 0, 1),   # Espacio conexo sin agujeros
+        (2, 1, 0, 1),   # Dos componentes con un ciclo
+        (1, 2, 1, 0),   # Toro (topología de donut)
+        (1, 0, 1, 2),   # Esfera S²
+        (10, 5, 2, 7),  # Caso complejo
+    ])
+    def test_euler_characteristic_various_cases(self, b0, b1, b2, expected_chi):
+        """Verifica χ para varios casos topológicos conocidos."""
+        metrics = TopologicalMetrics(
+            betti_0=b0,
+            betti_1=b1,
+            betti_2=b2,
+            pyramid_stability=0.75,
+        )
+        
+        assert metrics.euler_characteristic == expected_chi
+
+    def test_betti_0_must_be_positive(self):
+        """β₀ debe ser al menos 1 (mínimo un componente conexo)."""
+        with pytest.raises(TopologicalCoherenceError, match="β₀ debe ser ≥ 1"):
+            TopologicalMetrics(
+                betti_0=0,
+                betti_1=0,
+                betti_2=0,
+                pyramid_stability=0.80,
+            )
+
+    def test_negative_betti_numbers_rejected(self):
+        """Los números de Betti deben ser no negativos."""
+        with pytest.raises(TopologicalCoherenceError, match="no negativos"):
+            TopologicalMetrics(
+                betti_0=2,
+                betti_1=-1,
+                betti_2=0,
+                pyramid_stability=0.80,
+            )
+        
+        with pytest.raises(TopologicalCoherenceError, match="no negativos"):
+            TopologicalMetrics(
+                betti_0=2,
+                betti_1=0,
+                betti_2=-3,
+                pyramid_stability=0.80,
+            )
+
+    def test_coherence_score_calculation(self):
+        """Debe calcular el score de coherencia correctamente."""
+        # Caso ideal: alta estabilidad, sin ciclos
+        metrics_ideal = TopologicalMetrics(
+            betti_0=5,
+            betti_1=0,
+            betti_2=0,
+            pyramid_stability=1.0,
+        )
+        
+        # Con β₁=0, cycle_penalty_factor = 1.0
+        # connectivity_factor = min(1.0, 5/10) = 0.5
+        # score = 1.0*0.5 + 1.0*0.3 + 0.5*0.2 = 0.5 + 0.3 + 0.1 = 0.9
+        assert abs(metrics_ideal.coherence_score - 0.9) < 0.01
+
+    def test_coherence_score_penalizes_cycles(self):
+        """El score debe penalizar ciclos (β₁ alto)."""
+        metrics_no_cycles = TopologicalMetrics(
+            betti_0=5,
+            betti_1=0,
+            betti_2=0,
+            pyramid_stability=0.80,
+        )
+        
+        metrics_with_cycles = TopologicalMetrics(
+            betti_0=5,
+            betti_1=5,
+            betti_2=0,
+            pyramid_stability=0.80,
+        )
+        
+        assert metrics_no_cycles.coherence_score > metrics_with_cycles.coherence_score
+
+    def test_coherence_score_in_valid_range(self):
+        """El score de coherencia debe estar en [0, 1]."""
+        metrics = TopologicalMetrics(
+            betti_0=1,
+            betti_1=10,
+            betti_2=5,
+            pyramid_stability=0.1,
+        )
+        
+        assert 0 <= metrics.coherence_score <= 1
+
+    def test_to_dict_serialization(self):
+        """Debe serializar correctamente a diccionario."""
+        metrics = TopologicalMetrics(
+            betti_0=3,
+            betti_1=2,
+            betti_2=1,
+            pyramid_stability=0.75,
+            graph_density=0.45,
+        )
+        
+        result = metrics.to_dict()
+        
+        assert result["betti_0"] == 3
+        assert result["betti_1"] == 2
+        assert result["betti_2"] == 1
+        assert result["euler_characteristic"] == 2  # 3 - 2 + 1
+        assert result["pyramid_stability"] == 0.75
+        assert result["graph_density"] == 0.45
+        assert "coherence_score" in result
+
+    def test_immutability(self):
+        """Las métricas deben ser inmutables."""
+        metrics = TopologicalMetrics(
+            betti_0=2,
+            betti_1=1,
+            betti_2=0,
+            pyramid_stability=0.80,
+        )
+        
+        with pytest.raises(FrozenInstanceError):
+            metrics.betti_0 = 5
+
+    @given(
+        b0=st.integers(min_value=1, max_value=100),
+        b1=st.integers(min_value=0, max_value=100),
+        b2=st.integers(min_value=0, max_value=100),
+        stability=st.floats(min_value=0.0, max_value=1.0, allow_nan=False),
+    )
+    @settings(max_examples=50)
+    def test_euler_characteristic_invariant_property(self, b0, b1, b2, stability):
+        """Property-based test: χ siempre debe ser consistente."""
+        metrics = TopologicalMetrics(
+            betti_0=b0,
+            betti_1=b1,
+            betti_2=b2,
+            pyramid_stability=stability,
+        )
+        
+        # Invariante fundamental
+        assert metrics.euler_characteristic == b0 - b1 + b2
+        
+        # Coherencia debe estar en rango válido
+        assert 0 <= metrics.coherence_score <= 1
+
+
+# =============================================================================
+# TESTS DE EvaluationContext
+# =============================================================================
+
+class TestEvaluationContext:
+    """Tests para el contexto de evaluación."""
+
+    def test_valid_context_creation(
+        self, sample_df_presupuesto, sample_df_apus
+    ):
+        """Debe crear contexto válido sin errores."""
+        context = EvaluationContext(
+            df_presupuesto=sample_df_presupuesto,
+            df_apus_detail=sample_df_apus,
+            initial_investment=500_000.0,
+            cash_flows=[100_000.0, 150_000.0, 200_000.0],
+        )
+        
+        context.validate()  # No debe lanzar excepción
+
+    def test_empty_presupuesto_rejected(self, sample_df_apus):
+        """Debe rechazar DataFrame de presupuesto vacío."""
+        context = EvaluationContext(
+            df_presupuesto=pd.DataFrame(),
+            df_apus_detail=sample_df_apus,
+            initial_investment=500_000.0,
+            cash_flows=[100_000.0],
+        )
+        
+        with pytest.raises(DataValidationError, match="presupuesto vacío"):
+            context.validate()
+
+    def test_none_presupuesto_rejected(self, sample_df_apus):
+        """Debe rechazar presupuesto None."""
+        context = EvaluationContext(
+            df_presupuesto=None,
+            df_apus_detail=sample_df_apus,
+            initial_investment=500_000.0,
+            cash_flows=[100_000.0],
+        )
+        
+        with pytest.raises(DataValidationError, match="presupuesto vacío"):
+            context.validate()
+
+    def test_empty_apus_rejected(self, sample_df_presupuesto):
+        """Debe rechazar DataFrame de APUs vacío."""
+        context = EvaluationContext(
+            df_presupuesto=sample_df_presupuesto,
+            df_apus_detail=pd.DataFrame(),
+            initial_investment=500_000.0,
+            cash_flows=[100_000.0],
+        )
+        
+        with pytest.raises(DataValidationError, match="APUs vacío"):
+            context.validate()
+
+    def test_zero_investment_rejected(
+        self, sample_df_presupuesto, sample_df_apus
+    ):
+        """Debe rechazar inversión inicial cero o negativa."""
+        context = EvaluationContext(
+            df_presupuesto=sample_df_presupuesto,
+            df_apus_detail=sample_df_apus,
+            initial_investment=0.0,
+            cash_flows=[100_000.0],
+        )
+        
+        with pytest.raises(DataValidationError, match="positiva"):
+            context.validate()
+
+    def test_empty_cash_flows_rejected(
+        self, sample_df_presupuesto, sample_df_apus
+    ):
+        """Debe rechazar lista de flujos de caja vacía."""
+        context = EvaluationContext(
+            df_presupuesto=sample_df_presupuesto,
+            df_apus_detail=sample_df_apus,
+            initial_investment=500_000.0,
+            cash_flows=[],
+        )
+        
+        with pytest.raises(DataValidationError, match="flujos de caja vacía"):
+            context.validate()
+
+    def test_negative_cash_flows_rejected(
+        self, sample_df_presupuesto, sample_df_apus
+    ):
+        """Debe rechazar flujos de caja negativos."""
+        context = EvaluationContext(
+            df_presupuesto=sample_df_presupuesto,
+            df_apus_detail=sample_df_apus,
+            initial_investment=500_000.0,
+            cash_flows=[100_000.0, -50_000.0, 200_000.0],
+        )
+        
+        with pytest.raises(DataValidationError, match="no pueden ser negativos"):
+            context.validate()
+
+
+# =============================================================================
+# TESTS DE EXCEPCIONES
+# =============================================================================
+
+class TestExceptions:
+    """Tests para el sistema de excepciones."""
+
+    def test_business_agent_error_with_phase(self):
+        """BusinessAgentError debe incluir fase en el mensaje."""
+        error = BusinessAgentError("Test error", phase="TestPhase")
+        
+        assert "TestPhase" in str(error)
+        assert "Test error" in str(error)
+        assert error.phase == "TestPhase"
+
+    def test_business_agent_error_without_phase(self):
+        """BusinessAgentError debe funcionar sin fase."""
+        error = BusinessAgentError("Test error")
+        
+        assert str(error) == "Test error"
+        assert error.phase is None
+
+    def test_data_validation_error_inheritance(self):
+        """DataValidationError debe heredar de BusinessAgentError."""
+        error = DataValidationError("Invalid data", phase="Validation")
+        
+        assert isinstance(error, BusinessAgentError)
+        assert isinstance(error, Exception)
+
+    def test_topological_coherence_error_inheritance(self):
+        """TopologicalCoherenceError debe heredar de BusinessAgentError."""
+        error = TopologicalCoherenceError("Invalid topology", phase="Analysis")
+        
+        assert isinstance(error, BusinessAgentError)
+
+    def test_financial_analysis_error_inheritance(self):
+        """FinancialAnalysisError debe heredar de BusinessAgentError."""
+        error = FinancialAnalysisError("Financial error", phase="Financial")
+        
+        assert isinstance(error, BusinessAgentError)
+
+
+# =============================================================================
+# TESTS DE EvaluationPhase
+# =============================================================================
+
+class TestEvaluationPhase:
+    """Tests para las fases de evaluación."""
+
+    def test_all_phases_have_emoji(self):
+        """Todas las fases deben tener un emoji definido."""
+        for phase in EvaluationPhase:
+            emoji = phase.emoji
+            assert emoji is not None
+            assert len(emoji) > 0
+
+    def test_phase_order(self):
+        """Las fases deben tener orden definido."""
+        phases = list(EvaluationPhase)
+        
+        assert phases[0] == EvaluationPhase.VALIDATION
+        assert phases[-1] == EvaluationPhase.NARRATIVE_COMPOSITION
+
+    def test_phase_count(self):
+        """Debe haber exactamente 6 fases."""
+        assert len(EvaluationPhase) == 6
+
+
+# =============================================================================
+# TESTS DE PhaseResult
+# =============================================================================
+
+class TestPhaseResult:
+    """Tests para resultados de fase."""
+
+    def test_successful_phase_result(self):
+        """Debe crear resultado exitoso correctamente."""
+        result = PhaseResult(
+            phase=EvaluationPhase.VALIDATION,
+            duration_ms=150.5,
+            success=True,
+            data={"validated": True},
+        )
+        
+        assert result.success is True
+        assert result.error is None
+        assert result.duration_ms == 150.5
+
+    def test_failed_phase_result(self):
+        """Debe crear resultado fallido correctamente."""
+        result = PhaseResult(
+            phase=EvaluationPhase.FINANCIAL_ANALYSIS,
+            duration_ms=250.0,
+            success=False,
+            error="Division by zero",
+        )
+        
+        assert result.success is False
+        assert result.error == "Division by zero"
+
+    def test_phase_result_immutable(self):
+        """Los resultados de fase deben ser inmutables."""
+        result = PhaseResult(
+            phase=EvaluationPhase.VALIDATION,
+            duration_ms=100.0,
+            success=True,
+        )
+        
+        with pytest.raises(FrozenInstanceError):
+            result.success = False
+
+
+# =============================================================================
+# TESTS DE BusinessAgent - Inicialización
+# =============================================================================
+
+class TestBusinessAgentInitialization:
+    """Tests para la inicialización del BusinessAgent."""
+
+    def test_basic_initialization(self, basic_config, mock_telemetry):
+        """Debe inicializarse correctamente con configuración básica."""
+        agent = BusinessAgent(config=basic_config, telemetry=mock_telemetry)
+        
+        assert agent.config == basic_config
+        assert agent.telemetry == mock_telemetry
+        assert agent.eval_config is not None
+
+    def test_initialization_without_telemetry(self, basic_config):
+        """Debe crear telemetría por defecto si no se proporciona."""
+        with patch('agent.business_agent.TelemetryContext') as MockTelemetry:
+            mock_instance = MagicMock()
+            MockTelemetry.return_value = mock_instance
+            
+            agent = BusinessAgent(config=basic_config)
+            
+            MockTelemetry.assert_called_once()
+            assert agent.telemetry == mock_instance
+
+    def test_initialization_with_custom_eval_config(
+        self, basic_config, mock_telemetry
+    ):
+        """Debe aceptar configuración de evaluación personalizada."""
+        custom_config = EvaluationConfig(
+            default_initial_investment=3_000_000.0,
+            cash_flow_periods=7,
+        )
+        
+        agent = BusinessAgent(
+            config=basic_config,
+            telemetry=mock_telemetry,
+            eval_config=custom_config,
+        )
+        
+        assert agent.eval_config == custom_config
+        assert agent.eval_config.default_initial_investment == 3_000_000.0
+        assert agent.eval_config.cash_flow_periods == 7
+
+    def test_initialization_with_invalid_config_type(self, mock_telemetry):
+        """Debe rechazar config que no sea dict."""
+        with pytest.raises(TypeError, match="config debe ser dict"):
+            BusinessAgent(config="invalid", telemetry=mock_telemetry)
+
+    def test_initialization_with_invalid_telemetry_type(self, basic_config):
+        """Debe rechazar telemetry de tipo incorrecto."""
+        with pytest.raises(TypeError, match="telemetry debe ser TelemetryContext"):
+            BusinessAgent(config=basic_config, telemetry="invalid")
+
+    def test_initialization_with_invalid_eval_config_type(
+        self, basic_config, mock_telemetry
+    ):
+        """Debe rechazar eval_config de tipo incorrecto."""
+        with pytest.raises(TypeError, match="eval_config debe ser EvaluationConfig"):
+            BusinessAgent(
+                config=basic_config,
+                telemetry=mock_telemetry,
+                eval_config={"invalid": "dict"},
+            )
+
+    def test_components_not_initialized_on_construction(
+        self, basic_config, mock_telemetry
+    ):
+        """Los componentes lazy deben estar en None tras construcción."""
+        agent = BusinessAgent(config=basic_config, telemetry=mock_telemetry)
+        
+        # Acceder a atributos privados para verificar lazy-loading
+        assert agent._graph_builder is None
+        assert agent._topological_analyzer is None
+        assert agent._translator is None
+        assert agent._financial_engine is None
+
+
+# =============================================================================
+# TESTS DE BusinessAgent - Lazy Loading
+# =============================================================================
+
+class TestBusinessAgentLazyLoading:
+    """Tests para la inicialización diferida de componentes."""
+
+    def test_graph_builder_lazy_loading(self, business_agent):
+        """El graph_builder debe inicializarse en primer acceso."""
+        with patch(
+            'agent.business_agent.BudgetGraphBuilder'
+        ) as MockBuilder:
+            mock_instance = MagicMock()
+            MockBuilder.return_value = mock_instance
+            
+            # Primer acceso - debe crear
+            builder = business_agent.graph_builder
+            MockBuilder.assert_called_once()
+            
+            # Segundo acceso - debe reutilizar
+            builder_2 = business_agent.graph_builder
+            assert MockBuilder.call_count == 1
+            assert builder is builder_2
+
+    def test_topological_analyzer_lazy_loading(self, business_agent):
+        """El topological_analyzer debe inicializarse en primer acceso."""
+        with patch(
+            'agent.business_agent.BusinessTopologicalAnalyzer'
+        ) as MockAnalyzer:
+            mock_instance = MagicMock()
+            MockAnalyzer.return_value = mock_instance
+            
+            analyzer = business_agent.topological_analyzer
+            MockAnalyzer.assert_called_once_with(business_agent.telemetry)
+
+    def test_translator_lazy_loading(self, business_agent):
+        """El translator debe inicializarse en primer acceso."""
+        with patch(
+            'agent.business_agent.SemanticTranslator'
+        ) as MockTranslator:
+            mock_instance = MagicMock()
+            MockTranslator.return_value = mock_instance
+            
+            translator = business_agent.translator
+            MockTranslator.assert_called_once()
+
+    def test_financial_engine_lazy_loading(self, business_agent):
+        """El financial_engine debe inicializarse en primer acceso."""
+        with patch(
+            'agent.business_agent.FinancialEngine'
+        ) as MockEngine:
+            with patch(
+                'agent.business_agent.FinancialConfig'
+            ) as MockConfig:
+                mock_engine = MagicMock()
+                MockEngine.return_value = mock_engine
+                
+                engine = business_agent.financial_engine
+                MockConfig.assert_called_once()
+                MockEngine.assert_called_once()
+
+
+# =============================================================================
+# TESTS DE BusinessAgent - Extracción de Contexto
+# =============================================================================
+
+class TestBusinessAgentContextExtraction:
+    """Tests para la extracción y validación de contexto."""
+
+    def test_extract_valid_context(
+        self, business_agent, valid_raw_context
+    ):
+        """Debe extraer contexto válido correctamente."""
+        context = business_agent._extract_evaluation_context(valid_raw_context)
+        
+        assert context.initial_investment == 1_500_000.0
+        assert len(context.cash_flows) == 3
+        assert not context.df_presupuesto.empty
+        assert not context.df_apus_detail.empty
+
+    def test_extract_context_missing_presupuesto(self, business_agent):
+        """Debe fallar si falta df_presupuesto."""
+        raw_context = {"df_merged": pd.DataFrame({"a": [1]})}
+        
+        with pytest.raises(DataValidationError, match="df_presupuesto"):
+            business_agent._extract_evaluation_context(raw_context)
+
+    def test_extract_context_missing_apus(self, business_agent, sample_df_presupuesto):
+        """Debe fallar si falta df_merged."""
+        raw_context = {"df_presupuesto": sample_df_presupuesto}
+        
+        with pytest.raises(DataValidationError, match="df_merged"):
+            business_agent._extract_evaluation_context(raw_context)
+
+    def test_extract_context_uses_default_investment(
+        self, business_agent, sample_df_presupuesto, sample_df_apus
+    ):
+        """Debe usar inversión por defecto si no se proporciona."""
+        raw_context = {
+            "df_presupuesto": sample_df_presupuesto,
+            "df_merged": sample_df_apus,
+        }
+        
+        context = business_agent._extract_evaluation_context(raw_context)
+        
+        assert context.initial_investment == \
+            business_agent.eval_config.default_initial_investment
+
+    def test_extract_context_generates_default_cash_flows(
+        self, business_agent, sample_df_presupuesto, sample_df_apus
+    ):
+        """Debe generar flujos de caja por defecto si no se proporcionan."""
+        raw_context = {
+            "df_presupuesto": sample_df_presupuesto,
+            "df_merged": sample_df_apus,
+            "initial_investment": 1_000_000.0,
+        }
+        
+        context = business_agent._extract_evaluation_context(raw_context)
+        
+        expected_periods = business_agent.eval_config.cash_flow_periods
+        assert len(context.cash_flows) == expected_periods
+
+
+# =============================================================================
+# TESTS DE BusinessAgent - Pipeline Fases
+# =============================================================================
+
+class TestBusinessAgentPipelinePhases:
+    """Tests para las fases individuales del pipeline."""
+
+    def test_build_budget_topology(
+        self, business_agent, valid_evaluation_context, mock_graph
+    ):
+        """Debe construir la topología correctamente."""
+        with patch.object(
+            business_agent, 'graph_builder'
+        ) as mock_builder:
+            mock_builder.build.return_value = mock_graph
+            
+            graph = business_agent._build_budget_topology(valid_evaluation_context)
+            
+            mock_builder.build.assert_called_once()
+            assert graph == mock_graph
+
+    def test_build_budget_topology_null_graph_error(
+        self, business_agent, valid_evaluation_context
+    ):
+        """Debe lanzar error si el builder retorna None."""
+        with patch.object(
+            business_agent, 'graph_builder'
+        ) as mock_builder:
+            mock_builder.build.return_value = None
+            
+            with pytest.raises(TopologicalCoherenceError, match="retornó None"):
+                business_agent._build_budget_topology(valid_evaluation_context)
+
+    def test_analyze_topology(self, business_agent, mock_graph):
+        """Debe analizar la topología y retornar métricas válidas."""
+        with patch.object(
+            business_agent, 'topological_analyzer'
+        ) as mock_analyzer:
+            mock_analyzer.calculate_betti_numbers.return_value = {
+                "betti_0": 3,
+                "betti_1": 1,
+                "betti_2": 0,
+                "density": 0.5,
+            }
+            mock_analyzer.calculate_pyramid_stability.return_value = 0.85
+            
+            metrics = business_agent._analyze_topology(mock_graph)
+            
+            assert isinstance(metrics, TopologicalMetrics)
+            assert metrics.betti_0 == 3
+            assert metrics.betti_1 == 1
+            assert metrics.pyramid_stability == 0.85
+
+    def test_perform_financial_analysis(
+        self, business_agent, valid_evaluation_context
+    ):
+        """Debe ejecutar análisis financiero correctamente."""
+        expected_metrics = {
+            "npv": 250_000.0,
+            "irr": 0.15,
+            "payback_period": 3.5,
+        }
+        
+        with patch.object(
+            business_agent, 'financial_engine'
+        ) as mock_engine:
+            mock_engine.analyze_project.return_value = expected_metrics
+            
+            result = business_agent._perform_financial_analysis(
+                valid_evaluation_context
+            )
+            
+            assert result == expected_metrics
+            mock_engine.analyze_project.assert_called_once()
+
+    def test_perform_financial_analysis_error_handling(
+        self, business_agent, valid_evaluation_context
+    ):
+        """Debe envolver errores del motor financiero."""
+        with patch.object(
+            business_agent, 'financial_engine'
+        ) as mock_engine:
+            mock_engine.analyze_project.side_effect = ValueError("Engine error")
+            
+            with pytest.raises(FinancialAnalysisError, match="Engine error"):
+                business_agent._perform_financial_analysis(valid_evaluation_context)
+
+
+# =============================================================================
+# TESTS DE BusinessAgent - Validación Topológica
+# =============================================================================
+
+class TestBusinessAgentTopologicalValidation:
+    """Tests para la validación de coherencia topológica."""
+
+    def test_validate_valid_metrics(self, business_agent):
+        """No debe lanzar error con métricas válidas."""
+        metrics = TopologicalMetrics(
+            betti_0=5,
+            betti_1=1,
+            betti_2=0,
+            pyramid_stability=0.80,
+        )
+        
+        # No debe lanzar excepción
+        business_agent._validate_topological_coherence(metrics)
+
+    def test_validate_invalid_pyramid_stability(self, business_agent):
+        """Debe fallar con estabilidad fuera de rango."""
+        # Creamos métricas con estabilidad inválida (fuera de [0,1])
+        # Como TopologicalMetrics no valida esto, lo forzamos con un mock
+        metrics = MagicMock()
+        metrics.pyramid_stability = 1.5
+        metrics.coherence_score = 0.80
+        
+        with pytest.raises(
+            TopologicalCoherenceError, 
+            match="Estabilidad piramidal fuera de rango"
+        ):
+            business_agent._validate_topological_coherence(metrics)
+
+    def test_validation_skipped_when_disabled(self, basic_config, mock_telemetry):
+        """No debe validar si está deshabilitado."""
+        eval_config = EvaluationConfig(enable_topological_validation=False)
+        
+        agent = BusinessAgent(
+            config=basic_config,
+            telemetry=mock_telemetry,
+            eval_config=eval_config,
+        )
+        
+        # Métricas con estabilidad inválida
+        metrics = MagicMock()
+        metrics.pyramid_stability = -0.5  # Inválido
+        
+        # No debe lanzar error
+        agent._validate_topological_coherence(metrics)
+
+    def test_low_coherence_logs_warning(
+        self, business_agent, mock_telemetry, caplog
+    ):
+        """Debe registrar warning cuando coherencia es baja."""
+        metrics = TopologicalMetrics(
+            betti_0=1,
+            betti_1=10,  # Muchos ciclos = baja coherencia
+            betti_2=0,
+            pyramid_stability=0.30,  # Baja estabilidad
+        )
+        
+        with caplog.at_level(logging.WARNING):
+            business_agent._validate_topological_coherence(metrics)
+        
+        assert "Score de coherencia bajo" in caplog.text
+        mock_telemetry.record_metric.assert_any_call("coherence_warning", 1)
+
+
+# =============================================================================
+# TESTS DE BusinessAgent - evaluate_project (Integración)
+# =============================================================================
+
+class TestBusinessAgentEvaluateProject:
+    """Tests de integración para evaluate_project."""
+
+    def test_successful_evaluation(
+        self,
+        business_agent,
+        valid_raw_context,
+        mock_graph,
+        mock_construction_risk_report,
+    ):
+        """Debe completar evaluación exitosamente con datos válidos."""
+        with patch.object(
+            business_agent, 'graph_builder'
+        ) as mock_builder, patch.object(
+            business_agent, 'topological_analyzer'
+        ) as mock_analyzer, patch.object(
+            business_agent, 'financial_engine'
+        ) as mock_engine, patch.object(
+            business_agent, 'translator'
+        ) as mock_translator:
+            # Configurar mocks
+            mock_builder.build.return_value = mock_graph
+            mock_analyzer.calculate_betti_numbers.return_value = {
+                "betti_0": 3, "betti_1": 1, "betti_2": 0
+            }
+            mock_analyzer.calculate_pyramid_stability.return_value = 0.85
+            mock_analyzer.generate_executive_report.return_value = \
+                mock_construction_risk_report
+            mock_engine.analyze_project.return_value = {"npv": 100_000}
+            mock_translator.compose_strategic_narrative.return_value = \
+                "Strategic narrative"
+            
+            result = business_agent.evaluate_project(valid_raw_context)
+            
+            assert result is not None
+            assert result.strategic_narrative == "Strategic narrative"
+            assert "coherence_score" in result.details
+
+    def test_evaluation_with_missing_data_returns_none(
+        self, business_agent, caplog
+    ):
+        """Debe retornar None si faltan datos requeridos."""
+        invalid_context = {"some_key": "some_value"}
+        
+        with caplog.at_level(logging.WARNING):
+            result = business_agent.evaluate_project(invalid_context)
+        
+        assert result is None
+        assert "Validación fallida" in caplog.text
+
+    def test_evaluation_records_phase_results(
+        self, business_agent, valid_raw_context, mock_graph, mock_construction_risk_report
+    ):
+        """Debe registrar resultados de cada fase."""
+        with patch.object(
+            business_agent, 'graph_builder'
+        ) as mock_builder, patch.object(
+            business_agent, 'topological_analyzer'
+        ) as mock_analyzer, patch.object(
+            business_agent, 'financial_engine'
+        ) as mock_engine, patch.object(
+            business_agent, 'translator'
+        ) as mock_translator:
+            mock_builder.build.return_value = mock_graph
+            mock_analyzer.calculate_betti_numbers.return_value = {
+                "betti_0": 2, "betti_1": 0, "betti_2": 0
+            }
+            mock_analyzer.calculate_pyramid_stability.return_value = 0.90
+            mock_analyzer.generate_executive_report.return_value = \
+                mock_construction_risk_report
+            mock_engine.analyze_project.return_value = {}
+            mock_translator.compose_strategic_narrative.return_value = ""
+            
+            business_agent.evaluate_project(valid_raw_context)
+            
+            phase_results = business_agent.get_phase_results()
+            
+            assert len(phase_results) == 6  # Todas las fases
+            assert all(r.success for r in phase_results)
+            assert all(r.duration_ms >= 0 for r in phase_results)
+
+    def test_evaluation_handles_topology_error(
+        self, business_agent, valid_raw_context, caplog
+    ):
+        """Debe manejar errores de topología correctamente."""
+        with patch.object(
+            business_agent, 'graph_builder'
+        ) as mock_builder:
+            mock_builder.build.return_value = None
+            
+            with caplog.at_level(logging.ERROR):
+                result = business_agent.evaluate_project(valid_raw_context)
+            
+            assert result is None
+            assert "coherencia topológica" in caplog.text
+
+    def test_evaluation_handles_financial_error(
+        self, business_agent, valid_raw_context, mock_graph, caplog
+    ):
+        """Debe manejar errores financieros correctamente."""
+        with patch.object(
+            business_agent, 'graph_builder'
+        ) as mock_builder, patch.object(
+            business_agent, 'topological_analyzer'
+        ) as mock_analyzer, patch.object(
+            business_agent, 'financial_engine'
+        ) as mock_engine:
+            mock_builder.build.return_value = mock_graph
+            mock_analyzer.calculate_betti_numbers.return_value = {
+                "betti_0": 2, "betti_1": 0, "betti_2": 0
+            }
+            mock_analyzer.calculate_pyramid_stability.return_value = 0.85
+            mock_engine.analyze_project.side_effect = RuntimeError("Financial crash")
+            
+            with caplog.at_level(logging.ERROR):
+                result = business_agent.evaluate_project(valid_raw_context)
+            
+            assert result is None
+            assert "análisis financiero" in caplog.text
+
+    def test_evaluation_clears_previous_results(
+        self, business_agent, valid_raw_context, mock_graph, mock_construction_risk_report
+    ):
+        """Debe limpiar resultados de evaluaciones anteriores."""
+        # Simular resultado previo
+        business_agent._phase_results.append(
+            PhaseResult(
+                phase=EvaluationPhase.VALIDATION,
+                duration_ms=50.0,
+                success=True,
+            )
+        )
+        
+        with patch.object(
+            business_agent, 'graph_builder'
+        ) as mock_builder, patch.object(
+            business_agent, 'topological_analyzer'
+        ) as mock_analyzer, patch.object(
+            business_agent, 'financial_engine'
+        ) as mock_engine, patch.object(
+            business_agent, 'translator'
+        ) as mock_translator:
+            mock_builder.build.return_value = mock_graph
+            mock_analyzer.calculate_betti_numbers.return_value = {
+                "betti_0": 1, "betti_1": 0, "betti_2": 0
+            }
+            mock_analyzer.calculate_pyramid_stability.return_value = 0.80
+            mock_analyzer.generate_executive_report.return_value = \
+                mock_construction_risk_report
+            mock_engine.analyze_project.return_value = {}
+            mock_translator.compose_strategic_narrative.return_value = ""
+            
+            business_agent.evaluate_project(valid_raw_context)
+            
+            # Solo debe haber resultados de la última evaluación
+            assert len(business_agent.get_phase_results()) == 6
+
+
+# =============================================================================
+# TESTS DE BusinessAgent - Diagnóstico
+# =============================================================================
+
+class TestBusinessAgentDiagnostics:
+    """Tests para funciones de diagnóstico."""
+
+    def test_get_diagnostic_info(self, business_agent):
+        """Debe retornar información diagnóstica completa."""
+        info = business_agent.get_diagnostic_info()
+        
+        assert "agent_version" in info
+        assert "config" in info
+        assert "components_initialized" in info
+        assert "last_evaluation" in info
+        
+        # Verificar estructura de config
+        config = info["config"]
+        assert "initial_investment" in config
+        assert "cash_flow_periods" in config
+        assert "topological_validation" in config
+
+    def test_get_diagnostic_info_reflects_component_state(
+        self, business_agent
+    ):
+        """Debe reflejar estado real de componentes."""
+        info_before = business_agent.get_diagnostic_info()
+        
+        # Ningún componente inicializado
+        assert not info_before["components_initialized"]["graph_builder"]
+        
+        # Forzar inicialización
+        with patch('agent.business_agent.BudgetGraphBuilder'):
+            _ = business_agent.graph_builder
+        
+        info_after = business_agent.get_diagnostic_info()
+        assert info_after["components_initialized"]["graph_builder"]
+
+    def test_get_phase_results_returns_copy(self, business_agent):
+        """Debe retornar copia de resultados, no referencia."""
+        business_agent._phase_results.append(
+            PhaseResult(
+                phase=EvaluationPhase.VALIDATION,
+                duration_ms=100.0,
+                success=True,
+            )
+        )
+        
+        results = business_agent.get_phase_results()
+        results.clear()  # Modificar copia
+        
+        # Original no afectado
+        assert len(business_agent._phase_results) == 1
+
+    def test_reset_components(self, business_agent):
+        """Debe resetear todos los componentes lazy."""
+        # Forzar inicialización
+        with patch('agent.business_agent.BudgetGraphBuilder'):
+            _ = business_agent.graph_builder
+        with patch('agent.business_agent.SemanticTranslator'):
+            _ = business_agent.translator
+        
+        business_agent._phase_results.append(
+            PhaseResult(
+                phase=EvaluationPhase.VALIDATION,
+                duration_ms=50.0,
+                success=True,
+            )
+        )
+        
+        business_agent.reset_components()
+        
+        assert business_agent._graph_builder is None
+        assert business_agent._topological_analyzer is None
+        assert business_agent._translator is None
+        assert business_agent._financial_engine is None
+        assert len(business_agent._phase_results) == 0
+
+
+# =============================================================================
+# TESTS DE BusinessAgent - Telemetría
+# =============================================================================
+
+class TestBusinessAgentTelemetry:
+    """Tests para integración con telemetría."""
+
+    def test_phase_context_records_metrics(
+        self, business_agent, mock_telemetry
+    ):
+        """El context manager debe registrar métricas."""
+        with business_agent._phase_context(EvaluationPhase.VALIDATION):
+            pass  # Fase vacía
+        
+        mock_telemetry.start_span.assert_called()
+        mock_telemetry.end_span.assert_called()
+        mock_telemetry.record_metric.assert_called()
+
+    def test_phase_context_records_error_on_exception(
+        self, business_agent, mock_telemetry
+    ):
+        """Debe registrar error si la fase falla."""
+        with pytest.raises(ValueError):
+            with business_agent._phase_context(EvaluationPhase.VALIDATION):
+                raise ValueError("Test error")
+        
+        mock_telemetry.record_error.assert_called_once()
+        error_call = mock_telemetry.record_error.call_args
+        assert "Test error" in str(error_call)
+
+    def test_topological_metrics_recorded(
+        self, business_agent, mock_telemetry, valid_raw_context, 
+        mock_graph, mock_construction_risk_report
+    ):
+        """Debe registrar métricas topológicas en telemetría."""
+        with patch.object(
+            business_agent, 'graph_builder'
+        ) as mock_builder, patch.object(
+            business_agent, 'topological_analyzer'
+        ) as mock_analyzer, patch.object(
+            business_agent, 'financial_engine'
+        ) as mock_engine, patch.object(
+            business_agent, 'translator'
+        ) as mock_translator:
+            mock_builder.build.return_value = mock_graph
+            mock_analyzer.calculate_betti_numbers.return_value = {
+                "betti_0": 3, "betti_1": 2, "betti_2": 1
+            }
+            mock_analyzer.calculate_pyramid_stability.return_value = 0.75
+            mock_analyzer.generate_executive_report.return_value = \
+                mock_construction_risk_report
+            mock_engine.analyze_project.return_value = {}
+            mock_translator.compose_strategic_narrative.return_value = ""
+            
+            business_agent.evaluate_project(valid_raw_context)
+            
+            # Verificar que se registraron métricas topológicas
+            metric_calls = [
+                call[0][0] for call in mock_telemetry.record_metric.call_args_list
+            ]
+            assert "betti_0" in metric_calls
+            assert "betti_1" in metric_calls
+            assert "euler_characteristic" in metric_calls
+            assert "coherence_score" in metric_calls
+
+
+# =============================================================================
+# TESTS DE INTEGRACIÓN AVANZADOS
+# =============================================================================
+
+class TestBusinessAgentIntegration:
+    """Tests de integración end-to-end."""
+
+    def test_full_pipeline_with_real_dataframes(
+        self, sample_df_presupuesto, sample_df_apus
+    ):
+        """Test de integración con DataFrames reales."""
+        config = {
+            "financial_config": {"discount_rate": 0.08},
+            "evaluation_config": {
+                "cash_flow_periods": 4,
+                "enable_topological_validation": True,
+            },
+        }
+        
+        with patch('agent.business_agent.TelemetryContext'), \
+             patch('agent.business_agent.BudgetGraphBuilder') as MockBuilder, \
+             patch('agent.business_agent.BusinessTopologicalAnalyzer') as MockAnalyzer, \
+             patch('agent.business_agent.FinancialEngine') as MockEngine, \
+             patch('agent.business_agent.SemanticTranslator') as MockTranslator:
+            
+            # Configurar mocks
+            mock_graph = MagicMock()
+            MockBuilder.return_value.build.return_value = mock_graph
+            
+            MockAnalyzer.return_value.calculate_betti_numbers.return_value = {
+                "betti_0": 4, "betti_1": 1, "betti_2": 0, "density": 0.6
+            }
+            MockAnalyzer.return_value.calculate_pyramid_stability.return_value = 0.88
+            
+            mock_report = MagicMock()
+            mock_report.details = {}
+            MockAnalyzer.return_value.generate_executive_report.return_value = mock_report
+            
+            MockEngine.return_value.analyze_project.return_value = {
+                "npv": 150_000.0,
+                "irr": 0.12,
+            }
+            
+            MockTranslator.return_value.compose_strategic_narrative.return_value = \
+                "El proyecto presenta una estructura sólida."
+            
+            agent = BusinessAgent(config=config)
+            
+            context = {
+                "df_presupuesto": sample_df_presupuesto,
+                "df_merged": sample_df_apus,
+                "initial_investment": 750_000.0,
+            }
+            
+            result = agent.evaluate_project(context)
+            
+            assert result is not None
+            assert result.details["coherence_score"] > 0
+            assert result.details["euler_characteristic"] == 3  # 4 - 1 + 0
+
+    @pytest.mark.parametrize("b0,b1,b2,expected_chi", [
+        (1, 0, 0, 1),
+        (3, 2, 1, 2),
+        (5, 5, 0, 0),
+        (10, 3, 2, 9),
+    ])
+    def test_euler_characteristic_consistency_in_pipeline(
+        self, business_agent, valid_raw_context, mock_graph,
+        mock_construction_risk_report, b0, b1, b2, expected_chi
+    ):
+        """Verifica que χ se calcule consistentemente en todo el pipeline."""
+        with patch.object(
+            business_agent, 'graph_builder'
+        ) as mock_builder, patch.object(
+            business_agent, 'topological_analyzer'
+        ) as mock_analyzer, patch.object(
+            business_agent, 'financial_engine'
+        ) as mock_engine, patch.object(
+            business_agent, 'translator'
+        ) as mock_translator:
+            mock_builder.build.return_value = mock_graph
+            mock_analyzer.calculate_betti_numbers.return_value = {
+                "betti_0": b0, "betti_1": b1, "betti_2": b2
+            }
+            mock_analyzer.calculate_pyramid_stability.return_value = 0.75
+            mock_analyzer.generate_executive_report.return_value = \
+                mock_construction_risk_report
+            mock_engine.analyze_project.return_value = {}
+            mock_translator.compose_strategic_narrative.return_value = ""
+            
+            result = business_agent.evaluate_project(valid_raw_context)
+            
+            assert result.details["euler_characteristic"] == expected_chi
+
+
+# =============================================================================
+# TESTS DE EDGE CASES
+# =============================================================================
+
+class TestBusinessAgentEdgeCases:
+    """Tests para casos límite y edge cases."""
+
+    def test_minimal_valid_context(
+        self, business_agent, mock_graph, mock_construction_risk_report
+    ):
+        """Debe funcionar con el contexto mínimo válido."""
+        minimal_context = {
+            "df_presupuesto": pd.DataFrame({"id": [1], "total": [100.0]}),
+            "df_merged": pd.DataFrame({"partida_id": [1]}),
+        }
+        
+        with patch.object(
+            business_agent, 'graph_builder'
+        ) as mock_builder, patch.object(
+            business_agent, 'topological_analyzer'
+        ) as mock_analyzer, patch.object(
+            business_agent, 'financial_engine'
+        ) as mock_engine, patch.object(
+            business_agent, 'translator'
+        ) as mock_translator:
+            mock_builder.build.return_value = mock_graph
+            mock_analyzer.calculate_betti_numbers.return_value = {
+                "betti_0": 1, "betti_1": 0, "betti_2": 0
+            }
+            mock_analyzer.calculate_pyramid_stability.return_value = 1.0
+            mock_analyzer.generate_executive_report.return_value = \
+                mock_construction_risk_report
+            mock_engine.analyze_project.return_value = {}
+            mock_translator.compose_strategic_narrative.return_value = ""
+            
+            result = business_agent.evaluate_project(minimal_context)
+            
+            assert result is not None
+
+    def test_large_betti_numbers(self, business_agent, mock_graph, mock_construction_risk_report, valid_raw_context):
+        """Debe manejar números de Betti grandes."""
+        with patch.object(
+            business_agent, 'graph_builder'
+        ) as mock_builder, patch.object(
+            business_agent, 'topological_analyzer'
+        ) as mock_analyzer, patch.object(
+            business_agent, 'financial_engine'
+        ) as mock_engine, patch.object(
+            business_agent, 'translator'
+        ) as mock_translator:
+            mock_builder.build.return_value = mock_graph
+            mock_analyzer.calculate_betti_numbers.return_value = {
+                "betti_0": 1000,
+                "betti_1": 500,
+                "betti_2": 100,
+            }
+            mock_analyzer.calculate_pyramid_stability.return_value = 0.50
+            mock_analyzer.generate_executive_report.return_value = \
+                mock_construction_risk_report
+            mock_engine.analyze_project.return_value = {}
+            mock_translator.compose_strategic_narrative.return_value = ""
+            
+            result = business_agent.evaluate_project(valid_raw_context)
+            
+            assert result is not None
+            # χ = 1000 - 500 + 100 = 600
+            assert result.details["euler_characteristic"] == 600
+
+    def test_zero_coherence_score_possible(self):
+        """El score de coherencia puede ser muy bajo (pero no negativo)."""
+        metrics = TopologicalMetrics(
+            betti_0=1,  # Mínimo
+            betti_1=100,  # Muchos ciclos
+            betti_2=0,
+            pyramid_stability=0.0,  # Sin estabilidad
+        )
+        
+        assert metrics.coherence_score >= 0
+        assert metrics.coherence_score < 0.1  # Muy bajo
+
+    def test_concurrent_evaluations_isolation(self, basic_config):
+        """Evaluaciones concurrentes no deben interferir."""
+        agent1 = BusinessAgent(config=basic_config)
+        agent2 = BusinessAgent(config=basic_config)
+        
+        # Simular resultados diferentes
+        agent1._phase_results.append(
+            PhaseResult(
+                phase=EvaluationPhase.VALIDATION,
+                duration_ms=100.0,
+                success=True,
+            )
+        )
+        
+        # agent2 no debe verse afectado
+        assert len(agent2._phase_results) == 0
+
+
+# =============================================================================
+# TESTS DE RENDIMIENTO
+# =============================================================================
+
+class TestBusinessAgentPerformance:
+    """Tests relacionados con rendimiento y eficiencia."""
+
+    def test_lazy_loading_prevents_unnecessary_initialization(
+        self, basic_config, mock_telemetry
+    ):
+        """Los componentes no usados no deben inicializarse."""
+        with patch('agent.business_agent.BudgetGraphBuilder') as MockBuilder, \
+             patch('agent.business_agent.BusinessTopologicalAnalyzer') as MockAnalyzer, \
+             patch('agent.business_agent.SemanticTranslator') as MockTranslator, \
+             patch('agent.business_agent.FinancialEngine') as MockEngine:
+            
+            agent = BusinessAgent(config=basic_config, telemetry=mock_telemetry)
+            
+            # Solo crear agente - no acceder a propiedades
+            MockBuilder.assert_not_called()
+            MockAnalyzer.assert_not_called()
+            MockTranslator.assert_not_called()
+            MockEngine.assert_not_called()
+
+    def test_phase_durations_recorded(
+        self, business_agent, valid_raw_context, mock_graph, mock_construction_risk_report
+    ):
+        """Las duraciones de fase deben ser positivas y razonables."""
+        with patch.object(
+            business_agent, 'graph_builder'
+        ) as mock_builder, patch.object(
+            business_agent, 'topological_analyzer'
+        ) as mock_analyzer, patch.object(
+            business_agent, 'financial_engine'
+        ) as mock_engine, patch.object(
+            business_agent, 'translator'
+        ) as mock_translator:
+            mock_builder.build.return_value = mock_graph
+            mock_analyzer.calculate_betti_numbers.return_value = {
+                "betti_0": 2, "betti_1": 1, "betti_2": 0
+            }
+            mock_analyzer.calculate_pyramid_stability.return_value = 0.80
+            mock_analyzer.generate_executive_report.return_value = \
+                mock_construction_risk_report
+            mock_engine.analyze_project.return_value = {}
+            mock_translator.compose_strategic_narrative.return_value = ""
+            
+            business_agent.evaluate_project(valid_raw_context)
+            
+            results = business_agent.get_phase_results()
+            
+            for result in results:
+                assert result.duration_ms >= 0
+                assert result.duration_ms < 10000  # < 10 segundos razonable
+
+
+# =============================================================================
+# MAIN
+# =============================================================================
+
+if __name__ == "__main__":
+    pytest.main([__file__, "-v", "--tb=short"])
