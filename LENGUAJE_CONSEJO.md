@@ -80,6 +80,20 @@ Conclusión Técnica: APU Filter no valida datos; valida realidades. Usa la fís
 
 ---
 
+## 6. El Motor de Materialización (Wave Collapse)
+
+El `MatterGenerator` no suma filas de Excel; ejecuta un algoritmo de recorrido de grafos (DFS) para "colapsar" la estructura piramidal en un plano logístico plano (Bill of Materials).
+
+### 6.1 Precisión de Punto Flotante (Kahan Summation)
+En presupuestos de gran escala, el error de punto flotante (IEEE 754) puede introducir desviaciones financieras. Implementamos el **Algoritmo de Suma de Kahan** para mantener una precisión contable absoluta ($O(\epsilon)$), asegurando que la suma de las partes sea matemáticamente idéntica al todo.
+
+### 6.2 Entropía Aplicada
+El sistema inyecta la incertidumbre detectada por el `FluxCondenser` directamente en la materia.
+$$ Q_{final} = Q_{base} \times (1 + \text{Factor}_{riesgo}) $$
+Si el sistema detecta inestabilidad en los datos de origen, aplica automáticamente factores de seguridad en las cantidades de compra.
+
+---
+
 Este lenguaje secreto es la garantía de que **APU Filter** no adivina; **demuestra**.
 
 [Volver al Nivel 2: Conociendo a los Sabios](SAGES.md) | [Ir al Inicio](ARCHIVES.md)

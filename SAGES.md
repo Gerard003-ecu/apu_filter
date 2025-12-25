@@ -50,6 +50,17 @@ El Intérprete es un enlace. Es el integrante que traduce y sugiere las decision
 
 ---
 
+## ⚗️ El Alquimista (MatterGenerator)
+"El plano es una promesa; el material es la realidad."
+Mientras los otros sabios analizan riesgos, el Alquimista tiene la tarea de materializar el proyecto. Transforma el grafo abstracto en una lista de compras determinista.
+• **Su Talento:** El Colapso de Onda y la Precisión Numérica.
+• **Cómo cumple la promesa:**
+    ◦ **Colapso del Grafo:** Recorre la pirámide estructural para calcular la cantidad exacta de átomos (insumos) necesarios para cada actividad.
+    ◦ **Contabilidad de Kahan:** Utiliza algoritmos de suma compensada para garantizar que ni un centavo se pierda por errores de redondeo digital.
+    ◦ **Ley de Pareto:** Identifica el "20% vital" de los materiales que controlan el 80% del costo, dirigiendo su atención logística donde más importa.
+
+---
+
 ⚖️ El Presidente del Consejo (El Protocolo OODA)
 Es uno de los roles más operativos, su trabajo no es aportar más sabiduría es unirla. El sistema opera bajo una norma llamada Ciclo OODA (Observar, Orientar, Decidir, Actuar).
 • Su talento: La gestíon coherente de cada de las ejecuciones de los sabios.
