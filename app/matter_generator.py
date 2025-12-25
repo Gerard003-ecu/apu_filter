@@ -24,11 +24,8 @@ class MaterialRequirement:
         """Validación de invariantes después de la inicialización."""
         if self.quantity_base <= 0:
             raise ValueError(f"Cantidad base no positiva para material {self.id}")
-        # waste_factor puede ser 0, pero no negativo (salvo casos de reciclaje muy raros, asumimos >= 0)
-        # En propuesta 1, waste_factor = multiplier - 1. Si multiplier < 1, waste es negativo.
-        # Pero la lógica dice que no reducimos cantidades (multiplier >= 1), así que waste >= 0.
         if self.waste_factor < 0:
-            pass # Permitimos flexibilidad por si hay optimizaciones, pero logueamos warnings arriba
+            pass
 
         if not math.isfinite(self.total_cost):
             raise ValueError(f"Costo total no finito para material {self.id}")
@@ -47,8 +44,6 @@ class BillOfMaterials:
         self.validate_consistency()
 
     def validate_consistency(self):
-        # Verificación laxa para permitir pequeños errores de punto flotante distintos a Kahan
-        # pero Kahan debe ser preciso.
         computed_total = sum(req.total_cost for req in self.requirements)
         if not math.isclose(self.total_material_cost, computed_total, rel_tol=1e-5):
             raise ValueError("BOM inconsistente: suma de costos no coincide con total")
@@ -56,11 +51,6 @@ class BillOfMaterials:
 class MatterGenerator:
     """
     Motor de Materialización Híbrido (Topológico + Algebraico).
-
-    Combina:
-    1. Lógica de Recorrido de Funtor (DFS + Stack) de Propuesta 1.
-    2. Validación de Invariantes y Precisión Numérica (Kahan) de Propuesta 2.
-    3. Análisis Estratégico (Pareto/Gini) de Propuesta 1.
     """
 
     def __init__(self, max_graph_complexity: int = 100000):
@@ -75,18 +65,6 @@ class MatterGenerator:
     ) -> BillOfMaterials:
         """
         Orquesta la transformación del Grafo en BOM.
-
-        Args:
-            graph: Grafo topológico (DAG de composición)
-            risk_profile: Perfil de riesgo
-            flux_metrics: Métricas de estabilidad
-
-        Returns:
-            BillOfMaterials consolidado
-
-        Raises:
-            ValueError: Si el grafo no es un DAG
-            OverflowError: Si la complejidad del grafo excede el límite
         """
         self.logger.info("🌌 Iniciando materialización híbrida del proyecto...")
 
@@ -100,7 +78,106 @@ class MatterGenerator:
             raise ValueError("El grafo contiene ciclos (no es un DAG), imposible propagar cantidades coherentemente.")
 
         # 1. Colapso de Onda (Enfoque Funtor - Propuesta 1)
-        raw_materials = self._explode_pyramid(graph)
+        # Lógica DFS in-line para evitar desconexión de flujo de datos
+
+        materials = []
+
+        # Identificación de raíces
+        root_nodes = [node for node, in_degree in graph.in_degree() if in_degree == 0]
+
+        if not root_nodes and graph.number_of_nodes() > 0:
+             # Fallback: todos los nodos (si no se detectaron raíces pero pasó DAG check, raro pero posible en grafos disconexos sin edges)
+             root_nodes = [n for n in graph.nodes()]
+
+        if not root_nodes and graph.number_of_nodes() > 0:
+             self.logger.error("❌ Grafo sin raíces detectables")
+
+        # DFS iterativo
+        stack = [
+            (root, 1.0, frozenset(), [], None) for root in root_nodes
+        ]
+
+        iteration_count = 0
+        max_iterations = self.max_graph_complexity + 1000
+
+        while stack:
+            iteration_count += 1
+            if iteration_count > max_iterations:
+                raise RuntimeError("Límite de iteraciones excedido en materialización")
+
+            current_node, current_qty, path_set, path_list, parent_apu = stack.pop()
+
+            if current_node in path_set:
+                self.logger.warning(f"⚠️ Ciclo detectado en camino: {path_list} -> {current_node}")
+                continue
+
+            node_data = graph.nodes.get(current_node, {})
+            node_type = node_data.get("type", "UNDEFINED")
+
+            new_path_set = path_set | {current_node}
+            new_path_list = path_list + [current_node]
+
+            # Objeto terminal (Insumo)
+            if node_type == "INSUMO":
+                description = (
+                    node_data.get("description") or
+                    node_data.get("name") or
+                    str(current_node)
+                )
+
+                unit_cost = node_data.get("unit_cost", 0.0)
+                try:
+                    unit_cost = float(unit_cost)
+                    if not math.isfinite(unit_cost):
+                         self.logger.warning(f"Costo infinito detectado en {current_node}, omitiendo.")
+                         continue
+                except (TypeError, ValueError):
+                    unit_cost = 0.0
+
+                if unit_cost < 0:
+                     self.logger.warning(f"Costo negativo detectado en {current_node}: {unit_cost}")
+
+                # Aquí current_qty ya es producto acumulado.
+                materials.append({
+                    "id": str(current_node),
+                    "description": description,
+                    "base_qty": current_qty,
+                    "unit_cost": unit_cost,
+                    "source_apu": parent_apu or "ROOT",
+                    "unit": node_data.get("unit", "UND"),
+                    "node_data": node_data,
+                    "composition_path": new_path_list,
+                    "fiber_depth": len(new_path_list)
+                })
+                continue
+
+            # Determinación de padre APU para trazabilidad
+            next_parent_apu = current_node if node_type == "APU" else parent_apu
+
+            # Expansión de sucesores
+            for successor in graph.successors(current_node):
+                edge_data = graph.edges.get((current_node, successor), {})
+                edge_qty = edge_data.get("quantity", 1.0)
+
+                try:
+                    edge_qty = float(edge_qty)
+                    if not math.isfinite(edge_qty) or edge_qty <= 0:
+                        edge_qty = 1.0
+                except (TypeError, ValueError):
+                    edge_qty = 1.0
+
+                new_qty = current_qty * edge_qty
+
+                if not math.isfinite(new_qty) or new_qty > 1e12:
+                    self.logger.warning(f"Overflow potencial en {successor}: {new_qty}")
+                    continue
+
+                stack.append((
+                    successor, new_qty, new_path_set,
+                    new_path_list, next_parent_apu
+                ))
+
+        raw_materials = materials
         self.logger.info(f"🧱 Materiales brutos extraídos: {len(raw_materials)}")
 
         if not raw_materials:
@@ -130,135 +207,6 @@ class MatterGenerator:
             total_material_cost=total_cost,
             metadata=metadata
         )
-
-    def _explode_pyramid(self, graph: nx.DiGraph) -> List[Dict[str, Any]]:
-        """
-        Recorre el grafo implementando un funtor F: G → Mat (Propuesta 1).
-        Usa DFS manual con stack y detección de ciclos O(1).
-        """
-        materials = []
-
-        if graph.number_of_nodes() == 0:
-            return materials
-
-        # Identificación de raíces
-        root_nodes = [node for node, in_degree in graph.in_degree() if in_degree == 0]
-
-        # Si no hay raíces explícitas pero hay nodos, usamos nodos con in_degree 0 locales
-        # (Aunque si es conexo y DAG siempre hay al menos uno)
-        if not root_nodes and graph.number_of_nodes() > 0:
-            # Fallback para componentes desconectados o estructuras singulares
-            root_nodes = [n for n in graph.nodes()]
-            # Esto podría duplicar si no es cuidadoso, pero en DAG siempre hay fuentes.
-            # Si no hay fuentes en un grafo finito no vacío, ¡hay ciclo! Pero ya chequeamos DAG.
-
-        if not root_nodes and graph.number_of_nodes() > 0:
-             # Debería ser inalcanzable si is_directed_acyclic_graph pasó
-             self.logger.error("❌ Grafo sin raíces detectables")
-             return materials
-
-        # DFS iterativo
-        # Stack: (nodo, cantidad_acumulada, camino_set, camino_lista, padre_apu)
-        stack = [
-            (root, 1.0, frozenset(), [], None) for root in root_nodes
-        ]
-
-        iteration_count = 0
-        max_iterations = self.max_graph_complexity + 1000
-
-        while stack:
-            iteration_count += 1
-            if iteration_count > max_iterations:
-                 # Backup check
-                raise RuntimeError("Límite de iteraciones excedido en materialización")
-
-            current_node, current_qty, path_set, path_list, parent_apu = stack.pop()
-
-            # Detección de ciclo O(1) - redundante si ya chequeamos DAG, pero seguro
-            if current_node in path_set:
-                self.logger.warning(f"⚠️ Ciclo detectado en camino: {path_list} -> {current_node}")
-                continue
-
-            node_data = graph.nodes.get(current_node, {})
-            node_type = node_data.get("type", "UNDEFINED")
-
-            new_path_set = path_set | {current_node}
-            new_path_list = path_list + [current_node]
-
-            # Objeto terminal (Insumo)
-            if node_type == "INSUMO":
-                description = (
-                    node_data.get("description") or
-                    node_data.get("name") or
-                    str(current_node)
-                )
-
-                unit_cost = node_data.get("unit_cost", 0.0)
-                try:
-                    unit_cost = float(unit_cost)
-                    if not math.isfinite(unit_cost):
-                         # Infinito se ignora (no se agrega)
-                         self.logger.warning(f"Costo infinito detectado en {current_node}, omitiendo.")
-                         continue
-                except (TypeError, ValueError):
-                    unit_cost = 0.0
-
-                # Validación de costo negativo para logging
-                if unit_cost < 0:
-                     self.logger.warning(f"Costo negativo detectado en {current_node}: {unit_cost}")
-
-                # Si cantidad base es 0 o negativa, puede ser válido semánticamente (resta) pero usualmente error
-                if current_qty <= 0:
-                     # El test espera que usemos 1.0 si no es positivo?
-                     # test_negative_quantities_handling: "El sistema debe usar 1.0 como valor por defecto"
-                     # Re-evaluemos lógica de aristas vs acumulado
-                     pass
-
-                # La validación de aristas negativas se hace al recorrer sucesores.
-                # Aquí current_qty ya es producto.
-
-                materials.append({
-                    "id": str(current_node),
-                    "description": description,
-                    "base_qty": current_qty,
-                    "unit_cost": unit_cost,
-                    "source_apu": parent_apu or "ROOT",
-                    "unit": node_data.get("unit", "UND"),
-                    "node_data": node_data,
-                    "composition_path": new_path_list,
-                    "fiber_depth": len(new_path_list)
-                })
-                continue
-
-            # Determinación de padre APU para trazabilidad
-            next_parent_apu = current_node if node_type == "APU" else parent_apu
-
-            # Expansión de sucesores
-            for successor in graph.successors(current_node):
-                edge_data = graph.edges.get((current_node, successor), {})
-                edge_qty = edge_data.get("quantity", 1.0)
-
-                try:
-                    edge_qty = float(edge_qty)
-                    # test_negative_quantities_handling espera que quantity=-2.0 se convierta en 1.0?
-                    # "El sistema debe usar 1.0 como valor por defecto para cantidades no positivas"
-                    if not math.isfinite(edge_qty) or edge_qty <= 0:
-                        edge_qty = 1.0
-                except (TypeError, ValueError):
-                    edge_qty = 1.0
-
-                new_qty = current_qty * edge_qty
-
-                if not math.isfinite(new_qty) or new_qty > 1e12:
-                    self.logger.warning(f"Overflow potencial en {successor}: {new_qty}")
-                    continue
-
-                stack.append((
-                    successor, new_qty, new_path_set,
-                    new_path_list, next_parent_apu
-                ))
-
-        return materials
 
     def _apply_entropy_factors(
         self,
