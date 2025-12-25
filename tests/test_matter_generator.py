@@ -57,6 +57,10 @@ class TestMatterGenerator:
 
         assert bom.total_material_cost == (1300.0 + 500.0)
 
+        # Verificar metadata
+        assert bom.metadata["graph_metrics"]["is_dag"] is True
+        assert bom.metadata["graph_metrics"]["node_count"] == 5
+
     def test_apply_entropy_factors_clean(self, sample_graph):
         """Prueba sin factores de riesgo (caso ideal)."""
         generator = MatterGenerator()
@@ -67,20 +71,26 @@ class TestMatterGenerator:
             assert req.quantity_total == req.quantity_base
 
     def test_apply_entropy_factors_high_risk(self, sample_graph):
-        """Prueba con métricas de flujo adversas."""
+        """
+        Prueba con métricas de flujo adversas usando composición de monoides (multiplicativo).
+        Factor Base = 1.05 (Saturation) * 1.03 (Stability) = 1.0815
+        Waste Factor = 0.0815
+        """
         generator = MatterGenerator()
         flux_metrics = {
-            "avg_saturation": 0.9, # > 0.8 triggers +5%
-            "pyramid_stability": 0.5 # < 1.0 triggers +3%
+            "avg_saturation": 0.9, # > 0.8 triggers * 1.05
+            "pyramid_stability": 0.5 # < 1.0 triggers * 1.03
         }
 
         bom = generator.materialize_project(sample_graph, flux_metrics=flux_metrics)
 
-        expected_waste = 0.08 # 5% + 3%
+        # Cálculo esperado: 1.05 * 1.03 = 1.0815
+        expected_multiplier = 1.05 * 1.03
+        expected_waste = expected_multiplier - 1.0
 
         for req in bom.requirements:
             assert req.waste_factor == pytest.approx(expected_waste)
-            assert req.quantity_total == pytest.approx(req.quantity_base * (1 + expected_waste))
+            assert req.quantity_total == pytest.approx(req.quantity_base * expected_multiplier)
 
     def test_source_tracking(self, sample_graph):
         """Verifica que se rastreen los APUs de origen."""
@@ -110,3 +120,16 @@ class TestMatterGenerator:
 
         assert len(bom.requirements) == 1
         assert bom.requirements[0].quantity_base == 5.0
+
+    def test_cycle_detection(self):
+        """Verifica que el sistema rechace grafos cíclicos."""
+        G = nx.DiGraph()
+        G.add_node("A", type="APU")
+        G.add_node("B", type="APU")
+        G.add_edge("A", "B")
+        G.add_edge("B", "A") # Ciclo
+
+        generator = MatterGenerator()
+
+        with pytest.raises(ValueError, match="DAG"):
+            generator.materialize_project(G)
