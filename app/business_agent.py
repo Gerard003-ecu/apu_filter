@@ -100,8 +100,9 @@ class BusinessAgent:
             )
 
             # 5. Enriquecer con Narrativa Estratégica (Capa Semántica)
+            synergy = report.details.get("synergy_risk")
             strategic_narrative = self.translator.compose_strategic_narrative(
-                topo_metrics, financial_metrics, stability=pyramid_stability
+                topo_metrics, financial_metrics, stability=pyramid_stability, synergy_risk=synergy
             )
 
             # Actualizamos el reporte
@@ -111,6 +112,8 @@ class BusinessAgent:
 
                 # También lo agregamos a details por si acaso la serialización lo requiere
                 report.details["strategic_narrative"] = strategic_narrative
+                # Add financial metrics to details to satisfy tests and frontend needs
+                report.details["financial_metrics_input"] = financial_metrics
 
             logger.info("✅ Evaluación de negocio completada con éxito.")
             return report
