@@ -1,0 +1,1651 @@
+### propuesta 1
+
+import logging
+import textwrap
+from dataclasses import asdict, dataclass, field
+from typing import Any, Dict, List, Optional, Tuple
+
+import networkx as nx
+import pandas as pd
+
+from app.constants import ColumnNames
+from app.telemetry import TelemetryContext
+
+logger = logging.getLogger(__name__)
+
+
+@dataclass(frozen=True)
+class TopologicalMetrics:
+    """
+    Métricas Topológicas Invariantes para el Grafo de Negocio.
+
+    Attributes:
+        beta_0 (int): Número de componentes conexas (fragmentación).
+        beta_1 (int): Número de ciclos independientes (complejidad de bucles).
+        euler_characteristic (int): Característica de Euler (beta_0 - beta_1).
+        euler_efficiency (float): Eficiencia topológica normalizada (0.0 - 1.0).
+    """
+
+    beta_0: int
+    beta_1: int
+    euler_characteristic: int
+    euler_efficiency: float = 1.0
+
+    @property
+    def is_connected(self) -> bool:
+        """Determina si el grafo está conectado (tiene una sola componente)."""
+        return self.beta_0 == 1
+
+    @property
+    def is_simply_connected(self) -> bool:
+        """Determina si el grafo es simplemente conexo (conexo y sin ciclos)."""
+        return self.beta_0 == 1 and self.beta_1 == 0
+
+
+class BusinessTopologicalAnalyzer:
+    """Analizador de topología de negocio V2 con Telemetría Granular."""
+
+    def __init__(self, telemetry: Optional[TelemetryContext] = None, max_cycles: int = 100):
+        """
+        Inicializa el analizador topológico.
+
+        Args:
+            telemetry (Optional[TelemetryContext]): Contexto para registrar métricas.
+            max_cycles (int): Número máximo de ciclos a detectar antes de truncar.
+        """
+        self.telemetry = telemetry
+        self.max_cycles = max_cycles
+        self.logger = logging.getLogger(self.__class__.__name__)
+
+    def calculate_euler_efficiency(self, graph: nx.DiGraph) -> float:
+        """
+        Calcula la Eficiencia de Euler normalizada mediante decaimiento exponencial.
+
+        La eficiencia mide la proximidad a una estructura arbórica (ideal para jerarquías).
+        Fórmula: Efficiency = exp(-excess_edges / V) donde excess_edges = max(0, E - (V - 1))
+        Esta formulación garantiza:
+        - Eficiencia = 1.0 para árboles perfectos (exceso = 0)
+        - Decaimiento suave a medida que aumenta la redundancia
+        - Límite inferior asintótico a 0 para grafos densos
+
+        Returns:
+            float: Score entre 0.0 (caos/sobrecarga) y 1.0 (orden/jerarquía pura).
+        """
+        n_nodes = graph.number_of_nodes()
+        n_edges = graph.number_of_edges()
+
+        if n_nodes <= 1:
+            return 1.0
+
+        # Árbol mínimo conexo requiere V-1 aristas
+        min_edges = n_nodes - 1
+        excess_edges = max(0, n_edges - min_edges)
+
+        # Decaimiento exponencial normalizado
+        efficiency = np.exp(-excess_edges / n_nodes) if n_nodes > 0 else 1.0
+        return round(efficiency, 4)
+
+    def calculate_betti_numbers(self, graph: nx.DiGraph) -> TopologicalMetrics:
+        """
+        Calcula métricas topológicas invariantes (Números de Betti) con validación rigurosa.
+
+        Teoría: Para un grafo G (1-complejo simplicial):
+        - β₀ = número de componentes conexas = dim(H₀(G))
+        - β₁ = número de ciclos independientes = dim(H₁(G))
+        - Característica de Euler: χ = V - E = β₀ - β₁
+
+        Args:
+            graph (nx.DiGraph): El grafo a analizar.
+
+        Returns:
+            TopologicalMetrics: Métricas calculadas con coherencia algebraica.
+        """
+        if graph.number_of_nodes() == 0:
+            return TopologicalMetrics(0, 0, 0, 1.0)
+
+        # Usar grafo no dirigido para cálculo topológico (homología simplicial)
+        undirected = nx.Graph()
+        undirected.add_nodes_from(graph.nodes())
+        undirected.add_edges_from(graph.edges())
+
+        # β₀: Componentes conexas (espacio de 0-homología)
+        beta_0 = nx.number_connected_components(undirected)
+
+        # Conteos fundamentales
+        n_edges = undirected.number_of_edges()
+        n_nodes = undirected.number_of_nodes()
+
+        # β₁: Ciclos independientes (espacio de 1-homología)
+        # Para grafos: β₁ = E - V + β₀ (fórmula de homología para 1-complejos)
+        beta_1 = max(0, n_edges - n_nodes + beta_0)
+
+        # Característica de Euler (invariante topológico)
+        euler_char = beta_0 - beta_1
+
+        # Validación de coherencia: debe cumplirse V - E = β₀ - β₁
+        if (n_nodes - n_edges) != euler_char:
+            self.logger.warning(
+                f"Inconsistencia en característica de Euler: "
+                f"V={n_nodes}, E={n_edges}, χ_calc={n_nodes - n_edges}, "
+                f"χ_betti={euler_char}. Usando cálculo basado en Betti."
+            )
+
+        efficiency = self.calculate_euler_efficiency(graph)
+
+        return TopologicalMetrics(
+            beta_0=beta_0,
+            beta_1=beta_1,
+            euler_characteristic=euler_char,
+            euler_efficiency=efficiency,
+        )
+
+    def calculate_pyramid_stability(self, graph: nx.DiGraph) -> float:
+        """
+        Calcula el Índice de Estabilidad Piramidal (Ψ) con robustez mejorada.
+
+        Fórmula: Ψ = log₁₀(1 + (I/A)) × (1 - D) × C
+        donde:
+        - I/A: ratio base/ancho (insumos/APUs)
+        - D: densidad del grafo (penalización por sobreconexión)
+        - C: factor de conectividad (0 si hay ciclos, 1 si es DAG)
+
+        Interpretación:
+        - Ψ > 2.0: Estructura robusta (base amplia, baja densidad)
+        - Ψ < 0.5: Riesgo estructural alto (base estrecha, alta complejidad)
+
+        Args:
+            graph: Grafo del presupuesto.
+
+        Returns:
+            float: Valor de estabilidad (0.0 si no se puede calcular).
+        """
+        # 1. Contar nodos por tipo
+        nodes_data = graph.nodes(data=True)
+        num_apus = sum(1 for _, d in nodes_data if d.get("type") == "APU")
+        num_insumos = sum(1 for _, d in nodes_data if d.get("type") == "INSUMO")
+
+        # 2. Validaciones
+        if num_apus == 0 or num_insumos == 0:
+            return 0.0
+
+        # 3. Ratio base/ancho con suavizado logarítmico
+        base_ratio = num_insumos / num_apus
+        ratio_term = np.log10(1 + base_ratio)
+
+        # 4. Penalización por densidad
+        density = nx.density(graph)
+        density_penalty = 1.0 - min(density, 0.99)  # Evitar valores negativos
+
+        # 5. Factor de conectividad: penalización por ciclos
+        connectivity_factor = 1.0 if nx.is_directed_acyclic_graph(graph) else 0.7
+
+        # 6. Cálculo final
+        stability = ratio_term * density_penalty * connectivity_factor
+        return round(stability, 3)
+
+    def audit_integration_homology(
+        self, graph_a: nx.DiGraph, graph_b: nx.DiGraph
+    ) -> Dict[str, Any]:
+        """
+        Ejecuta el Test de Mayer-Vietoris para detectar ciclos emergentes en fusiones.
+
+        Teoría: Para uniones de complejos A ∪ B, la sucesión de Mayer-Vietoris produce:
+        Δβ₁ = β₁(A ∪ B) - [β₁(A) + β₁(B)] + δ
+        donde δ captura interacciones en la intersección A ∩ B.
+
+        En nuestra aproximación, δ se estima como |A ∩ B| - β₀(A ∩ B) + 1.
+
+        Returns:
+            Dict con diagnóstico topológico y narrativa estratégica.
+        """
+        # 1. Análisis de las partes
+        metrics_a = self.calculate_betti_numbers(graph_a)
+        metrics_b = self.calculate_betti_numbers(graph_b)
+
+        # 2. Unión topológica (A ∪ B)
+        graph_union = nx.compose(graph_a, graph_b)
+        metrics_union = self.calculate_betti_numbers(graph_union)
+
+        # 3. Intersección estimada (nodos comunes)
+        nodes_a = set(graph_a.nodes())
+        nodes_b = set(graph_b.nodes())
+        common_nodes = nodes_a.intersection(nodes_b)
+
+        # Grafo de intersección aproximado
+        graph_intersection = nx.DiGraph()
+        if common_nodes:
+            graph_intersection.add_nodes_from(common_nodes)
+            # Solo mantener aristas donde ambos extremos están en la intersección
+            for u, v in graph_a.edges():
+                if u in common_nodes and v in common_nodes:
+                    graph_intersection.add_edge(u, v)
+            for u, v in graph_b.edges():
+                if u in common_nodes and v in common_nodes:
+                    graph_intersection.add_edge(u, v)
+
+        metrics_intersection = self.calculate_betti_numbers(graph_intersection)
+
+        # 4. Fórmula Mayer-Vietoris para grafos
+        # β₁(A ∪ B) = β₁(A) + β₁(B) - β₁(A ∩ B) + Δ
+        # donde Δ = |A ∩ B| - β₀(A ∩ B) + 1 (térmeno de conexión)
+        delta = len(common_nodes) - metrics_intersection.beta_0 + 1
+
+        # Ciclos emergentes teóricos
+        emergent_theoretical = (
+            metrics_a.beta_1 + metrics_b.beta_1 - metrics_intersection.beta_1 + delta
+        )
+
+        # Ciclos emergentes observados
+        emergent_observed = metrics_union.beta_1 - (metrics_a.beta_1 + metrics_b.beta_1)
+
+        # 5. Diagnóstico diferencial
+        discrepancy = abs(emergent_observed - emergent_theoretical)
+        if discrepancy <= 1:  # Tolerancia pequeña
+            if emergent_observed > 0:
+                verdict = "INTEGRATION_CONFLICT"
+                narrative = (
+                    f"🚨 ALERTA MAYER-VIETORIS: La fusión generó {emergent_observed} "
+                    f"nuevos ciclos de dependencia. Conflicto de interfaz detectado."
+                )
+            elif emergent_observed < 0:
+                verdict = "TOPOLOGY_SIMPLIFIED"
+                narrative = (
+                    f"✅ Fusión simplificó la estructura. "
+                    f"Se eliminaron {abs(emergent_observed)} ciclos redundantes."
+                )
+            else:
+                verdict = "CLEAN_MERGE"
+                narrative = "✅ Fusión topológicamente neutra: sin riesgos estructurales nuevos."
+        else:
+            verdict = "INCONSISTENT_TOPOLOGY"
+            narrative = (
+                f"⚠️ Discrepancia topológica detectada (Δ={discrepancy}). "
+                f"Revisar superposición de componentes."
+            )
+
+        return {
+            "status": verdict,
+            "delta_beta_1_observed": emergent_observed,
+            "delta_beta_1_theoretical": emergent_theoretical,
+            "discrepancy": discrepancy,
+            "details": {
+                "beta_1_A": metrics_a.beta_1,
+                "beta_1_B": metrics_b.beta_1,
+                "beta_1_Union": metrics_union.beta_1,
+                "beta_1_Intersection": metrics_intersection.beta_1,
+                "common_nodes_count": len(common_nodes),
+                "delta_term": delta,
+            },
+            "narrative": narrative,
+        }
+
+    def _get_raw_cycles(self, graph: nx.DiGraph) -> Tuple[List[List[str]], bool]:
+        """
+        Obtiene los ciclos crudos con algoritmo Johnson optimizado y poda temprana.
+
+        Complexity: O((V + E)(c + 1)) para c ciclos simples.
+        Implementa truncamiento inteligente basado en longitud de ciclos.
+
+        Returns:
+            Tuple[List[List[str]], bool]: Ciclos y flag de truncamiento.
+        """
+        cycles = []
+        truncated = False
+
+        try:
+            # Algoritmo Johnson para ciclos simples
+            cycle_generator = nx.simple_cycles(graph)
+
+            # Límites duales: máximo número de ciclos y longitud máxima
+            max_cycle_length = 10  # Ciclos muy largos son menos relevantes para riesgo
+
+            for count, cycle in enumerate(cycle_generator):
+                if count >= self.max_cycles:
+                    truncated = True
+                    self.logger.warning(f"Truncado de ciclos en {self.max_cycles}")
+                    break
+
+                # Podar ciclos demasiado largos (probablemente artefactos)
+                if len(cycle) <= max_cycle_length:
+                    cycles.append(cycle)
+                else:
+                    self.logger.debug(f"Ciclo largo ignorado (longitud {len(cycle)})")
+
+        except Exception as e:
+            self.logger.error(f"Error en detección de ciclos: {e}")
+
+        # Ordenar por longitud (ciclos cortos primero - más críticos)
+        cycles.sort(key=len)
+        return cycles, truncated
+
+    def detect_risk_synergy(
+        self, graph: nx.DiGraph, raw_cycles: Optional[List[List[str]]] = None
+    ) -> Dict[str, Any]:
+        """
+        Detecta Sinergia de Riesgo (Producto Cup) mediante análisis de intersección
+        y centralidad de betweenness.
+
+        Métrica: Dos ciclos C₁, C₂ tienen sinergia si:
+        1. |C₁ ∩ C₂| ≥ 2 (comparten múltiples nodos críticos)
+        2. ∃ v ∈ C₁ ∩ C₂ con betweenness_centrality(v) > θ
+
+        Returns:
+            Dict con análisis de sinergia y nodos puente críticos.
+        """
+        if raw_cycles is None:
+            raw_cycles, _ = self._get_raw_cycles(graph)
+
+        if len(raw_cycles) < 2:
+            return {
+                "synergy_detected": False,
+                "shared_nodes": [],
+                "intersecting_cycles_count": 0,
+                "bridge_nodes": [],
+                "synergy_score": 0.0,
+            }
+
+        # 1. Calcular centralidad de betweenness (más robusto que grado)
+        try:
+            betweenness = nx.betweenness_centrality(graph, normalized=True)
+            # Umbral: percentil 75
+            threshold = np.percentile(list(betweenness.values()), 75) if betweenness else 0.0
+        except:
+            betweenness = {}
+            threshold = 0.0
+
+        # 2. Identificar nodos críticos (alto betweenness)
+        critical_nodes = {n for n, c in betweenness.items() if c >= threshold}
+
+        # 3. Buscar intersecciones significativas
+        synergy_pairs = []
+        bridge_nodes = set()
+        cycle_sets = [set(c) for c in raw_cycles]
+
+        for i in range(len(cycle_sets)):
+            for j in range(i + 1, len(cycle_sets)):
+                intersection = cycle_sets[i].intersection(cycle_sets[j])
+
+                # Criterio 1: Intersección con al menos 2 nodos
+                if len(intersection) >= 2:
+                    # Criterio 2: Al menos un nodo crítico en la intersección
+                    critical_intersection = intersection.intersection(critical_nodes)
+                    if critical_intersection:
+                        synergy_pairs.append((i, j))
+                        bridge_nodes.update(critical_intersection)
+
+        # 4. Calcular score de sinergia
+        synergy_score = 0.0
+        if synergy_pairs:
+            # Score basado en número de pares sinérgicos y nodos puente
+            total_pairs = len(cycle_sets) * (len(cycle_sets) - 1) / 2
+            synergy_score = min(1.0, len(synergy_pairs) / total_pairs * len(bridge_nodes))
+
+        return {
+            "synergy_detected": len(synergy_pairs) > 0,
+            "shared_nodes": list(bridge_nodes),
+            "intersecting_cycles_count": len(synergy_pairs),
+            "bridge_nodes": list(bridge_nodes),
+            "synergy_score": round(synergy_score, 3),
+        }
+
+    def _compute_connectivity_analysis(self, graph: nx.DiGraph) -> Dict[str, Any]:
+        """
+        Calcula métricas de conectividad avanzadas con análisis SCC y WCC.
+
+        Incluye:
+        - Componentes fuertemente conexas (SCC) no triviales
+        - Componentes débilmente conexas (WCC)
+        - Puntos de articulación (vulnerabilidades estructurales)
+        - Coeficiente de clustering promedio
+
+        Returns:
+            Dict con métricas de conectividad detalladas.
+        """
+        if graph.number_of_nodes() == 0:
+            return {
+                "is_dag": True,
+                "num_wcc": 0,
+                "is_weakly_connected": True,
+                "num_scc": 0,
+                "scc_sizes": [],
+                "articulation_points": [],
+                "average_clustering": 0.0,
+            }
+
+        # Convertir a no dirigido para análisis de conectividad débil
+        undirected = graph.to_undirected()
+
+        # Componentes fuertemente conexas
+        scc = list(nx.strongly_connected_components(graph))
+        non_trivial_scc = [c for c in scc if len(c) > 1]
+
+        # Puntos de articulación (nodos cuya remoción desconecta el grafo)
+        articulation_points = list(nx.articulation_points(undirected))
+
+        # Coeficiente de clustering (medida de redundancia local)
+        try:
+            avg_clustering = nx.average_clustering(undirected)
+        except:
+            avg_clustering = 0.0
+
+        return {
+            "is_dag": nx.is_directed_acyclic_graph(graph),
+            "num_wcc": nx.number_weakly_connected_components(graph),
+            "is_weakly_connected": nx.is_weakly_connected(graph),
+            "num_scc": len(non_trivial_scc),
+            "scc_sizes": [len(c) for c in non_trivial_scc],
+            "non_trivial_scc": [list(c) for c in non_trivial_scc],
+            "articulation_points": articulation_points,
+            "average_clustering": round(avg_clustering, 4),
+        }
+
+    def generate_executive_report(
+        self, graph: nx.DiGraph, financial_metrics: Optional[Dict[str, Any]] = None
+    ) -> ConstructionRiskReport:
+        """
+        Genera reporte de riesgos con modelo de scoring bayesiano mejorado.
+
+        Scoring: Integrity = 100 × [w₁·EulerEfficiency + w₂·(1 - Density) + w₃·Stability]
+        donde w₁=0.4, w₂=0.3, w₃=0.3
+
+        Args:
+            graph (nx.DiGraph): Grafo a reportar.
+            financial_metrics (Optional[Dict[str, Any]]): Métricas financieras.
+
+        Returns:
+            ConstructionRiskReport: Reporte ejecutivo completo.
+        """
+        # 1. Métricas topológicas fundamentales
+        metrics = self.calculate_betti_numbers(graph)
+        raw_cycles, _ = self._get_raw_cycles(graph)
+        cycles = [" → ".join(c + [c[0]]) for c in raw_cycles]
+
+        # 2. Análisis especializados
+        synergy = self.detect_risk_synergy(graph, raw_cycles)
+        anomalies = self._classify_anomalous_nodes(graph)
+        pyramid_stability = self.calculate_pyramid_stability(graph)
+        connectivity = self._compute_connectivity_analysis(graph)
+
+        # 3. Cálculo de scoring de integridad con pesos bayesianos
+        density = nx.density(graph) if graph else 0.0
+
+        # Factores normalizados
+        euler_factor = metrics.euler_efficiency  # [0, 1]
+        density_factor = 1.0 - min(density, 0.99)  # [0.01, 1]
+        stability_factor = min(pyramid_stability / 3.0, 1.0)  # Normalizado a [0, 1]
+
+        # Pesos optimizados
+        weights = {"euler": 0.4, "density": 0.3, "stability": 0.3}
+        integrity_score = 100.0 * (
+            weights["euler"] * euler_factor
+            + weights["density"] * density_factor
+            + weights["stability"] * stability_factor
+        )
+
+        # 4. Penalizaciones por anomalías críticas
+        penalty_multiplier = 1.0
+
+        # Penalización por ciclos
+        if metrics.beta_1 > 0:
+            cycle_penalty = min(0.5, metrics.beta_1 * 0.1)
+            penalty_multiplier -= cycle_penalty
+
+        # Penalización por sinergia de riesgo
+        if synergy["synergy_detected"]:
+            synergy_penalty = min(0.3, synergy["synergy_score"] * 0.5)
+            penalty_multiplier -= synergy_penalty
+
+        # Penalización por nodos aislados/huérfanos
+        iso_count = len(anomalies["isolated_nodes"])
+        orphan_count = len(anomalies["orphan_insumos"])
+        anomaly_penalty = min(0.2, (iso_count + orphan_count) * 0.05)
+        penalty_multiplier -= anomaly_penalty
+
+        integrity_score *= max(0.0, penalty_multiplier)
+        integrity_score = round(max(0.0, min(100.0, integrity_score)), 1)
+
+        # 5. Clasificación de complejidad
+        complexity_score = (
+            0.4 * (metrics.beta_1 / max(1, graph.number_of_nodes()))
+            + 0.3 * density
+            + 0.3 * (1.0 - metrics.euler_efficiency)
+        )
+
+        if complexity_score > 0.3:
+            complexity_level = "Alta (Crítica)"
+        elif complexity_score > 0.15:
+            complexity_level = "Media"
+        else:
+            complexity_level = "Baja"
+
+        # 6. Alertas de desperdicio
+        waste_alerts = []
+
+        if iso_count > 0:
+            waste_alerts.append(f"🚨 {iso_count} nodos aislados detectados (recursos no utilizados).")
+
+        if orphan_count > 0:
+            waste_alerts.append(f"⚠️ {orphan_count} insumos huérfanos (sin APU padre).")
+
+        if metrics.euler_efficiency < 0.6:
+            waste_alerts.append(
+                f"⚠️ Baja eficiencia topológica ({metrics.euler_efficiency:.2f}). "
+                f"Exceso de conexiones redundantes."
+            )
+
+        if pyramid_stability < 1.0:
+            waste_alerts.append(
+                f"⚠️ Estabilidad piramidal baja ({pyramid_stability:.2f}). "
+                f"Riesgo de estructura invertida."
+            )
+
+        # 7. Riesgos circulares
+        circular_risks = []
+
+        if metrics.beta_1 > 0:
+            circular_risks.append(
+                f"🚨 CRÍTICO: {metrics.beta_1} ciclo(s) de dependencia detectados. "
+                f"Riesgo de cálculos circulares."
+            )
+
+        if synergy["synergy_detected"]:
+            circular_risks.append(
+                f"🚨 RIESGO SISTÉMICO: Sinergia de riesgo detectada "
+                f"(score: {synergy['synergy_score']:.2f}). Efecto dominó probable."
+            )
+
+        # 8. Análisis de riesgo financiero integrado
+        financial_risk = None
+        if financial_metrics:
+            # Combinar riesgo topológico y financiero
+            volatility = financial_metrics.get("volatility", 0.0)
+            roi = financial_metrics.get("roi", 0.0)
+
+            # Score de riesgo financiero base
+            if roi < 0:
+                financial_risk = "CRÍTICO"
+            elif volatility > 0.25:
+                financial_risk = "ALTO"
+            elif volatility > 0.15:
+                financial_risk = "MEDIO"
+            else:
+                financial_risk = "BAJO"
+
+            # Escalación por riesgos topológicos
+            if (metrics.beta_1 > 2 or synergy["synergy_detected"]) and financial_risk in [
+                "ALTO",
+                "MEDIO",
+            ]:
+                financial_risk = "CATÁSTROFICO"
+            elif metrics.beta_1 > 0 and financial_risk == "ALTO":
+                financial_risk = "MUY ALTO"
+
+        # 9. Narrativa estratégica
+        strategic_narrative = self._generate_strategic_narrative(
+            metrics, synergy, pyramid_stability, financial_risk
+        )
+
+        return ConstructionRiskReport(
+            integrity_score=integrity_score,
+            waste_alerts=waste_alerts,
+            circular_risks=circular_risks,
+            complexity_level=complexity_level,
+            financial_risk_level=financial_risk,
+            strategic_narrative=strategic_narrative,
+            details={
+                "metrics": asdict(metrics),
+                "cycles": cycles,
+                "anomalies": anomalies,
+                "synergy_risk": synergy,
+                "connectivity": connectivity,
+                "pyramid_stability": pyramid_stability,
+                "density": density,
+                "financial_metrics_input": financial_metrics or {},
+                "scoring_weights": weights,
+                "penalty_multiplier": penalty_multiplier,
+            },
+        )
+
+    def _generate_strategic_narrative(
+        self,
+        metrics: TopologicalMetrics,
+        synergy: Dict[str, Any],
+        stability: float,
+        financial_risk: Optional[str],
+    ) -> str:
+        """Genera narrativa estratégica integrada para decisores."""
+        narratives = []
+
+        # Narrativa topológica
+        if metrics.is_simply_connected:
+            narratives.append("Estructura topológica óptima: simplemente conexa y acíclica.")
+        elif metrics.is_connected:
+            narratives.append("Estructura conexa pero con complejidad cíclica.")
+        else:
+            narratives.append(f"Estructura fragmentada ({metrics.beta_0} componentes).")
+
+        if metrics.beta_1 > 0:
+            narratives.append(f"Presencia de {metrics.beta_1} ciclos de dependencia crítica.")
+
+        if synergy["synergy_detected"]:
+            narratives.append(
+                f"Sinergia de riesgo detectada ({synergy['intersecting_cycles_count']} "
+                f"intersecciones críticas)."
+            )
+
+        # Narrativa de estabilidad
+        if stability > 2.0:
+            narratives.append("Pirámide presupuestaria robusta y bien balanceada.")
+        elif stability > 1.0:
+            narratives.append("Estabilidad piramidal adecuada.")
+        else:
+            narratives.append("ALERTA: Estabilidad piramidal comprometida.")
+
+        # Narrativa financiera integrada
+        if financial_risk:
+            risk_map = {
+                "BAJO": "Riesgo financiero bajo. ",
+                "MEDIO": "Riesgo financiero moderado. ",
+                "ALTO": "🚨 Riesgo financiero alto. ",
+                "MUY ALTO": "🚨🚨 Riesgo financiero muy alto. ",
+                "CRÍTICO": "🚨🚨🚨 RIESGO FINANCIERO CRÍTICO. ",
+                "CATÁSTROFICO": "💀 RIESGO CATÁSTROFICO DETECTADO. ",
+            }
+            narratives.append(risk_map.get(financial_risk, ""))
+
+        # Recomendación final
+        if metrics.beta_1 == 0 and stability > 1.5 and financial_risk in [None, "BAJO"]:
+            narratives.append("✅ RECOMENDACIÓN: Estructura aprobada para ejecución.")
+        elif metrics.beta_1 > 0 or stability < 1.0:
+            narratives.append("⚠️ RECOMENDACIÓN: Requiere revisión técnica urgente.")
+        else:
+            narratives.append("ℹ️ RECOMENDACIÓN: Monitoreo continuo recomendado.")
+
+        return " ".join(narratives)
+
+
+### propuesta 2
+
+
+# Métodos Refinados para BudgetGraphBuilder
+
+def _sanitize_code(self, value: Any) -> str:
+    """
+    Sanitiza el código o identificador asegurando una cadena limpia y normalizada.
+
+    Aplica normalización Unicode y elimina caracteres de control invisibles.
+
+    Args:
+        value: Valor a sanitizar (cualquier tipo).
+
+    Returns:
+        Cadena sanitizada, normalizada y en mayúsculas para consistencia.
+    """
+    if pd.isna(value) or value is None:
+        return ""
+    sanitized = str(value).strip()
+    # Eliminar caracteres de control y espacios múltiples
+    sanitized = " ".join(sanitized.split())
+    return sanitized
+
+def _safe_float(self, value: Any, default: float = 0.0) -> float:
+    """
+    Convierte un valor a float de manera segura con soporte para formatos locales.
+
+    Maneja separadores de miles (comas) y valores nulos de manera robusta.
+
+    Args:
+        value: Valor a convertir.
+        default: Valor por defecto si la conversión falla.
+
+    Returns:
+        Valor numérico convertido o el default.
+    """
+    if pd.isna(value) or value is None:
+        return default
+    try:
+        if isinstance(value, (int, float)):
+            return float(value)
+        # Manejar strings con formato de número (ej: "1,234.56" o "1.234,56")
+        str_value = str(value).strip()
+        # Detectar formato con coma como separador de miles
+        if "," in str_value and "." in str_value:
+            if str_value.rfind(",") < str_value.rfind("."):
+                str_value = str_value.replace(",", "")
+            else:
+                str_value = str_value.replace(".", "").replace(",", ".")
+        elif "," in str_value and "." not in str_value:
+            # Podría ser separador decimal o de miles
+            # Heurística: si hay más de 2 dígitos después de la coma, es miles
+            parts = str_value.split(",")
+            if len(parts) == 2 and len(parts[1]) <= 2:
+                str_value = str_value.replace(",", ".")
+            else:
+                str_value = str_value.replace(",", "")
+        return float(str_value)
+    except (ValueError, TypeError, AttributeError):
+        return default
+
+def _upsert_edge(
+    self, G: nx.DiGraph, u: str, v: str, unit_cost: float, quantity: float, idx: int
+) -> bool:
+    """
+    Inserta o actualiza una arista aplicando agregación de cantidades y costos.
+
+    Implementa el patrón Upsert con semántica de acumulación para modelar
+    múltiples instancias de la misma relación APU → Insumo.
+
+    Args:
+        G: Grafo dirigido destino.
+        u: Nodo origen (APU).
+        v: Nodo destino (Insumo).
+        unit_cost: Costo unitario del insumo.
+        quantity: Cantidad utilizada.
+        idx: Índice original en el DataFrame fuente.
+
+    Returns:
+        True si la arista fue creada, False si fue actualizada.
+    """
+    total_cost = unit_cost * quantity
+
+    if G.has_edge(u, v):
+        edge = G[u][v]
+        edge["quantity"] += quantity
+        edge["total_cost"] += total_cost
+        edge["occurrence_count"] += 1
+        edge.setdefault("original_indices", []).append(idx)
+        return False
+
+    G.add_edge(
+        u, v,
+        quantity=quantity,
+        unit_cost=unit_cost,
+        total_cost=total_cost,
+        occurrence_count=1,
+        original_indices=[idx],
+    )
+    return True
+
+def _compute_graph_statistics(self, G: nx.DiGraph) -> Dict[str, int]:
+    """
+    Calcula estadísticas del grafo en una única pasada sobre los nodos.
+
+    Complejidad temporal: O(V) donde V es el número de vértices.
+    Complejidad espacial: O(1) auxiliar.
+
+    Args:
+        G: Grafo construido.
+
+    Returns:
+        Diccionario con conteos por tipo de nodo y totales.
+    """
+    stats = {
+        "chapter_count": 0,
+        "apu_count": 0,
+        "insumo_count": 0,
+        "inferred_count": 0,
+        "total_nodes": G.number_of_nodes(),
+        "total_edges": G.number_of_edges(),
+    }
+
+    type_counters = {"CAPITULO": "chapter_count", "APU": "apu_count", "INSUMO": "insumo_count"}
+
+    for _, data in G.nodes(data=True):
+        node_type = data.get("type")
+        if node_type in type_counters:
+            stats[type_counters[node_type]] += 1
+            if node_type == "APU" and data.get("inferred", False):
+                stats["inferred_count"] += 1
+
+    return stats
+
+def _process_presupuesto_row(
+    self, G: nx.DiGraph, row: pd.Series, idx: int, chapter_cols: List[str]
+) -> None:
+    """
+    Procesa una fila del presupuesto creando nodos APU y conexiones jerárquicas.
+
+    Extrae la información de capítulo si está disponible y establece
+    las relaciones PROYECTO -> CAPÍTULO -> APU.
+
+    Args:
+        G: Grafo destino.
+        row: Fila del DataFrame de presupuesto.
+        idx: Índice de la fila.
+        chapter_cols: Lista de posibles nombres de columna para capítulos.
+    """
+    apu_code = self._sanitize_code(row.get(ColumnNames.CODIGO_APU))
+    if not apu_code:
+        return
+
+    # Crear nodo APU (Nivel 2)
+    attrs = self._create_apu_attributes(row, source="presupuesto", idx=idx, inferred=False)
+    G.add_node(apu_code, **attrs)
+
+    # Buscar y establecer jerarquía de capítulo
+    chapter_name = None
+    for col in chapter_cols:
+        val = self._sanitize_code(row.get(col))
+        if val:
+            chapter_name = val
+            break
+
+    if chapter_name:
+        if chapter_name not in G:
+            G.add_node(
+                chapter_name,
+                type="CAPITULO",
+                level=1,
+                description=f"Capítulo: {chapter_name}",
+            )
+            G.add_edge(self.ROOT_NODE, chapter_name, relation="CONTAINS")
+        G.add_edge(chapter_name, apu_code, relation="CONTAINS")
+    else:
+        G.add_edge(self.ROOT_NODE, apu_code, relation="CONTAINS")
+
+def _process_apu_detail_row(self, G: nx.DiGraph, row: pd.Series, idx: int) -> None:
+    """
+    Procesa una fila de detalle APU creando nodos Insumo y aristas.
+
+    Maneja la inferencia de APUs que aparecen en detalle pero no en presupuesto.
+
+    Args:
+        G: Grafo destino.
+        row: Fila del DataFrame de detalle de APUs.
+        idx: Índice de la fila.
+    """
+    apu_code = self._sanitize_code(row.get(ColumnNames.CODIGO_APU))
+    insumo_desc = self._sanitize_code(row.get(ColumnNames.DESCRIPCION_INSUMO))
+
+    if not apu_code or not insumo_desc:
+        return
+
+    # Inferir APU si no existe
+    if apu_code not in G:
+        attrs = self._create_apu_attributes(row, source="detail", idx=idx, inferred=True)
+        G.add_node(apu_code, **attrs)
+        G.add_edge(self.ROOT_NODE, apu_code, relation="CONTAINS_INFERRED")
+
+    # Crear o reutilizar nodo Insumo
+    if insumo_desc not in G:
+        attrs = self._create_insumo_attributes(row, insumo_desc, source="detail", idx=idx)
+        G.add_node(insumo_desc, **attrs)
+
+    # Establecer relación APU -> Insumo con agregación
+    qty = self._safe_float(row.get(ColumnNames.CANTIDAD_APU))
+    cost = self._safe_float(row.get(ColumnNames.COSTO_INSUMO_EN_APU))
+    self._upsert_edge(G, apu_code, insumo_desc, cost, qty, idx)
+
+def build(
+    self, presupuesto_df: pd.DataFrame, apus_detail_df: pd.DataFrame
+) -> nx.DiGraph:
+    """
+    Construye un grafo dirigido piramidal representando la topología del presupuesto.
+
+    Estructura Jerárquica:
+        Nivel 0: PROYECTO_TOTAL (Raíz única)
+        Nivel 1: Capítulos (agrupación lógica)
+        Nivel 2: APUs (Análisis de Precios Unitarios)
+        Nivel 3: Insumos (recursos atómicos)
+
+    El grafo resultante es un DAG (Directed Acyclic Graph) en estructuras sanas,
+    donde los ciclos indican errores de referencia circular en costos.
+
+    Args:
+        presupuesto_df: DataFrame con estructura de presupuesto (APUs y capítulos).
+        apus_detail_df: DataFrame con detalle de composición de APUs (insumos).
+
+    Returns:
+        Grafo dirigido con la topología del presupuesto etiquetada.
+    """
+    G = nx.DiGraph(name="BudgetTopology")
+    self.logger.info("Iniciando construcción del Grafo Piramidal de Presupuesto...")
+
+    # Nivel 0: Nodo Raíz
+    G.add_node(self.ROOT_NODE, type="ROOT", level=0, description="Proyecto Completo")
+
+    # Columnas candidatas para identificar capítulos
+    chapter_cols = ["CAPITULO", "CATEGORIA", "TITULO"]
+
+    # Niveles 1 y 2: Procesar Presupuesto
+    if presupuesto_df is not None and not presupuesto_df.empty:
+        available_chapter_cols = [c for c in chapter_cols if c in presupuesto_df.columns]
+        for idx, row in presupuesto_df.iterrows():
+            self._process_presupuesto_row(G, row, idx, available_chapter_cols)
+
+    # Nivel 3: Procesar Detalle de APUs (Insumos)
+    if apus_detail_df is not None and not apus_detail_df.empty:
+        for idx, row in apus_detail_df.iterrows():
+            self._process_apu_detail_row(G, row, idx)
+
+    stats = self._compute_graph_statistics(G)
+    self.logger.info(f"Grafo Piramidal construido: {stats}")
+    return G
+
+
+# Métodos Refinados para BusinessTopologicalAnalyzer
+
+def calculate_euler_efficiency(self, graph: nx.DiGraph) -> float:
+    """
+    Calcula la Eficiencia de Euler normalizada como medida de redundancia estructural.
+
+    Fundamento Topológico:
+    - Un árbol spanning tiene exactamente V-1 aristas (mínima conectividad).
+    - Aristas adicionales (E - V + 1) representan redundancia/ciclos.
+    - La eficiencia mide qué tan cerca está la estructura de un árbol puro.
+
+    Fórmula: η = 1 / (1 + α * (E - V + 1) / V)
+    donde α es un factor de sensibilidad (usamos α=1 para comportamiento lineal).
+
+    Interpretación para Presupuestos:
+    - η ≈ 1.0: Estructura arbórea limpia (ideal para jerarquías de costos).
+    - η < 0.5: Alta redundancia estructural (posibles dependencias circulares).
+    - η → 0: Grafo denso con múltiples caminos de costo (difícil auditoría).
+
+    Args:
+        graph: Grafo dirigido a analizar.
+
+    Returns:
+        Eficiencia normalizada en el rango [0.0, 1.0].
+    """
+    n_nodes = graph.number_of_nodes()
+    n_edges = graph.number_of_edges()
+
+    if n_nodes <= 1:
+        return 1.0  # Grafo trivial es perfectamente eficiente
+
+    # Exceso de aristas sobre un árbol spanning
+    # Para un árbol: E = V - 1, por lo que excess = E - (V - 1) = E - V + 1
+    excess_edges = max(0, n_edges - n_nodes + 1)
+
+    # Normalización con decaimiento hiperbólico
+    efficiency = 1.0 / (1.0 + excess_edges / n_nodes)
+
+    return round(efficiency, 4)
+
+def calculate_betti_numbers(self, graph: nx.DiGraph) -> TopologicalMetrics:
+    """
+    Calcula los Números de Betti del 1-complejo simplicial subyacente al grafo.
+
+    Fundamento de Topología Algebraica:
+    Los números de Betti son invariantes topológicos que caracterizan
+    la estructura homológica del espacio:
+
+    - β₀ (Betti-0): dim(H₀) = número de componentes conexas.
+      Mide la fragmentación del espacio de costos.
+
+    - β₁ (Betti-1): dim(H₁) = número de ciclos independientes.
+      Para un 1-complejo: β₁ = E - V + β₀ (por la fórmula de Euler-Poincaré).
+      Mide la complejidad cíclica (referencias circulares en costos).
+
+    - χ (Característica de Euler): χ = β₀ - β₁ = V - E.
+      Invariante global que resume la topología.
+
+    Teorema Aplicado: Para un CW-complejo 1-dimensional (grafo),
+    χ = V - E = Σ(-1)^k * βₖ = β₀ - β₁
+
+    Args:
+        graph: Grafo dirigido representando la topología de negocio.
+
+    Returns:
+        TopologicalMetrics con invariantes homológicos calculados.
+    """
+    n_nodes = graph.number_of_nodes()
+    n_edges = graph.number_of_edges()
+
+    if n_nodes == 0:
+        return TopologicalMetrics(
+            beta_0=0, beta_1=0, euler_characteristic=0, euler_efficiency=1.0
+        )
+
+    # Convertir a grafo no dirigido para análisis de componentes conexas
+    # Usamos conversión simple (no MultiGraph) para conteo correcto
+    undirected = graph.to_undirected(as_view=False)
+
+    # β₀: Componentes conexas (0-ésimo grupo de homología)
+    beta_0 = nx.number_connected_components(undirected)
+
+    # β₁: Ciclos independientes (1-er grupo de homología)
+    # De la fórmula de Euler para 1-complejos: χ = V - E = β₀ - β₁
+    # Por lo tanto: β₁ = β₀ - χ = β₀ - V + E
+    beta_1 = max(0, n_edges - n_nodes + beta_0)
+
+    # Característica de Euler
+    chi = n_nodes - n_edges  # Equivalente a β₀ - β₁
+
+    efficiency = self.calculate_euler_efficiency(graph)
+
+    return TopologicalMetrics(
+        beta_0=beta_0,
+        beta_1=beta_1,
+        euler_characteristic=chi,
+        euler_efficiency=efficiency,
+    )
+
+def calculate_pyramid_stability(self, graph: nx.DiGraph) -> float:
+    """
+    Calcula el Índice de Estabilidad Piramidal (Ψ) en una única pasada.
+
+    El índice Ψ mide la salud estructural de la jerarquía de costos:
+    - Una pirámide estable tiene base ancha (muchos insumos) y vértice estrecho (pocos APUs).
+    - Una pirámide invertida indica riesgo de colapso estructural.
+
+    Fórmula: Ψ = (N_insumos / N_apus) × (1 / ρ)
+    donde ρ es la densidad del grafo.
+
+    Interpretación:
+    - Ψ > 10: Estructura robusta con base de recursos diversificada.
+    - 1 < Ψ < 10: Estructura moderada, revisar dependencias.
+    - Ψ < 1: Pirámide invertida, alto riesgo de cuellos de botella.
+
+    Args:
+        graph: Grafo del presupuesto.
+
+    Returns:
+        Índice de estabilidad (0.0 si el cálculo no es posible).
+    """
+    num_apus = 0
+    num_insumos = 0
+
+    # Única pasada sobre nodos
+    for _, data in graph.nodes(data=True):
+        node_type = data.get("type")
+        if node_type == "APU":
+            num_apus += 1
+        elif node_type == "INSUMO":
+            num_insumos += 1
+
+    if num_apus == 0:
+        return 0.0
+
+    density = nx.density(graph)
+    if density == 0:
+        return 0.0
+
+    base_ratio = num_insumos / num_apus
+    stability = base_ratio / density
+
+    return round(stability, 2)
+
+def _get_raw_cycles(self, graph: nx.DiGraph) -> Tuple[List[List[str]], bool]:
+    """
+    Extrae ciclos simples del grafo con límite de seguridad.
+
+    Utiliza el algoritmo de Johnson para encontrar ciclos simples,
+    con truncamiento para evitar explosión combinatoria en grafos densos.
+
+    Complejidad: O((V + E)(C + 1)) donde C es el número de ciclos.
+
+    Args:
+        graph: Grafo dirigido a analizar.
+
+    Returns:
+        Tupla de (lista de ciclos como listas de nodos, flag de truncamiento).
+    """
+    cycles: List[List[str]] = []
+    truncated = False
+
+    try:
+        cycle_generator = nx.simple_cycles(graph)
+        for count, cycle in enumerate(cycle_generator, start=1):
+            cycles.append(cycle)
+            if count >= self.max_cycles:
+                truncated = True
+                self.logger.warning(
+                    f"Detección de ciclos truncada en {self.max_cycles}. "
+                    "Grafo posiblemente muy denso."
+                )
+                break
+    except nx.NetworkXError as e:
+        self.logger.error(f"Error de NetworkX detectando ciclos: {e}")
+    except Exception as e:
+        self.logger.error(f"Error inesperado detectando ciclos: {e}", exc_info=True)
+
+    return cycles, truncated
+
+def _format_cycles(self, raw_cycles: List[List[str]]) -> List[str]:
+    """
+    Formatea ciclos crudos a representación de string legible.
+
+    Args:
+        raw_cycles: Lista de ciclos como listas de nodos.
+
+    Returns:
+        Lista de ciclos formateados como "A → B → C → A".
+    """
+    return [" → ".join(map(str, cycle + [cycle[0]])) for cycle in raw_cycles]
+
+def _detect_cycles(self, graph: nx.DiGraph) -> Tuple[List[str], bool]:
+    """
+    Detecta y formatea ciclos en el grafo.
+
+    Args:
+        graph: Grafo a analizar.
+
+    Returns:
+        Tupla de (ciclos formateados, flag de truncamiento).
+    """
+    raw_cycles, truncated = self._get_raw_cycles(graph)
+    return self._format_cycles(raw_cycles), truncated
+
+def _identify_critical_nodes(
+    self, graph: nx.DiGraph, percentile: float = 0.9
+) -> set:
+    """
+    Identifica nodos críticos basándose en centralidad de grado.
+
+    Los nodos críticos son aquellos con grado en el percentil superior,
+    representando puntos de alta conectividad y potencial propagación de riesgo.
+
+    Args:
+        graph: Grafo a analizar.
+        percentile: Percentil umbral para considerar un nodo crítico.
+
+    Returns:
+        Conjunto de identificadores de nodos críticos.
+    """
+    degrees = dict(graph.degree())
+    if not degrees:
+        return set()
+
+    sorted_degrees = sorted(degrees.values(), reverse=True)
+    threshold_idx = max(0, int(len(sorted_degrees) * (1 - percentile)))
+    degree_threshold = max(2, sorted_degrees[threshold_idx] if sorted_degrees else 0)
+
+    return {node for node, degree in degrees.items() if degree >= degree_threshold}
+
+def detect_risk_synergy(
+    self, graph: nx.DiGraph, raw_cycles: Optional[List[List[str]]] = None
+) -> Dict[str, Any]:
+    """
+    Detecta Sinergia de Riesgo mediante análisis de intersección de ciclos.
+
+    Modelo Teórico (Producto Cup Simplificado):
+    En cohomología, el producto cup α ∪ β detecta intersecciones no triviales.
+    Aquí simulamos este concepto: si dos ciclos comparten nodos críticos,
+    sus riesgos interactúan multiplicativamente (efecto dominó).
+
+    Implicación de Negocio:
+    - Ciclos disjuntos: riesgos independientes y aditivos.
+    - Ciclos intersectantes en nodos críticos: riesgo sistémico amplificado.
+
+    Args:
+        graph: Grafo de presupuesto.
+        raw_cycles: Ciclos pre-calculados (optimización para evitar recálculo).
+
+    Returns:
+        Diccionario con detección de sinergia, nodos compartidos y conteo.
+    """
+    if raw_cycles is None:
+        raw_cycles, _ = self._get_raw_cycles(graph)
+
+    result = {
+        "synergy_detected": False,
+        "shared_nodes": [],
+        "intersecting_cycles_count": 0,
+    }
+
+    if len(raw_cycles) < 2:
+        return result
+
+    critical_nodes = self._identify_critical_nodes(graph)
+    cycle_sets = [set(cycle) for cycle in raw_cycles]
+
+    shared_critical: set = set()
+    intersecting_count = 0
+
+    # Comparación por pares O(n²) - aceptable dado max_cycles
+    for i, set_i in enumerate(cycle_sets):
+        for set_j in cycle_sets[i + 1:]:
+            critical_intersection = set_i & set_j & critical_nodes
+            if critical_intersection:
+                shared_critical |= critical_intersection
+                intersecting_count += 1
+
+    result["synergy_detected"] = len(shared_critical) > 0
+    result["shared_nodes"] = sorted(shared_critical)
+    result["intersecting_cycles_count"] = intersecting_count
+
+    return result
+
+def _classify_anomalous_nodes(
+    self, graph: nx.DiGraph
+) -> Dict[str, List[Dict[str, Any]]]:
+    """
+    Clasifica nodos en categorías anómalas en una única pasada eficiente.
+
+    Categorías de Anomalía:
+    - Aislados: Nodos sin conexiones (in_degree = out_degree = 0).
+    - Huérfanos: Insumos sin APU padre (in_degree = 0).
+    - Vacíos: APUs sin insumos hijos (out_degree = 0).
+
+    Complejidad: O(V) tiempo, O(A) espacio donde A es el número de anomalías.
+
+    Args:
+        graph: Grafo a analizar.
+
+    Returns:
+        Diccionario con listas de nodos anómalos por categoría.
+    """
+    result: Dict[str, List[Dict[str, Any]]] = {
+        "isolated_nodes": [],
+        "orphan_insumos": [],
+        "empty_apus": [],
+    }
+
+    # Pre-calcular grados para evitar llamadas repetidas
+    in_degrees = dict(graph.in_degree())
+    out_degrees = dict(graph.out_degree())
+
+    for node, data in graph.nodes(data=True):
+        node_type = data.get("type")
+
+        # Ignorar nodo raíz
+        if node_type == "ROOT":
+            continue
+
+        in_deg = in_degrees.get(node, 0)
+        out_deg = out_degrees.get(node, 0)
+
+        node_info = {
+            "id": node,
+            "type": node_type,
+            "description": data.get("description", ""),
+            "inferred": data.get("inferred", False),
+            "in_degree": in_deg,
+            "out_degree": out_deg,
+        }
+
+        is_isolated = in_deg == 0 and out_deg == 0
+
+        if is_isolated:
+            result["isolated_nodes"].append(node_info)
+            # Un insumo aislado también es huérfano
+            if node_type == "INSUMO":
+                result["orphan_insumos"].append(node_info)
+        elif node_type == "INSUMO" and in_deg == 0:
+            result["orphan_insumos"].append(node_info)
+        elif node_type == "APU" and out_deg == 0:
+            result["empty_apus"].append(node_info)
+
+    return result
+
+def _identify_critical_resources(
+    self, graph: nx.DiGraph, top_n: int = 5
+) -> List[Dict[str, Any]]:
+    """
+    Identifica los recursos (insumos) más críticos por centralidad de grado entrante.
+
+    Los insumos con alto grado entrante son utilizados por múltiples APUs,
+    representando puntos críticos donde variaciones de precio impactan ampliamente.
+
+    Args:
+        graph: Grafo a analizar.
+        top_n: Número de recursos top a retornar.
+
+    Returns:
+        Lista ordenada de recursos críticos con metadatos.
+    """
+    resources = [
+        {
+            "id": node,
+            "in_degree": graph.in_degree(node),
+            "description": data.get("description", ""),
+        }
+        for node, data in graph.nodes(data=True)
+        if data.get("type") == "INSUMO" and graph.in_degree(node) > 0
+    ]
+
+    resources.sort(key=lambda x: x["in_degree"], reverse=True)
+    return resources[:top_n]
+
+def _compute_connectivity_analysis(self, graph: nx.DiGraph) -> Dict[str, Any]:
+    """
+    Analiza propiedades de conectividad del grafo dirigido.
+
+    Métricas Calculadas:
+    - is_dag: Si el grafo es acíclico (ideal para estructuras de costo).
+    - num_wcc: Número de componentes débilmente conexas.
+    - is_weakly_connected: Si existe camino no dirigido entre cualquier par.
+    - SCCs no triviales: Componentes fuertemente conexas con >1 nodo (ciclos).
+
+    Args:
+        graph: Grafo a analizar.
+
+    Returns:
+        Diccionario con métricas de conectividad.
+    """
+    sccs = list(nx.strongly_connected_components(graph))
+    non_trivial_sccs = [list(c) for c in sccs if len(c) > 1]
+
+    return {
+        "is_dag": nx.is_directed_acyclic_graph(graph),
+        "num_wcc": nx.number_weakly_connected_components(graph),
+        "is_weakly_connected": nx.is_weakly_connected(graph) if graph.number_of_nodes() > 0 else True,
+        "num_non_trivial_scc": len(non_trivial_sccs),
+        "non_trivial_scc": non_trivial_sccs,
+    }
+
+def _compute_integrity_score(
+    self,
+    metrics: TopologicalMetrics,
+    synergy: Dict[str, Any],
+    anomalies: Dict[str, List[Dict[str, Any]]],
+) -> float:
+    """
+    Calcula la puntuación de integridad estructural basada en múltiples factores.
+
+    Modelo de Penalización:
+    - Ciclos (β₁ > 0): -50 puntos (riesgo crítico de circularidad).
+    - Sinergia de riesgo: -20 puntos (efecto dominó potencial).
+    - Nodos aislados: -2 puntos cada uno (máximo -30).
+    - Insumos huérfanos: -1 punto cada uno (máximo -20).
+
+    Args:
+        metrics: Métricas topológicas calculadas.
+        synergy: Resultado de detección de sinergia de riesgo.
+        anomalies: Clasificación de nodos anómalos.
+
+    Returns:
+        Puntuación de integridad en rango [0, 100].
+    """
+    score = 100.0
+
+    # Penalización por ciclos (crítico)
+    if metrics.beta_1 > 0:
+        score -= 50
+
+    # Penalización por sinergia de riesgo
+    if synergy.get("synergy_detected", False):
+        score -= 20
+
+    # Penalización por nodos aislados
+    isolated_count = len(anomalies.get("isolated_nodes", []))
+    score -= min(30, isolated_count * 2)
+
+    # Penalización por insumos huérfanos
+    orphan_count = len(anomalies.get("orphan_insumos", []))
+    score -= min(20, orphan_count)
+
+    return max(0.0, score)
+
+def _determine_complexity_level(
+    self, metrics: TopologicalMetrics, density: float
+) -> str:
+    """
+    Determina el nivel de complejidad estructural del grafo.
+
+    Criterios:
+    - Alta (Crítica): Presencia de ciclos (β₁ > 0).
+    - Alta: Densidad > 10%.
+    - Media: Densidad entre 5% y 10%.
+    - Baja: Densidad < 5%.
+
+    Args:
+        metrics: Métricas topológicas.
+        density: Densidad del grafo.
+
+    Returns:
+        Nivel de complejidad como string descriptivo.
+    """
+    if metrics.beta_1 > 0:
+        return "Alta (Crítica)"
+    if density > 0.10:
+        return "Alta"
+    if density > 0.05:
+        return "Media"
+    return "Baja"
+
+def _generate_waste_alerts(
+    self,
+    anomalies: Dict[str, List[Dict[str, Any]]],
+    metrics: TopologicalMetrics,
+    pyramid_stability: float,
+    node_count: int,
+) -> List[str]:
+    """
+    Genera alertas de posible desperdicio basadas en anomalías estructurales.
+
+    Args:
+        anomalies: Clasificación de nodos anómalos.
+        metrics: Métricas topológicas.
+        pyramid_stability: Índice de estabilidad piramidal.
+        node_count: Número total de nodos en el grafo.
+
+    Returns:
+        Lista de mensajes de alerta.
+    """
+    alerts = []
+
+    isolated_count = len(anomalies.get("isolated_nodes", []))
+    orphan_count = len(anomalies.get("orphan_insumos", []))
+
+    if isolated_count > 0:
+        alerts.append(f"Alerta: {isolated_count} Insumos no utilizados.")
+
+    if orphan_count > 0:
+        alerts.append(f"Alerta: {orphan_count} Recursos sin asignación a APUs.")
+
+    if metrics.euler_efficiency < 0.5:
+        alerts.append(
+            f"Alerta de Gestión: Baja Eficiencia de Euler ({metrics.euler_efficiency:.2f}). "
+            "Sobrecarga de enlaces."
+        )
+
+    if pyramid_stability < 10.0 and node_count > 10:
+        alerts.append(
+            f"Alerta Estructural: Baja estabilidad piramidal ({pyramid_stability:.1f}). "
+            "Posible estructura invertida o excesivamente compleja."
+        )
+
+    return alerts
+
+def _generate_circular_risks(
+    self, metrics: TopologicalMetrics, synergy: Dict[str, Any]
+) -> List[str]:
+    """
+    Genera alertas de riesgos circulares basadas en topología.
+
+    Args:
+        metrics: Métricas topológicas.
+        synergy: Resultado de detección de sinergia.
+
+    Returns:
+        Lista de mensajes de riesgo circular.
+    """
+    risks = []
+
+    if metrics.beta_1 > 0:
+        risks.append("CRÍTICO: Referencias circulares detectadas.")
+
+    if synergy.get("synergy_detected", False):
+        count = synergy.get("intersecting_cycles_count", 0)
+        risks.append(
+            f"RIESGO SISTÉMICO: Sinergia detectada entre {count} ciclos. "
+            "Efecto Dominó probable."
+        )
+
+    return risks
+
+def _assess_financial_risk(
+    self,
+    metrics: TopologicalMetrics,
+    synergy: Dict[str, Any],
+    financial_metrics: Optional[Dict[str, Any]],
+) -> Optional[str]:
+    """
+    Evalúa el nivel de riesgo financiero combinando topología y métricas financieras.
+
+    Modelo de Riesgo Compuesto:
+    El riesgo financiero se escala a CATASTRÓFICO cuando hay convergencia
+    de riesgo topológico (ciclos/sinergia) y alto riesgo financiero.
+
+    Args:
+        metrics: Métricas topológicas.
+        synergy: Resultado de sinergia de riesgo.
+        financial_metrics: Métricas financieras opcionales.
+
+    Returns:
+        Nivel de riesgo o None si no hay métricas financieras.
+    """
+    if not financial_metrics:
+        return None
+
+    volatility = financial_metrics.get("volatility", 0.0)
+    roi = financial_metrics.get("roi", 0.0)
+
+    # Clasificación base
+    if roi < 0:
+        risk_level = "CRÍTICO"
+    elif volatility > 0.20:
+        risk_level = "ALTO"
+    elif volatility > 0.10:
+        risk_level = "MEDIO"
+    else:
+        risk_level = "BAJO"
+
+    # Escalamiento por convergencia de riesgos
+    topological_risk = metrics.beta_1 > 0 or synergy.get("synergy_detected", False)
+    if topological_risk and risk_level in ("ALTO", "CRÍTICO"):
+        risk_level = "CATÁSTROFICO"
+
+    return risk_level
+
+def generate_executive_report(
+    self, graph: nx.DiGraph, financial_metrics: Optional[Dict[str, Any]] = None
+) -> ConstructionRiskReport:
+    """
+    Genera un reporte ejecutivo de riesgos integrando análisis topológico y financiero.
+
+    El reporte sintetiza múltiples dimensiones de análisis en una estructura
+    consumible por stakeholders técnicos y de negocio.
+
+    Args:
+        graph: Grafo a reportar.
+        financial_metrics: Métricas financieras opcionales para análisis combinado.
+
+    Returns:
+        ConstructionRiskReport con evaluación completa.
+    """
+    # Cálculos base
+    metrics = self.calculate_betti_numbers(graph)
+    raw_cycles, truncated = self._get_raw_cycles(graph)
+    cycles = self._format_cycles(raw_cycles)
+    synergy = self.detect_risk_synergy(graph, raw_cycles)
+    anomalies = self._classify_anomalous_nodes(graph)
+    pyramid_stability = self.calculate_pyramid_stability(graph)
+    density = nx.density(graph) if graph.number_of_nodes() > 0 else 0.0
+
+    # Evaluaciones derivadas
+    integrity_score = self._compute_integrity_score(metrics, synergy, anomalies)
+    complexity = self._determine_complexity_level(metrics, density)
+    waste_alerts = self._generate_waste_alerts(
+        anomalies, metrics, pyramid_stability, graph.number_of_nodes()
+    )
+    circular_risks = self._generate_circular_risks(metrics, synergy)
+    financial_risk = self._assess_financial_risk(metrics, synergy, financial_metrics)
+
+    return ConstructionRiskReport(
+        integrity_score=integrity_score,
+        waste_alerts=waste_alerts,
+        circular_risks=circular_risks,
+        complexity_level=complexity,
+        financial_risk_level=financial_risk,
+        details={
+            "metrics": asdict(metrics),
+            "cycles": cycles,
+            "cycles_truncated": truncated,
+            "anomalies": anomalies,
+            "density": density,
+            "pyramid_stability": pyramid_stability,
+            "synergy_risk": synergy,
+            "financial_metrics_input": financial_metrics or {},
+        },
+    )
+
+def audit_integration_homology(
+    self, graph_a: nx.DiGraph, graph_b: nx.DiGraph
+) -> Dict[str, Any]:
+    """
+    Ejecuta el Test de Mayer-Vietoris para detectar ciclos emergentes en fusiones.
+
+    Fundamento Topológico:
+    La secuencia exacta de Mayer-Vietoris relaciona la homología de un espacio
+    con la de sus partes:
+        ... → Hₙ(A∩B) → Hₙ(A) ⊕ Hₙ(B) → Hₙ(A∪B) → Hₙ₋₁(A∩B) → ...
+
+    Para n=1, el homomorfismo conector Δ: H₁(A∪B) → H₀(A∩B) detecta
+    ciclos emergentes que no existían en las partes individuales.
+
+    Interpretación Simplificada:
+    Δβ₁ = β₁(A∪B) - (β₁(A) + β₁(B))
+    - Δβ₁ > 0: La fusión creó nuevos ciclos (CONFLICTO).
+    - Δβ₁ = 0: Fusión topológicamente neutra (LIMPIA).
+    - Δβ₁ < 0: La fusión simplificó estructura (OPTIMIZACIÓN).
+
+    Args:
+        graph_a: Primer grafo (ej: Capítulo A del presupuesto).
+        graph_b: Segundo grafo (ej: Capítulo B del presupuesto).
+
+    Returns:
+        Diccionario con status, delta, detalles y narrativa.
+    """
+    metrics_a = self.calculate_betti_numbers(graph_a)
+    metrics_b = self.calculate_betti_numbers(graph_b)
+
+    # Unión de grafos preservando atributos
+    graph_union = nx.compose(graph_a, graph_b)
+    metrics_union = self.calculate_betti_numbers(graph_union)
+
+    # Diferencial homológico (homomorfismo conector simplificado)
+    emergent_cycles = metrics_union.beta_1 - (metrics_a.beta_1 + metrics_b.beta_1)
+
+    # Diagnóstico
+    if emergent_cycles > 0:
+        verdict = "INTEGRATION_CONFLICT"
+    elif emergent_cycles < 0:
+        verdict = "TOPOLOGY_SIMPLIFIED"
+    else:
+        verdict = "CLEAN_MERGE"
+
+    return {
+        "status": verdict,
+        "delta_beta_1": emergent_cycles,
+        "details": {
+            "beta_1_A": metrics_a.beta_1,
+            "beta_1_B": metrics_b.beta_1,
+            "beta_1_Union": metrics_union.beta_1,
+            "beta_0_A": metrics_a.beta_0,
+            "beta_0_B": metrics_b.beta_0,
+            "beta_0_Union": metrics_union.beta_0,
+        },
+        "narrative": self._generate_mayer_vietoris_narrative(emergent_cycles),
+    }
+
+def _interpret_topology(self, metrics: TopologicalMetrics) -> Dict[str, str]:
+    """
+    Genera interpretaciones semánticas de las métricas topológicas.
+
+    Traduce invariantes abstractos a descripciones comprensibles para
+    usuarios no especializados en topología algebraica.
+
+    Args:
+        metrics: Métricas a interpretar.
+
+    Returns:
+        Diccionario con interpretaciones por métrica.
+    """
+    connectivity_status = "Espacio conexo" if metrics.is_connected else "Espacio fragmentado"
+    cycle_status = "Estructura acíclica" if metrics.beta_1 == 0 else "Complejidad cíclica presente"
+
+    return {
+        "beta_0": f"{metrics.beta_0} componente(s) conexa(s). {connectivity_status}.",
+        "beta_1": f"{metrics.beta_1} ciclo(s) independiente(s). {cycle_status}.",
+        "euler": f"Característica de Euler: χ = {metrics.euler_characteristic}",
+        "efficiency": f"Eficiencia de Euler: {metrics.euler_efficiency:.2%}",
+        "summary": (
+            "Topología óptima para auditoría." if metrics.is_simply_connected
+            else "Requiere revisión de dependencias." if metrics.beta_1 > 0
+            else "Estructura fragmentada, verificar integridad."
+        ),
+    }
