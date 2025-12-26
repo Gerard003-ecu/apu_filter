@@ -26,6 +26,17 @@ Los Números de Betti son los invariantes primarios calculados por el módulo `t
 | **$\beta_0$** | **Componentes Conexas**<br>Número de "piezas" independientes que forman el espacio. | **Fragmentación del Sistema**<br>Indica si todos los servicios (Agent, Core, Redis, FS) pueden "verse" entre sí. $\beta_0 > 1$ implica partición de red o caída de servicio. | $\beta_0 = 1$ (Sistema Unificado) | $\beta_0 > 1$ (Sistema Fragmentado/Desconectado) |
 | **$\beta_1$** | **Ciclos 1-Dimensionales**<br>Número de agujeros o bucles independientes. | **Bucles de Reintento (Request Loops)**<br>Detecta flujos circulares donde una solicitud falla y se reintenta infinitamente, atrapando recursos. | $\beta_1 = 0$ (Flujo Acíclico/Laminar) | $\beta_1 > 0$ (Ciclo Infinito/Estancamiento) |
 
+### 2.1 Eficiencia de Euler ($\epsilon$) (Sobrecarga de Gestión)
+Más allá de los agujeros ($\beta_1$), medimos la redundancia topológica mediante la **Eficiencia de Euler**.
+*   **Fórmula:** $\epsilon = \frac{1}{1 + \max(0, E - V + 1)}$
+*   **Semántica:** Cuantifica la "fricción" administrativa. Un valor de 1.0 indica una jerarquía pura (Árbol). Valores bajos (< 0.5) indican "Entropía/Sobrecarga de Enlaces", donde la complejidad de las conexiones supera la capacidad de gestión, aumentando los costos indirectos.
+
+### 2.2 Sinergia de Riesgo (Simulación del Producto Cup)
+El sistema simula el **Producto Cup** ($\smile$) de la Cohomología para detectar interacciones no lineales entre riesgos.
+*   **Definición:** Ocurre cuando dos o más ciclos independientes ($\beta_1$) comparten "Nodos Críticos" (recursos de alto grado/centralidad).
+*   **Semántica ("Efecto Dominó"):** Si un ciclo falla, el colapso se propaga a través del nodo compartido hacia otros ciclos. Esto representa un **"Conflicto de Interfaz"** donde un recurso escaso es disputado por múltiples procesos circulares.
+*   **Impacto Financiero:** La detección de Sinergia de Riesgo activa un **Multiplicador de Pánico** en el Motor Financiero, incrementando la volatilidad ($\sigma$) del proyecto (típicamente +20%) para penalizar la fragilidad estructural en la valoración de opciones reales.
+
 **Nota sobre la Estructura Piramidal:**
 La topología esperada del sistema es una **Pirámide de Control**:
 *   **Cúspide (Plano de Control):** El Agente Autónomo, que observa y orquesta todo.
