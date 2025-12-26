@@ -21,6 +21,7 @@ logger = logging.getLogger(__name__)
 
 class FinancialVerdict(Enum):
     """Enumeración de veredictos financieros para tipado seguro."""
+
     ACCEPT = "ACEPTAR"
     REJECT = "RECHAZAR"
     REVIEW = "REVISAR"
@@ -35,6 +36,7 @@ class StabilityThresholds:
     - Ψ < critical: Pirámide Invertida (Cimentación insuficiente).
     - Ψ ≥ solid: Estructura Antisísmica (Base robusta).
     """
+
     critical: float = 1.0
     solid: float = 10.0
 
@@ -48,6 +50,7 @@ class TopologicalThresholds:
     - β₀: Componentes conexos (fragmentación si > 1).
     - β₁: Ciclos independientes (socavones lógicos si > 0).
     """
+
     connected_components_optimal: int = 1
     cycles_optimal: int = 0
 
@@ -57,6 +60,7 @@ class WACCThresholds:
     """
     Umbrales para evaluación del Costo Promedio Ponderado de Capital.
     """
+
     low: float = 0.05
     high: float = 0.15
 
@@ -66,6 +70,7 @@ class CycleSeverityThresholds:
     """
     Umbrales para gradación de severidad en dependencias circulares (β₁).
     """
+
     moderate: int = 3
     critical: int = 5
 
@@ -88,7 +93,7 @@ class SemanticTranslator:
         market_provider: Optional[Callable[[], str]] = None,
         random_seed: Optional[int] = None,
         wacc_thresholds: Optional[WACCThresholds] = None,
-        cycle_severity: Optional[CycleSeverityThresholds] = None
+        cycle_severity: Optional[CycleSeverityThresholds] = None,
     ) -> None:
         """Inicializa el traductor con configuración opcional."""
         self._validate_init_arguments(
@@ -116,7 +121,7 @@ class SemanticTranslator:
         stability_thresholds: Optional[StabilityThresholds],
         topo_thresholds: Optional[TopologicalThresholds],
         wacc_thresholds: Optional[WACCThresholds],
-        cycle_severity: Optional[CycleSeverityThresholds]
+        cycle_severity: Optional[CycleSeverityThresholds],
     ) -> None:
         """Valida tipos de argumentos de inicialización."""
         type_checks = [
@@ -136,14 +141,16 @@ class SemanticTranslator:
     def translate_topology(
         self,
         metrics: TopologicalMetrics,
-        stability: float = 0.0
+        stability: float = 0.0,
+        synergy_risk: Optional[Dict[str, Any]] = None,
     ) -> str:
         """
         Traduce métricas topológicas a una Auditoría de Ingeniería Civil.
 
         Args:
-            metrics: Métricas de Betti (β₀, β₁).
+            metrics: Métricas de Betti (β₀, β₁) y Euler.
             stability: Índice de estabilidad piramidal (Ψ).
+            synergy_risk: Datos de sinergia de riesgo y producto cup.
 
         Returns:
             Narrativa de auditoría estructural.
@@ -155,6 +162,15 @@ class SemanticTranslator:
         # 1. β₁: Genus Estructural / Socavones
         narrative_parts.append(self._translate_cycles(metrics.beta_1))
 
+        # 1.1 Sinergia (Producto Cup) y Eficiencia (Euler)
+        if synergy_risk and synergy_risk.get("synergy_detected", False):
+            narrative_parts.append(self._translate_synergy(synergy_risk))
+
+        if metrics.euler_efficiency < 0.5:
+            narrative_parts.append(
+                self._translate_euler_efficiency(metrics.euler_efficiency)
+            )
+
         # 2. β₀: Coherencia de Obra (Unidad Estructural)
         narrative_parts.append(self._translate_connectivity(metrics.beta_0))
 
@@ -164,13 +180,13 @@ class SemanticTranslator:
         return "\n".join(narrative_parts)
 
     def _validate_topological_metrics(
-        self,
-        metrics: TopologicalMetrics,
-        stability: float
+        self, metrics: TopologicalMetrics, stability: float
     ) -> None:
         """Valida la coherencia matemática de las métricas."""
         if not isinstance(metrics, TopologicalMetrics):
-            raise TypeError(f"Se esperaba TopologicalMetrics, recibido {type(metrics).__name__}")
+            raise TypeError(
+                f"Se esperaba TopologicalMetrics, recibido {type(metrics).__name__}"
+            )
         if not isinstance(stability, (int, float)):
             raise TypeError("Estabilidad debe ser numérica")
 
@@ -178,6 +194,23 @@ class SemanticTranslator:
             raise ValueError("Los números de Betti deben ser no-negativos.")
         if stability < 0:
             raise ValueError("La estabilidad Ψ debe ser no-negativa.")
+
+    def _translate_synergy(self, synergy: Dict[str, Any]) -> str:
+        """Traduce la Sinergia de Riesgo (Producto Cup) como Efecto Dominó."""
+        count = synergy.get("intersecting_cycles_count", 0)
+        return (
+            f"🔥 **Riesgo de Contagio (Efecto Dominó)**: Se detectó una 'Sinergia de Riesgo' "
+            f"en {count} puntos de intersección crítica. Los errores no son aislados; si uno falla, "
+            "provocará una reacción en cadena a través de los frentes de obra compartidos (Conflicto de Interfaz)."
+        )
+
+    def _translate_euler_efficiency(self, efficiency: float) -> str:
+        """Traduce baja Eficiencia de Euler como Sobrecarga."""
+        return (
+            f"🕸️ **Sobrecarga de Gestión (Entropía)**: La eficiencia de Euler es baja ({efficiency:.2f}). "
+            "Existe una complejidad innecesaria de enlaces que dificulta la supervisión y aumenta "
+            "los costos indirectos de administración."
+        )
 
     def _translate_cycles(self, beta_1: int) -> str:
         """
@@ -273,35 +306,56 @@ class SemanticTranslator:
         validated = self._validate_financial_metrics(metrics)
         narrative_parts: List[str] = []
         narrative_parts.append(self._translate_wacc(validated["wacc"]))
-        narrative_parts.append(self._translate_risk_exposure(validated["contingency_recommended"]))
-        narrative_parts.append(self._translate_verdict(validated["recommendation"], validated["profitability_index"]))
+        narrative_parts.append(
+            self._translate_risk_exposure(validated["contingency_recommended"])
+        )
+        narrative_parts.append(
+            self._translate_verdict(
+                validated["recommendation"], validated["profitability_index"]
+            )
+        )
         return "\n".join(narrative_parts)
 
     def _validate_financial_metrics(self, metrics: Dict[str, Any]) -> Dict[str, Any]:
         """Valida y normaliza métricas financieras (Parse, Don't Validate)."""
         if not isinstance(metrics, dict):
-            raise TypeError(f"Se esperaba dict de métricas, recibido: {type(metrics).__name__}")
+            raise TypeError(
+                f"Se esperaba dict de métricas, recibido: {type(metrics).__name__}"
+            )
 
         return {
             "wacc": self._extract_numeric(metrics, "wacc", default=0.0),
-            "contingency_recommended": self._extract_nested_numeric(metrics, ["contingency", "recommended"], default=0.0),
+            "contingency_recommended": self._extract_nested_numeric(
+                metrics, ["contingency", "recommended"], default=0.0
+            ),
             "recommendation": self._extract_verdict(metrics),
-            "profitability_index": self._extract_nested_numeric(metrics, ["performance", "profitability_index"], default=0.0)
+            "profitability_index": self._extract_nested_numeric(
+                metrics, ["performance", "profitability_index"], default=0.0
+            ),
         }
 
-    def _extract_numeric(self, data: Dict[str, Any], key: str, default: float = 0.0) -> float:
+    def _extract_numeric(
+        self, data: Dict[str, Any], key: str, default: float = 0.0
+    ) -> float:
         value = data.get(key)
-        if value is None: return default
-        if not isinstance(value, (int, float)): return default
+        if value is None:
+            return default
+        if not isinstance(value, (int, float)):
+            return default
         return float(value)
 
-    def _extract_nested_numeric(self, data: Dict[str, Any], path: List[str], default: float = 0.0) -> float:
+    def _extract_nested_numeric(
+        self, data: Dict[str, Any], path: List[str], default: float = 0.0
+    ) -> float:
         current = data
         for key in path:
-            if not isinstance(current, dict): return default
+            if not isinstance(current, dict):
+                return default
             current = current.get(key)
-            if current is None: return default
-        if not isinstance(current, (int, float)): return default
+            if current is None:
+                return default
+        if not isinstance(current, (int, float)):
+            return default
         return float(current)
 
     def _extract_verdict(self, metrics: Dict[str, Any]) -> FinancialVerdict:
@@ -309,7 +363,8 @@ class SemanticTranslator:
             return FinancialVerdict.REVIEW
 
         performance = metrics.get("performance", {})
-        if not isinstance(performance, dict): return FinancialVerdict.REVIEW
+        if not isinstance(performance, dict):
+            return FinancialVerdict.REVIEW
         rec = performance.get("recommendation", "REVISAR")
         try:
             return FinancialVerdict(rec)
@@ -341,7 +396,7 @@ class SemanticTranslator:
             "Terreno Inflacionario: Acero al alza (+2.5%). Reforzar estimaciones.",
             "Suelo Estable: Precios de cemento sin variación significativa.",
             "Vientos de Cambio: Volatilidad cambiaria favorable para importaciones.",
-            "Falla Geológica Laboral: Escasez de mano de obra calificada."
+            "Falla Geológica Laboral: Escasez de mano de obra calificada.",
         ]
         return f"🌍 **Suelo de Mercado**: {self._rng.choice(tendencias)}"
 
@@ -349,7 +404,8 @@ class SemanticTranslator:
         self,
         topo_metrics: TopologicalMetrics,
         fin_metrics: Dict[str, Any],
-        stability: float = 0.0
+        stability: float = 0.0,
+        synergy_risk: Optional[Dict[str, Any]] = None,
     ) -> str:
         """
         Compone el reporte ejecutivo con metáforas de ingeniería estructural.
@@ -364,7 +420,7 @@ class SemanticTranslator:
         # 1. Estructura
         sections.append("### 1. Auditoría de Integridad Estructural")
         try:
-            sections.append(self.translate_topology(topo_metrics, stability))
+            sections.append(self.translate_topology(topo_metrics, stability, synergy_risk))
         except Exception as e:
             error_msg = f"Error analizando estructura: {e}"
             sections.append(f"❌ {error_msg}")
@@ -390,7 +446,11 @@ class SemanticTranslator:
 
         # 4. Recomendación
         sections.append("### 💡 Dictamen del Ingeniero Jefe")
-        sections.append(self._generate_final_advice(topo_metrics, fin_metrics, stability, is_analysis_valid))
+        sections.append(
+            self._generate_final_advice(
+                topo_metrics, fin_metrics, stability, is_analysis_valid, synergy_risk
+            )
+        )
 
         return "\n".join(sections)
 
@@ -406,7 +466,8 @@ class SemanticTranslator:
         topo_metrics: TopologicalMetrics,
         fin_metrics: Dict[str, Any],
         stability: float,
-        is_valid_analysis: bool = True
+        is_valid_analysis: bool = True,
+        synergy_risk: Optional[Dict[str, Any]] = None,
     ) -> str:
         """Genera el dictamen final basado en la solidez de la pirámide."""
 
@@ -419,10 +480,20 @@ class SemanticTranslator:
 
         # Factores de decisión
         has_holes = topo_metrics.beta_1 > 0
+        has_synergy = synergy_risk.get("synergy_detected", False) if synergy_risk else False
         is_inverted_pyramid = stability < self.stability_thresholds.critical
         financial_verdict = self._extract_verdict(fin_metrics)
 
-        # 1. Caso Pirámide Invertida (Prioridad Alta)
+        # 1. Caso Sinergia de Riesgo (Producto Cup)
+        if has_synergy:
+            return (
+                "🛑 **PARADA DE EMERGENCIA (Efecto Dominó)**: Se detectaron ciclos interconectados "
+                "que comparten recursos críticos. El riesgo no es aditivo, es multiplicativo. "
+                "Cualquier fallo en el suministro provocará un colapso sistémico en múltiples frentes. "
+                "Desacoplar los ciclos antes de continuar."
+            )
+
+        # 2. Caso Pirámide Invertida (Prioridad Alta)
         if is_inverted_pyramid:
             if financial_verdict == FinancialVerdict.ACCEPT:
                 return (
@@ -434,12 +505,12 @@ class SemanticTranslator:
                 )
             else:
                 return (
-                    f"❌ **PROYECTO INVIABLE (Riesgo de Colapso)**: Combinación letal de "
+                    "❌ **PROYECTO INVIABLE (Riesgo de Colapso)**: Combinación letal de "
                     "inestabilidad estructural (Pirámide Invertida) e inviabilidad financiera. "
                     "No proceder bajo ninguna circunstancia sin rediseño total."
                 )
 
-        # 2. Caso Genus Elevado (Agujeros)
+        # 3. Caso Genus Elevado (Agujeros)
         if has_holes:
             return (
                 f"🛑 **DETENER PARA REPARACIONES**: Se detectaron {topo_metrics.beta_1} socavones "
@@ -447,12 +518,12 @@ class SemanticTranslator:
                 "Sanear la topología antes de aprobar presupuesto."
             )
 
-        # 3. Caso Ideal
+        # 4. Caso Ideal
         if financial_verdict == FinancialVerdict.ACCEPT:
             return (
                 "✅ **CERTIFICADO DE SOLIDEZ**: Estructura piramidal estable, sin socavones "
                 "lógicos y financieramente viable. Proceder a fase de ejecución."
             )
 
-        # 4. Fallback
+        # 5. Fallback
         return "🔍 **REVISIÓN TÉCNICA REQUERIDA**: La estructura es sólida pero los números no convencen."
