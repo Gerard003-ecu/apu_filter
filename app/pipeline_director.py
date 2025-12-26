@@ -645,6 +645,84 @@ class MergeDataStep(ProcessingStep):
             raise
 
 
+class AuditedMergeStep(ProcessingStep):
+    """
+    Paso de Fusión con Auditoría Topológica (Mayer-Vietoris).
+    Construye grafos temporales para validar la integridad antes de comprometer la fusión.
+    """
+
+    def __init__(self, config: dict, thresholds: ProcessingThresholds):
+        self.config = config
+        self.thresholds = thresholds
+
+    def execute(self, context: dict, telemetry: TelemetryContext) -> dict:
+        """
+        Ejecuta la auditoría Mayer-Vietoris y luego la fusión física.
+        """
+        telemetry.start_step("audited_merge")
+        try:
+            # 1. Obtener DataFrames parciales
+            df_a = context.get("df_presupuesto")
+            df_b = context.get("df_apus_raw")
+            df_insumos = context.get("df_insumos")
+
+            if df_a is None or df_b is None:
+                # Si falta alguno, no podemos auditar, pero quizás debamos proceder con merge normal?
+                # Asumiremos que si llegamos aquí, los datos existen por LoadDataStep.
+                logger.warning(
+                    "⚠️ Falta df_presupuesto o df_apus_raw. Saltando auditoría Mayer-Vietoris."
+                )
+            else:
+                try:
+                    # 2. Construcción Ligera de Grafos (Skeleton Graphs)
+                    from agent.business_topology import (
+                        BudgetGraphBuilder,
+                        BusinessTopologicalAnalyzer,
+                    )
+
+                    builder = BudgetGraphBuilder()
+                    # Grafo A: Solo estructura de Presupuesto (Capítulos -> APUs)
+                    graph_a = builder.build(df_a, pd.DataFrame())
+                    # Grafo B: Estructura interna de APUs (APUs -> Insumos raw)
+                    # Nota: df_b (apus_raw) tiene la info de insumos dentro de APUs.
+                    graph_b = builder.build(pd.DataFrame(), df_b)
+
+                    # 3. Auditoría Mayer-Vietoris
+                    analyzer = BusinessTopologicalAnalyzer(telemetry=telemetry)
+                    audit_result = analyzer.audit_integration_homology(graph_a, graph_b)
+
+                    # 4. Decisión basada en Auditoría
+                    if audit_result["delta_beta_1"] > 0:
+                        logger.warning(f"🚨 {audit_result['narrative']}")
+                        telemetry.record_metric(
+                            "topology", "emergent_cycles", audit_result["delta_beta_1"]
+                        )
+                        context["integration_risk_alert"] = audit_result
+                    else:
+                        logger.info(f"✅ {audit_result['narrative']}")
+
+                except Exception as e_audit:
+                    # No bloquear el pipeline por error en la auditoría opcional
+                    logger.error(f"❌ Error durante auditoría Mayer-Vietoris: {e_audit}")
+                    telemetry.record_error("audited_merge_audit", str(e_audit))
+
+            # 5. Ejecutar la fusión real (física) - Reutilizamos lógica de DataMerger
+            logger.info("🛠️ Ejecutando fusión física de datos...")
+            merger = DataMerger(self.thresholds)
+            df_merged = merger.merge_apus_with_insumos(df_b, df_insumos)
+
+            telemetry.record_metric("audited_merge", "merged_rows", len(df_merged))
+            context["df_merged"] = df_merged
+
+            telemetry.end_step("audited_merge", "success")
+            return context
+
+        except Exception as e:
+            telemetry.record_error("audited_merge", str(e))
+            telemetry.end_step("audited_merge", "error")
+            raise
+
+
 class CalculateCostsStep(ProcessingStep):
     """
     Paso de Cálculo de Costos.
@@ -953,7 +1031,7 @@ class PipelineDirector:
 
     STEP_REGISTRY: Dict[str, Type[ProcessingStep]] = {
         "load_data": LoadDataStep,
-        "merge_data": MergeDataStep,
+        "merge_data": AuditedMergeStep,  # Reemplazo Mayer-Vietoris
         "calculate_costs": CalculateCostsStep,
         "final_merge": FinalMergeStep,
         "business_topology": BusinessTopologyStep,
