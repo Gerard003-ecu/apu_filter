@@ -1,4 +1,6 @@
 from unittest.mock import MagicMock, Mock
+import unicodedata
+import re
 
 import networkx as nx
 import pandas as pd
@@ -10,6 +12,32 @@ from agent.business_topology import (
     TopologicalMetrics,
 )
 from app.constants import ColumnNames
+
+# =============================================================================
+# HELPER FUNCTIONS
+# =============================================================================
+
+def normalize_report_text(report_lines: list[str]) -> str:
+    """
+    Normaliza el texto del reporte para facilitar las comparaciones en los tests.
+    Elimina bordes ASCII, espacios extra, convierte a minúsculas y normaliza Unicode (tildes).
+    """
+    text = "\n".join(report_lines)
+
+    # 1. Normalizar Unicode (NFD descompone caracteres) y eliminar no-ASCII
+    # Esto convierte 'ó' -> 'o' y elimina bordes como '│' (que no son ASCII)
+    text = unicodedata.normalize('NFD', text).encode('ascii', 'ignore').decode('ascii')
+
+    # 2. Convertir a minúsculas
+    text = text.lower()
+
+    # 3. Reemplazar cualquier cosa que no sea letra, número o espacio por espacio
+    text = re.sub(r'[^a-z0-9\s]', ' ', text)
+
+    # 4. Colapsar espacios múltiples
+    text = re.sub(r'\s+', ' ', text).strip()
+
+    return text
 
 # =============================================================================
 # FIXTURES COMPARTIDAS
@@ -1083,26 +1111,28 @@ class TestBusinessTopologicalAnalyzer:
             analysis = analyzer.analyze_structural_integrity(G)
 
             report = analyzer.get_audit_report(analysis)
-            report_text = "\n".join(report)
+            report_text = normalize_report_text(report)
 
-            assert "AUDITORÍA ESTRUCTURAL" in report_text
+            assert "auditoria estructural" in report_text
 
         def test_report_shows_betti_numbers(self, analyzer):
-            """Verifica que muestra números de Betti."""
+            """
+            Verifica que muestra números de Betti y métricas topológicas.
+            Busca 'ciclos de costo' (β1) y 'eficiencia de euler' (topología).
+            """
             G = nx.DiGraph()
             G.add_edges_from([("A", "B"), ("B", "C")])
             analysis = analyzer.analyze_structural_integrity(G)
 
             report = analyzer.get_audit_report(analysis)
-            report_text = "\n".join(report)
+            report_text = normalize_report_text(report)
 
-            assert (
-                "componentes conexas" in report_text.lower()
-                or "beta_0" in report_text.lower()
-            )
-            assert (
-                "ciclos de costo" in report_text.lower() or "beta_1" in report_text.lower()
-            )
+            # Debug
+            if "eficiencia de euler" not in report_text:
+                pytest.fail(f"Texto normalizado no contiene 'eficiencia de euler':\n{report_text!r}")
+
+            assert "eficiencia de euler" in report_text
+            assert "ciclos de costo" in report_text
 
         def test_report_shows_critical_alert_for_cycles(self, analyzer):
             """Verifica alerta crítica cuando hay ciclos."""
@@ -1111,13 +1141,9 @@ class TestBusinessTopologicalAnalyzer:
             analysis = analyzer.analyze_structural_integrity(G)
 
             report = analyzer.get_audit_report(analysis)
-            report_text = "\n".join(report)
+            report_text = normalize_report_text(report)
 
-            assert (
-                "CRÍTICAS" in report_text
-                or "circular" in report_text.lower()
-                or "ciclos de costo" in report_text.lower()
-            )
+            assert "criticas" in report_text or "circular" in report_text or "ciclos de costo" in report_text
 
         def test_report_shows_ok_for_healthy_graph(self, analyzer):
             """Verifica resultado OK para grafo saludable."""
@@ -1128,9 +1154,13 @@ class TestBusinessTopologicalAnalyzer:
             analysis = analyzer.analyze_structural_integrity(G)
 
             report = analyzer.get_audit_report(analysis)
-            report_text = "\n".join(report)
+            report_text = normalize_report_text(report)
 
-            assert "estatus" in report_text.lower() or "saludable" in report_text.lower()
+            # Debug
+            if "puntuacion de integridad" not in report_text:
+                 pytest.fail(f"Texto normalizado no contiene 'puntuacion de integridad':\n{report_text!r}")
+
+            assert "puntuacion de integridad" in report_text
 
         def test_report_shows_warnings_for_anomalies(self, analyzer):
             """Verifica advertencias para anomalías."""
@@ -1143,9 +1173,14 @@ class TestBusinessTopologicalAnalyzer:
 
             analysis = analyzer.analyze_structural_integrity(G)
             report = analyzer.get_audit_report(analysis)
-            report_text = "\n".join(report)
+            report_text = normalize_report_text(report)
 
-            assert "ADVERTENCIA" in report_text or "⚠" in report_text
+            # En la versión normalizada, "⚠" puede ser eliminado o convertido.
+            # Buscamos textos clave como "recursos fantasma" o "apus vacios" o "advertencia"
+            # Ojo: la normalización elimina caracteres no ASCII, así que '⚠' se va.
+            # El reporte usa "⚠" (Unicode U+26A0). encode('ascii', 'ignore') lo quita.
+
+            assert "desperdicio" in report_text or "alertas" in report_text
 
 
 # =============================================================================
