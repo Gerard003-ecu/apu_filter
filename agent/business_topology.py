@@ -21,11 +21,13 @@ class TopologicalMetrics:
         beta_0 (int): Número de componentes conexas (fragmentación).
         beta_1 (int): Número de ciclos independientes (complejidad de bucles).
         euler_characteristic (int): Característica de Euler (beta_0 - beta_1).
+        euler_efficiency (float): Eficiencia topológica normalizada (0.0 - 1.0).
     """
 
     beta_0: int
     beta_1: int
     euler_characteristic: int
+    euler_efficiency: float = 1.0
 
     @property
     def is_connected(self) -> bool:
@@ -108,7 +110,7 @@ class BudgetGraphBuilder:
         source: str = "generated",
         idx: int = -1,
         inferred: bool = False,
-        **kwargs
+        **kwargs,
     ) -> Dict[str, Any]:
         """
         Helper para crear atributos de nodos consistentemente.
@@ -130,11 +132,7 @@ class BudgetGraphBuilder:
         Crea el diccionario de atributos para un nodo APU (Nivel 2).
         """
         attrs = self._create_node_attributes(
-            node_type="APU",
-            level=2,
-            source=source,
-            idx=idx,
-            inferred=inferred
+            node_type="APU", level=2, source=source, idx=idx, inferred=inferred
         )
         if not inferred:
             attrs["description"] = self._sanitize_code(row.get(ColumnNames.DESCRIPCION_APU))
@@ -154,7 +152,7 @@ class BudgetGraphBuilder:
             idx=idx,
             description=insumo_desc,
             tipo_insumo=self._sanitize_code(row.get(ColumnNames.TIPO_INSUMO)),
-            unit_cost=self._safe_float(row.get(ColumnNames.COSTO_INSUMO_EN_APU))
+            unit_cost=self._safe_float(row.get(ColumnNames.COSTO_INSUMO_EN_APU)),
         )
 
     def _upsert_edge(
@@ -250,10 +248,12 @@ class BudgetGraphBuilder:
                 if chapter_name:
                     # Crear nodo Capítulo si no existe
                     if chapter_name not in G:
-                        G.add_node(chapter_name,
-                                   type="CAPITULO",
-                                   level=1,
-                                   description=f"Capítulo: {chapter_name}")
+                        G.add_node(
+                            chapter_name,
+                            type="CAPITULO",
+                            level=1,
+                            description=f"Capítulo: {chapter_name}",
+                        )
                         # Conectar Raíz -> Capítulo
                         if not G.has_edge(self.ROOT_NODE, chapter_name):
                             G.add_edge(self.ROOT_NODE, chapter_name, relation="CONTAINS")
@@ -317,6 +317,36 @@ class BusinessTopologicalAnalyzer:
         self.max_cycles = max_cycles
         self.logger = logging.getLogger(self.__class__.__name__)
 
+    def calculate_euler_efficiency(self, graph: nx.DiGraph) -> float:
+        """
+        Calcula la Eficiencia de Euler normalizada.
+
+        La Característica de Euler (χ = V - E) mide la redundancia topológica.
+        - En un árbol perfecto (sin ciclos, mínima redundancia): E = V - 1 => χ = 1.
+        - En un grafo denso (muchas conexiones): E >> V => χ << 0.
+
+        La eficiencia se define como la proximidad a una estructura arbórea (ideal para jerarquías de costos).
+
+        Formula: Efficiency = 1 / (1 + max(0, Edges - Nodes + 1))
+
+        Returns:
+            float: Score entre 0.0 (Caos/Sobrecarga) y 1.0 (Orden/Jerarquía pura).
+        """
+        n_nodes = graph.number_of_nodes()
+        n_edges = graph.number_of_edges()
+
+        if n_nodes == 0:
+            return 1.0
+
+        # Penalizamos el exceso de aristas sobre el mínimo necesario (árbol spanning)
+        # Un árbol conectado tiene V-1 aristas.
+        excess_edges = max(0, n_edges - (n_nodes - 1))
+
+        # Usamos una función de decaimiento para normalizar
+        efficiency = 1.0 / (1.0 + (excess_edges / n_nodes))
+
+        return round(efficiency, 4)
+
     def calculate_betti_numbers(self, graph: nx.DiGraph) -> TopologicalMetrics:
         """
         Calcula métricas topológicas invariantes (Números de Betti).
@@ -348,7 +378,14 @@ class BusinessTopologicalAnalyzer:
 
         chi = beta_0 - beta_1
 
-        return TopologicalMetrics(beta_0=beta_0, beta_1=beta_1, euler_characteristic=chi)
+        efficiency = self.calculate_euler_efficiency(graph)
+
+        return TopologicalMetrics(
+            beta_0=beta_0,
+            beta_1=beta_1,
+            euler_characteristic=chi,
+            euler_efficiency=efficiency,
+        )
 
     def calculate_pyramid_stability(self, graph: nx.DiGraph) -> float:
         """
@@ -389,9 +426,36 @@ class BusinessTopologicalAnalyzer:
         """Alias para compatibilidad hacia atrás."""
         return self.calculate_betti_numbers(graph)
 
+    def _get_raw_cycles(self, graph: nx.DiGraph) -> Tuple[List[List[str]], bool]:
+        """
+        Obtiene los ciclos crudos (listas de nodos) del grafo.
+
+        Returns:
+            Tuple[List[List[str]], bool]: Lista de listas de nodos y flag de truncamiento.
+        """
+        cycles = []
+        truncated = False
+        try:
+            # nx.simple_cycles retorna un generador
+            # No queremos consumirlo todo si es infinito o enorme, pero simple_cycles en DiGraph es finito.
+            # Aun así, para grafos densos puede ser costoso. Usamos un límite.
+            cycle_gen = nx.simple_cycles(graph)
+
+            # Consumir con límite
+            count = 0
+            for cycle in cycle_gen:
+                cycles.append(cycle)
+                count += 1
+                if count >= self.max_cycles:
+                    truncated = True
+                    break
+        except Exception as e:
+            self.logger.error(f"Error detectando ciclos crudos: {e}")
+        return cycles, truncated
+
     def _detect_cycles(self, graph: nx.DiGraph) -> Tuple[List[str], bool]:
         """
-        Detecta ciclos en el grafo.
+        Detecta ciclos en el grafo y los devuelve como strings formateados.
 
         Args:
             graph (nx.DiGraph): Grafo a analizar.
@@ -399,21 +463,78 @@ class BusinessTopologicalAnalyzer:
         Returns:
             Tuple[List[str], bool]: Lista de ciclos (strings) y flag de truncamiento.
         """
-        cycles = []
-        truncated = False
-        try:
-            raw_cycles = list(nx.simple_cycles(graph))
-            if len(raw_cycles) > self.max_cycles:
-                raw_cycles = raw_cycles[: self.max_cycles]
-                truncated = True
+        formatted_cycles = []
+        raw_cycles, truncated = self._get_raw_cycles(graph)
 
-            for cycle in raw_cycles:
-                # Agregar nodo inicial al final para cerrar el bucle en la representación
-                cycle_repr = cycle + [cycle[0]]
-                cycles.append(" → ".join(map(str, cycle_repr)))
-        except Exception as e:
-            self.logger.error(f"Error detectando ciclos: {e}")
-        return cycles, truncated
+        for cycle in raw_cycles:
+            # Agregar nodo inicial al final para cerrar el bucle en la representación
+            cycle_repr = cycle + [cycle[0]]
+            formatted_cycles.append(" → ".join(map(str, cycle_repr)))
+
+        return formatted_cycles, truncated
+
+    def detect_risk_synergy(
+        self, graph: nx.DiGraph, raw_cycles: Optional[List[List[str]]] = None
+    ) -> Dict[str, Any]:
+        """
+        Detecta Sinergia de Riesgo (Efecto Dominó / Producto Cup Simulado).
+
+        Busca ciclos que compartan "Nodos Críticos" (Insumos de alta centralidad).
+        Si dos ciclos comparten nodos, sus riesgos se multiplican, no se suman.
+
+        Args:
+            graph (nx.DiGraph): El grafo.
+            raw_cycles (Optional[List[List[str]]]): Ciclos pre-calculados para optimización.
+
+        Returns:
+            Dict con 'synergy_detected' (bool), 'shared_nodes' (list) y 'intersecting_cycles_count'.
+        """
+        if raw_cycles is None:
+            raw_cycles, _ = self._get_raw_cycles(graph)
+
+        if len(raw_cycles) < 2:
+            return {
+                "synergy_detected": False,
+                "shared_nodes": [],
+                "intersecting_cycles_count": 0,
+            }
+
+        # 1. Identificar nodos críticos (top 10% por grado)
+        critical_nodes = set()
+        degrees = dict(graph.degree())
+        if degrees:
+            # Umbral: Percentil 90 o simplemente nodos con degree > 2 si el grafo es pequeño
+            sorted_degrees = sorted(degrees.values(), reverse=True)
+            threshold_idx = max(0, int(len(sorted_degrees) * 0.1))
+            # Fallback para grafos pequeños: degree > 1
+            degree_threshold = max(2, sorted_degrees[threshold_idx] if sorted_degrees else 0)
+
+            critical_nodes = {n for n, d in degrees.items() if d >= degree_threshold}
+
+        # 2. Buscar intersecciones entre ciclos en nodos críticos
+        shared_critical_nodes = set()
+        intersecting_count = 0
+
+        # Convertir ciclos a sets para intersección rápida
+        cycle_sets = [set(c) for c in raw_cycles]
+
+        # Comparación O(N^2) sobre número de ciclos (usualmente bajo por max_cycles)
+        for i in range(len(cycle_sets)):
+            for j in range(i + 1, len(cycle_sets)):
+                intersection = cycle_sets[i].intersection(cycle_sets[j])
+
+                # Filtrar solo nodos críticos en la intersección
+                critical_intersection = intersection.intersection(critical_nodes)
+
+                if critical_intersection:
+                    shared_critical_nodes.update(critical_intersection)
+                    intersecting_count += 1
+
+        return {
+            "synergy_detected": len(shared_critical_nodes) > 0,
+            "shared_nodes": list(shared_critical_nodes),
+            "intersecting_cycles_count": intersecting_count,
+        }
 
     def _classify_anomalous_nodes(
         self, graph: nx.DiGraph
@@ -537,6 +658,7 @@ class BusinessTopologicalAnalyzer:
             "beta_0": f"{metrics.beta_0} componente(s) conexa(s). {'Espacio conexo' if metrics.is_connected else 'Espacio fragmentado'}.",
             "beta_1": f"{metrics.beta_1} ciclo(s) independiente(s). {'Estructura acíclica' if metrics.beta_1 == 0 else 'Complejidad cíclica presente'}.",
             "euler": f"Característica de Euler: {metrics.euler_characteristic}",
+            "efficiency": f"Eficiencia de Euler: {metrics.euler_efficiency:.2%}",
         }
 
     def generate_executive_report(
@@ -553,7 +675,14 @@ class BusinessTopologicalAnalyzer:
             ConstructionRiskReport: Objeto de reporte estructurado.
         """
         metrics = self.calculate_betti_numbers(graph)
-        cycles, _ = self._detect_cycles(graph)
+        raw_cycles, truncated = self._get_raw_cycles(graph)
+        cycles = []
+        for c in raw_cycles:
+            cycle_repr = c + [c[0]]
+            cycles.append(" → ".join(map(str, cycle_repr)))
+
+        synergy = self.detect_risk_synergy(graph, raw_cycles)
+
         anomalies = self._classify_anomalous_nodes(graph)
         pyramid_stability = self.calculate_pyramid_stability(graph)
 
@@ -561,6 +690,11 @@ class BusinessTopologicalAnalyzer:
         integrity_score = 100.0
         if metrics.beta_1 > 0:
             integrity_score -= 50
+
+        # Penalización por Sinergia de Riesgo (Producto Cup)
+        if synergy["synergy_detected"]:
+            integrity_score -= 20
+
         isolated_count = len(anomalies["isolated_nodes"])
         integrity_score -= min(30, isolated_count * 2)
         orphan_count = len(anomalies["orphan_insumos"])
@@ -580,15 +714,26 @@ class BusinessTopologicalAnalyzer:
         if orphan_count > 0:
             waste_alerts.append(f"Alerta: {orphan_count} Recursos sin asignación a APUs.")
 
-        # Alerta de Estabilidad Piramidal
-        # Umbrales heurísticos: Una estabilidad muy baja indica una pirámide invertida o muy densa
-        # Una estabilidad muy alta indica un grafo muy disperso (poco conectado)
-        if pyramid_stability < 10.0 and graph.number_of_nodes() > 10:
-             waste_alerts.append(f"Alerta Estructural: Baja estabilidad piramidal ({pyramid_stability:.1f}). Posible estructura invertida o excesivamente compleja.")
+        # Alerta de Eficiencia de Euler
+        if metrics.euler_efficiency < 0.5:
+            waste_alerts.append(
+                f"Alerta de Gestión: Baja Eficiencia de Euler ({metrics.euler_efficiency:.2f}). Sobrecarga de enlaces."
+            )
 
-        circular_risks = (
-            ["CRÍTICO: Referencias circulares detectadas."] if metrics.beta_1 > 0 else []
-        )
+        # Alerta de Estabilidad Piramidal
+        if pyramid_stability < 10.0 and graph.number_of_nodes() > 10:
+            waste_alerts.append(
+                f"Alerta Estructural: Baja estabilidad piramidal ({pyramid_stability:.1f}). Posible estructura invertida o excesivamente compleja."
+            )
+
+        circular_risks = []
+        if metrics.beta_1 > 0:
+            circular_risks.append("CRÍTICO: Referencias circulares detectadas.")
+
+        if synergy["synergy_detected"]:
+            circular_risks.append(
+                f"RIESGO SISTÉMICO: Sinergia detectada entre {synergy['intersecting_cycles_count']} ciclos. Efecto Dominó probable."
+            )
 
         # 2. Análisis de Riesgo Financiero
         financial_risk = None
@@ -606,7 +751,9 @@ class BusinessTopologicalAnalyzer:
                 financial_risk = "BAJO"
 
             # 3. Combinación de Riesgos
-            if metrics.beta_1 > 0 and financial_risk == "ALTO":
+            if (
+                metrics.beta_1 > 0 or synergy["synergy_detected"]
+            ) and financial_risk == "ALTO":
                 financial_risk = "CATÁSTROFICO"
 
         return ConstructionRiskReport(
@@ -621,6 +768,7 @@ class BusinessTopologicalAnalyzer:
                 "anomalies": anomalies,
                 "density": density,
                 "pyramid_stability": pyramid_stability,
+                "synergy_risk": synergy,
                 "financial_metrics_input": financial_metrics or {},
             },
         )
@@ -636,7 +784,13 @@ class BusinessTopologicalAnalyzer:
             Dict[str, Any]: Resultados detallados y métricas planas para telemetría.
         """
         metrics = self.calculate_betti_numbers(graph)
-        cycles, cycles_truncated = self._detect_cycles(graph)
+        raw_cycles, cycles_truncated = self._get_raw_cycles(graph)
+        cycles_str = []
+        for c in raw_cycles:
+            cycle_repr = c + [c[0]]
+            cycles_str.append(" → ".join(map(str, cycle_repr)))
+
+        synergy = self.detect_risk_synergy(graph, raw_cycles)
         anomalies = self._classify_anomalous_nodes(graph)
         critical = self._identify_critical_resources(graph)
         connectivity = self._compute_connectivity_analysis(graph)
@@ -649,7 +803,12 @@ class BusinessTopologicalAnalyzer:
         # Estructura para reporte
         details = {
             "topology": {"betti_numbers": asdict(metrics), "interpretation": interpretation},
-            "cycles": {"count": len(cycles), "list": cycles, "truncated": cycles_truncated},
+            "cycles": {
+                "count": len(cycles_str),
+                "list": cycles_str,
+                "truncated": cycles_truncated,
+            },
+            "synergy_risk": synergy,
             "connectivity": connectivity,
             "anomalies": anomalies,
             "critical_resources": critical,
@@ -667,7 +826,9 @@ class BusinessTopologicalAnalyzer:
             "business.betti_b0": metrics.beta_0,
             "business.betti_b1": metrics.beta_1,
             "business.euler_characteristic": metrics.euler_characteristic,
-            "business.cycles_count": len(cycles),
+            "business.euler_efficiency": metrics.euler_efficiency,
+            "business.cycles_count": len(cycles_str),
+            "business.synergy_detected": 1 if synergy["synergy_detected"] else 0,
             "business.is_dag": 1 if connectivity["is_dag"] else 0,
             "business.isolated_count": len(anomalies["isolated_nodes"]),
             "business.orphan_insumos_count": len(anomalies["orphan_insumos"]),
@@ -693,6 +854,7 @@ class BusinessTopologicalAnalyzer:
             beta_0=new_result["business.betti_b0"],
             beta_1=new_result["business.betti_b1"],
             euler_characteristic=new_result["business.euler_characteristic"],
+            euler_efficiency=new_result["business.euler_efficiency"],
         )
         # Agregar campos antiguos que estaban en V1 pero no son invariantes topológicos estrictos
         metrics_dict = asdict(metrics)
@@ -748,7 +910,9 @@ class BusinessTopologicalAnalyzer:
                     anomalies = er_dict.get("details", {}).get("anomalies", {})
                     cycles_list = er_dict.get("details", {}).get("cycles", [])
                     density = er_dict.get("details", {}).get("density", 0.0)
-                    pyramid_stability = er_dict.get("details", {}).get("pyramid_stability", 0.0)
+                    pyramid_stability = er_dict.get("details", {}).get(
+                        "pyramid_stability", 0.0
+                    )
                 elif "metrics" in analysis_result_or_graph:
                     # Compatibilidad hacia atrás
                     m = analysis_result_or_graph["metrics"]
@@ -808,8 +972,13 @@ class BusinessTopologicalAnalyzer:
         lines.append("│ [MÉTRICAS TÉCNICAS]                              │")
         lines.append(f"│ Ciclos de Costo (Errores): {metrics_dict.get('beta_1', 0):<22}│")
         lines.append(f"│ Componentes Conexas:       {metrics_dict.get('beta_0', 0):<22}│")
+        lines.append(
+            f"│ Eficiencia de Euler:       {metrics_dict.get('euler_efficiency', 0.0):<22.2f}│"
+        )
         lines.append(f"│ Densidad de Conexiones:    {density:.4f}                │")
-        lines.append(f"│ Estabilidad Piramidal:     {pyramid_stability:.2f}                │")
+        lines.append(
+            f"│ Estabilidad Piramidal:     {pyramid_stability:.2f}                │"
+        )
         lines.append("├──────────────────────────────────────────────────┤")
 
         if exec_report.circular_risks:
