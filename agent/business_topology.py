@@ -426,6 +426,60 @@ class BusinessTopologicalAnalyzer:
         """Alias para compatibilidad hacia atrás."""
         return self.calculate_betti_numbers(graph)
 
+    def audit_integration_homology(
+        self, graph_a: nx.DiGraph, graph_b: nx.DiGraph
+    ) -> Dict[str, Any]:
+        """
+        Ejecuta el Test de Mayer-Vietoris para detectar ciclos emergentes.
+        Compara la topología de las partes vs. el todo.
+
+        Formula: Delta Beta_1 = Beta_1(A U B) - (Beta_1(A) + Beta_1(B))
+        """
+        # 1. Análisis de las Partes
+        metrics_a = self.calculate_betti_numbers(graph_a)
+        metrics_b = self.calculate_betti_numbers(graph_b)
+
+        # 2. Simulación de la Unión (A U B)
+        # Nota: nx.compose es la unión de grafos preservando atributos
+        graph_union = nx.compose(graph_a, graph_b)
+        metrics_union = self.calculate_betti_numbers(graph_union)
+
+        # 3. Cálculo del Diferencial (El "Homomorfismo Conector" Simulado)
+        # Delta > 0 implica que la fusión creó nuevos ciclos
+        emergent_cycles = metrics_union.beta_1 - (metrics_a.beta_1 + metrics_b.beta_1)
+
+        # 4. Diagnóstico Diferencial
+        verdict = "CLEAN_MERGE"
+        if emergent_cycles > 0:
+            verdict = "INTEGRATION_CONFLICT"
+        elif emergent_cycles < 0:
+            # Matemáticamente raro en dependencias de costos (usualmente implica fusión de componentes),
+            # pero posible si se simplifican nodos o aristas redundantes.
+            verdict = "TOPOLOGY_SIMPLIFIED"
+
+        return {
+            "status": verdict,
+            "delta_beta_1": emergent_cycles,
+            "details": {
+                "beta_1_A": metrics_a.beta_1,
+                "beta_1_B": metrics_b.beta_1,
+                "beta_1_Union": metrics_union.beta_1,
+            },
+            "narrative": self._generate_mayer_vietoris_narrative(emergent_cycles),
+        }
+
+    def _generate_mayer_vietoris_narrative(self, delta: int) -> str:
+        """Genera la narrativa estratégica basada en el diferencial homológico."""
+        if delta == 0:
+            return "✅ Fusión Topológicamente Neutra: La integración no introdujo nuevos riesgos estructurales."
+        if delta > 0:
+            return (
+                f"🚨 ALERTA MAYER-VIETORIS: La fusión generó {delta} nuevos ciclos de dependencia. "
+                "Esto indica un conflicto de interfaz: el Capítulo A y el Capítulo B "
+                "se bloquean mutuamente al unirse."
+            )
+        return "ℹ️ La fusión simplificó la estructura de dependencias."
+
     def _get_raw_cycles(self, graph: nx.DiGraph) -> Tuple[List[List[str]], bool]:
         """
         Obtiene los ciclos crudos (listas de nodos) del grafo.
