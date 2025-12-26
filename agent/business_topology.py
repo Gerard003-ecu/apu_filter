@@ -4,6 +4,7 @@ from dataclasses import asdict, dataclass, field
 from typing import Any, Dict, List, Optional, Tuple
 
 import networkx as nx
+import numpy as np
 import pandas as pd
 
 from app.constants import ColumnNames
@@ -52,6 +53,7 @@ class ConstructionRiskReport:
         complexity_level (str): Nivel de complejidad (Baja, Media, Alta).
         details (Dict[str, Any]): Metadatos para serialización y visualización.
         financial_risk_level (Optional[str]): Nivel de riesgo financiero ('Bajo', 'Medio', 'Alto', 'CATÁSTROFICO').
+        strategic_narrative (Optional[str]): Narrativa estratégica para decisores (La Voz del Consejo).
     """
 
     integrity_score: float
@@ -64,7 +66,10 @@ class ConstructionRiskReport:
 
 
 class BudgetGraphBuilder:
-    """Construye el Grafo del Presupuesto (Topología de Negocio) Versión 2 con estructura Piramidal."""
+    """
+    Construye el Grafo del Presupuesto (Topología de Negocio) Versión 2 con estructura Piramidal.
+    Adopta la lógica de 'Upsert' y manejo jerárquico de la Propuesta 2.
+    """
 
     def __init__(self):
         """Inicializa el constructor del grafo."""
@@ -72,35 +77,34 @@ class BudgetGraphBuilder:
         self.ROOT_NODE = "PROYECTO_TOTAL"
 
     def _sanitize_code(self, value: Any) -> str:
-        """
-        Sanitiza el código o identificador asegurando que sea una cadena limpia.
-
-        Args:
-            value (Any): Valor a sanitizar.
-
-        Returns:
-            str: Cadena sanitizada o vacía si el valor es nulo.
-        """
+        """Sanitiza el código o identificador asegurando una cadena limpia y normalizada."""
         if pd.isna(value) or value is None:
             return ""
-        return str(value).strip()
+        sanitized = str(value).strip()
+        sanitized = " ".join(sanitized.split())
+        return sanitized
 
     def _safe_float(self, value: Any, default: float = 0.0) -> float:
-        """
-        Convierte un valor a float de manera segura.
-
-        Args:
-            value (Any): Valor a convertir.
-            default (float): Valor por defecto si falla la conversión.
-
-        Returns:
-            float: Valor numérico convertido.
-        """
+        """Convierte un valor a float de manera segura con soporte para formatos locales."""
+        if pd.isna(value) or value is None:
+            return default
         try:
-            if pd.isna(value):
-                return default
-            return float(value)
-        except (ValueError, TypeError):
+            if isinstance(value, (int, float)):
+                return float(value)
+            str_value = str(value).strip()
+            if "," in str_value and "." in str_value:
+                if str_value.rfind(",") < str_value.rfind("."):
+                    str_value = str_value.replace(",", "")
+                else:
+                    str_value = str_value.replace(".", "").replace(",", ".")
+            elif "," in str_value and "." not in str_value:
+                parts = str_value.split(",")
+                if len(parts) == 2 and len(parts[1]) <= 2:
+                    str_value = str_value.replace(",", ".")
+                else:
+                    str_value = str_value.replace(",", "")
+            return float(str_value)
+        except (ValueError, TypeError, AttributeError):
             return default
 
     def _create_node_attributes(
@@ -112,9 +116,6 @@ class BudgetGraphBuilder:
         inferred: bool = False,
         **kwargs,
     ) -> Dict[str, Any]:
-        """
-        Helper para crear atributos de nodos consistentemente.
-        """
         attrs = {
             "type": node_type,
             "level": level,
@@ -128,9 +129,6 @@ class BudgetGraphBuilder:
     def _create_apu_attributes(
         self, row: pd.Series, source: str, idx: int, inferred: bool
     ) -> Dict[str, Any]:
-        """
-        Crea el diccionario de atributos para un nodo APU (Nivel 2).
-        """
         attrs = self._create_node_attributes(
             node_type="APU", level=2, source=source, idx=idx, inferred=inferred
         )
@@ -142,9 +140,6 @@ class BudgetGraphBuilder:
     def _create_insumo_attributes(
         self, row: pd.Series, insumo_desc: str, source: str, idx: int
     ) -> Dict[str, Any]:
-        """
-        Crea el diccionario de atributos para un nodo Insumo (Nivel 3).
-        """
         return self._create_node_attributes(
             node_type="INSUMO",
             level=3,
@@ -158,144 +153,143 @@ class BudgetGraphBuilder:
     def _upsert_edge(
         self, G: nx.DiGraph, u: str, v: str, unit_cost: float, quantity: float, idx: int
     ) -> bool:
-        """
-        Inserta o actualiza una arista acumulando cantidades y costos.
-        """
+        """Inserta o actualiza una arista aplicando agregación de cantidades y costos (Upsert)."""
         total_cost = unit_cost * quantity
-        is_new = False
 
         if G.has_edge(u, v):
-            edge_data = G[u][v]
-            # Acumular
-            new_qty = edge_data["quantity"] + quantity
-            new_total = edge_data["total_cost"] + total_cost
+            edge = G[u][v]
+            edge["quantity"] += quantity
+            edge["total_cost"] += total_cost
+            edge["occurrence_count"] += 1
+            if "original_indices" not in edge:
+                edge["original_indices"] = []
+            edge["original_indices"].append(idx)
+            return False
 
-            # Actualizar atributos
-            G[u][v]["quantity"] = new_qty
-            G[u][v]["total_cost"] = new_total
-            G[u][v]["occurrence_count"] += 1
-            if "original_indices" in G[u][v]:
-                G[u][v]["original_indices"].append(idx)
-        else:
-            is_new = True
-            G.add_edge(
-                u,
-                v,
-                quantity=quantity,
-                unit_cost=unit_cost,
-                total_cost=total_cost,
-                occurrence_count=1,
-                original_indices=[idx],
-            )
-        return is_new
+        G.add_edge(
+            u,
+            v,
+            quantity=quantity,
+            unit_cost=unit_cost,
+            total_cost=total_cost,
+            occurrence_count=1,
+            original_indices=[idx],
+        )
+        return True
 
     def _compute_graph_statistics(self, G: nx.DiGraph) -> Dict[str, int]:
-        """
-        Calcula estadísticas básicas del grafo construido.
-        """
-        apu_nodes = [n for n, d in G.nodes(data=True) if d.get("type") == "APU"]
-        insumo_nodes = [n for n, d in G.nodes(data=True) if d.get("type") == "INSUMO"]
-        inferred_apus = [n for n in apu_nodes if G.nodes[n].get("inferred", False)]
-        chapter_nodes = [n for n, d in G.nodes(data=True) if d.get("type") == "CAPITULO"]
-
-        return {
-            "chapter_count": len(chapter_nodes),
-            "apu_count": len(apu_nodes),
-            "insumo_count": len(insumo_nodes),
-            "inferred_count": len(inferred_apus),
+        stats = {
+            "chapter_count": 0,
+            "apu_count": 0,
+            "insumo_count": 0,
+            "inferred_count": 0,
             "total_nodes": G.number_of_nodes(),
             "total_edges": G.number_of_edges(),
         }
+
+        type_counters = {
+            "CAPITULO": "chapter_count",
+            "APU": "apu_count",
+            "INSUMO": "insumo_count",
+        }
+
+        for _, data in G.nodes(data=True):
+            node_type = data.get("type")
+            if node_type in type_counters:
+                stats[type_counters[node_type]] += 1
+                if node_type == "APU" and data.get("inferred", False):
+                    stats["inferred_count"] += 1
+
+        return stats
+
+    def _process_presupuesto_row(
+        self, G: nx.DiGraph, row: pd.Series, idx: int, chapter_cols: List[str]
+    ) -> None:
+        apu_code = self._sanitize_code(row.get(ColumnNames.CODIGO_APU))
+        if not apu_code:
+            return
+
+        # Crear nodo APU (Nivel 2)
+        attrs = self._create_apu_attributes(
+            row, source="presupuesto", idx=idx, inferred=False
+        )
+        G.add_node(apu_code, **attrs)
+
+        # Buscar y establecer jerarquía de capítulo
+        chapter_name = None
+        for col in chapter_cols:
+            val = self._sanitize_code(row.get(col))
+            if val:
+                chapter_name = val
+                break
+
+        if chapter_name:
+            if chapter_name not in G:
+                G.add_node(
+                    chapter_name,
+                    type="CAPITULO",
+                    level=1,
+                    description=f"Capítulo: {chapter_name}",
+                )
+                G.add_edge(self.ROOT_NODE, chapter_name, relation="CONTAINS")
+            G.add_edge(chapter_name, apu_code, relation="CONTAINS")
+        else:
+            G.add_edge(self.ROOT_NODE, apu_code, relation="CONTAINS")
+
+    def _process_apu_detail_row(self, G: nx.DiGraph, row: pd.Series, idx: int) -> None:
+        apu_code = self._sanitize_code(row.get(ColumnNames.CODIGO_APU))
+        insumo_desc = self._sanitize_code(row.get(ColumnNames.DESCRIPCION_INSUMO))
+
+        if not apu_code or not insumo_desc:
+            return
+
+        # Inferir APU si no existe
+        if apu_code not in G:
+            attrs = self._create_apu_attributes(
+                row, source="detail", idx=idx, inferred=True
+            )
+            G.add_node(apu_code, **attrs)
+            G.add_edge(self.ROOT_NODE, apu_code, relation="CONTAINS_INFERRED")
+
+        # Crear o reutilizar nodo Insumo
+        if insumo_desc not in G:
+            attrs = self._create_insumo_attributes(
+                row, insumo_desc, source="detail", idx=idx
+            )
+            G.add_node(insumo_desc, **attrs)
+
+        # Establecer relación APU -> Insumo con agregación
+        qty = self._safe_float(row.get(ColumnNames.CANTIDAD_APU))
+        cost = self._safe_float(row.get(ColumnNames.COSTO_INSUMO_EN_APU))
+        self._upsert_edge(G, apu_code, insumo_desc, cost, qty, idx)
 
     def build(
         self, presupuesto_df: pd.DataFrame, apus_detail_df: pd.DataFrame
     ) -> nx.DiGraph:
         """
-        Construye un grafo dirigido piramidal a partir de los DataFrames.
-        Estructura: Proyecto (L0) -> [Capítulos (L1)] -> APUs (L2) -> Insumos (L3)
+        Construye un grafo dirigido piramidal representando la topología del presupuesto.
         """
         G = nx.DiGraph(name="BudgetTopology")
         self.logger.info("Iniciando construcción del Grafo Piramidal de Presupuesto...")
 
-        # 0. Nodo Raíz: PROYECTO_TOTAL (Nivel 0)
+        # Nivel 0: Nodo Raíz
         G.add_node(self.ROOT_NODE, type="ROOT", level=0, description="Proyecto Completo")
 
-        # 1. Procesar Presupuesto (Niveles 1 y 2)
+        # Columnas candidatas para identificar capítulos
+        chapter_cols = ["CAPITULO", "CATEGORIA", "TITULO"]
+
+        # Niveles 1 y 2: Procesar Presupuesto
         if presupuesto_df is not None and not presupuesto_df.empty:
+            available_chapter_cols = [
+                c for c in chapter_cols if c in presupuesto_df.columns
+            ]
             for idx, row in presupuesto_df.iterrows():
-                apu_code = self._sanitize_code(row.get(ColumnNames.CODIGO_APU))
-                if not apu_code:
-                    continue
+                self._process_presupuesto_row(G, row, idx, available_chapter_cols)
 
-                # Crear nodo APU (Nivel 2)
-                attrs = self._create_apu_attributes(
-                    row, source="presupuesto", idx=idx, inferred=False
-                )
-                G.add_node(apu_code, **attrs)
-
-                # Gestionar Jerarquía de Capítulos (Nivel 1)
-                # Intentamos detectar columnas que sugieran agrupación ("CAPITULO", "TITULO", etc.)
-                # Por defecto buscamos 'CAPITULO' o 'CATEGORIA' si existen en el DF
-                chapter_name = None
-                possible_chapter_cols = ["CAPITULO", "CATEGORIA", "TITULO"]
-                for col in possible_chapter_cols:
-                    if col in presupuesto_df.columns:
-                        val = self._sanitize_code(row.get(col))
-                        if val:
-                            chapter_name = val
-                            break
-
-                if chapter_name:
-                    # Crear nodo Capítulo si no existe
-                    if chapter_name not in G:
-                        G.add_node(
-                            chapter_name,
-                            type="CAPITULO",
-                            level=1,
-                            description=f"Capítulo: {chapter_name}",
-                        )
-                        # Conectar Raíz -> Capítulo
-                        if not G.has_edge(self.ROOT_NODE, chapter_name):
-                            G.add_edge(self.ROOT_NODE, chapter_name, relation="CONTAINS")
-
-                    # Conectar Capítulo -> APU
-                    G.add_edge(chapter_name, apu_code, relation="CONTAINS")
-                else:
-                    # Si no hay capítulo, conectar Raíz -> APU directo (bypass nivel 1)
-                    G.add_edge(self.ROOT_NODE, apu_code, relation="CONTAINS")
-
-        # 2. Procesar detalle de APUs (Nivel 3: Insumos)
+        # Nivel 3: Procesar Detalle de APUs (Insumos)
         if apus_detail_df is not None and not apus_detail_df.empty:
             for idx, row in apus_detail_df.iterrows():
-                apu_code = self._sanitize_code(row.get(ColumnNames.CODIGO_APU))
-                insumo_desc = self._sanitize_code(row.get(ColumnNames.DESCRIPCION_INSUMO))
-
-                if not apu_code or not insumo_desc:
-                    continue
-
-                # Asegurar que el nodo APU existe (inferencia si no estaba en presupuesto)
-                if apu_code not in G:
-                    attrs = self._create_apu_attributes(
-                        row, source="detail", idx=idx, inferred=True
-                    )
-                    G.add_node(apu_code, **attrs)
-                    # Conectar APU inferido al Raíz por defecto (ya que no sabemos capítulo)
-                    if not G.has_edge(self.ROOT_NODE, apu_code):
-                        G.add_edge(self.ROOT_NODE, apu_code, relation="CONTAINS_INFERRED")
-
-                # Asegurar que el nodo Insumo existe
-                insumo_id = insumo_desc
-                if insumo_id not in G:
-                    attrs = self._create_insumo_attributes(
-                        row, insumo_desc, source="detail", idx=idx
-                    )
-                    G.add_node(insumo_id, **attrs)
-
-                # Insertar o actualizar arista APU -> Insumo
-                qty = self._safe_float(row.get(ColumnNames.CANTIDAD_APU))
-                cost = self._safe_float(row.get(ColumnNames.COSTO_INSUMO_EN_APU))
-
-                self._upsert_edge(G, apu_code, insumo_id, cost, qty, idx)
+                self._process_apu_detail_row(G, row, idx)
 
         stats = self._compute_graph_statistics(G)
         self.logger.info(f"Grafo Piramidal construido: {stats}")
@@ -303,246 +297,176 @@ class BudgetGraphBuilder:
 
 
 class BusinessTopologicalAnalyzer:
-    """Analizador de topología de negocio V2 con Telemetría Granular."""
+    """
+    Analizador de topología de negocio V2 con Telemetría Granular.
+    Fusión Estratégica:
+    - Motor Matemático: Propuesta 1 (El Cerebro Forense)
+    - Narrativa: Propuesta 2 (La Voz del Consejo)
+    """
 
-    def __init__(self, telemetry: Optional[TelemetryContext] = None, max_cycles: int = 100):
-        """
-        Inicializa el analizador topológico.
-
-        Args:
-            telemetry (Optional[TelemetryContext]): Contexto para registrar métricas.
-            max_cycles (int): Número máximo de ciclos a detectar antes de truncar.
-        """
+    def __init__(
+        self, telemetry: Optional[TelemetryContext] = None, max_cycles: int = 100
+    ):
         self.telemetry = telemetry
         self.max_cycles = max_cycles
         self.logger = logging.getLogger(self.__class__.__name__)
 
     def calculate_euler_efficiency(self, graph: nx.DiGraph) -> float:
-        """
-        Calcula la Eficiencia de Euler normalizada.
-
-        La Característica de Euler (χ = V - E) mide la redundancia topológica.
-        - En un árbol perfecto (sin ciclos, mínima redundancia): E = V - 1 => χ = 1.
-        - En un grafo denso (muchas conexiones): E >> V => χ << 0.
-
-        La eficiencia se define como la proximidad a una estructura arbórea (ideal para jerarquías de costos).
-
-        Formula: Efficiency = 1 / (1 + max(0, Edges - Nodes + 1))
-
-        Returns:
-            float: Score entre 0.0 (Caos/Sobrecarga) y 1.0 (Orden/Jerarquía pura).
-        """
+        """Calcula la Eficiencia de Euler normalizada mediante decaimiento exponencial (Propuesta 1)."""
         n_nodes = graph.number_of_nodes()
         n_edges = graph.number_of_edges()
 
-        if n_nodes == 0:
+        if n_nodes <= 1:
             return 1.0
 
-        # Penalizamos el exceso de aristas sobre el mínimo necesario (árbol spanning)
-        # Un árbol conectado tiene V-1 aristas.
-        excess_edges = max(0, n_edges - (n_nodes - 1))
-
-        # Usamos una función de decaimiento para normalizar
-        efficiency = 1.0 / (1.0 + (excess_edges / n_nodes))
-
+        min_edges = n_nodes - 1
+        excess_edges = max(0, n_edges - min_edges)
+        efficiency = np.exp(-excess_edges / n_nodes) if n_nodes > 0 else 1.0
         return round(efficiency, 4)
 
     def calculate_betti_numbers(self, graph: nx.DiGraph) -> TopologicalMetrics:
-        """
-        Calcula métricas topológicas invariantes (Números de Betti).
-
-        Args:
-            graph (nx.DiGraph): El grafo a analizar.
-
-        Returns:
-            TopologicalMetrics: Métricas calculadas (beta_0, beta_1, Euler).
-        """
+        """Calcula métricas topológicas invariantes (Números de Betti)."""
         if graph.number_of_nodes() == 0:
-            return TopologicalMetrics(0, 0, 0)
+            return TopologicalMetrics(0, 0, 0, 1.0)
 
+        # Usar MultiGraph para preservar todas las aristas y calcular correctamente Betti_1
         undirected = nx.MultiGraph()
         undirected.add_nodes_from(graph.nodes(data=True))
         undirected.add_edges_from(graph.edges(data=True))
 
-        # Beta 0: Componentes Conexas
         beta_0 = nx.number_connected_components(undirected)
-
-        # Conteos
         n_edges = undirected.number_of_edges()
         n_nodes = undirected.number_of_nodes()
 
-        # Beta 1: Ciclos
-        # Característica de Euler chi = V - E = beta_0 - beta_1 (para complejos 1D)
-        # Por lo tanto, beta_1 = beta_0 - V + E
-        beta_1 = max(0, beta_0 - n_nodes + n_edges)
-
-        chi = beta_0 - beta_1
-
+        beta_1 = max(0, n_edges - n_nodes + beta_0)
+        euler_char = beta_0 - beta_1
         efficiency = self.calculate_euler_efficiency(graph)
 
         return TopologicalMetrics(
             beta_0=beta_0,
             beta_1=beta_1,
-            euler_characteristic=chi,
+            euler_characteristic=euler_char,
             euler_efficiency=efficiency,
         )
 
     def calculate_pyramid_stability(self, graph: nx.DiGraph) -> float:
-        """
-        Calcula el Índice de Estabilidad Piramidal (Psi).
-
-        Fórmula: Psi = (Num_Insumos / Num_APUs) * (1 / Densidad)
-
-        Interpretación:
-        - Psi > 10: Estructura Robusta (Base ancha, bajo acoplamiento).
-        - Psi < 1: Pirámide Invertida (Base estrecha, alto riesgo de colapso).
-
-        Args:
-            graph: Grafo del presupuesto.
-
-        Returns:
-            float: Valor de estabilidad (0.0 si no se puede calcular).
-        """
-        # 1. Contar nodos por tipo
+        """Calcula el Índice de Estabilidad Piramidal (Ψ) con robustez mejorada (Propuesta 1)."""
         nodes_data = graph.nodes(data=True)
         num_apus = sum(1 for _, d in nodes_data if d.get("type") == "APU")
         num_insumos = sum(1 for _, d in nodes_data if d.get("type") == "INSUMO")
 
-        # 2. Validaciones para evitar división por cero
-        if num_apus == 0:
+        if num_apus == 0 or num_insumos == 0:
             return 0.0
 
-        density = nx.density(graph)
-        if density == 0:
-            return 0.0  # Grafo desconectado/vacío no es estable
-
-        # 3. Cálculo
         base_ratio = num_insumos / num_apus
-        stability = base_ratio * (1.0 / density)
+        ratio_term = np.log10(1 + base_ratio)
+        density = nx.density(graph)
+        density_penalty = 1.0 - min(density, 0.99)
+        connectivity_factor = 1.0 if nx.is_directed_acyclic_graph(graph) else 0.7
 
-        return round(stability, 2)
-
-    def calculate_metrics(self, graph: nx.DiGraph) -> TopologicalMetrics:
-        """Alias para compatibilidad hacia atrás."""
-        return self.calculate_betti_numbers(graph)
+        stability = ratio_term * density_penalty * connectivity_factor
+        return round(stability, 3)
 
     def audit_integration_homology(
         self, graph_a: nx.DiGraph, graph_b: nx.DiGraph
     ) -> Dict[str, Any]:
-        """
-        Ejecuta el Test de Mayer-Vietoris para detectar ciclos emergentes.
-        Compara la topología de las partes vs. el todo.
-
-        Formula: Delta Beta_1 = Beta_1(A U B) - (Beta_1(A) + Beta_1(B))
-        """
-        # 1. Análisis de las Partes
+        """Ejecuta el Test de Mayer-Vietoris riguroso (Propuesta 1)."""
         metrics_a = self.calculate_betti_numbers(graph_a)
         metrics_b = self.calculate_betti_numbers(graph_b)
-
-        # 2. Simulación de la Unión (A U B)
-        # Nota: nx.compose es la unión de grafos preservando atributos
         graph_union = nx.compose(graph_a, graph_b)
         metrics_union = self.calculate_betti_numbers(graph_union)
 
-        # 3. Cálculo del Diferencial (El "Homomorfismo Conector" Simulado)
-        # Delta > 0 implica que la fusión creó nuevos ciclos
-        emergent_cycles = metrics_union.beta_1 - (metrics_a.beta_1 + metrics_b.beta_1)
+        nodes_a = set(graph_a.nodes())
+        nodes_b = set(graph_b.nodes())
+        common_nodes = nodes_a.intersection(nodes_b)
 
-        # 4. Diagnóstico Diferencial
+        graph_intersection = nx.DiGraph()
+        if common_nodes:
+            graph_intersection.add_nodes_from(common_nodes)
+            for u, v in graph_a.edges():
+                if u in common_nodes and v in common_nodes:
+                    graph_intersection.add_edge(u, v)
+            for u, v in graph_b.edges():
+                if u in common_nodes and v in common_nodes:
+                    graph_intersection.add_edge(u, v)
+
+        metrics_intersection = self.calculate_betti_numbers(graph_intersection)
+        delta = len(common_nodes) - metrics_intersection.beta_0 + 1
+
+        emergent_theoretical = (
+            metrics_a.beta_1 + metrics_b.beta_1 - metrics_intersection.beta_1 + delta
+        )
+        emergent_observed = metrics_union.beta_1 - (
+            metrics_a.beta_1 + metrics_b.beta_1
+        )
+        discrepancy = abs(emergent_observed - emergent_theoretical)
+
+        narrative = self._generate_mayer_vietoris_narrative(emergent_observed, discrepancy)
+
         verdict = "CLEAN_MERGE"
-        if emergent_cycles > 0:
-            verdict = "INTEGRATION_CONFLICT"
-        elif emergent_cycles < 0:
-            # Matemáticamente raro en dependencias de costos (usualmente implica fusión de componentes),
-            # pero posible si se simplifican nodos o aristas redundantes.
-            verdict = "TOPOLOGY_SIMPLIFIED"
+        if discrepancy <= 1:
+            if emergent_observed > 0:
+                verdict = "INTEGRATION_CONFLICT"
+            elif emergent_observed < 0:
+                verdict = "TOPOLOGY_SIMPLIFIED"
+        else:
+            verdict = "INCONSISTENT_TOPOLOGY"
 
         return {
             "status": verdict,
-            "delta_beta_1": emergent_cycles,
+            "delta_beta_1_observed": emergent_observed,
+            "delta_beta_1_theoretical": emergent_theoretical,
+            "discrepancy": discrepancy,
             "details": {
                 "beta_1_A": metrics_a.beta_1,
                 "beta_1_B": metrics_b.beta_1,
                 "beta_1_Union": metrics_union.beta_1,
+                "common_nodes_count": len(common_nodes),
             },
-            "narrative": self._generate_mayer_vietoris_narrative(emergent_cycles),
+            "narrative": narrative,
         }
 
-    def _generate_mayer_vietoris_narrative(self, delta: int) -> str:
-        """Genera la narrativa estratégica basada en el diferencial homológico."""
-        if delta == 0:
-            return "✅ Fusión Topológicamente Neutra: La integración no introdujo nuevos riesgos estructurales."
-        if delta > 0:
-            return (
-                f"🚨 ALERTA MAYER-VIETORIS: La fusión generó {delta} nuevos ciclos de dependencia. "
-                "Esto indica un conflicto de interfaz: el Capítulo A y el Capítulo B "
-                "se bloquean mutuamente al unirse."
-            )
-        return "ℹ️ La fusión simplificó la estructura de dependencias."
+    def _generate_mayer_vietoris_narrative(self, observed: int, discrepancy: float) -> str:
+        if discrepancy > 1:
+            return f"⚠️ Discrepancia topológica detectada (Δ={discrepancy}). Revisar superposición de componentes."
+        if observed > 0:
+            return f"🚨 ALERTA MAYER-VIETORIS: La fusión generó {observed} nuevos ciclos de dependencia. Conflicto de interfaz detectado."
+        if observed < 0:
+            return f"✅ Fusión simplificó la estructura. Se eliminaron {abs(observed)} ciclos redundantes."
+        return "✅ Fusión topológicamente neutra: sin riesgos estructurales nuevos."
 
     def _get_raw_cycles(self, graph: nx.DiGraph) -> Tuple[List[List[str]], bool]:
-        """
-        Obtiene los ciclos crudos (listas de nodos) del grafo.
-
-        Returns:
-            Tuple[List[List[str]], bool]: Lista de listas de nodos y flag de truncamiento.
-        """
+        """Obtiene los ciclos crudos con algoritmo Johnson optimizado (Propuesta 1)."""
         cycles = []
         truncated = False
         try:
-            # nx.simple_cycles retorna un generador
-            # No queremos consumirlo todo si es infinito o enorme, pero simple_cycles en DiGraph es finito.
-            # Aun así, para grafos densos puede ser costoso. Usamos un límite.
-            cycle_gen = nx.simple_cycles(graph)
-
-            # Consumir con límite
-            count = 0
-            for cycle in cycle_gen:
-                cycles.append(cycle)
-                count += 1
+            cycle_generator = nx.simple_cycles(graph)
+            max_cycle_length = 10
+            for count, cycle in enumerate(cycle_generator):
                 if count >= self.max_cycles:
                     truncated = True
+                    self.logger.warning(f"Truncado de ciclos en {self.max_cycles}")
                     break
+                if len(cycle) <= max_cycle_length:
+                    cycles.append(cycle)
         except Exception as e:
-            self.logger.error(f"Error detectando ciclos crudos: {e}")
+            self.logger.error(f"Error en detección de ciclos: {e}")
+
+        cycles.sort(key=len)
         return cycles, truncated
 
     def _detect_cycles(self, graph: nx.DiGraph) -> Tuple[List[str], bool]:
         """
-        Detecta ciclos en el grafo y los devuelve como strings formateados.
-
-        Args:
-            graph (nx.DiGraph): Grafo a analizar.
-
-        Returns:
-            Tuple[List[str], bool]: Lista de ciclos (strings) y flag de truncamiento.
+        Detecta y formatea ciclos en el grafo (Compatibilidad hacia atrás).
         """
-        formatted_cycles = []
         raw_cycles, truncated = self._get_raw_cycles(graph)
-
-        for cycle in raw_cycles:
-            # Agregar nodo inicial al final para cerrar el bucle en la representación
-            cycle_repr = cycle + [cycle[0]]
-            formatted_cycles.append(" → ".join(map(str, cycle_repr)))
-
+        formatted_cycles = [" → ".join(map(str, c + [c[0]])) for c in raw_cycles]
         return formatted_cycles, truncated
 
     def detect_risk_synergy(
         self, graph: nx.DiGraph, raw_cycles: Optional[List[List[str]]] = None
     ) -> Dict[str, Any]:
-        """
-        Detecta Sinergia de Riesgo (Efecto Dominó / Producto Cup Simulado).
-
-        Busca ciclos que compartan "Nodos Críticos" (Insumos de alta centralidad).
-        Si dos ciclos comparten nodos, sus riesgos se multiplican, no se suman.
-
-        Args:
-            graph (nx.DiGraph): El grafo.
-            raw_cycles (Optional[List[List[str]]]): Ciclos pre-calculados para optimización.
-
-        Returns:
-            Dict con 'synergy_detected' (bool), 'shared_nodes' (list) y 'intersecting_cycles_count'.
-        """
+        """Detecta Sinergia de Riesgo por 'Betweenness Centrality' (Propuesta 1)."""
         if raw_cycles is None:
             raw_cycles, _ = self._get_raw_cycles(graph)
 
@@ -551,167 +475,140 @@ class BusinessTopologicalAnalyzer:
                 "synergy_detected": False,
                 "shared_nodes": [],
                 "intersecting_cycles_count": 0,
+                "bridge_nodes": [],
+                "synergy_score": 0.0,
             }
 
-        # 1. Identificar nodos críticos (top 10% por grado)
-        critical_nodes = set()
-        degrees = dict(graph.degree())
-        if degrees:
-            # Umbral: Percentil 90 o simplemente nodos con degree > 2 si el grafo es pequeño
-            sorted_degrees = sorted(degrees.values(), reverse=True)
-            threshold_idx = max(0, int(len(sorted_degrees) * 0.1))
-            # Fallback para grafos pequeños: degree > 1
-            degree_threshold = max(2, sorted_degrees[threshold_idx] if sorted_degrees else 0)
+        try:
+            betweenness = nx.betweenness_centrality(graph, normalized=True)
+            threshold = np.percentile(list(betweenness.values()), 75) if betweenness else 0.0
+        except:
+            betweenness = {}
+            threshold = 0.0
 
-            critical_nodes = {n for n, d in degrees.items() if d >= degree_threshold}
+        critical_nodes = {n for n, c in betweenness.items() if c >= threshold}
 
-        # 2. Buscar intersecciones entre ciclos en nodos críticos
-        shared_critical_nodes = set()
-        intersecting_count = 0
-
-        # Convertir ciclos a sets para intersección rápida
+        synergy_pairs = []
+        bridge_nodes = set()
         cycle_sets = [set(c) for c in raw_cycles]
 
-        # Comparación O(N^2) sobre número de ciclos (usualmente bajo por max_cycles)
         for i in range(len(cycle_sets)):
             for j in range(i + 1, len(cycle_sets)):
                 intersection = cycle_sets[i].intersection(cycle_sets[j])
+                if len(intersection) >= 2:
+                    critical_intersection = intersection.intersection(critical_nodes)
+                    if critical_intersection:
+                        synergy_pairs.append((i, j))
+                        bridge_nodes.update(critical_intersection)
 
-                # Filtrar solo nodos críticos en la intersección
-                critical_intersection = intersection.intersection(critical_nodes)
-
-                if critical_intersection:
-                    shared_critical_nodes.update(critical_intersection)
-                    intersecting_count += 1
+        synergy_score = 0.0
+        if synergy_pairs:
+            total_pairs = len(cycle_sets) * (len(cycle_sets) - 1) / 2
+            synergy_score = min(
+                1.0, len(synergy_pairs) / total_pairs * len(bridge_nodes)
+            )
 
         return {
-            "synergy_detected": len(shared_critical_nodes) > 0,
-            "shared_nodes": list(shared_critical_nodes),
-            "intersecting_cycles_count": intersecting_count,
+            "synergy_detected": len(synergy_pairs) > 0,
+            "shared_nodes": list(bridge_nodes),
+            "intersecting_cycles_count": len(synergy_pairs),
+            "bridge_nodes": list(bridge_nodes),
+            "synergy_score": round(synergy_score, 3),
         }
 
-    def _classify_anomalous_nodes(
-        self, graph: nx.DiGraph
-    ) -> Dict[str, List[Dict[str, Any]]]:
-        """
-        Clasifica nodos en categorías anómalas.
+    def _compute_connectivity_analysis(self, graph: nx.DiGraph) -> Dict[str, Any]:
+        """Calcula métricas de conectividad avanzadas (Propuesta 1)."""
+        if graph.number_of_nodes() == 0:
+            return {
+                "is_dag": True,
+                "num_wcc": 0,
+                "is_weakly_connected": True,
+                "num_scc": 0,
+                "num_non_trivial_scc": 0,
+                "scc_sizes": [],
+                "non_trivial_scc": [],
+                "articulation_points": [],
+                "average_clustering": 0.0,
+            }
 
-        Args:
-            graph (nx.DiGraph): Grafo a analizar.
+        undirected = graph.to_undirected()
+        scc = list(nx.strongly_connected_components(graph))
+        non_trivial_scc = [c for c in scc if len(c) > 1]
+        articulation_points = list(nx.articulation_points(undirected))
 
-        Returns:
-            Dict[str, List[Dict[str, Any]]]: Diccionario con listas de nodos aislados, huérfanos y vacíos.
-        """
-        isolated_nodes = []
-        orphan_insumos = []
-        empty_apus = []
+        try:
+            avg_clustering = nx.average_clustering(undirected)
+        except:
+            avg_clustering = 0.0
 
+        return {
+            "is_dag": nx.is_directed_acyclic_graph(graph),
+            "num_wcc": nx.number_weakly_connected_components(graph),
+            "is_weakly_connected": nx.is_weakly_connected(graph),
+            "num_scc": len(non_trivial_scc),
+            "num_non_trivial_scc": len(non_trivial_scc), # Alias for compat
+            "scc_sizes": [len(c) for c in non_trivial_scc],
+            "non_trivial_scc": [list(c) for c in non_trivial_scc],
+            "articulation_points": articulation_points,
+            "average_clustering": round(avg_clustering, 4),
+        }
+
+    def _classify_anomalous_nodes(self, graph: nx.DiGraph) -> Dict[str, List[Dict[str, Any]]]:
+        """Clasifica nodos anómalos."""
+        result = {"isolated_nodes": [], "orphan_insumos": [], "empty_apus": []}
         in_degrees = dict(graph.in_degree())
         out_degrees = dict(graph.out_degree())
 
         for node, data in graph.nodes(data=True):
+            node_type = data.get("type")
+            if node_type == "ROOT": continue
+
+            in_deg = in_degrees.get(node, 0)
+            out_deg = out_degrees.get(node, 0)
+
             node_info = {
                 "id": node,
-                "type": data.get("type"),
+                "type": node_type,
                 "description": data.get("description", ""),
                 "inferred": data.get("inferred", False),
-                "in_degree": in_degrees.get(node, 0),
-                "out_degree": out_degrees.get(node, 0),
+                "in_degree": in_deg,
+                "out_degree": out_deg,
             }
 
-            # Ajuste para Root Node: No es aislado, es el origen
-            if data.get("type") == "ROOT":
-                continue
-
-            is_isolated = (in_degrees.get(node, 0) == 0) and (out_degrees.get(node, 0) == 0)
-
+            is_isolated = in_deg == 0 and out_deg == 0
             if is_isolated:
-                isolated_nodes.append(node_info)
+                result["isolated_nodes"].append(node_info)
+                if node_type == "INSUMO": result["orphan_insumos"].append(node_info)
+            elif node_type == "INSUMO" and in_deg == 0:
+                result["orphan_insumos"].append(node_info)
+            elif node_type == "APU" and out_deg == 0:
+                result["empty_apus"].append(node_info)
+        return result
 
-            if (
-                data.get("type") == "INSUMO"
-                and in_degrees.get(node, 0) == 0
-                and not is_isolated
-            ):
-                orphan_insumos.append(node_info)
-            elif data.get("type") == "INSUMO" and is_isolated:
-                # Insumos aislados también son huérfanos
-                orphan_insumos.append(node_info)
-
-            if data.get("type") == "APU" and out_degrees.get(node, 0) == 0:
-                empty_apus.append(node_info)
-
-        return {
-            "isolated_nodes": isolated_nodes,
-            "orphan_insumos": orphan_insumos,
-            "empty_apus": empty_apus,
-        }
-
-    def _identify_critical_resources(
-        self, graph: nx.DiGraph, top_n: int = 5
-    ) -> List[Dict[str, Any]]:
-        """
-        Identifica recursos críticos (alto grado de entrada).
-
-        Args:
-            graph (nx.DiGraph): Grafo a analizar.
-            top_n (int): Número de recursos top a retornar.
-
-        Returns:
-            List[Dict[str, Any]]: Lista de recursos críticos con su grado.
-        """
+    def _identify_critical_resources(self, graph: nx.DiGraph, top_n: int = 5) -> List[Dict[str, Any]]:
+        """Identifica recursos (insumos) críticos por centralidad de grado."""
         resources = []
         for node, data in graph.nodes(data=True):
             if data.get("type") == "INSUMO":
                 degree = graph.in_degree(node)
                 if degree > 0:
-                    resources.append(
-                        {
-                            "id": node,
-                            "in_degree": degree,
-                            "description": data.get("description", ""),
-                        }
-                    )
-
+                    resources.append({
+                        "id": node,
+                        "in_degree": degree,
+                        "description": data.get("description", "")
+                    })
         resources.sort(key=lambda x: x["in_degree"], reverse=True)
         return resources[:top_n]
 
-    def _compute_connectivity_analysis(self, graph: nx.DiGraph) -> Dict[str, Any]:
-        """
-        Calcula métricas de conectividad y componentes fuertemente conexas.
-
-        Args:
-            graph (nx.DiGraph): Grafo a analizar.
-
-        Returns:
-            Dict[str, Any]: Diccionario con resultados de conectividad.
-        """
-        return {
-            "is_dag": nx.is_directed_acyclic_graph(graph),
-            "num_wcc": nx.number_weakly_connected_components(graph),
-            "is_weakly_connected": nx.is_weakly_connected(graph),
-            "num_non_trivial_scc": len(
-                [c for c in nx.strongly_connected_components(graph) if len(c) > 1]
-            ),
-            "non_trivial_scc": [
-                list(c) for c in nx.strongly_connected_components(graph) if len(c) > 1
-            ],
-        }
-
     def _interpret_topology(self, metrics: TopologicalMetrics) -> Dict[str, str]:
-        """
-        Genera interpretaciones legibles por humanos de las métricas.
+        """Genera interpretaciones semánticas (Compatibilidad hacia atrás)."""
+        connectivity_status = "Espacio conexo" if metrics.is_connected else "Espacio fragmentado"
+        cycle_status = "Estructura acíclica" if metrics.beta_1 == 0 else "Complejidad cíclica presente"
 
-        Args:
-            metrics (TopologicalMetrics): Métricas a interpretar.
-
-        Returns:
-            Dict[str, str]: Interpretaciones de beta_0, beta_1 y euler.
-        """
         return {
-            "beta_0": f"{metrics.beta_0} componente(s) conexa(s). {'Espacio conexo' if metrics.is_connected else 'Espacio fragmentado'}.",
-            "beta_1": f"{metrics.beta_1} ciclo(s) independiente(s). {'Estructura acíclica' if metrics.beta_1 == 0 else 'Complejidad cíclica presente'}.",
-            "euler": f"Característica de Euler: {metrics.euler_characteristic}",
+            "beta_0": f"{metrics.beta_0} componente(s) conexa(s). {connectivity_status}.",
+            "beta_1": f"{metrics.beta_1} ciclo(s) independiente(s). {cycle_status}.",
+            "euler": f"Característica de Euler: χ = {metrics.euler_characteristic}",
             "efficiency": f"Eficiencia de Euler: {metrics.euler_efficiency:.2%}",
         }
 
@@ -719,180 +616,181 @@ class BusinessTopologicalAnalyzer:
         self, graph: nx.DiGraph, financial_metrics: Optional[Dict[str, Any]] = None
     ) -> ConstructionRiskReport:
         """
-        Genera un reporte de riesgos combinando análisis topológico y financiero.
-
-        Args:
-            graph (nx.DiGraph): Grafo a reportar.
-            financial_metrics (Optional[Dict[str, Any]]): Métricas financieras opcionales.
-
-        Returns:
-            ConstructionRiskReport: Objeto de reporte estructurado.
+        Genera reporte de riesgos con modelo de scoring bayesiano (Propuesta 1).
+        Inyecta la narrativa de la Propuesta 2.
         """
         metrics = self.calculate_betti_numbers(graph)
-        raw_cycles, truncated = self._get_raw_cycles(graph)
-        cycles = []
-        for c in raw_cycles:
-            cycle_repr = c + [c[0]]
-            cycles.append(" → ".join(map(str, cycle_repr)))
+        raw_cycles, _ = self._get_raw_cycles(graph)
+        cycles = [" → ".join(c + [c[0]]) for c in raw_cycles]
 
         synergy = self.detect_risk_synergy(graph, raw_cycles)
-
         anomalies = self._classify_anomalous_nodes(graph)
         pyramid_stability = self.calculate_pyramid_stability(graph)
+        connectivity = self._compute_connectivity_analysis(graph)
 
-        # 1. Análisis de Integridad Estructural (Topológico)
-        integrity_score = 100.0
-        if metrics.beta_1 > 0:
-            integrity_score -= 50
-
-        # Penalización por Sinergia de Riesgo (Producto Cup)
-        if synergy["synergy_detected"]:
-            integrity_score -= 20
-
-        isolated_count = len(anomalies["isolated_nodes"])
-        integrity_score -= min(30, isolated_count * 2)
-        orphan_count = len(anomalies["orphan_insumos"])
-        integrity_score -= min(20, orphan_count * 1)
-        integrity_score = max(0, integrity_score)
-
+        # Scoring Bayesiano
         density = nx.density(graph) if graph else 0.0
-        complexity = (
-            "Alta (Crítica)"
-            if metrics.beta_1 > 0
-            else ("Alta" if density > 0.1 else "Media" if density > 0.05 else "Baja")
+        euler_factor = metrics.euler_efficiency
+        density_factor = 1.0 - min(density, 0.99)
+        stability_factor = min(pyramid_stability / 3.0, 1.0)
+
+        weights = {"euler": 0.4, "density": 0.3, "stability": 0.3}
+        integrity_score = 100.0 * (
+            weights["euler"] * euler_factor
+            + weights["density"] * density_factor
+            + weights["stability"] * stability_factor
         )
 
+        # Penalizaciones
+        penalty_multiplier = 1.0
+        if metrics.beta_1 > 0:
+            penalty_multiplier -= min(0.5, metrics.beta_1 * 0.1)
+        if synergy["synergy_detected"]:
+            penalty_multiplier -= min(0.3, synergy["synergy_score"] * 0.5)
+
+        iso_count = len(anomalies["isolated_nodes"])
+        orphan_count = len(anomalies["orphan_insumos"])
+        penalty_multiplier -= min(0.2, (iso_count + orphan_count) * 0.05)
+
+        integrity_score *= max(0.0, penalty_multiplier)
+        integrity_score = round(max(0.0, min(100.0, integrity_score)), 1)
+
+        # Complejidad
+        complexity_score = (
+            0.4 * (metrics.beta_1 / max(1, graph.number_of_nodes()))
+            + 0.3 * density
+            + 0.3 * (1.0 - metrics.euler_efficiency)
+        )
+        if complexity_score > 0.3:
+            complexity_level = "Alta (Crítica)"
+        elif complexity_score > 0.15:
+            complexity_level = "Media"
+        else:
+            complexity_level = "Baja"
+
+        # Alertas y Riesgos (Listas)
         waste_alerts = []
-        if isolated_count > 0:
-            waste_alerts.append(f"Alerta: {isolated_count} Insumos no utilizados.")
-        if orphan_count > 0:
-            waste_alerts.append(f"Alerta: {orphan_count} Recursos sin asignación a APUs.")
-
-        # Alerta de Eficiencia de Euler
-        if metrics.euler_efficiency < 0.5:
-            waste_alerts.append(
-                f"Alerta de Gestión: Baja Eficiencia de Euler ({metrics.euler_efficiency:.2f}). Sobrecarga de enlaces."
-            )
-
-        # Alerta de Estabilidad Piramidal
-        if pyramid_stability < 10.0 and graph.number_of_nodes() > 10:
-            waste_alerts.append(
-                f"Alerta Estructural: Baja estabilidad piramidal ({pyramid_stability:.1f}). Posible estructura invertida o excesivamente compleja."
-            )
+        if iso_count > 0: waste_alerts.append(f"🚨 {iso_count} nodos aislados detectados.")
+        if orphan_count > 0: waste_alerts.append(f"⚠️ {orphan_count} insumos huérfanos.")
+        if metrics.euler_efficiency < 0.6: waste_alerts.append(f"⚠️ Baja eficiencia topológica ({metrics.euler_efficiency:.2f}).")
 
         circular_risks = []
-        if metrics.beta_1 > 0:
-            circular_risks.append("CRÍTICO: Referencias circulares detectadas.")
+        if metrics.beta_1 > 0: circular_risks.append(f"🚨 CRÍTICO: {metrics.beta_1} ciclo(s) de dependencia.")
+        if synergy["synergy_detected"]: circular_risks.append(f"🚨 RIESGO SISTÉMICO: Sinergia detectada (score: {synergy['synergy_score']:.2f}).")
 
-        if synergy["synergy_detected"]:
-            circular_risks.append(
-                f"RIESGO SISTÉMICO: Sinergia detectada entre {synergy['intersecting_cycles_count']} ciclos. Efecto Dominó probable."
-            )
-
-        # 2. Análisis de Riesgo Financiero
+        # Riesgo Financiero
         financial_risk = None
         if financial_metrics:
             volatility = financial_metrics.get("volatility", 0.0)
             roi = financial_metrics.get("roi", 0.0)
+            if roi < 0: financial_risk = "CRÍTICO"
+            elif volatility > 0.25: financial_risk = "ALTO"
+            elif volatility > 0.15: financial_risk = "MEDIO"
+            else: financial_risk = "BAJO"
 
-            if roi < 0:
-                financial_risk = "CRÍTICO"
-            elif volatility > 0.20:
-                financial_risk = "ALTO"
-            elif volatility > 0.10:
-                financial_risk = "MEDIO"
-            else:
-                financial_risk = "BAJO"
-
-            # 3. Combinación de Riesgos
-            if (
-                metrics.beta_1 > 0 or synergy["synergy_detected"]
-            ) and financial_risk == "ALTO":
+            if (metrics.beta_1 > 2 or synergy["synergy_detected"]) and financial_risk in ["ALTO", "MEDIO"]:
                 financial_risk = "CATÁSTROFICO"
+
+        # Inyección de Narrativa (Propuesta 2)
+        strategic_narrative = self._generate_strategic_narrative(
+            metrics, synergy, pyramid_stability, financial_risk
+        )
 
         return ConstructionRiskReport(
             integrity_score=integrity_score,
             waste_alerts=waste_alerts,
             circular_risks=circular_risks,
-            complexity_level=complexity,
+            complexity_level=complexity_level,
             financial_risk_level=financial_risk,
+            strategic_narrative=strategic_narrative,
             details={
                 "metrics": asdict(metrics),
                 "cycles": cycles,
                 "anomalies": anomalies,
-                "density": density,
-                "pyramid_stability": pyramid_stability,
                 "synergy_risk": synergy,
-                "financial_metrics_input": financial_metrics or {},
+                "connectivity": connectivity,
+                "pyramid_stability": pyramid_stability,
+                "density": density,
             },
         )
 
+    def _generate_strategic_narrative(
+        self,
+        metrics: TopologicalMetrics,
+        synergy: Dict[str, Any],
+        stability: float,
+        financial_risk: Optional[str],
+    ) -> str:
+        """
+        Genera una narrativa estratégica con el tono del 'Consejo de Sabios' (Propuesta 2).
+        Integra los conceptos de 'El Intérprete Diplomático'.
+        """
+        narrative_parts = []
+
+        # 1. Análisis Estructural (La Base)
+        if stability > 2.0:
+            narrative_parts.append("🏗️ ESTRUCTURA ANTISÍSMICA: La pirámide presupuestaria posee una base robusta y bien distribuida.")
+        elif stability > 1.0:
+            narrative_parts.append("✅ CIMENTACIÓN ESTABLE: La relación entre insumos y APUs es adecuada para soportar la carga del proyecto.")
+        else:
+            narrative_parts.append("⚠️ RIESGO DE COLAPSO (PIRÁMIDE INVERTIDA): La base de recursos es insuficiente para la complejidad de los APUs definidos.")
+
+        # 2. Integridad Lógica (Topología)
+        if metrics.beta_1 == 0:
+            narrative_parts.append("La trazabilidad de cargas es limpia (Acíclica).")
+        else:
+            narrative_parts.append(f"⛔ SOCAVONES LÓGICOS DETECTADOS: Existen {metrics.beta_1} ciclos de dependencia que comprometen la integridad del cálculo.")
+
+        # 3. Sinergia de Riesgo (Efecto Dominó)
+        if synergy.get("synergy_detected"):
+            narrative_parts.append(f"☣️ RIESGO DE CONTAGIO: Se detectó una 'Sinergia de Riesgo' en {synergy.get('intersecting_cycles_count', 0)} puntos críticos. Un fallo en un insumo clave podría desencadenar un efecto dominó.")
+
+        # 4. Veredicto Financiero (El Oráculo)
+        if financial_risk:
+            if financial_risk in ["CRÍTICO", "CATÁSTROFICO"]:
+                narrative_parts.append(f"💀 ALERTA DE VIABILIDAD: El perfil de riesgo financiero es {financial_risk}, agravado por la estructura topológica.")
+            elif financial_risk == "ALTO":
+                narrative_parts.append("📉 PRECAUCIÓN FINANCIERA: Alta volatilidad detectada en los componentes críticos.")
+            elif financial_risk == "BAJO":
+                narrative_parts.append("💰 SALUD FINANCIERA: Los indicadores económicos respaldan la viabilidad técnica.")
+
+        return " ".join(narrative_parts)
+
     def analyze_structural_integrity(self, graph: nx.DiGraph) -> Dict[str, Any]:
-        """
-        Ejecuta análisis completo y emite telemetría.
+        """Wrapper de análisis compatible con el pipeline actual y telemetría."""
+        report = self.generate_executive_report(graph)
+        metrics = TopologicalMetrics(**report.details["metrics"])
 
-        Args:
-            graph (nx.DiGraph): Grafo a analizar.
-
-        Returns:
-            Dict[str, Any]: Resultados detallados y métricas planas para telemetría.
-        """
-        metrics = self.calculate_betti_numbers(graph)
-        raw_cycles, cycles_truncated = self._get_raw_cycles(graph)
-        cycles_str = []
-        for c in raw_cycles:
-            cycle_repr = c + [c[0]]
-            cycles_str.append(" → ".join(map(str, cycle_repr)))
-
-        synergy = self.detect_risk_synergy(graph, raw_cycles)
-        anomalies = self._classify_anomalous_nodes(graph)
-        critical = self._identify_critical_resources(graph)
-        connectivity = self._compute_connectivity_analysis(graph)
-        interpretation = self._interpret_topology(metrics)
-        pyramid_stability = self.calculate_pyramid_stability(graph)
-
-        # Reporte ejecutivo para mejora de telemetría
-        exec_report = self.generate_executive_report(graph)
-
-        # Estructura para reporte
-        details = {
-            "topology": {"betti_numbers": asdict(metrics), "interpretation": interpretation},
-            "cycles": {
-                "count": len(cycles_str),
-                "list": cycles_str,
-                "truncated": cycles_truncated,
-            },
-            "synergy_risk": synergy,
-            "connectivity": connectivity,
-            "anomalies": anomalies,
-            "critical_resources": critical,
-            "graph_summary": {
-                "nodes": graph.number_of_nodes(),
-                "edges": graph.number_of_edges(),
-                "density": nx.density(graph),
-                "pyramid_stability": pyramid_stability,
-            },
-            "executive_report": asdict(exec_report),
-        }
-
-        # Métricas planas para telemetría/conveniencia
         flat_results = {
+            "business.integrity_score": report.integrity_score,
+            "business.pyramid_stability": report.details["pyramid_stability"],
             "business.betti_b0": metrics.beta_0,
             "business.betti_b1": metrics.beta_1,
             "business.euler_characteristic": metrics.euler_characteristic,
             "business.euler_efficiency": metrics.euler_efficiency,
-            "business.cycles_count": len(cycles_str),
-            "business.synergy_detected": 1 if synergy["synergy_detected"] else 0,
-            "business.is_dag": 1 if connectivity["is_dag"] else 0,
-            "business.isolated_count": len(anomalies["isolated_nodes"]),
-            "business.orphan_insumos_count": len(anomalies["orphan_insumos"]),
-            "business.empty_apus_count": len(anomalies["empty_apus"]),
-            "business.integrity_score": exec_report.integrity_score,
-            "business.pyramid_stability": pyramid_stability,
-            "details": details,
+            "business.cycles_count": len(report.details["cycles"]),
+            "business.synergy_detected": 1 if report.details["synergy_risk"]["synergy_detected"] else 0,
+            "business.is_dag": 1 if report.details["connectivity"]["is_dag"] else 0,
+            "business.isolated_count": len(report.details["anomalies"]["isolated_nodes"]),
+            "business.orphan_insumos_count": len(report.details["anomalies"]["orphan_insumos"]),
+            "business.empty_apus_count": len(report.details["anomalies"]["empty_apus"]),
+            "details": {
+                "executive_report": asdict(report),
+                "topology": {"betti_numbers": asdict(metrics)},
+                "cycles": {"list": report.details["cycles"]},
+                "connectivity": report.details["connectivity"],
+                "anomalies": report.details["anomalies"],
+                "critical_resources": self._identify_critical_resources(graph),
+                "graph_summary": {
+                    "nodes": graph.number_of_nodes(),
+                    "edges": graph.number_of_edges(),
+                    "density": report.details["density"],
+                    "pyramid_stability": report.details["pyramid_stability"]
+                }
+            }
         }
 
-        # Telemetría
+        # Emisión de Telemetría
         if self.telemetry:
             for k, v in flat_results.items():
                 if isinstance(v, (int, float)):
@@ -900,178 +798,53 @@ class BusinessTopologicalAnalyzer:
 
         return flat_results
 
-    def analyze(self, graph: nx.DiGraph) -> Dict[str, Any]:
-        """Wrapper de compatibilidad para análisis."""
-        new_result = self.analyze_structural_integrity(graph)
-
-        metrics = TopologicalMetrics(
-            beta_0=new_result["business.betti_b0"],
-            beta_1=new_result["business.betti_b1"],
-            euler_characteristic=new_result["business.euler_characteristic"],
-            euler_efficiency=new_result["business.euler_efficiency"],
-        )
-        # Agregar campos antiguos que estaban en V1 pero no son invariantes topológicos estrictos
-        metrics_dict = asdict(metrics)
-        metrics_dict["density"] = new_result["details"]["graph_summary"]["density"]
-        metrics_dict["is_dag"] = bool(new_result["business.is_dag"])
-        # Chi fue alias de euler_characteristic
-        metrics_dict["chi"] = metrics.euler_characteristic
-
-        anomalies = {
-            "cycles": new_result["details"]["cycles"]["list"],
-            "isolates_count": new_result["business.isolated_count"],
-            "orphan_insumos_count": new_result["business.orphan_insumos_count"],
-            "empty_apus_count": new_result["business.empty_apus_count"],
-        }
-
-        return {"metrics": metrics_dict, "anomalies": anomalies}
-
     def get_audit_report(self, analysis_result_or_graph: Any) -> List[str]:
-        """
-        Genera un reporte ASCII art profesional enfocado en construcción.
-
-        Args:
-            analysis_result_or_graph (Any): Grafo o resultado de análisis.
-
-        Returns:
-            List[str]: Líneas del reporte formateado.
-        """
-        exec_report = None
-        pyramid_stability = 0.0
-
+        """Genera un reporte ASCII art profesional."""
         if isinstance(analysis_result_or_graph, nx.DiGraph):
-            exec_report = self.generate_executive_report(analysis_result_or_graph)
-            metrics_dict = exec_report.details.get("metrics", {})
-            anomalies = exec_report.details.get("anomalies", {})
-            cycles_list = exec_report.details.get("cycles", [])
-            density = exec_report.details.get("density", 0.0)
-            pyramid_stability = exec_report.details.get("pyramid_stability", 0.0)
+            analysis = self.analyze_structural_integrity(analysis_result_or_graph)
         else:
-            if isinstance(analysis_result_or_graph, dict):
-                if (
-                    "details" in analysis_result_or_graph
-                    and "executive_report" in analysis_result_or_graph["details"]
-                ):
-                    er_dict = analysis_result_or_graph["details"]["executive_report"]
-                    exec_report = ConstructionRiskReport(
-                        integrity_score=er_dict.get("integrity_score", 0.0),
-                        waste_alerts=er_dict.get("waste_alerts", []),
-                        circular_risks=er_dict.get("circular_risks", []),
-                        complexity_level=er_dict.get("complexity_level", "Desconocida"),
-                        details=er_dict.get("details", {}),
-                    )
-                    metrics_dict = er_dict.get("details", {}).get("metrics", {})
-                    anomalies = er_dict.get("details", {}).get("anomalies", {})
-                    cycles_list = er_dict.get("details", {}).get("cycles", [])
-                    density = er_dict.get("details", {}).get("density", 0.0)
-                    pyramid_stability = er_dict.get("details", {}).get(
-                        "pyramid_stability", 0.0
-                    )
-                elif "metrics" in analysis_result_or_graph:
-                    # Compatibilidad hacia atrás
-                    m = analysis_result_or_graph["metrics"]
-                    a = analysis_result_or_graph["anomalies"]
-                    cycles_list = a.get("cycles", [])
+            analysis = analysis_result_or_graph
 
-                    beta_1 = m.get("beta_1", 0)
-                    isolated_count = a.get("isolates_count", 0)
-
-                    integrity_score = 100.0
-                    if beta_1 > 0:
-                        integrity_score -= 50
-                    if isolated_count > 0:
-                        integrity_score -= min(30, isolated_count * 2)
-
-                    waste_alerts = []
-                    if isolated_count > 0:
-                        waste_alerts.append(
-                            f"Alerta: {isolated_count} Insumos en base de datos no se utilizan en el presupuesto."
-                        )
-
-                    circular_risks = []
-                    if beta_1 > 0:
-                        circular_risks.append(
-                            "CRÍTICO: Se detectaron referencias circulares en los precios unitarios."
-                        )
-
-                    exec_report = ConstructionRiskReport(
-                        integrity_score=integrity_score,
-                        waste_alerts=waste_alerts,
-                        circular_risks=circular_risks,
-                        complexity_level="Desconocida",
-                        details={},
-                    )
-                    metrics_dict = m
-                    anomalies = {
-                        "isolated_nodes": [{}] * isolated_count,
-                        "orphan_insumos": [{}] * a.get("orphan_insumos_count", 0),
-                        "empty_apus": [{}] * a.get("empty_apus_count", 0),
-                    }
-                    density = m.get("density", 0.0)
-                else:
-                    return ["Error: Formato de análisis no reconocido."]
-
-        if exec_report is None:
-            return ["Error: No se pudo generar el reporte ejecutivo."]
+        report_dict = analysis.get("details", {}).get("executive_report", {})
+        if not report_dict:
+             return ["Error: No se pudo generar el reporte."]
 
         lines = []
         lines.append("┌──────────────────────────────────────────────────┐")
         lines.append("│      AUDITORÍA ESTRUCTURAL DEL PRESUPUESTO       │")
         lines.append("├──────────────────────────────────────────────────┤")
-        lines.append(
-            f"│ PUNTUACIÓN DE INTEGRIDAD: {exec_report.integrity_score:>6.1f} / 100.0          │"
-        )
-        lines.append(f"│ Nivel de Complejidad:     {exec_report.complexity_level:<23}│")
+        lines.append(f"│ PUNTUACIÓN DE INTEGRIDAD: {report_dict.get('integrity_score', 0):>6.1f} / 100.0          │")
+        lines.append(f"│ Nivel de Complejidad:     {report_dict.get('complexity_level', ''):<23}│")
         lines.append("├──────────────────────────────────────────────────┤")
+
+        metrics = report_dict.get("details", {}).get("metrics", {})
         lines.append("│ [MÉTRICAS TÉCNICAS]                              │")
-        lines.append(f"│ Ciclos de Costo (Errores): {metrics_dict.get('beta_1', 0):<22}│")
-        lines.append(f"│ Componentes Conexas:       {metrics_dict.get('beta_0', 0):<22}│")
-        lines.append(
-            f"│ Eficiencia de Euler:       {metrics_dict.get('euler_efficiency', 0.0):<22.2f}│"
-        )
-        lines.append(f"│ Densidad de Conexiones:    {density:.4f}                │")
-        lines.append(
-            f"│ Estabilidad Piramidal:     {pyramid_stability:.2f}                │"
-        )
-        lines.append("├──────────────────────────────────────────────────┤")
+        lines.append(f"│ Ciclos de Costo:           {metrics.get('beta_1', 0):<22}│")
+        lines.append(f"│ Eficiencia de Euler:       {metrics.get('euler_efficiency', 0.0):<22.2f}│")
+        lines.append("└──────────────────────────────────────────────────┘")
 
-        if exec_report.circular_risks:
-            lines.append("│ [ERRORES CRÍTICOS]                               │")
-            for risk in exec_report.circular_risks:
-                wrapped_lines = textwrap.wrap(risk, width=44)
-                for line in wrapped_lines:
-                    lines.append(f"│ ❌ {line:<44} │")
+        if report_dict.get('circular_risks'):
+            lines.append("│ [ALERTA CRÍTICA] Referencias circulares detectadas! │")
+            for risk in report_dict['circular_risks']:
+                 wrapped_lines = textwrap.wrap(risk, width=44)
+                 for line in wrapped_lines:
+                      lines.append(f"│ ❌ {line:<44} │")
 
-            for i, cycle in enumerate(cycles_list[:3]):
-                c_str = cycle
-                if len(c_str) > 38:
-                    c_str = c_str[:35] + "..."
-                lines.append(f"│    {i + 1}. {c_str:<38} │")
-        else:
-            lines.append("│ [ESTADO]                                         │")
-            lines.append("│ ✅ Estructura de Costos Saludable y Auditable.   │")
-
+        waste_alerts = report_dict.get('waste_alerts', [])
+        anomalies = analysis.get("details", {}).get("anomalies", {})
         iso_count = len(anomalies.get("isolated_nodes", []))
         orphan_count = len(anomalies.get("orphan_insumos", []))
         empty_count = len(anomalies.get("empty_apus", []))
 
-        if exec_report.waste_alerts or iso_count > 0 or orphan_count > 0 or empty_count > 0:
+        if waste_alerts or iso_count > 0 or orphan_count > 0 or empty_count > 0:
             lines.append("├──────────────────────────────────────────────────┤")
             lines.append("│ [POSIBLE DESPERDICIO / ALERTAS]                  │")
-
-            # Usar etiquetas explícitas si counts > 0
-            if iso_count > 0:
-                lines.append(f"│ ⚠ Recursos Fantasma (Sin uso): {iso_count:<18}│")
-
-            if empty_count > 0:
-                lines.append(f"│ ⚠ APUs Vacíos:          {empty_count:<25}│")
-
-            # Mostrar alertas detalladas, con wrap
-            for alert in exec_report.waste_alerts:
+            if iso_count > 0: lines.append(f"│ ⚠ Recursos Fantasma (Sin uso): {iso_count:<18}│")
+            if empty_count > 0: lines.append(f"│ ⚠ APUs Vacíos:          {empty_count:<25}│")
+            for alert in waste_alerts:
                 wrapped_lines = textwrap.wrap(alert, width=44)
                 for line in wrapped_lines:
                     lines.append(f"│ ⚠ {line:<44} │")
-
-        lines.append("└──────────────────────────────────────────────────┘")
+            lines.append("└──────────────────────────────────────────────────┘")
 
         return lines
