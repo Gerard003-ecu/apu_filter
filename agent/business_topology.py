@@ -729,7 +729,7 @@ class BusinessTopologicalAnalyzer:
 
         # 1. Análisis Estructural (La Base)
         if stability > 2.0:
-            narrative_parts.append("🏗️ ESTRUCTURA ANTISÍSMICA: La pirámide presupuestaria posee una base robusta y bien distribuida.")
+            narrative_parts.append("🏗️ ESTRUCTURA SISMORESISTENTE: La pirámide presupuestaria posee una base robusta y bien distribuida.")
         elif stability > 1.0:
             narrative_parts.append("✅ CIMENTACIÓN ESTABLE: La relación entre insumos y APUs es adecuada para soportar la carga del proyecto.")
         else:
