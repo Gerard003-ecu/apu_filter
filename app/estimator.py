@@ -1710,15 +1710,22 @@ def calculate_estimate(
     financial_analysis = {}
 
     # 1. Obtener insumos para Monte Carlo
-    apu_codes_for_simulation = [c for c in [apu_suministro_codigo, apu_tarea_codigo] if c and c not in ["N/A", "EST-AVG"]]
+    apu_codes_for_simulation = [
+        c
+        for c in [apu_suministro_codigo, apu_tarea_codigo]
+        if c and c not in ["N/A", "EST-AVG"]
+    ]
 
     if apu_codes_for_simulation:
         all_insumos = data_store.get("apus_detail", [])
         insumos_for_simulation = [
-            item for item in all_insumos
+            item
+            for item in all_insumos
             if item.get("CODIGO_APU") in apu_codes_for_simulation
         ]
-        log.append(f"  🔍 Insumos para simulación: {len(insumos_for_simulation)} items de {len(apu_codes_for_simulation)} APUs")
+        log.append(
+            f"  🔍 Insumos para simulación: {len(insumos_for_simulation)} items de {len(apu_codes_for_simulation)} APUs"
+        )
 
         if insumos_for_simulation:
             # 2. Ejecutar simulación de Monte Carlo
@@ -1726,18 +1733,26 @@ def calculate_estimate(
             mc_stats = mc_results.get("statistics", {})
             mean_cost = mc_stats.get("mean", valor_construccion)
             std_dev = mc_stats.get("std_dev", 0)
-            log.append(f"  📊 Resultados Monte Carlo: media=${mean_cost:,.2f}, std_dev=${std_dev:,.2f}")
+            log.append(
+                f"  📊 Resultados Monte Carlo: media=${mean_cost:,.2f}, std_dev=${std_dev:,.2f}"
+            )
 
             # 3. Configurar y ejecutar motor financiero
             try:
                 # Extraer parámetros financieros opcionales del request
                 config_params = {
-                    "risk_free_rate": safe_float_conversion(params.get("risk_free_rate"), 0.04),
-                    "market_premium": safe_float_conversion(params.get("market_premium"), 0.06),
+                    "risk_free_rate": safe_float_conversion(
+                        params.get("risk_free_rate"), 0.04
+                    ),
+                    "market_premium": safe_float_conversion(
+                        params.get("market_premium"), 0.06
+                    ),
                     "beta": safe_float_conversion(params.get("beta"), 1.2),
                     "tax_rate": safe_float_conversion(params.get("tax_rate"), 0.30),
                     "cost_of_debt": safe_float_conversion(params.get("cost_of_debt"), 0.08),
-                    "debt_to_equity_ratio": safe_float_conversion(params.get("debt_to_equity_ratio"), 0.6),
+                    "debt_to_equity_ratio": safe_float_conversion(
+                        params.get("debt_to_equity_ratio"), 0.6
+                    ),
                 }
                 fin_config = FinancialConfig(**config_params)
 
@@ -1761,27 +1776,34 @@ def calculate_estimate(
                     investment_cost=mean_cost,
                     risk_free_rate=fin_config.risk_free_rate,
                     time_to_expire_years=1.0,  # Asumimos 1 año para decidir
-                    volatility=volatility
+                    volatility=volatility,
                 )
 
                 financial_analysis = {
                     "wacc": round(wacc, 4),
                     "var_95": round(var_95, 2),
                     "suggested_contingency": round(contingency, 2),
-                    "option_to_wait_value": round(option_value, 2) if option_value is not None else None,
+                    "option_to_wait_value": round(option_value, 2)
+                    if option_value is not None
+                    else None,
                     "monte_carlo_mean": round(mean_cost, 2),
-                    "monte_carlo_std_dev": round(std_dev, 2)
+                    "monte_carlo_std_dev": round(std_dev, 2),
                 }
-                log.append(f"  ✅ Análisis financiero completado. WACC: {wacc:.2%}, VaR: ${var_95:,.2f}")
+                log.append(
+                    f"  ✅ Análisis financiero completado. WACC: {wacc:.2%}, VaR: ${var_95:,.2f}"
+                )
 
             except Exception as e:
                 log.append(f"  ❌ Error en el motor financiero: {e}")
                 logger.error(f"Error en FinancialEngine: {e}", exc_info=True)
         else:
-            log.append("  ⚠️ No se encontraron insumos detallados para la simulación financiera.")
+            log.append(
+                "  ⚠️ No se encontraron insumos detallados para la simulación financiera."
+            )
     else:
-        log.append("  ⚠️ No se encontraron APUs válidos para ejecutar el análisis financiero.")
-
+        log.append(
+            "  ⚠️ No se encontraron APUs válidos para ejecutar el análisis financiero."
+        )
 
     return {
         "valor_suministro": round(valor_suministro, 2),

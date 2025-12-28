@@ -23,7 +23,7 @@ if str(root_path) not in sys.path:
 
 from agent.business_topology import BudgetGraphBuilder, BusinessTopologicalAnalyzer
 
-topology_bp = Blueprint('topology', __name__)
+topology_bp = Blueprint("topology", __name__)
 logger = logging.getLogger(__name__)
 
 
@@ -31,8 +31,10 @@ logger = logging.getLogger(__name__)
 # CONSTANTES
 # =============================================================================
 
+
 class NodeType(str, Enum):
     """Tipos de nodos en el grafo de presupuesto."""
+
     BUDGET = "BUDGET"
     CHAPTER = "CHAPTER"
     ITEM = "ITEM"
@@ -43,25 +45,28 @@ class NodeType(str, Enum):
 
 class NodeColor(str, Enum):
     """Colores para visualización de nodos."""
-    RED = "#EF4444"     # Ciclos, Islas (Riesgo), Estrés
-    BLUE = "#3B82F6"    # APU (Normal)
+
+    RED = "#EF4444"  # Ciclos, Islas (Riesgo), Estrés
+    BLUE = "#3B82F6"  # APU (Normal)
     ORANGE = "#F97316"  # Insumo (Recurso)
-    BLACK = "#1E293B"   # Raíz / Presupuesto / Capítulos
-    GRAY = "#9CA3AF"    # Desconocido / Vacío
+    BLACK = "#1E293B"  # Raíz / Presupuesto / Capítulos
+    GRAY = "#9CA3AF"  # Desconocido / Vacío
 
 
 class NodeClass(str, Enum):
     """Clases CSS para visualización de nodos."""
+
     NORMAL = "normal"
-    CYCLE = "cycle"                   # Legacy mapping
-    CIRCULAR = "circular-dependency-node" # New forensic mapping
+    CYCLE = "cycle"  # Legacy mapping
+    CIRCULAR = "circular-dependency-node"  # New forensic mapping
     ISOLATED = "isolated"
     EMPTY = "empty"
-    STRESS = "inverted-pyramid-stress" # High load insumos
+    STRESS = "inverted-pyramid-stress"  # High load insumos
 
 
 class SessionKeys:
     """Claves de sesión utilizadas."""
+
     PROCESSED_DATA = "processed_data"
     PRESUPUESTO = "presupuesto"
     APUS_DETAIL = "apus_detail"
@@ -79,9 +84,11 @@ CYCLE_SEPARATOR = " → "
 # DATA CLASSES
 # =============================================================================
 
+
 @dataclass
 class CytoscapeNode:
     """Representación de un nodo para Cytoscape.js."""
+
     id: str
     label: str
     node_type: str
@@ -102,16 +109,17 @@ class CytoscapeNode:
                 "color": self.color,
                 "level": self.level,
                 "cost": self.cost,
-                "weight": self.weight,        # Forensic attribute
-                "is_evidence": self.is_evidence # Forensic attribute
+                "weight": self.weight,  # Forensic attribute
+                "is_evidence": self.is_evidence,  # Forensic attribute
             },
-            "classes": " ".join(self.classes)
+            "classes": " ".join(self.classes),
         }
 
 
 @dataclass
 class CytoscapeEdge:
     """Representación de una arista para Cytoscape.js."""
+
     source: str
     target: str
     cost: float = 0.0
@@ -125,23 +133,25 @@ class CytoscapeEdge:
             "cost": self.cost,
         }
         if self.is_evidence:
-             data["is_evidence"] = True
+            data["is_evidence"] = True
         return {"data": data}
 
 
 @dataclass
 class AnomalyData:
     """Datos de anomalías extraídos del análisis."""
+
     isolated_ids: Set[str] = field(default_factory=set)
     orphan_ids: Set[str] = field(default_factory=set)
     empty_ids: Set[str] = field(default_factory=set)
     nodes_in_cycles: Set[str] = field(default_factory=set)
-    stressed_ids: Set[str] = field(default_factory=set) # New: Inverted Pyramid Stress
+    stressed_ids: Set[str] = field(default_factory=set)  # New: Inverted Pyramid Stress
 
 
 # =============================================================================
 # FUNCIONES DE VALIDACIÓN
 # =============================================================================
+
 
 def validate_session_data(data: Any) -> Tuple[bool, Optional[str]]:
     """
@@ -170,7 +180,10 @@ def validate_session_data(data: Any) -> Tuple[bool, Optional[str]]:
 
     # Validar que sean listas cuando existen
     if has_presupuesto and not isinstance(presupuesto, list):
-        return False, f"'presupuesto' debe ser lista, se recibió {type(presupuesto).__name__}"
+        return (
+            False,
+            f"'presupuesto' debe ser lista, se recibió {type(presupuesto).__name__}",
+        )
 
     if has_apus and not isinstance(apus, list):
         return False, f"'apus_detail' debe ser lista, se recibió {type(apus).__name__}"
@@ -214,7 +227,10 @@ def validate_graph(graph: Any) -> Tuple[bool, Optional[str]]:
 # FUNCIONES DE EXTRACCIÓN Y TRANSFORMACIÓN
 # =============================================================================
 
-def extract_dataframes_from_session(data: Dict[str, Any]) -> Tuple[pd.DataFrame, pd.DataFrame]:
+
+def extract_dataframes_from_session(
+    data: Dict[str, Any],
+) -> Tuple[pd.DataFrame, pd.DataFrame]:
     """
     Extrae y convierte los datos de sesión a DataFrames.
 
@@ -271,12 +287,8 @@ def extract_anomaly_data(analysis_result: Dict[str, Any]) -> AnomalyData:
         anomaly_data.isolated_ids = _extract_ids_from_list(
             anomalies.get("isolated_nodes", [])
         )
-        anomaly_data.orphan_ids = _extract_ids_from_list(
-            anomalies.get("orphan_insumos", [])
-        )
-        anomaly_data.empty_ids = _extract_ids_from_list(
-            anomalies.get("empty_apus", [])
-        )
+        anomaly_data.orphan_ids = _extract_ids_from_list(anomalies.get("orphan_insumos", []))
+        anomaly_data.empty_ids = _extract_ids_from_list(anomalies.get("empty_apus", []))
     else:
         logger.debug("'anomalies' no es dict, se omiten anomalías básicas")
 
@@ -315,7 +327,8 @@ def _identify_stressed_nodes(graph: nx.DiGraph) -> Set[str]:
 
     # Contar APUs totales
     apu_nodes = [
-        n for n, d in graph.nodes(data=True)
+        n
+        for n, d in graph.nodes(data=True)
         if d.get("type", "").upper() == NodeType.APU.value
     ]
     total_apus = len(apu_nodes)
@@ -418,10 +431,9 @@ def _extract_nodes_from_cycles(cycles_list: Any) -> Set[str]:
 # FUNCIONES DE CONSTRUCCIÓN DE ELEMENTOS
 # =============================================================================
 
+
 def build_node_element(
-    node_id: Any,
-    attrs: Dict[str, Any],
-    anomaly_data: AnomalyData
+    node_id: Any, attrs: Dict[str, Any], anomaly_data: AnomalyData
 ) -> CytoscapeNode:
     """
     Construye un elemento de nodo para Cytoscape.js con metadatos forenses.
@@ -445,10 +457,10 @@ def build_node_element(
 
     # Determinar si es evidencia forense
     is_evidence = (
-        node_id_str in anomaly_data.nodes_in_cycles or
-        node_id_str in anomaly_data.stressed_ids or
-        node_id_str in anomaly_data.isolated_ids or
-        node_id_str in anomaly_data.orphan_ids
+        node_id_str in anomaly_data.nodes_in_cycles
+        or node_id_str in anomaly_data.stressed_ids
+        or node_id_str in anomaly_data.isolated_ids
+        or node_id_str in anomaly_data.orphan_ids
     )
 
     return CytoscapeNode(
@@ -460,15 +472,12 @@ def build_node_element(
         cost=cost,
         weight=cost,
         is_evidence=is_evidence,
-        classes=classes
+        classes=classes,
     )
 
 
 def build_edge_element(
-    source: Any,
-    target: Any,
-    attrs: Dict[str, Any],
-    anomaly_data: AnomalyData
+    source: Any, target: Any, attrs: Dict[str, Any], anomaly_data: AnomalyData
 ) -> CytoscapeEdge:
     """
     Construye un elemento de arista con metadatos forenses.
@@ -496,7 +505,7 @@ def build_edge_element(
         source=src_str,
         target=tgt_str,
         cost=cost if cost is not None else 0.0,
-        is_evidence=is_evidence
+        is_evidence=is_evidence,
     )
 
 
@@ -523,9 +532,7 @@ def _get_node_type(attrs: Dict[str, Any]) -> str:
 
 
 def _determine_node_classes(
-    node_id: str,
-    node_type: str,
-    anomaly_data: AnomalyData
+    node_id: str, node_type: str, anomaly_data: AnomalyData
 ) -> List[str]:
     """
     Determina las clases CSS para un nodo basado en su estado forense.
@@ -569,11 +576,7 @@ def _determine_node_classes(
     return classes
 
 
-def _determine_node_color(
-    node_id: str,
-    node_type: str,
-    anomaly_data: AnomalyData
-) -> str:
+def _determine_node_color(node_id: str, node_type: str, anomaly_data: AnomalyData) -> str:
     """
     Determina el color del nodo basado en jerarquía de riesgo.
 
@@ -594,11 +597,7 @@ def _determine_node_color(
         return NodeColor.RED.value
 
     # 2. Colores por tipo jerárquico
-    structural_types = {
-        NodeType.BUDGET.value,
-        NodeType.CHAPTER.value,
-        NodeType.ITEM.value
-    }
+    structural_types = {NodeType.BUDGET.value, NodeType.CHAPTER.value, NodeType.ITEM.value}
     if node_type in structural_types:
         return NodeColor.BLACK.value
 
@@ -638,7 +637,7 @@ def _build_node_label(node_id: str, attrs: Dict[str, Any]) -> str:
     if len(desc_str) > LABEL_MAX_LENGTH:
         # Truncar en límite de palabra si es posible
         truncated = desc_str[:LABEL_MAX_LENGTH]
-        last_space = truncated.rfind(' ')
+        last_space = truncated.rfind(" ")
         if last_space > LABEL_MAX_LENGTH // 2:  # Solo si no perdemos mucho texto
             truncated = truncated[:last_space]
         truncated = truncated.rstrip() + LABEL_ELLIPSIS
@@ -665,7 +664,9 @@ def _get_node_cost(attrs: Dict[str, Any]) -> float:
     return 0.0
 
 
-def _safe_get_float(data: Dict[str, Any], key: str, default: Optional[float]) -> Optional[float]:
+def _safe_get_float(
+    data: Dict[str, Any], key: str, default: Optional[float]
+) -> Optional[float]:
     """
     Extrae un valor float de forma segura, manejando múltiples tipos de entrada.
     """
@@ -718,6 +719,7 @@ def _safe_get_int(data: Dict[str, Any], key: str, default: int) -> int:
 # =============================================================================
 # ENDPOINT PRINCIPAL
 # =============================================================================
+
 
 def build_graph_from_session(data: Dict[str, Any]) -> nx.DiGraph:
     """
@@ -773,8 +775,7 @@ def analyze_graph_for_visualization(graph: nx.DiGraph) -> AnomalyData:
 
 
 def convert_graph_to_cytoscape_elements(
-    graph: nx.DiGraph,
-    anomaly_data: AnomalyData
+    graph: nx.DiGraph, anomaly_data: AnomalyData
 ) -> List[Dict[str, Any]]:
     """
     Convierte el grafo a formato Cytoscape con atributos forenses.
@@ -795,19 +796,21 @@ def convert_graph_to_cytoscape_elements(
         except Exception as e:
             logger.warning(f"Error procesando nodo '{node_id}': {e}")
             # Fallback: nodo minimal
-            elements.append({
-                "data": {
-                    "id": node_id_str,
-                    "label": node_id_str,
-                    "type": NodeType.UNKNOWN.value,
-                    "color": NodeColor.GRAY.value,
-                    "level": 0,
-                    "cost": 0.0,
-                    "weight": 0.0,
-                    "is_evidence": False
-                },
-                "classes": f"{NodeType.UNKNOWN.value} {NodeClass.NORMAL.value}"
-            })
+            elements.append(
+                {
+                    "data": {
+                        "id": node_id_str,
+                        "label": node_id_str,
+                        "type": NodeType.UNKNOWN.value,
+                        "color": NodeColor.GRAY.value,
+                        "level": 0,
+                        "cost": 0.0,
+                        "weight": 0.0,
+                        "is_evidence": False,
+                    },
+                    "classes": f"{NodeType.UNKNOWN.value} {NodeClass.NORMAL.value}",
+                }
+            )
             node_ids_processed.add(node_id_str)
 
     # Procesar aristas (solo si ambos nodos existen)
@@ -826,42 +829,29 @@ def convert_graph_to_cytoscape_elements(
         except Exception as e:
             logger.warning(f"Error procesando arista '{src_str}' -> '{tgt_str}': {e}")
             # Fallback: arista minimal
-            elements.append({
-                "data": {
-                    "source": src_str,
-                    "target": tgt_str,
-                    "cost": 0.0
-                }
-            })
+            elements.append({"data": {"source": src_str, "target": tgt_str, "cost": 0.0}})
 
     return elements
 
 
 def create_error_response(message: str, status_code: int) -> Tuple[Response, int]:
     """Crea respuesta de error estandarizada."""
-    return jsonify({
-        "error": message,
-        "elements": [],
-        "count": 0,
-        "success": False
-    }), status_code
+    return jsonify(
+        {"error": message, "elements": [], "count": 0, "success": False}
+    ), status_code
 
 
 def create_success_response(
-    elements: List[Dict[str, Any]],
-    status_code: int = 200
+    elements: List[Dict[str, Any]], status_code: int = 200
 ) -> Tuple[Response, int]:
     """Crea respuesta exitosa estandarizada."""
-    return jsonify({
-        "elements": elements,
-        "count": len(elements),
-        "success": True,
-        "error": None
-    }), status_code
+    return jsonify(
+        {"elements": elements, "count": len(elements), "success": True, "error": None}
+    ), status_code
 
 
-@topology_bp.route('/api/visualization/project-graph', methods=['GET'])
-@topology_bp.route('/api/visualization/topology', methods=['GET'])
+@topology_bp.route("/api/visualization/project-graph", methods=["GET"])
+@topology_bp.route("/api/visualization/topology", methods=["GET"])
 def get_project_graph() -> Tuple[Response, int]:
     """Endpoint para obtener la estructura del grafo forense."""
     if SessionKeys.PROCESSED_DATA not in session:
@@ -891,7 +881,7 @@ def get_project_graph() -> Tuple[Response, int]:
         return create_error_response(f"Error interno: {type(e).__name__}", 500)
 
 
-@topology_bp.route('/api/visualization/topology/stats', methods=['GET'])
+@topology_bp.route("/api/visualization/topology/stats", methods=["GET"])
 def get_topology_stats() -> Tuple[Response, int]:
     """Endpoint estadísticas del grafo."""
     if SessionKeys.PROCESSED_DATA not in session:
@@ -913,8 +903,8 @@ def get_topology_stats() -> Tuple[Response, int]:
             "orphan_nodes": len(anomaly_data.orphan_ids),
             "empty_apus": len(anomaly_data.empty_ids),
             "nodes_in_cycles": len(anomaly_data.nodes_in_cycles),
-            "stressed_nodes": len(anomaly_data.stressed_ids), # Metric for Inverted Pyramid
-            "success": True
+            "stressed_nodes": len(anomaly_data.stressed_ids),  # Metric for Inverted Pyramid
+            "success": True,
         }
         return jsonify(stats), 200
 

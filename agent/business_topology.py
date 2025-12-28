@@ -245,9 +245,7 @@ class BudgetGraphBuilder:
 
         # Inferir APU si no existe
         if apu_code not in G:
-            attrs = self._create_apu_attributes(
-                row, source="detail", idx=idx, inferred=True
-            )
+            attrs = self._create_apu_attributes(row, source="detail", idx=idx, inferred=True)
             G.add_node(apu_code, **attrs)
             G.add_edge(self.ROOT_NODE, apu_code, relation="CONTAINS_INFERRED")
 
@@ -280,9 +278,7 @@ class BudgetGraphBuilder:
 
         # Niveles 1 y 2: Procesar Presupuesto
         if presupuesto_df is not None and not presupuesto_df.empty:
-            available_chapter_cols = [
-                c for c in chapter_cols if c in presupuesto_df.columns
-            ]
+            available_chapter_cols = [c for c in chapter_cols if c in presupuesto_df.columns]
             for idx, row in presupuesto_df.iterrows():
                 self._process_presupuesto_row(G, row, idx, available_chapter_cols)
 
@@ -304,9 +300,7 @@ class BusinessTopologicalAnalyzer:
     - Narrativa: Propuesta 2 (La Voz del Consejo)
     """
 
-    def __init__(
-        self, telemetry: Optional[TelemetryContext] = None, max_cycles: int = 100
-    ):
+    def __init__(self, telemetry: Optional[TelemetryContext] = None, max_cycles: int = 100):
         self.telemetry = telemetry
         self.max_cycles = max_cycles
         self.logger = logging.getLogger(self.__class__.__name__)
@@ -396,9 +390,7 @@ class BusinessTopologicalAnalyzer:
         emergent_theoretical = (
             metrics_a.beta_1 + metrics_b.beta_1 - metrics_intersection.beta_1 + delta
         )
-        emergent_observed = metrics_union.beta_1 - (
-            metrics_a.beta_1 + metrics_b.beta_1
-        )
+        emergent_observed = metrics_union.beta_1 - (metrics_a.beta_1 + metrics_b.beta_1)
         discrepancy = abs(emergent_observed - emergent_theoretical)
 
         narrative = self._generate_mayer_vietoris_narrative(emergent_observed, discrepancy)
@@ -504,9 +496,7 @@ class BusinessTopologicalAnalyzer:
         synergy_score = 0.0
         if synergy_pairs:
             total_pairs = len(cycle_sets) * (len(cycle_sets) - 1) / 2
-            synergy_score = min(
-                1.0, len(synergy_pairs) / total_pairs * len(bridge_nodes)
-            )
+            synergy_score = min(1.0, len(synergy_pairs) / total_pairs * len(bridge_nodes))
 
         return {
             "synergy_detected": len(synergy_pairs) > 0,
@@ -546,14 +536,16 @@ class BusinessTopologicalAnalyzer:
             "num_wcc": nx.number_weakly_connected_components(graph),
             "is_weakly_connected": nx.is_weakly_connected(graph),
             "num_scc": len(non_trivial_scc),
-            "num_non_trivial_scc": len(non_trivial_scc), # Alias for compat
+            "num_non_trivial_scc": len(non_trivial_scc),  # Alias for compat
             "scc_sizes": [len(c) for c in non_trivial_scc],
             "non_trivial_scc": [list(c) for c in non_trivial_scc],
             "articulation_points": articulation_points,
             "average_clustering": round(avg_clustering, 4),
         }
 
-    def _classify_anomalous_nodes(self, graph: nx.DiGraph) -> Dict[str, List[Dict[str, Any]]]:
+    def _classify_anomalous_nodes(
+        self, graph: nx.DiGraph
+    ) -> Dict[str, List[Dict[str, Any]]]:
         """Clasifica nodos anómalos."""
         result = {"isolated_nodes": [], "orphan_insumos": [], "empty_apus": []}
         in_degrees = dict(graph.in_degree())
@@ -561,7 +553,8 @@ class BusinessTopologicalAnalyzer:
 
         for node, data in graph.nodes(data=True):
             node_type = data.get("type")
-            if node_type == "ROOT": continue
+            if node_type == "ROOT":
+                continue
 
             in_deg = in_degrees.get(node, 0)
             out_deg = out_degrees.get(node, 0)
@@ -578,32 +571,41 @@ class BusinessTopologicalAnalyzer:
             is_isolated = in_deg == 0 and out_deg == 0
             if is_isolated:
                 result["isolated_nodes"].append(node_info)
-                if node_type == "INSUMO": result["orphan_insumos"].append(node_info)
+                if node_type == "INSUMO":
+                    result["orphan_insumos"].append(node_info)
             elif node_type == "INSUMO" and in_deg == 0:
                 result["orphan_insumos"].append(node_info)
             elif node_type == "APU" and out_deg == 0:
                 result["empty_apus"].append(node_info)
         return result
 
-    def _identify_critical_resources(self, graph: nx.DiGraph, top_n: int = 5) -> List[Dict[str, Any]]:
+    def _identify_critical_resources(
+        self, graph: nx.DiGraph, top_n: int = 5
+    ) -> List[Dict[str, Any]]:
         """Identifica recursos (insumos) críticos por centralidad de grado."""
         resources = []
         for node, data in graph.nodes(data=True):
             if data.get("type") == "INSUMO":
                 degree = graph.in_degree(node)
                 if degree > 0:
-                    resources.append({
-                        "id": node,
-                        "in_degree": degree,
-                        "description": data.get("description", "")
-                    })
+                    resources.append(
+                        {
+                            "id": node,
+                            "in_degree": degree,
+                            "description": data.get("description", ""),
+                        }
+                    )
         resources.sort(key=lambda x: x["in_degree"], reverse=True)
         return resources[:top_n]
 
     def _interpret_topology(self, metrics: TopologicalMetrics) -> Dict[str, str]:
         """Genera interpretaciones semánticas (Compatibilidad hacia atrás)."""
-        connectivity_status = "Espacio conexo" if metrics.is_connected else "Espacio fragmentado"
-        cycle_status = "Estructura acíclica" if metrics.beta_1 == 0 else "Complejidad cíclica presente"
+        connectivity_status = (
+            "Espacio conexo" if metrics.is_connected else "Espacio fragmentado"
+        )
+        cycle_status = (
+            "Estructura acíclica" if metrics.beta_1 == 0 else "Complejidad cíclica presente"
+        )
 
         return {
             "beta_0": f"{metrics.beta_0} componente(s) conexa(s). {connectivity_status}.",
@@ -670,25 +672,41 @@ class BusinessTopologicalAnalyzer:
 
         # Alertas y Riesgos (Listas)
         waste_alerts = []
-        if iso_count > 0: waste_alerts.append(f"🚨 {iso_count} nodos aislados detectados.")
-        if orphan_count > 0: waste_alerts.append(f"⚠️ {orphan_count} insumos huérfanos.")
-        if metrics.euler_efficiency < 0.6: waste_alerts.append(f"⚠️ Baja eficiencia topológica ({metrics.euler_efficiency:.2f}).")
+        if iso_count > 0:
+            waste_alerts.append(f"🚨 {iso_count} nodos aislados detectados.")
+        if orphan_count > 0:
+            waste_alerts.append(f"⚠️ {orphan_count} insumos huérfanos.")
+        if metrics.euler_efficiency < 0.6:
+            waste_alerts.append(
+                f"⚠️ Baja eficiencia topológica ({metrics.euler_efficiency:.2f})."
+            )
 
         circular_risks = []
-        if metrics.beta_1 > 0: circular_risks.append(f"🚨 CRÍTICO: {metrics.beta_1} ciclo(s) de dependencia.")
-        if synergy["synergy_detected"]: circular_risks.append(f"🚨 RIESGO SISTÉMICO: Sinergia detectada (score: {synergy['synergy_score']:.2f}).")
+        if metrics.beta_1 > 0:
+            circular_risks.append(f"🚨 CRÍTICO: {metrics.beta_1} ciclo(s) de dependencia.")
+        if synergy["synergy_detected"]:
+            circular_risks.append(
+                f"🚨 RIESGO SISTÉMICO: Sinergia detectada (score: {synergy['synergy_score']:.2f})."
+            )
 
         # Riesgo Financiero
         financial_risk = None
         if financial_metrics:
             volatility = financial_metrics.get("volatility", 0.0)
             roi = financial_metrics.get("roi", 0.0)
-            if roi < 0: financial_risk = "CRÍTICO"
-            elif volatility > 0.25: financial_risk = "ALTO"
-            elif volatility > 0.15: financial_risk = "MEDIO"
-            else: financial_risk = "BAJO"
+            if roi < 0:
+                financial_risk = "CRÍTICO"
+            elif volatility > 0.25:
+                financial_risk = "ALTO"
+            elif volatility > 0.15:
+                financial_risk = "MEDIO"
+            else:
+                financial_risk = "BAJO"
 
-            if (metrics.beta_1 > 2 or synergy["synergy_detected"]) and financial_risk in ["ALTO", "MEDIO"]:
+            if (metrics.beta_1 > 2 or synergy["synergy_detected"]) and financial_risk in [
+                "ALTO",
+                "MEDIO",
+            ]:
                 financial_risk = "CATÁSTROFICO"
 
         # Inyección de Narrativa (Propuesta 2)
@@ -729,30 +747,46 @@ class BusinessTopologicalAnalyzer:
 
         # 1. Análisis Estructural (La Base)
         if stability > 2.0:
-            narrative_parts.append("🏗️ ESTRUCTURA SISMORESISTENTE: La pirámide presupuestaria posee una base robusta y bien distribuida.")
+            narrative_parts.append(
+                "🏗️ ESTRUCTURA SISMORESISTENTE: La pirámide presupuestaria posee una base robusta y bien distribuida."
+            )
         elif stability > 1.0:
-            narrative_parts.append("✅ CIMENTACIÓN ESTABLE: La relación entre insumos y APUs es adecuada para soportar la carga del proyecto.")
+            narrative_parts.append(
+                "✅ CIMENTACIÓN ESTABLE: La relación entre insumos y APUs es adecuada para soportar la carga del proyecto."
+            )
         else:
-            narrative_parts.append("⚠️ RIESGO DE COLAPSO (PIRÁMIDE INVERTIDA): La base de recursos es insuficiente para la complejidad de los APUs definidos.")
+            narrative_parts.append(
+                "⚠️ RIESGO DE COLAPSO (PIRÁMIDE INVERTIDA): La base de recursos es insuficiente para la complejidad de los APUs definidos."
+            )
 
         # 2. Integridad Lógica (Topología)
         if metrics.beta_1 == 0:
             narrative_parts.append("La trazabilidad de cargas es limpia (Acíclica).")
         else:
-            narrative_parts.append(f"⛔ SOCAVONES LÓGICOS DETECTADOS: Existen {metrics.beta_1} ciclos de dependencia que comprometen la integridad del cálculo.")
+            narrative_parts.append(
+                f"⛔ SOCAVONES LÓGICOS DETECTADOS: Existen {metrics.beta_1} ciclos de dependencia que comprometen la integridad del cálculo."
+            )
 
         # 3. Sinergia de Riesgo (Efecto Dominó)
         if synergy.get("synergy_detected"):
-            narrative_parts.append(f"☣️ RIESGO DE CONTAGIO: Se detectó una 'Sinergia de Riesgo' en {synergy.get('intersecting_cycles_count', 0)} puntos críticos. Un fallo en un insumo clave podría desencadenar un efecto dominó.")
+            narrative_parts.append(
+                f"☣️ RIESGO DE CONTAGIO: Se detectó una 'Sinergia de Riesgo' en {synergy.get('intersecting_cycles_count', 0)} puntos críticos. Un fallo en un insumo clave podría desencadenar un efecto dominó."
+            )
 
         # 4. Veredicto Financiero (El Oráculo)
         if financial_risk:
             if financial_risk in ["CRÍTICO", "CATÁSTROFICO"]:
-                narrative_parts.append(f"💀 ALERTA DE VIABILIDAD: El perfil de riesgo financiero es {financial_risk}, agravado por la estructura topológica.")
+                narrative_parts.append(
+                    f"💀 ALERTA DE VIABILIDAD: El perfil de riesgo financiero es {financial_risk}, agravado por la estructura topológica."
+                )
             elif financial_risk == "ALTO":
-                narrative_parts.append("📉 PRECAUCIÓN FINANCIERA: Alta volatilidad detectada en los componentes críticos.")
+                narrative_parts.append(
+                    "📉 PRECAUCIÓN FINANCIERA: Alta volatilidad detectada en los componentes críticos."
+                )
             elif financial_risk == "BAJO":
-                narrative_parts.append("💰 SALUD FINANCIERA: Los indicadores económicos respaldan la viabilidad técnica.")
+                narrative_parts.append(
+                    "💰 SALUD FINANCIERA: Los indicadores económicos respaldan la viabilidad técnica."
+                )
 
         return " ".join(narrative_parts)
 
@@ -769,10 +803,14 @@ class BusinessTopologicalAnalyzer:
             "business.euler_characteristic": metrics.euler_characteristic,
             "business.euler_efficiency": metrics.euler_efficiency,
             "business.cycles_count": len(report.details["cycles"]),
-            "business.synergy_detected": 1 if report.details["synergy_risk"]["synergy_detected"] else 0,
+            "business.synergy_detected": 1
+            if report.details["synergy_risk"]["synergy_detected"]
+            else 0,
             "business.is_dag": 1 if report.details["connectivity"]["is_dag"] else 0,
             "business.isolated_count": len(report.details["anomalies"]["isolated_nodes"]),
-            "business.orphan_insumos_count": len(report.details["anomalies"]["orphan_insumos"]),
+            "business.orphan_insumos_count": len(
+                report.details["anomalies"]["orphan_insumos"]
+            ),
             "business.empty_apus_count": len(report.details["anomalies"]["empty_apus"]),
             "details": {
                 "executive_report": asdict(report),
@@ -785,9 +823,9 @@ class BusinessTopologicalAnalyzer:
                     "nodes": graph.number_of_nodes(),
                     "edges": graph.number_of_edges(),
                     "density": report.details["density"],
-                    "pyramid_stability": report.details["pyramid_stability"]
-                }
-            }
+                    "pyramid_stability": report.details["pyramid_stability"],
+                },
+            },
         }
 
         # Emisión de Telemetría
@@ -807,30 +845,36 @@ class BusinessTopologicalAnalyzer:
 
         report_dict = analysis.get("details", {}).get("executive_report", {})
         if not report_dict:
-             return ["Error: No se pudo generar el reporte."]
+            return ["Error: No se pudo generar el reporte."]
 
         lines = []
         lines.append("┌──────────────────────────────────────────────────┐")
         lines.append("│      AUDITORÍA ESTRUCTURAL DEL PRESUPUESTO       │")
         lines.append("├──────────────────────────────────────────────────┤")
-        lines.append(f"│ PUNTUACIÓN DE INTEGRIDAD: {report_dict.get('integrity_score', 0):>6.1f} / 100.0          │")
-        lines.append(f"│ Nivel de Complejidad:     {report_dict.get('complexity_level', ''):<23}│")
+        lines.append(
+            f"│ PUNTUACIÓN DE INTEGRIDAD: {report_dict.get('integrity_score', 0):>6.1f} / 100.0          │"
+        )
+        lines.append(
+            f"│ Nivel de Complejidad:     {report_dict.get('complexity_level', ''):<23}│"
+        )
         lines.append("├──────────────────────────────────────────────────┤")
 
         metrics = report_dict.get("details", {}).get("metrics", {})
         lines.append("│ [MÉTRICAS TÉCNICAS]                              │")
         lines.append(f"│ Ciclos de Costo:           {metrics.get('beta_1', 0):<22}│")
-        lines.append(f"│ Eficiencia de Euler:       {metrics.get('euler_efficiency', 0.0):<22.2f}│")
+        lines.append(
+            f"│ Eficiencia de Euler:       {metrics.get('euler_efficiency', 0.0):<22.2f}│"
+        )
         lines.append("└──────────────────────────────────────────────────┘")
 
-        if report_dict.get('circular_risks'):
+        if report_dict.get("circular_risks"):
             lines.append("│ [ALERTA CRÍTICA] Referencias circulares detectadas! │")
-            for risk in report_dict['circular_risks']:
-                 wrapped_lines = textwrap.wrap(risk, width=44)
-                 for line in wrapped_lines:
-                      lines.append(f"│ ❌ {line:<44} │")
+            for risk in report_dict["circular_risks"]:
+                wrapped_lines = textwrap.wrap(risk, width=44)
+                for line in wrapped_lines:
+                    lines.append(f"│ ❌ {line:<44} │")
 
-        waste_alerts = report_dict.get('waste_alerts', [])
+        waste_alerts = report_dict.get("waste_alerts", [])
         anomalies = analysis.get("details", {}).get("anomalies", {})
         iso_count = len(anomalies.get("isolated_nodes", []))
         orphan_count = len(anomalies.get("orphan_insumos", []))
@@ -839,8 +883,10 @@ class BusinessTopologicalAnalyzer:
         if waste_alerts or iso_count > 0 or orphan_count > 0 or empty_count > 0:
             lines.append("├──────────────────────────────────────────────────┤")
             lines.append("│ [POSIBLE DESPERDICIO / ALERTAS]                  │")
-            if iso_count > 0: lines.append(f"│ ⚠ Recursos Fantasma (Sin uso): {iso_count:<18}│")
-            if empty_count > 0: lines.append(f"│ ⚠ APUs Vacíos:          {empty_count:<25}│")
+            if iso_count > 0:
+                lines.append(f"│ ⚠ Recursos Fantasma (Sin uso): {iso_count:<18}│")
+            if empty_count > 0:
+                lines.append(f"│ ⚠ APUs Vacíos:          {empty_count:<25}│")
             for alert in waste_alerts:
                 wrapped_lines = textwrap.wrap(alert, width=44)
                 for line in wrapped_lines:

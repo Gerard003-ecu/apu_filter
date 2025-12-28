@@ -6,8 +6,8 @@ import random
 import logging
 from app.matter_generator import MatterGenerator, MaterialRequirement, BillOfMaterials
 
-class TestMatterGenerator:
 
+class TestMatterGenerator:
     @pytest.fixture
     def sample_graph(self):
         """
@@ -35,10 +35,24 @@ class TestMatterGenerator:
         G.add_node("PROYECTO_TOTAL", type="ROOT", level=0, description="Proyecto")
         G.add_node("APU1", type="APU", level=2, description="Muro Ladrillo")
         G.add_node("APU2", type="APU", level=2, description="Piso Concreto")
-        G.add_node("INS1", type="INSUMO", level=3, description="Cemento",
-                   unit_cost=100.0, unit="kg", material_category="GENERIC")
-        G.add_node("INS2", type="INSUMO", level=3, description="Arena",
-                   unit_cost=50.0, unit="m3", material_category="BULKY")
+        G.add_node(
+            "INS1",
+            type="INSUMO",
+            level=3,
+            description="Cemento",
+            unit_cost=100.0,
+            unit="kg",
+            material_category="GENERIC",
+        )
+        G.add_node(
+            "INS2",
+            type="INSUMO",
+            level=3,
+            description="Arena",
+            unit_cost=50.0,
+            unit="m3",
+            material_category="BULKY",
+        )
 
         # Aristas ponderadas (morfismos con peso)
         G.add_edge("PROYECTO_TOTAL", "APU1", quantity=2.0)
@@ -74,9 +88,11 @@ class TestMatterGenerator:
         G.add_node("ROOT", type="ROOT", description="Proyecto Complejo")
 
         # Nodos intermedios (APUs)
-        for apu_id, desc in [("APU_A", "Estructura Principal"),
-                              ("APU_B", "Acabados"),
-                              ("APU_C", "Instalaciones")]:
+        for apu_id, desc in [
+            ("APU_A", "Estructura Principal"),
+            ("APU_B", "Acabados"),
+            ("APU_C", "Instalaciones"),
+        ]:
             G.add_node(apu_id, type="APU", description=desc)
 
         # Materiales con categorías específicas
@@ -89,8 +105,14 @@ class TestMatterGenerator:
         ]
 
         for mat_id, desc, cost, unit, category in materials:
-            G.add_node(mat_id, type="INSUMO", description=desc,
-                       unit_cost=cost, unit=unit, material_category=category)
+            G.add_node(
+                mat_id,
+                type="INSUMO",
+                description=desc,
+                unit_cost=cost,
+                unit=unit,
+                material_category=category,
+            )
 
         # Conexiones ROOT → APU (factor 1.0 preserva estructura)
         for apu in ["APU_A", "APU_B", "APU_C"]:
@@ -98,9 +120,13 @@ class TestMatterGenerator:
 
         # Conexiones APU → Material (multipath)
         edges = [
-            ("APU_A", "MAT1", 2.5), ("APU_A", "MAT3", 8.0), ("APU_A", "MAT4", 15.0),
-            ("APU_B", "MAT1", 1.0), ("APU_B", "MAT2", 3.0),
-            ("APU_C", "MAT3", 5.0), ("APU_C", "MAT5", 2.0),
+            ("APU_A", "MAT1", 2.5),
+            ("APU_A", "MAT3", 8.0),
+            ("APU_A", "MAT4", 15.0),
+            ("APU_B", "MAT1", 1.0),
+            ("APU_B", "MAT2", 3.0),
+            ("APU_C", "MAT3", 5.0),
+            ("APU_C", "MAT5", 2.0),
         ]
 
         for src, dst, qty in edges:
@@ -194,8 +220,8 @@ class TestMatterGenerator:
         """
         generator = MatterGenerator()
         flux_metrics = {
-            "avg_saturation": 0.9,      # > 0.8 → ×1.05
-            "pyramid_stability": 0.5    # < 1.0 → ×1.03
+            "avg_saturation": 0.9,  # > 0.8 → ×1.05
+            "pyramid_stability": 0.5,  # < 1.0 → ×1.03
         }
 
         bom = generator.materialize_project(sample_graph, flux_metrics=flux_metrics)
@@ -273,8 +299,9 @@ class TestMatterGenerator:
 
         error_msg = str(exc_info.value).lower()
         cycle_terms = ["ciclo", "cycle", "dag", "acíclic", "topolog"]
-        assert any(term in error_msg for term in cycle_terms), \
+        assert any(term in error_msg for term in cycle_terms), (
             f"Mensaje de error no informativo: {exc_info.value}"
+        )
 
     def test_complex_graph_clustering(self, complex_graph):
         """
@@ -313,9 +340,9 @@ class TestMatterGenerator:
 
         # Mapeo categoría → (descripción, factor esperado)
         expected = {
-            "Vidrio Templado": 0.02,    # FRAGILE
-            "Pintura Epóxica": 0.06,    # HAZARDOUS
-            "Cemento Rápido": 0.04,     # PERISHABLE
+            "Vidrio Templado": 0.02,  # FRAGILE
+            "Pintura Epóxica": 0.06,  # HAZARDOUS
+            "Cemento Rápido": 0.04,  # PERISHABLE
         }
 
         for req in bom.requirements:
@@ -340,8 +367,9 @@ class TestMatterGenerator:
         assert "pareto_cost_percentage" in pareto_info
 
         # Tolerancia: ≥70% para cumplimiento aproximado
-        assert pareto_info["pareto_cost_percentage"] >= 70.0, \
+        assert pareto_info["pareto_cost_percentage"] >= 70.0, (
             f"Pareto insuficiente: {pareto_info['pareto_cost_percentage']}%"
+        )
 
     def test_overflow_protection(self):
         """
@@ -355,8 +383,9 @@ class TestMatterGenerator:
 
         num_insumos = 200
         for i in range(num_insumos):
-            G.add_node(f"INS_{i}", type="INSUMO",
-                       unit_cost=1000.0, description=f"Material_{i}")
+            G.add_node(
+                f"INS_{i}", type="INSUMO", unit_cost=1000.0, description=f"Material_{i}"
+            )
             G.add_edge("ROOT", f"INS_{i}", quantity=1000.0)
 
         generator = MatterGenerator(max_graph_complexity=10000)
@@ -378,8 +407,7 @@ class TestMatterGenerator:
         unit_cost = 0.01  # Valor pequeño para evidenciar errores
 
         for i in range(num_materials):
-            G.add_node(f"INS_{i}", type="INSUMO",
-                       unit_cost=unit_cost, description=f"M{i}")
+            G.add_node(f"INS_{i}", type="INSUMO", unit_cost=unit_cost, description=f"M{i}")
             G.add_edge("ROOT", f"INS_{i}", quantity=1.0)
 
         # Permitimos complejidad alta para este test
@@ -426,20 +454,19 @@ class TestMatterGenerator:
         # Asignar atributos
         for node in G.nodes():
             if rng.random() > 0.7:
-                G.nodes[node].update({
-                    'type': 'INSUMO',
-                    'unit_cost': rng.uniform(1.0, 1000.0),
-                    'description': f"Material_{node}",
-                    'unit': rng.choice(['kg', 'm', 'm2', 'm3'])
-                })
+                G.nodes[node].update(
+                    {
+                        "type": "INSUMO",
+                        "unit_cost": rng.uniform(1.0, 1000.0),
+                        "description": f"Material_{node}",
+                        "unit": rng.choice(["kg", "m", "m2", "m3"]),
+                    }
+                )
             else:
-                G.nodes[node].update({
-                    'type': 'APU',
-                    'description': f"APU_{node}"
-                })
+                G.nodes[node].update({"type": "APU", "description": f"APU_{node}"})
 
         for u, v in G.edges():
-            G.edges[u, v]['quantity'] = rng.uniform(0.1, 10.0)
+            G.edges[u, v]["quantity"] = rng.uniform(0.1, 10.0)
 
         generator = MatterGenerator()
         bom = generator.materialize_project(G)
@@ -457,8 +484,7 @@ class TestMatterGenerator:
         G.add_node("ROOT", type="ROOT")
 
         for i in range(50):
-            G.add_node(f"INS_{i}", type="INSUMO",
-                       unit_cost=10.0, description=f"M{i}")
+            G.add_node(f"INS_{i}", type="INSUMO", unit_cost=10.0, description=f"M{i}")
             G.add_edge("ROOT", f"INS_{i}", quantity=1.0)
 
         generator = MatterGenerator(max_graph_complexity=100)
@@ -479,8 +505,9 @@ class TestMatterGenerator:
 
         # Verificar propiedad de orden
         for i in range(len(costs) - 1):
-            assert costs[i] >= costs[i + 1], \
-                f"Violación de orden en [{i}]={costs[i]:.2f} < [{i+1}]={costs[i+1]:.2f}"
+            assert costs[i] >= costs[i + 1], (
+                f"Violación de orden en [{i}]={costs[i]:.2f} < [{i + 1}]={costs[i + 1]:.2f}"
+            )
 
         # El máximo está en la cabeza
         assert bom.requirements[0].total_cost == pytest.approx(max(costs))
@@ -558,8 +585,8 @@ class TestMatterGenerator:
         G.add_edge("ROOT", "INS", quantity=1.0)
 
         flux_metrics = {
-            "avg_saturation": 0.5,      # < 0.8 → sin ajuste
-            "pyramid_stability": 1.2    # ≥ 1.0 → sin ajuste
+            "avg_saturation": 0.5,  # < 0.8 → sin ajuste
+            "pyramid_stability": 1.2,  # ≥ 1.0 → sin ajuste
         }
 
         generator = MatterGenerator()
@@ -579,8 +606,9 @@ class TestMatterGenerator:
         G.add_node("ROOT", type="ROOT")
 
         for i in range(100):
-            G.add_node(f"INS_{i}", type="INSUMO",
-                       unit_cost=float(i + 1), description=f"M{i}")
+            G.add_node(
+                f"INS_{i}", type="INSUMO", unit_cost=float(i + 1), description=f"M{i}"
+            )
             G.add_edge("ROOT", f"INS_{i}", quantity=float(i + 1))
 
         generator = MatterGenerator()
@@ -602,10 +630,12 @@ class TestMatterGenerator:
         G = nx.DiGraph()
         G.add_node("ROOT", type="ROOT")
 
-        G.add_node("MAT_KG", type="INSUMO", description="Material Base",
-                   unit_cost=10.0, unit="kg")
-        G.add_node("MAT_LB", type="INSUMO", description="Material Base",
-                   unit_cost=8.0, unit="lb")
+        G.add_node(
+            "MAT_KG", type="INSUMO", description="Material Base", unit_cost=10.0, unit="kg"
+        )
+        G.add_node(
+            "MAT_LB", type="INSUMO", description="Material Base", unit_cost=8.0, unit="lb"
+        )
 
         G.add_edge("ROOT", "MAT_KG", quantity=2.0)
         G.add_edge("ROOT", "MAT_LB", quantity=5.0)
@@ -623,8 +653,7 @@ class TestMatterGenerator:
         """
         G = nx.DiGraph()
         G.add_node("ROOT", type="ROOT")
-        G.add_node("INF", type="INSUMO",
-                   unit_cost=float('inf'), description="Infinito")
+        G.add_node("INF", type="INSUMO", unit_cost=float("inf"), description="Infinito")
         G.add_edge("ROOT", "INF", quantity=1.0)
 
         generator = MatterGenerator()

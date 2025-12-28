@@ -5,11 +5,19 @@ from typing import Dict, List, Any, Optional, Set
 from dataclasses import dataclass, field
 from datetime import datetime
 
+# Telemetry integration
+try:
+    from .telemetry import TelemetryContext
+except ImportError:
+    TelemetryContext = Any
+
+
 @dataclass
 class MaterialRequirement:
     """
     Representa un requerimiento de material consolidado con validación de invariantes.
     """
+
     id: str
     description: str
     quantity_base: float
@@ -30,11 +38,13 @@ class MaterialRequirement:
         if not math.isfinite(self.total_cost):
             raise ValueError(f"Costo total no finito para material {self.id}")
 
+
 @dataclass
 class BillOfMaterials:
     """
     Lista de materiales final con metadata de generación y validación topológica.
     """
+
     requirements: List[MaterialRequirement]
     total_material_cost: float
     metadata: Dict[str, Any]
@@ -47,6 +57,7 @@ class BillOfMaterials:
         computed_total = sum(req.total_cost for req in self.requirements)
         if not math.isclose(self.total_material_cost, computed_total, rel_tol=1e-5):
             raise ValueError("BOM inconsistente: suma de costos no coincide con total")
+
 
 class MatterGenerator:
     """
@@ -61,158 +72,187 @@ class MatterGenerator:
         self,
         graph: nx.DiGraph,
         risk_profile: Optional[Dict[str, Any]] = None,
-        flux_metrics: Optional[Dict[str, Any]] = None
+        flux_metrics: Optional[Dict[str, Any]] = None,
+        telemetry: Optional[TelemetryContext] = None,
     ) -> BillOfMaterials:
         """
         Orquesta la transformación del Grafo en BOM.
         """
         self.logger.info("🌌 Iniciando materialización híbrida del proyecto...")
 
-        # Validación de complejidad
-        complexity = graph.number_of_nodes() * max(graph.number_of_edges(), 1)
-        if complexity > self.max_graph_complexity:
-            raise OverflowError(f"La complejidad del grafo ({complexity}) excede el límite permitido ({self.max_graph_complexity})")
+        if telemetry:
+            telemetry.start_step("materialize_project")
 
-        # Validación estructural (DAG)
-        if not nx.is_directed_acyclic_graph(graph):
-            raise ValueError("El grafo contiene ciclos (no es un DAG), imposible propagar cantidades coherentemente.")
-
-        # 1. Colapso de Onda (Enfoque Funtor - Propuesta 1)
-        # Lógica DFS in-line para evitar desconexión de flujo de datos
-
-        materials = []
-
-        # Identificación de raíces
-        root_nodes = [node for node, in_degree in graph.in_degree() if in_degree == 0]
-
-        if not root_nodes and graph.number_of_nodes() > 0:
-             # Fallback: todos los nodos (si no se detectaron raíces pero pasó DAG check, raro pero posible en grafos disconexos sin edges)
-             root_nodes = [n for n in graph.nodes()]
-
-        if not root_nodes and graph.number_of_nodes() > 0:
-             self.logger.error("❌ Grafo sin raíces detectables")
-
-        # DFS iterativo
-        stack = [
-            (root, 1.0, frozenset(), [], None) for root in root_nodes
-        ]
-
-        iteration_count = 0
-        max_iterations = self.max_graph_complexity + 1000
-
-        while stack:
-            iteration_count += 1
-            if iteration_count > max_iterations:
-                raise RuntimeError("Límite de iteraciones excedido en materialización")
-
-            current_node, current_qty, path_set, path_list, parent_apu = stack.pop()
-
-            if current_node in path_set:
-                self.logger.warning(f"⚠️ Ciclo detectado en camino: {path_list} -> {current_node}")
-                continue
-
-            node_data = graph.nodes.get(current_node, {})
-            node_type = node_data.get("type", "UNDEFINED")
-
-            new_path_set = path_set | {current_node}
-            new_path_list = path_list + [current_node]
-
-            # Objeto terminal (Insumo)
-            if node_type == "INSUMO":
-                description = (
-                    node_data.get("description") or
-                    node_data.get("name") or
-                    str(current_node)
+        try:
+            # Validación de complejidad
+            complexity = graph.number_of_nodes() * max(graph.number_of_edges(), 1)
+            if complexity > self.max_graph_complexity:
+                raise OverflowError(
+                    f"La complejidad del grafo ({complexity}) excede el límite permitido ({self.max_graph_complexity})"
                 )
 
-                unit_cost = node_data.get("unit_cost", 0.0)
-                try:
-                    unit_cost = float(unit_cost)
-                    if not math.isfinite(unit_cost):
-                         self.logger.warning(f"Costo infinito detectado en {current_node}, omitiendo.")
-                         continue
-                except (TypeError, ValueError):
-                    unit_cost = 0.0
+            # Validación estructural (DAG)
+            if not nx.is_directed_acyclic_graph(graph):
+                raise ValueError(
+                    "El grafo contiene ciclos (no es un DAG), imposible propagar cantidades coherentemente."
+                )
 
-                if unit_cost < 0:
-                     self.logger.warning(f"Costo negativo detectado en {current_node}: {unit_cost}")
+            # 1. Colapso de Onda (Enfoque Funtor - Propuesta 1)
+            # Lógica DFS in-line para evitar desconexión de flujo de datos
 
-                # Aquí current_qty ya es producto acumulado.
-                materials.append({
-                    "id": str(current_node),
-                    "description": description,
-                    "base_qty": current_qty,
-                    "unit_cost": unit_cost,
-                    "source_apu": parent_apu or "ROOT",
-                    "unit": node_data.get("unit", "UND"),
-                    "node_data": node_data,
-                    "composition_path": new_path_list,
-                    "fiber_depth": len(new_path_list)
-                })
-                continue
+            materials = []
 
-            # Determinación de padre APU para trazabilidad
-            next_parent_apu = current_node if node_type == "APU" else parent_apu
+            # Identificación de raíces
+            root_nodes = [node for node, in_degree in graph.in_degree() if in_degree == 0]
 
-            # Expansión de sucesores
-            for successor in graph.successors(current_node):
-                edge_data = graph.edges.get((current_node, successor), {})
-                edge_qty = edge_data.get("quantity", 1.0)
+            if not root_nodes and graph.number_of_nodes() > 0:
+                # Fallback: todos los nodos (si no se detectaron raíces pero pasó DAG check, raro pero posible en grafos disconexos sin edges)
+                root_nodes = [n for n in graph.nodes()]
 
-                try:
-                    edge_qty = float(edge_qty)
-                    if not math.isfinite(edge_qty) or edge_qty <= 0:
-                        edge_qty = 1.0
-                except (TypeError, ValueError):
-                    edge_qty = 1.0
+            if not root_nodes and graph.number_of_nodes() > 0:
+                self.logger.error("❌ Grafo sin raíces detectables")
 
-                new_qty = current_qty * edge_qty
+            # DFS iterativo
+            stack = [(root, 1.0, frozenset(), [], None) for root in root_nodes]
 
-                if not math.isfinite(new_qty) or new_qty > 1e12:
-                    self.logger.warning(f"Overflow potencial en {successor}: {new_qty}")
+            iteration_count = 0
+            max_iterations = self.max_graph_complexity + 1000
+
+            while stack:
+                iteration_count += 1
+                if iteration_count > max_iterations:
+                    raise RuntimeError("Límite de iteraciones excedido en materialización")
+
+                current_node, current_qty, path_set, path_list, parent_apu = stack.pop()
+
+                if current_node in path_set:
+                    self.logger.warning(
+                        f"⚠️ Ciclo detectado en camino: {path_list} -> {current_node}"
+                    )
                     continue
 
-                stack.append((
-                    successor, new_qty, new_path_set,
-                    new_path_list, next_parent_apu
-                ))
+                node_data = graph.nodes.get(current_node, {})
+                node_type = node_data.get("type", "UNDEFINED")
 
-        raw_materials = materials
-        self.logger.info(f"🧱 Materiales brutos extraídos: {len(raw_materials)}")
+                new_path_set = path_set | {current_node}
+                new_path_list = path_list + [current_node]
 
-        if not raw_materials:
-            self.logger.warning("⚠️ No se encontraron materiales en el grafo")
+                # Objeto terminal (Insumo)
+                if node_type == "INSUMO":
+                    description = (
+                        node_data.get("description")
+                        or node_data.get("name")
+                        or str(current_node)
+                    )
 
-        # 2. Aplicación de Entropía Trazable (Propuesta 1)
-        adjusted_materials = self._apply_entropy_factors(
-            raw_materials,
-            flux_metrics,
-            risk_profile
-        )
+                    unit_cost = node_data.get("unit_cost", 0.0)
+                    try:
+                        unit_cost = float(unit_cost)
+                        if not math.isfinite(unit_cost):
+                            self.logger.warning(
+                                f"Costo infinito detectado en {current_node}, omitiendo."
+                            )
+                            continue
+                    except (TypeError, ValueError):
+                        unit_cost = 0.0
 
-        # 3. Clustering Semántico (Propuesta 1 + 2)
-        final_requirements = self._cluster_semantically(adjusted_materials)
-        self.logger.info(f"🛒 Requerimientos consolidados: {len(final_requirements)}")
+                    if unit_cost < 0:
+                        self.logger.warning(
+                            f"Costo negativo detectado en {current_node}: {unit_cost}"
+                        )
 
-        # 4. Cálculo de Totales con Kahan (Propuesta 2)
-        total_cost = self._compute_total_cost(final_requirements)
+                    # Aquí current_qty ya es producto acumulado.
+                    materials.append(
+                        {
+                            "id": str(current_node),
+                            "description": description,
+                            "base_qty": current_qty,
+                            "unit_cost": unit_cost,
+                            "source_apu": parent_apu or "ROOT",
+                            "unit": node_data.get("unit", "UND"),
+                            "node_data": node_data,
+                            "composition_path": new_path_list,
+                            "fiber_depth": len(new_path_list),
+                        }
+                    )
+                    continue
 
-        # 5. Metadata Estratégica (Pareto/Gini - Propuesta 1)
-        metadata = self._generate_metadata(
-            graph, risk_profile, flux_metrics, final_requirements
-        )
+                # Determinación de padre APU para trazabilidad
+                next_parent_apu = current_node if node_type == "APU" else parent_apu
 
-        return BillOfMaterials(
-            requirements=final_requirements,
-            total_material_cost=total_cost,
-            metadata=metadata
-        )
+                # Expansión de sucesores
+                for successor in graph.successors(current_node):
+                    edge_data = graph.edges.get((current_node, successor), {})
+                    edge_qty = edge_data.get("quantity", 1.0)
+
+                    try:
+                        edge_qty = float(edge_qty)
+                        if not math.isfinite(edge_qty) or edge_qty <= 0:
+                            edge_qty = 1.0
+                    except (TypeError, ValueError):
+                        edge_qty = 1.0
+
+                    new_qty = current_qty * edge_qty
+
+                    if not math.isfinite(new_qty) or new_qty > 1e12:
+                        self.logger.warning(f"Overflow potencial en {successor}: {new_qty}")
+                        continue
+
+                    stack.append(
+                        (successor, new_qty, new_path_set, new_path_list, next_parent_apu)
+                    )
+
+            raw_materials = materials
+            self.logger.info(f"🧱 Materiales brutos extraídos: {len(raw_materials)}")
+
+            if not raw_materials:
+                self.logger.warning("⚠️ No se encontraron materiales en el grafo")
+
+            # 2. Aplicación de Entropía Trazable (Propuesta 1)
+            adjusted_materials = self._apply_entropy_factors(
+                raw_materials, flux_metrics, risk_profile
+            )
+
+            # 3. Clustering Semántico (Propuesta 1 + 2)
+            final_requirements = self._cluster_semantically(adjusted_materials)
+            self.logger.info(f"🛒 Requerimientos consolidados: {len(final_requirements)}")
+
+            # 4. Cálculo de Totales con Kahan (Propuesta 2)
+            total_cost = self._compute_total_cost(final_requirements)
+
+            # 5. Metadata Estratégica (Pareto/Gini - Propuesta 1)
+            metadata = self._generate_metadata(
+                graph, risk_profile, flux_metrics, final_requirements
+            )
+
+            # Registrar en telemetría
+            if telemetry:
+                telemetry.record_metric("materialization", "total_material_cost", total_cost)
+                telemetry.record_metric(
+                    "materialization", "item_count", len(final_requirements)
+                )
+                telemetry.record_metric(
+                    "materialization", "complexity_processed", complexity
+                )
+                telemetry.end_step("materialize_project", "success")
+
+            return BillOfMaterials(
+                requirements=final_requirements,
+                total_material_cost=total_cost,
+                metadata=metadata,
+            )
+
+        except Exception as e:
+            if telemetry:
+                telemetry.record_error("materialize_project", str(e))
+                telemetry.end_step("materialize_project", "error")
+            raise
 
     def _apply_entropy_factors(
         self,
         raw_materials: List[Dict[str, Any]],
         flux_metrics: Optional[Dict[str, Any]],
-        risk_profile: Optional[Dict[str, Any]] = None
+        risk_profile: Optional[Dict[str, Any]] = None,
     ) -> List[Dict[str, Any]]:
         """
         Aplica factores de entropía con trazabilidad (Propuesta 1).
@@ -235,12 +275,7 @@ class MatterGenerator:
         # Factores de riesgo
         if risk_profile:
             risk_level = str(risk_profile.get("level", "MEDIUM")).upper()
-            risk_map = {
-                "LOW": 1.01,
-                "MEDIUM": 1.03,
-                "HIGH": 1.07,
-                "CRITICAL": 1.15
-            }
+            risk_map = {"LOW": 1.01, "MEDIUM": 1.03, "HIGH": 1.07, "CRITICAL": 1.15}
             risk_mult = risk_map.get(risk_level, 1.03)
             base_factor *= risk_mult
             factor_trace["risk"] = risk_mult
@@ -252,7 +287,7 @@ class MatterGenerator:
             "PERISHABLE": 1.04,
             "HAZARDOUS": 1.06,
             "BULKY": 1.02,
-            "PRECISION": 1.01
+            "PRECISION": 1.01,
         }
 
         for mat in raw_materials:
@@ -273,14 +308,16 @@ class MatterGenerator:
             processed["applied_factors"] = {
                 **factor_trace,
                 "specific": spec_factor,
-                "total": total_multiplier
+                "total": total_multiplier,
             }
 
             processed_materials.append(processed)
 
         return processed_materials
 
-    def _cluster_semantically(self, materials: List[Dict[str, Any]]) -> List[MaterialRequirement]:
+    def _cluster_semantically(
+        self, materials: List[Dict[str, Any]]
+    ) -> List[MaterialRequirement]:
         """
         Agrupa materiales (Propuesta 1 logic) y crea DataClasses (Propuesta 2).
         """
@@ -297,7 +334,7 @@ class MatterGenerator:
                     "quantity_base": 0.0,
                     "quantity_total": 0.0,
                     "source_apus": set(),
-                    "cost_samples": []
+                    "cost_samples": [],
                 }
 
             data = clustered[key]
@@ -327,7 +364,7 @@ class MatterGenerator:
                 if len(costs) % 2 == 1:
                     rep_cost = costs[mid_idx]
                 else:
-                    rep_cost = (costs[mid_idx-1] + costs[mid_idx]) / 2.0
+                    rep_cost = (costs[mid_idx - 1] + costs[mid_idx]) / 2.0
             else:
                 rep_cost = 0.0
 
@@ -342,7 +379,7 @@ class MatterGenerator:
                 quantity_total=round(data["quantity_total"], 6),
                 unit_cost=round(rep_cost, 4),
                 total_cost=round(total_cost, 2),
-                source_apus=sorted([str(x) for x in data["source_apus"]])
+                source_apus=sorted([str(x) for x in data["source_apus"]]),
             )
             requirements.append(req)
 
@@ -377,7 +414,7 @@ class MatterGenerator:
         graph: nx.DiGraph,
         risk_profile: Dict[str, Any],
         flux_metrics: Dict[str, Any],
-        requirements: List[MaterialRequirement]
+        requirements: List[MaterialRequirement],
     ) -> Dict[str, Any]:
         """
         Genera metadata estratégica (Pareto + Gini - Propuesta 1).
@@ -392,8 +429,8 @@ class MatterGenerator:
         total_cost = sum(costs)
         n = len(costs)
 
-        pareto_ratio = 0.0 # % items
-        pareto_cost_pct = 0.0 # % cost of top 20%
+        pareto_ratio = 0.0  # % items
+        pareto_cost_pct = 0.0  # % cost of top 20%
         gini = 0.0
 
         if total_cost > 0 and n > 0:
@@ -427,26 +464,23 @@ class MatterGenerator:
             "graph_metrics": {
                 "node_count": node_count,
                 "edge_count": edge_count,
-                "root_count": len([n for n, d in graph.in_degree() if d == 0])
+                "root_count": len([n for n, d in graph.in_degree() if d == 0]),
             },
             "cost_analysis": {
                 "pareto_analysis": {
                     "pareto_80_items_ratio": round(pareto_ratio, 4),
                     "pareto_20_percent": round(n * 0.2, 1),
-                    "pareto_cost_percentage": round(pareto_cost_pct, 2)
+                    "pareto_cost_percentage": round(pareto_cost_pct, 2),
                 },
                 "gini_index": round(gini, 4),
                 "item_count": n,
                 "total_cost": round(total_cost, 2),
-                "empty": n == 0
+                "empty": n == 0,
             },
-            "risk_analysis": {
-                "profile": risk_profile,
-                "flux_metrics": flux_metrics
-            },
+            "risk_analysis": {"profile": risk_profile, "flux_metrics": flux_metrics},
             "generation_info": {
                 "timestamp": datetime.now().isoformat(),
                 "algorithm": "Hybrid-Topological-Algebraic-v1",
-                "generator_version": "2.0.0"
-            }
+                "generator_version": "2.0.0",
+            },
         }

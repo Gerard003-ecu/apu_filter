@@ -190,7 +190,9 @@ class TestValidationStats:
 
     def test_success_rate_calculation(self):
         """Debe calcular correctamente la tasa de éxito."""
-        stats = ValidationStats(exact_matches=80, semantic_duplicates=15, failures=5, total=100)
+        stats = ValidationStats(
+            exact_matches=80, semantic_duplicates=15, failures=5, total=100
+        )
         assert stats.success_rate == 0.95
 
     def test_success_rate_zero_total(self):
@@ -200,12 +202,16 @@ class TestValidationStats:
 
     def test_is_valid_no_failures(self):
         """Debe ser válido si no hay fallos."""
-        stats = ValidationStats(exact_matches=90, semantic_duplicates=10, failures=0, total=100)
+        stats = ValidationStats(
+            exact_matches=90, semantic_duplicates=10, failures=0, total=100
+        )
         assert stats.is_valid is True
 
     def test_is_valid_with_failures(self):
         """No debe ser válido si hay fallos."""
-        stats = ValidationStats(exact_matches=90, semantic_duplicates=5, failures=5, total=100)
+        stats = ValidationStats(
+            exact_matches=90, semantic_duplicates=5, failures=5, total=100
+        )
         assert stats.is_valid is False
 
 
@@ -257,7 +263,11 @@ class TestDataValidator:
         df = pd.DataFrame(
             {
                 "id": ["ID1", "ID2", "ID3"],
-                "description": ["ab", "Valid text here", "x" * 6000],  # muy corto, válido, muy largo
+                "description": [
+                    "ab",
+                    "Valid text here",
+                    "x" * 6000,
+                ],  # muy corto, válido, muy largo
             }
         )
         # Ajustar config para prueba
@@ -290,7 +300,9 @@ class TestDataValidator:
         with pytest.raises(TypeError, match="df debe ser un DataFrame"):
             DataValidator.validate_dataframe([], "description", "id", mock_config)
 
-    def test_validate_dataframe_combined_cleaning(self, sample_dataframe_with_issues, mock_config):
+    def test_validate_dataframe_combined_cleaning(
+        self, sample_dataframe_with_issues, mock_config
+    ):
         """Debe manejar correctamente múltiples tipos de datos problemáticos."""
         # DataFrame tiene: 1 duplicado, 2 nulos, 1 texto muy corto
         validated_df = DataValidator.validate_dataframe(
@@ -407,7 +419,9 @@ class TestEmbeddingGenerator:
 
     def test_load_model_success(self, mock_config):
         """Debe cargar un modelo mockeado sin errores."""
-        with patch("scripts.generate_embeddings.SentenceTransformer") as MockSentenceTransformer:
+        with patch(
+            "scripts.generate_embeddings.SentenceTransformer"
+        ) as MockSentenceTransformer:
             mock_model = MagicMock()
             mock_model.get_sentence_embedding_dimension.return_value = 384
             MockSentenceTransformer.return_value = mock_model
@@ -430,7 +444,9 @@ class TestEmbeddingGenerator:
 
     def test_load_model_invalid_dimension_raises_error(self, mock_config):
         """Debe lanzar error si la dimensión del modelo es inválida."""
-        with patch("scripts.generate_embeddings.SentenceTransformer") as MockSentenceTransformer:
+        with patch(
+            "scripts.generate_embeddings.SentenceTransformer"
+        ) as MockSentenceTransformer:
             mock_model = MagicMock()
             mock_model.get_sentence_embedding_dimension.return_value = None
             MockSentenceTransformer.return_value = mock_model
@@ -464,7 +480,9 @@ class TestEmbeddingGenerator:
         with pytest.raises(TypeError, match="texts debe ser una lista"):
             mock_embedding_generator.generate_embeddings("not a list")
 
-    def test_generate_embeddings_non_string_elements_raises_error(self, mock_embedding_generator):
+    def test_generate_embeddings_non_string_elements_raises_error(
+        self, mock_embedding_generator
+    ):
         """Debe lanzar error si hay elementos no string."""
         with pytest.raises(TypeError, match="elementos de texts deben ser cadenas"):
             mock_embedding_generator.generate_embeddings(["valid", 123, "another"])

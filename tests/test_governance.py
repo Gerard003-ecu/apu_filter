@@ -29,6 +29,7 @@ from app.governance import (
 # FIXTURES
 # =============================================================================
 
+
 @pytest.fixture
 def sample_ontology(tmp_path):
     """Ontología básica con dominios de prueba."""
@@ -151,6 +152,7 @@ def configured_engine(tmp_path, sample_ontology):
 # TESTS: ComplianceReport
 # =============================================================================
 
+
 class TestComplianceReport:
     """Pruebas para la clase ComplianceReport."""
 
@@ -170,9 +172,7 @@ class TestComplianceReport:
         report = ComplianceReport()
 
         result = report.add_violation(
-            type_="TEST_ERROR",
-            message="Test error message",
-            severity="ERROR"
+            type_="TEST_ERROR", message="Test error message", severity="ERROR"
         )
 
         assert result is True
@@ -188,9 +188,7 @@ class TestComplianceReport:
         report = ComplianceReport()
 
         result = report.add_violation(
-            type_="TEST_WARNING",
-            message="Test warning message",
-            severity="WARNING"
+            type_="TEST_WARNING", message="Test warning message", severity="WARNING"
         )
 
         assert result is True
@@ -202,11 +200,7 @@ class TestComplianceReport:
         """Verifica que INFO no penaliza el score."""
         report = ComplianceReport()
 
-        report.add_violation(
-            type_="TEST_INFO",
-            message="Test info message",
-            severity="INFO"
-        )
+        report.add_violation(type_="TEST_INFO", message="Test info message", severity="INFO")
 
         assert report.score == 100.0
         assert report.status == ComplianceStatus.PASS.value
@@ -216,9 +210,7 @@ class TestComplianceReport:
         report = ComplianceReport()
 
         result = report.add_violation(
-            type_="TEST",
-            message="Test message",
-            severity="INVALID_SEVERITY"
+            type_="TEST", message="Test message", severity="INVALID_SEVERITY"
         )
 
         assert result is True
@@ -229,11 +221,7 @@ class TestComplianceReport:
         """Verifica normalización de severidad en minúsculas."""
         report = ComplianceReport()
 
-        report.add_violation(
-            type_="TEST",
-            message="Test message",
-            severity="warning"
-        )
+        report.add_violation(type_="TEST", message="Test message", severity="warning")
 
         assert report.violations[0]["severity"] == Severity.WARNING.value
 
@@ -270,10 +258,7 @@ class TestComplianceReport:
         context = {"apu_code": "APU01", "domain": "CIMENTACION"}
 
         report.add_violation(
-            type_="TEST",
-            message="Test message",
-            severity="WARNING",
-            context=context
+            type_="TEST", message="Test message", severity="WARNING", context=context
         )
 
         assert "context" in report.violations[0]
@@ -283,11 +268,7 @@ class TestComplianceReport:
         """Verifica que contexto no-dict se ignora."""
         report = ComplianceReport()
 
-        report.add_violation(
-            type_="TEST",
-            message="Test message",
-            context="invalid_context"
-        )
+        report.add_violation(type_="TEST", message="Test message", context="invalid_context")
 
         assert "context" not in report.violations[0]
 
@@ -309,9 +290,14 @@ class TestComplianceReport:
         assert report.status == ComplianceStatus.PASS.value
 
         # Añadir warnings hasta bajar del threshold
-        warnings_needed = int((100.0 - SCORE_THRESHOLDS["warning"]) / SEVERITY_PENALTIES[Severity.WARNING]) + 1
+        warnings_needed = (
+            int((100.0 - SCORE_THRESHOLDS["warning"]) / SEVERITY_PENALTIES[Severity.WARNING])
+            + 1
+        )
         for i in range(warnings_needed):
-            report.add_violation(type_=f"WARN_{i}", message=f"Warning {i}", severity="WARNING")
+            report.add_violation(
+                type_=f"WARN_{i}", message=f"Warning {i}", severity="WARNING"
+            )
 
         assert report.score < SCORE_THRESHOLDS["warning"]
         assert report.status == ComplianceStatus.WARNING.value
@@ -341,7 +327,11 @@ class TestComplianceReport:
         report.add_violation(type_="ERR2", message="Error 2", severity="ERROR")
         report.add_violation(type_="WARN1", message="Warning 1", severity="WARNING")
 
-        expected_score = 100.0 - (2 * SEVERITY_PENALTIES[Severity.ERROR]) - SEVERITY_PENALTIES[Severity.WARNING]
+        expected_score = (
+            100.0
+            - (2 * SEVERITY_PENALTIES[Severity.ERROR])
+            - SEVERITY_PENALTIES[Severity.WARNING]
+        )
 
         assert len(report.violations) == 3
         assert report.score == expected_score
@@ -352,6 +342,7 @@ class TestComplianceReport:
 # =============================================================================
 # TESTS: GovernanceEngine - Inicialización
 # =============================================================================
+
 
 class TestGovernanceEngineInitialization:
     """Pruebas de inicialización del GovernanceEngine."""
@@ -390,6 +381,7 @@ class TestGovernanceEngineInitialization:
 # =============================================================================
 # TESTS: GovernanceEngine - Carga de Ontología
 # =============================================================================
+
 
 class TestGovernanceEngineLoadOntology:
     """Pruebas para el método load_ontology."""
@@ -464,7 +456,9 @@ class TestGovernanceEngineLoadOntology:
 
         assert result is False
 
-    def test_load_ontology_preserves_previous_on_failure(self, tmp_path, sample_ontology, invalid_json_file):
+    def test_load_ontology_preserves_previous_on_failure(
+        self, tmp_path, sample_ontology, invalid_json_file
+    ):
         """Verifica que fallo no sobrescribe ontología válida existente."""
         engine = GovernanceEngine(config_dir=str(tmp_path))
         engine.load_ontology(str(sample_ontology))
@@ -495,6 +489,7 @@ class TestGovernanceEngineLoadOntology:
 # =============================================================================
 # TESTS: GovernanceEngine - Validación de Estructura
 # =============================================================================
+
 
 class TestOntologyStructureValidation:
     """Pruebas para _validate_ontology_structure."""
@@ -555,13 +550,7 @@ class TestOntologyStructureValidation:
         """Verifica rechazo cuando keywords no son listas."""
         engine = GovernanceEngine(config_dir=str(tmp_path))
 
-        ontology = {
-            "domains": {
-                "DOMAIN1": {
-                    "required_keywords": "should_be_list"
-                }
-            }
-        }
+        ontology = {"domains": {"DOMAIN1": {"required_keywords": "should_be_list"}}}
 
         assert engine._validate_ontology_structure(ontology) is False
 
@@ -569,6 +558,7 @@ class TestOntologyStructureValidation:
 # =============================================================================
 # TESTS: GovernanceEngine - Validación Semántica
 # =============================================================================
+
 
 class TestSemanticCoherence:
     """Pruebas para check_semantic_coherence."""
@@ -578,8 +568,7 @@ class TestSemanticCoherence:
         report = configured_engine.check_semantic_coherence(sample_dataframe)
 
         semantic_violations = [
-            v for v in report.violations
-            if v["type"] == "SEMANTIC_INCONSISTENCY"
+            v for v in report.violations if v["type"] == "SEMANTIC_INCONSISTENCY"
         ]
 
         assert len(semantic_violations) >= 1
@@ -591,11 +580,19 @@ class TestSemanticCoherence:
 
     def test_detects_incompleteness_violation(self, tmp_path, sample_ontology):
         """Verifica detección de APU sin insumos requeridos."""
-        df = pd.DataFrame({
-            ColumnNames.CODIGO_APU: ["APU_FAKE", "APU_FAKE"],
-            ColumnNames.DESCRIPCION_APU: ["ZAPATA DE CIMENTACION", "ZAPATA DE CIMENTACION"],
-            ColumnNames.DESCRIPCION_INSUMO: ["AGUA", "ADITIVO"],  # Faltan CONCRETO o ACERO
-        })
+        df = pd.DataFrame(
+            {
+                ColumnNames.CODIGO_APU: ["APU_FAKE", "APU_FAKE"],
+                ColumnNames.DESCRIPCION_APU: [
+                    "ZAPATA DE CIMENTACION",
+                    "ZAPATA DE CIMENTACION",
+                ],
+                ColumnNames.DESCRIPCION_INSUMO: [
+                    "AGUA",
+                    "ADITIVO",
+                ],  # Faltan CONCRETO o ACERO
+            }
+        )
 
         engine = GovernanceEngine(config_dir=str(tmp_path))
         engine.load_ontology(str(sample_ontology))
@@ -604,8 +601,7 @@ class TestSemanticCoherence:
         report = engine.check_semantic_coherence(df)
 
         incompleteness = [
-            v for v in report.violations
-            if v["type"] == "SEMANTIC_INCOMPLETENESS"
+            v for v in report.violations if v["type"] == "SEMANTIC_INCOMPLETENESS"
         ]
 
         assert len(incompleteness) >= 1
@@ -651,7 +647,9 @@ class TestSemanticCoherence:
         schema_errors = [v for v in report.violations if v["type"] == "SCHEMA_ERROR"]
         assert len(schema_errors) >= 1
 
-    def test_handles_null_values_in_descriptions(self, tmp_path, sample_ontology, dataframe_with_nulls):
+    def test_handles_null_values_in_descriptions(
+        self, tmp_path, sample_ontology, dataframe_with_nulls
+    ):
         """Verifica manejo correcto de valores nulos."""
         engine = GovernanceEngine(config_dir=str(tmp_path))
         engine.load_ontology(str(sample_ontology))
@@ -662,22 +660,30 @@ class TestSemanticCoherence:
 
         assert report is not None
         # No debería haber incompleteness porque tiene CONCRETO y ACERO
-        incompleteness = [v for v in report.violations if v["type"] == "SEMANTIC_INCOMPLETENESS"]
+        incompleteness = [
+            v for v in report.violations if v["type"] == "SEMANTIC_INCOMPLETENESS"
+        ]
         assert len(incompleteness) == 0
 
     def test_no_violation_for_compliant_apu(self, configured_engine):
         """Verifica que APU conforme no genera violaciones."""
-        compliant_df = pd.DataFrame({
-            ColumnNames.CODIGO_APU: ["APU_OK", "APU_OK"],
-            ColumnNames.DESCRIPCION_APU: ["ZAPATA DE CIMENTACION", "ZAPATA DE CIMENTACION"],
-            ColumnNames.DESCRIPCION_INSUMO: ["CONCRETO 3000 PSI", "ACERO DE REFUERZO"],
-        })
+        compliant_df = pd.DataFrame(
+            {
+                ColumnNames.CODIGO_APU: ["APU_OK", "APU_OK"],
+                ColumnNames.DESCRIPCION_APU: [
+                    "ZAPATA DE CIMENTACION",
+                    "ZAPATA DE CIMENTACION",
+                ],
+                ColumnNames.DESCRIPCION_INSUMO: ["CONCRETO 3000 PSI", "ACERO DE REFUERZO"],
+            }
+        )
 
         report = configured_engine.check_semantic_coherence(compliant_df)
 
         # No debería haber violaciones para CIMENTACION
         cimentacion_violations = [
-            v for v in report.violations
+            v
+            for v in report.violations
             if "context" in v and v["context"].get("domain") == "CIMENTACION"
         ]
         assert len(cimentacion_violations) == 0
@@ -685,11 +691,17 @@ class TestSemanticCoherence:
     def test_domain_inference_uses_identifying_keywords(self, tmp_path, sample_ontology):
         """Verifica que la inferencia usa identifying_keywords."""
         # APU que contiene ZAPATA (identifying keyword) pero no CIMENTACION
-        df = pd.DataFrame({
-            ColumnNames.CODIGO_APU: ["APU_ZAPATA"],
-            ColumnNames.DESCRIPCION_APU: ["ZAPATA EN CONCRETO REFORZADO"],  # Sin "CIMENTACION"
-            ColumnNames.DESCRIPCION_INSUMO: ["PINTURA EPOXICA"],  # Prohibido en cimentación
-        })
+        df = pd.DataFrame(
+            {
+                ColumnNames.CODIGO_APU: ["APU_ZAPATA"],
+                ColumnNames.DESCRIPCION_APU: [
+                    "ZAPATA EN CONCRETO REFORZADO"
+                ],  # Sin "CIMENTACION"
+                ColumnNames.DESCRIPCION_INSUMO: [
+                    "PINTURA EPOXICA"
+                ],  # Prohibido en cimentación
+            }
+        )
 
         engine = GovernanceEngine(config_dir=str(tmp_path))
         engine.load_ontology(str(sample_ontology))
@@ -705,11 +717,13 @@ class TestSemanticCoherence:
         self, tmp_path, ontology_without_identifying_keywords
     ):
         """Verifica fallback cuando no hay identifying_keywords."""
-        df = pd.DataFrame({
-            ColumnNames.CODIGO_APU: ["APU01"],
-            ColumnNames.DESCRIPCION_APU: ["VIGA DE CIMENTACION"],
-            ColumnNames.DESCRIPCION_INSUMO: ["PINTURA"],  # Prohibido
-        })
+        df = pd.DataFrame(
+            {
+                ColumnNames.CODIGO_APU: ["APU01"],
+                ColumnNames.DESCRIPCION_APU: ["VIGA DE CIMENTACION"],
+                ColumnNames.DESCRIPCION_INSUMO: ["PINTURA"],  # Prohibido
+            }
+        )
 
         engine = GovernanceEngine(config_dir=str(tmp_path))
         engine.load_ontology(str(ontology_without_identifying_keywords))
@@ -722,11 +736,13 @@ class TestSemanticCoherence:
 
     def test_case_insensitive_matching(self, configured_engine):
         """Verifica que el matching es case-insensitive."""
-        df = pd.DataFrame({
-            ColumnNames.CODIGO_APU: ["APU01"],
-            ColumnNames.DESCRIPCION_APU: ["viga de cimentacion"],  # minúsculas
-            ColumnNames.DESCRIPCION_INSUMO: ["pintura vinilo"],  # minúsculas
-        })
+        df = pd.DataFrame(
+            {
+                ColumnNames.CODIGO_APU: ["APU01"],
+                ColumnNames.DESCRIPCION_APU: ["viga de cimentacion"],  # minúsculas
+                ColumnNames.DESCRIPCION_INSUMO: ["pintura vinilo"],  # minúsculas
+            }
+        )
 
         report = configured_engine.check_semantic_coherence(df)
 
@@ -736,23 +752,24 @@ class TestSemanticCoherence:
     def test_reports_violation_count_in_context(self, configured_engine):
         """Verifica que el contexto incluye conteo de violaciones."""
         # DataFrame con múltiples insumos prohibidos
-        df = pd.DataFrame({
-            ColumnNames.CODIGO_APU: ["APU01"] * 5,
-            ColumnNames.DESCRIPCION_APU: ["ZAPATA DE CIMENTACION"] * 5,
-            ColumnNames.DESCRIPCION_INSUMO: [
-                "PINTURA TIPO A",
-                "PINTURA TIPO B",
-                "PINTURA TIPO C",
-                "PINTURA TIPO D",
-                "CONCRETO 3000 PSI",
-            ],
-        })
+        df = pd.DataFrame(
+            {
+                ColumnNames.CODIGO_APU: ["APU01"] * 5,
+                ColumnNames.DESCRIPCION_APU: ["ZAPATA DE CIMENTACION"] * 5,
+                ColumnNames.DESCRIPCION_INSUMO: [
+                    "PINTURA TIPO A",
+                    "PINTURA TIPO B",
+                    "PINTURA TIPO C",
+                    "PINTURA TIPO D",
+                    "CONCRETO 3000 PSI",
+                ],
+            }
+        )
 
         report = configured_engine.check_semantic_coherence(df)
 
         violation = next(
-            (v for v in report.violations if v["type"] == "SEMANTIC_INCONSISTENCY"),
-            None
+            (v for v in report.violations if v["type"] == "SEMANTIC_INCONSISTENCY"), None
         )
 
         assert violation is not None
@@ -763,6 +780,7 @@ class TestSemanticCoherence:
 # =============================================================================
 # TESTS: GovernanceEngine - Métodos Auxiliares
 # =============================================================================
+
 
 class TestHelperMethods:
     """Pruebas para métodos auxiliares."""
@@ -784,7 +802,7 @@ class TestHelperMethods:
         """Verifica manejo de NaN."""
         engine = GovernanceEngine(config_dir=str(tmp_path))
 
-        assert engine._safe_string_upper(float('nan')) == ""
+        assert engine._safe_string_upper(float("nan")) == ""
 
     def test_safe_string_upper_with_number(self, tmp_path):
         """Verifica conversión de número."""
@@ -832,10 +850,13 @@ class TestHelperMethods:
 # TESTS: Integración
 # =============================================================================
 
+
 class TestIntegration:
     """Pruebas de integración end-to-end."""
 
-    def test_full_workflow_with_violations(self, tmp_path, sample_ontology, sample_dataframe):
+    def test_full_workflow_with_violations(
+        self, tmp_path, sample_ontology, sample_dataframe
+    ):
         """Prueba flujo completo con violaciones detectadas."""
         # Inicializar
         engine = GovernanceEngine(config_dir=str(tmp_path))
@@ -861,11 +882,13 @@ class TestIntegration:
 
     def test_full_workflow_without_violations(self, tmp_path, sample_ontology):
         """Prueba flujo completo sin violaciones."""
-        compliant_df = pd.DataFrame({
-            ColumnNames.CODIGO_APU: ["APU01", "APU01"],
-            ColumnNames.DESCRIPCION_APU: ["ZAPATA CIMENTACION", "ZAPATA CIMENTACION"],
-            ColumnNames.DESCRIPCION_INSUMO: ["CONCRETO PREMEZCLADO", "ACERO CORRUGADO"],
-        })
+        compliant_df = pd.DataFrame(
+            {
+                ColumnNames.CODIGO_APU: ["APU01", "APU01"],
+                ColumnNames.DESCRIPCION_APU: ["ZAPATA CIMENTACION", "ZAPATA CIMENTACION"],
+                ColumnNames.DESCRIPCION_INSUMO: ["CONCRETO PREMEZCLADO", "ACERO CORRUGADO"],
+            }
+        )
 
         engine = GovernanceEngine(config_dir=str(tmp_path))
         engine.load_ontology(str(sample_ontology))
@@ -878,11 +901,13 @@ class TestIntegration:
 
     def test_reload_ontology_updates_validation(self, tmp_path, sample_ontology):
         """Verifica que recargar ontología afecta validaciones siguientes."""
-        df = pd.DataFrame({
-            ColumnNames.CODIGO_APU: ["APU01"],
-            ColumnNames.DESCRIPCION_APU: ["TRABAJO DE CIMENTACION"],
-            ColumnNames.DESCRIPCION_INSUMO: ["PINTURA ESPECIAL"],
-        })
+        df = pd.DataFrame(
+            {
+                ColumnNames.CODIGO_APU: ["APU01"],
+                ColumnNames.DESCRIPCION_APU: ["TRABAJO DE CIMENTACION"],
+                ColumnNames.DESCRIPCION_INSUMO: ["PINTURA ESPECIAL"],
+            }
+        )
 
         engine = GovernanceEngine(config_dir=str(tmp_path))
         engine.load_ontology(str(sample_ontology))
@@ -912,8 +937,7 @@ class TestIntegration:
         # Segunda validación - no debería detectar violación de forbidden
         report2 = engine.check_semantic_coherence(df)
         forbidden_violations = [
-            v for v in report2.violations
-            if v["type"] == "SEMANTIC_INCONSISTENCY"
+            v for v in report2.violations if v["type"] == "SEMANTIC_INCONSISTENCY"
         ]
 
         assert len(forbidden_violations) == 0

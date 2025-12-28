@@ -1,10 +1,11 @@
 from playwright.sync_api import sync_playwright, expect
 import os
 
+
 def run():
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)
-        context = browser.new_context(viewport={'width': 1280, 'height': 800})
+        context = browser.new_context(viewport={"width": 1280, "height": 800})
         page = context.new_page()
 
         # 1. Navigate to the page
@@ -35,6 +36,7 @@ def run():
 
         print("Verification successful!")
         browser.close()
+
 
 if __name__ == "__main__":
     run()

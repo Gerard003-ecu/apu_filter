@@ -1,13 +1,13 @@
-
 import pytest
 import time
 from unittest.mock import MagicMock, patch
 import requests
 from agent.apu_agent import AutonomousAgent
 
+
 class TestAgentResilience:
-    @patch('time.sleep', return_value=None)  # Skip sleep to speed up tests
-    @patch('requests.get')
+    @patch("time.sleep", return_value=None)  # Skip sleep to speed up tests
+    @patch("requests.get")
     def test_wait_for_startup_cold_start(self, mock_get, mock_sleep):
         """
         Test that _wait_for_startup handles ConnectionRefusedError (Cold Start)
@@ -25,7 +25,7 @@ class TestAgentResilience:
             requests.exceptions.ConnectionError("Connection refused"),
             requests.exceptions.ConnectionError("Connection refused"),
             MagicMock(ok=False, status_code=503),
-            MagicMock(ok=True, status_code=200)
+            MagicMock(ok=True, status_code=200),
         ]
 
         # We need to control the _running loop, or it will loop forever if logic fails.
@@ -38,4 +38,4 @@ class TestAgentResilience:
 
         # Assertions
         assert mock_get.call_count == 4
-        assert mock_sleep.call_count == 3 # Should sleep after each failure
+        assert mock_sleep.call_count == 3  # Should sleep after each failure
