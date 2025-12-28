@@ -402,14 +402,30 @@ class SemanticTranslator:
 
     def compose_strategic_narrative(
         self,
-        topo_metrics: TopologicalMetrics,
-        fin_metrics: Dict[str, Any],
+        topological_metrics: Any,
+        financial_metrics: Dict[str, Any],
         stability: float = 0.0,
         synergy_risk: Optional[Dict[str, Any]] = None,
     ) -> str:
         """
         Compone el reporte ejecutivo con metáforas de ingeniería estructural.
         """
+        # Adapt for both object and dict input for topological_metrics
+        if isinstance(topological_metrics, dict):
+            topo_metrics = TopologicalMetrics(**topological_metrics)
+        elif isinstance(topological_metrics, TopologicalMetrics):
+            topo_metrics = topological_metrics
+        else:
+            # Fallback/Error handling
+            logger.warning(
+                f"Invalid type for topological_metrics: {type(topological_metrics)}"
+            )
+            # Attempt to construct default or fail
+            try:
+                topo_metrics = TopologicalMetrics(beta_0=1, beta_1=0, euler_characteristic=1)
+            except Exception:
+                raise TypeError("topological_metrics must be TopologicalMetrics or dict")
+
         sections = []
         is_analysis_valid = True
         errors = []
@@ -431,7 +447,7 @@ class SemanticTranslator:
         # 2. Finanzas
         sections.append("### 2. Análisis de Cargas Financieras")
         try:
-            sections.append(self.translate_financial(fin_metrics))
+            sections.append(self.translate_financial(financial_metrics))
         except Exception as e:
             error_msg = f"Error analizando finanzas: {e}"
             sections.append(f"❌ {error_msg}")
@@ -448,7 +464,7 @@ class SemanticTranslator:
         sections.append("### 💡 Dictamen del Ingeniero Jefe")
         sections.append(
             self._generate_final_advice(
-                topo_metrics, fin_metrics, stability, is_analysis_valid, synergy_risk
+                topo_metrics, financial_metrics, stability, is_analysis_valid, synergy_risk
             )
         )
 

@@ -1533,7 +1533,9 @@ def analyze_financial_viability(
                 "wacc": analysis.get("wacc"),
                 "npv": analysis.get("npv"),
                 "total_value_with_option": analysis.get("total_value"),
-                "contingency_recommended": analysis.get("contingency", {}).get("recommended"),
+                "contingency_recommended": analysis.get("contingency", {}).get(
+                    "recommended"
+                ),
                 "recommendation": analysis.get("performance", {}).get("recommendation"),
             },
         }

@@ -15,6 +15,7 @@ logger = logging.getLogger(__name__)
 
 class Severity(str, Enum):
     """Niveles de severidad válidos para violaciones."""
+
     ERROR = "ERROR"
     WARNING = "WARNING"
     INFO = "INFO"
@@ -22,6 +23,7 @@ class Severity(str, Enum):
 
 class ComplianceStatus(str, Enum):
     """Estados posibles del reporte de cumplimiento."""
+
     PASS = "PASS"
     WARNING = "WARNING"
     FAIL = "FAIL"
@@ -35,8 +37,8 @@ SEVERITY_PENALTIES: Dict[Severity, float] = {
 }
 
 SCORE_THRESHOLDS = {
-    "fail": 70.0,      # Por debajo de esto: FAIL
-    "warning": 90.0,   # Por debajo de esto: WARNING
+    "fail": 70.0,  # Por debajo de esto: FAIL
+    "warning": 90.0,  # Por debajo de esto: WARNING
 }
 
 
@@ -56,7 +58,7 @@ class ComplianceReport:
         type_: str,
         message: str,
         severity: str = "ERROR",
-        context: Optional[Dict[str, Any]] = None
+        context: Optional[Dict[str, Any]] = None,
     ) -> bool:
         """
         Registra una violación de reglas con validación robusta.
@@ -77,9 +79,7 @@ class ComplianceReport:
         try:
             normalized_severity = Severity(severity.upper().strip())
         except (ValueError, AttributeError):
-            logger.warning(
-                f"Severidad inválida '{severity}', usando ERROR por defecto"
-            )
+            logger.warning(f"Severidad inválida '{severity}', usando ERROR por defecto")
             normalized_severity = Severity.ERROR
 
         # Validar parámetros obligatorios
@@ -159,9 +159,10 @@ class GovernanceEngine:
     @classmethod
     def _check_yaml_availability(cls) -> None:
         """Verifica disponibilidad de PyYAML una sola vez."""
-        if not hasattr(cls, '_yaml_checked'):
+        if not hasattr(cls, "_yaml_checked"):
             try:
                 import yaml  # noqa: F401
+
                 cls._yaml_available = True
             except ImportError:
                 cls._yaml_available = False
@@ -257,7 +258,11 @@ class GovernanceEngine:
                     return False
 
                 # Validar que keywords sean listas si existen
-                for key in ("forbidden_keywords", "required_keywords", "identifying_keywords"):
+                for key in (
+                    "forbidden_keywords",
+                    "required_keywords",
+                    "identifying_keywords",
+                ):
                     if key in rules and not isinstance(rules[key], list):
                         logger.error(f"'{key}' en dominio '{domain_name}' debe ser lista")
                         return False
@@ -279,9 +284,7 @@ class GovernanceEngine:
             return False
 
         if not self._yaml_available:
-            logger.warning(
-                "⚠️ PyYAML no instalado. Instale con: pip install pyyaml"
-            )
+            logger.warning("⚠️ PyYAML no instalado. Instale con: pip install pyyaml")
             self._apply_default_policy()
             return False
 
@@ -358,7 +361,9 @@ class GovernanceEngine:
 
         # Verificar extensión
         if ontology_path.suffix.lower() != ".json":
-            logger.warning(f"⚠️ Extensión inesperada (se esperaba .json): {ontology_path.suffix}")
+            logger.warning(
+                f"⚠️ Extensión inesperada (se esperaba .json): {ontology_path.suffix}"
+            )
 
         try:
             with open(ontology_path, "r", encoding="utf-8") as f:
@@ -381,13 +386,17 @@ class GovernanceEngine:
             return True
 
         except json.JSONDecodeError as e:
-            logger.error(f"❌ Error de sintaxis JSON: línea {e.lineno}, columna {e.colno}: {e.msg}")
+            logger.error(
+                f"❌ Error de sintaxis JSON: línea {e.lineno}, columna {e.colno}: {e.msg}"
+            )
             return False
         except PermissionError:
             logger.error(f"❌ Sin permisos para leer: {path}")
             return False
         except Exception as e:
-            logger.error(f"❌ Error cargando ontología personalizada: {type(e).__name__}: {e}")
+            logger.error(
+                f"❌ Error cargando ontología personalizada: {type(e).__name__}: {e}"
+            )
             return False
 
     def check_semantic_coherence(self, dataframe: pd.DataFrame) -> ComplianceReport:
@@ -439,7 +448,7 @@ class GovernanceEngine:
                 apu_code=apu_code,
                 group=group,
                 normalized_domains=normalized_domains,
-                report=report
+                report=report,
             )
             processed_count += 1
 
@@ -456,9 +465,7 @@ class GovernanceEngine:
         return report
 
     def _validate_semantic_check_preconditions(
-        self,
-        dataframe: pd.DataFrame,
-        report: ComplianceReport
+        self, dataframe: pd.DataFrame, report: ComplianceReport
     ) -> bool:
         """
         Valida las precondiciones para la verificación semántica.
@@ -488,9 +495,7 @@ class GovernanceEngine:
         if not isinstance(dataframe, pd.DataFrame):
             logger.error(f"❌ Se esperaba DataFrame, se recibió {type(dataframe).__name__}")
             report.add_violation(
-                "TYPE_ERROR",
-                f"Tipo de datos inválido: {type(dataframe).__name__}",
-                "ERROR"
+                "TYPE_ERROR", f"Tipo de datos inválido: {type(dataframe).__name__}", "ERROR"
             )
             return False
 
@@ -515,8 +520,7 @@ class GovernanceEngine:
         return True
 
     def _normalize_domain_keywords(
-        self,
-        domains: Dict[str, Any]
+        self, domains: Dict[str, Any]
     ) -> Dict[str, Dict[str, Any]]:
         """
         Normaliza las keywords de todos los dominios a mayúsculas.
@@ -573,7 +577,7 @@ class GovernanceEngine:
         apu_code: Any,
         group: pd.DataFrame,
         normalized_domains: Dict[str, Dict[str, Any]],
-        report: ComplianceReport
+        report: ComplianceReport,
     ) -> None:
         """
         Valida un grupo de insumos pertenecientes a un APU.
@@ -593,9 +597,7 @@ class GovernanceEngine:
             return
 
         # Inferir dominio usando keywords identificadoras
-        detected_domain, domain_rules = self._infer_domain(
-            desc_apu, normalized_domains
-        )
+        detected_domain, domain_rules = self._infer_domain(desc_apu, normalized_domains)
 
         if not detected_domain:
             logger.debug(f"No se pudo inferir dominio para APU: {apu_code}")
@@ -611,7 +613,7 @@ class GovernanceEngine:
             domain_name=detected_domain,
             insumos=insumos_normalized,
             forbidden=domain_rules.get("forbidden_keywords", []),
-            report=report
+            report=report,
         )
 
         # Chequeo 2: Palabras Requeridas
@@ -621,7 +623,7 @@ class GovernanceEngine:
             insumos=insumos_normalized,
             required=domain_rules.get("required_keywords", []),
             min_matches=domain_rules.get("min_required_matches", 1),
-            report=report
+            report=report,
         )
 
     def _safe_string_upper(self, value: Any) -> str:
@@ -639,9 +641,7 @@ class GovernanceEngine:
         return str(value).strip().upper()
 
     def _infer_domain(
-        self,
-        description: str,
-        normalized_domains: Dict[str, Dict[str, Any]]
+        self, description: str, normalized_domains: Dict[str, Dict[str, Any]]
     ) -> Tuple[Optional[str], Dict[str, Any]]:
         """
         Infiere el dominio de un APU basado en su descripción.
@@ -675,10 +675,7 @@ class GovernanceEngine:
                 continue
 
             # Contar cuántas keywords identificadoras coinciden
-            match_count = sum(
-                1 for kw in identifying
-                if kw and kw in description
-            )
+            match_count = sum(1 for kw in identifying if kw and kw in description)
 
             if match_count > best_match_count:
                 best_match_count = match_count
@@ -693,7 +690,7 @@ class GovernanceEngine:
         domain_name: str,
         insumos: pd.Series,
         forbidden: List[str],
-        report: ComplianceReport
+        report: ComplianceReport,
     ) -> None:
         """
         Verifica que los insumos no contengan palabras prohibidas.
@@ -723,7 +720,11 @@ class GovernanceEngine:
                     # Mostrar muestra pero indicar el total
                     sample_size = 3
                     sample = violating_insumos[:sample_size]
-                    suffix = f" (y {total_violations - sample_size} más)" if total_violations > sample_size else ""
+                    suffix = (
+                        f" (y {total_violations - sample_size} más)"
+                        if total_violations > sample_size
+                        else ""
+                    )
 
                     msg = (
                         f"APU '{apu_code}' ({domain_name}): "
@@ -740,7 +741,7 @@ class GovernanceEngine:
                             "domain": domain_name,
                             "forbidden_keyword": bad_keyword,
                             "violation_count": total_violations,
-                        }
+                        },
                     )
             except Exception as e:
                 logger.debug(f"Error verificando keyword '{bad_keyword}': {e}")
@@ -752,7 +753,7 @@ class GovernanceEngine:
         insumos: pd.Series,
         required: List[str],
         min_matches: int,
-        report: ComplianceReport
+        report: ComplianceReport,
     ) -> None:
         """
         Verifica que los insumos contengan las palabras requeridas.
@@ -778,10 +779,7 @@ class GovernanceEngine:
             return
 
         # Contar keywords presentes
-        found_keywords = [
-            kw for kw in required
-            if kw and kw in all_insumos_text
-        ]
+        found_keywords = [kw for kw in required if kw and kw in all_insumos_text]
         found_count = len(found_keywords)
         missing_keywords = [kw for kw in required if kw and kw not in all_insumos_text]
 
@@ -804,5 +802,5 @@ class GovernanceEngine:
                     "found_keywords": found_keywords,
                     "missing_keywords": missing_keywords,
                     "min_required": min_matches,
-                }
+                },
             )

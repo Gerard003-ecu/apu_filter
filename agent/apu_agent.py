@@ -1117,7 +1117,9 @@ class AutonomousAgent:
     def _act_recomendar_limpieza(self, diagnosis_msg: str) -> None:
         """Acción: Recomendar limpieza por inestabilidad."""
         logger.warning(f"[BRAIN] ⚠️ INESTABILIDAD DETECTADA - {diagnosis_msg}")
-        logger.warning("[BRAIN] → Recomendación: Investigar origen de inestabilidad de datos")
+        logger.warning(
+            "[BRAIN] → Recomendación: Investigar origen de inestabilidad de datos"
+        )
         self._notify_external_system(
             "instability_detected",
             {

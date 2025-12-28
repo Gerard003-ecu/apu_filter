@@ -144,7 +144,10 @@ class ScriptConfig:
         if not isinstance(self.max_text_length, int) or self.max_text_length <= 0:
             raise ValueError("max_text_length debe ser un entero positivo")
 
-        if not isinstance(self.validation_sample_size, int) or self.validation_sample_size <= 0:
+        if (
+            not isinstance(self.validation_sample_size, int)
+            or self.validation_sample_size <= 0
+        ):
             raise ValueError("validation_sample_size debe ser un entero positivo")
 
     def _validate_boolean_fields(self) -> None:
@@ -301,13 +304,9 @@ class DataValidator:
             raise TypeError("config debe ser una instancia de ScriptConfig")
 
     @staticmethod
-    def _check_required_columns(
-        df: pd.DataFrame, text_column: str, id_column: str
-    ) -> None:
+    def _check_required_columns(df: pd.DataFrame, text_column: str, id_column: str) -> None:
         """Verifica que las columnas requeridas existan."""
-        missing_columns = [
-            col for col in [text_column, id_column] if col not in df.columns
-        ]
+        missing_columns = [col for col in [text_column, id_column] if col not in df.columns]
         if missing_columns:
             raise DataValidationError(
                 f"Columnas faltantes en el DataFrame: {missing_columns}"
@@ -490,13 +489,17 @@ class FileManager:
             try:
                 df = pd.read_csv(file_path, encoding=encoding)
                 if encoding != "utf-8":
-                    logger.warning(f"Archivo {file_path.name} leído con codificación {encoding}")
+                    logger.warning(
+                        f"Archivo {file_path.name} leído con codificación {encoding}"
+                    )
                 return df
             except UnicodeDecodeError as e:
                 last_error = e
                 continue
             except pd.errors.EmptyDataError:
-                raise DataValidationError(f"El archivo CSV {file_path} está vacío o corrupto")
+                raise DataValidationError(
+                    f"El archivo CSV {file_path} está vacío o corrupto"
+                )
 
         raise DataValidationError(
             f"No se pudo leer {file_path} con codificaciones: "
@@ -507,6 +510,7 @@ class FileManager:
 @dataclass
 class ValidationStats:
     """Estadísticas de validación del índice FAISS."""
+
     exact_matches: int = 0
     semantic_duplicates: int = 0
     failures: int = 0
@@ -566,7 +570,9 @@ class EmbeddingGenerator:
         # Filtrar y reportar textos vacíos
         valid_texts, empty_count = self._filter_empty_texts(texts)
         if empty_count > 0:
-            self.logger.warning(f"Se encontraron {empty_count} textos vacíos o con solo espacios")
+            self.logger.warning(
+                f"Se encontraron {empty_count} textos vacíos o con solo espacios"
+            )
 
         if not valid_texts:
             raise ValueError("No hay textos válidos para generar embeddings")
@@ -701,10 +707,7 @@ class EmbeddingGenerator:
         return rng.choice(total, n_samples, replace=False)
 
     def _run_validation_loop(
-        self,
-        index: faiss.Index,
-        embeddings: np.ndarray,
-        sample_indices: np.ndarray
+        self, index: faiss.Index, embeddings: np.ndarray, sample_indices: np.ndarray
     ) -> ValidationStats:
         """Ejecuta el loop principal de validación."""
         stats = ValidationStats(total=len(sample_indices))
@@ -720,18 +723,13 @@ class EmbeddingGenerator:
                 stats.failures += 1
                 continue
 
-            classification = self._classify_search_result(
-                idx, indices[0], similarities[0]
-            )
+            classification = self._classify_search_result(idx, indices[0], similarities[0])
             self._update_stats(stats, classification, idx, indices[0], similarities[0])
 
         return stats
 
     def _classify_search_result(
-        self,
-        expected_idx: int,
-        result_indices: np.ndarray,
-        result_similarities: np.ndarray
+        self, expected_idx: int, result_indices: np.ndarray, result_similarities: np.ndarray
     ) -> str:
         """Clasifica el resultado de búsqueda."""
         top_idx = result_indices[0]
@@ -760,7 +758,7 @@ class EmbeddingGenerator:
         classification: str,
         expected_idx: int,
         result_indices: np.ndarray,
-        result_similarities: np.ndarray
+        result_similarities: np.ndarray,
     ) -> None:
         """Actualiza estadísticas según clasificación."""
         if classification == "exact_match":
@@ -790,8 +788,12 @@ class EmbeddingGenerator:
             dup_pct = stats.semantic_duplicates / stats.total * 100
             fail_pct = stats.failures / stats.total * 100
 
-            self.logger.info(f"   ✅ Coincidencias exactas: {stats.exact_matches} ({exact_pct:.1f}%)")
-            self.logger.info(f"   ⚠️  Duplicados semánticos: {stats.semantic_duplicates} ({dup_pct:.1f}%)")
+            self.logger.info(
+                f"   ✅ Coincidencias exactas: {stats.exact_matches} ({exact_pct:.1f}%)"
+            )
+            self.logger.info(
+                f"   ⚠️  Duplicados semánticos: {stats.semantic_duplicates} ({dup_pct:.1f}%)"
+            )
             self.logger.info(f"   ❌ Fallos reales: {stats.failures} ({fail_pct:.1f}%)")
 
         if stats.is_valid:
@@ -800,7 +802,9 @@ class EmbeddingGenerator:
                     f"⚠️ Se detectaron {stats.semantic_duplicates} duplicados. "
                     "Considera limpiar datos duplicados."
                 )
-            self.logger.info(f"✅ Validación EXITOSA (tasa: {stats.success_rate * 100:.2f}%)")
+            self.logger.info(
+                f"✅ Validación EXITOSA (tasa: {stats.success_rate * 100:.2f}%)"
+            )
         else:
             self.logger.error(f"❌ Validación FALLIDA: {stats.failures} errores detectados")
 
@@ -935,8 +939,7 @@ class EmbeddingPipeline:
         }
 
         temp_paths = {
-            key: path.with_suffix(f"{path.suffix}.tmp")
-            for key, path in paths.items()
+            key: path.with_suffix(f"{path.suffix}.tmp") for key, path in paths.items()
         }
 
         try:
@@ -973,10 +976,7 @@ class EmbeddingPipeline:
             raise TypeError("id_map debe contener solo cadenas como claves y valores")
 
     def _write_temp_files(
-        self,
-        index: faiss.Index,
-        id_map: Dict[str, str],
-        temp_paths: Dict[str, Path]
+        self, index: faiss.Index, id_map: Dict[str, str], temp_paths: Dict[str, Path]
     ) -> None:
         """Escribe archivos temporales."""
         # Guardar índice FAISS

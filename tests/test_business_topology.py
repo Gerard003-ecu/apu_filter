@@ -17,6 +17,7 @@ from app.constants import ColumnNames
 # HELPER FUNCTIONS
 # =============================================================================
 
+
 def normalize_report_text(report_lines: list[str]) -> str:
     """
     Normaliza el texto del reporte para facilitar las comparaciones en los tests.
@@ -26,18 +27,19 @@ def normalize_report_text(report_lines: list[str]) -> str:
 
     # 1. Normalizar Unicode (NFD descompone caracteres) y eliminar no-ASCII
     # Esto convierte 'ó' -> 'o' y elimina bordes como '│' (que no son ASCII)
-    text = unicodedata.normalize('NFD', text).encode('ascii', 'ignore').decode('ascii')
+    text = unicodedata.normalize("NFD", text).encode("ascii", "ignore").decode("ascii")
 
     # 2. Convertir a minúsculas
     text = text.lower()
 
     # 3. Reemplazar cualquier cosa que no sea letra, número o espacio por espacio
-    text = re.sub(r'[^a-z0-9\s]', ' ', text)
+    text = re.sub(r"[^a-z0-9\s]", " ", text)
 
     # 4. Colapsar espacios múltiples
-    text = re.sub(r'\s+', ' ', text).strip()
+    text = re.sub(r"\s+", " ", text).strip()
 
     return text
+
 
 # =============================================================================
 # FIXTURES COMPARTIDAS
@@ -1129,7 +1131,9 @@ class TestBusinessTopologicalAnalyzer:
 
             # Debug
             if "eficiencia de euler" not in report_text:
-                pytest.fail(f"Texto normalizado no contiene 'eficiencia de euler':\n{report_text!r}")
+                pytest.fail(
+                    f"Texto normalizado no contiene 'eficiencia de euler':\n{report_text!r}"
+                )
 
             assert "eficiencia de euler" in report_text
             assert "ciclos de costo" in report_text
@@ -1143,7 +1147,11 @@ class TestBusinessTopologicalAnalyzer:
             report = analyzer.get_audit_report(analysis)
             report_text = normalize_report_text(report)
 
-            assert "criticas" in report_text or "circular" in report_text or "ciclos de costo" in report_text
+            assert (
+                "criticas" in report_text
+                or "circular" in report_text
+                or "ciclos de costo" in report_text
+            )
 
         def test_report_shows_ok_for_healthy_graph(self, analyzer):
             """Verifica resultado OK para grafo saludable."""
@@ -1158,7 +1166,9 @@ class TestBusinessTopologicalAnalyzer:
 
             # Debug
             if "puntuacion de integridad" not in report_text:
-                 pytest.fail(f"Texto normalizado no contiene 'puntuacion de integridad':\n{report_text!r}")
+                pytest.fail(
+                    f"Texto normalizado no contiene 'puntuacion de integridad':\n{report_text!r}"
+                )
 
             assert "puntuacion de integridad" in report_text
 
@@ -1452,7 +1462,7 @@ class TestEdgeCases:
         G = builder.build(df_presupuesto, df_detail)
 
         # Debería procesar sin error
-        assert G.number_of_nodes() == 3 # APU + Insumo + Root
+        assert G.number_of_nodes() == 3  # APU + Insumo + Root
         edge = G["APU-001"]["Insumo"]
         assert edge["total_cost"] == -50.0  # -5 * 10
 

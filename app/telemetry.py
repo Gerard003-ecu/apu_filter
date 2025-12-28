@@ -2195,7 +2195,7 @@ class TelemetryContext:
             return {
                 "status": "NO_DISPONIBLE",
                 "message": "No hay métricas financieras registradas.",
-                "metrics": {}
+                "metrics": {},
             }
 
         status = "OPTIMO"
@@ -2212,11 +2212,7 @@ class TelemetryContext:
             # Esta es la condición base para OPTIMO, ya está por defecto
             pass
 
-        return {
-            "status": status,
-            "message": message,
-            "metrics": present_metrics
-        }
+        return {"status": status, "message": message, "metrics": present_metrics}
 
     def _calculate_step_statistics(self) -> Dict[str, Any]:
         """Calcula estadísticas de pasos de forma segura."""

@@ -1322,6 +1322,17 @@ def validate_and_clean_data(
                         "presupuesto_alerts",
                         metrics_presupuesto.items_con_alertas,
                     )
+                    # Registrar score de cumplimiento aproximado en el pasabordo
+                    compliance = max(0, 100 - (metrics_presupuesto.items_con_errores * 5))
+                    telemetry_context.record_metric(
+                        "validation", "compliance_score", compliance
+                    )
+                    telemetry_context.record_metric(
+                        "validation",
+                        "violation_count",
+                        metrics_presupuesto.items_con_alertas,
+                    )
+
             except Exception as e:
                 error_msg = f"Error crítico al validar presupuesto: {str(e)}"
                 logger.error(error_msg, exc_info=True)

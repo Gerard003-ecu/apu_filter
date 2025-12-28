@@ -527,7 +527,7 @@ class LoadDataStep(ProcessingStep):
                     payload = {
                         **metrics,
                         "_timestamp": time.time(),
-                        "_source": "flux_condenser_realtime"
+                        "_source": "flux_condenser_realtime",
                     }
 
                     # Serializar
@@ -540,12 +540,13 @@ class LoadDataStep(ProcessingStep):
                             # Escribir con expiración corta (60s)
                             redis_client.set("apu_filter:global_metrics", data_str, ex=60)
                 except Exception:
-                    pass # Fail silently to avoid interrupting pipeline
+                    pass  # Fail silently to avoid interrupting pipeline
 
             df_apus_raw = condenser.stabilize(
                 apus_path,
                 on_progress=on_progress_stats,
-                progress_callback=_publish_telemetry
+                progress_callback=_publish_telemetry,
+                telemetry=telemetry,
             )
 
             # Registrar estadísticas finales completas (manteniendo lógica existente)
@@ -869,7 +870,9 @@ class MaterializationStep(ProcessingStep):
         try:
             # Verificar dependencias en el contexto
             if "business_topology_report" not in context:
-                logger.warning("⚠️ No se encontró reporte de topología. Saltando materialización.")
+                logger.warning(
+                    "⚠️ No se encontró reporte de topología. Saltando materialización."
+                )
                 telemetry.end_step("materialization", "skipped")
                 return context
 
@@ -895,8 +898,11 @@ class MaterializationStep(ProcessingStep):
             if not graph:
                 # Intentar obtenerlo del reporte si fuera posible (no lo es, el reporte es dataclass)
                 # O reconstruirlo rápidamente usando los datos ya procesados en el contexto.
-                logger.info("🔄 Grafo no encontrado en contexto. Reconstruyendo para materialización...")
+                logger.info(
+                    "🔄 Grafo no encontrado en contexto. Reconstruyendo para materialización..."
+                )
                 from agent.business_topology import BudgetGraphBuilder
+
                 builder = BudgetGraphBuilder()
                 # Necesitamos los DFs procesados
                 # df_final o df_presupuesto, y df_merged (detail)
@@ -908,11 +914,11 @@ class MaterializationStep(ProcessingStep):
 
                 if df_presupuesto is not None and df_detail is not None:
                     graph = builder.build(df_presupuesto, df_detail)
-                    context["graph"] = graph # Guardarlo para futuros pasos
+                    context["graph"] = graph  # Guardarlo para futuros pasos
                 else:
-                     logger.error("❌ No hay datos suficientes para reconstruir el grafo.")
-                     telemetry.end_step("materialization", "error")
-                     return context
+                    logger.error("❌ No hay datos suficientes para reconstruir el grafo.")
+                    telemetry.end_step("materialization", "error")
+                    return context
 
             # Preparar inputs para MatterGenerator
             # Extraer métricas de flujo del contexto (FluxCondenser las guarda en telemetría o logs, pero aquí necesitamos dict)
@@ -924,22 +930,26 @@ class MaterializationStep(ProcessingStep):
             report = context.get("business_topology_report")
             stability = 10.0
             if report and report.details:
-                 stability = report.details.get("pyramid_stability", 10.0)
+                stability = report.details.get("pyramid_stability", 10.0)
 
             flux_metrics = {
                 "pyramid_stability": stability,
                 # saturation no la tenemos fácil sin acceso a telemetría interna, asumimos 0 si no está
-                "avg_saturation": 0.0
+                "avg_saturation": 0.0,
             }
 
             generator = MatterGenerator()
-            bom = generator.materialize_project(graph, flux_metrics=flux_metrics)
+            bom = generator.materialize_project(
+                graph, flux_metrics=flux_metrics, telemetry=telemetry
+            )
 
             # Guardar BOM en contexto
             context["bill_of_materials"] = bom
-            context["logistics_plan"] = asdict(bom) # Versión serializable
+            context["logistics_plan"] = asdict(bom)  # Versión serializable
 
-            logger.info(f"✅ Materialización completada. Total ítems: {len(bom.requirements)}")
+            logger.info(
+                f"✅ Materialización completada. Total ítems: {len(bom.requirements)}"
+            )
 
             telemetry.end_step("materialization", "success")
             return context
@@ -982,7 +992,9 @@ class BuildOutputStep(ProcessingStep):
                 df_final, df_insumos, df_merged, df_apus_raw, df_processed_apus
             )
 
-            validated_result = validate_and_clean_data(result_dict)
+            validated_result = validate_and_clean_data(
+                result_dict, telemetry_context=telemetry
+            )
             validated_result["raw_insumos_df"] = df_insumos.to_dict("records")
 
             # Integrar reporte de auditoría si existe

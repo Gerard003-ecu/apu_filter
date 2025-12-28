@@ -66,12 +66,13 @@ from app.topology_viz import (
 # FIXTURES
 # =============================================================================
 
+
 @pytest.fixture
 def flask_app():
     """Aplicación Flask para testing."""
     app = Flask(__name__)
-    app.config['TESTING'] = True
-    app.config['SECRET_KEY'] = 'test-secret-key'
+    app.config["TESTING"] = True
+    app.config["SECRET_KEY"] = "test-secret-key"
     app.register_blueprint(topology_bp)
     return app
 
@@ -119,7 +120,9 @@ def sample_graph():
     """Grafo de prueba básico."""
     G = nx.DiGraph()
     G.add_node("BUDGET", type="BUDGET", description="Presupuesto", level=0, total_cost=10000)
-    G.add_node("CAP01", type="CHAPTER", description="Cimentaciones", level=1, total_cost=5000)
+    G.add_node(
+        "CAP01", type="CHAPTER", description="Cimentaciones", level=1, total_cost=5000
+    )
     G.add_node("ITEM01", type="ITEM", description="Zapatas", level=2, total_cost=2500)
     G.add_node("APU01", type="APU", description="Concreto 3000 PSI", level=3, unit_cost=150)
     G.add_node("INS01", type="INSUMO", description="Cemento Portland", level=4, unit_cost=25)
@@ -186,6 +189,7 @@ def sample_analysis_result():
 # TESTS: Constantes y Enums
 # =============================================================================
 
+
 class TestConstants:
     """Pruebas para constantes y enums."""
 
@@ -230,6 +234,7 @@ class TestConstants:
 # TESTS: Dataclasses
 # =============================================================================
 
+
 class TestCytoscapeNode:
     """Pruebas para CytoscapeNode."""
 
@@ -254,7 +259,7 @@ class TestCytoscapeNode:
             color="#1E293B",
             level=2,
             cost=1500.50,
-            classes=["CHAPTER", "normal"]
+            classes=["CHAPTER", "normal"],
         )
 
         assert node.level == 2
@@ -271,7 +276,7 @@ class TestCytoscapeNode:
             color="#3B82F6",
             level=3,
             cost=100.0,
-            classes=["APU", "cycle"]
+            classes=["APU", "cycle"],
         )
 
         result = node.to_dict()
@@ -288,7 +293,9 @@ class TestCytoscapeNode:
 
     def test_to_dict_empty_classes(self):
         """Verifica to_dict con clases vacías."""
-        node = CytoscapeNode(id="N1", label="N1", node_type="APU", color="#3B82F6", classes=[])
+        node = CytoscapeNode(
+            id="N1", label="N1", node_type="APU", color="#3B82F6", classes=[]
+        )
 
         result = node.to_dict()
 
@@ -351,6 +358,7 @@ class TestAnomalyData:
 # TESTS: Validaciones
 # =============================================================================
 
+
 class TestValidateSessionData:
     """Pruebas para validate_session_data."""
 
@@ -399,10 +407,7 @@ class TestValidateSessionData:
 
     def test_apus_wrong_type(self):
         """Verifica rechazo cuando apus_detail no es lista."""
-        data = {
-            SessionKeys.PRESUPUESTO: [],
-            SessionKeys.APUS_DETAIL: {"not": "a list"}
-        }
+        data = {SessionKeys.PRESUPUESTO: [], SessionKeys.APUS_DETAIL: {"not": "a list"}}
 
         is_valid, error = validate_session_data(data)
 
@@ -463,6 +468,7 @@ class TestValidateGraph:
 # =============================================================================
 # TESTS: Extracción
 # =============================================================================
+
 
 class TestExtractDataframesFromSession:
     """Pruebas para extract_dataframes_from_session."""
@@ -639,11 +645,7 @@ class TestExtractAnomalyData:
 
     def test_handles_missing_cycles(self):
         """Verifica manejo de 'cycles' faltante."""
-        analysis = {
-            "details": {
-                "anomalies": {"isolated_nodes": [{"id": "A"}]}
-            }
-        }
+        analysis = {"details": {"anomalies": {"isolated_nodes": [{"id": "A"}]}}}
 
         result = extract_anomaly_data(analysis)
 
@@ -654,6 +656,7 @@ class TestExtractAnomalyData:
 # =============================================================================
 # TESTS: Helpers de Tipos Seguros
 # =============================================================================
+
 
 class TestSafeGetFloat:
     """Pruebas para _safe_get_float."""
@@ -714,6 +717,7 @@ class TestSafeGetInt:
 # =============================================================================
 # TESTS: Construcción de Labels y Colores
 # =============================================================================
+
 
 class TestBuildNodeLabel:
     """Pruebas para _build_node_label."""
@@ -796,6 +800,7 @@ class TestDetermineNodeColor:
 # =============================================================================
 # TESTS: Construcción de Elementos
 # =============================================================================
+
 
 class TestGetNodeType:
     """Pruebas para _get_node_type."""
@@ -897,7 +902,7 @@ class TestBuildNodeElement:
             "type": "APU",
             "description": "Concreto 3000 PSI",
             "level": 3,
-            "total_cost": 500
+            "total_cost": 500,
         }
 
         node = build_node_element("APU01", attrs, sample_anomaly_data)
@@ -957,10 +962,11 @@ class TestBuildEdgeElement:
 # TESTS: Funciones de Endpoint
 # =============================================================================
 
+
 class TestBuildGraphFromSession:
     """Pruebas para build_graph_from_session."""
 
-    @patch('app.topology_viz.BudgetGraphBuilder')
+    @patch("app.topology_viz.BudgetGraphBuilder")
     def test_builds_graph_successfully(self, mock_builder_class, valid_session_data):
         """Verifica construcción exitosa del grafo."""
         mock_graph = nx.DiGraph()
@@ -974,13 +980,13 @@ class TestBuildGraphFromSession:
         assert isinstance(result, nx.DiGraph)
         mock_builder.build.assert_called_once()
 
-    @patch('app.topology_viz.BudgetGraphBuilder')
+    @patch("app.topology_viz.BudgetGraphBuilder")
     def test_raises_on_empty_data(self, mock_builder_class, empty_session_data):
         """Verifica error con datos vacíos."""
         with pytest.raises(ValueError, match="No hay datos suficientes"):
             build_graph_from_session(empty_session_data)
 
-    @patch('app.topology_viz.BudgetGraphBuilder')
+    @patch("app.topology_viz.BudgetGraphBuilder")
     def test_raises_on_invalid_graph(self, mock_builder_class, valid_session_data):
         """Verifica error cuando builder retorna grafo inválido."""
         mock_builder = MagicMock()
@@ -994,8 +1000,10 @@ class TestBuildGraphFromSession:
 class TestAnalyzeGraphForVisualization:
     """Pruebas para analyze_graph_for_visualization."""
 
-    @patch('app.topology_viz.BusinessTopologicalAnalyzer')
-    def test_returns_anomaly_data(self, mock_analyzer_class, sample_graph, sample_analysis_result):
+    @patch("app.topology_viz.BusinessTopologicalAnalyzer")
+    def test_returns_anomaly_data(
+        self, mock_analyzer_class, sample_graph, sample_analysis_result
+    ):
         """Verifica retorno de AnomalyData."""
         mock_analyzer = MagicMock()
         mock_analyzer.analyze_structural_integrity.return_value = sample_analysis_result
@@ -1005,7 +1013,7 @@ class TestAnalyzeGraphForVisualization:
 
         assert isinstance(result, AnomalyData)
 
-    @patch('app.topology_viz.BusinessTopologicalAnalyzer')
+    @patch("app.topology_viz.BusinessTopologicalAnalyzer")
     def test_handles_analyzer_exception(self, mock_analyzer_class, sample_graph):
         """Verifica manejo de excepción del analizador."""
         mock_analyzer = MagicMock()
@@ -1072,6 +1080,7 @@ class TestConvertGraphToCytoscapeElements:
 # TESTS: Respuestas
 # =============================================================================
 
+
 class TestCreateErrorResponse:
     """Pruebas para create_error_response."""
 
@@ -1108,12 +1117,13 @@ class TestCreateSuccessResponse:
 # TESTS: Endpoints
 # =============================================================================
 
+
 class TestGetProjectGraphEndpoint:
     """Pruebas para el endpoint get_project_graph (renombrado de get_topology_data)."""
 
     def test_returns_404_without_session(self, client):
         """Verifica 404 sin datos en sesión."""
-        response = client.get('/api/visualization/project-graph')
+        response = client.get("/api/visualization/project-graph")
 
         assert response.status_code == 404
         data = response.get_json()
@@ -1125,19 +1135,14 @@ class TestGetProjectGraphEndpoint:
         with client.session_transaction() as sess:
             sess[SessionKeys.PROCESSED_DATA] = "invalid_data"
 
-        response = client.get('/api/visualization/project-graph')
+        response = client.get("/api/visualization/project-graph")
 
         assert response.status_code == 400
 
-    @patch('app.topology_viz.build_graph_from_session')
-    @patch('app.topology_viz.analyze_graph_for_visualization')
+    @patch("app.topology_viz.build_graph_from_session")
+    @patch("app.topology_viz.analyze_graph_for_visualization")
     def test_returns_success_with_valid_data(
-        self,
-        mock_analyze,
-        mock_build,
-        client,
-        sample_graph,
-        valid_session_data
+        self, mock_analyze, mock_build, client, sample_graph, valid_session_data
     ):
         """Verifica respuesta exitosa con datos válidos."""
         mock_build.return_value = sample_graph
@@ -1146,7 +1151,7 @@ class TestGetProjectGraphEndpoint:
         with client.session_transaction() as sess:
             sess[SessionKeys.PROCESSED_DATA] = valid_session_data
 
-        response = client.get('/api/visualization/project-graph')
+        response = client.get("/api/visualization/project-graph")
 
         assert response.status_code == 200
         data = response.get_json()
@@ -1154,12 +1159,9 @@ class TestGetProjectGraphEndpoint:
         assert "elements" in data
         assert "count" in data
 
-    @patch('app.topology_viz.build_graph_from_session')
+    @patch("app.topology_viz.build_graph_from_session")
     def test_returns_empty_elements_for_empty_graph(
-        self,
-        mock_build,
-        client,
-        valid_session_data
+        self, mock_build, client, valid_session_data
     ):
         """Verifica respuesta vacía para grafo vacío."""
         mock_build.return_value = nx.DiGraph()  # Grafo vacío
@@ -1167,14 +1169,14 @@ class TestGetProjectGraphEndpoint:
         with client.session_transaction() as sess:
             sess[SessionKeys.PROCESSED_DATA] = valid_session_data
 
-        response = client.get('/api/visualization/project-graph')
+        response = client.get("/api/visualization/project-graph")
 
         assert response.status_code == 200
         data = response.get_json()
         assert data["elements"] == []
         assert data["count"] == 0
 
-    @patch('app.topology_viz.build_graph_from_session')
+    @patch("app.topology_viz.build_graph_from_session")
     def test_handles_value_error(self, mock_build, client, valid_session_data):
         """Verifica manejo de ValueError."""
         mock_build.side_effect = ValueError("Construction failed")
@@ -1182,13 +1184,13 @@ class TestGetProjectGraphEndpoint:
         with client.session_transaction() as sess:
             sess[SessionKeys.PROCESSED_DATA] = valid_session_data
 
-        response = client.get('/api/visualization/project-graph')
+        response = client.get("/api/visualization/project-graph")
 
         assert response.status_code == 400
         data = response.get_json()
         assert "Construction failed" in data["error"]
 
-    @patch('app.topology_viz.build_graph_from_session')
+    @patch("app.topology_viz.build_graph_from_session")
     def test_handles_unexpected_exception(self, mock_build, client, valid_session_data):
         """Verifica manejo de excepción inesperada."""
         mock_build.side_effect = RuntimeError("Unexpected error")
@@ -1196,7 +1198,7 @@ class TestGetProjectGraphEndpoint:
         with client.session_transaction() as sess:
             sess[SessionKeys.PROCESSED_DATA] = valid_session_data
 
-        response = client.get('/api/visualization/project-graph')
+        response = client.get("/api/visualization/project-graph")
 
         assert response.status_code == 500
         data = response.get_json()
@@ -1208,12 +1210,12 @@ class TestGetTopologyStatsEndpoint:
 
     def test_returns_404_without_session(self, client):
         """Verifica 404 sin datos en sesión."""
-        response = client.get('/api/visualization/topology/stats')
+        response = client.get("/api/visualization/topology/stats")
 
         assert response.status_code == 404
 
-    @patch('app.topology_viz.build_graph_from_session')
-    @patch('app.topology_viz.analyze_graph_for_visualization')
+    @patch("app.topology_viz.build_graph_from_session")
+    @patch("app.topology_viz.analyze_graph_for_visualization")
     def test_returns_stats(
         self,
         mock_analyze,
@@ -1221,7 +1223,7 @@ class TestGetTopologyStatsEndpoint:
         client,
         sample_graph,
         sample_anomaly_data,
-        valid_session_data
+        valid_session_data,
     ):
         """Verifica retorno de estadísticas."""
         mock_build.return_value = sample_graph
@@ -1230,7 +1232,7 @@ class TestGetTopologyStatsEndpoint:
         with client.session_transaction() as sess:
             sess[SessionKeys.PROCESSED_DATA] = valid_session_data
 
-        response = client.get('/api/visualization/topology/stats')
+        response = client.get("/api/visualization/topology/stats")
 
         assert response.status_code == 200
         data = response.get_json()
@@ -1247,11 +1249,12 @@ class TestGetTopologyStatsEndpoint:
 # TESTS: Integración
 # =============================================================================
 
+
 class TestIntegration:
     """Pruebas de integración end-to-end."""
 
-    @patch('app.topology_viz.BudgetGraphBuilder')
-    @patch('app.topology_viz.BusinessTopologicalAnalyzer')
+    @patch("app.topology_viz.BudgetGraphBuilder")
+    @patch("app.topology_viz.BusinessTopologicalAnalyzer")
     def test_full_workflow(
         self,
         mock_analyzer_class,
@@ -1259,7 +1262,7 @@ class TestIntegration:
         client,
         sample_graph,
         sample_analysis_result,
-        valid_session_data
+        valid_session_data,
     ):
         """Prueba flujo completo desde sesión hasta respuesta."""
         # Configurar mocks
@@ -1276,7 +1279,7 @@ class TestIntegration:
             sess[SessionKeys.PROCESSED_DATA] = valid_session_data
 
         # Ejecutar request
-        response = client.get('/api/visualization/project-graph')
+        response = client.get("/api/visualization/project-graph")
 
         # Verificar
         assert response.status_code == 200
@@ -1298,7 +1301,7 @@ class TestIntegration:
             color="#3B82F6",
             level=1,
             cost=100.0,
-            classes=["APU", "normal"]
+            classes=["APU", "normal"],
         )
 
         # Crear arista

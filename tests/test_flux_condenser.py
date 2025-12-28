@@ -329,12 +329,14 @@ class TestFluxPhysicsEngine:
         """Prueba el análisis de tendencias."""
         # Generar historial sintético
         for i in range(10):
-            engine._store_metrics({
-                "saturation": 0.1 * i,  # Creciente
-                "dissipated_power": 100 - i * 10, # Decreciente
-                "damping_ratio": 1.0,
-                "total_energy": 50.0
-            })
+            engine._store_metrics(
+                {
+                    "saturation": 0.1 * i,  # Creciente
+                    "dissipated_power": 100 - i * 10,  # Decreciente
+                    "damping_ratio": 1.0,
+                    "total_energy": 50.0,
+                }
+            )
 
         analysis = engine.get_trend_analysis()
 

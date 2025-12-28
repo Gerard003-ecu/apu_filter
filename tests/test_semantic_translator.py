@@ -36,10 +36,7 @@ class TestSemanticTranslatorSetup:
     def test_custom_thresholds_initialization(self):
         """Verifica inicialización con umbrales personalizados."""
         custom_stability = StabilityThresholds(critical=2.0, solid=15.0)
-        custom_topo = TopologicalThresholds(
-            connected_components_optimal=2,
-            cycles_optimal=1
-        )
+        custom_topo = TopologicalThresholds(connected_components_optimal=2, cycles_optimal=1)
         custom_wacc = WACCThresholds(low=0.04, high=0.10)
         custom_severity = CycleSeverityThresholds(moderate=2, critical=4)
 
@@ -47,7 +44,7 @@ class TestSemanticTranslatorSetup:
             stability_thresholds=custom_stability,
             topo_thresholds=custom_topo,
             wacc_thresholds=custom_wacc,
-            cycle_severity=custom_severity
+            cycle_severity=custom_severity,
         )
 
         assert translator.stability_thresholds.critical == 2.0
@@ -78,7 +75,7 @@ class TestSemanticTranslatorSetup:
     def test_invalid_init_arguments_raise_type_error(self):
         """Verifica que tipos incorrectos en __init__ lanzan TypeError."""
         with pytest.raises(TypeError):
-            SemanticTranslator(stability_thresholds="invalid") # type: ignore
+            SemanticTranslator(stability_thresholds="invalid")  # type: ignore
 
 
 class TestTopologyTranslation:
@@ -158,22 +155,21 @@ class TestTopologyTranslation:
         assert "Terreno Vacío" in narrative
         assert "β₀ = 0" in narrative
 
-    @pytest.mark.parametrize("stability,expected_keyword", [
-        (0.5, "Pirámide Invertida"),
-        (0.99, "Pirámide Invertida"),
-        (1.0, "Estructura Isostática"),
-        (5.0, "Estructura Isostática"),
-        (9.99, "Estructura Isostática"),
-        (10.0, "ESTRUCTURA ANTISÍSMICA"),
-        (25.0, "ESTRUCTURA ANTISÍSMICA"),
-        (100.0, "ESTRUCTURA ANTISÍSMICA"),
-    ])
+    @pytest.mark.parametrize(
+        "stability,expected_keyword",
+        [
+            (0.5, "Pirámide Invertida"),
+            (0.99, "Pirámide Invertida"),
+            (1.0, "Estructura Isostática"),
+            (5.0, "Estructura Isostática"),
+            (9.99, "Estructura Isostática"),
+            (10.0, "ESTRUCTURA ANTISÍSMICA"),
+            (25.0, "ESTRUCTURA ANTISÍSMICA"),
+            (100.0, "ESTRUCTURA ANTISÍSMICA"),
+        ],
+    )
     def test_translate_stability_thresholds(
-        self,
-        translator,
-        clean_metrics,
-        stability: float,
-        expected_keyword: str
+        self, translator, clean_metrics, stability: float, expected_keyword: str
     ):
         """Verifica clasificación correcta según umbrales de estabilidad."""
         narrative = translator.translate_topology(clean_metrics, stability=stability)
@@ -213,7 +209,7 @@ class TestTopologyValidation:
     def test_validate_invalid_metrics_type_raises_error(self, translator):
         """Tipo incorrecto de métricas debe lanzar TypeError."""
         with pytest.raises(TypeError, match="Se esperaba TopologicalMetrics"):
-            translator.translate_topology({"beta_0": 1, "beta_1": 0}, stability=5.0) # type: ignore
+            translator.translate_topology({"beta_0": 1, "beta_1": 0}, stability=5.0)  # type: ignore
 
 
 class TestFinancialTranslation:
@@ -230,10 +226,7 @@ class TestFinancialTranslation:
             "wacc": 0.12,
             "var": 50000.0,
             "contingency": {"recommended": 60000.0},
-            "performance": {
-                "recommendation": "ACEPTAR",
-                "profitability_index": 1.25
-            }
+            "performance": {"recommendation": "ACEPTAR", "profitability_index": 1.25},
         }
 
     @pytest.fixture
@@ -243,10 +236,7 @@ class TestFinancialTranslation:
             "wacc": 0.18,
             "var": 100000.0,
             "contingency": {"recommended": 150000.0},
-            "performance": {
-                "recommendation": "RECHAZAR",
-                "profitability_index": 0.75
-            }
+            "performance": {"recommendation": "RECHAZAR", "profitability_index": 0.75},
         }
 
     @pytest.fixture
@@ -256,7 +246,7 @@ class TestFinancialTranslation:
             "wacc": 0.10,
             "var": 1000.0,
             "contingency": {"recommended": 1500.0},
-            "performance": {"recommendation": "REVISAR"}
+            "performance": {"recommendation": "REVISAR"},
         }
 
     def test_translate_financial_success(self, translator, viable_metrics):
@@ -287,7 +277,7 @@ class TestFinancialTranslation:
         metrics = {
             "wacc": 0.10,
             "contingency": {"recommended": 0.0},
-            "performance": {"recommendation": "REVISAR"}
+            "performance": {"recommendation": "REVISAR"},
         }
         narrative = translator.translate_financial(metrics)
 
@@ -304,16 +294,13 @@ class TestFinancialValidation:
     def test_validate_invalid_metrics_type_raises_error(self, translator):
         """Tipo incorrecto de métricas debe lanzar TypeError."""
         with pytest.raises(TypeError, match="Se esperaba dict"):
-            translator.translate_financial("not a dict") # type: ignore
+            translator.translate_financial("not a dict")  # type: ignore
 
     def test_validate_invalid_wacc_type_raises_error(self, translator):
         """WACC no numérico debe lanzar ValueError.
         NOTA: En la implementación 'Parse, Don't Validate', esto retorna default 0.0
         o debe manejarse si extract_numeric es estricto. La implementación actual es defensiva."""
-        metrics = {
-            "wacc": "invalid",
-            "performance": {"recommendation": "REVISAR"}
-        }
+        metrics = {"wacc": "invalid", "performance": {"recommendation": "REVISAR"}}
 
         # En la nueva implementación, extract_numeric retorna default=0.0 si falla validación interna
         # o si la función extract_numeric hace return default.
@@ -325,7 +312,7 @@ class TestFinancialValidation:
         """WACC ausente usa valor por defecto."""
         metrics = {
             "contingency": {"recommended": 1000.0},
-            "performance": {"recommendation": "REVISAR"}
+            "performance": {"recommendation": "REVISAR"},
         }
 
         narrative = translator.translate_financial(metrics)
@@ -336,7 +323,7 @@ class TestFinancialValidation:
         metrics = {
             "wacc": 0.10,
             "contingency": {"recommended": 1000.0},
-            "performance": {"recommendation": "ESTADO_INVALIDO"}
+            "performance": {"recommendation": "ESTADO_INVALIDO"},
         }
 
         narrative = translator.translate_financial(metrics)
@@ -364,10 +351,7 @@ class TestStrategicNarrative:
             "wacc": 0.10,
             "var": 1000.0,
             "contingency": {"recommended": 1500.0},
-            "performance": {
-                "recommendation": "ACEPTAR",
-                "profitability_index": 1.2
-            }
+            "performance": {"recommendation": "ACEPTAR", "profitability_index": 1.2},
         }
 
     @pytest.fixture
@@ -376,10 +360,7 @@ class TestStrategicNarrative:
             "wacc": 0.15,
             "var": 50000.0,
             "contingency": {"recommended": 75000.0},
-            "performance": {
-                "recommendation": "RECHAZAR",
-                "profitability_index": 0.6
-            }
+            "performance": {"recommendation": "RECHAZAR", "profitability_index": 0.6},
         }
 
     @pytest.fixture
@@ -388,20 +369,15 @@ class TestStrategicNarrative:
             "wacc": 0.10,
             "var": 1000.0,
             "contingency": {"recommended": 1500.0},
-            "performance": {"recommendation": "REVISAR"}
+            "performance": {"recommendation": "REVISAR"},
         }
 
     def test_compose_strategic_narrative_structure(
-        self,
-        translator,
-        clean_topo_metrics,
-        accept_fin_metrics
+        self, translator, clean_topo_metrics, accept_fin_metrics
     ):
         """Verifica estructura completa del reporte."""
         report = translator.compose_strategic_narrative(
-            clean_topo_metrics,
-            accept_fin_metrics,
-            stability=12.0
+            clean_topo_metrics, accept_fin_metrics, stability=12.0
         )
 
         # Secciones obligatorias
@@ -412,78 +388,53 @@ class TestStrategicNarrative:
         assert "### 💡 Dictamen del Ingeniero Jefe" in report
 
     def test_compose_strategic_narrative_green_light(
-        self,
-        translator,
-        clean_topo_metrics,
-        accept_fin_metrics
+        self, translator, clean_topo_metrics, accept_fin_metrics
     ):
         """Verifica luz verde: sin ciclos + aceptado."""
         report = translator.compose_strategic_narrative(
-            clean_topo_metrics,
-            accept_fin_metrics,
-            stability=12.0
+            clean_topo_metrics, accept_fin_metrics, stability=12.0
         )
 
         assert "CERTIFICADO DE SOLIDEZ" in report
         assert "Estructura piramidal estable" in report
 
     def test_compose_strategic_narrative_review_status(
-        self,
-        translator,
-        clean_topo_metrics,
-        review_fin_metrics
+        self, translator, clean_topo_metrics, review_fin_metrics
     ):
         """Verifica estado REVISAR."""
         report = translator.compose_strategic_narrative(
-            clean_topo_metrics,
-            review_fin_metrics,
-            stability=12.0
+            clean_topo_metrics, review_fin_metrics, stability=12.0
         )
 
         assert "REVISIÓN TÉCNICA REQUERIDA" in report
 
     def test_compose_strategic_narrative_financial_rejection(
-        self,
-        translator,
-        clean_topo_metrics,
-        reject_fin_metrics
+        self, translator, clean_topo_metrics, reject_fin_metrics
     ):
         """Verifica rechazo financiero."""
         report = translator.compose_strategic_narrative(
-            clean_topo_metrics,
-            reject_fin_metrics,
-            stability=12.0
+            clean_topo_metrics, reject_fin_metrics, stability=12.0
         )
 
         assert "REVISIÓN TÉCNICA REQUERIDA" in report
 
     def test_compose_strategic_narrative_technical_issues(
-        self,
-        translator,
-        cyclic_topo_metrics,
-        accept_fin_metrics
+        self, translator, cyclic_topo_metrics, accept_fin_metrics
     ):
         """Verifica cautela: ciclos (agujeros) + aceptado financieramente."""
         report = translator.compose_strategic_narrative(
-            cyclic_topo_metrics,
-            accept_fin_metrics,
-            stability=12.0
+            cyclic_topo_metrics, accept_fin_metrics, stability=12.0
         )
 
         assert "DETENER PARA REPARACIONES" in report
         assert "socavones" in report
 
     def test_compose_strategic_narrative_total_failure(
-        self,
-        translator,
-        cyclic_topo_metrics,
-        reject_fin_metrics
+        self, translator, cyclic_topo_metrics, reject_fin_metrics
     ):
         """Verifica fallo total."""
         report = translator.compose_strategic_narrative(
-            cyclic_topo_metrics,
-            reject_fin_metrics,
-            stability=12.0
+            cyclic_topo_metrics, reject_fin_metrics, stability=12.0
         )
 
         assert "DETENER PARA REPARACIONES" in report
@@ -502,13 +453,11 @@ class TestStrategicNarrativeErrorHandling:
         valid_fin = {
             "wacc": 0.10,
             "contingency": {"recommended": 1000.0},
-            "performance": {"recommendation": "ACEPTAR", "profitability_index": 1.2}
+            "performance": {"recommendation": "ACEPTAR", "profitability_index": 1.2},
         }
 
         report = translator.compose_strategic_narrative(
-            invalid_topo,
-            valid_fin,
-            stability=5.0
+            invalid_topo, valid_fin, stability=5.0
         )
 
         assert "Error analizando estructura" in report
@@ -516,12 +465,12 @@ class TestStrategicNarrativeErrorHandling:
     def test_handles_invalid_financials_gracefully(self, translator):
         """Errores financieros se capturan."""
         valid_topo = TopologicalMetrics(beta_0=1, beta_1=0, euler_characteristic=1)
-        invalid_fin = "not a dict" # type: ignore
+        invalid_fin = "not a dict"  # type: ignore
 
         report = translator.compose_strategic_narrative(
             valid_topo,
-            invalid_fin, # type: ignore
-            stability=5.0
+            invalid_fin,  # type: ignore
+            stability=5.0,
         )
 
         assert "Error analizando finanzas" in report
@@ -532,9 +481,7 @@ class TestStrategicNarrativeErrorHandling:
         valid_fin = {"performance": {"recommendation": "ACEPTAR"}}
 
         report = translator.compose_strategic_narrative(
-            invalid_topo,
-            valid_fin,
-            stability=5.0
+            invalid_topo, valid_fin, stability=5.0
         )
 
         assert "⚠️ ANÁLISIS ESTRUCTURAL INTERRUMPIDO" in report
@@ -554,6 +501,7 @@ class TestMarketContext:
 
     def test_market_provider_error_handled(self):
         """Error en proveedor de mercado se maneja graciosamente."""
+
         def failing_provider():
             raise ConnectionError("API no disponible")
 
@@ -570,29 +518,24 @@ class TestFinalAdviceDecisionMatrix:
     def translator(self) -> SemanticTranslator:
         return SemanticTranslator()
 
-    @pytest.mark.parametrize("beta_1,recommendation,expected_keywords", [
-        # Sin ciclos (sin agujeros)
-        (0, "ACEPTAR", ["CERTIFICADO DE SOLIDEZ", "Estructura piramidal estable"]),
-        (0, "RECHAZAR", ["REVISIÓN TÉCNICA REQUERIDA"]),
-        (0, "REVISAR", ["REVISIÓN TÉCNICA REQUERIDA"]),
-        # Con ciclos (con agujeros)
-        (1, "ACEPTAR", ["DETENER PARA REPARACIONES", "socavones"]),
-        (1, "RECHAZAR", ["DETENER PARA REPARACIONES", "socavones"]),
-        (3, "RECHAZAR", ["DETENER PARA REPARACIONES", "socavones"]),
-    ])
+    @pytest.mark.parametrize(
+        "beta_1,recommendation,expected_keywords",
+        [
+            # Sin ciclos (sin agujeros)
+            (0, "ACEPTAR", ["CERTIFICADO DE SOLIDEZ", "Estructura piramidal estable"]),
+            (0, "RECHAZAR", ["REVISIÓN TÉCNICA REQUERIDA"]),
+            (0, "REVISAR", ["REVISIÓN TÉCNICA REQUERIDA"]),
+            # Con ciclos (con agujeros)
+            (1, "ACEPTAR", ["DETENER PARA REPARACIONES", "socavones"]),
+            (1, "RECHAZAR", ["DETENER PARA REPARACIONES", "socavones"]),
+            (3, "RECHAZAR", ["DETENER PARA REPARACIONES", "socavones"]),
+        ],
+    )
     def test_decision_matrix_coverage(
-        self,
-        translator,
-        beta_1: int,
-        recommendation: str,
-        expected_keywords: list
+        self, translator, beta_1: int, recommendation: str, expected_keywords: list
     ):
         """Verifica combinaciones."""
-        topo = TopologicalMetrics(
-            beta_0=1,
-            beta_1=beta_1,
-            euler_characteristic=1 - beta_1
-        )
+        topo = TopologicalMetrics(beta_0=1, beta_1=beta_1, euler_characteristic=1 - beta_1)
         fin = {"performance": {"recommendation": recommendation}}
 
         # Estabilidad = 10.0 para evitar pirámide invertida
