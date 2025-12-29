@@ -168,3 +168,51 @@ def analyze_budget_exergy(self, bom_items: List[MaterialRequirement]) -> Dict[st
         "decorative_investment": anergy_cost,
         "narrative": f"Eficiencia Exergética: {exergy_efficiency:.1%}. (Inversión Estructural vs. Total)"
     }
+
+
+
+### Ejemplo de método Contagio por Convección
+
+Concepto Físico:
+La convección ocurre cuando un fluido (aire, agua) transporta calor de una zona a otra. En construcción, el "fluido" es el Transporte/Combustible. Si el diésel sube, "baña" a todos los insumos que requieren flete (cemento, acero, ladrillo), calentándolos simultáneamente.
+
+def analyze_inflationary_convection(self, graph: nx.DiGraph, fluid_nodes: List[str]) -> Dict[str, Any]:
+    """
+    Analiza el contagio de calor (inflación) por convección.
+    
+    Args:
+        graph: El grafo del presupuesto.
+        fluid_nodes: Lista de nodos que actúan como fluido (ej. 'TRANSPORTE', 'COMBUSTIBLE').
+        
+    Returns:
+        Mapa de calor convectivo.
+    """
+    # 1. Identificar nodos "bañados" por el fluido
+    # (Nodos que tienen una arista entrante desde un nodo de transporte)
+    affected_nodes = set()
+    for fluid in fluid_nodes:
+        if fluid in graph:
+            # Sucesores del transporte (a quién afecta el transporte)
+            # Ojo: En grafos de dependencia, A depende de B. 
+            # Si Muro depende de Transporte, Transporte es sucesor de Muro en flujo de costo?
+            # Depende de la dirección del grafo. Asumamos APU -> Insumo.
+            # Entonces si APU tiene arista a Transporte, el APU es afectado.
+            predecessors = list(graph.predecessors(fluid))
+            affected_nodes.update(predecessors)
+            
+    # 2. Calcular Coeficiente de Transferencia de Calor (h)
+    # h = % del costo que corresponde al fluido
+    convection_impact = {}
+    for node in affected_nodes:
+        # Calcular peso del transporte en el nodo
+        total_weight = graph.nodes[node].get('weight', 1.0)
+        fluid_weight = sum(graph[node][f]['weight'] for f in fluid_nodes if graph.has_edge(node, f))
+        
+        h_coefficient = fluid_weight / total_weight if total_weight > 0 else 0
+        convection_impact[node] = h_coefficient
+        
+    return {
+        "affected_nodes_count": len(affected_nodes),
+        "average_convection_coefficient": sum(convection_impact.values()) / len(affected_nodes) if affected_nodes else 0,
+        "high_risk_nodes": [n for n, h in convection_impact.items() if h > 0.2] # >20% costo es transporte
+    }
