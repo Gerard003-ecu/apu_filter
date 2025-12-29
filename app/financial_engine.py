@@ -73,6 +73,8 @@ class FinancialConfig:
     cost_of_debt: float = 0.08
     debt_to_equity_ratio: float = 0.6
     project_life_years: int = 10  # Nueva: vida útil del proyecto
+    liquidity_ratio: float = 0.1  # Capital de trabajo / Inversión inicial
+    fixed_contracts_ratio: float = 0.5  # Proporción de contratos a precio fijo
 
     def __post_init__(self):
         """Valida la coherencia de los parámetros financieros."""
@@ -710,6 +712,38 @@ class FinancialEngine:
 
         return adjusted_volatility
 
+    def calculate_financial_thermal_inertia(
+        self, liquidity: float, fixed_contracts_ratio: float
+    ) -> float:
+        """
+        Calcula la Inercia Térmica Financiera.
+        La capacidad calorífica volumétrica amortigua las variaciones externas.
+
+        Args:
+            liquidity: Capital disponible (análogo a la Densidad rho).
+            fixed_contracts_ratio: % de costos congelados (análogo al Calor Específico Cp).
+
+        Returns:
+            Inercia Térmica (Resistencia al cambio de temperatura/costo).
+        """
+        # Inercia = rho * Cp
+        # Un valor alto significa que el proyecto tarda mucho en verse afectado por la "temperatura" (inflación) externa.
+        thermal_inertia = liquidity * fixed_contracts_ratio
+
+        # Normalización arbitraria para el contexto de negocio
+        return round(thermal_inertia, 2)
+
+    def predict_temperature_change(
+        self, market_inflation_heat: float, inertia: float
+    ) -> float:
+        """Predice el aumento de costo (Temperatura) dado un calor externo."""
+        if inertia <= 0:
+            return market_inflation_heat  # Sin protección, recibimos todo el calor
+
+        # Q = m*c*DeltaT  => DeltaT = Q / Inercia
+        delta_cost = market_inflation_heat / inertia
+        return delta_cost
+
     def analyze_project(
         self,
         initial_investment: float,
@@ -717,12 +751,16 @@ class FinancialEngine:
         cost_std_dev: float,
         project_volatility: float,
         topology_report: Optional[Dict[str, Any]] = None,
+        liquidity: Optional[float] = None,
+        fixed_contracts_ratio: Optional[float] = None,
     ) -> Dict[str, any]:
         """
         Análisis completo de viabilidad de proyecto.
 
         Args:
             topology_report: Opcional, para ajuste de volatilidad por riesgo sistémico.
+            liquidity: Opcional, override de config.
+            fixed_contracts_ratio: Opcional, override de config.
         """
         analysis = {}
         try:
@@ -734,6 +772,24 @@ class FinancialEngine:
                 )
                 analysis["volatility_adjusted"] = True
                 analysis["original_volatility"] = project_volatility
+
+            # Análisis Termodinámico Financiero
+            liq = liquidity if liquidity is not None else self.config.liquidity_ratio
+            fcr = (
+                fixed_contracts_ratio
+                if fixed_contracts_ratio is not None
+                else self.config.fixed_contracts_ratio
+            )
+            inertia = self.calculate_financial_thermal_inertia(liq, fcr)
+            # Asumimos calor de inflación de mercado estándar del 5% si no hay datos externos
+            market_heat = 0.05
+            temp_change = self.predict_temperature_change(market_heat, inertia)
+
+            analysis["thermodynamics"] = {
+                "financial_thermal_inertia": inertia,
+                "predicted_temperature_rise": temp_change,
+                "resistance_status": "HIGH" if inertia > 0.1 else "LOW",
+            }
 
             analysis["wacc"] = self.capm_engine.calculate_wacc()
             analysis["npv"] = self.capm_engine.calculate_npv(

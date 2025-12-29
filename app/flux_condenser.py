@@ -840,13 +840,63 @@ class FluxPhysicsEngine:
         # Almacenar warnings para el logger (se procesarán post-init)
         self._init_warnings = warnings
 
-    def calculate_metrics(self, total_records: int, cache_hits: int) -> Dict[str, float]:
+    def calculate_system_entropy(
+        self, total_records: int, error_count: int, processing_time: float
+    ) -> Dict[str, float]:
         """
-        Modelo físico RLC de segundo orden corregido.
+        Calcula la Entropía del Sistema (S) basada en la Segunda Ley.
+        La degradación de la energía útil aumenta la entropía del sistema.
+
+        Args:
+            total_records: Volumen total de masa/datos.
+            error_count: Cantidad de 'fricción' o datos corruptos.
+            processing_time: Tiempo transcurrido (t).
+
+        Returns:
+            Dict con entropía actual y estado de salud.
+        """
+        if total_records == 0:
+            return {"entropy_absolute": 0.0, "entropy_rate": 0.0, "is_thermal_death": False}
+
+        # La probabilidad de error (microestado de desorden)
+        p_error = error_count / total_records
+
+        # Entropía de Shannon (análogo a Boltzmann): S = -k * sum(p * log(p))
+        # Usamos una constante k normalizada para el dominio de datos
+        # k = 1 / ln(2) approx 1.4427 para normalizar a [0, 1] (Base 2)
+        k_boltzmann_data = 1.442695
+
+        if 0 < p_error < 1:
+            entropy = -k_boltzmann_data * (
+                p_error * math.log(p_error) + (1 - p_error) * math.log(1 - p_error)
+            )
+        else:
+            entropy = 0.0  # Orden total o caos total (pero estático)
+
+        # Tasa de generación de entropía (dS/dt)
+        entropy_rate = entropy / max(processing_time, 0.001)
+
+        return {
+            "entropy_absolute": entropy,
+            "entropy_rate": entropy_rate,  # Velocidad de degradación
+            "is_thermal_death": entropy > 0.8,  # Umbral crítico de desorden
+        }
+
+    def calculate_metrics(
+        self,
+        total_records: int,
+        cache_hits: int,
+        error_count: int = 0,
+        processing_time: float = 1.0,
+    ) -> Dict[str, float]:
+        """
+        Modelo físico RLC de segundo orden corregido + Entropía.
 
         El sistema modela:
         - total_records: Análogo a "carga total" o demanda del sistema
         - cache_hits: Análogo a "flujo efectivo" o corriente útil
+        - error_count: Cantidad de registros fallidos (fricción)
+        - processing_time: Tiempo transcurrido
 
         Returns:
             Dict[str, float]: Métricas físicas del sistema.
@@ -1028,6 +1078,11 @@ class FluxPhysicsEngine:
             else:
                 system_type = "OVERDAMPED"
 
+            # ================ CÁLCULO DE ENTROPÍA (TERMODINÁMICA) ================
+            entropy_metrics = self.calculate_system_entropy(
+                total_records, error_count, processing_time
+            )
+
             # ================ CONSTRUIR RESULTADOS ================
             metrics = {
                 # Métricas principales normalizadas
@@ -1052,6 +1107,10 @@ class FluxPhysicsEngine:
                 "power_factor": self._sanitize_metric(power_factor, 0.0, 1.0),
                 "stability_factor": self._sanitize_metric(stability_factor, 0.0, 1.0),
                 "phase_margin": self._sanitize_metric(phase_margin, 0.0, 90.0),
+                # Termodinámica
+                "entropy_absolute": entropy_metrics["entropy_absolute"],
+                "entropy_rate": entropy_metrics["entropy_rate"],
+                "is_thermal_death": entropy_metrics["is_thermal_death"],
                 # Clasificación
                 "system_type": system_type,
             }
@@ -2223,7 +2282,13 @@ class DataFluxCondenser:
             cache_hits = self._calculate_cache_hits(batch_records, cache)
 
             # Métricas sin factor de posición artificial
-            metrics = self.physics.calculate_metrics(actual_batch_size, cache_hits)
+            # Usamos el estado global de fallos como proxy de entropía acumulada
+            metrics = self.physics.calculate_metrics(
+                total_records=actual_batch_size,
+                cache_hits=cache_hits,
+                error_count=self._stats.failed_records,
+                processing_time=max(0.001, time.time() - self._start_time),
+            )
 
             if progress_callback:
                 progress_callback(metrics)

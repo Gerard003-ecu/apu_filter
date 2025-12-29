@@ -388,6 +388,46 @@ class MatterGenerator:
 
         return requirements
 
+    def analyze_budget_exergy(
+        self, bom_items: List[MaterialRequirement]
+    ) -> Dict[str, Any]:
+        """
+        Analiza la eficiencia exergética del presupuesto.
+        La segunda ley y el concepto de exergía como potencial de trabajo útil.
+
+        Args:
+            bom_items: Lista de materiales generada.
+
+        Returns:
+            Reporte de eficiencia del gasto.
+        """
+        useful_work_cost = 0.0  # Costo en estructura/cimientos (Alta Exergía)
+        anergy_cost = 0.0  # Costo en desperdicio/lujos no funcionales (Anergía)
+
+        # Definición semántica de categorías de alta exergía
+        high_exergy_keywords = {"CONCRETO", "ACERO", "CIMENTACION", "ESTRUCTURA", "CEMENTO", "HIERRO"}
+
+        for item in bom_items:
+            is_high_exergy = any(
+                k in item.description.upper() for k in high_exergy_keywords
+            )
+
+            if is_high_exergy:
+                useful_work_cost += item.total_cost
+            else:
+                # Asumimos que el resto tiene menor potencial de trabajo estructural
+                anergy_cost += item.total_cost
+
+        total_cost = useful_work_cost + anergy_cost
+        exergy_efficiency = useful_work_cost / total_cost if total_cost > 0 else 0
+
+        return {
+            "exergy_efficiency": exergy_efficiency,
+            "structural_investment": useful_work_cost,
+            "decorative_investment": anergy_cost,
+            "narrative": f"Eficiencia Exergética: {exergy_efficiency:.1%}. (Inversión Estructural vs. Total)",
+        }
+
     def _compute_total_cost(self, requirements: List[MaterialRequirement]) -> float:
         """
         Calcula costo total usando Algoritmo de Suma de Kahan (Propuesta 2).
@@ -478,6 +518,7 @@ class MatterGenerator:
                 "empty": n == 0,
             },
             "risk_analysis": {"profile": risk_profile, "flux_metrics": flux_metrics},
+            "thermodynamics": self.analyze_budget_exergy(requirements),
             "generation_info": {
                 "timestamp": datetime.now().isoformat(),
                 "algorithm": "Hybrid-Topological-Algebraic-v1",
