@@ -425,6 +425,7 @@ class MatterGenerator:
             "exergy_efficiency": exergy_efficiency,
             "structural_investment": useful_work_cost,
             "decorative_investment": anergy_cost,
+            "total_investment": total_cost,
             "narrative": f"Eficiencia Exergética: {exergy_efficiency:.1%}. (Inversión Estructural vs. Total)",
         }
 
