@@ -5,8 +5,7 @@
 Fuente Física: La Segunda Ley establece que la entropía (desorden) de un sistema aislado siempre aumenta. En construcción, esto implica que cualquier diferencia de temperatura genera una pérdida de "calidad" de energía
 . Aplicación en APU Filter: Los datos tienden naturalemente al desorden (errores, formatos rotos, bit rot).
 • Concepto: "Entropía de la Información".
-• Módulo: DataFluxCondenser y DataValidator
-.
+• Módulo: DataFluxCondenser y DataValidator.
 • Lógica:
     ◦ El sistema gasta energía (CPU/Tiempo) para reducir la entropía (ordenar datos).
     ◦ Si la Potencia Disipada (Pdiss​) calculada en flux_condenser.txt es alta, significa que el sistema está generando mucho "calor" (trabajo inútil) para combatir la entropía de datos sucios.
