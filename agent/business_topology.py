@@ -506,6 +506,73 @@ class BusinessTopologicalAnalyzer:
             "synergy_score": round(synergy_score, 3),
         }
 
+    def analyze_inflationary_convection(
+        self, graph: nx.DiGraph, fluid_nodes: List[str]
+    ) -> Dict[str, Any]:
+        """
+        Analiza el contagio de calor (inflación) por convección.
+
+        Args:
+            graph: El grafo del presupuesto.
+            fluid_nodes: Lista de nodos que actúan como fluido (ej. 'TRANSPORTE', 'COMBUSTIBLE').
+
+        Returns:
+            Mapa de calor convectivo.
+        """
+        # 1. Identificar nodos "bañados" por el fluido
+        # (Nodos que tienen una arista entrante desde un nodo de transporte)
+        affected_nodes = set()
+        for fluid in fluid_nodes:
+            if fluid in graph:
+                # Sucesores del transporte (a quién afecta el transporte)
+                # Ojo: En grafos de dependencia, A depende de B.
+                # Si Muro depende de Transporte, Transporte es sucesor de Muro en flujo de costo?
+                # Depende de la dirección del grafo. Asumamos APU -> Insumo.
+                # Entonces si APU tiene arista a Transporte, el APU es afectado.
+                # Pero en topología normal, APU contiene insumo, APU -> Insumo.
+                # Si transporte sube precio, afecta al costo de APU.
+                # Entonces debemos buscar predecesores (quien contiene al transporte).
+                predecessors = list(graph.predecessors(fluid))
+                affected_nodes.update(predecessors)
+
+        # 2. Calcular Coeficiente de Transferencia de Calor (h)
+        # h = % del costo que corresponde al fluido
+        convection_impact = {}
+        for node in affected_nodes:
+            # Calcular peso del transporte en el nodo
+            # Peso total del nodo es suma de costos de sus hijos? No necesariamente.
+            # Estimación simple: costo total de aristas salientes del nodo es su costo directo.
+            # O usar 'quantity' * 'unit_cost' de las aristas.
+
+            # En graph.edges[u, v], tenemos total_cost.
+            # Costo total del APU ≈ suma(total_cost de aristas salientes)
+            total_cost_node = sum(
+                graph[node][succ].get("total_cost", 0.0)
+                for succ in graph.successors(node)
+            )
+
+            fluid_cost = 0.0
+            for f in fluid_nodes:
+                if graph.has_edge(node, f):
+                    fluid_cost += graph[node][f].get("total_cost", 0.0)
+
+            h_coefficient = (
+                fluid_cost / total_cost_node if total_cost_node > 0 else 0.0
+            )
+            convection_impact[node] = h_coefficient
+
+        high_risk_nodes = [n for n, h in convection_impact.items() if h > 0.2]
+
+        return {
+            "affected_nodes_count": len(affected_nodes),
+            "average_convection_coefficient": sum(convection_impact.values())
+            / len(affected_nodes)
+            if affected_nodes
+            else 0,
+            "high_risk_nodes": high_risk_nodes,
+            "convection_impact": convection_impact,
+        }
+
     def _compute_connectivity_analysis(self, graph: nx.DiGraph) -> Dict[str, Any]:
         """Calcula métricas de conectividad avanzadas (Propuesta 1)."""
         if graph.number_of_nodes() == 0:
@@ -630,6 +697,16 @@ class BusinessTopologicalAnalyzer:
         pyramid_stability = self.calculate_pyramid_stability(graph)
         connectivity = self._compute_connectivity_analysis(graph)
 
+        # Detección de fluidos convectivos (Transporte, Combustible)
+        fluid_keywords = ["TRANSPORTE", "COMBUSTIBLE", "FLETE", "ACARREO", "GASOLINA", "DIESEL"]
+        fluid_nodes = [
+            n
+            for n, d in graph.nodes(data=True)
+            if d.get("type") == "INSUMO"
+            and any(k in str(d.get("description", "")).upper() for k in fluid_keywords)
+        ]
+        convection = self.analyze_inflationary_convection(graph, fluid_nodes)
+
         # Scoring Bayesiano
         density = nx.density(graph) if graph else 0.0
         euler_factor = metrics.euler_efficiency
@@ -688,6 +765,10 @@ class BusinessTopologicalAnalyzer:
             circular_risks.append(
                 f"🚨 RIESGO SISTÉMICO: Sinergia detectada (score: {synergy['synergy_score']:.2f})."
             )
+        if convection["high_risk_nodes"]:
+            circular_risks.append(
+                f"🔥 RIESGO CONVECTIVO: {len(convection['high_risk_nodes'])} nodos altamente sensibles a transporte/combustible."
+            )
 
         # Riesgo Financiero
         financial_risk = None
@@ -729,6 +810,7 @@ class BusinessTopologicalAnalyzer:
                 "connectivity": connectivity,
                 "pyramid_stability": pyramid_stability,
                 "density": density,
+                "convection_risk": convection,
             },
         )
 
@@ -806,6 +888,7 @@ class BusinessTopologicalAnalyzer:
             "business.synergy_detected": 1
             if report.details["synergy_risk"]["synergy_detected"]
             else 0,
+            "business.convection_risk_nodes": len(report.details["convection_risk"]["high_risk_nodes"]),
             "business.is_dag": 1 if report.details["connectivity"]["is_dag"] else 0,
             "business.isolated_count": len(report.details["anomalies"]["isolated_nodes"]),
             "business.orphan_insumos_count": len(
