@@ -862,13 +862,11 @@ class FluxPhysicsEngine:
         p_error = error_count / total_records
 
         # Entropía de Shannon (análogo a Boltzmann): S = -k * sum(p * log(p))
-        # Usamos una constante k normalizada para el dominio de datos
-        # k = 1 / ln(2) approx 1.4427 para normalizar a [0, 1] (Base 2)
-        k_boltzmann_data = 1.442695
+        # Usamos log base 2 directamente para normalización en bits [0, 1]
 
         if 0 < p_error < 1:
-            entropy = -k_boltzmann_data * (
-                p_error * math.log(p_error) + (1 - p_error) * math.log(1 - p_error)
+            entropy = -(
+                p_error * math.log2(p_error) + (1 - p_error) * math.log2(1 - p_error)
             )
         else:
             entropy = 0.0  # Orden total o caos total (pero estático)
