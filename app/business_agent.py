@@ -87,6 +87,98 @@ class TopologicalMetricsBundle:
         return fragmentation_penalty * cycle_penalty * self.pyramid_stability
 
 
+class RiskChallenger:
+    """
+    Debate adversarial para auditar la coherencia entre las métricas
+    financieras y topológicas del reporte.
+
+    Actúa como un 'Fiscal' que busca contradicciones en el veredicto.
+    """
+
+    def challenge_verdict(self, report: ConstructionRiskReport) -> ConstructionRiskReport:
+        """
+        Analiza la coherencia entre las métricas financieras y topológicas.
+
+        Regla Adversarial:
+        Si financial_risk == "BAJO" PERO pyramid_stability < 1.0 (Pirámide Invertida),
+        el Challenger debe cambiar el veredicto a "FALSO POSITIVO FINANCIERO"
+        y degradar el score de integridad.
+
+        Args:
+            report: El reporte preliminar generado por el agente.
+
+        Returns:
+            ConstructionRiskReport: El reporte auditado (y posiblemente modificado).
+        """
+        logger.info("⚖️  Risk Challenger: Auditando coherencia del reporte...")
+
+        # Extraer métricas clave para el debate
+        financial_risk = report.financial_risk_level
+
+        # Obtener estabilidad piramidal de los detalles
+        # Se asume que está en details['topological_invariants']['pyramid_stability']
+        # o directamente en details['pyramid_stability'] según la implementación previa
+        details = report.details or {}
+        stability = details.get("pyramid_stability")
+
+        # Intentar obtener de la estructura anidada si no está en el primer nivel
+        if stability is None and "topological_invariants" in details:
+            stability = details["topological_invariants"].get("pyramid_stability")
+
+        # Si no se encuentra, usar un valor seguro que no dispare la alerta (o loguear advertencia)
+        if stability is None:
+            logger.warning("Risk Challenger: No se encontró métrica de estabilidad piramidal.")
+            return report
+
+        # Regla Adversarial: Pirámide Invertida con Riesgo Financiero Bajo
+        # "BAJO" debe coincidir con los niveles definidos en el sistema (FinancialRiskLevel)
+        # Asumimos que "LOW" o "BAJO" son los valores para riesgo bajo.
+        is_financial_safe = str(financial_risk).upper() in ["LOW", "BAJO", "MODERATE", "MODERADO"]
+        is_inverted_pyramid = stability < 1.0
+
+        if is_financial_safe and is_inverted_pyramid:
+            logger.warning("🚨 Risk Challenger: CONTRADICCIÓN DETECTADA (Pirámide Invertida + Finanzas Sanas)")
+
+            # Degradar veredicto
+            new_financial_risk = "RIESGO ESTRUCTURAL OCULTO"
+
+            # Penalizar integridad (ej. reducir un 20%)
+            original_integrity = report.integrity_score
+            new_integrity = max(0.0, original_integrity * 0.8)
+
+            # Actualizar narrativa estratégica
+            new_narrative = (
+                f"⚠️ VETO DEL CHALLENGER: {report.strategic_narrative}\n\n"
+                f"[FISCALÍA DE RIESGOS]: Se ha detectado una contradicción crítica. "
+                f"Aunque los indicadores financieros sugieren solidez ({financial_risk}), "
+                f"la estructura topológica es una 'Pirámide Invertida' (Estabilidad {stability:.2f} < 1.0). "
+                f"Esto indica que el proyecto es financieramente atractivo pero estructuralmente inviable. "
+                f"Se reclasifica como FALSO POSITIVO FINANCIERO."
+            )
+
+            # Modificar detalles para reflejar el challenge
+            new_details = details.copy()
+            new_details["challenger_verdict"] = "VETO_STRUCTURAL_CONTRADICTION"
+            new_details["original_financial_risk"] = financial_risk
+            new_details["original_integrity_score"] = original_integrity
+
+            # Retornar reporte modificado
+            # Usamos replace si es dataclass frozen, o constructor si no
+            # ConstructionRiskReport es dataclass, asumimos que no es frozen o usamos constructor
+            return ConstructionRiskReport(
+                integrity_score=new_integrity,
+                waste_alerts=report.waste_alerts,
+                circular_risks=report.circular_risks,
+                complexity_level=report.complexity_level,
+                financial_risk_level=new_financial_risk, # Sobrescribimos el nivel de riesgo
+                details=new_details,
+                strategic_narrative=new_narrative
+            )
+
+        logger.info("✅ Risk Challenger: Coherencia verificada.")
+        return report
+
+
 class BusinessAgent:
     """
     Orquesta la inteligencia de negocio para evaluar proyectos de construcción.
@@ -124,6 +216,9 @@ class BusinessAgent:
         self.topological_analyzer = BusinessTopologicalAnalyzer(self.telemetry)
         self.translator = SemanticTranslator()
         self.financial_engine = self._create_financial_engine()
+
+        # Inicializar el Challenger
+        self.risk_challenger = RiskChallenger()
 
     def _validate_config(self, config: Dict[str, Any]) -> None:
         """
@@ -391,7 +486,7 @@ class BusinessAgent:
         }
 
         # Construir nuevo reporte inmutable con datos enriquecidos
-        return ConstructionRiskReport(
+        report = ConstructionRiskReport(
             integrity_score=base_report.integrity_score,
             waste_alerts=base_report.waste_alerts,
             circular_risks=base_report.circular_risks,
@@ -400,6 +495,11 @@ class BusinessAgent:
             details=enriched_details,
             strategic_narrative=strategic_narrative,
         )
+
+        # Aplicar Risk Challenger para auditar el reporte
+        audited_report = self.risk_challenger.challenge_verdict(report)
+
+        return audited_report
 
     def evaluate_project(self, context: Dict[str, Any]) -> Optional[ConstructionRiskReport]:
         """
@@ -415,6 +515,8 @@ class BusinessAgent:
 
         3. **Síntesis Estratégica**: Integra ambas perspectivas en una narrativa
            ejecutiva que identifica riesgos y oportunidades.
+
+        4. **Auditoría Adversarial**: El Risk Challenger revisa la coherencia.
 
         Args:
             context: El contexto del pipeline conteniendo:
@@ -465,7 +567,7 @@ class BusinessAgent:
             self.telemetry.record_error("business_agent.financial", str(e))
             return None
 
-        # Fase 3: Síntesis y Generación de Reporte
+        # Fase 3 y 4: Síntesis y Auditoría Adversarial
         try:
             report = self._compose_enriched_report(topological_bundle, financial_metrics)
         except RuntimeError as e:
