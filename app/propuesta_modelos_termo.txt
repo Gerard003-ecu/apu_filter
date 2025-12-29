@@ -1,3 +1,50 @@
+### Conceptos termodinámicos
+
+1. La Segunda Ley: Entropía de Datos (ΔS)
+
+Fuente Física: La Segunda Ley establece que la entropía (desorden) de un sistema aislado siempre aumenta. En construcción, esto implica que cualquier diferencia de temperatura genera una pérdida de "calidad" de energía
+. Aplicación en APU Filter: Los datos tienden naturalemente al desorden (errores, formatos rotos, bit rot).
+• Concepto: "Entropía de la Información".
+• Módulo: DataFluxCondenser y DataValidator
+.
+• Lógica:
+    ◦ El sistema gasta energía (CPU/Tiempo) para reducir la entropía (ordenar datos).
+    ◦ Si la Potencia Disipada (Pdiss​) calculada en flux_condenser.txt es alta, significa que el sistema está generando mucho "calor" (trabajo inútil) para combatir la entropía de datos sucios.
+    ◦ Implementación: Definir un umbral de Muerte Térmica. Si la tasa de entrada de errores supera la capacidad de corrección, el sistema alcanza la máxima entropía y se detiene para evitar corromper la base de datos limpia ("Cero Absoluto" de datos).
+
+2. Inercia Térmica Financiera
+Fuente Física: La inercia térmica es la capacidad de un material para almacenar energía y retardar la transmisión de calor, definida por el producto de la densidad y el calor específico (ρ⋅Cp​)
+. Materiales como el hormigón tienen alta inercia, regulando la temperatura interior frente a cambios exteriores
+. Aplicación en APU Filter:
+• Concepto: "Amortiguamiento de Volatilidad".
+• Módulo: FinancialEngine.
+• Lógica:
+    ◦ Un proyecto con Alta Inercia Térmica es aquel que resiste los "cambios de temperatura" del mercado (inflación, subida del dólar) sin transmitir ese calor inmediatamente al costo final.
+    ◦ Fórmula Propuesta: Inercia=Liquidez×Rigidez Contractual.
+    ◦ Diagnóstico: "Este proyecto tiene baja inercia térmica (contratos muy flexibles o baja liquidez). Un aumento del 5% en el acero (calor externo) elevará la temperatura del presupuesto en 24 horas. Se recomienda usar materiales contractuales 'aislantes' (futuros o coberturas)."
+
+3. Exergía: La Calidad del Gasto
+Fuente Física: Mientras la energía se conserva (1ª Ley), la exergía mide la calidad o disponibilidad de esa energía para realizar trabajo útil. Calentar aire a baja temperatura destruye exergía (es ineficiente)
+. Aplicación en APU Filter:
+• Concepto: "Eficiencia del Valor (Value Engineering)".
+• Módulo: MatterGenerator (El Alquimista).
+• Lógica:
+    ◦ No todos los dólares del presupuesto hacen el mismo "trabajo útil".
+    ◦ Gasto de Alta Exergía: Inversión en estructura, cimentación (trabajo útil crítico).
+    ◦ Gasto de Baja Exergía: Acabados lujosos innecesarios o desperdicio (anergía).
+    ◦ Implementación: El MatterGenerator debe calcular el Ratio de Exergía del BOM (Bill of Materials). Si se gasta mucha "energía financiera" en ítems decorativos (baja utilidad estructural) mientras se escatima en cimientos, el sistema alerta sobre una "Ineficiencia Termodinámica" del presupuesto.
+
+4. Transferencia de Calor: Convección de Riesgos
+Fuente Física: El calor se transfiere por conducción (contacto), radiación y convección (movimiento de fluidos)
+. Aplicación en APU Filter:
+• Concepto: "Contagio Inflacionario por Convección".
+• Módulo: BusinessTopologicalAnalyzer.
+• Lógica:
+    ◦ Ya usas Topología para ver conexiones directas (Conducción). La Termodinámica añade la Convección.
+    ◦ Si el precio del combustible sube, se crea una "corriente de convección" que calienta todos los insumos que requieren transporte, incluso si no están conectados directamente en el grafo.
+    ◦ Algoritmo: Identificar el "fluido" (ej. Transporte) que baña múltiples nodos del grafo. Si la temperatura de ese fluido sube, transfiere calor a todo el sistema simultáneamente, ignorando la distancia topológica directa.
+
+
 Para integrar la lógica termodinámica, debes tocar los siguientes módulos clave. He diseñado los métodos basándome en los principios físicos descritos en las fuentes.
 A. Módulo: FluxPhysicsEngine (en app/flux_condenser.py)
 Concepto Físico: Entropía (ΔS). La segunda ley de la termodinámica indica que la calidad de la energía se degrada
