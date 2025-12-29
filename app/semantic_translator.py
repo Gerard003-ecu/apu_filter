@@ -138,6 +138,46 @@ class SemanticTranslator:
                     f"recibido: {type(value).__name__}"
                 )
 
+    # --- GraphRAG Narrative Implementation ---
+
+    def explain_cycle_path(self, cycle_nodes: List[str]) -> str:
+        """
+        Genera una narrativa que explica la ruta del ciclo:
+        "El elemento A impacta a B, que retroalimenta a A...".
+        """
+        if not cycle_nodes:
+            return ""
+
+        # Limitar la longitud de la explicación para no saturar el reporte
+        display_nodes = cycle_nodes[:5]
+        path_str = " -> ".join(display_nodes)
+
+        if len(cycle_nodes) > 5:
+            path_str += f" -> ... ({len(cycle_nodes) - 5} más)"
+
+        # Cerrar el ciclo visualmente
+        path_str += f" -> {cycle_nodes[0]}"
+
+        narrative = (
+            f"🔄 **Ruta del Ciclo Detectada**: La circularidad sigue el camino: [{path_str}]. "
+            f"Esto significa que el costo de '{cycle_nodes[0]}' depende indirectamente de sí mismo, "
+            f"creando una indeterminación matemática en la valoración."
+        )
+        return narrative
+
+    def explain_stress_point(self, node: str, degree: int | str) -> str:
+        """
+        Explica por qué un nodo es crítico:
+        "El insumo X soporta Y actividades; es un punto único de falla."
+        """
+        return (
+            f"⚡ **Punto de Estrés Estructural**: El elemento '{node}' actúa como una 'Piedra Angular' crítica, "
+            f"soportando {degree} conexiones directas. Una variación en su precio o disponibilidad "
+            f"impactará desproporcionadamente a toda la estructura del proyecto (Punto Único de Falla)."
+        )
+
+    # ----------------------------------------
+
     def translate_topology(
         self,
         metrics: TopologicalMetrics,
@@ -165,6 +205,13 @@ class SemanticTranslator:
         # 1.1 Sinergia (Producto Cup) y Eficiencia (Euler)
         if synergy_risk and synergy_risk.get("synergy_detected", False):
             narrative_parts.append(self._translate_synergy(synergy_risk))
+            # GraphRAG: Explicar nodos críticos de la sinergia si están disponibles
+            intersecting_nodes = synergy_risk.get("intersecting_nodes", [])
+            if intersecting_nodes:
+                # Tomar el primer nodo como ejemplo
+                example_node = intersecting_nodes[0]
+                # Asumimos un grado alto implícito o genérico para la narrativa
+                narrative_parts.append(self.explain_stress_point(example_node, "múltiples"))
 
         if metrics.euler_efficiency < 0.5:
             narrative_parts.append(
@@ -502,12 +549,21 @@ class SemanticTranslator:
 
         # 1. Caso Sinergia de Riesgo (Producto Cup)
         if has_synergy:
-            return (
+            # GraphRAG Narrative integration for Synergy
+            synergy_msg = (
                 "🛑 **PARADA DE EMERGENCIA (Efecto Dominó)**: Se detectaron ciclos interconectados "
                 "que comparten recursos críticos. El riesgo no es aditivo, es multiplicativo. "
                 "Cualquier fallo en el suministro provocará un colapso sistémico en múltiples frentes. "
                 "Desacoplar los ciclos antes de continuar."
             )
+            # Add specific cycle explanation if available
+            intersecting_cycles = synergy_risk.get("intersecting_cycles", [])
+            if intersecting_cycles:
+                # Explain the first cycle as an example
+                cycle_explanation = self.explain_cycle_path(intersecting_cycles[0])
+                synergy_msg += f"\n\n{cycle_explanation}"
+
+            return synergy_msg
 
         # 2. Caso Pirámide Invertida (Prioridad Alta)
         if is_inverted_pyramid:
