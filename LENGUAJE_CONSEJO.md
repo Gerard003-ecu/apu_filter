@@ -69,6 +69,27 @@ El Proceso de Traducción
 
 ---
 
+## 4. Termodinámica Estructural: La Física del Valor
+
+APU Filter es el primer sistema que trata el dinero como una forma de energía. Aplicamos las leyes de la termodinámica para diagnosticar la eficiencia de su inversión.
+
+### 4.1 Temperatura del Proyecto ($T_{sys}$)
+*   **El Concepto:** La volatilidad es calor. Los insumos como el Acero y el Combustible son "calientes" (precios inestables). La Mano de Obra es "fría" (precios fijos).
+*   **El Diagnóstico:** El sistema mide cómo este calor sube por la pirámide estructural.
+    *   **"Proyecto con Fiebre":** Alta exposición a commodities volátiles. Requiere coberturas financieras.
+    *   **"Proyecto Hipotérmico":** Costos estáticos que pueden no reflejar la realidad del mercado.
+
+### 4.2 Exergía vs. Anergía (Calidad del Gasto)
+No todos los dólares trabajan igual.
+*   **Exergía (Trabajo Útil):** Inversión en Cimentación y Estructura. Es lo que mantiene el edificio en pie.
+*   **Anergía (Entropía):** Inversión en Acabados lujosos o desperdicio administrativo.
+*   **La Métrica:** El sistema calcula la **Eficiencia Exergética**. Si es baja (< 50%), usted está construyendo un edificio débil con pintura cara.
+
+### 4.3 Entropía de Datos ($S$)
+Es la medida del desorden administrativo. Datos sucios, mal clasificados o incompletos generan alta entropía, lo que se traduce en "Fricción Operativa" y sobrecostos ocultos.
+
+---
+
 ## 5. El Protocolo Central: El Ciclo OODA
 
 Todos los sabios operan bajo la orquestación del Agente Autónomo (apu_agent.py), que ejecuta un bucle de control continuo conocido como OODA:
