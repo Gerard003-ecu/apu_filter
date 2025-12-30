@@ -348,6 +348,54 @@ class SemanticTranslator:
             "el soporte de insumos es adecuado, aunque no posee redundancia sísmica."
         )
 
+    def translate_thermodynamics(
+        self, entropy: float, exergy: float, temperature: float
+    ) -> str:
+        """
+        Interpreta las métricas termodinámicas.
+
+        Args:
+            entropy (S): Nivel de Desorden Administrativo (0.0 - 1.0)
+            exergy (Ex): Eficiencia de Inversión Estructural (0.0 - 1.0)
+            temperature (T): Índice de Inflación Interna (°C)
+
+        Returns:
+            Narrativa de análisis termodinámico.
+        """
+        parts = []
+
+        # 1. Eficiencia Exergética
+        exergy_pct = exergy * 100.0
+        parts.append(f"⚡ **Eficiencia Exergética del {exergy_pct:.1f}%**.")
+
+        # 2. Análisis de Temperatura (Fiebre)
+        if temperature > 50.0:
+            parts.append(
+                f"🔥 **EL PROYECTO TIENE FIEBRE ({temperature:.1f}°C)**. "
+                "El Índice de Inflación Interna es crítico. Los costos de insumos volátiles "
+                "están sobrecalentando la estructura de precios."
+            )
+            parts.append("💊 **Receta**: Se recomienda enfriar mediante contratos de futuros o stock preventivo.")
+        elif temperature > 30.0:
+            parts.append(
+                f"🌡️ **Calentamiento Operativo ({temperature:.1f}°C)**. "
+                "Existe una exposición moderada a la volatilidad de precios."
+            )
+        else:
+            parts.append(
+                f"❄️ **Temperatura Estable ({temperature:.1f}°C)**. "
+                "El proyecto está termodinámicamente equilibrado (Precios fríos/fijos)."
+            )
+
+        # 3. Entropía
+        if entropy > 0.7:
+            parts.append(
+                f"🌪️ **Alta Entropía ({entropy:.2f})**: Caos administrativo detectado. "
+                "La energía del dinero se disipa en fricción operativa (datos sucios o desorganizados)."
+            )
+
+        return " ".join(parts)
+
     def translate_financial(self, metrics: Dict[str, Any]) -> str:
         """Traduce métricas financieras (sin cambios mayores, solo integración)."""
         validated = self._validate_financial_metrics(metrics)

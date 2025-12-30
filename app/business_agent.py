@@ -436,23 +436,30 @@ class BusinessAgent:
         self,
         topological_bundle: TopologicalMetricsBundle,
         financial_metrics: Dict[str, Any],
+        thermal_metrics: Dict[str, Any],
+        entropy: float = 0.5,
+        exergy: float = 0.6,
     ) -> ConstructionRiskReport:
         """
-        Genera el reporte ejecutivo integrando análisis topológico y financiero.
+        Genera el reporte ejecutivo integrando análisis topológico, financiero y TERMODINÁMICO.
 
         La narrativa estratégica se construye considerando:
         1. Coherencia estructural del presupuesto (invariantes topológicos)
         2. Viabilidad financiera (VPN, TIR, período de recuperación)
         3. Riesgo sistémico (sinergia entre riesgos estructurales y financieros)
+        4. Estado Termodinámico (Fiebre del Proyecto, Exergía, Entropía)
 
         Args:
             topological_bundle: Métricas topológicas del presupuesto.
             financial_metrics: Métricas del análisis financiero.
+            thermal_metrics: Métricas de flujo térmico (temperatura del sistema).
+            entropy: Entropía del sistema (desde FluxCondenser).
+            exergy: Exergía del presupuesto (desde MatterGenerator).
 
         Returns:
             ConstructionRiskReport completo con narrativa estratégica.
         """
-        logger.info("🧠 Integrando inteligencia y generando narrativa...")
+        logger.info("🧠 Integrando inteligencia (Topología + Finanzas + Termodinámica)...")
 
         # Generar reporte base desde el analizador topológico
         base_report = self.topological_analyzer.generate_executive_report(
@@ -465,19 +472,36 @@ class BusinessAgent:
         # Extraer riesgo de sinergia para la narrativa
         synergy_risk = base_report.details.get("synergy_risk")
 
-        # Componer narrativa estratégica integrando todas las fuentes
-        strategic_narrative = self.translator.compose_strategic_narrative(
+        # 1. Obtener Narrativa Estructural y Financiera
+        strategic_narrative_base = self.translator.compose_strategic_narrative(
             topological_metrics=topological_bundle.betti_numbers,
             financial_metrics=financial_metrics,
             stability=topological_bundle.pyramid_stability,
             synergy_risk=synergy_risk,
         )
 
+        # 2. Generar Narrativa Termodinámica
+        thermo_narrative = self.translator.translate_thermodynamics(
+            entropy=entropy,
+            exergy=exergy,
+            temperature=thermal_metrics.get("system_temperature", 0.0)
+        )
+
+        # 3. Fusionar Narrativas
+        # Insertar la termodinámica antes del veredicto final si es posible, o al final
+        full_narrative = f"{strategic_narrative_base}\n\n### 4. Análisis Termodinámico (Calor y Eficiencia)\n{thermo_narrative}"
+
         # Enriquecer el reporte con datos adicionales
         enriched_details = {
             **base_report.details,
-            "strategic_narrative": strategic_narrative,
+            "strategic_narrative": full_narrative,
             "financial_metrics_input": financial_metrics,
+            "thermal_metrics": thermal_metrics,
+            "thermodynamics": {
+                "entropy": entropy,
+                "exergy": exergy,
+                "temperature": thermal_metrics.get("system_temperature", 0.0)
+            },
             "structural_coherence": topological_bundle.structural_coherence,
             "topological_invariants": {
                 "betti_numbers": topological_bundle.betti_numbers,
@@ -567,9 +591,34 @@ class BusinessAgent:
             self.telemetry.record_error("business_agent.financial", str(e))
             return None
 
+        # Fase 2.5: Análisis Termodinámico (Nuevo)
+        try:
+            # 1. Flujo Térmico (Topology)
+            thermal_metrics = self.topological_analyzer.analyze_thermal_flow(topological_bundle.graph)
+
+            # 2. Entropía (FluxCondenser - Simulado o del contexto si existe)
+            # Idealmente vendría de FluxCondenser.get_metrics(), pero aquí extraemos del contexto
+            # o usamos un valor por defecto si no se ha ejecutado el condensador aún.
+            entropy = context.get("system_entropy", 0.5)
+
+            # 3. Exergía (MatterGenerator - Simulado o del contexto)
+            exergy = context.get("budget_exergy", 0.6)
+
+        except Exception as e:
+             logger.warning(f"⚠️ Fallo parcial en termodinámica: {e}")
+             thermal_metrics = {"system_temperature": 0.0}
+             entropy = 0.5
+             exergy = 0.5
+
         # Fase 3 y 4: Síntesis y Auditoría Adversarial
         try:
-            report = self._compose_enriched_report(topological_bundle, financial_metrics)
+            report = self._compose_enriched_report(
+                topological_bundle,
+                financial_metrics,
+                thermal_metrics,
+                entropy,
+                exergy
+            )
         except RuntimeError as e:
             logger.error(f"❌ Fase de síntesis fallida: {e}", exc_info=True)
             self.telemetry.record_error("business_agent.synthesis", str(e))

@@ -506,6 +506,144 @@ class BusinessTopologicalAnalyzer:
             "synergy_score": round(synergy_score, 3),
         }
 
+    def analyze_thermal_flow(self, graph: nx.DiGraph) -> Dict[str, Any]:
+        """
+        Calcula el Flujo Térmico Estructural (Termodinámica del Riesgo).
+
+        Lógica:
+        1. Fuentes de Calor (Nivel 3 - Insumos): Temperatura base según volatilidad (ACERO > M.O.).
+        2. Conducción: El calor sube por las aristas ponderado por costo.
+        3. Temperatura del Proyecto: Promedio ponderado global.
+
+        Returns:
+            Dict con system_temperature, hotspots y thermal_gradient.
+        """
+        # 1. Asignar Temperatura Base a Insumos
+        # Definición de temperaturas por tipo de insumo (Volatilidad relativa)
+        base_temperatures = {
+            "ACERO": 80.0,
+            "HIERRO": 80.0,
+            "CEMENTO": 60.0,
+            "CONCRETO": 50.0,
+            "COMBUSTIBLE": 90.0,
+            "ASFALTO": 85.0,
+            "EQUIPO": 40.0,
+            "MAQUINARIA": 45.0,
+            "MANO DE OBRA": 10.0,  # Frío / Estable (usualmente contratos fijos)
+            "TRANSPORTE": 70.0,
+            "FLETE": 70.0,
+            "DEFAULT": 25.0,  # Temperatura ambiente
+        }
+
+        # Inicializar temperaturas
+        node_temperatures = {}
+        # Guardar costos totales para ponderación
+        node_costs = {}
+
+        # Identificar nodos hoja (Insumos) y asignar T base
+        for node, data in graph.nodes(data=True):
+            if data.get("type") == "INSUMO":
+                desc = str(data.get("description", "")).upper()
+                tipo = str(data.get("tipo_insumo", "")).upper()
+
+                # Buscar match en descripción o tipo
+                temp = base_temperatures["DEFAULT"]
+                for key, t_val in base_temperatures.items():
+                    if key in desc or key in tipo:
+                        temp = max(temp, t_val)  # Tomar la más alta detectada
+
+                node_temperatures[node] = temp
+                # Asumir costo unitario como proxy de importancia si no hay total
+                unit_cost = data.get("unit_cost", 0.0)
+                # Ojo: necesitamos el costo total acumulado en el proyecto para este insumo.
+                # Como el grafo es dirigido APU->Insumo, sumamos las aristas entrantes.
+                # Insumo <- APU. Arista (APU, Insumo).
+                # Costo total del insumo en el proyecto = Suma(aristas entrantes 'total_cost')
+                total_input_cost = sum(
+                    graph[u][node].get("total_cost", 0.0)
+                    for u in graph.predecessors(node)
+                )
+                node_costs[node] = total_input_cost
+            else:
+                node_temperatures[node] = 0.0 # Se calculará
+                node_costs[node] = 0.0
+
+        # 2. Propagar hacia arriba (Insumos -> APUs -> Capítulos -> Proyecto)
+        # El flujo de calor va de abajo hacia arriba en la pirámide (Level 3 -> Level 0)
+        # Usamos orden topológico inverso (desde hojas hacia raíz)
+        try:
+            # Orden topológico inverso funciona si es DAG. Si hay ciclos, esto fallará.
+            # Fallback para ciclos: iteración por niveles.
+            sorted_nodes = list(reversed(list(nx.topological_sort(graph))))
+        except nx.NetworkXUnfeasible:
+            # Si hay ciclos, usamos una aproximación por niveles
+            sorted_nodes = sorted(
+                graph.nodes(data=True),
+                key=lambda x: x[1].get("level", 0),
+                reverse=True
+            )
+            sorted_nodes = [n[0] for n in sorted_nodes]
+
+        for node in sorted_nodes:
+            if graph.nodes[node].get("type") == "INSUMO":
+                continue
+
+            # Calcular temperatura promedio ponderada de los hijos (sustento)
+            # APU -> Insumo. El APU se calienta por sus insumos.
+            children = list(graph.successors(node))
+            if not children:
+                continue
+
+            weighted_temp_sum = 0.0
+            total_cost_sum = 0.0
+
+            for child in children:
+                # El peso es el costo total que ese hijo aporta a este padre
+                # En grafo BudgetTopology: Edge (Padre, Hijo) tiene 'total_cost'
+                edge_cost = graph[node][child].get("total_cost", 0.0)
+                child_temp = node_temperatures.get(child, base_temperatures["DEFAULT"])
+
+                weighted_temp_sum += child_temp * edge_cost
+                total_cost_sum += edge_cost
+
+            if total_cost_sum > 0:
+                node_temperatures[node] = weighted_temp_sum / total_cost_sum
+                node_costs[node] = total_cost_sum
+            else:
+                node_temperatures[node] = 0.0 # Frío si no tiene costo
+
+        # 3. Temperatura del Sistema (Nodo Raíz o Promedio Ponderado Global)
+        # Buscar nodo ROOT
+        root_candidates = [n for n, d in graph.nodes(data=True) if d.get("type") == "ROOT"]
+        if root_candidates:
+            system_temp = node_temperatures.get(root_candidates[0], 0.0)
+        else:
+            # Promedio de APUs si no hay root
+            apus = [n for n, d in graph.nodes(data=True) if d.get("type") == "APU"]
+            if apus:
+                total_sys_cost = sum(node_costs.get(n, 0) for n in apus)
+                if total_sys_cost > 0:
+                    system_temp = sum(node_temperatures[n] * node_costs[n] for n in apus) / total_sys_cost
+                else:
+                    system_temp = 0.0
+            else:
+                system_temp = 0.0
+
+        # Identificar Hotspots (Top 5 más calientes con costo relevante)
+        # Filtrar nodos con costo > 0 para evitar ruido
+        hotspots = sorted(
+            [n for n in node_temperatures.items() if node_costs.get(n[0], 0) > 0],
+            key=lambda x: x[1],
+            reverse=True
+        )[:5]
+
+        # Formato de retorno
+        return {
+            "system_temperature": round(system_temp, 2),
+            "hotspots": [{"id": h[0], "temp": round(h[1], 1), "type": graph.nodes[h[0]].get("type")} for h in hotspots],
+            "thermal_gradient": node_temperatures
+        }
+
     def analyze_inflationary_convection(
         self, graph: nx.DiGraph, fluid_nodes: List[str]
     ) -> Dict[str, Any]:
