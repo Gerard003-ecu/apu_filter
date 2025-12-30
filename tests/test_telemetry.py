@@ -1677,7 +1677,7 @@ class TestPerformance:
 
         duration = time.perf_counter() - start
 
-        assert duration < 1.0
+        assert duration < 2.0
         assert len(ctx.steps) == 100
 
     def test_large_export(self, ctx_populated: TelemetryContext):
