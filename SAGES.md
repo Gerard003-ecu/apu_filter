@@ -26,6 +26,9 @@ El Arquitecto no se fija en los precios; se fija en la forma. Él ve su presupue
     ◦ Detecta huecos lógicos, es decir, ciclos donde el Costo A depende de B, y B depende de A. Esto es un "agujero" matemático que hace imposible el cálculo real
     ◦ Mide la Estabilidad:si su proyecto es una "pirámide invertida" (una base logística estrecha sosteniendo demasiadas actividades críticas), el arquitecto alerta sobre riesgos de colapso por desabastecimiento
     ◦ Identifica Islas: Encuentra insumos o actividades desconectadas que se están comprando pero no aportan al proyecto principal
+    ◦ Propagación Térmica en Grafos: Algoritmo de difusión de volatilidad ponderada por costo desde los nodos hoja (Insumos) hacia la raíz (Proyecto).
+      $$ T_{sys} = \sum (w_i \cdot T_i) $$
+      (Promedio ponderado de volatilidad).
 
 ---
 

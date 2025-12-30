@@ -18,6 +18,7 @@ La mayoría del software ve su presupuesto como una lista plana de ítems. Nosot
 1. La Construcción (El Territorio): Entendemos la realidad física de loa datos. Sabemos que si falta el cemento, el muro no se construye, sin importar qué diga el Excel.
 2. La Topología Algebraica (El Mapa): Utilizamos matemáticas avanzadas para leer la "forma" de sus datos. Detectamos socavones lógicos (ciclos infinitos donde A depende de B y B depende de A) e islas desconectadas (recursos que se compran pero no se usan).
 3. La Ingeniería Financiera (El Riesgo): Aplicamos modelos de flujo y presión (física de fluidos y circuitos RLC) para medir la "fricción" de sus datos y predecir sobrecostos antes de que se materialice
+4. **Termómetro de Riesgo:** Diagnóstico termodinámico que detecta si su presupuesto tiene 'fiebre inflacionaria' o 'fugas de energía' financiera.
 
 ---
 ## El Camino del Iniciado
