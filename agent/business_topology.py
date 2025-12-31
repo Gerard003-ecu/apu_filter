@@ -209,6 +209,15 @@ class BudgetGraphBuilder:
         if not apu_code:
             return
 
+        # Calcular Costo Total del APU para asignar peso a la arista
+        # Intentar obtener VALOR_TOTAL_APU directo
+        total_cost = self._safe_float(row.get(ColumnNames.VALOR_TOTAL_APU))
+        if total_cost == 0.0:
+            # Fallback: Cantidad * Precio Unitario
+            qty = self._safe_float(row.get(ColumnNames.CANTIDAD_PRESUPUESTO))
+            price = self._safe_float(row.get(ColumnNames.PRECIO_UNIT_APU))
+            total_cost = qty * price
+
         # Crear nodo APU (Nivel 2)
         attrs = self._create_apu_attributes(
             row, source="presupuesto", idx=idx, inferred=False
@@ -231,10 +240,38 @@ class BudgetGraphBuilder:
                     level=1,
                     description=f"Capítulo: {chapter_name}",
                 )
-                G.add_edge(self.ROOT_NODE, chapter_name, relation="CONTAINS")
-            G.add_edge(chapter_name, apu_code, relation="CONTAINS")
+                # Inicializar arista Root -> Capítulo con peso 0 (se acumulará)
+                G.add_edge(
+                    self.ROOT_NODE,
+                    chapter_name,
+                    relation="CONTAINS",
+                    weight=0.0,
+                    total_cost=0.0,
+                )
+
+            # Acumular costo en arista Root -> Capítulo
+            if G.has_edge(self.ROOT_NODE, chapter_name):
+                edge_rc = G[self.ROOT_NODE][chapter_name]
+                edge_rc["weight"] = edge_rc.get("weight", 0.0) + total_cost
+                edge_rc["total_cost"] = edge_rc.get("total_cost", 0.0) + total_cost
+
+            # Arista Capítulo -> APU
+            G.add_edge(
+                chapter_name,
+                apu_code,
+                relation="CONTAINS",
+                weight=total_cost,
+                total_cost=total_cost,
+            )
         else:
-            G.add_edge(self.ROOT_NODE, apu_code, relation="CONTAINS")
+            # Arista Root -> APU
+            G.add_edge(
+                self.ROOT_NODE,
+                apu_code,
+                relation="CONTAINS",
+                weight=total_cost,
+                total_cost=total_cost,
+            )
 
     def _process_apu_detail_row(self, G: nx.DiGraph, row: pd.Series, idx: int) -> None:
         apu_code = self._sanitize_code(row.get(ColumnNames.CODIGO_APU))
