@@ -517,7 +517,7 @@ class BusinessAgent:
             complexity_level=base_report.complexity_level,
             financial_risk_level=base_report.financial_risk_level,
             details=enriched_details,
-            strategic_narrative=strategic_narrative,
+            strategic_narrative=full_narrative,
         )
 
         # Aplicar Risk Challenger para auditar el reporte
