@@ -1015,8 +1015,13 @@ class BuildOutputStep(ProcessingStep):
             try:
                 narrator = TelemetryNarrator()
                 tech_narrative = narrator.summarize_execution(telemetry)
-                validated_result["technical_audit"] = tech_narrative
-                logger.info("✅ Narrativa técnica generada e inyectada.")
+                # Asegurar copia explícita para persistencia
+                if isinstance(tech_narrative, dict):
+                     validated_result["technical_audit"] = tech_narrative.copy()
+                else:
+                     validated_result["technical_audit"] = tech_narrative
+
+                logger.info(f"✅ Narrativa técnica generada e inyectada. Keys: {list(tech_narrative.keys()) if isinstance(tech_narrative, dict) else 'Not Dict'}")
             except Exception as e:
                 logger.warning(f"⚠️ Fallo al generar narrativa técnica: {e}")
                 validated_result["technical_audit"] = {"error": str(e)}
