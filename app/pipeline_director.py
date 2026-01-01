@@ -30,6 +30,7 @@ from app.classifiers.apu_classifier import APUClassifier
 # Nuevos módulos
 from app.constants import ColumnNames, InsumoType, ProcessingThresholds
 from app.telemetry import TelemetryContext
+from app.telemetry_narrative import TelemetryNarrator
 from app.validators import DataFrameValidator
 from app.matter_generator import MatterGenerator, BillOfMaterials
 
@@ -1008,6 +1009,17 @@ class BuildOutputStep(ProcessingStep):
             # Integrar Plan Logístico (BOM)
             if "logistics_plan" in context:
                 validated_result["logistics_plan"] = context["logistics_plan"]
+
+            # Integrar Narrativa Técnica (DIKW)
+            # El cronista escribe la historia de la ejecución
+            try:
+                narrator = TelemetryNarrator()
+                tech_narrative = narrator.summarize_execution(telemetry)
+                validated_result["technical_audit"] = tech_narrative
+                logger.info("✅ Narrativa técnica generada e inyectada.")
+            except Exception as e:
+                logger.warning(f"⚠️ Fallo al generar narrativa técnica: {e}")
+                validated_result["technical_audit"] = {"error": str(e)}
 
             # --- Data Product Packaging ---
 
