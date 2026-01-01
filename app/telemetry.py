@@ -3,7 +3,7 @@ Módulo de Telemetría Unificada ("Pasaporte").
 
 Implementa el contexto de telemetría que viaja con cada solicitud para
 registrar métricas, errores y pasos de ejecución de manera centralizada
-y thread-safe.
+y thread-safe. Soporta una estructura jerárquica de spans (Pirámide de Observabilidad).
 """
 
 import copy
@@ -135,6 +135,42 @@ class ActiveStepInfo:
 
 
 @dataclass
+class TelemetrySpan:
+    """
+    Representa un nodo en la jerarquía de ejecución (Pirámide de Observabilidad).
+    """
+    name: str
+    level: int  # 0 para raíz, 1 para hijos, etc.
+    start_time: float = field(default_factory=time.perf_counter)
+    end_time: Optional[float] = None
+    children: List["TelemetrySpan"] = field(default_factory=list)
+    metrics: Dict[str, Any] = field(default_factory=dict)
+    metadata: Dict[str, Any] = field(default_factory=dict)
+    status: StepStatus = StepStatus.IN_PROGRESS
+    errors: List[Dict[str, Any]] = field(default_factory=list)
+
+    @property
+    def duration(self) -> float:
+        if self.end_time:
+            return self.end_time - self.start_time
+        return time.perf_counter() - self.start_time
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Serializa el span a diccionario."""
+        return {
+            "name": self.name,
+            "level": self.level,
+            "duration": round(self.duration, 6),
+            "status": self.status.value,
+            "children": [child.to_dict() for child in self.children],
+            "metrics": self.metrics,
+            "metadata": self.metadata,
+            "errors": self.errors,
+            "timestamp": datetime.utcnow().isoformat()
+        }
+
+
+@dataclass
 class TelemetryContext:
     """
     Actúa como el 'Pasaporte' de una solicitud, transportando su identidad,
@@ -158,6 +194,11 @@ class TelemetryContext:
     steps: List[Dict[str, Any]] = field(default_factory=list)
     metrics: Dict[str, Any] = field(default_factory=dict)
     errors: List[Dict[str, Any]] = field(default_factory=list)
+
+    # Hierarchical Support
+    root_spans: List[TelemetrySpan] = field(default_factory=list)
+    _scope_stack: List[TelemetrySpan] = field(default_factory=list)
+
     _active_steps: Dict[str, ActiveStepInfo] = field(default_factory=dict)
     _lock: threading.RLock = field(
         default_factory=threading.RLock, repr=False, compare=False
@@ -384,6 +425,8 @@ class TelemetryContext:
             ("errors", list, []),
             ("metadata", dict, {}),
             ("_active_steps", dict, {}),
+            ("root_spans", list, []),
+            ("_scope_stack", list, []),
         ]
 
         for attr_name, expected_type, default_value in collections_config:
@@ -461,6 +504,61 @@ class TelemetryContext:
             if not isinstance(value, (int, float)) or value < 0:
                 self.business_thresholds[key] = default
                 logger.debug(f"[{request_id}] Fixed threshold {key}: {value} -> {default}")
+
+    # ========== HIERARCHICAL SPANS ==========
+
+    @contextmanager
+    def span(self, name: str, metadata: Optional[Dict[str, Any]] = None):
+        """
+        Crea un nuevo span jerárquico. Si hay uno activo en el stack, se convierte en hijo.
+        """
+        # Create Span
+        level = len(self._scope_stack)
+        new_span = TelemetrySpan(
+            name=name,
+            level=level,
+            metadata=self._sanitize_value(metadata) if metadata else {},
+        )
+
+        with self._lock:
+            # Link to parent if exists
+            if self._scope_stack:
+                parent = self._scope_stack[-1]
+                parent.children.append(new_span)
+            else:
+                self.root_spans.append(new_span)
+
+            # Push to stack
+            self._scope_stack.append(new_span)
+
+        logger.debug(f"[{self.request_id}] SPAN START: {'  '*level}{name}")
+
+        try:
+            yield new_span
+            new_span.status = StepStatus.SUCCESS
+        except Exception as e:
+            new_span.status = StepStatus.FAILURE
+            # Record error in span
+            error_data = self._build_error_data(
+                step_name=name,
+                error_message=str(e),
+                error_type=type(e).__name__,
+                exception=e,
+                metadata=None,
+                include_traceback=True,
+                severity="ERROR"
+            )
+            new_span.errors.append(error_data)
+            # Propagate error to global list too
+            self.errors.append(error_data)
+            raise
+        finally:
+            new_span.end_time = time.perf_counter()
+            with self._lock:
+                if self._scope_stack and self._scope_stack[-1] == new_span:
+                    self._scope_stack.pop()
+
+            logger.debug(f"[{self.request_id}] SPAN END: {'  '*level}{name} ({new_span.duration:.4f}s)")
 
     # ========== Gestión de Pasos ==========
 
@@ -995,6 +1093,12 @@ class TelemetryContext:
                 )
                 return False
 
+        # If inside a span, record metric there TOO
+        current_span = None
+        with self._lock:
+            if self._scope_stack:
+                current_span = self._scope_stack[-1]
+
         with self._lock:
             is_new_metric = key not in self.metrics
 
@@ -1037,6 +1141,10 @@ class TelemetryContext:
                     sanitized_value = TelemetryDefaults.MIN_METRIC_VALUE
 
             self.metrics[key] = sanitized_value
+
+            # Span Metrics
+            if current_span:
+                current_span.metrics[key] = sanitized_value
 
             logger.debug(
                 f"[{self.request_id}] Metric {key} = {sanitized_value} "
@@ -1153,6 +1261,10 @@ class TelemetryContext:
             )
 
             self.metrics[key] = new_value
+
+            # Update span metric if active
+            if self._scope_stack:
+                 self._scope_stack[-1].metrics[key] = new_value
 
             logger.debug(
                 f"[{self.request_id}] Metric {key}: {current_value} + {increment} = {new_value}"
@@ -1288,6 +1400,10 @@ class TelemetryContext:
                 }
 
             self.errors.append(error_data)
+
+            # If inside a span, attach error there too
+            if self._scope_stack:
+                self._scope_stack[-1].errors.append(error_data)
 
             # Log con nivel apropiado
             log_func = {
@@ -1844,6 +1960,7 @@ class TelemetryContext:
                     "total_steps": len(self.steps),
                     "total_errors": len(self.errors),
                     "total_metrics": len(self.metrics),
+                    "total_spans": len(self.root_spans), # Nuevo
                     "active_timers": len(self._active_steps),
                     "stale_timers": stale_count,
                     "total_duration_seconds": round(total_duration, 6),
@@ -1923,6 +2040,7 @@ class TelemetryContext:
                     "steps": steps_data,
                     "metrics": metrics_data,
                     "errors": errors_data,
+                    "spans": [s.to_dict() for s in self.root_spans], # Hierarchical Export
                     "total_duration_seconds": round(total_duration, 6),
                     "created_at": self.created_at,
                     "age_seconds": round(time.perf_counter() - self.created_at, 6),
@@ -1992,6 +2110,8 @@ class TelemetryContext:
             self.metrics.clear()
             self.errors.clear()
             self._active_steps.clear()
+            self.root_spans.clear()
+            self._scope_stack.clear()
             self.metadata.clear()
             self.created_at = time.perf_counter()
 
