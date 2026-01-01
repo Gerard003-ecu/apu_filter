@@ -443,6 +443,7 @@ class BusinessTopologicalAnalyzer:
 
         return {
             "status": verdict,
+            "delta_beta_1": emergent_observed,
             "delta_beta_1_observed": emergent_observed,
             "delta_beta_1_theoretical": emergent_theoretical,
             "discrepancy": discrepancy,
@@ -653,7 +654,28 @@ class BusinessTopologicalAnalyzer:
         # Buscar nodo ROOT
         root_candidates = [n for n, d in graph.nodes(data=True) if d.get("type") == "ROOT"]
         if root_candidates:
-            system_temp = node_temperatures.get(root_candidates[0], 0.0)
+            root_node = root_candidates[0]
+            # Asegurar cálculo para el nodo raíz si no fue actualizado en el bucle
+            if node_temperatures.get(root_node, 0.0) == 0.0:
+                 children = list(graph.successors(root_node))
+                 if children:
+                     weighted_temp_sum = 0.0
+                     total_cost_sum = 0.0
+                     for child in children:
+                         edge_cost = graph[root_node][child].get("total_cost", 0.0)
+                         # Fallback si total_cost es 0 pero hay weight
+                         if edge_cost == 0:
+                             edge_cost = graph[root_node][child].get("weight", 0.0)
+
+                         child_temp = node_temperatures.get(child, base_temperatures["DEFAULT"])
+                         weighted_temp_sum += child_temp * edge_cost
+                         total_cost_sum += edge_cost
+
+                     if total_cost_sum > 0:
+                         node_temperatures[root_node] = weighted_temp_sum / total_cost_sum
+                         node_costs[root_node] = total_cost_sum
+
+            system_temp = node_temperatures.get(root_node, 0.0)
         else:
             # Promedio de APUs si no hay root
             apus = [n for n, d in graph.nodes(data=True) if d.get("type") == "APU"]
