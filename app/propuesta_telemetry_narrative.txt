@@ -1,0 +1,442 @@
+### Propuesta 1
+
+from typing import Dict, Any, List, Optional, Tuple, Iterator
+from dataclasses import dataclass, field
+from enum import IntEnum
+from functools import reduce
+from itertools import chain
+
+
+class SeverityLevel(IntEnum):
+    """
+    Lattice de severidad con orden total.
+    Estructura algebraica: (SeverityLevel, ≤, ⊔, ⊓) forma un lattice acotado.
+    """
+    OPTIMO = 0
+    ADVERTENCIA = 1
+    CRITICO = 2
+
+    @classmethod
+    def from_step_status(cls, status: 'StepStatus') -> 'SeverityLevel':
+        """Morfismo: StepStatus → SeverityLevel."""
+        mapping = {
+            StepStatus.SUCCESS: cls.OPTIMO,
+            StepStatus.WARNING: cls.ADVERTENCIA,
+            StepStatus.FAILURE: cls.CRITICO,
+        }
+        return mapping.get(status, cls.OPTIMO)
+
+    @classmethod
+    def supremum(cls, *levels: 'SeverityLevel') -> 'SeverityLevel':
+        """
+        Operación join (⊔) en el lattice.
+        sup(∅) = OPTIMO (elemento neutro inferior).
+        """
+        return max(levels, default=cls.OPTIMO)
+
+
+@dataclass(frozen=True)
+class Issue:
+    """Evidencia forense inmutable con profundidad topológica."""
+    source: str
+    message: str
+    issue_type: str
+    depth: int
+    timestamp: Optional[str] = None
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "source": self.source,
+            "message": self.message,
+            "type": self.issue_type,
+            "depth": self.depth,
+            "timestamp": self.timestamp,
+        }
+
+
+@dataclass
+class PhaseAnalysis:
+    """Resultado del análisis de una fase (span raíz)."""
+    name: str
+    severity: SeverityLevel
+    duration_seconds: float
+    issues: Tuple[Issue, ...]  # Inmutable
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "name": self.name,
+            "status": self.severity.name,
+            "duration": f"{self.duration_seconds:.2f}s",
+            "critical_issues": [issue.to_dict() for issue in self.issues],
+        }
+
+
+class TelemetryNarrator:
+    """
+    Narrador que convierte un árbol de telemetría en una historia legible.
+    
+    Invariantes topológicos:
+    - El veredicto global es el supremo del lattice de severidades de todas las fases.
+    - Los issues preservan su profundidad en el árbol (información de fibrado).
+    """
+
+    MAX_FORENSIC_EVIDENCE: int = 10
+    MAX_RECURSION_DEPTH: int = 50  # Prevención de stack overflow
+
+    def summarize_execution(self, context: TelemetryContext) -> Dict[str, Any]:
+        """
+        Punto de entrada principal. Genera el reporte DIKW.
+        
+        Teorema de coherencia: El veredicto satisface la propiedad de retracción,
+        es decir, es el supremo del lattice sobre todas las fases analizadas.
+        """
+        root_spans = context.root_spans
+
+        # Condición de vacuidad
+        if not root_spans:
+            if context.steps:
+                return self._summarize_legacy(context)
+            return self._generate_empty_report()
+
+        # Functor de análisis: Span → PhaseAnalysis
+        phases_analysis: List[PhaseAnalysis] = [
+            self._analyze_phase(span) for span in root_spans
+        ]
+
+        # Cálculo del supremo global (join en el lattice de severidades)
+        global_severity = SeverityLevel.supremum(
+            *(phase.severity for phase in phases_analysis)
+        )
+
+        # Agregación de evidencia con ordenamiento por severidad implícita (profundidad)
+        all_issues = self._aggregate_issues(phases_analysis)
+
+        return {
+            "verdict": global_severity.name,
+            "narrative": self._generate_verdict(
+                global_severity, len(phases_analysis), len(all_issues)
+            ),
+            "phases": [phase.to_dict() for phase in phases_analysis],
+            "forensic_evidence": [
+                issue.to_dict() for issue in all_issues[:self.MAX_FORENSIC_EVIDENCE]
+            ],
+        }
+
+    def _analyze_phase(self, span: TelemetrySpan) -> PhaseAnalysis:
+        """
+        Analiza un span de nivel raíz (Fase).
+        
+        La severidad de la fase es el supremo entre:
+        1. La severidad directa del span
+        2. La severidad inducida por la existencia de issues en el subárbol
+        """
+        # Recolección funcional (sin mutación externa)
+        issues = tuple(self._collect_issues_recursive(span, depth=0))
+
+        # Severidad directa del span
+        direct_severity = SeverityLevel.from_step_status(span.status)
+
+        # Severidad inducida: si hay issues pero el span dice SUCCESS → ADVERTENCIA
+        induced_severity = (
+            SeverityLevel.ADVERTENCIA
+            if issues and direct_severity == SeverityLevel.OPTIMO
+            else SeverityLevel.OPTIMO
+        )
+
+        # Supremo de ambas severidades
+        final_severity = SeverityLevel.supremum(direct_severity, induced_severity)
+
+        # Duración con manejo de None
+        duration = span.duration if span.duration is not None else 0.0
+
+        return PhaseAnalysis(
+            name=span.name,
+            severity=final_severity,
+            duration_seconds=duration,
+            issues=issues,
+        )
+
+    def _collect_issues_recursive(
+        self,
+        span: TelemetrySpan,
+        depth: int,
+    ) -> Iterator[Issue]:
+        """
+        Generador que traversa el árbol y emite issues.
+        
+        Propiedades:
+        - Preserva la profundidad topológica (fibrado sobre el árbol)
+        - Evaluación perezosa (memoria eficiente)
+        - Límite de profundidad para prevenir stack overflow
+        """
+        if depth > self.MAX_RECURSION_DEPTH:
+            yield Issue(
+                source=span.name,
+                message=f"Profundidad máxima excedida ({self.MAX_RECURSION_DEPTH})",
+                issue_type="RecursionLimit",
+                depth=depth,
+            )
+            return
+
+        # Emitir errores explícitos del nodo actual
+        for error in span.errors:
+            yield Issue(
+                source=span.name,
+                message=error.get("message", "Error sin mensaje"),
+                issue_type=error.get("type", "Error"),
+                depth=depth,
+                timestamp=error.get("timestamp"),
+            )
+
+        # Detectar fallos silenciosos (fallo sin error registrado)
+        if span.status == StepStatus.FAILURE and not span.errors:
+            yield Issue(
+                source=span.name,
+                message="Fallo silencioso detectado (sin error explícito)",
+                issue_type="SilentFailure",
+                depth=depth,
+            )
+
+        # Recursión sobre hijos (composición de fibras)
+        for child in span.children:
+            yield from self._collect_issues_recursive(child, depth + 1)
+
+    def _aggregate_issues(
+        self, phases: List[PhaseAnalysis]
+    ) -> List[Issue]:
+        """
+        Agrega issues de todas las fases, ordenados por profundidad ascendente.
+        
+        Heurística: Los errores más superficiales tienden a ser más informativos
+        (principio de localidad topológica).
+        """
+        all_issues = list(chain.from_iterable(phase.issues for phase in phases))
+        return sorted(all_issues, key=lambda issue: (issue.depth, issue.source))
+
+    def _generate_verdict(
+        self,
+        severity: SeverityLevel,
+        total_phases: int,
+        total_issues: int,
+    ) -> str:
+        """Genera narrativa del veredicto basada en severidad."""
+        verdicts = {
+            SeverityLevel.OPTIMO: (
+                f"Ejecución exitosa de {total_phases} fase(s). "
+                "Estabilidad estructural confirmada."
+            ),
+            SeverityLevel.ADVERTENCIA: (
+                f"Ejecución completada con {total_issues} advertencia(s). "
+                "Se recomienda revisión de fases afectadas."
+            ),
+            SeverityLevel.CRITICO: (
+                f"FALLO CRÍTICO. Se detectaron {total_issues} problema(s) "
+                "bloqueantes que comprometen la integridad del proceso."
+            ),
+        }
+        return verdicts.get(severity, "Estado desconocido.")
+
+    def _summarize_legacy(self, context: TelemetryContext) -> Dict[str, Any]:
+        """
+        Fallback para contextos sin estructura jerárquica de spans.
+        
+        Mapeo de severidad corregido:
+        - Sin errores → OPTIMO
+        - Con errores → CRITICO
+        """
+        errors = context.errors or []
+
+        # Lógica corregida: determinación correcta basada en existencia de errores
+        severity = SeverityLevel.CRITICO if errors else SeverityLevel.OPTIMO
+
+        # Extracción segura de duración
+        try:
+            summary = context.get_summary()
+            duration = summary.get("total_duration_seconds", 0.0)
+        except (AttributeError, TypeError):
+            duration = 0.0
+
+        return {
+            "verdict": severity.name,
+            "narrative": (
+                "Reporte generado en modo compatibilidad (sin jerarquía de spans)."
+            ),
+            "phases": [{
+                "name": "Global",
+                "status": severity.name,
+                "duration": f"{duration:.2f}s",
+                "critical_issues": [],
+            }],
+            "forensic_evidence": [
+                {"source": "legacy", "message": str(e), "type": "LegacyError", "depth": 0}
+                for e in errors[:self.MAX_FORENSIC_EVIDENCE]
+            ],
+        }
+
+    def _generate_empty_report(self) -> Dict[str, Any]:
+        """Genera reporte para contexto vacío (caso base/neutro)."""
+        return {
+            "verdict": SeverityLevel.OPTIMO.name,
+            "narrative": "Sin telemetría registrada. Contexto vacío.",
+            "phases": [],
+            "forensic_evidence": [],
+        }
+
+
+### Propuesta 2
+
+class TelemetryNarrator:
+    """
+    Narrador que convierte un árbol de telemetría en una historia legible.
+    """
+
+    def summarize_execution(self, context: TelemetryContext) -> NarrativeReport:
+        """
+        Punto de entrada principal. Genera el reporte DIKW estructurado.
+        """
+        if not context.root_spans and context.steps:
+            return self._summarize_legacy(context)
+
+        phases_diagnosis = []
+        global_status = "OPTIMO"
+        critical_errors = []
+        warning_count = 0
+
+        for span in context.root_spans:
+            phase_report = self._analyze_phase(span)
+            phases_diagnosis.append(phase_report)
+
+            critical_errors.extend(phase_report["critical_issues"])
+            warning_count += phase_report["warning_count"]
+
+            # Determinar estado global mediante álgebra de estados (CRITICO > ADVERTENCIA > OPTIMO)
+            if phase_report["status"] == "CRITICO":
+                global_status = "CRITICO"
+            elif phase_report["status"] == "ADVERTENCIA" and global_status != "CRITICO":
+                global_status = "ADVERTENCIA"
+
+        verdict_summary = self._generate_verdict(
+            global_status, 
+            len(phases_diagnosis), 
+            len(critical_errors),
+            warning_count
+        )
+
+        return NarrativeReport(
+            verdict=global_status,
+            summary=verdict_summary,
+            phases=phases_diagnosis,
+            evidence=critical_errors[:10]
+        )
+
+    def _analyze_phase(self, span: TelemetrySpan) -> Dict[str, Any]:
+        """Analiza un span de nivel raíz (Fase) con clasificación DIKW."""
+        critical_issues, warnings = [], []
+
+        self._collect_issues(span, critical_issues, warnings)
+
+        # Lógica de estado mejorada: preserva la semántica fractal
+        if span.status == StepStatus.FAILURE or critical_issues:
+            status = "CRITICO"
+        elif span.status == StepStatus.WARNING or warnings:
+            status = "ADVERTENCIA"
+        else:
+            status = "OPTIMO"
+
+        return {
+            "name": span.name,
+            "status": status,
+            "duration": f"{span.duration:.2f}s",
+            "critical_issues": critical_issues,
+            "warning_count": len(warnings),
+            "warnings": warnings[:5]  # Top 5 advertencias por fase
+        }
+
+    def _collect_issues(self, span: TelemetrySpan, 
+                       critical_collector: List[Dict[str, Any]], 
+                       warning_collector: List[Dict[str, Any]]):
+        """Recolecta y clasifica problemas siguiendo la topología del árbol."""
+        # Procesar errores explícitos
+        for error in span.errors:
+            issue = {
+                "source": span.name,
+                "message": error.get("message"),
+                "type": error.get("type", "Error"),
+                "timestamp": error.get("timestamp")
+            }
+            critical_collector.append(issue)
+
+        # Detectar fallos silenciosos (homología en espacios de error)
+        if span.status == StepStatus.FAILURE and not span.errors:
+            critical_collector.append({
+                "source": span.name,
+                "message": "Fallo estructural sin traza explícita",
+                "type": "SilentFailure",
+                "topological_path": self._get_span_path(span)
+            })
+
+        # Recolectar advertencias de métricas anómalas
+        for metric in span.metrics:
+            if metric.get("anomalous", False):
+                warning_collector.append({
+                    "source": span.name,
+                    "metric": metric.get("name"),
+                    "value": metric.get("value"),
+                    "threshold": metric.get("threshold")
+                })
+
+        # Recursión sobre el complejo simplicial de spans hijos
+        for child in span.children:
+            self._collect_issues(child, critical_collector, warning_collector)
+
+    def _generate_verdict(self, status: str, total_phases: int, 
+                         critical_errors: int, warnings: int) -> str:
+        """Genera veredicto con perspectiva fractal DIKW."""
+        if status == "OPTIMO":
+            return (f"Ejecución óptima de {total_phases} fases. "
+                    f"Consistencia topológica verificada.")
+        elif status == "ADVERTENCIA":
+            return (f"Ejecución con {warnings} advertencias en {total_phases} fases. "
+                    f"Revisar {critical_errors} anomalías críticas.")
+        else:
+            return (f"Fallo estructural con {critical_errors} errores críticos. "
+                    f"Integridad del proceso comprometida en {total_phases} fases.")
+
+    def _summarize_legacy(self, context: TelemetryContext) -> NarrativeReport:
+        """Análisis de coherencia para datos no jerárquicos."""
+        errors = context.errors
+        warnings = context.warnings if hasattr(context, 'warnings') else []
+        
+        # Clasificación mejorada basada en teoría de conjuntos
+        if any(e.get('severity') == 'CRITICAL' for e in errors):
+            status = "CRITICO"
+        elif errors:
+            status = "ADVERTENCIA"
+        else:
+            status = "OPTIMO"
+
+        summary = context.get_summary()
+        duration = summary.get("total_duration_seconds", 0.0)
+
+        return NarrativeReport(
+            verdict=status,
+            summary="Reporte generado en modo de compatibilidad (sin jerarquía).",
+            phases=[{
+                "name": "Proceso monolítico",
+                "status": status,
+                "duration": f"{duration:.2f}s",
+                "critical_issues": errors[:10],
+                "warning_count": len(warnings),
+                "warnings": warnings[:5]
+            }],
+            evidence=errors[:10]
+        )
+
+    def _get_span_path(self, span: TelemetrySpan) -> str:
+        """Reconstruye la ruta topológica del span en el árbol."""
+        path = []
+        current = span
+        while current:
+            path.append(current.name)
+            current = current.parent if hasattr(current, 'parent') else None
+        return " → ".join(reversed(path))
