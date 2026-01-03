@@ -3,6 +3,9 @@
 En el Nivel 1, prometemos pasar de la incertidumbre a la certeza estructural. Para lograrlo, APU Filter no utiliza un algoritmo monolítico y opaco. En su lugar, hemos convocado a un Consejo de Sabios Digitales: cuatro agentes especializados que colaboran y se comunican bajo un protocolo de "Caja de Cristal".
 Cada "Sabio" representa un módulo de software avanzado con personalidad, diligencia y un método científico específico. A continuación, le presentamos a su equipo de élite.
 
+![Pirámide de Jerarquía de Negocio](docs/images/business_pyramid.jpeg)
+> **Nivel 0: Proyecto ($) -> Nivel 3: Insumos (Átomos)**
+
 ---
 
 ## 🛡️ El Guardián del Umbral (FluxCondenser)

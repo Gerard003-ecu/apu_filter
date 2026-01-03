@@ -21,6 +21,30 @@ La mayoría del software ve su presupuesto como una lista plana de ítems. Nosot
 4. **Termómetro de Riesgo:** Diagnóstico termodinámico que detecta si su presupuesto tiene 'fiebre inflacionaria' o 'fugas de energía' financiera.
 
 ---
+## 📐 Arquitectura del Ecosistema
+
+![Topología del Consejo](docs/images/mic_topology.jpeg)
+
+```mermaid
+graph TD
+    User([Usuario]) -->|Inicia Sesión| Agent[Agente Autónomo - SRE]
+    Agent -->|Monitorea| MIC[Herramientas MIC - Mantenimiento]
+    Agent -->|Orquesta| Core[Core de Negocio - Procesamiento]
+    Core -->|Consulta| MIC
+    Core -->|Genera| Artifacts[Artefactos de Inteligencia]
+
+    subgraph "Nivel Operativo (SRE)"
+    Agent
+    MIC
+    end
+
+    subgraph "Nivel Estratégico (Negocio)"
+    Core
+    Artifacts
+    end
+```
+
+---
 ## El Camino del Iniciado
 
 Hemos estructurado la interacción con el sistema en 4 niveles para guiarle desde la visión hasta la evidencia profunda:
