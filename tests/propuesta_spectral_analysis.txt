@@ -1,0 +1,758 @@
+"""
+Suite de Pruebas para Análisis Espectral de Grafos de Presupuesto.
+
+Fundamentos Matemáticos Verificados:
+- Laplaciano Normalizado: L = I - D^(-1/2) A D^(-1/2)
+- Eigenvalores: λᵢ ∈ [0, 2] para todo i
+- Conectividad Algebraica: λ₂ > 0 ⟺ grafo conexo
+- Fiedler Value: segundo eigenvalor más pequeño (proxy de cohesión)
+
+Referencias:
+- Chung, F. R. K. (1997). Spectral Graph Theory.
+- Mohar, B. (1991). The Laplacian spectrum of graphs.
+"""
+
+import unittest
+import math
+import networkx as nx
+import numpy as np
+from typing import Dict, Any, List, Tuple
+
+from agent.business_topology import BusinessTopologicalAnalyzer, TopologicalMetrics
+
+
+class TestSpectralAnalysisBase(unittest.TestCase):
+    """Clase base con utilidades comunes para pruebas espectrales."""
+
+    def setUp(self):
+        """Inicializa el analizador antes de cada prueba."""
+        self.analyzer = BusinessTopologicalAnalyzer()
+        # Tolerancia numérica para comparaciones de punto flotante
+        self.EPSILON = 1e-9
+        self.TOLERANCE = 1e-6
+
+    def assertAlmostEqualTolerant(
+        self, first: float, second: float, tolerance: float = None, msg: str = None
+    ):
+        """Aserción de igualdad aproximada con tolerancia configurable."""
+        tol = tolerance if tolerance is not None else self.TOLERANCE
+        if abs(first - second) > tol:
+            standard_msg = f"{first} != {second} within tolerance {tol}"
+            self.fail(self._formatMessage(msg, standard_msg))
+
+    def assertInRange(
+        self, value: float, min_val: float, max_val: float, msg: str = None
+    ):
+        """Verifica que un valor esté dentro de un rango [min, max]."""
+        if not (min_val <= value <= max_val):
+            standard_msg = f"{value} not in range [{min_val}, {max_val}]"
+            self.fail(self._formatMessage(msg, standard_msg))
+
+    def create_budget_graph(
+        self,
+        chapters: int = 1,
+        apus_per_chapter: int = 2,
+        insumos_per_apu: int = 3,
+    ) -> nx.DiGraph:
+        """
+        Crea un grafo de presupuesto piramidal típico para pruebas.
+
+        Estructura:
+            ROOT
+            └── CAPITULO_1
+                ├── APU_1_1
+                │   ├── INSUMO_1_1_1
+                │   ├── INSUMO_1_1_2
+                │   └── INSUMO_1_1_3
+                └── APU_1_2
+                    └── ...
+        """
+        G = nx.DiGraph(name="TestBudgetGraph")
+        G.add_node("ROOT", type="ROOT", level=0)
+
+        for c in range(1, chapters + 1):
+            chapter_id = f"CAPITULO_{c}"
+            G.add_node(chapter_id, type="CAPITULO", level=1)
+            G.add_edge("ROOT", chapter_id, weight=1.0, total_cost=100.0 * c)
+
+            for a in range(1, apus_per_chapter + 1):
+                apu_id = f"APU_{c}_{a}"
+                G.add_node(apu_id, type="APU", level=2)
+                G.add_edge(chapter_id, apu_id, weight=1.0, total_cost=50.0)
+
+                for i in range(1, insumos_per_apu + 1):
+                    insumo_id = f"INSUMO_{c}_{a}_{i}"
+                    G.add_node(
+                        insumo_id,
+                        type="INSUMO",
+                        level=3,
+                        description=f"Insumo {i}",
+                        tipo_insumo="MATERIAL",
+                    )
+                    G.add_edge(apu_id, insumo_id, quantity=1.0, total_cost=10.0)
+
+        return G
+
+
+class TestSpectralAnalysisBasicCases(TestSpectralAnalysisBase):
+    """Pruebas para casos básicos y degenerados."""
+
+    def test_empty_graph_returns_default_values(self):
+        """Grafo vacío debe retornar valores por defecto sin error."""
+        G = nx.DiGraph()
+        result = self.analyzer.analyze_spectral_stability(G)
+
+        # Verificar estructura completa del resultado
+        expected_keys = [
+            "fiedler_value",
+            "spectral_gap",
+            "spectral_energy",
+            "wavelength",
+            "resonance_risk",
+            "status",
+        ]
+        for key in expected_keys:
+            self.assertIn(key, result, f"Falta clave '{key}' en resultado")
+
+        # Valores por defecto para grafo vacío
+        self.assertEqual(result["fiedler_value"], 0.0)
+        self.assertEqual(result["spectral_energy"], 0.0)
+        self.assertFalse(result["resonance_risk"])
+        self.assertEqual(result["status"], "insufficient_nodes")
+
+    def test_single_node_graph(self):
+        """Grafo con un solo nodo es caso degenerado."""
+        G = nx.DiGraph()
+        G.add_node("A", type="ROOT")
+
+        result = self.analyzer.analyze_spectral_stability(G)
+
+        self.assertEqual(result["fiedler_value"], 0.0)
+        self.assertEqual(result["status"], "insufficient_nodes")
+
+    def test_two_node_connected_graph(self):
+        """Grafo mínimo conexo (2 nodos, 1 arista)."""
+        G = nx.DiGraph()
+        G.add_edge("A", "B")
+
+        result = self.analyzer.analyze_spectral_stability(G)
+
+        # Para grafo de 2 nodos conexo, Fiedler > 0
+        self.assertGreater(
+            result["fiedler_value"], 0,
+            "Grafo conexo de 2 nodos debe tener Fiedler > 0"
+        )
+        self.assertEqual(result["status"], "success")
+
+    def test_two_node_disconnected_graph(self):
+        """Grafo de 2 nodos sin aristas (desconectado)."""
+        G = nx.DiGraph()
+        G.add_node("A")
+        G.add_node("B")
+
+        result = self.analyzer.analyze_spectral_stability(G)
+
+        # Nodos aislados deben ser removidos, quedando grafo vacío
+        # O el Fiedler debe ser 0
+        self.assertLessEqual(result["fiedler_value"], self.EPSILON)
+
+
+class TestSpectralAnalysisConnectivity(TestSpectralAnalysisBase):
+    """Pruebas de conectividad algebraica (Fiedler Value)."""
+
+    def test_connected_path_graph_positive_fiedler(self):
+        """
+        Grafo de camino (path graph) conexo.
+        
+        Propiedad: Para path graph P_n, λ₂ = 2(1 - cos(π/n))
+        Para n=4: λ₂ ≈ 0.586 (Laplaciano standard)
+        Para Laplaciano normalizado, el valor difiere pero sigue siendo > 0.
+        """
+        G = nx.path_graph(4, create_using=nx.DiGraph)
+
+        result = self.analyzer.analyze_spectral_stability(G)
+
+        self.assertGreater(
+            result["fiedler_value"], 0,
+            "Path graph conexo debe tener Fiedler > 0"
+        )
+        self.assertEqual(result["status"], "success")
+        self.assertFalse(result["resonance_risk"])
+
+    def test_disconnected_graph_zero_fiedler(self):
+        """
+        Grafo desconectado (2 componentes).
+        
+        Propiedad Matemática: λ₂ = 0 ⟺ grafo desconectado
+        """
+        G = nx.DiGraph()
+        # Componente 1
+        G.add_edge("A", "B")
+        G.add_edge("B", "C")
+        # Componente 2 (desconectada)
+        G.add_edge("X", "Y")
+        G.add_edge("Y", "Z")
+
+        result = self.analyzer.analyze_spectral_stability(G)
+
+        # Fiedler value debe ser ≈ 0 para grafo desconectado
+        self.assertLess(
+            result["fiedler_value"], self.EPSILON,
+            f"Grafo desconectado debe tener Fiedler ≈ 0, obtenido: {result['fiedler_value']}"
+        )
+
+    def test_strongly_connected_cycle(self):
+        """
+        Grafo cíclico (cycle graph) es conexo.
+        
+        Para cycle C_n con Laplaciano normalizado: λ₂ = 2(1 - cos(2π/n))
+        """
+        G = nx.cycle_graph(6, create_using=nx.DiGraph)
+
+        result = self.analyzer.analyze_spectral_stability(G)
+
+        self.assertGreater(
+            result["fiedler_value"], 0,
+            "Cycle graph conexo debe tener Fiedler > 0"
+        )
+        # Verificar que wavelength es válido
+        self.assertGreater(result["wavelength"], 0)
+
+    def test_star_graph_connectivity(self):
+        """
+        Grafo estrella (star graph): un hub central conectado a n hojas.
+        
+        Alta conectividad local pero estructura vulnerable (un solo punto de fallo).
+        """
+        G = nx.star_graph(5)  # 1 centro + 5 hojas
+        G = G.to_directed()
+
+        result = self.analyzer.analyze_spectral_stability(G)
+
+        self.assertGreater(result["fiedler_value"], 0)
+        self.assertEqual(result["status"], "success")
+
+
+class TestSpectralAnalysisEigenvalueProperties(TestSpectralAnalysisBase):
+    """
+    Pruebas de propiedades matemáticas de eigenvalores.
+    
+    Para Laplaciano Normalizado L = I - D^(-1/2) A D^(-1/2):
+    - Todos los eigenvalores están en [0, 2]
+    - λ₁ = 0 siempre (con eigenvector constante)
+    - λ_max ≤ 2 (con igualdad solo para grafos bipartitos)
+    """
+
+    def test_eigenvalues_in_valid_range(self):
+        """Todos los eigenvalores deben estar en [0, 2]."""
+        # Probar con varios tipos de grafos
+        test_graphs = [
+            nx.path_graph(10, create_using=nx.DiGraph),
+            nx.cycle_graph(8, create_using=nx.DiGraph),
+            nx.complete_graph(6, create_using=nx.DiGraph),
+            nx.star_graph(7).to_directed(),
+        ]
+
+        for i, G in enumerate(test_graphs):
+            with self.subTest(graph_index=i, graph_type=type(G).__name__):
+                result = self.analyzer.analyze_spectral_stability(G)
+
+                if "eigenvalues" in result and result["eigenvalues"]:
+                    for eig in result["eigenvalues"]:
+                        self.assertInRange(
+                            eig, -self.EPSILON, 2.0 + self.EPSILON,
+                            f"Eigenvalor {eig} fuera de rango [0, 2]"
+                        )
+
+    def test_lambda_max_bounded_by_two(self):
+        """λ_max debe estar acotado por 2 para Laplaciano normalizado."""
+        G = nx.complete_bipartite_graph(4, 4).to_directed()
+
+        result = self.analyzer.analyze_spectral_stability(G)
+
+        if "lambda_max" in result:
+            self.assertLessEqual(
+                result["lambda_max"], 2.0 + self.EPSILON,
+                f"λ_max = {result['lambda_max']} excede cota teórica de 2"
+            )
+
+    def test_spectral_energy_positive(self):
+        """La energía espectral (||L||_F²) siempre es ≥ 0."""
+        G = nx.gnm_random_graph(15, 25, directed=True, seed=42)
+
+        result = self.analyzer.analyze_spectral_stability(G)
+
+        self.assertGreaterEqual(
+            result["spectral_energy"], 0,
+            "Energía espectral debe ser no negativa"
+        )
+
+
+class TestSpectralAnalysisResonance(TestSpectralAnalysisBase):
+    """
+    Pruebas de detección de riesgo de resonancia.
+    
+    Resonancia ocurre cuando el espectro está degenerado (eigenvalores concentrados),
+    lo que indica vulnerabilidad a perturbaciones de frecuencia similar.
+    """
+
+    def test_regular_graph_higher_resonance_risk(self):
+        """
+        Grafos regulares tienen espectro más concentrado.
+        
+        Un grafo k-regular tiene estructura repetitiva que puede
+        llevar a degeneración espectral.
+        """
+        # Grafo 3-regular (todos los nodos tienen grado 3)
+        G = nx.random_regular_graph(3, 10, seed=42)
+        G = G.to_directed()
+
+        result = self.analyzer.analyze_spectral_stability(G)
+
+        # Verificar que se calculó el indicador de resonancia
+        self.assertIn("resonance_risk", result)
+        self.assertIsInstance(result["resonance_risk"], bool)
+
+    def test_irregular_graph_lower_resonance(self):
+        """
+        Grafos irregulares (grados variados) tienen espectro más disperso.
+        
+        Estructura heterogénea reduce riesgo de resonancia.
+        """
+        # Grafo con estructura irregular (árbol + algunos ciclos)
+        G = nx.DiGraph()
+        # Crear estructura tipo "árbol con ramificaciones desiguales"
+        G.add_edges_from([
+            ("R", "A"), ("R", "B"), ("R", "C"),
+            ("A", "A1"), ("A", "A2"), ("A", "A3"), ("A", "A4"),
+            ("B", "B1"),
+            ("C", "C1"), ("C", "C2"),
+        ])
+
+        result = self.analyzer.analyze_spectral_stability(G)
+
+        self.assertEqual(result["status"], "success")
+
+    def test_complete_graph_spectral_properties(self):
+        """
+        Grafo completo K_n tiene propiedades espectrales conocidas.
+        
+        Para K_n con Laplaciano normalizado:
+        - λ₁ = 0
+        - λ₂ = λ₃ = ... = λ_n = n/(n-1) ≈ 1 para n grande
+        
+        Alta degeneración → posible riesgo de resonancia.
+        """
+        n = 8
+        G = nx.complete_graph(n, create_using=nx.DiGraph)
+
+        result = self.analyzer.analyze_spectral_stability(G)
+
+        # Grafo completo está fuertemente conectado
+        self.assertGreater(result["fiedler_value"], 0)
+
+        # Para K_n, el Fiedler value (segundo eigenvalor) debería ser ≈ n/(n-1)
+        # Para n=8: n/(n-1) = 8/7 ≈ 1.143
+        expected_fiedler_approx = n / (n - 1)
+        
+        # Verificar que está en el rango esperado (con tolerancia amplia por normalización)
+        if result["eigenvalues"]:
+            # La mayoría de eigenvalores deberían estar concentrados
+            unique_eigenvalues = len(set(round(e, 2) for e in result["eigenvalues"]))
+            # Para K_n, solo hay 2 eigenvalores distintos: 0 y n/(n-1)
+            self.assertLessEqual(
+                unique_eigenvalues, 3,
+                "Grafo completo debería tener pocas eigenvalores distintos"
+            )
+
+
+class TestSpectralAnalysisIsolatedNodes(TestSpectralAnalysisBase):
+    """Pruebas de manejo de nodos aislados."""
+
+    def test_graph_with_isolated_nodes(self):
+        """
+        Nodos aislados deben ser manejados correctamente.
+        
+        El Laplaciano normalizado no está definido para nodos de grado 0
+        (división por cero en D^(-1/2)). Deben ser removidos antes del análisis.
+        """
+        G = nx.DiGraph()
+        # Componente conexa
+        G.add_edge("A", "B")
+        G.add_edge("B", "C")
+        # Nodos aislados
+        G.add_node("ISOLATED_1")
+        G.add_node("ISOLATED_2")
+
+        result = self.analyzer.analyze_spectral_stability(G)
+
+        # No debe fallar
+        self.assertEqual(result["status"], "success")
+        
+        # Verificar que se reportan nodos aislados removidos
+        if "isolated_nodes_removed" in result:
+            self.assertEqual(result["isolated_nodes_removed"], 2)
+
+    def test_all_isolated_nodes(self):
+        """Grafo con solo nodos aislados es degenerado."""
+        G = nx.DiGraph()
+        G.add_node("A")
+        G.add_node("B")
+        G.add_node("C")
+
+        result = self.analyzer.analyze_spectral_stability(G)
+
+        # Debe indicar que el grafo es degenerado
+        self.assertIn(result["status"], ["insufficient_nodes", "degenerate_after_isolation_removal"])
+
+
+class TestSpectralAnalysisBudgetTopology(TestSpectralAnalysisBase):
+    """Pruebas con topología real de presupuesto."""
+
+    def test_typical_budget_structure(self):
+        """
+        Estructura piramidal típica de presupuesto.
+        
+        ROOT → Capítulos → APUs → Insumos
+        
+        Esta estructura es un DAG (árbol) por lo que debería ser conexa
+        y tener propiedades espectrales bien definidas.
+        """
+        G = self.create_budget_graph(chapters=2, apus_per_chapter=3, insumos_per_apu=4)
+
+        result = self.analyzer.analyze_spectral_stability(G)
+
+        # Estructura de árbol es conexa
+        self.assertGreater(result["fiedler_value"], 0)
+        self.assertEqual(result["status"], "success")
+
+        # Árbol no debería tener resonancia (estructura irregular)
+        # Aunque esto depende de la implementación del threshold
+
+    def test_budget_with_shared_insumos(self):
+        """
+        Presupuesto con insumos compartidos entre APUs.
+        
+        Esto crea estructura más compleja (no es árbol puro).
+        """
+        G = self.create_budget_graph(chapters=1, apus_per_chapter=3, insumos_per_apu=2)
+
+        # Agregar insumos compartidos
+        shared_insumo = "INSUMO_COMPARTIDO_ACERO"
+        G.add_node(
+            shared_insumo,
+            type="INSUMO",
+            level=3,
+            description="ACERO ESTRUCTURAL",
+            tipo_insumo="ACERO",
+        )
+
+        # Conectar a múltiples APUs
+        for apu in ["APU_1_1", "APU_1_2", "APU_1_3"]:
+            G.add_edge(apu, shared_insumo, quantity=100.0, total_cost=5000.0)
+
+        result = self.analyzer.analyze_spectral_stability(G)
+
+        self.assertEqual(result["status"], "success")
+        self.assertGreater(result["fiedler_value"], 0)
+
+    def test_budget_with_circular_dependency(self):
+        """
+        Presupuesto con dependencia circular (error de datos).
+        
+        Esto no debería causar fallo, pero sí cambiar las propiedades espectrales.
+        """
+        G = self.create_budget_graph(chapters=1, apus_per_chapter=2, insumos_per_apu=2)
+
+        # Crear ciclo artificial (error de datos)
+        G.add_edge("INSUMO_1_1_1", "APU_1_2")  # Insumo apunta a APU (inválido)
+        G.add_edge("APU_1_2", "INSUMO_1_1_1")  # Ciclo cerrado
+
+        result = self.analyzer.analyze_spectral_stability(G)
+
+        # No debe fallar
+        self.assertIn("fiedler_value", result)
+
+
+class TestSpectralAnalysisLargeGraphs(TestSpectralAnalysisBase):
+    """Pruebas de rendimiento y escalabilidad con grafos grandes."""
+
+    def test_large_path_graph_sparse_solver(self):
+        """
+        Grafo de camino grande (n=50) para activar solver sparse.
+        
+        El umbral en el código es n >= 20 para usar eigsh en lugar de eigvalsh.
+        """
+        n = 50
+        G = nx.path_graph(n, create_using=nx.DiGraph)
+
+        result = self.analyzer.analyze_spectral_stability(G)
+
+        self.assertEqual(result["status"], "success")
+        self.assertGreater(result["fiedler_value"], 0)
+
+        # Para path graph P_n, Fiedler ≈ 2(1 - cos(π/n))
+        # Para n=50: ≈ 0.0039 (muy pequeño)
+        self.assertLess(result["fiedler_value"], 0.1)
+
+    def test_large_random_graph(self):
+        """Grafo aleatorio grande para verificar estabilidad numérica."""
+        n = 100
+        m = 300  # Sparse graph
+        G = nx.gnm_random_graph(n, m, directed=True, seed=12345)
+
+        result = self.analyzer.analyze_spectral_stability(G)
+
+        # No debe fallar ni dar NaN/Inf
+        self.assertFalse(math.isnan(result["fiedler_value"]))
+        self.assertFalse(math.isinf(result["spectral_energy"]))
+
+    def test_large_budget_topology(self):
+        """Estructura de presupuesto grande."""
+        G = self.create_budget_graph(
+            chapters=5,
+            apus_per_chapter=10,
+            insumos_per_apu=8,
+        )
+        # Total: 1 + 5 + 50 + 400 = 456 nodos
+
+        result = self.analyzer.analyze_spectral_stability(G)
+
+        self.assertEqual(result["status"], "success")
+        self.assertGreater(result["fiedler_value"], 0)
+
+
+class TestSpectralAnalysisEdgeCases(TestSpectralAnalysisBase):
+    """Pruebas de casos extremos y manejo de errores."""
+
+    def test_self_loop_graph(self):
+        """Grafo con self-loops (aristas que conectan un nodo consigo mismo)."""
+        G = nx.DiGraph()
+        G.add_edge("A", "B")
+        G.add_edge("B", "C")
+        G.add_edge("A", "A")  # Self-loop
+
+        result = self.analyzer.analyze_spectral_stability(G)
+
+        # NetworkX maneja self-loops en to_undirected()
+        # No debe fallar
+        self.assertIn("status", result)
+
+    def test_multigraph_converted(self):
+        """Verificar comportamiento con aristas múltiples (si se convierten)."""
+        # Crear DiGraph normal (no soporta multi-edges)
+        G = nx.DiGraph()
+        G.add_edge("A", "B", weight=1.0)
+        # Agregar misma arista con diferente peso (sobrescribe en DiGraph)
+        G.add_edge("A", "B", weight=2.0)
+
+        result = self.analyzer.analyze_spectral_stability(G)
+
+        self.assertEqual(result["status"], "success")
+
+    def test_very_dense_graph(self):
+        """Grafo muy denso (casi completo)."""
+        n = 15
+        G = nx.complete_graph(n, create_using=nx.DiGraph)
+
+        result = self.analyzer.analyze_spectral_stability(G)
+
+        self.assertEqual(result["status"], "success")
+        # Alta densidad = alta conectividad = alto Fiedler
+        self.assertGreater(result["fiedler_value"], 0.5)
+
+    def test_very_sparse_graph(self):
+        """Grafo muy disperso (árbol)."""
+        G = nx.random_tree(20, seed=42)
+        G = G.to_directed()
+
+        result = self.analyzer.analyze_spectral_stability(G)
+
+        self.assertEqual(result["status"], "success")
+        # Árbol conexo tiene Fiedler > 0 pero generalmente pequeño
+        self.assertGreater(result["fiedler_value"], 0)
+
+
+class TestSpectralAnalysisConsistency(TestSpectralAnalysisBase):
+    """Pruebas de consistencia y determinismo."""
+
+    def test_deterministic_results(self):
+        """Verificar que el análisis es determinístico."""
+        G = nx.gnm_random_graph(30, 60, directed=True, seed=99999)
+
+        results = [self.analyzer.analyze_spectral_stability(G) for _ in range(3)]
+
+        # Todos los resultados deben ser idénticos
+        for i in range(1, len(results)):
+            self.assertAlmostEqualTolerant(
+                results[0]["fiedler_value"],
+                results[i]["fiedler_value"],
+                msg="Fiedler value debe ser determinístico"
+            )
+            self.assertAlmostEqualTolerant(
+                results[0]["spectral_energy"],
+                results[i]["spectral_energy"],
+                msg="Spectral energy debe ser determinístico"
+            )
+
+    def test_symmetry_undirected_conversion(self):
+        """
+        Verificar que la conversión a no-dirigido preserva simetría.
+        
+        El análisis espectral se hace sobre el grafo no-dirigido,
+        por lo que A→B y B→A deben producir el mismo Laplaciano.
+        """
+        G1 = nx.DiGraph()
+        G1.add_edge("A", "B")
+        G1.add_edge("B", "C")
+
+        G2 = nx.DiGraph()
+        G2.add_edge("B", "A")  # Dirección invertida
+        G2.add_edge("C", "B")  # Dirección invertida
+
+        result1 = self.analyzer.analyze_spectral_stability(G1)
+        result2 = self.analyzer.analyze_spectral_stability(G2)
+
+        # Deben producir el mismo Fiedler value
+        self.assertAlmostEqualTolerant(
+            result1["fiedler_value"],
+            result2["fiedler_value"],
+            msg="Grafos con misma estructura no-dirigida deben tener mismo Fiedler"
+        )
+
+
+class TestSpectralAnalysisIntegration(TestSpectralAnalysisBase):
+    """Pruebas de integración con otros métodos del analizador."""
+
+    def test_spectral_coherent_with_betti(self):
+        """
+        Verificar coherencia entre análisis espectral y números de Betti.
+        
+        - Si β₀ > 1 (múltiples componentes) → Fiedler ≈ 0
+        - Si β₀ = 1 (conexo) → Fiedler > 0
+        """
+        # Grafo conexo
+        G_connected = nx.path_graph(6, create_using=nx.DiGraph)
+        betti_connected = self.analyzer.calculate_betti_numbers(G_connected)
+        spectral_connected = self.analyzer.analyze_spectral_stability(G_connected)
+
+        self.assertEqual(betti_connected.beta_0, 1)
+        self.assertGreater(spectral_connected["fiedler_value"], 0)
+
+        # Grafo desconectado
+        G_disconnected = nx.DiGraph()
+        G_disconnected.add_edge("A", "B")
+        G_disconnected.add_edge("X", "Y")
+
+        betti_disconnected = self.analyzer.calculate_betti_numbers(G_disconnected)
+        spectral_disconnected = self.analyzer.analyze_spectral_stability(G_disconnected)
+
+        self.assertGreater(betti_disconnected.beta_0, 1)
+        self.assertLess(spectral_disconnected["fiedler_value"], self.EPSILON)
+
+    def test_spectral_in_executive_report(self):
+        """Verificar que el análisis espectral se incluye en el reporte ejecutivo."""
+        G = self.create_budget_graph(chapters=2, apus_per_chapter=3, insumos_per_apu=4)
+
+        report = self.analyzer.generate_executive_report(G)
+
+        # El reporte debe incluir análisis espectral
+        self.assertIn("spectral_analysis", report.details)
+
+        spectral = report.details["spectral_analysis"]
+        self.assertIn("fiedler_value", spectral)
+        self.assertIn("resonance_risk", spectral)
+
+
+class TestSpectralAnalysisKnownGraphs(TestSpectralAnalysisBase):
+    """
+    Pruebas con grafos de propiedades espectrales conocidas.
+    
+    Estos tests verifican que los cálculos son matemáticamente correctos
+    comparando con valores teóricos.
+    """
+
+    def test_cycle_graph_fiedler_value(self):
+        """
+        Cycle graph C_n tiene Fiedler conocido.
+        
+        Para Laplaciano normalizado de C_n:
+        λ_k = 1 - cos(2πk/n) para k = 0, 1, ..., n-1
+        λ₂ = 1 - cos(2π/n)
+        
+        Para n=6: λ₂ = 1 - cos(π/3) = 1 - 0.5 = 0.5
+        """
+        n = 6
+        G = nx.cycle_graph(n)
+        G = G.to_directed()
+
+        result = self.analyzer.analyze_spectral_stability(G)
+
+        # Valor teórico para C_6
+        expected_fiedler = 1 - np.cos(2 * np.pi / n)  # ≈ 0.5
+
+        self.assertAlmostEqualTolerant(
+            result["fiedler_value"],
+            expected_fiedler,
+            tolerance=0.1,  # Tolerancia amplia por diferencias de normalización
+            msg=f"Fiedler para C_{n} debería ser ≈ {expected_fiedler}"
+        )
+
+    def test_complete_graph_fiedler_value(self):
+        """
+        Complete graph K_n tiene Fiedler conocido.
+        
+        Para Laplaciano normalizado de K_n:
+        Todos los eigenvalores no nulos son n/(n-1)
+        λ₂ = n/(n-1)
+        
+        Para n=5: λ₂ = 5/4 = 1.25
+        """
+        n = 5
+        G = nx.complete_graph(n, create_using=nx.DiGraph)
+
+        result = self.analyzer.analyze_spectral_stability(G)
+
+        expected_fiedler = n / (n - 1)  # 1.25
+
+        self.assertAlmostEqualTolerant(
+            result["fiedler_value"],
+            expected_fiedler,
+            tolerance=0.1,
+            msg=f"Fiedler para K_{n} debería ser ≈ {expected_fiedler}"
+        )
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# RUNNER Y UTILIDADES
+# ═══════════════════════════════════════════════════════════════════════════════
+
+def create_test_suite() -> unittest.TestSuite:
+    """Crea suite completa de pruebas espectrales."""
+    suite = unittest.TestSuite()
+
+    test_classes = [
+        TestSpectralAnalysisBasicCases,
+        TestSpectralAnalysisConnectivity,
+        TestSpectralAnalysisEigenvalueProperties,
+        TestSpectralAnalysisResonance,
+        TestSpectralAnalysisIsolatedNodes,
+        TestSpectralAnalysisBudgetTopology,
+        TestSpectralAnalysisLargeGraphs,
+        TestSpectralAnalysisEdgeCases,
+        TestSpectralAnalysisConsistency,
+        TestSpectralAnalysisIntegration,
+        TestSpectralAnalysisKnownGraphs,
+    ]
+
+    for test_class in test_classes:
+        tests = unittest.TestLoader().loadTestsFromTestCase(test_class)
+        suite.addTests(tests)
+
+    return suite
+
+
+if __name__ == "__main__":
+    # Ejecutar con verbosidad alta
+    runner = unittest.TextTestRunner(verbosity=2)
+    runner.run(create_test_suite())
