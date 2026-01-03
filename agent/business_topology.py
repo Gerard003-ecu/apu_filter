@@ -6,6 +6,7 @@ from typing import Any, Dict, List, Optional, Tuple
 import networkx as nx
 import numpy as np
 import pandas as pd
+import scipy.sparse.linalg
 
 from app.constants import ColumnNames
 from app.telemetry import TelemetryContext
@@ -341,6 +342,116 @@ class BusinessTopologicalAnalyzer:
         self.telemetry = telemetry
         self.max_cycles = max_cycles
         self.logger = logging.getLogger(self.__class__.__name__)
+
+    def analyze_spectral_stability(self, graph: nx.DiGraph) -> Dict[str, Any]:
+        """
+        Calcula la Estabilidad Espectral y la Longitud de Onda (λ) del grafo.
+
+        Conceptos Físicos:
+        - Fiedler Value (λ2): Proxy de cohesión ondulatoria.
+          Alto = Sincronizado. Bajo = Fragmentado.
+        - Longitud de Onda (λ): 1 / max(eigenvalues). Capacidad de disipación.
+        - Resonancia: Concentración espectral.
+
+        Returns:
+            Dict con métricas espectrales.
+        """
+        n_nodes = graph.number_of_nodes()
+        if n_nodes < 2:
+            return {
+                "fiedler_value": 0.0,
+                "spectral_gap": 0.0,
+                "spectral_energy": 0.0,
+                "wavelength": 0.0,
+                "resonance_risk": False,
+                "eigenvalues": []
+            }
+
+        # 1. Convertir a no dirigido para análisis espectral estándar
+        # Usamos grafo simple no dirigido para el Laplaciano
+        ud_graph = graph.to_undirected()
+
+        # 2. Calcular Laplaciano Normalizado
+        # L = I - D^(-1/2) A D^(-1/2)
+        try:
+            L = nx.normalized_laplacian_matrix(ud_graph)
+
+            # 3. Calcular Eigenvalores y Energía Espectral
+
+            # Energía Espectral: Suma de cuadrados (E = Σ λ_i^2)
+            # Para matriz simétrica L, Σ λ_i^2 = Frobenius Norm^2 = Σ L_ij^2
+            # Más eficiente que calcular todos los eigenvalores.
+            if scipy.sparse.issparse(L):
+                spectral_energy = float(np.sum(L.data**2))
+            else:
+                spectral_energy = float(np.sum(L**2))
+
+            # 3b. Calcular Eigenvalores clave
+            # Necesitamos k=min(n-1, 10) eigenvalores para análisis Fiedler (SM)
+            # y el más grande (LM) para longitud de onda.
+            if n_nodes < 20:
+                eigenvalues = np.linalg.eigvalsh(L.toarray())
+                eigenvalues = np.sort([e for e in eigenvalues if e > -1e-9])
+                max_eigen = eigenvalues[-1] if len(eigenvalues) > 0 else 1.0
+                fiedler_value = eigenvalues[1] if len(eigenvalues) > 1 else 0.0
+                # Variance = Energy/N - (Trace/N)^2
+                # Trace(L) = N for normalized laplacian if no isolated nodes?
+                # Actually Trace(L) = Sum(1 - 0) for connected nodes + 0 for isolated
+                # Trace = N - isolated_nodes_count.
+                # However, isolated nodes generate 0 eigenvalues.
+                # Let's use computed eigenvalues variance if small, or formula if large.
+                eigen_variance = np.var(eigenvalues)
+
+            else:
+                # Sparse solver: obtener los k primeros (smallest magnitude)
+                k = min(n_nodes - 1, 10)
+                eigenvalues_sm = scipy.sparse.linalg.eigsh(L, k=k, which='SA', return_eigenvectors=False)
+                # Para longitud de onda necesitamos el máximo (LA)
+                eigenvalues_lm = scipy.sparse.linalg.eigsh(L, k=1, which='LA', return_eigenvectors=False)
+
+                fiedler_value = np.sort(eigenvalues_sm)[1] if len(eigenvalues_sm) > 1 else 0.0
+                max_eigen = eigenvalues_lm[0]
+
+                # Calcular varianza usando fórmula de traza para evitar descomposición completa
+                # Trace(L) = sum(diagonal). For normalized laplacian L_ii = 1 unless degree=0.
+                # degrees = dict(ud_graph.degree())
+                # trace = sum(1 for d in degrees.values() if d > 0)
+                # But L.diagonal() is efficient for sparse.
+                trace = L.diagonal().sum()
+                mean_eigen = trace / n_nodes
+                # Var = E[X^2] - (E[X])^2 = Energy/N - (Mean)^2
+                eigen_variance = (spectral_energy / n_nodes) - (mean_eigen**2)
+
+                # Combine for return (debug only)
+                eigenvalues = np.concatenate((eigenvalues_sm, eigenvalues_lm))
+
+            # Longitud de Onda (λ): Inverso del mayor eigenvalor (Frecuencia máxima)
+            wavelength = 1.0 / max_eigen if max_eigen > 1e-9 else 0.0
+
+            # Riesgo de Resonancia
+            # Si la varianza es muy baja, el espectro es plano (degenerado), riesgo de resonancia.
+            # Umbral heurístico.
+            resonance_risk = eigen_variance < 0.01
+
+            return {
+                "fiedler_value": float(fiedler_value),
+                "spectral_gap": float(fiedler_value), # Alias en este contexto
+                "spectral_energy": float(spectral_energy),
+                "wavelength": float(wavelength),
+                "resonance_risk": bool(resonance_risk),
+                "eigenvalues": [float(e) for e in eigenvalues[:5]] # Primeros 5 para debug
+            }
+
+        except Exception as e:
+            self.logger.error(f"Error en análisis espectral: {e}")
+            return {
+                "fiedler_value": 0.0,
+                "spectral_gap": 0.0,
+                "spectral_energy": 0.0,
+                "wavelength": 0.0,
+                "resonance_risk": False,
+                "error": str(e)
+            }
 
     def calculate_euler_efficiency(self, graph: nx.DiGraph) -> float:
         """Calcula la Eficiencia de Euler normalizada mediante decaimiento exponencial (Propuesta 1)."""
@@ -894,6 +1005,9 @@ class BusinessTopologicalAnalyzer:
         pyramid_stability = self.calculate_pyramid_stability(graph)
         connectivity = self._compute_connectivity_analysis(graph)
 
+        # Análisis Espectral
+        spectral = self.analyze_spectral_stability(graph)
+
         # Detección de fluidos convectivos (Transporte, Combustible)
         fluid_keywords = ["TRANSPORTE", "COMBUSTIBLE", "FLETE", "ACARREO", "GASOLINA", "DIESEL"]
         fluid_nodes = [
@@ -910,6 +1024,9 @@ class BusinessTopologicalAnalyzer:
         density_factor = 1.0 - min(density, 0.99)
         stability_factor = min(pyramid_stability / 3.0, 1.0)
 
+        # Factor Espectral en el Score
+        spectral_factor = 1.0 if not spectral["resonance_risk"] else 0.8
+
         weights = {"euler": 0.4, "density": 0.3, "stability": 0.3}
         integrity_score = 100.0 * (
             weights["euler"] * euler_factor
@@ -923,6 +1040,8 @@ class BusinessTopologicalAnalyzer:
             penalty_multiplier -= min(0.5, metrics.beta_1 * 0.1)
         if synergy["synergy_detected"]:
             penalty_multiplier -= min(0.3, synergy["synergy_score"] * 0.5)
+        if spectral["resonance_risk"]:
+            penalty_multiplier -= 0.1 # Penalización por resonancia
 
         iso_count = len(anomalies["isolated_nodes"])
         orphan_count = len(anomalies["orphan_insumos"])
@@ -966,6 +1085,8 @@ class BusinessTopologicalAnalyzer:
             circular_risks.append(
                 f"🔥 RIESGO CONVECTIVO: {len(convection['high_risk_nodes'])} nodos altamente sensibles a transporte/combustible."
             )
+        if spectral["resonance_risk"]:
+            circular_risks.append(f"🔊 RIESGO DE RESONANCIA: Espectro concentrado, alta vulnerabilidad a choques sistémicos.")
 
         # Riesgo Financiero
         financial_risk = None
@@ -1008,6 +1129,7 @@ class BusinessTopologicalAnalyzer:
                 "pyramid_stability": pyramid_stability,
                 "density": density,
                 "convection_risk": convection,
+                "spectral_analysis": spectral,
             },
         )
 

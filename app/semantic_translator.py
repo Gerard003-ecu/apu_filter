@@ -183,6 +183,7 @@ class SemanticTranslator:
         metrics: TopologicalMetrics,
         stability: float = 0.0,
         synergy_risk: Optional[Dict[str, Any]] = None,
+        spectral: Optional[Dict[str, Any]] = None
     ) -> str:
         """
         Traduce métricas topológicas a una Auditoría de Ingeniería Civil.
@@ -191,6 +192,7 @@ class SemanticTranslator:
             metrics: Métricas de Betti (β₀, β₁) y Euler.
             stability: Índice de estabilidad piramidal (Ψ).
             synergy_risk: Datos de sinergia de riesgo y producto cup.
+            spectral: Datos de análisis espectral (Opcional).
 
         Returns:
             Narrativa de auditoría estructural.
@@ -213,6 +215,10 @@ class SemanticTranslator:
                 # Asumimos un grado alto implícito o genérico para la narrativa
                 narrative_parts.append(self.explain_stress_point(example_node, "múltiples"))
 
+        # 1.2 Espectral: Cohesión y Resonancia
+        if spectral:
+             narrative_parts.append(self._translate_spectral(spectral))
+
         if metrics.euler_efficiency < 0.5:
             narrative_parts.append(
                 self._translate_euler_efficiency(metrics.euler_efficiency)
@@ -225,6 +231,29 @@ class SemanticTranslator:
         narrative_parts.append(self._translate_stability(stability))
 
         return "\n".join(narrative_parts)
+
+    def _translate_spectral(self, spectral: Dict[str, Any]) -> str:
+        """Traduce métricas espectrales a lenguaje de ingeniería."""
+        parts = []
+
+        # Cohesión (Fiedler Value)
+        fiedler = spectral.get("fiedler_value", 0.0)
+        wavelength = spectral.get("wavelength", 0.0)
+
+        if fiedler > 0.5:
+            parts.append(f"🔗 **Alta Cohesión del Equipo (Fiedler={fiedler:.2f})**: La estructura de costos está fuertemente sincronizada.")
+        elif fiedler > 0.05:
+            parts.append(f"⚖️ **Cohesión Estándar (Fiedler={fiedler:.2f})**: El proyecto presenta un acoplamiento típico entre sus componentes.")
+        else:
+            parts.append(f"💔 **Fractura Organizacional (Fiedler={fiedler:.3f})**: Baja cohesión espectral. Los subsistemas operan aislados, riesgo de desalineación en ejecución.")
+
+        # Resonancia y Longitud de Onda
+        if spectral.get("resonance_risk", False):
+            parts.append(f"🔊 **RIESGO DE RESONANCIA FINANCIERA (λ={wavelength:.2f})**: El espectro de vibración está peligrosamente concentrado. Un impacto externo (inflación/escasez) podría amplificarse en toda la estructura simultáneamente.")
+        else:
+            parts.append(f"🌊 **Disipación Ondulatoria (λ={wavelength:.2f})**: La estructura tiene capacidad para amortiguar impactos locales sin entrar en resonancia sistémica.")
+
+        return " ".join(parts)
 
     def _validate_topological_metrics(
         self, metrics: TopologicalMetrics, stability: float
@@ -501,6 +530,7 @@ class SemanticTranslator:
         financial_metrics: Dict[str, Any],
         stability: float = 0.0,
         synergy_risk: Optional[Dict[str, Any]] = None,
+        spectral: Optional[Dict[str, Any]] = None,
     ) -> str:
         """
         Compone el reporte ejecutivo con metáforas de ingeniería estructural.
@@ -531,7 +561,7 @@ class SemanticTranslator:
         # 1. Estructura
         sections.append("### 1. Auditoría de Integridad Estructural")
         try:
-            sections.append(self.translate_topology(topo_metrics, stability, synergy_risk))
+            sections.append(self.translate_topology(topo_metrics, stability, synergy_risk, spectral))
         except Exception as e:
             error_msg = f"Error analizando estructura: {e}"
             sections.append(f"❌ {error_msg}")
