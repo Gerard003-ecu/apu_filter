@@ -478,6 +478,7 @@ class BusinessAgent:
             financial_metrics=financial_metrics,
             stability=topological_bundle.pyramid_stability,
             synergy_risk=synergy_risk,
+            spectral=base_report.details.get("spectral_analysis"),
         )
 
         # 2. Generar Narrativa Termodinámica
