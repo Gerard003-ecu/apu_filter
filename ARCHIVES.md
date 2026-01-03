@@ -37,7 +37,17 @@ El sistema genera un objeto ConstructionRiskReport
     ◦ Input: ROI < 0 o Volatilidad > 20%.
     ◦ Output: "🛑 Veredicto: RIESGO CRÍTICO. Estructura no financiable sin reingeniería."
 
-## 3. El Electrocardiograma del Sistema (Telemetría OODA)
+## 3. El Diagnóstico Termodinámico (Física del Valor)
+
+![Pirámide Termodinámica](docs/images/thermodynamics_pyramid.jpeg)
+> **Flujo de Energía: Absorber (Base) -> Conducir -> Medir -> Regular (Cúspide)**
+
+Evaluamos la eficiencia energética de su capital. No todos los gastos son iguales; distinguimos entre Exergía (trabajo útil estructural) y Anergía (desperdicio o acabados cosméticos).
+
+## 4. El Electrocardiograma del Sistema (Telemetría OODA)
+
+![Pirámide de Telemetría](docs/images/telemetry_service_pyramid.jpeg)
+> **Ciclo de Observabilidad: Registrar -> Cronometrar -> Contextualizar -> Identificar**
 
 Fuente: Generado por apu_agent.txt y flux_condenser.txt.
 El Guardián del Umbral y el Agente Autónomo monitorean la salud del proceso de análisis en tiempo real. Usted puede ver el "pulso" del sistema para saber si sus datos son estables o caóticos.
@@ -54,7 +64,7 @@ El Agente ejecuta un bucle continuo de Observar-Orientar-Decidir-Actuar
     ◦ Significado: Presión de datos en el pipeline.
     ◦ Meta: Mantener un "Flujo Laminar" al 30% de capacidad para máxima precisión.
 
-## 4. La Bitácora Inmutable (Audit Trail)
+## 5. La Bitácora Inmutable (Audit Trail)
 
 Fuente: data_validator.txt y telemetry.txt.
 Finalmente, para el auditor financiero, el sistema genera una traza completa. Nada se pierde.
