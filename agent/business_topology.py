@@ -86,25 +86,51 @@ class BudgetGraphBuilder:
         return sanitized
 
     def _safe_float(self, value: Any, default: float = 0.0) -> float:
-        """Convierte un valor a float de manera segura con soporte para formatos locales."""
+        """
+        Convierte un valor a float de manera segura con soporte para formatos locales.
+
+        Lógica de detección:
+        1. Si hay ambos separadores: el último determina el decimal
+        2. Si solo hay coma: se evalúa por posición y longitud de decimales
+        """
         if pd.isna(value) or value is None:
             return default
+
+        if isinstance(value, (int, float)):
+            return float(value)
+
         try:
-            if isinstance(value, (int, float)):
-                return float(value)
-            str_value = str(value).strip()
-            if "," in str_value and "." in str_value:
-                if str_value.rfind(",") < str_value.rfind("."):
+            str_value = str(value).strip().replace("\xa0", "").replace(" ", "")
+
+            if not str_value:
+                return default
+
+            has_comma = "," in str_value
+            has_dot = "." in str_value
+
+            if has_comma and has_dot:
+                # Determinar cuál es el separador decimal por posición
+                last_comma = str_value.rfind(",")
+                last_dot = str_value.rfind(".")
+
+                if last_dot > last_comma:
+                    # Formato: 1,234,567.89 (inglés)
                     str_value = str_value.replace(",", "")
                 else:
+                    # Formato: 1.234.567,89 (europeo)
                     str_value = str_value.replace(".", "").replace(",", ".")
-            elif "," in str_value and "." not in str_value:
+
+            elif has_comma and not has_dot:
                 parts = str_value.split(",")
-                if len(parts) == 2 and len(parts[1]) <= 2:
+                # Heurística: si la última parte tiene 1-3 dígitos, es decimal
+                if len(parts) == 2 and 1 <= len(parts[1]) <= 3 and parts[1].isdigit():
                     str_value = str_value.replace(",", ".")
                 else:
+                    # Es separador de miles
                     str_value = str_value.replace(",", "")
+
             return float(str_value)
+
         except (ValueError, TypeError, AttributeError):
             return default
 
@@ -345,113 +371,143 @@ class BusinessTopologicalAnalyzer:
 
     def analyze_spectral_stability(self, graph: nx.DiGraph) -> Dict[str, Any]:
         """
-        Calcula la Estabilidad Espectral y la Longitud de Onda (λ) del grafo.
+        Calcula la Estabilidad Espectral y métricas derivadas del Laplaciano.
 
-        Conceptos Físicos:
-        - Fiedler Value (λ2): Proxy de cohesión ondulatoria.
-          Alto = Sincronizado. Bajo = Fragmentado.
-        - Longitud de Onda (λ): 1 / max(eigenvalues). Capacidad de disipación.
-        - Resonancia: Concentración espectral.
+        Fundamentos Matemáticos:
+        - Fiedler Value (λ₂): Segundo eigenvalor más pequeño del Laplaciano.
+          Mide la conectividad algebraica. λ₂ > 0 ⟺ grafo conexo.
+        - Gap Espectral: λ₂ / λ_max. Proxy de sincronizabilidad.
+        - Energía Espectral: ||L||_F² = Σλᵢ². Mide dispersión estructural.
+        - Longitud de Onda: 1/λ_max. Escala característica de difusión.
 
         Returns:
-            Dict con métricas espectrales.
+            Dict con métricas espectrales y diagnóstico de resonancia.
         """
         n_nodes = graph.number_of_nodes()
+
+        default_result = {
+            "fiedler_value": 0.0,
+            "spectral_gap": 0.0,
+            "spectral_energy": 0.0,
+            "wavelength": float("inf"),
+            "resonance_risk": False,
+            "algebraic_connectivity": 0.0,
+            "eigenvalues": [],
+            "status": "insufficient_nodes",
+        }
+
         if n_nodes < 2:
-            return {
-                "fiedler_value": 0.0,
-                "spectral_gap": 0.0,
-                "spectral_energy": 0.0,
-                "wavelength": 0.0,
-                "resonance_risk": False,
-                "eigenvalues": []
-            }
+            return default_result
 
-        # 1. Convertir a no dirigido para análisis espectral estándar
-        # Usamos grafo simple no dirigido para el Laplaciano
-        ud_graph = graph.to_undirected()
-
-        # 2. Calcular Laplaciano Normalizado
-        # L = I - D^(-1/2) A D^(-1/2)
         try:
-            L = nx.normalized_laplacian_matrix(ud_graph)
+            # Convertir a no dirigido para análisis espectral simétrico
+            ud_graph = graph.to_undirected()
 
-            # 3. Calcular Eigenvalores y Energía Espectral
+            # Remover nodos aislados para estabilidad numérica del Laplaciano normalizado
+            isolated = list(nx.isolates(ud_graph))
+            if isolated:
+                ud_graph = ud_graph.copy()
+                ud_graph.remove_nodes_from(isolated)
 
-            # Energía Espectral: Suma de cuadrados (E = Σ λ_i^2)
-            # Para matriz simétrica L, Σ λ_i^2 = Frobenius Norm^2 = Σ L_ij^2
-            # Más eficiente que calcular todos los eigenvalores.
+            n_effective = ud_graph.number_of_nodes()
+            if n_effective < 2:
+                default_result["status"] = "degenerate_after_isolation_removal"
+                return default_result
+
+            # Laplaciano Normalizado: L_norm = I - D^(-1/2) A D^(-1/2)
+            L = nx.normalized_laplacian_matrix(ud_graph).astype(np.float64)
+
+            # Energía Espectral vía norma de Frobenius (eficiente, no requiere eigendecomposición)
             if scipy.sparse.issparse(L):
-                spectral_energy = float(np.sum(L.data**2))
+                spectral_energy = float(scipy.sparse.linalg.norm(L, "fro") ** 2)
             else:
-                spectral_energy = float(np.sum(L**2))
+                spectral_energy = float(np.linalg.norm(L, "fro") ** 2)
 
-            # 3b. Calcular Eigenvalores clave
-            # Necesitamos k=min(n-1, 10) eigenvalores para análisis Fiedler (SM)
-            # y el más grande (LM) para longitud de onda.
-            if n_nodes < 20:
+            # Cálculo de Eigenvalores
+            if n_effective <= 50:
+                # Decomposición completa para grafos pequeños
                 eigenvalues = np.linalg.eigvalsh(L.toarray())
-                eigenvalues = np.sort([e for e in eigenvalues if e > -1e-9])
-                max_eigen = eigenvalues[-1] if len(eigenvalues) > 0 else 1.0
-                fiedler_value = eigenvalues[1] if len(eigenvalues) > 1 else 0.0
-                # Variance = Energy/N - (Trace/N)^2
-                # Trace(L) = N for normalized laplacian if no isolated nodes?
-                # Actually Trace(L) = Sum(1 - 0) for connected nodes + 0 for isolated
-                # Trace = N - isolated_nodes_count.
-                # However, isolated nodes generate 0 eigenvalues.
-                # Let's use computed eigenvalues variance if small, or formula if large.
-                eigen_variance = np.var(eigenvalues)
-
+                eigenvalues = np.sort(np.real(eigenvalues))
             else:
-                # Sparse solver: obtener los k primeros (smallest magnitude)
-                k = min(n_nodes - 1, 10)
-                eigenvalues_sm = scipy.sparse.linalg.eigsh(L, k=k, which='SA', return_eigenvectors=False)
-                # Para longitud de onda necesitamos el máximo (LA)
-                eigenvalues_lm = scipy.sparse.linalg.eigsh(L, k=1, which='LA', return_eigenvectors=False)
+                # Sparse solver para grafos grandes
+                # SM (Smallest Magnitude) para obtener los más pequeños
+                k_small = min(n_effective - 1, 6)
+                try:
+                    eigenvalues_small = scipy.sparse.linalg.eigsh(
+                        L,
+                        k=k_small,
+                        which="SM",
+                        return_eigenvectors=False,
+                        tol=1e-6,
+                        maxiter=n_effective * 100,
+                    )
+                except scipy.sparse.linalg.ArpackNoConvergence as e:
+                    eigenvalues_small = e.eigenvalues
 
-                fiedler_value = np.sort(eigenvalues_sm)[1] if len(eigenvalues_sm) > 1 else 0.0
-                max_eigen = eigenvalues_lm[0]
+                # LM (Largest Magnitude) para λ_max
+                try:
+                    eigenvalues_large = scipy.sparse.linalg.eigsh(
+                        L, k=1, which="LM", return_eigenvectors=False
+                    )
+                except scipy.sparse.linalg.ArpackNoConvergence as e:
+                    eigenvalues_large = (
+                        e.eigenvalues if len(e.eigenvalues) > 0 else np.array([2.0])
+                    )
 
-                # Calcular varianza usando fórmula de traza para evitar descomposición completa
-                # Trace(L) = sum(diagonal). For normalized laplacian L_ii = 1 unless degree=0.
-                # degrees = dict(ud_graph.degree())
-                # trace = sum(1 for d in degrees.values() if d > 0)
-                # But L.diagonal() is efficient for sparse.
-                trace = L.diagonal().sum()
-                mean_eigen = trace / n_nodes
-                # Var = E[X^2] - (E[X])^2 = Energy/N - (Mean)^2
-                eigen_variance = (spectral_energy / n_nodes) - (mean_eigen**2)
+                eigenvalues = np.sort(
+                    np.concatenate([eigenvalues_small, eigenvalues_large])
+                )
 
-                # Combine for return (debug only)
-                eigenvalues = np.concatenate((eigenvalues_sm, eigenvalues_lm))
+            if len(eigenvalues) < 2:
+                default_result["status"] = "insufficient_eigenvalues"
+                return default_result
 
-            # Longitud de Onda (λ): Inverso del mayor eigenvalor (Frecuencia máxima)
-            wavelength = 1.0 / max_eigen if max_eigen > 1e-9 else 0.0
+            # Fiedler Value: λ₂ (segundo eigenvalor más pequeño)
+            # λ₁ ≈ 0 siempre para Laplaciano.
+            # Si grafo es conexo, λ₂ > 0. Si desconectado, λ₂ ≈ 0.
+            fiedler_value = float(eigenvalues[1]) if len(eigenvalues) >= 2 else 0.0
 
-            # Riesgo de Resonancia
-            # Si la varianza es muy baja, el espectro es plano (degenerado), riesgo de resonancia.
-            # Umbral heurístico.
-            resonance_risk = eigen_variance < 0.01
+            # Limpiar ruido numérico negativo
+            if fiedler_value < 1e-9:
+                fiedler_value = 0.0
+
+            # λ_max (para Laplaciano normalizado, está acotado por 2)
+            lambda_max = float(eigenvalues[-1]) if len(eigenvalues) > 0 else 2.0
+            lambda_max = min(lambda_max, 2.0)  # Cota teórica
+
+            # Gap Espectral Normalizado
+            spectral_gap = fiedler_value / lambda_max if lambda_max > 1e-10 else 0.0
+
+            # Longitud de Onda (escala de difusión característica)
+            wavelength = 1.0 / lambda_max if lambda_max > 1e-10 else float("inf")
+
+            # Diagnóstico de Resonancia: espectro degenerado indica vulnerabilidad
+            # Coeficiente de variación bajo indica concentración espectral
+            if len(eigenvalues) > 2:
+                eigen_std = np.std(eigenvalues)
+                eigen_mean = np.mean(eigenvalues)
+                cv = eigen_std / eigen_mean if eigen_mean > 1e-10 else 0.0
+                resonance_risk = cv < 0.15
+            else:
+                resonance_risk = True  # Muy pocos eigenvalores = alto riesgo
 
             return {
-                "fiedler_value": float(fiedler_value),
-                "spectral_gap": float(fiedler_value), # Alias en este contexto
-                "spectral_energy": float(spectral_energy),
-                "wavelength": float(wavelength),
+                "fiedler_value": round(fiedler_value, 6),
+                "spectral_gap": round(spectral_gap, 6),
+                "spectral_energy": round(spectral_energy, 4),
+                "wavelength": round(wavelength, 6),
                 "resonance_risk": bool(resonance_risk),
-                "eigenvalues": [float(e) for e in eigenvalues[:5]] # Primeros 5 para debug
+                "algebraic_connectivity": round(fiedler_value, 6),
+                "lambda_max": round(lambda_max, 6),
+                "isolated_nodes_removed": len(isolated),
+                "eigenvalues": [round(float(e), 6) for e in eigenvalues[:8]],
+                "status": "success",
             }
 
         except Exception as e:
-            self.logger.error(f"Error en análisis espectral: {e}")
-            return {
-                "fiedler_value": 0.0,
-                "spectral_gap": 0.0,
-                "spectral_energy": 0.0,
-                "wavelength": 0.0,
-                "resonance_risk": False,
-                "error": str(e)
-            }
+            self.logger.error(f"Error en análisis espectral: {e}", exc_info=True)
+            default_result["status"] = f"error: {str(e)}"
+            return default_result
 
     def calculate_euler_efficiency(self, graph: nx.DiGraph) -> float:
         """Calcula la Eficiencia de Euler normalizada mediante decaimiento exponencial (Propuesta 1)."""
@@ -492,89 +548,253 @@ class BusinessTopologicalAnalyzer:
         )
 
     def calculate_pyramid_stability(self, graph: nx.DiGraph) -> float:
-        """Calcula el Índice de Estabilidad Piramidal (Ψ) con robustez mejorada (Propuesta 1)."""
-        nodes_data = graph.nodes(data=True)
-        num_apus = sum(1 for _, d in nodes_data if d.get("type") == "APU")
-        num_insumos = sum(1 for _, d in nodes_data if d.get("type") == "INSUMO")
+        """
+        Calcula el Índice de Estabilidad Piramidal (Ψ) normalizado.
 
-        if num_apus == 0 or num_insumos == 0:
+        Modelo Físico:
+        - Una pirámide estable tiene base ancha (muchos insumos) y cúspide estrecha (pocos APUs).
+        - Ψ ∈ [0, 1] donde 1 = máxima estabilidad.
+
+        Componentes:
+        1. Ratio Base/Altura: log₁₀(1 + insumos/APUs)
+        2. Factor de Densidad: penaliza grafos muy densos (inestables)
+        3. Factor de Aciclicidad: ciclos reducen estabilidad estructural
+        4. Factor de Conectividad: fragmentación reduce estabilidad
+
+        Returns:
+            float: Índice Ψ normalizado en [0, 1]
+        """
+        if graph.number_of_nodes() == 0:
             return 0.0
 
-        base_ratio = num_insumos / num_apus
-        ratio_term = np.log10(1 + base_ratio)
-        density = nx.density(graph)
-        density_penalty = 1.0 - min(density, 0.99)
-        connectivity_factor = 1.0 if nx.is_directed_acyclic_graph(graph) else 0.7
+        # Conteo por tipo de nodo
+        type_counts = {"APU": 0, "INSUMO": 0, "CAPITULO": 0}
+        for _, data in graph.nodes(data=True):
+            node_type = data.get("type", "")
+            if node_type in type_counts:
+                type_counts[node_type] += 1
 
-        stability = ratio_term * density_penalty * connectivity_factor
-        return round(stability, 3)
+        num_apus = type_counts["APU"]
+        num_insumos = type_counts["INSUMO"]
+
+        # Caso degenerado: sin APUs o sin insumos
+        if num_apus == 0:
+            return (
+                0.0 if num_insumos == 0 else 0.5
+            )  # Solo insumos: parcialmente estable
+
+        if num_insumos == 0:
+            return 0.3  # Solo APUs sin detalle: baja estabilidad
+
+        # 1. Ratio de Base (normalizado con log para escalar grandes diferencias)
+        base_ratio = num_insumos / num_apus
+        # Normalizar: ratio ideal ~5-10 insumos por APU
+        ratio_score = min(1.0, np.log10(1 + base_ratio) / np.log10(11))  # log10(11) ≈ 1.04
+
+        # 2. Factor de Densidad
+        density = nx.density(graph)
+        # Densidad óptima para DAG jerárquico: ~0.01-0.1
+        # Penalizar densidades muy altas (> 0.3) o muy bajas (< 0.001)
+        if density < 0.001:
+            density_score = 0.5  # Muy disperso
+        elif density > 0.5:
+            density_score = 0.3  # Muy denso
+        else:
+            density_score = 1.0 - min(0.7, density)
+
+        # 3. Factor de Aciclicidad
+        is_dag = nx.is_directed_acyclic_graph(graph)
+        if is_dag:
+            acyclic_score = 1.0
+        else:
+            # Penalización proporcional al número de SCCs no triviales
+            sccs = [c for c in nx.strongly_connected_components(graph) if len(c) > 1]
+            cycle_penalty = min(0.5, len(sccs) * 0.1)
+            acyclic_score = 0.5 - cycle_penalty
+
+        # 4. Factor de Conectividad
+        if nx.is_weakly_connected(graph):
+            connectivity_score = 1.0
+        else:
+            num_components = nx.number_weakly_connected_components(graph)
+            connectivity_score = 1.0 / num_components
+
+        # Combinación ponderada
+        weights = {
+            "ratio": 0.35,
+            "density": 0.20,
+            "acyclic": 0.30,
+            "connectivity": 0.15,
+        }
+
+        stability = (
+            weights["ratio"] * ratio_score
+            + weights["density"] * density_score
+            + weights["acyclic"] * acyclic_score
+            + weights["connectivity"] * connectivity_score
+        )
+
+        return round(max(0.0, min(1.0, stability)), 4)
 
     def audit_integration_homology(
         self, graph_a: nx.DiGraph, graph_b: nx.DiGraph
     ) -> Dict[str, Any]:
-        """Ejecuta el Test de Mayer-Vietoris riguroso (Propuesta 1)."""
+        """
+        Ejecuta el Test de Mayer-Vietoris para auditoría de fusión topológica.
+
+        Teorema de Mayer-Vietoris (simplificado para grafos):
+        Para X = A ∪ B con intersección A ∩ B:
+
+        β₁(X) ≤ β₁(A) + β₁(B) + β₀(A∩B) - 1  (cota superior)
+
+        La emergencia de nuevos ciclos indica conflicto de integración.
+
+        Returns:
+            Dict con diagnóstico de fusión y narrativa.
+        """
+        # Calcular métricas individuales
         metrics_a = self.calculate_betti_numbers(graph_a)
         metrics_b = self.calculate_betti_numbers(graph_b)
+
+        # Construir unión
         graph_union = nx.compose(graph_a, graph_b)
         metrics_union = self.calculate_betti_numbers(graph_union)
 
+        # Construir intersección (subgrafo inducido por nodos comunes)
         nodes_a = set(graph_a.nodes())
         nodes_b = set(graph_b.nodes())
-        common_nodes = nodes_a.intersection(nodes_b)
+        common_nodes = nodes_a & nodes_b
 
+        # Intersección: aristas que existen en AMBOS grafos
         graph_intersection = nx.DiGraph()
         if common_nodes:
-            graph_intersection.add_nodes_from(common_nodes)
+            graph_intersection.add_nodes_from((n, graph_a.nodes[n]) for n in common_nodes)
+            # Solo aristas presentes en ambos grafos
             for u, v in graph_a.edges():
-                if u in common_nodes and v in common_nodes:
-                    graph_intersection.add_edge(u, v)
-            for u, v in graph_b.edges():
-                if u in common_nodes and v in common_nodes:
+                if u in common_nodes and v in common_nodes and graph_b.has_edge(u, v):
                     graph_intersection.add_edge(u, v)
 
         metrics_intersection = self.calculate_betti_numbers(graph_intersection)
-        delta = len(common_nodes) - metrics_intersection.beta_0 + 1
 
-        emergent_theoretical = (
-            metrics_a.beta_1 + metrics_b.beta_1 - metrics_intersection.beta_1 + delta
+        # Fórmula de Mayer-Vietoris para β₁
+        # β₁(A∪B) = β₁(A) + β₁(B) - β₁(A∩B) + δ
+        # donde δ = β₀(A∩B) - β₀(A) - β₀(B) + β₀(A∪B)
+
+        # Cálculo del término de conexión
+        delta_connectivity = (
+            metrics_intersection.beta_0
+            - metrics_a.beta_0
+            - metrics_b.beta_0
+            + metrics_union.beta_0
         )
+
+        # Valor teórico esperado de β₁ en la unión
+        beta1_theoretical = (
+            metrics_a.beta_1
+            + metrics_b.beta_1
+            - metrics_intersection.beta_1
+            + max(0, delta_connectivity)
+        )
+
+        # Emergencia: diferencia entre observado y suma simple
         emergent_observed = metrics_union.beta_1 - (metrics_a.beta_1 + metrics_b.beta_1)
-        discrepancy = abs(emergent_observed - emergent_theoretical)
 
-        narrative = self._generate_mayer_vietoris_narrative(emergent_observed, discrepancy)
+        # Discrepancia respecto al modelo teórico
+        discrepancy = abs(metrics_union.beta_1 - beta1_theoretical)
 
-        verdict = "CLEAN_MERGE"
+        # Determinación del veredicto
         if discrepancy <= 1:
             if emergent_observed > 0:
                 verdict = "INTEGRATION_CONFLICT"
+                severity = "warning"
             elif emergent_observed < 0:
                 verdict = "TOPOLOGY_SIMPLIFIED"
+                severity = "info"
+            else:
+                verdict = "CLEAN_MERGE"
+                severity = "success"
         else:
             verdict = "INCONSISTENT_TOPOLOGY"
+            severity = "error"
+
+        # Análisis de interfaz (nodos de frontera)
+        boundary_nodes = []
+        for node in common_nodes:
+            # Nodo frontera: tiene aristas hacia nodos exclusivos de A o B
+            neighbors_a = set(graph_a.successors(node)) | set(
+                graph_a.predecessors(node)
+            )
+            neighbors_b = set(graph_b.successors(node)) | set(
+                graph_b.predecessors(node)
+            )
+            exclusive_neighbors = (neighbors_a - nodes_b) | (neighbors_b - nodes_a)
+            if exclusive_neighbors:
+                boundary_nodes.append(node)
+
+        narrative = self._generate_mayer_vietoris_narrative(
+            emergent_observed, discrepancy, len(boundary_nodes)
+        )
 
         return {
             "status": verdict,
+            "severity": severity,
             "delta_beta_1": emergent_observed,
-            "delta_beta_1_observed": emergent_observed,
-            "delta_beta_1_theoretical": emergent_theoretical,
+            "beta_1_observed": metrics_union.beta_1,
+            "beta_1_theoretical": beta1_theoretical,
             "discrepancy": discrepancy,
+            "boundary_nodes": boundary_nodes,
             "details": {
                 "beta_1_A": metrics_a.beta_1,
                 "beta_1_B": metrics_b.beta_1,
-                "beta_1_Union": metrics_union.beta_1,
+                "beta_1_intersection": metrics_intersection.beta_1,
+                "beta_1_union": metrics_union.beta_1,
+                "beta_0_A": metrics_a.beta_0,
+                "beta_0_B": metrics_b.beta_0,
+                "beta_0_intersection": metrics_intersection.beta_0,
+                "beta_0_union": metrics_union.beta_0,
                 "common_nodes_count": len(common_nodes),
+                "boundary_nodes_count": len(boundary_nodes),
+                "delta_connectivity": delta_connectivity,
             },
             "narrative": narrative,
         }
 
-    def _generate_mayer_vietoris_narrative(self, observed: int, discrepancy: float) -> str:
-        if discrepancy > 1:
-            return f"⚠️ Discrepancia topológica detectada (Δ={discrepancy}). Revisar superposición de componentes."
+    def _generate_mayer_vietoris_narrative(
+        self, observed: int, discrepancy: float, boundary_count: int
+    ) -> str:
+        """Genera narrativa contextualizada del análisis Mayer-Vietoris."""
+        parts = []
+
+        if discrepancy > 2:
+            parts.append(
+                f"⚠️ ANOMALÍA TOPOLÓGICA: Discrepancia significativa (Δ={discrepancy:.1f}). "
+                f"La estructura combinada no corresponde al modelo teórico. "
+                f"Revisar coherencia de datos en {boundary_count} nodos de frontera."
+            )
+        elif discrepancy > 1:
+            parts.append(
+                f"⚠️ Discrepancia menor detectada (Δ={discrepancy:.1f}). "
+                f"Posible redundancia en la interfaz de fusión."
+            )
+
         if observed > 0:
-            return f"🚨 ALERTA MAYER-VIETORIS: La fusión generó {observed} nuevos ciclos de dependencia. Conflicto de interfaz detectado."
-        if observed < 0:
-            return f"✅ Fusión simplificó la estructura. Se eliminaron {abs(observed)} ciclos redundantes."
-        return "✅ Fusión topológicamente neutra: sin riesgos estructurales nuevos."
+            parts.append(
+                f"🚨 CONFLICTO DE INTEGRACIÓN: La fusión generó {observed} nuevo(s) ciclo(s) "
+                f"de dependencia no presentes en los componentes originales. "
+                f"Esto indica incompatibilidad estructural en la interfaz."
+            )
+        elif observed < 0:
+            parts.append(
+                f"✅ SIMPLIFICACIÓN TOPOLÓGICA: La fusión eliminó {abs(observed)} ciclo(s) "
+                f"redundante(s). La estructura combinada es más eficiente."
+            )
+        elif discrepancy <= 1:
+            parts.append(
+                "✅ FUSIÓN LIMPIA: No se detectaron conflictos estructurales. "
+                "La integración es topológicamente neutral."
+            )
+
+        return " ".join(parts) if parts else "Análisis completado sin observaciones."
 
     def _get_raw_cycles(self, graph: nx.DiGraph) -> Tuple[List[List[str]], bool]:
         """Obtiene los ciclos crudos con algoritmo Johnson optimizado (Propuesta 1)."""
@@ -607,211 +827,322 @@ class BusinessTopologicalAnalyzer:
     def detect_risk_synergy(
         self, graph: nx.DiGraph, raw_cycles: Optional[List[List[str]]] = None
     ) -> Dict[str, Any]:
-        """Detecta Sinergia de Riesgo por 'Betweenness Centrality' (Propuesta 1)."""
+        """
+        Detecta Sinergia de Riesgo: ciclos que comparten nodos críticos.
+
+        Concepto:
+        Si dos ciclos de dependencia comparten un nodo de alta centralidad,
+        un fallo en ese nodo dispara ambos ciclos simultáneamente (efecto dominó).
+
+        Métricas:
+        - Nodos Puente: nodos de alta centralidad en múltiples ciclos.
+        - Score de Sinergia: probabilidad relativa de fallo en cascada.
+
+        Returns:
+            Dict con detección de sinergia, nodos puente y score normalizado.
+        """
         if raw_cycles is None:
             raw_cycles, _ = self._get_raw_cycles(graph)
 
-        if len(raw_cycles) < 2:
-            return {
-                "synergy_detected": False,
-                "shared_nodes": [],
-                "intersecting_cycles_count": 0,
-                "bridge_nodes": [],
-                "synergy_score": 0.0,
-            }
+        default_result = {
+            "synergy_detected": False,
+            "shared_nodes": [],
+            "intersecting_cycles_count": 0,
+            "bridge_nodes": [],
+            "synergy_score": 0.0,
+            "risk_level": "NINGUNO",
+            "details": {},
+        }
 
+        if len(raw_cycles) < 2:
+            return default_result
+
+        # Calcular Betweenness Centrality
         try:
-            betweenness = nx.betweenness_centrality(graph, normalized=True)
-            threshold = np.percentile(list(betweenness.values()), 75) if betweenness else 0.0
-        except:
-            betweenness = {}
+            if graph.number_of_nodes() > 1000:
+                # Aproximación para grafos grandes
+                betweenness = nx.betweenness_centrality(
+                    graph, normalized=True, k=min(100, graph.number_of_nodes())
+                )
+            else:
+                betweenness = nx.betweenness_centrality(graph, normalized=True)
+        except Exception as e:
+            self.logger.warning(f"Error calculando betweenness: {e}")
+            betweenness = {n: 0.0 for n in graph.nodes()}
+
+        # Umbral adaptativo para nodos críticos
+        if betweenness:
+            bc_values = list(betweenness.values())
+            if len(bc_values) >= 4:
+                threshold = np.percentile(bc_values, 75)
+            else:
+                threshold = np.mean(bc_values)
+        else:
             threshold = 0.0
 
-        critical_nodes = {n for n, c in betweenness.items() if c >= threshold}
+        critical_nodes = {n for n, c in betweenness.items() if c >= threshold and c > 0}
+
+        # Analizar intersecciones de ciclos
+        cycle_sets = [set(c) for c in raw_cycles]
+        n_cycles = len(cycle_sets)
 
         synergy_pairs = []
-        bridge_nodes = set()
-        cycle_sets = [set(c) for c in raw_cycles]
+        bridge_node_occurrences: Dict[str, List[Tuple[int, int]]] = {}
 
-        for i in range(len(cycle_sets)):
-            for j in range(i + 1, len(cycle_sets)):
-                intersection = cycle_sets[i].intersection(cycle_sets[j])
-                if len(intersection) >= 2:
-                    critical_intersection = intersection.intersection(critical_nodes)
-                    if critical_intersection:
-                        synergy_pairs.append((i, j))
-                        bridge_nodes.update(critical_intersection)
+        for i in range(n_cycles):
+            for j in range(i + 1, n_cycles):
+                intersection = cycle_sets[i] & cycle_sets[j]
 
-        synergy_score = 0.0
-        if synergy_pairs:
-            total_pairs = len(cycle_sets) * (len(cycle_sets) - 1) / 2
-            synergy_score = min(1.0, len(synergy_pairs) / total_pairs * len(bridge_nodes))
+                # Sinergia significativa: ≥2 nodos compartidos o 1 nodo crítico
+                critical_intersection = intersection & critical_nodes
+
+                if len(intersection) >= 2 or critical_intersection:
+                    synergy_pairs.append((i, j, intersection))
+
+                    for node in intersection:
+                        if node not in bridge_node_occurrences:
+                            bridge_node_occurrences[node] = []
+                        bridge_node_occurrences[node].append((i, j))
+
+        if not synergy_pairs:
+            return default_result
+
+        # Identificar nodos puente ordenados por impacto
+        bridge_nodes = sorted(
+            [
+                {
+                    "id": node,
+                    "cycles_connected": len(occurrences),
+                    "betweenness": round(betweenness.get(node, 0), 4),
+                    "is_critical": node in critical_nodes,
+                }
+                for node, occurrences in bridge_node_occurrences.items()
+            ],
+            key=lambda x: (x["cycles_connected"], x["betweenness"]),
+            reverse=True,
+        )
+
+        # Score de Sinergia normalizado [0, 1]
+        # Componentes:
+        # 1. Ratio de pares con sinergia vs total posible
+        total_pairs = n_cycles * (n_cycles - 1) / 2
+        pair_ratio = len(synergy_pairs) / total_pairs if total_pairs > 0 else 0
+
+        # 2. Concentración de puentes críticos
+        critical_bridges = sum(1 for b in bridge_nodes if b["is_critical"])
+        critical_ratio = critical_bridges / len(bridge_nodes) if bridge_nodes else 0
+
+        # 3. Promedio de conexiones por puente
+        avg_connections = (
+            np.mean([b["cycles_connected"] for b in bridge_nodes]) if bridge_nodes else 0
+        )
+        connection_factor = min(1.0, avg_connections / 3)  # Normalizar a 3 conexiones
+
+        synergy_score = (
+            0.4 * pair_ratio + 0.35 * critical_ratio + 0.25 * connection_factor
+        )
+        synergy_score = round(min(1.0, synergy_score), 4)
+
+        # Nivel de riesgo
+        if synergy_score > 0.6:
+            risk_level = "CRÍTICO"
+        elif synergy_score > 0.3:
+            risk_level = "ALTO"
+        elif synergy_score > 0.1:
+            risk_level = "MEDIO"
+        else:
+            risk_level = "BAJO"
 
         return {
-            "synergy_detected": len(synergy_pairs) > 0,
-            "shared_nodes": list(bridge_nodes),
+            "synergy_detected": True,
+            "shared_nodes": list(bridge_node_occurrences.keys()),
             "intersecting_cycles_count": len(synergy_pairs),
-            "bridge_nodes": list(bridge_nodes),
-            "synergy_score": round(synergy_score, 3),
+            "bridge_nodes": bridge_nodes[:10],  # Top 10
+            "synergy_score": synergy_score,
+            "risk_level": risk_level,
+            "details": {
+                "total_cycles": n_cycles,
+                "synergy_pairs": len(synergy_pairs),
+                "critical_bridges": critical_bridges,
+                "pair_ratio": round(pair_ratio, 4),
+            },
         }
 
     def analyze_thermal_flow(self, graph: nx.DiGraph) -> Dict[str, Any]:
         """
-        Calcula el Flujo Térmico Estructural (Termodinámica del Riesgo).
+        Calcula el Flujo Térmico Estructural (Modelo de Difusión de Riesgo).
 
-        Lógica:
-        1. Fuentes de Calor (Nivel 3 - Insumos): Temperatura base según volatilidad (ACERO > M.O.).
-        2. Conducción: El calor sube por las aristas ponderado por costo.
-        3. Temperatura del Proyecto: Promedio ponderado global.
+        Modelo Físico:
+        1. Temperatura Base: asignada a insumos según volatilidad histórica.
+        2. Conducción Térmica: el calor fluye de hojas hacia la raíz, ponderado por costo.
+        3. Temperatura Sistémica: promedio ponderado en el nodo raíz.
+
+        La "temperatura" es un proxy de la sensibilidad del presupuesto a variaciones
+        de precio en insumos volátiles (combustibles, acero, etc.).
 
         Returns:
-            Dict con system_temperature, hotspots y thermal_gradient.
+            Dict con temperatura del sistema, hotspots y gradiente térmico completo.
         """
-        # 1. Asignar Temperatura Base a Insumos
-        # Definición de temperaturas por tipo de insumo (Volatilidad relativa)
-        base_temperatures = {
-            "ACERO": 80.0,
-            "HIERRO": 80.0,
-            "CEMENTO": 60.0,
-            "CONCRETO": 50.0,
-            "COMBUSTIBLE": 90.0,
-            "ASFALTO": 85.0,
-            "EQUIPO": 40.0,
-            "MAQUINARIA": 45.0,
-            "MANO DE OBRA": 10.0,  # Frío / Estable (usualmente contratos fijos)
-            "TRANSPORTE": 70.0,
-            "FLETE": 70.0,
-            "DEFAULT": 25.0,  # Temperatura ambiente
+        # Definición de temperaturas base por tipo de insumo (escala 0-100)
+        # Basado en volatilidad histórica de precios en construcción
+        BASE_TEMPERATURES = {
+            "COMBUSTIBLE": 95.0, "GASOLINA": 95.0, "DIESEL": 95.0, "ACPM": 95.0,
+            "ASFALTO": 90.0, "BITUMEN": 90.0,
+            "ACERO": 85.0, "HIERRO": 85.0, "VARILLA": 85.0, "ALAMBRE": 80.0,
+            "COBRE": 88.0, "ALUMINIO": 82.0,
+            "CEMENTO": 60.0, "CONCRETO": 55.0, "AGREGADO": 45.0, "ARENA": 40.0,
+            "TRANSPORTE": 75.0, "FLETE": 75.0, "ACARREO": 70.0,
+            "MAQUINARIA": 50.0, "EQUIPO": 45.0, "HERRAMIENTA": 35.0,
+            "MANO DE OBRA": 25.0, "OFICIAL": 25.0, "AYUDANTE": 20.0,
+            "MADERA": 55.0, "FORMALETA": 50.0,
         }
+        DEFAULT_TEMP = 30.0
 
-        # Inicializar temperaturas
-        node_temperatures = {}
-        # Guardar costos totales para ponderación
-        node_costs = {}
+        def get_base_temperature(description: str, tipo: str) -> float:
+            """Determina temperatura base por matching de keywords."""
+            text = f"{description} {tipo}".upper()
+            matched_temp = DEFAULT_TEMP
+            for keyword, temp in BASE_TEMPERATURES.items():
+                if keyword in text:
+                    matched_temp = max(matched_temp, temp)
+            return matched_temp
 
-        # Identificar nodos hoja (Insumos) y asignar T base
+        # Inicializar estructuras
+        node_temperatures: Dict[str, float] = {}
+        node_costs: Dict[str, float] = {}
+
+        # Paso 1: Asignar temperatura base a nodos INSUMO (hojas)
         for node, data in graph.nodes(data=True):
             if data.get("type") == "INSUMO":
-                desc = str(data.get("description", "")).upper()
-                tipo = str(data.get("tipo_insumo", "")).upper()
+                desc = str(data.get("description", ""))
+                tipo = str(data.get("tipo_insumo", ""))
+                node_temperatures[node] = get_base_temperature(desc, tipo)
 
-                # Buscar match en descripción o tipo
-                temp = base_temperatures["DEFAULT"]
-                for key, t_val in base_temperatures.items():
-                    if key in desc or key in tipo:
-                        temp = max(temp, t_val)  # Tomar la más alta detectada
-
-                node_temperatures[node] = temp
-                # Asumir costo unitario como proxy de importancia si no hay total
-                unit_cost = data.get("unit_cost", 0.0)
-                # Ojo: necesitamos el costo total acumulado en el proyecto para este insumo.
-                # Como el grafo es dirigido APU->Insumo, sumamos las aristas entrantes.
-                # Insumo <- APU. Arista (APU, Insumo).
-                # Costo total del insumo en el proyecto = Suma(aristas entrantes 'total_cost')
-                total_input_cost = sum(
-                    graph[u][node].get("total_cost", 0.0)
-                    for u in graph.predecessors(node)
+                # Costo total del insumo = suma de aristas entrantes (desde APUs)
+                total_cost = sum(
+                    graph[pred][node].get("total_cost", 0.0)
+                    for pred in graph.predecessors(node)
                 )
-                node_costs[node] = total_input_cost
+                node_costs[node] = max(total_cost, data.get("unit_cost", 0.0))
             else:
-                node_temperatures[node] = 0.0 # Se calculará
+                node_temperatures[node] = 0.0
                 node_costs[node] = 0.0
 
-        # 2. Propagar hacia arriba (Insumos -> APUs -> Capítulos -> Proyecto)
-        # El flujo de calor va de abajo hacia arriba en la pirámide (Level 3 -> Level 0)
-        # Usamos orden topológico inverso (desde hojas hacia raíz)
+        # Paso 2: Propagación hacia arriba (Insumos → APUs → Capítulos → Root)
+        # Usar BFS desde hojas o Topological Sort inverso
         try:
-            # Orden topológico inverso funciona si es DAG. Si hay ciclos, esto fallará.
-            # Fallback para ciclos: iteración por niveles.
-            sorted_nodes = list(reversed(list(nx.topological_sort(graph))))
+            # Orden topológico: raíz primero, hojas al final
+            # Invertir para procesar hojas primero
+            topo_order = list(reversed(list(nx.topological_sort(graph))))
         except nx.NetworkXUnfeasible:
-            # Si hay ciclos, usamos una aproximación por niveles
-            sorted_nodes = sorted(
-                graph.nodes(data=True),
-                key=lambda x: x[1].get("level", 0),
+            # Si hay ciclos, usar ordenamiento por nivel (heurístico)
+            topo_order = sorted(
+                graph.nodes(),
+                key=lambda n: graph.nodes[n].get("level", 0),
                 reverse=True
             )
-            sorted_nodes = [n[0] for n in sorted_nodes]
 
-        for node in sorted_nodes:
-            if graph.nodes[node].get("type") == "INSUMO":
+        for node in topo_order:
+            node_type = graph.nodes[node].get("type", "")
+
+            # Los insumos ya tienen temperatura asignada
+            if node_type == "INSUMO":
                 continue
 
-            # Calcular temperatura promedio ponderada de los hijos (sustento)
-            # APU -> Insumo. El APU se calienta por sus insumos.
+            # Calcular temperatura ponderada de hijos (sucesores)
             children = list(graph.successors(node))
             if not children:
+                node_temperatures[node] = DEFAULT_TEMP * 0.5
                 continue
 
-            weighted_temp_sum = 0.0
-            total_cost_sum = 0.0
+            weighted_sum = 0.0
+            cost_sum = 0.0
 
             for child in children:
-                # El peso es el costo total que ese hijo aporta a este padre
-                # En grafo BudgetTopology: Edge (Padre, Hijo) tiene 'total_cost'
-                edge_cost = graph[node][child].get("total_cost", 0.0)
-                child_temp = node_temperatures.get(child, base_temperatures["DEFAULT"])
+                # El peso es el costo de la arista padre→hijo
+                edge_data = graph[node][child]
+                edge_cost = edge_data.get("total_cost", 0.0)
+                if edge_cost == 0.0:
+                    edge_cost = edge_data.get("weight", 0.0)
+                if edge_cost == 0.0:
+                    # Fallback: usar costo del hijo
+                    edge_cost = node_costs.get(child, 1.0)
 
-                weighted_temp_sum += child_temp * edge_cost
-                total_cost_sum += edge_cost
+                child_temp = node_temperatures.get(child, DEFAULT_TEMP)
 
-            if total_cost_sum > 0:
-                node_temperatures[node] = weighted_temp_sum / total_cost_sum
-                node_costs[node] = total_cost_sum
+                weighted_sum += child_temp * edge_cost
+                cost_sum += edge_cost
+
+            if cost_sum > 0:
+                node_temperatures[node] = weighted_sum / cost_sum
+                node_costs[node] = cost_sum
             else:
-                node_temperatures[node] = 0.0 # Frío si no tiene costo
+                node_temperatures[node] = DEFAULT_TEMP * 0.5
 
-        # 3. Temperatura del Sistema (Nodo Raíz o Promedio Ponderado Global)
-        # Buscar nodo ROOT
-        root_candidates = [n for n, d in graph.nodes(data=True) if d.get("type") == "ROOT"]
-        if root_candidates:
-            root_node = root_candidates[0]
-            # Asegurar cálculo para el nodo raíz si no fue actualizado en el bucle
-            if node_temperatures.get(root_node, 0.0) == 0.0:
-                 children = list(graph.successors(root_node))
-                 if children:
-                     weighted_temp_sum = 0.0
-                     total_cost_sum = 0.0
-                     for child in children:
-                         edge_cost = graph[root_node][child].get("total_cost", 0.0)
-                         # Fallback si total_cost es 0 pero hay weight
-                         if edge_cost == 0:
-                             edge_cost = graph[root_node][child].get("weight", 0.0)
+        # Paso 3: Temperatura del Sistema (nodo ROOT o promedio global)
+        root_nodes = [n for n, d in graph.nodes(data=True) if d.get("type") == "ROOT"]
 
-                         child_temp = node_temperatures.get(child, base_temperatures["DEFAULT"])
-                         weighted_temp_sum += child_temp * edge_cost
-                         total_cost_sum += edge_cost
-
-                     if total_cost_sum > 0:
-                         node_temperatures[root_node] = weighted_temp_sum / total_cost_sum
-                         node_costs[root_node] = total_cost_sum
-
-            system_temp = node_temperatures.get(root_node, 0.0)
+        if root_nodes:
+            system_temp = node_temperatures.get(root_nodes[0], 0.0)
         else:
-            # Promedio de APUs si no hay root
-            apus = [n for n, d in graph.nodes(data=True) if d.get("type") == "APU"]
-            if apus:
-                total_sys_cost = sum(node_costs.get(n, 0) for n in apus)
-                if total_sys_cost > 0:
-                    system_temp = sum(node_temperatures[n] * node_costs[n] for n in apus) / total_sys_cost
+            # Promedio ponderado de APUs
+            apu_nodes = [n for n, d in graph.nodes(data=True) if d.get("type") == "APU"]
+            if apu_nodes:
+                total_cost = sum(node_costs.get(n, 0) for n in apu_nodes)
+                if total_cost > 0:
+                    system_temp = sum(
+                        node_temperatures[n] * node_costs[n]
+                        for n in apu_nodes
+                    ) / total_cost
                 else:
-                    system_temp = 0.0
+                    system_temp = np.mean([node_temperatures[n] for n in apu_nodes])
             else:
                 system_temp = 0.0
 
-        # Identificar Hotspots (Top 5 más calientes con costo relevante)
-        # Filtrar nodos con costo > 0 para evitar ruido
-        hotspots = sorted(
-            [n for n in node_temperatures.items() if node_costs.get(n[0], 0) > 0],
-            key=lambda x: x[1],
-            reverse=True
-        )[:5]
+        # Paso 4: Identificar Hotspots (Top N por temperatura, con costo significativo)
+        # Filtrar nodos con costo > percentil 10 para evitar ruido
+        cost_threshold = np.percentile(
+            [c for c in node_costs.values() if c > 0], 10
+        ) if any(c > 0 for c in node_costs.values()) else 0
 
-        # Formato de retorno
+        candidate_hotspots = [
+            (node, temp) for node, temp in node_temperatures.items()
+            if node_costs.get(node, 0) > cost_threshold
+        ]
+        candidate_hotspots.sort(key=lambda x: x[1], reverse=True)
+
+        hotspots = [
+            {
+                "id": node,
+                "temperature": round(temp, 1),
+                "type": graph.nodes[node].get("type", ""),
+                "cost": round(node_costs.get(node, 0), 2),
+                "description": graph.nodes[node].get("description", "")[:50]
+            }
+            for node, temp in candidate_hotspots[:10]
+        ]
+
+        # Clasificación del riesgo térmico
+        if system_temp > 70:
+            thermal_risk_level = "CRÍTICO"
+        elif system_temp > 50:
+            thermal_risk_level = "ALTO"
+        elif system_temp > 35:
+            thermal_risk_level = "MEDIO"
+        else:
+            thermal_risk_level = "BAJO"
+
         return {
             "system_temperature": round(system_temp, 2),
-            "hotspots": [{"id": h[0], "temp": round(h[1], 1), "type": graph.nodes[h[0]].get("type")} for h in hotspots],
-            "thermal_gradient": node_temperatures
+            "thermal_risk_level": thermal_risk_level,
+            "hotspots": hotspots,
+            "thermal_gradient": {k: round(v, 2) for k, v in node_temperatures.items()},
+            "cost_distribution": {k: round(v, 2) for k, v in node_costs.items()},
+            "stats": {
+                "max_temperature": round(max(node_temperatures.values()), 2) if node_temperatures else 0,
+                "min_temperature": round(min(node_temperatures.values()), 2) if node_temperatures else 0,
+                "std_temperature": round(float(np.std(list(node_temperatures.values()))), 2) if node_temperatures else 0,
+            }
         }
 
     def analyze_inflationary_convection(
@@ -993,23 +1324,42 @@ class BusinessTopologicalAnalyzer:
         self, graph: nx.DiGraph, financial_metrics: Optional[Dict[str, Any]] = None
     ) -> ConstructionRiskReport:
         """
-        Genera reporte de riesgos con modelo de scoring bayesiano (Propuesta 1).
-        Inyecta la narrativa de la Propuesta 2.
+        Genera reporte ejecutivo con modelo de scoring bayesiano multi-factor.
+
+        Factores del Score de Integridad:
+        1. Eficiencia de Euler (topología)
+        2. Estabilidad Piramidal (estructura)
+        3. Factor de Densidad (complejidad)
+        4. Factor Espectral (resonancia)
+
+        Penalizaciones:
+        - Ciclos de dependencia
+        - Sinergia de riesgo
+        - Anomalías (nodos aislados, huérfanos)
+        - Riesgo de resonancia espectral
         """
+        # Cálculos base
         metrics = self.calculate_betti_numbers(graph)
-        raw_cycles, _ = self._get_raw_cycles(graph)
+        raw_cycles, truncated = self._get_raw_cycles(graph)
         cycles = [" → ".join(c + [c[0]]) for c in raw_cycles]
 
         synergy = self.detect_risk_synergy(graph, raw_cycles)
         anomalies = self._classify_anomalous_nodes(graph)
         pyramid_stability = self.calculate_pyramid_stability(graph)
         connectivity = self._compute_connectivity_analysis(graph)
-
-        # Análisis Espectral
         spectral = self.analyze_spectral_stability(graph)
 
-        # Detección de fluidos convectivos (Transporte, Combustible)
-        fluid_keywords = ["TRANSPORTE", "COMBUSTIBLE", "FLETE", "ACARREO", "GASOLINA", "DIESEL"]
+        # Detección de fluidos convectivos
+        fluid_keywords = [
+            "TRANSPORTE",
+            "COMBUSTIBLE",
+            "FLETE",
+            "ACARREO",
+            "GASOLINA",
+            "DIESEL",
+            "ACPM",
+            "ASFALTO",
+        ]
         fluid_nodes = [
             n
             for n, d in graph.nodes(data=True)
@@ -1017,100 +1367,215 @@ class BusinessTopologicalAnalyzer:
             and any(k in str(d.get("description", "")).upper() for k in fluid_keywords)
         ]
         convection = self.analyze_inflationary_convection(graph, fluid_nodes)
+        thermal = self.analyze_thermal_flow(graph)
 
-        # Scoring Bayesiano
-        density = nx.density(graph) if graph else 0.0
+        # ═══════════════════════════════════════════════════════════════
+        # MODELO DE SCORING BAYESIANO MULTI-FACTOR
+        # ═══════════════════════════════════════════════════════════════
+
+        density = nx.density(graph) if graph.number_of_nodes() > 0 else 0.0
+
+        # Factor 1: Eficiencia de Euler (0-1)
         euler_factor = metrics.euler_efficiency
-        density_factor = 1.0 - min(density, 0.99)
-        stability_factor = min(pyramid_stability / 3.0, 1.0)
 
-        # Factor Espectral en el Score
-        spectral_factor = 1.0 if not spectral["resonance_risk"] else 0.8
+        # Factor 2: Estabilidad Piramidal (ya normalizado 0-1)
+        stability_factor = pyramid_stability
 
-        weights = {"euler": 0.4, "density": 0.3, "stability": 0.3}
-        integrity_score = 100.0 * (
+        # Factor 3: Densidad Óptima (penaliza extremos)
+        if density < 0.001:
+            density_factor = 0.7  # Muy disperso
+        elif density > 0.5:
+            density_factor = 0.5  # Muy denso
+        else:
+            density_factor = 1.0 - (density * 0.5)  # Escala lineal inversa
+
+        # Factor 4: Espectral (basado en conectividad algebraica y resonancia)
+        fiedler = spectral.get("fiedler_value", 0.0)
+        if spectral.get("resonance_risk", False):
+            spectral_factor = 0.6
+        elif fiedler > 0.1:
+            spectral_factor = 1.0
+        elif fiedler > 0.01:
+            spectral_factor = 0.85
+        else:
+            spectral_factor = 0.7
+
+        # Pesos del modelo (suman 1.0)
+        weights = {
+            "euler": 0.30,
+            "stability": 0.25,
+            "density": 0.20,
+            "spectral": 0.25,
+        }
+
+        base_score = 100.0 * (
             weights["euler"] * euler_factor
-            + weights["density"] * density_factor
             + weights["stability"] * stability_factor
+            + weights["density"] * density_factor
+            + weights["spectral"] * spectral_factor
         )
 
-        # Penalizaciones
-        penalty_multiplier = 1.0
-        if metrics.beta_1 > 0:
-            penalty_multiplier -= min(0.5, metrics.beta_1 * 0.1)
-        if synergy["synergy_detected"]:
-            penalty_multiplier -= min(0.3, synergy["synergy_score"] * 0.5)
-        if spectral["resonance_risk"]:
-            penalty_multiplier -= 0.1 # Penalización por resonancia
+        # ═══════════════════════════════════════════════════════════════
+        # PENALIZACIONES
+        # ═══════════════════════════════════════════════════════════════
 
+        penalty = 0.0
+        penalty_details = []
+
+        # Penalización por ciclos (hasta -25 puntos)
+        if metrics.beta_1 > 0:
+            cycle_penalty = min(25.0, metrics.beta_1 * 5.0)
+            penalty += cycle_penalty
+            penalty_details.append(f"Ciclos ({metrics.beta_1}): -{cycle_penalty:.1f}")
+
+        # Penalización por sinergia de riesgo (hasta -20 puntos)
+        if synergy["synergy_detected"]:
+            synergy_penalty = min(20.0, synergy["synergy_score"] * 30.0)
+            penalty += synergy_penalty
+            penalty_details.append(
+                f"Sinergia ({synergy['synergy_score']:.2f}): -{synergy_penalty:.1f}"
+            )
+
+        # Penalización por resonancia espectral (hasta -10 puntos)
+        if spectral.get("resonance_risk", False):
+            penalty += 10.0
+            penalty_details.append("Resonancia espectral: -10.0")
+
+        # Penalización por anomalías (hasta -15 puntos)
         iso_count = len(anomalies["isolated_nodes"])
         orphan_count = len(anomalies["orphan_insumos"])
-        penalty_multiplier -= min(0.2, (iso_count + orphan_count) * 0.05)
+        empty_count = len(anomalies["empty_apus"])
 
-        integrity_score *= max(0.0, penalty_multiplier)
-        integrity_score = round(max(0.0, min(100.0, integrity_score)), 1)
+        if iso_count + orphan_count + empty_count > 0:
+            anomaly_penalty = min(
+                15.0, (iso_count * 2 + orphan_count * 1.5 + empty_count * 1)
+            )
+            penalty += anomaly_penalty
+            penalty_details.append(
+                f"Anomalías ({iso_count}+{orphan_count}+{empty_count}): -{anomaly_penalty:.1f}"
+            )
 
-        # Complejidad
+        # Penalización por riesgo térmico (hasta -10 puntos)
+        if thermal.get("thermal_risk_level") == "CRÍTICO":
+            penalty += 10.0
+            penalty_details.append("Riesgo térmico crítico: -10.0")
+        elif thermal.get("thermal_risk_level") == "ALTO":
+            penalty += 5.0
+            penalty_details.append("Riesgo térmico alto: -5.0")
+
+        # Score final
+        integrity_score = max(0.0, min(100.0, base_score - penalty))
+        integrity_score = round(integrity_score, 1)
+
+        # ═══════════════════════════════════════════════════════════════
+        # CLASIFICACIÓN DE COMPLEJIDAD
+        # ═══════════════════════════════════════════════════════════════
+
         complexity_score = (
-            0.4 * (metrics.beta_1 / max(1, graph.number_of_nodes()))
-            + 0.3 * density
-            + 0.3 * (1.0 - metrics.euler_efficiency)
+            0.30 * min(1.0, metrics.beta_1 / max(1, graph.number_of_nodes()) * 10)
+            + 0.25 * density
+            + 0.25 * (1.0 - metrics.euler_efficiency)
+            + 0.20 * (1.0 - pyramid_stability)
         )
-        if complexity_score > 0.3:
-            complexity_level = "Alta (Crítica)"
+
+        if complexity_score > 0.5:
+            complexity_level = "CRÍTICA"
+        elif complexity_score > 0.3:
+            complexity_level = "Alta"
         elif complexity_score > 0.15:
             complexity_level = "Media"
         else:
             complexity_level = "Baja"
 
-        # Alertas y Riesgos (Listas)
+        # ═══════════════════════════════════════════════════════════════
+        # ALERTAS Y RIESGOS
+        # ═══════════════════════════════════════════════════════════════
+
         waste_alerts = []
         if iso_count > 0:
-            waste_alerts.append(f"🚨 {iso_count} nodos aislados detectados.")
+            waste_alerts.append(
+                f"🚨 {iso_count} nodo(s) aislado(s) detectado(s) (recursos sin uso)."
+            )
         if orphan_count > 0:
-            waste_alerts.append(f"⚠️ {orphan_count} insumos huérfanos.")
+            waste_alerts.append(
+                f"⚠️ {orphan_count} insumo(s) huérfano(s) (sin vinculación a APU)."
+            )
+        if empty_count > 0:
+            waste_alerts.append(
+                f"⚠️ {empty_count} APU(s) vacío(s) (sin detalle de insumos)."
+            )
         if metrics.euler_efficiency < 0.6:
             waste_alerts.append(
-                f"⚠️ Baja eficiencia topológica ({metrics.euler_efficiency:.2f})."
+                f"⚠️ Eficiencia topológica baja ({metrics.euler_efficiency:.2%})."
+            )
+        if truncated:
+            waste_alerts.append(
+                f"ℹ️ Análisis de ciclos truncado a {self.max_cycles} (hay más)."
             )
 
         circular_risks = []
         if metrics.beta_1 > 0:
-            circular_risks.append(f"🚨 CRÍTICO: {metrics.beta_1} ciclo(s) de dependencia.")
+            circular_risks.append(
+                f"🚨 CRÍTICO: {metrics.beta_1} ciclo(s) de dependencia detectado(s)."
+            )
+            for cycle in cycles[:3]:
+                circular_risks.append(f"   ↳ {cycle[:80]}{'...' if len(cycle) > 80 else ''}")
+
         if synergy["synergy_detected"]:
             circular_risks.append(
-                f"🚨 RIESGO SISTÉMICO: Sinergia detectada (score: {synergy['synergy_score']:.2f})."
+                f"☣️ RIESGO SISTÉMICO: Sinergia de riesgo nivel {synergy['risk_level']} "
+                f"(score: {synergy['synergy_score']:.2f})."
             )
+
         if convection["high_risk_nodes"]:
             circular_risks.append(
-                f"🔥 RIESGO CONVECTIVO: {len(convection['high_risk_nodes'])} nodos altamente sensibles a transporte/combustible."
+                f"🔥 RIESGO CONVECTIVO: {len(convection['high_risk_nodes'])} nodo(s) "
+                f"altamente sensible(s) a variación de transporte/combustible."
             )
-        if spectral["resonance_risk"]:
-            circular_risks.append(f"🔊 RIESGO DE RESONANCIA: Espectro concentrado, alta vulnerabilidad a choques sistémicos.")
 
-        # Riesgo Financiero
+        if spectral.get("resonance_risk", False):
+            circular_risks.append(
+                "🔊 RIESGO DE RESONANCIA: Espectro degenerado detectado. "
+                "Alta vulnerabilidad a perturbaciones sistémicas."
+            )
+
+        if thermal.get("thermal_risk_level") in ["CRÍTICO", "ALTO"]:
+            circular_risks.append(
+                f"🌡️ TEMPERATURA SISTÉMICA {thermal['thermal_risk_level']}: "
+                f"{thermal['system_temperature']:.1f}°. Alta sensibilidad a inflación de insumos."
+            )
+
+        # ═══════════════════════════════════════════════════════════════
+        # RIESGO FINANCIERO INTEGRADO
+        # ═══════════════════════════════════════════════════════════════
+
         financial_risk = None
         if financial_metrics:
             volatility = financial_metrics.get("volatility", 0.0)
             roi = financial_metrics.get("roi", 0.0)
-            if roi < 0:
+
+            if roi < -0.1:
                 financial_risk = "CRÍTICO"
-            elif volatility > 0.25:
+            elif roi < 0:
                 financial_risk = "ALTO"
-            elif volatility > 0.15:
+            elif volatility > 0.3:
+                financial_risk = "ALTO"
+            elif volatility > 0.2:
                 financial_risk = "MEDIO"
             else:
                 financial_risk = "BAJO"
 
-            if (metrics.beta_1 > 2 or synergy["synergy_detected"]) and financial_risk in [
-                "ALTO",
-                "MEDIO",
-            ]:
-                financial_risk = "CATÁSTROFICO"
+            # Escalamiento por factores topológicos
+            if financial_risk in ["ALTO", "MEDIO"]:
+                if metrics.beta_1 > 2 or synergy["synergy_detected"]:
+                    financial_risk = "CATÁSTROFICO"
+                elif spectral.get("resonance_risk", False):
+                    if financial_risk == "MEDIO":
+                        financial_risk = "ALTO"
 
-        # Inyección de Narrativa (Propuesta 2)
+        # Narrativa estratégica
         strategic_narrative = self._generate_strategic_narrative(
-            metrics, synergy, pyramid_stability, financial_risk
+            metrics, synergy, pyramid_stability, financial_risk, thermal, spectral
         )
 
         return ConstructionRiskReport(
@@ -1123,13 +1588,31 @@ class BusinessTopologicalAnalyzer:
             details={
                 "metrics": asdict(metrics),
                 "cycles": cycles,
+                "cycles_truncated": truncated,
                 "anomalies": anomalies,
                 "synergy_risk": synergy,
                 "connectivity": connectivity,
                 "pyramid_stability": pyramid_stability,
-                "density": density,
+                "density": round(density, 6),
                 "convection_risk": convection,
                 "spectral_analysis": spectral,
+                "thermal_analysis": {
+                    "system_temperature": thermal["system_temperature"],
+                    "thermal_risk_level": thermal["thermal_risk_level"],
+                    "hotspots": thermal["hotspots"][:5],
+                },
+                "scoring_breakdown": {
+                    "base_score": round(base_score, 2),
+                    "total_penalty": round(penalty, 2),
+                    "penalty_details": penalty_details,
+                    "factor_weights": weights,
+                    "factors": {
+                        "euler": round(euler_factor, 4),
+                        "stability": round(stability_factor, 4),
+                        "density": round(density_factor, 4),
+                        "spectral": round(spectral_factor, 4),
+                    },
+                },
             },
         )
 
@@ -1139,57 +1622,101 @@ class BusinessTopologicalAnalyzer:
         synergy: Dict[str, Any],
         stability: float,
         financial_risk: Optional[str],
+        thermal: Dict[str, Any],
+        spectral: Dict[str, Any],
     ) -> str:
         """
         Genera una narrativa estratégica con el tono del 'Consejo de Sabios' (Propuesta 2).
         Integra los conceptos de 'El Intérprete Diplomático'.
         """
-        narrative_parts = []
+        sections = []
 
-        # 1. Análisis Estructural (La Base)
-        if stability > 2.0:
-            narrative_parts.append(
-                "🏗️ ESTRUCTURA SISMORESISTENTE: La pirámide presupuestaria posee una base robusta y bien distribuida."
+        # 1. DIAGNÓSTICO ESTRUCTURAL
+        if stability > 0.7:
+            sections.append(
+                "🏗️ **ESTRUCTURA SÓLIDA**: La pirámide presupuestaria presenta una base "
+                "robusta con adecuada distribución de insumos por APU."
             )
-        elif stability > 1.0:
-            narrative_parts.append(
-                "✅ CIMENTACIÓN ESTABLE: La relación entre insumos y APUs es adecuada para soportar la carga del proyecto."
+        elif stability > 0.4:
+            sections.append(
+                "⚠️ **ESTRUCTURA MODERADA**: La relación base-altura es aceptable pero "
+                "existen oportunidades de consolidación en la distribución de recursos."
             )
         else:
-            narrative_parts.append(
-                "⚠️ RIESGO DE COLAPSO (PIRÁMIDE INVERTIDA): La base de recursos es insuficiente para la complejidad de los APUs definidos."
+            sections.append(
+                "🚨 **ALERTA ESTRUCTURAL (PIRÁMIDE INVERTIDA)**: La base de insumos es "
+                "insuficiente para la complejidad de APUs definidos. Riesgo de colapso "
+                "ante variaciones de mercado."
             )
 
-        # 2. Integridad Lógica (Topología)
+        # 2. INTEGRIDAD LÓGICA
         if metrics.beta_1 == 0:
-            narrative_parts.append("La trazabilidad de cargas es limpia (Acíclica).")
+            sections.append(
+                "✅ **TRAZABILIDAD LIMPIA**: Sin ciclos de dependencia. El flujo de costos "
+                "es unidireccional y auditable."
+            )
+        elif metrics.beta_1 <= 2:
+            sections.append(
+                f"⚠️ **CICLOS DETECTADOS**: {metrics.beta_1} ciclo(s) de dependencia "
+                f"identificado(s). Requieren revisión para evitar cálculos circulares."
+            )
         else:
-            narrative_parts.append(
-                f"⛔ SOCAVONES LÓGICOS DETECTADOS: Existen {metrics.beta_1} ciclos de dependencia que comprometen la integridad del cálculo."
+            sections.append(
+                f"🚨 **COMPLEJIDAD CÍCLICA CRÍTICA**: {metrics.beta_1} ciclos de dependencia "
+                f"comprometen la integridad del cálculo. Auditoría inmediata requerida."
             )
 
-        # 3. Sinergia de Riesgo (Efecto Dominó)
+        # 3. RIESGO SISTÉMICO
         if synergy.get("synergy_detected"):
-            narrative_parts.append(
-                f"☣️ RIESGO DE CONTAGIO: Se detectó una 'Sinergia de Riesgo' en {synergy.get('intersecting_cycles_count', 0)} puntos críticos. Un fallo en un insumo clave podría desencadenar un efecto dominó."
+            risk_level = synergy.get("risk_level", "DETECTADO")
+            bridge_count = len(synergy.get("bridge_nodes", []))
+            sections.append(
+                f"☣️ **RIESGO DE CONTAGIO ({risk_level})**: {bridge_count} nodo(s) puente "
+                f"conectan múltiples ciclos. Un fallo en estos puntos desencadenaría "
+                f"efecto dominó en cascada."
             )
 
-        # 4. Veredicto Financiero (El Oráculo)
+        # 4. SENSIBILIDAD TÉRMICA
+        if thermal.get("thermal_risk_level") in ["CRÍTICO", "ALTO"]:
+            temp = thermal.get("system_temperature", 0)
+            sections.append(
+                f"🌡️ **ALTA SENSIBILIDAD INFLACIONARIA**: Temperatura sistémica de {temp:.0f}°. "
+                f"El presupuesto es vulnerable a fluctuaciones de precios en insumos volátiles."
+            )
+
+        # 5. ESTABILIDAD ESPECTRAL
+        if spectral.get("resonance_risk"):
+            sections.append(
+                "🔊 **VULNERABILIDAD ESPECTRAL**: Concentración anómala en el espectro "
+                "del Laplaciano. El sistema podría amplificar perturbaciones externas "
+                "(efecto resonancia)."
+            )
+
+        # 6. VEREDICTO FINANCIERO
         if financial_risk:
-            if financial_risk in ["CRÍTICO", "CATÁSTROFICO"]:
-                narrative_parts.append(
-                    f"💀 ALERTA DE VIABILIDAD: El perfil de riesgo financiero es {financial_risk}, agravado por la estructura topológica."
+            if financial_risk == "CATÁSTROFICO":
+                sections.append(
+                    "💀 **ALERTA CRÍTICA DE VIABILIDAD**: El perfil de riesgo financiero "
+                    "combinado con la estructura topológica indica probabilidad significativa "
+                    "de fracaso del proyecto. Suspender compromisos hasta revisión profunda."
+                )
+            elif financial_risk == "CRÍTICO":
+                sections.append(
+                    "📉 **RIESGO FINANCIERO CRÍTICO**: Los indicadores económicos "
+                    "requieren atención inmediata. Considerar reestructuración."
                 )
             elif financial_risk == "ALTO":
-                narrative_parts.append(
-                    "📉 PRECAUCIÓN FINANCIERA: Alta volatilidad detectada en los componentes críticos."
+                sections.append(
+                    "📊 **PRECAUCIÓN FINANCIERA**: Volatilidad elevada en componentes "
+                    "críticos. Implementar coberturas o contingencias."
                 )
             elif financial_risk == "BAJO":
-                narrative_parts.append(
-                    "💰 SALUD FINANCIERA: Los indicadores económicos respaldan la viabilidad técnica."
+                sections.append(
+                    "💰 **SALUD FINANCIERA**: Los indicadores económicos respaldan "
+                    "la viabilidad técnica del proyecto."
                 )
 
-        return " ".join(narrative_parts)
+        return " ".join(sections)
 
     def analyze_structural_integrity(self, graph: nx.DiGraph) -> Dict[str, Any]:
         """Wrapper de análisis compatible con el pipeline actual y telemetría."""

@@ -65,7 +65,7 @@ class TestExecutiveReport:
 
         assert report.integrity_score < 100.0
         assert len(report.waste_alerts) > 0
-        assert any("nodos aislados detectados" in alert for alert in report.waste_alerts)
+        assert any("nodo(s) aislado(s) detectado(s)" in alert for alert in report.waste_alerts)
 
         audit_lines = analyzer.get_audit_report(G)
         assert any("Recursos Fantasma" in line for line in audit_lines)
@@ -80,7 +80,7 @@ class TestExecutiveReport:
 
         # Should trigger orphan alert
         assert len(report.waste_alerts) > 0
-        assert any("insumos huérfanos" in alert for alert in report.waste_alerts)
+        assert any("insumo(s) huérfano(s)" in alert for alert in report.waste_alerts)
 
     def test_integration_backward_compatibility(self, analyzer):
         """Test that analyze_structural_integrity method output can still be processed by get_audit_report"""
