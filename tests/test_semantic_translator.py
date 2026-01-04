@@ -6,18 +6,18 @@ Valida la correcta traducción de métricas topológicas y financieras
 a narrativas estratégicas de negocio con enfoque de Ingeniería Estructural.
 """
 
-import pytest
 from typing import Any, Dict
 from unittest.mock import Mock
 
+import pytest
+
 from agent.business_topology import TopologicalMetrics
 from app.semantic_translator import (
+    CycleSeverityThresholds,
     SemanticTranslator,
     StabilityThresholds,
     TopologicalThresholds,
     WACCThresholds,
-    CycleSeverityThresholds,
-    FinancialVerdict,
 )
 
 

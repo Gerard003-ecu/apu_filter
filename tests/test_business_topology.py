@@ -1,6 +1,6 @@
-from unittest.mock import MagicMock, Mock
-import unicodedata
 import re
+import unicodedata
+from unittest.mock import MagicMock, Mock
 
 import networkx as nx
 import pandas as pd

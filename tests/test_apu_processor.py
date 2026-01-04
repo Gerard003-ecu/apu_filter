@@ -1,10 +1,10 @@
-import unittest
 import logging
-import pandas as pd
-from unittest.mock import MagicMock, patch
-import sys
 import os
-from typing import Dict, List, Any, Optional
+import sys
+import unittest
+from unittest.mock import patch
+
+import pandas as pd
 from lark import Token
 
 # Ajustar ruta de importación para pruebas
@@ -12,16 +12,14 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 
 from app.apu_processor import (
     APUProcessor,
+    APUTransformer,
+    NumericFieldExtractor,
+    ParsingStats,
     PatternMatcher,
     UnitsValidator,
-    NumericFieldExtractor,
     ValidationThresholds,
-    FormatoLinea,
-    TipoInsumo,
-    APUTransformer,
-    ParsingStats,
 )
-from app.utils import calculate_unit_costs, parse_number
+from app.utils import calculate_unit_costs
 
 # Configurar logging para pruebas
 logging.basicConfig(level=logging.INFO)

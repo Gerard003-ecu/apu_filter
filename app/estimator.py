@@ -7,6 +7,8 @@ import numpy as np
 import pandas as pd
 from sentence_transformers import SentenceTransformer
 
+from models.probability_models import run_monte_carlo_simulation
+
 from .financial_engine import (
     CapitalAssetPricing,
     FinancialConfig,
@@ -14,7 +16,6 @@ from .financial_engine import (
     RiskQuantifier,
 )
 from .utils import normalize_text
-from models.probability_models import run_monte_carlo_simulation
 
 logger = logging.getLogger(__name__)
 

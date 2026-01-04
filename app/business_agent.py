@@ -8,8 +8,8 @@ desde una perspectiva de negocio, combinando análisis estructural
 """
 
 import logging
-from dataclasses import dataclass, field, asdict
-from typing import Any, Dict, List, Optional, Tuple
+from dataclasses import asdict, dataclass
+from typing import Any, Dict, Optional, Tuple
 
 import pandas as pd
 
@@ -18,10 +18,10 @@ from agent.business_topology import (
     BusinessTopologicalAnalyzer,
     ConstructionRiskReport,
 )
-from app.financial_engine import FinancialConfig, FinancialEngine
-from app.telemetry import TelemetryContext
-from app.semantic_translator import SemanticTranslator
 from app.constants import ColumnNames
+from app.financial_engine import FinancialConfig, FinancialEngine
+from app.semantic_translator import SemanticTranslator
+from app.telemetry import TelemetryContext
 
 logger = logging.getLogger(__name__)
 
@@ -127,17 +127,26 @@ class RiskChallenger:
 
         # Si no se encuentra, usar un valor seguro que no dispare la alerta (o loguear advertencia)
         if stability is None:
-            logger.warning("Risk Challenger: No se encontró métrica de estabilidad piramidal.")
+            logger.warning(
+                "Risk Challenger: No se encontró métrica de estabilidad piramidal."
+            )
             return report
 
         # Regla Adversarial: Pirámide Invertida con Riesgo Financiero Bajo
         # "BAJO" debe coincidir con los niveles definidos en el sistema (FinancialRiskLevel)
         # Asumimos que "LOW" o "BAJO" son los valores para riesgo bajo.
-        is_financial_safe = str(financial_risk).upper() in ["LOW", "BAJO", "MODERATE", "MODERADO"]
+        is_financial_safe = str(financial_risk).upper() in [
+            "LOW",
+            "BAJO",
+            "MODERATE",
+            "MODERADO",
+        ]
         is_inverted_pyramid = stability < 1.0
 
         if is_financial_safe and is_inverted_pyramid:
-            logger.warning("🚨 Risk Challenger: CONTRADICCIÓN DETECTADA (Pirámide Invertida + Finanzas Sanas)")
+            logger.warning(
+                "🚨 Risk Challenger: CONTRADICCIÓN DETECTADA (Pirámide Invertida + Finanzas Sanas)"
+            )
 
             # Degradar veredicto
             new_financial_risk = "RIESGO ESTRUCTURAL OCULTO"
@@ -170,9 +179,9 @@ class RiskChallenger:
                 waste_alerts=report.waste_alerts,
                 circular_risks=report.circular_risks,
                 complexity_level=report.complexity_level,
-                financial_risk_level=new_financial_risk, # Sobrescribimos el nivel de riesgo
+                financial_risk_level=new_financial_risk,  # Sobrescribimos el nivel de riesgo
                 details=new_details,
-                strategic_narrative=new_narrative
+                strategic_narrative=new_narrative,
             )
 
         logger.info("✅ Risk Challenger: Coherencia verificada.")
@@ -485,7 +494,7 @@ class BusinessAgent:
         thermo_narrative = self.translator.translate_thermodynamics(
             entropy=entropy,
             exergy=exergy,
-            temperature=thermal_metrics.get("system_temperature", 0.0)
+            temperature=thermal_metrics.get("system_temperature", 0.0),
         )
 
         # 3. Fusionar Narrativas
@@ -501,7 +510,7 @@ class BusinessAgent:
             "thermodynamics": {
                 "entropy": entropy,
                 "exergy": exergy,
-                "temperature": thermal_metrics.get("system_temperature", 0.0)
+                "temperature": thermal_metrics.get("system_temperature", 0.0),
             },
             "structural_coherence": topological_bundle.structural_coherence,
             "topological_invariants": {
@@ -595,7 +604,9 @@ class BusinessAgent:
         # Fase 2.5: Análisis Termodinámico (Nuevo)
         try:
             # 1. Flujo Térmico (Topology)
-            thermal_metrics = self.topological_analyzer.analyze_thermal_flow(topological_bundle.graph)
+            thermal_metrics = self.topological_analyzer.analyze_thermal_flow(
+                topological_bundle.graph
+            )
 
             # 2. Entropía (FluxCondenser - Simulado o del contexto si existe)
             # Idealmente vendría de FluxCondenser.get_metrics(), pero aquí extraemos del contexto
@@ -606,19 +617,15 @@ class BusinessAgent:
             exergy = context.get("budget_exergy", 0.6)
 
         except Exception as e:
-             logger.warning(f"⚠️ Fallo parcial en termodinámica: {e}")
-             thermal_metrics = {"system_temperature": 0.0}
-             entropy = 0.5
-             exergy = 0.5
+            logger.warning(f"⚠️ Fallo parcial en termodinámica: {e}")
+            thermal_metrics = {"system_temperature": 0.0}
+            entropy = 0.5
+            exergy = 0.5
 
         # Fase 3 y 4: Síntesis y Auditoría Adversarial
         try:
             report = self._compose_enriched_report(
-                topological_bundle,
-                financial_metrics,
-                thermal_metrics,
-                entropy,
-                exergy
+                topological_bundle, financial_metrics, thermal_metrics, entropy, exergy
             )
         except RuntimeError as e:
             logger.error(f"❌ Fase de síntesis fallida: {e}", exc_info=True)

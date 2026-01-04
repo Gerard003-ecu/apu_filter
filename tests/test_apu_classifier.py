@@ -12,7 +12,7 @@ Cubre:
 import json
 import os
 import tempfile
-from typing import List, Tuple
+from typing import Tuple
 
 import numpy as np
 import pandas as pd
@@ -65,11 +65,13 @@ def temp_config_path():
 @pytest.fixture
 def sample_dataframe() -> pd.DataFrame:
     """DataFrame de prueba con diversos escenarios."""
-    return pd.DataFrame({
-        "VALOR_CONSTRUCCION_UN": [100, 200, 150, 300, 0, 50, 1000, np.nan],
-        "VALOR_SUMINISTRO_UN": [70, 120, 45, 180, 0, 35, 100, 50],
-        "VALOR_INSTALACION_UN": [30, 80, 105, 120, 0, 15, 900, 50],
-    })
+    return pd.DataFrame(
+        {
+            "VALOR_CONSTRUCCION_UN": [100, 200, 150, 300, 0, 50, 1000, np.nan],
+            "VALOR_SUMINISTRO_UN": [70, 120, 45, 180, 0, 35, 100, 50],
+            "VALOR_INSTALACION_UN": [30, 80, 105, 120, 0, 15, 900, 50],
+        }
+    )
 
 
 # =============================================================================
@@ -80,28 +82,40 @@ def sample_dataframe() -> pd.DataFrame:
 class TestClassificationRuleNormalization:
     """Tests para normalización de operadores lógicos SQL → Python."""
 
-    @pytest.mark.parametrize("input_condition,expected_normalized", [
-        # Mayúsculas
-        ("porcentaje_materiales >= 50 AND porcentaje_mo_eq >= 30",
-         "porcentaje_materiales >= 50 and porcentaje_mo_eq >= 30"),
-        # Minúsculas (sin cambio)
-        ("porcentaje_materiales >= 50 and porcentaje_mo_eq >= 30",
-         "porcentaje_materiales >= 50 and porcentaje_mo_eq >= 30"),
-        # Mixto
-        ("porcentaje_materiales >= 50 And porcentaje_mo_eq >= 30",
-         "porcentaje_materiales >= 50 and porcentaje_mo_eq >= 30"),
-        # OR
-        ("porcentaje_materiales >= 60 OR porcentaje_mo_eq >= 60",
-         "porcentaje_materiales >= 60 or porcentaje_mo_eq >= 60"),
-        # NOT
-        ("NOT porcentaje_materiales >= 50",
-         "not porcentaje_materiales >= 50"),
-        # Combinación compleja
-        ("(porcentaje_materiales >= 40 AND porcentaje_materiales <= 60) OR "
-         "(porcentaje_mo_eq >= 40 AND porcentaje_mo_eq <= 60)",
-         "(porcentaje_materiales >= 40 and porcentaje_materiales <= 60) or "
-         "(porcentaje_mo_eq >= 40 and porcentaje_mo_eq <= 60)"),
-    ])
+    @pytest.mark.parametrize(
+        "input_condition,expected_normalized",
+        [
+            # Mayúsculas
+            (
+                "porcentaje_materiales >= 50 AND porcentaje_mo_eq >= 30",
+                "porcentaje_materiales >= 50 and porcentaje_mo_eq >= 30",
+            ),
+            # Minúsculas (sin cambio)
+            (
+                "porcentaje_materiales >= 50 and porcentaje_mo_eq >= 30",
+                "porcentaje_materiales >= 50 and porcentaje_mo_eq >= 30",
+            ),
+            # Mixto
+            (
+                "porcentaje_materiales >= 50 And porcentaje_mo_eq >= 30",
+                "porcentaje_materiales >= 50 and porcentaje_mo_eq >= 30",
+            ),
+            # OR
+            (
+                "porcentaje_materiales >= 60 OR porcentaje_mo_eq >= 60",
+                "porcentaje_materiales >= 60 or porcentaje_mo_eq >= 60",
+            ),
+            # NOT
+            ("NOT porcentaje_materiales >= 50", "not porcentaje_materiales >= 50"),
+            # Combinación compleja
+            (
+                "(porcentaje_materiales >= 40 AND porcentaje_materiales <= 60) OR "
+                "(porcentaje_mo_eq >= 40 AND porcentaje_mo_eq <= 60)",
+                "(porcentaje_materiales >= 40 and porcentaje_materiales <= 60) or "
+                "(porcentaje_mo_eq >= 40 and porcentaje_mo_eq <= 60)",
+            ),
+        ],
+    )
     def test_operator_normalization(self, input_condition: str, expected_normalized: str):
         """Verifica normalización AND/OR/NOT → and/or/not."""
         rule = ClassificationRule(
@@ -133,16 +147,19 @@ class TestClassificationRuleNormalization:
 class TestClassificationRuleValidation:
     """Tests para validación de seguridad y sintaxis."""
 
-    @pytest.mark.parametrize("valid_condition", [
-        "porcentaje_materiales >= 50",
-        "porcentaje_mo_eq > 30",
-        "porcentaje_materiales >= 40 and porcentaje_materiales <= 60",
-        "(porcentaje_materiales >= 50) or (porcentaje_mo_eq >= 50)",
-        "not porcentaje_materiales >= 80",
-        "porcentaje_materiales == 50.5",
-        "porcentaje_mo_eq != 0",
-        "porcentaje_materiales >= 0 and porcentaje_mo_eq >= 0",
-    ])
+    @pytest.mark.parametrize(
+        "valid_condition",
+        [
+            "porcentaje_materiales >= 50",
+            "porcentaje_mo_eq > 30",
+            "porcentaje_materiales >= 40 and porcentaje_materiales <= 60",
+            "(porcentaje_materiales >= 50) or (porcentaje_mo_eq >= 50)",
+            "not porcentaje_materiales >= 80",
+            "porcentaje_materiales == 50.5",
+            "porcentaje_mo_eq != 0",
+            "porcentaje_materiales >= 0 and porcentaje_mo_eq >= 0",
+        ],
+    )
     def test_valid_conditions_accepted(self, valid_condition: str):
         """Condiciones válidas deben ser aceptadas."""
         rule = ClassificationRule(
@@ -153,22 +170,25 @@ class TestClassificationRuleValidation:
         )
         assert rule.condition is not None
 
-    @pytest.mark.parametrize("invalid_condition,error_fragment", [
-        # Inyección de código
-        ("__import__('os').system('ls')", "no permitidos"),
-        ("exec('print(1)')", "no permitidos"),
-        ("eval('1+1')", "no permitidos"),
-        # Variables no permitidas
-        ("unknown_var >= 50", "no permitidos"),
-        ("porcentaje_materiales >= x", "no permitidos"),
-        # Funciones no permitidas
-        ("len(porcentaje_materiales) > 0", "no permitidos"),
-        ("abs(porcentaje_materiales) >= 50", "no permitidos"),
-        # Sintaxis inválida
-        ("porcentaje_materiales >= ", "Sintaxis inválida"),
-        ("porcentaje_materiales >= 50 &&", "no permitidos"),
-        ("porcentaje_materiales >= 50 ||", "no permitidos"),
-    ])
+    @pytest.mark.parametrize(
+        "invalid_condition,error_fragment",
+        [
+            # Inyección de código
+            ("__import__('os').system('ls')", "no permitidos"),
+            ("exec('print(1)')", "no permitidos"),
+            ("eval('1+1')", "no permitidos"),
+            # Variables no permitidas
+            ("unknown_var >= 50", "no permitidos"),
+            ("porcentaje_materiales >= x", "no permitidos"),
+            # Funciones no permitidas
+            ("len(porcentaje_materiales) > 0", "no permitidos"),
+            ("abs(porcentaje_materiales) >= 50", "no permitidos"),
+            # Sintaxis inválida
+            ("porcentaje_materiales >= ", "Sintaxis inválida"),
+            ("porcentaje_materiales >= 50 &&", "no permitidos"),
+            ("porcentaje_materiales >= 50 ||", "no permitidos"),
+        ],
+    )
     def test_invalid_conditions_rejected(self, invalid_condition: str, error_fragment: str):
         """Condiciones inválidas o peligrosas deben ser rechazadas."""
         with pytest.raises(ValueError) as exc_info:
@@ -199,25 +219,38 @@ class TestClassificationRuleValidation:
 class TestClassificationRuleEvaluation:
     """Tests para evaluación de reglas."""
 
-    @pytest.mark.parametrize("pct_mat,pct_mo,condition,expected", [
-        # Pruebas básicas de comparación
-        (0.60, 0.20, "porcentaje_materiales >= 60", True),
-        (0.59, 0.20, "porcentaje_materiales >= 60", False),
-        (0.20, 0.70, "porcentaje_mo_eq >= 60", True),
-        # Operadores combinados
-        (0.50, 0.50, "porcentaje_materiales >= 40 and porcentaje_materiales <= 60", True),
-        (0.30, 0.30, "porcentaje_materiales >= 40 and porcentaje_materiales <= 60", False),
-        # OR
-        (0.70, 0.10, "porcentaje_materiales >= 60 or porcentaje_mo_eq >= 60", True),
-        (0.10, 0.70, "porcentaje_materiales >= 60 or porcentaje_mo_eq >= 60", True),
-        (0.30, 0.30, "porcentaje_materiales >= 60 or porcentaje_mo_eq >= 60", False),
-        # NOT
-        (0.30, 0.30, "not porcentaje_materiales >= 60", True),
-        (0.70, 0.30, "not porcentaje_materiales >= 60", False),
-        # Edge: exactamente en el límite
-        (0.60, 0.40, "porcentaje_materiales >= 60.0", True),
-        (0.40, 0.60, "porcentaje_mo_eq >= 60.0", True),
-    ])
+    @pytest.mark.parametrize(
+        "pct_mat,pct_mo,condition,expected",
+        [
+            # Pruebas básicas de comparación
+            (0.60, 0.20, "porcentaje_materiales >= 60", True),
+            (0.59, 0.20, "porcentaje_materiales >= 60", False),
+            (0.20, 0.70, "porcentaje_mo_eq >= 60", True),
+            # Operadores combinados
+            (
+                0.50,
+                0.50,
+                "porcentaje_materiales >= 40 and porcentaje_materiales <= 60",
+                True,
+            ),
+            (
+                0.30,
+                0.30,
+                "porcentaje_materiales >= 40 and porcentaje_materiales <= 60",
+                False,
+            ),
+            # OR
+            (0.70, 0.10, "porcentaje_materiales >= 60 or porcentaje_mo_eq >= 60", True),
+            (0.10, 0.70, "porcentaje_materiales >= 60 or porcentaje_mo_eq >= 60", True),
+            (0.30, 0.30, "porcentaje_materiales >= 60 or porcentaje_mo_eq >= 60", False),
+            # NOT
+            (0.30, 0.30, "not porcentaje_materiales >= 60", True),
+            (0.70, 0.30, "not porcentaje_materiales >= 60", False),
+            # Edge: exactamente en el límite
+            (0.60, 0.40, "porcentaje_materiales >= 60.0", True),
+            (0.40, 0.60, "porcentaje_mo_eq >= 60.0", True),
+        ],
+    )
     def test_evaluate_conditions(
         self, pct_mat: float, pct_mo: float, condition: str, expected: bool
     ):
@@ -252,14 +285,19 @@ class TestClassificationRuleEvaluation:
 class TestClassificationRuleCoverageBounds:
     """Tests para extracción de límites de cobertura."""
 
-    @pytest.mark.parametrize("condition,expected_mat,expected_mo", [
-        ("porcentaje_materiales >= 60", (0.60, 1.0), (0.0, 1.0)),
-        ("porcentaje_mo_eq >= 70", (0.0, 1.0), (0.70, 1.0)),
-        ("porcentaje_materiales >= 40 and porcentaje_materiales <= 60",
-         (0.40, 0.60), (0.0, 1.0)),
-        ("porcentaje_mo_eq > 50 and porcentaje_mo_eq < 80",
-         (0.0, 1.0), (0.50, 0.80)),
-    ])
+    @pytest.mark.parametrize(
+        "condition,expected_mat,expected_mo",
+        [
+            ("porcentaje_materiales >= 60", (0.60, 1.0), (0.0, 1.0)),
+            ("porcentaje_mo_eq >= 70", (0.0, 1.0), (0.70, 1.0)),
+            (
+                "porcentaje_materiales >= 40 and porcentaje_materiales <= 60",
+                (0.40, 0.60),
+                (0.0, 1.0),
+            ),
+            ("porcentaje_mo_eq > 50 and porcentaje_mo_eq < 80", (0.0, 1.0), (0.50, 0.80)),
+        ],
+    )
     def test_get_coverage_bounds(
         self,
         condition: str,
@@ -325,9 +363,7 @@ class TestAPUClassifierConfigLoading:
     def test_handles_invalid_json_gracefully(self, temp_config_path):
         """JSON malformado debe fallback a defaults."""
         # Crear archivo con JSON inválido manualmente
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".json", delete=False
-        ) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
             f.write("{invalid json content")
             bad_path = f.name
 
@@ -373,9 +409,21 @@ class TestAPUClassifierConfigLoading:
         config = {
             "apu_classification_rules": {
                 "rules": [
-                    {"type": "LOW", "priority": 10, "condition": "porcentaje_materiales >= 0"},
-                    {"type": "HIGH", "priority": 1, "condition": "porcentaje_materiales >= 90"},
-                    {"type": "MED", "priority": 5, "condition": "porcentaje_materiales >= 50"},
+                    {
+                        "type": "LOW",
+                        "priority": 10,
+                        "condition": "porcentaje_materiales >= 0",
+                    },
+                    {
+                        "type": "HIGH",
+                        "priority": 1,
+                        "condition": "porcentaje_materiales >= 90",
+                    },
+                    {
+                        "type": "MED",
+                        "priority": 5,
+                        "condition": "porcentaje_materiales >= 50",
+                    },
                 ],
             }
         }
@@ -411,12 +459,15 @@ class TestAPUClassifierSingleClassification:
         result = default_classifier.classify_single(0.5, 0.5, total_cost=np.nan)
         assert result == "SIN_COSTO"
 
-    @pytest.mark.parametrize("pct_mat,pct_mo,expected", [
-        (0.70, 0.30, "SUMINISTRO"),       # Materiales >= 60%
-        (0.30, 0.70, "INSTALACION"),       # MO >= 60%
-        (0.50, 0.50, "CONSTRUCCION_MIXTO"), # Balance
-        (0.45, 0.45, "CONSTRUCCION_MIXTO"), # Rango 40-60
-    ])
+    @pytest.mark.parametrize(
+        "pct_mat,pct_mo,expected",
+        [
+            (0.70, 0.30, "SUMINISTRO"),  # Materiales >= 60%
+            (0.30, 0.70, "INSTALACION"),  # MO >= 60%
+            (0.50, 0.50, "CONSTRUCCION_MIXTO"),  # Balance
+            (0.45, 0.45, "CONSTRUCCION_MIXTO"),  # Rango 40-60
+        ],
+    )
     def test_default_rules_classification(
         self, default_classifier, pct_mat: float, pct_mo: float, expected: str
     ):
@@ -495,11 +546,13 @@ class TestAPUClassifierDataFrameClassification:
 
     def test_custom_column_names(self, default_classifier):
         """Debe funcionar con nombres de columna personalizados."""
-        df = pd.DataFrame({
-            "total": [100, 200],
-            "mat": [60, 40],
-            "mo": [40, 60],
-        })
+        df = pd.DataFrame(
+            {
+                "total": [100, 200],
+                "mat": [60, 40],
+                "mo": [40, 60],
+            }
+        )
 
         result = default_classifier.classify_dataframe(
             df,
@@ -514,10 +567,12 @@ class TestAPUClassifierDataFrameClassification:
 
     def test_missing_columns_handled(self, default_classifier):
         """Columnas faltantes deben manejarse gracefully."""
-        df = pd.DataFrame({
-            "VALOR_CONSTRUCCION_UN": [100, 200],
-            # Faltan las otras columnas
-        })
+        df = pd.DataFrame(
+            {
+                "VALOR_CONSTRUCCION_UN": [100, 200],
+                # Faltan las otras columnas
+            }
+        )
 
         result = default_classifier.classify_dataframe(df)
 
@@ -535,11 +590,13 @@ class TestAPUClassifierDataFrameClassification:
 
     def test_handles_string_numeric_columns(self, default_classifier):
         """Debe manejar columnas numéricas como strings."""
-        df = pd.DataFrame({
-            "VALOR_CONSTRUCCION_UN": ["100", "200", "abc", None],
-            "VALOR_SUMINISTRO_UN": ["60", "80", "50", "25"],
-            "VALOR_INSTALACION_UN": ["40", "120", "50", "25"],
-        })
+        df = pd.DataFrame(
+            {
+                "VALOR_CONSTRUCCION_UN": ["100", "200", "abc", None],
+                "VALOR_SUMINISTRO_UN": ["60", "80", "50", "25"],
+                "VALOR_INSTALACION_UN": ["40", "120", "50", "25"],
+            }
+        )
 
         result = default_classifier.classify_dataframe(df)
 
@@ -557,18 +614,21 @@ class TestAPUClassifierVectorization:
     def test_vectorized_matches_single(self, default_classifier):
         """Clasificación vectorizada debe coincidir con individual."""
         test_cases = [
-            (100, 70, 30),   # SUMINISTRO
-            (100, 30, 70),   # INSTALACION
-            (100, 50, 50),   # MIXTO
-            (0, 0, 0),       # SIN_COSTO
-            (100, 100, 0),   # SUMINISTRO
+            (100, 70, 30),  # SUMINISTRO
+            (100, 30, 70),  # INSTALACION
+            (100, 50, 50),  # MIXTO
+            (0, 0, 0),  # SIN_COSTO
+            (100, 100, 0),  # SUMINISTRO
         ]
 
-        df = pd.DataFrame(test_cases, columns=[
-            "VALOR_CONSTRUCCION_UN",
-            "VALOR_SUMINISTRO_UN",
-            "VALOR_INSTALACION_UN",
-        ])
+        df = pd.DataFrame(
+            test_cases,
+            columns=[
+                "VALOR_CONSTRUCCION_UN",
+                "VALOR_SUMINISTRO_UN",
+                "VALOR_INSTALACION_UN",
+            ],
+        )
 
         df_result = default_classifier.classify_dataframe(df)
 
@@ -588,14 +648,17 @@ class TestAPUClassifierVectorization:
         np.random.seed(42)
         n = 10_000
 
-        df = pd.DataFrame({
-            "VALOR_CONSTRUCCION_UN": np.random.uniform(0, 1000, n),
-            "VALOR_SUMINISTRO_UN": np.random.uniform(0, 500, n),
-            "VALOR_INSTALACION_UN": np.random.uniform(0, 500, n),
-        })
+        df = pd.DataFrame(
+            {
+                "VALOR_CONSTRUCCION_UN": np.random.uniform(0, 1000, n),
+                "VALOR_SUMINISTRO_UN": np.random.uniform(0, 500, n),
+                "VALOR_INSTALACION_UN": np.random.uniform(0, 500, n),
+            }
+        )
 
         # Esto debe completarse en tiempo razonable (< 5 segundos)
         import time
+
         start = time.time()
         result = default_classifier.classify_dataframe(df)
         elapsed = time.time() - start
@@ -624,8 +687,14 @@ class TestAPUClassifierTopologicalCoverage:
         report = default_classifier.get_coverage_report()
 
         assert isinstance(report, pd.DataFrame)
-        expected_cols = {"tipo", "prioridad", "mat_range", "mo_range",
-                        "area_estimada", "condicion"}
+        expected_cols = {
+            "tipo",
+            "prioridad",
+            "mat_range",
+            "mo_range",
+            "area_estimada",
+            "condicion",
+        }
         assert expected_cols.issubset(set(report.columns))
         assert len(report) == len(default_classifier.rules)
 
@@ -685,10 +754,16 @@ class TestAPUClassifierRuleValidation:
         config = {
             "apu_classification_rules": {
                 "rules": [
-                    {"type": "DUPLICATE", "priority": 1,
-                     "condition": "porcentaje_materiales >= 50"},
-                    {"type": "DUPLICATE", "priority": 2,
-                     "condition": "porcentaje_mo_eq >= 50"},
+                    {
+                        "type": "DUPLICATE",
+                        "priority": 1,
+                        "condition": "porcentaje_materiales >= 50",
+                    },
+                    {
+                        "type": "DUPLICATE",
+                        "priority": 2,
+                        "condition": "porcentaje_mo_eq >= 50",
+                    },
                 ],
             }
         }
@@ -710,11 +785,13 @@ class TestAPUClassifierEdgeCases:
 
     def test_empty_dataframe(self, default_classifier):
         """DataFrame vacío debe manejarse correctamente."""
-        df = pd.DataFrame({
-            "VALOR_CONSTRUCCION_UN": [],
-            "VALOR_SUMINISTRO_UN": [],
-            "VALOR_INSTALACION_UN": [],
-        })
+        df = pd.DataFrame(
+            {
+                "VALOR_CONSTRUCCION_UN": [],
+                "VALOR_SUMINISTRO_UN": [],
+                "VALOR_INSTALACION_UN": [],
+            }
+        )
 
         result = default_classifier.classify_dataframe(df)
 
@@ -723,11 +800,13 @@ class TestAPUClassifierEdgeCases:
 
     def test_single_row_dataframe(self, default_classifier):
         """DataFrame de una fila debe funcionar."""
-        df = pd.DataFrame({
-            "VALOR_CONSTRUCCION_UN": [100],
-            "VALOR_SUMINISTRO_UN": [70],
-            "VALOR_INSTALACION_UN": [30],
-        })
+        df = pd.DataFrame(
+            {
+                "VALOR_CONSTRUCCION_UN": [100],
+                "VALOR_SUMINISTRO_UN": [70],
+                "VALOR_INSTALACION_UN": [30],
+            }
+        )
 
         result = default_classifier.classify_dataframe(df)
 
@@ -736,11 +815,13 @@ class TestAPUClassifierEdgeCases:
 
     def test_infinity_values(self, default_classifier):
         """Valores infinitos deben manejarse."""
-        df = pd.DataFrame({
-            "VALOR_CONSTRUCCION_UN": [np.inf, -np.inf, 100],
-            "VALOR_SUMINISTRO_UN": [50, 50, 70],
-            "VALOR_INSTALACION_UN": [50, 50, 30],
-        })
+        df = pd.DataFrame(
+            {
+                "VALOR_CONSTRUCCION_UN": [np.inf, -np.inf, 100],
+                "VALOR_SUMINISTRO_UN": [50, 50, 70],
+                "VALOR_INSTALACION_UN": [50, 50, 30],
+            }
+        )
 
         result = default_classifier.classify_dataframe(df)
 
@@ -805,11 +886,13 @@ class TestBackwardsCompatibility:
         else:
             classifier = APUClassifier()
 
-        df = pd.DataFrame({
-            "VALOR_CONSTRUCCION_UN": [100, 200, 150, 300, 0],
-            "VALOR_SUMINISTRO_UN": [70, 120, 45, 180, 0],
-            "VALOR_INSTALACION_UN": [30, 80, 105, 120, 0],
-        })
+        df = pd.DataFrame(
+            {
+                "VALOR_CONSTRUCCION_UN": [100, 200, 150, 300, 0],
+                "VALOR_SUMINISTRO_UN": [70, 120, 45, 180, 0],
+                "VALOR_INSTALACION_UN": [30, 80, 105, 120, 0],
+            }
+        )
 
         df_classified = classifier.classify_dataframe(df)
 
@@ -833,9 +916,7 @@ class TestBackwardsCompatibility:
             }
         }
 
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".json", delete=False
-        ) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
             json.dump(config, f)
             config_path = f.name
 

@@ -1444,7 +1444,9 @@ def create_app(config_name: str) -> Flask:
 
         # Detectar si es un Data Product (QFS) y desempaquetar para validación y almacenamiento
         if processed_data.get("kind") == "DataProduct" and "payload" in processed_data:
-            app.logger.info("📦 Data Product (QFS) detectado: Desempaquetando payload para flujo legacy")
+            app.logger.info(
+                "📦 Data Product (QFS) detectado: Desempaquetando payload para flujo legacy"
+            )
             processed_data = processed_data["payload"]
 
         # Validar esquema de datos procesados

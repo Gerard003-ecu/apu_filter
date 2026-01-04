@@ -1,7 +1,10 @@
-import pytest
 import time
-from app.telemetry import TelemetryContext, StepStatus
+
+import pytest
+
+from app.telemetry import TelemetryContext
 from app.telemetry_narrative import TelemetryNarrator
+
 
 def test_telemetry_span_hierarchy():
     ctx = TelemetryContext()
@@ -20,6 +23,7 @@ def test_telemetry_span_hierarchy():
     assert ctx.root_spans[0].duration > 0
     assert ctx.root_spans[0].children[0].duration > 0
 
+
 def test_telemetry_narrative_generation():
     ctx = TelemetryContext()
 
@@ -31,7 +35,7 @@ def test_telemetry_narrative_generation():
             with ctx.span("Validate Schema"):
                 raise ValueError("Invalid Column: 'Price'")
     except ValueError:
-        pass # Expected
+        pass  # Expected
 
     narrator = TelemetryNarrator()
     report = narrator.summarize_execution(ctx)
@@ -47,6 +51,7 @@ def test_telemetry_narrative_generation():
     assert any(e["source"] == "Validate Schema" for e in evidence)
     assert any("Invalid Column" in e["message"] for e in evidence)
 
+
 def test_telemetry_legacy_fallback():
     ctx = TelemetryContext()
     ctx.start_step("Legacy Step 1")
@@ -59,6 +64,7 @@ def test_telemetry_legacy_fallback():
     assert report["verdict"] == "CRITICO"
     assert "modo compatibilidad" in report["narrative"]
     assert len(report["forensic_evidence"]) == 1
+
 
 def test_mixed_mode():
     """Test using both spans and legacy steps together."""
@@ -74,6 +80,7 @@ def test_mixed_mode():
     assert ctx.metrics["legacy.count"] == 50
     # And also in the span
     assert ctx.root_spans[0].metrics["legacy.count"] == 50
+
 
 if __name__ == "__main__":
     pytest.main([__file__])

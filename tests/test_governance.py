@@ -9,21 +9,19 @@ Cobertura:
 
 import json
 from pathlib import Path
-from unittest.mock import patch, MagicMock
 
 import pandas as pd
 import pytest
 
 from app.constants import ColumnNames
 from app.governance import (
-    GovernanceEngine,
-    ComplianceReport,
-    Severity,
-    ComplianceStatus,
-    SEVERITY_PENALTIES,
     SCORE_THRESHOLDS,
+    SEVERITY_PENALTIES,
+    ComplianceReport,
+    ComplianceStatus,
+    GovernanceEngine,
+    Severity,
 )
-
 
 # =============================================================================
 # FIXTURES

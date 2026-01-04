@@ -1,7 +1,7 @@
 import json
 import sys
 from pathlib import Path
-from unittest.mock import MagicMock, patch, call
+from unittest.mock import MagicMock, patch
 
 import faiss
 import numpy as np
@@ -16,13 +16,12 @@ from scripts.generate_embeddings import (
     EmbeddingGenerator,
     EmbeddingPipeline,
     FileManager,
-    MemoryMonitor,
     InsufficientMemoryError,
+    MemoryMonitor,
     ModelLoadError,
     ScriptConfig,
     ValidationStats,
 )
-
 
 # --- Fixtures ---
 

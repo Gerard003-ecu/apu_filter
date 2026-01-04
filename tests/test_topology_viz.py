@@ -12,8 +12,7 @@ Cobertura:
 """
 
 import json
-from typing import Any, Dict
-from unittest.mock import MagicMock, patch, PropertyMock
+from unittest.mock import MagicMock, patch
 
 import networkx as nx
 import pandas as pd
@@ -21,46 +20,45 @@ import pytest
 from flask import Flask
 
 from app.topology_viz import (
-    # Constantes
-    NodeType,
-    NodeClass,
-    NodeColor,
-    SessionKeys,
-    LABEL_MAX_LENGTH,
-    LABEL_ELLIPSIS,
     CYCLE_SEPARATOR,
+    LABEL_ELLIPSIS,
+    LABEL_MAX_LENGTH,
+    AnomalyData,
+    CytoscapeEdge,
     # Dataclasses
     CytoscapeNode,
-    CytoscapeEdge,
-    AnomalyData,
-    # Validaciones
-    validate_session_data,
-    validate_graph,
-    # Extracción
-    extract_dataframes_from_session,
-    extract_anomaly_data,
-    _extract_ids_from_list,
-    _extract_nodes_from_cycles,
-    # Construcción
-    build_node_element,
-    build_edge_element,
-    _get_node_type,
+    NodeClass,
+    NodeColor,
+    # Constantes
+    NodeType,
+    SessionKeys,
+    _build_node_label,
     _determine_node_classes,
     _determine_node_color,
-    _build_node_label,
+    _extract_ids_from_list,
+    _extract_nodes_from_cycles,
     _get_node_cost,
+    _get_node_type,
     _safe_get_float,
     _safe_get_int,
+    analyze_graph_for_visualization,
+    build_edge_element,
     # Funciones de endpoint
     build_graph_from_session,
-    analyze_graph_for_visualization,
+    # Construcción
+    build_node_element,
     convert_graph_to_cytoscape_elements,
     create_error_response,
     create_success_response,
+    extract_anomaly_data,
+    # Extracción
+    extract_dataframes_from_session,
     # Blueprint
     topology_bp,
+    validate_graph,
+    # Validaciones
+    validate_session_data,
 )
-
 
 # =============================================================================
 # FIXTURES

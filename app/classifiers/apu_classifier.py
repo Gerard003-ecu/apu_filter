@@ -27,11 +27,11 @@ class ClassificationRule:
         """Normaliza y valida la condición al instanciar."""
         # Inicializar constantes de clase si no existen
         if ClassificationRule._ALLOWED_VARS is None:
-            ClassificationRule._ALLOWED_VARS = frozenset({
-                'porcentaje_materiales', 'porcentaje_mo_eq'
-            })
+            ClassificationRule._ALLOWED_VARS = frozenset(
+                {"porcentaje_materiales", "porcentaje_mo_eq"}
+            )
             ClassificationRule._CONDITION_PATTERN = re.compile(
-                r'^[\d\s\.\(\)><=!]+$|porcentaje_materiales|porcentaje_mo_eq|and|or|not'
+                r"^[\d\s\.\(\)><=!]+$|porcentaje_materiales|porcentaje_mo_eq|and|or|not"
             )
 
         self.condition = self._normalize_condition(self.condition)
@@ -43,9 +43,9 @@ class ClassificationRule:
 
         Transforma AND/OR/NOT (case-insensitive) a and/or/not.
         """
-        condition = re.sub(r'\bAND\b', 'and', condition, flags=re.IGNORECASE)
-        condition = re.sub(r'\bOR\b', 'or', condition, flags=re.IGNORECASE)
-        condition = re.sub(r'\bNOT\b', 'not', condition, flags=re.IGNORECASE)
+        condition = re.sub(r"\bAND\b", "and", condition, flags=re.IGNORECASE)
+        condition = re.sub(r"\bOR\b", "or", condition, flags=re.IGNORECASE)
+        condition = re.sub(r"\bNOT\b", "not", condition, flags=re.IGNORECASE)
         return condition.strip()
 
     def _validate_syntax(self) -> None:
@@ -60,18 +60,18 @@ class ClassificationRule:
         # Remover elementos válidos para detectar residuos peligrosos
         allowed_vars = ClassificationRule._ALLOWED_VARS
         if allowed_vars is None:
-             allowed_vars = frozenset({'porcentaje_materiales', 'porcentaje_mo_eq'})
+            allowed_vars = frozenset({"porcentaje_materiales", "porcentaje_mo_eq"})
 
         for var in allowed_vars:
-            test_expr = test_expr.replace(var, ' ')
+            test_expr = test_expr.replace(var, " ")
 
         # Remover literales numéricos (int y float)
-        test_expr = re.sub(r'\b\d+\.?\d*\b', ' ', test_expr)
+        test_expr = re.sub(r"\b\d+\.?\d*\b", " ", test_expr)
 
         # Remover operadores y palabras clave permitidas
-        allowed_tokens = ['>=', '<=', '==', '!=', '>', '<', 'and', 'or', 'not', '(', ')']
+        allowed_tokens = [">=", "<=", "==", "!=", ">", "<", "and", "or", "not", "(", ")"]
         for token in allowed_tokens:
-            test_expr = test_expr.replace(token, ' ')
+            test_expr = test_expr.replace(token, " ")
 
         remaining = test_expr.strip()
         if remaining:
@@ -82,7 +82,7 @@ class ClassificationRule:
 
         # Verificar sintaxis Python válida
         try:
-            compile(self.condition, '<condition>', 'eval')
+            compile(self.condition, "<condition>", "eval")
         except SyntaxError as e:
             raise ValueError(f"Sintaxis inválida en condición: {e}")
 
@@ -125,27 +125,27 @@ class ClassificationRule:
         mo_min, mo_max = 0.0, 1.0
 
         bound_patterns = [
-            (r'porcentaje_materiales\s*>=\s*(\d+\.?\d*)', 'mat', 'min'),
-            (r'porcentaje_materiales\s*>\s*(\d+\.?\d*)', 'mat', 'min'),
-            (r'porcentaje_materiales\s*<=\s*(\d+\.?\d*)', 'mat', 'max'),
-            (r'porcentaje_materiales\s*<\s*(\d+\.?\d*)', 'mat', 'max'),
-            (r'porcentaje_mo_eq\s*>=\s*(\d+\.?\d*)', 'mo', 'min'),
-            (r'porcentaje_mo_eq\s*>\s*(\d+\.?\d*)', 'mo', 'min'),
-            (r'porcentaje_mo_eq\s*<=\s*(\d+\.?\d*)', 'mo', 'max'),
-            (r'porcentaje_mo_eq\s*<\s*(\d+\.?\d*)', 'mo', 'max'),
+            (r"porcentaje_materiales\s*>=\s*(\d+\.?\d*)", "mat", "min"),
+            (r"porcentaje_materiales\s*>\s*(\d+\.?\d*)", "mat", "min"),
+            (r"porcentaje_materiales\s*<=\s*(\d+\.?\d*)", "mat", "max"),
+            (r"porcentaje_materiales\s*<\s*(\d+\.?\d*)", "mat", "max"),
+            (r"porcentaje_mo_eq\s*>=\s*(\d+\.?\d*)", "mo", "min"),
+            (r"porcentaje_mo_eq\s*>\s*(\d+\.?\d*)", "mo", "min"),
+            (r"porcentaje_mo_eq\s*<=\s*(\d+\.?\d*)", "mo", "max"),
+            (r"porcentaje_mo_eq\s*<\s*(\d+\.?\d*)", "mo", "max"),
         ]
 
         for pattern, var_type, bound_type in bound_patterns:
             match = re.search(pattern, self.condition)
             if match:
                 value = float(match.group(1)) / 100.0
-                if var_type == 'mat':
-                    if bound_type == 'min':
+                if var_type == "mat":
+                    if bound_type == "min":
                         mat_min = max(mat_min, value)
                     else:
                         mat_max = min(mat_max, value)
                 else:
-                    if bound_type == 'min':
+                    if bound_type == "min":
                         mo_min = max(mo_min, value)
                     else:
                         mo_max = min(mo_max, value)
@@ -280,9 +280,7 @@ class APUClassifier:
                 f"Fallback: '{self.default_type}'"
             )
 
-    def _sample_uncovered_regions(
-        self, grid_size: int = 20
-    ) -> List[Tuple[float, float]]:
+    def _sample_uncovered_regions(self, grid_size: int = 20) -> List[Tuple[float, float]]:
         """
         Muestrea el espacio [0,1]² para detectar huecos en la cobertura.
 
@@ -366,9 +364,9 @@ class APUClassifier:
             return df
 
         # Extraer arrays numéricos
-        totales = pd.to_numeric(df[col_total], errors='coerce').fillna(0).values
-        materiales = pd.to_numeric(df[col_materiales], errors='coerce').fillna(0).values
-        mo_eq = pd.to_numeric(df[col_mo_eq], errors='coerce').fillna(0).values
+        totales = pd.to_numeric(df[col_total], errors="coerce").fillna(0).values
+        materiales = pd.to_numeric(df[col_materiales], errors="coerce").fillna(0).values
+        mo_eq = pd.to_numeric(df[col_mo_eq], errors="coerce").fillna(0).values
 
         # Clasificación vectorizada
         df[output_col] = self._classify_vectorized(totales, materiales, mo_eq)
@@ -446,12 +444,12 @@ class APUClassifier:
             # Creamos un contexto con los valores escalados a porcentaje [0-100]
             ctx = {
                 "porcentaje_materiales": pct_mat * 100.0,
-                "porcentaje_mo_eq": pct_mo * 100.0
+                "porcentaje_mo_eq": pct_mo * 100.0,
             }
 
             # Evaluamos usando pandas.eval que maneja 'and'/'or' correctamente en vectores
             # engine='python' asegura compatibilidad con la sintaxis and/or de Python
-            result = pd.eval(rule.condition, local_dict=ctx, engine='python')
+            result = pd.eval(rule.condition, local_dict=ctx, engine="python")
 
             # Manejar resultado escalar vs array
             if np.isscalar(result):
@@ -493,8 +491,7 @@ class APUClassifier:
             count = stats.get(alert_type, 0)
             if count > 0:
                 logger.warning(
-                    f"⚠️ {count} APUs ({count/total*100:.1f}%) {label} "
-                    f"[{alert_type}]"
+                    f"⚠️ {count} APUs ({count / total * 100:.1f}%) {label} [{alert_type}]"
                 )
 
     def get_coverage_report(self) -> pd.DataFrame:
@@ -509,13 +506,15 @@ class APUClassifier:
             (mat_min, mat_max), (mo_min, mo_max) = rule.get_coverage_bounds()
             area = (mat_max - mat_min) * (mo_max - mo_min)
 
-            data.append({
-                "tipo": rule.rule_type,
-                "prioridad": rule.priority,
-                "mat_range": f"[{mat_min:.0%}, {mat_max:.0%}]",
-                "mo_range": f"[{mo_min:.0%}, {mo_max:.0%}]",
-                "area_estimada": f"{area:.1%}",
-                "condicion": rule.condition,
-            })
+            data.append(
+                {
+                    "tipo": rule.rule_type,
+                    "prioridad": rule.priority,
+                    "mat_range": f"[{mat_min:.0%}, {mat_max:.0%}]",
+                    "mo_range": f"[{mo_min:.0%}, {mo_max:.0%}]",
+                    "area_estimada": f"{area:.1%}",
+                    "condicion": rule.condition,
+                }
+            )
 
         return pd.DataFrame(data)

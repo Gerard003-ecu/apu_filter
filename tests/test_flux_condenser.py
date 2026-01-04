@@ -37,7 +37,6 @@ from app.flux_condenser import (
     DataFluxCondenser,
     FluxPhysicsEngine,
     PIController,
-    SystemConstants,
 )
 
 # ==================== FIXTURES ====================

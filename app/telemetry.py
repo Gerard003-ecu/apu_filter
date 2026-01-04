@@ -28,34 +28,28 @@ logger = logging.getLogger(__name__)
 class TelemetryDefaults:
     """Constantes de configuración por defecto para telemetría."""
 
-    # Límites de almacenamiento
     MAX_STEPS: int = 1000
     MAX_ERRORS: int = 100
     MAX_METRICS: int = 500
-    MAX_ACTIVE_STEPS: int = 50  # Nuevo: límite de pasos activos simultáneos
+    MAX_ACTIVE_STEPS: int = 50
 
-    # Límites de contenido
     MAX_STRING_LENGTH: int = 10000
     MAX_MESSAGE_LENGTH: int = 1000
     MAX_EXCEPTION_DETAIL_LENGTH: int = 500
     MAX_NAME_LENGTH: int = 100
     MAX_STEP_NAME_LENGTH: int = 255
     MAX_REQUEST_ID_LENGTH: int = 256
-    MAX_TRACEBACK_LENGTH: int = 5000  # Nuevo: límite para tracebacks
+    MAX_TRACEBACK_LENGTH: int = 5000
 
-    # Recursión y colecciones
     MAX_RECURSION_DEPTH: int = 5
     MAX_COLLECTION_SIZE: int = 100
-    MAX_DICT_KEYS: int = 200  # Nuevo: límite de claves en diccionarios
+    MAX_DICT_KEYS: int = 200
 
-    # Multiplicadores y factores
     MAX_LIMIT_MULTIPLIER: int = 10
 
-    # Timeouts
     MAX_STEP_DURATION_WARNING: float = 300.0  # 5 minutos
     STALE_STEP_THRESHOLD: float = 3600.0  # 1 hora
 
-    # Validación de métricas
     MAX_METRIC_VALUE: float = 1e15
     MIN_METRIC_VALUE: float = -1e15
 
@@ -102,15 +96,7 @@ class StepStatus(Enum):
 
     @classmethod
     def from_string(cls, value: str) -> "StepStatus":
-        """
-        Convierte una cadena a StepStatus de forma segura.
-
-        Args:
-            value: Cadena a convertir.
-
-        Returns:
-            StepStatus correspondiente o SUCCESS como fallback.
-        """
+        """Convierte una cadena a StepStatus de forma segura."""
         if not isinstance(value, str):
             return cls.SUCCESS
 
@@ -136,11 +122,10 @@ class ActiveStepInfo:
 
 @dataclass
 class TelemetrySpan:
-    """
-    Representa un nodo en la jerarquía de ejecución (Pirámide de Observabilidad).
-    """
+    """Representa un nodo en la jerarquía de ejecución (Pirámide de Observabilidad)."""
+
     name: str
-    level: int  # 0 para raíz, 1 para hijos, etc.
+    level: int
     start_time: float = field(default_factory=time.perf_counter)
     end_time: Optional[float] = None
     children: List["TelemetrySpan"] = field(default_factory=list)
@@ -166,7 +151,7 @@ class TelemetrySpan:
             "metrics": self.metrics,
             "metadata": self.metadata,
             "errors": self.errors,
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": datetime.utcnow().isoformat(),
         }
 
 
@@ -177,17 +162,6 @@ class TelemetryContext:
     historial de ejecución (pasos), métricas y errores.
 
     Implementación thread-safe con validación y programación defensiva.
-
-    Attributes:
-        request_id: Identificador único de la solicitud.
-        steps: Lista de pasos ejecutados.
-        metrics: Diccionario de métricas recolectadas.
-        errors: Lista de errores registrados.
-        created_at: Timestamp de creación (perf_counter).
-        metadata: Metadatos adicionales del contexto.
-        max_steps: Límite máximo de pasos a almacenar.
-        max_errors: Límite máximo de errores a almacenar.
-        max_metrics: Límite máximo de métricas a almacenar.
     """
 
     request_id: str = field(default_factory=lambda: str(uuid.uuid4()))
@@ -195,7 +169,6 @@ class TelemetryContext:
     metrics: Dict[str, Any] = field(default_factory=dict)
     errors: List[Dict[str, Any]] = field(default_factory=list)
 
-    # Hierarchical Support
     root_spans: List[TelemetrySpan] = field(default_factory=list)
     _scope_stack: List[TelemetrySpan] = field(default_factory=list)
 
@@ -204,16 +177,13 @@ class TelemetryContext:
         default_factory=threading.RLock, repr=False, compare=False
     )
 
-    # Límites para prevenir problemas de memoria
     max_steps: int = field(default=TelemetryDefaults.MAX_STEPS)
     max_errors: int = field(default=TelemetryDefaults.MAX_ERRORS)
     max_metrics: int = field(default=TelemetryDefaults.MAX_METRICS)
 
-    # Contexto adicional
     created_at: float = field(default_factory=time.perf_counter)
     metadata: Dict[str, Any] = field(default_factory=dict)
 
-    # Umbrales de negocio (configurables por instancia)
     business_thresholds: Dict[str, float] = field(
         default_factory=lambda: {
             "critical_flyback_voltage": BusinessThresholds.CRITICAL_FLYBACK_VOLTAGE,
@@ -223,36 +193,18 @@ class TelemetryContext:
     )
 
     def __post_init__(self) -> None:
-        """
-        Valida el estado inicial y sanitiza las entradas.
-
-        ROBUSTECIDO:
-        - Validación exhaustiva de todos los campos
-        - Inicialización segura de componentes
-        - Detección de configuración inválida
-        - Logging de estado inicial
-        """
-        # Asegurar que el lock existe antes de cualquier operación
+        """Valida el estado inicial y sanitiza las entradas."""
         if not hasattr(self, "_lock") or self._lock is None:
             object.__setattr__(self, "_lock", threading.RLock())
 
-        # Validar y corregir request_id
         self._validate_and_fix_request_id()
-
-        # Validar y corregir límites
         self._validate_and_fix_limits()
-
-        # Validar y corregir tipos de colecciones
         self._validate_and_fix_collection_types()
-
-        # Validar umbrales de negocio
         self._validate_and_fix_business_thresholds()
 
-        # Inicializar _active_steps si no existe
         if not hasattr(self, "_active_steps") or self._active_steps is None:
             object.__setattr__(self, "_active_steps", {})
 
-        # Validar created_at
         if not isinstance(self.created_at, (int, float)) or self.created_at <= 0:
             object.__setattr__(self, "created_at", time.perf_counter())
             logger.warning(f"[{self.request_id}] Invalid created_at, reset to current time")
@@ -264,14 +216,7 @@ class TelemetryContext:
         )
 
     def _validate_and_fix_request_id(self) -> None:
-        """
-        Valida y corrige el request_id si es necesario.
-
-        ROBUSTECIDO:
-        - Validación de tipo y contenido
-        - Sanitización de caracteres problemáticos
-        - Generación de ID alternativo si es inválido
-        """
+        """Valida y corrige el request_id si es necesario."""
         original_id = self.request_id
 
         if not self._is_valid_request_id(self.request_id):
@@ -282,27 +227,13 @@ class TelemetryContext:
             )
             object.__setattr__(self, "request_id", new_id)
         else:
-            # Sanitizar caracteres problemáticos
             sanitized = self._sanitize_request_id(self.request_id)
             if sanitized != self.request_id:
                 logger.debug(f"Request ID sanitized: '{self.request_id}' -> '{sanitized}'")
                 object.__setattr__(self, "request_id", sanitized)
 
     def _is_valid_request_id(self, request_id: Any) -> bool:
-        """
-        Verifica si el request_id es válido.
-
-        ROBUSTECIDO:
-        - Validación de tipo
-        - Validación de longitud
-        - Validación de contenido (no solo espacios)
-
-        Args:
-            request_id: El ID a validar.
-
-        Returns:
-            bool: True si es válido, False en caso contrario.
-        """
+        """Verifica si el request_id es válido."""
         if not isinstance(request_id, str):
             return False
 
@@ -316,19 +247,11 @@ class TelemetryContext:
 
     def _sanitize_request_id(self, request_id: str) -> str:
         """Sanitiza el request_id eliminando caracteres problemáticos."""
-        # Eliminar caracteres de control y espacios excesivos
         sanitized = "".join(c for c in request_id if c.isprintable() and c not in "\r\n\t")
         return sanitized.strip()[: TelemetryDefaults.MAX_REQUEST_ID_LENGTH]
 
     def _validate_and_fix_limits(self) -> None:
-        """
-        Valida y corrige los límites de almacenamiento.
-
-        ROBUSTECIDO:
-        - Validación de tipos
-        - Clamping a rangos válidos
-        - Logging de correcciones
-        """
+        """Valida y corrige los límites de almacenamiento."""
         max_multiplier = TelemetryDefaults.MAX_LIMIT_MULTIPLIER
 
         limit_configs = [
@@ -368,18 +291,9 @@ class TelemetryContext:
         name: str,
         default: int,
     ) -> int:
-        """
-        Restringe un valor a un rango válido con logging.
-
-        ROBUSTECIDO:
-        - Manejo de tipos no numéricos
-        - Manejo de NaN/Inf
-        - Logging detallado
-        """
-        # Obtener request_id de forma segura
+        """Restringe un valor a un rango válido con logging."""
         request_id = getattr(self, "request_id", "UNKNOWN")
 
-        # Validar tipo
         if not isinstance(value, (int, float)):
             logger.warning(
                 f"[{request_id}] {name} must be numeric, "
@@ -387,7 +301,6 @@ class TelemetryContext:
             )
             return default
 
-        # Convertir a int
         try:
             int_value = int(value)
         except (ValueError, OverflowError):
@@ -397,7 +310,6 @@ class TelemetryContext:
             )
             return default
 
-        # Validar rango
         if int_value < min_val:
             logger.warning(f"[{request_id}] {name}={int_value} below minimum {min_val}")
             return min_val
@@ -409,14 +321,7 @@ class TelemetryContext:
         return int_value
 
     def _validate_and_fix_collection_types(self) -> None:
-        """
-        Valida que las colecciones sean del tipo correcto.
-
-        ROBUSTECIDO:
-        - Validación de tipos
-        - Inicialización segura
-        - Preservación de datos válidos cuando es posible
-        """
+        """Valida que las colecciones sean del tipo correcto."""
         request_id = getattr(self, "request_id", "UNKNOWN")
 
         collections_config = [
@@ -438,7 +343,6 @@ class TelemetryContext:
                 continue
 
             if not isinstance(current_value, expected_type):
-                # Intentar conversión segura
                 converted = self._try_convert_collection(
                     current_value, expected_type, attr_name
                 )
@@ -468,7 +372,6 @@ class TelemetryContext:
         except Exception as e:
             logger.debug(f"[{request_id}] Conversion failed for {attr_name}: {e}")
 
-        # Fallback a valor por defecto
         logger.warning(
             f"[{request_id}] {attr_name} must be {target_type.__name__}, "
             f"got {type(value).__name__}. Resetting to default."
@@ -492,7 +395,6 @@ class TelemetryContext:
             )
             return
 
-        # Validar cada umbral
         threshold_defaults = {
             "critical_flyback_voltage": BusinessThresholds.CRITICAL_FLYBACK_VOLTAGE,
             "critical_dissipated_power": BusinessThresholds.CRITICAL_DISSIPATED_POWER,
@@ -505,14 +407,9 @@ class TelemetryContext:
                 self.business_thresholds[key] = default
                 logger.debug(f"[{request_id}] Fixed threshold {key}: {value} -> {default}")
 
-    # ========== HIERARCHICAL SPANS ==========
-
     @contextmanager
     def span(self, name: str, metadata: Optional[Dict[str, Any]] = None):
-        """
-        Crea un nuevo span jerárquico. Si hay uno activo en el stack, se convierte en hijo.
-        """
-        # Create Span
+        """Crea un nuevo span jerárquico."""
         level = len(self._scope_stack)
         new_span = TelemetrySpan(
             name=name,
@@ -521,24 +418,21 @@ class TelemetryContext:
         )
 
         with self._lock:
-            # Link to parent if exists
             if self._scope_stack:
                 parent = self._scope_stack[-1]
                 parent.children.append(new_span)
             else:
                 self.root_spans.append(new_span)
 
-            # Push to stack
             self._scope_stack.append(new_span)
 
-        logger.debug(f"[{self.request_id}] SPAN START: {'  '*level}{name}")
+        logger.debug(f"[{self.request_id}] SPAN START: {'  ' * level}{name}")
 
         try:
             yield new_span
             new_span.status = StepStatus.SUCCESS
         except Exception as e:
             new_span.status = StepStatus.FAILURE
-            # Record error in span
             error_data = self._build_error_data(
                 step_name=name,
                 error_message=str(e),
@@ -546,10 +440,9 @@ class TelemetryContext:
                 exception=e,
                 metadata=None,
                 include_traceback=True,
-                severity="ERROR"
+                severity="ERROR",
             )
             new_span.errors.append(error_data)
-            # Propagate error to global list too
             self.errors.append(error_data)
             raise
         finally:
@@ -558,32 +451,15 @@ class TelemetryContext:
                 if self._scope_stack and self._scope_stack[-1] == new_span:
                     self._scope_stack.pop()
 
-            logger.debug(f"[{self.request_id}] SPAN END: {'  '*level}{name} ({new_span.duration:.4f}s)")
-
-    # ========== Gestión de Pasos ==========
+            logger.debug(
+                f"[{self.request_id}] SPAN END: {'  ' * level}{name} ({new_span.duration:.4f}s)"
+            )
 
     def start_step(self, step_name: str, metadata: Optional[Dict[str, Any]] = None) -> bool:
-        """
-        Marca el inicio de un paso de procesamiento.
-
-        ROBUSTECIDO:
-        - Validación exhaustiva de entrada
-        - Límite de pasos activos simultáneos
-        - Detección de pasos obsoletos
-        - Sanitización de metadata
-
-        Args:
-            step_name: Nombre del paso (debe ser una cadena no vacía).
-            metadata: Metadatos opcionales para adjuntar al paso.
-
-        Returns:
-            bool: True si el paso se inició correctamente, False en caso contrario.
-        """
-        # Validar nombre del paso
+        """Marca el inicio de un paso de procesamiento."""
         if not self._validate_step_name(step_name):
             return False
 
-        # Sanitizar metadata de forma segura
         sanitized_metadata = None
         if metadata is not None:
             if not isinstance(metadata, dict):
@@ -600,21 +476,17 @@ class TelemetryContext:
                     )
 
         with self._lock:
-            # Verificar límite de pasos activos
             if len(self._active_steps) >= TelemetryDefaults.MAX_ACTIVE_STEPS:
-                # Limpiar pasos obsoletos antes de rechazar
-                cleaned = self._cleanup_stale_steps()
+                self._cleanup_stale_steps()
 
                 if len(self._active_steps) >= TelemetryDefaults.MAX_ACTIVE_STEPS:
                     logger.error(
                         f"[{self.request_id}] Max active steps "
                         f"({TelemetryDefaults.MAX_ACTIVE_STEPS}) reached. "
-                        f"Cannot start '{step_name}'. "
-                        f"Active: {list(self._active_steps.keys())[:5]}..."
+                        f"Cannot start '{step_name}'."
                     )
                     return False
 
-            # Verificar si el paso ya está activo
             if step_name in self._active_steps:
                 existing = self._active_steps[step_name]
                 duration = existing.get_duration()
@@ -630,7 +502,6 @@ class TelemetryContext:
                         f"{duration:.4f}s ago. Timer will be reset."
                     )
 
-            # Registrar inicio del paso
             self._active_steps[step_name] = ActiveStepInfo(
                 start_time=time.perf_counter(),
                 metadata=sanitized_metadata,
@@ -638,26 +509,10 @@ class TelemetryContext:
 
             logger.info(f"[{self.request_id}] Starting step: {step_name}")
 
-            if sanitized_metadata:
-                logger.debug(
-                    f"[{self.request_id}] Step '{step_name}' metadata: "
-                    f"{str(sanitized_metadata)[:200]}"
-                )
-
         return True
 
     def _cleanup_stale_steps(self) -> int:
-        """
-        Limpia pasos que han estado activos demasiado tiempo.
-
-        ROBUSTECIDO:
-        - Detección de pasos obsoletos
-        - Finalización automática con estado apropiado
-        - Logging detallado
-
-        Returns:
-            Número de pasos limpiados
-        """
+        """Limpia pasos que han estado activos demasiado tiempo."""
         if not self._active_steps:
             return 0
 
@@ -675,7 +530,6 @@ class TelemetryContext:
                 f"[{self.request_id}] Cleaning up stale step '{step_name}' "
                 f"(active for {duration:.1f}s)"
             )
-            # Registrar como paso fallido
             self._force_end_step(
                 step_name,
                 StepStatus.FAILURE,
@@ -685,7 +539,10 @@ class TelemetryContext:
         return len(stale_steps)
 
     def _force_end_step(
-        self, step_name: str, status: StepStatus, metadata: Optional[Dict[str, Any]] = None
+        self,
+        step_name: str,
+        status: StepStatus,
+        metadata: Optional[Dict[str, Any]] = None,
     ) -> None:
         """Fuerza el fin de un paso sin validaciones adicionales."""
         end_time = time.perf_counter()
@@ -705,7 +562,6 @@ class TelemetryContext:
         if metadata:
             step_data["metadata"] = metadata
 
-        # Evitar overflow de steps
         if len(self.steps) >= self.max_steps:
             self.steps.pop(0)
 
@@ -717,28 +573,10 @@ class TelemetryContext:
         status: Union[StepStatus, str] = StepStatus.SUCCESS,
         metadata: Optional[Dict[str, Any]] = None,
     ) -> bool:
-        """
-        Marca el final de un paso de procesamiento.
-
-        ROBUSTECIDO:
-        - Validación exhaustiva de entrada
-        - Manejo de pasos no iniciados
-        - Combinación segura de metadata
-        - Detección de duraciones anómalas
-
-        Args:
-            step_name: Nombre del paso a finalizar.
-            status: Estado del paso (enum StepStatus o cadena).
-            metadata: Metadatos opcionales para adjuntar al paso.
-
-        Returns:
-            bool: True si el paso finalizó correctamente, False en caso contrario.
-        """
-        # Validar nombre del paso
+        """Marca el final de un paso de procesamiento."""
         if not self._validate_step_name(step_name):
             return False
 
-        # Normalizar status
         status_value = self._normalize_status(status)
         end_time = time.perf_counter()
 
@@ -751,37 +589,32 @@ class TelemetryContext:
                     "Recording with duration=0."
                 )
                 duration = 0.0
-                combined_metadata = self._sanitize_value(metadata) if metadata else None
-                combined_metadata = combined_metadata or {}
+                combined_metadata = (
+                    self._sanitize_value(metadata) if metadata else None
+                ) or {}
                 combined_metadata["warning"] = "step_never_started"
             else:
                 duration = end_time - step_info.start_time
                 combined_metadata = self._merge_metadata(step_info.metadata, metadata)
 
-                # Advertir sobre duraciones anómalas
                 if duration > TelemetryDefaults.MAX_STEP_DURATION_WARNING:
                     logger.warning(
                         f"[{self.request_id}] Step '{step_name}' took {duration:.1f}s "
-                        f"(exceeds warning threshold of "
-                        f"{TelemetryDefaults.MAX_STEP_DURATION_WARNING}s)"
+                        f"(exceeds warning threshold)"
                     )
                 elif duration < 0:
-                    # Esto no debería ocurrir, pero protegemos contra ello
                     logger.error(
-                        f"[{self.request_id}] Step '{step_name}' has negative duration: "
-                        f"{duration}s. Clock issue detected."
+                        f"[{self.request_id}] Step '{step_name}' has negative duration."
                     )
                     duration = 0.0
 
-            # Aplicar límites FIFO
-            removed = self._enforce_limit_fifo(
+            self._enforce_limit_fifo(
                 self.steps,
                 self.max_steps,
                 "steps",
                 lambda s: s.get("step", "unknown"),
             )
 
-            # Construir datos del paso
             step_data = {
                 "step": step_name,
                 "status": status_value,
@@ -795,7 +628,6 @@ class TelemetryContext:
 
             self.steps.append(step_data)
 
-            # Log con nivel apropiado según status
             log_func = (
                 logger.info if status_value == StepStatus.SUCCESS.value else logger.warning
             )
@@ -811,14 +643,7 @@ class TelemetryContext:
         start_metadata: Optional[Dict[str, Any]],
         end_metadata: Optional[Dict[str, Any]],
     ) -> Optional[Dict[str, Any]]:
-        """
-        Combina los metadatos de inicio y fin de un paso.
-
-        ROBUSTECIDO:
-        - Validación de tipos
-        - Manejo de conflictos
-        - Límite de tamaño
-        """
+        """Combina los metadatos de inicio y fin de un paso."""
         if not start_metadata and not end_metadata:
             return None
 
@@ -827,20 +652,17 @@ class TelemetryContext:
             return sanitized if isinstance(sanitized, dict) else None
 
         if not end_metadata:
-            return start_metadata  # Ya sanitizado
+            return start_metadata
 
-        # Combinar con end_metadata sobrescribiendo start_metadata
         try:
             combined = dict(start_metadata)
             sanitized_end = self._sanitize_value(end_metadata)
 
             if isinstance(sanitized_end, dict):
-                # Verificar límite de claves
                 if len(combined) + len(sanitized_end) > TelemetryDefaults.MAX_DICT_KEYS:
                     logger.warning(
                         f"[{self.request_id}] Combined metadata exceeds key limit, truncating"
                     )
-                    # Priorizar end_metadata
                     remaining_slots = TelemetryDefaults.MAX_DICT_KEYS - len(sanitized_end)
                     if remaining_slots > 0:
                         combined = dict(list(combined.items())[:remaining_slots])
@@ -864,22 +686,11 @@ class TelemetryContext:
         collection_name: str,
         identifier_func: Callable[[Any], str],
     ) -> int:
-        """
-        Aplica límite FIFO a una colección.
-
-        ROBUSTECIDO:
-        - Validación de parámetros
-        - Manejo de colecciones vacías
-        - Logging batch para muchas eliminaciones
-        """
+        """Aplica límite FIFO a una colección."""
         if not isinstance(collection, list):
-            logger.error(f"[{self.request_id}] _enforce_limit_fifo: collection is not list")
             return 0
 
         if max_size <= 0:
-            logger.error(
-                f"[{self.request_id}] _enforce_limit_fifo: invalid max_size={max_size}"
-            )
             return 0
 
         removed_count = 0
@@ -910,7 +721,7 @@ class TelemetryContext:
             else:
                 logger.warning(
                     f"[{self.request_id}] Max {collection_name} ({max_size}) reached. "
-                    f"Removed {removed_count} oldest items: {removed_ids[:3]}..."
+                    f"Removed {removed_count} oldest items."
                 )
 
         return removed_count
@@ -925,27 +736,7 @@ class TelemetryContext:
         auto_record_error: bool = True,
         suppress_start_failure: bool = True,
     ):
-        """
-        Gestor de contexto para el seguimiento automático de pasos.
-
-        ROBUSTECIDO:
-        - Manejo de fallos en start_step
-        - Captura segura de excepciones
-        - Opciones configurables
-        - Cleanup garantizado
-
-        Args:
-            step_name: Nombre del paso.
-            metadata: Metadatos opcionales a adjuntar al inicio.
-            error_status: Estado a usar si ocurre una excepción.
-            capture_exception_details: Si capturar detalles de excepción.
-            auto_record_error: Si registrar automáticamente errores.
-            suppress_start_failure: Si continuar si start_step falla.
-
-        Yields:
-            Self para encadenamiento o acceso a métodos adicionales.
-        """
-        # Validar parámetros
+        """Gestor de contexto para el seguimiento automático de pasos."""
         if not isinstance(step_name, str) or not step_name.strip():
             logger.error(f"[{self.request_id}] Invalid step_name for context manager")
             if not suppress_start_failure:
@@ -953,17 +744,12 @@ class TelemetryContext:
             yield self
             return
 
-        # Validar error_status
         if not isinstance(error_status, StepStatus):
             if isinstance(error_status, str):
                 error_status = StepStatus.from_string(error_status)
             else:
-                logger.warning(
-                    f"[{self.request_id}] Invalid error_status type, using FAILURE"
-                )
                 error_status = StepStatus.FAILURE
 
-        # Intentar iniciar el paso
         started = False
         try:
             started = self.start_step(step_name, metadata)
@@ -980,7 +766,6 @@ class TelemetryContext:
                 "proceeding without telemetry for this step."
             )
 
-        # Variables para tracking de excepción
         exception_occurred = False
         captured_exception: Optional[BaseException] = None
 
@@ -992,15 +777,12 @@ class TelemetryContext:
             raise
         finally:
             if started:
-                # Determinar estado final
                 final_status = error_status if exception_occurred else StepStatus.SUCCESS
 
-                # Construir metadata de error si aplica
                 error_metadata = None
                 if exception_occurred and capture_exception_details and captured_exception:
                     error_metadata = self._build_exception_metadata(captured_exception)
 
-                # Finalizar paso
                 try:
                     self.end_step(step_name, final_status, error_metadata)
                 except Exception as end_error:
@@ -1008,7 +790,6 @@ class TelemetryContext:
                         f"[{self.request_id}] Exception in end_step('{step_name}'): {end_error}"
                     )
 
-                # Registrar error si corresponde
                 if (
                     exception_occurred
                     and auto_record_error
@@ -1039,8 +820,6 @@ class TelemetryContext:
         except Exception:
             return {"error_type": "unknown", "error_message": "failed to capture"}
 
-    # ========== Gestión de Métricas ==========
-
     def record_metric(
         self,
         component: str,
@@ -1049,51 +828,22 @@ class TelemetryContext:
         overwrite: bool = True,
         validate_numeric: bool = False,
     ) -> bool:
-        """
-        Registra una métrica específica para un componente.
-
-        ROBUSTECIDO:
-        - Validación exhaustiva de nombres
-        - Sanitización de valores
-        - Validación numérica opcional
-        - Límites de almacenamiento
-
-        Args:
-            component: Nombre del componente (cadena no vacía).
-            metric_name: Nombre de la métrica (cadena no vacía).
-            value: Valor de la métrica.
-            overwrite: Si se debe sobrescribir una métrica existente.
-            validate_numeric: Si validar que el valor sea numérico.
-
-        Returns:
-            bool: True si la métrica se registró correctamente.
-        """
-        # Validar nombres
+        """Registra una métrica específica para un componente."""
         if not self._validate_name(component, "component"):
             return False
 
         if not self._validate_name(metric_name, "metric_name"):
             return False
 
-        # Construir clave
         key = f"{component}.{metric_name}"
 
-        # Validar valor numérico si se requiere
         if validate_numeric:
             if not isinstance(value, (int, float)):
-                logger.error(
-                    f"[{self.request_id}] Metric '{key}' requires numeric value, "
-                    f"got {type(value).__name__}"
-                )
                 return False
 
             if isinstance(value, float) and (math.isnan(value) or math.isinf(value)):
-                logger.warning(
-                    f"[{self.request_id}] Metric '{key}' has invalid float value: {value}"
-                )
                 return False
 
-        # If inside a span, record metric there TOO
         current_span = None
         with self._lock:
             if self._scope_stack:
@@ -1102,54 +852,30 @@ class TelemetryContext:
         with self._lock:
             is_new_metric = key not in self.metrics
 
-            # Verificar si se puede sobrescribir
             if not overwrite and not is_new_metric:
-                logger.warning(
-                    f"[{self.request_id}] Metric '{key}' already exists and overwrite=False"
-                )
                 return False
 
-            # Verificar límite para nuevas métricas
             if is_new_metric and len(self.metrics) >= self.max_metrics:
                 logger.error(
-                    f"[{self.request_id}] Max metrics ({self.max_metrics}) reached. "
-                    f"Cannot record new metric '{key}'. "
-                    f"Consider increasing max_metrics or cleaning old metrics."
+                    f"[{self.request_id}] Max metrics ({self.max_metrics}) reached."
                 )
                 return False
 
-            # Sanitizar valor
             try:
                 sanitized_value = self._sanitize_value(value)
-            except Exception as e:
-                logger.error(
-                    f"[{self.request_id}] Failed to sanitize metric value for '{key}': {e}"
-                )
+            except Exception:
                 return False
 
-            # Validar límites para valores numéricos
             if isinstance(sanitized_value, (int, float)):
                 if sanitized_value > TelemetryDefaults.MAX_METRIC_VALUE:
-                    logger.warning(
-                        f"[{self.request_id}] Metric '{key}' value exceeds max, clamping"
-                    )
                     sanitized_value = TelemetryDefaults.MAX_METRIC_VALUE
                 elif sanitized_value < TelemetryDefaults.MIN_METRIC_VALUE:
-                    logger.warning(
-                        f"[{self.request_id}] Metric '{key}' value below min, clamping"
-                    )
                     sanitized_value = TelemetryDefaults.MIN_METRIC_VALUE
 
             self.metrics[key] = sanitized_value
 
-            # Span Metrics
             if current_span:
                 current_span.metrics[key] = sanitized_value
-
-            logger.debug(
-                f"[{self.request_id}] Metric {key} = {sanitized_value} "
-                f"({'new' if is_new_metric else 'updated'})"
-            )
 
         return True
 
@@ -1160,41 +886,17 @@ class TelemetryContext:
         increment: Union[int, float] = 1,
         create_if_missing: bool = True,
     ) -> bool:
-        """
-        Incrementa una métrica numérica.
-
-        ROBUSTECIDO:
-        - Validación de tipos
-        - Manejo de overflow
-        - Creación condicional
-        - Reset de valores no numéricos
-
-        Args:
-            component: Nombre del componente.
-            metric_name: Nombre de la métrica.
-            increment: Valor a incrementar.
-            create_if_missing: Si crear la métrica si no existe.
-
-        Returns:
-            bool: True si se incrementó correctamente.
-        """
-        # Validar nombres
+        """Incrementa una métrica numérica."""
         if not self._validate_name(component, "component"):
             return False
 
         if not self._validate_name(metric_name, "metric_name"):
             return False
 
-        # Validar increment
         if not isinstance(increment, (int, float)):
-            logger.error(
-                f"[{self.request_id}] increment must be numeric, "
-                f"got {type(increment).__name__}"
-            )
             return False
 
         if isinstance(increment, float) and (math.isnan(increment) or math.isinf(increment)):
-            logger.error(f"[{self.request_id}] increment cannot be NaN or Inf: {increment}")
             return False
 
         key = f"{component}.{metric_name}"
@@ -1203,58 +905,34 @@ class TelemetryContext:
             current_value = self.metrics.get(key)
             is_new_metric = current_value is None
 
-            # Verificar si podemos crear nueva métrica
             if is_new_metric:
                 if not create_if_missing:
-                    logger.warning(
-                        f"[{self.request_id}] Metric '{key}' doesn't exist and "
-                        f"create_if_missing=False"
-                    )
                     return False
 
                 if len(self.metrics) >= self.max_metrics:
-                    logger.error(
-                        f"[{self.request_id}] Max metrics ({self.max_metrics}) reached. "
-                        f"Cannot create metric '{key}'"
-                    )
                     return False
 
                 current_value = 0
 
-            # Validar tipo de valor actual
             if not isinstance(current_value, (int, float)):
-                logger.warning(
-                    f"[{self.request_id}] Metric '{key}' is not numeric "
-                    f"(type={type(current_value).__name__}). Resetting to 0."
-                )
                 current_value = 0
 
-            # Calcular nuevo valor con protección contra overflow
             try:
                 new_value = current_value + increment
 
-                # Verificar overflow
                 if isinstance(new_value, float):
                     if math.isinf(new_value):
-                        logger.warning(
-                            f"[{self.request_id}] Metric '{key}' overflow detected, clamping"
-                        )
                         new_value = (
                             TelemetryDefaults.MAX_METRIC_VALUE
                             if increment > 0
                             else TelemetryDefaults.MIN_METRIC_VALUE
                         )
                     elif math.isnan(new_value):
-                        logger.error(f"[{self.request_id}] Metric '{key}' resulted in NaN")
                         return False
 
             except OverflowError:
-                logger.warning(
-                    f"[{self.request_id}] Metric '{key}' overflow, using max value"
-                )
                 new_value = TelemetryDefaults.MAX_METRIC_VALUE
 
-            # Aplicar límites
             new_value = max(
                 TelemetryDefaults.MIN_METRIC_VALUE,
                 min(TelemetryDefaults.MAX_METRIC_VALUE, new_value),
@@ -1262,13 +940,8 @@ class TelemetryContext:
 
             self.metrics[key] = new_value
 
-            # Update span metric if active
             if self._scope_stack:
-                 self._scope_stack[-1].metrics[key] = new_value
-
-            logger.debug(
-                f"[{self.request_id}] Metric {key}: {current_value} + {increment} = {new_value}"
-            )
+                self._scope_stack[-1].metrics[key] = new_value
 
         return True
 
@@ -1279,22 +952,7 @@ class TelemetryContext:
         default: Any = None,
         expected_type: Optional[type] = None,
     ) -> Any:
-        """
-        Obtiene el valor de una métrica.
-
-        ROBUSTECIDO:
-        - Validación de tipo opcional
-        - Copia profunda para valores mutables
-
-        Args:
-            component: Nombre del componente.
-            metric_name: Nombre de la métrica.
-            default: Valor por defecto si no existe.
-            expected_type: Tipo esperado del valor.
-
-        Returns:
-            Valor de la métrica o el valor por defecto.
-        """
+        """Obtiene el valor de una métrica."""
         key = f"{component}.{metric_name}"
 
         with self._lock:
@@ -1303,21 +961,13 @@ class TelemetryContext:
             if value is None:
                 return default
 
-            # Validar tipo si se especifica
             if expected_type is not None and not isinstance(value, expected_type):
-                logger.warning(
-                    f"[{self.request_id}] Metric '{key}' has unexpected type "
-                    f"{type(value).__name__}, expected {expected_type.__name__}"
-                )
                 return default
 
-            # Retornar copia para valores mutables
             if isinstance(value, (dict, list)):
                 return copy.deepcopy(value)
 
             return value
-
-    # ========== Gestión de Errores ==========
 
     def record_error(
         self,
@@ -1329,45 +979,18 @@ class TelemetryContext:
         include_traceback: bool = False,
         severity: str = "ERROR",
     ) -> bool:
-        """
-        Registra un error ocurrido durante un paso.
-
-        ROBUSTECIDO:
-        - Validación exhaustiva de entrada
-        - Captura segura de traceback
-        - Límites de tamaño
-        - Severidad configurable
-
-        Args:
-            step_name: Nombre del paso donde ocurrió el error.
-            error_message: Mensaje de error.
-            error_type: Tipo/categoría opcional del error.
-            exception: Objeto de excepción opcional.
-            metadata: Metadatos adicionales opcionales.
-            include_traceback: Si incluir el traceback completo.
-            severity: Nivel de severidad ("ERROR", "WARNING", "CRITICAL").
-
-        Returns:
-            bool: True si el error se registró correctamente.
-        """
-        # Validar step_name
+        """Registra un error ocurrido durante un paso."""
         if not self._validate_name(step_name, "step_name"):
-            # Usar fallback pero continuar
             step_name = "__unknown_step__"
 
-        # Validar error_message
         if not self._validate_error_message(error_message):
-            # Usar mensaje genérico pero continuar
-            error_message = "Unknown error (invalid message provided)"
+            error_message = "Unknown error"
 
-        # Validar severity
         valid_severities = {"ERROR", "WARNING", "CRITICAL", "INFO"}
         if severity not in valid_severities:
-            logger.debug(f"[{self.request_id}] Invalid severity '{severity}', using 'ERROR'")
             severity = "ERROR"
 
         with self._lock:
-            # Aplicar límite FIFO
             self._enforce_limit_fifo(
                 self.errors,
                 self.max_errors,
@@ -1375,7 +998,6 @@ class TelemetryContext:
                 lambda e: f"{e.get('step', 'unknown')}:{e.get('type', 'unknown')}",
             )
 
-            # Construir datos del error
             try:
                 error_data = self._build_error_data(
                     step_name=step_name,
@@ -1387,10 +1009,6 @@ class TelemetryContext:
                     severity=severity,
                 )
             except Exception as build_error:
-                logger.error(
-                    f"[{self.request_id}] Failed to build error data: {build_error}"
-                )
-                # Crear error mínimo
                 error_data = {
                     "step": step_name,
                     "message": str(error_message)[:500],
@@ -1401,11 +1019,9 @@ class TelemetryContext:
 
             self.errors.append(error_data)
 
-            # If inside a span, attach error there too
             if self._scope_stack:
                 self._scope_stack[-1].errors.append(error_data)
 
-            # Log con nivel apropiado
             log_func = {
                 "CRITICAL": logger.critical,
                 "ERROR": logger.error,
@@ -1423,18 +1039,12 @@ class TelemetryContext:
     def _validate_error_message(self, error_message: Any) -> bool:
         """Valida que el mensaje de error sea válido."""
         if error_message is None:
-            logger.warning(f"[{self.request_id}] error_message is None")
             return False
 
         if not isinstance(error_message, str):
-            logger.warning(
-                f"[{self.request_id}] error_message must be string, "
-                f"got {type(error_message).__name__}"
-            )
             return False
 
         if not error_message.strip():
-            logger.warning(f"[{self.request_id}] error_message is empty or whitespace")
             return False
 
         return True
@@ -1449,14 +1059,7 @@ class TelemetryContext:
         include_traceback: bool,
         severity: str = "ERROR",
     ) -> Dict[str, Any]:
-        """
-        Construye el diccionario de datos del error.
-
-        ROBUSTECIDO:
-        - Truncamiento de campos largos
-        - Captura segura de traceback
-        - Sanitización de metadata
-        """
+        """Construye el diccionario de datos del error."""
         error_data = {
             "step": step_name,
             "message": error_message[: TelemetryDefaults.MAX_MESSAGE_LENGTH],
@@ -1465,13 +1068,11 @@ class TelemetryContext:
             "severity": severity,
         }
 
-        # Determinar tipo de error
         if error_type:
             error_data["type"] = str(error_type)[: TelemetryDefaults.MAX_NAME_LENGTH]
         elif exception:
             error_data["type"] = type(exception).__name__
 
-        # Agregar detalles de la excepción
         if exception:
             try:
                 exc_str = str(exception)
@@ -1481,17 +1082,14 @@ class TelemetryContext:
             except Exception as e:
                 error_data["exception_details"] = f"<failed to stringify: {e}>"
 
-            # Capturar traceback si se solicita
             if include_traceback:
                 error_data["traceback"] = self._capture_traceback_safe(exception)
 
-            # Agregar atributos adicionales de la excepción
             if hasattr(exception, "__cause__") and exception.__cause__:
                 error_data["cause"] = str(exception.__cause__)[:200]
             if hasattr(exception, "__context__") and exception.__context__:
                 error_data["context"] = str(exception.__context__)[:200]
 
-        # Sanitizar y agregar metadata
         if metadata:
             try:
                 sanitized_metadata = self._sanitize_value(metadata)
@@ -1511,31 +1109,15 @@ class TelemetryContext:
             tb_str = "".join(tb_lines)
             return tb_str[: TelemetryDefaults.MAX_TRACEBACK_LENGTH]
         except Exception as tb_error:
-            logger.debug(f"[{self.request_id}] Failed to capture traceback: {tb_error}")
             return f"<traceback capture failed: {tb_error}>"
 
-    # ========== Consultas y Estado ==========
-
     def get_active_timers(self) -> List[str]:
-        """
-        Retorna la lista de pasos que han iniciado pero no finalizado.
-
-        Returns:
-            Lista de nombres de pasos con temporizadores activos.
-        """
+        """Retorna la lista de pasos que han iniciado pero no finalizado."""
         with self._lock:
             return list(self._active_steps.keys())
 
     def get_active_step_info(self, step_name: str) -> Optional[Dict[str, Any]]:
-        """
-        Obtiene información de un paso activo.
-
-        Args:
-            step_name: Nombre del paso.
-
-        Returns:
-            Diccionario con información del paso o None si no está activo.
-        """
+        """Obtiene información de un paso activo."""
         with self._lock:
             step_info = self._active_steps.get(step_name)
             if step_info is None:
@@ -1544,37 +1126,20 @@ class TelemetryContext:
             return {
                 "step_name": step_name,
                 "duration_so_far": step_info.get_duration(),
-                "metadata": copy.deepcopy(step_info.metadata)
-                if step_info.metadata
-                else None,
+                "metadata": (
+                    copy.deepcopy(step_info.metadata) if step_info.metadata else None
+                ),
             }
 
     def has_step(self, step_name: str) -> bool:
-        """
-        Verifica si un paso ya fue completado.
-
-        Args:
-            step_name: Nombre del paso a buscar.
-
-        Returns:
-            True si el paso existe en el historial.
-        """
+        """Verifica si un paso ya fue completado."""
         with self._lock:
             return any(s.get("step") == step_name for s in self.steps)
 
     def get_step_by_name(
         self, step_name: str, last: bool = True
     ) -> Optional[Dict[str, Any]]:
-        """
-        Obtiene información de un paso completado por nombre.
-
-        Args:
-            step_name: Nombre del paso.
-            last: Si obtener la última ocurrencia (default: True).
-
-        Returns:
-            Copia del diccionario del paso o None si no existe.
-        """
+        """Obtiene información de un paso completado por nombre."""
         with self._lock:
             matching_steps = [s for s in self.steps if s.get("step") == step_name]
 
@@ -1585,15 +1150,7 @@ class TelemetryContext:
             return copy.deepcopy(step)
 
     def cancel_step(self, step_name: str) -> bool:
-        """
-        Cancela un paso activo sin registrarlo en el historial de pasos.
-
-        Args:
-            step_name: Nombre del paso a cancelar.
-
-        Returns:
-            bool: True si el paso fue cancelado, False si no estaba activo.
-        """
+        """Cancela un paso activo sin registrarlo en el historial de pasos."""
         with self._lock:
             if step_name in self._active_steps:
                 step_info = self._active_steps.pop(step_name)
@@ -1604,97 +1161,58 @@ class TelemetryContext:
                 )
                 return True
             else:
-                logger.debug(f"[{self.request_id}] Cannot cancel '{step_name}': not active")
                 return False
 
     def clear_active_timers(self) -> int:
-        """
-        Limpia todos los temporizadores activos sin registrarlos.
-
-        Returns:
-            Número de temporizadores limpiados.
-        """
+        """Limpia todos los temporizadores activos sin registrarlos."""
         with self._lock:
             count = len(self._active_steps)
             if count > 0:
-                timer_names = list(self._active_steps.keys())
-                logger.warning(
-                    f"[{self.request_id}] Clearing {count} active timer(s): {timer_names}"
-                )
                 self._active_steps.clear()
             return count
-
-    # ========== Validación y Métodos Auxiliares ==========
 
     def _validate_step_name(self, step_name: str) -> bool:
         """Valida el formato y longitud del nombre del paso."""
         return self._validate_name(
-            step_name, "step_name", max_length=TelemetryDefaults.MAX_STEP_NAME_LENGTH
+            step_name,
+            "step_name",
+            max_length=TelemetryDefaults.MAX_STEP_NAME_LENGTH,
         )
 
     def _validate_name(
-        self, name: Any, field_name: str, max_length: int = TelemetryDefaults.MAX_NAME_LENGTH
+        self,
+        name: Any,
+        field_name: str,
+        max_length: int = TelemetryDefaults.MAX_NAME_LENGTH,
     ) -> bool:
-        """
-        Validación genérica para nombres de cadena.
-
-        Args:
-            name: El valor a validar.
-            field_name: Nombre del campo (para logging).
-            max_length: Longitud máxima permitida.
-
-        Returns:
-            bool: True si es válido, False en caso contrario.
-        """
+        """Validación genérica para nombres de cadena."""
         if not name or not isinstance(name, str):
             logger.error(
-                f"[{self.request_id}] Invalid {field_name}: must be non-empty string, "
-                f"got {type(name).__name__}"
+                f"[{self.request_id}] Invalid {field_name}: must be non-empty string"
             )
             return False
 
-        name_stripped = name.strip()
-        if not name_stripped:
+        if not name.strip():
             logger.error(
                 f"[{self.request_id}] Invalid {field_name}: cannot be only whitespace"
             )
             return False
 
         if len(name) > max_length:
-            logger.error(
-                f"[{self.request_id}] {field_name} too long: "
-                f"{len(name)} chars (max {max_length})"
-            )
+            logger.error(f"[{self.request_id}] {field_name} too long")
             return False
 
         return True
 
     def _normalize_status(self, status: Union[StepStatus, str]) -> str:
-        """
-        Normaliza el estado a un valor de cadena.
-
-        Args:
-            status: Enum StepStatus o cadena.
-
-        Returns:
-            Cadena de estado normalizada.
-        """
+        """Normaliza el estado a un valor de cadena."""
         if isinstance(status, StepStatus):
             return status.value
 
         if isinstance(status, str):
             normalized = StepStatus.from_string(status)
-            if normalized.value != status.lower().strip():
-                logger.warning(
-                    f"[{self.request_id}] Invalid status '{status}', "
-                    f"using '{normalized.value}'"
-                )
             return normalized.value
 
-        logger.warning(
-            f"[{self.request_id}] Unexpected status type: {type(status).__name__}, "
-            f"using '{StepStatus.SUCCESS.value}'"
-        )
         return StepStatus.SUCCESS.value
 
     def _sanitize_value(
@@ -1704,33 +1222,13 @@ class TelemetryContext:
         current_depth: int = 0,
         _seen: Optional[set] = None,
     ) -> Any:
-        """
-        Sanitiza un valor para asegurar que sea serializable a JSON.
-
-        ROBUSTECIDO:
-        - Detección de referencias circulares
-        - Límites de profundidad y tamaño
-        - Manejo de tipos especiales
-        - Logging de problemas
-
-        Args:
-            value: Valor a sanitizar.
-            max_depth: Profundidad máxima de recursión.
-            current_depth: Profundidad actual de recursión.
-            _seen: Conjunto de IDs de objetos ya vistos (para detectar ciclos).
-
-        Returns:
-            Valor sanitizado y serializable a JSON.
-        """
-        # Inicializar tracking de ciclos
+        """Sanitiza un valor para asegurar que sea serializable a JSON."""
         if _seen is None:
             _seen = set()
 
-        # Verificar profundidad máxima
         if current_depth > max_depth:
             return f"<max_depth_exceeded:{current_depth}>"
 
-        # Tipos None y primitivos
         if value is None:
             return None
 
@@ -1743,22 +1241,18 @@ class TelemetryContext:
         if isinstance(value, str):
             return self._sanitize_string(value)
 
-        # Detectar ciclos para objetos mutables
         if isinstance(value, (dict, list, set)):
             value_id = id(value)
             if value_id in _seen:
                 return "<circular_reference>"
-            _seen = _seen | {value_id}  # Nuevo set para no afectar recursión hermana
+            _seen = _seen | {value_id}
 
-        # Manejar Enums
         if isinstance(value, Enum):
             return value.value
 
-        # Manejar bytes
         if isinstance(value, bytes):
             return self._sanitize_bytes(value, max_depth, current_depth, _seen)
 
-        # Manejar sets y frozensets
         if isinstance(value, (set, frozenset)):
             items = list(value)[: TelemetryDefaults.MAX_COLLECTION_SIZE]
             result = [
@@ -1770,23 +1264,18 @@ class TelemetryContext:
                 )
             return result
 
-        # Manejar listas y tuplas
         if isinstance(value, (list, tuple)):
             return self._sanitize_sequence(value, max_depth, current_depth, _seen)
 
-        # Manejar diccionarios
         if isinstance(value, dict):
             return self._sanitize_dict(value, max_depth, current_depth, _seen)
 
-        # Manejar objetos datetime
         if hasattr(value, "isoformat"):
             try:
                 return value.isoformat()
-            except Exception as e:
-                logger.debug(f"[{self.request_id}] Failed to serialize datetime: {e}")
+            except Exception:
                 return f"<datetime:{type(value).__name__}>"
 
-        # Manejar objetos con __dict__
         if hasattr(value, "__dict__") and isinstance(value.__dict__, dict):
             try:
                 obj_dict = {"__class__": type(value).__name__}
@@ -1795,7 +1284,6 @@ class TelemetryContext:
             except Exception:
                 pass
 
-        # Manejar objetos con _asdict (namedtuple, etc.)
         if hasattr(value, "_asdict"):
             try:
                 return self._sanitize_value(
@@ -1804,7 +1292,6 @@ class TelemetryContext:
             except Exception:
                 pass
 
-        # Fallback: convertir a string
         return self._sanitize_to_string(value)
 
     def _sanitize_numeric(self, value: Union[int, float]) -> Union[int, float, str]:
@@ -1814,7 +1301,6 @@ class TelemetryContext:
                 return "<NaN>"
             if math.isinf(value):
                 return "<Infinity>" if value > 0 else "<-Infinity>"
-            # Limitar precisión excesiva
             if abs(value) > 0 and abs(value) < 1e-10:
                 return 0.0
         return value
@@ -1822,8 +1308,6 @@ class TelemetryContext:
     def _sanitize_string(self, value: str) -> str:
         """Sanitiza una cadena de texto."""
         max_len = TelemetryDefaults.MAX_STRING_LENGTH
-
-        # Eliminar caracteres nulos y de control problemáticos
         cleaned = "".join(c for c in value if c.isprintable() or c in "\n\t\r")
 
         if len(cleaned) > max_len:
@@ -1835,11 +1319,9 @@ class TelemetryContext:
     ) -> Union[str, Dict[str, Any]]:
         """Sanitiza un valor de bytes."""
         try:
-            # Intentar decodificar como UTF-8
             decoded = value.decode("utf-8", errors="replace")
             return self._sanitize_value(decoded, max_depth, current_depth, _seen)
         except Exception:
-            # Retornar información sobre los bytes
             return {
                 "type": "bytes",
                 "length": len(value),
@@ -1847,12 +1329,14 @@ class TelemetryContext:
             }
 
     def _sanitize_sequence(
-        self, value: Union[list, tuple], max_depth: int, current_depth: int, _seen: set
+        self,
+        value: Union[list, tuple],
+        max_depth: int,
+        current_depth: int,
+        _seen: set,
     ) -> List[Any]:
         """Sanitiza una secuencia (lista o tupla)."""
         max_size = TelemetryDefaults.MAX_COLLECTION_SIZE
-
-        # Limitar tamaño
         limited_list = list(value)[:max_size]
 
         result = []
@@ -1873,21 +1357,16 @@ class TelemetryContext:
     ) -> Dict[str, Any]:
         """Sanitiza un diccionario."""
         max_size = TelemetryDefaults.MAX_DICT_KEYS
-
         result = {}
         items = list(value.items())[:max_size]
 
         for k, v in items:
             try:
-                # Convertir clave a string
                 str_key = str(k)[: TelemetryDefaults.MAX_NAME_LENGTH]
-
-                # Sanitizar valor
                 sanitized_value = self._sanitize_value(
                     v, max_depth, current_depth + 1, _seen
                 )
                 result[str_key] = sanitized_value
-
             except Exception as e:
                 result[f"<key_error:{k}>"] = f"<sanitization_error:{e}>"
 
@@ -1907,48 +1386,31 @@ class TelemetryContext:
         except Exception as e:
             return f"<unserializable:{type(value).__name__}:{e}>"
 
-    # ========== Resúmenes y Exportación ==========
-
     def get_summary(self) -> Dict[str, Any]:
-        """
-        Retorna un resumen conciso del contexto de telemetría.
-
-        ROBUSTECIDO:
-        - Cálculos seguros
-        - Manejo de colecciones vacías
-        - Métricas adicionales
-
-        Returns:
-            Diccionario con estadísticas resumidas.
-        """
+        """Retorna un resumen conciso del contexto de telemetría."""
         with self._lock:
             try:
-                # Calcular duración total de forma segura
                 total_duration = 0.0
                 for step in self.steps:
                     duration = step.get("duration_seconds")
                     if isinstance(duration, (int, float)) and not math.isnan(duration):
                         total_duration += duration
 
-                # Contar estados de pasos
                 step_statuses: Dict[str, int] = {}
                 for step in self.steps:
                     status = step.get("status", "unknown")
                     if isinstance(status, str):
                         step_statuses[status] = step_statuses.get(status, 0) + 1
 
-                # Contar tipos de errores
                 error_types: Dict[str, int] = {}
                 for error in self.errors:
                     error_type = error.get("type", "unknown")
                     if isinstance(error_type, str):
                         error_types[error_type] = error_types.get(error_type, 0) + 1
 
-                # Calcular edad
                 current_time = time.perf_counter()
                 age = current_time - self.created_at if self.created_at > 0 else 0.0
 
-                # Contar pasos activos obsoletos
                 stale_count = sum(
                     1
                     for info in self._active_steps.values()
@@ -1960,7 +1422,7 @@ class TelemetryContext:
                     "total_steps": len(self.steps),
                     "total_errors": len(self.errors),
                     "total_metrics": len(self.metrics),
-                    "total_spans": len(self.root_spans), # Nuevo
+                    "total_spans": len(self.root_spans),
                     "active_timers": len(self._active_steps),
                     "stale_timers": stale_count,
                     "total_duration_seconds": round(total_duration, 6),
@@ -1988,7 +1450,7 @@ class TelemetryContext:
         """Calcula la tasa de éxito de los pasos."""
         total = sum(step_statuses.values())
         if total == 0:
-            return 1.0  # Sin pasos = 100% éxito por defecto
+            return 1.0
 
         success_count = step_statuses.get(StepStatus.SUCCESS.value, 0)
         return round(success_count / total, 4)
@@ -1999,32 +1461,15 @@ class TelemetryContext:
         include_active_timers: bool = True,
         deep_copy: bool = True,
     ) -> Dict[str, Any]:
-        """
-        Exporta todo el historial de telemetría como un diccionario.
-
-        ROBUSTECIDO:
-        - Copia profunda opcional
-        - Manejo de errores en serialización
-        - Advertencias sobre estado incompleto
-
-        Args:
-            include_metadata: Si incluir los campos de metadatos.
-            include_active_timers: Si incluir información de timers activos.
-            deep_copy: Si hacer copia profunda de los datos.
-
-        Returns:
-            Representación en diccionario adecuada para serialización JSON.
-        """
+        """Exporta todo el historial de telemetría como un diccionario."""
         with self._lock:
             try:
-                # Calcular duración total
                 total_duration = sum(
                     s.get("duration_seconds", 0)
                     for s in self.steps
                     if isinstance(s.get("duration_seconds"), (int, float))
                 )
 
-                # Preparar datos base
                 if deep_copy:
                     steps_data = copy.deepcopy(self.steps)
                     metrics_data = copy.deepcopy(self.metrics)
@@ -2034,27 +1479,24 @@ class TelemetryContext:
                     metrics_data = dict(self.metrics)
                     errors_data = list(self.errors)
 
-                # Construir resultado
                 result = {
                     "request_id": self.request_id,
                     "steps": steps_data,
                     "metrics": metrics_data,
                     "errors": errors_data,
-                    "spans": [s.to_dict() for s in self.root_spans], # Hierarchical Export
+                    "spans": [s.to_dict() for s in self.root_spans],
                     "total_duration_seconds": round(total_duration, 6),
                     "created_at": self.created_at,
                     "age_seconds": round(time.perf_counter() - self.created_at, 6),
                     "summary": self.get_summary(),
                 }
 
-                # Agregar metadata
                 if include_metadata and self.metadata:
                     if deep_copy:
                         result["metadata"] = copy.deepcopy(self.metadata)
                     else:
                         result["metadata"] = dict(self.metadata)
 
-                # Agregar información de timers activos
                 active_timers = list(self._active_steps.keys())
                 if active_timers and include_active_timers:
                     result["active_timers"] = active_timers
@@ -2065,11 +1507,6 @@ class TelemetryContext:
                         }
                         for name, info in self._active_steps.items()
                     }
-                    logger.warning(
-                        f"[{self.request_id}] to_dict() called with {len(active_timers)} "
-                        f"active timer(s): {active_timers[:5]}{'...' if len(active_timers) > 5 else ''}. "
-                        "These steps are incomplete."
-                    )
 
                 return result
 
@@ -2086,23 +1523,8 @@ class TelemetryContext:
                 }
 
     def reset(self, keep_request_id: bool = True) -> None:
-        """
-        Restablece el contexto de telemetría.
-
-        ROBUSTECIDO:
-        - Limpieza segura
-        - Logging del estado anterior
-        """
+        """Restablece el contexto de telemetría."""
         with self._lock:
-            old_stats = {
-                "steps": len(self.steps),
-                "errors": len(self.errors),
-                "metrics": len(self.metrics),
-                "active": len(self._active_steps),
-            }
-
-            old_request_id = self.request_id
-
             if not keep_request_id:
                 self.request_id = str(uuid.uuid4())
 
@@ -2115,50 +1537,21 @@ class TelemetryContext:
             self.metadata.clear()
             self.created_at = time.perf_counter()
 
-            logger.info(
-                f"[{self.request_id}] Telemetry context reset "
-                f"(previous: request_id={'kept' if keep_request_id else old_request_id}, "
-                f"steps={old_stats['steps']}, errors={old_stats['errors']}, "
-                f"metrics={old_stats['metrics']}, active={old_stats['active']})"
-            )
-
-    # ========== Informe de Negocio ==========
-
     def get_business_report(self) -> Dict[str, Any]:
-        """
-        Genera un informe amigable para el negocio.
-
-        ROBUSTECIDO:
-        - Extracción segura de métricas
-        - Cálculos con valores por defecto
-        - Diagnóstico detallado
-
-        Returns:
-            Diccionario con status, message, metrics y details.
-        """
+        """Genera un informe amigable para el negocio."""
         with self._lock:
             try:
-                # Extraer métricas crudas de forma segura
                 raw_metrics = self._extract_business_raw_metrics()
-
-                # Traducir a métricas de negocio
                 business_metrics = self._translate_to_business_metrics(raw_metrics)
-
-                # Determinar estado y mensaje
                 status, message = self._determine_business_status(raw_metrics)
-
-                # Calcular estadísticas de pasos
                 step_stats = self._calculate_step_statistics()
-
-                # Determinar salud financiera
                 financial_health = self._determine_financial_health()
 
-                # Construir reporte
                 return {
                     "status": status,
                     "message": message,
                     "metrics": business_metrics,
-                    "raw_metrics": raw_metrics,  # Para debugging
+                    "raw_metrics": raw_metrics,
                     "details": {
                         "total_steps": len(self.steps),
                         "successful_steps": step_stats["success"],
@@ -2222,7 +1615,6 @@ class TelemetryContext:
                     return default
                 return parsed
             except (ValueError, TypeError):
-                logger.debug(f"[{self.request_id}] Cannot convert '{value}' to float")
                 return default
 
         return default
@@ -2257,7 +1649,6 @@ class TelemetryContext:
             BusinessThresholds.WARNING_SATURATION,
         )
 
-        # Verificación CRÍTICA (Prioridad más alta)
         if raw_metrics["flyback_voltage"] > critical_flyback:
             return (
                 "CRITICO",
@@ -2270,18 +1661,15 @@ class TelemetryContext:
                 f"Fricción de datos excesiva (P={raw_metrics['dissipated_power']:.1f})",
             )
 
-        # Verificación de errores críticos
         if len(self.errors) >= BusinessThresholds.CRITICAL_ERROR_COUNT:
             return "CRITICO", f"Demasiados errores registrados ({len(self.errors)})"
 
-        # Verificación de ADVERTENCIA
         if raw_metrics["saturation"] > warning_saturation:
             return (
                 "ADVERTENCIA",
                 f"Sistema operando a {raw_metrics['saturation'] * 100:.0f}% de capacidad",
             )
 
-        # Verificación de tasa de fallos
         step_stats = self._calculate_step_statistics()
         if step_stats["failure_rate"] > BusinessThresholds.WARNING_STEP_FAILURE_RATIO:
             return (
@@ -2289,7 +1677,6 @@ class TelemetryContext:
                 f"Alta tasa de fallos: {step_stats['failure_rate'] * 100:.1f}%",
             )
 
-        # Verificación de errores menores
         if self.errors:
             return (
                 "ADVERTENCIA",
@@ -2299,16 +1686,13 @@ class TelemetryContext:
         return "OPTIMO", "Procesamiento estable y fluido"
 
     def _determine_financial_health(self) -> Dict[str, Any]:
-        """
-        Determina la salud financiera basada en métricas financieras.
-        """
+        """Determina la salud financiera basada en métricas financieras."""
         financial_metrics = {
             "roi": self.get_metric("financial", "roi"),
             "volatility": self.get_metric("financial", "volatility"),
             "npv": self.get_metric("financial", "npv"),
         }
 
-        # Filtrar métricas no presentes
         present_metrics = {k: v for k, v in financial_metrics.items() if v is not None}
 
         if not present_metrics:
@@ -2321,16 +1705,12 @@ class TelemetryContext:
         status = "OPTIMO"
         message = "Proyecto viable."
 
-        # Lógica de semáforo (de más crítico a menos)
         if "roi" in present_metrics and present_metrics["roi"] < 0:
             status = "CRITICO"
             message = "Destrucción de Valor proyectada."
         elif "volatility" in present_metrics and present_metrics["volatility"] > 0.20:
             status = "ADVERTENCIA"
             message = "Alta volatilidad de mercado."
-        elif "npv" in present_metrics and present_metrics["npv"] > 0:
-            # Esta es la condición base para OPTIMO, ya está por defecto
-            pass
 
         return {"status": status, "message": message, "metrics": present_metrics}
 
@@ -2371,14 +1751,12 @@ class TelemetryContext:
         """Evalúa la salud del contexto de telemetría."""
         health = TelemetryHealth()
 
-        # Verificar pasos obsoletos
         for name, info in self._active_steps.items():
             duration = info.get_duration()
             if duration > TelemetryDefaults.STALE_STEP_THRESHOLD:
                 health.stale_steps.append(name)
                 health.add_warning(f"Step '{name}' stuck for {duration:.0f}s")
 
-        # Verificar presión de memoria
         if len(self.steps) > self.max_steps * 0.9:
             health.memory_pressure = True
             health.add_warning("Steps approaching limit")
@@ -2387,7 +1765,6 @@ class TelemetryContext:
             health.memory_pressure = True
             health.add_warning("Errors approaching limit")
 
-        # Verificar errores
         if len(self.errors) > BusinessThresholds.CRITICAL_ERROR_COUNT:
             health.add_error(f"High error count: {len(self.errors)}")
 
@@ -2399,16 +1776,8 @@ class TelemetryContext:
             "memory_pressure": health.memory_pressure,
         }
 
-    # ========== Soporte para Context Manager ==========
-
     def __enter__(self) -> "TelemetryContext":
-        """
-        Soporte para la declaración 'with'.
-
-        ROBUSTECIDO:
-        - Validación de estado
-        - Logging de entrada
-        """
+        """Soporte para la declaración 'with'."""
         logger.debug(f"[{self.request_id}] Entering telemetry context")
         return self
 
@@ -2418,19 +1787,8 @@ class TelemetryContext:
         exc_val: Optional[BaseException],
         exc_tb: Optional[Any],
     ) -> bool:
-        """
-        Limpieza al salir del contexto.
-
-        ROBUSTECIDO:
-        - Registro seguro de excepciones
-        - Finalización de pasos activos
-        - Cleanup garantizado
-
-        Returns:
-            False para no suprimir excepciones
-        """
+        """Limpieza al salir del contexto."""
         try:
-            # Registrar excepción si ocurrió
             if exc_val is not None:
                 try:
                     self.record_error(
@@ -2446,7 +1804,6 @@ class TelemetryContext:
                         f"[{self.request_id}] Failed to record context exception: {record_error}"
                     )
 
-            # Finalizar pasos activos
             active = self.get_active_timers()
             if active:
                 logger.warning(
@@ -2480,10 +1837,7 @@ class TelemetryContext:
                 f"[{self.request_id}] Error during context cleanup: {cleanup_error}"
             )
 
-        # No suprimir excepciones
         return False
-
-    # ========== Representación ==========
 
     def __repr__(self) -> str:
         """Representación concisa del contexto."""

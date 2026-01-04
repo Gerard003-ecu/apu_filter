@@ -12,13 +12,13 @@ Referencias:
 - Mohar, B. (1991). The Laplacian spectrum of graphs.
 """
 
-import unittest
 import math
+import unittest
+
 import networkx as nx
 import numpy as np
-from typing import Dict, Any, List, Tuple
 
-from agent.business_topology import BusinessTopologicalAnalyzer, TopologicalMetrics
+from agent.business_topology import BusinessTopologicalAnalyzer
 
 
 class TestSpectralAnalysisBase(unittest.TestCase):
@@ -40,9 +40,7 @@ class TestSpectralAnalysisBase(unittest.TestCase):
             standard_msg = f"{first} != {second} within tolerance {tol}"
             self.fail(self._formatMessage(msg, standard_msg))
 
-    def assertInRange(
-        self, value: float, min_val: float, max_val: float, msg: str = None
-    ):
+    def assertInRange(self, value: float, min_val: float, max_val: float, msg: str = None):
         """Verifica que un valor esté dentro de un rango [min, max]."""
         if not (min_val <= value <= max_val):
             standard_msg = f"{value} not in range [{min_val}, {max_val}]"
@@ -139,8 +137,7 @@ class TestSpectralAnalysisBasicCases(TestSpectralAnalysisBase):
 
         # Para grafo de 2 nodos conexo, Fiedler > 0
         self.assertGreater(
-            result["fiedler_value"], 0,
-            "Grafo conexo de 2 nodos debe tener Fiedler > 0"
+            result["fiedler_value"], 0, "Grafo conexo de 2 nodos debe tener Fiedler > 0"
         )
         self.assertEqual(result["status"], "success")
 
@@ -173,8 +170,7 @@ class TestSpectralAnalysisConnectivity(TestSpectralAnalysisBase):
         result = self.analyzer.analyze_spectral_stability(G)
 
         self.assertGreater(
-            result["fiedler_value"], 0,
-            "Path graph conexo debe tener Fiedler > 0"
+            result["fiedler_value"], 0, "Path graph conexo debe tener Fiedler > 0"
         )
         self.assertEqual(result["status"], "success")
         self.assertFalse(result["resonance_risk"])
@@ -197,8 +193,9 @@ class TestSpectralAnalysisConnectivity(TestSpectralAnalysisBase):
 
         # Fiedler value debe ser ≈ 0 para grafo desconectado
         self.assertLess(
-            result["fiedler_value"], self.EPSILON,
-            f"Grafo desconectado debe tener Fiedler ≈ 0, obtenido: {result['fiedler_value']}"
+            result["fiedler_value"],
+            self.EPSILON,
+            f"Grafo desconectado debe tener Fiedler ≈ 0, obtenido: {result['fiedler_value']}",
         )
 
     def test_strongly_connected_cycle(self):
@@ -212,8 +209,7 @@ class TestSpectralAnalysisConnectivity(TestSpectralAnalysisBase):
         result = self.analyzer.analyze_spectral_stability(G)
 
         self.assertGreater(
-            result["fiedler_value"], 0,
-            "Cycle graph conexo debe tener Fiedler > 0"
+            result["fiedler_value"], 0, "Cycle graph conexo debe tener Fiedler > 0"
         )
         # Verificar que wavelength es válido
         self.assertGreater(result["wavelength"], 0)
@@ -260,8 +256,10 @@ class TestSpectralAnalysisEigenvalueProperties(TestSpectralAnalysisBase):
                 if "eigenvalues" in result and result["eigenvalues"]:
                     for eig in result["eigenvalues"]:
                         self.assertInRange(
-                            eig, -self.EPSILON, 2.0 + self.EPSILON,
-                            f"Eigenvalor {eig} fuera de rango [0, 2]"
+                            eig,
+                            -self.EPSILON,
+                            2.0 + self.EPSILON,
+                            f"Eigenvalor {eig} fuera de rango [0, 2]",
                         )
 
     def test_lambda_max_bounded_by_two(self):
@@ -272,8 +270,9 @@ class TestSpectralAnalysisEigenvalueProperties(TestSpectralAnalysisBase):
 
         if "lambda_max" in result:
             self.assertLessEqual(
-                result["lambda_max"], 2.0 + self.EPSILON,
-                f"λ_max = {result['lambda_max']} excede cota teórica de 2"
+                result["lambda_max"],
+                2.0 + self.EPSILON,
+                f"λ_max = {result['lambda_max']} excede cota teórica de 2",
             )
 
     def test_spectral_energy_positive(self):
@@ -283,8 +282,7 @@ class TestSpectralAnalysisEigenvalueProperties(TestSpectralAnalysisBase):
         result = self.analyzer.analyze_spectral_stability(G)
 
         self.assertGreaterEqual(
-            result["spectral_energy"], 0,
-            "Energía espectral debe ser no negativa"
+            result["spectral_energy"], 0, "Energía espectral debe ser no negativa"
         )
 
 
@@ -322,12 +320,20 @@ class TestSpectralAnalysisResonance(TestSpectralAnalysisBase):
         # Grafo con estructura irregular (árbol + algunos ciclos)
         G = nx.DiGraph()
         # Crear estructura tipo "árbol con ramificaciones desiguales"
-        G.add_edges_from([
-            ("R", "A"), ("R", "B"), ("R", "C"),
-            ("A", "A1"), ("A", "A2"), ("A", "A3"), ("A", "A4"),
-            ("B", "B1"),
-            ("C", "C1"), ("C", "C2"),
-        ])
+        G.add_edges_from(
+            [
+                ("R", "A"),
+                ("R", "B"),
+                ("R", "C"),
+                ("A", "A1"),
+                ("A", "A2"),
+                ("A", "A3"),
+                ("A", "A4"),
+                ("B", "B1"),
+                ("C", "C1"),
+                ("C", "C2"),
+            ]
+        )
 
         result = self.analyzer.analyze_spectral_stability(G)
 
@@ -361,8 +367,9 @@ class TestSpectralAnalysisResonance(TestSpectralAnalysisBase):
             unique_eigenvalues = len(set(round(e, 2) for e in result["eigenvalues"]))
             # Para K_n, solo hay 2 eigenvalores distintos: 0 y n/(n-1)
             self.assertLessEqual(
-                unique_eigenvalues, 3,
-                "Grafo completo debería tener pocas eigenvalores distintos"
+                unique_eigenvalues,
+                3,
+                "Grafo completo debería tener pocas eigenvalores distintos",
             )
 
 
@@ -403,7 +410,9 @@ class TestSpectralAnalysisIsolatedNodes(TestSpectralAnalysisBase):
         result = self.analyzer.analyze_spectral_stability(G)
 
         # Debe indicar que el grafo es degenerado
-        self.assertIn(result["status"], ["insufficient_nodes", "degenerate_after_isolation_removal"])
+        self.assertIn(
+            result["status"], ["insufficient_nodes", "degenerate_after_isolation_removal"]
+        )
 
 
 class TestSpectralAnalysisBudgetTopology(TestSpectralAnalysisBase):
@@ -589,12 +598,12 @@ class TestSpectralAnalysisConsistency(TestSpectralAnalysisBase):
             self.assertAlmostEqualTolerant(
                 results[0]["fiedler_value"],
                 results[i]["fiedler_value"],
-                msg="Fiedler value debe ser determinístico"
+                msg="Fiedler value debe ser determinístico",
             )
             self.assertAlmostEqualTolerant(
                 results[0]["spectral_energy"],
                 results[i]["spectral_energy"],
-                msg="Spectral energy debe ser determinístico"
+                msg="Spectral energy debe ser determinístico",
             )
 
     def test_symmetry_undirected_conversion(self):
@@ -619,7 +628,7 @@ class TestSpectralAnalysisConsistency(TestSpectralAnalysisBase):
         self.assertAlmostEqualTolerant(
             result1["fiedler_value"],
             result2["fiedler_value"],
-            msg="Grafos con misma estructura no-dirigida deben tener mismo Fiedler"
+            msg="Grafos con misma estructura no-dirigida deben tener mismo Fiedler",
         )
 
 
@@ -697,7 +706,7 @@ class TestSpectralAnalysisKnownGraphs(TestSpectralAnalysisBase):
             result["fiedler_value"],
             expected_fiedler,
             tolerance=0.1,  # Tolerancia amplia por diferencias de normalización
-            msg=f"Fiedler para C_{n} debería ser ≈ {expected_fiedler}"
+            msg=f"Fiedler para C_{n} debería ser ≈ {expected_fiedler}",
         )
 
     def test_complete_graph_fiedler_value(self):
@@ -721,13 +730,14 @@ class TestSpectralAnalysisKnownGraphs(TestSpectralAnalysisBase):
             result["fiedler_value"],
             expected_fiedler,
             tolerance=0.1,
-            msg=f"Fiedler para K_{n} debería ser ≈ {expected_fiedler}"
+            msg=f"Fiedler para K_{n} debería ser ≈ {expected_fiedler}",
         )
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # RUNNER Y UTILIDADES
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 def create_test_suite() -> unittest.TestSuite:
     """Crea suite completa de pruebas espectrales."""

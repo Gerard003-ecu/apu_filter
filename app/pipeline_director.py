@@ -9,14 +9,14 @@ Implementa el patrón "Pipeline" donde cada paso es una unidad discreta de traba
 que recibe un contexto, lo transforma y lo pasa al siguiente paso.
 """
 
+import datetime
 import enum
+import hashlib
 import logging
 import os
 import pickle
 import sys
 import uuid
-import datetime
-import hashlib
 from abc import ABC, abstractmethod
 from dataclasses import asdict, dataclass
 from pathlib import Path
@@ -26,17 +26,15 @@ import numpy as np
 import pandas as pd
 
 from app.classifiers.apu_classifier import APUClassifier
-
-# Nuevos módulos
-from app.constants import ColumnNames, InsumoType, ProcessingThresholds
+from app.constants import ColumnNames, InsumoType
+from app.flux_condenser import CondenserConfig, DataFluxCondenser
+from app.matter_generator import MatterGenerator
 from app.telemetry import TelemetryContext
 from app.telemetry_narrative import TelemetryNarrator
 from app.validators import DataFrameValidator
-from app.matter_generator import MatterGenerator, BillOfMaterials
 
 from .data_loader import load_data
 from .data_validator import validate_and_clean_data
-from .flux_condenser import CondenserConfig, DataFluxCondenser
 from .utils import (
     clean_apu_code,
     find_and_rename_columns,
@@ -58,47 +56,6 @@ if not logger.handlers:
 
 
 # ==================== CONSTANTES Y CLASES AUXILIARES ====================
-
-
-class ColumnNames:
-    """
-    Constantes para nombres de columnas estandarizados en todo el sistema.
-    Facilita la refactorización y evita errores por cadenas mágicas.
-    """
-
-    CODIGO_APU = "CODIGO_APU"
-    DESCRIPCION_APU = "DESCRIPCION_APU"
-    DESCRIPCION_SECUNDARIA = "descripcion_secundaria"
-    ORIGINAL_DESCRIPTION = "original_description"
-    UNIDAD_APU = "UNIDAD_APU"
-    CANTIDAD_APU = "CANTIDAD_APU"
-    CANTIDAD_PRESUPUESTO = "CANTIDAD_PRESUPUESTO"
-    GRUPO_INSUMO = "GRUPO_INSUMO"
-    DESCRIPCION_INSUMO = "DESCRIPCION_INSUMO"
-    DESCRIPCION_INSUMO_NORM = "DESCRIPCION_INSUMO_NORM"
-    VR_UNITARIO_INSUMO = "VR_UNITARIO_INSUMO"
-    UNIDAD_INSUMO = "UNIDAD_INSUMO"
-    NORMALIZED_DESC = "NORMALIZED_DESC"
-    COSTO_INSUMO_EN_APU = "COSTO_INSUMO_EN_APU"
-    VR_UNITARIO_FINAL = "VR_UNITARIO_FINAL"
-    VALOR_TOTAL_APU = "VALOR_TOTAL_APU"
-    PRECIO_UNIT_APU = "PRECIO_UNIT_APU"
-    MATERIALES = "MATERIALES"
-    MANO_DE_OBRA = "MANO DE OBRA"
-    EQUIPO = "EQUIPO"
-    OTROS = "OTROS"
-    VALOR_SUMINISTRO_UN = "VALOR_SUMINISTRO_UN"
-    VALOR_INSTALACION_UN = "VALOR_INSTALACION_UN"
-    VALOR_CONSTRUCCION_UN = "VALOR_CONSTRUCCION_UN"
-    VALOR_SUMINISTRO_TOTAL = "VALOR_SUMINISTRO_TOTAL"
-    VALOR_INSTALACION_TOTAL = "VALOR_INSTALACION_TOTAL"
-    VALOR_CONSTRUCCION_TOTAL = "VALOR_CONSTRUCCION_TOTAL"
-    TIPO_INSUMO = "TIPO_INSUMO"
-    TIPO_APU = "tipo_apu"
-    CATEGORIA = "CATEGORIA"
-    TIEMPO_INSTALACION = "TIEMPO_INSTALACION"
-    RENDIMIENTO = "RENDIMIENTO"
-    RENDIMIENTO_DIA = "RENDIMIENTO_DIA"
 
 
 class InsumoTypes:
@@ -127,13 +84,13 @@ class ProcessingThresholds:
     Umbrales configurables para la validación y limpieza de datos.
 
     Attributes:
-        outlier_std_multiplier: Desviaciones estándar para detectar outliers.
-        max_quantity: Cantidad máxima permitida.
-        max_cost_per_item: Costo unitario máximo permitido.
-        max_total_cost: Costo total máximo permitido.
-        instalacion_mo_threshold: Umbral % MO para considerar Instalación.
-        suministro_mat_threshold: Umbral % Materiales para Suministro.
-        # ... otros umbrales ...
+        outlier_std_multiplier (float): Desviaciones estándar para detectar outliers.
+        max_quantity (float): Cantidad máxima permitida.
+        max_cost_per_item (float): Costo unitario máximo permitido.
+        max_total_cost (float): Costo total máximo permitido.
+        instalacion_mo_threshold (float): Umbral % MO para considerar Instalación.
+        suministro_mat_threshold (float): Umbral % Materiales para Suministro.
+        max_header_search_rows (int): Filas a buscar para detectar encabezado.
     """
 
     outlier_std_multiplier: float = 3.0
@@ -160,11 +117,11 @@ class ProcessingStep(ABC):
         Ejecuta la lógica del paso.
 
         Args:
-            context: Diccionario con el estado actual del procesamiento.
-            telemetry: Contexto de telemetría para registrar métricas y errores.
+            context (dict): Diccionario con el estado actual del procesamiento.
+            telemetry (TelemetryContext): Contexto de telemetría para métricas.
 
         Returns:
-            El contexto actualizado (puede ser el mismo objeto modificado).
+            dict: El contexto actualizado (puede ser el mismo objeto modificado).
         """
         pass
 
@@ -180,7 +137,6 @@ class DataValidator:
         df: pd.DataFrame, name: str
     ) -> Tuple[bool, Optional[str]]:
         """Verifica que un DataFrame no esté vacío."""
-        # ROBUSTECIDO: Verificación de tipo antes de operaciones
         if df is None:
             error_msg = f"DataFrame '{name}' es None"
             logger.error(f"❌ {error_msg}")
@@ -196,7 +152,6 @@ class DataValidator:
             logger.error(f"❌ {error_msg}")
             return False, error_msg
 
-        # ROBUSTECIDO: Verificar que no sea solo columnas sin datos útiles
         if df.dropna(how="all").empty:
             error_msg = f"DataFrame '{name}' contiene solo valores nulos"
             logger.error(f"❌ {error_msg}")
@@ -209,7 +164,6 @@ class DataValidator:
         df: pd.DataFrame, required_cols: List[str], df_name: str
     ) -> Tuple[bool, Optional[str]]:
         """Verifica que un DataFrame tenga las columnas requeridas."""
-        # ROBUSTECIDO: Validación de entrada
         if df is None:
             error_msg = f"DataFrame '{df_name}' es None, no se pueden validar columnas"
             logger.error(f"❌ {error_msg}")
@@ -224,7 +178,6 @@ class DataValidator:
             logger.warning(f"⚠️ Lista de columnas requeridas vacía para '{df_name}'")
             return True, None
 
-        # ROBUSTECIDO: Normalizar nombres para comparación insensible a mayúsculas
         df_cols_upper = {col.upper().strip(): col for col in df.columns}
         missing_cols = []
 
@@ -234,7 +187,7 @@ class DataValidator:
                 missing_cols.append(req_col)
 
         if missing_cols:
-            available_cols = list(df.columns)[:10]  # Limitar para log
+            available_cols = list(df.columns)[:10]
             error_msg = (
                 f"Faltan columnas requeridas en '{df_name}': {missing_cols}. "
                 f"Columnas disponibles (primeras 10): {available_cols}"
@@ -249,7 +202,6 @@ class DataValidator:
         df: pd.DataFrame, subset_cols: List[str], df_name: str, keep: str = "first"
     ) -> pd.DataFrame:
         """Detecta, loguea y elimina duplicados en un DataFrame."""
-        # ROBUSTECIDO: Validaciones de entrada exhaustivas
         if df is None or not isinstance(df, pd.DataFrame):
             logger.error(f"❌ DataFrame '{df_name}' inválido para detección de duplicados")
             return pd.DataFrame()
@@ -264,18 +216,15 @@ class DataValidator:
             )
             return df
 
-        # ROBUSTECIDO: Verificar que las columnas existan
         missing_subset_cols = [col for col in subset_cols if col not in df.columns]
         if missing_subset_cols:
             logger.error(
                 f"❌ Columnas para duplicados no existen en '{df_name}': {missing_subset_cols}"
             )
-            # Usar solo las columnas que sí existen
             subset_cols = [col for col in subset_cols if col in df.columns]
             if not subset_cols:
                 return df
 
-        # ROBUSTECIDO: Validar parámetro keep
         valid_keep_values = {"first", "last", False}
         if keep not in valid_keep_values:
             logger.warning(f"⚠️ Valor 'keep={keep}' inválido, usando 'first'")
@@ -290,7 +239,6 @@ class DataValidator:
                     f"⚠️ Se encontraron {num_dupes} filas duplicadas en '{df_name}' "
                     f"por {subset_cols}. Se conservará: '{keep}'"
                 )
-                # ROBUSTECIDO: Limitar cantidad de valores logueados
                 dupes_sample = unique_dupes[:10].tolist()
                 logger.debug(f"Muestra de valores duplicados en '{df_name}': {dupes_sample}")
 
@@ -309,8 +257,7 @@ class DataValidator:
 class FileValidator:
     """Utilidades para validación de existencia de archivos."""
 
-    # ROBUSTECIDO: Constantes para validación
-    MIN_FILE_SIZE_BYTES = 10  # Archivo debe tener al menos 10 bytes
+    MIN_FILE_SIZE_BYTES = 10
     VALID_EXTENSIONS = {".csv", ".xlsx", ".xls", ".json"}
 
     @staticmethod
@@ -321,7 +268,6 @@ class FileValidator:
         min_size: Optional[int] = None,
     ) -> Tuple[bool, Optional[str]]:
         """Verifica que un archivo exista y sea accesible."""
-        # ROBUSTECIDO: Validar entrada
         if not file_path:
             error_msg = f"Ruta de archivo de {file_type} está vacía o es None"
             logger.error(f"❌ {error_msg}")
@@ -333,7 +279,7 @@ class FileValidator:
             return False, error_msg
 
         try:
-            path = Path(file_path).resolve()  # ROBUSTECIDO: Resolver ruta absoluta
+            path = Path(file_path).resolve()
         except Exception as e:
             error_msg = f"Ruta de {file_type} no es válida: {file_path}. Error: {e}"
             logger.error(f"❌ {error_msg}")
@@ -349,7 +295,6 @@ class FileValidator:
             logger.error(f"❌ {error_msg}")
             return False, error_msg
 
-        # ROBUSTECIDO: Verificar permisos de lectura
         try:
             if not os.access(path, os.R_OK):
                 error_msg = f"Sin permisos de lectura para {file_type}: {path}"
@@ -358,7 +303,6 @@ class FileValidator:
         except Exception as e:
             logger.warning(f"⚠️ No se pudo verificar permisos para {path}: {e}")
 
-        # ROBUSTECIDO: Verificar tamaño mínimo
         min_size = min_size or FileValidator.MIN_FILE_SIZE_BYTES
         try:
             file_size = path.stat().st_size
@@ -373,7 +317,6 @@ class FileValidator:
             logger.error(f"❌ {error_msg}")
             return False, error_msg
 
-        # ROBUSTECIDO: Verificar extensión válida
         if check_extension:
             ext = path.suffix.lower()
             if ext not in FileValidator.VALID_EXTENSIONS:
@@ -396,7 +339,6 @@ class LoadDataStep(ProcessingStep):
     """
 
     def __init__(self, config: dict, thresholds: ProcessingThresholds):
-        # ROBUSTECIDO: Validar config al inicializar
         if not config or not isinstance(config, dict):
             raise ValueError("Configuración inválida para LoadDataStep")
         self.config = config
@@ -407,7 +349,6 @@ class LoadDataStep(ProcessingStep):
         telemetry.start_step("load_data")
 
         try:
-            # ROBUSTECIDO: Extraer rutas con validación
             required_paths = ["presupuesto_path", "apus_path", "insumos_path"]
             paths = {}
 
@@ -423,7 +364,6 @@ class LoadDataStep(ProcessingStep):
             apus_path = paths["apus_path"]
             insumos_path = paths["insumos_path"]
 
-            # Validar existencia de archivos
             file_validator = FileValidator()
             validations = [
                 (presupuesto_path, "presupuesto"),
@@ -437,12 +377,10 @@ class LoadDataStep(ProcessingStep):
                     telemetry.record_error("load_data", error)
                     raise ValueError(error)
 
-            # ROBUSTECIDO: Obtener perfiles con validación
             file_profiles = self.config.get("file_profiles")
             if not file_profiles or not isinstance(file_profiles, dict):
                 raise ValueError("'file_profiles' no encontrado o inválido en config")
 
-            # Procesar Presupuesto
             presupuesto_profile = file_profiles.get("presupuesto_default")
             if not presupuesto_profile:
                 raise ValueError("No se encontró 'presupuesto_default' en file_profiles")
@@ -452,7 +390,6 @@ class LoadDataStep(ProcessingStep):
             )
             df_presupuesto = p_processor.process(presupuesto_path)
 
-            # ROBUSTECIDO: Validar resultado antes de continuar
             if df_presupuesto is None or df_presupuesto.empty:
                 error = "Procesamiento de presupuesto retornó DataFrame vacío"
                 telemetry.record_error("load_data", error)
@@ -460,7 +397,6 @@ class LoadDataStep(ProcessingStep):
 
             telemetry.record_metric("load_data", "presupuesto_rows", len(df_presupuesto))
 
-            # Procesar Insumos
             insumos_profile = file_profiles.get("insumos_default")
             if not insumos_profile:
                 raise ValueError("No se encontró 'insumos_default' en file_profiles")
@@ -468,7 +404,6 @@ class LoadDataStep(ProcessingStep):
             i_processor = InsumosProcessor(self.thresholds, insumos_profile)
             df_insumos = i_processor.process(insumos_path)
 
-            # --- LOG DE DIAGNÓSTICO ---
             logger.info(
                 f"🐛 DIAG: [LoadDataStep] Insumos extraídos: {len(df_insumos)} filas."
             )
@@ -476,7 +411,6 @@ class LoadDataStep(ProcessingStep):
                 logger.info(
                     f"🐛 DIAG: [LoadDataStep] Estructura de insumos (head(1)): {df_insumos.head(1).to_dict('records')}"
                 )
-            # --- FIN LOG ---
 
             if df_insumos is None or df_insumos.empty:
                 error = "Procesamiento de insumos retornó DataFrame vacío"
@@ -485,7 +419,6 @@ class LoadDataStep(ProcessingStep):
 
             telemetry.record_metric("load_data", "insumos_rows", len(df_insumos))
 
-            # Procesar APUs
             apus_profile = file_profiles.get("apus_default")
             if not apus_profile:
                 raise ValueError("No se encontró 'apus_default' en file_profiles")
@@ -493,7 +426,6 @@ class LoadDataStep(ProcessingStep):
             logger.info("⚡️ Iniciando DataFluxCondenser para APUs...")
             condenser_config_data = self.config.get("flux_condenser_config", {})
 
-            # ROBUSTECIDO: Manejar errores de configuración del condenser
             try:
                 condenser_config = CondenserConfig(**condenser_config_data)
             except TypeError as e:
@@ -504,10 +436,8 @@ class LoadDataStep(ProcessingStep):
                 config=self.config, profile=apus_profile, condenser_config=condenser_config
             )
 
-            # Callback 1: Para estadísticas acumuladas (existente)
             def on_progress_stats(processing_stats):
                 try:
-                    # Registrar métricas en telemetría local
                     for metric_name, attr_name, default_value in [
                         ("avg_saturation", "avg_saturation", 0.0),
                         ("max_flyback_voltage", "max_flyback_voltage", 0.0),
@@ -519,31 +449,27 @@ class LoadDataStep(ProcessingStep):
                 except Exception:
                     pass
 
-            # Callback 2: Para telemetría en tiempo real a Redis (NUEVO)
             def _publish_telemetry(metrics: Dict[str, Any]):
                 try:
                     import json
                     import time
+
                     from flask import current_app
 
-                    # Preparar payload
                     payload = {
                         **metrics,
                         "_timestamp": time.time(),
                         "_source": "flux_condenser_realtime",
                     }
 
-                    # Serializar
                     data_str = json.dumps(payload, default=str)
 
-                    # Publicar a Redis
                     if current_app:
                         redis_client = current_app.config.get("SESSION_REDIS")
                         if redis_client:
-                            # Escribir con expiración corta (60s)
                             redis_client.set("apu_filter:global_metrics", data_str, ex=60)
                 except Exception:
-                    pass  # Fail silently to avoid interrupting pipeline
+                    pass
 
             df_apus_raw = condenser.stabilize(
                 apus_path,
@@ -552,7 +478,6 @@ class LoadDataStep(ProcessingStep):
                 telemetry=telemetry,
             )
 
-            # Registrar estadísticas finales completas (manteniendo lógica existente)
             full_stats = condenser.get_processing_stats() or {}
             stats = full_stats.get("statistics", {})
 
@@ -564,7 +489,6 @@ class LoadDataStep(ProcessingStep):
                 ("avg_batch_size", 0),
             ]:
                 value = stats.get(metric_name, default_value)
-                # ROBUSTECIDO: Sanitizar valores numéricos
                 if not isinstance(value, (int, float)) or np.isnan(value) or np.isinf(value):
                     value = default_value
                 telemetry.record_metric("flux_condenser", metric_name, value)
@@ -577,7 +501,6 @@ class LoadDataStep(ProcessingStep):
             telemetry.record_metric("load_data", "apus_raw_rows", len(df_apus_raw))
             logger.info("✅ DataFluxCondenser completado.")
 
-            # Validación final
             data_validator = DataValidator()
             dataframes = [
                 (df_presupuesto, "presupuesto"),
@@ -591,7 +514,6 @@ class LoadDataStep(ProcessingStep):
                     telemetry.record_error("load_data", error)
                     raise ValueError(error)
 
-            # ROBUSTECIDO: Actualizar contexto de forma inmutable
             context = {**context}
             context.update(
                 {
@@ -618,7 +540,6 @@ class MergeDataStep(ProcessingStep):
     """
 
     def __init__(self, config: dict, thresholds: ProcessingThresholds):
-        # config se añade para compatibilidad con signature dinámica, aunque no se use
         self.config = config
         self.thresholds = thresholds
 
@@ -629,11 +550,9 @@ class MergeDataStep(ProcessingStep):
             df_apus_raw = context["df_apus_raw"]
             df_insumos = context["df_insumos"]
 
-            # --- LOG DE DIAGNÓSTICO ---
             logger.info(
                 f"🐛 DIAG: [MergeDataStep] Recibidos {len(df_insumos)} insumos del contexto."
             )
-            # --- FIN LOG ---
 
             merger = DataMerger(self.thresholds)
             df_merged = merger.merge_apus_with_insumos(df_apus_raw, df_insumos)
@@ -660,42 +579,31 @@ class AuditedMergeStep(ProcessingStep):
         self.thresholds = thresholds
 
     def execute(self, context: dict, telemetry: TelemetryContext) -> dict:
-        """
-        Ejecuta la auditoría Mayer-Vietoris y luego la fusión física.
-        """
+        """Ejecuta la auditoría Mayer-Vietoris y luego la fusión física."""
         telemetry.start_step("audited_merge")
         try:
-            # 1. Obtener DataFrames parciales
             df_a = context.get("df_presupuesto")
             df_b = context.get("df_apus_raw")
             df_insumos = context.get("df_insumos")
 
             if df_a is None or df_b is None:
-                # Si falta alguno, no podemos auditar, pero quizás debamos proceder con merge normal?
-                # Asumiremos que si llegamos aquí, los datos existen por LoadDataStep.
                 logger.warning(
                     "⚠️ Falta df_presupuesto o df_apus_raw. Saltando auditoría Mayer-Vietoris."
                 )
             else:
                 try:
-                    # 2. Construcción Ligera de Grafos (Skeleton Graphs)
                     from agent.business_topology import (
                         BudgetGraphBuilder,
                         BusinessTopologicalAnalyzer,
                     )
 
                     builder = BudgetGraphBuilder()
-                    # Grafo A: Solo estructura de Presupuesto (Capítulos -> APUs)
                     graph_a = builder.build(df_a, pd.DataFrame())
-                    # Grafo B: Estructura interna de APUs (APUs -> Insumos raw)
-                    # Nota: df_b (apus_raw) tiene la info de insumos dentro de APUs.
                     graph_b = builder.build(pd.DataFrame(), df_b)
 
-                    # 3. Auditoría Mayer-Vietoris
                     analyzer = BusinessTopologicalAnalyzer(telemetry=telemetry)
                     audit_result = analyzer.audit_integration_homology(graph_a, graph_b)
 
-                    # 4. Decisión basada en Auditoría
                     if audit_result["delta_beta_1"] > 0:
                         logger.warning(f"🚨 {audit_result['narrative']}")
                         telemetry.record_metric(
@@ -706,11 +614,9 @@ class AuditedMergeStep(ProcessingStep):
                         logger.info(f"✅ {audit_result['narrative']}")
 
                 except Exception as e_audit:
-                    # No bloquear el pipeline por error en la auditoría opcional
                     logger.error(f"❌ Error durante auditoría Mayer-Vietoris: {e_audit}")
                     telemetry.record_error("audited_merge_audit", str(e_audit))
 
-            # 5. Ejecutar la fusión real (física) - Reutilizamos lógica de DataMerger
             logger.info("🛠️ Ejecutando fusión física de datos...")
             merger = DataMerger(self.thresholds)
             df_merged = merger.merge_apus_with_insumos(df_b, df_insumos)
@@ -817,30 +723,22 @@ class BusinessTopologyStep(ProcessingStep):
         """Ejecuta la evaluación del BusinessAgent."""
         telemetry.start_step("business_topology")
         try:
-            # Importación del nuevo agente
             from app.business_agent import BusinessAgent
 
             logger.info("🤖 Desplegando BusinessAgent para evaluación de proyecto...")
 
-            # Instanciar el agente con la configuración y telemetría actuales
             agent = BusinessAgent(config=self.config, telemetry=telemetry)
-
-            # El agente ejecuta la evaluación completa
             report = agent.evaluate_project(context)
 
             if report:
                 logger.info("✅ BusinessAgent completó la evaluación.")
-                # Guardar el reporte en el contexto
                 context["business_topology_report"] = report
 
-                # Opcional: Loguear un resumen si es necesario
-                # (el reporte ASCII ahora se podría generar desde el reporte si se necesita)
                 logger.info(f"Puntuación de Integridad: {report.integrity_score:.2f}/100")
                 if report.waste_alerts:
                     logger.warning(f"Alertas de Desperdicio: {len(report.waste_alerts)}")
                 if report.circular_risks:
                     logger.critical(f"Riesgos Circulares: {len(report.circular_risks)}")
-
             else:
                 logger.warning("⚠️ El BusinessAgent no generó un reporte.")
 
@@ -853,7 +751,6 @@ class BusinessTopologyStep(ProcessingStep):
             )
             telemetry.record_error("business_topology", str(e))
             telemetry.end_step("business_topology", "error")
-            # No bloqueamos el pipeline por errores de análisis
             return context
 
 
@@ -871,7 +768,6 @@ class MaterializationStep(ProcessingStep):
         """Ejecuta el MatterGenerator."""
         telemetry.start_step("materialization")
         try:
-            # Verificar dependencias en el contexto
             if "business_topology_report" not in context:
                 logger.warning(
                     "⚠️ No se encontró reporte de topología. Saltando materialización."
@@ -879,56 +775,24 @@ class MaterializationStep(ProcessingStep):
                 telemetry.end_step("materialization", "skipped")
                 return context
 
-            # Necesitamos el grafo. El BusinessAgent lo usa internamente pero no siempre lo guarda en el contexto público en esa clave exacta.
-            # Pero el BusinessTopologyStep usa BusinessAgent.evaluate_project(context).
-            # BusinessAgent.evaluate_project llama a _build_topology y guarda 'graph' en self.graph,
-            # y también retorna el ConstructionRiskReport.
-            # Necesitamos acceder al grafo.
-            # Revisando BusinessAgent (que no puedo ver ahora mismo pero puedo inferir),
-            # si evaluate_project no guarda el grafo en el contexto, tenemos un problema.
-            # Asumamos que BusinessAgent guarda el grafo en context['graph'] o lo re-construiremos si es necesario?
-            # Mejor: Si context tiene 'graph', lo usamos. Si no, intentamos recuperarlo.
-            # Al mirar BusinessTopologyStep, no parece guardar explícitamente el grafo en 'context', solo el reporte.
-
-            # REVISIÓN: El BusinessAgent (según recuerdo de logs o código común) suele guardar cosas en el contexto.
-            # Si no, tendremos que confiar en que 'graph' esté ahí.
-            # Si no está, no podemos materializar sin reconstruirlo, lo cual es costoso.
-            # Vamos a asumir que el BusinessAgent O el paso anterior (BusinessTopologyStep) debería haberlo dejado disponible si se diseñó así.
-            # Si no, esto fallará. Pero como soy yo quien edita, puedo verificar.
-
-            # Vamos a ser defensivos.
             graph = context.get("graph")
             if not graph:
-                # Intentar obtenerlo del reporte si fuera posible (no lo es, el reporte es dataclass)
-                # O reconstruirlo rápidamente usando los datos ya procesados en el contexto.
                 logger.info(
                     "🔄 Grafo no encontrado en contexto. Reconstruyendo para materialización..."
                 )
                 from agent.business_topology import BudgetGraphBuilder
 
                 builder = BudgetGraphBuilder()
-                # Necesitamos los DFs procesados
-                # df_final o df_presupuesto, y df_merged (detail)
-                # context["df_final"] tiene el presupuesto procesado con costos
-                # context["df_merged"] tiene el detalle de insumos
-
                 df_presupuesto = context.get("df_final")
                 df_detail = context.get("df_merged")
 
                 if df_presupuesto is not None and df_detail is not None:
                     graph = builder.build(df_presupuesto, df_detail)
-                    context["graph"] = graph  # Guardarlo para futuros pasos
+                    context["graph"] = graph
                 else:
                     logger.error("❌ No hay datos suficientes para reconstruir el grafo.")
                     telemetry.end_step("materialization", "error")
                     return context
-
-            # Preparar inputs para MatterGenerator
-            # Extraer métricas de flujo del contexto (FluxCondenser las guarda en telemetría o logs, pero aquí necesitamos dict)
-            # FluxCondenserStep (LoadDataStep) guardó métricas en telemetría.
-            # Intentamos recuperar métricas recientes si están en el contexto bajo alguna clave, o usamos defaults.
-            # LoadDataStep no guarda explícitamente 'flux_metrics' en context, solo en telemetry.
-            # Pero BusinessAgent report tiene stability.
 
             report = context.get("business_topology_report")
             stability = 10.0
@@ -937,7 +801,6 @@ class MaterializationStep(ProcessingStep):
 
             flux_metrics = {
                 "pyramid_stability": stability,
-                # saturation no la tenemos fácil sin acceso a telemetría interna, asumimos 0 si no está
                 "avg_saturation": 0.0,
             }
 
@@ -946,9 +809,8 @@ class MaterializationStep(ProcessingStep):
                 graph, flux_metrics=flux_metrics, telemetry=telemetry
             )
 
-            # Guardar BOM en contexto
             context["bill_of_materials"] = bom
-            context["logistics_plan"] = asdict(bom)  # Versión serializable
+            context["logistics_plan"] = asdict(bom)
 
             logger.info(
                 f"✅ Materialización completada. Total ítems: {len(bom.requirements)}"
@@ -1000,44 +862,35 @@ class BuildOutputStep(ProcessingStep):
             )
             validated_result["raw_insumos_df"] = df_insumos.to_dict("records")
 
-            # Integrar reporte de auditoría si existe
             if "business_topology_report" in context:
                 validated_result["audit_report"] = asdict(
                     context["business_topology_report"]
                 )
 
-            # Integrar Plan Logístico (BOM)
             if "logistics_plan" in context:
                 validated_result["logistics_plan"] = context["logistics_plan"]
 
-            # Integrar Narrativa Técnica (DIKW)
-            # El cronista escribe la historia de la ejecución
             try:
                 narrator = TelemetryNarrator()
                 tech_narrative = narrator.summarize_execution(telemetry)
-                # Asegurar copia explícita para persistencia
                 if isinstance(tech_narrative, dict):
-                     validated_result["technical_audit"] = tech_narrative.copy()
+                    validated_result["technical_audit"] = tech_narrative.copy()
                 else:
-                     validated_result["technical_audit"] = tech_narrative
+                    validated_result["technical_audit"] = tech_narrative
 
-                logger.info(f"✅ Narrativa técnica generada e inyectada. Keys: {list(tech_narrative.keys()) if isinstance(tech_narrative, dict) else 'Not Dict'}")
+                logger.info("✅ Narrativa técnica generada e inyectada.")
             except Exception as e:
                 logger.warning(f"⚠️ Fallo al generar narrativa técnica: {e}")
                 validated_result["technical_audit"] = {"error": str(e)}
 
-            # --- Data Product Packaging ---
-
-            # Calcular Lineage Hash
             def compute_hash(data: Any) -> str:
                 """Calcula un hash simple del contenido para linaje."""
                 import json
+
                 try:
-                    # Intentar usar sanitize_for_json si está disponible en el scope
-                    # Si no, usar lógica directa con default=str
                     sanitized = data
                     try:
-                         sanitized = sanitize_for_json(data)
+                        sanitized = sanitize_for_json(data)
                     except NameError:
                         pass
 
@@ -1046,18 +899,23 @@ class BuildOutputStep(ProcessingStep):
                 except Exception:
                     return "hash_computation_failed"
 
-            # Inputs simples para el hash (primeras filas para velocidad)
             input_sample = {
-                "presupuesto_head": df_final.head(5).to_dict("records") if not df_final.empty else [],
-                "insumos_head": df_insumos.head(5).to_dict("records") if not df_insumos.empty else [],
+                "presupuesto_head": df_final.head(5).to_dict("records")
+                if not df_final.empty
+                else [],
+                "insumos_head": df_insumos.head(5).to_dict("records")
+                if not df_insumos.empty
+                else [],
             }
             lineage_hash = compute_hash(input_sample)
 
-            # SLA Compliance (Simulado o basado en telemetría)
-            error_count = telemetry.get_metrics().get("errors", 0) if hasattr(telemetry, "get_metrics") else 0
-            sla_compliance = "100%" if error_count == 0 else "95%"  # Lógica simplificada
+            error_count = (
+                telemetry.get_metrics().get("errors", 0)
+                if hasattr(telemetry, "get_metrics")
+                else 0
+            )
+            sla_compliance = "100%" if error_count == 0 else "95%"
 
-            # Empaquetado final
             data_product = {
                 "kind": "DataProduct",
                 "metadata": {
@@ -1065,14 +923,14 @@ class BuildOutputStep(ProcessingStep):
                     "lineage_hash": lineage_hash,
                     "sla_compliance": sla_compliance,
                     "generated_at": datetime.datetime.now().isoformat(),
-                    "generator": "APU_Filter_Pipeline_v2"
+                    "generator": "APU_Filter_Pipeline_v2",
                 },
                 "governance": {
                     "policy_version": "data_contract_v1",
-                    "compliance_score": 95, # Podría venir de GovernanceEngine si estuviera integrado
-                    "classification": "CONFIDENTIAL"
+                    "compliance_score": 95,
+                    "classification": "CONFIDENTIAL",
                 },
-                "payload": validated_result
+                "payload": validated_result,
             }
 
             context["final_result"] = data_product
@@ -1090,6 +948,7 @@ class BuildOutputStep(ProcessingStep):
 class PipelineSteps(str, enum.Enum):
     """
     Define los identificadores únicos para cada paso del pipeline.
+
     Funciona como una 'API' pública para el orquestador.
     """
 
@@ -1105,13 +964,14 @@ class PipelineSteps(str, enum.Enum):
 class PipelineDirector:
     """
     Orquesta la ejecución secuencial de los pasos del pipeline.
+
     Utiliza una 'receta' de configuración para determinar el orden y
     activación de los pasos.
     """
 
     STEP_REGISTRY: Dict[str, Type[ProcessingStep]] = {
         "load_data": LoadDataStep,
-        "merge_data": AuditedMergeStep,  # Reemplazo Mayer-Vietoris
+        "merge_data": AuditedMergeStep,
         "calculate_costs": CalculateCostsStep,
         "final_merge": FinalMergeStep,
         "business_topology": BusinessTopologyStep,
@@ -1177,17 +1037,16 @@ class PipelineDirector:
     ) -> Dict[str, Any]:
         """
         Ejecuta un único pivote de la matriz del pipeline.
+
         1. Carga el contexto previo asociado al session_id.
         2. Ejecuta el ProcessingStep específico.
         3. Guarda el nuevo contexto resultante.
         4. Retorna el resultado del paso y métricas.
         """
-        # Cargar contexto o usar inicial
         context = self._load_context_state(session_id)
         if initial_context:
             context.update(initial_context)
 
-        # Validar paso
         if step_name not in self.STEP_REGISTRY:
             error_msg = f"Paso desconocido o no registrado: {step_name}"
             logger.error(f"❌ {error_msg}")
@@ -1222,6 +1081,7 @@ class PipelineDirector:
     def execute_pipeline_orchestrated(self, initial_context: dict) -> dict:
         """
         Ejecuta el pipeline completo de forma orquestada, paso a paso.
+
         Utiliza run_single_step internamente para persistir el estado.
         """
         session_id = str(uuid.uuid4())
@@ -1241,7 +1101,6 @@ class PipelineDirector:
 
             logger.info(f"▶️ Orquestando paso [{step_idx + 1}/{len(recipe)}]: {step_name}")
 
-            # Para el primer paso, pasamos el contexto inicial
             current_context = context if step_idx == 0 else None
 
             result = self.run_single_step(
@@ -1253,24 +1112,18 @@ class PipelineDirector:
                     f"Fallo en pipeline orquestado en paso '{step_name}': {result['error']}"
                 )
                 logger.critical(f"🔥 {error_msg}")
-                # El contexto con el error ya fue logueado por run_single_step
                 raise RuntimeError(error_msg)
 
-        # Al final, cargar el contexto completo y retornarlo
         final_context = self._load_context_state(session_id)
         logger.info(f"🎉 Pipeline orquestado completado (Sesión: {session_id})")
         return final_context
 
 
 # ==================== CLASES DE SOPORTE (Legacy Refactored) ====================
-# (Se mantienen las clases PresupuestoProcessor, InsumosProcessor, etc.
-# tal cual estaban, ya que no requieren cambios en sus métodos internos,
-# solo son llamadas por los Steps refactorizados)
 
 
 class PresupuestoProcessor:
     def __init__(self, config: dict, thresholds: ProcessingThresholds, profile: dict):
-        # ROBUSTECIDO: Validar parámetros
         if not config:
             raise ValueError("Configuración requerida para PresupuestoProcessor")
         self.config = config
@@ -1280,7 +1133,6 @@ class PresupuestoProcessor:
 
     def process(self, path: str) -> pd.DataFrame:
         """Procesa archivo de presupuesto con manejo robusto de errores."""
-        # ROBUSTECIDO: Validar path al inicio
         if not path:
             logger.error("❌ Ruta de presupuesto vacía")
             return pd.DataFrame()
@@ -1292,7 +1144,6 @@ class PresupuestoProcessor:
 
             load_result = load_data(path, **loader_params)
 
-            # ROBUSTECIDO: Verificar resultado de carga exhaustivamente
             if load_result is None:
                 logger.error("❌ load_data retornó None")
                 return pd.DataFrame()
@@ -1301,7 +1152,6 @@ class PresupuestoProcessor:
                 logger.error("❌ Estructura de load_result inválida")
                 return pd.DataFrame()
 
-            # ROBUSTECIDO: Comparación segura de status
             status_value = getattr(load_result.status, "value", str(load_result.status))
             if status_value != "SUCCESS":
                 error_msg = getattr(load_result, "error_message", "Error desconocido")
@@ -1317,7 +1167,6 @@ class PresupuestoProcessor:
                 f"📊 DataFrame cargado: {len(df)} filas. Columnas: {list(df.columns)}"
             )
 
-            # Pipeline de procesamiento con validaciones intermedias
             df_clean = self._clean_phantom_rows(df)
             logger.info(f"👻 Filas tras limpieza fantasma: {len(df_clean)}")
 
@@ -1344,7 +1193,6 @@ class PresupuestoProcessor:
 
             df_final = self._remove_duplicates(df_converted)
 
-            # ROBUSTECIDO: Selección segura de columnas
             final_cols = [
                 ColumnNames.CODIGO_APU,
                 ColumnNames.DESCRIPCION_APU,
@@ -1376,18 +1224,12 @@ class PresupuestoProcessor:
         if df.empty:
             return df
 
-        # ROBUSTECIDO: Usar operaciones vectorizadas en lugar de apply
         initial_rows = len(df)
-
-        # Eliminar filas completamente NA
         df_clean = df.dropna(how="all")
 
-        # ROBUSTECIDO: Vectorizar la detección de filas vacías
-        # Convertir a string y verificar si todos los valores son vacíos
         str_df = df_clean.astype(str)
         empty_patterns = {"", "nan", "none", "nat", "<na>"}
 
-        # Crear máscara vectorizada
         is_empty_mask = str_df.apply(
             lambda col: col.str.strip().str.lower().isin(empty_patterns), axis=0
         ).all(axis=1)
@@ -1414,25 +1256,22 @@ class PresupuestoProcessor:
         if df is None or df.empty:
             return pd.DataFrame()
 
-        df = df.copy()  # ROBUSTECIDO: Evitar modificar DataFrame original
+        df = df.copy()
 
-        # Limpiar código APU
         clean_code_params = self.config.get("clean_apu_code_params", {}).get(
             "presupuesto_item", {}
         )
 
-        # ROBUSTECIDO: Manejar columna CODIGO_APU de forma segura
         if ColumnNames.CODIGO_APU not in df.columns:
             logger.error(f"❌ Columna '{ColumnNames.CODIGO_APU}' no encontrada")
             return pd.DataFrame()
 
         try:
-            # Wrapper seguro para limpieza
+
             def safe_clean(code):
                 try:
                     return clean_apu_code(code, **clean_code_params)
                 except (ValueError, TypeError):
-                    # No loguear cada error para no saturar, o loguear a nivel debug
                     return None
 
             df[ColumnNames.CODIGO_APU] = (
@@ -1442,10 +1281,8 @@ class PresupuestoProcessor:
             logger.error(f"❌ Error limpiando códigos APU: {e}")
             return pd.DataFrame()
 
-        # Eliminar filas donde la limpieza retornó None
         df = df.dropna(subset=[ColumnNames.CODIGO_APU])
 
-        # ROBUSTECIDO: Filtrar códigos inválidos de forma más clara
         invalid_codes = {"", "nan", "none", "null"}
         mask_valid = df[ColumnNames.CODIGO_APU].notna() & ~df[
             ColumnNames.CODIGO_APU
@@ -1457,22 +1294,17 @@ class PresupuestoProcessor:
             logger.warning("⚠️ No quedaron registros con códigos APU válidos")
             return df
 
-        # ROBUSTECIDO: Procesar cantidad con validaciones
         if ColumnNames.CANTIDAD_PRESUPUESTO in df.columns:
             try:
                 qty = df[ColumnNames.CANTIDAD_PRESUPUESTO].astype(str).str.strip()
-                # Normalizar separadores decimales
                 qty = qty.str.replace(",", ".", regex=False)
-                # Remover caracteres no numéricos excepto punto y signo negativo
                 qty = qty.str.replace(r"[^\d.\-]", "", regex=True)
-                # Manejar múltiples puntos decimales (mantener solo el último)
                 qty = qty.str.replace(r"\.(?=.*\.)", "", regex=True)
 
                 df[ColumnNames.CANTIDAD_PRESUPUESTO] = pd.to_numeric(
                     qty, errors="coerce"
                 ).fillna(0)
 
-                # ROBUSTECIDO: Validar rangos
                 max_qty = self.thresholds.max_quantity
                 mask_invalid_qty = df[ColumnNames.CANTIDAD_PRESUPUESTO] > max_qty
                 if mask_invalid_qty.any():
@@ -1535,12 +1367,8 @@ class InsumosProcessor:
             if not any(parts):
                 continue
 
-            # Detección de Grupo
-            # El formato observado es "G;MATERIALES;;..." o similar.
-            # A veces puede ser "G1;MATERIALES"
             first_col = parts[0].strip().upper()
             if first_col.startswith("G") and len(parts) > 1:
-                # Intentar obtener el nombre del grupo de la segunda columna
                 candidate_group = parts[1].strip()
                 if candidate_group:
                     logger.debug(
@@ -1548,11 +1376,9 @@ class InsumosProcessor:
                     )
                     current_group = candidate_group
                     logger.info(f"📂 Grupo detectado: {current_group}")
-                    header = None  # Reset header al cambiar de grupo
+                    header = None
                     continue
 
-            # Detección de Encabezado
-            # Buscamos coincidencia parcial de columnas clave
             if (
                 "CODIGO" in first_col
                 and len(parts) >= 2
@@ -1562,18 +1388,14 @@ class InsumosProcessor:
                 logger.info(f"📋 Encabezado detectado para grupo {current_group}: {header}")
                 continue
 
-            # Procesamiento de Datos
             if header and current_group:
-                # Validar que la línea parezca datos (ej. código no vacío)
                 if not parts[0]:
                     continue
 
                 record = {ColumnNames.GRUPO_INSUMO: current_group}
 
-                # Mapeo por índice basado en el encabezado detectado
                 for i, col_name in enumerate(header):
                     if i < len(parts):
-                        # Normalizar nombres de columnas para el dict interno
                         clean_col = col_name.upper().replace(".", "").strip()
                         if "DESCRIPCION" in clean_col:
                             record["DESCRIPCION"] = parts[i]
@@ -1586,7 +1408,6 @@ class InsumosProcessor:
                         elif "CANT" in clean_col:
                             record["CANTIDAD"] = parts[i]
 
-                # Solo agregamos si tenemos al menos descripción y valor
                 if "DESCRIPCION" in record:
                     records.append(record)
 
@@ -1598,11 +1419,10 @@ class InsumosProcessor:
             columns={
                 "DESCRIPCION": ColumnNames.DESCRIPCION_INSUMO,
                 "VR. UNIT.": ColumnNames.VR_UNITARIO_INSUMO,
-                "CODIGO": "CODIGO",  # Mantener CODIGO si existe
+                "CODIGO": "CODIGO",
                 "CANTIDAD": "CANTIDAD",
             }
         )
-        # Asegurar que CODIGO y CANTIDAD existan si no vinieron en el archivo
         if "CODIGO" not in df.columns:
             df["CODIGO"] = None
         if "CANTIDAD" not in df.columns:
@@ -1677,19 +1497,17 @@ class DataMerger(BaseCostProcessor):
     """
 
     def __init__(self, thresholds: ProcessingThresholds):
-        super().__init__({}, thresholds)  # Config vacío
+        super().__init__({}, thresholds)
         self._match_stats = {}
 
     def merge_apus_with_insumos(
         self, df_apus: pd.DataFrame, df_insumos: pd.DataFrame
     ) -> pd.DataFrame:
         """Merge con estadísticas detalladas."""
-        # Validación exhaustiva
         for name, df in [("APUs", df_apus), ("Insumos", df_insumos)]:
             if not self._validate_input(df, f"merge_{name.lower()}"):
                 return pd.DataFrame()
 
-        # Validación de esquemas
         apu_validation = DataFrameValidator.validate_schema(
             df_apus, [ColumnNames.DESCRIPCION_INSUMO]
         )
@@ -1703,10 +1521,7 @@ class DataMerger(BaseCostProcessor):
             )
             return pd.DataFrame()
 
-        # Merge con múltiples estrategias
         df_merged = self._merge_with_fallback(df_apus, df_insumos)
-
-        # Estadísticas
         self._log_merge_statistics(df_merged)
 
         return df_merged
@@ -1715,7 +1530,6 @@ class DataMerger(BaseCostProcessor):
         self, df_apus: pd.DataFrame, df_insumos: pd.DataFrame
     ) -> pd.DataFrame:
         """Merge con múltiples niveles de fallback."""
-        # Preparar datos
         if ColumnNames.NORMALIZED_DESC not in df_apus.columns:
             df_apus[ColumnNames.NORMALIZED_DESC] = normalize_text_series(
                 df_apus[ColumnNames.DESCRIPCION_INSUMO]
@@ -1726,24 +1540,18 @@ class DataMerger(BaseCostProcessor):
                 df_insumos.get(ColumnNames.DESCRIPCION_INSUMO, pd.Series(dtype=str))
             )
 
-        strategies = [
-            self._exact_merge,
-            # self._fuzzy_merge, # Deshabilitado por ahora
-            # self._heuristic_merge # Deshabilitado por ahora
-        ]
+        strategies = [self._exact_merge]
 
         for strategy in strategies:
             result = strategy(df_apus.copy(), df_insumos.copy())
             match_rate = self._calculate_match_rate(result)
 
-            # Verificación de umbral simple
             if match_rate > 0.0:
                 self.logger.info(
                     f"✅ Estrategia {strategy.__name__}: match={match_rate:.1%}"
                 )
                 return result
 
-        # Fallback final: usar lo que se pudo
         self.logger.warning("⚠️ Fallback a merge simple")
         return self._exact_merge(df_apus, df_insumos)
 
@@ -1759,14 +1567,12 @@ class DataMerger(BaseCostProcessor):
                 indicator="_merge",
             )
 
-            # Prioridad: 1. Maestro (_insumo), 2. Original APU (_apu), 3. Normalizada
             df_merged[ColumnNames.DESCRIPCION_INSUMO] = (
                 df_merged[f"{ColumnNames.DESCRIPCION_INSUMO}_insumo"]
                 .fillna(df_merged[f"{ColumnNames.DESCRIPCION_INSUMO}_apu"])
                 .fillna(df_merged[ColumnNames.NORMALIZED_DESC])
             )
 
-            # Verificación de nulos
             null_descriptions = df_merged[ColumnNames.DESCRIPCION_INSUMO].isnull().sum()
             empty_descriptions = (df_merged[ColumnNames.DESCRIPCION_INSUMO] == "").sum()
             total_null_empty = null_descriptions + empty_descriptions
@@ -1801,14 +1607,12 @@ class DataMerger(BaseCostProcessor):
         self, df_presupuesto: pd.DataFrame, df_apu_costos: pd.DataFrame
     ) -> pd.DataFrame:
         """Fusiona presupuesto con costos APU de forma robusta."""
-        # ROBUSTECIDO: Validaciones
         if not self._validate_input(df_presupuesto, "merge_presupuesto_left"):
             return pd.DataFrame()
 
         if not self._validate_input(df_apu_costos, "merge_presupuesto_right"):
             return df_presupuesto.copy()
 
-        # ROBUSTECIDO: Verificar columna de join
         if ColumnNames.CODIGO_APU not in df_presupuesto.columns:
             self.logger.error(f"❌ '{ColumnNames.CODIGO_APU}' no existe en presupuesto")
             return df_presupuesto.copy()
@@ -1831,7 +1635,6 @@ class DataMerger(BaseCostProcessor):
         except pd.errors.MergeError as e:
             self.logger.warning(f"⚠️ Duplicados detectados en merge 1:1: {e}")
 
-            # Intentar merge sin validación
             df_merged = pd.merge(
                 df_presupuesto,
                 df_apu_costos,
@@ -1852,13 +1655,6 @@ class DataMerger(BaseCostProcessor):
 class APUCostCalculator(BaseCostProcessor):
     """
     Calculador de costos APU con clasificación robusta.
-
-    MEJORAS APLICADAS:
-    1. Herencia de BaseCostProcessor.
-    2. Uso de Enum para tipos.
-    3. Patrones centralizados.
-    4. Validación de esquema.
-    5. Métricas de calidad.
     """
 
     def __init__(self, config: dict, thresholds: ProcessingThresholds):
@@ -1866,7 +1662,6 @@ class APUCostCalculator(BaseCostProcessor):
         self._setup_categoria_mapping()
         self._quality_metrics = {}
 
-        # Inicializar clasificador
         config_path = config.get("classification_rules_path", "config/config_rules.json")
         self.classifier = APUClassifier(config_path)
 
@@ -1884,11 +1679,9 @@ class APUCostCalculator(BaseCostProcessor):
 
     def calculate(self, df_merged: pd.DataFrame) -> Tuple[pd.DataFrame, ...]:
         """Punto de entrada principal con validación."""
-        # Validación de entrada
         if not self._validate_input(df_merged, "calculate"):
             return self._empty_results()
 
-        # Validación de esquema
         validation = DataFrameValidator.validate_schema(
             df_merged, [ColumnNames.CODIGO_APU, ColumnNames.COSTO_INSUMO_EN_APU]
         )
@@ -1896,7 +1689,6 @@ class APUCostCalculator(BaseCostProcessor):
             self.logger.error(f"Esquema inválido: {validation.errors}")
             return self._empty_results()
 
-        # Pipeline principal
         try:
             df_normalized = self._normalize_tipo_insumo(df_merged)
             df_costs = self._aggregate_costs(df_normalized)
@@ -1905,7 +1697,6 @@ class APUCostCalculator(BaseCostProcessor):
             df_time = self._calculate_time(df_normalized)
             df_perf = self._calculate_performance(df_normalized)
 
-            # Calcular métricas de calidad
             self._compute_quality_metrics(df_classified)
 
             return df_classified, df_time, df_perf
@@ -1918,11 +1709,10 @@ class APUCostCalculator(BaseCostProcessor):
         """Normalización con Enum y métricas."""
         df = df.copy()
 
-        # Inicializar con Enum
         if ColumnNames.TIPO_INSUMO not in df.columns:
             df[ColumnNames.TIPO_INSUMO] = InsumoType.OTROS.value
         else:
-            # Convertir strings a Enum (lógica simplificada para mapear string a InsumoType)
+
             def map_to_enum(val):
                 val_str = str(val).upper()
                 if "MATERIAL" in val_str or "SUMINISTRO" in val_str:
@@ -1937,12 +1727,10 @@ class APUCostCalculator(BaseCostProcessor):
 
             df[ColumnNames.TIPO_INSUMO] = df[ColumnNames.TIPO_INSUMO].apply(map_to_enum)
 
-        # Mapeo a categoría
         df["_CATEGORIA_COSTO"] = df[ColumnNames.TIPO_INSUMO].map(
             lambda x: self._tipo_to_categoria.get(x, ColumnNames.OTROS)
         )
 
-        # Estadísticas
         if not df.empty:
             stats = df["_CATEGORIA_COSTO"].value_counts(normalize=True) * 100
             self.logger.info(f"📊 Distribución categorías: {stats.to_dict()}")
@@ -1951,7 +1739,6 @@ class APUCostCalculator(BaseCostProcessor):
 
     def _aggregate_costs(self, df: pd.DataFrame) -> pd.DataFrame:
         """Agrega costos por categoría."""
-        # Agrupar por APU y Categoría
         costs = (
             df.groupby([ColumnNames.CODIGO_APU, "_CATEGORIA_COSTO"])[
                 ColumnNames.COSTO_INSUMO_EN_APU
@@ -1961,7 +1748,6 @@ class APUCostCalculator(BaseCostProcessor):
             .reset_index()
         )
 
-        # Asegurar columnas
         for col in [
             ColumnNames.MATERIALES,
             ColumnNames.MANO_DE_OBRA,
@@ -1976,7 +1762,6 @@ class APUCostCalculator(BaseCostProcessor):
     def _calculate_unit_values(self, df: pd.DataFrame) -> pd.DataFrame:
         df = df.copy()
 
-        # Calcular VALOR_TOTAL_APU (Costos Directos)
         components = [
             ColumnNames.MATERIALES,
             ColumnNames.MANO_DE_OBRA,
@@ -1986,7 +1771,6 @@ class APUCostCalculator(BaseCostProcessor):
 
         df[ColumnNames.PRECIO_UNIT_APU] = df[components].sum(axis=1)
 
-        # Asignar a columnas específicas requeridas por el esquema de salida
         df[ColumnNames.VALOR_SUMINISTRO_UN] = df[ColumnNames.MATERIALES]
         df[ColumnNames.VALOR_INSTALACION_UN] = (
             df[ColumnNames.MANO_DE_OBRA] + df[ColumnNames.EQUIPO]
@@ -1996,20 +1780,11 @@ class APUCostCalculator(BaseCostProcessor):
         return df
 
     def _classify_apus(self, df: pd.DataFrame) -> pd.DataFrame:
-        """
-        Clasifica APUs usando el clasificador configurable.
-
-        Args:
-            df: DataFrame con costos calculados.
-
-        Returns:
-            DataFrame con columna TIPO_APU añadida.
-        """
+        """Clasifica APUs usando el clasificador configurable."""
         if df.empty:
             logger.warning("DataFrame vacío en clasificación")
             return df
 
-        # Validar columnas requeridas
         required = [
             ColumnNames.VALOR_CONSTRUCCION_UN,
             ColumnNames.VALOR_SUMINISTRO_UN,
@@ -2022,7 +1797,6 @@ class APUCostCalculator(BaseCostProcessor):
                 df[ColumnNames.TIPO_APU] = self.classifier.default_type
                 return df
 
-        # Clasificar usando el clasificador dedicado
         df_classified = self.classifier.classify_dataframe(
             df=df,
             col_total=ColumnNames.VALOR_CONSTRUCCION_UN,
@@ -2031,7 +1805,6 @@ class APUCostCalculator(BaseCostProcessor):
             output_col=ColumnNames.TIPO_APU,
         )
 
-        # Validación de cobertura
         total_apus = len(df_classified)
         valid_apus = df_classified[
             (df_classified[ColumnNames.TIPO_APU] != self.classifier.default_type)
@@ -2046,24 +1819,24 @@ class APUCostCalculator(BaseCostProcessor):
         return df_classified
 
     def _calculate_time(self, df: pd.DataFrame) -> pd.DataFrame:
-        if ColumnNames.RENDIMIENTO not in df.columns:
-            return pd.DataFrame()
         return (
-            df.groupby(ColumnNames.CODIGO_APU)[ColumnNames.RENDIMIENTO]
-            .max()
+            df[df[ColumnNames.TIPO_INSUMO] == InsumoType.MANO_DE_OBRA]
+            .groupby(ColumnNames.CODIGO_APU)[ColumnNames.CANTIDAD_APU]
+            .sum()
             .reset_index()
-            .rename(columns={ColumnNames.RENDIMIENTO: ColumnNames.TIEMPO_INSTALACION})
+            .rename(columns={ColumnNames.CANTIDAD_APU: ColumnNames.TIEMPO_INSTALACION})
         )
 
     def _calculate_performance(self, df: pd.DataFrame) -> pd.DataFrame:
-        if ColumnNames.RENDIMIENTO not in df.columns:
-            return pd.DataFrame()
-        return (
-            df.groupby(ColumnNames.CODIGO_APU)[ColumnNames.RENDIMIENTO]
-            .max()
-            .reset_index()
-            .rename(columns={ColumnNames.RENDIMIENTO: ColumnNames.RENDIMIENTO_DIA})
-        )
+        if ColumnNames.RENDIMIENTO in df.columns:
+            return (
+                df[df[ColumnNames.TIPO_INSUMO] == InsumoType.MANO_DE_OBRA]
+                .groupby(ColumnNames.CODIGO_APU)[ColumnNames.RENDIMIENTO]
+                .sum()
+                .reset_index()
+                .rename(columns={ColumnNames.RENDIMIENTO: ColumnNames.RENDIMIENTO_DIA})
+            )
+        return pd.DataFrame()
 
     def _compute_quality_metrics(self, df: pd.DataFrame):
         """Calcula métricas de calidad del procesamiento."""
@@ -2090,26 +1863,6 @@ class APUCostCalculator(BaseCostProcessor):
         """Reporte de métricas de calidad."""
         return self._quality_metrics.copy()
 
-    def _calculate_time(self, df: pd.DataFrame) -> pd.DataFrame:
-        return (
-            df[df[ColumnNames.TIPO_INSUMO] == InsumoTypes.MANO_DE_OBRA]
-            .groupby(ColumnNames.CODIGO_APU)[ColumnNames.CANTIDAD_APU]
-            .sum()
-            .reset_index()
-            .rename(columns={ColumnNames.CANTIDAD_APU: ColumnNames.TIEMPO_INSTALACION})
-        )
-
-    def _calculate_performance(self, df: pd.DataFrame) -> pd.DataFrame:
-        if ColumnNames.RENDIMIENTO in df.columns:
-            return (
-                df[df[ColumnNames.TIPO_INSUMO] == InsumoTypes.MANO_DE_OBRA]
-                .groupby(ColumnNames.CODIGO_APU)[ColumnNames.RENDIMIENTO]
-                .sum()
-                .reset_index()
-                .rename(columns={ColumnNames.RENDIMIENTO: ColumnNames.RENDIMIENTO_DIA})
-            )
-        return pd.DataFrame()
-
 
 # ==================== FUNCIONES AUXILIARES ====================
 
@@ -2118,7 +1871,6 @@ def calculate_insumo_costs(
     df: pd.DataFrame, thresholds: ProcessingThresholds
 ) -> pd.DataFrame:
     """Calcula costos de insumos de forma robusta."""
-    # ROBUSTECIDO: Validaciones de entrada
     if df is None or not isinstance(df, pd.DataFrame):
         logger.error("❌ DataFrame inválido para cálculo de costos")
         return pd.DataFrame()
@@ -2126,9 +1878,8 @@ def calculate_insumo_costs(
     if df.empty:
         return df
 
-    df = df.copy()  # No modificar original
+    df = df.copy()
 
-    # ROBUSTECIDO: Asegurar existencia de columnas con tipos correctos
     numeric_columns = [
         ColumnNames.CANTIDAD_APU,
         ColumnNames.VR_UNITARIO_INSUMO,
@@ -2139,42 +1890,34 @@ def calculate_insumo_costs(
         if col not in df.columns:
             df[col] = 0.0
         else:
-            # Convertir a numérico de forma segura
             df[col] = pd.to_numeric(df[col], errors="coerce").fillna(0.0)
 
-    # ROBUSTECIDO: Validar rangos antes de calcular
     max_cost = thresholds.max_cost_per_item
     max_qty = thresholds.max_quantity
 
-    # Limitar valores extremos
     df[ColumnNames.CANTIDAD_APU] = df[ColumnNames.CANTIDAD_APU].clip(0, max_qty)
     df[ColumnNames.VR_UNITARIO_INSUMO] = df[ColumnNames.VR_UNITARIO_INSUMO].clip(0, max_cost)
 
-    # ROBUSTECIDO: Calcular costo con manejo explícito de casos
     tiene_precio = df[ColumnNames.VR_UNITARIO_INSUMO].notna() & (
         df[ColumnNames.VR_UNITARIO_INSUMO] > 0
     )
 
-    # Calcular costo: cantidad * precio unitario si hay precio, sino usar valor total
     df[ColumnNames.COSTO_INSUMO_EN_APU] = np.where(
         tiene_precio,
         df[ColumnNames.CANTIDAD_APU] * df[ColumnNames.VR_UNITARIO_INSUMO],
         df[ColumnNames.VALOR_TOTAL_APU],
     )
 
-    # ROBUSTECIDO: Validar resultado y limitar
     df[ColumnNames.COSTO_INSUMO_EN_APU] = (
         pd.to_numeric(df[ColumnNames.COSTO_INSUMO_EN_APU], errors="coerce")
         .fillna(0.0)
         .clip(0, thresholds.max_total_cost)
     )
 
-    # VR_UNITARIO_FINAL
     df[ColumnNames.VR_UNITARIO_FINAL] = (
         df[ColumnNames.VR_UNITARIO_INSUMO].fillna(0.0).clip(0, max_cost)
     )
 
-    # ROBUSTECIDO: Log de estadísticas para monitoreo
     total_costo = df[ColumnNames.COSTO_INSUMO_EN_APU].sum()
     registros_sin_costo = (df[ColumnNames.COSTO_INSUMO_EN_APU] == 0).sum()
 
@@ -2205,7 +1948,7 @@ def calculate_total_costs(
 
 
 def build_processed_apus_dataframe(df_costs, df_raw, df_time, df_perf):
-    return df_costs.copy()  # Simplificado
+    return df_costs.copy()
 
 
 def synchronize_data_sources(df_merged, df_final):
@@ -2214,7 +1957,6 @@ def synchronize_data_sources(df_merged, df_final):
 
 
 def build_output_dictionary(df_final, df_insumos, df_merged, df_raw, df_proc):
-    # Agrupar insumos por GRUPO_INSUMO para cumplir con el esquema del GovernanceEngine
     insumos_grouped = {}
     if not df_insumos.empty and ColumnNames.GRUPO_INSUMO in df_insumos.columns:
         insumos_grouped = (
@@ -2223,7 +1965,6 @@ def build_output_dictionary(df_final, df_insumos, df_merged, df_raw, df_proc):
             .to_dict()
         )
     elif not df_insumos.empty:
-        # Fallback si no hay columna de grupo, poner todo bajo 'GENERAL'
         insumos_grouped = {"GENERAL": df_insumos.to_dict("records")}
 
     return {
@@ -2244,9 +1985,7 @@ def process_all_files(
     config: dict,
     telemetry: TelemetryContext,
 ) -> dict:
-    """
-    Entry point refactorizado para usar PipelineDirector y Telemetry.
-    """
+    """Entry point refactorizado para usar PipelineDirector y Telemetry."""
     logger.info("🚀 Iniciando procesamiento via PipelineDirector")
 
     director = PipelineDirector(config, telemetry)
@@ -2261,7 +2000,6 @@ def process_all_files(
         final_context = director.execute_pipeline_orchestrated(initial_context)
         final_result = final_context.get("final_result", {})
 
-        # Guardado de archivos (lógica simplificada integrada aquí o delegada)
         output_dir = Path(config.get("output_dir", "data"))
         output_files = {
             "processed_apus": output_dir
@@ -2280,13 +2018,9 @@ def process_all_files(
 
 
 def _save_output_files(result: dict, output_files: dict, config: dict) -> Dict[str, bool]:
-    """
-    Guarda archivos de salida de forma robusta.
-    Retorna diccionario con estado de cada archivo.
-    """
+    """Guarda archivos de salida de forma robusta."""
     import json
 
-    # ROBUSTECIDO: Validar entradas
     if not result or not isinstance(result, dict):
         logger.error("❌ Resultado vacío o inválido para guardar")
         return {}
@@ -2299,7 +2033,6 @@ def _save_output_files(result: dict, output_files: dict, config: dict) -> Dict[s
 
     for name, path in output_files.items():
         try:
-            # ROBUSTECIDO: Verificar que hay datos para guardar
             if name not in result:
                 logger.debug(f"Clave '{name}' no encontrada en resultado, saltando")
                 save_status[name] = False
@@ -2311,7 +2044,6 @@ def _save_output_files(result: dict, output_files: dict, config: dict) -> Dict[s
                 save_status[name] = False
                 continue
 
-            # ROBUSTECIDO: Crear directorio si no existe
             path = Path(path)
             try:
                 path.parent.mkdir(parents=True, exist_ok=True)
@@ -2324,7 +2056,6 @@ def _save_output_files(result: dict, output_files: dict, config: dict) -> Dict[s
                 save_status[name] = False
                 continue
 
-            # ROBUSTECIDO: Sanitizar datos antes de serializar
             try:
                 sanitized_data = sanitize_for_json(data)
             except Exception as e:
@@ -2332,7 +2063,6 @@ def _save_output_files(result: dict, output_files: dict, config: dict) -> Dict[s
                 save_status[name] = False
                 continue
 
-            # ROBUSTECIDO: Escritura atómica con archivo temporal
             temp_path = path.with_suffix(".tmp")
 
             try:
@@ -2342,17 +2072,15 @@ def _save_output_files(result: dict, output_files: dict, config: dict) -> Dict[s
                         f,
                         indent=2,
                         ensure_ascii=False,
-                        default=str,  # Fallback para tipos no serializables
+                        default=str,
                     )
 
-                # Mover archivo temporal a destino final
                 temp_path.replace(path)
                 logger.info(f"✅ Archivo guardado: {path}")
                 save_status[name] = True
 
             except Exception as e:
                 logger.error(f"❌ Error escribiendo '{name}': {e}")
-                # Limpiar archivo temporal si existe
                 if temp_path.exists():
                     try:
                         temp_path.unlink()
@@ -2364,7 +2092,6 @@ def _save_output_files(result: dict, output_files: dict, config: dict) -> Dict[s
             logger.error(f"❌ Error inesperado guardando '{name}': {e}")
             save_status[name] = False
 
-    # ROBUSTECIDO: Resumen de guardado
     successful = sum(1 for v in save_status.values() if v)
     total = len(save_status)
     logger.info(f"📁 Archivos guardados: {successful}/{total}")
