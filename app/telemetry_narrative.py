@@ -6,7 +6,7 @@ con la claridad estructural del modelo DIKW (Data -> Information -> Knowledge ->
 
 Arquitectura:
 1.  **Lógica Algebraica**: Usa un retículo (Lattice) acotado para calcular el estado
-    global mediante operaciones de supremo (sup).
+    global mediante operaciones de supremo (sup) e ínfimo (inf).
 2.  **Estructura DIKW**: Genera reportes tipados (NarrativeReport) con evidencia
     forense enriquecida con trazabilidad topológica.
 """
@@ -24,7 +24,12 @@ from app.telemetry import StepStatus, TelemetryContext, TelemetrySpan
 class SeverityLevel(IntEnum):
     """
     Lattice de severidad con orden total.
-    Estructura algebraica: (SeverityLevel, ≤, ⊔, ⊓) forma un lattice acotado.
+    Estructura algebraica: (SeverityLevel, ≤, ⊔, ⊓) forma un lattice acotado completo.
+
+    Propiedades verificadas:
+    - ⊥ = OPTIMO (elemento mínimo)
+    - ⊤ = CRITICO (elemento máximo)
+    - ∀a,b: a ⊔ b = max(a,b), a ⊓ b = min(a,b)
     """
 
     OPTIMO = 0
@@ -33,26 +38,51 @@ class SeverityLevel(IntEnum):
 
     @classmethod
     def from_step_status(cls, status: StepStatus) -> "SeverityLevel":
-        """Morfismo: StepStatus → SeverityLevel."""
+        """
+        Morfismo: StepStatus → SeverityLevel.
+        Preserva estructura de orden entre dominios.
+        """
         mapping = {
             StepStatus.SUCCESS: cls.OPTIMO,
             StepStatus.WARNING: cls.ADVERTENCIA,
             StepStatus.FAILURE: cls.CRITICO,
         }
-        # Manejo robusto por si status es string o enum
+
+        # Normalización robusta de entrada heterogénea
         if isinstance(status, str):
-            status = StepStatus.from_string(status)
+            try:
+                status = StepStatus.from_string(status)
+            except (ValueError, AttributeError, KeyError):
+                return cls.OPTIMO
+
         return mapping.get(status, cls.OPTIMO)
 
     @classmethod
     def supremum(cls, *levels: "SeverityLevel") -> "SeverityLevel":
         """
         Operación join (⊔) en el lattice.
-        sup(∅) = OPTIMO (elemento neutro inferior).
+
+        Propiedades algebraicas:
+        - sup(∅) = ⊥ = OPTIMO (identidad del join)
+        - Asociatividad: sup(a, sup(b, c)) = sup(sup(a, b), c)
+        - Conmutatividad: sup(a, b) = sup(b, a)
+        - Idempotencia: sup(a, a) = a
         """
         if not levels:
             return cls.OPTIMO
-        return max(levels, key=lambda x: x.value)
+        return cls(max(level.value for level in levels))
+
+    @classmethod
+    def infimum(cls, *levels: "SeverityLevel") -> "SeverityLevel":
+        """
+        Operación meet (⊓) en el lattice.
+
+        inf(∅) = ⊤ = CRITICO (identidad del meet).
+        Dual del supremum bajo la relación de orden.
+        """
+        if not levels:
+            return cls.CRITICO
+        return cls(min(level.value for level in levels))
 
 
 # --- Estructuras de Datos (DIKW) ---
@@ -69,15 +99,26 @@ class Issue:
     topological_path: str
     timestamp: Optional[str] = None
 
+    # Tipos que no bloquean ejecución
+    _NON_CRITICAL_TYPES: frozenset = frozenset({"Warning", "Info", "Metric"})
+
+    @property
+    def is_critical(self) -> bool:
+        """Predicado: π(issue) → {True, False} para clasificación bloqueante."""
+        return self.issue_type not in self._NON_CRITICAL_TYPES
+
     def to_dict(self) -> Dict[str, Any]:
-        return {
+        """Serialización con exclusión de campos nulos (sparse representation)."""
+        result = {
             "source": self.source,
             "message": self.message,
             "type": self.issue_type,
             "depth": self.depth,
             "topological_path": self.topological_path,
-            "timestamp": self.timestamp,
         }
+        if self.timestamp is not None:
+            result["timestamp"] = self.timestamp
+        return result
 
 
 @dataclass
@@ -90,16 +131,29 @@ class PhaseAnalysis:
     issues: List[Issue]
     warning_count: int
 
+    MAX_DISPLAYED_WARNINGS: int = 5
+
+    @property
+    def critical_issues(self) -> List[Issue]:
+        """Proyección lazy: π_crítico(Issues)."""
+        return [i for i in self.issues if i.is_critical]
+
+    @property
+    def warnings(self) -> List[Issue]:
+        """Proyección lazy: π_warning(Issues)."""
+        return [i for i in self.issues if not i.is_critical]
+
     def to_dict(self) -> Dict[str, Any]:
+        """Serialización estructurada con proyecciones cacheables."""
         return {
             "name": self.name,
             "status": self.severity.name,
             "duration": f"{self.duration_seconds:.2f}s",
-            "critical_issues": [
-                i.to_dict() for i in self.issues if i.issue_type != "Warning"
-            ],
+            "critical_issues": [i.to_dict() for i in self.critical_issues],
             "warning_count": self.warning_count,
-            "warnings": [i.to_dict() for i in self.issues if i.issue_type == "Warning"][:5],
+            "warnings": [
+                i.to_dict() for i in self.warnings[: self.MAX_DISPLAYED_WARNINGS]
+            ],
         }
 
 
@@ -115,7 +169,7 @@ class NarrativeReport:
     def to_dict(self) -> Dict[str, Any]:
         return {
             "verdict": self.verdict,
-            "narrative": self.summary,  # Mapped to 'narrative' key for compatibility
+            "narrative": self.summary,
             "phases": self.phases,
             "forensic_evidence": self.evidence,
         }
@@ -127,7 +181,11 @@ class NarrativeReport:
 class TelemetryNarrator:
     """
     Narrador Híbrido: Algebraico (Lattice) + Estructural (DIKW).
-    Calcula el riesgo con álgebra y lo explica con claridad estructural.
+
+    Composición de funtores:
+    - F: TelemetryContext → List[PhaseAnalysis]  (análisis)
+    - G: List[PhaseAnalysis] → NarrativeReport   (síntesis)
+    - Narrador = G ∘ F
     """
 
     MAX_FORENSIC_EVIDENCE: int = 10
@@ -136,32 +194,26 @@ class TelemetryNarrator:
     def summarize_execution(self, context: TelemetryContext) -> Dict[str, Any]:
         """
         Punto de entrada principal.
-        1. Analiza fases usando lógica algebraica (Lattice).
-        2. Genera reporte estructurado (DIKW).
+        Composición: Estructuración DIKW ∘ Análisis Algebraico.
         """
         root_spans = context.root_spans
 
-        # Fallback legacy si no hay estructura jerárquica
         if not root_spans:
             if context.steps:
                 return self._summarize_legacy(context).to_dict()
             return self._generate_empty_report()
 
-        # Functor de análisis: Span → PhaseAnalysis
+        # Functor F: Span → PhaseAnalysis
         phases_analysis: List[PhaseAnalysis] = [
             self._analyze_phase(span) for span in root_spans
         ]
 
-        # Cálculo del supremo global (join en el lattice de severidades)
-        # Estado Global = sup({Estado(Fase_i)})
+        # Cálculo del supremo global: ⊔{σ(φ) | φ ∈ Fases}
         global_severity = SeverityLevel.supremum(
             *(phase.severity for phase in phases_analysis)
         )
 
-        # Agregación de evidencia (Issues críticos)
         all_criticals = self._aggregate_critical_issues(phases_analysis)
-
-        # Conteo de advertencias
         total_warnings = sum(p.warning_count for p in phases_analysis)
 
         report = NarrativeReport(
@@ -179,30 +231,26 @@ class TelemetryNarrator:
 
     def _analyze_phase(self, span: TelemetrySpan) -> PhaseAnalysis:
         """
-        Analiza un span de nivel raíz.
-        Calcula severidad usando supremo (Lattice).
+        Análisis de span raíz mediante propagación de severidad.
+
+        Teorema de composición:
+        σ(Fase) = sup(σ_directa(span), σ_inducida(issues))
+
+        donde σ_inducida = sup({σ(i) | i ∈ Issues(Fase)})
         """
-        # Recolección recursiva con paso de ruta topológica
-        # El path inicial es el nombre de la fase raíz
         issues = list(self._collect_issues_recursive(span, depth=0, path_prefix=""))
 
-        # Separar warnings de errores críticos
-        warnings = [i for i in issues if i.issue_type == "Warning"]
-        criticals = [i for i in issues if i.issue_type != "Warning"]
+        # Partición: Issues = Críticos ⊔ Warnings
+        criticals = [i for i in issues if i.is_critical]
+        warnings = [i for i in issues if not i.is_critical]
 
-        # 1. Severidad directa del span (Estado explícito)
+        # σ_directa: morfismo desde estado del span
         direct_severity = SeverityLevel.from_step_status(span.status)
 
-        # 2. Severidad inducida (Propagación de hijos hacia arriba)
-        # Si hay issues críticos, la fase es CRÍTICA.
-        # Si solo hay warnings y el estado es OPTIMO, la fase es ADVERTENCIA.
-        induced_severity = SeverityLevel.OPTIMO
-        if criticals:
-            induced_severity = SeverityLevel.CRITICO
-        elif warnings and direct_severity == SeverityLevel.OPTIMO:
-            induced_severity = SeverityLevel.ADVERTENCIA
+        # σ_inducida: propagación bottom-up desde issues
+        induced_severity = self._compute_induced_severity(criticals, warnings)
 
-        # Supremo final de la fase
+        # Supremo: propiedad fundamental del lattice
         final_severity = SeverityLevel.supremum(direct_severity, induced_severity)
 
         duration = span.duration if span.duration is not None else 0.0
@@ -215,15 +263,37 @@ class TelemetryNarrator:
             warning_count=len(warnings),
         )
 
+    def _compute_induced_severity(
+        self, criticals: List[Issue], warnings: List[Issue]
+    ) -> SeverityLevel:
+        """
+        Calcula severidad inducida por presencia de issues.
+
+        Función característica:
+        σ_inducida = CRITICO      si |Críticos| > 0
+                   = ADVERTENCIA  si |Warnings| > 0 ∧ |Críticos| = 0
+                   = OPTIMO       si |Issues| = 0
+        """
+        if criticals:
+            return SeverityLevel.CRITICO
+        if warnings:
+            return SeverityLevel.ADVERTENCIA
+        return SeverityLevel.OPTIMO
+
     def _collect_issues_recursive(
         self, span: TelemetrySpan, depth: int, path_prefix: str
     ) -> Iterator[Issue]:
         """
-        Generador recursivo de issues con trazabilidad topológica.
-        Pasa el 'path_prefix' hacia abajo para construir la ruta completa.
+        Recorrido DFS con trazabilidad topológica.
+
+        Invariantes:
+        - path_prefix: camino desde raíz hasta padre
+        - depth: distancia geodésica desde raíz
+        - Cada Issue contiene coordenadas exactas en el árbol
         """
         current_path = f"{path_prefix} → {span.name}" if path_prefix else span.name
 
+        # Guard contra ciclos o profundidad excesiva
         if depth > self.MAX_RECURSION_DEPTH:
             yield Issue(
                 source=span.name,
@@ -234,19 +304,11 @@ class TelemetryNarrator:
             )
             return
 
-        # 1. Errores explícitos
-        for error in span.errors:
-            yield Issue(
-                source=span.name,
-                message=error.get("message", "Error sin mensaje"),
-                issue_type=error.get("type", "Error"),
-                depth=depth,
-                timestamp=error.get("timestamp"),
-                topological_path=current_path,
-            )
+        # 1. Extracción de errores explícitos
+        yield from self._extract_explicit_errors(span, depth, current_path)
 
-        # 2. Fallos silenciosos (Topological Gap)
-        if span.status == StepStatus.FAILURE and not span.errors:
+        # 2. Detección de fallos silenciosos (gap topológico)
+        if self._is_silent_failure(span):
             yield Issue(
                 source=span.name,
                 message="Fallo estructural sin traza explícita (Silent Failure)",
@@ -255,18 +317,8 @@ class TelemetryNarrator:
                 topological_path=current_path,
             )
 
-        # 3. Métricas anómalas (Warnings)
-        # Verificamos si hay métricas marcadas como anómalas o warnings implícitos
-        if hasattr(span, "metrics"):
-            for name, value in span.metrics.items():
-                # Heurística simple: si la métrica contiene "warning" en el nombre
-                # O si pudiéramos acceder a metadatos de anomalía (span.metrics es dict simple value)
-                # Propuesta 2 sugería metric.get("anomalous"), pero span.metrics es Dict[str, Any] values.
-                # Revisamos si hay metadata de métricas anómalas si existiera, o usamos span.status WARNING
-                pass
-
-        # Si el span es WARNING pero no tiene errores, generamos un Issue tipo Warning
-        if span.status == StepStatus.WARNING and not span.errors:
+        # 3. Detección de warnings implícitos
+        if self._is_implicit_warning(span):
             yield Issue(
                 source=span.name,
                 message="Advertencia de fase (Estado WARNING)",
@@ -275,9 +327,71 @@ class TelemetryNarrator:
                 topological_path=current_path,
             )
 
-        # Recursión sobre hijos
+        # 4. Métricas anómalas
+        yield from self._extract_anomalous_metrics(span, depth, current_path)
+
+        # Recursión sobre hijos (inducción estructural)
         for child in span.children:
             yield from self._collect_issues_recursive(child, depth + 1, current_path)
+
+    def _extract_explicit_errors(
+        self, span: TelemetrySpan, depth: int, path: str
+    ) -> Iterator[Issue]:
+        """Proyección de errores explícitos registrados en el span."""
+        for error in span.errors:
+            yield Issue(
+                source=span.name,
+                message=error.get("message", "Error sin mensaje"),
+                issue_type=error.get("type", "Error"),
+                depth=depth,
+                timestamp=error.get("timestamp"),
+                topological_path=path,
+            )
+
+    def _is_silent_failure(self, span: TelemetrySpan) -> bool:
+        """
+        Detecta gap topológico: fallo sin evidencia explícita.
+        Predicado: status = FAILURE ∧ errors = ∅
+        """
+        return span.status == StepStatus.FAILURE and not span.errors
+
+    def _is_implicit_warning(self, span: TelemetrySpan) -> bool:
+        """
+        Detecta warning sin error asociado.
+        Predicado: status = WARNING ∧ errors = ∅
+        """
+        return span.status == StepStatus.WARNING and not span.errors
+
+    def _extract_anomalous_metrics(
+        self, span: TelemetrySpan, depth: int, path: str
+    ) -> Iterator[Issue]:
+        """
+        Extrae issues de métricas anómalas.
+
+        Soporta formatos:
+        1. Dict[str, Numeric] - valores simples (sin detección)
+        2. Dict[str, Dict] - estructurado: {'value': x, 'anomalous': bool}
+        """
+        metrics = getattr(span, "metrics", None)
+        if not metrics or not isinstance(metrics, dict):
+            return
+
+        for metric_name, metric_data in metrics.items():
+            is_anomalous = False
+            display_value = metric_data
+
+            if isinstance(metric_data, dict):
+                is_anomalous = bool(metric_data.get("anomalous", False))
+                display_value = metric_data.get("value", metric_data)
+
+            if is_anomalous:
+                yield Issue(
+                    source=span.name,
+                    message=f"Métrica anómala: {metric_name}={display_value}",
+                    issue_type="Warning",
+                    depth=depth,
+                    topological_path=path,
+                )
 
     def _generate_verdict(
         self,
@@ -286,39 +400,53 @@ class TelemetryNarrator:
         total_criticals: int,
         total_warnings: int,
     ) -> str:
-        """Genera el resumen ejecutivo basado en el veredicto algebraico."""
-        if severity == SeverityLevel.OPTIMO:
-            return f"Ejecución óptima de {total_phases} fases. Consistencia topológica verificada."
-        elif severity == SeverityLevel.ADVERTENCIA:
-            return f"Ejecución con {total_warnings} advertencias en {total_phases} fases. Se recomienda revisión."
-        else:
-            return f"FALLO CRÍTICO. Se detectaron {total_criticals} problemas bloqueantes. Integridad comprometida."
+        """
+        Morfismo de narrativa: SeverityLevel → String.
+        Transforma veredicto algebraico en texto ejecutivo.
+        """
+        templates = {
+            SeverityLevel.OPTIMO: (
+                f"Ejecución óptima de {total_phases} fase(s). "
+                "Consistencia topológica verificada."
+            ),
+            SeverityLevel.ADVERTENCIA: (
+                f"Ejecución con {total_warnings} advertencia(s) en {total_phases} fase(s). "
+                "Se recomienda revisión."
+            ),
+            SeverityLevel.CRITICO: (
+                f"FALLO CRÍTICO: {total_criticals} problema(s) bloqueante(s) detectado(s). "
+                "Integridad comprometida."
+            ),
+        }
+        return templates.get(severity, "Estado indeterminado.")
 
     def _aggregate_critical_issues(self, phases: List[PhaseAnalysis]) -> List[Issue]:
-        """Agrega solo issues críticos de todas las fases, ordenados por profundidad."""
+        """
+        Agregación de issues críticos con ordenamiento topológico.
+        Orden: (depth, source) - BFS lexicográfico.
+        """
         all_issues = chain.from_iterable(phase.issues for phase in phases)
-        criticals = [i for i in all_issues if i.issue_type != "Warning"]
+        criticals = [issue for issue in all_issues if issue.is_critical]
         return sorted(criticals, key=lambda i: (i.depth, i.source))
 
     def _summarize_legacy(self, context: TelemetryContext) -> NarrativeReport:
-        """Modo de compatibilidad para contextos planos."""
+        """
+        Modo compatibilidad para contextos planos (sin jerarquía).
+        Preserva contrato de salida con proyección a estructura Global.
+        """
         errors = context.errors or []
         severity = SeverityLevel.CRITICO if errors else SeverityLevel.OPTIMO
-
-        try:
-            summary = context.get_summary()
-            duration = summary.get("total_duration_seconds", 0.0)
-        except Exception:
-            duration = 0.0
+        duration = self._safe_extract_duration(context)
 
         evidence = [
             {
                 "source": "legacy",
-                "message": str(e.get("message", e)),
-                "type": e.get("type", "LegacyError"),
+                "message": self._safe_error_message(e),
+                "type": self._safe_error_type(e),
+                "depth": 0,
                 "topological_path": "Global",
             }
-            for e in errors[:10]
+            for e in errors[: self.MAX_FORENSIC_EVIDENCE]
         ]
 
         return NarrativeReport(
@@ -337,10 +465,35 @@ class TelemetryNarrator:
             evidence=evidence,
         )
 
+    def _safe_extract_duration(self, context: TelemetryContext) -> float:
+        """Extracción defensiva de duración."""
+        try:
+            summary = context.get_summary()
+            raw_duration = summary.get("total_duration_seconds", 0.0)
+            return float(raw_duration) if raw_duration is not None else 0.0
+        except (AttributeError, TypeError, ValueError, KeyError):
+            return 0.0
+
+    def _safe_error_message(self, error: Any) -> str:
+        """Extracción defensiva de mensaje de error."""
+        if isinstance(error, dict):
+            return str(error.get("message", error))
+        return str(error)
+
+    def _safe_error_type(self, error: Any) -> str:
+        """Extracción defensiva de tipo de error."""
+        if isinstance(error, dict):
+            return str(error.get("type", "LegacyError"))
+        return "LegacyError"
+
     def _generate_empty_report(self) -> Dict[str, Any]:
+        """
+        Genera reporte para contexto vacío.
+        Elemento neutro del espacio de reportes.
+        """
         return {
             "verdict": SeverityLevel.OPTIMO.name,
             "narrative": "Sin telemetría registrada. Contexto vacío.",
             "phases": [],
-            "forensic_evidence": self.evidence if hasattr(self, "evidence") else [],
+            "forensic_evidence": [],
         }

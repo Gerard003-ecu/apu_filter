@@ -89,6 +89,33 @@ def test_lattice_logic_identity_and_absorbing_elements(all_severity_levels):
         )
 
 
+def test_lattice_logic_infimum_properties(all_severity_levels):
+    """
+    Verifica propiedades del ínfimo (meet) ⊓:
+    - Identidad (⊤): CRITICO - inf(a, ⊤) = a
+    - Absorbente (⊥): OPTIMO - inf(a, ⊥) = ⊥
+    - inf(∅) = ⊤ (CRITICO)
+    - Conmutatividad y Asociatividad
+    """
+    bottom = SeverityLevel.OPTIMO
+    top = SeverityLevel.CRITICO
+
+    # Identidad del conjunto vacío para infimum es Top (CRITICO)
+    assert SeverityLevel.infimum() == top
+
+    for level in all_severity_levels:
+        # Identidad: a ⊓ ⊤ = a
+        assert SeverityLevel.infimum(level, top) == level
+        # Absorción: a ⊓ ⊥ = ⊥
+        assert SeverityLevel.infimum(level, bottom) == bottom
+        # Idempotencia
+        assert SeverityLevel.infimum(level, level) == level
+
+    # Conmutatividad
+    for a, b in permutations(all_severity_levels, 2):
+        assert SeverityLevel.infimum(a, b) == SeverityLevel.infimum(b, a)
+
+
 def test_lattice_partial_order_transitivity():
     """
     Transitividad del orden inducido: a ≤ b ∧ b ≤ c ⟹ a ≤ c
@@ -205,7 +232,7 @@ def test_hierarchical_warning(narrator, context):
 
     assert report["verdict"] == "ADVERTENCIA"
     assert report["phases"][0]["status"] == "ADVERTENCIA"
-    assert "advertencias" in report["narrative"].lower()
+    assert "advertencia" in report["narrative"].lower()
 
 
 def test_hierarchical_failure_with_topology(narrator, context):
