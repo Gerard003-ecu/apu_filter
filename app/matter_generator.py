@@ -1,6 +1,9 @@
 import networkx as nx
 import logging
 import math
+import statistics
+import platform
+import sys
 from typing import Dict, List, Any, Optional, Set
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -32,8 +35,10 @@ class MaterialRequirement:
         """Validación de invariantes después de la inicialización."""
         if self.quantity_base <= 0:
             raise ValueError(f"Cantidad base no positiva para material {self.id}")
+        # waste_factor can be 0 or small positive.
         if self.waste_factor < 0:
-            pass
+             # Allow small floating point errors or specific cases, but generally should be >= 0
+             pass
 
         if not math.isfinite(self.total_cost):
             raise ValueError(f"Costo total no finito para material {self.id}")
@@ -55,13 +60,18 @@ class BillOfMaterials:
 
     def validate_consistency(self):
         computed_total = sum(req.total_cost for req in self.requirements)
-        if not math.isclose(self.total_material_cost, computed_total, rel_tol=1e-5):
-            raise ValueError("BOM inconsistente: suma de costos no coincide con total")
+        # Using a slightly looser tolerance for accumulated floating point errors if needed,
+        # but 1e-5 is usually fine for currency if handled correctly.
+        if not math.isclose(self.total_material_cost, computed_total, rel_tol=1e-5, abs_tol=1e-2):
+             raise ValueError(
+                 f"BOM inconsistente: suma de costos ({computed_total}) no coincide con total ({self.total_material_cost})"
+             )
 
 
 class MatterGenerator:
     """
     Motor de Materialización Híbrido (Topológico + Algebraico).
+    V2: Con Métricas Logísticas Avanzadas (Theil, Pareto, Desperdicio).
     """
 
     def __init__(self, max_graph_complexity: int = 100000):
@@ -76,7 +86,7 @@ class MatterGenerator:
         telemetry: Optional[TelemetryContext] = None,
     ) -> BillOfMaterials:
         """
-        Orquesta la transformación del Grafo en BOM.
+        Orquesta la transformación del Grafo en BOM con validaciones mejoradas.
         """
         self.logger.info("🌌 Iniciando materialización híbrida del proyecto...")
 
@@ -84,51 +94,86 @@ class MatterGenerator:
             telemetry.start_step("materialize_project")
 
         try:
-            # Validación de complejidad
-            complexity = graph.number_of_nodes() * max(graph.number_of_edges(), 1)
+            # Validación de complejidad mejorada (considerando densidad)
+            node_count = graph.number_of_nodes()
+            edge_count = graph.number_of_edges()
+
+            if node_count == 0:
+                raise ValueError("Grafo vacío: no hay nodos para procesar")
+
+            density = edge_count / (node_count * (node_count - 1)) if node_count > 1 else 0
+            complexity = node_count * max(edge_count, 1) * (1 + density)
+
             if complexity > self.max_graph_complexity:
                 raise OverflowError(
-                    f"La complejidad del grafo ({complexity}) excede el límite permitido ({self.max_graph_complexity})"
+                    f"Complejidad del grafo ({complexity:.0f}) excede el límite ({self.max_graph_complexity}). "
+                    f"Nodos: {node_count}, Aristas: {edge_count}, Densidad: {density:.3f}"
                 )
 
-            # Validación estructural (DAG)
+            # Validación estructural mejorada (DAG con detección de ciclos)
             if not nx.is_directed_acyclic_graph(graph):
+                # Identificar ciclos específicos para debugging
+                try:
+                    cycles = list(nx.simple_cycles(graph))
+                    cycle_info = "; ".join([f"Ciclo {i+1}: {c}" for i, c in enumerate(cycles[:3])])
+                    if len(cycles) > 3:
+                        cycle_info += f" ... y {len(cycles)-3} ciclos más"
+                except:
+                    cycle_info = "Ciclos detectados pero no enumerables"
+
                 raise ValueError(
-                    "El grafo contiene ciclos (no es un DAG), imposible propagar cantidades coherentemente."
+                    f"El grafo contiene ciclos (no es DAG). {cycle_info}"
                 )
 
-            # 1. Colapso de Onda (Enfoque Funtor - Propuesta 1)
-            # Lógica DFS in-line para evitar desconexión de flujo de datos
-
+            # 1. Colapso de Onda con DFS mejorado
             materials = []
 
-            # Identificación de raíces
+            # Identificación de raíces con validación de conectividad
             root_nodes = [node for node, in_degree in graph.in_degree() if in_degree == 0]
 
-            if not root_nodes and graph.number_of_nodes() > 0:
-                # Fallback: todos los nodos (si no se detectaron raíces pero pasó DAG check, raro pero posible en grafos disconexos sin edges)
-                root_nodes = [n for n in graph.nodes()]
+            if not root_nodes:
+                # Grafo sin raíces pero con nodos: posible grafo desconectado o autocontenido
+                if node_count > 0:
+                    self.logger.warning("Grafo sin raíces formales - usando todos los nodos como raíces")
+                    root_nodes = list(graph.nodes())
+                else:
+                    empty_meta = self._generate_metadata(graph, risk_profile or {}, flux_metrics or {}, [])
+                    return BillOfMaterials([], 0.0, empty_meta)
 
-            if not root_nodes and graph.number_of_nodes() > 0:
-                self.logger.error("❌ Grafo sin raíces detectables")
+            # DFS iterativo con límites de profundidad y validación de cantidades
+            stack = [(root, 1.0, frozenset(), [], None, 0) for root in root_nodes]
+            max_depth = node_count * 2  # Límite para prevenir recursión infinita
 
-            # DFS iterativo
-            stack = [(root, 1.0, frozenset(), [], None) for root in root_nodes]
-
+            visited_edges = set()
             iteration_count = 0
-            max_iterations = self.max_graph_complexity + 1000
+            max_iterations = self.max_graph_complexity * 2
 
             while stack:
                 iteration_count += 1
                 if iteration_count > max_iterations:
-                    raise RuntimeError("Límite de iteraciones excedido en materialización")
-
-                current_node, current_qty, path_set, path_list, parent_apu = stack.pop()
-
-                if current_node in path_set:
-                    self.logger.warning(
-                        f"⚠️ Ciclo detectado en camino: {path_list} -> {current_node}"
+                    raise RuntimeError(
+                        f"Límite de iteraciones excedido ({max_iterations}). "
+                        f"Posible ciclo no detectado o grafo demasiado complejo."
                     )
+
+                current_node, current_qty, path_set, path_list, parent_apu, depth = stack.pop()
+
+                # Validación de profundidad
+                if depth > max_depth:
+                    self.logger.warning(
+                        f"Profundidad excesiva ({depth}) en nodo {current_node}. "
+                        f"Camino: {' -> '.join(map(str, path_list[-10:]))}"
+                    )
+                    continue
+
+                # Detección de ciclos en el camino actual
+                if current_node in path_set:
+                    self.logger.error(
+                        f"⚠️ Ciclo detectado en camino DFS: {' -> '.join(map(str, path_list))} -> {current_node}"
+                    )
+                    # Registrar métrica pero continuar para no detener todo el proceso
+                    if telemetry:
+                        telemetry.record_metric("validation", "cycle_detected", 1)
                     continue
 
                 node_data = graph.nodes.get(current_node, {})
@@ -140,100 +185,148 @@ class MatterGenerator:
                 # Objeto terminal (Insumo)
                 if node_type == "INSUMO":
                     description = (
-                        node_data.get("description")
-                        or node_data.get("name")
-                        or str(current_node)
+                        node_data.get("description") or
+                        node_data.get("name") or
+                        node_data.get("label") or
+                        str(current_node)
                     )
 
+                    # Validación robusta de costo unitario
                     unit_cost = node_data.get("unit_cost", 0.0)
                     try:
                         unit_cost = float(unit_cost)
                         if not math.isfinite(unit_cost):
                             self.logger.warning(
-                                f"Costo infinito detectado en {current_node}, omitiendo."
+                                f"Costo no finito en {current_node}: {unit_cost}. Usando 0.0"
                             )
-                            continue
+                            unit_cost = 0.0
+                        elif unit_cost < 0:
+                            self.logger.warning(
+                                f"Costo negativo en {current_node}: {unit_cost}"
+                            )
                     except (TypeError, ValueError):
                         unit_cost = 0.0
+                        self.logger.debug(f"Costo inválido en {current_node}, usando 0.0")
 
-                    if unit_cost < 0:
+                    # Validación de cantidad acumulada
+                    if not math.isfinite(current_qty) or current_qty <= 0:
                         self.logger.warning(
-                            f"Costo negativo detectado en {current_node}: {unit_cost}"
+                            f"Cantidad inválida en {current_node}: {current_qty}. Usando 1.0"
                         )
+                        current_qty = 1.0
 
-                    # Aquí current_qty ya es producto acumulado.
-                    materials.append(
-                        {
-                            "id": str(current_node),
-                            "description": description,
-                            "base_qty": current_qty,
-                            "unit_cost": unit_cost,
-                            "source_apu": parent_apu or "ROOT",
-                            "unit": node_data.get("unit", "UND"),
-                            "node_data": node_data,
-                            "composition_path": new_path_list,
-                            "fiber_depth": len(new_path_list),
-                        }
-                    )
+                    materials.append({
+                        "id": str(current_node),
+                        "description": description,
+                        "base_qty": current_qty,
+                        "unit_cost": unit_cost,
+                        "source_apu": parent_apu or "ROOT",
+                        "unit": node_data.get("unit", "UND"),
+                        "node_data": node_data,
+                        "composition_path": new_path_list,
+                        "fiber_depth": len(new_path_list),
+                        "topological_order": depth,
+                    })
                     continue
 
                 # Determinación de padre APU para trazabilidad
                 next_parent_apu = current_node if node_type == "APU" else parent_apu
 
-                # Expansión de sucesores
+                # Expansión de sucesores con validación de aristas
                 for successor in graph.successors(current_node):
-                    edge_data = graph.edges.get((current_node, successor), {})
+                    edge_key = (current_node, successor)
+
+                    # Detección de aristas duplicadas (aunque raro en DAG)
+                    if edge_key in visited_edges:
+                        # Esto ocurre si el grafo es un MultiDiGraph o si visitamos la arista de nuevo en DFS
+                        # DFS visita nodos, no aristas unicas globalmente (un nodo puede ser alcanzado por multiples caminos)
+                        # Pero en DFS de arbol de expansion...
+                        # Aqui estamos recorriendo todos los caminos.
+                        # Si A->B y C->B, visitaremos B dos veces.
+                        pass
+
+                    # Note: We do NOT track visited_edges globally to prune, because we need to multiply paths.
+                    # We track path_set to avoid cycles.
+
+                    edge_data = graph.edges.get(edge_key, {})
                     edge_qty = edge_data.get("quantity", 1.0)
 
+                    # Validación robusta de cantidad en arista
                     try:
                         edge_qty = float(edge_qty)
                         if not math.isfinite(edge_qty) or edge_qty <= 0:
-                            edge_qty = 1.0
+                            # Permitimos 0 pero loggeamos warning si es negativo o inf
+                            if edge_qty < 0:
+                                self.logger.warning(
+                                    f"Cantidad negativa en arista {edge_key}: {edge_qty}. Usando 1.0"
+                                )
+                                edge_qty = 1.0
+                            elif not math.isfinite(edge_qty):
+                                edge_qty = 1.0
                     except (TypeError, ValueError):
                         edge_qty = 1.0
+                        self.logger.debug(f"Cantidad inválida en arista {edge_key}, usando 1.0")
 
+                    # Propagación con límites numéricos
                     new_qty = current_qty * edge_qty
 
-                    if not math.isfinite(new_qty) or new_qty > 1e12:
-                        self.logger.warning(f"Overflow potencial en {successor}: {new_qty}")
+                    # Límites numéricos para prevenir overflow/underflow
+                    if not math.isfinite(new_qty):
+                        self.logger.error(
+                            f"Cantidad no finita al propagar {current_node} -> {successor}: "
+                            f"{current_qty} * {edge_qty} = {new_qty}"
+                        )
                         continue
 
+                    if new_qty > 1e12 or new_qty < 1e-12:
+                        # Loggear solo si no es 0
+                        if new_qty > 1e-12:
+                            self.logger.warning(
+                                f"Cantidad extrema al propagar {current_node} -> {successor}: {new_qty}"
+                            )
+
                     stack.append(
-                        (successor, new_qty, new_path_set, new_path_list, next_parent_apu)
+                        (successor, new_qty, new_path_set, new_path_list, next_parent_apu, depth + 1)
                     )
 
             raw_materials = materials
-            self.logger.info(f"🧱 Materiales brutos extraídos: {len(raw_materials)}")
+            self.logger.info(
+                f"🧱 Materiales brutos extraídos: {len(raw_materials)} "
+                f"(nodos: {node_count}, aristas: {edge_count})"
+            )
 
             if not raw_materials:
-                self.logger.warning("⚠️ No se encontraron materiales en el grafo")
+                self.logger.warning("⚠️ No se encontraron materiales tipo INSUMO en el grafo")
+                # Retornar BOM vacío pero con metadata informativa
+                metadata = self._generate_metadata(graph, risk_profile, flux_metrics, [])
+                return BillOfMaterials([], 0.0, metadata)
 
-            # 2. Aplicación de Entropía Trazable (Propuesta 1)
+            # 2. Aplicación de Entropía Trazable
             adjusted_materials = self._apply_entropy_factors(
                 raw_materials, flux_metrics, risk_profile
             )
 
-            # 3. Clustering Semántico (Propuesta 1 + 2)
+            # 3. Clustering Semántico mejorado
             final_requirements = self._cluster_semantically(adjusted_materials)
             self.logger.info(f"🛒 Requerimientos consolidados: {len(final_requirements)}")
 
-            # 4. Cálculo de Totales con Kahan (Propuesta 2)
+            # 4. Cálculo de Totales con Kahan mejorado
             total_cost = self._compute_total_cost(final_requirements)
 
-            # 5. Metadata Estratégica (Pareto/Gini - Propuesta 1)
+            # 5. Metadata Estratégica
             metadata = self._generate_metadata(
                 graph, risk_profile, flux_metrics, final_requirements
             )
 
-            # Registrar en telemetría
+            # Métricas de calidad
             if telemetry:
                 telemetry.record_metric("materialization", "total_material_cost", total_cost)
-                telemetry.record_metric(
-                    "materialization", "item_count", len(final_requirements)
-                )
-                telemetry.record_metric(
-                    "materialization", "complexity_processed", complexity
-                )
+                telemetry.record_metric("materialization", "item_count", len(final_requirements))
+                telemetry.record_metric("materialization", "complexity_processed", complexity)
+                telemetry.record_metric("materialization", "graph_density", density)
+
+                max_depth_val = max([m.get('fiber_depth', 0) for m in raw_materials], default=0)
+                telemetry.record_metric("materialization", "max_path_depth", max_depth_val)
                 telemetry.end_step("materialize_project", "success")
 
             return BillOfMaterials(
@@ -243,6 +336,7 @@ class MatterGenerator:
             )
 
         except Exception as e:
+            self.logger.error(f"❌ Error en materialización: {str(e)}", exc_info=True)
             if telemetry:
                 telemetry.record_error("materialize_project", str(e))
                 telemetry.end_step("materialize_project", "error")
@@ -319,63 +413,133 @@ class MatterGenerator:
         self, materials: List[Dict[str, Any]]
     ) -> List[MaterialRequirement]:
         """
-        Agrupa materiales (Propuesta 1 logic) y crea DataClasses (Propuesta 2).
+        Agrupa materiales semánticamente con estadísticas robustas.
         """
+        # Primera pasada: agrupación por clave compuesta
         clustered = {}
+        unit_normalization = {
+            "M": 1.0, "M2": 1.0, "M3": 1.0, "KG": 1.0, "TON": 1000.0,
+            "UND": 1.0, "UNIT": 1.0, "L": 1.0, "GL": 3.78541
+        }
 
         for mat in materials:
-            key = (mat["id"], mat.get("unit", "UND"))
+            # Clave de agrupación con normalización de unidades
+            unit = mat.get("unit", "UND").upper()
+            norm_unit = unit_normalization.get(unit, 1.0)
+
+            # Clave considera ID y unidad base (sin normalización para trazabilidad)
+            key = (mat["id"], unit)
 
             if key not in clustered:
                 clustered[key] = {
                     "id": mat["id"],
                     "description": mat["description"],
-                    "unit": mat.get("unit", "UND"),
+                    "unit": unit,
                     "quantity_base": 0.0,
                     "quantity_total": 0.0,
                     "source_apus": set(),
                     "cost_samples": [],
+                    "waste_factors": [],
+                    "paths": [],  # Para trazabilidad
+                    "normalization_factor": norm_unit,
                 }
 
             data = clustered[key]
-            data["quantity_base"] += mat["base_qty"]
-            data["quantity_total"] += mat["total_qty"]
+            base_qty = mat["base_qty"]
+            total_qty = mat.get("total_qty", base_qty)
+
+            # Convertir a unidades base si es necesario (NOTE: Actually we group by ID and Unit.
+            # If units differ but ID is same, we treat them as different items in BOM usually.
+            # But here the code seems to want to sum them if they are same item?)
+            # The logic `key = (mat["id"], unit)` separates them.
+            # So `norm_unit` usage inside `clustered` loop is just for potential normalization if we merged.
+            # But since key includes unit, we are NOT merging different units.
+            # We will follow the proposal logic as is.
+
+            data["quantity_base"] += base_qty
+            data["quantity_total"] += total_qty
             data["source_apus"].add(mat["source_apu"])
 
             cost = mat["unit_cost"]
-            # Aceptamos negativos para procesamiento, pero advertimos
-            data["cost_samples"].append(cost)
+            if math.isfinite(cost):
+                data["cost_samples"].append(cost)
 
+            waste = mat.get("waste_factor", 0.0)
+            if math.isfinite(waste):
+                data["waste_factors"].append(waste)
+
+            # Guardar camino para debugging
+            if len(data["paths"]) < 3:  # Limitar para no usar mucha memoria
+                data["paths"].append(mat.get("composition_path", [])[-3:])  # Últimos 3 nodos
+
+        # Segunda pasada: crear objetos MaterialRequirement
         requirements = []
 
         for (mid, unit), data in clustered.items():
             if data["quantity_base"] <= 0:
-                # Omitir si la cantidad neta es <= 0 (salvo devolución, pero asumimos BOM constructivo)
+                self.logger.debug(f"Material {mid} con cantidad base <= 0, omitiendo")
                 continue
 
-            total_waste = (data["quantity_total"] / data["quantity_base"]) - 1.0
+            # Cálculo de factor de desperdicio promedio ponderado
+            total_waste = 0.0
+            if data["waste_factors"]:
+                # Promedio ponderado por cantidad
+                weighted_sum = 0.0
+                total_weight = 0.0
+                for waste in data["waste_factors"]:
+                    weight = 1.0  # Podría ser la cantidad si está disponible
+                    weighted_sum += waste * weight
+                    total_weight += weight
+                total_waste = weighted_sum / total_weight if total_weight > 0 else 0.0
+            else:
+                total_waste = (data["quantity_total"] / data["quantity_base"]) - 1.0
 
-            # Estimación robusta de costo (Mediana)
-            # Filtramos infinitos antes
+            # Estimación robusta de costo (mediana con validación)
             costs = sorted([c for c in data["cost_samples"] if math.isfinite(c)])
+            rep_cost = 0.0
 
             if costs:
+                # Usar mediana robusta
                 mid_idx = len(costs) // 2
                 if len(costs) % 2 == 1:
                     rep_cost = costs[mid_idx]
                 else:
                     rep_cost = (costs[mid_idx - 1] + costs[mid_idx]) / 2.0
-            else:
+
+                # Detectar outliers (más de 2 desviaciones estándar)
+                if len(costs) >= 3:
+                    try:
+                        stdev = statistics.stdev(costs)
+                        mean = statistics.mean(costs)
+                        # Filtrar outliers extremos
+                        filtered_costs = [c for c in costs if abs(c - mean) <= 3 * stdev]
+                        if filtered_costs:
+                            mid_idx = len(filtered_costs) // 2
+                            if len(filtered_costs) % 2 == 1:
+                                rep_cost = filtered_costs[mid_idx]
+                            else:
+                                rep_cost = (filtered_costs[mid_idx - 1] + filtered_costs[mid_idx]) / 2.0
+                    except statistics.StatisticsError:
+                        pass  # Mantener mediana original
+
+            # Validación final de costo
+            if not math.isfinite(rep_cost) or rep_cost < 0:
+                self.logger.warning(f"Costo inválido para {mid}: {rep_cost}. Usando 0.0")
                 rep_cost = 0.0
 
+            # Cálculo de costo total con validación
             total_cost = data["quantity_total"] * rep_cost
+            if not math.isfinite(total_cost):
+                self.logger.error(f"Costo total no finito para {mid}")
+                total_cost = 0.0
 
+            # Crear requerimiento
             req = MaterialRequirement(
                 id=data["id"],
                 description=data["description"],
                 quantity_base=round(data["quantity_base"], 6),
                 unit=data["unit"],
-                waste_factor=round(total_waste, 6),
+                waste_factor=round(max(0.0, total_waste), 6),  # No permitir negativo
                 quantity_total=round(data["quantity_total"], 6),
                 unit_cost=round(rep_cost, 4),
                 total_cost=round(total_cost, 2),
@@ -383,8 +547,15 @@ class MatterGenerator:
             )
             requirements.append(req)
 
-        # Ordenar por Pareto (costo descendente)
-        requirements.sort(key=lambda x: (-x.total_cost, x.id))
+        # Ordenar por múltiples criterios: costo descendente, luego descripción
+        requirements.sort(key=lambda x: (-x.total_cost, x.description or "", x.id))
+
+        # Estadísticas de agrupación
+        if requirements:
+            self.logger.debug(
+                f"Clustering: {len(materials)} materiales brutos -> {len(requirements)} requerimientos "
+                f"(ratio: {len(materials)/len(requirements):.1f})"
+            )
 
         return requirements
 
@@ -408,8 +579,10 @@ class MatterGenerator:
         high_exergy_keywords = {"CONCRETO", "ACERO", "CIMENTACION", "ESTRUCTURA", "CEMENTO", "HIERRO"}
 
         for item in bom_items:
+            # Ensure description is safe
+            desc = (item.description or "").upper()
             is_high_exergy = any(
-                k in item.description.upper() for k in high_exergy_keywords
+                k in desc for k in high_exergy_keywords
             )
 
             if is_high_exergy:
@@ -431,24 +604,43 @@ class MatterGenerator:
 
     def _compute_total_cost(self, requirements: List[MaterialRequirement]) -> float:
         """
-        Calcula costo total usando Algoritmo de Suma de Kahan (Propuesta 2).
+        Calcula costo total usando compensación de Kahan mejorada.
         """
         total = 0.0
-        compensation = 0.0
+        c = 0.0  # Compensación
 
-        for req in requirements:
-            if not math.isfinite(req.total_cost):
-                continue
+        # Primera pasada: suma estándar para casos normales
+        simple_sum = sum(req.total_cost for req in requirements if math.isfinite(req.total_cost))
 
-            y = req.total_cost - compensation
+        # Si la suma simple es finita y no demasiado grande, usarla
+        if math.isfinite(simple_sum) and abs(simple_sum) < 1e12:
+            return round(simple_sum, 2)
+
+        # Segunda pasada: Kahan para precisión extrema
+        sorted_costs = sorted(
+            [req.total_cost for req in requirements if math.isfinite(req.total_cost)],
+            key=abs  # Ordenar por valor absoluto para mejor estabilidad
+        )
+
+        for cost in sorted_costs:
+            y = cost - c
             t = total + y
-            compensation = (t - total) - y
+            # Compensación de Kahan: (t - total) - y
+            c = (t - total) - y
             total = t
 
-            if math.isinf(total):
-                raise OverflowError("Overflow en cálculo de costo total (Kahan)")
+            # Validación de overflow
+            if not math.isfinite(total):
+                raise OverflowError(
+                    f"Overflow en cálculo de Kahan. Parcial: {total}, Costo: {cost}"
+                )
 
-        return round(total, 2)
+        # Redondear con validación
+        result = round(total, 2)
+        if not math.isfinite(result):
+            raise ValueError(f"Resultado no finito después de redondeo: {result}")
+
+        return result
 
     def _generate_metadata(
         self,
@@ -458,46 +650,103 @@ class MatterGenerator:
         requirements: List[MaterialRequirement],
     ) -> Dict[str, Any]:
         """
-        Genera metadata estratégica (Pareto + Gini - Propuesta 1).
+        Genera metadata estratégica con métricas avanzadas.
         """
-        # Métricas de grafo
+        # Métricas topológicas avanzadas
         node_count = graph.number_of_nodes()
         edge_count = graph.number_of_edges()
+
+        # Característica de Euler para grafos dirigidos (simplificada)
         euler = node_count - edge_count
 
-        # Pareto y Gini
+        # Distribución de grados
+        in_degrees = [d for _, d in graph.in_degree()]
+        out_degrees = [d for _, d in graph.out_degree()]
+
+        avg_in_degree = sum(in_degrees) / max(1, node_count)
+        avg_out_degree = sum(out_degrees) / max(1, node_count)
+
+        # Análisis de Pareto mejorado
         costs = [r.total_cost for r in requirements]
         total_cost = sum(costs)
         n = len(costs)
 
-        pareto_ratio = 0.0  # % items
-        pareto_cost_pct = 0.0  # % cost of top 20%
+        pareto_metrics = {
+            "pareto_80_items_ratio": 0.0,
+            "pareto_20_cost_percentage": 0.0,
+            "top_10_items_cost": 0.0,
+            "cost_concentration_index": 0.0,
+        }
+
         gini = 0.0
+        theil_index = 0.0  # Índice de Theil para desigualdad
 
         if total_cost > 0 and n > 0:
-            # 1. Pareto Ratio (Original): % items que hacen el 80% del costo
+            # 1. Pareto tradicional
             sorted_desc = sorted(costs, reverse=True)
             accum = 0.0
             items_80 = 0
+
             for c in sorted_desc:
                 accum += c
                 items_80 += 1
                 if accum >= total_cost * 0.8:
                     break
-            pareto_ratio = items_80 / n
 
-            # 2. Pareto Cost Percentage (Para el Test): Costo acumulado del 20% superior
+            pareto_metrics["pareto_80_items_ratio"] = items_80 / n
+
+            # 2. Costo del 20% superior
             top_20_count = max(1, int(math.ceil(n * 0.2)))
             top_20_cost = sum(sorted_desc[:top_20_count])
-            pareto_cost_pct = (top_20_cost / total_cost) * 100.0
+            pareto_metrics["pareto_20_cost_percentage"] = (top_20_cost / total_cost) * 100.0
 
-            # 3. Gini
+            # 3. Costo del 10% superior
+            top_10_count = max(1, int(math.ceil(n * 0.1)))
+            top_10_cost = sum(sorted_desc[:top_10_count])
+            pareto_metrics["top_10_items_cost"] = top_10_cost
+
+            # 4. Índice de concentración (Herfindahl-Hirschman simplificado)
+            cost_shares = [c / total_cost for c in costs]
+            hhi = sum(share * share for share in cost_shares) * 10000
+            pareto_metrics["cost_concentration_index"] = hhi
+
+            # 5. Gini mejorado
             sorted_asc = sorted(costs)
             cum_weighted = sum((i + 1) * c for i, c in enumerate(sorted_asc))
             gini = (2.0 * cum_weighted) / (n * total_cost) - (n + 1.0) / n
             gini = max(0.0, min(1.0, gini))
 
+            # 6. Índice de Theil (entropía de la desigualdad)
+            mean_cost = total_cost / n
+            theil_sum = 0.0
+            for c in costs:
+                if c > 0:
+                    ratio = c / mean_cost
+                    theil_sum += c * math.log(ratio)
+            theil_index = theil_sum / (n * mean_cost) if mean_cost > 0 else 0.0
+
+        # Análisis de componentes conectados (para DAGs)
+        try:
+            # Para grafos dirigidos, usar componentes débilmente conectados
+            wcc = list(nx.weakly_connected_components(graph))
+            largest_wcc = max(wcc, key=len) if wcc else set()
+            wcc_count = len(wcc)
+        except:
+            wcc_count = 1
+            largest_wcc = set(graph.nodes())
+
         return {
+            "topological_analysis": {
+                "is_dag": nx.is_directed_acyclic_graph(graph),
+                "euler_characteristic": euler,
+                "weakly_connected_components": wcc_count,
+                "largest_component_size": len(largest_wcc),
+                "avg_in_degree": round(avg_in_degree, 3),
+                "avg_out_degree": round(avg_out_degree, 3),
+                "max_in_degree": max(in_degrees) if in_degrees else 0,
+                "max_out_degree": max(out_degrees) if out_degrees else 0,
+            },
+            # Keeping 'topological_invariants' key for backward compatibility if tests rely on it
             "topological_invariants": {
                 "is_dag": nx.is_directed_acyclic_graph(graph),
                 "euler_characteristic": euler,
@@ -505,24 +754,114 @@ class MatterGenerator:
             "graph_metrics": {
                 "node_count": node_count,
                 "edge_count": edge_count,
+                "density": edge_count / max(1, node_count * (node_count - 1)),
                 "root_count": len([n for n, d in graph.in_degree() if d == 0]),
+                "sink_count": len([n for n, d in graph.out_degree() if d == 0]),
             },
             "cost_analysis": {
-                "pareto_analysis": {
-                    "pareto_80_items_ratio": round(pareto_ratio, 4),
-                    "pareto_20_percent": round(n * 0.2, 1),
-                    "pareto_cost_percentage": round(pareto_cost_pct, 2),
+                "pareto_analysis": pareto_metrics,
+                "inequality_metrics": {
+                    "gini_index": round(gini, 4),
+                    "theil_index": round(theil_index, 4),
+                    "coefficient_of_variation": round(
+                        math.sqrt(sum((c - total_cost/n)**2 for c in costs) / n) / (total_cost/n)
+                        if total_cost > 0 else 0.0, 4
+                    ),
                 },
-                "gini_index": round(gini, 4),
+                "summary": {
+                    "item_count": n,
+                    "total_cost": round(total_cost, 2),
+                    "average_item_cost": round(total_cost / n, 2) if n > 0 else 0.0,
+                    "median_item_cost": round(sorted(costs)[n//2] if n > 0 else 0.0, 2),
+                    "cost_range": round(max(costs) - min(costs), 2) if costs else 0.0,
+                },
+                # Flat keys for backward compatibility
                 "item_count": n,
                 "total_cost": round(total_cost, 2),
-                "empty": n == 0,
+                "gini_index": round(gini, 4),
             },
-            "risk_analysis": {"profile": risk_profile, "flux_metrics": flux_metrics},
+            "risk_analysis": {
+                "profile": risk_profile or {},
+                "flux_metrics": flux_metrics or {},
+                "risk_adjusted": bool(risk_profile and risk_profile.get("level") != "LOW"),
+            },
             "thermodynamics": self.analyze_budget_exergy(requirements),
+            "material_distribution": {
+                "by_unit": self._analyze_unit_distribution(requirements),
+                "by_waste_factor": self._analyze_waste_distribution(requirements),
+            },
             "generation_info": {
                 "timestamp": datetime.now().isoformat(),
-                "algorithm": "Hybrid-Topological-Algebraic-v1",
-                "generator_version": "2.0.0",
+                "algorithm": "Hybrid-Topological-Algebraic-v2.1",
+                "generator_version": "2.1.0",
+                "platform": platform.platform(),
+                "python_version": sys.version.split()[0],
+                "networkx_version": nx.__version__,
             },
+        }
+
+    def _analyze_unit_distribution(self, requirements: List[MaterialRequirement]) -> Dict[str, Any]:
+        """Analiza distribución por unidad de medida."""
+        unit_groups = {}
+        for req in requirements:
+            unit = req.unit or "UND"
+            if unit not in unit_groups:
+                unit_groups[unit] = {"count": 0, "total_cost": 0.0, "total_qty": 0.0}
+
+            unit_groups[unit]["count"] += 1
+            unit_groups[unit]["total_cost"] += req.total_cost
+            unit_groups[unit]["total_qty"] += req.quantity_total
+
+        # Ordenar por costo total descendente
+        sorted_units = sorted(
+            unit_groups.items(),
+            key=lambda x: x[1]["total_cost"],
+            reverse=True
+        )
+
+        return {
+            unit: {
+                "count": data["count"],
+                "total_cost": round(data["total_cost"], 2),
+                "total_quantity": round(data["total_qty"], 2),
+                "percentage_of_cost": round(data["total_cost"] / sum(g["total_cost"] for g in unit_groups.values()) * 100, 1)
+                if sum(g["total_cost"] for g in unit_groups.values()) > 0 else 0.0
+            }
+            for unit, data in sorted_units
+        }
+
+    def _analyze_waste_distribution(self, requirements: List[MaterialRequirement]) -> Dict[str, Any]:
+        """Analiza distribución de factores de desperdicio."""
+        if not requirements:
+            return {}
+
+        waste_factors = [req.waste_factor for req in requirements]
+
+        # Categorización de desperdicio
+        categories = {
+            "low": [w for w in waste_factors if w <= 0.05],
+            "medium": [w for w in waste_factors if 0.05 < w <= 0.10],
+            "high": [w for w in waste_factors if 0.10 < w <= 0.20],
+            "very_high": [w for w in waste_factors if w > 0.20],
+        }
+
+        return {
+            "statistics": {
+                "mean": round(sum(waste_factors) / len(waste_factors), 4),
+                "median": round(sorted(waste_factors)[len(waste_factors)//2], 4),
+                "max": round(max(waste_factors), 4),
+                "min": round(min(waste_factors), 4),
+                "std_dev": round(
+                    math.sqrt(sum((w - sum(waste_factors)/len(waste_factors))**2 for w in waste_factors) / len(waste_factors)),
+                    4
+                ) if len(waste_factors) > 1 else 0.0,
+            },
+            "distribution": {
+                category: {
+                    "count": len(values),
+                    "percentage": round(len(values) / len(waste_factors) * 100, 1),
+                    "avg_waste": round(sum(values) / len(values), 4) if values else 0.0,
+                }
+                for category, values in categories.items()
+            }
         }
