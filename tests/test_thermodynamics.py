@@ -1,12 +1,11 @@
 import unittest
-from unittest.mock import Mock, patch
-import math
+
 import networkx as nx
-import time
+
+from agent.business_topology import BusinessTopologicalAnalyzer
+from app.financial_engine import FinancialConfig, FinancialEngine
 from app.flux_condenser import FluxPhysicsEngine
-from app.financial_engine import FinancialEngine, FinancialConfig
-from app.matter_generator import MatterGenerator, MaterialRequirement
-from agent.business_topology import BusinessTopologicalAnalyzer, TopologicalMetrics
+from app.matter_generator import MaterialRequirement, MatterGenerator
 
 
 class TestFluxPhysicsEngine(unittest.TestCase):
@@ -22,11 +21,7 @@ class TestFluxPhysicsEngine(unittest.TestCase):
 
     def setUp(self):
         """Configura motor RLC con parámetros de circuito equivalente."""
-        self.engine = FluxPhysicsEngine(
-            capacitance=5000.0,
-            resistance=10.0,
-            inductance=2.0
-        )
+        self.engine = FluxPhysicsEngine(capacitance=5000.0, resistance=10.0, inductance=2.0)
 
     def test_entropy_zero_records_returns_zero(self):
         """
@@ -34,9 +29,7 @@ class TestFluxPhysicsEngine(unittest.TestCase):
         Sistema sin datos → Entropía indefinida, convencionalmente 0.
         """
         metrics = self.engine.calculate_system_entropy(
-            total_records=0,
-            error_count=0,
-            processing_time=1.0
+            total_records=0, error_count=0, processing_time=1.0
         )
 
         self.assertEqual(metrics["entropy_absolute"], 0.0)
@@ -49,9 +42,7 @@ class TestFluxPhysicsEngine(unittest.TestCase):
         Certeza absoluta: estado puro, sin mezcla estadística.
         """
         metrics = self.engine.calculate_system_entropy(
-            total_records=1000,
-            error_count=0,
-            processing_time=1.0
+            total_records=1000, error_count=0, processing_time=1.0
         )
 
         self.assertAlmostEqual(metrics["entropy_absolute"], 0.0, places=9)
@@ -63,9 +54,7 @@ class TestFluxPhysicsEngine(unittest.TestCase):
         Certeza absoluta negativa: también estado puro.
         """
         metrics = self.engine.calculate_system_entropy(
-            total_records=100,
-            error_count=100,
-            processing_time=1.0
+            total_records=100, error_count=100, processing_time=1.0
         )
 
         self.assertAlmostEqual(metrics["entropy_absolute"], 0.0, places=9)
@@ -78,20 +67,17 @@ class TestFluxPhysicsEngine(unittest.TestCase):
         Este es el punto de muerte térmica termodinámica.
         """
         metrics = self.engine.calculate_system_entropy(
-            total_records=1000,
-            error_count=500,
-            processing_time=1.0
+            total_records=1000, error_count=500, processing_time=1.0
         )
 
         self.assertAlmostEqual(
             metrics["entropy_absolute"],
             1.0,
             places=6,
-            msg="Entropía máxima normalizada debe ser exactamente 1.0"
+            msg="Entropía máxima normalizada debe ser exactamente 1.0",
         )
         self.assertTrue(
-            metrics["is_thermal_death"],
-            msg="S=1.0 > 0.8 debe activar muerte térmica"
+            metrics["is_thermal_death"], msg="S=1.0 > 0.8 debe activar muerte térmica"
         )
 
     def test_entropy_symmetry_property(self):
@@ -102,22 +88,18 @@ class TestFluxPhysicsEngine(unittest.TestCase):
         Esto refleja que la incertidumbre es igual para p y (1-p).
         """
         metrics_low = self.engine.calculate_system_entropy(
-            total_records=1000,
-            error_count=150,
-            processing_time=1.0
+            total_records=1000, error_count=150, processing_time=1.0
         )
 
         metrics_high = self.engine.calculate_system_entropy(
-            total_records=1000,
-            error_count=850,
-            processing_time=1.0
+            total_records=1000, error_count=850, processing_time=1.0
         )
 
         self.assertAlmostEqual(
             metrics_low["entropy_absolute"],
             metrics_high["entropy_absolute"],
             places=9,
-            msg="H(0.15) debe igualar H(0.85) por simetría"
+            msg="H(0.15) debe igualar H(0.85) por simetría",
         )
 
     def test_entropy_strict_concavity(self):
@@ -132,9 +114,7 @@ class TestFluxPhysicsEngine(unittest.TestCase):
         for p in probabilities:
             error_count = int(1000 * p)
             metrics = self.engine.calculate_system_entropy(
-                total_records=1000,
-                error_count=error_count,
-                processing_time=1.0
+                total_records=1000, error_count=error_count, processing_time=1.0
             )
             entropies.append(metrics["entropy_absolute"])
 
@@ -142,7 +122,7 @@ class TestFluxPhysicsEngine(unittest.TestCase):
             self.assertLess(
                 entropies[i],
                 entropies[i + 1],
-                msg=f"Violación de monotonicidad en índice {i}"
+                msg=f"Violación de monotonicidad en índice {i}",
             )
 
     def test_entropy_rate_temporal_scaling(self):
@@ -153,21 +133,15 @@ class TestFluxPhysicsEngine(unittest.TestCase):
         Escalamiento: Si Δt se duplica, dS/dt se reduce a la mitad.
         """
         metrics_1s = self.engine.calculate_system_entropy(
-            total_records=100,
-            error_count=25,
-            processing_time=1.0
+            total_records=100, error_count=25, processing_time=1.0
         )
 
         metrics_2s = self.engine.calculate_system_entropy(
-            total_records=100,
-            error_count=25,
-            processing_time=2.0
+            total_records=100, error_count=25, processing_time=2.0
         )
 
         self.assertAlmostEqual(
-            metrics_1s["entropy_rate"],
-            metrics_2s["entropy_rate"] * 2.0,
-            places=9
+            metrics_1s["entropy_rate"], metrics_2s["entropy_rate"] * 2.0, places=9
         )
         self.assertGreaterEqual(metrics_1s["entropy_rate"], 0.0)
 
@@ -179,37 +153,32 @@ class TestFluxPhysicsEngine(unittest.TestCase):
         """
         # p ≈ 0.17 → H ≈ 0.66 (seguro)
         metrics_safe = self.engine.calculate_system_entropy(
-            total_records=1000,
-            error_count=170,
-            processing_time=1.0
+            total_records=1000, error_count=170, processing_time=1.0
         )
 
         # p ≈ 0.28 → H ≈ 0.86 (muerte térmica)
         metrics_critical = self.engine.calculate_system_entropy(
-            total_records=1000,
-            error_count=280,
-            processing_time=1.0
+            total_records=1000, error_count=280, processing_time=1.0
         )
 
         self.assertFalse(metrics_safe["is_thermal_death"])
         self.assertTrue(metrics_critical["is_thermal_death"])
         self.assertLess(metrics_safe["entropy_absolute"], self.THERMAL_DEATH_THRESHOLD)
-        self.assertGreater(metrics_critical["entropy_absolute"], self.THERMAL_DEATH_THRESHOLD)
+        self.assertGreater(
+            metrics_critical["entropy_absolute"], self.THERMAL_DEATH_THRESHOLD
+        )
 
     def test_calculate_metrics_integration_schema(self):
         """
         Validación de esquema completo y rangos físicamente válidos.
         """
         metrics = self.engine.calculate_metrics(
-            total_records=100,
-            cache_hits=90,
-            error_count=5,
-            processing_time=1.0
+            total_records=100, cache_hits=90, error_count=5, processing_time=1.0
         )
 
         required_schema = {
             "entropy_absolute": (0.0, 1.0),
-            "entropy_rate": (0.0, float('inf')),
+            "entropy_rate": (0.0, float("inf")),
             "is_thermal_death": (False, True),
         }
 
@@ -253,8 +222,7 @@ class TestFinancialEngine(unittest.TestCase):
         for liquidity, fixed_ratio, expected in test_cases:
             with self.subTest(L=liquidity, F=fixed_ratio):
                 inertia = self.engine.calculate_financial_thermal_inertia(
-                    liquidity=liquidity,
-                    fixed_contracts_ratio=fixed_ratio
+                    liquidity=liquidity, fixed_contracts_ratio=fixed_ratio
                 )
                 self.assertAlmostEqual(inertia, expected, places=10)
 
@@ -288,15 +256,10 @@ class TestFinancialEngine(unittest.TestCase):
         Financieramente: Sin liquidez ni contratos, perturbación = impacto directo.
         """
         perturbation = 0.05
-        temp_change = self.engine.predict_temperature_change(
-            perturbation,
-            inertia=0.0
-        )
+        temp_change = self.engine.predict_temperature_change(perturbation, inertia=0.0)
 
         self.assertEqual(
-            temp_change,
-            perturbation,
-            msg="Sin inercia, perturbación pasa sin atenuación"
+            temp_change, perturbation, msg="Sin inercia, perturbación pasa sin atenuación"
         )
 
     def test_temperature_change_linearity(self):
@@ -334,7 +297,7 @@ class TestFinancialEngine(unittest.TestCase):
             cost_std_dev=cost_std_dev,
             project_volatility=project_volatility,
             liquidity=liquidity,
-            fixed_contracts_ratio=fixed_contracts_ratio
+            fixed_contracts_ratio=fixed_contracts_ratio,
         )
 
         thermo = analysis["thermodynamics"]
@@ -342,9 +305,7 @@ class TestFinancialEngine(unittest.TestCase):
         # Verificar inercia
         expected_inertia = liquidity * fixed_contracts_ratio
         self.assertAlmostEqual(
-            thermo["financial_thermal_inertia"],
-            expected_inertia,
-            places=10
+            thermo["financial_thermal_inertia"], expected_inertia, places=10
         )
 
         # Verificar perturbación y cambio de temperatura
@@ -357,9 +318,7 @@ class TestFinancialEngine(unittest.TestCase):
         expected_temp_rise = 0.05 / expected_inertia
 
         self.assertAlmostEqual(
-            thermo["predicted_temperature_rise"],
-            expected_temp_rise,
-            places=6
+            thermo["predicted_temperature_rise"], expected_temp_rise, places=6
         )
 
     def test_first_law_energy_conservation(self):
@@ -378,7 +337,7 @@ class TestFinancialEngine(unittest.TestCase):
             cost_std_dev=50,
             project_volatility=0.15,
             liquidity=0.3,
-            fixed_contracts_ratio=0.4
+            fixed_contracts_ratio=0.4,
         )
 
         total_inflows = sum(cash_flows)
@@ -411,7 +370,7 @@ class TestMatterGenerator(unittest.TestCase):
         quantity_base: float,
         unit: str,
         waste_factor: float,
-        unit_cost: float
+        unit_cost: float,
     ) -> MaterialRequirement:
         """Construye MaterialRequirement con cálculos derivados."""
         quantity_total = quantity_base * (1 + waste_factor)
@@ -425,7 +384,7 @@ class TestMatterGenerator(unittest.TestCase):
             waste_factor=waste_factor,
             quantity_total=quantity_total,
             unit_cost=unit_cost,
-            total_cost=total_cost
+            total_cost=total_cost,
         )
 
     def test_exergy_efficiency_mixed_materials(self):
@@ -443,13 +402,13 @@ class TestMatterGenerator(unittest.TestCase):
         report = self.generator.analyze_budget_exergy(items)
 
         # Cálculos explícitos
-        cost_concrete = 10 * 1.05 * 100   # 1050.0
-        cost_steel = 100 * 1.05 * 2       # 210.0
-        cost_paint = 10 * 1.10 * 50       # 550.0
+        cost_concrete = 10 * 1.05 * 100  # 1050.0
+        cost_steel = 100 * 1.05 * 2  # 210.0
+        cost_paint = 10 * 1.10 * 50  # 550.0
 
         structural = cost_concrete + cost_steel  # 1260.0
-        decorative = cost_paint                   # 550.0
-        total = structural + decorative           # 1810.0
+        decorative = cost_paint  # 550.0
+        total = structural + decorative  # 1810.0
 
         expected_efficiency = structural / total
 
@@ -536,8 +495,9 @@ class TestMatterGenerator(unittest.TestCase):
 
         self.assertAlmostEqual(
             report_combined["structural_investment"],
-            report_single1["structural_investment"] + report_single2["structural_investment"],
-            places=6
+            report_single1["structural_investment"]
+            + report_single2["structural_investment"],
+            places=6,
         )
 
 
@@ -614,10 +574,12 @@ class TestBusinessTopologicalAnalyzer(unittest.TestCase):
 
         report = self.analyzer.analyze_inflationary_convection(G, ["T1"])
 
-        self.assertNotIn("APU1", report["high_risk_nodes"],
-                         msg="0.2 no es estrictamente mayor que 0.2")
-        self.assertIn("APU2", report["high_risk_nodes"],
-                      msg="0.21 > 0.2 debe ser alto riesgo")
+        self.assertNotIn(
+            "APU1", report["high_risk_nodes"], msg="0.2 no es estrictamente mayor que 0.2"
+        )
+        self.assertIn(
+            "APU2", report["high_risk_nodes"], msg="0.21 > 0.2 debe ser alto riesgo"
+        )
 
     def test_maximum_exposure_single_fluid(self):
         """
@@ -633,11 +595,7 @@ class TestBusinessTopologicalAnalyzer(unittest.TestCase):
 
         report = self.analyzer.analyze_inflationary_convection(G, ["FUEL"])
 
-        self.assertAlmostEqual(
-            report["convection_impact"]["APU_CRITICAL"],
-            1.0,
-            places=9
-        )
+        self.assertAlmostEqual(report["convection_impact"]["APU_CRITICAL"], 1.0, places=9)
         self.assertIn("APU_CRITICAL", report["high_risk_nodes"])
 
     def test_multiple_fluid_nodes_superposition(self):
@@ -656,17 +614,12 @@ class TestBusinessTopologicalAnalyzer(unittest.TestCase):
         G.add_edge("APU_LOGISTICS", "TRANSPORT", total_cost=100)
         G.add_edge("APU_LOGISTICS", "MATERIAL", total_cost=250)
 
-        report = self.analyzer.analyze_inflationary_convection(
-            G,
-            ["FUEL", "TRANSPORT"]
-        )
+        report = self.analyzer.analyze_inflationary_convection(G, ["FUEL", "TRANSPORT"])
 
         # Impacto = (150 + 100) / 500 = 0.5
         expected_impact = (150 + 100) / 500
         self.assertAlmostEqual(
-            report["convection_impact"]["APU_LOGISTICS"],
-            expected_impact,
-            places=9
+            report["convection_impact"]["APU_LOGISTICS"], expected_impact, places=9
         )
         self.assertIn("APU_LOGISTICS", report["high_risk_nodes"])
 
@@ -755,8 +708,7 @@ class TestBusinessTopologicalAnalyzer(unittest.TestCase):
             G_resilient.remove_node(node)
 
         remaining_apus = [
-            n for n, d in G_resilient.nodes(data=True)
-            if d.get("type") == "APU"
+            n for n, d in G_resilient.nodes(data=True) if d.get("type") == "APU"
         ]
 
         # Debe quedar al menos APU_FINAL y APU_STABLE
@@ -785,5 +737,5 @@ class TestBusinessTopologicalAnalyzer(unittest.TestCase):
         self.assertIsInstance(euler_char, int)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main(verbosity=2)

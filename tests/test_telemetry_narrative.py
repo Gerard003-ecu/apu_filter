@@ -2,10 +2,13 @@
 Pruebas para el Narrador de Telemetría Híbrido.
 Verifica la integración de la lógica algebraica (Lattice) con la estructura DIKW.
 """
-import pytest
+
 from itertools import permutations, product
-from app.telemetry import TelemetryContext, StepStatus, TelemetrySpan
-from app.telemetry_narrative import TelemetryNarrator, SeverityLevel
+
+import pytest
+
+from app.telemetry import StepStatus, TelemetryContext
+from app.telemetry_narrative import SeverityLevel, TelemetryNarrator
 
 
 @pytest.fixture
@@ -32,8 +35,9 @@ def test_lattice_logic_supremum_idempotency(all_severity_levels):
     Fundamental en cualquier semilattice.
     """
     for level in all_severity_levels:
-        assert SeverityLevel.supremum(level, level) == level, \
+        assert SeverityLevel.supremum(level, level) == level, (
             f"Violación de idempotencia para {level}"
+        )
 
 
 def test_lattice_logic_supremum_commutativity(all_severity_levels):
@@ -42,8 +46,9 @@ def test_lattice_logic_supremum_commutativity(all_severity_levels):
     El supremo es simétrico respecto a sus argumentos.
     """
     for a, b in permutations(all_severity_levels, 2):
-        assert SeverityLevel.supremum(a, b) == SeverityLevel.supremum(b, a), \
+        assert SeverityLevel.supremum(a, b) == SeverityLevel.supremum(b, a), (
             f"Violación de conmutatividad para ({a}, {b})"
+        )
 
 
 def test_lattice_logic_supremum_associativity(all_severity_levels):
@@ -54,8 +59,7 @@ def test_lattice_logic_supremum_associativity(all_severity_levels):
     for a, b, c in product(all_severity_levels, repeat=3):
         left_assoc = SeverityLevel.supremum(SeverityLevel.supremum(a, b), c)
         right_assoc = SeverityLevel.supremum(a, SeverityLevel.supremum(b, c))
-        assert left_assoc == right_assoc, \
-            f"Violación de asociatividad para ({a}, {b}, {c})"
+        assert left_assoc == right_assoc, f"Violación de asociatividad para ({a}, {b}, {c})"
 
 
 def test_lattice_logic_identity_and_absorbing_elements(all_severity_levels):
@@ -69,17 +73,20 @@ def test_lattice_logic_identity_and_absorbing_elements(all_severity_levels):
     top = SeverityLevel.CRITICO
 
     # Conjunto vacío retorna identidad (bottom)
-    assert SeverityLevel.supremum() == bottom, \
+    assert SeverityLevel.supremum() == bottom, (
         "sup(∅) debe ser el elemento identidad (OPTIMO)"
+    )
 
     for level in all_severity_levels:
         # Propiedad de identidad: a ∨ ⊥ = a
-        assert SeverityLevel.supremum(level, bottom) == level, \
+        assert SeverityLevel.supremum(level, bottom) == level, (
             f"OPTIMO no actúa como identidad para {level}"
+        )
 
         # Propiedad de absorción: a ∨ ⊤ = ⊤
-        assert SeverityLevel.supremum(level, top) == top, \
+        assert SeverityLevel.supremum(level, top) == top, (
             f"CRITICO no actúa como absorbente para {level}"
+        )
 
 
 def test_lattice_partial_order_transitivity():
@@ -122,12 +129,12 @@ def test_empty_context_report(narrator, context):
     """
     report = narrator.summarize_execution(context)
 
-    assert report["verdict"] == "OPTIMO", \
-        "Contexto vacío debe mapear al bottom element"
+    assert report["verdict"] == "OPTIMO", "Contexto vacío debe mapear al bottom element"
     assert "Sin telemetría" in report["narrative"]
     assert report["phases"] == []
-    assert report.get("forensic_evidence", []) == [], \
+    assert report.get("forensic_evidence", []) == [], (
         "No debe existir evidencia forense en contexto vacío"
+    )
 
 
 def test_legacy_context_success_report(narrator):
@@ -155,10 +162,12 @@ def test_legacy_context_error_report(narrator):
 
     report = narrator.summarize_execution(error_context)
 
-    assert report["verdict"] == "CRITICO", \
+    assert report["verdict"] == "CRITICO", (
         "Presencia de error debe elevar al top del lattice"
-    assert len(report["forensic_evidence"]) > 0, \
+    )
+    assert len(report["forensic_evidence"]) > 0, (
         "Debe existir evidencia forense documentando el error"
+    )
 
 
 def test_hierarchical_success(narrator, context):
@@ -177,8 +186,7 @@ def test_hierarchical_success(narrator, context):
     assert report["verdict"] == "OPTIMO"
     assert len(report["phases"]) == 1
     assert report["phases"][0]["status"] == "OPTIMO"
-    assert "óptima" in report["narrative"].lower(), \
-        "Narrativa debe reflejar estado óptimo"
+    assert "óptima" in report["narrative"].lower(), "Narrativa debe reflejar estado óptimo"
 
 
 def test_hierarchical_warning(narrator, context):
@@ -221,14 +229,18 @@ def test_hierarchical_failure_with_topology(narrator, context):
     # Búsqueda eficiente de la ruta topológica completa
     expected_path = "Root Phase → Level 1 → Level 2"
     matching_evidence = next(
-        (issue for issue in report["forensic_evidence"]
-         if expected_path in issue["topological_path"]
-         and issue["message"] == "Deep Error"),
-        None
+        (
+            issue
+            for issue in report["forensic_evidence"]
+            if expected_path in issue["topological_path"]
+            and issue["message"] == "Deep Error"
+        ),
+        None,
     )
 
-    assert matching_evidence is not None, \
+    assert matching_evidence is not None, (
         f"No se encontró evidencia con ruta topológica: {expected_path}"
+    )
 
 
 def test_silent_failure_detection(narrator, context):
@@ -249,8 +261,9 @@ def test_silent_failure_detection(narrator, context):
     assert len(report["forensic_evidence"]) > 0
 
     silent_evidence = report["forensic_evidence"][0]
-    assert silent_evidence["type"] == "SilentFailure", \
+    assert silent_evidence["type"] == "SilentFailure", (
         "Tipo de evidencia debe identificar fallo silencioso"
+    )
     assert "Silent Phase" in silent_evidence["topological_path"]
 
 
@@ -271,8 +284,9 @@ def test_lattice_induced_severity_from_child(narrator, context):
     report = narrator.summarize_execution(context)
 
     phase = report["phases"][0]
-    assert phase["status"] == "CRITICO", \
+    assert phase["status"] == "CRITICO", (
         "Fallo en descendiente debe inducir CRITICO en ancestro via supremum"
+    )
     assert report["verdict"] == "CRITICO"
 
 
@@ -292,21 +306,19 @@ def test_lattice_induced_severity_multiple_children(narrator, context):
 
         with context.span("Child Critical") as crit_child:
             crit_child.status = StepStatus.FAILURE
-            crit_child.errors.append({
-                "message": "Critical failure in child",
-                "type": "Error"
-            })  # → CRITICO
+            crit_child.errors.append(
+                {"message": "Critical failure in child", "type": "Error"}
+            )  # → CRITICO
 
     report = narrator.summarize_execution(context)
 
-    assert report["phases"][0]["status"] == "CRITICO", \
+    assert report["phases"][0]["status"] == "CRITICO", (
         "sup(OPTIMO, ADVERTENCIA, CRITICO) debe ser CRITICO"
+    )
     assert report["verdict"] == "CRITICO"
 
     # Verificar que la evidencia forense captura el fallo
     critical_evidence = [
-        e for e in report["forensic_evidence"]
-        if "Critical failure" in e.get("message", "")
+        e for e in report["forensic_evidence"] if "Critical failure" in e.get("message", "")
     ]
-    assert len(critical_evidence) > 0, \
-        "Debe existir evidencia forense del fallo crítico"
+    assert len(critical_evidence) > 0, "Debe existir evidencia forense del fallo crítico"

@@ -1,10 +1,12 @@
-import pytest
-import networkx as nx
-import math
-import time
-import random
 import logging
-from app.matter_generator import MatterGenerator, MaterialRequirement, BillOfMaterials
+import math
+import random
+import time
+
+import networkx as nx
+import pytest
+
+from app.matter_generator import BillOfMaterials, MatterGenerator
 
 
 class TestMatterGenerator:

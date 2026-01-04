@@ -1,9 +1,6 @@
-import pytest
 import pandas as pd
-import networkx as nx
-from unittest.mock import MagicMock
+
 from app.business_agent import BusinessAgent
-from agent.business_topology import TopologicalMetrics
 
 
 class TestBusinessAgentIntegration:

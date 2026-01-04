@@ -148,14 +148,12 @@ class SemanticTranslator:
         if not cycle_nodes:
             return ""
 
-        # Limitar la longitud de la explicación para no saturar el reporte
         display_nodes = cycle_nodes[:5]
         path_str = " -> ".join(display_nodes)
 
         if len(cycle_nodes) > 5:
             path_str += f" -> ... ({len(cycle_nodes) - 5} más)"
 
-        # Cerrar el ciclo visualmente
         path_str += f" -> {cycle_nodes[0]}"
 
         narrative = (
@@ -183,7 +181,7 @@ class SemanticTranslator:
         metrics: TopologicalMetrics,
         stability: float = 0.0,
         synergy_risk: Optional[Dict[str, Any]] = None,
-        spectral: Optional[Dict[str, Any]] = None
+        spectral: Optional[Dict[str, Any]] = None,
     ) -> str:
         """
         Traduce métricas topológicas a una Auditoría de Ingeniería Civil.
@@ -195,7 +193,7 @@ class SemanticTranslator:
             spectral: Datos de análisis espectral (Opcional).
 
         Returns:
-            Narrativa de auditoría estructural.
+            str: Narrativa de auditoría estructural.
         """
         self._validate_topological_metrics(metrics, stability)
 
@@ -210,14 +208,12 @@ class SemanticTranslator:
             # GraphRAG: Explicar nodos críticos de la sinergia si están disponibles
             intersecting_nodes = synergy_risk.get("intersecting_nodes", [])
             if intersecting_nodes:
-                # Tomar el primer nodo como ejemplo
                 example_node = intersecting_nodes[0]
-                # Asumimos un grado alto implícito o genérico para la narrativa
                 narrative_parts.append(self.explain_stress_point(example_node, "múltiples"))
 
         # 1.2 Espectral: Cohesión y Resonancia
         if spectral:
-             narrative_parts.append(self._translate_spectral(spectral))
+            narrative_parts.append(self._translate_spectral(spectral))
 
         if metrics.euler_efficiency < 0.5:
             narrative_parts.append(
@@ -241,17 +237,36 @@ class SemanticTranslator:
         wavelength = spectral.get("wavelength", 0.0)
 
         if fiedler > 0.5:
-            parts.append(f"🔗 **Alta Cohesión del Equipo (Fiedler={fiedler:.2f})**: La estructura de costos está fuertemente sincronizada.")
+            parts.append(
+                f"🔗 **Alta Cohesión del Equipo (Fiedler={fiedler:.2f})**: "
+                "La estructura de costos está fuertemente sincronizada."
+            )
         elif fiedler > 0.05:
-            parts.append(f"⚖️ **Cohesión Estándar (Fiedler={fiedler:.2f})**: El proyecto presenta un acoplamiento típico entre sus componentes.")
+            parts.append(
+                f"⚖️ **Cohesión Estándar (Fiedler={fiedler:.2f})**: "
+                "El proyecto presenta un acoplamiento típico entre sus componentes."
+            )
         else:
-            parts.append(f"💔 **Fractura Organizacional (Fiedler={fiedler:.3f})**: Baja cohesión espectral. Los subsistemas operan aislados, riesgo de desalineación en ejecución.")
+            parts.append(
+                f"💔 **Fractura Organizacional (Fiedler={fiedler:.3f})**: "
+                "Baja cohesión espectral. Los subsistemas operan aislados, "
+                "riesgo de desalineación en ejecución."
+            )
 
         # Resonancia y Longitud de Onda
         if spectral.get("resonance_risk", False):
-            parts.append(f"🔊 **RIESGO DE RESONANCIA FINANCIERA (λ={wavelength:.2f})**: El espectro de vibración está peligrosamente concentrado. Un impacto externo (inflación/escasez) podría amplificarse en toda la estructura simultáneamente.")
+            parts.append(
+                f"🔊 **RIESGO DE RESONANCIA FINANCIERA (λ={wavelength:.2f})**: "
+                "El espectro de vibración está peligrosamente concentrado. "
+                "Un impacto externo (inflación/escasez) podría amplificarse en toda la "
+                "estructura simultáneamente."
+            )
         else:
-            parts.append(f"🌊 **Disipación Ondulatoria (λ={wavelength:.2f})**: La estructura tiene capacidad para amortiguar impactos locales sin entrar en resonancia sistémica.")
+            parts.append(
+                f"🌊 **Disipación Ondulatoria (λ={wavelength:.2f})**: "
+                "La estructura tiene capacidad para amortiguar impactos locales sin entrar en "
+                "resonancia sistémica."
+            )
 
         return " ".join(parts)
 
@@ -353,7 +368,6 @@ class SemanticTranslator:
         thresholds = self.stability_thresholds
 
         if stability < thresholds.critical:
-            # Lógica Pirámide Invertida
             return (
                 f"📉 **COLAPSO POR BASE ESTRECHA (Pirámide Invertida)**: "
                 f"Ψ = {stability:.2f}. La Cimentación Logística (Insumos) es demasiado "
@@ -362,7 +376,6 @@ class SemanticTranslator:
             )
 
         if stability >= thresholds.solid:
-            # Estructura Resiliente
             return (
                 f"🛡️ **ESTRUCTURA ANTISÍSMICA (Resiliente)**: "
                 f"Ψ = {stability:.2f}. La Cimentación de Recursos es amplia y redundante. "
@@ -370,7 +383,6 @@ class SemanticTranslator:
                 "vibraciones del mercado (volatilidad) sin sufrir daños estructurales."
             )
 
-        # Rango intermedio
         return (
             f"⚖️ **Estructura Isostática (Estable)**: "
             f"Ψ = {stability:.2f}. El equilibrio entre la carga de actividades y "
@@ -384,27 +396,27 @@ class SemanticTranslator:
         Interpreta las métricas termodinámicas.
 
         Args:
-            entropy (S): Nivel de Desorden Administrativo (0.0 - 1.0)
-            exergy (Ex): Eficiencia de Inversión Estructural (0.0 - 1.0)
-            temperature (T): Índice de Inflación Interna (°C)
+            entropy (float): Nivel de Desorden Administrativo (0.0 - 1.0).
+            exergy (float): Eficiencia de Inversión Estructural (0.0 - 1.0).
+            temperature (float): Índice de Inflación Interna (°C).
 
         Returns:
-            Narrativa de análisis termodinámico.
+            str: Narrativa de análisis termodinámico.
         """
         parts = []
 
-        # 1. Eficiencia Exergética
         exergy_pct = exergy * 100.0
         parts.append(f"⚡ **Eficiencia Exergética del {exergy_pct:.1f}%**.")
 
-        # 2. Análisis de Temperatura (Fiebre)
         if temperature > 50.0:
             parts.append(
                 f"🔥 **EL PROYECTO TIENE FIEBRE ({temperature:.1f}°C)**. "
                 "El Índice de Inflación Interna es crítico. Los costos de insumos volátiles "
                 "están sobrecalentando la estructura de precios."
             )
-            parts.append("💊 **Receta**: Se recomienda enfriar mediante contratos de futuros o stock preventivo.")
+            parts.append(
+                "💊 **Receta**: Se recomienda enfriar mediante contratos de futuros o stock preventivo."
+            )
         elif temperature > 30.0:
             parts.append(
                 f"🌡️ **Calentamiento Operativo ({temperature:.1f}°C)**. "
@@ -416,7 +428,6 @@ class SemanticTranslator:
                 "El proyecto está termodinámicamente equilibrado (Precios fríos/fijos)."
             )
 
-        # 3. Entropía
         if entropy > 0.7:
             parts.append(
                 f"🌪️ **Alta Entropía ({entropy:.2f})**: Caos administrativo detectado. "
@@ -441,7 +452,7 @@ class SemanticTranslator:
         return "\n".join(narrative_parts)
 
     def _validate_financial_metrics(self, metrics: Dict[str, Any]) -> Dict[str, Any]:
-        """Valida y normaliza métricas financieras (Parse, Don't Validate)."""
+        """Valida y normaliza métricas financieras."""
         if not isinstance(metrics, dict):
             raise TypeError(
                 f"Se esperaba dict de métricas, recibido: {type(metrics).__name__}"
@@ -535,17 +546,14 @@ class SemanticTranslator:
         """
         Compone el reporte ejecutivo con metáforas de ingeniería estructural.
         """
-        # Adapt for both object and dict input for topological_metrics
         if isinstance(topological_metrics, dict):
             topo_metrics = TopologicalMetrics(**topological_metrics)
         elif isinstance(topological_metrics, TopologicalMetrics):
             topo_metrics = topological_metrics
         else:
-            # Fallback/Error handling
             logger.warning(
                 f"Invalid type for topological_metrics: {type(topological_metrics)}"
             )
-            # Attempt to construct default or fail
             try:
                 topo_metrics = TopologicalMetrics(beta_0=1, beta_1=0, euler_characteristic=1)
             except Exception:
@@ -561,7 +569,9 @@ class SemanticTranslator:
         # 1. Estructura
         sections.append("### 1. Auditoría de Integridad Estructural")
         try:
-            sections.append(self.translate_topology(topo_metrics, stability, synergy_risk, spectral))
+            sections.append(
+                self.translate_topology(topo_metrics, stability, synergy_risk, spectral)
+            )
         except Exception as e:
             error_msg = f"Error analizando estructura: {e}"
             sections.append(f"❌ {error_msg}")
@@ -589,7 +599,11 @@ class SemanticTranslator:
         sections.append("### 💡 Dictamen del Ingeniero Jefe")
         sections.append(
             self._generate_final_advice(
-                topo_metrics, financial_metrics, stability, is_analysis_valid, synergy_risk
+                topo_metrics,
+                financial_metrics,
+                stability,
+                is_analysis_valid,
+                synergy_risk,
             )
         )
 
@@ -627,17 +641,14 @@ class SemanticTranslator:
 
         # 1. Caso Sinergia de Riesgo (Producto Cup)
         if has_synergy:
-            # GraphRAG Narrative integration for Synergy
             synergy_msg = (
                 "🛑 **PARADA DE EMERGENCIA (Efecto Dominó)**: Se detectaron ciclos interconectados "
                 "que comparten recursos críticos. El riesgo no es aditivo, es multiplicativo. "
                 "Cualquier fallo en el suministro provocará un colapso sistémico en múltiples frentes. "
                 "Desacoplar los ciclos antes de continuar."
             )
-            # Add specific cycle explanation if available
             intersecting_cycles = synergy_risk.get("intersecting_cycles", [])
             if intersecting_cycles:
-                # Explain the first cycle as an example
                 cycle_explanation = self.explain_cycle_path(intersecting_cycles[0])
                 synergy_msg += f"\n\n{cycle_explanation}"
 

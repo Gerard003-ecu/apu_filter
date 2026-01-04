@@ -1,17 +1,19 @@
 # -*- coding: utf-8 -*-
-import pytest
+from math import isclose, sqrt
+
 import numpy as np
-from math import isclose, nan, sqrt
+import pytest
+from scipy.stats import norm
+
 from app.financial_engine import (
-    FinancialConfig,
     CapitalAssetPricing,
-    RiskQuantifier,
-    RealOptionsAnalyzer,
-    FinancialEngine,
     DistributionType,
+    FinancialConfig,
+    FinancialEngine,
+    RealOptionsAnalyzer,
+    RiskQuantifier,
     calculate_volatility_from_returns,
 )
-from scipy.stats import norm
 
 # ============================================================================
 # FIXTURES
