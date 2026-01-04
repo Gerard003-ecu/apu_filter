@@ -69,7 +69,7 @@ Mientras los otros sabios analizan riesgos, el Alquimista tiene la tarea de mate
 
 ⚖️ El Presidente del Consejo (El Protocolo OODA)
 Es uno de los roles más operativos, su trabajo no es aportar más sabiduría es unirla. El sistema opera bajo una norma llamada Ciclo OODA (Observar, Orientar, Decidir, Actuar).
-• Su talento: La gestíon coherente de cada de las ejecuciones de los sabios.
+• Su talento: La gestíon coherente de cada una de las ejecuciones de los sabios.
 • Cómo cumple la promesa:
 
 1. Observa: El Guardián ingiere los datos.
