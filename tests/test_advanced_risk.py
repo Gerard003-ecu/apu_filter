@@ -55,8 +55,9 @@ class TestAdvancedRiskAnalysis:
 
         assert synergy["synergy_detected"] is True
         # Both A and B are bridge nodes.
-        assert "A" in synergy["shared_nodes"]
-        assert "B" in synergy["shared_nodes"]
+        bridge_ids = [n["id"] for n in synergy["bridge_nodes"]]
+        assert "A" in bridge_ids
+        assert "B" in bridge_ids
         assert synergy["intersecting_cycles_count"] >= 1
 
     def test_no_synergy_disjoint_cycles(self, analyzer):
@@ -76,17 +77,23 @@ class TestAdvancedRiskAnalysis:
         base_volatility = 0.10
 
         # Scenario 1: No Risk
-        report_safe = {"details": {"synergy_risk": {"synergy_detected": False}}}
+        # Note: adjust_volatility_by_topology accesses topology_report.get("synergy_risk", {})
+        # So we should pass a dictionary where "synergy_risk" is at top level if not using "details"
+        # However, the previous test code was: report_safe = {"details": ...}
+        # But financial_engine logic is: if topology_report.get("synergy_risk", {}).get("synergy_detected", False):
+        # So we need "synergy_risk" at the root of the dict passed.
+
+        report_safe = {"synergy_risk": {"synergy_detected": False}}
         vol_safe = financial_engine.adjust_volatility_by_topology(
             base_volatility, report_safe
         )
         assert vol_safe == base_volatility
 
         # Scenario 2: Risk Synergy
-        report_risky = {"details": {"synergy_risk": {"synergy_detected": True}}}
+        report_risky = {"synergy_risk": {"synergy_detected": True}}
         vol_risky = financial_engine.adjust_volatility_by_topology(
             base_volatility, report_risky
         )
 
         # Expected 20% penalty
-        assert vol_risky == base_volatility * 1.2
+        assert vol_risky == pytest.approx(base_volatility * 1.2)

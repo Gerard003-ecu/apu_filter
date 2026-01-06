@@ -430,9 +430,9 @@ class BusinessAgent:
         try:
             financial_metrics = self.financial_engine.analyze_project(
                 initial_investment=params.initial_investment,
-                expected_cash_flows=list(params.cash_flows),
+                cash_flows=list(params.cash_flows),
                 cost_std_dev=params.cost_std_dev,
-                project_volatility=params.project_volatility,
+                volatility=params.project_volatility,
             )
         except Exception as e:
             raise RuntimeError(f"Error en análisis financiero: {e}") from e

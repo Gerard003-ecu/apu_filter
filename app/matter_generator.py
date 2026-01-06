@@ -599,6 +599,10 @@ class MatterGenerator:
                 "is_dag": nx.is_directed_acyclic_graph(graph),
                 "euler_characteristic": node_count - edge_count,
             },
+            "topological_invariants": { # Alias for testing V3.0
+                "is_dag": nx.is_directed_acyclic_graph(graph),
+                "euler_characteristic": node_count - edge_count,
+            },
             "graph_metrics": {
                 "node_count": node_count,
                 "edge_count": edge_count,

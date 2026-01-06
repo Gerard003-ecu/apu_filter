@@ -204,10 +204,16 @@ class CondenserConfig:
         if self.pid_kp < 0:
             errors.append(f"pid_kp >= 0, got {self.pid_kp}")
 
+        if self.min_batch_size <= 0:
+            errors.append(f"min_batch_size must be > 0, got {self.min_batch_size}")
+
         if self.min_batch_size > self.max_batch_size:
             errors.append(
                 f"min_batch_size ({self.min_batch_size}) > max ({self.max_batch_size})"
             )
+
+        if self.pid_setpoint <= 0.0 or self.pid_setpoint >= 1.0:
+             errors.append(f"pid_setpoint debe estar entre 0 y 1, got {self.pid_setpoint}")
 
         if errors:
             raise ConfigurationError(
@@ -307,6 +313,12 @@ class PIController:
         self._last_error: Optional[float] = None
         self._iteration_count: int = 0
         self._history: List[Dict[str, Any]] = []
+
+        if self.min_output >= self.max_output:
+             raise ConfigurationError(f"min_output ({self.min_output}) >= max_output ({self.max_output})")
+
+        if self.min_output <= 0:
+            raise ConfigurationError(f"min_output ({self.min_output}) must be positive")
 
         self.logger = logging.getLogger(f"{self.__class__.__name__}")
 
@@ -505,7 +517,10 @@ class FluxPhysicsEngine:
             "dynamic_resistance": R_dyn,
             "damping_ratio": damping_ratio,
             "entropy_absolute": entropy_metrics["entropy_absolute"],
+            "entropy_rate": entropy_metrics["entropy_rate"],
             "is_thermal_death": entropy_metrics["is_thermal_death"],
+            "power_factor": 1.0,  # En resonancia
+            "stability_factor": 1.0 / max(damping_ratio, 0.001),
         }
 
         self._store_metrics(metrics)
@@ -532,7 +547,50 @@ class FluxPhysicsEngine:
 
     def get_trend_analysis(self) -> Dict[str, Any]:
         """Analiza tendencias de métricas."""
-        return {"status": "OK", "samples": len(self._metrics_history)}
+        result = {"status": "OK", "samples": len(self._metrics_history)}
+
+        if not self._metrics_history:
+            return result
+
+        keys = ["saturation", "dissipated_power", "kinetic_energy", "power"]
+        for key in keys:
+            # Handle alias
+            lookup_key = "dissipated_power" if key == "power" else key
+
+            if self._metrics_history and lookup_key in self._metrics_history[0]:
+                vals = [m[lookup_key] for m in self._metrics_history]
+                if len(vals) > 1:
+                    trend = "STABLE"
+                    # Simple heuristic
+                    if vals[-1] > vals[0] * 1.05: trend = "INCREASING"
+                    elif vals[-1] < vals[0] * 0.95: trend = "DECREASING"
+                    result[key] = {"trend": trend, "current": vals[-1]}
+
+        return result
+
+    def get_system_diagnosis(self, metrics: Dict[str, float]) -> Dict[str, str]:
+        """Genera un diagnóstico del sistema basado en métricas."""
+        diagnosis = {"state": "NORMAL"}
+
+        # Check potential energy ratio (stability)
+        pe = metrics.get("potential_energy", 0)
+        ke = metrics.get("kinetic_energy", 1) # avoid div by zero
+
+        # Check overload first
+        if ke > 0 and (pe / ke) > SystemConstants.HIGH_PRESSURE_RATIO:
+            diagnosis["state"] = "SOBRECARGA"
+        elif ke > 0:
+             diagnosis["state"] = "EQUILIBRIO"
+
+        if metrics.get("damping_ratio", 1.0) < SystemConstants.LOW_INERTIA_THRESHOLD:
+            diagnosis["state"] = "INESTABILIDAD"
+
+        if metrics.get("saturation", 0) > 0.9:
+            diagnosis["state"] = "SATURATED"
+        elif metrics.get("kinetic_energy", 0) < SystemConstants.MIN_ENERGY_THRESHOLD:
+            diagnosis["state"] = "ESTANCADO"
+
+        return diagnosis
 
 
 # ============================================================================
@@ -675,6 +733,12 @@ class DataFluxCondenser:
                 progress_callback(metrics)
 
             pid_out = self.controller.compute(metrics.get("saturation", 0.5))
+
+            # Check thermal breaker
+            if metrics.get("dissipated_power", 0) > SystemConstants.OVERHEAT_POWER_THRESHOLD:
+                self.logger.warning(f"OVERHEAT: Potencia disipada {metrics['dissipated_power']} > {SystemConstants.OVERHEAT_POWER_THRESHOLD}")
+                # Frenar PID
+                pid_out = max(1, int(pid_out * SystemConstants.EMERGENCY_BRAKE_FACTOR))
 
             # Procesamiento real (simulado aquí con llamada directa)
             df_batch = self._process_single_batch(batch, cache)
