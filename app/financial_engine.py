@@ -572,8 +572,13 @@ class FinancialEngine:
         initial_investment: float,
         cash_flows: List[float],
         cost_std_dev: float,
-        volatility: float,
+        volatility: Optional[float] = None,
         topology_report: Optional[Dict[str, Any]] = None,
+        # V3.0 args support
+        expected_cash_flows: Optional[List[float]] = None,
+        project_volatility: Optional[float] = None,
+        liquidity: Optional[float] = None,
+        fixed_contracts_ratio: Optional[float] = None,
     ) -> Dict[str, Any]:
         """
         Ejecuta el análisis financiero completo del proyecto.
@@ -582,14 +587,28 @@ class FinancialEngine:
             initial_investment: Inversión inicial requerida.
             cash_flows: Flujos de caja proyectados.
             cost_std_dev: Desviación estándar de los costos.
-            volatility: Volatilidad estimada del proyecto.
+            volatility: Volatilidad estimada del proyecto (legacy).
             topology_report: Reporte topológico (para ajuste de riesgo sistémico).
+            expected_cash_flows: Alias para cash_flows (V3.0).
+            project_volatility: Alias para volatility (V3.0).
+            liquidity: Ratio de liquidez (override de config).
+            fixed_contracts_ratio: Ratio de contratos fijos (override de config).
 
         Returns:
             Dict: Informe financiero detallado.
         """
+        # Argument resolution for V3.0 compatibility
+        flows = expected_cash_flows if expected_cash_flows is not None else cash_flows
+        vol = project_volatility if project_volatility is not None else volatility
+        if vol is None:
+             raise ValueError("Se requiere 'volatility' o 'project_volatility'")
+
+        # Use overrides or config defaults for thermodynamics
+        liq = liquidity if liquidity is not None else self.config.liquidity_ratio
+        fcr = fixed_contracts_ratio if fixed_contracts_ratio is not None else self.config.fixed_contracts_ratio
+
         # 1. Ajuste por Riesgo Sistémico (Topología)
-        adjusted_volatility = volatility
+        adjusted_volatility = vol
         if topology_report and topology_report.get("synergy_risk", {}).get(
             "synergy_detected", False
         ):
@@ -601,7 +620,7 @@ class FinancialEngine:
 
         # 2. Valoración DCF (Flujos Descontados)
         wacc = self.capm.calculate_wacc()
-        npv = self.capm.calculate_npv(cash_flows, initial_investment)
+        npv = self.capm.calculate_npv(flows, initial_investment)
 
         # 3. Análisis de Riesgo (VaR & Contingencia)
         var_val, _ = self.risk.calculate_var(
@@ -628,19 +647,27 @@ class FinancialEngine:
 
         # 5. Métricas de Performance
         performance = self._calculate_performance_metrics(
-            npv, initial_investment, len(cash_flows)
+            npv, initial_investment, len(flows)
         )
+
+        # 6. Thermodynamics Metrics
+        inertia = self.calculate_financial_thermal_inertia(liq, fcr)
 
         return {
             "wacc": wacc,
             "npv": npv,
             "total_value": total_value,
             "volatility": adjusted_volatility,
-            "volatility_adjusted": adjusted_volatility != volatility,
+            "volatility_adjusted": adjusted_volatility != vol,
             "var": var_val,
             "contingency": contingency,
             "real_option_value": option_val,
             "performance": performance,
+            "thermodynamics": {
+                "financial_inertia": inertia,
+                "liquidity_ratio": liq,
+                "fixed_contracts_ratio": fcr
+            }
         }
 
     def _calculate_performance_metrics(
@@ -704,6 +731,20 @@ class FinancialEngine:
         Analogía física: Masa (Liquidez) * Calor Específico (Contratos Fijos).
         """
         return liquidity * fixed_contracts_ratio
+
+    def predict_temperature_change(self, perturbation: float, inertia: float) -> float:
+        """
+        Predice el cambio de temperatura financiera (costos) ante una perturbación.
+        Ley de enfriamiento: ΔT = Q / I
+        """
+        if inertia <= 0:
+            # Sin inercia, el cambio es instantáneo/total (o indefinido si Q=0, asumimos total)
+            # Retornamos la perturbación completa como 'cambio infinito' o directo.
+            # Para fines prácticos, si I=0, el sistema es inestable.
+            # Retornamos la perturbación sin amortiguación.
+            return perturbation
+
+        return perturbation / inertia
 
 
 def calculate_volatility_from_returns(

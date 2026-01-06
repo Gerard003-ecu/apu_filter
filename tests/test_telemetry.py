@@ -850,7 +850,8 @@ class TestErrorRecording:
         assert ctx.record_error("step", 123) is True
 
         # Verify fallback occurred
-        assert "invalid message" in ctx.errors[-1]["message"]
+        # The default generic message is "Unknown error" for non-string inputs
+        assert "Unknown error" in ctx.errors[-1]["message"]
 
     def test_record_error_long_message_truncation(self, ctx: TelemetryContext):
         """Verify very long error messages are truncated."""

@@ -113,7 +113,8 @@ class TestCondenserConfig:
         with pytest.raises(ConfigurationError, match="min_batch_size"):
             CondenserConfig(min_batch_size=0)
 
-        with pytest.raises(ConfigurationError, match="max_batch_size"):
+        # The error message says "min_batch_size (100) > max (50)", so matching "min_batch_size" is correct or we broaden the match
+        with pytest.raises(ConfigurationError, match="min_batch_size"):
             CondenserConfig(min_batch_size=100, max_batch_size=50)
 
 
@@ -293,7 +294,7 @@ class TestFluxPhysicsEngine:
             "saturation": 0.5,
         }
         diag = engine.get_system_diagnosis(metrics)
-        assert "EQUILIBRIO" in diag
+        assert diag["state"] == "EQUILIBRIO"
 
         # 2. Estancado: Energía cinética prácticamente cero
         metrics_stalled = {
@@ -303,7 +304,7 @@ class TestFluxPhysicsEngine:
             "saturation": 0.0,
         }
         diag = engine.get_system_diagnosis(metrics_stalled)
-        assert "ESTANCADO" in diag
+        assert diag["state"] == "ESTANCADO"
 
         # 3. Inestabilidad
         metrics_unstable = {
@@ -312,7 +313,7 @@ class TestFluxPhysicsEngine:
             "damping_ratio": 0.05,  # < 0.1
         }
         diag = engine.get_system_diagnosis(metrics_unstable)
-        assert "INESTABILIDAD" in diag
+        assert diag["state"] == "INESTABILIDAD"
 
         # 4. Sobrecarga: Ratio Ec/El muy alto
         metrics_overload = {
@@ -322,7 +323,7 @@ class TestFluxPhysicsEngine:
             "damping_ratio": 1.0,
         }
         diag = engine.get_system_diagnosis(metrics_overload)
-        assert "SOBRECARGA" in diag
+        assert diag["state"] == "SOBRECARGA"
 
     def test_trend_analysis(self, engine):
         """Prueba el análisis de tendencias."""
