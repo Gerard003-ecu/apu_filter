@@ -273,11 +273,13 @@ class BatchResult:
 # ============================================================================
 class PIController:
     """
-    Controlador PI Discreto con:
-    1. Filtro de media móvil exponencial para estabilización
-    2. Anti-windup con back-calculation mejorado
-    3. Análisis de estabilidad basado en Lyapunov discreto mejorado
-    4. Ganancia integral adaptativa para evitar windup en régimen transitorio
+    Controlador PI Discreto.
+
+    Características:
+    1. Filtro de media móvil exponencial para estabilización.
+    2. Anti-windup con back-calculation mejorado.
+    3. Análisis de estabilidad basado en Lyapunov discreto mejorado.
+    4. Ganancia integral adaptativa para evitar windup en régimen transitorio.
     """
 
     _MAX_HISTORY_SIZE: int = 100
@@ -291,6 +293,7 @@ class PIController:
         max_output: int,
         integral_limit_factor: float = 2.0,
     ):
+        """Inicializa el controlador PID."""
         self._validate_control_parameters(kp, ki, setpoint, min_output, max_output)
 
         self.Kp = float(kp)
@@ -333,12 +336,12 @@ class PIController:
         self, kp: float, ki: float, setpoint: float, min_output: int, max_output: int
     ) -> None:
         """
-        Validación de parámetros con criterios de estabilidad basados en
-        el Criterio de Jury para sistemas discretos.
+        Valida parámetros con criterios de estabilidad.
 
+        Se basa en el Criterio de Jury para sistemas discretos.
         Para un sistema PI discreto con planta de primer orden G(z) = K/(z-a):
-        - Estabilidad requiere que todos los polos estén dentro del círculo unitario
-        - Condición necesaria: |a - K*Kp| < 1 y Ki*T < 2*(1 + a - K*Kp)
+        - Estabilidad requiere que todos los polos estén dentro del círculo unitario.
+        - Condición necesaria: |a - K*Kp| < 1 y Ki*T < 2*(1 + a - K*Kp).
         """
         errors = []
 
@@ -387,8 +390,9 @@ class PIController:
 
     def _apply_ema_filter(self, measurement: float) -> float:
         """
-        Filtro EMA con alpha adaptativo basado en varianza normalizada
-        y detección de cambios abruptos (step detection).
+        Aplica filtro EMA con alpha adaptativo.
+
+        Se basa en varianza normalizada y detección de cambios abruptos (step detection).
         """
         if self._filtered_pv is None:
             self._filtered_pv = measurement
@@ -429,9 +433,10 @@ class PIController:
 
     def _update_lyapunov_metric(self, error: float) -> None:
         """
-        Métrica de Lyapunov usando función candidata V(e) = e²
-        con estimación robusta del exponente mediante regresión
-        de mínimos cuadrados sobre ventana deslizante.
+        Actualiza métrica de Lyapunov.
+
+        Usa función candidata V(e) = e² con estimación robusta del exponente mediante
+        regresión de mínimos cuadrados sobre ventana deslizante.
         """
         # Almacenar |e| para regresión logarítmica
         abs_error = abs(error) + 1e-12  # Evitar log(0)
@@ -504,11 +509,13 @@ class PIController:
 
     def compute(self, process_variable: float) -> int:
         """
-        Controlador PI con:
-        1. Zona muerta (deadband) para reducir actuación innecesaria
-        2. Anti-windup con back-calculation y clamping condicional
-        3. Slew rate limiting para suavidad
-        4. Bumpless transfer en cambios de setpoint
+        Calcula la salida del controlador PI.
+
+        Características:
+        1. Zona muerta (deadband) para reducir actuación innecesaria.
+        2. Anti-windup con back-calculation y clamping condicional.
+        3. Slew rate limiting para suavidad.
+        4. Bumpless transfer en cambios de setpoint.
         """
         self._iteration_count += 1
         current_time = time.time()
@@ -716,11 +723,13 @@ class PIController:
 # ============================================================================
 class FluxPhysicsEngine:
     """
-    Motor de física RLC mejorado con:
-    1. Integración numérica más estable (Runge-Kutta de 2do orden)
-    2. Cálculo de números de Betti corregido para grafos
-    3. Entropía termodinámica con fundamentación estadística rigurosa
-    4. Modelo de amortiguamiento no lineal para alta saturación
+    Motor de física RLC.
+
+    Características:
+    1. Integración numérica más estable (Runge-Kutta de 2do orden).
+    2. Cálculo de números de Betti corregido para grafos.
+    3. Entropía termodinámica con fundamentación estadística rigurosa.
+    4. Modelo de amortiguamiento no lineal para alta saturación.
     """
 
     _MAX_METRICS_HISTORY: int = 100
@@ -876,8 +885,10 @@ class FluxPhysicsEngine:
 
     def _build_metric_graph(self, metrics: Dict[str, float]) -> None:
         """
-        Construye grafo de correlación con umbral adaptativo basado en
-        correlación de Spearman (robusta a outliers) sobre historial.
+        Construye grafo de correlación.
+
+        Usa umbral adaptativo basado en correlación de Spearman (robusta a outliers)
+        sobre historial.
         """
         metric_keys = [
             "saturation",
@@ -1068,10 +1079,11 @@ class FluxPhysicsEngine:
         self, total_records: int, error_count: int, processing_time: float
     ) -> Dict[str, float]:
         """
-        Entropía del sistema con estimadores robustos:
-        1. Shannon con corrección de Horvitz-Thompson para muestreo
-        2. Rényi de orden 2 (entropía de colisión)
-        3. Entropía condicional H(Error|Time)
+        Entropía del sistema con estimadores robustos.
+
+        1. Shannon con corrección de Horvitz-Thompson para muestreo.
+        2. Rényi de orden 2 (entropía de colisión).
+        3. Entropía condicional H(Error|Time).
         """
         if total_records <= 0:
             return self._get_zero_entropy()
@@ -1190,9 +1202,9 @@ class FluxPhysicsEngine:
         Calcula métricas físicas del sistema RLC.
 
         Modelo: el flujo de datos se modela como un circuito RLC donde:
-        - Corriente I = eficiencia (cache_hits / total_records)
-        - Carga Q = registros acumulados procesados
-        - Voltaje V = "presión" del pipeline (saturación)
+        - Corriente I = eficiencia (cache_hits / total_records).
+        - Carga Q = registros acumulados procesados.
+        - Voltaje V = "presión" del pipeline (saturación).
         """
         if total_records <= 0:
             return self._get_zero_metrics()
