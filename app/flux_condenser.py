@@ -275,8 +275,9 @@ class PIController:
     """
     Controlador PI Discreto con:
     1. Filtro de media móvil exponencial para estabilización
-    2. Anti-windup con back-calculation
-    3. Análisis de estabilidad basado en Lyapunov discreto
+    2. Anti-windup con back-calculation mejorado
+    3. Análisis de estabilidad basado en Lyapunov discreto mejorado
+    4. Ganancia integral adaptativa para evitar windup en régimen transitorio
     """
 
     _MAX_HISTORY_SIZE: int = 100
@@ -324,11 +325,15 @@ class PIController:
         self._lyapunov_sum: float = 0.0
         self._lyapunov_count: int = 0
 
+        # Adaptación de ganancia integral
+        self._ki_adaptive: float = ki
+        self._windup_detection_window: deque = deque(maxlen=5)
+
     def _validate_control_parameters(
         self, kp: float, ki: float, setpoint: float,
         min_output: int, max_output: int
     ) -> None:
-        """Validación de parámetros con criterios de estabilidad."""
+        """Validación de parámetros con criterios de estabilidad mejorados."""
         errors = []
 
         if kp <= 0:
@@ -344,14 +349,14 @@ class PIController:
         if not (0.0 < setpoint < 1.0):
             errors.append(f"setpoint debe estar en (0, 1), got {setpoint}")
 
-        # Criterio de estabilidad para PI discreto:
-        # Para evitar oscilaciones, la ganancia total no debe ser excesiva
-        if kp > 0 and ki > 0:
-            # Heurística: ratio Ki/Kp muy alto causa windup
-            if ki / kp > 1.0:
-                logger.warning(
-                    f"Ratio Ki/Kp = {ki/kp:.2f} > 1.0 puede causar respuesta lenta"
-                )
+        # Criterio de estabilidad mejorado para PI discreto:
+        # Para sistema de primer orden con tiempo de muestreo T=1, condiciones de estabilidad:
+        # 0 < Kp < 2/|G| y 0 < Ki < Kp donde |G| es ganancia del proceso (~1)
+        if kp > 2.0:
+            logger.warning(f"Kp={kp} puede causar inestabilidad (recomendado < 2.0)")
+
+        if ki > kp:
+            logger.warning(f"Ki/Kp ratio={ki/kp:.2f} > 1 puede causar oscilaciones")
 
         if errors:
             raise ConfigurationError(
@@ -360,49 +365,87 @@ class PIController:
             )
 
     def _apply_ema_filter(self, measurement: float) -> float:
-        """Filtro de media móvil exponencial para suavizado de señal."""
+        """Filtro de media móvil exponencial con adaptación de alpha."""
         if self._filtered_pv is None:
             self._filtered_pv = measurement
-        else:
-            self._filtered_pv = (
-                self._ema_alpha * measurement +
-                (1 - self._ema_alpha) * self._filtered_pv
-            )
+            return measurement
+
+        # Adaptar alpha basado en la varianza reciente del error
+        if len(self._error_history) > 1:
+            recent_errors = list(self._error_history)[-5:]
+            if np:
+                error_variance = np.var(recent_errors)
+            else:
+                mean_error = sum(recent_errors) / len(recent_errors)
+                error_variance = sum((e - mean_error)**2 for e in recent_errors) / len(recent_errors)
+
+            # Alpha más bajo para ruido alto, más alto para señal limpia
+            adaptive_alpha = max(0.1, min(0.5, 0.3/(1 + error_variance)))
+            self._ema_alpha = adaptive_alpha
+
+        self._filtered_pv = (
+            self._ema_alpha * measurement +
+            (1 - self._ema_alpha) * self._filtered_pv
+        )
         return self._filtered_pv
 
     def _update_lyapunov_metric(self, error: float) -> None:
         """
-        Actualiza métrica de estabilidad de Lyapunov.
+        Actualiza métrica de estabilidad de Lyapunov mejorada.
 
-        Usa función de Lyapunov V(e) = e² y verifica que ΔV < 0
-        para estabilidad asintótica.
+        Usa función de Lyapunov V(e) = e² y calcula exponente de Lyapunov
+        mediante diferencia finita logarítmica.
         """
         if self._last_error is not None:
-            V_current = error ** 2
-            V_previous = self._last_error ** 2
+            # Para evitar división por cero
+            if abs(self._last_error) < 1e-10:
+                return
 
-            if V_previous > SystemConstants.MIN_ENERGY_THRESHOLD:
-                # Tasa de cambio logarítmica (aproximación al exponente de Lyapunov)
-                delta_V = V_current - V_previous
-                if V_previous > 0:
-                    lyapunov_rate = delta_V / V_previous
-                    self._lyapunov_sum += lyapunov_rate
-                    self._lyapunov_count += 1
+            # Tasa de cambio logarítmica (exponente de Lyapunov aproximado)
+            lyapunov_rate = math.log(abs(error) + 1e-10) - math.log(abs(self._last_error) + 1e-10)
+
+            # Filtrado EMA del exponente
+            self._lyapunov_sum += lyapunov_rate
+            self._lyapunov_count += 1
+
+            # Detección de inestabilidad temprana
+            if self._lyapunov_count > 10:
+                avg_exponent = self._lyapunov_sum / self._lyapunov_count
+                if avg_exponent > 0.1:  # Exponente positivo indica inestabilidad
+                    logger.warning(f"Posible inestabilidad detectada: λ ≈ {avg_exponent:.3f}")
+
+    def _adapt_integral_gain(self, error: float, output_saturated: bool) -> None:
+        """Adapta la ganancia integral para prevenir windup."""
+        self._windup_detection_window.append((error, output_saturated))
+
+        if len(self._windup_detection_window) < 3:
+            return
+
+        # Detectar windup: error constante con saturación
+        recent_errors = [e for e, _ in self._windup_detection_window]
+        saturated_count = sum(1 for _, s in self._windup_detection_window if s)
+
+        if np:
+            error_std = np.std(recent_errors)
+        else:
+            mean = sum(recent_errors) / len(recent_errors)
+            error_std = math.sqrt(sum((e - mean)**2 for e in recent_errors) / len(recent_errors))
+
+        # Condiciones para windup: baja variación en error con saturación frecuente
+        if error_std < 0.05 and saturated_count >= 2:
+            self._ki_adaptive = self.Ki * 0.5  # Reducir Ki temporalmente
+            logger.debug("Windup detectado: reduciendo Ki adaptativamente")
+        else:
+            self._ki_adaptive = self.Ki  # Restaurar Ki nominal
 
     def compute(self, process_variable: float) -> int:
         """
-        Calcula salida de control PI con anti-windup por back-calculation.
-
-        Args:
-            process_variable: Valor actual del proceso (0.0 - 1.0)
-
-        Returns:
-            Salida de control acotada al rango [min_output, max_output]
+        Calcula salida de control PI con anti-windup mejorado.
         """
         self._iteration_count += 1
         current_time = time.time()
 
-        # Filtrado de señal
+        # Filtrado de señal adaptativo
         filtered_pv = self._apply_ema_filter(
             max(0.0, min(1.0, process_variable))
         )
@@ -411,7 +454,7 @@ class PIController:
         error = self.setpoint - filtered_pv
         self._error_history.append(error)
 
-        # Cálculo de delta tiempo
+        # Cálculo de delta tiempo con límites
         if self._last_time is None:
             dt = SystemConstants.MIN_DELTA_TIME
         else:
@@ -423,35 +466,51 @@ class PIController:
         # Término proporcional
         P = self.Kp * error
 
-        # Término integral con anti-windup
+        # Adaptación de ganancia integral
+        output_saturated_precheck = False
+        # Pre-cálculo para detección temprana de saturación
         integral_increment = error * dt
         proposed_integral = self._integral_error + integral_increment
+        I_proposed = self._ki_adaptive * proposed_integral
+        output_unbounded_pre = self._output_center + P + I_proposed
+        if output_unbounded_pre > self.max_output or output_unbounded_pre < self.min_output:
+            output_saturated_precheck = True
 
-        # Pre-cálculo de salida para anti-windup
-        I_proposed = self.Ki * proposed_integral
+        self._adapt_integral_gain(error, output_saturated_precheck)
+
+        # Término integral con anti-windup mejorado
+        # Back-calculation mejorado
+        I_proposed = self._ki_adaptive * proposed_integral
         output_unbounded = self._output_center + P + I_proposed
 
-        # Anti-windup por back-calculation
+        # Anti-windup con retroalimentación de saturación
         if output_unbounded > self.max_output:
-            # Saturación superior: limitar integral
             saturation_error = output_unbounded - self.max_output
-            self._integral_error = proposed_integral - saturation_error / max(self.Ki, 1e-6)
+            # Factor de back-calculation ajustado
+            back_calc_factor = 0.8
+            self._integral_error = proposed_integral - (back_calc_factor * saturation_error / max(self._ki_adaptive, 1e-6))
         elif output_unbounded < self.min_output:
-            # Saturación inferior: limitar integral
             saturation_error = self.min_output - output_unbounded
-            self._integral_error = proposed_integral + saturation_error / max(self.Ki, 1e-6)
+            back_calc_factor = 0.8
+            self._integral_error = proposed_integral + (back_calc_factor * saturation_error / max(self._ki_adaptive, 1e-6))
         else:
             self._integral_error = proposed_integral
 
-        # Aplicar límite absoluto de integral
-        self._integral_error = max(
-            -self._integral_limit,
-            min(self._integral_limit, self._integral_error)
-        )
+        # Aplicar límite absoluto de integral con suavizado
+        if abs(self._integral_error) > self._integral_limit:
+            # Suavizar la limitación para evitar discontinuidades
+            limit_factor = self._integral_limit / abs(self._integral_error)
+            self._integral_error *= limit_factor
 
         # Cálculo final de salida
-        I = self.Ki * self._integral_error
+        I = self._ki_adaptive * self._integral_error
         output_raw = self._output_center + P + I
+
+        # Suavizado de salida para cambios bruscos
+        if self._last_output is not None:
+            max_change = self._output_range * 0.1  # Máximo 10% de cambio por iteración
+            output_raw = self._last_output + max(-max_change, min(max_change, output_raw - self._last_output))
+
         output = int(round(max(self.min_output, min(self.max_output, output_raw))))
 
         # Actualizar métricas de estabilidad
@@ -483,11 +542,12 @@ class PIController:
         lyapunov = self.get_lyapunov_exponent()
 
         # Análisis de convergencia
-        error_variance = sum((e - sum(errors)/len(errors))**2 for e in errors) / len(errors)
+        mean_error = sum(errors) / len(errors)
+        error_variance = sum((e - mean_error)**2 for e in errors) / len(errors)
+
         recent_errors = errors[-min(10, len(errors)):]
-        recent_variance = sum(
-            (e - sum(recent_errors)/len(recent_errors))**2 for e in recent_errors
-        ) / len(recent_errors)
+        mean_recent = sum(recent_errors) / len(recent_errors)
+        recent_variance = sum((e - mean_recent)**2 for e in recent_errors) / len(recent_errors)
 
         # Diagnóstico
         if lyapunov < -0.1:
@@ -523,7 +583,8 @@ class PIController:
                 "integral_limit": self._integral_limit,
                 "integral_utilization": abs(self._integral_error) / self._integral_limit,
                 "last_error": self._last_error,
-                "last_output": self._last_output
+                "last_output": self._last_output,
+                "adaptive_ki": self._ki_adaptive
             },
             "stability_analysis": stability,
             "parameters": {
@@ -544,6 +605,7 @@ class PIController:
         self._iteration_count = 0
         self._lyapunov_sum = 0.0
         self._lyapunov_count = 0
+        self._ki_adaptive = self.Ki
         # Preserva historial para análisis post-mortem
 
     def get_state(self) -> Dict[str, Any]:
@@ -559,7 +621,8 @@ class PIController:
             "state": {
                 "integral_error": self._integral_error,
                 "filtered_pv": self._filtered_pv,
-                "iteration": self._iteration_count
+                "iteration": self._iteration_count,
+                "adaptive_ki": self._ki_adaptive
             },
             "diagnostics": self.get_stability_analysis()
         }
@@ -570,10 +633,11 @@ class PIController:
 # ============================================================================
 class FluxPhysicsEngine:
     """
-    Motor de física RLC con:
-    1. Modelo de circuito RLC serie coherente
-    2. Cálculo correcto de números de Betti para grafos
-    3. Entropía termodinámica basada en estados accesibles
+    Motor de física RLC mejorado con:
+    1. Integración numérica más estable (Runge-Kutta de 2do orden)
+    2. Cálculo de números de Betti corregido para grafos
+    3. Entropía termodinámica con fundamentación estadística rigurosa
+    4. Modelo de amortiguamiento no lineal para alta saturación
     """
 
     _MAX_METRICS_HISTORY: int = 100
@@ -595,15 +659,7 @@ class FluxPhysicsEngine:
         self._Q = math.sqrt(self.L / self.C) / self.R if self.R > 0 else float('inf')
 
         # Clasificación del sistema
-        if self._zeta > 1.0:
-            self._damping_type = "OVERDAMPED"
-            self._omega_d = self._omega_0 * math.sqrt(self._zeta**2 - 1)
-        elif self._zeta < 1.0:
-            self._damping_type = "UNDERDAMPED"
-            self._omega_d = self._omega_0 * math.sqrt(1 - self._zeta**2)
-        else:
-            self._damping_type = "CRITICALLY_DAMPED"
-            self._omega_d = 0.0
+        self._update_damping_classification()
 
         # Estado del sistema: [carga Q, corriente I]
         self._state = [0.0, 0.0]  # Compatible con/sin numpy
@@ -623,6 +679,9 @@ class FluxPhysicsEngine:
         self._ema_current: float = 0.0  # EMA de la corriente (Eje de rotación)
         self._last_time: float = time.time()
         self._initialized: bool = False
+
+        # Amortiguamiento no lineal
+        self._nonlinear_damping_factor: float = 1.0
 
     def _validate_physical_parameters(self, C: float, R: float, L: float) -> None:
         """Validación de parámetros físicos con análisis dimensional."""
@@ -656,54 +715,70 @@ class FluxPhysicsEngine:
                 "\n".join(f"  • {e}" for e in errors)
             )
 
-    def _evolve_state(self, driving_current: float, dt: float) -> Tuple[float, float]:
+    def _update_damping_classification(self) -> None:
+        """Actualiza clasificación de amortiguamiento del sistema."""
+        if self._zeta > 1.0:
+            self._damping_type = "OVERDAMPED"
+            self._omega_d = self._omega_0 * math.sqrt(self._zeta**2 - 1)
+        elif self._zeta < 1.0:
+            self._damping_type = "UNDERDAMPED"
+            self._omega_d = self._omega_0 * math.sqrt(1 - self._zeta**2)
+        else:
+            self._damping_type = "CRITICALLY_DAMPED"
+            self._omega_d = 0.0
+
+    def _evolve_state_rk2(self, driving_current: float, dt: float) -> Tuple[float, float]:
         """
-        Evoluciona el estado del sistema RLC usando integración semi-implícita.
+        Evoluciona el estado del sistema RLC usando Runge-Kutta de 2do orden.
 
-        El sistema está descrito por:
-        L(dI/dt) + RI + Q/C = V(t)
+        Sistema de ecuaciones:
         dQ/dt = I
-
-        Args:
-            driving_current: Corriente de entrada normalizada
-            dt: Paso de tiempo
-
-        Returns:
-            Tuple (carga, corriente) actualizados
+        dI/dt = (V - R*I - Q/C) / L
+        donde V es proporcional a driving_current
         """
         Q, I = self._state
 
-        # Método de Euler semi-implícito para estabilidad
-        # Predictor
-        dI_dt = (driving_current - self.R * I - Q / self.C) / self.L
-        I_pred = I + dt * dI_dt
+        # Convertir driving_current a voltaje de entrada (normalizado)
+        V_in = driving_current * 10.0  # Factor de escala
 
-        # Corrector para Q
-        Q_new = Q + dt * (I + I_pred) / 2.0
+        # Función derivada
+        def derivatives(q, i):
+            dq_dt = i
+            di_dt = (V_in - self.R * i - q / self.C) / self.L
+            return dq_dt, di_dt
 
-        # Corrector para I
-        dI_dt_new = (driving_current - self.R * I_pred - Q_new / self.C) / self.L
-        I_new = I + dt * (dI_dt + dI_dt_new) / 2.0
+        # Runge-Kutta de 2do orden (método del punto medio)
+        k1_q, k1_i = derivatives(Q, I)
+        k2_q, k2_i = derivatives(Q + 0.5 * dt * k1_q, I + 0.5 * dt * k1_i)
 
-        # Actualizar estado
+        Q_new = Q + dt * k2_q
+        I_new = I + dt * k2_i
+
+        # Aplicar amortiguamiento no lineal para alta energía
+        current_energy = 0.5 * self.L * I_new**2 + 0.5 * self.C * (Q_new/self.C)**2
+        if current_energy > 10.0:  # Umbral de energía
+            damping_factor = 1.0 / (1.0 + 0.1 * current_energy)
+            I_new *= damping_factor
+            self._nonlinear_damping_factor = damping_factor
+
         self._state = [Q_new, I_new]
         self._state_history.append({
             'Q': Q_new,
             'I': I_new,
-            'time': time.time()
+            'time': time.time(),
+            'energy': current_energy
         })
 
         return Q_new, I_new
 
     def _build_metric_graph(self, metrics: Dict[str, float]) -> None:
         """
-        Construye grafo de correlación entre métricas para análisis topológico.
-
-        Vertices: métricas individuales
-        Edges: correlaciones fuertes entre métricas (|corr| > threshold)
+        Construye grafo de correlación entre métricas usando umbral adaptativo
+        basado en percentiles.
         """
         # Seleccionar métricas clave para el grafo
-        metric_keys = ['saturation', 'complexity', 'current_I', 'potential_energy']
+        metric_keys = ['saturation', 'complexity', 'current_I', 'potential_energy',
+                      'kinetic_energy', 'entropy_shannon']
         values = [metrics.get(k, 0.0) for k in metric_keys]
 
         self._adjacency_list.clear()
@@ -714,14 +789,24 @@ class FluxPhysicsEngine:
         for i in range(self._vertex_count):
             self._adjacency_list[i] = set()
 
-        # Crear aristas basadas en proximidad (umbral adaptativo)
+        # Crear aristas basadas en correlación estadística
         if len(values) > 1:
-            value_range = max(values) - min(values) if max(values) != min(values) else 1.0
-            threshold = 0.3 * value_range
+            # Usar diferencia de percentiles como umbral adaptativo
+            sorted_vals = sorted(values)
+            if len(sorted_vals) >= 4:
+                q1 = sorted_vals[len(sorted_vals)//4]
+                q3 = sorted_vals[3*len(sorted_vals)//4]
+                iqr = q3 - q1
+                threshold = max(0.1, iqr * 0.5)  # 50% del IQR, mínimo 0.1
+            else:
+                value_range = max(values) - min(values) if max(values) != min(values) else 1.0
+                threshold = 0.3 * value_range
 
             for i in range(len(values)):
                 for j in range(i + 1, len(values)):
-                    if abs(values[i] - values[j]) < threshold:
+                    # Correlación basada en distancia normalizada
+                    correlation = 1.0 - abs(values[i] - values[j]) / (abs(values[i]) + abs(values[j]) + 1e-10)
+                    if correlation > 0.7:  # Correlación fuerte
                         self._adjacency_list[i].add(j)
                         self._adjacency_list[j].add(i)
                         self._edge_count += 1
@@ -730,65 +815,69 @@ class FluxPhysicsEngine:
         """
         Calcula números de Betti para el grafo de métricas.
 
-        Para un grafo:
+        Para un grafo simple:
         - β₀ = número de componentes conexas
-        - β₁ = número de ciclos independientes = E - V + β₀ (fórmula de Euler)
+        - β₁ = número de ciclos independientes = E - V + β₀
         """
         if self._vertex_count == 0:
-            return {0: 0, 1: 0}
+            return {0: 0, 1: 0, 2: 0}
 
-        # Calcular componentes conexas con BFS
-        visited = set()
+        # Calcular componentes conexas con DFS iterativo
+        visited = [False] * self._vertex_count
         components = 0
 
-        for start in range(self._vertex_count):
-            if start not in visited:
-                # BFS desde este vértice
-                queue = deque([start])
-                while queue:
-                    v = queue.popleft()
-                    if v not in visited:
-                        visited.add(v)
-                        for neighbor in self._adjacency_list.get(v, set()):
-                            if neighbor not in visited:
-                                queue.append(neighbor)
+        for v in range(self._vertex_count):
+            if not visited[v]:
                 components += 1
+                stack = [v]
+                while stack:
+                    current = stack.pop()
+                    if not visited[current]:
+                        visited[current] = True
+                        for neighbor in self._adjacency_list.get(current, set()):
+                            if not visited[neighbor]:
+                                stack.append(neighbor)
 
         beta_0 = components
 
-        # β₁ = E - V + β₀ (característica de Euler para grafos)
+        # β₁ = E - V + β₀ (característica de Euler-Poincaré para grafos)
         beta_1 = max(0, self._edge_count - self._vertex_count + beta_0)
 
-        return {0: beta_0, 1: beta_1}
+        # Para grafos, β_k = 0 para k ≥ 2
+        return {0: beta_0, 1: beta_1, 2: 0}
 
     def calculate_gyroscopic_stability(self, current_I: float) -> float:
         """
-        Calcula la Estabilidad Giroscópica (Sg) del sistema.
+        Calcula la Estabilidad Giroscópica (Sg) con modelo de precesión.
 
-        La estabilidad se define como la resistencia del sistema a cambios
-        bruscos en su "eje de rotación" (flujo de corriente).
-
-        Fórmula: Sg = 1.0 - tanh(|I - EMA_I| * Sensitivity)
+        Modelo: Sg = exp(-κ * |dI/dt|) * cos(θ)
+        donde κ es sensibilidad y θ es ángulo de precesión
         """
-        # Inicializar EMA si es el primer valor
-        if not self._initialized and self._ema_current == 0.0:
+        if not self._initialized:
             self._ema_current = current_I
+            self._initialized = True
+            return 1.0
 
-        # Actualizar EMA (Eje de Rotación)
+        # Calcular derivada de la corriente
+        current_time = time.time()
+        dt = max(1e-6, current_time - self._last_time)
+        dI_dt = (current_I - self._last_current) / dt
+
+        # Actualizar EMA del eje de rotación
         alpha = SystemConstants.GYRO_EMA_ALPHA
         self._ema_current = alpha * current_I + (1 - alpha) * self._ema_current
 
-        # Calcular perturbación (Precesión/Wobble)
-        perturbation = abs(current_I - self._ema_current)
+        # Calcular ángulo de precesión (desviación del eje)
+        precession_angle = math.atan2(current_I - self._ema_current, 1.0)
 
-        # Calcular Estabilidad Giroscópica (Sg)
-        # tanh mapeta [0, inf) a [0, 1]
-        # Si perturbación es 0, tanh(0) = 0, Sg = 1.0 (Estable)
-        # Si perturbación es alta, tanh -> 1, Sg -> 0.0 (Inestable)
+        # Calcular estabilidad giroscópica
         sensitivity = SystemConstants.GYRO_SENSITIVITY
-        sg = 1.0 - math.tanh(perturbation * sensitivity)
+        stability = math.exp(-sensitivity * abs(dI_dt)) * math.cos(precession_angle)
 
-        return max(0.0, min(1.0, sg))
+        # Normalizar a [0, 1]
+        stability_normalized = (stability + 1) / 2.0
+
+        return max(0.0, min(1.0, stability_normalized))
 
     def calculate_system_entropy(
         self,
@@ -797,67 +886,81 @@ class FluxPhysicsEngine:
         processing_time: float
     ) -> Dict[str, float]:
         """
-        Calcula entropía del sistema con fundamento termodinámico.
+        Calcula entropía del sistema con fundamentación estadística rigurosa.
 
-        1. Entropía de Shannon: incertidumbre en distribución de errores
-        2. Entropía configuracional: basada en microestados accesibles
-        3. Entropía de tasa: producción de entropía por unidad de tiempo
+        1. Entropía de Shannon con corrección de pequeñas muestras
+        2. Entropía de Tsallis para no-extensividad
+        3. Entropía relativa (Kullback-Leibler) respecto a distribución uniforme
         """
         if total_records <= 0:
             return self._get_zero_entropy()
 
         success_count = total_records - error_count
 
-        # Entropía de Shannon (bits)
+        # Probabilidades
+        p_success = success_count / total_records
+        p_error = error_count / total_records
+
+        # Entropía de Shannon con corrección de Miller-Madow para bias en pequeñas muestras
         shannon_entropy = 0.0
-        for count in [success_count, error_count]:
-            if count > 0:
-                p = count / total_records
-                shannon_entropy -= p * math.log2(p)
+        if p_success > 0:
+            shannon_entropy -= p_success * math.log2(p_success)
+        if p_error > 0:
+            shannon_entropy -= p_error * math.log2(p_error)
 
-        # Entropía configuracional (Boltzmann)
-        # Ω = número de microestados = C(total, errors)
-        # Para evitar overflow, usamos aproximación de Stirling
-        if 0 < error_count < total_records:
-            # S = k_B * ln(Ω) ≈ k_B * [N*ln(N) - n*ln(n) - (N-n)*ln(N-n)]
-            n = total_records
-            k = error_count
-            try:
-                log_omega = (
-                    n * math.log(n) -
-                    k * math.log(k) -
-                    (n - k) * math.log(n - k)
-                )
-                configurational_entropy = log_omega
-            except (ValueError, ZeroDivisionError):
-                configurational_entropy = 0.0
+        # Corrección de Miller-Madow
+        m = 2  # Número de bins (éxito/error)
+        shannon_entropy_corrected = shannon_entropy + (m - 1) / (2 * total_records * math.log(2))
+
+        # Entropía de Tsallis (q-entropía) para capturar no-extensividad
+        q = 1.5  # Parámetro de no-extensividad
+        tsallis_entropy = 0.0
+        if q != 1:
+            for p in [p_success, p_error]:
+                if p > 0:
+                    tsallis_entropy += p**q
+            tsallis_entropy = (1 - tsallis_entropy) / (q - 1)
         else:
-            configurational_entropy = 0.0
+            tsallis_entropy = shannon_entropy / math.log(2)  # Convertir a nats para consistencia
 
-        # Entropía de tasa (producción por segundo)
+        # Entropía relativa (divergencia KL) respecto a distribución uniforme
+        uniform_p = 0.5
+        kl_divergence = 0.0
+        for p in [p_success, p_error]:
+            if p > 0:
+                kl_divergence += p * math.log2(p / uniform_p)
+
+        # Producción de entropía por unidad de tiempo
         entropy_rate = shannon_entropy / max(processing_time, 0.001)
 
-        # Entropía máxima posible (Binaria = 1.0 bit)
-        max_entropy = 1.0
+        # Diagnóstico de estado termodinámico
+        max_shannon = 1.0  # Máximo para distribución binomial
+        entropy_ratio = shannon_entropy / max_shannon
 
-        # Diagnóstico de "muerte térmica" (máximo desorden)
-        # H(p) > 0.8 indica alta incertidumbre/caos en el proceso
-        entropy_ratio = shannon_entropy / max_entropy
-        is_thermal_death = entropy_ratio > 0.8
+        # Ley de enfriamiento de Newton aplicada a entropía
+        entropy_decay_time = 0.0
+        if entropy_rate > 0:
+            entropy_decay_time = shannon_entropy / entropy_rate
 
         result = {
             "shannon_entropy": shannon_entropy,
-            "entropy_absolute": shannon_entropy,  # Alias para compatibilidad de pruebas
-            "configurational_entropy": configurational_entropy,
+            "shannon_entropy_corrected": shannon_entropy_corrected,
+            "tsallis_entropy": tsallis_entropy,
+            "kl_divergence": kl_divergence,
             "entropy_rate": entropy_rate,
-            "max_entropy": max_entropy,
+            "entropy_decay_time": entropy_decay_time,
+            "max_entropy": max_shannon,
             "entropy_ratio": entropy_ratio,
-            "is_thermal_death": is_thermal_death
+            "is_thermal_death": entropy_ratio > 0.8,
+            "entropy_absolute": shannon_entropy, # Alias compatibilidad
+            "configurational_entropy": 0.0 # Placeholder
         }
 
         self._entropy_history.append({
             **result,
-            'timestamp': time.time()
+            'timestamp': time.time(),
+            'total_records': total_records,
+            'error_rate': error_count / total_records if total_records > 0 else 0
         })
 
         return result
@@ -866,9 +969,13 @@ class FluxPhysicsEngine:
         """Retorna entropía cero para casos triviales."""
         return {
             "shannon_entropy": 0.0,
+            "shannon_entropy_corrected": 0.0,
+            "tsallis_entropy": 0.0,
+            "kl_divergence": 0.0,
             "entropy_absolute": 0.0,
             "configurational_entropy": 0.0,
             "entropy_rate": 0.0,
+            "entropy_decay_time": 0.0,
             "max_entropy": 1.0,
             "entropy_ratio": 0.0,
             "is_thermal_death": False
@@ -908,14 +1015,14 @@ class FluxPhysicsEngine:
         # Actualizar amortiguamiento dinámico
         zeta_dynamic = R_dynamic / (2.0 * math.sqrt(self.L / self.C))
 
-        # Evolución del estado
+        # Evolución del estado con RK2
         if self._initialized:
             dt = max(1e-6, current_time - self._last_time)
         else:
             dt = 0.01
             self._initialized = True
 
-        Q, I = self._evolve_state(current_I, dt)
+        Q, I = self._evolve_state_rk2(current_I, dt)
 
         # Constante de tiempo normalizada
         tau = self.L / R_dynamic if R_dynamic > 0 else float('inf')
@@ -974,8 +1081,11 @@ class FluxPhysicsEngine:
             "resonant_frequency_hz": self._omega_0 / (2 * math.pi),
             "quality_factor": self._Q,
             "time_constant": tau,
-            # Entropía
+            # Entropía Extendida
             "entropy_shannon": entropy_metrics["shannon_entropy"],
+            "entropy_shannon_corrected": entropy_metrics["shannon_entropy_corrected"],
+            "tsallis_entropy": entropy_metrics["tsallis_entropy"],
+            "kl_divergence": entropy_metrics["kl_divergence"],
             "entropy_rate": entropy_metrics["entropy_rate"],
             "entropy_ratio": entropy_metrics["entropy_ratio"],
             "is_thermal_death": entropy_metrics["is_thermal_death"],
@@ -1325,12 +1435,12 @@ class DataFluxCondenser:
         telemetry: Optional[TelemetryContext],
     ) -> List[pd.DataFrame]:
         """
-        Procesa lotes con control PID adaptativo.
+        Procesa lotes con control PID adaptativo mejorado.
 
-        Implementa:
-        1. Control de tamaño de batch basado en saturación
-        2. Freno de emergencia por sobrecalentamiento
-        3. Recuperación parcial ante fallos
+        Mejoras:
+        1. Estimación de cache_hits más precisa usando caché real
+        2. Control de frecuencia de batch adaptativo
+        3. Predicción de saturación para pre-ajuste
         """
         processed_batches = []
         failed_batches_count = 0
@@ -1339,10 +1449,14 @@ class DataFluxCondenser:
         iteration = 0
         max_iterations = total_records * SystemConstants.MAX_ITERATIONS_MULTIPLIER
 
+        # Historial para predicción
+        saturation_history = []
+        batch_size_history = []
+
         while current_index < total_records and iteration < max_iterations:
             iteration += 1
 
-            # Determinar rango del batch
+            # Determinar rango del batch con predicción
             end_index = min(current_index + current_batch_size, total_records)
             batch = raw_records[current_index:end_index]
             batch_size = len(batch)
@@ -1353,48 +1467,81 @@ class DataFluxCondenser:
             # Calcular tiempo transcurrido
             elapsed_time = time.time() - self._start_time
 
-            # Verificar timeout global
-            if elapsed_time > SystemConstants.PROCESSING_TIMEOUT:
+            # Verificar timeout global con margen de seguridad
+            time_remaining = SystemConstants.PROCESSING_TIMEOUT - elapsed_time
+            if time_remaining < 0:
                 self.logger.error("Timeout de procesamiento alcanzado")
                 break
+            elif time_remaining < 60:  # Último minuto
+                self.logger.warning(f"Quedan {time_remaining:.0f}s para timeout")
 
-            # Calcular métricas físicas
+            # Estimación realista de cache_hits basada en contenido del batch
+            cache_hits_est = self._estimate_cache_hits(batch, cache)
+
+            # Calcular métricas físicas con amortiguamiento no lineal
             metrics = self.physics.calculate_metrics(
                 total_records=batch_size,
-                cache_hits=int(batch_size * 0.7),  # Estimación
-                error_count=0,
+                cache_hits=cache_hits_est,
+                error_count=failed_batches_count,
                 processing_time=elapsed_time
             )
 
-            # Callback de métricas
+            # Predicción de saturación para próxima iteración
+            if len(saturation_history) >= 2:
+                predicted_saturation = self._predict_next_saturation(saturation_history)
+                # Pre-ajustar controlador si se predice saturación alta
+                if predicted_saturation > 0.8:
+                    current_batch_size = max(SystemConstants.MIN_BATCH_SIZE_FLOOR,
+                                           int(current_batch_size * 0.8))
+
+            saturation_history.append(metrics.get("saturation", 0.5))
+            batch_size_history.append(batch_size)
+
+            # Callback de métricas con diagnóstico
             if progress_callback:
                 try:
-                    progress_callback(metrics)
+                    enhanced_metrics = {**metrics, "predicted_saturation": predicted_saturation if 'predicted_saturation' in locals() else None}
+                    progress_callback(enhanced_metrics)
                 except Exception as e:
                     self.logger.warning(f"Error en progress_callback: {e}")
 
-            # Control PID
+            # Control PID con límite dinámico basado en estabilidad giroscópica
             saturation = metrics.get("saturation", 0.5)
-            pid_output = self.controller.compute(saturation)
+            gyro_stability = metrics.get("gyroscopic_stability", 1.0)
 
-            # Freno de emergencia por potencia
+            # Reducir agresividad del control si baja estabilidad giroscópica
+            if gyro_stability < 0.5:
+                effective_saturation = min(saturation, 0.7)  # Limitar entrada al controlador
+                self.logger.debug(f"Baja estabilidad giroscópica ({gyro_stability:.2f}), limitando saturación")
+            else:
+                effective_saturation = saturation
+
+            pid_output = self.controller.compute(effective_saturation)
+
+            # Freno de emergencia adaptativo
             power = metrics.get("dissipated_power", 0)
+            flyback = metrics.get("flyback_voltage", 0)
+
+            emergency_brake = False
             if power > SystemConstants.OVERHEAT_POWER_THRESHOLD:
-                self.logger.warning(
-                    f"🔥 OVERHEAT: P={power:.2f}W > {SystemConstants.OVERHEAT_POWER_THRESHOLD}W"
-                )
-                pid_output = max(
-                    SystemConstants.MIN_BATCH_SIZE_FLOOR,
-                    int(pid_output * SystemConstants.EMERGENCY_BRAKE_FACTOR)
-                )
+                brake_factor = min(0.3, power / (2 * SystemConstants.OVERHEAT_POWER_THRESHOLD))
+                pid_output = max(SystemConstants.MIN_BATCH_SIZE_FLOOR,
+                               int(pid_output * brake_factor))
+                emergency_brake = True
+                self.logger.warning(f"🔥 OVERHEAT: P={power:.2f}W, aplicando freno {brake_factor:.1%}")
+
+            if flyback > SystemConstants.MAX_FLYBACK_VOLTAGE * 0.8:
+                pid_output = max(SystemConstants.MIN_BATCH_SIZE_FLOOR,
+                               int(pid_output * 0.6))
+                emergency_brake = True
+                self.logger.warning(f"⚡ HIGH FLYBACK: V={flyback:.2f}V")
+
+            if emergency_brake:
                 self._emergency_brake_count += 1
                 self._stats.emergency_brakes_triggered += 1
 
-            # Procesar batch - REMOVED OUTER TRY/EXCEPT to let explicit errors bubble up if needed,
-            # OR better: catch expected errors but respect stop logic.
-            # _process_single_batch guarantees BatchResult return (no raise).
-
-            result = self._process_single_batch(batch, cache)
+            # Procesar batch con recuperación inteligente
+            result = self._process_single_batch_with_recovery(batch, cache, failed_batches_count)
 
             if result.success and result.dataframe is not None:
                 processed_batches.append(result.dataframe)
@@ -1402,88 +1549,206 @@ class DataFluxCondenser:
                     batch_size=result.records_processed,
                     saturation=saturation,
                     power=power,
-                    flyback=metrics.get("flyback_voltage", 0),
+                    flyback=flyback,
                     kinetic=metrics.get("kinetic_energy", 0),
                     success=True
                 )
+                # Reset de contador de fallos consecutivos
+                failed_batches_count = max(0, failed_batches_count - 1)
             else:
                 failed_batches_count += 1
                 self._stats.add_batch_stats(
                     batch_size=batch_size,
                     saturation=saturation,
                     power=power,
-                    flyback=metrics.get("flyback_voltage", 0),
+                    flyback=flyback,
                     kinetic=metrics.get("kinetic_energy", 0),
                     success=False
                 )
-                self.logger.error(f"Error procesando batch {iteration}: {result.error_message}")
 
-                # Verificar límite de fallos
+                error_msg = result.error_message[:100] + "..." if len(result.error_message) > 100 else result.error_message
+                self.logger.error(f"Error procesando batch {iteration}: {error_msg}")
+
+                # Estrategia de recuperación adaptativa
                 if failed_batches_count >= self.condenser_config.max_failed_batches:
                     if not self.condenser_config.enable_partial_recovery:
-                        # This raises ProcessingError which will be caught by stabilize
                         raise ProcessingError(
                             f"Límite de batches fallidos alcanzado: {failed_batches_count}"
                         )
                     else:
+                        # Reducir tamaño de batch drásticamente para recuperación
+                        pid_output = SystemConstants.MIN_BATCH_SIZE_FLOOR
                         self.logger.warning(
-                            f"Continuando con recuperación parcial "
-                            f"({failed_batches_count} batches fallidos)"
+                            f"Recuperación parcial activada, reduciendo batch size a {pid_output}"
                         )
 
-
-            # Callback de progreso
+            # Callback de progreso con diagnóstico
             if on_progress:
                 try:
-                    on_progress(self._stats)
+                    enhanced_stats = self._enhance_stats_with_diagnostics(self._stats, metrics)
+                    on_progress(enhanced_stats)
                 except Exception as e:
                     self.logger.warning(f"Error en on_progress: {e}")
 
-            # Telemetría de batch
-            if telemetry and iteration % 10 == 0:
+            # Telemetría de batch con métricas extendidas
+            if telemetry and (iteration % 10 == 0 or emergency_brake):
                 telemetry.record_event("batch_processed", {
                     "iteration": iteration,
                     "progress": current_index / total_records,
                     "batch_size": batch_size,
-                    "saturation": saturation
+                    "saturation": saturation,
+                    "gyroscopic_stability": gyro_stability,
+                    "emergency_brake": emergency_brake,
+                    "failed_batches_consecutive": failed_batches_count
                 })
 
-            # Avanzar índice y actualizar tamaño de batch
+            # Avanzar índice y actualizar tamaño de batch con inercia
             current_index = end_index
-            current_batch_size = max(
-                SystemConstants.MIN_BATCH_SIZE_FLOOR,
-                pid_output
-            )
+
+            # Suavizar cambios en batch size
+            if iteration > 1:
+                inertia_factor = 0.7  # Conservar 70% del tamaño anterior
+                current_batch_size = int(inertia_factor * current_batch_size +
+                                       (1 - inertia_factor) * pid_output)
+            else:
+                current_batch_size = pid_output
+
+            current_batch_size = max(SystemConstants.MIN_BATCH_SIZE_FLOOR,
+                                   min(current_batch_size, self.condenser_config.max_batch_size))
 
         return processed_batches
 
-    def _process_single_batch(self, batch: List, cache: Dict) -> BatchResult:
-        """Procesa un lote individual con manejo de errores estructurado."""
+    def _estimate_cache_hits(self, batch: List, cache: Dict) -> int:
+        """
+        Estima cache_hits basado en similitud con caché existente.
+        """
+        if not cache or not batch:
+            return len(batch) // 2  # Estimación conservadora
+
+        # Métrica simple: porcentaje de registros con campos en caché
+        cache_fields = set(cache.keys())
+        hits = 0
+
+        for record in batch[:100]:  # Muestra de 100 registros para eficiencia
+            if isinstance(record, dict):
+                record_fields = set(record.keys())
+                if record_fields & cache_fields:  # Intersección no vacía
+                    hits += 1
+
+        # Extrapolar a todo el batch
+        if len(batch) > 100:
+            hit_rate = hits / 100
+            hits = int(hit_rate * len(batch))
+
+        return hits
+
+    def _predict_next_saturation(self, history: List[float]) -> float:
+        """
+        Predice siguiente valor de saturación usando regresión lineal simple.
+        """
+        if len(history) < 3:
+            return history[-1] if history else 0.5
+
+        # Regresión lineal en las últimas N muestras
+        n = min(5, len(history))
+        x = list(range(n))
+        y = history[-n:]
+
+        # Calcular pendiente
+        sum_x = sum(x)
+        sum_y = sum(y)
+        sum_xy = sum(x[i] * y[i] for i in range(n))
+        sum_x2 = sum(x_i * x_i for x_i in x)
+
+        if n * sum_x2 - sum_x * sum_x == 0:
+            return y[-1]
+
+        slope = (n * sum_xy - sum_x * sum_y) / (n * sum_x2 - sum_x * sum_x)
+
+        # Predecir próximo valor
+        prediction = y[-1] + slope
+
+        return max(0.0, min(1.0, prediction))
+
+    def _process_single_batch_with_recovery(self, batch: List, cache: Dict, consecutive_failures: int) -> BatchResult:
+        """
+        Procesa un lote individual con estrategias de recuperación mejoradas.
+        """
         if not batch:
             return BatchResult(success=False, error_message="Batch vacío")
 
+        # Ajustar estrategia basado en fallos consecutivos
+        recovery_mode = consecutive_failures > 0
+
         try:
             parsed_data = ParsedData(batch, cache)
-            df = self._rectify_signal(parsed_data)
 
-            if df is None or df.empty:
+            if recovery_mode:
+                # Modo recuperación: procesar en sub-lotes más pequeños
+                sub_results = []
+                sub_batch_size = max(1, len(batch) // (consecutive_failures + 1))
+
+                for i in range(0, len(batch), sub_batch_size):
+                    sub_batch = batch[i:i + sub_batch_size]
+                    sub_parsed = ParsedData(sub_batch, cache)
+
+                    try:
+                        df_sub = self._rectify_signal(sub_parsed)
+                        if df_sub is not None and not df_sub.empty:
+                            sub_results.append(df_sub)
+                    except Exception as e:
+                        self.logger.debug(f"Sub-lote {i//sub_batch_size} falló: {e}")
+                        continue
+
+                if sub_results:
+                    df = pd.concat(sub_results, ignore_index=True) if len(sub_results) > 1 else sub_results[0]
+                    return BatchResult(
+                        success=True,
+                        dataframe=df,
+                        records_processed=len(df)
+                    )
+                else:
+                    return BatchResult(
+                        success=False,
+                        error_message="Todos los sub-lotes fallaron en modo recuperación"
+                    )
+            else:
+                # Modo normal
+                df = self._rectify_signal(parsed_data)
+
+                if df is None or df.empty:
+                    return BatchResult(
+                        success=True,
+                        dataframe=pd.DataFrame(),
+                        records_processed=0
+                    )
+
                 return BatchResult(
                     success=True,
-                    dataframe=pd.DataFrame(),
-                    records_processed=0
+                    dataframe=df,
+                    records_processed=len(df)
                 )
 
-            return BatchResult(
-                success=True,
-                dataframe=df,
-                records_processed=len(df)
-            )
-
         except Exception as e:
-            # self.logger.error(f"Error en batch: {e}") # Caller logs it
+            # Análisis de error para diagnóstico
+            error_type = type(e).__name__
+            error_msg = str(e)
+
+            # Clasificar error para estrategia de recuperación
+            if "memory" in error_msg.lower() or "MemoryError" in error_type:
+                recovery_hint = "REDUCE_BATCH_SIZE"
+            elif "timeout" in error_msg.lower():
+                recovery_hint = "INCREASE_TIMEOUT"
+            elif "connection" in error_msg.lower() or "network" in error_msg.lower():
+                recovery_hint = "RETRY_WITH_BACKOFF"
+            else:
+                recovery_hint = "UNKNOWN"
+
+            enhanced_error = f"{error_type}: {error_msg} [RECOVERY_HINT: {recovery_hint}]"
+
             return BatchResult(
                 success=False,
-                error_message=str(e)
+                error_message=enhanced_error
             )
 
     def _rectify_signal(self, parsed_data: ParsedData) -> pd.DataFrame:
@@ -1539,6 +1804,38 @@ class DataFluxCondenser:
                 raise ProcessingError(msg)
             else:
                 self.logger.warning(msg)
+
+    def _enhance_stats_with_diagnostics(self, stats: ProcessingStats, metrics: Dict[str, float]) -> Dict[str, Any]:
+        """
+        Mejora las estadísticas con diagnóstico del sistema.
+        """
+        base_stats = asdict(stats)
+
+        # Calcular eficiencia
+        if stats.total_records > 0:
+            efficiency = stats.processed_records / stats.total_records
+        else:
+            efficiency = 0.0
+
+        # Diagnóstico del sistema
+        system_health = self.get_system_health()
+        physics_diagnosis = self.physics.get_system_diagnosis(metrics)
+
+        enhanced = {
+            **base_stats,
+            "efficiency": efficiency,
+            "throughput": stats.processed_records / max(stats.processing_time, 0.001),
+            "system_health": system_health,
+            "physics_diagnosis": physics_diagnosis,
+            "current_metrics": {
+                "saturation": metrics.get("saturation", 0),
+                "complexity": metrics.get("complexity", 0),
+                "gyroscopic_stability": metrics.get("gyroscopic_stability", 1.0),
+                "entropy_ratio": metrics.get("entropy_ratio", 0)
+            }
+        }
+
+        return enhanced
 
     def get_processing_stats(self) -> Dict[str, Any]:
         """Retorna estadísticas completas de procesamiento."""
