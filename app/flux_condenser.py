@@ -92,6 +92,10 @@ class SystemConstants:
     # Consolidación
     MAX_BATCHES_TO_CONSOLIDATE: int = 10_000  # Límite de batches
 
+    # Estabilidad Giroscópica
+    GYRO_SENSITIVITY: float = 5.0  # FactorSensibilidad para Sg
+    GYRO_EMA_ALPHA: float = 0.1    # Alpha para filtro EMA de corriente
+
 
 # ============================================================================
 # CLASES DE EXCEPCIONES
@@ -616,6 +620,7 @@ class FluxPhysicsEngine:
 
         # Estado temporal
         self._last_current: float = 0.0
+        self._ema_current: float = 0.0  # EMA de la corriente (Eje de rotación)
         self._last_time: float = time.time()
         self._initialized: bool = False
 
@@ -756,6 +761,35 @@ class FluxPhysicsEngine:
 
         return {0: beta_0, 1: beta_1}
 
+    def calculate_gyroscopic_stability(self, current_I: float) -> float:
+        """
+        Calcula la Estabilidad Giroscópica (Sg) del sistema.
+
+        La estabilidad se define como la resistencia del sistema a cambios
+        bruscos en su "eje de rotación" (flujo de corriente).
+
+        Fórmula: Sg = 1.0 - tanh(|I - EMA_I| * Sensitivity)
+        """
+        # Inicializar EMA si es el primer valor
+        if not self._initialized and self._ema_current == 0.0:
+            self._ema_current = current_I
+
+        # Actualizar EMA (Eje de Rotación)
+        alpha = SystemConstants.GYRO_EMA_ALPHA
+        self._ema_current = alpha * current_I + (1 - alpha) * self._ema_current
+
+        # Calcular perturbación (Precesión/Wobble)
+        perturbation = abs(current_I - self._ema_current)
+
+        # Calcular Estabilidad Giroscópica (Sg)
+        # tanh mapeta [0, inf) a [0, 1]
+        # Si perturbación es 0, tanh(0) = 0, Sg = 1.0 (Estable)
+        # Si perturbación es alta, tanh -> 1, Sg -> 0.0 (Inestable)
+        sensitivity = SystemConstants.GYRO_SENSITIVITY
+        sg = 1.0 - math.tanh(perturbation * sensitivity)
+
+        return max(0.0, min(1.0, sg))
+
     def calculate_system_entropy(
         self,
         total_records: int,
@@ -803,15 +837,17 @@ class FluxPhysicsEngine:
         # Entropía de tasa (producción por segundo)
         entropy_rate = shannon_entropy / max(processing_time, 0.001)
 
-        # Entropía máxima posible
-        max_entropy = math.log2(total_records) if total_records > 1 else 0.0
+        # Entropía máxima posible (Binaria = 1.0 bit)
+        max_entropy = 1.0
 
         # Diagnóstico de "muerte térmica" (máximo desorden)
-        entropy_ratio = shannon_entropy / max(max_entropy, 1.0)
-        is_thermal_death = entropy_ratio > 0.95
+        # H(p) > 0.8 indica alta incertidumbre/caos en el proceso
+        entropy_ratio = shannon_entropy / max_entropy
+        is_thermal_death = entropy_ratio > 0.8
 
         result = {
             "shannon_entropy": shannon_entropy,
+            "entropy_absolute": shannon_entropy,  # Alias para compatibilidad de pruebas
             "configurational_entropy": configurational_entropy,
             "entropy_rate": entropy_rate,
             "max_entropy": max_entropy,
@@ -830,9 +866,10 @@ class FluxPhysicsEngine:
         """Retorna entropía cero para casos triviales."""
         return {
             "shannon_entropy": 0.0,
+            "entropy_absolute": 0.0,
             "configurational_entropy": 0.0,
             "entropy_rate": 0.0,
-            "max_entropy": 0.0,
+            "max_entropy": 1.0,
             "entropy_ratio": 0.0,
             "is_thermal_death": False
         }
@@ -918,6 +955,9 @@ class FluxPhysicsEngine:
             total_records, error_count, processing_time
         )
 
+        # Estabilidad Giroscópica
+        gyro_stability = self.calculate_gyroscopic_stability(current_I)
+
         # Construir grafo y calcular topología
         metrics = {
             "saturation": saturation,
@@ -939,6 +979,10 @@ class FluxPhysicsEngine:
             "entropy_rate": entropy_metrics["entropy_rate"],
             "entropy_ratio": entropy_metrics["entropy_ratio"],
             "is_thermal_death": entropy_metrics["is_thermal_death"],
+            # Alias para pruebas
+            "entropy_absolute": entropy_metrics["entropy_absolute"],
+            # Giroscópica
+            "gyroscopic_stability": gyro_stability,
         }
 
         # Análisis topológico
@@ -976,13 +1020,15 @@ class FluxPhysicsEngine:
             "quality_factor": self._Q,
             "time_constant": self.L / self.R if self.R > 0 else float('inf'),
             "entropy_shannon": 0.0,
+            "entropy_absolute": 0.0,
             "entropy_rate": 0.0,
             "entropy_ratio": 0.0,
             "is_thermal_death": False,
             "betti_0": 0,
             "betti_1": 0,
             "graph_vertices": 0,
-            "graph_edges": 0
+            "graph_edges": 0,
+            "gyroscopic_stability": 1.0,
         }
 
     def _store_metrics(self, metrics: Dict[str, float]) -> None:
@@ -1083,6 +1129,15 @@ class FluxPhysicsEngine:
             diagnosis["topology"] = "CYCLIC"
         else:
             diagnosis["topology"] = "SIMPLE"
+
+        # Diagnóstico Giroscópico
+        gyro_stability = metrics.get("gyroscopic_stability", 1.0)
+        diagnosis["rotation_stability"] = "STABLE"
+        if gyro_stability < 0.6:
+            diagnosis["rotation_stability"] = "⚠️ PRECESIÓN DETECTADA (Inestabilidad de Flujo)"
+            # También escalamos el estado si es crítico
+            if gyro_stability < 0.3 and diagnosis["state"] == "NORMAL":
+                 diagnosis["state"] = "UNSTABLE"
 
         return diagnosis
 
