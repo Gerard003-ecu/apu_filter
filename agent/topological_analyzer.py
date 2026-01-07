@@ -1,22 +1,22 @@
 """
-Topological State Analyzer
-==========================
+Analizador de Estado Topológico.
+
 Módulo para el análisis de la topología del sistema y homología persistente.
 
 Fundamentos Matemáticos:
 ------------------------
 1. Números de Betti (β):
-   - β₀: Componentes conexas (objetos disjuntos)
-   - β₁: Ciclos independientes (agujeros 1-dimensionales)
-   - Para grafos: β₁ = |E| - |V| + β₀ (Euler-Poincaré)
+   - β₀: Componentes conexas (objetos disjuntos).
+   - β₁: Ciclos independientes (agujeros 1-dimensionales).
+   - Para grafos: β₁ = |E| - |V| + β₀ (Euler-Poincaré).
 
 2. Homología Persistente:
-   - Estudia la evolución de características topológicas a través de una filtración
-   - Características de vida larga = señales estructurales
-   - Características de vida corta = ruido topológico
+   - Estudia la evolución de características topológicas a través de una filtración.
+   - Características de vida larga = señales estructurales.
+   - Características de vida corta = ruido topológico.
 
 3. Característica de Euler:
-   - χ = β₀ - β₁ = |V| - |E|
+   - χ = β₀ - β₁ = |V| - |E|.
 """
 
 import logging
@@ -224,16 +224,16 @@ class SystemTopology:
     Fundamento Matemático:
     ----------------------
     Modelamos el sistema como un grafo no dirigido G = (V, E) donde:
-    - V = conjunto de servicios (nodos)
-    - E = conexiones activas entre servicios (aristas)
+    - V = conjunto de servicios (nodos).
+    - E = conexiones activas entre servicios (aristas).
 
     Los números de Betti caracterizan la topología:
-    - β₀ = número de componentes conexas
-    - β₁ = |E| - |V| + β₀ (rango del ciclo del grafo)
+    - β₀ = número de componentes conexas.
+    - β₁ = |E| - |V| + β₀ (rango del ciclo del grafo).
 
     Para un sistema saludable típico:
-    - β₀ = 1 (todo conectado)
-    - β₁ = 0 (sin redundancias cíclicas)
+    - β₀ = 1 (todo conectado).
+    - β₁ = 0 (sin redundancias cíclicas).
     """
 
     REQUIRED_NODES: FrozenSet[str] = frozenset({"Agent", "Core", "Redis", "Filesystem"})
@@ -628,14 +628,14 @@ class SystemTopology:
         Calcula los números de Betti del sistema actual con validación rigurosa.
 
         Para un grafo G = (V, E):
-        - β₀ = número de componentes conexas
-        - β₁ = |E| - |V| + β₀ (Teorema de Euler-Poincaré)
+        - β₀ = número de componentes conexas.
+        - β₁ = |E| - |V| + β₀ (Teorema de Euler-Poincaré).
 
         Casos especiales manejados:
-        1. Grafo vacío (sin nodos): β₀=0, β₁=0
-        2. Nodos aislados: cada uno es una componente conexa
-        3. Grafos no conexos: se calcula correctamente β₁ por componente
-        4. Consistencia con fórmula de Euler para grafos
+        1. Grafo vacío (sin nodos): β₀=0, β₁=0.
+        2. Nodos aislados: cada uno es una componente conexa.
+        3. Grafos no conexos: se calcula correctamente β₁ por componente.
+        4. Consistencia con fórmula de Euler para grafos.
 
         Args:
             include_isolated: Si True, incluye nodos sin conexiones como componentes.
@@ -752,10 +752,10 @@ class SystemTopology:
         Detecta patrones de reintentos con análisis temporal robusto.
 
         Mejoras:
-        1. Análisis de frecuencia temporal (no solo conteo)
-        2. Detección de patrones periódicos
-        3. Filtrado por densidad temporal
-        4. Clasificación por severidad
+        1. Análisis de frecuencia temporal (no solo conteo).
+        2. Detección de patrones periódicos.
+        3. Filtrado por densidad temporal.
+        4. Clasificación por severidad.
 
         Args:
             threshold: Mínimo número de repeticiones para considerar loop.
@@ -1244,12 +1244,12 @@ class SystemTopology:
         Score = 1.0 - Σ(penalización_i × peso_i)
 
         Donde:
-        - penalización_i ∈ [0, 1] (normalizada por máximo posible)
-        - peso_i ∈ [0, 1] con Σpesos_i = 1.0
+        - penalización_i ∈ [0, 1] (normalizada por máximo posible).
+        - peso_i ∈ [0, 1] con Σpesos_i = 1.0.
 
         Pesos configurados (con/sin β₁):
         - Fragmentación (β₀ > 1): 0.35
-        - Ciclos estructurales (β₁ > 0): 0.20 (solo si calculate_b1=True)
+        - Ciclos estructurales (β₁ > 0): 0.20 (solo si calculate_b1=True).
         - Nodos requeridos desconectados: 0.25
         - Conexiones esperadas faltantes: 0.15
         - Bucles de reintento: 0.05
@@ -1524,20 +1524,20 @@ class PersistenceHomology:
     topológicas a través de una filtración (secuencia de subespacios).
 
     Para series temporales, implementamos una filtración por nivel:
-    1. Definimos un umbral θ
-    2. Para cada punto temporal t, observamos si f(t) > θ
-    3. Las "excursiones" sobre el umbral son características 0-dimensionales
-    4. Registramos nacimiento (cruce ascendente) y muerte (cruce descendente)
+    1. Definimos un umbral θ.
+    2. Para cada punto temporal t, observamos si f(t) > θ.
+    3. Las "excursiones" sobre el umbral son características 0-dimensionales.
+    4. Registramos nacimiento (cruce ascendente) y muerte (cruce descendente).
 
     Diagrama de Persistencia:
-    - Cada característica se representa como punto (birth, death)
-    - Persistencia = death - birth (distancia a la diagonal)
-    - Alta persistencia = característica estructural
-    - Baja persistencia = ruido
+    - Cada característica se representa como punto (birth, death).
+    - Persistencia = death - birth (distancia a la diagonal).
+    - Alta persistencia = característica estructural.
+    - Baja persistencia = ruido.
 
     Métricas derivadas:
-    - Total persistence: Σ(death - birth) para todas las características
-    - Persistence entropy: Medida de complejidad del diagrama
+    - Total persistence: Σ(death - birth) para todas las características.
+    - Persistence entropy: Medida de complejidad del diagrama.
     """
 
     DEFAULT_WINDOW_SIZE: int = 20
@@ -1632,6 +1632,10 @@ class PersistenceHomology:
         """
         Agrega múltiples lecturas a una métrica.
 
+        Args:
+            metric_name: Nombre de la métrica.
+            values: Lista de valores.
+
         Returns:
             Número de lecturas agregadas exitosamente.
         """
@@ -1668,11 +1672,11 @@ class PersistenceHomology:
         Calcula intervalos de persistencia con manejo riguroso de casos límite.
 
         Mejoras implementadas:
-        1. Validación exhaustiva de inputs
-        2. Manejo de NaN, ±Inf, y valores extremos
-        3. Detección robusta de cruces por umbral
-        4. Fusión de excursiones adyacentes
-        5. Cálculo preciso de amplitud
+        1. Validación exhaustiva de inputs.
+        2. Manejo de NaN, ±Inf, y valores extremos.
+        3. Detección robusta de cruces por umbral.
+        4. Fusión de excursiones adyacentes.
+        5. Cálculo preciso de amplitud.
 
         Args:
             data: Lista de valores de serie temporal.
@@ -1878,8 +1882,8 @@ class PersistenceHomology:
 
         H = -Σ (p_i * log(p_i)) donde p_i = persistence_i / total_persistence
 
-        Alta entropía = muchas características de vida similar
-        Baja entropía = pocas características dominantes
+        Alta entropía = muchas características de vida similar.
+        Baja entropía = pocas características dominantes.
 
         Args:
             intervals: Lista de intervalos.
@@ -1925,11 +1929,11 @@ class PersistenceHomology:
         Análisis de persistencia con clasificación probabilística robusta.
 
         Modelo de clasificación:
-        1. STABLE: P(excursión) < 0.1 y persistencia_total < umbral_ruido
-        2. NOISE: Excursiones de vida corta (< noise_ratio × ventana)
-        3. FEATURE: Excursiones de vida larga con alta persistencia
-        4. CRITICAL: Excursión activa prolongada (> critical_ratio × ventana)
-        5. UNKNOWN: Datos insuficientes o inválidos
+        1. STABLE: P(excursión) < 0.1 y persistencia_total < umbral_ruido.
+        2. NOISE: Excursiones de vida corta (< noise_ratio × ventana).
+        3. FEATURE: Excursiones de vida larga con alta persistencia.
+        4. CRITICAL: Excursión activa prolongada (> critical_ratio × ventana).
+        5. UNKNOWN: Datos insuficientes o inválidos.
 
         Args:
             metric_name: Nombre de la métrica.
@@ -2245,8 +2249,8 @@ class PersistenceHomology:
         Compara dos diagramas de persistencia usando distancia seleccionada.
 
         Métodos disponibles:
-        - "wasserstein": Distancia de Wasserstein-1 aproximada (default)
-        - "bottleneck": Distancia bottleneck simplificada (máximo de diferencias)
+        - "wasserstein": Distancia de Wasserstein-1 aproximada (default).
+        - "bottleneck": Distancia bottleneck simplificada (máximo de diferencias).
 
         Args:
             metric1: Nombre de la primera métrica.

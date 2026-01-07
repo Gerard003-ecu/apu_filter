@@ -69,9 +69,7 @@ class TestExecutiveReport:
 
         assert report.integrity_score < 100.0
         assert len(report.waste_alerts) > 0
-        assert any(
-            "nodo(s) aislado(s)" in alert for alert in report.waste_alerts
-        )
+        assert any("nodo(s) aislado(s)" in alert for alert in report.waste_alerts)
 
         result = analyzer.analyze_structural_integrity(G)
         audit_lines = analyzer.get_audit_report(result)

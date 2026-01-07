@@ -304,9 +304,7 @@ class TestFinancialEngine(unittest.TestCase):
 
         # Verificar inercia
         expected_inertia = liquidity * fixed_contracts_ratio
-        self.assertAlmostEqual(
-        thermo["financial_inertia"], expected_inertia, places=10
-        )
+        self.assertAlmostEqual(thermo["financial_inertia"], expected_inertia, places=10)
 
         # Verificar perturbación y cambio de temperatura
         # NOTE: El código actual usa market_heat=0.05 fijo en analyze_project

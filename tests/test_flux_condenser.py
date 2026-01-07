@@ -8,12 +8,10 @@ Cobertura actualizada para las mejoras implementadas:
 - Predicción de saturación y recuperación en DataFluxCondenser
 """
 
-import logging
 import math
-import time
 from pathlib import Path
 from typing import Any, Dict, List
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import patch
 
 import pandas as pd
 import pytest
@@ -24,19 +22,12 @@ except ImportError:
     np = None
 
 from app.flux_condenser import (
-    BatchResult,
     CondenserConfig,
-    ConfigurationError,
     DataFluxCondenser,
     FluxPhysicsEngine,
-    InvalidInputError,
-    ParsedData,
     PIController,
-    ProcessingError,
     ProcessingStats,
-    SystemConstants,
 )
-
 
 # ==================== FIXTURES ====================
 
@@ -90,9 +81,7 @@ def sample_parse_cache() -> Dict[str, Any]:
 def mock_csv_file(tmp_path) -> Path:
     """Archivo CSV temporal para pruebas."""
     file_path = tmp_path / "test_data.csv"
-    content = "codigo,cantidad,precio\n" + "\n".join(
-        [f"A{i},10,100.0" for i in range(100)]
-    )
+    content = "codigo,cantidad,precio\n" + "\n".join([f"A{i},10,100.0" for i in range(100)])
     file_path.write_text(content)
     return file_path
 
@@ -155,7 +144,7 @@ class TestPIController:
 
         # Generar historial de bajo ruido
         for _ in range(10):
-            controller._error_history.append(0.01) # Varianza 0
+            controller._error_history.append(0.01)  # Varianza 0
 
         # Forzar actualización de alpha llamando a _apply_ema_filter
         controller._apply_ema_filter(0.5)
@@ -163,7 +152,7 @@ class TestPIController:
 
         # Caso 2: Señal ruidosa (alta varianza) -> Alpha bajo
         controller._error_history.clear()
-        values = [0.1, 0.9, 0.2, 0.8, 0.1] # Alta varianza
+        values = [0.1, 0.9, 0.2, 0.8, 0.1]  # Alta varianza
         for v in values:
             controller._error_history.append(v)
 
@@ -236,15 +225,15 @@ class TestFluxPhysicsEngine:
         assert math.isfinite(Q)
         assert math.isfinite(I)
         # La energía no debe explotar
-        energy = 0.5 * engine.L * I**2 + 0.5 * engine.C * (Q/engine.C)**2
-        assert energy < 1e6 # Límite razonable
+        energy = 0.5 * engine.L * I**2 + 0.5 * engine.C * (Q / engine.C) ** 2
+        assert energy < 1e6  # Límite razonable
 
     def test_nonlinear_damping_at_high_energy(self, engine):
         """
         Debe aplicar amortiguamiento extra a alta energía.
         """
         # Inyectar estado de alta energía manualmente
-        engine._state = [10000.0, 100.0] # Q alto, I alto
+        engine._state = [10000.0, 100.0]  # Q alto, I alto
 
         # Usar RK4
         engine._evolve_state_rk4(1.0, 0.01)
@@ -282,7 +271,7 @@ class TestFluxPhysicsEngine:
         # Si la corriente oscila violentamente, la estabilidad baja
         stabilities = []
         for i in range(10):
-            val = 0.5 + 0.4 * ((-1)**i) # Oscilación fuerte
+            val = 0.5 + 0.4 * ((-1) ** i)  # Oscilación fuerte
             s = engine.calculate_gyroscopic_stability(val)
             stabilities.append(s)
 
@@ -313,7 +302,7 @@ class TestDataFluxCondenserRefined:
         Estimación de cache hits basada en muestreo.
         """
         batch = [{"a": 1}, {"b": 2}, {"a": 3}]
-        cache = {"a": "cached"} # Solo campo 'a' está en cache
+        cache = {"a": "cached"}  # Solo campo 'a' está en cache
 
         hits = condenser._estimate_cache_hits(batch, cache)
 
@@ -341,7 +330,7 @@ class TestDataFluxCondenserRefined:
         with patch.object(condenser, "_rectify_signal") as mock_rectify:
             # Simular: llamada con batch completo falla, llamadas con sub-batch funcionan
             def side_effect(parsed_data):
-                if len(parsed_data.raw_records) == 10: # Batch completo
+                if len(parsed_data.raw_records) == 10:  # Batch completo
                     raise MemoryError("Out of memory")
                 return pd.DataFrame([{"res": 1}] * len(parsed_data.raw_records))
 
@@ -349,7 +338,9 @@ class TestDataFluxCondenserRefined:
 
             batch = sample_raw_records[:10]
             # consecutive_failures > 0 activa modo recuperación
-            result = condenser._process_single_batch_with_recovery(batch, sample_parse_cache, consecutive_failures=1)
+            result = condenser._process_single_batch_with_recovery(
+                batch, sample_parse_cache, consecutive_failures=1
+            )
 
             assert result.success is True
             assert result.records_processed == 10
@@ -366,4 +357,4 @@ class TestDataFluxCondenserRefined:
         assert "physics_diagnosis" in enhanced
         assert "system_health" in enhanced
         assert "current_metrics" in enhanced
-        assert enhanced["efficiency"] == 0.0 # No processed records yet
+        assert enhanced["efficiency"] == 0.0  # No processed records yet

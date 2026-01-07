@@ -1,3 +1,14 @@
+"""
+Módulo de Generación de Materiales.
+
+Este módulo implementa el 'Motor de Materialización' que transforma el grafo
+abstracto del proyecto en una lista concreta de materiales (Bill of Materials - BOM).
+Utiliza un enfoque híbrido que combina:
+1. Recorrido Topológico (DFS) para explotar la estructura del grafo.
+2. Suma Compensada de Kahan para precisión numérica en costos.
+3. Factores de Entropía para modelar desperdicios y riesgos logísticos.
+"""
+
 import logging
 import math
 import statistics
@@ -18,20 +29,21 @@ except ImportError:
 @dataclass
 class MaterialRequirement:
     """
-    Representa un requerimiento de material consolidado con validación.
+    Representa un requerimiento de material consolidado con validación estricta.
 
-    Garantiza invariantes como cantidad base positiva y costos finitos.
+    Garantiza invariantes como cantidad base positiva y costos finitos,
+    actuando como el bloque fundamental de la realidad física del proyecto.
 
     Attributes:
         id (str): Identificador único del material.
         description (str): Descripción legible del material.
         quantity_base (float): Cantidad base requerida (antes de desperdicio).
-        unit (str): Unidad de medida.
+        unit (str): Unidad de medida normalizada.
         waste_factor (float): Factor de desperdicio aplicado (ej. 0.05 para 5%).
         quantity_total (float): Cantidad total incluyendo desperdicio.
         unit_cost (float): Costo unitario representativo.
         total_cost (float): Costo total (quantity_total * unit_cost).
-        source_apus (List[str]): Lista de IDs de APUs que requieren este material.
+        source_apus (List[str]): Lista de IDs de APUs que originan este requerimiento.
     """
 
     id: str
@@ -45,7 +57,12 @@ class MaterialRequirement:
     source_apus: List[str] = field(default_factory=list)
 
     def __post_init__(self):
-        """Validación de invariantes después de la inicialización."""
+        """
+        Validación de invariantes después de la inicialización.
+
+        Raises:
+            ValueError: Si la cantidad base no es positiva o el costo no es finito.
+        """
         if self.quantity_base <= 0:
             raise ValueError(f"Cantidad base no positiva para material {self.id}")
 
@@ -56,12 +73,15 @@ class MaterialRequirement:
 @dataclass
 class BillOfMaterials:
     """
-    Lista de Materiales (BOM) con metadata de validación.
+    Lista de Materiales (BOM) con metadata de validación y análisis.
+
+    Encapsula el resultado final del proceso de materialización, incluyendo
+    la lista de requerimientos, costos totales y metadatos estratégicos.
 
     Attributes:
-        requirements (List[MaterialRequirement]): Lista de materiales.
-        total_material_cost (float): Costo total acumulado.
-        metadata (Dict[str, Any]): Metadatos de generación y análisis.
+        requirements (List[MaterialRequirement]): Lista detallada de materiales.
+        total_material_cost (float): Costo total acumulado del BOM.
+        metadata (Dict[str, Any]): Metadatos de generación, métricas de Pareto y Gini.
     """
 
     requirements: List[MaterialRequirement]
@@ -69,11 +89,21 @@ class BillOfMaterials:
     metadata: Dict[str, Any]
 
     def __post_init__(self):
-        """Validación de coherencia interna."""
+        """
+        Validación de coherencia interna del BOM.
+
+        Verifica que la suma de costos individuales coincida con el total declarado
+        dentro de un margen de tolerancia numérica.
+        """
         self.validate_consistency()
 
     def validate_consistency(self):
-        """Valida que la suma de costos coincida con el total declarado."""
+        """
+        Valida que la suma de costos coincida con el total declarado.
+
+        Raises:
+            ValueError: Si hay discrepancia significativa entre la suma y el total.
+        """
         computed_total = sum(req.total_cost for req in self.requirements)
         if not math.isclose(
             self.total_material_cost, computed_total, rel_tol=1e-5, abs_tol=1e-2
@@ -88,16 +118,22 @@ class MatterGenerator:
     Motor de Materialización Híbrido (Topológico + Algebraico).
 
     Transforma el grafo abstracto del proyecto en una lista concreta de
-    materiales (Colapso de Onda).
+    materiales mediante un proceso de "Colapso de Onda".
 
-    Características:
-    - Validación de complejidad topológica (densidad, ciclos).
-    - Algoritmo DFS optimizado para trazabilidad profunda.
-    - Suma compensada de Kahan para precisión numérica.
-    - Aplicación de factores de entropía (desperdicio).
+    Principios:
+    - Validación de complejidad topológica (densidad, ciclos) antes de procesar.
+    - Algoritmo DFS (Depth-First Search) optimizado para trazabilidad profunda.
+    - Suma compensada de Kahan para minimizar errores de punto flotante.
+    - Aplicación de factores de entropía (desperdicio) basados en riesgo y flujo.
     """
 
     def __init__(self, max_graph_complexity: int = 100000):
+        """
+        Inicializa el generador de materia.
+
+        Args:
+            max_graph_complexity: Límite de complejidad para evitar explosión combinatoria.
+        """
         self.logger = logging.getLogger(self.__class__.__name__)
         self.max_graph_complexity = max_graph_complexity
 
@@ -111,14 +147,25 @@ class MatterGenerator:
         """
         Orquesta la transformación del Grafo en BOM.
 
+        Ejecuta el pipeline completo de materialización:
+        1. Validación topológica.
+        2. Recorrido DFS para extracción de materiales (Colapso de Onda).
+        3. Aplicación de factores de entropía.
+        4. Clustering semántico y cálculo de costos.
+        5. Generación de metadatos estratégicos.
+
         Args:
-            graph: Grafo del proyecto.
-            risk_profile: Perfil de riesgo externo.
+            graph: Grafo dirigido del proyecto.
+            risk_profile: Perfil de riesgo externo para ajuste de entropía.
             flux_metrics: Métricas de flujo (estabilidad piramidal, etc.).
             telemetry: Contexto para registrar métricas de ejecución.
 
         Returns:
-            BillOfMaterials: Objeto BOM validado.
+            BillOfMaterials: Objeto BOM validado y listo para logística.
+
+        Raises:
+            ValueError: Si el grafo es inválido o contiene ciclos.
+            OverflowError: Si la complejidad del grafo excede el límite seguro.
         """
         self.logger.info("🌌 Iniciando materialización híbrida del proyecto...")
 
@@ -165,7 +212,6 @@ class MatterGenerator:
             stack = [(root, 1.0, frozenset(), [], None, 0) for root in root_nodes]
             max_depth = node_count * 2
 
-            visited_edges = set()
             iteration_count = 0
             max_iterations = self.max_graph_complexity * 2
 
@@ -385,7 +431,7 @@ class MatterGenerator:
         Agrupa materiales semánticamente (por ID y Unidad).
 
         Utiliza estadísticas robustas (mediana) para determinar el costo unitario
-        en caso de discrepancias.
+        en caso de discrepancias, minimizando el impacto de outliers.
         """
         clustered = {}
         unit_normalization = {
@@ -528,7 +574,8 @@ class MatterGenerator:
         """
         Calcula el costo total usando Suma Compensada de Kahan.
 
-        Minimiza el error de punto flotante al sumar muchos valores pequeños.
+        Minimiza el error de punto flotante al sumar muchos valores pequeños,
+        asegurando la integridad financiera del total.
         """
         total = 0.0
         c = 0.0
@@ -599,7 +646,7 @@ class MatterGenerator:
                 "is_dag": nx.is_directed_acyclic_graph(graph),
                 "euler_characteristic": node_count - edge_count,
             },
-            "topological_invariants": { # Alias for testing V3.0
+            "topological_invariants": {  # Alias for testing V3.0
                 "is_dag": nx.is_directed_acyclic_graph(graph),
                 "euler_characteristic": node_count - edge_count,
             },
