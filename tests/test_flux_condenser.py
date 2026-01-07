@@ -2,7 +2,7 @@
 Suite de Pruebas para el `DataFluxCondenser` - Versión Refinada V4.
 
 Cobertura actualizada para las mejoras implementadas:
-- Integración RK2 en FluxPhysicsEngine
+- Integración RK4 en FluxPhysicsEngine (antes RK2)
 - PIController con ganancia adaptativa y estabilidad mejorada
 - Entropía de Tsallis y correcciones estadísticas
 - Predicción de saturación y recuperación en DataFluxCondenser
@@ -143,21 +143,34 @@ class TestPIController:
         """
         Alpha del filtro EMA debe adaptarse a la varianza del error.
         """
-        # Caso 1: Señal estable (baja varianza) -> Alpha alto
-        for _ in range(10):
-            controller.compute(0.5) # Error cercano a 0 constante
+        # Caso 1: Señal estable (baja varianza) -> Alpha debería estabilizarse
+        # en un valor, pero el adaptativo depende de la inversa de varianza.
+        # Si varianza ~ 0, alpha sube para confiar más en medición (o bajar para suavizar menos?)
+        # Ver lógica: adaptive_alpha = 0.1 + 0.4 / (1.0 + 5.0 * normalized_var)
+        # Si var -> 0, alpha -> 0.1 + 0.4 = 0.5 (Reacción rápida)
+        # Si var -> 1, alpha -> 0.1 + 0.4/6 ~ 0.16 (Mayor suavizado)
 
+        # Resetear historial
+        controller._error_history.clear()
+
+        # Generar historial de bajo ruido
+        for _ in range(10):
+            controller._error_history.append(0.01) # Varianza 0
+
+        # Forzar actualización de alpha llamando a _apply_ema_filter
+        controller._apply_ema_filter(0.5)
         stable_alpha = controller._ema_alpha
 
         # Caso 2: Señal ruidosa (alta varianza) -> Alpha bajo
-        controller.reset()
-        values = [0.1, 0.9, 0.2, 0.8, 0.1]
+        controller._error_history.clear()
+        values = [0.1, 0.9, 0.2, 0.8, 0.1] # Alta varianza
         for v in values:
-            controller.compute(v)
+            controller._error_history.append(v)
 
+        controller._apply_ema_filter(0.5)
         noisy_alpha = controller._ema_alpha
 
-        # Alpha en ruido debe ser menor para filtrar más
+        # Alpha en ruido (var alta) debe ser menor (más filtrado) que en estable (var baja)
         assert noisy_alpha < stable_alpha
 
     def test_lyapunov_stability_detection(self, controller):
@@ -184,13 +197,13 @@ class TestPIController:
         controller._last_output = 50
 
         # Forzar un cambio brusco en la entrada
-        # Error grande -> P grande
-        # 0.5 - 0.0 = 0.5 error * 50 Kp = 25 cambio
-        # Pero el suavizado limita a 10% del rango (90 * 0.1 = 9)
+        # El slew rate limit es 15% del rango (90 * 0.15 = 13.5)
+        # Cambio bruto sería > 20
         output = controller.compute(0.0)
 
         change = abs(output - 50)
-        assert change <= 10 # 9 + redondeo
+        # Ajustado a 15% (13.5 redondeado -> 14)
+        assert change <= 15
 
 
 # ==================== TESTS: FluxPhysicsEngine Refinado ====================
@@ -208,16 +221,17 @@ class TestFluxPhysicsEngine:
             inductance=2.0,
         )
 
-    def test_rk2_integration_stability(self, engine):
+    def test_rk4_integration_stability(self, engine):
         """
-        El integrador RK2 debe ser estable incluso con pasos grandes.
+        El integrador RK4 debe ser estable incluso con pasos grandes.
+        Renombrado de test_rk2_integration_stability
         """
         # Paso de tiempo grande que podría desestabilizar Euler
         dt = 0.1
         current_I = 1.0
 
-        # Evolucionar estado
-        Q, I = engine._evolve_state_rk2(current_I, dt)
+        # Evolucionar estado usando RK4
+        Q, I = engine._evolve_state_rk4(current_I, dt)
 
         assert math.isfinite(Q)
         assert math.isfinite(I)
@@ -232,7 +246,8 @@ class TestFluxPhysicsEngine:
         # Inyectar estado de alta energía manualmente
         engine._state = [10000.0, 100.0] # Q alto, I alto
 
-        engine._evolve_state_rk2(1.0, 0.01)
+        # Usar RK4
+        engine._evolve_state_rk4(1.0, 0.01)
 
         # Verificar que se activó el factor de amortiguamiento no lineal
         assert engine._nonlinear_damping_factor < 1.0
@@ -352,4 +367,3 @@ class TestDataFluxCondenserRefined:
         assert "system_health" in enhanced
         assert "current_metrics" in enhanced
         assert enhanced["efficiency"] == 0.0 # No processed records yet
-
