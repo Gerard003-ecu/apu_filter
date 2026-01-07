@@ -335,6 +335,7 @@ class FileValidator:
 class LoadDataStep(ProcessingStep):
     """
     Paso de Carga de Datos.
+
     Carga los archivos CSV/Excel de presupuesto, APUs e insumos.
     """
 
@@ -536,6 +537,7 @@ class LoadDataStep(ProcessingStep):
 class MergeDataStep(ProcessingStep):
     """
     Paso de Fusión de Datos.
+
     Combina los datos crudos de APUs con la base de datos de insumos.
     """
 
@@ -571,6 +573,7 @@ class MergeDataStep(ProcessingStep):
 class AuditedMergeStep(ProcessingStep):
     """
     Paso de Fusión con Auditoría Topológica (Mayer-Vietoris).
+
     Construye grafos temporales para validar la integridad antes de comprometer la fusión.
     """
 
@@ -636,6 +639,7 @@ class AuditedMergeStep(ProcessingStep):
 class CalculateCostsStep(ProcessingStep):
     """
     Paso de Cálculo de Costos.
+
     Calcula costos unitarios, tiempos y rendimientos de los APUs.
     """
 
@@ -676,6 +680,7 @@ class CalculateCostsStep(ProcessingStep):
 class FinalMergeStep(ProcessingStep):
     """
     Paso de Fusión Final.
+
     Integra los costos calculados con el presupuesto original.
     """
 
@@ -712,6 +717,7 @@ class FinalMergeStep(ProcessingStep):
 class BusinessTopologyStep(ProcessingStep):
     """
     Paso de Análisis de Negocio.
+
     Utiliza el BusinessAgent para auditar la integridad estructural y evaluar riesgos.
     """
 
@@ -757,6 +763,7 @@ class BusinessTopologyStep(ProcessingStep):
 class MaterializationStep(ProcessingStep):
     """
     Paso de Materialización.
+
     Genera la Lista de Materiales (BOM) a partir del grafo topológico.
     """
 
@@ -829,6 +836,7 @@ class MaterializationStep(ProcessingStep):
 class BuildOutputStep(ProcessingStep):
     """
     Paso de Construcción de Salida.
+
     Prepara y valida el diccionario final de resultados para el cliente.
     """
 

@@ -14,7 +14,7 @@ import logging
 from dataclasses import dataclass
 from enum import Enum
 from functools import lru_cache
-from math import exp, log, pow, sqrt
+from math import exp, pow, sqrt
 from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
@@ -127,7 +127,7 @@ class CapitalAssetPricing:
         """
         Calcula el Costo del Equity (Ke) mediante CAPM.
 
-        Formula: Ke = Rf + Beta * (Rm - Rf)
+        Formula: Ke = Rf + Beta * (Rm - Rf).
 
         Returns:
             float: Costo del equity estimado.
@@ -138,10 +138,7 @@ class CapitalAssetPricing:
                     f"Beta inusualmente bajo ({self.config.beta}). Riesgo podría estar subestimado."
                 )
 
-            ke = (
-                self.config.risk_free_rate
-                + self.config.beta * self.config.market_premium
-            )
+            ke = self.config.risk_free_rate + self.config.beta * self.config.market_premium
             logger.info(f"Costo del Equity (Ke) calculado: {ke:.2%}")
             return ke
         except Exception as e:
@@ -178,9 +175,7 @@ class CapitalAssetPricing:
 
             wacc = (w_e * ke) + (w_d * kd_neto)
 
-            logger.info(
-                f"WACC calculado: {wacc:.2%} (Ke={ke:.2%}, Kd_neto={kd_neto:.2%})"
-            )
+            logger.info(f"WACC calculado: {wacc:.2%} (Ke={ke:.2%}, Kd_neto={kd_neto:.2%})")
             return wacc
 
         except ZeroDivisionError:
@@ -190,9 +185,7 @@ class CapitalAssetPricing:
             logger.error(f"Error calculando WACC: {e}")
             raise
 
-    def calculate_npv(
-        self, cash_flows: List[float], initial_investment: float = 0
-    ) -> float:
+    def calculate_npv(self, cash_flows: List[float], initial_investment: float = 0) -> float:
         """
         Calcula el Valor Presente Neto (VAN) descontando flujos al WACC.
 
@@ -309,10 +302,7 @@ class RiskQuantifier:
                 z_score = norm.ppf(confidence_level)
                 var = mean + z_score * scaled_std
                 # CVaR (Expected Shortfall) para Normal
-                cvar = (
-                    mean
-                    + scaled_std * norm.pdf(z_score) / (1 - confidence_level)
-                )
+                cvar = mean + scaled_std * norm.pdf(z_score) / (1 - confidence_level)
                 dist_name = "Normal"
 
             elif self.distribution == DistributionType.STUDENT_T:
@@ -321,10 +311,7 @@ class RiskQuantifier:
                 # CVaR aproximado para Student-t
                 pdf_val = t.pdf(z_score, df_student_t)
                 adj = (df_student_t + z_score**2) / (df_student_t - 1)
-                cvar = (
-                    mean
-                    + scaled_std * pdf_val / (1 - confidence_level) * adj
-                )
+                cvar = mean + scaled_std * pdf_val / (1 - confidence_level) * adj
                 dist_name = f"Student-t(df={df_student_t})"
             else:
                 raise ValueError(f"Distribución no soportada: {self.distribution}")
@@ -398,7 +385,11 @@ class RiskQuantifier:
             contingencies["heuristic_multiplier"] = multiplier
 
         # 4. Recomendación (Máximo prudente)
-        candidates = [v for k, v in contingencies.items() if k in ["var_based", "percentage_based", "heuristic"]]
+        candidates = [
+            v
+            for k, v in contingencies.items()
+            if k in ["var_based", "percentage_based", "heuristic"]
+        ]
         contingencies["recommended"] = max(candidates) if candidates else 0.0
         contingencies["coefficient_of_variation"] = cv
 
@@ -418,9 +409,7 @@ class RealOptionsAnalyzer:
     como un valor añadido a la estructura estática del proyecto.
     """
 
-    def __init__(
-        self, model_type: OptionModelType = OptionModelType.BINOMIAL
-    ):
+    def __init__(self, model_type: OptionModelType = OptionModelType.BINOMIAL):
         self.model_type = model_type
 
     def value_option_to_wait(
@@ -513,9 +502,9 @@ class RealOptionsAnalyzer:
                 if american:
                     # Calcular precio subyacente en este nodo para verificar ejercicio
                     # S_node = S * u^j * d^(i-j)
-                    s_node = S * (u**j) * (d**(i-j))
+                    s_node = S * (u**j) * (d ** (i - j))
                     intrinsic = max(s_node - K, 0)
-                    if intrinsic > continuation + 1e-9: # Epsilon for float comparison
+                    if intrinsic > continuation + 1e-9:  # Epsilon for float comparison
                         values[j] = intrinsic
                         early_exercise_nodes += 1
                     else:
@@ -526,17 +515,17 @@ class RealOptionsAnalyzer:
         # Calcular delta aproximado
         delta = 0.0
         if n > 0:
-             # Option values at step 1: values[1] (up) and values[0] (down) are computed in last iter i=0
-             # But `values` array is overwritten in place.
-             # Actually, after loop i=0, values[0] is the price at t=0.
-             # We need values at t=1 (up and down) to calc delta.
-             # Re-running 1 step for delta or storing is needed.
-             # Simplified: delta = (C_u - C_d) / (S_u - S_d)
-             # Let's approximate delta using current state if we tracked it, or just return mock for now
-             # to satisfy tests if they check range.
-             # Tests check 0 <= delta <= 1.
-             # Let's conform to that.
-             delta = 0.5 # Placeholder, tests only check range.
+            # Option values at step 1: values[1] (up) and values[0] (down) are computed in last iter i=0
+            # But `values` array is overwritten in place.
+            # Actually, after loop i=0, values[0] is the price at t=0.
+            # We need values at t=1 (up and down) to calc delta.
+            # Re-running 1 step for delta or storing is needed.
+            # Simplified: delta = (C_u - C_d) / (S_u - S_d)
+            # Let's approximate delta using current state if we tracked it, or just return mock for now
+            # to satisfy tests if they check range.
+            # Tests check 0 <= delta <= 1.
+            # Let's conform to that.
+            delta = 0.5  # Placeholder, tests only check range.
 
         return {
             "option_value": values[0],
@@ -544,7 +533,7 @@ class RealOptionsAnalyzer:
             "intrinsic_value": max(S - K, 0),
             "time_value": max(0, values[0] - max(S - K, 0)),
             "early_exercise_nodes": early_exercise_nodes,
-            "delta": delta
+            "delta": delta,
         }
 
 
@@ -601,11 +590,15 @@ class FinancialEngine:
         flows = expected_cash_flows if expected_cash_flows is not None else cash_flows
         vol = project_volatility if project_volatility is not None else volatility
         if vol is None:
-             raise ValueError("Se requiere 'volatility' o 'project_volatility'")
+            raise ValueError("Se requiere 'volatility' o 'project_volatility'")
 
         # Use overrides or config defaults for thermodynamics
         liq = liquidity if liquidity is not None else self.config.liquidity_ratio
-        fcr = fixed_contracts_ratio if fixed_contracts_ratio is not None else self.config.fixed_contracts_ratio
+        fcr = (
+            fixed_contracts_ratio
+            if fixed_contracts_ratio is not None
+            else self.config.fixed_contracts_ratio
+        )
 
         # 1. Ajuste por Riesgo Sistémico (Topología)
         adjusted_volatility = vol
@@ -626,9 +619,7 @@ class FinancialEngine:
         var_val, _ = self.risk.calculate_var(
             initial_investment, cost_std_dev, confidence_level=0.95
         )
-        contingency = self.risk.suggest_contingency(
-            initial_investment, cost_std_dev
-        )
+        contingency = self.risk.suggest_contingency(initial_investment, cost_std_dev)
 
         # 4. Opciones Reales (Flexibilidad)
         project_pv = npv + initial_investment
@@ -666,8 +657,8 @@ class FinancialEngine:
             "thermodynamics": {
                 "financial_inertia": inertia,
                 "liquidity_ratio": liq,
-                "fixed_contracts_ratio": fcr
-            }
+                "fixed_contracts_ratio": fcr,
+            },
         }
 
     def _calculate_performance_metrics(
@@ -698,7 +689,7 @@ class FinancialEngine:
         # (1 + ROI)^(1/n) - 1
         if investment > 0 and 1 + roi > 0:
             try:
-                annualized = (1 + roi)**(1/years) - 1
+                annualized = (1 + roi) ** (1 / years) - 1
             except (ValueError, ZeroDivisionError):
                 annualized = float("nan")
         elif 1 + roi == 0:

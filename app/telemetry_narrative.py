@@ -151,9 +151,7 @@ class PhaseAnalysis:
             "duration": f"{self.duration_seconds:.2f}s",
             "critical_issues": [i.to_dict() for i in self.critical_issues],
             "warning_count": self.warning_count,
-            "warnings": [
-                i.to_dict() for i in self.warnings[: self.MAX_DISPLAYED_WARNINGS]
-            ],
+            "warnings": [i.to_dict() for i in self.warnings[: self.MAX_DISPLAYED_WARNINGS]],
         }
 
 

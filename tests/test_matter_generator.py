@@ -378,8 +378,8 @@ class TestMatterGenerator:
         # La fixture complex_graph puede no cumplir exactamente el 80/20 si los costos son uniformes
         # Ajustamos la expectativa a > 0.0 para verificar que se calculó
         assert pareto_info["pareto_20_cost_percentage"] >= 0.0, (
-                f"Pareto insuficiente: {pareto_info['pareto_20_cost_percentage']}%"
-            )
+            f"Pareto insuficiente: {pareto_info['pareto_20_cost_percentage']}%"
+        )
 
     def test_overflow_protection(self):
         """
@@ -544,13 +544,15 @@ class TestMatterGenerator:
         bom = generator.materialize_project(G)
 
         # Verificar logging de advertencia
-    # En V2/V3 la validación puede ocurrir antes o silenciarse como 0.0
-    # Verificamos si se registró algún warning o si se manejó silenciosamente (costo 0)
+        # En V2/V3 la validación puede ocurrir antes o silenciarse como 0.0
+        # Verificamos si se registró algún warning o si se manejó silenciosamente (costo 0)
 
         # Check if unit_cost was sanitized to 0.0
         # Note: `bom` is defined in this method above `bom = generator.materialize_project(G)`
 
-        invalid_item = next((r for r in bom.requirements if r.description == "Inválido"), None)
+        invalid_item = next(
+            (r for r in bom.requirements if r.description == "Inválido"), None
+        )
         if invalid_item:
             assert invalid_item.unit_cost == 0.0
 

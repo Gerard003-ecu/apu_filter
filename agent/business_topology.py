@@ -28,7 +28,7 @@ class TopologicalMetrics:
     Métricas Topológicas Invariantes para el Grafo de Negocio.
 
     Representa los invariantes topológicos calculados sobre el grafo
-    del presupuesto.
+    del presupuesto, fundamentales para entender la complejidad estructural.
 
     Attributes:
         beta_0 (int): Número de componentes conexas (fragmentación).
@@ -36,7 +36,7 @@ class TopologicalMetrics:
         beta_1 (int): Número de ciclos independientes (complejidad de bucles).
             Representa dependencias circulares y redundancia lógica.
         euler_characteristic (int): Característica de Euler (beta_0 - beta_1).
-            Invariant fundamental de la topología del grafo.
+            Invariante fundamental de la topología del grafo.
         euler_efficiency (float): Eficiencia topológica normalizada (0.0 - 1.0).
             Métrica sintética de la calidad estructural.
     """
@@ -77,18 +77,18 @@ class ConstructionRiskReport:
     Reporte Ejecutivo de Riesgos de Construcción.
 
     Consolida el análisis topológico, financiero y estructural en un
-    informe para la toma de decisiones.
+    informe unificado para la toma de decisiones estratégicas.
 
     Attributes:
         integrity_score (float): Puntuación de integridad estructural (0-100).
         waste_alerts (List[str]): Alertas de posible desperdicio (nodos aislados).
         circular_risks (List[str]): Riesgos de cálculo circular (ciclos).
         complexity_level (str): Nivel de complejidad (Baja, Media, Alta, Crítica).
-        details (Dict[str, Any]): Metadatos detallados para serialización.
+        details (Dict[str, Any]): Metadatos detallados para serialización y auditoría.
         financial_risk_level (Optional[str]): Nivel de riesgo financiero.
             ('Bajo', 'Medio', 'Alto', 'CATÁSTROFICO').
         strategic_narrative (Optional[str]): Narrativa estratégica para decisores.
-            Representa "La Voz del Consejo".
+            Representa "La Voz del Consejo" interpretando los datos técnicos.
     """
 
     integrity_score: float
@@ -121,7 +121,7 @@ class BudgetGraphBuilder:
         Sanitiza el código o identificador.
 
         Limpia espacios y normaliza la cadena para asegurar identificadores
-        únicos y consistentes.
+        únicos y consistentes en el grafo.
 
         Args:
             value: Valor a sanitizar.
@@ -140,7 +140,7 @@ class BudgetGraphBuilder:
         Convierte un valor a float de manera segura (localización).
 
         Maneja formatos numéricos internacionales (coma vs punto decimal)
-        mediante heurísticas de posición y conteo.
+        mediante heurísticas de posición y conteo para robustez.
 
         Args:
             value: Valor a convertir.
@@ -200,7 +200,7 @@ class BudgetGraphBuilder:
         **kwargs,
     ) -> Dict[str, Any]:
         """
-        Crea el diccionario de atributos para un nodo del grafo.
+        Crea el diccionario de atributos estandarizado para un nodo.
 
         Args:
             node_type: Tipo de nodo (ROOT, CAPITULO, APU, INSUMO).
@@ -1183,13 +1183,13 @@ class BusinessTopologicalAnalyzer:
                 impact = fluid_cost / total_cost
                 if impact > 0:
                     convection_impact[node] = impact
-                    if impact > 0.2: # Threshold for high risk
+                    if impact > 0.2:  # Threshold for high risk
                         affected_nodes.append(node)
 
         return {
             "affected_nodes_count": len(affected_nodes),
             "high_risk_nodes": affected_nodes,
-            "convection_impact": convection_impact
+            "convection_impact": convection_impact,
         }
 
     def _classify_anomalous_nodes(self, graph: nx.DiGraph) -> Dict[str, List[Dict]]:
@@ -1297,7 +1297,7 @@ class BusinessTopologicalAnalyzer:
                 "anomalies": anomalies,
                 "thermal": thermal,
                 "spectral": spectral,
-                "spectral_analysis": spectral, # Alias for V3.0 tests
+                "spectral_analysis": spectral,  # Alias for V3.0 tests
                 "density": density,
                 "connectivity": {"is_dag": nx.is_directed_acyclic_graph(graph)},
                 "cycles": [" -> ".join(c) for c in raw_cycles[:5]],
@@ -1359,24 +1359,22 @@ class BusinessTopologicalAnalyzer:
             "business.betti_b0": metrics["beta_0"],
             "business.betti_b1": metrics["beta_1"],
             "business.euler_characteristic": metrics["euler_characteristic"],
-            "business.cycles_count": metrics["beta_1"], # Aprox
+            "business.cycles_count": metrics["beta_1"],  # Aprox
             "business.is_dag": 1 if report.details["connectivity"]["is_dag"] else 0,
             "business.isolated_count": len(report.details["anomalies"]["isolated_nodes"]),
             "business.empty_apus_count": len(report.details["anomalies"]["empty_apus"]),
-            "details": report.details
+            "details": report.details,
         }
 
         # Añadir secciones extra que esperan los tests
         result["details"]["critical_resources"] = self._identify_critical_resources(graph)
         result["details"]["graph_summary"] = {
             "node_count": graph.number_of_nodes(),
-            "edge_count": graph.number_of_edges()
+            "edge_count": graph.number_of_edges(),
         }
 
         # Mapear topology en details
-        result["details"]["topology"] = {
-            "betti_numbers": metrics
-        }
+        result["details"]["topology"] = {"betti_numbers": metrics}
 
         if self.telemetry:
             self.telemetry.record_metric("business_topology.analysis_complete", 1)
@@ -1404,7 +1402,7 @@ class BusinessTopologicalAnalyzer:
             lines.append("ALERTA: Estructura Circular Detectada (CRITICAS)")
 
         if analysis_result.get("business.isolated_count", 0) > 0:
-             lines.append("ADVERTENCIA: Nodos aislados detectados (desperdicio potential)")
+            lines.append("ADVERTENCIA: Nodos aislados detectados (desperdicio potential)")
 
         lines.append("Puntuacion de Integridad: Calculada")
 
@@ -1428,15 +1426,23 @@ class BusinessTopologicalAnalyzer:
             "is_dag": nx.is_directed_acyclic_graph(graph),
             "num_wcc": nx.number_weakly_connected_components(graph),
             "is_weakly_connected": nx.is_weakly_connected(graph),
-            "num_non_trivial_scc": len([c for c in nx.strongly_connected_components(graph) if len(c) > 1]),
-            "non_trivial_scc": [list(c) for c in nx.strongly_connected_components(graph) if len(c) > 1]
+            "num_non_trivial_scc": len(
+                [c for c in nx.strongly_connected_components(graph) if len(c) > 1]
+            ),
+            "non_trivial_scc": [
+                list(c) for c in nx.strongly_connected_components(graph) if len(c) > 1
+            ],
         }
 
     def _interpret_topology(self, metrics: TopologicalMetrics) -> Dict[str, str]:
         """Interpreta métricas (Legacy Helper)."""
         return {
-            "beta_0": f"{metrics.beta_0} componente(s) conexo(s)" if metrics.beta_0 == 1 else f"{metrics.beta_0} componentes desconexas",
-            "beta_1": f"{metrics.beta_1} ciclo(s)" if metrics.beta_1 > 0 else "Acíclico (Sin ciclos)"
+            "beta_0": f"{metrics.beta_0} componente(s) conexo(s)"
+            if metrics.beta_0 == 1
+            else f"{metrics.beta_0} componentes desconexas",
+            "beta_1": f"{metrics.beta_1} ciclo(s)"
+            if metrics.beta_1 > 0
+            else "Acíclico (Sin ciclos)",
         }
 
     def _detect_cycles(self, graph: nx.DiGraph) -> Tuple[List[str], bool]:

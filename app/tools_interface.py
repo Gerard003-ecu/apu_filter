@@ -107,13 +107,13 @@ class FileType(str, Enum):
         Convierte un string a FileType de forma segura.
 
         Args:
-            value: String a convertir
+            value: String a convertir.
 
         Returns:
-            FileType correspondiente
+            FileType correspondiente.
 
         Raises:
-            ValueError: Si el valor no es válido
+            ValueError: Si el valor no es válido.
         """
         if not isinstance(value, str):
             raise ValueError(f"Expected string, got {type(value).__name__}")
@@ -179,13 +179,13 @@ def _get_diagnostic_class(file_type: FileType) -> Type:
     Obtiene la clase diagnóstica para un tipo de archivo.
 
     Args:
-        file_type: Tipo de archivo
+        file_type: Tipo de archivo.
 
     Returns:
-        Clase diagnóstica correspondiente
+        Clase diagnóstica correspondiente.
 
     Raises:
-        UnsupportedFileTypeError: Si no hay diagnóstico registrado
+        UnsupportedFileTypeError: Si no hay diagnóstico registrado.
     """
     diagnostic_class = _DIAGNOSTIC_REGISTRY.get(file_type)
 
@@ -206,11 +206,11 @@ def _validate_path_not_empty(file_path: Union[str, Path, None]) -> None:
     Valida que la ruta no esté vacía o sea None.
 
     Args:
-        file_path: Ruta a validar
+        file_path: Ruta a validar.
 
     Raises:
-        ValueError: Si la ruta está vacía o es None
-        TypeError: Si el tipo no es str ni Path
+        ValueError: Si la ruta está vacía o es None.
+        TypeError: Si el tipo no es str ni Path.
     """
     if file_path is None:
         raise ValueError("File path cannot be None")
@@ -234,13 +234,13 @@ def _normalize_path(file_path: Union[str, Path]) -> Path:
     Normaliza una ruta a objeto Path resuelto.
 
     Args:
-        file_path: Ruta como string o Path
+        file_path: Ruta como string o Path.
 
     Returns:
-        Path normalizado y expandido
+        Path normalizado y expandido.
 
     Raises:
-        ValueError: Si la ruta está vacía o es inválida
+        ValueError: Si la ruta está vacía o es inválida.
     """
     _validate_path_not_empty(file_path)
 
@@ -295,11 +295,11 @@ def _validate_file_exists(path: Path) -> None:
     Valida que un archivo exista y sea accesible para lectura.
 
     Args:
-        path: Ruta del archivo
+        path: Ruta del archivo.
 
     Raises:
-        FileNotFoundDiagnosticError: Si el archivo no existe
-        FileValidationError: Si no es archivo o no es legible
+        FileNotFoundDiagnosticError: Si el archivo no existe.
+        FileValidationError: Si no es archivo o no es legible.
     """
     # Verificar existencia primero
     try:
@@ -364,15 +364,15 @@ def _validate_file_size(path: Path, max_size: int = MAX_FILE_SIZE_BYTES) -> Tupl
     Valida que el archivo no exceda el tamaño máximo.
 
     Args:
-        path: Ruta del archivo
-        max_size: Tamaño máximo en bytes (debe ser > 0)
+        path: Ruta del archivo.
+        max_size: Tamaño máximo en bytes (debe ser > 0).
 
     Returns:
-        Tupla (tamaño_en_bytes, is_empty)
+        Tupla (tamaño_en_bytes, is_empty).
 
     Raises:
-        FileValidationError: Si excede el tamaño o max_size inválido
-        ValueError: Si max_size <= 0
+        FileValidationError: Si excede el tamaño o max_size inválido.
+        ValueError: Si max_size <= 0.
     """
     # Validar max_size primero
     if max_size <= 0:
@@ -420,14 +420,14 @@ def _validate_file_extension(
     Valida que la extensión del archivo sea válida.
 
     Args:
-        path: Ruta del archivo
-        valid_extensions: Conjunto de extensiones válidas
+        path: Ruta del archivo.
+        valid_extensions: Conjunto de extensiones válidas.
 
     Returns:
-        Extensión normalizada (lowercase)
+        Extensión normalizada (lowercase).
 
     Raises:
-        FileValidationError: Si la extensión no es válida
+        FileValidationError: Si la extensión no es válida.
     """
     extension = path.suffix.lower()
 
@@ -458,13 +458,13 @@ def _validate_encoding(encoding: str) -> str:
     Valida y normaliza un encoding usando codecs de Python.
 
     Args:
-        encoding: Encoding a validar
+        encoding: Encoding a validar.
 
     Returns:
-        Nombre canónico del encoding (normalizado por Python)
+        Nombre canónico del encoding (normalizado por Python).
 
     Raises:
-        ValueError: Si el encoding es inválido o desconocido
+        ValueError: Si el encoding es inválido o desconocido.
     """
     if encoding is None:
         raise ValueError("Encoding cannot be None")
@@ -522,13 +522,13 @@ def _validate_delimiter(delimiter: str) -> str:
     Valida un delimitador CSV.
 
     Args:
-        delimiter: Delimitador a validar
+        delimiter: Delimitador a validar.
 
     Returns:
-        Delimitador validado
+        Delimitador validado.
 
     Raises:
-        ValueError: Si el delimitador es inválido
+        ValueError: Si el delimitador es inválido.
     """
     if delimiter is None:
         raise ValueError("Delimiter cannot be None")
@@ -557,14 +557,14 @@ def _validate_csv_parameters(delimiter: str, encoding: str) -> Tuple[str, str]:
     Valida parámetros de procesamiento CSV.
 
     Args:
-        delimiter: Delimitador a validar
-        encoding: Encoding a validar
+        delimiter: Delimitador a validar.
+        encoding: Encoding a validar.
 
     Returns:
-        Tupla (delimiter_validado, encoding_validado)
+        Tupla (delimiter_validado, encoding_validado).
 
     Raises:
-        ValueError: Si algún parámetro es inválido
+        ValueError: Si algún parámetro es inválido.
     """
     validated_delimiter = _validate_delimiter(delimiter)
     validated_encoding = _validate_encoding(encoding)
@@ -580,13 +580,13 @@ def _normalize_file_type(file_type: Union[str, FileType]) -> FileType:
     Normaliza el tipo de archivo a enum FileType.
 
     Args:
-        file_type: Tipo como string o FileType
+        file_type: Tipo como string o FileType.
 
     Returns:
-        FileType enum
+        FileType enum.
 
     Raises:
-        UnsupportedFileTypeError: Si el tipo no es válido
+        UnsupportedFileTypeError: Si el tipo no es válido.
     """
     if isinstance(file_type, FileType):
         return file_type
@@ -615,11 +615,11 @@ def _create_error_response(error: Union[str, Exception], **extras: Any) -> Dict[
     Crea una respuesta de error estandarizada.
 
     Args:
-        error: Mensaje o excepción de error
-        **extras: Campos adicionales para incluir
+        error: Mensaje o excepción de error.
+        **extras: Campos adicionales para incluir.
 
     Returns:
-        Diccionario con estructura de error consistente
+        Diccionario con estructura de error consistente.
     """
     error_message = str(error)
     error_type = type(error).__name__ if isinstance(error, Exception) else "Error"
@@ -648,14 +648,14 @@ def _create_success_response(data: Dict[str, Any], **extras: Any) -> Dict[str, A
     Crea una respuesta exitosa estandarizada.
 
     Args:
-        data: Datos de la respuesta
-        **extras: Campos adicionales para incluir
+        data: Datos de la respuesta.
+        **extras: Campos adicionales para incluir.
 
     Returns:
-        Diccionario con estructura de éxito consistente
+        Diccionario con estructura de éxito consistente.
 
     Raises:
-        ValueError: Si data contiene claves reservadas
+        ValueError: Si data contiene claves reservadas.
     """
     RESERVED_KEYS: frozenset[str] = frozenset({"success", "error", "error_type"})
 
@@ -697,11 +697,11 @@ def _generate_output_path(input_path: Path, suffix: str = "_clean") -> Path:
     Genera ruta de salida basada en la de entrada.
 
     Args:
-        input_path: Ruta del archivo de entrada
-        suffix: Sufijo a añadir antes de la extensión
+        input_path: Ruta del archivo de entrada.
+        suffix: Sufijo a añadir antes de la extensión.
 
     Returns:
-        Path para el archivo de salida
+        Path para el archivo de salida.
     """
     if not suffix:
         suffix = "_clean"
@@ -715,14 +715,14 @@ def _validate_output_path(input_path: Path, output_path: Path, overwrite: bool) 
     Valida que la ruta de salida sea válida.
 
     Args:
-        input_path: Ruta de entrada
-        output_path: Ruta de salida
-        overwrite: Si se permite sobrescribir
+        input_path: Ruta de entrada.
+        output_path: Ruta de salida.
+        overwrite: Si se permite sobrescribir.
 
     Raises:
-        ValueError: Si la ruta de salida es igual a la de entrada
-        FileExistsError: Si el archivo existe y overwrite=False
-        PermissionError: Si no hay permisos de escritura
+        ValueError: Si la ruta de salida es igual a la de entrada.
+        FileExistsError: Si el archivo existe y overwrite=False.
+        PermissionError: Si no hay permisos de escritura.
     """
 
     def _normalize_for_comparison(p: Path) -> str:
@@ -776,11 +776,11 @@ def _ensure_output_directory(output_path: Path) -> None:
     Asegura que el directorio de salida exista y sea escribible.
 
     Args:
-        output_path: Ruta del archivo de salida
+        output_path: Ruta del archivo de salida.
 
     Raises:
-        OSError: Si no se puede crear el directorio
-        PermissionError: Si no hay permisos de escritura
+        OSError: Si no se puede crear el directorio.
+        PermissionError: Si no hay permisos de escritura.
     """
     output_dir = output_path.parent
 
@@ -803,10 +803,10 @@ def _extract_diagnostic_result(diagnostic: Any) -> Dict[str, Any]:
     Extrae resultados de un objeto diagnóstico de forma segura.
 
     Args:
-        diagnostic: Objeto diagnóstico
+        diagnostic: Objeto diagnóstico.
 
     Returns:
-        Diccionario con resultados (siempre incluye 'diagnostic_completed')
+        Diccionario con resultados (siempre incluye 'diagnostic_completed').
     """
     base_result: Dict[str, Any] = {
         "diagnostic_completed": True,
@@ -872,10 +872,10 @@ def _extract_cleaning_stats(stats: Any) -> Dict[str, Any]:
     Extrae estadísticas de limpieza de forma segura.
 
     Args:
-        stats: Objeto de estadísticas
+        stats: Objeto de estadísticas.
 
     Returns:
-        Diccionario con estadísticas
+        Diccionario con estadísticas.
     """
     if stats is None:
         return {"cleaning_completed": True}
@@ -926,9 +926,9 @@ def diagnose_file(
 
     Returns:
         Diccionario con resultados:
-        - success (bool): Si el diagnóstico fue exitoso
-        - Si success=True: Datos del diagnóstico específico
-        - Si success=False: error, error_type, error_details
+        - success (bool): Si el diagnóstico fue exitoso.
+        - Si success=True: Datos del diagnóstico específico.
+        - Si success=False: error, error_type, error_details.
 
     Examples:
         >>> result = diagnose_file("data/apus.csv", "apus")
@@ -1057,9 +1057,9 @@ def clean_file(
 
     Returns:
         Diccionario con resultados:
-        - success (bool): Si la limpieza fue exitosa
-        - Si success=True: output_path, input_path, estadísticas
-        - Si success=False: error, error_type, error_details
+        - success (bool): Si la limpieza fue exitosa.
+        - Si success=True: output_path, input_path, estadísticas.
+        - Si success=False: error, error_type, error_details.
 
     Examples:
         >>> result = clean_file("data/raw.csv")
@@ -1192,10 +1192,10 @@ def get_telemetry_status(telemetry_context: Optional[Any] = None) -> Dict[str, A
 
     Returns:
         Diccionario con estado del sistema:
-        - status: 'ACTIVE', 'IDLE', o 'ERROR'
-        - message: Descripción del estado
-        - system_health: 'HEALTHY', 'DEGRADED', o 'UNKNOWN'
-        - has_active_context: Si hay contexto activo
+        - status: 'ACTIVE', 'IDLE', o 'ERROR'.
+        - message: Descripción del estado.
+        - system_health: 'HEALTHY', 'DEGRADED', o 'UNKNOWN'.
+        - has_active_context: Si hay contexto activo.
 
     Examples:
         >>> status = get_telemetry_status()
@@ -1301,7 +1301,7 @@ def get_supported_file_types() -> List[str]:
     Retorna lista de tipos de archivo soportados para diagnóstico.
 
     Returns:
-        Lista de strings con tipos válidos
+        Lista de strings con tipos válidos.
 
     Examples:
         >>> get_supported_file_types()
@@ -1315,10 +1315,10 @@ def is_valid_file_type(file_type: Any) -> bool:
     Verifica si un tipo de archivo es válido.
 
     Args:
-        file_type: Tipo a verificar
+        file_type: Tipo a verificar.
 
     Returns:
-        True si es válido, False en caso contrario
+        True si es válido, False en caso contrario.
 
     Examples:
         >>> is_valid_file_type("apus")
@@ -1341,7 +1341,7 @@ def get_supported_delimiters() -> List[str]:
     Retorna lista de delimitadores CSV soportados.
 
     Returns:
-        Lista de delimitadores válidos
+        Lista de delimitadores válidos.
     """
     return sorted(VALID_DELIMITERS)
 
@@ -1351,7 +1351,7 @@ def get_supported_encodings() -> List[str]:
     Retorna lista de encodings comúnmente soportados.
 
     Returns:
-        Lista de encodings comunes
+        Lista de encodings comunes.
     """
     return sorted(SUPPORTED_ENCODINGS)
 
@@ -1368,17 +1368,17 @@ def validate_file_for_processing(
     Útil para validar archivos antes de diagnose_file o clean_file.
 
     Args:
-        file_path: Ruta del archivo a validar
-        check_extension: Si validar la extensión
-        max_size: Tamaño máximo permitido en bytes
+        file_path: Ruta del archivo a validar.
+        check_extension: Si validar la extensión.
+        max_size: Tamaño máximo permitido en bytes.
 
     Returns:
         Diccionario con resultado de validación:
-        - valid (bool): True si el archivo es válido
-        - path (str): Ruta normalizada
-        - size (int): Tamaño en bytes (si válido)
-        - extension (str): Extensión del archivo (si válido)
-        - errors (list): Lista de errores (si no válido)
+        - valid (bool): True si el archivo es válido.
+        - path (str): Ruta normalizada.
+        - size (int): Tamaño en bytes (si válido).
+        - extension (str): Extensión del archivo (si válido).
+        - errors (list): Lista de errores (si no válido).
 
     Examples:
         >>> result = validate_file_for_processing("data/test.csv")

@@ -29,7 +29,7 @@ import logging
 import math
 import time
 from collections import deque
-from dataclasses import dataclass, asdict
+from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any, Callable, Dict, List, NamedTuple, Optional, Set, Tuple
 
@@ -94,7 +94,7 @@ class SystemConstants:
 
     # Estabilidad Giroscópica
     GYRO_SENSITIVITY: float = 5.0  # FactorSensibilidad para Sg
-    GYRO_EMA_ALPHA: float = 0.1    # Alpha para filtro EMA de corriente
+    GYRO_EMA_ALPHA: float = 0.1  # Alpha para filtro EMA de corriente
 
 
 # ============================================================================
@@ -207,7 +207,7 @@ class CondenserConfig:
             )
 
         if self.pid_setpoint <= 0.0 or self.pid_setpoint >= 1.0:
-             errors.append(f"pid_setpoint debe estar entre 0 y 1, got {self.pid_setpoint}")
+            errors.append(f"pid_setpoint debe estar entre 0 y 1, got {self.pid_setpoint}")
 
         if errors:
             raise ConfigurationError(
@@ -330,8 +330,7 @@ class PIController:
         self._windup_detection_window: deque = deque(maxlen=5)
 
     def _validate_control_parameters(
-        self, kp: float, ki: float, setpoint: float,
-        min_output: int, max_output: int
+        self, kp: float, ki: float, setpoint: float, min_output: int, max_output: int
     ) -> None:
         """
         Validación de parámetros con criterios de estabilidad basados en
@@ -356,8 +355,7 @@ class PIController:
 
         if errors:
             raise ConfigurationError(
-                "Errores en parámetros de control:\n" +
-                "\n".join(f"  • {e}" for e in errors)
+                "Errores en parámetros de control:\n" + "\n".join(f"  • {e}" for e in errors)
             )
 
         # Criterio de Jury simplificado para sistema normalizado
@@ -385,9 +383,7 @@ class PIController:
 
         # Relación Ki/Kp para respuesta suave
         if kp > 0 and ki / kp > 0.5:
-            logger.info(
-                f"Ratio Ki/Kp = {ki/kp:.3f} > 0.5: respuesta integral dominante"
-            )
+            logger.info(f"Ratio Ki/Kp = {ki / kp:.3f} > 0.5: respuesta integral dominante")
 
     def _apply_ema_filter(self, measurement: float) -> float:
         """
@@ -414,21 +410,20 @@ class PIController:
 
             # Varianza con corrección de Bessel para muestras pequeñas
             if n > 1:
-                error_variance = sum((e - mean_error)**2 for e in recent_errors) / (n - 1)
+                error_variance = sum((e - mean_error) ** 2 for e in recent_errors) / (n - 1)
             else:
                 error_variance = 0.0
 
             # Mapeo no lineal: varianza alta → alpha bajo (más suavizado)
             # Función sigmoide inversa para transición suave
             # Ajuste de escala: varianza típica de 0.01 es ruido bajo, 0.2 es alto
-            normalized_var = min(error_variance * 10.0, 1.0) # Escalar para sensibilidad
+            normalized_var = min(error_variance * 10.0, 1.0)  # Escalar para sensibilidad
 
             adaptive_alpha = 0.1 + 0.4 / (1.0 + 5.0 * normalized_var)
             self._ema_alpha = max(0.05, min(0.6, adaptive_alpha))
 
         self._filtered_pv = (
-            self._ema_alpha * measurement +
-            (1 - self._ema_alpha) * self._filtered_pv
+            self._ema_alpha * measurement + (1 - self._ema_alpha) * self._filtered_pv
         )
         return self._filtered_pv
 
@@ -441,7 +436,7 @@ class PIController:
         # Almacenar |e| para regresión logarítmica
         abs_error = abs(error) + 1e-12  # Evitar log(0)
 
-        if not hasattr(self, '_lyapunov_log_errors'):
+        if not hasattr(self, "_lyapunov_log_errors"):
             self._lyapunov_log_errors = deque(maxlen=20)
 
         self._lyapunov_log_errors.append(math.log(abs_error))
@@ -469,7 +464,9 @@ class PIController:
 
         # Filtrado EMA del exponente para estabilidad
         ema_factor = 0.2
-        self._lyapunov_sum = (1 - ema_factor) * self._lyapunov_sum + ema_factor * lyapunov_slope
+        self._lyapunov_sum = (
+            1 - ema_factor
+        ) * self._lyapunov_sum + ema_factor * lyapunov_slope
         self._lyapunov_count = max(1, self._lyapunov_count)
 
         # Alerta temprana de inestabilidad con histéresis
@@ -494,7 +491,9 @@ class PIController:
             error_std = np.std(recent_errors)
         else:
             mean = sum(recent_errors) / len(recent_errors)
-            error_std = math.sqrt(sum((e - mean)**2 for e in recent_errors) / len(recent_errors))
+            error_std = math.sqrt(
+                sum((e - mean) ** 2 for e in recent_errors) / len(recent_errors)
+            )
 
         # Condiciones para windup: baja variación en error con saturación frecuente
         if error_std < 0.05 and saturated_count >= 2:
@@ -538,7 +537,7 @@ class PIController:
         else:
             dt = max(
                 SystemConstants.MIN_DELTA_TIME,
-                min(current_time - self._last_time, SystemConstants.MAX_DELTA_TIME)
+                min(current_time - self._last_time, SystemConstants.MAX_DELTA_TIME),
             )
 
         # === TÉRMINO PROPORCIONAL ===
@@ -549,15 +548,15 @@ class PIController:
         tentative_I = self._ki_adaptive * (self._integral_error + error * dt)
         tentative_output = self._output_center + P + tentative_I
 
-        will_saturate = (tentative_output > self.max_output or
-                        tentative_output < self.min_output)
+        will_saturate = (
+            tentative_output > self.max_output or tentative_output < self.min_output
+        )
 
         # Clamping condicional: no integrar si vamos a saturar
         # Y el error empuja hacia la saturación
         integrating_towards_saturation = (
-            (tentative_output > self.max_output and error < 0) or
-            (tentative_output < self.min_output and error > 0)
-        )
+            tentative_output > self.max_output and error < 0
+        ) or (tentative_output < self.min_output and error > 0)
 
         if will_saturate and not integrating_towards_saturation:
             # Solo acumular si el error nos saca de saturación
@@ -618,21 +617,20 @@ class PIController:
     def get_stability_analysis(self) -> Dict[str, Any]:
         """Análisis de estabilidad basado en historial."""
         if len(self._error_history) < 2:
-            return {
-                "status": "INSUFFICIENT_DATA",
-                "samples": len(self._error_history)
-            }
+            return {"status": "INSUFFICIENT_DATA", "samples": len(self._error_history)}
 
         errors = list(self._error_history)
         lyapunov = self.get_lyapunov_exponent()
 
         # Análisis de convergencia
         mean_error = sum(errors) / len(errors)
-        error_variance = sum((e - mean_error)**2 for e in errors) / len(errors)
+        error_variance = sum((e - mean_error) ** 2 for e in errors) / len(errors)
 
-        recent_errors = errors[-min(10, len(errors)):]
+        recent_errors = errors[-min(10, len(errors)) :]
         mean_recent = sum(recent_errors) / len(recent_errors)
-        recent_variance = sum((e - mean_recent)**2 for e in recent_errors) / len(recent_errors)
+        recent_variance = sum((e - mean_recent) ** 2 for e in recent_errors) / len(
+            recent_errors
+        )
 
         # Diagnóstico
         if lyapunov < -0.1:
@@ -653,7 +651,7 @@ class PIController:
             "error_variance": error_variance,
             "recent_variance": recent_variance,
             "integral_saturation": abs(self._integral_error) / self._integral_limit,
-            "iterations": self._iteration_count
+            "iterations": self._iteration_count,
         }
 
     def get_diagnostics(self) -> Dict[str, Any]:
@@ -669,15 +667,15 @@ class PIController:
                 "integral_utilization": abs(self._integral_error) / self._integral_limit,
                 "last_error": self._last_error,
                 "last_output": self._last_output,
-                "adaptive_ki": self._ki_adaptive
+                "adaptive_ki": self._ki_adaptive,
             },
             "stability_analysis": stability,
             "parameters": {
                 "Kp": self.Kp,
                 "Ki": self.Ki,
                 "setpoint": self.setpoint,
-                "output_range": [self.min_output, self.max_output]
-            }
+                "output_range": [self.min_output, self.max_output],
+            },
         }
 
     def reset(self) -> None:
@@ -701,15 +699,15 @@ class PIController:
                 "Ki": self.Ki,
                 "setpoint": self.setpoint,
                 "min_output": self.min_output,
-                "max_output": self.max_output
+                "max_output": self.max_output,
             },
             "state": {
                 "integral_error": self._integral_error,
                 "filtered_pv": self._filtered_pv,
                 "iteration": self._iteration_count,
-                "adaptive_ki": self._ki_adaptive
+                "adaptive_ki": self._ki_adaptive,
             },
-            "diagnostics": self.get_stability_analysis()
+            "diagnostics": self.get_stability_analysis(),
         }
 
 
@@ -741,7 +739,7 @@ class FluxPhysicsEngine:
         self._omega_0 = 1.0 / math.sqrt(self.L * self.C)  # Frecuencia natural
         self._alpha = self.R / (2.0 * self.L)  # Factor de amortiguamiento
         self._zeta = self._alpha / self._omega_0  # Ratio de amortiguamiento
-        self._Q = math.sqrt(self.L / self.C) / self.R if self.R > 0 else float('inf')
+        self._Q = math.sqrt(self.L / self.C) / self.R if self.R > 0 else float("inf")
 
         # Clasificación del sistema
         self._update_damping_classification()
@@ -790,14 +788,11 @@ class FluxPhysicsEngine:
         if R > 0 and L > 0:
             tau = L / R  # Constante de tiempo
             if tau < 1e-12:  # < 1 ps
-                self.logger.warning(
-                    f"Constante de tiempo {tau:.2e} s muy pequeña"
-                )
+                self.logger.warning(f"Constante de tiempo {tau:.2e} s muy pequeña")
 
         if errors:
             raise ConfigurationError(
-                "Parámetros físicos inválidos:\n" +
-                "\n".join(f"  • {e}" for e in errors)
+                "Parámetros físicos inválidos:\n" + "\n".join(f"  • {e}" for e in errors)
             )
 
     def _update_damping_classification(self) -> None:
@@ -840,12 +835,12 @@ class FluxPhysicsEngine:
 
         # RK4 clásico
         k1_q, k1_i = f(Q, I)
-        k2_q, k2_i = f(Q + 0.5*dt*k1_q, I + 0.5*dt*k1_i)
-        k3_q, k3_i = f(Q + 0.5*dt*k2_q, I + 0.5*dt*k2_i)
-        k4_q, k4_i = f(Q + dt*k3_q, I + dt*k3_i)
+        k2_q, k2_i = f(Q + 0.5 * dt * k1_q, I + 0.5 * dt * k1_i)
+        k3_q, k3_i = f(Q + 0.5 * dt * k2_q, I + 0.5 * dt * k2_i)
+        k4_q, k4_i = f(Q + dt * k3_q, I + dt * k3_i)
 
-        Q_new = Q + (dt/6.0) * (k1_q + 2*k2_q + 2*k3_q + k4_q)
-        I_new = I + (dt/6.0) * (k1_i + 2*k2_i + 2*k3_i + k4_i)
+        Q_new = Q + (dt / 6.0) * (k1_q + 2 * k2_q + 2 * k3_q + k4_q)
+        I_new = I + (dt / 6.0) * (k1_i + 2 * k2_i + 2 * k3_i + k4_i)
 
         # === LIMITADOR DE ENERGÍA ===
         # Prevenir acumulación infinita de energía (estabilidad numérica)
@@ -867,13 +862,15 @@ class FluxPhysicsEngine:
 
         self._state = [Q_new, I_new]
 
-        self._state_history.append({
-            'Q': Q_new,
-            'I': I_new,
-            'time': time.time(),
-            'energy': 0.5 * self.L * I_new**2 + 0.5 * (Q_new**2) / self.C,
-            'V_in': V_in
-        })
+        self._state_history.append(
+            {
+                "Q": Q_new,
+                "I": I_new,
+                "time": time.time(),
+                "energy": 0.5 * self.L * I_new**2 + 0.5 * (Q_new**2) / self.C,
+                "V_in": V_in,
+            }
+        )
 
         return Q_new, I_new
 
@@ -882,8 +879,14 @@ class FluxPhysicsEngine:
         Construye grafo de correlación con umbral adaptativo basado en
         correlación de Spearman (robusta a outliers) sobre historial.
         """
-        metric_keys = ['saturation', 'complexity', 'current_I',
-                    'potential_energy', 'kinetic_energy', 'entropy_shannon']
+        metric_keys = [
+            "saturation",
+            "complexity",
+            "current_I",
+            "potential_energy",
+            "kinetic_energy",
+            "entropy_shannon",
+        ]
         values = [metrics.get(k, 0.0) for k in metric_keys]
 
         self._adjacency_list.clear()
@@ -907,7 +910,7 @@ class FluxPhysicsEngine:
 
         # Umbral adaptativo basado en dispersión
         mean_val = sum(normalized) / len(normalized)
-        variance = sum((v - mean_val)**2 for v in normalized) / len(normalized)
+        variance = sum((v - mean_val) ** 2 for v in normalized) / len(normalized)
 
         # Mayor varianza → umbral más permisivo para capturar estructura
         base_threshold = 0.3
@@ -938,7 +941,7 @@ class FluxPhysicsEngine:
         También calcula la característica de Euler: χ = β₀ - β₁
         """
         if self._vertex_count == 0:
-            return {0: 0, 1: 0, 2: 0, 'euler_characteristic': 0}
+            return {0: 0, 1: 0, 2: 0, "euler_characteristic": 0}
 
         # === CALCULAR β₀: COMPONENTES CONEXAS ===
         # Union-Find para eficiencia O(V·α(V))
@@ -982,10 +985,10 @@ class FluxPhysicsEngine:
             0: beta_0,
             1: beta_1,
             2: 0,
-            'euler_characteristic': euler_char,
-            'is_tree': beta_1 == 0 and beta_0 == 1,
-            'is_forest': beta_1 == 0,
-            'cyclomatic_complexity': beta_1 + 1  # McCabe para grafos de flujo
+            "euler_characteristic": euler_char,
+            "is_tree": beta_1 == 0 and beta_0 == 1,
+            "is_forest": beta_1 == 0,
+            "cyclomatic_complexity": beta_1 + 1,  # McCabe para grafos de flujo
         }
 
     def calculate_gyroscopic_stability(self, current_I: float) -> float:
@@ -1028,7 +1031,7 @@ class FluxPhysicsEngine:
 
         # === TÉRMINO DE NUTACIÓN ===
         # Oscilación rápida del eje - detectada por cambio en signo de dI/dt
-        if not hasattr(self, '_last_dI_dt'):
+        if not hasattr(self, "_last_dI_dt"):
             self._last_dI_dt = dI_dt
             nutation_factor = 1.0
         else:
@@ -1062,10 +1065,7 @@ class FluxPhysicsEngine:
         return Sg_normalized
 
     def calculate_system_entropy(
-        self,
-        total_records: int,
-        error_count: int,
-        processing_time: float
+        self, total_records: int, error_count: int, processing_time: float
     ) -> Dict[str, float]:
         """
         Entropía del sistema con estimadores robustos:
@@ -1123,9 +1123,11 @@ class FluxPhysicsEngine:
         # Usando historial de entropías
         mutual_info_temporal = 0.0
         if len(self._entropy_history) >= 2:
-            prev_entropy = self._entropy_history[-1].get('shannon_entropy', H_shannon)
+            prev_entropy = self._entropy_history[-1].get("shannon_entropy", H_shannon)
             # Cambio en entropía normalizado
-            mutual_info_temporal = abs(H_shannon - prev_entropy) / max(H_shannon, prev_entropy, 0.01)
+            mutual_info_temporal = abs(H_shannon - prev_entropy) / max(
+                H_shannon, prev_entropy, 0.01
+            )
 
         # === DIAGNÓSTICO TERMODINÁMICO ===
         max_entropy = 1.0  # log₂(2) para sistema binario
@@ -1150,12 +1152,14 @@ class FluxPhysicsEngine:
             "configurational_entropy": H_renyi_2,  # Usar Rényi como configuracional
         }
 
-        self._entropy_history.append({
-            **result,
-            'timestamp': time.time(),
-            'total_records': total_records,
-            'error_rate': error_count / total_records
-        })
+        self._entropy_history.append(
+            {
+                **result,
+                "timestamp": time.time(),
+                "total_records": total_records,
+                "error_rate": error_count / total_records,
+            }
+        )
 
         return result
 
@@ -1172,7 +1176,7 @@ class FluxPhysicsEngine:
             "entropy_decay_time": 0.0,
             "max_entropy": 1.0,
             "entropy_ratio": 0.0,
-            "is_thermal_death": False
+            "is_thermal_death": False,
         }
 
     def calculate_metrics(
@@ -1219,7 +1223,7 @@ class FluxPhysicsEngine:
         Q, I = self._evolve_state_rk4(current_I, dt)
 
         # Constante de tiempo normalizada
-        tau = self.L / R_dynamic if R_dynamic > 0 else float('inf')
+        tau = self.L / R_dynamic if R_dynamic > 0 else float("inf")
         t_normalized = processing_time / tau if tau > 0 else 0.0
         t_normalized = min(t_normalized, 50.0)
 
@@ -1232,24 +1236,23 @@ class FluxPhysicsEngine:
             omega_d = self._omega_0 * math.sqrt(1 - zeta_dynamic**2)
             exp_term = math.exp(-zeta_dynamic * self._omega_0 * t_normalized)
             cos_term = math.cos(omega_d * t_normalized)
-            sin_term = (zeta_dynamic / math.sqrt(1 - zeta_dynamic**2)) * math.sin(omega_d * t_normalized)
+            sin_term = (zeta_dynamic / math.sqrt(1 - zeta_dynamic**2)) * math.sin(
+                omega_d * t_normalized
+            )
             saturation = 1.0 - exp_term * (cos_term + sin_term)
 
         saturation = max(0.0, min(1.0, saturation))
 
         # Energías
-        E_capacitor = 0.5 * self.C * (saturation ** 2)  # Energía potencial
-        E_inductor = 0.5 * self.L * (current_I ** 2)    # Energía cinética
+        E_capacitor = 0.5 * self.C * (saturation**2)  # Energía potencial
+        E_inductor = 0.5 * self.L * (current_I**2)  # Energía cinética
 
         # Potencia disipada
-        P_dissipated = (current_I ** 2) * R_dynamic
+        P_dissipated = (current_I**2) * R_dynamic
 
         # Voltaje de flyback inductivo
         di_dt = (current_I - self._last_current) / max(dt, 1e-6)
-        V_flyback = min(
-            abs(self.L * di_dt),
-            SystemConstants.MAX_FLYBACK_VOLTAGE
-        )
+        V_flyback = min(abs(self.L * di_dt), SystemConstants.MAX_FLYBACK_VOLTAGE)
 
         # Entropía
         entropy_metrics = self.calculate_system_entropy(
@@ -1322,7 +1325,7 @@ class FluxPhysicsEngine:
             "damping_type": self._damping_type,
             "resonant_frequency_hz": self._omega_0 / (2 * math.pi),
             "quality_factor": self._Q,
-            "time_constant": self.L / self.R if self.R > 0 else float('inf'),
+            "time_constant": self.L / self.R if self.R > 0 else float("inf"),
             "entropy_shannon": 0.0,
             "entropy_absolute": 0.0,
             "entropy_rate": 0.0,
@@ -1337,23 +1340,14 @@ class FluxPhysicsEngine:
 
     def _store_metrics(self, metrics: Dict[str, float]) -> None:
         """Almacena métricas con timestamp."""
-        self._metrics_history.append({
-            **metrics,
-            "_timestamp": time.time()
-        })
+        self._metrics_history.append({**metrics, "_timestamp": time.time()})
 
     def get_trend_analysis(self) -> Dict[str, Any]:
         """Analiza tendencias en métricas históricas."""
         if len(self._metrics_history) < 2:
-            return {
-                "status": "INSUFFICIENT_DATA",
-                "samples": len(self._metrics_history)
-            }
+            return {"status": "INSUFFICIENT_DATA", "samples": len(self._metrics_history)}
 
-        result = {
-            "status": "OK",
-            "samples": len(self._metrics_history)
-        }
+        result = {"status": "OK", "samples": len(self._metrics_history)}
 
         # Métricas a analizar
         keys_to_analyze = ["saturation", "dissipated_power", "entropy_ratio"]
@@ -1362,8 +1356,10 @@ class FluxPhysicsEngine:
             values = [m.get(key, 0.0) for m in self._metrics_history if key in m]
             if len(values) >= 2:
                 # Tendencia lineal simple
-                first_half = sum(values[:len(values)//2]) / (len(values)//2)
-                second_half = sum(values[len(values)//2:]) / (len(values) - len(values)//2)
+                first_half = sum(values[: len(values) // 2]) / (len(values) // 2)
+                second_half = sum(values[len(values) // 2 :]) / (
+                    len(values) - len(values) // 2
+                )
 
                 if second_half > first_half * 1.1:
                     trend = "INCREASING"
@@ -1377,7 +1373,7 @@ class FluxPhysicsEngine:
                     "current": values[-1],
                     "mean": sum(values) / len(values),
                     "min": min(values),
-                    "max": max(values)
+                    "max": max(values),
                 }
 
         return result
@@ -1388,7 +1384,7 @@ class FluxPhysicsEngine:
             "state": "NORMAL",
             "damping": self._damping_type,
             "energy": "BALANCED",
-            "entropy": "LOW"
+            "entropy": "LOW",
         }
 
         # Diagnóstico de saturación
@@ -1438,10 +1434,12 @@ class FluxPhysicsEngine:
         gyro_stability = metrics.get("gyroscopic_stability", 1.0)
         diagnosis["rotation_stability"] = "STABLE"
         if gyro_stability < 0.6:
-            diagnosis["rotation_stability"] = "⚠️ PRECESIÓN DETECTADA (Inestabilidad de Flujo)"
+            diagnosis["rotation_stability"] = (
+                "⚠️ PRECESIÓN DETECTADA (Inestabilidad de Flujo)"
+            )
             # También escalamos el estado si es crítico
             if gyro_stability < 0.3 and diagnosis["state"] == "NORMAL":
-                 diagnosis["state"] = "UNSTABLE"
+                diagnosis["state"] = "UNSTABLE"
 
         return diagnosis
 
@@ -1510,10 +1508,10 @@ class DataFluxCondenser:
 
         # Registrar inicio en telemetría
         if telemetry:
-            telemetry.record_event("stabilization_start", {
-                "file": path_obj.name,
-                "config": asdict(self.condenser_config)
-            })
+            telemetry.record_event(
+                "stabilization_start",
+                {"file": path_obj.name, "config": asdict(self.condenser_config)},
+            )
 
         try:
             validated_path = self._validate_input_file(file_path)
@@ -1549,11 +1547,14 @@ class DataFluxCondenser:
 
             # Registrar fin en telemetría
             if telemetry:
-                telemetry.record_event("stabilization_complete", {
-                    "records_processed": self._stats.processed_records,
-                    "processing_time": self._stats.processing_time,
-                    "emergency_brakes": self._emergency_brake_count
-                })
+                telemetry.record_event(
+                    "stabilization_complete",
+                    {
+                        "records_processed": self._stats.processed_records,
+                        "processing_time": self._stats.processing_time,
+                        "emergency_brakes": self._emergency_brake_count,
+                    },
+                )
 
             self.logger.info(
                 f"✅ [STABILIZE] Completado: {self._stats.processed_records} registros "
@@ -1679,7 +1680,7 @@ class DataFluxCondenser:
                 total_records=batch_size,
                 cache_hits=cache_hits_est,
                 error_count=failed_batches_count,
-                processing_time=elapsed_time
+                processing_time=elapsed_time,
             )
 
             saturation = metrics.get("saturation", 0.5)
@@ -1711,10 +1712,7 @@ class DataFluxCondenser:
 
             # === DETECCIÓN DE RÉGIMEN ESTACIONARIO ===
             if len(saturation_history) >= 3:
-                recent_var = sum(
-                    (s - saturation)**2
-                    for s in saturation_history[-3:]
-                ) / 3
+                recent_var = sum((s - saturation) ** 2 for s in saturation_history[-3:]) / 3
 
                 if recent_var < 0.01:  # Baja varianza
                     steady_state_counter += 1
@@ -1726,12 +1724,14 @@ class DataFluxCondenser:
             # === CALLBACK DE MÉTRICAS ===
             if progress_callback:
                 try:
-                    progress_callback({
-                        **metrics,
-                        "predicted_saturation": predicted_sat,
-                        "in_steady_state": in_steady_state,
-                        "feedforward_adjustment": feedforward_adjustment
-                    })
+                    progress_callback(
+                        {
+                            **metrics,
+                            "predicted_saturation": predicted_sat,
+                            "in_steady_state": in_steady_state,
+                            "feedforward_adjustment": feedforward_adjustment,
+                        }
+                    )
                 except Exception as e:
                     self.logger.warning(f"Error en progress_callback: {e}")
 
@@ -1757,20 +1757,19 @@ class DataFluxCondenser:
 
             if power > SystemConstants.OVERHEAT_POWER_THRESHOLD:
                 brake_factor = 0.3
-                pid_output = max(SystemConstants.MIN_BATCH_SIZE_FLOOR,
-                            int(pid_output * brake_factor))
+                pid_output = max(
+                    SystemConstants.MIN_BATCH_SIZE_FLOOR, int(pid_output * brake_factor)
+                )
                 emergency_brake = True
                 brake_reason = f"OVERHEAT P={power:.1f}W"
 
             if flyback > SystemConstants.MAX_FLYBACK_VOLTAGE * 0.7:
-                pid_output = max(SystemConstants.MIN_BATCH_SIZE_FLOOR,
-                            int(pid_output * 0.5))
+                pid_output = max(SystemConstants.MIN_BATCH_SIZE_FLOOR, int(pid_output * 0.5))
                 emergency_brake = True
                 brake_reason = f"FLYBACK V={flyback:.2f}V"
 
             if predicted_sat > 0.9 and not in_steady_state:
-                pid_output = max(SystemConstants.MIN_BATCH_SIZE_FLOOR,
-                            int(pid_output * 0.7))
+                pid_output = max(SystemConstants.MIN_BATCH_SIZE_FLOOR, int(pid_output * 0.7))
                 emergency_brake = True
                 brake_reason = f"PREDICTED_SAT={predicted_sat:.2f}"
 
@@ -1795,7 +1794,7 @@ class DataFluxCondenser:
                     power=power,
                     flyback=flyback,
                     kinetic=metrics.get("kinetic_energy", 0),
-                    success=True
+                    success=True,
                 )
                 failed_batches_count = max(0, failed_batches_count - 1)
             else:
@@ -1806,7 +1805,7 @@ class DataFluxCondenser:
                     power=power,
                     flyback=flyback,
                     kinetic=metrics.get("kinetic_energy", 0),
-                    success=False
+                    success=False,
                 )
 
                 if failed_batches_count >= self.condenser_config.max_failed_batches:
@@ -1827,16 +1826,19 @@ class DataFluxCondenser:
 
             # === TELEMETRÍA ===
             if telemetry and (iteration % 10 == 0 or emergency_brake):
-                telemetry.record_event("batch_iteration", {
-                    "iteration": iteration,
-                    "progress": current_index / total_records,
-                    "batch_size": batch_size,
-                    "pid_output": pid_output,
-                    "saturation": saturation,
-                    "predicted_saturation": predicted_sat,
-                    "in_steady_state": in_steady_state,
-                    "emergency_brake": emergency_brake
-                })
+                telemetry.record_event(
+                    "batch_iteration",
+                    {
+                        "iteration": iteration,
+                        "progress": current_index / total_records,
+                        "batch_size": batch_size,
+                        "pid_output": pid_output,
+                        "saturation": saturation,
+                        "predicted_saturation": predicted_sat,
+                        "in_steady_state": in_steady_state,
+                        "emergency_brake": emergency_brake,
+                    },
+                )
 
             # === ACTUALIZAR PARA SIGUIENTE ITERACIÓN ===
             current_index = end_index
@@ -1846,14 +1848,13 @@ class DataFluxCondenser:
             # Mayor inercia en estado estacionario
             inertia = 0.8 if in_steady_state else 0.6
             current_batch_size = int(
-                inertia * current_batch_size +
-                (1 - inertia) * pid_output
+                inertia * current_batch_size + (1 - inertia) * pid_output
             )
 
             # Aplicar límites
             current_batch_size = max(
                 SystemConstants.MIN_BATCH_SIZE_FLOOR,
-                min(current_batch_size, self.condenser_config.max_batch_size)
+                min(current_batch_size, self.condenser_config.max_batch_size),
             )
 
         return processed_batches
@@ -1871,7 +1872,7 @@ class DataFluxCondenser:
             return max(1, len(batch) // 4)
 
         # === PRIOR BASADO EN HISTORIAL ===
-        if not hasattr(self, '_cache_hit_history'):
+        if not hasattr(self, "_cache_hit_history"):
             self._cache_hit_history = deque(maxlen=50)
 
         if self._cache_hit_history:
@@ -1912,7 +1913,9 @@ class DataFluxCondenser:
         # === POSTERIOR BAYESIANO ===
         # Combinar prior y likelihood con pesos
         prior_weight = min(len(self._cache_hit_history) / 20, 0.5)  # Max 50% prior
-        posterior_hit_rate = prior_weight * prior_hit_rate + (1 - prior_weight) * sample_hit_rate
+        posterior_hit_rate = (
+            prior_weight * prior_hit_rate + (1 - prior_weight) * sample_hit_rate
+        )
 
         # Calcular hits estimados
         estimated_hits = int(posterior_hit_rate * len(batch))
@@ -1931,12 +1934,12 @@ class DataFluxCondenser:
             return history[-1] if history else 0.5
 
         # === INICIALIZACIÓN DEL FILTRO ===
-        if not hasattr(self, '_kalman_state'):
+        if not hasattr(self, "_kalman_state"):
             self._kalman_state = {
-                'x': history[-1],      # Estado estimado
-                'P': 1.0,              # Covarianza del error
-                'Q': 0.01,             # Ruido del proceso
-                'R': 0.1               # Ruido de medición
+                "x": history[-1],  # Estado estimado
+                "P": 1.0,  # Covarianza del error
+                "Q": 0.01,  # Ruido del proceso
+                "R": 0.1,  # Ruido de medición
             }
 
         ks = self._kalman_state
@@ -1953,26 +1956,26 @@ class DataFluxCondenser:
         # Limitar tendencia para estabilidad
         trend = max(-0.2, min(0.2, trend))
 
-        x_pred = ks['x'] + trend
-        P_pred = ks['P'] + ks['Q']
+        x_pred = ks["x"] + trend
+        P_pred = ks["P"] + ks["Q"]
 
         # === ACTUALIZACIÓN (Corrección) ===
         z = history[-1]  # Medición actual
 
         # Ganancia de Kalman
-        K = P_pred / (P_pred + ks['R'])
+        K = P_pred / (P_pred + ks["R"])
 
         # Actualizar estado
         x_new = x_pred + K * (z - x_pred)
         P_new = (1 - K) * P_pred
 
         # Guardar estado
-        ks['x'] = x_new
-        ks['P'] = P_new
+        ks["x"] = x_new
+        ks["P"] = P_new
 
         # Adaptar ruido del proceso basado en error de predicción
         prediction_error = abs(z - x_pred)
-        ks['Q'] = 0.9 * ks['Q'] + 0.1 * prediction_error**2
+        ks["Q"] = 0.9 * ks["Q"] + 0.1 * prediction_error**2
 
         # Predicción del próximo valor
         next_prediction = x_new + trend
@@ -1981,10 +1984,7 @@ class DataFluxCondenser:
         return max(0.0, min(1.0, next_prediction))
 
     def _process_single_batch_with_recovery(
-        self,
-        batch: List,
-        cache: Dict,
-        consecutive_failures: int
+        self, batch: List, cache: Dict, consecutive_failures: int
     ) -> BatchResult:
         """
         Procesamiento con estrategia de recuperación multinivel:
@@ -2007,11 +2007,7 @@ class DataFluxCondenser:
                 if df is None:
                     df = pd.DataFrame()
 
-                return BatchResult(
-                    success=True,
-                    dataframe=df,
-                    records_processed=len(df)
-                )
+                return BatchResult(success=True, dataframe=df, records_processed=len(df))
             except Exception as e:
                 self.logger.debug(f"Intento normal falló: {e}")
                 # Continuar a recuperación
@@ -2041,9 +2037,7 @@ class DataFluxCondenser:
                 if dfs:
                     combined = pd.concat(dfs, ignore_index=True) if len(dfs) > 1 else dfs[0]
                     return BatchResult(
-                        success=True,
-                        dataframe=combined,
-                        records_processed=records
+                        success=True, dataframe=combined, records_processed=records
                     )
             except Exception as e:
                 self.logger.debug(f"División binaria falló: {e}")
@@ -2069,24 +2063,20 @@ class DataFluxCondenser:
                     success=True,
                     dataframe=combined,
                     records_processed=len(combined),
-                    error_message=f"Recuperación parcial: {len(combined)}/{batch_size}"
+                    error_message=f"Recuperación parcial: {len(combined)}/{batch_size}",
                 )
 
         # === NIVEL 3: FALLO TOTAL ===
         return BatchResult(
             success=False,
             error_message=f"Recuperación fallida para batch de {batch_size} registros",
-            records_processed=0
+            records_processed=0,
         )
 
     def _rectify_signal(self, parsed_data: ParsedData) -> pd.DataFrame:
         """Convierte datos crudos a DataFrame mediante APUProcessor."""
         try:
-            processor = APUProcessor(
-                self.config,
-                self.profile,
-                parsed_data.parse_cache
-            )
+            processor = APUProcessor(self.config, self.profile, parsed_data.parse_cache)
             processor.raw_records = parsed_data.raw_records
             return processor.process_all()
         except Exception as e:
@@ -2109,7 +2099,7 @@ class DataFluxCondenser:
                 f"Truncando batches: {len(valid_batches)} > "
                 f"{SystemConstants.MAX_BATCHES_TO_CONSOLIDATE}"
             )
-            valid_batches = valid_batches[:SystemConstants.MAX_BATCHES_TO_CONSOLIDATE]
+            valid_batches = valid_batches[: SystemConstants.MAX_BATCHES_TO_CONSOLIDATE]
 
         try:
             return pd.concat(valid_batches, ignore_index=True)
@@ -2133,7 +2123,9 @@ class DataFluxCondenser:
             else:
                 self.logger.warning(msg)
 
-    def _enhance_stats_with_diagnostics(self, stats: ProcessingStats, metrics: Dict[str, float]) -> Dict[str, Any]:
+    def _enhance_stats_with_diagnostics(
+        self, stats: ProcessingStats, metrics: Dict[str, float]
+    ) -> Dict[str, Any]:
         """
         Mejora las estadísticas con diagnóstico del sistema.
         """
@@ -2159,8 +2151,8 @@ class DataFluxCondenser:
                 "saturation": metrics.get("saturation", 0),
                 "complexity": metrics.get("complexity", 0),
                 "gyroscopic_stability": metrics.get("gyroscopic_stability", 1.0),
-                "entropy_ratio": metrics.get("entropy_ratio", 0)
-            }
+                "entropy_ratio": metrics.get("entropy_ratio", 0),
+            },
         }
 
         return enhanced
@@ -2171,7 +2163,7 @@ class DataFluxCondenser:
             "statistics": asdict(self._stats),
             "controller": self.controller.get_diagnostics(),
             "physics": self.physics.get_trend_analysis(),
-            "emergency_brakes": self._emergency_brake_count
+            "emergency_brakes": self._emergency_brake_count,
         }
 
     def get_system_health(self) -> Dict[str, Any]:
@@ -2193,7 +2185,9 @@ class DataFluxCondenser:
 
         if self._stats.failed_batches > self._stats.total_batches * 0.1:
             health = "DEGRADED"
-            issues.append(f"Alta tasa de fallos: {self._stats.failed_batches}/{self._stats.total_batches}")
+            issues.append(
+                f"Alta tasa de fallos: {self._stats.failed_batches}/{self._stats.total_batches}"
+            )
 
         return {
             "health": health,
@@ -2202,5 +2196,5 @@ class DataFluxCondenser:
             "processing_efficiency": (
                 self._stats.processed_records / max(1, self._stats.total_records)
             ),
-            "uptime": time.time() - self._start_time if self._start_time else 0
+            "uptime": time.time() - self._start_time if self._start_time else 0,
         }

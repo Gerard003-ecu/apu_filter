@@ -33,6 +33,12 @@ class FinancialParameters:
 
     Encapsula los valores de entrada para el motor financiero,
     garantizando inmutabilidad y validación en construcción.
+
+    Attributes:
+        initial_investment (float): Inversión inicial (debe ser > 0).
+        cash_flows (Tuple[float, ...]): Flujos de caja proyectados (inmutable).
+        cost_std_dev (float): Desviación estándar de los costos (para riesgo).
+        project_volatility (float): Volatilidad estimada del proyecto [0, 1].
     """
 
     initial_investment: float
@@ -41,6 +47,7 @@ class FinancialParameters:
     project_volatility: float
 
     def __post_init__(self):
+        """Valida los invariantes financieros."""
         if self.initial_investment <= 0:
             raise ValueError("La inversión inicial debe ser positiva")
         if self.cost_std_dev < 0:
@@ -56,6 +63,11 @@ class TopologicalMetricsBundle:
 
     Agrupa los invariantes topológicos (números de Betti, estabilidad)
     para facilitar su transporte entre componentes del pipeline.
+
+    Attributes:
+        betti_numbers (Dict[str, Any]): Números de Betti (β0, β1, etc.).
+        pyramid_stability (float): Índice de estabilidad piramidal (0.0-1.0).
+        graph (Any): Objeto grafo subyacente (NetworkX).
     """
 
     betti_numbers: Dict[str, Any]
@@ -92,7 +104,8 @@ class RiskChallenger:
     Debate adversarial para auditar la coherencia entre las métricas
     financieras y topológicas del reporte.
 
-    Actúa como un 'Fiscal' que busca contradicciones en el veredicto.
+    Actúa como un 'Fiscal' que busca contradicciones en el veredicto,
+    aplicando lógica de sentido común y reglas de negocio estrictas.
     """
 
     def challenge_verdict(self, report: ConstructionRiskReport) -> ConstructionRiskReport:
@@ -193,7 +206,8 @@ class BusinessAgent:
     Orquesta la inteligencia de negocio para evaluar proyectos de construcción.
 
     Combina análisis topológico (estructura del presupuesto como complejo simplicial)
-    con análisis financiero (VPN, TIR, simulación de Monte Carlo).
+    con análisis financiero (VPN, TIR, simulación de Monte Carlo) para producir
+    una evaluación holística.
     """
 
     # Configuración por defecto para parámetros financieros
@@ -453,10 +467,10 @@ class BusinessAgent:
         Genera el reporte ejecutivo integrando análisis topológico, financiero y TERMODINÁMICO.
 
         La narrativa estratégica se construye considerando:
-        1. Coherencia estructural del presupuesto (invariantes topológicos)
-        2. Viabilidad financiera (VPN, TIR, período de recuperación)
-        3. Riesgo sistémico (sinergia entre riesgos estructurales y financieros)
-        4. Estado Termodinámico (Fiebre del Proyecto, Exergía, Entropía)
+        1. Coherencia estructural del presupuesto (invariantes topológicos).
+        2. Viabilidad financiera (VPN, TIR, período de recuperación).
+        3. Riesgo sistémico (sinergia entre riesgos estructurales y financieros).
+        4. Estado Termodinámico (Fiebre del Proyecto, Exergía, Entropía).
 
         Args:
             topological_bundle: Métricas topológicas del presupuesto.
@@ -498,7 +512,6 @@ class BusinessAgent:
         )
 
         # 3. Fusionar Narrativas
-        # Insertar la termodinámica antes del veredicto final si es posible, o al final
         full_narrative = f"{strategic_narrative_base}\n\n### 4. Análisis Termodinámico (Calor y Eficiencia)\n{thermo_narrative}"
 
         # Enriquecer el reporte con datos adicionales
@@ -554,11 +567,11 @@ class BusinessAgent:
 
         Args:
             context: El contexto del pipeline conteniendo:
-                - df_presupuesto: DataFrame del presupuesto general
-                - df_merged: DataFrame con detalle de APUs
-                - initial_investment (opcional): Inversión inicial
-                - cash_flows (opcional): Lista de flujos de caja esperados
-                - project_volatility (opcional): Volatilidad del proyecto [0,1]
+                - df_presupuesto: DataFrame del presupuesto general.
+                - df_merged: DataFrame con detalle de APUs.
+                - initial_investment (opcional): Inversión inicial.
+                - cash_flows (opcional): Lista de flujos de caja esperados.
+                - project_volatility (opcional): Volatilidad del proyecto [0,1].
 
         Returns:
             ConstructionRiskReport con el análisis completo, o None si falla.
