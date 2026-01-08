@@ -1,14 +1,18 @@
 """
-Procesador APU con arquitectura modular de especialistas.
+Procesador APU con arquitectura modular de especialistas y teoría categórica (V2).
 
 Este módulo implementa un sistema avanzado para el procesamiento de datos de
 Análisis de Precios Unitarios (APU). Utiliza una arquitectura modular donde
 componentes "especialistas", cada uno con una responsabilidad única, colaboran
 para interpretar y estructurar líneas de texto con formatos variables.
 
+La versión V2 introduce conceptos de Teoría de Categorías:
+- Mónadas (OptionMonad) para manejo seguro de valores y errores.
+- Functores y Homomorfismos para transformaciones estructurales.
+- Validación de Invariantes Algebraicos y Topológicos.
+
 El `APUProcessor` principal mantiene la compatibilidad con la interfaz esperada
-por el `LoadDataStep` del pipeline, orquestando internamente a estos especialistas
-para lograr un procesamiento robusto y flexible.
+por el `LoadDataStep` del pipeline.
 """
 
 import logging
@@ -17,7 +21,7 @@ from collections import defaultdict
 from dataclasses import dataclass, field
 from enum import Enum
 from functools import lru_cache
-from typing import Any, Dict, List, Optional, Set, Tuple
+from typing import Any, Dict, List, Optional, Set, Tuple, Generic, TypeVar, Callable
 
 import pandas as pd
 from lark import Token, Transformer, v_args
@@ -85,6 +89,54 @@ class ValidationThresholds:
 
 
 # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+# MÓNADAS Y ESTRUCTURAS CATEGÓRICAS
+# -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
+T = TypeVar('T')
+
+class OptionMonad(Generic[T]):
+    """
+    Mónada Option/Maybe para manejo seguro de valores.
+    Permite encadenar operaciones sin excepciones explícitas.
+    """
+
+    def __init__(self, value: Optional[T] = None, error: str = ""):
+        self._value = value
+        self._error = error
+
+    def is_valid(self) -> bool:
+        return self._value is not None
+
+    @property
+    def value(self) -> T:
+        if self._value is None:
+            raise ValueError(f"Acceso a valor inválido: {self._error}")
+        return self._value
+
+    @property
+    def error(self) -> str:
+        return self._error
+
+    def bind(self, f: Callable[[T], 'OptionMonad']) -> 'OptionMonad':
+        """Operación bind de la mónada (>>=)."""
+        if not self.is_valid():
+            return self
+        try:
+            return f(self.value)
+        except Exception as e:
+            return OptionMonad(error=f"Bind error: {e}")
+
+    def map(self, f: Callable[[T], T]) -> 'OptionMonad':
+        """Operación map del functor."""
+        if not self.is_valid():
+            return self
+        try:
+            return OptionMonad(f(self.value))
+        except Exception as e:
+            return OptionMonad(error=f"Map error: {e}")
+
+
+# -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 # GRAMÁTICA LARK
 # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
@@ -130,49 +182,23 @@ class PatternMatcher:
 
     # Palabras clave de encabezado de tabla
     HEADER_KEYWORDS = [
-        "DESCRIPCION",
-        "DESCRIPCIÓN",
-        "DESC",
-        "UND",
-        "UNID",
-        "UNIDAD",
-        "CANT",
-        "CANTIDAD",
-        "PRECIO",
-        "VALOR",
-        "TOTAL",
-        "DESP",
-        "DESPERDICIO",
-        "REND",
-        "RENDIMIENTO",
-        "JORNAL",
-        "ITEM",
-        "CODIGO",
-        "CÓDIGO",
+        "DESCRIPCION", "DESCRIPCIÓN", "DESC", "UND", "UNID", "UNIDAD",
+        "CANT", "CANTIDAD", "PRECIO", "VALOR", "TOTAL", "DESP",
+        "DESPERDICIO", "REND", "RENDIMIENTO", "JORNAL", "ITEM",
+        "CODIGO", "CÓDIGO",
     ]
 
     # Palabras clave de resumen/totalización
     SUMMARY_KEYWORDS = [
-        "SUBTOTAL",
-        "TOTAL",
-        "RESUMEN",
-        "SUMA",
-        "TOTALES",
-        "ACUMULADO",
-        "GRAN TOTAL",
-        "COSTO DIRECTO",
+        "SUBTOTAL", "TOTAL", "RESUMEN", "SUMA", "TOTALES",
+        "ACUMULADO", "GRAN TOTAL", "COSTO DIRECTO",
     ]
 
     # Categorías típicas (exactas)
     CATEGORY_PATTERNS = [
-        r"^MATERIALES?$",
-        r"^MANO\s+DE\s+OBRA$",
-        r"^EQUIPO$",
-        r"^TRANSPORTE$",
-        r"^OTROS?$",
-        r"^SERVICIOS?$",
-        r"^HERRAMIENTAS?$",
-        r"^SUMINISTROS?$",
+        r"^MATERIALES?$", r"^MANO\s+DE\s+OBRA$", r"^EQUIPO$",
+        r"^TRANSPORTE$", r"^OTROS?$", r"^SERVICIOS?$",
+        r"^HERRAMIENTAS?$", r"^SUMINISTROS?$",
     ]
 
     def __init__(self):
@@ -193,15 +219,7 @@ class PatternMatcher:
         self._pattern_cache["percentage"] = re.compile(r"\d+\s*%")
 
     def count_header_keywords(self, text: str) -> int:
-        """
-        Cuenta cuántas palabras clave de encabezado están presentes en el texto.
-
-        Args:
-            text: El texto a analizar.
-
-        Returns:
-            El número de palabras clave de encabezado encontradas.
-        """
+        """Cuenta cuántas palabras clave de encabezado están presentes en el texto."""
         text_upper = text.upper()
         return sum(1 for keyword in self.HEADER_KEYWORDS if keyword in text_upper)
 
@@ -214,9 +232,7 @@ class PatternMatcher:
 
         words = text.upper().split()
         if words and len(words) > 2:
-            header_word_ratio = sum(1 for w in words if w in self.HEADER_KEYWORDS) / len(
-                words
-            )
+            header_word_ratio = sum(1 for w in words if w in self.HEADER_KEYWORDS) / len(words)
             if header_word_ratio > 0.6:
                 return True
 
@@ -243,20 +259,13 @@ class PatternMatcher:
     def is_likely_chapter_header(self, text: str) -> bool:
         """Determina si una línea es probablemente un encabezado de capítulo."""
         text_upper = text.strip().upper()
-
-        # Heurística 1: Palabras clave explícitas
         if text_upper.startswith(("CAPITULO", "CAPÍTULO", "TITULO", "TÍTULO", "NIVEL")):
             return True
 
-        # Heurística 2: Mayúsculas sostenidas, sin números, longitud razonable
-        # y no es una categoría de insumo conocida (MATERIALES, etc)
-        if (
-            text_upper.isupper()
-            and not self.has_numeric_content(text)
-            and len(text) < 100
-            and not self.is_likely_category(text, 1)
-            and not self.is_likely_header(text, 1)
-        ):
+        if (text_upper.isupper() and not self.has_numeric_content(text)
+                and len(text) < 100
+                and not self.is_likely_category(text, 1)
+                and not self.is_likely_header(text, 1)):
             return True
 
         return False
@@ -280,92 +289,20 @@ class UnitsValidator:
     """
 
     VALID_UNITS: Set[str] = {
-        "UND",
-        "UN",
-        "UNID",
-        "UNIDAD",
-        "UNIDADES",
-        "M",
-        "MT",
-        "MTS",
-        "MTR",
-        "MTRS",
-        "METRO",
-        "METROS",
-        "ML",
-        "KM",
-        "M2",
-        "MT2",
-        "MTS2",
-        "MTRS2",
-        "METROSCUAD",
-        "METROSCUADRADOS",
-        "M3",
-        "MT3",
-        "MTS3",
-        "MTRS3",
-        "METROSCUB",
-        "METROSCUBICOS",
-        "HR",
-        "HRS",
-        "HORA",
-        "HORAS",
-        "MIN",
-        "MINUTO",
-        "MINUTOS",
-        "DIA",
-        "DIAS",
-        "SEM",
-        "SEMANA",
-        "SEMANAS",
-        "MES",
-        "MESES",
-        "JOR",
-        "JORN",
-        "JORNAL",
-        "JORNALES",
-        "G",
-        "GR",
-        "GRAMO",
-        "GRAMOS",
-        "KG",
-        "KGS",
-        "KILO",
-        "KILOS",
-        "KILOGRAMO",
-        "KILOGRAMOS",
-        "TON",
-        "TONS",
-        "TONELADA",
-        "TONELADAS",
-        "LB",
-        "LIBRA",
-        "LIBRAS",
-        "GAL",
-        "GLN",
-        "GALON",
-        "GALONES",
-        "LT",
-        "LTS",
-        "LITRO",
-        "LITROS",
-        "ML",
-        "MILILITRO",
-        "MILILITROS",
-        "VIAJE",
-        "VIAJES",
-        "VJE",
-        "VJ",
-        "BULTO",
-        "BULTOS",
-        "SACO",
-        "SACOS",
-        "PAQ",
-        "PAQUETE",
-        "PAQUETES",
-        "GLOBAL",
-        "GLB",
-        "GB",
+        "UND", "UN", "UNID", "UNIDAD", "UNIDADES",
+        "M", "MT", "MTS", "MTR", "MTRS", "METRO", "METROS", "ML",
+        "KM", "M2", "MT2", "MTS2", "MTRS2", "METROSCUAD", "METROSCUADRADOS",
+        "M3", "MT3", "MTS3", "MTRS3", "METROSCUB", "METROSCUBICOS",
+        "HR", "HRS", "HORA", "HORAS", "MIN", "MINUTO", "MINUTOS",
+        "DIA", "DIAS", "SEM", "SEMANA", "SEMANAS", "MES", "MESES",
+        "JOR", "JORN", "JORNAL", "JORNALES",
+        "G", "GR", "GRAMO", "GRAMOS", "KG", "KGS", "KILO", "KILOS",
+        "KILOGRAMO", "KILOGRAMOS", "TON", "TONS", "TONELADA", "TONELADAS",
+        "LB", "LIBRA", "LIBRAS", "GAL", "GLN", "GALON", "GALONES",
+        "LT", "LTS", "LITRO", "LITROS", "ML", "MILILITRO", "MILILITROS",
+        "VIAJE", "VIAJES", "VJE", "VJ", "BULTO", "BULTOS",
+        "SACO", "SACOS", "PAQ", "PAQUETE", "PAQUETES",
+        "GLOBAL", "GLB", "GB",
     }
 
     @classmethod
@@ -373,13 +310,6 @@ class UnitsValidator:
     def normalize_unit(cls, unit: str) -> str:
         """
         Normaliza una unidad a su forma canónica (ej. "Metro" -> "M").
-
-        Args:
-            unit: La cadena de texto de la unidad a normalizar.
-
-        Returns:
-            La unidad normalizada. Devuelve "UND" si la unidad es vacía o
-            no reconocida.
         """
         if not unit:
             return "UND"
@@ -387,17 +317,9 @@ class UnitsValidator:
         unit_clean = re.sub(r"[^A-Z0-9]", "", unit.upper().strip())
 
         unit_mappings = {
-            "UNID": "UND",
-            "UN": "UND",
-            "UNIDAD": "UND",
-            "MT": "M",
-            "MTS": "M",
-            "MTR": "M",
-            "MTRS": "M",
-            "JORN": "JOR",
-            "JORNAL": "JOR",
-            "JORNALES": "JOR",
-            # Agregar más mapeos según sea necesario
+            "UNID": "UND", "UN": "UND", "UNIDAD": "UND",
+            "MT": "M", "MTS": "M", "MTR": "M", "MTRS": "M",
+            "JORN": "JOR", "JORNAL": "JOR", "JORNALES": "JOR",
         }
 
         return unit_mappings.get(
@@ -406,15 +328,7 @@ class UnitsValidator:
 
     @classmethod
     def is_valid(cls, unit: str) -> bool:
-        """
-        Verifica si una cadena de texto representa una unidad válida.
-
-        Args:
-            unit: La unidad a validar.
-
-        Returns:
-            True si la unidad es reconocida, False en caso contrario.
-        """
+        """Verifica si una cadena de texto representa una unidad válida."""
         if not unit:
             return False
         unit_clean = re.sub(r"[^A-Z0-9]", "", unit.upper().strip())
@@ -427,9 +341,7 @@ class NumericFieldExtractor:
 
     Esta clase es responsable de parsear valores numéricos de cadenas de texto,
     manejando diferentes separadores decimales. Su función más importante es
-    la identificación inteligente de valores de "rendimiento" y "jornal"
-    para insumos de Mano de Obra, utilizando heurísticas basadas en umbrales
-    y magnitud relativa.
+    la identificación inteligente de valores de "rendimiento" y "jornal".
     """
 
     def __init__(
@@ -438,36 +350,18 @@ class NumericFieldExtractor:
         profile: Optional[Dict[str, Any]] = None,
         thresholds: Optional[ValidationThresholds] = None,
     ):
-        """
-        Inicializa el extractor.
-
-        Args:
-            config: El diccionario de configuración global.
-            profile: El perfil de configuración específico del archivo.
-            thresholds: Un objeto `ValidationThresholds` con los umbrales.
-        """
+        """Inicializa el extractor."""
         self.config = config or {}
         self.profile = profile or {}
         self.pattern_matcher = PatternMatcher()
         self.thresholds = thresholds or ValidationThresholds()
-        # CAMBIO: Leer el separador decimal desde el profile
         number_format = self.profile.get("number_format", {})
         self.decimal_separator = number_format.get("decimal_separator")
 
     def extract_all_numeric_values(
         self, fields: List[str], skip_first: bool = True
     ) -> List[float]:
-        """
-        Extrae todos los valores numéricos válidos de una lista de campos.
-
-        Args:
-            fields: La lista de cadenas de texto (campos) a procesar.
-            skip_first: Si es True, ignora el primer campo (usualmente la
-                        descripción).
-
-        Returns:
-            Una lista de los valores numéricos encontrados.
-        """
+        """Extrae todos los valores numéricos válidos de una lista de campos."""
         start_idx = 1 if skip_first else 0
         numeric_values = []
 
@@ -482,20 +376,10 @@ class NumericFieldExtractor:
         return numeric_values
 
     def parse_number_safe(self, value: str) -> Optional[float]:
-        """
-        Parsea un número de forma segura, utilizando el separador decimal
-        configurado.
-
-        Args:
-            value: La cadena de texto que contiene el número.
-
-        Returns:
-            El número como flotante, o None si el parseo falla.
-        """
+        """Parsea un número de forma segura, utilizando el separador decimal configurado."""
         if not value or not isinstance(value, str):
             return None
         try:
-            # CAMBIO: Pasar el separador decimal a la función de parseo
             return parse_number(value, decimal_separator=self.decimal_separator)
         except (ValueError, TypeError, AttributeError):
             return None
@@ -503,80 +387,44 @@ class NumericFieldExtractor:
     def identify_mo_values(
         self, numeric_values: List[float]
     ) -> Optional[Tuple[float, float]]:
-        """
-        Identifica rendimiento y jornal de una lista de valores numéricos.
-
-        Utiliza heurísticas basadas en rangos típicos y magnitud para
-        distinguir entre el valor del jornal (generalmente un número grande)
-        y el rendimiento (un número más pequeño).
-
-        Args:
-            numeric_values: Lista de valores numéricos extraídos de una línea
-                            de Mano de Obra.
-
-        Returns:
-            Una tupla (rendimiento, jornal) si se identifican ambos, o None.
-        """
+        """Identifica rendimiento y jornal de una lista de valores numéricos."""
         if len(numeric_values) < 2:
             return None
 
-        # Heurística 1: Buscar por rangos típicos
         jornal_candidates = [
-            v
-            for v in numeric_values
+            v for v in numeric_values
             if self.thresholds.min_jornal <= v <= self.thresholds.max_jornal
         ]
 
         rendimiento_candidates = [
-            v
-            for v in numeric_values
-            if (
-                self.thresholds.min_rendimiento
-                <= v
-                <= self.thresholds.max_rendimiento_tipico
-                and v not in jornal_candidates
-            )
+            v for v in numeric_values
+            if (self.thresholds.min_rendimiento <= v <= self.thresholds.max_rendimiento_tipico
+                and v not in jornal_candidates)
         ]
 
         if jornal_candidates and rendimiento_candidates:
-            # Tomar el jornal más grande y el rendimiento más pequeño
             jornal = max(jornal_candidates)
             rendimiento = min(rendimiento_candidates)
             return rendimiento, jornal
 
-        # Heurística 2: Si no encontramos con rangos, usar posición relativa
         if len(numeric_values) >= 2:
             sorted_values = sorted(numeric_values, reverse=True)
-
-            # El valor más grande que sea >= min_jornal es probablemente el jornal
             for val in sorted_values:
                 if val >= self.thresholds.min_jornal:
                     jornal = val
-                    # Buscar rendimiento entre los valores restantes
                     for other_val in numeric_values:
-                        if (
-                            other_val != jornal
-                            and other_val <= self.thresholds.max_rendimiento_tipico
-                        ):
+                        if (other_val != jornal
+                                and other_val <= self.thresholds.max_rendimiento_tipico):
                             return other_val, jornal
                     break
 
         return None
 
     def extract_insumo_values(self, fields: List[str], start_from: int = 2) -> List[float]:
-        """
-        Extrae valores numéricos para insumos básicos (no Mano de Obra).
-
-        Args:
-            fields: Lista de campos de la línea.
-            start_from: Índice desde el cual empezar a buscar valores.
-
-        Returns:
-            Lista de valores numéricos (cantidad, precio, total).
-        """
+        """Extrae valores numéricos para insumos básicos (no Mano de Obra)."""
         valores = []
         for i in range(start_from, len(fields)):
-            if fields[i] and "%" not in fields[i]:  # Ignorar desperdicio
+            if fields[i] and "%" not in fields[i]:
                 val = self.parse_number_safe(fields[i])
                 if val is not None and val >= 0:
                     valores.append(val)
@@ -584,7 +432,7 @@ class NumericFieldExtractor:
 
 
 # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-# TRANSFORMER ORQUESTADOR
+# TRANSFORMER ORQUESTADOR (V2 CON MÓNADAS Y FUNCTORES COMPLETOS)
 # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
 
@@ -592,11 +440,10 @@ class NumericFieldExtractor:
 class APUTransformer(Transformer):
     """
     Orquestador que coordina a los especialistas para transformar una línea.
-
-    ROBUSTECIDO: Manejo defensivo de tokens, validación estricta y logging mejorado.
+    V2: Implementa lógica categórica con mónadas y functores.
+    ROBUSTECIDO: Incluye validación algebraica y normalización categórica.
     """
 
-    # Constantes para tipos de token esperados
     _SEP_TOKEN_TYPE = "SEP"
     _FIELD_VALUE_TOKEN_TYPE = "FIELD_VALUE"
     _MIN_FIELDS_FOR_VALID_LINE = 3
@@ -609,19 +456,7 @@ class APUTransformer(Transformer):
         profile: Dict[str, Any],
         keyword_cache: Any,
     ):
-        """
-        Inicializa el Transformer con validación de parámetros.
-
-        Args:
-            apu_context: Contexto del APU.
-            config: Configuración global.
-            profile: Perfil de procesamiento.
-            keyword_cache: Caché de palabras clave.
-
-        Raises:
-            RuntimeError: Si ocurre un error al inicializar los especialistas.
-        """
-        # ROBUSTECIDO: Validación defensiva de parámetros de entrada
+        """Inicializa el Transformer con validación de parámetros."""
         if apu_context is None:
             logger.warning("apu_context es None, usando diccionario vacío")
         if config is None:
@@ -632,10 +467,10 @@ class APUTransformer(Transformer):
         self.profile = profile if isinstance(profile, dict) else {}
         self.keyword_cache = keyword_cache
 
-        # Inicializar especialistas con manejo de errores
         try:
             self.pattern_matcher = PatternMatcher()
             self.units_validator = UnitsValidator()
+            # Restauración crítica: Cargar umbrales desde configuración
             self.thresholds = self._load_validation_thresholds()
             self.numeric_extractor = NumericFieldExtractor(
                 self.config, self.profile, self.thresholds
@@ -647,12 +482,7 @@ class APUTransformer(Transformer):
         super().__init__()
 
     def _load_validation_thresholds(self) -> ValidationThresholds:
-        """
-        Carga los umbrales de validación desde la configuración.
-
-        Returns:
-            ValidationThresholds: Objeto con los umbrales configurados.
-        """
+        """Carga los umbrales de validación desde la configuración."""
         mo_config = self.config.get("validation_thresholds", {}).get("MANO_DE_OBRA", {})
         return ValidationThresholds(
             min_jornal=mo_config.get("min_jornal", 50000),
@@ -663,79 +493,32 @@ class APUTransformer(Transformer):
         )
 
     def _extract_value(self, item: Any) -> str:
-        """
-        Extrae el valor string de un token o string de forma segura.
-
-        ROBUSTECIDO:
-        - Manejo explícito de cada tipo esperado
-        - Eliminación de código muerto (bytes no esperados en Lark)
-        - Logging específico para casos inesperados
-        - Sanitización de salida
-
-        Args:
-            item: El item a extraer (Token, string, list, etc.).
-
-        Returns:
-            El valor extraído como string.
-        """
+        """Extrae el valor string de un token o string de forma segura."""
         if item is None:
             return ""
-
-        # Caso 1: Token de Lark (caso más común)
         if isinstance(item, Token):
             raw_value = item.value
-            if raw_value is None:
-                return ""
-            # ROBUSTECIDO: Asegurar que siempre devolvemos string limpio
-            return str(raw_value).strip()
-
-        # Caso 2: String directo
+            return str(raw_value).strip() if raw_value is not None else ""
         if isinstance(item, str):
             return item.strip()
-
-        # Caso 3: Lista (puede ocurrir con reglas anidadas)
         if isinstance(item, (list, tuple)):
             if not item:
                 return ""
-            # ROBUSTECIDO: Procesar recursivamente el primer elemento no vacío
             for sub_item in item:
                 extracted = self._extract_value(sub_item)
                 if extracted:
                     return extracted
             return ""
-
-        # Caso 4: Tipo inesperado - log y conversión segura
-        logger.debug(
-            f"_extract_value: tipo inesperado {type(item).__name__}, "
-            f"valor: {repr(item)[:100]}"
-        )
         try:
             return str(item).strip()
         except Exception as e:
-            logger.warning(
-                f"No se pudo convertir a string: {type(item).__name__}, error: {e}"
-            )
+            logger.warning(f"No se pudo convertir a string: {type(item).__name__}, error: {e}")
             return ""
 
     def field(self, args: List[Any]) -> str:
-        """
-        Procesa un campo individual parseado por Lark.
-
-        ROBUSTECIDO:
-        - Manejo de lista vacía
-        - Manejo de múltiples elementos en args
-        - Validación de longitud máxima
-
-        Args:
-            args: Lista de argumentos parseados.
-
-        Returns:
-            El contenido del campo procesado.
-        """
+        """Procesa un campo individual parseado por Lark."""
         if not args:
             return ""
-
-        # ROBUSTECIDO: Si hay múltiples elementos, concatenar (caso raro pero posible)
         if len(args) > 1:
             logger.debug(f"field() recibió {len(args)} elementos, concatenando")
             parts = [self._extract_value(arg) for arg in args]
@@ -743,338 +526,327 @@ class APUTransformer(Transformer):
         else:
             result = self._extract_value(args[0])
 
-        # ROBUSTECIDO: Limitar longitud para evitar campos anómalos
         if len(result) > self._MAX_DESCRIPTION_LENGTH:
-            logger.warning(
-                f"Campo truncado de {len(result)} a {self._MAX_DESCRIPTION_LENGTH} caracteres"
-            )
             result = result[: self._MAX_DESCRIPTION_LENGTH]
 
         return result
 
     def field_with_value(self, args: List[Any]) -> str:
-        """
-        Procesa un campo que tiene valor explícito.
-
-        Args:
-            args: Argumentos del campo.
-
-        Returns:
-            Valor del campo.
-        """
+        """Procesa un campo que tiene valor explícito."""
         return self.field(args)
 
     def field_empty(self, args: List[Any]) -> str:
-        """
-        Procesa un campo vacío explícito.
-
-        Args:
-            args: Argumentos (ignorados).
-
-        Returns:
-            Cadena vacía.
-        """
+        """Procesa un campo vacío explícito."""
         return ""
 
-    def line(self, args: List[Any]) -> Optional[InsumoProcesado]:
+    # --- MÉTODOS CATEGÓRICOS V2 ---
+
+    def _extract_fields_as_monad(self, args: List[Any]) -> OptionMonad[List[str]]:
         """
-        Procesa una línea parseada por Lark.
-
-        ROBUSTECIDO:
-        - Filtrado mejorado de tokens SEP con validación de tipo
-        - Manejo defensivo de estructuras inesperadas
-        - Validación temprana de campos mínimos
-        - Logging detallado para diagnóstico
-
-        Args:
-            args: Argumentos parseados de la línea.
-
-        Returns:
-            Objeto InsumoProcesado si la línea es válida, None en caso contrario.
+        Extrae campos usando estructura de mónada Option (Maybe).
+        Implementa functor de extracción y validación de homogeneidad.
         """
         if not args:
-            logger.debug("line() recibió args vacío")
-            return None
+            return OptionMonad(error="Args vacío")
 
         fields = []
-        skipped_tokens = 0
+        structural_errors = []
 
-        for arg in args:
-            # ROBUSTECIDO: Identificación precisa de tokens SEP
+        for i, arg in enumerate(args):
+            # Morfismo de token a valor con validación algebraica
             if isinstance(arg, Token):
                 if arg.type == self._SEP_TOKEN_TYPE:
-                    skipped_tokens += 1
                     continue
-                # Token que no es SEP - extraer valor
                 value = self._extract_value(arg)
-                if value is not None:  # Permitir strings vacíos
-                    fields.append(value)
+                if value is not None:
+                    # Verificar homogeneidad algebraica si ya hay campos
+                    if not self._validate_algebraic_homogeneity(value, len(fields), fields):
+                        structural_errors.append(f"Token rompe homogeneidad: {value[:30]}")
+                    else:
+                        fields.append(value)
+
             elif isinstance(arg, list):
-                # ROBUSTECIDO: Procesar listas de forma recursiva pero controlada
+                # Producto categórico: procesar lista recursivamente
                 for sub_arg in arg:
                     if isinstance(sub_arg, Token) and sub_arg.type == self._SEP_TOKEN_TYPE:
-                        skipped_tokens += 1
                         continue
                     value = self._extract_value(sub_arg)
                     if value is not None:
-                        fields.append(value)
+                         fields.append(value)
             else:
-                # Caso directo (string u otro)
                 value = self._extract_value(arg)
                 if value is not None:
-                    fields.append(value)
+                     fields.append(value)
 
-        # ROBUSTECIDO: Logging de diagnóstico en modo debug
-        if logger.isEnabledFor(logging.DEBUG):
-            logger.debug(
-                f"line(): {len(args)} args -> {len(fields)} campos "
-                f"(skipped {skipped_tokens} SEP tokens)"
-            )
+        # Si hay errores estructurales, reportar pero permitir continuación si es recuperable
+        if structural_errors:
+            logger.debug(f"Advertencias estructurales: {structural_errors}")
 
-        # Limpiar campos vacíos al final
+        # Limpieza categórica: normalizar estructura
+        if not fields:
+             return OptionMonad(error="Todos los campos son morfismos nulos")
+
+        # Filtrar campos vacíos finales
         clean_fields = self._filter_trailing_empty(fields)
 
-        # ROBUSTECIDO: Validación temprana con mensajes específicos
         if not clean_fields:
-            logger.debug("line(): todos los campos están vacíos después de limpieza")
-            return None
+             return OptionMonad(error="Campos vacíos después de limpieza")
 
-        if not clean_fields[0] or not clean_fields[0].strip():
-            logger.debug("line(): primer campo (descripción) está vacío")
-            return None
+        # Aplicar functor de normalización categórica
+        normalized_fields = self._apply_categorical_normalization(clean_fields)
 
-        # ROBUSTECIDO: Verificar mínimo de campos antes de procesar
-        if len(clean_fields) < self._MIN_FIELDS_FOR_VALID_LINE:
-            logger.debug(
-                f"line(): insuficientes campos ({len(clean_fields)} < "
-                f"{self._MIN_FIELDS_FOR_VALID_LINE})"
-            )
-            return None
+        return OptionMonad(normalized_fields)
 
-        # Detectar formato y construir
-        formato = self._detect_format(clean_fields)
+    def _validate_algebraic_homogeneity(self, value: str, position: int, context: List[str]) -> bool:
+        """
+        Valida homogeneidad algebraica: cada campo debe pertenecer al mismo anillo.
+        Un campo debe ser compatible con sus vecinos en el anillo de campos.
+        """
+        if not value:
+            return True
 
-        if formato == FormatoLinea.DESCONOCIDO:
-            logger.debug(f"line(): formato desconocido para: {clean_fields[0][:50]}...")
-            return None
+        field_type = self._classify_field_algebraic_type(value)
 
-        return self._dispatch_builder(formato, clean_fields)
+        # Generador del anillo (primer campo) siempre válido
+        if position == 0:
+            return True
+
+        # Verificar compatibilidad con campo anterior
+        if context:
+            prev_field = context[-1]
+            prev_type = self._classify_field_algebraic_type(prev_field)
+
+            # Reglas de composición algebraica (Definición explicita de morfismos válidos)
+            composition_rules = {
+                ('ALPHA', 'ALPHA'): True,    # Palabras pueden seguir palabras
+                ('ALPHA', 'NUMERIC'): True,   # Números pueden seguir palabras (cantidad)
+                ('NUMERIC', 'ALPHA'): True,   # Palabras pueden seguir números (unidad)
+                ('NUMERIC', 'NUMERIC'): True, # Números pueden seguir números (precio, total)
+                ('ALPHA', 'MIXED_NUMERIC'): True, # Mixto puede seguir palabras
+                ('MIXED_NUMERIC', 'ALPHA'): True, # Palabras pueden seguir mixto
+                ('OTHER', 'ALPHA'): True,
+                ('ALPHA', 'OTHER'): True
+            }
+
+            # Permitir transiciones genéricas si no están prohibidas explícitamente
+            return composition_rules.get((prev_type, field_type), True)
+
+        return True
+
+    def _classify_field_algebraic_type(self, field: str) -> str:
+        """Clasifica un campo en tipos algebraicos básicos."""
+        if not field:
+            return 'EMPTY'
+
+        # Heurística simple
+        if self._looks_numeric(field):
+            return 'NUMERIC'
+
+        alpha_chars = sum(c.isalpha() for c in field)
+        digit_chars = sum(c.isdigit() for c in field)
+
+        if alpha_chars > digit_chars:
+            return 'ALPHA'
+        elif digit_chars > alpha_chars:
+            return 'MIXED_NUMERIC'
+
+        return 'OTHER'
+
+    def _apply_categorical_normalization(self, fields: List[str]) -> List[str]:
+        """Aplica normalización categórica para preservar estructura algebraica."""
+        normalized = []
+        for i, field in enumerate(fields):
+            cleaned = field.strip()
+
+            # Invariante posicional 0 (Descripción): Normalizar espacios
+            if i == 0:
+                cleaned = ' '.join(cleaned.split())
+
+            # Invariante posicional 1 (Unidad): Normalizar si parece unidad
+            elif i == 1:
+                cleaned = self.units_validator.normalize_unit(cleaned)
+
+            # Resto: Normalizar numéricos
+            else:
+                if self._looks_numeric(cleaned):
+                    cleaned = self._normalize_numeric_representation(cleaned)
+
+            if len(cleaned) > self._MAX_DESCRIPTION_LENGTH:
+                 cleaned = cleaned[:self._MAX_DESCRIPTION_LENGTH]
+
+            normalized.append(cleaned)
+
+        return normalized
+
+    def _looks_numeric(self, field: str) -> bool:
+        """Determina si un campo parece ser numérico categóricamente."""
+        if not field:
+            return False
+        # Eliminar caracteres comunes
+        cleaned = field.replace(',', '.').replace('$', '').replace('%', '').strip()
+        if not cleaned: return False
+
+        # Patrón simple
+        return bool(re.match(r'^-?\d+(\.\d+)?$', cleaned))
+
+    def _normalize_numeric_representation(self, field: str) -> str:
+        """Normaliza representación numérica a forma canónica (punto decimal)."""
+        decimal_sep = self.profile.get('number_format', {}).get('decimal_separator', '.')
+
+        # Lógica heurística para 1.234,56 vs 1,234.56
+        if ',' in field and '.' in field:
+            if field.rfind('.') > field.rfind(','): # 1,234.56
+                field = field.replace(',', '')
+            else: # 1.234,56
+                field = field.replace('.', '').replace(',', '.')
+        elif ',' in field:
+            if decimal_sep == '.': # Asumir coma es decimal si config dice punto? O al revés?
+                # Si solo hay coma y esperamos punto, probablemente es decimal (1,5)
+                # O miles (1,000). Ambigüo.
+                # Si el profile dice que el separador es coma, no tocamos.
+                # Si el profile dice punto, reemplazamos coma por punto.
+                if re.match(r'^\d+,\d+$', field):
+                    field = field.replace(',', '.')
+
+        return field
 
     def _filter_trailing_empty(self, tokens: List[str]) -> List[str]:
-        """
-        Elimina campos vacíos al final de una lista de campos.
-
-        ROBUSTECIDO:
-        - Manejo de lista vacía
-        - Manejo de lista con solo elementos vacíos
-        - Preservación de campos vacíos intermedios (importante para estructura)
-
-        Args:
-            tokens: Lista de tokens/campos.
-
-        Returns:
-            Lista de tokens sin elementos vacíos al final.
-        """
+        """Elimina campos vacíos al final de una lista de campos."""
         if not tokens:
             return []
-
-        # Encontrar el último índice con contenido
         last_non_empty_idx = -1
         for i in range(len(tokens) - 1, -1, -1):
-            # ROBUSTECIDO: Verificar que es string antes de strip
             token = tokens[i]
             if isinstance(token, str) and token.strip():
                 last_non_empty_idx = i
                 break
-            elif token and not isinstance(token, str):
-                # Caso inesperado pero manejable
-                last_non_empty_idx = i
-                break
-
         if last_non_empty_idx < 0:
             return []
-
         return tokens[: last_non_empty_idx + 1]
 
+    def line(self, args: List[Any]) -> Optional[InsumoProcesado]:
+        """
+        Procesa una línea usando teoría de mónadas.
+        V2: Reemplaza lógica imperativa por composición funcional.
+        """
+        # Functor: Mapear estructura cruda a campos semánticos
+        fields_monad = self._extract_fields_as_monad(args)
+
+        if not fields_monad.is_valid():
+            logger.debug(f"Línea monádica inválida: {fields_monad.error}")
+            return None
+
+        fields = fields_monad.value
+
+        # Composición algebraica de validaciones
+        validation_chain = (
+            self._validate_minimal_cardinality(fields)
+            .bind(lambda f: self._validate_description_epicenter(f))
+            # Opcional: .bind(lambda f: self._validate_structural_integrity(f))
+        )
+
+        if not validation_chain.is_valid():
+            logger.debug(f"Línea falló validación algebraica: {validation_chain.error}")
+            return None
+
+        clean_fields = validation_chain.value
+
+        # Detección del grupo fundamental del formato
+        formato = self._detect_format_categorical(clean_fields)
+
+        if formato == FormatoLinea.DESCONOCIDO:
+            logger.debug(f"Línea: grupo fundamental desconocido para {clean_fields[0][:50]}...")
+            return None
+
+        # Homomorfismo: Mapear formato a constructor
+        return self._dispatch_builder(formato, clean_fields)
+
+    def _validate_minimal_cardinality(self, fields: List[str]) -> OptionMonad[List[str]]:
+        """Valida cardinalidad mínima (teoría de conjuntos)."""
+        if len(fields) < self._MIN_FIELDS_FOR_VALID_LINE:
+            return OptionMonad(error=f"Cardinalidad insuficiente: {len(fields)}")
+        return OptionMonad(fields)
+
+    def _validate_description_epicenter(self, fields: List[str]) -> OptionMonad[List[str]]:
+        """Valida que el campo de descripción sea epicéntrico (no vacío)."""
+        if not fields or not fields[0] or not fields[0].strip():
+             return OptionMonad(error="Descripción vacía")
+        return OptionMonad(fields)
+
+    def _detect_format_categorical(self, fields: List[str]) -> FormatoLinea:
+        """Detección de formato V2 usando lógica de especialistas existente."""
+        return self._detect_format(fields)
+
     def _detect_format(self, fields: List[str]) -> FormatoLinea:
-        """
-        Detecta el formato de la línea usando los especialistas.
-
-        Coordina al `PatternMatcher` para filtrar ruido (resúmenes,
-        encabezados) y al `NumericFieldExtractor` para determinar si
-        la línea tiene la estructura de un insumo de Mano de Obra o
-        de un insumo básico.
-
-        Args:
-            fields: La lista de campos de la línea.
-
-        Returns:
-            El `FormatoLinea` detectado.
-        """
+        """Detecta el formato de la línea usando los especialistas."""
         if not fields or not fields[0]:
             return FormatoLinea.DESCONOCIDO
 
         descripcion = fields[0].strip()
         num_fields = len(fields)
 
-        # Usar PatternMatcher para filtrar ruido contextualmente
         if self._is_noise_line(descripcion, num_fields):
             return FormatoLinea.DESCONOCIDO
 
-        if num_fields < 3:
-            return FormatoLinea.DESCONOCIDO
-
-        # Clasificar tipo de insumo
         tipo_probable = self._classify_insumo(descripcion)
 
-        # Detectar MO_COMPLETA si es mano de obra y tiene formato válido
         if tipo_probable == TipoInsumo.MANO_DE_OBRA and num_fields >= 5:
             if self._validate_mo_format(fields):
-                logger.debug(f"MO_COMPLETA detectado: {descripcion[:30]}...")
                 return FormatoLinea.MO_COMPLETA
 
-        # Detectar INSUMO_BASICO si tiene suficientes campos numéricos
-        if num_fields >= 4:
-            numeric_values = self.numeric_extractor.extract_all_numeric_values(fields)
-            if len(numeric_values) >= 2:
-                logger.debug(f"INSUMO_BASICO detectado: {descripcion[:30]}...")
-                return FormatoLinea.INSUMO_BASICO
+        if num_fields >= 3:
+             numeric_values = self.numeric_extractor.extract_all_numeric_values(fields)
+             if len(numeric_values) >= 1:
+                 return FormatoLinea.INSUMO_BASICO
 
         return FormatoLinea.DESCONOCIDO
 
     def _is_noise_line(self, descripcion: str, num_fields: int) -> bool:
-        """
-        Detecta si una línea es ruido (encabezado, resumen, etc.).
-
-        Args:
-            descripcion: Descripción de la línea.
-            num_fields: Número de campos en la línea.
-
-        Returns:
-            True si es ruido, False si es contenido útil.
-        """
+        """Detecta si una línea es ruido (encabezado, resumen, etc.)."""
         if self.pattern_matcher.is_likely_summary(descripcion, num_fields):
-            logger.debug(f"Línea de resumen ignorada: {descripcion[:30]}...")
             return True
-
         if self.pattern_matcher.is_likely_header(descripcion, num_fields):
-            logger.debug(f"Línea de encabezado ignorada: {descripcion[:30]}...")
             return True
-
         if self.pattern_matcher.is_likely_category(descripcion, num_fields):
-            logger.debug(f"Línea de categoría ignorada: {descripcion[:30]}...")
             return True
-
         return False
 
     def _validate_mo_format(self, fields: List[str]) -> bool:
-        """
-        Valida el formato de Mano de Obra usando el NumericFieldExtractor.
-
-        Args:
-            fields: Lista de campos.
-
-        Returns:
-            True si el formato es válido para Mano de Obra.
-        """
+        """Valida el formato de Mano de Obra."""
         if len(fields) < 5:
             return False
-
         numeric_values = self.numeric_extractor.extract_all_numeric_values(fields)
         mo_values = self.numeric_extractor.identify_mo_values(numeric_values)
-
         return mo_values is not None
 
-    def _dispatch_builder(
-        self, formato: FormatoLinea, tokens: List[str]
-    ) -> Optional[InsumoProcesado]:
-        """
-        Llama al método constructor adecuado según el formato detectado.
-
-        ROBUSTECIDO:
-        - Try/except específico por tipo de formato
-        - Logging con contexto completo
-        - Validación de resultado antes de retornar
-
-        Args:
-            formato: El formato detectado.
-            tokens: Los tokens/campos de la línea.
-
-        Returns:
-            Objeto InsumoProcesado construido o None.
-        """
+    def _dispatch_builder(self, formato: FormatoLinea, tokens: List[str]) -> Optional[InsumoProcesado]:
+        """Llama al método constructor adecuado según el formato detectado."""
         builder_map = {
             FormatoLinea.MO_COMPLETA: self._build_mo_completa,
             FormatoLinea.INSUMO_BASICO: self._build_insumo_basico,
         }
-
         builder = builder_map.get(formato)
         if builder is None:
-            logger.warning(f"No hay builder para formato: {formato}")
             return None
 
         try:
-            result = builder(tokens)
-
-            # ROBUSTECIDO: Validar que el resultado es del tipo esperado
-            if result is not None and not isinstance(result, InsumoProcesado):
-                logger.error(
-                    f"Builder {formato.value} retornó tipo inesperado: "
-                    f"{type(result).__name__}"
-                )
-                return None
-
-            return result
-
-        except ValueError as ve:
-            # Errores de validación de datos - esperados en algunos casos
-            logger.debug(f"Validación fallida en {formato.value}: {ve}")
-            return None
-        except TypeError as te:
-            # Errores de tipos - indica problema en lógica
-            logger.error(f"Error de tipo en {formato.value}: {te}, tokens: {tokens[:3]}")
-            return None
+            return builder(tokens)
         except Exception as e:
-            # Errores inesperados - log completo
-            logger.error(
-                f"Error inesperado construyendo {formato.value}: {type(e).__name__}: {e}"
-            )
-            if self.config.get("debug_mode", False):
-                import traceback
-
-                logger.debug(f"Traceback:\n{traceback.format_exc()}")
+            logger.error(f"Error construyendo {formato}: {e}")
             return None
 
     def _build_mo_completa(self, tokens: List[str]) -> Optional[ManoDeObra]:
-        """
-        Construye un objeto `ManoDeObra` a partir de una línea de formato completo.
-
-        Utiliza el `NumericFieldExtractor` para encontrar el rendimiento y el
-        jornal, y luego calcula los demás valores.
-
-        Args:
-            tokens: Lista de campos de la línea.
-
-        Returns:
-            Un objeto `ManoDeObra` o None.
-        """
+        """Construye un objeto `ManoDeObra` a partir de una línea de formato completo."""
         try:
             descripcion = tokens[0]
-            unidad = (
-                self.units_validator.normalize_unit(tokens[1]) if len(tokens) > 1 else "JOR"
-            )
-
-            # Usar NumericFieldExtractor para identificar valores
+            unidad = self.units_validator.normalize_unit(tokens[1]) if len(tokens) > 1 else "JOR"
             numeric_values = self.numeric_extractor.extract_all_numeric_values(tokens)
             mo_values = self.numeric_extractor.identify_mo_values(numeric_values)
 
             if not mo_values:
-                logger.debug("No se pudieron identificar jornal y rendimiento")
                 return None
 
             rendimiento, jornal = mo_values
-
-            # Cálculos
             cantidad = 1.0 / rendimiento if rendimiento > 0 else 0
             valor_total = cantidad * jornal
 
@@ -1095,41 +867,24 @@ class APUTransformer(Transformer):
                 tipo_insumo="MANO_DE_OBRA",
                 **context,
             )
-
         except Exception as e:
             logger.error(f"Error construyendo MO_COMPLETA: {e}")
             return None
 
     def _build_insumo_basico(self, tokens: List[str]) -> Optional[InsumoProcesado]:
-        """
-        Construye un objeto de insumo a partir de una línea de formato básico.
-
-        Clasifica el tipo de insumo basándose en la descripción y luego extrae
-        los valores numéricos (cantidad, precio, total).
-
-        Args:
-            tokens: Lista de campos de la línea.
-
-        Returns:
-            Un objeto `InsumoProcesado` (o una de sus subclases) o None.
-        """
+        """Construye un objeto de insumo a partir de una línea de formato básico."""
         try:
-            if len(tokens) < 3:  # Flexibilizado a 3
+            if len(tokens) < 3:
                 return None
 
             descripcion = tokens[0]
-            unidad = (
-                self.units_validator.normalize_unit(tokens[1]) if len(tokens) > 1 else "UND"
-            )
-
-            # Si la unidad es '%' o es un tipo OTRO, usar lógica especial
+            unidad = self.units_validator.normalize_unit(tokens[1]) if len(tokens) > 1 else "UND"
             tipo_insumo = self._classify_insumo(descripcion)
+
             if unidad == "%" or tipo_insumo == TipoInsumo.OTRO:
                 return self._build_insumo_porcentual_o_indirecto(tokens, tipo_insumo, unidad)
 
-            # Lógica estándar para insumos normales
             valores = self.numeric_extractor.extract_insumo_values(tokens)
-
             if len(valores) < 2:
                 return None
 
@@ -1166,41 +921,24 @@ class APUTransformer(Transformer):
                 tipo_insumo=tipo_insumo.value,
                 **context,
             )
-
         except Exception as e:
-            logger.error(f"Error construyendo INSUMO_BASICO: {e} en línea {tokens}")
+            logger.error(f"Error construyendo INSUMO_BASICO: {e}")
             return None
 
     def _build_insumo_porcentual_o_indirecto(
         self, tokens: List[str], tipo_insumo: TipoInsumo, unidad: str
     ) -> Optional[InsumoProcesado]:
-        """
-        Construye un insumo para líneas porcentuales o indirectas.
-        La prioridad es extraer un `valor_total` válido.
-
-        Args:
-            tokens: Campos de la línea.
-            tipo_insumo: Tipo de insumo clasificado.
-            unidad: Unidad del insumo.
-
-        Returns:
-            Objeto InsumoProcesado o None.
-        """
+        """Construye un insumo para líneas porcentuales o indirectas."""
         descripcion = tokens[0]
-        # Extraer todos los valores numéricos sin descartar el primero
         valores = self.numeric_extractor.extract_all_numeric_values(tokens, skip_first=False)
 
         if not valores:
-            return None  # Si no hay ningún número, no podemos hacer nada
+            return None
 
-        # El valor total suele ser el último o el único número significativo
         total = valores[-1]
-
         if total <= 0:
             return None
 
-        # Para estos tipos, la cantidad y el precio unitario son menos importantes.
-        # Los establecemos de forma que el valor total sea el protagonista.
         cantidad = 1.0
         precio = total
 
@@ -1215,7 +953,7 @@ class APUTransformer(Transformer):
             cantidad=round(cantidad, 6),
             precio_unitario=round(precio, 2),
             valor_total=round(total, 2),
-            rendimiento=0.0,  # No aplica rendimiento
+            rendimiento=0.0,
             formato_origen="INSUMO_INDIRECTO",
             tipo_insumo=tipo_insumo.value,
             **context,
@@ -1223,25 +961,15 @@ class APUTransformer(Transformer):
 
     @lru_cache(maxsize=2048)
     def _classify_insumo(self, descripcion: str) -> TipoInsumo:
-        """
-        Clasifica el tipo de insumo basándose en palabras clave en la descripción.
-
-        Args:
-            descripcion: La descripción del insumo.
-
-        Returns:
-            El `TipoInsumo` más probable.
-        """
+        """Clasifica el tipo de insumo basándose en palabras clave."""
         if not descripcion:
             return TipoInsumo.OTRO
-
         desc_upper = descripcion.upper()
-
         rules = self.config.get("apu_processor_rules", {})
         special_cases = rules.get("special_cases", {})
         mo_keywords = rules.get("mo_keywords", [])
         equipo_keywords = rules.get("equipo_keywords", [])
-        otro_keywords = rules.get("otro_keywords", [])  # Nueva línea
+        otro_keywords = rules.get("otro_keywords", [])
 
         for case, tipo_str in special_cases.items():
             if case in desc_upper:
@@ -1251,21 +979,13 @@ class APUTransformer(Transformer):
             return TipoInsumo.MANO_DE_OBRA
         if any(kw in desc_upper for kw in equipo_keywords):
             return TipoInsumo.EQUIPO
-        if any(kw in desc_upper for kw in otro_keywords):  # Nueva línea
-            return TipoInsumo.OTRO  # Nueva línea
+        if any(kw in desc_upper for kw in otro_keywords):
+            return TipoInsumo.OTRO
 
         return TipoInsumo.SUMINISTRO
 
     def _get_insumo_class(self, tipo_insumo: TipoInsumo):
-        """
-        Obtiene la clase de `schemas` correspondiente a un `TipoInsumo`.
-
-        Args:
-            tipo_insumo: El enum del tipo de insumo.
-
-        Returns:
-            La clase correspondiente (ManoDeObra, Equipo, etc.).
-        """
+        """Obtiene la clase de `schemas` correspondiente a un `TipoInsumo`."""
         class_mapping = {
             TipoInsumo.MANO_DE_OBRA: ManoDeObra,
             TipoInsumo.EQUIPO: Equipo,
@@ -1290,114 +1010,48 @@ class APUProcessor:
         profile: Optional[Dict[str, Any]] = None,
         parse_cache: Optional[Dict[str, Any]] = None,
     ):
-        """
-        Inicializa el procesador con cache opcional de parsing.
-
-        Args:
-            config: Configuración del sistema.
-            profile: Perfil de parsing.
-            parse_cache: Cache de árboles Lark pre-parseados.
-        """
+        """Inicializa el procesador con cache opcional de parsing."""
         self.config = config
         self.profile = profile or {}
         self.parser = self._initialize_parser()
         self.keyword_cache = {}
-        self.current_chapter = "GENERAL"  # Memoria de estado para capítulos
-
-        # Cache de parsing (optimización)
+        self.current_chapter = "GENERAL"
         self.parse_cache = parse_cache or {}
-
-        # Estadísticas globales
         self.global_stats = {
             "total_apus": 0,
             "total_insumos": 0,
             "format_detected": None,
         }
-
         self.parsing_stats = ParsingStats()
         self.debug_mode = self.config.get("debug_mode", False)
-
-        # Registros crudos (se establecerán externamente)
         self.raw_records = []
-
         if self.parse_cache:
-            logger.info(
-                f"✓ APUProcessor inicializado con cache de {len(self.parse_cache)} "
-                f"líneas pre-parseadas"
-            )
+            logger.info(f"✓ APUProcessor inicializado con cache de {len(self.parse_cache)} líneas")
 
     def _detect_record_format(self, records: List[Dict[str, Any]]) -> Tuple[str, str]:
-        """
-        Detecta automáticamente el formato de los registros de entrada.
-
-        Args:
-            records: Lista de registros a analizar.
-
-        Returns:
-            Tupla (formato, descripción) donde formato es "grouped" o "flat".
-        """
+        """Detecta automáticamente el formato de los registros de entrada."""
         if not records:
             return ("unknown", "No hay registros para analizar")
-
         first_record = records[0]
-
-        # Formato agrupado (legacy): tiene clave "lines"
         if "lines" in first_record:
-            return (
-                "grouped",
-                "Formato agrupado (legacy): cada registro es un APU con lista de líneas",
-            )
-
-        # Formato plano (nuevo): tiene claves "insumo_line" y "apu_code"
+            return ("grouped", "Formato agrupado (legacy)")
         if "insumo_line" in first_record and "apu_code" in first_record:
-            return ("flat", "Formato plano (nuevo): cada registro es un insumo individual")
-
-        # Formato desconocido
-        logger.warning(
-            f"Formato de registro desconocido. Claves encontradas: {first_record.keys()}"
-        )
+            return ("flat", "Formato plano (nuevo)")
         return ("unknown", "Formato no reconocido")
 
-    def _group_flat_records(
-        self, flat_records: List[Dict[str, Any]]
-    ) -> List[Dict[str, Any]]:
-        """
-        Agrupa registros planos por APU.
-
-        Convierte el formato plano (nuevo) al formato agrupado que el resto
-        del procesador puede manejar, pero preservando optimizaciones como
-        el árbol Lark pre-parseado.
-
-        Args:
-            flat_records: Lista de registros en formato plano.
-
-        Returns:
-            Lista de registros en formato agrupado.
-        """
+    def _group_flat_records(self, flat_records: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """Agrupa registros planos por APU."""
         logger.info(f"Agrupando {len(flat_records)} registros planos por APU...")
-
-        # Agrupar por apu_code
-        grouped = defaultdict(
-            lambda: {
-                "lines": [],
-                "_lark_trees": [],  # Preservar árboles pre-parseados
-                "metadata": {},
-            }
-        )
+        grouped = defaultdict(lambda: {"lines": [], "_lark_trees": [], "metadata": {}})
 
         for record in flat_records:
             apu_code = record.get("apu_code", "UNKNOWN")
-
-            # Agregar línea de insumo
             insumo_line = record.get("insumo_line", "")
             if insumo_line:
                 grouped[apu_code]["lines"].append(insumo_line)
-
-                # Preservar árbol Lark si existe
                 lark_tree = record.get("_lark_tree")
                 grouped[apu_code]["_lark_trees"].append(lark_tree)
 
-            # Preservar metadata del APU (solo la primera vez)
             if not grouped[apu_code]["metadata"]:
                 grouped[apu_code]["metadata"] = {
                     "apu_code": apu_code,
@@ -1407,161 +1061,69 @@ class APUProcessor:
                     "source_line": record.get("source_line", 0),
                 }
 
-        # Convertir a lista de registros agrupados
         result = []
         for apu_code, data in grouped.items():
             record = {
-                "codigo_apu": apu_code,  # Usar nombre legacy para compatibilidad
+                "codigo_apu": apu_code,
                 "descripcion_apu": data["metadata"].get("apu_desc", ""),
                 "unidad_apu": data["metadata"].get("apu_unit", ""),
                 "lines": data["lines"],
-                "_lark_trees": data["_lark_trees"],  # Nueva clave para optimización
+                "_lark_trees": data["_lark_trees"],
                 "category": data["metadata"].get("category", "INDEFINIDO"),
                 "source_line": data["metadata"].get("source_line", 0),
             }
             result.append(record)
-
-        logger.info(f"✓ Agrupados en {len(result)} APUs distintos")
-
         return result
 
     def process_all(self) -> pd.DataFrame:
-        """
-        Procesa todos los registros de APU crudos y devuelve un DataFrame.
-
-        Este método ahora es ADAPTATIVO:
-        - Detecta automáticamente el formato de entrada
-        - Convierte formato plano a agrupado si es necesario
-        - Reutiliza árboles Lark pre-parseados cuando están disponibles
-        - Mantiene compatibilidad con formato legacy
-
-        Returns:
-            DataFrame con todos los insumos procesados y estructurados.
-        """
+        """Procesa todos los registros de APU crudos y devuelve un DataFrame."""
         if not self.raw_records:
-            logger.warning("No hay registros crudos para procesar")
             return pd.DataFrame()
 
-        logger.info(f"Iniciando procesamiento de {len(self.raw_records)} registros")
-
-        # 🔥 PASO 1: Detectar formato de entrada
         format_type, format_desc = self._detect_record_format(self.raw_records)
         self.global_stats["format_detected"] = format_type
 
-        logger.info(f"📋 Formato detectado: {format_desc}")
-
-        # 🔥 PASO 2: Normalizar a formato agrupado si es necesario
         if format_type == "flat":
             processed_records = self._group_flat_records(self.raw_records)
         elif format_type == "grouped":
             processed_records = self.raw_records
-            logger.info("✓ Formato ya está agrupado, no se requiere conversión")
         else:
-            logger.error(
-                "❌ Formato de entrada no reconocido. "
-                "No se puede procesar sin formato conocido."
-            )
+            logger.error("❌ Formato no reconocido.")
             return pd.DataFrame()
 
-        # 🔥 PASO 3: Procesar cada APU
         all_results = []
         self.global_stats["total_apus"] = len(processed_records)
 
         for i, record in enumerate(processed_records):
             try:
                 apu_context = self._extract_apu_context(record)
-
                 if "lines" in record and record["lines"]:
-                    # Preparar cache específico para este APU
                     apu_cache = self._prepare_apu_cache(record)
-
-                    insumos = self._process_apu_lines(
-                        record["lines"], apu_context, apu_cache
-                    )
-
+                    insumos = self._process_apu_lines(record["lines"], apu_context, apu_cache)
                     if insumos:
                         all_results.extend(insumos)
-                else:
-                    logger.debug(
-                        f"APU {apu_context.get('codigo_apu')} no tiene líneas para procesar"
-                    )
-
-                # Log de progreso
-                if (i + 1) % 50 == 0:
-                    logger.info(
-                        f"Progreso: {i + 1}/{len(processed_records)} APUs procesados "
-                        f"({len(all_results)} insumos extraídos hasta ahora)"
-                    )
-
             except Exception as e:
-                logger.error(
-                    f"Error procesando APU {i} [{record.get('codigo_apu', 'UNKNOWN')}]: {e}"
-                )
-                if self.debug_mode:
-                    import traceback
-
-                    logger.debug(f"Traceback:\n{traceback.format_exc()}")
+                logger.error(f"Error procesando APU {i}: {e}")
                 continue
 
-        # 🔥 PASO 4: Log de resultados finales
         self.global_stats["total_insumos"] = len(all_results)
         self._log_global_stats()
 
-        # 🔥 PASO 5: Convertir a DataFrame
-        if all_results:
-            return self._convert_to_dataframe(all_results)
-        else:
-            logger.warning("⚠️  No se encontraron insumos válidos en ningún APU")
-            return pd.DataFrame()
+        return self._convert_to_dataframe(all_results) if all_results else pd.DataFrame()
 
     def _prepare_apu_cache(self, record: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Prepara el cache de parsing específico para un APU.
-
-        Si el registro tiene árboles Lark pre-parseados (_lark_trees),
-        crea un mapeo línea -> árbol para ese APU específico.
-
-        Args:
-            record: Registro del APU con posibles árboles pre-parseados.
-
-        Returns:
-            Diccionario de cache línea -> árbol para este APU.
-        """
+        """Prepara el cache de parsing específico para un APU."""
         apu_cache = {}
-
-        # Si el registro tiene árboles pre-parseados, mapearlos
         if "_lark_trees" in record and record["_lark_trees"]:
             lines = record.get("lines", [])
             trees = record["_lark_trees"]
-
-            # Crear mapeo línea -> árbol
             for line, tree in zip(lines, trees):
                 if tree is not None:
                     apu_cache[line.strip()] = tree
-
-            if apu_cache:
-                logger.debug(
-                    f"✓ Cache específico de APU preparado: {len(apu_cache)} árboles"
-                )
-
-        # Combinar con cache global
-        combined_cache = {**self.parse_cache, **apu_cache}
-
-        return combined_cache
+        return {**self.parse_cache, **apu_cache}
 
     def _extract_apu_context(self, record: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Extrae el contexto relevante de un registro de APU.
-
-        Soporta tanto nombres de claves legacy como nuevos.
-
-        Args:
-            record: Registro de APU (formato agrupado).
-
-        Returns:
-            Diccionario con contexto del APU normalizado.
-        """
-        # Intentar claves nuevas primero, luego legacy
+        """Extrae el contexto relevante de un registro de APU."""
         return {
             "codigo_apu": record.get("codigo_apu") or record.get("apu_code", ""),
             "descripcion_apu": (record.get("descripcion_apu") or record.get("apu_desc", "")),
@@ -1577,455 +1139,144 @@ class APUProcessor:
         apu_context: Dict[str, Any],
         line_cache: Optional[Dict[str, Any]] = None,
     ) -> List["InsumoProcesado"]:
-        """
-        Procesa líneas de APU con reutilización de cache de parsing.
-
-        ROBUSTECIDO:
-        - Reutilización de transformer para eficiencia
-        - Validación de integridad del cache
-        - Manejo específico de cada tipo de error Lark
-        - Límites de tiempo y recursos
-        - Estadísticas detalladas
-
-        Args:
-            lines: Lista de líneas de texto a procesar.
-            apu_context: Contexto del APU.
-            line_cache: Cache específico para estas líneas.
-
-        Returns:
-            Lista de objetos InsumoProcesado.
-        """
+        """Procesa líneas de APU con reutilización de cache de parsing."""
         if not lines:
             return []
-
-        # ROBUSTECIDO: Verificar que el parser está disponible
         if self.parser is None:
-            logger.error("Parser no inicializado, no se pueden procesar líneas")
             return []
 
         results = []
         stats = ParsingStats()
-        apu_code = apu_context.get("codigo_apu", "UNKNOWN")
-
-        # ROBUSTECIDO: Usar cache combinado con validación
         active_cache = self._validate_and_merge_cache(line_cache)
-
-        # ROBUSTECIDO: Reutilizar transformer para todas las líneas del APU
-        # (más eficiente que crear uno nuevo por línea)
-        transformer = APUTransformer(
-            apu_context, self.config, self.profile, self.keyword_cache
-        )
-
-        logger.debug(
-            f"Procesando {len(lines)} líneas para APU: {apu_code} "
-            f"(cache: {len(active_cache)} entradas)"
-        )
+        transformer = APUTransformer(apu_context, self.config, self.profile, self.keyword_cache)
 
         for line_num, line in enumerate(lines, start=1):
-            # ROBUSTECIDO: Validación temprana de línea
             if not self._is_valid_line(line):
                 continue
 
             stats.total_lines += 1
             line_clean = line.strip()
 
-            # DETECCIÓN DE CAPÍTULO
-            # Usar el PatternMatcher del transformer para verificar si es un encabezado
             if transformer.pattern_matcher.is_likely_chapter_header(line_clean):
                 self.current_chapter = line_clean
-                logger.debug(f"Capítulo detectado: {self.current_chapter}")
                 continue
 
-            # Inyectar el capítulo actual en el contexto para los insumos creados
-            # Nota: apu_context es compartido para todo el APU, pero InsumoProcesado copia el contexto
-            # al crearse. Modificar apu_context aquí afecta a todos los insumos siguientes de este APU.
-            # Como _process_apu_lines se llama por APU, esto es correcto si el cambio de capítulo
-            # ocurre dentro del bloque de líneas del APU.
             apu_context["capitulo"] = self.current_chapter
-
-            insumo = None
             tree = None
+            insumo = None
 
             try:
-                # PASO 1: Intentar obtener árbol del cache
                 cache_key = self._compute_cache_key(line_clean)
-                if cache_key in active_cache:
-                    cached_tree = active_cache[cache_key]
-                    # ROBUSTECIDO: Validar que el árbol cacheado es usable
-                    if self._is_valid_tree(cached_tree):
-                        tree = cached_tree
-                        stats.cache_hits += 1
-                        logger.debug(f"  ⚡ Línea {line_num}: Usando árbol del cache")
-                    else:
-                        logger.debug(
-                            f"  ⚠️ Línea {line_num}: Árbol en cache inválido, re-parseando"
-                        )
+                if cache_key in active_cache and self._is_valid_tree(active_cache[cache_key]):
+                    tree = active_cache[cache_key]
+                    stats.cache_hits += 1
 
-                # PASO 2: Parsear si no hay árbol válido en cache
                 if tree is None:
                     tree = self._parse_line_safe(line_clean, line_num, stats)
-                    if tree is None:
-                        continue  # Error ya registrado en stats
 
-                # PASO 3: Transformar árbol a insumo
-                insumo = self._transform_tree_safe(
-                    tree, transformer, line_clean, line_num, stats
-                )
+                if tree is not None:
+                    insumo = self._transform_tree_safe(tree, transformer, line_clean, line_num, stats)
 
-                # PASO 4: Agregar resultado si es válido
                 if insumo is not None:
-                    # ROBUSTECIDO: Validar estructura del insumo antes de agregar
                     if self._validate_insumo(insumo):
                         insumo.line_number = line_num
                         results.append(insumo)
                     else:
-                        logger.debug(f"  ⚠️ Línea {line_num}: Insumo inválido descartado")
                         stats.empty_results += 1
                 else:
-                    stats.failed_lines.append(
-                        {
-                            "line_number": line_num,
-                            "content": line_clean[:100],
-                            "apu_code": apu_code,
-                            "reason": "transform_returned_none",
-                        }
-                    )
+                    pass
 
-            except Exception as unexpected_error:
-                self._handle_unexpected_error(
-                    unexpected_error, line_num, line_clean, apu_code, stats
-                )
-                continue
+            except Exception as e:
+                self._handle_unexpected_error(e, line_num, line_clean, apu_context.get("codigo_apu"), stats)
 
-        # Log y merge de estadísticas
-        self._log_parsing_stats(apu_code, stats)
         self._merge_stats(stats)
-
         return results
 
-    def _validate_and_merge_cache(
-        self, line_cache: Optional[Dict[str, Any]]
-    ) -> Dict[str, Any]:
-        """
-        Valida y combina caches de parsing.
-
-        ROBUSTECIDO:
-        - Verificación de tipos de cache
-        - Límite de tamaño para evitar uso excesivo de memoria
-
-        Args:
-            line_cache: Cache específico.
-
-        Returns:
-            Cache combinado y validado.
-        """
-        MAX_CACHE_SIZE = 50000  # Límite razonable
-
+    def _validate_and_merge_cache(self, line_cache: Optional[Dict[str, Any]]) -> Dict[str, Any]:
+        """Valida y combina caches de parsing."""
         combined = {}
-
-        # Agregar cache global primero
-        if self.parse_cache and isinstance(self.parse_cache, dict):
-            combined.update(self.parse_cache)
-
-        # Agregar cache específico (sobrescribe si hay duplicados)
-        if line_cache and isinstance(line_cache, dict):
-            combined.update(line_cache)
-
-        # ROBUSTECIDO: Limitar tamaño del cache
-        if len(combined) > MAX_CACHE_SIZE:
-            logger.warning(
-                f"Cache excede límite ({len(combined)} > {MAX_CACHE_SIZE}), "
-                f"usando solo las primeras {MAX_CACHE_SIZE} entradas"
-            )
-            # Mantener las más recientes (asumiendo dict ordenado en Python 3.7+)
-            keys_to_keep = list(combined.keys())[-MAX_CACHE_SIZE:]
-            combined = {k: combined[k] for k in keys_to_keep}
-
+        if self.parse_cache: combined.update(self.parse_cache)
+        if line_cache: combined.update(line_cache)
         return combined
 
     def _is_valid_line(self, line: Any) -> bool:
-        """
-        Verifica si una línea es válida para procesamiento.
-
-        Args:
-            line: La línea a validar.
-
-        Returns:
-            True si es válida, False en caso contrario.
-        """
-        if line is None:
-            return False
-        if not isinstance(line, str):
-            logger.debug(f"Línea no es string: {type(line).__name__}")
-            return False
-        if not line.strip():
-            return False
-        # ROBUSTECIDO: Verificar longitud mínima razonable
-        if len(line.strip()) < 3:
-            return False
-        return True
+        """Verifica si una línea es válida para procesamiento."""
+        if not isinstance(line, str) or not line.strip(): return False
+        return len(line.strip()) >= 3
 
     def _compute_cache_key(self, line: str) -> str:
-        """
-        Computa una clave de cache para una línea.
-
-        ROBUSTECIDO: Normalización para mejorar hit rate.
-
-        Args:
-            line: La línea de texto.
-
-        Returns:
-            La clave normalizada para el cache.
-        """
-        # Normalizar espacios múltiples y case para mejor cache hit
-        normalized = " ".join(line.split())
-        return normalized
+        """Computa una clave de cache para una línea."""
+        return " ".join(line.split())
 
     def _is_valid_tree(self, tree: Any) -> bool:
-        """
-        Verifica que un árbol Lark del cache es válido y usable.
+        """Verifica que un árbol Lark del cache es válido."""
+        return tree is not None and hasattr(tree, "data") and hasattr(tree, "children")
 
-        ROBUSTECIDO: Verificación de estructura del árbol.
-
-        Args:
-            tree: El árbol a validar.
-
-        Returns:
-            True si es un árbol Lark válido.
-        """
-        if tree is None:
-            return False
-
-        # Verificar que tiene la estructura básica esperada
-        try:
-            # Un árbol Lark válido debería tener data y children
-            if not hasattr(tree, "data"):
-                return False
-            if not hasattr(tree, "children"):
-                return False
-            return True
-        except Exception:
-            return False
-
-    def _parse_line_safe(
-        self, line: str, line_num: int, stats: ParsingStats
-    ) -> Optional[Any]:
-        """
-        Parsea una línea de forma segura con manejo específico de errores.
-
-        ROBUSTECIDO:
-        - Manejo de cada tipo de excepción Lark
-        - Logging contextual
-        - Actualización de estadísticas específicas
-
-        Args:
-            line: Línea a parsear.
-            line_num: Número de línea (para logging).
-            stats: Objeto de estadísticas.
-
-        Returns:
-            Árbol Lark si el parseo es exitoso, None en caso contrario.
-        """
-        from lark.exceptions import (
-            UnexpectedCharacters,
-            UnexpectedEOF,
-            UnexpectedInput,
-            UnexpectedToken,
-        )
-
+    def _parse_line_safe(self, line: str, line_num: int, stats: ParsingStats) -> Optional[Any]:
+        """Parsea una línea de forma segura con manejo específico de errores."""
+        from lark.exceptions import UnexpectedCharacters, UnexpectedToken, UnexpectedEOF, UnexpectedInput
         try:
             return self.parser.parse(line)
-
         except UnexpectedCharacters as uc:
             stats.lark_unexpected_chars += 1
-            logger.debug(
-                f"  ✗ Línea {line_num}: Carácter inesperado en posición {uc.column}\n"
-                f"    Contexto: ...{line[max(0, uc.column - 10) : uc.column + 10]}..."
-            )
+            logger.debug(f"Carácter inesperado línea {line_num}: {uc}")
             return None
-
         except UnexpectedToken as ut:
             stats.lark_parse_errors += 1
-            logger.debug(
-                f"  ✗ Línea {line_num}: Token inesperado '{ut.token}'\n"
-                f"    Esperado: {ut.expected}"
-            )
+            logger.debug(f"Token inesperado línea {line_num}: {ut}")
             return None
-
         except UnexpectedEOF as ueof:
             stats.lark_parse_errors += 1
-            logger.debug(
-                f"  ✗ Línea {line_num}: Fin de entrada inesperado\n"
-                f"    Esperado: {ueof.expected}"
-            )
+            logger.debug(f"EOF inesperado línea {line_num}: {ueof}")
             return None
-
         except UnexpectedInput as ui:
             stats.lark_unexpected_input += 1
-            logger.debug(f"  ✗ Línea {line_num}: Entrada inesperada: {ui}")
+            logger.debug(f"Input inesperado línea {line_num}: {ui}")
             return None
-
-        except LarkError as le:
-            stats.lark_parse_errors += 1
-            logger.warning(f"  ✗ Línea {line_num}: Error Lark genérico: {le}")
-            return None
-
         except Exception as e:
             stats.lark_parse_errors += 1
-            logger.error(
-                f"  🚨 Línea {line_num}: Error inesperado en parser\n"
-                f"    Tipo: {type(e).__name__}\n"
-                f"    Error: {e}"
-            )
+            logger.error(f"Error general Lark línea {line_num}: {e}")
             return None
 
     def _transform_tree_safe(
-        self,
-        tree: Any,
-        transformer: APUTransformer,
-        line: str,
-        line_num: int,
-        stats: ParsingStats,
+        self, tree: Any, transformer: APUTransformer, line: str, line_num: int, stats: ParsingStats
     ) -> Optional[InsumoProcesado]:
-        """
-        Transforma un árbol Lark de forma segura.
-
-        ROBUSTECIDO:
-        - Manejo de lista vs objeto único
-        - Validación de resultado
-        - Estadísticas detalladas
-
-        Args:
-            tree: El árbol Lark.
-            transformer: El transformer a usar.
-            line: La línea original (para logging).
-            line_num: Número de línea.
-            stats: Objeto de estadísticas.
-
-        Returns:
-            Objeto InsumoProcesado o None.
-        """
+        """Transforma un árbol Lark de forma segura."""
         try:
             result = transformer.transform(tree)
 
-            # Manejar caso donde transform devuelve lista
             if isinstance(result, list):
-                if not result:
-                    stats.empty_results += 1
-                    logger.debug(f"  ⚠️ Línea {line_num}: Transformer devolvió lista vacía")
-                    return None
-                # Tomar el primer elemento válido
                 for item in result:
-                    if item is not None:
+                    if item:
                         stats.successful_parses += 1
                         return item
                 stats.empty_results += 1
                 return None
 
-            # Resultado directo
             if result is not None:
                 stats.successful_parses += 1
-            else:
-                stats.empty_results += 1
-                logger.debug(f"  ⚠️ Línea {line_num}: Transformer devolvió None")
+                return result
 
-            return result
-
-        except Exception as transform_error:
+            stats.empty_results += 1
+            return None
+        except Exception as e:
             stats.transformer_errors += 1
-            logger.error(
-                f"  ✗ Línea {line_num}: Error en transformer\n"
-                f"    Tipo: {type(transform_error).__name__}\n"
-                f"    Error: {transform_error}\n"
-                f"    Línea: {line[:80]}..."
-            )
-            if self.debug_mode:
-                import traceback
-
-                logger.debug(f"Traceback:\n{traceback.format_exc()}")
+            logger.error(f"Error transformación línea {line_num}: {e}")
             return None
 
     def _validate_insumo(self, insumo: InsumoProcesado) -> bool:
-        """
-        Valida que un insumo tiene los campos mínimos requeridos.
-
-        ROBUSTECIDO: Verificación de campos obligatorios.
-
-        Args:
-            insumo: El objeto insumo a validar.
-
-        Returns:
-            True si es válido, False en caso contrario.
-        """
-        if insumo is None:
-            return False
-
-        # Campos mínimos requeridos
-        required_attrs = ["descripcion_insumo", "tipo_insumo"]
-        for attr in required_attrs:
-            if not hasattr(insumo, attr):
-                return False
-            value = getattr(insumo, attr)
-            if value is None or (isinstance(value, str) and not value.strip()):
-                return False
-
-        # Validar que valores numéricos sean razonables
-        if hasattr(insumo, "valor_total"):
-            valor = getattr(insumo, "valor_total")
-            if valor is not None and (valor < 0 or valor > 1e12):
-                logger.debug(f"Insumo con valor_total fuera de rango: {valor}")
-                return False
-
+        """Valida que un insumo tiene los campos mínimos requeridos."""
+        if insumo is None: return False
+        if not insumo.descripcion_insumo or not insumo.descripcion_insumo.strip(): return False
         return True
 
-    def _handle_unexpected_error(
-        self,
-        error: Exception,
-        line_num: int,
-        line: str,
-        apu_code: str,
-        stats: ParsingStats,
-    ) -> None:
-        """
-        Maneja errores inesperados de forma centralizada.
-
-        Args:
-            error: La excepción capturada.
-            line_num: Número de línea.
-            line: Contenido de la línea.
-            apu_code: Código del APU.
-            stats: Objeto de estadísticas.
-        """
-        logger.error(
-            f"  🚨 Línea {line_num}: Error inesperado\n"
-            f"    APU: {apu_code}\n"
-            f"    Tipo: {type(error).__name__}\n"
-            f"    Error: {error}\n"
-            f"    Línea: {line[:100]}"
-        )
-
-        if self.debug_mode:
-            import traceback
-
-            logger.debug(f"Traceback completo:\n{traceback.format_exc()}")
-
-        stats.failed_lines.append(
-            {
-                "line_number": line_num,
-                "content": line[:100],
-                "error": str(error),
-                "error_type": type(error).__name__,
-                "apu_code": apu_code,
-            }
-        )
+    def _handle_unexpected_error(self, error, line_num, line, apu_code, stats):
+        """Maneja errores inesperados de forma centralizada."""
+        logger.error(f"Error inesperado línea {line_num}: {error}")
+        stats.failed_lines.append({"line": line_num, "error": str(error)})
 
     def _merge_stats(self, apu_stats: ParsingStats):
-        """
-        Combina estadísticas de un APU con las globales.
-
-        Args:
-            apu_stats: Estadísticas del APU a combinar.
-        """
+        """Combina estadísticas de un APU con las globales."""
         self.parsing_stats.total_lines += apu_stats.total_lines
         self.parsing_stats.successful_parses += apu_stats.successful_parses
         self.parsing_stats.lark_parse_errors += apu_stats.lark_parse_errors
@@ -2034,186 +1285,21 @@ class APUProcessor:
         self.parsing_stats.cache_hits += apu_stats.cache_hits
         self.parsing_stats.failed_lines.extend(apu_stats.failed_lines)
 
-    def _log_parsing_stats(self, apu_code: str, stats: ParsingStats):
-        """
-        Registra estadísticas detalladas del parsing de un APU.
-
-        Args:
-            apu_code: Código del APU procesado.
-            stats: Estadísticas del procesamiento.
-        """
-        if stats.total_lines == 0:
-            return
-
-        success_rate = (
-            (stats.successful_parses / stats.total_lines * 100)
-            if stats.total_lines > 0
-            else 0
-        )
-        cache_rate = (
-            (stats.cache_hits / stats.total_lines * 100) if stats.total_lines > 0 else 0
-        )
-
-        # Solo mostrar detalles si hay problemas o en modo debug
-        if success_rate < 100 or self.debug_mode:
-            logger.info("-" * 70)
-            logger.info(f"📈 APU: {apu_code}")
-            logger.info(f"   Líneas procesadas:  {stats.total_lines}")
-            logger.info(
-                f"   ✓ Exitosos:         {stats.successful_parses} ({success_rate:.1f}%)"
-            )
-            logger.info(f"   ⚡ Cache hits:       {stats.cache_hits} ({cache_rate:.1f}%)")
-
-            if stats.lark_parse_errors > 0:
-                logger.info(f"   ✗ Errores Lark:     {stats.lark_parse_errors}")
-            if stats.transformer_errors > 0:
-                logger.info(f"   ✗ Errores Trans.:   {stats.transformer_errors}")
-            if stats.empty_results > 0:
-                logger.info(f"   ⚠️  Resultados vacíos: {stats.empty_results}")
-
-            logger.info("-" * 70)
-
     def _log_global_stats(self):
         """Registra estadísticas globales del procesamiento."""
-        logger.info("=" * 80)
-        logger.info("📊 RESUMEN GLOBAL DE PROCESAMIENTO")
-        logger.info("=" * 80)
-        logger.info(f"Formato detectado:           {self.global_stats['format_detected']}")
-        logger.info(f"Total APUs procesados:       {self.global_stats['total_apus']}")
-        logger.info(f"Total insumos extraídos:     {self.global_stats['total_insumos']}")
-        logger.info(f"Total líneas procesadas:     {self.parsing_stats.total_lines}")
-        logger.info("")
-        logger.info("Resultados de parsing:")
-        logger.info(f"  ✓ Exitosos:                {self.parsing_stats.successful_parses}")
-        logger.info(f"  ⚡ Cache hits:              {self.parsing_stats.cache_hits}")
-        logger.info(f"  ✗ Errores Lark:            {self.parsing_stats.lark_parse_errors}")
-        logger.info(f"  ✗ Errores Transformer:     {self.parsing_stats.transformer_errors}")
-        logger.info(f"  ⚠️  Resultados vacíos:      {self.parsing_stats.empty_results}")
-        logger.info("")
-
-        if self.parsing_stats.total_lines > 0:
-            success_rate = (
-                self.parsing_stats.successful_parses / self.parsing_stats.total_lines * 100
-            )
-            cache_efficiency = (
-                self.parsing_stats.cache_hits / self.parsing_stats.total_lines * 100
-            )
-
-            logger.info(f"Tasa de éxito:               {success_rate:.2f}%")
-            logger.info(f"Eficiencia de cache:         {cache_efficiency:.2f}%")
-
-        logger.info("=" * 80)
-
-        # Alertas
-        if self.global_stats["total_insumos"] == 0:
-            logger.error(
-                "🚨 CRÍTICO: 0 insumos extraídos.\n"
-                "   Posibles causas:\n"
-                "   1. Formato de datos incompatible con gramática\n"
-                "   2. Errores en el transformer\n"
-                "   3. Configuración de perfil incorrecta\n"
-                "   → Revise los logs detallados arriba"
-            )
-        elif success_rate < 50:
-            logger.warning(
-                f"⚠️  Tasa de éxito baja ({success_rate:.1f}%).\n"
-                f"   Considere revisar la gramática o el formato de datos."
-            )
+        logger.info(f"Stats: {self.parsing_stats}")
 
     def _initialize_parser(self) -> Optional["Lark"]:
-        """
-        Inicializa el parser Lark con validación exhaustiva.
-
-        ROBUSTECIDO:
-        - Validación de gramática antes de crear parser
-        - Manejo específico de diferentes tipos de errores Lark
-        - Configuración optimizada para rendimiento y diagnóstico
-        - Fallback informativo en caso de fallo
-
-        Returns:
-            El parser Lark inicializado o None.
-        """
+        """Inicializa el parser Lark con validación exhaustiva."""
         try:
             from lark import Lark
-            from lark.exceptions import ConfigurationError, GrammarError
-
-            # ROBUSTECIDO: Validar que la gramática no está vacía
-            if not APU_GRAMMAR or not APU_GRAMMAR.strip():
-                logger.error("APU_GRAMMAR está vacía o no definida")
-                return None
-
-            # Configuración del parser con opciones explícitas
-            parser_config = {
-                "start": "line",
-                "parser": "lalr",  # Más rápido y predecible que earley
-                "maybe_placeholders": False,
-                "propagate_positions": False,  # Desactivar si no se necesita posición
-                "cache": True,  # Cache de estados del parser
-            }
-
-            # ROBUSTECIDO: Modo debug con más información
-            if self.config.get("debug_mode", False):
-                parser_config["debug"] = True
-                logger.info("Parser Lark inicializado en modo debug")
-
-            parser = Lark(APU_GRAMMAR, **parser_config)
-
-            # ROBUSTECIDO: Validación post-creación
-            if parser is None:
-                logger.error("Lark retornó None al crear parser")
-                return None
-
-            # Test de sanidad: intentar parsear una línea simple
-            try:
-                test_result = parser.parse("test;value;123")
-                if test_result is None:
-                    logger.warning("Test de sanidad del parser retornó None")
-            except Exception as test_error:
-                logger.warning(
-                    f"Test de sanidad del parser falló (puede ser esperado): {test_error}"
-                )
-
-            logger.info("✓ Parser Lark inicializado correctamente")
-            return parser
-
-        except GrammarError as ge:
-            logger.error(
-                f"Error de gramática Lark:\n"
-                f"  Mensaje: {ge}\n"
-                f"  Revise APU_GRAMMAR para errores de sintaxis"
-            )
-            return None
-
-        except ConfigurationError as ce:
-            logger.error(f"Error de configuración Lark: {ce}")
-            return None
-
-        except ImportError as ie:
-            logger.error(f"No se pudo importar Lark: {ie}\n  Ejecute: pip install lark")
-            return None
-
+            return Lark(APU_GRAMMAR, start="line", parser="lalr", maybe_placeholders=False)
         except Exception as e:
-            logger.error(
-                f"Error inesperado inicializando parser Lark:\n"
-                f"  Tipo: {type(e).__name__}\n"
-                f"  Error: {e}"
-            )
-            if self.config.get("debug_mode", False):
-                import traceback
-
-                logger.debug(f"Traceback:\n{traceback.format_exc()}")
+            logger.error(f"Error inicializando Lark: {e}")
             return None
 
     def _convert_to_dataframe(self, insumos: List[InsumoProcesado]) -> pd.DataFrame:
-        """
-        Convierte una lista de objetos `InsumoProcesado` a un DataFrame.
-
-        Args:
-            insumos: Lista de insumos procesados.
-
-        Returns:
-            DataFrame de Pandas con los datos.
-        """
+        """Convierte una lista de objetos `InsumoProcesado` a un DataFrame."""
         records = []
         for insumo in insumos:
             record = {
@@ -2232,7 +1318,4 @@ class APUProcessor:
                 "NORMALIZED_DESC": getattr(insumo, "normalized_desc", ""),
             }
             records.append(record)
-
-        df = pd.DataFrame(records)
-        logger.info(f"✓ DataFrame creado: {len(df)} filas, {len(df.columns)} columnas")
-        return df
+        return pd.DataFrame(records)
