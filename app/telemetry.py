@@ -136,6 +136,7 @@ class TelemetrySpan:
 
     @property
     def duration(self) -> float:
+        """Calcula la duración del span."""
         if self.end_time:
             return self.end_time - self.start_time
         return time.perf_counter() - self.start_time
@@ -207,7 +208,9 @@ class TelemetryContext:
 
         if not isinstance(self.created_at, (int, float)) or self.created_at <= 0:
             object.__setattr__(self, "created_at", time.perf_counter())
-            logger.warning(f"[{self.request_id}] Invalid created_at, reset to current time")
+            logger.warning(
+                f"[{self.request_id}] Invalid created_at, reset to current time"
+            )
 
         logger.debug(
             f"[{self.request_id}] TelemetryContext initialized: "
@@ -229,7 +232,9 @@ class TelemetryContext:
         else:
             sanitized = self._sanitize_request_id(self.request_id)
             if sanitized != self.request_id:
-                logger.debug(f"Request ID sanitized: '{self.request_id}' -> '{sanitized}'")
+                logger.debug(
+                    f"Request ID sanitized: '{self.request_id}' -> '{sanitized}'"
+                )
                 object.__setattr__(self, "request_id", sanitized)
 
     def _is_valid_request_id(self, request_id: Any) -> bool:
@@ -247,7 +252,9 @@ class TelemetryContext:
 
     def _sanitize_request_id(self, request_id: str) -> str:
         """Sanitiza el request_id eliminando caracteres problemáticos."""
-        sanitized = "".join(c for c in request_id if c.isprintable() and c not in "\r\n\t")
+        sanitized = "".join(
+            c for c in request_id if c.isprintable() and c not in "\r\n\t"
+        )
         return sanitized.strip()[: TelemetryDefaults.MAX_REQUEST_ID_LENGTH]
 
     def _validate_and_fix_limits(self) -> None:
@@ -311,11 +318,15 @@ class TelemetryContext:
             return default
 
         if int_value < min_val:
-            logger.warning(f"[{request_id}] {name}={int_value} below minimum {min_val}")
+            logger.warning(
+                f"[{request_id}] {name}={int_value} below minimum {min_val}"
+            )
             return min_val
 
         if int_value > max_val:
-            logger.warning(f"[{request_id}] {name}={int_value} above maximum {max_val}")
+            logger.warning(
+                f"[{request_id}] {name}={int_value} above maximum {max_val}"
+            )
             return max_val
 
         return int_value
@@ -339,7 +350,9 @@ class TelemetryContext:
 
             if current_value is None:
                 object.__setattr__(self, attr_name, default_value.copy())
-                logger.debug(f"[{request_id}] {attr_name} was None, initialized to default")
+                logger.debug(
+                    f"[{request_id}] {attr_name} was None, initialized to default"
+                )
                 continue
 
             if not isinstance(current_value, expected_type):
@@ -348,7 +361,9 @@ class TelemetryContext:
                 )
                 object.__setattr__(self, attr_name, converted)
 
-    def _try_convert_collection(self, value: Any, target_type: type, attr_name: str) -> Any:
+    def _try_convert_collection(
+        self, value: Any, target_type: type, attr_name: str
+    ) -> Any:
         """Intenta convertir un valor al tipo de colección objetivo."""
         request_id = getattr(self, "request_id", "UNKNOWN")
 
@@ -383,7 +398,9 @@ class TelemetryContext:
         request_id = getattr(self, "request_id", "UNKNOWN")
 
         if not isinstance(self.business_thresholds, dict):
-            logger.warning(f"[{request_id}] business_thresholds must be dict, resetting")
+            logger.warning(
+                f"[{request_id}] business_thresholds must be dict, resetting"
+            )
             object.__setattr__(
                 self,
                 "business_thresholds",
@@ -405,7 +422,9 @@ class TelemetryContext:
             value = self.business_thresholds.get(key)
             if not isinstance(value, (int, float)) or value < 0:
                 self.business_thresholds[key] = default
-                logger.debug(f"[{request_id}] Fixed threshold {key}: {value} -> {default}")
+                logger.debug(
+                    f"[{request_id}] Fixed threshold {key}: {value} -> {default}"
+                )
 
     @contextmanager
     def span(self, name: str, metadata: Optional[Dict[str, Any]] = None):
@@ -455,7 +474,9 @@ class TelemetryContext:
                 f"[{self.request_id}] SPAN END: {'  ' * level}{name} ({new_span.duration:.4f}s)"
             )
 
-    def start_step(self, step_name: str, metadata: Optional[Dict[str, Any]] = None) -> bool:
+    def start_step(
+        self, step_name: str, metadata: Optional[Dict[str, Any]] = None
+    ) -> bool:
         """Marca el inicio de un paso de procesamiento."""
         if not self._validate_step_name(step_name):
             return False
@@ -533,7 +554,10 @@ class TelemetryContext:
             self._force_end_step(
                 step_name,
                 StepStatus.FAILURE,
-                {"reason": "stale_cleanup", "duration_before_cleanup": duration},
+                {
+                    "reason": "stale_cleanup",
+                    "duration_before_cleanup": duration,
+                },
             )
 
         return len(stale_steps)
@@ -595,7 +619,9 @@ class TelemetryContext:
                 combined_metadata["warning"] = "step_never_started"
             else:
                 duration = end_time - step_info.start_time
-                combined_metadata = self._merge_metadata(step_info.metadata, metadata)
+                combined_metadata = self._merge_metadata(
+                    step_info.metadata, metadata
+                )
 
                 if duration > TelemetryDefaults.MAX_STEP_DURATION_WARNING:
                     logger.warning(
@@ -629,7 +655,9 @@ class TelemetryContext:
             self.steps.append(step_data)
 
             log_func = (
-                logger.info if status_value == StepStatus.SUCCESS.value else logger.warning
+                logger.info
+                if status_value == StepStatus.SUCCESS.value
+                else logger.warning
             )
             log_func(
                 f"[{self.request_id}] Finished step: {step_name} ({status_value}) "
@@ -659,11 +687,16 @@ class TelemetryContext:
             sanitized_end = self._sanitize_value(end_metadata)
 
             if isinstance(sanitized_end, dict):
-                if len(combined) + len(sanitized_end) > TelemetryDefaults.MAX_DICT_KEYS:
+                if (
+                    len(combined) + len(sanitized_end)
+                    > TelemetryDefaults.MAX_DICT_KEYS
+                ):
                     logger.warning(
                         f"[{self.request_id}] Combined metadata exceeds key limit, truncating"
                     )
-                    remaining_slots = TelemetryDefaults.MAX_DICT_KEYS - len(sanitized_end)
+                    remaining_slots = (
+                        TelemetryDefaults.MAX_DICT_KEYS - len(sanitized_end)
+                    )
                     if remaining_slots > 0:
                         combined = dict(list(combined.items())[:remaining_slots])
                     else:
@@ -677,7 +710,11 @@ class TelemetryContext:
             logger.warning(
                 f"[{self.request_id}] Error merging metadata: {e}. Using end_metadata only."
             )
-            return self._sanitize_value(end_metadata) if end_metadata else start_metadata
+            return (
+                self._sanitize_value(end_metadata)
+                if end_metadata
+                else start_metadata
+            )
 
     def _enforce_limit_fifo(
         self,
@@ -703,7 +740,9 @@ class TelemetryContext:
             try:
                 removed = collection.pop(0)
                 removed_id = (
-                    identifier_func(removed) if callable(identifier_func) else "unknown"
+                    identifier_func(removed)
+                    if callable(identifier_func)
+                    else "unknown"
                 )
                 removed_ids.append(removed_id)
                 removed_count += 1
@@ -738,7 +777,9 @@ class TelemetryContext:
     ):
         """Gestor de contexto para el seguimiento automático de pasos."""
         if not isinstance(step_name, str) or not step_name.strip():
-            logger.error(f"[{self.request_id}] Invalid step_name for context manager")
+            logger.error(
+                f"[{self.request_id}] Invalid step_name for context manager"
+            )
             if not suppress_start_failure:
                 raise ValueError("step_name must be a non-empty string")
             yield self
@@ -754,7 +795,9 @@ class TelemetryContext:
         try:
             started = self.start_step(step_name, metadata)
         except Exception as e:
-            logger.error(f"[{self.request_id}] Exception in start_step('{step_name}'): {e}")
+            logger.error(
+                f"[{self.request_id}] Exception in start_step('{step_name}'): {e}"
+            )
             if not suppress_start_failure:
                 raise
 
@@ -777,11 +820,19 @@ class TelemetryContext:
             raise
         finally:
             if started:
-                final_status = error_status if exception_occurred else StepStatus.SUCCESS
+                final_status = (
+                    error_status if exception_occurred else StepStatus.SUCCESS
+                )
 
                 error_metadata = None
-                if exception_occurred and capture_exception_details and captured_exception:
-                    error_metadata = self._build_exception_metadata(captured_exception)
+                if (
+                    exception_occurred
+                    and capture_exception_details
+                    and captured_exception
+                ):
+                    error_metadata = self._build_exception_metadata(
+                        captured_exception
+                    )
 
                 try:
                     self.end_step(step_name, final_status, error_metadata)
@@ -814,11 +865,16 @@ class TelemetryContext:
         try:
             return {
                 "error_type": type(exc).__name__,
-                "error_message": str(exc)[: TelemetryDefaults.MAX_EXCEPTION_DETAIL_LENGTH],
+                "error_message": str(exc)[
+                    : TelemetryDefaults.MAX_EXCEPTION_DETAIL_LENGTH
+                ],
                 "is_base_exception": not isinstance(exc, Exception),
             }
         except Exception:
-            return {"error_type": "unknown", "error_message": "failed to capture"}
+            return {
+                "error_type": "unknown",
+                "error_message": "failed to capture",
+            }
 
     def record_metric(
         self,
@@ -841,7 +897,9 @@ class TelemetryContext:
             if not isinstance(value, (int, float)):
                 return False
 
-            if isinstance(value, float) and (math.isnan(value) or math.isinf(value)):
+            if isinstance(value, float) and (
+                math.isnan(value) or math.isinf(value)
+            ):
                 return False
 
         current_span = None
@@ -896,7 +954,9 @@ class TelemetryContext:
         if not isinstance(increment, (int, float)):
             return False
 
-        if isinstance(increment, float) and (math.isnan(increment) or math.isinf(increment)):
+        if isinstance(increment, float) and (
+            math.isnan(increment) or math.isinf(increment)
+        ):
             return False
 
         key = f"{component}.{metric_name}"
@@ -1256,7 +1316,8 @@ class TelemetryContext:
         if isinstance(value, (set, frozenset)):
             items = list(value)[: TelemetryDefaults.MAX_COLLECTION_SIZE]
             result = [
-                self._sanitize_value(v, max_depth, current_depth + 1, _seen) for v in items
+                self._sanitize_value(v, max_depth, current_depth + 1, _seen)
+                for v in items
             ]
             if len(value) > TelemetryDefaults.MAX_COLLECTION_SIZE:
                 result.append(
@@ -1280,7 +1341,9 @@ class TelemetryContext:
             try:
                 obj_dict = {"__class__": type(value).__name__}
                 obj_dict.update(value.__dict__)
-                return self._sanitize_value(obj_dict, max_depth, current_depth + 1, _seen)
+                return self._sanitize_value(
+                    obj_dict, max_depth, current_depth + 1, _seen
+                )
             except Exception:
                 pass
 
@@ -1342,7 +1405,9 @@ class TelemetryContext:
         result = []
         for item in limited_list:
             try:
-                sanitized = self._sanitize_value(item, max_depth, current_depth + 1, _seen)
+                sanitized = self._sanitize_value(
+                    item, max_depth, current_depth + 1, _seen
+                )
                 result.append(sanitized)
             except Exception as e:
                 result.append(f"<sanitization_error:{e}>")
@@ -1393,7 +1458,9 @@ class TelemetryContext:
                 total_duration = 0.0
                 for step in self.steps:
                     duration = step.get("duration_seconds")
-                    if isinstance(duration, (int, float)) and not math.isnan(duration):
+                    if isinstance(duration, (int, float)) and not math.isnan(
+                        duration
+                    ):
                         total_duration += duration
 
                 step_statuses: Dict[str, int] = {}
@@ -1406,10 +1473,14 @@ class TelemetryContext:
                 for error in self.errors:
                     error_type = error.get("type", "unknown")
                     if isinstance(error_type, str):
-                        error_types[error_type] = error_types.get(error_type, 0) + 1
+                        error_types[error_type] = (
+                            error_types.get(error_type, 0) + 1
+                        )
 
                 current_time = time.perf_counter()
-                age = current_time - self.created_at if self.created_at > 0 else 0.0
+                age = (
+                    current_time - self.created_at if self.created_at > 0 else 0.0
+                )
 
                 stale_count = sum(
                     1
@@ -1429,7 +1500,8 @@ class TelemetryContext:
                     "step_statuses": step_statuses,
                     "error_types": error_types,
                     "has_errors": len(self.errors) > 0,
-                    "has_failures": step_statuses.get(StepStatus.FAILURE.value, 0) > 0,
+                    "has_failures": step_statuses.get(StepStatus.FAILURE.value, 0)
+                    > 0,
                     "success_rate": self._calculate_success_rate(step_statuses),
                     "age_seconds": round(age, 6),
                     "limits": {
@@ -1542,7 +1614,9 @@ class TelemetryContext:
         with self._lock:
             try:
                 raw_metrics = self._extract_business_raw_metrics()
-                business_metrics = self._translate_to_business_metrics(raw_metrics)
+                business_metrics = self._translate_to_business_metrics(
+                    raw_metrics
+                )
                 status, message = self._determine_business_status(raw_metrics)
                 step_stats = self._calculate_step_statistics()
                 financial_health = self._determine_financial_health()
@@ -1559,7 +1633,9 @@ class TelemetryContext:
                         "failed_steps": step_stats["failure"],
                         "total_errors": len(self.errors),
                         "has_active_operations": len(self._active_steps) > 0,
-                        "active_operation_names": list(self._active_steps.keys())[:5],
+                        "active_operation_names": list(
+                            self._active_steps.keys()
+                        )[:5],
                         "total_duration": step_stats["total_duration"],
                         "success_rate": step_stats["success_rate"],
                     },
@@ -1570,7 +1646,9 @@ class TelemetryContext:
                 }
 
             except Exception as e:
-                logger.error(f"[{self.request_id}] Error generating business report: {e}")
+                logger.error(
+                    f"[{self.request_id}] Error generating business report: {e}"
+                )
                 return {
                     "status": "ERROR",
                     "message": f"Failed to generate report: {e}",
@@ -1606,7 +1684,9 @@ class TelemetryContext:
             return 1.0 if value else 0.0
 
         if isinstance(value, (int, float)):
-            if isinstance(value, float) and (math.isnan(value) or math.isinf(value)):
+            if isinstance(value, float) and (
+                math.isnan(value) or math.isinf(value)
+            ):
                 return default
             return float(value)
 
@@ -1634,7 +1714,9 @@ class TelemetryContext:
             "Tiempo de Proceso": f"{raw_metrics['processing_time']:.2f}s",
         }
 
-    def _determine_business_status(self, raw_metrics: Dict[str, float]) -> Tuple[str, str]:
+    def _determine_business_status(
+        self, raw_metrics: Dict[str, float]
+    ) -> Tuple[str, str]:
         """Determina el estado de negocio basado en métricas y umbrales."""
         thresholds = self.business_thresholds
 
@@ -1673,7 +1755,10 @@ class TelemetryContext:
             )
 
         step_stats = self._calculate_step_statistics()
-        if step_stats["failure_rate"] > BusinessThresholds.WARNING_STEP_FAILURE_RATIO:
+        if (
+            step_stats["failure_rate"]
+            > BusinessThresholds.WARNING_STEP_FAILURE_RATIO
+        ):
             return (
                 "ADVERTENCIA",
                 f"Alta tasa de fallos: {step_stats['failure_rate'] * 100:.1f}%",
@@ -1695,7 +1780,9 @@ class TelemetryContext:
             "npv": self.get_metric("financial", "npv"),
         }
 
-        present_metrics = {k: v for k, v in financial_metrics.items() if v is not None}
+        present_metrics = {
+            k: v for k, v in financial_metrics.items() if v is not None
+        }
 
         if not present_metrics:
             return {
@@ -1710,11 +1797,18 @@ class TelemetryContext:
         if "roi" in present_metrics and present_metrics["roi"] < 0:
             status = "CRITICO"
             message = "Destrucción de Valor proyectada."
-        elif "volatility" in present_metrics and present_metrics["volatility"] > 0.20:
+        elif (
+            "volatility" in present_metrics
+            and present_metrics["volatility"] > 0.20
+        ):
             status = "ADVERTENCIA"
             message = "Alta volatilidad de mercado."
 
-        return {"status": status, "message": message, "metrics": present_metrics}
+        return {
+            "status": status,
+            "message": message,
+            "metrics": present_metrics,
+        }
 
     def _calculate_step_statistics(self) -> Dict[str, Any]:
         """Calcula estadísticas de pasos de forma segura."""
@@ -1730,9 +1824,15 @@ class TelemetryContext:
                 "failure_rate": 0.0,
             }
 
-        success = sum(1 for s in self.steps if s.get("status") == StepStatus.SUCCESS.value)
-        failure = sum(1 for s in self.steps if s.get("status") == StepStatus.FAILURE.value)
-        warning = sum(1 for s in self.steps if s.get("status") == StepStatus.WARNING.value)
+        success = sum(
+            1 for s in self.steps if s.get("status") == StepStatus.SUCCESS.value
+        )
+        failure = sum(
+            1 for s in self.steps if s.get("status") == StepStatus.FAILURE.value
+        )
+        warning = sum(
+            1 for s in self.steps if s.get("status") == StepStatus.WARNING.value
+        )
 
         total_duration = sum(
             s.get("duration_seconds", 0)
@@ -1832,8 +1932,12 @@ class TelemetryContext:
                     self.record_error(
                         step_name="__context__",
                         error_message=str(exc_val)[:500],
-                        error_type=exc_type.__name__ if exc_type else "UnknownException",
-                        exception=exc_val if isinstance(exc_val, Exception) else None,
+                        error_type=exc_type.__name__
+                        if exc_type
+                        else "UnknownException",
+                        exception=exc_val
+                        if isinstance(exc_val, Exception)
+                        else None,
                         include_traceback=True,
                         severity="CRITICAL",
                     )

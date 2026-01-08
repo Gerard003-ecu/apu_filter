@@ -143,7 +143,9 @@ class DataValidator:
             return False, error_msg
 
         if not isinstance(df, pd.DataFrame):
-            error_msg = f"'{name}' no es un DataFrame válido, es tipo: {type(df).__name__}"
+            error_msg = (
+                f"'{name}' no es un DataFrame válido, es tipo: {type(df).__name__}"
+            )
             logger.error(f"❌ {error_msg}")
             return False, error_msg
 
@@ -203,11 +205,15 @@ class DataValidator:
     ) -> pd.DataFrame:
         """Detecta, loguea y elimina duplicados en un DataFrame."""
         if df is None or not isinstance(df, pd.DataFrame):
-            logger.error(f"❌ DataFrame '{df_name}' inválido para detección de duplicados")
+            logger.error(
+                f"❌ DataFrame '{df_name}' inválido para detección de duplicados"
+            )
             return pd.DataFrame()
 
         if df.empty:
-            logger.debug(f"DataFrame '{df_name}' vacío, no hay duplicados que detectar")
+            logger.debug(
+                f"DataFrame '{df_name}' vacío, no hay duplicados que detectar"
+            )
             return df
 
         if not subset_cols:
@@ -240,7 +246,9 @@ class DataValidator:
                     f"por {subset_cols}. Se conservará: '{keep}'"
                 )
                 dupes_sample = unique_dupes[:10].tolist()
-                logger.debug(f"Muestra de valores duplicados en '{df_name}': {dupes_sample}")
+                logger.debug(
+                    f"Muestra de valores duplicados en '{df_name}': {dupes_sample}"
+                )
 
                 df_clean = df.drop_duplicates(subset=subset_cols, keep=keep)
                 rows_removed = len(df) - len(df_clean)
@@ -274,7 +282,9 @@ class FileValidator:
             return False, error_msg
 
         if not isinstance(file_path, (str, Path)):
-            error_msg = f"Ruta de {file_type} no es válida: tipo {type(file_path).__name__}"
+            error_msg = (
+                f"Ruta de {file_type} no es válida: tipo {type(file_path).__name__}"
+            )
             logger.error(f"❌ {error_msg}")
             return False, error_msg
 
@@ -307,9 +317,7 @@ class FileValidator:
         try:
             file_size = path.stat().st_size
             if file_size < min_size:
-                error_msg = (
-                    f"Archivo de {file_type} demasiado pequeño ({file_size} bytes): {path}"
-                )
+                error_msg = f"Archivo de {file_type} demasiado pequeño ({file_size} bytes): {path}"
                 logger.error(f"❌ {error_msg}")
                 return False, error_msg
         except OSError as e:
@@ -325,7 +333,9 @@ class FileValidator:
                     f"Extensiones esperadas: {FileValidator.VALID_EXTENSIONS}"
                 )
 
-        logger.debug(f"✅ Archivo de {file_type} validado: {path} ({file_size} bytes)")
+        logger.debug(
+            f"✅ Archivo de {file_type} validado: {path} ({file_size} bytes)"
+        )
         return True, None
 
 
@@ -373,7 +383,9 @@ class LoadDataStep(ProcessingStep):
             ]
 
             for file_path, file_type in validations:
-                is_valid, error = file_validator.validate_file_exists(file_path, file_type)
+                is_valid, error = file_validator.validate_file_exists(
+                    file_path, file_type
+                )
                 if not is_valid:
                     telemetry.record_error("load_data", error)
                     raise ValueError(error)
@@ -396,7 +408,9 @@ class LoadDataStep(ProcessingStep):
                 telemetry.record_error("load_data", error)
                 raise ValueError(error)
 
-            telemetry.record_metric("load_data", "presupuesto_rows", len(df_presupuesto))
+            telemetry.record_metric(
+                "load_data", "presupuesto_rows", len(df_presupuesto)
+            )
 
             insumos_profile = file_profiles.get("insumos_default")
             if not insumos_profile:
@@ -430,11 +444,15 @@ class LoadDataStep(ProcessingStep):
             try:
                 condenser_config = CondenserConfig(**condenser_config_data)
             except TypeError as e:
-                logger.warning(f"⚠️ Error en config de condenser, usando defaults: {e}")
+                logger.warning(
+                    f"⚠️ Error en config de condenser, usando defaults: {e}"
+                )
                 condenser_config = CondenserConfig()
 
             condenser = DataFluxCondenser(
-                config=self.config, profile=apus_profile, condenser_config=condenser_config
+                config=self.config,
+                profile=apus_profile,
+                condenser_config=condenser_config,
             )
 
             def on_progress_stats(processing_stats):
@@ -468,7 +486,9 @@ class LoadDataStep(ProcessingStep):
                     if current_app:
                         redis_client = current_app.config.get("SESSION_REDIS")
                         if redis_client:
-                            redis_client.set("apu_filter:global_metrics", data_str, ex=60)
+                            redis_client.set(
+                                "apu_filter:global_metrics", data_str, ex=60
+                            )
                 except Exception:
                     pass
 
@@ -490,7 +510,11 @@ class LoadDataStep(ProcessingStep):
                 ("avg_batch_size", 0),
             ]:
                 value = stats.get(metric_name, default_value)
-                if not isinstance(value, (int, float)) or np.isnan(value) or np.isinf(value):
+                if (
+                    not isinstance(value, (int, float))
+                    or np.isnan(value)
+                    or np.isinf(value)
+                ):
                     value = default_value
                 telemetry.record_metric("flux_condenser", metric_name, value)
 
@@ -617,7 +641,9 @@ class AuditedMergeStep(ProcessingStep):
                         logger.info(f"✅ {audit_result['narrative']}")
 
                 except Exception as e_audit:
-                    logger.error(f"❌ Error durante auditoría Mayer-Vietoris: {e_audit}")
+                    logger.error(
+                        f"❌ Error durante auditoría Mayer-Vietoris: {e_audit}"
+                    )
                     telemetry.record_error("audited_merge_audit", str(e_audit))
 
             logger.info("🛠️ Ejecutando fusión física de datos...")
@@ -655,7 +681,9 @@ class CalculateCostsStep(ProcessingStep):
             df_merged = calculate_insumo_costs(df_merged, self.thresholds)
 
             cost_calculator = APUCostCalculator(self.config, self.thresholds)
-            df_apu_costos, df_tiempo, df_rendimiento = cost_calculator.calculate(df_merged)
+            df_apu_costos, df_tiempo, df_rendimiento = cost_calculator.calculate(
+                df_merged
+            )
 
             telemetry.record_metric(
                 "calculate_costs", "costos_calculated", len(df_apu_costos)
@@ -699,7 +727,9 @@ class FinalMergeStep(ProcessingStep):
             merger = DataMerger(self.thresholds)
             df_final = merger.merge_with_presupuesto(df_presupuesto, df_apu_costos)
 
-            df_final = pd.merge(df_final, df_tiempo, on=ColumnNames.CODIGO_APU, how="left")
+            df_final = pd.merge(
+                df_final, df_tiempo, on=ColumnNames.CODIGO_APU, how="left"
+            )
             df_final = group_and_split_description(df_final)
             df_final = calculate_total_costs(df_final, self.thresholds)
 
@@ -740,11 +770,17 @@ class BusinessTopologyStep(ProcessingStep):
                 logger.info("✅ BusinessAgent completó la evaluación.")
                 context["business_topology_report"] = report
 
-                logger.info(f"Puntuación de Integridad: {report.integrity_score:.2f}/100")
+                logger.info(
+                    f"Puntuación de Integridad: {report.integrity_score:.2f}/100"
+                )
                 if report.waste_alerts:
-                    logger.warning(f"Alertas de Desperdicio: {len(report.waste_alerts)}")
+                    logger.warning(
+                        f"Alertas de Desperdicio: {len(report.waste_alerts)}"
+                    )
                 if report.circular_risks:
-                    logger.critical(f"Riesgos Circulares: {len(report.circular_risks)}")
+                    logger.critical(
+                        f"Riesgos Circulares: {len(report.circular_risks)}"
+                    )
             else:
                 logger.warning("⚠️ El BusinessAgent no generó un reporte.")
 
@@ -797,7 +833,9 @@ class MaterializationStep(ProcessingStep):
                     graph = builder.build(df_presupuesto, df_detail)
                     context["graph"] = graph
                 else:
-                    logger.error("❌ No hay datos suficientes para reconstruir el grafo.")
+                    logger.error(
+                        "❌ No hay datos suficientes para reconstruir el grafo."
+                    )
                     telemetry.end_step("materialization", "error")
                     return context
 
@@ -908,12 +946,14 @@ class BuildOutputStep(ProcessingStep):
                     return "hash_computation_failed"
 
             input_sample = {
-                "presupuesto_head": df_final.head(5).to_dict("records")
-                if not df_final.empty
-                else [],
-                "insumos_head": df_insumos.head(5).to_dict("records")
-                if not df_insumos.empty
-                else [],
+                "presupuesto_head": (
+                    df_final.head(5).to_dict("records") if not df_final.empty else []
+                ),
+                "insumos_head": (
+                    df_insumos.head(5).to_dict("records")
+                    if not df_insumos.empty
+                    else []
+                ),
             }
             lineage_hash = compute_hash(input_sample)
 
@@ -1031,7 +1071,9 @@ class PipelineDirector:
                 return context
             return {}
         except (pickle.UnpicklingError, EOFError) as e:
-            logger.error(f"🔥 Contexto corrupto para {session_id}, iniciando de cero: {e}")
+            logger.error(
+                f"🔥 Contexto corrupto para {session_id}, iniciando de cero: {e}"
+            )
             return {}
         except Exception as e:
             logger.error(f"🔥 Error cargando contexto para {session_id}: {e}")
@@ -1062,7 +1104,9 @@ class PipelineDirector:
 
         step_class = self.STEP_REGISTRY.get(step_name)
 
-        logger.info(f"▶️ Ejecutando paso atómico: {step_name} (Sesión: {session_id})")
+        logger.info(
+            f"▶️ Ejecutando paso atómico: {step_name} (Sesión: {session_id})"
+        )
 
         try:
             step_instance = step_class(self.config, self.thresholds)
@@ -1097,8 +1141,12 @@ class PipelineDirector:
 
         recipe = self.config.get("pipeline_recipe", [])
         if not recipe:
-            logger.warning("No 'pipeline_recipe' en config. Usando flujo por defecto.")
-            recipe = [{"step": step.value, "enabled": True} for step in PipelineSteps]
+            logger.warning(
+                "No 'pipeline_recipe' en config. Usando flujo por defecto."
+            )
+            recipe = [
+                {"step": step.value, "enabled": True} for step in PipelineSteps
+            ]
 
         context = initial_context
         for step_idx, step_config in enumerate(recipe):
@@ -1107,7 +1155,9 @@ class PipelineDirector:
                 logger.info(f"⏭️ Saltando paso deshabilitado: {step_name}")
                 continue
 
-            logger.info(f"▶️ Orquestando paso [{step_idx + 1}/{len(recipe)}]: {step_name}")
+            logger.info(
+                f"▶️ Orquestando paso [{step_idx + 1}/{len(recipe)}]: {step_name}"
+            )
 
             current_context = context if step_idx == 0 else None
 
@@ -1116,9 +1166,7 @@ class PipelineDirector:
             )
 
             if result["status"] == "error":
-                error_msg = (
-                    f"Fallo en pipeline orquestado en paso '{step_name}': {result['error']}"
-                )
+                error_msg = f"Fallo en pipeline orquestado en paso '{step_name}': {result['error']}"
                 logger.critical(f"🔥 {error_msg}")
                 raise RuntimeError(error_msg)
 
@@ -1160,9 +1208,13 @@ class PresupuestoProcessor:
                 logger.error("❌ Estructura de load_result inválida")
                 return pd.DataFrame()
 
-            status_value = getattr(load_result.status, "value", str(load_result.status))
+            status_value = getattr(
+                load_result.status, "value", str(load_result.status)
+            )
             if status_value != "SUCCESS":
-                error_msg = getattr(load_result, "error_message", "Error desconocido")
+                error_msg = getattr(
+                    load_result, "error_message", "Error desconocido"
+                )
                 logger.error(f"Error cargando presupuesto: {error_msg}")
                 return pd.DataFrame()
 
@@ -1187,7 +1239,9 @@ class PresupuestoProcessor:
 
             valid_cols, error_msg = self._validate_required_columns(df_renamed)
             if not valid_cols:
-                logger.error(f"❌ Validación de columnas requeridas falló: {error_msg}")
+                logger.error(
+                    f"❌ Validación de columnas requeridas falló: {error_msg}"
+                )
                 return pd.DataFrame()
 
             df_converted = self._clean_and_convert_data(df_renamed)
@@ -1209,7 +1263,9 @@ class PresupuestoProcessor:
             available_cols = [col for col in final_cols if col in df_final.columns]
 
             if ColumnNames.CODIGO_APU not in available_cols:
-                logger.error(f"❌ Columna crítica '{ColumnNames.CODIGO_APU}' no disponible")
+                logger.error(
+                    f"❌ Columna crítica '{ColumnNames.CODIGO_APU}' no disponible"
+                )
                 return pd.DataFrame()
 
             result = df_final[available_cols].copy()
@@ -1254,7 +1310,9 @@ class PresupuestoProcessor:
         column_map = self.config.get("presupuesto_column_map", {})
         return find_and_rename_columns(df, column_map)
 
-    def _validate_required_columns(self, df: pd.DataFrame) -> Tuple[bool, Optional[str]]:
+    def _validate_required_columns(
+        self, df: pd.DataFrame
+    ) -> Tuple[bool, Optional[str]]:
         return self.validator.validate_required_columns(
             df, [ColumnNames.CODIGO_APU], "presupuesto"
         )
@@ -1283,7 +1341,10 @@ class PresupuestoProcessor:
                     return None
 
             df[ColumnNames.CODIGO_APU] = (
-                df[ColumnNames.CODIGO_APU].fillna("").astype(str).apply(safe_clean)
+                df[ColumnNames.CODIGO_APU]
+                .fillna("")
+                .astype(str)
+                .apply(safe_clean)
             )
         except Exception as e:
             logger.error(f"❌ Error limpiando códigos APU: {e}")
@@ -1320,7 +1381,9 @@ class PresupuestoProcessor:
                     logger.warning(
                         f"⚠️ {count} cantidades exceden máximo ({max_qty}), se limitarán"
                     )
-                    df.loc[mask_invalid_qty, ColumnNames.CANTIDAD_PRESUPUESTO] = max_qty
+                    df.loc[
+                        mask_invalid_qty, ColumnNames.CANTIDAD_PRESUPUESTO
+                    ] = max_qty
 
             except Exception as e:
                 logger.error(f"❌ Error procesando cantidades: {e}")
@@ -1393,7 +1456,9 @@ class InsumosProcessor:
                 and "DESCRIPCION" in parts[1].upper()
             ):
                 header = parts
-                logger.info(f"📋 Encabezado detectado para grupo {current_group}: {header}")
+                logger.info(
+                    f"📋 Encabezado detectado para grupo {current_group}: {header}"
+                )
                 continue
 
             if header and current_group:
@@ -1563,7 +1628,9 @@ class DataMerger(BaseCostProcessor):
         self.logger.warning("⚠️ Fallback a merge simple")
         return self._exact_merge(df_apus, df_insumos)
 
-    def _exact_merge(self, df_apus: pd.DataFrame, df_insumos: pd.DataFrame) -> pd.DataFrame:
+    def _exact_merge(
+        self, df_apus: pd.DataFrame, df_insumos: pd.DataFrame
+    ) -> pd.DataFrame:
         try:
             df_merged = pd.merge(
                 df_apus,
@@ -1581,8 +1648,12 @@ class DataMerger(BaseCostProcessor):
                 .fillna(df_merged[ColumnNames.NORMALIZED_DESC])
             )
 
-            null_descriptions = df_merged[ColumnNames.DESCRIPCION_INSUMO].isnull().sum()
-            empty_descriptions = (df_merged[ColumnNames.DESCRIPCION_INSUMO] == "").sum()
+            null_descriptions = (
+                df_merged[ColumnNames.DESCRIPCION_INSUMO].isnull().sum()
+            )
+            empty_descriptions = (
+                df_merged[ColumnNames.DESCRIPCION_INSUMO] == ""
+            ).sum()
             total_null_empty = null_descriptions + empty_descriptions
             if total_null_empty > 0:
                 self.logger.warning(
@@ -1622,11 +1693,15 @@ class DataMerger(BaseCostProcessor):
             return df_presupuesto.copy()
 
         if ColumnNames.CODIGO_APU not in df_presupuesto.columns:
-            self.logger.error(f"❌ '{ColumnNames.CODIGO_APU}' no existe en presupuesto")
+            self.logger.error(
+                f"❌ '{ColumnNames.CODIGO_APU}' no existe en presupuesto"
+            )
             return df_presupuesto.copy()
 
         if ColumnNames.CODIGO_APU not in df_apu_costos.columns:
-            self.logger.error(f"❌ '{ColumnNames.CODIGO_APU}' no existe en apu_costos")
+            self.logger.error(
+                f"❌ '{ColumnNames.CODIGO_APU}' no existe en apu_costos"
+            )
             return df_presupuesto.copy()
 
         try:
@@ -1637,7 +1712,9 @@ class DataMerger(BaseCostProcessor):
                 how="left",
                 validate="1:1",
             )
-            self.logger.info(f"✅ Merge con presupuesto completado: {len(df_merged)} filas")
+            self.logger.info(
+                f"✅ Merge con presupuesto completado: {len(df_merged)} filas"
+            )
             return df_merged
 
         except pd.errors.MergeError as e:
@@ -1649,7 +1726,9 @@ class DataMerger(BaseCostProcessor):
                 on=ColumnNames.CODIGO_APU,
                 how="left",
             )
-            self.logger.info(f"✅ Merge sin validación completado: {len(df_merged)} filas")
+            self.logger.info(
+                f"✅ Merge sin validación completado: {len(df_merged)} filas"
+            )
             return df_merged
 
         except Exception as e:
@@ -1670,7 +1749,9 @@ class APUCostCalculator(BaseCostProcessor):
         self._setup_categoria_mapping()
         self._quality_metrics = {}
 
-        config_path = config.get("classification_rules_path", "config/config_rules.json")
+        config_path = config.get(
+            "classification_rules_path", "config/config_rules.json"
+        )
         self.classifier = APUClassifier(config_path)
 
     def _setup_categoria_mapping(self):
@@ -1725,7 +1806,11 @@ class APUCostCalculator(BaseCostProcessor):
                 val_str = str(val).upper()
                 if "MATERIAL" in val_str or "SUMINISTRO" in val_str:
                     return InsumoType.MATERIAL
-                if "MANO" in val_str or "OBRA" in val_str or "CUADRILLA" in val_str:
+                if (
+                    "MANO" in val_str
+                    or "OBRA" in val_str
+                    or "CUADRILLA" in val_str
+                ):
                     return InsumoType.MANO_DE_OBRA
                 if "EQUIPO" in val_str or "HERRAMIENTA" in val_str:
                     return InsumoType.EQUIPO
@@ -1733,7 +1818,9 @@ class APUCostCalculator(BaseCostProcessor):
                     return InsumoType.TRANSPORTE
                 return InsumoType.OTROS
 
-            df[ColumnNames.TIPO_INSUMO] = df[ColumnNames.TIPO_INSUMO].apply(map_to_enum)
+            df[ColumnNames.TIPO_INSUMO] = df[ColumnNames.TIPO_INSUMO].apply(
+                map_to_enum
+            )
 
         df["_CATEGORIA_COSTO"] = df[ColumnNames.TIPO_INSUMO].map(
             lambda x: self._tipo_to_categoria.get(x, ColumnNames.OTROS)
@@ -1816,7 +1903,10 @@ class APUCostCalculator(BaseCostProcessor):
         total_apus = len(df_classified)
         valid_apus = df_classified[
             (df_classified[ColumnNames.TIPO_APU] != self.classifier.default_type)
-            & (df_classified[ColumnNames.TIPO_APU] != self.classifier.zero_cost_type)
+            & (
+                df_classified[ColumnNames.TIPO_APU]
+                != self.classifier.zero_cost_type
+            )
         ].shape[0]
 
         coverage = (valid_apus / total_apus * 100) if total_apus > 0 else 0
@@ -1832,7 +1922,9 @@ class APUCostCalculator(BaseCostProcessor):
             .groupby(ColumnNames.CODIGO_APU)[ColumnNames.CANTIDAD_APU]
             .sum()
             .reset_index()
-            .rename(columns={ColumnNames.CANTIDAD_APU: ColumnNames.TIEMPO_INSTALACION})
+            .rename(
+                columns={ColumnNames.CANTIDAD_APU: ColumnNames.TIEMPO_INSTALACION}
+            )
         )
 
     def _calculate_performance(self, df: pd.DataFrame) -> pd.DataFrame:
@@ -1842,7 +1934,9 @@ class APUCostCalculator(BaseCostProcessor):
                 .groupby(ColumnNames.CODIGO_APU)[ColumnNames.RENDIMIENTO]
                 .sum()
                 .reset_index()
-                .rename(columns={ColumnNames.RENDIMIENTO: ColumnNames.RENDIMIENTO_DIA})
+                .rename(
+                    columns={ColumnNames.RENDIMIENTO: ColumnNames.RENDIMIENTO_DIA}
+                )
             )
         return pd.DataFrame()
 
@@ -1853,9 +1947,9 @@ class APUCostCalculator(BaseCostProcessor):
 
         self._quality_metrics = {
             "total_apus": total_apus,
-            "classified_percentage": (classified / total_apus * 100)
-            if total_apus > 0
-            else 0,
+            "classified_percentage": (
+                (classified / total_apus * 100) if total_apus > 0 else 0
+            ),
             "distribution": df[ColumnNames.TIPO_APU].value_counts().to_dict(),
             "cost_coverage": {
                 "materiales": df[ColumnNames.MATERIALES].sum(),
@@ -1904,7 +1998,9 @@ def calculate_insumo_costs(
     max_qty = thresholds.max_quantity
 
     df[ColumnNames.CANTIDAD_APU] = df[ColumnNames.CANTIDAD_APU].clip(0, max_qty)
-    df[ColumnNames.VR_UNITARIO_INSUMO] = df[ColumnNames.VR_UNITARIO_INSUMO].clip(0, max_cost)
+    df[ColumnNames.VR_UNITARIO_INSUMO] = df[ColumnNames.VR_UNITARIO_INSUMO].clip(
+        0, max_cost
+    )
 
     tiene_precio = df[ColumnNames.VR_UNITARIO_INSUMO].notna() & (
         df[ColumnNames.VR_UNITARIO_INSUMO] > 0
@@ -1931,7 +2027,9 @@ def calculate_insumo_costs(
 
     if registros_sin_costo > 0:
         pct = (registros_sin_costo / len(df)) * 100
-        logger.warning(f"⚠️ {registros_sin_costo} registros ({pct:.1f}%) sin costo calculado")
+        logger.warning(
+            f"⚠️ {registros_sin_costo} registros ({pct:.1f}%) sin costo calculado"
+        )
 
     logger.debug(f"Costo total calculado: {total_costo:,.2f}")
 
@@ -1948,7 +2046,9 @@ def calculate_total_costs(
     df: pd.DataFrame, thresholds: ProcessingThresholds
 ) -> pd.DataFrame:
     if ColumnNames.CANTIDAD_PRESUPUESTO in df.columns:
-        qty = pd.to_numeric(df[ColumnNames.CANTIDAD_PRESUPUESTO], errors="coerce").fillna(0)
+        qty = pd.to_numeric(
+            df[ColumnNames.CANTIDAD_PRESUPUESTO], errors="coerce"
+        ).fillna(0)
         df[ColumnNames.VALOR_CONSTRUCCION_TOTAL] = (
             df[ColumnNames.VALOR_CONSTRUCCION_UN] * qty
         )
@@ -2025,7 +2125,9 @@ def process_all_files(
         return {"error": str(e)}
 
 
-def _save_output_files(result: dict, output_files: dict, config: dict) -> Dict[str, bool]:
+def _save_output_files(
+    result: dict, output_files: dict, config: dict
+) -> Dict[str, bool]:
     """Guarda archivos de salida de forma robusta."""
     import json
 

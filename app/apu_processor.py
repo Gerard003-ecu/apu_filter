@@ -21,7 +21,7 @@ from collections import defaultdict
 from dataclasses import dataclass, field
 from enum import Enum
 from functools import lru_cache
-from typing import Any, Dict, List, Optional, Set, Tuple, Generic, TypeVar, Callable
+from typing import Any, Callable, Dict, Generic, List, Optional, Set, Tuple, TypeVar
 
 import pandas as pd
 from lark import Token, Transformer, v_args
@@ -62,11 +62,21 @@ class ParsingStats:
 
     @property
     def avg_field_entropy(self) -> float:
-        return self.sum_field_entropy / self.successful_parses if self.successful_parses > 0 else 0.0
+        """Calcula el promedio de entropía de campo."""
+        return (
+            self.sum_field_entropy / self.successful_parses
+            if self.successful_parses > 0
+            else 0.0
+        )
 
     @property
     def avg_numeric_cohesion(self) -> float:
-        return self.sum_numeric_cohesion / self.successful_parses if self.successful_parses > 0 else 0.0
+        """Calcula el promedio de cohesión numérica."""
+        return (
+            self.sum_numeric_cohesion / self.successful_parses
+            if self.successful_parses > 0
+            else 0.0
+        )
 
 
 class TipoInsumo(Enum):
@@ -106,36 +116,40 @@ class ValidationThresholds:
 # MÓNADAS Y ESTRUCTURAS CATEGÓRICAS (REFINADO)
 # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
-T = TypeVar('T')
-U = TypeVar('U')
+T = TypeVar("T")
+U = TypeVar("U")
+
 
 class OptionMonad(Generic[T]):
     """
     Mónada Option/Maybe para manejo seguro de valores.
+
     REFINADO: Tipado correcto para functor y composición monádica.
     """
 
-    __slots__ = ('_value', '_error')
+    __slots__ = ("_value", "_error")
 
     def __init__(self, value: Optional[T] = None, error: str = ""):
         self._value = value
         self._error = error
 
     @classmethod
-    def pure(cls, value: T) -> 'OptionMonad[T]':
+    def pure(cls, value: T) -> "OptionMonad[T]":
         """Inyección monádica (unit/return): T -> M[T]."""
         return cls(value=value)
 
     @classmethod
-    def fail(cls, error: str) -> 'OptionMonad[T]':
+    def fail(cls, error: str) -> "OptionMonad[T]":
         """Constructor de fallo explícito."""
         return cls(value=None, error=error)
 
     def is_valid(self) -> bool:
+        """Verifica si la mónada contiene un valor válido."""
         return self._value is not None
 
     @property
     def value(self) -> T:
+        """Obtiene el valor contenido o lanza excepción si es inválido."""
         if self._value is None:
             raise ValueError(f"Acceso a valor inválido: {self._error}")
         return self._value
@@ -146,11 +160,13 @@ class OptionMonad(Generic[T]):
 
     @property
     def error(self) -> str:
+        """Obtiene el mensaje de error."""
         return self._error
 
-    def bind(self, f: Callable[[T], 'OptionMonad[U]']) -> 'OptionMonad[U]':
+    def bind(self, f: Callable[[T], "OptionMonad[U]"]) -> "OptionMonad[U]":
         """
         Operación bind de la mónada (>>=).
+
         REFINADO: Preserva cadena de errores para trazabilidad.
         """
         if not self.is_valid():
@@ -158,14 +174,17 @@ class OptionMonad(Generic[T]):
         try:
             result = f(self._value)
             if not isinstance(result, OptionMonad):
-                return OptionMonad.fail(f"Bind requiere retorno OptionMonad, recibido: {type(result)}")
+                return OptionMonad.fail(
+                    f"Bind requiere retorno OptionMonad, recibido: {type(result)}"
+                )
             return result
         except Exception as e:
             return OptionMonad.fail(f"Bind error [{self._error}] -> {e}")
 
-    def map(self, f: Callable[[T], U]) -> 'OptionMonad[U]':
+    def map(self, f: Callable[[T], U]) -> "OptionMonad[U]":
         """
         Operación map del functor: (T -> U) -> M[T] -> M[U].
+
         REFINADO: Tipado correcto que permite transformación de tipos.
         """
         if not self.is_valid():
@@ -175,11 +194,13 @@ class OptionMonad(Generic[T]):
         except Exception as e:
             return OptionMonad.fail(f"Map error: {e}")
 
-    def flat_map(self, f: Callable[[T], 'OptionMonad[U]']) -> 'OptionMonad[U]':
+    def flat_map(self, f: Callable[[T], "OptionMonad[U]"]) -> "OptionMonad[U]":
         """Alias semántico para bind (convención Scala/funcional)."""
         return self.bind(f)
 
-    def filter(self, predicate: Callable[[T], bool], error_msg: str = "Filtro fallido") -> 'OptionMonad[T]':
+    def filter(
+        self, predicate: Callable[[T], bool], error_msg: str = "Filtro fallido"
+    ) -> "OptionMonad[T]":
         """Filtrado monádico con predicado."""
         if not self.is_valid():
             return self
@@ -242,23 +263,49 @@ class PatternMatcher:
 
     # Palabras clave de encabezado de tabla
     HEADER_KEYWORDS = [
-        "DESCRIPCION", "DESCRIPCIÓN", "DESC", "UND", "UNID", "UNIDAD",
-        "CANT", "CANTIDAD", "PRECIO", "VALOR", "TOTAL", "DESP",
-        "DESPERDICIO", "REND", "RENDIMIENTO", "JORNAL", "ITEM",
-        "CODIGO", "CÓDIGO",
+        "DESCRIPCION",
+        "DESCRIPCIÓN",
+        "DESC",
+        "UND",
+        "UNID",
+        "UNIDAD",
+        "CANT",
+        "CANTIDAD",
+        "PRECIO",
+        "VALOR",
+        "TOTAL",
+        "DESP",
+        "DESPERDICIO",
+        "REND",
+        "RENDIMIENTO",
+        "JORNAL",
+        "ITEM",
+        "CODIGO",
+        "CÓDIGO",
     ]
 
     # Palabras clave de resumen/totalización
     SUMMARY_KEYWORDS = [
-        "SUBTOTAL", "TOTAL", "RESUMEN", "SUMA", "TOTALES",
-        "ACUMULADO", "GRAN TOTAL", "COSTO DIRECTO",
+        "SUBTOTAL",
+        "TOTAL",
+        "RESUMEN",
+        "SUMA",
+        "TOTALES",
+        "ACUMULADO",
+        "GRAN TOTAL",
+        "COSTO DIRECTO",
     ]
 
     # Categorías típicas (exactas)
     CATEGORY_PATTERNS = [
-        r"^MATERIALES?$", r"^MANO\s+DE\s+OBRA$", r"^EQUIPO$",
-        r"^TRANSPORTE$", r"^OTROS?$", r"^SERVICIOS?$",
-        r"^HERRAMIENTAS?$", r"^SUMINISTROS?$",
+        r"^MATERIALES?$",
+        r"^MANO\s+DE\s+OBRA$",
+        r"^EQUIPO$",
+        r"^TRANSPORTE$",
+        r"^OTROS?$",
+        r"^SERVICIOS?$",
+        r"^HERRAMIENTAS?$",
+        r"^SUMINISTROS?$",
     ]
 
     def __init__(self):
@@ -292,7 +339,9 @@ class PatternMatcher:
 
         words = text.upper().split()
         if words and len(words) > 2:
-            header_word_ratio = sum(1 for w in words if w in self.HEADER_KEYWORDS) / len(words)
+            header_word_ratio = sum(
+                1 for w in words if w in self.HEADER_KEYWORDS
+            ) / len(words)
             if header_word_ratio > 0.6:
                 return True
 
@@ -319,13 +368,18 @@ class PatternMatcher:
     def is_likely_chapter_header(self, text: str) -> bool:
         """Determina si una línea es probablemente un encabezado de capítulo."""
         text_upper = text.strip().upper()
-        if text_upper.startswith(("CAPITULO", "CAPÍTULO", "TITULO", "TÍTULO", "NIVEL")):
+        if text_upper.startswith(
+            ("CAPITULO", "CAPÍTULO", "TITULO", "TÍTULO", "NIVEL")
+        ):
             return True
 
-        if (text_upper.isupper() and not self.has_numeric_content(text)
-                and len(text) < 100
-                and not self.is_likely_category(text, 1)
-                and not self.is_likely_header(text, 1)):
+        if (
+            text_upper.isupper()
+            and not self.has_numeric_content(text)
+            and len(text) < 100
+            and not self.is_likely_category(text, 1)
+            and not self.is_likely_header(text, 1)
+        ):
             return True
 
         return False
@@ -349,37 +403,114 @@ class UnitsValidator:
     """
 
     VALID_UNITS: Set[str] = {
-        "UND", "UN", "UNID", "UNIDAD", "UNIDADES",
-        "M", "MT", "MTS", "MTR", "MTRS", "METRO", "METROS", "ML",
-        "KM", "M2", "MT2", "MTS2", "MTRS2", "METROSCUAD", "METROSCUADRADOS",
-        "M3", "MT3", "MTS3", "MTRS3", "METROSCUB", "METROSCUBICOS",
-        "HR", "HRS", "HORA", "HORAS", "MIN", "MINUTO", "MINUTOS",
-        "DIA", "DIAS", "SEM", "SEMANA", "SEMANAS", "MES", "MESES",
-        "JOR", "JORN", "JORNAL", "JORNALES",
-        "G", "GR", "GRAMO", "GRAMOS", "KG", "KGS", "KILO", "KILOS",
-        "KILOGRAMO", "KILOGRAMOS", "TON", "TONS", "TONELADA", "TONELADAS",
-        "LB", "LIBRA", "LIBRAS", "GAL", "GLN", "GALON", "GALONES",
-        "LT", "LTS", "LITRO", "LITROS", "ML", "MILILITRO", "MILILITROS",
-        "VIAJE", "VIAJES", "VJE", "VJ", "BULTO", "BULTOS",
-        "SACO", "SACOS", "PAQ", "PAQUETE", "PAQUETES",
-        "GLOBAL", "GLB", "GB",
+        "UND",
+        "UN",
+        "UNID",
+        "UNIDAD",
+        "UNIDADES",
+        "M",
+        "MT",
+        "MTS",
+        "MTR",
+        "MTRS",
+        "METRO",
+        "METROS",
+        "ML",
+        "KM",
+        "M2",
+        "MT2",
+        "MTS2",
+        "MTRS2",
+        "METROSCUAD",
+        "METROSCUADRADOS",
+        "M3",
+        "MT3",
+        "MTS3",
+        "MTRS3",
+        "METROSCUB",
+        "METROSCUBICOS",
+        "HR",
+        "HRS",
+        "HORA",
+        "HORAS",
+        "MIN",
+        "MINUTO",
+        "MINUTOS",
+        "DIA",
+        "DIAS",
+        "SEM",
+        "SEMANA",
+        "SEMANAS",
+        "MES",
+        "MESES",
+        "JOR",
+        "JORN",
+        "JORNAL",
+        "JORNALES",
+        "G",
+        "GR",
+        "GRAMO",
+        "GRAMOS",
+        "KG",
+        "KGS",
+        "KILO",
+        "KILOS",
+        "KILOGRAMO",
+        "KILOGRAMOS",
+        "TON",
+        "TONS",
+        "TONELADA",
+        "TONELADAS",
+        "LB",
+        "LIBRA",
+        "LIBRAS",
+        "GAL",
+        "GLN",
+        "GALON",
+        "GALONES",
+        "LT",
+        "LTS",
+        "LITRO",
+        "LITROS",
+        "ML",
+        "MILILITRO",
+        "MILILITROS",
+        "VIAJE",
+        "VIAJES",
+        "VJE",
+        "VJ",
+        "BULTO",
+        "BULTOS",
+        "SACO",
+        "SACOS",
+        "PAQ",
+        "PAQUETE",
+        "PAQUETES",
+        "GLOBAL",
+        "GLB",
+        "GB",
     }
 
     @classmethod
     @lru_cache(maxsize=256)
     def normalize_unit(cls, unit: str) -> str:
-        """
-        Normaliza una unidad a su forma canónica (ej. "Metro" -> "M").
-        """
+        """Normaliza una unidad a su forma canónica (ej. "Metro" -> "M")."""
         if not unit:
             return "UND"
 
         unit_clean = re.sub(r"[^A-Z0-9]", "", unit.upper().strip())
 
         unit_mappings = {
-            "UNID": "UND", "UN": "UND", "UNIDAD": "UND",
-            "MT": "M", "MTS": "M", "MTR": "M", "MTRS": "M",
-            "JORN": "JOR", "JORNAL": "JOR", "JORNALES": "JOR",
+            "UNID": "UND",
+            "UN": "UND",
+            "UNIDAD": "UND",
+            "MT": "M",
+            "MTS": "M",
+            "MTR": "M",
+            "MTRS": "M",
+            "JORN": "JOR",
+            "JORNAL": "JOR",
+            "JORNALES": "JOR",
         }
 
         return unit_mappings.get(
@@ -449,6 +580,7 @@ class NumericFieldExtractor:
     ) -> Optional[Tuple[float, float]]:
         """
         Identifica rendimiento y jornal de una lista de valores numéricos.
+
         REFINADO: Validación de invariantes y ordenamiento coherente.
         """
         if len(numeric_values) < 2:
@@ -462,14 +594,18 @@ class NumericFieldExtractor:
 
         # Identificar candidatos a jornal (valores altos)
         jornal_candidates = [
-            v for v in valid_values
+            v
+            for v in valid_values
             if self.thresholds.min_jornal <= v <= self.thresholds.max_jornal
         ]
 
         # Identificar candidatos a rendimiento (valores bajos)
         rendimiento_candidates = [
-            v for v in valid_values
-            if self.thresholds.min_rendimiento <= v <= self.thresholds.max_rendimiento_tipico
+            v
+            for v in valid_values
+            if self.thresholds.min_rendimiento
+            <= v
+            <= self.thresholds.max_rendimiento_tipico
         ]
 
         # Caso ideal: hay candidatos claros para ambos
@@ -492,13 +628,17 @@ class NumericFieldExtractor:
 
             # Buscar un valor que pueda ser rendimiento
             for val in sorted_values[:-1]:
-                ratio = potential_jornal / val if val > 0 else float('inf')
+                ratio = potential_jornal / val if val > 0 else float("inf")
 
                 # Heurística: el jornal debería ser significativamente mayor que el rendimiento
                 # Un jornal típico es >1000 veces el rendimiento
                 if ratio >= 100 and val <= self.thresholds.max_rendimiento:
                     # Validar que el potencial jornal está en rango
-                    if self.thresholds.min_jornal <= potential_jornal <= self.thresholds.max_jornal:
+                    if (
+                        self.thresholds.min_jornal
+                        <= potential_jornal
+                        <= self.thresholds.max_jornal
+                    ):
                         return (val, potential_jornal)
 
         # Fallback: usar los dos valores extremos si son coherentes
@@ -506,14 +646,19 @@ class NumericFieldExtractor:
             min_val = min(valid_values)
             max_val = max(valid_values)
 
-            if (min_val <= self.thresholds.max_rendimiento_tipico and
-                self.thresholds.min_jornal <= max_val <= self.thresholds.max_jornal and
-                max_val > min_val * 10):  # El jornal debe ser al menos 10x el rendimiento
+            if (
+                min_val <= self.thresholds.max_rendimiento_tipico
+                and self.thresholds.min_jornal <= max_val <= self.thresholds.max_jornal
+                and max_val
+                > min_val * 10
+            ):  # El jornal debe ser al menos 10x el rendimiento
                 return (min_val, max_val)
 
         return None
 
-    def extract_insumo_values(self, fields: List[str], start_from: int = 2) -> List[float]:
+    def extract_insumo_values(
+        self, fields: List[str], start_from: int = 2
+    ) -> List[float]:
         """Extrae valores numéricos para insumos básicos (no Mano de Obra)."""
         valores = []
         for i in range(start_from, len(fields)):
@@ -533,6 +678,7 @@ class NumericFieldExtractor:
 class APUTransformer(Transformer):
     """
     Orquestador que coordina a los especialistas para transformar una línea.
+
     V2: Implementa lógica categórica con mónadas y functores.
     ROBUSTECIDO: Incluye validación algebraica y normalización categórica.
     """
@@ -570,13 +716,16 @@ class APUTransformer(Transformer):
             )
         except Exception as e:
             logger.error(f"Error inicializando especialistas: {e}")
-            raise RuntimeError(f"Fallo en inicialización de APUTransformer: {e}") from e
+            raise RuntimeError(
+                f"Fallo en inicialización de APUTransformer: {e}"
+            ) from e
 
         super().__init__()
 
     def _load_validation_thresholds(self) -> ValidationThresholds:
         """
         Carga los umbrales de validación desde la configuración.
+
         REFINADO: Manejo robusto de configuración ausente o malformada.
         """
         defaults = ValidationThresholds()
@@ -588,7 +737,9 @@ class APUTransformer(Transformer):
         try:
             validation_config = self.config.get("validation_thresholds", {})
             if not isinstance(validation_config, dict):
-                logger.warning("validation_thresholds no es un diccionario, usando defaults")
+                logger.warning(
+                    "validation_thresholds no es un diccionario, usando defaults"
+                )
                 return defaults
 
             mo_config = validation_config.get("MANO_DE_OBRA", {})
@@ -596,20 +747,39 @@ class APUTransformer(Transformer):
                 mo_config = {}
 
             return ValidationThresholds(
-                min_jornal=self._safe_float(mo_config.get("min_jornal"), defaults.min_jornal),
-                max_jornal=self._safe_float(mo_config.get("max_jornal"), defaults.max_jornal),
-                min_rendimiento=self._safe_float(mo_config.get("min_rendimiento"), defaults.min_rendimiento),
-                max_rendimiento=self._safe_float(mo_config.get("max_rendimiento"), defaults.max_rendimiento),
-                max_rendimiento_tipico=self._safe_float(
-                    mo_config.get("max_rendimiento_tipico"), defaults.max_rendimiento_tipico
+                min_jornal=self._safe_float(
+                    mo_config.get("min_jornal"), defaults.min_jornal
                 ),
-                min_cantidad=self._safe_float(mo_config.get("min_cantidad"), defaults.min_cantidad),
-                max_cantidad=self._safe_float(mo_config.get("max_cantidad"), defaults.max_cantidad),
-                min_precio=self._safe_float(mo_config.get("min_precio"), defaults.min_precio),
-                max_precio=self._safe_float(mo_config.get("max_precio"), defaults.max_precio),
+                max_jornal=self._safe_float(
+                    mo_config.get("max_jornal"), defaults.max_jornal
+                ),
+                min_rendimiento=self._safe_float(
+                    mo_config.get("min_rendimiento"), defaults.min_rendimiento
+                ),
+                max_rendimiento=self._safe_float(
+                    mo_config.get("max_rendimiento"), defaults.max_rendimiento
+                ),
+                max_rendimiento_tipico=self._safe_float(
+                    mo_config.get("max_rendimiento_tipico"),
+                    defaults.max_rendimiento_tipico,
+                ),
+                min_cantidad=self._safe_float(
+                    mo_config.get("min_cantidad"), defaults.min_cantidad
+                ),
+                max_cantidad=self._safe_float(
+                    mo_config.get("max_cantidad"), defaults.max_cantidad
+                ),
+                min_precio=self._safe_float(
+                    mo_config.get("min_precio"), defaults.min_precio
+                ),
+                max_precio=self._safe_float(
+                    mo_config.get("max_precio"), defaults.max_precio
+                ),
             )
         except Exception as e:
-            logger.error(f"Error cargando umbrales de validación: {e}, usando defaults")
+            logger.error(
+                f"Error cargando umbrales de validación: {e}, usando defaults"
+            )
             return defaults
 
     def _safe_float(self, value: Any, default: float) -> float:
@@ -645,7 +815,9 @@ class APUTransformer(Transformer):
         try:
             return str(item).strip()
         except Exception as e:
-            logger.warning(f"No se pudo convertir a string: {type(item).__name__}, error: {e}")
+            logger.warning(
+                f"No se pudo convertir a string: {type(item).__name__}, error: {e}"
+            )
             return ""
 
     def field(self, args: List[Any]) -> str:
@@ -677,6 +849,7 @@ class APUTransformer(Transformer):
     def _extract_fields_as_monad(self, args: List[Any]) -> OptionMonad[List[str]]:
         """
         Extrae campos usando estructura de mónada Option (Maybe).
+
         REFINADO: Validación consistente y manejo robusto de estructuras anidadas.
         """
         if not args:
@@ -685,7 +858,9 @@ class APUTransformer(Transformer):
         fields: List[str] = []
         structural_warnings: List[str] = []
 
-        def extract_and_validate(item: Any, position: int, accumulated: List[str]) -> Optional[str]:
+        def extract_and_validate(
+            item: Any, position: int, accumulated: List[str]
+        ) -> Optional[str]:
             """Extractor con validación de homogeneidad integrada."""
             if isinstance(item, Token):
                 if item.type == self._SEP_TOKEN_TYPE:
@@ -724,7 +899,10 @@ class APUTransformer(Transformer):
             elif isinstance(arg, (list, tuple)):
                 # Aplanar estructuras anidadas preservando orden
                 for sub_arg in arg:
-                    if isinstance(sub_arg, Token) and sub_arg.type == self._SEP_TOKEN_TYPE:
+                    if (
+                        isinstance(sub_arg, Token)
+                        and sub_arg.type == self._SEP_TOKEN_TYPE
+                    ):
                         continue
                     extracted = extract_and_validate(sub_arg, position, fields)
                     if extracted is not None:
@@ -760,9 +938,12 @@ class APUTransformer(Transformer):
 
         return OptionMonad.pure(normalized_fields)
 
-    def _validate_algebraic_homogeneity(self, value: str, position: int, context: List[str]) -> bool:
+    def _validate_algebraic_homogeneity(
+        self, value: str, position: int, context: List[str]
+    ) -> bool:
         """
         Valida homogeneidad algebraica usando teoría de anillos.
+
         REFINADO: Cobertura completa de transiciones y manejo de tipos especiales.
 
         El espacio de campos forma un monoide bajo concatenación, donde cada
@@ -787,39 +968,35 @@ class APUTransformer(Transformer):
         # Definición explícita de todas las composiciones permitidas
         valid_transitions: Dict[Tuple[str, str], bool] = {
             # Transiciones desde ALPHA
-            ('ALPHA', 'ALPHA'): True,        # Descripción continuada
-            ('ALPHA', 'NUMERIC'): True,      # Descripción -> valor numérico
-            ('ALPHA', 'MIXED_NUMERIC'): True,# Descripción -> código mixto
-            ('ALPHA', 'EMPTY'): True,        # Campo opcional vacío
-            ('ALPHA', 'OTHER'): True,        # Caracteres especiales permitidos
-
+            ("ALPHA", "ALPHA"): True,  # Descripción continuada
+            ("ALPHA", "NUMERIC"): True,  # Descripción -> valor numérico
+            ("ALPHA", "MIXED_NUMERIC"): True,  # Descripción -> código mixto
+            ("ALPHA", "EMPTY"): True,  # Campo opcional vacío
+            ("ALPHA", "OTHER"): True,  # Caracteres especiales permitidos
             # Transiciones desde NUMERIC
-            ('NUMERIC', 'ALPHA'): True,      # Valor -> unidad/texto
-            ('NUMERIC', 'NUMERIC'): True,    # Secuencia de valores
-            ('NUMERIC', 'MIXED_NUMERIC'): True,
-            ('NUMERIC', 'EMPTY'): True,
-            ('NUMERIC', 'OTHER'): False,     # Números no deben preceder símbolos aislados
-
+            ("NUMERIC", "ALPHA"): True,  # Valor -> unidad/texto
+            ("NUMERIC", "NUMERIC"): True,  # Secuencia de valores
+            ("NUMERIC", "MIXED_NUMERIC"): True,
+            ("NUMERIC", "EMPTY"): True,
+            ("NUMERIC", "OTHER"): False,  # Números no deben preceder símbolos aislados
             # Transiciones desde MIXED_NUMERIC
-            ('MIXED_NUMERIC', 'ALPHA'): True,
-            ('MIXED_NUMERIC', 'NUMERIC'): True,
-            ('MIXED_NUMERIC', 'MIXED_NUMERIC'): True,
-            ('MIXED_NUMERIC', 'EMPTY'): True,
-            ('MIXED_NUMERIC', 'OTHER'): False,
-
+            ("MIXED_NUMERIC", "ALPHA"): True,
+            ("MIXED_NUMERIC", "NUMERIC"): True,
+            ("MIXED_NUMERIC", "MIXED_NUMERIC"): True,
+            ("MIXED_NUMERIC", "EMPTY"): True,
+            ("MIXED_NUMERIC", "OTHER"): False,
             # Transiciones desde EMPTY
-            ('EMPTY', 'ALPHA'): True,
-            ('EMPTY', 'NUMERIC'): True,
-            ('EMPTY', 'MIXED_NUMERIC'): True,
-            ('EMPTY', 'EMPTY'): True,        # Campos vacíos consecutivos (sparse data)
-            ('EMPTY', 'OTHER'): True,
-
+            ("EMPTY", "ALPHA"): True,
+            ("EMPTY", "NUMERIC"): True,
+            ("EMPTY", "MIXED_NUMERIC"): True,
+            ("EMPTY", "EMPTY"): True,  # Campos vacíos consecutivos (sparse data)
+            ("EMPTY", "OTHER"): True,
             # Transiciones desde OTHER
-            ('OTHER', 'ALPHA'): True,
-            ('OTHER', 'NUMERIC'): True,
-            ('OTHER', 'MIXED_NUMERIC'): True,
-            ('OTHER', 'EMPTY'): True,
-            ('OTHER', 'OTHER'): False,       # Evitar ruido acumulativo
+            ("OTHER", "ALPHA"): True,
+            ("OTHER", "NUMERIC"): True,
+            ("OTHER", "MIXED_NUMERIC"): True,
+            ("OTHER", "EMPTY"): True,
+            ("OTHER", "OTHER"): False,  # Evitar ruido acumulativo
         }
 
         transition_key = (prev_type, field_type)
@@ -828,26 +1005,27 @@ class APUTransformer(Transformer):
     def _classify_field_algebraic_type(self, field: str) -> str:
         """
         Clasifica un campo en tipos algebraicos del anillo de campos.
+
         REFINADO: Manejo de casos especiales y porcentajes.
         """
         if not field:
-            return 'EMPTY'
+            return "EMPTY"
 
         field_stripped = field.strip()
         if not field_stripped:
-            return 'EMPTY'
+            return "EMPTY"
 
         # Detectar porcentajes como tipo especial de NUMERIC
-        if re.match(r'^-?\d+([.,]\d+)?\s*%$', field_stripped):
-            return 'NUMERIC'
+        if re.match(r"^-?\d+([.,]\d+)?\s*%$", field_stripped):
+            return "NUMERIC"
 
         # Detectar moneda como NUMERIC
-        if re.match(r'^[$€£¥]?\s*-?\d+([.,]\d+)?$', field_stripped):
-            return 'NUMERIC'
+        if re.match(r"^[$€£¥]?\s*-?\d+([.,]\d+)?$", field_stripped):
+            return "NUMERIC"
 
         # Numérico puro (incluye separadores de miles)
         if self._looks_numeric(field_stripped):
-            return 'NUMERIC'
+            return "NUMERIC"
 
         # Conteo de caracteres para clasificación
         alpha_chars = sum(1 for c in field_stripped if c.isalpha())
@@ -855,23 +1033,24 @@ class APUTransformer(Transformer):
         total_alnum = alpha_chars + digit_chars
 
         if total_alnum == 0:
-            return 'OTHER'
+            return "OTHER"
 
         alpha_ratio = alpha_chars / total_alnum if total_alnum > 0 else 0
         digit_ratio = digit_chars / total_alnum if total_alnum > 0 else 0
 
         if alpha_ratio >= 0.7:
-            return 'ALPHA'
+            return "ALPHA"
         elif digit_ratio >= 0.7:
-            return 'MIXED_NUMERIC'
+            return "MIXED_NUMERIC"
         elif digit_chars > 0 and alpha_chars > 0:
-            return 'MIXED_NUMERIC'
+            return "MIXED_NUMERIC"
 
-        return 'OTHER'
+        return "OTHER"
 
     def _apply_categorical_normalization(self, fields: List[str]) -> List[str]:
         """
         Aplica normalización categórica preservando invariantes algebraicos.
+
         REFINADO: Normalización posicional consistente.
         """
         if not fields:
@@ -888,7 +1067,7 @@ class APUTransformer(Transformer):
 
             # Posición 0 (Descripción): Normalizar espacios múltiples
             if i == 0:
-                cleaned = ' '.join(cleaned.split())
+                cleaned = " ".join(cleaned.split())
                 # Capitalización consistente para descripción
                 if cleaned and cleaned.isupper() and len(cleaned) > 20:
                     # Mantener mayúsculas para descripciones cortas (códigos)
@@ -907,7 +1086,7 @@ class APUTransformer(Transformer):
 
             # Aplicar límite de longitud
             if len(cleaned) > self._MAX_DESCRIPTION_LENGTH:
-                cleaned = cleaned[:self._MAX_DESCRIPTION_LENGTH]
+                cleaned = cleaned[: self._MAX_DESCRIPTION_LENGTH]
 
             normalized.append(cleaned)
 
@@ -916,22 +1095,23 @@ class APUTransformer(Transformer):
     def _looks_numeric(self, field: str) -> bool:
         """
         Determina si un campo es numéricamente interpretable.
+
         REFINADO: Soporte para formatos internacionales y moneda.
         """
         if not field:
             return False
 
         # Normalizar: remover símbolos monetarios y espacios
-        cleaned = re.sub(r'[$€£¥\s]', '', field.strip())
+        cleaned = re.sub(r"[$€£¥\s]", "", field.strip())
         if not cleaned:
             return False
 
         # Patrón para números con separadores de miles y decimales
         # Soporta: 1234.56, 1,234.56, 1.234,56, 1234,56
         patterns = [
-            r'^-?\d+$',                           # Entero simple
-            r'^-?\d+[.,]\d+$',                    # Decimal simple
-            r'^-?\d{1,3}(?:[.,]\d{3})*(?:[.,]\d+)?$',  # Con separadores de miles
+            r"^-?\d+$",  # Entero simple
+            r"^-?\d+[.,]\d+$",  # Decimal simple
+            r"^-?\d{1,3}(?:[.,]\d{3})*(?:[.,]\d+)?$",  # Con separadores de miles
         ]
 
         return any(re.match(p, cleaned) for p in patterns)
@@ -939,6 +1119,7 @@ class APUTransformer(Transformer):
     def _normalize_numeric_representation(self, field: str) -> str:
         """
         Normaliza representación numérica a forma canónica.
+
         REFINADO: Desambiguación robusta de separadores basada en heurísticas.
         """
         if not field:
@@ -947,70 +1128,72 @@ class APUTransformer(Transformer):
         original = field.strip()
 
         # Remover símbolos monetarios pero preservar signo
-        cleaned = re.sub(r'[$€£¥]', '', original).strip()
+        cleaned = re.sub(r"[$€£¥]", "", original).strip()
 
         if not cleaned:
             return original
 
         # Obtener separador decimal del profile
-        configured_decimal = self.profile.get('number_format', {}).get('decimal_separator', '.')
+        configured_decimal = (
+            self.profile.get("number_format", {}).get("decimal_separator", ".")
+        )
 
-        has_comma = ',' in cleaned
-        has_period = '.' in cleaned
+        has_comma = "," in cleaned
+        has_period = "." in cleaned
 
         # Caso 1: Solo un tipo de separador
         if has_comma and not has_period:
             # Determinar si la coma es decimal o miles
             # Si hay un solo grupo después de la coma con 1-2 dígitos, probablemente es decimal
-            match = re.match(r'^-?(\d+),(\d+)$', cleaned)
+            match = re.match(r"^-?(\d+),(\d+)$", cleaned)
             if match:
                 decimal_part = match.group(2)
                 if len(decimal_part) <= 2:
                     # Probablemente decimal: 1,5 o 1,50
-                    return cleaned.replace(',', '.')
+                    return cleaned.replace(",", ".")
                 elif len(decimal_part) == 3:
                     # Ambiguo: 1,234 podría ser mil o 1.234
                     # Usar configuración del profile
-                    if configured_decimal == ',':
-                        return cleaned.replace(',', '.')
+                    if configured_decimal == ",":
+                        return cleaned.replace(",", ".")
                     else:
                         # Asumir miles
-                        return cleaned.replace(',', '')
+                        return cleaned.replace(",", "")
                 else:
                     # Múltiples dígitos después de coma, probablemente decimal
-                    return cleaned.replace(',', '.')
+                    return cleaned.replace(",", ".")
 
             # Múltiples comas: definitivamente separador de miles (1,234,567)
-            if cleaned.count(',') > 1:
-                return cleaned.replace(',', '')
+            if cleaned.count(",") > 1:
+                return cleaned.replace(",", "")
 
         elif has_period and not has_comma:
             # Similar lógica para puntos
-            match = re.match(r'^-?(\d+)\.(\d+)$', cleaned)
+            match = re.match(r"^-?(\d+)\.(\d+)$", cleaned)
             if match:
                 decimal_part = match.group(2)
                 if len(decimal_part) <= 2:
                     return cleaned  # Ya está en formato correcto
                 elif len(decimal_part) == 3:
-                    if configured_decimal == '.':
+                    if configured_decimal == ".":
                         return cleaned
                     else:
-                        return cleaned.replace('.', '')
+                        return cleaned.replace(".", "")
 
-            if cleaned.count('.') > 1:
-                return cleaned.replace('.', '')
+            if cleaned.count(".") > 1:
+                return cleaned.replace(".", "")
 
         # Caso 2: Ambos separadores presentes
         elif has_comma and has_period:
-            last_comma = cleaned.rfind(',')
-            last_period = cleaned.rfind('.')
+            last_comma = cleaned.rfind(",")
+            last_period = cleaned.rfind(".")
 
             if last_period > last_comma:
                 # Formato: 1,234.56 (coma miles, punto decimal)
-                return cleaned.replace(',', '')
+                return cleaned.replace(",", "")
             else:
                 # Formato: 1.234,56 (punto miles, coma decimal)
-                return cleaned.replace('.', '').replace(',', '.')
+                return cleaned.replace(".", "").replace(",", ".")
 
         return cleaned
 
@@ -1031,6 +1214,7 @@ class APUTransformer(Transformer):
     def line(self, args: List[Any]) -> Optional[InsumoProcesado]:
         """
         Procesa una línea usando composición monádica.
+
         REFINADO: Cadena de transformaciones con manejo explícito de errores.
         """
         # Paso 1: Extracción monádica de campos
@@ -1077,21 +1261,28 @@ class APUTransformer(Transformer):
 
         return result
 
-    def _validate_minimal_cardinality(self, fields: List[str]) -> OptionMonad[List[str]]:
+    def _validate_minimal_cardinality(
+        self, fields: List[str]
+    ) -> OptionMonad[List[str]]:
         """Valida cardinalidad mínima (teoría de conjuntos)."""
         if len(fields) < self._MIN_FIELDS_FOR_VALID_LINE:
             return OptionMonad.fail(f"Cardinalidad insuficiente: {len(fields)}")
         return OptionMonad.pure(fields)
 
-    def _validate_description_epicenter(self, fields: List[str]) -> OptionMonad[List[str]]:
+    def _validate_description_epicenter(
+        self, fields: List[str]
+    ) -> OptionMonad[List[str]]:
         """Valida que el campo de descripción sea epicéntrico (no vacío)."""
         if not fields or not fields[0] or not fields[0].strip():
-             return OptionMonad.fail("Descripción vacía")
+            return OptionMonad.fail("Descripción vacía")
         return OptionMonad.pure(fields)
 
-    def _validate_structural_integrity(self, fields: List[str]) -> OptionMonad[List[str]]:
+    def _validate_structural_integrity(
+        self, fields: List[str]
+    ) -> OptionMonad[List[str]]:
         """
         Valida integridad estructural usando teoría de grafos.
+
         REFINADO: Construcción correcta del grafo y verificación de conectividad.
         """
         if not fields:
@@ -1120,9 +1311,12 @@ class APUTransformer(Transformer):
 
         return OptionMonad.pure(fields)
 
-    def _build_field_dependency_graph(self, fields: List[str]) -> Dict[int, Set[int]]:
+    def _build_field_dependency_graph(
+        self, fields: List[str]
+    ) -> Dict[int, Set[int]]:
         """
         Construye grafo de dependencias entre campos.
+
         REFINADO: Todos los nodos incluidos, aristas bidireccionales.
         """
         n = len(fields)
@@ -1161,9 +1355,12 @@ class APUTransformer(Transformer):
 
         return subgraph
 
-    def _is_graph_connected(self, graph: Dict[int, Set[int]], expected_nodes: int) -> bool:
+    def _is_graph_connected(
+        self, graph: Dict[int, Set[int]], expected_nodes: int
+    ) -> bool:
         """
         Verifica si un grafo es conexo usando BFS.
+
         REFINADO: Manejo correcto del número esperado de nodos.
         """
         if expected_nodes == 0:
@@ -1196,6 +1393,7 @@ class APUTransformer(Transformer):
     def _fields_are_semantically_related(self, field1: str, field2: str) -> bool:
         """
         Determina relación semántica entre campos.
+
         REFINADO: Criterios más robustos de similitud.
         """
         if not field1 or not field2:
@@ -1236,16 +1434,20 @@ class APUTransformer(Transformer):
             visited.add(u)
             rec_stack.add(u)
             for v in graph.get(u, set()):
-                if v == p: continue
-                if v in rec_stack: return True
+                if v == p:
+                    continue
+                if v in rec_stack:
+                    return True
                 if v not in visited:
-                    if dfs(v, u): return True
+                    if dfs(v, u):
+                        return True
             rec_stack.remove(u)
             return False
 
         for node in graph:
             if node not in visited:
-                if dfs(node, -1): return True
+                if dfs(node, -1):
+                    return True
         return False
 
     def _detect_format_categorical(self, fields: List[str]) -> FormatoLinea:
@@ -1270,9 +1472,9 @@ class APUTransformer(Transformer):
                 return FormatoLinea.MO_COMPLETA
 
         if num_fields >= 3:
-             numeric_values = self.numeric_extractor.extract_all_numeric_values(fields)
-             if len(numeric_values) >= 1:
-                 return FormatoLinea.INSUMO_BASICO
+            numeric_values = self.numeric_extractor.extract_all_numeric_values(fields)
+            if len(numeric_values) >= 1:
+                return FormatoLinea.INSUMO_BASICO
 
         return FormatoLinea.DESCONOCIDO
 
@@ -1294,7 +1496,9 @@ class APUTransformer(Transformer):
         mo_values = self.numeric_extractor.identify_mo_values(numeric_values)
         return mo_values is not None
 
-    def _dispatch_builder(self, formato: FormatoLinea, tokens: List[str]) -> Optional[InsumoProcesado]:
+    def _dispatch_builder(
+        self, formato: FormatoLinea, tokens: List[str]
+    ) -> Optional[InsumoProcesado]:
         """Llama al método constructor adecuado según el formato detectado."""
         builder_map = {
             FormatoLinea.MO_COMPLETA: self._build_mo_completa,
@@ -1314,7 +1518,11 @@ class APUTransformer(Transformer):
         """Construye un objeto `ManoDeObra` a partir de una línea de formato completo."""
         try:
             descripcion = tokens[0]
-            unidad = self.units_validator.normalize_unit(tokens[1]) if len(tokens) > 1 else "JOR"
+            unidad = (
+                self.units_validator.normalize_unit(tokens[1])
+                if len(tokens) > 1
+                else "JOR"
+            )
             numeric_values = self.numeric_extractor.extract_all_numeric_values(tokens)
             mo_values = self.numeric_extractor.identify_mo_values(numeric_values)
 
@@ -1353,11 +1561,17 @@ class APUTransformer(Transformer):
                 return None
 
             descripcion = tokens[0]
-            unidad = self.units_validator.normalize_unit(tokens[1]) if len(tokens) > 1 else "UND"
+            unidad = (
+                self.units_validator.normalize_unit(tokens[1])
+                if len(tokens) > 1
+                else "UND"
+            )
             tipo_insumo = self._classify_insumo(descripcion)
 
             if unidad == "%" or tipo_insumo == TipoInsumo.OTRO:
-                return self._build_insumo_porcentual_o_indirecto(tokens, tipo_insumo, unidad)
+                return self._build_insumo_porcentual_o_indirecto(
+                    tokens, tipo_insumo, unidad
+                )
 
             valores = self.numeric_extractor.extract_insumo_values(tokens)
             if len(valores) < 2:
@@ -1405,7 +1619,9 @@ class APUTransformer(Transformer):
     ) -> Optional[InsumoProcesado]:
         """Construye un insumo para líneas porcentuales o indirectas."""
         descripcion = tokens[0]
-        valores = self.numeric_extractor.extract_all_numeric_values(tokens, skip_first=False)
+        valores = self.numeric_extractor.extract_all_numeric_values(
+            tokens, skip_first=False
+        )
 
         if not valores:
             return None
@@ -1501,7 +1717,9 @@ class APUProcessor:
         self.debug_mode = self.config.get("debug_mode", False)
         self.raw_records = []
         if self.parse_cache:
-            logger.info(f"✓ APUProcessor inicializado con cache de {len(self.parse_cache)} líneas")
+            logger.info(
+                f"✓ APUProcessor inicializado con cache de {len(self.parse_cache)} líneas"
+            )
 
     def _detect_record_format(self, records: List[Dict[str, Any]]) -> Tuple[str, str]:
         """Detecta automáticamente el formato de los registros de entrada."""
@@ -1514,7 +1732,9 @@ class APUProcessor:
             return ("flat", "Formato plano (nuevo)")
         return ("unknown", "Formato no reconocido")
 
-    def _group_flat_records(self, flat_records: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    def _group_flat_records(
+        self, flat_records: List[Dict[str, Any]]
+    ) -> List[Dict[str, Any]]:
         """Agrupa registros planos por APU."""
         logger.info(f"Agrupando {len(flat_records)} registros planos por APU...")
         grouped = defaultdict(lambda: {"lines": [], "_lark_trees": [], "metadata": {}})
@@ -1580,7 +1800,12 @@ class APUProcessor:
                 if "lines" in record and record["lines"]:
                     apu_cache = self._prepare_apu_cache(record)
                     # Pasar registros crudos para extraer métricas si existen
-                    insumos = self._process_apu_lines(record["lines"], apu_context, apu_cache, record_metadata=record.get("metadata"))
+                    insumos = self._process_apu_lines(
+                        record["lines"],
+                        apu_context,
+                        apu_cache,
+                        record_metadata=record.get("metadata"),
+                    )
                     if insumos:
                         all_results.extend(insumos)
             except Exception as e:
@@ -1590,7 +1815,9 @@ class APUProcessor:
         self.global_stats["total_insumos"] = len(all_results)
         self._log_global_stats(telemetry)
 
-        return self._convert_to_dataframe(all_results) if all_results else pd.DataFrame()
+        return (
+            self._convert_to_dataframe(all_results) if all_results else pd.DataFrame()
+        )
 
     def _prepare_apu_cache(self, record: Dict[str, Any]) -> Dict[str, Any]:
         """Prepara el cache de parsing específico para un APU."""
@@ -1607,7 +1834,9 @@ class APUProcessor:
         """Extrae el contexto relevante de un registro de APU."""
         return {
             "codigo_apu": record.get("codigo_apu") or record.get("apu_code", ""),
-            "descripcion_apu": (record.get("descripcion_apu") or record.get("apu_desc", "")),
+            "descripcion_apu": (
+                record.get("descripcion_apu") or record.get("apu_desc", "")
+            ),
             "unidad_apu": record.get("unidad_apu") or record.get("apu_unit", ""),
             "cantidad_apu": record.get("cantidad_apu", 1.0),
             "precio_unitario_apu": record.get("precio_unitario_apu", 0.0),
@@ -1630,7 +1859,9 @@ class APUProcessor:
         results = []
         stats = ParsingStats()
         active_cache = self._validate_and_merge_cache(line_cache)
-        transformer = APUTransformer(apu_context, self.config, self.profile, self.keyword_cache)
+        transformer = APUTransformer(
+            apu_context, self.config, self.profile, self.keyword_cache
+        )
 
         for line_num, line in enumerate(lines, start=1):
             if not self._is_valid_line(line):
@@ -1649,7 +1880,9 @@ class APUProcessor:
 
             try:
                 cache_key = self._compute_cache_key(line_clean)
-                if cache_key in active_cache and self._is_valid_tree(active_cache[cache_key]):
+                if cache_key in active_cache and self._is_valid_tree(
+                    active_cache[cache_key]
+                ):
                     tree = active_cache[cache_key]
                     stats.cache_hits += 1
 
@@ -1657,7 +1890,9 @@ class APUProcessor:
                     tree = self._parse_line_safe(line_clean, line_num, stats)
 
                 if tree is not None:
-                    insumo = self._transform_tree_safe(tree, transformer, line_clean, line_num, stats)
+                    insumo = self._transform_tree_safe(
+                        tree, transformer, line_clean, line_num, stats
+                    )
 
                 if insumo is not None:
                     if self._validate_insumo(insumo):
@@ -1667,14 +1902,27 @@ class APUProcessor:
                         # Extraer métricas categóricas si el insumo fue generado
                         # Recalcular métricas in-situ para estadísticas globales
                         from .report_parser_crudo import ReportParserCrudo
+
                         # Instancia temporal sin IO para cálculo de métricas puras
                         # Esto es una inyección de dependencia ligera
-                        if hasattr(ReportParserCrudo, '_calculate_field_entropy'):
-                             # Simular campos si no los tenemos a mano desde el transformer
-                             fields = line_clean.split(';') # Aproximación suficiente para métricas globales
-                             stats.sum_field_entropy += ReportParserCrudo._calculate_field_entropy(None, fields)
-                             stats.sum_numeric_cohesion += ReportParserCrudo._calculate_numeric_cohesion(None, fields)
-                             stats.sum_structural_density += ReportParserCrudo._calculate_structural_density(None, line_clean)
+                        if hasattr(ReportParserCrudo, "_calculate_field_entropy"):
+                            # Simular campos si no los tenemos a mano desde el transformer
+                            fields = line_clean.split(
+                                ";"
+                            )  # Aproximación suficiente para métricas globales
+                            stats.sum_field_entropy += (
+                                ReportParserCrudo._calculate_field_entropy(None, fields)
+                            )
+                            stats.sum_numeric_cohesion += (
+                                ReportParserCrudo._calculate_numeric_cohesion(
+                                    None, fields
+                                )
+                            )
+                            stats.sum_structural_density += (
+                                ReportParserCrudo._calculate_structural_density(
+                                    None, line_clean
+                                )
+                            )
 
                     else:
                         stats.empty_results += 1
@@ -1682,21 +1930,28 @@ class APUProcessor:
                     pass
 
             except Exception as e:
-                self._handle_unexpected_error(e, line_num, line_clean, apu_context.get("codigo_apu"), stats)
+                self._handle_unexpected_error(
+                    e, line_num, line_clean, apu_context.get("codigo_apu"), stats
+                )
 
         self._merge_stats(stats)
         return results
 
-    def _validate_and_merge_cache(self, line_cache: Optional[Dict[str, Any]]) -> Dict[str, Any]:
+    def _validate_and_merge_cache(
+        self, line_cache: Optional[Dict[str, Any]]
+    ) -> Dict[str, Any]:
         """Valida y combina caches de parsing."""
         combined = {}
-        if self.parse_cache: combined.update(self.parse_cache)
-        if line_cache: combined.update(line_cache)
+        if self.parse_cache:
+            combined.update(self.parse_cache)
+        if line_cache:
+            combined.update(line_cache)
         return combined
 
     def _is_valid_line(self, line: Any) -> bool:
         """Verifica si una línea es válida para procesamiento."""
-        if not isinstance(line, str) or not line.strip(): return False
+        if not isinstance(line, str) or not line.strip():
+            return False
         return len(line.strip()) >= 3
 
     def _compute_cache_key(self, line: str) -> str:
@@ -1705,11 +1960,21 @@ class APUProcessor:
 
     def _is_valid_tree(self, tree: Any) -> bool:
         """Verifica que un árbol Lark del cache es válido."""
-        return tree is not None and hasattr(tree, "data") and hasattr(tree, "children")
+        return (
+            tree is not None and hasattr(tree, "data") and hasattr(tree, "children")
+        )
 
-    def _parse_line_safe(self, line: str, line_num: int, stats: ParsingStats) -> Optional[Any]:
+    def _parse_line_safe(
+        self, line: str, line_num: int, stats: ParsingStats
+    ) -> Optional[Any]:
         """Parsea una línea de forma segura con manejo específico de errores."""
-        from lark.exceptions import UnexpectedCharacters, UnexpectedToken, UnexpectedEOF, UnexpectedInput
+        from lark.exceptions import (
+            UnexpectedCharacters,
+            UnexpectedEOF,
+            UnexpectedInput,
+            UnexpectedToken,
+        )
+
         try:
             return self.parser.parse(line)
         except UnexpectedCharacters as uc:
@@ -1734,7 +1999,12 @@ class APUProcessor:
             return None
 
     def _transform_tree_safe(
-        self, tree: Any, transformer: APUTransformer, line: str, line_num: int, stats: ParsingStats
+        self,
+        tree: Any,
+        transformer: APUTransformer,
+        line: str,
+        line_num: int,
+        stats: ParsingStats,
     ) -> Optional[InsumoProcesado]:
         """Transforma un árbol Lark de forma segura."""
         try:
@@ -1761,8 +2031,10 @@ class APUProcessor:
 
     def _validate_insumo(self, insumo: InsumoProcesado) -> bool:
         """Valida que un insumo tiene los campos mínimos requeridos."""
-        if insumo is None: return False
-        if not insumo.descripcion_insumo or not insumo.descripcion_insumo.strip(): return False
+        if insumo is None:
+            return False
+        if not insumo.descripcion_insumo or not insumo.descripcion_insumo.strip():
+            return False
         return True
 
     def _handle_unexpected_error(self, error, line_num, line, apu_code, stats):
@@ -1789,6 +2061,7 @@ class APUProcessor:
     def _log_global_stats(self, telemetry: Optional[Any] = None):
         """
         Registra estadísticas globales del procesamiento.
+
         Envía métricas categóricas al sistema de telemetría si está disponible.
         """
         logger.info(f"Stats: {self.parsing_stats}")
@@ -1796,18 +2069,39 @@ class APUProcessor:
         if telemetry:
             try:
                 # Métricas básicas de volumen
-                telemetry.record_metric("parsing", "total_lines", self.parsing_stats.total_lines)
-                telemetry.record_metric("parsing", "successful_parses", self.parsing_stats.successful_parses)
-                telemetry.record_metric("parsing", "lark_errors", self.parsing_stats.lark_parse_errors)
+                telemetry.record_metric(
+                    "parsing", "total_lines", self.parsing_stats.total_lines
+                )
+                telemetry.record_metric(
+                    "parsing",
+                    "successful_parses",
+                    self.parsing_stats.successful_parses,
+                )
+                telemetry.record_metric(
+                    "parsing", "lark_errors", self.parsing_stats.lark_parse_errors
+                )
 
                 # Métricas categóricas promediadas
-                telemetry.record_metric("parsing", "avg_field_entropy", self.parsing_stats.avg_field_entropy)
-                telemetry.record_metric("parsing", "avg_numeric_cohesion", self.parsing_stats.avg_numeric_cohesion)
+                telemetry.record_metric(
+                    "parsing",
+                    "avg_field_entropy",
+                    self.parsing_stats.avg_field_entropy,
+                )
+                telemetry.record_metric(
+                    "parsing",
+                    "avg_numeric_cohesion",
+                    self.parsing_stats.avg_numeric_cohesion,
+                )
 
                 # Tasa de homeomorfismo (éxito sintáctico relativo)
                 if self.parsing_stats.total_lines > 0:
-                    success_rate = self.parsing_stats.successful_parses / self.parsing_stats.total_lines
-                    telemetry.record_metric("parsing", "homeomorphism_success_rate", success_rate)
+                    success_rate = (
+                        self.parsing_stats.successful_parses
+                        / self.parsing_stats.total_lines
+                    )
+                    telemetry.record_metric(
+                        "parsing", "homeomorphism_success_rate", success_rate
+                    )
 
             except Exception as e:
                 logger.warning(f"No se pudo enviar telemetría de parsing: {e}")
@@ -1816,7 +2110,10 @@ class APUProcessor:
         """Inicializa el parser Lark con validación exhaustiva."""
         try:
             from lark import Lark
-            return Lark(APU_GRAMMAR, start="line", parser="lalr", maybe_placeholders=False)
+
+            return Lark(
+                APU_GRAMMAR, start="line", parser="lalr", maybe_placeholders=False
+            )
         except Exception as e:
             logger.error(f"Error inicializando Lark: {e}")
             return None
