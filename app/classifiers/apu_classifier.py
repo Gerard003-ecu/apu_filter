@@ -69,7 +69,19 @@ class ClassificationRule:
         test_expr = re.sub(r"\b\d+\.?\d*\b", " ", test_expr)
 
         # Remover operadores y palabras clave permitidas
-        allowed_tokens = [">=", "<=", "==", "!=", ">", "<", "and", "or", "not", "(", ")"]
+        allowed_tokens = [
+            ">=",
+            "<=",
+            "==",
+            "!=",
+            ">",
+            "<",
+            "and",
+            "or",
+            "not",
+            "(",
+            ")",
+        ]
         for token in allowed_tokens:
             test_expr = test_expr.replace(token, " ")
 
@@ -186,7 +198,9 @@ class APUClassifier:
             for idx, rule_dict in enumerate(rules_config.get("rules", [])):
                 try:
                     if "type" not in rule_dict or "condition" not in rule_dict:
-                        raise KeyError("Faltan campos obligatorios 'type' o 'condition'")
+                        raise KeyError(
+                            "Faltan campos obligatorios 'type' o 'condition'"
+                        )
 
                     rule = ClassificationRule(
                         rule_type=rule_dict["type"],
@@ -280,7 +294,9 @@ class APUClassifier:
                 f"Fallback: '{self.default_type}'"
             )
 
-    def _sample_uncovered_regions(self, grid_size: int = 20) -> List[Tuple[float, float]]:
+    def _sample_uncovered_regions(
+        self, grid_size: int = 20
+    ) -> List[Tuple[float, float]]:
         """
         Muestrea el espacio [0,1]² para detectar huecos en la cobertura.
 

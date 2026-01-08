@@ -329,7 +329,7 @@ class TestDataFluxCondenserRefined:
         # Preparar mocks para _rectify_signal
         with patch.object(condenser, "_rectify_signal") as mock_rectify:
             # Simular: llamada con batch completo falla, llamadas con sub-batch funcionan
-            def side_effect(parsed_data):
+            def side_effect(parsed_data, telemetry=None):
                 if len(parsed_data.raw_records) == 10:  # Batch completo
                     raise MemoryError("Out of memory")
                 return pd.DataFrame([{"res": 1}] * len(parsed_data.raw_records))
