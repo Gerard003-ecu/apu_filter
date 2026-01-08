@@ -543,6 +543,7 @@ class InsumoProcesado:
     tipo_insumo: str
 
     # Campos opcionales con defaults
+    capitulo: str = field(default="GENERAL")
     categoria: str = field(default="OTRO", init=True)
     formato_origen: str = field(default="GENERIC")
     rendimiento: float = field(default=0.0)
@@ -1068,6 +1069,7 @@ def validate_insumo_data(insumo_data: Dict[str, Any]) -> Dict[str, Any]:
         "cantidad": 0.0,
         "precio_unitario": 0.0,
         "valor_total": 0.0,
+        "capitulo": "GENERAL",
         "categoria": "OTRO",
         "formato_origen": "GENERIC",
         "rendimiento": 0.0,
