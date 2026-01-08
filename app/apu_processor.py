@@ -240,6 +240,27 @@ class PatternMatcher:
             return bool(self._pattern_cache["category"].match(text.strip()))
         return False
 
+    def is_likely_chapter_header(self, text: str) -> bool:
+        """Determina si una línea es probablemente un encabezado de capítulo."""
+        text_upper = text.strip().upper()
+
+        # Heurística 1: Palabras clave explícitas
+        if text_upper.startswith(("CAPITULO", "CAPÍTULO", "TITULO", "TÍTULO", "NIVEL")):
+            return True
+
+        # Heurística 2: Mayúsculas sostenidas, sin números, longitud razonable
+        # y no es una categoría de insumo conocida (MATERIALES, etc)
+        if (
+            text_upper.isupper()
+            and not self.has_numeric_content(text)
+            and len(text) < 100
+            and not self.is_likely_category(text, 1)
+            and not self.is_likely_header(text, 1)
+        ):
+            return True
+
+        return False
+
     def has_numeric_content(self, text: str) -> bool:
         """Verifica si el texto contiene cualquier carácter numérico."""
         return bool(self._pattern_cache["numeric"].search(text))
@@ -1281,6 +1302,7 @@ class APUProcessor:
         self.profile = profile or {}
         self.parser = self._initialize_parser()
         self.keyword_cache = {}
+        self.current_chapter = "GENERAL"  # Memoria de estado para capítulos
 
         # Cache de parsing (optimización)
         self.parse_cache = parse_cache or {}
@@ -1606,6 +1628,21 @@ class APUProcessor:
 
             stats.total_lines += 1
             line_clean = line.strip()
+
+            # DETECCIÓN DE CAPÍTULO
+            # Usar el PatternMatcher del transformer para verificar si es un encabezado
+            if transformer.pattern_matcher.is_likely_chapter_header(line_clean):
+                self.current_chapter = line_clean
+                logger.debug(f"Capítulo detectado: {self.current_chapter}")
+                continue
+
+            # Inyectar el capítulo actual en el contexto para los insumos creados
+            # Nota: apu_context es compartido para todo el APU, pero InsumoProcesado copia el contexto
+            # al crearse. Modificar apu_context aquí afecta a todos los insumos siguientes de este APU.
+            # Como _process_apu_lines se llama por APU, esto es correcto si el cambio de capítulo
+            # ocurre dentro del bloque de líneas del APU.
+            apu_context["capitulo"] = self.current_chapter
+
             insumo = None
             tree = None
 
