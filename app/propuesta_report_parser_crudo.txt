@@ -1,0 +1,187 @@
+Para "inyectar" la lógica piramidal (Jerarquía Estructural) y las unidades de trabajo discretas (Patrón Chain of Responsibility o Cadena de Responsabilidad) en report_parser_crudo.py, debemos transformar el código monolítico actual en un sistema de componentes modulares que respeten la topología de los datos (Proyecto → APU → Insumo).
+A continuación, presento la extensión lógica y los ejemplos de código concretos para esta refactorización, alineada con la arquitectura de "Caja de Cristal" y los patrones observados en pipeline_director.txt
+ y apu_processor.txt
+
+1. El Contexto de Estado (La Memoria de la Pirámide)
+
+En lugar de variables sueltas, creamos una clase que mantenga el estado actual de la "construcción" de la pirámide. Este objeto viajará a través de los manejadores.
+
+from dataclasses import dataclass, field
+from typing import Optional, List, Dict, Any
+
+@dataclass
+class ParserContext:
+    """
+    Mantiene el estado mutable del parseo (La Pirámide en construcción).
+    Actúa como la 'Memoria de Corto Plazo' del sistema.
+    """
+    current_apu: Optional['APUContext'] = None # El 'Padre' actual (Nivel 2)
+    current_line_number: int = 0
+    raw_records: List[Dict[str, Any]] = field(default_factory=list)
+    errors: List[str] = field(default_factory=list)
+    
+    # Telemetría interna
+    stats: Dict[str, int] = field(default_factory=lambda: {
+        "apus_detected": 0,
+        "insumos_extracted": 0,
+        "orphans_discarded": 0
+    })
+
+    def has_active_parent(self) -> bool:
+        """Valida la lógica piramidal: ¿Existe un nodo padre activo?"""
+        return self.current_apu is not None
+
+2. La Interfaz de Unidad de Trabajo (LineHandler)
+Definimos el contrato para las unidades discretas. Cada LineHandler es un experto en reconocer y procesar un tipo específico de línea.
+
+from abc import ABC, abstractmethod
+
+class LineHandler(ABC):
+    """
+    Unidad de Trabajo Discreta.
+    Patrón: Chain of Responsibility.
+    """
+    def __init__(self, parent_parser):
+        self.parent = parent_parser # Acceso a utilidades (Lark, Regex)
+
+    @abstractmethod
+    def can_handle(self, line: str) -> bool:
+        """Determina si este handler es responsable de la línea."""
+        pass
+
+    @abstractmethod
+    def handle(self, line: str, context: ParserContext) -> None:
+        """
+        Procesa la línea y actualiza el contexto (mutación de estado).
+        Aquí se aplica la lógica de negocio.
+        """
+        pass
+
+3. Implementación de los "Especialistas"
+Aquí es donde inyectamos la lógica específica.
+A. HeaderHandler: El Constructor de Nivel 2 (APU)
+Este handler detecta el inicio de un nuevo bloque. Su función crítica es establecer el padre para las siguientes líneas.
+
+class HeaderHandler(LineHandler):
+    def can_handle(self, line: str) -> bool:
+        # Lógica de detección (ejemplo simplificado basado en report_parser_crudo.txt)
+        return "UNIDAD:" in line.upper() and "ITEM:" in line.upper()
+
+    def handle(self, line: str, context: ParserContext) -> None:
+        # 1. Extraer metadatos del encabezado
+        apu_data = self._extract_header_data(line)
+        
+        # 2. Crear nuevo Contexto de APU (Nodo Padre)
+        new_apu = APUContext(
+            apu_code=apu_data['code'],
+            apu_desc=apu_data['desc'],
+            apu_unit=apu_data['unit'],
+            source_line=context.current_line_number
+        )
+        
+        # 3. ACTUALIZAR ESTADO (Cambio de Contexto Piramidal)
+        context.current_apu = new_apu
+        context.stats["apus_detected"] += 1
+        
+        # Logging semántico
+        logger.info(f"🏗️ APU Detectado (Nivel 2): {new_apu.apu_code}")
+
+    def _extract_header_data(self, line: str) -> dict:
+        # Lógica de extracción regex existente en report_parser_crudo.txt
+        # ...
+        return {"code": "...", "desc": "...", "unit": "..."}
+
+B. InsumoHandler: El Constructor de Nivel 3 (Insumo)
+Este handler procesa los recursos. Aquí inyectamos la validación piramidal: un insumo no puede existir sin un APU padre.
+
+class InsumoHandler(LineHandler):
+    def can_handle(self, line: str) -> bool:
+        # Usamos una validación ligera primero para no gastar recursos
+        # Si parece una línea de datos (tiene números, separadores)
+        return ";" in line and any(c.isdigit() for c in line)
+
+    def handle(self, line: str, context: ParserContext) -> None:
+        # 1. VALIDACIÓN PIRAMIDAL (Lógica Estructural)
+        if not context.has_active_parent():
+            # ERROR CRÍTICO DE NEGOCIO: Recurso Huérfano
+            # Esto evita "islas" desconectadas en el grafo final (beta_0 > 1)
+            logger.warning(f"⚠️ Recurso Huérfano detectado en línea {context.current_line_number}. Ignorando.")
+            context.stats["orphans_discarded"] += 1
+            return
+
+        # 2. Validación Gramatical (Lark) - Invocando al experto en sintaxis
+        # Referencia a apu_processor.txt [2]
+        is_valid, tree, reason = self.parent._validate_with_lark(line)
+        
+        if is_valid:
+            # 3. Construcción del Registro (Vinculación Padre-Hijo)
+            record = {
+                "apu_code": context.current_apu.apu_code, # Enlace al Padre
+                "insumo_line": line,
+                "source_line": context.current_line_number,
+                "_lark_tree": tree # Cache del árbol sintáctico
+            }
+            context.raw_records.append(record)
+            context.stats["insumos_extracted"] += 1
+        else:
+            # Registro de fallo suave
+            logger.debug(f"Línea inválida en contexto {context.current_apu.apu_code}: {reason}")
+
+4. El Orquestador (ReportParserCrudo Refactorizado)
+Finalmente, actualizamos el método principal para usar estos componentes.
+
+class ReportParserCrudo:
+    # ... (inicialización existente) ...
+
+    def _initialize_handlers(self) -> List[LineHandler]:
+        """Fabrica la cadena de responsabilidad en orden de prioridad."""
+        return [
+            JunkHandler(self),    # 1. Descartar basura obvia (líneas vacías, totales)
+            HeaderHandler(self),  # 2. Detectar cambios de estructura (Nuevos APUs)
+            CategoryHandler(self),# 3. Detectar cambios de categoría (Materiales, Equipo)
+            InsumoHandler(self)   # 4. Procesar datos (Hojas del árbol)
+        ]
+
+    def parse_to_raw(self) -> List[Dict[str, Any]]:
+        """
+        Ejecuta el parseo utilizando unidades de trabajo discretas.
+        """
+        # 1. Preparar el Entorno
+        context = ParserContext()
+        handlers = self._initialize_handlers()
+        
+        content = self._read_file_safely()
+        lines = content.split('\n')
+        
+        logger.info(f"🚀 Iniciando procesamiento de {len(lines)} líneas con Lógica Piramidal.")
+
+        # 2. Ciclo de Procesamiento (El Pipeline)
+        for i, line in enumerate(lines, 1):
+            context.current_line_number = i
+            line = line.strip()
+            
+            if not line: 
+                continue
+
+            # 3. Delegación a la Cadena de Responsabilidad
+            handled = False
+            for handler in handlers:
+                if handler.can_handle(line):
+                    handler.handle(line, context)
+                    handled = True
+                    break # Una vez manejada, pasamos a la siguiente línea
+            
+            if not handled:
+                logger.debug(f"Línea {i} no reconocida por ningún handler.")
+
+        # 4. Actualizar estado del objeto principal
+        self.stats.update(context.stats)
+        self.raw_records = context.raw_records
+        
+        return self.raw_records
+
+Beneficios de esta Implementación
+1. Integridad Estructural (Ψ): Al forzar la comprobación context.has_active_parent() dentro de InsumoHandler, garantizamos que no entren datos "flotantes" al sistema. Esto previene directamente la "Fragmentación Estructural" (β0​>1) mencionada en la documentación.
+2. Observabilidad: Cada handler puede emitir logs específicos ("APU Detectado", "Recurso Huérfano"), mejorando la trazabilidad forense.
+3. Mantenibilidad: Si cambia el formato de los encabezados, solo modificas HeaderHandler. Si cambia la validación de insumos (ej. nuevas reglas Lark), solo tocas InsumoHandler.
+4. Alineación con el Ecosistema: Esta estructura refleja la misma filosofía que el PipelineDirecto creando coherencia arquitectónica en todo el backend.
