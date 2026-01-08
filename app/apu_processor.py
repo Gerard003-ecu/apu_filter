@@ -52,7 +52,21 @@ class ParsingStats:
     fallback_attempts: int = 0
     fallback_successes: int = 0
     cache_hits: int = 0
+
+    # Métricas categóricas acumuladas
+    sum_field_entropy: float = 0.0
+    sum_numeric_cohesion: float = 0.0
+    sum_structural_density: float = 0.0
+
     failed_lines: List[Dict[str, Any]] = field(default_factory=list)
+
+    @property
+    def avg_field_entropy(self) -> float:
+        return self.sum_field_entropy / self.successful_parses if self.successful_parses > 0 else 0.0
+
+    @property
+    def avg_numeric_cohesion(self) -> float:
+        return self.sum_numeric_cohesion / self.successful_parses if self.successful_parses > 0 else 0.0
 
 
 class TipoInsumo(Enum):
@@ -1536,8 +1550,13 @@ class APUProcessor:
             result.append(record)
         return result
 
-    def process_all(self) -> pd.DataFrame:
-        """Procesa todos los registros de APU crudos y devuelve un DataFrame."""
+    def process_all(self, telemetry: Optional[Any] = None) -> pd.DataFrame:
+        """
+        Procesa todos los registros de APU crudos y devuelve un DataFrame.
+
+        Args:
+            telemetry: Contexto de telemetría opcional para registrar métricas categóricas.
+        """
         if not self.raw_records:
             return pd.DataFrame()
 
@@ -1560,7 +1579,8 @@ class APUProcessor:
                 apu_context = self._extract_apu_context(record)
                 if "lines" in record and record["lines"]:
                     apu_cache = self._prepare_apu_cache(record)
-                    insumos = self._process_apu_lines(record["lines"], apu_context, apu_cache)
+                    # Pasar registros crudos para extraer métricas si existen
+                    insumos = self._process_apu_lines(record["lines"], apu_context, apu_cache, record_metadata=record.get("metadata"))
                     if insumos:
                         all_results.extend(insumos)
             except Exception as e:
@@ -1568,7 +1588,7 @@ class APUProcessor:
                 continue
 
         self.global_stats["total_insumos"] = len(all_results)
-        self._log_global_stats()
+        self._log_global_stats(telemetry)
 
         return self._convert_to_dataframe(all_results) if all_results else pd.DataFrame()
 
@@ -1599,6 +1619,7 @@ class APUProcessor:
         lines: List[str],
         apu_context: Dict[str, Any],
         line_cache: Optional[Dict[str, Any]] = None,
+        record_metadata: Optional[Dict[str, Any]] = None,
     ) -> List["InsumoProcesado"]:
         """Procesa líneas de APU con reutilización de cache de parsing."""
         if not lines:
@@ -1642,6 +1663,19 @@ class APUProcessor:
                     if self._validate_insumo(insumo):
                         insumo.line_number = line_num
                         results.append(insumo)
+
+                        # Extraer métricas categóricas si el insumo fue generado
+                        # Recalcular métricas in-situ para estadísticas globales
+                        from .report_parser_crudo import ReportParserCrudo
+                        # Instancia temporal sin IO para cálculo de métricas puras
+                        # Esto es una inyección de dependencia ligera
+                        if hasattr(ReportParserCrudo, '_calculate_field_entropy'):
+                             # Simular campos si no los tenemos a mano desde el transformer
+                             fields = line_clean.split(';') # Aproximación suficiente para métricas globales
+                             stats.sum_field_entropy += ReportParserCrudo._calculate_field_entropy(None, fields)
+                             stats.sum_numeric_cohesion += ReportParserCrudo._calculate_numeric_cohesion(None, fields)
+                             stats.sum_structural_density += ReportParserCrudo._calculate_structural_density(None, line_clean)
+
                     else:
                         stats.empty_results += 1
                 else:
@@ -1744,11 +1778,39 @@ class APUProcessor:
         self.parsing_stats.transformer_errors += apu_stats.transformer_errors
         self.parsing_stats.empty_results += apu_stats.empty_results
         self.parsing_stats.cache_hits += apu_stats.cache_hits
+
+        # Acumulación de métricas categóricas
+        self.parsing_stats.sum_field_entropy += apu_stats.sum_field_entropy
+        self.parsing_stats.sum_numeric_cohesion += apu_stats.sum_numeric_cohesion
+        self.parsing_stats.sum_structural_density += apu_stats.sum_structural_density
+
         self.parsing_stats.failed_lines.extend(apu_stats.failed_lines)
 
-    def _log_global_stats(self):
-        """Registra estadísticas globales del procesamiento."""
+    def _log_global_stats(self, telemetry: Optional[Any] = None):
+        """
+        Registra estadísticas globales del procesamiento.
+        Envía métricas categóricas al sistema de telemetría si está disponible.
+        """
         logger.info(f"Stats: {self.parsing_stats}")
+
+        if telemetry:
+            try:
+                # Métricas básicas de volumen
+                telemetry.record_metric("parsing", "total_lines", self.parsing_stats.total_lines)
+                telemetry.record_metric("parsing", "successful_parses", self.parsing_stats.successful_parses)
+                telemetry.record_metric("parsing", "lark_errors", self.parsing_stats.lark_parse_errors)
+
+                # Métricas categóricas promediadas
+                telemetry.record_metric("parsing", "avg_field_entropy", self.parsing_stats.avg_field_entropy)
+                telemetry.record_metric("parsing", "avg_numeric_cohesion", self.parsing_stats.avg_numeric_cohesion)
+
+                # Tasa de homeomorfismo (éxito sintáctico relativo)
+                if self.parsing_stats.total_lines > 0:
+                    success_rate = self.parsing_stats.successful_parses / self.parsing_stats.total_lines
+                    telemetry.record_metric("parsing", "homeomorphism_success_rate", success_rate)
+
+            except Exception as e:
+                logger.warning(f"No se pudo enviar telemetría de parsing: {e}")
 
     def _initialize_parser(self) -> Optional["Lark"]:
         """Inicializa el parser Lark con validación exhaustiva."""

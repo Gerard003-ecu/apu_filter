@@ -1527,7 +1527,10 @@ class DataFluxCondenser:
 
         try:
             validated_path = self._validate_input_file(file_path)
-            parser = self._initialize_parser(validated_path)
+
+            # INYECCIÓN DE TELEMETRÍA AQUÍ
+            parser = self._initialize_parser(validated_path, telemetry)
+
             raw_records, cache = self._extract_raw_data(parser)
 
             if not raw_records:
@@ -1595,14 +1598,12 @@ class DataFluxCondenser:
         if not path.is_file():
             raise InvalidInputError(f"Ruta no es un archivo: {file_path}")
 
-        # Verificar extensión
         if path.suffix.lower() not in SystemConstants.VALID_FILE_EXTENSIONS:
             raise InvalidInputError(
                 f"Extensión no soportada: {path.suffix}. "
                 f"Válidas: {SystemConstants.VALID_FILE_EXTENSIONS}"
             )
 
-        # Verificar tamaño
         file_size = path.stat().st_size
         if file_size < SystemConstants.MIN_FILE_SIZE_BYTES:
             raise InvalidInputError(f"Archivo muy pequeño: {file_size} bytes")
@@ -1616,9 +1617,14 @@ class DataFluxCondenser:
 
         return path
 
-    def _initialize_parser(self, path: Path) -> ReportParserCrudo:
-        """Inicializa el parser con manejo de errores."""
+    def _initialize_parser(self, path: Path, telemetry: Optional[TelemetryContext] = None) -> ReportParserCrudo:
+        """Inicializa el parser con manejo de errores e inyección de telemetría."""
         try:
+            # Pasamos telemetry al constructor del parser
+            return ReportParserCrudo(str(path), self.profile, self.config, telemetry=telemetry)
+        except TypeError:
+            # Fallback por si ReportParserCrudo no ha sido actualizado aún en el entorno
+            self.logger.warning("ReportParserCrudo no acepta telemetry, usando inicialización legacy")
             return ReportParserCrudo(str(path), self.profile, self.config)
         except Exception as e:
             raise ProcessingError(f"Error inicializando parser: {e}")
@@ -1642,10 +1648,7 @@ class DataFluxCondenser:
         telemetry: Optional[TelemetryContext],
     ) -> List[pd.DataFrame]:
         """
-        Procesamiento con control PID mejorado:
-        1. Predicción anticipativa con Kalman
-        2. Control feedforward basado en complejidad estimada
-        3. Detección de régimen estacionario para optimización
+        Procesamiento con control PID mejorado.
         """
         processed_batches = []
         failed_batches_count = 0
@@ -1654,21 +1657,13 @@ class DataFluxCondenser:
         iteration = 0
         max_iterations = total_records * SystemConstants.MAX_ITERATIONS_MULTIPLIER
 
-        # Historiales para análisis
         saturation_history = []
-        batch_size_history = []
-
-        # Detección de régimen estacionario
         steady_state_counter = 0
         steady_state_threshold = 5
-
-        # Control feedforward
         last_complexity = 0.5
 
         while current_index < total_records and iteration < max_iterations:
             iteration += 1
-
-            # Determinar rango del batch
             end_index = min(current_index + current_batch_size, total_records)
             batch = raw_records[current_index:end_index]
             batch_size = len(batch)
@@ -1677,17 +1672,13 @@ class DataFluxCondenser:
                 break
 
             elapsed_time = time.time() - self._start_time
-
-            # === VERIFICACIÓN DE TIMEOUT ===
             time_remaining = SystemConstants.PROCESSING_TIMEOUT - elapsed_time
             if time_remaining <= 0:
                 self.logger.error("⏰ Timeout de procesamiento alcanzado")
                 break
 
-            # === ESTIMACIÓN DE CACHE HITS ===
             cache_hits_est = self._estimate_cache_hits(batch, cache)
 
-            # === MÉTRICAS FÍSICAS ===
             metrics = self.physics.calculate_metrics(
                 total_records=batch_size,
                 cache_hits=cache_hits_est,
@@ -1701,77 +1692,53 @@ class DataFluxCondenser:
             flyback = metrics.get("flyback_voltage", 0)
             gyro_stability = metrics.get("gyroscopic_stability", 1.0)
 
-            # === PREDICCIÓN ANTICIPATIVA ===
             saturation_history.append(saturation)
             if len(saturation_history) >= 3:
                 predicted_sat = self._predict_next_saturation(saturation_history)
             else:
                 predicted_sat = saturation
 
-            # === CONTROL FEEDFORWARD ===
-            # Ajuste anticipativo basado en cambio de complejidad
             complexity_delta = complexity - last_complexity
             feedforward_adjustment = 1.0
-
             if complexity_delta > 0.1:
-                # Complejidad aumentando: reducir batch preventivamente
                 feedforward_adjustment = 0.85
             elif complexity_delta < -0.1:
-                # Complejidad disminuyendo: podemos aumentar batch
                 feedforward_adjustment = 1.1
-
             last_complexity = complexity
 
-            # === DETECCIÓN DE RÉGIMEN ESTACIONARIO ===
             if len(saturation_history) >= 3:
                 recent_var = sum((s - saturation) ** 2 for s in saturation_history[-3:]) / 3
-
-                if recent_var < 0.01:  # Baja varianza
+                if recent_var < 0.01:
                     steady_state_counter += 1
                 else:
                     steady_state_counter = 0
-
             in_steady_state = steady_state_counter >= steady_state_threshold
 
-            # === CALLBACK DE MÉTRICAS ===
             if progress_callback:
                 try:
-                    progress_callback(
-                        {
-                            **metrics,
-                            "predicted_saturation": predicted_sat,
-                            "in_steady_state": in_steady_state,
-                            "feedforward_adjustment": feedforward_adjustment,
-                        }
-                    )
+                    progress_callback({
+                        **metrics,
+                        "predicted_saturation": predicted_sat,
+                        "in_steady_state": in_steady_state,
+                        "feedforward_adjustment": feedforward_adjustment,
+                    })
                 except Exception as e:
                     self.logger.warning(f"Error en progress_callback: {e}")
 
-            # === CONTROL PID CON AJUSTES ===
-            # Usar saturación efectiva considerando estabilidad giroscópica
             if gyro_stability < 0.5:
                 effective_saturation = min(saturation + 0.2, 0.9)
-                self.logger.debug(
-                    f"Baja estabilidad giroscópica ({gyro_stability:.2f}): "
-                    f"inflando saturación {saturation:.2f} → {effective_saturation:.2f}"
-                )
             else:
                 effective_saturation = saturation
 
             pid_output = self.controller.compute(effective_saturation)
-
-            # Aplicar feedforward
             pid_output = int(pid_output * feedforward_adjustment)
 
-            # === FRENOS DE EMERGENCIA ===
             emergency_brake = False
             brake_reason = ""
 
             if power > SystemConstants.OVERHEAT_POWER_THRESHOLD:
                 brake_factor = 0.3
-                pid_output = max(
-                    SystemConstants.MIN_BATCH_SIZE_FLOOR, int(pid_output * brake_factor)
-                )
+                pid_output = max(SystemConstants.MIN_BATCH_SIZE_FLOOR, int(pid_output * brake_factor))
                 emergency_brake = True
                 brake_reason = f"OVERHEAT P={power:.1f}W"
 
@@ -1790,16 +1757,13 @@ class DataFluxCondenser:
                 self._stats.emergency_brakes_triggered += 1
                 self.logger.warning(f"🛑 EMERGENCY BRAKE: {brake_reason}")
 
-            # === PROCESAMIENTO DEL BATCH ===
             result = self._process_single_batch_with_recovery(
-                batch, cache, failed_batches_count
+                batch, cache, failed_batches_count, telemetry
             )
 
-            # Actualizar estadísticas
             if result.success and result.dataframe is not None:
                 if not result.dataframe.empty:
                     processed_batches.append(result.dataframe)
-
                 self._stats.add_batch_stats(
                     batch_size=result.records_processed,
                     saturation=saturation,
@@ -1819,24 +1783,18 @@ class DataFluxCondenser:
                     kinetic=metrics.get("kinetic_energy", 0),
                     success=False,
                 )
-
                 if failed_batches_count >= self.condenser_config.max_failed_batches:
                     if not self.condenser_config.enable_partial_recovery:
-                        raise ProcessingError(
-                            f"Límite de batches fallidos: {failed_batches_count}"
-                        )
-                    # Recuperación extrema
+                        raise ProcessingError(f"Límite de batches fallidos: {failed_batches_count}")
                     pid_output = SystemConstants.MIN_BATCH_SIZE_FLOOR
                     self.logger.warning("Activando recuperación extrema")
 
-            # === CALLBACK DE PROGRESO ===
             if on_progress:
                 try:
                     on_progress(self._stats)
                 except Exception as e:
                     self.logger.warning(f"Error en on_progress: {e}")
 
-            # === TELEMETRÍA ===
             if telemetry and (iteration % 10 == 0 or emergency_brake):
                 telemetry.record_event(
                     "batch_iteration",
@@ -1852,18 +1810,10 @@ class DataFluxCondenser:
                     },
                 )
 
-            # === ACTUALIZAR PARA SIGUIENTE ITERACIÓN ===
-            current_index = end_index
-            batch_size_history.append(current_batch_size)
+            current_index = min(current_index + current_batch_size, total_records)
 
-            # Suavizado inercial del tamaño de batch
-            # Mayor inercia en estado estacionario
             inertia = 0.8 if in_steady_state else 0.6
-            current_batch_size = int(
-                inertia * current_batch_size + (1 - inertia) * pid_output
-            )
-
-            # Aplicar límites
+            current_batch_size = int(inertia * current_batch_size + (1 - inertia) * pid_output)
             current_batch_size = max(
                 SystemConstants.MIN_BATCH_SIZE_FLOOR,
                 min(current_batch_size, self.condenser_config.max_batch_size),
@@ -1872,31 +1822,17 @@ class DataFluxCondenser:
         return processed_batches
 
     def _estimate_cache_hits(self, batch: List, cache: Dict) -> int:
-        """
-        Estimación probabilística de cache hits usando modelo Bayesiano
-        con prior basado en historial de hits anteriores.
-        """
-        if not batch:
-            return 0
+        """Estimación probabilística de cache hits."""
+        if not batch: return 0
+        if not cache: return max(1, len(batch) // 4)
 
-        if not cache:
-            # Sin caché: asumir miss rate alto
-            return max(1, len(batch) // 4)
-
-        # === PRIOR BASADO EN HISTORIAL ===
         if not hasattr(self, "_cache_hit_history"):
             self._cache_hit_history = deque(maxlen=50)
 
-        if self._cache_hit_history:
-            # Media móvil del hit rate histórico como prior
-            prior_hit_rate = sum(self._cache_hit_history) / len(self._cache_hit_history)
-        else:
-            prior_hit_rate = 0.5  # Prior no informativo
+        prior_hit_rate = sum(self._cache_hit_history) / len(self._cache_hit_history) if self._cache_hit_history else 0.5
 
-        # === LIKELIHOOD POR MUESTREO ===
         sample_size = min(50, len(batch))
         sample_indices = range(0, len(batch), max(1, len(batch) // sample_size))
-
         cache_field_set = set(cache.keys())
         sample_hits = 0
 
@@ -1904,273 +1840,142 @@ class DataFluxCondenser:
             if idx < len(batch):
                 record = batch[idx]
                 if isinstance(record, dict):
-                    # Hit si hay intersección significativa con campos de caché
                     record_fields = set(record.keys())
                     overlap = len(record_fields & cache_field_set)
                     total_fields = len(record_fields | cache_field_set)
+                    if total_fields > 0 and (overlap / total_fields) > 0.3:
+                        sample_hits += 1
 
-                    if total_fields > 0:
-                        # Jaccard similarity como proxy de hit
-                        jaccard = overlap / total_fields
-                        if jaccard > 0.3:  # Umbral de similitud
-                            sample_hits += 1
-
-        # Likelihood del sample
         actual_sample_size = len(list(sample_indices))
-        if actual_sample_size > 0:
-            sample_hit_rate = sample_hits / actual_sample_size
-        else:
-            sample_hit_rate = prior_hit_rate
+        sample_hit_rate = sample_hits / actual_sample_size if actual_sample_size > 0 else prior_hit_rate
 
-        # === POSTERIOR BAYESIANO ===
-        # Combinar prior y likelihood con pesos
-        prior_weight = min(len(self._cache_hit_history) / 20, 0.5)  # Max 50% prior
-        posterior_hit_rate = (
-            prior_weight * prior_hit_rate + (1 - prior_weight) * sample_hit_rate
-        )
+        prior_weight = min(len(self._cache_hit_history) / 20, 0.5)
+        posterior_hit_rate = prior_weight * prior_hit_rate + (1 - prior_weight) * sample_hit_rate
 
-        # Calcular hits estimados
-        estimated_hits = int(posterior_hit_rate * len(batch))
-
-        # Actualizar historial
         self._cache_hit_history.append(sample_hit_rate)
-
-        return max(1, estimated_hits)
+        return max(1, int(posterior_hit_rate * len(batch)))
 
     def _predict_next_saturation(self, history: List[float]) -> float:
-        """
-        Predicción de saturación usando filtro de Kalman simplificado
-        para mejor estimación en presencia de ruido.
-        """
-        if len(history) < 2:
-            return history[-1] if history else 0.5
+        """Predicción de saturación usando filtro de Kalman simplificado."""
+        if len(history) < 2: return history[-1] if history else 0.5
 
-        # === INICIALIZACIÓN DEL FILTRO ===
         if not hasattr(self, "_kalman_state"):
-            self._kalman_state = {
-                "x": history[-1],  # Estado estimado
-                "P": 1.0,  # Covarianza del error
-                "Q": 0.01,  # Ruido del proceso
-                "R": 0.1,  # Ruido de medición
-            }
+            self._kalman_state = {"x": history[-1], "P": 1.0, "Q": 0.01, "R": 0.1}
 
         ks = self._kalman_state
-
-        # === PREDICCIÓN ===
-        # Modelo: x(k+1) = x(k) + v(k) donde v(k) es tendencia
-        # Estimar tendencia de las últimas muestras
         n = min(5, len(history))
-        if n >= 2:
-            trend = (history[-1] - history[-n]) / (n - 1)
-        else:
-            trend = 0.0
-
-        # Limitar tendencia para estabilidad
+        trend = (history[-1] - history[-n]) / (n - 1) if n >= 2 else 0.0
         trend = max(-0.2, min(0.2, trend))
 
         x_pred = ks["x"] + trend
         P_pred = ks["P"] + ks["Q"]
-
-        # === ACTUALIZACIÓN (Corrección) ===
-        z = history[-1]  # Medición actual
-
-        # Ganancia de Kalman
+        z = history[-1]
         K = P_pred / (P_pred + ks["R"])
-
-        # Actualizar estado
         x_new = x_pred + K * (z - x_pred)
         P_new = (1 - K) * P_pred
 
-        # Guardar estado
         ks["x"] = x_new
         ks["P"] = P_new
+        ks["Q"] = 0.9 * ks["Q"] + 0.1 * abs(z - x_pred)**2
 
-        # Adaptar ruido del proceso basado en error de predicción
-        prediction_error = abs(z - x_pred)
-        ks["Q"] = 0.9 * ks["Q"] + 0.1 * prediction_error**2
-
-        # Predicción del próximo valor
-        next_prediction = x_new + trend
-
-        # Saturar al rango válido
-        return max(0.0, min(1.0, next_prediction))
+        return max(0.0, min(1.0, x_new + trend))
 
     def _process_single_batch_with_recovery(
-        self, batch: List, cache: Dict, consecutive_failures: int
+        self, batch: List, cache: Dict, consecutive_failures: int, telemetry: Optional[TelemetryContext] = None
     ) -> BatchResult:
-        """
-        Procesamiento con estrategia de recuperación multinivel:
-        1. Intento normal
-        2. División binaria recursiva
-        3. Procesamiento elemento por elemento
-        4. Skip con logging
-        """
+        """Procesamiento con estrategia de recuperación multinivel."""
         if not batch:
             return BatchResult(success=True, records_processed=0, dataframe=pd.DataFrame())
 
         batch_size = len(batch)
 
-        # === NIVEL 0: INTENTO NORMAL ===
         if consecutive_failures == 0:
             try:
                 parsed_data = ParsedData(batch, cache)
-                df = self._rectify_signal(parsed_data)
-
-                if df is None:
-                    df = pd.DataFrame()
-
-                return BatchResult(success=True, dataframe=df, records_processed=len(df))
+                df = self._rectify_signal(parsed_data, telemetry=telemetry)
+                return BatchResult(success=True, dataframe=df if df is not None else pd.DataFrame(), records_processed=len(df) if df is not None else 0)
             except Exception as e:
                 self.logger.debug(f"Intento normal falló: {e}")
-                # Continuar a recuperación
 
-        # === NIVEL 1: DIVISIÓN BINARIA ===
         if consecutive_failures <= 2 and batch_size > 10:
             try:
                 mid = batch_size // 2
-                result_left = self._process_single_batch_with_recovery(
-                    batch[:mid], cache, consecutive_failures + 1
-                )
-                result_right = self._process_single_batch_with_recovery(
-                    batch[mid:], cache, consecutive_failures + 1
-                )
+                left = self._process_single_batch_with_recovery(batch[:mid], cache, consecutive_failures + 1, telemetry=telemetry)
+                right = self._process_single_batch_with_recovery(batch[mid:], cache, consecutive_failures + 1, telemetry=telemetry)
 
                 dfs = []
                 records = 0
+                if left.success and left.dataframe is not None:
+                    dfs.append(left.dataframe)
+                    records += left.records_processed
+                if right.success and right.dataframe is not None:
+                    dfs.append(right.dataframe)
+                    records += right.records_processed
 
-                if result_left.success and result_left.dataframe is not None:
-                    dfs.append(result_left.dataframe)
-                    records += result_left.records_processed
+                combined = pd.concat(dfs, ignore_index=True) if dfs else pd.DataFrame()
+                return BatchResult(success=True, dataframe=combined, records_processed=records)
+            except Exception:
+                pass
 
-                if result_right.success and result_right.dataframe is not None:
-                    dfs.append(result_right.dataframe)
-                    records += result_right.records_processed
-
-                if dfs:
-                    combined = pd.concat(dfs, ignore_index=True) if len(dfs) > 1 else dfs[0]
-                    return BatchResult(
-                        success=True, dataframe=combined, records_processed=records
-                    )
-            except Exception as e:
-                self.logger.debug(f"División binaria falló: {e}")
-
-        # === NIVEL 2: PROCESAMIENTO INDIVIDUAL ===
         if batch_size <= 100:
-            successful_records = []
-
-            for i, record in enumerate(batch):
+            successful = []
+            for record in batch:
                 try:
-                    parsed_single = ParsedData([record], cache)
-                    df_single = self._rectify_signal(parsed_single)
-
-                    if df_single is not None and not df_single.empty:
-                        successful_records.append(df_single)
+                    parsed = ParsedData([record], cache)
+                    df = self._rectify_signal(parsed, telemetry=telemetry)
+                    if df is not None and not df.empty:
+                        successful.append(df)
                 except Exception:
-                    # Skip silencioso en modo recuperación
                     continue
 
-            if successful_records:
-                combined = pd.concat(successful_records, ignore_index=True)
-                return BatchResult(
-                    success=True,
-                    dataframe=combined,
-                    records_processed=len(combined),
-                    error_message=f"Recuperación parcial: {len(combined)}/{batch_size}",
-                )
+            combined = pd.concat(successful, ignore_index=True) if successful else pd.DataFrame()
+            return BatchResult(success=True, dataframe=combined, records_processed=len(combined), error_message=f"Recuperación parcial: {len(combined)}/{batch_size}")
 
-        # === NIVEL 3: FALLO TOTAL ===
-        return BatchResult(
-            success=False,
-            error_message=f"Recuperación fallida para batch de {batch_size} registros",
-            records_processed=0,
-        )
+        return BatchResult(success=False, error_message=f"Fallo total batch {batch_size}", records_processed=0)
 
-    def _rectify_signal(self, parsed_data: ParsedData) -> pd.DataFrame:
+    def _rectify_signal(self, parsed_data: ParsedData, telemetry: Optional[TelemetryContext] = None) -> pd.DataFrame:
         """Convierte datos crudos a DataFrame mediante APUProcessor."""
         try:
             processor = APUProcessor(self.config, self.profile, parsed_data.parse_cache)
             processor.raw_records = parsed_data.raw_records
-            return processor.process_all()
+            return processor.process_all(telemetry=telemetry)
         except Exception as e:
             raise ProcessingError(f"Error en rectificación: {e}")
 
     def _consolidate_results(self, batches: List[pd.DataFrame]) -> pd.DataFrame:
-        """Consolida resultados con verificación de integridad."""
-        if not batches:
-            return pd.DataFrame()
-
-        # Filtrar DataFrames vacíos
-        valid_batches = [df for df in batches if df is not None and not df.empty]
-
-        if not valid_batches:
-            return pd.DataFrame()
-
-        # Limitar número de batches para evitar memoria excesiva
-        if len(valid_batches) > SystemConstants.MAX_BATCHES_TO_CONSOLIDATE:
-            self.logger.warning(
-                f"Truncando batches: {len(valid_batches)} > "
-                f"{SystemConstants.MAX_BATCHES_TO_CONSOLIDATE}"
-            )
-            valid_batches = valid_batches[: SystemConstants.MAX_BATCHES_TO_CONSOLIDATE]
-
+        """Consolida resultados."""
+        valid = [df for df in batches if df is not None and not df.empty]
+        if not valid: return pd.DataFrame()
+        if len(valid) > SystemConstants.MAX_BATCHES_TO_CONSOLIDATE:
+            valid = valid[:SystemConstants.MAX_BATCHES_TO_CONSOLIDATE]
         try:
-            return pd.concat(valid_batches, ignore_index=True)
+            return pd.concat(valid, ignore_index=True)
         except Exception as e:
-            raise ProcessingError(f"Error consolidando resultados: {e}")
+            raise ProcessingError(f"Error consolidando: {e}")
 
     def _validate_output(self, df: pd.DataFrame) -> None:
-        """Valida el DataFrame de salida."""
+        """Valida salida."""
         if df.empty:
-            self.logger.warning("DataFrame de salida vacío")
+            self.logger.warning("DataFrame salida vacío")
             return
-
-        # Verificar registros mínimos si está configurado
         if len(df) < self.condenser_config.min_records_threshold:
-            msg = (
-                f"Registros insuficientes: {len(df)} < "
-                f"{self.condenser_config.min_records_threshold}"
-            )
+            msg = f"Registros insuficientes: {len(df)}"
             if self.condenser_config.enable_strict_validation:
                 raise ProcessingError(msg)
-            else:
-                self.logger.warning(msg)
+            self.logger.warning(msg)
 
-    def _enhance_stats_with_diagnostics(
-        self, stats: ProcessingStats, metrics: Dict[str, float]
-    ) -> Dict[str, Any]:
-        """
-        Mejora las estadísticas con diagnóstico del sistema.
-        """
-        base_stats = asdict(stats)
-
-        # Calcular eficiencia
-        if stats.total_records > 0:
-            efficiency = stats.processed_records / stats.total_records
-        else:
-            efficiency = 0.0
-
-        # Diagnóstico del sistema
-        system_health = self.get_system_health()
-        physics_diagnosis = self.physics.get_system_diagnosis(metrics)
-
-        enhanced = {
-            **base_stats,
-            "efficiency": efficiency,
-            "throughput": stats.processed_records / max(stats.processing_time, 0.001),
-            "system_health": system_health,
-            "physics_diagnosis": physics_diagnosis,
-            "current_metrics": {
-                "saturation": metrics.get("saturation", 0),
-                "complexity": metrics.get("complexity", 0),
-                "gyroscopic_stability": metrics.get("gyroscopic_stability", 1.0),
-                "entropy_ratio": metrics.get("entropy_ratio", 0),
-            },
+    def _enhance_stats_with_diagnostics(self, stats: ProcessingStats, metrics: Dict) -> Dict:
+        """Mejora estadísticas."""
+        base = asdict(stats)
+        return {
+            **base,
+            "efficiency": stats.processed_records / max(1, stats.total_records),
+            "system_health": self.get_system_health(),
+            "physics_diagnosis": self.physics.get_system_diagnosis(metrics),
         }
 
-        return enhanced
-
     def get_processing_stats(self) -> Dict[str, Any]:
-        """Retorna estadísticas completas de procesamiento."""
+        """Retorna estadísticas."""
         return {
             "statistics": asdict(self._stats),
             "controller": self.controller.get_diagnostics(),
@@ -2179,34 +1984,19 @@ class DataFluxCondenser:
         }
 
     def get_system_health(self) -> Dict[str, Any]:
-        """Retorna diagnóstico de salud del sistema."""
-        controller_diag = self.controller.get_stability_analysis()
-        physics_trend = self.physics.get_trend_analysis()
-
-        # Determinar estado general
+        """Retorna salud del sistema."""
+        diag = self.controller.get_stability_analysis()
         health = "HEALTHY"
         issues = []
-
-        if controller_diag.get("stability_class") == "POTENTIALLY_UNSTABLE":
+        if diag.get("stability_class") == "POTENTIALLY_UNSTABLE":
             health = "DEGRADED"
-            issues.append("Controlador potencialmente inestable")
-
+            issues.append("Inestabilidad de control")
         if self._emergency_brake_count > 5:
             health = "DEGRADED"
-            issues.append(f"Múltiples frenos de emergencia: {self._emergency_brake_count}")
-
-        if self._stats.failed_batches > self._stats.total_batches * 0.1:
-            health = "DEGRADED"
-            issues.append(
-                f"Alta tasa de fallos: {self._stats.failed_batches}/{self._stats.total_batches}"
-            )
+            issues.append("Frenos de emergencia frecuentes")
 
         return {
             "health": health,
             "issues": issues,
-            "controller_stability": controller_diag.get("stability_class", "UNKNOWN"),
-            "processing_efficiency": (
-                self._stats.processed_records / max(1, self._stats.total_records)
-            ),
-            "uptime": time.time() - self._start_time if self._start_time else 0,
+            "uptime": time.time() - self._start_time if self._start_time else 0
         }

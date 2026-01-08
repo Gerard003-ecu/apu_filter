@@ -73,8 +73,40 @@ Finalmente, para el auditor financiero, el sistema genera una traza completa. Na
 • Evidencia de Validación:
     ◦ Cantidad Recalculada: "El sistema detectó Cantidad=0 pero Valor Total > 0. Se recalculó la cantidad implícita."
     ◦ Descripción Inferida: "Descripción faltante. Se infirió 'Cemento Gris' usando búsqueda difusa (Fuzzy Matching) con 95% de confianza."
+
+## 6. La Arquitectura de los Sabios (Ecosistema V3)
+
+El sistema opera bajo el mandato del Consejo Digital, una arquitectura de agentes especializados:
+*   **FluxCondenser (El Guardián):** Estabiliza la entrada caótica de datos.
+*   **TopologicalAnalyzer (El Arquitecto):** Evalúa la integridad estructural del grafo.
+*   **FinancialEngine (El Oráculo):** Proyecta riesgos económicos y viabilidad.
+*   **SemanticTranslator (El Diplomático):** Traduce matemáticas a lenguaje de negocio.
+
+## 7. El Motor de Parsing Categórico
+
+Fuente: apu_processor.py y report_parser_crudo.py
+"La gramática es la estructura del pensamiento; el parsing es la validación de la realidad."
+
+El sistema no utiliza simples expresiones regulares para leer sus archivos. Empleamos un motor basado en **Teoría de Categorías** que trata cada línea del presupuesto como una estructura algebraica que debe preservar ciertos invariantes topológicos.
+
+### Mónadas para la Gestión de Incertidumbre
+Utilizamos la mónada `OptionMonad` (Maybe) para encapsular la posibilidad de fallo en cada paso de la interpretación. Esto permite encadenar operaciones de transformación (bind/flatMap) sin corromper el flujo de datos con excepciones no controladas. Si una línea falla en ser interpretada, el sistema no "crasha"; colapsa la función de onda de esa línea en un estado de error controlado, preservando la estabilidad del sistema global.
+
+### Homeomorfismo Estructural
+Cada línea parseada se somete a una prueba de homeomorfismo: ¿Es la estructura sintáctica detectada (el árbol de derivación) topológicamente equivalente al esquema platónico de un Insumo APU?
+Validamos:
+1.  **Conectividad:** No deben existir "islas" de datos inconexos en una línea.
+2.  **Densidad:** La relación señal/ruido debe superar el umbral de entropía.
+
+### Métricas de Calidad de Parsing
+Exponemos métricas profundas sobre la calidad de su información original:
+*   **Entropía de Campo (H):** Mide el desorden en la tipificación de los datos. Un H alto indica inconsistencia en los formatos de entrada.
+*   **Densidad Estructural (ρ):** Cantidad de información semántica útil por byte.
+*   **Cohesión Numérica (C):** Qué tan "juntos" y relacionados están los valores numéricos, indicando si forman un vector de costos coherente o son datos dispersos.
+
 Conclusión del Nivel 4: Al llegar aquí, usted tiene:
 1. Un Mapa Visual de sus riesgos (Topología).
 2. Un Dictamen Escrito de viabilidad (Semántica).
 3. Un Reporte de Signos Vitales de la calidad de sus datos (Física).
+4. Un Certificado de Coherencia Matemática de su fuente de datos (Categorías).
 Esto es la Caja de Cristal.
