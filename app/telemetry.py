@@ -1546,6 +1546,7 @@ class TelemetryContext:
                 status, message = self._determine_business_status(raw_metrics)
                 step_stats = self._calculate_step_statistics()
                 financial_health = self._determine_financial_health()
+                parsing_health = self._calculate_parsing_health()
 
                 return {
                     "status": status,
@@ -1563,6 +1564,7 @@ class TelemetryContext:
                         "success_rate": step_stats["success_rate"],
                     },
                     "financial_health": financial_health,
+                    "parsing_health": parsing_health,
                     "health": self._assess_health(),
                     "timestamp": datetime.utcnow().isoformat(),
                 }
@@ -1775,6 +1777,42 @@ class TelemetryContext:
             "stale_steps": health.stale_steps,
             "memory_pressure": health.memory_pressure,
         }
+
+    def _calculate_parsing_health(self) -> Dict[str, Any]:
+        """Calcula métricas agregadas de la salud del parsing categórico."""
+        # Métricas esperadas desde APUProcessor/ParsingStats
+        keys = {
+            "avg_entropy": ("parsing", "avg_field_entropy"),
+            "avg_cohesion": ("parsing", "avg_numeric_cohesion"),
+            "homeomorphism_rate": ("parsing", "homeomorphism_success_rate"),
+            "lark_errors": ("parsing", "lark_errors"),
+            "total_lines": ("parsing", "total_lines"),
+        }
+
+        result = {}
+        for report_key, (comp, name) in keys.items():
+            val = self.get_metric(comp, name)
+            if val is not None:
+                result[report_key] = val
+
+        # Interpretación cualitativa
+        if result:
+            entropy = result.get("avg_entropy", 0.0)
+            cohesion = result.get("avg_cohesion", 0.0)
+
+            quality = "DESCONOCIDO"
+            if entropy > 0.8:
+                quality = "CAÓTICO"
+            elif cohesion < 0.3:
+                quality = "DISPERSO"
+            elif cohesion > 0.7 and entropy < 0.5:
+                quality = "COHERENTE"
+            else:
+                quality = "ACEPTABLE"
+
+            result["quality_verdict"] = quality
+
+        return result
 
     def __enter__(self) -> "TelemetryContext":
         """Soporte para la declaración 'with'."""
