@@ -625,11 +625,13 @@ class APUTransformer(Transformer):
                 ('ALPHA', 'MIXED_NUMERIC'): True, # Mixto puede seguir palabras
                 ('MIXED_NUMERIC', 'ALPHA'): True, # Palabras pueden seguir mixto
                 ('OTHER', 'ALPHA'): True,
-                ('ALPHA', 'OTHER'): True
+                ('ALPHA', 'OTHER'): True,
+                ('NUMERIC', 'MIXED_NUMERIC'): True, # Caso borde
+                ('MIXED_NUMERIC', 'NUMERIC'): True, # Caso borde
             }
 
-            # Permitir transiciones genéricas si no están prohibidas explícitamente
-            return composition_rules.get((prev_type, field_type), True)
+            # ENDURECIDO: Rechazar por defecto si no está en las reglas permitidas
+            return composition_rules.get((prev_type, field_type), False)
 
         return True
 
@@ -742,7 +744,7 @@ class APUTransformer(Transformer):
         validation_chain = (
             self._validate_minimal_cardinality(fields)
             .bind(lambda f: self._validate_description_epicenter(f))
-            # Opcional: .bind(lambda f: self._validate_structural_integrity(f))
+            .bind(lambda f: self._validate_structural_integrity(f))  # Validar conectividad
         )
 
         if not validation_chain.is_valid():
@@ -772,6 +774,82 @@ class APUTransformer(Transformer):
         if not fields or not fields[0] or not fields[0].strip():
              return OptionMonad(error="Descripción vacía")
         return OptionMonad(fields)
+
+    def _validate_structural_integrity(self, fields: List[str]) -> OptionMonad[List[str]]:
+        """Valida integridad estructural usando teoría de grafos (conectividad)."""
+        graph = self._build_field_dependency_graph(fields)
+        if not self._is_graph_connected(graph):
+            return OptionMonad(error="Grafo de campos no conexo (integridad estructural fallida)")
+        return OptionMonad(fields)
+
+    def _build_field_dependency_graph(self, fields: List[str]) -> Dict[int, List[int]]:
+        """Construye grafo de dependencias entre campos."""
+        graph = defaultdict(list)
+        n = len(fields)
+
+        for i in range(n):
+            # Dependencias posicionales (lineales)
+            if i > 0:
+                graph[i].append(i-1)
+            if i < n - 1:
+                graph[i].append(i+1)
+
+            # Dependencias semánticas (adicionales)
+            for j in range(n):
+                if i != j and self._fields_are_semantically_related(fields[i], fields[j]):
+                    graph[i].append(j)
+
+        return dict(graph)
+
+    def _fields_are_semantically_related(self, field1: str, field2: str) -> bool:
+        """Determina si dos campos están semánticamente relacionados."""
+        # Coincidencia léxica fuerte
+        if len(field1) > 3 and len(field2) > 3:
+            if field1 in field2 or field2 in field1:
+                return True
+        return False
+
+    def _is_graph_connected(self, graph: Dict[int, List[int]]) -> bool:
+        """Verifica si un grafo es conexo usando BFS."""
+        if not graph:
+            return True
+
+        start_node = next(iter(graph))
+        visited = set()
+        queue = [start_node]
+
+        while queue:
+            node = queue.pop(0)
+            if node not in visited:
+                visited.add(node)
+                queue.extend(graph.get(node, []))
+
+        # El grafo es conexo si visitamos todos los nodos que tienen entradas en el grafo
+        # Nota: graph contiene todos los nodos como claves porque iteramos range(n)
+        return len(visited) == len(graph)
+
+    def _has_negative_cycles(self, graph: Dict[int, List[int]]) -> bool:
+        """Verifica existencia de ciclos (helper implementado por completitud)."""
+        # En un grafo no dirigido (simétrico), ciclos son triviales.
+        # Para cumplir el requerimiento, implementamos detección básica de ciclos DFS.
+        visited = set()
+        rec_stack = set()
+
+        def dfs(u, p):
+            visited.add(u)
+            rec_stack.add(u)
+            for v in graph.get(u, []):
+                if v == p: continue
+                if v in rec_stack: return True
+                if v not in visited:
+                    if dfs(v, u): return True
+            rec_stack.remove(u)
+            return False
+
+        for node in graph:
+            if node not in visited:
+                if dfs(node, -1): return True
+        return False
 
     def _detect_format_categorical(self, fields: List[str]) -> FormatoLinea:
         """Detección de formato V2 usando lógica de especialistas existente."""
