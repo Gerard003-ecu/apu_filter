@@ -8,17 +8,28 @@ from agent.business_topology import (
 
 
 class TestExecutiveReport:
+    """Suite de pruebas para la generación de reportes ejecutivos de riesgo."""
+
     @pytest.fixture
     def analyzer(self):
+        """Fixture que proporciona una instancia de BusinessTopologicalAnalyzer."""
         return BusinessTopologicalAnalyzer()
 
     def test_healthy_dag(self, analyzer):
-        """Test a healthy Directed Acyclic Graph (DAG) with Pyramidal Stability."""
-        # Create a graph with a solid base (More INSUMO than APU)
+        """
+        Prueba un Grafo Acíclico Dirigido (DAG) saludable con Estabilidad Piramidal.
+
+        Verifica que:
+        1. Una estructura con base sólida (más insumos que APUs) genere un score alto.
+        2. No se detecten riesgos circulares.
+        3. No se detecten alertas de desperdicio.
+        4. El nivel de complejidad sea categorizado correctamente.
+        """
+        # Crear un grafo con una base sólida (Más INSUMO que APU)
         G = nx.DiGraph()
 
-        # To get a high stability score, we need a high ratio of Insumos/APUs
-        # With 1 APU and 500 Insumos, stability is ~2.69 and score ~96.9
+        # Para obtener un score de estabilidad alto, necesitamos una alta proporción Insumos/APUs
+        # Con 1 APU y 200 Insumos, la estabilidad es alta.
 
         G.add_node("APU1", type="APU")
         for i in range(200):
@@ -35,16 +46,23 @@ class TestExecutiveReport:
         assert len(report.waste_alerts) == 0
         assert report.complexity_level in ["Baja", "Media", "Alta"]
 
-        # Call get_audit_report on the REPORT OBJECT (wrapped or result dict), NOT the GRAPH
+        # Verificar que el reporte de auditoría se genere correctamente
         result = analyzer.analyze_structural_integrity(G)
         audit_lines = analyzer.get_audit_report(result)
         assert any("AUDITORIA ESTRUCTURAL" in line for line in audit_lines)
 
     def test_circular_reference(self, analyzer):
-        """Test detection of circular references (errors) with new Narrative."""
+        """
+        Prueba la detección de referencias circulares (errores lógicos).
+
+        Verifica que:
+        1. Se penalice severamente el score de integridad.
+        2. Se detecten los riesgos circulares.
+        3. El mensaje de error contenga el texto esperado 'ciclo(s)'.
+        """
         G = nx.DiGraph()
         G.add_edge("APU1", "APU2")
-        G.add_edge("APU2", "APU1")  # Cycle
+        G.add_edge("APU2", "APU1")  # Ciclo
 
         nx.set_node_attributes(G, {"APU1": "APU", "APU2": "APU"}, "type")
 
@@ -52,16 +70,23 @@ class TestExecutiveReport:
 
         assert report.integrity_score <= 50.0
         assert len(report.circular_risks) > 0
-        # Updated V3 message expectations
+        # Expectativas de mensaje actualizadas para V3
         assert any("ciclo(s)" in r for r in report.circular_risks)
 
-        # Call analyze_structural_integrity to get compatible dict
+        # Verificar reporte de auditoría compatible
         result = analyzer.analyze_structural_integrity(G)
         audit_lines = analyzer.get_audit_report(result)
         assert any("ALERTA" in line for line in audit_lines)
 
     def test_isolated_nodes(self, analyzer):
-        """Test detection of isolated nodes (waste)"""
+        """
+        Prueba la detección de nodos aislados (desperdicio).
+
+        Verifica que:
+        1. Se penalice el score de integridad.
+        2. Se generen alertas de desperdicio.
+        3. El mensaje contenga 'nodo(s) aislado(s)'.
+        """
         G = nx.DiGraph()
         G.add_node("InsumoFantasma", type="INSUMO")
 
@@ -76,24 +101,28 @@ class TestExecutiveReport:
         assert any("ADVERTENCIA" in line for line in audit_lines)
 
     def test_orphan_insumos(self, analyzer):
-        """Test detection of orphan insumos (defined but not used in APUs)"""
+        """
+        Prueba la detección de insumos huérfanos (definidos pero no usados).
+        """
         G = nx.DiGraph()
-        # Orphan Insumo: Must be truly isolated or just no incoming edges?
-        # _classify_anomalous_nodes: if ind == 0 and outd == 0 -> isolated
-        # if ind == 0 -> orphan_insumos (if type INSUMO)
+        # Insumo Huérfano: ¿Debe estar totalmente aislado o solo sin aristas entrantes?
+        # _classify_anomalous_nodes: si in_degree == 0 -> orphan_insumos (si tipo INSUMO)
 
-        # Scenario 1: Truly Isolated Insumo
+        # Escenario 1: Insumo Totalmente Aislado
         G.add_node("InsumoOrphan", type="INSUMO")
 
         report = analyzer.generate_executive_report(G)
 
-        # Should trigger alerts
+        # Debe disparar alertas
         assert len(report.waste_alerts) > 0
-        # The message format in generate_executive_report is "nodo(s) aislado(s)"
+        # El formato del mensaje en generate_executive_report es "nodo(s) aislado(s)"
         assert any("nodo(s) aislado(s)" in alert for alert in report.waste_alerts)
 
     def test_integration_backward_compatibility(self, analyzer):
-        """Test that analyze_structural_integrity method output can still be processed by get_audit_report"""
+        """
+        Prueba que la salida del método analyze_structural_integrity pueda ser procesada
+        por get_audit_report (compatibilidad hacia atrás).
+        """
         G = nx.DiGraph()
         G.add_edge("A", "B")
 

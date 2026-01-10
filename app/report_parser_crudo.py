@@ -151,6 +151,7 @@ class LineHandler(ABC):
     """
 
     def __init__(self, parent_parser):
+        """Inicializa el handler con una referencia al parser padre."""
         self.parent = parent_parser  # Acceso a utilidades (Lark, Regex)
 
     @abstractmethod
@@ -175,11 +176,13 @@ class JunkHandler(LineHandler):
     """Detecta y descarta basura, separadores o líneas decorativas."""
 
     def can_handle(self, line: str, next_line: Optional[str] = None) -> bool:
+        """Verifica si la línea es considerada basura."""
         return self.parent._is_junk_line(line.upper())
 
     def handle(
         self, line: str, context: ParserContext, next_line: Optional[str] = None
     ) -> bool:
+        """Descarta la línea e incrementa el contador de basura."""
         context.stats["junk_lines_skipped"] += 1
         return False
 
@@ -188,6 +191,7 @@ class HeaderHandler(LineHandler):
     """Detecta encabezados de APU (Nivel 2)."""
 
     def can_handle(self, line: str, next_line: Optional[str] = None) -> bool:
+        """Verifica si la línea es un encabezado de APU."""
         line_upper = line.upper()
         is_header_line = "UNIDAD:" in line_upper
         is_item_line_next = next_line is not None and "ITEM:" in next_line.upper()
@@ -196,6 +200,7 @@ class HeaderHandler(LineHandler):
     def handle(
         self, line: str, context: ParserContext, next_line: Optional[str] = None
     ) -> bool:
+        """Procesa el encabezado de APU y actualiza el contexto actual."""
         header_line = line
         item_line = next_line.strip() if next_line else ""
 
@@ -231,11 +236,13 @@ class CategoryHandler(LineHandler):
     """Detecta cambios de categoría."""
 
     def can_handle(self, line: str, next_line: Optional[str] = None) -> bool:
+        """Verifica si la línea indica un cambio de categoría."""
         return self.parent._detect_category(line.upper()) is not None
 
     def handle(
         self, line: str, context: ParserContext, next_line: Optional[str] = None
     ) -> bool:
+        """Actualiza la categoría actual en el contexto."""
         new_category = self.parent._detect_category(line.upper())
         if new_category:
             context.current_category = new_category
@@ -248,12 +255,14 @@ class InsumoHandler(LineHandler):
     """Detecta y procesa líneas de insumos (Nivel 3)."""
 
     def can_handle(self, line: str, next_line: Optional[str] = None) -> bool:
+        """Verifica si la línea es un insumo potencial."""
         # Validación ligera preliminar: debe tener al menos un separador y algún número
         return ";" in line and any(c.isdigit() for c in line)
 
     def handle(
         self, line: str, context: ParserContext, next_line: Optional[str] = None
     ) -> bool:
+        """Procesa la línea de insumo y la añade a los registros crudos si es válida."""
         # 1. VALIDACIÓN PIRAMIDAL (Lógica Estructural)
         if not context.has_active_parent():
             # ERROR CRÍTICO DE NEGOCIO: Recurso Huérfano
@@ -488,6 +497,13 @@ class ReportParserCrudo:
         Valida una línea usando el parser Lark con optimización topológica.
 
         Refuerzo: Prefiltrado estricto, cache semántica y manejo jerárquico de errores.
+
+        Args:
+            line: La línea de texto a validar.
+            use_cache: Si es True, intenta usar el cache de parsing.
+
+        Retorna:
+            Tuple[bool, Optional[Any], str]: (Es válido, Árbol Lark, Mensaje de error).
         """
         # === PRECONDICIONES TOPOLÓGICAS ===
         if self.lark_parser is None:
@@ -592,6 +608,12 @@ class ReportParserCrudo:
         Computa clave de cache basada en invariantes topológicos.
 
         Preserva semántica mientras normaliza variaciones sintácticas superficiales.
+
+        Args:
+            line: La línea de texto.
+
+        Retorna:
+            str: El hash semántico.
         """
         # Normalización de espacios (homeomorfismo de espaciado)
         normalized = re.sub(r"\s+", " ", line.strip())
@@ -650,6 +672,12 @@ class ReportParserCrudo:
 
         Un árbol es homotópicamente válido si puede deformarse continuamente
         a la estructura canónica esperada.
+
+        Args:
+            tree: El árbol Lark.
+
+        Retorna:
+            bool: True si es válido.
         """
         if tree is None:
             return False
@@ -708,6 +736,12 @@ class ReportParserCrudo:
 
         Una línea tiene conectividad si sus componentes están distribuidos
         y relacionados mediante separadores.
+
+        Args:
+            line: La línea de texto.
+
+        Retorna:
+            bool: True si tiene conectividad mínima.
         """
         alpha_sequences = re.findall(r"[A-Za-zÁÉÍÓÚáéíóúÑñ]{2,}", line)
         numeric_sequences = re.findall(r"\d+\.?\d*", line)
@@ -1184,7 +1218,14 @@ class ReportParserCrudo:
             )
 
     def get_parse_cache(self) -> Dict[str, Any]:
-        """Retorna el cache de parsing para reutilización en APUProcessor."""
+        """
+        Retorna el cache de parsing para reutilización en APUProcessor.
+
+        Filtra entradas inválidas y devuelve un diccionario de árboles válidos.
+
+        Retorna:
+            Dict[str, Any]: Diccionario {hash_semantico: arbol_lark}.
+        """
         valid_cache = {}
         invalid_count = 0
 
@@ -1224,7 +1265,14 @@ class ReportParserCrudo:
             raise ValueError(f"El archivo está vacío: {self.file_path}")
 
     def parse_to_raw(self) -> List[Dict[str, Any]]:
-        """Punto de entrada principal para parsear el archivo."""
+        """
+        Punto de entrada principal para parsear el archivo.
+
+        Ejecuta la máquina de estados sobre las líneas del archivo.
+
+        Retorna:
+            List[Dict[str, Any]]: Lista de registros crudos extraídos.
+        """
         if self._parsed:
             return self.raw_records
 

@@ -1,3 +1,10 @@
+"""
+Suite de pruebas para el módulo estimador (app.estimator).
+
+Verifica la lógica de estimación de costos, búsqueda semántica y por palabras clave,
+validación de datos y aplicación de reglas de negocio.
+"""
+
 import sys
 from pathlib import Path
 from unittest.mock import MagicMock, patch
@@ -196,38 +203,44 @@ def sample_config():
 
 
 class TestSafeConversions:
-    """Pruebas para conversiones seguras."""
+    """Pruebas para conversiones seguras de tipos."""
 
     def test_safe_float_conversion_valid(self):
+        """Verifica conversión correcta de valores numéricos válidos a float."""
         assert safe_float_conversion(42.5) == 42.5
         assert safe_float_conversion("123.45") == 123.45
         assert safe_float_conversion(100) == 100.0
 
     def test_safe_float_conversion_invalid(self):
+        """Verifica manejo de valores inválidos retornando el default."""
         assert safe_float_conversion(None, 10.0) == 10.0
         assert safe_float_conversion("invalid", 5.0) == 5.0
         assert safe_float_conversion(np.nan, 0.0) == 0.0
         assert safe_float_conversion(np.inf, 0.0) == 0.0
 
     def test_safe_int_conversion_valid(self):
+        """Verifica conversión correcta de valores válidos a int."""
         assert safe_int_conversion(42) == 42
         assert safe_int_conversion("123") == 123
         assert safe_int_conversion(99.9) == 99
 
     def test_safe_int_conversion_invalid(self):
+        """Verifica manejo de valores inválidos retornando el default."""
         assert safe_int_conversion(None, 10) == 10
         assert safe_int_conversion("invalid", 5) == 5
         assert safe_int_conversion(np.nan, 0) == 0
 
 
 class TestValidations:
-    """Pruebas para funciones de validación."""
+    """Pruebas para funciones de validación de datos."""
 
     def test_validate_dataframe_columns_success(self):
+        """Verifica validación exitosa cuando existen las columnas."""
         df = pd.DataFrame({"A": [1], "B": [2], "C": [3]})
         assert validate_dataframe_columns(df, ["A", "B"], "test_df")[0] is True
 
     def test_validate_dataframe_columns_missing(self):
+        """Verifica fallo cuando faltan columnas requeridas."""
         df = pd.DataFrame({"A": [1], "B": [2]})
         assert (
             validate_dataframe_columns(df, ["A", "B", "C"], "test_df", strict=True)[0]
@@ -235,10 +248,12 @@ class TestValidations:
         )
 
     def test_validate_dataframe_columns_not_dataframe(self):
+        """Verifica fallo si el input no es un DataFrame."""
         assert validate_dataframe_columns(None, ["A"], "test")[0] is False
         assert validate_dataframe_columns([], ["A"], "test")[0] is False
 
     def test_get_safe_column_value(self):
+        """Verifica extracción segura de valores de una serie."""
         row = pd.Series({"name": "test", "value": 42, "empty": None})
 
         assert get_safe_column_value(row, "name", "default") == "test"
@@ -248,9 +263,10 @@ class TestValidations:
 
 
 class TestCalculateMatchScore:
-    """Pruebas para cálculo de puntuación de coincidencia."""
+    """Pruebas para cálculo de puntuación de coincidencia entre conjuntos de palabras."""
 
     def test_calculate_match_score_full_match(self):
+        """Verifica puntuación 100% para coincidencia completa."""
         desc_words = {"instalacion", "muro", "ladrillo"}
         keywords = ["muro", "ladrillo"]
         matches, percentage = _calculate_match_score(desc_words, keywords)
@@ -258,6 +274,7 @@ class TestCalculateMatchScore:
         assert percentage == 100.0
 
     def test_calculate_match_score_partial_match(self):
+        """Verifica puntuación parcial para coincidencia parcial."""
         desc_words = {"instalacion", "muro", "ladrillo"}
         keywords = ["muro", "pintura"]
         matches, percentage = _calculate_match_score(desc_words, keywords)
@@ -265,6 +282,7 @@ class TestCalculateMatchScore:
         assert percentage == 50.0
 
     def test_calculate_match_score_no_match(self):
+        """Verifica puntuación 0% para ninguna coincidencia."""
         desc_words = {"instalacion", "muro", "ladrillo"}
         keywords = ["pintura", "acrilica"]
         matches, percentage = _calculate_match_score(desc_words, keywords)
@@ -272,6 +290,7 @@ class TestCalculateMatchScore:
         assert percentage == 0.0
 
     def test_calculate_match_score_empty_inputs(self):
+        """Verifica manejo de entradas vacías."""
         assert _calculate_match_score(set(), []) == (0, 0.0)
         assert _calculate_match_score({"test"}, []) == (0, 0.0)
         assert _calculate_match_score(set(), ["test"]) == (0, 0.0)
@@ -286,6 +305,7 @@ class TestFindBestKeywordMatch:
     """Pruebas para búsqueda por palabras clave."""
 
     def test_keyword_match_strict_success(self, sample_apu_pool):
+        """Verifica éxito en búsqueda estricta."""
         log = []
         match, details = _find_best_keyword_match(
             df_pool=sample_apu_pool,
@@ -305,6 +325,7 @@ class TestFindBestKeywordMatch:
         )
 
     def test_keyword_match_strict_failure(self, sample_apu_pool):
+        """Verifica fallo en búsqueda estricta cuando no hay coincidencia."""
         log = []
         match, details = _find_best_keyword_match(
             df_pool=sample_apu_pool,
@@ -317,6 +338,7 @@ class TestFindBestKeywordMatch:
         assert "❌ No se encontró match estricto" in "\n".join(log)
 
     def test_keyword_match_flexible_success(self, sample_apu_pool):
+        """Verifica éxito en búsqueda flexible."""
         log = []
         match, details = _find_best_keyword_match(
             df_pool=sample_apu_pool,
@@ -332,6 +354,7 @@ class TestFindBestKeywordMatch:
         assert "✅ Match FLEXIBLE encontrado" in "\n".join(log)
 
     def test_keyword_match_below_threshold(self, sample_apu_pool):
+        """Verifica fallo cuando la coincidencia está por debajo del umbral."""
         log = []
         match, details = _find_best_keyword_match(
             df_pool=sample_apu_pool,
@@ -345,6 +368,7 @@ class TestFindBestKeywordMatch:
         assert "❌ Sin match válido" in "\n".join(log)
 
     def test_keyword_match_substring_mode(self, sample_apu_pool):
+        """Verifica búsqueda en modo subcadena."""
         log = []
         match, details = _find_best_keyword_match(
             df_pool=sample_apu_pool,
@@ -358,6 +382,7 @@ class TestFindBestKeywordMatch:
         assert details is not None
 
     def test_keyword_match_empty_pool(self):
+        """Verifica manejo de pool vacío."""
         log = []
         match, details = _find_best_keyword_match(
             df_pool=pd.DataFrame(),
@@ -368,6 +393,7 @@ class TestFindBestKeywordMatch:
         assert "⚠️ Pool vacío" in "\n".join(log)
 
     def test_keyword_match_invalid_keywords(self, sample_apu_pool):
+        """Verifica manejo de keywords inválidas o vacías."""
         log = []
         match, details = _find_best_keyword_match(
             df_pool=sample_apu_pool,
@@ -378,6 +404,7 @@ class TestFindBestKeywordMatch:
         assert "⚠️ Keywords vacías" in "\n".join(log)
 
     def test_keyword_match_invalid_mode(self, sample_apu_pool):
+        """Verifica fallback a modo WORDS cuando se especifica modo inválido."""
         log = []
         match, details = _find_best_keyword_match(
             df_pool=sample_apu_pool,
@@ -398,6 +425,7 @@ class TestFindBestSemanticMatch:
     """Pruebas para búsqueda semántica."""
 
     def test_semantic_match_success(self, mock_search_artifacts, sample_apu_pool):
+        """Verifica búsqueda semántica exitosa."""
         log = []
         match, details = _find_best_semantic_match(
             df_pool=sample_apu_pool,
@@ -414,6 +442,7 @@ class TestFindBestSemanticMatch:
         assert "✅ Coincidencia semántica encontrada" in "\n".join(log)
 
     def test_semantic_match_below_threshold(self, mock_search_artifacts, sample_apu_pool):
+        """Verifica fallo cuando la similitud semántica es baja."""
         log = []
         # Mock para retornar similitud baja
         with patch.object(
@@ -433,7 +462,7 @@ class TestFindBestSemanticMatch:
             assert "❌ Sin coincidencia válida" in "\n".join(log)
 
     def test_semantic_match_no_artifacts(self, sample_apu_pool):
-        """Prueba cuando no hay artefactos de búsqueda semántica."""
+        """Verifica comportamiento cuando no hay artefactos de búsqueda semántica."""
         log = []
         # artifacts as None
         match, details = _find_best_semantic_match(
@@ -446,6 +475,7 @@ class TestFindBestSemanticMatch:
         assert "SearchArtifacts es None" in "\n".join(log)
 
     def test_semantic_match_empty_pool(self, mock_search_artifacts):
+        """Verifica manejo de pool vacío en búsqueda semántica."""
         log = []
         match, details = _find_best_semantic_match(
             df_pool=pd.DataFrame(),
@@ -457,6 +487,7 @@ class TestFindBestSemanticMatch:
         assert "⚠️ Pool de APUs vacío" in "\n".join(log)
 
     def test_semantic_match_empty_query(self, mock_search_artifacts, sample_apu_pool):
+        """Verifica manejo de consulta vacía en búsqueda semántica."""
         log = []
         match, details = _find_best_semantic_match(
             df_pool=sample_apu_pool,
@@ -502,7 +533,7 @@ class TestFindBestSemanticMatch:
             assert "❌ ERROR en búsqueda FAISS" in "\n".join(log)
 
     def test_semantic_match_apu_not_in_pool(self, mock_search_artifacts, sample_apu_pool):
-        """Prueba cuando el APU encontrado no está en el pool filtrado."""
+        """Prueba cuando el APU encontrado por FAISS no está en el pool filtrado."""
         log = []
         # Mock para retornar un índice que no existe en el pool
         with patch.object(
@@ -529,12 +560,12 @@ class TestFindBestSemanticMatch:
 
 
 class TestCalculateEstimate:
-    """Pruebas de integración para el estimador."""
+    """Pruebas de integración para la función principal de estimación."""
 
     def test_calculate_estimate_full_success(
         self, mock_search_artifacts, sample_apu_pool, sample_apu_detail, sample_config
     ):
-        """Prueba exitosa con todos los componentes."""
+        """Prueba exitosa con todos los componentes y factores."""
         params = {
             "material": "LADRILLO",
             "cuadrilla": "1",
@@ -546,9 +577,6 @@ class TestCalculateEstimate:
             "processed_apus": sample_apu_pool.to_dict("records"),
             "apus_detail": sample_apu_detail,
         }
-
-        # Removed unused variable `result`
-        calculate_estimate(params, data_store, sample_config, mock_search_artifacts)
 
         # La búsqueda semántica se llama 2 veces: suministro y tarea
         result = calculate_estimate(params, data_store, sample_config, mock_search_artifacts)
@@ -566,7 +594,7 @@ class TestCalculateEstimate:
     def test_calculate_estimate_missing_material(
         self, mock_search_artifacts, sample_apu_pool, sample_config
     ):
-        """Prueba con material faltante."""
+        """Prueba con material faltante en los parámetros."""
         params = {"cuadrilla": "1"}
         data_store = {"processed_apus": sample_apu_pool.to_dict("records")}
 
@@ -576,7 +604,7 @@ class TestCalculateEstimate:
         assert "obligatorio" in result["error"]
 
     def test_calculate_estimate_empty_apus(self, mock_search_artifacts, sample_config):
-        """Prueba con APUs vacíos."""
+        """Prueba con lista de APUs vacía."""
         params = {"material": "LADRILLO"}
         data_store = {"processed_apus": []}
 
@@ -595,7 +623,7 @@ class TestCalculateEstimate:
         sample_apu_pool,
         sample_config,
     ):
-        """Verifica que la búsqueda semántica se use primero."""
+        """Verifica que la búsqueda semántica se use con prioridad sobre keywords."""
         # Configurar mocks para devolver (match, details)
         mock_semantic_match.return_value = (
             sample_apu_pool.iloc[0],
@@ -612,7 +640,6 @@ class TestCalculateEstimate:
             "apus_detail": [],
         }
 
-        # Removed unused variable `result`
         calculate_estimate(params, data_store, sample_config, mock_search_artifacts)
 
         # La búsqueda semántica se llama 2 veces: suministro y tarea
@@ -635,7 +662,7 @@ class TestCalculateEstimate:
         sample_apu_pool,
         sample_config,
     ):
-        """Verifica el fallback a keywords cuando semántica falla."""
+        """Verifica el fallback a keywords cuando la búsqueda semántica falla."""
         # Semántica falla
         mock_semantic_match.return_value = (None, None)
         # Keywords tiene éxito
@@ -662,11 +689,9 @@ class TestCalculateEstimate:
         assert "Fallback: Búsqueda por palabras clave" in result["log"]
 
     def test_calculate_estimate_no_semantic_artifacts(self, sample_apu_pool, sample_config):
-        """Verifica comportamiento sin artefactos semánticos."""
+        """Verifica comportamiento cuando no hay artefactos semánticos disponibles."""
         # No configurar artefactos semánticos
-        search_artifacts = (
-            None  # Or empty SearchArtifacts(None, None, None) if strict typing
-        )
+        search_artifacts = None
 
         params = {"material": "LADRILLO", "cuadrilla": "1"}
         data_store = {
@@ -677,24 +702,18 @@ class TestCalculateEstimate:
         with patch("app.estimator._find_best_keyword_match") as mock_kw:
             mock_kw.return_value = (sample_apu_pool.iloc[0], None)
 
-            # This call will internally handle None search_artifacts by logging error
-            # and falling back or returning None
-            # Wait, _find_best_semantic_match checks artifacts validity.
-            # calculate_estimate will call semantic search, fail, then fallback to keyword
             result = calculate_estimate(
                 params, data_store, sample_config, search_artifacts
-            )  # Pass None
+            )
 
-            # Debe usar keywords como fallback because semantic search returns None
-            # if artifacts are missing
+            # Debe usar keywords como fallback
             assert mock_kw.call_count >= 2
-            # The log message comes from inside _find_best_semantic_match
             assert "SearchArtifacts es None" in result["log"]
 
     def test_calculate_estimate_with_rendimiento(
         self, mock_search_artifacts, sample_apu_pool, sample_apu_detail, sample_config
     ):
-        """Prueba cálculo de rendimiento desde detalle."""
+        """Prueba cálculo de rendimiento utilizando el detalle de APUs."""
         params = {"material": "PINTURA", "cuadrilla": "1"}
         data_store = {
             "processed_apus": sample_apu_pool.to_dict("records"),
@@ -722,7 +741,7 @@ class TestCalculateEstimate:
     def test_calculate_estimate_default_values(
         self, mock_search_artifacts, sample_apu_pool, sample_config
     ):
-        """Prueba con valores por defecto."""
+        """Prueba con valores por defecto cuando faltan parámetros opcionales."""
         params = {"material": "LADRILLO"}  # Solo material
         data_store = {
             "processed_apus": sample_apu_pool.to_dict("records"),
@@ -758,7 +777,7 @@ class TestCalculateEstimate:
             params, data_store, invalid_config, mock_search_artifacts
         )
 
-        # No debe fallar, debe ajustar a valores válidos
+        # No debe fallar, debe ajustar a valores válidos o manejar el error
         assert "error" not in result or "obligatorio" in result.get("error", "")
 
 
@@ -771,7 +790,7 @@ class TestEdgeCases:
     """Pruebas de casos límite y situaciones especiales."""
 
     def test_apu_with_null_values(self, mock_search_artifacts):
-        """Prueba con APUs que contienen valores nulos."""
+        """Prueba con APUs que contienen valores nulos en campos críticos."""
         apu_pool_with_nulls = pd.DataFrame(
             [
                 {
@@ -797,7 +816,7 @@ class TestEdgeCases:
         assert match is None
 
     def test_very_long_description(self, mock_search_artifacts, sample_apu_pool):
-        """Prueba con descripciones muy largas."""
+        """Prueba con descripciones muy largas para verificar el manejo de memoria/logs."""
         long_desc_pool = sample_apu_pool.copy()
         long_desc_pool.loc[0, "original_description"] = "A" * 1000
         # Use a long word that won't be filtered out by length check (<2 chars)
@@ -815,7 +834,7 @@ class TestEdgeCases:
         assert "..." in log_text  # Debe truncar descripciones largas
 
     def test_special_characters_in_keywords(self, mock_search_artifacts, sample_apu_pool):
-        """Prueba con caracteres especiales en keywords."""
+        """Prueba con caracteres especiales en keywords de búsqueda."""
         log = []
         match, details = _find_best_keyword_match(
             df_pool=sample_apu_pool,
@@ -848,7 +867,7 @@ class TestEdgeCases:
         assert result.get("rendimiento_m2_por_dia", 0) == 0
 
     def test_negative_values_in_apus(self, mock_search_artifacts):
-        """Prueba con valores negativos (que no deberían existir)."""
+        """Prueba con valores negativos en APUs (datos corruptos)."""
         negative_pool = pd.DataFrame(
             [
                 {
@@ -871,7 +890,6 @@ class TestEdgeCases:
         result = calculate_estimate(params, data_store, config, mock_search_artifacts)
 
         # Debe manejar valores negativos sin crashear
-        # El valor final podría ser negativo o cero según la lógica
         assert isinstance(result.get("valor_construccion", 0), (int, float))
 
 
@@ -884,7 +902,7 @@ class TestPerformance:
     """Pruebas de rendimiento con datasets grandes."""
 
     def test_large_apu_pool(self, mock_search_artifacts):
-        """Prueba con un pool grande de APUs."""
+        """Prueba el rendimiento de búsqueda en un pool grande de APUs (1000)."""
         # Crear 1000 APUs
         large_pool = pd.DataFrame(
             [

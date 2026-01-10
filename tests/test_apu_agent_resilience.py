@@ -6,16 +6,18 @@ from agent.apu_agent import AutonomousAgent
 
 
 class TestAgentResilience:
-    @patch("time.sleep", return_value=None)  # Skip sleep to speed up tests
+    """Suite de pruebas para la resiliencia del agente."""
+
+    @patch("time.sleep", return_value=None)  # Saltar sleep para acelerar tests
     @patch("requests.get")
     def test_wait_for_startup_cold_start(self, mock_get, mock_sleep):
         """
-        Test that _wait_for_startup handles ConnectionRefusedError (Cold Start)
-        and retries until success.
+        Prueba que _wait_for_startup maneja ConnectionRefusedError (Cold Start)
+        y reintenta hasta tener éxito.
         """
         agent = AutonomousAgent()
 
-        # Scenario:
+        # Escenario:
         # 1. ConnectionError (Refused)
         # 2. ConnectionError (Refused)
         # 3. HTTP 503 (Service Unavailable - still loading)
@@ -28,14 +30,12 @@ class TestAgentResilience:
             MagicMock(ok=True, status_code=200),
         ]
 
-        # We need to control the _running loop, or it will loop forever if logic fails.
-        # However, _wait_for_startup loops while self._running is True.
-        # We can't easily break the loop from outside without threading or side effects.
-        # But wait, the method returns when response.ok is True.
+        # Necesitamos controlar el bucle _running, o iterará por siempre si la lógica falla.
+        # Sin embargo, _wait_for_startup termina cuando response.ok es True.
 
         agent._running = True
         agent._wait_for_startup()
 
-        # Assertions
+        # Aserciones
         assert mock_get.call_count == 4
-        assert mock_sleep.call_count == 3  # Should sleep after each failure
+        assert mock_sleep.call_count == 3  # Debe dormir después de cada fallo

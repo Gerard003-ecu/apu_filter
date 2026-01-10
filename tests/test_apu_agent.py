@@ -119,6 +119,7 @@ class TestFixtures:
 
     @pytest.fixture
     def nominal_response_data(self) -> Dict[str, Any]:
+        """Datos de respuesta nominal para pruebas."""
         return {
             "flyback_voltage": 0.3,
             "saturation": 0.5,
