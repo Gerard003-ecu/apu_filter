@@ -40,7 +40,12 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class ParsingStats:
-    """Estadísticas detalladas del proceso de parsing."""
+    """
+    Estadísticas detalladas del proceso de parsing.
+
+    Recopila métricas sobre el éxito, fallos y calidad estructural del
+    procesamiento de líneas de APU, incluyendo entropía y cohesión.
+    """
 
     total_lines: int = 0
     successful_parses: int = 0
@@ -62,7 +67,12 @@ class ParsingStats:
 
     @property
     def avg_field_entropy(self) -> float:
-        """Calcula el promedio de entropía de campo."""
+        """
+        Calcula el promedio de entropía de campo.
+
+        Retorna:
+            float: El valor promedio de entropía o 0.0 si no hay parseos exitosos.
+        """
         return (
             self.sum_field_entropy / self.successful_parses
             if self.successful_parses > 0
@@ -71,7 +81,12 @@ class ParsingStats:
 
     @property
     def avg_numeric_cohesion(self) -> float:
-        """Calcula el promedio de cohesión numérica."""
+        """
+        Calcula el promedio de cohesión numérica.
+
+        Retorna:
+            float: El valor promedio de cohesión o 0.0 si no hay parseos exitosos.
+        """
         return (
             self.sum_numeric_cohesion / self.successful_parses
             if self.successful_parses > 0
@@ -80,7 +95,11 @@ class ParsingStats:
 
 
 class TipoInsumo(Enum):
-    """Enumeración de tipos de insumo válidos."""
+    """
+    Enumeración de tipos de insumo válidos en el sistema.
+
+    Define las categorías fundamentales de recursos en un APU.
+    """
 
     MANO_DE_OBRA = "MANO_DE_OBRA"
     EQUIPO = "EQUIPO"
@@ -90,7 +109,11 @@ class TipoInsumo(Enum):
 
 
 class FormatoLinea(Enum):
-    """Enumeración de formatos de línea detectados."""
+    """
+    Enumeración de formatos de línea detectados.
+
+    Clasifica la estructura sintáctica de una línea parseada.
+    """
 
     MO_COMPLETA = "MO_COMPLETA"
     INSUMO_BASICO = "INSUMO_BASICO"
@@ -99,7 +122,12 @@ class FormatoLinea(Enum):
 
 @dataclass
 class ValidationThresholds:
-    """Umbrales de validación para diferentes tipos de insumos."""
+    """
+    Umbrales de validación para diferentes tipos de insumos.
+
+    Define los límites aceptables para valores numéricos como jornales,
+    rendimientos y precios, utilizados para filtrar anomalías.
+    """
 
     min_jornal: float = 50000
     max_jornal: float = 10000000
@@ -124,50 +152,103 @@ class OptionMonad(Generic[T]):
     """
     Mónada Option/Maybe para manejo seguro de valores.
 
+    Implementa el patrón monádico para encapsular valores opcionales y errores,
+    permitiendo encadenamiento seguro de operaciones (bind/flat_map).
+
     REFINADO: Tipado correcto para functor y composición monádica.
     """
 
     __slots__ = ("_value", "_error")
 
     def __init__(self, value: Optional[T] = None, error: str = ""):
+        """Inicializa la mónada con un valor o un error."""
         self._value = value
         self._error = error
 
     @classmethod
     def pure(cls, value: T) -> "OptionMonad[T]":
-        """Inyección monádica (unit/return): T -> M[T]."""
+        """
+        Inyección monádica (unit/return): T -> M[T].
+
+        Args:
+            value: El valor a encapsular.
+
+        Retorna:
+            OptionMonad[T]: Una nueva instancia conteniendo el valor.
+        """
         return cls(value=value)
 
     @classmethod
     def fail(cls, error: str) -> "OptionMonad[T]":
-        """Constructor de fallo explícito."""
+        """
+        Constructor de fallo explícito.
+
+        Args:
+            error: Mensaje descriptivo del error.
+
+        Retorna:
+            OptionMonad[T]: Una instancia representando un estado de fallo.
+        """
         return cls(value=None, error=error)
 
     def is_valid(self) -> bool:
-        """Verifica si la mónada contiene un valor válido."""
+        """
+        Verifica si la mónada contiene un valor válido.
+
+        Retorna:
+            bool: True si contiene un valor, False si es un error.
+        """
         return self._value is not None
 
     @property
     def value(self) -> T:
-        """Obtiene el valor contenido o lanza excepción si es inválido."""
+        """
+        Obtiene el valor contenido o lanza excepción si es inválido.
+
+        Raises:
+            ValueError: Si la mónada representa un fallo.
+
+        Retorna:
+            T: El valor contenido.
+        """
         if self._value is None:
             raise ValueError(f"Acceso a valor inválido: {self._error}")
         return self._value
 
     def get_or_else(self, default: T) -> T:
-        """Extracción segura con valor por defecto."""
+        """
+        Extracción segura con valor por defecto.
+
+        Args:
+            default: Valor a retornar si la mónada es inválida.
+
+        Retorna:
+            T: El valor contenido o el valor por defecto.
+        """
         return self._value if self._value is not None else default
 
     @property
     def error(self) -> str:
-        """Obtiene el mensaje de error."""
+        """
+        Obtiene el mensaje de error.
+
+        Retorna:
+            str: El mensaje de error asociado.
+        """
         return self._error
 
     def bind(self, f: Callable[[T], "OptionMonad[U]"]) -> "OptionMonad[U]":
         """
         Operación bind de la mónada (>>=).
 
-        REFINADO: Preserva cadena de errores para trazabilidad.
+        Permite encadenar operaciones que retornan una OptionMonad.
+        Si la instancia actual es un fallo, propaga el error.
+
+        Args:
+            f: Función que toma el valor T y retorna OptionMonad[U].
+
+        Retorna:
+            OptionMonad[U]: El resultado de aplicar f o el error propagado.
         """
         if not self.is_valid():
             return OptionMonad.fail(self._error)
@@ -185,7 +266,13 @@ class OptionMonad(Generic[T]):
         """
         Operación map del functor: (T -> U) -> M[T] -> M[U].
 
-        REFINADO: Tipado correcto que permite transformación de tipos.
+        Transforma el valor contenido si es válido.
+
+        Args:
+            f: Función de transformación T -> U.
+
+        Retorna:
+            OptionMonad[U]: Mónada con el valor transformado o el error original.
         """
         if not self.is_valid():
             return OptionMonad.fail(self._error)
@@ -195,13 +282,32 @@ class OptionMonad(Generic[T]):
             return OptionMonad.fail(f"Map error: {e}")
 
     def flat_map(self, f: Callable[[T], "OptionMonad[U]"]) -> "OptionMonad[U]":
-        """Alias semántico para bind (convención Scala/funcional)."""
+        """
+        Alias semántico para bind (convención Scala/funcional).
+
+        Args:
+            f: Función que toma el valor T y retorna OptionMonad[U].
+
+        Retorna:
+            OptionMonad[U]: El resultado de aplicar f.
+        """
         return self.bind(f)
 
     def filter(
         self, predicate: Callable[[T], bool], error_msg: str = "Filtro fallido"
     ) -> "OptionMonad[T]":
-        """Filtrado monádico con predicado."""
+        """
+        Filtrado monádico con predicado.
+
+        Convierte un valor válido en un fallo si no cumple el predicado.
+
+        Args:
+            predicate: Función que evalúa el valor.
+            error_msg: Mensaje de error si el predicado falla.
+
+        Retorna:
+            OptionMonad[T]: La misma instancia si pasa, o un fallo si no.
+        """
         if not self.is_valid():
             return self
         try:
@@ -212,6 +318,7 @@ class OptionMonad(Generic[T]):
             return OptionMonad.fail(f"Error en predicado: {e}")
 
     def __repr__(self) -> str:
+        """Representación string de la mónada."""
         if self.is_valid():
             return f"Some({self._value!r})"
         return f"None({self._error})"
@@ -494,7 +601,15 @@ class UnitsValidator:
     @classmethod
     @lru_cache(maxsize=256)
     def normalize_unit(cls, unit: str) -> str:
-        """Normaliza una unidad a su forma canónica (ej. "Metro" -> "M")."""
+        """
+        Normaliza una unidad a su forma canónica (ej. "Metro" -> "M").
+
+        Args:
+            unit: La cadena de unidad original.
+
+        Retorna:
+            str: La unidad normalizada o "UND" si no es reconocible.
+        """
         if not unit:
             return "UND"
 
@@ -519,7 +634,15 @@ class UnitsValidator:
 
     @classmethod
     def is_valid(cls, unit: str) -> bool:
-        """Verifica si una cadena de texto representa una unidad válida."""
+        """
+        Verifica si una cadena de texto representa una unidad válida.
+
+        Args:
+            unit: La cadena de unidad a verificar.
+
+        Retorna:
+            bool: True si es una unidad válida, False en caso contrario.
+        """
         if not unit:
             return False
         unit_clean = re.sub(r"[^A-Z0-9]", "", unit.upper().strip())
@@ -541,7 +664,7 @@ class NumericFieldExtractor:
         profile: Optional[Dict[str, Any]] = None,
         thresholds: Optional[ValidationThresholds] = None,
     ):
-        """Inicializa el extractor."""
+        """Inicializa el extractor con configuración, perfil y umbrales."""
         self.config = config or {}
         self.profile = profile or {}
         self.pattern_matcher = PatternMatcher()
@@ -552,7 +675,16 @@ class NumericFieldExtractor:
     def extract_all_numeric_values(
         self, fields: List[str], skip_first: bool = True
     ) -> List[float]:
-        """Extrae todos los valores numéricos válidos de una lista de campos."""
+        """
+        Extrae todos los valores numéricos válidos de una lista de campos.
+
+        Args:
+            fields: Lista de campos de texto.
+            skip_first: Si es True, omite el primer campo (generalmente descripción).
+
+        Retorna:
+            List[float]: Lista de valores numéricos extraídos.
+        """
         start_idx = 1 if skip_first else 0
         numeric_values = []
 
@@ -567,7 +699,15 @@ class NumericFieldExtractor:
         return numeric_values
 
     def parse_number_safe(self, value: str) -> Optional[float]:
-        """Parsea un número de forma segura, utilizando el separador decimal configurado."""
+        """
+        Parsea un número de forma segura, utilizando el separador decimal configurado.
+
+        Args:
+            value: La cadena de texto a parsear.
+
+        Retorna:
+            Optional[float]: El valor numérico o None si falla.
+        """
         if not value or not isinstance(value, str):
             return None
         try:
@@ -582,6 +722,13 @@ class NumericFieldExtractor:
         Identifica rendimiento y jornal de una lista de valores numéricos.
 
         REFINADO: Validación de invariantes y ordenamiento coherente.
+        Utiliza heurísticas basadas en magnitud y relaciones típicas.
+
+        Args:
+            numeric_values: Lista de valores candidatos.
+
+        Retorna:
+            Optional[Tuple[float, float]]: Tupla (rendimiento, jornal) si se identifican, o None.
         """
         if len(numeric_values) < 2:
             return None
@@ -659,7 +806,16 @@ class NumericFieldExtractor:
     def extract_insumo_values(
         self, fields: List[str], start_from: int = 2
     ) -> List[float]:
-        """Extrae valores numéricos para insumos básicos (no Mano de Obra)."""
+        """
+        Extrae valores numéricos para insumos básicos (no Mano de Obra).
+
+        Args:
+            fields: Lista de campos.
+            start_from: Índice desde donde empezar la extracción.
+
+        Retorna:
+            List[float]: Lista de valores extraídos.
+        """
         valores = []
         for i in range(start_from, len(fields)):
             if fields[i] and "%" not in fields[i]:
@@ -727,6 +883,9 @@ class APUTransformer(Transformer):
         Carga los umbrales de validación desde la configuración.
 
         REFINADO: Manejo robusto de configuración ausente o malformada.
+
+        Retorna:
+            ValidationThresholds: Objeto con los umbrales configurados.
         """
         defaults = ValidationThresholds()
 
@@ -851,6 +1010,12 @@ class APUTransformer(Transformer):
         Extrae campos usando estructura de mónada Option (Maybe).
 
         REFINADO: Validación consistente y manejo robusto de estructuras anidadas.
+
+        Args:
+            args: Lista de argumentos provenientes del parser Lark.
+
+        Retorna:
+            OptionMonad[List[str]]: Lista de campos extraídos o fallo.
         """
         if not args:
             return OptionMonad.fail("Args vacío - imposible extraer campos")
@@ -948,6 +1113,14 @@ class APUTransformer(Transformer):
 
         El espacio de campos forma un monoide bajo concatenación, donde cada
         transición entre tipos debe preservar la estructura semántica del APU.
+
+        Args:
+            value: Valor actual a validar.
+            position: Posición en la secuencia de campos.
+            context: Contexto de campos anteriores.
+
+        Retorna:
+            bool: True si la transición es homogénea, False en caso contrario.
         """
         if not value or not value.strip():
             return True  # Elemento neutro del monoide
@@ -1007,6 +1180,12 @@ class APUTransformer(Transformer):
         Clasifica un campo en tipos algebraicos del anillo de campos.
 
         REFINADO: Manejo de casos especiales y porcentajes.
+
+        Args:
+            field: El campo a clasificar.
+
+        Retorna:
+            str: Tipo algebraico ('ALPHA', 'NUMERIC', 'MIXED_NUMERIC', 'EMPTY', 'OTHER').
         """
         if not field:
             return "EMPTY"
@@ -1052,6 +1231,12 @@ class APUTransformer(Transformer):
         Aplica normalización categórica preservando invariantes algebraicos.
 
         REFINADO: Normalización posicional consistente.
+
+        Args:
+            fields: Lista de campos crudos.
+
+        Retorna:
+            List[str]: Lista de campos normalizados.
         """
         if not fields:
             return fields
@@ -1097,6 +1282,12 @@ class APUTransformer(Transformer):
         Determina si un campo es numéricamente interpretable.
 
         REFINADO: Soporte para formatos internacionales y moneda.
+
+        Args:
+            field: El campo a evaluar.
+
+        Retorna:
+            bool: True si parece un número.
         """
         if not field:
             return False
@@ -1121,6 +1312,12 @@ class APUTransformer(Transformer):
         Normaliza representación numérica a forma canónica.
 
         REFINADO: Desambiguación robusta de separadores basada en heurísticas.
+
+        Args:
+            field: Cadena numérica original.
+
+        Retorna:
+            str: Cadena numérica normalizada.
         """
         if not field:
             return field
@@ -1216,6 +1413,12 @@ class APUTransformer(Transformer):
         Procesa una línea usando composición monádica.
 
         REFINADO: Cadena de transformaciones con manejo explícito de errores.
+
+        Args:
+            args: Argumentos del parser Lark para la regla 'line'.
+
+        Retorna:
+            Optional[InsumoProcesado]: El objeto insumo procesado o None si falla.
         """
         # Paso 1: Extracción monádica de campos
         fields_monad = self._extract_fields_as_monad(args)
@@ -1284,6 +1487,12 @@ class APUTransformer(Transformer):
         Valida integridad estructural usando teoría de grafos.
 
         REFINADO: Construcción correcta del grafo y verificación de conectividad.
+
+        Args:
+            fields: Lista de campos.
+
+        Retorna:
+            OptionMonad[List[str]]: Mónada con los campos validados.
         """
         if not fields:
             return OptionMonad.fail("Lista de campos vacía")
@@ -1318,6 +1527,12 @@ class APUTransformer(Transformer):
         Construye grafo de dependencias entre campos.
 
         REFINADO: Todos los nodos incluidos, aristas bidireccionales.
+
+        Args:
+            fields: Lista de campos.
+
+        Retorna:
+            Dict[int, Set[int]]: Grafo representado como lista de adyacencia.
         """
         n = len(fields)
         # Inicializar todos los nodos (incluso aislados)
@@ -1362,6 +1577,13 @@ class APUTransformer(Transformer):
         Verifica si un grafo es conexo usando BFS.
 
         REFINADO: Manejo correcto del número esperado de nodos.
+
+        Args:
+            graph: El grafo a verificar.
+            expected_nodes: Número total de nodos esperados.
+
+        Retorna:
+            bool: True si el grafo es conexo.
         """
         if expected_nodes == 0:
             return True
@@ -1693,7 +1915,12 @@ class APUTransformer(Transformer):
 
 
 class APUProcessor:
-    """Procesador de APUs - Métodos de parsing robustecidos."""
+    """
+    Procesador de APUs con métodos de parsing robustecidos.
+
+    Coordina el análisis y transformación de registros de APU en datos estructurados,
+    manejando diferentes formatos de entrada y aplicando validaciones de integridad.
+    """
 
     def __init__(
         self,
@@ -1776,6 +2003,9 @@ class APUProcessor:
 
         Args:
             telemetry: Contexto de telemetría opcional para registrar métricas categóricas.
+
+        Retorna:
+            pd.DataFrame: DataFrame con los insumos procesados.
         """
         if not self.raw_records:
             return pd.DataFrame()

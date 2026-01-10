@@ -158,6 +158,15 @@ class MatterGenerator:
         2. Uso de memoización para cálculos recursivos.
         3. Validación de invariantes algebraicos (coherencia de Euler-Poincaré).
         4. Cálculo de homología simpléctica para detectar componentes conexos problemáticos.
+
+        Args:
+            graph: Grafo dirigido acíclico del proyecto.
+            risk_profile: Perfil de riesgo para ajuste de factores.
+            flux_metrics: Métricas de flujo para ajuste dinámico.
+            telemetry: Contexto para observabilidad.
+
+        Retorna:
+            BillOfMaterials: Objeto con la lista de materiales y metadatos.
         """
         self.logger.info("🌌 Iniciando materialización híbrida del proyecto...")
 

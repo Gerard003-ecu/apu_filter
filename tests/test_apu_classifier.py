@@ -30,13 +30,13 @@ CONFIG_PATH = "config/config_rules.json"
 
 @pytest.fixture
 def default_classifier() -> APUClassifier:
-    """Clasificador con reglas por defecto."""
+    """Fixture que proporciona un clasificador con reglas por defecto."""
     return APUClassifier()
 
 
 @pytest.fixture
 def config_classifier() -> APUClassifier:
-    """Clasificador con configuración real si existe."""
+    """Fixture que proporciona un clasificador con configuración real si existe."""
     if os.path.exists(CONFIG_PATH):
         return APUClassifier(CONFIG_PATH)
     pytest.skip(f"Archivo de configuración no encontrado: {CONFIG_PATH}")
