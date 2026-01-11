@@ -1,0 +1,174 @@
+1. data_validator.txt: Validación de Integridad Piramidal
+Actualmente, el validador revisa filas aisladas. Vamos a implementar la clase PyramidalValidator para asegurar que la "cimentación" (insumos) soporte la "estructura" (APUs).
+Concepto: Validar la Estabilidad Estructural (Ψ) y detectar "APUs flotantes" (Nivel 2 sin soporte de Nivel 3).
+
+# Agregar en data_validator.py
+
+@dataclass
+class PyramidalMetrics:
+    """Métricas de estabilidad vertical de la pirámide de datos."""
+    base_width: int  # Cantidad de Insumos únicos (Nivel 3)
+    structure_load: int  # Cantidad de APUs (Nivel 2)
+    pyramid_stability_index: float  # Psi = Insumos / APUs
+    floating_nodes: List[str]  # APUs sin insumos (Riesgo de Colapso)
+
+class PyramidalValidator:
+    """
+    Validador de integridad jerárquica.
+    Asegura que la carga táctica (APUs) esté soportada por una base logística (Insumos) suficiente.
+    Fuente: topologia.md (Sección 3.2 Estabilidad Estructural) [3]
+    """
+    
+    def validate_structure(self, apus_df: pd.DataFrame, insumos_df: pd.DataFrame) -> PyramidalMetrics:
+        # 1. Definir estratos
+        level_3_nodes = set(insumos_df['DESCRIPCION_INSUMO_NORM'].unique())
+        level_2_nodes = set(apus_df['CODIGO_APU'].unique())
+        
+        # 2. Calcular Psi (Ψ) - Índice de Estabilidad
+        # Una pirámide estable debe tener una base amplia.
+        # Si Psi < 1.0, es una "Pirámide Invertida" (Riesgo Alto).
+        n_insumos = len(level_3_nodes)
+        n_apus = len(level_2_nodes)
+        
+        psi = n_insumos / n_apus if n_apus > 0 else 0.0
+        
+        # 3. Detectar Nodos Flotantes (APUs sin conexión a la base)
+        # Esto requiere analizar el dataframe de relaciones (detalle)
+        # Aquí simulamos la lógica suponiendo que apus_df tiene el detalle desglosado
+        valid_connections = apus_df[apus_df['DESCRIPCION_INSUMO_NORM'].isin(level_3_nodes)]
+        connected_apus = set(valid_connections['CODIGO_APU'].unique())
+        floating_apus = list(level_2_nodes - connected_apus)
+        
+        return PyramidalMetrics(
+            base_width=n_insumos,
+            structure_load=n_apus,
+            pyramid_stability_index=psi,
+            floating_nodes=floating_apus
+        )
+
+
+--------------------------------------------------------------------------------
+2. data_loader.txt: Ingesta Estratificada
+El cargador actual trata todos los archivos igual. Vamos a implementar HierarchyAwareLoader para etiquetar los datos con su Nivel Topológico desde el momento de la ingesta, facilitando el trabajo del Arquitecto (Topology Analyzer).
+Concepto: Normalización de la entropía externa asignando niveles jerárquicos explícitos
+.
+
+# Modificar en data_loader.py
+
+class HierarchyLevel(Enum):
+    """
+    Estratos de la Pirámide de Negocio.
+    Fuente: topologia.md (Niveles de la Pirámide) [1]
+    """
+    ROOT = 0      # Proyecto Total (Ápice)
+    STRATEGY = 1  # Capítulos (Pilares)
+    TACTIC = 2    # APUs (Actividades)
+    LOGISTICS = 3 # Insumos (Recursos Atómicos)
+
+@dataclass
+class HierarchicalData:
+    """Contenedor de datos consciente de su posición topológica."""
+    payload: pd.DataFrame
+    level: HierarchyLevel
+    lineage_hash: str
+
+def load_data_with_hierarchy(
+    path: str, 
+    level: HierarchyLevel,
+    **kwargs
+) -> LoadResult:
+    """
+    Carga datos asignando su nivel en la pirámide estructural.
+    """
+    # 1. Carga estándar (existente)
+    result = load_data(path, **kwargs)
+    
+    if result.status == LoadStatus.SUCCESS:
+        # 2. Inyección de Metadatos Topológicos
+        # Esto permite que el 'BusinessAgent' sepa qué estrato está manipulando
+        result.file_metadata.hierarchy_level = level.name
+        result.file_metadata.is_foundation = (level == HierarchyLevel.LOGISTICS)
+        
+    return result
+
+
+--------------------------------------------------------------------------------
+3. apu_classifier.txt: Taxonomía Basada en Soporte
+Actualmente clasifica por costos. Vamos a mejorarlo para clasificar por Topología de Soporte. Un APU no es solo "Material" o "Mano de Obra" por su precio, sino por cómo se conecta con el Nivel 3 (Insumos).
+Concepto: Clasificación basada en la densidad de conexiones hacia la base de la pirámide
+.
+
+# Extensión en apu_classifier.py
+
+class StructuralClassifier(APUClassifier):
+    """
+    Clasificador que considera la topología de soporte del APU.
+    """
+    
+    def classify_by_structure(self, insumos_del_apu: List[Dict]) -> str:
+        """
+        Clasifica el APU basándose en la naturaleza de su cimentación (Nivel 3).
+        """
+        # Contar tipos de nodos hoja conectados
+        support_types = [i.get('TIPO_INSUMO') for i in insumos_del_apu]
+        
+        has_mo = 'MANO_DE_OBRA' in support_types
+        has_mat = 'MATERIAL' in support_types
+        
+        # Regla Topológica: 
+        # Si tiene soporte de Materiales pero NO de Mano de Obra, es un Suministro Puro.
+        # Esto es vital para detectar 'Islas' donde se compra material pero no se instala.
+        if has_mat and not has_mo:
+            return "SUMINISTRO_PURO" # Nodo hoja en el grafo de ejecución
+            
+        # Regla Topológica:
+        # Si tiene soporte de Mano de Obra pero NO de Materiales, es Servicio Puro.
+        if has_mo and not has_mat:
+            return "SERVICIO_PURO"
+            
+        return "CONSTRUCCION_MIXTA" # Nodo complejo estándar
+
+
+--------------------------------------------------------------------------------
+4. app.txt: El Nexo (Visibilidad del Estado Piramidal)
+El archivo app.py debe exponer el estado de la pirámide al usuario. Vamos a modificar el endpoint de respuesta para incluir el Índice de Estabilidad (Ψ) y las alertas de Colapso.
+Concepto: Exponer la "Salud Estructural" en el Nexo Operativo
+.
+
+# Modificar en app.py dentro de la función 'upload_files' o 'get_estimate'
+
+def _inject_pyramidal_health(response_data: dict, session_data: dict):
+    """
+    Inyecta el diagnóstico de estabilidad piramidal en la respuesta API.
+    Fuente: LENGUAJE_CONSEJO.md (Termodinámica Estructural) [7]
+    """
+    try:
+        # Calcular métricas rápidas
+        n_apus = len(session_data['data'].get('processed_apus', []))
+        n_insumos = len(session_data['data'].get('raw_insumos_df', []))
+        
+        # Cálculo de Psi (Estabilidad)
+        # Psi < 1.0 indica "Pirámide Invertida" (Base estrecha, alto riesgo)
+        psi = n_insumos / n_apus if n_apus > 0 else 0
+        
+        stability_status = "SÓLIDA"
+        if psi < 1.0:
+            stability_status = "CRÍTICA (Pirámide Invertida)"
+        elif psi < 3.0:
+            stability_status = "FRÁGIL"
+            
+        # Inyección en el payload de respuesta
+        response_data['structural_health'] = {
+            'psi_index': round(psi, 2),
+            'status': stability_status,
+            'base_width': n_insumos,  # Nivel 3
+            'apex_load': n_apus,      # Nivel 2
+            'message': (
+                "Riesgo de Colapso Logístico" if psi < 1.0 else "Estructura Estable"
+            )
+        }
+    except Exception as e:
+        current_app.logger.warning(f"No se pudo calcular salud piramidal: {e}")
+
+# Uso en el endpoint:
+# _inject_pyramidal_health(response_data, session)
