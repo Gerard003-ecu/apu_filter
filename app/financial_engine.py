@@ -1,13 +1,29 @@
 # -*- coding: utf-8 -*-
 """
-Motor de Inteligencia Financiera para la Valoración de Proyectos de Construcción.
+Este módulo trasciende la contabilidad determinista para modelar el presupuesto como un
+activo financiero dinámico sujeto a la entropía del mercado. Transforma costos fijos
+en distribuciones de probabilidad y evalúa la flexibilidad estratégica.
 
-Este módulo integra principios de finanzas corporativas (CAPM, WACC), cuantificación
-de riesgos (VaR) y valoración de opciones reales (Black-Scholes) para enriquecer
-las estimaciones de costos técnicos con una capa de viabilidad económica.
+Modelos y Metodologías:
+-----------------------
+1. Valoración Estocástica (Monte Carlo & VaR):
+   Simula miles de escenarios de mercado para calcular el Valor en Riesgo (VaR) y
+   el Déficit Esperado (CVaR), definiendo la contingencia necesaria para blindar
+   la rentabilidad con un 95% de confianza.
 
-Actúa como el "Oráculo de Riesgo" dentro del Consejo Digital, evaluando si la
-estructura proyectada (definida por la topología) es financieramente sostenible.
+2. Opciones Reales (Flexibilidad Estratégica):
+   Utiliza modelos binomiales/Black-Scholes para valorar la "Opción de Esperar" o
+   expandir, tratando la gestión del proyecto no como una obligación de gasto,
+   sino como un portafolio de opciones de inversión.
+
+3. Termodinámica Financiera:
+   Calcula la "Inercia Financiera" del proyecto (Masa de Liquidez * Calor Específico
+   de Contratos Fijos) para predecir la resistencia del presupuesto ante choques
+   inflacionarios (cambios de temperatura del mercado).
+
+4. Costo de Capital Estructural (WACC):
+   Determina la tasa de descuento ajustada por el riesgo topológico detectado,
+   penalizando proyectos con alta fragmentación o ciclos de dependencia.
 """
 
 import logging

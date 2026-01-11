@@ -1,21 +1,29 @@
 #!/usr/bin/env python3
 """
-Autonomous Agent - OODA Loop Implementation
-============================================
-Agente autónomo que monitorea la salud del Core mediante el ciclo OODA.
+Este componente implementa un agente autónomo que gobierna el ciclo de vida del 
+procesamiento de datos mediante el ciclo OODA (Observar, Orientar, Decidir, Actuar).
+Su objetivo es mantener la estabilidad operativa ("Homeostasis") ajustando dinámicamente
+el comportamiento del sistema ante la presión de datos o fallos de infraestructura.
 
-Mejoras implementadas:
-- Type hints completos
-- Enums para estados y decisiones
-- Configuración flexible via env vars
-- Retry logic con backoff exponencial
-- Graceful shutdown
-- Debounce de acciones repetitivas
-- Validación robusta de telemetría
-- Métricas internas del agente
-- Health check inicial
-- Integración de Motor Topológico (Persistence Homology + Betti Numbers)
-- Tolerancia a estado IDLE (Métricas opcionales)
+Ciclo Cognitivo (OODA Loop):
+----------------------------
+1. Observe (Observar): 
+   Recolecta telemetría cruda del `FluxPhysicsEngine` (voltaje, saturación) y 
+   el estado de conectividad de los microservicios.
+
+2. Orient (Orientar):
+   Utiliza el `TopologicalAnalyzer` para mapear el "Terreno Operativo". Aplica 
+   Homología Persistente para distinguir entre "Ruido Transitorio" (picos ignorables) 
+   y "Características Estructurales" (fallos reales o saturación sistémica).
+
+3. Decide (Decidir):
+   Evalúa la situación frente a una Matriz de Decisiones. Determina si el sistema 
+   debe continuar (HEARTBEAT), frenar (RECOMENDAR_REDUCIR_VELOCIDAD) o reiniciar 
+   conexiones (RECONNECT), priorizando la supervivencia del pipeline.
+
+4. Act (Actuar):
+   Ejecuta vectores de transformación sobre la infraestructura a través de la API, 
+   cerrando el bucle de control y registrando el impacto para el siguiente ciclo.
 """
 
 import logging

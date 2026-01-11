@@ -1,3 +1,36 @@
+""""
+Este módulo implementa el motor de estimación táctica del sistema. A diferencia de
+una calculadora determinista, actúa como un motor de inferencia que "triangula"
+el costo más probable de un APU combinando búsqueda semántica (vectores) y
+coincidencia léxica (palabras clave), integrando finalmente la capa de riesgo financiero.
+
+Metodologías y Capacidades:
+---------------------------
+1. Búsqueda Híbrida (Vectorial + Léxica):
+   Implementa una estrategia de recuperación dual para encontrar referencias de costos:
+   - Semántica (Alta Abstracción): Utiliza `SentenceTransformers` y `FAISS` para
+     entender que "Muro de ladrillo" y "Mampostería" son conceptualmente similares.
+   - Léxica (Alta Precisión): Utiliza coincidencia de palabras clave y subcadenas
+     cuando se requiere especificidad técnica exacta.
+
+2. Protocolo de Caja Blanca (DerivationDetails):
+   Garantiza la "Transparencia Radical" [1]. Cada estimación va acompañada de un objeto
+   `DerivationDetails` que explica forensemente el origen del dato (ej. "Coincidencia
+   semántica del 94%" o "Promedio histórico"), eliminando la opacidad de la "Caja Negra".
+
+3. Triangulación Táctica de Recursos:
+   Descompone la estimación en tres vectores de búsqueda independientes:
+   - Suministro (Materiales principales).
+   - Cuadrilla (Mano de obra y rendimiento).
+   - Tarea (Actividad específica).
+   Luego sintetiza estos hallazgos para construir el precio unitario final.
+
+4. Integración de Inteligencia Financiera:
+   Actúa como el puente hacia el `FinancialEngine`, inyectando variables estocásticas
+   (volatilidad, WACC) sobre la estructura de costos base para proyectar escenarios
+   de riesgo (Monte Carlo) y valor estratégico (Opciones Reales).
+""""
+
 import logging
 from dataclasses import dataclass
 from enum import Enum

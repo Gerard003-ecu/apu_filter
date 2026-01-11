@@ -1,7 +1,29 @@
 # app/data_loader.py
 """
-Módulo robusto para carga de datos desde diferentes formatos (CSV, Excel, PDF).
-Incluye validaciones exhaustivas, manejo de errores, métricas y logging detallado.
+Este módulo actúa como la interfaz de frontera del sistema, responsable de la ingesta
+robusta de datos desde fuentes heterogéneas (CSV, Excel, PDF). Su función no es solo
+leer archivos, sino reducir la entropía de formato inicial, garantizando que solo
+estructuras de datos normalizadas ingresen al pipeline de procesamiento.
+
+Capacidades y Protocolos:
+-------------------------
+1. Detección Heurística de Formato:
+   Implementa algoritmos de inferencia (`_detect_csv_delimiter`, `_detect_encoding`)
+   para interpretar archivos sin metadatos explícitos, actuando como un traductor
+   universal de dialectos de datos (encoding latino, separadores no estándar).
+
+2. Minería de Datos en PDF:
+   Utiliza `pdfplumber` para la extracción estructurada de tablas en documentos no
+   estructurados, convirtiendo representaciones visuales en datos computables.
+
+3. Telemetría de Ingesta:
+   Integra `TelemetryContext` para registrar la "salud de entrada" (tamaño,
+   integridad, tiempos de carga), proporcionando las primeras métricas para el
+   Diagnóstico Termodinámico del sistema.
+
+4. Validación de Integridad Física:
+   Verifica la accesibilidad, permisos y consistencia de bytes (symlinks rotos,
+   archivos bloqueados) antes de intentar el procesamiento lógico.
 """
 
 import logging

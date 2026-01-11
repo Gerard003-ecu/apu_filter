@@ -1,4 +1,31 @@
 # app/data_validator.py
+
+""""
+Este componente ejecuta una auditoría profunda sobre los datos normalizados.
+A diferencia de una validación de tipos simple, aplica reglas de negocio y
+física de costos para detectar "patologías" en la información (costos negativos,
+incoherencias aritméticas, descripciones vacías).
+
+Protocolos de Auditoría:
+------------------------
+1. Coherencia Matemática Estricta:
+   Verifica la ecuación fundamental de costo: `Cantidad * Precio_Unitario ≈ Valor_Total`.
+   Detecta discrepancias financieras invisibles a simple vista (tolerancia < 1%).
+
+2. Saneamiento Semántico (Fuzzy Matching):
+   Utiliza algoritmos de distancia de Levenshtein (vía `fuzzywuzzy`) para corregir
+   y estandarizar descripciones de insumos, resolviendo ambigüedades léxicas
+   (ej. "Cemento" vs "Cmto").
+
+3. Detección de Anomalías de Valor:
+   Identifica valores atípicos que violan la lógica del negocio, como costos
+   infinitos, negativos o estadísticamente improbables (Outliers).
+
+4. Sistema de Alertas Clasificadas:
+   Genera un `ComplianceReport` con violaciones tipificadas (CRITICAL, WARNING),
+   alimentando el "Expediente del Consejo" para la toma de decisiones.
+"""
+
 import logging
 import re
 import unicodedata

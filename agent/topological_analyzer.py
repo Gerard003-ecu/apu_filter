@@ -1,7 +1,27 @@
 """
-Analizador de Estado Topológico.
+Este módulo aplica Análisis Topológico de Datos (TDA) sobre las métricas de tiempo 
+real del sistema. A diferencia del `BusinessTopology` (que analiza presupuestos), 
+este componente analiza la "forma" de la infraestructura operativa y la calidad de 
+las señales de telemetría.
 
-Módulo para el análisis de la topología del sistema y homología persistente.
+Capacidades Matemáticas:
+------------------------
+1. Homología Persistente (Filtración de Ruido):
+   Transforma series temporales de métricas (ej. latencia, CPU) en diagramas de 
+   persistencia (Códigos de Barras).
+   - Vida Corta (Ruido): Fluctuaciones transitorias que se ignoran.
+   - Vida Larga (Características): Cambios de estado reales que requieren intervención.
+   Esto otorga al Agente "inmunidad a falsos positivos".
+
+2. Topología del Grafo de Servicios (Betti de Red):
+   - β0 (Conectividad): Verifica si todos los microservicios (Core, Redis, FS) son 
+     alcanzables entre sí. β0 > 1 implica una partición de red crítica.
+   - β1 (Bucles de Reintento): Detecta patrones de solicitud repetitivos que indican 
+     bloqueos lógicos o "bucles de muerte" en la comunicación entre servicios.
+
+3. Característica de Euler (χ):
+   Calculada como χ = β0 - β1, proporciona una métrica sintética de la eficiencia 
+   de la topología de red actual, detectando sobrecarga de enlaces.
 
 Fundamentos Matemáticos:
 ------------------------

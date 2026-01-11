@@ -1,8 +1,30 @@
 """
-Modelos de probabilidad para análisis de costos APU.
+Este módulo provee la infraestructura matemática de bajo nivel que alimenta al 
+'Financial Engine'. Su función es transformar costos deterministas (precios fijos) 
+en variables estocásticas (distribuciones de probabilidad), ejecutando simulaciones 
+masivas para revelar la volatilidad oculta del proyecto.
 
-Implementa simulaciones de Monte Carlo para estimar distribuciones
-de costos considerando incertidumbre y variabilidad.
+Capacidades y Metodologías:
+---------------------------
+1. Simulación de Monte Carlo Vectorizada:
+   Implementa `MonteCarloSimulator` utilizando NumPy para ejecutar miles de 
+   iteraciones de escenarios de costos de manera eficiente. Transforma la incertidumbre 
+   teórica en un rango de resultados probables.
+
+2. Estadística Descriptiva para Riesgo (VaR):
+   Calcula métricas críticas no paramétricas, específicamente los percentiles 
+   (P5, P95) necesarios para que el `FinancialEngine` determine el Valor en Riesgo (VaR) 
+   y el Déficit Esperado (CVaR) con confianza estadística.
+
+3. Gestión de Recursos (Memory Safety):
+   Implementa `estimate_memory_usage` para predecir la huella de RAM de la matriz 
+   de simulación antes de su ejecución. Actúa como un disyuntor preventivo para 
+   evitar el colapso del sistema en simulaciones masivas (>1M de iteraciones).
+
+4. Saneamiento de Datos Estocásticos:
+   Asegura que los inputs de la simulación sean numéricamente estables, manejando 
+   valores infinitos, NaNs y aplicando truncamiento de costos negativos (`truncate_negative`) 
+   para mantener la coherencia física del modelo (los precios no pueden ser negativos).
 """
 
 import logging

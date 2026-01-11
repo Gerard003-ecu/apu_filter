@@ -1,3 +1,31 @@
+""""
+Este módulo actúa como la capa de presentación y saneamiento final. Su responsabilidad
+es transformar los datos procesados y validados en estructuras de información
+coherentes ("Expedientes de APU") listos para el consumo por la interfaz de usuario
+o sistemas externos.
+
+Funciones Estratégicas:
+-----------------------
+1. Normalización Categórica:
+   Organiza y agrupa los insumos en categorías estandarizadas (Materiales, Mano de Obra,
+   Equipo), resolviendo ambigüedades y aplicando reglas de negocio para la clasificación
+   de items no estándar.
+
+2. Sanitización Defensiva:
+   Implementa una capa de limpieza profunda (`_sanitize_dataframe`) que elimina
+   caracteres corruptos, normaliza espacios y asegura la integridad de tipos antes
+   de la serialización, garantizando que el "producto de datos" final sea seguro.
+
+3. Cálculo de Metadatos de Procesamiento:
+   Genera estadísticas de reducción y calidad (tasa de éxito de parsing, cobertura
+   de clasificación) que acompañan al dato, proporcionando contexto sobre la
+   fiabilidad de la información presentada.
+
+4. Consistencia de Agregación:
+   Verifica matemáticamente que los desgloses coincidan con los totales declarados,
+   alertando sobre desviaciones invisibles (errores de redondeo o datos fantasmas).
+""""
+
 import logging
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional

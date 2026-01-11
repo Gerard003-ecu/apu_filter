@@ -1,3 +1,32 @@
+"""
+Este componente implementa el motor de Gobernanza Computacional que asegura que
+los "Productos de Datos" (presupuestos, APUs) cumplan con las leyes del sistema
+antes de ser aceptados. Transforma la validación pasiva en una auditoría activa
+basada en ontologías y reglas de negocio.
+
+Capacidades y Protocolos:
+-------------------------
+1. Política como Código (Policy as Code):
+   Evalúa reglas declarativas (inspiradas en OPA/Rego) para determinar el cumplimiento
+   de estándares de calidad, seguridad y negocio. Genera un `ComplianceReport` con
+   un veredicto de severidad (PASS, WARNING, FAIL).
+
+2. Validación Semántica (Ontology Check):
+   Utiliza un Grafo de Conocimiento (Ontología) para verificar que los insumos
+   pertenezcan al dominio correcto del APU (ej. detectar "Ladrillo" en un APU de
+   "Instalaciones Eléctricas"). Infiere el contexto semántico para detectar anomalías
+   que la validación sintáctica ignora.
+
+3. Sistema de Penalización (Scorecard):
+   Calcula un puntaje de gobernanza (Governance Score) aplicando penalizaciones
+   ponderadas por severidad. Un puntaje bajo activa protocolos de rechazo automático
+   o auditoría manual.
+
+4. Gestión de Contratos de Datos:
+   Verifica que la estructura y el contenido de los datos respeten los contratos
+   definidos (campos obligatorios, tipos de datos, restricciones de dominio).
+"""
+
 import json
 import logging
 from dataclasses import dataclass, field

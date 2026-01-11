@@ -1,9 +1,29 @@
 """
-Módulo de Telemetría Unificada ("Pasaporte").
+Este módulo implementa el "Vector de Estado" del sistema. Actúa como un pasaporte 
+thread-safe que viaja con cada solicitud, acumulando métricas, trazas y contexto 
+a través de todas las capas de la arquitectura (Pirámide de Observabilidad).
 
-Implementa el contexto de telemetría que viaja con cada solicitud para
-registrar métricas, errores y pasos de ejecución de manera centralizada
-y thread-safe. Soporta una estructura jerárquica de spans (Pirámide de Observabilidad).
+Capacidades y Mecanismos:
+-------------------------
+1. Pasaporte de Ejecución (TelemetryContext):
+   Contenedor unificado que transporta la identidad del request, métricas de 
+   rendimiento y el stack de ejecución, garantizando observabilidad end-to-end 
+   sin acoplamiento global.
+
+2. Integración de Física de Datos (RLC):
+   Soporta la recolección de métricas del `FluxPhysicsEngine` (Energía Cinética, 
+   Voltaje Flyback, Potencia Disipada), permitiendo al Agente diagnosticar 
+   "Fricción" y "Presión" en el flujo de datos.
+
+3. Jerarquía de Spans (Observabilidad Fractal):
+   Implementa un sistema de `TelemetrySpan` anidados que permite un análisis 
+   granular (micro) y sistémico (macro) del rendimiento, facilitando la 
+   detección de cuellos de botella.
+
+4. Protocolos de Seguridad y Límites:
+   Incluye mecanismos de autoprotección (Circuit Breakers lógicos) que limitan 
+   la cantidad de trazas y errores almacenados para prevenir fugas de memoria 
+   o ataques de denegación de servicio por telemetría.
 """
 
 import copy

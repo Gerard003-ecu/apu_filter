@@ -1,8 +1,28 @@
 """
-Módulo de utilidades para procesamiento de datos de APU.
+Este módulo provee las funciones fundamentales para la manipulación segura de
+datos atómicos (números, cadenas, rutas). Actúa como la primera capa de defensa
+contra la entropía, garantizando que la información ingrese al sistema en un
+formato canónico y libre de ambigüedades.
 
-Este módulo proporciona funciones robustas para normalización de texto,
-conversión de números, validación de datos y manejo de archivos.
+Funciones Críticas:
+-------------------
+1. Conversión Numérica Robusta (`parse_number`):
+   Maneja la ambigüedad de formatos regionales (puntos vs. comas decimales),
+   notación científica y caracteres de moneda, transformando texto sucio en
+   valores flotantes computables o detectando errores de tipo tempranamente.
+
+2. Normalización de Texto (`normalize_text`, `clean_apu_code`):
+   Estandariza cadenas eliminando variaciones de codificación, espacios
+   redundantes y caracteres especiales, asegurando que claves idénticas
+   semánticamente sean idénticas binariamente (hashing consistente).
+
+3. Detección de Outliers (`detect_outliers`):
+   Implementa métodos estadísticos (IQR, Z-Score) para identificar valores
+   anómalos en series de datos antes de que contaminen los modelos de simulación.
+
+4. Gestión Segura de Archivos:
+   Validaciones de rutas, extensiones y permisos para prevenir errores de I/O
+   y vulnerabilidades de seguridad en el manejo del sistema de archivos.
 """
 
 import logging

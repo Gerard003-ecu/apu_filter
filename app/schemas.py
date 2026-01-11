@@ -1,17 +1,29 @@
 """
-Esquemas de datos para Análisis de Precios Unitarios (APU).
+Este módulo define la "Constitución de los Datos". Establece las estructuras de datos
+inmutables y fuertemente tipadas que representan los átomos del presupuesto (Insumos,
+APUs). Implementa el patrón Factory para garantizar que ningún objeto se instancie
+sin pasar por validaciones de invariantes de dominio.
 
-Este módulo define las estructuras de datos robustas y validadas para representar
-insumos de construcción en diferentes categorías: Mano de Obra, Equipo, Suministro,
-Transporte y Otros.
+Invariantes y Reglas de Dominio:
+--------------------------------
+1. Tipología Estricta (InsumoProcesado):
+   Define la jerarquía de clases (ManoDeObra, Equipo, Suministro) donde cada tipo
+   impone sus propias reglas físicas (ej. `ManoDeObra` requiere `rendimiento > 0`,
+   mientras que `Suministro` valida unidades físicas como kg o m3).
 
-Características principales:
-- Validación automática de datos con mensajes descriptivos
-- Normalización consistente de unidades y descripciones
-- Type hints completos para mejor IDE support
-- Inmutabilidad donde sea apropiado
-- Factory pattern para creación dinámica
-- Logging detallado de inconsistencias
+2. Normalización Canónica:
+   Asegura que todas las unidades y descripciones se conviertan a un lenguaje común
+   (ej. "mts", "met", "m." -> "M"), eliminando la entropía semántica en la base.
+
+3. Validación Reactiva (__post_init__):
+   Los objetos se autovalidan al nacer. Si un dato viola una ley física (ej. precio negativo,
+   cantidad infinita), el objeto rechaza su propia creación, protegiendo la integridad
+   del sistema desde el nivel más bajo.
+
+4. Protocolos de Interfaz:
+   Define interfaces formales (`InsumoProtocol`) para asegurar que cualquier extensión
+   del sistema respete la estructura de datos esperada por el Consejo de Sabios.
+
 """
 
 from __future__ import annotations

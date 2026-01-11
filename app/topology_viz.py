@@ -1,8 +1,28 @@
 """
-Módulo de visualización de topología para la aplicación Flask.
-Este módulo extiende app.py añadiendo endpoints para Cytoscape.js.
-Implementa el concepto de "Caja de Cristal" (Glass Box), transformando la visualización
-en un Microscopio Estructural para la auditabilidad forense de riesgos lógicos.
+Este módulo transforma el grafo topológico abstracto y los diagnósticos matemáticos
+en una representación visual interactiva (Cytoscape.js). Su objetivo es hacer
+tangible la "Física del Negocio", permitiendo a los usuarios humanos auditar
+visualmente las patologías detectadas por el Consejo de Sabios.
+
+Mapeo Semántico-Visual (La Leyenda del Mapa):
+---------------------------------------------
+1. Nodos de Riesgo (Color ROJO):
+   Visualizan puntos de falla crítica identificados por la topología:
+   - Ciclos (β1 > 0): "Socavones lógicos" o dependencias circulares.
+   - Islas (β0 > 1): Recursos fragmentados o desconectados del proyecto.
+   - Estrés (In-Degree alto): Insumos que soportan una carga estructural excesiva ("Pirámide Invertida").
+
+2. Jerarquía Visual:
+   Organiza los nodos en estratos (Proyecto -> Capítulo -> APU -> Insumo) para
+   revelar la arquitectura de la información y facilitar la navegación "Drill-down".
+
+3. Aristas de Evidencia:
+   Resalta las conexiones específicas que forman parte de un ciclo o conflicto,
+   diferenciándolas de las relaciones nominales para acelerar el análisis forense.
+
+4. Enriquecimiento de Anomalías:
+   Inyecta metadatos de diagnóstico (`AnomalyData`) directamente en los elementos
+   visuales, convirtiendo el gráfico en una herramienta de depuración activa.
 """
 
 import logging

@@ -1,12 +1,29 @@
 """
-Módulo Director de Pipeline.
+Este componente implementa la "Matriz de Transformación de Valor" ($M_P$). No procesa
+datos directamente, sino que orquesta la secuencia de activación de los Sabios
+(Guardian -> Alquimista -> Arquitecto -> Oráculo) asegurando la integridad del
+"Vector de Estado" del proyecto.
 
-Este módulo orquesta el flujo completo de procesamiento de datos, desde la carga
-de archivos crudos hasta la generación de estructuras de datos validadas y listas
-para su consumo por el frontend o análisis posteriores.
+Arquitectura de Ejecución:
+--------------------------
+1. Máquina de Estados con Persistencia:
+   Implementa una ejecución paso a paso donde el contexto se serializa (Pickle/Redis)
+   entre etapas. Esto permite pausar, reanudar y auditar el estado del proyecto
+   en cualquier punto del flujo (Ingesta, Fusión, Cálculo, Auditoría).
 
-Implementa el patrón "Pipeline" donde cada paso es una unidad discreta de trabajo
-que recibe un contexto, lo transforma y lo pasa al siguiente paso.
+2. Protocolo de Caja de Cristal (Glass Box):
+   Garantiza que cada transformación de datos deje una traza de auditoría inmutable.
+   Gestiona la generación de "Data Products" intermedios y finales, asegurando que
+   el resultado sea matemáticamente reproducible.
+
+3. Matriz de Interacción Central (MIC):
+   Actúa como el despachador que conecta los vectores de transformación (herramientas)
+   con el estado del sistema, permitiendo al Agente Autónomo intervenir quirúrgicamente
+   en el flujo de procesamiento.
+
+4. Gestión de Dependencias:
+   Coordina la carga de perfiles y umbrales (ProcessingThresholds) para asegurar
+   que todos los agentes operen bajo las mismas reglas de negocio.
 """
 
 import datetime

@@ -1,10 +1,29 @@
 # -*- coding: utf-8 -*-
 """
-Agente de Inteligencia de Negocio.
+Este agente actúa como el cerebro ejecutivo del Consejo. Su función no es generar datos,
+sino sintetizar la "Sabiduría Estructural" combinando los hallazgos del Arquitecto (Topología)
+y el Oráculo (Finanzas) para emitir un veredicto holístico sobre la viabilidad del proyecto.
 
-Este agente se encarga de evaluar la viabilidad y riesgos de un proyecto
-desde una perspectiva de negocio, combinando análisis estructural
-(topología del presupuesto) y financiero (costos, riesgos).
+Capacidades y Protocolos:
+-------------------------
+1. Síntesis Topológico-Financiera:
+   Integra invariantes topológicos (números de Betti, estabilidad $\Psi$) con métricas
+   económicas (VPN, TIR, WACC) para detectar "Falsos Positivos" (proyectos rentables
+   pero estructuralmente inestables).
+
+2. Protocolo Challenger (Auditoría Adversarial):
+   Implementa la clase `RiskChallenger` que actúa como un fiscal interno. Si detecta
+   contradicciones (ej. Riesgo Financiero "Bajo" pero Estabilidad Piramidal < 1.0),
+   ejerce un VETO automático, reclasificando el proyecto y degradando su score de integridad.
+
+3. Detección de Sinergia de Riesgo (Efecto Dominó):
+   Evalúa si los ciclos lógicos ($\beta_1 > 0$) comparten nodos críticos (Insumos puente),
+   calculando un multiplicador de riesgo sistémico que penaliza la volatilidad financiera.
+
+4. Narrativa Estratégica ("La Voz del Consejo"):
+   Orquesta al `SemanticTranslator` para generar un dictamen en lenguaje natural que
+   explica la causalidad entre la geometría del presupuesto y el riesgo de inversión.
+
 """
 
 import logging

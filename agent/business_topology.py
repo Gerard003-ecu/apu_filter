@@ -1,10 +1,29 @@
 """
-Módulo de Topología de Negocio.
+Este módulo implementa la lógica para modelar el presupuesto no como una lista de 
+precios, sino como un Grafo Dirigido (o Complejo Simplicial Abstracto). Su función 
+es calcular invariantes topológicos que revelan la "Salud Estructural" del proyecto 
+antes de invertir dinero.
 
-Implementa el análisis estructural del presupuesto utilizando principios
-de Topología Algebraica y Teoría de Grafos. Define las métricas,
-reportes y constructores necesarios para modelar el presupuesto como
-una estructura jerárquica (Pirámide de Negocio).
+Métricas e Invariantes Topológicos:
+-----------------------------------
+1. Números de Betti (Homología):
+   - β0 (Componentes Conexas): Mide la fragmentación. Un β0 > 1 indica "Islas" 
+     de recursos desconectados o huérfanos.
+   - β1 (Ciclos): Mide la complejidad circular. Un β1 > 0 revela "Socavones Lógicos" 
+     (dependencias circulares A->B->A) que impiden el cálculo de costos.
+
+2. Estabilidad Piramidal (Ψ):
+   Calcula la relación entre la base logística (Insumos) y la carga táctica (APUs).
+   - Ψ < 1.0 ("Pirámide Invertida"): Alerta sobre una base de proveedores peligrosamente 
+     estrecha soportando una estructura masiva, indicando alto riesgo de colapso logístico.
+
+3. Termodinámica Estructural (Flujo Térmico):
+   Simula la difusión de la volatilidad de precios (calor) desde los insumos hacia 
+   el proyecto general, generando un mapa de calor de riesgo inflacionario.
+
+4. Resonancia Espectral:
+   Analiza el espectro del Laplaciano del grafo para detectar si la estructura es 
+   susceptible a fallos sistémicos sincronizados (efecto dominó).
 """
 
 import logging

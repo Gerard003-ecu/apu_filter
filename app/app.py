@@ -1,18 +1,32 @@
 """
-Módulo principal de la aplicación Flask - VERSIÓN REFINADA Y ROBUSTECIDA.
+Este módulo actúa como el "Plano de Control" expuesto al mundo exterior. No procesa
+la lógica de negocio profunda (eso lo hacen los Sabios), sino que establece el entorno
+físico y temporal necesario para que el Consejo delibere. Es el responsable de instanciar
+el "Pasaporte de Telemetría" y mantener la integridad del estado entre transacciones.
 
-Gestiona el procesamiento de archivos CSV, estimaciones y simulaciones Monte Carlo
-con validaciones exhaustivas, manejo de errores robusto y observabilidad mejorada.
+Arquitectura y Responsabilidades:
+---------------------------------
+1. Gestión de Espacio-Tiempo (SessionMetadata):
+   Administra el ciclo de vida de la deliberación. Utiliza `SessionMetadata` para
+   garantizar la continuidad temporal (persistencia en Redis) y la integridad
+   referencial (hashing de datos) entre las distintas fases del pipeline (Carga ->
+   Diagnóstico -> Estimación).
 
-Mejoras implementadas:
-- Validación de contenido de archivos (no solo metadata)
-- Gestión de sesiones con integridad y renovación
-- Rate limiting y protección contra abuso
-- Sistema de logging con request IDs
-- Validación de esquemas de datos
-- Cleanup de recursos más seguro
-- Métricas de rendimiento
-- Telemetría unificada ("Pasaporte")
+2. Inyección de Telemetría ("El Pasaporte"):
+   Inicializa el `TelemetryContext` [1] que viaja con cada solicitud. Este contexto
+   actúa como un pasaporte diplomático que acumula sellos (métricas, errores)
+   mientras atraviesa las fronteras de los diferentes microservicios (Guardian,
+   Arquitecto, Alquimista).
+
+3. Válvulas de Presión (Rate Limiting):
+   Implementa límites de velocidad adaptativos (`@limiter`) que actúan como
+   resistencias variables en el circuito de flujo de datos, protegiendo al
+   `FluxPhysicsEngine` de sobrecargas térmicas por exceso de solicitudes [2].
+
+4. Despacho de Herramientas (Tool Dispatcher):
+   Expone los vectores de actuación de la Matriz de Interacción Central (MIC),
+   permitiendo invocar capacidades específicas como `diagnose_file` (Diagnóstico)
+   o `financial_analysis` (Oráculo) bajo demanda [3].
 """
 
 import hashlib

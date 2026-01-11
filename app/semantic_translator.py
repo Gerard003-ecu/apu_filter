@@ -1,11 +1,34 @@
 # -*- coding: utf-8 -*-
 """
-Módulo de Traducción Semántica.
+Módulo: Semantic Translator (El Intérprete Diplomático)
+Rol: La Voz del Consejo - Traducción de Invariantes a Estrategia de Negocio.
 
-Este módulo actúa como un puente lingüístico entre las métricas técnicas
-(topología, finanzas) y el lenguaje de negocio estratégico. Transforma
-datos duros en narrativas accionables para gerentes de proyectos,
-adoptando un enfoque de Ingeniería Civil/Estructural.
+Este módulo actúa como el puente cognitivo entre la "Matemática Profunda" (Topología, 
+Finanzas, Termodinámica) y la toma de decisiones ejecutiva. Su función no es reportar 
+datos, sino emitir "Veredictos" y narrativas de riesgo basadas en la evidencia 
+técnica recolectada por el resto del Consejo.
+
+Capacidades y Protocolos:
+-------------------------
+1. Mapeo Semántico de Riesgos (Thesaurus del Dolor):
+   Traduce abstracciones matemáticas en realidades constructivas:
+   - Ciclos Topológicos (β1 > 0) -> "Socavón Lógico" o "Trampa Circular".
+   - Inestabilidad Piramidal (Ψ < 1.0) -> "Pirámide Invertida" (Riesgo de Colapso).
+   - Temperatura Sistémica (> 50°C) -> "Fiebre del Proyecto" (Inflación/Volatilidad).
+
+2. Síntesis DIKW (Data -> Wisdom):
+   Eleva los datos crudos a "Sabiduría" mediante la integración de contextos:
+   Combina la métrica financiera (VaR) con la estructura topológica para determinar 
+   si un proyecto es "Sólido", "Frágil" o un "Falso Positivo".
+
+3. Narrativa Generativa (GraphRAG):
+   Utiliza técnicas de Recuperación Aumentada (RAG) sobre el grafo del presupuesto 
+   para explicar la causalidad de los riesgos (ej. "El insumo X es un punto único 
+   de falla que soporta 20 actividades críticas").
+
+4. Auditoría Adversarial:
+   Prepara la evidencia para el `RiskChallenger`, estructurando los argumentos 
+   técnicos que defienden o atacan la viabilidad del proyecto.
 """
 
 import logging

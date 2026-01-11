@@ -1,11 +1,28 @@
 """
-Interfaz de herramientas para la Matriz de Interacción Central (MIC).
-Actúa como adaptador entre la API REST y los scripts de mantenimiento.
+Este módulo implementa la interfaz unificada que expone las capacidades operativas
+del sistema al Agente Autónomo. Actúa como el adaptador entre la intención
+cognitiva (Decisión) y la ejecución física (Acción), definiendo los vectores
+de transformación permitidos sobre el estado del proyecto.
 
-Este módulo proporciona funciones de alto nivel para:
-- Diagnóstico de archivos (APUs, Insumos, Presupuesto)
-- Limpieza de archivos CSV
-- Consulta de estado de telemetría
+Capacidades y Vectores de Actuación:
+------------------------------------
+1. Vectores de Diagnóstico (`diagnose_file`):
+   Operadores de inspección profunda que aumentan la observabilidad del sistema,
+   permitiendo al Agente descomponer archivos complejos (APUs, Insumos) en
+   estructuras analizables sin alterar su estado.
+
+2. Vectores de Saneamiento (`clean_file`):
+   Operadores de reducción de entropía. Ejecutan transformaciones físicas sobre
+   los archivos crudos para eliminar ruido (caracteres corruptos, delimitadores
+   inconsistentes) y restaurar la "higiene" de los datos.
+
+3. Sondeo de Estado (`get_telemetry_status`):
+   Mecanismo de retroalimentación que permite al Agente percibir el impacto
+   de sus acciones, cerrando el bucle de control OODA (Observe-Orient-Decide-Act).
+
+4. Integración Financiera:
+   Puente hacia el `FinancialEngine` para ejecutar simulaciones de viabilidad
+   económica bajo demanda.
 """
 
 import codecs

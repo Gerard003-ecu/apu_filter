@@ -1,12 +1,28 @@
 """
-Módulo de Generación de Materiales.
+Este módulo transforma el grafo topológico abstracto del proyecto en una realidad
+física y logística: la Lista de Materiales (BOM). Ejecuta un algoritmo de
+"Colapso de Grafo" para consolidar requerimientos dispersos en una lista de
+compras determinista.
 
-Este módulo implementa el 'Motor de Materialización' que transforma el grafo
-abstracto del proyecto en una lista concreta de materiales (Bill of Materials - BOM).
-Utiliza un enfoque híbrido que combina:
-1. Recorrido Topológico (DFS) para explotar la estructura del grafo.
-2. Suma Compensada de Kahan para precisión numérica en costos.
-3. Factores de Entropía para modelar desperdicios y riesgos logísticos.
+Algoritmos y Metodologías:
+--------------------------
+1. Recorrido Topológico (DFS Memoizado):
+   Navega la jerarquía del presupuesto (Proyecto -> Capítulo -> APU -> Insumo)
+   para acumular cantidades base, resolviendo la estructura de árbol en una lista plana.
+
+2. Precisión Numérica Compensada (Kahan Summation):
+   Implementa algoritmos de suma compensada para mitigar el error de punto flotante
+   (IEEE 754) en presupuestos de gran escala, garantizando integridad contable
+   absoluta.
+
+3. Aplicación de Entropía (Factores de Desperdicio):
+   Inyecta la incertidumbre del mundo real en el modelo ideal mediante factores
+   de desperdicio y riesgo logístico, transformando cantidades teóricas en
+   cantidades de compra realistas.
+
+4. Análisis de Concentración (Pareto/Gini):
+   Calcula métricas de distribución de recursos (ej. "el 20% de los materiales
+   representa el 80% del costo") para guiar la estrategia de abastecimiento.
 """
 
 import logging

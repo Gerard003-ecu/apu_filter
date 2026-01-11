@@ -1,3 +1,32 @@
+""""
+Este componente implementa un motor de inferencia determinista diseñado para
+categorizar la naturaleza ontológica de un APU (Análisis de Precio Unitario).
+Utiliza un sistema de reglas jerárquicas para particionar el espacio vectorial
+definido por las proporciones de costos (Materiales vs. Mano de Obra).
+
+Metodología de Clasificación:
+-----------------------------
+1. Lógica de Predicados (`ClassificationRule`):
+   Cada regla define un hiperplano de decisión en el espacio de costos (ej.
+   `porcentaje_mo_eq >= 60.0`). El sistema evalúa estos predicados secuencialmente
+   para determinar la pertenencia a un conjunto (Instalación, Suministro, Mixto) [4].
+
+2. Análisis de Cobertura Topológica:
+   Implementa `get_coverage_bounds` [5] para verificar matemáticamente que las reglas
+   cubren todo el espacio de posibilidades [6]², detectando "agujeros" lógicos
+   donde un APU podría quedar sin clasificación (regiones indefinidas).
+
+3. Vectorización de Decisiones:
+   Utiliza operaciones vectorizadas de Pandas/NumPy (`_classify_vectorized`) [7]
+   para aplicar la lógica de clasificación simultáneamente a miles de registros,
+   minimizando la latencia computacional.
+
+4. Seguridad Sintáctica (AST):
+   Valida las reglas de negocio (strings dinámicos) mediante análisis de árbol
+   sintáctico (Abstract Syntax Tree) para prevenir inyección de código, garantizando
+   que solo se evalúen expresiones aritméticas y lógicas seguras [8].
+""""
+
 import json
 import logging
 import re

@@ -1,14 +1,31 @@
 """
-Módulo de Narrativa de Telemetría Híbrido (Lattice + DIKW).
+Este módulo implementa el motor de narrativa forense que transforma la telemetría 
+cruda en un "Expediente de Auditoría" legible por humanos. Fusiona el rigor 
+matemático de la Teoría de Retículos (Lattice Theory) con la jerarquía DIKW 
+para justificar cada decisión del sistema.
 
-Fusiona el rigor matemático del enfoque algebraico (Lattice de severidad)
-con la claridad estructural del modelo DIKW (Data -> Information -> Knowledge -> Wisdom).
+Arquitectura y Lógica:
+----------------------
+1. Álgebra de Severidad (Lattice Logic):
+   Modela los estados del sistema (OPTIMO, ADVERTENCIA, CRITICO) como un retículo 
+   acotado completo. Utiliza operaciones de Supremo (Join) e Ínfimo (Meet) para 
+   propagar la severidad desde los eventos atómicos hasta el veredicto global.
 
-Arquitectura:
-1.  **Lógica Algebraica**: Usa un retículo (Lattice) acotado para calcular el estado
-    global mediante operaciones de supremo (sup) e ínfimo (inf).
-2.  **Estructura DIKW**: Genera reportes tipados (NarrativeReport) con evidencia
-    forense enriquecida con trazabilidad topológica.
+2. Estructura DIKW (Data-Information-Knowledge-Wisdom):
+   Organiza el reporte en capas de abstracción:
+   - Datos: Logs crudos y métricas.
+   - Información: Agrupación por fases y spans.
+   - Conocimiento: Identificación de patrones de error (Silent Failures, Recursion Limits).
+   - Sabiduría: Veredicto final y recomendaciones de acción.
+
+3. Trazabilidad Topológica:
+   Reconstruye el camino causal de cada error ("Topological Path"), permitiendo 
+   identificar no solo qué falló, sino dónde se rompió la estructura lógica 
+   del procesamiento.
+
+4. Evidencia Forense Inmutable:
+   Genera un `NarrativeReport` que sirve como prueba de auditoría, detallando 
+   tiempos, actores y decisiones tomadas por el Agente Autónomo.
 """
 
 from dataclasses import dataclass
