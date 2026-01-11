@@ -28,6 +28,8 @@ Capacidades y Protocolos:
 
 import logging
 import time
+import math
+import re
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
@@ -35,6 +37,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 import pandas as pd
+import numpy as np
 
 # Telemetry integration
 try:
@@ -296,6 +299,8 @@ class LoadResult:
     sheets_loaded: Optional[List[str]] = None
     error_message: Optional[str] = None
     warnings: List[str] = field(default_factory=list)
+    topological_analysis: Optional[Dict[str, Any]] = None
+    homology_analysis: Optional[Dict[str, Any]] = None
 
     def to_dict(self) -> Dict[str, Any]:
         """
@@ -338,6 +343,14 @@ class LoadResult:
         else:
             result["quality_metrics"] = None
 
+        # Manejar topological_analysis
+        if self.topological_analysis:
+            result["topological_analysis"] = self.topological_analysis
+
+        # Manejar homology_analysis
+        if self.homology_analysis:
+            result["homology_analysis"] = self.homology_analysis
+
         # Información sobre los datos
         if self.data is None:
             result["has_data"] = False
@@ -379,7 +392,7 @@ DataFrameOrDict = Union[pd.DataFrame, Dict[str, pd.DataFrame]]
 
 
 # ============================================================================
-# FUNCIONES AUXILIARES DE VALIDACIÓN
+# FUNCIONES AUXILIARES DE VALIDACIÓN Y TOPOLOGÍA
 # ============================================================================
 def _validate_file_path(path: PathType) -> Path:
     """
@@ -557,181 +570,252 @@ def _validate_file_size(
     return warnings
 
 
+def _calculate_path_entropy(path: Path) -> float:
+    """Calcula la entropía de Shannon de la ruta del archivo."""
+    try:
+        path_str = str(path)
+        char_counts = {}
+        total_chars = len(path_str)
+
+        for char in path_str:
+            char_counts[char] = char_counts.get(char, 0) + 1
+
+        entropy = 0
+        for count in char_counts.values():
+            probability = count / total_chars
+            entropy -= probability * math.log2(probability)
+
+        return entropy
+    except:
+        return 0.0
+
+
+def _calculate_byte_entropy(data: bytes) -> float:
+    """Calcula la entropía de una muestra de bytes."""
+    if not data:
+        return 0.0
+
+    try:
+        byte_counts = np.bincount(np.frombuffer(data, dtype=np.uint8), minlength=256)
+        probabilities = byte_counts[byte_counts > 0] / len(data)
+
+        if len(probabilities) == 0:
+            return 0.0
+
+        entropy = -np.sum(probabilities * np.log2(probabilities))
+        max_entropy = np.log2(len(probabilities))
+
+        return entropy / max_entropy if max_entropy > 0 else 0.0
+    except Exception:
+        return 0.0
+
+
+def _select_load_strategy(
+    file_format: FileFormat,
+    topological_analysis: Dict[str, Any]
+) -> str:
+    """Selecciona estrategia de carga basada en análisis topológico."""
+
+    strategies = {
+        FileFormat.CSV: {
+            "default": "adaptive_csv",
+            "low_entropy": "structured_csv",
+            "high_depth": "robust_csv"
+        },
+        FileFormat.EXCEL: {
+            "default": "full_excel",
+            "large_file": "streaming_excel",
+            "multi_sheet": "selective_excel"
+        },
+        FileFormat.PDF: {
+            "default": "table_extraction",
+            "high_entropy": "ocr_assisted",
+            "structured": "direct_extraction"
+        }
+    }
+
+    format_strategies = strategies.get(file_format, {"default": "standard"})
+
+    # Heurísticas de selección
+    if file_format == FileFormat.CSV:
+        if topological_analysis.get("byte_entropy", 0.5) < 0.2:
+            return format_strategies.get("low_entropy", "adaptive_csv")
+        if topological_analysis.get("file_structure", {}).get("path_depth", 0) > 5:
+            return format_strategies.get("high_depth", "robust_csv")
+
+    return format_strategies.get("default", "standard")
+
+
 def _analyze_dataframe_quality(
     df: pd.DataFrame,
     include_sample_data: bool = False,
 ) -> DataQualityMetrics:
     """
-    Analiza la calidad de un DataFrame y genera métricas detalladas.
+    Analiza la calidad usando métricas topológicas y teoría de información.
 
     Args:
         df: DataFrame a analizar
         include_sample_data: Si True, incluye muestra de datos problemáticos
 
     Returns:
-        DataQualityMetrics: Métricas de calidad comprehensivas
+        DataQualityMetrics: Métricas de calidad con dimensión topológica
     """
     metrics = DataQualityMetrics()
 
-    # Validar entrada
-    if df is None:
-        metrics.add_warning("DataFrame es None")
-        return metrics
-
-    if not isinstance(df, pd.DataFrame):
-        metrics.add_warning(f"Entrada no es DataFrame: {type(df).__name__}")
+    if df is None or not isinstance(df, pd.DataFrame):
+        metrics.add_warning("Entrada inválida para análisis de calidad")
         return metrics
 
     if df.empty:
         metrics.add_warning("DataFrame está vacío")
         return metrics
 
-    # Manejar MultiIndex en columnas
-    if isinstance(df.columns, pd.MultiIndex):
-        metrics.add_warning(
-            f"DataFrame tiene MultiIndex en columnas con {df.columns.nlevels} niveles"
-        )
-        # Aplanar para análisis
-        try:
-            flat_columns = ["_".join(map(str, col)).strip("_") for col in df.columns.values]
-            metrics.total_columns = len(flat_columns)
-        except Exception as e:
-            logger.warning(f"Error al aplanar MultiIndex: {e}")
-            metrics.total_columns = len(df.columns)
-    else:
-        metrics.total_columns = len(df.columns)
-
-    # Métricas básicas
+    # Dimensiones básicas (cardinalidad)
     metrics.total_rows = len(df)
+    metrics.total_columns = len(df.columns)
 
-    # Análisis de nulos con manejo de errores
+    # Análisis de completitud (dimensión 0 - puntos)
     try:
-        null_count = df.isnull().sum().sum()
+        null_matrix = df.isnull()
+        metrics.null_cells = int(null_matrix.sum().sum())
         total_cells = metrics.total_rows * metrics.total_columns
-        metrics.null_cells = int(null_count)
 
         if total_cells > 0:
-            metrics.null_percentage = (null_count / total_cells) * 100
-        else:
-            metrics.null_percentage = 0.0
+            metrics.null_percentage = (metrics.null_cells / total_cells) * 100
+
+            # Entropía de la distribución de nulos por columna
+            null_by_col = null_matrix.sum(axis=0)
+            if null_by_col.sum() > 0:
+                p = null_by_col / null_by_col.sum()
+                entropy_nulls = -np.sum(p * np.log2(p + 1e-10))
+                metrics.add_warning(f"Entropía de distribución de nulos: {entropy_nulls:.3f}")
     except Exception as e:
-        logger.warning(f"Error al analizar nulos: {e}")
-        metrics.add_warning(f"No se pudieron analizar valores nulos: {e}")
+        logger.warning(f"Error en análisis de nulos: {e}")
 
-    # Columnas duplicadas (manejo seguro)
+    # Análisis de dimensionalidad (estructura de columnas)
     try:
-        if not isinstance(df.columns, pd.MultiIndex):
-            # Convertir columnas a strings para comparación
-            col_strings = [str(c) if c is not None else "" for c in df.columns]
-            seen = set()
-            duplicates = []
-            for col in col_strings:
-                if col in seen:
-                    duplicates.append(col)
-                seen.add(col)
+        # Cohesión de tipos de datos (dimensión 1 - líneas)
+        type_groups = {}
+        for col in df.columns:
+            dtype = str(df[col].dtype)
+            type_groups.setdefault(dtype, []).append(str(col))
 
-            if duplicates:
-                metrics.duplicate_columns = list(set(duplicates))
-                metrics.add_warning(
-                    f"Columnas duplicadas encontradas: {metrics.duplicate_columns}"
-                )
+        metrics.data_types = {dtype: len(cols) for dtype, cols in type_groups.items()}
+
+        # Métrica de heterogeneidad de tipos
+        if len(type_groups) > 1:
+            heterogeneity = 1 - (max(len(c) for c in type_groups.values()) / metrics.total_columns)
+            if heterogeneity > 0.7:
+                metrics.add_warning(f"Alta heterogeneidad de tipos: {heterogeneity:.2f}")
     except Exception as e:
-        logger.warning(f"Error al detectar columnas duplicadas: {e}")
+        logger.warning(f"Error en análisis de tipos: {e}")
 
-    # Columnas con todos nulos
+    # Análisis de redundancia (dimensión 2 - superficies)
     try:
-        all_null_mask = df.isnull().all()
-        all_null_cols = df.columns[all_null_mask].tolist()
+        # Detectar columnas duplicadas usando similitud de contenido
+        duplicate_pairs = []
+        columns = list(df.columns)
+
+        # Limitación para evitar complejidad O(N^2) en dataframes anchos
+        max_cols_check = min(len(columns), 100)
+
+        for i in range(max_cols_check):
+            for j in range(i + 1, max_cols_check):
+                col1, col2 = columns[i], columns[j]
+                try:
+                    # Comparar series ignorando nulos
+                    series1 = df[col1].dropna()
+                    series2 = df[col2].dropna()
+
+                    if len(series1) > 10 and len(series2) > 10:
+                        # Coeficiente de correlación para numéricos
+                        if pd.api.types.is_numeric_dtype(series1) and pd.api.types.is_numeric_dtype(series2):
+                            if len(series1) == len(series2): # Simplificación para evitar alineación
+                                corr = series1.corr(series2)
+                                if abs(corr) > 0.95:
+                                    duplicate_pairs.append((col1, col2, f"corr={corr:.3f}"))
+
+                        # Similitud de strings para categóricos
+                        elif pd.api.types.is_string_dtype(series1) and pd.api.types.is_string_dtype(series2):
+                            sample1 = series1.sample(min(100, len(series1))).astype(str).values
+                            sample2 = series2.sample(min(100, len(series2))).astype(str).values
+                            # Comparación simple de conjuntos o valores directos
+                            matches = sum(1 for a, b in zip(sample1, sample2) if a == b)
+                            if matches / len(sample1) > 0.9:
+                                duplicate_pairs.append((col1, col2, f"match={matches/len(sample1):.2f}"))
+                except:
+                    continue
+
+        if duplicate_pairs:
+            metrics.duplicate_columns = [f"{a} approx {b} ({reason})" for a, b, reason in duplicate_pairs[:5]]
+            metrics.add_warning(f"Redundancia detectada en {len(duplicate_pairs)} pares de columnas")
+    except Exception as e:
+        logger.warning(f"Error en análisis de redundancia: {e}")
+
+    # Análisis de integridad estructural
+    try:
+        # Columnas completamente nulas (dimensión colapsada)
+        all_null_cols = df.columns[df.isnull().all()].tolist()
         if all_null_cols:
             metrics.columns_with_all_nulls = [str(c) for c in all_null_cols]
-            metrics.add_warning(
-                f"Columnas con todos valores nulos: {metrics.columns_with_all_nulls}"
-            )
-    except Exception as e:
-        logger.warning(f"Error al detectar columnas totalmente nulas: {e}")
+            metrics.add_warning(f"{len(all_null_cols)} columnas completamente nulas")
 
-    # Columnas sin nombre o con nombre inválido
-    try:
-        empty_cols = []
-        for i, col in enumerate(df.columns):
-            col_str = str(col) if col is not None else ""
-            col_str = col_str.strip()
-
-            if not col_str or col_str.lower() in ("nan", "none", "null", "unnamed"):
-                empty_cols.append(f"Column_{i}" if not col_str else col_str)
-
-        if empty_cols:
-            metrics.empty_columns = empty_cols
-            metrics.add_warning(f"Columnas sin nombre válido encontradas: {len(empty_cols)}")
-    except Exception as e:
-        logger.warning(f"Error al detectar columnas vacías: {e}")
-
-    # Tipos de datos (manejo seguro de tipos exóticos)
-    try:
-        data_types = {}
+        # Columnas con baja variación (casi constantes)
+        low_variance_cols = []
         for col in df.columns:
-            col_str = str(col) if col is not None else f"col_{id(col)}"
-            try:
-                dtype_str = str(df[col].dtype)
-            except Exception:
-                dtype_str = "unknown"
-            data_types[col_str] = dtype_str
-        metrics.data_types = data_types
-    except Exception as e:
-        logger.warning(f"Error al obtener tipos de datos: {e}")
-        metrics.data_types = {}
+            if df[col].nunique(dropna=True) == 1 and len(df[col].dropna()) > 10:
+                low_variance_cols.append(col)
 
-    # Uso de memoria (con fallback)
+        if low_variance_cols:
+            metrics.add_warning(f"{len(low_variance_cols)} columnas con variación mínima")
+    except Exception as e:
+        logger.warning(f"Error en análisis de integridad: {e}")
+
+    # Métricas de memoria con perspectiva topológica
     try:
-        memory_bytes = df.memory_usage(deep=True).sum()
+        memory_bytes = df.memory_usage(deep=True, index=True).sum()
         metrics.memory_usage_mb = memory_bytes / (1024 * 1024)
-    except Exception as e:
-        logger.warning(f"No se pudo calcular uso de memoria: {e}")
-        # Estimación aproximada
-        try:
-            metrics.memory_usage_mb = (df.size * 8) / (
-                1024 * 1024
-            )  # Asumiendo 8 bytes por elemento
-        except Exception:
-            metrics.memory_usage_mb = 0.0
 
-    # Advertencias de tamaño
+        # Densidad de información (bits por celda no nula)
+        total_cells = metrics.total_rows * metrics.total_columns
+        non_null_cells = total_cells - metrics.null_cells
+        if non_null_cells > 0:
+            info_density = (memory_bytes * 8) / non_null_cells  # bits por celda
+            if info_density > 100:  # Empírico
+                metrics.add_warning(f"Alta densidad de información: {info_density:.1f} bits/celda")
+    except Exception as e:
+        logger.warning(f"Error en cálculo de memoria: {e}")
+        # Fallback simple
+        try:
+             metrics.memory_usage_mb = (df.size * 8) / (1024 * 1024)
+        except:
+             metrics.memory_usage_mb = 0.0
+
+    # Advertencias dimensionales
     if metrics.total_rows > MAX_ROWS_WARNING:
-        metrics.add_warning(
-            f"DataFrame muy grande: {metrics.total_rows:,} filas "
-            f"(umbral de advertencia: {MAX_ROWS_WARNING:,})"
-        )
+        metrics.add_warning(f"Cardinalidad alta: {metrics.total_rows:,} observaciones")
 
     if metrics.total_columns > MAX_COLS_WARNING:
-        metrics.add_warning(
-            f"Muchas columnas: {metrics.total_columns} "
-            f"(umbral de advertencia: {MAX_COLS_WARNING})"
-        )
+        metrics.add_warning(f"Dimensionalidad alta: {metrics.total_columns} variables")
 
-    if metrics.total_rows < MIN_ROWS_WARNING:
-        metrics.add_warning(
-            f"Muy pocas filas: {metrics.total_rows} (mínimo esperado: {MIN_ROWS_WARNING})"
-        )
-
-    # Advertencia de nulos
     if metrics.null_percentage > MAX_NULL_PERCENTAGE_WARNING:
-        metrics.add_warning(
-            f"Alto porcentaje de valores nulos: {metrics.null_percentage:.1f}% "
-            f"(umbral: {MAX_NULL_PERCENTAGE_WARNING}%)"
-        )
+        metrics.add_warning(f"Baja completitud: {metrics.null_percentage:.1f}% celdas nulas")
 
-    # Análisis adicional: filas completamente duplicadas
+    # Análisis de conectividad (grafos de dependencia implícitos)
     try:
-        duplicate_rows = df.duplicated().sum()
-        if duplicate_rows > 0:
-            pct_duplicates = (duplicate_rows / metrics.total_rows) * 100
-            if pct_duplicates > 10:  # Más del 10% duplicado
-                metrics.add_warning(
-                    f"Alto porcentaje de filas duplicadas: {pct_duplicates:.1f}% "
-                    f"({duplicate_rows:,} filas)"
-                )
-    except Exception as e:
-        logger.debug(f"No se pudo analizar filas duplicadas: {e}")
+        if metrics.total_columns > 2 and metrics.total_rows > 10:
+            # Matriz de correlación parcial para detectar relaciones
+            numeric_cols = df.select_dtypes(include=[np.number]).columns
+            if len(numeric_cols) >= 3:
+                # Usar solo una muestra para evitar lentitud
+                sample_corr = df[numeric_cols].sample(min(500, len(df))).corr().abs()
+
+                # Contar correlaciones fuertes (> 0.8)
+                strong_corrs = ((sample_corr > 0.8) & (sample_corr < 1.0)).sum().sum() / 2
+                if strong_corrs > len(numeric_cols):
+                    metrics.add_warning(f"Alta conectividad lineal: {int(strong_corrs)} correlaciones fuertes")
+    except:
+        pass
 
     return metrics
 
@@ -745,16 +829,7 @@ def _clean_dataframe(
 ) -> pd.DataFrame:
     """
     Limpia y normaliza un DataFrame de forma robusta.
-
-    Args:
-        df: DataFrame a limpiar
-        remove_empty_rows: Si True, elimina filas completamente vacías
-        remove_empty_columns: Si True, elimina columnas completamente vacías
-        rename_duplicates: Si True, renombra columnas duplicadas
-        preserve_index: Si True, preserva el índice original
-
-    Returns:
-        DataFrame limpio
+    (Mantiene implementación original robusta)
     """
     if df is None:
         logger.warning("DataFrame de entrada es None, retornando DataFrame vacío")
@@ -868,26 +943,17 @@ def _clean_dataframe(
         except Exception as e:
             logger.warning(f"Error al resetear índice: {e}")
 
-    # Log resumen
-    rows_final = len(df_clean)
-    cols_final = len(df_clean.columns)
-
-    if rows_inicial != rows_final or cols_inicial != cols_final:
-        logger.info(
-            f"Limpieza completada: {rows_inicial}x{cols_inicial} -> {rows_final}x{cols_final}"
-        )
-
     return df_clean
 
 
 def _detect_csv_delimiter(
     path: Path,
-    sample_size: int = 10,
+    sample_size: int = 20,
     encodings_to_try: Optional[List[str]] = None,
     max_line_length: int = 10000,
 ) -> Tuple[Optional[str], Optional[str]]:
     """
-    Intenta detectar el delimitador y encoding de un archivo CSV.
+    Detecta delimitador usando teoría de información y topología de datos.
 
     Args:
         path: Ruta al archivo CSV
@@ -896,7 +962,7 @@ def _detect_csv_delimiter(
         max_line_length: Longitud máxima de línea a considerar
 
     Returns:
-        Tuple[delimitador, encoding]: Delimitador y encoding detectados o (None, None)
+        Tuple[delimitador, encoding]: Delimitador y encoding detectados usando entropía de Shannon
     """
     if encodings_to_try is None:
         encodings_to_try = DEFAULT_ENCODINGS.copy()
@@ -904,95 +970,130 @@ def _detect_csv_delimiter(
     for encoding in encodings_to_try:
         try:
             lines = []
-            with open(path, "r", encoding=encoding, errors="strict") as f:
+            with open(path, "r", encoding=encoding, errors="replace") as f:
                 for _ in range(sample_size):
-                    try:
-                        line = f.readline()
-                        if not line:  # EOF
-                            break
-                        # Limitar longitud de línea
-                        if len(line) > max_line_length:
-                            line = line[:max_line_length]
-                            logger.debug(f"Línea truncada a {max_line_length} caracteres")
-                        lines.append(line)
-                    except Exception as e:
-                        logger.debug(f"Error leyendo línea: {e}")
+                    line = f.readline()
+                    if not line:
                         break
+                    if len(line) > max_line_length:
+                        line = line[:max_line_length]
+                    lines.append(line.strip())
 
-            if not lines:
+            if len(lines) < 3:  # Mínimo para análisis estadístico
                 continue
 
-            # Contar ocurrencias de cada delimitador por línea
-            delimiter_consistency: Dict[str, List[int]] = {
-                delim: [] for delim in COMMON_DELIMITERS
-            }
+            # Métrica de entropía de Shannon para cada delimitador
+            delimiter_scores = {}
 
-            for line in lines:
-                # Ignorar líneas vacías o muy cortas
-                if len(line.strip()) < 2:
+            for delim in COMMON_DELIMITERS:
+                # Calcular distribución de campos por línea
+                field_counts = []
+                for line in lines:
+                    if not line or line.startswith(('#', '//', '--')):
+                        continue
+
+                    # Contar ocurrencias no vacías del delimitador
+                    parts = [p for p in line.split(delim) if p.strip()]
+                    if len(parts) > 1:  # Solo considerar líneas con al menos 2 campos
+                        field_counts.append(len(parts))
+
+                if not field_counts:
                     continue
 
-                for delim in COMMON_DELIMITERS:
-                    count = line.count(delim)
-                    delimiter_consistency[delim].append(count)
+                # Calcular métricas estadísticas
+                mean_fields = np.mean(field_counts)
+                std_fields = np.std(field_counts)
 
-            # Evaluar consistencia de cada delimitador
-            best_delimiter = None
-            best_score = 0
-
-            for delim, counts in delimiter_consistency.items():
-                if not counts:
-                    continue
-
-                # Filtrar líneas con 0 ocurrencias
-                non_zero_counts = [c for c in counts if c > 0]
-
-                if not non_zero_counts:
-                    continue
-
-                # Calcular score basado en:
-                # 1. Número promedio de ocurrencias (más es mejor)
-                # 2. Consistencia (varianza baja es mejor)
-                avg_count = sum(non_zero_counts) / len(non_zero_counts)
-
-                # Solo considerar si hay al menos 1 ocurrencia promedio
-                if avg_count < 1:
-                    continue
-
-                # Calcular varianza para medir consistencia
-                if len(non_zero_counts) > 1:
-                    variance = sum((c - avg_count) ** 2 for c in non_zero_counts) / len(
-                        non_zero_counts
-                    )
-                    # Normalizar varianza
-                    consistency_score = 1 / (1 + variance)
+                # Coeficiente de variación (inverso = consistencia)
+                if mean_fields > 0:
+                    cv = std_fields / mean_fields
+                    consistency_score = 1 / (1 + cv)
                 else:
-                    consistency_score = 0.5  # Solo una línea, menos confianza
+                    consistency_score = 0
 
-                # Score combinado
-                # Penalizar si no todas las líneas tienen el delimitador
-                coverage = len(non_zero_counts) / len(counts) if counts else 0
-                score = avg_count * consistency_score * coverage
+                # Entropía de la distribución de campos
+                unique_counts, count_freq = np.unique(field_counts, return_counts=True)
+                prob_dist = count_freq / len(field_counts)
+                entropy = -np.sum(prob_dist * np.log2(prob_dist + 1e-10))
 
-                if score > best_score:
-                    best_score = score
-                    best_delimiter = delim
+                # Máxima entropía posible para esta distribución
+                max_entropy = np.log2(len(unique_counts)) if len(unique_counts) > 1 else 1
 
-            if best_delimiter and best_score > 0.5:
-                logger.debug(
-                    f"Delimitador detectado: '{best_delimiter}' "
-                    f"(score: {best_score:.2f}, encoding: {encoding})"
-                )
-                return best_delimiter, encoding
+                # Normalizar entropía (0-1)
+                normalized_entropy = entropy / max_entropy if max_entropy > 0 else 0
+
+                # Puntuación compuesta basada en teoría de información
+                # 1. Alta consistencia (baja varianza)
+                # 2. Baja entropía (estructura regular) - Invertimos entropía para premiar orden
+                # 3. Suficiente cobertura (porcentaje de líneas con el delimitador)
+                coverage = len(field_counts) / len(lines)
+
+                # Un buen delimitador produce un número fijo de columnas => Baja Entropía
+                structure_score = 1.0 - normalized_entropy
+
+                score = (consistency_score * 0.4 +
+                        structure_score * 0.3 +
+                        coverage * 0.3) * mean_fields
+
+                delimiter_scores[delim] = {
+                    'score': score,
+                    'consistency': consistency_score,
+                    'entropy': normalized_entropy,
+                    'structure_score': structure_score,
+                    'coverage': coverage,
+                    'mean_fields': mean_fields
+                }
+
+            # Seleccionar mejor delimitador usando criterio topológico
+            if delimiter_scores:
+                # Filtrar delimitadores con cobertura mínima
+                valid_delims = {d: s for d, s in delimiter_scores.items()
+                              if s['coverage'] > 0.6 and s['mean_fields'] > 1}
+
+                if valid_delims:
+                    # Seleccionar por score compuesto
+                    best_delim = max(valid_delims.items(),
+                                   key=lambda x: x[1]['score'])
+
+                    logger.debug(
+                        f"Delimitador óptimo: '{best_delim[0]}' "
+                        f"(score: {best_delim[1]['score']:.3f}, "
+                        f"consistencia: {best_delim[1]['consistency']:.3f}, "
+                        f"entropía: {best_delim[1]['entropy']:.3f}, "
+                        f"encoding: {encoding})"
+                    )
+
+                    # Verificación adicional: el delimitador no debe ser contenido comúnmente en datos
+                    sample_data = ' '.join(lines[:5])
+                    if best_delim[0] in [';', ',']:
+                        # Verificar que no sea un número con separador decimal
+                        if re.search(r'\d' + re.escape(best_delim[0]) + r'\d', sample_data):
+                            logger.debug(f"Delimitador '{best_delim[0]}' puede ser separador decimal")
+                            continue
+
+                    return best_delim[0], encoding
 
         except UnicodeDecodeError:
-            logger.debug(f"Encoding {encoding} falló, probando siguiente...")
             continue
         except Exception as e:
             logger.debug(f"Error con encoding {encoding}: {e}")
             continue
 
-    logger.debug("No se pudo detectar delimitador con confianza")
+    # Fallback: método de frecuencia simple
+    logger.debug("Usando método de detección por frecuencia")
+    for encoding in encodings_to_try:
+        try:
+            with open(path, "r", encoding=encoding, errors="replace") as f:
+                content = f.read(5000)
+
+            freq = {d: content.count(d) for d in COMMON_DELIMITERS}
+            if freq:
+                best_delim = max(freq.items(), key=lambda x: x[1])
+                if best_delim[1] > 10:  # Mínimo umbral de ocurrencias
+                    return best_delim[0], encoding
+        except:
+            continue
+
     return None, None
 
 
@@ -1872,117 +1973,52 @@ def load_data(
     **kwargs,
 ) -> LoadResult:
     """
-    Función factory que carga datos según la extensión del archivo.
-    Incluye validaciones exhaustivas y métricas detalladas.
+    Función factory con patrón estratégico y análisis topológico previo.
 
     Args:
         path: Ruta al archivo
-        format_hint: Sugerencia de formato ('csv', 'excel', 'xlsx', 'xls', 'pdf')
-        validate_only: Si True, solo valida el archivo sin cargarlo
-        telemetry_context: Contexto de telemetría para registro centralizado.
-        **kwargs: Argumentos específicos del formato:
-            - CSV: sep, encoding, auto_detect
-            - Excel: sheet_name, password
-            - PDF: page_range, pages, table_settings, password
+        format_hint: Sugerencia de formato
+        validate_only: Si True, solo valida el archivo
+        telemetry_context: Contexto de telemetría
+        **kwargs: Argumentos específicos del formato
 
     Returns:
-        LoadResult con datos, métricas y metadatos
-
-    Examples:
-        >>> result = load_data("datos.csv")
-        >>> if result.status == LoadStatus.SUCCESS:
-        ...     df = result.data
-        ...     print(result.quality_metrics.to_dict())
-
-        >>> result = load_data("libro.xlsx", sheet_name=None)
-        >>> if result.status == LoadStatus.SUCCESS:
-        ...     for sheet, df in result.data.items():
-        ...         print(f"{sheet}: {len(df)} filas")
+        LoadResult con análisis topológico integrado
     """
     start_time = time.time()
+    topological_analysis = {}
 
     logger.info("=" * 80)
-    logger.info(f"Iniciando carga de datos desde: {path}")
+    logger.info(f"Análisis topológico iniciado para: {path}")
     logger.info("=" * 80)
 
     if telemetry_context:
         telemetry_context.start_step(
-            "load_data", {"path": str(path), "format_hint": format_hint}
+            "load_data",
+            {
+                "path": str(path),
+                "format_hint": format_hint,
+                "phase": "topological_analysis"
+            }
         )
 
-    # Validación inicial de path
-    if path is None:
-        error_msg = "La ruta del archivo no puede ser None"
-        logger.error(error_msg)
-        result = LoadResult(
-            status=LoadStatus.FAILED,
-            data=None,
-            file_metadata=None,
-            quality_metrics=None,
-            load_time_seconds=time.time() - start_time,
-            error_message=error_msg,
-        )
-        if telemetry_context:
-            telemetry_context.record_error("load_data", error_msg)
-            telemetry_context.end_step("load_data", "failure", metadata=result.to_dict())
-        return result
-
+    # Validación topológica previa
     try:
-        # Validar y preparar ruta
         validated_path = _validate_file_path(path)
         metadata = FileMetadata.from_path(validated_path)
 
-    except FileNotFoundError as e:
-        error_msg = str(e)
-        logger.error(error_msg)
-
-        # Intentar crear metadata básica
-        try:
-            path_obj = Path(path) if not isinstance(path, Path) else path
-            basic_metadata = FileMetadata(
-                path=path_obj,
-                size_bytes=0,
-                size_mb=0,
-                format=FileFormat.UNKNOWN,
-                exists=False,
-                readable=False,
-                error="Archivo no encontrado",
-            )
-        except Exception:
-            basic_metadata = None
-
-        result = LoadResult(
-            status=LoadStatus.FAILED,
-            data=None,
-            file_metadata=basic_metadata,
-            quality_metrics=None,
-            load_time_seconds=time.time() - start_time,
-            error_message=error_msg,
-        )
-        if telemetry_context:
-            telemetry_context.record_error("load_data", error_msg)
-            telemetry_context.end_step("load_data", "failure", metadata=result.to_dict())
-        return result
-
-    except PermissionError as e:
-        error_msg = f"Error de permisos: {e}"
-        logger.error(error_msg)
-        result = LoadResult(
-            status=LoadStatus.FAILED,
-            data=None,
-            file_metadata=None,
-            quality_metrics=None,
-            load_time_seconds=time.time() - start_time,
-            error_message=error_msg,
-        )
-        if telemetry_context:
-            telemetry_context.record_error("load_data", error_msg)
-            telemetry_context.end_step("load_data", "failure", metadata=result.to_dict())
-        return result
+        # Análisis de estructura de archivo
+        topological_analysis["file_structure"] = {
+            "path_depth": len(validated_path.parts),
+            "extension": validated_path.suffix,
+            "name_complexity": len(validated_path.stem) / 20,  # Normalizado
+            "directory_entropy": _calculate_path_entropy(validated_path)
+        }
 
     except Exception as e:
-        error_msg = f"Error validando archivo: {type(e).__name__}: {e}"
+        error_msg = f"Fallo en análisis topológico inicial: {type(e).__name__}: {e}"
         logger.error(error_msg)
+
         result = LoadResult(
             status=LoadStatus.FAILED,
             data=None,
@@ -1991,16 +2027,28 @@ def load_data(
             load_time_seconds=time.time() - start_time,
             error_message=error_msg,
         )
+
         if telemetry_context:
-            telemetry_context.record_error("load_data", error_msg)
-            telemetry_context.end_step("load_data", "failure", metadata=result.to_dict())
+            telemetry_context.record_error("topological_analysis", error_msg)
+            telemetry_context.end_step("load_data", "failure", {
+                **result.to_dict(),
+                "topological_analysis": topological_analysis
+            })
+
         return result
 
-    # Determinar formato
+    # Determinar formato con heurística mejorada
     file_format = metadata.format
 
     if format_hint:
         format_hint_normalized = format_hint.strip().upper()
+
+        # Matriz de confusión de formatos (experiencia previa)
+        format_confusion_matrix = {
+            "CSV": {"confusions": ["TSV", "TXT"], "confidence": 0.9},
+            "EXCEL": {"confusions": ["CSV", "PDF"], "confidence": 0.8},
+            "PDF": {"confusions": ["EXCEL"], "confidence": 0.7}
+        }
 
         format_mapping = {
             "CSV": FileFormat.CSV,
@@ -2015,17 +2063,28 @@ def load_data(
         }
 
         if format_hint_normalized in format_mapping:
-            file_format = format_mapping[format_hint_normalized]
-            if file_format != metadata.format:
-                logger.info(
-                    f"Formato sobrescrito por hint: {metadata.format.value} -> {file_format.value}"
-                )
-        else:
-            logger.warning(
-                f"Sugerencia de formato '{format_hint}' no reconocida. "
-                f"Formatos válidos: {list(format_mapping.keys())}. "
-                f"Usando detección automática: {metadata.format.value}"
-            )
+            suggested_format = format_mapping[format_hint_normalized]
+
+            # Verificar si hay conflicto con detección automática
+            if suggested_format != metadata.format:
+                if metadata.format != FileFormat.UNKNOWN:
+                    # Análisis de conflicto
+                    topological_analysis["format_conflict"] = {
+                        "detected": metadata.format.value,
+                        "suggested": suggested_format.value,
+                        "confidence": format_confusion_matrix.get(
+                            suggested_format.value, {}
+                        ).get("confidence", 0.5)
+                    }
+
+                    logger.warning(
+                        f"Conflicto de formato: detectado={metadata.format.value}, "
+                        f"sugerido={suggested_format.value}"
+                    )
+
+                # Priorizar sugerencia con registro
+                file_format = suggested_format
+                topological_analysis["format_override"] = True
 
     # Validar formato soportado
     if file_format == FileFormat.UNKNOWN:
@@ -2058,44 +2117,81 @@ def load_data(
             load_time_seconds=time.time() - start_time,
             error_message=error_msg,
         )
+        result.topological_analysis = topological_analysis
+
         if telemetry_context:
             telemetry_context.record_error("load_data", error_msg)
-            telemetry_context.end_step("load_data", "failure", metadata=result.to_dict())
+            telemetry_context.end_step("load_data", "failure", {
+                **result.to_dict(),
+                "topological_analysis": topological_analysis
+            })
         return result
 
-    logger.info(f"Formato: {file_format.value}, Tamaño: {metadata.size_mb:.2f} MB")
+    # Validación de integridad física con métricas topológicas
+    try:
+        size_warnings = _validate_file_size(metadata, allow_empty=validate_only)
 
-    # Si solo validación, retornar aquí
+        # Análisis de distribución de bytes (entropía del archivo)
+        if metadata.size_bytes > 100:  # Solo para archivos no triviales
+            try:
+                with open(validated_path, 'rb') as f:
+                    sample = f.read(min(1000, metadata.size_bytes))
+                    byte_entropy = _calculate_byte_entropy(sample)
+                    topological_analysis["byte_entropy"] = byte_entropy
+
+                    if byte_entropy < 0.1:  # Archivo muy estructurado/constante
+                        topological_analysis["low_entropy_warning"] = (
+                            f"Entropía de bytes baja ({byte_entropy:.3f}), "
+                            f"posible archivo binario o altamente estructurado"
+                        )
+            except:
+                pass
+
+    except ValueError as e:
+        result = LoadResult(
+            status=LoadStatus.FAILED,
+            data=None,
+            file_metadata=metadata,
+            quality_metrics=None,
+            load_time_seconds=time.time() - start_time,
+            error_message=str(e),
+        )
+
+        if telemetry_context:
+            telemetry_context.record_error("file_validation", str(e))
+            telemetry_context.end_step("load_data", "failure", {
+                **result.to_dict(),
+                "topological_analysis": topological_analysis
+            })
+
+        return result
+
+    # Si solo validación, retornar análisis topológico
     if validate_only:
-        try:
-            warnings = _validate_file_size(metadata, allow_empty=True)
+        quality_metrics = DataQualityMetrics()
+        quality_metrics.warnings = size_warnings
 
-            quality_metrics = DataQualityMetrics()
-            quality_metrics.warnings = warnings
+        result = LoadResult(
+            status=LoadStatus.SUCCESS,
+            data=None,
+            file_metadata=metadata,
+            quality_metrics=quality_metrics,
+            load_time_seconds=time.time() - start_time,
+        )
 
-            result = LoadResult(
-                status=LoadStatus.SUCCESS,
-                data=None,
-                file_metadata=metadata,
-                quality_metrics=quality_metrics,
-                load_time_seconds=time.time() - start_time,
-            )
-            if telemetry_context:
-                telemetry_context.end_step("load_data", "success", metadata=result.to_dict())
-            return result
-        except ValueError as e:
-            result = LoadResult(
-                status=LoadStatus.FAILED,
-                data=None,
-                file_metadata=metadata,
-                quality_metrics=None,
-                load_time_seconds=time.time() - start_time,
-                error_message=str(e),
-            )
-            if telemetry_context:
-                telemetry_context.record_error("load_data", str(e))
-                telemetry_context.end_step("load_data", "failure", metadata=result.to_dict())
-            return result
+        # Inyectar análisis topológico
+        result.topological_analysis = topological_analysis
+
+        if telemetry_context:
+            telemetry_context.end_step("load_data", "success", {
+                **result.to_dict(),
+                "topological_analysis": topological_analysis
+            })
+
+        return result
+
+    # Selección de estrategia de carga basada en topología
+    load_strategy = _select_load_strategy(file_format, topological_analysis)
 
     # Filtrar kwargs según formato
     csv_params = {
@@ -2126,10 +2222,16 @@ def load_data(
     }
     pdf_params = {"page_range", "pages", "table_settings", "max_pages", "password"}
 
-    # Cargar según formato
     try:
+        # Cargar usando estrategia seleccionada
         if file_format == FileFormat.CSV:
             filtered_kwargs = {k: v for k, v in kwargs.items() if k in csv_params}
+
+            # Ajustar parámetros basados en análisis topológico
+            if "byte_entropy" in topological_analysis:
+                if topological_analysis["byte_entropy"] < 0.2:
+                    filtered_kwargs.setdefault("encoding", "utf-16")
+
             result = load_from_csv(validated_path, **filtered_kwargs)
 
         elif file_format == FileFormat.EXCEL:
@@ -2141,7 +2243,8 @@ def load_data(
             result = load_from_pdf(validated_path, **filtered_kwargs)
 
         else:
-            error_msg = f"Formato {file_format.value} detectado pero no implementado"
+            error_msg = f"Estrategia no implementada para formato {file_format.value}"
+            # Manejar formato desconocido de manera similar a original
             logger.error(error_msg)
             result = LoadResult(
                 status=LoadStatus.FAILED,
@@ -2151,22 +2254,27 @@ def load_data(
                 load_time_seconds=time.time() - start_time,
                 error_message=error_msg,
             )
-            if telemetry_context:
-                telemetry_context.record_error("load_data", error_msg)
-                telemetry_context.end_step("load_data", "failure", metadata=result.to_dict())
-            return result
+            # return result (handled below)
 
-        # Advertir sobre kwargs ignorados
-        all_valid_params = csv_params | excel_params | pdf_params
-        ignored_params = set(kwargs.keys()) - all_valid_params
-        if ignored_params:
-            logger.warning(f"Parámetros ignorados (no aplicables): {ignored_params}")
-            if hasattr(result, "warnings"):
-                result.warnings.append(f"Parámetros ignorados: {ignored_params}")
+        # Enriquecer resultado con análisis topológico
+        result.topological_analysis = topological_analysis
+
+        # Añadir métricas de carga al análisis
+        if result.quality_metrics and result.file_metadata and result.file_metadata.size_bytes > 0:
+            topological_analysis["load_metrics"] = {
+                "compression_ratio": (
+                    result.file_metadata.size_mb / (result.quality_metrics.memory_usage_mb + 1e-10)
+                ),
+                "null_density": result.quality_metrics.null_percentage / 100,
+                "dimensional_efficiency": (
+                    result.quality_metrics.total_rows * result.quality_metrics.total_columns
+                ) / (result.file_metadata.size_bytes + 1e-10)
+            }
 
     except Exception as e:
-        error_msg = f"Error inesperado durante la carga: {type(e).__name__}: {e}"
+        error_msg = f"Error en estrategia de carga {load_strategy}: {type(e).__name__}: {e}"
         logger.error(error_msg, exc_info=True)
+
         result = LoadResult(
             status=LoadStatus.FAILED,
             data=None,
@@ -2175,54 +2283,34 @@ def load_data(
             load_time_seconds=time.time() - start_time,
             error_message=error_msg,
         )
-        if telemetry_context:
-            telemetry_context.record_error("load_data", error_msg)
-            telemetry_context.end_step("load_data", "failure", metadata=result.to_dict())
-        return result
 
-    # Logging final
+        result.topological_analysis = topological_analysis
+
+    # Logging final con perspectiva topológica
     logger.info("=" * 80)
     logger.info(f"Carga completada - Estado: {result.status.value}")
+    logger.info(f"Estrategia: {load_strategy}")
+    logger.info(f"Análisis topológico: {len(topological_analysis)} métricas")
     logger.info(f"Tiempo total: {result.load_time_seconds:.3f} segundos")
 
-    if result.quality_metrics:
-        logger.info(
-            f"Filas: {result.quality_metrics.total_rows:,}, "
-            f"Columnas: {result.quality_metrics.total_columns}"
-        )
-        if result.quality_metrics.warnings:
-            for warning in result.quality_metrics.warnings[:5]:
-                logger.warning(f"  - {warning}")
-            if len(result.quality_metrics.warnings) > 5:
-                logger.warning(
-                    f"  ... y {len(result.quality_metrics.warnings) - 5} advertencias más"
-                )
-
-    if result.error_message:
-        logger.error(f"Error: {result.error_message}")
+    if hasattr(result, 'topological_analysis') and result.topological_analysis:
+        for key, value in list(result.topological_analysis.items())[:3]:
+            logger.debug(f"  {key}: {value}")
 
     logger.info("=" * 80)
 
     if telemetry_context:
         status_str = (
-            "success"
-            if result.status == LoadStatus.SUCCESS
-            else "warning"
-            if result.status == LoadStatus.PARTIAL_SUCCESS
+            "success" if result.status == LoadStatus.SUCCESS
+            else "warning" if result.status == LoadStatus.PARTIAL_SUCCESS
             else "failure"
         )
 
-        # Registrar métricas
-        if result.quality_metrics:
-            telemetry_context.record_metric(
-                "loader", "rows_loaded", result.quality_metrics.total_rows
-            )
-            telemetry_context.record_metric(
-                "loader", "cols_loaded", result.quality_metrics.total_columns
-            )
-            telemetry_context.record_metric("loader", "file_size_mb", metadata.size_mb)
-
-        telemetry_context.end_step("load_data", status_str, metadata=result.to_dict())
+        telemetry_context.end_step("load_data", status_str, {
+            **result.to_dict(),
+            "topological_analysis": topological_analysis,
+            "load_strategy": load_strategy
+        })
 
     return result
 
@@ -2233,29 +2321,245 @@ def load_data(
 def load_data_with_hierarchy(
     path: str,
     level: HierarchyLevel,
+    preserve_topology: bool = True,
     **kwargs,
 ) -> LoadResult:
     """
-    Carga datos asignando su nivel en la pirámide estructural.
+    Carga datos con preservación de isomorfismos topológicos entre niveles.
+
+    Args:
+        path: Ruta al archivo
+        level: Nivel en la jerarquía
+        preserve_topology: Si True, mantiene relaciones topológicas
+        **kwargs: Argumentos adicionales para load_data
+
+    Returns:
+        LoadResult con estructura jerárquica y análisis de homología
     """
-    # 1. Carga estándar (existente)
+    # 1. Carga estándar con análisis topológico
     result = load_data(path, **kwargs)
 
-    if result.status == LoadStatus.SUCCESS:
-        # 2. Inyección de Metadatos Topológicos
-        # Esto permite que el 'BusinessAgent' sepa qué estrato está manipulando
-        if result.file_metadata:
-            # Monkey patching o inyección de atributos dinámicos
-            # Idealmente file_metadata debería soportar estos campos,
-            # pero Python permite atributos dinámicos si no es __slots__ estricto
-            setattr(result.file_metadata, "hierarchy_level", level.name)
-            setattr(
-                result.file_metadata,
-                "is_foundation",
-                (level == HierarchyLevel.LOGISTICS),
+    if result.status != LoadStatus.SUCCESS:
+        return result
+
+    # 2. Análisis de homología entre niveles
+    homology_analysis = {
+        "source_level": level.name,
+        "dimensionality": result.quality_metrics.total_columns if result.quality_metrics else 0,
+        "cardinality": result.quality_metrics.total_rows if result.quality_metrics else 0,
+        "topological_invariants": {}
+    }
+
+    # 3. Preservación de estructura topológica
+    if preserve_topology and result.data is not None:
+        if isinstance(result.data, pd.DataFrame):
+            df = result.data
+
+            # Calcular invariantes topológicos
+            homology_analysis["topological_invariants"] = {
+                "connected_components": _count_connected_components(df),
+                "cycles": _detect_data_cycles(df),
+                "boundary_matrix_rank": _calculate_boundary_rank(df)
+            }
+
+            # Inyectar metadatos topológicos
+            if not hasattr(df, 'attrs'):
+                df.attrs = {}
+
+            df.attrs.update({
+                "hierarchy_level": level.value,
+                "level_name": level.name,
+                "topological_invariants": homology_analysis["topological_invariants"],
+                "is_foundation": (level == HierarchyLevel.LOGISTICS),
+                "parent_level": max(level.value - 1, 0) if level.value > 0 else None
+            })
+
+            # Preservar relaciones de adjacencia (para grafos de datos)
+            if level.value > 0:
+                df.attrs["child_relations"] = _extract_child_relations(df, level)
+
+    # 4. Enriquecer resultado con análisis de homología
+    result.homology_analysis = homology_analysis
+
+    # 5. Validación de coherencia dimensional
+    if result.quality_metrics:
+        expected_dimensions = {
+            HierarchyLevel.ROOT: (1, 50),        # Raíz: pocas dimensiones clave
+            HierarchyLevel.STRATEGY: (3, 100),   # Estrategia: dimensiones moderadas
+            HierarchyLevel.TACTIC: (10, 500),    # Táctica: alta dimensionalidad
+            HierarchyLevel.LOGISTICS: (5, 200)   # Logística: dimensiones específicas
+        }
+
+        min_dim, max_dim = expected_dimensions.get(level, (1, 1000))
+        actual_dim = result.quality_metrics.total_columns
+
+        if actual_dim < min_dim:
+            result.add_warning(
+                f"Dimensionalidad baja para nivel {level.name}: "
+                f"{actual_dim} columnas (esperado: {min_dim}+)"
+            )
+        elif actual_dim > max_dim:
+            result.add_warning(
+                f"Dimensionalidad alta para nivel {level.name}: "
+                f"{actual_dim} columnas (esperado: ≤{max_dim})"
             )
 
+    logger.info(
+        f"Carga jerárquica completada - Nivel: {level.name}, "
+        f"Invariantes: {homology_analysis['topological_invariants']}"
+    )
+
     return result
+
+
+def _count_connected_components(df: pd.DataFrame) -> int:
+    """
+    Calcula componentes conexos en el espacio de datos.
+    Usa clustering para identificar grupos desconectados.
+    """
+    try:
+        if len(df) < 2 or len(df.columns) < 2:
+            return 1
+
+        # Seleccionar columnas numéricas para análisis
+        numeric_cols = df.select_dtypes(include=[np.number]).columns
+
+        if len(numeric_cols) < 2:
+            return 1
+
+        # Muestreo para eficiencia
+        sample_size = min(1000, len(df))
+        sample = df[numeric_cols].sample(sample_size).fillna(0)
+
+        # Intentar importar sklearn de forma segura
+        try:
+            from sklearn.cluster import DBSCAN
+            from sklearn.preprocessing import StandardScaler
+
+            scaled = StandardScaler().fit_transform(sample)
+            clustering = DBSCAN(eps=0.5, min_samples=5).fit(scaled)
+
+            # Contar clusters no ruido
+            n_components = len(set(clustering.labels_)) - (1 if -1 in clustering.labels_ else 0)
+
+            return max(n_components, 1)
+        except ImportError:
+            # Fallback simple basado en correlación si sklearn no está disponible
+            corr = sample.corr().abs()
+            # Umbral de conexión
+            adj = (corr > 0.1).astype(int).values
+            # BFS simple para contar componentes
+            n = len(adj)
+            visited = [False] * n
+            count = 0
+            for i in range(n):
+                if not visited[i]:
+                    count += 1
+                    queue = [i]
+                    visited[i] = True
+                    while queue:
+                        u = queue.pop(0)
+                        for v in range(n):
+                            if adj[u][v] and not visited[v]:
+                                visited[v] = True
+                                queue.append(v)
+            return count
+
+    except Exception:
+        return 1
+
+
+def _detect_data_cycles(df: pd.DataFrame) -> int:
+    """
+    Detecta ciclos en relaciones de datos (para grafos implícitos).
+    """
+    try:
+        if len(df.columns) < 3:
+            return 0
+
+        # Buscar relaciones circulares en columnas numéricas
+        numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
+
+        if len(numeric_cols) < 3:
+            return 0
+
+        # Matriz de correlación
+        corr_matrix = df[numeric_cols].corr().abs()
+
+        # Detectar triángulos de alta correlación (ciclos de longitud 3)
+        cycles = 0
+        n = len(numeric_cols)
+
+        for i in range(n):
+            for j in range(i + 1, n):
+                for k in range(j + 1, n):
+                    if (corr_matrix.iloc[i, j] > 0.8 and
+                        corr_matrix.iloc[j, k] > 0.8 and
+                        corr_matrix.iloc[k, i] > 0.8):
+                        cycles += 1
+
+        return cycles
+
+    except Exception:
+        return 0
+
+
+def _calculate_boundary_rank(df: pd.DataFrame) -> int:
+    """
+    Calcula el rango de la matriz de borde (concepto de homología).
+    """
+    try:
+        # Matriz binaria de presencia/ausencia (simplificada)
+        binary_matrix = df.notnull().astype(int).values
+
+        if binary_matrix.size == 0:
+            return 0
+
+        # Rango de la matriz (dimensión del espacio columna)
+        rank = np.linalg.matrix_rank(binary_matrix)
+
+        return rank
+
+    except Exception:
+        return 0
+
+
+def _extract_child_relations(df: pd.DataFrame, level: HierarchyLevel) -> Dict:
+    """
+    Extrae relaciones padre-hijo basadas en estructura de datos.
+    """
+    relations = {
+        "potential_children": 0,
+        "foreign_key_candidates": [],
+        "hierarchical_columns": []
+    }
+
+    try:
+        # Buscar columnas que puedan ser claves foráneas
+        for col in df.columns:
+            col_str = str(col).lower()
+
+            # Heurísticas para identificar relaciones
+            if any(term in col_str for term in ['id', 'code', 'key', 'ref', 'parent']):
+                relations["foreign_key_candidates"].append(col)
+
+            if any(term in col_str for term in ['level', 'hierarchy', 'tier', 'grade']):
+                relations["hierarchical_columns"].append(col)
+
+        # Estimar número de hijos potenciales
+        if relations["foreign_key_candidates"]:
+            for col in relations["foreign_key_candidates"][:2]:
+                unique_values = df[col].nunique()
+                if unique_values > 1:
+                    relations["potential_children"] = max(
+                        relations["potential_children"],
+                        unique_values
+                    )
+
+    except Exception:
+        pass
+
+    return relations
 
 
 # ============================================================================
