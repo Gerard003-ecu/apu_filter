@@ -172,3 +172,160 @@ def _inject_pyramidal_health(response_data: dict, session_data: dict):
 
 # Uso en el endpoint:
 # _inject_pyramidal_health(response_data, session)
+
+1. Docstring Mejorado: El Legislador Estructural
+Primero, actualizamos la cabecera para reflejar que este módulo define la "Constitución" del sistema, estableciendo las leyes que rigen la materia (Insumos) y la estructura (APUs).
+
+"""
+Módulo: Data Schemas (El Ontólogo del Dominio)
+Rol: El Legislador - Definición de Invariantes y Topología de Tipos.
+
+Este módulo define la "Constitución de los Datos". Establece las estructuras de datos
+inmutables que representan los nodos del Grafo de Negocio. Implementa la jerarquía
+piramidal (Nivel 0 a Nivel 3) asegurando que cada entidad conozca su estrato
+y sus reglas de conexión permitidas.
+
+Jerarquía Topológica (Pirámide de Negocio):
+-------------------------------------------
+1. Estrato LOGÍSTICO (Nivel 3 - Insumos):
+   La base física. Átomos indivisibles con propiedades de masa (costo) y entropía.
+   Invariante: No pueden tener hijos, solo padres.
+
+2. Estrato TÁCTICO (Nivel 2 - APUs):
+   La estructura de ejecución. Complejos simpliciales formados por la agregación
+   de insumos.
+   Invariante: Debe tener al menos un insumo conectado (evitar "Nodos Flotantes").
+
+3. Estrato ESTRATÉGICO (Nivel 1 - Capítulos):
+   Agrupadores lógicos que definen las fases del proyecto.
+
+Capacidades del Esquema:
+------------------------
+- Validación de Invariantes: Rechazo inmediato de objetos que violen leyes físicas
+  (ej. Mano de Obra sin Rendimiento).
+- Tipado Fuerte: Uso de `dataclasses` y `Enums` para garantizar integridad de tipos.
+- Serialización Forense: Métodos `to_dict` que preservan la metadata de linaje.
+
+Fuente de Verdad: schemas.py, topologia.md, LENGUAJE_CONSEJO.md [1, 2]
+"""
+
+
+--------------------------------------------------------------------------------
+2. Implementación de la Estructura Piramidal
+A continuación, el código necesario para inyectar la conciencia topológica en las clases. Creamos una clase base TopologicalNode y un Enum Stratum.
+
+from enum import IntEnum, auto
+from dataclasses import dataclass, field
+from typing import List, Optional, Dict
+
+# -----------------------------------------------------------------------------
+# 1. Definición de Estratos (La Jerarquía de Mando)
+# Fuente: topologia.md (Sección 3.1 Niveles de la Pirámide)
+# -----------------------------------------------------------------------------
+
+class Stratum(IntEnum):
+    """
+    Niveles de abstracción en la topología del negocio.
+    Define la 'altitud' del nodo en la pirámide de control.
+    """
+    ROOT = 0      # Proyecto Total (Ω) - La Cúspide
+    STRATEGY = 1  # Capítulos - Los Pilares
+    TACTIC = 2    # APUs - La Acción
+    LOGISTICS = 3 # Insumos - La Materia (Cimentación)
+
+# -----------------------------------------------------------------------------
+# 2. Entidad Topológica Base (El Átomo Abstracto)
+# -----------------------------------------------------------------------------
+
+@dataclass
+class TopologicalNode:
+    """
+    Clase base para todos los elementos del presupuesto.
+    Garantiza que todo objeto tenga una ubicación espacial definida en la pirámide.
+    """
+    id: str
+    stratum: Stratum
+    description: str
+    
+    # Métricas de salud estructural (inyectadas por el TopologicalAnalyzer)
+    # Fuente: LENGUAJE_CONSEJO.md (Semántica de los Números de Betti) [3]
+    structural_health: float = 1.0  # 1.0 = Sólido, < 1.0 = Fragil
+    is_floating: bool = False       # True si no tiene conexiones superiores (Huérfano)
+    
+    def validate_connectivity(self):
+        """
+        Verifica invariantes de conectividad básicos.
+        Un nodo logístico (L3) no puede contener otros nodos.
+        """
+        if self.stratum == Stratum.LOGISTICS and hasattr(self, 'children') and self.children:
+             raise ValueError(f"Violación de Invariante: Un nodo Logístico ({self.id}) no puede tener hijos.")
+
+# -----------------------------------------------------------------------------
+# 3. Refactorización de InsumoProcesado (Nivel 3 - La Base)
+# -----------------------------------------------------------------------------
+
+@dataclass
+class InsumoProcesado(TopologicalNode):
+    """
+    Representa un recurso atómico en el Nivel 3 (Logística).
+    Es la 'Materia' que forma la base de la pirámide.
+    """
+    # Campos de datos existentes...
+    unidad: str = "UND"
+    precio_unitario: float = 0.0
+    cantidad: float = 0.0
+    # ... otros campos ...
+
+    # Inicialización del Estrato Fijo
+    def __post_init__(self):
+        # Forzamos el estrato a LOGÍSTICA. Esto es una ley física del sistema.
+        self.stratum = Stratum.LOGISTICS
+        
+        # Validación de Entropía (Datos Sucios)
+        # Fuente: LENGUAJE_CONSEJO.md (Entropía de Datos) [4]
+        if self.precio_unitario < 0:
+            raise ValueError(f"Física Violada: El precio del insumo {self.id} es negativo ({self.precio_unitario}).")
+            
+    @property
+    def total_cost(self) -> float:
+        return self.cantidad * self.precio_unitario
+
+# -----------------------------------------------------------------------------
+# 4. Nueva Clase: APU (Nivel 2 - Táctica)
+# -----------------------------------------------------------------------------
+
+@dataclass
+class APUStructure(TopologicalNode):
+    """
+    Representa una actividad constructiva en el Nivel 2 (Táctica).
+    Topológicamente, es un 'Complejo Simplicial' formado por insumos.
+    """
+    unit: str
+    quantity: float
+    # Conexiones hacia abajo (La base que lo sostiene)
+    resources: List[InsumoProcesado] = field(default_factory=list)
+    
+    def __post_init__(self):
+        self.stratum = Stratum.TACTIC
+
+    @property
+    def support_base_width(self) -> int:
+        """
+        Calcula el ancho de la base de soporte.
+        Fuente: topologia.md (Estabilidad Piramidal)
+        """
+        return len(self.resources)
+
+    @property
+    def is_inverted_pyramid(self) -> bool:
+        """
+        Detecta si este APU específico es una pirámide invertida local.
+        Si un APU complejo depende de 1 solo insumo, es un punto único de falla.
+        """
+        return self.quantity > 1000 and self.support_base_width == 1
+
+    def add_resource(self, resource: InsumoProcesado):
+        """Conecta un nodo de Nivel 3 a este nodo de Nivel 2."""
+        if resource.stratum != Stratum.LOGISTICS:
+            raise TypeError(f"Error Topológico: Un APU solo puede contener Insumos (Nivel 3), se intentó agregar {resource.stratum}")
+        self.resources.append(resource)
