@@ -1,8 +1,5 @@
 # -*- coding: utf-8 -*-
 """
-Módulo: Semantic Translator (El Intérprete Diplomático)
-Rol: La Voz del Consejo - Traducción de Invariantes a Estrategia de Negocio.
-
 Este módulo actúa como el puente cognitivo entre la "Matemática Profunda" (Topología, 
 Finanzas, Termodinámica) y la toma de decisiones ejecutiva. Su función no es reportar 
 datos, sino emitir "Veredictos" y narrativas de riesgo basadas en la evidencia 
