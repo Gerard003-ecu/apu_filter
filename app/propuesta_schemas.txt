@@ -1,0 +1,282 @@
+# ============================================================================
+# CONSTANTES Y CONFIGURACIÓN (ADICIONALES)
+# ============================================================================
+
+# Tolerancias para validación de valor_total (nuevas)
+VALOR_TOTAL_WARNING_TOLERANCE: Final[float] = 0.01  # 1% para warning
+VALOR_TOTAL_ERROR_TOLERANCE: Final[float] = 0.05   # 5% para error
+
+# ============================================================================
+# MÉTODOS REFINADOS
+# ============================================================================
+
+def _validate_valor_total_consistency(self):
+    """Valida que valor_total sea coherente con cantidad * precio_unitario."""
+    expected_total = self.cantidad * self.precio_unitario
+
+    # Si ambos son cero, no hay problema
+    if expected_total == 0 and self.valor_total == 0:
+        return
+
+    # Calcular diferencia relativa
+    if expected_total != 0:
+        diff_rel = abs(self.valor_total - expected_total) / expected_total
+    else:
+        # Si el esperado es cero, pero el valor_total no, la diferencia relativa es infinita
+        diff_rel = float('inf')
+
+    if diff_rel > VALOR_TOTAL_ERROR_TOLERANCE:
+        raise ValidationError(
+            f"{self.__class__.__name__} [{self.codigo_apu}]: "
+            f"valor_total ({self.valor_total:.4f}) difiere significativamente del esperado "
+            f"({expected_total:.4f}). Diferencia relativa: {diff_rel:.2%}"
+        )
+    elif diff_rel > VALOR_TOTAL_WARNING_TOLERANCE:
+        warnings.warn(
+            f"{self.__class__.__name__} [{self.codigo_apu}]: "
+            f"valor_total ({self.valor_total:.4f}) difiere del esperado "
+            f"({expected_total:.4f}). Diferencia relativa: {diff_rel:.2%}",
+            UserWarning,
+            stacklevel=3,
+        )
+
+
+def topological_stability_index(self) -> float:
+    """
+    Calcula un índice de estabilidad topológica basado en la diversidad de insumos.
+    Retorna un valor entre 0 y 1, donde 1 es estable.
+
+    Fórmula: (diversidad_tipos + entropia_valores) / 2
+
+    diversidad_tipos = número de tipos únicos / número total de insumos
+    entropia_valores = entropía de Shannon de los valores totales de insumos, normalizada.
+    """
+    if not self.resources:
+        return 0.0
+
+    # Diversidad de tipos
+    tipos = set(resource.tipo_insumo for resource in self.resources)
+    diversidad_tipos = len(tipos) / len(self.resources)
+
+    # Entropía de los valores
+    valores = [r.valor_total for r in self.resources]
+    total_valor = sum(valores)
+    if total_valor == 0:
+        return 0.0
+
+    probs = [v / total_valor for v in valores]
+    entropia = -sum(p * math.log(p) for p in probs if p > 0)
+    entropia_maxima = math.log(len(valores))
+    if entropia_maxima == 0:
+        entropia_normalizada = 0.0
+    else:
+        entropia_normalizada = entropia / entropia_maxima
+
+    return (diversidad_tipos + entropia_normalizada) / 2
+
+
+def validate_insumo_data(insumo_data: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Valida y limpia datos crudos para crear un insumo.
+
+    Normaliza campos, asigna defaults, valida existencia de campos críticos
+    y prepara los datos para pasarlos a create_insumo().
+
+    Args:
+        insumo_data: Diccionario con datos crudos del insumo
+
+    Returns:
+        Diccionario validado y limpiado listo para create_insumo()
+
+    Raises:
+        ValidationError: Si faltan campos obligatorios o tienen tipos inválidos
+
+    Examples:
+        >>> raw_data = {
+        ...     'codigo_apu': 'APU-001',
+        ...     'descripcion_apu': 'Concreto',
+        ...     'unidad_apu': 'm3',
+        ...     'descripcion_insumo': 'Cemento',
+        ...     'unidad_insumo': 'kg',
+        ...     'tipo_insumo': 'suministro',
+        ...     'cantidad': '50',
+        ...     'precio_unitario': '35000'
+        ... }
+        >>> cleaned = validate_insumo_data(raw_data)
+        >>> cleaned['cantidad']
+        50.0
+        >>> cleaned['tipo_insumo']
+        'SUMINISTRO'
+    """
+    if not isinstance(insumo_data, dict):
+        raise ValidationError("insumo_data debe ser un diccionario")
+
+    # Campos obligatorios
+    required_fields = [
+        "codigo_apu",
+        "descripcion_apu",
+        "unidad_apu",
+        "descripcion_insumo",
+        "unidad_insumo",
+        "tipo_insumo",
+    ]
+
+    # Verificar campos requeridos
+    missing_fields = [
+        f for f in required_fields if f not in insumo_data or insumo_data[f] is None
+    ]
+
+    if missing_fields:
+        raise ValidationError(
+            f"Campos requeridos faltantes o nulos: {', '.join(missing_fields)}"
+        )
+
+    # Valores por defecto
+    defaults = {
+        "cantidad": 0.0,
+        "precio_unitario": 0.0,
+        "valor_total": 0.0,
+        "capitulo": "GENERAL",
+        "categoria": "OTRO",
+        "formato_origen": "GENERIC",
+        "rendimiento": 0.0,
+        "jornal": 0.0,
+    }
+
+    # Crear diccionario limpio
+    cleaned_data = {}
+
+    # Procesar todos los campos del input
+    for key, value in insumo_data.items():
+        if value is None:
+            # Usar default si existe
+            if key in defaults:
+                cleaned_data[key] = defaults[key]
+            continue
+
+        # Convertir campos numéricos
+        if key in ["cantidad", "precio_unitario", "valor_total", "rendimiento", "jornal"]:
+            try:
+                num_value = float(value)
+            except (ValueError, TypeError) as e:
+                raise ValidationError(
+                    f"Campo '{key}' debe ser numérico. Valor recibido: {value}"
+                ) from e
+
+            # Validar que no sea negativo
+            if num_value < 0:
+                raise ValidationError(
+                    f"Campo '{key}' no puede ser negativo. Valor recibido: {num_value}"
+                )
+
+            cleaned_data[key] = num_value
+        else:
+            # Mantener otros campos como están
+            cleaned_data[key] = value
+
+    # Agregar defaults para campos no proporcionados
+    for field_name, default_value in defaults.items():
+        if field_name not in cleaned_data:
+            cleaned_data[field_name] = default_value
+
+    # Validar y normalizar tipo_insumo
+    try:
+        tipo_enum = TipoInsumo.from_string(cleaned_data["tipo_insumo"])
+        cleaned_data["tipo_insumo"] = tipo_enum.value
+        cleaned_data["categoria"] = tipo_enum.value  # Sincronizar
+    except InvalidTipoInsumoError as e:
+        raise ValidationError(f"Tipo de insumo inválido: {e}") from e
+
+    # Calcular valor_total si no se proporcionó o es 0
+    if cleaned_data.get("valor_total", 0) == 0:
+        cantidad = cleaned_data.get("cantidad", 0)
+        precio = cleaned_data.get("precio_unitario", 0)
+        cleaned_data["valor_total"] = cantidad * precio
+
+    logger.debug(
+        f"Datos validados para insumo {cleaned_data.get('codigo_apu', 'UNKNOWN')}: "
+        f"tipo={cleaned_data.get('tipo_insumo')}"
+    )
+
+    return cleaned_data
+
+
+def create_insumo(**kwargs) -> InsumoProcesado:
+    """
+    Factory function para crear instancias de insumos dinámicamente.
+
+    Args:
+        **kwargs: Argumentos para la clase específica, debe incluir 'tipo_insumo'
+
+    Returns:
+        Instancia validada de la clase de insumo correspondiente
+
+    Raises:
+        InvalidTipoInsumoError: Si el tipo_insumo no es válido
+        ValidationError: Si los argumentos son inválidos
+
+    Examples:
+        >>> insumo = create_insumo(
+        ...     tipo_insumo='MANO_DE_OBRA',
+        ...     codigo_apu='APU-001',
+        ...     descripcion_apu='Concreto',
+        ...     unidad_apu='M3',
+        ...     descripcion_insumo='Oficial',
+        ...     unidad_insumo='HORA',
+        ...     cantidad=1.5,
+        ...     precio_unitario=15000,
+        ...     valor_total=22500,
+        ...     rendimiento=0.67
+        ... )
+    """
+    try:
+        # Normalizar tipo_insumo
+        if "tipo_insumo" not in kwargs:
+            raise ValidationError("El argumento 'tipo_insumo' es requerido")
+        tipo_enum = TipoInsumo.from_string(kwargs["tipo_insumo"])
+        tipo_normalizado = tipo_enum.value
+
+        # Forzar coherencia en kwargs
+        kwargs["tipo_insumo"] = tipo_normalizado
+        kwargs["categoria"] = tipo_normalizado
+
+        # Obtener clase correspondiente
+        insumo_class = INSUMO_CLASS_MAP.get(tipo_normalizado)
+
+        if not insumo_class:
+            raise InvalidTipoInsumoError(
+                f"No hay clase definida para tipo: {tipo_normalizado}"
+            )
+
+        # Crear instancia
+        logger.debug(
+            f"Creando insumo tipo {tipo_normalizado} para APU "
+            f"{kwargs.get('codigo_apu', 'UNKNOWN')}"
+        )
+
+        # Filtrar kwargs para que solo contengan los campos esperados por la clase
+        import inspect
+
+        sig = inspect.signature(insumo_class)
+        valid_kwargs = {k: v for k, v in kwargs.items() if k in sig.parameters}
+
+        # Verificar si faltan parámetros obligatorios
+        for param_name, param in sig.parameters.items():
+            if param.default is inspect.Parameter.empty and param_name not in valid_kwargs:
+                raise ValidationError(
+                    f"Falta el parámetro obligatorio: {param_name} para la clase {insumo_class.__name__}"
+                )
+
+        return insumo_class(**valid_kwargs)
+
+    except InvalidTipoInsumoError:
+        raise
+    except TypeError as e:
+        # Error en los argumentos
+        raise ValidationError(
+            f"Error creando insumo: {e}. Argumentos recibidos: {list(kwargs.keys())}"
+        ) from e
+    except Exception as e:
+        # Otros errores
+        logger.error(f"Error inesperado creando insumo: {e}", exc_info=True)
+        raise InsumoDataError(f"Error creando insumo: {e}") from e
