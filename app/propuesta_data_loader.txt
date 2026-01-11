@@ -1,0 +1,871 @@
+# 1. Refinamiento de la Detección de Delimitadores con Topología de Información
+
+def _detect_csv_delimiter(
+    path: Path,
+    sample_size: int = 20,
+    encodings_to_try: Optional[List[str]] = None,
+    max_line_length: int = 10000,
+) -> Tuple[Optional[str], Optional[str]]:
+    """
+    Detecta delimitador usando teoría de información y topología de datos.
+    
+    Args:
+        path: Ruta al archivo CSV
+        sample_size: Número de líneas a analizar
+        encodings_to_try: Lista de encodings a probar
+        max_line_length: Longitud máxima de línea a considerar
+
+    Returns:
+        Tuple[delimitador, encoding]: Delimitador y encoding detectados usando entropía de Shannon
+    """
+    if encodings_to_try is None:
+        encodings_to_try = DEFAULT_ENCODINGS.copy()
+
+    for encoding in encodings_to_try:
+        try:
+            lines = []
+            with open(path, "r", encoding=encoding, errors="replace") as f:
+                for _ in range(sample_size):
+                    line = f.readline()
+                    if not line:
+                        break
+                    if len(line) > max_line_length:
+                        line = line[:max_line_length]
+                    lines.append(line.strip())
+
+            if len(lines) < 3:  # Mínimo para análisis estadístico
+                continue
+
+            # Métrica de entropía de Shannon para cada delimitador
+            delimiter_scores = {}
+            
+            for delim in COMMON_DELIMITERS:
+                # Calcular distribución de campos por línea
+                field_counts = []
+                for line in lines:
+                    if not line or line.startswith(('#', '//', '--')):
+                        continue
+                    
+                    # Contar ocurrencias no vacías del delimitador
+                    parts = [p for p in line.split(delim) if p.strip()]
+                    if len(parts) > 1:  # Solo considerar líneas con al menos 2 campos
+                        field_counts.append(len(parts))
+                
+                if not field_counts:
+                    continue
+                
+                # Calcular métricas estadísticas
+                mean_fields = np.mean(field_counts)
+                std_fields = np.std(field_counts)
+                
+                # Coeficiente de variación (inverso = consistencia)
+                if mean_fields > 0:
+                    cv = std_fields / mean_fields
+                    consistency_score = 1 / (1 + cv)
+                else:
+                    consistency_score = 0
+                
+                # Entropía de la distribución de campos
+                unique_counts, count_freq = np.unique(field_counts, return_counts=True)
+                prob_dist = count_freq / len(field_counts)
+                entropy = -np.sum(prob_dist * np.log2(prob_dist + 1e-10))
+                
+                # Máxima entropía posible para esta distribución
+                max_entropy = np.log2(len(unique_counts)) if len(unique_counts) > 1 else 1
+                
+                # Normalizar entropía (0-1)
+                normalized_entropy = entropy / max_entropy if max_entropy > 0 else 0
+                
+                # Puntuación compuesta basada en teoría de información
+                # 1. Alta consistencia (baja varianza)
+                # 2. Alta entropía (distribución balanceada de conteos)
+                # 3. Suficiente cobertura (porcentaje de líneas con el delimitador)
+                coverage = len(field_counts) / len(lines)
+                
+                score = (consistency_score * 0.4 + 
+                        normalized_entropy * 0.3 + 
+                        coverage * 0.3) * mean_fields
+                
+                delimiter_scores[delim] = {
+                    'score': score,
+                    'consistency': consistency_score,
+                    'entropy': normalized_entropy,
+                    'coverage': coverage,
+                    'mean_fields': mean_fields
+                }
+
+            # Seleccionar mejor delimitador usando criterio topológico
+            if delimiter_scores:
+                # Filtrar delimitadores con cobertura mínima
+                valid_delims = {d: s for d, s in delimiter_scores.items() 
+                              if s['coverage'] > 0.6 and s['mean_fields'] > 1}
+                
+                if valid_delims:
+                    # Seleccionar por producto de métricas (espacio topológico)
+                    best_delim = max(valid_delims.items(), 
+                                   key=lambda x: (x[1]['score'], 
+                                                x[1]['consistency'] * x[1]['entropy']))
+                    
+                    logger.debug(
+                        f"Delimitador óptimo: '{best_delim[0]}' "
+                        f"(score: {best_delim[1]['score']:.3f}, "
+                        f"consistencia: {best_delim[1]['consistency']:.3f}, "
+                        f"entropía: {best_delim[1]['entropy']:.3f}, "
+                        f"encoding: {encoding})"
+                    )
+                    
+                    # Verificación adicional: el delimitador no debe ser contenido comúnmente en datos
+                    sample_data = ' '.join(lines[:5])
+                    if best_delim[0] in [';', ',']:
+                        # Verificar que no sea un número con separador decimal
+                        if re.search(r'\d' + re.escape(best_delim[0]) + r'\d', sample_data):
+                            logger.debug(f"Delimitador '{best_delim[0]}' puede ser separador decimal")
+                            continue
+                    
+                    return best_delim[0], encoding
+
+        except UnicodeDecodeError:
+            continue
+        except Exception as e:
+            logger.debug(f"Error con encoding {encoding}: {e}")
+            continue
+
+    # Fallback: método de frecuencia simple
+    logger.debug("Usando método de detección por frecuencia")
+    for encoding in encodings_to_try:
+        try:
+            with open(path, "r", encoding=encoding, errors="replace") as f:
+                content = f.read(5000)
+                
+            freq = {d: content.count(d) for d in COMMON_DELIMITERS}
+            if freq:
+                best_delim = max(freq.items(), key=lambda x: x[1])
+                if best_delim[1] > 10:  # Mínimo umbral de ocurrencias
+                    return best_delim[0], encoding
+        except:
+            continue
+    
+    return None, None
+
+
+# 2. Refinamiento del Análisis de Calidad con Métricas Topológicas
+
+def _analyze_dataframe_quality(
+    df: pd.DataFrame,
+    include_sample_data: bool = False,
+) -> DataQualityMetrics:
+    """
+    Analiza la calidad usando métricas topológicas y teoría de información.
+    
+    Args:
+        df: DataFrame a analizar
+        include_sample_data: Si True, incluye muestra de datos problemáticos
+
+    Returns:
+        DataQualityMetrics: Métricas de calidad con dimensión topológica
+    """
+    metrics = DataQualityMetrics()
+
+    if df is None or not isinstance(df, pd.DataFrame):
+        metrics.add_warning("Entrada inválida para análisis de calidad")
+        return metrics
+
+    if df.empty:
+        metrics.add_warning("DataFrame está vacío")
+        return metrics
+
+    # Dimensiones básicas (cardinalidad)
+    metrics.total_rows = len(df)
+    metrics.total_columns = len(df.columns)
+
+    # Análisis de completitud (dimensión 0 - puntos)
+    try:
+        null_matrix = df.isnull()
+        metrics.null_cells = int(null_matrix.sum().sum())
+        total_cells = metrics.total_rows * metrics.total_columns
+        
+        if total_cells > 0:
+            metrics.null_percentage = (metrics.null_cells / total_cells) * 100
+            
+            # Entropía de la distribución de nulos por columna
+            null_by_col = null_matrix.sum(axis=0)
+            if null_by_col.sum() > 0:
+                p = null_by_col / null_by_col.sum()
+                entropy_nulls = -np.sum(p * np.log2(p + 1e-10))
+                metrics.add_warning(f"Entropía de distribución de nulos: {entropy_nulls:.3f}")
+    except Exception as e:
+        logger.warning(f"Error en análisis de nulos: {e}")
+
+    # Análisis de dimensionalidad (estructura de columnas)
+    try:
+        # Cohesión de tipos de datos (dimensión 1 - líneas)
+        type_groups = {}
+        for col in df.columns:
+            dtype = str(df[col].dtype)
+            type_groups.setdefault(dtype, []).append(str(col))
+        
+        metrics.data_types = {dtype: len(cols) for dtype, cols in type_groups.items()}
+        
+        # Métrica de heterogeneidad de tipos
+        if len(type_groups) > 1:
+            heterogeneity = 1 - (max(len(c) for c in type_groups.values()) / metrics.total_columns)
+            if heterogeneity > 0.7:
+                metrics.add_warning(f"Alta heterogeneidad de tipos: {heterogeneity:.2f}")
+    except Exception as e:
+        logger.warning(f"Error en análisis de tipos: {e}")
+
+    # Análisis de redundancia (dimensión 2 - superficies)
+    try:
+        # Detectar columnas duplicadas usando similitud de contenido
+        duplicate_pairs = []
+        columns = list(df.columns)
+        
+        for i in range(len(columns)):
+            for j in range(i + 1, len(columns)):
+                col1, col2 = columns[i], columns[j]
+                try:
+                    # Comparar series ignorando nulos
+                    series1 = df[col1].dropna()
+                    series2 = df[col2].dropna()
+                    
+                    if len(series1) > 10 and len(series2) > 10:
+                        # Coeficiente de correlación para numéricos
+                        if pd.api.types.is_numeric_dtype(series1) and pd.api.types.is_numeric_dtype(series2):
+                            corr = series1.corr(series2)
+                            if abs(corr) > 0.95:
+                                duplicate_pairs.append((col1, col2, f"corr={corr:.3f}"))
+                        
+                        # Similitud de strings para categóricos
+                        elif pd.api.types.is_string_dtype(series1) and pd.api.types.is_string_dtype(series2):
+                            sample1 = series1.sample(min(100, len(series1))).astype(str).values
+                            sample2 = series2.sample(min(100, len(series2))).astype(str).values
+                            matches = sum(1 for a, b in zip(sample1, sample2) if a == b)
+                            if matches / len(sample1) > 0.9:
+                                duplicate_pairs.append((col1, col2, f"match={matches/len(sample1):.2f}"))
+                except:
+                    continue
+        
+        if duplicate_pairs:
+            metrics.duplicate_columns = [f"{a}≈{b} ({reason})" for a, b, reason in duplicate_pairs[:5]]
+            metrics.add_warning(f"Redundancia detectada en {len(duplicate_pairs)} pares de columnas")
+    except Exception as e:
+        logger.warning(f"Error en análisis de redundancia: {e}")
+
+    # Análisis de integridad estructural
+    try:
+        # Columnas completamente nulas (dimensión colapsada)
+        all_null_cols = df.columns[df.isnull().all()].tolist()
+        if all_null_cols:
+            metrics.columns_with_all_nulls = all_null_cols
+            metrics.add_warning(f"{len(all_null_cols)} columnas completamente nulas")
+        
+        # Columnas con baja variación (casi constantes)
+        low_variance_cols = []
+        for col in df.columns:
+            if df[col].nunique(dropna=True) == 1 and len(df[col].dropna()) > 10:
+                low_variance_cols.append(col)
+        
+        if low_variance_cols:
+            metrics.add_warning(f"{len(low_variance_cols)} columnas con variación mínima")
+    except Exception as e:
+        logger.warning(f"Error en análisis de integridad: {e}")
+
+    # Métricas de memoria con perspectiva topológica
+    try:
+        memory_bytes = df.memory_usage(deep=True, index=True).sum()
+        metrics.memory_usage_mb = memory_bytes / (1024 * 1024)
+        
+        # Densidad de información (bits por celda no nula)
+        non_null_cells = total_cells - metrics.null_cells
+        if non_null_cells > 0:
+            info_density = (memory_bytes * 8) / non_null_cells  # bits por celda
+            if info_density > 100:  # Empírico
+                metrics.add_warning(f"Alta densidad de información: {info_density:.1f} bits/celda")
+    except Exception as e:
+        logger.warning(f"Error en cálculo de memoria: {e}")
+
+    # Advertencias dimensionales
+    if metrics.total_rows > MAX_ROWS_WARNING:
+        metrics.add_warning(f"Cardinalidad alta: {metrics.total_rows:,} observaciones")
+    
+    if metrics.total_columns > MAX_COLS_WARNING:
+        metrics.add_warning(f"Dimensionalidad alta: {metrics.total_columns} variables")
+    
+    if metrics.null_percentage > MAX_NULL_PERCENTAGE_WARNING:
+        metrics.add_warning(f"Baja completitud: {metrics.null_percentage:.1f}% celdas nulas")
+
+    # Análisis de conectividad (grafos de dependencia implícitos)
+    try:
+        if metrics.total_columns > 2 and metrics.total_rows > 10:
+            # Matriz de correlación parcial para detectar relaciones
+            numeric_cols = df.select_dtypes(include=[np.number]).columns
+            if len(numeric_cols) >= 3:
+                corr_matrix = df[numeric_cols].corr().abs()
+                
+                # Contar correlaciones fuertes (> 0.8)
+                strong_corrs = ((corr_matrix > 0.8) & (corr_matrix < 1.0)).sum().sum() / 2
+                if strong_corrs > len(numeric_cols):
+                    metrics.add_warning(f"Alta conectividad lineal: {strong_corrs} correlaciones fuertes")
+    except:
+        pass
+
+    return metrics
+
+
+# 3. Refinamiento de la Función de Carga Principal con Patrón Estratégico
+
+def load_data(
+    path: PathType,
+    format_hint: Optional[str] = None,
+    validate_only: bool = False,
+    telemetry_context: Optional[TelemetryContext] = None,
+    **kwargs,
+) -> LoadResult:
+    """
+    Función factory con patrón estratégico y análisis topológico previo.
+    
+    Args:
+        path: Ruta al archivo
+        format_hint: Sugerencia de formato
+        validate_only: Si True, solo valida el archivo
+        telemetry_context: Contexto de telemetría
+        **kwargs: Argumentos específicos del formato
+
+    Returns:
+        LoadResult con análisis topológico integrado
+    """
+    start_time = time.time()
+    topological_analysis = {}
+
+    logger.info("=" * 80)
+    logger.info(f"Análisis topológico iniciado para: {path}")
+    logger.info("=" * 80)
+
+    if telemetry_context:
+        telemetry_context.start_step(
+            "load_data", 
+            {
+                "path": str(path), 
+                "format_hint": format_hint,
+                "phase": "topological_analysis"
+            }
+        )
+
+    # Validación topológica previa
+    try:
+        validated_path = _validate_file_path(path)
+        metadata = FileMetadata.from_path(validated_path)
+        
+        # Análisis de estructura de archivo
+        topological_analysis["file_structure"] = {
+            "path_depth": len(validated_path.parts),
+            "extension": validated_path.suffix,
+            "name_complexity": len(validated_path.stem) / 20,  # Normalizado
+            "directory_entropy": _calculate_path_entropy(validated_path)
+        }
+        
+    except Exception as e:
+        error_msg = f"Fallo en análisis topológico inicial: {type(e).__name__}: {e}"
+        logger.error(error_msg)
+        
+        result = LoadResult(
+            status=LoadStatus.FAILED,
+            data=None,
+            file_metadata=None,
+            quality_metrics=None,
+            load_time_seconds=time.time() - start_time,
+            error_message=error_msg,
+        )
+        
+        if telemetry_context:
+            telemetry_context.record_error("topological_analysis", error_msg)
+            telemetry_context.end_step("load_data", "failure", {
+                **result.to_dict(),
+                "topological_analysis": topological_analysis
+            })
+        
+        return result
+
+    # Determinar formato con heurística mejorada
+    file_format = metadata.format
+    
+    if format_hint:
+        format_hint_normalized = format_hint.strip().upper()
+        
+        # Matriz de confusión de formatos (experiencia previa)
+        format_confusion_matrix = {
+            "CSV": {"confusions": ["TSV", "TXT"], "confidence": 0.9},
+            "EXCEL": {"confusions": ["CSV", "PDF"], "confidence": 0.8},
+            "PDF": {"confusions": ["EXCEL"], "confidence": 0.7}
+        }
+        
+        if format_hint_normalized in format_mapping:
+            suggested_format = format_mapping[format_hint_normalized]
+            
+            # Verificar si hay conflicto con detección automática
+            if suggested_format != metadata.format:
+                if metadata.format != FileFormat.UNKNOWN:
+                    # Análisis de conflicto
+                    topological_analysis["format_conflict"] = {
+                        "detected": metadata.format.value,
+                        "suggested": suggested_format.value,
+                        "confidence": format_confusion_matrix.get(
+                            suggested_format.value, {}
+                        ).get("confidence", 0.5)
+                    }
+                    
+                    logger.warning(
+                        f"Conflicto de formato: detectado={metadata.format.value}, "
+                        f"sugerido={suggested_format.value}"
+                    )
+                
+                # Priorizar sugerencia con registro
+                file_format = suggested_format
+                topological_analysis["format_override"] = True
+
+    # Validación de integridad física con métricas topológicas
+    try:
+        size_warnings = _validate_file_size(metadata, allow_empty=validate_only)
+        
+        # Análisis de distribución de bytes (entropía del archivo)
+        if metadata.size_bytes > 100:  # Solo para archivos no triviales
+            try:
+                with open(validated_path, 'rb') as f:
+                    sample = f.read(min(1000, metadata.size_bytes))
+                    byte_entropy = _calculate_byte_entropy(sample)
+                    topological_analysis["byte_entropy"] = byte_entropy
+                    
+                    if byte_entropy < 0.1:  # Archivo muy estructurado/constante
+                        topological_analysis["low_entropy_warning"] = (
+                            f"Entropía de bytes baja ({byte_entropy:.3f}), "
+                            f"posible archivo binario o altamente estructurado"
+                        )
+            except:
+                pass
+        
+    except ValueError as e:
+        result = LoadResult(
+            status=LoadStatus.FAILED,
+            data=None,
+            file_metadata=metadata,
+            quality_metrics=None,
+            load_time_seconds=time.time() - start_time,
+            error_message=str(e),
+        )
+        
+        if telemetry_context:
+            telemetry_context.record_error("file_validation", str(e))
+            telemetry_context.end_step("load_data", "failure", {
+                **result.to_dict(),
+                "topological_analysis": topological_analysis
+            })
+        
+        return result
+
+    # Si solo validación, retornar análisis topológico
+    if validate_only:
+        quality_metrics = DataQualityMetrics()
+        quality_metrics.warnings = size_warnings
+        
+        result = LoadResult(
+            status=LoadStatus.SUCCESS,
+            data=None,
+            file_metadata=metadata,
+            quality_metrics=quality_metrics,
+            load_time_seconds=time.time() - start_time,
+        )
+        
+        # Inyectar análisis topológico
+        result.topological_analysis = topological_analysis
+        
+        if telemetry_context:
+            telemetry_context.end_step("load_data", "success", {
+                **result.to_dict(),
+                "topological_analysis": topological_analysis
+            })
+        
+        return result
+
+    # Selección de estrategia de carga basada en topología
+    load_strategy = _select_load_strategy(file_format, topological_analysis)
+    
+    try:
+        # Cargar usando estrategia seleccionada
+        if file_format == FileFormat.CSV:
+            filtered_kwargs = {k: v for k, v in kwargs.items() if k in csv_params}
+            
+            # Ajustar parámetros basados en análisis topológico
+            if "byte_entropy" in topological_analysis:
+                if topological_analysis["byte_entropy"] < 0.2:
+                    filtered_kwargs.setdefault("encoding", "utf-16")
+            
+            result = load_from_csv(validated_path, **filtered_kwargs)
+            
+        elif file_format == FileFormat.EXCEL:
+            filtered_kwargs = {k: v for k, v in kwargs.items() if k in excel_params}
+            result = load_from_xlsx(validated_path, **filtered_kwargs)
+            
+        elif file_format == FileFormat.PDF:
+            filtered_kwargs = {k: v for k, v in kwargs.items() if k in pdf_params}
+            result = load_from_pdf(validated_path, **filtered_kwargs)
+            
+        else:
+            error_msg = f"Estrategia no implementada para formato {file_format.value}"
+            raise NotImplementedError(error_msg)
+
+        # Enriquecer resultado con análisis topológico
+        result.topological_analysis = topological_analysis
+        
+        # Añadir métricas de carga al análisis
+        if result.quality_metrics:
+            topological_analysis["load_metrics"] = {
+                "compression_ratio": (
+                    metadata.size_mb / (result.quality_metrics.memory_usage_mb + 1e-10)
+                ),
+                "null_density": result.quality_metrics.null_percentage / 100,
+                "dimensional_efficiency": (
+                    result.quality_metrics.total_rows * result.quality_metrics.total_columns
+                ) / (metadata.size_bytes + 1e-10)
+            }
+
+    except Exception as e:
+        error_msg = f"Error en estrategia de carga {load_strategy}: {type(e).__name__}: {e}"
+        logger.error(error_msg, exc_info=True)
+        
+        result = LoadResult(
+            status=LoadStatus.FAILED,
+            data=None,
+            file_metadata=metadata,
+            quality_metrics=None,
+            load_time_seconds=time.time() - start_time,
+            error_message=error_msg,
+        )
+        
+        result.topological_analysis = topological_analysis
+
+    # Logging final con perspectiva topológica
+    logger.info("=" * 80)
+    logger.info(f"Carga completada - Estado: {result.status.value}")
+    logger.info(f"Estrategia: {load_strategy}")
+    logger.info(f"Análisis topológico: {len(topological_analysis)} métricas")
+    logger.info(f"Tiempo total: {result.load_time_seconds:.3f} segundos")
+    
+    if hasattr(result, 'topological_analysis') and result.topological_analysis:
+        for key, value in list(result.topological_analysis.items())[:3]:
+            logger.debug(f"  {key}: {value}")
+    
+    logger.info("=" * 80)
+
+    if telemetry_context:
+        status_str = (
+            "success" if result.status == LoadStatus.SUCCESS
+            else "warning" if result.status == LoadStatus.PARTIAL_SUCCESS
+            else "failure"
+        )
+        
+        telemetry_context.end_step("load_data", status_str, {
+            **result.to_dict(),
+            "topological_analysis": topological_analysis,
+            "load_strategy": load_strategy
+        })
+
+    return result
+
+
+# Funciones auxiliares para análisis topológico
+def _calculate_path_entropy(path: Path) -> float:
+    """Calcula la entropía de Shannon de la ruta del archivo."""
+    try:
+        path_str = str(path)
+        char_counts = {}
+        total_chars = len(path_str)
+        
+        for char in path_str:
+            char_counts[char] = char_counts.get(char, 0) + 1
+        
+        entropy = 0
+        for count in char_counts.values():
+            probability = count / total_chars
+            entropy -= probability * math.log2(probability)
+        
+        return entropy
+    except:
+        return 0.0
+
+
+def _calculate_byte_entropy(data: bytes) -> float:
+    """Calcula la entropía de una muestra de bytes."""
+    if not data:
+        return 0.0
+    
+    byte_counts = np.bincount(np.frombuffer(data, dtype=np.uint8), minlength=256)
+    probabilities = byte_counts[byte_counts > 0] / len(data)
+    
+    if len(probabilities) == 0:
+        return 0.0
+    
+    entropy = -np.sum(probabilities * np.log2(probabilities))
+    max_entropy = np.log2(len(probabilities))
+    
+    return entropy / max_entropy if max_entropy > 0 else 0.0
+
+
+def _select_load_strategy(
+    file_format: FileFormat,
+    topological_analysis: Dict[str, Any]
+) -> str:
+    """Selecciona estrategia de carga basada en análisis topológico."""
+    
+    strategies = {
+        FileFormat.CSV: {
+            "default": "adaptive_csv",
+            "low_entropy": "structured_csv",
+            "high_depth": "robust_csv"
+        },
+        FileFormat.EXCEL: {
+            "default": "full_excel",
+            "large_file": "streaming_excel",
+            "multi_sheet": "selective_excel"
+        },
+        FileFormat.PDF: {
+            "default": "table_extraction",
+            "high_entropy": "ocr_assisted",
+            "structured": "direct_extraction"
+        }
+    }
+    
+    format_strategies = strategies.get(file_format, {"default": "standard"})
+    
+    # Heurísticas de selección
+    if file_format == FileFormat.CSV:
+        if topological_analysis.get("byte_entropy", 0.5) < 0.2:
+            return format_strategies.get("low_entropy", "adaptive_csv")
+        if topological_analysis.get("file_structure", {}).get("path_depth", 0) > 5:
+            return format_strategies.get("high_depth", "robust_csv")
+    
+    return format_strategies.get("default", "standard")
+
+
+# 4. Refinamiento de la Carga Jerárquica con Isomorfismos Topológicos
+
+def load_data_with_hierarchy(
+    path: str,
+    level: HierarchyLevel,
+    preserve_topology: bool = True,
+    **kwargs,
+) -> LoadResult:
+    """
+    Carga datos con preservación de isomorfismos topológicos entre niveles.
+    
+    Args:
+        path: Ruta al archivo
+        level: Nivel en la jerarquía
+        preserve_topology: Si True, mantiene relaciones topológicas
+        **kwargs: Argumentos adicionales para load_data
+
+    Returns:
+        LoadResult con estructura jerárquica y análisis de homología
+    """
+    # 1. Carga estándar con análisis topológico
+    result = load_data(path, **kwargs)
+    
+    if result.status != LoadStatus.SUCCESS:
+        return result
+    
+    # 2. Análisis de homología entre niveles
+    homology_analysis = {
+        "source_level": level.name,
+        "dimensionality": result.quality_metrics.total_columns if result.quality_metrics else 0,
+        "cardinality": result.quality_metrics.total_rows if result.quality_metrics else 0,
+        "topological_invariants": {}
+    }
+    
+    # 3. Preservación de estructura topológica
+    if preserve_topology and result.data is not None:
+        if isinstance(result.data, pd.DataFrame):
+            df = result.data
+            
+            # Calcular invariantes topológicos
+            homology_analysis["topological_invariants"] = {
+                "connected_components": _count_connected_components(df),
+                "cycles": _detect_data_cycles(df),
+                "boundary_matrix_rank": _calculate_boundary_rank(df)
+            }
+            
+            # Inyectar metadatos topológicos
+            if not hasattr(df, 'attrs'):
+                df.attrs = {}
+            
+            df.attrs.update({
+                "hierarchy_level": level.value,
+                "level_name": level.name,
+                "topological_invariants": homology_analysis["topological_invariants"],
+                "is_foundation": (level == HierarchyLevel.LOGISTICS),
+                "parent_level": max(level.value - 1, 0) if level.value > 0 else None
+            })
+            
+            # Preservar relaciones de adjacencia (para grafos de datos)
+            if level.value > 0:
+                df.attrs["child_relations"] = _extract_child_relations(df, level)
+    
+    # 4. Enriquecer resultado con análisis de homología
+    result.homology_analysis = homology_analysis
+    
+    # 5. Validación de coherencia dimensional
+    if result.quality_metrics:
+        expected_dimensions = {
+            HierarchyLevel.ROOT: (1, 50),        # Raíz: pocas dimensiones clave
+            HierarchyLevel.STRATEGY: (3, 100),   # Estrategia: dimensiones moderadas
+            HierarchyLevel.TACTIC: (10, 500),    # Táctica: alta dimensionalidad
+            HierarchyLevel.LOGISTICS: (5, 200)   # Logística: dimensiones específicas
+        }
+        
+        min_dim, max_dim = expected_dimensions.get(level, (1, 1000))
+        actual_dim = result.quality_metrics.total_columns
+        
+        if actual_dim < min_dim:
+            result.add_warning(
+                f"Dimensionalidad baja para nivel {level.name}: "
+                f"{actual_dim} columnas (esperado: {min_dim}+)"
+            )
+        elif actual_dim > max_dim:
+            result.add_warning(
+                f"Dimensionalidad alta para nivel {level.name}: "
+                f"{actual_dim} columnas (esperado: ≤{max_dim})"
+            )
+    
+    logger.info(
+        f"Carga jerárquica completada - Nivel: {level.name}, "
+        f"Invariantes: {homology_analysis['topological_invariants']}"
+    )
+    
+    return result
+
+
+def _count_connected_components(df: pd.DataFrame) -> int:
+    """
+    Calcula componentes conexos en el espacio de datos.
+    Usa clustering para identificar grupos desconectados.
+    """
+    try:
+        if len(df) < 2 or len(df.columns) < 2:
+            return 1
+        
+        # Seleccionar columnas numéricas para análisis
+        numeric_cols = df.select_dtypes(include=[np.number]).columns
+        
+        if len(numeric_cols) < 2:
+            return 1
+        
+        # Muestreo para eficiencia
+        sample_size = min(1000, len(df))
+        sample = df[numeric_cols].sample(sample_size).fillna(0)
+        
+        # Clustering simple para detectar componentes
+        from sklearn.cluster import DBSCAN
+        from sklearn.preprocessing import StandardScaler
+        
+        scaled = StandardScaler().fit_transform(sample)
+        clustering = DBSCAN(eps=0.5, min_samples=5).fit(scaled)
+        
+        # Contar clusters no ruido
+        n_components = len(set(clustering.labels_)) - (1 if -1 in clustering.labels_ else 0)
+        
+        return max(n_components, 1)
+        
+    except Exception:
+        return 1
+
+
+def _detect_data_cycles(df: pd.DataFrame) -> int:
+    """
+    Detecta ciclos en relaciones de datos (para grafos implícitos).
+    """
+    try:
+        if len(df.columns) < 3:
+            return 0
+        
+        # Buscar relaciones circulares en columnas numéricas
+        numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
+        
+        if len(numeric_cols) < 3:
+            return 0
+        
+        # Matriz de correlación
+        corr_matrix = df[numeric_cols].corr().abs()
+        
+        # Detectar triángulos de alta correlación (ciclos de longitud 3)
+        cycles = 0
+        n = len(numeric_cols)
+        
+        for i in range(n):
+            for j in range(i + 1, n):
+                for k in range(j + 1, n):
+                    if (corr_matrix.iloc[i, j] > 0.8 and 
+                        corr_matrix.iloc[j, k] > 0.8 and 
+                        corr_matrix.iloc[k, i] > 0.8):
+                        cycles += 1
+        
+        return cycles
+        
+    except Exception:
+        return 0
+
+
+def _calculate_boundary_rank(df: pd.DataFrame) -> int:
+    """
+    Calcula el rango de la matriz de borde (concepto de homología).
+    """
+    try:
+        # Matriz binaria de presencia/ausencia (simplificada)
+        binary_matrix = df.notnull().astype(int).values
+        
+        if binary_matrix.size == 0:
+            return 0
+        
+        # Rango de la matriz (dimensión del espacio columna)
+        rank = np.linalg.matrix_rank(binary_matrix)
+        
+        return rank
+        
+    except Exception:
+        return 0
+
+
+def _extract_child_relations(df: pd.DataFrame, level: HierarchyLevel) -> Dict:
+    """
+    Extrae relaciones padre-hijo basadas en estructura de datos.
+    """
+    relations = {
+        "potential_children": 0,
+        "foreign_key_candidates": [],
+        "hierarchical_columns": []
+    }
+    
+    try:
+        # Buscar columnas que puedan ser claves foráneas
+        for col in df.columns:
+            col_str = str(col).lower()
+            
+            # Heurísticas para identificar relaciones
+            if any(term in col_str for term in ['id', 'code', 'key', 'ref', 'parent']):
+                relations["foreign_key_candidates"].append(col)
+            
+            if any(term in col_str for term in ['level', 'hierarchy', 'tier', 'grade']):
+                relations["hierarchical_columns"].append(col)
+        
+        # Estimar número de hijos potenciales
+        if relations["foreign_key_candidates"]:
+            for col in relations["foreign_key_candidates"][:2]:
+                unique_values = df[col].nunique()
+                if unique_values > 1:
+                    relations["potential_children"] = max(
+                        relations["potential_children"],
+                        unique_values
+                    )
+    
+    except Exception:
+        pass
+    
+    return relations
+
