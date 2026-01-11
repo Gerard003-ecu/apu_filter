@@ -81,6 +81,45 @@ from .topology_viz import topology_bp  # Importar el nuevo blueprint
 from .utils import sanitize_for_json
 
 # ============================================================================
+# INYECCIÓN DE SALUD PIRAMIDAL
+# ============================================================================
+
+
+def _inject_pyramidal_health(response_data: dict, session_data: dict):
+    """
+    Inyecta el diagnóstico de estabilidad piramidal en la respuesta API.
+    Fuente: LENGUAJE_CONSEJO.md (Termodinámica Estructural) [7]
+    """
+    try:
+        # Calcular métricas rápidas
+        n_apus = len(session_data["data"].get("processed_apus", []))
+        n_insumos = len(session_data["data"].get("raw_insumos_df", []))
+
+        # Cálculo de Psi (Estabilidad)
+        # Psi < 1.0 indica "Pirámide Invertida" (Base estrecha, alto riesgo)
+        psi = n_insumos / n_apus if n_apus > 0 else 0
+
+        stability_status = "SÓLIDA"
+        if psi < 1.0:
+            stability_status = "CRÍTICA (Pirámide Invertida)"
+        elif psi < 3.0:
+            stability_status = "FRÁGIL"
+
+        # Inyección en el payload de respuesta
+        response_data["structural_health"] = {
+            "psi_index": round(psi, 2),
+            "status": stability_status,
+            "base_width": n_insumos,  # Nivel 3
+            "apex_load": n_apus,  # Nivel 2
+            "message": (
+                "Riesgo de Colapso Logístico" if psi < 1.0 else "Estructura Estable"
+            ),
+        }
+    except Exception as e:
+        current_app.logger.warning(f"No se pudo calcular salud piramidal: {e}")
+
+
+# ============================================================================
 # CONSTANTES Y CONFIGURACIÓN
 # ============================================================================
 
@@ -1519,6 +1558,12 @@ def create_app(config_name: str) -> Flask:
             "processing_time": processing_time,
             "audit_report": sanitized_data.get("audit_report"),
         }
+
+        # Inyectar salud piramidal
+        _inject_pyramidal_health(
+            response_data,
+            {"data": processed_data}
+        )
 
         # Incluir datos completos si se solicita
         if request.args.get("include_data") == "true":

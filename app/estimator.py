@@ -1,4 +1,4 @@
-""""
+"""
 Este módulo implementa el motor de estimación táctica del sistema. A diferencia de
 una calculadora determinista, actúa como un motor de inferencia que "triangula"
 el costo más probable de un APU combinando búsqueda semántica (vectores) y
@@ -29,7 +29,7 @@ Metodologías y Capacidades:
    Actúa como el puente hacia el `FinancialEngine`, inyectando variables estocásticas
    (volatilidad, WACC) sobre la estructura de costos base para proyectar escenarios
    de riesgo (Monte Carlo) y valor estratégico (Opciones Reales).
-""""
+"""
 
 import logging
 from dataclasses import dataclass

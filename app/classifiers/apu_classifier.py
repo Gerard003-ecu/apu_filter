@@ -1,4 +1,4 @@
-""""
+"""
 Este componente implementa un motor de inferencia determinista diseñado para
 categorizar la naturaleza ontológica de un APU (Análisis de Precio Unitario).
 Utiliza un sistema de reglas jerárquicas para particionar el espacio vectorial
@@ -25,14 +25,14 @@ Metodología de Clasificación:
    Valida las reglas de negocio (strings dinámicos) mediante análisis de árbol
    sintáctico (Abstract Syntax Tree) para prevenir inyección de código, garantizando
    que solo se evalúen expresiones aritméticas y lógicas seguras [8].
-""""
+"""
 
 import json
 import logging
 import re
 from dataclasses import dataclass
 from pathlib import Path
-from typing import ClassVar, List, Optional, Tuple
+from typing import ClassVar, Dict, List, Optional, Tuple
 
 import numpy as np
 import pandas as pd
@@ -563,3 +563,32 @@ class APUClassifier:
             )
 
         return pd.DataFrame(data)
+
+
+class StructuralClassifier(APUClassifier):
+    """
+    Clasificador que considera la topología de soporte del APU.
+    """
+
+    def classify_by_structure(self, insumos_del_apu: List[Dict]) -> str:
+        """
+        Clasifica el APU basándose en la naturaleza de su cimentación (Nivel 3).
+        """
+        # Contar tipos de nodos hoja conectados
+        support_types = [i.get("TIPO_INSUMO") for i in insumos_del_apu]
+
+        has_mo = "MANO_DE_OBRA" in support_types
+        has_mat = "SUMINISTRO" in support_types
+
+        # Regla Topológica:
+        # Si tiene soporte de Materiales pero NO de Mano de Obra, es un Suministro Puro.
+        # Esto es vital para detectar 'Islas' donde se compra material pero no se instala.
+        if has_mat and not has_mo:
+            return "SUMINISTRO_PURO"  # Nodo hoja en el grafo de ejecución
+
+        # Regla Topológica:
+        # Si tiene soporte de Mano de Obra pero NO de Materiales, es Servicio Puro.
+        if has_mo and not has_mat:
+            return "SERVICIO_PURO"
+
+        return "CONSTRUCCION_MIXTA"  # Nodo complejo estándar

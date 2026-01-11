@@ -81,6 +81,27 @@ MAX_PDF_PAGES = 500  # Límite de páginas a procesar
 # ============================================================================
 # ENUMS Y DATACLASSES
 # ============================================================================
+class HierarchyLevel(Enum):
+    """
+    Estratos de la Pirámide de Negocio.
+    Fuente: topologia.md (Niveles de la Pirámide) [1]
+    """
+
+    ROOT = 0  # Proyecto Total (Ápice)
+    STRATEGY = 1  # Capítulos (Pilares)
+    TACTIC = 2  # APUs (Actividades)
+    LOGISTICS = 3  # Insumos (Recursos Atómicos)
+
+
+@dataclass
+class HierarchicalData:
+    """Contenedor de datos consciente de su posición topológica."""
+
+    payload: pd.DataFrame
+    level: HierarchyLevel
+    lineage_hash: str
+
+
 class FileFormat(Enum):
     """Formatos de archivo soportados"""
 
@@ -2202,6 +2223,37 @@ def load_data(
             telemetry_context.record_metric("loader", "file_size_mb", metadata.size_mb)
 
         telemetry_context.end_step("load_data", status_str, metadata=result.to_dict())
+
+    return result
+
+
+# ============================================================================
+# FUNCIONES DE CARGA JERÁRQUICA
+# ============================================================================
+def load_data_with_hierarchy(
+    path: str,
+    level: HierarchyLevel,
+    **kwargs,
+) -> LoadResult:
+    """
+    Carga datos asignando su nivel en la pirámide estructural.
+    """
+    # 1. Carga estándar (existente)
+    result = load_data(path, **kwargs)
+
+    if result.status == LoadStatus.SUCCESS:
+        # 2. Inyección de Metadatos Topológicos
+        # Esto permite que el 'BusinessAgent' sepa qué estrato está manipulando
+        if result.file_metadata:
+            # Monkey patching o inyección de atributos dinámicos
+            # Idealmente file_metadata debería soportar estos campos,
+            # pero Python permite atributos dinámicos si no es __slots__ estricto
+            setattr(result.file_metadata, "hierarchy_level", level.name)
+            setattr(
+                result.file_metadata,
+                "is_foundation",
+                (level == HierarchyLevel.LOGISTICS),
+            )
 
     return result
 

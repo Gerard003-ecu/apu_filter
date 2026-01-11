@@ -34,9 +34,9 @@ import unicodedata
 import warnings
 from dataclasses import asdict, dataclass, field
 from decimal import Decimal
-from enum import Enum
+from enum import Enum, IntEnum, auto
 from functools import lru_cache
-from typing import Any, ClassVar, Dict, Final, Optional, Protocol, Set, Type, Union
+from typing import Any, ClassVar, Dict, Final, List, Optional, Protocol, Set, Type, Union
 
 # ============================================================================
 # CONFIGURACIÓN DE LOGGING
@@ -189,6 +189,18 @@ FORMATOS_VALIDOS: Final[Set[str]] = frozenset(
 # ============================================================================
 # ENUMERACIONES
 # ============================================================================
+
+
+class Stratum(IntEnum):
+    """
+    Niveles de abstracción en la topología del negocio.
+    Define la 'altitud' del nodo en la pirámide de control.
+    """
+
+    ROOT = 0  # Proyecto Total (Ω) - La Cúspide
+    STRATEGY = 1  # Capítulos - Los Pilares
+    TACTIC = 2  # APUs - La Acción
+    LOGISTICS = 3  # Insumos - La Materia (Cimentación)
 
 
 class TipoInsumo(str, Enum):
@@ -520,8 +532,38 @@ class InsumoProtocol(Protocol):
 # ============================================================================
 
 
+@dataclass(kw_only=True)
+class TopologicalNode:
+    """
+    Clase base para todos los elementos del presupuesto.
+    Garantiza que todo objeto tenga una ubicación espacial definida en la pirámide.
+    """
+
+    id: str = field(default="")
+    stratum: Stratum = field(default=Stratum.LOGISTICS)
+    description: str = field(default="")
+
+    # Métricas de salud estructural (inyectadas por el TopologicalAnalyzer)
+    structural_health: float = 1.0  # 1.0 = Sólido, < 1.0 = Fragil
+    is_floating: bool = False  # True si no tiene conexiones superiores (Huérfano)
+
+    def validate_connectivity(self):
+        """
+        Verifica invariantes de conectividad básicos.
+        Un nodo logístico (L3) no puede contener otros nodos.
+        """
+        if (
+            self.stratum == Stratum.LOGISTICS
+            and hasattr(self, "children")
+            and self.children
+        ):
+            raise ValueError(
+                f"Violación de Invariante: Un nodo Logístico ({self.id}) no puede tener hijos."
+            )
+
+
 @dataclass(frozen=False)  # No frozen para permitir __post_init__
-class InsumoProcesado:
+class InsumoProcesado(TopologicalNode):
     """
     Estructura base para cualquier insumo de APU.
 
@@ -579,11 +621,23 @@ class InsumoProcesado:
         4. Marcar como validado
         """
         try:
+            # Inicialización de campos topológicos
+            self.stratum = Stratum.LOGISTICS
+            self.description = self.descripcion_insumo
+            # Usamos una combinación de APU+Insumo como ID único temporal
+            self.id = f"{self.codigo_apu}_{self.descripcion_insumo[:20]}"
+
             self._normalize_all_fields()
             self._validate_required_fields()
             self._validate_numeric_fields()
             self._validate_consistency()
             self._post_validation_hook()
+
+            # Validación de Entropía (Datos Sucios)
+            if self.precio_unitario < 0:
+                raise ValueError(
+                    f"Física Violada: El precio del insumo {self.id} es negativo ({self.precio_unitario})."
+                )
 
             # Marcar como validado
             object.__setattr__(self, "_validated", True)
@@ -594,6 +648,10 @@ class InsumoProcesado:
                 f"para APU {getattr(self, 'codigo_apu', 'UNKNOWN')}: {e}"
             )
             raise
+
+    @property
+    def total_cost(self) -> float:
+        return self.cantidad * self.precio_unitario
 
     def _normalize_all_fields(self):
         """Normaliza todos los campos del insumo."""
@@ -766,6 +824,46 @@ class InsumoProcesado:
             f"cantidad={self.cantidad:.4f}, "
             f"valor_total={self.valor_total:.2f})"
         )
+
+
+@dataclass
+class APUStructure(TopologicalNode):
+    """
+    Representa una actividad constructiva en el Nivel 2 (Táctica).
+    Topológicamente, es un 'Complejo Simplicial' formado por insumos.
+    """
+
+    unit: str = ""
+    quantity: float = 0.0
+    # Conexiones hacia abajo (La base que lo sostiene)
+    resources: List[InsumoProcesado] = field(default_factory=list)
+
+    def __post_init__(self):
+        self.stratum = Stratum.TACTIC
+
+    @property
+    def support_base_width(self) -> int:
+        """
+        Calcula el ancho de la base de soporte.
+        Fuente: topologia.md (Estabilidad Piramidal)
+        """
+        return len(self.resources)
+
+    @property
+    def is_inverted_pyramid(self) -> bool:
+        """
+        Detecta si este APU específico es una pirámide invertida local.
+        Si un APU complejo depende de 1 solo insumo, es un punto único de falla.
+        """
+        return self.quantity > 1000 and self.support_base_width == 1
+
+    def add_resource(self, resource: InsumoProcesado):
+        """Conecta un nodo de Nivel 3 a este nodo de Nivel 2."""
+        if resource.stratum != Stratum.LOGISTICS:
+            raise TypeError(
+                f"Error Topológico: Un APU solo puede contener Insumos (Nivel 3), se intentó agregar {resource.stratum}"
+            )
+        self.resources.append(resource)
 
 
 # ============================================================================
