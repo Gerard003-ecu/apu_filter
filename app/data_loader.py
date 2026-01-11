@@ -32,7 +32,7 @@ import math
 import re
 from dataclasses import dataclass, field
 from datetime import datetime
-from enum import Enum
+from enum import Enum, IntEnum
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union
 
@@ -84,7 +84,7 @@ MAX_PDF_PAGES = 500  # Límite de páginas a procesar
 # ============================================================================
 # ENUMS Y DATACLASSES
 # ============================================================================
-class HierarchyLevel(Enum):
+class HierarchyLevel(IntEnum):
     """
     Estratos de la Pirámide de Negocio.
     Fuente: topologia.md (Niveles de la Pirámide) [1]
