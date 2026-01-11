@@ -177,64 +177,53 @@ class PyramidalValidator:
     def validate_structure(
         self, apus_df: pd.DataFrame, insumos_df: pd.DataFrame
     ) -> PyramidalMetrics:
-        # 1. Definir estratos
-        # Aseguramos que trabajamos con DataFrames
+        # 1. Normalización de entradas
         if not isinstance(insumos_df, pd.DataFrame):
             insumos_df = pd.DataFrame()
         if not isinstance(apus_df, pd.DataFrame):
             apus_df = pd.DataFrame()
 
-        # Intentar obtener columnas clave normalizadas o usar las raw
+        # 2. Definición de Nodos de Nivel 2 (APUs)
+        # Se busca CODIGO_APU en el DataFrame de cabecera/detalle de APUs
+        apu_col = "CODIGO_APU"
+        level_2_nodes = set()
+
+        if apu_col in apus_df.columns:
+            level_2_nodes = set(apus_df[apu_col].dropna().unique())
+        elif not apus_df.empty:
+            # Fallback a la primera columna si no existe CODIGO_APU
+            level_2_nodes = set(apus_df.iloc[:, 0].dropna().unique())
+
+        # 3. Definición de Nodos de Nivel 3 (Insumos)
+        # Se buscan referencias a APUs en la tabla de insumos para ver cuáles tienen hijos
+        # Nota: insumos_df aquí representa la tabla de detalle donde se vinculan APUs con Insumos
+        connected_level_2_nodes = set()
+
+        if apu_col in insumos_df.columns:
+            connected_level_2_nodes = set(insumos_df[apu_col].dropna().unique())
+
+        # Cálculo de Base (Ancho del Nivel 3 - Insumos Únicos)
+        # Usamos DESCRIPCION_INSUMO_NORM o DESCRIPCION_INSUMO
         insumo_desc_col = "DESCRIPCION_INSUMO_NORM"
         if insumo_desc_col not in insumos_df.columns:
-            insumo_desc_col = (
-                "DESCRIPCION_INSUMO"
-                if "DESCRIPCION_INSUMO" in insumos_df.columns
-                else None
-            )
-
-        apu_code_col = "CODIGO_APU"
-        if apu_code_col not in apus_df.columns:
-            # Fallback
-            apu_code_col = apus_df.columns[0] if not apus_df.empty else None
+            insumo_desc_col = "DESCRIPCION_INSUMO"
 
         level_3_nodes = set()
-        if insumo_desc_col and not insumos_df.empty:
-            level_3_nodes = set(insumos_df[insumo_desc_col].unique())
+        if insumo_desc_col in insumos_df.columns:
+            level_3_nodes = set(insumos_df[insumo_desc_col].dropna().unique())
 
-        level_2_nodes = set()
-        if apu_code_col and not apus_df.empty:
-            level_2_nodes = set(apus_df[apu_code_col].unique())
-
-        # 2. Calcular Psi (Ψ) - Índice de Estabilidad
-        # Una pirámide estable debe tener una base amplia.
-        # Si Psi < 1.0, es una "Pirámide Invertida" (Riesgo Alto).
+        # 4. Cálculo de Métricas
         n_insumos = len(level_3_nodes)
         n_apus = len(level_2_nodes)
 
+        # Psi (Ψ): Estabilidad Estructural
         psi = n_insumos / n_apus if n_apus > 0 else 0.0
 
-        # 3. Detectar Nodos Flotantes (APUs sin conexión a la base)
-        # Esto requiere analizar el dataframe de relaciones (detalle)
-        # Aquí simulamos la lógica suponiendo que apus_df tiene el detalle desglosado
-        # Si apus_df es realmente la tabla de APUs (cabecera), no podemos saber conexiones sin la tabla de detalle.
-        # Asumiremos que si se pasa un dataframe de detalle (como suele ser apus_df en este contexto),
-        # podemos verificar.
-        # Si insumo_desc_col está en apus_df, entonces apus_df es una tabla de detalle.
-
-        floating_apus = []
-        if apu_code_col and insumo_desc_col and insumo_desc_col in apus_df.columns:
-            # apus_df parece ser detalle
-            valid_connections = apus_df[
-                apus_df[insumo_desc_col].isin(level_3_nodes)
-            ]  # Esto asume que level_3_nodes viene de la tabla maestra de insumos
-            # Pero en muchos casos insumos_df ES la tabla de insumos extraida del detalle.
-            # Simplificación: Un APU es flotante si no tiene filas en el detalle (pero aquí apus_df ES el detalle)
-            # O si sus insumos no existen en la base de datos maestra de insumos (si existiera).
-            pass
-        else:
-            # Si no podemos determinar flotantes con la info dada, retornamos lista vacía
-            pass
+        # 5. Detección de Nodos Flotantes
+        # Un APU es flotante si existe en el Nivel 2 pero no tiene registros en el Nivel 3
+        # floating_nodes = Set(APUs) - Set(APUs_con_insumos)
+        floating_nodes_set = level_2_nodes - connected_level_2_nodes
+        floating_apus = sorted(list(floating_nodes_set))
 
         return PyramidalMetrics(
             base_width=n_insumos,

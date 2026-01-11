@@ -71,6 +71,7 @@ from .estimator import SearchArtifacts, calculate_estimate
 from .pipeline_director import process_all_files  # Ahora usa la versión refactorizada
 from .presenters import APUPresenter
 from .telemetry import TelemetryContext  # Nueva importación
+from .data_validator import PyramidalValidator  # Importar el validador piramidal
 from .tools_interface import (
     analyze_financial_viability,
     clean_file,
@@ -89,31 +90,64 @@ def _inject_pyramidal_health(response_data: dict, session_data: dict):
     """
     Inyecta el diagnóstico de estabilidad piramidal en la respuesta API.
     Fuente: LENGUAJE_CONSEJO.md (Termodinámica Estructural) [7]
+    Utiliza PyramidalValidator para centralizar la lógica.
     """
     try:
-        # Calcular métricas rápidas
-        n_apus = len(session_data["data"].get("processed_apus", []))
-        n_insumos = len(session_data["data"].get("raw_insumos_df", []))
+        # Obtener DataFrames de la sesión
+        # Nota: processed_apus es lista de dicts, raw_insumos_df es DataFrame
+        processed_apus = session_data["data"].get("processed_apus", [])
+        raw_insumos_df = session_data["data"].get("raw_insumos_df")
 
-        # Cálculo de Psi (Estabilidad)
-        # Psi < 1.0 indica "Pirámide Invertida" (Base estrecha, alto riesgo)
-        psi = n_insumos / n_apus if n_apus > 0 else 0
+        # Convertir processed_apus a DataFrame si es necesario
+        if isinstance(processed_apus, list):
+            apus_df = pd.DataFrame(processed_apus)
+        else:
+            apus_df = processed_apus
 
+        # Asegurar que raw_insumos_df sea DataFrame
+        if not isinstance(raw_insumos_df, pd.DataFrame):
+            # Intentar obtener desde insumos si raw_insumos_df no está disponible
+            insumos_data = session_data["data"].get("insumos", [])
+            if isinstance(insumos_data, dict):
+                # Si está agrupado por categoría, aplanar
+                all_insumos = []
+                for cat_list in insumos_data.values():
+                    all_insumos.extend(cat_list)
+                raw_insumos_df = pd.DataFrame(all_insumos)
+            elif isinstance(insumos_data, list):
+                raw_insumos_df = pd.DataFrame(insumos_data)
+            else:
+                raw_insumos_df = pd.DataFrame()
+
+        # Instanciar validador y ejecutar análisis
+        validator = PyramidalValidator()
+        metrics = validator.validate_structure(apus_df, raw_insumos_df)
+
+        # Determinar estado basado en Psi
+        psi = metrics.pyramid_stability_index
         stability_status = "SÓLIDA"
         if psi < 1.0:
             stability_status = "CRÍTICA (Pirámide Invertida)"
         elif psi < 3.0:
             stability_status = "FRÁGIL"
 
+        # Mensaje con detalle de nodos flotantes
+        floating_count = len(metrics.floating_nodes)
+        message = (
+            "Riesgo de Colapso Logístico" if psi < 1.0 else "Estructura Estable"
+        )
+        if floating_count > 0:
+            message += f". Detectados {floating_count} nodos flotantes."
+
         # Inyección en el payload de respuesta
         response_data["structural_health"] = {
             "psi_index": round(psi, 2),
             "status": stability_status,
-            "base_width": n_insumos,  # Nivel 3
-            "apex_load": n_apus,  # Nivel 2
-            "message": (
-                "Riesgo de Colapso Logístico" if psi < 1.0 else "Estructura Estable"
-            ),
+            "base_width": metrics.base_width,  # Nivel 3
+            "apex_load": metrics.structure_load,  # Nivel 2
+            "floating_nodes_count": floating_count,
+            "floating_nodes_sample": metrics.floating_nodes[:5],  # Muestra
+            "message": message,
         }
     except Exception as e:
         current_app.logger.warning(f"No se pudo calcular salud piramidal: {e}")
