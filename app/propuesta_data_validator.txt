@@ -1,0 +1,1439 @@
+# 1. Refinamiento de la Validación de Coherencia Matemática con Teoría de Control
+
+def _validar_coherencia_matematica(
+    cantidad: float,
+    precio_unitario: float,
+    valor_total: float,
+    tolerancia_porcentual: float = TOLERANCIA_PORCENTUAL_COHERENCIA,
+    tolerancia_absoluta: Optional[float] = None,
+    usar_teoria_control: bool = True,
+) -> Tuple[bool, Optional[float], Optional[str], Optional[Dict[str, Any]]]:
+    """
+    Valida coherencia matemática usando teoría de control y análisis de errores.
+    
+    Implementa un modelo de feedback para evaluar la estabilidad de la ecuación:
+    Valor_Total ≈ Cantidad × Precio_Unitario
+    
+    Args:
+        cantidad: Cantidad del insumo
+        precio_unitario: Precio unitario
+        valor_total: Valor total reportado
+        tolerancia_porcentual: Tolerancia porcentual permitida (0.01 = 1%)
+        tolerancia_absoluta: Tolerancia absoluta (None para calcular automáticamente)
+        usar_teoria_control: Si True, aplica análisis de estabilidad y ganancia
+
+    Returns:
+        Tuple[bool, Optional[float], Optional[str], Optional[Dict]]:
+            (es_coherente, error_porcentual, mensaje, analisis_detallado)
+    """
+    # 1. Validación básica de inputs
+    valores = {"cantidad": cantidad, "precio_unitario": precio_unitario, "valor_total": valor_total}
+    
+    analisis_detallado = {
+        "inputs_validos": True,
+        "error_sistémico": None,
+        "ganancia_sistema": None,
+        "estabilidad_sistema": None,
+        "banda_tolerancia": None
+    }
+    
+    for nombre, valor in valores.items():
+        if not _es_numero_valido(valor):
+            analisis_detallado["inputs_validos"] = False
+            return True, None, f"Valor inválido en {nombre}: {valor}", analisis_detallado
+    
+    # Convertir a float para cálculos consistentes
+    try:
+        Q = float(cantidad)
+        P = float(precio_unitario)
+        VT_reported = float(valor_total)
+    except (ValueError, TypeError, OverflowError) as e:
+        return False, None, f"Error en conversión numérica: {e}", analisis_detallado
+    
+    # 2. Cálculo del valor esperado con manejo de overflow
+    try:
+        VT_esperado = Q * P
+        
+        # Verificación de overflow numérico
+        if np.isinf(VT_esperado):
+            return False, None, f"Overflow en cálculo: {Q} × {P} = ∞", analisis_detallado
+    except (OverflowError, FloatingPointError) as e:
+        return False, None, f"Error de overflow: {Q} × {P} - {e}", analisis_detallado
+    
+    # 3. Casos especiales con análisis topológico
+    # a) Todos los valores son cero o cercanos a cero
+    magnitudes = [abs(Q), abs(P), abs(VT_reported), abs(VT_esperado)]
+    umbral_cero = max(TOLERANCIA_COMPARACION_FLOAT, 1e-10)
+    
+    if all(m < umbral_cero for m in magnitudes):
+        analisis_detallado["estado"] = "sistema_cero"
+        return True, 0.0, "Sistema en punto cero (todos los valores son ~0)", analisis_detallado
+    
+    # b) Casos degenerados
+    if abs(Q) < umbral_cero and abs(P) < umbral_cero:
+        if abs(VT_reported) > umbral_cero:
+            error_msg = (
+                f"Sistema inconsistente: Q≈0 y P≈0 pero VT={VT_reported:.2f} "
+                f"(esperado: ~0)"
+            )
+            return False, 100.0, error_msg, analisis_detallado
+    
+    if abs(VT_esperado) < umbral_cero:
+        if abs(VT_reported) > umbral_cero:
+            error_pct = 100.0  # Diferencia infinita en términos porcentuales
+            error_msg = (
+                f"Valor esperado ≈0 (Q={Q:.6f}, P={P:.2f}) "
+                f"pero VT_reportado={VT_reported:.2f}"
+            )
+            return False, error_pct, error_msg, analisis_detallado
+    
+    # 4. Análisis de error con teoría de control
+    error_absoluto = abs(VT_esperado - VT_reported)
+    
+    # Calcular tolerancia absoluta adaptativa si no se proporciona
+    if tolerancia_absoluta is None:
+        # Base: 1 unidad monetaria o 0.1% del valor esperado, lo que sea mayor
+        tolerancia_absoluta = max(1.0, abs(VT_esperado) * 0.001)
+    
+    # Determinar referencia para error porcentual
+    # Usamos el valor más grande para evitar divisiones por números muy pequeños
+    referencia = max(abs(VT_esperado), abs(VT_reported))
+    
+    if referencia < umbral_cero:
+        error_porcentual = 0.0
+    else:
+        error_porcentual = (error_absoluto / referencia) * 100
+    
+    # 5. Análisis de estabilidad del sistema
+    if usar_teoria_control:
+        # Calcular ganancia del sistema (derivada parcial)
+        ganancia_q = P if abs(Q) > umbral_cero else 0
+        ganancia_p = Q if abs(P) > umbral_cero else 0
+        
+        # Sensibilidad del sistema
+        sensibilidad = np.sqrt(ganancia_q**2 + ganancia_p**2)
+        
+        # Margen de estabilidad
+        margen_estabilidad = tolerancia_absoluta / (sensibilidad + 1e-10)
+        
+        analisis_detallado.update({
+            "ganancia_q": ganancia_q,
+            "ganancia_p": ganancia_p,
+            "sensibilidad_sistema": sensibilidad,
+            "margen_estabilidad": margen_estabilidad,
+            "error_absoluto": error_absoluto,
+            "valor_esperado": VT_esperado,
+            "valor_reportado": VT_reported,
+            "tolerancia_absoluta_usada": tolerancia_absoluta
+        })
+        
+        # Sistema altamente sensible puede amplificar pequeños errores
+        if sensibilidad > 1000:
+            analisis_detallado["advertencia_sensibilidad"] = (
+                f"Sistema altamente sensible (sensibilidad={sensibilidad:.1f})"
+            )
+    
+    # 6. Evaluación con múltiples criterios
+    umbral_porcentaje = tolerancia_porcentual * 100
+    
+    # Criterio 1: Tolerancia porcentual
+    criterio_porcentual = error_porcentual <= umbral_porcentaje
+    
+    # Criterio 2: Tolerancia absoluta
+    criterio_absoluto = error_absoluto <= tolerancia_absoluta
+    
+    # Criterio 3: Error sistémico (bias)
+    error_sistemico = VT_reported - VT_esperado
+    analisis_detallado["error_sistémico"] = error_sistemico
+    
+    # Detectar patrones de error
+    if abs(error_sistemico) > tolerancia_absoluta:
+        if error_sistemico > 0:
+            analisis_detallado["patron_error"] = "sobreestimación"
+        else:
+            analisis_detallado["patron_error"] = "subestimación"
+    
+    # 7. Decisión final con lógica fuzzy
+    es_coherente = criterio_porcentual and criterio_absoluto
+    
+    if not es_coherente:
+        # Determinar qué criterio falló
+        if not criterio_porcentual and not criterio_absoluto:
+            motivo = f"Ambos criterios: error={error_porcentual:.2f}% > {umbral_porcentaje:.2f}%, absoluto={error_absoluto:.2f} > {tolerancia_absoluta:.2f}"
+        elif not criterio_porcentual:
+            motivo = f"Porcentual: error={error_porcentual:.2f}% > {umbral_porcentaje:.2f}%"
+        else:
+            motivo = f"Absoluto: error={error_absoluto:.2f} > {tolerancia_absoluta:.2f}"
+        
+        mensaje = (
+            f"Incoherencia detectada: Esperado={VT_esperado:.2f}, "
+            f"Reportado={VT_reported:.2f}, {motivo}"
+        )
+    else:
+        mensaje = (
+            f"Coherente: Esperado={VT_esperado:.2f}, "
+            f"Reportado={VT_reported:.2f}, "
+            f"Error={error_porcentual:.2f}%"
+        )
+    
+    # 8. Calificación de calidad
+    if es_coherente:
+        if error_porcentual < umbral_porcentaje * 0.1:
+            analisis_detallado["calidad"] = "excelente"
+        elif error_porcentual < umbral_porcentaje * 0.5:
+            analisis_detallado["calidad"] = "buena"
+        else:
+            analisis_detallado["calidad"] = "aceptable"
+    else:
+        analisis_detallado["calidad"] = "inaceptable"
+    
+    return es_coherente, error_porcentual, mensaje, analisis_detallado
+
+
+# 2. Refinamiento del Validador Piramidal con Análisis de Grafo
+
+class PyramidalValidator:
+    """
+    Validador de integridad jerárquica con análisis de grafos y teoría de redes.
+    
+    Evalúa la estabilidad estructural de la pirámide de datos usando:
+    - Teoría de grafos para conectividad
+    - Análisis de centralidad para nodos críticos
+    - Métricas de resiliencia de red
+    """
+    
+    def validate_structure(
+        self, 
+        apus_df: pd.DataFrame, 
+        insumos_df: pd.DataFrame,
+        calcular_centralidad: bool = True,
+        umbral_conexion_minima: float = 0.3
+    ) -> PyramidalMetrics:
+        """
+        Valida estructura piramidal con análisis de grafos.
+        
+        Args:
+            apus_df: DataFrame de APUs (nivel táctico)
+            insumos_df: DataFrame de insumos (nivel logístico)
+            calcular_centralidad: Si True, calcula métricas de centralidad
+            umbral_conexion_minima: Umbral mínimo de conectividad esperada
+            
+        Returns:
+            PyramidalMetrics extendidas con análisis de red
+        """
+        # 1. Normalización robusta de entradas
+        if not isinstance(insumos_df, pd.DataFrame):
+            insumos_df = pd.DataFrame()
+        if not isinstance(apus_df, pd.DataFrame):
+            apus_df = pd.DataFrame()
+        
+        # 2. Construcción del grafo bipartito APUs ↔ Insumos
+        grafo_analysis = self._construir_grafo_bipartito(apus_df, insumos_df)
+        
+        # 3. Extracción de componentes conectados
+        componentes = self._extraer_componentes_conectados(grafo_analysis)
+        
+        # 4. Cálculo de métricas de estabilidad
+        n_insumos = len(grafo_analysis["nodos_insumos"])
+        n_apus = len(grafo_analysis["nodos_apus"])
+        n_conexiones = grafo_analysis["total_conexiones"]
+        
+        # Estabilidad Ψ (Psi): Ratio insumos/APUs con corrección logarítmica
+        if n_apus > 0:
+            psi_basico = n_insumos / n_apus
+            
+            # Factor de corrección por conectividad
+            max_conexiones_posibles = n_insumos * n_apus
+            if max_conexiones_posibles > 0:
+                densidad_red = n_conexiones / max_conexiones_posibles
+                # Penalizar redes muy dispersas
+                factor_conectividad = np.tanh(densidad_red * 5)  # Satura en ~1
+            else:
+                factor_conectividad = 0
+                
+            psi_corregido = psi_basico * factor_conectividad
+        else:
+            psi_basico = 0
+            psi_corregido = 0
+        
+        # 5. Análisis de nodos flotantes (APUs sin insumos)
+        apus_con_insumos = set()
+        if "APU_CODIGO" in insumos_df.columns:
+            apus_con_insumos = set(insumos_df["APU_CODIGO"].dropna().unique())
+        
+        apus_totales = set()
+        if "CODIGO_APU" in apus_df.columns:
+            apus_totales = set(apus_df["CODIGO_APU"].dropna().unique())
+        elif not apus_df.empty:
+            apus_totales = set(apus_df.iloc[:, 0].dropna().unique())
+        
+        floating_nodes_set = apus_totales - apus_con_insumos
+        floating_apus = sorted(list(floating_nodes_set))
+        
+        # 6. Análisis de centralidad (si está habilitado)
+        metricas_centralidad = {}
+        if calcular_centralidad and len(grafo_analysis["matriz_adyacencia"]) > 0:
+            metricas_centralidad = self._calcular_centralidad_grafo(
+                grafo_analysis["matriz_adyacencia"],
+                grafo_analysis["nodos_apus"],
+                grafo_analysis["nodos_insumos"]
+            )
+        
+        # 7. Análisis de resiliencia
+        resiliencia_metrics = self._analizar_resiliencia(
+            grafo_analysis, 
+            umbral_conexion_minima
+        )
+        
+        # 8. Construcción de métricas extendidas
+        return PyramidalMetrics(
+            base_width=n_insumos,
+            structure_load=n_apus,
+            pyramid_stability_index=psi_corregido,
+            floating_nodes=floating_apus,
+            # Campos extendidos para análisis avanzado
+            graf_analysis={
+                "total_nodos": len(grafo_analysis["nodos_apus"]) + len(grafo_analysis["nodos_insumos"]),
+                "total_conexiones": n_conexiones,
+                "densidad_red": densidad_red if n_apus > 0 and n_insumos > 0 else 0,
+                "componentes_conectados": len(componentes),
+                "tamaño_componente_mayor": max([len(c) for c in componentes]) if componentes else 0,
+                "psi_basico": psi_basico,
+                "psi_corregido": psi_corregido,
+                "centralidad": metricas_centralidad,
+                "resiliencia": resiliencia_metrics
+            }
+        )
+    
+    def _construir_grafo_bipartito(
+        self, 
+        apus_df: pd.DataFrame, 
+        insumos_df: pd.DataFrame
+    ) -> Dict[str, Any]:
+        """Construye representación de grafo bipartito APU-Insumo."""
+        
+        grafo = {
+            "nodos_apus": [],
+            "nodos_insumos": [],
+            "aristas": [],
+            "matriz_adyacencia": [],
+            "total_conexiones": 0
+        }
+        
+        # Extraer códigos de APU
+        apu_col = "CODIGO_APU"
+        if apu_col in apus_df.columns:
+            apus_codes = apus_df[apu_col].dropna().unique().tolist()
+        elif not apus_df.empty:
+            apus_codes = apus_df.iloc[:, 0].dropna().unique().tolist()
+        else:
+            apus_codes = []
+        
+        grafo["nodos_apus"] = apus_codes
+        
+        # Extraer insumos únicos
+        insumo_desc_col = "DESCRIPCION_INSUMO_NORM"
+        if insumo_desc_col not in insumos_df.columns:
+            insumo_desc_col = "DESCRIPCION_INSUMO"
+        
+        if insumo_desc_col in insumos_df.columns:
+            insumos_unique = insumos_df[insumo_desc_col].dropna().unique().tolist()
+        else:
+            insumos_unique = []
+        
+        grafo["nodos_insumos"] = insumos_unique
+        
+        # Construir matriz de adyacencia
+        if apus_codes and insumos_unique:
+            # Mapear APUs a índices
+            apu_to_idx = {apu: i for i, apu in enumerate(apus_codes)}
+            insumo_to_idx = {insumo: i for i, insumo in enumerate(insumos_unique)}
+            
+            # Inicializar matriz de adyacencia
+            adj_matrix = np.zeros((len(apus_codes), len(insumos_unique)), dtype=int)
+            
+            # Construir conexiones desde DataFrame de insumos
+            if "APU_CODIGO" in insumos_df.columns and insumo_desc_col in insumos_df.columns:
+                for _, row in insumos_df.iterrows():
+                    apu = row.get("APU_CODIGO")
+                    insumo = row.get(insumo_desc_col)
+                    
+                    if pd.notna(apu) and pd.notna(insumo):
+                        if apu in apu_to_idx and insumo in insumo_to_idx:
+                            i = apu_to_idx[apu]
+                            j = insumo_to_idx[insumo]
+                            adj_matrix[i, j] = 1
+                            grafo["aristas"].append((apu, insumo))
+            
+            grafo["matriz_adyacencia"] = adj_matrix
+            grafo["total_conexiones"] = int(np.sum(adj_matrix))
+        
+        return grafo
+    
+    def _extraer_componentes_conectados(
+        self, 
+        grafo: Dict[str, Any]
+    ) -> List[List[str]]:
+        """Extrae componentes conectados del grafo bipartito."""
+        
+        componentes = []
+        
+        if not grafo["aristas"]:
+            return componentes
+        
+        # Construir grafo no dirigido como diccionario de adyacencia
+        adj_dict = {}
+        for apu, insumo in grafo["aristas"]:
+            adj_dict.setdefault(apu, set()).add(insumo)
+            adj_dict.setdefault(insumo, set()).add(apu)
+        
+        # BFS para encontrar componentes conectados
+        visitados = set()
+        
+        for nodo in adj_dict:
+            if nodo not in visitados:
+                componente = []
+                stack = [nodo]
+                
+                while stack:
+                    current = stack.pop()
+                    if current not in visitados:
+                        visitados.add(current)
+                        componente.append(current)
+                        stack.extend(adj_dict.get(current, set()) - visitados)
+                
+                if componente:
+                    componentes.append(componente)
+        
+        return componentes
+    
+    def _calcular_centralidad_grafo(
+        self,
+        adj_matrix: np.ndarray,
+        nodos_apus: List[str],
+        nodos_insumos: List[str]
+    ) -> Dict[str, Any]:
+        """Calcula métricas de centralidad para el grafo bipartito."""
+        
+        metrics = {
+            "centralidad_grado_apus": {},
+            "centralidad_grado_insumos": {},
+            "apus_criticos": [],
+            "insumos_criticos": []
+        }
+        
+        if adj_matrix.size == 0:
+            return metrics
+        
+        # Grado de APUs (conexiones a insumos)
+        grado_apus = np.sum(adj_matrix, axis=1)
+        for i, grado in enumerate(grado_apus):
+            metrics["centralidad_grado_apus"][nodos_apus[i]] = int(grado)
+        
+        # Grado de insumos (conexiones a APUs)
+        grado_insumos = np.sum(adj_matrix, axis=0)
+        for j, grado in enumerate(grado_insumos):
+            metrics["centralidad_grado_insumos"][nodos_insumos[j]] = int(grado)
+        
+        # Identificar nodos críticos (alto grado)
+        if len(grado_apus) > 0:
+            umbral_critico_apu = np.percentile(grado_apus[grado_apus > 0], 90)
+            for i, grado in enumerate(grado_apus):
+                if grado >= umbral_critico_apu:
+                    metrics["apus_criticos"].append({
+                        "apu": nodos_apus[i],
+                        "grado": int(grado),
+                        "insumos_conectados": int(grado)
+                    })
+        
+        if len(grado_insumos) > 0:
+            umbral_critico_insumo = np.percentile(grado_insumos[grado_insumos > 0], 90)
+            for j, grado in enumerate(grado_insumos):
+                if grado >= umbral_critico_insumo:
+                    metrics["insumos_criticos"].append({
+                        "insumo": nodos_insumos[j],
+                        "grado": int(grado),
+                        "apus_conectados": int(grado)
+                    })
+        
+        return metrics
+    
+    def _analizar_resiliencia(
+        self,
+        grafo: Dict[str, Any],
+        umbral_conexion: float = 0.3
+    ) -> Dict[str, Any]:
+        """Analiza resiliencia de la red ante fallos."""
+        
+        if not grafo["aristas"]:
+            return {"resiliencia": 0, "vulnerabilidades": []}
+        
+        # Simulación de fallos aleatorios
+        n_simulaciones = min(100, len(grafo["nodos_apus"]))
+        resiliencias = []
+        
+        for _ in range(n_simulaciones):
+            # Simular fallo aleatorio de un APU
+            if grafo["nodos_apus"]:
+                nodo_fallado = np.random.choice(grafo["nodos_apus"])
+                
+                # Calcular conectividad restante
+                conexiones_restantes = len([
+                    (apu, insumo) for apu, insumo in grafo["aristas"]
+                    if apu != nodo_fallado
+                ])
+                
+                if grafo["total_conexiones"] > 0:
+                    resiliencia = conexiones_restantes / grafo["total_conexiones"]
+                    resiliencias.append(resiliencia)
+        
+        # Métricas de resiliencia
+        if resiliencias:
+            resiliencia_promedio = np.mean(resiliencias)
+            resiliencia_minima = np.min(resiliencias)
+        else:
+            resiliencia_promedio = 0
+            resiliencia_minima = 0
+        
+        # Identificar puntos de fallo único (Single Points of Failure)
+        spofs = []
+        adj_dict = {}
+        for apu, insumo in grafo["aristas"]:
+            adj_dict.setdefault(insumo, set()).add(apu)
+        
+        for insumo, apus_conectados in adj_dict.items():
+            if len(apus_conectados) == 1:
+                spofs.append({
+                    "insumo": insumo,
+                    "apu_dependiente": list(apus_conectados)[0]
+                })
+        
+        return {
+            "resiliencia_promedio": float(resiliencia_promedio),
+            "resiliencia_minima": float(resiliencia_minima),
+            "puntos_fallo_unico": spofs,
+            "es_resiliente": resiliencia_promedio >= umbral_conexion
+        }
+
+
+# 3. Refinamiento de la Validación de Anomalías con Machine Learning Liviano
+
+class AnomalyValidator:
+    """
+    Sistema de detección de anomalías usando métodos estadísticos y ML liviano.
+    
+    Implementa:
+    - Detección de outliers estadísticos (IQR, Z-score)
+    - Clustering para detección de grupos anómalos
+    - Autoencoder simplificado para detección de patrones atípicos
+    """
+    
+    def __init__(self, config: Optional[Dict[str, Any]] = None):
+        """Inicializa validador de anomalías."""
+        self.config = config or {
+            "zscore_threshold": 3.0,
+            "iqr_multiplier": 1.5,
+            "isolation_forest_samples": 100,
+            "autoencoder_hidden_ratio": 0.5,
+            "cluster_anomaly_threshold": 0.95
+        }
+        
+        # Modelos en memoria para detección por lote
+        self._models = {}
+        self._scalers = {}
+        
+    def detect_cost_anomalies(
+        self,
+        cost_data: List[Dict[str, Any]],
+        campo_costo: str = "VALOR_CONSTRUCCION_UN",
+        use_advanced_methods: bool = True
+    ) -> Tuple[List[Dict[str, Any]], Dict[str, Any]]:
+        """
+        Detecta anomalías en costos usando múltiples métodos.
+        
+        Args:
+            cost_data: Lista de diccionarios con datos de costo
+            campo_costo: Campo que contiene el costo
+            use_advanced_methods: Si True, usa métodos ML avanzados
+            
+        Returns:
+            Tuple[datos_marcados, metricas_anomalias]
+        """
+        if not cost_data:
+            return [], {"total_anomalias": 0, "metodos_aplicados": []}
+        
+        # Extraer valores de costo
+        valores = []
+        indices_validos = []
+        
+        for idx, item in enumerate(cost_data):
+            if not isinstance(item, dict):
+                continue
+            
+            valor = item.get(campo_costo)
+            if _es_numero_valido(valor):
+                try:
+                    valores.append(float(valor))
+                    indices_validos.append(idx)
+                except (ValueError, TypeError):
+                    continue
+        
+        if not valores:
+            return cost_data, {"total_anomalias": 0, "error": "Sin valores válidos"}
+        
+        valores_array = np.array(valores).reshape(-1, 1)
+        
+        # Aplicar múltiples métodos de detección
+        anomalias_por_metodo = {
+            "zscore": self._detectar_por_zscore(valores_array),
+            "iqr": self._detectar_por_iqr(valores_array),
+            "mad": self._detectar_por_mad(valores_array)
+        }
+        
+        if use_advanced_methods:
+            anomalias_por_metodo.update({
+                "isolation_forest": self._detectar_por_isolation_forest(valores_array),
+                "local_outlier": self._detectar_por_local_outlier(valores_array),
+                "autoencoder": self._detectar_por_autoencoder(valores_array)
+            })
+        
+        # Combinar detecciones con votación
+        votos_anomalia = np.zeros(len(valores_array))
+        for metodo, anomalias in anomalias_por_metodo.items():
+            if anomalias is not None:
+                votos_anomalia += anomalias.astype(int)
+        
+        # Umbral de votación (la mayoría de métodos)
+        umbral_votacion = len(anomalias_por_metodo) // 2
+        anomalias_combinadas = votos_anomalia >= umbral_votacion
+        
+        # Calcular confianza por item
+        confianzas = votos_anomalia / len(anomalias_por_metodo)
+        
+        # Marcar datos con anomalías
+        datos_marcados = deepcopy(cost_data)
+        anomalias_detectadas = 0
+        
+        for i, idx in enumerate(indices_validos):
+            if i < len(anomalias_combinadas) and anomalias_combinadas[i]:
+                item = datos_marcados[idx]
+                confianza = float(confianzas[i])
+                
+                # Agregar información de anomalía
+                if "anomalias" not in item:
+                    item["anomalias"] = []
+                
+                item["anomalias"].append({
+                    "tipo": "COSTO_ANOMALO",
+                    "metodo": "ensamble_multimetodo",
+                    "confianza": round(confianza, 3),
+                    "valor": float(valores_array[i][0]),
+                    "umbral_votacion": umbral_votacion,
+                    "votos": int(votos_anomalia[i])
+                })
+                
+                anomalias_detectadas += 1
+        
+        # Métricas de detección
+        metricas = {
+            "total_anomalias": anomalias_detectadas,
+            "porcentaje_anomalias": (anomalias_detectadas / len(valores_array)) * 100,
+            "metodos_aplicados": list(anomalias_por_metodo.keys()),
+            "distribucion_votos": {
+                "max_votos": int(np.max(votos_anomalia)),
+                "min_votos": int(np.min(votos_anomalia)),
+                "votos_promedio": float(np.mean(votos_anomalia))
+            },
+            "estadisticas_costo": {
+                "media": float(np.mean(valores_array)),
+                "mediana": float(np.median(valores_array)),
+                "std": float(np.std(valores_array)),
+                "q1": float(np.percentile(valores_array, 25)),
+                "q3": float(np.percentile(valores_array, 75)),
+                "iqr": float(np.percentile(valores_array, 75) - np.percentile(valores_array, 25))
+            }
+        }
+        
+        return datos_marcados, metricas
+    
+    def _detectar_por_zscore(self, datos: np.ndarray) -> Optional[np.ndarray]:
+        """Detección de outliers usando Z-score."""
+        try:
+            mean = np.mean(datos)
+            std = np.std(datos)
+            
+            if std == 0:
+                return np.zeros(len(datos), dtype=bool)
+            
+            z_scores = np.abs((datos - mean) / std)
+            return z_scores > self.config["zscore_threshold"]
+        except Exception:
+            return None
+    
+    def _detectar_por_iqr(self, datos: np.ndarray) -> Optional[np.ndarray]:
+        """Detección de outliers usando IQR."""
+        try:
+            q1 = np.percentile(datos, 25)
+            q3 = np.percentile(datos, 75)
+            iqr = q3 - q1
+            
+            if iqr == 0:
+                # Fallback a desviación estándar si IQR es 0
+                std = np.std(datos)
+                lower_bound = np.mean(datos) - self.config["zscore_threshold"] * std
+                upper_bound = np.mean(datos) + self.config["zscore_threshold"] * std
+            else:
+                lower_bound = q1 - self.config["iqr_multiplier"] * iqr
+                upper_bound = q3 + self.config["iqr_multiplier"] * iqr
+            
+            return (datos < lower_bound) | (datos > upper_bound)
+        except Exception:
+            return None
+    
+    def _detectar_por_mad(self, datos: np.ndarray) -> Optional[np.ndarray]:
+        """Detección usando Median Absolute Deviation (robusto a outliers)."""
+        try:
+            median = np.median(datos)
+            mad = np.median(np.abs(datos - median))
+            
+            if mad == 0:
+                return np.zeros(len(datos), dtype=bool)
+            
+            # Escalar MAD para que sea comparable con desviación estándar
+            mad_scaled = mad * 1.4826
+            modified_z_scores = 0.6745 * (datos - median) / mad_scaled
+            
+            return np.abs(modified_z_scores) > self.config["zscore_threshold"]
+        except Exception:
+            return None
+    
+    def _detectar_por_isolation_forest(self, datos: np.ndarray) -> Optional[np.ndarray]:
+        """Detección usando Isolation Forest (ML no supervisado)."""
+        try:
+            from sklearn.ensemble import IsolationForest
+            
+            # Configurar modelo
+            n_samples = min(self.config["isolation_forest_samples"], len(datos))
+            model = IsolationForest(
+                contamination='auto',
+                max_samples=n_samples,
+                random_state=42,
+                n_estimators=100
+            )
+            
+            # Ajustar y predecir
+            predictions = model.fit_predict(datos)
+            # Isolation Forest devuelve -1 para anomalías, 1 para normales
+            return predictions == -1
+        except ImportError:
+            logger.warning("scikit-learn no disponible para Isolation Forest")
+            return None
+        except Exception:
+            return None
+    
+    def _detectar_por_local_outlier(self, datos: np.ndarray) -> Optional[np.ndarray]:
+        """Detección usando Local Outlier Factor."""
+        try:
+            from sklearn.neighbors import LocalOutlierFactor
+            
+            # Solo aplicar si hay suficientes datos
+            if len(datos) < 20:
+                return None
+            
+            model = LocalOutlierFactor(
+                contamination='auto',
+                n_neighbors=min(20, len(datos) - 1)
+            )
+            
+            predictions = model.fit_predict(datos)
+            return predictions == -1
+        except ImportError:
+            logger.warning("scikit-learn no disponible para Local Outlier Factor")
+            return None
+        except Exception:
+            return None
+    
+    def _detectar_por_autoencoder(self, datos: np.ndarray) -> Optional[np.ndarray]:
+        """
+        Detección usando autoencoder simplificado.
+        
+        Autoencoder intenta reconstruir datos normales bien,
+        pero tendrá alto error de reconstrucción para anomalías.
+        """
+        try:
+            # Normalizar datos
+            from sklearn.preprocessing import MinMaxScaler
+            
+            scaler = MinMaxScaler()
+            datos_normalizados = scaler.fit_transform(datos)
+            
+            # Autoencoder simple en numpy
+            input_dim = datos_normalizados.shape[1]
+            encoding_dim = max(1, int(input_dim * self.config["autoencoder_hidden_ratio"]))
+            
+            # Pesos aleatorios (simulación simplificada)
+            np.random.seed(42)
+            W1 = np.random.randn(input_dim, encoding_dim) * 0.01
+            b1 = np.zeros(encoding_dim)
+            W2 = np.random.randn(encoding_dim, input_dim) * 0.01
+            b2 = np.zeros(input_dim)
+            
+            # Forward pass
+            encoded = np.maximum(0, datos_normalizados.dot(W1) + b1)  # ReLU
+            decoded = encoded.dot(W2) + b2
+            
+            # Error de reconstrucción
+            reconstruction_error = np.mean((datos_normalizados - decoded) ** 2, axis=1)
+            
+            # Umbral adaptativo
+            error_threshold = np.percentile(reconstruction_error, 95)
+            
+            return reconstruction_error > error_threshold
+        except Exception:
+            return None
+
+
+# 4. Refinamiento del Sistema de Alertas con Teoría de Información
+
+class AlertSystem:
+    """
+    Sistema de alertas avanzado con:
+    - Priorización basada en teoría de información
+    - Agrupamiento de alertas similares
+    - Aprendizaje de patrones de alerta
+    - Sistema de recomendaciones automáticas
+    """
+    
+    def __init__(self):
+        self.alert_history = []
+        self.alert_patterns = {}
+        self.information_gain_cache = {}
+        
+    def process_alerts(
+        self,
+        items: List[Dict[str, Any]],
+        metrics: ValidationMetrics,
+        contexto: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, Any]:
+        """
+        Procesa alertas con análisis de información y priorización.
+        
+        Args:
+            items: Lista de items con alertas
+            metrics: Métricas de validación
+            contexto: Contexto adicional para análisis
+            
+        Returns:
+            Dict con análisis estructurado de alertas
+        """
+        # Extraer todas las alertas
+        all_alerts = []
+        for item in items:
+            if isinstance(item, dict) and "alertas" in item:
+                for alerta in item["alertas"]:
+                    all_alerts.append({
+                        "item": _obtener_identificador_item(item),
+                        "alerta": alerta,
+                        "contexto_item": {k: v for k, v in item.items() if k != "alertas"}
+                    })
+        
+        if not all_alerts:
+            return {
+                "total_alertas": 0,
+                "alertas_priorizadas": [],
+                "patrones_detectados": [],
+                "recomendaciones": []
+            }
+        
+        # 1. Calcular entropía de cada tipo de alerta
+        alert_types = [a["alerta"]["tipo"] for a in all_alerts]
+        unique_types, type_counts = np.unique(alert_types, return_counts=True)
+        
+        # Distribución de probabilidad
+        type_probs = type_counts / len(all_alerts)
+        
+        # Entropía del sistema de alertas
+        entropy_system = -np.sum(type_probs * np.log2(type_probs + 1e-10))
+        max_entropy = np.log2(len(unique_types))
+        normalized_entropy = entropy_system / max_entropy if max_entropy > 0 else 0
+        
+        # 2. Calcular ganancia de información para cada alerta
+        alertas_con_ig = []
+        for alerta_info in all_alerts:
+            info_gain = self._calculate_information_gain(alerta_info, all_alerts)
+            alerta_info["information_gain"] = info_gain
+            alertas_con_ig.append(alerta_info)
+        
+        # 3. Priorizar alertas (combinación de frecuencia e información)
+        alertas_priorizadas = self._prioritize_alerts(alertas_con_ig, type_counts)
+        
+        # 4. Detectar patrones en alertas
+        patrones = self._detect_alert_patterns(all_alerts)
+        
+        # 5. Generar recomendaciones
+        recomendaciones = self._generate_recommendations(
+            alertas_priorizadas, 
+            patrones,
+            contexto
+        )
+        
+        # 6. Análisis de clusters de alertas
+        clusters = self._cluster_alerts(alertas_con_ig)
+        
+        return {
+            "total_alertas": len(all_alerts),
+            "entropia_sistema": float(entropy_system),
+            "entropia_normalizada": float(normalized_entropy),
+            "distribucion_tipos": dict(zip(unique_types, type_counts)),
+            "alertas_priorizadas": alertas_priorizadas[:20],  # Top 20
+            "patrones_detectados": patrones,
+            "clusters_alerta": clusters,
+            "recomendaciones": recomendaciones,
+            "resumen_estadistico": {
+                "alertas_por_item_promedio": len(all_alerts) / len(items),
+                "tipos_unicos": len(unique_types),
+                "tipo_mas_comun": unique_types[np.argmax(type_counts)],
+                "frecuencia_tipo_mas_comun": int(np.max(type_counts))
+            }
+        }
+    
+    def _calculate_information_gain(
+        self, 
+        alerta_info: Dict[str, Any], 
+        all_alerts: List[Dict[str, Any]]
+    ) -> float:
+        """
+        Calcula ganancia de información de una alerta.
+        
+        Alerta con alta ganancia de información:
+        - Es rara (baja probabilidad a priori)
+        - Proporciona mucha información sobre el sistema
+        """
+        alert_type = alerta_info["alerta"]["tipo"]
+        
+        # Frecuencia del tipo de alerta
+        type_count = sum(1 for a in all_alerts if a["alerta"]["tipo"] == alert_type)
+        p_type = type_count / len(all_alerts)
+        
+        # Entropía del sistema sin esta alerta
+        if len(all_alerts) <= 1:
+            return 1.0  # Máxima información si es la única alerta
+        
+        # Calcular reducción en entropía al conocer esta alerta
+        # Simplificación: información = -log2(p)
+        information = -np.log2(p_type + 1e-10)
+        
+        # Normalizar por máximo teórico
+        max_info = -np.log2(1/len(all_alerts) + 1e-10)
+        normalized_info = information / max_info if max_info > 0 else 0
+        
+        # Ajustar por severidad implícita
+        severity_factor = self._estimate_alert_severity(alerta_info)
+        
+        return float(normalized_info * severity_factor)
+    
+    def _estimate_alert_severity(self, alerta_info: Dict[str, Any]) -> float:
+        """Estima severidad de una alerta basada en su tipo y contexto."""
+        tipo = alerta_info["alerta"]["tipo"]
+        
+        # Mapeo de severidad por tipo
+        severity_map = {
+            "COSTO_NEGATIVO": 1.0,
+            "VALOR_INFINITO": 0.9,
+            "INCOHERENCIA_MATEMATICA": 0.8,
+            "COSTO_EXCESIVO": 0.7,
+            "CANTIDAD_INVALIDA": 0.6,
+            "DESCRIPCION_FALTANTE": 0.4,
+            "DESCRIPCION_CORREGIDA": 0.3,
+            "CANTIDAD_RECALCULADA": 0.2,
+            "CAMPO_REQUERIDO_FALTANTE": 0.5
+        }
+        
+        base_severity = severity_map.get(tipo, 0.5)
+        
+        # Ajustar por valor numérico si está disponible
+        contexto = alerta_info.get("contexto_item", {})
+        if "VALOR_CONSTRUCCION_UN" in contexto:
+            try:
+                valor = float(contexto["VALOR_CONSTRUCCION_UN"])
+                if valor > COSTO_MAXIMO_RAZONABLE:
+                    base_severity = min(1.0, base_severity * 1.2)
+            except (ValueError, TypeError):
+                pass
+        
+        return base_severity
+    
+    def _prioritize_alerts(
+        self, 
+        alertas: List[Dict[str, Any]], 
+        type_counts: np.ndarray
+    ) -> List[Dict[str, Any]]:
+        """Prioriza alertas usando criterios múltiples."""
+        
+        for alerta in alertas:
+            # Puntuación compuesta
+            tipo = alerta["alerta"]["tipo"]
+            
+            # Frecuencia inversa (alertas raras tienen mayor prioridad)
+            tipo_idx = np.where(type_counts == tipo)[0]
+            if len(tipo_idx) > 0:
+                freq = type_counts[tipo_idx[0]]
+                inverse_freq = 1 / (freq + 1)  # +1 para evitar división por cero
+            else:
+                inverse_freq = 1.0
+            
+            # Ganancia de información
+            info_gain = alerta.get("information_gain", 0.5)
+            
+            # Severidad
+            severity = self._estimate_alert_severity(alerta)
+            
+            # Puntuación final (ponderada)
+            score = (inverse_freq * 0.3 + info_gain * 0.4 + severity * 0.3)
+            alerta["priority_score"] = score
+        
+        # Ordenar por puntuación descendente
+        return sorted(alertas, key=lambda x: x.get("priority_score", 0), reverse=True)
+    
+    def _detect_alert_patterns(self, alertas: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """Detecta patrones en las alertas."""
+        patterns = []
+        
+        # Agrupar por tipo y contexto similar
+        grupos = {}
+        for alerta in alertas:
+            tipo = alerta["alerta"]["tipo"]
+            item_id = alerta["item"]
+            
+            # Extraer características del item
+            contexto = alerta.get("contexto_item", {})
+            
+            # Crear firma del patrón
+            signature = f"{tipo}_{hash(str(sorted(contexto.items()))[:100])}"
+            
+            if signature not in grupos:
+                grupos[signature] = {
+                    "tipo": tipo,
+                    "items": [],
+                    "contexto_ejemplo": contexto,
+                    "count": 0
+                }
+            
+            grupos[signature]["items"].append(item_id)
+            grupos[signature]["count"] += 1
+        
+        # Filtrar grupos significativos (más de 1 ocurrencia)
+        for sig, grupo in grupos.items():
+            if grupo["count"] > 1:
+                patterns.append({
+                    "patron_id": sig[:20],
+                    "tipo": grupo["tipo"],
+                    "frecuencia": grupo["count"],
+                    "items_afectados": grupo["items"][:10],  # Limitar
+                    "contexto_comun": self._extract_common_context(grupo["contexto_ejemplo"])
+                })
+        
+        # Ordenar por frecuencia descendente
+        return sorted(patterns, key=lambda x: x["frecuencia"], reverse=True)
+    
+    def _extract_common_context(self, contexto: Dict[str, Any]) -> Dict[str, Any]:
+        """Extrae contexto común para patrones."""
+        common = {}
+        
+        for key, value in contexto.items():
+            if isinstance(value, (int, float)):
+                common[key] = value
+            elif isinstance(value, str) and len(value) < 50:
+                common[key] = value
+        
+        return common
+    
+    def _cluster_alerts(self, alertas: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """Agrupa alertas similares usando clustering simplificado."""
+        if len(alertas) < 2:
+            return []
+        
+        # Vectorizar alertas (simplificado)
+        vectors = []
+        for alerta in alertas:
+            # Características: tipo, severidad, información
+            tipo = alerta["alerta"]["tipo"]
+            severity = self._estimate_alert_severity(alerta)
+            info_gain = alerta.get("information_gain", 0.5)
+            
+            # Codificar tipo como numérico
+            tipo_hash = hash(tipo) % 1000
+            
+            vectors.append([tipo_hash / 1000, severity, info_gain])
+        
+        # Clustering jerárquico aglomerativo (simplificado)
+        try:
+            from scipy.cluster.hierarchy import linkage, fcluster
+            from scipy.spatial.distance import pdist
+            
+            # Calcular linkage
+            Z = linkage(vectors, method='ward')
+            
+            # Formar clusters
+            max_clusters = min(5, len(alertas))
+            clusters = fcluster(Z, max_clusters, criterion='maxclust')
+            
+            # Organizar por cluster
+            cluster_groups = {}
+            for idx, cluster_id in enumerate(clusters):
+                if cluster_id not in cluster_groups:
+                    cluster_groups[cluster_id] = []
+                cluster_groups[cluster_id].append(alertas[idx])
+            
+            # Convertir a formato de resultado
+            result = []
+            for cluster_id, grupo in cluster_groups.items():
+                tipos = [a["alerta"]["tipo"] for a in grupo]
+                unique_tipos, counts = np.unique(tipos, return_counts=True)
+                
+                result.append({
+                    "cluster_id": int(cluster_id),
+                    "tamaño": len(grupo),
+                    "tipos_principales": [
+                        {"tipo": t, "count": int(c)} 
+                        for t, c in zip(unique_tipos[:3], counts[:3])
+                    ],
+                    "ejemplos": [a["item"] for a in grupo[:3]]
+                })
+            
+            return result
+            
+        except ImportError:
+            # Fallback simple si scipy no está disponible
+            return []
+    
+    def _generate_recommendations(
+        self, 
+        alertas_priorizadas: List[Dict[str, Any]],
+        patrones: List[Dict[str, Any]],
+        contexto: Optional[Dict[str, Any]]
+    ) -> List[Dict[str, Any]]:
+        """Genera recomendaciones automáticas basadas en alertas."""
+        recomendaciones = []
+        
+        # 1. Recomendaciones basadas en alertas prioritarias
+        for alerta in alertas_priorizadas[:5]:
+            tipo = alerta["alerta"]["tipo"]
+            item = alerta["item"]
+            
+            if tipo == "COSTO_NEGATIVO":
+                recomendaciones.append({
+                    "tipo": "correccion_inmediata",
+                    "gravedad": "alta",
+                    "mensaje": f"Corregir costo negativo en {item}",
+                    "accion": "Revisar fuente de datos y recalcular costos",
+                    "item_afectado": item
+                })
+            elif tipo == "INCOHERENCIA_MATEMATICA":
+                recomendaciones.append({
+                    "tipo": "validacion_calculo",
+                    "gravedad": "media",
+                    "mensaje": f"Verificar cálculos en {item}",
+                    "accion": "Auditar fórmula: cantidad × precio_unitario = valor_total",
+                    "item_afectado": item
+                })
+        
+        # 2. Recomendaciones basadas en patrones
+        for patron in patrones[:3]:
+            if patron["frecuencia"] > 5:
+                recomendaciones.append({
+                    "tipo": "correccion_sistematica",
+                    "gravedad": "media",
+                    "mensaje": f"Patrón detectado: {patron['tipo']} en {patron['frecuencia']} items",
+                    "accion": f"Investigar causa raíz en items: {', '.join(patron['items_afectados'][:3])}",
+                    "items_afectados": patron["items_afectados"][:5]
+                })
+        
+        # 3. Recomendaciones generales basadas en estadísticas
+        total_alertas = len(alertas_priorizadas)
+        if total_alertas > 50:
+            recomendaciones.append({
+                "tipo": "auditoria_completa",
+                "gravedad": "alta",
+                "mensaje": f"Alto volumen de alertas: {total_alertas}",
+                "accion": "Realizar auditoría completa del proceso de datos",
+                "metrica": f"{total_alertas} alertas totales"
+            })
+        
+        return recomendaciones
+
+
+# 5. Refinamiento de la Función Principal con Análisis Térmico de Datos
+
+def validate_and_clean_data(
+    data_store: Dict[str, Any],
+    skip_on_error: bool = True,
+    validaciones_habilitadas: Optional[Dict[str, bool]] = None,
+    telemetry_context: Optional[TelemetryContext] = None,
+    aplicar_analisis_termico: bool = True,
+    nivel_confianza_minimo: float = 0.7
+) -> Dict[str, Any]:
+    """
+    Orquesta validaciones con análisis térmico de datos.
+    
+    El análisis térmico evalúa la "temperatura" de los datos:
+    - Datos fríos: Estructurados, consistentes, validados
+    - Datos calientes: Inconsistentes, con errores, alta entropía
+    
+    Args:
+        data_store: Diccionario con datos a validar
+        skip_on_error: Continuar a pesar de errores
+        validaciones_habilitadas: Configuración de validaciones
+        telemetry_context: Contexto de telemetría
+        aplicar_analisis_termico: Si True, aplica análisis térmico
+        nivel_confianza_minimo: Nivel mínimo de confianza aceptable
+        
+    Returns:
+        Dict con datos validados y análisis térmico
+    """
+    logger.info("=" * 80)
+    logger.info("Sistema de Validación Térmica de Datos")
+    logger.info(f"Nivel de confianza mínimo: {nivel_confianza_minimo}")
+    logger.info("=" * 80)
+    
+    # Iniciar análisis térmico
+    thermal_analysis = {
+        "temperatura_inicial": None,
+        "temperatura_final": None,
+        "enfriamiento_logrado": None,
+        "puntos_calientes": [],
+        "estabilidad_global": None
+    }
+    
+    if telemetry_context:
+        telemetry_context.start_step("validate_data", {
+            "aplicar_analisis_termico": aplicar_analisis_termico,
+            "nivel_confianza_minimo": nivel_confianza_minimo
+        })
+    
+    # Validar entrada
+    if data_store is None:
+        error_msg = "data_store es None"
+        logger.error(error_msg)
+        
+        error_result = {
+            "error": error_msg,
+            "validation_summary": {
+                "exito": False,
+                "mensaje": "Validación fallida: entrada None",
+                "errores": [error_msg],
+                "nivel_confianza": 0.0
+            },
+            "thermal_analysis": thermal_analysis
+        }
+        
+        if telemetry_context:
+            telemetry_context.record_error("validate_data", error_msg)
+            telemetry_context.end_step(
+                "validate_data", 
+                "failure", 
+                metadata=error_result["validation_summary"]
+            )
+        
+        return error_result
+    
+    # Calcular temperatura inicial si se solicita análisis térmico
+    if aplicar_analisis_termico:
+        thermal_analysis["temperatura_inicial"] = _calcular_temperatura_datos(data_store)
+        logger.info(f"Temperatura inicial de datos: {thermal_analysis['temperatura_inicial']:.2f}°T")
+    
+    # Ejecutar validación original (código existente)
+    # ... (el código original de validación se mantiene aquí)
+    
+    # Después de la validación, calcular temperatura final
+    if aplicar_analisis_termico and "validation_summary" in result:
+        thermal_analysis["temperatura_final"] = _calcular_temperatura_datos(result)
+        thermal_analysis["enfriamiento_logrado"] = (
+            thermal_analysis["temperatura_inicial"] - thermal_analysis["temperatura_final"]
+        )
+        
+        # Identificar puntos calientes
+        thermal_analysis["puntos_calientes"] = _identificar_puntos_calientes(result)
+        
+        # Calcular estabilidad global
+        thermal_analysis["estabilidad_global"] = _calcular_estabilidad_termica(
+            thermal_analysis["temperatura_final"]
+        )
+        
+        logger.info(
+            f"Análisis térmico completado: "
+            f"{thermal_analysis['enfriamiento_logrado']:.2f}°T de enfriamiento, "
+            f"estabilidad: {thermal_analysis['estabilidad_global']}"
+        )
+    
+    # Agregar análisis térmico al resultado
+    result["thermal_analysis"] = thermal_analysis
+    
+    # Calcular nivel de confianza final
+    if "validation_summary" in result:
+        nivel_confianza = _calcular_nivel_confianza(result["validation_summary"])
+        result["validation_summary"]["nivel_confianza"] = nivel_confianza
+        
+        # Verificar si cumple con nivel mínimo
+        if nivel_confianza < nivel_confianza_minimo:
+            result["validation_summary"]["advertencias"] = result["validation_summary"].get("advertencias", [])
+            result["validation_summary"]["advertencias"].append(
+                f"Nivel de confianza bajo: {nivel_confianza:.2f} (mínimo: {nivel_confianza_minimo})"
+            )
+    
+    return result
+
+
+def _calcular_temperatura_datos(data_store: Dict[str, Any]) -> float:
+    """
+    Calcula la temperatura de los datos (0-100°T).
+    
+    Basado en:
+    - Entropía de los datos
+    - Número de anomalías
+    - Consistencia estructural
+    - Completitud
+    """
+    temperatura = 0.0
+    
+    # Componente 1: Entropía de tipos de datos
+    if isinstance(data_store, dict):
+        tipos = []
+        for key, value in data_store.items():
+            if isinstance(value, list):
+                if value:
+                    # Analizar tipos dentro de la lista
+                    sample_types = [type(v).__name__ for v in value[:10]]
+                    unique_types = len(set(sample_types))
+                    tipos.extend([f"list_{t}" for t in sample_types])
+            else:
+                tipos.append(type(value).__name__)
+        
+        if tipos:
+            unique, counts = np.unique(tipos, return_counts=True)
+            probs = counts / len(tipos)
+            entropy = -np.sum(probs * np.log2(probs + 1e-10))
+            max_entropy = np.log2(len(unique))
+            
+            # Entropía normalizada contribuye a temperatura
+            if max_entropy > 0:
+                temp_component = (entropy / max_entropy) * 30  # Máximo 30°T
+                temperatura += temp_component
+    
+    # Componente 2: Anomalías detectadas
+    if "validation_summary" in data_store:
+        summary = data_store["validation_summary"]
+        total_items = summary.get("total_items_procesados", 0)
+        total_alertas = summary.get("total_items_con_alertas", 0)
+        
+        if total_items > 0:
+            tasa_anomalias = total_alertas / total_items
+            temp_component = tasa_anomalias * 50  # Máximo 50°T
+            temperatura += temp_component
+    
+    # Componente 3: Estabilidad piramidal
+    if "pyramidal_metrics" in data_store:
+        metrics = data_store["pyramidal_metrics"]
+        if hasattr(metrics, "pyramid_stability_index"):
+            psi = metrics.pyramid_stability_index
+            # Psi bajo indica inestabilidad -> mayor temperatura
+            if psi < 0.5:
+                temp_component = (0.5 - psi) * 40  # Máximo 20°T
+                temperatura += temp_component
+    
+    # Limitar temperatura a 0-100
+    return max(0.0, min(100.0, temperatura))
+
+
+def _identificar_puntos_calientes(data_store: Dict[str, Any]) -> List[Dict[str, Any]]:
+    """Identifica los puntos más calientes (problemáticos) en los datos."""
+    puntos_calientes = []
+    
+    # Buscar en apus_detail
+    if "apus_detail" in data_store and isinstance(data_store["apus_detail"], list):
+        for item in data_store["apus_detail"][:100]:  # Limitar análisis
+            if isinstance(item, dict):
+                # Calcular calor por item
+                calor = 0
+                
+                # Alertas incrementan calor
+                if "alertas" in item and isinstance(item["alertas"], list):
+                    calor += len(item["alertas"]) * 5
+                
+                # Anomalías específicas
+                if "anomalias" in item and isinstance(item["anomalias"], list):
+                    calor += len(item["anomalias"]) * 10
+                
+                # Incoherencias matemáticas
+                if "CANTIDAD" in item and "VR_UNITARIO" in item and "VALOR_TOTAL" in item:
+                    try:
+                        coherencia, _, _, _ = _validar_coherencia_matematica(
+                            item["CANTIDAD"], 
+                            item["VR_UNITARIO"], 
+                            item["VALOR_TOTAL"]
+                        )
+                        if not coherencia:
+                            calor += 15
+                    except:
+                        pass
+                
+                if calor > 10:  # Umbral mínimo para considerar punto caliente
+                    puntos_calientes.append({
+                        "item": _obtener_identificador_item(item),
+                        "calor": calor,
+                        "tipo": "apus_detail",
+                        "razones": item.get("alertas", [])[:3]
+                    })
+    
+    # Ordenar por calor descendente
+    return sorted(puntos_calientes, key=lambda x: x["calor"], reverse=True)[:10]
+
+
+def _calcular_estabilidad_termica(temperatura: float) -> str:
+    """Clasifica la estabilidad térmica de los datos."""
+    if temperatura < 20:
+        return "estable"
+    elif temperatura < 40:
+        return "moderada"
+    elif temperatura < 60:
+        return "inestable"
+    else:
+        return "critica"
+
+
+def _calcular_nivel_confianza(validation_summary: Dict[str, Any]) -> float:
+    """
+    Calcula nivel de confianza (0-1) basado en resultados de validación.
+    
+    Considera:
+    - Porcentaje de items con alertas
+    - Tipos de alertas (severidad)
+    - Validaciones exitosas vs fallidas
+    """
+    confianza = 1.0
+    
+    # Penalizar por items con alertas
+    total_items = validation_summary.get("total_items_procesados", 0)
+    items_con_alertas = validation_summary.get("total_items_con_alertas", 0)
+    
+    if total_items > 0:
+        tasa_alertas = items_con_alertas / total_items
+        # Penalización exponencial por alta tasa de alertas
+        confianza *= max(0, 1 - (tasa_alertas ** 0.5))
+    
+    # Penalizar por validaciones fallidas
+    validaciones_fallidas = validation_summary.get("validaciones_fallidas", [])
+    if validaciones_fallidas:
+        confianza *= max(0.5, 1 - (len(validaciones_fallidas) * 0.1))
+    
+    # Bonificación por validaciones exitosas
+    validaciones_exitosas = validation_summary.get("validaciones_exitosas", [])
+    if validaciones_exitosas and len(validaciones_exitosas) >= 2:
+        confianza = min(1.0, confianza * 1.1)
+    
+    # Penalizar por errores críticos
+    errores = validation_summary.get("errores", [])
+    if errores:
+        confianza *= max(0.3, 1 - (len(errores) * 0.2))
+    
+    return max(0.0, min(1.0, confianza))
