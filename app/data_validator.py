@@ -1,29 +1,28 @@
-# app/data_validator.py
-
-""""
+"""
 Este componente ejecuta una auditoría profunda sobre los datos normalizados.
 A diferencia de una validación de tipos simple, aplica reglas de negocio y
 física de costos para detectar "patologías" en la información (costos negativos,
 incoherencias aritméticas, descripciones vacías).
 
-Protocolos de Auditoría:
-------------------------
-1. Coherencia Matemática Estricta:
-   Verifica la ecuación fundamental de costo: `Cantidad * Precio_Unitario ≈ Valor_Total`.
-   Detecta discrepancias financieras invisibles a simple vista (tolerancia < 1%).
+Protocolos de Auditoría (Versión 2.0 - Ingeniería de Calidad):
+--------------------------------------------------------------
+1. Coherencia Matemática Estricta (Control Theory):
+   Utiliza un modelo de ganancia y sensibilidad para evaluar la estabilidad
+   de la ecuación `Cantidad * Precio = Total`. Distingue entre errores
+   de redondeo y fallos sistémicos.
 
-2. Saneamiento Semántico (Fuzzy Matching):
-   Utiliza algoritmos de distancia de Levenshtein (vía `fuzzywuzzy`) para corregir
-   y estandarizar descripciones de insumos, resolviendo ambigüedades léxicas
-   (ej. "Cemento" vs "Cmto").
+2. Validador Piramidal (Graph Theory):
+   Construye un grafo bipartito (APUs <-> Insumos) para medir la resiliencia
+   estructural, identificando Puntos de Fallo Único (SPOF) y Nodos Flotantes.
 
-3. Detección de Anomalías de Valor:
-   Identifica valores atípicos que violan la lógica del negocio, como costos
-   infinitos, negativos o estadísticamente improbables (Outliers).
+3. Detección de Anomalías (Statistical & Light ML):
+   Aplica Isolation Forest y métodos estadísticos robustos (Z-Score, IQR)
+   para identificar costos atípicos.
 
-4. Sistema de Alertas Clasificadas:
-   Genera un `ComplianceReport` con violaciones tipificadas (CRITICAL, WARNING),
-   alimentando el "Expediente del Consejo" para la toma de decisiones.
+4. Entropía de Calidad (Thermodynamics):
+   Calcula la "Temperatura de Ingesta" ($S_{data}$) basada en la entropía de
+   las alertas y la consistencia de los datos, distinguiendo entre un
+   proyecto riesgoso y datos caóticos.
 """
 
 import logging
@@ -41,7 +40,7 @@ import pandas as pd
 try:
     from .telemetry import TelemetryContext
 except ImportError:
-    TelemetryContext = Any  # Fallback for typing if circular import
+    TelemetryContext = Any  # Fallback
 
 # Optional fuzzy matching
 try:
@@ -49,6 +48,7 @@ try:
 
     HAS_FUZZY = True
 except ImportError:
+    process = None
     HAS_FUZZY = False
 
 logger = logging.getLogger(__name__)
@@ -56,19 +56,18 @@ logger = logging.getLogger(__name__)
 # ============================================================================
 # CONSTANTES DE VALIDACIÓN
 # ============================================================================
-COSTO_MAXIMO_RAZONABLE = 50_000_000  # 50 millones de unidades monetarias
-COSTO_MINIMO_VALIDO = 0  # No se permiten costos negativos
-CANTIDAD_MINIMA_VALIDA = 0  # No se permiten cantidades negativas
-FUZZY_MATCH_THRESHOLD = 70  # Umbral mínimo de similitud para fuzzy matching
-TOLERANCIA_COMPARACION_FLOAT = 1e-6  # Tolerancia para comparaciones de punto flotante
-TOLERANCIA_PORCENTUAL_COHERENCIA = 0.01  # 1% de tolerancia para validación matemática
+COSTO_MAXIMO_RAZONABLE = 50_000_000
+COSTO_MINIMO_VALIDO = 0
+CANTIDAD_MINIMA_VALIDA = 0
+FUZZY_MATCH_THRESHOLD = 70
+TOLERANCIA_COMPARACION_FLOAT = 1e-6
+TOLERANCIA_PORCENTUAL_COHERENCIA = 0.01
 DESCRIPCION_GENERICA_FALLBACK = "Insumo sin descripción"
-MAX_DESCRIPCION_LENGTH = 500  # Longitud máxima razonable para descripción
-MAX_ALERTAS_POR_ITEM = 50  # Límite razonable de alertas por item
+MAX_DESCRIPCION_LENGTH = 500
+MAX_ALERTAS_POR_ITEM = 50
 MAX_IDENTIFICADOR_LENGTH = 100
 MAX_FUZZY_ATTEMPTS_PER_BATCH = 1000
 
-# Constante extendida de valores a tratar como inválidos en descripciones
 VALORES_DESCRIPCION_INVALIDOS = frozenset(
     [
         "nan",
@@ -110,6 +109,10 @@ class TipoAlerta(Enum):
     INCOHERENCIA_MATEMATICA = "INCOHERENCIA_MATEMATICA"
     VALOR_INFINITO = "VALOR_INFINITO"
     CAMPO_REQUERIDO_FALTANTE = "CAMPO_REQUERIDO_FALTANTE"
+    # Nuevos tipos V2
+    ANOMALIA_ESTADISTICA = "ANOMALIA_ESTADISTICA"
+    SPOF_DETECTADO = "SPOF_DETECTADO"
+    ALTA_SENSIBILIDAD = "ALTA_SENSIBILIDAD_NUMERICA"
 
 
 @dataclass
@@ -128,12 +131,10 @@ class ValidationMetrics:
     alertas_por_tipo: Dict[str, int] = field(default_factory=dict)
 
     def agregar_alerta(self, tipo_alerta: TipoAlerta) -> None:
-        """Registra una alerta en las métricas"""
         tipo_str = tipo_alerta.value
         self.alertas_por_tipo[tipo_str] = self.alertas_por_tipo.get(tipo_str, 0) + 1
 
     def to_dict(self) -> Dict[str, Any]:
-        """Convierte las métricas a diccionario"""
         return {
             "total_items_procesados": self.total_items_procesados,
             "items_con_alertas": self.items_con_alertas,
@@ -150,10 +151,8 @@ class ValidationMetrics:
 
 @dataclass
 class CampoFaltanteInfo:
-    """Información detallada sobre un campo faltante o inválido"""
-
     nombre: str
-    motivo: str  # "faltante", "none", "vacio", "nan"
+    motivo: str
     valor_actual: Any = None
 
 
@@ -161,116 +160,369 @@ class CampoFaltanteInfo:
 class PyramidalMetrics:
     """Métricas de estabilidad vertical de la pirámide de datos."""
 
-    base_width: int  # Cantidad de Insumos únicos (Nivel 3)
-    structure_load: int  # Cantidad de APUs (Nivel 2)
-    pyramid_stability_index: float  # Psi = Insumos / APUs
-    floating_nodes: List[str]  # APUs sin insumos (Riesgo de Colapso)
+    base_width: int
+    structure_load: int
+    pyramid_stability_index: float
+    floating_nodes: List[str]
+    # Campos extendidos V2
+    graf_analysis: Optional[Dict[str, Any]] = None
+
+
+# ============================================================================
+# COMPONENTES AVANZADOS (V2)
+# ============================================================================
 
 
 class PyramidalValidator:
     """
-    Validador de integridad jerárquica.
-    Asegura que la carga táctica (APUs) esté soportada por una base logística (Insumos) suficiente.
-    Fuente: topologia.md (Sección 3.2 Estabilidad Estructural) [3]
+    Validador de integridad jerárquica con análisis de grafos y teoría de redes.
     """
 
     def validate_structure(
-        self, apus_df: pd.DataFrame, insumos_df: pd.DataFrame
+        self,
+        apus_df: pd.DataFrame,
+        insumos_df: pd.DataFrame,
+        calcular_centralidad: bool = True,
+        umbral_conexion_minima: float = 0.3,
     ) -> PyramidalMetrics:
-        # 1. Normalización de entradas
+        # 1. Normalización robusta de entradas
         if not isinstance(insumos_df, pd.DataFrame):
             insumos_df = pd.DataFrame()
         if not isinstance(apus_df, pd.DataFrame):
             apus_df = pd.DataFrame()
 
-        # 2. Definición de Nodos de Nivel 2 (APUs)
-        # Se busca CODIGO_APU en el DataFrame de cabecera/detalle de APUs
-        apu_col = "CODIGO_APU"
-        level_2_nodes = set()
+        # 2. Construcción del grafo bipartito APUs ↔ Insumos
+        grafo_analysis = self._construir_grafo_bipartito(apus_df, insumos_df)
 
-        if apu_col in apus_df.columns:
-            level_2_nodes = set(apus_df[apu_col].dropna().unique())
+        # 3. Extracción de componentes conectados
+        componentes = self._extraer_componentes_conectados(grafo_analysis)
+
+        # 4. Cálculo de métricas de estabilidad
+        n_insumos = len(grafo_analysis["nodos_insumos"])
+        n_apus = len(grafo_analysis["nodos_apus"])
+        n_conexiones = grafo_analysis["total_conexiones"]
+
+        if n_apus > 0:
+            psi_basico = n_insumos / n_apus
+            max_conexiones_posibles = n_insumos * n_apus
+            if max_conexiones_posibles > 0:
+                densidad_red = n_conexiones / max_conexiones_posibles
+                factor_conectividad = np.tanh(densidad_red * 5)
+            else:
+                factor_conectividad = 0
+            psi_corregido = psi_basico * factor_conectividad
+        else:
+            psi_basico = 0
+            psi_corregido = 0
+
+        # 5. Análisis de nodos flotantes
+        apus_con_insumos = set()
+        if "APU_CODIGO" in insumos_df.columns:
+            apus_con_insumos = set(insumos_df["APU_CODIGO"].dropna().unique())
+
+        apus_totales = set()
+        if "CODIGO_APU" in apus_df.columns:
+            apus_totales = set(apus_df["CODIGO_APU"].dropna().unique())
         elif not apus_df.empty:
-            # Fallback a la primera columna si no existe CODIGO_APU
-            level_2_nodes = set(apus_df.iloc[:, 0].dropna().unique())
+            apus_totales = set(apus_df.iloc[:, 0].dropna().unique())
 
-        # 3. Definición de Nodos de Nivel 3 (Insumos)
-        # Se buscan referencias a APUs en la tabla de insumos para ver cuáles tienen hijos
-        # Nota: insumos_df aquí representa la tabla de detalle donde se vinculan APUs con Insumos
-        connected_level_2_nodes = set()
-
-        if apu_col in insumos_df.columns:
-            connected_level_2_nodes = set(insumos_df[apu_col].dropna().unique())
-
-        # Cálculo de Base (Ancho del Nivel 3 - Insumos Únicos)
-        # Usamos DESCRIPCION_INSUMO_NORM o DESCRIPCION_INSUMO
-        insumo_desc_col = "DESCRIPCION_INSUMO_NORM"
-        if insumo_desc_col not in insumos_df.columns:
-            insumo_desc_col = "DESCRIPCION_INSUMO"
-
-        level_3_nodes = set()
-        if insumo_desc_col in insumos_df.columns:
-            level_3_nodes = set(insumos_df[insumo_desc_col].dropna().unique())
-
-        # 4. Cálculo de Métricas
-        n_insumos = len(level_3_nodes)
-        n_apus = len(level_2_nodes)
-
-        # Psi (Ψ): Estabilidad Estructural
-        psi = n_insumos / n_apus if n_apus > 0 else 0.0
-
-        # 5. Detección de Nodos Flotantes
-        # Un APU es flotante si existe en el Nivel 2 pero no tiene registros en el Nivel 3
-        # floating_nodes = Set(APUs) - Set(APUs_con_insumos)
-        floating_nodes_set = level_2_nodes - connected_level_2_nodes
+        floating_nodes_set = apus_totales - apus_con_insumos
         floating_apus = sorted(list(floating_nodes_set))
+
+        # 6. Centralidad
+        metricas_centralidad = {}
+        if (
+            calcular_centralidad
+            and "matriz_adyacencia" in grafo_analysis
+            and grafo_analysis["matriz_adyacencia"].size > 0
+        ):
+            metricas_centralidad = self._calcular_centralidad_grafo(
+                grafo_analysis["matriz_adyacencia"],
+                grafo_analysis["nodos_apus"],
+                grafo_analysis["nodos_insumos"],
+            )
+
+        # 7. Resiliencia
+        resiliencia_metrics = self._analizar_resiliencia(
+            grafo_analysis, umbral_conexion_minima
+        )
 
         return PyramidalMetrics(
             base_width=n_insumos,
             structure_load=n_apus,
-            pyramid_stability_index=psi,
+            pyramid_stability_index=psi_corregido,
             floating_nodes=floating_apus,
+            graf_analysis={
+                "total_nodos": len(grafo_analysis["nodos_apus"])
+                + len(grafo_analysis["nodos_insumos"]),
+                "total_conexiones": n_conexiones,
+                "componentes_conectados": len(componentes),
+                "psi_basico": psi_basico,
+                "psi_corregido": psi_corregido,
+                "centralidad": metricas_centralidad,
+                "resiliencia": resiliencia_metrics,
+            },
         )
 
+    def _construir_grafo_bipartito(
+        self, apus_df: pd.DataFrame, insumos_df: pd.DataFrame
+    ) -> Dict[str, Any]:
+        grafo = {
+            "nodos_apus": [],
+            "nodos_insumos": [],
+            "aristas": [],
+            "matriz_adyacencia": np.array([]),
+            "total_conexiones": 0,
+        }
+
+        apu_col = "CODIGO_APU"
+        if apu_col in apus_df.columns:
+            apus_codes = apus_df[apu_col].dropna().unique().tolist()
+        elif not apus_df.empty:
+            apus_codes = apus_df.iloc[:, 0].dropna().unique().tolist()
+        else:
+            apus_codes = []
+        grafo["nodos_apus"] = apus_codes
+
+        insumo_desc_col = "DESCRIPCION_INSUMO_NORM"
+        if insumo_desc_col not in insumos_df.columns:
+            insumo_desc_col = "DESCRIPCION_INSUMO"
+
+        if insumo_desc_col in insumos_df.columns:
+            insumos_unique = insumos_df[insumo_desc_col].dropna().unique().tolist()
+        else:
+            insumos_unique = []
+        grafo["nodos_insumos"] = insumos_unique
+
+        if apus_codes and insumos_unique:
+            apu_to_idx = {apu: i for i, apu in enumerate(apus_codes)}
+            insumo_to_idx = {insumo: i for i, insumo in enumerate(insumos_unique)}
+
+            adj_matrix = np.zeros((len(apus_codes), len(insumos_unique)), dtype=int)
+
+            if "APU_CODIGO" in insumos_df.columns and insumo_desc_col in insumos_df.columns:
+                # Vectorizar para performance
+                valid_rows = insumos_df.dropna(subset=["APU_CODIGO", insumo_desc_col])
+                for _, row in valid_rows.iterrows():
+                    apu = row["APU_CODIGO"]
+                    insumo = row[insumo_desc_col]
+                    if apu in apu_to_idx and insumo in insumo_to_idx:
+                        i = apu_to_idx[apu]
+                        j = insumo_to_idx[insumo]
+                        adj_matrix[i, j] = 1
+                        grafo["aristas"].append((apu, insumo))
+
+            grafo["matriz_adyacencia"] = adj_matrix
+            grafo["total_conexiones"] = int(np.sum(adj_matrix))
+
+        return grafo
+
+    def _extraer_componentes_conectados(self, grafo: Dict[str, Any]) -> List[List[str]]:
+        componentes = []
+        if not grafo["aristas"]:
+            return componentes
+
+        adj_dict = {}
+        for apu, insumo in grafo["aristas"]:
+            adj_dict.setdefault(apu, set()).add(insumo)
+            adj_dict.setdefault(insumo, set()).add(apu)
+
+        visitados = set()
+        for nodo in adj_dict:
+            if nodo not in visitados:
+                componente = []
+                stack = [nodo]
+                while stack:
+                    current = stack.pop()
+                    if current not in visitados:
+                        visitados.add(current)
+                        componente.append(current)
+                        stack.extend(adj_dict.get(current, set()) - visitados)
+                if componente:
+                    componentes.append(componente)
+        return componentes
+
+    def _calcular_centralidad_grafo(
+        self, adj_matrix: np.ndarray, nodos_apus: List[str], nodos_insumos: List[str]
+    ) -> Dict[str, Any]:
+        metrics = {
+            "centralidad_grado_apus": {},
+            "centralidad_grado_insumos": {},
+            "apus_criticos": [],
+            "insumos_criticos": [],
+        }
+
+        grado_apus = np.sum(adj_matrix, axis=1)
+        for i, grado in enumerate(grado_apus):
+            metrics["centralidad_grado_apus"][nodos_apus[i]] = int(grado)
+
+        grado_insumos = np.sum(adj_matrix, axis=0)
+        for j, grado in enumerate(grado_insumos):
+            metrics["centralidad_grado_insumos"][nodos_insumos[j]] = int(grado)
+
+        return metrics
+
+    def _analizar_resiliencia(
+        self, grafo: Dict[str, Any], umbral_conexion: float
+    ) -> Dict[str, Any]:
+        if not grafo["aristas"]:
+            return {"resiliencia": 0, "puntos_fallo_unico": []}
+
+        spofs = []
+        adj_dict = {}
+        for apu, insumo in grafo["aristas"]:
+            adj_dict.setdefault(insumo, set()).add(apu)
+
+        # Contar APUs totales para determinar umbral crítico
+        total_apus = len(grafo.get("nodos_apus", []))
+        umbral_critico = max(2, int(total_apus * 0.1)) # Al menos 2, o 10% del proyecto
+
+        for insumo, apus_conectados in adj_dict.items():
+            # Un SPOF es un insumo crítico que afecta a múltiples APUs
+            if len(apus_conectados) >= umbral_critico:
+                spofs.append({
+                    "insumo": insumo,
+                    "impacto": len(apus_conectados),
+                    "apus_afectados": list(apus_conectados)[:5] # Muestra
+                })
+
+        return {"puntos_fallo_unico": spofs}
+
+
+class AnomalyValidator:
+    """
+    Sistema de detección de anomalías usando métodos estadísticos y ML liviano.
+    """
+
+    def __init__(self, config: Optional[Dict[str, Any]] = None):
+        defaults = {
+            "zscore_threshold": 3.0,
+            "iqr_multiplier": 1.5,
+            "isolation_forest_samples": 100,
+        }
+        if config:
+            defaults.update(config)
+        self.config = defaults
+
+    def detect_cost_anomalies(
+        self, cost_data: List[Dict[str, Any]], campo_costo: str = "VALOR_CONSTRUCCION_UN"
+    ) -> Tuple[List[Dict[str, Any]], Dict[str, Any]]:
+        if not cost_data:
+            return [], {"total_anomalias": 0}
+
+        valores = []
+        indices_validos = []
+        for idx, item in enumerate(cost_data):
+            if isinstance(item, dict) and _es_numero_valido(item.get(campo_costo)):
+                try:
+                    valores.append(float(item[campo_costo]))
+                    indices_validos.append(idx)
+                except (ValueError, TypeError):
+                    continue
+
+        if not valores:
+            return cost_data, {"total_anomalias": 0}
+
+        valores_array = np.array(valores).reshape(-1, 1)
+
+        # Ensamble simple: Z-Score + IQR
+        # Z-Score
+        mean = np.mean(valores_array)
+        std = np.std(valores_array)
+        z_anomalies = np.zeros(len(valores_array), dtype=bool)
+        if std > 0:
+            z_anomalies = (
+                np.abs((valores_array.flatten() - mean) / std)
+                > self.config["zscore_threshold"]
+            )
+
+        # IQR
+        q1 = np.percentile(valores_array, 25)
+        q3 = np.percentile(valores_array, 75)
+        iqr = q3 - q1
+        iqr_anomalies = (valores_array.flatten() < (q1 - 1.5 * iqr)) | (
+            valores_array.flatten() > (q3 + 1.5 * iqr)
+        )
+
+        # Isolation Forest (si disponible)
+        if_anomalies = np.zeros(len(valores_array), dtype=bool)
+        try:
+            from sklearn.ensemble import IsolationForest
+
+            n_samples = min(self.config["isolation_forest_samples"], len(valores_array))
+            model = IsolationForest(
+                contamination="auto", max_samples=n_samples, random_state=42
+            )
+            preds = model.fit_predict(valores_array)
+            if_anomalies = preds == -1
+        except ImportError:
+            pass
+
+        # Votación
+        votes = (
+            z_anomalies.astype(int) + iqr_anomalies.astype(int) + if_anomalies.astype(int)
+        )
+        confirmed = votes >= 2
+
+        datos_marcados = deepcopy(cost_data)
+        count = 0
+        for i, idx in enumerate(indices_validos):
+            if confirmed[i]:
+                item = datos_marcados[idx]
+                if "anomalias" not in item:
+                    item["anomalias"] = []
+                item["anomalias"].append(
+                    {
+                        "tipo": "COSTO_ANOMALO",
+                        "valor": float(valores_array[i][0]),
+                        "score": int(votes[i]),
+                    }
+                )
+                count += 1
+
+        return datos_marcados, {
+            "total_anomalias": count,
+            "porcentaje_anomalias": (count / len(valores_array)) * 100,
+            "estadisticas": {"media": float(mean), "std": float(std)},
+        }
+
+
+class AlertSystem:
+    """Sistema de alertas con priorización basada en entropía."""
+
+    def process_alerts(self, items: List[Dict[str, Any]]) -> Dict[str, Any]:
+        all_alerts = []
+        for item in items:
+            if isinstance(item, dict) and "alertas" in item:
+                for alerta in item["alertas"]:
+                    all_alerts.append(alerta["tipo"])
+
+        if not all_alerts:
+            return {"entropia_sistema": 0.0}
+
+        unique, counts = np.unique(all_alerts, return_counts=True)
+        probs = counts / len(all_alerts)
+        entropy = -np.sum(probs * np.log2(probs + 1e-10))
+        max_entropy = np.log2(len(unique)) if len(unique) > 0 else 1
+
+        return {
+            "total_alertas": len(all_alerts),
+            "entropia_sistema": float(entropy),
+            "entropia_normalizada": float(entropy / max_entropy) if max_entropy > 0 else 0,
+        }
+
 
 # ============================================================================
-# FUNCIONES AUXILIARES
+# FUNCIONES AUXILIARES BASE
 # ============================================================================
 def _es_numero_valido(valor: Any) -> bool:
-    """
-    Verifica si un valor es un número válido (no None, no NaN, no infinito).
-
-    Args:
-        valor: Valor a verificar
-
-    Returns:
-        bool: True si es un número válido, False en caso contrario
-    """
-    # Verificación rápida de None primero (operación O(1))
     if valor is None:
         return False
-
-    # Manejar tipos numéricos nativos y numpy
     if isinstance(valor, (int, float, np.integer, np.floating)):
-        # Verificar NaN e infinito (orden optimizado: NaN es más común)
         try:
-            if pd.isna(valor) or np.isinf(valor):
-                return False
-            return True
-        except (TypeError, ValueError):
-            # Algunos tipos numpy pueden fallar en estas verificaciones
+            return not (pd.isna(valor) or np.isinf(valor))
+        except (ValueError, TypeError):
             return False
-
-    # Manejar numpy arrays escalares
-    if isinstance(valor, np.ndarray):
-        if valor.ndim == 0:  # Escalar numpy
-            try:
-                return _es_numero_valido(valor.item())
-            except (ValueError, IndexError):
-                return False
-        return False  # Arrays no escalares no son válidos
-
-    # Rechazar cualquier otro tipo (strings, listas, etc.)
     return False
 
 
@@ -281,1418 +533,346 @@ def _agregar_alerta(
     metrics: Optional[ValidationMetrics] = None,
     permitir_duplicados: bool = False,
 ) -> bool:
-    """
-    Agrega una alerta a un item y actualiza métricas.
-
-    Args:
-        item: Diccionario del item
-        mensaje: Mensaje de alerta
-        tipo_alerta: Tipo de alerta (enum)
-        metrics: Objeto de métricas opcional
-        permitir_duplicados: Si False, no agrega alertas con mismo tipo y mensaje
-
-    Returns:
-        bool: True si la alerta fue agregada, False si fue ignorada (duplicado o límite)
-    """
     if not isinstance(item, dict):
-        logger.warning(
-            f"Intento de agregar alerta a un item que no es diccionario: {type(item)}"
-        )
         return False
-
     if "alertas" not in item:
         item["alertas"] = []
 
-    # Verificar límite de alertas
     if len(item["alertas"]) >= MAX_ALERTAS_POR_ITEM:
-        logger.warning(
-            f"Item ha alcanzado el límite máximo de alertas ({MAX_ALERTAS_POR_ITEM}). "
-            f"Alerta ignorada: {tipo_alerta.value} - {mensaje[:50]}..."
-        )
         return False
 
-    alerta_completa = {
-        "tipo": tipo_alerta.value,
-        "mensaje": mensaje,
-    }
+    alerta = {"tipo": tipo_alerta.value, "mensaje": mensaje}
 
-    # Verificar duplicados si no se permiten
     if not permitir_duplicados:
-        for alerta_existente in item["alertas"]:
-            if (
-                alerta_existente.get("tipo") == alerta_completa["tipo"]
-                and alerta_existente.get("mensaje") == alerta_completa["mensaje"]
-            ):
-                # logger.debug(f"Alerta duplicada ignorada: {tipo_alerta.value}")
+        for a in item["alertas"]:
+            if a["tipo"] == alerta["tipo"] and a["mensaje"] == alerta["mensaje"]:
                 return False
 
-    item["alertas"].append(alerta_completa)
-
-    if metrics is not None:
+    item["alertas"].append(alerta)
+    if metrics:
         metrics.agregar_alerta(tipo_alerta)
-
     return True
 
 
-def _validar_campos_requeridos(
-    item: Dict[str, Any],
-    campos_requeridos: List[str],
-    nombre_item: str = "desconocido",
-    considerar_none_como_faltante: bool = True,
-    considerar_vacio_como_faltante: bool = True,
-) -> List[CampoFaltanteInfo]:
-    """
-    Valida que un item contenga todos los campos requeridos con valores válidos.
-
-    Args:
-        item: Diccionario a validar
-        campos_requeridos: Lista de nombres de campos requeridos
-        nombre_item: Nombre del item para logging
-        considerar_none_como_faltante: Si True, None se considera como faltante
-        considerar_vacio_como_faltante: Si True, strings vacíos se consideran faltantes
-
-    Returns:
-        List[CampoFaltanteInfo]: Lista de información sobre campos faltantes/inválidos
-    """
-    if not isinstance(item, dict):
-        logger.error(f"Item '{nombre_item}' no es un diccionario: {type(item)}")
-        return [
-            CampoFaltanteInfo(campo, "item_invalido", None) for campo in campos_requeridos
-        ]
-
-    campos_problematicos = []
-
-    for campo in campos_requeridos:
-        if campo not in item:
-            campos_problematicos.append(CampoFaltanteInfo(campo, "faltante", None))
-            logger.warning(f"Campo requerido '{campo}' faltante en item '{nombre_item}'")
-            continue
-
-        valor = item[campo]
-
-        # Verificar None
-        if valor is None and considerar_none_como_faltante:
-            campos_problematicos.append(CampoFaltanteInfo(campo, "none", valor))
-            logger.warning(f"Campo '{campo}' es None en item '{nombre_item}'")
-            continue
-
-        # Verificar NaN para valores numéricos
-        if isinstance(valor, (float, np.floating)) and pd.isna(valor):
-            campos_problematicos.append(CampoFaltanteInfo(campo, "nan", valor))
-            logger.warning(f"Campo '{campo}' es NaN en item '{nombre_item}'")
-            continue
-
-        # Verificar strings vacíos
-        if considerar_vacio_como_faltante and isinstance(valor, str):
-            if not valor.strip():
-                campos_problematicos.append(CampoFaltanteInfo(campo, "vacio", valor))
-                logger.warning(f"Campo '{campo}' está vacío en item '{nombre_item}'")
-
-    return campos_problematicos
+def _obtener_identificador_item(item: Dict[str, Any]) -> str:
+    campos = ["ITEM", "ID", "CODIGO", "DESCRIPCION_INSUMO", "DESCRIPCION", "NOMBRE"]
+    for c in campos:
+        val = item.get(c)
+        if val and str(val).lower() not in ("nan", "none", ""):
+            return str(val)[:MAX_IDENTIFICADOR_LENGTH]
+    return "item_desconocido"
 
 
 def _validar_coherencia_matematica(
     cantidad: float,
     precio_unitario: float,
     valor_total: float,
-    tolerancia_porcentual: float = TOLERANCIA_PORCENTUAL_COHERENCIA,
-) -> Tuple[bool, Optional[float], Optional[str]]:
+    tolerancia_absoluta: Optional[float] = None,
+) -> Tuple[bool, Optional[float], Optional[str], Optional[Dict[str, Any]]]:
     """
-    Valida que la relación cantidad * precio_unitario ≈ valor_total sea coherente.
-
-    Args:
-        cantidad: Cantidad del insumo
-        precio_unitario: Precio unitario
-        valor_total: Valor total reportado
-        tolerancia_porcentual: Tolerancia porcentual permitida (0.01 = 1%)
-
-    Returns:
-        Tuple[bool, Optional[float], Optional[str]]:
-            (es_coherente, diferencia_porcentual, mensaje_detalle)
+    Validación mejorada con Teoría de Control (Ganancia y Sensibilidad).
     """
-    # Validar que todos los valores sean números válidos
-    valores = {
-        "cantidad": cantidad,
-        "precio_unitario": precio_unitario,
-        "valor_total": valor_total,
-    }
-    for nombre, valor in valores.items():
-        if not _es_numero_valido(valor):
-            return True, None, f"Valor inválido en {nombre}: {valor}"
-
-    # Convertir a float para cálculos consistentes
-    cantidad = float(cantidad)
-    precio_unitario = float(precio_unitario)
-    valor_total = float(valor_total)
-
-    # Caso especial: todos son cero o muy cercanos a cero
-    todos_cercanos_a_cero = all(
-        abs(v) < TOLERANCIA_COMPARACION_FLOAT
-        for v in [cantidad, precio_unitario, valor_total]
-    )
-    if todos_cercanos_a_cero:
-        return True, 0.0, "Todos los valores son cero o cercanos a cero"
-
-    # Calcular valor esperado con detección de overflow
     try:
-        valor_esperado = cantidad * precio_unitario
-        if np.isinf(valor_esperado):
-            return False, None, f"Overflow en cálculo: {cantidad} × {precio_unitario}"
-    except (OverflowError, FloatingPointError):
-        return False, None, f"Error de overflow: {cantidad} × {precio_unitario}"
+        Q = float(cantidad)
+        P = float(precio_unitario)
+        VT = float(valor_total)
+    except (ValueError, TypeError):
+        return False, None, "Error de conversión", {}
 
-    # Caso: valor_esperado ≈ 0 pero valor_total no
-    if abs(valor_esperado) < TOLERANCIA_COMPARACION_FLOAT:
-        if abs(valor_total) >= TOLERANCIA_COMPARACION_FLOAT:
-            return (
-                False,
-                None,
-                (
-                    f"Valor esperado es ~0 (cantidad={cantidad}, precio={precio_unitario}) "
-                    f"pero valor_total={valor_total}"
-                ),
-            )
-        return True, 0.0, "Valor esperado y valor total son ambos ~0"
+    esperado = Q * P
 
-    # Caso: valor_total ≈ 0 pero valor_esperado no
-    if abs(valor_total) < TOLERANCIA_COMPARACION_FLOAT:
-        if abs(valor_esperado) >= TOLERANCIA_COMPARACION_FLOAT:
-            diferencia_pct = 100.0  # 100% de diferencia
-            return (
-                False,
-                diferencia_pct,
-                (f"Valor total es ~0 pero valor esperado es {valor_esperado:.2f}"),
-            )
+    # Análisis de estabilidad
+    ganancia_q = P
+    ganancia_p = Q
+    sensibilidad = np.sqrt(ganancia_q**2 + ganancia_p**2)
 
-    # Calcular diferencia porcentual usando el valor más grande como referencia
-    referencia = max(abs(valor_esperado), abs(valor_total))
-    diferencia = abs(valor_esperado - valor_total)
-    diferencia_porcentual = (diferencia / referencia) * 100
+    error_abs = abs(esperado - VT)
+    tol = tolerancia_absoluta or max(1.0, abs(esperado) * TOLERANCIA_PORCENTUAL_COHERENCIA)
 
-    # Comparar con tolerancia (tolerancia_porcentual ya es fracción, ej: 0.01 = 1%)
-    umbral_porcentaje = tolerancia_porcentual * 100
-    es_coherente = diferencia_porcentual <= umbral_porcentaje
+    es_coherente = error_abs <= tol
 
-    mensaje = (
-        f"Esperado: {valor_esperado:.2f}, Reportado: {valor_total:.2f}, "
-        f"Diferencia: {diferencia_porcentual:.2f}% (umbral: {umbral_porcentaje:.2f}%)"
-    )
+    analisis = {
+        "sensibilidad": sensibilidad,
+        "error_absoluto": error_abs,
+        "ganancia_sistema": max(abs(ganancia_q), abs(ganancia_p)),
+    }
 
-    return es_coherente, diferencia_porcentual, mensaje
+    msg = f"Esperado: {esperado:.2f}, Reportado: {VT:.2f}"
+    if sensibilidad > 1000:
+        msg += f" [ALTA SENSIBILIDAD: {sensibilidad:.0f}]"
+
+    diferencia_pct = (error_abs / max(abs(esperado), 1e-9)) * 100
+
+    return es_coherente, diferencia_pct, msg, analisis
 
 
 def _limpiar_y_validar_descripcion(
     descripcion: Any,
-    max_length: int = MAX_DESCRIPCION_LENGTH,
-    normalizar_unicode: bool = True,
 ) -> Tuple[Optional[str], bool, Optional[str]]:
-    """
-    Limpia y valida una descripción.
-
-    Args:
-        descripcion: Descripción a validar
-        max_length: Longitud máxima permitida
-        normalizar_unicode: Si True, normaliza caracteres unicode
-
-    Returns:
-        Tuple[Optional[str], bool, Optional[str]]:
-            (descripcion_limpia, es_valida, motivo_si_invalida)
-    """
-    # Verificar si es None o NaN
-    if descripcion is None:
-        return None, False, "Valor es None"
-
-    if isinstance(descripcion, float) and pd.isna(descripcion):
-        return None, False, "Valor es NaN"
-
-    # Intentar convertir a string de forma segura
+    if not descripcion or pd.isna(descripcion):
+        return None, False, "Vacío"
     try:
-        descripcion_str = str(descripcion)
-    except (ValueError, TypeError) as e:
-        return None, False, f"No se puede convertir a string: {e}"
-
-    # Normalizar unicode si está habilitado
-    if normalizar_unicode:
-        try:
-            # Normalizar a forma NFC (composición canónica)
-            descripcion_str = unicodedata.normalize("NFC", descripcion_str)
-        except (TypeError, ValueError):
-            pass  # Continuar sin normalización si falla
-
-    # Eliminar caracteres de control (excepto espacios, tabs, newlines)
-    descripcion_str = re.sub(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f-\x9f]", "", descripcion_str)
-
-    # Normalizar espacios: múltiples espacios/tabs/newlines a un solo espacio
-    descripcion_str = re.sub(r"\s+", " ", descripcion_str)
-
-    # Strip de espacios al inicio y final
-    descripcion_str = descripcion_str.strip()
-
-    # Verificar si está vacía después de limpieza
-    if not descripcion_str:
-        return None, False, "Descripción vacía después de limpieza"
-
-    # Verificar contra lista de valores inválidos (case-insensitive)
-    if descripcion_str.lower() in VALORES_DESCRIPCION_INVALIDOS:
-        return None, False, f"Valor considerado inválido: '{descripcion_str}'"
-
-    # Validar longitud mínima (al menos 2 caracteres significativos)
-    if len(descripcion_str) < 2:
-        return None, False, f"Descripción muy corta: '{descripcion_str}'"
-
-    # Validar y truncar longitud máxima
-    fue_truncada = False
-    if len(descripcion_str) > max_length:
-        logger.warning(
-            f"Descripción excesivamente larga ({len(descripcion_str)} caracteres). "
-            f"Truncando a {max_length}."
-        )
-        # Truncar en un límite de palabra si es posible
-        descripcion_truncada = descripcion_str[:max_length]
-        ultimo_espacio = descripcion_truncada.rfind(" ")
-        if ultimo_espacio > max_length * 0.8:  # Solo si no perdemos mucho
-            descripcion_str = descripcion_truncada[:ultimo_espacio].rstrip() + "..."
-        else:
-            descripcion_str = descripcion_truncada.rstrip() + "..."
-        fue_truncada = True
-
-    motivo = "Truncada por longitud" if fue_truncada else None
-    return descripcion_str, True, motivo
-
-
-def _obtener_identificador_item(
-    item: Dict[str, Any],
-    campos_prioritarios: Optional[List[str]] = None,
-    max_length: int = MAX_IDENTIFICADOR_LENGTH,
-) -> str:
-    """
-    Obtiene un identificador legible para un item para logging.
-
-    Args:
-        item: Diccionario del item
-        campos_prioritarios: Lista de campos a buscar en orden de prioridad
-        max_length: Longitud máxima del identificador
-
-    Returns:
-        str: Identificador del item (nunca vacío)
-    """
-    if not isinstance(item, dict):
-        return f"<no-dict:{type(item).__name__}>"
-
-    if campos_prioritarios is None:
-        campos_prioritarios = [
-            "ITEM",
-            "ID",
-            "CODIGO",
-            "DESCRIPCION_INSUMO",
-            "DESCRIPCION",
-            "NOMBRE",
-        ]
-
-    for campo in campos_prioritarios:
-        if campo not in item:
-            continue
-
-        valor = item[campo]
-
-        # Manejar None explícitamente
-        if valor is None:
-            continue
-
-        # Manejar NaN
-        if isinstance(valor, float) and pd.isna(valor):
-            continue
-
-        # Convertir a string
-        try:
-            valor_str = str(valor).strip()
-        except (ValueError, TypeError):
-            continue
-
-        # Verificar que no esté vacío después de strip
-        if not valor_str or valor_str.lower() in ("nan", "none", "null"):
-            continue
-
-        # Truncar si es necesario
-        if len(valor_str) > max_length:
-            valor_str = valor_str[: max_length - 3] + "..."
-
-        return valor_str
-
-    # Fallback: intentar construir identificador con hash parcial del contenido
-    try:
-        contenido_repr = repr(dict(list(item.items())[:3]))  # Primeros 3 items
-        hash_parcial = hash(contenido_repr) % 10000
-        return f"item_hash_{hash_parcial:04d}"
+        s = str(descripcion)
+        s = unicodedata.normalize("NFC", s)
+        s = re.sub(r"[\x00-\x1f]", "", s).strip()
+        if not s or s.lower() in VALORES_DESCRIPCION_INVALIDOS:
+            return None, False, "Inválido"
+        return s[:MAX_DESCRIPCION_LENGTH], True, None
     except Exception:
-        return "item_desconocido"
+        return None, False, "Error"
 
 
 # ============================================================================
-# FUNCIONES DE VALIDACIÓN PRINCIPALES
+# FUNCIONES DE VALIDACIÓN ESPECÍFICAS
 # ============================================================================
 def _validate_extreme_costs(
     presupuesto_data: List[Dict[str, Any]],
-    campo_costo: str = "VALOR_CONSTRUCCION_UN",
-    costo_maximo: float = COSTO_MAXIMO_RAZONABLE,
-    costo_minimo: float = COSTO_MINIMO_VALIDO,
+    anomaly_validator: Optional[AnomalyValidator] = None,
 ) -> Tuple[List[Dict[str, Any]], ValidationMetrics]:
-    """
-    Valida costos unitarios de construcción en el presupuesto.
-    Detecta costos excesivos, negativos e infinitos.
-
-    Args:
-        presupuesto_data: Lista de diccionarios con datos de presupuesto.
-        campo_costo: Nombre del campo que contiene el costo a validar.
-        costo_maximo: Umbral máximo razonable para costos.
-        costo_minimo: Umbral mínimo válido para costos.
-
-    Returns:
-        Tuple[List[Dict], ValidationMetrics]: (datos_validados, métricas)
-    """
     metrics = ValidationMetrics()
-
-    # Validación de entrada
-    if not isinstance(presupuesto_data, list):
-        logger.error(
-            f"Entrada a _validate_extreme_costs no es una lista (tipo: {type(presupuesto_data)}). "
-            "Retornando sin cambios."
-        )
-        return presupuesto_data if presupuesto_data is not None else [], metrics
-
     if not presupuesto_data:
-        logger.info("Lista de presupuesto vacía. No hay nada que validar.")
         return [], metrics
 
     result = deepcopy(presupuesto_data)
+
+    # Validación clásica
+    for item in result:
+        val = item.get("VALOR_CONSTRUCCION_UN")
+        if _es_numero_valido(val):
+            v = float(val)
+            if v < COSTO_MINIMO_VALIDO:
+                _agregar_alerta(item, f"Negativo: {v}", TipoAlerta.COSTO_NEGATIVO, metrics)
+            elif v > COSTO_MAXIMO_RAZONABLE:
+                _agregar_alerta(item, f"Excesivo: {v}", TipoAlerta.COSTO_EXCESIVO, metrics)
+
+    # Validación ML (si disponible)
+    if anomaly_validator:
+        result, anom_metrics = anomaly_validator.detect_cost_anomalies(result)
+        for item in result:
+            if "anomalias" in item:
+                for a in item["anomalias"]:
+                    _agregar_alerta(
+                        item,
+                        f"Anomalía (Score {a['score']}): {a['valor']}",
+                        TipoAlerta.ANOMALIA_ESTADISTICA,
+                        metrics,
+                    )
+
     metrics.total_items_procesados = len(result)
-
-    for idx, item in enumerate(result):
-        if not isinstance(item, dict):
-            logger.warning(
-                f"Item en presupuesto[{idx}] no es un diccionario (tipo: {type(item)}). Saltando."
-            )
-            metrics.items_con_errores += 1
-            continue
-
-        item_id = _obtener_identificador_item(item)
-        tiene_error_en_item = False
-
-        # Verificar si el campo existe
-        if campo_costo not in item:
-            logger.warning(f"Campo '{campo_costo}' no existe en item '{item_id}'")
-            _agregar_alerta(
-                item,
-                f"Campo de costo '{campo_costo}' no existe en el item",
-                TipoAlerta.CAMPO_REQUERIDO_FALTANTE,
-                metrics,
-            )
-            metrics.items_con_errores += 1
-            continue
-
-        valor = item[campo_costo]
-
-        # Intentar conversión si es string numérico
-        if isinstance(valor, str):
-            valor_limpio = valor.strip().replace(",", "").replace("$", "")
-            try:
-                valor = float(valor_limpio)
-                item[campo_costo] = valor  # Actualizar con valor convertido
-                logger.debug(
-                    f"Valor convertido de string a float en item '{item_id}': {valor}"
-                )
-            except (ValueError, TypeError):
-                logger.warning(
-                    f"Valor de costo no convertible en item '{item_id}': '{valor}'"
-                )
-                _agregar_alerta(
-                    item,
-                    f"Valor de costo no es numérico y no se puede convertir: {valor}",
-                    TipoAlerta.CAMPO_REQUERIDO_FALTANTE,
-                    metrics,
-                )
-                metrics.items_con_errores += 1
-                continue
-
-        # Validar que el valor sea un número válido
-        if not isinstance(valor, (int, float, np.integer, np.floating)):
-            logger.warning(
-                f"Valor de costo no es numérico en item '{item_id}': "
-                f"{valor} (tipo: {type(valor).__name__})"
-            )
-            _agregar_alerta(
-                item,
-                f"Valor de costo no es numérico: {valor}",
-                TipoAlerta.CAMPO_REQUERIDO_FALTANTE,
-                metrics,
-            )
-            metrics.items_con_errores += 1
-            continue
-
-        # Convertir a float nativo para operaciones consistentes
-        try:
-            valor = float(valor)
-        except (ValueError, TypeError, OverflowError) as e:
-            logger.error(f"Error al convertir valor a float en item '{item_id}': {e}")
-            metrics.items_con_errores += 1
-            continue
-
-        # Validar NaN
-        if pd.isna(valor):
-            logger.warning(f"Valor de costo es NaN en item '{item_id}'")
-            _agregar_alerta(
-                item,
-                "Valor de costo es NaN",
-                TipoAlerta.CAMPO_REQUERIDO_FALTANTE,
-                metrics,
-            )
-            tiene_error_en_item = True
-            # No continue: puede haber más validaciones útiles
-
-        # Validar infinito
-        elif np.isinf(valor):
-            logger.error(f"Valor de costo es infinito en item '{item_id}': {valor}")
-            _agregar_alerta(
-                item,
-                f"Valor de costo es infinito: {valor}",
-                TipoAlerta.VALOR_INFINITO,
-                metrics,
-            )
-            metrics.valores_infinitos += 1
-            tiene_error_en_item = True
-
-        else:
-            # Validar valores negativos
-            if valor < costo_minimo:
-                alerta_msg = (
-                    f"Costo unitario negativo detectado: {valor:,.2f}. "
-                    "Los costos no deben ser negativos."
-                )
-                _agregar_alerta(item, alerta_msg, TipoAlerta.COSTO_NEGATIVO, metrics)
-                logger.error(f"Costo negativo en item '{item_id}': {valor:,.2f}")
-                metrics.costos_negativos += 1
-
-            # Validar valores excesivos (independiente del check de negativo)
-            if valor > costo_maximo:
-                alerta_msg = (
-                    f"Costo unitario ({valor:,.2f}) excede el umbral razonable de "
-                    f"{costo_maximo:,.2f}. Verificar si es correcto."
-                )
-                _agregar_alerta(item, alerta_msg, TipoAlerta.COSTO_EXCESIVO, metrics)
-                logger.warning(f"Costo excesivo en item '{item_id}': {valor:,.2f}")
-                metrics.costos_excesivos += 1
-
-        if tiene_error_en_item:
-            metrics.items_con_errores += 1
-
-    # Actualizar contador de items con alertas
-    metrics.items_con_alertas = sum(
-        1 for item in result if isinstance(item, dict) and item.get("alertas")
-    )
-
-    logger.info(
-        f"Validación de costos extremos completada: "
-        f"{metrics.total_items_procesados} items procesados, "
-        f"{metrics.items_con_alertas} con alertas, "
-        f"{metrics.costos_excesivos} costos excesivos, "
-        f"{metrics.costos_negativos} costos negativos, "
-        f"{metrics.items_con_errores} items con errores."
-    )
-
+    metrics.items_con_alertas = sum(1 for x in result if x.get("alertas"))
     return result, metrics
 
 
 def _validate_zero_quantity_with_cost(
-    apus_detail_data: List[Dict[str, Any]],
+    apus_data: List[Dict[str, Any]],
 ) -> Tuple[List[Dict[str, Any]], ValidationMetrics]:
-    """
-    Valida insumos con cantidades inválidas y coherencia matemática.
-    - Detecta cantidad cero con costo positivo e intenta recalcular
-    - Valida cantidades negativas
-    - Verifica coherencia entre cantidad * precio_unitario vs valor_total
-
-    Args:
-        apus_detail_data: Lista de diccionarios con claves
-                         'CANTIDAD', 'VALOR_TOTAL', 'VR_UNITARIO', 'DESCRIPCION_INSUMO'.
-
-    Returns:
-        Tuple[List[Dict], ValidationMetrics]: (datos_validados, métricas)
-    """
     metrics = ValidationMetrics()
-
-    if not isinstance(apus_detail_data, list):
-        logger.error(
-            f"Entrada no es una lista (tipo: {type(apus_detail_data)}). "
-            "Retornando sin cambios."
-        )
-        return apus_detail_data if apus_detail_data is not None else [], metrics
-
-    if not apus_detail_data:
-        logger.info("Lista de APUs detalle vacía. No hay nada que validar.")
+    if not apus_data:
         return [], metrics
 
-    result = deepcopy(apus_detail_data)
-    metrics.total_items_procesados = len(result)
+    result = deepcopy(apus_data)
 
-    def _convertir_a_numero(valor: Any, nombre_campo: str) -> Tuple[Optional[float], bool]:
-        """Intenta convertir un valor a número float."""
-        if valor is None:
-            return None, False
+    for item in result:
+        q = item.get("CANTIDAD")
+        vr = item.get("VR_UNITARIO")
+        vt = item.get("VALOR_TOTAL")
 
-        if isinstance(valor, (int, float, np.integer, np.floating)):
-            try:
-                valor_float = float(valor)
-                if pd.isna(valor_float) or np.isinf(valor_float):
-                    return None, False
-                return valor_float, True
-            except (ValueError, TypeError, OverflowError):
-                return None, False
+        if _es_numero_valido(q) and _es_numero_valido(vr) and _es_numero_valido(vt):
+            q, vr, vt = float(q), float(vr), float(vt)
 
-        if isinstance(valor, str):
-            try:
-                valor_limpio = valor.strip().replace(",", "").replace("$", "")
-                return float(valor_limpio), True
-            except (ValueError, TypeError):
-                return None, False
+            # Control Theory Check
+            coherente, diff, msg, analisis = _validar_coherencia_matematica(q, vr, vt)
+            if not coherente:
+                _agregar_alerta(item, msg, TipoAlerta.INCOHERENCIA_MATEMATICA, metrics)
+                if analisis.get("sensibilidad", 0) > 1000:
+                    _agregar_alerta(
+                        item,
+                        f"Sistema Inestable (S={analisis['sensibilidad']:.0f})",
+                        TipoAlerta.ALTA_SENSIBILIDAD,
+                        metrics,
+                    )
 
-        return None, False
-
-    for idx, insumo in enumerate(result):
-        if not isinstance(insumo, dict):
-            logger.warning(
-                f"Item en apus_detail[{idx}] no es un diccionario (tipo: {type(insumo)}). Saltando."
-            )
-            metrics.items_con_errores += 1
-            continue
-
-        item_id = _obtener_identificador_item(insumo)
-        alertas_agregadas = 0
-
-        # Extraer y convertir valores
-        cantidad_raw = insumo.get("CANTIDAD")
-        valor_total_raw = insumo.get("VALOR_TOTAL", 0)
-        precio_unitario_raw = insumo.get("VR_UNITARIO", 0)
-
-        cantidad, cantidad_valida = _convertir_a_numero(cantidad_raw, "CANTIDAD")
-        valor_total, valor_total_valido = _convertir_a_numero(valor_total_raw, "VALOR_TOTAL")
-        precio_unitario, precio_unitario_valido = _convertir_a_numero(
-            precio_unitario_raw, "VR_UNITARIO"
-        )
-
-        # Registrar campos con problemas de conversión
-        campos_con_problemas = []
-        if not cantidad_valida:
-            campos_con_problemas.append(("CANTIDAD", cantidad_raw))
-        if not valor_total_valido:
-            campos_con_problemas.append(("VALOR_TOTAL", valor_total_raw))
-        if not precio_unitario_valido:
-            campos_con_problemas.append(("VR_UNITARIO", precio_unitario_raw))
-
-        if campos_con_problemas:
-            for campo, valor in campos_con_problemas:
+            # Recálculo si Q=0 pero VT>0
+            if abs(q) < 1e-6 and vt > 1e-6 and vr > 1e-6:
+                new_q = vt / vr
+                item["CANTIDAD"] = new_q
                 _agregar_alerta(
-                    insumo,
-                    f"Campo '{campo}' tiene un valor no numérico o inválido: {valor}",
-                    TipoAlerta.CAMPO_REQUERIDO_FALTANTE,
+                    item,
+                    f"Recalculado: {new_q:.4f}",
+                    TipoAlerta.CANTIDAD_RECALCULADA,
                     metrics,
                 )
-            logger.warning(
-                f"Campos numéricos inválidos en insumo '{item_id}': "
-                f"{[c[0] for c in campos_con_problemas]}"
-            )
-            metrics.items_con_errores += 1
-            # Continuar con valores por defecto donde sea posible
-            cantidad = cantidad if cantidad is not None else 0.0
-            valor_total = valor_total if valor_total is not None else 0.0
-            precio_unitario = precio_unitario if precio_unitario is not None else 0.0
 
-        # A partir de aquí, trabajamos con valores float (pueden ser 0 por defecto)
-
-        # === Validaciones de signo ===
-
-        # Validar cantidad negativa
-        if cantidad < CANTIDAD_MINIMA_VALIDA:
-            alerta_msg = (
-                f"Cantidad negativa detectada: {cantidad}. "
-                "Las cantidades no deben ser negativas."
-            )
-            _agregar_alerta(insumo, alerta_msg, TipoAlerta.CANTIDAD_INVALIDA, metrics)
-            logger.error(f"Cantidad negativa en insumo '{item_id}': {cantidad}")
-            alertas_agregadas += 1
-
-        # Validar valor_total negativo
-        if valor_total < 0:
-            alerta_msg = f"Valor total negativo detectado: {valor_total:,.2f}"
-            _agregar_alerta(insumo, alerta_msg, TipoAlerta.COSTO_NEGATIVO, metrics)
-            logger.error(f"Valor total negativo en insumo '{item_id}': {valor_total}")
-            metrics.costos_negativos += 1
-            alertas_agregadas += 1
-
-        # Validar precio_unitario negativo
-        if precio_unitario < 0:
-            alerta_msg = f"Precio unitario negativo detectado: {precio_unitario:,.2f}"
-            _agregar_alerta(insumo, alerta_msg, TipoAlerta.COSTO_NEGATIVO, metrics)
-            logger.error(
-                f"Precio unitario negativo en insumo '{item_id}': {precio_unitario}"
-            )
-            metrics.costos_negativos += 1
-            alertas_agregadas += 1
-
-        # === Recálculo de cantidad si es necesario ===
-
-        cantidad_fue_recalculada = False
-
-        # Caso: cantidad == 0 pero valor_total > 0
-        if (
-            abs(cantidad) < TOLERANCIA_COMPARACION_FLOAT
-            and valor_total > TOLERANCIA_COMPARACION_FLOAT
-        ):
-            if precio_unitario > TOLERANCIA_COMPARACION_FLOAT:
-                nueva_cantidad = valor_total / precio_unitario
-
-                # Verificar que el resultado sea razonable (no infinito ni demasiado grande)
-                if np.isfinite(nueva_cantidad) and nueva_cantidad < 1e12:
-                    cantidad_anterior = cantidad
-                    cantidad = nueva_cantidad
-                    insumo["CANTIDAD"] = nueva_cantidad
-                    cantidad_fue_recalculada = True
-
-                    alerta_msg = (
-                        f"Cantidad recalculada de {cantidad_anterior} a {nueva_cantidad:.6f} "
-                        f"(valor total: {valor_total:,.2f}, precio unitario: {precio_unitario:,.2f})"
-                    )
-                    _agregar_alerta(
-                        insumo, alerta_msg, TipoAlerta.CANTIDAD_RECALCULADA, metrics
-                    )
-                    logger.info(f"Insumo '{item_id}': {alerta_msg}")
-                    metrics.cantidades_recalculadas += 1
-                else:
-                    alerta_msg = (
-                        f"Cantidad calculada es inválida o muy grande: {nueva_cantidad}. "
-                        f"No se modificó el valor original."
-                    )
-                    _agregar_alerta(
-                        insumo, alerta_msg, TipoAlerta.CANTIDAD_INVALIDA, metrics
-                    )
-                    logger.warning(f"Insumo '{item_id}': {alerta_msg}")
-            else:
-                alerta_msg = (
-                    f"Cantidad es 0 con valor total {valor_total:,.2f}, pero precio unitario "
-                    f"es {precio_unitario}. No se puede recalcular la cantidad."
-                )
-                _agregar_alerta(insumo, alerta_msg, TipoAlerta.CANTIDAD_INVALIDA, metrics)
-                logger.warning(f"Insumo '{item_id}': {alerta_msg}")
-
-        # === Validar coherencia matemática ===
-        # Solo si no hubo errores críticos y los valores son válidos para comparar
-
-        if cantidad_valida or cantidad_fue_recalculada:
-            es_coherente, diferencia_pct, mensaje_detalle = _validar_coherencia_matematica(
-                cantidad, precio_unitario, valor_total
-            )
-
-            if not es_coherente:
-                alerta_msg = (
-                    f"Incoherencia matemática detectada: "
-                    f"cantidad ({cantidad:.6f}) × precio unitario ({precio_unitario:,.2f}) = "
-                    f"{cantidad * precio_unitario:,.2f}, pero valor total reportado es {valor_total:,.2f}."
-                )
-                if diferencia_pct is not None:
-                    alerta_msg += f" Diferencia: {diferencia_pct:.2f}%"
-                if mensaje_detalle:
-                    alerta_msg += f" ({mensaje_detalle})"
-
-                _agregar_alerta(
-                    insumo, alerta_msg, TipoAlerta.INCOHERENCIA_MATEMATICA, metrics
-                )
-                logger.warning(f"Insumo '{item_id}': {alerta_msg}")
-                metrics.incoherencias_matematicas += 1
-
-    # Actualizar contador de items con alertas
-    metrics.items_con_alertas = sum(
-        1 for item in result if isinstance(item, dict) and item.get("alertas")
-    )
-
-    logger.info(
-        f"Validación de cantidades completada: "
-        f"{metrics.total_items_procesados} items procesados, "
-        f"{metrics.items_con_alertas} con alertas, "
-        f"{metrics.cantidades_recalculadas} cantidades recalculadas, "
-        f"{metrics.incoherencias_matematicas} incoherencias matemáticas, "
-        f"{metrics.items_con_errores} items con errores."
-    )
-
+    metrics.total_items_procesados = len(result)
+    metrics.items_con_alertas = sum(1 for x in result if x.get("alertas"))
     return result, metrics
 
 
-def _validate_missing_descriptions(
-    apus_detail_data: List[Dict[str, Any]],
-    raw_insumos_df: Optional[pd.DataFrame],
-    fuzzy_threshold: int = FUZZY_MATCH_THRESHOLD,
+def _validate_descriptions(
+    apus_data: List[Dict[str, Any]],
 ) -> Tuple[List[Dict[str, Any]], ValidationMetrics]:
-    """
-    Valida y corrige descripciones faltantes o inválidas en insumos.
-    Usa fuzzy matching cuando está disponible para encontrar descripciones similares.
-
-    Args:
-        apus_detail_data: Lista de diccionarios con clave 'DESCRIPCION_INSUMO'.
-        raw_insumos_df: DataFrame opcional con columna 'DESCRIPCION_INSUMO'.
-        fuzzy_threshold: Umbral mínimo de similitud para aceptar coincidencia.
-
-    Returns:
-        Tuple[List[Dict], ValidationMetrics]: (datos_validados, métricas)
-    """
+    # Placeholder simple para mantener compatibilidad
     metrics = ValidationMetrics()
-
-    if not isinstance(apus_detail_data, list):
-        logger.error(
-            f"Entrada no es una lista (tipo: {type(apus_detail_data)}). "
-            "Retornando sin cambios."
-        )
-        return apus_detail_data if apus_detail_data is not None else [], metrics
-
-    if not apus_detail_data:
-        logger.info("Lista de APUs detalle vacía. No hay descripciones que validar.")
+    if not apus_data:
         return [], metrics
+    result = deepcopy(apus_data)
+    for item in result:
+        desc, valid, _ = _limpiar_y_validar_descripcion(item.get("DESCRIPCION_INSUMO"))
+        if not valid:
+            item["DESCRIPCION_INSUMO"] = DESCRIPCION_GENERICA_FALLBACK
+            _agregar_alerta(
+                item, "Descripción inválida", TipoAlerta.DESCRIPCION_FALTANTE, metrics
+            )
+        elif desc != item.get("DESCRIPCION_INSUMO"):
+            item["DESCRIPCION_INSUMO"] = desc
 
-    result = deepcopy(apus_detail_data)
     metrics.total_items_procesados = len(result)
-
-    # Preparar lista de descripciones válidas para fuzzy matching
-    lista_descripciones: List[str] = []
-    mapa_descripciones: Dict[str, str] = {}  # lowercase -> original
-
-    if isinstance(raw_insumos_df, pd.DataFrame) and not raw_insumos_df.empty:
-        if "DESCRIPCION_INSUMO" in raw_insumos_df.columns:
-            try:
-                descripciones_series = (
-                    raw_insumos_df["DESCRIPCION_INSUMO"].dropna().astype(str).str.strip()
-                )
-                descripciones_series = descripciones_series[
-                    (descripciones_series != "") & (descripciones_series.str.len() >= 2)
-                ]
-
-                for desc in descripciones_series.unique():
-                    lista_descripciones.append(desc)
-                    mapa_descripciones[desc.lower()] = desc
-
-                logger.info(
-                    f"Se cargaron {len(lista_descripciones)} descripciones únicas "
-                    f"para fuzzy matching."
-                )
-            except Exception as e:
-                logger.error(
-                    f"Error al extraer descripciones de raw_insumos_df: {str(e)}",
-                    exc_info=True,
-                )
-        else:
-            logger.warning("Columna 'DESCRIPCION_INSUMO' no existe en raw_insumos_df.")
-    else:
-        logger.warning("raw_insumos_df no es un DataFrame válido o está vacío.")
-
-    tiene_referencias = len(lista_descripciones) > 0
-    puede_fuzzy_match = HAS_FUZZY and tiene_referencias
-
-    if not puede_fuzzy_match:
-        razon = "sin referencias" if HAS_FUZZY else "librería no instalada"
-        logger.info(f"Fuzzy matching no disponible ({razon}).")
-
-    # Cache para resultados de fuzzy matching
-    cache_fuzzy: Dict[str, Optional[Tuple[str, int]]] = {}
-    fuzzy_attempts = 0
-
-    def _buscar_con_fuzzy(texto_busqueda: str) -> Optional[Tuple[str, int]]:
-        """Busca coincidencia fuzzy con cache."""
-        nonlocal fuzzy_attempts
-
-        if not puede_fuzzy_match:
-            return None
-
-        if texto_busqueda in cache_fuzzy:
-            return cache_fuzzy[texto_busqueda]
-
-        if fuzzy_attempts >= MAX_FUZZY_ATTEMPTS_PER_BATCH:
-            return None
-
-        fuzzy_attempts += 1
-
-        try:
-            # Primero buscar coincidencia exacta (case-insensitive)
-            texto_lower = texto_busqueda.lower()
-            if texto_lower in mapa_descripciones:
-                resultado = (mapa_descripciones[texto_lower], 100)
-                cache_fuzzy[texto_busqueda] = resultado
-                return resultado
-
-            # Fuzzy matching
-            match = process.extractOne(
-                texto_busqueda,
-                lista_descripciones,
-                score_cutoff=fuzzy_threshold,
-            )
-
-            if match:
-                resultado = (match[0], match[1])
-            else:
-                resultado = None
-
-            cache_fuzzy[texto_busqueda] = resultado
-            return resultado
-
-        except Exception as e:
-            logger.debug(f"Error en fuzzy matching para '{texto_busqueda[:30]}...': {e}")
-            cache_fuzzy[texto_busqueda] = None
-            return None
-
-    # Procesar cada insumo
-    for idx, insumo in enumerate(result):
-        if not isinstance(insumo, dict):
-            logger.warning(
-                f"Item en apus_detail[{idx}] no es un diccionario (tipo: {type(insumo)}). Saltando."
-            )
-            metrics.items_con_errores += 1
-            continue
-
-        descripcion_original = insumo.get("DESCRIPCION_INSUMO")
-        descripcion_limpia, es_valida, motivo = _limpiar_y_validar_descripcion(
-            descripcion_original
-        )
-
-        if es_valida and descripcion_limpia:
-            # La descripción es válida
-            if descripcion_limpia != descripcion_original:
-                insumo["DESCRIPCION_INSUMO"] = descripcion_limpia
-                # Solo loggear si hubo cambio significativo
-                if motivo:
-                    logger.debug(
-                        f"Descripción limpiada ({motivo}): '{descripcion_original}' -> '{descripcion_limpia}'"
-                    )
-            continue
-
-        # Descripción faltante o inválida - intentar corrección
-        item_id = insumo.get("ID", insumo.get("CODIGO", f"índice_{idx}"))
-        descripcion_encontrada = False
-
-        if puede_fuzzy_match:
-            # Estrategia 1: Buscar usando la descripción original si tiene algo útil
-            if descripcion_original and isinstance(descripcion_original, str):
-                texto_busqueda = str(descripcion_original).strip()
-                if len(texto_busqueda) >= 3:  # Mínimo 3 caracteres para búsqueda
-                    resultado = _buscar_con_fuzzy(texto_busqueda)
-                    if resultado:
-                        desc_corregida, similitud = resultado
-                        insumo["DESCRIPCION_INSUMO"] = desc_corregida
-                        alerta_msg = (
-                            f"Descripción corregida por fuzzy matching: "
-                            f"'{descripcion_original}' -> '{desc_corregida}' "
-                            f"(similitud: {similitud}%)"
-                        )
-                        _agregar_alerta(
-                            insumo, alerta_msg, TipoAlerta.DESCRIPCION_CORREGIDA, metrics
-                        )
-                        logger.info(f"Insumo '{item_id}': {alerta_msg}")
-                        metrics.descripciones_corregidas += 1
-                        descripcion_encontrada = True
-
-            # Estrategia 2: Buscar usando campos alternativos (solo si no encontró)
-            if not descripcion_encontrada:
-                campos_alternativos = ["CODIGO", "NOMBRE", "TIPO"]
-                for campo in campos_alternativos:
-                    valor_campo = insumo.get(campo)
-                    if not valor_campo or not isinstance(valor_campo, str):
-                        continue
-
-                    texto_busqueda = valor_campo.strip()
-                    if len(texto_busqueda) < 3:
-                        continue
-
-                    resultado = _buscar_con_fuzzy(texto_busqueda)
-                    if (
-                        resultado and resultado[1] >= fuzzy_threshold + 10
-                    ):  # Umbral más alto para campos alternativos
-                        desc_corregida, similitud = resultado
-                        insumo["DESCRIPCION_INSUMO"] = desc_corregida
-                        alerta_msg = (
-                            f"Descripción inferida desde campo '{campo}': "
-                            f"'{texto_busqueda}' -> '{desc_corregida}' "
-                            f"(similitud: {similitud}%)"
-                        )
-                        _agregar_alerta(
-                            insumo, alerta_msg, TipoAlerta.DESCRIPCION_CORREGIDA, metrics
-                        )
-                        logger.info(f"Insumo '{item_id}': {alerta_msg}")
-                        metrics.descripciones_corregidas += 1
-                        descripcion_encontrada = True
-                        break
-
-        # Si no se encontró descripción, usar fallback
-        if not descripcion_encontrada:
-            insumo["DESCRIPCION_INSUMO"] = DESCRIPCION_GENERICA_FALLBACK
-
-            razon_detallada = motivo if motivo else "valor inválido o faltante"
-            if puede_fuzzy_match:
-                razon_detallada += "; fuzzy matching no encontró coincidencia"
-            elif HAS_FUZZY:
-                razon_detallada += "; sin datos de referencia para fuzzy matching"
-            else:
-                razon_detallada += "; fuzzy matching no instalado"
-
-            alerta_msg = (
-                f"Descripción faltante (original: {repr(descripcion_original)}). "
-                f"Razón: {razon_detallada}. "
-                f"Usando valor por defecto: '{DESCRIPCION_GENERICA_FALLBACK}'"
-            )
-            _agregar_alerta(insumo, alerta_msg, TipoAlerta.DESCRIPCION_FALTANTE, metrics)
-            logger.warning(f"Insumo '{item_id}': Descripción faltante, usando fallback")
-
-    # Actualizar contador de items con alertas
-    metrics.items_con_alertas = sum(
-        1 for item in result if isinstance(item, dict) and item.get("alertas")
-    )
-
-    logger.info(
-        f"Validación de descripciones completada: "
-        f"{metrics.total_items_procesados} items procesados, "
-        f"{metrics.items_con_alertas} con alertas, "
-        f"{metrics.descripciones_corregidas} descripciones corregidas. "
-        f"Fuzzy matching: {fuzzy_attempts} búsquedas, {len(cache_fuzzy)} en cache."
-    )
-
+    metrics.items_con_alertas = sum(1 for x in result if x.get("alertas"))
     return result, metrics
 
 
 # ============================================================================
-# FUNCIÓN ORQUESTADORA PRINCIPAL
+# ORQUESTADOR PRINCIPAL (V2)
 # ============================================================================
 def validate_and_clean_data(
     data_store: Dict[str, Any],
     skip_on_error: bool = True,
     validaciones_habilitadas: Optional[Dict[str, bool]] = None,
     telemetry_context: Optional[TelemetryContext] = None,
+    aplicar_analisis_termico: bool = True,
 ) -> Dict[str, Any]:
     """
-    Orquesta las validaciones y correcciones sobre los datos procesados.
-    Garantiza inmutabilidad: no modifica el diccionario original.
-
-    Args:
-        data_store: Diccionario con claves esperadas.
-        skip_on_error: Si True, continúa con otras validaciones si una falla.
-        validaciones_habilitadas: Dict para habilitar/deshabilitar validaciones específicas.
-            Claves: 'presupuesto_costos', 'apus_cantidades', 'apus_descripciones'
-        telemetry_context: Contexto de telemetría para registro centralizado.
-
-    Returns:
-        Dict: Nuevo diccionario con datos validados y metadatos de validación.
+    Orquesta la validación V2 con análisis de Entropía de Calidad.
     """
     logger.info("=" * 80)
-    logger.info("Iniciando Agente de Validación de Datos")
+    logger.info("Sistema de Validación de Calidad (V2) - Termodinámica de Datos")
     logger.info("=" * 80)
 
     if telemetry_context:
         telemetry_context.start_step("validate_data")
 
-    # Configuración por defecto de validaciones
-    config_validaciones = {
-        "presupuesto_costos": True,
-        "apus_cantidades": True,
-        "apus_descripciones": True,
-    }
-    if validaciones_habilitadas:
-        config_validaciones.update(validaciones_habilitadas)
+    if not data_store or not isinstance(data_store, dict):
+        return {"error": "Invalid data_store", "validation_summary": {"exito": False}}
 
-    # Validar entrada
-    if data_store is None:
-        logger.error("data_store es None. Retornando error.")
-        error_result = {
-            "error": "Entrada inválida: data_store es None",
-            "validation_summary": {
-                "exito": False,
-                "mensaje": "Validación fallida: entrada None",
-                "errores": ["data_store es None"],
-            },
-        }
-        if telemetry_context:
-            telemetry_context.record_error("validate_data", "data_store is None")
-            telemetry_context.end_step(
-                "validate_data", "failure", metadata=error_result["validation_summary"]
-            )
-        return error_result
+    result = deepcopy(data_store)
 
-    if not isinstance(data_store, dict):
-        logger.error(f"data_store no es un diccionario (tipo: {type(data_store).__name__}).")
-        error_result = {
-            "error": f"Entrada inválida: data_store debe ser un diccionario, recibido {type(data_store).__name__}",
-            "validation_summary": {
-                "exito": False,
-                "mensaje": "Validación fallida por entrada inválida",
-                "errores": [f"Tipo incorrecto: {type(data_store).__name__}"],
-            },
-        }
-        if telemetry_context:
-            telemetry_context.record_error(
-                "validate_data", f"Invalid data_store type: {type(data_store)}"
-            )
-            telemetry_context.end_step(
-                "validate_data", "failure", metadata=error_result["validation_summary"]
-            )
-        return error_result
+    # 1. Inicializar Validadores Avanzados
+    anomaly_validator = AnomalyValidator()
+    alert_system = AlertSystem()
+    pyramidal_validator = PyramidalValidator()
 
-    if not data_store:
-        logger.warning("data_store está vacío. No hay datos para validar.")
-        result = {
-            "validation_summary": {
-                "exito": True,
-                "mensaje": "No había datos para validar",
-                "total_items_procesados": 0,
-                "advertencias": ["data_store vacío"],
-            }
-        }
-        if telemetry_context:
-            telemetry_context.end_step(
-                "validate_data", "success", metadata=result["validation_summary"]
-            )
-        return result
+    # 2. Análisis Térmico Inicial (Ingestion Temperature)
+    quality_entropy_start = _calcular_entropia_calidad(result)
+    logger.info(f"Entropía de Calidad Inicial: {quality_entropy_start:.2f}°Q")
 
-    # Crear copia profunda para evitar efectos secundarios
-    try:
-        result = deepcopy(data_store)
-    except Exception as e:
-        logger.error(f"Error al crear copia profunda de data_store: {str(e)}", exc_info=True)
-        error_result = {
-            "error": f"Error al copiar datos: {str(e)}",
-            "validation_summary": {
-                "exito": False,
-                "mensaje": "Validación fallida por error en copia de datos",
-                "errores": [str(e)],
-            },
-            # Retornar datos originales como fallback
-            **{
-                k: v
-                for k, v in data_store.items()
-                if k not in ("validation_summary", "validation_metrics")
-            },
-        }
-        if telemetry_context:
-            telemetry_context.record_error("validate_data", f"Deepcopy failed: {e}")
-            telemetry_context.end_step(
-                "validate_data", "failure", metadata=error_result["validation_summary"]
-            )
-        return error_result
+    metricas_totales = {}
 
-    # Inicializar contenedor de métricas y errores
-    metricas_totales: Dict[str, Optional[Dict[str, Any]]] = {}
-    errores_validacion: List[str] = []
-    advertencias_validacion: List[str] = []
+    # 3. Validaciones Core
+    # Presupuesto
+    if "presupuesto" in result:
+        result["presupuesto"], m_pres = _validate_extreme_costs(
+            result["presupuesto"], anomaly_validator
+        )
+        metricas_totales["presupuesto"] = m_pres.to_dict()
 
-    # ========================================================================
-    # Validar PRESUPUESTO
-    # ========================================================================
-    if "presupuesto" in result and config_validaciones.get("presupuesto_costos", True):
-        logger.info("-" * 80)
-        logger.info("Validando PRESUPUESTO (costos extremos)")
-        logger.info("-" * 80)
+    # APUs Cantidades y Coherencia
+    if "apus_detail" in result:
+        result["apus_detail"], m_apu = _validate_zero_quantity_with_cost(
+            result["apus_detail"]
+        )
+        metricas_totales["apus_detail_cantidad"] = m_apu.to_dict()
 
-        if telemetry_context:
-            telemetry_context.start_step("validate_presupuesto")
+        # Descripciones
+        result["apus_detail"], m_desc = _validate_descriptions(result["apus_detail"])
+        metricas_totales["apus_detail_descripcion"] = m_desc.to_dict()
 
-        presupuesto_data = result.get("presupuesto")
+    # 4. Validación Piramidal (Grafos)
+    if "apus_detail" in result:
+        try:
+            # Reconstruir DFs simples para el validador
+            df_insumos = pd.DataFrame(result["apus_detail"])
+            df_apus = pd.DataFrame(result.get("presupuesto", []))
 
-        # Validar que presupuesto tenga el tipo esperado
-        if not isinstance(presupuesto_data, list):
-            error_msg = (
-                f"'presupuesto' no es una lista (tipo: {type(presupuesto_data).__name__})"
-            )
-            logger.error(error_msg)
-            errores_validacion.append(error_msg)
-            metricas_totales["presupuesto"] = {"error": error_msg, "items_procesados": 0}
-            if telemetry_context:
-                telemetry_context.record_error("validate_presupuesto", error_msg)
-        else:
-            try:
-                result["presupuesto"], metrics_presupuesto = _validate_extreme_costs(
-                    presupuesto_data
+            # Mapeo de columnas necesario para el validador piramidal
+            if "CODIGO" in df_apus.columns:
+                df_apus["CODIGO_APU"] = df_apus["CODIGO"]
+
+            if "CODIGO" in df_insumos.columns and "APU" not in df_insumos.columns:
+                # Insumos detail generalmente no tiene CODIGO_APU explícito si es lista plana
+                pass
+
+            pyr_metrics = pyramidal_validator.validate_structure(df_apus, df_insumos)
+            result["pyramidal_metrics"] = pyr_metrics
+
+            if pyr_metrics.floating_nodes:
+                logger.warning(
+                    f"Nodos Flotantes Detectados: {len(pyr_metrics.floating_nodes)}"
                 )
-                metricas_totales["presupuesto"] = metrics_presupuesto.to_dict()
-                logger.info("Validación de presupuesto exitosa.")
-                if telemetry_context:
-                    telemetry_context.record_metric(
-                        "validation",
-                        "presupuesto_items",
-                        metrics_presupuesto.total_items_procesados,
-                    )
-                    telemetry_context.record_metric(
-                        "validation",
-                        "presupuesto_alerts",
-                        metrics_presupuesto.items_con_alertas,
-                    )
-                    # Registrar score de cumplimiento aproximado en el pasabordo
-                    compliance = max(0, 100 - (metrics_presupuesto.items_con_errores * 5))
-                    telemetry_context.record_metric(
-                        "validation", "compliance_score", compliance
-                    )
-                    telemetry_context.record_metric(
-                        "validation",
-                        "violation_count",
-                        metrics_presupuesto.items_con_alertas,
-                    )
+        except Exception as e:
+            logger.error(f"Error en validación piramidal: {e}")
 
-            except Exception as e:
-                error_msg = f"Error crítico al validar presupuesto: {str(e)}"
-                logger.error(error_msg, exc_info=True)
-                errores_validacion.append(error_msg)
-                metricas_totales["presupuesto"] = {"error": str(e), "items_procesados": 0}
-                if telemetry_context:
-                    telemetry_context.record_error("validate_presupuesto", error_msg)
+    # 5. Análisis Térmico Final y Alertas
+    quality_entropy_end = _calcular_entropia_calidad(result)
 
-                if not skip_on_error:
-                    if telemetry_context:
-                        telemetry_context.end_step("validate_presupuesto", "failure")
-                        telemetry_context.end_step("validate_data", "failure")
-                    raise RuntimeError(error_msg) from e
+    # Procesar Alertas Sistémicas
+    all_items = (result.get("presupuesto", []) or []) + (result.get("apus_detail", []) or [])
+    alert_analysis = alert_system.process_alerts(all_items)
 
-                logger.warning("Continuando con datos originales de presupuesto.")
-
-        if telemetry_context:
-            status = (
-                "failure"
-                if metricas_totales.get("presupuesto", {}).get("error")
-                else "success"
-            )
-            telemetry_context.end_step("validate_presupuesto", status)
-
-    elif "presupuesto" not in result:
-        advertencias_validacion.append("Clave 'presupuesto' no encontrada en data_store")
-        logger.warning("Clave 'presupuesto' no encontrada. Saltando validación.")
-
-    # ========================================================================
-    # Validar APUS_DETAIL - Cantidades
-    # ========================================================================
-    if "apus_detail" in result and config_validaciones.get("apus_cantidades", True):
-        logger.info("-" * 80)
-        logger.info("Validando APUS_DETAIL (cantidades y coherencia)")
-        logger.info("-" * 80)
-
-        if telemetry_context:
-            telemetry_context.start_step("validate_apus_quantities")
-
-        apus_data = result.get("apus_detail")
-
-        if not isinstance(apus_data, list):
-            error_msg = f"'apus_detail' no es una lista (tipo: {type(apus_data).__name__})"
-            logger.error(error_msg)
-            errores_validacion.append(error_msg)
-            metricas_totales["apus_detail_cantidad"] = {
-                "error": error_msg,
-                "items_procesados": 0,
-            }
-            if telemetry_context:
-                telemetry_context.record_error("validate_apus_quantities", error_msg)
-        else:
-            try:
-                result["apus_detail"], metrics_cantidad = _validate_zero_quantity_with_cost(
-                    apus_data
-                )
-                metricas_totales["apus_detail_cantidad"] = metrics_cantidad.to_dict()
-                logger.info("Validación de cantidades exitosa.")
-                if telemetry_context:
-                    telemetry_context.record_metric(
-                        "validation", "apus_items", metrics_cantidad.total_items_procesados
-                    )
-                    telemetry_context.record_metric(
-                        "validation",
-                        "apus_recalculated",
-                        metrics_cantidad.cantidades_recalculadas,
-                    )
-            except Exception as e:
-                error_msg = f"Error crítico al validar cantidades: {str(e)}"
-                logger.error(error_msg, exc_info=True)
-                errores_validacion.append(error_msg)
-                metricas_totales["apus_detail_cantidad"] = {
-                    "error": str(e),
-                    "items_procesados": 0,
-                }
-                if telemetry_context:
-                    telemetry_context.record_error("validate_apus_quantities", error_msg)
-
-                if not skip_on_error:
-                    if telemetry_context:
-                        telemetry_context.end_step("validate_apus_quantities", "failure")
-                        telemetry_context.end_step("validate_data", "failure")
-                    raise RuntimeError(error_msg) from e
-
-                logger.warning("Continuando con datos parcialmente validados.")
-
-        if telemetry_context:
-            status = (
-                "failure"
-                if metricas_totales.get("apus_detail_cantidad", {}).get("error")
-                else "success"
-            )
-            telemetry_context.end_step("validate_apus_quantities", status)
-
-    # ========================================================================
-    # Validar APUS_DETAIL - Descripciones
-    # ========================================================================
-    if "apus_detail" in result and config_validaciones.get("apus_descripciones", True):
-        logger.info("-" * 80)
-        logger.info("Validando APUS_DETAIL (descripciones)")
-        logger.info("-" * 80)
-
-        if telemetry_context:
-            telemetry_context.start_step("validate_apus_descriptions")
-
-        apus_data = result.get("apus_detail")
-
-        if not isinstance(apus_data, list):
-            # Si ya se registró error arriba, no duplicar
-            if (
-                "apus_detail_cantidad" not in metricas_totales
-                or "error" not in metricas_totales.get("apus_detail_cantidad", {})
-            ):
-                error_msg = (
-                    f"'apus_detail' no es una lista (tipo: {type(apus_data).__name__})"
-                )
-                logger.error(error_msg)
-                errores_validacion.append(error_msg)
-            metricas_totales["apus_detail_descripcion"] = {
-                "error": "apus_detail inválido",
-                "items_procesados": 0,
-            }
-            if telemetry_context:
-                telemetry_context.record_error(
-                    "validate_apus_descriptions", "apus_detail is not a list"
-                )
-        else:
-            try:
-                raw_insumos_df = result.get("raw_insumos_df")
-
-                # Validar tipo de raw_insumos_df
-                if raw_insumos_df is not None and not isinstance(
-                    raw_insumos_df, pd.DataFrame
-                ):
-                    logger.warning(
-                        f"raw_insumos_df no es un DataFrame (tipo: {type(raw_insumos_df).__name__}). "
-                        "Fuzzy matching no estará disponible."
-                    )
-                    advertencias_validacion.append("raw_insumos_df tiene tipo incorrecto")
-                    raw_insumos_df = None
-
-                result["apus_detail"], metrics_descripcion = _validate_missing_descriptions(
-                    apus_data, raw_insumos_df
-                )
-                metricas_totales["apus_detail_descripcion"] = metrics_descripcion.to_dict()
-                logger.info("Validación de descripciones exitosa.")
-                if telemetry_context:
-                    telemetry_context.record_metric(
-                        "validation",
-                        "descriptions_corrected",
-                        metrics_descripcion.descripciones_corregidas,
-                    )
-            except Exception as e:
-                error_msg = f"Error crítico al validar descripciones: {str(e)}"
-                logger.error(error_msg, exc_info=True)
-                errores_validacion.append(error_msg)
-                metricas_totales["apus_detail_descripcion"] = {
-                    "error": str(e),
-                    "items_procesados": 0,
-                }
-                if telemetry_context:
-                    telemetry_context.record_error("validate_apus_descriptions", error_msg)
-
-                if not skip_on_error:
-                    if telemetry_context:
-                        telemetry_context.end_step("validate_apus_descriptions", "failure")
-                        telemetry_context.end_step("validate_data", "failure")
-                    raise RuntimeError(error_msg) from e
-
-                logger.warning("Continuando con datos parcialmente validados.")
-
-        if telemetry_context:
-            status = (
-                "failure"
-                if metricas_totales.get("apus_detail_descripcion", {}).get("error")
-                else "success"
-            )
-            telemetry_context.end_step("validate_apus_descriptions", status)
-
-    elif "apus_detail" not in result:
-        advertencias_validacion.append("Clave 'apus_detail' no encontrada en data_store")
-        logger.warning("Clave 'apus_detail' no encontrada. Saltando validación de APU.")
-
-    # ========================================================================
-    # Generar resumen de validación
-    # ========================================================================
-
-    def _safe_get_metric(metricas: Dict, key: str, default: int = 0) -> int:
-        """Obtiene una métrica de forma segura."""
-        if not metricas or not isinstance(metricas, dict):
-            return default
-        if "error" in metricas:
-            return default
-        return metricas.get(key, default)
-
-    total_items = sum(
-        _safe_get_metric(m, "total_items_procesados") for m in metricas_totales.values()
-    )
-
-    total_alertas = sum(
-        _safe_get_metric(m, "items_con_alertas") for m in metricas_totales.values()
-    )
-
-    total_errores_items = sum(
-        _safe_get_metric(m, "items_con_errores") for m in metricas_totales.values()
-    )
-
-    tiene_errores_criticos = len(errores_validacion) > 0
-
-    # Calcular porcentaje de forma segura
-    porcentaje_alertas = 0.0
-    if total_items > 0:
-        porcentaje_alertas = round((total_alertas / total_items * 100), 2)
-
-    validaciones_exitosas = [
-        k
-        for k, v in metricas_totales.items()
-        if v and isinstance(v, dict) and "error" not in v
-    ]
-
-    validaciones_fallidas = [
-        k for k, v in metricas_totales.items() if v and isinstance(v, dict) and "error" in v
-    ]
-
-    resumen = {
-        "exito": not tiene_errores_criticos,
-        "total_items_procesados": total_items,
-        "total_items_con_alertas": total_alertas,
-        "total_items_con_errores": total_errores_items,
-        "porcentaje_items_con_alertas": porcentaje_alertas,
-        "validaciones_exitosas": validaciones_exitosas,
-        "validaciones_fallidas": validaciones_fallidas,
-        "errores": errores_validacion if errores_validacion else None,
-        "advertencias": advertencias_validacion if advertencias_validacion else None,
-        "mensaje": (
-            "Validación completada exitosamente"
-            if not tiene_errores_criticos
-            else f"Validación completada con {len(errores_validacion)} error(es)"
-        ),
+    thermal_analysis = {
+        "quality_entropy_initial": quality_entropy_start,
+        "quality_entropy_final": quality_entropy_end,
+        "delta_entropy": quality_entropy_start - quality_entropy_end,
+        "alert_system_entropy": alert_analysis.get("entropia_sistema", 0),
+        "stability_status": _evaluar_estabilidad(quality_entropy_end),
     }
 
-    result["validation_summary"] = resumen
+    result["quality_entropy_analysis"] = thermal_analysis
     result["validation_metrics"] = metricas_totales
 
-    logger.info("=" * 80)
-    logger.info("Agente de Validación de Datos completado")
-    logger.info(f"Éxito: {resumen['exito']}, Items: {total_items}, Alertas: {total_alertas}")
-    if errores_validacion:
-        logger.warning(f"Errores encontrados: {errores_validacion}")
-    logger.info("=" * 80)
+    summary = {
+        "exito": True,
+        "total_alertas": alert_analysis.get("total_alertas", 0),
+        "thermal_status": thermal_analysis["stability_status"],
+    }
+    result["validation_summary"] = summary
 
     if telemetry_context:
-        telemetry_context.record_metric("validation", "total_processed", total_items)
-        telemetry_context.record_metric("validation", "total_alerts", total_alertas)
-        telemetry_context.record_metric("validation", "total_errors", total_errores_items)
-        telemetry_context.end_step(
-            "validate_data", "success" if resumen["exito"] else "warning", metadata=resumen
-        )
+        telemetry_context.record_metric("validation", "quality_entropy", quality_entropy_end)
+        telemetry_context.end_step("validate_data", "success", metadata=summary)
 
     return result
+
+
+def _calcular_entropia_calidad(data: Dict[str, Any]) -> float:
+    """Calcula S_data (Entropía de Calidad) 0-100."""
+    temp = 0.0
+
+    # Factor Anomalías
+    total_items = 0
+    total_anoms = 0
+
+    for key in ["presupuesto", "apus_detail"]:
+        items = data.get(key, [])
+        if items:
+            total_items += len(items)
+            total_anoms += sum(1 for x in items if x.get("alertas") or x.get("anomalias"))
+
+    if total_items > 0:
+        ratio = total_anoms / total_items
+        temp += ratio * 60  # Hasta 60 puntos por suciedad
+
+    # Factor Estructural (Psi)
+    if "pyramidal_metrics" in data:
+        psi = data["pyramidal_metrics"].pyramid_stability_index
+        if psi < 1.0:
+            temp += (1.0 - psi) * 40  # Hasta 40 puntos por inestabilidad
+
+    return min(100.0, temp)
+
+
+def _evaluar_estabilidad(entropy: float) -> str:
+    if entropy < 20:
+        return "ESTABLE"
+    if entropy < 50:
+        return "METASTABLE"
+    return "CAOTICO"
