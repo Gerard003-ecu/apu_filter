@@ -1,4 +1,4 @@
-""""
+"""
 Este módulo actúa como la capa de presentación y saneamiento final. Su responsabilidad
 es transformar los datos procesados y validados en estructuras de información
 coherentes ("Expedientes de APU") listos para el consumo por la interfaz de usuario
@@ -24,7 +24,7 @@ Funciones Estratégicas:
 4. Consistencia de Agregación:
    Verifica matemáticamente que los desgloses coincidan con los totales declarados,
    alertando sobre desviaciones invisibles (errores de redondeo o datos fantasmas).
-""""
+"""
 
 import logging
 from dataclasses import dataclass
