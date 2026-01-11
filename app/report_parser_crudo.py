@@ -1,14 +1,29 @@
 """
-Módulo para el parseo crudo de reportes de Análisis de Precios Unitarios (APU).
+Este módulo implementa una Máquina de Estados Finita diseñada para navegar la topología
+de archivos de presupuesto semi-estructurados. Su objetivo no es interpretar el precio,
+sino validar la integridad de la "forma" de los datos (Homeomorfismo) antes de permitir
+su procesamiento semántico.
 
-Este módulo proporciona una clase `ReportParserCrudo` que implementa una máquina
-de estados robusta para procesar, línea por línea, archivos de APU con un
-formato semi-estructurado. Su objetivo principal es identificar y extraer los
-registros de insumos asociados a cada APU, manteniendo el contexto del APU
-al que pertenecen.
+Capacidades y Métricas:
+-----------------------
+1. Validación Homeomórfica (`_is_apu_homeomorphic`):
+   Verifica que el árbol sintáctico generado (Lark) sea topológicamente equivalente 
+   al esquema platónico de un APU válido, preservando la estructura jerárquica padre-hijo.
 
-V2: Incorpora validación topológica y métricas estructurales para garantizar
-la integridad matemática del parsing.
+2. Física del Texto (Entropía y Densidad):
+   Calcula métricas estructurales para distinguir señal de ruido:
+   - Entropía de Campo (`_calculate_field_entropy`): Mide el desorden en la tipificación de datos.
+   - Densidad Estructural (`_calculate_structural_density`): Relación señal/ruido por línea.
+   - Cohesión Numérica (`_calculate_numeric_cohesion`): Agrupamiento de valores cuantitativos.
+
+3. Patrón Chain of Responsibility:
+   Implementa una cadena de handlers especializados (`JunkHandler`, `HeaderHandler`, `CategoryHandler`, 
+   `InsumoHandler`) que actúan como filtros secuenciales para clasificar cada línea según su 
+   función estructural en el documento.
+
+4. Contexto y Estado:
+   Mantiene una memoria de corto plazo (`ParserContext`) para resolver la jerarquía 
+   del presupuesto (Capítulo -> APU -> Insumo) y detectar recursos huérfanos.
 """
 
 import hashlib

@@ -1,18 +1,33 @@
 """
-Procesador APU con arquitectura modular de especialistas y teoría categórica (V2).
+Este módulo implementa un sistema de procesamiento basado en Teoría de Categorías para
+transformar datos crudos en estructuras de costos normalizadas (InsumoProcesado).
+A diferencia de un parser lineal, este sistema trata cada línea como una estructura 
+algebraica que debe preservar ciertos invariantes topológicos durante su transformación.
 
-Este módulo implementa un sistema avanzado para el procesamiento de datos de
-Análisis de Precios Unitarios (APU). Utiliza una arquitectura modular donde
-componentes "especialistas", cada uno con una responsabilidad única, colaboran
-para interpretar y estructurar líneas de texto con formatos variables.
+Arquitectura y Conceptos Clave:
+-------------------------------
+1. Manejo de Incertidumbre (Mónadas):
+   Implementa `OptionMonad` para encapsular valores y errores, permitiendo encadenar 
+   operaciones de transformación (pipeline) sin excepciones no controladas ("Railway Oriented Programming").
 
-La versión V2 introduce conceptos de Teoría de Categorías:
-- Mónadas (OptionMonad) para manejo seguro de valores y errores.
-- Functores y Homomorfismos para transformaciones estructurales.
-- Validación de Invariantes Algebraicos y Topológicos.
+2. Homogeneidad Algebraica (Teoría de Anillos):
+   Utiliza `_validate_algebraic_homogeneity` para verificar que la secuencia de campos 
+   (descripción -> unidad -> cantidad -> precio) respete las reglas de composición permitidas,
+   tratando los campos como elementos de un anillo con reglas de transición estrictas.
 
-El `APUProcessor` principal mantiene la compatibilidad con la interfaz esperada
-por el `LoadDataStep` del pipeline.
+3. Integridad Estructural (Teoría de Grafos):
+   Mediante `_validate_structural_integrity`, construye un grafo de dependencias entre los campos
+   de una línea para asegurar que no existan "islas" de datos desconectados (grafos conexos).
+
+4. Arquitectura de Especialistas:
+   Delega tareas específicas (extracción numérica, validación de unidades, detección de patrones)
+   a componentes especializados (`NumericFieldExtractor`, `UnitsValidator`, `PatternMatcher`)
+   bajo la orquestación del `APUTransformer`.
+
+Clases Principales:
+- APUProcessor: Fachada principal compatible con el pipeline de carga.
+- OptionMonad: Contenedor monádico para manejo seguro de flujo.
+- APUTransformer: Orquestador de transformaciones y validaciones.
 """
 
 import logging

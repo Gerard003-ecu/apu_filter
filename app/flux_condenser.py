@@ -1,28 +1,31 @@
 """
-Módulo de Capacitancia Lógica para el procesamiento de flujos de datos.
+Este componente actúa como una "Capacitancia Lógica" que se sitúa entre la ingesta de datos
+crudos y el procesamiento. Modela el flujo de información como un fluido con propiedades
+físicas cuantificables, utilizando ecuaciones de circuitos RLC para prevenir el colapso
+del sistema por saturación o "fricción" de datos sucios.
 
-Este módulo introduce el `DataFluxCondenser`, un componente de alto nivel que
-actúa como una fachada estabilizadora para el pipeline de procesamiento de
-Análisis de Precios Unitarios (APU). Su función principal es garantizar la
-integridad, coherencia y estabilidad del flujo de datos antes de que ingrese
-al núcleo del sistema.
+Modelo Físico y Variables de Estado (`FluxPhysicsEngine`):
+----------------------------------------------------------
+1. Energía Potencial (Presión): 
+   Calculada como E_c = 0.5 * C * V^2. Representa la "presión" de datos acumulada en la cola.
+   
+2. Energía Cinética (Inercia de Calidad):
+   Calculada como E_l = 0.5 * L * I^2. Representa el momento de un flujo de datos limpio y constante.
+   Un flujo con alta inercia es resistente a perturbaciones menores.
 
-Principios de Diseño:
-- **Capacitancia Lógica:** Inspirado en los principios de un circuito RLC,
-  el condensador "absorbe" datos crudos y los "descarga" de manera controlada,
-  filtrando el ruido y la turbulencia.
-- **Orquestación, no Implementación:** No contiene lógica de negocio de bajo
-  nivel. En su lugar, orquesta componentes especializados como `ReportParserCrudo`
-  (el "Guardia") y `APUProcessor` (el "Cirujano").
-- **Telemetría Física:** Incorpora un `FluxPhysicsEngine` para calcular
-  métricas de saturación, complejidad e inductancia (flyback), proporcionando
-  una visión cuantitativa de la "salud" del flujo de datos entrante.
-- **Control Adaptativo (PID):** Implementa un lazo de control Proporcional-Integral
-  para ajustar dinámicamente el flujo de procesamiento (tamaño de lote) en función
-  de la saturación y complejidad detectada, asegurando "Flujo Laminar".
-- **Robustez y Tolerancia a Fallos:** Implementa validaciones estrictas en cada
-  etapa y un manejo de errores detallado para prevenir la propagación de datos
-  corruptos.
+3. Voltaje Flyback (Inestabilidad):
+   V_flyback = L * di/dt. Detecta cambios bruscos (picos inductivos) en la calidad de los datos,
+   actuando como un detector temprano de anomalías estructurales o cambios de formato.
+
+4. Potencia Disipada (Fricción/Entropía):
+   P = I_ruido^2 * R. Mide la energía desperdiciada procesando datos inválidos ("calor" del sistema).
+   Si P > 50W (simulado), se activa un freno de emergencia térmico.
+
+Mecanismos de Control (`PIController`):
+---------------------------------------
+Implementa un lazo de control Proporcional-Integral (PI) discreto con anti-windup para
+ajustar dinámicamente el tamaño del lote (batch size), manteniendo el sistema en un
+régimen de "Flujo Laminar" (saturación objetivo ~30%).
 """
 
 import logging
