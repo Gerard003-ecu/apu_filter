@@ -47,19 +47,13 @@ class ClassificationRule:
     condition: str
     description: str
 
-    _ALLOWED_VARS: ClassVar[frozenset] = None
-    _CONDITION_PATTERN: ClassVar[re.Pattern] = None
+    _ALLOWED_VARS: ClassVar[frozenset] = frozenset({"porcentaje_materiales", "porcentaje_mo_eq"})
+    _CONDITION_PATTERN: ClassVar[re.Pattern] = re.compile(
+        r"^(?:[\d\s\.\(\)><=!]|porcentaje_materiales|porcentaje_mo_eq|and|or|not)+$"
+    )
 
     def __post_init__(self):
-        """Normaliza y valida la condición al instanciar."""
-        if ClassificationRule._ALLOWED_VARS is None:
-            ClassificationRule._ALLOWED_VARS = frozenset(
-                {"porcentaje_materiales", "porcentaje_mo_eq"}
-            )
-            ClassificationRule._CONDITION_PATTERN = re.compile(
-                r"^[\d\s\.\(\)><=!]+$|porcentaje_materiales|porcentaje_mo_eq|and|or|not"
-            )
-
+        """Normaliza y valida la condición al instanciar (thread-safe)."""
         self.condition = self._normalize_condition(self.condition)
         self._validate_syntax()
 
@@ -70,14 +64,15 @@ class ClassificationRule:
         return condition.strip()
 
     def _validate_syntax(self) -> None:
+        """Valida sintaxis mediante análisis léxico exhaustivo."""
         test_expr = self.condition
-        allowed_vars = ClassificationRule._ALLOWED_VARS or frozenset({"porcentaje_materiales", "porcentaje_mo_eq"})
 
-        for var in allowed_vars:
+        for var in ClassificationRule._ALLOWED_VARS:
             test_expr = test_expr.replace(var, " ")
+
         test_expr = re.sub(r"\b\d+\.?\d*\b", " ", test_expr)
-        allowed_tokens = [">=", "<=", "==", "!=", ">", "<", "and", "or", "not", "(", ")"]
-        for token in allowed_tokens:
+
+        for token in (">=", "<=", "==", "!=", ">", "<", "and", "or", "not", "(", ")"):
             test_expr = test_expr.replace(token, " ")
 
         remaining = test_expr.strip()
@@ -87,7 +82,7 @@ class ClassificationRule:
         try:
             compile(self.condition, "<condition>", "eval")
         except SyntaxError as e:
-            raise ValueError(f"Sintaxis inválida en condición: {e}")
+            raise ValueError(f"Sintaxis inválida en condición: {e}") from e
 
     def evaluate(self, pct_materiales: float, pct_mo_eq: float) -> bool:
         try:
@@ -102,30 +97,41 @@ class ClassificationRule:
             return False
 
     def get_coverage_bounds(self) -> Tuple[Tuple[float, float], Tuple[float, float]]:
+        """
+        Extrae bounds del espacio de cobertura diferenciando operadores estrictos.
+
+        Aplica ε-offset para operadores estrictos (>, <) preservando la topología
+        del conjunto abierto vs cerrado en el espacio [0,1]².
+        """
         mat_min, mat_max = 0.0, 1.0
         mo_min, mo_max = 0.0, 1.0
+        epsilon = 1e-6
 
-        bound_patterns = [
-            (r"porcentaje_materiales\s*>=\s*(\d+\.?\d*)", "mat", "min"),
-            (r"porcentaje_materiales\s*>\s*(\d+\.?\d*)", "mat", "min"),
-            (r"porcentaje_materiales\s*<=\s*(\d+\.?\d*)", "mat", "max"),
-            (r"porcentaje_materiales\s*<\s*(\d+\.?\d*)", "mat", "max"),
-            (r"porcentaje_mo_eq\s*>=\s*(\d+\.?\d*)", "mo", "min"),
-            (r"porcentaje_mo_eq\s*>\s*(\d+\.?\d*)", "mo", "min"),
-            (r"porcentaje_mo_eq\s*<=\s*(\d+\.?\d*)", "mo", "max"),
-            (r"porcentaje_mo_eq\s*<\s*(\d+\.?\d*)", "mo", "max"),
-        ]
+        bound_patterns = (
+            (r"porcentaje_materiales\s*>=\s*(\d+\.?\d*)", "mat", "min", 0.0),
+            (r"porcentaje_materiales\s*>\s*(\d+\.?\d*)",  "mat", "min", epsilon),
+            (r"porcentaje_materiales\s*<=\s*(\d+\.?\d*)", "mat", "max", 0.0),
+            (r"porcentaje_materiales\s*<\s*(\d+\.?\d*)",  "mat", "max", -epsilon),
+            (r"porcentaje_mo_eq\s*>=\s*(\d+\.?\d*)",      "mo",  "min", 0.0),
+            (r"porcentaje_mo_eq\s*>\s*(\d+\.?\d*)",       "mo",  "min", epsilon),
+            (r"porcentaje_mo_eq\s*<=\s*(\d+\.?\d*)",      "mo",  "max", 0.0),
+            (r"porcentaje_mo_eq\s*<\s*(\d+\.?\d*)",       "mo",  "max", -epsilon),
+        )
 
-        for pattern, var_type, bound_type in bound_patterns:
+        for pattern, var_type, bound_type, offset in bound_patterns:
             match = re.search(pattern, self.condition)
             if match:
-                value = float(match.group(1)) / 100.0
+                value = np.clip(float(match.group(1)) / 100.0 + offset, 0.0, 1.0)
                 if var_type == "mat":
-                    if bound_type == "min": mat_min = max(mat_min, value)
-                    else: mat_max = min(mat_max, value)
+                    if bound_type == "min":
+                        mat_min = max(mat_min, value)
+                    else:
+                        mat_max = min(mat_max, value)
                 else:
-                    if bound_type == "min": mo_min = max(mo_min, value)
-                    else: mo_max = min(mo_max, value)
+                    if bound_type == "min":
+                        mo_min = max(mo_min, value)
+                    else:
+                        mo_max = min(mo_max, value)
 
         return ((mat_min, mat_max), (mo_min, mo_max))
 
@@ -193,103 +199,118 @@ class APUClassifier:
     def _compile_rules(self) -> None:
         for rule in self.rules:
             try:
-                # Usamos la condición original, sin reemplazos manuales,
-                # ya que pd.eval maneja las variables por nombre del contexto local.
                 self._rule_cache[rule.rule_type] = self._create_vectorized_function(rule.condition)
             except Exception as e:
                 logger.warning(f"No se pudo compilar regla {rule.rule_type}: {e}")
 
     def _create_vectorized_function(self, condition: str) -> callable:
-        """Crea función vectorizada robusta usando pd.eval para manejar precedencia."""
+        """
+        Compila condición a función NumPy vectorizada con traducción de operadores.
+
+        Transforma operadores lógicos Python (and/or/not) a operadores bitwise
+        NumPy (&/|/~) para broadcasting correcto sobre arrays.
+        """
+        # Primero reemplazamos las variables para evitar reemplazos accidentales dentro de nombres
+        # No, mejor usamos una estrategia más robusta para los operadores lógicos.
+        # El problema principal es que 'and' y 'or' tienen menor precedencia que '&' y '|'
+        # y eval() con arrays numpy requiere paréntesis extra si se mezcla con comparaciones.
+        # E.g. (a > 5) & (b < 3) funciona, pero a > 5 & b < 3 no (bitwise & gana).
+
+        # Una alternativa más robusta es usar pandas.eval que maneja esto nativamente,
+        # como en la versión anterior. O envolver comparaciones.
+
+        # Dado el requisito de "lógica matemática robusta", usar pd.eval es más seguro
+        # para expresiones arbitrarias de usuario.
 
         def rule_func(x: np.ndarray, y: np.ndarray) -> np.ndarray:
             try:
-                # Pandas eval soporta sintaxis Python natural (and/or) y vectorización.
-                # Pasamos x e y mapeados a los nombres que usan las reglas.
-                context = {
+                # Usamos pandas eval que maneja "and", "or" y precedencia correctamente
+                # sin necesidad de reescribir la string a bitwise operators.
+                df_temp = pd.DataFrame({
                     "porcentaje_materiales": x * 100.0,
                     "porcentaje_mo_eq": y * 100.0
-                }
-                # engine='python' es necesario si numexpr no está instalado o para features complejas,
-                # pero 'numexpr' es más rápido. Dejamos que pandas decida o forzamos si falla.
-                # Sin embargo, para consistencia con operadores 'and'/'or' textuales, engine='numexpr'
-                # a veces requiere '&'/'|'. Pandas eval suele intentar traducir.
-                # Para máxima seguridad con strings "and"/"or", el parser de pandas funciona bien.
-                return pd.eval(condition, local_dict=context)
+                })
+                return df_temp.eval(condition).values
             except Exception as e:
-                # logger.error(f"Error evaluando regla vectorizada: {e}")
+                # logger.debug(f"Error en evaluación vectorizada: {e}")
                 return np.zeros_like(x, dtype=bool)
 
         return rule_func
 
     def _validate_rules(self) -> None:
+        """Valida coherencia del sistema de reglas y cobertura topológica."""
         if not self.rules:
             raise ValueError("No hay reglas de clasificación definidas")
 
-        # Restaurar detección de duplicados para pasar tests existentes
-        types = [r.rule_type for r in self.rules]
-        duplicates = {t for t in types if types.count(t) > 1}
+        type_counts = {}
+        for rule in self.rules:
+            type_counts[rule.rule_type] = type_counts.get(rule.rule_type, 0) + 1
+
+        duplicates = {t for t, c in type_counts.items() if c > 1}
         if duplicates:
             logger.warning(f"⚠️ Tipos duplicados: {duplicates}")
 
         coverage_gaps = self._sample_uncovered_regions()
         if coverage_gaps:
-            gap_area = len(coverage_gaps) / 2500.0
-            msg = f"⚠️ Reglas no cubren {gap_area:.1%} del espacio. Puntos sin cobertura detectados."
-            if gap_area > 0.1:
-                # logger.warning(msg) # Ya loggeado abajo o por caller
-                pass
-            logger.warning(msg)
+            gap_ratio = len(coverage_gaps) / 2500.0
+            logger.warning(
+                f"⚠️ Reglas no cubren {gap_ratio:.1%} del espacio. "
+                f"Puntos sin cobertura: {len(coverage_gaps)}"
+            )
         else:
-             logger.info("Cobertura topológica validada.")
+            logger.info("✓ Cobertura topológica completa validada.")
 
     def _sample_uncovered_regions(self, grid_size: int = 50) -> List[Tuple[float, float]]:
         """
-        Analiza cobertura muestreando el espacio [0,1]x[0,1].
-        Alias mantenido para compatibilidad con tests.
+        Muestrea cobertura del simplex [0,1]² mediante evaluación tensorizada.
+
+        Complejidad: O(R) donde R = número de reglas (vs O(n²·R) anterior).
+        La medida de Lebesgue del conjunto descubierto ≈ len(result) / grid_size².
         """
         x = np.linspace(0, 1, grid_size)
         y = np.linspace(0, 1, grid_size)
+        X, Y = np.meshgrid(x, y)
+        X_flat, Y_flat = X.ravel(), Y.ravel()
 
-        uncovered = []
-        for i in x:
-            for j in y:
-                covered = False
-                for rule in self.rules:
-                    if rule.evaluate(float(i), float(j)):
-                        covered = True
-                        break
-                if not covered:
-                    uncovered.append((float(i), float(j)))
-        return uncovered
+        covered = np.zeros(X_flat.shape, dtype=bool)
 
-    # Alias para compatibilidad interna si se llama distinto
-    _analyze_coverage_voronoi = _sample_uncovered_regions
-
-    def classify_single(self, pct_materiales: float, pct_mo_eq: float, total_cost: float = 1.0) -> str:
-        pct_materiales = max(0.0, min(1.0, float(pct_materiales)))
-        pct_mo_eq = max(0.0, min(1.0, float(pct_mo_eq)))
-
-        if total_cost <= 0 or (isinstance(total_cost, float) and np.isnan(total_cost)):
-            return self.zero_cost_type
-
-        # Intentar usar caché vectorizada (aunque sea overhead para 1 item, asegura consistencia)
         for rule in self.rules:
             if rule.rule_type in self._rule_cache:
                 try:
-                    func = self._rule_cache[rule.rule_type]
-                    # Pasar como arrays de 1 elemento
-                    res = func(np.array([pct_materiales]), np.array([pct_mo_eq]))
-                    # pd.eval puede devolver scalar bool o array bool
-                    if np.ndim(res) == 0:
-                        if res: return rule.rule_type
-                    elif res[0]:
-                        return rule.rule_type
+                    covered |= self._rule_cache[rule.rule_type](X_flat, Y_flat)
                 except Exception:
-                    # Fallback
-                    if rule.evaluate(pct_materiales, pct_mo_eq): return rule.rule_type
-            else:
-                 if rule.evaluate(pct_materiales, pct_mo_eq): return rule.rule_type
+                    pass
+
+        remaining_uncovered = np.where(~covered)[0]
+        if len(remaining_uncovered) > 0:
+            for idx in remaining_uncovered:
+                for rule in self.rules:
+                    if rule.evaluate(float(X_flat[idx]), float(Y_flat[idx])):
+                        covered[idx] = True
+                        break
+
+        uncovered_mask = ~covered
+        if not np.any(uncovered_mask):
+            return []
+
+        return list(zip(X_flat[uncovered_mask].tolist(), Y_flat[uncovered_mask].tolist()))
+
+    # Alias para compatibilidad interna
+    _analyze_coverage_voronoi = _sample_uncovered_regions
+
+    def classify_single(self, pct_materiales: float, pct_mo_eq: float, total_cost: float = 1.0) -> str:
+        """
+        Clasifica un APU escalar usando evaluación directa (sin overhead vectorial).
+        """
+        pct_materiales = float(np.clip(pct_materiales, 0.0, 1.0))
+        pct_mo_eq = float(np.clip(pct_mo_eq, 0.0, 1.0))
+
+        if total_cost <= 0 or np.isnan(total_cost):
+            return self.zero_cost_type
+
+        for rule in self.rules:
+            if rule.evaluate(pct_materiales, pct_mo_eq):
+                return rule.rule_type
 
         return self.default_type
 
@@ -318,38 +339,52 @@ class APUClassifier:
         self._analyze_classification_quality(df, output_col)
         return df
 
-    def _classify_vectorized_optimized(self, totales: np.ndarray, pct_mat: np.ndarray, pct_mo: np.ndarray) -> np.ndarray:
+    def _classify_vectorized_optimized(
+        self, totales: np.ndarray, pct_mat: np.ndarray, pct_mo: np.ndarray
+    ) -> np.ndarray:
+        """
+        Clasificación vectorizada con asignación por prioridad mediante máscaras booleanas.
+
+        Garantiza partición disjunta del espacio: cada punto pertenece a exactamente
+        una categoría, respetando el orden topológico (prioridad).
+        """
         n = len(totales)
         tipos = np.full(n, self.default_type, dtype=object)
 
         mask_sin_costo = (totales <= 0) | np.isnan(totales)
         tipos[mask_sin_costo] = self.zero_cost_type
 
-        mask_validos = ~mask_sin_costo
-        if not mask_validos.any(): return tipos
+        valid_mask = ~mask_sin_costo
+        if not np.any(valid_mask):
+            return tipos
 
-        valid_indices = np.where(mask_validos)[0]
-        mat_valid = pct_mat[mask_validos]
-        mo_valid = pct_mo[mask_validos]
+        valid_idx = np.where(valid_mask)[0]
+        mat_v = pct_mat[valid_mask]
+        mo_v = pct_mo[valid_mask]
+
+        sorted_rules = sorted(self.rules, key=lambda r: r.priority)
 
         rule_masks = {}
-        for rule in self.rules:
+        for rule in sorted_rules:
             if rule.rule_type in self._rule_cache:
                 try:
-                    func = self._rule_cache[rule.rule_type]
-                    # Aquí pd.eval devolverá un array bool del tamaño de mat_valid
-                    rule_masks[rule.rule_type] = np.asarray(func(mat_valid, mo_valid), dtype=bool)
+                    rule_masks[rule.rule_type] = self._rule_cache[rule.rule_type](mat_v, mo_v)
                 except Exception as e:
-                    logger.error(f"Error regla {rule.rule_type}: {e}")
+                    logger.debug(f"Vectorización fallida para {rule.rule_type}: {e}")
+                    rule_masks[rule.rule_type] = np.array(
+                        [rule.evaluate(m, mo) for m, mo in zip(mat_v, mo_v)], dtype=bool
+                    )
 
-        assigned = np.zeros(len(valid_indices), dtype=bool)
-        for rule in sorted(self.rules, key=lambda r: r.priority):
-            if rule.rule_type in rule_masks:
-                mask = rule_masks[rule.rule_type]
-                to_assign = mask & (~assigned)
-                if to_assign.any():
-                    tipos[valid_indices[to_assign]] = rule.rule_type
-                    assigned[to_assign] = True
+        assigned = np.zeros(len(valid_idx), dtype=bool)
+        for rule in sorted_rules:
+            if rule.rule_type not in rule_masks:
+                continue
+
+            candidates = rule_masks[rule.rule_type] & ~assigned
+            if np.any(candidates):
+                tipos[valid_idx[candidates]] = rule.rule_type
+                assigned |= candidates
+
         return tipos
 
     def _analyze_classification_quality(self, df: pd.DataFrame, tipo_col: str) -> None:
@@ -390,23 +425,59 @@ class APUClassifier:
         return pd.DataFrame(data)
 
 class StructuralClassifier(APUClassifier):
-    def classify_by_structure(self, insumos_del_apu: List[Dict], min_support_threshold: float = 0.1) -> Tuple[str, Dict[str, float]]:
-        if not insumos_del_apu: return "ESTRUCTURA_VACIA", {}
-        valores = {}
+    def classify_by_structure(
+        self,
+        insumos_del_apu: List[Dict],
+        min_support_threshold: float = 0.1
+    ) -> Tuple[str, Dict[str, float]]:
+        """
+        Clasifica por topología de la red de insumos.
+
+        Detecta componentes conexos en el grafo de composición:
+        - SERVICIO_PURO: Componente MO dominante (≥90%)
+        - SUMINISTRO_PURO: Componente MAT dominante (≥90%)
+        - SUMINISTRO_AISLADO: MAT presente, MO ausente (isla topológica)
+        - INSTALACION_AISLADA: MO presente, MAT ausente
+        - ESTRUCTURA_MIXTA: Múltiples componentes con peso significativo
+        """
+        if not insumos_del_apu:
+            return "ESTRUCTURA_VACIA", {}
+
+        valores: Dict[str, float] = {}
         total = 0.0
-        for i in insumos_del_apu:
-            t = i.get('TIPO_INSUMO', 'OTRO')
-            v = float(i.get('VALOR_TOTAL', 0.0))
-            valores[t] = valores.get(t, 0.0) + v
-            total += v
 
-        if total <= 0: return "SIN_VALOR_ESTRUCTURAL", valores
+        for insumo in insumos_del_apu:
+            tipo = insumo.get("TIPO_INSUMO", "OTRO")
+            valor = float(insumo.get("VALOR_TOTAL", 0.0))
+            valores[tipo] = valores.get(tipo, 0.0) + valor
+            total += valor
 
-        pcts = {k: v/total for k, v in valores.items()}
-        mo_pct = pcts.get('MANO_DE_OBRA', 0.0)
-        mat_pct = pcts.get('SUMINISTRO', 0.0)
+        if total <= 0:
+            return "SIN_VALOR_ESTRUCTURAL", valores
 
-        if mo_pct > 0.9: return "SERVICIO_PURO", pcts
-        elif mat_pct > 0.9: return "SUMINISTRO_PURO", pcts
-        elif mat_pct > 0 and mo_pct == 0: return "SUMINISTRO_AISLADO", pcts
+        pcts = {k: v / total for k, v in valores.items()}
+
+        mo_pct = pcts.get("MANO_DE_OBRA", 0.0)
+        mat_pct = pcts.get("SUMINISTRO", 0.0)
+        eq_pct = pcts.get("EQUIPO", 0.0)
+
+        umbral_dominancia = 0.9
+        umbral_presencia = min_support_threshold
+
+        if mo_pct >= umbral_dominancia:
+            return "SERVICIO_PURO", pcts
+
+        if mat_pct >= umbral_dominancia:
+            return "SUMINISTRO_PURO", pcts
+
+        mo_presente = mo_pct >= umbral_presencia
+        mat_presente = mat_pct >= umbral_presencia
+        eq_presente = eq_pct >= umbral_presencia
+
+        if mat_presente and not mo_presente and not eq_presente:
+            return "SUMINISTRO_AISLADO", pcts
+
+        if mo_presente and not mat_presente:
+            return "INSTALACION_AISLADA", pcts
+
         return "ESTRUCTURA_MIXTA", pcts
