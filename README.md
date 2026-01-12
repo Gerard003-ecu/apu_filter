@@ -29,14 +29,12 @@ El sistema opera bajo el protocolo de la Caja de Cristal, donde expertos digital
 El Consejo monitorea indicadores clave que definen la salud del proyecto:
 
 
-Métrica | Diagnóstico Estratégico | Impacto en la Obra
---- | --- | ---
-Estabilidad (Ψ<1.0) | Pirámide Invertida | Riesgo de colapso por base logística estrecha (pocos proveedores).
---- | --- | ---
-Fragmentación (β0​>1) | Estructura Fragmentada | Recursos huérfanos o silos de costos que generan desperdicio.
-Ciclos (β1​>0) | Socavón Lógico | Bucle infinito de precios que impide el cálculo real del costo.
---- | --- | ---
-Temperatura (Tsys​>50°C) | Fiebre del Proyecto | Alta exposición a la volatilidad del mercado que requiere cobertura.
+| Métrica | Diagnóstico Estratégico | Impacto en la Obra |
+| :--- | :--- | :--- |
+| Estabilidad (Ψ<1.0) | Pirámide Invertida | Riesgo de colapso por base logística estrecha (pocos proveedores). |
+| Fragmentación (β0​>1) | Estructura Fragmentada | Recursos huérfanos o silos de costos que generan desperdicio. |
+| Ciclos (β1​>0) | Socavón Lógico | Bucle infinito de precios que impide el cálculo real del costo. |
+| Temperatura (Tsys​>50°C) | Fiebre del Proyecto | Alta exposición a la volatilidad del mercado que requiere cobertura. |
 
 🛤️ El Camino del Iniciado: Niveles de Interacción
 Hemos estructurado la documentación en cuatro niveles para guiarlo desde la visión hasta la evidencia forense:
