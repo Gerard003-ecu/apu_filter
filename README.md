@@ -17,11 +17,17 @@ La mayoría de los sistemas ven un presupuesto como una lista plana de ítems. A
 
 --------------------------------------------------------------------------------
 🏛️ El Consejo de Sabios: Su Equipo de Élite
+
 El sistema opera bajo el protocolo de la Caja de Cristal, donde expertos digitales deliberan y exponen sus conflictos constructivos para emitir la recomendación más sabia:
+
 • 🛡️ El Guardián del Umbral (FluxCondenser): Actúa como un circuito RLC que estabiliza el flujo de datos. Mide la "energía potencial" (presión de registros) y el "voltaje flyback" para bloquear datos sucios antes de que enfermen el presupuesto.
+
 • 🏗️ El Arquitecto Estratega (TopologicalAnalyzer): Examina la "forma" del costo. Utiliza Números de Betti para medir la fragmentación (β0​) y el bloqueo lógico (β1​).
+
 • 🔮 El Oráculo de Riesgos (FinancialEngine): Simula escenarios futuros y valora la flexibilidad estratégica mediante Opciones Reales, transformando la incertidumbre en una ventaja competitiva.
+
 • 🗣️ El Intérprete Diplomático (SemanticTranslator): El puente entre la matemática abstracta y la acción de negocio. Traduce invariantes topológicos en advertencias concretas en el lenguaje de la obra.
+
 • ⚗️ El Alquimista (MatterGenerator): "Colapsa" la estructura piramidal en una lista de compras determinista (BOM) con precisión matemática absoluta mediante el algoritmo de Suma de Kahan.
 
 --------------------------------------------------------------------------------
