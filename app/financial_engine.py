@@ -572,6 +572,61 @@ class FinancialEngine:
         self.risk = RiskQuantifier(DistributionType.NORMAL)
         self.options = RealOptionsAnalyzer(OptionModelType.BINOMIAL)
 
+    def _calculate_thermo_structural_volatility(
+        self,
+        base_volatility: float,
+        stability_psi: float,
+        system_temperature: float,
+    ) -> float:
+        """
+        Implementa la Ecuación Unificada de Física del Costo.
+
+        Convierte la volatilidad de mercado (teórica) en volatilidad estructural (real)
+        aplicando penalizaciones por fragilidad topológica y estrés térmico.
+
+        Fórmula: σ_real = σ_base * (1 + Factor_Pirámide + Factor_Temperatura)
+
+        Args:
+            base_volatility (σ): Volatilidad estándar del mercado (ej. 0.20).
+            stability_psi (Ψ): Índice de estabilidad piramidal (Topología).
+            system_temperature (T): Temperatura del sistema en °C (Termodinámica).
+
+        Returns:
+            float: Volatilidad ajustada al riesgo físico.
+        """
+        # 1. Factor de Pirámide Invertida (Topología)
+        # Si Ψ < 1.0 (inestable), el riesgo aumenta exponencialmente.
+        # Si Ψ >= 1.5 (estable), el factor es 0 (sin penalización).
+        structural_factor = 0.0
+        if stability_psi < 1.0:
+            # Penalización severa: una base estrecha amplifica cualquier shock de mercado
+            structural_factor = (1.0 - stability_psi) * 2.0
+        elif stability_psi < 1.5:
+            # Penalización moderada
+            structural_factor = (1.5 - stability_psi) * 0.5
+
+        # 2. Factor de Estrés Térmico (Termodinámica)
+        # La "Fiebre" inflacionaria (>30°C) dilata los costos.
+        thermal_factor = 0.0
+        if system_temperature > 30.0:
+            # Por cada 10°C extra, aumentamos el riesgo un 5%
+            thermal_factor = (system_temperature - 30.0) * 0.005
+
+        # 3. Cálculo de la Volatilidad Unificada
+        # El riesgo financiero ya no es abstracto; es consecuencia de la estructura.
+        unified_volatility = base_volatility * (1.0 + structural_factor + thermal_factor)
+
+        # Logging forense para el Consejo
+        if unified_volatility > base_volatility:
+            logger.warning(
+                f"🔥 Física del Costo Activada: Volatilidad Base ({base_volatility:.2%}) "
+                f"-> Ajustada ({unified_volatility:.2%}). "
+                f"Causas: Fragilidad Estructural (+{structural_factor:.2%}), "
+                f"Estrés Térmico (+{thermal_factor:.2%})"
+            )
+
+        return unified_volatility
+
     def analyze_project(
         self,
         initial_investment: float,
@@ -584,6 +639,9 @@ class FinancialEngine:
         project_volatility: Optional[float] = None,
         liquidity: Optional[float] = None,
         fixed_contracts_ratio: Optional[float] = None,
+        # Nuevos argumentos opcionales para la física unificada
+        pyramid_stability: Optional[float] = None,
+        system_temperature: Optional[float] = None,
     ) -> Dict[str, Any]:
         """
         Ejecuta el análisis financiero completo del proyecto.
@@ -598,6 +656,8 @@ class FinancialEngine:
             project_volatility: Alias para volatility (V3.0).
             liquidity: Ratio de liquidez (override de config).
             fixed_contracts_ratio: Ratio de contratos fijos (override de config).
+            pyramid_stability: Índice de estabilidad piramidal (Topología).
+            system_temperature: Temperatura del sistema (Termodinámica).
 
         Returns:
             Dict: Informe financiero detallado.
@@ -616,15 +676,23 @@ class FinancialEngine:
             else self.config.fixed_contracts_ratio
         )
 
-        # 1. Ajuste por Riesgo Sistémico (Topología)
-        adjusted_volatility = vol
-        if topology_report and topology_report.get("synergy_risk", {}).get(
+        # 1. Aplicar la Ecuación Unificada si hay datos topológicos
+        effective_volatility = vol
+        if pyramid_stability is not None:
+            # Usar temperatura default de 25°C si no se provee
+            temp = system_temperature if system_temperature is not None else 25.0
+
+            effective_volatility = self._calculate_thermo_structural_volatility(
+                vol, pyramid_stability, temp
+            )
+        elif topology_report and topology_report.get("synergy_risk", {}).get(
             "synergy_detected", False
         ):
+            # Fallback a lógica antigua si no hay estabilidad explícita pero hay reporte
             penalty = 1.2  # +20% volatilidad por sinergia de riesgo
-            adjusted_volatility *= penalty
+            effective_volatility *= penalty
             logger.warning(
-                f"Sinergia Topológica detectada. Volatilidad ajustada: {volatility:.2%} -> {adjusted_volatility:.2%}"
+                f"Sinergia Topológica detectada. Volatilidad ajustada: {vol:.2%} -> {effective_volatility:.2%}"
             )
 
         # 2. Valoración DCF (Flujos Descontados)
@@ -632,10 +700,19 @@ class FinancialEngine:
         npv = self.capm.calculate_npv(flows, initial_investment)
 
         # 3. Análisis de Riesgo (VaR & Contingencia)
+        # Asegurarse de pasar effective_volatility a métodos que dependen de volatilidad si aplica
+        # Nota: calculate_var usa cost_std_dev, que es una medida absoluta, no la volatilidad porcentual.
+        # Sin embargo, si la volatilidad aumenta, la desviación estándar implícita del proyecto debería aumentar.
+        # Ajustamos la std_dev basada en el ratio de aumento de volatilidad.
+
+        adjusted_std_dev = cost_std_dev
+        if vol > 0:
+             adjusted_std_dev = cost_std_dev * (effective_volatility / vol)
+
         var_val, _ = self.risk.calculate_var(
-            initial_investment, cost_std_dev, confidence_level=0.95
+            initial_investment, adjusted_std_dev, confidence_level=0.95
         )
-        contingency = self.risk.suggest_contingency(initial_investment, cost_std_dev)
+        contingency = self.risk.suggest_contingency(initial_investment, adjusted_std_dev)
 
         # 4. Opciones Reales (Flexibilidad)
         project_pv = npv + initial_investment
@@ -646,7 +723,7 @@ class FinancialEngine:
                 initial_investment,
                 self.config.risk_free_rate,
                 self.config.project_life_years,
-                adjusted_volatility,
+                effective_volatility,
             )
             option_val = opt_res.get("option_value", 0.0)
 
@@ -664,8 +741,10 @@ class FinancialEngine:
             "wacc": wacc,
             "npv": npv,
             "total_value": total_value,
-            "volatility": adjusted_volatility,
-            "volatility_adjusted": adjusted_volatility != vol,
+            "volatility_base": vol,
+            "volatility_structural": effective_volatility, # Nueva métrica clave
+            "volatility": effective_volatility, # Mantener compatibilidad
+            "physics_adjustment": effective_volatility > vol,
             "var": var_val,
             "contingency": contingency,
             "real_option_value": option_val,

@@ -450,12 +450,19 @@ class BusinessAgent:
             graph=graph,
         )
 
-    def _perform_financial_analysis(self, params: FinancialParameters) -> Dict[str, Any]:
+    def _perform_financial_analysis(
+        self,
+        params: FinancialParameters,
+        topological_bundle: Optional[TopologicalMetricsBundle] = None,  # Nuevo argumento
+        thermal_metrics: Optional[Dict[str, Any]] = None,  # Nuevo argumento
+    ) -> Dict[str, Any]:
         """
         Ejecuta el análisis financiero del proyecto.
 
         Args:
             params: Parámetros financieros validados.
+            topological_bundle: Datos topológicos para inyección causal.
+            thermal_metrics: Datos térmicos para inyección causal.
 
         Returns:
             Diccionario con métricas financieras (VPN, TIR, VaR, etc.).
@@ -465,12 +472,25 @@ class BusinessAgent:
         """
         logger.info("💰 Realizando análisis financiero...")
 
+        # Extraer variables físicas del grafo
+        stability = 10.0  # Valor seguro por defecto
+        temperature = 25.0  # Temperatura ambiente por defecto
+
+        if topological_bundle:
+            stability = topological_bundle.pyramid_stability
+
+        if thermal_metrics:
+            temperature = thermal_metrics.get("system_temperature", 25.0)
+
         try:
             financial_metrics = self.financial_engine.analyze_project(
                 initial_investment=params.initial_investment,
                 cash_flows=list(params.cash_flows),
                 cost_std_dev=params.cost_std_dev,
                 volatility=params.project_volatility,
+                # Inyección de la Física del Costo:
+                pyramid_stability=stability,
+                system_temperature=temperature,
             )
         except Exception as e:
             raise RuntimeError(f"Error en análisis financiero: {e}") from e
@@ -620,16 +640,7 @@ class BusinessAgent:
             self.telemetry.record_error("business_agent.topology", str(e))
             return None
 
-        # Fase 2: Análisis Financiero
-        try:
-            financial_params = self._extract_financial_parameters(context)
-            financial_metrics = self._perform_financial_analysis(financial_params)
-        except (ValueError, RuntimeError) as e:
-            logger.error(f"❌ Fase financiera fallida: {e}", exc_info=True)
-            self.telemetry.record_error("business_agent.financial", str(e))
-            return None
-
-        # Fase 2.5: Análisis Termodinámico (Nuevo)
+        # Fase 2.5: Análisis Termodinámico (Anticipado para causalidad)
         try:
             # 1. Flujo Térmico (Topology)
             thermal_metrics = self.topological_analyzer.analyze_thermal_flow(
@@ -637,8 +648,6 @@ class BusinessAgent:
             )
 
             # 2. Entropía (FluxCondenser - Simulado o del contexto si existe)
-            # Idealmente vendría de FluxCondenser.get_metrics(), pero aquí extraemos del contexto
-            # o usamos un valor por defecto si no se ha ejecutado el condensador aún.
             entropy = context.get("system_entropy", 0.5)
 
             # 3. Exergía (MatterGenerator - Simulado o del contexto)
@@ -649,6 +658,19 @@ class BusinessAgent:
             thermal_metrics = {"system_temperature": 0.0}
             entropy = 0.5
             exergy = 0.5
+
+        # Fase 2: Análisis Financiero (Con Inyección Causal)
+        try:
+            financial_params = self._extract_financial_parameters(context)
+            financial_metrics = self._perform_financial_analysis(
+                financial_params,
+                topological_bundle=topological_bundle,  # Conexión Causal
+                thermal_metrics=thermal_metrics,  # Conexión Causal
+            )
+        except (ValueError, RuntimeError) as e:
+            logger.error(f"❌ Fase financiera fallida: {e}", exc_info=True)
+            self.telemetry.record_error("business_agent.financial", str(e))
+            return None
 
         # Fase 3 y 4: Síntesis y Auditoría Adversarial
         try:

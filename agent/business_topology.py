@@ -1137,16 +1137,26 @@ class BusinessTopologicalAnalyzer:
             else:
                 node_temps[node] = DEFAULT_TEMP * 0.5
 
-        # 3. Temperatura del Sistema
-        roots = [n for n, d in graph.nodes(data=True) if d.get("type") == "ROOT"]
-        system_temp = node_temps.get(roots[0], 0.0) if roots else 0.0
+        # 3. Temperatura del Sistema Ponderada (T_sys)
+        # Esto es vital: No es un promedio simple. Los nodos con mayor costo (peso)
+        # aportan más temperatura al sistema.
 
-        # Fallback si raíz no calculada
-        if system_temp == 0.0:
-            apus = [n for n, d in graph.nodes(data=True) if d.get("type") == "APU"]
-            if apus:
-                vals = [node_temps[n] for n in apus]
-                system_temp = sum(vals) / len(vals)
+        total_project_cost = 0.0
+        weighted_temp_sum = 0.0
+
+        for node in graph.nodes():
+            if graph.nodes[node].get("type") == "APU":
+                # Ensure we have the cost from node_costs or data
+                cost = node_costs.get(node, 0.0)
+                temp = node_temps.get(node, 0.0)
+
+                weighted_temp_sum += cost * temp
+                total_project_cost += cost
+
+        if total_project_cost > 0:
+            system_temp = weighted_temp_sum / total_project_cost
+        else:
+            system_temp = 25.0 # Temperatura ambiente base
 
         # Clasificación
         risk = "BAJO"
