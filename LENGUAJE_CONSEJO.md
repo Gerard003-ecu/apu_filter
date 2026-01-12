@@ -33,10 +33,10 @@ El Problema: Un presupuesto puede sumar correctamente en Excel (1+1=2) y aun as�
 La Solución: Ignoramos los precios temporalmente y analizamos la Topología (la forma) de las conexiones usando la clase SystemTopology y librerías como NetworkX.
 El Arquitecto Estratega calcula Invariantes Topológicos (Números de Betti) para diagnosticar la salud estructural del proyecto.
 
-El Diccionario Topológico-Civil
+### El Diccionario Topológico-Civil
 
 | Invariante Matemático | Traducción del Intérprete | Significado para la Obra |
-| :--- | :--- | :--- | :--- |
+| :--- | :--- | :--- |
 | β0​>1 (Componentes Conexas) | "Estructura Fragmentada" | Recursos Huérfanos: Hay insumos comprados que no están conectados a ninguna actividad constructiva. Dinero desperdiciado. |
 | β1​>0 (Ciclos) | "Socavón Lógico" | Dependencia Circular: El costo del Muro depende del Ladrillo, y el Ladrillo depende del Muro. Imposible de auditar o calcular. |
 | Ψ<1.0 (Estabilidad Piramidal) | "Pirámide Invertida" | Riesgo de Colapso: Su proyecto tiene miles de actividades soportadas por una base de proveedores peligrosamente estrecha. Un solo fallo logístico detiene la obra. |
