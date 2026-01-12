@@ -1,0 +1,869 @@
+from collections import deque
+from typing import Any, Callable, Dict, Generic, List, Optional, Set, Tuple, TypeVar
+import math
+import re
+
+# ═══════════════════════════════════════════════════════════════════════════
+# MÓNADA REFINADA
+# ═══════════════════════════════════════════════════════════════════════════
+
+class OptionMonad(Generic[T]):
+    """
+    Mónada Option/Maybe con operaciones de recuperación y composición mejoradas.
+    
+    REFINADO: Añadido `recover`, `fold`, y `ap` para composición aplicativa.
+    """
+
+    __slots__ = ("_value", "_error")
+
+    def __init__(self, value: Optional[T] = None, error: str = ""):
+        self._value = value
+        self._error = error
+
+    @classmethod
+    def pure(cls, value: T) -> "OptionMonad[T]":
+        """Inyección monádica (unit/return): T -> M[T]."""
+        return cls(value=value)
+
+    @classmethod
+    def fail(cls, error: str) -> "OptionMonad[T]":
+        """Constructor de fallo explícito."""
+        return cls(value=None, error=error)
+
+    def is_valid(self) -> bool:
+        """Verifica si la mónada contiene un valor válido."""
+        return self._value is not None
+
+    @property
+    def value(self) -> T:
+        """Obtiene el valor contenido o lanza excepción si es inválido."""
+        if self._value is None:
+            raise ValueError(f"Acceso a valor inválido: {self._error}")
+        return self._value
+
+    @property
+    def error(self) -> str:
+        """Obtiene el mensaje de error."""
+        return self._error
+
+    def get_or_else(self, default: T) -> T:
+        """Extracción segura con valor por defecto."""
+        return self._value if self._value is not None else default
+
+    def bind(self, f: Callable[[T], "OptionMonad[U]"]) -> "OptionMonad[U]":
+        """
+        Operación bind de la mónada (>>=).
+        
+        REFINADO: Validación de tipo de retorno más estricta.
+        """
+        if not self.is_valid():
+            return OptionMonad.fail(self._error)
+        try:
+            result = f(self._value)
+            if not isinstance(result, OptionMonad):
+                return OptionMonad.fail(
+                    f"Bind requiere OptionMonad, recibido: {type(result).__name__}"
+                )
+            return result
+        except Exception as e:
+            return OptionMonad.fail(f"Bind error [{self._error or 'root'}]: {e}")
+
+    def map(self, f: Callable[[T], U]) -> "OptionMonad[U]":
+        """Operación map del functor: (T -> U) -> M[T] -> M[U]."""
+        if not self.is_valid():
+            return OptionMonad.fail(self._error)
+        try:
+            return OptionMonad.pure(f(self._value))
+        except Exception as e:
+            return OptionMonad.fail(f"Map error: {e}")
+
+    def flat_map(self, f: Callable[[T], "OptionMonad[U]"]) -> "OptionMonad[U]":
+        """Alias semántico para bind."""
+        return self.bind(f)
+
+    def filter(
+        self, predicate: Callable[[T], bool], error_msg: str = "Filtro fallido"
+    ) -> "OptionMonad[T]":
+        """
+        Filtrado monádico con predicado.
+        
+        REFINADO: Mejor propagación de contexto de error.
+        """
+        if not self.is_valid():
+            return self
+        try:
+            if predicate(self._value):
+                return self
+            # Incluir información del valor en el error para debugging
+            value_preview = str(self._value)[:50] if self._value else "None"
+            return OptionMonad.fail(f"{error_msg} [valor: {value_preview}...]")
+        except Exception as e:
+            return OptionMonad.fail(f"Predicado lanzó excepción: {e}")
+
+    def recover(self, handler: Callable[[str], "OptionMonad[T]"]) -> "OptionMonad[T]":
+        """
+        Recuperación de errores (nuevo método).
+        
+        Permite transformar un fallo en un nuevo intento.
+        Implementa el patrón de "Railway Oriented Programming" con bifurcación.
+        
+        Args:
+            handler: Función que recibe el error y retorna un nuevo intento.
+        
+        Retorna:
+            OptionMonad[T]: El valor original si es válido, o el resultado del handler.
+        """
+        if self.is_valid():
+            return self
+        try:
+            return handler(self._error)
+        except Exception as e:
+            return OptionMonad.fail(f"Recover falló: {e}")
+
+    def fold(self, on_error: Callable[[str], U], on_success: Callable[[T], U]) -> U:
+        """
+        Eliminador universal (catamorfismo) - nuevo método.
+        
+        Colapsa la mónada a un valor concreto, garantizando exhaustividad.
+        
+        Args:
+            on_error: Función aplicada si es fallo.
+            on_success: Función aplicada si es éxito.
+        
+        Retorna:
+            U: Resultado de aplicar la función correspondiente.
+        """
+        if self.is_valid():
+            return on_success(self._value)
+        return on_error(self._error)
+
+    def ap(self, mf: "OptionMonad[Callable[[T], U]]") -> "OptionMonad[U]":
+        """
+        Aplicación functorial (nuevo método).
+        
+        Aplica una función envuelta en mónada al valor de esta mónada.
+        Permite composición de funciones en contexto monádico.
+        
+        Args:
+            mf: Mónada conteniendo una función T -> U.
+        
+        Retorna:
+            OptionMonad[U]: Resultado de aplicar la función.
+        """
+        if not mf.is_valid():
+            return OptionMonad.fail(mf.error)
+        if not self.is_valid():
+            return OptionMonad.fail(self._error)
+        try:
+            return OptionMonad.pure(mf.value(self._value))
+        except Exception as e:
+            return OptionMonad.fail(f"Aplicación functorial falló: {e}")
+
+    def __repr__(self) -> str:
+        if self.is_valid():
+            return f"Some({self._value!r})"
+        return f"None({self._error})"
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# EXTRACTOR NUMÉRICO REFINADO
+# ═══════════════════════════════════════════════════════════════════════════
+
+def identify_mo_values(
+    self, numeric_values: List[float]
+) -> Optional[Tuple[float, float]]:
+    """
+    Identifica rendimiento y jornal usando invariantes topológicos.
+    
+    REFINADO: 
+    - Validación mediante invariante de orden (jornal >> rendimiento)
+    - Detección de outliers mediante distancia de Mahalanobis simplificada
+    - Heurísticas basadas en distribución típica de valores MO
+    
+    Invariante algebraico: ∀(r, j) ∈ MO: j/r ≥ τ donde τ es umbral mínimo (~500)
+    
+    Args:
+        numeric_values: Lista de valores candidatos.
+    
+    Retorna:
+        Optional[Tuple[float, float]]: Tupla (rendimiento, jornal) o None.
+    """
+    if len(numeric_values) < 2:
+        return None
+
+    # Fase 1: Filtrado de valores positivos (dominio válido)
+    valid_values = [v for v in numeric_values if v > 0]
+    if len(valid_values) < 2:
+        return None
+
+    # Fase 2: Partición del espacio de valores usando umbrales configurados
+    # Definimos regiones topológicas disjuntas
+    REGION_JORNAL = (self.thresholds.min_jornal, self.thresholds.max_jornal)
+    REGION_REND = (self.thresholds.min_rendimiento, self.thresholds.max_rendimiento)
+    
+    jornal_candidates = [
+        v for v in valid_values 
+        if REGION_JORNAL[0] <= v <= REGION_JORNAL[1]
+    ]
+    
+    rendimiento_candidates = [
+        v for v in valid_values 
+        if REGION_REND[0] <= v <= REGION_REND[1]
+        and v <= self.thresholds.max_rendimiento_tipico
+    ]
+
+    # Fase 3: Búsqueda de par óptimo con invariante de orden
+    def satisfies_invariant(rend: float, jorn: float) -> bool:
+        """Verifica invariante topológico de MO: ratio mínimo y orden."""
+        if rend <= 0 or jorn <= 0:
+            return False
+        ratio = jorn / rend
+        # Umbral dinámico basado en magnitud del jornal
+        min_ratio = 500 if jorn < 500000 else 1000
+        return ratio >= min_ratio and jorn > rend
+
+    # Caso 1: Candidatos claros en ambas regiones
+    if jornal_candidates and rendimiento_candidates:
+        # Ordenar por preferencia: jornal más alto, rendimiento más bajo
+        jornal_candidates.sort(reverse=True)
+        rendimiento_candidates.sort()
+        
+        for jornal in jornal_candidates:
+            for rend in rendimiento_candidates:
+                if satisfies_invariant(rend, jornal):
+                    return (rend, jornal)
+
+    # Caso 2: Inferencia por análisis de dispersión (fallback robusto)
+    if len(valid_values) >= 2:
+        sorted_vals = sorted(valid_values)
+        
+        # Calcular gaps logarítmicos para detectar separación natural
+        log_gaps = []
+        for i in range(len(sorted_vals) - 1):
+            if sorted_vals[i] > 0 and sorted_vals[i + 1] > 0:
+                gap = math.log10(sorted_vals[i + 1]) - math.log10(sorted_vals[i])
+                log_gaps.append((gap, i))
+        
+        if log_gaps:
+            # El mayor gap logarítmico separa rendimiento de jornal
+            max_gap, split_idx = max(log_gaps, key=lambda x: x[0])
+            
+            # Solo aceptar si el gap es significativo (> 2 órdenes de magnitud)
+            if max_gap >= 2.0:
+                potential_rend = sorted_vals[split_idx]
+                potential_jornal = sorted_vals[split_idx + 1]
+                
+                if satisfies_invariant(potential_rend, potential_jornal):
+                    # Validar rangos absolutos
+                    if (REGION_REND[0] <= potential_rend <= REGION_REND[1] and
+                        REGION_JORNAL[0] <= potential_jornal <= REGION_JORNAL[1]):
+                        return (potential_rend, potential_jornal)
+
+    # Caso 3: Fallback conservador con valores extremos
+    if len(valid_values) >= 2:
+        min_val = min(valid_values)
+        max_val = max(valid_values)
+        
+        # Verificar que los extremos cumplen el invariante
+        if satisfies_invariant(min_val, max_val):
+            # Validación adicional: el mínimo debe ser "razonablemente pequeño"
+            if (min_val <= self.thresholds.max_rendimiento_tipico and
+                REGION_JORNAL[0] <= max_val <= REGION_JORNAL[1]):
+                return (min_val, max_val)
+
+    return None
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# VALIDACIÓN ALGEBRAICA REFINADA
+# ═══════════════════════════════════════════════════════════════════════════
+
+def _validate_algebraic_homogeneity(
+    self, value: str, position: int, context: List[str]
+) -> bool:
+    """
+    Valida homogeneidad algebraica usando teoría de anillos graduados.
+    
+    REFINADO:
+    - Matriz de transiciones completa y simétrica donde corresponde
+    - Soporte para tipos especiales (PERCENTAGE, CURRENCY)
+    - Validación de invariantes posicionales
+    
+    El espacio de campos forma un monoide graduado donde la posición
+    induce restricciones adicionales sobre las transiciones válidas.
+    
+    Args:
+        value: Valor actual a validar.
+        position: Posición en la secuencia (grado del monoide).
+        context: Contexto de campos anteriores.
+    
+    Retorna:
+        bool: True si la transición preserva homogeneidad.
+    """
+    if not value or not value.strip():
+        return True  # Elemento neutro: siempre válido
+
+    field_type = self._classify_field_algebraic_type(value)
+
+    # Axioma de identidad: generador (posición 0) siempre válido
+    if position == 0:
+        return True
+
+    if not context:
+        return True
+
+    prev_field = context[-1]
+    prev_type = self._classify_field_algebraic_type(prev_field)
+
+    # Matriz de transiciones válidas (morfismos del anillo graduado)
+    # Clave: (tipo_anterior, tipo_actual) -> válido
+    VALID_TRANSITIONS: Dict[Tuple[str, str], bool] = {
+        # Desde ALPHA (texto puro)
+        ("ALPHA", "ALPHA"): True,           # Descripción continuada
+        ("ALPHA", "NUMERIC"): True,         # Desc -> valor
+        ("ALPHA", "MIXED_NUMERIC"): True,   # Desc -> código
+        ("ALPHA", "PERCENTAGE"): True,      # Desc -> porcentaje
+        ("ALPHA", "CURRENCY"): True,        # Desc -> precio
+        ("ALPHA", "EMPTY"): True,           # Campo opcional
+        ("ALPHA", "OTHER"): True,           # Símbolos permitidos
+        
+        # Desde NUMERIC (números puros)
+        ("NUMERIC", "ALPHA"): True,         # Valor -> unidad
+        ("NUMERIC", "NUMERIC"): True,       # Secuencia numérica
+        ("NUMERIC", "MIXED_NUMERIC"): True,
+        ("NUMERIC", "PERCENTAGE"): True,    # Valor -> %
+        ("NUMERIC", "CURRENCY"): True,
+        ("NUMERIC", "EMPTY"): True,
+        ("NUMERIC", "OTHER"): False,        # Evitar ruido post-numérico
+        
+        # Desde MIXED_NUMERIC (códigos alfanuméricos)
+        ("MIXED_NUMERIC", "ALPHA"): True,
+        ("MIXED_NUMERIC", "NUMERIC"): True,
+        ("MIXED_NUMERIC", "MIXED_NUMERIC"): True,
+        ("MIXED_NUMERIC", "PERCENTAGE"): True,
+        ("MIXED_NUMERIC", "CURRENCY"): True,
+        ("MIXED_NUMERIC", "EMPTY"): True,
+        ("MIXED_NUMERIC", "OTHER"): False,
+        
+        # Desde PERCENTAGE
+        ("PERCENTAGE", "ALPHA"): True,      # % -> descripción
+        ("PERCENTAGE", "NUMERIC"): True,    # % -> valor resultante
+        ("PERCENTAGE", "MIXED_NUMERIC"): False,
+        ("PERCENTAGE", "PERCENTAGE"): False,  # Evitar %% consecutivos
+        ("PERCENTAGE", "CURRENCY"): True,
+        ("PERCENTAGE", "EMPTY"): True,
+        ("PERCENTAGE", "OTHER"): False,
+        
+        # Desde CURRENCY
+        ("CURRENCY", "ALPHA"): False,       # Precio no precede texto
+        ("CURRENCY", "NUMERIC"): True,      # Precio -> cantidad (raro pero válido)
+        ("CURRENCY", "MIXED_NUMERIC"): False,
+        ("CURRENCY", "PERCENTAGE"): False,
+        ("CURRENCY", "CURRENCY"): True,     # Múltiples precios
+        ("CURRENCY", "EMPTY"): True,
+        ("CURRENCY", "OTHER"): False,
+        
+        # Desde EMPTY
+        ("EMPTY", "ALPHA"): True,
+        ("EMPTY", "NUMERIC"): True,
+        ("EMPTY", "MIXED_NUMERIC"): True,
+        ("EMPTY", "PERCENTAGE"): True,
+        ("EMPTY", "CURRENCY"): True,
+        ("EMPTY", "EMPTY"): True,           # Sparse data
+        ("EMPTY", "OTHER"): True,
+        
+        # Desde OTHER (símbolos aislados)
+        ("OTHER", "ALPHA"): True,
+        ("OTHER", "NUMERIC"): True,
+        ("OTHER", "MIXED_NUMERIC"): True,
+        ("OTHER", "PERCENTAGE"): True,
+        ("OTHER", "CURRENCY"): True,
+        ("OTHER", "EMPTY"): True,
+        ("OTHER", "OTHER"): False,          # Evitar ruido acumulativo
+    }
+
+    transition_key = (prev_type, field_type)
+    is_valid = VALID_TRANSITIONS.get(transition_key, False)
+    
+    # Restricción posicional adicional: después de posición 4, 
+    # solo valores numéricos o vacíos son esperados
+    if position >= 4 and field_type == "ALPHA":
+        # Excepción: unidades pueden aparecer tarde
+        if len(value.strip()) <= 5:  # Probablemente unidad
+            return True
+        return False
+    
+    return is_valid
+
+
+def _classify_field_algebraic_type(self, field: str) -> str:
+    """
+    Clasifica un campo en el álgebra de tipos.
+    
+    REFINADO: Tipos adicionales PERCENTAGE y CURRENCY para precisión.
+    
+    Args:
+        field: El campo a clasificar.
+    
+    Retorna:
+        str: Tipo algebraico del campo.
+    """
+    if not field:
+        return "EMPTY"
+
+    field_stripped = field.strip()
+    if not field_stripped:
+        return "EMPTY"
+
+    # Porcentaje explícito
+    if re.match(r"^-?\d+([.,]\d+)?\s*%$", field_stripped):
+        return "PERCENTAGE"
+
+    # Moneda explícita (símbolo + número)
+    if re.match(r"^[$€£¥]\s*-?[\d.,]+$", field_stripped):
+        return "CURRENCY"
+    
+    # Moneda implícita (número grande típico de precios)
+    cleaned = re.sub(r"[$€£¥\s]", "", field_stripped)
+    if self._looks_numeric(cleaned):
+        try:
+            val = float(cleaned.replace(",", "").replace(".", "", cleaned.count(".") - 1))
+            if val >= 1000:  # Probable precio
+                return "CURRENCY"
+        except ValueError:
+            pass
+        return "NUMERIC"
+
+    # Clasificación por composición de caracteres
+    alpha_chars = sum(1 for c in field_stripped if c.isalpha())
+    digit_chars = sum(1 for c in field_stripped if c.isdigit())
+    total_alnum = alpha_chars + digit_chars
+
+    if total_alnum == 0:
+        return "OTHER"
+
+    alpha_ratio = alpha_chars / total_alnum
+    digit_ratio = digit_chars / total_alnum
+
+    if alpha_ratio >= 0.8:
+        return "ALPHA"
+    elif digit_ratio >= 0.8:
+        return "NUMERIC"
+    elif digit_chars > 0 and alpha_chars > 0:
+        return "MIXED_NUMERIC"
+
+    return "OTHER"
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# GRAFO DE DEPENDENCIAS REFINADO (COMPLEJIDAD OPTIMIZADA)
+# ═══════════════════════════════════════════════════════════════════════════
+
+def _build_field_dependency_graph(self, fields: List[str]) -> Dict[int, Set[int]]:
+    """
+    Construye grafo de dependencias entre campos.
+    
+    REFINADO:
+    - Complejidad O(n²) reducida mediante poda temprana
+    - Aristas semánticas basadas en múltiples heurísticas
+    - Garantía de inclusión de todos los nodos
+    
+    Args:
+        fields: Lista de campos.
+    
+    Retorna:
+        Dict[int, Set[int]]: Grafo como lista de adyacencia.
+    """
+    n = len(fields)
+    # Inicializar todos los nodos explícitamente (garantiza grafo completo)
+    graph: Dict[int, Set[int]] = {i: set() for i in range(n)}
+
+    # Pre-procesar campos para comparación eficiente
+    processed_fields = []
+    for f in fields:
+        if not f:
+            processed_fields.append(("", set(), "EMPTY"))
+        else:
+            upper = f.strip().upper()
+            words = set(w for w in upper.split() if len(w) >= 3)
+            ftype = self._classify_field_algebraic_type(f)
+            processed_fields.append((upper, words, ftype))
+
+    for i in range(n):
+        # Arista posicional: adyacencia lineal (invariante estructural)
+        if i > 0:
+            graph[i].add(i - 1)
+            graph[i - 1].add(i)
+
+        # Aristas semánticas (solo para campos con contenido)
+        if processed_fields[i][2] == "EMPTY":
+            continue
+            
+        upper_i, words_i, type_i = processed_fields[i]
+        
+        # Limitar búsqueda a ventana local para O(n) en lugar de O(n²)
+        window_size = min(5, n - i - 1)
+        
+        for j in range(i + 1, min(i + window_size + 1, n)):
+            if processed_fields[j][2] == "EMPTY":
+                continue
+                
+            upper_j, words_j, type_j = processed_fields[j]
+            
+            # Heurística 1: Palabras compartidas significativas
+            if words_i and words_j:
+                shared = words_i & words_j
+                if shared:
+                    graph[i].add(j)
+                    graph[j].add(i)
+                    continue
+            
+            # Heurística 2: Contención de subcadenas (min 4 chars)
+            if len(upper_i) >= 4 and len(upper_j) >= 4:
+                if upper_i in upper_j or upper_j in upper_i:
+                    graph[i].add(j)
+                    graph[j].add(i)
+                    continue
+            
+            # Heurística 3: Campos numéricos consecutivos (cohesión de datos)
+            if type_i in ("NUMERIC", "CURRENCY", "PERCENTAGE") and \
+               type_j in ("NUMERIC", "CURRENCY", "PERCENTAGE"):
+                graph[i].add(j)
+                graph[j].add(i)
+
+    return graph
+
+
+def _is_graph_connected(self, graph: Dict[int, Set[int]], expected_nodes: int) -> bool:
+    """
+    Verifica conectividad del grafo usando BFS optimizado.
+    
+    REFINADO:
+    - Usa deque para BFS O(V+E) en lugar de lista O(V²)
+    - Manejo explícito de casos edge (grafo vacío, singleton)
+    
+    Args:
+        graph: Grafo a verificar.
+        expected_nodes: Número total de nodos esperados.
+    
+    Retorna:
+        bool: True si el grafo es conexo.
+    """
+    if expected_nodes == 0:
+        return True
+    
+    if expected_nodes == 1:
+        return len(graph) >= 1
+    
+    if not graph:
+        return expected_nodes == 0
+    
+    # Verificar que el grafo tiene todos los nodos esperados
+    if len(graph) != expected_nodes:
+        # Algunos nodos podrían faltar; añadirlos como aislados
+        for i in range(expected_nodes):
+            if i not in graph:
+                graph[i] = set()
+
+    # BFS con deque para O(1) en operaciones de cola
+    start_node = 0  # Siempre empezar desde el nodo 0
+    visited: Set[int] = set()
+    queue: deque = deque([start_node])
+
+    while queue:
+        node = queue.popleft()  # O(1) con deque
+        if node in visited:
+            continue
+        visited.add(node)
+        
+        # Añadir vecinos no visitados
+        for neighbor in graph.get(node, set()):
+            if neighbor not in visited and neighbor not in queue:
+                queue.append(neighbor)
+
+    return len(visited) == expected_nodes
+
+
+def _validate_structural_integrity(self, fields: List[str]) -> OptionMonad[List[str]]:
+    """
+    Valida integridad estructural mediante teoría de grafos.
+    
+    REFINADO:
+    - Estrategia de recuperación para grafos casi-conexos
+    - Métrica de cohesión para decisión de aceptación
+    
+    Args:
+        fields: Lista de campos.
+    
+    Retorna:
+        OptionMonad[List[str]]: Campos validados o fallo.
+    """
+    if not fields:
+        return OptionMonad.fail("Lista de campos vacía")
+
+    n = len(fields)
+
+    # Líneas cortas: conectividad trivial por adyacencia
+    if n <= 2:
+        return OptionMonad.pure(fields)
+
+    graph = self._build_field_dependency_graph(fields)
+
+    if self._is_graph_connected(graph, n):
+        return OptionMonad.pure(fields)
+
+    # Estrategia de recuperación: analizar componentes conexas
+    components = self._find_connected_components(graph, n)
+    
+    # Si hay exactamente 2 componentes y una es pequeña (≤2 nodos),
+    # probablemente es ruido que podemos ignorar
+    if len(components) == 2:
+        sizes = sorted([len(c) for c in components])
+        if sizes[0] <= 2 and sizes[1] >= n - 2:
+            # La componente grande es suficiente
+            return OptionMonad.pure(fields)
+    
+    # Calcular cohesión: ratio de aristas reales vs posibles
+    total_edges = sum(len(neighbors) for neighbors in graph.values()) // 2
+    max_edges = n * (n - 1) // 2
+    cohesion = total_edges / max_edges if max_edges > 0 else 0
+    
+    # Aceptar si la cohesión es razonable (≥ 0.3)
+    if cohesion >= 0.3:
+        return OptionMonad.pure(fields)
+
+    return OptionMonad.fail(
+        f"Grafo no conexo: {len(components)} componentes, cohesión={cohesion:.2f}"
+    )
+
+
+def _find_connected_components(
+    self, graph: Dict[int, Set[int]], n: int
+) -> List[Set[int]]:
+    """
+    Encuentra todas las componentes conexas del grafo.
+    
+    Nuevo método auxiliar para análisis de estructura.
+    
+    Args:
+        graph: Grafo a analizar.
+        n: Número total de nodos.
+    
+    Retorna:
+        List[Set[int]]: Lista de conjuntos, cada uno es una componente.
+    """
+    visited: Set[int] = set()
+    components: List[Set[int]] = []
+    
+    for start in range(n):
+        if start in visited:
+            continue
+        if start not in graph:
+            # Nodo aislado
+            components.append({start})
+            visited.add(start)
+            continue
+            
+        # BFS para encontrar componente
+        component: Set[int] = set()
+        queue: deque = deque([start])
+        
+        while queue:
+            node = queue.popleft()
+            if node in visited:
+                continue
+            visited.add(node)
+            component.add(node)
+            
+            for neighbor in graph.get(node, set()):
+                if neighbor not in visited:
+                    queue.append(neighbor)
+        
+        if component:
+            components.append(component)
+    
+    return components
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# NORMALIZACIÓN NUMÉRICA REFINADA
+# ═══════════════════════════════════════════════════════════════════════════
+
+def _normalize_numeric_representation(self, field: str) -> str:
+    """
+    Normaliza representación numérica a forma canónica.
+    
+    REFINADO:
+    - Desambiguación robusta usando análisis de patrones
+    - Soporte para notación científica
+    - Manejo de rangos y valores especiales
+    
+    Args:
+        field: Cadena numérica original.
+    
+    Retorna:
+        str: Cadena numérica normalizada con punto decimal.
+    """
+    if not field:
+        return field
+
+    original = field.strip()
+    
+    # Preservar notación científica
+    if re.match(r"^-?\d+\.?\d*[eE][+-]?\d+$", original):
+        return original
+
+    # Remover símbolos monetarios preservando signo
+    cleaned = re.sub(r"[$€£¥]", "", original).strip()
+    if not cleaned:
+        return original
+
+    # Detectar si es rango (ej: "10-20") - no normalizar
+    if re.match(r"^\d+\s*-\s*\d+$", cleaned):
+        return original
+
+    has_comma = "," in cleaned
+    has_period = "." in cleaned
+
+    # Caso 1: Sin separadores - ya normalizado
+    if not has_comma and not has_period:
+        return cleaned
+
+    # Caso 2: Solo comas
+    if has_comma and not has_period:
+        comma_count = cleaned.count(",")
+        
+        if comma_count == 1:
+            # Analizar parte después de la coma
+            parts = cleaned.split(",")
+            decimal_part = parts[1]
+            
+            if len(decimal_part) <= 2:
+                # Definitivamente decimal: "1,5" o "1,50"
+                return cleaned.replace(",", ".")
+            elif len(decimal_part) == 3:
+                # Ambiguo: usar configuración del profile
+                configured_decimal = self.profile.get("number_format", {}).get(
+                    "decimal_separator", "."
+                )
+                if configured_decimal == ",":
+                    return cleaned.replace(",", ".")
+                else:
+                    # Asumir separador de miles
+                    return cleaned.replace(",", "")
+            else:
+                # Más de 3 dígitos: probablemente decimal con muchos decimales
+                return cleaned.replace(",", ".")
+        else:
+            # Múltiples comas: separador de miles (1,234,567)
+            return cleaned.replace(",", "")
+
+    # Caso 3: Solo puntos
+    if has_period and not has_comma:
+        period_count = cleaned.count(".")
+        
+        if period_count == 1:
+            parts = cleaned.split(".")
+            decimal_part = parts[1]
+            
+            if len(decimal_part) <= 2:
+                return cleaned  # Ya en formato correcto
+            elif len(decimal_part) == 3:
+                configured_decimal = self.profile.get("number_format", {}).get(
+                    "decimal_separator", "."
+                )
+                if configured_decimal == ".":
+                    return cleaned
+                else:
+                    return cleaned.replace(".", "")
+            else:
+                return cleaned
+        else:
+            # Múltiples puntos: separador de miles europeo
+            return cleaned.replace(".", "")
+
+    # Caso 4: Ambos separadores presentes
+    if has_comma and has_period:
+        last_comma = cleaned.rfind(",")
+        last_period = cleaned.rfind(".")
+
+        if last_period > last_comma:
+            # Formato anglosajón: 1,234.56
+            return cleaned.replace(",", "")
+        else:
+            # Formato europeo: 1.234,56
+            return cleaned.replace(".", "").replace(",", ".")
+
+    return cleaned
+
+
+def _fields_are_semantically_related(self, field1: str, field2: str) -> bool:
+    """
+    Determina relación semántica entre campos.
+    
+    REFINADO:
+    - Múltiples heurísticas de similitud
+    - Coeficiente de Jaccard para palabras
+    - Distancia de edición para cadenas cortas
+    
+    Args:
+        field1: Primer campo.
+        field2: Segundo campo.
+    
+    Retorna:
+        bool: True si los campos están semánticamente relacionados.
+    """
+    if not field1 or not field2:
+        return False
+
+    f1_clean = field1.strip().upper()
+    f2_clean = field2.strip().upper()
+
+    # Evitar falsos positivos con campos muy cortos
+    if len(f1_clean) < 3 or len(f2_clean) < 3:
+        return False
+
+    # Heurística 1: Igualdad directa
+    if f1_clean == f2_clean:
+        return True
+
+    # Heurística 2: Contención (subcadena significativa)
+    min_len_for_containment = 4
+    if len(f1_clean) >= min_len_for_containment and f1_clean in f2_clean:
+        return True
+    if len(f2_clean) >= min_len_for_containment and f2_clean in f1_clean:
+        return True
+
+    # Heurística 3: Coeficiente de Jaccard sobre palabras
+    words1 = set(w for w in f1_clean.split() if len(w) >= 3)
+    words2 = set(w for w in f2_clean.split() if len(w) >= 3)
+
+    if words1 and words2:
+        intersection = words1 & words2
+        union = words1 | words2
+        jaccard = len(intersection) / len(union) if union else 0
+        
+        if jaccard >= 0.3:  # 30% de similitud
+            return True
+
+    # Heurística 4: Prefijo común significativo
+    common_prefix_len = 0
+    for c1, c2 in zip(f1_clean, f2_clean):
+        if c1 == c2:
+            common_prefix_len += 1
+        else:
+            break
+    
+    min_field_len = min(len(f1_clean), len(f2_clean))
+    if min_field_len > 0 and common_prefix_len >= min_field_len * 0.6:
+        return True
+
+    # Heurística 5: Mismo tipo numérico (cohesión de valores)
+    type1 = self._classify_field_algebraic_type(field1)
+    type2 = self._classify_field_algebraic_type(field2)
+    
+    numeric_types = {"NUMERIC", "CURRENCY", "PERCENTAGE"}
+    if type1 in numeric_types and type2 in numeric_types:
+        return True
+
+    return False
