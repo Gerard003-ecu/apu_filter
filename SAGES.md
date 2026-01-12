@@ -1,82 +1,68 @@
-# 🤝 Nivel 2: Conociendo a los Sabios
+# 🤝 Nivel 2: Conociendo al Consejo de Sabios Digitales
 
-En el Nivel 1, prometemos pasar de la incertidumbre a la certeza estructural. Para lograrlo, APU Filter no utiliza un algoritmo monolítico y opaco. En su lugar, hemos convocado a un Consejo de Sabios Digitales: cuatro agentes especializados que colaboran y se comunican bajo un protocolo de "Caja de Cristal".
-Cada "Sabio" representa un módulo de software avanzado con personalidad, diligencia y un método científico específico. A continuación, le presentamos a su equipo de élite.
-
-![Pirámide de Jerarquía de Negocio](docs/images/business_pyramid.jpeg)
-> **Nivel 0: Proyecto ($) -> Nivel 3: Insumos (Átomos)**
+En APU Filter, no confiamos la integridad de su presupuesto a un algoritmo monolítico y opaco. En su lugar, hemos convocado a un Consejo de Sabios Digitales: un equipo de elite de agentes especializados que colaboran bajo un protocolo de "Caja de Cristal".
+Nuestra filosofía establece que la verdadera sabiduría no nace de una herramienta pasiva, sino de la tensión dialéctica y el debate interno entre expertos que defienden perspectivas técnicas rigurosas. A continuación, le presentamos a los guardianes de su anatomía financiera:
 
 ---
 
-## 🛡️ El Guardián del Umbral (FluxCondenser)
+# 🛡️ El Guardián del Umbral (FluxCondenser)
 
 "La calidad de la decisión depende de la pureza del dato."
-El Guardián es el portero implacable de su proyecto. Su competencia medular es la estabilidad. Sabe que un presupuesto corrupto o mal formateado es un virus que puede enfermar el presupuesto. No deja pasar nada que no sea sólido.
-• Su talento: Experto en La física de datos (Data Physics).
-• Cómo cumple la promesa:
-    ◦ No lee datos línea por línea; analiza el flujo de datos crudos (energía). Utiliza analogías de la física de circuitos eléctricos para detectar datos sucios o formatos inconsistentes.
-    ◦ Si detecta inestabilidad, activa un lazo de control para amortiguar el flujo, ajusta la velocidad de ingesta y evita que el sistema colapse por saturación.
-• Su Garantía: Cuando el Guardián da el visto bueno, usted sabe que la información es coherente.
+El Guardián es el primer filtro del Consejo, encargado de la estabilidad estática y la integridad de la información. Inspirado en la física de los circuitos eléctricos RLC, trata el flujo de datos no como bits, sino como una corriente de energía.
+• Su Método: Monitorea la Energía Potencial (presión de datos) y detecta el Voltaje Flyback (inestabilidad súbita) para bloquear registros "basura" antes de que enfermen el presupuesto.
+• Su Garantía: Si el Guardián da el visto bueno, usted tiene la certeza de que el flujo de información es coherente y laminar.
 
----
-
-## 🏗️ El Arquitecto Estratega (TopologicalAnalyzer)
+# 🏗️ El Arquitecto Estratega (BusinessTopologicalAnalyzer)
 
 "Un edificio se cae por lo que no se ve: las malas conexiones."
-El Arquitecto no se fija en los precios; se fija en la forma. Él ve su presupuesto como una piramide con jerarquía de mando. Su trabajo es la integridad estructural y coherencia de los datos.
-• Su Talento: Experto en Topología Algebraica.
-• Cómo cumple la promesa:
-    ◦ Detecta huecos lógicos, es decir, ciclos donde el Costo A depende de B, y B depende de A. Esto es un "agujero" matemático que hace imposible el cálculo real
-    ◦ Mide la Estabilidad:si su proyecto es una "pirámide invertida" (una base logística estrecha sosteniendo demasiadas actividades críticas), el arquitecto alerta sobre riesgos de colapso por desabastecimiento
-    ◦ Identifica Islas: Encuentra insumos o actividades desconectadas que se están comprando pero no aportan al proyecto principal
-    ◦ Propagación Térmica en Grafos: Algoritmo de difusión de volatilidad ponderada por costo desde los nodos hoja (Insumos) hacia la raíz (Proyecto).
-      $$ T_{sys} = \sum (w_i \cdot T_i) $$
-      (Promedio ponderado de volatilidad).
+Este experto ignora los precios para centrarse exclusivamente en la "forma" (topología) del presupuesto
+. Utiliza topología algebraica para modelar el proyecto como un Complejo Simplicial Abstracto.
+• Su Método: Calcula los Números de Betti para encontrar "socavones lógicos" (β1​>0, dependencias circulares) e "islas" (β0​>1, recursos huérfanos).
+• Su Alerta: Detecta la Pirámide Invertida (Ψ<1.0), advirtiendo cuando una base logística estrecha soporta un peso táctico excesivo, elevando el riesgo de colapso.
 
----
+# 🔮 El Oráculo de Riesgos (FinancialEngine)
 
-## 🔮 El Gestor de Riesgos (FinancialEngine)
-"El precio de hoy puede ser varaible; el riesgo es fijo."
-El Gestor vive en el ahora planiicando el mañana. Sabe que el mercado es volátil y que un precio fijo en un Excel es un dato frágil. Su trabajo es la incertidumbre.
-• Su talento: Experto en Estocástica y las Opciones Reales.
-• Cómo cumple la promesa:
-    ◦ Simula escenarios: No calcula el costo una vez; simula su proyecto miles de veces bajo diferentes condiciones de mercado para decirle la probabilidad real de sobrecostos
-    ◦ Valoración de Opciones Reales: Evalúa el valor estratégico de la flexibilidad (ej. ¿cuánto vale la opción de esperar a comprar el acero?). No ve costos, ve oportunidades de inversión
-    ◦ Cálculo del WACC: Descuenta los flujos de caja futuros basándose en la estructura de capital y riesgo país, asegurando que el proyecto sea financieramente viable en el tiempo
+"El precio de hoy es una variable; el riesgo estructural es fijo."
+El Oráculo actúa como el economista táctico del Consejo, transformando costos estáticos en distribuciones de probabilidad dinámica.
+• Su Método: Ejecuta miles de Simulaciones de Monte Carlo y calcula el Valor en Riesgo (VaR) para ponerle un precio explícito a la incertidumbre.
+• La Física del Valor: Evalúa la Inercia Financiera y la Eficiencia Exergética (calidad del gasto) para asegurar que el capital esté construyendo estructura y no solo "acabados cosméticos".
 
----
+# 🗣️ El Intérprete Diplomático (SemanticTranslator)
 
-## 🗣️ El Intérprete Diplomático (SemanticTranslator)
 "La matemática compleja es inútil si no genera una orden clara."
-El Intérprete es un enlace. Es el integrante que traduce y sugiere las decisiones del consejo. Su trabajo es escuchar las discusiones matemáticas complejas del Arquitecto y el Gestor de riesgos y traducirlas en inteligencia de negocio.
-• Su talento: La Traducción Semántica y la Búsqueda Vectorial.
-• Cómo cumple la promesa:
-    ◦ Contextualización: Entiende que "Muro de ladrillo" y "Mampostería de arcilla" son lo mismo mediante vectores de inteligencia artificial (embeddings), evitando duplicidades que un software normal no vería
-    ◦ El Veredicto: Transforma los datos abstractos del arquitecto y las sugerencias del gestor en acciones concretas y comprensibles: "Alerta de Bucle Crítico: El insumo X y la actividad Y se bloquean mutuamente. Acción: Romper dependencia."
+El Intérprete es el portavoz oficial del Consejo. Su función es traducir los hallazgos abstractos del Arquitecto y el Oráculo al lenguaje de la obra en Colombia.
+• Su Método: Utiliza Búsqueda Vectorial (Embeddings) para contextualizar descripciones (ej. saber que "cemento" y "concreto" son análogos) y genera el Veredicto Ejecutivo.
+• Su Voz: Convierte un dato como "β1​=3" en una advertencia accionable: "Se han detectado tres bucles viciosos que pueden paralizar la logística por semanas".
 
----
+# ⚗️ El Alquimista (MatterGenerator)
 
-## ⚗️ El Alquimista (MatterGenerator)
 "El plano es una promesa; el material es la realidad."
-Mientras los otros sabios analizan riesgos, el Alquimista tiene la tarea de materializar el proyecto. Transforma el grafo abstracto en una lista de compras determinista.
-• **Su Talento:** El Colapso de Onda y la Precisión Numérica.
-• **Cómo cumple la promesa:**
-    ◦ **Colapso del Grafo:** Recorre la pirámide estructural para calcular la cantidad exacta de átomos (insumos) necesarios para cada actividad.
-    ◦ **Contabilidad de Kahan:** Utiliza algoritmos de suma compensada para garantizar que ni un centavo se pierda por errores de redondeo digital.
-    ◦ **Ley de Pareto:** Identifica el "20% vital" de los materiales que controlan el 80% del costo, dirigiendo su atención logística donde más importa.
+Mientras los demás sabios evalúan riesgos, el Alquimista materializa el proyecto transformando el grafo abstracto en una lista de compras determinista (BOM).
+• Su Método: Ejecuta algoritmos de "Colapso de Onda" y utiliza la Suma de Kahan para garantizar que no se pierda ni un centavo por errores de redondeo digital.
+• Eficiencia: Aplica la Ley de Pareto para identificar el 20% de insumos que controlan el 80% de su costo.
 
 ---
 
-⚖️ El Presidente del Consejo (El Protocolo OODA)
-Es uno de los roles más operativos, su trabajo no es aportar más sabiduría es unirla. El sistema opera bajo una norma llamada Ciclo OODA (Observar, Orientar, Decidir, Actuar).
-• Su talento: La gestíon coherente de cada una de las ejecuciones de los sabios.
-• Cómo cumple la promesa:
+# 🏛️ El Protocolo de Deliberación: La "Caja de Cristal"
 
-1. Observa: El Guardián ingiere los datos.
-2. Orienta: El Arquitecto mapea la estructura y el Oráculo mide el riesgo.
-3. Decide: El sistema evalúa si el proyecto es viable o requiere ajustes.
-4. Actúa: El Intérprete le entrega a usted el plan de corrección.
+El valor real de APU Filter se manifiesta cuando sus miembros no están de acuerdo. Bajo el Protocolo de Veto del RiskChallenger, el sistema expone explícitamente sus conflictos internos para que usted vea el razonamiento detrás de cada veredicto.
+Ejemplo de Acta de Deliberación:
 
+1. El Gestor Financiero: "El proyecto es rentable y el ROI es aceptable".
+2. El Arquitecto Estructural: "VETO TÉCNICO. La viabilidad es una ilusión; la base es una Pirámide Invertida (Ψ=0.69)".
+3. La Síntesis: El Consejo recomienda diversificar proveedores antes de autorizar el presupuesto, tratando el sobrecosto como una prima de seguro estratégica.
 
-Este es su equipo. Están listos para deliberar. Siguiente paso: Ahora que conoce al equipo, es hora de ver cómo piensan. Pase al Nivel 3: El Lenguaje Secreto
-Pase al **[Nivel 3: El Lenguaje Secreto](LENGUAJE_CONSEJO.md)** para entender cómo piensan.
+---
+
+# ⚖️ Gobernanza via Ciclo OODA
+
+Todo el Consejo opera orquestado por el Agente Autónomo, que asegura la coherencia sistémica mediante el bucle de control OODA:
+• Observe (Observar): El Guardián mide la presión de los datos.
+• Orient (Orientar): El Arquitecto mapea las grietas estructurales.
+• Decide (Decidir): El Oráculo evalúa si la estructura es financiable.
+• Act (Actuar): El Intérprete le entrega a usted el plan de acción.
+Este es su equipo de elite. Están listos para deliberar.
+
+---
+
+Siguiente paso: Pase al Nivel 3: El Lenguaje Secreto (ARCHIVES.md) para entender la ingeniería bajo el capó.

@@ -1,12 +1,46 @@
+
+--------------------------------------------------------------------------------
+
+
+--------------------------------------------------------------------------------
+
+
+.
+
+--------------------------------------------------------------------------------
+🔮 3. La Física del Valor: Termodinámica y Estocástica
+Componente: app/financial_engine.py
+El sistema trasciende la contabilidad determinista mediante el Modelo Unificado de Física del Costo, donde el riesgo financiero es una consecuencia directa de la estructura física y la temperatura del mercado
+:
+1. Termodinámica del Costo (Tsys​): La volatilidad es tratada como calor. El sistema simula cómo la "fiebre" inflacionaria de un insumo se difunde por el grafo del presupuesto hasta el ápice del proyecto
+.
+2. Eficiencia Exergética: Distinguimos entre Exergía (trabajo útil en estructura y cimentación) y Anergía (desperdicio o acabados cosméticos). Una eficiencia < 50% indica un edificio débil con "pintura cara"
+.
+3. Valoración Estocástica: El Oráculo de Riesgos ejecuta 10,000 Simulaciones de Monte Carlo y utiliza distribuciones Student-t para modelar "Cisnes Negros" que las hojas de cálculo tradicionales ignoran
+.
+4. Opciones Reales: Valora la flexibilidad estratégica (ej. la opción de esperar para comprar cemento) como un activo financiero real
+.
+
+--------------------------------------------------------------------------------
+
+
+
 # Ingeniería Bajo el Capó: La Garantía de Estabilidad
 
-En APU Filter, la tecnología no es un adorno; es la estructura que sostiene el negocio. A continuación, detallamos cómo nuestros "Expertos Digitales" utilizan ingeniería avanzada para resolver problemas cotidianos de la construcción.
+En APU Filter, la tecnología no es un adorno periférico; es la Arquitectura Cognitiva que sostiene la integridad del negocio. Este documento detalla la fundamentación científica (Matemática Aplicada y Física de Datos) que permite a nuestros "Sabios Digitales" transformar una lista plana de ítems en un diagnóstico de sabiduría estratégica
 
 ---
 
 ## 1. El Estabilizador: Control de Flujo y Resiliencia
-**Componente:** `app/flux_condenser.py`
 
+🛡️ 1. El Sistema Nervioso: Física de Datos (FluxPhysicsEngine)
+**Componente:** `app/flux_condenser.py`
+Para garantizar la estabilidad ante el caos de la ingesta masiva de datos, modelamos el flujo no como simples registros, sino como un Circuito RLC (Resistencia-Inductancia-Capacitancia). El sistema monitorea el "Balance Energético" en tiempo real para decidir si acepta o rechaza un lote de información:
+• Energía Potencial (Ec​=1/2​C*V^2): Mide la "Presión de Datos" o volumen acumulado en la cola de procesamiento. Una Ec​ alta dispara válvulas de alivio para evitar el desbordamiento del sistema.
+• Energía Cinética (El​=1/2​L*I^2): Representa la "Inercia de Calidad". Un flujo limpio genera una alta corriente (I), haciendo que el sistema sea difícil de desestabilizar por ruidos menores.
+• Potencia Disipada (P=I^2*R): Calcula el "calor" o desperdicio generado por datos sucios (fricción operativa). Si supera los 50W, se activa el Freno de Emergencia térmico.
+• Voltaje Flyback (Vflyback​=L*di/dt​): Detecta caídas bruscas en la calidad de los datos, bloqueando la ingesta antes de que la inestabilidad corrompa el análisis estructural.
+Este flujo es regulado por un Controlador PI Discreto con lógica Anti-windup, asegurando un Flujo Laminar constante y una recuperación rápida ante picos de carga.
 El mayor enemigo de la gestión de datos masivos es la inconsistencia y los picos de carga. Un sistema tradicional se bloquea (crash) cuando intenta procesar más de lo que puede masticar. Nosotros implementamos un sistema de **Ingeniería de Confiabilidad (SRE)** basado en principios de **Backpressure (Contrapresión)** y **Rate Limiting Adaptativo**.
 
 ### La Lógica: Estabilidad ante el Caos
@@ -17,35 +51,23 @@ El **Data Flux Condenser** gestiona la tasa de ingestión de datos para asegurar
 2.  **Inercia de Calidad (Quality Inertia):** Mide qué tan "limpios" están los datos. Datos limpios fluyen rápido; datos sucios requieren más tiempo.
 3.  **Fricción Operativa (System Friction):** El esfuerzo computacional real que toma procesar el lote actual.
 
-### El Cerebro del Estabilizador (Controlador PID)
+### 🧠  El Cerebro del Estabilizador (Controlador PID)
 Para gestionar estas variables, utilizamos un algoritmo de control **Proporcional-Integral-Derivativo (PID)**, el mismo tipo de lógica usada en controles industriales de temperatura o velocidad crucero de vehículos.
 
 *   **Si los datos son complejos (Alta Fricción):** El sistema reduce automáticamente el tamaño del lote (*Batch Size*) para procesar con precisión quirúrgica sin saturar la memoria.
 *   **Si los datos fluyen bien:** El sistema acelera, aumentando el tamaño del lote para maximizar el rendimiento.
 *   **Resultado:** Un **Flujo Laminar** constante. El sistema nunca se detiene, solo ajusta su velocidad para sobrevivir.
 
-> **Nota Técnica (Inspiración Interna):** Bajo el capó, modelamos estas métricas usando ecuaciones análogas a un circuito eléctrico RLC (Resistencia-Inductancia-Capacitancia) para calcular la "Energía" del sistema, lo que nos permite predecir saturaciones antes de que ocurran.
-
-#### ⚙️ Motor de Física de Flujo (Energy-Based RLC)
-A diferencia de los sistemas tradicionales que solo miden métricas discretas como el uso de memoria o CPU, nuestro sistema modela el flujo de datos como un sistema físico. No solo medimos el "voltaje" (carga), sino el **Balance Energético** total.
-
-*   **Energía Potencial ($E_p$):** La presión acumulada por el volumen de datos en cola.
-*   **Energía Cinética ($E_k$):** La inercia del procesamiento de calidad.
-*   **Potencia Disipada ($P_{diss}$):** La energía perdida por fricción (procesamiento de datos basura).
-
-Esta perspectiva termodinámica nos permite detectar "sobrecalentamientos" lógicos antes de que se conviertan en fallos del sistema.
-
-#### 🧠 Controlador PID Discreto con Anti-windup
-El cerebro que ajusta el flujo no es un simple `if/else`. Es un controlador PID completo que ajusta el tamaño del lote en tiempo real.
-*   **Anti-windup:** Implementamos lógica avanzada para evitar que el término integral se acumule infinitamente cuando el sistema está saturado, garantizando una recuperación rápida después de picos de carga.
-*   **Filtrado de Ruido:** El controlador utiliza medias móviles exponenciales para ignorar fluctuaciones transitorias y responder solo a tendencias reales.
-
 ---
 
-## 2. El Estratega: Estimación de "Caja Blanca"
-**Componente:** `app/estimator.py`
+## 🏗️ 2. La Geometría del Negocio: Topología Algebraica
 
-En ingeniería, la confianza lo es todo. Un ingeniero no aceptará un precio solo porque "la máquina lo dijo". Por eso, nuestro Estratega opera bajo una filosofía de **Transparencia Radical**. No es una Caja Negra; es una Caja de Cristal.
+**Componente:** agent/business_topology.py
+El Arquitecto Estratega ignora los precios para examinar la "forma" (topología) del presupuesto, modelándolo como un Complejo Simplicial Abstracto. Se calculan Invariantes Topológicos (Números de Betti) para diagnosticar patologías profundas:
+• β0​>1 (Estructura Fragmentada): Detecta "islas" de costos o recursos huérfanos que no aportan al ápice del proyecto, lo que se traduce en dinero desperdiciado.
+• β1​>0 (Socavón Lógico): Identifica dependencias circulares (bucles infinitos de precios) que imposibilitan una auditoría o cálculo real del costo.
+• Estabilidad Piramidal (Ψ): Mide si el proyecto es una "Pirámide Invertida". Un valor Ψ<1.0 alerta que miles de actividades dependen de una base de proveedores peligrosamente estrecha, elevando el riesgo de colapso logístico.
+• Resonancia Espectral: Analiza el espectro del Laplaciano para predecir si el proyecto es susceptible a un "Efecto Dominó" ante fallos sincronizados en frentes de obra.
 
 ### Evidencia, no Magia
 Cuando el sistema sugiere un costo, entrega un reporte forense de su decisión:
@@ -65,12 +87,21 @@ Usamos el Método de Monte Carlo para proyectar 1,000 escenarios posibles de var
 
 ---
 
-## 3. El Director: Orquestación del Pipeline
+# 🔮 3. La Física del Valor: Termodinámica y Estocástica
+
+**Componente:** app/financial_engine.py
+El sistema trasciende la contabilidad determinista mediante el Modelo Unificado de Física del Costo, donde el riesgo financiero es una consecuencia directa de la estructura física y la temperatura del mercado:
+1. Termodinámica del Costo (Tsys​): La volatilidad es tratada como calor. El sistema simula cómo la "fiebre" inflacionaria de un insumo se difunde por el grafo del presupuesto hasta el ápice del proyecto.
+2. Eficiencia Exergética: Distinguimos entre Exergía (trabajo útil en estructura y cimentación) y Anergía (desperdicio o acabados cosméticos). Una eficiencia < 50% indica un edificio débil con "pintura cara".
+3. Valoración Estocástica: El Oráculo de Riesgos ejecuta 10,000 Simulaciones de Monte Carlo y utiliza distribuciones Student-t para modelar "Cisnes Negros" que las hojas de cálculo tradicionales ignoran.
+4. Opciones Reales: Valora la flexibilidad estratégica (ej. la opción de esperar para comprar cemento) como un activo financiero real.
+
+## El Director: Orquestación del Pipeline
 **Componente:** `app/pipeline_director.py` (Anteriormente `procesador_csv.py`)
 
 Para evitar el "código espagueti", hemos centralizado la lógica de control. El Director no procesa datos; él da las órdenes.
 
-## 4. Orquestación Granular: El Pipeline como Máquina de Estados
+## Orquestación Granular: El Pipeline como Máquina de Estados
 
 A diferencia de los scripts lineales tradicionales, el `PipelineDirector` implementa una arquitectura de **Ejecución Atómica con Persistencia de Estado**.
 
@@ -78,7 +109,15 @@ A diferencia de los scripts lineales tradicionales, el `PipelineDirector` implem
 *   **Persistencia:** Entre pasos, el "Vector de Estado" se serializa (Redis/Pickle). Esto permite al Agente intervenir, reintentar un paso específico o pausar el flujo sin perder datos.
 *   **Método:** `run_single_step(step_name)` permite la ejecución quirúrgica de procesos.
 
-## 5. Motor de Inteligencia Financiera (Financial Engine)
+# ⚖️ 4. El Veredicto: Transparencia de la Caja de Cristal
+
+**Componente:** app/semantic_translator.py
+Para generar una confianza profunda, el sistema opera bajo el protocolo de la Caja de Cristal. La sabiduría emerge de una deliberación transparente:
+• Risk Challenger (El Fiscal): Este agente busca contradicciones. Si un proyecto parece rentable pero es estructuralmente una pirámide invertida, emite un Veto Técnico y expone el acta de debate interno.
+• Intérprete Diplomático (DIKW): Traduce los hallazgos abstractos (como β1​=3) en advertencias de negocio accionables utilizando Búsqueda Vectorial (Embeddings) para contextualizar la realidad de la obra.
+• Suma de Kahan: El Matter Generator utiliza algoritmos de suma compensada para garantizar una precisión contable absoluta, eliminando errores de redondeo en presupuestos de gran escala.
+
+**APU Filter no adivina; demuestra. Mediante el ciclo OODA (Observar, Orientar, Decidir, Actuar), valida realidades físicas y financieras para dotar de criterio a cada decisión 5. Motor de Inteligencia Financiera (Financial Engine)**
 
 Superando la estimación de costos determinista, este módulo inyecta variables estocásticas de mercado:
 
@@ -106,37 +145,6 @@ Para garantizar la viabilidad logística, el sistema aplica métricas económica
     *   $G \approx 0$: Costo distribuido uniformemente.
 *   **Ratio de Pareto:** Porcentaje de ítems que constituyen el 80% del costo total. Permite enfocar la gestión de compras en los insumos críticos.
 
-#### ⚙️ Nivel 1: Motor de Física RLC (El Sensor)
-El sistema evoluciona más allá de métricas simples hacia un **Modelo Energético Escalar**. En lugar de monitorear solo voltaje o corriente, unificamos las unidades bajo un lenguaje común: La Energía (Julios).
-
-1.  **Energía Potencial ($E_c = \frac{1}{2}CV^2$) - Presión de Datos:**
-    *   Representa la "carga de trabajo" acumulada por el volumen de registros.
-    *   Calcula la presión que ejerce el lote de datos sobre el sistema.
-2.  **Energía Cinética ($E_l = \frac{1}{2}LI^2$) - Inercia de Calidad:**
-    *   Representa el momento o "inercia" de la calidad del flujo.
-    *   Un flujo de alta calidad ($I \approx 1.0$) tiene una inercia fuerte que resiste perturbaciones, dificultando que errores menores desestabilicen el proceso.
-3.  **Potencia Disipada ($P = I_{ruido}^2 R$) - Calor/Fricción:**
-    *   **Termodinámica del Software:** Calcula el "calor" generado por la resistencia dinámica de los datos sucios.
-    *   Si el sistema gasta demasiada energía procesando basura (ruido), se genera sobrecalentamiento lógico.
-
-#### 🧠 Nivel 2: Controlador PI Discreto (El Cerebro)
-Sobre la capa física, opera un **Lazo de Control Cerrado (Feedback Loop)** que ajusta el comportamiento del sistema en tiempo real, ahora con protección térmica:
-
-*   **Algoritmo:** Controlador **Proporcional-Integral (PI)** discreto.
-*   **Setpoint:** Mantiene una saturación estable (Flujo Laminar).
-*   **Variable de Control:** El tamaño del lote de procesamiento (*Batch Size*).
-*   **Disyuntor Térmico (Nuevo):**
-    *   Además del PID, el sistema implementa un "Diodo de Rueda Libre" térmico.
-    *   Si la **Potencia Disipada** supera un umbral crítico (> 50W), el sistema activa un freno de emergencia, reduciendo drásticamente el tamaño del lote independientemente de la saturación, para "enfriar" el proceso y evitar colapsos por calidad de datos.
-
-**Resultado:** Un sistema bi-mimético que no solo adapta su velocidad, sino que también gestiona su "temperatura" operativa para garantizar una estabilidad del 100% bajo cualquier condición.
-
-#### 🛡️ Resiliencia y Recuperación
-El sistema implementa mecanismos de defensa avanzados:
-*   **Anti-Windup PID:** Previene la saturación del controlador ante cargas sostenidas.
-*   **Recuperación Parcial:** Capacidad de aislar lotes corruptos y continuar el procesamiento del resto del archivo.
-*   **Protección Térmica:** Freno de emergencia automático si la disipación de energía (fricción de datos) supera los umbrales de seguridad.
-
 ### Métrica de Estabilidad Piramidal (`pyramid_stability`)
 
 El sistema calcula un índice de robustez arquitectónica del presupuesto utilizando la siguiente relación:
@@ -155,9 +163,9 @@ Donde:
 ---
 
 ## 4. El Agente: Orquestación Autónoma
-**Componente:** `agent/orchestrator.py`
+**Componente:** `agent/apu_agent.py`
 
-La evolución de APU Filter introduce capacidades agénticas para coordinar tareas complejas de manera autónoma. El Orquestador actúa como un sistema nervioso central que conecta los microservicios y asegura la coherencia del flujo de trabajo.
+La evolución de APU Filter introduce capacidades agénticas para coordinar tareas complejas de manera autónoma. El apu_agent actúa como un sistema nervioso central que conecta los microservicios y asegura la coherencia del flujo de trabajo.
 
 ### Responsabilidades Clave:
 *   **Coordinación de Tareas:** Descompone objetivos de alto nivel en pasos ejecutables.
