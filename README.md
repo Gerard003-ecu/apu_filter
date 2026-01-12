@@ -79,6 +79,3 @@ Acceso profundo a la lógica de los expertos.
 conda activate apu_filter_env
 ```
 
----
-
-*APU Filter: Transformando el Silencio Técnico en Sabiduría Accionable.*
