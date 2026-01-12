@@ -1157,10 +1157,17 @@ class BusinessTopologicalAnalyzer:
         elif system_temp > 35:
             risk = "MEDIO"
 
+        # Identificar hotspots reales (> 50 grados)
+        hotspots = [
+            {"id": n, "temp": round(t, 2)} for n, t in node_temps.items() if t > 50.0
+        ]
+        hotspots.sort(key=lambda x: x["temp"], reverse=True)
+
         return {
             "system_temperature": round(system_temp, 2),
             "thermal_risk_level": risk,
-            "hotspots": [],  # Simplificado para brevedad
+            "hotspots": hotspots,
+            "node_temperatures": node_temps, # Exponer mapa completo para visualización detallada
         }
 
     def analyze_inflationary_convection(

@@ -187,15 +187,20 @@ class RiskChallenger:
             original_integrity = report.integrity_score
             new_integrity = max(0.0, original_integrity * 0.8)
 
-            # Actualizar narrativa estratégica
-            new_narrative = (
-                f"⚠️ VETO DEL CHALLENGER: {report.strategic_narrative}\n\n"
-                f"[FISCALÍA DE RIESGOS]: Se ha detectado una contradicción crítica. "
-                f"Aunque los indicadores financieros sugieren solidez ({financial_risk}), "
-                f"la estructura topológica es una 'Pirámide Invertida' (Estabilidad {stability:.2f} < 1.0). "
-                f"Esto indica que el proyecto es financieramente atractivo pero estructuralmente inviable. "
-                f"Se reclasifica como FALSO POSITIVO FINANCIERO."
+            # AQUÍ: Hacer visible el debate.
+            # No solo sobrescribir, sino exponer la discusión entre el "Analista" y el "Ingeniero".
+            debate_log = (
+                "🏛️ **ACTA DE DELIBERACIÓN DEL CONSEJO**\n"
+                f"1. 🤵 **El Gestor Financiero dice:** 'El proyecto es rentable (Riesgo {financial_risk}). "
+                "Los flujos de caja y el WACC son positivos.'\n"
+                f"2. 👷 **El Ingeniero Estructural objeta:** 'Imposible proceder. La estructura es una "
+                f"Pirámide Invertida (Ψ={stability:.2f}). Dependemos críticamente de insumos insuficientes.'\n"
+                "3. ⚖️ **VEREDICTO FINAL:** Se emite un **VETO TÉCNICO**. La viabilidad financiera es una "
+                "ilusión si la estructura colapsa."
             )
+
+            # Actualizar narrativa estratégica
+            new_narrative = f"{debate_log}\n\n---\n{report.strategic_narrative}"
 
             # Modificar detalles para reflejar el challenge
             new_details = details.copy()
@@ -514,24 +519,15 @@ class BusinessAgent:
         # Extraer riesgo de sinergia para la narrativa
         synergy_risk = base_report.details.get("synergy_risk")
 
-        # 1. Obtener Narrativa Estructural y Financiera
-        strategic_narrative_base = self.translator.compose_strategic_narrative(
+        # 1. Obtener Narrativa Estructural, Financiera y Termodinámica Unificada
+        full_narrative = self.translator.compose_strategic_narrative(
             topological_metrics=topological_bundle.betti_numbers,
             financial_metrics=financial_metrics,
             stability=topological_bundle.pyramid_stability,
             synergy_risk=synergy_risk,
             spectral=base_report.details.get("spectral_analysis"),
+            thermal_metrics=thermal_metrics,  # Pasamos métricas térmicas para la unificación
         )
-
-        # 2. Generar Narrativa Termodinámica
-        thermo_narrative = self.translator.translate_thermodynamics(
-            entropy=entropy,
-            exergy=exergy,
-            temperature=thermal_metrics.get("system_temperature", 0.0),
-        )
-
-        # 3. Fusionar Narrativas
-        full_narrative = f"{strategic_narrative_base}\n\n### 4. Análisis Termodinámico (Calor y Eficiencia)\n{thermo_narrative}"
 
         # Enriquecer el reporte con datos adicionales
         enriched_details = {

@@ -41,6 +41,7 @@ root_path = Path(__file__).resolve().parent.parent
 if str(root_path) not in sys.path:
     sys.path.insert(0, str(root_path))
 
+# Importación crítica para análisis topológico y visualización térmica
 from agent.business_topology import BudgetGraphBuilder, BusinessTopologicalAnalyzer
 
 topology_bp = Blueprint("topology", __name__)
@@ -166,6 +167,7 @@ class AnomalyData:
     empty_ids: Set[str] = field(default_factory=set)
     nodes_in_cycles: Set[str] = field(default_factory=set)
     stressed_ids: Set[str] = field(default_factory=set)  # New: Inverted Pyramid Stress
+    hot_ids: Set[str] = field(default_factory=set)  # New: Thermal Stress (>50C)
 
 
 # =============================================================================
@@ -612,8 +614,9 @@ def _determine_node_color(node_id: str, node_type: str, anomaly_data: AnomalyDat
     is_stressed = node_id in anomaly_data.stressed_ids
     is_isolated = node_id in anomaly_data.isolated_ids
     is_orphan = node_id in anomaly_data.orphan_ids
+    is_hot = node_id in anomaly_data.hot_ids
 
-    if is_in_cycle or is_stressed or is_isolated or is_orphan:
+    if is_in_cycle or is_stressed or is_isolated or is_orphan or is_hot:
         return NodeColor.RED.value
 
     # 2. Colores por tipo jerárquico
@@ -790,6 +793,16 @@ def analyze_graph_for_visualization(graph: nx.DiGraph) -> AnomalyData:
     except Exception as e:
         logger.warning(f"Error identificando nodos estresados: {e}")
         # stressed_ids permanece vacío por defecto
+
+    # 3. Análisis Térmico (Visualización de Calor)
+    try:
+        analyzer = BusinessTopologicalAnalyzer()
+        thermal_result = analyzer.analyze_thermal_flow(graph)
+        hotspots = thermal_result.get("hotspots", [])
+        # Extraer IDs de hotspots
+        anomaly_data.hot_ids = {str(h["id"]) for h in hotspots}
+    except Exception as e:
+        logger.warning(f"Error en análisis térmico visual: {e}")
 
     return anomaly_data
 
