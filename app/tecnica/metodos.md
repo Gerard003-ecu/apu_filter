@@ -1,30 +1,3 @@
-
---------------------------------------------------------------------------------
-
-
---------------------------------------------------------------------------------
-
-
-.
-
---------------------------------------------------------------------------------
-🔮 3. La Física del Valor: Termodinámica y Estocástica
-Componente: app/financial_engine.py
-El sistema trasciende la contabilidad determinista mediante el Modelo Unificado de Física del Costo, donde el riesgo financiero es una consecuencia directa de la estructura física y la temperatura del mercado
-:
-1. Termodinámica del Costo (Tsys​): La volatilidad es tratada como calor. El sistema simula cómo la "fiebre" inflacionaria de un insumo se difunde por el grafo del presupuesto hasta el ápice del proyecto
-.
-2. Eficiencia Exergética: Distinguimos entre Exergía (trabajo útil en estructura y cimentación) y Anergía (desperdicio o acabados cosméticos). Una eficiencia < 50% indica un edificio débil con "pintura cara"
-.
-3. Valoración Estocástica: El Oráculo de Riesgos ejecuta 10,000 Simulaciones de Monte Carlo y utiliza distribuciones Student-t para modelar "Cisnes Negros" que las hojas de cálculo tradicionales ignoran
-.
-4. Opciones Reales: Valora la flexibilidad estratégica (ej. la opción de esperar para comprar cemento) como un activo financiero real
-.
-
---------------------------------------------------------------------------------
-
-
-
 # Ingeniería Bajo el Capó: La Garantía de Estabilidad
 
 En APU Filter, la tecnología no es un adorno periférico; es la Arquitectura Cognitiva que sostiene la integridad del negocio. Este documento detalla la fundamentación científica (Matemática Aplicada y Física de Datos) que permite a nuestros "Sabios Digitales" transformar una lista plana de ítems en un diagnóstico de sabiduría estratégica
