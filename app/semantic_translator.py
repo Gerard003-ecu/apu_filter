@@ -562,9 +562,11 @@ class SemanticTranslator:
         stability: float = 0.0,
         synergy_risk: Optional[Dict[str, Any]] = None,
         spectral: Optional[Dict[str, Any]] = None,
+        thermal_metrics: Optional[Dict[str, Any]] = None,
     ) -> str:
         """
-        Compone el reporte ejecutivo con metáforas de ingeniería estructural.
+        Compone el reporte ejecutivo con metáforas de ingeniería estructural unificada.
+        Implementa la narrativa de 'Edificio Vivo' (Estructura + Disipación Térmica).
         """
         if isinstance(topological_metrics, dict):
             topo_metrics = TopologicalMetrics(**topological_metrics)
@@ -583,11 +585,64 @@ class SemanticTranslator:
         is_analysis_valid = True
         errors = []
 
+        # Obtener temperatura del sistema
+        temp = 0.0
+        if thermal_metrics:
+            temp = thermal_metrics.get("system_temperature", 0.0)
+
         # Header
         sections.append(self._generate_report_header())
 
-        # 1. Estructura
-        sections.append("### 1. Auditoría de Integridad Estructural")
+        # 1. Narrativa Unificada: El Edificio y el Calor (Diagnóstico)
+        sections.append("## 🏗️ Diagnóstico del Edificio Vivo")
+
+        narrative_parts = []
+
+        # A. Los Cimientos (Insumos/Topología)
+        if stability < 1.0:
+            narrative_parts.append(
+                f"El edificio se apoya sobre una **base inestable** (Ψ={stability:.2f}). "
+                "La cimentación de recursos es insuficiente para la carga táctica."
+            )
+        else:
+            narrative_parts.append(
+                f"El edificio tiene una **cimentación sólida** (Ψ={stability:.2f}). "
+                "La base de recursos es amplia y redundante."
+            )
+
+        # B. El Clima/Calor (Termodinámica/Mercado)
+        if temp > 50:
+            narrative_parts.append(
+                f"Sin embargo, el entorno es hostil. Detectamos una **Fiebre Inflacionaria** de {temp:.1f}°C "
+                "entrando por los insumos (volatilidad de precios)."
+            )
+
+            # C. La Interacción (¿Puede el edificio disipar el calor?)
+            if stability > 5.0:
+                narrative_parts.append(
+                    "✅ Gracias a la base ancha, la estructura actúa como un **disipador de calor** eficiente. "
+                    "El riesgo de sobrecostos se diluye en la red de proveedores resiliente."
+                )
+            elif stability < 1.0:
+                narrative_parts.append(
+                    "🚨 Debido a la base estrecha (Pirámide Invertida), **el calor no se disipa**. Se concentra en los pocos puntos "
+                    "de apoyo, creando un riesgo crítico de fractura financiera por sobrecalentamiento."
+                )
+            else:
+                narrative_parts.append(
+                    "⚠️ La estructura tiene capacidad moderada de disipación, pero una ola de calor sostenida "
+                    "podría comprometer la integridad financiera."
+                )
+        else:
+            narrative_parts.append(
+                f"El entorno es térmicamente estable ({temp:.1f}°C). El riesgo inflacionario externo es bajo."
+            )
+
+        sections.append(" ".join(narrative_parts))
+        sections.append("")
+
+        # 2. Detalles Técnicos - Estructura
+        sections.append("### 1. Auditoría de Integridad Estructural (Detalle)")
         try:
             sections.append(
                 self.translate_topology(topo_metrics, stability, synergy_risk, spectral)
@@ -599,7 +654,7 @@ class SemanticTranslator:
             is_analysis_valid = False
         sections.append("")
 
-        # 2. Finanzas
+        # 3. Detalles Técnicos - Finanzas
         sections.append("### 2. Análisis de Cargas Financieras")
         try:
             sections.append(self.translate_financial(financial_metrics))
@@ -610,12 +665,12 @@ class SemanticTranslator:
             is_analysis_valid = False
         sections.append("")
 
-        # 3. Mercado
+        # 4. Mercado
         sections.append("### 3. Geotecnia de Mercado")
         sections.append(self._get_market_context())
         sections.append("")
 
-        # 4. Recomendación
+        # 5. Recomendación
         sections.append("### 💡 Dictamen del Ingeniero Jefe")
         sections.append(
             self._generate_final_advice(
