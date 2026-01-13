@@ -6,7 +6,7 @@ const CONFIG = {
         UPLOAD: '/upload',
         ESTIMATE: '/api/estimate',
         APU_DETAIL: '/api/apu/',
-        TOPOLOGY: '/api/visualization/topology',
+        TOPOLOGY: '/api/visualization/project-graph',
         TELEMETRY: '/api/telemetry/status'
     },
     DEBOUNCE_DELAY: 300,
@@ -162,6 +162,22 @@ const Utils = {
     // Función de ayuda para formatear moneda
     formatCurrency(value) {
         return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(value);
+    },
+
+    // Función simple para parsear Markdown básico
+    parseMarkdown(text) {
+        if (!text) return '';
+        let html = text
+            // Headers
+            .replace(/^### (.*$)/gim, '<h3 class="text-lg font-bold mt-2 mb-1 text-slate-800">$1</h3>')
+            .replace(/^## (.*$)/gim, '<h2 class="text-xl font-bold mt-3 mb-2 text-slate-900">$1</h2>')
+            // Bold
+            .replace(/\*\*(.*?)\*\*/g, '<strong class="text-slate-900">$1</strong>')
+            // Lists
+            .replace(/^\- (.*$)/gim, '<li class="ml-4 list-disc">$1</li>')
+            // Line breaks
+            .replace(/\n/g, '<br>');
+        return html;
     }
 };
 
@@ -195,17 +211,21 @@ const UIManager = {
         document.getElementById('main-content').classList.toggle('hidden', !show);
     },
 
-    updateStrategicLevel(report) {
+    updateStrategicLevel(audit_report, health_report) {
         const narrativeEl = document.getElementById('strategic-narrative');
         const scoreEl = document.getElementById('viability-score');
         const indicatorEl = document.getElementById('viability-indicator');
         const textEl = document.getElementById('viability-text');
 
-        if (report) {
+        // Preferir el reporte de auditoría completo si existe, sino fallback al health_report
+        if (audit_report || health_report) {
             // Narrativa con Interacción para Evidencia
-            if (report.strategic_narrative) {
+            const narrativeText = audit_report?.strategic_narrative || health_report?.strategic_narrative;
+
+            if (narrativeText) {
                 // Inyectamos un botón/enlace para ver evidencia si la narrativa menciona riesgos
-                let html = `<p>${report.strategic_narrative}</p>`;
+                let html = `<div class="prose prose-sm max-w-none text-slate-600">${Utils.parseMarkdown(narrativeText)}</div>`;
+
                 if (html.includes('Riesgo') || html.includes('Ciclo') || html.includes('Pirámide')) {
                     html += `<div class="mt-3">
                                 <button onclick="TopologyController.focusEvidence()" class="text-xs bg-red-50 text-red-600 px-3 py-1 rounded border border-red-200 hover:bg-red-100 transition-colors font-medium flex items-center gap-1">
@@ -214,16 +234,17 @@ const UIManager = {
                              </div>`;
                 }
                 narrativeEl.innerHTML = html;
-            } else if (report.executive_report?.circular_risks?.length > 0) {
+            } else if (health_report?.executive_report?.circular_risks?.length > 0) {
                  narrativeEl.innerHTML = `<p class="text-red-600 font-bold">⚠️ Se han detectado riesgos estructurales críticos.</p>
-                                          <ul class="list-disc pl-5 mt-2 text-sm">${report.executive_report.circular_risks.map(r => `<li>${r}</li>`).join('')}</ul>
+                                          <ul class="list-disc pl-5 mt-2 text-sm">${health_report.executive_report.circular_risks.map(r => `<li>${r}</li>`).join('')}</ul>
                                           <button onclick="TopologyController.focusEvidence()" class="mt-2 text-sm text-indigo-600 underline">Ver Nodos Afectados</button>`;
             } else {
                  narrativeEl.innerHTML = `<p>El análisis preliminar indica una estructura estable. Se recomienda revisar las alertas operativas.</p>`;
             }
 
-            // Viabilidad
-            const integrity = report.business_integrity_score || report.executive_report?.integrity_score || 0;
+            // Viabilidad - Prioridad: audit_report.integrity_score, luego fallback
+            const integrity = audit_report?.integrity_score || health_report?.business_integrity_score || health_report?.executive_report?.integrity_score || 0;
+
             if(scoreEl) scoreEl.textContent = `${Math.round(integrity)}/100`;
 
             // Barra de integridad
@@ -467,20 +488,45 @@ const AppController = {
 
             const result = await response.json();
 
-            // 1. Actualizar Dashboard Estratégico
-            UIManager.updateStrategicLevel(result.health_report);
+            // 1. Data Unwrapping & Detection
+            // Detectar DataProduct (QFS) y desempaquetar payload si es necesario
+            let payload = null;
+            let auditReport = null;
 
-            // 2. Mostrar Contenido Principal
+            if (result.kind === "DataProduct" && result.payload) {
+                console.log("📦 Data Product (QFS) detectado en Frontend");
+                payload = result.payload;
+            } else if (result.data && result.data.kind === "DataProduct" && result.data.payload) {
+                 // Caso donde DataProduct está anidado
+                 console.log("📦 Data Product (QFS) anidado detectado");
+                 payload = result.data.payload;
+            } else {
+                 // Fallback legacy
+                 payload = result;
+            }
+
+            // Extraer reportes de la estructura correcta
+            if (payload && payload.audit_report) {
+                auditReport = payload.audit_report;
+            } else if (result.audit_report) {
+                auditReport = result.audit_report;
+            }
+
+            // 2. Actualizar Dashboard Estratégico
+            // Pasamos tanto el auditReport (QFS) como health_report (Legacy)
+            UIManager.updateStrategicLevel(auditReport, result.health_report);
+
+            // 3. Mostrar Contenido Principal
             UIManager.toggleMainContent(true);
             UIManager.showStatus("Topología Generada Exitosamente", 'success');
 
-            // 3. Renderizar Grafo
+            // 4. Renderizar Grafo
             // Pequeño delay para asegurar que el DOM es visible
             setTimeout(() => {
                 TopologyController.render();
             }, 100);
 
-            // 4. Iniciar Telemetría
+            // 5. Iniciar Telemetría
             OperationsController.startPolling();
 
         } catch (error) {
