@@ -19,7 +19,7 @@ const CONFIG = {
             style: {
                 'background-color': '#94a3b8',
                 'label': 'data(label)',
-                'color': '#475569',
+                'color': '#cbd5e1', // Lighter text for Dark Mode
                 'font-size': '10px',
                 'text-valign': 'center',
                 'text-halign': 'center',
@@ -28,27 +28,27 @@ const CONFIG = {
                 'text-wrap': 'wrap',
                 'text-max-width': '80px',
                 'border-width': 1,
-                'border-color': '#cbd5e1'
+                'border-color': '#475569'
             }
         },
         // --- Niveles Jerárquicos ---
         {
             selector: 'node[level=0]', // PROYECTO TOTAL
             style: {
-                'background-color': '#1e293b', // Slate 900
+                'background-color': '#3b82f6', // Blue 500
                 'width': '80px',
                 'height': '80px',
                 'font-size': '12px',
                 'font-weight': 'bold',
                 'color': '#ffffff',
                 'border-width': 2,
-                'border-color': '#0f172a'
+                'border-color': '#60a5fa'
             }
         },
         {
             selector: 'node[type="CAPITULO"]', // Nivel 1
             style: {
-                'background-color': '#3b82f6', // Blue 500
+                'background-color': '#6366f1', // Indigo 500
                 'shape': 'hexagon',
                 'width': '60px',
                 'height': '60px'
@@ -85,7 +85,7 @@ const CONFIG = {
                 'height': '70px',
                 'label': 'data(label)',
                 'font-weight': 'bold',
-                'color': '#991b1b'
+                'color': '#fca5a5'
             }
         },
         {
@@ -116,8 +116,8 @@ const CONFIG = {
             selector: 'edge',
             style: {
                 'width': 1,
-                'line-color': '#cbd5e1', // Slate 300
-                'target-arrow-color': '#cbd5e1',
+                'line-color': '#475569', // Slate 600
+                'target-arrow-color': '#475569',
                 'target-arrow-shape': 'triangle',
                 'curve-style': 'bezier',
                 'arrow-scale': 1.5
@@ -137,7 +137,7 @@ const CONFIG = {
             selector: 'edge[cost > 1000000]', // High value paths
             style: {
                 'width': 3,
-                'line-color': '#6366f1' // Indigo 500
+                'line-color': '#818cf8' // Indigo 400
             }
         }
     ]
@@ -169,10 +169,10 @@ const Utils = {
         if (!text) return '';
         let html = text
             // Headers
-            .replace(/^### (.*$)/gim, '<h3 class="text-lg font-bold mt-2 mb-1 text-slate-800">$1</h3>')
-            .replace(/^## (.*$)/gim, '<h2 class="text-xl font-bold mt-3 mb-2 text-slate-900">$1</h2>')
+            .replace(/^### (.*$)/gim, '<h3 class="text-lg font-bold mt-2 mb-1 text-slate-200">$1</h3>')
+            .replace(/^## (.*$)/gim, '<h2 class="text-xl font-bold mt-3 mb-2 text-white">$1</h2>')
             // Bold
-            .replace(/\*\*(.*?)\*\*/g, '<strong class="text-slate-900">$1</strong>')
+            .replace(/\*\*(.*?)\*\*/g, '<strong class="text-white">$1</strong>')
             // Lists
             .replace(/^\- (.*$)/gim, '<li class="ml-4 list-disc">$1</li>')
             // Line breaks
@@ -195,7 +195,7 @@ const UIManager = {
         if (!statusEl) return;
 
         statusEl.innerHTML = `
-            <div class="p-4 rounded-md border ${type === 'error' ? 'bg-red-50 border-red-200 text-red-700' : 'bg-blue-50 border-blue-200 text-blue-700'}">
+            <div class="p-4 rounded-md border ${type === 'error' ? 'bg-red-900/50 border-red-700 text-red-200' : 'bg-blue-900/50 border-blue-700 text-blue-200'}">
                 ${message}
             </div>
         `;
@@ -211,69 +211,143 @@ const UIManager = {
         document.getElementById('main-content').classList.toggle('hidden', !show);
     },
 
-    updateStrategicLevel(audit_report, health_report) {
+    updateStrategicLevel(payload, result) {
+        // Deep QFS Mapping
+        // payload: data.payload (The DataProduct)
+        // result: data (The raw response)
+
         const narrativeEl = document.getElementById('strategic-narrative');
         const scoreEl = document.getElementById('viability-score');
         const indicatorEl = document.getElementById('viability-indicator');
         const textEl = document.getElementById('viability-text');
 
-        // Preferir el reporte de auditoría completo si existe, sino fallback al health_report
-        if (audit_report || health_report) {
-            // Narrativa con Interacción para Evidencia
-            const narrativeText = audit_report?.strategic_narrative || health_report?.strategic_narrative;
-
-            if (narrativeText) {
-                // Inyectamos un botón/enlace para ver evidencia si la narrativa menciona riesgos
-                let html = `<div class="prose prose-sm max-w-none text-slate-600">${Utils.parseMarkdown(narrativeText)}</div>`;
-
-                if (html.includes('Riesgo') || html.includes('Ciclo') || html.includes('Pirámide')) {
-                    html += `<div class="mt-3">
-                                <button onclick="TopologyController.focusEvidence()" class="text-xs bg-red-50 text-red-600 px-3 py-1 rounded border border-red-200 hover:bg-red-100 transition-colors font-medium flex items-center gap-1">
-                                    <span>🔍</span> Ver Evidencia Forense en Grafo
-                                </button>
-                             </div>`;
-                }
-                narrativeEl.innerHTML = html;
-            } else if (health_report?.executive_report?.circular_risks?.length > 0) {
-                 narrativeEl.innerHTML = `<p class="text-red-600 font-bold">⚠️ Se han detectado riesgos estructurales críticos.</p>
-                                          <ul class="list-disc pl-5 mt-2 text-sm">${health_report.executive_report.circular_risks.map(r => `<li>${r}</li>`).join('')}</ul>
-                                          <button onclick="TopologyController.focusEvidence()" class="mt-2 text-sm text-indigo-600 underline">Ver Nodos Afectados</button>`;
-            } else {
-                 narrativeEl.innerHTML = `<p>El análisis preliminar indica una estructura estable. Se recomienda revisar las alertas operativas.</p>`;
-            }
-
-            // Viabilidad - Prioridad: audit_report.integrity_score, luego fallback
-            const integrity = audit_report?.integrity_score || health_report?.business_integrity_score || health_report?.executive_report?.integrity_score || 0;
-
-            if(scoreEl) scoreEl.textContent = `${Math.round(integrity)}/100`;
-
-            // Barra de integridad
-            const barEl = document.getElementById('integrity-bar');
-            const valEl = document.getElementById('integrity-value');
-            if(barEl && valEl) {
-                barEl.style.width = `${integrity}%`;
-                valEl.textContent = `${Math.round(integrity)}%`;
-
-                // Color dinámico
-                if(integrity > 80) barEl.className = "bg-green-600 h-2 rounded-full";
-                else if(integrity > 50) barEl.className = "bg-yellow-500 h-2 rounded-full";
-                else barEl.className = "bg-red-600 h-2 rounded-full";
-            }
-
-            if (integrity >= 80) {
-                indicatorEl.className = "h-4 w-4 rounded-full bg-green-500 shadow-lg shadow-green-500/50";
-                textEl.textContent = "Proyecto Saludable";
-                textEl.className = "text-xs font-bold text-green-600 mt-2";
-            } else if (integrity >= 50) {
-                indicatorEl.className = "h-4 w-4 rounded-full bg-yellow-500 shadow-lg shadow-yellow-500/50";
-                textEl.textContent = "Requiere Atención";
-                textEl.className = "text-xs font-bold text-yellow-600 mt-2";
-            } else {
-                indicatorEl.className = "h-4 w-4 rounded-full bg-red-500 shadow-lg shadow-red-500/50 animate-pulse";
-                textEl.textContent = "Riesgo Estructural";
-                textEl.className = "text-xs font-bold text-red-600 mt-2";
-            }
+        // Extract Audit Report from QFS structure
+        let auditReport = null;
+        if (payload && payload.audit_report) {
+            auditReport = payload.audit_report;
+        } else if (result && result.audit_report) {
+             auditReport = result.audit_report;
         }
+
+        // --- 1. Narrativa Estratégica ---
+        if (auditReport && auditReport.strategic_narrative) {
+            const narrativeText = auditReport.strategic_narrative;
+            let html = `<div class="prose prose-sm max-w-none text-slate-300">${Utils.parseMarkdown(narrativeText)}</div>`;
+
+            if (html.includes('Riesgo') || html.includes('Ciclo') || html.includes('Pirámide')) {
+                html += `<div class="mt-3">
+                            <button onclick="TopologyController.focusEvidence()" class="text-xs bg-red-900/30 text-red-300 px-3 py-1 rounded border border-red-800 hover:bg-red-900/50 transition-colors font-medium flex items-center gap-1">
+                                <span>🔍</span> Ver Evidencia Forense en Grafo
+                            </button>
+                         </div>`;
+            }
+            narrativeEl.innerHTML = html;
+        } else {
+             narrativeEl.innerHTML = `<p class="text-slate-400 italic">Esperando análisis...</p>`;
+        }
+
+        // --- 2. Integrity Score & Financial Risk ---
+        // Access nested metrics safely
+        const integrity = auditReport?.integrity_score || 0;
+        const financialRisk = auditReport?.financial_risk_level || "DESCONOCIDO";
+
+        // Update Risk Display
+        const riskLevelEl = document.getElementById('financial-risk-level');
+        if (riskLevelEl) riskLevelEl.textContent = financialRisk;
+
+        // Update Integrity Bar
+        const barEl = document.getElementById('integrity-bar');
+        const valEl = document.getElementById('integrity-value');
+        if(barEl && valEl) {
+            barEl.style.width = `${integrity}%`;
+            valEl.textContent = `${Math.round(integrity)}%`;
+
+            if(integrity > 80) barEl.className = "bg-green-600 h-2 rounded-full";
+            else if(integrity > 50) barEl.className = "bg-yellow-500 h-2 rounded-full";
+            else barEl.className = "bg-red-600 h-2 rounded-full";
+        }
+
+        // --- 3. Deep Metric Mapping (QFS Paths) ---
+        // β0: payload.audit_report.details.topological_invariants.betti_numbers.beta_0
+        // β1: payload.audit_report.details.topological_invariants.betti_numbers.beta_1
+        // Ψ: payload.audit_report.details.topological_invariants.pyramid_stability
+        // WACC: payload.audit_report.details.financial_metrics_input.wacc
+
+        const details = auditReport?.details || {};
+        const invariants = details.topological_invariants || {};
+        const betti = invariants.betti_numbers || {};
+        const financial = details.financial_metrics_input || {};
+
+        const beta0 = betti.beta_0 !== undefined ? betti.beta_0 : '--';
+        const beta1 = betti.beta_1 !== undefined ? betti.beta_1 : '--';
+        // Stability might be directly under details or inside topological_invariants depending on schema version
+        const psi = invariants.pyramid_stability !== undefined
+                    ? invariants.pyramid_stability.toFixed(3)
+                    : (details.pyramid_stability !== undefined ? details.pyramid_stability.toFixed(3) : '--');
+
+        // Map WACC if element exists
+        const waccEl = document.getElementById('val-wacc'); // Assuming ID based on prompt context, though not visible in snippet
+        if (waccEl) {
+             const wacc = financial.wacc !== undefined ? (financial.wacc * 100).toFixed(2) + '%' : '--';
+             waccEl.textContent = wacc;
+        }
+
+        document.getElementById('beta0-score').textContent = beta0;
+        document.getElementById('beta1-score').textContent = beta1;
+        document.getElementById('psi-score').textContent = psi;
+
+        // Visual Feedback based on Score
+        if (integrity >= 80) {
+            indicatorEl.className = "h-4 w-4 rounded-full bg-green-500 shadow-lg shadow-green-500/50";
+            textEl.textContent = "Proyecto Saludable";
+            textEl.className = "text-xs font-bold text-green-400 mt-2";
+        } else if (integrity >= 50) {
+            indicatorEl.className = "h-4 w-4 rounded-full bg-yellow-500 shadow-lg shadow-yellow-500/50";
+            textEl.textContent = "Requiere Atención";
+            textEl.className = "text-xs font-bold text-yellow-400 mt-2";
+        } else {
+            indicatorEl.className = "h-4 w-4 rounded-full bg-red-500 shadow-lg shadow-red-500/50 animate-pulse";
+            textEl.textContent = "Riesgo Estructural";
+            textEl.className = "text-xs font-bold text-red-400 mt-2";
+        }
+    },
+
+    updateAPUTable(payload) {
+        const tableBody = document.getElementById('apu-table-body');
+        const countEl = document.getElementById('apu-count');
+
+        if (!tableBody) return;
+        tableBody.innerHTML = ''; // Clear existing
+
+        const apus = payload.processed_apus || [];
+        countEl.textContent = `${apus.length} registros`;
+
+        // Limit to first 50 for performance (pagination should be server-side ideally, but client-side for now)
+        const displayAPUs = apus.slice(0, 50);
+
+        if (displayAPUs.length === 0) {
+            tableBody.innerHTML = '<tr><td colspan="4" class="px-6 py-4 text-center text-slate-500 italic">No se encontraron APUs procesados</td></tr>';
+            return;
+        }
+
+        displayAPUs.forEach(apu => {
+            const row = document.createElement('tr');
+            row.className = "hover:bg-slate-800 transition-colors border-b border-slate-700";
+
+            // Safe accessors
+            const code = apu.APU_CODIGO || apu.codigo || '--';
+            const desc = apu.DESCRIPCION || apu.descripcion || 'Sin descripción';
+            const unit = apu.UNIDAD || apu.unidad || '--';
+            const cost = apu.VALOR_TOTAL_APU || apu.valor_total || 0;
+
+            row.innerHTML = `
+                <td class="px-6 py-3 text-slate-300 font-mono text-xs">${code}</td>
+                <td class="px-6 py-3 text-slate-300 text-xs">${desc}</td>
+                <td class="px-6 py-3 text-slate-400 text-xs">${unit}</td>
+                <td class="px-6 py-3 text-right text-slate-200 font-mono text-xs">${Utils.formatCurrency(cost)}</td>
+            `;
+            tableBody.appendChild(row);
+        });
     }
 };
 
@@ -291,25 +365,31 @@ const TopologyController = {
         loader.classList.remove('hidden');
 
         try {
+            // Explicitly fetch the graph data
             const response = await fetch(CONFIG.API_ENDPOINTS.TOPOLOGY);
             if (!response.ok) throw new Error('Error obteniendo topología');
 
-            const elements = await response.json();
+            // The API returns the Cytoscape elements structure directly or wrapped
+            const graphData = await response.json();
+
+            // Ensure elements are in the correct format { elements: [...] } or just [...]
+            // API returns a list of elements usually
+            let elements = graphData;
+            if (graphData.elements) elements = graphData.elements;
 
             if (this.cy) {
                 this.cy.destroy();
             }
 
             // Configuración del Layout Piramidal (Breadthfirst)
-            // Se asume que el backend envía 'level' (0=Proyecto, 1=Capítulo, 2=APU, 3=Insumo)
             const layoutConfig = {
                 name: 'breadthfirst',
                 directed: true,
                 padding: 40,
-                spacingFactor: 1.5, // Mayor separación vertical
+                spacingFactor: 1.5,
                 animate: true,
                 animationDuration: 1000,
-                roots: 'node[level=0]', // Raíz forzada en la cima
+                roots: 'node[level=0]',
                 avoidOverlap: true
             };
 
@@ -324,13 +404,11 @@ const TopologyController = {
             });
 
             this._setupEvents();
-
-            // Ajustar vista inicial
             this.cy.fit();
 
         } catch (error) {
             console.error("Topology Error:", error);
-            container.innerHTML = `<div class="flex items-center justify-center h-full text-red-500">Error visualizando el grafo: ${error.message}</div>`;
+            container.innerHTML = `<div class="flex items-center justify-center h-full text-red-400">Error visualizando el grafo: ${error.message}</div>`;
         } finally {
             loader.classList.add('hidden');
         }
@@ -372,11 +450,8 @@ const TopologyController = {
         detailsPanel.classList.remove('hidden');
     },
 
-    // Función para "Hacer Zoom a la Evidencia"
     focusEvidence() {
         if (!this.cy) return;
-
-        // Seleccionar nodos con evidencia o clases de riesgo
         const evidenceNodes = this.cy.elements('node[?is_evidence], .circular-dependency-node, .inverted-pyramid-stress');
 
         if (evidenceNodes.length > 0) {
@@ -389,10 +464,9 @@ const TopologyController = {
                 easing: 'ease-in-out-cubic'
             });
 
-            // Efecto visual temporal
             const originalBorder = evidenceNodes.style('border-color');
             evidenceNodes.animate({
-                style: { 'border-color': '#fbbf24', 'border-width': 10 } // Flash Amber
+                style: { 'border-color': '#fbbf24', 'border-width': 10 }
             }, {
                 duration: 500,
                 complete: () => {
@@ -413,7 +487,6 @@ const TopologyController = {
 // ============================================================================
 const OperationsController = {
     startPolling() {
-        // Polling cada 5 segundos para actualizar métricas operativas
         setInterval(async () => {
             try {
                 const response = await fetch(CONFIG.API_ENDPOINTS.TELEMETRY);
@@ -428,7 +501,6 @@ const OperationsController = {
     },
 
     _updateDashboard(status) {
-        // Actualizar manómetro de saturación (simulado con métricas reales si existen)
         const saturation = status.flux_condenser?.avg_saturation || 0;
         const voltage = status.flux_condenser?.max_flyback_voltage || 0;
 
@@ -446,8 +518,8 @@ const OperationsController = {
 
         if (voltText) {
             voltText.textContent = `${voltage.toFixed(1)}V`;
-            if (voltage > 450) voltText.classList.add('text-red-600');
-            else voltText.classList.remove('text-red-600');
+            if (voltage > 450) voltText.classList.add('text-red-500');
+            else voltText.classList.remove('text-red-500');
         }
     }
 };
@@ -488,45 +560,36 @@ const AppController = {
 
             const result = await response.json();
 
-            // 1. Data Unwrapping & Detection
-            // Detectar DataProduct (QFS) y desempaquetar payload si es necesario
+            // --- QFS Handling Strategy ---
             let payload = null;
-            let auditReport = null;
 
             if (result.kind === "DataProduct" && result.payload) {
-                console.log("📦 Data Product (QFS) detectado en Frontend");
+                console.log("📦 Data Product (QFS) detected");
                 payload = result.payload;
             } else if (result.data && result.data.kind === "DataProduct" && result.data.payload) {
-                 // Caso donde DataProduct está anidado
-                 console.log("📦 Data Product (QFS) anidado detectado");
+                 console.log("📦 Nested Data Product detected");
                  payload = result.data.payload;
             } else {
-                 // Fallback legacy
+                 console.warn("⚠️ Legacy format detected - attempting best effort mapping");
                  payload = result;
             }
 
-            // Extraer reportes de la estructura correcta
-            if (payload && payload.audit_report) {
-                auditReport = payload.audit_report;
-            } else if (result.audit_report) {
-                auditReport = result.audit_report;
-            }
+            // 1. Update Strategic Dashboard with QFS payload
+            UIManager.updateStrategicLevel(payload, result);
 
-            // 2. Actualizar Dashboard Estratégico
-            // Pasamos tanto el auditReport (QFS) como health_report (Legacy)
-            UIManager.updateStrategicLevel(auditReport, result.health_report);
+            // 2. Update APU Table
+            UIManager.updateAPUTable(payload);
 
-            // 3. Mostrar Contenido Principal
+            // 3. Show Content
             UIManager.toggleMainContent(true);
             UIManager.showStatus("Topología Generada Exitosamente", 'success');
 
-            // 4. Renderizar Grafo
-            // Pequeño delay para asegurar que el DOM es visible
+            // 4. Render Topology
             setTimeout(() => {
                 TopologyController.render();
             }, 100);
 
-            // 5. Iniciar Telemetría
+            // 5. Start Telemetry
             OperationsController.startPolling();
 
         } catch (error) {
@@ -543,7 +606,6 @@ const AppController = {
 // ============================================================================
 document.addEventListener('DOMContentLoaded', () => {
     console.log("Sistema MIC v2.0 Inicializado");
-    // Inicializar HTMX
     if (window.htmx) {
         htmx.logAll();
     }
