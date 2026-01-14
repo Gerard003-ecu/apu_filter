@@ -319,7 +319,19 @@ const UIManager = {
         if (!tableBody) return;
         tableBody.innerHTML = ''; // Clear existing
 
-        const apus = payload.processed_apus || [];
+        let apus = [];
+
+        // Estrategia de búsqueda robusta para APUs
+        if (payload && payload.processed_apus) {
+            apus = payload.processed_apus;
+        } else if (payload && payload.payload && payload.payload.processed_apus) {
+            apus = payload.payload.processed_apus;
+        } else if (payload && payload.data && payload.data.processed_apus) {
+            apus = payload.data.processed_apus;
+        }
+
+        console.log("APUs para tabla:", apus);
+
         countEl.textContent = `${apus.length} registros`;
 
         // Limit to first 50 for performance (pagination should be server-side ideally, but client-side for now)
@@ -563,12 +575,19 @@ const AppController = {
             // --- QFS Handling Strategy ---
             let payload = null;
 
-            if (result.kind === "DataProduct" && result.payload) {
-                console.log("📦 Data Product (QFS) detected");
+            // Prioritize inner data first as per app.py logic which unwraps payloads
+            if (result.data) {
+                if (result.data.kind === "DataProduct" && result.data.payload) {
+                    console.log("📦 Nested Data Product detected");
+                    payload = result.data.payload;
+                } else {
+                     // Direct data or unwrapped payload
+                     console.log("⚠️ Direct/Unwrapped data detected");
+                     payload = result.data;
+                }
+            } else if (result.kind === "DataProduct" && result.payload) {
+                console.log("📦 Data Product (QFS) detected at root");
                 payload = result.payload;
-            } else if (result.data && result.data.kind === "DataProduct" && result.data.payload) {
-                 console.log("📦 Nested Data Product detected");
-                 payload = result.data.payload;
             } else {
                  console.warn("⚠️ Legacy format detected - attempting best effort mapping");
                  payload = result;
@@ -578,6 +597,8 @@ const AppController = {
             UIManager.updateStrategicLevel(payload, result);
 
             // 2. Update APU Table
+            // Pass the derived payload, but also fallback to checking result if needed
+            // The updateAPUTable function now has robust checking internally too.
             UIManager.updateAPUTable(payload);
 
             // 3. Show Content

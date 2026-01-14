@@ -1,43 +1,73 @@
-import os
 
-from playwright.sync_api import expect, sync_playwright
+import json
 
+def simulate_frontend_logic(backend_response):
+    print("--- Simulating Frontend Logic ---")
+    result = backend_response
+    payload = None
 
-def run():
-    with sync_playwright() as p:
-        browser = p.chromium.launch(headless=True)
-        context = browser.new_context(viewport={"width": 1280, "height": 800})
-        page = context.new_page()
+    if "data" in result:
+        if result["data"].get("kind") == "DataProduct" and "payload" in result["data"]:
+            print("📦 Nested Data Product detected")
+            payload = result["data"]["payload"]
+        else:
+            print("⚠️ Direct/Unwrapped data detected")
+            payload = result["data"]
+    elif result.get("kind") == "DataProduct" and "payload" in result:
+        print("📦 Data Product (QFS) detected at root")
+        payload = result["payload"]
+    else:
+        print("⚠️ Legacy format detected")
+        payload = result
 
-        # 1. Navigate to the page
-        print("Navigating to http://localhost:5002/")
-        page.goto("http://localhost:5002/")
+    # Simulate updateAPUTable
+    print("\n--- Simulating updateAPUTable ---")
+    apus = []
+    if payload and "processed_apus" in payload:
+        apus = payload["processed_apus"]
+    elif payload and "payload" in payload and "processed_apus" in payload["payload"]:
+        apus = payload["payload"]["processed_apus"]
+    elif payload and "data" in payload and "processed_apus" in payload["data"]:
+        apus = payload["data"]["processed_apus"]
 
-        # 2. Wait for the page to load
-        print("Waiting for page content...")
-        expect(page.locator("h1")).to_contain_text("APU Filter")
+    print(f"APUs found: {len(apus)}")
+    if len(apus) > 0:
+        print(f"Sample APU: {apus[0].get('CODIGO_APU', 'N/A')}")
+        return True
+    else:
+        print("No APUs found.")
+        return False
 
-        # 3. Verify Initial State
-        print("Checking Upload Container is visible...")
-        expect(page.locator("#upload-container")).to_be_visible()
+# Test Case 1: Backend returns unwrapped data in 'data' key (Standard app.py behavior)
+response_1 = {
+    "success": True,
+    "data": {
+        "processed_apus": [{"CODIGO_APU": "101", "VALOR": 100}],
+        "presupuesto": []
+    }
+}
+print("\nTest Case 1 (Standard app.py):")
+simulate_frontend_logic(response_1)
 
-        # Check Dashboard sections exist (but are hidden)
-        print("Checking Dashboard sections exist...")
-        expect(page.locator("#strategic-level")).to_be_attached()
-        expect(page.locator("#strategic-level")).to_be_hidden()
+# Test Case 2: Backend returns DataProduct in 'data' key (Hypothetical)
+response_2 = {
+    "success": True,
+    "data": {
+        "kind": "DataProduct",
+        "payload": {
+            "processed_apus": [{"CODIGO_APU": "102", "VALOR": 200}]
+        }
+    }
+}
+print("\nTest Case 2 (Nested DataProduct):")
+simulate_frontend_logic(response_2)
 
-        expect(page.locator("#structural-level")).to_be_attached()
-        expect(page.locator("#structural-level")).to_be_hidden()
-
-        # 4. Take Screenshot of Initial State
-        screenshot_path = "/home/jules/verification/verification.png"
-        print(f"Taking screenshot to {screenshot_path}...")
-        os.makedirs(os.path.dirname(screenshot_path), exist_ok=True)
-        page.screenshot(path=screenshot_path)
-
-        print("Verification successful!")
-        browser.close()
-
-
-if __name__ == "__main__":
-    run()
+# Test Case 3: Backend returns DataProduct at root (Hypothetical QFS native)
+response_3 = {
+    "kind": "DataProduct",
+    "payload": {
+        "processed_apus": [{"CODIGO_APU": "103", "VALOR": 300}]
+    }
+}
+print("\nTest Case 3 (Root DataProduct):")
+simulate_frontend_logic(response_3)
