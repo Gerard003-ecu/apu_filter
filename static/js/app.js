@@ -350,7 +350,9 @@ const UIManager = {
             const code = apu.APU_CODIGO || apu.codigo || '--';
             const desc = apu.DESCRIPCION || apu.descripcion || 'Sin descripción';
             const unit = apu.UNIDAD || apu.unidad || '--';
-            const cost = apu.VALOR_TOTAL_APU || apu.valor_total || 0;
+
+            // Mejora la lógica de extracción del costo para buscar múltiples claves posibles
+            const cost = apu.COSTO_UNITARIO_TOTAL || apu.PRECIO_UNIT_APU || apu.VALOR_TOTAL || apu.VALOR_TOTAL_APU || apu.valor_total || 0;
 
             row.innerHTML = `
                 <td class="px-6 py-3 text-slate-300 font-mono text-xs">${code}</td>
