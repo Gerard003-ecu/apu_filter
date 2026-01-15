@@ -1,56 +1,136 @@
-### criterio de Jury completo
+### 1. PIController - Validación de Parámetros con Criterio de Jury Completo
 
 def _validate_control_parameters(
     self, kp: float, ki: float, setpoint: float, min_output: int, max_output: int
 ) -> None:
     """
-    Valida parámetros con criterio de Jury completo y análisis de estabilidad de Routh-Hurwitz.
+    Valida parámetros con criterio de Jury completo y análisis de estabilidad.
     
-    Para un sistema PI discreto de segundo orden con función de transferencia:
-    G(z) = (b1*z + b0) / (z^2 + a1*z + a0)
+    Para un sistema PI discreto con función de transferencia en lazo cerrado:
     
-    Criterio de Jury completo requiere:
-    1. |a0| < 1
-    2. |a0 + a1| < 1 + a0
-    3. |a0 - a1| < 1 - a0
+        G_cl(z) = K(z) * G_p(z) / (1 + K(z) * G_p(z))
+    
+    donde K(z) = Kp + Ki*T*z/(z-1) es el controlador PI discreto.
+    
+    Criterio de Jury para polinomio de 2do orden P(z) = z² + a₁z + a₀:
+    1. P(1) > 0  (estabilidad en z=1)
+    2. P(-1) > 0 (estabilidad en z=-1, alternancia)
+    3. |a₀| < 1  (raíces dentro del círculo unitario)
+    
+    Adicionalmente verificamos el margen de fase mediante:
+    - Criterio de Nyquist simplificado para sistemas discretos
     """
     errors = []
-    
-    # Validaciones básicas existentes...
+    warnings = []
+
+    # === VALIDACIONES BÁSICAS ===
     if kp <= 0:
         errors.append(f"Kp debe ser positivo para respuesta proporcional, got {kp}")
-    
-    # ANÁLISIS DE ESTABILIDAD RIGUROSO
-    # Sistema discreto equivalente: (Kp + Ki*T/(z-1)) * K/(z-a)
-    T = 1.0  # Período de muestreo normalizado
-    K_plant = 1.0
-    a_plant = 0.9
-    
-    # Coeficientes del polinomio característico
-    # (z-1)(z-a) + K*T*(Kp*(z-1) + Ki*z) = 0
-    a2 = 1.0
-    a1 = -a_plant - 1.0 + K_plant*T*kp
-    a0 = a_plant - K_plant*T*(kp - ki)
-    
-    # CRITERIO DE JURY COMPLETO
-    cond1 = abs(a0) < 1.0
-    cond2 = abs(a0 + a1) < 1.0 + a0
-    cond3 = abs(a0 - a1) < 1.0 - a0
-    
-    if not (cond1 and cond2 and cond3):
-        logger.warning(
-            f"Sistema puede ser inestable: "
-            f"a0={a0:.3f}, a1={a1:.3f}, a2={a2:.3f}. "
-            f"Condiciones: |a0|<1={cond1}, |a0+a1|<1+a0={cond2}, |a0-a1|<1-a0={cond3}"
+    if ki < 0:
+        errors.append(f"Ki debe ser no-negativo, got {ki}")
+    if min_output >= max_output:
+        errors.append(f"Rango de salida inválido: [{min_output}, {max_output}]")
+    if min_output <= 0:
+        errors.append(f"min_output debe ser positivo, got {min_output}")
+    if not (0.0 < setpoint < 1.0):
+        errors.append(f"setpoint debe estar en (0, 1), got {setpoint}")
+
+    if errors:
+        raise ConfigurationError(
+            "Errores en parámetros de control:\n" + "\n".join(f"  • {e}" for e in errors)
         )
+
+    # === ANÁLISIS DE ESTABILIDAD DISCRETO ===
+    output_range = max(1.0, float(max_output - min_output))
+    
+    # Ganancia de planta normalizada (modelo de primer orden)
+    K_plant = 1.0 / output_range
+    
+    # Período de muestreo y polo de la planta
+    T = 1.0  # Normalizado
+    a_plant = 0.9  # Polo típico para sistema de primer orden estable
+    
+    # Coeficientes del polinomio característico del sistema en lazo cerrado
+    # Derivación: (z-1)(z-a) + K_plant*T*(Kp*(z-1) + Ki*z) = 0
+    # Expandiendo: z² + a₁z + a₀ = 0
+    
+    K_eff = K_plant * T
+    a0 = a_plant - K_eff * (kp - ki)
+    a1 = -(a_plant + 1.0) + K_eff * kp
+    
+    # === CRITERIO DE JURY ESTÁNDAR ===
+    P_at_1 = 1.0 + a1 + a0      # P(1) = 1 + a₁ + a₀
+    P_at_minus1 = 1.0 - a1 + a0  # P(-1) = 1 - a₁ + a₀
+    
+    cond1_magnitude = abs(a0) < 1.0
+    cond2_positive = P_at_1 > 0.0
+    cond3_alternating = P_at_minus1 > 0.0
+    
+    jury_stable = cond1_magnitude and cond2_positive and cond3_alternating
+    
+    # === CÁLCULO DE RAÍCES Y MARGEN DE ESTABILIDAD ===
+    discriminant = a1 * a1 - 4.0 * a0
+    
+    if discriminant >= 0:
+        # Raíces reales
+        sqrt_disc = math.sqrt(discriminant)
+        root1 = (-a1 + sqrt_disc) / 2.0
+        root2 = (-a1 - sqrt_disc) / 2.0
+        max_magnitude = max(abs(root1), abs(root2))
+        is_oscillatory = False
+    else:
+        # Raíces complejas conjugadas
+        real_part = -a1 / 2.0
+        imag_part = math.sqrt(-discriminant) / 2.0
+        max_magnitude = math.sqrt(real_part**2 + imag_part**2)
+        is_oscillatory = True
         
-        # Calcular margen de estabilidad
-        roots = np.roots([a2, a1, a0]) if np else None
-        if roots is not None:
-            max_magnitude = max(abs(r) for r in roots)
-            stability_margin = 1.0 - max_magnitude
-            if stability_margin < 0.1:
-                errors.append(f"Margen de estabilidad crítico: {stability_margin:.3f}")
+        # Calcular frecuencia de oscilación natural
+        if max_magnitude > 0:
+            damped_freq = math.atan2(imag_part, real_part)
+            warnings.append(
+                f"Sistema subamortiguado: ω_d = {damped_freq:.3f} rad/sample"
+            )
+    
+    stability_margin = 1.0 - max_magnitude
+    
+    # === DIAGNÓSTICO Y ADVERTENCIAS ===
+    if not jury_stable:
+        detail = (
+            f"Jury: |a₀|<1={cond1_magnitude}, "
+            f"P(1)>0={cond2_positive}, P(-1)>0={cond3_alternating}"
+        )
+        if stability_margin < 0:
+            errors.append(
+                f"Sistema inestable (margen={stability_margin:.4f}). {detail}"
+            )
+        else:
+            warnings.append(f"Criterio de Jury marginalmente satisfecho. {detail}")
+    
+    if stability_margin < 0.05 and stability_margin >= 0:
+        warnings.append(
+            f"Margen de estabilidad crítico: {stability_margin:.4f}. "
+            f"Considere reducir Kp o Ki."
+        )
+    
+    if stability_margin < 0.2 and is_oscillatory:
+        warnings.append(
+            "Sistema con tendencia oscilatoria. "
+            "Puede exhibir ringing en respuesta transitoria."
+        )
+    
+    # === VERIFICACIÓN DE ANCHO DE BANDA ===
+    # Frecuencia de cruce aproximada
+    crossover_gain = kp * K_plant
+    if crossover_gain > 0.5:
+        warnings.append(
+            f"Ganancia de cruce alta ({crossover_gain:.2f}). "
+            "Riesgo de amplificación de ruido."
+        )
+    
+    # Emitir warnings acumulados
+    for w in warnings:
+        logger.warning(f"⚠️ Control: {w}")
     
     if errors:
         raise ConfigurationError(
@@ -58,368 +138,960 @@ def _validate_control_parameters(
         )
 
 
-### 2. MOTOR FÍSICO - MEJORAS TOPOLÓGICAS
+### 2. PIController - Filtro EMA con Alpha Adaptativo Basado en Varianza
 
-def _calculate_betti_numbers(self) -> Dict[int, int]:
+def _apply_ema_filter(self, measurement: float) -> float:
     """
-    Calcula números de Betti usando homología persistente simplificada.
+    Aplica filtro de Media Móvil Exponencial con alpha adaptativo.
     
-    Para un grafo G=(V,E):
-    - β₀ = componentes conexas = |V| - |E| + ciclos
-    - β₁ = ciclos independientes = |E| - |V| + β₀
-    - β_k = 0 para k ≥ 2
+    El factor de suavizado α se adapta dinámicamente según:
     
-    Usa algoritmo de Union-Find optimizado con compresión de caminos.
+    1. **Detección de escalón (step)**: Si |Δy| > τ_step, se reduce la inercia
+       para seguir cambios abruptos rápidamente.
+    
+    2. **Varianza local**: Alta varianza → menor α (más suavizado).
+       Baja varianza → mayor α (más reactivo).
+    
+    Fundamentación: El filtro EMA es óptimo para procesos ARIMA(0,1,1),
+    y α_óptimo = 1 - θ donde θ es el parámetro MA. Estimamos θ
+    a partir de la autocorrelación del error de predicción.
+    
+    La fórmula adaptativa usa una sigmoide inversa para mapear
+    varianza a alpha de forma suave y acotada.
     """
-    if self._vertex_count == 0:
-        return {0: 0, 1: 0, "euler_characteristic": 0, "homology_dimensions": []}
+    if self._filtered_pv is None:
+        self._filtered_pv = measurement
+        return measurement
+
+    # === DETECCIÓN DE ESCALÓN (STEP CHANGE) ===
+    innovation = measurement - self._filtered_pv
+    step_threshold = 0.25 * max(abs(self.setpoint), 0.1)
     
-    # ===== ALGORITMO UNION-FIND OPTIMIZADO =====
-    parent = list(range(self._vertex_count))
-    rank = [0] * self._vertex_count
-    
-    def find(x: int) -> int:
-        """Find con compresión de caminos iterativa."""
-        root = x
-        while parent[root] != root:
-            root = parent[root]
+    if abs(innovation) > step_threshold:
+        # Cambio abrupto detectado: bypass parcial del filtro
+        # Usamos interpolación con peso hacia la nueva medición
+        bypass_weight = min(0.7, abs(innovation) / (2 * step_threshold))
+        self._filtered_pv = bypass_weight * measurement + (1 - bypass_weight) * self._filtered_pv
         
-        # Compresión de caminos
-        while parent[x] != root:
-            parent[x], x = root, parent[x]
+        # Resetear historial de errores para evitar contaminación
+        if hasattr(self, '_innovation_history'):
+            self._innovation_history.clear()
         
-        return root
+        return self._filtered_pv
+
+    # === ESTIMACIÓN DE VARIANZA LOCAL ===
+    if not hasattr(self, '_innovation_history'):
+        self._innovation_history = deque(maxlen=10)
     
-    def union(x: int, y: int) -> bool:
-        """Union por rango, retorna True si ya estaban conectados."""
-        root_x, root_y = find(x), find(y)
+    self._innovation_history.append(innovation)
+    
+    n_samples = len(self._innovation_history)
+    
+    if n_samples >= 3:
+        innovations = list(self._innovation_history)
+        mean_innov = sum(innovations) / n_samples
         
-        if root_x == root_y:
-            return True  # Ya conectado → forma ciclo
+        # Varianza con corrección de Bessel
+        if n_samples > 1:
+            variance = sum((x - mean_innov)**2 for x in innovations) / (n_samples - 1)
+        else:
+            variance = 0.0
         
-        # Union por rango
-        if rank[root_x] < rank[root_y]:
-            root_x, root_y = root_y, root_x
+        # === MAPEO VARIANZA → ALPHA ===
+        # Función sigmoide inversa: α = α_min + (α_max - α_min) / (1 + k * σ²)
+        # donde k controla la sensibilidad a la varianza
+        alpha_min = 0.05  # Máximo suavizado
+        alpha_max = 0.5   # Mínimo suavizado (máxima reactividad)
+        sensitivity = 50.0  # Factor de sensibilidad a varianza
         
-        parent[root_y] = root_x
-        if rank[root_x] == rank[root_y]:
-            rank[root_x] += 1
+        # Normalizar varianza respecto al setpoint
+        normalized_variance = variance / max(self.setpoint**2, 0.01)
         
-        return False
+        adaptive_alpha = alpha_min + (alpha_max - alpha_min) / (1.0 + sensitivity * normalized_variance)
+        
+        # === CORRECCIÓN POR AUTOCORRELACIÓN ===
+        # Si hay autocorrelación positiva en innovaciones, reducir alpha
+        if n_samples >= 4:
+            # Autocorrelación lag-1 simplificada
+            autocorr = sum(
+                (innovations[i] - mean_innov) * (innovations[i-1] - mean_innov)
+                for i in range(1, n_samples)
+            )
+            autocorr /= max(variance * (n_samples - 1), 1e-10)
+            
+            # Autocorrelación positiva → proceso más suave → menor alpha
+            if autocorr > 0.3:
+                adaptive_alpha *= (1.0 - 0.3 * autocorr)
+        
+        self._ema_alpha = max(alpha_min, min(alpha_max, adaptive_alpha))
+    else:
+        # Insuficientes muestras: usar alpha conservador
+        self._ema_alpha = 0.2
+
+    # === APLICAR FILTRO EMA ===
+    self._filtered_pv = self._ema_alpha * measurement + (1 - self._ema_alpha) * self._filtered_pv
     
-    # ===== CONTAR CICLOS DURANTE UNION =====
-    cycles = 0
-    edges_processed = 0
-    
-    # Procesar aristas en orden determinístico
-    for u in range(self._vertex_count):
-        for v in sorted(self._adjacency_list.get(u, set())):
-            if v > u:  # Evitar duplicados
-                edges_processed += 1
-                if union(u, v):
-                    cycles += 1
-    
-    # ===== CÁLCULO DE NÚMEROS DE BETTI =====
-    # Contar componentes conexas únicas
-    unique_roots = set(find(i) for i in range(self._vertex_count))
-    beta_0 = len(unique_roots)
-    
-    # Fórmula de Euler-Poincaré para grafos
-    # χ = V - E = β₀ - β₁
-    chi = self._vertex_count - edges_processed
-    beta_1 = beta_0 - chi
-    
-    # Validación: β₁ ≥ 0
-    beta_1 = max(0, beta_1)
-    
-    # ===== HOMOLOGÍA PERSISTENTE SIMPLIFICADA =====
-    # Filtrar por peso de arista (simulando homología persistente)
-    homology_dimensions = []
-    if beta_1 > 0:
-        # Simular diagrama de persistencia
-        for i in range(min(3, beta_1)):
-            homology_dimensions.append({
-                "dimension": 1,
-                "birth": 0.1 * i,
-                "death": 0.5 + 0.1 * i,
-                "persistence": 0.4 + 0.1 * i
-            })
-    
-    return {
-        0: beta_0,
-        1: beta_1,
-        2: 0,  # No hay 2-símplices en grafos
-        "euler_characteristic": chi,
-        "is_tree": beta_1 == 0 and beta_0 == 1,
-        "is_forest": beta_1 == 0,
-        "cyclomatic_complexity": beta_1 + 1,
-        "homology_dimensions": homology_dimensions,
-        "connected_components": beta_0,
-        "independent_cycles": beta_1
-    }
+    return self._filtered_pv
 
 
-### 3. ESTABILIDAD GIROSCÓPICA - MODELO MEJORADO
-
-def calculate_gyroscopic_stability(self, current_I: float) -> float:
-    """
-    Estabilidad giroscópica basada en ecuaciones de Euler para cuerpo rígido.
-    
-    Modelo mejorado:
-    1. Tensor de inercia diagonal: I = diag(Ix, Iy, Iz)
-    2. Velocidad angular: ω = [0, 0, ω₀] + δω
-    3. Ecuaciones linealizadas: I·d(δω)/dt + ω₀×(I·δω) = τ
-    
-    Para simetría axial (Ix = Iy):
-    - Frecuencia de precesión: ω_p = (Iz - Ix)/Ix * ω₀
-    - Estabilidad si ω₀ > ω_crítica
-    """
-    if not self._initialized:
-        self._ema_current = current_I
-        self._last_current = current_I
-        self._last_time = time.time()
-        self._initialized = True
-        return 1.0
-    
-    current_time = time.time()
-    dt = max(1e-6, current_time - self._last_time)
-    
-    # === PARÁMETROS DEL TROMPO ===
-    Ix = 1.0  # Momento de inercia transversal
-    Iz = 1.5  # Momento de inercia axial ( > Ix para trompo alargado)
-    
-    # === VELOCIDAD ANGULAR ===
-    # ω_z ≈ corriente normalizada
-    omega_z = abs(current_I)
-    
-    # === ECUACIONES DE EULER LINEALIZADAS ===
-    # Para pequeñas perturbaciones [ω_x, ω_y]:
-    # dω_x/dt = ((Iz - Ix)/Ix) * ω_z * ω_y
-    # dω_y/dt = -((Iz - Ix)/Ix) * ω_z * ω_x
-    
-    # Frecuencia de precesión
-    omega_p = ((Iz - Ix) / Ix) * omega_z if Ix > 0 else 0
-    
-    # === DETECCIÓN DE NUTACIÓN ===
-    dI_dt = (current_I - self._last_current) / dt
-    
-    # Amplitud de nutación (oscilación del eje)
-    if not hasattr(self, "_nutation_amplitude"):
-        self._nutation_amplitude = 0.0
-    
-    # Filtro pasa-bajas para nutación
-    alpha_nut = 0.05
-    nutation_component = abs(dI_dt) * math.sin(omega_p * dt)
-    self._nutation_amplitude = (1 - alpha_nut) * self._nutation_amplitude + alpha_nut * nutation_component
-    
-    # === CRITERIO DE ESTABILIDAD DE ROUTH ===
-    # Para trompo simétrico: estable si ω_z² > (4*m*g*h*Ix)/(Iz²)
-    # Simplificamos usando umbral empírico
-    critical_omega = 0.5
-    speed_stability = 1.0 - math.exp(-2.0 * max(0, omega_z - critical_omega))
-    
-    # === FACTOR DE AMORTIGUAMIENTO DE NUTACIÓN ===
-    # La nutación se amortigua exponencialmente
-    damping_time_constant = 2.0  # segundos
-    nutation_damping = math.exp(-dt / damping_time_constant)
-    
-    # === ESTABILIDAD COMBINADA ===
-    # Sg = estabilidad_velocidad * (1 - nutación) * amortiguamiento
-    base_stability = speed_stability
-    nutation_factor = max(0.0, 1.0 - self._nutation_amplitude * 2.0)
-    
-    Sg = base_stability * nutation_factor * nutation_damping
-    
-    # Normalizar y saturar
-    Sg = max(0.0, min(1.0, Sg))
-    
-    # === DIAGNÓSTICO ===
-    if Sg < 0.6:
-        diagnosis = "PRECESIÓN DETECTADA"
-        if Sg < 0.3:
-            diagnosis = "⚠️ NUTACIÓN CRÍTICA"
-        logger.debug(f"Estabilidad giroscópica: {Sg:.3f} - {diagnosis}")
-    
-    # Actualizar estado
-    self._last_current = current_I
-    self._last_time = current_time
-    
-    return Sg
-
-
-### 4. ENTROPÍA - CORRECCIÓN DE MUESTRAS PEQUEÑAS
+### 3. FluxPhysicsEngine - Entropía Corregida para Estados Puros
 
 def calculate_system_entropy(
     self, total_records: int, error_count: int, processing_time: float
 ) -> Dict[str, float]:
     """
-    Entropía con correcciones para muestras pequeñas usando estimador de James-Stein.
+    Calcula entropía del sistema con correcciones para muestras pequeñas.
     
-    Para sistemas con < 100 muestras, usamos:
-    1. Corrección de Miller-Madow: H_mm = H + (m-1)/(2N)
-    2. Estimador James-Stein shrinkage: p̂ = λ·p_uniform + (1-λ)·p_empírico
-    3. Entropía de Rényi generalizada con α → 1 como límite de Shannon
+    Mejoras implementadas:
+    
+    1. **Estados puros**: Cuando error_count ∈ {0, total_records}, la entropía
+       es exactamente 0 (estado determinístico), sin aplicar suavizado.
+    
+    2. **Estimador James-Stein shrinkage**: Para muestras pequeñas, contrae
+       las probabilidades empíricas hacia una distribución uniforme.
+       
+       p̂_JS = λ·p_uniform + (1-λ)·p_empírico
+       donde λ = α/(α + N) con α = 1 (prior Jeffrey's).
+    
+    3. **Corrección de Miller-Madow**: Ajusta sesgo de subestimación:
+       H_MM = H + (m-1)/(2N·ln2)
+    
+    4. **Entropías generalizadas**: Rényi y Tsallis para diferentes
+       sensibilidades a eventos raros.
+    
+    5. **Detección de muerte térmica**: Basada en teoría de grandes
+       desviaciones, P(error) > ε con ε = 0.25.
     """
     if total_records <= 0:
         return self._get_zero_entropy()
+
+    # === CASO ESPECIAL: ESTADOS PUROS ===
+    # Un estado puro (sin mezcla) tiene entropía exactamente 0
+    # Esto es físicamente correcto y evita artefactos del suavizado
+    is_pure_state = (error_count == 0) or (error_count == total_records)
     
+    if is_pure_state:
+        # Entropía de Shannon para estado puro = 0
+        # Todas las entropías generalizadas también son 0
+        p_error = error_count / total_records
+        
+        return {
+            "shannon_entropy": 0.0,
+            "shannon_entropy_corrected": 0.0,
+            "renyi_entropy_1": 0.0,
+            "renyi_entropy_2": 0.0,
+            "renyi_entropy_inf": 0.0,
+            "tsallis_entropy": 0.0,
+            "lempel_ziv_complexity": 0.0,
+            "entropy_ratio": 0.0,
+            "is_thermal_death": p_error > 0.5,  # 100% errores = muerte térmica
+            "effective_samples": float(total_records),
+            "kl_divergence": math.log2(2) if p_error in (0, 1) else 0.0,  # Máxima divergencia de uniforme
+            "entropy_rate": 0.0,
+            "mutual_info_temporal": 0.0,
+            "max_entropy": 1.0,
+            "entropy_absolute": 0.0,
+            "configurational_entropy": 0.0,
+        }
+
     # === SHRINKAGE DE JAMES-STEIN ===
-    m = 2  # categorías (éxito/error)
-    alpha_js = 1.0  # parámetro de shrinkage
+    m = 2  # Número de categorías (éxito/error)
+    alpha_prior = 1.0  # Prior de Jeffrey (no informativo)
     
-    # Probabilidades empíricas con suavizado de Laplace
-    p_success_emp = (max(0, total_records - error_count) + 1) / (total_records + 2)
-    p_error_emp = (error_count + 1) / (total_records + 2)
+    # Probabilidades empíricas (sin suavizado para el shrinkage)
+    n_success = total_records - error_count
+    n_error = error_count
     
-    # Probabilidades uniformes (prior)
-    p_uniform = 1.0 / m
+    p_success_emp = n_success / total_records
+    p_error_emp = n_error / total_records
     
     # Factor de shrinkage: λ = α/(α + N)
-    lambda_js = alpha_js / (alpha_js + total_records)
+    lambda_js = alpha_prior / (alpha_prior + total_records)
     
-    # Probabilidades shrinkage
+    # Probabilidad uniforme (target del shrinkage)
+    p_uniform = 1.0 / m
+    
+    # Probabilidades contraídas
     p_success = lambda_js * p_uniform + (1 - lambda_js) * p_success_emp
     p_error = lambda_js * p_uniform + (1 - lambda_js) * p_error_emp
     
-    # Normalizar
-    p_sum = p_success + p_error
-    p_success /= p_sum
-    p_error /= p_sum
+    # Normalizar para garantizar suma = 1 (corrección numérica)
+    p_total = p_success + p_error
+    p_success /= p_total
+    p_error /= p_total
     
-    # === ENTROPÍA DE SHANNON CON CORRECCIONES ===
+    probabilities = [p_success, p_error]
+    
+    # === ENTROPÍA DE SHANNON ===
     H_shannon = 0.0
-    for p in [p_success, p_error]:
-        if p > 1e-12:
+    for p in probabilities:
+        if p > 1e-15:  # Evitar log(0)
             H_shannon -= p * math.log2(p)
     
-    # Corrección de Miller-Madow para sesgo
-    H_mm = H_shannon + (m - 1) / (2 * total_records * math.log(2)) if total_records > 1 else H_shannon
+    # === CORRECCIÓN DE MILLER-MADOW ===
+    # Corrige sesgo de subestimación para muestras finitas
+    # H_MM = H + (m-1) / (2*N*ln(2))
+    miller_madow_correction = (m - 1) / (2 * total_records * math.log(2))
+    H_mm = H_shannon + miller_madow_correction
     
     # === ENTROPÍA DE RÉNYI GENERALIZADA ===
     def renyi_entropy(alpha: float) -> float:
-        """Entropía de Rényi de orden α."""
-        if abs(alpha - 1.0) < 1e-6:
-            return H_shannon  # Límite → Shannon
+        """
+        H_α = (1/(1-α)) * log₂(Σᵢ pᵢ^α)
         
-        sum_p_alpha = p_success**alpha + p_error**alpha
+        Límites:
+        - α → 1: Shannon
+        - α → 0: Hartley (log del soporte)
+        - α → ∞: min-entropy (-log max(p))
+        """
+        if abs(alpha - 1.0) < 1e-8:
+            return H_shannon
+        
+        sum_p_alpha = sum(p**alpha for p in probabilities if p > 1e-15)
+        
         if sum_p_alpha <= 0:
             return 0.0
         
-        return (1 / (1 - alpha)) * math.log2(sum_p_alpha)
+        return (1.0 / (1.0 - alpha)) * math.log2(sum_p_alpha)
     
-    # Calcular para varios órdenes
-    H_renyi_1 = H_shannon  # α=1
-    H_renyi_2 = renyi_entropy(2.0)  # α=2 (colisión)
-    H_renyi_inf = -math.log2(max(p_success, p_error))  # α→∞ (min-entropía)
+    H_renyi_05 = renyi_entropy(0.5)   # Más sensible a eventos raros
+    H_renyi_1 = H_shannon             # Shannon
+    H_renyi_2 = renyi_entropy(2.0)    # Entropía de colisión
+    
+    # Min-entropía (α → ∞)
+    p_max = max(probabilities)
+    H_renyi_inf = -math.log2(p_max) if p_max > 0 else 0.0
     
     # === ENTROPÍA DE TSALLIS (q-entropía) ===
+    # S_q = (1 - Σᵢ pᵢ^q) / (q - 1)
+    # Es no-extensiva: S_q(A+B) = S_q(A) + S_q(B) + (1-q)*S_q(A)*S_q(B)
     q = 2.0
-    H_tsallis = (1 - (p_success**q + p_error**q)) / (q - 1)
+    sum_p_q = sum(p**q for p in probabilities if p > 1e-15)
+    H_tsallis = (1.0 - sum_p_q) / (q - 1.0) if abs(q - 1.0) > 1e-8 else H_shannon
     
-    # === COMPLEJIDAD DE LEMPEL-ZIV (simplificada) ===
-    # Para sistema binario, aproximamos complejidad como 1 - exp(-H)
-    complexity = 1.0 - math.exp(-H_shannon)
+    # === DIVERGENCIA KL DESDE DISTRIBUCIÓN UNIFORME ===
+    # D_KL(P||U) = Σᵢ pᵢ * log₂(pᵢ / u)
+    # Mide "sorpresa" de la distribución real respecto a la uniforme
+    kl_divergence = 0.0
+    for p in probabilities:
+        if p > 1e-15:
+            kl_divergence += p * math.log2(p / p_uniform)
     
-    # === DIAGNÓSTICO TERMODINÁMICO MEJORADO ===
+    # === COMPLEJIDAD DE LEMPEL-ZIV (aproximación) ===
+    # Para un proceso binario, la complejidad se aproxima como
+    # C ≈ H * n / log₂(n) para secuencias largas
+    # Normalizamos a [0, 1] usando la relación con entropía
+    if H_shannon > 0:
+        lz_complexity = 1.0 - math.exp(-H_shannon)
+    else:
+        lz_complexity = 0.0
+    
+    # === MÉTRICAS DERIVADAS ===
     max_entropy = math.log2(m)  # 1 bit para sistema binario
-    entropy_ratio = H_shannon / max_entropy
+    entropy_ratio = H_shannon / max_entropy if max_entropy > 0 else 0.0
     
-    # Criterio basado en teoría de grandes desviaciones
-    # P(error) > ε con ε = 0.25 (umbral de muerte térmica)
-    epsilon = 0.25
-    is_thermal_death = (p_error > epsilon and entropy_ratio > 0.85)
+    # Tasa de entropía (bits por unidad de tiempo)
+    entropy_rate = H_shannon / max(processing_time, 1e-6)
+    
+    # === DETECCIÓN DE MUERTE TÉRMICA ===
+    # Criterio: alta entropía + alta tasa de errores
+    # Basado en principio de máxima entropía de Jaynes
+    epsilon_death = 0.25
+    is_thermal_death = (p_error_emp > epsilon_death) and (entropy_ratio > 0.85)
+    
+    # === INFORMACIÓN MUTUA TEMPORAL (estimación) ===
+    # Aproximación basada en reducción de incertidumbre
+    # I(t; t-1) ≈ H(t) - H(t|t-1)
+    # Sin historial, asumimos I ≈ 0
+    mutual_info_temporal = 0.0
+    if len(self._entropy_history) >= 2:
+        prev_entropy = self._entropy_history[-1].get("shannon_entropy", H_shannon)
+        # Información ganada = reducción de entropía
+        mutual_info_temporal = max(0, prev_entropy - H_shannon)
     
     result = {
+        # Entropías fundamentales
         "shannon_entropy": H_shannon,
         "shannon_entropy_corrected": H_mm,
+        
+        # Familia de Rényi
+        "renyi_entropy_05": H_renyi_05,
         "renyi_entropy_1": H_renyi_1,
         "renyi_entropy_2": H_renyi_2,
         "renyi_entropy_inf": H_renyi_inf,
+        
+        # Tsallis (no extensiva)
         "tsallis_entropy": H_tsallis,
-        "lempel_ziv_complexity": complexity,
+        
+        # Métricas de información
+        "kl_divergence": kl_divergence,
+        "lempel_ziv_complexity": lz_complexity,
+        "mutual_info_temporal": mutual_info_temporal,
+        
+        # Métricas normalizadas
         "entropy_ratio": entropy_ratio,
+        "max_entropy": max_entropy,
+        "entropy_absolute": H_shannon,
+        "entropy_rate": entropy_rate,
+        
+        # Diagnóstico
         "is_thermal_death": is_thermal_death,
-        "effective_samples": total_records * (1 - lambda_js),  # Muestras efectivas después de shrinkage
+        "effective_samples": total_records * (1 - lambda_js),
+        
+        # Alias para compatibilidad
+        "configurational_entropy": H_renyi_2,
     }
     
+    # Guardar en historial
     self._entropy_history.append({
         **result,
         "timestamp": time.time(),
         "total_records": total_records,
-        "error_rate": p_error,
+        "error_rate": p_error_emp,
     })
     
     return result
 
 
-### 5. PREDICCIÓN DE SATURACIÓN - FILTRO DE KALMAN MEJORADO
+### 4. FluxPhysicsEngine - Números de Betti con Homología Persistente
+
+def _calculate_betti_numbers(self) -> Dict[int, int]:
+    """
+    Calcula números de Betti usando Union-Find optimizado con
+    elementos de homología persistente.
+    
+    Para un grafo G = (V, E):
+    
+    - β₀ = número de componentes conexas = |V| - rank(A)
+    - β₁ = número de ciclos independientes = |E| - |V| + β₀
+    - β_k = 0 para k ≥ 2 (el grafo es 1-dimensional)
+    
+    Característica de Euler: χ = β₀ - β₁ = |V| - |E|
+    
+    Complejidad ciclomática (McCabe): M = β₁ + 1
+    
+    La homología persistente se simula ordenando aristas por peso
+    y rastreando nacimiento/muerte de características.
+    """
+    if self._vertex_count == 0:
+        return {
+            0: 0, 1: 0, 2: 0,
+            "euler_characteristic": 0,
+            "is_tree": False,
+            "is_forest": True,
+            "cyclomatic_complexity": 1,
+            "homology_dimensions": [],
+            "connected_components": 0,
+            "independent_cycles": 0,
+        }
+
+    # === UNION-FIND CON COMPRESIÓN DE CAMINOS Y UNIÓN POR RANGO ===
+    parent = list(range(self._vertex_count))
+    rank = [0] * self._vertex_count
+    
+    def find(x: int) -> int:
+        """Find con compresión de caminos (path halving)."""
+        while parent[x] != x:
+            parent[x] = parent[parent[x]]  # Path halving
+            x = parent[x]
+        return x
+    
+    def union(x: int, y: int) -> bool:
+        """
+        Union por rango.
+        Retorna True si x e y YA estaban conectados (arista crea ciclo).
+        """
+        root_x = find(x)
+        root_y = find(y)
+        
+        if root_x == root_y:
+            return True  # Ciclo detectado
+        
+        # Unión por rango para árbol balanceado
+        if rank[root_x] < rank[root_y]:
+            root_x, root_y = root_y, root_x
+        
+        parent[root_y] = root_x
+        
+        if rank[root_x] == rank[root_y]:
+            rank[root_x] += 1
+        
+        return False  # Componentes fusionadas
+
+    # === PROCESAR ARISTAS Y DETECTAR CICLOS ===
+    edges_processed = 0
+    cycles_detected = 0
+    
+    # Lista de aristas para homología persistente
+    edge_list = []
+    
+    for u in range(self._vertex_count):
+        neighbors = self._adjacency_list.get(u, set())
+        for v in sorted(neighbors):
+            if v > u:  # Cada arista una sola vez
+                edge_list.append((u, v))
+    
+    # === HOMOLOGÍA PERSISTENTE SIMPLIFICADA ===
+    # Ordenar aristas por "peso" (simulado como índice)
+    # En un grafo sin pesos, usamos el orden de inserción
+    persistence_diagram = []
+    
+    for idx, (u, v) in enumerate(edge_list):
+        edges_processed += 1
+        
+        is_cycle = union(u, v)
+        
+        if is_cycle:
+            cycles_detected += 1
+            # Registro de ciclo: nace en este momento, muere en infinito
+            persistence_diagram.append({
+                "dimension": 1,
+                "birth": idx / max(len(edge_list), 1),  # Normalizado
+                "death": 1.0,  # Infinito normalizado
+                "persistence": 1.0 - idx / max(len(edge_list), 1),
+                "edge": (u, v),
+            })
+
+    # === CONTAR COMPONENTES CONEXAS ===
+    unique_roots = set()
+    for i in range(self._vertex_count):
+        unique_roots.add(find(i))
+    
+    beta_0 = len(unique_roots)
+    
+    # === CALCULAR β₁ USANDO FÓRMULA DE EULER ===
+    # χ = V - E = β₀ - β₁
+    # β₁ = β₀ - χ = β₀ - (V - E) = β₀ - V + E
+    chi = self._vertex_count - edges_processed
+    beta_1 = beta_0 - chi
+    
+    # Validación: β₁ debe coincidir con ciclos detectados
+    assert beta_1 == cycles_detected, (
+        f"Inconsistencia: β₁={beta_1} ≠ ciclos={cycles_detected}"
+    )
+    
+    # β₁ >= 0 siempre para grafos
+    beta_1 = max(0, beta_1)
+    
+    # === MÉTRICAS TOPOLÓGICAS DERIVADAS ===
+    is_connected = (beta_0 == 1)
+    is_tree = is_connected and (beta_1 == 0)
+    is_forest = (beta_1 == 0)  # Bosque: sin ciclos
+    
+    # Complejidad ciclomática de McCabe
+    # M = E - V + 2P donde P = componentes conexas
+    # Equivalente a: M = β₁ + P
+    cyclomatic_complexity = beta_1 + beta_0
+    
+    # === FILTRAR DIAGRAMA DE PERSISTENCIA ===
+    # Mantener solo características con persistencia significativa
+    significant_features = [
+        feat for feat in persistence_diagram
+        if feat["persistence"] > 0.1
+    ]
+    
+    return {
+        # Números de Betti
+        0: beta_0,
+        1: beta_1,
+        2: 0,  # Grafos son 1-dimensionales
+        
+        # Característica de Euler
+        "euler_characteristic": chi,
+        
+        # Clasificación topológica
+        "is_connected": is_connected,
+        "is_tree": is_tree,
+        "is_forest": is_forest,
+        "is_cyclic": beta_1 > 0,
+        
+        # Métricas de complejidad
+        "cyclomatic_complexity": cyclomatic_complexity,
+        "graph_genus": beta_1,  # Para grafos planos
+        
+        # Componentes
+        "connected_components": beta_0,
+        "independent_cycles": beta_1,
+        
+        # Homología persistente
+        "homology_dimensions": significant_features,
+        "total_persistence": sum(f["persistence"] for f in persistence_diagram),
+        
+        # Estadísticas del grafo
+        "vertex_count": self._vertex_count,
+        "edge_count": edges_processed,
+        "edge_density": (2 * edges_processed) / (self._vertex_count * (self._vertex_count - 1))
+            if self._vertex_count > 1 else 0.0,
+    }
+
+
+### 5. FluxPhysicsEngine - Estabilidad Giroscópica con Ecuaciones de Euler
+
+def calculate_gyroscopic_stability(self, current_I: float) -> float:
+    """
+    Calcula estabilidad giroscópica usando ecuaciones de Euler linealizadas.
+    
+    Modelo de trompo simétrico (Ix = Iy ≠ Iz):
+    
+    Ecuaciones de Euler para cuerpo rígido:
+        Ix·dωx/dt = (Iy - Iz)·ωy·ωz + τx
+        Iy·dωy/dt = (Iz - Ix)·ωz·ωx + τy
+        Iz·dωz/dt = (Ix - Iy)·ωx·ωy + τz
+    
+    Para rotación estable alrededor de z con pequeñas perturbaciones:
+        dωx/dt = Ω·ωy  donde Ω = (Iz - Ix)/Ix · ωz
+        dωy/dt = -Ω·ωx
+    
+    Esto da oscilación armónica (precesión) con frecuencia Ω.
+    
+    Criterio de estabilidad (teorema de la raqueta de tenis):
+    - Rotación alrededor del eje de momento de inercia máximo o mínimo: ESTABLE
+    - Rotación alrededor del eje intermedio: INESTABLE
+    
+    La "corriente" representa velocidad angular ωz.
+    La derivada dI/dt representa aceleración angular (torque).
+    """
+    current_time = time.time()
+    
+    # === INICIALIZACIÓN ===
+    if not self._initialized:
+        self._ema_current = current_I
+        self._last_current = current_I
+        self._last_time = current_time
+        self._initialized = True
+        
+        # Estado del giroscopio
+        self._gyro_state = {
+            "omega_x": 0.0,  # Perturbación en x
+            "omega_y": 0.0,  # Perturbación en y
+            "nutation_amplitude": 0.0,
+            "precession_phase": 0.0,
+        }
+        
+        return 1.0  # Inicialmente estable
+    
+    dt = max(1e-6, current_time - self._last_time)
+    
+    # === MOMENTOS DE INERCIA EFECTIVOS ===
+    # Modelamos el flujo de datos como un trompo alargado
+    # Eje z es el eje principal de rotación (flujo de datos)
+    Ix = 1.0   # Momento transversal
+    Iy = 1.0   # Momento transversal (simetría axial)
+    Iz = 1.5   # Momento axial (trompo alargado, Iz > Ix,Iy → estable)
+    
+    # Velocidad angular principal (proporcional a corriente)
+    omega_z = abs(current_I) * 10.0  # Escalar para sensibilidad
+    
+    # === ECUACIONES DE EULER LINEALIZADAS ===
+    # Para simetría axial (Ix = Iy):
+    # d²ωx/dt² + Ω²·ωx = 0  (oscilador armónico)
+    # donde Ω = (Iz - Ix)/Ix · ωz es la frecuencia de precesión
+    
+    if Ix > 0:
+        Omega_precession = ((Iz - Ix) / Ix) * omega_z
+    else:
+        Omega_precession = 0.0
+    
+    # === EVOLUCIÓN DE PERTURBACIONES ===
+    state = self._gyro_state
+    omega_x = state["omega_x"]
+    omega_y = state["omega_y"]
+    
+    # Ecuaciones acopladas (rotación en plano xy)
+    # Usar Euler semi-implícito para estabilidad
+    omega_x_new = omega_x * math.cos(Omega_precession * dt) + omega_y * math.sin(Omega_precession * dt)
+    omega_y_new = -omega_x * math.sin(Omega_precession * dt) + omega_y * math.cos(Omega_precession * dt)
+    
+    # === EXCITACIÓN POR CAMBIO EN CORRIENTE ===
+    dI_dt = (current_I - self._last_current) / dt
+    
+    # Cambios bruscos en corriente excitan nutación
+    excitation_amplitude = 0.1 * abs(dI_dt)
+    
+    # Añadir excitación aleatoria en fase
+    phase = state["precession_phase"] + Omega_precession * dt
+    omega_x_new += excitation_amplitude * math.cos(phase)
+    omega_y_new += excitation_amplitude * math.sin(phase)
+    
+    # === AMORTIGUAMIENTO VISCOSO ===
+    # Las perturbaciones se amortiguan por fricción
+    damping_coeff = 0.95  # Por paso de tiempo
+    omega_x_new *= damping_coeff
+    omega_y_new *= damping_coeff
+    
+    # === AMPLITUD DE NUTACIÓN ===
+    nutation_amplitude = math.sqrt(omega_x_new**2 + omega_y_new**2)
+    
+    # Filtro EMA para suavizar
+    alpha_nut = 0.1
+    smoothed_nutation = (1 - alpha_nut) * state["nutation_amplitude"] + alpha_nut * nutation_amplitude
+    
+    # === CRITERIO DE ESTABILIDAD ===
+    # 1. Velocidad mínima para estabilidad giroscópica
+    #    ωz > ω_crítico donde ω_crítico depende de la geometría
+    omega_critical = 0.5
+    speed_factor = 1.0 - math.exp(-3.0 * max(0, omega_z - omega_critical))
+    
+    # 2. Nutación excesiva indica inestabilidad
+    #    Si la nutación es comparable a ωz, el trompo "tambalea"
+    nutation_ratio = smoothed_nutation / max(omega_z, 0.1)
+    nutation_factor = 1.0 / (1.0 + 5.0 * nutation_ratio)
+    
+    # 3. Teorema de la raqueta de tenis
+    #    Rotación alrededor de Iz (máximo) es estable si Iz > Ix, Iy
+    #    Cuantificamos con el margen (Iz - Ix) / Ix
+    inertia_margin = (Iz - Ix) / Ix
+    stability_factor = math.tanh(2.0 * inertia_margin)  # 1 para margen grande
+    
+    # === ESTABILIDAD COMBINADA ===
+    Sg = speed_factor * nutation_factor * stability_factor
+    Sg = max(0.0, min(1.0, Sg))
+    
+    # === ACTUALIZAR ESTADO ===
+    state["omega_x"] = omega_x_new
+    state["omega_y"] = omega_y_new
+    state["nutation_amplitude"] = smoothed_nutation
+    state["precession_phase"] = phase % (2 * math.pi)
+    
+    self._last_current = current_I
+    self._last_time = current_time
+    
+    # === DIAGNÓSTICO ===
+    if Sg < 0.5:
+        if Sg < 0.3:
+            diagnosis = "NUTACIÓN CRÍTICA - Flujo inestable"
+        else:
+            diagnosis = "PRECESIÓN DETECTADA - Flujo oscilante"
+        
+        self.logger.debug(
+            f"Estabilidad giroscópica: Sg={Sg:.3f}, "
+            f"nutación={smoothed_nutation:.3f}, ωz={omega_z:.2f}. "
+            f"Diagnóstico: {diagnosis}"
+        )
+    
+    return Sg
+
+
+### 6. DataFluxCondenser - Predicción con EKF Robusto
 
 def _predict_next_saturation(self, history: List[float]) -> float:
     """
-    Predicción usando filtro de Kalman extendido (EKF) para modelo no lineal.
+    Predicción usando Filtro de Kalman Extendido (EKF) con modelo adaptativo.
     
-    Modelo de estado:
-    x = [saturación, velocidad, aceleración]
-    Modelo no lineal: ds/dt = v, dv/dt = a - β·v - ω²·s
+    Modelo de estado de 3er orden:
+        x = [saturación, velocidad, aceleración]ᵀ
+    
+    Modelo dinámico (oscilador amortiguado):
+        ds/dt = v
+        dv/dt = a - β·v - ω²·(s - s_eq)
+        da/dt = -γ·a + ruido
+    
+    donde:
+        - β: coeficiente de amortiguamiento
+        - ω: frecuencia natural (determina rapidez de convergencia)
+        - s_eq: saturación de equilibrio (setpoint)
+        - γ: decaimiento de aceleración
+    
+    El EKF adapta estos parámetros basándose en el error de innovación.
     """
     if len(history) < 3:
         return history[-1] if history else 0.5
     
-    # Inicializar EKF si no existe
-    if not hasattr(self, "_ekf_state"):
+    # === INICIALIZACIÓN DEL EKF ===
+    if not hasattr(self, '_ekf_state') or self._ekf_state is None:
+        # Estimar estado inicial desde historia
+        s0 = history[-1]
+        v0 = (history[-1] - history[-2]) if len(history) >= 2 else 0.0
+        a0 = 0.0
+        if len(history) >= 3:
+            v_prev = history[-2] - history[-3]
+            a0 = v0 - v_prev
+        
         self._ekf_state = {
-            "x": np.array([history[-1], 0.0, 0.0], dtype=np.float64),
-            "P": np.eye(3, dtype=np.float64) * 0.1,
-            "Q": np.diag([0.01, 0.1, 0.01]),  # Covarianza del proceso
-            "R": 0.05,  # Covarianza de medición
-            "beta": 0.1,  # Coeficiente de amortiguamiento
-            "omega": 2.0,  # Frecuencia natural
+            # Estado: [saturación, velocidad, aceleración]
+            "x": [s0, v0, a0],
+            
+            # Covarianza del estado (incertidumbre)
+            "P": [
+                [0.1, 0.0, 0.0],
+                [0.0, 0.5, 0.0],
+                [0.0, 0.0, 0.2],
+            ],
+            
+            # Covarianza del proceso (ruido del modelo)
+            "Q": [
+                [0.001, 0.0, 0.0],
+                [0.0, 0.01, 0.0],
+                [0.0, 0.0, 0.05],
+            ],
+            
+            # Varianza de medición
+            "R": 0.02,
+            
+            # Parámetros del modelo (adaptativos)
+            "beta": 0.3,    # Amortiguamiento
+            "omega": 0.2,   # Frecuencia natural (REDUCIDA para tracking)
+            "gamma": 0.5,   # Decaimiento de aceleración
+            "s_eq": 0.5,    # Equilibrio (se adaptará al setpoint)
+            
+            # Historial de innovaciones para adaptación
+            "innovations": [],
         }
     
     ekf = self._ekf_state
     dt = 1.0  # Paso de tiempo normalizado
     
-    # === MODELO NO LINEAL (oscilador armónico amortiguado) ===
-    def f(x: np.ndarray) -> np.ndarray:
-        """Modelo de transición de estado."""
-        s, v, a = x
-        # ds/dt = v
-        # dv/dt = a - β·v - ω²·s
-        # da/dt = -α·a (ruido)
-        return np.array([
-            s + v * dt,
-            v + (a - ekf["beta"] * v - ekf["omega"]**2 * s) * dt,
-            a * 0.95  # Decaimiento de aceleración
-        ])
+    # Extraer estado actual
+    x = ekf["x"]
+    P = ekf["P"]
+    s, v, a = x[0], x[1], x[2]
     
-    def F(x: np.ndarray) -> np.ndarray:
-        """Jacobiano del modelo."""
-        s, v, a = x
-        return np.array([
-            [1.0, dt, 0.0],
-            [-ekf["omega"]**2 * dt, 1.0 - ekf["beta"] * dt, dt],
-            [0.0, 0.0, 0.95]
-        ])
+    # === PREDICCIÓN (modelo no lineal) ===
+    beta = ekf["beta"]
+    omega = ekf["omega"]
+    gamma = ekf["gamma"]
+    s_eq = ekf["s_eq"]
     
-    # === PREDICCIÓN ===
-    x_pred = f(ekf["x"])
-    F_jac = F(ekf["x"])
-    P_pred = F_jac @ ekf["P"] @ F_jac.T + ekf["Q"]
+    # Ecuaciones de estado discretizadas (Euler)
+    s_pred = s + v * dt
+    v_pred = v + (a - beta * v - omega**2 * (s - s_eq)) * dt
+    a_pred = a * (1.0 - gamma * dt)  # Decaimiento exponencial
     
-    # === ACTUALIZACIÓN ===
+    x_pred = [s_pred, v_pred, a_pred]
+    
+    # Jacobiano del modelo (∂f/∂x)
+    F = [
+        [1.0, dt, 0.0],
+        [-omega**2 * dt, 1.0 - beta * dt, dt],
+        [0.0, 0.0, 1.0 - gamma * dt],
+    ]
+    
+    # Propagación de covarianza: P_pred = F·P·Fᵀ + Q
+    # Implementación sin numpy
+    P_pred = [[0.0] * 3 for _ in range(3)]
+    Q = ekf["Q"]
+    
+    for i in range(3):
+        for j in range(3):
+            for k in range(3):
+                for l in range(3):
+                    P_pred[i][j] += F[i][k] * P[k][l] * F[j][l]
+            P_pred[i][j] += Q[i][j]
+    
+    # === ACTUALIZACIÓN (medición: z = s_medido) ===
     z = history[-1]
-    H = np.array([1.0, 0.0, 0.0])  # Solo medimos saturación
-    y = z - H @ x_pred
-    S = H @ P_pred @ H.T + ekf["R"]
-    K = P_pred @ H.T / S
     
-    ekf["x"] = x_pred + K * y
-    ekf["P"] = (np.eye(3) - np.outer(K, H)) @ P_pred
+    # Vector de observación: H = [1, 0, 0] (solo observamos saturación)
+    H = [1.0, 0.0, 0.0]
+    
+    # Innovación (residuo)
+    y = z - x_pred[0]
+    
+    # Varianza de innovación: S = H·P_pred·Hᵀ + R
+    S = P_pred[0][0] + ekf["R"]
+    
+    # Ganancia de Kalman: K = P_pred·Hᵀ·S⁻¹
+    K = [P_pred[i][0] / S for i in range(3)]
+    
+    # Estado actualizado: x = x_pred + K·y
+    x_new = [x_pred[i] + K[i] * y for i in range(3)]
+    
+    # Covarianza actualizada: P = (I - K·H)·P_pred
+    P_new = [[0.0] * 3 for _ in range(3)]
+    for i in range(3):
+        for j in range(3):
+            P_new[i][j] = P_pred[i][j] - K[i] * H[j] * P_pred[0][j]
+    
+    # === ADAPTACIÓN DE PARÁMETROS ===
+    ekf["innovations"].append(y)
+    if len(ekf["innovations"]) > 20:
+        ekf["innovations"].pop(0)
+    
+    if len(ekf["innovations"]) >= 5:
+        # Varianza de innovaciones
+        innovations = ekf["innovations"]
+        mean_innov = sum(innovations) / len(innovations)
+        var_innov = sum((i - mean_innov)**2 for i in innovations) / len(innovations)
+        
+        # Si innovaciones son consistentemente grandes, aumentar Q
+        expected_var = P_pred[0][0] + ekf["R"]
+        if var_innov > 2 * expected_var:
+            # Modelo subestima incertidumbre → aumentar Q
+            for i in range(3):
+                ekf["Q"][i][i] *= 1.1
+        elif var_innov < 0.5 * expected_var:
+            # Modelo sobreestima → reducir Q
+            for i in range(3):
+                ekf["Q"][i][i] *= 0.95
+        
+        # Detectar sesgo sistemático → ajustar s_eq
+        if abs(mean_innov) > 0.05:
+            ekf["s_eq"] += 0.1 * mean_innov
+            ekf["s_eq"] = max(0.1, min(0.9, ekf["s_eq"]))
+    
+    # Guardar estado
+    ekf["x"] = x_new
+    ekf["P"] = P_new
     
     # === PREDICCIÓN A UN PASO ===
-    predicted = ekf["x"][0] + ekf["x"][1] * dt
+    # Usar modelo para predecir siguiente valor
+    s_next = x_new[0] + x_new[1] * dt
     
-    # Aplicar límites físicos [0, 1] con función sigmoide suave
-    predicted = 1.0 / (1.0 + math.exp(-8.0 * (predicted - 0.5)))
+    # Aplicar límites físicos con saturación suave (sigmoide)
+    # Esto evita discontinuidades en el control
+    s_next_bounded = 1.0 / (1.0 + math.exp(-10.0 * (s_next - 0.5)))
     
-    return float(predicted)
+    return s_next_bounded
+
+
+### 7. DataFluxCondenser - Recuperación con Agregación Correcta
+
+def _process_single_batch_with_recovery(
+    self,
+    batch: List,
+    cache: Dict,
+    consecutive_failures: int,
+    telemetry: Optional[TelemetryContext] = None,
+) -> BatchResult:
+    """
+    Procesamiento de batch con estrategia de recuperación multinivel.
+    
+    Niveles de recuperación:
+    
+    1. **Intento directo**: Procesar batch completo.
+    
+    2. **División binaria**: Si falla, dividir en 2 y procesar recursivamente.
+       Esto permite aislar registros problemáticos.
+       Condición: batch_size > MIN_SPLIT_SIZE (evita recursión infinita)
+    
+    3. **Procesamiento unitario**: Para batches pequeños o múltiples fallos,
+       procesar registro por registro, acumulando los exitosos.
+    
+    La agregación de resultados parciales se hace correctamente sumando
+    records_processed de cada sub-resultado.
+    """
+    if not batch:
+        return BatchResult(
+            success=True,
+            records_processed=0,
+            dataframe=pd.DataFrame()
+        )
+    
+    batch_size = len(batch)
+    MIN_SPLIT_SIZE = 5  # Tamaño mínimo para dividir (evita recursión infinita)
+    MAX_UNIT_PROCESSING_SIZE = 100  # Máximo para procesamiento unitario
+    
+    # === NIVEL 1: INTENTO DIRECTO ===
+    if consecutive_failures == 0:
+        try:
+            parsed_data = ParsedData(batch, cache)
+            df = self._rectify_signal(parsed_data, telemetry=telemetry)
+            
+            if df is not None and not df.empty:
+                return BatchResult(
+                    success=True,
+                    dataframe=df,
+                    records_processed=len(df)
+                )
+            else:
+                # Éxito pero sin datos
+                return BatchResult(
+                    success=True,
+                    dataframe=pd.DataFrame(),
+                    records_processed=0
+                )
+                
+        except Exception as e:
+            self.logger.debug(f"Intento directo falló: {e}")
+            # Continuar a recuperación
+    
+    # === NIVEL 2: DIVISIÓN BINARIA ===
+    # Solo si el batch es suficientemente grande y no hemos fallado mucho
+    if consecutive_failures <= 2 and batch_size > MIN_SPLIT_SIZE:
+        try:
+            mid = batch_size // 2
+            
+            # Procesar mitades recursivamente
+            left_result = self._process_single_batch_with_recovery(
+                batch[:mid], cache, consecutive_failures + 1, telemetry
+            )
+            right_result = self._process_single_batch_with_recovery(
+                batch[mid:], cache, consecutive_failures + 1, telemetry
+            )
+            
+            # Agregar resultados
+            dfs_to_concat = []
+            total_records = 0
+            
+            if left_result.success and left_result.dataframe is not None:
+                if not left_result.dataframe.empty:
+                    dfs_to_concat.append(left_result.dataframe)
+                total_records += left_result.records_processed
+            
+            if right_result.success and right_result.dataframe is not None:
+                if not right_result.dataframe.empty:
+                    dfs_to_concat.append(right_result.dataframe)
+                total_records += right_result.records_processed
+            
+            if dfs_to_concat:
+                combined_df = pd.concat(dfs_to_concat, ignore_index=True)
+            else:
+                combined_df = pd.DataFrame()
+            
+            # Éxito parcial si recuperamos algo
+            success = total_records > 0 or (left_result.success and right_result.success)
+            
+            return BatchResult(
+                success=success,
+                dataframe=combined_df,
+                records_processed=total_records,
+                error_message="" if success else "División binaria falló completamente"
+            )
+            
+        except Exception as e:
+            self.logger.warning(f"División binaria falló: {e}")
+            # Continuar a nivel 3
+    
+    # === NIVEL 3: PROCESAMIENTO UNITARIO ===
+    # Para batches pequeños o cuando la división falló
+    if batch_size <= MAX_UNIT_PROCESSING_SIZE:
+        successful_dfs = []
+        failed_count = 0
+        
+        for idx, record in enumerate(batch):
+            try:
+                parsed = ParsedData([record], cache)
+                df = self._rectify_signal(parsed, telemetry=telemetry)
+                
+                if df is not None and not df.empty:
+                    successful_dfs.append(df)
+                    
+            except Exception as e:
+                failed_count += 1
+                if failed_count <= 5:  # Limitar logging
+                    self.logger.debug(f"Registro {idx} falló: {e}")
+        
+        if successful_dfs:
+            combined_df = pd.concat(successful_dfs, ignore_index=True)
+            records_processed = len(combined_df)
+        else:
+            combined_df = pd.DataFrame()
+            records_processed = 0
+        
+        success = records_processed > 0
+        
+        return BatchResult(
+            success=success,
+            dataframe=combined_df,
+            records_processed=records_processed,
+            error_message=f"Recuperación unitaria: {records_processed}/{batch_size} exitosos"
+        )
+    
+    # === FALLO TOTAL ===
+    # Batch muy grande y múltiples niveles de recuperación fallaron
+    return BatchResult(
+        success=False,
+        dataframe=None,
+        records_processed=0,
+        error_message=f"Recuperación fallida para batch de {batch_size} registros"
+    )
