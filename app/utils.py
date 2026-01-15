@@ -1656,6 +1656,11 @@ def calculate_unit_costs(
             aggfunc="sum",
         ).reset_index()
 
+        # Alias para compatibilidad con Frontend
+        pivot["CODIGO"] = pivot["CODIGO_APU"]
+        pivot["DESCRIPCION"] = pivot["DESCRIPCION_APU"]
+        pivot["UNIDAD"] = pivot["UNIDAD_APU"]
+
         # Asegurar todas las columnas necesarias
         expected_columns = ["SUMINISTRO", "MANO_DE_OBRA", "EQUIPO", "TRANSPORTE", "OTRO"]
         for col in expected_columns:

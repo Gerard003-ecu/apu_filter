@@ -347,9 +347,9 @@ const UIManager = {
             row.className = "hover:bg-slate-800 transition-colors border-b border-slate-700";
 
             // Safe accessors
-            const code = apu.APU_CODIGO || apu.codigo || '--';
-            const desc = apu.DESCRIPCION || apu.descripcion || 'Sin descripción';
-            const unit = apu.UNIDAD || apu.unidad || '--';
+            const code = apu.CODIGO_APU || apu.CODIGO || apu.ITEM || apu.id || '--';
+            const desc = apu.DESCRIPCION_APU || apu.DESCRIPCION || apu.NOMBRE || 'Sin descripción';
+            const unit = apu.UNIDAD_APU || apu.UNIDAD || apu.UND || '--';
 
             // Mejora la lógica de extracción del costo para buscar múltiples claves posibles
             const cost = apu.COSTO_UNITARIO_TOTAL || apu.PRECIO_UNIT_APU || apu.VALOR_TOTAL || apu.VALOR_TOTAL_APU || apu.valor_total || 0;
