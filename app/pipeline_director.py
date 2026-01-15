@@ -1881,7 +1881,14 @@ class APUCostCalculator(BaseCostProcessor):
             ColumnNames.OTROS,
         ]
 
+        # Calcular Costo Total Unitario
         df[ColumnNames.PRECIO_UNIT_APU] = df[components].sum(axis=1)
+
+        # Alias para compatibilidad con Frontend y Dashboard
+        df["COSTO_UNITARIO_TOTAL"] = df[ColumnNames.PRECIO_UNIT_APU]
+        df["PRECIO_UNIT_APU"] = df[ColumnNames.PRECIO_UNIT_APU]
+        df["VALOR_TOTAL"] = df[ColumnNames.PRECIO_UNIT_APU]
+        df[ColumnNames.VALOR_TOTAL_APU] = df[ColumnNames.PRECIO_UNIT_APU]
 
         df[ColumnNames.VALOR_SUMINISTRO_UN] = df[ColumnNames.MATERIALES]
         df[ColumnNames.VALOR_INSTALACION_UN] = (
