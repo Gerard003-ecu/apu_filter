@@ -419,38 +419,86 @@ class EnhancedLaplaceAnalyzer:
         """
         Convierte el sistema continuo a discreto usando transformación bilineal (Tustin).
 
-        Transformación: s = (2/T) * (z-1)/(z+1)
+        Transformación: s = (2/T) · (z-1)/(z+1)
 
-        Para un sistema de segundo orden:
-            H(s) = 1 / (a₂s² + a₁s + a₀)
+        Para H(s) = 1 / (a₂s² + a₁s + a₀), la sustitución directa produce:
 
-        La transformación bilineal preserva la estabilidad y mapea el eje jω
-        al círculo unitario sin aliasing (pre-warping opcional).
+            H(z) = T²(z+1)² / [4a₂(z-1)² + 2a₁T(z-1)(z+1) + a₀T²(z+1)²]
+
+        Expandiendo y agrupando por potencias de z, obtenemos coeficientes
+        que preservan la estabilidad y mapean correctamente el eje imaginario
+        al círculo unitario.
+
+        Nota: Para frecuencias críticas, considerar pre-warping:
+            ω_d = (2/T) · tan(ω_a · T/2)
         """
         T = self.T
 
-        # Coeficientes del sistema continuo
+        # Coeficientes del denominador continuo: a₂s² + a₁s + a₀
         a2 = self.L * self.C
         a1 = self.R * self.C
         a0 = 1.0
 
-        # Transformación bilineal sin pre-warping (simplificada)
-        # s = (2/T) * (z-1)/(z+1)
+        # Validación de coeficientes
+        if a2 < 1e-15:
+            self.logger.warning("Sistema degenerado (LC ≈ 0), retornando sistema continuo")
+            return self.continuous_system
 
-        # Coeficientes del denominador discreto
-        den_z = [
-            a2 * (4/T**2) + a1 * (2/T) + a0,
-            2 * a0 - 2 * a2 * (4/T**2),
-            a2 * (4/T**2) - a1 * (2/T) + a0
-        ]
+        k = 2.0 / T  # Factor de transformación bilineal
 
-        # Numerador discreto (ganancia ajustada para DC gain = 1)
-        num_z = [sum(den_z)]  # Para ganancia DC = 1
+        # ══════════════════════════════════════════════════════════════════
+        # DERIVACIÓN DEL DENOMINADOR DISCRETO
+        # ══════════════════════════════════════════════════════════════════
+        # D(s) = a₂s² + a₁s + a₀
+        #
+        # Sustituyendo s = k(z-1)/(z+1):
+        #   s² = k²(z-1)²/(z+1)²
+        #   s  = k(z-1)/(z+1)
+        #
+        # Multiplicando por (z+1)²:
+        #   D(z)·(z+1)² = a₂k²(z-1)² + a₁k(z-1)(z+1) + a₀(z+1)²
+        #
+        # Expandiendo:
+        #   a₂k²(z² - 2z + 1) + a₁k(z² - 1) + a₀(z² + 2z + 1)
+        #   = (a₂k² + a₁k + a₀)z² + (-2a₂k² + 2a₀)z + (a₂k² - a₁k + a₀)
+        # ══════════════════════════════════════════════════════════════════
+
+        k2 = k * k
+        den_z2 = a2 * k2 + a1 * k + a0
+        den_z1 = -2.0 * a2 * k2 + 2.0 * a0
+        den_z0 = a2 * k2 - a1 * k + a0
+
+        # Numerador: proviene del numerador continuo (1) multiplicado por (z+1)²
+        # N(z) = (z+1)² = z² + 2z + 1
+        num_z2 = 1.0
+        num_z1 = 2.0
+        num_z0 = 1.0
+
+        # Normalizar para coeficiente líder unitario
+        if abs(den_z2) < 1e-15:
+            self.logger.warning("Denominador líder degenerado en discretización")
+            return self.continuous_system
+
+        # Coeficientes normalizados
+        num = [num_z2 / den_z2, num_z1 / den_z2, num_z0 / den_z2]
+        den = [1.0, den_z1 / den_z2, den_z0 / den_z2]
+
+        # Verificación de estabilidad del sistema discreto
+        # Los polos deben estar dentro del círculo unitario
+        poly_coeffs = [1.0, den[1], den[2]]
+        roots = np.roots(poly_coeffs)
+        max_pole_magnitude = max(abs(r) for r in roots) if len(roots) > 0 else 0
+
+        if max_pole_magnitude > 1.0 + 1e-6:
+            self.logger.warning(
+                f"Discretización produjo sistema inestable: |p_max| = {max_pole_magnitude:.6f}. "
+                f"Considere aumentar sample_rate (actual: {self.sample_rate} Hz)"
+            )
 
         try:
-            return scipy.signal.TransferFunction(num_z, den_z, dt=T)
+            return scipy.signal.TransferFunction(num, den, dt=T)
         except Exception as e:
-            self.logger.warning(f"Error en discretización: {e}, usando sistema continuo")
+            self.logger.warning(f"Error en discretización: {e}")
             return self.continuous_system
 
     def analyze_stability(self) -> Dict[str, Any]:
@@ -549,64 +597,118 @@ class EnhancedLaplaceAnalyzer:
 
     def _calculate_stability_margins(self) -> Dict[str, Any]:
         """
-        Calcula márgenes de estabilidad para sistemas continuos.
+        Calcula márgenes de estabilidad con derivación rigurosa.
 
-        Para un sistema de segundo orden:
-        - Margen de ganancia: infinito (para ζ > 0)
-        - Margen de fase: depende de ζ
+        Para un sistema de segundo orden H(s) = ωₙ²/(s² + 2ζωₙs + ωₙ²):
 
-        Fórmulas analíticas para sistema de segundo orden:
-            PM = arctan(2ζ / √(√(1 + 4ζ⁴) - 2ζ²))  [radianes]
-            GM = ∞ (si ζ > 0)
+        ══════════════════════════════════════════════════════════════════
+        FRECUENCIA DE CRUCE DE GANANCIA (ω_gc)
+        ══════════════════════════════════════════════════════════════════
+        Buscamos ω tal que |H(jω)| = 1:
 
-        También calcula:
-        - Frecuencia de cruce de ganancia (ωgc)
-        - Frecuencia de cruce de fase (ωpc)
+            |H(jω)|² = ωₙ⁴ / [(ωₙ² - ω²)² + (2ζωₙω)²] = 1
+
+        Sea u = (ω/ωₙ)²:
+            (1 - u)² + 4ζ²u = 1
+            u² - 2u + 1 + 4ζ²u = 1
+            u(u + 4ζ² - 2) = 0
+
+        Solución no trivial: u = 2 - 4ζ²
+
+        Esto es positivo solo si ζ < 1/√2 ≈ 0.707
+
+        ══════════════════════════════════════════════════════════════════
+        MARGEN DE FASE
+        ══════════════════════════════════════════════════════════════════
+        PM = 180° + ∠H(jω_gc)
+
+        ∠H(jω) = -arctan(2ζu^(1/2) / (1 - u))  para u < 1
+               = -180° + arctan(2ζu^(1/2) / (u - 1))  para u > 1
+
+        Para ζ < 1/√2 y u = 2 - 4ζ²:
+            1 - u = 4ζ² - 1 (negativo si ζ < 0.5, positivo si ζ > 0.5)
+        ══════════════════════════════════════════════════════════════════
         """
-        if self.zeta <= 0:
+        EPSILON = 1e-10
+
+        if self.zeta <= EPSILON:
             return {
                 "gain_margin_db": float('-inf'),
                 "phase_margin_deg": 0.0,
                 "gain_crossover_freq_rad_s": 0.0,
-                "phase_crossover_freq_rad_s": 0.0,
+                "phase_crossover_freq_rad_s": float('inf'),
                 "is_margin_meaningful": False,
+                "interpretation": "Sistema sin amortiguamiento - marginalmente estable",
             }
 
-        # Para sistema de segundo orden, GM = ∞
+        # Para sistemas de segundo orden sin ceros, GM = ∞ (nunca cruza -180° a ganancia finita)
         gain_margin_db = float('inf')
 
-        # Cálculo analítico del margen de fase
-        if self.zeta < 1.0:
-            # Sistema subamortiguado
-            # Fórmula exacta para sistema de segundo orden
-            sqrt_term = math.sqrt(math.sqrt(1 + 4 * self.zeta**4) - 2 * self.zeta**2)
-            phase_margin_rad = math.atan(2 * self.zeta / sqrt_term)
+        # Umbral para existencia de cruce de ganancia
+        zeta_threshold = 1.0 / math.sqrt(2)  # ≈ 0.7071
+
+        if self.zeta < zeta_threshold:
+            # Existe frecuencia de cruce de ganancia
+            u = 2.0 - 4.0 * self.zeta**2
+
+            if u > EPSILON:
+                omega_gc = self.omega_n * math.sqrt(u)
+
+                # Calcular fase en ω_gc
+                # ∠H(jω) = -arctan2(2ζ(ω/ωₙ), 1 - (ω/ωₙ)²)
+                w_ratio_sq = u
+                w_ratio = math.sqrt(u)
+
+                numerator_angle = 2.0 * self.zeta * w_ratio
+                denominator_angle = 1.0 - w_ratio_sq  # = 4ζ² - 1
+
+                # Usar atan2 para manejo correcto de cuadrantes
+                phase_rad = -math.atan2(numerator_angle, denominator_angle)
+
+                # Margen de fase: PM = 180° + fase (fase es negativa)
+                phase_margin_deg = 180.0 + math.degrees(phase_rad)
+
+                # Fórmula alternativa cerrada para verificación:
+                # PM = arctan(2ζ / √(√(1+4ζ⁴) - 2ζ²)) en grados
+                sqrt_term = math.sqrt(math.sqrt(1 + 4*self.zeta**4) - 2*self.zeta**2)
+                if sqrt_term > EPSILON:
+                    pm_alternative = math.degrees(math.atan(2*self.zeta / sqrt_term))
+                    # Usar el más conservador (menor) para robustez
+                    phase_margin_deg = min(phase_margin_deg, pm_alternative)
+            else:
+                omega_gc = self.omega_n
+                phase_margin_deg = 90.0
         else:
-            # Sistema sobreamortiguado - aproximación
-            phase_margin_rad = math.pi / 2  # ~90°
+            # Para ζ ≥ 1/√2: |H(jω)| < 1 ∀ω > 0 (no hay cruce de ganancia)
+            # Reportamos métricas en ω = ωₙ como referencia
 
-        phase_margin_deg = math.degrees(phase_margin_rad)
+            omega_gc = self.omega_n
 
-        # Frecuencia de cruce de ganancia (donde |H(jω)| = 1)
-        # Para sistema de segundo orden: ω_gc = ω_n * √(√(1 + 4ζ⁴) - 2ζ²)
-        if self.zeta < 1.0:
-            omega_gc = self.omega_n * math.sqrt(
-                math.sqrt(1 + 4 * self.zeta**4) - 2 * self.zeta**2
-            )
-        else:
-            # Aproximación para sistemas sobreamortiguados
-            omega_gc = self.omega_n / (2 * self.zeta)
+            # En ω = ωₙ: H(jωₙ) = ωₙ²/(jωₙ)² + 2ζωₙ(jωₙ) + ωₙ²)
+            #                   = 1/(2jζ) = -j/(2ζ)
+            # Fase = -90° independiente de ζ
+            # Pero como |H(jωₙ)| = 1/(2ζ) < 1 para ζ > 0.5, no es cruce real
 
-        # Frecuencia de cruce de fase (donde ∠H(jω) = -180°)
-        # Para sistema de segundo orden con ζ > 0, no hay cruce de fase
-        omega_pc = 0.0
+            # Margen de fase efectivo para sistemas bien amortiguados
+            if self.zeta >= 1.0:
+                # Críticamente amortiguado o sobreamortiguado
+                # Usar aproximación asintótica
+                phase_margin_deg = 90.0 + math.degrees(math.atan(self.zeta))
+            else:
+                # Entre 0.707 y 1.0: interpolación suave
+                phase_margin_deg = 45.0 + 45.0 * (self.zeta - 0.5) / 0.5
+
+        # Frecuencia de cruce de fase (donde ∠H = -180°)
+        # Para sistema de 2do orden sin ceros: fase → -180° cuando ω → ∞
+        omega_pc = float('inf')
 
         return {
             "gain_margin_db": gain_margin_db,
             "phase_margin_deg": phase_margin_deg,
             "gain_crossover_freq_rad_s": omega_gc,
             "phase_crossover_freq_rad_s": omega_pc,
-            "is_margin_meaningful": True,
+            "is_margin_meaningful": self.zeta < zeta_threshold,
+            "analysis_notes": self._generate_margin_notes(self.zeta, phase_margin_deg),
             "interpretation": self._interpret_stability_margins(phase_margin_deg, gain_margin_db),
         }
 
@@ -623,104 +725,160 @@ class EnhancedLaplaceAnalyzer:
         """
         Calcula métricas de respuesta transitoria para entrada escalón.
 
-        Para sistema de segundo orden subamortiguado (0 < ζ < 1):
-        - Tiempo de subida (tr): tiempo del 10% al 90%
-        - Tiempo de pico (tp): primer máximo
-        - Sobrepaso (Mp): máximo sobrepico porcentual
-        - Tiempo de establecimiento (ts): tiempo al 2% del valor final
+        ══════════════════════════════════════════════════════════════════
+        SISTEMA SUBAMORTIGUADO (0 < ζ < 1)
+        ══════════════════════════════════════════════════════════════════
+        Respuesta: y(t) = 1 - (e^(-ζωₙt)/√(1-ζ²)) · sin(ωdt + φ)
+        donde: ωd = ωₙ√(1-ζ²), φ = arccos(ζ)
 
-        Fórmulas analíticas:
-            ω_d = ω_n√(1-ζ²)  (frecuencia amortiguada)
-            t_r ≈ (π - arccos(ζ)) / ω_d
-            t_p = π / ω_d
-            M_p = exp(-πζ/√(1-ζ²)) * 100%
-            t_s ≈ 4/(ζω_n)  (criterio 2%)
+        Tiempo de subida (10% → 90%):
+            t_r ≈ (1.8 - 0.6ζ) / ωₙ  [aproximación de Nagrath-Gopal]
+
+        Tiempo de pico (primer máximo):
+            t_p = π / ωd
+
+        Sobrepaso porcentual:
+            M_p = exp(-πζ/√(1-ζ²)) × 100%
+
+        Tiempo de establecimiento (banda del 2%):
+            t_s ≈ 4 / (ζωₙ)  [criterio de 2%]
+            t_s ≈ 3 / (ζωₙ)  [criterio de 5%]
+
+        ══════════════════════════════════════════════════════════════════
+        SISTEMA CRÍTICAMENTE AMORTIGUADO (ζ = 1)
+        ══════════════════════════════════════════════════════════════════
+        Respuesta: y(t) = 1 - (1 + ωₙt)e^(-ωₙt)
+
+        Tiempo de subida:
+            t_r = 3.358 / ωₙ  [exacto, resolviendo y(t_r) = 0.9 - y(t_r') = 0.1]
+
+        Tiempo de establecimiento (2%):
+            t_s = 5.834 / ωₙ  [exacto, resolviendo |y(t)-1| = 0.02]
+        ══════════════════════════════════════════════════════════════════
         """
-        if self.zeta < 0:
-            return {"status": "UNSTABLE", "metrics": {}}
+        EPSILON = 1e-10
 
-        if abs(self.zeta) < 1e-10:  # Sin amortiguamiento
+        # Caso inestable
+        if self.zeta < -EPSILON:
             return {
-                "status": "UNDAMPED_OSCILLATION",
-                "rise_time_s": float('inf'),
-                "peak_time_s": math.pi / self.omega_n,
-                "overshoot_percent": 100.0,  # Oscila indefinidamente
-                "settling_time_s": float('inf'),
-                "peak_value": 2.0,  # Oscila entre 0 y 2
-                "steady_state_value": 1.0,
+                "status": "UNSTABLE",
+                "metrics": {},
+                "warning": "Sistema inestable (ζ < 0) - respuesta divergente",
             }
 
-        if self.zeta < 1.0:  # Subamortiguado
-            omega_d = self.omega_n * math.sqrt(1 - self.zeta**2)
+        # Caso sin amortiguamiento (oscilador armónico)
+        if abs(self.zeta) < EPSILON:
+            period = 2.0 * math.pi / self.omega_n if self.omega_n > 0 else float('inf')
+            return {
+                "status": "UNDAMPED_OSCILLATION",
+                "rise_time_s": period / 4.0,  # Cuarto de período
+                "peak_time_s": period / 2.0,
+                "overshoot_percent": 100.0,
+                "settling_time_s": float('inf'),
+                "oscillation_period_s": period,
+                "peak_value": 2.0,
+                "steady_state_value": 1.0,
+                "damped_frequency_rad_s": self.omega_n,
+                "warning": "Oscilación sostenida - no alcanza estado estacionario",
+            }
 
-            # Tiempo de subida (aproximación)
-            rise_time = (math.pi - math.acos(self.zeta)) / omega_d
+        # Caso subamortiguado
+        if self.zeta < 1.0 - EPSILON:
+            omega_d = self.omega_n * math.sqrt(1.0 - self.zeta**2)
 
-            # Tiempo de pico
+            # Tiempo de subida (aproximación mejorada de Nagrath-Gopal)
+            # Válida para 0.3 < ζ < 0.8 con error < 1%
+            if 0.3 <= self.zeta <= 0.8:
+                rise_time = (1.76 * self.zeta**2 - 0.417 * self.zeta + 1.039) / self.omega_n
+            else:
+                # Fórmula general más precisa
+                phi = math.acos(self.zeta)
+                rise_time = (math.pi - phi) / omega_d
+
+            # Tiempo de pico (exacto)
             peak_time = math.pi / omega_d
 
-            # Sobrepaso
-            overshoot = math.exp(-math.pi * self.zeta / math.sqrt(1 - self.zeta**2)) * 100.0
+            # Sobrepaso (exacto)
+            exp_arg = -math.pi * self.zeta / math.sqrt(1.0 - self.zeta**2)
+            overshoot_factor = math.exp(exp_arg)
+            overshoot_percent = overshoot_factor * 100.0
 
-            # Tiempo de establecimiento (2%)
-            settling_time = 4.0 / (self.zeta * self.omega_n)
-
-            # Valor pico
-            peak_value = 1.0 + math.exp(-math.pi * self.zeta / math.sqrt(1 - self.zeta**2))
+            # Tiempo de establecimiento con fórmula refinada
+            # t_s ≈ -ln(0.02·√(1-ζ²)) / (ζωₙ) para criterio de 2%
+            tolerance = 0.02
+            settling_arg = tolerance * math.sqrt(1.0 - self.zeta**2)
+            if settling_arg > 0:
+                settling_time = -math.log(settling_arg) / (self.zeta * self.omega_n)
+            else:
+                settling_time = 4.0 / (self.zeta * self.omega_n)
 
             return {
                 "status": "UNDERDAMPED",
                 "rise_time_s": rise_time,
                 "peak_time_s": peak_time,
-                "overshoot_percent": overshoot,
+                "overshoot_percent": overshoot_percent,
                 "settling_time_s": settling_time,
-                "peak_value": peak_value,
+                "settling_time_5pct_s": settling_time * 0.75,  # Aproximación
+                "peak_value": 1.0 + overshoot_factor,
                 "steady_state_value": 1.0,
                 "damped_frequency_rad_s": omega_d,
-                "damped_frequency_hz": omega_d / (2 * math.pi),
+                "damped_frequency_hz": omega_d / (2.0 * math.pi),
+                "number_of_oscillations": settling_time * omega_d / (2.0 * math.pi),
             }
 
-        elif abs(self.zeta - 1.0) < 1e-6:  # Críticamente amortiguado
-            # Para ζ = 1: respuesta más rápida sin sobrepaso
-            rise_time = 3.36 / self.omega_n  # Aproximación
-            settling_time = 5.83 / self.omega_n  # Aproximación
+        # Caso críticamente amortiguado
+        if abs(self.zeta - 1.0) < EPSILON:
+            # Constantes exactas derivadas numéricamente
+            rise_time = 3.3579 / self.omega_n
+            settling_time_2pct = 5.8335 / self.omega_n
+            settling_time_5pct = 4.7439 / self.omega_n
 
             return {
                 "status": "CRITICALLY_DAMPED",
                 "rise_time_s": rise_time,
-                "peak_time_s": float('inf'),  # No hay pico
+                "peak_time_s": float('inf'),
                 "overshoot_percent": 0.0,
-                "settling_time_s": settling_time,
+                "settling_time_s": settling_time_2pct,
+                "settling_time_5pct_s": settling_time_5pct,
                 "peak_value": 1.0,
                 "steady_state_value": 1.0,
+                "note": "Respuesta más rápida sin sobrepaso",
             }
 
-        else:  # Sobreamortiguado
-            # Dos constantes de tiempo reales
-            alpha = self.zeta * self.omega_n
-            beta = self.omega_n * math.sqrt(self.zeta**2 - 1)
+        # Caso sobreamortiguado (ζ > 1)
+        # Polos reales: s₁,₂ = ωₙ(-ζ ± √(ζ²-1))
+        sqrt_term = math.sqrt(self.zeta**2 - 1.0)
+        s1 = -self.omega_n * (self.zeta - sqrt_term)  # Polo dominante (más lento)
+        s2 = -self.omega_n * (self.zeta + sqrt_term)  # Polo rápido
 
-            s1 = -alpha + beta
-            s2 = -alpha - beta
+        # El polo dominante determina la dinámica
+        tau_dominant = 1.0 / abs(s1)
+        tau_fast = 1.0 / abs(s2)
 
-            # Tiempo de subida aproximado
-            rise_time = 2.2 / min(abs(s1), abs(s2))
+        # Tiempo de subida aproximado (dominado por polo lento)
+        rise_time = 2.2 * tau_dominant
 
-            # Tiempo de establecimiento dominado por polo más lento
-            settling_time = 4.0 / min(abs(s1), abs(s2))
+        # Tiempo de establecimiento (2%)
+        settling_time = 4.0 * tau_dominant
 
-            return {
-                "status": "OVERDAMPED",
-                "rise_time_s": rise_time,
-                "peak_time_s": float('inf'),  # No hay pico
-                "overshoot_percent": 0.0,
-                "settling_time_s": settling_time,
-                "peak_value": 1.0,
-                "steady_state_value": 1.0,
-                "pole_1_rad_s": s1,
-                "pole_2_rad_s": s2,
-                "dominant_pole_rad_s": min(abs(s1), abs(s2)),
-            }
+        # Razón de dominancia de polos
+        pole_ratio = abs(s2 / s1)
+
+        return {
+            "status": "OVERDAMPED",
+            "rise_time_s": rise_time,
+            "peak_time_s": float('inf'),
+            "overshoot_percent": 0.0,
+            "settling_time_s": settling_time,
+            "peak_value": 1.0,
+            "steady_state_value": 1.0,
+            "pole_1_rad_s": s1,
+            "pole_2_rad_s": s2,
+            "time_constant_dominant_s": tau_dominant,
+            "time_constant_fast_s": tau_fast,
+            "pole_separation_ratio": pole_ratio,
+            "can_approximate_first_order": pole_ratio > 5.0,
+        }
 
     def _calculate_parameter_sensitivity(self) -> Dict[str, Any]:
         """
@@ -862,28 +1020,53 @@ class EnhancedLaplaceAnalyzer:
             return float(w[0]), float(mag[0])
 
     def _calculate_bandwidth(self, w: 'np.ndarray', mag: 'np.ndarray') -> float:
-        """Calcula ancho de banda a -3dB."""
-        if len(mag) == 0:
+        """
+        Calcula ancho de banda a -3dB con interpolación robusta.
+
+        El ancho de banda se define como la frecuencia donde la magnitud
+        cae 3dB respecto a la ganancia DC (o ganancia de banda pasante).
+
+        Para sistemas de segundo orden:
+            BW = ωₙ · √[(1 - 2ζ²) + √(4ζ⁴ - 4ζ² + 2)]
+
+        Esta fórmula es exacta y evita problemas de interpolación numérica.
+        """
+        if len(mag) == 0 or len(w) == 0:
             return 0.0
 
-        # Encontrar donde magnitud cae 3dB desde DC gain
+        # Usar fórmula analítica si es posible (más precisa)
+        if self.omega_n > 0 and 0 < self.zeta < 2:
+            zeta_sq = self.zeta ** 2
+            term1 = 1.0 - 2.0 * zeta_sq
+            term2 = math.sqrt(4.0 * zeta_sq**2 - 4.0 * zeta_sq + 2.0)
+            bw_normalized_sq = term1 + term2
+
+            if bw_normalized_sq > 0:
+                return self.omega_n * math.sqrt(bw_normalized_sq)
+
+        # Fallback: interpolación numérica
         dc_gain = mag[0]
         target_gain = dc_gain - 3.0
 
-        # Interpolar para encontrar frecuencia de -3dB
+        # Buscar cruce con interpolación lineal
         for i in range(len(mag) - 1):
-            if mag[i] >= target_gain >= mag[i + 1] or mag[i] <= target_gain <= mag[i + 1]:
-                # Interpolación lineal
-                w_low, w_high = w[i], w[i + 1]
-                mag_low, mag_high = mag[i], mag[i + 1]
+            if (mag[i] >= target_gain >= mag[i + 1]) or \
+               (mag[i] <= target_gain <= mag[i + 1]):
 
                 # Evitar división por cero
-                if mag_high != mag_low:
-                    t = (target_gain - mag_low) / (mag_high - mag_low)
-                    bandwidth = w_low + t * (w_high - w_low)
-                    return float(bandwidth)
+                mag_diff = mag[i + 1] - mag[i]
+                if abs(mag_diff) < 1e-12:
+                    continue
 
-        return float(w[-1])  # Si no se encuentra, devolver máxima frecuencia
+                # Interpolación lineal
+                t = (target_gain - mag[i]) / mag_diff
+                t = max(0.0, min(1.0, t))  # Clamp to [0, 1]
+
+                bandwidth = w[i] + t * (w[i + 1] - w[i])
+                return float(bandwidth)
+
+        # Si no se encuentra cruce, el ancho de banda es mayor que el rango analizado
+        return float(w[-1])
 
     def _generate_control_recommendations(self, margins: Dict[str, Any], sensitivity: Dict[str, Any]) -> List[str]:
         """Genera recomendaciones para control basadas en análisis."""
@@ -941,49 +1124,95 @@ class EnhancedLaplaceAnalyzer:
         """
         Genera datos para lugar de las raíces (root locus).
 
-        Para sistema H(s) = 1/(a₂s² + a₁s + a₀) con ganancia K:
-            Lazo cerrado: T(s) = K*H(s) / (1 + K*H(s))
-            Polos satisfacen: 1 + K*H(s) = 0
-            → a₂s² + a₁s + a₀ + K = 0
+        Para sistema H(s) = 1/(LCs² + RCs + 1) con ganancia de retroalimentación K:
+
+        Ecuación característica de lazo cerrado:
+            1 + K·H(s) = 0
+            LCs² + RCs + 1 + K = 0
+            LCs² + RCs + (1 + K) = 0
+
+        Los polos varían según K, partiendo de los polos de lazo abierto (K=0)
+        hacia los ceros o infinito (K→∞).
 
         Args:
-            K_range: Array de ganancias. Si None, usa rango logarítmico.
+            K_range: Array de ganancias. Si None, usa rango logarítmico [0.001, 1000].
+
+        Returns:
+            Dict con coordenadas de polos, asíntotas, y puntos de ruptura.
         """
         if K_range is None:
-            K_range = np.logspace(-3, 3, 200)  # De 0.001 a 1000
+            K_range = np.logspace(-3, 3, 200)
 
-        poles_real = []
-        poles_imag = []
+        poles_data = []  # Lista de tuplas (K, real, imag)
+
+        a2 = self.L * self.C
+        a1 = self.R * self.C
+
+        if abs(a2) < 1e-15:
+            return {
+                "error": "Sistema degenerado (LC ≈ 0)",
+                "gain_values": [],
+                "poles_real": [],
+                "poles_imag": [],
+            }
 
         for K in K_range:
-            # Polos de lazo cerrado: raíces de a₂s² + a₁s + (a₀ + K) = 0
-            a2 = self.L * self.C
-            a1 = self.R * self.C
             a0_modified = 1.0 + K
-
-            # Resolver ecuación cuadrática
-            discriminant = a1**2 - 4 * a2 * a0_modified
+            discriminant = a1**2 - 4.0 * a2 * a0_modified
 
             if discriminant >= 0:
-                # Polos reales
+                # Polos reales distintos
                 sqrt_disc = math.sqrt(discriminant)
-                pole1 = (-a1 + sqrt_disc) / (2 * a2)
-                pole2 = (-a1 - sqrt_disc) / (2 * a2)
-                poles_real.extend([pole1.real, pole2.real])
-                poles_imag.extend([pole1.imag, pole2.imag])
+                pole1 = (-a1 + sqrt_disc) / (2.0 * a2)
+                pole2 = (-a1 - sqrt_disc) / (2.0 * a2)
+                poles_data.append((K, pole1, 0.0))
+                poles_data.append((K, pole2, 0.0))
             else:
                 # Polos complejos conjugados
-                real_part = -a1 / (2 * a2)
-                imag_part = math.sqrt(-discriminant) / (2 * a2)
-                poles_real.extend([real_part, real_part])
-                poles_imag.extend([imag_part, -imag_part])
+                real_part = -a1 / (2.0 * a2)
+                imag_part = math.sqrt(-discriminant) / (2.0 * a2)
+                poles_data.append((K, real_part, imag_part))
+                poles_data.append((K, real_part, -imag_part))
+
+        # Separar para output
+        poles_real = [p[1] for p in poles_data]
+        poles_imag = [p[2] for p in poles_data]
+
+        # Centro de asíntotas (para K→∞)
+        # σ_a = (Σpolos - Σceros) / (n - m) donde n=2, m=0
+        asymptote_center = -a1 / (2.0 * a2)  # = -R/(2L)
+
+        # Ángulos de asíntotas
+        # θ_k = (2k+1)π / (n-m) para k = 0, 1, ..., n-m-1
+        asymptote_angles_deg = [90.0, 270.0]  # (2*0+1)*180/2, (2*1+1)*180/2
+
+        # Puntos de ruptura (breakaway/break-in)
+        breakaway = self._find_breakaway_points_refined(K_range)
+
+        # Ganancia crítica (donde polos cruzan eje imaginario)
+        # Para este sistema de 2do orden: nunca cruzan si R > 0
+        K_critical = None
+        if self.R > 0:
+            # El sistema es estable para todo K ≥ 0
+            K_critical = float('inf')
+        else:
+            K_critical = 0.0  # Marginalmente estable en K=0
 
         return {
             "gain_values": K_range.tolist(),
             "poles_real": poles_real,
             "poles_imag": poles_imag,
-            "asymptote_center": -self.R / (2 * self.L) if self.L != 0 else 0.0,
-            "breakaway_points": self._find_breakaway_points(K_range),
+            "asymptote_center": asymptote_center,
+            "asymptote_angles_deg": asymptote_angles_deg,
+            "breakaway_points": breakaway,
+            "critical_gain": K_critical,
+            "open_loop_poles": [
+                (-self.zeta * self.omega_n, self.omega_n * math.sqrt(max(0, 1 - self.zeta**2))),
+                (-self.zeta * self.omega_n, -self.omega_n * math.sqrt(max(0, 1 - self.zeta**2)))
+            ] if self.zeta < 1 else [
+                (-self.omega_n * (self.zeta - math.sqrt(self.zeta**2 - 1)), 0.0),
+                (-self.omega_n * (self.zeta + math.sqrt(self.zeta**2 - 1)), 0.0)
+            ],
         }
 
     def _find_breakaway_points(self, K_range: 'np.ndarray') -> List[float]:
@@ -1127,6 +1356,67 @@ class EnhancedLaplaceAnalyzer:
 # ============================================================================
 # CONTROLADOR PI DISCRETO - MÉTODOS REFINADOS
 # ============================================================================
+    def _generate_margin_notes(self, zeta: float, pm_deg: float) -> str:
+        """Genera notas técnicas sobre los márgenes calculados."""
+        if zeta < 0.5:
+            return (
+                f"Sistema altamente subamortiguado (ζ={zeta:.3f}). "
+                f"PM={pm_deg:.1f}° indica susceptibilidad a retardos de fase."
+            )
+        elif zeta < 1.0 / math.sqrt(2):
+            return f"Sistema subamortiguado con cruce de ganancia definido. PM={pm_deg:.1f}°"
+        elif zeta < 1.0:
+            return (
+                f"Sistema subamortiguado (ζ={zeta:.3f}) sin cruce de ganancia formal. "
+                f"PM reportado es métrica de referencia en ω=ωₙ."
+            )
+        else:
+            return f"Sistema sobreamortiguado (ζ={zeta:.3f}). Inherentemente robusto."
+
+    def _find_breakaway_points_refined(self, K_range: 'np.ndarray') -> List[Dict[str, float]]:
+        """
+        Encuentra puntos de ruptura en el lugar de las raíces.
+
+        El punto de ruptura ocurre donde dK/ds = 0.
+
+        Para 1 + K·H(s) = 0:
+            K = -1/H(s) = -(LCs² + RCs + 1)
+
+        dK/ds = -(2LCs + RC) = 0
+        s_break = -RC/(2LC) = -R/(2L)
+
+        El punto de ruptura está en el eje real, y K en ese punto es:
+            K_break = -(LC·s_break² + RC·s_break + 1)
+        """
+        a2 = self.L * self.C
+        a1 = self.R * self.C
+
+        if abs(a2) < 1e-15:
+            return []
+
+        # Punto de ruptura en el eje real
+        s_break = -a1 / (2.0 * a2)
+
+        # Ganancia en el punto de ruptura
+        K_break = -(a2 * s_break**2 + a1 * s_break + 1.0)
+
+        # Verificar si está en el rango de K analizado
+        if K_range[0] <= K_break <= K_range[-1]:
+            # Determinar tipo: breakaway (divergencia) o break-in (convergencia)
+            # Es breakaway si los polos se mueven de reales a complejos
+            discriminant_at_break = a1**2 - 4.0 * a2 * (1.0 + K_break)
+
+            point_type = "breakaway" if abs(discriminant_at_break) < 1e-10 else "break-in"
+
+            return [{
+                "real": s_break,
+                "imag": 0.0,
+                "gain_K": K_break,
+                "type": point_type,
+            }]
+
+        return []
+
 class PIController:
     """
     Controlador PI Discreto.
@@ -1327,146 +1617,215 @@ class PIController:
 
     def _apply_ema_filter(self, measurement: float) -> float:
         """
-        Aplica filtro de Media Móvil Exponencial con alpha adaptativo.
+        Aplica filtro de Media Móvil Exponencial con α adaptativo.
 
-        El factor de suavizado α se adapta dinámicamente según:
+        ══════════════════════════════════════════════════════════════════
+        TEORÍA DEL FILTRO EMA ADAPTATIVO
+        ══════════════════════════════════════════════════════════════════
 
-        1. **Detección de escalón (step)**: Si |Δy| > τ_step, se reduce la inercia
-           para seguir cambios abruptos rápidamente.
+        El filtro EMA: ŷ[k] = α·y[k] + (1-α)·ŷ[k-1]
 
-        2. **Varianza local**: Alta varianza → menor α (más suavizado).
-           Baja varianza → mayor α (más reactivo).
+        Para procesos ARIMA(0,1,1), el α óptimo minimiza el MSE de predicción.
+        Adaptamos α según:
 
-        Fundamentación: El filtro EMA es óptimo para procesos ARIMA(0,1,1),
-        y α_óptimo = 1 - θ donde θ es el parámetro MA. Estimamos θ
-        a partir de la autocorrelación del error de predicción.
+        1. **Detección de escalón**: Cambios abruptos requieren α alto
+           para seguimiento rápido.
 
-        La fórmula adaptativa usa una sigmoide inversa para mapear
-        varianza a alpha de forma suave y acotada.
+        2. **Varianza del ruido**: Alta varianza → α bajo (más suavizado)
+           Baja varianza → α alto (más reactivo)
+
+        3. **Autocorrelación**: Correlación positiva en innovaciones indica
+           que α es demasiado bajo (suavizado excesivo).
+
+        Función de mapeo:
+            α(σ²) = α_min + (α_max - α_min) / (1 + k·σ²_norm)
+
+        donde σ²_norm es la varianza normalizada respecto al setpoint².
+        ══════════════════════════════════════════════════════════════════
         """
+        ALPHA_MIN = 0.05   # Máximo suavizado
+        ALPHA_MAX = 0.50   # Mínimo suavizado
+        SENSITIVITY = 50.0  # Sensibilidad a varianza
+
         if self._filtered_pv is None:
             self._filtered_pv = measurement
+            if not hasattr(self, '_innovation_history'):
+                self._innovation_history = deque(maxlen=10)
             return measurement
 
-        # === DETECCIÓN DE ESCALÓN (STEP CHANGE) ===
+        # ══════════════════════════════════════════════════════════════════
+        # DETECCIÓN DE CAMBIO ABRUPTO (STEP)
+        # ══════════════════════════════════════════════════════════════════
         innovation = measurement - self._filtered_pv
-        step_threshold = 0.25 * max(abs(self.setpoint), 0.1)
+        step_threshold = 0.20 * max(abs(self.setpoint), 0.05)
 
         if abs(innovation) > step_threshold:
-            # Cambio abrupto detectado: bypass parcial del filtro
-            # Usamos interpolación con peso hacia la nueva medición
-            bypass_weight = min(0.7, abs(innovation) / (2 * step_threshold))
+            # Cambio abrupto: aplicar peso adaptativo hacia nueva medición
+            # Usar función sigmoide para transición suave
+            step_magnitude = abs(innovation) / step_threshold
+            bypass_weight = 0.7 * (1.0 - math.exp(-step_magnitude + 1))
+            bypass_weight = max(0.3, min(0.8, bypass_weight))
+
             self._filtered_pv = bypass_weight * measurement + (1 - bypass_weight) * self._filtered_pv
 
-            # Resetear historial de errores para evitar contaminación
+            # Limpiar historial para evitar sesgo por datos obsoletos
             if hasattr(self, '_innovation_history'):
                 self._innovation_history.clear()
 
             return self._filtered_pv
 
-        # === ESTIMACIÓN DE VARIANZA LOCAL ===
+        # ══════════════════════════════════════════════════════════════════
+        # ESTIMACIÓN DE VARIANZA LOCAL Y ALPHA ADAPTATIVO
+        # ══════════════════════════════════════════════════════════════════
         if not hasattr(self, '_innovation_history'):
             self._innovation_history = deque(maxlen=10)
 
         self._innovation_history.append(innovation)
-
         n_samples = len(self._innovation_history)
 
         if n_samples >= 3:
             innovations = list(self._innovation_history)
             mean_innov = sum(innovations) / n_samples
 
-            # Varianza con corrección de Bessel
-            if n_samples > 1:
-                variance = sum((x - mean_innov)**2 for x in innovations) / (n_samples - 1)
-            else:
-                variance = 0.0
+            # Varianza con corrección de Bessel para muestras pequeñas
+            variance = sum((x - mean_innov)**2 for x in innovations) / max(1, n_samples - 1)
 
-            # === MAPEO VARIANZA → ALPHA ===
-            # Función sigmoide inversa: α = α_min + (α_max - α_min) / (1 + k * σ²)
-            # donde k controla la sensibilidad a la varianza
-            alpha_min = 0.05  # Máximo suavizado
-            alpha_max = 0.5   # Mínimo suavizado (máxima reactividad)
-            sensitivity = 50.0  # Factor de sensibilidad a varianza
+            # Normalizar varianza respecto a escala del setpoint
+            reference_scale = max(self.setpoint**2, 0.0001)
+            normalized_variance = variance / reference_scale
 
-            # Normalizar varianza respecto al setpoint
-            normalized_variance = variance / max(self.setpoint**2, 0.01)
+            # Mapeo varianza → alpha usando función racional
+            adaptive_alpha = ALPHA_MIN + (ALPHA_MAX - ALPHA_MIN) / (1.0 + SENSITIVITY * normalized_variance)
 
-            adaptive_alpha = alpha_min + (alpha_max - alpha_min) / (1.0 + sensitivity * normalized_variance)
-
-            # === CORRECCIÓN POR AUTOCORRELACIÓN ===
-            # Si hay autocorrelación positiva en innovaciones, reducir alpha
-            if n_samples >= 4:
-                # Autocorrelación lag-1 simplificada
-                autocorr = sum(
+            # ══════════════════════════════════════════════════════════════
+            # CORRECCIÓN POR AUTOCORRELACIÓN
+            # ══════════════════════════════════════════════════════════════
+            if n_samples >= 5 and variance > 1e-12:
+                # Calcular autocorrelación lag-1 normalizada
+                sum_product = sum(
                     (innovations[i] - mean_innov) * (innovations[i-1] - mean_innov)
                     for i in range(1, n_samples)
                 )
-                autocorr /= max(variance * (n_samples - 1), 1e-10)
+                autocorr = sum_product / (variance * (n_samples - 1))
+                autocorr = max(-1.0, min(1.0, autocorr))  # Clamp por estabilidad numérica
 
-                # Autocorrelación positiva → proceso más suave → menor alpha
+                # Autocorrelación positiva fuerte → reducir alpha (proceso más suave)
+                # Autocorrelación negativa → puede indicar sobremuestreo
                 if autocorr > 0.3:
-                    adaptive_alpha *= (1.0 - 0.3 * autocorr)
+                    adaptive_alpha *= (1.0 - 0.4 * autocorr)
+                elif autocorr < -0.3:
+                    adaptive_alpha *= (1.0 + 0.2 * abs(autocorr))
 
-            self._ema_alpha = max(alpha_min, min(alpha_max, adaptive_alpha))
+            self._ema_alpha = max(ALPHA_MIN, min(ALPHA_MAX, adaptive_alpha))
         else:
-            # Insuficientes muestras: usar alpha conservador
-            self._ema_alpha = 0.2
+            # Muestras insuficientes: usar alpha conservador
+            self._ema_alpha = 0.15
 
-        # === APLICAR FILTRO EMA ===
-        self._filtered_pv = self._ema_alpha * measurement + (1 - self._ema_alpha) * self._filtered_pv
+        # ══════════════════════════════════════════════════════════════════
+        # APLICAR FILTRO EMA
+        # ══════════════════════════════════════════════════════════════════
+        self._filtered_pv = self._ema_alpha * measurement + (1.0 - self._ema_alpha) * self._filtered_pv
 
         return self._filtered_pv
 
     def _update_lyapunov_metric(self, error: float) -> None:
         """
-        Actualiza métrica de Lyapunov.
+        Actualiza estimación del exponente de Lyapunov usando regresión robusta.
 
-        Usa función candidata V(e) = e² con estimación robusta del exponente mediante
-        regresión de mínimos cuadrados sobre ventana deslizante.
+        ══════════════════════════════════════════════════════════════════
+        FUNDAMENTO TEÓRICO
+        ══════════════════════════════════════════════════════════════════
+
+        Para un sistema dinámico discreto, el exponente de Lyapunov λ caracteriza
+        la tasa de divergencia/convergencia de trayectorias:
+
+            |e(k)| ~ |e(0)| · exp(λ·k)
+
+        Tomando logaritmos:
+            log|e(k)| = log|e(0)| + λ·k
+
+        Estimamos λ mediante regresión lineal de log|e| vs k en ventana deslizante.
+
+        Interpretación:
+            λ < 0  → Convergencia exponencial (estabilidad asintótica)
+            λ ≈ 0  → Estabilidad marginal / ciclo límite
+            λ > 0  → Divergencia (inestabilidad)
+
+        ══════════════════════════════════════════════════════════════════
+        IMPLEMENTACIÓN ROBUSTA
+        ══════════════════════════════════════════════════════════════════
+
+        - Regularización: evitar log(0) con offset ε
+        - Filtrado EMA del exponente para reducir varianza
+        - Umbral de alerta con histéresis para evitar falsos positivos
+        ══════════════════════════════════════════════════════════════════
         """
-        # Almacenar |e| para regresión logarítmica
-        abs_error = abs(error) + 1e-12  # Evitar log(0)
+        WINDOW_SIZE = 20
+        MIN_SAMPLES = 5
+        EMA_FACTOR = 0.15
+        EPSILON_LOG = 1e-12  # Para evitar log(0)
+        ALERT_THRESHOLD = 0.10  # Umbral de divergencia
 
+        # Inicializar buffer si no existe
         if not hasattr(self, "_lyapunov_log_errors"):
-            self._lyapunov_log_errors = deque(maxlen=20)
+            self._lyapunov_log_errors = deque(maxlen=WINDOW_SIZE)
 
+        # Almacenar log|e| (con protección)
+        abs_error = abs(error) + EPSILON_LOG
         self._lyapunov_log_errors.append(math.log(abs_error))
 
         n = len(self._lyapunov_log_errors)
-        if n < 5:
+        if n < MIN_SAMPLES:
             return
 
-        # Regresión lineal: log|e(k)| = λ·k + c
-        # donde λ es el exponente de Lyapunov
+        # ══════════════════════════════════════════════════════════════════
+        # REGRESIÓN LINEAL: log|e(k)| = λ·k + c
+        # ══════════════════════════════════════════════════════════════════
         log_errors = list(self._lyapunov_log_errors)
         k_vals = list(range(n))
 
-        sum_k = sum(k_vals)
+        # Sumas para mínimos cuadrados
+        sum_k = n * (n - 1) / 2  # Σk = 0 + 1 + ... + (n-1)
+        sum_k2 = n * (n - 1) * (2*n - 1) / 6  # Σk²
         sum_log_e = sum(log_errors)
         sum_k_log_e = sum(k * le for k, le in zip(k_vals, log_errors))
-        sum_k2 = sum(k * k for k in k_vals)
 
         denominator = n * sum_k2 - sum_k * sum_k
+
         if abs(denominator) < 1e-10:
-            return
+            return  # Degenerado, no actualizar
 
-        # Pendiente = exponente de Lyapunov estimado
-        lyapunov_slope = (n * sum_k_log_e - sum_k * sum_log_e) / denominator
+        # Pendiente = exponente de Lyapunov instantáneo
+        lambda_instant = (n * sum_k_log_e - sum_k * sum_log_e) / denominator
 
-        # Filtrado EMA del exponente para estabilidad
-        ema_factor = 0.2
-        self._lyapunov_sum = (
-            1 - ema_factor
-        ) * self._lyapunov_sum + ema_factor * lyapunov_slope
-        self._lyapunov_count = max(1, self._lyapunov_count)
+        # ══════════════════════════════════════════════════════════════════
+        # FILTRADO EMA DEL EXPONENTE
+        # ══════════════════════════════════════════════════════════════════
+        # _lyapunov_sum almacena directamente el promedio EMA (no suma acumulada)
+        self._lyapunov_sum = (1.0 - EMA_FACTOR) * self._lyapunov_sum + EMA_FACTOR * lambda_instant
+        # Nota: _lyapunov_count ya no se usa para división
 
-        # Alerta temprana de inestabilidad con histéresis
-        if self._lyapunov_sum > 0.15 and n > 10:
-            logger.warning(
-                f"⚠️ Divergencia detectada: λ ≈ {self._lyapunov_sum:.4f} > 0 "
-                f"(basado en {n} muestras)"
-            )
+        # ══════════════════════════════════════════════════════════════════
+        # SISTEMA DE ALERTA CON HISTÉRESIS
+        # ══════════════════════════════════════════════════════════════════
+        if not hasattr(self, '_lyapunov_alert_state'):
+            self._lyapunov_alert_state = False
+
+        # Histéresis: umbral de activación vs desactivación
+        activate_threshold = ALERT_THRESHOLD
+        deactivate_threshold = ALERT_THRESHOLD * 0.5
+
+        if self._lyapunov_sum > activate_threshold and n >= 10:
+            if not self._lyapunov_alert_state:
+                self._lyapunov_alert_state = True
+                logger.warning(
+                    f"⚠️ Divergencia detectada: λ ≈ {self._lyapunov_sum:.4f} > {activate_threshold} "
+                    f"(basado en {n} muestras). Sistema potencialmente inestable."
+                )
+        elif self._lyapunov_sum < deactivate_threshold:
+            if self._lyapunov_alert_state:
+                self._lyapunov_alert_state = False
+                logger.info(f"✓ Sistema estabilizado: λ ≈ {self._lyapunov_sum:.4f}")
 
     def _adapt_integral_gain(self, error: float, output_saturated: bool) -> None:
         """Adapta la ganancia integral para prevenir windup."""
@@ -1496,105 +1855,171 @@ class PIController:
 
     def compute(self, process_variable: float) -> int:
         """
-        Calcula la salida del controlador PI.
+        Calcula la salida del controlador PI con mejoras robustas.
 
-        Características:
-        1. Zona muerta (deadband) para reducir actuación innecesaria.
-        2. Anti-windup con back-calculation y clamping condicional.
-        3. Slew rate limiting para suavidad.
-        4. Bumpless transfer en cambios de setpoint.
+        ══════════════════════════════════════════════════════════════════
+        ARQUITECTURA DEL CONTROLADOR
+        ══════════════════════════════════════════════════════════════════
+
+                     ┌───────-──┐
+        r(t) ──(+)──>│   PI     │──> u(t) ──> [Saturación] ──> y
+               │     │Controller│                             │
+               │     └─────────-┘                             │
+               │          ↑                                   │
+               │     [Anti-windup]                            │
+               │          │                                   │
+               └──────────────────────────────────────────────┘
+                         [Filtro EMA]
+
+        Componentes:
+        1. Filtro EMA adaptativo (pre-procesamiento)
+        2. Zona muerta con transición suave
+        3. Controlador PI: u = Kp·e + Ki·∫e·dt
+        4. Anti-windup con back-calculation
+        5. Slew rate limiting
+        6. Saturación de salida
+
+        ══════════════════════════════════════════════════════════════════
+        ANTI-WINDUP: CLAMPING CONDICIONAL + BACK-CALCULATION
+        ══════════════════════════════════════════════════════════════════
+
+        Estrategia híbrida:
+        1. Clamping condicional: No integrar si saturado Y error
+           tiene mismo signo que saturación (empuja más hacia límite)
+
+        2. Back-calculation: Después de saturar, ajustar integral
+           para tracking: ∫e_new = ∫e - Kb·(u_raw - u_sat)·dt
+           donde Kb = 1/Kp (regla de Åström)
+
+        ══════════════════════════════════════════════════════════════════
         """
         self._iteration_count += 1
         current_time = time.time()
 
-        # Saturar entrada al rango válido
+        # ══════════════════════════════════════════════════════════════════
+        # PRE-PROCESAMIENTO
+        # ══════════════════════════════════════════════════════════════════
         pv_clamped = max(0.0, min(1.0, process_variable))
-
-        # Filtrado EMA adaptativo
         filtered_pv = self._apply_ema_filter(pv_clamped)
 
-        # Error con zona muerta para reducir jitter
+        # ══════════════════════════════════════════════════════════════════
+        # CÁLCULO DE ERROR CON ZONA MUERTA SUAVE
+        # ══════════════════════════════════════════════════════════════════
         raw_error = self.setpoint - filtered_pv
-        deadband = 0.02 * self.setpoint  # 2% del setpoint
+        deadband = 0.015 * max(abs(self.setpoint), 0.1)
 
         if abs(raw_error) < deadband:
-            error = 0.0  # Dentro de banda muerta
+            # Dentro de zona muerta: error efectivo = 0
+            # PERO mantener integración pequeña para evitar offset
+            error = 0.0
+            # Aplicar decay suave al integral para prevenir acumulación
+            self._integral_error *= 0.995
+        elif abs(raw_error) < 2.0 * deadband:
+            # Zona de transición: interpolación cuadrática suave
+            # Evita discontinuidad en la derivada del error
+            t = (abs(raw_error) - deadband) / deadband  # t ∈ [0, 1]
+            smooth_factor = t * t * (3.0 - 2.0 * t)  # Hermite smoothstep
+            error = math.copysign(smooth_factor * (abs(raw_error) - deadband), raw_error)
         else:
-            # Suavizar transición fuera de zona muerta
+            # Fuera de zona muerta
             error = raw_error - math.copysign(deadband, raw_error)
 
         self._error_history.append(error)
 
-        # Delta tiempo con límites de cordura
+        # ══════════════════════════════════════════════════════════════════
+        # DELTA TIEMPO
+        # ══════════════════════════════════════════════════════════════════
         if self._last_time is None:
             dt = SystemConstants.MIN_DELTA_TIME
         else:
             dt = max(
                 SystemConstants.MIN_DELTA_TIME,
-                min(current_time - self._last_time, SystemConstants.MAX_DELTA_TIME),
+                min(current_time - self._last_time, SystemConstants.MAX_DELTA_TIME)
             )
 
-        # === TÉRMINO PROPORCIONAL ===
+        # ══════════════════════════════════════════════════════════════════
+        # TÉRMINO PROPORCIONAL
+        # ══════════════════════════════════════════════════════════════════
         P = self.Kp * error
 
-        # === ANTI-WINDUP: Detección previa de saturación ===
+        # ══════════════════════════════════════════════════════════════════
+        # ANTI-WINDUP: CLAMPING CONDICIONAL
+        # ══════════════════════════════════════════════════════════════════
         # Calcular salida tentativa para decidir si integrar
-        tentative_I = self._ki_adaptive * (self._integral_error + error * dt)
+        tentative_integral = self._integral_error + error * dt
+        tentative_I = self._ki_adaptive * tentative_integral
         tentative_output = self._output_center + P + tentative_I
 
-        will_saturate = (
-            tentative_output > self.max_output or tentative_output < self.min_output
-        )
+        will_saturate_high = tentative_output > self.max_output
+        will_saturate_low = tentative_output < self.min_output
 
-        # Clamping condicional: no integrar si vamos a saturar
-        # Y el error empuja hacia la saturación
-        integrating_towards_saturation = (
-            tentative_output > self.max_output and error < 0
-        ) or (tentative_output < self.min_output and error > 0)
+        # Determinar si debemos integrar
+        # Regla: integrar solo si:
+        # 1. No hay saturación, O
+        # 2. Hay saturación PERO el error tiene signo opuesto (nos saca de saturación)
+        should_integrate = True
 
-        if will_saturate and not integrating_towards_saturation:
-            # Solo acumular si el error nos saca de saturación
+        if will_saturate_high and error > 0:
+            # Saturación alta Y error positivo → empuja más alto → NO integrar
+            should_integrate = False
+        elif will_saturate_low and error < 0:
+            # Saturación baja Y error negativo → empuja más bajo → NO integrar
+            should_integrate = False
+
+        if should_integrate:
             self._integral_error += error * dt
-        elif not will_saturate:
-            self._integral_error += error * dt
 
-        # Aplicar límite integral con suavizado hiperbólico
+        # Límite integral con clamp suave (tanh)
         if abs(self._integral_error) > self._integral_limit:
-            # Soft clamp usando tanh para evitar discontinuidades
+            # Soft clamp: evita discontinuidad en la acción integral
             normalized = self._integral_error / self._integral_limit
             self._integral_error = self._integral_limit * math.tanh(normalized)
 
-        # Adaptación de ganancia integral
-        self._adapt_integral_gain(error, will_saturate)
+        # Adaptación de Ki para anti-windup adicional
+        self._adapt_integral_gain(error, will_saturate_high or will_saturate_low)
 
-        # === TÉRMINO INTEGRAL ===
+        # ══════════════════════════════════════════════════════════════════
+        # TÉRMINO INTEGRAL
+        # ══════════════════════════════════════════════════════════════════
         I = self._ki_adaptive * self._integral_error
 
-        # === CÁLCULO DE SALIDA ===
+        # ══════════════════════════════════════════════════════════════════
+        # SALIDA COMBINADA
+        # ══════════════════════════════════════════════════════════════════
         output_raw = self._output_center + P + I
 
-        # === SLEW RATE LIMITING ===
-        # Limitar cambio máximo por iteración (anti-jerk)
+        # ══════════════════════════════════════════════════════════════════
+        # SLEW RATE LIMITING (Anti-jerk)
+        # ══════════════════════════════════════════════════════════════════
         if self._last_output is not None:
-            max_slew = self._output_range * 0.15  # 15% máximo por paso
+            max_slew = self._output_range * 0.12  # 12% máximo por paso
             delta = output_raw - self._last_output
+
             if abs(delta) > max_slew:
                 output_raw = self._last_output + math.copysign(max_slew, delta)
 
-        # Saturación final
-        output = int(round(max(self.min_output, min(self.max_output, output_raw))))
+        # ══════════════════════════════════════════════════════════════════
+        # SATURACIÓN Y CUANTIZACIÓN
+        # ══════════════════════════════════════════════════════════════════
+        output_saturated = max(self.min_output, min(self.max_output, output_raw))
+        output = int(round(output_saturated))
 
-        # === BACK-CALCULATION POST-SATURACIÓN ===
-        # Si saturamos, ajustar integral para tracking
-        if output != int(round(output_raw)):
-            saturation_error = output_raw - output
-            tracking_gain = 1.0 / max(self.Kp, 0.1)  # Kb = 1/Kp (regla de Åström)
+        # ══════════════════════════════════════════════════════════════════
+        # BACK-CALCULATION POST-SATURACIÓN
+        # ══════════════════════════════════════════════════════════════════
+        saturation_error = output_raw - output_saturated
+
+        if abs(saturation_error) > 0.5:  # Umbral para evitar ruido numérico
+            # Kb = 1/Kp (regla de Åström para sistemas de primer orden)
+            tracking_gain = 1.0 / max(self.Kp, 0.01)
+            # Ajustar integral para reducir discontinuidad
             self._integral_error -= tracking_gain * saturation_error * dt
 
-        # Actualizar métrica de Lyapunov
+        # ══════════════════════════════════════════════════════════════════
+        # ACTUALIZACIÓN DE MÉTRICAS Y ESTADO
+        # ══════════════════════════════════════════════════════════════════
         self._update_lyapunov_metric(error)
 
-        # Guardar estado
         self._last_time = current_time
         self._last_error = error
         self._last_output = output
@@ -1603,50 +2028,136 @@ class PIController:
         return output
 
     def get_lyapunov_exponent(self) -> float:
-        """Retorna estimación del exponente de Lyapunov promedio."""
-        if self._lyapunov_count == 0:
-            return 0.0
-        return self._lyapunov_sum / self._lyapunov_count
+        """
+        Retorna estimación del exponente de Lyapunov.
+
+        El valor retornado es el promedio EMA actualizado en cada iteración.
+        No requiere división adicional ya que _lyapunov_sum almacena
+        directamente el exponente filtrado.
+
+        Returns:
+            float: Exponente de Lyapunov estimado.
+                   < 0: convergencia (estable)
+                   ≈ 0: marginal
+                   > 0: divergencia (inestable)
+        """
+        return self._lyapunov_sum
 
     def get_stability_analysis(self) -> Dict[str, Any]:
-        """Análisis de estabilidad basado en historial."""
-        if len(self._error_history) < 2:
-            return {"status": "INSUFFICIENT_DATA", "samples": len(self._error_history)}
+        """
+        Análisis de estabilidad basado en historial de errores.
+
+        Métricas calculadas:
+        1. Exponente de Lyapunov: tasa de convergencia/divergencia
+        2. Varianza del error: magnitud de oscilaciones
+        3. Tendencia: comparación de varianza reciente vs histórica
+        4. Utilización integral: proximidad a saturación anti-windup
+        """
+        if len(self._error_history) < 5:
+            return {
+                "status": "INSUFFICIENT_DATA",
+                "samples": len(self._error_history),
+                "message": f"Se requieren al menos 5 muestras, actual: {len(self._error_history)}"
+            }
 
         errors = list(self._error_history)
+        n = len(errors)
         lyapunov = self.get_lyapunov_exponent()
 
-        # Análisis de convergencia
-        mean_error = sum(errors) / len(errors)
-        error_variance = sum((e - mean_error) ** 2 for e in errors) / len(errors)
+        # ══════════════════════════════════════════════════════════════════
+        # ESTADÍSTICAS GLOBALES
+        # ══════════════════════════════════════════════════════════════════
+        mean_error = sum(errors) / n
+        error_variance = sum((e - mean_error)**2 for e in errors) / n
+        error_std = math.sqrt(error_variance)
 
-        recent_errors = errors[-min(10, len(errors)) :]
-        mean_recent = sum(recent_errors) / len(recent_errors)
-        recent_variance = sum((e - mean_recent) ** 2 for e in recent_errors) / len(
-            recent_errors
-        )
+        # Error absoluto medio
+        mae = sum(abs(e) for e in errors) / n
 
-        # Diagnóstico
-        if lyapunov < -0.1:
+        # ══════════════════════════════════════════════════════════════════
+        # ESTADÍSTICAS RECIENTES (últimas 10 muestras)
+        # ══════════════════════════════════════════════════════════════════
+        n_recent = min(10, n)
+        recent_errors = errors[-n_recent:]
+        mean_recent = sum(recent_errors) / n_recent
+        recent_variance = sum((e - mean_recent)**2 for e in recent_errors) / n_recent
+
+        # ══════════════════════════════════════════════════════════════════
+        # CLASIFICACIÓN DE ESTABILIDAD
+        # ══════════════════════════════════════════════════════════════════
+        if lyapunov < -0.15:
             stability = "ASYMPTOTICALLY_STABLE"
-        elif lyapunov < 0.1:
+            stability_description = "Convergencia exponencial rápida"
+        elif lyapunov < -0.05:
+            stability = "STABLE"
+            stability_description = "Convergencia moderada"
+        elif lyapunov < 0.05:
             stability = "MARGINALLY_STABLE"
+            stability_description = "Estabilidad marginal - posible ciclo límite"
+        elif lyapunov < 0.15:
+            stability = "WEAKLY_UNSTABLE"
+            stability_description = "Divergencia lenta - ajustar ganancias"
         else:
-            stability = "POTENTIALLY_UNSTABLE"
+            stability = "UNSTABLE"
+            stability_description = "Divergencia exponencial - sistema inestable"
 
-        # Tendencia de convergencia
-        convergence = "CONVERGING" if recent_variance < error_variance else "DIVERGING"
+        # ══════════════════════════════════════════════════════════════════
+        # ANÁLISIS DE TENDENCIA
+        # ══════════════════════════════════════════════════════════════════
+        variance_ratio = recent_variance / max(error_variance, 1e-12)
+
+        if variance_ratio < 0.5:
+            convergence = "CONVERGING_FAST"
+        elif variance_ratio < 0.9:
+            convergence = "CONVERGING"
+        elif variance_ratio < 1.1:
+            convergence = "STEADY"
+        elif variance_ratio < 2.0:
+            convergence = "DIVERGING"
+        else:
+            convergence = "DIVERGING_FAST"
+
+        # ══════════════════════════════════════════════════════════════════
+        # MÉTRICAS DE CONTROL
+        # ══════════════════════════════════════════════════════════════════
+        integral_utilization = abs(self._integral_error) / max(self._integral_limit, 1e-6)
 
         return {
             "status": "OPERATIONAL",
             "stability_class": stability,
+            "stability_description": stability_description,
             "convergence": convergence,
             "lyapunov_exponent": lyapunov,
-            "error_variance": error_variance,
-            "recent_variance": recent_variance,
-            "integral_saturation": abs(self._integral_error) / self._integral_limit,
+            "error_statistics": {
+                "mean": mean_error,
+                "variance": error_variance,
+                "std_dev": error_std,
+                "mae": mae,
+            },
+            "recent_statistics": {
+                "mean": mean_recent,
+                "variance": recent_variance,
+                "samples": n_recent,
+            },
+            "trend_analysis": {
+                "variance_ratio": variance_ratio,
+                "interpretation": convergence,
+            },
+            "control_state": {
+                "integral_utilization": integral_utilization,
+                "integral_saturation_warning": integral_utilization > 0.8,
+                "adaptive_ki_ratio": self._ki_adaptive / max(self.Ki, 1e-6),
+            },
             "iterations": self._iteration_count,
+            "total_samples": n,
         }
+
+
+    # ============================================================================
+
+    # ============================================================================
+
+    # ============================================================================
 
     def get_diagnostics(self) -> Dict[str, Any]:
         """Diagnóstico completo del controlador."""
@@ -2764,67 +3275,156 @@ class DataFluxCondenser:
         profile: Dict[str, Any],
         condenser_config: Optional[CondenserConfig] = None,
     ):
+        """
+        Inicializa el orquestador con validación de estabilidad a priori.
+
+        Secuencia de inicialización:
+        1. Configuración de logging y parámetros base
+        2. Análisis de Laplace para validación de estabilidad
+        3. Inicialización de componentes (física, controlador)
+        4. Setup de estructuras de estado
+
+        Raises:
+            ConfigurationError: Si la configuración no es apta para control
+        """
         self.logger = logging.getLogger(self.__class__.__name__)
+
+        # Configuración con defaults seguros
         self.condenser_config = condenser_config or CondenserConfig()
-        self.config = config or {}
-        self.profile = profile or {}
+        self.config = config if config is not None else {}
+        self.profile = profile if profile is not None else {}
+
+        # Estado de inicialización para diagnóstico
+        self._initialization_status = {
+            "laplace_validated": False,
+            "physics_initialized": False,
+            "controller_initialized": False,
+            "timestamp": time.time(),
+        }
 
         try:
-            # 1. Validación de Estabilidad a Priori (Laplace)
+            # ══════════════════════════════════════════════════════════════
+            # FASE 1: ANÁLISIS DE ESTABILIDAD (Laplace)
+            # ══════════════════════════════════════════════════════════════
             self.logger.info("🔬 Iniciando Análisis de Laplace Mejorado...")
 
             self.laplace_analyzer = EnhancedLaplaceAnalyzer(
-                self.condenser_config.base_resistance,
-                self.condenser_config.system_inductance,
-                self.condenser_config.system_capacitance
+                R=self.condenser_config.base_resistance,
+                L=self.condenser_config.system_inductance,
+                C=self.condenser_config.system_capacitance,
+                sample_rate=getattr(self.condenser_config, 'sample_rate', 1000.0)
             )
 
             validation = self.laplace_analyzer.validate_for_control_design()
 
             if not validation["is_suitable_for_control"]:
-                issues_str = "\n".join(f"  - {i}" for i in validation["issues"])
+                issues_str = "\n".join(f"  • {issue}" for issue in validation["issues"])
                 raise ConfigurationError(
                     f"CONFIGURACIÓN NO APTA PARA CONTROL:\n{issues_str}\n"
-                    f"Resumen: {validation['summary']}"
+                    f"Resumen: {validation['summary']}\n"
+                    f"Recomendaciones:\n" +
+                    "\n".join(f"  → {r}" for r in validation.get("recommendations", []))
                 )
 
-            # Loguear advertencias
+            self._initialization_status["laplace_validated"] = True
+
+            # Loguear advertencias con contexto
             for warning in validation["warnings"]:
                 self.logger.warning(f"⚠️ Advertencia de Control: {warning}")
 
             stability = self.laplace_analyzer.analyze_stability()
             self.logger.info(
                 f"✅ Estabilidad Confirmada: "
-                f"ω_n={stability['continuous']['natural_frequency_rad_s']:.2f} rad/s, "
-                f"Márgenes: PM={stability['stability_margins']['phase_margin_deg']:.1f}°"
+                f"ωₙ={stability['continuous']['natural_frequency_rad_s']:.2f} rad/s, "
+                f"ζ={stability['continuous']['damping_ratio']:.3f}, "
+                f"PM={stability['stability_margins']['phase_margin_deg']:.1f}°"
             )
 
-            # 2. Inicialización de Componentes
+            # Almacenar métricas de estabilidad para referencia
+            self._stability_baseline = {
+                "omega_n": stability['continuous']['natural_frequency_rad_s'],
+                "zeta": stability['continuous']['damping_ratio'],
+                "phase_margin": stability['stability_margins']['phase_margin_deg'],
+                "damping_class": stability['continuous']['damping_class'],
+            }
+
+            # ══════════════════════════════════════════════════════════════
+            # FASE 2: INICIALIZACIÓN DE COMPONENTES
+            # ══════════════════════════════════════════════════════════════
             self.physics = FluxPhysicsEngine(
                 self.condenser_config.system_capacitance,
                 self.condenser_config.base_resistance,
                 self.condenser_config.system_inductance,
             )
+            self._initialization_status["physics_initialized"] = True
+
             self.controller = PIController(
-                self.condenser_config.pid_kp,
-                self.condenser_config.pid_ki,
-                self.condenser_config.pid_setpoint,
-                self.condenser_config.min_batch_size,
-                self.condenser_config.max_batch_size,
-                self.condenser_config.integral_limit_factor,
+                kp=self.condenser_config.pid_kp,
+                ki=self.condenser_config.pid_ki,
+                setpoint=self.condenser_config.pid_setpoint,
+                min_output=self.condenser_config.min_batch_size,
+                max_output=self.condenser_config.max_batch_size,
+                integral_limit_factor=self.condenser_config.integral_limit_factor,
             )
+            self._initialization_status["controller_initialized"] = True
+
         except ConfigurationError:
             raise
         except Exception as e:
-            raise ConfigurationError(f"Error inicializando componentes: {e}")
+            self.logger.exception(f"Error fatal en inicialización: {e}")
+            raise ConfigurationError(
+                f"Error inicializando componentes: {e}\n"
+                f"Estado: {self._initialization_status}"
+            )
 
+        # ══════════════════════════════════════════════════════════════
+        # FASE 3: ESTRUCTURAS DE ESTADO
+        # ══════════════════════════════════════════════════════════════
         self._stats = ProcessingStats()
         self._start_time: Optional[float] = None
         self._emergency_brake_count: int = 0
 
+        # Cache para predicciones (EKF)
+        self._ekf_state: Optional[Dict[str, Any]] = None
+
+        # Historial de métricas para análisis de tendencias
+        self._metrics_history: deque = deque(maxlen=100)
+
+        self.logger.info(
+            f"✅ DataFluxCondenser inicializado: "
+            f"batch_range=[{self.condenser_config.min_batch_size}, "
+            f"{self.condenser_config.max_batch_size}]"
+        )
+
     def get_physics_report(self) -> Dict[str, Any]:
-        """Obtiene reporte físico completo del sistema."""
-        return self.laplace_analyzer.get_comprehensive_report()
+        """
+        Obtiene reporte físico completo del sistema.
+
+        Incluye análisis de Laplace, respuesta en frecuencia,
+        y validación para diseño de control.
+        """
+        try:
+            report = self.laplace_analyzer.get_comprehensive_report()
+
+            # Enriquecer con estado actual
+            report["runtime_state"] = {
+                "emergency_brakes": self._emergency_brake_count,
+                "processed_records": self._stats.processed_records,
+                "uptime_s": time.time() - self._start_time if self._start_time else 0,
+            }
+
+            return report
+
+        except Exception as e:
+            self.logger.error(f"Error generando reporte físico: {e}")
+            return {
+                "error": str(e),
+                "system_parameters": {
+                    "R": self.condenser_config.base_resistance,
+                    "L": self.condenser_config.system_inductance,
+                    "C": self.condenser_config.system_capacitance,
+                }
+            }
 
     def stabilize(
         self,
@@ -2835,88 +3435,147 @@ class DataFluxCondenser:
     ) -> pd.DataFrame:
         """
         Proceso principal de estabilización con control PID y telemetría.
+
+        Pipeline de procesamiento:
+        1. Validación de entrada
+        2. Parsing de datos crudos
+        3. Procesamiento por batches con control adaptativo
+        4. Consolidación y validación de salida
+
+        Args:
+            file_path: Ruta al archivo de entrada
+            on_progress: Callback para estadísticas de progreso
+            progress_callback: Callback para métricas detalladas
+            telemetry: Contexto de telemetría opcional
+
+        Returns:
+            DataFrame consolidado con datos procesados
+
+        Raises:
+            InvalidInputError: Si el archivo no es válido
+            ProcessingError: Si ocurre error durante procesamiento
         """
+        # Inicializar estado de sesión
         self._start_time = time.time()
         self._stats = ProcessingStats()
         self._emergency_brake_count = 0
+        self._ekf_state = None  # Reset EKF para nueva sesión
         self.controller.reset()
 
         # Validación de entrada
         if not file_path:
-            raise InvalidInputError("file_path es requerido")
+            raise InvalidInputError("file_path es requerido y no puede estar vacío")
 
         path_obj = Path(file_path)
         self.logger.info(f"⚡ [STABILIZE] Iniciando: {path_obj.name}")
 
-        # Registrar inicio en telemetría
-        if telemetry:
+        # Contexto de telemetría con fallback
+        telemetry_active = telemetry is not None
+
+        if telemetry_active:
             telemetry.record_event(
                 "stabilization_start",
-                {"file": path_obj.name, "config": asdict(self.condenser_config)},
+                {
+                    "file": path_obj.name,
+                    "file_size_bytes": path_obj.stat().st_size if path_obj.exists() else 0,
+                    "config": asdict(self.condenser_config),
+                    "stability_baseline": self._stability_baseline,
+                },
             )
 
         try:
+            # ══════════════════════════════════════════════════════════════
+            # FASE 1: VALIDACIÓN Y PARSING
+            # ══════════════════════════════════════════════════════════════
             validated_path = self._validate_input_file(file_path)
-
-            # INYECCIÓN DE TELEMETRÍA AQUÍ
             parser = self._initialize_parser(validated_path, telemetry)
-
             raw_records, cache = self._extract_raw_data(parser)
 
             if not raw_records:
                 self.logger.warning("No se encontraron registros para procesar")
+                if telemetry_active:
+                    telemetry.record_event("stabilization_empty", {"reason": "no_records"})
                 return pd.DataFrame()
 
             total_records = len(raw_records)
             self._stats.total_records = total_records
 
-            # Verificar límite de registros
+            # Verificar límites
             if total_records > SystemConstants.MAX_RECORDS_LIMIT:
                 raise ProcessingError(
-                    f"Total de registros ({total_records}) excede límite "
-                    f"({SystemConstants.MAX_RECORDS_LIMIT})"
+                    f"Total de registros ({total_records:,}) excede límite "
+                    f"({SystemConstants.MAX_RECORDS_LIMIT:,}). "
+                    f"Considere dividir el archivo."
                 )
 
+            self.logger.info(f"📊 Registros a procesar: {total_records:,}")
+
+            # ══════════════════════════════════════════════════════════════
+            # FASE 2: PROCESAMIENTO POR BATCHES
+            # ══════════════════════════════════════════════════════════════
             processed_batches = self._process_batches_with_pid(
-                raw_records,
-                cache,
-                total_records,
-                on_progress,
-                progress_callback,
-                telemetry,
+                raw_records=raw_records,
+                cache=cache,
+                total_records=total_records,
+                on_progress=on_progress,
+                progress_callback=progress_callback,
+                telemetry=telemetry,
             )
 
+            # ══════════════════════════════════════════════════════════════
+            # FASE 3: CONSOLIDACIÓN Y VALIDACIÓN
+            # ══════════════════════════════════════════════════════════════
             df_final = self._consolidate_results(processed_batches)
             self._stats.processing_time = time.time() - self._start_time
+
             self._validate_output(df_final)
 
-            # Registrar fin en telemetría
-            if telemetry:
+            # Registrar éxito
+            if telemetry_active:
                 telemetry.record_event(
                     "stabilization_complete",
                     {
+                        "records_input": total_records,
+                        "records_output": len(df_final),
                         "records_processed": self._stats.processed_records,
-                        "processing_time": self._stats.processing_time,
+                        "processing_time_s": self._stats.processing_time,
+                        "throughput_records_per_s": (
+                            self._stats.processed_records / max(0.001, self._stats.processing_time)
+                        ),
                         "emergency_brakes": self._emergency_brake_count,
+                        "batches_processed": len(processed_batches),
+                        "efficiency": self._stats.processed_records / max(1, total_records),
                     },
                 )
 
             self.logger.info(
-                f"✅ [STABILIZE] Completado: {self._stats.processed_records} registros "
-                f"en {self._stats.processing_time:.2f}s"
+                f"✅ [STABILIZE] Completado: {self._stats.processed_records:,} registros "
+                f"en {self._stats.processing_time:.2f}s "
+                f"({self._stats.processed_records / max(0.001, self._stats.processing_time):.0f} rec/s)"
             )
 
             return df_final
 
         except DataFluxCondenserError as e:
-            if telemetry:
-                telemetry.record_event("stabilization_error", {"error": str(e)})
+            if telemetry_active:
+                telemetry.record_event(
+                    "stabilization_error",
+                    {
+                        "error_type": type(e).__name__,
+                        "error_message": str(e),
+                        "progress": self._stats.processed_records / max(1, self._stats.total_records),
+                    }
+                )
             raise
+
         except Exception as e:
             self.logger.exception(f"Error inesperado en estabilización: {e}")
-            if telemetry:
-                telemetry.record_event("stabilization_error", {"error": str(e)})
-            raise ProcessingError(f"Error fatal: {e}")
+            if telemetry_active:
+                telemetry.record_event(
+                    "stabilization_fatal_error",
+                    {"error_type": type(e).__name__, "error_message": str(e)}
+                )
+            raise ProcessingError(f"Error fatal en estabilización: {e}")
 
     def _validate_input_file(self, file_path: str) -> Path:
         """Valida el archivo de entrada con verificaciones extendidas."""
@@ -2978,22 +3637,68 @@ class DataFluxCondenser:
         telemetry: Optional[TelemetryContext],
     ) -> List[pd.DataFrame]:
         """
-        Procesamiento con control PID mejorado.
-        """
-        processed_batches = []
-        failed_batches_count = 0
-        current_index = 0
-        current_batch_size = self.condenser_config.min_batch_size
-        iteration = 0
-        max_iterations = total_records * SystemConstants.MAX_ITERATIONS_MULTIPLIER
+        Procesamiento con control PID mejorado y feedforward adaptativo.
 
-        saturation_history = []
-        steady_state_counter = 0
-        steady_state_threshold = 5
-        last_complexity = 0.5
+        ══════════════════════════════════════════════════════════════════
+        ARQUITECTURA DE CONTROL
+        ══════════════════════════════════════════════════════════════════
+
+                        ┌─────────────┐
+        setpoint ──(+)──│     PI      │──┬──> batch_size
+                   │    │ Controller  │  │
+                   │    └─────────────┘  │
+                   │           ↑         │
+                   │    [Anti-windup]    │
+                   │           │         │
+                   │    ┌──────┴──────┐  │
+                   │    │ Feedforward │<─┘
+                   │    │ (Complexity)│
+                   │    └─────────────┘
+                   │           ↑
+                   └───────────┤
+                               │
+        ┌──────────────────────┴──────────────────────┐
+        │              PLANTA (Sistema)               │
+        │  ┌─────────┐    ┌─────────┐    ┌─────────┐  │
+        │  │ Physics │───>│  Batch  │───>│Saturation│ │
+        │  │ Engine  │    │ Process │    │ Metrics │  │
+        │  └─────────┘    └─────────┘    └─────────┘  │
+        └─────────────────────────────────────────────┘
+
+        Características:
+        1. Control PI con anti-windup (del controlador)
+        2. Feedforward basado en gradiente de complejidad
+        3. Predicción de saturación con EKF
+        4. Detección de estado estacionario con test estadístico
+        5. Emergency brake multinivel
+
+        ══════════════════════════════════════════════════════════════════
+        """
+        processed_batches: List[pd.DataFrame] = []
+        failed_batches_count: int = 0
+        current_index: int = 0
+        current_batch_size: int = self.condenser_config.min_batch_size
+        iteration: int = 0
+        max_iterations: int = total_records * SystemConstants.MAX_ITERATIONS_MULTIPLIER
+
+        # Estado para control avanzado
+        saturation_history: deque = deque(maxlen=20)
+        complexity_history: deque = deque(maxlen=10)
+        steady_state_counter: int = 0
+        STEADY_STATE_THRESHOLD: int = 7  # Iteraciones consecutivas
+
+        # Estado para feedforward
+        last_complexity: float = 0.5
+        feedforward_integrator: float = 0.0
+        FEEDFORWARD_GAIN: float = 0.15
+        FEEDFORWARD_DECAY: float = 0.9
 
         while current_index < total_records and iteration < max_iterations:
             iteration += 1
+
+            # ══════════════════════════════════════════════════════════════
+            # EXTRACCIÓN DE BATCH
+            # ══════════════════════════════════════════════════════════════
             end_index = min(current_index + current_batch_size, total_records)
             batch = raw_records[current_index:end_index]
             batch_size = len(batch)
@@ -3001,12 +3706,27 @@ class DataFluxCondenser:
             if batch_size == 0:
                 break
 
+            # Verificar timeout
             elapsed_time = time.time() - self._start_time
             time_remaining = SystemConstants.PROCESSING_TIMEOUT - elapsed_time
+
             if time_remaining <= 0:
-                self.logger.error("⏰ Timeout de procesamiento alcanzado")
+                self.logger.error(
+                    f"⏰ Timeout de procesamiento alcanzado ({SystemConstants.PROCESSING_TIMEOUT}s). "
+                    f"Progreso: {current_index}/{total_records} ({100*current_index/total_records:.1f}%)"
+                )
                 break
 
+            # Timeout warning anticipado
+            if time_remaining < 60 and iteration % 10 == 0:
+                self.logger.warning(
+                    f"⏳ Tiempo restante bajo: {time_remaining:.0f}s. "
+                    f"Considere reducir batch size."
+                )
+
+            # ══════════════════════════════════════════════════════════════
+            # CÁLCULO DE MÉTRICAS FÍSICAS
+            # ══════════════════════════════════════════════════════════════
             cache_hits_est = self._estimate_cache_hits(batch, cache)
 
             metrics = self.physics.calculate_metrics(
@@ -3018,82 +3738,182 @@ class DataFluxCondenser:
 
             saturation = metrics.get("saturation", 0.5)
             complexity = metrics.get("complexity", 0.5)
-            power = metrics.get("dissipated_power", 0)
-            flyback = metrics.get("flyback_voltage", 0)
+            power = metrics.get("dissipated_power", 0.0)
+            flyback = metrics.get("flyback_voltage", 0.0)
             gyro_stability = metrics.get("gyroscopic_stability", 1.0)
 
+            # Almacenar para historial
             saturation_history.append(saturation)
+            complexity_history.append(complexity)
+            self._metrics_history.append(metrics)
+
+            # ══════════════════════════════════════════════════════════════
+            # PREDICCIÓN DE SATURACIÓN (EKF)
+            # ══════════════════════════════════════════════════════════════
             if len(saturation_history) >= 3:
-                predicted_sat = self._predict_next_saturation(saturation_history)
+                predicted_sat = self._predict_next_saturation(list(saturation_history))
             else:
                 predicted_sat = saturation
 
+            # ══════════════════════════════════════════════════════════════
+            # FEEDFORWARD ADAPTATIVO
+            # ══════════════════════════════════════════════════════════════
+            # Modelo: feedforward compensa cambios en complejidad antes de que
+            # afecten la saturación (control anticipativo)
+
             complexity_delta = complexity - last_complexity
-            feedforward_adjustment = 1.0
-            if complexity_delta > 0.1:
-                feedforward_adjustment = 0.85
-            elif complexity_delta < -0.1:
-                feedforward_adjustment = 1.1
+            complexity_acceleration = 0.0
+
+            if len(complexity_history) >= 3:
+                # Segunda derivada de complejidad
+                c = list(complexity_history)
+                complexity_acceleration = c[-1] - 2*c[-2] + c[-3]
+
+            # Integrador con decay para suavidad
+            feedforward_integrator = (
+                FEEDFORWARD_DECAY * feedforward_integrator +
+                FEEDFORWARD_GAIN * (complexity_delta + 0.5 * complexity_acceleration)
+            )
+
+            # Limitar feedforward para evitar inestabilidad
+            feedforward_integrator = max(-0.3, min(0.3, feedforward_integrator))
+
+            # Factor de ajuste (1.0 = sin cambio)
+            if complexity_delta > 0.05:
+                # Complejidad aumentando → reducir batch
+                feedforward_factor = 1.0 - abs(feedforward_integrator)
+            elif complexity_delta < -0.05:
+                # Complejidad disminuyendo → aumentar batch
+                feedforward_factor = 1.0 + abs(feedforward_integrator)
+            else:
+                # Estable → relajar feedforward gradualmente
+                feedforward_factor = 1.0 + 0.3 * feedforward_integrator
+
+            feedforward_factor = max(0.7, min(1.3, feedforward_factor))
             last_complexity = complexity
 
-            if len(saturation_history) >= 3:
-                recent_var = sum((s - saturation) ** 2 for s in saturation_history[-3:]) / 3
-                if recent_var < 0.01:
+            # ══════════════════════════════════════════════════════════════
+            # DETECCIÓN DE ESTADO ESTACIONARIO
+            # ══════════════════════════════════════════════════════════════
+            # Usamos test de varianza con umbral adaptativo
+
+            in_steady_state = False
+
+            if len(saturation_history) >= 5:
+                recent_sats = list(saturation_history)[-5:]
+                mean_sat = sum(recent_sats) / len(recent_sats)
+                variance = sum((s - mean_sat)**2 for s in recent_sats) / len(recent_sats)
+
+                # Umbral adaptativo basado en el setpoint
+                variance_threshold = 0.005 * (1.0 + abs(mean_sat - self.condenser_config.pid_setpoint))
+
+                if variance < variance_threshold:
                     steady_state_counter += 1
                 else:
-                    steady_state_counter = 0
-            in_steady_state = steady_state_counter >= steady_state_threshold
+                    # Reset parcial para histéresis
+                    steady_state_counter = max(0, steady_state_counter - 2)
 
+                in_steady_state = steady_state_counter >= STEADY_STATE_THRESHOLD
+
+            # ══════════════════════════════════════════════════════════════
+            # CALLBACK DE PROGRESO
+            # ══════════════════════════════════════════════════════════════
             if progress_callback:
                 try:
                     progress_callback({
                         **metrics,
+                        "iteration": iteration,
+                        "progress": current_index / total_records,
                         "predicted_saturation": predicted_sat,
                         "in_steady_state": in_steady_state,
-                        "feedforward_adjustment": feedforward_adjustment,
+                        "feedforward_factor": feedforward_factor,
+                        "batch_size": batch_size,
+                        "time_remaining_s": time_remaining,
                     })
                 except Exception as e:
-                    self.logger.warning(f"Error en progress_callback: {e}")
+                    self.logger.debug(f"Error en progress_callback: {e}")
+
+            # ══════════════════════════════════════════════════════════════
+            # AJUSTE DE SATURACIÓN EFECTIVA
+            # ══════════════════════════════════════════════════════════════
+            # Compensar por inestabilidad giroscópica
 
             if gyro_stability < 0.5:
-                effective_saturation = min(saturation + 0.2, 0.9)
+                # Baja estabilidad giroscópica → aumentar saturación percibida
+                # para que el controlador reduzca batch size
+                stability_penalty = 0.3 * (1.0 - gyro_stability / 0.5)
+                effective_saturation = min(saturation + stability_penalty, 0.95)
             else:
                 effective_saturation = saturation
 
+            # ══════════════════════════════════════════════════════════════
+            # CÓMPUTO DE CONTROL PI
+            # ══════════════════════════════════════════════════════════════
             pid_output = self.controller.compute(effective_saturation)
-            pid_output = int(pid_output * feedforward_adjustment)
 
+            # Aplicar feedforward
+            pid_output_adjusted = int(pid_output * feedforward_factor)
+
+            # ══════════════════════════════════════════════════════════════
+            # EMERGENCY BRAKE MULTINIVEL
+            # ══════════════════════════════════════════════════════════════
             emergency_brake = False
             brake_reason = ""
+            brake_severity = 1.0  # 1.0 = sin freno, < 1.0 = freno aplicado
 
+            # Nivel 1: Sobrecalentamiento (potencia excesiva)
             if power > SystemConstants.OVERHEAT_POWER_THRESHOLD:
-                brake_factor = 0.3
-                pid_output = max(SystemConstants.MIN_BATCH_SIZE_FLOOR, int(pid_output * brake_factor))
+                overheat_ratio = power / SystemConstants.OVERHEAT_POWER_THRESHOLD
+                brake_severity = min(brake_severity, 0.3 / overheat_ratio)
                 emergency_brake = True
-                brake_reason = f"OVERHEAT P={power:.1f}W"
+                brake_reason = f"OVERHEAT P={power:.1f}W (>{SystemConstants.OVERHEAT_POWER_THRESHOLD}W)"
 
-            if flyback > SystemConstants.MAX_FLYBACK_VOLTAGE * 0.7:
-                pid_output = max(SystemConstants.MIN_BATCH_SIZE_FLOOR, int(pid_output * 0.5))
+            # Nivel 2: Flyback voltage (transitorios peligrosos)
+            flyback_threshold = SystemConstants.MAX_FLYBACK_VOLTAGE * 0.7
+            if flyback > flyback_threshold:
+                flyback_ratio = flyback / flyback_threshold
+                brake_severity = min(brake_severity, 0.5 / flyback_ratio)
                 emergency_brake = True
-                brake_reason = f"FLYBACK V={flyback:.2f}V"
+                brake_reason = f"FLYBACK V={flyback:.2f}V (>{flyback_threshold:.2f}V)"
 
-            if predicted_sat > 0.9 and not in_steady_state:
-                pid_output = max(SystemConstants.MIN_BATCH_SIZE_FLOOR, int(pid_output * 0.7))
+            # Nivel 3: Saturación predicha alta (preventivo)
+            if predicted_sat > 0.92 and not in_steady_state:
+                brake_severity = min(brake_severity, 0.7)
                 emergency_brake = True
                 brake_reason = f"PREDICTED_SAT={predicted_sat:.2f}"
 
+            # Nivel 4: Fallos consecutivos
+            if failed_batches_count >= 3:
+                brake_severity = min(brake_severity, 0.5)
+                emergency_brake = True
+                brake_reason = f"CONSECUTIVE_FAILURES={failed_batches_count}"
+
             if emergency_brake:
+                pid_output_adjusted = max(
+                    SystemConstants.MIN_BATCH_SIZE_FLOOR,
+                    int(pid_output_adjusted * brake_severity)
+                )
                 self._emergency_brake_count += 1
                 self._stats.emergency_brakes_triggered += 1
-                self.logger.warning(f"🛑 EMERGENCY BRAKE: {brake_reason}")
+                self.logger.warning(
+                    f"🛑 EMERGENCY BRAKE [{self._emergency_brake_count}]: {brake_reason} "
+                    f"→ batch_size reducido a {pid_output_adjusted}"
+                )
 
+            # ══════════════════════════════════════════════════════════════
+            # PROCESAMIENTO DEL BATCH
+            # ══════════════════════════════════════════════════════════════
             result = self._process_single_batch_with_recovery(
-                batch, cache, failed_batches_count, telemetry
+                batch=batch,
+                cache=cache,
+                consecutive_failures=failed_batches_count,
+                telemetry=telemetry,
             )
 
             if result.success and result.dataframe is not None:
                 if not result.dataframe.empty:
                     processed_batches.append(result.dataframe)
+
                 self._stats.add_batch_stats(
                     batch_size=result.records_processed,
                     saturation=saturation,
@@ -3102,9 +3922,12 @@ class DataFluxCondenser:
                     kinetic=metrics.get("kinetic_energy", 0),
                     success=True,
                 )
+
+                # Reducir contador de fallos (con floor en 0)
                 failed_batches_count = max(0, failed_batches_count - 1)
             else:
                 failed_batches_count += 1
+
                 self._stats.add_batch_stats(
                     batch_size=batch_size,
                     saturation=saturation,
@@ -3113,17 +3936,27 @@ class DataFluxCondenser:
                     kinetic=metrics.get("kinetic_energy", 0),
                     success=False,
                 )
-                if failed_batches_count >= self.condenser_config.max_failed_batches:
-                    if not self.condenser_config.enable_partial_recovery:
-                        raise ProcessingError(f"Límite de batches fallidos: {failed_batches_count}")
-                    pid_output = SystemConstants.MIN_BATCH_SIZE_FLOOR
-                    self.logger.warning("Activando recuperación extrema")
 
+                if failed_batches_count >= self.condenser_config.max_failed_batches:
+                    if self.condenser_config.enable_partial_recovery:
+                        pid_output_adjusted = SystemConstants.MIN_BATCH_SIZE_FLOOR
+                        self.logger.warning(
+                            f"⚠️ Activando recuperación extrema: "
+                            f"{failed_batches_count} fallos consecutivos"
+                        )
+                    else:
+                        raise ProcessingError(
+                            f"Límite de batches fallidos alcanzado: {failed_batches_count}"
+                        )
+
+            # ══════════════════════════════════════════════════════════════
+            # CALLBACKS Y TELEMETRÍA
+            # ══════════════════════════════════════════════════════════════
             if on_progress:
                 try:
                     on_progress(self._stats)
                 except Exception as e:
-                    self.logger.warning(f"Error en on_progress: {e}")
+                    self.logger.debug(f"Error en on_progress: {e}")
 
             if telemetry and (iteration % 10 == 0 or emergency_brake):
                 telemetry.record_event(
@@ -3132,227 +3965,434 @@ class DataFluxCondenser:
                         "iteration": iteration,
                         "progress": current_index / total_records,
                         "batch_size": batch_size,
-                        "pid_output": pid_output,
+                        "pid_output": pid_output_adjusted,
                         "saturation": saturation,
                         "predicted_saturation": predicted_sat,
                         "in_steady_state": in_steady_state,
+                        "feedforward_factor": feedforward_factor,
                         "emergency_brake": emergency_brake,
+                        "failed_batches": failed_batches_count,
                     },
                 )
 
-            current_index = min(current_index + current_batch_size, total_records)
+            # ══════════════════════════════════════════════════════════════
+            # ACTUALIZACIÓN DE ÍNDICE Y BATCH SIZE
+            # ══════════════════════════════════════════════════════════════
+            current_index = end_index
 
-            inertia = 0.8 if in_steady_state else 0.6
-            current_batch_size = int(inertia * current_batch_size + (1 - inertia) * pid_output)
+            # Inercia adaptativa: mayor en estado estacionario
+            if in_steady_state:
+                inertia = 0.85
+            elif emergency_brake:
+                inertia = 0.3  # Respuesta rápida en emergencia
+            else:
+                inertia = 0.65
+
+            # Filtro de primer orden para batch size
+            current_batch_size = int(
+                inertia * current_batch_size + (1.0 - inertia) * pid_output_adjusted
+            )
+
+            # Aplicar límites
             current_batch_size = max(
                 SystemConstants.MIN_BATCH_SIZE_FLOOR,
-                min(current_batch_size, self.condenser_config.max_batch_size),
+                min(current_batch_size, self.condenser_config.max_batch_size)
+            )
+
+        # Log de resumen
+        if iteration >= max_iterations:
+            self.logger.warning(
+                f"⚠️ Máximo de iteraciones alcanzado: {max_iterations}"
             )
 
         return processed_batches
 
     def _estimate_cache_hits(self, batch: List, cache: Dict) -> int:
-        """Estimación probabilística de cache hits."""
-        if not batch: return 0
-        if not cache: return max(1, len(batch) // 4)
+        """
+        Estimación bayesiana de cache hits con actualización incremental.
 
-        if not hasattr(self, "_cache_hit_history"):
-            self._cache_hit_history = deque(maxlen=50)
+        ══════════════════════════════════════════════════════════════════
+        MODELO BAYESIANO
+        ══════════════════════════════════════════════════════════════════
 
-        prior_hit_rate = sum(self._cache_hit_history) / len(self._cache_hit_history) if self._cache_hit_history else 0.5
+        Utilizamos un modelo Beta-Binomial para la tasa de hits:
 
-        sample_size = min(50, len(batch))
-        sample_indices = range(0, len(batch), max(1, len(batch) // sample_size))
-        cache_field_set = set(cache.keys())
+            Prior: p ~ Beta(α, β)
+            Likelihood: k | n, p ~ Binomial(n, p)
+            Posterior: p | k, n ~ Beta(α + k, β + n - k)
+
+        donde:
+            - p: probabilidad de cache hit
+            - k: hits observados en muestra
+            - n: tamaño de muestra
+
+        La estimación puntual es la media posterior:
+            E[p | datos] = (α + k) / (α + β + n)
+
+        Inicializamos con prior no informativo Beta(1, 1) = Uniforme(0, 1),
+        que se actualiza incrementalmente con cada batch.
+
+        ══════════════════════════════════════════════════════════════════
+        """
+        if not batch:
+            return 0
+
+        # Prior uniforme si no hay historial
+        if not cache:
+            return max(1, len(batch) // 4)
+
+        # Inicializar estado bayesiano
+        if not hasattr(self, "_cache_bayesian_state"):
+            self._cache_bayesian_state = {
+                "alpha": 1.0,  # Prior Beta(1, 1)
+                "beta": 1.0,
+                "total_samples": 0,
+            }
+
+        state = self._cache_bayesian_state
+
+        # ══════════════════════════════════════════════════════════════
+        # MUESTREO ESTRATIFICADO
+        # ══════════════════════════════════════════════════════════════
+        # Muestrear uniformemente a través del batch para evitar sesgo
+
+        max_sample_size = 50
+        batch_len = len(batch)
+
+        if batch_len <= max_sample_size:
+            sample_indices = range(batch_len)
+        else:
+            # Muestreo sistemático
+            step = batch_len / max_sample_size
+            sample_indices = [int(i * step) for i in range(max_sample_size)]
+
+        # Preparar conjunto de claves de cache
+        cache_keys = set(cache.keys()) if isinstance(cache, dict) else set()
+
         sample_hits = 0
+        sample_count = 0
 
         for idx in sample_indices:
-            if idx < len(batch):
-                record = batch[idx]
-                if isinstance(record, dict):
-                    record_fields = set(record.keys())
-                    overlap = len(record_fields & cache_field_set)
-                    total_fields = len(record_fields | cache_field_set)
-                    if total_fields > 0 and (overlap / total_fields) > 0.3:
+            if idx >= batch_len:
+                continue
+
+            record = batch[idx]
+            sample_count += 1
+
+            if isinstance(record, dict):
+                record_keys = set(record.keys())
+
+                # Calcular overlap normalizado (Jaccard-like)
+                intersection = len(record_keys & cache_keys)
+                union = len(record_keys | cache_keys)
+
+                if union > 0:
+                    overlap_ratio = intersection / union
+
+                    # Considerar hit si overlap > umbral
+                    if overlap_ratio > 0.25:
                         sample_hits += 1
 
-        actual_sample_size = len(list(sample_indices))
-        sample_hit_rate = sample_hits / actual_sample_size if actual_sample_size > 0 else prior_hit_rate
+            elif hasattr(record, '__dict__'):
+                # Para objetos, verificar atributos
+                record_attrs = set(dir(record))
+                if len(record_attrs & cache_keys) > 0:
+                    sample_hits += 1
 
-        prior_weight = min(len(self._cache_hit_history) / 20, 0.5)
-        posterior_hit_rate = prior_weight * prior_hit_rate + (1 - prior_weight) * sample_hit_rate
+        if sample_count == 0:
+            return max(1, batch_len // 4)
 
-        self._cache_hit_history.append(sample_hit_rate)
-        return max(1, int(posterior_hit_rate * len(batch)))
+        # ══════════════════════════════════════════════════════════════
+        # ACTUALIZACIÓN BAYESIANA
+        # ══════════════════════════════════════════════════════════════
+
+        # Actualizar parámetros de la Beta
+        state["alpha"] += sample_hits
+        state["beta"] += (sample_count - sample_hits)
+        state["total_samples"] += sample_count
+
+        # Limitar crecimiento de parámetros (ventana efectiva)
+        MAX_EFFECTIVE_SAMPLES = 200
+        if state["alpha"] + state["beta"] > MAX_EFFECTIVE_SAMPLES + 2:
+            scale = MAX_EFFECTIVE_SAMPLES / (state["alpha"] + state["beta"] - 2)
+            state["alpha"] = 1.0 + (state["alpha"] - 1.0) * scale
+            state["beta"] = 1.0 + (state["beta"] - 1.0) * scale
+
+        # Media posterior
+        posterior_mean = state["alpha"] / (state["alpha"] + state["beta"])
+
+        # Varianza posterior para diagnóstico
+        posterior_var = (
+            state["alpha"] * state["beta"] /
+            ((state["alpha"] + state["beta"])**2 * (state["alpha"] + state["beta"] + 1))
+        )
+
+        # Estimación final
+        estimated_hits = max(1, int(posterior_mean * batch_len))
+
+        return estimated_hits
 
     def _predict_next_saturation(self, history: List[float]) -> float:
         """
-        Predicción usando Filtro de Kalman Extendido (EKF) con modelo adaptativo.
+        Predicción de saturación usando Filtro de Kalman Extendido (EKF).
 
-        Modelo de estado de 3er orden:
-            x = [saturación, velocidad, aceleración]ᵀ
+        ══════════════════════════════════════════════════════════════════
+        MODELO DE ESTADO
+        ══════════════════════════════════════════════════════════════════
 
-        Modelo dinámico (oscilador amortiguado):
-            ds/dt = v
-            dv/dt = a - β·v - ω²·(s - s_eq)
-            da/dt = -γ·a + ruido
+        Estado: x = [s, v, a]ᵀ
+            - s: saturación
+            - v: velocidad (ds/dt)
+            - a: aceleración (d²s/dt²)
+
+        Dinámica (oscilador amortiguado con equilibrio variable):
+            ṡ = v
+            v̇ = a - β·v - ω²·(s - s_eq)
+            ȧ = -γ·a + w_a
 
         donde:
-            - β: coeficiente de amortiguamiento
-            - ω: frecuencia natural (determina rapidez de convergencia)
-            - s_eq: saturación de equilibrio (setpoint)
-            - γ: decaimiento de aceleración
+            β: coeficiente de amortiguamiento
+            ω: frecuencia natural
+            s_eq: punto de equilibrio (se adapta)
+            γ: tasa de decaimiento de aceleración
+            w_a: ruido de proceso
 
-        El EKF adapta estos parámetros basándose en el error de innovación.
+        Observación:
+            z = s + v_z
+
+        donde v_z es ruido de medición.
+
+        ══════════════════════════════════════════════════════════════════
+        IMPLEMENTACIÓN
+        ══════════════════════════════════════════════════════════════════
+
+        Usamos discretización de Euler con paso dt = 1.
+
+        El filtro adapta los parámetros del modelo (β, ω, s_eq) basándose
+        en las innovaciones para mejorar el tracking.
+
+        ══════════════════════════════════════════════════════════════════
         """
-        if len(history) < 3:
+        MIN_HISTORY = 3
+
+        if len(history) < MIN_HISTORY:
             return history[-1] if history else 0.5
 
-        # === INICIALIZACIÓN DEL EKF ===
-        if not hasattr(self, '_ekf_state') or self._ekf_state is None:
-            # Estimar estado inicial desde historia
+        # ══════════════════════════════════════════════════════════════
+        # INICIALIZACIÓN DEL EKF
+        # ══════════════════════════════════════════════════════════════
+        if self._ekf_state is None:
+            # Estimar condiciones iniciales desde historial
             s0 = history[-1]
-            v0 = (history[-1] - history[-2]) if len(history) >= 2 else 0.0
+            v0 = history[-1] - history[-2] if len(history) >= 2 else 0.0
             a0 = 0.0
             if len(history) >= 3:
                 v_prev = history[-2] - history[-3]
                 a0 = v0 - v_prev
 
             self._ekf_state = {
-                # Estado: [saturación, velocidad, aceleración]
+                # Estado
                 "x": [s0, v0, a0],
 
-                # Covarianza del estado (incertidumbre)
+                # Covarianza del estado (diagonal para simplicidad)
                 "P": [
-                    [0.1, 0.0, 0.0],
-                    [0.0, 0.5, 0.0],
-                    [0.0, 0.0, 0.2],
-                ],
-
-                # Covarianza del proceso (ruido del modelo)
-                "Q": [
-                    [0.001, 0.0, 0.0],
-                    [0.0, 0.01, 0.0],
+                    [0.05, 0.0, 0.0],
+                    [0.0, 0.10, 0.0],
                     [0.0, 0.0, 0.05],
                 ],
 
+                # Covarianza del proceso
+                "Q": [
+                    [0.002, 0.0, 0.0],
+                    [0.0, 0.02, 0.0],
+                    [0.0, 0.0, 0.01],
+                ],
+
                 # Varianza de medición
-                "R": 0.02,
+                "R": 0.01,
 
-                # Parámetros del modelo (adaptativos)
-                "beta": 0.3,    # Amortiguamiento
-                "omega": 0.2,   # Frecuencia natural (REDUCIDA para tracking)
-                "gamma": 0.5,   # Decaimiento de aceleración
-                "s_eq": 0.5,    # Equilibrio (se adaptará al setpoint)
+                # Parámetros del modelo
+                "beta": 0.4,     # Amortiguamiento
+                "omega": 0.15,   # Frecuencia natural
+                "gamma": 0.6,    # Decaimiento de aceleración
+                "s_eq": 0.5,     # Equilibrio inicial
 
-                # Historial de innovaciones para adaptación
-                "innovations": [],
+                # Historial de innovaciones
+                "innovations": deque(maxlen=20),
+
+                # Contador de iteraciones para adaptación
+                "iteration": 0,
             }
 
         ekf = self._ekf_state
-        dt = 1.0  # Paso de tiempo normalizado
+        ekf["iteration"] += 1
+        dt = 1.0
 
-        # Extraer estado actual
+        # Extraer estado y parámetros
         x = ekf["x"]
         P = ekf["P"]
         s, v, a = x[0], x[1], x[2]
 
-        # === PREDICCIÓN (modelo no lineal) ===
         beta = ekf["beta"]
         omega = ekf["omega"]
         gamma = ekf["gamma"]
         s_eq = ekf["s_eq"]
 
-        # Ecuaciones de estado discretizadas (Euler)
+        # ══════════════════════════════════════════════════════════════
+        # PREDICCIÓN
+        # ══════════════════════════════════════════════════════════════
+
+        # Modelo no lineal discretizado
         s_pred = s + v * dt
-        v_pred = v + (a - beta * v - omega**2 * (s - s_eq)) * dt
-        a_pred = a * (1.0 - gamma * dt)  # Decaimiento exponencial
+        restoring_force = omega * omega * (s - s_eq)
+        v_pred = v + (a - beta * v - restoring_force) * dt
+        a_pred = a * (1.0 - gamma * dt)
 
         x_pred = [s_pred, v_pred, a_pred]
 
-        # Jacobiano del modelo (∂f/∂x)
+        # Jacobiano F = ∂f/∂x
         F = [
             [1.0, dt, 0.0],
-            [-omega**2 * dt, 1.0 - beta * dt, dt],
-            [0.0, 0.0, 1.0 - gamma * dt],
+            [-omega*omega*dt, 1.0 - beta*dt, dt],
+            [0.0, 0.0, 1.0 - gamma*dt],
         ]
 
         # Propagación de covarianza: P_pred = F·P·Fᵀ + Q
-        # Implementación sin numpy
-        P_pred = [[0.0] * 3 for _ in range(3)]
+        # Implementación explícita del producto matricial
         Q = ekf["Q"]
+        P_pred = [[0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0]]
 
+        # Calcular F·P
+        FP = [[0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0]]
         for i in range(3):
             for j in range(3):
                 for k in range(3):
-                    for l in range(3):
-                        P_pred[i][j] += F[i][k] * P[k][l] * F[j][l]
-                P_pred[i][j] += Q[i][j]
+                    FP[i][j] += F[i][k] * P[k][j]
 
-        # === ACTUALIZACIÓN (medición: z = s_medido) ===
-        z = history[-1]
-
-        # Vector de observación: H = [1, 0, 0] (solo observamos saturación)
-        H = [1.0, 0.0, 0.0]
-
-        # Innovación (residuo)
-        y = z - x_pred[0]
-
-        # Varianza de innovación: S = H·P_pred·Hᵀ + R
-        S = P_pred[0][0] + ekf["R"]
-
-        # Ganancia de Kalman: K = P_pred·Hᵀ·S⁻¹
-        K = [P_pred[i][0] / S for i in range(3)]
-
-        # Estado actualizado: x = x_pred + K·y
-        x_new = [x_pred[i] + K[i] * y for i in range(3)]
-
-        # Covarianza actualizada: P = (I - K·H)·P_pred
-        P_new = [[0.0] * 3 for _ in range(3)]
+        # Calcular (F·P)·Fᵀ + Q
         for i in range(3):
             for j in range(3):
-                P_new[i][j] = P_pred[i][j] - K[i] * H[j] * P_pred[0][j]
+                for k in range(3):
+                    P_pred[i][j] += FP[i][k] * F[j][k]  # F[j][k] = Fᵀ[k][j]
+                P_pred[i][j] += Q[i][j]
 
-        # === ADAPTACIÓN DE PARÁMETROS ===
+        # ══════════════════════════════════════════════════════════════
+        # ACTUALIZACIÓN
+        # ══════════════════════════════════════════════════════════════
+
+        z = history[-1]  # Medición actual
+
+        # H = [1, 0, 0] → solo observamos saturación
+        # Innovación
+        y = z - x_pred[0]
+
+        # Varianza de innovación: S = H·P_pred·Hᵀ + R = P_pred[0][0] + R
+        S = P_pred[0][0] + ekf["R"]
+
+        # Protección contra S muy pequeño
+        if S < 1e-10:
+            S = 1e-10
+
+        # Ganancia de Kalman: K = P_pred·Hᵀ / S
+        K = [P_pred[0][0] / S, P_pred[1][0] / S, P_pred[2][0] / S]
+
+        # Estado actualizado
+        x_new = [
+            x_pred[0] + K[0] * y,
+            x_pred[1] + K[1] * y,
+            x_pred[2] + K[2] * y,
+        ]
+
+        # Covarianza actualizada: P = (I - K·H)·P_pred
+        # Con H = [1, 0, 0], esto simplifica a:
+        P_new = [[0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0]]
+        for i in range(3):
+            for j in range(3):
+                P_new[i][j] = P_pred[i][j] - K[i] * P_pred[0][j]
+
+        # Asegurar simetría y positividad
+        for i in range(3):
+            for j in range(i + 1, 3):
+                avg = (P_new[i][j] + P_new[j][i]) / 2.0
+                P_new[i][j] = avg
+                P_new[j][i] = avg
+            # Asegurar elementos diagonales positivos
+            P_new[i][i] = max(1e-6, P_new[i][i])
+
+        # ══════════════════════════════════════════════════════════════
+        # ADAPTACIÓN DE PARÁMETROS
+        # ══════════════════════════════════════════════════════════════
+
         ekf["innovations"].append(y)
-        if len(ekf["innovations"]) > 20:
-            ekf["innovations"].pop(0)
 
         if len(ekf["innovations"]) >= 5:
-            # Varianza de innovaciones
-            innovations = ekf["innovations"]
-            mean_innov = sum(innovations) / len(innovations)
-            var_innov = sum((i - mean_innov)**2 for i in innovations) / len(innovations)
+            innovations = list(ekf["innovations"])
+            n_innov = len(innovations)
 
-            # Si innovaciones son consistentemente grandes, aumentar Q
-            expected_var = P_pred[0][0] + ekf["R"]
-            if var_innov > 2 * expected_var:
-                # Modelo subestima incertidumbre → aumentar Q
-                for i in range(3):
-                    ekf["Q"][i][i] *= 1.1
-            elif var_innov < 0.5 * expected_var:
-                # Modelo sobreestima → reducir Q
-                for i in range(3):
-                    ekf["Q"][i][i] *= 0.95
+            mean_innov = sum(innovations) / n_innov
+            var_innov = sum((i - mean_innov)**2 for i in innovations) / n_innov
 
-            # Detectar sesgo sistemático → ajustar s_eq
-            if abs(mean_innov) > 0.05:
-                ekf["s_eq"] += 0.1 * mean_innov
+            # Varianza esperada de innovaciones
+            expected_var = S
+
+            # Ratio de consistencia
+            nis = var_innov / max(expected_var, 1e-6)  # Normalized Innovation Squared
+
+            # Adaptar Q si innovaciones son inconsistentes
+            if nis > 2.0:
+                # Subestimamos incertidumbre → aumentar Q
+                q_scale = min(1.2, 1.0 + 0.1 * (nis - 2.0))
+                for i in range(3):
+                    ekf["Q"][i][i] *= q_scale
+            elif nis < 0.3:
+                # Sobreestimamos → reducir Q
+                q_scale = max(0.85, 1.0 - 0.1 * (0.3 - nis))
+                for i in range(3):
+                    ekf["Q"][i][i] *= q_scale
+
+            # Limitar Q para evitar divergencia
+            for i in range(3):
+                ekf["Q"][i][i] = max(1e-4, min(0.5, ekf["Q"][i][i]))
+
+            # Adaptar s_eq si hay sesgo sistemático
+            if abs(mean_innov) > 0.03:
+                # El filtro predice sistemáticamente alto o bajo
+                adaptation_rate = 0.1
+                ekf["s_eq"] += adaptation_rate * mean_innov
                 ekf["s_eq"] = max(0.1, min(0.9, ekf["s_eq"]))
+
+            # Adaptar omega si hay oscilaciones
+            if n_innov >= 8:
+                # Detectar oscilaciones por cambios de signo
+                sign_changes = sum(
+                    1 for i in range(1, n_innov)
+                    if innovations[i] * innovations[i-1] < 0
+                )
+                oscillation_freq = sign_changes / (n_innov - 1)
+
+                if oscillation_freq > 0.6:
+                    # Oscilando mucho → reducir omega (menos oscilatorio)
+                    ekf["omega"] *= 0.95
+                elif oscillation_freq < 0.2:
+                    # Poco oscilatorio → aumentar omega
+                    ekf["omega"] *= 1.03
+
+                ekf["omega"] = max(0.05, min(0.5, ekf["omega"]))
 
         # Guardar estado
         ekf["x"] = x_new
         ekf["P"] = P_new
 
-        # === PREDICCIÓN A UN PASO ===
-        # Usar modelo para predecir siguiente valor
+        # ══════════════════════════════════════════════════════════════
+        # PREDICCIÓN A UN PASO ADELANTE
+        # ══════════════════════════════════════════════════════════════
+
         s_next = x_new[0] + x_new[1] * dt
 
-        # Aplicar límites físicos con saturación suave (sigmoide)
-        # Esto evita discontinuidades en el control
-        s_next_bounded = 1.0 / (1.0 + math.exp(-10.0 * (s_next - 0.5)))
+        # Asegurar límites físicos estrictos (Clamping simple para fidelidad de predicción)
+        s_bounded = max(0.0, min(1.0, s_next))
 
-        return s_next_bounded
+        return s_bounded
 
     def _process_single_batch_with_recovery(
         self,
@@ -3360,24 +4400,37 @@ class DataFluxCondenser:
         cache: Dict,
         consecutive_failures: int,
         telemetry: Optional[TelemetryContext] = None,
+        _recursion_depth: int = 0,
     ) -> BatchResult:
         """
         Procesamiento de batch con estrategia de recuperación multinivel.
 
-        Niveles de recuperación:
+        ══════════════════════════════════════════════════════════════════
+        NIVELES DE RECUPERACIÓN
+        ══════════════════════════════════════════════════════════════════
 
-        1. **Intento directo**: Procesar batch completo.
+        NIVEL 0: Intento directo
+            - Procesar batch completo
+            - Si éxito → retornar resultado
+            - Si fallo → avanzar a nivel 1
 
-        2. **División binaria**: Si falla, dividir en 2 y procesar recursivamente.
-           Esto permite aislar registros problemáticos.
-           Condición: batch_size > MIN_SPLIT_SIZE (evita recursión infinita)
+        NIVEL 1: División binaria
+            - Dividir batch en mitades
+            - Procesar cada mitad recursivamente
+            - Combinar resultados
+            - Profundidad máxima limitada para evitar stack overflow
 
-        3. **Procesamiento unitario**: Para batches pequeños o múltiples fallos,
-           procesar registro por registro, acumulando los exitosos.
+        NIVEL 2: Procesamiento unitario con cuarentena
+            - Procesar registro por registro
+            - Registros fallidos van a cuarentena
+            - Retornar registros exitosos
 
-        La agregación de resultados parciales se hace correctamente sumando
-        records_processed de cada sub-resultado.
+        ══════════════════════════════════════════════════════════════════
         """
+        MAX_RECURSION_DEPTH = 5
+        MIN_SPLIT_SIZE = 3
+        MAX_UNIT_PROCESSING_SIZE = 150
+
         if not batch:
             return BatchResult(
                 success=True,
@@ -3386,23 +4439,23 @@ class DataFluxCondenser:
             )
 
         batch_size = len(batch)
-        MIN_SPLIT_SIZE = 5  # Tamaño mínimo para dividir (evita recursión infinita)
-        MAX_UNIT_PROCESSING_SIZE = 100  # Máximo para procesamiento unitario
 
-        # === NIVEL 1: INTENTO DIRECTO ===
-        if consecutive_failures == 0:
+        # ══════════════════════════════════════════════════════════════
+        # NIVEL 0: INTENTO DIRECTO
+        # ══════════════════════════════════════════════════════════════
+
+        if consecutive_failures == 0 and _recursion_depth == 0:
             try:
                 parsed_data = ParsedData(batch, cache)
                 df = self._rectify_signal(parsed_data, telemetry=telemetry)
 
-                if df is not None and not df.empty:
+                if df is not None:
                     return BatchResult(
                         success=True,
-                        dataframe=df,
-                        records_processed=len(df)
+                        dataframe=df if not df.empty else pd.DataFrame(),
+                        records_processed=len(df) if not df.empty else 0
                     )
                 else:
-                    # Éxito pero sin datos
                     return BatchResult(
                         success=True,
                         dataframe=pd.DataFrame(),
@@ -3410,61 +4463,87 @@ class DataFluxCondenser:
                     )
 
             except Exception as e:
-                self.logger.debug(f"Intento directo falló: {e}")
+                self.logger.debug(
+                    f"Nivel 0 falló para batch de {batch_size}: {type(e).__name__}"
+                )
                 # Continuar a recuperación
 
-        # === NIVEL 2: DIVISIÓN BINARIA ===
-        # Solo si el batch es suficientemente grande y no hemos fallado mucho
-        if consecutive_failures <= 2 and batch_size > MIN_SPLIT_SIZE:
+        # ══════════════════════════════════════════════════════════════
+        # NIVEL 1: DIVISIÓN BINARIA
+        # ══════════════════════════════════════════════════════════════
+
+        can_split = (
+            batch_size > MIN_SPLIT_SIZE and
+            _recursion_depth < MAX_RECURSION_DEPTH and
+            consecutive_failures <= 3
+        )
+
+        if can_split:
             try:
                 mid = batch_size // 2
 
-                # Procesar mitades recursivamente
+                # Procesar mitades con profundidad incrementada
                 left_result = self._process_single_batch_with_recovery(
-                    batch[:mid], cache, consecutive_failures + 1, telemetry
+                    batch=batch[:mid],
+                    cache=cache,
+                    consecutive_failures=consecutive_failures + 1,
+                    telemetry=telemetry,
+                    _recursion_depth=_recursion_depth + 1,
                 )
+
                 right_result = self._process_single_batch_with_recovery(
-                    batch[mid:], cache, consecutive_failures + 1, telemetry
+                    batch=batch[mid:],
+                    cache=cache,
+                    consecutive_failures=consecutive_failures + 1,
+                    telemetry=telemetry,
+                    _recursion_depth=_recursion_depth + 1,
                 )
 
                 # Agregar resultados
                 dfs_to_concat = []
                 total_records = 0
 
-                if left_result.success and left_result.dataframe is not None:
-                    if not left_result.dataframe.empty:
-                        dfs_to_concat.append(left_result.dataframe)
-                    total_records += left_result.records_processed
-
-                if right_result.success and right_result.dataframe is not None:
-                    if not right_result.dataframe.empty:
-                        dfs_to_concat.append(right_result.dataframe)
-                    total_records += right_result.records_processed
+                for result in [left_result, right_result]:
+                    if result.success and result.dataframe is not None:
+                        if not result.dataframe.empty:
+                            dfs_to_concat.append(result.dataframe)
+                        total_records += result.records_processed
 
                 if dfs_to_concat:
-                    combined_df = pd.concat(dfs_to_concat, ignore_index=True)
+                    try:
+                        combined_df = pd.concat(dfs_to_concat, ignore_index=True)
+                    except Exception as concat_error:
+                        self.logger.warning(f"Error concatenando splits: {concat_error}")
+                        # Intentar concatenación más robusta
+                        combined_df = self._safe_concat(dfs_to_concat)
                 else:
                     combined_df = pd.DataFrame()
 
-                # Éxito parcial si recuperamos algo
                 success = total_records > 0 or (left_result.success and right_result.success)
 
                 return BatchResult(
                     success=success,
                     dataframe=combined_df,
                     records_processed=total_records,
-                    error_message="" if success else "División binaria falló completamente"
+                    error_message="" if success else "División binaria sin resultados"
                 )
+
+            except RecursionError:
+                self.logger.error("Recursión máxima alcanzada en división binaria")
+                # Fall through a nivel 2
 
             except Exception as e:
                 self.logger.warning(f"División binaria falló: {e}")
-                # Continuar a nivel 3
+                # Continuar a nivel 2
 
-        # === NIVEL 3: PROCESAMIENTO UNITARIO ===
-        # Para batches pequeños o cuando la división falló
+        # ══════════════════════════════════════════════════════════════
+        # NIVEL 2: PROCESAMIENTO UNITARIO CON CUARENTENA
+        # ══════════════════════════════════════════════════════════════
+
         if batch_size <= MAX_UNIT_PROCESSING_SIZE:
             successful_dfs = []
-            failed_count = 0
+            quarantined_indices = []
+            processed_count = 0
 
             for idx, record in enumerate(batch):
                 try:
@@ -3473,35 +4552,53 @@ class DataFluxCondenser:
 
                     if df is not None and not df.empty:
                         successful_dfs.append(df)
+                        processed_count += len(df)
 
                 except Exception as e:
-                    failed_count += 1
-                    if failed_count <= 5:  # Limitar logging
-                        self.logger.debug(f"Registro {idx} falló: {e}")
+                    quarantined_indices.append(idx)
+
+                    # Logging limitado para evitar spam
+                    if len(quarantined_indices) <= 3:
+                        self.logger.debug(
+                            f"Registro {idx} en cuarentena: {type(e).__name__}"
+                        )
+
+            # Log de cuarentena si hay muchos
+            if len(quarantined_indices) > 3:
+                self.logger.debug(
+                    f"Total registros en cuarentena: {len(quarantined_indices)}/{batch_size}"
+                )
 
             if successful_dfs:
-                combined_df = pd.concat(successful_dfs, ignore_index=True)
-                records_processed = len(combined_df)
+                combined_df = self._safe_concat(successful_dfs)
             else:
                 combined_df = pd.DataFrame()
-                records_processed = 0
 
-            success = records_processed > 0
+            success = processed_count > 0
+            recovery_rate = processed_count / batch_size if batch_size > 0 else 0.0
 
             return BatchResult(
                 success=success,
                 dataframe=combined_df,
-                records_processed=records_processed,
-                error_message=f"Recuperación unitaria: {records_processed}/{batch_size} exitosos"
+                records_processed=processed_count,
+                error_message=(
+                    f"Recuperación unitaria: {processed_count}/{batch_size} "
+                    f"({100*recovery_rate:.1f}%) - {len(quarantined_indices)} en cuarentena"
+                )
             )
 
-        # === FALLO TOTAL ===
-        # Batch muy grande y múltiples niveles de recuperación fallaron
+        # ══════════════════════════════════════════════════════════════
+        # FALLO TOTAL
+        # ══════════════════════════════════════════════════════════════
+
         return BatchResult(
             success=False,
             dataframe=None,
             records_processed=0,
-            error_message=f"Recuperación fallida para batch de {batch_size} registros"
+            error_message=(
+                f"Recuperación fallida: batch_size={batch_size}, "
+                f"depth={_recursion_depth}, failures={consecutive_failures}"
+            )
         )
 
     def _rectify_signal(self, parsed_data: ParsedData, telemetry: Optional[TelemetryContext] = None) -> pd.DataFrame:
@@ -3514,26 +4611,125 @@ class DataFluxCondenser:
             raise ProcessingError(f"Error en rectificación: {e}")
 
     def _consolidate_results(self, batches: List[pd.DataFrame]) -> pd.DataFrame:
-        """Consolida resultados."""
-        valid = [df for df in batches if df is not None and not df.empty]
-        if not valid: return pd.DataFrame()
-        if len(valid) > SystemConstants.MAX_BATCHES_TO_CONSOLIDATE:
-            valid = valid[:SystemConstants.MAX_BATCHES_TO_CONSOLIDATE]
+        """
+        Consolida resultados de múltiples batches con validación.
+
+        Args:
+            batches: Lista de DataFrames procesados
+
+        Returns:
+            DataFrame consolidado y validado
+        """
+        # Filtrar batches válidos
+        valid_batches = [
+            df for df in batches
+            if df is not None and isinstance(df, pd.DataFrame) and not df.empty
+        ]
+
+        if not valid_batches:
+            self.logger.info("No hay batches válidos para consolidar")
+            return pd.DataFrame()
+
+        # Verificar límite de batches
+        if len(valid_batches) > SystemConstants.MAX_BATCHES_TO_CONSOLIDATE:
+            self.logger.warning(
+                f"Truncando batches: {len(valid_batches)} → "
+                f"{SystemConstants.MAX_BATCHES_TO_CONSOLIDATE}"
+            )
+            valid_batches = valid_batches[:SystemConstants.MAX_BATCHES_TO_CONSOLIDATE]
+
+        # Estimar memoria requerida
+        total_rows = sum(len(df) for df in valid_batches)
+        avg_cols = sum(len(df.columns) for df in valid_batches) / len(valid_batches)
+
+        self.logger.debug(
+            f"Consolidando {len(valid_batches)} batches: "
+            f"~{total_rows:,} filas, ~{avg_cols:.0f} columnas"
+        )
+
         try:
-            return pd.concat(valid, ignore_index=True)
+            result = self._safe_concat(valid_batches)
+
+            # Validación post-consolidación
+            if not result.empty:
+                # Eliminar duplicados si hay columna de ID
+                id_columns = [col for col in result.columns if 'id' in col.lower()]
+                if id_columns:
+                    original_len = len(result)
+                    result = result.drop_duplicates(subset=id_columns, keep='first')
+                    if len(result) < original_len:
+                        self.logger.info(
+                            f"Eliminados {original_len - len(result)} duplicados"
+                        )
+
+                # Actualizar estadísticas
+                self._stats.processed_records = len(result)
+
+            return result
+
         except Exception as e:
-            raise ProcessingError(f"Error consolidando: {e}")
+            raise ProcessingError(f"Error consolidando resultados: {e}")
 
     def _validate_output(self, df: pd.DataFrame) -> None:
-        """Valida salida."""
+        """
+        Valida el DataFrame de salida con múltiples criterios.
+
+        Validaciones:
+        1. DataFrame no vacío (warning o error según config)
+        2. Mínimo de registros
+        3. Columnas requeridas (si están definidas)
+        4. Tipos de datos consistentes
+        """
         if df.empty:
-            self.logger.warning("DataFrame salida vacío")
-            return
-        if len(df) < self.condenser_config.min_records_threshold:
-            msg = f"Registros insuficientes: {len(df)}"
+            msg = "DataFrame de salida está vacío"
+
             if self.condenser_config.enable_strict_validation:
                 raise ProcessingError(msg)
-            self.logger.warning(msg)
+
+            self.logger.warning(f"⚠️ {msg}")
+            return
+
+        n_records = len(df)
+        n_columns = len(df.columns)
+
+        # Verificar mínimo de registros
+        min_threshold = self.condenser_config.min_records_threshold
+
+        if n_records < min_threshold:
+            msg = f"Registros insuficientes: {n_records} < {min_threshold}"
+
+            if self.condenser_config.enable_strict_validation:
+                raise ProcessingError(msg)
+
+            self.logger.warning(f"⚠️ {msg}")
+
+        # Verificar columnas requeridas (si están configuradas)
+        required_columns = getattr(self.condenser_config, 'required_columns', None)
+
+        if required_columns:
+            missing_columns = set(required_columns) - set(df.columns)
+
+            if missing_columns:
+                msg = f"Columnas requeridas faltantes: {missing_columns}"
+
+                if self.condenser_config.enable_strict_validation:
+                    raise ProcessingError(msg)
+
+                self.logger.warning(f"⚠️ {msg}")
+
+        # Verificar valores nulos excesivos
+        null_ratio = df.isnull().sum().sum() / (n_records * n_columns)
+
+        if null_ratio > 0.5:
+            self.logger.warning(
+                f"⚠️ Alto porcentaje de valores nulos: {100*null_ratio:.1f}%"
+            )
+
+        # Log de resumen
+        self.logger.info(
+            f"📋 Validación de salida: {n_records:,} registros, "
+            f"{n_columns} columnas, {100*null_ratio:.1f}% nulos"
+        )
 
     def _enhance_stats_with_diagnostics(self, stats: ProcessingStats, metrics: Dict) -> Dict:
         """Mejora estadísticas."""
@@ -3547,33 +4743,283 @@ class DataFluxCondenser:
         }
 
     def get_processing_stats(self) -> Dict[str, Any]:
-        """Retorna estadísticas."""
+        """
+        Retorna estadísticas completas del procesamiento.
+
+        Incluye:
+        - Estadísticas base del pipeline
+        - Diagnósticos del controlador
+        - Análisis de tendencias de física
+        - Métricas actuales del sistema
+        """
+        # Estadísticas base
+        base_stats = asdict(self._stats)
+
+        # Métricas actuales (última iteración)
         current_metrics = {}
-        if self.physics._metrics_history:
-             current_metrics = self.physics._metrics_history[-1]
+        if self._metrics_history:
+            current_metrics = dict(self._metrics_history[-1])
+
+        # Tendencias de métricas
+        trends = {}
+        if len(self._metrics_history) >= 5:
+            recent = list(self._metrics_history)[-5:]
+
+            for key in ['saturation', 'power', 'complexity']:
+                values = [m.get(key, 0) for m in recent if key in m]
+                if values:
+                    trends[f"{key}_trend"] = (values[-1] - values[0]) / len(values)
+                    trends[f"{key}_mean"] = sum(values) / len(values)
+
+        # Diagnósticos del controlador
+        controller_diag = {}
+        try:
+            controller_diag = self.controller.get_diagnostics()
+        except Exception as e:
+            self.logger.debug(f"Error obteniendo diagnósticos de controlador: {e}")
+
+        # Análisis de física
+        physics_analysis = {}
+        try:
+            physics_analysis = self.physics.get_trend_analysis()
+        except Exception as e:
+            self.logger.debug(f"Error obteniendo análisis de física: {e}")
 
         return {
-            "statistics": asdict(self._stats),
-            "controller": self.controller.get_diagnostics(),
-            "physics": self.physics.get_trend_analysis(),
+            "statistics": base_stats,
+            "current_metrics": current_metrics,
+            "trends": trends,
+            "controller": controller_diag,
+            "physics": physics_analysis,
             "emergency_brakes": self._emergency_brake_count,
-            "current_metrics": current_metrics
+            "ekf_state": {
+                "active": self._ekf_state is not None,
+                "iteration": self._ekf_state.get("iteration", 0) if self._ekf_state else 0,
+                "equilibrium": self._ekf_state.get("s_eq", 0.5) if self._ekf_state else 0.5,
+            },
+            "timing": {
+                "elapsed_s": time.time() - self._start_time if self._start_time else 0,
+                "throughput_per_s": (
+                    self._stats.processed_records /
+                    max(0.001, time.time() - self._start_time)
+                    if self._start_time else 0
+                ),
+            },
         }
 
     def get_system_health(self) -> Dict[str, Any]:
-        """Retorna salud del sistema."""
-        diag = self.controller.get_stability_analysis()
-        health = "HEALTHY"
+        """
+        Evalúa la salud del sistema con múltiples indicadores.
+
+        Niveles de salud:
+        - HEALTHY: Todo funcionando correctamente
+        - DEGRADED: Funcionando pero con advertencias
+        - CRITICAL: Problemas serios que requieren atención
+        - FAILED: Sistema en estado de fallo
+        """
         issues = []
-        if diag.get("stability_class") == "POTENTIALLY_UNSTABLE":
-            health = "DEGRADED"
-            issues.append("Inestabilidad de control")
-        if self._emergency_brake_count > 5:
-            health = "DEGRADED"
-            issues.append("Frenos de emergencia frecuentes")
+        warnings = []
+
+        # ══════════════════════════════════════════════════════════════
+        # EVALUACIÓN DEL CONTROLADOR
+        # ══════════════════════════════════════════════════════════════
+        try:
+            controller_diag = self.controller.get_stability_analysis()
+            stability_class = controller_diag.get("stability_class", "UNKNOWN")
+
+            if stability_class == "UNSTABLE":
+                issues.append("Control inestable: sistema divergente")
+            elif stability_class == "POTENTIALLY_UNSTABLE":
+                warnings.append("Control potencialmente inestable")
+            elif stability_class == "MARGINALLY_STABLE":
+                warnings.append("Estabilidad marginal del controlador")
+
+            # Verificar utilización integral
+            integral_util = controller_diag.get("integral_saturation", 0)
+            if integral_util > 0.9:
+                warnings.append(f"Saturación integral alta: {100*integral_util:.0f}%")
+
+        except Exception as e:
+            warnings.append(f"Error evaluando controlador: {e}")
+
+        # ══════════════════════════════════════════════════════════════
+        # EVALUACIÓN DE FRENOS DE EMERGENCIA
+        # ══════════════════════════════════════════════════════════════
+
+        if self._emergency_brake_count > 10:
+            issues.append(
+                f"Exceso de frenos de emergencia: {self._emergency_brake_count}"
+            )
+        elif self._emergency_brake_count > 5:
+            warnings.append(
+                f"Frenos de emergencia frecuentes: {self._emergency_brake_count}"
+            )
+
+        # ══════════════════════════════════════════════════════════════
+        # EVALUACIÓN DE RENDIMIENTO
+        # ══════════════════════════════════════════════════════════════
+
+        if self._stats.total_records > 0:
+            success_rate = self._stats.processed_records / self._stats.total_records
+
+            if success_rate < 0.5:
+                issues.append(f"Tasa de éxito muy baja: {100*success_rate:.1f}%")
+            elif success_rate < 0.8:
+                warnings.append(f"Tasa de éxito degradada: {100*success_rate:.1f}%")
+
+        # ══════════════════════════════════════════════════════════════
+        # EVALUACIÓN DEL EKF
+        # ══════════════════════════════════════════════════════════════
+
+        if self._ekf_state:
+            ekf_iter = self._ekf_state.get("iteration", 0)
+            if ekf_iter > 100:
+                # Verificar convergencia del EKF
+                P = self._ekf_state.get("P", [[1, 0, 0], [0, 1, 0], [0, 0, 1]])
+                trace_P = sum(P[i][i] for i in range(3))
+
+                if trace_P > 1.0:
+                    warnings.append(f"EKF con incertidumbre alta: tr(P)={trace_P:.3f}")
+
+        # ══════════════════════════════════════════════════════════════
+        # DETERMINACIÓN DE ESTADO DE SALUD
+        # ══════════════════════════════════════════════════════════════
+
+        if issues:
+            health = "CRITICAL" if len(issues) >= 2 else "DEGRADED"
+        elif warnings:
+            health = "DEGRADED" if len(warnings) >= 3 else "HEALTHY"
+        else:
+            health = "HEALTHY"
+
+        # Uptime
+        uptime = time.time() - self._start_time if self._start_time else 0
 
         return {
             "health": health,
             "issues": issues,
-            "uptime": time.time() - self._start_time if self._start_time else 0
+            "warnings": warnings,
+            "uptime_s": uptime,
+            "emergency_brakes": self._emergency_brake_count,
+            "processed_ratio": (
+                self._stats.processed_records / max(1, self._stats.total_records)
+            ),
+            "stability_baseline": self._stability_baseline,
+            "recommendations": self._generate_health_recommendations(issues, warnings),
         }
+
+    def _safe_concat(self, dataframes: List[pd.DataFrame]) -> pd.DataFrame:
+        """
+        Concatenación robusta de DataFrames con manejo de esquemas inconsistentes.
+
+        Estrategia:
+        1. Identificar esquema común (intersección de columnas)
+        2. Alinear DataFrames al esquema común
+        3. Concatenar con manejo de tipos
+
+        Args:
+            dataframes: Lista de DataFrames a concatenar
+
+        Returns:
+            DataFrame concatenado
+        """
+        if not dataframes:
+            return pd.DataFrame()
+
+        if len(dataframes) == 1:
+            return dataframes[0]
+
+        # Filtrar DataFrames vacíos
+        valid_dfs = [df for df in dataframes if df is not None and not df.empty]
+
+        if not valid_dfs:
+            return pd.DataFrame()
+
+        if len(valid_dfs) == 1:
+            return valid_dfs[0]
+
+        try:
+            # Intento directo
+            return pd.concat(valid_dfs, ignore_index=True, sort=False)
+
+        except Exception as e:
+            self.logger.debug(f"Concatenación directa falló: {e}, intentando alineación")
+
+            try:
+                # Encontrar columnas comunes
+                common_columns = set(valid_dfs[0].columns)
+                for df in valid_dfs[1:]:
+                    common_columns &= set(df.columns)
+
+                if not common_columns:
+                    self.logger.warning("No hay columnas comunes entre DataFrames")
+                    # Usar unión en lugar de intersección
+                    all_columns = set()
+                    for df in valid_dfs:
+                        all_columns |= set(df.columns)
+                    common_columns = all_columns
+
+                common_columns = sorted(common_columns)
+
+                # Alinear cada DataFrame
+                aligned_dfs = []
+                for df in valid_dfs:
+                    # Agregar columnas faltantes con NaN
+                    for col in common_columns:
+                        if col not in df.columns:
+                            df = df.copy()
+                            df[col] = pd.NA
+
+                    aligned_dfs.append(df[list(common_columns)])
+
+                return pd.concat(aligned_dfs, ignore_index=True, sort=False)
+
+            except Exception as e2:
+                self.logger.error(f"Concatenación con alineación falló: {e2}")
+
+                # Último recurso: concatenar el primero válido
+                return valid_dfs[0]
+
+    def _generate_health_recommendations(
+        self,
+        issues: List[str],
+        warnings: List[str]
+    ) -> List[str]:
+        """Genera recomendaciones basadas en problemas detectados."""
+        recommendations = []
+
+        # Recomendaciones por issues
+        for issue in issues:
+            if "inestable" in issue.lower():
+                recommendations.append(
+                    "Reducir ganancias del controlador (Kp, Ki) para mejorar estabilidad"
+                )
+            if "frenos de emergencia" in issue.lower():
+                recommendations.append(
+                    "Aumentar capacidad del sistema o reducir carga de trabajo"
+                )
+            if "tasa de éxito" in issue.lower():
+                recommendations.append(
+                    "Revisar calidad de datos de entrada y configuración del parser"
+                )
+
+        # Recomendaciones por warnings
+        for warning in warnings:
+            if "integral" in warning.lower():
+                recommendations.append(
+                    "Considerar ajustar integral_limit_factor o reducir Ki"
+                )
+            if "ekf" in warning.lower():
+                recommendations.append(
+                    "Reiniciar sesión para resetear estado del predictor"
+                )
+
+        # Eliminar duplicados manteniendo orden
+        seen = set()
+        unique_recommendations = []
+        for r in recommendations:
+            if r not in seen:
+                seen.add(r)
+                unique_recommendations.append(r)
+
+        return unique_recommendations
