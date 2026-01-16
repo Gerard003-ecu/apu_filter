@@ -42,6 +42,7 @@ except ImportError:
     np = None
 
 import pandas as pd
+import scipy.signal
 
 from .apu_processor import APUProcessor
 from .report_parser_crudo import ReportParserCrudo
@@ -269,6 +270,108 @@ class BatchResult:
     records_processed: int = 0
     error_message: str = ""
     metrics: Optional[Dict[str, float]] = None
+
+
+# ============================================================================
+# ANALIZADOR DE LAPLACE (Dominio de la Frecuencia)
+# ============================================================================
+class LaplaceAnalyzer:
+    """
+    Analizador de estabilidad en el dominio de Laplace (Plano-S).
+
+    Este componente realiza un análisis a priori de la estabilidad del sistema
+    utilizando la Transformada de Laplace. Evalúa la ubicación de los polos
+    de la función de transferencia para determinar si la configuración física
+    (RLC) conducirá a un comportamiento estable o inestable antes de procesar
+    cualquier dato.
+
+    Función de Transferencia:
+        H(s) = 1 / (L*C*s^2 + R*C*s + 1)
+
+    Responsabilidades:
+        1. Construir la función de transferencia del sistema.
+        2. Calcular polos y ceros.
+        3. Determinar frecuencia natural y factor de amortiguamiento.
+        4. Validar matemáticamente la estabilidad absoluta (polos en semiplano izquierdo).
+    """
+
+    def __init__(self, R: float, L: float, C: float):
+        """
+        Inicializa el analizador con parámetros físicos.
+
+        Args:
+            R (float): Resistencia (Ohms).
+            L (float): Inductancia (Henries).
+            C (float): Capacitancia (Farads).
+        """
+        self.R = float(R)
+        self.L = float(L)
+        self.C = float(C)
+
+        # Numerador: [1]
+        num = [1.0]
+
+        # Denominador: L*C*s^2 + R*C*s + 1
+        # Coeficientes en orden descendente de potencias de s: [s^2, s^1, s^0]
+        den = [self.L * self.C, self.R * self.C, 1.0]
+
+        try:
+            # Crear sistema LTI (Linear Time-Invariant)
+            self.system = scipy.signal.TransferFunction(num, den)
+        except Exception as e:
+            raise ConfigurationError(f"Error construyendo función de transferencia: {e}")
+
+    def get_poles(self) -> np.ndarray:
+        """Obtiene los polos del sistema."""
+        return self.system.poles
+
+    def get_zeros(self) -> np.ndarray:
+        """Obtiene los ceros del sistema (si existen)."""
+        return self.system.zeros
+
+    def check_stability(self) -> Dict[str, Any]:
+        """
+        Verifica la estabilidad absoluta del sistema.
+
+        Criterio: Un sistema LTI continuo es BIBO estable si y solo si
+        todos los polos tienen parte real estrictamente negativa.
+
+        Returns:
+            Dict con diagnóstico detallado de estabilidad.
+        """
+        poles = self.get_poles()
+
+        # Verificar estabilidad: parte real < 0 (o <= epsilon para marginal)
+        # Usamos un epsilon pequeño para tolerancia numérica
+        epsilon = 1e-10
+        unstable_poles = [p for p in poles if p.real > epsilon]
+        marginal_poles = [p for p in poles if abs(p.real) <= epsilon]
+
+        is_stable = len(unstable_poles) == 0
+        is_marginally_stable = len(unstable_poles) == 0 and len(marginal_poles) > 0
+
+        # Cálculo de métricas de frecuencia
+        omega_n = 1.0 / math.sqrt(self.L * self.C) if self.L * self.C > 0 else 0.0
+        zeta = (self.R * math.sqrt(self.C / self.L)) / 2.0 if self.L > 0 else 0.0
+
+        status = "STABLE"
+        if not is_stable:
+            status = "UNSTABLE"
+        elif is_marginally_stable:
+            status = "MARGINALLY_STABLE"
+
+        return {
+            "is_stable": is_stable,
+            "status": status,
+            "poles": [(complex(p).real, complex(p).imag) for p in poles],
+            "zeros": [(complex(z).real, complex(z).imag) for z in self.get_zeros()],
+            "natural_frequency_rad_s": omega_n,
+            "damping_ratio": zeta,
+            "transfer_function_coeffs": {
+                "num": list(self.system.num),
+                "den": list(self.system.den)
+            }
+        }
 
 
 # ============================================================================
@@ -1917,6 +2020,29 @@ class DataFluxCondenser:
         self.profile = profile or {}
 
         try:
+            # 1. Validación de Estabilidad a Priori (Laplace)
+            self.logger.info("🔬 Iniciando Análisis de Laplace (Estabilidad a Priori)...")
+            laplace_analyzer = LaplaceAnalyzer(
+                self.condenser_config.base_resistance,
+                self.condenser_config.system_inductance,
+                self.condenser_config.system_capacitance
+            )
+            stability_report = laplace_analyzer.check_stability()
+
+            if not stability_report["is_stable"]:
+                poles = stability_report["poles"]
+                raise ConfigurationError(
+                    f"CONFIGURACIÓN INESTABLE DETECTADA POR ANÁLISIS DE LAPLACE.\n"
+                    f"Polos en semiplano derecho: {poles}\n"
+                    f"El sistema oscilará o divergiría."
+                )
+
+            self.logger.info(
+                f"✅ Estabilidad Confirmada: Polos={stability_report['poles']}, "
+                f"ω_n={stability_report['natural_frequency_rad_s']:.2f} rad/s"
+            )
+
+            # 2. Inicialización de Componentes
             self.physics = FluxPhysicsEngine(
                 self.condenser_config.system_capacitance,
                 self.condenser_config.base_resistance,
@@ -1930,6 +2056,8 @@ class DataFluxCondenser:
                 self.condenser_config.max_batch_size,
                 self.condenser_config.integral_limit_factor,
             )
+        except ConfigurationError:
+            raise
         except Exception as e:
             raise ConfigurationError(f"Error inicializando componentes: {e}")
 

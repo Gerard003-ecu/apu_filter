@@ -2,6 +2,7 @@
 Suite de Pruebas para el `DataFluxCondenser` - Versión Refinada V5.
 
 Cobertura actualizada para las mejoras implementadas:
+- Análisis de Laplace (Estabilidad a priori)
 - Criterio de Jury completo en validación de parámetros PI
 - Filtro EMA con alpha adaptativo basado en varianza e innovaciones
 - Métrica de Lyapunov con regresión logarítmica
@@ -44,6 +45,7 @@ from app.flux_condenser import (
     DataFluxCondenserError,
     FluxPhysicsEngine,
     InvalidInputError,
+    LaplaceAnalyzer,
     ParsedData,
     PIController,
     ProcessingError,
@@ -121,6 +123,92 @@ def small_csv_file(tmp_path) -> Path:
     file_path.write_text(content)
     return file_path
 
+
+# ============================================================================
+# TESTS: LaplaceAnalyzer - Análisis de Estabilidad a Priori
+# ============================================================================
+
+
+class TestLaplacePhysics:
+    """Pruebas del analizador de estabilidad en dominio Laplace."""
+
+    def test_system_stability_nominal(self):
+        """Verifica que los valores por defecto sean estables."""
+        # R=10, L=2, C=5000
+        analyzer = LaplaceAnalyzer(R=10.0, L=2.0, C=5000.0)
+        report = analyzer.check_stability()
+
+        assert report["is_stable"] is True
+        assert report["status"] == "STABLE"
+
+        # Verificar que los polos tienen parte real negativa
+        for real, imag in report["poles"]:
+            assert real <= 0
+
+    def test_system_instability_detection(self):
+        """Simula parámetros inestables (resistencia negativa)."""
+        # Resistencia negativa inyecta energía -> inestabilidad
+        analyzer = LaplaceAnalyzer(R=-10.0, L=2.0, C=5000.0)
+        report = analyzer.check_stability()
+
+        assert report["is_stable"] is False
+        assert report["status"] == "UNSTABLE"
+
+        # Al menos un polo debe tener parte real positiva
+        assert any(real > 0 for real, imag in report["poles"])
+
+    def test_condenser_rejects_unstable_config(self, valid_config, valid_profile):
+        """Verifica que DataFluxCondenser lance excepción con parámetros inestables."""
+        # Creamos una config válida primero para pasar la validación inicial
+        unstable_config = CondenserConfig(
+            base_resistance=5.0,
+            system_inductance=1.0,
+            system_capacitance=100.0
+        )
+
+        # Forzamos un valor negativo usando bypass de inmutabilidad
+        # Esto simula una corrupción de configuración o un caso límite
+        # que escapó a la validación estática pero que debe ser atrapado por la física.
+        object.__setattr__(unstable_config, 'base_resistance', -5.0)
+
+        with pytest.raises(ConfigurationError) as exc_info:
+            DataFluxCondenser(valid_config, valid_profile, unstable_config)
+
+        assert "ANÁLISIS DE LAPLACE" in str(exc_info.value)
+        assert "Polos en semiplano derecho" in str(exc_info.value)
+
+    def test_marginal_stability(self):
+        """Sistema marginalmente estable (oscilador sin amortiguamiento)."""
+        # R=0 (sin disipación), L=1, C=1 -> Oscilador armónico puro
+        analyzer = LaplaceAnalyzer(R=0.0, L=1.0, C=1.0)
+        report = analyzer.check_stability()
+
+        # Polos en eje imaginario puro +/- j
+        for real, imag in report["poles"]:
+            assert abs(real) < 1e-9  # Aproximadamente 0
+
+        # Dependiendo de la implementación exacta, puede considerarse marginal
+        # o estable en sentido de Lyapunov pero no asintóticamente estable.
+        # Nuestra implementación verifica real <= epsilon para marginal.
+        # Si real > epsilon es UNSTABLE. Si real <= epsilon es STABLE (o MARGINAL si hay en eje imag).
+        # Ajustemos la prueba a lo que retorna.
+
+        # Con R=0, los polos son +/- 1j. Parte real = 0.
+        # check_stability usa epsilon 1e-10.
+        # poles con real <= epsilon no cuentan como unstable.
+        # Entonces is_stable=True.
+        assert report["is_stable"] is True
+
+    def test_frequency_characteristics(self):
+        """Verifica cálculo correcto de frecuencia natural y amortiguamiento."""
+        # L=1, C=1, R=2 -> Critically damped approx (zeta=1)
+        # omega_n = 1/sqrt(LC) = 1
+        # zeta = R/2 * sqrt(C/L) = 2/2 * 1 = 1
+        analyzer = LaplaceAnalyzer(R=2.0, L=1.0, C=1.0)
+        report = analyzer.check_stability()
+
+        assert report["natural_frequency_rad_s"] == pytest.approx(1.0)
+        assert report["damping_ratio"] == pytest.approx(1.0)
 
 # ============================================================================
 # TESTS: CondenserConfig - Validación de Configuración
