@@ -1549,6 +1549,10 @@ class TestDataFluxCondenser:
         import logging
         caplog.set_level(logging.WARNING)
 
+        # Disable strict validation for this test
+        # We need to hack it because condenser is a fixture
+        object.__setattr__(condenser.condenser_config, 'enable_strict_validation', False)
+
         condenser._validate_output(pd.DataFrame())
 
         assert any("vacío" in record.message.lower() for record in caplog.records)
