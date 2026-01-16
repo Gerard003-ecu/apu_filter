@@ -45,7 +45,7 @@ from app.flux_condenser import (
     DataFluxCondenserError,
     FluxPhysicsEngine,
     InvalidInputError,
-    LaplaceAnalyzer,
+    EnhancedLaplaceAnalyzer,
     ParsedData,
     PIController,
     ProcessingError,
@@ -125,7 +125,7 @@ def small_csv_file(tmp_path) -> Path:
 
 
 # ============================================================================
-# TESTS: LaplaceAnalyzer - Análisis de Estabilidad a Priori
+# TESTS: EnhancedLaplaceAnalyzer - Análisis de Estabilidad a Priori
 # ============================================================================
 
 
@@ -135,27 +135,24 @@ class TestLaplacePhysics:
     def test_system_stability_nominal(self):
         """Verifica que los valores por defecto sean estables."""
         # R=10, L=2, C=5000
-        analyzer = LaplaceAnalyzer(R=10.0, L=2.0, C=5000.0)
-        report = analyzer.check_stability()
+        analyzer = EnhancedLaplaceAnalyzer(R=10.0, L=2.0, C=5000.0)
+        report = analyzer.analyze_stability()
 
         assert report["is_stable"] is True
         assert report["status"] == "STABLE"
 
         # Verificar que los polos tienen parte real negativa
-        for real, imag in report["poles"]:
+        for real, imag in report["continuous"]["poles"]:
             assert real <= 0
 
     def test_system_instability_detection(self):
         """Simula parámetros inestables (resistencia negativa)."""
         # Resistencia negativa inyecta energía -> inestabilidad
-        analyzer = LaplaceAnalyzer(R=-10.0, L=2.0, C=5000.0)
-        report = analyzer.check_stability()
+        # En EnhancedLaplaceAnalyzer esto se atrapa en __init__
+        with pytest.raises(ConfigurationError) as exc_info:
+            EnhancedLaplaceAnalyzer(R=-10.0, L=2.0, C=5000.0)
 
-        assert report["is_stable"] is False
-        assert report["status"] == "UNSTABLE"
-
-        # Al menos un polo debe tener parte real positiva
-        assert any(real > 0 for real, imag in report["poles"])
+        assert "R debe ser ≥ 0.0" in str(exc_info.value)
 
     def test_condenser_rejects_unstable_config(self, valid_config, valid_profile):
         """Verifica que DataFluxCondenser lance excepción con parámetros inestables."""
@@ -167,48 +164,83 @@ class TestLaplacePhysics:
         )
 
         # Forzamos un valor negativo usando bypass de inmutabilidad
-        # Esto simula una corrupción de configuración o un caso límite
-        # que escapó a la validación estática pero que debe ser atrapado por la física.
         object.__setattr__(unstable_config, 'base_resistance', -5.0)
 
         with pytest.raises(ConfigurationError) as exc_info:
             DataFluxCondenser(valid_config, valid_profile, unstable_config)
 
-        assert "ANÁLISIS DE LAPLACE" in str(exc_info.value)
-        assert "Polos en semiplano derecho" in str(exc_info.value)
+        # El error puede venir de validation_parameters (R < 0) o de Laplace (si escapara validación)
+        error_msg = str(exc_info.value)
+        assert "Parámetros físicos inválidos" in error_msg or "CONFIGURACIÓN NO APTA" in error_msg
 
     def test_marginal_stability(self):
         """Sistema marginalmente estable (oscilador sin amortiguamiento)."""
         # R=0 (sin disipación), L=1, C=1 -> Oscilador armónico puro
-        analyzer = LaplaceAnalyzer(R=0.0, L=1.0, C=1.0)
-        report = analyzer.check_stability()
+        analyzer = EnhancedLaplaceAnalyzer(R=0.0, L=1.0, C=1.0)
+        report = analyzer.analyze_stability()
 
         # Polos en eje imaginario puro +/- j
-        for real, imag in report["poles"]:
+        for real, imag in report["continuous"]["poles"]:
             assert abs(real) < 1e-9  # Aproximadamente 0
 
-        # Dependiendo de la implementación exacta, puede considerarse marginal
-        # o estable en sentido de Lyapunov pero no asintóticamente estable.
-        # Nuestra implementación verifica real <= epsilon para marginal.
-        # Si real > epsilon es UNSTABLE. Si real <= epsilon es STABLE (o MARGINAL si hay en eje imag).
-        # Ajustemos la prueba a lo que retorna.
-
-        # Con R=0, los polos son +/- 1j. Parte real = 0.
-        # check_stability usa epsilon 1e-10.
-        # poles con real <= epsilon no cuentan como unstable.
-        # Entonces is_stable=True.
-        assert report["is_stable"] is True
+        # En EnhancedLaplaceAnalyzer, ζ=0 es MARGINALLY_STABLE
+        assert report["is_marginally_stable"] is True
+        assert report["status"] == "MARGINALLY_STABLE"
 
     def test_frequency_characteristics(self):
         """Verifica cálculo correcto de frecuencia natural y amortiguamiento."""
         # L=1, C=1, R=2 -> Critically damped approx (zeta=1)
         # omega_n = 1/sqrt(LC) = 1
         # zeta = R/2 * sqrt(C/L) = 2/2 * 1 = 1
-        analyzer = LaplaceAnalyzer(R=2.0, L=1.0, C=1.0)
-        report = analyzer.check_stability()
+        analyzer = EnhancedLaplaceAnalyzer(R=2.0, L=1.0, C=1.0)
+        report = analyzer.analyze_stability()
 
-        assert report["natural_frequency_rad_s"] == pytest.approx(1.0)
-        assert report["damping_ratio"] == pytest.approx(1.0)
+        assert report["continuous"]["natural_frequency_rad_s"] == pytest.approx(1.0)
+        assert report["continuous"]["damping_ratio"] == pytest.approx(1.0)
+
+    def test_stability_margins(self):
+        """Verifica cálculo de márgenes de fase y ganancia."""
+        # Sistema estable: R=1, L=1, C=1 => zeta=0.5 (subamortiguado)
+        analyzer = EnhancedLaplaceAnalyzer(R=1.0, L=1.0, C=1.0)
+        report = analyzer.analyze_stability()
+        margins = report["stability_margins"]
+
+        assert margins["is_margin_meaningful"] is True
+        assert margins["phase_margin_deg"] > 0
+        assert margins["gain_margin_db"] == float('inf')  # Infinito para 2do orden
+
+    def test_root_locus_generation(self):
+        """Verifica generación de datos de Root Locus."""
+        analyzer = EnhancedLaplaceAnalyzer(R=2.0, L=1.0, C=1.0)
+        locus = analyzer.get_root_locus_data()
+
+        assert "gain_values" in locus
+        assert "poles_real" in locus
+        assert "poles_imag" in locus
+        assert len(locus["poles_real"]) == 2 * len(locus["gain_values"])
+
+    def test_parameter_sensitivity(self):
+        """Verifica análisis de sensibilidad paramétrica."""
+        analyzer = EnhancedLaplaceAnalyzer(R=2.0, L=1.0, C=1.0)
+        report = analyzer.analyze_stability()
+        sensitivity = report["parameter_sensitivity"]
+
+        assert "sensitivity_to_R" in sensitivity
+        assert "robustness_classification" in sensitivity
+
+    def test_control_validation(self):
+        """Verifica validación para diseño de control."""
+        # Caso bueno
+        analyzer = EnhancedLaplaceAnalyzer(R=2.0, L=1.0, C=1.0)
+        validation = analyzer.validate_for_control_design()
+        assert validation["is_suitable_for_control"] is True
+
+        # Caso malo (inestable o mal condicionado)
+        # R=0 -> margen de estabilidad pobre o nulo (marginalmente estable)
+        marginal_analyzer = EnhancedLaplaceAnalyzer(R=0.0, L=1.0, C=1.0)
+        validation = marginal_analyzer.validate_for_control_design()
+        # Puede ser no apto o tener advertencias severas
+        assert not validation["is_suitable_for_control"] or len(validation["warnings"]) > 0
 
 # ============================================================================
 # TESTS: CondenserConfig - Validación de Configuración
