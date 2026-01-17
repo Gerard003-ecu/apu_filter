@@ -80,6 +80,7 @@ from .tools_interface import (
 )
 from .topology_viz import topology_bp  # Importar el nuevo blueprint
 from .utils import sanitize_for_json
+from .laplace_oracle import LaplaceOracle, ConfigurationError as OracleConfigurationError
 
 # ============================================================================
 # INYECCIÓN DE SALUD PIRAMIDAL
@@ -2077,6 +2078,51 @@ def create_app(config_name: str) -> Flask:
             return jsonify(result), 400
 
         return jsonify(result)
+
+    @app.route("/api/oracle/analyze", methods=["POST"])
+    @limiter.limit("30 per minute", exempt_when=lambda: current_app.config.get("TESTING"))
+    @handle_errors
+    def oracle_analyze():
+        """
+        Pivote 5: Oráculo de Laplace.
+        Recibe parámetros físicos (R, L, C) y devuelve la Pirámide de Laplace.
+        """
+        if not request.is_json:
+            return jsonify(
+                {
+                    "error": "Content-Type must be application/json",
+                    "code": "INVALID_CONTENT_TYPE",
+                }
+            ), 400
+
+        data = request.get_json()
+        R = data.get("R")
+        L = data.get("L")
+        C = data.get("C")
+
+        if any(p is None for p in [R, L, C]):
+            return jsonify(
+                {
+                    "error": "Faltan parámetros: R, L, C",
+                    "code": "MISSING_PARAMS",
+                }
+            ), 400
+
+        try:
+            R = float(R)
+            L = float(L)
+            C = float(C)
+            oracle = LaplaceOracle(R=R, L=L, C=C)
+            pyramid = oracle.get_laplace_pyramid()
+            return jsonify(pyramid)
+        except (ValueError, TypeError):
+            return jsonify(
+                {"error": "Parámetros deben ser numéricos", "code": "INVALID_PARAMS"}
+            ), 400
+        except OracleConfigurationError as e:
+            return jsonify(
+                {"error": str(e), "code": "CONFIGURATION_ERROR"}
+            ), 400
 
     # ========================================================================
     # MANEJADORES DE ERRORES
