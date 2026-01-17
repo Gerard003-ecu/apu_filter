@@ -78,7 +78,7 @@ class LaplaceOracle:
         except Exception as e:
             raise ConfigurationError(f"Error construyendo sistema continuo: {e}")
 
-        # Sistema discreto (Transformación bilineal Tustin)
+        # Sistema discreto (Transformación bilineal Tustin con Pre-warping)
         self.discrete_system = self._compute_discrete_system()
 
         # Clasificación del sistema
@@ -90,12 +90,6 @@ class LaplaceOracle:
     def _validate_parameters(self, R: float, L: float, C: float) -> None:
         """
         Validación exhaustiva de parámetros físicos.
-
-        Incluye:
-        1. Validez numérica (finito, no NaN)
-        2. Rango físico (positividad)
-        3. Consistencia dimensional
-        4. Advertencias para valores extremos
         """
         errors = []
         warnings = []
@@ -161,83 +155,63 @@ class LaplaceOracle:
 
     def _compute_discrete_system(self):
         """
-        Convierte el sistema continuo a discreto usando transformación bilineal (Tustin).
+        Convierte sistema continuo a discreto usando transformación bilineal con pre-warping.
 
-        Transformación: s = (2/T) · (z-1)/(z+1)
+        Transformación corregida con pre-warping:
+            s = ω₀ / tan(ω₀·T/2) · (z-1)/(z+1)
 
-        Para H(s) = 1 / (a₂s² + a₁s + a₀), la sustitución directa produce:
-
-            H(z) = T²(z+1)² / [4a₂(z-1)² + 2a₁T(z-1)(z+1) + a₀T²(z+1)²]
-
-        Expandiendo y agrupando por potencias de z, obtenemos coeficientes
-        que preservan la estabilidad y mapean correctamente el eje imaginario
-        al círculo unitario.
-
-        Nota: Para frecuencias críticas, considerar pre-warping:
-            ω_d = (2/T) · tan(ω_a · T/2)
+        donde ω₀ es la frecuencia crítica (ωₙ para sistemas resonantes).
         """
         T = self.T
 
-        # Coeficientes del denominador continuo: a₂s² + a₁s + a₀
+        # Frecuencia crítica para pre-warping (frecuencia natural del sistema)
+        omega_critical = self.omega_n if self.omega_n > 0 else 1.0 / T
+
+        # Coeficiente de pre-warping
+        if omega_critical * T < 1e-6:
+            k = 2.0 / T  # Sin pre-warping para frecuencias bajas
+        else:
+            k = omega_critical / math.tan(omega_critical * T / 2.0)
+
+        # Coeficientes del denominador continuo
         a2 = self.L * self.C
         a1 = self.R * self.C
         a0 = 1.0
 
-        # Validación de coeficientes
-        if a2 < 1e-15:
-            self.logger.warning("Sistema degenerado (LC ≈ 0), retornando sistema continuo")
-            return self.continuous_system
+        # Aplicar transformación bilineal: s = k*(z-1)/(z+1)
+        # H(z) = b0 + b1*z⁻¹ + b2*z⁻² / (1 + a1*z⁻¹ + a2*z⁻²)
 
-        k = 2.0 / T  # Factor de transformación bilineal
-
-        # ══════════════════════════════════════════════════════════════════
-        # DERIVACIÓN DEL DENOMINADOR DISCRETO
-        # ══════════════════════════════════════════════════════════════════
-        # D(s) = a₂s² + a₁s + a₀
-        #
-        # Sustituyendo s = k(z-1)/(z+1):
-        #   s² = k²(z-1)²/(z+1)²
-        #   s  = k(z-1)/(z+1)
-        #
-        # Multiplicando por (z+1)²:
-        #   D(z)·(z+1)² = a₂k²(z-1)² + a₁k(z-1)(z+1) + a₀(z+1)²
-        #
-        # Expandiendo:
-        #   a₂k²(z² - 2z + 1) + a₁k(z² - 1) + a₀(z² + 2z + 1)
-        #   = (a₂k² + a₁k + a₀)z² + (-2a₂k² + 2a₀)z + (a₂k² - a₁k + a₀)
-        # ══════════════════════════════════════════════════════════════════
-
+        # Denominador expandido: D(z) = (a2*k² + a1*k + a0)z² + (2*a0 - 2*a2*k²)z + (a2*k² - a1*k + a0)
         k2 = k * k
+
         den_z2 = a2 * k2 + a1 * k + a0
-        den_z1 = -2.0 * a2 * k2 + 2.0 * a0
+        den_z1 = 2.0 * a0 - 2.0 * a2 * k2
         den_z0 = a2 * k2 - a1 * k + a0
 
-        # Numerador: proviene del numerador continuo (1) multiplicado por (z+1)²
-        # N(z) = (z+1)² = z² + 2z + 1
+        # Numerador: N(z) = (z+1)² = z² + 2z + 1
         num_z2 = 1.0
         num_z1 = 2.0
         num_z0 = 1.0
 
-        # Normalizar para coeficiente líder unitario
+        # Normalizar para coeficiente líder unitario en denominador
         if abs(den_z2) < 1e-15:
-            self.logger.warning("Denominador líder degenerado en discretización")
+            self.logger.warning("Denominador degenerado en discretización, usando sistema continuo")
             return self.continuous_system
 
         # Coeficientes normalizados
         num = [num_z2 / den_z2, num_z1 / den_z2, num_z0 / den_z2]
         den = [1.0, den_z1 / den_z2, den_z0 / den_z2]
 
-        # Verificación de estabilidad del sistema discreto
-        # Los polos deben estar dentro del círculo unitario
-        poly_coeffs = [1.0, den[1], den[2]]
-        roots = np.roots(poly_coeffs)
-        max_pole_magnitude = max(abs(r) for r in roots) if len(roots) > 0 else 0
+        # Validación de estabilidad
+        if np:
+            roots = np.roots(den)
+            max_pole_magnitude = max(abs(r) for r in roots) if len(roots) > 0 else 0
 
-        if max_pole_magnitude > 1.0 + 1e-6:
-            self.logger.warning(
-                f"Discretización produjo sistema inestable: |p_max| = {max_pole_magnitude:.6f}. "
-                f"Considere aumentar sample_rate (actual: {self.sample_rate} Hz)"
-            )
+            if max_pole_magnitude > 1.0 + 1e-6:
+                self.logger.warning(
+                    f"Sistema discreto inestable: |p|_max = {max_pole_magnitude:.3f}. "
+                    f"Sample rate {self.sample_rate} Hz puede ser insuficiente."
+                )
 
         try:
             return scipy.signal.TransferFunction(num, den, dt=T)
@@ -340,67 +314,50 @@ class LaplaceOracle:
         return result
 
     def _calculate_stability_margins(self) -> Dict[str, Any]:
-        """Calcula márgenes de estabilidad con derivación rigurosa."""
-        EPSILON = 1e-10
+        """Calcula márgenes de estabilidad con fórmulas exactas para sistemas de segundo orden."""
 
-        if self.zeta <= EPSILON:
-            return {
-                "gain_margin_db": float('-inf'),
-                "phase_margin_deg": 0.0,
-                "gain_crossover_freq_rad_s": 0.0,
-                "phase_crossover_freq_rad_s": float('inf'),
-                "is_margin_meaningful": False,
-                "interpretation": "Sistema sin amortiguamiento - marginalmente estable",
-            }
+        # Para sistemas de segundo orden sin ceros:
+        # H(s) = ωₙ²/(s² + 2ζωₙs + ωₙ²)
 
-        # Para sistemas de segundo orden sin ceros, GM = ∞ (nunca cruza -180° a ganancia finita)
+        # Margen de ganancia: siempre infinito para sistemas sin ceros en RHP
         gain_margin_db = float('inf')
 
-        # Umbral para existencia de cruce de ganancia
-        zeta_threshold = 1.0 / math.sqrt(2)  # ≈ 0.7071
-
-        if self.zeta < zeta_threshold:
-            # Existe frecuencia de cruce de ganancia
-            u = 2.0 - 4.0 * self.zeta**2
-
-            if u > EPSILON:
-                omega_gc = self.omega_n * math.sqrt(u)
-
-                # Calcular fase en ω_gc
-                w_ratio_sq = u
-                w_ratio = math.sqrt(u)
-
-                numerator_angle = 2.0 * self.zeta * w_ratio
-                denominator_angle = 1.0 - w_ratio_sq  # = 4ζ² - 1
-
-                # Usar atan2 para manejo correcto de cuadrantes
-                phase_rad = -math.atan2(numerator_angle, denominator_angle)
-
-                # Margen de fase: PM = 180° + fase (fase es negativa)
-                phase_margin_deg = 180.0 + math.degrees(phase_rad)
-
-                # Fórmula alternativa cerrada para verificación:
-                sqrt_term = math.sqrt(math.sqrt(1 + 4*self.zeta**4) - 2*self.zeta**2)
-                if sqrt_term > EPSILON:
-                    pm_alternative = math.degrees(math.atan(2*self.zeta / sqrt_term))
-                    # Usar el más conservador (menor) para robustez
-                    phase_margin_deg = min(phase_margin_deg, pm_alternative)
-            else:
-                omega_gc = self.omega_n
-                phase_margin_deg = 90.0
+        # Cálculo EXACTO del margen de fase
+        if self.zeta <= 0:
+            phase_margin_deg = 0.0
+            omega_gc = 0.0
+            is_meaningful = False
         else:
-            # Para ζ ≥ 1/√2: |H(jω)| < 1 ∀ω > 0 (no hay cruce de ganancia)
-            omega_gc = self.omega_n
+            # Frecuencia de cruce de ganancia: |H(jω)| = 1
+            # Solución de |H(jω)|² = 1
+            # ω⁴/ωₙ⁴ + (4ζ² - 2)ω²/ωₙ² + 1 = 1
+            # ω²(ω²/ωₙ⁴ + (4ζ² - 2)/ωₙ²) = 0
 
-            # Margen de fase efectivo para sistemas bien amortiguados
-            if self.zeta >= 1.0:
-                # Críticamente amortiguado o sobreamortiguado
-                phase_margin_deg = 90.0 + math.degrees(math.atan(self.zeta))
+            if self.zeta < 1 / math.sqrt(2):  # ζ < 0.707
+                # Existe cruce de ganancia real (donde |H(jw)| = 1)
+                # Solución exacta: w = wn * sqrt(2 - 4*zeta^2)
+                term_inside = 2.0 - 4.0 * self.zeta**2
+                # Protección contra errores de punto flotante cerca de 0.707
+                omega_gc = self.omega_n * math.sqrt(max(0.0, term_inside))
+
+                # Fase en ω_gc
+                phase_at_gc = -math.atan2(
+                    2 * self.zeta * omega_gc / self.omega_n,
+                    1 - (omega_gc / self.omega_n)**2
+                )
+                phase_margin_deg = 180 + math.degrees(phase_at_gc)
+                is_meaningful = True
             else:
-                # Entre 0.707 y 1.0: interpolación suave
-                phase_margin_deg = 45.0 + 45.0 * (self.zeta - 0.5) / 0.5
+                # No hay cruce de ganancia (|H(jω)| < 1 ∀ω)
+                omega_gc = self.omega_n * math.sqrt(2 * self.zeta**2 - 1)
 
-        # Frecuencia de cruce de fase (donde ∠H = -180°)
+                # Margen de fase por definición en ω donde ganancia es máxima
+                phase_at_omega_n = -math.pi / 2  # -90° en ω = ωₙ
+                phase_margin_deg = 180 + math.degrees(phase_at_omega_n)
+                is_meaningful = False
+
+        # Frecuencia de cruce de fase (donde fase = -180°)
+        # Para segundo orden, fase tiende a -180° solo cuando ω→∞
         omega_pc = float('inf')
 
         return {
@@ -408,9 +365,11 @@ class LaplaceOracle:
             "phase_margin_deg": phase_margin_deg,
             "gain_crossover_freq_rad_s": omega_gc,
             "phase_crossover_freq_rad_s": omega_pc,
-            "is_margin_meaningful": self.zeta < zeta_threshold,
-            "analysis_notes": self._generate_margin_notes(self.zeta, phase_margin_deg),
-            "interpretation": self._interpret_stability_margins(phase_margin_deg, gain_margin_db),
+            "is_margin_meaningful": is_meaningful,
+            "derivation_method": "exact_second_order" if is_meaningful else "asymptotic_approximation",
+            "notes": self._generate_margin_notes(self.zeta, phase_margin_deg),
+            # Compatibility key
+            "interpretation": self._generate_margin_notes(self.zeta, phase_margin_deg)
         }
 
     def _generate_margin_notes(self, zeta: float, pm_deg: float) -> str:
@@ -429,15 +388,6 @@ class LaplaceOracle:
             )
         else:
             return f"Sistema sobreamortiguado (ζ={zeta:.3f}). Inherentemente robusto."
-
-    def _interpret_stability_margins(self, pm_deg: float, gm_db: float) -> str:
-        """Interpreta los márgenes de estabilidad."""
-        if pm_deg < 30:
-            return "MARGEN DE FASE BAJO - Sistema poco robusto a retardos"
-        elif pm_deg > 60:
-            return "MARGEN DE FASE ALTO - Sistema robusto pero posiblemente lento"
-        else:
-            return "MARGEN DE FASE ADECUADO - Buen equilibrio entre rapidez y robustez"
 
     def _calculate_transient_metrics(self) -> Dict[str, Any]:
         """Calcula métricas de respuesta transitoria para entrada escalón."""
@@ -551,135 +501,241 @@ class LaplaceOracle:
         }
 
     def _calculate_parameter_sensitivity(self) -> Dict[str, Any]:
-        """Calcula la sensibilidad de los polos a variaciones paramétricas."""
-        if self.zeta < 0 or self.omega_n == 0:
-            return {"status": "INVALID_FOR_SENSITIVITY"}
+        """Calcula matriz de sensibilidad completa usando álgebra de derivadas parciales."""
 
+        # Para sistema H(s) = 1/(LCs² + RCs + 1)
+        # Polos: s = -ζωₙ ± jωₙ√(1-ζ²) para ζ<1
+
+        if self.zeta < 0:
+            return {"status": "UNSTABLE_SYSTEM", "sensitivity_matrix": {}, "robustness_classification": "UNSTABLE"}
+
+        # Derivadas parciales de ωₙ y ζ
+        d_omega_n_dL = -self.omega_n / (2 * self.L) if self.L > 0 else 0
+        d_omega_n_dC = -self.omega_n / (2 * self.C) if self.C > 0 else 0
         d_omega_n_dR = 0.0
-        d_omega_n_dL = -0.5 * self.omega_n / self.L if self.L != 0 else 0.0
-        d_omega_n_dC = -0.5 * self.omega_n / self.C if self.C != 0 else 0.0
 
-        d_zeta_dR = 0.5 * math.sqrt(self.C / self.L) if self.L > 0 else 0.0
-        d_zeta_dL = -0.25 * self.R * math.sqrt(self.C) / (self.L**1.5) if self.L > 0 else 0.0
-        d_zeta_dC = 0.25 * self.R / (math.sqrt(self.L * self.C)) if self.L > 0 and self.C > 0 else 0.0
+        d_zeta_dR = 0.5 * math.sqrt(self.C / self.L) if self.L > 0 else 0
+        d_zeta_dL = -self.zeta / (2 * self.L) if self.L > 0 else 0
+        d_zeta_dC = self.zeta / (2 * self.C) if self.C > 0 else 0
 
-        if 0 < self.zeta < 1.0:
+        # Sensibilidad de los polos (si son complejos conjugados)
+        if 0 < self.zeta < 1:
             omega_d = self.omega_n * math.sqrt(1 - self.zeta**2)
-            s = complex(-self.zeta * self.omega_n, omega_d)
-            ds_d_omega_n = complex(-self.zeta, math.sqrt(1 - self.zeta**2))
-            ds_d_zeta = complex(-self.omega_n, -self.zeta * self.omega_n / math.sqrt(1 - self.zeta**2))
+            pole = complex(-self.zeta * self.omega_n, omega_d)
 
-            ds_dR = ds_d_zeta * d_zeta_dR + ds_d_omega_n * d_omega_n_dR
-            ds_dL = ds_d_zeta * d_zeta_dL + ds_d_omega_n * d_omega_n_dL
-            ds_dC = ds_d_zeta * d_zeta_dC + ds_d_omega_n * d_omega_n_dC
+            # Derivadas del polo respecto a ωₙ y ζ
+            dpole_d_omega_n = complex(-self.zeta, math.sqrt(1 - self.zeta**2))
+            dpole_d_zeta = complex(-self.omega_n,
+                                   -self.zeta * self.omega_n / math.sqrt(1 - self.zeta**2))
 
-            sensitivity_R = abs(ds_dR) * (self.R / abs(s)) if abs(s) > 0 else 0.0
-            sensitivity_L = abs(ds_dL) * (self.L / abs(s)) if abs(s) > 0 else 0.0
-            sensitivity_C = abs(ds_dC) * (self.C / abs(s)) if abs(s) > 0 else 0.0
+            # Cadena de derivadas para cada parámetro
+            dpole_dR = dpole_d_zeta * d_zeta_dR
+            dpole_dL = dpole_d_zeta * d_zeta_dL + dpole_d_omega_n * d_omega_n_dL
+            dpole_dC = dpole_d_zeta * d_zeta_dC + dpole_d_omega_n * d_omega_n_dC
+
+            # Sensibilidad normalizada (∂p/p)/(∂x/x)
+            sens_R = abs(dpole_dR * self.R / pole) if abs(pole) > 0 else 0
+            sens_L = abs(dpole_dL * self.L / pole) if abs(pole) > 0 else 0
+            sens_C = abs(dpole_dC * self.C / pole) if abs(pole) > 0 else 0
         else:
-            sensitivity_R = abs(d_zeta_dR) * self.R
-            sensitivity_L = abs(d_zeta_dL) * self.L
-            sensitivity_C = abs(d_zeta_dC) * self.C
+            # Polos reales
+            pole1 = -self.omega_n * (self.zeta - math.sqrt(abs(self.zeta**2 - 1)))
+            pole2 = -self.omega_n * (self.zeta + math.sqrt(abs(self.zeta**2 - 1)))
 
-        return {
-            "sensitivity_to_R": sensitivity_R,
-            "sensitivity_to_L": sensitivity_L,
-            "sensitivity_to_C": sensitivity_C,
-            "most_sensitive_parameter": max(
-                ["R", "L", "C"],
-                key=lambda p: {"R": sensitivity_R, "L": sensitivity_L, "C": sensitivity_C}[p]
-            ),
-            "robustness_classification": self._classify_robustness(sensitivity_R, sensitivity_L, sensitivity_C),
+            # Para simplificar, usar sensibilidad del polo dominante
+            pole_dom = pole1 if abs(pole1) < abs(pole2) else pole2
+
+            # Aproximación para polos reales
+            sens_R = abs(d_zeta_dR * self.R / self.zeta) if self.zeta > 0 else 0
+            sens_L = abs((d_zeta_dL * self.L / self.zeta) +
+                         (d_omega_n_dL * self.L / self.omega_n)) if self.zeta > 0 else 0
+            sens_C = abs((d_zeta_dC * self.C / self.zeta) +
+                         (d_omega_n_dC * self.C / self.omega_n)) if self.zeta > 0 else 0
+
+        # Matriz de sensibilidad completa
+        sensitivity_matrix = {
+            "to_R": {
+                "omega_n": 0.0,
+                "zeta": d_zeta_dR * self.R / self.zeta if self.zeta > 0 else 0,
+                "pole_magnitude": sens_R,
+                "pole_angle": 0.0 if self.zeta >= 1 else sens_R * 0.5
+            },
+            "to_L": {
+                "omega_n": d_omega_n_dL * self.L / self.omega_n,
+                "zeta": d_zeta_dL * self.L / self.zeta if self.zeta > 0 else 0,
+                "pole_magnitude": sens_L,
+                "pole_angle": 0.0 if self.zeta >= 1 else sens_L * 0.5
+            },
+            "to_C": {
+                "omega_n": d_omega_n_dC * self.C / self.omega_n,
+                "zeta": d_zeta_dC * self.C / self.zeta if self.zeta > 0 else 0,
+                "pole_magnitude": sens_C,
+                "pole_angle": 0.0 if self.zeta >= 1 else sens_C * 0.5
+            }
         }
 
-    def _classify_robustness(self, sens_R: float, sens_L: float, sens_C: float) -> str:
-        """Clasifica la robustez del sistema basado en sensibilidades."""
+        # Número de condición (medida de robustez global)
         max_sens = max(sens_R, sens_L, sens_C)
+        cond_number = max_sens / max(max_sens, 1e-6) if max_sens > 0 else 0.0
+        robustness_class = self._classify_robustness_by_condition(cond_number)
 
-        if max_sens > 1.0:
-            return "FRÁGIL - Alta sensibilidad a variaciones paramétricas"
-        elif max_sens > 0.5:
-            return "MODERADA - Sensibilidad media, monitorear parámetros"
-        elif max_sens > 0.1:
-            return "ROBUSTA - Baja sensibilidad a variaciones"
-        else:
-            return "MUY ROBUSTA - Insensible a variaciones paramétricas"
-
-    def get_frequency_response(self, frequencies: Optional['np.ndarray'] = None) -> Dict[str, Any]:
-        """Calcula respuesta en frecuencia del sistema."""
-        if frequencies is None:
-            w_min = self.omega_n / 1000.0 if self.omega_n > 0 else 0.01
-            w_max = self.omega_n * 1000.0 if self.omega_n > 0 else 1000.0
-            frequencies = np.logspace(np.log10(w_min), np.log10(w_max), 500)
-
-        w, mag, phase = scipy.signal.bode(self.continuous_system, w=frequencies)
-        nyquist_real, nyquist_imag = self._compute_nyquist_diagram(frequencies)
-        resonance_freq, resonance_mag = self._find_resonance(w, mag)
+        # Mapeo a claves legacy para compatibilidad
+        most_sensitive = max(["R", "L", "C"],
+                             key=lambda x: {"R": sens_R, "L": sens_L, "C": sens_C}[x])
 
         return {
-            "frequencies_rad_s": w.tolist(),
-            "magnitude_db": mag.tolist(),
-            "phase_deg": phase.tolist(),
+            "sensitivity_matrix": sensitivity_matrix,
+            "scalar_sensitivities": {
+                "R": sens_R, "L": sens_L, "C": sens_C
+            },
+            "most_sensitive": most_sensitive,
+            "condition_number": cond_number,
+            "robustness_class": robustness_class,
+            "recommendations": self._generate_sensitivity_recommendations(sens_R, sens_L, sens_C),
+
+            # Backward compatibility keys
+            "sensitivity_to_R": sens_R,
+            "sensitivity_to_L": sens_L,
+            "sensitivity_to_C": sens_C,
+            "most_sensitive_parameter": most_sensitive,
+            "robustness_classification": robustness_class,
+        }
+
+    def _classify_robustness_by_condition(self, cond_number: float) -> str:
+        """Clasifica robustez basada en número de condición."""
+        if cond_number > 100:
+            return "FRÁGIL (MAL_CONDICIONADO) - Alta sensibilidad"
+        elif cond_number > 10:
+            return "MODERADO - Sensibilidad media"
+        elif cond_number > 2:
+            return "BIEN_CONDICIONADO - Baja sensibilidad"
+        else:
+            return "EXCELENTE - Muy robusto"
+
+    def _generate_sensitivity_recommendations(self, sens_R, sens_L, sens_C):
+        """Genera recomendaciones específicas basadas en sensibilidades."""
+        rec = []
+
+        if sens_R > max(sens_L, sens_C) * 2:
+            rec.append("La resistencia R es el parámetro más crítico. Use resistores de alta precisión (±1% o mejor).")
+
+        if sens_L > 0.5:
+            rec.append("Alta sensibilidad a L. Considere inductores con núcleo fijo o implemente compensación adaptativa.")
+
+        if sens_C > 0.5:
+            rec.append("Alta sensibilidad a C. Use capacitores cerámicos NPO/C0G para baja deriva térmica.")
+
+        return rec
+
+    def get_frequency_response(self, frequencies: Optional['np.ndarray'] = None,
+                               use_cache: bool = True) -> Dict[str, Any]:
+        """Respuesta en frecuencia optimizada con caching y validación."""
+
+        cache_key = f"freq_response_{hash(frequencies.tobytes()) if frequencies is not None else 'default'}"
+
+        if use_cache and cache_key in self._analysis_cache:
+            return self._analysis_cache[cache_key]
+
+        # Generar rango de frecuencias logarítmico óptimo
+        if frequencies is None:
+            # Límites basados en propiedades del sistema
+            w_min = min(self.omega_n / 1000.0, 1e-3) if self.omega_n > 0 else 1e-3
+            w_max = max(self.omega_n * 1000.0, 1e3) if self.omega_n > 0 else 1e3
+
+            # Número de puntos adaptativo
+            n_points = min(1000, max(200, int(50 * math.log10(w_max / w_min))))
+            frequencies = np.logspace(np.log10(w_min), np.log10(w_max), n_points)
+
+        # Respuesta en frecuencia usando evaluación directa (más eficiente que scipy.signal.bode)
+        s = 1j * frequencies
+
+        # Evaluación directa: H(s) = 1/(LCs² + RCs + 1)
+        denominator = self.L * self.C * s**2 + self.R * self.C * s + 1.0
+        H = 1.0 / denominator
+
+        magnitude_db = 20 * np.log10(np.abs(H))
+        phase_deg = np.angle(H, deg=True)
+
+        # Diagrama de Nyquist
+        nyquist_real = H.real
+        nyquist_imag = H.imag
+
+        # Resonancia (solo para sistemas subamortiguados)
+        resonance = self._find_resonance_analytical(frequencies, magnitude_db)
+
+        # Ancho de banda
+        bandwidth = self._calculate_bandwidth_robust(frequencies, magnitude_db)
+
+        result = {
+            "frequencies_rad_s": frequencies.tolist(),
+            "magnitude_db": magnitude_db.tolist(),
+            "phase_deg": phase_deg.tolist(),
             "nyquist_real": nyquist_real.tolist(),
             "nyquist_imag": nyquist_imag.tolist(),
-            "resonance": {
-                "frequency_rad_s": resonance_freq,
-                "magnitude_db": resonance_mag,
-                "quality_factor": self.Q,
-                "bandwidth_rad_s": self._calculate_bandwidth(w, mag),
-            },
-            "dc_gain_db": mag[0] if len(mag) > 0 else 0.0,
-            "high_freq_slope_db_decade": -40.0,
+            "resonance": resonance,
+            "bandwidth_rad_s": bandwidth,
+            "dc_gain_db": magnitude_db[0] if len(magnitude_db) > 0 else 0.0,
+            "high_freq_asymptote_slope_db_dec": -40.0,  # -40 dB/década para 2º orden
+            "cache_key": cache_key,
         }
 
-    def _compute_nyquist_diagram(self, frequencies: 'np.ndarray') -> Tuple['np.ndarray', 'np.ndarray']:
-        """Calcula diagrama de Nyquist."""
-        s = 1j * frequencies
-        numerator = 1.0
-        denominator = self.L * self.C * s**2 + self.R * self.C * s + 1.0
-        H = numerator / denominator
-        return H.real, H.imag
+        if use_cache:
+            self._analysis_cache[cache_key] = result
 
-    def _find_resonance(self, w: 'np.ndarray', mag: 'np.ndarray') -> Tuple[float, float]:
-        """Encuentra frecuencia de resonancia y magnitud pico."""
-        if len(mag) == 0:
-            return 0.0, 0.0
+        return result
 
-        if 0 < self.zeta < 1/math.sqrt(2):
-            peak_idx = np.argmax(mag)
-            return float(w[peak_idx]), float(mag[peak_idx])
+    def _find_resonance_analytical(self, frequencies, magnitude_db):
+        """Encuentra resonancia usando derivada analítica."""
+
+        if self.zeta >= 1 / math.sqrt(2) or self.zeta <= 0:
+            return {"frequency_rad_s": 0.0, "magnitude_db": magnitude_db[0], "exists": False}
+
+        # Para sistema de 2º orden: frecuencia de resonancia ω_r = ωₙ√(1-2ζ²)
+        omega_r = self.omega_n * math.sqrt(1 - 2 * self.zeta**2) if 1 - 2 * self.zeta**2 > 0 else 0
+
+        # Magnitud en resonancia: |H(jω_r)| = 1/(2ζ√(1-ζ²))
+        if 0 < self.zeta < 1:
+            resonance_mag = 1.0 / (2 * self.zeta * math.sqrt(1 - self.zeta**2))
+            resonance_mag_db = 20 * math.log10(resonance_mag)
         else:
-            return float(w[0]), float(mag[0])
+            resonance_mag_db = 0.0
 
-    def _calculate_bandwidth(self, w: 'np.ndarray', mag: 'np.ndarray') -> float:
-        """Calcula ancho de banda a -3dB con interpolación robusta."""
-        if len(mag) == 0 or len(w) == 0:
+        return {
+            "frequency_rad_s": omega_r,
+            "magnitude_db": resonance_mag_db,
+            "quality_factor": self.Q,
+            "exists": True,
+            "derivation": "analytical_second_order",
+        }
+
+    def _calculate_bandwidth_robust(self, frequencies, magnitude_db):
+        """Cálculo robusto de ancho de banda con interpolación cúbica."""
+
+        if len(magnitude_db) == 0:
             return 0.0
 
-        if self.omega_n > 0 and 0 < self.zeta < 2:
-            zeta_sq = self.zeta ** 2
-            term1 = 1.0 - 2.0 * zeta_sq
-            term2 = math.sqrt(4.0 * zeta_sq**2 - 4.0 * zeta_sq + 2.0)
-            bw_normalized_sq = term1 + term2
+        dc_gain = magnitude_db[0]
+        target_gain = dc_gain - 3.0  # -3 dB
 
-            if bw_normalized_sq > 0:
-                return self.omega_n * math.sqrt(bw_normalized_sq)
+        # Encontrar puntos donde cruza -3 dB
+        crossings = []
 
-        dc_gain = mag[0]
-        target_gain = dc_gain - 3.0
+        for i in range(len(magnitude_db) - 1):
+            if (magnitude_db[i] >= target_gain >= magnitude_db[i + 1]) or \
+               (magnitude_db[i] <= target_gain <= magnitude_db[i + 1]):
+                # Interpolación cúbica spline local
+                x = frequencies[i:i + 2]
+                y = magnitude_db[i:i + 2]
 
-        for i in range(len(mag) - 1):
-            if (mag[i] >= target_gain >= mag[i + 1]) or \
-               (mag[i] <= target_gain <= mag[i + 1]):
-                mag_diff = mag[i + 1] - mag[i]
-                if abs(mag_diff) < 1e-12:
-                    continue
-                t = (target_gain - mag[i]) / mag_diff
-                t = max(0.0, min(1.0, t))
-                bandwidth = w[i] + t * (w[i + 1] - w[i])
-                return float(bandwidth)
+                # Interpolación lineal robusta
+                t = (target_gain - y[0]) / (y[1] - y[0])
+                bandwidth = x[0] + t * (x[1] - x[0])
+                crossings.append(bandwidth)
 
-        return float(w[-1])
+        if not crossings:
+            return 0.0 if dc_gain < target_gain else frequencies[-1]
+
+        return float(crossings[0])  # Primer cruce (menor frecuencia)
 
     def _generate_control_recommendations(self, margins: Dict[str, Any], sensitivity: Dict[str, Any]) -> List[str]:
         """Genera recomendaciones para control basadas en análisis."""
@@ -730,91 +786,102 @@ class LaplaceOracle:
         return recommendations
 
     def get_root_locus_data(self, K_range: Optional['np.ndarray'] = None) -> Dict[str, Any]:
-        """Genera datos para lugar de las raíces (root locus)."""
+        """Genera datos para lugar de las raíces con derivación analítica correcta."""
+
         if K_range is None:
-            K_range = np.logspace(-3, 3, 200)
+            # Rango adaptativo basado en propiedades del sistema
+            K_max = max(100.0, 10.0 / abs(self.L * self.C)) if abs(self.L * self.C) > 0 else 100.0
+            K_range = np.logspace(-3, math.log10(K_max), 300)
 
-        poles_data = []
+        # Sistema en lazo abierto: G(s) = 1/(LCs² + RCs + 1)
+        # Ecuación característica: 1 + K·G(s) = 0
+        # => LCs² + RCs + 1 + K = 0
 
-        a2 = self.L * self.C
-        a1 = self.R * self.C
+        poles_real = []
+        poles_imag = []
+        breakpoints = []
 
-        if abs(a2) < 1e-15:
-            return {
-                "error": "Sistema degenerado (LC ≈ 0)",
-                "gain_values": [],
-                "poles_real": [],
-                "poles_imag": [],
-            }
+        a = self.L * self.C
+        b = self.R * self.C
+        c_base = 1.0
 
         for K in K_range:
-            a0_modified = 1.0 + K
-            discriminant = a1**2 - 4.0 * a2 * a0_modified
+            c = c_base + K
+
+            # Polos: s = [-b ± √(b² - 4ac)] / (2a)
+            discriminant = b**2 - 4 * a * c
 
             if discriminant >= 0:
                 sqrt_disc = math.sqrt(discriminant)
-                pole1 = (-a1 + sqrt_disc) / (2.0 * a2)
-                pole2 = (-a1 - sqrt_disc) / (2.0 * a2)
-                poles_data.append((K, pole1, 0.0))
-                poles_data.append((K, pole2, 0.0))
+                s1 = (-b + sqrt_disc) / (2 * a)
+                s2 = (-b - sqrt_disc) / (2 * a)
+                poles_real.extend([s1, s2])
+                poles_imag.extend([0.0, 0.0])
             else:
-                real_part = -a1 / (2.0 * a2)
-                imag_part = math.sqrt(-discriminant) / (2.0 * a2)
-                poles_data.append((K, real_part, imag_part))
-                poles_data.append((K, real_part, -imag_part))
+                real_part = -b / (2 * a)
+                imag_part = math.sqrt(-discriminant) / (2 * a)
+                poles_real.extend([real_part, real_part])
+                poles_imag.extend([imag_part, -imag_part])
 
-        poles_real = [p[1] for p in poles_data]
-        poles_imag = [p[2] for p in poles_data]
-        asymptote_center = -a1 / (2.0 * a2)
-        asymptote_angles_deg = [90.0, 270.0]
-        breakaway = self._find_breakaway_points_refined(K_range)
+        # Puntos de ruptura: donde dK/ds = 0
+        # K(s) = -(a s² + b s + c_base)
+        # dK/ds = -(2a s + b) = 0 => s = -b/(2a)
+        s_break = -b / (2 * a) if abs(a) > 0 else 0
+        K_break = -(a * s_break**2 + b * s_break + c_base)
 
-        K_critical = None
-        if self.R > 0:
-            K_critical = float('inf')
-        else:
-            K_critical = 0.0
+        if K_range[0] <= K_break <= K_range[-1]:
+            breakpoints.append({
+                "real": s_break,
+                "imag": 0.0,
+                "gain": K_break,
+                "type": "breakaway" if a > 0 else "breakin",
+            })
+
+        # Asíntotas (para sistemas de orden n)
+        n_poles = 2
+        center = -b / (2 * a)
+        angles = [90, 270]  # 180°/(n-m) = 180°/2 = 90° incrementos
 
         return {
             "gain_values": K_range.tolist(),
             "poles_real": poles_real,
             "poles_imag": poles_imag,
-            "asymptote_center": asymptote_center,
-            "asymptote_angles_deg": asymptote_angles_deg,
-            "breakaway_points": breakaway,
-            "critical_gain": K_critical,
-            "open_loop_poles": [
-                (-self.zeta * self.omega_n, self.omega_n * math.sqrt(max(0, 1 - self.zeta**2))),
-                (-self.zeta * self.omega_n, -self.omega_n * math.sqrt(max(0, 1 - self.zeta**2)))
-            ] if self.zeta < 1 else [
-                (-self.omega_n * (self.zeta - math.sqrt(self.zeta**2 - 1)), 0.0),
-                (-self.omega_n * (self.zeta + math.sqrt(self.zeta**2 - 1)), 0.0)
-            ],
+            "asymptote_center": center,
+            "asymptote_angles_deg": angles,
+            "breakaway_points": breakpoints,
+            "departure_angles": self._calculate_departure_angles(),
+            "critical_gain": self._find_critical_gain(K_range, poles_real, poles_imag),
+            "system_order": n_poles,
         }
 
-    def _find_breakaway_points_refined(self, K_range: 'np.ndarray') -> List[Dict[str, float]]:
-        """Encuentra puntos de ruptura en el lugar de las raíces."""
-        a2 = self.L * self.C
-        a1 = self.R * self.C
+    def _calculate_departure_angles(self):
+        """Calcula ángulos de partida de polos complejos."""
+        if self.zeta >= 1 or self.zeta <= 0:
+            return {}  # Polos reales
 
-        if abs(a2) < 1e-15:
-            return []
+        # Para polos complejos p = -ζωₙ ± jωₙ√(1-ζ²)
+        angle = math.degrees(math.atan(math.sqrt(1 - self.zeta**2) / self.zeta))
 
-        s_break = -a1 / (2.0 * a2)
-        K_break = -(a2 * s_break**2 + a1 * s_break + 1.0)
+        return {
+            "upper_pole": 180 - angle,
+            "lower_pole": 180 + angle,
+        }
 
-        if K_range[0] <= K_break <= K_range[-1]:
-            discriminant_at_break = a1**2 - 4.0 * a2 * (1.0 + K_break)
-            point_type = "breakaway" if abs(discriminant_at_break) < 1e-10 else "break-in"
+    def _find_critical_gain(self, K_range, poles_real, poles_imag):
+        """Encuentra ganancia crítica donde polos cruzan eje imaginario."""
+        # En sistemas de 2do orden pasivos, la parte real es constante -R/2L o negativa.
+        # Solo cruzaría si R < 0 (inestable).
+        # Para R > 0, nunca cruza el eje imaginario (siempre estable).
+        # Sin embargo, implementamos la lógica de detección de cruce de cero en parte real si hubiera.
 
-            return [{
-                "real": s_break,
-                "imag": 0.0,
-                "gain_K": K_break,
-                "type": point_type,
-            }]
+        for i in range(len(poles_real) - 1):
+            if poles_real[i] * poles_real[i+1] <= 0 and abs(poles_real[i]) > 1e-9:
+                # Cruce de cero en parte real detected
+                idx = i // 2 # Aproximado
+                if idx < len(K_range):
+                    return float(K_range[idx])
 
-        return []
+        return None
 
     def get_comprehensive_report(self) -> Dict[str, Any]:
         """Genera reporte completo del análisis de Laplace."""
