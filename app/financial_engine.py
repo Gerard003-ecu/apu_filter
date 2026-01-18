@@ -89,6 +89,10 @@ class FinancialConfig:
     project_life_years: int = 10
     liquidity_ratio: float = 0.1
     fixed_contracts_ratio: float = 0.5
+    inflation_rate: float = 0.03
+    synergy_penalty_factor: float = 0.20
+    efficiency_penalty_factor: float = 0.10
+    max_volatility_adjustment: float = 0.50
 
     def __post_init__(self):
         """Valida la coherencia de los parámetros financieros tras la inicialización."""
@@ -757,9 +761,9 @@ class FinancialEngine:
         }
 
     def _calculate_performance_metrics(
-        self, npv: float, investment: float, years: int
+        self, npv: float, investment: float, years: int, flows: Optional[List[float]] = None
     ) -> Dict[str, Any]:
-        """Calcula ROI, PI y retorno anualizado."""
+        """Calcula ROI, PI, payback y retorno anualizado."""
         metrics = {}
 
         if investment > 0:
@@ -793,6 +797,28 @@ class FinancialEngine:
             annualized = float("nan")
 
         metrics["annualized_return"] = annualized
+
+        # Calculate Payback Period if flows are available
+        if flows and investment > 0:
+            cumulative = 0.0
+            payback = None
+            for t, cf in enumerate(flows, start=1):
+                cumulative += cf
+                if cumulative >= investment:
+                    # Linear interpolation
+                    prev_cumulative = cumulative - cf
+                    remaining = investment - prev_cumulative
+                    fraction = remaining / cf if cf > 0 else 0
+                    payback = t - 1 + fraction
+                    break
+
+            if payback is not None:
+                metrics["payback_period"] = round(payback, 2)
+            else:
+                metrics["payback_period"] = float("inf") # Never recovers
+
+            # Alias for legacy compatibility
+            metrics["payback"] = metrics["payback_period"]
 
         return metrics
 
