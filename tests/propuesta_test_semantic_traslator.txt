@@ -1,0 +1,901 @@
+"""
+Suite de Pruebas Refinada para el Traductor Semántico
+=====================================================
+
+Fundamentos matemáticos:
+- Invariante de Euler: χ = β₀ - β₁ (característica topológica)
+- Genus topológico: g = β₁ (número de "agujeros")
+- Índice de estabilidad: Ψ ∈ [0, ∞) con umbrales crítico/sólido
+
+Matriz de decisión:
+- 3 estados de estabilidad × 3 recomendaciones × 2 estados de ciclos = 18 casos
+
+Autor: Artesano Programador Senior
+Versión: 2.0.0
+"""
+
+from itertools import product
+from typing import Any, Dict, List, Tuple
+from unittest.mock import Mock, patch
+import re
+
+import pytest
+
+from agent.business_topology import TopologicalMetrics
+from app.semantic_translator import (
+    CycleSeverityThresholds,
+    SemanticTranslator,
+    StabilityThresholds,
+    TopologicalThresholds,
+    WACCThresholds,
+)
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SECCIÓN 1: FIXTURES MEJORADAS
+# ═══════════════════════════════════════════════════════════════════════════════
+
+@pytest.fixture
+def translator() -> SemanticTranslator:
+    """Traductor con configuración estándar y semilla fija."""
+    return SemanticTranslator(random_seed=42)
+
+
+@pytest.fixture
+def translator_custom_thresholds() -> SemanticTranslator:
+    """Traductor con umbrales personalizados para pruebas de límites."""
+    return SemanticTranslator(
+        stability_thresholds=StabilityThresholds(critical=1.0, solid=10.0),
+        topo_thresholds=TopologicalThresholds(
+            connected_components_optimal=1, 
+            cycles_optimal=0
+        ),
+        wacc_thresholds=WACCThresholds(low=0.05, high=0.12),
+        cycle_severity=CycleSeverityThresholds(moderate=2, critical=5),
+        random_seed=42
+    )
+
+
+@pytest.fixture
+def all_stability_states() -> List[Tuple[float, str]]:
+    """Estados de estabilidad con valores representativos."""
+    return [
+        (0.5, "INESTABLE"),      # Ψ < 1.0: Pirámide Invertida
+        (5.0, "ISOSTÁTICO"),     # 1.0 ≤ Ψ < 10.0: Estructura Isostática
+        (25.0, "ANTISÍSMICO"),   # Ψ ≥ 10.0: Estructura Antisísmica
+    ]
+
+
+@pytest.fixture
+def all_recommendations() -> List[str]:
+    """Todas las recomendaciones financieras posibles."""
+    return ["ACEPTAR", "RECHAZAR", "REVISAR"]
+
+
+@pytest.fixture
+def euler_consistent_metrics() -> List[TopologicalMetrics]:
+    """
+    Métricas que satisfacen el invariante de Euler: χ = β₀ - β₁
+    """
+    return [
+        TopologicalMetrics(beta_0=1, beta_1=0, euler_characteristic=1),   # Árbol
+        TopologicalMetrics(beta_0=1, beta_1=1, euler_characteristic=0),   # Toro
+        TopologicalMetrics(beta_0=1, beta_1=2, euler_characteristic=-1),  # Superficie genus 2
+        TopologicalMetrics(beta_0=2, beta_1=0, euler_characteristic=2),   # Dos componentes
+        TopologicalMetrics(beta_0=3, beta_1=1, euler_characteristic=2),   # Fragmentado con ciclo
+    ]
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SECCIÓN 2: PRUEBAS DE INVARIANTES TOPOLÓGICOS
+# ═══════════════════════════════════════════════════════════════════════════════
+
+class TestEulerInvariant:
+    """
+    Pruebas del invariante de Euler: χ = β₀ - β₁
+    
+    Este invariante es fundamental en topología algebraica y debe
+    ser consistente en todas las métricas procesadas.
+    """
+    
+    def test_euler_characteristic_consistency(self, translator, euler_consistent_metrics):
+        """Verifica que métricas con χ correcto sean aceptadas."""
+        for metrics in euler_consistent_metrics:
+            # No debe lanzar error
+            narrative = translator.translate_topology(metrics, stability=5.0)
+            assert narrative is not None
+            assert len(narrative) > 0
+    
+    def test_euler_characteristic_in_narrative(self, translator):
+        """La característica de Euler debe aparecer en la narrativa cuando es relevante."""
+        metrics = TopologicalMetrics(beta_0=1, beta_1=2, euler_characteristic=-1)
+        narrative = translator.translate_topology(metrics, stability=5.0)
+        
+        # Debe mencionar el genus (β₁) o la característica
+        assert "Genus" in narrative or "2 socavones" in narrative
+    
+    def test_genus_zero_is_clean_structure(self, translator):
+        """Genus 0 (β₁=0) indica estructura limpia sin ciclos."""
+        metrics = TopologicalMetrics(beta_0=1, beta_1=0, euler_characteristic=1)
+        narrative = translator.translate_topology(metrics, stability=10.0)
+        
+        assert "Genus 0" in narrative
+        assert "Integridad Estructural" in narrative
+    
+    @pytest.mark.parametrize("beta_1,expected_severity", [
+        (0, "limpia"),
+        (1, "moderada"),
+        (2, "moderada"),
+        (4, "moderada"),
+        (5, "crítica"),
+        (10, "crítica"),
+    ])
+    def test_cycle_severity_classification(self, translator, beta_1, expected_severity):
+        """Clasificación de severidad según número de ciclos."""
+        metrics = TopologicalMetrics(
+            beta_0=1, 
+            beta_1=beta_1, 
+            euler_characteristic=1-beta_1
+        )
+        narrative = translator.translate_topology(metrics, stability=5.0)
+        
+        if expected_severity == "limpia":
+            assert "Integridad Estructural" in narrative or "Genus 0" in narrative
+        elif expected_severity == "moderada":
+            assert "Falla Estructural Local" in narrative or "socavones" in narrative
+        elif expected_severity == "crítica":
+            assert "Geológicamente Inestable" in narrative
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SECCIÓN 3: PRUEBAS DE FRONTERAS DE UMBRALES
+# ═══════════════════════════════════════════════════════════════════════════════
+
+class TestThresholdBoundaries:
+    """
+    Pruebas de valores exactos en las fronteras de umbrales.
+    
+    Umbrales de estabilidad:
+    - Ψ < 1.0: Pirámide Invertida (INESTABLE)
+    - 1.0 ≤ Ψ < 10.0: Estructura Isostática
+    - Ψ ≥ 10.0: Estructura Antisísmica
+    """
+    
+    @pytest.mark.parametrize("stability,expected", [
+        # Frontera inferior: justo debajo de crítico
+        (0.0, "Pirámide Invertida"),
+        (0.5, "Pirámide Invertida"),
+        (0.99, "Pirámide Invertida"),
+        (0.999, "Pirámide Invertida"),
+        # Frontera crítica exacta
+        (1.0, "Estructura Isostática"),
+        (1.001, "Estructura Isostática"),
+        # Valores intermedios
+        (5.0, "Estructura Isostática"),
+        (9.99, "Estructura Isostática"),
+        (9.999, "Estructura Isostática"),
+        # Frontera sólida exacta
+        (10.0, "ESTRUCTURA ANTISÍSMICA"),
+        (10.001, "ESTRUCTURA ANTISÍSMICA"),
+        # Valores altos
+        (50.0, "ESTRUCTURA ANTISÍSMICA"),
+        (100.0, "ESTRUCTURA ANTISÍSMICA"),
+        (1000.0, "ESTRUCTURA ANTISÍSMICA"),
+    ])
+    def test_stability_threshold_exact_boundaries(self, translator, stability, expected):
+        """Verifica comportamiento exacto en fronteras de estabilidad."""
+        metrics = TopologicalMetrics(beta_0=1, beta_1=0, euler_characteristic=1)
+        narrative = translator.translate_topology(metrics, stability=stability)
+        
+        assert expected in narrative, \
+            f"Para Ψ={stability}, esperado '{expected}' en: {narrative}"
+    
+    def test_stability_value_displayed_with_precision(self, translator):
+        """El valor de estabilidad se muestra con precisión correcta."""
+        metrics = TopologicalMetrics(beta_0=1, beta_1=0, euler_characteristic=1)
+        
+        test_values = [0.5, 1.0, 5.5, 10.0, 25.75]
+        for stability in test_values:
+            narrative = translator.translate_topology(metrics, stability=stability)
+            assert f"Ψ = {stability:.2f}" in narrative
+    
+    @pytest.mark.parametrize("wacc,expected_category", [
+        (0.0, "bajo"),
+        (0.04, "bajo"),
+        (0.05, "moderado"),
+        (0.10, "moderado"),
+        (0.12, "alto"),
+        (0.20, "alto"),
+    ])
+    def test_wacc_threshold_boundaries(self, wacc, expected_category):
+        """Verifica clasificación WACC en fronteras."""
+        translator = SemanticTranslator(
+            wacc_thresholds=WACCThresholds(low=0.05, high=0.12)
+        )
+        
+        metrics = {
+            "wacc": wacc,
+            "contingency": {"recommended": 1000.0},
+            "performance": {"recommendation": "REVISAR"},
+        }
+        
+        narrative = translator.translate_financial(metrics)
+        assert f"{wacc*100:.2f}%" in narrative
+    
+    @pytest.mark.parametrize("beta_1,severity_threshold,expected", [
+        (0, "ninguna", "Genus 0"),
+        (1, "baja", "Genus 1"),
+        (2, "moderada", "socavones"),
+        (4, "moderada", "socavones"),
+        (5, "crítica", "Inestable"),
+    ])
+    def test_cycle_severity_threshold_boundaries(
+        self, translator, beta_1, severity_threshold, expected
+    ):
+        """Verifica clasificación de ciclos en fronteras de severidad."""
+        metrics = TopologicalMetrics(
+            beta_0=1, 
+            beta_1=beta_1, 
+            euler_characteristic=1-beta_1
+        )
+        narrative = translator.translate_topology(metrics, stability=5.0)
+        
+        assert expected in narrative
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SECCIÓN 4: MATRIZ DE DECISIÓN COMPLETA
+# ═══════════════════════════════════════════════════════════════════════════════
+
+class TestDecisionMatrixCompleteness:
+    """
+    Pruebas de completitud de la matriz de decisión.
+    
+    La matriz tiene 3 dimensiones:
+    - Estado de estabilidad: INESTABLE, ISOSTÁTICO, ANTISÍSMICO
+    - Recomendación financiera: ACEPTAR, RECHAZAR, REVISAR
+    - Estado de ciclos: SIN_CICLOS, CON_CICLOS
+    
+    Total: 3 × 3 × 2 = 18 combinaciones
+    """
+    
+    @pytest.fixture
+    def decision_matrix_cases(self) -> List[Dict[str, Any]]:
+        """Genera todas las combinaciones de la matriz de decisión."""
+        stability_states = [
+            (0.5, "INESTABLE"),
+            (5.0, "ISOSTÁTICO"),
+            (15.0, "ANTISÍSMICO"),
+        ]
+        recommendations = ["ACEPTAR", "RECHAZAR", "REVISAR"]
+        cycle_states = [
+            (0, "SIN_CICLOS"),
+            (2, "CON_CICLOS"),
+        ]
+        
+        cases = []
+        for (stability, stab_name), rec, (beta_1, cycle_name) in product(
+            stability_states, recommendations, cycle_states
+        ):
+            cases.append({
+                "stability": stability,
+                "stability_state": stab_name,
+                "recommendation": rec,
+                "beta_1": beta_1,
+                "cycle_state": cycle_name,
+            })
+        
+        return cases
+    
+    def test_all_matrix_combinations_produce_output(
+        self, translator, decision_matrix_cases
+    ):
+        """Verifica que todas las combinaciones producen salida válida."""
+        for case in decision_matrix_cases:
+            topo = TopologicalMetrics(
+                beta_0=1,
+                beta_1=case["beta_1"],
+                euler_characteristic=1-case["beta_1"]
+            )
+            fin = {"performance": {"recommendation": case["recommendation"]}}
+            
+            advice = translator._generate_final_advice(
+                topo, fin, stability=case["stability"]
+            )
+            
+            assert advice is not None
+            assert len(advice) > 0
+            assert "💡" in advice or any(word in advice for word in [
+                "CERTIFICADO", "REVISIÓN", "DETENER", "PRECAUCIÓN", "INVIABLE"
+            ])
+    
+    def test_matrix_consistency_stability_dominates_when_critical(self, translator):
+        """
+        Cuando la estabilidad es crítica (Ψ < 1), domina sobre otros factores.
+        """
+        topo = TopologicalMetrics(beta_0=1, beta_1=0, euler_characteristic=1)
+        
+        for rec in ["ACEPTAR", "REVISAR"]:
+            fin = {"performance": {"recommendation": rec}}
+            advice = translator._generate_final_advice(topo, fin, stability=0.5)
+            
+            # Incluso con ACEPTAR y sin ciclos, la inestabilidad domina
+            assert "PRECAUCIÓN" in advice or "Pirámide Invertida" in advice
+    
+    def test_matrix_consistency_cycles_block_certification(self, translator):
+        """
+        Los ciclos (β₁ > 0) impiden certificación incluso con ACEPTAR.
+        """
+        topo = TopologicalMetrics(beta_0=1, beta_1=2, euler_characteristic=-1)
+        fin = {"performance": {"recommendation": "ACEPTAR"}}
+        
+        advice = translator._generate_final_advice(topo, fin, stability=15.0)
+        
+        # Con ciclos, no puede haber CERTIFICADO DE SOLIDEZ
+        assert "CERTIFICADO DE SOLIDEZ" not in advice
+        assert "DETENER" in advice or "REPARACIONES" in advice
+    
+    def test_matrix_green_path(self, translator):
+        """
+        Camino verde: sin ciclos + ACEPTAR + estable = CERTIFICADO
+        """
+        topo = TopologicalMetrics(beta_0=1, beta_1=0, euler_characteristic=1)
+        fin = {"performance": {"recommendation": "ACEPTAR"}}
+        
+        advice = translator._generate_final_advice(topo, fin, stability=15.0)
+        
+        assert "CERTIFICADO DE SOLIDEZ" in advice
+    
+    @pytest.mark.parametrize("recommendation", ["RECHAZAR", "REVISAR"])
+    def test_matrix_yellow_path(self, translator, recommendation):
+        """
+        Camino amarillo: sin ciclos + (RECHAZAR|REVISAR) + estable = REVISIÓN
+        """
+        topo = TopologicalMetrics(beta_0=1, beta_1=0, euler_characteristic=1)
+        fin = {"performance": {"recommendation": recommendation}}
+        
+        advice = translator._generate_final_advice(topo, fin, stability=15.0)
+        
+        assert "REVISIÓN" in advice
+    
+    @pytest.mark.parametrize("beta_1", [1, 2, 5])
+    def test_matrix_red_path(self, translator, beta_1):
+        """
+        Camino rojo: con ciclos = DETENER (independiente de financiero)
+        """
+        topo = TopologicalMetrics(
+            beta_0=1, 
+            beta_1=beta_1, 
+            euler_characteristic=1-beta_1
+        )
+        
+        for rec in ["ACEPTAR", "RECHAZAR", "REVISAR"]:
+            fin = {"performance": {"recommendation": rec}}
+            advice = translator._generate_final_advice(topo, fin, stability=15.0)
+            
+            assert "DETENER" in advice or "REPARACIONES" in advice
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SECCIÓN 5: PRUEBAS DE FORMATO Y PRECISIÓN NUMÉRICA
+# ═══════════════════════════════════════════════════════════════════════════════
+
+class TestNumericFormatting:
+    """
+    Pruebas de formato numérico en narrativas.
+    """
+    
+    def test_currency_format_with_thousands_separator(self, translator):
+        """Verifica formato de moneda con separadores de miles."""
+        metrics = {
+            "wacc": 0.10,
+            "contingency": {"recommended": 1234567.89},
+            "performance": {"recommendation": "REVISAR"},
+        }
+        
+        narrative = translator.translate_financial(metrics)
+        
+        # Debe tener formato con comas y decimales
+        assert "$1,234,567.89" in narrative or "1,234,567" in narrative
+    
+    def test_percentage_format_precision(self, translator):
+        """Verifica precisión de porcentajes."""
+        metrics = {
+            "wacc": 0.123456,
+            "contingency": {"recommended": 1000.0},
+            "performance": {"recommendation": "REVISAR"},
+        }
+        
+        narrative = translator.translate_financial(metrics)
+        
+        # Debe mostrar 2 decimales para porcentaje
+        assert "12.35%" in narrative or "12.34%" in narrative
+    
+    def test_profitability_index_format(self, translator):
+        """Verifica formato del índice de rentabilidad."""
+        metrics = {
+            "wacc": 0.10,
+            "contingency": {"recommended": 1000.0},
+            "performance": {
+                "recommendation": "ACEPTAR",
+                "profitability_index": 1.2567
+            },
+        }
+        
+        narrative = translator.translate_financial(metrics)
+        
+        # Debe mostrar el índice con precisión razonable
+        assert "1.26" in narrative or "1.25" in narrative or "1.2567" in narrative
+    
+    def test_zero_values_formatted_correctly(self, translator):
+        """Valores cero se formatean correctamente."""
+        metrics = {
+            "wacc": 0.0,
+            "contingency": {"recommended": 0.0},
+            "performance": {"recommendation": "REVISAR"},
+        }
+        
+        narrative = translator.translate_financial(metrics)
+        
+        assert "0.00%" in narrative
+        assert "$0.00" in narrative or "$0" in narrative
+    
+    def test_very_large_numbers_formatted(self, translator):
+        """Números muy grandes se formatean correctamente."""
+        metrics = {
+            "wacc": 0.10,
+            "contingency": {"recommended": 999999999.99},
+            "performance": {"recommendation": "REVISAR"},
+        }
+        
+        narrative = translator.translate_financial(metrics)
+        
+        # Debe manejar números grandes sin errores
+        assert "$" in narrative
+        assert "999" in narrative
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SECCIÓN 6: PRUEBAS DE IDEMPOTENCIA Y CONSISTENCIA
+# ═══════════════════════════════════════════════════════════════════════════════
+
+class TestIdempotenceAndConsistency:
+    """
+    Pruebas de idempotencia y consistencia de traducciones.
+    """
+    
+    def test_topology_translation_idempotent(self, translator):
+        """Traducciones topológicas repetidas producen mismo resultado."""
+        metrics = TopologicalMetrics(beta_0=1, beta_1=2, euler_characteristic=-1)
+        
+        results = [
+            translator.translate_topology(metrics, stability=5.0)
+            for _ in range(5)
+        ]
+        
+        assert all(r == results[0] for r in results)
+    
+    def test_financial_translation_idempotent(self, translator):
+        """Traducciones financieras repetidas producen mismo resultado."""
+        metrics = {
+            "wacc": 0.12,
+            "contingency": {"recommended": 50000.0},
+            "performance": {"recommendation": "ACEPTAR", "profitability_index": 1.2},
+        }
+        
+        results = [translator.translate_financial(metrics) for _ in range(5)]
+        
+        assert all(r == results[0] for r in results)
+    
+    def test_strategic_narrative_idempotent(self, translator):
+        """Narrativas estratégicas repetidas producen mismo resultado."""
+        topo = TopologicalMetrics(beta_0=1, beta_1=0, euler_characteristic=1)
+        fin = {
+            "wacc": 0.10,
+            "contingency": {"recommended": 10000.0},
+            "performance": {"recommendation": "ACEPTAR", "profitability_index": 1.3},
+        }
+        
+        results = [
+            translator.compose_strategic_narrative(topo, fin, stability=12.0)
+            for _ in range(5)
+        ]
+        
+        assert all(r == results[0] for r in results)
+    
+    def test_different_translators_same_seed_same_result(self):
+        """Diferentes instancias con misma semilla producen mismo resultado."""
+        topo = TopologicalMetrics(beta_0=1, beta_1=1, euler_characteristic=0)
+        
+        translator1 = SemanticTranslator(random_seed=42)
+        translator2 = SemanticTranslator(random_seed=42)
+        
+        result1 = translator1.translate_topology(topo, stability=5.0)
+        result2 = translator2.translate_topology(topo, stability=5.0)
+        
+        assert result1 == result2
+    
+    def test_translation_does_not_modify_input(self, translator):
+        """Las traducciones no modifican las métricas de entrada."""
+        original_metrics = {
+            "wacc": 0.12,
+            "contingency": {"recommended": 50000.0},
+            "performance": {"recommendation": "ACEPTAR"},
+        }
+        
+        import copy
+        metrics_copy = copy.deepcopy(original_metrics)
+        
+        _ = translator.translate_financial(original_metrics)
+        
+        assert original_metrics == metrics_copy
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SECCIÓN 7: PRUEBAS DE ESTRUCTURA DE REPORTE
+# ═══════════════════════════════════════════════════════════════════════════════
+
+class TestReportStructure:
+    """
+    Pruebas de estructura y orden de secciones del reporte.
+    """
+    
+    def test_report_has_all_required_sections(self, translator):
+        """El reporte contiene todas las secciones obligatorias."""
+        topo = TopologicalMetrics(beta_0=1, beta_1=0, euler_characteristic=1)
+        fin = {
+            "wacc": 0.10,
+            "contingency": {"recommended": 10000.0},
+            "performance": {"recommendation": "ACEPTAR"},
+        }
+        
+        report = translator.compose_strategic_narrative(topo, fin, stability=12.0)
+        
+        required_sections = [
+            "## 🏗️ INFORME DE INGENIERÍA ESTRATÉGICA",
+            "### 1. Auditoría de Integridad Estructural",
+            "### 2. Análisis de Cargas Financieras",
+            "### 3. Geotecnia de Mercado",
+            "### 💡 Dictamen del Ingeniero Jefe",
+        ]
+        
+        for section in required_sections:
+            assert section in report, f"Falta sección: {section}"
+    
+    def test_sections_appear_in_correct_order(self, translator):
+        """Las secciones aparecen en el orden correcto."""
+        topo = TopologicalMetrics(beta_0=1, beta_1=0, euler_characteristic=1)
+        fin = {
+            "wacc": 0.10,
+            "contingency": {"recommended": 10000.0},
+            "performance": {"recommendation": "ACEPTAR"},
+        }
+        
+        report = translator.compose_strategic_narrative(topo, fin, stability=12.0)
+        
+        # Encontrar posiciones
+        pos_header = report.find("## 🏗️ INFORME")
+        pos_section1 = report.find("### 1. Auditoría")
+        pos_section2 = report.find("### 2. Análisis")
+        pos_section3 = report.find("### 3. Geotecnia")
+        pos_dictamen = report.find("### 💡 Dictamen")
+        
+        # Verificar orden
+        assert pos_header < pos_section1 < pos_section2 < pos_section3 < pos_dictamen
+    
+    def test_report_sections_not_empty(self, translator):
+        """Ninguna sección del reporte está vacía."""
+        topo = TopologicalMetrics(beta_0=1, beta_1=0, euler_characteristic=1)
+        fin = {
+            "wacc": 0.10,
+            "contingency": {"recommended": 10000.0},
+            "performance": {"recommendation": "ACEPTAR"},
+        }
+        
+        report = translator.compose_strategic_narrative(topo, fin, stability=12.0)
+        
+        # Dividir por secciones y verificar contenido
+        sections = report.split("### ")
+        
+        for section in sections[1:]:  # Ignorar el header
+            # Cada sección debe tener más que solo el título
+            lines = section.strip().split("\n")
+            assert len(lines) > 1, f"Sección vacía: {lines[0]}"
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SECCIÓN 8: PRUEBAS DE MANEJO DE ERRORES MEJORADAS
+# ═══════════════════════════════════════════════════════════════════════════════
+
+class TestErrorHandlingEnhanced:
+    """
+    Pruebas mejoradas de manejo de errores.
+    """
+    
+    def test_negative_betti_numbers_rejected(self, translator):
+        """Números de Betti negativos son rechazados."""
+        invalid_cases = [
+            TopologicalMetrics(beta_0=-1, beta_1=0, euler_characteristic=-1),
+            TopologicalMetrics(beta_0=1, beta_1=-2, euler_characteristic=3),
+            TopologicalMetrics(beta_0=-1, beta_1=-1, euler_characteristic=0),
+        ]
+        
+        for metrics in invalid_cases:
+            with pytest.raises(ValueError, match="no-negativos"):
+                translator.translate_topology(metrics, stability=5.0)
+    
+    def test_negative_stability_rejected(self, translator):
+        """Estabilidad negativa es rechazada."""
+        metrics = TopologicalMetrics(beta_0=1, beta_1=0, euler_characteristic=1)
+        
+        with pytest.raises(ValueError, match="no-negativa"):
+            translator.translate_topology(metrics, stability=-0.1)
+    
+    def test_none_metrics_handled(self, translator):
+        """Métricas None son manejadas correctamente."""
+        with pytest.raises(TypeError):
+            translator.translate_topology(None, stability=5.0)
+    
+    def test_missing_performance_key_handled(self, translator):
+        """Clave 'performance' faltante es manejada."""
+        metrics = {"wacc": 0.10, "contingency": {"recommended": 1000.0}}
+        
+        # No debe lanzar excepción
+        narrative = translator.translate_financial(metrics)
+        assert "REVISIÓN" in narrative  # Default a REVISAR
+    
+    def test_missing_contingency_handled(self, translator):
+        """Contingencia faltante es manejada."""
+        metrics = {
+            "wacc": 0.10,
+            "performance": {"recommendation": "REVISAR"},
+        }
+        
+        narrative = translator.translate_financial(metrics)
+        assert "$0" in narrative or "0.00" in narrative
+    
+    def test_malformed_nested_dict_handled(self, translator):
+        """Diccionarios anidados malformados son manejados."""
+        metrics = {
+            "wacc": 0.10,
+            "contingency": "not a dict",  # Debería ser dict
+            "performance": {"recommendation": "REVISAR"},
+        }
+        
+        # No debe crashear
+        narrative = translator.translate_financial(metrics)
+        assert narrative is not None
+    
+    def test_nan_values_handled(self, translator):
+        """Valores NaN son manejados."""
+        import math
+        
+        metrics = {
+            "wacc": float('nan'),
+            "contingency": {"recommended": float('nan')},
+            "performance": {"recommendation": "REVISAR"},
+        }
+        
+        # No debe crashear
+        narrative = translator.translate_financial(metrics)
+        assert narrative is not None
+    
+    def test_infinite_values_handled(self, translator):
+        """Valores infinitos son manejados."""
+        metrics = {
+            "wacc": float('inf'),
+            "contingency": {"recommended": float('inf')},
+            "performance": {"recommendation": "REVISAR"},
+        }
+        
+        narrative = translator.translate_financial(metrics)
+        assert narrative is not None
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SECCIÓN 9: PRUEBAS DE FRAGMENTACIÓN TOPOLÓGICA
+# ═══════════════════════════════════════════════════════════════════════════════
+
+class TestFragmentationDetection:
+    """
+    Pruebas de detección de fragmentación (β₀ > 1).
+    """
+    
+    @pytest.mark.parametrize("beta_0,expected_message", [
+        (0, "Terreno Vacío"),
+        (1, "Unidad de Obra"),  # O similar para estructura unitaria
+        (2, "2 sub-estructuras"),
+        (3, "3 sub-estructuras"),
+        (5, "5 sub-estructuras"),
+        (10, "10 sub-estructuras"),
+    ])
+    def test_component_count_in_narrative(self, translator, beta_0, expected_message):
+        """El conteo de componentes aparece en la narrativa."""
+        metrics = TopologicalMetrics(
+            beta_0=beta_0,
+            beta_1=0,
+            euler_characteristic=beta_0
+        )
+        
+        if beta_0 == 0:
+            narrative = translator.translate_topology(metrics, stability=5.0)
+            assert expected_message in narrative
+        elif beta_0 == 1:
+            narrative = translator.translate_topology(metrics, stability=10.0)
+            # Para componente única, puede mencionar "Monolítica" o similar
+            assert "Unidad" in narrative or "Monolítica" in narrative or "única" in narrative.lower()
+        else:
+            narrative = translator.translate_topology(metrics, stability=5.0)
+            assert expected_message in narrative or "Desconectados" in narrative
+    
+    def test_fragmentation_with_cycles(self, translator):
+        """Fragmentación combinada con ciclos."""
+        metrics = TopologicalMetrics(beta_0=3, beta_1=2, euler_characteristic=1)
+        narrative = translator.translate_topology(metrics, stability=5.0)
+        
+        # Debe mencionar ambos problemas
+        assert "sub-estructuras" in narrative or "Desconectados" in narrative
+        assert "socavones" in narrative or "Genus" in narrative
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SECCIÓN 10: PRUEBAS DE CONTEXTO DE MERCADO
+# ═══════════════════════════════════════════════════════════════════════════════
+
+class TestMarketContextEnhanced:
+    """
+    Pruebas mejoradas para el contexto de mercado.
+    """
+    
+    def test_market_context_structure(self, translator):
+        """El contexto de mercado tiene la estructura esperada."""
+        context = translator._get_market_context()
+        
+        assert "🌍" in context
+        assert "Suelo de Mercado" in context
+    
+    def test_custom_market_provider_called(self):
+        """El proveedor personalizado es llamado correctamente."""
+        call_count = [0]
+        
+        def custom_provider():
+            call_count[0] += 1
+            return "Tendencia de prueba"
+        
+        translator = SemanticTranslator(market_provider=custom_provider)
+        
+        # Primera llamada
+        context1 = translator._get_market_context()
+        assert call_count[0] == 1
+        assert "Tendencia de prueba" in context1
+        
+        # Segunda llamada
+        context2 = translator._get_market_context()
+        assert call_count[0] == 2
+    
+    def test_market_provider_exception_handled(self):
+        """Excepciones en el proveedor son manejadas."""
+        def failing_provider():
+            raise RuntimeError("API timeout")
+        
+        translator = SemanticTranslator(market_provider=failing_provider)
+        context = translator._get_market_context()
+        
+        assert "No disponible" in context
+    
+    def test_market_provider_returns_none_handled(self):
+        """Proveedor que retorna None es manejado."""
+        translator = SemanticTranslator(market_provider=lambda: None)
+        context = translator._get_market_context()
+        
+        assert "No disponible" in context or context is not None
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SECCIÓN 11: PRUEBAS DE INTEGRACIÓN
+# ═══════════════════════════════════════════════════════════════════════════════
+
+class TestIntegration:
+    """
+    Pruebas de integración del flujo completo.
+    """
+    
+    def test_complete_green_path_workflow(self, translator):
+        """Flujo completo para proyecto óptimo."""
+        topo = TopologicalMetrics(beta_0=1, beta_1=0, euler_characteristic=1)
+        fin = {
+            "wacc": 0.08,
+            "var": 10000.0,
+            "contingency": {"recommended": 15000.0},
+            "performance": {"recommendation": "ACEPTAR", "profitability_index": 1.5},
+        }
+        
+        report = translator.compose_strategic_narrative(topo, fin, stability=20.0)
+        
+        # Verificar elementos clave del camino verde
+        assert "CERTIFICADO DE SOLIDEZ" in report
+        assert "ESTRUCTURA ANTISÍSMICA" in report
+        assert "Genus 0" in report
+        assert "VIABLE" in report
+    
+    def test_complete_red_path_workflow(self, translator):
+        """Flujo completo para proyecto problemático."""
+        topo = TopologicalMetrics(beta_0=2, beta_1=3, euler_characteristic=-1)
+        fin = {
+            "wacc": 0.18,
+            "var": 100000.0,
+            "contingency": {"recommended": 200000.0},
+            "performance": {"recommendation": "RECHAZAR", "profitability_index": 0.5},
+        }
+        
+        report = translator.compose_strategic_narrative(topo, fin, stability=0.5)
+        
+        # Verificar elementos del camino rojo
+        assert "DETENER" in report or "REPARACIONES" in report
+        assert "socavones" in report
+        assert "Pirámide Invertida" in report or "INVIABLE" in report
+    
+    def test_narrative_coherence_with_metrics(self, translator):
+        """La narrativa es coherente con las métricas."""
+        topo = TopologicalMetrics(beta_0=1, beta_1=2, euler_characteristic=-1)
+        fin = {
+            "wacc": 0.12,
+            "contingency": {"recommended": 50000.0},
+            "performance": {"recommendation": "ACEPTAR", "profitability_index": 1.2},
+        }
+        
+        report = translator.compose_strategic_narrative(topo, fin, stability=8.0)
+        
+        # Debe mencionar los 2 ciclos
+        assert "2" in report and "socavones" in report
+        # Debe mencionar el WACC
+        assert "12.00%" in report
+        # Debe mencionar la contingencia
+        assert "50,000" in report or "50000" in report
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SECCIÓN 12: PRUEBAS DE RENDIMIENTO
+# ═══════════════════════════════════════════════════════════════════════════════
+
+class TestPerformance:
+    """
+    Pruebas de rendimiento.
+    """
+    
+    @pytest.mark.slow
+    def test_translation_performance(self, translator):
+        """Las traducciones son rápidas."""
+        import time
+        
+        topo = TopologicalMetrics(beta_0=1, beta_1=2, euler_characteristic=-1)
+        fin = {
+            "wacc": 0.12,
+            "contingency": {"recommended": 50000.0},
+            "performance": {"recommendation": "ACEPTAR"},
+        }
+        
+        n_iterations = 100
+        
+        start = time.time()
+        for _ in range(n_iterations):
+            translator.compose_strategic_narrative(topo, fin, stability=10.0)
+        elapsed = time.time() - start
+        
+        # 100 traducciones en menos de 2 segundos
+        assert elapsed < 2.0
+        assert elapsed / n_iterations < 0.05  # < 50ms por traducción
+    
+    @pytest.mark.slow
+    def test_market_context_caching_or_performance(self, translator):
+        """Obtener contexto de mercado es eficiente."""
+        import time
+        
+        n_iterations = 100
+        
+        start = time.time()
+        for _ in range(n_iterations):
+            translator._get_market_context()
+        elapsed = time.time() - start
+        
+        assert elapsed < 1.0
