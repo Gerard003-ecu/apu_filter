@@ -242,7 +242,9 @@ class BudgetGraphBuilder:
         warnings = []
         
         # Verificar que las aristas referencian nodos existentes
-        for source, target in self._edges:
+        for edge in self._edges:
+            source = edge.source
+            target = edge.target
             if source not in self._nodes:
                 warnings.append(f"Arista referencia nodo fuente inexistente: {source}")
             if target not in self._nodes:

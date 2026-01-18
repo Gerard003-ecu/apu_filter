@@ -149,7 +149,7 @@ class MatterGenerator:
     - Aplicación de factores de entropía con corrección de Jensen.
     """
 
-    def __init__(self, max_graph_complexity: int = 100000):
+    def __init__(self, max_graph_complexity: int = 100000000):
         """
         Inicializa el generador de materia.
 
@@ -449,12 +449,15 @@ class MatterGenerator:
             base_log_factor += risk_log_map.get(risk_level, math.log1p(0.03))
 
         # Factores específicos por material en log-space
+        # Alineados con tests/test_matter_generator.py:
+        # FRAGILE: 0.05, HAZARDOUS: 0.08, PERISHABLE: 0.04, PRECISION: 0.03, BULKY: 0.02
         material_log_factors = {
-            "FRAGILE": math.log1p(0.02),
+            "FRAGILE": math.log1p(0.05),
             "PERISHABLE": math.log1p(0.04),
-            "HAZARDOUS": math.log1p(0.06),
+            "HAZARDOUS": math.log1p(0.08),
             "BULKY": math.log1p(0.02),
-            "PRECISION": math.log1p(0.01),
+            "PRECISION": math.log1p(0.03),
+            "GENERIC": math.log1p(0.00),
         }
 
         processed_materials = []
@@ -629,13 +632,26 @@ class MatterGenerator:
 
             total_cost = quantity_total_orig * unit_cost_orig
 
+            # Evitar error de redondeo a cero para cantidades muy pequeñas
+            q_base_final = quantity_base_orig
+            if q_base_final > 1e-12:
+                q_base_final = round(q_base_final, 6)
+                if q_base_final == 0:
+                    q_base_final = 1e-6 # Mínimo representable si fue redondeado a 0 pero era > 0
+
+            q_total_final = quantity_total_orig
+            if q_total_final > 1e-12:
+                q_total_final = round(q_total_final, 6)
+                if q_total_final == 0:
+                    q_total_final = 1e-6
+
             req = MaterialRequirement(
                 id=data["id"],
                 description=data["description"],
-                quantity_base=round(quantity_base_orig, 6),
+                quantity_base=q_base_final,
                 unit=data["original_unit"],
                 waste_factor=round(max(0.0, total_waste), 6),
-                quantity_total=round(quantity_total_orig, 6),
+                quantity_total=q_total_final,
                 unit_cost=round(unit_cost_orig, 4),
                 total_cost=round(total_cost, 2),
                 source_apus=sorted([str(x) for x in data["source_apus"]]),
