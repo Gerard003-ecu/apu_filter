@@ -1,76 +1,58 @@
-# Teoría de Control: Controlador PI Discreto en DataFluxCondenser
 
-## Introducción
+--------------------------------------------------------------------------------
+**1. Arquitectura de Control Híbrida**
+Implementación: app/flux_condenser.py -> PIController y DataFluxCondenser.
+El sistema utiliza una topología de Control por Prealimentación (Feedforward) aumentada con Retroalimentación (Feedback).
+u(t)=Feedback (Error)uPI​(e)​​+Feedforward (Complejidad)uFF​(ΔC)​​+ProteccioˊnuSafety​​​
+1.1 Diagrama de Bloques Lógico
+1. Planta: El proceso de ingestión de datos (Batch Processing).
+2. Sensor: El Motor de Física (FluxPhysicsEngine) que mide Saturación (V), Corriente (I) y Potencia (P).
+3. Estimador de Estado: Un Filtro de Kalman Extendido (EKF) que predice la saturación futura.
+4. Controlador: Algoritmo PI Discreto con Feedforward basado en complejidad.
 
-El `DataFluxCondenser` utiliza un **Controlador PI (Proporcional-Integral) Discreto** para regular dinámicamente el tamaño del lote de procesamiento (*batch size*). El objetivo es mantener el sistema en un punto de operación óptimo, maximizando el throughput sin saturar los recursos ni comprometer la estabilidad.
+--------------------------------------------------------------------------------
+**2. El Controlador PI Discreto (Feedback)**
+Objetivo: Eliminar el error de estado estacionario (e(k)=SP−PV) manteniendo la saturación del sistema al 30%.
+Utilizamos la forma posicional discreta con mejoras anti-windup avanzadas:
+uPI​(k)=Kp​⋅e(k)+Ki​i=0∑k​e(i)⋅Δt
+Mecanismos de Robustez Implementados:
+• Anti-Windup (Clamping Condicional + Back-calculation): A diferencia de un anti-windup simple, el sistema usa Back-calculation. Si el actuador (tamaño del batch) se satura, recalcula el término integral para que sea consistente con la salida real, evitando que el error se "acumule" fantasmagóricamente mientras el sistema está al límite.
+• Slew Rate Limiting (Anti-Jerk): Limitamos la tasa de cambio de la salida (du/dt) para evitar cambios bruscos en el tamaño del lote que podrían inestabilizar la base de datos o la memoria.
 
-## Diagrama de Bloques
+--------------------------------------------------------------------------------
+**3. Control Feedforward Adaptativo (Anticipación)**
+Implementación: DataFluxCondenser._stabilize_batch.
+El control feedback es intrínsecamente lento (debe esperar a que ocurra el error). Para compensar, el Guardián "mira hacia adelante":
+• Variable de Perturbación: La Complejidad Ciclomática del texto en los datos crudos.
+• La Lógica: Si el sistema detecta que el siguiente bloque de texto es matemáticamente más denso (mayor entropía o longitud), reduce el tamaño del batch antes de que aumente la saturación de memoria.
+• Ecuación de Ajuste: uFF​=KFF​⋅(dtdC​+0.5dt2d2C​)
+ El sistema reacciona no solo al cambio de complejidad (dC/dt), sino a la aceleración del cambio (d2C/dt2), actuando como un amortiguador predictivo.
 
-```mermaid
-graph LR
-    SP(Setpoint: Saturación Objetivo) --> Sum((+ / -))
-    PV(Process Variable: Saturación Actual) --> Sum
-    Sum --> Error(Error e[k])
-    Error --> P(Proporcional Kp)
-    Error --> I(Integral Ki)
-    P --> Sum2((+))
-    I --> Sum2
-    Sum2 --> Sat[Limitador / Anti-Windup]
-    Sat --> u(Señal de Control: Batch Size)
-    u --> Plant(Proceso de Ingesta)
-    Plant --> PV
-```
+--------------------------------------------------------------------------------
+**4. El Oráculo de Estado: Filtro de Kalman Extendido (EKF)**
+Implementación: _predict_next_saturation.
+No esperamos a medir la saturación; la predecimos. El sistema implementa un EKF que modela la saturación como un oscilador armónico amortiguado con punto de equilibrio variable.
+Modelo de Estado del EKF:
+Estado vector x=[s,v,a]T (Saturación, Velocidad, Aceleración). s˙=v
+ v˙=a−βv−ω2(s−seq​)
+ a˙=−γa+wa​
+• Adaptación de Parámetros: El filtro ajusta dinámicamente sus propios parámetros internos (ω frecuencia natural, β amortiguamiento) basándose en la "innovación" (error de predicción), permitiéndole distinguir entre ruido de medición y tendencias reales del sistema.
 
-## Ecuación de Control
+--------------------------------------------------------------------------------
+**5. Análisis de Estabilidad en Tiempo Real**
+El sistema no asume estabilidad; la calcula matemáticamente en cada ciclo.
+**5.1 Criterio de Jury (Validación Estática)**
+Al inicio, validamos que los parámetros del controlador (Kp​,Ki​) no violen la estabilidad del lazo cerrado discreto. Verificamos que las raíces del polinomio característico estén dentro del círculo unitario (∣z∣<1).
+**5.2 Exponente de Lyapunov (Validación Dinámica)**
+Implementación: _update_lyapunov_metric. Durante la ejecución, estimamos el Exponente de Lyapunov (λ) de la serie temporal del error. ∣e(k)∣≈∣e(0)∣⋅eλk
+• λ<0 (Convergencia): El sistema es estable; el error decae exponencialmente.
+• λ>0 (Caos): El sistema está divergiendo. El Guardián detecta esto como una "Falla de Control" y activa el Freno de Emergencia antes de que ocurra un desbordamiento de memoria (OOM).
 
-Implementamos la forma **Posicional Discreta** del algoritmo PI:
+--------------------------------------------------------------------------------
+**6. Filtrado de Señal: EMA Adaptativo**
+Implementación: _apply_ema_filter.
+La señal de saturación suele ser ruidosa. No usamos un promedio simple. Implementamos un filtro de Media Móvil Exponencial (EMA) donde el factor α varía según la volatilidad estadística:
+• Alta varianza (Ruido): α disminuye (mayor suavizado).
+• Cambio escalón (Step): Si se detecta un cambio brusco real, el filtro "abre la compuerta" (bypass) para reaccionar rápido, evitando el retraso de fase típico de los filtros pasabajos.
 
-$$ u(k) = u_{base} + \underbrace{K_p \cdot e(k)}_{\text{P}} + \underbrace{K_i \sum_{i=0}^{k} e(i) \cdot \Delta t}_{\text{I}} $$
-
-Donde:
-*   $u(k)$: Señal de control (Nuevo tamaño de batch).
-*   $u_{base}$: Salida base (punto medio del rango operativo).
-*   $e(k) = SP - PV(k)$: Error de control (Diferencia entre saturación deseada y real).
-*   $K_p$: Ganancia Proporcional.
-*   $K_i$: Ganancia Integral.
-*   $\Delta t$: Tiempo transcurrido entre iteraciones.
-
-## Componentes del Controlador
-
-### 1. Variable de Proceso (PV) y Setpoint (SP)
-*   **PV (Process Variable):** La **Saturación** del sistema ($0.0 - 1.0$), calculada por el Motor de Física ($V_{carga}$). Representa qué tan "estresado" está el sistema con el lote actual.
-*   **SP (Setpoint):** El objetivo de saturación, configurado por defecto en **0.30 (30%)**. Buscamos mantener el sistema operando al 30% de su capacidad "física" teórica para dejar margen de maniobra (headroom) ante picos de datos.
-
-### 2. Acción Proporcional (P)
-$$ P = K_p \cdot e(k) $$
-Responde al error *actual*. Si la saturación está lejos del objetivo, la acción P ajusta agresivamente el tamaño del batch.
-*   **Efecto:** Proporciona la respuesta rápida del sistema.
-
-### 3. Acción Integral (I)
-$$ I = K_i \cdot \int e(t) dt \approx K_i \sum e(k) \Delta t $$
-Responde a la historia del error acumulado. Elimina el error en estado estacionario que la acción P por sí sola no puede corregir.
-*   **Efecto:** Asegura que, a largo plazo, la saturación promedio converja exactamente al Setpoint.
-
-## Mecanismos de Robustez
-
-### Anti-Windup (Clamping)
-En sistemas reales, los actuadores tienen límites físicos (tamaño mínimo y máximo de batch). Si el controlador intenta exceder estos límites, el término integral puede acumularse indefinidamente ("Windup"), causando sobrepasos severos cuando el error cambia de signo.
-
-**Solución Implementada:**
-Limitamos (clampeamos) el valor del término integral:
-$$ I_{clamped} = \max(-Lym, \min(Lym, I_{calculado})) $$
-Donde $Lym$ es un límite configurado proporcional al rango de salida. Esto mantiene el controlador "despierto" y reactivo.
-
-### Protección de Delta Time ($\Delta t$)
-El tiempo entre lotes puede variar. Si $\Delta t$ es muy grande (e.g., pausa en el proceso) o cero, puede desestabilizar la integral.
-*   **Validación:** Se fuerza un $\Delta t$ mínimo y se descartan valores anómalos (> 1 hora) para evitar "saltos" en el término integral.
-
-### Freno de Emergencia (Override)
-Aunque no es parte estricta del PID, el sistema incluye un "Diodo de Rueda Libre" térmico. Si la **Potencia Disipada** (calculada por el motor físico) excede un umbral crítico, se ignora la salida del PID y se fuerza una reducción drástica del batch size. Esto actúa como un disyuntor de seguridad.
-
-## Ajuste (Tuning)
-
-Los parámetros por defecto han sido ajustados empíricamente para flujos de datos CSV típicos:
-*   $K_p = 2000.0$: Ganancia alta para respuesta rápida.
-*   $K_i = 100.0$: Ganancia integral moderada para corrección de error sin oscilaciones excesivas.
-*   $SP = 0.30$: Punto de operación conservador para alta estabilidad.
+--------------------------------------------------------------------------------

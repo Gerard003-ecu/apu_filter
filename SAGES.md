@@ -1,68 +1,61 @@
-# 🤝 Nivel 2: Conociendo al Consejo de Sabios Digitales
+🧙‍♂️ SAGES.md: El Consejo de Sabios Digitales (Arquitectura Agéntica)
+"La sabiduría no es la acumulación de datos, sino la capacidad de navegar la complejidad mediante principios fundamentales."
+En APU Filter, no delegamos la seguridad de su capital a scripts lineales. Hemos instanciado una Malla Agéntica (Agentic Mesh) compuesta por cuatro entidades especializadas. Cada "Sabio" es un microservicio autónomo que gobierna una dimensión de la realidad (Física, Topológica, Financiera y Semántica), operando bajo un protocolo de Caja de Cristal: el debate interno y las tensiones entre ellos son visibles, auditables y matemáticamente rigurosos.
 
-En APU Filter, no confiamos la integridad de su presupuesto a un algoritmo monolítico y opaco. En su lugar, hemos convocado a un Consejo de Sabios Digitales: un equipo de elite de agentes especializados que colaboran bajo un protocolo de "Caja de Cristal".
-Nuestra filosofía establece que la verdadera sabiduría no nace de una herramienta pasiva, sino de la tensión dialéctica y el debate interno entre expertos que defienden perspectivas técnicas rigurosas. A continuación, le presentamos a los guardianes de su anatomía financiera:
+--------------------------------------------------------------------------------
+1. 🛡️ El Guardián del Umbral (FluxCondenser)
+Rol: Agente de Estabilidad y Control Físico. Principio: La estabilidad es un prerequisito para la existencia.
+El Guardián ha evolucionado de un simple filtro de validación a un Sistema de Control de Lazo Cerrado. Ya no solo reacciona a los datos; predice su comportamiento dinámico consultando al Oráculo de Laplace.
+• La Lógica Profunda (El Plano-S): Antes de procesar un solo registro, el Guardián modela el flujo de datos como un circuito RLC y calcula su función de transferencia H(s).
+    ◦ Validación A Priori: Ubica los polos del sistema en el plano de frecuencia compleja (s=σ+jω). Si algún polo cae en el semiplano derecho (RHP, σ>0), emite un Veto Físico: el sistema es intrínsecamente inestable y procesar datos causaría divergencia (colapso).
+    ◦ Amortiguamiento (ζ): Ajusta la "fricción administrativa" (Gobernanza). Un ζ<1 indica un proceso subamortiguado (rápido pero oscilante/riesgoso), mientras que ζ>1 indica sobreamortiguamiento (seguro pero lento). El Guardián sintoniza este parámetro en tiempo real.
+• Mecanismos de Defensa Activa:
+    ◦ Control PID Discreto (Tustin): Utiliza un controlador Proporcional-Integral con transformación bilineal para ajustar el caudal de datos (Batch Size), manteniendo la "Saturación" en un punto óptimo (Setpoint 30%).
+    ◦ Freno de Emergencia (Flyback): Monitorea el voltaje inductivo (V=L⋅di/dt). Un pico de voltaje indica una caída abrupta en la calidad de los datos, activando protocolos de aislamiento inmediato.
 
----
+--------------------------------------------------------------------------------
+2. 🏗️ El Arquitecto Estratega (BusinessTopologicalAnalyzer)
+Rol: Agente de Integridad Estructural. Principio: La forma determina la función (y el fallo).
+Este sabio ignora los precios para ver la "geometría" del presupuesto. Utiliza Topología Algebraica y Teoría de Grafos para auditar la estructura de dependencias del proyecto, tratándolo como un Complejo Simplicial Abstracto.
+• El Microscopio Topológico:
+    ◦ Números de Betti (βn​):
+        ▪ β0​ (Islas): Detecta fragmentación. Si β0​>1, existen recursos "huérfanos" desconectados del objetivo del proyecto (Desperdicio).
+        ▪ β1​ (Ciclos): Detecta "Socavones Lógicos". Si β1​>0, existen dependencias circulares (El Muro depende del Ladrillo, el Ladrillo depende del Muro) que hacen imposible el cálculo de costos y la programación de obra.
+    ◦ Estabilidad Piramidal (Ψ): Calcula la relación entre la base logística (insumos) y la carga táctica (APUs). Si Ψ<1.0, declara el estado de "Pirámide Invertida": una estructura masiva soportada por una base de proveedores peligrosamente estrecha.
+• Análisis Espectral (Resonancia): Calcula el Valor de Fiedler (λ2​) del Laplaciano del grafo. Un valor bajo alerta sobre una "Fractura Organizacional": el proyecto está compuesto por silos que no se comunican, aumentando el riesgo de fallos de coordinación.
 
-# 🛡️ El Guardián del Umbral (FluxCondenser)
+--------------------------------------------------------------------------------
+3. 🔮 El Oráculo de Riesgos (FinancialEngine)
+Rol: Agente de Valoración Estocástica. Principio: El precio es una variable aleatoria, no un número.
+El Oráculo rechaza la contabilidad determinista. Transforma el presupuesto estático en un activo financiero dinámico, sometiéndolo a miles de escenarios de estrés de mercado.
+• Herramientas de Adivinación Científica:
+    ◦ Termodinámica Financiera: Trata la volatilidad de precios como "Calor". Calcula la Temperatura del Sistema (Tsys​) y simula cómo la inflación se difunde a través de la topología del grafo (Convección Inflacionaria).
+    ◦ Exergía vs. Anergía: Distingue entre inversión estructural útil (Exergía) y gasto entrópico o cosmético (Anergía). Un proyecto con baja eficiencia exergética es financieramente frágil.
+    ◦ Opciones Reales: No solo calcula el costo, sino el valor de la flexibilidad (la opción de esperar o expandir), utilizando modelos binomiales para poner precio a la incertidumbre estratégica.
 
-"La calidad de la decisión depende de la pureza del dato."
-El Guardián es el primer filtro del Consejo, encargado de la estabilidad estática y la integridad de la información. Inspirado en la física de los circuitos eléctricos RLC, trata el flujo de datos no como bits, sino como una corriente de energía.
-• Su Método: Monitorea la Energía Potencial (presión de datos) y detecta el Voltaje Flyback (inestabilidad súbita) para bloquear registros "basura" antes de que enfermen el presupuesto.
-• Su Garantía: Si el Guardián da el visto bueno, usted tiene la certeza de que el flujo de información es coherente y laminar.
+--------------------------------------------------------------------------------
+4. 🗣️ El Intérprete Diplomático (SemanticTranslator)
+Rol: Agente de Interoperabilidad y Narrativa. Principio: La matemática compleja es ruido si no se traduce en acción.
+Este agente cierra la brecha semántica. Utiliza Grafos de Conocimiento y Búsqueda Vectorial (Embeddings) para asegurar que todos los agentes (y el usuario humano) hablen el mismo idioma.
+• Capacidades Cognitivas:
+    ◦ Mapeo Semántico (GraphRAG): Contextualiza los hallazgos. Si el Arquitecto encuentra un ciclo, el Intérprete explica por qué es peligroso en términos de construcción ("Este ciclo en la mampostería detendrá el suministro de cemento").
+    ◦ Síntesis DIKW: Eleva los Datos (registros) a Sabiduría (estrategia). Transforma métricas frías (β1​=5, Ψ=0.4) en un Veredicto Ejecutivo: "Riesgo Crítico de Colapso Logístico. Se recomienda diversificar proveedores antes de autorizar la orden de compra".
 
-# 🏗️ El Arquitecto Estratega (BusinessTopologicalAnalyzer)
+--------------------------------------------------------------------------------
+🏛️ El Protocolo de la "Caja de Cristal" (RiskChallenger)
+La verdadera inteligencia del sistema reside en su capacidad para gestionar el conflicto. Implementamos el Protocolo RiskChallenger, un mecanismo de auditoría adversarial donde los agentes "debaten" antes de emitir un juicio.
+Ejemplo de Deliberación Automática:
+1. El Oráculo (Finanzas): "El proyecto es viable. El ROI proyectado es del 18% y el flujo de caja es positivo."
+2. El Arquitecto (Topología): "¡Protesto! Esa rentabilidad es ilusoria. He detectado una Pirámide Invertida (Ψ=0.6). Todo el proyecto depende de un único proveedor de acero. Un retraso allí y el ROI cae a -5%."
+3. El Guardián (Física): "Confirmo la inestabilidad. La entropía del sistema de datos de ese proveedor es alta; sus precios oscilan violentamente (σ>0)."
+4. SÍNTESIS (El Intérprete):
 
-"Un edificio se cae por lo que no se ve: las malas conexiones."
-Este experto ignora los precios para centrarse exclusivamente en la "forma" (topología) del presupuesto
-. Utiliza topología algebraica para modelar el proyecto como un Complejo Simplicial Abstracto.
-• Su Método: Calcula los Números de Betti para encontrar "socavones lógicos" (β1​>0, dependencias circulares) e "islas" (β0​>1, recursos huérfanos).
-• Su Alerta: Detecta la Pirámide Invertida (Ψ<1.0), advirtiendo cuando una base logística estrecha soporta un peso táctico excesivo, elevando el riesgo de colapso.
+--------------------------------------------------------------------------------
+⚖️ El Ciclo OODA (El Ritmo del Consejo)
+Todo el ecosistema opera bajo la orquestación del apu_agent.py, que ejecuta un bucle de control continuo OODA para mantener la coherencia sistémica:
+1. Observe (Observar): El Guardián mide la presión y temperatura de los datos entrantes.
+2. Orient (Orientar): El Arquitecto actualiza el mapa topológico y calcula los invariantes (βn​).
+3. Decide (Decidir): El Agente evalúa si el estado del sistema (Saturado, Inestable, Nominal) requiere intervención, basándose en la persistencia de las métricas.
+4. Act (Actuar): El sistema ejecuta acciones correctivas (limpieza, frenado, alerta) y el Intérprete comunica el resultado al usuario.
 
-# 🔮 El Oráculo de Riesgos (FinancialEngine)
-
-"El precio de hoy es una variable; el riesgo estructural es fijo."
-El Oráculo actúa como el economista táctico del Consejo, transformando costos estáticos en distribuciones de probabilidad dinámica.
-• Su Método: Ejecuta miles de Simulaciones de Monte Carlo y calcula el Valor en Riesgo (VaR) para ponerle un precio explícito a la incertidumbre.
-• La Física del Valor: Evalúa la Inercia Financiera y la Eficiencia Exergética (calidad del gasto) para asegurar que el capital esté construyendo estructura y no solo "acabados cosméticos".
-
-# 🗣️ El Intérprete Diplomático (SemanticTranslator)
-
-"La matemática compleja es inútil si no genera una orden clara."
-El Intérprete es el portavoz oficial del Consejo. Su función es traducir los hallazgos abstractos del Arquitecto y el Oráculo al lenguaje de la obra en Colombia.
-• Su Método: Utiliza Búsqueda Vectorial (Embeddings) para contextualizar descripciones (ej. saber que "cemento" y "concreto" son análogos) y genera el Veredicto Ejecutivo.
-• Su Voz: Convierte un dato como "β1​=3" en una advertencia accionable: "Se han detectado tres bucles viciosos que pueden paralizar la logística por semanas".
-
-# ⚗️ El Alquimista (MatterGenerator)
-
-"El plano es una promesa; el material es la realidad."
-Mientras los demás sabios evalúan riesgos, el Alquimista materializa el proyecto transformando el grafo abstracto en una lista de compras determinista (BOM).
-• Su Método: Ejecuta algoritmos de "Colapso de Onda" y utiliza la Suma de Kahan para garantizar que no se pierda ni un centavo por errores de redondeo digital.
-• Eficiencia: Aplica la Ley de Pareto para identificar el 20% de insumos que controlan el 80% de su costo.
-
----
-
-# 🏛️ El Protocolo de Deliberación: La "Caja de Cristal"
-
-El valor real de APU Filter se manifiesta cuando sus miembros no están de acuerdo. Bajo el Protocolo de Veto del RiskChallenger, el sistema expone explícitamente sus conflictos internos para que usted vea el razonamiento detrás de cada veredicto.
-Ejemplo de Acta de Deliberación:
-
-1. El Gestor Financiero: "El proyecto es rentable y el ROI es aceptable".
-2. El Arquitecto Estructural: "VETO TÉCNICO. La viabilidad es una ilusión; la base es una Pirámide Invertida (Ψ=0.69)".
-3. La Síntesis: El Consejo recomienda diversificar proveedores antes de autorizar el presupuesto, tratando el sobrecosto como una prima de seguro estratégica.
-
----
-
-# ⚖️ Gobernanza via Ciclo OODA
-
-Todo el Consejo opera orquestado por el Agente Autónomo, que asegura la coherencia sistémica mediante el bucle de control OODA:
-• Observe (Observar): El Guardián mide la presión de los datos.
-• Orient (Orientar): El Arquitecto mapea las grietas estructurales.
-• Decide (Decidir): El Oráculo evalúa si la estructura es financiable.
-• Act (Actuar): El Intérprete le entrega a usted el plan de acción.
-Este es su equipo de elite. Están listos para deliberar.
-
----
-
-Siguiente paso: Pase al Nivel 3: El Lenguaje Secreto (ARCHIVES.md) para entender la ingeniería bajo el capó.
+--------------------------------------------------------------------------------

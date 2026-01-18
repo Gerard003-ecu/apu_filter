@@ -1,113 +1,60 @@
-# 📂 Nivel 4: Los Archivos del Consejo
 
-(La Evidencia Forense y la Caja de Cristal)
-"La confianza no se exige; se demuestra. Aquí presentamos los entregables tangibles donde la matemática abstracta se convierte en decisiones de negocio."
-En este nivel, aterrizamos la teoría. El sistema APU Filter no le entrega un simple "log" de errores; le entrega tres artefactos de inteligencia diseñados para la auditoría forense de su proyecto. Estos archivos son la materialización del trabajo del Consejo.
+--------------------------------------------------------------------------------
+1. 📜 El Certificado de Estabilidad Espectral (Laplace Report)
+Fuente: Generado por LaplaceOracle y FluxCondenser. Concepto: Un dictamen de ingeniería de control que valida la viabilidad dinámica del proyecto antes de su ejecución.
+El sistema modela su proyecto como un sistema dinámico (H(s)) y entrega la Pirámide de Laplace, un diagnóstico jerárquico de 4 niveles:
+Nivel 0: El Veredicto de Controlabilidad
+• Estado: ESTABLE | MARGINAL | INESTABLE
+• Fundamento: Ubicación de los polos en el Plano de Frecuencia Compleja (s=σ+jω).
+    ◦ ✅ Aprobado: Todos los polos en el Semiplano Izquierdo (LHP, σ<0). La gobernanza es suficiente para disipar el riesgo.
+    ◦ ❌ Veto Técnico: Polos en el Semiplano Derecho (RHP, σ>0). El proyecto es intrínsecamente explosivo; cualquier variación de precios causará divergencia financiera.
+Nivel 1: Robustez (El Colchón de Seguridad)
+• Margen de Fase (PM): Indica cuánto retardo logístico (días de atraso en insumos) puede tolerar el sistema antes de entrar en oscilación caótica.
+    ◦ Alerta: Si PM<45∘, el sistema es "Frágil ante Retrasos".
+• Sobrepaso (Mp​): Predice la "Fiebre" máxima del presupuesto ante un shock de inflación.
+Nivel 2: Dinámica (Personalidad del Proyecto)
+• Factor de Amortiguamiento (ζ):
+    ◦ ζ<1 (Subamortiguado): Proyecto Nervioso. Reacciona rápido al mercado pero con alta volatilidad de costos.
+    ◦ ζ>1 (Sobreamortiguado): Proyecto Burocrático. Lento para adaptarse, exceso de controles (Resistencia R alta).
 
-## 1. El Microscopio Estructural (Visualización Forense)
+--------------------------------------------------------------------------------
+2. 🕸️ El Microscopio Topológico (Grafo de Conocimiento)
+Fuente: Generado por BusinessTopologicalAnalyzer. Concepto: Una radiografía de la estructura de dependencias, visualizada como un grafo dirigido interactivo.
+La Leyenda del Mapa (Decodificación de Riesgos)
+El sistema colorea los nodos basándose en patologías matemáticas detectadas:
 
-Fuente: Generado por `topology_viz.py` y `business_topology.py`.
-El Arquitecto Estratega no solo calcula; dibuja. Transformamos su presupuesto en un grafo interactivo (usando Cytoscape.js) que permite una inspección visual inmediata de las patologías. No es un dibujo estático; es un mapa de calor de riesgos.
-
-### La Leyenda del Mapa (Decodificación Visual)
-El sistema colorea y etiqueta los nodos basándose en la gravedad del hallazgo matemático:
-
-| Elemento Visual | Significado en Obra | Causa Técnica (Código) |
+| Elemento Visual | Patología Detectada | Significado en Obra |
 | :--- | :--- | :--- |
-| 🔴 Nodos ROJOS | Punto de Falla Crítico. Elemento en riesgo de colapso, bloqueo o aislamiento. | `NodeColor.RED`: Detectado en anomaly_data (ciclos, estrés, islas) |
-| 🟠 Borde PUNTEADO | Conexión Fantasma. Una relación que debería existir pero falta (ej. un APU sin insumos). | `style="dotted", color="orange"`: Detectado por get_missing_connections. |
-| ⚡ Clase "STRESS" | Pirámide Invertida. Un insumo básico que soporta demasiada carga del proyecto. | `NodeClass.STRESS`: Insumos con in_degree desproporcionado (>30% del grafo). |
-| 🔄 Clase "CIRCULAR" | Socavón Lógico. El nodo es parte de un bucle infinito de precios (A → B → A). | `NodeClass.CIRCULAR`: Pertenencia al conjunto nodes_in_cycles. |
+| 🔴 Nodos ROJOS | Ciclos (β1​>0) | `NodeColor.RED`: Socavón Lógico. Dependencia circular (A depende de B, B depende de A). Imposible programar la compra. |
+| 🟡 Clusters AISLADOS| Fragmentación (β0​>1) | `style="dotted", color="yellow"`: Silos de Datos. Insumos comprados que no están conectados al objetivo del proyecto (Desperdicio/Robo).|
+| ⚡ Nodos ESTRESADOS | Pirámide Invertida (Ψ<1) | `NodeClass.STRESS`: Cuello de Botella. Un proveedor crítico soporta demasiada carga estructural. Si falla, la obra se detiene. |
+| 🔵 Aristas FUERTES | Alta Cohesión (λ2​≫0) | `NodeClass.CIRCULAR`: Estructura Robusta. Flujo de valor bien distribuido y resiliente. |
 
-La Experiencia de Usuario: Usted no busca errores fila por fila. Usted abre el visor y "sigue el rojo".
 
-## 2. El Veredicto Ejecutivo (Narrativa Estratégica)
+--------------------------------------------------------------------------------
+3. ⚖️ El Acta de Deliberación (Narrativa Estratégica)
+Fuente: Generado por SemanticTranslator y BusinessAgent (Protocolo RiskChallenger). Concepto: No es un reporte generado por plantilla; es la transcripción del debate entre los agentes autónomos.
+Estructura del Acta
+El reporte expone la tensión dialéctica entre las diferentes dimensiones del análisis:
+1. La Tesis (El Oráculo Financiero):
+2. La Antítesis (El Arquitecto Estructural):
+3. La Síntesis (Veredicto Ejecutivo):
 
-Fuente: Generado por `semantic_translator.py` y `business_agent.py`.
-El Intérprete Diplomático toma los datos crudos y redacta un informe en lenguaje natural. No recibirá un JSON crudo; recibirá un Dictamen de Ingeniería.
-Estructura del Informe (ConstructionRiskReport)
-El sistema genera un objeto ConstructionRiskReport
- que se traduce en:
-1. Puntuación de Integridad (Score 0-100):
-    ◦ Cálculo: Se penaliza por ciclos (β1​>0), islas (β0​>1) y pirámides invertidas (Ψ<1).
-    ◦ Ejemplo: "Integridad: 65/100 (Riesgo Alto)".
-2. Narrativa de Estabilidad:
-    ◦ Input: Ψ = 0.8
-    ◦ Output: "📉 COLAPSO POR BASE ESTRECHA (Pirámide Invertida). La cimentación logística es demasiado angosta para soportar el peso táctico de los APUs."
-3. Veredicto Financiero:
-    ◦ Input: ROI < 0 o Volatilidad > 20%.
-    ◦ Output: "🛑 Veredicto: RIESGO CRÍTICO. Estructura no financiable sin reingeniería."
+--------------------------------------------------------------------------------
+4. 🌡️ La Telemetría de Física de Datos (Signos Vitales)
+Fuente: Generado por FluxCondenser (Motor de Física). Concepto: Un electrocardiograma en tiempo real del flujo de procesamiento.
+Monitoreamos las variables de estado termodinámicas para garantizar que el sistema de análisis no introduzca errores por saturación:
+• Energía Potencial (Ec​): "Presión" en la cola de datos. Si sube demasiado, indica un ataque DDOS de datos o un cuello de botella en la base de datos.
+• Energía Cinética (El​): "Inercia de Calidad". Un flujo alto y constante indica datos sanos y bien estructurados.
+• Voltaje Flyback (Vfb​): "Picos de Inestabilidad". Detecta cambios abruptos en el formato o calidad de los datos (ej. cambio de codificación UTF-8 a Latin-1 a mitad de archivo).
+• Potencia Disipada (Pdis​): "Entropía/Calor". Energía computacional desperdiciada procesando registros inválidos.
 
-## 3. El Diagnóstico Termodinámico (Física del Valor)
+--------------------------------------------------------------------------------
+5. 🛡️ La Bitácora de Gobernanza (Compliance Ledger)
+Fuente: Generado por el sistema de Gobernanza Federada. Concepto: Auditoría inmutable de cumplimiento normativo (Policy-as-Code).
+Cada transacción queda registrada con su validación criptográfica:
+• Contratos de Datos: "¿El archivo Insumos.csv cumple con el esquema v3.1 definido por la oficina central?" (Pass/Fail).
+• Traza de Linaje: Mapeo completo de la transformación del dato, desde la carga cruda hasta el KPI financiero, garantizando que ningún número es "inventado".
 
-![Pirámide Termodinámica](docs/images/thermodynamics_pyramid.jpeg)
-> **Flujo de Energía: Absorber (Base) -> Conducir -> Medir -> Regular (Cúspide)**
-
-Evaluamos la eficiencia energética de su capital. No todos los gastos son iguales; distinguimos entre Exergía (trabajo útil estructural) y Anergía (desperdicio o acabados cosméticos).
-
-## 4. El Electrocardiograma del Sistema (Telemetría OODA)
-
-![Pirámide de Telemetría](docs/images/telemetry_service_pyramid.jpeg)
-> **Ciclo de Observabilidad: Registrar -> Cronometrar -> Contextualizar -> Identificar**
-
-Fuente: Generado por `apu_agent.py` y `flux_condenser.py`.
-El Guardián del Umbral y el Agente Autónomo monitorean la salud del proceso de análisis en tiempo real. Usted puede ver el "pulso" del sistema para saber si sus datos son estables o caóticos.
-El Ciclo OODA en Acción
-El Agente ejecuta un bucle continuo de Observar-Orientar-Decidir-Actuar
-, generando métricas físicas que usted puede auditar:
-• ⚡ Voltaje de Flyback (flyback_voltage):
-    ◦ Significado: ¿Qué tan inestables son los datos entrantes?
-    ◦ Alerta: Si V>0.8, el sistema reporta: "Alta inestabilidad detectada. Los datos contienen cambios bruscos de formato o calidad."
-• 🔥 Potencia Disipada (dissipated_power):
-    ◦ Significado: ¿Cuánta energía estamos desperdiciando procesando "basura" (filas vacías, errores)?
-    ◦ Acción: Si P>50W, el sistema activa el "Freno de Emergencia" térmico para evitar colapsos.
-• 🌊 Saturación (saturation):
-    ◦ Significado: Presión de datos en el pipeline.
-    ◦ Meta: Mantener un "Flujo Laminar" al 30% de capacidad para máxima precisión.
-
-## 5. La Bitácora Inmutable (Audit Trail)
-
-Fuente: `data_validator.py` y `telemetry.py`.
-Finalmente, para el auditor financiero, el sistema genera una traza completa. Nada se pierde.
-• Identidad de la Sesión: Cada análisis tiene un session_id y un request_id único
-
-• Evidencia de Validación:
-    ◦ Cantidad Recalculada: "El sistema detectó Cantidad=0 pero Valor Total > 0. Se recalculó la cantidad implícita."
-    ◦ Descripción Inferida: "Descripción faltante. Se infirió 'Cemento Gris' usando búsqueda difusa (Fuzzy Matching) con 95% de confianza."
-
-## 6. La Arquitectura de los Sabios (Ecosistema V3)
-
-El sistema opera bajo el mandato del Consejo Digital, una arquitectura de agentes especializados:
-*   **FluxCondenser (El Guardián):** Estabiliza la entrada caótica de datos.
-*   **TopologicalAnalyzer (El Arquitecto):** Evalúa la integridad estructural del grafo.
-*   **FinancialEngine (El Oráculo):** Proyecta riesgos económicos y viabilidad.
-*   **SemanticTranslator (El Diplomático):** Traduce matemáticas a lenguaje de negocio.
-
-## 7. El Motor de Parsing Categórico
-
-Fuente: `apu_processor.py` y `report_parser_crudo.py`
-"La gramática es la estructura del pensamiento; el parsing es la validación de la realidad."
-
-El sistema no utiliza simples expresiones regulares para leer sus archivos. Empleamos un motor basado en **Teoría de Categorías** que trata cada línea del presupuesto como una estructura algebraica que debe preservar ciertos invariantes topológicos.
-
-### Mónadas para la Gestión de Incertidumbre
-Utilizamos la mónada `OptionMonad` (Maybe) para encapsular la posibilidad de fallo en cada paso de la interpretación. Esto permite encadenar operaciones de transformación (bind/flatMap) sin corromper el flujo de datos con excepciones no controladas. Si una línea falla en ser interpretada, el sistema no "crasha"; colapsa la función de onda de esa línea en un estado de error controlado, preservando la estabilidad del sistema global.
-
-### Homeomorfismo Estructural
-Cada línea parseada se somete a una prueba de homeomorfismo: ¿Es la estructura sintáctica detectada (el árbol de derivación) topológicamente equivalente al esquema platónico de un Insumo APU?
-Validamos:
-1.  **Conectividad:** No deben existir "islas" de datos inconexos en una línea.
-2.  **Densidad:** La relación señal/ruido debe superar el umbral de entropía.
-
-### Métricas de Calidad de Parsing
-Exponemos métricas profundas sobre la calidad de su información original:
-*   **Entropía de Campo (H):** Mide el desorden en la tipificación de los datos. Un H alto indica inconsistencia en los formatos de entrada.
-*   **Densidad Estructural (ρ):** Cantidad de información semántica útil por byte.
-*   **Cohesión Numérica (C):** Qué tan "juntos" y relacionados están los valores numéricos, indicando si forman un vector de costos coherente o son datos dispersos.
-
-Conclusión del Nivel 4: Al llegar aquí, usted tiene:
-1. Un Mapa Visual de sus riesgos (Topología).
-2. Un Dictamen Escrito de viabilidad (Semántica).
-3. Un Reporte de Signos Vitales de la calidad de sus datos (Física).
-4. Un Certificado de Coherencia Matemática de su fuente de datos (Categorías).
-Esto es la Caja de Cristal.
+--------------------------------------------------------------------------------
+Al acceder a estos archivos, usted no está leyendo opiniones; está auditando la realidad física y matemática de su negocio.
