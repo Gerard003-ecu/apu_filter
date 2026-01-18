@@ -1,3 +1,52 @@
+"""
+Módulo: El Oráculo de Laplace (Tribunal de Estabilidad Espectral)
+=================================================================
+
+Este componente actúa como la autoridad matemática suprema del ecosistema APU Filter.
+Su función no es procesar datos, sino dictar la "Constitución Física" del sistema,
+utilizando análisis de Frecuencia Compleja ($s = \sigma + j\omega$) para certificar
+que la arquitectura del proyecto es controlable y estable antes de iniciar la ejecución.
+
+Fundamentos Teóricos y Nueva Lógica de Gobernanza:
+--------------------------------------------------
+
+1. El Plano-S como Mapa de Verdad:
+   Modela la dinámica del negocio mediante la función de transferencia canónica de segundo orden:
+   
+       H(s) = ωₙ² / (s² + 2ζωₙs + ωₙ²)
+
+   Traduce las variables físicas en diagnósticos de comportamiento organizacional [73]:
+   - **σ (Sigma / Amortiguamiento):** Representa la Gobernanza Computacional Federada. 
+     Un $\sigma < 0$ (LHP) garantiza que la entropía y el riesgo se disipan (estabilidad).
+     Un $\sigma > 0$ (RHP) alerta sobre una divergencia exponencial (caos administrativo).
+   - **ω (Omega / Frecuencia):** Representa la velocidad de interacción de los Agentes y 
+     la volatilidad del mercado.
+
+2. La Pirámide de Laplace (Diagnóstico Jerárquico) [63]:
+   Estructura el veredicto en cuatro niveles de abstracción para la toma de decisiones:
+   - **Nivel 0 (Vértice):** VEREDICTO DE CONTROLABILIDAD. ¿Es el sistema seguro para operar?
+   - **Nivel 1 (Robustez):** Márgenes de Fase/Ganancia y Sensibilidad Paramétrica. 
+     (¿Qué tan frágil es el proyecto ante perturbaciones externas?).
+   - **Nivel 2 (Dinámica):** Ubicación de Polos, Frecuencia Natural ($ω_n$) y Factor $ζ$.
+   - **Nivel 3 (Base):** Parámetros Físicos (R, L, C) y Frecuencia de Muestreo.
+
+3. Validación "A Priori" y Diseño de Control:
+   A diferencia de los validadores reactivos, este Oráculo predice la inestabilidad.
+   Implementa la **Transformación Bilineal de Tustin** con pre-warping para garantizar 
+   que la física continua se preserve fielmente en el dominio digital discreto (Plano-Z) [16].
+
+4. Análisis de Sensibilidad ($S_x^y$):
+   Calcula matemáticamente el "Talón de Aquiles" del proyecto, determinando qué parámetro 
+   físico (Resistencia/Gobernanza, Inductancia/Inercia, Capacitancia/Recursos) tiene 
+   el mayor impacto en la estabilidad final [39].
+
+Uso Estratégico:
+----------------
+Este módulo debe ser consultado por el `FluxCondenser` y el `BusinessAgent` antes de 
+autorizar cargas de trabajo masivas o aprobar presupuestos complejos.
+
+"""
+
 import logging
 import math
 import time
