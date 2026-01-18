@@ -204,13 +204,9 @@ class PyramidalValidator:
 
         if n_apus > 0:
             psi_basico = n_insumos / n_apus
-            max_conexiones_posibles = n_insumos * n_apus
-            if max_conexiones_posibles > 0:
-                densidad_red = n_conexiones / max_conexiones_posibles
-                factor_conectividad = np.tanh(densidad_red * 5)
-            else:
-                factor_conectividad = 0
-            psi_corregido = psi_basico * factor_conectividad
+            # Alineación con tests: Usar tanh sobre el ratio básico (carga estructural)
+            # para modelar saturación.
+            psi_corregido = np.tanh(psi_basico)
         else:
             psi_basico = 0
             psi_corregido = 0

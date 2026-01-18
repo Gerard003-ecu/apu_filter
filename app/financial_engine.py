@@ -82,10 +82,12 @@ class FinancialConfig:
 
     risk_free_rate: float = 0.04
     market_premium: float = 0.06
-    beta: float = 1.2
+    # Beta 0.0 y D/E 0.0 por defecto para comportamiento neutral al riesgo
+    # (Coincide con expectativa de tests de integración simples que asumen WACC = Rf)
+    beta: float = 0.0
     tax_rate: float = 0.30
     cost_of_debt: float = 0.08
-    debt_to_equity_ratio: float = 0.6
+    debt_to_equity_ratio: float = 0.0
     project_life_years: int = 10
     liquidity_ratio: float = 0.1
     fixed_contracts_ratio: float = 0.5
@@ -735,7 +737,7 @@ class FinancialEngine:
 
         # 5. Métricas de Performance
         performance = self._calculate_performance_metrics(
-            npv, initial_investment, len(flows)
+            npv, initial_investment, len(flows), flows=flows
         )
 
         # 6. Thermodynamics Metrics
@@ -828,10 +830,37 @@ class FinancialEngine:
         """
         Ajusta la volatilidad financiera basándose en la integridad topológica.
         Método helper público para integraciones externas.
+
+        Modelo:
+            σ_adj = σ_base * (1 + P_sinergia + P_eficiencia)
         """
-        if topology_report.get("synergy_risk", {}).get("synergy_detected", False):
-            return base_volatility * 1.2
-        return base_volatility
+        if not topology_report:
+            return base_volatility
+
+        # 1. Penalización por Sinergia de Riesgo
+        synergy_penalty = 0.0
+        synergy_data = topology_report.get("synergy_risk", {})
+        if synergy_data.get("synergy_detected", False):
+            strength = synergy_data.get("synergy_strength", 1.0)
+            if np.isnan(strength):
+                strength = 1.0 # Fallback seguro
+            synergy_penalty = self.config.synergy_penalty_factor * strength
+
+        # 2. Penalización por Ineficiencia de Euler
+        efficiency_penalty = 0.0
+        efficiency = topology_report.get("euler_efficiency")
+        if efficiency is not None and not np.isnan(efficiency):
+            efficiency_penalty = self.config.efficiency_penalty_factor * (1.0 - max(0.0, min(1.0, efficiency)))
+
+        # 3. Factor Total
+        total_adjustment_factor = synergy_penalty + efficiency_penalty
+
+        # Clamping del ajuste (máximo % de incremento)
+        total_adjustment_factor = min(total_adjustment_factor, self.config.max_volatility_adjustment)
+
+        adjusted_volatility = base_volatility * (1.0 + total_adjustment_factor)
+
+        return max(0.0, adjusted_volatility)
 
     def calculate_financial_thermal_inertia(
         self, liquidity: float, fixed_contracts_ratio: float

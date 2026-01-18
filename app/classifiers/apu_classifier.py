@@ -428,17 +428,17 @@ class StructuralClassifier(APUClassifier):
     def classify_by_structure(
         self,
         insumos_del_apu: List[Dict],
-        min_support_threshold: float = 0.1
+        min_support_threshold: float = 1e-7
     ) -> Tuple[str, Dict[str, float]]:
         """
         Clasifica por topología de la red de insumos.
 
         Detecta componentes conexos en el grafo de composición:
-        - SERVICIO_PURO: Componente MO dominante (≥90%)
-        - SUMINISTRO_PURO: Componente MAT dominante (≥90%)
+        - SERVICIO_PURO: Componente MO dominante (≈100%)
+        - SUMINISTRO_PURO: Componente MAT dominante (≈100%)
         - SUMINISTRO_AISLADO: MAT presente, MO ausente (isla topológica)
         - INSTALACION_AISLADA: MO presente, MAT ausente
-        - ESTRUCTURA_MIXTA: Múltiples componentes con peso significativo
+        - ESTRUCTURA_MIXTA: Múltiples componentes existen simultáneamente
         """
         if not insumos_del_apu:
             return "ESTRUCTURA_VACIA", {}
@@ -461,7 +461,9 @@ class StructuralClassifier(APUClassifier):
         mat_pct = pcts.get("SUMINISTRO", 0.0)
         eq_pct = pcts.get("EQUIPO", 0.0)
 
-        umbral_dominancia = 0.9
+        # Topología estricta: La pureza requiere ausencia total de otros componentes
+        # Se usa un epsilon muy pequeño para tolerar ruido numérico
+        umbral_dominancia = 1.0 - 1e-7
         umbral_presencia = min_support_threshold
 
         if mo_pct >= umbral_dominancia:
