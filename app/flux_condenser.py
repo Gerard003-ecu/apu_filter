@@ -1,31 +1,45 @@
 """
-Este componente actúa como una "Capacitancia Lógica" que se sitúa entre la ingesta de datos
-crudos y el procesamiento. Modela el flujo de información como un fluido con propiedades
-físicas cuantificables, utilizando ecuaciones de circuitos RLC para prevenir el colapso
-del sistema por saturación o "fricción" de datos sucios.
+Módulo: Data Flux Condenser (El Guardián del Umbral)
+====================================================
 
-Modelo Físico y Variables de Estado (`FluxPhysicsEngine`):
-----------------------------------------------------------
-1. Energía Potencial (Presión): 
-   Calculada como E_c = 0.5 * C * V^2. Representa la "presión" de datos acumulada en la cola.
+Este componente actúa como la "Capacitancia Lógica" del sistema, situándose entre la ingesta
+de datos crudos y el procesamiento analítico. Modela el flujo de información no como bits,
+sino como un fluido con propiedades físicas cuantificables, utilizando ecuaciones de 
+circuitos RLC y análisis en el dominio de la frecuencia (Laplace) para garantizar la 
+estabilidad operativa.
+
+Fundamentos Teóricos y Nueva Lógica de Control:
+-----------------------------------------------
+
+1. Oráculo de Laplace (Validación A Priori):
+   Antes de procesar registros, el sistema modela el pipeline como un sistema lineal 
+   invariante en el tiempo (LTI) mediante la función de transferencia:
    
-2. Energía Cinética (Inercia de Calidad):
-   Calculada como E_l = 0.5 * L * I^2. Representa el momento de un flujo de datos limpio y constante.
-   Un flujo con alta inercia es resistente a perturbaciones menores.
+       H(s) = 1 / (L·C·s² + R·C·s + 1)
+   
+   Analiza la ubicación de los polos en el Plano-S para certificar la estabilidad absoluta
+   y calcular márgenes de fase/ganancia, previniendo oscilaciones destructivas antes de
+   que ocurran.
 
-3. Voltaje Flyback (Inestabilidad):
-   V_flyback = L * di/dt. Detecta cambios bruscos (picos inductivos) en la calidad de los datos,
-   actuando como un detector temprano de anomalías estructurales o cambios de formato.
+2. Motor de Física de Datos (FluxPhysicsEngine):
+   Monitorea variables de estado termodinámicas en tiempo real:
+   - Energía Potencial (Ec = 0.5·C·V²): "Presión" acumulada en la cola (Data Pressure).
+   - Energía Cinética (El = 0.5·L·I²): "Inercia de Calidad" del flujo.
+   - Voltaje Flyback (V_fb = L·di/dt): Detecta "picos inductivos" causados por caídas 
+     abruptas en la calidad de los datos (inestabilidad estructural).
+   - Potencia Disipada (P_dis = I_ruido²·R): "Calor" o entropía generada por fricción
+     operativa (datos basura).
 
-4. Potencia Disipada (Fricción/Entropía):
-   P = I_ruido^2 * R. Mide la energía desperdiciada procesando datos inválidos ("calor" del sistema).
-   Si P > 50W (simulado), se activa un freno de emergencia térmico.
+3. Control Digital Robusto (PID + Tustin):
+   Implementa un controlador PI discreto transformado mediante el método bilineal de Tustin
+   para el dominio Z. Utiliza el Criterio de Estabilidad de Jury en tiempo real para 
+   ajustar dinámicamente el tamaño del lote (batch size), manteniendo el sistema en un 
+   régimen de "Flujo Laminar" (saturación objetivo ~30%).
 
-Mecanismos de Control (`PIController`):
----------------------------------------
-Implementa un lazo de control Proporcional-Integral (PI) discreto con anti-windup para
-ajustar dinámicamente el tamaño del lote (batch size), manteniendo el sistema en un
-régimen de "Flujo Laminar" (saturación objetivo ~30%).
+4. Predicción de Estado (Filtro de Kalman Extendido - EKF):
+   Emplea un EKF para predecir la saturación futura basándose en la velocidad y 
+   aceleración del flujo, permitiendo una respuesta proactiva ante "olas" de datos.
+
 """
 
 import logging
