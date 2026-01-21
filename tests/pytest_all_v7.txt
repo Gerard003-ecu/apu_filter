@@ -1,0 +1,46 @@
+=========================== short test summary info ============================
+FAILED tests/test_advanced_risk.py::TestIntegration::test_graph_types_classification[cycle-expected_behavior1] - assert 0.9048374180359595 < 0.9
+FAILED tests/test_executive_report.py::TestScoringMetrics::test_more_cycles_lower_score - AssertionError: assert 47.9 <= 45.7
+ +  where 47.9 = ConstructionRiskReport(integrity_score=47.9, waste_alerts=[], circular_risks=['\U0001f6a8 2 ciclo(s) detectado(s).'], complexity_level='Alta', details={'metrics': {'beta_0': 1, 'beta_1': 2, 'euler_characteristic': -1, 'euler_efficiency': 0.513417119032592}, 'pyramid_stability': 0.3, 'synergy_risk': {'synergy_detected': False, 'synergy_score': 0.0, 'risk_level': 'NINGUNO', 'bridge_nodes': [], 'intersecting_cycles_count': 0, 'synergy_strength': 0.0}, 'anomalies': {'isolated_nodes': [], 'orphan_insumos': [], 'empty_apus': []}, 'thermal': {'system_temperature': 0.0, 'thermal_risk_level': 'BAJO', 'hotspots': [], 'node_temperatures': {'A1': 0.0, 'A2': 0.0, 'A3': 0.0}}, 'spectral': {'fiedler_value': 1.0, 'spectral_gap': 0.5, 'spectral_energy': 5.0, 'wavelength': 0.5, 'resonance_risk': False, 'algebraic_connectivity': 1.0, 'lambda_max': 2.0, 'isolated_nodes_removed': 0, 'eigenvalues': [0.0, 1.0, 2.0], 'status': 'success'}, 'spectral_analysis': {'fiedler_value': 1.0, 'spectral_gap': 0.5, 'spectral_energy': 5.0, 'wavelength': 0.5, 'resonance_risk': False, 'algebraic_connectivity': 1.0, 'lambda_max': 2.0, 'isolated_nodes_removed': 0, 'eigenvalues': [0.0, 1.0, 2.0], 'status': 'success'}, 'density': 0.6666666666666666, 'connectivity': {'is_dag': False}, 'cycles': ['A1 -> A2', 'A2 -> A3'], 'convection_risk': {'high_risk_nodes': []}}, financial_risk_level='Pendiente', strategic_narrative='\U0001f6a8 **PIR\xc1MIDE INVERTIDA**: Cimentaci\xf3n insuficiente. \U0001f504 **COMPLEJIDAD C\xcdCLICA**: 2 ciclos.').integrity_score
+ +  and   45.7 = ConstructionRiskReport(integrity_score=45.7, waste_alerts=[], circular_risks=['\U0001f6a8 1 ciclo(s) detectado(s).'], complexity_level='Alta', details={'metrics': {'beta_0': 1, 'beta_1': 1, 'euler_characteristic': 0, 'euler_efficiency': 0.6065306597126334}, 'pyramid_stability': 0.3, 'synergy_risk': {'synergy_detected': False, 'synergy_score': 0.0, 'risk_level': 'NINGUNO', 'bridge_nodes': [], 'intersecting_cycles_count': 0, 'synergy_strength': 0.0}, 'anomalies': {'isolated_nodes': [], 'orphan_insumos': [], 'empty_apus': []}, 'thermal': {'system_temperature': 0.0, 'thermal_risk_level': 'BAJO', 'hotspots': [], 'node_temperatures': {'APU1': 0.0, 'APU2': 0.0}}, 'spectral': {'fiedler_value': 2.0, 'spectral_gap': 1.0, 'spectral_energy': 4.0, 'wavelength': 0.5, 'resonance_risk': True, 'algebraic_connectivity': 2.0, 'lambda_max': 2.0, 'isolated_nodes_removed': 0, 'eigenvalues': [0.0, 2.0], 'status': 'success'}, 'spectral_analysis': {'fiedler_value': 2.0, 'spectral_gap': 1.0, 'spectral_energy': 4.0, 'wavelength': 0.5, 'resonance_risk': True, 'algebraic_connectivity': 2.0, 'lambda_max': 2.0, 'isolated_nodes_removed': 0, 'eigenvalues': [0.0, 2.0], 'status': 'success'}, 'density': 1.0, 'connectivity': {'is_dag': False}, 'cycles': ['APU1 -> APU2'], 'convection_risk': {'high_risk_nodes': []}}, financial_risk_level='Pendiente', strategic_narrative='\U0001f6a8 **PIR\xc1MIDE INVERTIDA**: Cimentaci\xf3n insuficiente. \U0001f504 **COMPLEJIDAD C\xcdCLICA**: 1 ciclos.').integrity_score
+FAILED tests/test_executive_report.py::TestSemanticTranslation::test_spanish_language_in_reports - AssertionError: Reporte debe estar en español
+assert 1 >= 2
+FAILED tests/test_executive_report.py::TestTopologicalInvariants::test_betti_relationship - assert (1 - 1) == 1
+FAILED tests/test_matter_generator.py::TestQuantityPropagation::test_zero_quantity_edge - assert 10.0 == 0.0 ± 1.0e-12
+  
+  comparison failed
+  Obtained: 10.0
+  Expected: 0.0 ± 1.0e-12
+FAILED tests/test_matter_generator.py::TestErrorDetection::test_missing_root_node - Failed: DID NOT RAISE any of (<class 'ValueError'>, <class 'KeyError'>)
+FAILED tests/test_matter_generator.py::TestEdgeCases::test_very_deep_graph - assert 125.5 == 125.0 ± 0.125
+  
+  comparison failed
+  Obtained: 125.5
+  Expected: 125.0 ± 0.125
+FAILED tests/test_matter_generator.py::TestPerformance::test_large_graph_performance - OverflowError: Complejidad topológica (26020200) excede el límite. Nodos: 5101, Aristas: 5100, Densidad: 0.0002
+FAILED tests/test_pipeline_director.py::TestFileValidator::test_validate_file_exists_success - ValueError: Empty module name
+FAILED tests/test_pipeline_director.py::TestFileValidator::test_validate_file_not_found - ValueError: Empty module name
+FAILED tests/test_pipeline_director.py::TestFileValidator::test_validate_directory_rejected - ValueError: Empty module name
+FAILED tests/test_pipeline_director.py::TestFileValidator::test_validate_no_read_permission - ValueError: Empty module name
+FAILED tests/test_pipeline_director.py::TestFileValidator::test_validate_file_too_small - ValueError: Empty module name
+FAILED tests/test_pipeline_director.py::TestFileValidator::test_validate_various_extensions[.csv] - ValueError: Empty module name
+FAILED tests/test_pipeline_director.py::TestFileValidator::test_validate_various_extensions[.xlsx] - ValueError: Empty module name
+FAILED tests/test_pipeline_director.py::TestFileValidator::test_validate_various_extensions[.json] - ValueError: Empty module name
+FAILED tests/test_pipeline_director.py::TestFileValidator::test_validate_various_extensions[.parquet] - ValueError: Empty module name
+FAILED tests/test_pipeline_director.py::TestLoadDataStep::test_load_step_success - ValueError: Procesamiento de insumos retornó DataFrame vacío
+FAILED tests/test_pipeline_director.py::TestEdgeCases::test_whitespace_handling - assert 4 <= 3
+ +  where 4 = len(           A  B\n0    value    1\n1             2\n2       \t\n  3\n3      valid  4)
+FAILED tests/test_telemetry_narrative.py::TestSeverityPropagation::test_single_warning_elevates_to_advertencia - AssertionError: assert 'OPTIMO' == 'ADVERTENCIA'
+  
+  - ADVERTENCIA
+  + OPTIMO
+FAILED tests/test_telemetry_narrative.py::TestRobustness::test_concurrent_status_changes - AssertionError: assert 'OPTIMO' in ['ADVERTENCIA', 'CRITICO']
+FAILED tests/test_telemetry_narrative.py::TestIntegration::test_mixed_severity_workflow - AssertionError: assert 'OPTIMO' == 'ADVERTENCIA'
+  
+  - ADVERTENCIA
+  + OPTIMO
+FAILED tests/test_telemetry_narrative.py::TestPerformance::test_deep_nesting_performance - AssertionError: assert 'CRITICO' == 'OPTIMO'
+  
+  - OPTIMO
+  + CRITICO
+====== 23 failed, 2623 passed, 4 skipped, 68 warnings in 92.04s (0:01:32) ======
