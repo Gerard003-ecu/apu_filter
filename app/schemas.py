@@ -116,10 +116,10 @@ class Stratum(IntEnum):
     Niveles de abstracción en la topología piramidal del negocio.
     Representa la jerarquía de profundidad desde la estrategia hasta la logística.
     """
-    ROOT = 0      # Raíz del proyecto
-    STRATEGY = 1  # Capítulos principales
-    TACTIC = 2    # APUs (Análisis de Precios Unitarios)
-    LOGISTICS = 3 # Insumos (Recursos básicos)
+    WISDOM = 0    # Nivel 0 - Agente / Decisión (Sabiduría)
+    STRATEGY = 1  # Nivel 1 - Finanzas / Capítulos (Estrategia)
+    TACTICS = 2   # Nivel 2 - APUs / Estructura (Táctica)
+    PHYSICS = 3   # Nivel 3 - Insumos / FluxCondenser (Física)
 
 
 _TIPO_INSUMO_CACHE: Dict[str, 'TipoInsumo'] = {}
@@ -428,22 +428,22 @@ class TopologicalNode:
     Define las propiedades comunes de cualquier entidad en la jerarquía.
     """
     id: str = field(default="")
-    stratum: Stratum = field(default=Stratum.LOGISTICS)
+    stratum: Stratum = field(default=Stratum.PHYSICS)
     description: str = field(default="")
     structural_health: float = 1.0
     is_floating: bool = False
 
     def validate_connectivity(self):
         """Valida las reglas de conectividad topológica."""
-        if self.stratum == Stratum.LOGISTICS and hasattr(self, "children") and self.children:
-            raise ValueError(f"Violación de Invariante: Nodo Logístico ({self.id}) con hijos.")
+        if self.stratum == Stratum.PHYSICS and hasattr(self, "children") and self.children:
+            raise ValueError(f"Violación de Invariante: Nodo Físico ({self.id}) con hijos.")
 
 
 @dataclass(frozen=False)
 class InsumoProcesado(TopologicalNode):
     """
     Estructura base para cualquier insumo de APU.
-    Representa un nodo hoja en el grafo de dependencias (Nivel 3 - Logística).
+    Representa un nodo hoja en el grafo de dependencias (Nivel 3 - Física/Logística).
     Implementa validación reactiva durante la inicialización.
     """
     codigo_apu: str
@@ -470,7 +470,7 @@ class InsumoProcesado(TopologicalNode):
     def __post_init__(self):
         """Inicialización con validación completa de invariantes de dominio."""
         try:
-            self.stratum = Stratum.LOGISTICS
+            self.stratum = Stratum.PHYSICS
             self.description = self.descripcion_insumo
 
             self._normalize_all_fields()
@@ -631,7 +631,7 @@ class APUStructure(TopologicalNode):
     resources: List[InsumoProcesado] = field(default_factory=list)
 
     def __post_init__(self):
-        self.stratum = Stratum.TACTIC
+        self.stratum = Stratum.TACTICS
 
     @property
     def support_base_width(self) -> int:
@@ -698,14 +698,14 @@ class APUStructure(TopologicalNode):
     def add_resource(self, resource: InsumoProcesado) -> None:
         """
         Agrega un recurso a la estructura, validando el invariante de estrato.
-        Solo se permiten nodos de nivel LOGISTICS (Insumos) en nodos TACTIC (APUs).
+        Solo se permiten nodos de nivel PHYSICS (Insumos) en nodos TACTICS (APUs).
         """
         if not isinstance(resource, InsumoProcesado):
             raise TypeError(f"Se esperaba InsumoProcesado, recibido: {type(resource).__name__}")
 
-        if resource.stratum != Stratum.LOGISTICS:
+        if resource.stratum != Stratum.PHYSICS:
             raise TypeError(
-                f"Solo se admiten nodos LOGISTICS en APUStructure, "
+                f"Solo se admiten nodos PHYSICS en APUStructure, "
                 f"recibido: {resource.stratum.name}"
             )
 
