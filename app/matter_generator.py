@@ -379,7 +379,9 @@ class MatterGenerator:
 
                     try:
                         edge_qty = float(edge_qty)
-                        if not math.isfinite(edge_qty) or edge_qty <= 0:
+                        if edge_qty <= 0:
+                            continue
+                        if not math.isfinite(edge_qty):
                             edge_qty = 1.0
                     except (TypeError, ValueError):
                         edge_qty = 1.0
