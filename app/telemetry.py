@@ -483,7 +483,8 @@ class TelemetryContext:
 
         try:
             yield new_span
-            new_span.status = StepStatus.SUCCESS
+            if new_span.status == StepStatus.IN_PROGRESS:
+                new_span.status = StepStatus.SUCCESS
         except Exception as e:
             new_span.status = StepStatus.FAILURE
             error_data = self._build_error_data(

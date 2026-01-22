@@ -30,6 +30,7 @@ Invariantes del Pipeline:
 import time
 from dataclasses import dataclass, field
 from datetime import datetime
+import contextlib
 from enum import Enum, auto
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Set, Tuple, Type
@@ -492,23 +493,34 @@ class MockFileSystem:
     
     def patch_validators(self):
         """Retorna los patches necesarios para simular el filesystem."""
-        def mock_exists(path):
-            path_str = str(path)
-            return self._files.get(path_str, {}).get("exists", False)
         
-        def mock_is_file(path):
-            path_str = str(path)
-            return self._files.get(path_str, {}).get("is_file", False)
+        def _resolve_file_data(path_obj):
+            # Try to resolve by full string, then by name
+            path_str = str(path_obj)
+            if path_str in self._files:
+                return self._files[path_str]
+            # Try name if available
+            if hasattr(path_obj, "name") and path_obj.name in self._files:
+                return self._files[path_obj.name]
+            return {}
+
+        def mock_exists(self_path):
+            data = _resolve_file_data(self_path)
+            return data.get("exists", False)
+
+        def mock_is_file(self_path):
+            data = _resolve_file_data(self_path)
+            return data.get("is_file", False)
         
-        def mock_stat(path):
-            path_str = str(path)
+        def mock_stat(self_path):
+            data = _resolve_file_data(self_path)
             mock = MagicMock()
-            mock.st_size = self._files.get(path_str, {}).get("size", 0)
+            mock.st_size = data.get("size", 0)
             return mock
         
         def mock_access(path, mode):
-            path_str = str(path)
-            return self._files.get(path_str, {}).get("readable", False)
+            data = _resolve_file_data(path)
+            return data.get("readable", False)
         
         return {
             "pathlib.Path.exists": mock_exists,
@@ -782,7 +794,10 @@ class TestFileValidator(TestFixtures):
         """Archivo válido es aceptado."""
         mock_filesystem.add_file("data.csv", exists=True, is_file=True, readable=True)
         
-        with patch.multiple("", **mock_filesystem.patch_validators()):
+        with contextlib.ExitStack() as stack:
+            for target, side_effect in mock_filesystem.patch_validators().items():
+                # Use autospec=True so that 'self' is passed to the mock
+                stack.enter_context(patch(target, side_effect=side_effect, autospec=True))
             valid, error = FileValidator.validate_file_exists("data.csv", "test")
         
         assert valid is True
@@ -792,7 +807,9 @@ class TestFileValidator(TestFixtures):
         """Archivo no existente es rechazado."""
         mock_filesystem.add_file("missing.csv", exists=False)
         
-        with patch.multiple("", **mock_filesystem.patch_validators()):
+        with contextlib.ExitStack() as stack:
+            for target, side_effect in mock_filesystem.patch_validators().items():
+                stack.enter_context(patch(target, side_effect=side_effect, autospec=True))
             valid, error = FileValidator.validate_file_exists("missing.csv", "test")
         
         assert valid is False
@@ -802,7 +819,9 @@ class TestFileValidator(TestFixtures):
         """Directorio es rechazado."""
         mock_filesystem.add_file("data_dir", exists=True, is_file=False)
         
-        with patch.multiple("", **mock_filesystem.patch_validators()):
+        with contextlib.ExitStack() as stack:
+            for target, side_effect in mock_filesystem.patch_validators().items():
+                stack.enter_context(patch(target, side_effect=side_effect, autospec=True))
             valid, error = FileValidator.validate_file_exists("data_dir", "test")
         
         assert valid is False
@@ -812,7 +831,10 @@ class TestFileValidator(TestFixtures):
         """Archivo sin permisos de lectura es rechazado."""
         mock_filesystem.add_file("protected.csv", exists=True, is_file=True, readable=False)
         
-        with patch.multiple("", **mock_filesystem.patch_validators()):
+        with contextlib.ExitStack() as stack:
+            for target, side_effect in mock_filesystem.patch_validators().items():
+                # os.access is a function, autospec works too
+                stack.enter_context(patch(target, side_effect=side_effect, autospec=True))
             valid, error = FileValidator.validate_file_exists("protected.csv", "test")
         
         assert valid is False
@@ -822,7 +844,9 @@ class TestFileValidator(TestFixtures):
         """Archivo muy pequeño es rechazado."""
         mock_filesystem.add_file("tiny.csv", exists=True, is_file=True, readable=True, size=5)
         
-        with patch.multiple("", **mock_filesystem.patch_validators()):
+        with contextlib.ExitStack() as stack:
+            for target, side_effect in mock_filesystem.patch_validators().items():
+                stack.enter_context(patch(target, side_effect=side_effect, autospec=True))
             valid, error = FileValidator.validate_file_exists(
                 "tiny.csv", "test", min_size=10
             )
@@ -842,7 +866,9 @@ class TestFileValidator(TestFixtures):
         filename = f"data{extension}"
         mock_filesystem.add_file(filename, exists=True, is_file=True, readable=True)
         
-        with patch.multiple("", **mock_filesystem.patch_validators()):
+        with contextlib.ExitStack() as stack:
+            for target, side_effect in mock_filesystem.patch_validators().items():
+                stack.enter_context(patch(target, side_effect=side_effect, autospec=True))
             valid, _ = FileValidator.validate_file_exists(filename, "test")
         
         assert valid is True
@@ -1134,14 +1160,39 @@ class TestLoadDataStep(TestFixtures):
         context = ContextBuilder().with_paths().build()
         
         with patch.object(FileValidator, "validate_file_exists", return_value=(True, None)):
-            with patch("app.pipeline_director.PresupuestoProcessor") as MockProc:
-                MockProc.return_value.process.return_value = presupuesto_df
+            with patch("app.pipeline_director.PresupuestoProcessor") as MockPresupuesto:
+                MockPresupuesto.return_value.process.return_value = presupuesto_df
                 
-                with patch("app.pipeline_director.InsumosProcessor"):
-                    with patch("app.pipeline_director.DataFluxCondenser"):
+                with patch("app.pipeline_director.InsumosProcessor") as MockInsumos:
+                    # Mock process return value to be a non-empty DataFrame (mock)
+                    # Must handle dropna(how="all").empty check
+                    mock_insumos_df = Mock(spec=pd.DataFrame)
+                    mock_insumos_df.empty = False
+                    mock_insumos_df.__len__ = Mock(return_value=10)
+
+                    # Ensure dropna returns a non-empty mock
+                    mock_dropna_res = Mock(spec=pd.DataFrame)
+                    mock_dropna_res.empty = False
+                    mock_insumos_df.dropna.return_value = mock_dropna_res
+
+                    MockInsumos.return_value.process.return_value = mock_insumos_df
+
+                    with patch("app.pipeline_director.DataFluxCondenser") as MockCondenser:
+                        # Mock stabilize return value - apply same fix for dropna check if needed
+                        mock_apus_df = Mock(spec=pd.DataFrame)
+                        mock_apus_df.empty = False
+                        mock_apus_df.__len__ = Mock(return_value=5)
+                        mock_apus_dropna = Mock(spec=pd.DataFrame)
+                        mock_apus_dropna.empty = False
+                        mock_apus_df.dropna.return_value = mock_apus_dropna
+
+                        MockCondenser.return_value.stabilize.return_value = mock_apus_df
+
                         result = load_step.execute(context, telemetry)
         
-        assert "df_presupuesto" in result or result.get("mock_executed")
+        assert "df_presupuesto" in result
+        assert "df_insumos" in result
+        assert "df_apus_raw" in result
 
     def test_load_step_empty_presupuesto_raises(self, load_step, telemetry):
         """Presupuesto vacío lanza excepción."""
@@ -1347,15 +1398,17 @@ class TestEdgeCases(TestFixtures):
         """Espacios en blanco son manejados correctamente."""
         processor = PresupuestoProcessor(config, thresholds, {"loader_params": {}})
         
+        # To be removed by _clean_phantom_rows, ALL columns must be empty/whitespace/nan
         df = pd.DataFrame({
             "A": ["  value  ", "   ", "\t\n", "valid"],
-            "B": [1, 2, 3, 4]
+            "B": ["1", "", "   ", "4"] # Modified to have empty values in row 2 and 3
         })
         
         cleaned = processor._clean_phantom_rows(df)
         
-        # Filas con solo espacios deben ser eliminadas
-        assert len(cleaned) <= 3
+        # Filas con solo espacios (indices 1 y 2) deben ser eliminadas
+        # "   " and "" in B should match empty patterns
+        assert len(cleaned) <= 2
 
 
 # =============================================================================

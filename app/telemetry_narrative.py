@@ -204,7 +204,7 @@ class TelemetryNarrator:
     """
 
     MAX_FORENSIC_EVIDENCE: int = 10
-    MAX_RECURSION_DEPTH: int = 50
+    MAX_RECURSION_DEPTH: int = 150
 
     def summarize_execution(self, context: TelemetryContext) -> Dict[str, Any]:
         """
@@ -265,8 +265,13 @@ class TelemetryNarrator:
         # σ_inducida: propagación bottom-up desde issues
         induced_severity = self._compute_induced_severity(criticals, warnings)
 
+        # σ_jerarquica: agregación del estado de los hijos (Lattice Recursion)
+        hierarchy_severity = self._compute_hierarchy_severity(span)
+
         # Supremo: propiedad fundamental del lattice
-        final_severity = SeverityLevel.supremum(direct_severity, induced_severity)
+        final_severity = SeverityLevel.supremum(
+            direct_severity, induced_severity, hierarchy_severity
+        )
 
         duration = span.duration if span.duration is not None else 0.0
 
@@ -294,6 +299,17 @@ class TelemetryNarrator:
         if warnings:
             return SeverityLevel.ADVERTENCIA
         return SeverityLevel.OPTIMO
+
+    def _compute_hierarchy_severity(self, span: TelemetrySpan) -> SeverityLevel:
+        """
+        Calcula el supremo de severidad de toda la jerarquía descendente
+        basándose únicamente en los estados (StepStatus), no en issues.
+        """
+        severity = SeverityLevel.from_step_status(span.status)
+        for child in span.children:
+            child_severity = self._compute_hierarchy_severity(child)
+            severity = SeverityLevel.supremum(severity, child_severity)
+        return severity
 
     def _collect_issues_recursive(
         self, span: TelemetrySpan, depth: int, path_prefix: str
