@@ -91,8 +91,8 @@ class AgentDecision(Enum):
     """Decisiones que el agente puede tomar."""
 
     HEARTBEAT = auto()
-    RECOMENDAR_LIMPIEZA = auto()
-    RECOMENDAR_REDUCIR_VELOCIDAD = auto()
+    EJECUTAR_LIMPIEZA = auto()
+    AJUSTAR_VELOCIDAD = auto()
     ALERTA_CRITICA = auto()
     WAIT = auto()
     RECONNECT = auto()
@@ -993,8 +993,8 @@ class AutonomousAgent:
         # Mapeo base de estados a decisiones
         decision_mapping: Dict[SystemStatus, AgentDecision] = {
             SystemStatus.NOMINAL: AgentDecision.HEARTBEAT,
-            SystemStatus.INESTABLE: AgentDecision.RECOMENDAR_LIMPIEZA,
-            SystemStatus.SATURADO: AgentDecision.RECOMENDAR_REDUCIR_VELOCIDAD,
+            SystemStatus.INESTABLE: AgentDecision.EJECUTAR_LIMPIEZA,
+            SystemStatus.SATURADO: AgentDecision.AJUSTAR_VELOCIDAD,
             SystemStatus.CRITICO: AgentDecision.ALERTA_CRITICA,
             SystemStatus.DISCONNECTED: AgentDecision.RECONNECT,
             SystemStatus.UNKNOWN: AgentDecision.WAIT,
@@ -1043,8 +1043,8 @@ class AutonomousAgent:
         # Ejecutar acción según decisión
         action_handlers = {
             AgentDecision.HEARTBEAT: self._act_heartbeat,
-            AgentDecision.RECOMENDAR_LIMPIEZA: self._act_recomendar_limpieza,
-            AgentDecision.RECOMENDAR_REDUCIR_VELOCIDAD: self._act_recomendar_reducir_velocidad,
+            AgentDecision.EJECUTAR_LIMPIEZA: self._act_ejecutar_limpieza,
+            AgentDecision.AJUSTAR_VELOCIDAD: self._act_ajustar_velocidad,
             AgentDecision.ALERTA_CRITICA: self._act_alerta_critica,
             AgentDecision.RECONNECT: self._act_reconnect,
             AgentDecision.WAIT: self._act_wait,
@@ -1088,6 +1088,50 @@ class AutonomousAgent:
         elapsed = datetime.now() - self._last_decision_time
         return elapsed < timedelta(seconds=self.DEBOUNCE_WINDOW_SECONDS)
 
+    def _project_intent(self, vector: str, stratum: str, payload: Dict[str, Any]) -> bool:
+        """
+        Proyecta una intención sobre la MIC vía API.
+
+        Args:
+            vector: Nombre del vector (herramienta) a ejecutar (ej. 'clean').
+            stratum: Nivel de gobernanza (ej. 'PHYSICS').
+            payload: Datos específicos del comando.
+
+        Returns:
+            True si la proyección fue exitosa (HTTP 200).
+        """
+        intent = {
+            "vector": vector,
+            "stratum": stratum,
+            "payload": payload,
+            "context": {
+                "agent_id": "apu_agent_sidecar",
+                "timestamp": datetime.now().isoformat(),
+                "force_physics_override": True,
+            },
+        }
+
+        try:
+            # Usamos el endpoint de herramientas existente
+            url = f"{self.core_api_url}/api/tools/{vector}"
+
+            logger.info(
+                f"[INTENT] Proyectando vector '{vector}' en estrato '{stratum}'..."
+            )
+
+            response = self._session.post(url, json=intent, timeout=self.request_timeout)
+
+            if response.ok:
+                logger.info(f"[INTENT] ✅ Éxito: {vector} ejecutado.")
+                return True
+            else:
+                logger.error(f"[INTENT] ❌ Fallo ({response.status_code}): {response.text}")
+                return False
+
+        except Exception as e:
+            logger.error(f"[INTENT] Error de proyección: {e}")
+            return False
+
     def _build_diagnosis_message(self) -> str:
         """
         Construye mensaje de diagnóstico estructurado desde el análisis topológico.
@@ -1122,35 +1166,52 @@ class AutonomousAgent:
 
         logger.info(f"[BRAIN] {health_indicator} Sistema NOMINAL - Operación estable")
 
-    def _act_recomendar_limpieza(self, diagnosis_msg: str) -> None:
-        """Acción: Recomendar limpieza por inestabilidad."""
-        logger.warning(f"[BRAIN] ⚠️ INESTABILIDAD DETECTADA - {diagnosis_msg}")
+    def _act_ejecutar_limpieza(self, diagnosis_msg: str) -> None:
+        """Acción: Proyectar vector de limpieza para estabilizar."""
         logger.warning(
-            "[BRAIN] → Recomendación: Investigar origen de inestabilidad de datos"
+            f"[BRAIN] ⚠️ INESTABILIDAD: Iniciando protocolo de limpieza - {diagnosis_msg}"
         )
-        self._notify_external_system(
-            "instability_detected",
-            {
-                "diagnosis": diagnosis_msg,
-                "voltage_state": self._last_diagnosis.voltage_persistence.state.name
-                if self._last_diagnosis
-                else None,
+
+        success = self._project_intent(
+            vector="clean",
+            stratum="PHYSICS",
+            payload={
+                "mode": "EMERGENCY",
+                "reason": diagnosis_msg,
+                "scope": "flux_condenser",
             },
         )
 
-    def _act_recomendar_reducir_velocidad(self, diagnosis_msg: str) -> None:
-        """Acción: Recomendar reducir velocidad por saturación."""
-        logger.warning(f"[BRAIN] ⚠️ SATURACIÓN DETECTADA - {diagnosis_msg}")
-        logger.warning("[BRAIN] → Recomendación: Reducir velocidad de carga")
-        self._notify_external_system(
-            "saturation_detected",
-            {
-                "diagnosis": diagnosis_msg,
-                "saturation_state": self._last_diagnosis.saturation_persistence.state.name
-                if self._last_diagnosis
-                else None,
+        if success:
+            self._notify_external_system("instability_resolved", {"method": "clean"})
+        else:
+            self._notify_external_system(
+                "instability_correction_failed", {"method": "clean"}
+            )
+
+    def _act_ajustar_velocidad(self, diagnosis_msg: str) -> None:
+        """Acción: Ajustar velocidad (Backpressure) por saturación."""
+        logger.warning(
+            f"[BRAIN] ⚠️ SATURACIÓN: Aplicando backpressure - {diagnosis_msg}"
+        )
+
+        success = self._project_intent(
+            vector="configure",  # Asumimos vector generico de configuración
+            stratum="PHYSICS",
+            payload={
+                "target": "flux_condenser",
+                "parameter": "input_rate",
+                "action": "decrease",
+                "factor": 0.5,
             },
         )
+
+        if success:
+            self._notify_external_system("saturation_mitigated", {"method": "throttle"})
+        else:
+            self._notify_external_system(
+                "saturation_correction_failed", {"method": "throttle"}
+            )
 
     def _act_alerta_critica(self, diagnosis_msg: str) -> None:
         """Acción: Alerta crítica."""
