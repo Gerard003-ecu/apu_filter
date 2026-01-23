@@ -45,12 +45,12 @@ class TestMICHierarchy:
 
         assert result["success"] is False
         assert result["error_type"] == "PermissionError"
-        assert "Violación de Jerarquía MIC" in result["error"]
+        assert "MIC Hierarchy Violation" in result["error"]
 
     def test_strategy_execution_allowed_with_physics(self, mic):
-        """Strategy vectors should be allowed if Physics is in validated_strata."""
-        # Simulate that physics has been validated
-        context = {"validated_strata": {Stratum.PHYSICS}}
+        """Strategy vectors should be allowed if Physics and Tactics are in validated_strata."""
+        # Simulate that physics and tactics have been validated
+        context = {"validated_strata": {Stratum.PHYSICS, Stratum.TACTICS}}
         payload = {"amount": 100.0}
 
         result = mic.project_intent("mock_strategy", payload, context)
