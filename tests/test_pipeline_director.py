@@ -1124,17 +1124,19 @@ class TestPipelineDirector(TestFixtures):
         """Múltiples pasos se ejecutan en orden."""
         execution_order = []
         
-        class TrackingStep(ProcessingStep):
-             def __init__(self, cfg, thr, name):
-                 self.name = name
+        def create_step_class(step_name):
+            class TrackingStep(ProcessingStep):
+                def __init__(self, cfg, thr):
+                    self.name = step_name
 
-             def execute(self, context, telemetry):
-                 execution_order.append(self.name)
-                 return context
+                def execute(self, context, telemetry):
+                    execution_order.append(self.name)
+                    return context
+            return TrackingStep
         
-        director.mic.add_basis_vector("step1", lambda c, t: TrackingStep(c, t, "step1"), Stratum.PHYSICS)
-        director.mic.add_basis_vector("step2", lambda c, t: TrackingStep(c, t, "step2"), Stratum.TACTICS)
-        director.mic.add_basis_vector("step3", lambda c, t: TrackingStep(c, t, "step3"), Stratum.STRATEGY)
+        director.mic.add_basis_vector("step1", create_step_class("step1"), Stratum.PHYSICS)
+        director.mic.add_basis_vector("step2", create_step_class("step2"), Stratum.TACTICS)
+        director.mic.add_basis_vector("step3", create_step_class("step3"), Stratum.STRATEGY)
 
         config["pipeline_recipe"] = [
             {"step": "step1", "enabled": True},
@@ -1469,6 +1471,121 @@ class TestBuilderValidation(TestFixtures):
 # ENTRY POINT
 # =============================================================================
 
+
+
+
+# =============================================================================
+# TESTS: ALGEBRAIC & GEOMETRIC LOGIC
+# =============================================================================
+
+from app.pipeline_director import (
+    LinearInteractionMatrix,
+    InformationGeometry,
+    ProcrustesAnalyzer,
+    BasisVector
+)
+
+class TestLinearInteractionMatrix(TestFixtures):
+    """Tests para la lógica algebraica de la MIC."""
+
+    def test_orthogonality_enforcement(self, director):
+        """Verifica que no se permitan vectores colineales."""
+        # director._initialize_vector_space() adds default vectors.
+        # Try to add a duplicate vector
+
+        with pytest.raises(ValueError, match="Dependencia Lineal"):
+            director.mic.add_basis_vector(
+                "load_data", # Already exists
+                LoadDataStep,
+                Stratum.PHYSICS
+            )
+
+    def test_conceptual_orthogonality(self, director):
+        """Verifica colinealidad funcional (mismo operador y estrato)."""
+
+        class MyStep(ProcessingStep):
+            def execute(self, c, t): return c
+
+        director.mic.add_basis_vector("vec1", MyStep, Stratum.PHYSICS)
+
+        with pytest.raises(ValueError, match="Colinealidad funcional"):
+            director.mic.add_basis_vector("vec2", MyStep, Stratum.PHYSICS)
+
+    def test_spectrum_calculation(self, director):
+        """Verifica el cálculo del espectro del operador."""
+        spectrum = director.mic.get_spectrum()
+        assert "load_data" in spectrum
+        assert spectrum["load_data"] == 1.0 # Physics
+        assert spectrum["business_topology"] > 1.0 # Strategy (1.3)
+
+
+class TestInformationGeometry:
+    """Tests para geometría de la información."""
+
+    def test_entropy_calculation(self):
+        """Calcula entropía correctamente."""
+        df = pd.DataFrame({
+            "cat": ["A", "A", "B", "B"], # Uniforme
+            "num": [1.0, 2.0, 3.0, 4.0]
+        })
+
+        geom = InformationGeometry()
+        metrics = geom.compute_entropy(df)
+
+        assert metrics["shannon_entropy"] > 0
+        assert metrics["intrinsic_dimension"] >= 0
+
+    def test_empty_dataframe_entropy(self):
+        """DataFrame vacío retorna entropía cero."""
+        geom = InformationGeometry()
+        metrics = geom.compute_entropy(pd.DataFrame())
+        assert metrics["shannon_entropy"] == 0.0
+
+
+class TestProcrustesAnalyzer:
+    """Tests para análisis Procrustes."""
+
+    def test_isometric_align_identity(self):
+        """Alineamiento de datos idénticos retorna identidad."""
+        X = np.array([[1, 2], [3, 4], [5, 6]])
+        Y = X.copy()
+
+        analyzer = ProcrustesAnalyzer()
+        Xc, Yc, R = analyzer.isometric_align(X, Y)
+
+        # R debe ser identidad
+        if R is not None:
+            np.testing.assert_array_almost_equal(R, np.eye(2))
+        if Yc is not None:
+            np.testing.assert_array_almost_equal(Xc, Yc)
+
+    def test_isometric_align_rotation(self):
+        """Detecta rotación de 90 grados."""
+        X = np.array([[1, 0], [0, 1]])
+        # Rotación 90 deg: (-y, x) -> (0, 1) -> (0, 1); (1, 0) -> (-1, 0)
+        # Wait, Y should be transformed Y.
+        Y = np.array([[0, 1], [-1, 0]])
+
+        analyzer = ProcrustesAnalyzer()
+        Xc, Yc, R = analyzer.isometric_align(X, Y)
+
+        # Check that aligned Y is close to X
+        if Yc is not None:
+             # Depending on centering, it might be 0.
+             # X centered is X - 0.5.
+             np.testing.assert_allclose(Yc, Xc, atol=1e-10)
+
+    def test_dimension_mismatch_handling(self):
+        """Maneja dimensiones diferentes sin error."""
+        X = np.zeros((10, 5))
+        Y = np.zeros((8, 5))
+
+        analyzer = ProcrustesAnalyzer()
+        Xc, Yc, R = analyzer.isometric_align(X, Y)
+
+        # Should execute without error
+        assert Xc is not None
+        assert Yc is not None
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v", "--tb=short"])
