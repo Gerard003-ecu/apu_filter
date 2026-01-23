@@ -736,9 +736,9 @@ class TestEstimateEffectiveRank:
     def test_full_rank_data(self, tmp_path: Path):
         """Datos de rango completo."""
         df = pd.DataFrame({
-            "a": [1, 2, 3, 4, 5],
-            "b": [5, 4, 3, 2, 1],
-            "c": [1, 3, 5, 7, 9],
+            "a": [1, 0, 0, 0, 0],
+            "b": [0, 1, 0, 0, 0],
+            "c": [0, 0, 1, 0, 0],
         })
         rank = _estimate_effective_rank(df)
         
@@ -910,7 +910,12 @@ class TestComputeRiskHomology:
 
     def test_stable_manifold(self):
         """Manifold estable = pocos agujeros."""
-        manifold = {"flow_stability": 0.9, "local_extrema": 1, "volatility_surface": 0.05}
+        manifold = {
+            "flow_stability": 0.9,
+            "local_extrema": 1,
+            "volatility_surface": 0.05,
+            "is_degenerate": False
+        }
         homology = _compute_risk_homology(manifold)
         
         assert homology["risk_holes_beta_1"] <= 2
@@ -918,7 +923,12 @@ class TestComputeRiskHomology:
 
     def test_unstable_manifold(self):
         """Manifold inestable = muchos agujeros."""
-        manifold = {"flow_stability": 0.1, "local_extrema": 5, "volatility_surface": 0.5}
+        manifold = {
+            "flow_stability": 0.1,
+            "local_extrema": 5,
+            "volatility_surface": 0.5,
+            "is_degenerate": False
+        }
         homology = _compute_risk_homology(manifold)
         
         assert homology["risk_holes_beta_1"] >= 4
