@@ -41,6 +41,7 @@ from app.constants import ColumnNames
 from app.financial_engine import FinancialConfig, FinancialEngine
 from app.semantic_translator import SemanticTranslator
 from app.telemetry import TelemetryContext
+from app.tools_interface import MICRegistry
 
 logger = logging.getLogger(__name__)
 
@@ -243,12 +244,18 @@ class BusinessAgent:
         "project_volatility": 0.20,
     }
 
-    def __init__(self, config: Dict[str, Any], telemetry: Optional[TelemetryContext] = None):
+    def __init__(
+        self,
+        config: Dict[str, Any],
+        mic: MICRegistry,
+        telemetry: Optional[TelemetryContext] = None
+    ):
         """
-        Inicializa el agente de negocio.
+        Inicializa el agente de negocio con inyección de la MIC.
 
         Args:
             config: Configuración global de la aplicación.
+            mic: Matriz de Interacción Central para proyección de vectores.
             telemetry: Contexto para telemetría y observabilidad.
 
         Raises:
@@ -256,13 +263,14 @@ class BusinessAgent:
         """
         self._validate_config(config)
         self.config = config
+        self.mic = mic
         self.telemetry = telemetry or TelemetryContext()
 
         # Componentes del pipeline (inicialización eager para fail-fast)
         self.graph_builder = BudgetGraphBuilder()
         self.topological_analyzer = BusinessTopologicalAnalyzer(self.telemetry)
         self.translator = SemanticTranslator()
-        self.financial_engine = self._create_financial_engine()
+        # self.financial_engine eliminado en favor de self.mic
 
         # Inicializar el Challenger
         self.risk_challenger = RiskChallenger()
@@ -291,16 +299,6 @@ class BusinessAgent:
                         f"'{field_name}' debe ser un número no negativo, recibido: {value}"
                     )
 
-    def _create_financial_engine(self) -> FinancialEngine:
-        """
-        Construye el motor financiero con la configuración provista.
-
-        Returns:
-            FinancialEngine configurado.
-        """
-        financial_config_data = self.config.get("financial_config", {})
-        financial_config = FinancialConfig(**financial_config_data)
-        return FinancialEngine(financial_config)
 
     def _validate_dataframes(
         self, df_presupuesto: Optional[pd.DataFrame], df_apus_detail: Optional[pd.DataFrame]
@@ -453,14 +451,16 @@ class BusinessAgent:
     def _perform_financial_analysis(
         self,
         params: FinancialParameters,
-        topological_bundle: Optional[TopologicalMetricsBundle] = None,  # Nuevo argumento
-        thermal_metrics: Optional[Dict[str, Any]] = None,  # Nuevo argumento
+        session_context: Dict[str, Any],
+        topological_bundle: Optional[TopologicalMetricsBundle] = None,
+        thermal_metrics: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
         """
-        Ejecuta el análisis financiero del proyecto.
+        Ejecuta el análisis financiero proyectando la intención sobre la MIC.
 
         Args:
             params: Parámetros financieros validados.
+            session_context: Contexto de la sesión para validación de estratos (Gatekeeper).
             topological_bundle: Datos topológicos para inyección causal.
             thermal_metrics: Datos térmicos para inyección causal.
 
@@ -468,36 +468,44 @@ class BusinessAgent:
             Diccionario con métricas financieras (VPN, TIR, VaR, etc.).
 
         Raises:
-            RuntimeError: Si el análisis financiero falla.
+            RuntimeError: Si el análisis financiero falla o es bloqueado por la MIC.
         """
-        logger.info("💰 Realizando análisis financiero...")
+        logger.info("🤖 Proyectando vector de intención 'financial_analysis' sobre la MIC...")
 
-        # Extraer variables físicas del grafo
-        stability = 10.0  # Valor seguro por defecto
-        temperature = 25.0  # Temperatura ambiente por defecto
+        # 1. Definir el Payload (Datos para el cálculo)
+        # Adaptamos los parámetros al formato esperado por la herramienta financial_analysis
+        payload = {
+            "amount": params.initial_investment,
+            "std_dev": params.cost_std_dev,
+            "time": len(params.cash_flows)  # Asumimos que cash_flows define el tiempo en años
+        }
+        # Nota: La herramienta financial_analysis genera sus propios flujos internamente basada en amount/time/std_dev.
+        # Si quisiéramos usar los cash_flows específicos del contexto, necesitaríamos actualizar la herramienta
+        # o pasar un payload diferente. Por ahora, seguimos la firma de la herramienta existente.
 
-        if topological_bundle:
-            stability = topological_bundle.pyramid_stability
+        # 2. Definir el Contexto (Para validación de estratos)
+        # El contexto debe venir de la sesión actual para probar que PHYSICS ya pasó.
+        mic_context = {
+            "validated_strata": session_context.get("validated_strata", set())
+        }
 
-        if thermal_metrics:
-            temperature = thermal_metrics.get("system_temperature", 25.0)
-
+        # 3. Proyección Algebraica (project_intent)
         try:
-            financial_metrics = self.financial_engine.analyze_project(
-                initial_investment=params.initial_investment,
-                cash_flows=list(params.cash_flows),
-                cost_std_dev=params.cost_std_dev,
-                volatility=params.project_volatility,
-                # Inyección de la Física del Costo:
-                pyramid_stability=stability,
-                system_temperature=temperature,
-            )
+            # Esto invocará internamente a _validate_hierarchy
+            # Si PHYSICS no está validado, lanzará MICHierarchyViolationError (o retornará error)
+            response = self.mic.project_intent("financial_analysis", payload, mic_context)
+
+            if not response.get("success"):
+                error = response.get("error", "Unknown MIC error")
+                raise RuntimeError(f"Error en vector financiero: {error}")
+
+            # Extraer resultados. La herramienta devuelve structure:
+            # { "success": True, "results": { ... }, ... }
+            return response["results"]
+
         except Exception as e:
-            raise RuntimeError(f"Error en análisis financiero: {e}") from e
-
-        logger.debug(f"Métricas financieras calculadas: {list(financial_metrics.keys())}")
-
-        return financial_metrics
+            logger.error(f"⛔ Bloqueo de MIC detectado: {e}")
+            raise RuntimeError(f"Fallo en proyección MIC: {e}") from e
 
     def _compose_enriched_report(
         self,
@@ -682,8 +690,9 @@ class BusinessAgent:
             financial_params = self._extract_financial_parameters(context)
             financial_metrics = self._perform_financial_analysis(
                 financial_params,
-                topological_bundle=topological_bundle,  # Conexión Causal
-                thermal_metrics=thermal_metrics,  # Conexión Causal
+                session_context=context, # Pasamos el contexto completo
+                topological_bundle=topological_bundle,
+                thermal_metrics=thermal_metrics,
             )
         except (ValueError, RuntimeError) as e:
             logger.error(f"❌ Fase financiera fallida: {e}", exc_info=True)

@@ -30,6 +30,7 @@ import pandas as pd
 import pytest
 
 from app.business_agent import BusinessAgent
+from app.tools_interface import MICRegistry
 
 
 # =============================================================================
@@ -415,9 +416,32 @@ class TestFixtures:
         }
 
     @pytest.fixture
-    def agent(self, default_config) -> BusinessAgent:
+    def mock_mic(self) -> MagicMock:
+        """Mock de la Matriz de Interacción Central."""
+        mic = MagicMock(spec=MICRegistry)
+
+        # Configurar respuesta por defecto para financial_analysis
+        mic.project_intent.return_value = {
+            "success": True,
+            "results": {
+                "npv": 150.0, # Valor arbitrario para pruebas
+                "irr": 0.15,
+                "payback_years": 3.5,
+                "payback": 3.5, # Alias para compatibilidad con tests
+                "performance": {
+                    "recommendation": "APPROVE",
+                    "risk_level": "LOW"
+                },
+                "wacc": 0.10,
+                "risk_adjusted_return": 0.12
+            }
+        }
+        return mic
+
+    @pytest.fixture
+    def agent(self, default_config, mock_mic) -> BusinessAgent:
         """Instancia de BusinessAgent configurada para testing."""
-        return BusinessAgent(default_config)
+        return BusinessAgent(default_config, mic=mock_mic)
 
     @pytest.fixture
     def minimal_context(self) -> Dict[str, Any]:
@@ -696,7 +720,7 @@ class TestTopologicalAnalysis(TestFixtures):
             for term in ["íntegr", "conectad", "coheren", "estable"]
         )
 
-    def test_disconnected_apus_flagged(self, agent, default_config):
+    def test_disconnected_apus_flagged(self, agent, default_config, mock_mic):
         """APUs sin insumos (desconectados) son reportados."""
         # Crear contexto con APU sin insumos
         context = (
@@ -716,7 +740,8 @@ class TestTopologicalAnalysis(TestFixtures):
             .build()
         )
         
-        agent = BusinessAgent(default_config)
+        # Re-instanciar con mock_mic porque default_config es fixture pero agente se crea manual
+        agent = BusinessAgent(default_config, mic=mock_mic)
         report = agent.evaluate_project(context)
         
         # El análisis topológico debería detectar la falta de insumos
@@ -758,31 +783,26 @@ class TestTopologicalAnalysis(TestFixtures):
 class TestFinancialAnalysis(TestFixtures):
     """Tests para el análisis financiero del proyecto."""
 
-    def test_npv_calculated_correctly(self, agent, default_config):
-        """VPN se calcula correctamente según la fórmula estándar."""
-        context, projection = (
+    def test_mic_delegation_for_financial_analysis(self, agent, mock_mic):
+        """Verifica que el agente delega el análisis a la MIC."""
+        context, _ = (
             ProjectContextBuilder()
             .with_presupuesto(PresupuestoBuilder().with_apu("APU-001", "Test", 10.0))
-            .with_insumos(
-                InsumosBuilder()
-                .for_apus("APU-001")
-                .with_insumo("APU-001", "Material", "MATERIAL", 100.0)
-            )
-            .with_cash_flow(1000.0, [400.0, 400.0, 400.0], risk_free_rate=0.05)
+            .with_insumos(InsumosBuilder().for_apus("APU-001").with_insumo("APU-001", "Material", "MATERIAL", 100.0))
+            .with_cash_flow(1000.0, [400.0, 400.0, 400.0])
             .build_with_projection()
         )
         
-        agent = BusinessAgent(default_config)
-        report = agent.evaluate_project(context)
+        agent.evaluate_project(context)
         
-        expected_npv = projection.calculate_npv()
-        
-        # Verificar que el VPN reportado coincide con el calculado
-        if "npv" in report.details.get("metrics", {}):
-            reported_npv = report.details["metrics"]["npv"]
-            assert abs(reported_npv - expected_npv) < FINANCIAL_TOLERANCE * abs(expected_npv)
+        # Verificar que se llamó a project_intent
+        mock_mic.project_intent.assert_called()
+        args = mock_mic.project_intent.call_args
+        assert args[0][0] == "financial_analysis"
+        assert args[0][1]["amount"] == 1000.0
+        assert args[0][1]["time"] == 3
 
-    def test_viable_project_positive_assessment(self, agent, default_config):
+    def test_viable_project_positive_assessment(self, agent, default_config, mock_mic):
         """Proyecto viable (VPN > 0) recibe evaluación positiva."""
         context = (
             ProjectContextBuilder()
@@ -796,9 +816,20 @@ class TestFinancialAnalysis(TestFixtures):
             .build()
         )
         
-        agent = BusinessAgent(default_config)
+        # Configurar MIC para retornar VPN positivo
+        mock_mic.project_intent.return_value = {
+            "success": True,
+            "results": {
+                "npv": 500.0,
+                "performance": {"recommendation": "APPROVE"}
+            }
+        }
+
+        agent = BusinessAgent(default_config, mic=mock_mic)
         report = agent.evaluate_project(context)
         
+        # La narrativa depende de los resultados financieros retornados por la MIC
+        # (y del análisis topológico que sí corre real)
         positive_terms = ["viable", "positiv", "favorable", "recomend", "aprob"]
         narrative_lower = report.strategic_narrative.lower()
         
@@ -855,7 +886,7 @@ class TestEdgeCases(TestFixtures):
         assert report is not None
         assert "INFORME" in report.strategic_narrative
 
-    def test_missing_cash_flows_handled(self, agent, default_config):
+    def test_missing_cash_flows_handled(self, agent, default_config, mock_mic):
         """Contexto sin flujos de caja es manejado apropiadamente."""
         context = {
             "df_presupuesto": PresupuestoBuilder().with_apu("APU-001", "Test", 10.0).build(),
@@ -863,7 +894,7 @@ class TestEdgeCases(TestFixtures):
             # Sin initial_investment ni cash_flows
         }
         
-        agent = BusinessAgent(default_config)
+        agent = BusinessAgent(default_config, mic=mock_mic)
         
         # Puede lanzar error o manejarlo gracefully
         try:
@@ -874,7 +905,7 @@ class TestEdgeCases(TestFixtures):
             # Error esperado por datos faltantes
             assert "cash_flows" in str(e).lower() or "investment" in str(e).lower()
 
-    def test_negative_cash_flows_handled(self, agent, default_config):
+    def test_negative_cash_flows_handled(self, agent, default_config, mock_mic):
         """Flujos de caja negativos son procesados correctamente."""
         context = (
             ProjectContextBuilder()
@@ -888,7 +919,7 @@ class TestEdgeCases(TestFixtures):
             .build()
         )
         
-        agent = BusinessAgent(default_config)
+        agent = BusinessAgent(default_config, mic=mock_mic)
         report = agent.evaluate_project(context)
         
         assert report is not None
@@ -901,7 +932,7 @@ class TestEdgeCases(TestFixtures):
                 cash_flows=[100.0]
             )
 
-    def test_very_large_project(self, agent, default_config):
+    def test_very_large_project(self, agent, default_config, mock_mic):
         """Proyecto con muchos APUs es procesado sin timeout."""
         presupuesto = PresupuestoBuilder()
         insumos = InsumosBuilder()
@@ -925,7 +956,7 @@ class TestEdgeCases(TestFixtures):
             .build()
         )
         
-        agent = BusinessAgent(default_config)
+        agent = BusinessAgent(default_config, mic=mock_mic)
         
         import time
         start = time.time()

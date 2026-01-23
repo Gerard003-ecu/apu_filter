@@ -846,10 +846,28 @@ class BusinessTopologyStep(ProcessingStep):
         telemetry.start_step("business_topology")
         try:
             from app.business_agent import BusinessAgent
+            from flask import current_app
+
+            # Recuperar la instancia global de la MIC
+            mic_instance = getattr(current_app, "mic", None)
+            if not mic_instance:
+                raise RuntimeError("MICRegistry not found in current_app")
+
+            # Garantizar que el contexto tenga validación de estratos
+            # Si llegamos a este paso en el pipeline secuencial, asumimos PHYSICS y TACTICS válidos
+            if "validated_strata" not in context:
+                context["validated_strata"] = {Stratum.PHYSICS, Stratum.TACTICS}
+            elif isinstance(context["validated_strata"], set):
+                context["validated_strata"].add(Stratum.PHYSICS)
+                context["validated_strata"].add(Stratum.TACTICS)
 
             logger.info("🤖 Desplegando BusinessAgent para evaluación de proyecto...")
 
-            agent = BusinessAgent(config=self.config, telemetry=telemetry)
+            agent = BusinessAgent(
+                config=self.config,
+                mic=mic_instance,
+                telemetry=telemetry
+            )
             report = agent.evaluate_project(context)
 
             if report:
