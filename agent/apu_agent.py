@@ -728,6 +728,29 @@ class AutonomousAgent:
             # Remover conexión Agent-Core para reflejar desconexión
             self.topology.remove_edge("Agent", "Core")
 
+    def _analyze_metric_persistence(
+        self, metric_name: str, current_value: Optional[float], threshold: float
+    ) -> PersistenceAnalysisResult:
+        """
+        Analiza la persistencia de una métrica alimentando nuevos datos.
+
+        Args:
+            metric_name: Nombre de la métrica
+            current_value: Valor actual (None si no hay datos)
+            threshold: Umbral para análisis de excursiones
+
+        Returns:
+            Resultado del análisis de persistencia
+        """
+        # Alimentar nuevo dato si existe
+        if current_value is not None:
+            self.persistence.add_reading(metric_name, current_value)
+
+        # Obtener análisis
+        return self.persistence.analyze_persistence(
+            metric_name, threshold=threshold, noise_ratio=0.2, critical_ratio=0.5
+        )
+
     def orient(self, telemetry: Optional[TelemetryData]) -> SystemStatus:
         """
         ORIENT - Segunda fase del ciclo OODA (Motor Topológico).
@@ -782,29 +805,6 @@ class AutonomousAgent:
 
         return status
 
-    def _analyze_metric_persistence(
-        self, metric_name: str, current_value: Optional[float], threshold: float
-    ) -> PersistenceAnalysisResult:
-        """
-        Analiza la persistencia de una métrica alimentando nuevos datos.
-
-        Args:
-            metric_name: Nombre de la métrica
-            current_value: Valor actual (None si no hay datos)
-            threshold: Umbral para análisis de excursiones
-
-        Returns:
-            Resultado del análisis de persistencia
-        """
-        # Alimentar nuevo dato si existe
-        if current_value is not None:
-            self.persistence.add_reading(metric_name, current_value)
-
-        # Obtener análisis
-        return self.persistence.analyze_persistence(
-            metric_name, threshold=threshold, noise_ratio=0.2, critical_ratio=0.5
-        )
-
     def _evaluate_system_state(
         self,
         telemetry: Optional[TelemetryData],
@@ -821,7 +821,8 @@ class AutonomousAgent:
         3. Salud topológica crítica (health_score < 0.4)
         4. Patrones de persistencia (CRITICAL/FEATURE)
         5. Loops de reintentos
-        6. Estado nominal
+        6. Salud topológica degradada (UNHEALTHY)
+        7. Estado nominal
 
         Args:
             telemetry: Datos de telemetría actuales
@@ -949,9 +950,8 @@ class AutonomousAgent:
         # =====================================================================
         if topo_health.level == HealthLevel.UNHEALTHY:
             summary = f"Salud Topológica Degradada: score={topo_health.health_score:.2f}"
-            logger.info(f"[TOPO] 🟡 {summary}")
-            # No es crítico, pero vale la pena monitorear
-            # Continuamos a evaluar como NOMINAL por ahora
+            logger.warning(f"[TOPO] 🟡 {summary}")
+            return SystemStatus.INESTABLE, summary
 
         # =====================================================================
         # 8. RUIDO - Ignorar (inmunidad a falsos positivos)
