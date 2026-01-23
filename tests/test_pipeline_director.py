@@ -52,6 +52,7 @@ from app.pipeline_director import (
     ProcessingThresholds,
 )
 from app.telemetry import TelemetryContext
+from app.schemas import Stratum
 
 
 # =============================================================================
@@ -1064,18 +1065,20 @@ class TestPipelineDirector(TestFixtures):
     def test_director_initialization(self, director):
         """Director se inicializa correctamente."""
         assert director is not None
-        assert hasattr(director, "STEP_REGISTRY")
+        assert hasattr(director, "mic")
+        assert director.mic.get_rank() > 0
 
     def test_register_custom_step(self, director):
         """Paso personalizado se registra correctamente."""
-        director.STEP_REGISTRY["custom"] = MockStep
+        director.mic.add_basis_vector("custom", MockStep, Stratum.WISDOM)
         
-        assert "custom" in director.STEP_REGISTRY
-        assert director.STEP_REGISTRY["custom"] == MockStep
+        vector = director.mic.project_intent("custom")
+        assert vector.operator_class == MockStep
+        assert vector.stratum == Stratum.WISDOM
 
     def test_execute_with_mock_step(self, director, config, telemetry, thresholds):
         """Ejecución con paso mock funciona correctamente."""
-        director.STEP_REGISTRY["mock"] = MockStep
+        director.mic.add_basis_vector("mock", MockStep, Stratum.TACTICS)
         config["pipeline_recipe"] = [{"step": "mock", "enabled": True}]
         
         context = ContextBuilder().with_paths().build()
@@ -1089,7 +1092,7 @@ class TestPipelineDirector(TestFixtures):
 
     def test_execute_failing_step_raises(self, director, config, telemetry):
         """Paso que falla propaga excepción."""
-        director.STEP_REGISTRY["fail"] = FailingStep
+        director.mic.add_basis_vector("fail", FailingStep, Stratum.PHYSICS)
         config["pipeline_recipe"] = [{"step": "fail", "enabled": True}]
         
         with pytest.raises(RuntimeError):
@@ -1097,7 +1100,7 @@ class TestPipelineDirector(TestFixtures):
 
     def test_telemetry_records_error(self, director, config, telemetry):
         """Error se registra en telemetría."""
-        director.STEP_REGISTRY["fail"] = FailingStep
+        director.mic.add_basis_vector("fail", FailingStep, Stratum.PHYSICS)
         config["pipeline_recipe"] = [{"step": "fail", "enabled": True}]
         
         try:
@@ -1110,7 +1113,7 @@ class TestPipelineDirector(TestFixtures):
 
     def test_disabled_step_skipped(self, director, config):
         """Paso deshabilitado es omitido."""
-        director.STEP_REGISTRY["mock"] = MockStep
+        director.mic.add_basis_vector("mock", MockStep, Stratum.TACTICS)
         config["pipeline_recipe"] = [{"step": "mock", "enabled": False}]
         
         context = {}
@@ -1122,17 +1125,26 @@ class TestPipelineDirector(TestFixtures):
         execution_order = []
         
         class TrackingStep(ProcessingStep):
-            def __init__(self, cfg, thr, name):
-                self.name = name
-            
-            def execute(self, context, telemetry):
-                execution_order.append(self.name)
-                return context
+             def __init__(self, cfg, thr, name):
+                 self.name = name
+
+             def execute(self, context, telemetry):
+                 execution_order.append(self.name)
+                 return context
         
-        # Registrar pasos con tracking
-        director.STEP_REGISTRY["step1"] = lambda c, t: TrackingStep(c, t, "step1")
-        director.STEP_REGISTRY["step2"] = lambda c, t: TrackingStep(c, t, "step2")
-        director.STEP_REGISTRY["step3"] = lambda c, t: TrackingStep(c, t, "step3")
+        director.mic.add_basis_vector("step1", lambda c, t: TrackingStep(c, t, "step1"), Stratum.PHYSICS)
+        director.mic.add_basis_vector("step2", lambda c, t: TrackingStep(c, t, "step2"), Stratum.TACTICS)
+        director.mic.add_basis_vector("step3", lambda c, t: TrackingStep(c, t, "step3"), Stratum.STRATEGY)
+
+        config["pipeline_recipe"] = [
+            {"step": "step1", "enabled": True},
+            {"step": "step2", "enabled": True},
+            {"step": "step3", "enabled": True},
+        ]
+
+        director.execute_pipeline_orchestrated({})
+
+        assert execution_order == ["step1", "step2", "step3"]
 
 
 # =============================================================================
