@@ -1,29 +1,18 @@
-### Propuesta 1
-
 """
-Módulo MIC Refinado - Espacio Vectorial Jerárquico con Clausura Transitiva.
+Funciones Auxiliares de Topología Algebraica y Análisis Estructural.
 
-Modelo Matemático:
-------------------
-Sea V un espacio vectorial sobre ℝ con base {e_1, ..., e_n} donde cada e_i
-representa un microservicio. Definimos una filtración:
-
-    V = V_0 ⊃ V_1 ⊃ V_2 ⊃ V_3
-
-donde V_k corresponde al estrato k (WISDOM=0, STRATEGY=1, TACTICS=2, PHYSICS=3).
-
-La proyección de intención π: I → V satisface la restricción:
-    π(intent) ∈ V_k ⟹ ∀j > k: V_j está validado
-
-Esto garantiza que las operaciones de alto nivel solo se ejecutan
-cuando la base física está correctamente establecida.
+Marco Matemático:
+-----------------
+1. Homología Simplicial: H_k(X) calculada via complejos de cadenas
+2. Persistencia: Filtración F_0 ⊆ F_1 ⊆ ... ⊆ F_n con tracking de nacimiento/muerte
+3. Entropía de Shannon: H(X) = -Σ p(x)log(p(x)) con regularización
+4. Métricas de Riesgo: Basadas en teoría de portafolios de Markowitz
 """
 
-import codecs
-import logging
-from enum import Enum, IntEnum
+import math
+from collections import Counter
+from dataclasses import dataclass
 from pathlib import Path
-from dataclasses import dataclass, field
 from typing import (
     Any,
     Callable,
@@ -32,813 +21,1115 @@ from typing import (
     FrozenSet,
     List,
     Optional,
-    Protocol,
+    Sequence,
     Set,
     Tuple,
     Type,
     Union,
-    runtime_checkable,
 )
 
-# Asumimos que estos imports existen
-from scripts.clean_csv import CSVCleaner
-from scripts.diagnose_apus_file import APUFileDiagnostic
-from scripts.diagnose_insumos_file import InsumosFileDiagnostic
-from scripts.diagnose_presupuesto_file import PresupuestoFileDiagnostic
-from .financial_engine import FinancialConfig, FinancialEngine
-from .schemas import Stratum
+import numpy as np
+import pandas as pd
 
-logger = logging.getLogger(__name__)
+# ══════════════════════════════════════════════════════════════════════════════
+# CONSTANTES MATEMÁTICAS
+# ══════════════════════════════════════════════════════════════════════════════
+
+_EPSILON: Final[float] = 1e-10  # Para estabilidad numérica
+_DEFAULT_RANDOM_SEED: Final[int] = 42
+_MAX_SAMPLE_ROWS: Final[int] = 1000  # Límite para análisis topológico
+_PERSISTENCE_THRESHOLD: Final[float] = 0.01  # Filtrar características efímeras
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# CONSTANTES Y CONFIGURACIÓN
-# ══════════════════════════════════════════════════════════════════════════════
-
-MAX_FILE_SIZE_BYTES: Final[int] = 100 * 1024 * 1024  # 100 MB
-
-SUPPORTED_ENCODINGS: Final[FrozenSet[str]] = frozenset({
-    "utf-8", "utf-8-sig", "latin-1", "iso-8859-1",
-    "cp1252", "ascii", "utf-16", "utf-16-le", "utf-16-be",
-})
-
-# Mapeo de aliases comunes para normalización
-_ENCODING_ALIASES: Final[Dict[str, str]] = {
-    "utf8": "utf-8",
-    "latin1": "latin-1",
-    "iso88591": "iso-8859-1",
-    "cp65001": "utf-8",
-}
-
-VALID_DELIMITERS: Final[FrozenSet[str]] = frozenset({",", ";", "\t", "|", ":"})
-VALID_EXTENSIONS: Final[FrozenSet[str]] = frozenset({".csv", ".txt", ".tsv"})
-
-
-# ══════════════════════════════════════════════════════════════════════════════
-# PROTOCOLOS
-# ══════════════════════════════════════════════════════════════════════════════
-
-@runtime_checkable
-class TelemetryContextProtocol(Protocol):
-    """Protocolo para contextos de telemetría."""
-    def get_business_report(self) -> Dict[str, Any]: ...
-
-
-@runtime_checkable
-class DiagnosticProtocol(Protocol):
-    """Protocolo para clases diagnósticas."""
-    def diagnose(self) -> None: ...
-    def to_dict(self) -> Dict[str, Any]: ...
-
-
-# ══════════════════════════════════════════════════════════════════════════════
-# EXCEPCIONES JERÁRQUICAS
-# ══════════════════════════════════════════════════════════════════════════════
-
-class DiagnosticError(Exception):
-    """Base para errores de diagnóstico."""
-    def __init__(self, message: str, details: Optional[Dict[str, Any]] = None) -> None:
-        super().__init__(message)
-        self.details: Dict[str, Any] = details or {}
-
-
-class FileNotFoundDiagnosticError(DiagnosticError):
-    """Archivo no encontrado durante diagnóstico."""
-    pass
-
-
-class UnsupportedFileTypeError(DiagnosticError):
-    """Tipo de archivo no soportado."""
-    pass
-
-
-class FileValidationError(DiagnosticError):
-    """Error de validación de archivo."""
-    pass
-
-
-class CleaningError(Exception):
-    """Error durante limpieza de archivos."""
-    def __init__(self, message: str, details: Optional[Dict[str, Any]] = None) -> None:
-        super().__init__(message)
-        self.details: Dict[str, Any] = details or {}
-
-
-class MICHierarchyViolationError(Exception):
-    """Violación de la jerarquía de estratos en la MIC."""
-    def __init__(
-        self, 
-        message: str, 
-        target_stratum: 'Stratum',
-        missing_strata: Set['Stratum']
-    ) -> None:
-        super().__init__(message)
-        self.target_stratum = target_stratum
-        self.missing_strata = missing_strata
-
-
-# ══════════════════════════════════════════════════════════════════════════════
-# ENUMS
-# ══════════════════════════════════════════════════════════════════════════════
-
-class FileType(str, Enum):
-    """Tipos de archivo soportados para diagnóstico."""
-    APUS = "apus"
-    INSUMOS = "insumos"
-    PRESUPUESTO = "presupuesto"
-
-    @classmethod
-    def values(cls) -> List[str]:
-        """Retorna lista de valores válidos."""
-        return [member.value for member in cls]
-
-    @classmethod
-    def from_string(cls, value: str) -> "FileType":
-        """
-        Parsea string a FileType con normalización.
-        
-        Args:
-            value: String a convertir
-            
-        Returns:
-            FileType correspondiente
-            
-        Raises:
-            ValueError: Si el valor no es válido
-        """
-        if not isinstance(value, str):
-            raise ValueError(f"Expected string, got {type(value).__name__}")
-        
-        normalized = value.strip().lower()
-        
-        for member in cls:
-            if member.value == normalized:
-                return member
-        
-        valid_options = ", ".join(cls.values())
-        raise ValueError(f"'{value}' is not valid. Options: {valid_options}")
-
-
-# ══════════════════════════════════════════════════════════════════════════════
-# ESTRUCTURAS DE LA MIC
+# ESTRUCTURAS DE DATOS TOPOLÓGICAS
 # ══════════════════════════════════════════════════════════════════════════════
 
 @dataclass(frozen=True)
-class IntentVector:
+class PersistenceInterval:
     """
-    Vector de intención inmutable proyectado sobre la MIC.
+    Intervalo de persistencia [birth, death) en el diagrama.
     
-    Representa una solicitud del Agente para ejecutar un servicio,
-    encapsulando el contexto necesario para la validación jerárquica.
+    Representa el tiempo de vida de una característica topológica
+    durante la filtración del complejo simplicial.
     """
-    service_name: str
-    payload: Dict[str, Any]
-    context: Dict[str, Any]
+    birth: float
+    death: float
+    dimension: int = 0  # 0 = componentes, 1 = ciclos, 2 = cavidades
     
     def __post_init__(self):
-        # Validación en construcción
-        if not self.service_name or not self.service_name.strip():
-            raise ValueError("service_name cannot be empty")
-
-
-class MICRegistry:
-    """
-    Matriz de Interacción Central (MIC).
+        if self.birth < 0:
+            raise ValueError(f"Birth time must be non-negative, got {self.birth}")
+        if self.death < self.birth:
+            raise ValueError(f"Death ({self.death}) must be >= birth ({self.birth})")
+        if self.dimension < 0:
+            raise ValueError(f"Dimension must be non-negative, got {self.dimension}")
     
-    Implementa un espacio vectorial jerárquico donde:
-    - Cada servicio es un vector base e_i
-    - Los estratos definen una filtración descendente
-    - El Gatekeeper asegura la clausura transitiva de validaciones
-    
-    Invariante Topológico:
-        Para proyectar en estrato k, todos los estratos j > k deben estar validados.
-        Esto forma una precondición de tipo "fibración" donde PHYSICS es la base.
-    """
-
-    def __init__(self) -> None:
-        self._vectors: Dict[str, Tuple[Stratum, Callable[..., Dict[str, Any]]]] = {}
-        self._logger = logging.getLogger("MIC")
-
     @property
-    def registered_services(self) -> List[str]:
-        """Lista de servicios registrados."""
-        return list(self._vectors.keys())
-
-    def register_vector(
-        self, 
-        service_name: str, 
-        stratum: Stratum, 
-        handler: Callable[..., Dict[str, Any]]
-    ) -> None:
-        """
-        Registra un microservicio como vector base en la MIC.
-        
-        Args:
-            service_name: Identificador único del servicio
-            stratum: Nivel jerárquico del servicio
-            handler: Función que implementa la lógica del servicio
-        """
-        if not service_name or not service_name.strip():
-            raise ValueError("service_name cannot be empty")
-        
-        if not callable(handler):
-            raise TypeError("handler must be callable")
-        
-        if service_name in self._vectors:
-            self._logger.warning(f"Overwriting existing vector: {service_name}")
-        
-        self._vectors[service_name] = (stratum, handler)
-        self._logger.info(f"Vector registered: {service_name} [{stratum.name}]")
-
-    def _compute_required_strata(self, target: Stratum) -> Set[Stratum]:
-        """
-        Calcula la clausura transitiva de prerrequisitos.
-        
-        Modelo: En la filtración V_0 ⊃ V_1 ⊃ V_2 ⊃ V_3,
-        para operar en V_k se requieren todos V_j con j > k.
-        
-        Args:
-            target: Estrato objetivo
-            
-        Returns:
-            Conjunto de estratos prerrequisito
-        """
-        return {s for s in Stratum if s.value > target.value}
-
-    def _normalize_validated_strata(
-        self, 
-        raw_validated: Any
-    ) -> Set[Stratum]:
-        """
-        Normaliza el conjunto de estratos validados.
-        
-        Soporta múltiples formatos de entrada:
-        - Set[Stratum]: Uso directo
-        - Set[int]: Conversión por valor
-        - Set[str]: Conversión por nombre
-        - Iterables mixtos
-        
-        Args:
-            raw_validated: Datos crudos de estratos validados
-            
-        Returns:
-            Conjunto normalizado de Stratum
-        """
-        if raw_validated is None:
-            return set()
-        
-        if not isinstance(raw_validated, (set, list, tuple, frozenset)):
-            self._logger.warning(
-                f"Invalid validated_strata type: {type(raw_validated).__name__}, "
-                f"expected iterable"
-            )
-            return set()
-        
-        normalized: Set[Stratum] = set()
-        
-        for item in raw_validated:
-            try:
-                if isinstance(item, Stratum):
-                    normalized.add(item)
-                elif isinstance(item, int):
-                    # Búsqueda por valor numérico
-                    normalized.add(Stratum(item))
-                elif isinstance(item, str):
-                    # Búsqueda por nombre (case-insensitive)
-                    normalized.add(Stratum[item.upper().strip()])
-                else:
-                    self._logger.debug(f"Skipping invalid stratum item: {item!r}")
-            except (ValueError, KeyError) as e:
-                self._logger.debug(f"Could not normalize stratum item {item!r}: {e}")
-        
-        return normalized
-
-    def _validate_hierarchy(
-        self,
-        target: Stratum,
-        validated: Set[Stratum],
-        force_override: bool = False
-    ) -> Tuple[bool, Set[Stratum]]:
-        """
-        Valida los prerrequisitos jerárquicos.
-        
-        Implementa la verificación de clausura transitiva:
-        target ∈ V_k ⟹ ∀j > k: V_j ∈ validated
-        
-        Args:
-            target: Estrato objetivo de la operación
-            validated: Conjunto de estratos ya validados
-            force_override: Si True, bypass la validación (para debugging)
-            
-        Returns:
-            Tupla (is_valid, missing_strata)
-        """
-        if force_override:
-            self._logger.warning(
-                f"Hierarchy validation bypassed for {target.name} via force_override"
-            )
-            return True, set()
-        
-        required = self._compute_required_strata(target)
-        missing = required - validated
-        
-        return len(missing) == 0, missing
-
-    def project_intent(
-        self,
-        service_name: str,
-        payload: Dict[str, Any],
-        context: Dict[str, Any]
-    ) -> Dict[str, Any]:
-        """
-        Proyecta una intención sobre el espacio vectorial.
-        
-        Algoritmo:
-        1. Resolución: Buscar el vector (servicio) en el registro
-        2. Normalización: Convertir validated_strata a formato canónico
-        3. Validación: Verificar clausura transitiva de prerrequisitos
-        4. Ejecución: Invocar el handler con el payload
-        5. Propagación: Actualizar estado de validación si exitoso
-        
-        Args:
-            service_name: Nombre del servicio objetivo
-            payload: Argumentos para el handler
-            context: Metadatos de sesión (validated_strata, force_override, etc.)
-            
-        Returns:
-            Resultado de la operación con metadatos MIC
-        """
-        # ─── Fase 1: Resolución ───
-        if service_name not in self._vectors:
-            available = self.registered_services
-            error_msg = (
-                f"Unknown vector: '{service_name}'. "
-                f"Available: {available if available else 'none registered'}"
-            )
-            raise ValueError(error_msg)
-        
-        target_stratum, handler = self._vectors[service_name]
-        
-        # ─── Fase 2: Normalización ───
-        raw_validated = context.get("validated_strata", set())
-        validated_strata = self._normalize_validated_strata(raw_validated)
-        force_override = bool(context.get("force_physics_override", False))
-        
-        # ─── Fase 3: Validación Jerárquica ───
-        is_valid, missing = self._validate_hierarchy(
-            target_stratum, validated_strata, force_override
-        )
-        
-        if not is_valid:
-            missing_names = sorted(
-                [s.name for s in missing],
-                key=lambda name: Stratum[name].value,
-                reverse=True  # PHYSICS primero
-            )
-            error_msg = (
-                f"MIC Hierarchy Violation: Cannot project to {target_stratum.name}. "
-                f"Missing prerequisite strata: {', '.join(missing_names)}. "
-                f"Validate PHYSICS operations first."
-            )
-            self._logger.error(error_msg)
-            
-            return _create_error_response(
-                PermissionError(error_msg),
-                error_category="mic_hierarchy_violation",
-                target_stratum=target_stratum.name,
-                missing_strata=missing_names,
-                validated_strata=[s.name for s in validated_strata]
-            )
-        
-        # ─── Fase 4: Ejecución ───
-        try:
-            result = handler(**payload)
-            
-            # Asegurar que result es dict
-            if not isinstance(result, dict):
-                result = {"success": True, "result": result}
-            
-            # ─── Fase 5: Propagación de Validación ───
-            if result.get("success", False):
-                result["_mic_validation_update"] = target_stratum
-                result["_mic_stratum"] = target_stratum.name
-            
-            return result
-            
-        except TypeError as e:
-            # Error común: firma del handler no coincide con payload
-            self._logger.error(
-                f"Handler signature mismatch for '{service_name}': {e}",
-                exc_info=True
-            )
-            return _create_error_response(
-                e,
-                error_category="mic_handler_signature_error",
-                service_name=service_name,
-                hint="Verify that payload keys match handler parameter names"
-            )
-        except Exception as e:
-            self._logger.error(
-                f"Error executing vector '{service_name}': {e}",
-                exc_info=True
-            )
-            return _create_error_response(
-                e,
-                error_category="mic_execution_error",
-                service_name=service_name
-            )
-
-
-# ══════════════════════════════════════════════════════════════════════════════
-# REGISTRO DE DIAGNÓSTICOS
-# ══════════════════════════════════════════════════════════════════════════════
-
-_DIAGNOSTIC_REGISTRY: Final[Dict[FileType, Type[DiagnosticProtocol]]] = {
-    FileType.APUS: APUFileDiagnostic,
-    FileType.INSUMOS: InsumosFileDiagnostic,
-    FileType.PRESUPUESTO: PresupuestoFileDiagnostic,
-}
-
-
-def _get_diagnostic_class(file_type: FileType) -> Type[DiagnosticProtocol]:
-    """Obtiene la clase diagnóstica para un tipo de archivo."""
-    diagnostic_class = _DIAGNOSTIC_REGISTRY.get(file_type)
+    def persistence(self) -> float:
+        """Tiempo de vida de la característica."""
+        return self.death - self.birth
     
-    if diagnostic_class is None:
-        raise UnsupportedFileTypeError(
-            f"No diagnostic registered for type: {file_type.value}",
-            details={
-                "file_type": file_type.value,
-                "available_types": FileType.values()
-            }
-        )
+    @property
+    def is_essential(self) -> bool:
+        """True si la característica nunca muere (death = inf)."""
+        return math.isinf(self.death)
     
-    return diagnostic_class
+    def __lt__(self, other: 'PersistenceInterval') -> bool:
+        """Ordenamiento por persistencia descendente."""
+        return self.persistence > other.persistence
 
 
-# ══════════════════════════════════════════════════════════════════════════════
-# FUNCIONES DE VALIDACIÓN
-# ══════════════════════════════════════════════════════════════════════════════
-
-def _validate_path_not_empty(file_path: Union[str, Path, None]) -> None:
-    """Valida que la ruta no sea vacía o None."""
-    if file_path is None:
-        raise ValueError("File path cannot be None")
-    
-    path_str = str(file_path).strip()
-    
-    if not path_str or path_str == ".":
-        raise ValueError("File path cannot be empty")
-
-
-def _normalize_path(file_path: Union[str, Path]) -> Path:
+@dataclass(frozen=True)
+class TopologicalSummary:
     """
-    Normaliza una ruta de archivo.
+    Resumen de características topológicas de un dataset.
     
-    Operaciones:
-    1. Validación de no-vacío
-    2. Conversión a Path
-    3. Expansión de ~ (home)
-    4. Resolución a ruta absoluta (si existe)
+    Encapsula números de Betti, entropía estructural y métricas derivadas.
     """
-    _validate_path_not_empty(file_path)
+    betti_0: int  # Componentes conexos
+    betti_1: int  # Ciclos independientes
+    betti_2: int  # Cavidades
+    euler_characteristic: int
+    structural_entropy: float
+    persistence_entropy: float
     
-    try:
-        path = Path(file_path) if isinstance(file_path, str) else file_path
-        path = path.expanduser()
-        
-        # Solo resolver si existe (evita errores en paths nuevos)
-        return path.resolve() if path.exists() else path.absolute()
-        
-    except (OSError, RuntimeError) as e:
-        raise ValueError(f"Invalid path '{file_path}': {e}")
-
-
-def _validate_file_exists(path: Path) -> None:
-    """Valida que el archivo existe y es un archivo regular."""
-    if not path.exists():
-        raise FileNotFoundDiagnosticError(
-            f"File not found: {path}",
-            details={"path": str(path)}
+    @classmethod
+    def empty(cls) -> 'TopologicalSummary':
+        """Crea un resumen vacío para casos de error."""
+        return cls(
+            betti_0=0, betti_1=0, betti_2=0,
+            euler_characteristic=0,
+            structural_entropy=0.0,
+            persistence_entropy=0.0
         )
     
-    if not path.is_file():
-        raise FileValidationError(
-            f"Path is not a file: {path}",
-            details={"path": str(path), "is_directory": path.is_dir()}
-        )
+    def to_dict(self) -> Dict[str, Any]:
+        """Serializa a diccionario."""
+        return {
+            "betti_numbers": [self.betti_0, self.betti_1, self.betti_2],
+            "euler_characteristic": self.euler_characteristic,
+            "structural_entropy": round(self.structural_entropy, 6),
+            "persistence_entropy": round(self.persistence_entropy, 6),
+        }
 
 
-def _validate_file_extension(
-    path: Path,
-    valid_extensions: FrozenSet[str] = VALID_EXTENSIONS
-) -> str:
+# ══════════════════════════════════════════════════════════════════════════════
+# FUNCIONES DE ENTROPÍA Y PROBABILIDAD
+# ══════════════════════════════════════════════════════════════════════════════
+
+def _compute_shannon_entropy(
+    probabilities: Sequence[float],
+    base: float = 2.0
+) -> float:
     """
-    Valida la extensión del archivo.
+    Calcula la entropía de Shannon con estabilidad numérica.
     
+    H(X) = -Σ p(x) * log_b(p(x))
+    
+    Args:
+        probabilities: Distribución de probabilidad (debe sumar ~1)
+        base: Base del logaritmo (2 = bits, e = nats)
+        
     Returns:
-        Extensión normalizada (lowercase con punto)
-    """
-    extension = path.suffix.lower()
-    
-    if extension not in valid_extensions:
-        raise FileValidationError(
-            f"Invalid extension '{extension}'. Expected: {sorted(valid_extensions)}",
-            details={
-                "path": str(path),
-                "extension": extension,
-                "valid_extensions": sorted(valid_extensions)
-            }
-        )
-    
-    return extension
-
-
-def _validate_file_size(
-    path: Path,
-    max_size: int = MAX_FILE_SIZE_BYTES
-) -> Tuple[int, bool]:
-    """
-    Valida el tamaño del archivo.
-    
-    Returns:
-        Tupla (size_bytes, is_empty)
+        Entropía en la base especificada
         
     Raises:
-        ValueError: Si max_size <= 0
-        FileValidationError: Si el archivo excede el tamaño máximo
+        ValueError: Si las probabilidades son inválidas
     """
-    if max_size <= 0:
-        raise ValueError("max_size must be positive")
+    if not probabilities:
+        return 0.0
     
+    probs = np.asarray(probabilities, dtype=np.float64)
+    
+    # Validación
+    if np.any(probs < 0):
+        raise ValueError("Probabilities cannot be negative")
+    
+    total = np.sum(probs)
+    if total < _EPSILON:
+        return 0.0  # Distribución degenerada
+    
+    # Normalizar si no suma exactamente 1
+    if not np.isclose(total, 1.0, rtol=1e-5):
+        probs = probs / total
+    
+    # Filtrar ceros para evitar log(0)
+    nonzero_probs = probs[probs > _EPSILON]
+    
+    if len(nonzero_probs) == 0:
+        return 0.0
+    
+    # H(X) = -Σ p * log(p)
+    log_probs = np.log(nonzero_probs) / np.log(base)
+    entropy = -np.sum(nonzero_probs * log_probs)
+    
+    return float(max(0.0, entropy))  # Asegurar no-negatividad por errores numéricos
+
+
+def _compute_distribution_from_counts(
+    counts: Union[Dict[Any, int], Counter]
+) -> List[float]:
+    """
+    Convierte conteos a distribución de probabilidad.
+    
+    Args:
+        counts: Mapeo valor -> frecuencia
+        
+    Returns:
+        Lista de probabilidades normalizadas
+    """
+    if not counts:
+        return []
+    
+    values = list(counts.values())
+    total = sum(values)
+    
+    if total == 0:
+        return []
+    
+    return [v / total for v in values]
+
+
+def _compute_persistence_entropy(
+    intervals: Sequence[PersistenceInterval]
+) -> float:
+    """
+    Calcula la entropía del diagrama de persistencia.
+    
+    Mide la distribución de "importancia" entre características topológicas.
+    Alta entropía = muchas características igualmente importantes.
+    Baja entropía = pocas características dominantes.
+    
+    Args:
+        intervals: Lista de intervalos de persistencia
+        
+    Returns:
+        Entropía de persistencia normalizada [0, 1]
+    """
+    if not intervals:
+        return 0.0
+    
+    # Filtrar intervalos esenciales y calcular persistencias finitas
+    finite_intervals = [iv for iv in intervals if not iv.is_essential]
+    
+    if not finite_intervals:
+        return 0.0
+    
+    persistences = [iv.persistence for iv in finite_intervals]
+    total_persistence = sum(persistences)
+    
+    if total_persistence < _EPSILON:
+        return 0.0
+    
+    # Normalizar a distribución de probabilidad
+    probs = [p / total_persistence for p in persistences]
+    
+    # Entropía normalizada por máximo teórico
+    raw_entropy = _compute_shannon_entropy(probs)
+    max_entropy = math.log2(len(probs)) if len(probs) > 1 else 1.0
+    
+    return raw_entropy / max_entropy if max_entropy > 0 else 0.0
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# FUNCIONES DE TOPOLOGÍA ALGEBRAICA
+# ══════════════════════════════════════════════════════════════════════════════
+
+def _analyze_topological_features(file_path: Path) -> Dict[str, Any]:
+    """
+    Analiza características topológicas de un archivo.
+    
+    Modelo: Construimos un grafo de similitud donde:
+    - Nodos = líneas del archivo
+    - Aristas = conexiones por contenido compartido
+    
+    Los números de Betti se estiman via análisis de componentes:
+    - β₀ = componentes conexos (clusters de líneas similares)
+    - β₁ = ciclos independientes (patrones repetitivos)
+    
+    Args:
+        file_path: Ruta al archivo a analizar
+        
+    Returns:
+        Diccionario con métricas topológicas
+    """
     try:
-        size = path.stat().st_size
-    except OSError as e:
-        raise FileValidationError(
-            f"Cannot read file size: {e}",
-            details={"path": str(path), "os_error": str(e)}
-        )
-    
-    if size > max_size:
-        raise FileValidationError(
-            f"File too large: {size:,} bytes exceeds maximum {max_size:,} bytes",
-            details={
-                "path": str(path),
-                "size": size,
-                "max_size": max_size,
-                "excess_bytes": size - max_size
-            }
-        )
-    
-    return size, size == 0
+        with open(file_path, 'r', encoding='utf-8', errors='replace') as f:
+            lines = [line.rstrip('\n\r') for line in f.readlines()[:_MAX_SAMPLE_ROWS]]
+        
+        if not lines:
+            return TopologicalSummary.empty().to_dict()
+        
+        # ─── Análisis de Componentes Conexos (β₀) ───
+        # Usamos clustering por contenido: líneas idénticas forman componentes
+        line_counts = Counter(lines)
+        num_unique_patterns = len(line_counts)
+        
+        # β₀ real: número de clusters de líneas distintas
+        # En topología de datos, esto corresponde a componentes conexos
+        # del complejo de Vietoris-Rips a radio 0
+        beta_0 = num_unique_patterns
+        
+        # ─── Detección de Ciclos (β₁) ───
+        # Ciclo = patrón que se repite después de un gap
+        # Detectamos via análisis de periodicidad
+        beta_1 = _detect_cyclic_patterns(lines)
+        
+        # ─── Dimensión Intrínseca ───
+        # Estimamos la dimensión del espacio de datos
+        dimension = _estimate_intrinsic_dimension(lines)
+        
+        # ─── Característica de Euler ───
+        # χ = β₀ - β₁ + β₂ (asumimos β₂ = 0 para datos 1D)
+        euler_char = beta_0 - beta_1
+        
+        # ─── Entropía Estructural ───
+        distribution = _compute_distribution_from_counts(line_counts)
+        structural_entropy = _compute_shannon_entropy(distribution)
+        
+        return {
+            "beta_0": beta_0,
+            "beta_1": beta_1,
+            "beta_2": 0,  # Cavidades no aplican a datos 1D
+            "euler_characteristic": euler_char,
+            "intrinsic_dimension": dimension,
+            "structural_entropy": round(structural_entropy, 6),
+            "num_lines": len(lines),
+            "num_unique_patterns": num_unique_patterns,
+            "repetition_ratio": 1.0 - (num_unique_patterns / len(lines)) if lines else 0.0
+        }
+        
+    except Exception as e:
+        logger.warning(f"Topological analysis failed: {e}")
+        return {
+            **TopologicalSummary.empty().to_dict(),
+            "analysis_error": str(e)
+        }
 
 
-def _normalize_encoding(encoding: str) -> str:
+def _detect_cyclic_patterns(lines: List[str], max_period: int = 50) -> int:
     """
-    Normaliza el nombre del encoding.
+    Detecta patrones cíclicos en una secuencia de líneas.
     
-    Aplica:
-    1. Lowercase
-    2. Reemplazo de _ por -
-    3. Mapeo de aliases conocidos
+    Un ciclo de período p existe si line[i] ≈ line[i+p] para muchos i.
+    
+    Args:
+        lines: Secuencia de líneas
+        max_period: Período máximo a buscar
+        
+    Returns:
+        Número de ciclos independientes detectados (β₁)
     """
-    if not encoding:
-        raise ValueError("Encoding cannot be empty")
+    if len(lines) < 3:
+        return 0
     
-    normalized = encoding.lower().strip().replace("_", "-")
+    cycles_found = 0
     
-    # Aplicar alias conocidos
-    return _ENCODING_ALIASES.get(normalized, normalized)
+    for period in range(1, min(max_period, len(lines) // 2)):
+        matches = 0
+        comparisons = 0
+        
+        for i in range(len(lines) - period):
+            comparisons += 1
+            if lines[i] == lines[i + period]:
+                matches += 1
+        
+        if comparisons > 0:
+            match_ratio = matches / comparisons
+            # Si más del 80% coincide, consideramos un ciclo
+            if match_ratio > 0.8:
+                cycles_found += 1
+    
+    return cycles_found
 
 
-def _validate_csv_parameters(
+def _estimate_intrinsic_dimension(lines: List[str]) -> int:
+    """
+    Estima la dimensión intrínseca del espacio de datos.
+    
+    Basado en la estructura columnar del contenido (para CSVs).
+    
+    Args:
+        lines: Líneas del archivo
+        
+    Returns:
+        Dimensión estimada (número de columnas efectivas)
+    """
+    if not lines:
+        return 0
+    
+    # Intentar detectar delimitador
+    sample = lines[0] if lines else ""
+    
+    for delimiter in [',', ';', '\t', '|']:
+        if delimiter in sample:
+            # Contar columnas consistentes
+            col_counts = [len(line.split(delimiter)) for line in lines[:100]]
+            if col_counts:
+                # Usar la moda como dimensión
+                return max(set(col_counts), key=col_counts.count)
+    
+    # Sin estructura columnar detectada
+    return 1
+
+
+def _compute_homology_groups(diagnostic_data: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Calcula grupos de homología a partir de datos diagnósticos.
+    
+    Modelo Algebraico:
+    - H₀(X) ≅ ℤ^β₀ donde β₀ = componentes conexos (tipos de issues únicos)
+    - H₁(X) ≅ ℤ^β₁ donde β₁ = ciclos (dependencias circulares)
+    
+    Args:
+        diagnostic_data: Resultado del diagnóstico
+        
+    Returns:
+        Diccionario con grupos de homología
+    """
+    issues = diagnostic_data.get("issues", [])
+    warnings = diagnostic_data.get("warnings", [])
+    errors = diagnostic_data.get("errors", [])
+    
+    # ─── H₀: Componentes Conexos ───
+    # Categorizar issues por tipo para encontrar componentes independientes
+    issue_types: Set[str] = set()
+    for issue in issues:
+        if isinstance(issue, dict):
+            issue_types.add(issue.get("type", issue.get("code", "unknown")))
+        else:
+            issue_types.add(str(type(issue).__name__))
+    
+    beta_0 = max(1, len(issue_types))  # Mínimo 1 componente (el espacio mismo)
+    
+    # ─── H₁: Ciclos ───
+    # Detectar dependencias circulares en warnings/issues
+    circular_keywords = {"circular", "cycle", "loop", "recursive", "dependency"}
+    
+    def has_circular_reference(item: Any) -> bool:
+        text = str(item).lower()
+        return any(kw in text for kw in circular_keywords)
+    
+    circular_in_warnings = sum(1 for w in warnings if has_circular_reference(w))
+    circular_in_issues = sum(1 for i in issues if has_circular_reference(i))
+    
+    beta_1 = circular_in_warnings + circular_in_issues
+    
+    # ─── Métricas Derivadas ───
+    euler_char = beta_0 - beta_1
+    
+    # Rango del grupo de homología total
+    total_rank = beta_0 + beta_1
+    
+    return {
+        "H_0": f"ℤ^{beta_0}",  # Notación algebraica
+        "H_1": f"ℤ^{beta_1}",
+        "beta_0": beta_0,
+        "beta_1": beta_1,
+        "betti_numbers": [beta_0, beta_1, 0],
+        "euler_characteristic": euler_char,
+        "total_rank": total_rank,
+        "is_connected": beta_0 == 1,
+        "has_cycles": beta_1 > 0
+    }
+
+
+def _compute_persistence_diagram(
+    diagnostic_data: Dict[str, Any]
+) -> List[Dict[str, Any]]:
+    """
+    Calcula diagrama de persistencia para características topológicas.
+    
+    Cada issue genera un punto (birth, death) donde:
+    - birth = momento de aparición en la filtración
+    - death = birth + severidad (tiempo de vida de la característica)
+    
+    Características más severas tienen mayor persistencia.
+    
+    Args:
+        diagnostic_data: Datos del diagnóstico
+        
+    Returns:
+        Lista de intervalos de persistencia serializados
+    """
+    issues = diagnostic_data.get("issues", [])
+    
+    if not issues:
+        return []
+    
+    # Mapeo de severidad a valores numéricos
+    severity_map: Dict[str, float] = {
+        "CRITICAL": 1.0,
+        "HIGH": 0.8,
+        "MEDIUM": 0.5,
+        "LOW": 0.2,
+        "INFO": 0.1,
+    }
+    
+    intervals: List[PersistenceInterval] = []
+    
+    for idx, issue in enumerate(issues):
+        # Determinar severidad
+        if isinstance(issue, dict):
+            raw_severity = issue.get("severity", "MEDIUM")
+            if isinstance(raw_severity, str):
+                severity = severity_map.get(raw_severity.upper(), 0.5)
+            elif isinstance(raw_severity, (int, float)):
+                severity = float(raw_severity)
+            else:
+                severity = 0.5
+        else:
+            severity = 0.5
+        
+        # Calcular birth y death
+        birth = idx * 0.1  # Espaciado uniforme en la filtración
+        death = birth + severity
+        
+        try:
+            interval = PersistenceInterval(
+                birth=birth,
+                death=death,
+                dimension=0  # Issues son características 0-dimensionales
+            )
+            intervals.append(interval)
+        except ValueError:
+            continue  # Ignorar intervalos inválidos
+    
+    # Filtrar características efímeras
+    significant_intervals = [
+        iv for iv in intervals 
+        if iv.persistence >= _PERSISTENCE_THRESHOLD
+    ]
+    
+    # Ordenar por persistencia (más persistente primero)
+    significant_intervals.sort()
+    
+    # Calcular entropía del diagrama
+    persistence_entropy = _compute_persistence_entropy(significant_intervals)
+    
+    # Serializar
+    return [
+        {
+            "birth": round(iv.birth, 4),
+            "death": round(iv.death, 4),
+            "persistence": round(iv.persistence, 4),
+            "dimension": iv.dimension,
+            "is_significant": iv.persistence >= 0.5
+        }
+        for iv in significant_intervals
+    ]
+
+
+def _compute_diagnostic_magnitude(diagnostic_data: Dict[str, Any]) -> float:
+    """
+    Calcula la magnitud normalizada del vector diagnóstico.
+    
+    Usa norma L2 ponderada:
+    ||d|| = √(w₁·issues² + w₂·warnings² + w₃·errors²)
+    
+    Pesos reflejan severidad relativa (errores > issues > warnings).
+    
+    Args:
+        diagnostic_data: Datos del diagnóstico
+        
+    Returns:
+        Magnitud normalizada en [0, 1]
+    """
+    # Conteos
+    n_issues = len(diagnostic_data.get("issues", []))
+    n_warnings = len(diagnostic_data.get("warnings", []))
+    n_errors = len(diagnostic_data.get("errors", []))
+    
+    # Pesos de severidad
+    w_errors = 3.0
+    w_issues = 2.0
+    w_warnings = 1.0
+    
+    # Norma L2 ponderada
+    raw_magnitude = math.sqrt(
+        w_errors * (n_errors ** 2) +
+        w_issues * (n_issues ** 2) +
+        w_warnings * (n_warnings ** 2)
+    )
+    
+    # Normalización sigmoidal para acotar en [0, 1]
+    # Usamos tanh para suavidad: magnitude → tanh(magnitude/k)
+    # k = 10 significa que ~10 problemas ponderados → 0.76
+    normalization_factor = 10.0
+    normalized = math.tanh(raw_magnitude / normalization_factor)
+    
+    return round(normalized, 4)
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# FUNCIONES DE ANÁLISIS CSV
+# ══════════════════════════════════════════════════════════════════════════════
+
+def _analyze_csv_topology(
+    path: Path,
     delimiter: str,
     encoding: str
-) -> Tuple[str, str]:
+) -> Dict[str, Any]:
     """
-    Valida parámetros de procesamiento CSV.
+    Analiza la topología estructural de un archivo CSV.
     
+    Métricas:
+    - Dimensionalidad: número de columnas (dimensión del espacio de features)
+    - Densidad: ratio de celdas no-nulas
+    - Entropía de nulos: incertidumbre en patrón de valores faltantes
+    - Rango estimado: dimensión efectiva del espacio (via correlaciones)
+    
+    Args:
+        path: Ruta al archivo CSV
+        delimiter: Delimitador de columnas
+        encoding: Encoding del archivo
+        
     Returns:
-        Tupla (validated_delimiter, normalized_encoding)
+        Diccionario con métricas topológicas del CSV
     """
-    # Validar delimiter
-    if not delimiter:
-        raise ValueError("Delimiter cannot be empty")
-    
-    if len(delimiter) != 1:
-        raise ValueError(
-            f"Delimiter must be a single character, got {len(delimiter)}: {delimiter!r}"
-        )
-    
-    if delimiter not in VALID_DELIMITERS:
-        raise ValueError(
-            f"Invalid delimiter: {delimiter!r}. "
-            f"Valid options: {sorted(VALID_DELIMITERS)}"
-        )
-    
-    # Normalizar y validar encoding
-    normalized_encoding = _normalize_encoding(encoding)
-    
-    if normalized_encoding not in SUPPORTED_ENCODINGS:
-        logger.warning(
-            f"Encoding '{normalized_encoding}' is not in recommended list. "
-            f"Proceeding with caution."
-        )
-    
-    return delimiter, normalized_encoding
-
-
-def _normalize_file_type(file_type: Union[str, FileType]) -> FileType:
-    """Normaliza el tipo de archivo a FileType enum."""
-    if isinstance(file_type, FileType):
-        return file_type
-    
-    if not isinstance(file_type, str):
-        raise UnsupportedFileTypeError(
-            f"file_type must be string or FileType, got {type(file_type).__name__}",
-            details={"received_type": type(file_type).__name__}
-        )
-    
     try:
-        return FileType.from_string(file_type)
-    except ValueError:
-        raise UnsupportedFileTypeError(
-            f"Unknown file type: '{file_type}'. Valid: {', '.join(FileType.values())}",
-            details={
-                "file_type": file_type,
-                "valid_types": FileType.values()
+        # Leer muestra representativa
+        df = pd.read_csv(
+            path,
+            sep=delimiter,
+            encoding=encoding,
+            nrows=_MAX_SAMPLE_ROWS,
+            on_bad_lines='skip'  # Tolerancia a errores
+        )
+        
+        if df.empty:
+            return {
+                "rows": 0,
+                "columns": 0,
+                "density": 0.0,
+                "null_entropy": 0.0,
+                "effective_rank": 0,
+                "is_empty": True
             }
+        
+        n_rows, n_cols = df.shape
+        
+        # ─── Densidad ───
+        total_cells = n_rows * n_cols
+        non_null_cells = df.notna().sum().sum()
+        density = non_null_cells / total_cells if total_cells > 0 else 0.0
+        
+        # ─── Entropía de Nulos ───
+        # Calcula la entropía del patrón de valores nulos por columna
+        null_ratios = df.isnull().mean().values
+        # Añadir epsilon para estabilidad numérica
+        null_ratios_safe = np.clip(null_ratios, _EPSILON, 1.0 - _EPSILON)
+        # Entropía binaria promedio por columna
+        binary_entropies = -(
+            null_ratios_safe * np.log2(null_ratios_safe) +
+            (1 - null_ratios_safe) * np.log2(1 - null_ratios_safe)
         )
-
-
-def _generate_output_path(input_path: Path, suffix: str = "_clean") -> Path:
-    """
-    Genera ruta de salida basada en la de entrada.
-    
-    Ejemplo: /path/to/file.csv -> /path/to/file_clean.csv
-    """
-    effective_suffix = suffix if suffix else "_clean"
-    new_name = f"{input_path.stem}{effective_suffix}{input_path.suffix}"
-    return input_path.with_name(new_name)
-
-
-# ══════════════════════════════════════════════════════════════════════════════
-# FUNCIONES DE RESPUESTA
-# ══════════════════════════════════════════════════════════════════════════════
-
-def _create_error_response(
-    error: Union[str, Exception],
-    **extras: Any
-) -> Dict[str, Any]:
-    """
-    Crea respuesta de error estandarizada.
-    
-    Estructura:
-    {
-        "success": False,
-        "error": str,
-        "error_type": str,
-        "error_details": Optional[Dict],
-        ...extras
-    }
-    """
-    message = str(error)
-    error_type = type(error).__name__ if isinstance(error, Exception) else "Error"
-    
-    response: Dict[str, Any] = {
-        "success": False,
-        "error": message,
-        "error_type": error_type
-    }
-    
-    # Incluir detalles si la excepción los tiene
-    if isinstance(error, (DiagnosticError, CleaningError)) and error.details:
-        response["error_details"] = error.details
-    
-    # Agregar extras no-None
-    response.update({k: v for k, v in extras.items() if v is not None})
-    
-    return response
-
-
-def _create_success_response(
-    data: Dict[str, Any],
-    **extras: Any
-) -> Dict[str, Any]:
-    """
-    Crea respuesta de éxito estandarizada.
-    
-    Estructura:
-    {
-        "success": True,
-        ...data,
-        ...extras
-    }
-    """
-    if not isinstance(data, dict):
-        data = {"result": data}
-    
-    response: Dict[str, Any] = {"success": True}
-    response.update(data)
-    response.update({k: v for k, v in extras.items() if v is not None})
-    
-    return response
-
-
-def _extract_diagnostic_result(diagnostic: DiagnosticProtocol) -> Dict[str, Any]:
-    """Extrae resultados de un objeto diagnóstico."""
-    base_result: Dict[str, Any] = {
-        "diagnostic_completed": True,
-        "diagnostic_class": type(diagnostic).__name__
-    }
-    
-    try:
-        if hasattr(diagnostic, "to_dict") and callable(diagnostic.to_dict):
-            result = diagnostic.to_dict()
-            if isinstance(result, dict):
-                return {**base_result, **result}
+        null_entropy = float(np.mean(binary_entropies))
+        
+        # ─── Rango Efectivo (Dimensión Intrínseca) ───
+        # Estimamos usando la matriz numérica
+        effective_rank = _estimate_effective_rank(df)
+        
+        # ─── Métricas de Distribución ───
+        # Entropía de tipos de datos
+        dtype_counts = Counter(str(dtype) for dtype in df.dtypes)
+        dtype_probs = _compute_distribution_from_counts(dtype_counts)
+        type_entropy = _compute_shannon_entropy(dtype_probs)
+        
+        return {
+            "rows": n_rows,
+            "columns": n_cols,
+            "density": round(density, 4),
+            "null_entropy": round(null_entropy, 4),
+            "effective_rank": effective_rank,
+            "type_entropy": round(type_entropy, 4),
+            "dimensionality": n_cols,
+            "sparsity": round(1.0 - density, 4),
+            "is_empty": False
+        }
+        
+    except pd.errors.EmptyDataError:
+        return {"rows": 0, "columns": 0, "is_empty": True, "error": "Empty file"}
     except Exception as e:
-        logger.warning(f"Error extracting diagnostic result via to_dict: {e}")
+        logger.warning(f"CSV topology analysis failed: {e}")
+        return {"error": str(e), "is_empty": None}
+
+
+def _estimate_effective_rank(df: pd.DataFrame, threshold: float = 0.95) -> int:
+    """
+    Estima el rango efectivo de un DataFrame usando SVD.
     
-    return base_result
-
-
-# ══════════════════════════════════════════════════════════════════════════════
-# UTILIDADES PÚBLICAS
-# ══════════════════════════════════════════════════════════════════════════════
-
-def get_supported_file_types() -> List[str]:
-    """Retorna lista de tipos de archivo soportados."""
-    return FileType.values()
-
-
-def get_supported_delimiters() -> List[str]:
-    """Retorna lista de delimitadores soportados."""
-    return sorted(VALID_DELIMITERS)
-
-
-def get_supported_encodings() -> List[str]:
-    """Retorna lista de encodings soportados."""
-    return sorted(SUPPORTED_ENCODINGS)
-
-
-def is_valid_file_type(file_type: Any) -> bool:
-    """Verifica si un valor es un tipo de archivo válido."""
+    El rango efectivo es el número mínimo de componentes principales
+    que explican al menos `threshold` de la varianza total.
+    
+    Args:
+        df: DataFrame a analizar
+        threshold: Proporción de varianza a explicar
+        
+    Returns:
+        Rango efectivo (dimensión intrínseca)
+    """
+    # Seleccionar solo columnas numéricas
+    numeric_df = df.select_dtypes(include=[np.number])
+    
+    if numeric_df.empty or numeric_df.shape[1] < 2:
+        return numeric_df.shape[1] if not numeric_df.empty else 0
+    
     try:
-        _normalize_file_type(file_type)
-        return True
-    except (UnsupportedFileTypeError, ValueError, TypeError):
-        return False
+        # Imputar valores faltantes con la media
+        filled = numeric_df.fillna(numeric_df.mean())
+        
+        # Estandarizar
+        std = filled.std()
+        std[std == 0] = 1  # Evitar división por cero
+        normalized = (filled - filled.mean()) / std
+        
+        # SVD
+        _, singular_values, _ = np.linalg.svd(normalized.values, full_matrices=False)
+        
+        # Calcular varianza explicada
+        variance_explained = singular_values ** 2
+        total_variance = variance_explained.sum()
+        
+        if total_variance < _EPSILON:
+            return 0
+        
+        cumulative_variance = np.cumsum(variance_explained) / total_variance
+        
+        # Encontrar número de componentes para threshold
+        effective_rank = int(np.searchsorted(cumulative_variance, threshold) + 1)
+        
+        return min(effective_rank, len(singular_values))
+        
+    except Exception:
+        return numeric_df.shape[1]
 
 
-def validate_file_for_processing(
-    file_path: Union[str, Path],
-    *,
-    check_extension: bool = True,
-    max_size: Optional[int] = None
+def _compute_topological_preservation(
+    initial: Dict[str, Any],
+    final: Dict[str, Any]
 ) -> Dict[str, Any]:
     """
-    Pre-valida un archivo para procesamiento.
+    Compara topologías inicial y final para medir preservación.
     
+    Métricas de preservación:
+    - Preservación dimensional: |cols_final / cols_initial|
+    - Preservación de filas: |rows_final / rows_initial|
+    - Delta de densidad: cambio en ratio de no-nulos
+    - Delta de entropía: cambio en complejidad estructural
+    
+    Args:
+        initial: Topología antes de la operación
+        final: Topología después de la operación
+        
     Returns:
-        Dict con 'valid', 'path', y detalles adicionales o errores
+        Métricas de preservación topológica
     """
-    path_str = str(file_path)
+    # Manejar errores
+    if initial.get("error") or final.get("error"):
+        return {
+            "preservation_rate": 0.0,
+            "is_valid": False,
+            "error": initial.get("error") or final.get("error")
+        }
     
-    try:
-        path = _normalize_path(file_path)
-        _validate_file_exists(path)
-        
-        if check_extension:
-            _validate_file_extension(path)
-        
-        effective_max = max_size or MAX_FILE_SIZE_BYTES
-        size, is_empty = _validate_file_size(path, effective_max)
-        
+    if initial.get("is_empty") or final.get("is_empty"):
         return {
-            "valid": True,
-            "path": str(path),
-            "size": size,
-            "is_empty": is_empty,
-            "extension": path.suffix.lower()
+            "preservation_rate": 0.0 if final.get("is_empty") else 1.0,
+            "is_valid": True,
+            "note": "Empty file involved"
         }
-        
-    except FileNotFoundDiagnosticError:
-        return {
-            "valid": False,
-            "path": path_str,
-            "errors": [f"File does not exist: {file_path}"]
-        }
-    except (DiagnosticError, ValueError) as e:
-        return {
-            "valid": False,
-            "path": path_str,
-            "errors": [str(e)]
-        }
+    
+    # ─── Preservación de Filas ───
+    init_rows = initial.get("rows", 0)
+    final_rows = final.get("rows", 0)
+    
+    if init_rows == 0:
+        row_preservation = 1.0 if final_rows == 0 else 0.0
+    else:
+        row_preservation = min(final_rows / init_rows, 1.0)
+    
+    # ─── Preservación de Columnas ───
+    init_cols = initial.get("columns", 0)
+    final_cols = final.get("columns", 0)
+    
+    if init_cols == 0:
+        col_preservation = 1.0 if final_cols == 0 else 0.0
+    else:
+        col_preservation = min(final_cols / init_cols, 1.0)
+    
+    # ─── Delta de Densidad ───
+    init_density = initial.get("density", 0.0)
+    final_density = final.get("density", 0.0)
+    density_delta = final_density - init_density
+    
+    # ─── Delta de Entropía ───
+    init_entropy = initial.get("null_entropy", 0.0)
+    final_entropy = final.get("null_entropy", 0.0)
+    entropy_delta = final_entropy - init_entropy
+    
+    # ─── Tasa de Preservación Compuesta ───
+    # Media ponderada: filas importan más que columnas
+    preservation_rate = 0.6 * row_preservation + 0.4 * col_preservation
+    
+    # Bonus por mejora de densidad (limpieza efectiva)
+    if density_delta > 0:
+        preservation_rate = min(1.0, preservation_rate + 0.1 * density_delta)
+    
+    return {
+        "preservation_rate": round(preservation_rate, 4),
+        "row_preservation": round(row_preservation, 4),
+        "column_preservation": round(col_preservation, 4),
+        "density_delta": round(density_delta, 4),
+        "entropy_delta": round(entropy_delta, 4),
+        "is_valid": True,
+        "improved_density": density_delta > 0,
+        "reduced_entropy": entropy_delta < 0
+    }
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# HANDLERS DE LA MIC (VECTORES)
+# FUNCIONES FINANCIERAS CON ANÁLISIS TOPOLÓGICO
+# ══════════════════════════════════════════════════════════════════════════════
+
+def _generate_topological_cash_flows(
+    amount: float,
+    time_years: int,
+    std_dev: float,
+    *,
+    random_seed: Optional[int] = None,
+    decay_rate: float = 0.02
+) -> List[float]:
+    """
+    Genera flujos de caja con dinámica temporal realista.
+    
+    Modelo: dC/dt = μC + σC·dW - λC
+    Donde:
+    - μ = tasa de crecimiento base (20% anual)
+    - σ = volatilidad (std_dev)
+    - λ = tasa de decaimiento (decay_rate)
+    - dW = incremento de Wiener (ruido browniano)
+    
+    Args:
+        amount: Inversión inicial
+        time_years: Horizonte temporal
+        std_dev: Desviación estándar del ruido
+        random_seed: Semilla para reproducibilidad
+        decay_rate: Tasa de decaimiento temporal
+        
+    Returns:
+        Lista de flujos de caja proyectados
+    """
+    # Establecer semilla para reproducibilidad
+    rng = np.random.default_rng(random_seed or _DEFAULT_RANDOM_SEED)
+    
+    if amount <= 0 or time_years <= 0:
+        return []
+    
+    # Parámetros del modelo
+    base_return = 0.20  # 20% anual
+    
+    flows: List[float] = []
+    
+    for t in range(time_years):
+        # Tasa de retorno con decaimiento temporal
+        effective_rate = base_return * math.exp(-decay_rate * t)
+        
+        # Componente determinista
+        base_flow = amount * effective_rate
+        
+        # Ruido estocástico (distribución log-normal para positividad)
+        # Se usa log-normal porque los retornos financieros son multiplicativos
+        if std_dev > 0:
+            noise_factor = rng.lognormal(mean=0, sigma=std_dev / amount)
+            noise_factor = np.clip(noise_factor, 0.5, 2.0)  # Limitar extremos
+        else:
+            noise_factor = 1.0
+        
+        flow = base_flow * noise_factor
+        flows.append(float(flow))
+    
+    return flows
+
+
+def _analyze_risk_manifold(
+    amount: float,
+    std_dev: float,
+    time_years: int,
+    flows: List[float]
+) -> Dict[str, Any]:
+    """
+    Construye una variedad de riesgo para análisis topológico.
+    
+    Modelo: El espacio de riesgo es una variedad 2D (Tiempo × Rendimiento)
+    con métrica dada por la matriz de covarianza de flujos.
+    
+    Args:
+        amount: Inversión inicial
+        std_dev: Volatilidad esperada
+        time_years: Horizonte temporal
+        flows: Flujos de caja proyectados
+        
+    Returns:
+        Características de la variedad de riesgo
+    """
+    if not flows or amount <= 0:
+        return {
+            "dimension": 0,
+            "curvature": 0.0,
+            "volatility_surface": 0.0,
+            "flow_stability": 0.0,
+            "is_degenerate": True
+        }
+    
+    flows_array = np.array(flows)
+    
+    # ─── Volatilidad de Superficie ───
+    # Ratio de desviación estándar a inversión
+    realized_std = np.std(flows_array)
+    volatility_surface = realized_std / amount if amount > 0 else 0.0
+    
+    # ─── Estabilidad de Flujos ───
+    # Coeficiente de variación (inverso = estabilidad)
+    mean_flow = np.mean(flows_array)
+    if mean_flow > _EPSILON:
+        cv = realized_std / mean_flow  # Coeficiente de variación
+        stability = 1.0 / (1.0 + cv)  # Mapear a [0, 1]
+    else:
+        stability = 0.0
+    
+    # ─── Curvatura (Cambio en Tendencia) ───
+    # Segunda derivada discreta de flujos
+    if len(flows) >= 3:
+        second_diff = np.diff(flows_array, n=2)
+        curvature = float(np.mean(np.abs(second_diff))) / (amount + _EPSILON)
+    else:
+        curvature = 0.0
+    
+    # ─── Dimensión Efectiva ───
+    # Para una variedad 2D (tiempo, dinero), la dimensión es 2
+    # Pero si los flujos son constantes, la dimensión efectiva es 1
+    if len(set(flows)) == 1:
+        effective_dimension = 1
+    else:
+        effective_dimension = 2
+    
+    # ─── Número de Máximos/Mínimos Locales ───
+    # Indica la "rugosidad" de la variedad
+    local_extrema = 0
+    for i in range(1, len(flows) - 1):
+        if (flows[i] > flows[i-1] and flows[i] > flows[i+1]) or \
+           (flows[i] < flows[i-1] and flows[i] < flows[i+1]):
+            local_extrema += 1
+    
+    return {
+        "dimension": effective_dimension,
+        "curvature": round(curvature, 6),
+        "volatility_surface": round(volatility_surface, 6),
+        "flow_stability": round(stability, 4),
+        "local_extrema": local_extrema,
+        "is_degenerate": effective_dimension < 2,
+        "mean_flow": round(mean_flow, 2),
+        "realized_volatility": round(realized_std, 2)
+    }
+
+
+def _compute_risk_homology(manifold: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Calcula invariantes homológicos del espacio de riesgo.
+    
+    En la variedad de riesgo:
+    - β₀ = regímenes de riesgo distintos
+    - β₁ = "agujeros" = escenarios de pérdida potencial
+    
+    Args:
+        manifold: Características de la variedad de riesgo
+        
+    Returns:
+        Invariantes homológicos con interpretación financiera
+    """
+    if manifold.get("is_degenerate", True):
+        return {
+            "risk_holes_beta_1": 0,
+            "risk_regimes_beta_0": 1,
+            "euler_characteristic": 1,
+            "interpretation": "Degenerate risk space - insufficient data"
+        }
+    
+    stability = manifold.get("flow_stability", 0.5)
+    local_extrema = manifold.get("local_extrema", 0)
+    volatility = manifold.get("volatility_surface", 0.0)
+    
+    # ─── β₁: Agujeros de Riesgo ───
+    # Más inestabilidad y más extremos locales = más "agujeros" en seguridad
+    instability = 1.0 - stability
+    risk_holes = int(instability * 5 + local_extrema * 0.5)
+    
+    # ─── β₀: Regímenes de Riesgo ───
+    # Alta volatilidad puede indicar múltiples regímenes
+    risk_regimes = 1 + int(volatility * 10)
+    risk_regimes = min(risk_regimes, 5)  # Acotar a máximo 5 regímenes
+    
+    # ─── Característica de Euler ───
+    euler = risk_regimes - risk_holes
+    
+    # ─── Interpretación ───
+    if risk_holes == 0:
+        interpretation = "Solid risk surface - well-protected"
+    elif risk_holes <= 2:
+        interpretation = "Minor risk exposures - manageable"
+    elif risk_holes <= 4:
+        interpretation = "Significant risk gaps - requires hedging"
+    else:
+        interpretation = "Critical risk topology - high exposure"
+    
+    return {
+        "risk_holes_beta_1": risk_holes,
+        "risk_regimes_beta_0": risk_regimes,
+        "euler_characteristic": euler,
+        "interpretation": interpretation,
+        "raw_instability": round(instability, 4)
+    }
+
+
+def _compute_opportunity_persistence(manifold: Dict[str, Any]) -> List[Dict[str, Any]]:
+    """
+    Calcula la persistencia de oportunidades en el espacio financiero.
+    
+    Modela cómo las oportunidades de ganancia aparecen y desaparecen
+    a lo largo del horizonte temporal.
+    
+    Args:
+        manifold: Variedad de riesgo analizada
+        
+    Returns:
+        Diagrama de persistencia de oportunidades
+    """
+    mean_flow = manifold.get("mean_flow", 0.0)
+    stability = manifold.get("flow_stability", 0.5)
+    volatility = manifold.get("volatility_surface", 0.1)
+    local_extrema = manifold.get("local_extrema", 0)
+    
+    intervals = []
+    
+    # Oportunidad principal: flujo medio positivo
+    if mean_flow > 0:
+        # Persistencia proporcional a estabilidad
+        death_time = 1.0 / (1.0 + volatility) if volatility > 0 else float('inf')
+        intervals.append({
+            "birth": 0.0,
+            "death": round(death_time, 4) if not math.isinf(death_time) else "inf",
+            "persistence": round(death_time, 4) if not math.isinf(death_time) else "inf",
+            "type": "primary_opportunity",
+            "strength": round(mean_flow, 2)
+        })
+    
+    # Oportunidades secundarias por extremos locales
+    for i in range(local_extrema):
+        birth = 0.1 * (i + 1)
+        # Menor persistencia que la principal
+        death = birth + 0.3 * stability
+        intervals.append({
+            "birth": round(birth, 4),
+            "death": round(death, 4),
+            "persistence": round(death - birth, 4),
+            "type": "secondary_opportunity",
+            "index": i
+        })
+    
+    # Ordenar por persistencia descendente
+    intervals.sort(key=lambda x: -(x["persistence"] if isinstance(x["persistence"], (int, float)) else float('inf')))
+    
+    return intervals
+
+
+def _compute_risk_adjusted_return(
+    analysis: Dict[str, Any],
+    risk_tolerance: float
+) -> float:
+    """
+    Calcula el retorno ajustado al riesgo usando Sharpe Ratio modificado.
+    
+    RAR = (NPV - Rf) / (σ * √T * (1 + risk_aversion))
+    
+    Donde:
+    - NPV = Valor Presente Neto
+    - Rf = Tasa libre de riesgo (asumida 3%)
+    - σ = Volatilidad implícita
+    - T = Horizonte temporal
+    - risk_aversion = 1 - risk_tolerance
+    
+    Args:
+        analysis: Resultado del análisis financiero
+        risk_tolerance: Tolerancia al riesgo [0, 1]
+        
+    Returns:
+        Retorno ajustado al riesgo
+    """
+    npv = analysis.get("npv", 0.0)
+    
+    if npv is None:
+        return 0.0
+    
+    # Parámetros
+    risk_free_rate = 0.03  # 3% anual
+    
+    # Extraer volatilidad del análisis o usar default
+    volatility = analysis.get("volatility", 0.30)
+    time_years = analysis.get("project_life_years", 5)
+    
+    # Evitar división por cero
+    risk_aversion = max(0.01, 1.0 - risk_tolerance)
+    denominator = volatility * math.sqrt(time_years) * (1 + risk_aversion)
+    
+    if denominator < _EPSILON:
+        return float(npv)  # Sin ajuste si no hay riesgo
+    
+    excess_return = npv - (risk_free_rate * npv)  # Exceso sobre libre de riesgo
+    
+    risk_adjusted = excess_return / denominator
+    
+    return round(risk_adjusted, 4)
+
+
+def _compute_topological_efficiency(
+    analysis: Dict[str, Any],
+    manifold: Dict[str, Any]
+) -> float:
+    """
+    Calcula la eficiencia topológica del proyecto.
+    
+    Mide qué tan "suave" es el camino hacia el retorno,
+    penalizando variedad de riesgo irregular.
+    
+    Eficiencia = NPV / (1 + curvatura + inestabilidad)
+    
+    Args:
+        analysis: Resultados del análisis financiero
+        manifold: Variedad de riesgo
+        
+    Returns:
+        Eficiencia topológica normalizada
+    """
+    npv = analysis.get("npv", 0.0) or 0.0
+    curvature = manifold.get("curvature", 0.0)
+    stability = manifold.get("flow_stability", 0.5)
+    
+    instability = 1.0 - stability
+    roughness = curvature + instability
+    
+    # Normalizar NPV a [0, 1] con sigmoide
+    normalized_npv = 1.0 / (1.0 + math.exp(-npv / 10000)) if npv != 0 else 0.5
+    
+    # Penalizar por rugosidad
+    efficiency = normalized_npv / (1.0 + roughness)
+    
+    return round(efficiency, 4)
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# HANDLERS DE LA MIC REFINADOS
 # ══════════════════════════════════════════════════════════════════════════════
 
 def diagnose_file(
@@ -847,17 +1138,23 @@ def diagnose_file(
     *,
     validate_extension: bool = True,
     max_file_size: Optional[int] = None,
+    topological_analysis: bool = False
 ) -> Dict[str, Any]:
     """
-    Vector de Diagnóstico (Nivel 3 - PHYSICS).
+    Vector de Diagnóstico con análisis topológico opcional (Nivel 3 - PHYSICS).
     
-    Ejecuta diagnóstico estructural sobre archivos CSV según su tipo.
+    Ejecuta diagnóstico estructural sobre archivos CSV según su tipo,
+    con opción de análisis topológico avanzado que incluye:
+    - Números de Betti (componentes y ciclos)
+    - Diagrama de persistencia
+    - Entropía estructural
     
     Args:
         file_path: Ruta al archivo a diagnosticar
         file_type: Tipo de archivo (apus, insumos, presupuesto)
         validate_extension: Si validar extensión del archivo
         max_file_size: Tamaño máximo permitido en bytes
+        topological_analysis: Si ejecutar análisis topológico avanzado
         
     Returns:
         Respuesta estandarizada con resultados del diagnóstico
@@ -865,11 +1162,11 @@ def diagnose_file(
     path_str = str(file_path)
     
     try:
-        # ─── Validaciones ───
+        # ─── Fase 1: Validación ───
         path = _normalize_path(file_path)
         normalized_type = _normalize_file_type(file_type)
         
-        logger.info(f"Starting diagnosis: {path} (type={normalized_type.value})")
+        logger.info(f"Initiating diagnosis: path={path}, type={normalized_type.value}")
         
         _validate_file_exists(path)
         
@@ -881,39 +1178,81 @@ def diagnose_file(
         
         if is_empty:
             logger.warning(f"File is empty: {path}")
+            return _create_success_response(
+                {"diagnostic_completed": True, "is_empty": True},
+                file_type=normalized_type.value,
+                file_path=str(path),
+                file_size_bytes=0,
+                warning="File is empty"
+            )
         
-        # ─── Ejecución del Diagnóstico ───
+        # ─── Fase 2: Diagnóstico Base ───
         diagnostic_class = _get_diagnostic_class(normalized_type)
         diagnostic = diagnostic_class(str(path))
         diagnostic.diagnose()
         
-        # ─── Extracción de Resultados ───
         result_data = _extract_diagnostic_result(diagnostic)
         
-        logger.info(f"Diagnosis completed successfully: {path}")
+        # ─── Fase 3: Análisis Topológico Opcional ───
+        if topological_analysis:
+            logger.debug("Executing topological analysis")
+            
+            # Características topológicas del archivo
+            topo_features = _analyze_topological_features(path)
+            result_data["topological_features"] = topo_features
+            
+            # Homología basada en issues encontrados
+            homology = _compute_homology_groups(result_data)
+            result_data["homology"] = homology
+            
+            # Diagrama de persistencia
+            persistence = _compute_persistence_diagram(result_data)
+            result_data["persistence_diagram"] = persistence
+            
+            # Entropía de persistencia
+            if persistence:
+                intervals = [
+                    PersistenceInterval(
+                        birth=p["birth"],
+                        death=p["death"],
+                        dimension=p.get("dimension", 0)
+                    )
+                    for p in persistence
+                ]
+                result_data["persistence_entropy"] = _compute_persistence_entropy(intervals)
+        
+        # ─── Fase 4: Métricas Globales ───
+        magnitude = _compute_diagnostic_magnitude(result_data)
+        
+        logger.info(f"Diagnosis completed: path={path}, magnitude={magnitude}")
         
         return _create_success_response(
             result_data,
             file_type=normalized_type.value,
             file_path=str(path),
             file_size_bytes=size,
-            is_empty=is_empty
+            diagnostic_magnitude=magnitude,
+            has_topological_analysis=topological_analysis
         )
         
-    except (FileNotFoundDiagnosticError, UnsupportedFileTypeError, FileValidationError) as e:
-        logger.warning(f"Diagnostic validation error: {e}")
+    except FileNotFoundDiagnosticError as e:
+        logger.warning(f"File not found: {path_str}")
+        return _create_error_response(e, error_category="validation")
+        
+    except (UnsupportedFileTypeError, FileValidationError) as e:
+        logger.warning(f"Validation error: {e}")
         return _create_error_response(e, error_category="validation")
         
     except (ValueError, TypeError) as e:
-        logger.warning(f"Parameter validation error: {e}")
+        logger.warning(f"Parameter error: {e}")
         return _create_error_response(e, error_category="validation")
         
     except IOError as e:
-        logger.error(f"IO error during diagnosis: {e}")
+        logger.error(f"IO error: {e}")
         return _create_error_response(e, error_category="io_error")
         
     except Exception as e:
-        logger.error(f"Unexpected error in diagnosis: {e}", exc_info=True)
+        logger.exception(f"Unexpected error in diagnosis: {e}")
         return _create_error_response(e, error_category="unexpected")
 
 
@@ -926,29 +1265,36 @@ def clean_file(
     overwrite: bool = True,
     validate_extension: bool = True,
     max_file_size: Optional[int] = None,
+    preserve_topology: bool = True,
+    compression_ratio: Optional[float] = None
 ) -> Dict[str, Any]:
     """
-    Vector de Limpieza (Nivel 3 - PHYSICS).
+    Vector de Limpieza con preservación topológica (Nivel 3 - PHYSICS).
     
-    Limpia y normaliza archivos CSV.
+    Limpia y normaliza archivos CSV, opcionalmente verificando
+    que la estructura topológica se preserve durante la transformación.
     
     Args:
         input_path: Ruta al archivo de entrada
-        output_path: Ruta de salida (opcional, auto-generada si None)
+        output_path: Ruta de salida (auto-generada si None)
         delimiter: Delimitador CSV
         encoding: Encoding del archivo
         overwrite: Si sobrescribir archivo existente
         validate_extension: Si validar extensión
         max_file_size: Tamaño máximo permitido
+        preserve_topology: Si verificar preservación topológica
+        compression_ratio: Ratio de compresión objetivo (no implementado)
         
     Returns:
         Respuesta estandarizada con estadísticas de limpieza
     """
+    input_str = str(input_path)
+    
     try:
-        # ─── Validación de Entrada ───
+        # ─── Fase 1: Validación de Entrada ───
         input_p = _normalize_path(input_path)
         
-        logger.info(f"Starting CSV cleaning: {input_p}")
+        logger.info(f"Initiating cleaning: {input_p}")
         
         _validate_file_exists(input_p)
         
@@ -959,29 +1305,42 @@ def clean_file(
             delimiter, encoding
         )
         
-        # ─── Configuración de Salida ───
+        # ─── Fase 2: Análisis Topológico Pre-Limpieza ───
+        initial_topology: Dict[str, Any] = {}
+        if preserve_topology:
+            initial_topology = _analyze_csv_topology(
+                input_p, validated_delimiter, validated_encoding
+            )
+            logger.debug(f"Initial topology: {initial_topology}")
+        
+        # ─── Fase 3: Configuración de Salida ───
         if output_path is None:
             output_p = _generate_output_path(input_p)
         else:
             output_p = _normalize_path(output_path)
         
         # Validar que input != output
-        if input_p.resolve() == output_p.resolve():
-            raise ValueError(
-                "Output path cannot be the same as input path. "
-                "Use a different filename or directory."
-            )
+        try:
+            if input_p.resolve() == output_p.resolve():
+                raise ValueError(
+                    "Output path cannot be the same as input path. "
+                    "Use a different filename or directory."
+                )
+        except OSError:
+            # Si resolve() falla, comparar strings
+            if str(input_p) == str(output_p):
+                raise ValueError("Output path cannot be the same as input path")
         
         # Verificar sobrescritura
         if output_p.exists() and not overwrite:
             raise ValueError(
-                f"Output file already exists and overwrite=False: {output_p}"
+                f"Output file exists and overwrite=False: {output_p}"
             )
         
         # Crear directorio de salida si no existe
         output_p.parent.mkdir(parents=True, exist_ok=True)
         
-        # ─── Ejecución de Limpieza ───
+        # ─── Fase 4: Ejecución de Limpieza ───
         cleaner = CSVCleaner(
             input_path=str(input_p),
             output_path=str(output_p),
@@ -995,21 +1354,56 @@ def clean_file(
         # Normalizar estadísticas
         if isinstance(stats, dict):
             stats_dict = stats
-        elif hasattr(stats, "to_dict"):
+        elif hasattr(stats, "to_dict") and callable(stats.to_dict):
             stats_dict = stats.to_dict()
         else:
             stats_dict = {"raw_result": str(stats)}
         
-        logger.info(f"CSV cleaning completed: {output_p}")
+        # ─── Fase 5: Análisis Topológico Post-Limpieza ───
+        if preserve_topology and not initial_topology.get("error"):
+            final_topology = _analyze_csv_topology(
+                output_p, validated_delimiter, validated_encoding
+            )
+            
+            preservation = _compute_topological_preservation(
+                initial_topology, final_topology
+            )
+            
+            stats_dict["topological_preservation"] = preservation
+            stats_dict["initial_topology"] = {
+                "rows": initial_topology.get("rows"),
+                "columns": initial_topology.get("columns"),
+                "density": initial_topology.get("density")
+            }
+            stats_dict["final_topology"] = {
+                "rows": final_topology.get("rows"),
+                "columns": final_topology.get("columns"),
+                "density": final_topology.get("density")
+            }
+            
+            # Advertir si la preservación es baja
+            pres_rate = preservation.get("preservation_rate", 1.0)
+            if pres_rate < 0.8:
+                logger.warning(
+                    f"Low topological preservation ({pres_rate:.2%}). "
+                    f"Significant data loss may have occurred."
+                )
+        
+        logger.info(f"Cleaning completed: {output_p}")
         
         return _create_success_response(
             stats_dict,
             input_path=str(input_p),
-            output_path=str(output_p)
+            output_path=str(output_p),
+            preserved_topology=preserve_topology
         )
         
-    except (FileNotFoundDiagnosticError, FileValidationError, ValueError) as e:
-        logger.warning(f"Cleaning validation error: {e}")
+    except FileNotFoundDiagnosticError as e:
+        logger.warning(f"File not found: {input_str}")
+        return _create_error_response(e, error_category="validation")
+        
+    except (FileValidationError, ValueError) as e:
+        logger.warning(f"Validation error: {e}")
         return _create_error_response(e, error_category="validation")
         
     except CleaningError as e:
@@ -1018,98 +1412,161 @@ def clean_file(
         
     except IOError as e:
         logger.error(f"IO error during cleaning: {e}")
-        return _create_error_response(
-            CleaningError(f"IO error: {e}", details={"original_error": str(e)}),
-            error_category="cleaning"
+        wrapped = CleaningError(
+            f"IO error during cleaning: {e}",
+            details={"original_error": str(e), "input_path": input_str}
         )
+        return _create_error_response(wrapped, error_category="cleaning")
         
     except Exception as e:
-        logger.error(f"Unexpected error in cleaning: {e}", exc_info=True)
+        logger.exception(f"Unexpected error in cleaning: {e}")
         return _create_error_response(e, error_category="unexpected")
 
 
 def analyze_financial_viability(
     amount: float,
     std_dev: float,
-    time_years: int
+    time_years: int,
+    *,
+    risk_tolerance: float = 0.05,
+    market_volatility: Optional[float] = None,
+    topological_risk_analysis: bool = False,
+    random_seed: Optional[int] = None
 ) -> Dict[str, Any]:
     """
-    Vector de Análisis Financiero (Nivel 1 - STRATEGY).
+    Vector de Análisis Financiero con riesgo topológico (Nivel 1 - STRATEGY).
     
-    Evalúa la viabilidad financiera de un proyecto usando simulación.
+    Evalúa la viabilidad financiera de un proyecto usando:
+    - Simulación de flujos de caja con dinámica estocástica
+    - Análisis de variedad de riesgo (manifold)
+    - Homología del espacio de riesgo
+    - Persistencia de oportunidades
     
     Args:
-        amount: Monto de inversión inicial
-        std_dev: Desviación estándar de costos
+        amount: Inversión inicial (debe ser positivo)
+        std_dev: Desviación estándar de los costos
         time_years: Horizonte temporal en años
+        risk_tolerance: Tolerancia al riesgo [0, 1] (default 0.05)
+        market_volatility: Volatilidad de mercado (opcional)
+        topological_risk_analysis: Si ejecutar análisis topológico
+        random_seed: Semilla para reproducibilidad
         
     Returns:
-        Análisis financiero con métricas clave (WACC, NPV, recomendación)
+        Análisis financiero con métricas y riesgo topológico
     """
     try:
-        # ─── Validaciones ───
+        # ─── Fase 1: Validación de Parámetros ───
         if not isinstance(amount, (int, float)):
             raise TypeError(f"amount must be numeric, got {type(amount).__name__}")
-        
         if amount <= 0:
             raise ValueError("Amount must be positive")
         
         if not isinstance(std_dev, (int, float)):
             raise TypeError(f"std_dev must be numeric, got {type(std_dev).__name__}")
-        
         if std_dev < 0:
             raise ValueError("Standard deviation cannot be negative")
         
         if not isinstance(time_years, int):
             raise TypeError(f"time_years must be integer, got {type(time_years).__name__}")
-        
         if time_years <= 0:
             raise ValueError("Time horizon must be positive")
         
-        # ─── Configuración del Motor ───
+        if not 0 <= risk_tolerance <= 1:
+            raise ValueError("risk_tolerance must be in [0, 1]")
+        
+        logger.info(
+            f"Analyzing financial viability: amount={amount}, "
+            f"std_dev={std_dev}, years={time_years}"
+        )
+        
+        # ─── Fase 2: Generación de Flujos ───
+        cash_flows = _generate_topological_cash_flows(
+            amount=amount,
+            time_years=time_years,
+            std_dev=std_dev,
+            random_seed=random_seed
+        )
+        
+        # ─── Fase 3: Análisis Base ───
         config = FinancialConfig(project_life_years=time_years)
         engine = FinancialEngine(config)
         
-        # ─── Simulación de Flujos ───
-        # Modelo simplificado: rendimiento anual del 20% sobre inversión inicial
-        annual_return_rate = 0.20
-        cash_flows = [amount * annual_return_rate] * time_years
-        
-        # ─── Análisis ───
         analysis = engine.analyze_project(
             initial_investment=amount,
             expected_cash_flows=cash_flows,
             cost_std_dev=std_dev,
-            project_volatility=0.30
+            project_volatility=market_volatility or 0.30
         )
         
-        # ─── Extracción de Resultados ───
+        # ─── Fase 4: Extracción de Resultados ───
         performance = analysis.get("performance", {})
+        
+        results: Dict[str, Any] = {
+            "wacc": analysis.get("wacc"),
+            "npv": analysis.get("npv"),
+            "irr": analysis.get("irr"),
+            "payback_years": analysis.get("payback_years"),
+            "recommendation": performance.get("recommendation"),
+            "risk_level": performance.get("risk_level"),
+            "cash_flows_summary": {
+                "mean": round(np.mean(cash_flows), 2) if cash_flows else 0,
+                "std": round(np.std(cash_flows), 2) if cash_flows else 0,
+                "min": round(min(cash_flows), 2) if cash_flows else 0,
+                "max": round(max(cash_flows), 2) if cash_flows else 0,
+            }
+        }
+        
+        # ─── Fase 5: Métricas de Riesgo Ajustado ───
+        results["risk_adjusted_return"] = _compute_risk_adjusted_return(
+            analysis, risk_tolerance
+        )
+        
+        # ─── Fase 6: Análisis Topológico Opcional ───
+        if topological_risk_analysis:
+            logger.debug("Executing topological risk analysis")
+            
+            # Variedad de riesgo
+            risk_manifold = _analyze_risk_manifold(
+                amount, std_dev, time_years, cash_flows
+            )
+            results["risk_manifold"] = risk_manifold
+            
+            # Homología del riesgo
+            risk_homology = _compute_risk_homology(risk_manifold)
+            results["topological_risk"] = risk_homology
+            
+            # Persistencia de oportunidades
+            opportunity_persistence = _compute_opportunity_persistence(risk_manifold)
+            results["opportunity_persistence"] = opportunity_persistence
+            
+            # Eficiencia topológica
+            results["topological_efficiency"] = _compute_topological_efficiency(
+                analysis, risk_manifold
+            )
+        
+        logger.info(
+            f"Financial analysis complete: NPV={results.get('npv')}, "
+            f"recommendation={results.get('recommendation')}"
+        )
         
         return {
             "success": True,
-            "results": {
-                "wacc": analysis.get("wacc"),
-                "npv": analysis.get("npv"),
-                "irr": analysis.get("irr"),
-                "payback_years": analysis.get("payback_years"),
-                "recommendation": performance.get("recommendation"),
-                "risk_level": performance.get("risk_level"),
-            },
+            "results": results,
             "parameters": {
                 "initial_investment": amount,
                 "std_dev": std_dev,
                 "time_years": time_years,
-                "annual_return_rate": annual_return_rate
+                "risk_tolerance": risk_tolerance,
+                "random_seed": random_seed or _DEFAULT_RANDOM_SEED
             }
         }
         
     except (ValueError, TypeError) as e:
-        logger.warning(f"Financial analysis validation error: {e}")
+        logger.warning(f"Validation error in financial analysis: {e}")
         return _create_error_response(e, error_category="validation")
         
     except Exception as e:
-        logger.error(f"Financial analysis error: {e}", exc_info=True)
+        logger.exception(f"Error in financial analysis: {e}")
         return _create_error_response(e, error_category="financial_analysis")
 
 
@@ -1117,17 +1574,23 @@ def get_telemetry_status(
     telemetry_context: Optional[TelemetryContextProtocol] = None
 ) -> Dict[str, Any]:
     """
-    Vector de Telemetría (Nivel 3 - PHYSICS/Observability).
+    Vector de Telemetría del Sistema (Nivel 3 - PHYSICS/Observability).
     
-    Obtiene el estado actual del sistema y métricas de salud.
+    Obtiene el estado actual del sistema, métricas de salud y
+    reporte de actividad del contexto de procesamiento.
     
     Args:
         telemetry_context: Contexto de telemetría activo (opcional)
         
     Returns:
-        Estado del sistema con métricas de salud
+        Estado del sistema con estructura consistente:
+        - success: bool
+        - status: "IDLE" | "ACTIVE" | "ERROR"
+        - system_health: "HEALTHY" | "DEGRADED" | "UNKNOWN"
+        - has_active_context: bool
+        - (datos adicionales del reporte)
     """
-    # ─── Sin Contexto Activo ───
+    # ─── Caso 1: Sin Contexto Activo ───
     if telemetry_context is None:
         return {
             "success": True,
@@ -1137,25 +1600,37 @@ def get_telemetry_status(
             "has_active_context": False
         }
     
-    # ─── Validar Protocolo ───
+    # ─── Caso 2: Contexto Inválido ───
     if not isinstance(telemetry_context, TelemetryContextProtocol):
         context_type = type(telemetry_context).__name__
+        logger.warning(f"Invalid telemetry context type: {context_type}")
         return {
             "success": False,
             "status": "ERROR",
             "system_health": "DEGRADED",
+            "error": f"Invalid context type: {context_type}",
             "message": (
-                f"Invalid telemetry context ({context_type}): "
-                f"must implement TelemetryContextProtocol"
+                f"Telemetry context must implement TelemetryContextProtocol, "
+                f"got {context_type}"
             ),
             "has_active_context": False
         }
     
-    # ─── Obtener Reporte ───
+    # ─── Caso 3: Contexto Válido ───
     try:
         report = telemetry_context.get_business_report()
         
-        # Manejar reporte no-dict
+        # Manejar reporte nulo
+        if report is None:
+            return {
+                "success": True,
+                "status": "ACTIVE",
+                "system_health": "UNKNOWN",
+                "message": "Context returned null report",
+                "has_active_context": True
+            }
+        
+        # Manejar reporte no-diccionario
         if not isinstance(report, dict):
             return {
                 "success": True,
@@ -1165,7 +1640,7 @@ def get_telemetry_status(
                 "raw_report": report
             }
         
-        # Combinar con defaults
+        # Construir respuesta con valores del reporte
         return {
             "success": True,
             "status": report.get("status", "ACTIVE"),
@@ -1175,586 +1650,12 @@ def get_telemetry_status(
         }
         
     except Exception as e:
-        logger.error(f"Telemetry error: {e}", exc_info=True)
+        logger.exception(f"Telemetry error: {e}")
         return {
             "success": False,
             "status": "ERROR",
             "system_health": "DEGRADED",
             "error": str(e),
-            "message": f"Error retrieving telemetry: {e}",
+            "message": f"Error retrieving telemetry report: {e}",
             "has_active_context": True
         }
-
-
-### Propuesta 2
-
-# === Estructuras Algebraicas Refinadas ===
-
-@dataclass(frozen=True)
-class BasisVector:
-    """Vector base formal con propiedades algebraicas."""
-    name: str
-    stratum: Stratum
-    handler: Callable
-    orthogonal_to: Set[str] = field(default_factory=set)  # Conjunto de vectores ortogonales
-    
-    @property
-    def dimension(self) -> int:
-        """Dimensión del subespacio generado por el vector."""
-        return int(self.stratum) + 1  # Nivel + 1
-    
-    def is_orthogonal_to(self, other: 'BasisVector') -> bool:
-        """Verifica ortogonalidad usando productos internos simbólicos."""
-        return (
-            self.stratum != other.stratum or 
-            other.name in self.orthogonal_to
-        )
-
-@dataclass
-class IntentProjection:
-    """Proyección formal de intención sobre la base MIC."""
-    coefficients: Dict[str, float]  # Coeficientes de la combinación lineal
-    target_subspace: Stratum  # Subespacio objetivo
-    validation_requirements: Set[Stratum]  # Subespacios requeridos para proyección
-    
-    def validate_hierarchy(self, validated: Set[Stratum]) -> bool:
-        """Verifica requisitos jerárquicos usando teoría de retículos."""
-        # Un subespacio solo es accesible si todos sus pre-requisitos están validados
-        return self.validation_requirements.issubset(validated)
-    
-    def projection_norm(self) -> float:
-        """Norma de la proyección (magnitud de la intención)."""
-        return math.sqrt(sum(c**2 for c in self.coefficients.values()))
-
-
-class MICRegistryRefined:
-    """
-    MIC refinada con fundamentos algebraicos sólidos.
-    Implementa un espacio vectorial jerárquico completo.
-    """
-    
-    def __init__(self):
-        # Base ortonormal: name -> BasisVector
-        self._basis: Dict[str, BasisVector] = {}
-        # Matriz de Gram (productos internos entre vectores base)
-        self._gram_matrix: Dict[Tuple[str, str], float] = {}
-        self._logger = logging.getLogger("MIC-Refined")
-        
-    def register_basis_vector(self, vector: BasisVector):
-        """Registra un vector base en la MIC con verificación de ortogonalidad."""
-        # Verificar ortogonalidad con vectores existentes del mismo estrato
-        for existing_name, existing_vector in self._basis.items():
-            if existing_vector.stratum == vector.stratum:
-                if not vector.is_orthogonal_to(existing_vector):
-                    raise ValueError(
-                        f"Vector {vector.name} no es ortogonal a {existing_name} "
-                        f"en el estrato {vector.stratum.name}"
-                    )
-        
-        self._basis[vector.name] = vector
-        self._update_gram_matrix(vector)
-        self._logger.info(
-            f"Vector base registrado: {vector.name} "
-            f"[{vector.stratum.name}, dim={vector.dimension}]"
-        )
-    
-    def _update_gram_matrix(self, new_vector: BasisVector):
-        """Actualiza la matriz de Gram con el nuevo vector."""
-        for name, vector in self._basis.items():
-            # Producto interno = 1 si mismo, 0 si ortogonal, 0.5 si mismo estrato diferente servicio
-            if name == new_vector.name:
-                self._gram_matrix[(name, name)] = 1.0
-            elif vector.is_orthogonal_to(new_vector):
-                self._gram_matrix[(name, new_vector.name)] = 0.0
-                self._gram_matrix[(new_vector.name, name)] = 0.0
-            else:
-                # Vectores no ortogonales en mismo estrato (raro pero posible)
-                self._gram_matrix[(name, new_vector.name)] = 0.5
-                self._gram_matrix[(new_vector.name, name)] = 0.5
-    
-    def project_intent_refined(
-        self, 
-        intent: IntentProjection,
-        context: Dict[str, Any]
-    ) -> Dict[str, Any]:
-        """
-        Proyecta una intención formal sobre la base MIC.
-        
-        Teorema: Toda intención I ∈ W (Wisdom) puede expresarse como
-        I = Σ α_i v_i donde v_i ∈ B (base MIC) y α_i ∈ ℝ
-        """
-        validated_strata = {
-            Stratum(v) if isinstance(v, (int, str)) else v 
-            for v in context.get("validated_strata", set())
-        }
-        
-        # 1. Verificación de jerarquía usando teoría de retículos
-        if not intent.validate_hierarchy(validated_strata):
-            error_msg = (
-                f"Violación de Jerarquía MIC: Proyección a {intent.target_subspace.name} "
-                f"requiere {[s.name for s in intent.validation_requirements]}. "
-                f"Validados: {[s.name for s in validated_strata]}"
-            )
-            self._logger.error(error_msg)
-            return _create_error_response(
-                PermissionError(error_msg),
-                error_category="hierarchy_violation",
-                required_strata=[s.name for s in intent.validation_requirements],
-                validated_strata=[s.name for s in validated_strata]
-            )
-        
-        # 2. Descomposición en vectores base
-        results = {}
-        for vector_name, coefficient in intent.coefficients.items():
-            if vector_name not in self._basis:
-                continue
-                
-            vector = self._basis[vector_name]
-            
-            # 3. Proyección ortogonal escalada por coeficiente
-            try:
-                # Ejecutar handler con coeficiente como metadato
-                payload = context.get("payload", {}).copy()
-                payload["_mic_coefficient"] = coefficient
-                payload["_mic_projection_norm"] = intent.projection_norm()
-                
-                result = vector.handler(**payload)
-                
-                # 4. Escalar resultado por coeficiente de proyección
-                if isinstance(result, dict) and "magnitude" in result:
-                    result["scaled_magnitude"] = result["magnitude"] * coefficient
-                
-                results[vector_name] = result
-                
-                # 5. Actualizar validación si es PHYSICS y exitoso
-                if (vector.stratum == Stratum.PHYSICS and 
-                    result.get("success", False)):
-                    context.setdefault("validated_strata", set()).add(Stratum.PHYSICS)
-                    
-            except Exception as e:
-                self._logger.error(
-                    f"Error en proyección de {vector_name}: {e}",
-                    exc_info=True
-                )
-                results[vector_name] = _create_error_response(
-                    e, 
-                    error_category="projection_error",
-                    vector=vector_name,
-                    coefficient=coefficient
-                )
-        
-        # 6. Combinación lineal de resultados
-        return self._combine_results(results, intent)
-    
-    def _combine_results(
-        self, 
-        results: Dict[str, Dict[str, Any]], 
-        intent: IntentProjection
-    ) -> Dict[str, Any]:
-        """Combina resultados usando álgebra lineal."""
-        combined = {
-            "success": True,
-            "projection_norm": intent.projection_norm(),
-            "basis_components": {},
-            "combined_magnitude": 0.0
-        }
-        
-        for vector_name, result in results.items():
-            coefficient = intent.coefficients.get(vector_name, 0.0)
-            combined["basis_components"][vector_name] = {
-                "coefficient": coefficient,
-                "result": result,
-                "orthogonal": all(
-                    self._gram_matrix.get((vector_name, other), 0.0) == 0.0
-                    for other in results.keys()
-                    if other != vector_name
-                )
-            }
-            
-            # Acumular magnitud si existe
-            if (isinstance(result, dict) and 
-                result.get("success") and 
-                "magnitude" in result):
-                combined["combined_magnitude"] += coefficient * result["magnitude"]
-        
-        return combined
-
-
-# === Funciones de Implementación Refinadas ===
-
-def diagnose_file_refined(
-    file_path: Union[str, Path],
-    file_type: Union[str, FileType],
-    *,
-    validate_extension: bool = True,
-    max_file_size: Optional[int] = None,
-    topological_analysis: bool = False  # Nueva: análisis topológico de datos
-) -> Dict[str, Any]:
-    """
-    Vector de Diagnóstico refinado con análisis topológico.
-    
-    Añade:
-    1. Análisis de homología (componentes conexos, ciclos)
-    2. Persistencia de características
-    3. Validación dimensional
-    """
-    try:
-        path = _normalize_path(file_path)
-        logger.info(f"Starting topological diagnosis for: {path}")
-        
-        normalized_type = _normalize_file_type(file_type)
-        
-        # Validación básica
-        _validate_file_exists(path)
-        if validate_extension:
-            _validate_file_extension(path)
-        
-        effective_max = max_file_size or MAX_FILE_SIZE_BYTES
-        size, empty = _validate_file_size(path, effective_max)
-        
-        # Diagnóstico tradicional
-        diag_cls = _get_diagnostic_class(normalized_type)
-        diagnostic = diag_cls(str(path))
-        diagnostic.diagnose()
-        
-        result_data = _extract_diagnostic_result(diagnostic)
-        
-        # Análisis topológico si está habilitado
-        if topological_analysis and not empty:
-            topological_features = _analyze_topological_features(path)
-            result_data["topological_features"] = topological_features
-            
-            # Calcular características de homología (simplificado)
-            homology_groups = _compute_homology_groups(result_data)
-            result_data["homology"] = homology_groups
-            
-            # Persistencia de características
-            persistence = _compute_persistence_diagram(result_data)
-            result_data["persistence_diagram"] = persistence
-            
-            logger.info(
-                f"Topological analysis complete: "
-                f"β0={homology_groups.get('beta_0', 0)}, "
-                f"β1={homology_groups.get('beta_1', 0)}"
-            )
-        
-        logger.info(f"Diagnosis completed successfully for: {path}")
-        
-        # Calcular magnitud del diagnóstico (norma L2 de métricas)
-        magnitude = _compute_diagnostic_magnitude(result_data)
-        
-        return _create_success_response(
-            result_data,
-            file_type=normalized_type.value,
-            file_path=str(path),
-            file_size_bytes=size,
-            diagnostic_magnitude=magnitude,
-            has_topological_analysis=topological_analysis
-        )
-        
-    except Exception as e:
-        logger.error(f"Error in refined diagnosis: {e}", exc_info=True)
-        
-        # Clasificación topológica de errores
-        error_category = "topological_error" if topological_analysis else "diagnostic"
-        
-        if isinstance(e, IOError):
-            error_category = "io_error"
-        elif isinstance(e, (ValueError, TypeError)):
-            error_category = "validation_error"
-        
-        return _create_error_response(
-            e,
-            error_category=error_category,
-            had_topological_analysis=topological_analysis
-        )
-
-
-def clean_file_refined(
-    input_path: Union[str, Path],
-    output_path: Optional[Union[str, Path]] = None,
-    *,
-    delimiter: str = ";",
-    encoding: str = "utf-8",
-    overwrite: bool = True,
-    validate_extension: bool = True,
-    max_file_size: Optional[int] = None,
-    preserve_topology: bool = True,  # Nueva: preservar estructura topológica
-    compression_ratio: Optional[float] = None  # Nueva: ratio de compresión óptimo
-) -> Dict[str, Any]:
-    """
-    Vector de Limpieza refinado con preservación topológica.
-    
-    Añade:
-    1. Preservación de homología durante limpieza
-    2. Optimización de compresión
-    3. Análisis de distorsión
-    """
-    try:
-        input_p = _normalize_path(input_path)
-        logger.info(f"Starting topological CSV cleaning: {input_p}")
-        
-        # Análisis topológico inicial
-        if preserve_topology:
-            initial_topology = _analyze_csv_topology(input_p, delimiter, encoding)
-            logger.info(f"Initial topology: {initial_topology}")
-        
-        # Validaciones y limpieza tradicional
-        _validate_file_exists(input_p)
-        if validate_extension:
-            _validate_file_extension(input_p)
-        
-        _validate_csv_parameters(delimiter, encoding)
-        
-        if output_path is None:
-            output_p = _generate_output_path(input_p)
-        else:
-            output_p = _normalize_path(output_path)
-        
-        if str(input_p) == str(output_p):
-            raise ValueError("Output path cannot be the same as input path")
-        
-        if output_p.exists() and not overwrite:
-            raise ValueError("Output file already exists and overwrite=False")
-        
-        # Asegurar directorio de salida
-        if not output_p.parent.exists():
-            output_p.parent.mkdir(parents=True, exist_ok=True)
-        
-        # Limpieza con parámetros optimizados
-        cleaner = CSVCleaner(
-            input_path=str(input_p),
-            output_path=str(output_p),
-            delimiter=delimiter,
-            encoding=encoding,
-            overwrite=overwrite,
-            preserve_topology=preserve_topology,
-            optimal_compression=compression_ratio
-        )
-        
-        stats = cleaner.clean()
-        
-        # Extraer y enriquecer estadísticas
-        res_stats = stats if isinstance(stats, dict) else (
-            stats.to_dict() if hasattr(stats, 'to_dict') else {}
-        )
-        
-        # Análisis topológico posterior
-        if preserve_topology:
-            final_topology = _analyze_csv_topology(output_p, delimiter, encoding)
-            topological_preservation = _compute_topological_preservation(
-                initial_topology, 
-                final_topology
-            )
-            res_stats["topological_preservation"] = topological_preservation
-            
-            logger.info(
-                f"Topological preservation: "
-                f"{topological_preservation.get('preservation_rate', 0):.2%}"
-            )
-        
-        logger.info(f"Topological CSV cleaning completed: {output_p}")
-        
-        return _create_success_response(
-            res_stats,
-            output_path=str(output_p),
-            input_path=str(input_p),
-            preserved_topology=preserve_topology,
-            compression_ratio=compression_ratio
-        )
-        
-    except Exception as e:
-        logger.error(f"Error in refined cleaning: {e}", exc_info=True)
-        
-        # Categoría basada en preservación topológica
-        cat = "topological_cleaning" if preserve_topology else "cleaning"
-        
-        if isinstance(e, ValueError):
-            cat = "validation_error"
-        
-        return _create_error_response(
-            e, 
-            error_category=cat,
-            preserved_topology=preserve_topology
-        )
-
-
-def analyze_financial_viability_refined(
-    amount: float, 
-    std_dev: float, 
-    time_years: int,
-    *,
-    risk_tolerance: float = 0.05,  # Nueva: tolerancia al riesgo
-    market_volatility: Optional[float] = None,  # Nueva: volatilidad de mercado
-    topological_risk_analysis: bool = False  # Nueva: análisis topológico de riesgo
-) -> Dict[str, Any]:
-    """
-    Vector Financiero refinado con análisis topológico de riesgo.
-    
-    Implementa:
-    1. Espacio de riesgo como variedad diferencial
-    2. Análisis de homología de carteras
-    3. Persistencia de oportunidades
-    """
-    try:
-        # Validación mejorada
-        if amount <= 0:
-            raise ValueError("Amount must be positive")
-        if std_dev < 0:
-            raise ValueError("Standard deviation cannot be negative")
-        if time_years <= 0:
-            raise ValueError("Time horizon must be positive")
-        
-        # Configuración con parámetros avanzados
-        config = FinancialConfig(
-            project_life_years=time_years,
-            risk_tolerance=risk_tolerance,
-            market_volatility=market_volatility or std_dev * 1.5
-        )
-        
-        engine = FinancialEngine(config)
-        
-        # Generación de flujos con estructura topológica
-        cash_flows = _generate_topological_cash_flows(
-            amount, time_years, std_dev
-        )
-        
-        # Análisis tradicional
-        analysis = engine.analyze_project(
-            initial_investment=amount,
-            expected_cash_flows=cash_flows,
-            cost_std_dev=std_dev,
-            project_volatility=0.30
-        )
-        
-        # Análisis topológico de riesgo si está habilitado
-        risk_manifold = None
-        if topological_risk_analysis:
-            risk_manifold = _analyze_risk_manifold(
-                amount, std_dev, time_years, cash_flows
-            )
-            
-            # Calcular características topológicas del espacio de riesgo
-            risk_homology = _compute_risk_homology(risk_manifold)
-            analysis["topological_risk"] = risk_homology
-            
-            # Persistencia de oportunidades de riesgo
-            opportunity_persistence = _compute_opportunity_persistence(risk_manifold)
-            analysis["opportunity_persistence"] = opportunity_persistence
-        
-        # Calcular métricas avanzadas
-        risk_adjusted_return = _compute_risk_adjusted_return(analysis, risk_tolerance)
-        topological_efficiency = _compute_topological_efficiency(
-            analysis, 
-            risk_manifold
-        ) if topological_risk_analysis else None
-        
-        return {
-            "success": True,
-            "results": {
-                "wacc": analysis.get("wacc"),
-                "npv": analysis.get("npv"),
-                "irr": analysis.get("irr", 0),  # Tasa interna de retorno
-                "risk_adjusted_return": risk_adjusted_return,
-                "recommendation": analysis.get("performance", {}).get("recommendation"),
-                "topological_efficiency": topological_efficiency,
-                "risk_manifold_analysis": topological_risk_analysis
-            },
-            "metadata": {
-                "input_parameters": {
-                    "amount": amount,
-                    "std_dev": std_dev,
-                    "time_years": time_years,
-                    "risk_tolerance": risk_tolerance
-                },
-                "analysis_type": "refined_financial_with_topology" 
-                if topological_risk_analysis else "refined_financial"
-            }
-        }
-        
-    except Exception as e:
-        logger.error(f"Error in refined financial analysis: {e}", exc_info=True)
-        
-        # Clasificación basada en análisis topológico
-        error_category = "topological_financial_error" 
-        if topological_risk_analysis else "financial_analysis_error"
-        
-        return _create_error_response(
-            e, 
-            error_category=error_category,
-            had_topological_analysis=topological_risk_analysis
-        )
-
-
-# === Funciones Auxiliares de Topología Algebraica ===
-
-def _analyze_topological_features(file_path: Path) -> Dict[str, Any]:
-    """Analiza características topológicas de un archivo."""
-    # Implementación simplificada - en producción usar bibliotecas como giotto-tda
-    try:
-        with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
-            lines = f.readlines()
-        
-        # Métricas topológicas básicas
-        num_lines = len(lines)
-        num_components = len(set(lines))  # Componentes conexos aproximados
-        
-        # Calcular ciclos (simplificado)
-        cycles = 0
-        for i in range(len(lines) - 1):
-            if lines[i] == lines[i + 1]:
-                cycles += 1
-        
-        return {
-            "beta_0": num_components,  # Número de componentes conexos
-            "beta_1": cycles,  # Número de ciclos (1-homología)
-            "euler_characteristic": num_components - cycles,
-            "file_dimension": min(2, len(lines[0].split(',')) if lines else 0)
-        }
-    except Exception:
-        return {"beta_0": 0, "beta_1": 0, "euler_characteristic": 0}
-
-
-def _compute_homology_groups(diagnostic_data: Dict[str, Any]) -> Dict[str, int]:
-    """Calcula grupos de homología a partir de datos diagnósticos."""
-    # En producción, implementar algoritmo de persistencia real
-    issues = diagnostic_data.get("issues", [])
-    warnings = diagnostic_data.get("warnings", [])
-    
-    # β0 = componentes conexos ≈ problemas únicos
-    unique_issues = len(set(str(i) for i in issues))
-    
-    # β1 = ciclos ≈ dependencias circulares
-    circular_deps = sum(1 for w in warnings if "circular" in str(w).lower())
-    
-    return {
-        "beta_0": unique_issues,
-        "beta_1": circular_deps,
-        "betti_numbers": [unique_issues, circular_deps]
-    }
-
-
-def _compute_persistence_diagram(diagnostic_data: Dict[str, Any]) -> List[Tuple[float, float]]:
-    """Calcula diagrama de persistencia para características topológicas."""
-    # Implementación simplificada
-    issues = diagnostic_data.get("issues", [])
-    persistence = []
-    
-    for i, issue in enumerate(issues):
-        severity = issue.get("severity", 0.5)
-        # Vida de la característica = severidad * posición
-        birth = i * 0.1
-        death = birth + severity
-        persistence.append((birth, death))
-    
-    return persistence
-
-
-def _compute_diagnostic_magnitude(diagnostic_data: Dict[str, Any]) -> float:
-    """Calcula la magnitud (norma) del diagnóstico."""
-    issues = len(diagnostic_data.get("issues", []))
-    warnings = len(diagnostic_data.get("warnings", []))
-    errors = len(diagnostic_data.get("errors", []))
-    
-    # Norma L2 del vector de problemas
-    return math.sqrt(issues**2 + warnings**2 + errors**2)
