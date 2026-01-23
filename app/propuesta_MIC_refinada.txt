@@ -1,0 +1,1760 @@
+### Propuesta 1
+
+"""
+Módulo MIC Refinado - Espacio Vectorial Jerárquico con Clausura Transitiva.
+
+Modelo Matemático:
+------------------
+Sea V un espacio vectorial sobre ℝ con base {e_1, ..., e_n} donde cada e_i
+representa un microservicio. Definimos una filtración:
+
+    V = V_0 ⊃ V_1 ⊃ V_2 ⊃ V_3
+
+donde V_k corresponde al estrato k (WISDOM=0, STRATEGY=1, TACTICS=2, PHYSICS=3).
+
+La proyección de intención π: I → V satisface la restricción:
+    π(intent) ∈ V_k ⟹ ∀j > k: V_j está validado
+
+Esto garantiza que las operaciones de alto nivel solo se ejecutan
+cuando la base física está correctamente establecida.
+"""
+
+import codecs
+import logging
+from enum import Enum, IntEnum
+from pathlib import Path
+from dataclasses import dataclass, field
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    Final,
+    FrozenSet,
+    List,
+    Optional,
+    Protocol,
+    Set,
+    Tuple,
+    Type,
+    Union,
+    runtime_checkable,
+)
+
+# Asumimos que estos imports existen
+from scripts.clean_csv import CSVCleaner
+from scripts.diagnose_apus_file import APUFileDiagnostic
+from scripts.diagnose_insumos_file import InsumosFileDiagnostic
+from scripts.diagnose_presupuesto_file import PresupuestoFileDiagnostic
+from .financial_engine import FinancialConfig, FinancialEngine
+from .schemas import Stratum
+
+logger = logging.getLogger(__name__)
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# CONSTANTES Y CONFIGURACIÓN
+# ══════════════════════════════════════════════════════════════════════════════
+
+MAX_FILE_SIZE_BYTES: Final[int] = 100 * 1024 * 1024  # 100 MB
+
+SUPPORTED_ENCODINGS: Final[FrozenSet[str]] = frozenset({
+    "utf-8", "utf-8-sig", "latin-1", "iso-8859-1",
+    "cp1252", "ascii", "utf-16", "utf-16-le", "utf-16-be",
+})
+
+# Mapeo de aliases comunes para normalización
+_ENCODING_ALIASES: Final[Dict[str, str]] = {
+    "utf8": "utf-8",
+    "latin1": "latin-1",
+    "iso88591": "iso-8859-1",
+    "cp65001": "utf-8",
+}
+
+VALID_DELIMITERS: Final[FrozenSet[str]] = frozenset({",", ";", "\t", "|", ":"})
+VALID_EXTENSIONS: Final[FrozenSet[str]] = frozenset({".csv", ".txt", ".tsv"})
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# PROTOCOLOS
+# ══════════════════════════════════════════════════════════════════════════════
+
+@runtime_checkable
+class TelemetryContextProtocol(Protocol):
+    """Protocolo para contextos de telemetría."""
+    def get_business_report(self) -> Dict[str, Any]: ...
+
+
+@runtime_checkable
+class DiagnosticProtocol(Protocol):
+    """Protocolo para clases diagnósticas."""
+    def diagnose(self) -> None: ...
+    def to_dict(self) -> Dict[str, Any]: ...
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# EXCEPCIONES JERÁRQUICAS
+# ══════════════════════════════════════════════════════════════════════════════
+
+class DiagnosticError(Exception):
+    """Base para errores de diagnóstico."""
+    def __init__(self, message: str, details: Optional[Dict[str, Any]] = None) -> None:
+        super().__init__(message)
+        self.details: Dict[str, Any] = details or {}
+
+
+class FileNotFoundDiagnosticError(DiagnosticError):
+    """Archivo no encontrado durante diagnóstico."""
+    pass
+
+
+class UnsupportedFileTypeError(DiagnosticError):
+    """Tipo de archivo no soportado."""
+    pass
+
+
+class FileValidationError(DiagnosticError):
+    """Error de validación de archivo."""
+    pass
+
+
+class CleaningError(Exception):
+    """Error durante limpieza de archivos."""
+    def __init__(self, message: str, details: Optional[Dict[str, Any]] = None) -> None:
+        super().__init__(message)
+        self.details: Dict[str, Any] = details or {}
+
+
+class MICHierarchyViolationError(Exception):
+    """Violación de la jerarquía de estratos en la MIC."""
+    def __init__(
+        self, 
+        message: str, 
+        target_stratum: 'Stratum',
+        missing_strata: Set['Stratum']
+    ) -> None:
+        super().__init__(message)
+        self.target_stratum = target_stratum
+        self.missing_strata = missing_strata
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# ENUMS
+# ══════════════════════════════════════════════════════════════════════════════
+
+class FileType(str, Enum):
+    """Tipos de archivo soportados para diagnóstico."""
+    APUS = "apus"
+    INSUMOS = "insumos"
+    PRESUPUESTO = "presupuesto"
+
+    @classmethod
+    def values(cls) -> List[str]:
+        """Retorna lista de valores válidos."""
+        return [member.value for member in cls]
+
+    @classmethod
+    def from_string(cls, value: str) -> "FileType":
+        """
+        Parsea string a FileType con normalización.
+        
+        Args:
+            value: String a convertir
+            
+        Returns:
+            FileType correspondiente
+            
+        Raises:
+            ValueError: Si el valor no es válido
+        """
+        if not isinstance(value, str):
+            raise ValueError(f"Expected string, got {type(value).__name__}")
+        
+        normalized = value.strip().lower()
+        
+        for member in cls:
+            if member.value == normalized:
+                return member
+        
+        valid_options = ", ".join(cls.values())
+        raise ValueError(f"'{value}' is not valid. Options: {valid_options}")
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# ESTRUCTURAS DE LA MIC
+# ══════════════════════════════════════════════════════════════════════════════
+
+@dataclass(frozen=True)
+class IntentVector:
+    """
+    Vector de intención inmutable proyectado sobre la MIC.
+    
+    Representa una solicitud del Agente para ejecutar un servicio,
+    encapsulando el contexto necesario para la validación jerárquica.
+    """
+    service_name: str
+    payload: Dict[str, Any]
+    context: Dict[str, Any]
+    
+    def __post_init__(self):
+        # Validación en construcción
+        if not self.service_name or not self.service_name.strip():
+            raise ValueError("service_name cannot be empty")
+
+
+class MICRegistry:
+    """
+    Matriz de Interacción Central (MIC).
+    
+    Implementa un espacio vectorial jerárquico donde:
+    - Cada servicio es un vector base e_i
+    - Los estratos definen una filtración descendente
+    - El Gatekeeper asegura la clausura transitiva de validaciones
+    
+    Invariante Topológico:
+        Para proyectar en estrato k, todos los estratos j > k deben estar validados.
+        Esto forma una precondición de tipo "fibración" donde PHYSICS es la base.
+    """
+
+    def __init__(self) -> None:
+        self._vectors: Dict[str, Tuple[Stratum, Callable[..., Dict[str, Any]]]] = {}
+        self._logger = logging.getLogger("MIC")
+
+    @property
+    def registered_services(self) -> List[str]:
+        """Lista de servicios registrados."""
+        return list(self._vectors.keys())
+
+    def register_vector(
+        self, 
+        service_name: str, 
+        stratum: Stratum, 
+        handler: Callable[..., Dict[str, Any]]
+    ) -> None:
+        """
+        Registra un microservicio como vector base en la MIC.
+        
+        Args:
+            service_name: Identificador único del servicio
+            stratum: Nivel jerárquico del servicio
+            handler: Función que implementa la lógica del servicio
+        """
+        if not service_name or not service_name.strip():
+            raise ValueError("service_name cannot be empty")
+        
+        if not callable(handler):
+            raise TypeError("handler must be callable")
+        
+        if service_name in self._vectors:
+            self._logger.warning(f"Overwriting existing vector: {service_name}")
+        
+        self._vectors[service_name] = (stratum, handler)
+        self._logger.info(f"Vector registered: {service_name} [{stratum.name}]")
+
+    def _compute_required_strata(self, target: Stratum) -> Set[Stratum]:
+        """
+        Calcula la clausura transitiva de prerrequisitos.
+        
+        Modelo: En la filtración V_0 ⊃ V_1 ⊃ V_2 ⊃ V_3,
+        para operar en V_k se requieren todos V_j con j > k.
+        
+        Args:
+            target: Estrato objetivo
+            
+        Returns:
+            Conjunto de estratos prerrequisito
+        """
+        return {s for s in Stratum if s.value > target.value}
+
+    def _normalize_validated_strata(
+        self, 
+        raw_validated: Any
+    ) -> Set[Stratum]:
+        """
+        Normaliza el conjunto de estratos validados.
+        
+        Soporta múltiples formatos de entrada:
+        - Set[Stratum]: Uso directo
+        - Set[int]: Conversión por valor
+        - Set[str]: Conversión por nombre
+        - Iterables mixtos
+        
+        Args:
+            raw_validated: Datos crudos de estratos validados
+            
+        Returns:
+            Conjunto normalizado de Stratum
+        """
+        if raw_validated is None:
+            return set()
+        
+        if not isinstance(raw_validated, (set, list, tuple, frozenset)):
+            self._logger.warning(
+                f"Invalid validated_strata type: {type(raw_validated).__name__}, "
+                f"expected iterable"
+            )
+            return set()
+        
+        normalized: Set[Stratum] = set()
+        
+        for item in raw_validated:
+            try:
+                if isinstance(item, Stratum):
+                    normalized.add(item)
+                elif isinstance(item, int):
+                    # Búsqueda por valor numérico
+                    normalized.add(Stratum(item))
+                elif isinstance(item, str):
+                    # Búsqueda por nombre (case-insensitive)
+                    normalized.add(Stratum[item.upper().strip()])
+                else:
+                    self._logger.debug(f"Skipping invalid stratum item: {item!r}")
+            except (ValueError, KeyError) as e:
+                self._logger.debug(f"Could not normalize stratum item {item!r}: {e}")
+        
+        return normalized
+
+    def _validate_hierarchy(
+        self,
+        target: Stratum,
+        validated: Set[Stratum],
+        force_override: bool = False
+    ) -> Tuple[bool, Set[Stratum]]:
+        """
+        Valida los prerrequisitos jerárquicos.
+        
+        Implementa la verificación de clausura transitiva:
+        target ∈ V_k ⟹ ∀j > k: V_j ∈ validated
+        
+        Args:
+            target: Estrato objetivo de la operación
+            validated: Conjunto de estratos ya validados
+            force_override: Si True, bypass la validación (para debugging)
+            
+        Returns:
+            Tupla (is_valid, missing_strata)
+        """
+        if force_override:
+            self._logger.warning(
+                f"Hierarchy validation bypassed for {target.name} via force_override"
+            )
+            return True, set()
+        
+        required = self._compute_required_strata(target)
+        missing = required - validated
+        
+        return len(missing) == 0, missing
+
+    def project_intent(
+        self,
+        service_name: str,
+        payload: Dict[str, Any],
+        context: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """
+        Proyecta una intención sobre el espacio vectorial.
+        
+        Algoritmo:
+        1. Resolución: Buscar el vector (servicio) en el registro
+        2. Normalización: Convertir validated_strata a formato canónico
+        3. Validación: Verificar clausura transitiva de prerrequisitos
+        4. Ejecución: Invocar el handler con el payload
+        5. Propagación: Actualizar estado de validación si exitoso
+        
+        Args:
+            service_name: Nombre del servicio objetivo
+            payload: Argumentos para el handler
+            context: Metadatos de sesión (validated_strata, force_override, etc.)
+            
+        Returns:
+            Resultado de la operación con metadatos MIC
+        """
+        # ─── Fase 1: Resolución ───
+        if service_name not in self._vectors:
+            available = self.registered_services
+            error_msg = (
+                f"Unknown vector: '{service_name}'. "
+                f"Available: {available if available else 'none registered'}"
+            )
+            raise ValueError(error_msg)
+        
+        target_stratum, handler = self._vectors[service_name]
+        
+        # ─── Fase 2: Normalización ───
+        raw_validated = context.get("validated_strata", set())
+        validated_strata = self._normalize_validated_strata(raw_validated)
+        force_override = bool(context.get("force_physics_override", False))
+        
+        # ─── Fase 3: Validación Jerárquica ───
+        is_valid, missing = self._validate_hierarchy(
+            target_stratum, validated_strata, force_override
+        )
+        
+        if not is_valid:
+            missing_names = sorted(
+                [s.name for s in missing],
+                key=lambda name: Stratum[name].value,
+                reverse=True  # PHYSICS primero
+            )
+            error_msg = (
+                f"MIC Hierarchy Violation: Cannot project to {target_stratum.name}. "
+                f"Missing prerequisite strata: {', '.join(missing_names)}. "
+                f"Validate PHYSICS operations first."
+            )
+            self._logger.error(error_msg)
+            
+            return _create_error_response(
+                PermissionError(error_msg),
+                error_category="mic_hierarchy_violation",
+                target_stratum=target_stratum.name,
+                missing_strata=missing_names,
+                validated_strata=[s.name for s in validated_strata]
+            )
+        
+        # ─── Fase 4: Ejecución ───
+        try:
+            result = handler(**payload)
+            
+            # Asegurar que result es dict
+            if not isinstance(result, dict):
+                result = {"success": True, "result": result}
+            
+            # ─── Fase 5: Propagación de Validación ───
+            if result.get("success", False):
+                result["_mic_validation_update"] = target_stratum
+                result["_mic_stratum"] = target_stratum.name
+            
+            return result
+            
+        except TypeError as e:
+            # Error común: firma del handler no coincide con payload
+            self._logger.error(
+                f"Handler signature mismatch for '{service_name}': {e}",
+                exc_info=True
+            )
+            return _create_error_response(
+                e,
+                error_category="mic_handler_signature_error",
+                service_name=service_name,
+                hint="Verify that payload keys match handler parameter names"
+            )
+        except Exception as e:
+            self._logger.error(
+                f"Error executing vector '{service_name}': {e}",
+                exc_info=True
+            )
+            return _create_error_response(
+                e,
+                error_category="mic_execution_error",
+                service_name=service_name
+            )
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# REGISTRO DE DIAGNÓSTICOS
+# ══════════════════════════════════════════════════════════════════════════════
+
+_DIAGNOSTIC_REGISTRY: Final[Dict[FileType, Type[DiagnosticProtocol]]] = {
+    FileType.APUS: APUFileDiagnostic,
+    FileType.INSUMOS: InsumosFileDiagnostic,
+    FileType.PRESUPUESTO: PresupuestoFileDiagnostic,
+}
+
+
+def _get_diagnostic_class(file_type: FileType) -> Type[DiagnosticProtocol]:
+    """Obtiene la clase diagnóstica para un tipo de archivo."""
+    diagnostic_class = _DIAGNOSTIC_REGISTRY.get(file_type)
+    
+    if diagnostic_class is None:
+        raise UnsupportedFileTypeError(
+            f"No diagnostic registered for type: {file_type.value}",
+            details={
+                "file_type": file_type.value,
+                "available_types": FileType.values()
+            }
+        )
+    
+    return diagnostic_class
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# FUNCIONES DE VALIDACIÓN
+# ══════════════════════════════════════════════════════════════════════════════
+
+def _validate_path_not_empty(file_path: Union[str, Path, None]) -> None:
+    """Valida que la ruta no sea vacía o None."""
+    if file_path is None:
+        raise ValueError("File path cannot be None")
+    
+    path_str = str(file_path).strip()
+    
+    if not path_str or path_str == ".":
+        raise ValueError("File path cannot be empty")
+
+
+def _normalize_path(file_path: Union[str, Path]) -> Path:
+    """
+    Normaliza una ruta de archivo.
+    
+    Operaciones:
+    1. Validación de no-vacío
+    2. Conversión a Path
+    3. Expansión de ~ (home)
+    4. Resolución a ruta absoluta (si existe)
+    """
+    _validate_path_not_empty(file_path)
+    
+    try:
+        path = Path(file_path) if isinstance(file_path, str) else file_path
+        path = path.expanduser()
+        
+        # Solo resolver si existe (evita errores en paths nuevos)
+        return path.resolve() if path.exists() else path.absolute()
+        
+    except (OSError, RuntimeError) as e:
+        raise ValueError(f"Invalid path '{file_path}': {e}")
+
+
+def _validate_file_exists(path: Path) -> None:
+    """Valida que el archivo existe y es un archivo regular."""
+    if not path.exists():
+        raise FileNotFoundDiagnosticError(
+            f"File not found: {path}",
+            details={"path": str(path)}
+        )
+    
+    if not path.is_file():
+        raise FileValidationError(
+            f"Path is not a file: {path}",
+            details={"path": str(path), "is_directory": path.is_dir()}
+        )
+
+
+def _validate_file_extension(
+    path: Path,
+    valid_extensions: FrozenSet[str] = VALID_EXTENSIONS
+) -> str:
+    """
+    Valida la extensión del archivo.
+    
+    Returns:
+        Extensión normalizada (lowercase con punto)
+    """
+    extension = path.suffix.lower()
+    
+    if extension not in valid_extensions:
+        raise FileValidationError(
+            f"Invalid extension '{extension}'. Expected: {sorted(valid_extensions)}",
+            details={
+                "path": str(path),
+                "extension": extension,
+                "valid_extensions": sorted(valid_extensions)
+            }
+        )
+    
+    return extension
+
+
+def _validate_file_size(
+    path: Path,
+    max_size: int = MAX_FILE_SIZE_BYTES
+) -> Tuple[int, bool]:
+    """
+    Valida el tamaño del archivo.
+    
+    Returns:
+        Tupla (size_bytes, is_empty)
+        
+    Raises:
+        ValueError: Si max_size <= 0
+        FileValidationError: Si el archivo excede el tamaño máximo
+    """
+    if max_size <= 0:
+        raise ValueError("max_size must be positive")
+    
+    try:
+        size = path.stat().st_size
+    except OSError as e:
+        raise FileValidationError(
+            f"Cannot read file size: {e}",
+            details={"path": str(path), "os_error": str(e)}
+        )
+    
+    if size > max_size:
+        raise FileValidationError(
+            f"File too large: {size:,} bytes exceeds maximum {max_size:,} bytes",
+            details={
+                "path": str(path),
+                "size": size,
+                "max_size": max_size,
+                "excess_bytes": size - max_size
+            }
+        )
+    
+    return size, size == 0
+
+
+def _normalize_encoding(encoding: str) -> str:
+    """
+    Normaliza el nombre del encoding.
+    
+    Aplica:
+    1. Lowercase
+    2. Reemplazo de _ por -
+    3. Mapeo de aliases conocidos
+    """
+    if not encoding:
+        raise ValueError("Encoding cannot be empty")
+    
+    normalized = encoding.lower().strip().replace("_", "-")
+    
+    # Aplicar alias conocidos
+    return _ENCODING_ALIASES.get(normalized, normalized)
+
+
+def _validate_csv_parameters(
+    delimiter: str,
+    encoding: str
+) -> Tuple[str, str]:
+    """
+    Valida parámetros de procesamiento CSV.
+    
+    Returns:
+        Tupla (validated_delimiter, normalized_encoding)
+    """
+    # Validar delimiter
+    if not delimiter:
+        raise ValueError("Delimiter cannot be empty")
+    
+    if len(delimiter) != 1:
+        raise ValueError(
+            f"Delimiter must be a single character, got {len(delimiter)}: {delimiter!r}"
+        )
+    
+    if delimiter not in VALID_DELIMITERS:
+        raise ValueError(
+            f"Invalid delimiter: {delimiter!r}. "
+            f"Valid options: {sorted(VALID_DELIMITERS)}"
+        )
+    
+    # Normalizar y validar encoding
+    normalized_encoding = _normalize_encoding(encoding)
+    
+    if normalized_encoding not in SUPPORTED_ENCODINGS:
+        logger.warning(
+            f"Encoding '{normalized_encoding}' is not in recommended list. "
+            f"Proceeding with caution."
+        )
+    
+    return delimiter, normalized_encoding
+
+
+def _normalize_file_type(file_type: Union[str, FileType]) -> FileType:
+    """Normaliza el tipo de archivo a FileType enum."""
+    if isinstance(file_type, FileType):
+        return file_type
+    
+    if not isinstance(file_type, str):
+        raise UnsupportedFileTypeError(
+            f"file_type must be string or FileType, got {type(file_type).__name__}",
+            details={"received_type": type(file_type).__name__}
+        )
+    
+    try:
+        return FileType.from_string(file_type)
+    except ValueError:
+        raise UnsupportedFileTypeError(
+            f"Unknown file type: '{file_type}'. Valid: {', '.join(FileType.values())}",
+            details={
+                "file_type": file_type,
+                "valid_types": FileType.values()
+            }
+        )
+
+
+def _generate_output_path(input_path: Path, suffix: str = "_clean") -> Path:
+    """
+    Genera ruta de salida basada en la de entrada.
+    
+    Ejemplo: /path/to/file.csv -> /path/to/file_clean.csv
+    """
+    effective_suffix = suffix if suffix else "_clean"
+    new_name = f"{input_path.stem}{effective_suffix}{input_path.suffix}"
+    return input_path.with_name(new_name)
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# FUNCIONES DE RESPUESTA
+# ══════════════════════════════════════════════════════════════════════════════
+
+def _create_error_response(
+    error: Union[str, Exception],
+    **extras: Any
+) -> Dict[str, Any]:
+    """
+    Crea respuesta de error estandarizada.
+    
+    Estructura:
+    {
+        "success": False,
+        "error": str,
+        "error_type": str,
+        "error_details": Optional[Dict],
+        ...extras
+    }
+    """
+    message = str(error)
+    error_type = type(error).__name__ if isinstance(error, Exception) else "Error"
+    
+    response: Dict[str, Any] = {
+        "success": False,
+        "error": message,
+        "error_type": error_type
+    }
+    
+    # Incluir detalles si la excepción los tiene
+    if isinstance(error, (DiagnosticError, CleaningError)) and error.details:
+        response["error_details"] = error.details
+    
+    # Agregar extras no-None
+    response.update({k: v for k, v in extras.items() if v is not None})
+    
+    return response
+
+
+def _create_success_response(
+    data: Dict[str, Any],
+    **extras: Any
+) -> Dict[str, Any]:
+    """
+    Crea respuesta de éxito estandarizada.
+    
+    Estructura:
+    {
+        "success": True,
+        ...data,
+        ...extras
+    }
+    """
+    if not isinstance(data, dict):
+        data = {"result": data}
+    
+    response: Dict[str, Any] = {"success": True}
+    response.update(data)
+    response.update({k: v for k, v in extras.items() if v is not None})
+    
+    return response
+
+
+def _extract_diagnostic_result(diagnostic: DiagnosticProtocol) -> Dict[str, Any]:
+    """Extrae resultados de un objeto diagnóstico."""
+    base_result: Dict[str, Any] = {
+        "diagnostic_completed": True,
+        "diagnostic_class": type(diagnostic).__name__
+    }
+    
+    try:
+        if hasattr(diagnostic, "to_dict") and callable(diagnostic.to_dict):
+            result = diagnostic.to_dict()
+            if isinstance(result, dict):
+                return {**base_result, **result}
+    except Exception as e:
+        logger.warning(f"Error extracting diagnostic result via to_dict: {e}")
+    
+    return base_result
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# UTILIDADES PÚBLICAS
+# ══════════════════════════════════════════════════════════════════════════════
+
+def get_supported_file_types() -> List[str]:
+    """Retorna lista de tipos de archivo soportados."""
+    return FileType.values()
+
+
+def get_supported_delimiters() -> List[str]:
+    """Retorna lista de delimitadores soportados."""
+    return sorted(VALID_DELIMITERS)
+
+
+def get_supported_encodings() -> List[str]:
+    """Retorna lista de encodings soportados."""
+    return sorted(SUPPORTED_ENCODINGS)
+
+
+def is_valid_file_type(file_type: Any) -> bool:
+    """Verifica si un valor es un tipo de archivo válido."""
+    try:
+        _normalize_file_type(file_type)
+        return True
+    except (UnsupportedFileTypeError, ValueError, TypeError):
+        return False
+
+
+def validate_file_for_processing(
+    file_path: Union[str, Path],
+    *,
+    check_extension: bool = True,
+    max_size: Optional[int] = None
+) -> Dict[str, Any]:
+    """
+    Pre-valida un archivo para procesamiento.
+    
+    Returns:
+        Dict con 'valid', 'path', y detalles adicionales o errores
+    """
+    path_str = str(file_path)
+    
+    try:
+        path = _normalize_path(file_path)
+        _validate_file_exists(path)
+        
+        if check_extension:
+            _validate_file_extension(path)
+        
+        effective_max = max_size or MAX_FILE_SIZE_BYTES
+        size, is_empty = _validate_file_size(path, effective_max)
+        
+        return {
+            "valid": True,
+            "path": str(path),
+            "size": size,
+            "is_empty": is_empty,
+            "extension": path.suffix.lower()
+        }
+        
+    except FileNotFoundDiagnosticError:
+        return {
+            "valid": False,
+            "path": path_str,
+            "errors": [f"File does not exist: {file_path}"]
+        }
+    except (DiagnosticError, ValueError) as e:
+        return {
+            "valid": False,
+            "path": path_str,
+            "errors": [str(e)]
+        }
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# HANDLERS DE LA MIC (VECTORES)
+# ══════════════════════════════════════════════════════════════════════════════
+
+def diagnose_file(
+    file_path: Union[str, Path],
+    file_type: Union[str, FileType],
+    *,
+    validate_extension: bool = True,
+    max_file_size: Optional[int] = None,
+) -> Dict[str, Any]:
+    """
+    Vector de Diagnóstico (Nivel 3 - PHYSICS).
+    
+    Ejecuta diagnóstico estructural sobre archivos CSV según su tipo.
+    
+    Args:
+        file_path: Ruta al archivo a diagnosticar
+        file_type: Tipo de archivo (apus, insumos, presupuesto)
+        validate_extension: Si validar extensión del archivo
+        max_file_size: Tamaño máximo permitido en bytes
+        
+    Returns:
+        Respuesta estandarizada con resultados del diagnóstico
+    """
+    path_str = str(file_path)
+    
+    try:
+        # ─── Validaciones ───
+        path = _normalize_path(file_path)
+        normalized_type = _normalize_file_type(file_type)
+        
+        logger.info(f"Starting diagnosis: {path} (type={normalized_type.value})")
+        
+        _validate_file_exists(path)
+        
+        if validate_extension:
+            _validate_file_extension(path)
+        
+        effective_max = max_file_size or MAX_FILE_SIZE_BYTES
+        size, is_empty = _validate_file_size(path, effective_max)
+        
+        if is_empty:
+            logger.warning(f"File is empty: {path}")
+        
+        # ─── Ejecución del Diagnóstico ───
+        diagnostic_class = _get_diagnostic_class(normalized_type)
+        diagnostic = diagnostic_class(str(path))
+        diagnostic.diagnose()
+        
+        # ─── Extracción de Resultados ───
+        result_data = _extract_diagnostic_result(diagnostic)
+        
+        logger.info(f"Diagnosis completed successfully: {path}")
+        
+        return _create_success_response(
+            result_data,
+            file_type=normalized_type.value,
+            file_path=str(path),
+            file_size_bytes=size,
+            is_empty=is_empty
+        )
+        
+    except (FileNotFoundDiagnosticError, UnsupportedFileTypeError, FileValidationError) as e:
+        logger.warning(f"Diagnostic validation error: {e}")
+        return _create_error_response(e, error_category="validation")
+        
+    except (ValueError, TypeError) as e:
+        logger.warning(f"Parameter validation error: {e}")
+        return _create_error_response(e, error_category="validation")
+        
+    except IOError as e:
+        logger.error(f"IO error during diagnosis: {e}")
+        return _create_error_response(e, error_category="io_error")
+        
+    except Exception as e:
+        logger.error(f"Unexpected error in diagnosis: {e}", exc_info=True)
+        return _create_error_response(e, error_category="unexpected")
+
+
+def clean_file(
+    input_path: Union[str, Path],
+    output_path: Optional[Union[str, Path]] = None,
+    *,
+    delimiter: str = ";",
+    encoding: str = "utf-8",
+    overwrite: bool = True,
+    validate_extension: bool = True,
+    max_file_size: Optional[int] = None,
+) -> Dict[str, Any]:
+    """
+    Vector de Limpieza (Nivel 3 - PHYSICS).
+    
+    Limpia y normaliza archivos CSV.
+    
+    Args:
+        input_path: Ruta al archivo de entrada
+        output_path: Ruta de salida (opcional, auto-generada si None)
+        delimiter: Delimitador CSV
+        encoding: Encoding del archivo
+        overwrite: Si sobrescribir archivo existente
+        validate_extension: Si validar extensión
+        max_file_size: Tamaño máximo permitido
+        
+    Returns:
+        Respuesta estandarizada con estadísticas de limpieza
+    """
+    try:
+        # ─── Validación de Entrada ───
+        input_p = _normalize_path(input_path)
+        
+        logger.info(f"Starting CSV cleaning: {input_p}")
+        
+        _validate_file_exists(input_p)
+        
+        if validate_extension:
+            _validate_file_extension(input_p)
+        
+        validated_delimiter, validated_encoding = _validate_csv_parameters(
+            delimiter, encoding
+        )
+        
+        # ─── Configuración de Salida ───
+        if output_path is None:
+            output_p = _generate_output_path(input_p)
+        else:
+            output_p = _normalize_path(output_path)
+        
+        # Validar que input != output
+        if input_p.resolve() == output_p.resolve():
+            raise ValueError(
+                "Output path cannot be the same as input path. "
+                "Use a different filename or directory."
+            )
+        
+        # Verificar sobrescritura
+        if output_p.exists() and not overwrite:
+            raise ValueError(
+                f"Output file already exists and overwrite=False: {output_p}"
+            )
+        
+        # Crear directorio de salida si no existe
+        output_p.parent.mkdir(parents=True, exist_ok=True)
+        
+        # ─── Ejecución de Limpieza ───
+        cleaner = CSVCleaner(
+            input_path=str(input_p),
+            output_path=str(output_p),
+            delimiter=validated_delimiter,
+            encoding=validated_encoding,
+            overwrite=overwrite
+        )
+        
+        stats = cleaner.clean()
+        
+        # Normalizar estadísticas
+        if isinstance(stats, dict):
+            stats_dict = stats
+        elif hasattr(stats, "to_dict"):
+            stats_dict = stats.to_dict()
+        else:
+            stats_dict = {"raw_result": str(stats)}
+        
+        logger.info(f"CSV cleaning completed: {output_p}")
+        
+        return _create_success_response(
+            stats_dict,
+            input_path=str(input_p),
+            output_path=str(output_p)
+        )
+        
+    except (FileNotFoundDiagnosticError, FileValidationError, ValueError) as e:
+        logger.warning(f"Cleaning validation error: {e}")
+        return _create_error_response(e, error_category="validation")
+        
+    except CleaningError as e:
+        logger.error(f"Cleaning error: {e}")
+        return _create_error_response(e, error_category="cleaning")
+        
+    except IOError as e:
+        logger.error(f"IO error during cleaning: {e}")
+        return _create_error_response(
+            CleaningError(f"IO error: {e}", details={"original_error": str(e)}),
+            error_category="cleaning"
+        )
+        
+    except Exception as e:
+        logger.error(f"Unexpected error in cleaning: {e}", exc_info=True)
+        return _create_error_response(e, error_category="unexpected")
+
+
+def analyze_financial_viability(
+    amount: float,
+    std_dev: float,
+    time_years: int
+) -> Dict[str, Any]:
+    """
+    Vector de Análisis Financiero (Nivel 1 - STRATEGY).
+    
+    Evalúa la viabilidad financiera de un proyecto usando simulación.
+    
+    Args:
+        amount: Monto de inversión inicial
+        std_dev: Desviación estándar de costos
+        time_years: Horizonte temporal en años
+        
+    Returns:
+        Análisis financiero con métricas clave (WACC, NPV, recomendación)
+    """
+    try:
+        # ─── Validaciones ───
+        if not isinstance(amount, (int, float)):
+            raise TypeError(f"amount must be numeric, got {type(amount).__name__}")
+        
+        if amount <= 0:
+            raise ValueError("Amount must be positive")
+        
+        if not isinstance(std_dev, (int, float)):
+            raise TypeError(f"std_dev must be numeric, got {type(std_dev).__name__}")
+        
+        if std_dev < 0:
+            raise ValueError("Standard deviation cannot be negative")
+        
+        if not isinstance(time_years, int):
+            raise TypeError(f"time_years must be integer, got {type(time_years).__name__}")
+        
+        if time_years <= 0:
+            raise ValueError("Time horizon must be positive")
+        
+        # ─── Configuración del Motor ───
+        config = FinancialConfig(project_life_years=time_years)
+        engine = FinancialEngine(config)
+        
+        # ─── Simulación de Flujos ───
+        # Modelo simplificado: rendimiento anual del 20% sobre inversión inicial
+        annual_return_rate = 0.20
+        cash_flows = [amount * annual_return_rate] * time_years
+        
+        # ─── Análisis ───
+        analysis = engine.analyze_project(
+            initial_investment=amount,
+            expected_cash_flows=cash_flows,
+            cost_std_dev=std_dev,
+            project_volatility=0.30
+        )
+        
+        # ─── Extracción de Resultados ───
+        performance = analysis.get("performance", {})
+        
+        return {
+            "success": True,
+            "results": {
+                "wacc": analysis.get("wacc"),
+                "npv": analysis.get("npv"),
+                "irr": analysis.get("irr"),
+                "payback_years": analysis.get("payback_years"),
+                "recommendation": performance.get("recommendation"),
+                "risk_level": performance.get("risk_level"),
+            },
+            "parameters": {
+                "initial_investment": amount,
+                "std_dev": std_dev,
+                "time_years": time_years,
+                "annual_return_rate": annual_return_rate
+            }
+        }
+        
+    except (ValueError, TypeError) as e:
+        logger.warning(f"Financial analysis validation error: {e}")
+        return _create_error_response(e, error_category="validation")
+        
+    except Exception as e:
+        logger.error(f"Financial analysis error: {e}", exc_info=True)
+        return _create_error_response(e, error_category="financial_analysis")
+
+
+def get_telemetry_status(
+    telemetry_context: Optional[TelemetryContextProtocol] = None
+) -> Dict[str, Any]:
+    """
+    Vector de Telemetría (Nivel 3 - PHYSICS/Observability).
+    
+    Obtiene el estado actual del sistema y métricas de salud.
+    
+    Args:
+        telemetry_context: Contexto de telemetría activo (opcional)
+        
+    Returns:
+        Estado del sistema con métricas de salud
+    """
+    # ─── Sin Contexto Activo ───
+    if telemetry_context is None:
+        return {
+            "success": True,
+            "status": "IDLE",
+            "system_health": "UNKNOWN",
+            "message": "No active processing context",
+            "has_active_context": False
+        }
+    
+    # ─── Validar Protocolo ───
+    if not isinstance(telemetry_context, TelemetryContextProtocol):
+        context_type = type(telemetry_context).__name__
+        return {
+            "success": False,
+            "status": "ERROR",
+            "system_health": "DEGRADED",
+            "message": (
+                f"Invalid telemetry context ({context_type}): "
+                f"must implement TelemetryContextProtocol"
+            ),
+            "has_active_context": False
+        }
+    
+    # ─── Obtener Reporte ───
+    try:
+        report = telemetry_context.get_business_report()
+        
+        # Manejar reporte no-dict
+        if not isinstance(report, dict):
+            return {
+                "success": True,
+                "status": "ACTIVE",
+                "system_health": "UNKNOWN",
+                "has_active_context": True,
+                "raw_report": report
+            }
+        
+        # Combinar con defaults
+        return {
+            "success": True,
+            "status": report.get("status", "ACTIVE"),
+            "system_health": report.get("system_health", "HEALTHY"),
+            "has_active_context": True,
+            **{k: v for k, v in report.items() if k not in ("status", "system_health")}
+        }
+        
+    except Exception as e:
+        logger.error(f"Telemetry error: {e}", exc_info=True)
+        return {
+            "success": False,
+            "status": "ERROR",
+            "system_health": "DEGRADED",
+            "error": str(e),
+            "message": f"Error retrieving telemetry: {e}",
+            "has_active_context": True
+        }
+
+
+### Propuesta 2
+
+# === Estructuras Algebraicas Refinadas ===
+
+@dataclass(frozen=True)
+class BasisVector:
+    """Vector base formal con propiedades algebraicas."""
+    name: str
+    stratum: Stratum
+    handler: Callable
+    orthogonal_to: Set[str] = field(default_factory=set)  # Conjunto de vectores ortogonales
+    
+    @property
+    def dimension(self) -> int:
+        """Dimensión del subespacio generado por el vector."""
+        return int(self.stratum) + 1  # Nivel + 1
+    
+    def is_orthogonal_to(self, other: 'BasisVector') -> bool:
+        """Verifica ortogonalidad usando productos internos simbólicos."""
+        return (
+            self.stratum != other.stratum or 
+            other.name in self.orthogonal_to
+        )
+
+@dataclass
+class IntentProjection:
+    """Proyección formal de intención sobre la base MIC."""
+    coefficients: Dict[str, float]  # Coeficientes de la combinación lineal
+    target_subspace: Stratum  # Subespacio objetivo
+    validation_requirements: Set[Stratum]  # Subespacios requeridos para proyección
+    
+    def validate_hierarchy(self, validated: Set[Stratum]) -> bool:
+        """Verifica requisitos jerárquicos usando teoría de retículos."""
+        # Un subespacio solo es accesible si todos sus pre-requisitos están validados
+        return self.validation_requirements.issubset(validated)
+    
+    def projection_norm(self) -> float:
+        """Norma de la proyección (magnitud de la intención)."""
+        return math.sqrt(sum(c**2 for c in self.coefficients.values()))
+
+
+class MICRegistryRefined:
+    """
+    MIC refinada con fundamentos algebraicos sólidos.
+    Implementa un espacio vectorial jerárquico completo.
+    """
+    
+    def __init__(self):
+        # Base ortonormal: name -> BasisVector
+        self._basis: Dict[str, BasisVector] = {}
+        # Matriz de Gram (productos internos entre vectores base)
+        self._gram_matrix: Dict[Tuple[str, str], float] = {}
+        self._logger = logging.getLogger("MIC-Refined")
+        
+    def register_basis_vector(self, vector: BasisVector):
+        """Registra un vector base en la MIC con verificación de ortogonalidad."""
+        # Verificar ortogonalidad con vectores existentes del mismo estrato
+        for existing_name, existing_vector in self._basis.items():
+            if existing_vector.stratum == vector.stratum:
+                if not vector.is_orthogonal_to(existing_vector):
+                    raise ValueError(
+                        f"Vector {vector.name} no es ortogonal a {existing_name} "
+                        f"en el estrato {vector.stratum.name}"
+                    )
+        
+        self._basis[vector.name] = vector
+        self._update_gram_matrix(vector)
+        self._logger.info(
+            f"Vector base registrado: {vector.name} "
+            f"[{vector.stratum.name}, dim={vector.dimension}]"
+        )
+    
+    def _update_gram_matrix(self, new_vector: BasisVector):
+        """Actualiza la matriz de Gram con el nuevo vector."""
+        for name, vector in self._basis.items():
+            # Producto interno = 1 si mismo, 0 si ortogonal, 0.5 si mismo estrato diferente servicio
+            if name == new_vector.name:
+                self._gram_matrix[(name, name)] = 1.0
+            elif vector.is_orthogonal_to(new_vector):
+                self._gram_matrix[(name, new_vector.name)] = 0.0
+                self._gram_matrix[(new_vector.name, name)] = 0.0
+            else:
+                # Vectores no ortogonales en mismo estrato (raro pero posible)
+                self._gram_matrix[(name, new_vector.name)] = 0.5
+                self._gram_matrix[(new_vector.name, name)] = 0.5
+    
+    def project_intent_refined(
+        self, 
+        intent: IntentProjection,
+        context: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """
+        Proyecta una intención formal sobre la base MIC.
+        
+        Teorema: Toda intención I ∈ W (Wisdom) puede expresarse como
+        I = Σ α_i v_i donde v_i ∈ B (base MIC) y α_i ∈ ℝ
+        """
+        validated_strata = {
+            Stratum(v) if isinstance(v, (int, str)) else v 
+            for v in context.get("validated_strata", set())
+        }
+        
+        # 1. Verificación de jerarquía usando teoría de retículos
+        if not intent.validate_hierarchy(validated_strata):
+            error_msg = (
+                f"Violación de Jerarquía MIC: Proyección a {intent.target_subspace.name} "
+                f"requiere {[s.name for s in intent.validation_requirements]}. "
+                f"Validados: {[s.name for s in validated_strata]}"
+            )
+            self._logger.error(error_msg)
+            return _create_error_response(
+                PermissionError(error_msg),
+                error_category="hierarchy_violation",
+                required_strata=[s.name for s in intent.validation_requirements],
+                validated_strata=[s.name for s in validated_strata]
+            )
+        
+        # 2. Descomposición en vectores base
+        results = {}
+        for vector_name, coefficient in intent.coefficients.items():
+            if vector_name not in self._basis:
+                continue
+                
+            vector = self._basis[vector_name]
+            
+            # 3. Proyección ortogonal escalada por coeficiente
+            try:
+                # Ejecutar handler con coeficiente como metadato
+                payload = context.get("payload", {}).copy()
+                payload["_mic_coefficient"] = coefficient
+                payload["_mic_projection_norm"] = intent.projection_norm()
+                
+                result = vector.handler(**payload)
+                
+                # 4. Escalar resultado por coeficiente de proyección
+                if isinstance(result, dict) and "magnitude" in result:
+                    result["scaled_magnitude"] = result["magnitude"] * coefficient
+                
+                results[vector_name] = result
+                
+                # 5. Actualizar validación si es PHYSICS y exitoso
+                if (vector.stratum == Stratum.PHYSICS and 
+                    result.get("success", False)):
+                    context.setdefault("validated_strata", set()).add(Stratum.PHYSICS)
+                    
+            except Exception as e:
+                self._logger.error(
+                    f"Error en proyección de {vector_name}: {e}",
+                    exc_info=True
+                )
+                results[vector_name] = _create_error_response(
+                    e, 
+                    error_category="projection_error",
+                    vector=vector_name,
+                    coefficient=coefficient
+                )
+        
+        # 6. Combinación lineal de resultados
+        return self._combine_results(results, intent)
+    
+    def _combine_results(
+        self, 
+        results: Dict[str, Dict[str, Any]], 
+        intent: IntentProjection
+    ) -> Dict[str, Any]:
+        """Combina resultados usando álgebra lineal."""
+        combined = {
+            "success": True,
+            "projection_norm": intent.projection_norm(),
+            "basis_components": {},
+            "combined_magnitude": 0.0
+        }
+        
+        for vector_name, result in results.items():
+            coefficient = intent.coefficients.get(vector_name, 0.0)
+            combined["basis_components"][vector_name] = {
+                "coefficient": coefficient,
+                "result": result,
+                "orthogonal": all(
+                    self._gram_matrix.get((vector_name, other), 0.0) == 0.0
+                    for other in results.keys()
+                    if other != vector_name
+                )
+            }
+            
+            # Acumular magnitud si existe
+            if (isinstance(result, dict) and 
+                result.get("success") and 
+                "magnitude" in result):
+                combined["combined_magnitude"] += coefficient * result["magnitude"]
+        
+        return combined
+
+
+# === Funciones de Implementación Refinadas ===
+
+def diagnose_file_refined(
+    file_path: Union[str, Path],
+    file_type: Union[str, FileType],
+    *,
+    validate_extension: bool = True,
+    max_file_size: Optional[int] = None,
+    topological_analysis: bool = False  # Nueva: análisis topológico de datos
+) -> Dict[str, Any]:
+    """
+    Vector de Diagnóstico refinado con análisis topológico.
+    
+    Añade:
+    1. Análisis de homología (componentes conexos, ciclos)
+    2. Persistencia de características
+    3. Validación dimensional
+    """
+    try:
+        path = _normalize_path(file_path)
+        logger.info(f"Starting topological diagnosis for: {path}")
+        
+        normalized_type = _normalize_file_type(file_type)
+        
+        # Validación básica
+        _validate_file_exists(path)
+        if validate_extension:
+            _validate_file_extension(path)
+        
+        effective_max = max_file_size or MAX_FILE_SIZE_BYTES
+        size, empty = _validate_file_size(path, effective_max)
+        
+        # Diagnóstico tradicional
+        diag_cls = _get_diagnostic_class(normalized_type)
+        diagnostic = diag_cls(str(path))
+        diagnostic.diagnose()
+        
+        result_data = _extract_diagnostic_result(diagnostic)
+        
+        # Análisis topológico si está habilitado
+        if topological_analysis and not empty:
+            topological_features = _analyze_topological_features(path)
+            result_data["topological_features"] = topological_features
+            
+            # Calcular características de homología (simplificado)
+            homology_groups = _compute_homology_groups(result_data)
+            result_data["homology"] = homology_groups
+            
+            # Persistencia de características
+            persistence = _compute_persistence_diagram(result_data)
+            result_data["persistence_diagram"] = persistence
+            
+            logger.info(
+                f"Topological analysis complete: "
+                f"β0={homology_groups.get('beta_0', 0)}, "
+                f"β1={homology_groups.get('beta_1', 0)}"
+            )
+        
+        logger.info(f"Diagnosis completed successfully for: {path}")
+        
+        # Calcular magnitud del diagnóstico (norma L2 de métricas)
+        magnitude = _compute_diagnostic_magnitude(result_data)
+        
+        return _create_success_response(
+            result_data,
+            file_type=normalized_type.value,
+            file_path=str(path),
+            file_size_bytes=size,
+            diagnostic_magnitude=magnitude,
+            has_topological_analysis=topological_analysis
+        )
+        
+    except Exception as e:
+        logger.error(f"Error in refined diagnosis: {e}", exc_info=True)
+        
+        # Clasificación topológica de errores
+        error_category = "topological_error" if topological_analysis else "diagnostic"
+        
+        if isinstance(e, IOError):
+            error_category = "io_error"
+        elif isinstance(e, (ValueError, TypeError)):
+            error_category = "validation_error"
+        
+        return _create_error_response(
+            e,
+            error_category=error_category,
+            had_topological_analysis=topological_analysis
+        )
+
+
+def clean_file_refined(
+    input_path: Union[str, Path],
+    output_path: Optional[Union[str, Path]] = None,
+    *,
+    delimiter: str = ";",
+    encoding: str = "utf-8",
+    overwrite: bool = True,
+    validate_extension: bool = True,
+    max_file_size: Optional[int] = None,
+    preserve_topology: bool = True,  # Nueva: preservar estructura topológica
+    compression_ratio: Optional[float] = None  # Nueva: ratio de compresión óptimo
+) -> Dict[str, Any]:
+    """
+    Vector de Limpieza refinado con preservación topológica.
+    
+    Añade:
+    1. Preservación de homología durante limpieza
+    2. Optimización de compresión
+    3. Análisis de distorsión
+    """
+    try:
+        input_p = _normalize_path(input_path)
+        logger.info(f"Starting topological CSV cleaning: {input_p}")
+        
+        # Análisis topológico inicial
+        if preserve_topology:
+            initial_topology = _analyze_csv_topology(input_p, delimiter, encoding)
+            logger.info(f"Initial topology: {initial_topology}")
+        
+        # Validaciones y limpieza tradicional
+        _validate_file_exists(input_p)
+        if validate_extension:
+            _validate_file_extension(input_p)
+        
+        _validate_csv_parameters(delimiter, encoding)
+        
+        if output_path is None:
+            output_p = _generate_output_path(input_p)
+        else:
+            output_p = _normalize_path(output_path)
+        
+        if str(input_p) == str(output_p):
+            raise ValueError("Output path cannot be the same as input path")
+        
+        if output_p.exists() and not overwrite:
+            raise ValueError("Output file already exists and overwrite=False")
+        
+        # Asegurar directorio de salida
+        if not output_p.parent.exists():
+            output_p.parent.mkdir(parents=True, exist_ok=True)
+        
+        # Limpieza con parámetros optimizados
+        cleaner = CSVCleaner(
+            input_path=str(input_p),
+            output_path=str(output_p),
+            delimiter=delimiter,
+            encoding=encoding,
+            overwrite=overwrite,
+            preserve_topology=preserve_topology,
+            optimal_compression=compression_ratio
+        )
+        
+        stats = cleaner.clean()
+        
+        # Extraer y enriquecer estadísticas
+        res_stats = stats if isinstance(stats, dict) else (
+            stats.to_dict() if hasattr(stats, 'to_dict') else {}
+        )
+        
+        # Análisis topológico posterior
+        if preserve_topology:
+            final_topology = _analyze_csv_topology(output_p, delimiter, encoding)
+            topological_preservation = _compute_topological_preservation(
+                initial_topology, 
+                final_topology
+            )
+            res_stats["topological_preservation"] = topological_preservation
+            
+            logger.info(
+                f"Topological preservation: "
+                f"{topological_preservation.get('preservation_rate', 0):.2%}"
+            )
+        
+        logger.info(f"Topological CSV cleaning completed: {output_p}")
+        
+        return _create_success_response(
+            res_stats,
+            output_path=str(output_p),
+            input_path=str(input_p),
+            preserved_topology=preserve_topology,
+            compression_ratio=compression_ratio
+        )
+        
+    except Exception as e:
+        logger.error(f"Error in refined cleaning: {e}", exc_info=True)
+        
+        # Categoría basada en preservación topológica
+        cat = "topological_cleaning" if preserve_topology else "cleaning"
+        
+        if isinstance(e, ValueError):
+            cat = "validation_error"
+        
+        return _create_error_response(
+            e, 
+            error_category=cat,
+            preserved_topology=preserve_topology
+        )
+
+
+def analyze_financial_viability_refined(
+    amount: float, 
+    std_dev: float, 
+    time_years: int,
+    *,
+    risk_tolerance: float = 0.05,  # Nueva: tolerancia al riesgo
+    market_volatility: Optional[float] = None,  # Nueva: volatilidad de mercado
+    topological_risk_analysis: bool = False  # Nueva: análisis topológico de riesgo
+) -> Dict[str, Any]:
+    """
+    Vector Financiero refinado con análisis topológico de riesgo.
+    
+    Implementa:
+    1. Espacio de riesgo como variedad diferencial
+    2. Análisis de homología de carteras
+    3. Persistencia de oportunidades
+    """
+    try:
+        # Validación mejorada
+        if amount <= 0:
+            raise ValueError("Amount must be positive")
+        if std_dev < 0:
+            raise ValueError("Standard deviation cannot be negative")
+        if time_years <= 0:
+            raise ValueError("Time horizon must be positive")
+        
+        # Configuración con parámetros avanzados
+        config = FinancialConfig(
+            project_life_years=time_years,
+            risk_tolerance=risk_tolerance,
+            market_volatility=market_volatility or std_dev * 1.5
+        )
+        
+        engine = FinancialEngine(config)
+        
+        # Generación de flujos con estructura topológica
+        cash_flows = _generate_topological_cash_flows(
+            amount, time_years, std_dev
+        )
+        
+        # Análisis tradicional
+        analysis = engine.analyze_project(
+            initial_investment=amount,
+            expected_cash_flows=cash_flows,
+            cost_std_dev=std_dev,
+            project_volatility=0.30
+        )
+        
+        # Análisis topológico de riesgo si está habilitado
+        risk_manifold = None
+        if topological_risk_analysis:
+            risk_manifold = _analyze_risk_manifold(
+                amount, std_dev, time_years, cash_flows
+            )
+            
+            # Calcular características topológicas del espacio de riesgo
+            risk_homology = _compute_risk_homology(risk_manifold)
+            analysis["topological_risk"] = risk_homology
+            
+            # Persistencia de oportunidades de riesgo
+            opportunity_persistence = _compute_opportunity_persistence(risk_manifold)
+            analysis["opportunity_persistence"] = opportunity_persistence
+        
+        # Calcular métricas avanzadas
+        risk_adjusted_return = _compute_risk_adjusted_return(analysis, risk_tolerance)
+        topological_efficiency = _compute_topological_efficiency(
+            analysis, 
+            risk_manifold
+        ) if topological_risk_analysis else None
+        
+        return {
+            "success": True,
+            "results": {
+                "wacc": analysis.get("wacc"),
+                "npv": analysis.get("npv"),
+                "irr": analysis.get("irr", 0),  # Tasa interna de retorno
+                "risk_adjusted_return": risk_adjusted_return,
+                "recommendation": analysis.get("performance", {}).get("recommendation"),
+                "topological_efficiency": topological_efficiency,
+                "risk_manifold_analysis": topological_risk_analysis
+            },
+            "metadata": {
+                "input_parameters": {
+                    "amount": amount,
+                    "std_dev": std_dev,
+                    "time_years": time_years,
+                    "risk_tolerance": risk_tolerance
+                },
+                "analysis_type": "refined_financial_with_topology" 
+                if topological_risk_analysis else "refined_financial"
+            }
+        }
+        
+    except Exception as e:
+        logger.error(f"Error in refined financial analysis: {e}", exc_info=True)
+        
+        # Clasificación basada en análisis topológico
+        error_category = "topological_financial_error" 
+        if topological_risk_analysis else "financial_analysis_error"
+        
+        return _create_error_response(
+            e, 
+            error_category=error_category,
+            had_topological_analysis=topological_risk_analysis
+        )
+
+
+# === Funciones Auxiliares de Topología Algebraica ===
+
+def _analyze_topological_features(file_path: Path) -> Dict[str, Any]:
+    """Analiza características topológicas de un archivo."""
+    # Implementación simplificada - en producción usar bibliotecas como giotto-tda
+    try:
+        with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
+            lines = f.readlines()
+        
+        # Métricas topológicas básicas
+        num_lines = len(lines)
+        num_components = len(set(lines))  # Componentes conexos aproximados
+        
+        # Calcular ciclos (simplificado)
+        cycles = 0
+        for i in range(len(lines) - 1):
+            if lines[i] == lines[i + 1]:
+                cycles += 1
+        
+        return {
+            "beta_0": num_components,  # Número de componentes conexos
+            "beta_1": cycles,  # Número de ciclos (1-homología)
+            "euler_characteristic": num_components - cycles,
+            "file_dimension": min(2, len(lines[0].split(',')) if lines else 0)
+        }
+    except Exception:
+        return {"beta_0": 0, "beta_1": 0, "euler_characteristic": 0}
+
+
+def _compute_homology_groups(diagnostic_data: Dict[str, Any]) -> Dict[str, int]:
+    """Calcula grupos de homología a partir de datos diagnósticos."""
+    # En producción, implementar algoritmo de persistencia real
+    issues = diagnostic_data.get("issues", [])
+    warnings = diagnostic_data.get("warnings", [])
+    
+    # β0 = componentes conexos ≈ problemas únicos
+    unique_issues = len(set(str(i) for i in issues))
+    
+    # β1 = ciclos ≈ dependencias circulares
+    circular_deps = sum(1 for w in warnings if "circular" in str(w).lower())
+    
+    return {
+        "beta_0": unique_issues,
+        "beta_1": circular_deps,
+        "betti_numbers": [unique_issues, circular_deps]
+    }
+
+
+def _compute_persistence_diagram(diagnostic_data: Dict[str, Any]) -> List[Tuple[float, float]]:
+    """Calcula diagrama de persistencia para características topológicas."""
+    # Implementación simplificada
+    issues = diagnostic_data.get("issues", [])
+    persistence = []
+    
+    for i, issue in enumerate(issues):
+        severity = issue.get("severity", 0.5)
+        # Vida de la característica = severidad * posición
+        birth = i * 0.1
+        death = birth + severity
+        persistence.append((birth, death))
+    
+    return persistence
+
+
+def _compute_diagnostic_magnitude(diagnostic_data: Dict[str, Any]) -> float:
+    """Calcula la magnitud (norma) del diagnóstico."""
+    issues = len(diagnostic_data.get("issues", []))
+    warnings = len(diagnostic_data.get("warnings", []))
+    errors = len(diagnostic_data.get("errors", []))
+    
+    # Norma L2 del vector de problemas
+    return math.sqrt(issues**2 + warnings**2 + errors**2)
