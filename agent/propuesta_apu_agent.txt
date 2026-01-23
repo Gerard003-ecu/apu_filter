@@ -1,74 +1,248 @@
-Actualmente, apu_agent.txt opera como un observador externo (Sidecar) que consume una API, pero no proyecta vectores de intención sobre la MIC de manera explícita en su fase de Act (Actuar).
-Fallas detectadas en la implementación actual de apu_agent.py:
-
-1. Desconexión de la MIC: En la fase act (métodos _act_recomendar_limpieza, _act_recomendar_reducir_velocidad), el agente simplemente registra logs (logger.warning) o notifica sistemas externos (_notify_external_system). No invoca una herramienta correctiva real en el sistema (ej. no activa un vector de "purga" o "ajuste de PID").
-2. Ausencia de Conciencia de Estrato: El agente no valida explícitamente que está operando en el estrato PHYSICS (Nivel 3). Aunque implícitamente lo hace al monitorear voltajes y saturación, no utiliza la estructura Stratum definida en schemas.py.
-
---------------------------------------------------------------------------------
-3. Refactorización Requerida: El Agente como Operador Físico
-Para que el AutonomousAgent respete la jerarquía y la lógica de la MIC, debe dejar de ser un "monitor pasivo" y convertirse en un "operador activo" que proyecta intenciones correctivas.
-Dado que este agente suele correr en un proceso/contenedor separado (Sidecar), su interacción con la MIC es a través de la API (app.py), pero debe estructurar sus solicitudes como Vectores de Intención.
-Código Actual (Pasivo)
-
-# apu_agent.txt [5]
-def _act_recomendar_limpieza(self, diagnosis_msg: str) -> None:
-    """Acción: Recomendar limpieza por inestabilidad."""
-    logger.warning(f"[BRAIN] ⚠️ INESTABILIDAD DETECTADA - {diagnosis_msg}")
-    # Solo notifica, no arregla nada.
-    self._notify_external_system("instability_detected", ...)
-
-Código Refactorizado (Activo - Respetando MIC y Jerarquía)
-El agente debe enviar un comando al Core para activar el vector de limpieza (clean), pasando el contexto de que es una operación de Física (recuperación de estabilidad).
-
-# Ubicación: apu_agent.py
-
-from app.schemas import Stratum # Necesario para contexto si se importa, o usar strings en payload
-
-class AutonomousAgent:
-    # ... init ...
-
-    def _act_recomendar_limpieza(self, diagnosis_msg: str) -> None:
+    def _analyze_metric_persistence(
+        self, metric_name: str, current_value: Optional[float], threshold: float
+    ) -> PersistenceAnalysisResult:
         """
-        Acción: Proyectar vector de limpieza sobre la MIC para estabilizar el sistema.
-        Nivel: PHYSICS (3)
-        """
-        logger.warning(f"[BRAIN] ⚠️ INESTABILIDAD: Proyectando vector 'emergency_flush'...")
-        
-        # 1. Definir el Vector de Intención (Payload para la API)
-        intent = {
-            "vector": "clean",  # Vector registrado en MICRegistry [app.txt 547]
-            "stratum": "PHYSICS", # Declaración explícita de nivel
-            "payload": {
-                "mode": "EMERGENCY",
-                "reason": diagnosis_msg,
-                "scope": "flux_condenser_buffer"
-            },
-            "context": {
-                "force_physics_override": True # El Agente SRE tiene permiso de root físico
-            }
-        }
+        Analiza la persistencia de una métrica alimentando nuevos datos.
 
-        # 2. Ejecutar Acción vía API (Interacción con el Core)
-        try:
-            # Endpoint sugerido: /api/mic/project (un endpoint genérico para la matriz)
-            # Si no existe, se debe crear o usar los específicos.
-            # En app.txt, 'clean' está expuesto. Simulamos la llamada.
-            response = self._session.post(
-                f"{self.core_api_url}/api/tools/clean", # O endpoint de proyección
-                json=intent
+        Args:
+            metric_name: Nombre de la métrica
+            current_value: Valor actual (None si no hay datos)
+            threshold: Umbral para análisis de excursiones
+
+        Returns:
+            Resultado del análisis de persistencia
+        """
+        # Alimentar nuevo dato si existe
+        if current_value is not None:
+            self.persistence.add_reading(metric_name, current_value)
+
+        # Obtener análisis
+        return self.persistence.analyze_persistence(
+            metric_name, threshold=threshold, noise_ratio=0.2, critical_ratio=0.5
+        )
+
+    def orient(self, telemetry: Optional[TelemetryData]) -> SystemStatus:
+        """
+        ORIENT - Segunda fase del ciclo OODA (Motor Topológico).
+
+        Analiza el estado del sistema usando:
+        1. Invariantes topológicos (números de Betti, salud topológica)
+        2. Homología persistente (patrones estructurales vs ruido)
+        3. Detección de loops de reintentos
+
+        Args:
+            telemetry: Datos de telemetría (puede ser None si falló observe)
+
+        Returns:
+            Estado del sistema determinado por análisis topológico
+        """
+        # Obtener salud topológica completa (sin análisis de ciclos de negocio)
+        topo_health = self.topology.get_topological_health(calculate_b1=False)
+
+        # Preparar análisis de persistencia (pueden ser vacíos si no hay datos)
+        voltage_analysis = self._analyze_metric_persistence(
+            "flyback_voltage",
+            telemetry.flyback_voltage if telemetry else None,
+            self.thresholds.flyback_voltage_warning,
+        )
+
+        saturation_analysis = self._analyze_metric_persistence(
+            "saturation",
+            telemetry.saturation if telemetry else None,
+            self.thresholds.saturation_warning,
+        )
+
+        # Determinar estado y construir diagnóstico
+        status, summary = self._evaluate_system_state(
+            telemetry=telemetry,
+            topo_health=topo_health,
+            voltage_analysis=voltage_analysis,
+            saturation_analysis=saturation_analysis,
+        )
+
+        # Almacenar diagnóstico completo
+        self._last_diagnosis = TopologicalDiagnosis(
+            health=topo_health,
+            voltage_persistence=voltage_analysis,
+            saturation_persistence=saturation_analysis,
+            summary=summary,
+            recommended_status=status,
+        )
+
+        # Log estructurado del diagnóstico
+        if status != SystemStatus.NOMINAL:
+            logger.info(f"[ORIENT] Diagnóstico: {self._last_diagnosis.to_log_dict()}")
+
+        return status
+
+    def _evaluate_system_state(
+        self,
+        telemetry: Optional[TelemetryData],
+        topo_health: TopologicalHealth,
+        voltage_analysis: PersistenceAnalysisResult,
+        saturation_analysis: PersistenceAnalysisResult,
+    ) -> Tuple[SystemStatus, str]:
+        """
+        Evalúa el estado del sistema integrando todas las fuentes de análisis.
+
+        Jerarquía de evaluación (prioridad descendente):
+        1. Fragmentación topológica (b0 > 1)
+        2. Umbrales críticos instantáneos (safety net)
+        3. Salud topológica crítica (health_score < 0.4)
+        4. Patrones de persistencia (CRITICAL/FEATURE)
+        5. Loops de reintentos
+        6. Salud topológica degradada (UNHEALTHY)
+        7. Estado nominal
+
+        Args:
+            telemetry: Datos de telemetría actuales
+            topo_health: Salud topológica del sistema
+            voltage_analysis: Análisis de persistencia de voltaje
+            saturation_analysis: Análisis de persistencia de saturación
+
+        Returns:
+            Tupla (SystemStatus, resumen_diagnóstico)
+        """
+        betti = topo_health.betti
+
+        # =====================================================================
+        # 1. FRAGMENTACIÓN TOPOLÓGICA (Máxima prioridad)
+        # =====================================================================
+        if not betti.is_connected:
+            disconnected = ", ".join(topo_health.disconnected_nodes) or "desconocidos"
+            summary = (
+                f"Fragmentación Topológica: β₀={betti.b0} componentes. "
+                f"Nodos desconectados: [{disconnected}]"
             )
-            
-            if response.ok:
-                logger.info("[BRAIN] ✅ Vector de limpieza ejecutado exitosamente.")
-                self._metrics.record_action("clean_success")
-            else:
-                logger.error(f"[BRAIN] ❌ Fallo en proyección MIC: {response.text}")
-                
-        except Exception as e:
-            logger.error(f"[BRAIN] Error de comunicación con MIC: {e}")
+            logger.warning(f"[TOPO] ✂️ {summary}")
+            return SystemStatus.DISCONNECTED, summary
 
-4. Alineación con la Estabilidad Operativa (FluxCondenser)
-El apu_agent.py ya está altamente alineado con la lógica de estabilidad descrita en flux_condenser.py y teoria_control.md.
-• Evidencia: Utiliza PersistenceHomology para distinguir entre ruido transitorio (NOISE) y problemas estructurales (FEATURE) en las métricas de voltaje (flyback_voltage) y saturación.
-• Cumplimiento de Jerarquía: Al enfocarse exclusivamente en métricas de energía (Ec​,Ek​) y topología de red (conectividad), el agente opera correctamente en la base de la pirámide (Nivel 3: PHYSICS), protegiendo a los niveles superiores (Táctica/Estrategia) de datos corruptos o inestables.
-Conclusión: El apu_agent.py tiene la inteligencia correcta (análisis topológico/físico), pero le falta la agencia ejecutiva (conexión directa con la MIC) para cerrar el ciclo de control. La refactorización propuesta le da "manos" al cerebro del agente.
+        # =====================================================================
+        # 2. VERIFICAR DATOS DE TELEMETRÍA
+        # =====================================================================
+        if telemetry is None:
+            # Sin datos pero conectado = estado desconocido
+            if self._metrics.consecutive_failures > 0:
+                summary = f"Sin telemetría ({self._metrics.consecutive_failures} fallos)"
+            else:
+                summary = "Esperando datos de telemetría"
+            return SystemStatus.UNKNOWN, summary
+
+        # =====================================================================
+        # 3. UMBRALES CRÍTICOS INSTANTÁNEOS (Safety Net)
+        # =====================================================================
+        if telemetry.flyback_voltage > self.thresholds.flyback_voltage_critical:
+            summary = (
+                f"Voltaje Crítico Instantáneo: "
+                f"{telemetry.flyback_voltage:.3f} > "
+                f"{self.thresholds.flyback_voltage_critical}"
+            )
+            logger.critical(f"[SAFETY] 🚨 {summary}")
+            return SystemStatus.CRITICO, summary
+
+        if telemetry.saturation > self.thresholds.saturation_critical:
+            summary = (
+                f"Saturación Crítica Instantánea: "
+                f"{telemetry.saturation:.3f} > "
+                f"{self.thresholds.saturation_critical}"
+            )
+            logger.critical(f"[SAFETY] 🚨 {summary}")
+            return SystemStatus.CRITICO, summary
+
+        # =====================================================================
+        # 4. SALUD TOPOLÓGICA GENERAL
+        # =====================================================================
+        if topo_health.level == HealthLevel.CRITICAL:
+            summary = (
+                f"Salud Topológica Crítica: score={topo_health.health_score:.2f}. "
+                f"Diagnósticos: {topo_health.diagnostics}"
+            )
+            logger.warning(f"[TOPO] 🔴 {summary}")
+            return SystemStatus.CRITICO, summary
+
+        # =====================================================================
+        # 5. ANÁLISIS DE PERSISTENCIA
+        # =====================================================================
+
+        # Saturación persistente (más grave que inestabilidad)
+        if saturation_analysis.state == MetricState.CRITICAL:
+            duration = saturation_analysis.metadata.get("active_duration", "?")
+            summary = (
+                f"Saturación Persistente Crítica: excursión activa por {duration} muestras"
+            )
+            logger.warning(f"[PERSIST] 🟠 {summary}")
+            return SystemStatus.SATURADO, summary
+
+        if saturation_analysis.state == MetricState.FEATURE:
+            summary = (
+                f"Saturación con Patrón Estructural: "
+                f"{saturation_analysis.feature_count} característica(s), "
+                f"persistencia total={saturation_analysis.total_persistence:.1f}"
+            )
+            logger.warning(f"[PERSIST] 🟡 {summary}")
+            return SystemStatus.SATURADO, summary
+
+        # Inestabilidad de voltaje
+        if voltage_analysis.state == MetricState.CRITICAL:
+            duration = voltage_analysis.metadata.get("active_duration", "?")
+            summary = (
+                f"Inestabilidad de Voltaje Crítica: excursión activa por {duration} muestras"
+            )
+            logger.warning(f"[PERSIST] 🟠 {summary}")
+            return SystemStatus.INESTABLE, summary
+
+        if voltage_analysis.state == MetricState.FEATURE:
+            summary = (
+                f"Inestabilidad de Voltaje Estructural: "
+                f"{voltage_analysis.feature_count} característica(s), "
+                f"max_lifespan={voltage_analysis.max_lifespan:.1f}"
+            )
+            logger.warning(f"[PERSIST] 🟡 {summary}")
+            return SystemStatus.INESTABLE, summary
+
+        # =====================================================================
+        # 6. DETECCIÓN DE LOOPS DE REINTENTOS
+        # =====================================================================
+        if topo_health.request_loops:
+            worst_loop = topo_health.request_loops[0]  # Ya ordenados por frecuencia
+            if worst_loop.count >= 5:
+                summary = (
+                    f"Patrón de Reintentos Detectado: "
+                    f"'{worst_loop.request_id}' apareció {worst_loop.count} veces"
+                )
+                logger.warning(f"[TOPO] 🔄 {summary}")
+                # Los loops de error indican inestabilidad
+                if worst_loop.request_id.startswith("FAIL_"):
+                    return SystemStatus.INESTABLE, summary
+
+        # =====================================================================
+        # 7. SALUD TOPOLÓGICA DEGRADADA (pero no crítica)
+        # =====================================================================
+        if topo_health.level == HealthLevel.UNHEALTHY:
+            summary = f"Salud Topológica Degradada: score={topo_health.health_score:.2f}"
+            logger.warning(f"[TOPO] 🟡 {summary}")
+            return SystemStatus.INESTABLE, summary
+
+        # =====================================================================
+        # 8. RUIDO - Ignorar (inmunidad a falsos positivos)
+        # =====================================================================
+        if voltage_analysis.state == MetricState.NOISE:
+            logger.debug(
+                f"[PERSIST] Ruido en voltaje ignorado: "
+                f"{voltage_analysis.noise_count} excursiones cortas"
+            )
+
+        if saturation_analysis.state == MetricState.NOISE:
+            logger.debug(
+                f"[PERSIST] Ruido en saturación ignorado: "
+                f"{saturation_analysis.noise_count} excursiones cortas"
+            )
+
+        # =====================================================================
+        # 9. ESTADO NOMINAL
+        # =====================================================================
+        summary = (
+            f"Sistema Nominal: β₀={betti.b0} (conectado), "
+            f"health={topo_health.health_score:.2f}"
+        )
+        return SystemStatus.NOMINAL, summary
