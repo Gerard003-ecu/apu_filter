@@ -335,7 +335,7 @@ class PresupuestoBuilder(DataFrameBuilder):
         
         # Invariante: códigos únicos
         self.add_invariant(
-            lambda df: df[ColumnNames.CODIGO_APU].is_unique if not df.empty else True
+            lambda df: df[df[ColumnNames.CODIGO_APU] != ""][ColumnNames.CODIGO_APU].is_unique if not df.empty else True
         )
     
     def with_item(

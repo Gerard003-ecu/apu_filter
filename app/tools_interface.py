@@ -1654,3 +1654,108 @@ def get_telemetry_status(
             "message": f"Error retrieving telemetry report: {e}",
             "has_active_context": True
         }
+
+# ══════════════════════════════════════════════════════════════════════════════
+# FUNCIONES DE VALIDACIÓN Y UTILIDADES (Restauradas)
+# ══════════════════════════════════════════════════════════════════════════════
+
+def _validate_path_not_empty(path: Union[str, Path]) -> None:
+    if not path:
+        raise ValueError("Path cannot be empty")
+    if isinstance(path, str) and not path.strip():
+        raise ValueError("Path cannot be empty")
+
+def _normalize_path(path: Union[str, Path]) -> Path:
+    if path is None:
+        raise ValueError("Path cannot be None")
+    _validate_path_not_empty(path)
+    return Path(path).expanduser().resolve()
+
+def _validate_file_exists(path: Path) -> None:
+    if not path.exists():
+        raise FileNotFoundDiagnosticError(f"File not found: {path}")
+    if not path.is_file():
+        raise FileValidationError(f"Path is not a file: {path}")
+
+def _validate_file_extension(path: Path) -> str:
+    ext = path.suffix.lower()
+    if ext not in VALID_EXTENSIONS:
+        raise FileValidationError(f"Invalid extension: {ext}. Expected: {VALID_EXTENSIONS}")
+    return ext
+
+def _validate_file_size(path: Path, max_size: int) -> Tuple[int, bool]:
+    size = path.stat().st_size
+    if size > max_size:
+        raise FileValidationError(f"File size {size} exceeds limit {max_size}")
+    return size, size == 0
+
+def _normalize_encoding(encoding: str) -> str:
+    norm = encoding.lower().replace("-", "").replace("_", "")
+    for alias, standard in _ENCODING_ALIASES.items():
+        if norm == alias.replace("-", ""):
+            return standard
+    if encoding.lower() in SUPPORTED_ENCODINGS:
+        return encoding.lower()
+    return "utf-8" # Default fallback
+
+def _validate_csv_parameters(delimiter: str, encoding: str) -> Tuple[str, str]:
+    if delimiter not in VALID_DELIMITERS:
+        raise ValueError(f"Invalid delimiter: {delimiter}")
+    norm_enc = _normalize_encoding(encoding)
+    return delimiter, norm_enc
+
+def _normalize_file_type(file_type: Union[str, FileType]) -> FileType:
+    if isinstance(file_type, FileType):
+        return file_type
+    return FileType.from_string(file_type)
+
+def _generate_output_path(input_path: Path) -> Path:
+    return input_path.with_name(f"{input_path.stem}_clean{input_path.suffix}")
+
+def _create_success_response(data: Dict[str, Any], **kwargs) -> Dict[str, Any]:
+    return {"success": True, **data, **kwargs}
+
+def _create_error_response(error: Union[Exception, str], error_category: str = "error", **kwargs) -> Dict[str, Any]:
+    msg = str(error)
+    details = getattr(error, "details", {}) if isinstance(error, Exception) else {}
+    return {
+        "success": False,
+        "error": msg,
+        "error_category": error_category,
+        "error_details": details,
+        "error_type": type(error).__name__ if isinstance(error, Exception) else "Error",
+        **kwargs
+    }
+
+def _extract_diagnostic_result(diagnostic: DiagnosticProtocol) -> Dict[str, Any]:
+    result = diagnostic.to_dict()
+    result["diagnostic_completed"] = True
+    return result
+
+# Public Utilities
+
+def get_supported_file_types() -> List[str]:
+    return FileType.values()
+
+def get_supported_delimiters() -> List[str]:
+    return list(VALID_DELIMITERS)
+
+def get_supported_encodings() -> List[str]:
+    return list(SUPPORTED_ENCODINGS)
+
+def is_valid_file_type(file_type: Union[str, FileType]) -> bool:
+    try:
+        _normalize_file_type(file_type)
+        return True
+    except ValueError:
+        return False
+
+def validate_file_for_processing(path: Path) -> Dict[str, Any]:
+    try:
+        p = _normalize_path(path)
+        _validate_file_exists(p)
+        ext = _validate_file_extension(p)
+        size, empty = _validate_file_size(p, MAX_FILE_SIZE_BYTES)
+        return {"valid": True, "size": size, "extension": ext, "is_empty": empty}
+    except Exception as e:
+        return {"valid": False, "errors": [str(e)]}
