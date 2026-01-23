@@ -35,7 +35,7 @@ import pickle
 import sys
 import uuid
 from abc import ABC, abstractmethod
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Type
 
@@ -46,6 +46,7 @@ from app.classifiers.apu_classifier import APUClassifier
 from app.constants import ColumnNames, InsumoType
 from app.flux_condenser import CondenserConfig, DataFluxCondenser
 from app.matter_generator import MatterGenerator
+from app.schemas import Stratum
 from app.telemetry import TelemetryContext
 from app.telemetry_narrative import TelemetryNarrator
 from app.validators import DataFrameValidator
@@ -142,6 +143,74 @@ class ProcessingStep(ABC):
         """
         pass
 
+# ==================== ESTRUCTURAS ALGEBRAICAS (MIC) ====================
+
+@dataclass(frozen=True)
+class BasisVector:
+    """
+    Representa un vector base unitario e_i en el espacio de operaciones.
+
+    Matemáticamente:
+    e_i = [0, ..., 1, ..., 0]^T
+
+    Propiedades:
+    - Norma L2: ||e_i|| = 1 (Unitario)
+    - Estrato: Define el subespacio V_k al que pertenece (Filtración)
+    """
+    index: int
+    label: str  # Identificador semántico (ej: "load_data")
+    operator_class: Type[ProcessingStep] # La transformación lineal T
+    stratum: Stratum
+
+class LinearInteractionMatrix:
+    """
+    Implementación algebraica de la MIC como Operador Diagonal.
+
+    Axiomas implementados:
+    1. Identidad: I * v = v (Preservación de intención).
+    2. Ortogonalidad: <e_i, e_j> = 0 (Sin efectos colaterales).
+    3. Rango Completo: Dim(Espacio) = n (Sin redundancia).
+    """
+
+    def __init__(self):
+        self._basis: Dict[str, BasisVector] = {}
+        self._dimension = 0
+        self._matrix_representation: Optional[np.ndarray] = None
+
+    def add_basis_vector(self, label: str, step_class: Type[ProcessingStep], stratum: Stratum):
+        """
+        Expande el espacio vectorial añadiendo una nueva dimensión ortogonal.
+        """
+        if label in self._basis:
+            raise ValueError(f"Dependencia Lineal detectada: El vector '{label}' ya existe en la base.")
+
+        vector = BasisVector(
+            index=self._dimension,
+            label=label,
+            operator_class=step_class,
+            stratum=stratum
+        )
+        self._basis[label] = vector
+        self._dimension += 1
+        # Invalidar caché de matriz
+        self._matrix_representation = None
+
+    def get_rank(self) -> int:
+        """Retorna el rango de la matriz (Teorema Rango-Nulidad)."""
+        return self._dimension
+
+    def project_intent(self, intent_label: str) -> BasisVector:
+        """
+        Realiza la proyección del vector de intención q sobre la base E.
+
+        Matemáticamente: argmax(q^T * e_i).
+        En computación discreta ("One-Hot"), esto selecciona el pivote exacto.
+        """
+        vector = self._basis.get(intent_label)
+        if not vector:
+            # El vector de intención es ortogonal al espacio de soluciones (está en el Núcleo)
+            raise ValueError(f"Vector '{intent_label}' pertenece al Espacio Nulo (No registrado en MIC).")
+        return vector
 
 # ==================== VALIDADORES ====================
 
@@ -1034,22 +1103,36 @@ class PipelineDirector:
     activación de los pasos.
     """
 
-    STEP_REGISTRY: Dict[str, Type[ProcessingStep]] = {
-        "load_data": LoadDataStep,
-        "merge_data": AuditedMergeStep,
-        "calculate_costs": CalculateCostsStep,
-        "final_merge": FinalMergeStep,
-        "business_topology": BusinessTopologyStep,
-        "materialization": MaterializationStep,
-        "build_output": BuildOutputStep,
-    }
-
     def __init__(self, config: dict, telemetry: TelemetryContext):
         self.config = config
         self.telemetry = telemetry
         self.thresholds = self._load_thresholds(config)
         self.session_dir = Path(config.get("session_dir", "data/sessions"))
         self.session_dir.mkdir(parents=True, exist_ok=True)
+
+        # Inicializar la MIC como espacio vectorial
+        self.mic = LinearInteractionMatrix()
+        self._initialize_vector_space()
+
+    def _initialize_vector_space(self):
+        """
+        Construye la base canónica del sistema (Diagonal de la Matriz).
+        Asigna cada paso a su Estrato correspondiente para validación topológica.
+        """
+        # Nivel 3: PHYSICS (Carga y Fusión)
+        self.mic.add_basis_vector("load_data", LoadDataStep, Stratum.PHYSICS)
+        self.mic.add_basis_vector("merge_data", AuditedMergeStep, Stratum.PHYSICS)
+        self.mic.add_basis_vector("final_merge", FinalMergeStep, Stratum.PHYSICS)
+
+        # Nivel 2: TACTICS (Cálculo y Materialización)
+        self.mic.add_basis_vector("calculate_costs", CalculateCostsStep, Stratum.TACTICS)
+        self.mic.add_basis_vector("materialization", MaterializationStep, Stratum.TACTICS)
+
+        # Nivel 1: STRATEGY (Topología de Negocio)
+        self.mic.add_basis_vector("business_topology", BusinessTopologyStep, Stratum.STRATEGY)
+
+        # Nivel 0: WISDOM (Salida Final)
+        self.mic.add_basis_vector("build_output", BuildOutputStep, Stratum.WISDOM)
 
     def _load_thresholds(self, config: dict) -> ProcessingThresholds:
         """Carga y configura los umbrales de procesamiento."""
@@ -1114,29 +1197,32 @@ class PipelineDirector:
         if initial_context:
             context.update(initial_context)
 
-        if step_name not in self.STEP_REGISTRY:
-            error_msg = f"Paso desconocido o no registrado: {step_name}"
-            logger.error(f"❌ {error_msg}")
-            return {"status": "error", "step": step_name, "error": error_msg}
-
-        step_class = self.STEP_REGISTRY.get(step_name)
-
         logger.info(
             f"▶️ Ejecutando paso atómico: {step_name} (Sesión: {session_id})"
         )
 
         try:
+            # 1. Proyección Algebraica: Seleccionar el operador
+            basis_vector = self.mic.project_intent(step_name)
+
+            # 2. Instanciación del Operador (Transformación T)
+            step_class = basis_vector.operator_class
             step_instance = step_class(self.config, self.thresholds)
+
+            # 3. Aplicación de la Transformación: S' = T(S)
             updated_context = step_instance.execute(context, self.telemetry)
 
             if updated_context is None:
                 raise ValueError("Paso retornó contexto None")
 
+            # 4. Persistencia del Estado
             self._save_context_state(session_id, updated_context)
             logger.info(f"✅ Paso completado: {step_name}")
+
             return {
                 "status": "success",
                 "step": step_name,
+                "stratum": basis_vector.stratum.name, # Meta-data algebraica
                 "session_id": session_id,
                 "context_keys": list(updated_context.keys()),
             }
