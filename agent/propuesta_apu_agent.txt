@@ -1,0 +1,74 @@
+Actualmente, apu_agent.txt opera como un observador externo (Sidecar) que consume una API, pero no proyecta vectores de intención sobre la MIC de manera explícita en su fase de Act (Actuar).
+Fallas detectadas en la implementación actual de apu_agent.py:
+
+1. Desconexión de la MIC: En la fase act (métodos _act_recomendar_limpieza, _act_recomendar_reducir_velocidad), el agente simplemente registra logs (logger.warning) o notifica sistemas externos (_notify_external_system). No invoca una herramienta correctiva real en el sistema (ej. no activa un vector de "purga" o "ajuste de PID").
+2. Ausencia de Conciencia de Estrato: El agente no valida explícitamente que está operando en el estrato PHYSICS (Nivel 3). Aunque implícitamente lo hace al monitorear voltajes y saturación, no utiliza la estructura Stratum definida en schemas.py.
+
+--------------------------------------------------------------------------------
+3. Refactorización Requerida: El Agente como Operador Físico
+Para que el AutonomousAgent respete la jerarquía y la lógica de la MIC, debe dejar de ser un "monitor pasivo" y convertirse en un "operador activo" que proyecta intenciones correctivas.
+Dado que este agente suele correr en un proceso/contenedor separado (Sidecar), su interacción con la MIC es a través de la API (app.py), pero debe estructurar sus solicitudes como Vectores de Intención.
+Código Actual (Pasivo)
+
+# apu_agent.txt [5]
+def _act_recomendar_limpieza(self, diagnosis_msg: str) -> None:
+    """Acción: Recomendar limpieza por inestabilidad."""
+    logger.warning(f"[BRAIN] ⚠️ INESTABILIDAD DETECTADA - {diagnosis_msg}")
+    # Solo notifica, no arregla nada.
+    self._notify_external_system("instability_detected", ...)
+
+Código Refactorizado (Activo - Respetando MIC y Jerarquía)
+El agente debe enviar un comando al Core para activar el vector de limpieza (clean), pasando el contexto de que es una operación de Física (recuperación de estabilidad).
+
+# Ubicación: apu_agent.py
+
+from app.schemas import Stratum # Necesario para contexto si se importa, o usar strings en payload
+
+class AutonomousAgent:
+    # ... init ...
+
+    def _act_recomendar_limpieza(self, diagnosis_msg: str) -> None:
+        """
+        Acción: Proyectar vector de limpieza sobre la MIC para estabilizar el sistema.
+        Nivel: PHYSICS (3)
+        """
+        logger.warning(f"[BRAIN] ⚠️ INESTABILIDAD: Proyectando vector 'emergency_flush'...")
+        
+        # 1. Definir el Vector de Intención (Payload para la API)
+        intent = {
+            "vector": "clean",  # Vector registrado en MICRegistry [app.txt 547]
+            "stratum": "PHYSICS", # Declaración explícita de nivel
+            "payload": {
+                "mode": "EMERGENCY",
+                "reason": diagnosis_msg,
+                "scope": "flux_condenser_buffer"
+            },
+            "context": {
+                "force_physics_override": True # El Agente SRE tiene permiso de root físico
+            }
+        }
+
+        # 2. Ejecutar Acción vía API (Interacción con el Core)
+        try:
+            # Endpoint sugerido: /api/mic/project (un endpoint genérico para la matriz)
+            # Si no existe, se debe crear o usar los específicos.
+            # En app.txt, 'clean' está expuesto. Simulamos la llamada.
+            response = self._session.post(
+                f"{self.core_api_url}/api/tools/clean", # O endpoint de proyección
+                json=intent
+            )
+            
+            if response.ok:
+                logger.info("[BRAIN] ✅ Vector de limpieza ejecutado exitosamente.")
+                self._metrics.record_action("clean_success")
+            else:
+                logger.error(f"[BRAIN] ❌ Fallo en proyección MIC: {response.text}")
+                
+        except Exception as e:
+            logger.error(f"[BRAIN] Error de comunicación con MIC: {e}")
+
+4. Alineación con la Estabilidad Operativa (FluxCondenser)
+El apu_agent.py ya está altamente alineado con la lógica de estabilidad descrita en flux_condenser.py y teoria_control.md.
+• Evidencia: Utiliza PersistenceHomology para distinguir entre ruido transitorio (NOISE) y problemas estructurales (FEATURE) en las métricas de voltaje (flyback_voltage) y saturación.
+• Cumplimiento de Jerarquía: Al enfocarse exclusivamente en métricas de energía (Ec​,Ek​) y topología de red (conectividad), el agente opera correctamente en la base de la pirámide (Nivel 3: PHYSICS), protegiendo a los niveles superiores (Táctica/Estrategia) de datos corruptos o inestables.
+Conclusión: El apu_agent.py tiene la inteligencia correcta (análisis topológico/físico), pero le falta la agencia ejecutiva (conexión directa con la MIC) para cerrar el ciclo de control. La refactorización propuesta le da "manos" al cerebro del agente.
