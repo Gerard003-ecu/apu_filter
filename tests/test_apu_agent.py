@@ -714,7 +714,7 @@ class TestDecide(TestFixtures):
     def test_decide_unstable_recommends_corrective_action(self, agent):
         """INESTABLE debe recomendar acción correctiva."""
         decision = agent.decide(SystemStatus.INESTABLE)
-        assert decision in (AgentDecision.RECOMENDAR_LIMPIEZA, AgentDecision.WAIT)
+        assert decision in (AgentDecision.EJECUTAR_LIMPIEZA, AgentDecision.WAIT)
 
     def test_decide_nominal_continues(self, agent):
         """NOMINAL debe decidir HEARTBEAT (Continuar)."""
@@ -747,8 +747,11 @@ class TestAct(TestFixtures):
         )
         agent._last_diagnosis = diagnosis
 
+        # Mock success for project_intent to avoid error logs cluttering
+        agent._session.post.return_value.ok = True
+
         with caplog.at_level(logging.WARNING):
-            agent.act(AgentDecision.RECOMENDAR_LIMPIEZA)
+            agent.act(AgentDecision.EJECUTAR_LIMPIEZA)
 
         assert "Ciclo Detectado" in caplog.text
         # Verificar presencia de métricas Betti en cualquier formato
@@ -762,7 +765,10 @@ class TestAct(TestFixtures):
 
     def test_act_non_critical_respects_debounce(self, agent):
         """Decisiones no críticas respetan el intervalo de debounce."""
-        decision = AgentDecision.RECOMENDAR_LIMPIEZA
+        decision = AgentDecision.EJECUTAR_LIMPIEZA
+
+        # Mock success
+        agent._session.post.return_value.ok = True
 
         result1 = agent.act(decision)
         result2 = agent.act(decision)  # Inmediata
@@ -772,9 +778,31 @@ class TestAct(TestFixtures):
 
     def test_act_returns_boolean(self, agent):
         """ACT siempre retorna booleano indicando si se ejecutó."""
+        # Mock success for any post call
+        agent._session.post.return_value.ok = True
+
         for decision in AgentDecision:
             result = agent.act(decision)
             assert isinstance(result, bool)
+
+    def test_act_ejecutar_limpieza_projects_intent(self, agent):
+        """EJECUTAR_LIMPIEZA debe proyectar intención 'clean' con estrato 'PHYSICS'."""
+        agent._session.post.return_value.ok = True
+
+        agent.act(AgentDecision.EJECUTAR_LIMPIEZA)
+
+        # Verificar que se llamó a post
+        agent._session.post.assert_called_once()
+
+        args, kwargs = agent._session.post.call_args
+        url = args[0]
+        json_body = kwargs['json']
+
+        assert url.endswith("/api/tools/clean")
+        assert json_body['vector'] == "clean"
+        assert json_body['stratum'] == "PHYSICS"
+        assert json_body['payload']['mode'] == "EMERGENCY"
+        assert json_body['context']['force_physics_override'] is True
 
 
 ### 7. Tests de Invariantes Topológicos
