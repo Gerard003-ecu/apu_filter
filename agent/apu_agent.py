@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """
 Este componente implementa un agente autónomo que gobierna el ciclo de vida del 
 procesamiento de datos mediante el ciclo OODA (Observar, Orientar, Decidir, Actuar).
