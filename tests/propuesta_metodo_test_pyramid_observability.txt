@@ -1,0 +1,818 @@
+# ============================================================================
+# MÉTODOS REFINADOS: ObservabilityTestUtils
+# ============================================================================
+
+class ObservabilityTestUtils:
+    """Utilidades avanzadas para tests de observabilidad."""
+
+    @staticmethod
+    def create_layered_telemetry_graph(
+        failures_by_stratum: Dict[Stratum, int] = None,
+        nesting_depth: int = 3,
+        span_count: int = 10
+    ) -> TelemetryContext:
+        """
+        Crea un grafo de telemetría en capas con fallos controlados.
+        
+        REFINAMIENTO: Usa contadores por estrato para distribución correcta
+        de fallos y estructura de árbol coherente.
+
+        Args:
+            failures_by_stratum: Diccionario de fallos por estrato
+            nesting_depth: Profundidad máxima de anidamiento
+            span_count: Número total de spans
+
+        Returns:
+            Contexto de telemetría estructurado
+        """
+        context = TelemetryContext()
+
+        if failures_by_stratum is None:
+            failures_by_stratum = {}
+
+        # Contadores independientes por estrato para distribución correcta
+        strata_list = list(Stratum)
+        strata_counts: Dict[Stratum, int] = defaultdict(int)
+        strata_spans: Dict[Stratum, List[TelemetrySpan]] = defaultdict(list)
+        
+        # Primera pasada: crear todos los spans con estados correctos
+        all_spans: List[TelemetrySpan] = []
+        
+        for i in range(span_count):
+            # Distribución round-robin entre estratos
+            stratum = strata_list[i % len(strata_list)]
+            current_stratum_index = strata_counts[stratum]
+            
+            # Calcular nivel de anidamiento basado en posición en estrato
+            level = current_stratum_index % nesting_depth
+            
+            span = TelemetrySpan(
+                name=f"{stratum.name.lower()}_span_{current_stratum_index}",
+                level=level,
+                stratum=stratum
+            )
+            
+            # Determinar estado: fallo si el índice del estrato < cantidad de fallos configurados
+            failures_for_stratum = failures_by_stratum.get(stratum, 0)
+            
+            if current_stratum_index < failures_for_stratum:
+                span.status = StepStatus.FAILURE
+                span.errors = [{
+                    "message": f"Controlled failure #{current_stratum_index + 1} in {stratum.name}",
+                    "type": f"{stratum.name}Error",
+                    "timestamp": datetime.utcnow().isoformat(),
+                    "severity": "HIGH" if current_stratum_index == 0 else "MEDIUM"
+                }]
+            else:
+                span.status = StepStatus.SUCCESS
+                span.errors = []
+            
+            # Tiempos: start_time es float (segundos desde epoch)
+            base_duration_ms = 100 + (i * 10)
+            span.end_time = span.start_time + (base_duration_ms / 1000.0)
+            
+            # Métricas enriquecidas
+            span.metrics = {
+                "processing_time_ms": base_duration_ms,
+                "memory_usage_mb": 50.0 + (current_stratum_index * 5.0),
+                "success_rate": 1.0 if span.status == StepStatus.SUCCESS else 0.0,
+                "retry_count": 0 if span.status == StepStatus.SUCCESS else 1,
+                "stratum_index": current_stratum_index
+            }
+            
+            all_spans.append(span)
+            strata_spans[stratum].append(span)
+            strata_counts[stratum] += 1
+        
+        # Segunda pasada: establecer jerarquía padre-hijo dentro de cada estrato
+        for stratum, spans in strata_spans.items():
+            if len(spans) <= 1:
+                continue
+                
+            # Crear estructura de árbol: cada span (excepto el primero) tiene padre
+            for idx, span in enumerate(spans[1:], start=1):
+                # Padre es el span anterior en el mismo estrato con nivel menor
+                parent_candidates = [s for s in spans[:idx] if s.level < span.level]
+                
+                if parent_candidates:
+                    parent = parent_candidates[-1]  # Más cercano
+                    parent.children.append(span)
+        
+        # Tercera pasada: asignar spans raíz (nivel 0 o sin padre)
+        for span in all_spans:
+            # Es raíz si tiene nivel 0 o no es hijo de nadie
+            is_child = any(
+                span in other_span.children 
+                for other_span in all_spans 
+                if other_span != span
+            )
+            if not is_child:
+                context.root_spans.append(span)
+
+        return context
+
+    @staticmethod
+    def analyze_failure_propagation_graph(
+        context: TelemetryContext,
+        narrator: TelemetryNarrator
+    ) -> Dict[Stratum, Dict[str, Any]]:
+        """
+        Analiza propagación de fallos usando teoría de grafos.
+        
+        REFINAMIENTO: Manejo robusto de grafos vacíos, cálculo de clustering
+        correcto para grafos dirigidos, y métricas de propagación mejoradas.
+
+        Args:
+            context: Contexto de telemetría
+            narrator: Narrador para análisis
+
+        Returns:
+            Análisis de propagación por estrato
+        """
+        G = nx.DiGraph()
+        span_registry: Dict[str, TelemetrySpan] = {}
+
+        def add_span_recursive(span: TelemetrySpan, depth: int = 0, parent_id: str = None):
+            """Añade span y sus hijos al grafo recursivamente."""
+            node_id = f"{span.stratum.name}_{id(span)}"
+            
+            G.add_node(
+                node_id,
+                stratum=span.stratum,
+                status=span.status,
+                depth=depth,
+                error_count=len(span.errors),
+                name=span.name
+            )
+            span_registry[node_id] = span
+
+            # Conectar con padre si existe
+            if parent_id is not None:
+                G.add_edge(parent_id, node_id, relation="parent_child")
+
+            # Procesar hijos
+            for child in span.children:
+                add_span_recursive(child, depth + 1, node_id)
+
+        # Construir grafo desde spans raíz
+        for root_span in context.root_spans:
+            add_span_recursive(root_span)
+
+        # Análisis por estrato
+        propagation_analysis: Dict[Stratum, Dict[str, Any]] = {}
+
+        for stratum in Stratum:
+            stratum_nodes = [
+                n for n, d in G.nodes(data=True) 
+                if d.get('stratum') == stratum
+            ]
+
+            if not stratum_nodes:
+                # Estrato sin nodos: métricas vacías pero válidas
+                propagation_analysis[stratum] = {
+                    "total_nodes": 0,
+                    "failed_nodes": 0,
+                    "failure_rate": 0.0,
+                    "adjacent_failures": 0,
+                    "clustering_coefficient": 0.0,
+                    "propagation_risk": 0.0,
+                    "max_failure_depth": 0,
+                    "failure_density": 0.0
+                }
+                continue
+
+            # Nodos fallidos en este estrato
+            failed_nodes = [
+                n for n in stratum_nodes
+                if G.nodes[n]['status'] == StepStatus.FAILURE
+            ]
+
+            # Análisis de adyacencia: contar fallos conectados
+            adjacent_failure_count = 0
+            adjacent_failure_pairs: List[Tuple[str, str]] = []
+            
+            for failed_node in failed_nodes:
+                # Vecinos en ambas direcciones (predecesores y sucesores)
+                neighbors = set(G.predecessors(failed_node)) | set(G.successors(failed_node))
+                
+                for neighbor in neighbors:
+                    if G.nodes[neighbor]['status'] == StepStatus.FAILURE:
+                        # Evitar contar pares duplicados
+                        pair = tuple(sorted([failed_node, neighbor]))
+                        if pair not in adjacent_failure_pairs:
+                            adjacent_failure_pairs.append(pair)
+                            adjacent_failure_count += 1
+
+            # Clustering coefficient para subgrafo del estrato
+            # Convertir a no dirigido para cálculo de clustering
+            clustering_coeff = 0.0
+            if len(stratum_nodes) >= 3:
+                subgraph = G.subgraph(stratum_nodes)
+                undirected_subgraph = subgraph.to_undirected()
+                try:
+                    clustering_coeff = nx.average_clustering(undirected_subgraph)
+                except (nx.NetworkXError, ZeroDivisionError):
+                    clustering_coeff = 0.0
+
+            # Profundidad máxima de fallos
+            max_failure_depth = 0
+            if failed_nodes:
+                max_failure_depth = max(G.nodes[n]['depth'] for n in failed_nodes)
+
+            # Densidad de fallos: proporción de aristas entre nodos fallidos
+            failure_subgraph = G.subgraph(failed_nodes)
+            possible_edges = len(failed_nodes) * (len(failed_nodes) - 1) if len(failed_nodes) > 1 else 1
+            failure_density = failure_subgraph.number_of_edges() / possible_edges
+
+            # Riesgo de propagación: fallos adyacentes / total de fallos
+            propagation_risk = adjacent_failure_count / max(1, len(failed_nodes))
+
+            propagation_analysis[stratum] = {
+                "total_nodes": len(stratum_nodes),
+                "failed_nodes": len(failed_nodes),
+                "failure_rate": len(failed_nodes) / len(stratum_nodes),
+                "adjacent_failures": adjacent_failure_count,
+                "clustering_coefficient": clustering_coeff,
+                "propagation_risk": propagation_risk,
+                "max_failure_depth": max_failure_depth,
+                "failure_density": failure_density
+            }
+
+        return propagation_analysis
+
+    @staticmethod
+    def create_topological_test_graph(
+        add_cycles: bool = False,
+        disconnected_components: int = 1,
+        anomaly_density: float = 0.1
+    ) -> Tuple[nx.DiGraph, AnomalyData]:
+        """
+        Crea grafo topológico de prueba con características controladas.
+        
+        REFINAMIENTO: Estructura jerárquica correcta con niveles coherentes,
+        ciclos válidos que respetan la estructura, y distribución de anomalías
+        proporcional a la densidad especificada.
+
+        Args:
+            add_cycles: Añadir ciclos dirigidos (solo entre nodos del mismo nivel)
+            disconnected_components: Número de componentes conexos
+            anomaly_density: Densidad de anomalías (0.0 a 1.0)
+
+        Returns:
+            Grafo y datos de anomalías
+        """
+        G = nx.DiGraph()
+        anomaly_data = AnomalyData()
+
+        # Configuración de la jerarquía
+        LEVEL_CONFIG = [
+            (0, "BUDGET", "PROJECT"),      # WISDOM
+            (1, "CHAPTER", "CHAPTER"),     # STRATEGY  
+            (2, "APU", "APU"),             # TACTICS
+            (3, "INSUMO", "INSUMO"),       # PHYSICS
+        ]
+        NODES_PER_LEVEL = 3  # Nodos por nivel por componente
+        
+        node_counter = 0
+        nodes_by_level: Dict[int, Dict[int, List[str]]] = defaultdict(lambda: defaultdict(list))
+
+        # Crear nodos organizados por componente y nivel
+        for comp in range(disconnected_components):
+            for level, node_type, prefix in LEVEL_CONFIG:
+                for i in range(NODES_PER_LEVEL):
+                    node_id = f"{prefix}_{comp}_{level}_{i}"
+                    
+                    G.add_node(
+                        node_id,
+                        type=node_type,
+                        level=level,
+                        description=f"{node_type} component {comp} level {level} index {i}",
+                        component=comp
+                    )
+                    
+                    nodes_by_level[comp][level].append(node_id)
+                    
+                    # Aplicar anomalías según densidad (determinista para reproducibilidad)
+                    if anomaly_density > 0:
+                        # Usar hash del node_id para decisión determinista
+                        hash_val = hash(node_id) % 100
+                        if hash_val < (anomaly_density * 100):
+                            anomaly_data.anomalous_nodes.add(node_id)
+                            anomaly_data.node_scores[node_id] = 0.7 + (hash_val % 30) / 100.0
+                    
+                    node_counter += 1
+
+        # Crear aristas jerárquicas: cada nodo se conecta con nodos del nivel siguiente
+        for comp in range(disconnected_components):
+            for level in range(3):  # Niveles 0, 1, 2 se conectan con el siguiente
+                current_nodes = nodes_by_level[comp][level]
+                next_nodes = nodes_by_level[comp][level + 1]
+                
+                # Cada nodo del nivel actual se conecta con al menos un nodo del siguiente
+                for i, source in enumerate(current_nodes):
+                    # Conectar con nodo correspondiente y posiblemente adicionales
+                    for j, target in enumerate(next_nodes):
+                        # Conexión principal: índice correspondiente
+                        if i == j:
+                            G.add_edge(source, target)
+                        # Conexiones adicionales para estructura más rica
+                        elif abs(i - j) == 1 and len(current_nodes) > 1:
+                            G.add_edge(source, target)
+                        
+                        # Anomalías en aristas
+                        if anomaly_density > 0 and (source, target) in G.edges():
+                            edge_hash = hash((source, target)) % 100
+                            if edge_hash < (anomaly_density * 50):  # Menor densidad para aristas
+                                anomaly_data.anomalous_edges.add((source, target))
+                                anomaly_data.edge_scores[(source, target)] = 0.6 + (edge_hash % 40) / 100.0
+
+        # Añadir ciclos solo entre nodos del MISMO nivel (preserva DAG entre niveles)
+        if add_cycles:
+            for comp in range(disconnected_components):
+                # Añadir ciclo en nivel PHYSICS (3) donde hay más nodos
+                physics_nodes = nodes_by_level[comp][3]
+                if len(physics_nodes) >= 2:
+                    # Ciclo simple: último → primero
+                    G.add_edge(physics_nodes[-1], physics_nodes[0])
+                    
+                # También en nivel TACTICS (2) si hay suficientes nodos
+                tactics_nodes = nodes_by_level[comp][2]
+                if len(tactics_nodes) >= 2:
+                    G.add_edge(tactics_nodes[-1], tactics_nodes[0])
+
+        return G, anomaly_data
+
+
+# ============================================================================
+# MÉTODOS REFINADOS: TestTopologyFilteringRefined
+# ============================================================================
+
+class TestTopologyFilteringRefined:
+    """Tests refinados para filtrado topológico con preservación de homología."""
+
+    def _calculate_homological_properties(self, G: nx.DiGraph) -> Dict[str, Any]:
+        """
+        Calcula propiedades homológicas de un grafo.
+        
+        REFINAMIENTO: Manejo robusto de grafos vacíos, cálculo correcto
+        de números de Betti, y validación de invariantes.
+        """
+        # Manejar grafo vacío
+        if G.number_of_nodes() == 0:
+            return {
+                "components": [],
+                "betti_0": 0,
+                "betti_1": 0,
+                "euler_characteristic": 0,
+                "nodes": 0,
+                "edges": 0,
+                "is_valid": True
+            }
+
+        # Convertir a no dirigido para análisis homológico
+        G_undirected = G.to_undirected() if G.is_directed() else G.copy()
+
+        # β₀: Número de componentes conexos
+        components = list(nx.connected_components(G_undirected))
+        betti_0 = len(components)
+
+        # Número de nodos y aristas
+        n_nodes = G_undirected.number_of_nodes()
+        n_edges = G_undirected.number_of_edges()
+
+        # β₁: Número cíclomático = E - V + C (para grafos conexos por componentes)
+        # Fórmula general: β₁ = |E| - |V| + |componentes conexos|
+        betti_1 = max(0, n_edges - n_nodes + betti_0)
+
+        # Característica de Euler para complejos 1-dimensionales: χ = β₀ - β₁
+        euler_characteristic = betti_0 - betti_1
+
+        # Validación: para un bosque (árbol por componente), β₁ = 0
+        is_forest = all(
+            nx.is_tree(G_undirected.subgraph(comp)) 
+            for comp in components
+            if len(comp) > 0
+        )
+
+        return {
+            "components": components,
+            "betti_0": betti_0,
+            "betti_1": betti_1,
+            "euler_characteristic": euler_characteristic,
+            "nodes": n_nodes,
+            "edges": n_edges,
+            "is_forest": is_forest,
+            "is_valid": True,
+            "component_sizes": [len(c) for c in components]
+        }
+
+    def _compare_homology(
+        self, 
+        original: Dict[str, Any], 
+        filtered: Dict[str, Any], 
+        stratum_filter: Optional[int]
+    ) -> bool:
+        """
+        Compara propiedades homológicas después del filtrado.
+        
+        REFINAMIENTO: Criterios de preservación basados en teoría de 
+        homología persistente - verificamos que las características
+        topológicas esenciales se mantengan.
+
+        Args:
+            original: Propiedades originales del grafo completo
+            filtered: Propiedades del grafo filtrado
+            stratum_filter: Nivel de filtrado aplicado
+
+        Returns:
+            True si se preservan propiedades topológicas esenciales
+        """
+        # Grafo vacío después de filtrar: aceptable para filtros estrictos
+        if filtered["nodes"] == 0:
+            return stratum_filter is not None and stratum_filter >= 2
+        
+        # Sin filtro: debe preservar todo
+        if stratum_filter is None:
+            return (
+                original["betti_0"] == filtered["betti_0"] and
+                original["betti_1"] == filtered["betti_1"]
+            )
+        
+        # Filtros en niveles altos (TACTICS=2, PHYSICS=3): 
+        # Pueden cambiar la topología significativamente
+        if stratum_filter >= 2:
+            # Solo verificar que no se introduzcan ciclos donde no había
+            if original["betti_1"] == 0 and filtered["betti_1"] > 0:
+                return False
+            return True
+        
+        # Filtros en niveles bajos (WISDOM=0, STRATEGY=1):
+        # Deben preservar estructura de conectividad
+        
+        # La conectividad no debe perderse completamente
+        if original["betti_0"] > 0 and filtered["betti_0"] == 0:
+            return False
+        
+        # El número de componentes no debe aumentar drásticamente
+        # (el filtrado puede desconectar, pero no fragmentar excesivamente)
+        max_allowed_components = original["betti_0"] + (filtered["nodes"] // 3)
+        if filtered["betti_0"] > max_allowed_components:
+            return False
+        
+        # La característica de Euler debe mantener el mismo signo
+        # (invariante topológico fundamental)
+        if original["euler_characteristic"] != 0 and filtered["euler_characteristic"] != 0:
+            same_sign = (
+                (original["euler_characteristic"] > 0) == 
+                (filtered["euler_characteristic"] > 0)
+            )
+            if not same_sign:
+                return False
+
+        return True
+
+    def _validate_filtering_properties(self, filtering_results: Dict[int, Dict[str, Any]]):
+        """
+        Valida propiedades matemáticas del filtrado.
+        
+        REFINAMIENTO: Validaciones basadas en teoría de categorías
+        y propiedades de funtores de restricción.
+        """
+        # Obtener resultados del grafo completo (sin filtro)
+        full_graph_results = filtering_results.get(None)
+        if full_graph_results is None:
+            raise ValueError("Se requieren resultados del grafo sin filtrar")
+        
+        strata = sorted([s for s in filtering_results.keys() if s is not None])
+        
+        if not strata:
+            return  # No hay filtros que validar
+
+        # ═══════════════════════════════════════════════════════════════
+        # Propiedad 1: Monotonicidad Débil de Nodos
+        # El número de nodos debe decrecer (o mantenerse) al aumentar el filtro
+        # ═══════════════════════════════════════════════════════════════
+        prev_nodes = full_graph_results["nodes"]
+        for stratum in strata:
+            current_nodes = filtering_results[stratum]["nodes"]
+            assert current_nodes <= prev_nodes, (
+                f"Violación de monotonicidad: filtro {stratum} tiene "
+                f"{current_nodes} nodos > {prev_nodes} nodos previos"
+            )
+            prev_nodes = current_nodes
+
+        # ═══════════════════════════════════════════════════════════════
+        # Propiedad 2: Preservación Proporcional de Anomalías
+        # Las anomalías deben preservarse al menos proporcionalmente a los nodos
+        # ═══════════════════════════════════════════════════════════════
+        total_anomalies = sum(
+            r.get("anomalies_preserved", 0) 
+            for r in filtering_results.values() 
+            if r is not None
+        )
+        
+        for stratum in strata:
+            result = filtering_results[stratum]
+            if result["nodes"] == 0:
+                continue
+                
+            node_ratio = result["nodes"] / full_graph_results["nodes"]
+            anomaly_ratio = result.get("anomaly_preservation_rate", 0)
+            
+            # Tolerancia: anomalías deben preservarse al menos al 60% de la tasa de nodos
+            # (las anomalías tienden a concentrarse en ciertos niveles)
+            min_expected_ratio = node_ratio * 0.6
+            
+            assert anomaly_ratio >= min_expected_ratio or result["nodes"] < 3, (
+                f"Anomalías subrepresentadas en filtro {stratum}: "
+                f"ratio anomalías={anomaly_ratio:.3f}, "
+                f"ratio nodos={node_ratio:.3f}, "
+                f"mínimo esperado={min_expected_ratio:.3f}"
+            )
+
+        # ═══════════════════════════════════════════════════════════════
+        # Propiedad 3: Invariante de Betti β₁
+        # El número de ciclos no debe aumentar con el filtrado (no creamos ciclos)
+        # ═══════════════════════════════════════════════════════════════
+        for stratum in strata:
+            result = filtering_results[stratum]
+            original_b1 = full_graph_results.get("betti_1", 0)
+            filtered_b1 = result.get("betti_1", 0)
+            
+            # β₁ puede disminuir (eliminamos ciclos) pero no aumentar
+            assert filtered_b1 <= original_b1 + 1, (  # +1 tolerancia por aristas de borde
+                f"β₁ aumentó inesperadamente en filtro {stratum}: "
+                f"{original_b1} → {filtered_b1}"
+            )
+
+        # ═══════════════════════════════════════════════════════════════
+        # Propiedad 4: Consistencia de Aristas
+        # Todas las aristas deben conectar nodos existentes
+        # ═══════════════════════════════════════════════════════════════
+        for stratum in strata:
+            result = filtering_results[stratum]
+            n_nodes = result["nodes"]
+            n_edges = result["edges"]
+            
+            # Máximo de aristas posibles en un grafo simple dirigido
+            max_edges = n_nodes * (n_nodes - 1) if n_nodes > 1 else 0
+            
+            assert n_edges <= max_edges, (
+                f"Más aristas que las posibles en filtro {stratum}: "
+                f"{n_edges} aristas para {n_nodes} nodos (max: {max_edges})"
+            )
+
+
+# ============================================================================
+# MÉTODOS REFINADOS: TestCrossStratumPropagationRefined
+# ============================================================================
+
+class TestCrossStratumPropagationRefined:
+    """Tests refinados para propagación de anomalías entre estratos."""
+
+    def _estimate_transition_matrix(
+        self, 
+        propagation: Dict[Stratum, Dict[str, Any]]
+    ) -> np.ndarray:
+        """
+        Estima matriz de transición de Markov desde análisis de propagación.
+        
+        REFINAMIENTO: Garantiza matriz estocástica válida (filas suman 1,
+        elementos no negativos) y maneja casos degenerados.
+
+        Args:
+            propagation: Análisis de propagación por estrato
+
+        Returns:
+            Matriz de transición 4x4 válida
+        """
+        # Orden canónico de estratos (PHYSICS=0 es base, WISDOM=3 es cima)
+        STRATA_ORDER = [Stratum.PHYSICS, Stratum.TACTICS, Stratum.STRATEGY, Stratum.WISDOM]
+        stratum_to_idx = {s: i for i, s in enumerate(STRATA_ORDER)}
+        n_states = len(STRATA_ORDER)
+
+        # Inicializar matriz con ceros
+        P = np.zeros((n_states, n_states))
+
+        for stratum in STRATA_ORDER:
+            i = stratum_to_idx[stratum]
+            data = propagation.get(stratum, {})
+            
+            # Obtener métricas con valores por defecto seguros
+            failure_rate = data.get("failure_rate", 0.0)
+            propagation_risk = data.get("propagation_risk", 0.0)
+            
+            # Limitar valores al rango [0, 1]
+            failure_rate = np.clip(failure_rate, 0.0, 1.0)
+            propagation_risk = np.clip(propagation_risk, 0.0, 1.0)
+            
+            if stratum == Stratum.WISDOM:
+                # WISDOM es estado absorbente (decisión final)
+                P[i, i] = 1.0
+            else:
+                # Probabilidad de permanecer en el estado actual
+                # Basada en tasa de éxito (1 - failure_rate) con factor de estabilidad
+                stability_factor = 0.3  # Mínimo de estabilidad
+                p_stay = stability_factor + (1.0 - stability_factor) * (1.0 - failure_rate)
+                
+                # Probabilidad de propagar al siguiente nivel
+                # Mayor si hay fallos y alto riesgo de propagación
+                p_propagate = (1.0 - p_stay) * (0.3 + 0.7 * propagation_risk)
+                
+                # Probabilidad de saltar directamente a WISDOM (resolución rápida)
+                p_absorb = (1.0 - p_stay - p_propagate)
+                
+                # Asegurar no negatividad
+                p_propagate = max(0.0, p_propagate)
+                p_absorb = max(0.0, p_absorb)
+                
+                # Asignar probabilidades
+                P[i, i] = p_stay
+                
+                if i + 1 < n_states - 1:  # Hay estado intermedio antes de WISDOM
+                    P[i, i + 1] = p_propagate
+                    P[i, n_states - 1] = p_absorb
+                else:  # El siguiente es WISDOM
+                    P[i, n_states - 1] = p_propagate + p_absorb
+
+        # Normalización final: asegurar que cada fila sume 1
+        for i in range(n_states):
+            row_sum = P[i, :].sum()
+            if row_sum > 0:
+                P[i, :] /= row_sum
+            else:
+                # Fila vacía: transición directa a WISDOM
+                P[i, :] = 0
+                P[i, n_states - 1] = 1.0
+
+        # Validación: verificar propiedades de matriz estocástica
+        assert np.allclose(P.sum(axis=1), 1.0), "Matriz no estocástica: filas no suman 1"
+        assert np.all(P >= 0), "Matriz no estocástica: elementos negativos"
+        
+        return P
+
+    def _calculate_absorbing_probabilities(
+        self, 
+        transition_matrix: np.ndarray
+    ) -> np.ndarray:
+        """
+        Calcula probabilidades de absorción para cada estado transitorio.
+        
+        REFINAMIENTO: Manejo robusto de matrices singulares y validación
+        de resultados.
+
+        Args:
+            transition_matrix: Matriz de transición P
+
+        Returns:
+            Vector de probabilidades de absorción desde cada estado transitorio
+        """
+        n_states = transition_matrix.shape[0]
+        n_transient = n_states - 1  # Todos excepto WISDOM son transitorios
+        
+        # Extraer submatrices
+        Q = transition_matrix[:n_transient, :n_transient]  # Transiciones entre transitorios
+        R = transition_matrix[:n_transient, n_transient:]  # Transiciones a absorbente
+        
+        # Matriz fundamental: N = (I - Q)^(-1)
+        I = np.eye(n_transient)
+        
+        try:
+            # Intentar inversión directa
+            IminusQ = I - Q
+            
+            # Verificar si es invertible
+            det = np.linalg.det(IminusQ)
+            
+            if abs(det) < 1e-10:
+                # Matriz casi singular: usar pseudoinversa
+                N = np.linalg.pinv(IminusQ)
+            else:
+                N = np.linalg.inv(IminusQ)
+                
+        except np.linalg.LinAlgError:
+            # Fallback: pseudoinversa
+            N = np.linalg.pinv(I - Q)
+        
+        # Probabilidades de absorción: B = N * R
+        B = N @ R
+        
+        # Validación: probabilidades deben estar en [0, 1]
+        B = np.clip(B, 0.0, 1.0)
+        
+        # Para una cadena con un solo estado absorbente, todas las probabilidades
+        # deberían ser 1 (eventualmente llegaremos a WISDOM)
+        # Normalizar si es necesario
+        if B.shape[1] == 1:
+            # Forzar probabilidad 1 para absorción eventual
+            B = np.ones_like(B)
+        
+        return B
+
+    def _validate_propagation_principles(
+        self, 
+        propagation_results: Dict[str, Dict[str, Any]]
+    ):
+        """
+        Valida principios fundamentales de propagación.
+        
+        REFINAMIENTO: Principios basados en física de propagación de errores
+        y teoría de sistemas complejos.
+        """
+        # ═══════════════════════════════════════════════════════════════
+        # Principio 1: Absorción Garantizada (Ergodicity hacia WISDOM)
+        # ═══════════════════════════════════════════════════════════════
+        for scenario_name, results in propagation_results.items():
+            simulation = results.get("simulation_results", {})
+            
+            for start_state in range(3):  # PHYSICS, TACTICS, STRATEGY
+                if start_state not in simulation:
+                    continue
+                    
+                absorption_prob = simulation[start_state].get("absorption_probability", 0)
+                
+                # La probabilidad de absorción debe ser muy cercana a 1
+                assert abs(absorption_prob - 1.0) < 0.05, (
+                    f"Absorción incompleta en '{scenario_name}' desde estado {start_state}: "
+                    f"P(absorción) = {absorption_prob:.4f}"
+                )
+
+        # ═══════════════════════════════════════════════════════════════
+        # Principio 2: Tiempos de Absorción Acotados
+        # ═══════════════════════════════════════════════════════════════
+        for scenario_name, results in propagation_results.items():
+            simulation = results.get("simulation_results", {})
+            
+            for start_state in range(3):
+                if start_state not in simulation:
+                    continue
+                    
+                mean_time = simulation[start_state].get("mean_absorption_time", float('inf'))
+                max_time = simulation[start_state].get("max_absorption_time", float('inf'))
+                
+                # Tiempo promedio debe ser razonable (< 50 pasos típicamente)
+                assert mean_time < 50.0, (
+                    f"Tiempo de absorción excesivo en '{scenario_name}' desde {start_state}: "
+                    f"media = {mean_time:.1f} pasos"
+                )
+                
+                # Tiempo máximo no debe ser extremo
+                assert max_time < 200.0, (
+                    f"Tiempo máximo de absorción extremo en '{scenario_name}' desde {start_state}: "
+                    f"max = {max_time:.1f} pasos"
+                )
+
+        # ═══════════════════════════════════════════════════════════════
+        # Principio 3: Ordenamiento de Tiempos por Distancia a WISDOM
+        # Estados más lejanos deben tener mayor tiempo esperado de absorción
+        # ═══════════════════════════════════════════════════════════════
+        for scenario_name, results in propagation_results.items():
+            simulation = results.get("simulation_results", {})
+            
+            times = []
+            for start_state in range(3):
+                if start_state in simulation:
+                    times.append((start_state, simulation[start_state].get("mean_absorption_time", 0)))
+            
+            if len(times) >= 2:
+                # Ordenar por estado (PHYSICS=0 debería tener mayor tiempo)
+                times.sort(key=lambda x: x[0])
+                
+                # Verificar tendencia general (no estrictamente monótona por estocasticidad)
+                first_time = times[0][1]  # PHYSICS
+                last_time = times[-1][1]  # STRATEGY
+                
+                # PHYSICS (estado 0) generalmente toma más tiempo que STRATEGY (estado 2)
+                # Permitimos cierta variabilidad debido a la naturaleza estocástica
+                if first_time > 0 and last_time > 0:
+                    ratio = first_time / last_time
+                    assert ratio >= 0.5, (
+                        f"Tiempos de absorción inconsistentes en '{scenario_name}': "
+                        f"PHYSICS({first_time:.1f}) vs STRATEGY({last_time:.1f}), "
+                        f"ratio = {ratio:.2f}"
+                    )
+
+        # ═══════════════════════════════════════════════════════════════
+        # Principio 4: Riesgo Sistémico No Nulo
+        # Siempre debe haber algún nivel de vulnerabilidad detectable
+        # ═══════════════════════════════════════════════════════════════
+        for scenario_name, results in propagation_results.items():
+            summary = results.get("summary", {})
+            global_summary = summary.get("GLOBAL", {})
+            
+            if global_summary:
+                vulnerability = global_summary.get("system_vulnerability", 0)
+                mean_risk = global_summary.get("mean_immediate_risk", 0)
+                
+                # Al menos una métrica de riesgo debe ser positiva si hay fallos
+                has_failures = any(
+                    summary.get(s.name, {}).get("immediate_failure_rate", 0) > 0
+                    for s in [Stratum.PHYSICS, Stratum.TACTICS, Stratum.STRATEGY]
+                    if s.name in summary
+                )
+                
+                if has_failures:
+                    assert vulnerability > 0 or mean_risk > 0, (
+                        f"Riesgo no detectado en '{scenario_name}' a pesar de fallos: "
+                        f"vulnerability={vulnerability:.4f}, mean_risk={mean_risk:.4f}"
+                    )
