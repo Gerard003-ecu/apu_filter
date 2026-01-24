@@ -40,7 +40,8 @@ def test_telemetry_narrative_generation():
     narrator = TelemetryNarrator()
     report = narrator.summarize_execution(ctx)
 
-    assert report["verdict"] == "CRITICO"
+    # RECHAZADO_TECNICO porque es un fallo en capa física (default)
+    assert report["verdict"] == "RECHAZADO_TECNICO"
     assert len(report["phases"]) == 1
     assert report["phases"][0]["name"] == "Data Loading"
     assert report["phases"][0]["status"] == "CRITICO"
@@ -61,7 +62,7 @@ def test_telemetry_legacy_fallback():
     narrator = TelemetryNarrator()
     report = narrator.summarize_execution(ctx)
 
-    assert report["verdict"] == "CRITICO"
+    assert report["verdict"] == "RECHAZADO_TECNICO"
     assert "modo compatibilidad" in report["narrative"]
     assert len(report["forensic_evidence"]) == 1
 
