@@ -327,9 +327,22 @@ class MICRegistry:
             return self._vectors[vector_name][0]
         return None
 
-    def get_required_strata(self, stratum: Stratum) -> Set[Stratum]:
-        """Retorna los estratos requeridos para ejecutar en el estrato dado."""
-        return self._compute_required_strata(stratum)
+    def get_required_strata(self, target_stratum: Stratum) -> Set[Stratum]:
+        """
+        Retorna los estratos requeridos para ejecutar en el estrato dado (Clausura Transitiva).
+
+        Lógica:
+            Retorna todos los estratos con valor numérico mayor al objetivo.
+            En la topología actual (WISDOM=0 ... PHYSICS=3), esto corresponde a
+            los niveles inferiores (base) de la pirámide.
+
+        Args:
+            target_stratum (Stratum): Estrato objetivo.
+
+        Returns:
+            Set[Stratum]: Conjunto de estratos requeridos.
+        """
+        return {s for s in Stratum if s.value > target_stratum.value}
 
     def register_vector(
         self,
@@ -355,8 +368,9 @@ class MICRegistry:
     def _compute_required_strata(self, target: Stratum) -> Set[Stratum]:
         """
         Calcula la clausura transitiva de prerrequisitos.
+        Delegado a get_required_strata para mantener DRY.
         """
-        return {s for s in Stratum if s.value > target.value}
+        return self.get_required_strata(target)
 
     def _normalize_validated_strata(
         self,
