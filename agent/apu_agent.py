@@ -1239,13 +1239,20 @@ class AutonomousAgent:
         # TACTICS: Métricas Topológicas
         elif stratum == Stratum.TACTICS:
             health = self.topology.get_topological_health(calculate_b1=True)
+            # Safe access to nested attributes
+            betti = getattr(health, "betti", None)
+            b0 = getattr(betti, "b0", 0) if betti else 0
+            b1 = getattr(betti, "b1", 0) if betti else 0
+            is_connected = getattr(betti, "is_connected", False) if betti else False
+            euler = getattr(betti, "euler_characteristic", 0) if betti else 0
+
             return {
                 "stratum": "TACTICS",
-                "betti_0": health.betti.b0,
-                "betti_1": health.betti.b1,  # Ciclos
-                "is_connected": health.betti.is_connected,
+                "betti_0": b0,
+                "betti_1": b1,  # Ciclos
+                "is_connected": is_connected,
                 "health_score": round(health.health_score, 3),
-                "euler": health.betti.euler_characteristic,
+                "euler": euler,
             }
 
         # STRATEGY: Estado Financiero (Si existe diagnóstico previo)
@@ -1274,7 +1281,8 @@ class AutonomousAgent:
         elif stratum == Stratum.WISDOM:
             rationale = "Sin diagnóstico previo."
             if self._last_diagnosis:
-                rationale = self._last_diagnosis.summary
+                # Safe access to summary
+                rationale = getattr(self._last_diagnosis, "summary", "Diagnóstico sin resumen")
 
             return {
                 "stratum": "WISDOM",
