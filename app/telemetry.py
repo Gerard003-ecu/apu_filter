@@ -39,6 +39,8 @@ from datetime import datetime
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
+from app.schemas import Stratum
+
 logger = logging.getLogger(__name__)
 
 
@@ -135,6 +137,7 @@ class ActiveStepInfo:
 
     start_time: float
     metadata: Optional[Dict[str, Any]] = None
+    stratum: Stratum = Stratum.PHYSICS
 
     def get_duration(self) -> float:
         """Calcula la duración actual del paso."""
@@ -147,6 +150,8 @@ class TelemetrySpan:
 
     name: str
     level: int
+    # Nuevo campo: El estrato al que pertenece este span
+    stratum: Stratum = field(default=Stratum.PHYSICS)
     start_time: float = field(default_factory=time.perf_counter)
     end_time: Optional[float] = None
     children: List["TelemetrySpan"] = field(default_factory=list)
@@ -167,6 +172,7 @@ class TelemetrySpan:
         return {
             "name": self.name,
             "level": self.level,
+            "stratum": self.stratum.name,
             "duration": round(self.duration, 6),
             "status": self.status.value,
             "children": [child.to_dict() for child in self.children],
@@ -194,6 +200,9 @@ class TelemetryContext:
 
     root_spans: List[TelemetrySpan] = field(default_factory=list)
     _scope_stack: List[TelemetrySpan] = field(default_factory=list)
+
+    # Nuevo: Rastreo de salud por estrato
+    _strata_health: Dict[Stratum, TelemetryHealth] = field(default_factory=dict)
 
     _active_steps: Dict[str, ActiveStepInfo] = field(default_factory=dict)
     _lock: threading.RLock = field(
@@ -225,6 +234,10 @@ class TelemetryContext:
         self._validate_and_fix_limits()
         self._validate_and_fix_collection_types()
         self._validate_and_fix_business_thresholds()
+
+        # Inicializar salud por estrato
+        for s in Stratum:
+            self._strata_health[s] = TelemetryHealth()
 
         if not hasattr(self, "_active_steps") or self._active_steps is None:
             object.__setattr__(self, "_active_steps", {})
@@ -461,12 +474,13 @@ class TelemetryContext:
                 logger.debug(f"[{request_id}] Fixed threshold {key}: {value} -> {default}")
 
     @contextmanager
-    def span(self, name: str, metadata: Optional[Dict[str, Any]] = None):
+    def span(self, name: str, metadata: Optional[Dict[str, Any]] = None, stratum: Stratum = Stratum.PHYSICS):
         """Crea un nuevo span jerárquico."""
         level = len(self._scope_stack)
         new_span = TelemetrySpan(
             name=name,
             level=level,
+            stratum=stratum,
             metadata=self._sanitize_value(metadata) if metadata else {},
         )
 
@@ -479,7 +493,7 @@ class TelemetryContext:
 
             self._scope_stack.append(new_span)
 
-        logger.debug(f"[{self.request_id}] SPAN START: {'  ' * level}{name}")
+        logger.debug(f"[{self.request_id}] SPAN START: {'  ' * level}{name} [{stratum.name}]")
 
         try:
             yield new_span
@@ -509,7 +523,7 @@ class TelemetryContext:
                 f"[{self.request_id}] SPAN END: {'  ' * level}{name} ({new_span.duration:.4f}s)"
             )
 
-    def start_step(self, step_name: str, metadata: Optional[Dict[str, Any]] = None) -> bool:
+    def start_step(self, step_name: str, metadata: Optional[Dict[str, Any]] = None, stratum: Stratum = Stratum.PHYSICS) -> bool:
         """Marca el inicio de un paso de procesamiento."""
         if not self._validate_step_name(step_name):
             return False
@@ -559,9 +573,10 @@ class TelemetryContext:
             self._active_steps[step_name] = ActiveStepInfo(
                 start_time=time.perf_counter(),
                 metadata=sanitized_metadata,
+                stratum=stratum
             )
 
-            logger.info(f"[{self.request_id}] Starting step: {step_name}")
+            logger.info(f"[{self.request_id}] Starting step: {step_name} [{stratum.name}]")
 
         return True
 
@@ -792,6 +807,7 @@ class TelemetryContext:
         capture_exception_details: bool = True,
         auto_record_error: bool = True,
         suppress_start_failure: bool = True,
+        stratum: Stratum = Stratum.PHYSICS,
     ):
         """Gestor de contexto para el seguimiento automático de pasos."""
         if not isinstance(step_name, str) or not step_name.strip():
@@ -809,7 +825,7 @@ class TelemetryContext:
 
         started = False
         try:
-            started = self.start_step(step_name, metadata)
+            started = self.start_step(step_name, metadata, stratum=stratum)
         except Exception as e:
             logger.error(f"[{self.request_id}] Exception in start_step('{step_name}'): {e}")
             if not suppress_start_failure:
@@ -1038,6 +1054,7 @@ class TelemetryContext:
         metadata: Optional[Dict[str, Any]] = None,
         include_traceback: bool = False,
         severity: str = "ERROR",
+        stratum: Optional[Stratum] = None,
     ) -> bool:
         """Registra un error ocurrido durante un paso."""
         if not self._validate_name(step_name, "step_name"):
@@ -1094,7 +1111,43 @@ class TelemetryContext:
                 f"{error_message[:200]}{'...' if len(error_message) > 200 else ''}"
             )
 
+            # Lógica Topológica:
+            # Identificar el estrato del paso activo
+            active_info = self._active_steps.get(step_name)
+
+            # Prioridad: Explícito > Activo > Default (PHYSICS)
+            if stratum is not None:
+                current_stratum = stratum
+            elif active_info:
+                current_stratum = active_info.stratum
+            else:
+                current_stratum = Stratum.PHYSICS
+
+            # Degradar la salud específica de ese estrato
+            if current_stratum in self._strata_health:
+                self._strata_health[current_stratum].add_error(error_message)
+
+            # Regla de Propagación: Un error en PHYSICS contamina TACTICS y STRATEGY
+            # (La inestabilidad sube por la pirámide)
+            if severity == "CRITICAL":
+                self._propagate_failure_upwards(current_stratum)
+
         return True
+
+    def _propagate_failure_upwards(self, failed_stratum: Stratum) -> None:
+        """
+        Implementa la lógica de 'Colapso Piramidal'.
+        Si la base falla, los niveles superiores se marcan como inestables.
+        Ref: LENGUAJE_CONSEJO.md (Pirámide Invertida)
+        """
+        for s in Stratum:
+            # En Stratum IntEnum: WISDOM(0) < STRATEGY(1) < TACTICS(2) < PHYSICS(3)
+            # Si failed_stratum es 3 (PHYSICS), afecta a 2, 1, 0.
+            if s.value < failed_stratum.value:
+                if s in self._strata_health:
+                    self._strata_health[s].add_warning(
+                        f"Inestabilidad heredada del estrato inferior {failed_stratum.name}"
+                    )
 
     def _validate_error_message(self, error_message: Any) -> bool:
         """Valida que el mensaje de error sea válido."""
@@ -1600,7 +1653,64 @@ class TelemetryContext:
             self.root_spans.clear()
             self._scope_stack.clear()
             self.metadata.clear()
+            self._strata_health.clear()
+            for s in Stratum:
+                self._strata_health[s] = TelemetryHealth()
             self.created_at = time.perf_counter()
+
+    def get_pyramidal_report(self) -> Dict[str, Any]:
+        """
+        Genera un reporte organizado por la jerarquía DIKW.
+        Utilizado por el SemanticTranslator para la narrativa.
+        """
+        def get_health_status(stratum: Stratum) -> str:
+            if stratum not in self._strata_health:
+                return "UNKNOWN"
+            health = self._strata_health[stratum]
+            if not health.is_healthy:
+                return "CRITICAL"
+            if health.warnings:
+                return "WARNING"
+            return "HEALTHY"
+
+        def get_stratum_issues(stratum: Stratum) -> List[str]:
+            if stratum not in self._strata_health:
+                return []
+            return self._strata_health[stratum].errors
+
+        def get_stratum_warnings(stratum: Stratum) -> List[str]:
+            if stratum not in self._strata_health:
+                return []
+            return self._strata_health[stratum].warnings
+
+        return {
+            "physics_layer": {
+                "status": get_health_status(Stratum.PHYSICS),
+                "metrics": self._filter_metrics_by_prefix("flux_condenser"),
+                "issues": get_stratum_issues(Stratum.PHYSICS),
+                "warnings": get_stratum_warnings(Stratum.PHYSICS)
+            },
+            "tactics_layer": {
+                "status": get_health_status(Stratum.TACTICS),
+                "metrics": self._filter_metrics_by_prefix("topology"), # Beta numbers
+                "issues": get_stratum_issues(Stratum.TACTICS),
+                "warnings": get_stratum_warnings(Stratum.TACTICS)
+            },
+            "strategy_layer": {
+                "status": get_health_status(Stratum.STRATEGY),
+                "metrics": self._filter_metrics_by_prefix("financial"), # WACC, NPV
+                "issues": get_stratum_issues(Stratum.STRATEGY),
+                "warnings": get_stratum_warnings(Stratum.STRATEGY)
+            }
+        }
+
+    def _filter_metrics_by_prefix(self, prefix: str) -> Dict[str, Any]:
+        """Filtra las métricas que comienzan con un prefijo dado."""
+        with self._lock:
+            return {
+                k: v for k, v in self.metrics.items()
+                if k.startswith(prefix)
+            }
 
     def get_business_report(self) -> Dict[str, Any]:
         """Genera un informe amigable para el negocio."""
@@ -1612,6 +1722,7 @@ class TelemetryContext:
                 step_stats = self._calculate_step_statistics()
                 financial_health = self._determine_financial_health()
                 parsing_health = self._calculate_parsing_health()
+                pyramidal_health = self.get_pyramidal_report()
 
                 return {
                     "status": status,
@@ -1630,6 +1741,7 @@ class TelemetryContext:
                     },
                     "financial_health": financial_health,
                     "parsing_health": parsing_health,
+                    "pyramidal_health": pyramidal_health,
                     "health": self._assess_health(),
                     "timestamp": datetime.utcnow().isoformat(),
                 }
