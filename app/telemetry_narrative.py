@@ -79,6 +79,7 @@ class NarratorConfig:
         "Warning",
         "Info",
         "Metric",
+        "MetricAnomaly",
         "Debug",
         "Trace",
     })
@@ -1192,18 +1193,34 @@ class TelemetryNarrator:
             return SeverityLevel.ADVERTENCIA
         return SeverityLevel.OPTIMO
 
-    def _compute_hierarchy_severity(self, span: TelemetrySpan) -> SeverityLevel:
+    def _compute_hierarchy_severity(
+        self,
+        span: TelemetrySpan,
+        depth: int = 0,
+        visited: Optional[set] = None,
+    ) -> SeverityLevel:
         """
         Calcula severidad considerando toda la jerarquía (DFS).
         
         Aplica supremum sobre el span y todos sus descendientes.
+        Maneja ciclos y profundidad máxima.
         """
+        if visited is None:
+            visited = set()
+
+        # Evitar ciclos y profundidad excesiva
+        span_id = id(span)
+        if span_id in visited or depth > self.config.MAX_RECURSION_DEPTH:
+            return SeverityLevel.from_step_status(span.status)
+
+        visited.add(span_id)
         severity = SeverityLevel.from_step_status(span.status)
 
         for child in span.children:
-            child_severity = self._compute_hierarchy_severity(child)
+            child_severity = self._compute_hierarchy_severity(child, depth + 1, visited)
             severity = severity | child_severity  # join
 
+        visited.remove(span_id)  # Backtracking (opcional, pero limpio)
         return severity
 
     # ========================================================================
