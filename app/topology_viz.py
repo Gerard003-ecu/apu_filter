@@ -34,7 +34,7 @@ from typing import Any, Dict, List, Optional, Set, Tuple
 
 import networkx as nx
 import pandas as pd
-from flask import Blueprint, Response, jsonify, session
+from flask import Blueprint, Response, jsonify, session, request
 
 # Asegurar que la raíz del proyecto esté en sys.path
 root_path = Path(__file__).resolve().parent.parent
@@ -808,20 +808,46 @@ def analyze_graph_for_visualization(graph: nx.DiGraph) -> AnomalyData:
 
 
 def convert_graph_to_cytoscape_elements(
-    graph: nx.DiGraph, anomaly_data: AnomalyData
+    graph: nx.DiGraph, anomaly_data: AnomalyData, stratum_filter: Optional[int] = None
 ) -> List[Dict[str, Any]]:
     """
     Convierte el grafo a formato Cytoscape con atributos forenses.
 
     Garantiza que todos los nodos y aristas se procesen, usando fallbacks
     para elementos problemáticos.
+
+    Args:
+        graph: Grafo de NetworkX.
+        anomaly_data: Datos de anomalías.
+        stratum_filter: Nivel numérico de estrato para filtrar (0=WISDOM, 3=PHYSICS).
+                        Si se proporciona, solo incluye nodos relevantes para ese nivel.
     """
     elements: List[Dict[str, Any]] = []
     node_ids_processed: Set[str] = set()
 
+    # Definir niveles visibles según el filtro
+    # Mapeo: Stratum.value -> Niveles visibles
+    visible_levels: Optional[Set[int]] = None
+    if stratum_filter is not None:
+        if stratum_filter == 3:  # PHYSICS
+            visible_levels = {3}
+        elif stratum_filter == 2:  # TACTICS
+            visible_levels = {2, 3}
+        elif stratum_filter == 1:  # STRATEGY
+            visible_levels = {1, 2}
+        elif stratum_filter == 0:  # WISDOM
+            visible_levels = {0, 1}
+        # Si no coincide, asumimos sin filtro o default
+
     # Procesar nodos
     for node_id, attrs in graph.nodes(data=True):
         node_id_str = str(node_id)
+
+        # Filtrado por nivel
+        level = _safe_get_int(attrs or {}, "level", 0)
+        if visible_levels is not None and level not in visible_levels:
+            continue
+
         try:
             node_element = build_node_element(node_id, attrs or {}, anomaly_data)
             elements.append(node_element.to_dict())
@@ -901,7 +927,17 @@ def get_project_graph() -> Tuple[Response, int]:
             return create_success_response([])
 
         anomaly_data = analyze_graph_for_visualization(graph)
-        elements = convert_graph_to_cytoscape_elements(graph, anomaly_data)
+
+        # Leer parámetro de estrato
+        stratum_param = request.args.get("stratum")
+        stratum_filter = None
+        if stratum_param:
+            try:
+                stratum_filter = int(stratum_param)
+            except (ValueError, TypeError):
+                pass  # Ignorar si no es válido
+
+        elements = convert_graph_to_cytoscape_elements(graph, anomaly_data, stratum_filter=stratum_filter)
 
         return create_success_response(elements)
 
