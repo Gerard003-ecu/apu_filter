@@ -317,6 +317,20 @@ class MICRegistry:
         """Lista de servicios registrados."""
         return list(self._vectors.keys())
 
+    def is_registered(self, vector_name: str) -> bool:
+        """Verifica si un vector está registrado."""
+        return vector_name in self._vectors
+
+    def get_vector_stratum(self, vector_name: str) -> Optional[Stratum]:
+        """Retorna el estrato de un vector."""
+        if vector_name in self._vectors:
+            return self._vectors[vector_name][0]
+        return None
+
+    def get_required_strata(self, stratum: Stratum) -> Set[Stratum]:
+        """Retorna los estratos requeridos para ejecutar en el estrato dado."""
+        return self._compute_required_strata(stratum)
+
     def register_vector(
         self,
         service_name: str,

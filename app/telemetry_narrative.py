@@ -1008,10 +1008,15 @@ class TelemetryNarrator:
         )
 
         # Determinar estrato
-        stratum = StratumTopology.get_stratum_for_step(
-            span.name,
-            self.step_mapping,
-        )
+        # Heurística híbrida: Preferir stratum explícito del span si no es PHYSICS (default)
+        # Si es PHYSICS, consultar el mapeo por nombre para auto-clasificación
+        if span.stratum != Stratum.PHYSICS:
+            stratum = span.stratum
+        else:
+            stratum = StratumTopology.get_stratum_for_step(
+                span.name,
+                self.step_mapping,
+            )
 
         # Asignar estrato a issues
         issues_with_stratum = [i.with_stratum(stratum) for i in issues]
