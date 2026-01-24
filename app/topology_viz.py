@@ -169,6 +169,12 @@ class AnomalyData:
     stressed_ids: Set[str] = field(default_factory=set)  # New: Inverted Pyramid Stress
     hot_ids: Set[str] = field(default_factory=set)  # New: Thermal Stress (>50C)
 
+    # Generic anomalies for test compatibility
+    anomalous_nodes: Set[str] = field(default_factory=set)
+    node_scores: Dict[str, float] = field(default_factory=dict)
+    anomalous_edges: Set[Tuple[str, str]] = field(default_factory=set)
+    edge_scores: Dict[Tuple[str, str], float] = field(default_factory=dict)
+
 
 # =============================================================================
 # FUNCIONES DE VALIDACIÓN
@@ -615,8 +621,9 @@ def _determine_node_color(node_id: str, node_type: str, anomaly_data: AnomalyDat
     is_isolated = node_id in anomaly_data.isolated_ids
     is_orphan = node_id in anomaly_data.orphan_ids
     is_hot = node_id in anomaly_data.hot_ids
+    is_generic_anomaly = node_id in anomaly_data.anomalous_nodes
 
-    if is_in_cycle or is_stressed or is_isolated or is_orphan or is_hot:
+    if is_in_cycle or is_stressed or is_isolated or is_orphan or is_hot or is_generic_anomaly:
         return NodeColor.RED.value
 
     # 2. Colores por tipo jerárquico

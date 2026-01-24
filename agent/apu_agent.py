@@ -154,12 +154,14 @@ class TelemetryData:
     flyback_voltage: float
     saturation: float
     timestamp: datetime = field(default_factory=datetime.now)
+    integrity_score: float = 1.0
     raw_data: Dict[str, Any] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         """Clampea valores al rango válido [0, 1]."""
         self.flyback_voltage = max(0.0, min(1.0, self.flyback_voltage))
         self.saturation = max(0.0, min(1.0, self.saturation))
+        self.integrity_score = max(0.0, min(1.0, self.integrity_score))
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> Optional["TelemetryData"]:
@@ -203,12 +205,20 @@ class TelemetryData:
         flyback = flyback if flyback is not None else 0.0
         saturation = saturation if saturation is not None else 0.0
 
+        # Extraer integridad si existe
+        integrity = float(data.get("integrity_score", 1.0))
+
         # Advertencias para valores fuera del compacto [0,1]
         for name, val in [("flyback_voltage", flyback), ("saturation", saturation)]:
             if not (0.0 <= val <= 1.0):
                 logger.warning(f"[TELEMETRY] {name}={val:.4f} ∉ [0,1]")
 
-        return cls(flyback_voltage=flyback, saturation=saturation, raw_data=data)
+        return cls(
+            flyback_voltage=flyback,
+            saturation=saturation,
+            integrity_score=integrity,
+            raw_data=data
+        )
 
 
 @dataclass
@@ -1205,11 +1215,25 @@ class AutonomousAgent:
             # Para evitar overhead, usamos estado interno si es reciente, o una nueva observación
             # si es explícitamente solicitada. Aquí asumimos que queremos el estado actual real.
             obs = self.observe()
+            status = "UNKNOWN"
+            if obs:
+                # Determinar estado basado en umbrales simples para coherencia con el test
+                if (obs.flyback_voltage >= self.thresholds.flyback_voltage_critical or
+                    obs.saturation >= self.thresholds.saturation_critical):
+                    status = "CRITICO"  # O CRITICAL, pero el enum es CRITICO. Usamos string para el dict.
+                elif (obs.flyback_voltage >= self.thresholds.flyback_voltage_warning or
+                      obs.saturation >= self.thresholds.saturation_warning):
+                    status = "WARNING"
+                else:
+                    status = "NOMINAL"
+
             return {
                 "stratum": "PHYSICS",
                 "voltage": obs.flyback_voltage if obs else None,
                 "saturation": obs.saturation if obs else None,
-                "status": "NOMINAL" if obs else "UNKNOWN"
+                "status": status,
+                "integrity": obs.integrity_score if obs else 0.0,
+                "timestamp": obs.timestamp.isoformat() if obs else None,
             }
 
         # TACTICS: Métricas Topológicas
@@ -1220,24 +1244,43 @@ class AutonomousAgent:
                 "betti_0": health.betti.b0,
                 "betti_1": health.betti.b1,  # Ciclos
                 "is_connected": health.betti.is_connected,
-                "health_score": round(health.health_score, 3)
+                "health_score": round(health.health_score, 3),
+                "euler": health.betti.euler_characteristic,
             }
 
         # STRATEGY: Estado Financiero (Si existe diagnóstico previo)
         elif stratum == Stratum.STRATEGY:
             # Basamos en si el diagnóstico actual reporta problemas financieros o sistémicos
+            confidence = 0.0
+            if self._last_decision and hasattr(self._last_decision, "confidence"):
+                 confidence = self._last_decision.confidence
+            elif self._last_diagnosis:
+                 # Inferir confianza de la salud topológica
+                 confidence = self._last_diagnosis.health.health_score
+
+            status_age = 0.0
+            if self._last_decision_time:
+                status_age = (datetime.now() - self._last_decision_time).total_seconds()
+
             return {
                 "stratum": "STRATEGY",
                 "risk_detected": self._last_status in [SystemStatus.SATURADO, SystemStatus.CRITICO],
-                "last_decision": self._last_decision.name if self._last_decision else None
+                "last_decision": self._last_decision.name if self._last_decision else None,
+                "confidence": confidence,
+                "status_age": status_age
             }
 
         # WISDOM: Veredicto Global
         elif stratum == Stratum.WISDOM:
+            rationale = "Sin diagnóstico previo."
+            if self._last_diagnosis:
+                rationale = self._last_diagnosis.summary
+
             return {
                 "stratum": "WISDOM",
                 "verdict": self._last_status.name if self._last_status else "UNKNOWN",
-                "confidence": 1.0 if self._last_diagnosis else 0.0,
+                "certainty": 1.0 if self._last_diagnosis else 0.0,
+                "rationale": rationale,
                 "cycles_executed": self._metrics.cycles_executed
             }
 
