@@ -18,7 +18,8 @@ class TestPyramidalTelemetry:
 
         # Verify PHYSICS health is degraded
         assert not ctx._strata_health[Stratum.PHYSICS].is_healthy
-        assert "Minor IO glitch" in ctx._strata_health[Stratum.PHYSICS].errors
+        # Errors are tuples (msg, timestamp)
+        assert any("Minor IO glitch" in e[0] for e in ctx._strata_health[Stratum.PHYSICS].errors)
 
         # Verify TACTICS is still healthy (no propagation for non-CRITICAL)
         assert ctx._strata_health[Stratum.TACTICS].is_healthy
@@ -41,11 +42,12 @@ class TestPyramidalTelemetry:
 
         # Verify propagation to TACTICS (Level 2)
         assert len(ctx._strata_health[Stratum.TACTICS].warnings) > 0
-        assert "Inestabilidad heredada del estrato inferior PHYSICS" in ctx._strata_health[Stratum.TACTICS].warnings[0]
+        # Warnings are tuples (msg, timestamp), and message is in English in V2
+        assert any("Instability inherited from PHYSICS" in w[0] for w in ctx._strata_health[Stratum.TACTICS].warnings)
 
         # Verify propagation to STRATEGY (Level 1)
         assert len(ctx._strata_health[Stratum.STRATEGY].warnings) > 0
-        assert "Inestabilidad heredada del estrato inferior PHYSICS" in ctx._strata_health[Stratum.STRATEGY].warnings[0]
+        assert any("Instability inherited from PHYSICS" in w[0] for w in ctx._strata_health[Stratum.STRATEGY].warnings)
 
     def test_pyramidal_report_structure(self):
         ctx = TelemetryContext()
@@ -75,7 +77,8 @@ class TestPyramidalTelemetry:
         # Logic: if health.warnings: return "WARNING"
         assert report_fail["strategy_layer"]["status"] == "WARNING"
         assert len(report_fail["strategy_layer"]["warnings"]) > 0
-        assert "Inestabilidad heredada" in report_fail["strategy_layer"]["warnings"][0]
+        # Report flattens tuples to strings, check for English message
+        assert "Instability inherited" in report_fail["strategy_layer"]["warnings"][0]
 
     def test_context_manager_stratum(self):
         ctx = TelemetryContext()
@@ -97,7 +100,7 @@ class TestPyramidalTelemetry:
         )
 
         assert not ctx._strata_health[Stratum.STRATEGY].is_healthy
-        assert "Strategic Blunder" in ctx._strata_health[Stratum.STRATEGY].errors
+        assert any("Strategic Blunder" in e[0] for e in ctx._strata_health[Stratum.STRATEGY].errors)
 
         # Ensure PHYSICS is unaffected
         assert ctx._strata_health[Stratum.PHYSICS].is_healthy
