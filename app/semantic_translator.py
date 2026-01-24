@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Este módulo actúa como el puente cognitivo entre la "Matemática Profunda" (Topología, 
 Finanzas, Termodinámica) y la toma de decisiones ejecutiva. Su función no es reportar 
