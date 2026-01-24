@@ -1,28 +1,28 @@
 """
-Este módulo implementa el "Vector de Estado" del sistema. Actúa como un pasaporte 
-thread-safe que viaja con cada solicitud, acumulando métricas, trazas y contexto 
+Este módulo implementa el "Vector de Estado" del sistema. Actúa como un pasaporte
+thread-safe que viaja con cada solicitud, acumulando métricas, trazas y contexto
 a través de todas las capas de la arquitectura (Pirámide de Observabilidad).
 
 Capacidades y Mecanismos:
 -------------------------
 1. Pasaporte de Ejecución (TelemetryContext):
-   Contenedor unificado que transporta la identidad del request, métricas de 
-   rendimiento y el stack de ejecución, garantizando observabilidad end-to-end 
+   Contenedor unificado que transporta la identidad del request, métricas de
+   rendimiento y el stack de ejecución, garantizando observabilidad end-to-end
    sin acoplamiento global.
 
 2. Integración de Física de Datos (RLC):
-   Soporta la recolección de métricas del `FluxPhysicsEngine` (Energía Cinética, 
-   Voltaje Flyback, Potencia Disipada), permitiendo al Agente diagnosticar 
+   Soporta la recolección de métricas del `FluxPhysicsEngine` (Energía Cinética,
+   Voltaje Flyback, Potencia Disipada), permitiendo al Agente diagnosticar
    "Fricción" y "Presión" en el flujo de datos.
 
 3. Jerarquía de Spans (Observabilidad Fractal):
-   Implementa un sistema de `TelemetrySpan` anidados que permite un análisis 
-   granular (micro) y sistémico (macro) del rendimiento, facilitando la 
+   Implementa un sistema de `TelemetrySpan` anidados que permite un análisis
+   granular (micro) y sistémico (macro) del rendimiento, facilitando la
    detección de cuellos de botella.
 
 4. Protocolos de Seguridad y Límites:
-   Incluye mecanismos de autoprotección (Circuit Breakers lógicos) que limitan 
-   la cantidad de trazas y errores almacenados para prevenir fugas de memoria 
+   Incluye mecanismos de autoprotección (Circuit Breakers lógicos) que limitan
+   la cantidad de trazas y errores almacenados para prevenir fugas de memoria
    o ataques de denegación de servicio por telemetría.
 """
 
@@ -37,7 +37,7 @@ from contextlib import contextmanager
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union, Iterator
 
 from app.schemas import Stratum
 
@@ -46,16 +46,63 @@ logger = logging.getLogger(__name__)
 
 # ========== Constantes de Configuración ==========
 
+class StratumTopology:
+    """
+    Define la topología de la pirámide DIKW.
+
+    Orden: PHYSICS (base) → TACTICS → STRATEGY → WISDOM (cima)
+
+    Interpretación Algebraica:
+    - Filtración ascendente: F₀ ⊂ F₁ ⊂ F₂ ⊂ F₃
+    - Morfismo de inclusión induce mapas en cohomología
+    - Errores propagan hacia arriba (functor covariante)
+    """
+
+    # Nivel 0 = base de la pirámide (más concreto/observable)
+    HIERARCHY: Dict[Stratum, int] = {
+        Stratum.PHYSICS: 0,
+        Stratum.TACTICS: 1,
+        Stratum.STRATEGY: 2,
+        Stratum.WISDOM: 3,
+    }
+
+    # Prefijos de métricas por estrato
+    METRIC_PREFIXES: Dict[Stratum, Tuple[str, ...]] = {
+        Stratum.PHYSICS: ("flux_condenser", "rlc", "energy", "kinetic"),
+        Stratum.TACTICS: ("topology", "betti", "parsing", "homology"),
+        Stratum.STRATEGY: ("financial", "npv", "wacc", "roi", "risk"),
+        Stratum.WISDOM: ("semantic", "narrative", "insight", "recommendation"),
+    }
+
+    @classmethod
+    def get_level(cls, stratum: Stratum) -> int:
+        """Obtiene el nivel jerárquico de un estrato."""
+        return cls.HIERARCHY.get(stratum, 0)
+
+    @classmethod
+    def get_higher_strata(cls, stratum: Stratum) -> List[Stratum]:
+        """Retorna estratos superiores al dado (para propagación de errores)."""
+        current_level = cls.get_level(stratum)
+        return [s for s, level in cls.HIERARCHY.items() if level > current_level]
+
+    @classmethod
+    def get_prefixes(cls, stratum: Stratum) -> Tuple[str, ...]:
+        """Obtiene los prefijos de métricas para un estrato."""
+        return cls.METRIC_PREFIXES.get(stratum, ())
+
 
 class TelemetryDefaults:
     """Constantes de configuración por defecto para telemetría."""
 
+    # Límites de almacenamiento
     MAX_STEPS: int = 1000
     MAX_ERRORS: int = 100
     MAX_METRICS: int = 500
-    MAX_EVENTS: int = 1000  # Default limit for events
+    MAX_EVENTS: int = 1000
     MAX_ACTIVE_STEPS: int = 50
+    MAX_SPANS_PER_TREE: int = 500
 
+    # Límites de longitud de strings
     MAX_STRING_LENGTH: int = 10000
     MAX_MESSAGE_LENGTH: int = 1000
     MAX_EXCEPTION_DETAIL_LENGTH: int = 500
@@ -64,17 +111,21 @@ class TelemetryDefaults:
     MAX_REQUEST_ID_LENGTH: int = 256
     MAX_TRACEBACK_LENGTH: int = 5000
 
+    # Límites de recursión y colecciones
     MAX_RECURSION_DEPTH: int = 5
     MAX_COLLECTION_SIZE: int = 100
     MAX_DICT_KEYS: int = 200
-
     MAX_LIMIT_MULTIPLIER: int = 10
 
+    # Umbrales temporales
     MAX_STEP_DURATION_WARNING: float = 300.0  # 5 minutos
     STALE_STEP_THRESHOLD: float = 3600.0  # 1 hora
+    SPAN_TIMEOUT_WARNING: float = 60.0  # 1 minuto
 
+    # Límites numéricos
     MAX_METRIC_VALUE: float = 1e15
     MIN_METRIC_VALUE: float = -1e15
+    EPSILON: float = 1e-10  # Para comparaciones de punto flotante
 
 
 class BusinessThresholds:
@@ -89,22 +140,74 @@ class BusinessThresholds:
 
 @dataclass
 class TelemetryHealth:
-    """Estado de salud del contexto de telemetría."""
+    """
+    Estado de salud del contexto de telemetría.
+
+    Implementa un semi-lattice donde:
+    - HEALTHY ⊓ WARNING = WARNING
+    - WARNING ⊓ CRITICAL = CRITICAL
+    - El operador ⊓ (meet) preserva el peor estado
+    """
 
     is_healthy: bool = True
-    warnings: List[str] = field(default_factory=list)
-    errors: List[str] = field(default_factory=list)
+    warnings: List[Tuple[str, float]] = field(default_factory=list)  # (msg, timestamp)
+    errors: List[Tuple[str, float]] = field(default_factory=list)
     stale_steps: List[str] = field(default_factory=list)
     memory_pressure: bool = False
+    _created_at: float = field(default_factory=time.perf_counter)
 
     def add_warning(self, msg: str) -> None:
-        """Agrega una advertencia."""
-        self.warnings.append(msg)
+        """Agrega una advertencia con timestamp."""
+        self.warnings.append((msg, time.perf_counter()))
 
     def add_error(self, msg: str) -> None:
         """Agrega un error y marca como no saludable."""
-        self.errors.append(msg)
+        self.errors.append((msg, time.perf_counter()))
         self.is_healthy = False
+
+    def get_severity_level(self) -> int:
+        """
+        Retorna nivel de severidad numérico.
+        0 = HEALTHY, 1 = WARNING, 2 = CRITICAL
+        """
+        if not self.is_healthy or len(self.errors) > 0:
+            return 2
+        if self.warnings or self.memory_pressure or self.stale_steps:
+            return 1
+        return 0
+
+    def get_status_string(self) -> str:
+        """Retorna estado como string."""
+        level = self.get_severity_level()
+        return {0: "HEALTHY", 1: "WARNING", 2: "CRITICAL"}[level]
+
+    def merge_with(self, other: "TelemetryHealth") -> "TelemetryHealth":
+        """
+        Fusiona con otro estado de salud (operación meet del lattice).
+        Útil para agregar salud de sub-componentes.
+        """
+        merged = TelemetryHealth(
+            is_healthy=self.is_healthy and other.is_healthy,
+            warnings=self.warnings + other.warnings,
+            errors=self.errors + other.errors,
+            stale_steps=self.stale_steps + other.stale_steps,
+            memory_pressure=self.memory_pressure or other.memory_pressure,
+        )
+        return merged
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Serializa a diccionario."""
+        return {
+            "status": self.get_status_string(),
+            "is_healthy": self.is_healthy,
+            "warning_count": len(self.warnings),
+            "error_count": len(self.errors),
+            "warnings": [msg for msg, _ in self.warnings[-10:]],  # Últimas 10
+            "errors": [msg for msg, _ in self.errors[-10:]],
+            "stale_steps": self.stale_steps[:5],
+            "memory_pressure": self.memory_pressure,
+            "age_seconds": round(time.perf_counter() - self._created_at, 3),
+        }
 
 
 class StepStatus(Enum):
@@ -146,11 +249,17 @@ class ActiveStepInfo:
 
 @dataclass
 class TelemetrySpan:
-    """Representa un nodo en la jerarquía de ejecución (Pirámide de Observabilidad)."""
+    """
+    Representa un nodo en la jerarquía de ejecución (Pirámide de Observabilidad).
+
+    Invariantes del árbol:
+    - Cada span tiene exactamente un padre (excepto roots)
+    - No hay ciclos
+    - level == profundidad desde la raíz
+    """
 
     name: str
     level: int
-    # Nuevo campo: El estrato al que pertenece este span
     stratum: Stratum = field(default=Stratum.PHYSICS)
     start_time: float = field(default_factory=time.perf_counter)
     end_time: Optional[float] = None
@@ -160,27 +269,102 @@ class TelemetrySpan:
     status: StepStatus = StepStatus.IN_PROGRESS
     errors: List[Dict[str, Any]] = field(default_factory=list)
 
+    # Nuevos campos para tracking
+    _node_count: int = field(default=1, repr=False)
+    _max_child_depth: int = field(default=0, repr=False)
+
     @property
     def duration(self) -> float:
         """Calcula la duración del span."""
-        if self.end_time:
-            return self.end_time - self.start_time
-        return time.perf_counter() - self.start_time
+        end = self.end_time if self.end_time else time.perf_counter()
+        return max(0.0, end - self.start_time)
 
-    def to_dict(self) -> Dict[str, Any]:
-        """Serializa el span a diccionario."""
-        return {
+    @property
+    def is_complete(self) -> bool:
+        """Indica si el span ha finalizado."""
+        return self.end_time is not None
+
+    @property
+    def depth(self) -> int:
+        """Profundidad máxima del subárbol."""
+        return self._max_child_depth
+
+    @property
+    def subtree_size(self) -> int:
+        """Número total de nodos en el subárbol (incluyendo este)."""
+        return self._node_count
+
+    def add_child(self, child: "TelemetrySpan") -> bool:
+        """
+        Agrega un hijo actualizando métricas del árbol.
+        Retorna False si excede límites.
+        """
+        if len(self.children) >= TelemetryDefaults.MAX_COLLECTION_SIZE:
+            return False
+
+        # Validar nivel del hijo
+        if child.level != self.level + 1:
+            child.level = self.level + 1
+
+        self.children.append(child)
+        self._update_tree_metrics()
+        return True
+
+    def _update_tree_metrics(self) -> None:
+        """Recalcula métricas del árbol de forma eficiente."""
+        if not self.children:
+            self._node_count = 1
+            self._max_child_depth = 0
+        else:
+            self._node_count = 1 + sum(c._node_count for c in self.children)
+            self._max_child_depth = 1 + max(c._max_child_depth for c in self.children)
+
+    def finalize(self, status: Optional[StepStatus] = None) -> None:
+        """Finaliza el span con el estado dado."""
+        self.end_time = time.perf_counter()
+        if status is not None:
+            self.status = status
+        elif self.status == StepStatus.IN_PROGRESS:
+            self.status = StepStatus.SUCCESS
+
+    def get_failed_children(self) -> List["TelemetrySpan"]:
+        """Retorna lista de hijos con status de fallo."""
+        failed = []
+        for child in self.children:
+            if child.status == StepStatus.FAILURE:
+                failed.append(child)
+            failed.extend(child.get_failed_children())
+        return failed
+
+    def to_dict(self, include_children: bool = True, max_depth: int = 10) -> Dict[str, Any]:
+        """Serializa el span a diccionario con control de profundidad."""
+        result = {
             "name": self.name,
             "level": self.level,
             "stratum": self.stratum.name,
-            "duration": round(self.duration, 6),
+            "duration_seconds": round(self.duration, 6),
             "status": self.status.value,
-            "children": [child.to_dict() for child in self.children],
-            "metrics": self.metrics,
-            "metadata": self.metadata,
-            "errors": self.errors,
+            "is_complete": self.is_complete,
+            "subtree_size": self._node_count,
+            "max_depth": self._max_child_depth,
+            "metrics": dict(self.metrics),
+            "metadata": dict(self.metadata),
+            "error_count": len(self.errors),
             "timestamp": datetime.utcnow().isoformat(),
         }
+
+        if self.errors:
+            result["errors"] = self.errors[:5]  # Limitar errores serializados
+
+        if include_children and max_depth > 0:
+            result["children"] = [
+                c.to_dict(include_children=True, max_depth=max_depth - 1)
+                for c in self.children
+            ]
+        elif self.children:
+            result["children_count"] = len(self.children)
+
+        return result
 
 
 @dataclass
@@ -196,7 +380,7 @@ class TelemetryContext:
     steps: List[Dict[str, Any]] = field(default_factory=list)
     metrics: Dict[str, Any] = field(default_factory=dict)
     errors: List[Dict[str, Any]] = field(default_factory=list)
-    events: List[Dict[str, Any]] = field(default_factory=list)  # New events field
+    events: List[Dict[str, Any]] = field(default_factory=list)
 
     root_spans: List[TelemetrySpan] = field(default_factory=list)
     _scope_stack: List[TelemetrySpan] = field(default_factory=list)
@@ -212,7 +396,7 @@ class TelemetryContext:
     max_steps: int = field(default=TelemetryDefaults.MAX_STEPS)
     max_errors: int = field(default=TelemetryDefaults.MAX_ERRORS)
     max_metrics: int = field(default=TelemetryDefaults.MAX_METRICS)
-    max_events: int = field(default=TelemetryDefaults.MAX_EVENTS)  # New config limit
+    max_events: int = field(default=TelemetryDefaults.MAX_EVENTS)
 
     created_at: float = field(default_factory=time.perf_counter)
     metadata: Dict[str, Any] = field(default_factory=dict)
@@ -252,6 +436,425 @@ class TelemetryContext:
             f"max_metrics={self.max_metrics}, max_events={self.max_events}"
         )
 
+    # =========================================================================
+    # CORE: Spans & Steps
+    # =========================================================================
+
+    def start_step(
+        self,
+        step_name: str,
+        metadata: Optional[Dict[str, Any]] = None,
+        stratum: Stratum = Stratum.PHYSICS,
+    ) -> bool:
+        """
+        Marca el inicio de un paso de procesamiento.
+
+        Retorna True si el paso se inició correctamente.
+        Maneja pasos duplicados y límites de forma segura.
+        """
+        # Validación temprana fuera del lock
+        if not self._validate_step_name(step_name):
+            return False
+
+        sanitized_metadata = self._prepare_metadata(metadata, step_name)
+        current_time = time.perf_counter()
+
+        with self._lock:
+            # Verificar límite de pasos activos
+            if len(self._active_steps) >= TelemetryDefaults.MAX_ACTIVE_STEPS:
+                cleaned = self._cleanup_stale_steps()
+                if cleaned == 0 and len(self._active_steps) >= TelemetryDefaults.MAX_ACTIVE_STEPS:
+                    logger.error(
+                        f"[{self.request_id}] Cannot start '{step_name}': "
+                        f"max active steps ({TelemetryDefaults.MAX_ACTIVE_STEPS}) reached"
+                    )
+                    self._record_dropped_step(step_name, "max_active_limit")
+                    return False
+
+            # Manejar paso duplicado
+            existing = self._active_steps.get(step_name)
+            if existing:
+                existing_duration = current_time - existing.start_time
+                self._handle_duplicate_step(step_name, existing, existing_duration)
+
+            # Registrar nuevo paso activo
+            self._active_steps[step_name] = ActiveStepInfo(
+                start_time=current_time,
+                metadata=sanitized_metadata,
+                stratum=stratum,
+            )
+
+            # Actualizar salud del estrato
+            self._mark_stratum_active(stratum)
+
+        logger.info(f"[{self.request_id}] ▶ Step started: {step_name} [{stratum.name}]")
+        return True
+
+    def end_step(
+        self,
+        step_name: str,
+        status: Union[StepStatus, str] = StepStatus.SUCCESS,
+        metadata: Optional[Dict[str, Any]] = None,
+    ) -> bool:
+        """
+        Marca el final de un paso de procesamiento.
+
+        Maneja graciosamente pasos nunca iniciados y combina metadata.
+        """
+        if not self._validate_step_name(step_name):
+            return False
+
+        normalized_status = self._normalize_status(status)
+        end_time = time.perf_counter()
+
+        with self._lock:
+            step_info = self._active_steps.pop(step_name, None)
+            step_data = self._build_step_record(
+                step_name, step_info, normalized_status, end_time, metadata
+            )
+
+            # Aplicar límite FIFO
+            self._enforce_limit_fifo(
+                self.steps,
+                self.max_steps,
+                "steps",
+                lambda s: s.get("step", "unknown"),
+            )
+
+            self.steps.append(step_data)
+
+            # Actualizar salud del estrato si hubo fallo
+            if normalized_status == StepStatus.FAILURE.value:
+                stratum = step_info.stratum if step_info else Stratum.PHYSICS
+                self._record_stratum_failure(stratum, step_name)
+
+        # Logging fuera del lock
+        duration = step_data.get("duration_seconds", 0)
+        log_level = logging.INFO if normalized_status == StepStatus.SUCCESS.value else logging.WARNING
+        logger.log(
+            log_level,
+            f"[{self.request_id}] ■ Step finished: {step_name} ({normalized_status}) "
+            f"in {duration:.6f}s"
+        )
+
+        return True
+
+    @contextmanager
+    def step(
+        self,
+        step_name: str,
+        metadata: Optional[Dict[str, Any]] = None,
+        error_status: StepStatus = StepStatus.FAILURE,
+        capture_exception_details: bool = True,
+        auto_record_error: bool = True,
+        suppress_start_failure: bool = True,
+        stratum: Stratum = Stratum.PHYSICS,
+        create_span: bool = False,
+    ):
+        """
+        Gestor de contexto para el seguimiento automático de pasos.
+
+        Garantías:
+        - El paso siempre se finaliza (incluso con excepciones)
+        - Los errores se registran automáticamente si auto_record_error=True
+        - Thread-safe para uso concurrente
+        """
+        # Validación temprana
+        if not isinstance(step_name, str) or not step_name.strip():
+            logger.error(f"[{self.request_id}] Invalid step_name for context manager")
+            if not suppress_start_failure:
+                raise ValueError("step_name must be a non-empty string")
+            yield self
+            return
+
+        # Normalizar error_status
+        if not isinstance(error_status, StepStatus):
+            error_status = (
+                StepStatus.from_string(error_status)
+                if isinstance(error_status, str)
+                else StepStatus.FAILURE
+            )
+
+        # Intentar iniciar el paso
+        started = self._safe_start_step(step_name, metadata, stratum, suppress_start_failure)
+
+        if not started:
+            if not suppress_start_failure:
+                raise RuntimeError(f"Failed to start step: {step_name}")
+            logger.warning(
+                f"[{self.request_id}] Step '{step_name}' failed to start, "
+                "proceeding without telemetry"
+            )
+            yield self
+            return
+
+        # Crear span opcional
+        span_context = None
+        if create_span:
+            span_context = self.span(step_name, metadata, stratum)
+            span_context.__enter__()
+
+        exception_occurred = False
+        captured_exception: Optional[BaseException] = None
+
+        try:
+            yield self
+        except BaseException as e:
+            exception_occurred = True
+            captured_exception = e
+            raise
+        finally:
+            # Finalizar span si fue creado
+            if span_context is not None:
+                try:
+                    span_context.__exit__(
+                        type(captured_exception) if captured_exception else None,
+                        captured_exception,
+                        captured_exception.__traceback__ if captured_exception else None,
+                    )
+                except Exception as span_error:
+                    logger.error(f"[{self.request_id}] Error closing span: {span_error}")
+
+            # Siempre finalizar el paso
+            self._finalize_step(
+                step_name=step_name,
+                exception_occurred=exception_occurred,
+                captured_exception=captured_exception,
+                error_status=error_status,
+                capture_exception_details=capture_exception_details,
+                auto_record_error=auto_record_error,
+            )
+
+    @contextmanager
+    def span(
+        self,
+        name: str,
+        metadata: Optional[Dict[str, Any]] = None,
+        stratum: Stratum = Stratum.PHYSICS,
+        timeout_warning: Optional[float] = None,
+    ):
+        """
+        Crea un nuevo span jerárquico con tracking de integridad.
+
+        Los spans forman un bosque (forest) donde:
+        - Cada span tiene a lo sumo un padre
+        - El nivel indica profundidad desde la raíz
+        - χ(forest) = número de árboles (roots)
+        """
+        timeout_warning = timeout_warning or TelemetryDefaults.SPAN_TIMEOUT_WARNING
+
+        with self._lock:
+            level = len(self._scope_stack)
+
+            # Verificar profundidad máxima
+            if level >= TelemetryDefaults.MAX_RECURSION_DEPTH:
+                logger.warning(
+                    f"[{self.request_id}] Max span depth ({level}) reached for '{name}'. "
+                    "Span will be created but not nested."
+                )
+                level = TelemetryDefaults.MAX_RECURSION_DEPTH
+
+            new_span = TelemetrySpan(
+                name=name,
+                level=level,
+                stratum=stratum,
+                metadata=self._sanitize_value(metadata) if metadata else {},
+            )
+
+            # Enlazar con padre si existe
+            if self._scope_stack:
+                parent = self._scope_stack[-1]
+                if not parent.add_child(new_span):
+                    logger.warning(
+                        f"[{self.request_id}] Parent span has too many children. "
+                        f"'{name}' attached as root instead."
+                    )
+                    self.root_spans.append(new_span)
+            else:
+                self.root_spans.append(new_span)
+
+            self._scope_stack.append(new_span)
+            stack_depth_at_entry = len(self._scope_stack)
+
+        logger.debug(f"[{self.request_id}] SPAN ▶ {'  ' * level}{name} [{stratum.name}]")
+        span_start = time.perf_counter()
+
+        try:
+            yield new_span
+            if new_span.status == StepStatus.IN_PROGRESS:
+                new_span.status = StepStatus.SUCCESS
+        except Exception as e:
+            new_span.status = StepStatus.FAILURE
+            self._record_span_error(new_span, e)
+            raise
+        finally:
+            new_span.finalize()
+            duration = new_span.duration
+
+            # Advertencia de timeout
+            if duration > timeout_warning:
+                logger.warning(
+                    f"[{self.request_id}] Span '{name}' took {duration:.2f}s "
+                    f"(threshold: {timeout_warning}s)"
+                )
+
+            # Limpiar stack con validación de integridad
+            with self._lock:
+                self._safe_pop_span(new_span, stack_depth_at_entry)
+
+            status_symbol = "✓" if new_span.status == StepStatus.SUCCESS else "✗"
+            logger.debug(
+                f"[{self.request_id}] SPAN ■ {'  ' * level}{name} {status_symbol} ({duration:.4f}s)"
+            )
+
+    # =========================================================================
+    # CORE: Metrics & Events
+    # =========================================================================
+
+    def record_metric(
+        self,
+        component: str,
+        metric_name: str,
+        value: Any,
+        overwrite: bool = True,
+        validate_numeric: bool = False,
+        stratum: Optional[Stratum] = None,
+    ) -> bool:
+        """
+        Registra una métrica específica para un componente.
+        """
+        if not self._validate_metric_key(component, metric_name):
+            return False
+
+        key = f"{component}.{metric_name}"
+
+        # Validación numérica temprana
+        if validate_numeric:
+            if not self._is_valid_numeric(value):
+                logger.warning(
+                    f"[{self.request_id}] Metric '{key}' requires numeric value, "
+                    f"got {type(value).__name__}"
+                )
+                return False
+
+        with self._lock:
+            # Verificar si es nueva métrica
+            is_new = key not in self.metrics
+
+            if not overwrite and not is_new:
+                return False
+
+            if is_new and len(self.metrics) >= self.max_metrics:
+                logger.error(f"[{self.request_id}] Max metrics ({self.max_metrics}) reached")
+                return False
+
+            # Sanitizar y limitar valor
+            try:
+                sanitized_value = self._sanitize_metric_value(value)
+            except Exception as e:
+                logger.warning(f"[{self.request_id}] Failed to sanitize metric '{key}': {e}")
+                return False
+
+            self.metrics[key] = sanitized_value
+
+            # Asociar al span activo si existe
+            if self._scope_stack:
+                self._scope_stack[-1].metrics[key] = sanitized_value
+
+        return True
+
+    def increment_metric(
+        self,
+        component: str,
+        metric_name: str,
+        increment: Union[int, float] = 1,
+        create_if_missing: bool = True,
+        min_value: Optional[float] = None,
+        max_value: Optional[float] = None,
+    ) -> bool:
+        """
+        Incrementa una métrica numérica de forma atómica.
+        """
+        if not self._validate_metric_key(component, metric_name):
+            return False
+
+        if not self._is_valid_numeric(increment):
+            logger.warning(f"[{self.request_id}] Invalid increment value: {increment}")
+            return False
+
+        key = f"{component}.{metric_name}"
+
+        with self._lock:
+            current = self.metrics.get(key)
+
+            # Obtener valor base
+            if current is None:
+                if not create_if_missing:
+                    return False
+                if len(self.metrics) >= self.max_metrics:
+                    return False
+                base_value = 0.0
+            elif not isinstance(current, (int, float)):
+                logger.warning(f"[{self.request_id}] Metric '{key}' is not numeric, resetting to 0")
+                base_value = 0.0
+            else:
+                base_value = float(current)
+
+            # Calcular nuevo valor
+            try:
+                new_value = base_value + increment
+            except OverflowError:
+                new_value = (
+                    TelemetryDefaults.MAX_METRIC_VALUE if increment > 0
+                    else TelemetryDefaults.MIN_METRIC_VALUE
+                )
+
+            # Aplicar límites opcionales
+            if min_value is not None:
+                new_value = max(min_value, new_value)
+            if max_value is not None:
+                new_value = min(max_value, new_value)
+
+            # Aplicar límites globales
+            new_value = self._clamp_numeric(new_value)
+
+            # Verificar NaN (puede ocurrir con operaciones límite)
+            if isinstance(new_value, float) and math.isnan(new_value):
+                logger.error(f"[{self.request_id}] Metric '{key}' resulted in NaN")
+                return False
+
+            self.metrics[key] = new_value
+
+            if self._scope_stack:
+                self._scope_stack[-1].metrics[key] = new_value
+
+        return True
+
+    def get_metric(
+        self,
+        component: str,
+        metric_name: str,
+        default: Any = None,
+        expected_type: Optional[type] = None,
+    ) -> Any:
+        """Obtiene el valor de una métrica de forma thread-safe."""
+        key = f"{component}.{metric_name}"
+
+        with self._lock:
+            value = self.metrics.get(key)
+
+            if value is None:
+                return default
+
+            if expected_type is not None and not isinstance(value, expected_type):
+                return default
+
+            # Copia profunda para valores mutables
+            if isinstance(value, (dict, list)):
+                return copy.deepcopy(value)
+
+            return value
+
     def record_event(self, name: str, payload: Optional[Dict[str, Any]] = None) -> bool:
         """Registra un evento puntual en la línea de tiempo."""
         if not self._validate_name(name, "event_name"):
@@ -273,6 +876,858 @@ class TelemetryContext:
             self.events.append(event_data)
             logger.info(f"[{self.request_id}] EVENT: {name}")
             return True
+
+    # =========================================================================
+    # CORE: Errors & Propagation
+    # =========================================================================
+
+    def record_error(
+        self,
+        step_name: str,
+        error_message: str,
+        error_type: Optional[str] = None,
+        exception: Optional[Exception] = None,
+        metadata: Optional[Dict[str, Any]] = None,
+        include_traceback: bool = False,
+        severity: str = "ERROR",
+        stratum: Optional[Stratum] = None,
+        propagate: bool = True,
+    ) -> bool:
+        """
+        Registra un error ocurrido durante un paso.
+
+        Los errores CRITICAL propagan automáticamente hacia estratos superiores
+        siguiendo la topología de la pirámide DIKW.
+        """
+        # Validación de inputs
+        step_name = step_name if self._validate_name(step_name, "step_name") else "__unknown_step__"
+        error_message = error_message if self._validate_error_message(error_message) else "Unknown error"
+        severity = severity if severity in {"ERROR", "WARNING", "CRITICAL", "INFO"} else "ERROR"
+
+        # Validar stratum
+        if stratum is not None and not isinstance(stratum, Stratum):
+            logger.warning(f"[{self.request_id}] Invalid stratum type, auto-detecting")
+            stratum = None
+
+        with self._lock:
+            # Aplicar límite FIFO
+            self._enforce_limit_fifo(
+                self.errors,
+                self.max_errors,
+                "errors",
+                lambda e: f"{e.get('step', 'unknown')}:{e.get('type', 'unknown')}",
+            )
+
+            # Construir datos del error
+            error_data = self._build_error_data(
+                step_name=step_name,
+                error_message=error_message,
+                error_type=error_type,
+                exception=exception,
+                metadata=metadata,
+                include_traceback=include_traceback,
+                severity=severity,
+            )
+
+            self.errors.append(error_data)
+
+            # Asociar al span activo
+            if self._scope_stack:
+                self._scope_stack[-1].errors.append(error_data)
+
+            # Determinar estrato del error
+            current_stratum = self._resolve_error_stratum(stratum, step_name)
+            error_data["stratum"] = current_stratum.name
+
+            # Actualizar salud del estrato
+            self._update_stratum_health(current_stratum, severity, error_message)
+
+            # Propagación hacia arriba para errores CRITICAL
+            if severity == "CRITICAL" and propagate:
+                self._propagate_failure_upwards(current_stratum, error_message)
+
+        # Logging fuera del lock
+        log_func = {
+            "CRITICAL": logger.critical,
+            "ERROR": logger.error,
+            "WARNING": logger.warning,
+            "INFO": logger.info,
+        }.get(severity, logger.error)
+
+        truncated_msg = error_message[:200] + ("..." if len(error_message) > 200 else "")
+        log_func(f"[{self.request_id}] {severity} in {step_name}: {truncated_msg}")
+
+        return True
+
+    def _resolve_error_stratum(self, explicit: Optional[Stratum], step_name: str) -> Stratum:
+        """Resuelve el estrato de un error con prioridad: explícito > activo > default."""
+        if explicit is not None:
+            return explicit
+
+        active_info = self._active_steps.get(step_name)
+        if active_info:
+            return active_info.stratum
+
+        return Stratum.PHYSICS
+
+    def _update_stratum_health(self, stratum: Stratum, severity: str, message: str) -> None:
+        """Actualiza el estado de salud del estrato según la severidad."""
+        if stratum not in self._strata_health:
+            self._strata_health[stratum] = TelemetryHealth()
+
+        health = self._strata_health[stratum]
+
+        if severity in ("CRITICAL", "ERROR"):
+            health.add_error(message)
+        elif severity == "WARNING":
+            health.add_warning(message)
+
+    def _propagate_failure_upwards(self, failed_stratum: Stratum, original_message: str) -> None:
+        """
+        Implementa el Colapso Piramidal.
+
+        Topológicamente: Si X ⊂ Y en la filtración de estratos,
+        un fallo en X induce inestabilidad en Y.
+        """
+        failed_level = StratumTopology.get_level(failed_stratum)
+        affected_strata = StratumTopology.get_higher_strata(failed_stratum)
+
+        propagation_message = (
+            f"Instability inherited from {failed_stratum.name} (level {failed_level}): "
+            f"{original_message[:100]}"
+        )
+
+        for target_stratum in affected_strata:
+            if target_stratum not in self._strata_health:
+                self._strata_health[target_stratum] = TelemetryHealth()
+
+            self._strata_health[target_stratum].add_warning(propagation_message)
+
+            logger.debug(
+                f"[{self.request_id}] Propagated failure from {failed_stratum.name} "
+                f"to {target_stratum.name}"
+            )
+
+    # =========================================================================
+    # REPORTS & ANALYTICS
+    # =========================================================================
+
+    def get_pyramidal_report(self) -> Dict[str, Any]:
+        """
+        Genera un reporte organizado por la jerarquía DIKW.
+
+        Thread-safe con copias profundas de todos los datos.
+        Incluye métricas de salud y topología del sistema.
+        """
+        with self._lock:
+            report = {}
+
+            for stratum in Stratum:
+                layer_name = f"{stratum.name.lower()}_layer"
+                health = self._strata_health.get(stratum, TelemetryHealth())
+
+                report[layer_name] = {
+                    "status": health.get_status_string(),
+                    "metrics": self._get_stratum_metrics_unsafe(stratum),
+                    "issues": [msg for msg, _ in health.errors],
+                    "warnings": [msg for msg, _ in health.warnings],
+                    "step_count": self._count_steps_by_stratum(stratum),
+                }
+
+            # Agregar métricas de topología del bosque de spans
+            report["span_topology"] = self._calculate_span_topology_unsafe()
+
+            # Agregar resumen de propagación de errores
+            report["error_propagation"] = self._get_error_propagation_summary()
+
+            return report
+
+    def get_business_report(self) -> Dict[str, Any]:
+        """
+        Genera un informe amigable para el negocio.
+        """
+        with self._lock:
+            try:
+                raw_metrics = self._extract_business_raw_metrics()
+                translated = self._translate_to_business_metrics(raw_metrics)
+                status, message = self._determine_business_status(raw_metrics)
+                step_stats = self._calculate_step_statistics()
+
+                report = {
+                    "status": status,
+                    "message": message,
+                    "metrics": translated,
+                    "raw_metrics": raw_metrics,
+                    "details": {
+                        "total_steps": len(self.steps),
+                        "successful_steps": step_stats["success"],
+                        "failed_steps": step_stats["failure"],
+                        "total_errors": len(self.errors),
+                        "has_active_operations": len(self._active_steps) > 0,
+                        "total_duration": step_stats["total_duration"],
+                        "success_rate": step_stats["success_rate"],
+                    },
+                    "pyramidal_health": self._get_pyramidal_health_summary(),
+                    "recommendations": self._generate_recommendations(raw_metrics, step_stats),
+                    "timestamp": datetime.utcnow().isoformat(),
+                }
+
+                return report
+
+            except Exception as e:
+                logger.error(f"[{self.request_id}] Error generating business report: {e}")
+                return {
+                    "status": "ERROR",
+                    "message": f"Failed to generate report: {e}",
+                    "timestamp": datetime.utcnow().isoformat(),
+                }
+
+    def verify_invariants(self) -> Dict[str, Any]:
+        """
+        Verifica invariantes algebraicos del sistema de telemetría.
+        """
+        violations = []
+        warnings = []
+
+        with self._lock:
+            # Invariante 1: Bosque de spans válido
+            topology = self._calculate_span_topology_unsafe()
+            if not topology.get("is_valid_forest", False):
+                violations.append(
+                    f"Span graph is not a valid forest: "
+                    f"χ={topology['euler_characteristic']} ≠ β₀={topology['num_trees']}"
+                )
+
+            # Invariante 2: Consistencia del stack de scopes
+            in_progress_count = sum(
+                1 for span in self._iter_all_spans_unsafe()
+                if span.status == StepStatus.IN_PROGRESS
+            )
+            if len(self._scope_stack) != in_progress_count:
+                violations.append(
+                    f"Scope stack inconsistent: {len(self._scope_stack)} in stack vs "
+                    f"{in_progress_count} spans in-progress"
+                )
+
+            # Invariante 3: Límites de almacenamiento
+            if len(self.steps) > self.max_steps:
+                violations.append(f"Steps overflow: {len(self.steps)} > {self.max_steps}")
+            if len(self.errors) > self.max_errors:
+                violations.append(f"Errors overflow: {len(self.errors)} > {self.max_errors}")
+            if len(self.metrics) > self.max_metrics:
+                violations.append(f"Metrics overflow: {len(self.metrics)} > {self.max_metrics}")
+
+            # Invariante 4: Duraciones no negativas
+            negative_durations = [
+                step.get("step") for step in self.steps
+                if isinstance(step.get("duration_seconds"), (int, float))
+                and step.get("duration_seconds", 0) < 0
+            ]
+            if negative_durations:
+                violations.append(f"Negative durations in steps: {negative_durations[:3]}")
+
+            # Invariante 5: Jerarquía de niveles en spans
+            for span in self._iter_all_spans_unsafe():
+                for child in span.children:
+                    if child.level != span.level + 1:
+                        warnings.append(
+                            f"Span level mismatch: {span.name}(L{span.level}) -> "
+                            f"{child.name}(L{child.level})"
+                        )
+
+            # Invariante 6: Coherencia de estratos en pasos activos
+            for step_name, info in self._active_steps.items():
+                if not isinstance(info.stratum, Stratum):
+                    violations.append(f"Invalid stratum type in active step: {step_name}")
+
+            # Advertencia: Pasos activos de larga duración
+            current_time = time.perf_counter()
+            for step_name, info in self._active_steps.items():
+                duration = current_time - info.start_time
+                if duration > TelemetryDefaults.STALE_STEP_THRESHOLD:
+                    warnings.append(f"Stale step detected: {step_name} ({duration:.0f}s)")
+
+        return {
+            "is_valid": len(violations) == 0,
+            "violations": violations,
+            "warnings": warnings,
+            "topology": topology,
+            "checked_at": datetime.utcnow().isoformat(),
+            "counts": {
+                "steps": len(self.steps),
+                "errors": len(self.errors),
+                "metrics": len(self.metrics),
+                "active_steps": len(self._active_steps),
+                "root_spans": len(self.root_spans),
+                "scope_depth": len(self._scope_stack),
+            }
+        }
+
+    def reset(
+        self,
+        keep_request_id: bool = True,
+        keep_metadata: bool = False,
+        verify_before_reset: bool = False,
+    ) -> Dict[str, Any]:
+        """Restablece el contexto de telemetría."""
+        with self._lock:
+            # Capturar estado anterior
+            pre_reset_summary = {
+                "steps_cleared": len(self.steps),
+                "errors_cleared": len(self.errors),
+                "metrics_cleared": len(self.metrics),
+                "events_cleared": len(self.events),
+                "active_steps_cleared": len(self._active_steps),
+                "spans_cleared": len(self.root_spans),
+            }
+
+            # Verificar invariantes si se solicita
+            if verify_before_reset:
+                invariants = self.verify_invariants()
+                pre_reset_summary["invariants"] = invariants
+
+            # Advertir sobre pasos activos
+            if self._active_steps:
+                active_names = list(self._active_steps.keys())[:5]
+                logger.warning(
+                    f"[{self.request_id}] Resetting with {len(self._active_steps)} "
+                    f"active steps: {active_names}"
+                )
+
+            # Preservar según configuración
+            old_request_id = self.request_id
+            old_metadata = copy.deepcopy(self.metadata) if keep_metadata else None
+
+            # Limpiar colecciones
+            self.steps.clear()
+            self.metrics.clear()
+            self.errors.clear()
+            self.events.clear()
+            self._active_steps.clear()
+            self.root_spans.clear()
+            self._scope_stack.clear()
+            self.metadata.clear()
+
+            # Reinicializar salud por estrato
+            self._strata_health.clear()
+            for s in Stratum:
+                self._strata_health[s] = TelemetryHealth()
+
+            # Restaurar según configuración
+            if not keep_request_id:
+                self.request_id = str(uuid.uuid4())
+                pre_reset_summary["new_request_id"] = self.request_id
+
+            if keep_metadata and old_metadata:
+                self.metadata.update(old_metadata)
+
+            self.created_at = time.perf_counter()
+
+            logger.info(
+                f"[{old_request_id}] Context reset. "
+                f"Cleared: {pre_reset_summary['steps_cleared']} steps, "
+                f"{pre_reset_summary['errors_cleared']} errors"
+            )
+
+            return pre_reset_summary
+
+    # =========================================================================
+    # UTILS & HELPERS
+    # =========================================================================
+
+    def _prepare_metadata(
+        self, metadata: Optional[Dict[str, Any]], context: str
+    ) -> Optional[Dict[str, Any]]:
+        """Prepara y valida metadata de forma segura."""
+        if metadata is None:
+            return None
+
+        if not isinstance(metadata, dict):
+            logger.warning(
+                f"[{self.request_id}] metadata for '{context}' is not dict "
+                f"(type={type(metadata).__name__}), ignoring"
+            )
+            return None
+
+        try:
+            return self._sanitize_value(metadata)
+        except Exception as e:
+            logger.warning(f"[{self.request_id}] Failed to sanitize metadata for '{context}': {e}")
+            return None
+
+    def _handle_duplicate_step(
+        self, step_name: str, existing: ActiveStepInfo, duration: float
+    ) -> None:
+        """Maneja un paso que se intenta iniciar cuando ya está activo."""
+        if duration > TelemetryDefaults.MAX_STEP_DURATION_WARNING:
+            logger.warning(
+                f"[{self.request_id}] Step '{step_name}' was active for {duration:.1f}s "
+                "(likely stuck). Force-ending previous instance."
+            )
+            # Registrar el paso anterior como fallido
+            self._force_end_step(
+                step_name,
+                StepStatus.FAILURE,
+                {
+                    "reason": "superseded_by_restart",
+                    "duration_before_restart": round(duration, 6),
+                },
+            )
+        else:
+            logger.debug(
+                f"[{self.request_id}] Step '{step_name}' restarted after {duration:.4f}s"
+            )
+
+    def _record_dropped_step(self, step_name: str, reason: str) -> None:
+        """Registra un paso que fue descartado (no pudo iniciarse)."""
+        self.record_event(
+            "step_dropped",
+            {"step_name": step_name, "reason": reason}
+        )
+
+    def _mark_stratum_active(self, stratum: Stratum) -> None:
+        """Marca un estrato como activo (tiene operaciones en curso)."""
+        pass
+
+    def _build_step_record(
+        self,
+        step_name: str,
+        step_info: Optional[ActiveStepInfo],
+        status: str,
+        end_time: float,
+        end_metadata: Optional[Dict[str, Any]],
+    ) -> Dict[str, Any]:
+        """Construye el registro de un paso completado."""
+        if step_info is None:
+            duration = 0.0
+            combined_metadata = self._prepare_metadata(end_metadata, step_name) or {}
+            combined_metadata["warning"] = "step_never_started"
+            stratum = Stratum.PHYSICS
+        else:
+            duration = max(0.0, end_time - step_info.start_time)
+            combined_metadata = self._merge_metadata(step_info.metadata, end_metadata)
+            stratum = step_info.stratum
+
+            if duration > TelemetryDefaults.MAX_STEP_DURATION_WARNING:
+                logger.warning(
+                    f"[{self.request_id}] Step '{step_name}' took {duration:.1f}s "
+                    f"(exceeds {TelemetryDefaults.MAX_STEP_DURATION_WARNING}s threshold)"
+                )
+
+        record = {
+            "step": step_name,
+            "status": status,
+            "stratum": stratum.name,
+            "duration_seconds": round(duration, 6),
+            "timestamp": datetime.utcnow().isoformat(),
+            "perf_counter": end_time,
+        }
+
+        if combined_metadata:
+            record["metadata"] = combined_metadata
+
+        return record
+
+    def _record_stratum_failure(self, stratum: Stratum, step_name: str) -> None:
+        """Registra un fallo en el estrato correspondiente."""
+        if stratum in self._strata_health:
+            self._strata_health[stratum].add_error(f"Step failed: {step_name}")
+
+    def _safe_start_step(
+        self,
+        step_name: str,
+        metadata: Optional[Dict[str, Any]],
+        stratum: Stratum,
+        suppress_failure: bool,
+    ) -> bool:
+        """Inicia un paso de forma segura, capturando excepciones."""
+        try:
+            return self.start_step(step_name, metadata, stratum=stratum)
+        except Exception as e:
+            logger.error(f"[{self.request_id}] Exception in start_step('{step_name}'): {e}")
+            if not suppress_failure:
+                raise
+            return False
+
+    def _finalize_step(
+        self,
+        step_name: str,
+        exception_occurred: bool,
+        captured_exception: Optional[BaseException],
+        error_status: StepStatus,
+        capture_exception_details: bool,
+        auto_record_error: bool,
+    ) -> None:
+        """Finaliza un paso de forma segura."""
+        final_status = error_status if exception_occurred else StepStatus.SUCCESS
+
+        error_metadata = None
+        if exception_occurred and capture_exception_details and captured_exception:
+            error_metadata = self._build_exception_metadata(captured_exception)
+
+        try:
+            self.end_step(step_name, final_status, error_metadata)
+        except Exception as end_error:
+            logger.error(f"[{self.request_id}] Exception in end_step('{step_name}'): {end_error}")
+
+        if (
+            exception_occurred
+            and auto_record_error
+            and isinstance(captured_exception, Exception)
+        ):
+            try:
+                self.record_error(
+                    step_name=step_name,
+                    error_message=str(captured_exception),
+                    error_type=type(captured_exception).__name__,
+                    exception=captured_exception,
+                    include_traceback=capture_exception_details,
+                )
+            except Exception as record_error:
+                logger.error(f"[{self.request_id}] Failed to record error: {record_error}")
+
+    def _record_span_error(self, span: TelemetrySpan, exception: Exception) -> None:
+        """Registra un error en el span actual."""
+        error_data = self._build_error_data(
+            step_name=span.name,
+            error_message=str(exception),
+            error_type=type(exception).__name__,
+            exception=exception,
+            metadata=None,
+            include_traceback=True,
+            severity="ERROR",
+        )
+        span.errors.append(error_data)
+
+        with self._lock:
+            self._enforce_limit_fifo(
+                self.errors, self.max_errors, "errors",
+                lambda e: f"{e.get('step', 'unknown')}:{e.get('type', 'unknown')}"
+            )
+            self.errors.append(error_data)
+
+    def _safe_pop_span(self, span: TelemetrySpan, expected_depth: int) -> None:
+        """Remueve un span del stack con validación de integridad."""
+        if not self._scope_stack:
+            logger.error(f"[{self.request_id}] Span stack empty when trying to pop '{span.name}'")
+            return
+
+        if self._scope_stack[-1] is span:
+            self._scope_stack.pop()
+            return
+
+        current_depth = len(self._scope_stack)
+        logger.warning(
+            f"[{self.request_id}] Span stack inconsistency for '{span.name}': "
+            f"expected depth {expected_depth}, current {current_depth}. Recovering..."
+        )
+
+        for i in range(len(self._scope_stack) - 1, -1, -1):
+            if self._scope_stack[i] is span:
+                self._scope_stack.pop(i)
+                logger.info(f"[{self.request_id}] Span '{span.name}' removed from position {i}")
+                return
+
+        logger.error(f"[{self.request_id}] Span '{span.name}' not found in stack during recovery")
+
+    def _validate_metric_key(self, component: str, metric_name: str) -> bool:
+        """Valida los componentes de la clave de métrica."""
+        if not self._validate_name(component, "component"):
+            return False
+        if not self._validate_name(metric_name, "metric_name"):
+            return False
+        return True
+
+    def _is_valid_numeric(self, value: Any) -> bool:
+        """Verifica si un valor es numérico válido (no NaN, no Inf)."""
+        if not isinstance(value, (int, float)):
+            return False
+        if isinstance(value, float) and (math.isnan(value) or math.isinf(value)):
+            return False
+        return True
+
+    def _sanitize_metric_value(self, value: Any) -> Any:
+        """Sanitiza un valor de métrica, aplicando límites numéricos."""
+        sanitized = self._sanitize_value(value)
+
+        if isinstance(sanitized, (int, float)):
+            return self._clamp_numeric(sanitized)
+
+        return sanitized
+
+    def _clamp_numeric(self, value: Union[int, float]) -> Union[int, float]:
+        """Limita un valor numérico al rango permitido."""
+        if value > TelemetryDefaults.MAX_METRIC_VALUE:
+            return TelemetryDefaults.MAX_METRIC_VALUE
+        if value < TelemetryDefaults.MIN_METRIC_VALUE:
+            return TelemetryDefaults.MIN_METRIC_VALUE
+        return value
+
+    def _get_stratum_metrics_unsafe(self, stratum: Stratum) -> Dict[str, Any]:
+        """Obtiene métricas de un estrato (versión sin lock)."""
+        prefixes = StratumTopology.get_prefixes(stratum)
+        result = {}
+
+        for key, value in self.metrics.items():
+            if any(key.startswith(prefix) for prefix in prefixes):
+                result[key] = copy.deepcopy(value) if isinstance(value, (dict, list)) else value
+
+        return result
+
+    def _count_steps_by_stratum(self, stratum: Stratum) -> int:
+        """Cuenta pasos completados en un estrato específico."""
+        return sum(
+            1 for step in self.steps
+            if step.get("stratum") == stratum.name
+        )
+
+    def _calculate_span_topology_unsafe(self) -> Dict[str, Any]:
+        """
+        Calcula invariantes topológicos del bosque de spans.
+        """
+        total_nodes = 0
+        total_edges = 0
+        max_depth = 0
+
+        for root in self.root_spans:
+            total_nodes += root.subtree_size
+            total_edges += root.subtree_size - 1
+            max_depth = max(max_depth, root.depth + 1)
+
+        num_trees = len(self.root_spans)
+        euler_char = total_nodes - total_edges
+
+        return {
+            "num_trees": num_trees,
+            "total_nodes": total_nodes,
+            "total_edges": total_edges,
+            "max_depth": max_depth,
+            "euler_characteristic": euler_char,
+            "is_valid_forest": euler_char == num_trees,
+            "avg_tree_size": round(total_nodes / max(num_trees, 1), 2),
+        }
+
+    def _get_error_propagation_summary(self) -> Dict[str, Any]:
+        """Resume la propagación de errores entre estratos."""
+        summary = {}
+
+        for stratum in Stratum:
+            health = self._strata_health.get(stratum, TelemetryHealth())
+
+            inherited_count = sum(
+                1 for msg, _ in health.warnings
+                if "inherited" in msg.lower() or "instability" in msg.lower()
+            )
+
+            summary[stratum.name] = {
+                "direct_errors": len(health.errors),
+                "inherited_warnings": inherited_count,
+                "total_issues": len(health.errors) + len(health.warnings),
+            }
+
+        return summary
+
+    def _extract_business_raw_metrics(self) -> Dict[str, float]:
+        """Extrae y convierte métricas crudas de forma segura."""
+        metric_keys = [
+            ("saturation", "flux_condenser.avg_saturation", 0.0),
+            ("flyback_voltage", "flux_condenser.max_flyback_voltage", 0.0),
+            ("dissipated_power", "flux_condenser.max_dissipated_power", 0.0),
+            ("kinetic_energy", "flux_condenser.avg_kinetic_energy", 0.0),
+            ("processed_records", "flux_condenser.processed_records", 0),
+            ("total_records", "flux_condenser.total_records", 0),
+            ("processing_time", "flux_condenser.processing_time", 0.0),
+        ]
+
+        result = {}
+        for name, key, default in metric_keys:
+            value = self.metrics.get(key, default)
+            result[name] = self._safe_float(value, default)
+
+        return result
+
+    def _safe_float(self, value: Any, default: float = 0.0) -> float:
+        """Convierte un valor a float de forma segura."""
+        if value is None:
+            return default
+
+        if isinstance(value, bool):
+            return 1.0 if value else 0.0
+
+        if isinstance(value, (int, float)):
+            if isinstance(value, float) and (math.isnan(value) or math.isinf(value)):
+                return default
+            return float(value)
+
+        if isinstance(value, str):
+            try:
+                parsed = float(value)
+                if math.isnan(parsed) or math.isinf(parsed):
+                    return default
+                return parsed
+            except (ValueError, TypeError):
+                return default
+
+        return default
+
+    def _translate_to_business_metrics(
+        self, raw_metrics: Dict[str, float]
+    ) -> Dict[str, str]:
+        """Traduce métricas técnicas a términos de negocio."""
+        return {
+            "Carga del Sistema": f"{raw_metrics['saturation'] * 100:.1f}%",
+            "Índice de Inestabilidad": f"{raw_metrics['flyback_voltage']:.4f}",
+            "Fricción de Datos": f"{raw_metrics['dissipated_power']:.2f}",
+            "Velocidad de Procesamiento": f"{raw_metrics['kinetic_energy']:.2f}",
+            "Registros Procesados": f"{int(raw_metrics['processed_records']):,}",
+            "Tiempo de Proceso": f"{raw_metrics['processing_time']:.2f}s",
+        }
+
+    def _determine_business_status(self, raw_metrics: Dict[str, float]) -> Tuple[str, str]:
+        """Determina el estado de negocio basado en métricas y umbrales."""
+        thresholds = self.business_thresholds
+
+        critical_flyback = thresholds.get(
+            "critical_flyback_voltage",
+            BusinessThresholds.CRITICAL_FLYBACK_VOLTAGE,
+        )
+        critical_power = thresholds.get(
+            "critical_dissipated_power",
+            BusinessThresholds.CRITICAL_DISSIPATED_POWER,
+        )
+        warning_saturation = thresholds.get(
+            "warning_saturation",
+            BusinessThresholds.WARNING_SATURATION,
+        )
+
+        if raw_metrics["flyback_voltage"] > critical_flyback:
+            return (
+                "CRITICO",
+                f"Alta inestabilidad detectada (V={raw_metrics['flyback_voltage']:.2f})",
+            )
+
+        if raw_metrics["dissipated_power"] > critical_power:
+            return (
+                "CRITICO",
+                f"Fricción de datos excesiva (P={raw_metrics['dissipated_power']:.1f})",
+            )
+
+        if len(self.errors) >= BusinessThresholds.CRITICAL_ERROR_COUNT:
+            return "CRITICO", f"Demasiados errores registrados ({len(self.errors)})"
+
+        if raw_metrics["saturation"] > warning_saturation:
+            return (
+                "ADVERTENCIA",
+                f"Sistema operando a {raw_metrics['saturation'] * 100:.0f}% de capacidad",
+            )
+
+        step_stats = self._calculate_step_statistics()
+        if step_stats["failure_rate"] > BusinessThresholds.WARNING_STEP_FAILURE_RATIO:
+            return (
+                "ADVERTENCIA",
+                f"Alta tasa de fallos: {step_stats['failure_rate'] * 100:.1f}%",
+            )
+
+        if self.errors:
+            return (
+                "ADVERTENCIA",
+                f"Se registraron {len(self.errors)} error(es) durante el procesamiento",
+            )
+
+        return "OPTIMO", "Procesamiento estable y fluido"
+
+    def _calculate_step_statistics(self) -> Dict[str, Any]:
+        """Calcula estadísticas de pasos de forma segura."""
+        total = len(self.steps)
+
+        if total == 0:
+            return {
+                "success": 0,
+                "failure": 0,
+                "warning": 0,
+                "total_duration": 0.0,
+                "success_rate": 1.0,
+                "failure_rate": 0.0,
+            }
+
+        success = sum(1 for s in self.steps if s.get("status") == StepStatus.SUCCESS.value)
+        failure = sum(1 for s in self.steps if s.get("status") == StepStatus.FAILURE.value)
+        warning = sum(1 for s in self.steps if s.get("status") == StepStatus.WARNING.value)
+
+        total_duration = sum(
+            s.get("duration_seconds", 0)
+            for s in self.steps
+            if isinstance(s.get("duration_seconds"), (int, float))
+        )
+
+        return {
+            "success": success,
+            "failure": failure,
+            "warning": warning,
+            "total_duration": round(total_duration, 6),
+            "success_rate": success / total if total > 0 else 1.0,
+            "failure_rate": failure / total if total > 0 else 0.0,
+        }
+
+    def _get_pyramidal_health_summary(self) -> Dict[str, str]:
+        """Obtiene resumen de salud por estrato."""
+        return {
+            stratum.name: self._strata_health.get(stratum, TelemetryHealth()).get_status_string()
+            for stratum in Stratum
+        }
+
+    def _generate_recommendations(
+        self,
+        raw_metrics: Dict[str, float],
+        step_stats: Dict[str, Any]
+    ) -> List[str]:
+        """Genera recomendaciones basadas en el estado actual."""
+        recommendations = []
+
+        # Basadas en saturación
+        if raw_metrics.get("saturation", 0) > 0.8:
+            recommendations.append(
+                "Alta saturación del sistema. Considere escalar recursos o reducir carga."
+            )
+
+        # Basadas en voltaje flyback
+        if raw_metrics.get("flyback_voltage", 0) > 0.3:
+            recommendations.append(
+                "Inestabilidad detectada en el flujo de datos. Revise fuentes de entrada."
+            )
+
+        # Basadas en tasa de fallos
+        if step_stats.get("failure_rate", 0) > 0.2:
+            recommendations.append(
+                f"Tasa de fallos elevada ({step_stats['failure_rate']:.1%}). "
+                "Revise logs de errores para identificar patrones."
+            )
+
+        # Basadas en salud de estratos
+        for stratum in Stratum:
+            health = self._strata_health.get(stratum, TelemetryHealth())
+            if not health.is_healthy:
+                recommendations.append(
+                    f"Estrato {stratum.name} en estado crítico. "
+                    f"Errores: {len(health.errors)}"
+                )
+
+        if not recommendations:
+            recommendations.append("Sistema operando dentro de parámetros normales.")
+
+        return recommendations[:5]
+
+    def _iter_all_spans_unsafe(self) -> Iterator[TelemetrySpan]:
+        """
+        Iterador DFS sobre todos los spans (sin lock, caller debe tener lock).
+        """
+        def traverse(span: TelemetrySpan) -> Iterator[TelemetrySpan]:
+            yield span
+            for child in span.children:
+                yield from traverse(child)
+
+        for root in self.root_spans:
+            yield from traverse(root)
 
     def _validate_and_fix_request_id(self) -> None:
         """Valida y corrige el request_id si es necesario."""
@@ -368,7 +1823,7 @@ class TelemetryContext:
 
         try:
             int_value = int(value)
-        except (ValueError, OverflowError):
+        except (ValueError, TypeError, OverflowError):
             logger.warning(
                 f"[{request_id}] {name}={value} cannot be converted to int. "
                 f"Using default: {default}"
@@ -473,113 +1928,6 @@ class TelemetryContext:
                 self.business_thresholds[key] = default
                 logger.debug(f"[{request_id}] Fixed threshold {key}: {value} -> {default}")
 
-    @contextmanager
-    def span(self, name: str, metadata: Optional[Dict[str, Any]] = None, stratum: Stratum = Stratum.PHYSICS):
-        """Crea un nuevo span jerárquico."""
-        level = len(self._scope_stack)
-        new_span = TelemetrySpan(
-            name=name,
-            level=level,
-            stratum=stratum,
-            metadata=self._sanitize_value(metadata) if metadata else {},
-        )
-
-        with self._lock:
-            if self._scope_stack:
-                parent = self._scope_stack[-1]
-                parent.children.append(new_span)
-            else:
-                self.root_spans.append(new_span)
-
-            self._scope_stack.append(new_span)
-
-        logger.debug(f"[{self.request_id}] SPAN START: {'  ' * level}{name} [{stratum.name}]")
-
-        try:
-            yield new_span
-            if new_span.status == StepStatus.IN_PROGRESS:
-                new_span.status = StepStatus.SUCCESS
-        except Exception as e:
-            new_span.status = StepStatus.FAILURE
-            error_data = self._build_error_data(
-                step_name=name,
-                error_message=str(e),
-                error_type=type(e).__name__,
-                exception=e,
-                metadata=None,
-                include_traceback=True,
-                severity="ERROR",
-            )
-            new_span.errors.append(error_data)
-            self.errors.append(error_data)
-            raise
-        finally:
-            new_span.end_time = time.perf_counter()
-            with self._lock:
-                if self._scope_stack and self._scope_stack[-1] == new_span:
-                    self._scope_stack.pop()
-
-            logger.debug(
-                f"[{self.request_id}] SPAN END: {'  ' * level}{name} ({new_span.duration:.4f}s)"
-            )
-
-    def start_step(self, step_name: str, metadata: Optional[Dict[str, Any]] = None, stratum: Stratum = Stratum.PHYSICS) -> bool:
-        """Marca el inicio de un paso de procesamiento."""
-        if not self._validate_step_name(step_name):
-            return False
-
-        sanitized_metadata = None
-        if metadata is not None:
-            if not isinstance(metadata, dict):
-                logger.warning(
-                    f"[{self.request_id}] metadata for step '{step_name}' is not dict "
-                    f"(type={type(metadata).__name__}), ignoring"
-                )
-            else:
-                try:
-                    sanitized_metadata = self._sanitize_value(metadata)
-                except Exception as e:
-                    logger.warning(
-                        f"[{self.request_id}] Failed to sanitize metadata for '{step_name}': {e}"
-                    )
-
-        with self._lock:
-            if len(self._active_steps) >= TelemetryDefaults.MAX_ACTIVE_STEPS:
-                self._cleanup_stale_steps()
-
-                if len(self._active_steps) >= TelemetryDefaults.MAX_ACTIVE_STEPS:
-                    logger.error(
-                        f"[{self.request_id}] Max active steps "
-                        f"({TelemetryDefaults.MAX_ACTIVE_STEPS}) reached. "
-                        f"Cannot start '{step_name}'."
-                    )
-                    return False
-
-            if step_name in self._active_steps:
-                existing = self._active_steps[step_name]
-                duration = existing.get_duration()
-
-                if duration > TelemetryDefaults.MAX_STEP_DURATION_WARNING:
-                    logger.warning(
-                        f"[{self.request_id}] Step '{step_name}' already active for "
-                        f"{duration:.1f}s (possible stuck step). Resetting timer."
-                    )
-                else:
-                    logger.warning(
-                        f"[{self.request_id}] Step '{step_name}' already started "
-                        f"{duration:.4f}s ago. Timer will be reset."
-                    )
-
-            self._active_steps[step_name] = ActiveStepInfo(
-                start_time=time.perf_counter(),
-                metadata=sanitized_metadata,
-                stratum=stratum
-            )
-
-            logger.info(f"[{self.request_id}] Starting step: {step_name} [{stratum.name}]")
-
-        return True
-
     def _cleanup_stale_steps(self) -> int:
         """Limpia pasos que han estado activos demasiado tiempo."""
         if not self._active_steps:
@@ -638,77 +1986,6 @@ class TelemetryContext:
             self.steps.pop(0)
 
         self.steps.append(step_data)
-
-    def end_step(
-        self,
-        step_name: str,
-        status: Union[StepStatus, str] = StepStatus.SUCCESS,
-        metadata: Optional[Dict[str, Any]] = None,
-    ) -> bool:
-        """Marca el final de un paso de procesamiento."""
-        if not self._validate_step_name(step_name):
-            return False
-
-        status_value = self._normalize_status(status)
-        end_time = time.perf_counter()
-
-        with self._lock:
-            step_info = self._active_steps.pop(step_name, None)
-
-            if step_info is None:
-                logger.warning(
-                    f"[{self.request_id}] Ending step '{step_name}' that was never started. "
-                    "Recording with duration=0."
-                )
-                duration = 0.0
-                combined_metadata = (
-                    self._sanitize_value(metadata) if metadata else None
-                ) or {}
-                combined_metadata["warning"] = "step_never_started"
-            else:
-                duration = end_time - step_info.start_time
-                combined_metadata = self._merge_metadata(step_info.metadata, metadata)
-
-                if duration > TelemetryDefaults.MAX_STEP_DURATION_WARNING:
-                    logger.warning(
-                        f"[{self.request_id}] Step '{step_name}' took {duration:.1f}s "
-                        f"(exceeds warning threshold)"
-                    )
-                elif duration < 0:
-                    logger.error(
-                        f"[{self.request_id}] Step '{step_name}' has negative duration."
-                    )
-                    duration = 0.0
-
-            self._enforce_limit_fifo(
-                self.steps,
-                self.max_steps,
-                "steps",
-                lambda s: s.get("step", "unknown"),
-            )
-
-            step_data = {
-                "step": step_name,
-                "status": status_value,
-                "duration_seconds": round(duration, 6),
-                "timestamp": datetime.utcnow().isoformat(),
-                "perf_counter": end_time,
-            }
-
-            if combined_metadata:
-                step_data["metadata"] = combined_metadata
-
-            self.steps.append(step_data)
-
-            log_func = (
-                logger.info if status_value == StepStatus.SUCCESS.value else logger.warning
-            )
-            log_func(
-                f"[{self.request_id}] Finished step: {step_name} ({status_value}) "
-                f"in {duration:.6f}s"
-            )
-
-        return True
 
     def _merge_metadata(
         self,
@@ -798,90 +2075,6 @@ class TelemetryContext:
 
         return removed_count
 
-    @contextmanager
-    def step(
-        self,
-        step_name: str,
-        metadata: Optional[Dict[str, Any]] = None,
-        error_status: StepStatus = StepStatus.FAILURE,
-        capture_exception_details: bool = True,
-        auto_record_error: bool = True,
-        suppress_start_failure: bool = True,
-        stratum: Stratum = Stratum.PHYSICS,
-    ):
-        """Gestor de contexto para el seguimiento automático de pasos."""
-        if not isinstance(step_name, str) or not step_name.strip():
-            logger.error(f"[{self.request_id}] Invalid step_name for context manager")
-            if not suppress_start_failure:
-                raise ValueError("step_name must be a non-empty string")
-            yield self
-            return
-
-        if not isinstance(error_status, StepStatus):
-            if isinstance(error_status, str):
-                error_status = StepStatus.from_string(error_status)
-            else:
-                error_status = StepStatus.FAILURE
-
-        started = False
-        try:
-            started = self.start_step(step_name, metadata, stratum=stratum)
-        except Exception as e:
-            logger.error(f"[{self.request_id}] Exception in start_step('{step_name}'): {e}")
-            if not suppress_start_failure:
-                raise
-
-        if not started and not suppress_start_failure:
-            raise RuntimeError(f"Failed to start step: {step_name}")
-        elif not started:
-            logger.warning(
-                f"[{self.request_id}] Step '{step_name}' failed to start, "
-                "proceeding without telemetry for this step."
-            )
-
-        exception_occurred = False
-        captured_exception: Optional[BaseException] = None
-
-        try:
-            yield self
-        except BaseException as e:
-            exception_occurred = True
-            captured_exception = e
-            raise
-        finally:
-            if started:
-                final_status = error_status if exception_occurred else StepStatus.SUCCESS
-
-                error_metadata = None
-                if exception_occurred and capture_exception_details and captured_exception:
-                    error_metadata = self._build_exception_metadata(captured_exception)
-
-                try:
-                    self.end_step(step_name, final_status, error_metadata)
-                except Exception as end_error:
-                    logger.error(
-                        f"[{self.request_id}] Exception in end_step('{step_name}'): {end_error}"
-                    )
-
-                if (
-                    exception_occurred
-                    and auto_record_error
-                    and capture_exception_details
-                    and isinstance(captured_exception, Exception)
-                ):
-                    try:
-                        self.record_error(
-                            step_name=step_name,
-                            error_message=str(captured_exception),
-                            error_type=type(captured_exception).__name__,
-                            exception=captured_exception,
-                            include_traceback=capture_exception_details,
-                        )
-                    except Exception as record_error:
-                        logger.error(
-                            f"[{self.request_id}] Failed to record error: {record_error}"
-                        )
-
     def _build_exception_metadata(self, exc: BaseException) -> Dict[str, Any]:
         """Construye metadata de excepción de forma segura."""
         try:
@@ -895,272 +2088,6 @@ class TelemetryContext:
                 "error_type": "unknown",
                 "error_message": "failed to capture",
             }
-
-    def record_metric(
-        self,
-        component: str,
-        metric_name: str,
-        value: Any,
-        overwrite: bool = True,
-        validate_numeric: bool = False,
-    ) -> bool:
-        """Registra una métrica específica para un componente."""
-        if not self._validate_name(component, "component"):
-            return False
-
-        if not self._validate_name(metric_name, "metric_name"):
-            return False
-
-        key = f"{component}.{metric_name}"
-
-        if validate_numeric:
-            if not isinstance(value, (int, float)):
-                return False
-
-            if isinstance(value, float) and (math.isnan(value) or math.isinf(value)):
-                return False
-
-        current_span = None
-        with self._lock:
-            if self._scope_stack:
-                current_span = self._scope_stack[-1]
-
-        with self._lock:
-            is_new_metric = key not in self.metrics
-
-            if not overwrite and not is_new_metric:
-                return False
-
-            if is_new_metric and len(self.metrics) >= self.max_metrics:
-                logger.error(
-                    f"[{self.request_id}] Max metrics ({self.max_metrics}) reached."
-                )
-                return False
-
-            try:
-                sanitized_value = self._sanitize_value(value)
-            except Exception:
-                return False
-
-            if isinstance(sanitized_value, (int, float)):
-                if sanitized_value > TelemetryDefaults.MAX_METRIC_VALUE:
-                    sanitized_value = TelemetryDefaults.MAX_METRIC_VALUE
-                elif sanitized_value < TelemetryDefaults.MIN_METRIC_VALUE:
-                    sanitized_value = TelemetryDefaults.MIN_METRIC_VALUE
-
-            self.metrics[key] = sanitized_value
-
-            if current_span:
-                current_span.metrics[key] = sanitized_value
-
-        return True
-
-    def increment_metric(
-        self,
-        component: str,
-        metric_name: str,
-        increment: Union[int, float] = 1,
-        create_if_missing: bool = True,
-    ) -> bool:
-        """Incrementa una métrica numérica."""
-        if not self._validate_name(component, "component"):
-            return False
-
-        if not self._validate_name(metric_name, "metric_name"):
-            return False
-
-        if not isinstance(increment, (int, float)):
-            return False
-
-        if isinstance(increment, float) and (math.isnan(increment) or math.isinf(increment)):
-            return False
-
-        key = f"{component}.{metric_name}"
-
-        with self._lock:
-            current_value = self.metrics.get(key)
-            is_new_metric = current_value is None
-
-            if is_new_metric:
-                if not create_if_missing:
-                    return False
-
-                if len(self.metrics) >= self.max_metrics:
-                    return False
-
-                current_value = 0
-
-            if not isinstance(current_value, (int, float)):
-                current_value = 0
-
-            try:
-                new_value = current_value + increment
-
-                if isinstance(new_value, float):
-                    if math.isinf(new_value):
-                        new_value = (
-                            TelemetryDefaults.MAX_METRIC_VALUE
-                            if increment > 0
-                            else TelemetryDefaults.MIN_METRIC_VALUE
-                        )
-                    elif math.isnan(new_value):
-                        return False
-
-            except OverflowError:
-                new_value = TelemetryDefaults.MAX_METRIC_VALUE
-
-            new_value = max(
-                TelemetryDefaults.MIN_METRIC_VALUE,
-                min(TelemetryDefaults.MAX_METRIC_VALUE, new_value),
-            )
-
-            self.metrics[key] = new_value
-
-            if self._scope_stack:
-                self._scope_stack[-1].metrics[key] = new_value
-
-        return True
-
-    def get_metric(
-        self,
-        component: str,
-        metric_name: str,
-        default: Any = None,
-        expected_type: Optional[type] = None,
-    ) -> Any:
-        """Obtiene el valor de una métrica."""
-        key = f"{component}.{metric_name}"
-
-        with self._lock:
-            value = self.metrics.get(key)
-
-            if value is None:
-                return default
-
-            if expected_type is not None and not isinstance(value, expected_type):
-                return default
-
-            if isinstance(value, (dict, list)):
-                return copy.deepcopy(value)
-
-            return value
-
-    def record_error(
-        self,
-        step_name: str,
-        error_message: str,
-        error_type: Optional[str] = None,
-        exception: Optional[Exception] = None,
-        metadata: Optional[Dict[str, Any]] = None,
-        include_traceback: bool = False,
-        severity: str = "ERROR",
-        stratum: Optional[Stratum] = None,
-    ) -> bool:
-        """Registra un error ocurrido durante un paso."""
-        if not self._validate_name(step_name, "step_name"):
-            step_name = "__unknown_step__"
-
-        if not self._validate_error_message(error_message):
-            error_message = "Unknown error"
-
-        valid_severities = {"ERROR", "WARNING", "CRITICAL", "INFO"}
-        if severity not in valid_severities:
-            severity = "ERROR"
-
-        with self._lock:
-            self._enforce_limit_fifo(
-                self.errors,
-                self.max_errors,
-                "errors",
-                lambda e: f"{e.get('step', 'unknown')}:{e.get('type', 'unknown')}",
-            )
-
-            try:
-                error_data = self._build_error_data(
-                    step_name=step_name,
-                    error_message=error_message,
-                    error_type=error_type,
-                    exception=exception,
-                    metadata=metadata,
-                    include_traceback=include_traceback,
-                    severity=severity,
-                )
-            except Exception as build_error:
-                error_data = {
-                    "step": step_name,
-                    "message": str(error_message)[:500],
-                    "timestamp": datetime.utcnow().isoformat(),
-                    "severity": severity,
-                    "build_error": str(build_error)[:100],
-                }
-
-            self.errors.append(error_data)
-
-            if self._scope_stack:
-                self._scope_stack[-1].errors.append(error_data)
-
-            log_func = {
-                "CRITICAL": logger.critical,
-                "ERROR": logger.error,
-                "WARNING": logger.warning,
-                "INFO": logger.info,
-            }.get(severity, logger.error)
-
-            log_func(
-                f"[{self.request_id}] {severity} in {step_name}: "
-                f"{error_message[:200]}{'...' if len(error_message) > 200 else ''}"
-            )
-
-            # Lógica Topológica:
-            # Identificar el estrato del paso activo
-            active_info = self._active_steps.get(step_name)
-
-            # Prioridad: Explícito > Activo > Default (PHYSICS)
-            if stratum is not None:
-                current_stratum = stratum
-            elif active_info:
-                current_stratum = active_info.stratum
-            else:
-                current_stratum = Stratum.PHYSICS
-
-            # Degradar la salud específica de ese estrato
-            if current_stratum in self._strata_health:
-                self._strata_health[current_stratum].add_error(error_message)
-
-            # Regla de Propagación: Un error en PHYSICS contamina TACTICS y STRATEGY
-            # (La inestabilidad sube por la pirámide)
-            if severity == "CRITICAL":
-                self._propagate_failure_upwards(current_stratum)
-
-        return True
-
-    def _propagate_failure_upwards(self, failed_stratum: Stratum) -> None:
-        """
-        Implementa la lógica de 'Colapso Piramidal'.
-        Si la base falla, los niveles superiores se marcan como inestables.
-        Ref: LENGUAJE_CONSEJO.md (Pirámide Invertida)
-        """
-        for s in Stratum:
-            # En Stratum IntEnum: WISDOM(0) < STRATEGY(1) < TACTICS(2) < PHYSICS(3)
-            # Si failed_stratum es 3 (PHYSICS), afecta a 2, 1, 0.
-            if s.value < failed_stratum.value:
-                if s in self._strata_health:
-                    self._strata_health[s].add_warning(
-                        f"Inestabilidad heredada del estrato inferior {failed_stratum.name}"
-                    )
-
-    def _validate_error_message(self, error_message: Any) -> bool:
-        """Valida que el mensaje de error sea válido."""
-        if error_message is None:
-            return False
-
-        if not isinstance(error_message, str):
-            return False
-
-        if not error_message.strip():
-            return False
-
-        return True
 
     def _build_error_data(
         self,
@@ -1313,6 +2240,19 @@ class TelemetryContext:
 
         if len(name) > max_length:
             logger.error(f"[{self.request_id}] {field_name} too long")
+            return False
+
+        return True
+
+    def _validate_error_message(self, error_message: Any) -> bool:
+        """Valida que el mensaje de error sea válido."""
+        if error_message is None:
+            return False
+
+        if not isinstance(error_message, str):
+            return False
+
+        if not error_message.strip():
             return False
 
         return True
@@ -1638,362 +2578,6 @@ class TelemetryContext:
                         "metrics_count": len(self.metrics),
                     },
                 }
-
-    def reset(self, keep_request_id: bool = True) -> None:
-        """Restablece el contexto de telemetría."""
-        with self._lock:
-            if not keep_request_id:
-                self.request_id = str(uuid.uuid4())
-
-            self.steps.clear()
-            self.metrics.clear()
-            self.errors.clear()
-            self.events.clear()
-            self._active_steps.clear()
-            self.root_spans.clear()
-            self._scope_stack.clear()
-            self.metadata.clear()
-            self._strata_health.clear()
-            for s in Stratum:
-                self._strata_health[s] = TelemetryHealth()
-            self.created_at = time.perf_counter()
-
-    def get_pyramidal_report(self) -> Dict[str, Any]:
-        """
-        Genera un reporte organizado por la jerarquía DIKW.
-        Utilizado por el SemanticTranslator para la narrativa.
-        """
-        def get_health_status(stratum: Stratum) -> str:
-            if stratum not in self._strata_health:
-                return "UNKNOWN"
-            health = self._strata_health[stratum]
-            if not health.is_healthy:
-                return "CRITICAL"
-            if health.warnings:
-                return "WARNING"
-            return "HEALTHY"
-
-        def get_stratum_issues(stratum: Stratum) -> List[str]:
-            if stratum not in self._strata_health:
-                return []
-            return self._strata_health[stratum].errors
-
-        def get_stratum_warnings(stratum: Stratum) -> List[str]:
-            if stratum not in self._strata_health:
-                return []
-            return self._strata_health[stratum].warnings
-
-        return {
-            "physics_layer": {
-                "status": get_health_status(Stratum.PHYSICS),
-                "metrics": self._filter_metrics_by_prefix("flux_condenser"),
-                "issues": get_stratum_issues(Stratum.PHYSICS),
-                "warnings": get_stratum_warnings(Stratum.PHYSICS)
-            },
-            "tactics_layer": {
-                "status": get_health_status(Stratum.TACTICS),
-                "metrics": self._filter_metrics_by_prefix("topology"), # Beta numbers
-                "issues": get_stratum_issues(Stratum.TACTICS),
-                "warnings": get_stratum_warnings(Stratum.TACTICS)
-            },
-            "strategy_layer": {
-                "status": get_health_status(Stratum.STRATEGY),
-                "metrics": self._filter_metrics_by_prefix("financial"), # WACC, NPV
-                "issues": get_stratum_issues(Stratum.STRATEGY),
-                "warnings": get_stratum_warnings(Stratum.STRATEGY)
-            }
-        }
-
-    def _filter_metrics_by_prefix(self, prefix: str) -> Dict[str, Any]:
-        """Filtra las métricas que comienzan con un prefijo dado."""
-        with self._lock:
-            return {
-                k: v for k, v in self.metrics.items()
-                if k.startswith(prefix)
-            }
-
-    def get_business_report(self) -> Dict[str, Any]:
-        """Genera un informe amigable para el negocio."""
-        with self._lock:
-            try:
-                raw_metrics = self._extract_business_raw_metrics()
-                business_metrics = self._translate_to_business_metrics(raw_metrics)
-                status, message = self._determine_business_status(raw_metrics)
-                step_stats = self._calculate_step_statistics()
-                financial_health = self._determine_financial_health()
-                parsing_health = self._calculate_parsing_health()
-                pyramidal_health = self.get_pyramidal_report()
-
-                return {
-                    "status": status,
-                    "message": message,
-                    "metrics": business_metrics,
-                    "raw_metrics": raw_metrics,
-                    "details": {
-                        "total_steps": len(self.steps),
-                        "successful_steps": step_stats["success"],
-                        "failed_steps": step_stats["failure"],
-                        "total_errors": len(self.errors),
-                        "has_active_operations": len(self._active_steps) > 0,
-                        "active_operation_names": list(self._active_steps.keys())[:5],
-                        "total_duration": step_stats["total_duration"],
-                        "success_rate": step_stats["success_rate"],
-                    },
-                    "financial_health": financial_health,
-                    "parsing_health": parsing_health,
-                    "pyramidal_health": pyramidal_health,
-                    "health": self._assess_health(),
-                    "timestamp": datetime.utcnow().isoformat(),
-                }
-
-            except Exception as e:
-                logger.error(f"[{self.request_id}] Error generating business report: {e}")
-                return {
-                    "status": "ERROR",
-                    "message": f"Failed to generate report: {e}",
-                    "metrics": {},
-                    "details": {"error": str(e)},
-                }
-
-    def _extract_business_raw_metrics(self) -> Dict[str, float]:
-        """Extrae y convierte métricas crudas de forma segura."""
-        metric_keys = [
-            ("saturation", "flux_condenser.avg_saturation", 0.0),
-            ("flyback_voltage", "flux_condenser.max_flyback_voltage", 0.0),
-            ("dissipated_power", "flux_condenser.max_dissipated_power", 0.0),
-            ("kinetic_energy", "flux_condenser.avg_kinetic_energy", 0.0),
-            ("processed_records", "flux_condenser.processed_records", 0),
-            ("total_records", "flux_condenser.total_records", 0),
-            ("processing_time", "flux_condenser.processing_time", 0.0),
-        ]
-
-        result = {}
-        for name, key, default in metric_keys:
-            value = self.metrics.get(key, default)
-            result[name] = self._safe_float(value, default)
-
-        return result
-
-    def _safe_float(self, value: Any, default: float = 0.0) -> float:
-        """Convierte un valor a float de forma segura."""
-        if value is None:
-            return default
-
-        if isinstance(value, bool):
-            return 1.0 if value else 0.0
-
-        if isinstance(value, (int, float)):
-            if isinstance(value, float) and (math.isnan(value) or math.isinf(value)):
-                return default
-            return float(value)
-
-        if isinstance(value, str):
-            try:
-                parsed = float(value)
-                if math.isnan(parsed) or math.isinf(parsed):
-                    return default
-                return parsed
-            except (ValueError, TypeError):
-                return default
-
-        return default
-
-    def _translate_to_business_metrics(
-        self, raw_metrics: Dict[str, float]
-    ) -> Dict[str, str]:
-        """Traduce métricas técnicas a términos de negocio."""
-        return {
-            "Carga del Sistema": f"{raw_metrics['saturation'] * 100:.1f}%",
-            "Índice de Inestabilidad": f"{raw_metrics['flyback_voltage']:.4f}",
-            "Fricción de Datos": f"{raw_metrics['dissipated_power']:.2f}",
-            "Velocidad de Procesamiento": f"{raw_metrics['kinetic_energy']:.2f}",
-            "Registros Procesados": f"{int(raw_metrics['processed_records']):,}",
-            "Tiempo de Proceso": f"{raw_metrics['processing_time']:.2f}s",
-        }
-
-    def _determine_business_status(self, raw_metrics: Dict[str, float]) -> Tuple[str, str]:
-        """Determina el estado de negocio basado en métricas y umbrales."""
-        thresholds = self.business_thresholds
-
-        critical_flyback = thresholds.get(
-            "critical_flyback_voltage",
-            BusinessThresholds.CRITICAL_FLYBACK_VOLTAGE,
-        )
-        critical_power = thresholds.get(
-            "critical_dissipated_power",
-            BusinessThresholds.CRITICAL_DISSIPATED_POWER,
-        )
-        warning_saturation = thresholds.get(
-            "warning_saturation",
-            BusinessThresholds.WARNING_SATURATION,
-        )
-
-        if raw_metrics["flyback_voltage"] > critical_flyback:
-            return (
-                "CRITICO",
-                f"Alta inestabilidad detectada (V={raw_metrics['flyback_voltage']:.2f})",
-            )
-
-        if raw_metrics["dissipated_power"] > critical_power:
-            return (
-                "CRITICO",
-                f"Fricción de datos excesiva (P={raw_metrics['dissipated_power']:.1f})",
-            )
-
-        if len(self.errors) >= BusinessThresholds.CRITICAL_ERROR_COUNT:
-            return "CRITICO", f"Demasiados errores registrados ({len(self.errors)})"
-
-        if raw_metrics["saturation"] > warning_saturation:
-            return (
-                "ADVERTENCIA",
-                f"Sistema operando a {raw_metrics['saturation'] * 100:.0f}% de capacidad",
-            )
-
-        step_stats = self._calculate_step_statistics()
-        if step_stats["failure_rate"] > BusinessThresholds.WARNING_STEP_FAILURE_RATIO:
-            return (
-                "ADVERTENCIA",
-                f"Alta tasa de fallos: {step_stats['failure_rate'] * 100:.1f}%",
-            )
-
-        if self.errors:
-            return (
-                "ADVERTENCIA",
-                f"Se registraron {len(self.errors)} error(es) durante el procesamiento",
-            )
-
-        return "OPTIMO", "Procesamiento estable y fluido"
-
-    def _determine_financial_health(self) -> Dict[str, Any]:
-        """Determina la salud financiera basada en métricas financieras."""
-        financial_metrics = {
-            "roi": self.get_metric("financial", "roi"),
-            "volatility": self.get_metric("financial", "volatility"),
-            "npv": self.get_metric("financial", "npv"),
-        }
-
-        present_metrics = {k: v for k, v in financial_metrics.items() if v is not None}
-
-        if not present_metrics:
-            return {
-                "status": "NO_DISPONIBLE",
-                "message": "No hay métricas financieras registradas.",
-                "metrics": {},
-            }
-
-        status = "OPTIMO"
-        message = "Proyecto viable."
-
-        if "roi" in present_metrics and present_metrics["roi"] < 0:
-            status = "CRITICO"
-            message = "Destrucción de Valor proyectada."
-        elif "volatility" in present_metrics and present_metrics["volatility"] > 0.20:
-            status = "ADVERTENCIA"
-            message = "Alta volatilidad de mercado."
-
-        return {
-            "status": status,
-            "message": message,
-            "metrics": present_metrics,
-        }
-
-    def _calculate_step_statistics(self) -> Dict[str, Any]:
-        """Calcula estadísticas de pasos de forma segura."""
-        total = len(self.steps)
-
-        if total == 0:
-            return {
-                "success": 0,
-                "failure": 0,
-                "warning": 0,
-                "total_duration": 0.0,
-                "success_rate": 1.0,
-                "failure_rate": 0.0,
-            }
-
-        success = sum(1 for s in self.steps if s.get("status") == StepStatus.SUCCESS.value)
-        failure = sum(1 for s in self.steps if s.get("status") == StepStatus.FAILURE.value)
-        warning = sum(1 for s in self.steps if s.get("status") == StepStatus.WARNING.value)
-
-        total_duration = sum(
-            s.get("duration_seconds", 0)
-            for s in self.steps
-            if isinstance(s.get("duration_seconds"), (int, float))
-        )
-
-        return {
-            "success": success,
-            "failure": failure,
-            "warning": warning,
-            "total_duration": round(total_duration, 6),
-            "success_rate": success / total if total > 0 else 1.0,
-            "failure_rate": failure / total if total > 0 else 0.0,
-        }
-
-    def _assess_health(self) -> Dict[str, Any]:
-        """Evalúa la salud del contexto de telemetría."""
-        health = TelemetryHealth()
-
-        for name, info in self._active_steps.items():
-            duration = info.get_duration()
-            if duration > TelemetryDefaults.STALE_STEP_THRESHOLD:
-                health.stale_steps.append(name)
-                health.add_warning(f"Step '{name}' stuck for {duration:.0f}s")
-
-        if len(self.steps) > self.max_steps * 0.9:
-            health.memory_pressure = True
-            health.add_warning("Steps approaching limit")
-
-        if len(self.errors) > self.max_errors * 0.9:
-            health.memory_pressure = True
-            health.add_warning("Errors approaching limit")
-
-        if len(self.errors) > BusinessThresholds.CRITICAL_ERROR_COUNT:
-            health.add_error(f"High error count: {len(self.errors)}")
-
-        return {
-            "is_healthy": health.is_healthy,
-            "warnings": health.warnings,
-            "errors": health.errors,
-            "stale_steps": health.stale_steps,
-            "memory_pressure": health.memory_pressure,
-        }
-
-    def _calculate_parsing_health(self) -> Dict[str, Any]:
-        """Calcula métricas agregadas de la salud del parsing categórico."""
-        # Métricas esperadas desde APUProcessor/ParsingStats
-        keys = {
-            "avg_entropy": ("parsing", "avg_field_entropy"),
-            "avg_cohesion": ("parsing", "avg_numeric_cohesion"),
-            "homeomorphism_rate": ("parsing", "homeomorphism_success_rate"),
-            "lark_errors": ("parsing", "lark_errors"),
-            "total_lines": ("parsing", "total_lines"),
-        }
-
-        result = {}
-        for report_key, (comp, name) in keys.items():
-            val = self.get_metric(comp, name)
-            if val is not None:
-                result[report_key] = val
-
-        # Interpretación cualitativa
-        if result:
-            entropy = result.get("avg_entropy", 0.0)
-            cohesion = result.get("avg_cohesion", 0.0)
-
-            quality = "DESCONOCIDO"
-            if entropy > 0.8:
-                quality = "CAÓTICO"
-            elif cohesion < 0.3:
-                quality = "DISPERSO"
-            elif cohesion > 0.7 and entropy < 0.5:
-                quality = "COHERENTE"
-            else:
-                quality = "ACEPTABLE"
-
-            result["quality_verdict"] = quality
-
-        return result
 
     def __enter__(self) -> "TelemetryContext":
         """Soporte para la declaración 'with'."""

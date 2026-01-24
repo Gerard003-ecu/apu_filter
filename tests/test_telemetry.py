@@ -551,8 +551,9 @@ class TestStepContextManager:
 
         # Should still record the step but without exception metadata
         assert len(ctx.steps) == 1
-        # Error should not be recorded when capture_exception_details=False
-        assert len(ctx.errors) == 0
+        # Error IS recorded (auto_record_error=True default), but traceback should be missing
+        assert len(ctx.errors) == 1
+        assert "traceback" not in ctx.errors[0]
 
     def test_context_manager_invalid_step_name_continues(self, ctx: TelemetryContext):
         """Verify context manager continues even with invalid step name."""
