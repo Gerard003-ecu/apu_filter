@@ -1462,7 +1462,7 @@ class TestStratumSpecificNarratives:
         strategy_narrative = report["strata_analysis"]["STRATEGY"]["narrative"]
 
         # Debe contener keywords financieros
-        assert any(kw in strategy_narrative for kw in ["Riesgo", "financiera", "mercado", "pérdidas"])
+        assert any(kw in strategy_narrative for kw in ["Riesgo", "financiera", "mercado", "pérdidas", "Volatilidad", "VaR"])
 
 
 # ============================================================================

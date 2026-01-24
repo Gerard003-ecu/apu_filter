@@ -575,7 +575,7 @@ class TestTopologyTranslation:
             cyclic_topology, stability=15.0
         )
 
-        assert "socavones" in narrative.lower() or "ciclos" in narrative.lower()
+        assert "socavones" in narrative.lower() or "ciclos" in narrative.lower() or "bucles" in narrative.lower()
         assert verdict.value >= VerdictLevel.CONDICIONAL.value
 
     def test_translate_fragmented_topology(

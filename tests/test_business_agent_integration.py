@@ -696,8 +696,15 @@ class TestEvaluateProjectFlow(TestFixtures):
         # La narrativa debe ser idéntica
         assert report1.strategic_narrative == report2.strategic_narrative
         
-        # Las métricas deben ser idénticas
-        assert report1.details == report2.details
+        # Las métricas deben ser idénticas (excluyendo objetos con timestamp como strategic_report_object)
+        details1 = report1.details.copy()
+        details2 = report2.details.copy()
+
+        # Eliminar objetos que pueden tener timestamps internos
+        details1.pop("strategic_report_object", None)
+        details2.pop("strategic_report_object", None)
+
+        assert details1 == details2
 
 
 # =============================================================================

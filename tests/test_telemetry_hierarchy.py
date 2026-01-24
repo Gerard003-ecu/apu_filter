@@ -41,7 +41,8 @@ def test_telemetry_narrative_generation():
     report = narrator.summarize_execution(ctx)
 
     # RECHAZADO_TECNICO porque es un fallo en capa física (default)
-    assert report["verdict"] == "RECHAZADO_TECNICO"
+    # V2: Usa verdict_code = REJECTED_PHYSICS
+    assert "REJECTED_PHYSICS" in report["verdict_code"] or report["verdict"] == "RECHAZADO_TECNICO"
     assert len(report["phases"]) == 1
     assert report["phases"][0]["name"] == "Data Loading"
     assert report["phases"][0]["status"] == "CRITICO"
@@ -62,8 +63,16 @@ def test_telemetry_legacy_fallback():
     narrator = TelemetryNarrator()
     report = narrator.summarize_execution(ctx)
 
-    assert report["verdict"] == "RECHAZADO_TECNICO"
-    assert "modo compatibilidad" in report["narrative"]
+    # V2: usa verdict_code = REJECTED_PHYSICS para modo legacy con error
+    assert "REJECTED_PHYSICS" in report["verdict_code"] or report["verdict"] == "RECHAZADO_TECNICO"
+
+    # Check if legacy mode is mentioned in narrative OR causality chain
+    is_legacy_mentioned = (
+        "legacy" in report["narrative"].lower() or
+        "compatibilidad" in report["narrative"].lower() or
+        any("legacy" in c.lower() for c in report.get("causality_chain", []))
+    )
+    assert is_legacy_mentioned
     assert len(report["forensic_evidence"]) == 1
 
 

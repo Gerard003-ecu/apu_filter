@@ -548,7 +548,7 @@ class BusinessAgent:
         synergy_risk = base_report.details.get("synergy_risk")
 
         # 1. Obtener Narrativa Estructural, Financiera y Termodinámica Unificada
-        full_narrative = self.translator.compose_strategic_narrative(
+        strategic_report = self.translator.compose_strategic_narrative(
             topological_metrics=topological_bundle.betti_numbers,
             financial_metrics=financial_metrics,
             stability=topological_bundle.pyramid_stability,
@@ -557,10 +557,15 @@ class BusinessAgent:
             thermal_metrics=thermal_metrics,  # Pasamos métricas térmicas para la unificación
         )
 
+        # Extraer la narrativa cruda (string) para compatibilidad con ConstructionRiskReport
+        # El objeto StrategicReport completo se guarda en los detalles para uso avanzado
+        full_narrative_str = strategic_report.raw_narrative
+
         # Enriquecer el reporte con datos adicionales
         enriched_details = {
             **base_report.details,
-            "strategic_narrative": full_narrative,
+            "strategic_narrative": full_narrative_str,
+            "strategic_report_object": strategic_report, # Guardamos el objeto completo
             "financial_metrics_input": financial_metrics,
             "thermal_metrics": thermal_metrics,
             "thermodynamics": {
@@ -589,7 +594,7 @@ class BusinessAgent:
             complexity_level=base_report.complexity_level,
             financial_risk_level=base_report.financial_risk_level,
             details=enriched_details,
-            strategic_narrative=full_narrative,
+            strategic_narrative=full_narrative_str,
         )
 
         # Aplicar Risk Challenger para auditar el reporte
