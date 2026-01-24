@@ -1,0 +1,722 @@
+class TestLatticeIsomorphismRefined:
+    """
+    Análisis refinado de la relación entre lattices.
+    SeverityLevel (L_s) y VerdictLevel (L_v) no son isomorfos sino que existe
+    una inmersión monótona φ: L_s → L_v que preserva el orden parcial.
+    """
+    
+    def test_lattice_structure_analysis(self):
+        """Análisis algebraico formal de la estructura lattice."""
+        # SeverityLevel forma un lattice completo (3 elementos)
+        # Diagrama de Hassey: OPTIMO < ADVERTENCIA < CRITICO
+        severity_chain = [
+            SeverityLevel.OPTIMO,
+            SeverityLevel.ADVERTENCIA, 
+            SeverityLevel.CRITICO
+        ]
+        
+        # VerdictLevel forma un lattice completo (5 elementos)
+        # Diagrama más complejo con ramificaciones
+        verdict_structure = {
+            VerdictLevel.VIABLE: 0,
+            VerdictLevel.CONDICIONAL: 1,
+            VerdictLevel.REVISAR: 1,  # Mismo nivel que CONDICIONAL
+            VerdictLevel.PRECAUCION: 2,
+            VerdictLevel.RECHAZAR: 3
+        }
+        
+        # Demostración: No hay isomorfismo (cardinalidad diferente)
+        assert len(SeverityLevel) != len(VerdictLevel)
+        
+        # Pero existe una inmersión monótona
+        monotone_embedding = {
+            SeverityLevel.OPTIMO: VerdictLevel.VIABLE,
+            SeverityLevel.ADVERTENCIA: VerdictLevel.PRECAUCION,
+            SeverityLevel.CRITICO: VerdictLevel.RECHAZAR
+        }
+        
+        # Propiedad: φ preserva el orden parcial
+        for a, b in [(SeverityLevel.OPTIMO, SeverityLevel.ADVERTENCIA),
+                     (SeverityLevel.ADVERTENCIA, SeverityLevel.CRITICO)]:
+            assert monotone_embedding[a].value <= monotone_embedding[b].value
+    
+    def test_galois_connection_analysis(self):
+        """
+        Propone una conexión de Galois entre los dos lattices:
+        Existen funciones α: L_s → L_v y γ: L_v → L_s tales que:
+        α(x) ≤ y ⇔ x ≤ γ(y)
+        """
+        def alpha(severity: SeverityLevel) -> VerdictLevel:
+            """Función adjunta izquierda (abstracción)."""
+            mapping = {
+                SeverityLevel.OPTIMO: VerdictLevel.VIABLE,
+                SeverityLevel.ADVERTENCIA: VerdictLevel.REVISAR,
+                SeverityLevel.CRITICO: VerdictLevel.RECHAZAR
+            }
+            return mapping[severity]
+        
+        def gamma(verdict: VerdictLevel) -> SeverityLevel:
+            """Función adjunta derecha (concretización)."""
+            mapping = {
+                VerdictLevel.VIABLE: SeverityLevel.OPTIMO,
+                VerdictLevel.CONDICIONAL: SeverityLevel.ADVERTENCIA,
+                VerdictLevel.REVISAR: SeverityLevel.ADVERTENCIA,
+                VerdictLevel.PRECAUCION: SeverityLevel.ADVERTENCIA,
+                VerdictLevel.RECHAZAR: SeverityLevel.CRITICO
+            }
+            return mapping[verdict]
+        
+        # Verificar propiedad de conexión de Galois
+        for s in SeverityLevel:
+            for v in VerdictLevel:
+                # α(s) ≤ v ⇔ s ≤ γ(v)
+                galois_property = (alpha(s).value <= v.value) == (s.value <= gamma(v).value)
+                assert galois_property, f"Falla en s={s}, v={v}"
+
+
+class TopologyAlgebraicAnalysis:
+    """
+    Análisis algebraico profundo de métricas topológicas.
+    β₀ = número de componentes conexas (H₀)
+    β₁ = número de ciclos independientes (H₁)
+    """
+    
+    def test_betti_numbers_homological_consistency(self, translator: SemanticTranslator):
+        """
+        Verifica consistencia homológica: χ = β₀ - β₁ + β₂ - ...
+        Para grafos: χ = β₀ - β₁ (β₂ = 0)
+        """
+        test_cases = [
+            # (β₀, β₁, χ_esperado)
+            (1, 0, 1),    # Grafo conexo sin ciclos (árbol)
+            (1, 3, -2),   # Grafo conexo con 3 ciclos
+            (3, 2, 1),    # 3 componentes, 2 ciclos
+        ]
+        
+        for beta_0, beta_1, expected_chi in test_cases:
+            topology = TopologyMetricsDTO(
+                beta_0=beta_0,
+                beta_1=beta_1,
+                euler_characteristic=expected_chi
+            )
+            
+            # Fórmula de Euler-Poincaré para grafos
+            calculated_chi = beta_0 - beta_1
+            
+            assert topology.euler_characteristic == calculated_chi, \
+                f"χ inconsistente: esperado {expected_chi}, calculado {calculated_chi}"
+            
+            # Análisis de narrativa basada en homología
+            report = translator.compose_strategic_narrative(
+                topological_metrics=topology,
+                financial_metrics={"performance": {"recommendation": "ACEPTAR"}},
+                stability=10.0
+            )
+            
+            # Verificar que la narrativa refleja la homología
+            if beta_1 > 0:
+                assert any(keyword in report.raw_narrative.lower() 
+                          for keyword in ["ciclo", "socavón", "agujero", "homología"])
+    
+    def test_persistence_homology_flow(self, narrator: TelemetryNarrator, context: TelemetryContext):
+        """
+        Simula un análisis de homología de persistencia en el tiempo.
+        """
+        # Registrar evolución de β₁ a lo largo del tiempo
+        time_steps = [
+            {"span": "load_data", "beta_1": 0},
+            {"span": "calculate_costs", "beta_1": 1},
+            {"span": "financial_analysis", "beta_1": 2},
+            {"span": "build_output", "beta_1": 0}  # Resuelto
+        ]
+        
+        for step in time_steps:
+            with context.span(step["span"]):
+                context.record_metric("topology", "beta_1", step["beta_1"])
+                context.record_metric("topology", "persistence_time", 
+                                     datetime.utcnow().isoformat())
+        
+        report = narrator.summarize_execution(context)
+        
+        # Análisis de persistencia: ciclos que aparecen y desaparecen
+        persistence_analysis = self._analyze_persistence_homology(context)
+        
+        # La narrativa debe reflejar la dinámica de ciclos
+        assert "persistencia" in report["executive_summary"].lower() or \
+               "evolución" in report["executive_summary"].lower()
+    
+    def _analyze_persistence_homology(self, context: TelemetryContext) -> Dict:
+        """Analiza homología de persistencia de las métricas."""
+        # Implementación simplificada
+        beta_1_values = []
+        for span in context.spans:
+            beta_1 = context.get_metric("topology", "beta_1", span_id=span.id, default=0)
+            beta_1_values.append(beta_1)
+        
+        # Detectar nacimiento y muerte de ciclos
+        birth_death_pairs = []
+        current_cycles = 0
+        
+        for i, beta_1 in enumerate(beta_1_values):
+            if beta_1 > current_cycles:
+                # Nacimiento de ciclos
+                birth_death_pairs.append({"birth": i, "death": None})
+            elif beta_1 < current_cycles:
+                # Muerte de ciclos
+                for pair in birth_death_pairs:
+                    if pair["death"] is None:
+                        pair["death"] = i
+                        break
+            
+            current_cycles = beta_1
+        
+        return {
+            "beta_1_series": beta_1_values,
+            "persistence_pairs": birth_death_pairs,
+            "total_persistence": sum(p["death"] - p["birth"] 
+                                    for p in birth_death_pairs if p["death"])
+        }
+
+
+class EnhancedDIKWModel:
+    """
+    Modelo DIKW mejorado con transiciones y operadores formales.
+    D → I → K → W con operadores de transformación.
+    """
+    
+    def test_dikw_transition_operators(self):
+        """
+        Define operadores formales para transiciones entre estratos:
+        - Φ: Data → Information (procesamiento)
+        - Ψ: Information → Knowledge (abstracción)
+        - Ω: Knowledge → Wisdom (síntesis)
+        """
+        
+        class DIKWOperators:
+            @staticmethod
+            def phi(data: Dict) -> Dict:
+                """Data → Information: Agrega contexto y estructura."""
+                return {
+                    "processed_data": data,
+                    "timestamp": datetime.utcnow(),
+                    "context": "execution_pipeline",
+                    "metadata": {"source": "telemetry", "version": "1.0"}
+                }
+            
+            @staticmethod
+            def psi(information: Dict) -> Dict:
+                """Information → Knowledge: Extrae patrones y reglas."""
+                patterns = []
+                
+                # Detectar patrones en métricas
+                if "metrics" in information:
+                    metrics = information["metrics"]
+                    
+                    # Patrón: aumento secuencial de errores
+                    if "error_count" in metrics:
+                        error_trend = self._analyze_trend(metrics["error_count"])
+                        if error_trend > 0.5:
+                            patterns.append("error_accumulation")
+                    
+                    # Patrón: correlación entre métricas
+                    if "temperature" in metrics and "entropy" in metrics:
+                        correlation = self._calculate_correlation(
+                            metrics["temperature"], metrics["entropy"]
+                        )
+                        if abs(correlation) > 0.7:
+                            patterns.append("thermal_correlation")
+                
+                return {
+                    "information": information,
+                    "patterns": patterns,
+                    "rules": self._extract_rules(patterns),
+                    "confidence": self._calculate_confidence(information)
+                }
+            
+            @staticmethod
+            def omega(knowledge: Dict) -> Dict:
+                """Knowledge → Wisdom: Síntesis para toma de decisiones."""
+                wisdom = {
+                    "decision": "DEFER",
+                    "rationale": [],
+                    "certainty": 0.5,
+                    "alternatives": []
+                }
+                
+                # Aplicar sabiduría basada en conocimiento acumulado
+                patterns = knowledge.get("patterns", [])
+                confidence = knowledge.get("confidence", 0.5)
+                
+                if "error_accumulation" in patterns and confidence < 0.3:
+                    wisdom["decision"] = "REJECT"
+                    wisdom["rationale"].append("Error accumulation with low confidence")
+                
+                elif confidence > 0.8 and not patterns:
+                    wisdom["decision"] = "ACCEPT"
+                    wisdom["rationale"].append("High confidence with no detected issues")
+                
+                return wisdom
+        
+        # Probar cadena completa
+        raw_data = {"metrics": {"error_count": [0, 1, 2, 3], "temperature": [25, 26, 27]}}
+        
+        information = DIKWOperators.phi(raw_data)
+        knowledge = DIKWOperators.psi(information)
+        wisdom = DIKWOperators.omega(knowledge)
+        
+        assert "decision" in wisdom
+        assert "rationale" in wisdom
+        
+        return wisdom
+    
+    def test_stratum_cross_validation(self, narrator: TelemetryNarrator, 
+                                     translator: SemanticTranslator):
+        """
+        Validación cruzada entre estratos de ambos módulos.
+        Verifica que las transiciones DIKW sean consistentes.
+        """
+        # Crear datos de prueba con problemas en PHYSICS
+        context = TelemetryContext()
+        
+        with context.span("load_data") as span:
+            span.status = StepStatus.FAILURE
+            span.errors.append({
+                "message": "Data corruption in PHYSICS stratum",
+                "type": "DataIntegrityError",
+                "stratum": "PHYSICS"
+            })
+        
+        # Narrator analiza desde abajo (PHYSICS primero)
+        narrator_report = narrator.summarize_execution(context)
+        
+        # Translator debería reflejar el mismo problema en su análisis
+        # Simular topología corrupta (β₀=0 indica datos inválidos)
+        translator_report = translator.compose_strategic_narrative(
+            topological_metrics=TopologyMetricsDTO(beta_0=0, beta_1=0),
+            financial_metrics={"performance": {"recommendation": "RECHAZAR"}},
+            stability=0.1
+        )
+        
+        # Validación cruzada: problema en PHYSICS debe afectar todos los estratos superiores
+        narrator_physics = narrator_report["strata_analysis"].get("PHYSICS", {})
+        translator_physics = translator_report.strata_analysis.get(Stratum.PHYSICS, {})
+        
+        # Ambos deben reportar problemas en la base
+        assert narrator_physics.get("severity") == "CRITICO" or \
+               translator_physics.get("verdict") == VerdictLevel.RECHAZAR
+        
+        # El problema debe propagarse hacia arriba (transitividad)
+        for higher_stratum in [Stratum.TACTICS, Stratum.STRATEGY, Stratum.WISDOM]:
+            if higher_stratum in translator_report.strata_analysis:
+                higher_verdict = translator_report.strata_analysis[higher_stratum].get("verdict")
+                # El veredicto no debería mejorar al subir (monotonicidad negativa)
+                assert higher_verdict.value >= translator_physics.get("verdict", VerdictLevel.VIABLE).value
+
+
+class FuzzyDecisionMatrix:
+    """
+    Matriz de decisión difusa que maneja incertidumbre y grados de membresía.
+    """
+    
+    def test_fuzzy_decision_system(self):
+        """
+        Sistema de decisión difusa basado en reglas fuzzy.
+        Variables lingüísticas: telemetry_quality, topology_health, financial_viability
+        """
+        
+        class FuzzyInferenceSystem:
+            def __init__(self):
+                # Conjuntos difusos para cada variable
+                self.telemetry_sets = {
+                    "poor": lambda x: max(0, 1 - x/0.3),      # x ∈ [0, 1]
+                    "fair": lambda x: max(0, 1 - abs(x-0.5)/0.2),
+                    "good": lambda x: max(0, (x-0.7)/0.3)
+                }
+                
+                self.topology_sets = {
+                    "fragmented": lambda b1: min(1, b1/3),    # β₁ ∈ [0, ∞)
+                    "connected": lambda b1: max(0, 1 - b1/2),
+                    "optimal": lambda b1: 1 if b1 == 0 else max(0, 0.5 - b1/4)
+                }
+                
+                self.financial_sets = {
+                    "reject": lambda pi: max(0, 1 - pi/0.8),  # PI ∈ [0, ∞)
+                    "marginal": lambda pi: max(0, 1 - abs(pi-1)/0.3),
+                    "accept": lambda pi: max(0, (pi-1.2)/0.5)
+                }
+            
+            def infer(self, telemetry_score: float, beta_1: int, 
+                     profitability_index: float) -> Dict:
+                """
+                Inferencia difusa usando método de Mamdani.
+                """
+                # 1. Fuzzificación
+                telemetry_values = {
+                    name: func(telemetry_score) 
+                    for name, func in self.telemetry_sets.items()
+                }
+                
+                topology_values = {
+                    name: func(beta_1)
+                    for name, func in self.topology_sets.items()
+                }
+                
+                financial_values = {
+                    name: func(profitability_index)
+                    for name, func in self.financial_sets.items()
+                }
+                
+                # 2. Aplicar reglas fuzzy
+                rules = [
+                    # Rule 1: Si telemetría pobre Y topología fragmentada → RECHAZAR
+                    {
+                        "antecedent": min(telemetry_values["poor"], topology_values["fragmented"]),
+                        "consequent": "RECHAZAR",
+                        "weight": 1.0
+                    },
+                    # Rule 2: Si todo bueno → APROBAR
+                    {
+                        "antecedent": min(
+                            telemetry_values["good"],
+                            topology_values["optimal"],
+                            financial_values["accept"]
+                        ),
+                        "consequent": "APROBAR",
+                        "weight": 1.0
+                    },
+                    # Rule 3: Si marginal con ciclos → REVISAR
+                    {
+                        "antecedent": min(
+                            telemetry_values["fair"],
+                            topology_values["connected"],
+                            financial_values["marginal"]
+                        ),
+                        "consequent": "REVISAR",
+                        "weight": 0.8
+                    }
+                ]
+                
+                # 3. Agregación y defuzzificación (centroide)
+                consequent_values = {"RECHAZAR": 0.0, "REVISAR": 0.5, "APROBAR": 1.0}
+                
+                numerator = 0.0
+                denominator = 0.0
+                
+                for rule in rules:
+                    if rule["antecedent"] > 0:
+                        consequent = rule["consequent"]
+                        weight = rule["weight"] * rule["antecedent"]
+                        
+                        numerator += weight * consequent_values[consequent]
+                        denominator += weight
+                
+                # 4. Defuzzificación
+                crisp_output = numerator / denominator if denominator > 0 else 0.5
+                
+                # 5. Decisión crisp basada en umbrales
+                if crisp_output < 0.3:
+                    final_decision = "RECHAZAR"
+                elif crisp_output < 0.7:
+                    final_decision = "REVISAR"
+                else:
+                    final_decision = "APROBAR"
+                
+                return {
+                    "crisp_decision": final_decision,
+                    "fuzzy_output": crisp_output,
+                    "membership_values": {
+                        "telemetry": telemetry_values,
+                        "topology": topology_values,
+                        "financial": financial_values
+                    },
+                    "rule_activations": [
+                        {"rule": i, "activation": r["antecedent"]} 
+                        for i, r in enumerate(rules)
+                    ]
+                }
+        
+        # Probar sistema con casos límite
+        fis = FuzzyInferenceSystem()
+        
+        # Caso 1: Claramente rechazable
+        result1 = fis.infer(
+            telemetry_score=0.1,  # Muy pobre
+            beta_1=5,             # Muy fragmentado
+            profitability_index=0.6  # Pobre
+        )
+        assert result1["crisp_decision"] == "RECHAZAR"
+        
+        # Caso 2: Zona gris (debería requerir revisión)
+        result2 = fis.infer(
+            telemetry_score=0.5,  # Regular
+            beta_1=1,             # Algo fragmentado
+            profitability_index=1.05  # Marginal
+        )
+        assert result2["crisp_decision"] == "REVISAR"
+
+
+class SemanticNarrativeAnalysis:
+    """
+    Análisis semántico profundo de coherencia narrativa.
+    """
+    
+    def test_narrative_semantic_coherence(self, narrator_report: Dict, 
+                                         translator_report: StrategicReport):
+        """
+        Analiza coherencia semántica entre narrativas usando:
+        1. Análisis de temas (LDA simplificado)
+        2. Coherencia emocional (sentiment analysis)
+        3. Consistencia de conceptos clave
+        """
+        
+        def extract_themes(text: str, n_themes: int = 3) -> List[str]:
+            """Extrae temas principales usando TF-IDF simplificado."""
+            words = text.lower().split()
+            stop_words = {"el", "la", "de", "en", "y", "que", "con", "los"}
+            filtered = [w for w in words if w not in stop_words and len(w) > 3]
+            
+            # Frecuencia de términos
+            freq = {}
+            for word in filtered:
+                freq[word] = freq.get(word, 0) + 1
+            
+            # Ordenar por importancia
+            sorted_words = sorted(freq.items(), key=lambda x: x[1], reverse=True)
+            themes = [word for word, count in sorted_words[:n_themes]]
+            
+            return themes
+        
+        def analyze_sentiment_coherence(text1: str, text2: str) -> float:
+            """
+            Mide coherencia de sentimiento entre textos.
+            Retorna score de -1 (opuesto) a 1 (idéntico).
+            """
+            # Palabras positivas y negativas (lista simplificada)
+            positive_words = {"bueno", "excelente", "aprobado", "éxito", "viable", "certificado"}
+            negative_words = {"malo", "pobre", "rechazado", "fallo", "crítico", "problema"}
+            
+            def text_sentiment(text: str) -> float:
+                words = set(text.lower().split())
+                pos_count = len(words.intersection(positive_words))
+                neg_count = len(words.intersection(negative_words))
+                
+                if pos_count + neg_count == 0:
+                    return 0.0
+                return (pos_count - neg_count) / (pos_count + neg_count)
+            
+            sent1 = text_sentiment(text1)
+            sent2 = text_sentiment(text2)
+            
+            # Coherencia: 1 - |diferencia|
+            coherence = 1.0 - abs(sent1 - sent2) / 2.0  # Normalizado a [0, 1]
+            return coherence
+        
+        # Extraer textos
+        narrator_text = narrator_report.get("executive_summary", "")
+        translator_text = translator_report.raw_narrative
+        
+        # 1. Análisis de temas
+        narrator_themes = extract_themes(narrator_text)
+        translator_themes = extract_themes(translator_text)
+        
+        # Deberían compartir al menos un tema principal
+        common_themes = set(narrator_themes).intersection(set(translator_themes))
+        assert len(common_themes) > 0, \
+            f"Narrativas no comparten temas: {narrator_themes} vs {translator_themes}"
+        
+        # 2. Coherencia de sentimiento
+        sentiment_coherence = analyze_sentiment_coherence(narrator_text, translator_text)
+        assert sentiment_coherence > 0.5, \
+            f"Sentimientos incoherentes: {sentiment_coherence}"
+        
+        # 3. Consistencia conceptual por estrato
+        for stratum in Stratum:
+            narrator_stratum = narrator_report["strata_analysis"].get(stratum.name, {})
+            translator_stratum = translator_report.strata_analysis.get(stratum, {})
+            
+            if narrator_stratum and translator_stratum:
+                narrator_narrative = narrator_stratum.get("narrative", "")
+                translator_narrative = getattr(translator_stratum, "narrative", "")
+                
+                if narrator_narrative and translator_narrative:
+                    # Conceptos clave por estrato
+                    stratum_keywords = {
+                        Stratum.PHYSICS: {"datos", "física", "base", "flujo", "entropía"},
+                        Stratum.TACTICS: {"costo", "ciclo", "optimización", "recursos"},
+                        Stratum.STRATEGY: {"estrategia", "financiero", "riesgo", "viabilidad"},
+                        Stratum.WISDOM: {"sabiduría", "decisión", "ética", "visión"}
+                    }
+                    
+                    keywords = stratum_keywords.get(stratum, set())
+                    
+                    # Ambas narrativas deberían contener al menos un keyword del estrato
+                    narrator_has_keyword = any(kw in narrator_narrative.lower() 
+                                              for kw in keywords)
+                    translator_has_keyword = any(kw in translator_narrative.lower() 
+                                                for kw in keywords)
+                    
+                    assert narrator_has_keyword or translator_has_keyword, \
+                        f"Narrativas del estrato {stratum} no contienen keywords apropiados"
+        
+        return {
+            "common_themes": list(common_themes),
+            "sentiment_coherence": sentiment_coherence,
+            "thematic_overlap": len(common_themes) / max(len(narrator_themes), len(translator_themes))
+        }
+
+
+class ErrorTraceAlgebra:
+    """
+    Álgebra de trazas de error para análisis de propagación.
+    Basado en teoría de trazas (trace theory) y monoides libres.
+    """
+    
+    def test_error_trace_monoid(self, context: TelemetryContext):
+        """
+        Analiza trazas de error como elementos de un monoide libre.
+        Operación: concatenación de trazas.
+        """
+        
+        class ErrorTrace:
+            def __init__(self, errors: List[Dict]):
+                self.errors = errors
+                self.trace = self._build_trace_string()
+            
+            def _build_trace_string(self) -> str:
+                """Construye representación de traza como palabra."""
+                symbols = []
+                for error in self.errors:
+                    error_type = error.get("type", "Unknown").upper()
+                    # Simplificar tipos a símbolos
+                    symbol_map = {
+                        "DATAERROR": "D",
+                        "CYCLEERROR": "C",
+                        "IOERROR": "I",
+                        "LOGICERROR": "L",
+                        "TIMEOUT": "T"
+                    }
+                    symbol = symbol_map.get(error_type, "U")
+                    symbols.append(symbol)
+                return "".join(symbols)
+            
+            def __add__(self, other: 'ErrorTrace') -> 'ErrorTrace':
+                """Concatenación de trazas (operación del monoide)."""
+                return ErrorTrace(self.errors + other.errors)
+            
+            def __eq__(self, other: 'ErrorTrace') -> bool:
+                """Igualdad basada en equivalencia de traza."""
+                return self.trace == other.trace
+            
+            @property
+            def pattern(self) -> Dict:
+                """Extrae patrones de la traza."""
+                patterns = {}
+                
+                # Patrón: repeticiones
+                from collections import Counter
+                counter = Counter(self.trace)
+                for symbol, count in counter.items():
+                    if count > 1:
+                        patterns[f"repetition_{symbol}"] = count
+                
+                # Patrón: secuencias comunes
+                common_sequences = ["DD", "CC", "IC", "DI"]
+                for seq in common_sequences:
+                    if seq in self.trace:
+                        patterns[f"sequence_{seq}"] = self.trace.count(seq)
+                
+                return patterns
+            
+            def analyze_propagation(self) -> Dict:
+                """
+                Analiza propagación usando teoría de trazas.
+                Returns: {
+                    "is_critical": bool,
+                    "propagation_path": List[str],
+                    "dependence_relation": Dict
+                }
+                """
+                # Relaciones de dependencia entre tipos de error
+                dependence_relation = {
+                    "D": {"I", "L"},  # DataError puede causar IOError o LogicError
+                    "I": {"T"},       # IOError puede causar Timeout
+                    "C": {"L"},       # CycleError puede causar LogicError
+                }
+                
+                propagation_path = []
+                for i, symbol in enumerate(self.trace):
+                    if i > 0:
+                        prev_symbol = self.trace[i-1]
+                        if symbol in dependence_relation.get(prev_symbol, set()):
+                            propagation_path.append(f"{prev_symbol}→{symbol}")
+                
+                is_critical = any(
+                    pattern.startswith("repetition_") and count > 2
+                    for pattern, count in self.pattern.items()
+                ) or len(propagation_path) > 1
+                
+                return {
+                    "is_critical": is_critical,
+                    "propagation_path": propagation_path,
+                    "dependence_relation": dependence_relation,
+                    "trace_length": len(self.trace),
+                    "unique_errors": len(set(self.trace))
+                }
+        
+        # Extraer errores del contexto
+        all_errors = []
+        for span in context.spans:
+            all_errors.extend(span.errors)
+        
+        # Crear traza de errores
+        trace = ErrorTrace(all_errors)
+        
+        # Analizar propagación
+        analysis = trace.analyze_propagation()
+        
+        # La narrativa debe reflejar patrones de propagación
+        if analysis["is_critical"]:
+            assert len(analysis["propagation_path"]) > 0 or \
+                   trace.pattern.get("repetition_D", 0) > 2
+        
+        return analysis
+    
+    def test_error_trace_homomorphism(self, narrator: TelemetryNarrator,
+                                     translator: SemanticTranslator):
+        """
+        Verifica que existe un homomorfismo entre trazas de error
+        y narrativas generadas.
+        """
+        # Crear contexto con patrón específico de errores
+        context = TelemetryContext()
+        
+        # Patrón: DataError → IOError → Timeout (cadena de dependencia)
+        with context.span("load_data") as span:
+            span.errors.append({"type": "DataError", "message": "Corrupt data"})
+            span.errors.append({"type": "IOError", "message": "Cannot read file"})
+        
+        with context.span("process_data") as span:
+            span.errors.append({"type": "Timeout", "message": "Operation timed out"})
+        
+        # Narrator genera traza de errores
+        narrator_report = narrator.summarize_execution(context)
+        
+        # Translator recibe métricas derivadas de errores
+        # (simulamos que los errores afectan la topología)
+        error_count = sum(len(span.errors) for span in context.spans)
+        beta_1 = min(3, error_count)  # Más errores, más ciclos potenciales
+        
+        translator_report = translator.compose_strategic_narrative(
+            topological_metrics=TopologyMetricsDTO(beta_0=1, beta_1=beta_1),
+            financial_metrics={"performance": {"recommendation": "REVISAR"}},
+            stability=max(0, 10 - error_count)  # Menos estable con más errores
+        )
+        
+        # Homomorfismo: estructura de errores → estructura narrativa
+        # Traza de errores larga → narrativa con más advertencias
+        if error_count >= 2:
+            assert "PRECAUCION" in translator_report.raw_narrative or \
+                   "RECHAZAR" in translator_report.raw_narrative or \
+                   translator_report.verdict.value >= VerdictLevel.REVISAR.value
+
+
