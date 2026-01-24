@@ -907,6 +907,43 @@ class TelemetryNarrator:
         self.step_mapping = step_mapping or {}
         self.config = config or NarratorConfig()
 
+    def get_root_cause_stratum(self, context: TelemetryContext) -> Optional[Stratum]:
+        """
+        Identifica el estrato de causa raíz de un fallo.
+
+        Retorna el Stratum más bajo (mayor valor numérico) donde se originó el primer fallo.
+        Esto permite identificar si el problema es de "base" (PHYSICS) o de "cúspide" (WISDOM).
+        """
+        if not context or not context.root_spans:
+            return None
+
+        deepest_failure_stratum = None
+        deepest_level = -1
+
+        # Recorrido BFS para encontrar todos los fallos y determinar el más profundo (base)
+        queue = list(context.root_spans)
+        while queue:
+            span = queue.pop(0)
+
+            if span.status == StepStatus.FAILURE:
+                # Determinar estrato del span
+                stratum = span.stratum
+
+                # Heurística: Si es default (PHYSICS) y tenemos mapping, intentar refinar
+                if stratum == Stratum.PHYSICS:
+                    stratum = StratumTopology.get_stratum_for_step(span.name, self.step_mapping)
+
+                level = StratumTopology.get_level(stratum)
+
+                # Buscamos el nivel más alto (mayor entero = más base = PHYSICS=3)
+                if level > deepest_level:
+                    deepest_level = level
+                    deepest_failure_stratum = stratum
+
+            queue.extend(span.children)
+
+        return deepest_failure_stratum
+
     def summarize_execution(self, context: TelemetryContext) -> Dict[str, Any]:
         """
         Punto de entrada principal.

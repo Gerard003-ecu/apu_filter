@@ -41,6 +41,7 @@ import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
+from app.schemas import Stratum
 from agent.topological_analyzer import (
     HealthLevel,
     MetricState,
@@ -1187,6 +1188,60 @@ class AutonomousAgent:
                 f"health={topo_health.health_score:.2f}"
             )
             return False
+
+    def get_stratum_health(self, stratum: Stratum) -> Dict[str, Any]:
+        """
+        Retorna la salud filtrada por estrato (Pirámide de Observabilidad).
+
+        Args:
+            stratum: Nivel jerárquico a consultar.
+
+        Returns:
+            Dict con métricas específicas del nivel.
+        """
+        # PHYSICS: Métricas de FluxCondenser
+        if stratum == Stratum.PHYSICS:
+            # Intentar obtener última observación (o usar una ligera)
+            # Para evitar overhead, usamos estado interno si es reciente, o una nueva observación
+            # si es explícitamente solicitada. Aquí asumimos que queremos el estado actual real.
+            obs = self.observe()
+            return {
+                "stratum": "PHYSICS",
+                "voltage": obs.flyback_voltage if obs else None,
+                "saturation": obs.saturation if obs else None,
+                "status": "NOMINAL" if obs else "UNKNOWN"
+            }
+
+        # TACTICS: Métricas Topológicas
+        elif stratum == Stratum.TACTICS:
+            health = self.topology.get_topological_health(calculate_b1=True)
+            return {
+                "stratum": "TACTICS",
+                "betti_0": health.betti.b0,
+                "betti_1": health.betti.b1,  # Ciclos
+                "is_connected": health.betti.is_connected,
+                "health_score": round(health.health_score, 3)
+            }
+
+        # STRATEGY: Estado Financiero (Si existe diagnóstico previo)
+        elif stratum == Stratum.STRATEGY:
+            # Basamos en si el diagnóstico actual reporta problemas financieros o sistémicos
+            return {
+                "stratum": "STRATEGY",
+                "risk_detected": self._last_status in [SystemStatus.SATURADO, SystemStatus.CRITICO],
+                "last_decision": self._last_decision.name if self._last_decision else None
+            }
+
+        # WISDOM: Veredicto Global
+        elif stratum == Stratum.WISDOM:
+            return {
+                "stratum": "WISDOM",
+                "verdict": self._last_status.name if self._last_status else "UNKNOWN",
+                "confidence": 1.0 if self._last_diagnosis else 0.0,
+                "cycles_executed": self._metrics.cycles_executed
+            }
+
+        return {"error": "Invalid Stratum"}
 
     def get_metrics(self) -> Dict[str, Any]:
         """
