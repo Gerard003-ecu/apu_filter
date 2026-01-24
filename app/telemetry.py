@@ -689,6 +689,12 @@ class TelemetryContext:
             raise
         finally:
             new_span.finalize()
+
+            # Sincronizar salud del estrato con el estado del span
+            if new_span.status == StepStatus.FAILURE:
+                with self._lock:
+                    self._record_stratum_failure(stratum, name)
+
             duration = new_span.duration
 
             # Advertencia de timeout
@@ -1011,6 +1017,15 @@ class TelemetryContext:
     # =========================================================================
     # REPORTS & ANALYTICS
     # =========================================================================
+
+    def _filter_metrics_by_prefix(self, prefix: str) -> Dict[str, Any]:
+        """Filtra métricas por prefijo (thread-safe)."""
+        with self._lock:
+            result = {}
+            for key, value in self.metrics.items():
+                if key.startswith(prefix):
+                    result[key] = copy.deepcopy(value) if isinstance(value, (dict, list)) else value
+            return result
 
     def get_pyramidal_report(self) -> Dict[str, Any]:
         """
