@@ -97,3 +97,50 @@ LAPLACE_CONTROL: Dict[str, str] = {
 }
 
 Sin estas métricas, el "Consejo de Sabios" sería incapaz de verbalizar los fenómenos avanzados que ahora ocurren en el motor físico, reduciendo la explicabilidad del sistema.
+
+El semantic_translator actúa como el "Intérprete Diplomático" del Consejo,. Su arquitectura actual depende de Data Transfer Objects (DTOs) rígidos (como TopologyMetricsDTO y ThermalMetricsDTO,) y diccionarios de plantillas de texto (NarrativeTemplates).
+Si no actualizas este archivo, las nuevas métricas avanzadas (Estabilidad Giroscópica, Auditoría de Mayer-Vietoris, Polos de Laplace) generadas por los otros microservicios quedarán "perdidas en la traducción". El sistema las calculará, pero el reporte final ejecutivo será incapaz de verbalizarlas, mostrando un diagnóstico genérico en lugar de la nueva "Sabiduría Física".
+Aquí detallo las áreas específicas que requieren refactorización en semantic_translator.py:
+
+1. Actualización de DTOs (Data Transfer Objects)
+
+El traductor necesita estructuras de datos para recibir la nueva telemetría física y táctica. Actualmente, solo espera topología y termodinámica básica.
+• Lo que falta: Incorporar métricas de control y electrodinámica.
+• Cambio requerido: Crear o actualizar DTOs para recibir los datos del FluxCondenser y el LaplaceOracle.
+
+@dataclass
+class PhysicsMetricsDTO:
+    """NUEVO: DTO para métricas del Motor de Física y Control."""
+    # Del FluxCondenser (Giroscopía)
+    gyroscopic_stability: float = 1.0  # Sg
+    nutation_amplitude: float = 0.0
+    
+    # Del LaplaceOracle (Estabilidad de Control)
+    phase_margin_deg: float = 45.0
+    is_stable_lhp: bool = True
+    damping_regime: str = "CRITICALLY_DAMPED"  # Sub/Sobre amortiguado
+
+2. Nuevas Plantillas Narrativas (Thesaurus del Dolor)
+
+El diccionario NarrativeTemplates necesita nuevas entradas para traducir los fenómenos físicos recién modelados en advertencias de negocio comprensibles.
+• Para Estabilidad Giroscópica:
+    ◦ Input: gyroscopic_stability < 0.3
+    ◦ Narrativa: "🚨 Riesgo de Vuelco Operativo: El flujo de procesamiento ha entrado en 'Nutación Crítica'. La inestabilidad de los datos es tan alta que el sistema no puede garantizar la integridad transaccional."
+• Para Auditoría de Mayer-Vietoris (Fusión):
+    ◦ Input: delta_beta_1 > 0
+    ◦ Narrativa: "🧩 Incoherencia de Integración: La fusión de los presupuestos ha generado ciclos lógicos fantasmas (Anomalía de Mayer-Vietoris). Los datos individuales son válidos, pero su unión crea una contradicción topológica."
+• Para el Oráculo de Laplace:
+    ◦ Input: is_stable_lhp = False (Polos en el semiplano derecho)
+    ◦ Narrativa: "💥 Divergencia Matemática: El modelo de negocio es intrínsecamente explosivo. Cualquier variación en los precios de entrada causará una oscilación exponencial en los costos finales."
+
+3. Actualización del Método de Composición
+
+El método principal compose_strategic_narrative debe actualizarse para aceptar, procesar y priorizar estos nuevos inputs en la generación del veredicto final.
+• Lógica de Veto: Si el LaplaceOracle dice que el sistema es inestable (is_stable_lhp = False), el traductor debe forzar un veredicto RECHAZAR (TOP) en el lattice de severidad, anulando cualquier métrica financiera positiva. Esto implementa la regla de "La Física precede a la Estrategia".
+
+4. Integración con la Jerarquía DIKW
+
+Debes asegurarte de que el traductor mapee estas nuevas narrativas al estrato correcto:
+• PHYSICS: Narrativas de Laplace y Giroscopía.
+• TACTICS: Narrativa de Mayer-Vietoris (Integridad de fusión).
+Resumen: Sin esta actualización, el semantic_translator.py seguirá hablando el "lenguaje antiguo" del sistema (validaciones simples), silenciando la sofisticada "Física del Negocio" que acabas de implementar en el backend.
