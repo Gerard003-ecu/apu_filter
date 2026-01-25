@@ -1,29 +1,40 @@
 """
-Este componente implementa la "Matriz de Transformación de Valor" ($M_P$). No procesa
-datos directamente, sino que orquesta la secuencia de activación de los Sabios
-(Guardian -> Alquimista -> Arquitecto -> Oráculo) asegurando la integridad del
-"Vector de Estado" del proyecto.
+Módulo: Pipeline Director (La Matriz de Transformación de Valor $M_P$)
+======================================================================
 
-Arquitectura de Ejecución:
---------------------------
-1. Máquina de Estados con Persistencia:
-   Implementa una ejecución paso a paso donde el contexto se serializa (Pickle/Redis)
-   entre etapas. Esto permite pausar, reanudar y auditar el estado del proyecto
-   en cualquier punto del flujo (Ingesta, Fusión, Cálculo, Auditoría).
+Este componente actúa como el "Sistema Nervioso Central" de APU_filter. No procesa la data
+directamente (eso es responsabilidad de los agentes especializados), sino que orquesta
+la secuencia de activación de los vectores de transformación, garantizando la integridad
+del "Vector de Estado" del proyecto a través de la jerarquía DIKW.
 
-2. Protocolo de Caja de Cristal (Glass Box):
-   Garantiza que cada transformación de datos deje una traza de auditoría inmutable.
-   Gestiona la generación de "Data Products" intermedios y finales, asegurando que
-   el resultado sea matemáticamente reproducible.
+Arquitectura y Fundamentos Matemáticos:
+---------------------------------------
 
-3. Matriz de Interacción Central (MIC):
-   Actúa como el despachador que conecta los vectores de transformación (herramientas)
-   con el estado del sistema, permitiendo al Agente Autónomo intervenir quirúrgicamente
-   en el flujo de procesamiento.
+1. Orquestación Algebraica (Espacio Vectorial de Operadores):
+   Utiliza la `LinearInteractionMatrix` (MIC) para proyectar "Intenciones" sobre un espacio
+   vectorial de base ortogonal. Cada paso del pipeline (ej. `load_data`, `calculate_costs`)
+   es tratado como un vector base unitario ($e_i$) que aplica una transformación lineal $T$
+   sobre el contexto del proyecto [1].
 
-4. Gestión de Dependencias:
-   Coordina la carga de perfiles y umbrales (ProcessingThresholds) para asegurar
-   que todos los agentes operen bajo las mismas reglas de negocio.
+2. Auditoría Homológica (Secuencia de Mayer-Vietoris):
+   Implementa el paso `AuditedMergeStep`. A diferencia de un simple JOIN SQL, este proceso
+   utiliza la secuencia exacta de Mayer-Vietoris para garantizar la integridad topológica
+   durante la fusión de datos (Presupuesto $\cup$ APUs):
+   $$... \to H_k(A \cap B) \to H_k(A) \oplus H_k(B) \to H_k(A \cup B) \to ...$$
+   Esto asegura matemáticamente que la integración no introduzca ciclos espurios ($\beta_1$)
+   ni desconexiones ($\beta_0$) que no existían en los conjuntos originales [2], [3].
+
+3. Filtración por Estratos (Jerarquía DIKW):
+   Gestiona la ejecución respetando la filtración de subespacios definida en la MIC:
+   $V_{PHYSICS} \subset V_{TACTICS} \subset V_{STRATEGY} \subset V_{WISDOM}$.
+   El director valida que las transiciones entre estratos sean suaves, impidiendo que
+   operadores de alto nivel (Sabiduría) se ejecuten sobre una base física inestable [4], [5].
+
+4. Protocolo de Caja de Cristal (Glass Box Persistence):
+   Mantiene la trazabilidad forense completa. El estado del sistema se serializa entre
+   pasos, permitiendo pausar, reanudar y auditar el "Colapso de Onda" (materialización)
+   en cualquier punto del flujo, cumpliendo con el compromiso de transparencia total [6], [7].
+
 """
 
 import datetime

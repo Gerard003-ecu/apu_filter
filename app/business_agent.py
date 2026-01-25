@@ -1,29 +1,40 @@
-# -*- coding: utf-8 -*-
 """
-Este agente actúa como el cerebro ejecutivo del Consejo. Su función no es generar datos,
-sino sintetizar la "Sabiduría Estructural" combinando los hallazgos del Arquitecto (Topología)
-y el Oráculo (Finanzas) para emitir un veredicto holístico sobre la viabilidad del proyecto.
+Módulo: Business Agent (El Cerebro Ejecutivo del Consejo)
+=========================================================
 
-Capacidades y Protocolos:
--------------------------
-1. Síntesis Topológico-Financiera:
-   Integra invariantes topológicos (números de Betti, estabilidad $\Psi$) con métricas
-   económicas (VPN, TIR, WACC) para detectar "Falsos Positivos" (proyectos rentables
-   pero estructuralmente inestables).
+Este componente actúa como el nodo de síntesis superior en la jerarquía DIKW. Su función
+no es generar datos primarios, sino integrar los hallazgos del Arquitecto (Topología) y
+el Oráculo (Finanzas) para emitir un "Veredicto Holístico" sobre la viabilidad del proyecto.
+
+Opera bajo el principio de **"No hay Estrategia sin Física"**, negándose a emitir juicios
+financieros si la estabilidad estructural subyacente no ha sido validada por la MIC.
+
+Fundamentos Teóricos y Protocolos de Juicio:
+--------------------------------------------
+
+1. Síntesis Topológico-Financiera (El Funtor de Decisión):
+   Implementa un mapeo $F: (T \times \Phi) \to D$, donde $T$ es el espacio topológico
+   (Betti numbers, $\Psi$) y $\Phi$ es el espacio financiero (VPN, TIR).
+   Detecta "Falsos Positivos": Proyectos con alta rentabilidad teórica pero con
+   patologías estructurales graves (ej. $\beta_1 > 0$ ciclos de costos) [Fuente: business_agent.txt].
 
 2. Protocolo Challenger (Auditoría Adversarial):
-   Implementa la clase `RiskChallenger` que actúa como un fiscal interno. Si detecta
-   contradicciones (ej. Riesgo Financiero "Bajo" pero Estabilidad Piramidal < 1.0),
-   ejerce un VETO automático, reclasificando el proyecto y degradando su score de integridad.
+   Incorpora la clase `RiskChallenger` que actúa como un fiscal interno. Ejecuta reglas de
+   veto lógico:
+   - Si (Rentabilidad == ALTA) Y (Estabilidad Piramidal $\Psi < 1.0$):
+     -> Veredicto: **VETO TÉCNICO** (Riesgo de colapso logístico anula la ganancia) [Fuente: SAGES.md].
 
-3. Detección de Sinergia de Riesgo (Efecto Dominó):
-   Evalúa si los ciclos lógicos ($\beta_1 > 0$) comparten nodos críticos (Insumos puente),
-   calculando un multiplicador de riesgo sistémico que penaliza la volatilidad financiera.
+3. Termodinámica del Valor:
+   Evalúa la calidad de la inversión utilizando conceptos de física estadística:
+   - **Temperatura del Sistema ($T_{sys}$):** Mide la volatilidad de precios agregada.
+   - **Eficiencia Exergética:** Distingue entre inversión en estructura útil (Exergía)
+     y gasto cosmético o desperdicio (Anergía/Entropía) [Fuente: metodos.md].
 
-4. Narrativa Estratégica ("La Voz del Consejo"):
-   Orquesta al `SemanticTranslator` para generar un dictamen en lenguaje natural que
-   explica la causalidad entre la geometría del presupuesto y el riesgo de inversión.
-
+4. Cliente de la MIC (Gobernanza Algebraica):
+   No calcula las finanzas directamente, sino que proyecta vectores de intención
+   (`financial_analysis`) sobre la Matriz de Interacción Central.
+   Valida que los estratos inferiores ($V_{PHYSICS}, V_{TACTICS}$) estén cerrados
+   antes de permitir operaciones en el estrato $V_{STRATEGY}$ [Fuente: tools_interface.txt].
 """
 
 import logging

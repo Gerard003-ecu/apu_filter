@@ -1,44 +1,41 @@
 """
-Módulo: Data Flux Condenser (El Guardián del Umbral)
-====================================================
+Módulo: Data Flux Condenser (El Guardián Electrodinámico)
+=========================================================
 
-Este componente actúa como la "Capacitancia Lógica" del sistema, situándose entre la ingesta
-de datos crudos y el procesamiento analítico. Modela el flujo de información no como bits,
-sino como un fluido con propiedades físicas cuantificables, utilizando ecuaciones de 
-circuitos RLC y análisis en el dominio de la frecuencia (Laplace) para garantizar la 
-estabilidad operativa.
+Este componente actúa como el "Motor de Física de Campos" del sistema. Evolucionando más allá
+de la analogía hidráulica o de circuitos RLC simples, este módulo implementa una simulación
+de **Electrodinámica Computacional** para gestionar el flujo de información.
 
-Fundamentos Teóricos y Nueva Lógica de Control:
+Trata los datos no como paquetes discretos en una tubería, sino como un Campo Electromagnético
+Continuo que se propaga a través de la topología del grafo del proyecto.
+
+Fundamentos Teóricos y Arquitectura de Control:
 -----------------------------------------------
 
-1. Oráculo de Laplace (Validación A Priori):
-   Antes de procesar registros, el sistema modela el pipeline como un sistema lineal 
-   invariante en el tiempo (LTI) mediante la función de transferencia:
-   
-       H(s) = 1 / (L·C·s² + R·C·s + 1)
-   
-   Analiza la ubicación de los polos en el Plano-S para certificar la estabilidad absoluta
-   y calcular márgenes de fase/ganancia, previniendo oscilaciones destructivas antes de
-   que ocurran.
+1. Motor Maxwell FDTD (La Dinámica):
+   Implementa el algoritmo de Yee (Leapfrog) sobre un complejo simplicial discreto.
+   Resuelve las ecuaciones de Maxwell en el dominio del tiempo:
+   - **Ley de Faraday (∂ₜB = -∇×E):** Detecta la "vorticidad" y cambios bruscos en el flujo.
+     Genera una *Fuerza Contra-Electromotriz* (Backpressure Inductivo) predictiva ante la aceleración de datos.
+   - **Ley de Ampère-Maxwell (∂ₜD = ∇×H - J):** Modela la "urgencia" (Campo Eléctrico E) y
+     la corriente de desplazamiento, permitiendo detectar presión incluso sin flujo físico (bloqueos).
 
-2. Motor de Física de Datos (FluxPhysicsEngine):
-   Monitorea variables de estado termodinámicas en tiempo real:
-   - Energía Potencial (Ec = 0.5·C·V²): "Presión" acumulada en la cola (Data Pressure).
-   - Energía Cinética (El = 0.5·L·I²): "Inercia de Calidad" del flujo.
-   - Voltaje Flyback (V_fb = L·di/dt): Detecta "picos inductivos" causados por caídas 
-     abruptas en la calidad de los datos (inestabilidad estructural).
-   - Potencia Disipada (P_dis = I_ruido²·R): "Calor" o entropía generada por fricción
-     operativa (datos basura).
+2. Cálculo Vectorial Discreto (La Geometría):
+   Utiliza operadores topológicos (Gradiente d₀, Rotacional d₁, Divergencia δ₁) sobre grafos.
+   - **Ley de Gauss (∇·D = ρ):** Verifica la integridad estructural. La divergencia del flujo
+     debe igualar a la densidad de carga (datos), detectando "fugas" o inyecciones fantasma.
 
-3. Control Digital Robusto (PID + Tustin):
-   Implementa un controlador PI discreto transformado mediante el método bilineal de Tustin
-   para el dominio Z. Utiliza el Criterio de Estabilidad de Jury en tiempo real para 
-   ajustar dinámicamente el tamaño del lote (batch size), manteniendo el sistema en un 
-   régimen de "Flujo Laminar" (saturación objetivo ~30%).
+3. Control Hamiltoniano de Puerto (PHS - La Estabilidad):
+   Sustituye la lógica PID reactiva por un control basado en energía (Pasividad).
+   - **Hamiltoniano (H):** Modela la energía total del sistema (H = ½εE² + ½μB²).
+   - **Inyección de Amortiguamiento (Damping Injection):** Introduce una matriz de disipación R
+     dinámica para garantizar que la derivada de la energía sea negativa (dH/dt ≤ 0),
+     asegurando estabilidad asintótica según Lyapunov.
 
-4. Predicción de Estado (Filtro de Kalman Extendido - EKF):
-   Emplea un EKF para predecir la saturación futura basándose en la velocidad y 
-   aceleración del flujo, permitiendo una respuesta proactiva ante "olas" de datos.
+4. Oráculo de Laplace (La Validación A Priori):
+   Mantiene su rol como validador estático. Antes de iniciar la simulación FDTD, analiza
+   los polos del sistema linealizado en el Plano-S (frecuencia compleja) para vetar
+   configuraciones estructuralmente inestables (polos en el semiplano derecho).
 
 """
 

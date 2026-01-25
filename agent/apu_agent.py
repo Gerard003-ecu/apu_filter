@@ -1,28 +1,43 @@
 """
-Este componente implementa un agente autónomo que gobierna el ciclo de vida del 
-procesamiento de datos mediante el ciclo OODA (Observar, Orientar, Decidir, Actuar).
-Su objetivo es mantener la estabilidad operativa ("Homeostasis") ajustando dinámicamente
-el comportamiento del sistema ante la presión de datos o fallos de infraestructura.
+Módulo: APU Autonomous Agent (El Operador SRE del Ciclo OODA)
+=============================================================
 
-Ciclo Cognitivo (OODA Loop):
-----------------------------
-1. Observe (Observar): 
-   Recolecta telemetría cruda del `FluxPhysicsEngine` (voltaje, saturación) y 
-   el estado de conectividad de los microservicios.
+Este componente implementa la inteligencia operativa del sistema, actuando como el
+"Sistema Nervioso Autonómico". Su función es garantizar la **Homeostasis** (estabilidad
+dinámica) de la infraestructura mediante la ejecución continua de un bucle de control
+cibernético.
 
-2. Orient (Orientar):
-   Utiliza el `TopologicalAnalyzer` para mapear el "Terreno Operativo". Aplica 
-   Homología Persistente para distinguir entre "Ruido Transitorio" (picos ignorables) 
-   y "Características Estructurales" (fallos reales o saturación sistémica).
+A diferencia de un simple monitor de salud, este agente posee capacidades cognitivas
+para distinguir entre ruido transitorio y fallos estructurales mediante topología.
 
-3. Decide (Decidir):
-   Evalúa la situación frente a una Matriz de Decisiones. Determina si el sistema 
-   debe continuar (HEARTBEAT), frenar (RECOMENDAR_REDUCIR_VELOCIDAD) o reiniciar 
-   conexiones (RECONNECT), priorizando la supervivencia del pipeline.
+Fundamentos Teóricos y Ciclo Cognitivo (OODA):
+----------------------------------------------
 
-4. Act (Actuar):
-   Ejecuta vectores de transformación sobre la infraestructura a través de la API, 
-   cerrando el bucle de control y registrando el impacto para el siguiente ciclo.
+1. Observe (El Sensor Físico):
+   Recolecta vectores de estado del `FluxPhysicsEngine` (Saturación, Voltaje Flyback).
+   Actúa como un morfismo $O: \\text{Infraestructura} \\to \\mathbb{R}^n$, proyectando
+   la realidad física en un espacio métrico observable [Fuente: SAGES.md].
+
+2. Orient (El Topólogo Persistente):
+   No reacciona a datos crudos. Utiliza **Homología Persistente** para analizar la serie
+   temporal de métricas.
+   - Filtra "Ruido Topológico" (picos de vida corta).
+   - Identifica "Características Estructurales" (fallos persistentes de vida larga).
+   Esto evita reacciones espasmódicas (flapping) ante perturbaciones menores [Fuente: apu_agent.txt].
+
+3. Decide (La Matriz de Transición):
+   Mapea el diagnóstico topológico a un espacio de estados discreto ($S_{NOMINAL}, S_{CRITICO}, \\dots$).
+   Determina la estrategia de mitigación óptima (ej. aplicar Backpressure, reiniciar conexión)
+   para minimizar la entropía del sistema.
+
+4. Act (El Proyector de Vectores):
+   Ejecuta la decisión proyectando "Vectores de Intención" sobre la Matriz de
+   Interacción Central (MIC).
+   - Vector `clean`: Purga de buffers ante saturación física.
+   - Vector `configure`: Ajuste dinámico de parámetros PID.
+   Opera con el privilegio `force_physics_override=True`, permitiéndole intervenir 
+   directamente en el estrato **PHYSICS ($V_{3}$)** para salvar la integridad del sistema
+   [Fuente: tools_interface.txt].
 """
 
 import logging

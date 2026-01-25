@@ -1,29 +1,45 @@
 """
-Este módulo implementa la lógica para modelar el presupuesto no como una lista de 
-precios, sino como un Grafo Dirigido (o Complejo Simplicial Abstracto). Su función 
-es calcular invariantes topológicos que revelan la "Salud Estructural" del proyecto 
-antes de invertir dinero.
+Módulo: Business Topological Analyzer (El Arquitecto Estructural)
+=================================================================
 
-Métricas e Invariantes Topológicos:
------------------------------------
-1. Números de Betti (Homología):
-   - β0 (Componentes Conexas): Mide la fragmentación. Un β0 > 1 indica "Islas" 
-     de recursos desconectados o huérfanos.
-   - β1 (Ciclos): Mide la complejidad circular. Un β1 > 0 revela "Socavones Lógicos" 
-     (dependencias circulares A->B->A) que impiden el cálculo de costos.
+Este componente actúa como el "Sabio de la Estructura" dentro del Consejo. Su función
+es modelar el presupuesto no como una lista contable, sino como un **Complejo Simplicial
+Abstracto**. Aplica teoremas matemáticos para diagnosticar riesgos que son invisibles
+para el análisis financiero tradicional (como dependencias circulares o fragilidad logística).
 
-2. Estabilidad Piramidal (Ψ):
-   Calcula la relación entre la base logística (Insumos) y la carga táctica (APUs).
-   - Ψ < 1.0 ("Pirámide Invertida"): Alerta sobre una base de proveedores peligrosamente 
-     estrecha soportando una estructura masiva, indicando alto riesgo de colapso logístico.
+Fundamentos Matemáticos y Diagnósticos:
+---------------------------------------
 
-3. Termodinámica Estructural (Flujo Térmico):
-   Simula la difusión de la volatilidad de precios (calor) desde los insumos hacia 
-   el proyecto general, generando un mapa de calor de riesgo inflacionario.
+1. Homología Computacional (Los Invariantes $\beta_n$):
+   Calcula los Números de Betti para caracterizar la conectividad del negocio:
+   - **$\beta_0$ (Componentes Conexas):** Detecta la fragmentación. Un $\beta_0 > 1$ revela
+     "Islas de Datos" o recursos huérfanos comprados pero no conectados a la obra [Fuente: SAGES.md].
+   - **$\beta_1$ (Ciclos):** Detecta "Socavones Lógicos". Un $\beta_1 > 0$ indica dependencias
+     circulares (A depende de B, B depende de A) que hacen imposible el cálculo de costos
+     y la programación lógica [Fuente: business_topology.txt].
 
-4. Resonancia Espectral:
-   Analiza el espectro del Laplaciano del grafo para detectar si la estructura es 
-   susceptible a fallos sistémicos sincronizados (efecto dominó).
+2. Física del Equilibrio (Índice $\Psi$):
+   Implementa la métrica de **Estabilidad Piramidal**:
+   $$ \Psi = \frac{\text{Amplitud Base (Insumos)}}{\text{Carga Táctica (APUs)}} \times \rho $$
+   - **Pirámide Invertida ($\Psi < 1.0$):** Alerta crítica. Una estructura masiva de actividades
+     se apoya en una base de proveedores peligrosamente estrecha. Un fallo logístico colapsa
+     el proyecto [Fuente: topologia.md].
+
+3. Análisis Espectral (El Valor de Fiedler):
+   Analiza el espectro de la Matriz Laplaciana ($L = D - A$) del grafo.
+   - **Valor de Fiedler ($\lambda_2$):** Mide la cohesión organizacional. Si $\lambda_2 \approx 0$,
+     el proyecto sufre de "Fractura Organizacional" (silos que no se comunican) [Fuente: metodos.md].
+
+4. Termodinámica Estructural (Convección Inflacionaria):
+   Simula la volatilidad de precios como "Calor". Calcula cómo la inflación de los insumos
+   (Fuente de Calor) se difunde a través de la topología hasta el costo final. Estructuras
+   mal conectadas atrapan el calor, generando "Fiebre del Proyecto" ($T_{sys} > 50^\circ C$)
+   [Fuente: LENGUAJE_CONSEJO.md].
+
+5. Auditoría de Fusión (Mayer-Vietoris):
+   Soporta el proceso de `AuditedMergeStep` verificando la secuencia exacta:
+   $ \dots \to H_k(A \cap B) \to H_k(A) \oplus H_k(B) \to H_k(A \cup B) \to \dots $
+   Garantizando que la integración de datos no introduzca ciclos espurios [Fuente: pipeline_director.txt].
 """
 
 import logging

@@ -1,33 +1,38 @@
 """
-Módulo MIC Refinado - Espacio Vectorial Jerárquico con Clausura Transitiva.
+Módulo: Matriz de Interacción Central (MIC) - El Espacio Vectorial de Intenciones
+=================================================================================
 
-Este módulo implementa la Matriz de Interacción Central (MIC) fusionando:
-1. Estructura Base (Propuesta 1): MICRegistry, IntentVector, Gatekeeper.
-2. Inteligencia Matemática (Propuesta 2): Métodos refinados con topología algebraica y entropía.
+Este componente implementa el núcleo de gobernanza y despacho del sistema, actuando no como un
+simple registro de funciones, sino como un **Espacio Vectorial Jerarquizado**. Define la base
+algebraica sobre la cual los agentes (Business, APU) proyectan sus "Vectores de Intención".
 
-Modelo Matemático:
-------------------
-Sea V un espacio vectorial sobre R con base {e_1, ..., e_n} donde cada e_i
-representa un microservicio. Definimos una filtración:
+Fundamentos Matemáticos y Arquitectura de Gobernanza:
+-----------------------------------------------------
 
-    V = V_0 ⊃ V_1 ⊃ V_2 ⊃ V_3
+1. Álgebra Lineal de la Acción (La Base Canónica):
+   El sistema modela las capacidades del agente como una Matriz Identidad ($I_n$), donde cada
+   herramienta registrada es un vector base ortonormal ($e_i$) en el espacio de acción $\mathbb{R}^n$.
+   Esto garantiza **Ortogonalidad Funcional**: la ejecución de una herramienta (ej. `clean`) no
+   tiene efectos secundarios colaterales sobre otras dimensiones (ej. `finance`), asegurando
+   independencia lineal y modularidad perfecta [Source: algebra_lineal_MIC.pdf].
 
-donde V_k corresponde al estrato k (WISDOM=0, STRATEGY=1, TACTICS=2, PHYSICS=3).
+2. Filtración Jerárquica (La Pirámide DIKW):
+   Implementa una filtración de subespacios vectoriales basada en los estratos de valor:
+   $V_{PHYSICS} \supset V_{TACTICS} \supset V_{STRATEGY} \supset V_{WISDOM}$.
+   Cada vector de intención $\vec{v}$ pertenece a un estrato específico. La proyección
+   $\pi(\vec{v})$ solo es válida si se satisface la **Clausura Transitiva**: para ejecutar
+   una acción de nivel $k$, todos los niveles base $j > k$ deben estar validados [Source: tools_interface.txt].
 
-La proyección de intención π: I → V satisface la restricción:
-    π(intent) ∈ V_k ⟹ ∀j > k: V_j está validado
+3. Gatekeeper Algebraico (Validación de Topología):
+   El `MICRegistry` actúa como un operador de proyección condicional. Antes de despachar
+   una orden al handler físico, verifica el "Estado de Verdad" del contexto (session context).
+   Si un agente intenta proyectar un vector de Estrategia (ej. análisis de VPN) sin haber
+   validado la Física (ej. integridad de datos RLC), la MIC colapsa la proyección a cero
+   (bloqueo), lanzando un `MICHierarchyViolationError` [Source: Gobernanza_Data_Mesh.pdf].
 
-Esto garantiza que las operaciones de alto nivel solo se ejecutan
-cuando la base física está correctamente establecida.
-
-Funciones Auxiliares de Topología Algebraica y Análisis Estructural.
-
-Marco Matemático Adicional:
----------------------------
-1. Homología Simplicial: H_k(X) calculada via complejos de cadenas
-2. Persistencia: Filtración F_0 ⊆ F_1 ⊆ ... ⊆ F_n con tracking de nacimiento/muerte
-3. Entropía de Shannon: H(X) = -Σ p(x)log(p(x)) con regularización
-4. Métricas de Riesgo: Basadas en teoría de portafolios de Markowitz
+4. Interoperabilidad Semántica:
+   Facilita la conexión con el `SemanticTranslator` y el `KnowledgeGraph`, permitiendo que
+   los vectores de intención sean enriquecidos con contexto ontológico antes de su ejecución.
 """
 
 import codecs

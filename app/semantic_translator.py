@@ -1,38 +1,41 @@
 """
-Este módulo actúa como el puente cognitivo entre la "Matemática Profunda" (Topología,
-Finanzas, Termodinámica) y la toma de decisiones ejecutiva. Su función no es reportar
-datos, sino emitir "Veredictos" y narrativas de riesgo basadas en la evidencia
-técnica recolectada por el resto del Consejo.
+Módulo: Semantic Translator (El Intérprete Diplomático del Consejo)
+===================================================================
 
-Arquitectura Algebraica:
-------------------------
-1. Lattice de Veredictos: (Verdict, ≤, ⊔, ⊓)
-   - VIABLE (bottom) < REVISAR < INVIABLE (top)
-   - Operación join (⊔) toma el peor caso
+Este componente actúa como el "Puente Cognitivo" entre la Matemática Profunda
+(Topología, Finanzas, Termodinámica) y la Toma de Decisiones Ejecutiva.
+Su función no es reportar datos, sino emitir "Veredictos" y narrativas de riesgo
+basadas en la evidencia técnica recolectada por el resto del Consejo.
 
-2. Integración Piramidal DIKW:
-   - PHYSICS → Métricas RLC, temperatura, flujo
-   - TACTICS → Topología (β₀, β₁), espectral
-   - STRATEGY → Finanzas (WACC, VaR, NPV)
-   - WISDOM → Veredicto final sintetizado
+Fundamentos Teóricos y Arquitectura Algebraica:
+-----------------------------------------------
 
-3. Funtor de Traducción:
-   - F: MetricSpace → NarrativeSpace
-   - Preserva orden: métrica_peor → narrativa_crítica
+1. Retículo de Veredictos (Lattice Theory):
+   Implementa una estructura algebraica de orden $(Verdict, \le, \sqcup)$ donde:
+   - $VIABLE (\bot)$ < $REVISAR$ < $INVIABLE (\top)$.
+   - La operación de síntesis es el Supremo ($\sqcup$ o Join), adoptando siempre el
+     criterio más conservador (Worst-Case Scenario) entre los agentes. Si Finanzas dice
+     "Viable" ($\bot$) pero Topología dice "Inviable" ($\top$), el resultado es $\top$
+     [Fuente: semantic_translator.txt].
 
-Capacidades y Protocolos:
--------------------------
-1. Mapeo Semántico de Riesgos (Thesaurus del Dolor):
-   Traduce abstracciones matemáticas en realidades constructivas.
+2. Síntesis DIKW (Data $\to$ Wisdom):
+   Eleva los datos crudos a Sabiduría mediante la integración de contextos:
+   - Traduce $\beta_1 > 0$ (Topología) $\to$ "Socavón Lógico" (Bloqueo administrativo).
+   - Traduce $\Psi < 1.0$ (Física) $\to$ "Pirámide Invertida" (Riesgo de colapso logístico).
+   - Traduce $T_{sys} > 50^\circ C$ (Termodinámica) $\to$ "Fiebre Inflacionaria"
+     [Fuente: LENGUAJE_CONSEJO.md].
 
-2. Síntesis DIKW (Data -> Wisdom):
-   Eleva los datos crudos a "Sabiduría" mediante integración de contextos.
+3. Narrativa Generativa Causal (GraphRAG):
+   Utiliza **Retrieval-Augmented Generation sobre Grafos** para explicar la causalidad.
+   No solo reporta el error, sino que traza la ruta del ciclo en el grafo de dependencias
+   para explicar al humano *por qué* el proyecto está bloqueado, convirtiendo la
+   abstracción matemática en una advertencia accionable [Fuente: SAGES.md].
 
-3. Narrativa Generativa (GraphRAG):
-   Explica causalidad de riesgos sobre el grafo del presupuesto.
-
-4. Auditoría Adversarial:
-   Prepara evidencia para el RiskChallenger.
+4. Interoperabilidad Semántica (Embeddings):
+   Resuelve la disonancia cognitiva entre dominios (Ingeniería vs. Contabilidad)
+   utilizando vectores semánticos (Sentence Transformers) para identificar que
+   "Concreto" y "Hormigón" son el mismo nodo termodinámico, unificando la visión
+   del proyecto.
 """
 
 from __future__ import annotations
