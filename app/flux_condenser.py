@@ -57,6 +57,8 @@ except ImportError:
 
 import pandas as pd
 import scipy.signal
+import networkx as nx
+from scipy import sparse
 
 from .apu_processor import APUProcessor
 from .report_parser_crudo import ReportParserCrudo
@@ -288,6 +290,316 @@ class BatchResult:
 
 
 # ============================================================================
+class DiscreteVectorCalculus:
+    """
+    Implementa operadores diferenciales sobre el grafo de servicios.
+    Usa matrices dispersas (scipy.sparse) para eficiencia O(E).
+    Ref: [4], [5], [6]
+    """
+
+    def __init__(self, adjacency_list: Dict[int, Set[int]]):
+        self.graph = nx.Graph(adjacency_list)
+        # Orientación consistente de aristas para operador gradiente
+        self.edges = list(self.graph.edges())
+        self.nodes = list(self.graph.nodes())
+
+        # Mapeos para índices matriciales
+        self.node_map = {n: i for i, n in enumerate(self.nodes)}
+        self.edge_map = {tuple(sorted(e)): i for i, e in enumerate(self.edges)}
+
+        self.num_nodes = len(self.nodes)
+        self.num_edges = len(self.edges)
+
+        # Operador Gradiente (Incidencia)
+        self.gradient_matrix = self._build_gradient_matrix()
+
+        # Operador Divergencia (Transpuesta de Incidencia)
+        # B @ J = div J. Divergencia suma flujo neto saliente.
+        self.divergence_matrix = self.gradient_matrix.T
+
+        # Operador Rotacional
+        self.curl_matrix = self._build_curl_matrix()
+        self.num_cycles = self.curl_matrix.shape[0] if self.curl_matrix.shape else 0
+
+    def _build_gradient_matrix(self) -> sparse.csr_matrix:
+        """
+        Construye matriz de incidencia B (|E| x |V|).
+        B_ev = -1 si v es cola, 1 si v es cabeza.
+        """
+        if self.num_edges == 0 or self.num_nodes == 0:
+            return sparse.csr_matrix((self.num_edges, self.num_nodes))
+
+        row_ind = []
+        col_ind = []
+        data = []
+
+        for edge_idx, (u, v) in enumerate(self.edges):
+            # Arista u -> v (arbitrario pero consistente por sorted en edge_map)
+            # Ordenamos para consistencia con el mapa
+            if u > v: u, v = v, u
+
+            u_idx = self.node_map[u]
+            v_idx = self.node_map[v]
+
+            # Gradiente E_uv = phi_v - phi_u
+            # Head (v) = +1, Tail (u) = -1
+
+            row_ind.append(edge_idx)
+            col_ind.append(v_idx)
+            data.append(1.0)
+
+            row_ind.append(edge_idx)
+            col_ind.append(u_idx)
+            data.append(-1.0)
+
+        return sparse.csr_matrix(
+            (data, (row_ind, col_ind)),
+            shape=(self.num_edges, self.num_nodes)
+        )
+
+    def _build_curl_matrix(self) -> sparse.csr_matrix:
+        """
+        Construye matriz de ciclos C (|Faces| x |Edges|).
+        Usa cycle_basis de networkx para encontrar ciclos fundamentales.
+        """
+        if self.num_edges == 0:
+            return sparse.csr_matrix((0, 0))
+
+        try:
+            cycles = nx.cycle_basis(self.graph)
+        except nx.NetworkXNoCycle:
+            cycles = []
+
+        num_cycles = len(cycles)
+
+        if num_cycles == 0:
+             return sparse.csr_matrix((0, self.num_edges))
+
+        row_ind = []
+        col_ind = []
+        data = []
+
+        for cycle_idx, cycle_nodes in enumerate(cycles):
+            # Recorrer ciclo y determinar orientación de aristas
+            for i in range(len(cycle_nodes)):
+                u = cycle_nodes[i]
+                v = cycle_nodes[(i + 1) % len(cycle_nodes)]
+
+                # Normalizar arista para buscar en mapa
+                edge_key = tuple(sorted((u, v)))
+
+                if edge_key not in self.edge_map:
+                    continue
+
+                edge_idx = self.edge_map[edge_key]
+
+                # Determinar orientación relativa
+                # edge_key es (min, max). La arista en grafo va min->max (definición de gradiente)
+                # Si ciclo va u->v y u < v, entonces va min->max (positivo)
+                # Si ciclo va u->v y u > v, entonces va max->min (negativo)
+
+                orientation = 1.0 if u < v else -1.0
+
+                row_ind.append(cycle_idx)
+                col_ind.append(edge_idx)
+                data.append(orientation)
+
+        return sparse.csr_matrix(
+            (data, (row_ind, col_ind)),
+            shape=(num_cycles, self.num_edges)
+        )
+
+    def compute_gradient(self, potential_phi: np.array) -> np.array:
+        """
+        Calcula el Campo Eléctrico Estático (E = -∇φ).
+        Input: Escalar en Nodos.
+        Output: Vector en Aristas.
+        """
+        if self.num_nodes == 0: return np.array([])
+        if np is None: return [] # Fallback
+
+        phi = np.asarray(potential_phi).flatten()
+        # grad = B @ phi. E = -grad.
+        grad = self.gradient_matrix.dot(phi)
+        return -grad
+
+    def compute_divergence(self, flow_J: np.array) -> np.array:
+        """
+        Calcula la acumulación de carga (∇·J).
+        Input: Vector en Aristas.
+        Output: Escalar en Nodos.
+        """
+        if self.num_edges == 0: return np.zeros(self.num_nodes)
+        if np is None: return []
+
+        J = np.asarray(flow_J).flatten()
+        return self.divergence_matrix.dot(J)
+
+    def compute_curl(self, field_E: np.array) -> np.array:
+        """
+        Calcula la vorticidad (∇×E).
+        Input: Vector en Aristas.
+        Output: Escalar en Ciclos.
+        """
+        if self.num_edges == 0: return np.zeros(self.num_cycles)
+        if self.num_cycles == 0: return np.array([])
+        if np is None: return []
+
+        E = np.asarray(field_E).flatten()
+        return self.curl_matrix.dot(E)
+
+    def compute_curl_dual(self, field_B: np.array) -> np.array:
+        """
+        Operador dual para ∇×B (Caras -> Aristas).
+        Aproximación usando C.T.
+        """
+        if self.num_cycles == 0: return np.zeros(self.num_edges)
+        if np is None: return []
+
+        B = np.asarray(field_B).flatten()
+        return self.curl_matrix.T.dot(B)
+
+
+class MaxwellFDTDSolver:
+    """
+    Simulador de Electrodinámica de Datos usando FDTD (Finite-Difference Time-Domain).
+    Implementa algoritmo Yee Lattice Leapfrog sobre un complejo simplicial (grafo).
+
+    Variables de Estado:
+      - E (Campo Eléctrico): Urgencia/Presión en las aristas.
+      - B (Campo Magnético): Inercia/Vorticidad en los ciclos.
+      - J (Corriente): Flujo de datos medido.
+    """
+
+    def __init__(self, topology: DiscreteVectorCalculus, capacitance: float, inductance: float, resistance: float):
+        self.topology = topology
+
+        # Mapeo de parámetros RLC a Maxwell
+        # C -> Epsilon (Permitividad)
+        # L -> Mu (Permeabilidad)
+        # R -> 1/Sigma (Conductividad inversa, o resistividad)
+
+        self.epsilon = capacitance
+        self.mu = inductance
+        # Sigma es conductividad. R es resistencia.
+        # En ecuaciones Maxwell: J = sigma * E.
+        # En circuito: V = I * R => E ~ J * R => J ~ E / R.
+        # Por tanto sigma ~ 1/R.
+        self.sigma = 1.0 / max(resistance, 1e-6)
+
+        self.E = np.zeros(topology.num_edges) if topology.num_edges > 0 else np.array([])
+        self.B = np.zeros(topology.num_cycles) if topology.num_cycles > 0 else np.array([])
+
+        # Historial energético
+        self.energy_history = deque(maxlen=100)
+
+    def update_magnetic_field_h(self, dt: float):
+        """
+        Paso 1 del Leapfrog (t + 0.5): Ley de Faraday.
+        ∇×E = -∂B/∂t  =>  B_new = B_old - dt * curl(E)
+        """
+        if self.topology.num_cycles == 0: return
+
+        curl_E = self.topology.compute_curl(self.E)
+        self.B -= dt * curl_E
+
+    def update_electric_field_e(self, dt: float, current_J: np.array):
+        """
+        Paso 2 del Leapfrog (t + 1.0): Ley de Ampère-Maxwell.
+        ∇×B = μ(J + ε∂E/∂t)  (Versión simplificada con B canonical)
+
+        Reordenando para E:
+        ∂E/∂t = (1/ε) * (∇×B/μ - J_cond - J_ext)
+
+        Donde J_cond = σE (Ley de Ohm microscópica).
+        """
+        if self.topology.num_edges == 0: return
+
+        # Asegurar dimensiones de J
+        if len(current_J) != len(self.E):
+            # Si J es escalar, distribuirlo uniformemente o proyectarlo
+            if np.isscalar(current_J) or current_J.size == 1:
+                J_vec = np.full_like(self.E, float(current_J))
+            else:
+                J_vec = np.resize(current_J, self.E.shape)
+        else:
+            J_vec = current_J
+
+        # Operador dual curl (∇×B)
+        # La física rigurosa requeriría dividir por mu aquí si B fuera H,
+        # pero asumimos B canónico.
+        # curl_B representa la fuerza electromotriz inducida por el campo magnético.
+        curl_B = self.topology.compute_curl_dual(self.B)
+
+        # Corriente de conducción (disipación)
+        J_conduction = self.sigma * self.E
+
+        # Corriente de Desplazamiento (∂E/∂t)
+        # dE/dt = (1/epsilon) * (curl_B - J_ext - J_conduction)
+        displacement = (curl_B - J_vec - J_conduction)
+
+        self.E += (dt / self.epsilon) * displacement
+
+    def get_total_energy(self) -> float:
+        """
+        Calcula Hamiltoniano (Energía Total).
+        H = (1/2) ∫ (εE² + (1/μ)B²) dV
+        """
+        if len(self.E) == 0: return 0.0
+
+        electric_energy = 0.5 * self.epsilon * np.sum(self.E**2)
+        magnetic_energy = 0.0
+
+        if len(self.B) > 0:
+            magnetic_energy = 0.5 * (1.0 / self.mu) * np.sum(self.B**2)
+
+        return electric_energy + magnetic_energy
+
+
+class PortHamiltonianControl:
+    """
+    Control basado en Energía y Estabilidad de Lyapunov (Passivity-Based Control).
+    Gestiona la disipación del sistema para garantizar que dH/dt <= 0 cuando H > H_target.
+    Ref: [13], [14]
+    """
+
+    def __init__(self, solver: MaxwellFDTDSolver, target_energy: float = 10.0, gain: float = 0.1):
+        self.solver = solver
+        self.target_energy = target_energy
+        self.gain = gain
+
+    def calculate_hamiltonian(self) -> float:
+        """Calcula la Energía Total del Sistema (H)."""
+        return self.solver.get_total_energy()
+
+    def enforce_dissipation(self) -> float:
+        """
+        Ajusta la resistencia dinámica para disipar el exceso de energía.
+        Si H > H_target, inyecta 'fricción' reduciendo la conductividad (sigma).
+
+        Returns:
+            float: Exceso de energía detectado.
+        """
+        H = self.calculate_hamiltonian()
+
+        if H > self.target_energy:
+            excess = H - self.target_energy
+
+            # Aumentar resistencia equivale a disminuir conductividad (sigma)
+            # R_new = R_old + gain * excess
+            # sigma = 1/R
+
+            current_R = 1.0 / self.solver.sigma
+            new_R = current_R * (1.0 + self.gain * excess)
+
+            # Actualizar sigma en el solver
+            self.solver.sigma = 1.0 / new_R
+
+            return excess
+
+        return 0.0
+
+
 class PIController:
     """
     Controlador PI Discreto.
@@ -1126,6 +1438,16 @@ class FluxPhysicsEngine:
         self._state = [0.0, 0.0]  # Compatible con/sin numpy
         self._state_history: deque = deque(maxlen=self._MAX_METRICS_HISTORY)
 
+        # === MAXWELL FDTD SETUP ===
+        # Topología fija para el solver electromagnético
+        # Grafo completo K6 representando interacciones entre las 6 métricas base
+        nodes = list(range(6))
+        adj = {i: set(nodes) - {i} for i in nodes}
+
+        self.vector_calc = DiscreteVectorCalculus(adj)
+        self.maxwell_solver = MaxwellFDTDSolver(self.vector_calc, self.C, self.L, self.R)
+        self.hamiltonian_control = PortHamiltonianControl(self.maxwell_solver)
+
         # Estado del giroscopio (inicialización temprana)
         self._gyro_state = {
             "omega_x": 0.0,
@@ -1134,7 +1456,7 @@ class FluxPhysicsEngine:
             "precession_phase": 0.0,
         }
 
-        # Grafo de conectividad para análisis topológico
+        # Grafo de conectividad para análisis topológico (dinámico)
         self._adjacency_list: Dict[int, Set[int]] = {}
         self._vertex_count: int = 0
         self._edge_count: int = 0
@@ -1875,12 +2197,7 @@ class FluxPhysicsEngine:
         processing_time: float = 1.0,
     ) -> Dict[str, float]:
         """
-        Calcula métricas físicas del sistema RLC.
-
-        Modelo: el flujo de datos se modela como un circuito RLC donde:
-        - Corriente I = eficiencia (cache_hits / total_records).
-        - Carga Q = registros acumulados procesados.
-        - Voltaje V = "presión" del pipeline (saturación).
+        Calcula métricas físicas del sistema usando Maxwell FDTD y Control Hamiltoniano.
         """
         if total_records <= 0:
             return self._get_zero_metrics()
@@ -1890,56 +2207,53 @@ class FluxPhysicsEngine:
         # Corriente normalizada (eficiencia de caché)
         current_I = cache_hits / total_records
 
-        # Complejidad como resistencia adicional
+        # Complejidad como resistencia base
         complexity = 1.0 - current_I
 
-        # Resistencia dinámica
-        R_dynamic = self.R * (
-            1.0 + complexity * SystemConstants.COMPLEXITY_RESISTANCE_FACTOR
-        )
-
-        # Actualizar amortiguamiento dinámico
-        zeta_dynamic = R_dynamic / (2.0 * math.sqrt(self.L / self.C))
-
-        # Evolución del estado con RK4
+        # Inicialización delta tiempo
         if self._initialized:
             dt = max(1e-6, current_time - self._last_time)
         else:
             dt = 0.01
             self._initialized = True
 
-        Q, I = self._evolve_state_rk4(current_I, dt)
+        # === MOTOR MAXWELL FDTD ===
+        # 1. Mapear corriente de entrada a Vector J en las aristas
+        #    Distribuimos la corriente uniformemente como carga base del sistema
+        J_vec = np.full(self.vector_calc.num_edges, current_I)
 
-        # Constante de tiempo normalizada
-        tau = self.L / R_dynamic if R_dynamic > 0 else float("inf")
-        t_normalized = processing_time / tau if tau > 0 else 0.0
-        t_normalized = min(t_normalized, 50.0)
+        # 2. Actualizar campos (Leapfrog)
+        self.maxwell_solver.update_magnetic_field_h(dt)
+        self.maxwell_solver.update_electric_field_e(dt, J_vec)
 
-        # Respuesta transitoria (voltaje en capacitor = saturación)
-        if zeta_dynamic >= 1.0:
-            # Sobreamortiguado o críticamente amortiguado
-            saturation = 1.0 - math.exp(-t_normalized)
-        else:
-            # Subamortiguado - respuesta oscilatoria
-            omega_d = self._omega_0 * math.sqrt(1 - zeta_dynamic**2)
-            exp_term = math.exp(-zeta_dynamic * self._omega_0 * t_normalized)
-            cos_term = math.cos(omega_d * t_normalized)
-            sin_term = (zeta_dynamic / math.sqrt(1 - zeta_dynamic**2)) * math.sin(
-                omega_d * t_normalized
-            )
-            saturation = 1.0 - exp_term * (cos_term + sin_term)
+        # 3. Control Hamiltoniano (Inyectar disipación si energía excesiva)
+        excess_energy = self.hamiltonian_control.enforce_dissipation()
 
-        saturation = max(0.0, min(1.0, saturation))
+        # 4. Obtener Energía Total (Hamiltoniano)
+        H_total = self.hamiltonian_control.calculate_hamiltonian()
 
-        # Energías
-        E_capacitor = 0.5 * self.C * (saturation**2)  # Energía potencial
-        E_inductor = 0.5 * self.L * (current_I**2)  # Energía cinética
+        # 5. Mapear Variables de Estado Vectoriales a Escalares para Compatibilidad
+        #    Saturation ~ Potencial Eléctrico Normalizado
+        #    Energy = 0.5 * C * V^2  =>  V = sqrt(2*E/C)
+        v_equiv = math.sqrt(2.0 * H_total / self.C) if self.C > 0 else 0.0
+        saturation = math.tanh(v_equiv) # Sigmoide para mantener en [0,1]
 
-        # Potencia disipada
-        P_dissipated = (current_I**2) * R_dynamic
+        # Energía cinética (Magnética) y Potencial (Eléctrica)
+        E_potential = 0.5 * self.maxwell_solver.epsilon * np.sum(self.maxwell_solver.E**2)
+        E_kinetic = 0.5 * (1.0/self.maxwell_solver.mu) * np.sum(self.maxwell_solver.B**2) if self.maxwell_solver.mu > 0 else 0.0
 
-        # Voltaje de flyback inductivo
-        di_dt = (current_I - self._last_current) / max(dt, 1e-6)
+        # Resistencia Dinámica (inversa de sigma)
+        R_dynamic = 1.0 / self.maxwell_solver.sigma
+
+        # Amortiguamiento dinámico
+        zeta_dynamic = R_dynamic / (2.0 * math.sqrt(self.L / self.C)) if self.C > 0 else float('inf')
+
+        # Potencia disipada (Joule)
+        # P = sigma * E^2
+        P_dissipated = self.maxwell_solver.sigma * np.sum(self.maxwell_solver.E**2)
+
+        # Voltaje de flyback (simulado con derivada de corriente)
+        di_dt = (current_I - self._last_current) / dt
         V_flyback = min(abs(self.L * di_dt), SystemConstants.MAX_FLYBACK_VOLTAGE)
 
         # Entropía
@@ -1950,14 +2264,15 @@ class FluxPhysicsEngine:
         # Estabilidad Giroscópica
         gyro_stability = self.calculate_gyroscopic_stability(current_I)
 
-        # Construir grafo y calcular topología
+        # Construir grafo y calcular topología (Betti numbers)
+        # Usamos las métricas escalares para mantener la topología de correlación
         metrics = {
             "saturation": saturation,
             "complexity": complexity,
             "current_I": current_I,
-            "potential_energy": E_capacitor,
-            "kinetic_energy": E_inductor,
-            "total_energy": E_capacitor + E_inductor,
+            "potential_energy": E_potential,
+            "kinetic_energy": E_kinetic,
+            "total_energy": H_total,
             "dissipated_power": P_dissipated,
             "flyback_voltage": V_flyback,
             "dynamic_resistance": R_dynamic,
@@ -1965,7 +2280,7 @@ class FluxPhysicsEngine:
             "damping_type": self._damping_type,
             "resonant_frequency_hz": self._omega_0 / (2 * math.pi),
             "quality_factor": self._Q,
-            "time_constant": tau,
+            "time_constant": self.L * self.maxwell_solver.sigma, # L/R = L*sigma
             # Entropía Extendida
             "entropy_shannon": entropy_metrics["shannon_entropy"],
             "entropy_shannon_corrected": entropy_metrics["shannon_entropy_corrected"],
@@ -1978,9 +2293,11 @@ class FluxPhysicsEngine:
             "entropy_absolute": entropy_metrics["entropy_absolute"],
             # Giroscópica
             "gyroscopic_stability": gyro_stability,
+            # Maxwell internals
+            "hamiltonian_excess": excess_energy
         }
 
-        # Análisis topológico
+        # Análisis topológico (Grafo de correlación de métricas)
         self._build_metric_graph(metrics)
         betti = self._calculate_betti_numbers()
         metrics["betti_0"] = betti[0]
@@ -1994,6 +2311,23 @@ class FluxPhysicsEngine:
 
         # Guardar en historial
         self._store_metrics(metrics)
+
+        # Guardar historial de estado físico (para compatibilidad y depuración)
+        # Mapeamos promedios de campos E y B
+        if len(self.maxwell_solver.E) > 0:
+            avg_E = float(np.mean(np.abs(self.maxwell_solver.E)))
+            avg_B = float(np.mean(np.abs(self.maxwell_solver.B)))
+        else:
+            avg_E, avg_B = 0.0, 0.0
+
+        self._state_history.append({
+            "time": current_time,
+            "E_avg": avg_E,
+            "B_avg": avg_B,
+            "energy": H_total,
+            "Q": avg_E * self.C, # Aproximación para compatibilidad
+            "I": avg_B           # Aproximación
+        })
 
         return metrics
 
