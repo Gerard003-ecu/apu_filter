@@ -68,9 +68,18 @@ class StratumTopology:
 
     # Prefijos de métricas por estrato
     METRIC_PREFIXES: Dict[Stratum, Tuple[str, ...]] = {
-        Stratum.PHYSICS: ("flux_condenser", "rlc", "energy", "kinetic"),
-        Stratum.TACTICS: ("topology", "betti", "parsing", "homology"),
-        Stratum.STRATEGY: ("financial", "npv", "wacc", "roi", "risk"),
+        Stratum.PHYSICS: (
+            "flux_condenser", "rlc", "energy", "kinetic",
+            "gyro", "nutation", "entropy", "thermo", "laplace"
+        ),
+        Stratum.TACTICS: (
+            "topology", "betti", "parsing", "homology",
+            "spectral", "fiedler", "resonance"
+        ),
+        Stratum.STRATEGY: (
+            "financial", "npv", "wacc", "roi", "risk",
+            "real_options", "volatility_surface"
+        ),
         Stratum.WISDOM: ("semantic", "narrative", "insight", "recommendation"),
     }
 

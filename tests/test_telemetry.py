@@ -90,6 +90,27 @@ class TestConfigurationClasses:
         assert BusinessThresholds.CRITICAL_DISSIPATED_POWER == 50.0
         assert BusinessThresholds.WARNING_SATURATION == 0.9
 
+    def test_metric_prefixes_evolution(self):
+        """Verify metric prefixes include new physics and tactics domains."""
+        from app.telemetry import Stratum, StratumTopology
+
+        # PHYSICS
+        physics_prefixes = StratumTopology.get_prefixes(Stratum.PHYSICS)
+        assert "gyro" in physics_prefixes
+        assert "nutation" in physics_prefixes
+        assert "laplace" in physics_prefixes
+        assert "thermo" in physics_prefixes
+
+        # TACTICS
+        tactics_prefixes = StratumTopology.get_prefixes(Stratum.TACTICS)
+        assert "spectral" in tactics_prefixes
+        assert "fiedler" in tactics_prefixes
+        assert "resonance" in tactics_prefixes
+
+        # STRATEGY
+        strategy_prefixes = StratumTopology.get_prefixes(Stratum.STRATEGY)
+        assert "real_options" in strategy_prefixes
+
     def test_active_step_info_creation(self):
         """Verify ActiveStepInfo can be created correctly."""
         start_time = time.perf_counter()

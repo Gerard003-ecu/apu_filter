@@ -722,6 +722,21 @@ class NarrativeTemplates:
                 "La integridad de los datos de entrada está comprometida. "
                 "Verificar fuentes."
             ),
+            "nutation": (
+                "🚨 **NUTACIÓN CRÍTICA**: "
+                "Inestabilidad rotacional detectada. El proceso corre riesgo de colapso inercial "
+                "por oscilaciones no amortiguadas."
+            ),
+            "thermal_death": (
+                "☢️ **MUERTE TÉRMICA DEL SISTEMA**: "
+                "La entropía ha alcanzado el equilibrio máximo. "
+                "No hay energía libre para procesar información útil."
+            ),
+            "laplace_unstable": (
+                "⛔ **DIVERGENCIA MATEMÁTICA**: "
+                "Polos en el semiplano derecho (RHP). El sistema es intrínsecamente explosivo "
+                "ante variaciones de entrada."
+            ),
         },
         Stratum.TACTICS: {
             "default": (
@@ -738,6 +753,11 @@ class NarrativeTemplates:
                 "🧩 **Componentes Aislados**: "
                 "β₀ > 1 indica múltiples componentes desconectados. "
                 "Revisar enlaces entre módulos."
+            ),
+            "mayer_vietoris": (
+                "🧩 **ANOMALÍA DE INTEGRACIÓN (Mayer-Vietoris)**: "
+                "La fusión de datasets ha generado ciclos lógicos que no existían "
+                "en las fuentes originales. Inconsistencia topológica."
             ),
         },
         Stratum.STRATEGY: {
@@ -845,12 +865,20 @@ class NarrativeTemplates:
         issue_messages = " ".join(i.message.lower() for i in issues)
 
         if stratum == Stratum.PHYSICS:
+            if "nutación" in issue_messages or "nutation" in issue_messages:
+                return "nutation"
+            if "muerte térmica" in issue_messages or "thermal death" in issue_messages:
+                return "thermal_death"
+            if "divergencia" in issue_messages or "unstable" in issue_messages or "rhp" in issue_messages:
+                return "laplace_unstable"
             if "saturación" in issue_messages or "saturation" in issue_messages:
                 return "saturation"
             if "corrupt" in issue_messages or "invalid" in issue_messages:
                 return "corruption"
 
         elif stratum == Stratum.TACTICS:
+            if "mayer-vietoris" in issue_messages or "integración" in issue_messages:
+                return "mayer_vietoris"
             if "ciclo" in issue_messages or "cycle" in issue_messages or "β₁" in issue_messages:
                 return "cycles"
             if "desconect" in issue_messages or "disconnect" in issue_messages:

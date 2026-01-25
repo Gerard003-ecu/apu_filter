@@ -397,6 +397,39 @@ class HasBettiNumbers(Protocol):
 
 
 @dataclass
+class PhysicsMetricsDTO:
+    """
+    DTO para métricas del Motor de Física y Control.
+
+    Captura variables de estado avanzadas:
+    - Giroscopía (Estabilidad rotacional del flujo)
+    - Control (Polos y Ceros en Laplace)
+    """
+    # Del FluxCondenser (Giroscopía)
+    gyroscopic_stability: float = 1.0  # Sg
+    nutation_amplitude: float = 0.0
+
+    # Del LaplaceOracle (Estabilidad de Control)
+    phase_margin_deg: float = 45.0
+    is_stable_lhp: bool = True
+    damping_regime: str = "CRITICALLY_DAMPED"
+
+    @classmethod
+    def from_dict(cls, data: Optional[Dict[str, Any]]) -> PhysicsMetricsDTO:
+        """Crea desde diccionario."""
+        if not data:
+            return cls()
+
+        return cls(
+            gyroscopic_stability=float(data.get("gyroscopic_stability", 1.0)),
+            nutation_amplitude=float(data.get("nutation_amplitude", 0.0)),
+            phase_margin_deg=float(data.get("phase_margin_deg", 45.0)),
+            is_stable_lhp=bool(data.get("is_stable_lhp", True)),
+            damping_regime=str(data.get("damping_regime", "CRITICALLY_DAMPED")),
+        )
+
+
+@dataclass
 class TopologyMetricsDTO:
     """
     DTO para métricas topológicas.
@@ -406,6 +439,7 @@ class TopologyMetricsDTO:
 
     beta_0: int = 1
     beta_1: int = 0
+    delta_beta_1: int = 0  # Mayer-Vietoris (NUEVO)
     euler_characteristic: int = 1
     euler_efficiency: float = 1.0
 
@@ -446,6 +480,7 @@ class TopologyMetricsDTO:
             return cls(
                 beta_0=int(getattr(source, "beta_0", 1)),
                 beta_1=int(getattr(source, "beta_1", 0)),
+                delta_beta_1=int(getattr(source, "delta_beta_1", 0)),
                 euler_characteristic=int(getattr(source, "euler_characteristic", 1)),
                 euler_efficiency=float(getattr(source, "euler_efficiency", 1.0)),
             )
@@ -746,6 +781,31 @@ class NarrativeTemplates:
             "La energía del dinero se disipa en fricción operativa (datos sucios o desorganizados)."
         ),
     }
+
+    # ========== FISICA AVANZADA (Flux & Laplace) ==========
+
+    GYROSCOPIC_STABILITY: Dict[str, str] = {
+        "stable": "✅ **Giroscopio Estable**: Flujo con momento angular constante.",
+        "precession": "⚠️ **Precesión Detectada**: Oscilación lateral en el flujo de datos.",
+        "nutation": "🚨 **NUTACIÓN CRÍTICA**: Inestabilidad rotacional. El proceso corre riesgo de colapso inercial."
+    }
+
+    LAPLACE_CONTROL: Dict[str, str] = {
+        "robust": "🛡️ **Control Robusto**: Margen de fase sólido (>45°).",
+        "marginal": "⚠️ **Estabilidad Marginal**: Respuesta oscilatoria ante transitorios.",
+        "unstable": "⛔ **DIVERGENCIA MATEMÁTICA**: Polos en el semiplano derecho (RHP)."
+    }
+
+    MAYER_VIETORIS: str = (
+        "🧩 **Incoherencia de Integración**: La fusión de los presupuestos ha generado "
+        "{delta_beta_1} ciclos lógicos fantasmas (Anomalía de Mayer-Vietoris). "
+        "Los datos individuales son válidos, pero su unión crea una contradicción topológica."
+    )
+
+    THERMAL_DEATH: str = (
+        "☢️ **MUERTE TÉRMICA DEL SISTEMA**: La entropía ha alcanzado el equilibrio máximo. "
+        "No hay energía libre para procesar información útil."
+    )
 
     # ========== SINERGIA ==========
 
@@ -1130,6 +1190,11 @@ class SemanticTranslator:
         exergy_pct = exergy * 100.0
         parts.append(f"⚡ **Eficiencia Exergética del {exergy_pct:.1f}%**.")
 
+        # Entropía (Muerte Térmica Check)
+        if entropy > 0.95:
+            parts.append(NarrativeTemplates.THERMAL_DEATH)
+            verdicts.append(VerdictLevel.RECHAZAR)
+
         if exergy < self.config.thermal.exergy_poor:
             verdicts.append(VerdictLevel.PRECAUCION)
         elif exergy >= self.config.thermal.exergy_efficient:
@@ -1301,6 +1366,7 @@ class SemanticTranslator:
         synergy_risk: Optional[Dict[str, Any]] = None,
         spectral: Optional[Dict[str, Any]] = None,
         thermal_metrics: Optional[Dict[str, Any]] = None,
+        physics_metrics: Optional[Dict[str, Any]] = None,
     ) -> StrategicReport:
         """
         Compone el reporte ejecutivo completo.
@@ -1314,6 +1380,7 @@ class SemanticTranslator:
             synergy_risk: Riesgo de sinergia
             spectral: Métricas espectrales
             thermal_metrics: Métricas termodinámicas
+            physics_metrics: Métricas del motor físico (Flux/Laplace)
 
         Returns:
             StrategicReport con análisis completo
@@ -1321,6 +1388,7 @@ class SemanticTranslator:
         # Normalizar inputs
         topo = TopologyMetricsDTO.from_any(topological_metrics)
         thermal = ThermalMetricsDTO.from_dict(thermal_metrics)
+        physics = PhysicsMetricsDTO.from_dict(physics_metrics)
         synergy = SynergyRiskDTO.from_dict(synergy_risk)
         spec = SpectralMetricsDTO.from_dict(spectral)
 
@@ -1333,8 +1401,8 @@ class SemanticTranslator:
         # ====== HEADER ======
         section_narratives.append(self._generate_report_header())
 
-        # ====== PHYSICS: Base Térmica ======
-        physics_result = self._analyze_physics_stratum(thermal, stability)
+        # ====== PHYSICS: Base Térmica y Dinámica ======
+        physics_result = self._analyze_physics_stratum(thermal, stability, physics)
         strata_analysis[Stratum.PHYSICS] = physics_result
         all_verdicts.append(physics_result.verdict)
 
@@ -1436,12 +1504,41 @@ class SemanticTranslator:
         self,
         thermal: ThermalMetricsDTO,
         stability: float,
+        physics: Optional[PhysicsMetricsDTO] = None,
     ) -> StratumAnalysisResult:
         """Analiza el estrato PHYSICS (datos, flujo, temperatura)."""
         issues = []
         verdicts = []
+        narrative_parts = []
 
-        # Análisis térmico
+        # 1. Giroscopía (FluxCondenser)
+        if physics:
+            if physics.gyroscopic_stability < 0.3:
+                issues.append("Nutación crítica detectada")
+                narrative_parts.append(NarrativeTemplates.GYROSCOPIC_STABILITY["nutation"])
+                verdicts.append(VerdictLevel.RECHAZAR)
+            elif physics.gyroscopic_stability < 0.7:
+                issues.append("Precesión detectada")
+                narrative_parts.append(NarrativeTemplates.GYROSCOPIC_STABILITY["precession"])
+                verdicts.append(VerdictLevel.PRECAUCION)
+            else:
+                narrative_parts.append(NarrativeTemplates.GYROSCOPIC_STABILITY["stable"])
+                verdicts.append(VerdictLevel.VIABLE)
+
+            # 2. Oráculo de Laplace (Control)
+            if not physics.is_stable_lhp:
+                issues.append("Divergencia Matemática (RHP)")
+                narrative_parts.append(NarrativeTemplates.LAPLACE_CONTROL["unstable"])
+                verdicts.append(VerdictLevel.RECHAZAR)
+            elif physics.phase_margin_deg < 30:
+                issues.append("Estabilidad Marginal (Resonancia)")
+                narrative_parts.append(NarrativeTemplates.LAPLACE_CONTROL["marginal"])
+                verdicts.append(VerdictLevel.PRECAUCION)
+            else:
+                # narrative_parts.append(NarrativeTemplates.LAPLACE_CONTROL["robust"]) # Opcional, para no saturar
+                verdicts.append(VerdictLevel.VIABLE)
+
+        # 3. Análisis térmico
         temp_class = self.config.thermal.classify_temperature(thermal.temperature)
         if temp_class in ("hot", "critical"):
             issues.append(f"Temperatura crítica: {thermal.temperature:.1f}°C")
@@ -1449,30 +1546,45 @@ class SemanticTranslator:
         else:
             verdicts.append(VerdictLevel.VIABLE)
 
-        # Entropía
-        if thermal.entropy > self.config.thermal.entropy_high:
+        # 4. Entropía (Muerte Térmica)
+        if thermal.entropy > 0.95: # Umbral de muerte térmica aproximado
+             issues.append("Muerte Térmica del Sistema")
+             narrative_parts.append(NarrativeTemplates.THERMAL_DEATH)
+             verdicts.append(VerdictLevel.RECHAZAR)
+        elif thermal.entropy > self.config.thermal.entropy_high:
             issues.append(f"Alta entropía: {thermal.entropy:.2f}")
             verdicts.append(VerdictLevel.PRECAUCION)
 
         verdict = VerdictLevel.supremum(*verdicts) if verdicts else VerdictLevel.VIABLE
 
+        # Construir narrativa final
         if verdict == VerdictLevel.VIABLE:
-            narrative = "Base física estable. Flujo de datos sin turbulencia."
+            base_narrative = "Base física estable. Flujo de datos sin turbulencia."
         elif verdict == VerdictLevel.RECHAZAR:
-            narrative = "Inestabilidad física crítica. Datos no confiables."
+            base_narrative = "Inestabilidad física crítica. Datos no confiables."
         else:
-            narrative = "Señales de inestabilidad en la capa física."
+            base_narrative = "Señales de inestabilidad en la capa física."
+
+        full_narrative = f"{base_narrative} {' '.join(narrative_parts)}"
+
+        metrics_summary = {
+            "temperature": thermal.temperature,
+            "entropy": thermal.entropy,
+            "exergy": thermal.exergy,
+            "stability": stability,
+        }
+        if physics:
+            metrics_summary.update({
+                "gyroscopic_stability": physics.gyroscopic_stability,
+                "phase_margin": physics.phase_margin_deg,
+                "is_stable": physics.is_stable_lhp
+            })
 
         return StratumAnalysisResult(
             stratum=Stratum.PHYSICS,
             verdict=verdict,
-            narrative=narrative,
-            metrics_summary={
-                "temperature": thermal.temperature,
-                "entropy": thermal.entropy,
-                "exergy": thermal.exergy,
-                "stability": stability,
-            },
+            narrative=full_narrative.strip(),
+            metrics_summary=metrics_summary,
             issues=issues,
         )
 
@@ -1499,6 +1611,15 @@ class SemanticTranslator:
                 verdicts.append(VerdictLevel.CONDICIONAL)
         else:
             verdicts.append(VerdictLevel.VIABLE)
+
+        # Mayer-Vietoris (Integridad de Fusión)
+        if topo.delta_beta_1 > 0:
+            issues.append(f"Anomalía de Integración (Δβ₁={topo.delta_beta_1})")
+            narrative_parts.append(
+                NarrativeTemplates.MAYER_VIETORIS.format(delta_beta_1=topo.delta_beta_1)
+            )
+            # Esto es un error topológico grave de fusión
+            verdicts.append(VerdictLevel.RECHAZAR)
 
         # Conectividad
         conn_class = self.config.topology.classify_connectivity(topo.beta_0)
@@ -1789,6 +1910,7 @@ class SemanticTranslator:
         synergy_risk: Optional[Dict[str, Any]] = None,
         spectral: Optional[Dict[str, Any]] = None,
         thermal_metrics: Optional[Dict[str, Any]] = None,
+        physics_metrics: Optional[Dict[str, Any]] = None,
     ) -> str:
         """
         Versión legacy que retorna solo el string de narrativa.
@@ -1802,6 +1924,7 @@ class SemanticTranslator:
             synergy_risk=synergy_risk,
             spectral=spectral,
             thermal_metrics=thermal_metrics,
+            physics_metrics=physics_metrics,
         )
         return report.raw_narrative
 
