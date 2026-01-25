@@ -833,6 +833,16 @@ class TestNarrativeTemplates:
             assert stratum in NarrativeTemplates.FAILURE_NARRATIVES
             assert "default" in NarrativeTemplates.FAILURE_NARRATIVES[stratum]
 
+    def test_new_failure_modes_exist(self):
+        """Existen los nuevos modos de fallo (Nutación, Muerte Térmica, etc)."""
+        physics = NarrativeTemplates.FAILURE_NARRATIVES[Stratum.PHYSICS]
+        assert "nutation" in physics
+        assert "thermal_death" in physics
+        assert "laplace_unstable" in physics
+
+        tactics = NarrativeTemplates.FAILURE_NARRATIVES[Stratum.TACTICS]
+        assert "mayer_vietoris" in tactics
+
     def test_warning_narratives_exist_for_all_strata(self):
         """Existen narrativas de warning para todos los estratos."""
         for stratum in Stratum:
@@ -1439,6 +1449,28 @@ class TestStratumSpecificNarratives:
 
         # Debe contener keywords de PHYSICS
         assert any(kw in physics_narrative for kw in ["Turbulencia", "Señales", "física", "inestabilidad"])
+
+    def test_physics_nutation_detection(self, narrator: TelemetryNarrator, context: TelemetryContext):
+        """Detección de Nutación Crítica en PHYSICS."""
+        with context.span("flux_condenser") as span:
+            span.status = StepStatus.FAILURE
+            span.errors.append({"message": "Riesgo de Nutación Crítica en eje Z", "type": "PhysicsError"})
+
+        report = narrator.summarize_execution(context)
+        narrative = report["strata_analysis"]["PHYSICS"]["narrative"]
+
+        assert "NUTACIÓN" in narrative or "rotacional" in narrative
+
+    def test_tactics_mayer_vietoris_detection(self, narrator: TelemetryNarrator, context: TelemetryContext):
+        """Detección de Anomalía de Mayer-Vietoris en TACTICS."""
+        with context.span("topology_analysis") as span:
+            span.status = StepStatus.FAILURE
+            span.errors.append({"message": "Error de Integración Mayer-Vietoris", "type": "TopologyError"})
+
+        report = narrator.summarize_execution(context)
+        narrative = report["strata_analysis"]["TACTICS"]["narrative"]
+
+        assert "Mayer-Vietoris" in narrative or "INTEGRACIÓN" in narrative
 
     def test_tactics_cycle_detection(self, narrator: TelemetryNarrator, context: TelemetryContext):
         """Detección de palabras clave 'ciclo' en TACTICS."""
