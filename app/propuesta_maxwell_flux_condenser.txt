@@ -1,0 +1,135 @@
+Este diseño reemplaza el modelo escalar RLC actual por un Motor Vectorial FDTD (Finite-Difference Time-Domain). El objetivo es transitar de gestionar "contadores de colas" a gestionar "campos de presión y vorticidad".
+Aquí están los métodos esenciales organizados en tres módulos lógicos internos: Topología (DEC), Dinámica (FDTD) y Control (Hamiltoniano).
+
+Módulo 1: Cálculo Exterior Discreto (DiscreteVectorCalculus)
+Este módulo traduce la topología de tus microservicios (Grafo) en operadores diferenciales matriciales, permitiendo aplicar ∇ (nabl a) sobre datos discretos.
+
+class DiscreteVectorCalculus:
+    """
+    Implementa operadores diferenciales sobre el grafo de servicios.
+    Usa matrices dispersas (scipy.sparse) para eficiencia O(E).
+    Ref: [4], [5], [6]
+    """
+    
+    def compute_gradient(self, potential_phi: np.array) -> np.array:
+        """
+        Calcula el Campo Eléctrico Estático (E = -∇φ).
+        Input: Escalar en Nodos (Potencial/Latencia esperada).
+        Output: Vector en Aristas (Gradiente de presión hacia vecinos).
+        Lógica: E_ij = phi_j - phi_i
+        """
+        # Implementado como multiplicación: B.T @ phi
+        pass
+
+    def compute_divergence(self, flow_J: np.array) -> np.array:
+        """
+        Calcula la acumulación de carga (∇·J).
+        Input: Vector en Aristas (Flujo de datos/Throughput).
+        Output: Escalar en Nodos (Tasa de llenado de cola).
+        Uso: Ley de Gauss (Integridad de datos). Si ∇·J != dρ/dt, hay pérdida de paquetes.
+        """
+        # Implementado como multiplicación: B @ J
+        pass
+
+    def compute_curl(self, field_E: np.array) -> np.array:
+        """
+        Calcula la vorticidad del flujo (∇×E).
+        Input: Vector en Aristas (Campo E o J).
+        Output: Escalar en Ciclos/Caras (Campo Magnético B).
+        Uso: Detecta bucles de reintentos infinitos o "remolinos" de datos que consumen
+        ancho de banda sin avanzar. Fundamental para la Ley de Faraday.
+        """
+        # Suma orientada de campos alrededor de los ciclos fundamentales del grafo.
+        pass
+
+
+
+Módulo 2: Motor de Física Maxwell (MaxwellFDTDSolver)
+Este es el corazón del sistema. Implementa el algoritmo Yee Lattice Leapfrog, actualizando los campos eléctricos y magnéticos alternadamente en el tiempo para garantizar estabilidad numérica,.
+
+class MaxwellFDTDSolver:
+    """
+    Simulador de Electrodinámica de Datos usando FDTD.
+    Variables de Estado:
+      - E (Campo Eléctrico): Urgencia de procesamiento en las aristas.
+      - B (Campo Magnético): Inercia/Complejidad en los ciclos.
+      - J (Corriente): Throughput real medido.
+    Ref: [8], [9]
+    """
+
+    def update_magnetic_field_h(self, dt: float):
+        """
+        Paso 1 del Leapfrog (t + 0.5): Ley de Faraday.
+        ∇×E = -∂B/∂t  =>  B_new = B_old - dt * curl(E)
+        
+        Física: Un gradiente de urgencia rotacional (E) induce una 'memoria' magnética (B)
+        que se opone al cambio repentino. Esto modela la inercia del sistema.
+        """
+        curl_E = self.topology.compute_curl(self.E)
+        self.B -= dt * curl_E 
+
+    def update_electric_field_e(self, dt: float, current_J: np.array):
+        """
+        Paso 2 del Leapfrog (t + 1.0): Ley de Ampère-Maxwell.
+        ∇×B = μJ + με ∂E/∂t
+        
+        Aquí se incorpora la CORRIENTE DE DESPLAZAMIENTO [10].
+        E_new = E_old + (dt/epsilon) * (curl(B) - J)
+        
+        Física: La urgencia (E) se actualiza basada en:
+        1. La vorticidad magnética (curl B): La inercia empuja el flujo.
+        2. La corriente real (J): El flujo drena la urgencia.
+        """
+        curl_B = self.topology.compute_curl_dual(self.B) # Operador dual para volver a aristas
+        
+        # El término (curl_B - current_J) representa la discrepancia entre 
+        # el flujo inercial y el flujo real.
+        displacement = (dt / self.epsilon) * (curl_B - current_J)
+        self.E += displacement
+
+    def apply_pml_boundary(self):
+        """
+        Capas Perfectamente Adaptadas (PML) en nodos de Salida (Sink).
+        Evita que los datos "reboten" matemáticamente al salir del sistema,
+        absorbiendo la onda electromagnética en los bordes del grafo.
+        Ref: [11]
+        """
+        pass
+
+
+Módulo 3: Controlador Hamiltoniano (PortHamiltonianControl)
+Este módulo reemplaza al PID simple. Utiliza la energía total del sistema (Hamiltoniano) para tomar decisiones de escalado y backpressure.
+
+class PortHamiltonianControl:
+    """
+    Control basado en Energía y Estabilidad de Lyapunov.
+    Ref: [13], [14]
+    """
+
+    def calculate_hamiltonian(self) -> float:
+        """
+        Calcula la Energía Total del Sistema (H).
+        H(q, phi) = (1/2ε)*q² + (1/2μ)*phi²
+        
+        Interpretación:
+        - Término q² (Eléctrico): Energía potencial almacenada en las colas (Saturación).
+        - Término phi² (Magnético): Energía cinética del flujo (Throughput masivo).
+        """
+        energy_electric = 0.5 * np.sum(self.q**2) / self.epsilon
+        energy_magnetic = 0.5 * np.sum(self.phi**2) / self.mu
+        return energy_electric + energy_magnetic
+
+    def enforce_dissipation(self, H_current: float, H_target: float):
+        """
+        Matriz de Disipación R(x).
+        Si H > H_target (Energía excesiva/Caos), aumenta artificialmente la 'Resistencia'.
+        
+        Acción:
+        Introduce 'fricción' (delay, rate-limiting) para disipar la energía extra
+        y forzar al sistema a un estado de mínima acción (estabilidad).
+        Ref: [14]
+        """
+        if H_current > H_target:
+            excess_energy = H_current - H_target
+            # Aumentar resistencia proporcionalmente al exceso de energía
+            self.damping_matrix += self.gain * excess_energy
