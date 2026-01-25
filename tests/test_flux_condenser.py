@@ -613,69 +613,60 @@ class TestFluxPhysicsEngine:
         assert overdamped_engine._damping_type == "OVERDAMPED"
         assert overdamped_engine._zeta > 1.0
 
-    # ---------- Integración RK4 ----------
+    # ---------- Integración Maxwell FDTD ----------
 
-    def test_rk4_integration_stability(self, engine):
+    def test_fdtd_integration_stability(self, engine):
         """
-        El integrador RK4 debe ser estable con pasos de tiempo grandes.
-
-        RK4 tiene precisión O(dt⁴) y es A-stable para sistemas lineales,
-        lo que lo hace robusto para pasos grandes.
+        El integrador FDTD debe ser estable y producir valores finitos.
         """
-        dt = 0.1  # Paso relativamente grande
-        current_I = 1.0
+        engine.calculate_metrics(100, 80, 0, 0.1) # Initialize
 
-        # Evolucionar estado
-        Q, I = engine._evolve_state_rk4(current_I, dt)
+        # Step
+        metrics = engine.calculate_metrics(100, 80, 0, 0.2) # dt = 0.1
 
-        assert math.isfinite(Q)
-        assert math.isfinite(I)
+        assert math.isfinite(metrics["saturation"])
+        assert math.isfinite(metrics["total_energy"])
 
-        # La energía debe ser finita y razonable
-        energy = 0.5 * engine.L * I**2 + 0.5 * (Q**2) / engine.C
-        assert energy < 1000.0  # Límite razonable
+        if HAS_NUMPY:
+            assert np.all(np.isfinite(engine.maxwell_solver.E))
+            assert np.all(np.isfinite(engine.maxwell_solver.B))
 
-    def test_rk4_energy_limiter_activation(self, engine):
+    def test_hamiltonian_energy_calculation(self, engine):
         """
-        El limitador de energía debe activarse cuando E > E_max.
+        El Hamiltoniano debe calcularse correctamente.
         """
-        # Inyectar estado de muy alta energía
-        engine._state = [1000.0, 50.0]  # Q alto, I alto
+        metrics = engine.calculate_metrics(100, 50, 0, 1.0)
 
-        Q, I = engine._evolve_state_rk4(1.0, 0.01)
+        H = metrics["total_energy"]
+        pe = metrics["potential_energy"]
+        ke = metrics["kinetic_energy"]
 
-        # Debe haberse activado el limitador
-        assert engine._nonlinear_damping_factor < 1.0
+        assert H >= 0
+        assert abs(H - (pe + ke)) < 1e-6
 
-        # La energía resultante debe estar limitada
-        energy = 0.5 * engine.L * I**2 + 0.5 * (Q**2) / engine.C
-        assert energy <= 100.0  # E_max del código
-
-    def test_rk4_nonlinear_resistance(self, engine):
+    def test_maxwell_dynamic_resistance_control(self, engine):
         """
-        La resistencia no lineal debe aumentar con I².
-
-        R_eff = R * (1 + 0.1 * I²)
+        La resistencia dinámica debe ajustarse por el control Hamiltoniano.
         """
-        engine._initialized = True
-        engine._last_time = time.time() - 0.01
-        engine._last_current = 0.5
+        # Forzar alta energía inyectando valores en el solver manualmente
+        if HAS_NUMPY:
+            engine.maxwell_solver.E.fill(100.0) # Muy alto campo E
 
-        # Corriente alta → resistencia aumenta
-        metrics = engine.calculate_metrics(100, 90, 0, 1.0)
+        # Ejecutar ciclo de métricas (activará enforce_dissipation)
+        metrics = engine.calculate_metrics(100, 50, 0, 1.0)
 
-        # Resistencia dinámica debe ser mayor que base
-        assert metrics["dynamic_resistance"] >= engine.R
+        # La resistencia debería haber aumentado (sigma disminuido) para disipar
+        # Base resistance R=10 -> sigma=0.1
+        # Si disipa, R > 10
+        assert metrics["dynamic_resistance"] > 10.0
 
     def test_state_history_recorded(self, engine):
-        """Debe registrar historial de estados."""
-        engine._evolve_state_rk4(0.5, 0.01)
-        engine._evolve_state_rk4(0.6, 0.01)
+        """Debe registrar historial de estados (métricas)."""
+        engine.calculate_metrics(100, 50, 0, 1.0)
+        engine.calculate_metrics(100, 60, 0, 2.0)
 
-        assert len(engine._state_history) >= 2
-        assert "Q" in engine._state_history[-1]
-        assert "I" in engine._state_history[-1]
-        assert "energy" in engine._state_history[-1]
+        assert len(engine._metrics_history) >= 2
+        assert "saturation" in engine._metrics_history[-1]
 
     # ---------- Entropía ----------
 
