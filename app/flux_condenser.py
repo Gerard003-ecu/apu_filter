@@ -518,7 +518,7 @@ class DiscreteVectorCalculus:
     """
     Implementa operadores diferenciales discretos sobre complejos simpliciales.
 
-    Fundamentado en la correspondencia de de Rham entre formas diferenciales
+    Fundamentado en la correspondencia de Rham entre formas diferenciales
     continuas y co-cadenas discretas, respetando la secuencia exacta:
 
         C² --∂₂--> C¹ --∂₁--> C⁰
