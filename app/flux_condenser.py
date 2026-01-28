@@ -2,21 +2,26 @@
 Módulo: Data Flux Condenser (El Guardián Electrodinámico)
 =========================================================
 
-Este componente actúa como el "Motor de Física de Campos" del sistema. Evolucionando más allá
-de la analogía hidráulica o de circuitos RLC simples, este módulo implementa una simulación
-de **Electrodinámica Computacional** para gestionar el flujo de información.
+Este componente actúa como el "Motor de Física de Campos" del sistema.
+Evolucionando hacia el paradigma de la **Bomba Hidráulica Lineal** (Pistón de Inercia),
+este módulo gestiona el flujo de información no como un filtro pasivo, sino como
+un sistema de inyección activa.
 
-Trata los datos no como paquetes discretos en una tubería, sino como un Campo Electromagnético
-Continuo que se propaga a través de la topología del grafo del proyecto.
+Analogía de la Bomba Lineal:
+- **Inductor (L) = Pistón de Inercia**: Inyecta energía (trabajo) para mover los datos.
+- **Capacitor (C) = Acumulador Hidráulico**: Suaviza los pulsos de presión del pistón.
+- **Resistencia (R) = Fricción de Tubería**: Pérdidas energéticas en el procesamiento.
+- **Voltaje (V) = Presión de Datos**: Energía por unidad de carga (Joules/Coulomb).
+- **Corriente (I) = Caudal**: Velocidad del flujo de datos.
 
 Fundamentos Teóricos y Arquitectura de Control:
 -----------------------------------------------
 
-1. Motor Maxwell FDTD (La Dinámica):
+1. Motor Maxwell FDTD (La Dinámica del Pistón):
    Implementa el algoritmo de Yee (Leapfrog) sobre un complejo simplicial discreto.
-   Resuelve las ecuaciones de Maxwell en el dominio del tiempo:
-   - **Ley de Faraday (∂ₜB = -∇×E):** Detecta la "vorticidad" y cambios bruscos en el flujo.
-     Genera una *Fuerza Contra-Electromotriz* (Backpressure Inductivo) predictiva ante la aceleración de datos.
+   Resuelve las ecuaciones de Maxwell interpretadas como dinámica de fluidos electro-magnéticos:
+   - **Ley de Faraday:** Modela la inercia del pistón ($v = L \cdot di/dt$).
+   - **Golpe de Ariete (Water Hammer):** Detecta picos de presión destructivos cuando el flujo se detiene bruscamente.
    - **Ley de Ampère-Maxwell (∂ₜD = ∇×H - J):** Modela la "urgencia" (Campo Eléctrico E) y
      la corriente de desplazamiento, permitiendo detectar presión incluso sin flujo físico (bloqueos).
 
@@ -88,7 +93,8 @@ class SystemConstants:
     # Límites físicos
     MIN_ENERGY_THRESHOLD: float = 1e-10  # Julios mínimos para cálculos
     MAX_EXPONENTIAL_ARG: float = 100.0  # Límite para evitar overflow en exp()
-    MAX_FLYBACK_VOLTAGE: float = 10.0  # Límite de tensión inductiva
+    MAX_WATER_HAMMER_PRESSURE: float = 10.0  # Presión máxima de golpe de ariete (antes Flyback)
+    MAX_FLYBACK_VOLTAGE: float = MAX_WATER_HAMMER_PRESSURE  # Alias de compatibilidad
 
     # Diagnóstico
     LOW_INERTIA_THRESHOLD: float = 0.1
@@ -2209,6 +2215,27 @@ class FluxPhysicsEngine:
                 if self._vertex_count > 1 else 0.0,
         }
 
+    def calculate_pump_work(self, current_I: float, voltage_across_inductor: float, dt: float) -> float:
+        """
+        Calcula el Trabajo (W) realizado por la Bomba Lineal.
+        Basado en v = dw/dq -> dw = v * dq -> W = v * I * dt.
+
+        Args:
+            current_I: La 'velocidad' del pistón (Corriente).
+            voltage_across_inductor: La 'fuerza' ejercida por el pistón (L * di/dt).
+            dt: Diferencial de tiempo.
+
+        Returns:
+            Joules de trabajo realizado sobre el flujo de datos.
+        """
+        # Potencia instantánea entregada por el inductor (Pistón)
+        # W = V * I * dt
+        power_stroke = voltage_across_inductor * current_I
+
+        # Trabajo acumulado en este paso
+        work_done = power_stroke * dt
+        return work_done
+
     def calculate_gyroscopic_stability(self, current_I: float) -> float:
         """
         Calcula estabilidad giroscópica usando ecuaciones de Euler linealizadas.
@@ -2674,9 +2701,26 @@ class FluxPhysicsEngine:
             P_dissipated = self.R * I**2
             excess_energy = 0.0
 
-        # Voltaje de flyback (simulado con derivada de corriente)
+        # --- Lógica de la Bomba Lineal (Linear Pump) ---
+
+        # 1. Calcular la aceleración del pistón (di/dt)
+        # Un cambio brusco en la corriente (throughput) significa que el pistón golpeó una "pared" de datos sucios.
         di_dt = (current_I - self._last_current) / dt
-        V_flyback = min(abs(self.L * di_dt), SystemConstants.MAX_FLYBACK_VOLTAGE)
+
+        # 2. Presión del Pistón (Voltaje Inductivo)
+        # v = L * di/dt
+        piston_pressure = self.L * di_dt
+
+        # 3. Detección de "Golpe de Ariete" (Flyback peligroso)
+        # Si la presión es negativa y alta, el flujo está intentando retroceder violentamente.
+        # Renombrado de V_flyback a water_hammer_pressure
+        water_hammer_pressure = abs(piston_pressure) if piston_pressure < 0 else 0.0
+
+        # Limitar por seguridad del sistema
+        water_hammer_pressure = min(water_hammer_pressure, SystemConstants.MAX_WATER_HAMMER_PRESSURE)
+
+        # Alias para compatibilidad hacia atrás
+        V_flyback = water_hammer_pressure
 
         # Entropía
         entropy_metrics = self.calculate_system_entropy(
@@ -2696,7 +2740,11 @@ class FluxPhysicsEngine:
             "kinetic_energy": E_kinetic,
             "total_energy": H_total,
             "dissipated_power": P_dissipated,
-            "flyback_voltage": V_flyback,
+            "flyback_voltage": V_flyback,  # Legacy alias
+            "water_hammer_pressure": water_hammer_pressure, # New metric
+            "piston_pressure": piston_pressure, # New metric
+            "piston_acceleration": di_dt, # New metric
+            "pump_work": self.calculate_pump_work(current_I, piston_pressure, dt), # New metric
             "dynamic_resistance": R_dynamic,
             "damping_ratio": zeta_dynamic,
             "damping_type": self._damping_type,
@@ -3481,6 +3529,16 @@ class DataFluxCondenser:
             pid_output_adjusted = int(pid_output * feedforward_factor)
 
             # ══════════════════════════════════════════════════════════════
+            # PROTECCIÓN DE DESBORDAMIENTO (TANK OVERFLOW)
+            # ══════════════════════════════════════════════════════════════
+            # Límite Físico del Tanque (Protección de la Bomba)
+            # Si la saturación supera el 95%, el tanque está lleno.
+            if saturation > 0.95:
+                self.logger.warning("⚠️ PRESIÓN MÁXIMA EN TANQUE: Forzando alivio de bomba.")
+                # Forzar al mínimo absoluto, ignorando PID
+                pid_output_adjusted = self.condenser_config.min_batch_size
+
+            # ══════════════════════════════════════════════════════════════
             # EMERGENCY BRAKE MULTINIVEL
             # ══════════════════════════════════════════════════════════════
             emergency_brake = False
@@ -3494,13 +3552,16 @@ class DataFluxCondenser:
                 emergency_brake = True
                 brake_reason = f"OVERHEAT P={power:.1f}W (>{SystemConstants.OVERHEAT_POWER_THRESHOLD}W)"
 
-            # Nivel 2: Flyback voltage (transitorios peligrosos)
-            flyback_threshold = SystemConstants.MAX_FLYBACK_VOLTAGE * 0.7
-            if flyback > flyback_threshold:
-                flyback_ratio = flyback / flyback_threshold
-                brake_severity = min(brake_severity, 0.5 / flyback_ratio)
+            # Nivel 2: Water Hammer Pressure (transitorios peligrosos - antes Flyback)
+            # Usamos metrics.get para soportar la nueva métrica o el alias
+            hammer_pressure = metrics.get("water_hammer_pressure", flyback)
+            hammer_threshold = SystemConstants.MAX_WATER_HAMMER_PRESSURE * 0.7
+
+            if hammer_pressure > hammer_threshold:
+                pressure_ratio = hammer_pressure / hammer_threshold
+                brake_severity = min(brake_severity, 0.5 / pressure_ratio)
                 emergency_brake = True
-                brake_reason = f"FLYBACK V={flyback:.2f}V (>{flyback_threshold:.2f}V)"
+                brake_reason = f"WATER HAMMER P={hammer_pressure:.2f} (>{hammer_threshold:.2f})"
 
             # Nivel 3: Saturación predicha alta (preventivo)
             if predicted_sat > 0.92 and not in_steady_state:

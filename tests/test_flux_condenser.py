@@ -1018,6 +1018,31 @@ class TestFluxPhysicsEngine:
         metrics = engine.calculate_metrics(100, 100, 0, 0.01)
 
         assert metrics["flyback_voltage"] <= SystemConstants.MAX_FLYBACK_VOLTAGE
+        assert metrics["water_hammer_pressure"] <= SystemConstants.MAX_WATER_HAMMER_PRESSURE
+
+    def test_calculate_pump_work(self, engine):
+        """El trabajo de la bomba debe calcularse como W = V * I * dt."""
+        current_I = 2.0
+        voltage = 5.0
+        dt = 0.1
+
+        work = engine.calculate_pump_work(current_I, voltage, dt)
+
+        # W = 5.0 * 2.0 * 0.1 = 1.0 Joules
+        assert math.isclose(work, 1.0)
+
+    def test_metrics_include_pump_analogy(self, engine):
+        """Las métricas deben incluir la analogía de la bomba."""
+        engine._initialized = True
+        metrics = engine.calculate_metrics(100, 50, 0, 1.0)
+
+        assert "water_hammer_pressure" in metrics
+        assert "piston_pressure" in metrics
+        assert "piston_acceleration" in metrics
+        assert "pump_work" in metrics
+
+        # Compatibilidad hacia atrás
+        assert metrics["flyback_voltage"] == metrics["water_hammer_pressure"]
 
     def test_zero_records_returns_zero_metrics(self, engine):
         """Con 0 registros, debe retornar métricas cero."""
@@ -1767,6 +1792,57 @@ class TestEdgeCases:
 
         # Flyback debe estar limitado
         assert metrics["flyback_voltage"] <= SystemConstants.MAX_FLYBACK_VOLTAGE
+
+    def test_tank_overflow_protection(self, valid_config, valid_profile):
+        """Protección de desbordamiento debe reducir batch size al mínimo."""
+        condenser = DataFluxCondenser(valid_config, valid_profile)
+        condenser._start_time = time.time() # Initialize start_time
+
+        # Mock para simular saturación > 0.95
+        with patch.object(condenser.physics, "calculate_metrics") as mock_metrics:
+            mock_metrics.return_value = {
+                "saturation": 0.98,  # > 0.95 trigger
+                "complexity": 0.5,
+                "current_I": 0.5,
+                "flyback_voltage": 0.1,
+                "water_hammer_pressure": 0.1
+            }
+
+            # Ejecutar lógica de procesamiento (usando método interno para testear lógica)
+            # En realidad probaremos _process_batches_with_pid indirectamente
+            # Necesitamos mockear extract_raw_data y otros para no correr todo
+            pass # TODO: Implementación completa requeriría mockear mucho
+
+            # Alternativa: Verificar la lógica en _process_batches_with_pid
+            # Mockeamos controller y verificamos que se ignore su salida
+            condenser.controller.compute = MagicMock(return_value=1000)
+
+            batches = condenser._process_batches_with_pid(
+                raw_records=[{"a": 1}] * 100,
+                cache={},
+                total_records=100,
+                on_progress=None,
+                progress_callback=None,
+                telemetry=None
+            )
+
+            # Si la protección se activó, el batch size usado para los siguientes
+            # pasos debería haber bajado. Como no podemos inspeccionar variables locales fácilmente,
+            # verificamos logs o efectos secundarios.
+
+            # Mejor aproximación: inyectar un logger mock y buscar el warning
+            with patch.object(condenser, "logger") as mock_logger:
+                condenser._process_batches_with_pid(
+                    raw_records=[{"a": 1}] * 100,
+                    cache={},
+                    total_records=100,
+                    on_progress=None,
+                    progress_callback=None,
+                    telemetry=None
+                )
+
+                # Verificar que se emitió el warning de PRESIÓN MÁXIMA
+                assert any("PRESIÓN MÁXIMA" in call[0][0] for call in mock_logger.warning.call_args_list)
 
     def test_condenser_very_large_batch(self, valid_config, valid_profile):
         """
