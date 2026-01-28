@@ -409,6 +409,12 @@ class PhysicsMetricsDTO:
     gyroscopic_stability: float = 1.0  # Sg
     nutation_amplitude: float = 0.0
 
+    # Del FluxCondenser (Bomba Hidráulica)
+    pump_work: float = 0.0
+    water_hammer_pressure: float = 0.0
+    saturation: float = 0.0
+    processed_records: int = 1  # Para cálculo de eficiencia
+
     # Del LaplaceOracle (Estabilidad de Control)
     phase_margin_deg: float = 45.0
     is_stable_lhp: bool = True
@@ -423,6 +429,10 @@ class PhysicsMetricsDTO:
         return cls(
             gyroscopic_stability=float(data.get("gyroscopic_stability", 1.0)),
             nutation_amplitude=float(data.get("nutation_amplitude", 0.0)),
+            pump_work=float(data.get("pump_work", 0.0)),
+            water_hammer_pressure=float(data.get("water_hammer_pressure", 0.0)),
+            saturation=float(data.get("saturation", 0.0)),
+            processed_records=int(data.get("processed_records", 1)),
             phase_margin_deg=float(data.get("phase_margin_deg", 45.0)),
             is_stable_lhp=bool(data.get("is_stable_lhp", True)),
             damping_regime=str(data.get("damping_regime", "CRITICALLY_DAMPED")),
@@ -807,6 +817,26 @@ class NarrativeTemplates:
         "No hay energía libre para procesar información útil."
     )
 
+    # ========== DINÁMICA DE BOMBEO ==========
+
+    PUMP_DYNAMICS: Dict[str, str] = {
+        "efficiency_high": (
+            " Eficiencia de Inyección: **ALTA**. "
+            "El costo administrativo de procesar esta información es {joules_per_record:.2e} Joules por registro."
+        ),
+        "efficiency_low": (
+            " Eficiencia de Inyección: **BAJA**. "
+            "El costo administrativo de procesar esta información es {joules_per_record:.2e} Joules por registro."
+        ),
+        "water_hammer": (
+            "💥 **Inestabilidad de Tubería**: Se detectaron golpes de ariete (Presión={pressure:.2f}). "
+            "El flujo se detiene bruscamente, causando ondas de choque."
+        ),
+        "accumulator_pressure": (
+            "🔋 **Presión del Acumulador**: {pressure:.1f}%. Capacidad de amortiguamiento disponible."
+        )
+    }
+
     # ========== SINERGIA ==========
 
     SYNERGY: str = (
@@ -1023,6 +1053,13 @@ class SemanticTranslator:
         cycle_narrative, cycle_verdict = self._translate_cycles(topo.beta_1)
         narrative_parts.append(cycle_narrative)
         verdicts.append(cycle_verdict)
+
+        # 1.5. Mayer-Vietoris (Integridad de Fusión)
+        if topo.delta_beta_1 > 0:
+            narrative_parts.append(
+                NarrativeTemplates.MAYER_VIETORIS.format(delta_beta_1=topo.delta_beta_1)
+            )
+            verdicts.append(VerdictLevel.RECHAZAR)
 
         # 2. Sinergia de Riesgo (Producto Cup)
         if synergy.synergy_detected:
@@ -1424,6 +1461,11 @@ class SemanticTranslator:
         section_narratives.append(integrated_diagnosis)
         section_narratives.append("")
 
+        # ====== SECCIÓN 1.5: Dinámica de Bombeo (Física) ======
+        section_narratives.append("### 0. Dinámica de Bombeo (Física)")
+        section_narratives.append(physics_result.narrative)
+        section_narratives.append("")
+
         # ====== SECCIÓN 2: Detalles Topológicos ======
         section_narratives.append("### 1. Auditoría de Integridad Estructural")
         try:
@@ -1554,6 +1596,37 @@ class SemanticTranslator:
         elif thermal.entropy > self.config.thermal.entropy_high:
             issues.append(f"Alta entropía: {thermal.entropy:.2f}")
             verdicts.append(VerdictLevel.PRECAUCION)
+
+        # 5. Dinámica de Bombeo (Nueva Lógica)
+        if physics:
+            if physics.water_hammer_pressure > 0.7:
+                issues.append(f"Inestabilidad de Tubería (P={physics.water_hammer_pressure:.2f})")
+                narrative_parts.append(
+                    NarrativeTemplates.PUMP_DYNAMICS["water_hammer"].format(
+                        pressure=physics.water_hammer_pressure
+                    )
+                )
+                verdicts.append(VerdictLevel.PRECAUCION)
+
+            # Cálculo de Eficiencia (Joules/Record)
+            records = max(1, physics.processed_records)
+            joules_per_record = physics.pump_work / records
+
+            # Umbral heurístico para eficiencia
+            eff_key = "efficiency_high" if joules_per_record < 1.0 else "efficiency_low"
+
+            narrative_parts.append(
+                NarrativeTemplates.PUMP_DYNAMICS[eff_key].format(
+                    joules_per_record=joules_per_record
+                )
+            )
+
+            # Presión del Acumulador
+            narrative_parts.append(
+                NarrativeTemplates.PUMP_DYNAMICS["accumulator_pressure"].format(
+                    pressure=physics.saturation * 100.0
+                )
+            )
 
         verdict = VerdictLevel.supremum(*verdicts) if verdicts else VerdictLevel.VIABLE
 

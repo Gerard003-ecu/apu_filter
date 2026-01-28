@@ -70,7 +70,8 @@ class StratumTopology:
     METRIC_PREFIXES: Dict[Stratum, Tuple[str, ...]] = {
         Stratum.PHYSICS: (
             "flux_condenser", "rlc", "energy", "kinetic",
-            "gyro", "nutation", "entropy", "thermo", "laplace"
+            "gyro", "nutation", "entropy", "thermo", "laplace",
+            "pump", "piston", "hammer", "work"
         ),
         Stratum.TACTICS: (
             "topology", "betti", "parsing", "homology",
@@ -1561,6 +1562,8 @@ class TelemetryContext:
             ("processed_records", "flux_condenser.processed_records", 0),
             ("total_records", "flux_condenser.total_records", 0),
             ("processing_time", "flux_condenser.processing_time", 0.0),
+            ("pump_work", "flux_condenser.pump_work", 0.0),
+            ("water_hammer_pressure", "flux_condenser.water_hammer_pressure", 0.0),
         ]
 
         result = {}
