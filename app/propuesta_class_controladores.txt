@@ -1,0 +1,1712 @@
+import logging
+import math
+import time
+from collections import deque
+from dataclasses import dataclass, field
+from pathlib import Path
+from typing import Any, Callable, Dict, List, NamedTuple, Optional, Set, Tuple, Union
+import warnings
+
+try:
+    import numpy as np
+    from numpy.linalg import LinAlgError
+except ImportError:
+    np = None
+    LinAlgError = Exception
+
+import networkx as nx
+
+try:
+    from scipy import sparse
+    from scipy.sparse import bmat, csr_matrix, diags
+    from scipy.sparse.linalg import spsolve, lsqr, eigsh, norm as sparse_norm
+    from scipy.linalg import lstsq
+    SCIPY_AVAILABLE = True
+except ImportError:
+    SCIPY_AVAILABLE = False
+    sparse = None
+
+logger = logging.getLogger(__name__)
+
+
+# ============================================================================
+# CONSTANTES DEL SISTEMA
+# ============================================================================
+@dataclass(frozen=True)
+class SystemConstants:
+    """
+    Constantes del sistema con validación de coherencia inter-parámetros.
+    
+    Usa frozen dataclass para inmutabilidad y validación en post_init.
+    """
+    
+    # Límites de tiempo
+    MIN_DELTA_TIME: float = 1e-6  # Micro-segundos para alta frecuencia
+    MAX_DELTA_TIME: float = 3600.0
+    PROCESSING_TIMEOUT: float = 3600.0
+
+    # Límites físicos (coherentes con SI)
+    MIN_ENERGY_THRESHOLD: float = 1e-12  # ~kT a temperatura ambiente
+    MAX_EXPONENTIAL_ARG: float = 709.0  # log(DBL_MAX) ≈ 709
+    MAX_WATER_HAMMER_PRESSURE: float = 10.0
+    
+    # Tolerancias numéricas (jerarquía coherente)
+    NUMERICAL_ZERO: float = 1e-15
+    NUMERICAL_TOLERANCE: float = 1e-12
+    RELATIVE_TOLERANCE: float = 1e-9
+
+    # Control PID
+    LOW_INERTIA_THRESHOLD: float = 0.1
+    HIGH_PRESSURE_RATIO: float = 1000.0
+    HIGH_FLYBACK_THRESHOLD: float = 0.5
+    OVERHEAT_POWER_THRESHOLD: float = 50.0
+
+    # Control de flujo
+    EMERGENCY_BRAKE_FACTOR: float = 0.5
+    MAX_ITERATIONS_MULTIPLIER: int = 10
+    MIN_BATCH_SIZE_FLOOR: int = 1
+
+    # Validación de archivos
+    VALID_FILE_EXTENSIONS: frozenset = frozenset({".csv", ".txt", ".tsv", ".dat"})
+    MAX_FILE_SIZE_MB: float = 500.0
+    MIN_FILE_SIZE_BYTES: int = 10
+
+    # Límites de registros
+    MAX_RECORDS_LIMIT: int = 10_000_000
+    MIN_RECORDS_FOR_PID: int = 10
+    MAX_CACHE_SIZE: int = 100_000
+    MAX_BATCHES_TO_CONSOLIDATE: int = 10_000
+
+    # Estabilidad Giroscópica
+    GYRO_SENSITIVITY: float = 5.0
+    GYRO_EMA_ALPHA: float = 0.1
+    
+    # CFL y estabilidad numérica
+    CFL_SAFETY_FACTOR: float = 0.5  # Courant number < 1 para estabilidad
+    
+    def __post_init__(self):
+        """Valida coherencia entre constantes relacionadas."""
+        assert self.MIN_DELTA_TIME < self.MAX_DELTA_TIME, \
+            "MIN_DELTA_TIME debe ser menor que MAX_DELTA_TIME"
+        assert self.NUMERICAL_ZERO < self.NUMERICAL_TOLERANCE < self.RELATIVE_TOLERANCE, \
+            "Jerarquía de tolerancias incoherente"
+        assert 0 < self.CFL_SAFETY_FACTOR < 1, \
+            "Factor CFL debe estar en (0, 1) para estabilidad"
+
+
+# Instancia global inmutable
+CONSTANTS = SystemConstants()
+
+
+# ============================================================================
+# EXCEPCIONES
+# ============================================================================
+class DataFluxCondenserError(Exception):
+    """Clase base para excepciones del condensador."""
+    pass
+
+
+class InvalidInputError(DataFluxCondenserError):
+    """Datos de entrada inválidos."""
+    pass
+
+
+class ProcessingError(DataFluxCondenserError):
+    """Error durante procesamiento."""
+    pass
+
+
+class ConfigurationError(DataFluxCondenserError):
+    """Configuración inválida."""
+    pass
+
+
+class NumericalInstabilityError(DataFluxCondenserError):
+    """Inestabilidad numérica detectada."""
+    pass
+
+
+# ============================================================================
+# CONTROLADOR PI MEJORADO
+# ============================================================================
+class PIController:
+    """
+    Controlador PI con anti-windup por back-calculation y análisis de estabilidad.
+    
+    Ley de control:
+        u(t) = Kp·e(t) + Ki·∫e(τ)dτ
+    
+    Anti-windup (back-calculation):
+        ∫̇ = e + (1/Tt)·(u_sat - u_raw)
+    
+    donde Tt es la constante de tiempo de tracking.
+    
+    Análisis de estabilidad:
+        - Exponente de Lyapunov estimado por regresión robusta
+        - Detección de ciclos límite por análisis de autocorrelación
+    """
+
+    def __init__(
+        self,
+        kp: float,
+        ki: float,
+        setpoint: float,
+        min_output: float,
+        max_output: float,
+        tracking_time: Optional[float] = None,
+        ema_alpha: float = 0.3
+    ):
+        """
+        Args:
+            kp: Ganancia proporcional (> 0)
+            ki: Ganancia integral (≥ 0)
+            setpoint: Valor objetivo (0 < sp < 1 normalizado)
+            min_output: Salida mínima (> 0)
+            max_output: Salida máxima (> min_output)
+            tracking_time: Constante de tiempo para back-calculation (None = Ti)
+            ema_alpha: Coeficiente de filtro exponencial
+        """
+        self._validate_params(kp, ki, setpoint, min_output, max_output)
+
+        self.kp = kp
+        self.ki = ki
+        self.setpoint = setpoint
+        self.min_output = min_output
+        self.max_output = max_output
+        
+        # Constante de tiempo de tracking para back-calculation
+        # Si no se especifica, usar Ti = Kp/Ki (si Ki > 0)
+        if tracking_time is not None:
+            self.Tt = max(tracking_time, CONSTANTS.MIN_DELTA_TIME)
+        elif ki > 0:
+            self.Tt = kp / ki
+        else:
+            self.Tt = 1.0
+        
+        # Límite integral basado en rango de salida
+        self._integral_limit = 2.0 * (max_output - min_output) / max(ki, 1e-10)
+
+        # Estado del filtro EMA
+        self._ema_alpha = ema_alpha
+        self._filtered_pv = None
+        
+        # Historial para análisis
+        self._error_history: deque = deque(maxlen=100)
+        self._output_history: deque = deque(maxlen=100)
+        self._innovation_history: deque = deque(maxlen=30)
+        
+        # Métricas de estabilidad
+        self._lyapunov_exponent = 0.0
+        self._oscillation_index = 0.0
+
+        self.reset()
+
+    def _validate_params(
+        self, 
+        kp: float, 
+        ki: float, 
+        setpoint: float, 
+        min_out: float, 
+        max_out: float
+    ) -> None:
+        """Validación estricta de parámetros con mensajes descriptivos."""
+        if not isinstance(kp, (int, float)) or kp <= 0:
+            raise ConfigurationError(f"Kp debe ser número positivo, recibido: {kp}")
+        if not isinstance(ki, (int, float)) or ki < 0:
+            raise ConfigurationError(f"Ki debe ser número no-negativo, recibido: {ki}")
+        if not (0 < setpoint < 1):
+            raise ConfigurationError(
+                f"Setpoint debe estar en (0, 1) para normalización, recibido: {setpoint}"
+            )
+        if min_out <= 0:
+            raise ConfigurationError(f"min_output debe ser positivo, recibido: {min_out}")
+        if min_out >= max_out:
+            raise ConfigurationError(
+                f"Rango de salida inválido: [{min_out}, {max_out}]"
+            )
+
+    def reset(self) -> None:
+        """Reinicia completamente el estado del controlador."""
+        self._integral_error = 0.0
+        self._last_error = 0.0
+        self._last_time = time.time()
+        self._last_output: Optional[float] = None
+        self._last_raw_output = 0.0
+        self._filtered_pv = None
+        self._innovation_history.clear()
+        # Preservar historial de errores para post-mortem
+
+    def _apply_ema_filter(self, measurement: float) -> float:
+        """
+        Filtro exponencial con detección de step y alpha adaptativo.
+        
+        Implementa:
+            y[n] = α·x[n] + (1-α)·y[n-1]
+        
+        con α adaptativo basado en varianza de innovaciones.
+        """
+        if self._filtered_pv is None:
+            self._filtered_pv = measurement
+            return measurement
+
+        innovation = measurement - self._filtered_pv
+        
+        # Detección de step: bypass parcial para respuesta rápida
+        step_threshold = 0.2 * abs(self.setpoint)
+        if abs(innovation) > step_threshold:
+            # Respuesta rápida a cambios grandes
+            alpha_effective = 0.8
+        else:
+            # Alpha adaptativo basado en varianza
+            self._innovation_history.append(innovation)
+            if len(self._innovation_history) >= 5 and np is not None:
+                var = np.var(list(self._innovation_history))
+                # Mayor varianza → menor alpha → más filtrado
+                alpha_effective = self._ema_alpha / (1.0 + 10.0 * var)
+            else:
+                alpha_effective = self._ema_alpha
+
+        self._filtered_pv = (
+            alpha_effective * measurement + 
+            (1.0 - alpha_effective) * self._filtered_pv
+        )
+        
+        return self._filtered_pv
+
+    def _update_stability_metrics(self, error: float) -> None:
+        """
+        Actualiza exponente de Lyapunov y detección de oscilaciones.
+        
+        Lyapunov estimado por regresión robusta de log|e(t)|.
+        Oscilaciones detectadas por cruces por cero del error.
+        """
+        self._error_history.append(error)
+        
+        if len(self._error_history) < 20 or np is None:
+            return
+        
+        errors = np.array(list(self._error_history))
+        abs_errors = np.abs(errors) + CONSTANTS.NUMERICAL_ZERO
+        
+        # Exponente de Lyapunov: pendiente de log|e| vs tiempo
+        try:
+            log_errors = np.log(abs_errors)
+            n = len(log_errors)
+            x = np.arange(n)
+            
+            # Regresión robusta: descartar outliers (percentiles 10-90)
+            p10, p90 = np.percentile(log_errors, [10, 90])
+            mask = (log_errors >= p10) & (log_errors <= p90)
+            
+            if np.sum(mask) >= 5:
+                x_robust = x[mask]
+                y_robust = log_errors[mask]
+                # Regresión lineal
+                coeffs = np.polyfit(x_robust, y_robust, 1)
+                self._lyapunov_exponent = float(coeffs[0])
+            
+        except (ValueError, LinAlgError):
+            pass
+        
+        # Índice de oscilación: frecuencia de cruces por cero
+        sign_changes = np.sum(np.diff(np.sign(errors)) != 0)
+        self._oscillation_index = sign_changes / max(len(errors) - 1, 1)
+
+    def compute(self, measurement: float) -> int:
+        """
+        Calcula señal de control con anti-windup por back-calculation.
+        
+        Args:
+            measurement: Variable de proceso actual
+            
+        Returns:
+            Señal de control entera (batch size)
+        """
+        current_time = time.time()
+        dt = current_time - self._last_time
+        dt = max(CONSTANTS.MIN_DELTA_TIME, min(dt, CONSTANTS.MAX_DELTA_TIME))
+
+        # Filtrado de entrada
+        filtered_pv = self._apply_ema_filter(measurement)
+        
+        # Error
+        error = self.setpoint - filtered_pv
+        
+        # Actualizar métricas de estabilidad
+        self._update_stability_metrics(error)
+
+        # Término proporcional
+        p_term = self.kp * error
+
+        # Término integral con back-calculation anti-windup
+        # Acumulación base
+        integral_increment = error * dt
+        
+        # Corrección por saturación (back-calculation)
+        if self._last_output is not None:
+            saturation_error = self._last_output - self._last_raw_output
+            # El término de tracking empuja el integrador hacia zona no saturada
+            tracking_correction = (saturation_error / self.Tt) * dt
+            integral_increment += tracking_correction
+        
+        self._integral_error += integral_increment
+        
+        # Clamping del integrador
+        self._integral_error = np.clip(
+            self._integral_error, 
+            -self._integral_limit, 
+            self._integral_limit
+        )
+
+        i_term = self.ki * self._integral_error
+
+        # Salida raw (sin saturar)
+        raw_output = p_term + i_term
+        self._last_raw_output = raw_output
+
+        # Saturación
+        output = np.clip(raw_output, self.min_output, self.max_output)
+
+        # Rate limiting suave (evitar cambios bruscos)
+        if self._last_output is not None:
+            max_change = 0.15 * (self.max_output - self.min_output)
+            change = output - self._last_output
+            if abs(change) > max_change:
+                output = self._last_output + math.copysign(max_change, change)
+                output = np.clip(output, self.min_output, self.max_output)
+
+        # Actualizar estado
+        self._last_output = output
+        self._last_time = current_time
+        self._last_error = error
+        self._output_history.append(output)
+
+        return int(round(output))
+
+    def get_lyapunov_exponent(self) -> float:
+        """Retorna exponente de Lyapunov estimado."""
+        return self._lyapunov_exponent
+
+    def get_stability_analysis(self) -> Dict[str, Any]:
+        """
+        Análisis completo de estabilidad.
+        
+        Returns:
+            Diccionario con clasificación de estabilidad y métricas.
+        """
+        if len(self._error_history) < 10:
+            return {"status": "INSUFFICIENT_DATA", "samples": len(self._error_history)}
+
+        # Clasificación basada en Lyapunov
+        if self._lyapunov_exponent < -0.1:
+            stability = "ASYMPTOTICALLY_STABLE"
+            convergence = "CONVERGING"
+        elif self._lyapunov_exponent < 0.01:
+            stability = "MARGINALLY_STABLE"
+            convergence = "BOUNDED"
+        else:
+            stability = "UNSTABLE"
+            convergence = "DIVERGING"
+
+        # Detección de ciclo límite
+        is_limit_cycle = (
+            stability == "MARGINALLY_STABLE" and 
+            self._oscillation_index > 0.3
+        )
+        
+        return {
+            "status": "OPERATIONAL",
+            "stability_class": stability,
+            "convergence": convergence,
+            "lyapunov_exponent": self._lyapunov_exponent,
+            "oscillation_index": self._oscillation_index,
+            "is_limit_cycle": is_limit_cycle,
+            "integral_saturation": abs(self._integral_error) / self._integral_limit,
+            "samples_analyzed": len(self._error_history)
+        }
+
+    def get_diagnostics(self) -> Dict[str, Any]:
+        """Diagnóstico completo del controlador."""
+        return {
+            "status": "OK",
+            "control_metrics": {
+                "error": self._last_error,
+                "integral_term": self.ki * self._integral_error,
+                "proportional_term": self.kp * self._last_error,
+                "output": self._last_output,
+                "raw_output": self._last_raw_output
+            },
+            "stability_analysis": self.get_stability_analysis(),
+            "parameters": {
+                "kp": self.kp,
+                "ki": self.ki,
+                "tracking_time": self.Tt,
+                "ema_alpha": self._ema_alpha
+            }
+        }
+
+    def get_state(self) -> Dict[str, Any]:
+        """Estado serializable del controlador."""
+        return {
+            "parameters": {
+                "kp": self.kp, 
+                "ki": self.ki,
+                "setpoint": self.setpoint,
+                "output_range": [self.min_output, self.max_output]
+            },
+            "state": {
+                "integral": self._integral_error,
+                "last_output": self._last_output,
+                "filtered_pv": self._filtered_pv
+            },
+            "diagnostics": self.get_diagnostics()
+        }
+
+
+# ============================================================================
+# CÁLCULO VECTORIAL DISCRETO
+# ============================================================================
+class DiscreteVectorCalculus:
+    """
+    Operadores diferenciales discretos sobre complejos simpliciales.
+    
+    Implementa la correspondencia de De Rham discreta:
+    
+        Ωᵏ(M) ←→ Cᵏ(K)
+        d     ←→ δ*
+    
+    Complejo de cadenas:
+        C₂ --∂₂--> C₁ --∂₁--> C₀
+    
+    Complejo de co-cadenas (dual):
+        C⁰ --d₀--> C¹ --d₁--> C²
+    
+    Operadores:
+        - Gradiente: d₀ = -∂₁ᵀ
+        - Rotacional: d₁ = ∂₂ᵀ
+        - Divergencia: δ₁ = ⋆₀⁻¹ d₀ᵀ ⋆₁
+        - Laplaciano: Δₖ = dδ + δd
+    
+    Referencias:
+        [1] Desbrun et al., Discrete Differential Forms (2005)
+        [2] Hirani, Discrete Exterior Calculus (2003)
+    """
+
+    NUMERICAL_TOLERANCE = 1e-12
+
+    def __init__(
+        self,
+        adjacency_list: Dict[int, Set[int]],
+        node_volumes: Optional[Dict[int, float]] = None,
+        edge_lengths: Optional[Dict[Tuple[int, int], float]] = None,
+        face_areas: Optional[Dict[Tuple[int, int, int], float]] = None
+    ):
+        """
+        Inicializa la estructura de cálculo exterior discreto.
+        
+        Args:
+            adjacency_list: Grafo como diccionario de adyacencia
+            node_volumes: Volúmenes de Voronoi duales (opcional)
+            edge_lengths: Longitudes de aristas (opcional)  
+            face_areas: Áreas de triángulos (opcional)
+        """
+        self.graph = nx.Graph(adjacency_list)
+        self._node_volumes = node_volumes or {}
+        self._edge_lengths = edge_lengths or {}
+        self._face_areas = face_areas or {}
+        
+        self._validate_graph()
+        self._build_simplicial_complex()
+        
+        if SCIPY_AVAILABLE:
+            self._build_chain_operators()
+            self._verify_chain_complex()
+            self._build_hodge_operators()
+            self._build_calculus_operators()
+            self._compute_betti_numbers()
+        else:
+            warnings.warn(
+                "Scipy no disponible. DiscreteVectorCalculus en modo reducido."
+            )
+        
+        self._laplacian_cache: Dict[int, Any] = {}
+
+    def _validate_graph(self) -> None:
+        """Valida estructura topológica del grafo."""
+        if self.graph.number_of_nodes() == 0:
+            raise ValueError("El grafo no puede estar vacío")
+        
+        self.num_components = nx.number_connected_components(self.graph)
+        self.is_connected = self.num_components == 1
+        
+        if not self.is_connected:
+            logger.warning(
+                f"Grafo con {self.num_components} componentes conexas. "
+                "dim(ker Δ₀) = β₀ > 1."
+            )
+        
+        # Verificar planaridad
+        try:
+            self.is_planar, self.planar_embedding = nx.check_planarity(self.graph)
+        except Exception:
+            self.is_planar = False
+            self.planar_embedding = None
+
+    def _build_simplicial_complex(self) -> None:
+        """Construye el complejo simplicial ordenado K = (V, E, F)."""
+        # 0-símplices (vértices)
+        self.nodes: List[int] = sorted(self.graph.nodes())
+        self.node_to_idx: Dict[int, int] = {n: i for i, n in enumerate(self.nodes)}
+        self.num_nodes: int = len(self.nodes)
+
+        # 1-símplices (aristas con orientación canónica u < v)
+        self.edges: List[Tuple[int, int]] = []
+        self.edge_orientation: Dict[Tuple[int, int], int] = {}
+        
+        for u, v in self.graph.edges():
+            if u < v:
+                self.edges.append((u, v))
+                self.edge_orientation[(u, v)] = +1
+                self.edge_orientation[(v, u)] = -1
+            else:
+                self.edges.append((v, u))
+                self.edge_orientation[(v, u)] = +1
+                self.edge_orientation[(u, v)] = -1
+        
+        self.edge_to_idx: Dict[Tuple[int, int], int] = {
+            e: i for i, e in enumerate(self.edges)
+        }
+        self.num_edges: int = len(self.edges)
+
+        # 2-símplices (triángulos = 3-cliques)
+        self.faces: List[Tuple[int, int, int]] = []
+        self.face_boundaries: List[List[Tuple[Tuple[int, int], int]]] = []
+        
+        for clique in nx.enumerate_all_cliques(self.graph):
+            if len(clique) == 3:
+                v0, v1, v2 = sorted(clique)
+                self.faces.append((v0, v1, v2))
+                # ∂[v0,v1,v2] = [v1,v2] - [v0,v2] + [v0,v1] (regla cíclica)
+                boundary = [
+                    ((v1, v2), +1),
+                    ((v0, v2), -1),
+                    ((v0, v1), +1),
+                ]
+                self.face_boundaries.append(boundary)
+        
+        self.face_to_idx: Dict[Tuple[int, int, int], int] = {
+            f: i for i, f in enumerate(self.faces)
+        }
+        self.num_faces: int = len(self.faces)
+        
+        self._build_edge_face_adjacency()
+        
+        # Característica de Euler (siempre válida)
+        self.euler_characteristic = self.num_nodes - self.num_edges + self.num_faces
+
+    def _build_edge_face_adjacency(self) -> None:
+        """Construye adyacencia arista → caras."""
+        self.edge_to_faces: Dict[int, List[Tuple[int, int]]] = {
+            i: [] for i in range(self.num_edges)
+        }
+        
+        for face_idx, boundary in enumerate(self.face_boundaries):
+            for (edge, sign) in boundary:
+                edge_canonical = (min(edge), max(edge))
+                if edge_canonical in self.edge_to_idx:
+                    edge_idx = self.edge_to_idx[edge_canonical]
+                    self.edge_to_faces[edge_idx].append((face_idx, sign))
+
+    def _build_chain_operators(self) -> None:
+        """Construye operadores frontera ∂₁ y ∂₂."""
+        self.boundary1 = self._build_boundary_1()
+        self.boundary2 = self._build_boundary_2()
+
+    def _build_boundary_1(self) -> sparse.csr_matrix:
+        """
+        Operador frontera ∂₁: C₁ → C₀.
+        
+        ∂₁[u,v] = δᵥ - δᵤ
+        
+        Matriz de incidencia nodo-arista con signos.
+        """
+        if self.num_edges == 0:
+            return sparse.csr_matrix((self.num_nodes, 0))
+        
+        rows, cols, data = [], [], []
+        
+        for edge_idx, (u, v) in enumerate(self.edges):
+            # Nodo terminal (+1)
+            rows.append(self.node_to_idx[v])
+            cols.append(edge_idx)
+            data.append(1.0)
+            # Nodo inicial (-1)
+            rows.append(self.node_to_idx[u])
+            cols.append(edge_idx)
+            data.append(-1.0)
+        
+        return sparse.csr_matrix(
+            (data, (rows, cols)),
+            shape=(self.num_nodes, self.num_edges)
+        )
+
+    def _build_boundary_2(self) -> sparse.csr_matrix:
+        """
+        Operador frontera ∂₂: C₂ → C₁.
+        
+        ∂₂[v0,v1,v2] = [v1,v2] - [v0,v2] + [v0,v1]
+        
+        Satisface ∂₁ ∘ ∂₂ = 0 por construcción.
+        """
+        if self.num_faces == 0:
+            return sparse.csr_matrix((self.num_edges, 0))
+        
+        rows, cols, data = [], [], []
+        
+        for face_idx, boundary in enumerate(self.face_boundaries):
+            for (edge, sign) in boundary:
+                edge_canonical = (min(edge), max(edge))
+                if edge_canonical in self.edge_to_idx:
+                    edge_idx = self.edge_to_idx[edge_canonical]
+                    orientation = self.edge_orientation.get(edge, 1)
+                    rows.append(edge_idx)
+                    cols.append(face_idx)
+                    data.append(float(sign * orientation))
+        
+        return sparse.csr_matrix(
+            (data, (rows, cols)),
+            shape=(self.num_edges, self.num_faces)
+        )
+
+    def _verify_chain_complex(self) -> None:
+        """
+        Verifica la propiedad fundamental ∂₁ ∘ ∂₂ = 0.
+        
+        Esto garantiza la exactitud del complejo de cadenas.
+        """
+        if self.num_faces == 0 or self.num_edges == 0:
+            self._chain_complex_error = 0.0
+            return
+        
+        composition = self.boundary1 @ self.boundary2
+        
+        if composition.nnz > 0:
+            max_error = np.max(np.abs(composition.data))
+        else:
+            max_error = 0.0
+        
+        self._chain_complex_error = max_error
+        
+        if max_error > self.NUMERICAL_TOLERANCE:
+            raise NumericalInstabilityError(
+                f"Complejo de cadenas inválido: ||∂₁∂₂|| = {max_error:.2e}"
+            )
+
+    def _build_hodge_operators(self) -> None:
+        """
+        Construye operadores estrella de Hodge ⋆ₖ y sus inversos.
+        
+        ⋆ₖ: Cᵏ → C^{n-k} incorpora información métrica.
+        """
+        self.star0, self.star0_inv = self._build_hodge_star(
+            0, self.num_nodes, self._get_node_weight
+        )
+        self.star1, self.star1_inv = self._build_hodge_star(
+            1, self.num_edges, self._get_edge_weight
+        )
+        self.star2, self.star2_inv = self._build_hodge_star(
+            2, self.num_faces, self._get_face_weight
+        )
+
+    def _build_hodge_star(
+        self,
+        dimension: int,
+        size: int,
+        weight_func: Callable[[int], float]
+    ) -> Tuple[sparse.csr_matrix, sparse.csr_matrix]:
+        """Construye ⋆ₖ diagonal con pesos positivos."""
+        if size == 0:
+            empty = sparse.csr_matrix((0, 0))
+            return empty, empty
+        
+        weights = np.array([weight_func(i) for i in range(size)], dtype=float)
+        weights = np.maximum(weights, self.NUMERICAL_TOLERANCE)
+        
+        star = sparse.diags(weights, format='csr')
+        star_inv = sparse.diags(1.0 / weights, format='csr')
+        
+        return star, star_inv
+
+    def _get_node_weight(self, idx: int) -> float:
+        """Peso de nodo (volumen de Voronoi o grado)."""
+        node = self.nodes[idx]
+        if node in self._node_volumes:
+            return self._node_volumes[node]
+        return float(max(1, self.graph.degree(node)))
+
+    def _get_edge_weight(self, idx: int) -> float:
+        """Peso de arista (longitud o unidad)."""
+        edge = self.edges[idx]
+        return self._edge_lengths.get(edge, 1.0)
+
+    def _get_face_weight(self, idx: int) -> float:
+        """Peso de cara (inverso del área)."""
+        face = self.faces[idx]
+        area = self._face_areas.get(face, 1.0)
+        return 1.0 / max(area, self.NUMERICAL_TOLERANCE)
+
+    def _build_calculus_operators(self) -> None:
+        """Construye operadores de cálculo vectorial."""
+        # Gradiente: d₀ = -∂₁ᵀ
+        self.gradient_op = -self.boundary1.T
+        
+        # Divergencia: δ₁ = -⋆₀⁻¹ ∂₁ ⋆₁ (adjunto L² del gradiente)
+        self.divergence_op = -self.star0_inv @ self.boundary1 @ self.star1
+        
+        # Rotacional: d₁ = ∂₂ᵀ
+        self.curl_op = self.boundary2.T
+        
+        # Co-rotacional: δ₂ = ⋆₁⁻¹ ∂₂ ⋆₂
+        if self.num_faces > 0:
+            self.cocurl_op = self.star1_inv @ self.boundary2 @ self.star2
+        else:
+            self.cocurl_op = sparse.csr_matrix((self.num_edges, 0))
+
+    def _compute_betti_numbers(self) -> None:
+        """
+        Calcula números de Betti usando dimensiones de ker/im.
+        
+        βₖ = dim(ker ∂ₖ) - dim(im ∂ₖ₊₁) = dim(Hₖ)
+        """
+        # β₀ = dim(ker ∂₀) - dim(im ∂₁)
+        # ker ∂₀ = C₀ (todo), dim = num_nodes
+        # im ∂₁ = columnas de boundary1
+        if self.num_edges > 0:
+            rank_boundary1 = np.linalg.matrix_rank(self.boundary1.toarray())
+        else:
+            rank_boundary1 = 0
+        
+        self.betti_0 = self.num_nodes - rank_boundary1
+        
+        # Verificación: β₀ = componentes conexas
+        assert self.betti_0 == self.num_components, \
+            f"Inconsistencia: β₀={self.betti_0} ≠ π₀={self.num_components}"
+        
+        # β₁ = dim(ker ∂₁) - dim(im ∂₂)
+        if self.num_edges > 0:
+            nullity_boundary1 = self.num_edges - rank_boundary1
+        else:
+            nullity_boundary1 = 0
+        
+        if self.num_faces > 0:
+            rank_boundary2 = np.linalg.matrix_rank(self.boundary2.toarray())
+        else:
+            rank_boundary2 = 0
+        
+        self.betti_1 = nullity_boundary1 - rank_boundary2
+        
+        # β₂ = dim(ker ∂₂)
+        if self.num_faces > 0:
+            self.betti_2 = self.num_faces - rank_boundary2
+        else:
+            self.betti_2 = 0
+        
+        # Verificación de Euler-Poincaré: χ = β₀ - β₁ + β₂
+        euler_from_betti = self.betti_0 - self.betti_1 + self.betti_2
+        assert euler_from_betti == self.euler_characteristic, \
+            f"Euler-Poincaré violado: {euler_from_betti} ≠ {self.euler_characteristic}"
+
+    # === OPERADORES PÚBLICOS ===
+
+    def gradient(self, scalar_field: np.ndarray) -> np.ndarray:
+        """
+        Gradiente discreto: d₀φ.
+        
+        Args:
+            scalar_field: 0-forma en nodos, shape (num_nodes,)
+        Returns:
+            1-forma en aristas, shape (num_edges,)
+        """
+        if not SCIPY_AVAILABLE:
+            return np.array([])
+        phi = np.asarray(scalar_field).ravel()
+        if phi.size != self.num_nodes:
+            raise ValueError(f"Esperado {self.num_nodes} nodos, recibido {phi.size}")
+        return self.gradient_op @ phi
+
+    def divergence(self, vector_field: np.ndarray) -> np.ndarray:
+        """
+        Divergencia discreta: δ₁v.
+        
+        Args:
+            vector_field: 1-forma en aristas, shape (num_edges,)
+        Returns:
+            0-forma en nodos, shape (num_nodes,)
+        """
+        if not SCIPY_AVAILABLE:
+            return np.array([])
+        v = np.asarray(vector_field).ravel()
+        if v.size != self.num_edges:
+            raise ValueError(f"Esperado {self.num_edges} aristas, recibido {v.size}")
+        return self.divergence_op @ v
+
+    def curl(self, vector_field: np.ndarray) -> np.ndarray:
+        """
+        Rotacional discreto: d₁v.
+        
+        Args:
+            vector_field: 1-forma en aristas, shape (num_edges,)
+        Returns:
+            2-forma en caras, shape (num_faces,)
+        """
+        if not SCIPY_AVAILABLE or self.num_faces == 0:
+            return np.array([])
+        v = np.asarray(vector_field).ravel()
+        if v.size != self.num_edges:
+            raise ValueError(f"Esperado {self.num_edges} aristas, recibido {v.size}")
+        return self.curl_op @ v
+
+    def laplacian(self, degree: int) -> sparse.csr_matrix:
+        """
+        Laplaciano de Hodge: Δₖ = dδ + δd.
+        
+        Args:
+            degree: grado k ∈ {0, 1, 2}
+        Returns:
+            Matriz sparse del Laplaciano
+        """
+        if not SCIPY_AVAILABLE:
+            return None
+        
+        if degree in self._laplacian_cache:
+            return self._laplacian_cache[degree]
+        
+        if degree == 0:
+            # Δ₀ = δ₁d₀ (no hay δ₀)
+            Delta = self.divergence_op @ self.gradient_op
+        
+        elif degree == 1:
+            # Δ₁ = d₀δ₁ + δ₂d₁
+            term1 = self.gradient_op @ self.divergence_op
+            if self.num_faces > 0:
+                term2 = self.cocurl_op @ self.curl_op
+            else:
+                term2 = sparse.csr_matrix((self.num_edges, self.num_edges))
+            Delta = term1 + term2
+        
+        elif degree == 2:
+            # Δ₂ = d₁δ₂ (no hay d₂)
+            if self.num_faces > 0:
+                Delta = self.curl_op @ self.cocurl_op
+            else:
+                Delta = sparse.csr_matrix((0, 0))
+        
+        else:
+            raise ValueError(f"Grado debe ser 0, 1 o 2, recibido {degree}")
+        
+        self._laplacian_cache[degree] = Delta
+        return Delta
+
+    def verify_complex_exactness(self) -> Dict[str, Any]:
+        """Verifica propiedades del complejo de cadenas."""
+        results = {
+            "boundary_composition_error": self._chain_complex_error,
+            "is_chain_complex": self._chain_complex_error < self.NUMERICAL_TOLERANCE,
+            "euler_characteristic": self.euler_characteristic,
+            "betti_numbers": (self.betti_0, self.betti_1, self.betti_2),
+        }
+        
+        # curl(grad(φ)) = 0
+        if SCIPY_AVAILABLE and self.num_nodes > 0 and self.num_faces > 0:
+            phi = np.random.randn(self.num_nodes)
+            curl_grad = self.curl(self.gradient(phi))
+            results["curl_grad_error"] = np.linalg.norm(curl_grad)
+        
+        return results
+
+    def hodge_decomposition(
+        self,
+        vector_field: np.ndarray,
+        regularization: float = 1e-10
+    ) -> Dict[str, np.ndarray]:
+        """
+        Descomposición de Hodge para 1-formas.
+        
+        ω = dα + δβ + γ
+        
+        - dα: componente exacta (imagen de gradiente)
+        - δβ: componente co-exacta (imagen de co-rotacional)
+        - γ: componente armónica (núcleo de Laplaciano)
+        """
+        if not SCIPY_AVAILABLE:
+            return {}
+        
+        omega = np.asarray(vector_field).ravel()
+        if omega.size != self.num_edges:
+            raise ValueError(f"Esperado {self.num_edges} aristas")
+        
+        # Componente exacta: Δ₀α = δ₁ω
+        div_omega = self.divergence(omega)
+        Delta0 = self.laplacian(0)
+        Delta0_reg = Delta0 + regularization * sparse.eye(self.num_nodes)
+        
+        try:
+            alpha = spsolve(Delta0_reg, div_omega)
+        except Exception:
+            alpha = np.zeros(self.num_nodes)
+        
+        exact = self.gradient(alpha)
+        
+        # Componente co-exacta
+        if self.num_faces > 0:
+            curl_omega = self.curl(omega)
+            coexact = self.cocurl_op @ curl_omega
+        else:
+            coexact = np.zeros(self.num_edges)
+        
+        # Componente armónica
+        harmonic = omega - exact - coexact
+        
+        return {
+            "exact": exact,
+            "coexact": coexact,
+            "harmonic": harmonic,
+            "potential": alpha,
+            "reconstruction_error": np.linalg.norm(
+                omega - exact - coexact - harmonic
+            )
+        }
+
+
+# ============================================================================
+# SOLUCIONADOR DE MAXWELL
+# ============================================================================
+class MaxwellSolver:
+    """
+    Solucionador FDTD de Maxwell con esquema leap-frog y PML.
+    
+    Ecuaciones de Maxwell discretas (semi-discretas):
+        ∂ₜB = -d₁E - σₘH
+        ∂ₜD = δ₂H - σₑE - J
+    
+    Relaciones constitutivas:
+        D = ε⋆₁E,  B = μ⋆₂H
+    
+    Esquema temporal (leap-frog):
+        B^{n+1/2} = B^{n-1/2} - Δt·d₁E^n
+        E^{n+1}   = E^n + Δt·(δ₂H^{n+1/2} - J)
+    
+    PML (Perfectly Matched Layer):
+        Perfil parabólico: σ(ρ) = σₘₐₓ·(ρ/d)²
+        donde ρ es distancia al borde y d es espesor PML.
+    
+    Referencias:
+        [1] Taflove & Hagness, Computational Electrodynamics (2005)
+        [2] Bossavit, Computational Electromagnetism (1998)
+    """
+
+    def __init__(
+        self,
+        calculus: DiscreteVectorCalculus,
+        permittivity: float = 1.0,
+        permeability: float = 1.0,
+        electric_conductivity: float = 0.0,
+        magnetic_conductivity: float = 0.0,
+        pml_thickness: float = 0.1,
+        pml_max_sigma: float = 1.0
+    ):
+        """
+        Args:
+            calculus: Instancia de DiscreteVectorCalculus
+            permittivity: ε (permitividad relativa)
+            permeability: μ (permeabilidad relativa)
+            electric_conductivity: σₑ base
+            magnetic_conductivity: σₘ base
+            pml_thickness: Fracción del dominio para PML
+            pml_max_sigma: Conductividad máxima en PML
+        """
+        self.calc = calculus
+        
+        self.epsilon = max(permittivity, CONSTANTS.NUMERICAL_TOLERANCE)
+        self.mu = max(permeability, CONSTANTS.NUMERICAL_TOLERANCE)
+        self.sigma_e_base = max(electric_conductivity, 0.0)
+        self.sigma_m_base = max(magnetic_conductivity, 0.0)
+        
+        # Velocidad de fase
+        self.c = 1.0 / np.sqrt(self.epsilon * self.mu)
+        
+        # Inicializar PML
+        self._pml_thickness = pml_thickness
+        self._pml_max_sigma = pml_max_sigma
+        self._initialize_pml()
+        
+        # Campos primales
+        self.E = np.zeros(calculus.num_edges)  # 1-forma
+        self.B = np.zeros(calculus.num_faces)  # 2-forma
+        
+        # Campos duales
+        self.D = np.zeros(calculus.num_edges)
+        self.H = np.zeros(calculus.num_faces)
+        
+        # Fuentes
+        self.J_e = np.zeros(calculus.num_edges)
+        self.J_m = np.zeros(calculus.num_faces)
+        
+        # Estado temporal
+        self.time = 0.0
+        self.step_count = 0
+        
+        # Condición CFL
+        self.dt_cfl = self._compute_cfl_limit()
+        
+        # Historial
+        self.energy_history: deque = deque(maxlen=10000)
+        
+        # Cache de coeficientes
+        self._coeff_cache: Dict[float, Tuple] = {}
+
+    def _initialize_pml(self) -> None:
+        """
+        Inicializa perfiles PML con atenuación parabólica.
+        
+        σ(ρ) = σₘₐₓ·(ρ/d)²
+        
+        donde ρ es la distancia normalizada al centro.
+        """
+        if not SCIPY_AVAILABLE:
+            self.sigma_e_pml = np.zeros(self.calc.num_edges)
+            self.sigma_m_pml = np.zeros(self.calc.num_faces)
+            return
+        
+        # Centro del grafo (promedio de índices de nodos)
+        center = (self.calc.num_nodes - 1) / 2.0
+        max_dist = max(center, 1.0)
+        threshold = 1.0 - self._pml_thickness
+        
+        # PML para aristas
+        self.sigma_e_pml = np.zeros(self.calc.num_edges)
+        for idx, (u, v) in enumerate(self.calc.edges):
+            # Distancia normalizada al centro
+            pos = (abs(u - center) + abs(v - center)) / (2.0 * max_dist)
+            if pos > threshold:
+                rho = (pos - threshold) / self._pml_thickness
+                self.sigma_e_pml[idx] = self._pml_max_sigma * (rho ** 2)
+        
+        # PML para caras (promedio de nodos)
+        self.sigma_m_pml = np.zeros(self.calc.num_faces)
+        if self.calc.num_faces > 0:
+            for idx, face in enumerate(self.calc.faces):
+                avg_pos = np.mean([abs(n - center) for n in face]) / max_dist
+                if avg_pos > threshold:
+                    rho = (avg_pos - threshold) / self._pml_thickness
+                    self.sigma_m_pml[idx] = self._pml_max_sigma * (rho ** 2)
+
+    def _compute_cfl_limit(self) -> float:
+        """
+        Condición CFL para estabilidad numérica.
+        
+        Δt < Δx_min / (c·√d)
+        
+        donde d es la dimensión efectiva.
+        """
+        if self.calc.num_edges == 0:
+            return 1.0
+        
+        # Estimación del espaciado mínimo
+        max_degree = max(dict(self.calc.graph.degree()).values())
+        dim_eff = 2.0 if self.calc.is_planar else 3.0
+        
+        # Factor CFL con margen de seguridad
+        dt_est = CONSTANTS.CFL_SAFETY_FACTOR / (
+            self.c * np.sqrt(dim_eff * max_degree)
+        )
+        
+        return max(dt_est, CONSTANTS.NUMERICAL_TOLERANCE)
+
+    def _get_update_coefficients(self, dt: float) -> Tuple[np.ndarray, ...]:
+        """
+        Coeficientes de actualización incluyendo PML.
+        
+        E: Eⁿ⁺¹ = cₑ₁·Eⁿ + cₑ₂·(fuentes)
+        H: Hⁿ⁺¹/² = cₕ₁·Hⁿ⁻¹/² + cₕ₂·(fuentes)
+        """
+        if dt in self._coeff_cache:
+            return self._coeff_cache[dt]
+        
+        sigma_e = self.sigma_e_base + self.sigma_e_pml
+        sigma_m = self.sigma_m_base + self.sigma_m_pml
+        
+        # Coeficientes para E
+        alpha_e = sigma_e * dt / (2.0 * self.epsilon)
+        ce1 = (1.0 - alpha_e) / (1.0 + alpha_e)
+        ce2 = dt / (self.epsilon * (1.0 + alpha_e))
+        
+        # Coeficientes para H
+        alpha_m = sigma_m * dt / (2.0 * self.mu)
+        ch1 = (1.0 - alpha_m) / (1.0 + alpha_m)
+        ch2 = dt / (self.mu * (1.0 + alpha_m))
+        
+        result = (ce1, ce2, ch1, ch2)
+        self._coeff_cache[dt] = result
+        return result
+
+    def update_constitutive_relations(self) -> None:
+        """Actualiza campos duales D y H desde E y B."""
+        if not SCIPY_AVAILABLE:
+            return
+        
+        if self.calc.num_edges > 0:
+            self.D = self.epsilon * (self.calc.star1 @ self.E)
+        
+        if self.calc.num_faces > 0:
+            self.H = (1.0 / self.mu) * (self.calc.star2_inv @ self.B)
+
+    def step_magnetic_field(self, dt: float) -> None:
+        """
+        Actualización de B usando ley de Faraday.
+        
+        ∂ₜB = -curl(E) - σₘH
+        """
+        if not SCIPY_AVAILABLE or self.calc.num_faces == 0:
+            return
+        
+        _, _, ch1, ch2 = self._get_update_coefficients(dt)
+        
+        curl_E = self.calc.curl(self.E)
+        
+        # Actualización leap-frog
+        self.B = ch1 * self.B - ch2 * (curl_E + self.J_m)
+        
+        # Actualizar H
+        self.H = (1.0 / self.mu) * (self.calc.star2_inv @ self.B)
+
+    def step_electric_field(self, dt: float) -> None:
+        """
+        Actualización de E usando ley de Ampère-Maxwell.
+        
+        ε·∂ₜE = curl(H) - σₑE - J
+        """
+        if not SCIPY_AVAILABLE or self.calc.num_edges == 0:
+            return
+        
+        ce1, ce2, _, _ = self._get_update_coefficients(dt)
+        
+        # Término fuente: ∂₂H
+        if self.calc.num_faces > 0:
+            source_term = self.calc.boundary2 @ self.H
+        else:
+            source_term = np.zeros(self.calc.num_edges)
+        
+        # Aplicar métrica inversa
+        metric_term = self.calc.star1_inv @ (source_term - self.J_e)
+        
+        # Actualización
+        self.E = ce1 * self.E + ce2 * metric_term
+        
+        # Actualizar D
+        self.D = self.epsilon * (self.calc.star1 @ self.E)
+
+    def leapfrog_step(self, dt: Optional[float] = None) -> None:
+        """
+        Paso completo leap-frog.
+        
+        1. B^{n-1/2} → B^{n+1/2} usando E^n
+        2. E^n → E^{n+1} usando H^{n+1/2}
+        """
+        if not SCIPY_AVAILABLE:
+            return
+        
+        if dt is None:
+            dt = 0.9 * self.dt_cfl
+        
+        if dt > self.dt_cfl:
+            logger.warning(
+                f"Δt={dt:.2e} > Δt_CFL={self.dt_cfl:.2e}. "
+                "Posible inestabilidad."
+            )
+        
+        self.step_magnetic_field(dt)
+        self.step_electric_field(dt)
+        
+        self.time += dt
+        self.step_count += 1
+        
+        energy = self.total_energy()
+        self.energy_history.append(energy)
+        
+        # Detección de inestabilidad
+        if len(self.energy_history) >= 10:
+            recent = list(self.energy_history)[-10:]
+            if recent[-1] > 2 * recent[0] and recent[0] > CONSTANTS.MIN_ENERGY_THRESHOLD:
+                logger.warning(
+                    f"Energía creciendo exponencialmente: "
+                    f"{recent[0]:.2e} → {recent[-1]:.2e}"
+                )
+
+    def total_energy(self) -> float:
+        """
+        Energía electromagnética total.
+        
+        U = ½(E·D + H·B) = ½(ε|E|² + μ⁻¹|B|²)
+        """
+        if not SCIPY_AVAILABLE:
+            return 0.0
+        
+        U_e = 0.5 * np.dot(self.E, self.D) if self.calc.num_edges > 0 else 0.0
+        U_m = 0.5 * np.dot(self.H, self.B) if self.calc.num_faces > 0 else 0.0
+        
+        return U_e + U_m
+
+    def poynting_flux(self) -> np.ndarray:
+        """
+        Vector de Poynting S = E × H en aristas.
+        
+        Representa flujo de energía electromagnética.
+        """
+        if not SCIPY_AVAILABLE:
+            return np.array([])
+        
+        S = np.zeros(self.calc.num_edges)
+        
+        if self.calc.num_faces == 0:
+            return S
+        
+        for edge_idx in range(self.calc.num_edges):
+            adjacent = self.calc.edge_to_faces[edge_idx]
+            if adjacent:
+                H_avg = np.mean([self.H[f[0]] for f in adjacent])
+                S[edge_idx] = self.E[edge_idx] * H_avg
+        
+        return S
+
+    def set_initial_conditions(
+        self,
+        E0: Optional[np.ndarray] = None,
+        B0: Optional[np.ndarray] = None
+    ) -> None:
+        """Establece condiciones iniciales."""
+        if E0 is not None:
+            E0 = np.asarray(E0).ravel()
+            if E0.size != self.calc.num_edges:
+                raise ValueError(f"E0 debe tener tamaño {self.calc.num_edges}")
+            self.E = E0.copy()
+        
+        if B0 is not None:
+            B0 = np.asarray(B0).ravel()
+            if B0.size != self.calc.num_faces:
+                raise ValueError(f"B0 debe tener tamaño {self.calc.num_faces}")
+            self.B = B0.copy()
+        
+        self.update_constitutive_relations()
+
+    def compute_energy_and_momentum(self) -> Dict[str, Any]:
+        """Calcula energía y momento del campo."""
+        if not SCIPY_AVAILABLE:
+            return {"total_energy": 0.0}
+        
+        U = self.total_energy()
+        S = self.poynting_flux()
+        
+        return {
+            "total_energy": U,
+            "poynting_vector": S,
+            "poynting_magnitude": np.linalg.norm(S),
+            "poynting_max": np.max(np.abs(S)) if S.size > 0 else 0.0,
+            "gauss_residual": np.linalg.norm(self.calc.divergence(self.D)),
+        }
+
+    def verify_energy_conservation(
+        self,
+        num_steps: int = 100,
+        tolerance: float = 1e-4
+    ) -> Dict[str, float]:
+        """Verifica conservación de energía en sistema aislado."""
+        if not SCIPY_AVAILABLE:
+            return {}
+        
+        # Guardar estado
+        state = (
+            self.E.copy(), self.B.copy(),
+            self.J_e.copy(), self.J_m.copy(),
+            self.sigma_e_base, self.sigma_m_base,
+            self.sigma_e_pml.copy(), self.sigma_m_pml.copy()
+        )
+        
+        # Sistema conservativo
+        self.J_e.fill(0.0)
+        self.J_m.fill(0.0)
+        self.sigma_e_base = 0.0
+        self.sigma_m_base = 0.0
+        self.sigma_e_pml.fill(0.0)
+        self.sigma_m_pml.fill(0.0)
+        self._coeff_cache.clear()
+        
+        # Condición inicial no trivial
+        if np.allclose(self.E, 0) and np.allclose(self.B, 0):
+            self.E = np.random.randn(self.calc.num_edges)
+            if self.calc.num_faces > 0:
+                self.B = np.random.randn(self.calc.num_faces)
+            self.update_constitutive_relations()
+        
+        # Simular
+        energies = [self.total_energy()]
+        for _ in range(num_steps):
+            self.leapfrog_step()
+            energies.append(self.total_energy())
+        
+        # Restaurar
+        (
+            self.E, self.B, self.J_e, self.J_m,
+            self.sigma_e_base, self.sigma_m_base,
+            self.sigma_e_pml, self.sigma_m_pml
+        ) = state
+        self._coeff_cache.clear()
+        
+        # Análisis
+        energies = np.array(energies)
+        E0 = energies[0]
+        
+        if E0 > CONSTANTS.MIN_ENERGY_THRESHOLD:
+            relative_deviation = np.max(np.abs(energies - E0)) / E0
+        else:
+            relative_deviation = 0.0
+        
+        return {
+            "initial_energy": E0,
+            "final_energy": energies[-1],
+            "mean_energy": np.mean(energies),
+            "std_energy": np.std(energies),
+            "max_relative_deviation": relative_deviation,
+            "is_conservative": relative_deviation < tolerance
+        }
+
+
+# ============================================================================
+# CONTROLADOR PORT-HAMILTONIANO
+# ============================================================================
+class PortHamiltonianController:
+    """
+    Controlador basado en sistemas Hamiltonianos con puertos (PHS).
+    
+    Estructura:
+        ẋ = (J - R)∂H/∂x + g·u
+        y = gᵀ·∂H/∂x
+    
+    donde:
+        x = [E, B]ᵀ: estado
+        H(x): Hamiltoniano (energía)
+        J: matriz de interconexión (antisimétrica)
+        R: matriz de disipación (simétrica ≥ 0)
+        g: matriz de entrada
+    
+    Control IDA-PBC:
+        u = -Kd·∇V
+        V(x) = ½(H(x) - H*)²
+    
+    Referencias:
+        [1] van der Schaft, L²-Gain and Passivity Techniques (2000)
+        [2] Ortega et al., Control by Interconnection (2008)
+    """
+
+    def __init__(
+        self,
+        solver: MaxwellSolver,
+        target_energy: float = 1.0,
+        damping_injection: float = 0.1,
+        energy_shaping: bool = True,
+        control_saturation: Optional[float] = None
+    ):
+        """
+        Args:
+            solver: Instancia de MaxwellSolver
+            target_energy: Energía objetivo H*
+            damping_injection: Ganancia de inyección Kd
+            energy_shaping: Si True, usa IDA-PBC
+            control_saturation: Límite de saturación (None = automático)
+        """
+        self.solver = solver
+        self.H_target = max(target_energy, CONSTANTS.MIN_ENERGY_THRESHOLD)
+        self.kd = damping_injection
+        self.use_energy_shaping = energy_shaping
+        
+        # Dimensiones
+        self.n_e = solver.calc.num_edges
+        self.n_f = solver.calc.num_faces
+        self.n_x = self.n_e + self.n_f
+        
+        # Saturación automática basada en CFL
+        if control_saturation is None:
+            self.u_max = 10.0 / max(solver.dt_cfl, CONSTANTS.MIN_DELTA_TIME)
+        else:
+            self.u_max = control_saturation
+        
+        # Construir matrices PHS
+        if SCIPY_AVAILABLE:
+            self._build_phs_matrices()
+            self._verify_phs_structure()
+        
+        # Historial
+        self.control_history: deque = deque(maxlen=10000)
+        self.energy_history: deque = deque(maxlen=10000)
+        self.lyapunov_history: deque = deque(maxlen=10000)
+
+    def _build_phs_matrices(self) -> None:
+        """Construye matrices de estructura PHS."""
+        self.J_phs = self._build_interconnection()
+        self.R_phs = self._build_dissipation()
+        self.g_matrix = sparse.eye(self.n_x, format='csr')
+
+    def _build_interconnection(self) -> sparse.csr_matrix:
+        """
+        Matriz de interconexión antisimétrica J.
+        
+        J = [ 0    -∂₂/ε ]
+            [∂₂ᵀ/μ   0   ]
+        """
+        calc = self.solver.calc
+        eps, mu = self.solver.epsilon, self.solver.mu
+        
+        if self.n_f == 0:
+            return sparse.csr_matrix((self.n_e, self.n_e))
+        
+        zero_ee = sparse.csr_matrix((self.n_e, self.n_e))
+        zero_ff = sparse.csr_matrix((self.n_f, self.n_f))
+        
+        # Bloques off-diagonal antisimétricos
+        J_ef = (-1.0 / eps) * calc.boundary2
+        J_fe = (1.0 / mu) * calc.boundary2.T
+        
+        return bmat([
+            [zero_ee, J_ef],
+            [J_fe, zero_ff]
+        ], format='csr')
+
+    def _build_dissipation(self) -> sparse.csr_matrix:
+        """
+        Matriz de disipación R (simétrica ≥ 0).
+        
+        R = diag(σₑ/ε, σₘ/μ)
+        """
+        eps, mu = self.solver.epsilon, self.solver.mu
+        
+        sigma_e = self.solver.sigma_e_base + self.solver.sigma_e_pml
+        sigma_m = self.solver.sigma_m_base + self.solver.sigma_m_pml
+        
+        diag_e = sigma_e / eps
+        diag_f = sigma_m / mu if self.n_f > 0 else np.array([])
+        
+        diag_full = np.concatenate([diag_e, diag_f])
+        
+        return sparse.diags(diag_full, format='csr')
+
+    def _verify_phs_structure(self) -> None:
+        """Verifica estructura PHS: J antisimétrica, R simétrica ≥ 0."""
+        # Antisimetría de J
+        J_plus_JT = self.J_phs + self.J_phs.T
+        if J_plus_JT.nnz > 0:
+            max_asymm = np.max(np.abs(J_plus_JT.data))
+            if max_asymm > CONSTANTS.NUMERICAL_TOLERANCE:
+                logger.warning(f"J no es antisimétrica: ||J + Jᵀ|| = {max_asymm:.2e}")
+        
+        # Simetría de R
+        R_minus_RT = self.R_phs - self.R_phs.T
+        if R_minus_RT.nnz > 0:
+            max_asymm = np.max(np.abs(R_minus_RT.data))
+            if max_asymm > CONSTANTS.NUMERICAL_TOLERANCE:
+                logger.warning(f"R no es simétrica: ||R - Rᵀ|| = {max_asymm:.2e}")
+        
+        # R ≥ 0
+        R_diag = self.R_phs.diagonal()
+        if np.any(R_diag < -CONSTANTS.NUMERICAL_TOLERANCE):
+            logger.warning("R tiene elementos negativos en diagonal")
+
+    def get_state(self) -> np.ndarray:
+        """Retorna vector de estado x = [E, B]ᵀ."""
+        return np.concatenate([self.solver.E, self.solver.B])
+
+    def set_state(self, x: np.ndarray) -> None:
+        """Establece estado desde vector x."""
+        self.solver.E = x[:self.n_e].copy()
+        self.solver.B = x[self.n_e:].copy()
+        self.solver.update_constitutive_relations()
+
+    def hamiltonian(self, x: Optional[np.ndarray] = None) -> float:
+        """Hamiltoniano H(x) = energía total."""
+        if not SCIPY_AVAILABLE:
+            return 0.0
+        
+        if x is None:
+            return self.solver.total_energy()
+        
+        E = x[:self.n_e]
+        B = x[self.n_e:]
+        eps, mu = self.solver.epsilon, self.solver.mu
+        calc = self.solver.calc
+        
+        D = eps * (calc.star1 @ E)
+        U_e = 0.5 * np.dot(E, D)
+        
+        if self.n_f > 0:
+            H_field = (1.0 / mu) * (calc.star2_inv @ B)
+            U_m = 0.5 * np.dot(H_field, B)
+        else:
+            U_m = 0.0
+        
+        return U_e + U_m
+
+    def hamiltonian_gradient(self, x: Optional[np.ndarray] = None) -> np.ndarray:
+        """Gradiente ∂H/∂x = [D, H]ᵀ."""
+        if not SCIPY_AVAILABLE:
+            return np.array([])
+        
+        if x is None:
+            return np.concatenate([self.solver.D, self.solver.H])
+        
+        E = x[:self.n_e]
+        B = x[self.n_e:]
+        eps, mu = self.solver.epsilon, self.solver.mu
+        calc = self.solver.calc
+        
+        D = eps * (calc.star1 @ E)
+        H_field = (1.0 / mu) * (calc.star2_inv @ B) if self.n_f > 0 else np.array([])
+        
+        return np.concatenate([D, H_field])
+
+    def storage_function(self) -> float:
+        """
+        Función de almacenamiento (candidato Lyapunov).
+        
+        V(x) = ½(H(x) - H*)²
+        """
+        H = self.hamiltonian()
+        return 0.5 * (H - self.H_target) ** 2
+
+    def compute_control(self) -> np.ndarray:
+        """
+        Ley de control IDA-PBC suavizada.
+        
+        u = -Kd · tanh(κ·ΔH) · ∇H
+        
+        donde tanh evita chattering y κ controla la transición.
+        """
+        H = self.hamiltonian()
+        grad_H = self.hamiltonian_gradient()
+        
+        error = H - self.H_target
+        
+        if self.use_energy_shaping:
+            # Suavización con tanh para evitar chattering
+            kappa = 10.0 / max(self.H_target, CONSTANTS.MIN_ENERGY_THRESHOLD)
+            smooth_sign = np.tanh(kappa * error)
+            u = -self.kd * smooth_sign * grad_H * abs(error)
+        else:
+            # Damping injection puro
+            u = -self.kd * grad_H
+        
+        # Saturación
+        u = np.clip(u, -self.u_max, self.u_max)
+        
+        return u
+
+    def apply_control(self, dt: float) -> np.ndarray:
+        """Aplica señal de control como fuentes."""
+        u = self.compute_control()
+        
+        u_e = u[:self.n_e]
+        u_f = u[self.n_e:] if self.n_f > 0 else np.array([])
+        
+        self.solver.J_e = -u_e
+        if self.n_f > 0:
+            self.solver.J_m = -u_f
+        
+        # Registrar
+        self.control_history.append(np.linalg.norm(u))
+        self.energy_history.append(self.hamiltonian())
+        self.lyapunov_history.append(self.storage_function())
+        
+        return u
+
+    def controlled_step(self, dt: Optional[float] = None) -> None:
+        """Paso con control activo."""
+        if dt is None:
+            dt = 0.9 * self.solver.dt_cfl
+        
+        self.apply_control(dt)
+        self.solver.leapfrog_step(dt)
+        
+        # Limpiar fuentes
+        self.solver.J_e.fill(0.0)
+        if self.n_f > 0:
+            self.solver.J_m.fill(0.0)
+
+    def verify_passivity(self, num_steps: int = 100) -> Dict[str, float]:
+        """Verifica pasividad: dV/dt ≤ uᵀy."""
+        if not SCIPY_AVAILABLE:
+            return {}
+        
+        # Guardar estado
+        E0, B0 = self.solver.E.copy(), self.solver.B.copy()
+        
+        # Inicialización
+        self.solver.E = np.random.randn(self.n_e) * 0.5
+        if self.n_f > 0:
+            self.solver.B = np.random.randn(self.n_f) * 0.5
+        self.solver.update_constitutive_relations()
+        
+        violations = []
+        dt = 0.9 * self.solver.dt_cfl
+        
+        for _ in range(num_steps):
+            V_before = self.storage_function()
+            grad_H = self.hamiltonian_gradient()
+            
+            u = self.compute_control()
+            y = self.g_matrix.T @ grad_H
+            supply_rate = np.dot(u, y)
+            
+            self.controlled_step(dt)
+            
+            V_after = self.storage_function()
+            V_dot = (V_after - V_before) / dt
+            
+            violations.append(V_dot - supply_rate)
+        
+        # Restaurar
+        self.solver.E, self.solver.B = E0, B0
+        self.solver.update_constitutive_relations()
+        
+        violations = np.array(violations)
+        
+        return {
+            "mean_violation": np.mean(violations),
+            "max_violation": np.max(violations),
+            "is_passive": np.all(violations <= CONSTANTS.NUMERICAL_TOLERANCE),
+            "passivity_margin": -np.max(violations) if np.max(violations) < 0 else 0.0
+        }
+
+    def simulate_regulation(
+        self,
+        num_steps: int = 1000,
+        dt: Optional[float] = None
+    ) -> Dict[str, np.ndarray]:
+        """Simula regulación hacia energía objetivo."""
+        if dt is None:
+            dt = 0.9 * self.solver.dt_cfl
+        
+        energies, controls, lyapunovs, times = [], [], [], []
+        
+        for _ in range(num_steps):
+            self.controlled_step(dt)
+            
+            energies.append(self.hamiltonian())
+            controls.append(self.control_history[-1])
+            lyapunovs.append(self.lyapunov_history[-1])
+            times.append(self.solver.time)
+        
+        return {
+            "time": np.array(times),
+            "energy": np.array(energies),
+            "control_norm": np.array(controls),
+            "lyapunov": np.array(lyapunovs),
+            "final_error": abs(energies[-1] - self.H_target) / self.H_target
+        }

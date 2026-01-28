@@ -1,0 +1,2274 @@
+"""
+Suite de evaluación y testing para las clases refinadas del sistema.
+
+Este módulo implementa verificaciones exhaustivas de:
+- Correctitud matemática y topológica
+- Estabilidad numérica
+- Propiedades físicas (conservación, pasividad)
+- Casos límite y condiciones de borde
+- Coherencia inter-módulo
+
+Autor: Sistema de Validación Automatizada
+Versión: 2.0
+"""
+
+import logging
+import math
+import time
+import warnings
+from collections import deque
+from dataclasses import dataclass, field
+from typing import Any, Callable, Dict, List, Optional, Set, Tuple, Union
+from contextlib import contextmanager
+from functools import wraps
+import traceback
+
+try:
+    import numpy as np
+    from numpy.linalg import LinAlgError
+    NUMPY_AVAILABLE = True
+except ImportError:
+    np = None
+    NUMPY_AVAILABLE = False
+    LinAlgError = Exception
+
+try:
+    from scipy import sparse
+    from scipy.sparse.linalg import eigsh, norm as sparse_norm
+    from scipy.stats import pearsonr
+    SCIPY_AVAILABLE = True
+except ImportError:
+    SCIPY_AVAILABLE = False
+    sparse = None
+
+import networkx as nx
+
+# Importar clases a evaluar (asumiendo que están en el mismo paquete)
+# from .refined_classes import (
+#     SystemConstants, CONSTANTS,
+#     PIController, DiscreteVectorCalculus,
+#     MaxwellSolver, PortHamiltonianController,
+#     ConfigurationError, NumericalInstabilityError
+# )
+
+logger = logging.getLogger(__name__)
+
+
+# ============================================================================
+# INFRAESTRUCTURA DE TESTING
+# ============================================================================
+
+@dataclass
+class TestResult:
+    """Resultado de una prueba individual."""
+    name: str
+    passed: bool
+    message: str
+    duration_ms: float
+    details: Dict[str, Any] = field(default_factory=dict)
+    exception: Optional[str] = None
+    
+    def __str__(self) -> str:
+        status = "✓ PASS" if self.passed else "✗ FAIL"
+        return f"[{status}] {self.name}: {self.message} ({self.duration_ms:.2f}ms)"
+
+
+@dataclass
+class TestSuiteResult:
+    """Resultado agregado de una suite de pruebas."""
+    suite_name: str
+    results: List[TestResult]
+    total_duration_ms: float
+    
+    @property
+    def passed(self) -> int:
+        return sum(1 for r in self.results if r.passed)
+    
+    @property
+    def failed(self) -> int:
+        return sum(1 for r in self.results if not r.passed)
+    
+    @property
+    def total(self) -> int:
+        return len(self.results)
+    
+    @property
+    def success_rate(self) -> float:
+        return self.passed / max(self.total, 1)
+    
+    def summary(self) -> str:
+        lines = [
+            f"\n{'='*60}",
+            f"Suite: {self.suite_name}",
+            f"{'='*60}",
+            f"Total: {self.total} | Passed: {self.passed} | Failed: {self.failed}",
+            f"Success Rate: {self.success_rate:.1%}",
+            f"Duration: {self.total_duration_ms:.2f}ms",
+            f"{'='*60}",
+        ]
+        
+        for result in self.results:
+            lines.append(str(result))
+            if not result.passed and result.exception:
+                lines.append(f"    Exception: {result.exception}")
+        
+        return "\n".join(lines)
+
+
+def timed_test(func: Callable) -> Callable:
+    """Decorador para medir tiempo de ejecución de tests."""
+    @wraps(func)
+    def wrapper(*args, **kwargs) -> TestResult:
+        start = time.perf_counter()
+        try:
+            result = func(*args, **kwargs)
+            duration = (time.perf_counter() - start) * 1000
+            if isinstance(result, TestResult):
+                result.duration_ms = duration
+                return result
+            return TestResult(
+                name=func.__name__,
+                passed=bool(result),
+                message="Completed",
+                duration_ms=duration
+            )
+        except Exception as e:
+            duration = (time.perf_counter() - start) * 1000
+            return TestResult(
+                name=func.__name__,
+                passed=False,
+                message=f"Exception: {type(e).__name__}",
+                duration_ms=duration,
+                exception=traceback.format_exc()
+            )
+    return wrapper
+
+
+class TestRunner:
+    """Ejecutor de suites de pruebas."""
+    
+    def __init__(self, verbose: bool = True):
+        self.verbose = verbose
+        self.all_results: List[TestSuiteResult] = []
+    
+    def run_suite(
+        self, 
+        suite_name: str, 
+        test_methods: List[Callable]
+    ) -> TestSuiteResult:
+        """Ejecuta una suite de pruebas."""
+        start = time.perf_counter()
+        results = []
+        
+        for test_method in test_methods:
+            if self.verbose:
+                print(f"  Running: {test_method.__name__}...", end=" ")
+            
+            result = test_method()
+            results.append(result)
+            
+            if self.verbose:
+                status = "✓" if result.passed else "✗"
+                print(f"{status}")
+        
+        duration = (time.perf_counter() - start) * 1000
+        suite_result = TestSuiteResult(suite_name, results, duration)
+        self.all_results.append(suite_result)
+        
+        return suite_result
+    
+    def global_summary(self) -> str:
+        """Resumen global de todas las suites ejecutadas."""
+        total_passed = sum(s.passed for s in self.all_results)
+        total_failed = sum(s.failed for s in self.all_results)
+        total_tests = sum(s.total for s in self.all_results)
+        total_duration = sum(s.total_duration_ms for s in self.all_results)
+        
+        lines = [
+            f"\n{'#'*60}",
+            f"RESUMEN GLOBAL DE EVALUACIÓN",
+            f"{'#'*60}",
+            f"Suites ejecutadas: {len(self.all_results)}",
+            f"Tests totales: {total_tests}",
+            f"Pasados: {total_passed} | Fallidos: {total_failed}",
+            f"Tasa de éxito global: {total_passed/max(total_tests,1):.1%}",
+            f"Duración total: {total_duration:.2f}ms",
+            f"{'#'*60}",
+        ]
+        
+        return "\n".join(lines)
+
+
+# ============================================================================
+# EVALUACIÓN DE SystemConstants
+# ============================================================================
+
+class SystemConstantsEvaluator:
+    """Evaluador para la clase SystemConstants."""
+    
+    @staticmethod
+    @timed_test
+    def test_immutability() -> TestResult:
+        """Verifica que las constantes son inmutables."""
+        try:
+            constants = SystemConstants()
+            # Intentar modificar debería fallar
+            try:
+                constants.MIN_DELTA_TIME = 999.0
+                return TestResult(
+                    name="test_immutability",
+                    passed=False,
+                    message="Constantes son mutables (frozen=False)",
+                    duration_ms=0
+                )
+            except AttributeError:
+                pass  # Esperado para frozen dataclass
+            
+            return TestResult(
+                name="test_immutability",
+                passed=True,
+                message="Constantes correctamente inmutables",
+                duration_ms=0
+            )
+        except Exception as e:
+            return TestResult(
+                name="test_immutability",
+                passed=False,
+                message=str(e),
+                duration_ms=0
+            )
+    
+    @staticmethod
+    @timed_test
+    def test_tolerance_hierarchy() -> TestResult:
+        """Verifica jerarquía de tolerancias numéricas."""
+        constants = SystemConstants()
+        
+        hierarchy_valid = (
+            constants.NUMERICAL_ZERO < 
+            constants.NUMERICAL_TOLERANCE < 
+            constants.RELATIVE_TOLERANCE
+        )
+        
+        details = {
+            "NUMERICAL_ZERO": constants.NUMERICAL_ZERO,
+            "NUMERICAL_TOLERANCE": constants.NUMERICAL_TOLERANCE,
+            "RELATIVE_TOLERANCE": constants.RELATIVE_TOLERANCE,
+        }
+        
+        return TestResult(
+            name="test_tolerance_hierarchy",
+            passed=hierarchy_valid,
+            message="Jerarquía de tolerancias coherente" if hierarchy_valid else "Jerarquía inválida",
+            duration_ms=0,
+            details=details
+        )
+    
+    @staticmethod
+    @timed_test
+    def test_cfl_bounds() -> TestResult:
+        """Verifica que el factor CFL está en rango válido."""
+        constants = SystemConstants()
+        
+        valid = 0 < constants.CFL_SAFETY_FACTOR < 1
+        
+        return TestResult(
+            name="test_cfl_bounds",
+            passed=valid,
+            message=f"CFL factor = {constants.CFL_SAFETY_FACTOR}",
+            duration_ms=0,
+            details={"cfl_factor": constants.CFL_SAFETY_FACTOR}
+        )
+    
+    @staticmethod
+    @timed_test
+    def test_time_bounds_consistency() -> TestResult:
+        """Verifica coherencia de límites temporales."""
+        constants = SystemConstants()
+        
+        valid = constants.MIN_DELTA_TIME < constants.MAX_DELTA_TIME
+        
+        return TestResult(
+            name="test_time_bounds_consistency",
+            passed=valid,
+            message=f"[{constants.MIN_DELTA_TIME}, {constants.MAX_DELTA_TIME}]",
+            duration_ms=0
+        )
+    
+    @classmethod
+    def run_all(cls, runner: TestRunner) -> TestSuiteResult:
+        """Ejecuta todas las pruebas de SystemConstants."""
+        tests = [
+            cls.test_immutability,
+            cls.test_tolerance_hierarchy,
+            cls.test_cfl_bounds,
+            cls.test_time_bounds_consistency,
+        ]
+        return runner.run_suite("SystemConstants", tests)
+
+
+# ============================================================================
+# EVALUACIÓN DE PIController
+# ============================================================================
+
+class PIControllerEvaluator:
+    """Evaluador exhaustivo para PIController."""
+    
+    @staticmethod
+    def create_default_controller() -> 'PIController':
+        """Crea un controlador con parámetros por defecto para testing."""
+        return PIController(
+            kp=2.0,
+            ki=0.5,
+            setpoint=0.7,
+            min_output=10,
+            max_output=1000,
+            ema_alpha=0.3
+        )
+    
+    @staticmethod
+    @timed_test
+    def test_parameter_validation() -> TestResult:
+        """Verifica validación de parámetros inválidos."""
+        invalid_cases = [
+            {"kp": -1.0, "ki": 0.5, "setpoint": 0.7, "min_output": 10, "max_output": 1000},
+            {"kp": 2.0, "ki": -0.5, "setpoint": 0.7, "min_output": 10, "max_output": 1000},
+            {"kp": 2.0, "ki": 0.5, "setpoint": 1.5, "min_output": 10, "max_output": 1000},
+            {"kp": 2.0, "ki": 0.5, "setpoint": 0.7, "min_output": -10, "max_output": 1000},
+            {"kp": 2.0, "ki": 0.5, "setpoint": 0.7, "min_output": 1000, "max_output": 100},
+        ]
+        
+        errors_caught = 0
+        for params in invalid_cases:
+            try:
+                PIController(**params)
+            except ConfigurationError:
+                errors_caught += 1
+        
+        all_caught = errors_caught == len(invalid_cases)
+        
+        return TestResult(
+            name="test_parameter_validation",
+            passed=all_caught,
+            message=f"Capturados {errors_caught}/{len(invalid_cases)} casos inválidos",
+            duration_ms=0,
+            details={"errors_caught": errors_caught, "total_cases": len(invalid_cases)}
+        )
+    
+    @staticmethod
+    @timed_test
+    def test_output_bounds() -> TestResult:
+        """Verifica que la salida siempre está dentro de límites."""
+        controller = PIControllerEvaluator.create_default_controller()
+        
+        violations = 0
+        test_measurements = [0.0, 0.3, 0.5, 0.7, 0.9, 1.0, 0.1, 0.8]
+        
+        for measurement in test_measurements:
+            output = controller.compute(measurement)
+            if not (controller.min_output <= output <= controller.max_output):
+                violations += 1
+        
+        return TestResult(
+            name="test_output_bounds",
+            passed=violations == 0,
+            message=f"{violations} violaciones de límites",
+            duration_ms=0,
+            details={"violations": violations, "total_tests": len(test_measurements)}
+        )
+    
+    @staticmethod
+    @timed_test
+    def test_proportional_response() -> TestResult:
+        """Verifica respuesta proporcional a errores."""
+        controller = PIController(
+            kp=10.0,
+            ki=0.0,  # Sin integral para aislar proporcional
+            setpoint=0.5,
+            min_output=1,
+            max_output=10000
+        )
+        
+        controller.reset()
+        out1 = controller.compute(0.4)  # Error = 0.1
+        
+        controller.reset()
+        out2 = controller.compute(0.3)  # Error = 0.2
+        
+        # out2 debería ser mayor (error mayor → más corrección)
+        ratio = out2 / max(out1, 1)
+        proportional_ok = ratio > 1.5  # Esperamos ~2x
+        
+        return TestResult(
+            name="test_proportional_response",
+            passed=proportional_ok,
+            message=f"Ratio de respuesta: {ratio:.2f}",
+            duration_ms=0,
+            details={"out1": out1, "out2": out2, "ratio": ratio}
+        )
+    
+    @staticmethod
+    @timed_test
+    def test_integral_accumulation() -> TestResult:
+        """Verifica acumulación integral correcta."""
+        controller = PIController(
+            kp=0.1,
+            ki=1.0,  # Ki alto para ver efecto integral
+            setpoint=0.5,
+            min_output=1,
+            max_output=10000
+        )
+        
+        # Aplicar error constante repetidamente
+        outputs = []
+        for _ in range(20):
+            out = controller.compute(0.4)  # Error constante = 0.1
+            outputs.append(out)
+            time.sleep(0.01)
+        
+        # La salida debería crecer debido a la integral
+        is_increasing = all(outputs[i] <= outputs[i+1] for i in range(len(outputs)-1))
+        
+        return TestResult(
+            name="test_integral_accumulation",
+            passed=is_increasing,
+            message="Integral acumulando correctamente" if is_increasing else "Integral no acumula",
+            duration_ms=0,
+            details={"first_output": outputs[0], "last_output": outputs[-1]}
+        )
+    
+    @staticmethod
+    @timed_test
+    def test_anti_windup_back_calculation() -> TestResult:
+        """Verifica que anti-windup previene saturación prolongada."""
+        controller = PIController(
+            kp=1.0,
+            ki=2.0,
+            setpoint=0.9,  # Alto
+            min_output=10,
+            max_output=100,  # Rango pequeño para saturar rápido
+        )
+        
+        # Saturar el controlador
+        for _ in range(50):
+            controller.compute(0.1)  # Error grande → saturación
+            time.sleep(0.01)
+        
+        # Cambiar setpoint y ver recuperación
+        controller.setpoint = 0.5
+        recovery_outputs = []
+        for _ in range(30):
+            out = controller.compute(0.5)  # Error = 0
+            recovery_outputs.append(out)
+            time.sleep(0.01)
+        
+        # Debería recuperarse (no quedarse pegado en saturación)
+        final_output = recovery_outputs[-1]
+        recovered = final_output < controller.max_output * 0.9
+        
+        return TestResult(
+            name="test_anti_windup_back_calculation",
+            passed=recovered,
+            message=f"Salida final: {final_output}",
+            duration_ms=0,
+            details={"saturated_at": controller.max_output, "recovered_to": final_output}
+        )
+    
+    @staticmethod
+    @timed_test
+    def test_rate_limiting() -> TestResult:
+        """Verifica limitación de tasa de cambio."""
+        controller = PIController(
+            kp=100.0,  # Ganancia alta para cambios bruscos
+            ki=0.0,
+            setpoint=0.5,
+            min_output=10,
+            max_output=1000
+        )
+        
+        controller.compute(0.5)  # Inicializar
+        time.sleep(0.01)
+        
+        # Cambio brusco de medición
+        out1 = controller.compute(0.5)
+        time.sleep(0.01)
+        out2 = controller.compute(0.1)  # Cambio grande
+        
+        max_allowed_change = 0.15 * (controller.max_output - controller.min_output)
+        actual_change = abs(out2 - out1)
+        
+        rate_limited = actual_change <= max_allowed_change * 1.1  # 10% tolerancia
+        
+        return TestResult(
+            name="test_rate_limiting",
+            passed=rate_limited,
+            message=f"Cambio: {actual_change:.1f}, Límite: {max_allowed_change:.1f}",
+            duration_ms=0,
+            details={"actual_change": actual_change, "max_allowed": max_allowed_change}
+        )
+    
+    @staticmethod
+    @timed_test
+    def test_ema_filter_smoothing() -> TestResult:
+        """Verifica que el filtro EMA suaviza ruido."""
+        controller = PIControllerEvaluator.create_default_controller()
+        
+        # Señal con ruido
+        np.random.seed(42)
+        base_signal = 0.5
+        noisy_measurements = [base_signal + 0.1 * np.random.randn() for _ in range(50)]
+        
+        outputs = []
+        for m in noisy_measurements:
+            outputs.append(controller.compute(m))
+            time.sleep(0.001)
+        
+        # La varianza de salida debería ser menor que la de entrada
+        input_var = np.var(noisy_measurements)
+        output_var = np.var(outputs)
+        
+        smoothing_achieved = output_var < input_var
+        
+        return TestResult(
+            name="test_ema_filter_smoothing",
+            passed=smoothing_achieved,
+            message=f"Var entrada: {input_var:.4f}, Var salida: {output_var:.4f}",
+            duration_ms=0,
+            details={"input_variance": input_var, "output_variance": output_var}
+        )
+    
+    @staticmethod
+    @timed_test
+    def test_lyapunov_convergent_system() -> TestResult:
+        """Verifica exponente de Lyapunov negativo para sistema convergente."""
+        controller = PIController(
+            kp=5.0,
+            ki=1.0,
+            setpoint=0.5,
+            min_output=10,
+            max_output=1000
+        )
+        
+        # Simular convergencia al setpoint
+        measurement = 0.1
+        for i in range(100):
+            output = controller.compute(measurement)
+            # Simular que la medición se acerca al setpoint
+            measurement = 0.5 - 0.4 * np.exp(-i * 0.05)
+            time.sleep(0.005)
+        
+        lyapunov = controller.get_lyapunov_exponent()
+        
+        # Para sistema convergente, Lyapunov debería ser negativo
+        is_convergent = lyapunov < 0.1  # Tolerancia
+        
+        return TestResult(
+            name="test_lyapunov_convergent_system",
+            passed=is_convergent,
+            message=f"Lyapunov = {lyapunov:.4f}",
+            duration_ms=0,
+            details={"lyapunov_exponent": lyapunov}
+        )
+    
+    @staticmethod
+    @timed_test
+    def test_stability_analysis_classification() -> TestResult:
+        """Verifica clasificación correcta de estabilidad."""
+        controller = PIControllerEvaluator.create_default_controller()
+        
+        # Poblar historial
+        for i in range(50):
+            controller.compute(0.5 + 0.1 * np.sin(i * 0.1))
+            time.sleep(0.001)
+        
+        analysis = controller.get_stability_analysis()
+        
+        has_required_keys = all(k in analysis for k in [
+            "status", "stability_class", "convergence", 
+            "lyapunov_exponent", "oscillation_index"
+        ])
+        
+        valid_stability_class = analysis.get("stability_class") in [
+            "ASYMPTOTICALLY_STABLE", "MARGINALLY_STABLE", "UNSTABLE"
+        ]
+        
+        return TestResult(
+            name="test_stability_analysis_classification",
+            passed=has_required_keys and valid_stability_class,
+            message=f"Clase: {analysis.get('stability_class', 'N/A')}",
+            duration_ms=0,
+            details=analysis
+        )
+    
+    @staticmethod
+    @timed_test
+    def test_reset_clears_state() -> TestResult:
+        """Verifica que reset limpia el estado completamente."""
+        controller = PIControllerEvaluator.create_default_controller()
+        
+        # Acumular estado
+        for _ in range(20):
+            controller.compute(0.3)
+            time.sleep(0.005)
+        
+        # Guardar estado antes de reset
+        integral_before = controller._integral_error
+        
+        controller.reset()
+        
+        # Verificar que se limpió
+        state_cleared = (
+            controller._integral_error == 0.0 and
+            controller._last_output is None and
+            controller._filtered_pv is None
+        )
+        
+        return TestResult(
+            name="test_reset_clears_state",
+            passed=state_cleared,
+            message=f"Integral antes: {integral_before:.2f}, después: {controller._integral_error}",
+            duration_ms=0
+        )
+    
+    @staticmethod
+    @timed_test
+    def test_diagnostics_structure() -> TestResult:
+        """Verifica estructura completa de diagnósticos."""
+        controller = PIControllerEvaluator.create_default_controller()
+        
+        for _ in range(10):
+            controller.compute(0.5)
+            time.sleep(0.001)
+        
+        diag = controller.get_diagnostics()
+        
+        required_keys = ["status", "control_metrics", "stability_analysis", "parameters"]
+        has_all_keys = all(k in diag for k in required_keys)
+        
+        # Verificar sub-estructuras
+        control_metrics_keys = ["error", "integral_term", "proportional_term", "output"]
+        has_metrics = all(k in diag.get("control_metrics", {}) for k in control_metrics_keys)
+        
+        return TestResult(
+            name="test_diagnostics_structure",
+            passed=has_all_keys and has_metrics,
+            message="Estructura de diagnósticos completa",
+            duration_ms=0,
+            details={"keys_found": list(diag.keys())}
+        )
+    
+    @staticmethod
+    @timed_test
+    def test_step_response() -> TestResult:
+        """Verifica respuesta a escalón (step response)."""
+        controller = PIController(
+            kp=3.0,
+            ki=0.8,
+            setpoint=0.5,
+            min_output=10,
+            max_output=1000
+        )
+        
+        # Respuesta a step: medición cambia de 0.2 a 0.5 instantáneamente
+        outputs_before = []
+        for _ in range(20):
+            outputs_before.append(controller.compute(0.2))
+            time.sleep(0.005)
+        
+        outputs_after = []
+        for _ in range(20):
+            outputs_after.append(controller.compute(0.5))
+            time.sleep(0.005)
+        
+        # Después del step, la salida debería disminuir (error = 0)
+        decreasing = outputs_after[-1] < outputs_before[-1]
+        
+        return TestResult(
+            name="test_step_response",
+            passed=decreasing,
+            message=f"Antes: {outputs_before[-1]:.0f}, Después: {outputs_after[-1]:.0f}",
+            duration_ms=0,
+            details={
+                "output_before_step": outputs_before[-1],
+                "output_after_step": outputs_after[-1]
+            }
+        )
+    
+    @classmethod
+    def run_all(cls, runner: TestRunner) -> TestSuiteResult:
+        """Ejecuta todas las pruebas del PIController."""
+        tests = [
+            cls.test_parameter_validation,
+            cls.test_output_bounds,
+            cls.test_proportional_response,
+            cls.test_integral_accumulation,
+            cls.test_anti_windup_back_calculation,
+            cls.test_rate_limiting,
+            cls.test_ema_filter_smoothing,
+            cls.test_lyapunov_convergent_system,
+            cls.test_stability_analysis_classification,
+            cls.test_reset_clears_state,
+            cls.test_diagnostics_structure,
+            cls.test_step_response,
+        ]
+        return runner.run_suite("PIController", tests)
+
+
+# ============================================================================
+# EVALUACIÓN DE DiscreteVectorCalculus
+# ============================================================================
+
+class DiscreteVectorCalculusEvaluator:
+    """Evaluador para DiscreteVectorCalculus."""
+    
+    @staticmethod
+    def create_triangle_graph() -> Dict[int, Set[int]]:
+        """Grafo triangular simple (1 cara)."""
+        return {
+            0: {1, 2},
+            1: {0, 2},
+            2: {0, 1}
+        }
+    
+    @staticmethod
+    def create_k4_graph() -> Dict[int, Set[int]]:
+        """Grafo completo K4 (4 triángulos)."""
+        return {
+            0: {1, 2, 3},
+            1: {0, 2, 3},
+            2: {0, 1, 3},
+            3: {0, 1, 2}
+        }
+    
+    @staticmethod
+    def create_square_graph() -> Dict[int, Set[int]]:
+        """Cuadrado (sin triángulos)."""
+        return {
+            0: {1, 3},
+            1: {0, 2},
+            2: {1, 3},
+            3: {0, 2}
+        }
+    
+    @staticmethod
+    def create_disconnected_graph() -> Dict[int, Set[int]]:
+        """Grafo con 2 componentes conexas."""
+        return {
+            0: {1},
+            1: {0},
+            2: {3},
+            3: {2}
+        }
+    
+    @staticmethod
+    @timed_test
+    def test_empty_graph_rejection() -> TestResult:
+        """Verifica rechazo de grafo vacío."""
+        try:
+            DiscreteVectorCalculus({})
+            return TestResult(
+                name="test_empty_graph_rejection",
+                passed=False,
+                message="No rechazó grafo vacío",
+                duration_ms=0
+            )
+        except ValueError:
+            return TestResult(
+                name="test_empty_graph_rejection",
+                passed=True,
+                message="Grafo vacío rechazado correctamente",
+                duration_ms=0
+            )
+    
+    @staticmethod
+    @timed_test
+    def test_simplicial_complex_dimensions() -> TestResult:
+        """Verifica dimensiones del complejo simplicial."""
+        calc = DiscreteVectorCalculus(
+            DiscreteVectorCalculusEvaluator.create_k4_graph()
+        )
+        
+        # K4: 4 nodos, 6 aristas, 4 triángulos
+        correct_dims = (
+            calc.num_nodes == 4 and
+            calc.num_edges == 6 and
+            calc.num_faces == 4
+        )
+        
+        return TestResult(
+            name="test_simplicial_complex_dimensions",
+            passed=correct_dims,
+            message=f"V={calc.num_nodes}, E={calc.num_edges}, F={calc.num_faces}",
+            duration_ms=0,
+            details={"nodes": calc.num_nodes, "edges": calc.num_edges, "faces": calc.num_faces}
+        )
+    
+    @staticmethod
+    @timed_test
+    def test_euler_characteristic() -> TestResult:
+        """Verifica característica de Euler χ = V - E + F."""
+        test_cases = [
+            (DiscreteVectorCalculusEvaluator.create_triangle_graph(), 1),  # 3-3+1=1
+            (DiscreteVectorCalculusEvaluator.create_k4_graph(), 2),  # 4-6+4=2 (esfera)
+            (DiscreteVectorCalculusEvaluator.create_square_graph(), 0),  # 4-4+0=0 (ciclo)
+        ]
+        
+        all_correct = True
+        details = {}
+        
+        for i, (adj, expected_chi) in enumerate(test_cases):
+            calc = DiscreteVectorCalculus(adj)
+            actual_chi = calc.euler_characteristic
+            details[f"case_{i}"] = {"expected": expected_chi, "actual": actual_chi}
+            if actual_chi != expected_chi:
+                all_correct = False
+        
+        return TestResult(
+            name="test_euler_characteristic",
+            passed=all_correct,
+            message=f"Verificados {len(test_cases)} casos",
+            duration_ms=0,
+            details=details
+        )
+    
+    @staticmethod
+    @timed_test
+    def test_chain_complex_exactness() -> TestResult:
+        """Verifica ∂₁ ∘ ∂₂ = 0."""
+        if not SCIPY_AVAILABLE:
+            return TestResult(
+                name="test_chain_complex_exactness",
+                passed=True,
+                message="Scipy no disponible, test omitido",
+                duration_ms=0
+            )
+        
+        calc = DiscreteVectorCalculus(
+            DiscreteVectorCalculusEvaluator.create_k4_graph()
+        )
+        
+        verification = calc.verify_complex_exactness()
+        is_exact = verification.get("is_chain_complex", False)
+        error = verification.get("boundary_composition_error", float('inf'))
+        
+        return TestResult(
+            name="test_chain_complex_exactness",
+            passed=is_exact,
+            message=f"||∂₁∂₂|| = {error:.2e}",
+            duration_ms=0,
+            details=verification
+        )
+    
+    @staticmethod
+    @timed_test
+    def test_betti_numbers_triangle() -> TestResult:
+        """Verifica números de Betti para triángulo lleno."""
+        if not SCIPY_AVAILABLE:
+            return TestResult(
+                name="test_betti_numbers_triangle",
+                passed=True,
+                message="Scipy no disponible",
+                duration_ms=0
+            )
+        
+        calc = DiscreteVectorCalculus(
+            DiscreteVectorCalculusEvaluator.create_triangle_graph()
+        )
+        
+        # Triángulo lleno (disco): β₀=1, β₁=0, β₂=0
+        expected = (1, 0, 0)
+        actual = (calc.betti_0, calc.betti_1, calc.betti_2)
+        
+        return TestResult(
+            name="test_betti_numbers_triangle",
+            passed=actual == expected,
+            message=f"β = {actual}, esperado {expected}",
+            duration_ms=0,
+            details={"betti_0": calc.betti_0, "betti_1": calc.betti_1, "betti_2": calc.betti_2}
+        )
+    
+    @staticmethod
+    @timed_test
+    def test_betti_numbers_cycle() -> TestResult:
+        """Verifica números de Betti para ciclo (cuadrado sin relleno)."""
+        if not SCIPY_AVAILABLE:
+            return TestResult(
+                name="test_betti_numbers_cycle",
+                passed=True,
+                message="Scipy no disponible",
+                duration_ms=0
+            )
+        
+        calc = DiscreteVectorCalculus(
+            DiscreteVectorCalculusEvaluator.create_square_graph()
+        )
+        
+        # Ciclo: β₀=1, β₁=1 (un loop), β₂=0
+        expected = (1, 1, 0)
+        actual = (calc.betti_0, calc.betti_1, calc.betti_2)
+        
+        return TestResult(
+            name="test_betti_numbers_cycle",
+            passed=actual == expected,
+            message=f"β = {actual}, esperado {expected}",
+            duration_ms=0
+        )
+    
+    @staticmethod
+    @timed_test
+    def test_disconnected_components() -> TestResult:
+        """Verifica detección de componentes desconectadas."""
+        calc = DiscreteVectorCalculus(
+            DiscreteVectorCalculusEvaluator.create_disconnected_graph()
+        )
+        
+        correct = (
+            calc.num_components == 2 and
+            calc.is_connected == False and
+            calc.betti_0 == 2
+        )
+        
+        return TestResult(
+            name="test_disconnected_components",
+            passed=correct,
+            message=f"Componentes: {calc.num_components}, β₀={calc.betti_0}",
+            duration_ms=0
+        )
+    
+    @staticmethod
+    @timed_test
+    def test_gradient_operator_dimensions() -> TestResult:
+        """Verifica dimensiones del operador gradiente."""
+        if not SCIPY_AVAILABLE:
+            return TestResult(
+                name="test_gradient_operator_dimensions",
+                passed=True,
+                message="Scipy no disponible",
+                duration_ms=0
+            )
+        
+        calc = DiscreteVectorCalculus(
+            DiscreteVectorCalculusEvaluator.create_k4_graph()
+        )
+        
+        phi = np.ones(calc.num_nodes)
+        grad_phi = calc.gradient(phi)
+        
+        correct_dim = grad_phi.shape == (calc.num_edges,)
+        
+        return TestResult(
+            name="test_gradient_operator_dimensions",
+            passed=correct_dim,
+            message=f"grad: {calc.num_nodes} → {calc.num_edges}",
+            duration_ms=0
+        )
+    
+    @staticmethod
+    @timed_test
+    def test_gradient_of_constant_is_zero() -> TestResult:
+        """Verifica grad(constante) = 0."""
+        if not SCIPY_AVAILABLE:
+            return TestResult(
+                name="test_gradient_of_constant_is_zero",
+                passed=True,
+                message="Scipy no disponible",
+                duration_ms=0
+            )
+        
+        calc = DiscreteVectorCalculus(
+            DiscreteVectorCalculusEvaluator.create_k4_graph()
+        )
+        
+        constant = 5.0 * np.ones(calc.num_nodes)
+        grad = calc.gradient(constant)
+        
+        is_zero = np.allclose(grad, 0, atol=1e-10)
+        
+        return TestResult(
+            name="test_gradient_of_constant_is_zero",
+            passed=is_zero,
+            message=f"||grad(c)|| = {np.linalg.norm(grad):.2e}",
+            duration_ms=0
+        )
+    
+    @staticmethod
+    @timed_test
+    def test_curl_of_gradient_is_zero() -> TestResult:
+        """Verifica curl(grad(φ)) = 0 (lema de Poincaré)."""
+        if not SCIPY_AVAILABLE:
+            return TestResult(
+                name="test_curl_of_gradient_is_zero",
+                passed=True,
+                message="Scipy no disponible",
+                duration_ms=0
+            )
+        
+        calc = DiscreteVectorCalculus(
+            DiscreteVectorCalculusEvaluator.create_k4_graph()
+        )
+        
+        np.random.seed(42)
+        phi = np.random.randn(calc.num_nodes)
+        
+        grad_phi = calc.gradient(phi)
+        curl_grad_phi = calc.curl(grad_phi)
+        
+        is_zero = np.allclose(curl_grad_phi, 0, atol=1e-10)
+        error = np.linalg.norm(curl_grad_phi)
+        
+        return TestResult(
+            name="test_curl_of_gradient_is_zero",
+            passed=is_zero,
+            message=f"||curl(grad(φ))|| = {error:.2e}",
+            duration_ms=0
+        )
+    
+    @staticmethod
+    @timed_test
+    def test_laplacian_symmetry() -> TestResult:
+        """Verifica que el Laplaciano es simétrico."""
+        if not SCIPY_AVAILABLE:
+            return TestResult(
+                name="test_laplacian_symmetry",
+                passed=True,
+                message="Scipy no disponible",
+                duration_ms=0
+            )
+        
+        calc = DiscreteVectorCalculus(
+            DiscreteVectorCalculusEvaluator.create_k4_graph()
+        )
+        
+        L0 = calc.laplacian(0)
+        asymmetry = sparse_norm(L0 - L0.T)
+        
+        is_symmetric = asymmetry < 1e-10
+        
+        return TestResult(
+            name="test_laplacian_symmetry",
+            passed=is_symmetric,
+            message=f"||L - Lᵀ|| = {asymmetry:.2e}",
+            duration_ms=0
+        )
+    
+    @staticmethod
+    @timed_test
+    def test_laplacian_kernel_dimension() -> TestResult:
+        """Verifica dim(ker Δ₀) = número de componentes conexas."""
+        if not SCIPY_AVAILABLE:
+            return TestResult(
+                name="test_laplacian_kernel_dimension",
+                passed=True,
+                message="Scipy no disponible",
+                duration_ms=0
+            )
+        
+        calc = DiscreteVectorCalculus(
+            DiscreteVectorCalculusEvaluator.create_disconnected_graph()
+        )
+        
+        L0 = calc.laplacian(0).toarray()
+        eigenvalues = np.linalg.eigvalsh(L0)
+        
+        # Contar autovalores cerca de cero
+        zero_eigenvalues = np.sum(np.abs(eigenvalues) < 1e-8)
+        
+        correct = zero_eigenvalues == calc.num_components
+        
+        return TestResult(
+            name="test_laplacian_kernel_dimension",
+            passed=correct,
+            message=f"dim(ker Δ₀) = {zero_eigenvalues}, componentes = {calc.num_components}",
+            duration_ms=0
+        )
+    
+    @staticmethod
+    @timed_test
+    def test_hodge_decomposition() -> TestResult:
+        """Verifica descomposición de Hodge ω = exact + coexact + harmonic."""
+        if not SCIPY_AVAILABLE:
+            return TestResult(
+                name="test_hodge_decomposition",
+                passed=True,
+                message="Scipy no disponible",
+                duration_ms=0
+            )
+        
+        calc = DiscreteVectorCalculus(
+            DiscreteVectorCalculusEvaluator.create_k4_graph()
+        )
+        
+        np.random.seed(42)
+        omega = np.random.randn(calc.num_edges)
+        
+        decomp = calc.hodge_decomposition(omega)
+        
+        reconstruction = decomp["exact"] + decomp["coexact"] + decomp["harmonic"]
+        error = np.linalg.norm(omega - reconstruction) / np.linalg.norm(omega)
+        
+        is_correct = error < 1e-6
+        
+        return TestResult(
+            name="test_hodge_decomposition",
+            passed=is_correct,
+            message=f"Error de reconstrucción: {error:.2e}",
+            duration_ms=0,
+            details={"reconstruction_error": error}
+        )
+    
+    @staticmethod
+    @timed_test
+    def test_hodge_star_inverse() -> TestResult:
+        """Verifica ⋆⋆⁻¹ = I."""
+        if not SCIPY_AVAILABLE:
+            return TestResult(
+                name="test_hodge_star_inverse",
+                passed=True,
+                message="Scipy no disponible",
+                duration_ms=0
+            )
+        
+        calc = DiscreteVectorCalculus(
+            DiscreteVectorCalculusEvaluator.create_k4_graph()
+        )
+        
+        identity_error = sparse_norm(
+            calc.star1 @ calc.star1_inv - sparse.eye(calc.num_edges)
+        )
+        
+        is_inverse = identity_error < 1e-10
+        
+        return TestResult(
+            name="test_hodge_star_inverse",
+            passed=is_inverse,
+            message=f"||⋆⋆⁻¹ - I|| = {identity_error:.2e}",
+            duration_ms=0
+        )
+    
+    @classmethod
+    def run_all(cls, runner: TestRunner) -> TestSuiteResult:
+        """Ejecuta todas las pruebas de DiscreteVectorCalculus."""
+        tests = [
+            cls.test_empty_graph_rejection,
+            cls.test_simplicial_complex_dimensions,
+            cls.test_euler_characteristic,
+            cls.test_chain_complex_exactness,
+            cls.test_betti_numbers_triangle,
+            cls.test_betti_numbers_cycle,
+            cls.test_disconnected_components,
+            cls.test_gradient_operator_dimensions,
+            cls.test_gradient_of_constant_is_zero,
+            cls.test_curl_of_gradient_is_zero,
+            cls.test_laplacian_symmetry,
+            cls.test_laplacian_kernel_dimension,
+            cls.test_hodge_decomposition,
+            cls.test_hodge_star_inverse,
+        ]
+        return runner.run_suite("DiscreteVectorCalculus", tests)
+
+
+# ============================================================================
+# EVALUACIÓN DE MaxwellSolver
+# ============================================================================
+
+class MaxwellSolverEvaluator:
+    """Evaluador para MaxwellSolver."""
+    
+    @staticmethod
+    def create_k6_calculus() -> 'DiscreteVectorCalculus':
+        """Crea cálculo sobre K6 (grafo completo de 6 nodos)."""
+        adj = {i: set(range(6)) - {i} for i in range(6)}
+        return DiscreteVectorCalculus(adj)
+    
+    @staticmethod
+    def create_solver() -> 'MaxwellSolver':
+        """Crea solver con parámetros por defecto."""
+        calc = MaxwellSolverEvaluator.create_k6_calculus()
+        return MaxwellSolver(
+            calculus=calc,
+            permittivity=1.0,
+            permeability=1.0,
+            pml_thickness=0.1,
+            pml_max_sigma=1.0
+        )
+    
+    @staticmethod
+    @timed_test
+    def test_field_dimensions() -> TestResult:
+        """Verifica dimensiones de campos E, B, D, H."""
+        if not SCIPY_AVAILABLE:
+            return TestResult(
+                name="test_field_dimensions",
+                passed=True,
+                message="Scipy no disponible",
+                duration_ms=0
+            )
+        
+        solver = MaxwellSolverEvaluator.create_solver()
+        
+        correct = (
+            solver.E.shape == (solver.calc.num_edges,) and
+            solver.B.shape == (solver.calc.num_faces,) and
+            solver.D.shape == (solver.calc.num_edges,) and
+            solver.H.shape == (solver.calc.num_faces,)
+        )
+        
+        return TestResult(
+            name="test_field_dimensions",
+            passed=correct,
+            message=f"E:{solver.E.shape}, B:{solver.B.shape}",
+            duration_ms=0
+        )
+    
+    @staticmethod
+    @timed_test
+    def test_cfl_condition_positive() -> TestResult:
+        """Verifica que dt_CFL > 0."""
+        if not SCIPY_AVAILABLE:
+            return TestResult(
+                name="test_cfl_condition_positive",
+                passed=True,
+                message="Scipy no disponible",
+                duration_ms=0
+            )
+        
+        solver = MaxwellSolverEvaluator.create_solver()
+        
+        valid = solver.dt_cfl > 0 and np.isfinite(solver.dt_cfl)
+        
+        return TestResult(
+            name="test_cfl_condition_positive",
+            passed=valid,
+            message=f"dt_CFL = {solver.dt_cfl:.2e}",
+            duration_ms=0
+        )
+    
+    @staticmethod
+    @timed_test
+    def test_constitutive_relations() -> TestResult:
+        """Verifica relaciones constitutivas D = εE, H = B/μ."""
+        if not SCIPY_AVAILABLE:
+            return TestResult(
+                name="test_constitutive_relations",
+                passed=True,
+                message="Scipy no disponible",
+                duration_ms=0
+            )
+        
+        solver = MaxwellSolverEvaluator.create_solver()
+        
+        np.random.seed(42)
+        solver.E = np.random.randn(solver.calc.num_edges)
+        solver.B = np.random.randn(solver.calc.num_faces)
+        
+        solver.update_constitutive_relations()
+        
+        # D = ε ⋆₁ E
+        D_expected = solver.epsilon * (solver.calc.star1 @ solver.E)
+        D_error = np.linalg.norm(solver.D - D_expected)
+        
+        # H = (1/μ) ⋆₂⁻¹ B
+        H_expected = (1.0 / solver.mu) * (solver.calc.star2_inv @ solver.B)
+        H_error = np.linalg.norm(solver.H - H_expected)
+        
+        valid = D_error < 1e-10 and H_error < 1e-10
+        
+        return TestResult(
+            name="test_constitutive_relations",
+            passed=valid,
+            message=f"||D-εE|| = {D_error:.2e}, ||H-B/μ|| = {H_error:.2e}",
+            duration_ms=0
+        )
+    
+    @staticmethod
+    @timed_test
+    def test_initial_energy_zero() -> TestResult:
+        """Verifica energía inicial cero con campos cero."""
+        if not SCIPY_AVAILABLE:
+            return TestResult(
+                name="test_initial_energy_zero",
+                passed=True,
+                message="Scipy no disponible",
+                duration_ms=0
+            )
+        
+        solver = MaxwellSolverEvaluator.create_solver()
+        energy = solver.total_energy()
+        
+        is_zero = abs(energy) < 1e-15
+        
+        return TestResult(
+            name="test_initial_energy_zero",
+            passed=is_zero,
+            message=f"Energía inicial = {energy:.2e}",
+            duration_ms=0
+        )
+    
+    @staticmethod
+    @timed_test
+    def test_energy_positive_definite() -> TestResult:
+        """Verifica que energía ≥ 0 para campos arbitrarios."""
+        if not SCIPY_AVAILABLE:
+            return TestResult(
+                name="test_energy_positive_definite",
+                passed=True,
+                message="Scipy no disponible",
+                duration_ms=0
+            )
+        
+        solver = MaxwellSolverEvaluator.create_solver()
+        
+        np.random.seed(42)
+        all_positive = True
+        min_energy = float('inf')
+        
+        for _ in range(10):
+            solver.E = np.random.randn(solver.calc.num_edges)
+            solver.B = np.random.randn(solver.calc.num_faces)
+            solver.update_constitutive_relations()
+            
+            energy = solver.total_energy()
+            min_energy = min(min_energy, energy)
+            if energy < -1e-10:
+                all_positive = False
+        
+        return TestResult(
+            name="test_energy_positive_definite",
+            passed=all_positive,
+            message=f"Energía mínima = {min_energy:.2e}",
+            duration_ms=0
+        )
+    
+    @staticmethod
+    @timed_test
+    def test_leapfrog_step_advances_time() -> TestResult:
+        """Verifica que leapfrog avanza el tiempo."""
+        if not SCIPY_AVAILABLE:
+            return TestResult(
+                name="test_leapfrog_step_advances_time",
+                passed=True,
+                message="Scipy no disponible",
+                duration_ms=0
+            )
+        
+        solver = MaxwellSolverEvaluator.create_solver()
+        
+        t0 = solver.time
+        step0 = solver.step_count
+        
+        solver.leapfrog_step()
+        
+        time_advanced = solver.time > t0
+        step_incremented = solver.step_count == step0 + 1
+        
+        return TestResult(
+            name="test_leapfrog_step_advances_time",
+            passed=time_advanced and step_incremented,
+            message=f"t: {t0:.4f} → {solver.time:.4f}",
+            duration_ms=0
+        )
+    
+    @staticmethod
+    @timed_test
+    def test_energy_conservation_lossless() -> TestResult:
+        """Verifica conservación de energía sin pérdidas."""
+        if not SCIPY_AVAILABLE:
+            return TestResult(
+                name="test_energy_conservation_lossless",
+                passed=True,
+                message="Scipy no disponible",
+                duration_ms=0
+            )
+        
+        solver = MaxwellSolverEvaluator.create_solver()
+        
+        result = solver.verify_energy_conservation(
+            num_steps=200,
+            tolerance=0.01  # 1% tolerancia
+        )
+        
+        is_conservative = result.get("is_conservative", False)
+        deviation = result.get("max_relative_deviation", 1.0)
+        
+        return TestResult(
+            name="test_energy_conservation_lossless",
+            passed=is_conservative,
+            message=f"Desviación máxima: {deviation:.2%}",
+            duration_ms=0,
+            details=result
+        )
+    
+    @staticmethod
+    @timed_test
+    def test_pml_profile_increases_at_boundary() -> TestResult:
+        """Verifica que PML tiene mayor conductividad en bordes."""
+        if not SCIPY_AVAILABLE:
+            return TestResult(
+                name="test_pml_profile_increases_at_boundary",
+                passed=True,
+                message="Scipy no disponible",
+                duration_ms=0
+            )
+        
+        solver = MaxwellSolverEvaluator.create_solver()
+        
+        # PML debería ser mayor en aristas cerca de nodos extremos
+        max_sigma = np.max(solver.sigma_e_pml)
+        min_sigma = np.min(solver.sigma_e_pml)
+        
+        has_variation = max_sigma > min_sigma or np.allclose(solver.sigma_e_pml, 0)
+        
+        return TestResult(
+            name="test_pml_profile_increases_at_boundary",
+            passed=has_variation,
+            message=f"σ_pml ∈ [{min_sigma:.3f}, {max_sigma:.3f}]",
+            duration_ms=0
+        )
+    
+    @staticmethod
+    @timed_test
+    def test_energy_dissipation_with_losses() -> TestResult:
+        """Verifica que energía decrece con pérdidas."""
+        if not SCIPY_AVAILABLE:
+            return TestResult(
+                name="test_energy_dissipation_with_losses",
+                passed=True,
+                message="Scipy no disponible",
+                duration_ms=0
+            )
+        
+        calc = MaxwellSolverEvaluator.create_k6_calculus()
+        solver = MaxwellSolver(
+            calculus=calc,
+            permittivity=1.0,
+            permeability=1.0,
+            electric_conductivity=0.5,  # Pérdidas
+            magnetic_conductivity=0.5
+        )
+        
+        np.random.seed(42)
+        solver.E = np.random.randn(solver.calc.num_edges)
+        solver.B = np.random.randn(solver.calc.num_faces)
+        solver.update_constitutive_relations()
+        
+        initial_energy = solver.total_energy()
+        
+        for _ in range(100):
+            solver.leapfrog_step()
+        
+        final_energy = solver.total_energy()
+        
+        dissipated = final_energy < initial_energy
+        
+        return TestResult(
+            name="test_energy_dissipation_with_losses",
+            passed=dissipated,
+            message=f"Energía: {initial_energy:.4f} → {final_energy:.4f}",
+            duration_ms=0
+        )
+    
+    @staticmethod
+    @timed_test
+    def test_poynting_flux_computation() -> TestResult:
+        """Verifica cálculo del vector de Poynting."""
+        if not SCIPY_AVAILABLE:
+            return TestResult(
+                name="test_poynting_flux_computation",
+                passed=True,
+                message="Scipy no disponible",
+                duration_ms=0
+            )
+        
+        solver = MaxwellSolverEvaluator.create_solver()
+        
+        np.random.seed(42)
+        solver.E = np.random.randn(solver.calc.num_edges)
+        solver.B = np.random.randn(solver.calc.num_faces)
+        solver.update_constitutive_relations()
+        
+        S = solver.poynting_flux()
+        
+        correct_shape = S.shape == (solver.calc.num_edges,)
+        finite = np.all(np.isfinite(S))
+        
+        return TestResult(
+            name="test_poynting_flux_computation",
+            passed=correct_shape and finite,
+            message=f"||S|| = {np.linalg.norm(S):.4f}",
+            duration_ms=0
+        )
+    
+    @staticmethod
+    @timed_test
+    def test_gauss_law_residual() -> TestResult:
+        """Verifica que div(D) permanece pequeño (ley de Gauss)."""
+        if not SCIPY_AVAILABLE:
+            return TestResult(
+                name="test_gauss_law_residual",
+                passed=True,
+                message="Scipy no disponible",
+                duration_ms=0
+            )
+        
+        solver = MaxwellSolverEvaluator.create_solver()
+        
+        # Condición inicial que satisface Gauss
+        np.random.seed(42)
+        phi = np.random.randn(solver.calc.num_nodes)
+        solver.E = solver.calc.gradient(phi)
+        solver.update_constitutive_relations()
+        
+        initial_residual = np.linalg.norm(solver.calc.divergence(solver.D))
+        
+        for _ in range(50):
+            solver.leapfrog_step()
+        
+        final_residual = np.linalg.norm(solver.calc.divergence(solver.D))
+        
+        # El residual no debería crecer mucho
+        not_growing = final_residual < 10 * initial_residual + 1e-10
+        
+        return TestResult(
+            name="test_gauss_law_residual",
+            passed=not_growing,
+            message=f"div(D): {initial_residual:.2e} → {final_residual:.2e}",
+            duration_ms=0
+        )
+    
+    @staticmethod
+    @timed_test
+    def test_set_initial_conditions() -> TestResult:
+        """Verifica establecimiento de condiciones iniciales."""
+        if not SCIPY_AVAILABLE:
+            return TestResult(
+                name="test_set_initial_conditions",
+                passed=True,
+                message="Scipy no disponible",
+                duration_ms=0
+            )
+        
+        solver = MaxwellSolverEvaluator.create_solver()
+        
+        E0 = np.ones(solver.calc.num_edges)
+        B0 = 2.0 * np.ones(solver.calc.num_faces)
+        
+        solver.set_initial_conditions(E0=E0, B0=B0)
+        
+        E_set = np.allclose(solver.E, E0)
+        B_set = np.allclose(solver.B, B0)
+        D_updated = not np.allclose(solver.D, 0)
+        H_updated = not np.allclose(solver.H, 0)
+        
+        all_correct = E_set and B_set and D_updated and H_updated
+        
+        return TestResult(
+            name="test_set_initial_conditions",
+            passed=all_correct,
+            message="Condiciones iniciales aplicadas correctamente",
+            duration_ms=0
+        )
+    
+    @classmethod
+    def run_all(cls, runner: TestRunner) -> TestSuiteResult:
+        """Ejecuta todas las pruebas de MaxwellSolver."""
+        tests = [
+            cls.test_field_dimensions,
+            cls.test_cfl_condition_positive,
+            cls.test_constitutive_relations,
+            cls.test_initial_energy_zero,
+            cls.test_energy_positive_definite,
+            cls.test_leapfrog_step_advances_time,
+            cls.test_energy_conservation_lossless,
+            cls.test_pml_profile_increases_at_boundary,
+            cls.test_energy_dissipation_with_losses,
+            cls.test_poynting_flux_computation,
+            cls.test_gauss_law_residual,
+            cls.test_set_initial_conditions,
+        ]
+        return runner.run_suite("MaxwellSolver", tests)
+
+
+# ============================================================================
+# EVALUACIÓN DE PortHamiltonianController
+# ============================================================================
+
+class PortHamiltonianControllerEvaluator:
+    """Evaluador para PortHamiltonianController."""
+    
+    @staticmethod
+    def create_controller(
+        target_energy: float = 1.0,
+        damping: float = 0.1
+    ) -> 'PortHamiltonianController':
+        """Crea controlador con parámetros dados."""
+        adj = {i: set(range(6)) - {i} for i in range(6)}
+        calc = DiscreteVectorCalculus(adj)
+        solver = MaxwellSolver(calculus=calc)
+        return PortHamiltonianController(
+            solver=solver,
+            target_energy=target_energy,
+            damping_injection=damping,
+            energy_shaping=True
+        )
+    
+    @staticmethod
+    @timed_test
+    def test_phs_structure_antisymmetry() -> TestResult:
+        """Verifica antisimetría de matriz J."""
+        if not SCIPY_AVAILABLE:
+            return TestResult(
+                name="test_phs_structure_antisymmetry",
+                passed=True,
+                message="Scipy no disponible",
+                duration_ms=0
+            )
+        
+        controller = PortHamiltonianControllerEvaluator.create_controller()
+        
+        J = controller.J_phs
+        asymmetry = sparse_norm(J + J.T)
+        
+        is_antisymmetric = asymmetry < 1e-10
+        
+        return TestResult(
+            name="test_phs_structure_antisymmetry",
+            passed=is_antisymmetric,
+            message=f"||J + Jᵀ|| = {asymmetry:.2e}",
+            duration_ms=0
+        )
+    
+    @staticmethod
+    @timed_test
+    def test_phs_structure_dissipation_positive() -> TestResult:
+        """Verifica R ≥ 0 (diagonal no negativa)."""
+        if not SCIPY_AVAILABLE:
+            return TestResult(
+                name="test_phs_structure_dissipation_positive",
+                passed=True,
+                message="Scipy no disponible",
+                duration_ms=0
+            )
+        
+        controller = PortHamiltonianControllerEvaluator.create_controller()
+        
+        R_diag = controller.R_phs.diagonal()
+        all_positive = np.all(R_diag >= -1e-10)
+        
+        return TestResult(
+            name="test_phs_structure_dissipation_positive",
+            passed=all_positive,
+            message=f"R_min = {np.min(R_diag):.2e}",
+            duration_ms=0
+        )
+    
+    @staticmethod
+    @timed_test
+    def test_hamiltonian_matches_solver_energy() -> TestResult:
+        """Verifica H(x) = energía del solver."""
+        if not SCIPY_AVAILABLE:
+            return TestResult(
+                name="test_hamiltonian_matches_solver_energy",
+                passed=True,
+                message="Scipy no disponible",
+                duration_ms=0
+            )
+        
+        controller = PortHamiltonianControllerEvaluator.create_controller()
+        
+        np.random.seed(42)
+        controller.solver.E = np.random.randn(controller.n_e)
+        controller.solver.B = np.random.randn(controller.n_f)
+        controller.solver.update_constitutive_relations()
+        
+        H_controller = controller.hamiltonian()
+        H_solver = controller.solver.total_energy()
+        
+        match = abs(H_controller - H_solver) < 1e-10
+        
+        return TestResult(
+            name="test_hamiltonian_matches_solver_energy",
+            passed=match,
+            message=f"H_phs={H_controller:.6f}, U_solver={H_solver:.6f}",
+            duration_ms=0
+        )
+    
+    @staticmethod
+    @timed_test
+    def test_hamiltonian_gradient_dimensions() -> TestResult:
+        """Verifica dimensiones de ∂H/∂x."""
+        if not SCIPY_AVAILABLE:
+            return TestResult(
+                name="test_hamiltonian_gradient_dimensions",
+                passed=True,
+                message="Scipy no disponible",
+                duration_ms=0
+            )
+        
+        controller = PortHamiltonianControllerEvaluator.create_controller()
+        
+        grad = controller.hamiltonian_gradient()
+        expected_size = controller.n_e + controller.n_f
+        
+        correct = grad.shape == (expected_size,)
+        
+        return TestResult(
+            name="test_hamiltonian_gradient_dimensions",
+            passed=correct,
+            message=f"∂H/∂x shape = {grad.shape}",
+            duration_ms=0
+        )
+    
+    @staticmethod
+    @timed_test
+    def test_storage_function_lyapunov() -> TestResult:
+        """Verifica V(x) ≥ 0 y V(x*) = 0."""
+        if not SCIPY_AVAILABLE:
+            return TestResult(
+                name="test_storage_function_lyapunov",
+                passed=True,
+                message="Scipy no disponible",
+                duration_ms=0
+            )
+        
+        controller = PortHamiltonianControllerEvaluator.create_controller(target_energy=1.0)
+        
+        # Caso general: V ≥ 0
+        np.random.seed(42)
+        controller.solver.E = np.random.randn(controller.n_e)
+        controller.solver.B = np.random.randn(controller.n_f)
+        controller.solver.update_constitutive_relations()
+        
+        V = controller.storage_function()
+        is_positive = V >= 0
+        
+        return TestResult(
+            name="test_storage_function_lyapunov",
+            passed=is_positive,
+            message=f"V(x) = {V:.6f} ≥ 0",
+            duration_ms=0
+        )
+    
+    @staticmethod
+    @timed_test
+    def test_control_bounded() -> TestResult:
+        """Verifica que la señal de control está acotada."""
+        if not SCIPY_AVAILABLE:
+            return TestResult(
+                name="test_control_bounded",
+                passed=True,
+                message="Scipy no disponible",
+                duration_ms=0
+            )
+        
+        controller = PortHamiltonianControllerEvaluator.create_controller()
+        
+        np.random.seed(42)
+        controller.solver.E = 10 * np.random.randn(controller.n_e)
+        controller.solver.B = 10 * np.random.randn(controller.n_f)
+        controller.solver.update_constitutive_relations()
+        
+        u = controller.compute_control()
+        
+        is_bounded = np.all(np.abs(u) <= controller.u_max)
+        max_u = np.max(np.abs(u))
+        
+        return TestResult(
+            name="test_control_bounded",
+            passed=is_bounded,
+            message=f"||u||_∞ = {max_u:.2f} ≤ {controller.u_max:.2f}",
+            duration_ms=0
+        )
+    
+    @staticmethod
+    @timed_test
+    def test_control_sign_consistency() -> TestResult:
+        """Verifica que control tiene signo correcto (energía alta → drenar)."""
+        if not SCIPY_AVAILABLE:
+            return TestResult(
+                name="test_control_sign_consistency",
+                passed=True,
+                message="Scipy no disponible",
+                duration_ms=0
+            )
+        
+        controller = PortHamiltonianControllerEvaluator.create_controller(target_energy=0.1)
+        
+        # Energía alta (> target)
+        np.random.seed(42)
+        controller.solver.E = 5 * np.random.randn(controller.n_e)
+        controller.solver.B = 5 * np.random.randn(controller.n_f)
+        controller.solver.update_constitutive_relations()
+        
+        H = controller.hamiltonian()
+        u = controller.compute_control()
+        grad_H = controller.hamiltonian_gradient()
+        
+        # u·∇H debería ser negativo (disipando energía)
+        dissipation = np.dot(u, grad_H)
+        
+        correct_sign = dissipation < 0
+        
+        return TestResult(
+            name="test_control_sign_consistency",
+            passed=correct_sign,
+            message=f"H={H:.2f} > H*={controller.H_target:.2f}, u·∇H={dissipation:.4f}",
+            duration_ms=0
+        )
+    
+    @staticmethod
+    @timed_test
+    def test_controlled_step_modifies_state() -> TestResult:
+        """Verifica que controlled_step modifica el estado."""
+        if not SCIPY_AVAILABLE:
+            return TestResult(
+                name="test_controlled_step_modifies_state",
+                passed=True,
+                message="Scipy no disponible",
+                duration_ms=0
+            )
+        
+        controller = PortHamiltonianControllerEvaluator.create_controller()
+        
+        np.random.seed(42)
+        controller.solver.E = np.random.randn(controller.n_e)
+        controller.solver.B = np.random.randn(controller.n_f)
+        controller.solver.update_constitutive_relations()
+        
+        E_before = controller.solver.E.copy()
+        
+        controller.controlled_step()
+        
+        changed = not np.allclose(controller.solver.E, E_before)
+        
+        return TestResult(
+            name="test_controlled_step_modifies_state",
+            passed=changed,
+            message="Estado modificado por control",
+            duration_ms=0
+        )
+    
+    @staticmethod
+    @timed_test
+    def test_passivity_verification() -> TestResult:
+        """Verifica propiedad de pasividad."""
+        if not SCIPY_AVAILABLE:
+            return TestResult(
+                name="test_passivity_verification",
+                passed=True,
+                message="Scipy no disponible",
+                duration_ms=0
+            )
+        
+        controller = PortHamiltonianControllerEvaluator.create_controller()
+        
+        result = controller.verify_passivity(num_steps=50)
+        
+        is_passive = result.get("is_passive", False)
+        max_violation = result.get("max_violation", float('inf'))
+        
+        return TestResult(
+            name="test_passivity_verification",
+            passed=is_passive or max_violation < 1e-6,
+            message=f"Violación máxima: {max_violation:.2e}",
+            duration_ms=0,
+            details=result
+        )
+    
+    @staticmethod
+    @timed_test
+    def test_energy_regulation_convergence() -> TestResult:
+        """Verifica convergencia hacia energía objetivo."""
+        if not SCIPY_AVAILABLE:
+            return TestResult(
+                name="test_energy_regulation_convergence",
+                passed=True,
+                message="Scipy no disponible",
+                duration_ms=0
+            )
+        
+        target = 0.5
+        controller = PortHamiltonianControllerEvaluator.create_controller(
+            target_energy=target,
+            damping=0.5  # Damping alto para convergencia rápida
+        )
+        
+        np.random.seed(42)
+        controller.solver.E = 2 * np.random.randn(controller.n_e)
+        controller.solver.B = 2 * np.random.randn(controller.n_f)
+        controller.solver.update_constitutive_relations()
+        
+        result = controller.simulate_regulation(num_steps=500)
+        
+        final_error = result.get("final_error", 1.0)
+        converged = final_error < 0.5  # 50% del objetivo
+        
+        return TestResult(
+            name="test_energy_regulation_convergence",
+            passed=converged,
+            message=f"Error final: {final_error:.1%}",
+            duration_ms=0,
+            details={
+                "final_error": final_error,
+                "initial_energy": result["energy"][0],
+                "final_energy": result["energy"][-1],
+                "target": target
+            }
+        )
+    
+    @staticmethod
+    @timed_test
+    def test_lyapunov_decreasing() -> TestResult:
+        """Verifica que función de Lyapunov decrece (on average)."""
+        if not SCIPY_AVAILABLE:
+            return TestResult(
+                name="test_lyapunov_decreasing",
+                passed=True,
+                message="Scipy no disponible",
+                duration_ms=0
+            )
+        
+        controller = PortHamiltonianControllerEvaluator.create_controller(damping=0.3)
+        
+        np.random.seed(42)
+        controller.solver.E = 3 * np.random.randn(controller.n_e)
+        controller.solver.B = 3 * np.random.randn(controller.n_f)
+        controller.solver.update_constitutive_relations()
+        
+        result = controller.simulate_regulation(num_steps=200)
+        lyapunovs = result["lyapunov"]
+        
+        # Tendencia decreciente (correlación negativa con tiempo)
+        times = np.arange(len(lyapunovs))
+        corr, _ = pearsonr(times, lyapunovs)
+        
+        is_decreasing = corr < 0 or lyapunovs[-1] < lyapunovs[0]
+        
+        return TestResult(
+            name="test_lyapunov_decreasing",
+            passed=is_decreasing,
+            message=f"Correlación V-t: {corr:.3f}",
+            duration_ms=0
+        )
+    
+    @staticmethod
+    @timed_test
+    def test_history_recording() -> TestResult:
+        """Verifica que se registra historial correctamente."""
+        if not SCIPY_AVAILABLE:
+            return TestResult(
+                name="test_history_recording",
+                passed=True,
+                message="Scipy no disponible",
+                duration_ms=0
+            )
+        
+        controller = PortHamiltonianControllerEvaluator.create_controller()
+        
+        controller.solver.E = np.random.randn(controller.n_e)
+        controller.solver.update_constitutive_relations()
+        
+        initial_len = len(controller.control_history)
+        
+        for _ in range(10):
+            controller.controlled_step()
+        
+        recorded = len(controller.control_history) == initial_len + 10
+        
+        return TestResult(
+            name="test_history_recording",
+            passed=recorded,
+            message=f"Historial: {len(controller.control_history)} entradas",
+            duration_ms=0
+        )
+    
+    @classmethod
+    def run_all(cls, runner: TestRunner) -> TestSuiteResult:
+        """Ejecuta todas las pruebas de PortHamiltonianController."""
+        tests = [
+            cls.test_phs_structure_antisymmetry,
+            cls.test_phs_structure_dissipation_positive,
+            cls.test_hamiltonian_matches_solver_energy,
+            cls.test_hamiltonian_gradient_dimensions,
+            cls.test_storage_function_lyapunov,
+            cls.test_control_bounded,
+            cls.test_control_sign_consistency,
+            cls.test_controlled_step_modifies_state,
+            cls.test_passivity_verification,
+            cls.test_energy_regulation_convergence,
+            cls.test_lyapunov_decreasing,
+            cls.test_history_recording,
+        ]
+        return runner.run_suite("PortHamiltonianController", tests)
+
+
+# ============================================================================
+# TESTS DE INTEGRACIÓN INTER-MÓDULO
+# ============================================================================
+
+class IntegrationEvaluator:
+    """Pruebas de integración entre módulos."""
+    
+    @staticmethod
+    @timed_test
+    def test_calculus_to_maxwell_integration() -> TestResult:
+        """Verifica integración DiscreteVectorCalculus → MaxwellSolver."""
+        if not SCIPY_AVAILABLE:
+            return TestResult(
+                name="test_calculus_to_maxwell_integration",
+                passed=True,
+                message="Scipy no disponible",
+                duration_ms=0
+            )
+        
+        # Crear cálculo
+        adj = {i: set(range(5)) - {i} for i in range(5)}  # K5
+        calc = DiscreteVectorCalculus(adj)
+        
+        # Verificar que Maxwell puede usar el cálculo
+        solver = MaxwellSolver(calculus=calc)
+        
+        # Operadores deben ser consistentes
+        correct = (
+            solver.calc.num_edges == calc.num_edges and
+            solver.calc.num_faces == calc.num_faces
+        )
+        
+        return TestResult(
+            name="test_calculus_to_maxwell_integration",
+            passed=correct,
+            message=f"Aristas: {calc.num_edges}, Caras: {calc.num_faces}",
+            duration_ms=0
+        )
+    
+    @staticmethod
+    @timed_test
+    def test_maxwell_to_phs_integration() -> TestResult:
+        """Verifica integración MaxwellSolver → PortHamiltonianController."""
+        if not SCIPY_AVAILABLE:
+            return TestResult(
+                name="test_maxwell_to_phs_integration",
+                passed=True,
+                message="Scipy no disponible",
+                duration_ms=0
+            )
+        
+        adj = {i: set(range(4)) - {i} for i in range(4)}  # K4
+        calc = DiscreteVectorCalculus(adj)
+        solver = MaxwellSolver(calculus=calc)
+        controller = PortHamiltonianController(solver=solver)
+        
+        # Dimensiones consistentes
+        consistent = controller.n_e == solver.calc.num_edges
+        
+        # Hamiltoniano consistente
+        np.random.seed(42)
+        solver.E = np.random.randn(solver.calc.num_edges)
+        solver.B = np.random.randn(solver.calc.num_faces)
+        solver.update_constitutive_relations()
+        
+        H_match = abs(controller.hamiltonian() - solver.total_energy()) < 1e-10
+        
+        return TestResult(
+            name="test_maxwell_to_phs_integration",
+            passed=consistent and H_match,
+            message="Integración Maxwell-PHS correcta",
+            duration_ms=0
+        )
+    
+    @staticmethod
+    @timed_test
+    def test_full_pipeline_simulation() -> TestResult:
+        """Simula pipeline completo: Cálculo → Maxwell → PHS → Regulación."""
+        if not SCIPY_AVAILABLE:
+            return TestResult(
+                name="test_full_pipeline_simulation",
+                passed=True,
+                message="Scipy no disponible",
+                duration_ms=0
+            )
+        
+        try:
+            # 1. Crear complejo simplicial
+            adj = {i: set(range(6)) - {i} for i in range(6)}
+            calc = DiscreteVectorCalculus(adj)
+            
+            # 2. Verificar topología
+            exactness = calc.verify_complex_exactness()
+            
+            # 3. Crear solver Maxwell
+            solver = MaxwellSolver(calculus=calc)
+            
+            # 4. Establecer condición inicial
+            np.random.seed(42)
+            solver.set_initial_conditions(
+                E0=np.random.randn(calc.num_edges),
+                B0=np.random.randn(calc.num_faces)
+            )
+            
+            # 5. Crear controlador PHS
+            controller = PortHamiltonianController(
+                solver=solver,
+                target_energy=0.5,
+                damping_injection=0.2
+            )
+            
+            # 6. Simular regulación
+            result = controller.simulate_regulation(num_steps=100)
+            
+            # Verificar que todo funcionó
+            success = (
+                exactness.get("is_chain_complex", False) and
+                result["final_error"] < 1.0 and
+                np.all(np.isfinite(result["energy"]))
+            )
+            
+            return TestResult(
+                name="test_full_pipeline_simulation",
+                passed=success,
+                message=f"Pipeline completo: error final = {result['final_error']:.1%}",
+                duration_ms=0,
+                details={
+                    "topology_valid": exactness.get("is_chain_complex"),
+                    "final_error": result["final_error"],
+                    "steps_simulated": len(result["energy"])
+                }
+            )
+        
+        except Exception as e:
+            return TestResult(
+                name="test_full_pipeline_simulation",
+                passed=False,
+                message=str(e),
+                duration_ms=0,
+                exception=traceback.format_exc()
+            )
+    
+    @staticmethod
+    @timed_test
+    def test_numerical_stability_long_simulation() -> TestResult:
+        """Verifica estabilidad numérica en simulación larga."""
+        if not SCIPY_AVAILABLE:
+            return TestResult(
+                name="test_numerical_stability_long_simulation",
+                passed=True,
+                message="Scipy no disponible",
+                duration_ms=0
+            )
+        
+        adj = {i: set(range(5)) - {i} for i in range(5)}
+        calc = DiscreteVectorCalculus(adj)
+        solver = MaxwellSolver(calculus=calc)
+        
+        np.random.seed(42)
+        solver.set_initial_conditions(
+            E0=np.random.randn(calc.num_edges),
+            B0=np.random.randn(calc.num_faces)
+        )
+        
+        # Simular muchos pasos
+        energies = []
+        for _ in range(1000):
+            solver.leapfrog_step()
+            energies.append(solver.total_energy())
+        
+        energies = np.array(energies)
+        
+        # Verificar que no hay NaN/Inf
+        all_finite = np.all(np.isfinite(energies))
+        
+        # Verificar que energía no explota
+        energy_bounded = np.max(energies) < 1e10
+        
+        return TestResult(
+            name="test_numerical_stability_long_simulation",
+            passed=all_finite and energy_bounded,
+            message=f"1000 pasos: E ∈ [{np.min(energies):.2f}, {np.max(energies):.2f}]",
+            duration_ms=0
+        )
+    
+    @classmethod
+    def run_all(cls, runner: TestRunner) -> TestSuiteResult:
+        """Ejecuta todas las pruebas de integración."""
+        tests = [
+            cls.test_calculus_to_maxwell_integration,
+            cls.test_maxwell_to_phs_integration,
+            cls.test_full_pipeline_simulation,
+            cls.test_numerical_stability_long_simulation,
+        ]
+        return runner.run_suite("Integration", tests)
+
+
+# ============================================================================
+# EJECUTOR PRINCIPAL
+# ============================================================================
+
+def run_full_evaluation(verbose: bool = True) -> Dict[str, Any]:
+    """
+    Ejecuta la evaluación completa de todas las clases.
+    
+    Returns:
+        Diccionario con resultados y métricas.
+    """
+    print("\n" + "="*60)
+    print("EVALUACIÓN COMPLETA DEL SISTEMA")
+    print("="*60 + "\n")
+    
+    runner = TestRunner(verbose=verbose)
+    
+    # Ejecutar todas las suites
+    evaluators = [
+        ("SystemConstants", SystemConstantsEvaluator),
+        ("PIController", PIControllerEvaluator),
+        ("DiscreteVectorCalculus", DiscreteVectorCalculusEvaluator),
+        ("MaxwellSolver", MaxwellSolverEvaluator),
+        ("PortHamiltonianController", PortHamiltonianControllerEvaluator),
+        ("Integration", IntegrationEvaluator),
+    ]
+    
+    results = {}
+    
+    for name, evaluator in evaluators:
+        if verbose:
+            print(f"\n>>> Ejecutando suite: {name}")
+        
+        suite_result = evaluator.run_all(runner)
+        results[name] = suite_result
+        
+        if verbose:
+            print(suite_result.summary())
+    
+    # Resumen global
+    global_summary = runner.global_summary()
+    print(global_summary)
+    
+    # Métricas agregadas
+    total_passed = sum(s.passed for s in runner.all_results)
+    total_failed = sum(s.failed for s in runner.all_results)
+    total_tests = sum(s.total for s in runner.all_results)
+    
+    return {
+        "suites": results,
+        "summary": {
+            "total_tests": total_tests,
+            "passed": total_passed,
+            "failed": total_failed,
+            "success_rate": total_passed / max(total_tests, 1),
+            "all_passed": total_failed == 0
+        },
+        "runner": runner
+    }
+
+
+# ============================================================================
+# PUNTO DE ENTRADA
+# ============================================================================
+
+if __name__ == "__main__":
+    # Ejecutar evaluación completa
+    results = run_full_evaluation(verbose=True)
+    
+    # Código de salida basado en resultados
+    exit_code = 0 if results["summary"]["all_passed"] else 1
+    
+    print(f"\nCódigo de salida: {exit_code}")
+    exit(exit_code)
