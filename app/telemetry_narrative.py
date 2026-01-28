@@ -72,6 +72,8 @@ class NarratorConfig:
         "flyback_voltage": 0.5,
         "dissipated_power": 50.0,
         "error_rate": 0.1,
+        "water_hammer_pressure": 0.7,
+        "pump_work": 1000.0,  # Umbral arbitrario para alta inyección
     }
 
     # Tipos de issues que NO son críticos
@@ -737,6 +739,16 @@ class NarrativeTemplates:
                 "Polos en el semiplano derecho (RHP). El sistema es intrínsecamente explosivo "
                 "ante variaciones de entrada."
             ),
+            "water_hammer": (
+                "🌊 **GOLPE DE ARIETE DETECTADO**: "
+                "Ondas de choque en la tubería de datos (Presión > 0.7). "
+                "Riesgo de ruptura en la persistencia."
+            ),
+            "high_injection_work": (
+                "💪 **Fase de Ingesta (Sobrecarga)**: "
+                "Alto esfuerzo de inyección detectado. La fricción de los datos "
+                "está consumiendo energía crítica."
+            ),
         },
         Stratum.TACTICS: {
             "default": (
@@ -873,6 +885,10 @@ class NarrativeTemplates:
                 return "laplace_unstable"
             if "saturación" in issue_messages or "saturation" in issue_messages:
                 return "saturation"
+            if "golpe de ariete" in issue_messages or "water_hammer" in issue_messages or "tubería" in issue_messages:
+                return "water_hammer"
+            if "esfuerzo de inyección" in issue_messages or "pump_work" in issue_messages:
+                return "high_injection_work"
             if "corrupt" in issue_messages or "invalid" in issue_messages:
                 return "corruption"
 
