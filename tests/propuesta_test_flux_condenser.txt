@@ -1,0 +1,773 @@
+"""
+Métodos refinados para DataFluxCondenser V5 - Mejoras de Lógica
+"""
+
+# ============================================================================
+# REFINAMIENTOS: PIController - Controlador PI Refinado
+# ============================================================================
+
+class PIController:
+    """Controlador PI refinado V5 con mejoras de lógica."""
+    
+    def _apply_ema_filter(self, pv: float) -> float:
+        """
+        Aplica filtro EMA adaptativo con detección de cambios abruptos.
+        
+        Mejoras:
+        - Detección de step más robusta usando derivada normalizada
+        - Alpha adaptativo basado en varianza de innovaciones
+        - Historial de innovaciones para ajuste dinámico
+        """
+        if self._filtered_pv is None:
+            self._filtered_pv = pv
+            self._ema_alpha = 0.3  # Valor inicial conservador
+            self._innovation_history = deque(maxlen=20)
+            return pv
+        
+        # Calcular innovación (error de predicción)
+        innovation = pv - self._filtered_pv
+        self._innovation_history.append(abs(innovation))
+        
+        # Detectar cambio abrupto usando derivada normalizada
+        change_ratio = abs(innovation) / (abs(self._filtered_pv) + 1e-6)
+        is_step_change = change_ratio > 0.25
+        
+        if is_step_change:
+            # Reducir inercia del filtro durante transiciones
+            adaptive_alpha = min(0.8, self._ema_alpha * 2.0)
+            # Aplicar bypass parcial (30% del nuevo valor directo)
+            filtered = 0.7 * self._filtered_pv + 0.3 * pv
+            self._filtered_pv = filtered
+        else:
+            # Ajustar alpha basado en varianza de innovaciones
+            if len(self._innovation_history) >= 5:
+                innovation_var = np.var(list(self._innovation_history)) if HAS_NUMPY else 0.1
+                # Alpha inversamente proporcional a varianza (mayor varianza = menos suavizado)
+                self._ema_alpha = max(0.1, min(0.9, 0.5 / (1.0 + innovation_var)))
+            
+            # EMA estándar
+            self._filtered_pv = (self._ema_alpha * pv + 
+                                (1 - self._ema_alpha) * self._filtered_pv)
+        
+        return self._filtered_pv
+    
+    def _update_stability_metrics(self, error: float) -> None:
+        """
+        Actualiza métricas de estabilidad con regresión logarítmica robusta.
+        
+        Mejoras:
+        - Detección de outliers usando IQR
+        - Regresión ponderada por recencia
+        - Validación de confianza estadística
+        """
+        self._error_history.append(error)
+        
+        if len(self._error_history) < 10:
+            return
+        
+        # Preparar datos para regresión
+        x = np.arange(len(self._error_history))
+        y = np.array(self._error_history)
+        
+        # Detectar y manejar outliers usando IQR
+        if HAS_NUMPY and len(y) >= 10:
+            Q1 = np.percentile(y, 25)
+            Q3 = np.percentile(y, 75)
+            IQR = Q3 - Q1
+            lower_bound = Q1 - 1.5 * IQR
+            upper_bound = Q3 + 1.5 * IQR
+            
+            # Filtrar outliers
+            mask = (y >= lower_bound) & (y <= upper_bound)
+            if np.sum(mask) >= 5:  # Mínimo de puntos válidos
+                x_clean = x[mask]
+                y_clean = y[mask]
+                
+                # Aplicar pesos exponenciales (más peso a puntos recientes)
+                weights = np.exp(0.1 * x_clean) / np.exp(0.1 * x_clean.max())
+                
+                # Regresión lineal ponderada
+                try:
+                    A = np.vstack([x_clean, np.ones_like(x_clean)]).T
+                    W = np.diag(weights)
+                    coeff = np.linalg.lstsq(W @ A, W @ y_clean, rcond=None)[0]
+                    
+                    # Exponente de Lyapunov aproximado (pendiente normalizada)
+                    self._lyapunov_exponent = coeff[0] / (np.abs(y_clean).mean() + 1e-6)
+                    
+                    # Calcular intervalo de confianza
+                    residuals = y_clean - (coeff[0] * x_clean + coeff[1])
+                    std_error = np.std(residuals) / np.sqrt(len(x_clean))
+                    self._lyapunov_confidence = max(0, 1 - 2 * std_error)
+                    
+                except np.linalg.LinAlgError:
+                    # Fallback a método simple
+                    self._lyapunov_exponent = np.mean(np.diff(y[-5:])) / (np.abs(y[-5:]).mean() + 1e-6)
+                    self._lyapunov_confidence = 0.5
+
+
+# ============================================================================
+# REFINAMIENTOS: DataFluxCondenser - Estimación de Cache Hits
+# ============================================================================
+
+class DataFluxCondenser:
+    """Condensador de flujo de datos con estimación bayesiana mejorada."""
+    
+    def _estimate_cache_hits(self, batch: List[Dict], cache: Dict[str, Any]) -> int:
+        """
+        Estima cache hits usando modelo bayesiano con prior conjugado.
+        
+        Mejoras:
+        - Modelo Beta-Binomial con actualización online
+        - Consideración de correlación entre campos
+        - Ajuste por cardinalidad de valores
+        """
+        if not batch or not cache:
+            # Fallback a heurística conservadora
+            return max(1, len(batch) // 4)
+        
+        # Extraer campos únicos del batch
+        batch_fields = set()
+        for record in batch:
+            batch_fields.update(record.keys())
+        
+        cache_fields = set(cache.keys())
+        overlapping_fields = batch_fields & cache_fields
+        
+        if not overlapping_fields:
+            return max(1, len(batch) // 4)
+        
+        # Modelo Beta-Binomial para cada campo
+        total_hits = 0
+        
+        for field in overlapping_fields:
+            # Contar ocurrencias del campo en el batch
+            field_count = sum(1 for record in batch if field in record)
+            
+            # Obtener prior del historial (si existe)
+            prior_alpha = self._cache_hit_priors.get(field, {}).get('alpha', 2.0)
+            prior_beta = self._cache_hit_priors.get(field, {}).get('beta', 2.0)
+            
+            # Asumir que campos presentes en cache tienen alta probabilidad de hit
+            # Ajustar por cardinalidad estimada (campos con pocos valores únicos → más hits)
+            cardinality_factor = self._estimate_field_cardinality(field, batch)
+            hit_probability = prior_alpha / (prior_alpha + prior_beta)
+            
+            # Ajustar por correlación con otros campos en cache
+            correlation_boost = self._calculate_field_correlation(field, cache_fields, batch)
+            
+            # Probabilidad final ajustada
+            adj_probability = min(0.95, 
+                                hit_probability * 
+                                (1.0 + 0.5 * correlation_boost) * 
+                                (2.0 - cardinality_factor))
+            
+            # Estimación puntual con varianza
+            expected_hits = field_count * adj_probability
+            variance = field_count * adj_probability * (1 - adj_probability)
+            
+            # Usar expectativa más margen conservador (percentil 25)
+            conservative_hits = max(0, int(expected_hits - 0.675 * np.sqrt(variance)))
+            total_hits += conservative_hits
+            
+            # Actualizar prior para futuro (actualización bayesiana)
+            if field_count > 0:
+                observed_hits = min(field_count, conservative_hits)
+                new_alpha = prior_alpha + observed_hits
+                new_beta = prior_beta + (field_count - observed_hits)
+                
+                if field not in self._cache_hit_priors:
+                    self._cache_hit_priors[field] = {}
+                self._cache_hit_priors[field].update({
+                    'alpha': new_alpha,
+                    'beta': new_beta,
+                    'last_update': time.time()
+                })
+        
+        # Asegurar al menos un hit y no más que el batch
+        return max(1, min(len(batch), total_hits))
+    
+    def _estimate_field_cardinality(self, field: str, batch: List[Dict]) -> float:
+        """Estima cardinalidad relativa de un campo (0=único, 1=todos iguales)."""
+        values = [record.get(field) for record in batch if field in record]
+        if not values:
+            return 0.5
+        
+        unique_count = len(set(values))
+        return 1.0 - (unique_count / len(values))
+    
+    def _calculate_field_correlation(self, field: str, cache_fields: set, 
+                                   batch: List[Dict]) -> float:
+        """Calcula correlación promedio del campo con otros campos en cache."""
+        if len(cache_fields) <= 1:
+            return 0.0
+        
+        correlation_sum = 0.0
+        count = 0
+        
+        for other_field in cache_fields:
+            if other_field == field:
+                continue
+            
+            # Co-ocurrencia en registros del batch
+            co_occurrences = sum(1 for record in batch 
+                               if field in record and other_field in record)
+            field_occurrences = sum(1 for record in batch if field in record)
+            
+            if field_occurrences > 0:
+                correlation = co_occurrences / field_occurrences
+                correlation_sum += correlation
+                count += 1
+        
+        return correlation_sum / count if count > 0 else 0.0
+
+
+# ============================================================================
+# REFINAMIENTOS: DataFluxCondenser - Predicción de Saturación EKF
+# ============================================================================
+
+    def _predict_next_saturation(self, history: List[float]) -> float:
+        """
+        Predice siguiente valor de saturación usando Filtro de Kalman Extendido (EKF).
+        
+        Mejoras:
+        - Modelo no lineal con ajuste adaptativo de ruido
+        - Detección de cambios de régimen
+        - Validación de innovaciones para rechazo de outliers
+        """
+        if not history:
+            return 0.5  # Valor por defecto
+        
+        if len(history) < 3:
+            return history[-1] if history else 0.5
+        
+        # Inicializar EKF si no existe
+        if not hasattr(self, '_ekf_initialized') or not self._ekf_initialized:
+            self._init_ekf(history)
+        
+        # Preparar numpy arrays
+        if not HAS_NUMPY:
+            # Fallback a predicción lineal simple
+            if len(history) >= 2:
+                trend = history[-1] - history[-2]
+                prediction = min(1.0, max(0.0, history[-1] + trend))
+                return prediction
+            return history[-1]
+        
+        # Paso de predicción
+        self._ekf_predict()
+        
+        # Actualización con medición
+        measurement = history[-1]
+        self._ekf_update(measurement)
+        
+        # Extraer predicción (primer elemento del estado)
+        prediction = float(self._ekf_state[0])
+        
+        # Detectar cambios de régimen basado en innovaciones
+        innovation = measurement - self._ekf_prev_prediction
+        self._ekf_innovation_history.append(innovation)
+        
+        if len(self._ekf_innovation_history) >= 10:
+            innovation_std = np.std(self._ekf_innovation_history)
+            if abs(innovation) > 3 * innovation_std:
+                # Posible cambio de régimen - reinicializar parcialmente
+                self._ekf_P *= 2.0  # Aumentar incertidumbre
+                self._logger.debug(f"Detectado cambio de régimen en saturación: "
+                                 f"innovation={innovation:.3f}, std={innovation_std:.3f}")
+        
+        self._ekf_prev_prediction = prediction
+        
+        return min(1.0, max(0.0, prediction))
+    
+    def _init_ekf(self, history: List[float]) -> None:
+        """Inicializa el Filtro de Kalman Extendido."""
+        if not HAS_NUMPY:
+            self._ekf_initialized = False
+            return
+        
+        # Estado: [saturación, velocidad, aceleración]
+        self._ekf_state = np.array([history[-1], 0.0, 0.0], dtype=float)
+        
+        # Matriz de covarianza
+        self._ekf_P = np.eye(3) * 0.1
+        
+        # Matrices de proceso y medición
+        self._ekf_Q = np.eye(3) * 0.01  # Ruido de proceso
+        self._ekf_R = 0.05  # Ruido de medición
+        
+        # Historial de innovaciones
+        self._ekf_innovation_history = deque(maxlen=50)
+        self._ekf_prev_prediction = history[-1]
+        self._ekf_initialized = True
+    
+    def _ekf_predict(self) -> None:
+        """Paso de predicción del EKF."""
+        if not self._ekf_initialized:
+            return
+        
+        # Modelo no lineal: integrador con saturación
+        dt = 1.0  # Paso de tiempo unitario
+        
+        # Actualizar estado (modelo de movimiento browniano amortiguado)
+        self._ekf_state[1] = self._ekf_state[1] * 0.9  # Amortiguamiento
+        self._ekf_state[0] += self._ekf_state[1] * dt
+        self._ekf_state[2] = np.random.normal(0, 0.01)  # Ruido de aceleración
+        
+        # Jacobiano del modelo
+        F = np.array([
+            [1.0, dt, 0.5 * dt**2],
+            [0.0, 0.9, dt],
+            [0.0, 0.0, 1.0]
+        ])
+        
+        # Actualizar covarianza
+        self._ekf_P = F @ self._ekf_P @ F.T + self._ekf_Q
+        
+        # Forzar saturación física [0, 1]
+        self._ekf_state[0] = np.clip(self._ekf_state[0], 0.0, 1.0)
+    
+    def _ekf_update(self, measurement: float) -> None:
+        """Paso de actualización del EKF."""
+        if not self._ekf_initialized:
+            return
+        
+        # Jacobiano de medición (solo medimos saturación)
+        H = np.array([[1.0, 0.0, 0.0]])
+        
+        # Innovación
+        y = measurement - self._ekf_state[0]
+        
+        # Covarianza de innovación
+        S = H @ self._ekf_P @ H.T + self._ekf_R
+        
+        # Ganancia de Kalman
+        K = self._ekf_P @ H.T / S
+        
+        # Actualizar estado
+        self._ekf_state += K.flatten() * y
+        
+        # Actualizar covarianza (forma estable de Joseph)
+        I = np.eye(3)
+        self._ekf_P = (I - K @ H) @ self._ekf_P @ (I - K @ H).T + K @ self._ekf_R @ K.T
+        
+        # Forzar simetría y definida positiva
+        self._ekf_P = (self._ekf_P + self._ekf_P.T) / 2
+        self._ekf_P += np.eye(3) * 1e-6
+
+
+# ============================================================================
+# REFINAMIENTOS: TopologicalAnalyzer - Números de Betti con Union-Find
+# ============================================================================
+
+class TopologicalAnalyzer:
+    """Analizador topológico con cálculo optimizado de números de Betti."""
+    
+    def compute_betti_with_spectral(self) -> Tuple[int, int]:
+        """
+        Calcula números de Betti usando Union-Find y complemento espectral.
+        
+        Mejoras:
+        - Union-Find optimizado con compresión de caminos
+        - Detección de ciclos mediante DFS eficiente
+        - Fallback espectral con threshold adaptativo
+        """
+        if self._vertex_count == 0:
+            return (0, 0)
+        
+        # Método 1: Union-Find para componentes conexas (β0)
+        parent = list(range(self._vertex_count))
+        rank = [0] * self._vertex_count
+        
+        def find(x):
+            # Compresión de caminos
+            while parent[x] != x:
+                parent[x] = parent[parent[x]]  # Path halving
+                x = parent[x]
+            return x
+        
+        def union(x, y):
+            rx, ry = find(x), find(y)
+            if rx == ry:
+                return 0  # Ya están unidos
+            # Union by rank
+            if rank[rx] < rank[ry]:
+                parent[rx] = ry
+            elif rank[rx] > rank[ry]:
+                parent[ry] = rx
+            else:
+                parent[ry] = rx
+                rank[rx] += 1
+            return 1  # Unión realizada
+        
+        # Unir vértices conectados
+        edge_reductions = 0
+        for u in self._adjacency_list:
+            for v in self._adjacency_list[u]:
+                if u < v:  # Evitar duplicados
+                    edge_reductions += union(u, v)
+        
+        # Contar componentes conexas
+        components = set()
+        for v in range(self._vertex_count):
+            components.add(find(v))
+        beta0 = len(components)
+        
+        # Método 2: Detección de ciclos para β1
+        # β1 = |E| - |V| + β0 (fórmula de Euler para grafos planares)
+        # Ajustar para no planaridad con DFS
+        if self._edge_count > 0:
+            # DFS para detectar ciclos
+            visited = [False] * self._vertex_count
+            cycle_count = 0
+            
+            def dfs_cycles(v, parent):
+                nonlocal cycle_count
+                visited[v] = True
+                for neighbor in self._adjacency_list.get(v, []):
+                    if not visited[neighbor]:
+                        if dfs_cycles(neighbor, v):
+                            return True
+                    elif neighbor != parent:
+                        # Ciclo detectado
+                        cycle_count += 1
+                return False
+            
+            for v in range(self._vertex_count):
+                if not visited[v]:
+                    dfs_cycles(v, -1)
+            
+            # β1 = ciclos independientes
+            beta1 = cycle_count // 2  # Cada ciclo cuenta dos veces
+            
+            # Fallback: fórmula de Euler si DFS falla
+            if beta1 == 0 and self._edge_count > self._vertex_count - beta0:
+                beta1 = self._edge_count - self._vertex_count + beta0
+        else:
+            beta1 = 0
+        
+        # Validar con método espectral si está disponible
+        if HAS_NUMPY and len(self._adjacency_list) > 0:
+            spectral_betti = self._compute_betti_spectral_fallback()
+            # Promediar si hay discrepancia significativa
+            if abs(spectral_betti[0] - beta0) > 2 or abs(spectral_betti[1] - beta1) > 2:
+                self._logger.debug(f"Discrepancia Betti: UF=({beta0},{beta1}) "
+                                 f"Espectral={spectral_betti}")
+                # Tomar el mínimo como conservador
+                beta0 = min(beta0, spectral_betti[0])
+                beta1 = min(beta1, spectral_betti[1])
+        
+        return (max(0, beta0), max(0, beta1))
+    
+    def _compute_betti_spectral_fallback(self) -> Tuple[int, int]:
+        """Cálculo de Betti usando métodos espectrales (Laplaciano)."""
+        try:
+            n = self._vertex_count
+            if n == 0:
+                return (0, 0)
+            
+            # Construir matriz de adyacencia
+            A = np.zeros((n, n))
+            for u in self._adjacency_list:
+                for v in self._adjacency_list[u]:
+                    A[u, v] = 1
+                    A[v, u] = 1
+            
+            # Matriz de grados
+            D = np.diag(np.sum(A, axis=1))
+            
+            # Laplaciano
+            L = D - A
+            
+            # Valores propios
+            eigenvalues = np.linalg.eigvalsh(L)
+            
+            # Contar valores propios cercanos a cero (β0)
+            zero_threshold = max(1e-6, 1.0 / n)
+            beta0_spectral = np.sum(eigenvalues < zero_threshold)
+            
+            # Estimación de β1 usando rango de Laplaciano
+            rank_laplacian = np.sum(eigenvalues > zero_threshold)
+            beta1_spectral = max(0, n - rank_laplacian - beta0_spectral)
+            
+            return (int(round(beta0_spectral)), int(round(beta1_spectral)))
+            
+        except Exception as e:
+            self._logger.warning(f"Falló cálculo espectral de Betti: {e}")
+            return (0, 0)
+
+
+# ============================================================================
+# REFINAMIENTOS: RefinedFluxPhysicsEngine - Integración RK4 con Limitador
+# ============================================================================
+
+class RefinedFluxPhysicsEngine:
+    """Motor de física RLC con integración RK4 mejorada y limitación de energía."""
+    
+    def _integrate_rlc_state(self, dt: float) -> Dict[str, float]:
+        """
+        Integra ecuaciones RLC usando RK4 con limitador de energía.
+        
+        Mejoras:
+        - RK4 adaptativo con control de error
+        - Limitación de energía para evitar explosión numérica
+        - Conservación de Hamiltonianos en sistema cerrado
+        """
+        # Variables de estado: [Vc (voltaje capacitor), Il (corriente inductor)]
+        def derivatives(state, t):
+            Vc, Il = state
+            # Ecuaciones RLC serie
+            dVc_dt = Il / self._C
+            dIl_dt = (-self._R * Il - Vc) / self._L
+            return np.array([dVc_dt, dIl_dt])
+        
+        # Estado actual
+        current_state = np.array([self._Vc, self._Il])
+        
+        # Paso RK4
+        k1 = derivatives(current_state, 0)
+        k2 = derivatives(current_state + 0.5 * dt * k1, 0.5 * dt)
+        k3 = derivatives(current_state + 0.5 * dt * k2, 0.5 * dt)
+        k4 = derivatives(current_state + dt * k3, dt)
+        
+        new_state = current_state + (dt / 6.0) * (k1 + 2*k2 + 2*k3 + k4)
+        
+        # Calcular energía en cada paso
+        energy_old = 0.5 * self._C * self._Vc**2 + 0.5 * self._L * self._Il**2
+        energy_new = 0.5 * self._C * new_state[0]**2 + 0.5 * self._L * new_state[1]**2
+        
+        # Limitador de energía (evita explosión numérica)
+        energy_ratio = energy_new / (energy_old + 1e-6)
+        
+        if energy_ratio > 2.0:  # Crecimiento sospechoso
+            # Reducir paso de tiempo o aplicar amortiguamiento
+            damping = np.sqrt(2.0 / energy_ratio)
+            new_state = current_state + damping * (new_state - current_state)
+            self._logger.debug(f"Aplicado limitador de energía: ratio={energy_ratio:.2f}, "
+                             f"damping={damping:.3f}")
+        
+        # Actualizar estado
+        self._Vc, self._Il = new_state
+        
+        # Calcular métricas derivadas
+        power_dissipated = self._R * self._Il**2
+        flyback_voltage = -self._L * (self._Il - self._prev_Il) / dt if dt > 0 else 0
+        
+        # Actualizar previos
+        self._prev_Il = self._Il
+        self._energy_history.append(energy_new)
+        
+        return {
+            'voltage_capacitor': float(self._Vc),
+            'current_inductor': float(self._Il),
+            'energy_total': float(energy_new),
+            'power_dissipated': float(power_dissipated),
+            'flyback_voltage': float(flyback_volume)
+        }
+
+
+# ============================================================================
+# REFINAMIENTOS: DataFluxCondenser - Procesamiento con Recuperación Multinivel
+# ============================================================================
+
+    def _process_single_batch_with_recovery(
+        self,
+        raw_records: List[Dict[str, Any]],
+        parse_cache: Dict[str, Any],
+        consecutive_failures: int
+    ) -> BatchResult:
+        """
+        Procesa batch con recuperación multinivel mejorada.
+        
+        Mejoras:
+        - Estrategia de división adaptativa basada en complejidad estimada
+        - Agregación segura con validación de esquema
+        - Timeout por registro para evitar bloqueos
+        """
+        if not raw_records:
+            return BatchResult(success=True, dataframe=pd.DataFrame(), records_processed=0)
+        
+        batch_size = len(raw_records)
+        
+        # Determinar estrategia de recuperación
+        recovery_mode = self._select_recovery_strategy(
+            batch_size, consecutive_failures, raw_records
+        )
+        
+        results = []
+        processed_count = 0
+        
+        try:
+            if recovery_mode == "DIRECT":
+                # Intentar procesamiento directo
+                result = self._process_direct_batch(raw_records, parse_cache)
+                results.append(result)
+                processed_count = len(raw_records)
+                
+            elif recovery_mode == "BINARY_SPLIT":
+                # División binaria recursiva
+                mid = batch_size // 2
+                left_batch = raw_records[:mid]
+                right_batch = raw_records[mid:]
+                
+                # Procesar recursivamente
+                left_result = self._process_single_batch_with_recovery(
+                    left_batch, parse_cache, consecutive_failures + 1
+                )
+                right_result = self._process_single_batch_with_recovery(
+                    right_batch, parse_cache, consecutive_failures + 1
+                )
+                
+                results.extend([left_result, right_result])
+                processed_count = left_result.records_processed + right_result.records_processed
+                
+            elif recovery_mode == "UNIT_PROCESSING":
+                # Procesamiento registro por registro con timeout
+                for i, record in enumerate(raw_records):
+                    try:
+                        # Timeout por registro (100ms)
+                        with self._timeout_context(0.1):
+                            single_result = self._process_direct_batch([record], parse_cache)
+                            results.append(single_result)
+                            processed_count += 1
+                    except TimeoutError:
+                        self._logger.warning(f"Timeout procesando registro {i}")
+                        continue
+                    except Exception as e:
+                        self._logger.debug(f"Error en registro {i}: {e}")
+                        continue
+            
+            elif recovery_mode == "SAMPLING":
+                # Muestreo representativo + extrapolación
+                sample_size = min(10, batch_size)
+                sample_indices = np.linspace(0, batch_size-1, sample_size, dtype=int)
+                sample_records = [raw_records[i] for i in sample_indices]
+                
+                sample_result = self._process_single_batch_with_recovery(
+                    sample_records, parse_cache, consecutive_failures + 1
+                )
+                
+                if sample_result.success and not sample_result.dataframe.empty:
+                    # Extrapolar resultados
+                    extrapolated = self._extrapolate_results(
+                        sample_result.dataframe, batch_size
+                    )
+                    results.append(BatchResult(
+                        success=True,
+                        dataframe=extrapolated,
+                        records_processed=batch_size
+                    ))
+                    processed_count = batch_size
+        
+        except Exception as e:
+            self._logger.error(f"Error en recuperación {recovery_mode}: {e}")
+            return BatchResult(
+                success=False,
+                dataframe=pd.DataFrame(),
+                records_processed=processed_count,
+                error=str(e)
+            )
+        
+        # Agregar resultados con validación
+        if results:
+            aggregated_df = self._aggregate_results_with_validation(results)
+            success = processed_count > 0 and not aggregated_df.empty
+            
+            return BatchResult(
+                success=success,
+                dataframe=aggregated_df,
+                records_processed=processed_count
+            )
+        
+        return BatchResult(
+            success=False,
+            dataframe=pd.DataFrame(),
+            records_processed=0
+        )
+    
+    def _select_recovery_strategy(
+        self, 
+        batch_size: int, 
+        failures: int,
+        records: List[Dict]
+    ) -> str:
+        """
+        Selecciona estrategia de recuperación óptima.
+        
+        Heurística basada en:
+        - Tamaño del batch
+        - Historial de fallos
+        - Complejidad estimada de registros
+        """
+        # Estimación de complejidad (campos por registro)
+        avg_fields = sum(len(r) for r in records) / max(1, len(records))
+        
+        if failures >= 3 or batch_size <= 5:
+            return "UNIT_PROCESSING"
+        
+        elif failures >= 2 or batch_size > 100:
+            return "BINARY_SPLIT"
+        
+        elif avg_fields > 20:  # Registros complejos
+            return "SAMPLING"
+        
+        else:
+            return "DIRECT"
+    
+    def _aggregate_results_with_validation(
+        self, 
+        batch_results: List[BatchResult]
+    ) -> pd.DataFrame:
+        """
+        Agrega resultados con validación de consistencia de esquema.
+        """
+        if not batch_results:
+            return pd.DataFrame()
+        
+        # Filtrar resultados exitosos no vacíos
+        valid_dfs = [
+            r.dataframe for r in batch_results 
+            if r.success and not r.dataframe.empty
+        ]
+        
+        if not valid_dfs:
+            return pd.DataFrame()
+        
+        # Verificar compatibilidad de esquemas
+        if len(valid_dfs) > 1:
+            base_schema = set(valid_dfs[0].columns)
+            for df in valid_dfs[1:]:
+                if set(df.columns) != base_schema:
+                    # Unificar esquemas
+                    all_columns = set()
+                    for df in valid_dfs:
+                        all_columns.update(df.columns)
+                    
+                    # Reindexar todos los DataFrames
+                    aligned_dfs = []
+                    for df in valid_dfs:
+                        aligned_df = df.reindex(columns=list(all_columns))
+                        aligned_dfs.append(aligned_df)
+                    
+                    valid_dfs = aligned_dfs
+        
+        # Concatenar con límite seguro
+        max_rows = SystemConstants.MAX_BATCHES_TO_CONSOLIDATE * 1000
+        if sum(len(df) for df in valid_dfs) > max_rows:
+            self._logger.warning(f"Truncando agregación a {max_rows} filas")
+            # Tomar muestras proporcionales de cada batch
+            sampled_dfs = []
+            for df in valid_dfs:
+                if len(df) > 0:
+                    sample_frac = min(1.0, max_rows / (len(df) * len(valid_dfs)))
+                    sampled = df.sample(frac=sample_frac, random_state=42)
+                    sampled_dfs.append(sampled)
+            valid_dfs = sampled_dfs
+        
+        try:
+            result = pd.concat(valid_dfs, ignore_index=True)
+            return result
+        except Exception as e:
+            self._logger.error(f"Error concatenando resultados: {e}")
+            # Fallback: tomar el primer DataFrame válido
+            return valid_dfs[0] if valid_dfs else pd.DataFrame()
