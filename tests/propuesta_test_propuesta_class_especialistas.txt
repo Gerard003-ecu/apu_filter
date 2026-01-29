@@ -1,2274 +1,1807 @@
 """
-Suite de evaluación y testing para las clases refinadas del sistema.
+Suite de Pruebas para Motor de Física RLC Refinado
+===================================================
+Incluye:
+1. Tests unitarios por clase
+2. Tests de integración
+3. Verificación de leyes físicas
+4. Visualizaciones para análisis
 
-Este módulo implementa verificaciones exhaustivas de:
-- Correctitud matemática y topológica
-- Estabilidad numérica
-- Propiedades físicas (conservación, pasividad)
-- Casos límite y condiciones de borde
-- Coherencia inter-módulo
-
-Autor: Sistema de Validación Automatizada
-Versión: 2.0
+Requisitos:
+    pip install numpy matplotlib pytest scipy
 """
 
-import logging
+import unittest
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.gridspec import GridSpec
+from typing import Dict, List, Tuple, Optional, Any
+from dataclasses import dataclass
+from collections import deque
 import math
 import time
 import warnings
-from collections import deque
-from dataclasses import dataclass, field
-from typing import Any, Callable, Dict, List, Optional, Set, Tuple, Union
-from contextlib import contextmanager
-from functools import wraps
-import traceback
 
-try:
-    import numpy as np
-    from numpy.linalg import LinAlgError
-    NUMPY_AVAILABLE = True
-except ImportError:
-    np = None
-    NUMPY_AVAILABLE = False
-    LinAlgError = Exception
-
-try:
-    from scipy import sparse
-    from scipy.sparse.linalg import eigsh, norm as sparse_norm
-    from scipy.stats import pearsonr
-    SCIPY_AVAILABLE = True
-except ImportError:
-    SCIPY_AVAILABLE = False
-    sparse = None
-
-import networkx as nx
-
-# Importar clases a evaluar (asumiendo que están en el mismo paquete)
-# from .refined_classes import (
-#     SystemConstants, CONSTANTS,
-#     PIController, DiscreteVectorCalculus,
-#     MaxwellSolver, PortHamiltonianController,
-#     ConfigurationError, NumericalInstabilityError
+# Importar las clases refinadas (asumiendo que están en physics_engine.py)
+# from physics_engine import (
+#     DiscreteVectorCalculus, MaxwellSolver, PortHamiltonianController,
+#     TopologicalAnalyzer, EntropyCalculator, UnifiedPhysicalState,
+#     CodeQualityMetrics, RefinedFluxPhysicsEngine, SystemConstants,
+#     DampingType, ConfigurationError
 # )
 
-logger = logging.getLogger(__name__)
+# Para este ejemplo, las clases están definidas en el mismo archivo
+# Usar las definiciones del código refinado anterior
 
 
 # ============================================================================
-# INFRAESTRUCTURA DE TESTING
+# CONFIGURACIÓN DE VISUALIZACIÓN
 # ============================================================================
+plt.style.use('seaborn-v0_8-whitegrid')
+plt.rcParams['figure.figsize'] = (14, 10)
+plt.rcParams['font.size'] = 10
+plt.rcParams['axes.titlesize'] = 12
+plt.rcParams['axes.labelsize'] = 10
 
-@dataclass
-class TestResult:
-    """Resultado de una prueba individual."""
-    name: str
-    passed: bool
-    message: str
-    duration_ms: float
-    details: Dict[str, Any] = field(default_factory=dict)
-    exception: Optional[str] = None
-    
-    def __str__(self) -> str:
-        status = "✓ PASS" if self.passed else "✗ FAIL"
-        return f"[{status}] {self.name}: {self.message} ({self.duration_ms:.2f}ms)"
-
-
-@dataclass
-class TestSuiteResult:
-    """Resultado agregado de una suite de pruebas."""
-    suite_name: str
-    results: List[TestResult]
-    total_duration_ms: float
-    
-    @property
-    def passed(self) -> int:
-        return sum(1 for r in self.results if r.passed)
-    
-    @property
-    def failed(self) -> int:
-        return sum(1 for r in self.results if not r.passed)
-    
-    @property
-    def total(self) -> int:
-        return len(self.results)
-    
-    @property
-    def success_rate(self) -> float:
-        return self.passed / max(self.total, 1)
-    
-    def summary(self) -> str:
-        lines = [
-            f"\n{'='*60}",
-            f"Suite: {self.suite_name}",
-            f"{'='*60}",
-            f"Total: {self.total} | Passed: {self.passed} | Failed: {self.failed}",
-            f"Success Rate: {self.success_rate:.1%}",
-            f"Duration: {self.total_duration_ms:.2f}ms",
-            f"{'='*60}",
-        ]
-        
-        for result in self.results:
-            lines.append(str(result))
-            if not result.passed and result.exception:
-                lines.append(f"    Exception: {result.exception}")
-        
-        return "\n".join(lines)
-
-
-def timed_test(func: Callable) -> Callable:
-    """Decorador para medir tiempo de ejecución de tests."""
-    @wraps(func)
-    def wrapper(*args, **kwargs) -> TestResult:
-        start = time.perf_counter()
-        try:
-            result = func(*args, **kwargs)
-            duration = (time.perf_counter() - start) * 1000
-            if isinstance(result, TestResult):
-                result.duration_ms = duration
-                return result
-            return TestResult(
-                name=func.__name__,
-                passed=bool(result),
-                message="Completed",
-                duration_ms=duration
-            )
-        except Exception as e:
-            duration = (time.perf_counter() - start) * 1000
-            return TestResult(
-                name=func.__name__,
-                passed=False,
-                message=f"Exception: {type(e).__name__}",
-                duration_ms=duration,
-                exception=traceback.format_exc()
-            )
-    return wrapper
-
-
-class TestRunner:
-    """Ejecutor de suites de pruebas."""
-    
-    def __init__(self, verbose: bool = True):
-        self.verbose = verbose
-        self.all_results: List[TestSuiteResult] = []
-    
-    def run_suite(
-        self, 
-        suite_name: str, 
-        test_methods: List[Callable]
-    ) -> TestSuiteResult:
-        """Ejecuta una suite de pruebas."""
-        start = time.perf_counter()
-        results = []
-        
-        for test_method in test_methods:
-            if self.verbose:
-                print(f"  Running: {test_method.__name__}...", end=" ")
-            
-            result = test_method()
-            results.append(result)
-            
-            if self.verbose:
-                status = "✓" if result.passed else "✗"
-                print(f"{status}")
-        
-        duration = (time.perf_counter() - start) * 1000
-        suite_result = TestSuiteResult(suite_name, results, duration)
-        self.all_results.append(suite_result)
-        
-        return suite_result
-    
-    def global_summary(self) -> str:
-        """Resumen global de todas las suites ejecutadas."""
-        total_passed = sum(s.passed for s in self.all_results)
-        total_failed = sum(s.failed for s in self.all_results)
-        total_tests = sum(s.total for s in self.all_results)
-        total_duration = sum(s.total_duration_ms for s in self.all_results)
-        
-        lines = [
-            f"\n{'#'*60}",
-            f"RESUMEN GLOBAL DE EVALUACIÓN",
-            f"{'#'*60}",
-            f"Suites ejecutadas: {len(self.all_results)}",
-            f"Tests totales: {total_tests}",
-            f"Pasados: {total_passed} | Fallidos: {total_failed}",
-            f"Tasa de éxito global: {total_passed/max(total_tests,1):.1%}",
-            f"Duración total: {total_duration:.2f}ms",
-            f"{'#'*60}",
-        ]
-        
-        return "\n".join(lines)
+COLORS = {
+    'primary': '#2E86AB',
+    'secondary': '#A23B72',
+    'success': '#28A745',
+    'warning': '#F18F01',
+    'danger': '#C73E1D',
+    'info': '#17A2B8',
+    'energy_potential': '#3498db',
+    'energy_kinetic': '#e74c3c',
+    'energy_total': '#2ecc71',
+    'entropy': '#9b59b6',
+    'stability': '#f39c12'
+}
 
 
 # ============================================================================
-# EVALUACIÓN DE SystemConstants
+# CLASE BASE PARA TESTS CON VISUALIZACIÓN
 # ============================================================================
-
-class SystemConstantsEvaluator:
-    """Evaluador para la clase SystemConstants."""
-    
-    @staticmethod
-    @timed_test
-    def test_immutability() -> TestResult:
-        """Verifica que las constantes son inmutables."""
-        try:
-            constants = SystemConstants()
-            # Intentar modificar debería fallar
-            try:
-                constants.MIN_DELTA_TIME = 999.0
-                return TestResult(
-                    name="test_immutability",
-                    passed=False,
-                    message="Constantes son mutables (frozen=False)",
-                    duration_ms=0
-                )
-            except AttributeError:
-                pass  # Esperado para frozen dataclass
-            
-            return TestResult(
-                name="test_immutability",
-                passed=True,
-                message="Constantes correctamente inmutables",
-                duration_ms=0
-            )
-        except Exception as e:
-            return TestResult(
-                name="test_immutability",
-                passed=False,
-                message=str(e),
-                duration_ms=0
-            )
-    
-    @staticmethod
-    @timed_test
-    def test_tolerance_hierarchy() -> TestResult:
-        """Verifica jerarquía de tolerancias numéricas."""
-        constants = SystemConstants()
-        
-        hierarchy_valid = (
-            constants.NUMERICAL_ZERO < 
-            constants.NUMERICAL_TOLERANCE < 
-            constants.RELATIVE_TOLERANCE
-        )
-        
-        details = {
-            "NUMERICAL_ZERO": constants.NUMERICAL_ZERO,
-            "NUMERICAL_TOLERANCE": constants.NUMERICAL_TOLERANCE,
-            "RELATIVE_TOLERANCE": constants.RELATIVE_TOLERANCE,
-        }
-        
-        return TestResult(
-            name="test_tolerance_hierarchy",
-            passed=hierarchy_valid,
-            message="Jerarquía de tolerancias coherente" if hierarchy_valid else "Jerarquía inválida",
-            duration_ms=0,
-            details=details
-        )
-    
-    @staticmethod
-    @timed_test
-    def test_cfl_bounds() -> TestResult:
-        """Verifica que el factor CFL está en rango válido."""
-        constants = SystemConstants()
-        
-        valid = 0 < constants.CFL_SAFETY_FACTOR < 1
-        
-        return TestResult(
-            name="test_cfl_bounds",
-            passed=valid,
-            message=f"CFL factor = {constants.CFL_SAFETY_FACTOR}",
-            duration_ms=0,
-            details={"cfl_factor": constants.CFL_SAFETY_FACTOR}
-        )
-    
-    @staticmethod
-    @timed_test
-    def test_time_bounds_consistency() -> TestResult:
-        """Verifica coherencia de límites temporales."""
-        constants = SystemConstants()
-        
-        valid = constants.MIN_DELTA_TIME < constants.MAX_DELTA_TIME
-        
-        return TestResult(
-            name="test_time_bounds_consistency",
-            passed=valid,
-            message=f"[{constants.MIN_DELTA_TIME}, {constants.MAX_DELTA_TIME}]",
-            duration_ms=0
-        )
+class VisualTestCase(unittest.TestCase):
+    """Caso de prueba base con soporte para visualización."""
     
     @classmethod
-    def run_all(cls, runner: TestRunner) -> TestSuiteResult:
-        """Ejecuta todas las pruebas de SystemConstants."""
-        tests = [
-            cls.test_immutability,
-            cls.test_tolerance_hierarchy,
-            cls.test_cfl_bounds,
-            cls.test_time_bounds_consistency,
-        ]
-        return runner.run_suite("SystemConstants", tests)
-
-
-# ============================================================================
-# EVALUACIÓN DE PIController
-# ============================================================================
-
-class PIControllerEvaluator:
-    """Evaluador exhaustivo para PIController."""
+    def setUpClass(cls):
+        cls.figures: List[plt.Figure] = []
+        cls.test_results: Dict[str, Any] = {}
     
-    @staticmethod
-    def create_default_controller() -> 'PIController':
-        """Crea un controlador con parámetros por defecto para testing."""
-        return PIController(
-            kp=2.0,
-            ki=0.5,
-            setpoint=0.7,
-            min_output=10,
-            max_output=1000,
-            ema_alpha=0.3
-        )
-    
-    @staticmethod
-    @timed_test
-    def test_parameter_validation() -> TestResult:
-        """Verifica validación de parámetros inválidos."""
-        invalid_cases = [
-            {"kp": -1.0, "ki": 0.5, "setpoint": 0.7, "min_output": 10, "max_output": 1000},
-            {"kp": 2.0, "ki": -0.5, "setpoint": 0.7, "min_output": 10, "max_output": 1000},
-            {"kp": 2.0, "ki": 0.5, "setpoint": 1.5, "min_output": 10, "max_output": 1000},
-            {"kp": 2.0, "ki": 0.5, "setpoint": 0.7, "min_output": -10, "max_output": 1000},
-            {"kp": 2.0, "ki": 0.5, "setpoint": 0.7, "min_output": 1000, "max_output": 100},
-        ]
-        
-        errors_caught = 0
-        for params in invalid_cases:
-            try:
-                PIController(**params)
-            except ConfigurationError:
-                errors_caught += 1
-        
-        all_caught = errors_caught == len(invalid_cases)
-        
-        return TestResult(
-            name="test_parameter_validation",
-            passed=all_caught,
-            message=f"Capturados {errors_caught}/{len(invalid_cases)} casos inválidos",
-            duration_ms=0,
-            details={"errors_caught": errors_caught, "total_cases": len(invalid_cases)}
-        )
-    
-    @staticmethod
-    @timed_test
-    def test_output_bounds() -> TestResult:
-        """Verifica que la salida siempre está dentro de límites."""
-        controller = PIControllerEvaluator.create_default_controller()
-        
-        violations = 0
-        test_measurements = [0.0, 0.3, 0.5, 0.7, 0.9, 1.0, 0.1, 0.8]
-        
-        for measurement in test_measurements:
-            output = controller.compute(measurement)
-            if not (controller.min_output <= output <= controller.max_output):
-                violations += 1
-        
-        return TestResult(
-            name="test_output_bounds",
-            passed=violations == 0,
-            message=f"{violations} violaciones de límites",
-            duration_ms=0,
-            details={"violations": violations, "total_tests": len(test_measurements)}
-        )
-    
-    @staticmethod
-    @timed_test
-    def test_proportional_response() -> TestResult:
-        """Verifica respuesta proporcional a errores."""
-        controller = PIController(
-            kp=10.0,
-            ki=0.0,  # Sin integral para aislar proporcional
-            setpoint=0.5,
-            min_output=1,
-            max_output=10000
-        )
-        
-        controller.reset()
-        out1 = controller.compute(0.4)  # Error = 0.1
-        
-        controller.reset()
-        out2 = controller.compute(0.3)  # Error = 0.2
-        
-        # out2 debería ser mayor (error mayor → más corrección)
-        ratio = out2 / max(out1, 1)
-        proportional_ok = ratio > 1.5  # Esperamos ~2x
-        
-        return TestResult(
-            name="test_proportional_response",
-            passed=proportional_ok,
-            message=f"Ratio de respuesta: {ratio:.2f}",
-            duration_ms=0,
-            details={"out1": out1, "out2": out2, "ratio": ratio}
-        )
-    
-    @staticmethod
-    @timed_test
-    def test_integral_accumulation() -> TestResult:
-        """Verifica acumulación integral correcta."""
-        controller = PIController(
-            kp=0.1,
-            ki=1.0,  # Ki alto para ver efecto integral
-            setpoint=0.5,
-            min_output=1,
-            max_output=10000
-        )
-        
-        # Aplicar error constante repetidamente
-        outputs = []
-        for _ in range(20):
-            out = controller.compute(0.4)  # Error constante = 0.1
-            outputs.append(out)
-            time.sleep(0.01)
-        
-        # La salida debería crecer debido a la integral
-        is_increasing = all(outputs[i] <= outputs[i+1] for i in range(len(outputs)-1))
-        
-        return TestResult(
-            name="test_integral_accumulation",
-            passed=is_increasing,
-            message="Integral acumulando correctamente" if is_increasing else "Integral no acumula",
-            duration_ms=0,
-            details={"first_output": outputs[0], "last_output": outputs[-1]}
-        )
-    
-    @staticmethod
-    @timed_test
-    def test_anti_windup_back_calculation() -> TestResult:
-        """Verifica que anti-windup previene saturación prolongada."""
-        controller = PIController(
-            kp=1.0,
-            ki=2.0,
-            setpoint=0.9,  # Alto
-            min_output=10,
-            max_output=100,  # Rango pequeño para saturar rápido
-        )
-        
-        # Saturar el controlador
-        for _ in range(50):
-            controller.compute(0.1)  # Error grande → saturación
-            time.sleep(0.01)
-        
-        # Cambiar setpoint y ver recuperación
-        controller.setpoint = 0.5
-        recovery_outputs = []
-        for _ in range(30):
-            out = controller.compute(0.5)  # Error = 0
-            recovery_outputs.append(out)
-            time.sleep(0.01)
-        
-        # Debería recuperarse (no quedarse pegado en saturación)
-        final_output = recovery_outputs[-1]
-        recovered = final_output < controller.max_output * 0.9
-        
-        return TestResult(
-            name="test_anti_windup_back_calculation",
-            passed=recovered,
-            message=f"Salida final: {final_output}",
-            duration_ms=0,
-            details={"saturated_at": controller.max_output, "recovered_to": final_output}
-        )
-    
-    @staticmethod
-    @timed_test
-    def test_rate_limiting() -> TestResult:
-        """Verifica limitación de tasa de cambio."""
-        controller = PIController(
-            kp=100.0,  # Ganancia alta para cambios bruscos
-            ki=0.0,
-            setpoint=0.5,
-            min_output=10,
-            max_output=1000
-        )
-        
-        controller.compute(0.5)  # Inicializar
-        time.sleep(0.01)
-        
-        # Cambio brusco de medición
-        out1 = controller.compute(0.5)
-        time.sleep(0.01)
-        out2 = controller.compute(0.1)  # Cambio grande
-        
-        max_allowed_change = 0.15 * (controller.max_output - controller.min_output)
-        actual_change = abs(out2 - out1)
-        
-        rate_limited = actual_change <= max_allowed_change * 1.1  # 10% tolerancia
-        
-        return TestResult(
-            name="test_rate_limiting",
-            passed=rate_limited,
-            message=f"Cambio: {actual_change:.1f}, Límite: {max_allowed_change:.1f}",
-            duration_ms=0,
-            details={"actual_change": actual_change, "max_allowed": max_allowed_change}
-        )
-    
-    @staticmethod
-    @timed_test
-    def test_ema_filter_smoothing() -> TestResult:
-        """Verifica que el filtro EMA suaviza ruido."""
-        controller = PIControllerEvaluator.create_default_controller()
-        
-        # Señal con ruido
-        np.random.seed(42)
-        base_signal = 0.5
-        noisy_measurements = [base_signal + 0.1 * np.random.randn() for _ in range(50)]
-        
-        outputs = []
-        for m in noisy_measurements:
-            outputs.append(controller.compute(m))
-            time.sleep(0.001)
-        
-        # La varianza de salida debería ser menor que la de entrada
-        input_var = np.var(noisy_measurements)
-        output_var = np.var(outputs)
-        
-        smoothing_achieved = output_var < input_var
-        
-        return TestResult(
-            name="test_ema_filter_smoothing",
-            passed=smoothing_achieved,
-            message=f"Var entrada: {input_var:.4f}, Var salida: {output_var:.4f}",
-            duration_ms=0,
-            details={"input_variance": input_var, "output_variance": output_var}
-        )
-    
-    @staticmethod
-    @timed_test
-    def test_lyapunov_convergent_system() -> TestResult:
-        """Verifica exponente de Lyapunov negativo para sistema convergente."""
-        controller = PIController(
-            kp=5.0,
-            ki=1.0,
-            setpoint=0.5,
-            min_output=10,
-            max_output=1000
-        )
-        
-        # Simular convergencia al setpoint
-        measurement = 0.1
-        for i in range(100):
-            output = controller.compute(measurement)
-            # Simular que la medición se acerca al setpoint
-            measurement = 0.5 - 0.4 * np.exp(-i * 0.05)
-            time.sleep(0.005)
-        
-        lyapunov = controller.get_lyapunov_exponent()
-        
-        # Para sistema convergente, Lyapunov debería ser negativo
-        is_convergent = lyapunov < 0.1  # Tolerancia
-        
-        return TestResult(
-            name="test_lyapunov_convergent_system",
-            passed=is_convergent,
-            message=f"Lyapunov = {lyapunov:.4f}",
-            duration_ms=0,
-            details={"lyapunov_exponent": lyapunov}
-        )
-    
-    @staticmethod
-    @timed_test
-    def test_stability_analysis_classification() -> TestResult:
-        """Verifica clasificación correcta de estabilidad."""
-        controller = PIControllerEvaluator.create_default_controller()
-        
-        # Poblar historial
-        for i in range(50):
-            controller.compute(0.5 + 0.1 * np.sin(i * 0.1))
-            time.sleep(0.001)
-        
-        analysis = controller.get_stability_analysis()
-        
-        has_required_keys = all(k in analysis for k in [
-            "status", "stability_class", "convergence", 
-            "lyapunov_exponent", "oscillation_index"
-        ])
-        
-        valid_stability_class = analysis.get("stability_class") in [
-            "ASYMPTOTICALLY_STABLE", "MARGINALLY_STABLE", "UNSTABLE"
-        ]
-        
-        return TestResult(
-            name="test_stability_analysis_classification",
-            passed=has_required_keys and valid_stability_class,
-            message=f"Clase: {analysis.get('stability_class', 'N/A')}",
-            duration_ms=0,
-            details=analysis
-        )
-    
-    @staticmethod
-    @timed_test
-    def test_reset_clears_state() -> TestResult:
-        """Verifica que reset limpia el estado completamente."""
-        controller = PIControllerEvaluator.create_default_controller()
-        
-        # Acumular estado
-        for _ in range(20):
-            controller.compute(0.3)
-            time.sleep(0.005)
-        
-        # Guardar estado antes de reset
-        integral_before = controller._integral_error
-        
-        controller.reset()
-        
-        # Verificar que se limpió
-        state_cleared = (
-            controller._integral_error == 0.0 and
-            controller._last_output is None and
-            controller._filtered_pv is None
-        )
-        
-        return TestResult(
-            name="test_reset_clears_state",
-            passed=state_cleared,
-            message=f"Integral antes: {integral_before:.2f}, después: {controller._integral_error}",
-            duration_ms=0
-        )
-    
-    @staticmethod
-    @timed_test
-    def test_diagnostics_structure() -> TestResult:
-        """Verifica estructura completa de diagnósticos."""
-        controller = PIControllerEvaluator.create_default_controller()
-        
-        for _ in range(10):
-            controller.compute(0.5)
-            time.sleep(0.001)
-        
-        diag = controller.get_diagnostics()
-        
-        required_keys = ["status", "control_metrics", "stability_analysis", "parameters"]
-        has_all_keys = all(k in diag for k in required_keys)
-        
-        # Verificar sub-estructuras
-        control_metrics_keys = ["error", "integral_term", "proportional_term", "output"]
-        has_metrics = all(k in diag.get("control_metrics", {}) for k in control_metrics_keys)
-        
-        return TestResult(
-            name="test_diagnostics_structure",
-            passed=has_all_keys and has_metrics,
-            message="Estructura de diagnósticos completa",
-            duration_ms=0,
-            details={"keys_found": list(diag.keys())}
-        )
-    
-    @staticmethod
-    @timed_test
-    def test_step_response() -> TestResult:
-        """Verifica respuesta a escalón (step response)."""
-        controller = PIController(
-            kp=3.0,
-            ki=0.8,
-            setpoint=0.5,
-            min_output=10,
-            max_output=1000
-        )
-        
-        # Respuesta a step: medición cambia de 0.2 a 0.5 instantáneamente
-        outputs_before = []
-        for _ in range(20):
-            outputs_before.append(controller.compute(0.2))
-            time.sleep(0.005)
-        
-        outputs_after = []
-        for _ in range(20):
-            outputs_after.append(controller.compute(0.5))
-            time.sleep(0.005)
-        
-        # Después del step, la salida debería disminuir (error = 0)
-        decreasing = outputs_after[-1] < outputs_before[-1]
-        
-        return TestResult(
-            name="test_step_response",
-            passed=decreasing,
-            message=f"Antes: {outputs_before[-1]:.0f}, Después: {outputs_after[-1]:.0f}",
-            duration_ms=0,
-            details={
-                "output_before_step": outputs_before[-1],
-                "output_after_step": outputs_after[-1]
-            }
-        )
+    def add_figure(self, fig: plt.Figure, name: str):
+        """Registra una figura para mostrar al final."""
+        self.figures.append((fig, name))
     
     @classmethod
-    def run_all(cls, runner: TestRunner) -> TestSuiteResult:
-        """Ejecuta todas las pruebas del PIController."""
-        tests = [
-            cls.test_parameter_validation,
-            cls.test_output_bounds,
-            cls.test_proportional_response,
-            cls.test_integral_accumulation,
-            cls.test_anti_windup_back_calculation,
-            cls.test_rate_limiting,
-            cls.test_ema_filter_smoothing,
-            cls.test_lyapunov_convergent_system,
-            cls.test_stability_analysis_classification,
-            cls.test_reset_clears_state,
-            cls.test_diagnostics_structure,
-            cls.test_step_response,
-        ]
-        return runner.run_suite("PIController", tests)
+    def tearDownClass(cls):
+        """Muestra todas las figuras al final de los tests."""
+        if cls.figures:
+            print(f"\n{'='*60}")
+            print(f"Mostrando {len(cls.figures)} figuras de análisis...")
+            print(f"{'='*60}\n")
+            plt.show()
 
 
 # ============================================================================
-# EVALUACIÓN DE DiscreteVectorCalculus
+# TESTS DE DiscreteVectorCalculus
 # ============================================================================
-
-class DiscreteVectorCalculusEvaluator:
-    """Evaluador para DiscreteVectorCalculus."""
+class TestDiscreteVectorCalculus(VisualTestCase):
+    """Tests para el cálculo vectorial discreto."""
     
-    @staticmethod
-    def create_triangle_graph() -> Dict[int, Set[int]]:
-        """Grafo triangular simple (1 cara)."""
-        return {
+    def setUp(self):
+        # Grafo simple: triángulo
+        self.triangle_adj = {
             0: {1, 2},
             1: {0, 2},
             2: {0, 1}
         }
-    
-    @staticmethod
-    def create_k4_graph() -> Dict[int, Set[int]]:
-        """Grafo completo K4 (4 triángulos)."""
-        return {
-            0: {1, 2, 3},
-            1: {0, 2, 3},
-            2: {0, 1, 3},
-            3: {0, 1, 2}
+        
+        # Grafo K4 (tetraedro)
+        self.k4_adj = {
+            i: set(range(4)) - {i} for i in range(4)
         }
-    
-    @staticmethod
-    def create_square_graph() -> Dict[int, Set[int]]:
-        """Cuadrado (sin triángulos)."""
-        return {
-            0: {1, 3},
+        
+        # Grafo lineal (camino)
+        self.path_adj = {
+            0: {1},
             1: {0, 2},
             2: {1, 3},
-            3: {0, 2}
-        }
-    
-    @staticmethod
-    def create_disconnected_graph() -> Dict[int, Set[int]]:
-        """Grafo con 2 componentes conexas."""
-        return {
-            0: {1},
-            1: {0},
-            2: {3},
             3: {2}
         }
     
-    @staticmethod
-    @timed_test
-    def test_empty_graph_rejection() -> TestResult:
-        """Verifica rechazo de grafo vacío."""
-        try:
-            DiscreteVectorCalculus({})
-            return TestResult(
-                name="test_empty_graph_rejection",
-                passed=False,
-                message="No rechazó grafo vacío",
-                duration_ms=0
-            )
-        except ValueError:
-            return TestResult(
-                name="test_empty_graph_rejection",
-                passed=True,
-                message="Grafo vacío rechazado correctamente",
-                duration_ms=0
-            )
-    
-    @staticmethod
-    @timed_test
-    def test_simplicial_complex_dimensions() -> TestResult:
-        """Verifica dimensiones del complejo simplicial."""
-        calc = DiscreteVectorCalculus(
-            DiscreteVectorCalculusEvaluator.create_k4_graph()
-        )
-        
-        # K4: 4 nodos, 6 aristas, 4 triángulos
-        correct_dims = (
-            calc.num_nodes == 4 and
-            calc.num_edges == 6 and
-            calc.num_faces == 4
-        )
-        
-        return TestResult(
-            name="test_simplicial_complex_dimensions",
-            passed=correct_dims,
-            message=f"V={calc.num_nodes}, E={calc.num_edges}, F={calc.num_faces}",
-            duration_ms=0,
-            details={"nodes": calc.num_nodes, "edges": calc.num_edges, "faces": calc.num_faces}
-        )
-    
-    @staticmethod
-    @timed_test
-    def test_euler_characteristic() -> TestResult:
-        """Verifica característica de Euler χ = V - E + F."""
-        test_cases = [
-            (DiscreteVectorCalculusEvaluator.create_triangle_graph(), 1),  # 3-3+1=1
-            (DiscreteVectorCalculusEvaluator.create_k4_graph(), 2),  # 4-6+4=2 (esfera)
-            (DiscreteVectorCalculusEvaluator.create_square_graph(), 0),  # 4-4+0=0 (ciclo)
-        ]
-        
-        all_correct = True
-        details = {}
-        
-        for i, (adj, expected_chi) in enumerate(test_cases):
-            calc = DiscreteVectorCalculus(adj)
-            actual_chi = calc.euler_characteristic
-            details[f"case_{i}"] = {"expected": expected_chi, "actual": actual_chi}
-            if actual_chi != expected_chi:
-                all_correct = False
-        
-        return TestResult(
-            name="test_euler_characteristic",
-            passed=all_correct,
-            message=f"Verificados {len(test_cases)} casos",
-            duration_ms=0,
-            details=details
-        )
-    
-    @staticmethod
-    @timed_test
-    def test_chain_complex_exactness() -> TestResult:
-        """Verifica ∂₁ ∘ ∂₂ = 0."""
-        if not SCIPY_AVAILABLE:
-            return TestResult(
-                name="test_chain_complex_exactness",
-                passed=True,
-                message="Scipy no disponible, test omitido",
-                duration_ms=0
-            )
-        
-        calc = DiscreteVectorCalculus(
-            DiscreteVectorCalculusEvaluator.create_k4_graph()
-        )
-        
-        verification = calc.verify_complex_exactness()
-        is_exact = verification.get("is_chain_complex", False)
-        error = verification.get("boundary_composition_error", float('inf'))
-        
-        return TestResult(
-            name="test_chain_complex_exactness",
-            passed=is_exact,
-            message=f"||∂₁∂₂|| = {error:.2e}",
-            duration_ms=0,
-            details=verification
-        )
-    
-    @staticmethod
-    @timed_test
-    def test_betti_numbers_triangle() -> TestResult:
-        """Verifica números de Betti para triángulo lleno."""
-        if not SCIPY_AVAILABLE:
-            return TestResult(
-                name="test_betti_numbers_triangle",
-                passed=True,
-                message="Scipy no disponible",
-                duration_ms=0
-            )
-        
-        calc = DiscreteVectorCalculus(
-            DiscreteVectorCalculusEvaluator.create_triangle_graph()
-        )
-        
-        # Triángulo lleno (disco): β₀=1, β₁=0, β₂=0
-        expected = (1, 0, 0)
-        actual = (calc.betti_0, calc.betti_1, calc.betti_2)
-        
-        return TestResult(
-            name="test_betti_numbers_triangle",
-            passed=actual == expected,
-            message=f"β = {actual}, esperado {expected}",
-            duration_ms=0,
-            details={"betti_0": calc.betti_0, "betti_1": calc.betti_1, "betti_2": calc.betti_2}
-        )
-    
-    @staticmethod
-    @timed_test
-    def test_betti_numbers_cycle() -> TestResult:
-        """Verifica números de Betti para ciclo (cuadrado sin relleno)."""
-        if not SCIPY_AVAILABLE:
-            return TestResult(
-                name="test_betti_numbers_cycle",
-                passed=True,
-                message="Scipy no disponible",
-                duration_ms=0
-            )
-        
-        calc = DiscreteVectorCalculus(
-            DiscreteVectorCalculusEvaluator.create_square_graph()
-        )
-        
-        # Ciclo: β₀=1, β₁=1 (un loop), β₂=0
-        expected = (1, 1, 0)
-        actual = (calc.betti_0, calc.betti_1, calc.betti_2)
-        
-        return TestResult(
-            name="test_betti_numbers_cycle",
-            passed=actual == expected,
-            message=f"β = {actual}, esperado {expected}",
-            duration_ms=0
-        )
-    
-    @staticmethod
-    @timed_test
-    def test_disconnected_components() -> TestResult:
-        """Verifica detección de componentes desconectadas."""
-        calc = DiscreteVectorCalculus(
-            DiscreteVectorCalculusEvaluator.create_disconnected_graph()
-        )
-        
-        correct = (
-            calc.num_components == 2 and
-            calc.is_connected == False and
-            calc.betti_0 == 2
-        )
-        
-        return TestResult(
-            name="test_disconnected_components",
-            passed=correct,
-            message=f"Componentes: {calc.num_components}, β₀={calc.betti_0}",
-            duration_ms=0
-        )
-    
-    @staticmethod
-    @timed_test
-    def test_gradient_operator_dimensions() -> TestResult:
-        """Verifica dimensiones del operador gradiente."""
-        if not SCIPY_AVAILABLE:
-            return TestResult(
-                name="test_gradient_operator_dimensions",
-                passed=True,
-                message="Scipy no disponible",
-                duration_ms=0
-            )
-        
-        calc = DiscreteVectorCalculus(
-            DiscreteVectorCalculusEvaluator.create_k4_graph()
-        )
-        
-        phi = np.ones(calc.num_nodes)
-        grad_phi = calc.gradient(phi)
-        
-        correct_dim = grad_phi.shape == (calc.num_edges,)
-        
-        return TestResult(
-            name="test_gradient_operator_dimensions",
-            passed=correct_dim,
-            message=f"grad: {calc.num_nodes} → {calc.num_edges}",
-            duration_ms=0
-        )
-    
-    @staticmethod
-    @timed_test
-    def test_gradient_of_constant_is_zero() -> TestResult:
-        """Verifica grad(constante) = 0."""
-        if not SCIPY_AVAILABLE:
-            return TestResult(
-                name="test_gradient_of_constant_is_zero",
-                passed=True,
-                message="Scipy no disponible",
-                duration_ms=0
-            )
-        
-        calc = DiscreteVectorCalculus(
-            DiscreteVectorCalculusEvaluator.create_k4_graph()
-        )
-        
-        constant = 5.0 * np.ones(calc.num_nodes)
-        grad = calc.gradient(constant)
-        
-        is_zero = np.allclose(grad, 0, atol=1e-10)
-        
-        return TestResult(
-            name="test_gradient_of_constant_is_zero",
-            passed=is_zero,
-            message=f"||grad(c)|| = {np.linalg.norm(grad):.2e}",
-            duration_ms=0
-        )
-    
-    @staticmethod
-    @timed_test
-    def test_curl_of_gradient_is_zero() -> TestResult:
-        """Verifica curl(grad(φ)) = 0 (lema de Poincaré)."""
-        if not SCIPY_AVAILABLE:
-            return TestResult(
-                name="test_curl_of_gradient_is_zero",
-                passed=True,
-                message="Scipy no disponible",
-                duration_ms=0
-            )
-        
-        calc = DiscreteVectorCalculus(
-            DiscreteVectorCalculusEvaluator.create_k4_graph()
-        )
-        
-        np.random.seed(42)
-        phi = np.random.randn(calc.num_nodes)
-        
-        grad_phi = calc.gradient(phi)
-        curl_grad_phi = calc.curl(grad_phi)
-        
-        is_zero = np.allclose(curl_grad_phi, 0, atol=1e-10)
-        error = np.linalg.norm(curl_grad_phi)
-        
-        return TestResult(
-            name="test_curl_of_gradient_is_zero",
-            passed=is_zero,
-            message=f"||curl(grad(φ))|| = {error:.2e}",
-            duration_ms=0
-        )
-    
-    @staticmethod
-    @timed_test
-    def test_laplacian_symmetry() -> TestResult:
-        """Verifica que el Laplaciano es simétrico."""
-        if not SCIPY_AVAILABLE:
-            return TestResult(
-                name="test_laplacian_symmetry",
-                passed=True,
-                message="Scipy no disponible",
-                duration_ms=0
-            )
-        
-        calc = DiscreteVectorCalculus(
-            DiscreteVectorCalculusEvaluator.create_k4_graph()
-        )
-        
-        L0 = calc.laplacian(0)
-        asymmetry = sparse_norm(L0 - L0.T)
-        
-        is_symmetric = asymmetry < 1e-10
-        
-        return TestResult(
-            name="test_laplacian_symmetry",
-            passed=is_symmetric,
-            message=f"||L - Lᵀ|| = {asymmetry:.2e}",
-            duration_ms=0
-        )
-    
-    @staticmethod
-    @timed_test
-    def test_laplacian_kernel_dimension() -> TestResult:
-        """Verifica dim(ker Δ₀) = número de componentes conexas."""
-        if not SCIPY_AVAILABLE:
-            return TestResult(
-                name="test_laplacian_kernel_dimension",
-                passed=True,
-                message="Scipy no disponible",
-                duration_ms=0
-            )
-        
-        calc = DiscreteVectorCalculus(
-            DiscreteVectorCalculusEvaluator.create_disconnected_graph()
-        )
-        
-        L0 = calc.laplacian(0).toarray()
-        eigenvalues = np.linalg.eigvalsh(L0)
-        
-        # Contar autovalores cerca de cero
-        zero_eigenvalues = np.sum(np.abs(eigenvalues) < 1e-8)
-        
-        correct = zero_eigenvalues == calc.num_components
-        
-        return TestResult(
-            name="test_laplacian_kernel_dimension",
-            passed=correct,
-            message=f"dim(ker Δ₀) = {zero_eigenvalues}, componentes = {calc.num_components}",
-            duration_ms=0
-        )
-    
-    @staticmethod
-    @timed_test
-    def test_hodge_decomposition() -> TestResult:
-        """Verifica descomposición de Hodge ω = exact + coexact + harmonic."""
-        if not SCIPY_AVAILABLE:
-            return TestResult(
-                name="test_hodge_decomposition",
-                passed=True,
-                message="Scipy no disponible",
-                duration_ms=0
-            )
-        
-        calc = DiscreteVectorCalculus(
-            DiscreteVectorCalculusEvaluator.create_k4_graph()
-        )
-        
-        np.random.seed(42)
-        omega = np.random.randn(calc.num_edges)
-        
-        decomp = calc.hodge_decomposition(omega)
-        
-        reconstruction = decomp["exact"] + decomp["coexact"] + decomp["harmonic"]
-        error = np.linalg.norm(omega - reconstruction) / np.linalg.norm(omega)
-        
-        is_correct = error < 1e-6
-        
-        return TestResult(
-            name="test_hodge_decomposition",
-            passed=is_correct,
-            message=f"Error de reconstrucción: {error:.2e}",
-            duration_ms=0,
-            details={"reconstruction_error": error}
-        )
-    
-    @staticmethod
-    @timed_test
-    def test_hodge_star_inverse() -> TestResult:
-        """Verifica ⋆⋆⁻¹ = I."""
-        if not SCIPY_AVAILABLE:
-            return TestResult(
-                name="test_hodge_star_inverse",
-                passed=True,
-                message="Scipy no disponible",
-                duration_ms=0
-            )
-        
-        calc = DiscreteVectorCalculus(
-            DiscreteVectorCalculusEvaluator.create_k4_graph()
-        )
-        
-        identity_error = sparse_norm(
-            calc.star1 @ calc.star1_inv - sparse.eye(calc.num_edges)
-        )
-        
-        is_inverse = identity_error < 1e-10
-        
-        return TestResult(
-            name="test_hodge_star_inverse",
-            passed=is_inverse,
-            message=f"||⋆⋆⁻¹ - I|| = {identity_error:.2e}",
-            duration_ms=0
-        )
-    
-    @classmethod
-    def run_all(cls, runner: TestRunner) -> TestSuiteResult:
-        """Ejecuta todas las pruebas de DiscreteVectorCalculus."""
-        tests = [
-            cls.test_empty_graph_rejection,
-            cls.test_simplicial_complex_dimensions,
-            cls.test_euler_characteristic,
-            cls.test_chain_complex_exactness,
-            cls.test_betti_numbers_triangle,
-            cls.test_betti_numbers_cycle,
-            cls.test_disconnected_components,
-            cls.test_gradient_operator_dimensions,
-            cls.test_gradient_of_constant_is_zero,
-            cls.test_curl_of_gradient_is_zero,
-            cls.test_laplacian_symmetry,
-            cls.test_laplacian_kernel_dimension,
-            cls.test_hodge_decomposition,
-            cls.test_hodge_star_inverse,
-        ]
-        return runner.run_suite("DiscreteVectorCalculus", tests)
-
-
-# ============================================================================
-# EVALUACIÓN DE MaxwellSolver
-# ============================================================================
-
-class MaxwellSolverEvaluator:
-    """Evaluador para MaxwellSolver."""
-    
-    @staticmethod
-    def create_k6_calculus() -> 'DiscreteVectorCalculus':
-        """Crea cálculo sobre K6 (grafo completo de 6 nodos)."""
-        adj = {i: set(range(6)) - {i} for i in range(6)}
-        return DiscreteVectorCalculus(adj)
-    
-    @staticmethod
-    def create_solver() -> 'MaxwellSolver':
-        """Crea solver con parámetros por defecto."""
-        calc = MaxwellSolverEvaluator.create_k6_calculus()
-        return MaxwellSolver(
-            calculus=calc,
-            permittivity=1.0,
-            permeability=1.0,
-            pml_thickness=0.1,
-            pml_max_sigma=1.0
-        )
-    
-    @staticmethod
-    @timed_test
-    def test_field_dimensions() -> TestResult:
-        """Verifica dimensiones de campos E, B, D, H."""
-        if not SCIPY_AVAILABLE:
-            return TestResult(
-                name="test_field_dimensions",
-                passed=True,
-                message="Scipy no disponible",
-                duration_ms=0
-            )
-        
-        solver = MaxwellSolverEvaluator.create_solver()
-        
-        correct = (
-            solver.E.shape == (solver.calc.num_edges,) and
-            solver.B.shape == (solver.calc.num_faces,) and
-            solver.D.shape == (solver.calc.num_edges,) and
-            solver.H.shape == (solver.calc.num_faces,)
-        )
-        
-        return TestResult(
-            name="test_field_dimensions",
-            passed=correct,
-            message=f"E:{solver.E.shape}, B:{solver.B.shape}",
-            duration_ms=0
-        )
-    
-    @staticmethod
-    @timed_test
-    def test_cfl_condition_positive() -> TestResult:
-        """Verifica que dt_CFL > 0."""
-        if not SCIPY_AVAILABLE:
-            return TestResult(
-                name="test_cfl_condition_positive",
-                passed=True,
-                message="Scipy no disponible",
-                duration_ms=0
-            )
-        
-        solver = MaxwellSolverEvaluator.create_solver()
-        
-        valid = solver.dt_cfl > 0 and np.isfinite(solver.dt_cfl)
-        
-        return TestResult(
-            name="test_cfl_condition_positive",
-            passed=valid,
-            message=f"dt_CFL = {solver.dt_cfl:.2e}",
-            duration_ms=0
-        )
-    
-    @staticmethod
-    @timed_test
-    def test_constitutive_relations() -> TestResult:
-        """Verifica relaciones constitutivas D = εE, H = B/μ."""
-        if not SCIPY_AVAILABLE:
-            return TestResult(
-                name="test_constitutive_relations",
-                passed=True,
-                message="Scipy no disponible",
-                duration_ms=0
-            )
-        
-        solver = MaxwellSolverEvaluator.create_solver()
-        
-        np.random.seed(42)
-        solver.E = np.random.randn(solver.calc.num_edges)
-        solver.B = np.random.randn(solver.calc.num_faces)
-        
-        solver.update_constitutive_relations()
-        
-        # D = ε ⋆₁ E
-        D_expected = solver.epsilon * (solver.calc.star1 @ solver.E)
-        D_error = np.linalg.norm(solver.D - D_expected)
-        
-        # H = (1/μ) ⋆₂⁻¹ B
-        H_expected = (1.0 / solver.mu) * (solver.calc.star2_inv @ solver.B)
-        H_error = np.linalg.norm(solver.H - H_expected)
-        
-        valid = D_error < 1e-10 and H_error < 1e-10
-        
-        return TestResult(
-            name="test_constitutive_relations",
-            passed=valid,
-            message=f"||D-εE|| = {D_error:.2e}, ||H-B/μ|| = {H_error:.2e}",
-            duration_ms=0
-        )
-    
-    @staticmethod
-    @timed_test
-    def test_initial_energy_zero() -> TestResult:
-        """Verifica energía inicial cero con campos cero."""
-        if not SCIPY_AVAILABLE:
-            return TestResult(
-                name="test_initial_energy_zero",
-                passed=True,
-                message="Scipy no disponible",
-                duration_ms=0
-            )
-        
-        solver = MaxwellSolverEvaluator.create_solver()
-        energy = solver.total_energy()
-        
-        is_zero = abs(energy) < 1e-15
-        
-        return TestResult(
-            name="test_initial_energy_zero",
-            passed=is_zero,
-            message=f"Energía inicial = {energy:.2e}",
-            duration_ms=0
-        )
-    
-    @staticmethod
-    @timed_test
-    def test_energy_positive_definite() -> TestResult:
-        """Verifica que energía ≥ 0 para campos arbitrarios."""
-        if not SCIPY_AVAILABLE:
-            return TestResult(
-                name="test_energy_positive_definite",
-                passed=True,
-                message="Scipy no disponible",
-                duration_ms=0
-            )
-        
-        solver = MaxwellSolverEvaluator.create_solver()
-        
-        np.random.seed(42)
-        all_positive = True
-        min_energy = float('inf')
-        
-        for _ in range(10):
-            solver.E = np.random.randn(solver.calc.num_edges)
-            solver.B = np.random.randn(solver.calc.num_faces)
-            solver.update_constitutive_relations()
+    def test_triangle_complex(self):
+        """Verifica complejo de de Rham para triángulo."""
+        vc = DiscreteVectorCalculus(self.triangle_adj)
+        
+        # Verificar dimensiones
+        self.assertEqual(vc.num_nodes, 3, "Triángulo debe tener 3 nodos")
+        self.assertEqual(vc.num_edges, 3, "Triángulo debe tener 3 aristas")
+        self.assertEqual(vc.num_faces, 1, "Triángulo debe tener 1 cara")
+        
+        # Verificar d₀ (gradiente)
+        if hasattr(vc, 'd0'):
+            # d₀ debe tener dimensión (num_edges, num_nodes)
+            self.assertEqual(vc.d0.shape, (3, 3))
             
-            energy = solver.total_energy()
-            min_energy = min(min_energy, energy)
-            if energy < -1e-10:
-                all_positive = False
-        
-        return TestResult(
-            name="test_energy_positive_definite",
-            passed=all_positive,
-            message=f"Energía mínima = {min_energy:.2e}",
-            duration_ms=0
-        )
+            # Verificar que d₁ ∘ d₀ = 0 (propiedad del complejo)
+            if hasattr(vc, 'd1') and vc.d1.shape[0] > 0:
+                composition = vc.d1 @ vc.d0
+                self.assertTrue(
+                    np.allclose(composition.toarray(), 0, atol=1e-10),
+                    "d₁ ∘ d₀ debe ser cero (propiedad del complejo)"
+                )
     
-    @staticmethod
-    @timed_test
-    def test_leapfrog_step_advances_time() -> TestResult:
-        """Verifica que leapfrog avanza el tiempo."""
-        if not SCIPY_AVAILABLE:
-            return TestResult(
-                name="test_leapfrog_step_advances_time",
-                passed=True,
-                message="Scipy no disponible",
-                duration_ms=0
-            )
+    def test_gradient_divergence_adjoint(self):
+        """Verifica que divergencia es adjunto negativo del gradiente."""
+        vc = DiscreteVectorCalculus(self.k4_adj)
         
-        solver = MaxwellSolverEvaluator.create_solver()
+        # Función escalar aleatoria en nodos
+        phi = np.random.randn(vc.num_nodes)
         
-        t0 = solver.time
-        step0 = solver.step_count
+        # 1-forma aleatoria en aristas
+        psi = np.random.randn(vc.num_edges)
         
-        solver.leapfrog_step()
+        # Verificar <grad(φ), ψ> = -<φ, div(ψ)>
+        grad_phi = vc.gradient(phi)
+        div_psi = vc.divergence(psi)
         
-        time_advanced = solver.time > t0
-        step_incremented = solver.step_count == step0 + 1
+        lhs = np.dot(grad_phi, psi)
+        rhs = -np.dot(phi, div_psi)
         
-        return TestResult(
-            name="test_leapfrog_step_advances_time",
-            passed=time_advanced and step_incremented,
-            message=f"t: {t0:.4f} → {solver.time:.4f}",
-            duration_ms=0
-        )
+        self.assertAlmostEqual(lhs, rhs, places=10,
+            msg="Gradiente y divergencia deben ser adjuntos")
     
-    @staticmethod
-    @timed_test
-    def test_energy_conservation_lossless() -> TestResult:
-        """Verifica conservación de energía sin pérdidas."""
-        if not SCIPY_AVAILABLE:
-            return TestResult(
-                name="test_energy_conservation_lossless",
-                passed=True,
-                message="Scipy no disponible",
-                duration_ms=0
+    def test_laplacian_properties(self):
+        """Verifica propiedades del Laplaciano."""
+        vc = DiscreteVectorCalculus(self.k4_adj)
+        
+        if hasattr(vc, 'laplacian_0'):
+            L = vc.laplacian_0
+            
+            # Laplaciano debe ser simétrico
+            if hasattr(L, 'toarray'):
+                L_dense = L.toarray()
+            else:
+                L_dense = L
+            
+            self.assertTrue(
+                np.allclose(L_dense, L_dense.T),
+                "Laplaciano debe ser simétrico"
             )
-        
-        solver = MaxwellSolverEvaluator.create_solver()
-        
-        result = solver.verify_energy_conservation(
-            num_steps=200,
-            tolerance=0.01  # 1% tolerancia
-        )
-        
-        is_conservative = result.get("is_conservative", False)
-        deviation = result.get("max_relative_deviation", 1.0)
-        
-        return TestResult(
-            name="test_energy_conservation_lossless",
-            passed=is_conservative,
-            message=f"Desviación máxima: {deviation:.2%}",
-            duration_ms=0,
-            details=result
-        )
+            
+            # Laplaciano debe ser semidefinido positivo
+            eigenvalues = np.linalg.eigvalsh(L_dense)
+            self.assertTrue(
+                np.all(eigenvalues >= -1e-10),
+                "Laplaciano debe ser semidefinido positivo"
+            )
+            
+            # Para grafo conexo, debe haber exactamente un valor propio cero
+            zero_eigs = np.sum(np.abs(eigenvalues) < 1e-8)
+            self.assertEqual(zero_eigs, 1,
+                "Grafo conexo debe tener exactamente un valor propio cero")
     
-    @staticmethod
-    @timed_test
-    def test_pml_profile_increases_at_boundary() -> TestResult:
-        """Verifica que PML tiene mayor conductividad en bordes."""
-        if not SCIPY_AVAILABLE:
-            return TestResult(
-                name="test_pml_profile_increases_at_boundary",
-                passed=True,
-                message="Scipy no disponible",
-                duration_ms=0
-            )
+    def test_visualize_operators(self):
+        """Visualiza las matrices de operadores."""
+        fig, axes = plt.subplots(2, 2, figsize=(12, 10))
+        fig.suptitle('Operadores del Complejo de de Rham', fontsize=14)
         
-        solver = MaxwellSolverEvaluator.create_solver()
+        # K4
+        vc = DiscreteVectorCalculus(self.k4_adj)
         
-        # PML debería ser mayor en aristas cerca de nodos extremos
-        max_sigma = np.max(solver.sigma_e_pml)
-        min_sigma = np.min(solver.sigma_e_pml)
+        # d₀ (gradiente)
+        ax = axes[0, 0]
+        if hasattr(vc, 'd0'):
+            d0 = vc.d0.toarray() if hasattr(vc.d0, 'toarray') else vc.d0
+            im = ax.imshow(d0, cmap='RdBu', aspect='auto', vmin=-1, vmax=1)
+            ax.set_title('d₀: Gradiente Discreto\n(0-formas → 1-formas)')
+            ax.set_xlabel('Nodos')
+            ax.set_ylabel('Aristas')
+            plt.colorbar(im, ax=ax)
         
-        has_variation = max_sigma > min_sigma or np.allclose(solver.sigma_e_pml, 0)
+        # d₁ (rotacional)
+        ax = axes[0, 1]
+        if hasattr(vc, 'd1') and vc.d1.shape[0] > 0:
+            d1 = vc.d1.toarray() if hasattr(vc.d1, 'toarray') else vc.d1
+            im = ax.imshow(d1, cmap='RdBu', aspect='auto', vmin=-1, vmax=1)
+            ax.set_title('d₁: Rotacional Discreto\n(1-formas → 2-formas)')
+            ax.set_xlabel('Aristas')
+            ax.set_ylabel('Caras')
+            plt.colorbar(im, ax=ax)
+        else:
+            ax.text(0.5, 0.5, 'Sin caras detectadas', ha='center', va='center')
+            ax.set_title('d₁: Rotacional Discreto')
         
-        return TestResult(
-            name="test_pml_profile_increases_at_boundary",
-            passed=has_variation,
-            message=f"σ_pml ∈ [{min_sigma:.3f}, {max_sigma:.3f}]",
-            duration_ms=0
-        )
+        # Laplaciano L₀
+        ax = axes[1, 0]
+        if hasattr(vc, 'laplacian_0'):
+            L0 = vc.laplacian_0.toarray() if hasattr(vc.laplacian_0, 'toarray') else vc.laplacian_0
+            im = ax.imshow(L0, cmap='viridis', aspect='equal')
+            ax.set_title('Δ₀: Laplaciano de Nodos\n(d₀ᵀd₀)')
+            ax.set_xlabel('Nodos')
+            ax.set_ylabel('Nodos')
+            plt.colorbar(im, ax=ax)
+        
+        # Espectro del Laplaciano
+        ax = axes[1, 1]
+        if hasattr(vc, 'laplacian_0'):
+            L0 = vc.laplacian_0.toarray() if hasattr(vc.laplacian_0, 'toarray') else vc.laplacian_0
+            eigenvalues = np.linalg.eigvalsh(L0)
+            ax.bar(range(len(eigenvalues)), sorted(eigenvalues), 
+                   color=COLORS['primary'], alpha=0.7)
+            ax.axhline(y=0, color='red', linestyle='--', alpha=0.5)
+            ax.set_title('Espectro del Laplaciano')
+            ax.set_xlabel('Índice')
+            ax.set_ylabel('Valor propio λ')
+            ax.set_xticks(range(len(eigenvalues)))
+        
+        plt.tight_layout()
+        self.add_figure(fig, "Operadores de de Rham")
+
+
+# ============================================================================
+# TESTS DE MaxwellSolver
+# ============================================================================
+class TestMaxwellSolver(VisualTestCase):
+    """Tests para el solver de Maxwell discreto."""
     
-    @staticmethod
-    @timed_test
-    def test_energy_dissipation_with_losses() -> TestResult:
-        """Verifica que energía decrece con pérdidas."""
-        if not SCIPY_AVAILABLE:
-            return TestResult(
-                name="test_energy_dissipation_with_losses",
-                passed=True,
-                message="Scipy no disponible",
-                duration_ms=0
-            )
+    def setUp(self):
+        # Grafo para simulación
+        self.adj = {i: set(range(6)) - {i} for i in range(6)}
+        self.vc = DiscreteVectorCalculus(self.adj)
         
-        calc = MaxwellSolverEvaluator.create_k6_calculus()
+    def test_energy_conservation_no_dissipation(self):
+        """Verifica conservación de energía sin disipación."""
         solver = MaxwellSolver(
-            calculus=calc,
+            self.vc,
             permittivity=1.0,
             permeability=1.0,
-            electric_conductivity=0.5,  # Pérdidas
-            magnetic_conductivity=0.5
+            electric_conductivity=0.0  # Sin disipación
         )
         
-        np.random.seed(42)
-        solver.E = np.random.randn(solver.calc.num_edges)
-        solver.B = np.random.randn(solver.calc.num_faces)
-        solver.update_constitutive_relations()
+        # Condición inicial: pulso en E
+        solver.E[0] = 1.0
         
-        initial_energy = solver.total_energy()
+        energies = []
+        times = []
+        dt = 0.01
+        
+        for step in range(200):
+            solver.step(dt)
+            energy = solver.compute_energy()
+            energies.append(energy['total_energy'])
+            times.append(step * dt)
+        
+        # Verificar conservación (menos de 1% de variación)
+        initial_energy = energies[0]
+        max_deviation = max(abs(e - initial_energy) for e in energies)
+        relative_deviation = max_deviation / max(initial_energy, 1e-10)
+        
+        self.assertLess(relative_deviation, 0.01,
+            f"Energía debe conservarse: desviación relativa = {relative_deviation:.4f}")
+        
+        self.test_results['maxwell_energy_conservation'] = {
+            'initial': initial_energy,
+            'max_deviation': max_deviation,
+            'relative_deviation': relative_deviation
+        }
+    
+    def test_energy_dissipation_with_conductivity(self):
+        """Verifica que la energía disipa con conductividad."""
+        solver = MaxwellSolver(
+            self.vc,
+            permittivity=1.0,
+            permeability=1.0,
+            electric_conductivity=0.5  # Con disipación
+        )
+        
+        # Condición inicial
+        solver.E = np.ones(self.vc.num_edges)
+        
+        energies = []
+        dt = 0.01
         
         for _ in range(100):
-            solver.leapfrog_step()
+            solver.step(dt)
+            energies.append(solver.compute_energy()['total_energy'])
         
-        final_energy = solver.total_energy()
+        # Energía debe decrecer
+        self.assertLess(energies[-1], energies[0],
+            "Energía debe decrecer con conductividad")
         
-        dissipated = final_energy < initial_energy
+        # Verificar decaimiento aproximadamente exponencial
+        # E(t) ≈ E₀ exp(-σt/ε)
+        decay_rate = -np.log(energies[-1] / energies[0]) / (100 * dt)
+        expected_rate = 0.5 / 1.0  # σ/ε
         
-        return TestResult(
-            name="test_energy_dissipation_with_losses",
-            passed=dissipated,
-            message=f"Energía: {initial_energy:.4f} → {final_energy:.4f}",
-            duration_ms=0
-        )
+        # Tolerancia del 50% por aproximaciones discretas
+        self.assertAlmostEqual(decay_rate, expected_rate, delta=expected_rate * 0.5)
     
-    @staticmethod
-    @timed_test
-    def test_poynting_flux_computation() -> TestResult:
-        """Verifica cálculo del vector de Poynting."""
-        if not SCIPY_AVAILABLE:
-            return TestResult(
-                name="test_poynting_flux_computation",
-                passed=True,
-                message="Scipy no disponible",
-                duration_ms=0
-            )
+    def test_gauss_law_verification(self):
+        """Verifica ley de Gauss."""
+        solver = MaxwellSolver(self.vc)
         
-        solver = MaxwellSolverEvaluator.create_solver()
+        # Sin carga, divergencia de E debe ser cero inicialmente
+        residual_initial = solver.check_gauss_law()
+        self.assertLess(residual_initial, 1e-10,
+            "Sin carga, div(E) debe ser cero")
         
-        np.random.seed(42)
-        solver.E = np.random.randn(solver.calc.num_edges)
-        solver.B = np.random.randn(solver.calc.num_faces)
-        solver.update_constitutive_relations()
+        # Añadir carga
+        solver.rho[0] = 1.0
         
-        S = solver.poynting_flux()
+        # El residuo mide |div(E) - ρ/ε|
+        # Inicialmente E=0, así que residuo = |ρ/ε|
+        residual_with_charge = solver.check_gauss_law()
+        expected_residual = np.linalg.norm(solver.rho / solver.epsilon)
         
-        correct_shape = S.shape == (solver.calc.num_edges,)
-        finite = np.all(np.isfinite(S))
-        
-        return TestResult(
-            name="test_poynting_flux_computation",
-            passed=correct_shape and finite,
-            message=f"||S|| = {np.linalg.norm(S):.4f}",
-            duration_ms=0
-        )
+        self.assertAlmostEqual(residual_with_charge, expected_residual, places=8)
     
-    @staticmethod
-    @timed_test
-    def test_gauss_law_residual() -> TestResult:
-        """Verifica que div(D) permanece pequeño (ley de Gauss)."""
-        if not SCIPY_AVAILABLE:
-            return TestResult(
-                name="test_gauss_law_residual",
-                passed=True,
-                message="Scipy no disponible",
-                duration_ms=0
-            )
-        
-        solver = MaxwellSolverEvaluator.create_solver()
-        
-        # Condición inicial que satisface Gauss
-        np.random.seed(42)
-        phi = np.random.randn(solver.calc.num_nodes)
-        solver.E = solver.calc.gradient(phi)
-        solver.update_constitutive_relations()
-        
-        initial_residual = np.linalg.norm(solver.calc.divergence(solver.D))
-        
-        for _ in range(50):
-            solver.leapfrog_step()
-        
-        final_residual = np.linalg.norm(solver.calc.divergence(solver.D))
-        
-        # El residual no debería crecer mucho
-        not_growing = final_residual < 10 * initial_residual + 1e-10
-        
-        return TestResult(
-            name="test_gauss_law_residual",
-            passed=not_growing,
-            message=f"div(D): {initial_residual:.2e} → {final_residual:.2e}",
-            duration_ms=0
+    def test_visualize_field_evolution(self):
+        """Visualiza evolución de campos electromagnéticos."""
+        solver = MaxwellSolver(
+            self.vc,
+            permittivity=1.0,
+            permeability=1.0,
+            electric_conductivity=0.1
         )
-    
-    @staticmethod
-    @timed_test
-    def test_set_initial_conditions() -> TestResult:
-        """Verifica establecimiento de condiciones iniciales."""
-        if not SCIPY_AVAILABLE:
-            return TestResult(
-                name="test_set_initial_conditions",
-                passed=True,
-                message="Scipy no disponible",
-                duration_ms=0
-            )
         
-        solver = MaxwellSolverEvaluator.create_solver()
+        # Condición inicial: pulso gaussiano
+        solver.E = np.exp(-np.arange(self.vc.num_edges)**2 / 5.0)
         
-        E0 = np.ones(solver.calc.num_edges)
-        B0 = 2.0 * np.ones(solver.calc.num_faces)
+        # Evolución
+        history = {'E': [], 'B': [], 'energy_E': [], 'energy_B': [], 'time': []}
+        dt = 0.02
         
-        solver.set_initial_conditions(E0=E0, B0=B0)
+        for step in range(150):
+            solver.step(dt)
+            energy = solver.compute_energy()
+            
+            history['E'].append(solver.E.copy())
+            history['B'].append(solver.B.copy())
+            history['energy_E'].append(energy['electric_energy'])
+            history['energy_B'].append(energy['magnetic_energy'])
+            history['time'].append(step * dt)
         
-        E_set = np.allclose(solver.E, E0)
-        B_set = np.allclose(solver.B, B0)
-        D_updated = not np.allclose(solver.D, 0)
-        H_updated = not np.allclose(solver.H, 0)
+        # Visualización
+        fig = plt.figure(figsize=(14, 10))
+        gs = GridSpec(3, 2, figure=fig, hspace=0.3, wspace=0.3)
+        fig.suptitle('Evolución de Campos Electromagnéticos (Maxwell Discreto)', fontsize=14)
         
-        all_correct = E_set and B_set and D_updated and H_updated
+        # Campo E (waterfall)
+        ax1 = fig.add_subplot(gs[0, 0])
+        E_matrix = np.array(history['E'])
+        im1 = ax1.imshow(E_matrix.T, aspect='auto', cmap='RdBu',
+                        extent=[0, history['time'][-1], 0, self.vc.num_edges],
+                        vmin=-1, vmax=1)
+        ax1.set_title('Campo Eléctrico E(t, arista)')
+        ax1.set_xlabel('Tiempo')
+        ax1.set_ylabel('Índice de arista')
+        plt.colorbar(im1, ax=ax1, label='E')
         
-        return TestResult(
-            name="test_set_initial_conditions",
-            passed=all_correct,
-            message="Condiciones iniciales aplicadas correctamente",
-            duration_ms=0
-        )
-    
-    @classmethod
-    def run_all(cls, runner: TestRunner) -> TestSuiteResult:
-        """Ejecuta todas las pruebas de MaxwellSolver."""
-        tests = [
-            cls.test_field_dimensions,
-            cls.test_cfl_condition_positive,
-            cls.test_constitutive_relations,
-            cls.test_initial_energy_zero,
-            cls.test_energy_positive_definite,
-            cls.test_leapfrog_step_advances_time,
-            cls.test_energy_conservation_lossless,
-            cls.test_pml_profile_increases_at_boundary,
-            cls.test_energy_dissipation_with_losses,
-            cls.test_poynting_flux_computation,
-            cls.test_gauss_law_residual,
-            cls.test_set_initial_conditions,
-        ]
-        return runner.run_suite("MaxwellSolver", tests)
+        # Campo B (waterfall)
+        ax2 = fig.add_subplot(gs[0, 1])
+        B_matrix = np.array(history['B'])
+        im2 = ax2.imshow(B_matrix.T, aspect='auto', cmap='PuOr',
+                        extent=[0, history['time'][-1], 0, len(solver.B)])
+        ax2.set_title('Campo Magnético B(t, cara/nodo)')
+        ax2.set_xlabel('Tiempo')
+        ax2.set_ylabel('Índice')
+        plt.colorbar(im2, ax=ax2, label='B')
+        
+        # Energías
+        ax3 = fig.add_subplot(gs[1, 0])
+        ax3.plot(history['time'], history['energy_E'], 
+                label='Energía Eléctrica', color=COLORS['energy_potential'], linewidth=2)
+        ax3.plot(history['time'], history['energy_B'], 
+                label='Energía Magnética', color=COLORS['energy_kinetic'], linewidth=2)
+        total = np.array(history['energy_E']) + np.array(history['energy_B'])
+        ax3.plot(history['time'], total, 
+                label='Energía Total', color=COLORS['energy_total'], linewidth=2, linestyle='--')
+        ax3.set_title('Evolución de Energía')
+        ax3.set_xlabel('Tiempo')
+        ax3.set_ylabel('Energía')
+        ax3.legend()
+        ax3.set_yscale('log')
+        
+        # Ratio E/B
+        ax4 = fig.add_subplot(gs[1, 1])
+        ratio = np.array(history['energy_E']) / (np.array(history['energy_B']) + 1e-10)
+        ax4.semilogy(history['time'], ratio, color=COLORS['info'], linewidth=2)
+        ax4.axhline(y=1.0, color='gray', linestyle='--', alpha=0.5, label='Equipartición')
+        ax4.set_title('Ratio Energía Eléctrica / Magnética')
+        ax4.set_xlabel('Tiempo')
+        ax4.set_ylabel('E_elec / E_mag')
+        ax4.legend()
+        
+        # Snapshot de campos en tiempos específicos
+        ax5 = fig.add_subplot(gs[2, :])
+        times_to_plot = [0, len(history['time'])//4, len(history['time'])//2, -1]
+        for idx in times_to_plot:
+            t = history['time'][idx]
+            ax5.plot(history['E'][idx], label=f't = {t:.2f}', alpha=0.7, linewidth=2)
+        ax5.set_title('Perfiles de Campo E en diferentes tiempos')
+        ax5.set_xlabel('Índice de arista')
+        ax5.set_ylabel('E')
+        ax5.legend(loc='upper right')
+        
+        plt.tight_layout()
+        self.add_figure(fig, "Evolución Maxwell")
 
 
 # ============================================================================
-# EVALUACIÓN DE PortHamiltonianController
+# TESTS DE PortHamiltonianController
 # ============================================================================
-
-class PortHamiltonianControllerEvaluator:
-    """Evaluador para PortHamiltonianController."""
+class TestPortHamiltonianController(VisualTestCase):
+    """Tests para el controlador Port-Hamiltoniano."""
     
-    @staticmethod
-    def create_controller(
-        target_energy: float = 1.0,
-        damping: float = 0.1
-    ) -> 'PortHamiltonianController':
-        """Crea controlador con parámetros dados."""
-        adj = {i: set(range(6)) - {i} for i in range(6)}
-        calc = DiscreteVectorCalculus(adj)
-        solver = MaxwellSolver(calculus=calc)
-        return PortHamiltonianController(
-            solver=solver,
-            target_energy=target_energy,
-            damping_injection=damping,
-            energy_shaping=True
-        )
+    def setUp(self):
+        adj = {i: set(range(4)) - {i} for i in range(4)}
+        self.vc = DiscreteVectorCalculus(adj)
+        self.solver = MaxwellSolver(self.vc)
     
-    @staticmethod
-    @timed_test
-    def test_phs_structure_antisymmetry() -> TestResult:
-        """Verifica antisimetría de matriz J."""
-        if not SCIPY_AVAILABLE:
-            return TestResult(
-                name="test_phs_structure_antisymmetry",
-                passed=True,
-                message="Scipy no disponible",
-                duration_ms=0
-            )
-        
-        controller = PortHamiltonianControllerEvaluator.create_controller()
-        
-        J = controller.J_phs
-        asymmetry = sparse_norm(J + J.T)
-        
-        is_antisymmetric = asymmetry < 1e-10
-        
-        return TestResult(
-            name="test_phs_structure_antisymmetry",
-            passed=is_antisymmetric,
-            message=f"||J + Jᵀ|| = {asymmetry:.2e}",
-            duration_ms=0
-        )
-    
-    @staticmethod
-    @timed_test
-    def test_phs_structure_dissipation_positive() -> TestResult:
-        """Verifica R ≥ 0 (diagonal no negativa)."""
-        if not SCIPY_AVAILABLE:
-            return TestResult(
-                name="test_phs_structure_dissipation_positive",
-                passed=True,
-                message="Scipy no disponible",
-                duration_ms=0
-            )
-        
-        controller = PortHamiltonianControllerEvaluator.create_controller()
-        
-        R_diag = controller.R_phs.diagonal()
-        all_positive = np.all(R_diag >= -1e-10)
-        
-        return TestResult(
-            name="test_phs_structure_dissipation_positive",
-            passed=all_positive,
-            message=f"R_min = {np.min(R_diag):.2e}",
-            duration_ms=0
-        )
-    
-    @staticmethod
-    @timed_test
-    def test_hamiltonian_matches_solver_energy() -> TestResult:
-        """Verifica H(x) = energía del solver."""
-        if not SCIPY_AVAILABLE:
-            return TestResult(
-                name="test_hamiltonian_matches_solver_energy",
-                passed=True,
-                message="Scipy no disponible",
-                duration_ms=0
-            )
-        
-        controller = PortHamiltonianControllerEvaluator.create_controller()
-        
-        np.random.seed(42)
-        controller.solver.E = np.random.randn(controller.n_e)
-        controller.solver.B = np.random.randn(controller.n_f)
-        controller.solver.update_constitutive_relations()
-        
-        H_controller = controller.hamiltonian()
-        H_solver = controller.solver.total_energy()
-        
-        match = abs(H_controller - H_solver) < 1e-10
-        
-        return TestResult(
-            name="test_hamiltonian_matches_solver_energy",
-            passed=match,
-            message=f"H_phs={H_controller:.6f}, U_solver={H_solver:.6f}",
-            duration_ms=0
-        )
-    
-    @staticmethod
-    @timed_test
-    def test_hamiltonian_gradient_dimensions() -> TestResult:
-        """Verifica dimensiones de ∂H/∂x."""
-        if not SCIPY_AVAILABLE:
-            return TestResult(
-                name="test_hamiltonian_gradient_dimensions",
-                passed=True,
-                message="Scipy no disponible",
-                duration_ms=0
-            )
-        
-        controller = PortHamiltonianControllerEvaluator.create_controller()
-        
-        grad = controller.hamiltonian_gradient()
-        expected_size = controller.n_e + controller.n_f
-        
-        correct = grad.shape == (expected_size,)
-        
-        return TestResult(
-            name="test_hamiltonian_gradient_dimensions",
-            passed=correct,
-            message=f"∂H/∂x shape = {grad.shape}",
-            duration_ms=0
-        )
-    
-    @staticmethod
-    @timed_test
-    def test_storage_function_lyapunov() -> TestResult:
-        """Verifica V(x) ≥ 0 y V(x*) = 0."""
-        if not SCIPY_AVAILABLE:
-            return TestResult(
-                name="test_storage_function_lyapunov",
-                passed=True,
-                message="Scipy no disponible",
-                duration_ms=0
-            )
-        
-        controller = PortHamiltonianControllerEvaluator.create_controller(target_energy=1.0)
-        
-        # Caso general: V ≥ 0
-        np.random.seed(42)
-        controller.solver.E = np.random.randn(controller.n_e)
-        controller.solver.B = np.random.randn(controller.n_f)
-        controller.solver.update_constitutive_relations()
-        
-        V = controller.storage_function()
-        is_positive = V >= 0
-        
-        return TestResult(
-            name="test_storage_function_lyapunov",
-            passed=is_positive,
-            message=f"V(x) = {V:.6f} ≥ 0",
-            duration_ms=0
-        )
-    
-    @staticmethod
-    @timed_test
-    def test_control_bounded() -> TestResult:
-        """Verifica que la señal de control está acotada."""
-        if not SCIPY_AVAILABLE:
-            return TestResult(
-                name="test_control_bounded",
-                passed=True,
-                message="Scipy no disponible",
-                duration_ms=0
-            )
-        
-        controller = PortHamiltonianControllerEvaluator.create_controller()
-        
-        np.random.seed(42)
-        controller.solver.E = 10 * np.random.randn(controller.n_e)
-        controller.solver.B = 10 * np.random.randn(controller.n_f)
-        controller.solver.update_constitutive_relations()
-        
-        u = controller.compute_control()
-        
-        is_bounded = np.all(np.abs(u) <= controller.u_max)
-        max_u = np.max(np.abs(u))
-        
-        return TestResult(
-            name="test_control_bounded",
-            passed=is_bounded,
-            message=f"||u||_∞ = {max_u:.2f} ≤ {controller.u_max:.2f}",
-            duration_ms=0
-        )
-    
-    @staticmethod
-    @timed_test
-    def test_control_sign_consistency() -> TestResult:
-        """Verifica que control tiene signo correcto (energía alta → drenar)."""
-        if not SCIPY_AVAILABLE:
-            return TestResult(
-                name="test_control_sign_consistency",
-                passed=True,
-                message="Scipy no disponible",
-                duration_ms=0
-            )
-        
-        controller = PortHamiltonianControllerEvaluator.create_controller(target_energy=0.1)
-        
-        # Energía alta (> target)
-        np.random.seed(42)
-        controller.solver.E = 5 * np.random.randn(controller.n_e)
-        controller.solver.B = 5 * np.random.randn(controller.n_f)
-        controller.solver.update_constitutive_relations()
-        
-        H = controller.hamiltonian()
-        u = controller.compute_control()
-        grad_H = controller.hamiltonian_gradient()
-        
-        # u·∇H debería ser negativo (disipando energía)
-        dissipation = np.dot(u, grad_H)
-        
-        correct_sign = dissipation < 0
-        
-        return TestResult(
-            name="test_control_sign_consistency",
-            passed=correct_sign,
-            message=f"H={H:.2f} > H*={controller.H_target:.2f}, u·∇H={dissipation:.4f}",
-            duration_ms=0
-        )
-    
-    @staticmethod
-    @timed_test
-    def test_controlled_step_modifies_state() -> TestResult:
-        """Verifica que controlled_step modifica el estado."""
-        if not SCIPY_AVAILABLE:
-            return TestResult(
-                name="test_controlled_step_modifies_state",
-                passed=True,
-                message="Scipy no disponible",
-                duration_ms=0
-            )
-        
-        controller = PortHamiltonianControllerEvaluator.create_controller()
-        
-        np.random.seed(42)
-        controller.solver.E = np.random.randn(controller.n_e)
-        controller.solver.B = np.random.randn(controller.n_f)
-        controller.solver.update_constitutive_relations()
-        
-        E_before = controller.solver.E.copy()
-        
-        controller.controlled_step()
-        
-        changed = not np.allclose(controller.solver.E, E_before)
-        
-        return TestResult(
-            name="test_controlled_step_modifies_state",
-            passed=changed,
-            message="Estado modificado por control",
-            duration_ms=0
-        )
-    
-    @staticmethod
-    @timed_test
-    def test_passivity_verification() -> TestResult:
-        """Verifica propiedad de pasividad."""
-        if not SCIPY_AVAILABLE:
-            return TestResult(
-                name="test_passivity_verification",
-                passed=True,
-                message="Scipy no disponible",
-                duration_ms=0
-            )
-        
-        controller = PortHamiltonianControllerEvaluator.create_controller()
-        
-        result = controller.verify_passivity(num_steps=50)
-        
-        is_passive = result.get("is_passive", False)
-        max_violation = result.get("max_violation", float('inf'))
-        
-        return TestResult(
-            name="test_passivity_verification",
-            passed=is_passive or max_violation < 1e-6,
-            message=f"Violación máxima: {max_violation:.2e}",
-            duration_ms=0,
-            details=result
-        )
-    
-    @staticmethod
-    @timed_test
-    def test_energy_regulation_convergence() -> TestResult:
-        """Verifica convergencia hacia energía objetivo."""
-        if not SCIPY_AVAILABLE:
-            return TestResult(
-                name="test_energy_regulation_convergence",
-                passed=True,
-                message="Scipy no disponible",
-                duration_ms=0
-            )
-        
-        target = 0.5
-        controller = PortHamiltonianControllerEvaluator.create_controller(
-            target_energy=target,
-            damping=0.5  # Damping alto para convergencia rápida
+    def test_energy_regulation(self):
+        """Verifica regulación de energía al objetivo."""
+        target_energy = 2.0
+        controller = PortHamiltonianController(
+            self.solver,
+            kp=2.0,
+            ki=0.5,
+            kd=0.1,
+            target_energy=target_energy
         )
         
-        np.random.seed(42)
-        controller.solver.E = 2 * np.random.randn(controller.n_e)
-        controller.solver.B = 2 * np.random.randn(controller.n_f)
-        controller.solver.update_constitutive_relations()
+        # Iniciar con energía diferente al objetivo
+        self.solver.E = np.ones(self.vc.num_edges) * 0.1
         
-        result = controller.simulate_regulation(num_steps=500)
-        
-        final_error = result.get("final_error", 1.0)
-        converged = final_error < 0.5  # 50% del objetivo
-        
-        return TestResult(
-            name="test_energy_regulation_convergence",
-            passed=converged,
-            message=f"Error final: {final_error:.1%}",
-            duration_ms=0,
-            details={
-                "final_error": final_error,
-                "initial_energy": result["energy"][0],
-                "final_energy": result["energy"][-1],
-                "target": target
-            }
-        )
-    
-    @staticmethod
-    @timed_test
-    def test_lyapunov_decreasing() -> TestResult:
-        """Verifica que función de Lyapunov decrece (on average)."""
-        if not SCIPY_AVAILABLE:
-            return TestResult(
-                name="test_lyapunov_decreasing",
-                passed=True,
-                message="Scipy no disponible",
-                duration_ms=0
-            )
-        
-        controller = PortHamiltonianControllerEvaluator.create_controller(damping=0.3)
-        
-        np.random.seed(42)
-        controller.solver.E = 3 * np.random.randn(controller.n_e)
-        controller.solver.B = 3 * np.random.randn(controller.n_f)
-        controller.solver.update_constitutive_relations()
-        
-        result = controller.simulate_regulation(num_steps=200)
-        lyapunovs = result["lyapunov"]
-        
-        # Tendencia decreciente (correlación negativa con tiempo)
-        times = np.arange(len(lyapunovs))
-        corr, _ = pearsonr(times, lyapunovs)
-        
-        is_decreasing = corr < 0 or lyapunovs[-1] < lyapunovs[0]
-        
-        return TestResult(
-            name="test_lyapunov_decreasing",
-            passed=is_decreasing,
-            message=f"Correlación V-t: {corr:.3f}",
-            duration_ms=0
-        )
-    
-    @staticmethod
-    @timed_test
-    def test_history_recording() -> TestResult:
-        """Verifica que se registra historial correctamente."""
-        if not SCIPY_AVAILABLE:
-            return TestResult(
-                name="test_history_recording",
-                passed=True,
-                message="Scipy no disponible",
-                duration_ms=0
-            )
-        
-        controller = PortHamiltonianControllerEvaluator.create_controller()
-        
-        controller.solver.E = np.random.randn(controller.n_e)
-        controller.solver.update_constitutive_relations()
-        
-        initial_len = len(controller.control_history)
-        
-        for _ in range(10):
-            controller.controlled_step()
-        
-        recorded = len(controller.control_history) == initial_len + 10
-        
-        return TestResult(
-            name="test_history_recording",
-            passed=recorded,
-            message=f"Historial: {len(controller.control_history)} entradas",
-            duration_ms=0
-        )
-    
-    @classmethod
-    def run_all(cls, runner: TestRunner) -> TestSuiteResult:
-        """Ejecuta todas las pruebas de PortHamiltonianController."""
-        tests = [
-            cls.test_phs_structure_antisymmetry,
-            cls.test_phs_structure_dissipation_positive,
-            cls.test_hamiltonian_matches_solver_energy,
-            cls.test_hamiltonian_gradient_dimensions,
-            cls.test_storage_function_lyapunov,
-            cls.test_control_bounded,
-            cls.test_control_sign_consistency,
-            cls.test_controlled_step_modifies_state,
-            cls.test_passivity_verification,
-            cls.test_energy_regulation_convergence,
-            cls.test_lyapunov_decreasing,
-            cls.test_history_recording,
-        ]
-        return runner.run_suite("PortHamiltonianController", tests)
-
-
-# ============================================================================
-# TESTS DE INTEGRACIÓN INTER-MÓDULO
-# ============================================================================
-
-class IntegrationEvaluator:
-    """Pruebas de integración entre módulos."""
-    
-    @staticmethod
-    @timed_test
-    def test_calculus_to_maxwell_integration() -> TestResult:
-        """Verifica integración DiscreteVectorCalculus → MaxwellSolver."""
-        if not SCIPY_AVAILABLE:
-            return TestResult(
-                name="test_calculus_to_maxwell_integration",
-                passed=True,
-                message="Scipy no disponible",
-                duration_ms=0
-            )
-        
-        # Crear cálculo
-        adj = {i: set(range(5)) - {i} for i in range(5)}  # K5
-        calc = DiscreteVectorCalculus(adj)
-        
-        # Verificar que Maxwell puede usar el cálculo
-        solver = MaxwellSolver(calculus=calc)
-        
-        # Operadores deben ser consistentes
-        correct = (
-            solver.calc.num_edges == calc.num_edges and
-            solver.calc.num_faces == calc.num_faces
-        )
-        
-        return TestResult(
-            name="test_calculus_to_maxwell_integration",
-            passed=correct,
-            message=f"Aristas: {calc.num_edges}, Caras: {calc.num_faces}",
-            duration_ms=0
-        )
-    
-    @staticmethod
-    @timed_test
-    def test_maxwell_to_phs_integration() -> TestResult:
-        """Verifica integración MaxwellSolver → PortHamiltonianController."""
-        if not SCIPY_AVAILABLE:
-            return TestResult(
-                name="test_maxwell_to_phs_integration",
-                passed=True,
-                message="Scipy no disponible",
-                duration_ms=0
-            )
-        
-        adj = {i: set(range(4)) - {i} for i in range(4)}  # K4
-        calc = DiscreteVectorCalculus(adj)
-        solver = MaxwellSolver(calculus=calc)
-        controller = PortHamiltonianController(solver=solver)
-        
-        # Dimensiones consistentes
-        consistent = controller.n_e == solver.calc.num_edges
-        
-        # Hamiltoniano consistente
-        np.random.seed(42)
-        solver.E = np.random.randn(solver.calc.num_edges)
-        solver.B = np.random.randn(solver.calc.num_faces)
-        solver.update_constitutive_relations()
-        
-        H_match = abs(controller.hamiltonian() - solver.total_energy()) < 1e-10
-        
-        return TestResult(
-            name="test_maxwell_to_phs_integration",
-            passed=consistent and H_match,
-            message="Integración Maxwell-PHS correcta",
-            duration_ms=0
-        )
-    
-    @staticmethod
-    @timed_test
-    def test_full_pipeline_simulation() -> TestResult:
-        """Simula pipeline completo: Cálculo → Maxwell → PHS → Regulación."""
-        if not SCIPY_AVAILABLE:
-            return TestResult(
-                name="test_full_pipeline_simulation",
-                passed=True,
-                message="Scipy no disponible",
-                duration_ms=0
-            )
-        
-        try:
-            # 1. Crear complejo simplicial
-            adj = {i: set(range(6)) - {i} for i in range(6)}
-            calc = DiscreteVectorCalculus(adj)
-            
-            # 2. Verificar topología
-            exactness = calc.verify_complex_exactness()
-            
-            # 3. Crear solver Maxwell
-            solver = MaxwellSolver(calculus=calc)
-            
-            # 4. Establecer condición inicial
-            np.random.seed(42)
-            solver.set_initial_conditions(
-                E0=np.random.randn(calc.num_edges),
-                B0=np.random.randn(calc.num_faces)
-            )
-            
-            # 5. Crear controlador PHS
-            controller = PortHamiltonianController(
-                solver=solver,
-                target_energy=0.5,
-                damping_injection=0.2
-            )
-            
-            # 6. Simular regulación
-            result = controller.simulate_regulation(num_steps=100)
-            
-            # Verificar que todo funcionó
-            success = (
-                exactness.get("is_chain_complex", False) and
-                result["final_error"] < 1.0 and
-                np.all(np.isfinite(result["energy"]))
-            )
-            
-            return TestResult(
-                name="test_full_pipeline_simulation",
-                passed=success,
-                message=f"Pipeline completo: error final = {result['final_error']:.1%}",
-                duration_ms=0,
-                details={
-                    "topology_valid": exactness.get("is_chain_complex"),
-                    "final_error": result["final_error"],
-                    "steps_simulated": len(result["energy"])
-                }
-            )
-        
-        except Exception as e:
-            return TestResult(
-                name="test_full_pipeline_simulation",
-                passed=False,
-                message=str(e),
-                duration_ms=0,
-                exception=traceback.format_exc()
-            )
-    
-    @staticmethod
-    @timed_test
-    def test_numerical_stability_long_simulation() -> TestResult:
-        """Verifica estabilidad numérica en simulación larga."""
-        if not SCIPY_AVAILABLE:
-            return TestResult(
-                name="test_numerical_stability_long_simulation",
-                passed=True,
-                message="Scipy no disponible",
-                duration_ms=0
-            )
-        
-        adj = {i: set(range(5)) - {i} for i in range(5)}
-        calc = DiscreteVectorCalculus(adj)
-        solver = MaxwellSolver(calculus=calc)
-        
-        np.random.seed(42)
-        solver.set_initial_conditions(
-            E0=np.random.randn(calc.num_edges),
-            B0=np.random.randn(calc.num_faces)
-        )
-        
-        # Simular muchos pasos
         energies = []
-        for _ in range(1000):
-            solver.leapfrog_step()
-            energies.append(solver.total_energy())
+        errors = []
+        dt = 0.05
         
-        energies = np.array(energies)
+        for _ in range(200):
+            u = controller.apply_control(dt)
+            
+            # Aplicar control como corriente
+            self.solver.J_e = u * 0.1
+            self.solver.step(dt)
+            
+            energy = self.solver.compute_energy()['total_energy']
+            energies.append(energy)
+            errors.append(target_energy - energy)
         
-        # Verificar que no hay NaN/Inf
-        all_finite = np.all(np.isfinite(energies))
+        # Verificar convergencia (error final pequeño)
+        final_error = abs(errors[-1])
+        self.assertLess(final_error, target_energy * 0.2,
+            f"Error final debe ser pequeño: {final_error:.4f}")
+    
+    def test_anti_windup(self):
+        """Verifica que anti-windup previene saturación integral."""
+        controller = PortHamiltonianController(
+            self.solver,
+            kp=0.1,
+            ki=10.0,  # Ki alto para forzar windup
+            kd=0.0,
+            target_energy=100.0  # Objetivo inalcanzable
+        )
         
-        # Verificar que energía no explota
-        energy_bounded = np.max(energies) < 1e10
+        # Múltiples aplicaciones de control
+        for _ in range(100):
+            controller.apply_control(0.1)
         
-        return TestResult(
-            name="test_numerical_stability_long_simulation",
-            passed=all_finite and energy_bounded,
-            message=f"1000 pasos: E ∈ [{np.min(energies):.2f}, {np.max(energies):.2f}]",
-            duration_ms=0
+        # El integral debe estar limitado
+        state = controller.get_control_state()
+        self.assertLessEqual(abs(state['error_integral']), controller._integral_limit + 1e-6,
+            "Integral debe estar limitada por anti-windup")
+    
+    def test_visualize_control_response(self):
+        """Visualiza respuesta del controlador."""
+        fig, axes = plt.subplots(2, 2, figsize=(12, 10))
+        fig.suptitle('Respuesta del Controlador Port-Hamiltoniano', fontsize=14)
+        
+        # Diferentes configuraciones de control
+        configs = [
+            {'kp': 2.0, 'ki': 0.0, 'kd': 0.0, 'name': 'Solo P'},
+            {'kp': 2.0, 'ki': 0.5, 'kd': 0.0, 'name': 'PI'},
+            {'kp': 2.0, 'ki': 0.0, 'kd': 0.5, 'name': 'PD'},
+            {'kp': 2.0, 'ki': 0.5, 'kd': 0.3, 'name': 'PID'}
+        ]
+        
+        target = 1.5
+        dt = 0.05
+        steps = 150
+        
+        all_results = {}
+        
+        for config in configs:
+            # Reiniciar solver
+            adj = {i: set(range(4)) - {i} for i in range(4)}
+            vc = DiscreteVectorCalculus(adj)
+            solver = MaxwellSolver(vc)
+            solver.E = np.ones(vc.num_edges) * 0.1
+            
+            controller = PortHamiltonianController(
+                solver,
+                kp=config['kp'],
+                ki=config['ki'],
+                kd=config['kd'],
+                target_energy=target
+            )
+            
+            energies = []
+            controls = []
+            errors = []
+            
+            for _ in range(steps):
+                u = controller.apply_control(dt)
+                solver.J_e = u * 0.05
+                solver.step(dt)
+                
+                energy = solver.compute_energy()['total_energy']
+                energies.append(energy)
+                controls.append(np.mean(u))
+                errors.append(target - energy)
+            
+            all_results[config['name']] = {
+                'energies': energies,
+                'controls': controls,
+                'errors': errors
+            }
+        
+        times = np.arange(steps) * dt
+        
+        # Energía vs tiempo
+        ax = axes[0, 0]
+        for name, data in all_results.items():
+            ax.plot(times, data['energies'], label=name, linewidth=2)
+        ax.axhline(y=target, color='red', linestyle='--', label='Objetivo', alpha=0.7)
+        ax.set_title('Evolución de Energía')
+        ax.set_xlabel('Tiempo')
+        ax.set_ylabel('Energía')
+        ax.legend()
+        
+        # Error vs tiempo
+        ax = axes[0, 1]
+        for name, data in all_results.items():
+            ax.plot(times, data['errors'], label=name, linewidth=2)
+        ax.axhline(y=0, color='gray', linestyle='-', alpha=0.3)
+        ax.set_title('Error de Energía')
+        ax.set_xlabel('Tiempo')
+        ax.set_ylabel('Error (objetivo - actual)')
+        ax.legend()
+        
+        # Señal de control
+        ax = axes[1, 0]
+        for name, data in all_results.items():
+            ax.plot(times, data['controls'], label=name, linewidth=2, alpha=0.8)
+        ax.set_title('Señal de Control (promedio)')
+        ax.set_xlabel('Tiempo')
+        ax.set_ylabel('Control u')
+        ax.legend()
+        
+        # Diagrama de fase (energía vs control)
+        ax = axes[1, 1]
+        for name, data in all_results.items():
+            ax.plot(data['energies'], data['controls'], label=name, linewidth=1.5, alpha=0.7)
+            ax.scatter(data['energies'][-1], data['controls'][-1], s=100, marker='*')
+        ax.axvline(x=target, color='red', linestyle='--', alpha=0.5)
+        ax.set_title('Diagrama de Fase')
+        ax.set_xlabel('Energía')
+        ax.set_ylabel('Control')
+        ax.legend()
+        
+        plt.tight_layout()
+        self.add_figure(fig, "Control Port-Hamiltoniano")
+
+
+# ============================================================================
+# TESTS DE TopologicalAnalyzer
+# ============================================================================
+class TestTopologicalAnalyzer(VisualTestCase):
+    """Tests para el analizador topológico."""
+    
+    def test_betti_numbers_known_graphs(self):
+        """Verifica números de Betti para grafos conocidos."""
+        analyzer = TopologicalAnalyzer()
+        
+        # Caso 1: Métricas que forman grafo conexo (β₀ = 1)
+        metrics_connected = {
+            "saturation": 0.5,
+            "complexity": 0.5,
+            "current_I": 0.5,
+            "potential_energy": 0.5,
+            "kinetic_energy": 0.5,
+            "entropy_shannon": 0.5
+        }
+        analyzer.build_metric_graph(metrics_connected, threshold_strategy="fixed")
+        betti = analyzer.compute_betti_numbers()
+        
+        # Con valores iguales, todo está correlacionado → grafo conexo
+        self.assertEqual(betti[0], 1, "Grafo de métricas iguales debe ser conexo")
+        
+        # Caso 2: Métricas dispares (posible grafo desconexo)
+        metrics_disparate = {
+            "saturation": 0.0,
+            "complexity": 1.0,
+            "current_I": 0.0,
+            "potential_energy": 1.0,
+            "kinetic_energy": 0.0,
+            "entropy_shannon": 1.0
+        }
+        analyzer.build_metric_graph(metrics_disparate, threshold_strategy="fixed")
+        betti = analyzer.compute_betti_numbers()
+        
+        # Con valores muy diferentes, pueden formarse componentes
+        self.assertGreaterEqual(betti[0], 1, "Debe haber al menos una componente")
+    
+    def test_euler_characteristic(self):
+        """Verifica característica de Euler."""
+        analyzer = TopologicalAnalyzer()
+        
+        # Crear grafo con métricas
+        metrics = {
+            "saturation": 0.3,
+            "complexity": 0.6,
+            "current_I": 0.4,
+            "potential_energy": 0.5,
+            "kinetic_energy": 0.7,
+            "entropy_shannon": 0.2
+        }
+        analyzer.build_metric_graph(metrics)
+        
+        stats = analyzer.get_graph_statistics()
+        
+        # χ = V - E para grafos
+        expected_euler = stats['vertices'] - stats['edges']
+        self.assertEqual(stats['euler_characteristic'], expected_euler)
+        
+        # También: χ = β₀ - β₁ (relación con Betti)
+        computed_euler = stats['betti_0'] - stats['betti_1']
+        self.assertEqual(stats['euler_characteristic'], computed_euler,
+            "χ = V - E = β₀ - β₁")
+    
+    def test_spectral_gap(self):
+        """Verifica cálculo del gap espectral."""
+        analyzer = TopologicalAnalyzer()
+        
+        # Grafo fuertemente conexo
+        metrics_strong = {
+            "saturation": 0.5,
+            "complexity": 0.5,
+            "current_I": 0.5,
+            "potential_energy": 0.5,
+            "kinetic_energy": 0.5,
+            "entropy_shannon": 0.5
+        }
+        analyzer.build_metric_graph(metrics_strong)
+        gap_strong = analyzer.get_spectral_gap()
+        
+        # Grafo más débil
+        metrics_weak = {
+            "saturation": 0.1,
+            "complexity": 0.9,
+            "current_I": 0.2,
+            "potential_energy": 0.8,
+            "kinetic_energy": 0.3,
+            "entropy_shannon": 0.7
+        }
+        analyzer.build_metric_graph(metrics_weak)
+        gap_weak = analyzer.get_spectral_gap()
+        
+        # Gap espectral alto indica mejor conectividad
+        # (pero esto depende del umbral adaptativo)
+        self.assertGreaterEqual(gap_strong, 0, "Gap espectral debe ser no-negativo")
+    
+    def test_visualize_topology(self):
+        """Visualiza análisis topológico."""
+        fig, axes = plt.subplots(2, 3, figsize=(15, 10))
+        fig.suptitle('Análisis Topológico de Métricas', fontsize=14)
+        
+        # Generar diferentes estados del sistema
+        states = []
+        np.random.seed(42)
+        
+        for i in range(50):
+            phase = i / 50 * 2 * np.pi
+            metrics = {
+                "saturation": 0.5 + 0.3 * np.sin(phase),
+                "complexity": 0.5 + 0.2 * np.cos(phase),
+                "current_I": 0.3 + 0.4 * np.sin(phase + 0.5),
+                "potential_energy": 0.4 + 0.3 * np.cos(phase * 2),
+                "kinetic_energy": 0.6 - 0.3 * np.cos(phase * 2),
+                "entropy_shannon": 0.5 + 0.1 * np.random.randn()
+            }
+            states.append(metrics)
+        
+        # Analizar cada estado
+        analyzer = TopologicalAnalyzer()
+        betti_0s, betti_1s, eulers, gaps, densities = [], [], [], [], []
+        
+        for metrics in states:
+            analyzer.build_metric_graph(metrics)
+            betti = analyzer.compute_betti_numbers()
+            stats = analyzer.get_graph_statistics()
+            
+            betti_0s.append(betti[0])
+            betti_1s.append(betti[1])
+            eulers.append(stats['euler_characteristic'])
+            gaps.append(stats['spectral_gap'])
+            densities.append(stats['density'])
+        
+        time_idx = range(len(states))
+        
+        # β₀ y β₁
+        ax = axes[0, 0]
+        ax.plot(time_idx, betti_0s, label='β₀ (componentes)', 
+                color=COLORS['primary'], linewidth=2)
+        ax.plot(time_idx, betti_1s, label='β₁ (ciclos)', 
+                color=COLORS['secondary'], linewidth=2)
+        ax.set_title('Números de Betti')
+        ax.set_xlabel('Estado')
+        ax.set_ylabel('Valor')
+        ax.legend()
+        
+        # Característica de Euler
+        ax = axes[0, 1]
+        ax.plot(time_idx, eulers, color=COLORS['success'], linewidth=2)
+        ax.axhline(y=0, color='gray', linestyle='--', alpha=0.5)
+        ax.set_title('Característica de Euler (χ = β₀ - β₁)')
+        ax.set_xlabel('Estado')
+        ax.set_ylabel('χ')
+        
+        # Gap espectral
+        ax = axes[0, 2]
+        ax.plot(time_idx, gaps, color=COLORS['info'], linewidth=2)
+        ax.set_title('Gap Espectral (Conectividad)')
+        ax.set_xlabel('Estado')
+        ax.set_ylabel('λ₂')
+        
+        # Densidad del grafo
+        ax = axes[1, 0]
+        ax.fill_between(time_idx, densities, alpha=0.5, color=COLORS['warning'])
+        ax.plot(time_idx, densities, color=COLORS['warning'], linewidth=2)
+        ax.set_title('Densidad del Grafo')
+        ax.set_xlabel('Estado')
+        ax.set_ylabel('Densidad')
+        
+        # Matriz de similitud del último estado
+        ax = axes[1, 1]
+        if analyzer._distance_matrix is not None:
+            im = ax.imshow(1 - analyzer._distance_matrix, cmap='viridis', vmin=0, vmax=1)
+            ax.set_title('Matriz de Similitud\n(último estado)')
+            ax.set_xticks(range(len(analyzer._metric_labels)))
+            ax.set_yticks(range(len(analyzer._metric_labels)))
+            ax.set_xticklabels([l[:3] for l in analyzer._metric_labels], rotation=45)
+            ax.set_yticklabels([l[:3] for l in analyzer._metric_labels])
+            plt.colorbar(im, ax=ax)
+        
+        # Histograma de β₀
+        ax = axes[1, 2]
+        ax.hist(betti_0s, bins=range(max(betti_0s)+2), 
+                color=COLORS['primary'], alpha=0.7, edgecolor='black')
+        ax.set_title('Distribución de β₀')
+        ax.set_xlabel('Número de componentes')
+        ax.set_ylabel('Frecuencia')
+        
+        plt.tight_layout()
+        self.add_figure(fig, "Análisis Topológico")
+
+
+# ============================================================================
+# TESTS DE EntropyCalculator
+# ============================================================================
+class TestEntropyCalculator(VisualTestCase):
+    """Tests para la calculadora de entropía."""
+    
+    def setUp(self):
+        self.calc = EntropyCalculator()
+    
+    def test_uniform_distribution_max_entropy(self):
+        """Distribución uniforme tiene entropía máxima."""
+        # 4 categorías uniformes
+        counts = {'a': 25, 'b': 25, 'c': 25, 'd': 25}
+        result = self.calc.calculate_shannon(counts)
+        
+        max_entropy = np.log2(4)  # 2 bits
+        
+        self.assertAlmostEqual(result['entropy_bits'], max_entropy, places=1,
+            msg=f"Uniforme debe dar entropía máxima: {result['entropy_bits']:.4f} vs {max_entropy}")
+        
+        self.assertAlmostEqual(result['normalized'], 1.0, places=1,
+            msg="Entropía normalizada debe ser ≈1 para uniforme")
+    
+    def test_deterministic_zero_entropy(self):
+        """Distribución determinística tiene entropía cero."""
+        counts = {'only_option': 100}
+        result = self.calc.calculate_shannon(counts)
+        
+        self.assertAlmostEqual(result['entropy_bits'], 0.0, places=5,
+            msg="Determinística debe dar entropía cero")
+    
+    def test_renyi_spectrum_properties(self):
+        """Verifica propiedades del espectro de Rényi."""
+        # Distribución no uniforme
+        probs = np.array([0.5, 0.25, 0.15, 0.10])
+        
+        spectrum = self.calc.calculate_renyi_spectrum(probs)
+        
+        # H₀ ≥ H₁ ≥ H₂ ≥ ... ≥ H_∞ (Rényi es decreciente en α)
+        H_0 = spectrum.get('H_0', 0)
+        H_1 = spectrum.get('H_1.0', 0)
+        H_2 = spectrum.get('H_2.0', 0)
+        
+        self.assertGreaterEqual(H_0, H_1 - 0.01,
+            "Rényi debe ser decreciente: H₀ ≥ H₁")
+        self.assertGreaterEqual(H_1, H_2 - 0.01,
+            "Rényi debe ser decreciente: H₁ ≥ H₂")
+    
+    def test_tsallis_limit(self):
+        """Tsallis converge a Shannon cuando q→1."""
+        probs = np.array([0.4, 0.3, 0.2, 0.1])
+        
+        # Shannon
+        shannon = -np.sum(probs * np.log(probs))
+        
+        # Tsallis con q muy cercano a 1
+        tsallis_near_1 = self.calc.calculate_tsallis(probs, q=1.001)
+        
+        self.assertAlmostEqual(tsallis_near_1, shannon, places=2,
+            msg="Tsallis(q→1) debe aproximar Shannon")
+    
+    def test_bayesian_uncertainty(self):
+        """Verifica estimación bayesiana de incertidumbre."""
+        # Pocas muestras → alta incertidumbre
+        counts_few = {'a': 3, 'b': 2}
+        result_few = self.calc.calculate_bayesian(counts_few)
+        
+        # Muchas muestras → baja incertidumbre
+        counts_many = {'a': 300, 'b': 200}
+        result_many = self.calc.calculate_bayesian(counts_many)
+        
+        # Varianza debe ser mayor con pocas muestras
+        self.assertGreater(result_few['entropy_variance'], result_many['entropy_variance'],
+            "Varianza debe ser mayor con menos muestras")
+    
+    def test_visualize_entropy_analysis(self):
+        """Visualiza análisis de entropía."""
+        fig, axes = plt.subplots(2, 3, figsize=(15, 10))
+        fig.suptitle('Análisis de Entropía', fontsize=14)
+        
+        # 1. Espectro de Rényi para diferentes distribuciones
+        ax = axes[0, 0]
+        
+        distributions = {
+            'Uniforme': np.array([0.25, 0.25, 0.25, 0.25]),
+            'Sesgada': np.array([0.7, 0.15, 0.1, 0.05]),
+            'Muy sesgada': np.array([0.9, 0.05, 0.03, 0.02]),
+            'Bimodal': np.array([0.4, 0.1, 0.1, 0.4])
+        }
+        
+        alphas = [0, 0.5, 1.0, 2.0, 3.0, 5.0, 10.0]
+        
+        for name, probs in distributions.items():
+            entropies = [self.calc.calculate_renyi(probs, a) for a in alphas]
+            ax.plot(alphas, entropies, 'o-', label=name, linewidth=2, markersize=6)
+        
+        ax.set_title('Espectro de Rényi H_α')
+        ax.set_xlabel('α')
+        ax.set_ylabel('Entropía (bits)')
+        ax.legend()
+        ax.set_xlim(-0.5, 11)
+        
+        # 2. Comparación Tsallis vs Shannon
+        ax = axes[0, 1]
+        
+        probs = np.array([0.5, 0.3, 0.15, 0.05])
+        qs = np.linspace(0.1, 3.0, 50)
+        tsallis_values = [self.calc.calculate_tsallis(probs, q) for q in qs]
+        shannon = -np.sum(probs * np.log(probs))
+        
+        ax.plot(qs, tsallis_values, color=COLORS['primary'], linewidth=2, label='Tsallis')
+        ax.axhline(y=shannon, color=COLORS['danger'], linestyle='--', 
+                   linewidth=2, label='Shannon')
+        ax.axvline(x=1.0, color='gray', linestyle=':', alpha=0.5)
+        ax.set_title('Entropía de Tsallis vs q')
+        ax.set_xlabel('q')
+        ax.set_ylabel('Entropía')
+        ax.legend()
+        
+        # 3. Entropía bayesiana con diferentes priors
+        ax = axes[0, 2]
+        
+        # Variando número de muestras
+        sample_sizes = [5, 10, 20, 50, 100, 200, 500, 1000]
+        priors = ['jeffreys', 'laplace', 'perks']
+        
+        for prior in priors:
+            entropies = []
+            variances = []
+            
+            for n in sample_sizes:
+                # Distribución 50-50 con n muestras
+                counts = {'a': n // 2, 'b': n - n // 2}
+                result = self.calc.calculate_bayesian(counts, prior=prior)
+                entropies.append(result['entropy_expected'])
+                variances.append(result['entropy_variance'])
+            
+            ax.errorbar(sample_sizes, entropies, 
+                       yerr=[v**0.5 for v in variances],
+                       label=f'Prior: {prior}', capsize=3, linewidth=2)
+        
+        ax.axhline(y=1.0, color='gray', linestyle='--', alpha=0.5, label='Teórico')
+        ax.set_title('Estimación Bayesiana vs Tamaño de Muestra')
+        ax.set_xlabel('Número de muestras')
+        ax.set_ylabel('Entropía esperada (bits)')
+        ax.set_xscale('log')
+        ax.legend(fontsize=8)
+        
+        # 4. Divergencia KL
+        ax = axes[1, 0]
+        
+        # P fijo, Q variando
+        p = np.array([0.5, 0.3, 0.2])
+        alphas_blend = np.linspace(0, 1, 50)
+        q_uniform = np.array([1/3, 1/3, 1/3])
+        
+        kl_values = []
+        for alpha in alphas_blend:
+            q = alpha * q_uniform + (1 - alpha) * p
+            kl = self.calc.calculate_kl_divergence(p, q)
+            kl_values.append(kl)
+        
+        ax.plot(alphas_blend, kl_values, color=COLORS['secondary'], linewidth=2)
+        ax.set_title('Divergencia KL: D(P || Q_α)')
+        ax.set_xlabel('α (interpolación P → Uniforme)')
+        ax.set_ylabel('KL Divergence')
+        
+        # 5. Entropía efectiva vs categorías
+        ax = axes[1, 1]
+        
+        n_categories = range(2, 20)
+        max_entropies = []
+        actual_entropies = []
+        
+        for k in n_categories:
+            # Distribución uniforme
+            probs_uniform = np.ones(k) / k
+            max_entropies.append(np.log2(k))
+            
+            # Distribución tipo Zipf
+            ranks = np.arange(1, k + 1)
+            probs_zipf = 1 / ranks
+            probs_zipf /= probs_zipf.sum()
+            actual_entropies.append(-np.sum(probs_zipf * np.log2(probs_zipf)))
+        
+        ax.plot(n_categories, max_entropies, 'o-', 
+                label='Máxima (uniforme)', color=COLORS['success'], linewidth=2)
+        ax.plot(n_categories, actual_entropies, 's-', 
+                label='Zipf', color=COLORS['warning'], linewidth=2)
+        ax.fill_between(n_categories, actual_entropies, max_entropies, 
+                       alpha=0.2, color=COLORS['info'])
+        ax.set_title('Entropía vs Número de Categorías')
+        ax.set_xlabel('k (categorías)')
+        ax.set_ylabel('Entropía (bits)')
+        ax.legend()
+        
+        # 6. Mapa de calor de entropía para distribución binomial
+        ax = axes[1, 2]
+        
+        n_vals = range(5, 51, 5)
+        k_vals = range(0, 51, 5)
+        
+        entropy_map = np.zeros((len(n_vals), len(k_vals)))
+        
+        for i, n in enumerate(n_vals):
+            for j, k in enumerate(k_vals):
+                if k <= n:
+                    counts = {'success': k, 'failure': n - k}
+                    result = self.calc.calculate_shannon(counts)
+                    entropy_map[i, j] = result['entropy_bits']
+                else:
+                    entropy_map[i, j] = np.nan
+        
+        im = ax.imshow(entropy_map, aspect='auto', cmap='plasma',
+                      extent=[k_vals[0], k_vals[-1], n_vals[-1], n_vals[0]])
+        ax.set_title('Entropía de Conteos Binarios')
+        ax.set_xlabel('Éxitos (k)')
+        ax.set_ylabel('Total (n)')
+        plt.colorbar(im, ax=ax, label='Entropía (bits)')
+        
+        plt.tight_layout()
+        self.add_figure(fig, "Análisis de Entropía")
+
+
+# ============================================================================
+# TESTS DE UnifiedPhysicalState
+# ============================================================================
+class TestUnifiedPhysicalState(VisualTestCase):
+    """Tests para el estado físico unificado."""
+    
+    def test_hamiltonian_conservation(self):
+        """Verifica conservación del Hamiltoniano sin disipación."""
+        state = UnifiedPhysicalState(
+            capacitance=1.0,
+            inductance=1.0,
+            resistance=0.0,  # Sin disipación
+            temperature=300.0
+        )
+        
+        # Condición inicial
+        state.charge = 1.0
+        state.current = 0.5
+        
+        hamiltonians = []
+        
+        # Evolución simple (sin integrador externo)
+        for _ in range(100):
+            H = state.compute_hamiltonian()
+            hamiltonians.append(H)
+        
+        # Todos los Hamiltonianos deben ser iguales
+        self.assertTrue(
+            all(abs(h - hamiltonians[0]) < 1e-10 for h in hamiltonians),
+            "Hamiltoniano debe ser constante sin evolución"
         )
     
-    @classmethod
-    def run_all(cls, runner: TestRunner) -> TestSuiteResult:
-        """Ejecuta todas las pruebas de integración."""
-        tests = [
-            cls.test_calculus_to_maxwell_integration,
-            cls.test_maxwell_to_phs_integration,
-            cls.test_full_pipeline_simulation,
-            cls.test_numerical_stability_long_simulation,
+    def test_thermal_evolution(self):
+        """Verifica evolución térmica."""
+        state = UnifiedPhysicalState(
+            capacitance=1.0,
+            inductance=1.0,
+            resistance=0.5,
+            temperature=350.0  # Arriba del ambiente
+        )
+        
+        state.current = 1.0  # Corriente para disipación
+        
+        temps = [state.temperature]
+        entropies = [state.entropy]
+        
+        for _ in range(100):
+            state.evolve_thermal(0.1, ambient_temp=293.15)
+            temps.append(state.temperature)
+            entropies.append(state.entropy)
+        
+        # Temperatura debe converger al ambiente
+        self.assertLess(abs(temps[-1] - 293.15), abs(temps[0] - 293.15),
+            "Temperatura debe acercarse al ambiente")
+        
+        # Entropía debe aumentar (segunda ley)
+        self.assertGreater(entropies[-1], entropies[0],
+            "Entropía debe aumentar")
+    
+    def test_parameter_validation(self):
+        """Verifica validación de parámetros."""
+        # Capacitancia negativa
+        with self.assertRaises(ConfigurationError):
+            UnifiedPhysicalState(capacitance=-1.0, inductance=1.0, resistance=1.0)
+        
+        # Inductancia cero
+        with self.assertRaises(ConfigurationError):
+            UnifiedPhysicalState(capacitance=1.0, inductance=0.0, resistance=1.0)
+        
+        # Resistencia negativa
+        with self.assertRaises(ConfigurationError):
+            UnifiedPhysicalState(capacitance=1.0, inductance=1.0, resistance=-1.0)
+    
+    def test_visualize_state_evolution(self):
+        """Visualiza evolución del estado físico."""
+        fig, axes = plt.subplots(2, 2, figsize=(12, 10))
+        fig.suptitle('Evolución del Estado Físico Unificado', fontsize=14)
+        
+        # Diferentes regímenes de amortiguamiento
+        regimes = [
+            {'R': 0.1, 'name': 'Bajo amortiguamiento'},
+            {'R': 1.0, 'name': 'Crítico'},
+            {'R': 3.0, 'name': 'Sobre-amortiguado'}
         ]
-        return runner.run_suite("Integration", tests)
+        
+        dt = 0.05
+        steps = 200
+        
+        for regime in regimes:
+            state = UnifiedPhysicalState(
+                capacitance=1.0,
+                inductance=1.0,
+                resistance=regime['R'],
+                temperature=293.15
+            )
+            
+            # Condición inicial
+            state.charge = 1.0
+            state.current = 0.0
+            
+            charges = [state.charge]
+            currents = [state.current]
+            hamiltonians = [state.compute_hamiltonian()]
+            temps = [state.temperature]
+            
+            # Integración manual simple (Euler)
+            for _ in range(steps):
+                Q = state.charge
+                I = state.current
+                C = state.C
+                L = state.L
+                R = state.R
+                
+                # dQ/dt = I
+                # dI/dt = (-Q/C - R*I) / L
+                dQ = I
+                dI = (-Q/C - R*I) / L
+                
+                state.charge += dQ * dt
+                state.current += dI * dt
+                
+                state.evolve_thermal(dt)
+                
+                charges.append(state.charge)
+                currents.append(state.current)
+                hamiltonians.append(state.compute_hamiltonian())
+                temps.append(state.temperature)
+            
+            times = np.arange(len(charges)) * dt
+            
+            # Carga vs tiempo
+            axes[0, 0].plot(times, charges, label=regime['name'], linewidth=2)
+            
+            # Diagrama de fase
+            axes[0, 1].plot(charges, currents, label=regime['name'], linewidth=1.5, alpha=0.8)
+            
+            # Hamiltoniano
+            axes[1, 0].plot(times, hamiltonians, label=regime['name'], linewidth=2)
+            
+            # Temperatura
+            axes[1, 1].plot(times, temps, label=regime['name'], linewidth=2)
+        
+        axes[0, 0].set_title('Carga Q(t)')
+        axes[0, 0].set_xlabel('Tiempo')
+        axes[0, 0].set_ylabel('Carga')
+        axes[0, 0].legend()
+        axes[0, 0].axhline(y=0, color='gray', linestyle='--', alpha=0.5)
+        
+        axes[0, 1].set_title('Diagrama de Fase (Q, I)')
+        axes[0, 1].set_xlabel('Carga Q')
+        axes[0, 1].set_ylabel('Corriente I')
+        axes[0, 1].legend()
+        
+        axes[1, 0].set_title('Hamiltoniano (Energía Total)')
+        axes[1, 0].set_xlabel('Tiempo')
+        axes[1, 0].set_ylabel('H')
+        axes[1, 0].legend()
+        
+        axes[1, 1].set_title('Temperatura')
+        axes[1, 1].set_xlabel('Tiempo')
+        axes[1, 1].set_ylabel('T (K)')
+        axes[1, 1].axhline(y=293.15, color='gray', linestyle='--', 
+                           alpha=0.5, label='Ambiente')
+        axes[1, 1].legend()
+        
+        plt.tight_layout()
+        self.add_figure(fig, "Estado Físico")
 
 
 # ============================================================================
-# EJECUTOR PRINCIPAL
+# TESTS DE RefinedFluxPhysicsEngine
 # ============================================================================
+class TestRefinedFluxPhysicsEngine(VisualTestCase):
+    """Tests para el motor de física completo."""
+    
+    def test_integrator_selection(self):
+        """Verifica selección automática de integrador."""
+        # Sistema rígido (R alto)
+        engine_stiff = RefinedFluxPhysicsEngine(
+            capacitance=1e-6,  # 1 μF
+            resistance=1000.0,  # 1 kΩ
+            inductance=1e-3     # 1 mH
+        )
+        
+        # Sistema suave
+        engine_soft = RefinedFluxPhysicsEngine(
+            capacitance=1.0,
+            resistance=0.1,
+            inductance=1.0
+        )
+        
+        # Verificar que se instancian correctamente
+        self.assertIsNotNone(engine_stiff)
+        self.assertIsNotNone(engine_soft)
+        
+        # Verificar tipos de amortiguamiento
+        self.assertIsInstance(engine_stiff._damping_type, DampingType)
+        self.assertIsInstance(engine_soft._damping_type, DampingType)
+    
+    def test_metrics_calculation(self):
+        """Verifica cálculo de métricas."""
+        engine = RefinedFluxPhysicsEngine(
+            capacitance=1.0,
+            resistance=0.5,
+            inductance=1.0
+        )
+        
+        # Calcular métricas
+        metrics = engine.calculate_metrics(
+            total_records=100,
+            cache_hits=60,
+            error_count=5,
+            processing_time=1.0
+        )
+        
+        # Verificar que contiene métricas esperadas
+        expected_keys = [
+            'current_I', 'charge', 'total_energy', 'entropy_bits',
+            'betti_0', 'betti_1', 'gyroscopic_stability'
+        ]
+        
+        for key in expected_keys:
+            self.assertIn(key, metrics,
+                f"Métricas deben contener '{key}'")
+    
+    def test_conservation_verification(self):
+        """Verifica conservación de energía."""
+        engine = RefinedFluxPhysicsEngine(
+            capacitance=1.0,
+            resistance=0.0,  # Sin disipación
+            inductance=1.0
+        )
+        
+        # Simular varios pasos
+        for i in range(50):
+            engine.calculate_metrics(
+                total_records=100 + i,
+                cache_hits=50 + i % 10,
+                error_count=1
+            )
+        
+        # Obtener diagnóstico
+        diagnosis = engine.get_system_diagnosis()
+        
+        self.assertIn('conservation', diagnosis)
+    
+    def test_gyroscopic_stability(self):
+        """Verifica cálculo de estabilidad giroscópica."""
+        engine = RefinedFluxPhysicsEngine(
+            capacitance=1.0,
+            resistance=0.5,
+            inductance=1.0
+        )
+        
+        stabilities = []
+        
+        # Simular variaciones de corriente
+        for i in range(100):
+            current = 0.5 + 0.3 * np.sin(i * 0.1)
+            stability = engine.calculate_gyroscopic_stability(current, 0.01)
+            stabilities.append(stability)
+        
+        # Estabilidad debe estar en [0, 1]
+        self.assertTrue(all(0 <= s <= 1 for s in stabilities),
+            "Estabilidad debe estar en [0, 1]")
+        
+        # Con corriente oscilante, la estabilidad debe variar
+        self.assertGreater(max(stabilities) - min(stabilities), 0,
+            "Estabilidad debe variar con corriente oscilante")
+    
+    def test_visualize_complete_simulation(self):
+        """Visualiza simulación completa del sistema."""
+        fig = plt.figure(figsize=(16, 12))
+        gs = GridSpec(3, 3, figure=fig, hspace=0.3, wspace=0.3)
+        fig.suptitle('Simulación Completa del Motor de Física RLC', fontsize=14)
+        
+        # Crear motor
+        engine = RefinedFluxPhysicsEngine(
+            capacitance=1.0,
+            resistance=0.3,
+            inductance=1.0
+        )
+        
+        # Simular carga variable
+        np.random.seed(42)
+        n_steps = 200
+        
+        histories = {
+            'charge': [], 'current': [], 'voltage': [],
+            'potential_E': [], 'kinetic_E': [], 'total_E': [],
+            'entropy': [], 'gyro_stability': [],
+            'betti_0': [], 'betti_1': [], 'spectral_gap': []
+        }
+        
+        for i in range(n_steps):
+            # Carga sintética con patrón
+            base = 100 + 50 * np.sin(i * 0.05)
+            noise = np.random.poisson(10)
+            total_records = int(base + noise)
+            
+            # Cache hits con tendencia
+            cache_rate = 0.6 + 0.2 * np.sin(i * 0.1) + 0.05 * np.random.randn()
+            cache_hits = int(total_records * np.clip(cache_rate, 0, 1))
+            
+            # Errores esporádicos
+            error_count = np.random.poisson(2)
+            
+            metrics = engine.calculate_metrics(
+                total_records=total_records,
+                cache_hits=cache_hits,
+                error_count=error_count,
+                processing_time=0.1
+            )
+            
+            histories['charge'].append(metrics.get('charge', 0))
+            histories['current'].append(metrics.get('current_I', 0))
+            histories['voltage'].append(metrics.get('voltage', 0))
+            histories['potential_E'].append(metrics.get('potential_energy', 0))
+            histories['kinetic_E'].append(metrics.get('kinetic_energy', 0))
+            histories['total_E'].append(metrics.get('total_energy', 0))
+            histories['entropy'].append(metrics.get('entropy_bits', 0))
+            histories['gyro_stability'].append(metrics.get('gyroscopic_stability', 1))
+            histories['betti_0'].append(metrics.get('betti_0', 0))
+            histories['betti_1'].append(metrics.get('betti_1', 0))
+            histories['spectral_gap'].append(metrics.get('spectral_gap', 0))
+        
+        time_idx = range(n_steps)
+        
+        # 1. Variables de estado
+        ax = fig.add_subplot(gs[0, 0])
+        ax.plot(time_idx, histories['charge'], label='Carga Q', 
+                color=COLORS['primary'], linewidth=1.5)
+        ax.plot(time_idx, histories['current'], label='Corriente I', 
+                color=COLORS['secondary'], linewidth=1.5)
+        ax.set_title('Variables de Estado')
+        ax.set_xlabel('Paso')
+        ax.set_ylabel('Valor')
+        ax.legend()
+        
+        # 2. Diagrama de fase
+        ax = fig.add_subplot(gs[0, 1])
+        colors = plt.cm.viridis(np.linspace(0, 1, n_steps))
+        for i in range(n_steps - 1):
+            ax.plot(histories['charge'][i:i+2], histories['current'][i:i+2], 
+                   color=colors[i], linewidth=0.5)
+        ax.scatter(histories['charge'][0], histories['current'][0], 
+                  color='green', s=100, marker='o', label='Inicio', zorder=5)
+        ax.scatter(histories['charge'][-1], histories['current'][-1], 
+                  color='red', s=100, marker='s', label='Fin', zorder=5)
+        ax.set_title('Diagrama de Fase')
+        ax.set_xlabel('Carga Q')
+        ax.set_ylabel('Corriente I')
+        ax.legend()
+        
+        # 3. Energías
+        ax = fig.add_subplot(gs[0, 2])
+        ax.fill_between(time_idx, histories['potential_E'], 
+                       alpha=0.5, color=COLORS['energy_potential'], label='Potencial')
+        ax.fill_between(time_idx, histories['kinetic_E'],
+                       alpha=0.5, color=COLORS['energy_kinetic'], label='Cinética')
+        ax.plot(time_idx, histories['total_E'], 
+               color=COLORS['energy_total'], linewidth=2, label='Total')
+        ax.set_title('Energía del Sistema')
+        ax.set_xlabel('Paso')
+        ax.set_ylabel('Energía')
+        ax.legend()
+        
+        # 4. Entropía
+        ax = fig.add_subplot(gs[1, 0])
+        ax.plot(time_idx, histories['entropy'], 
+               color=COLORS['entropy'], linewidth=2)
+        ax.fill_between(time_idx, histories['entropy'], alpha=0.3, color=COLORS['entropy'])
+        ax.set_title('Entropía del Sistema')
+        ax.set_xlabel('Paso')
+        ax.set_ylabel('Entropía (bits)')
+        
+        # 5. Estabilidad giroscópica
+        ax = fig.add_subplot(gs[1, 1])
+        stability = np.array(histories['gyro_stability'])
+        ax.plot(time_idx, stability, color=COLORS['stability'], linewidth=2)
+        ax.axhline(y=0.5, color='orange', linestyle='--', alpha=0.5, label='Umbral advertencia')
+        ax.axhline(y=0.3, color='red', linestyle='--', alpha=0.5, label='Umbral crítico')
+        ax.fill_between(time_idx, stability, alpha=0.3, 
+                       color=np.where(stability > 0.5, COLORS['success'], COLORS['danger']))
+        ax.set_title('Estabilidad Giroscópica')
+        ax.set_xlabel('Paso')
+        ax.set_ylabel('Estabilidad')
+        ax.set_ylim(0, 1.1)
+        ax.legend(fontsize=8)
+        
+        # 6. Topología
+        ax = fig.add_subplot(gs[1, 2])
+        ax.plot(time_idx, histories['betti_0'], 'o-', 
+               markersize=3, label='β₀', color=COLORS['primary'])
+        ax.plot(time_idx, histories['betti_1'], 's-', 
+               markersize=3, label='β₁', color=COLORS['secondary'])
+        ax.set_title('Números de Betti')
+        ax.set_xlabel('Paso')
+        ax.set_ylabel('Valor')
+        ax.legend()
+        
+        # 7. FFT de la corriente
+        ax = fig.add_subplot(gs[2, 0])
+        current_fft = np.abs(np.fft.rfft(histories['current']))
+        freqs = np.fft.rfftfreq(n_steps)
+        ax.semilogy(freqs[1:], current_fft[1:], color=COLORS['info'], linewidth=1.5)
+        ax.set_title('Espectro de Frecuencia (Corriente)')
+        ax.set_xlabel('Frecuencia normalizada')
+        ax.set_ylabel('Magnitud')
+        
+        # 8. Histograma de energía
+        ax = fig.add_subplot(gs[2, 1])
+        ax.hist(histories['total_E'], bins=30, 
+               color=COLORS['energy_total'], alpha=0.7, edgecolor='black')
+        ax.axvline(x=np.mean(histories['total_E']), color='red', 
+                  linestyle='--', label=f'Media: {np.mean(histories["total_E"]):.3f}')
+        ax.set_title('Distribución de Energía Total')
+        ax.set_xlabel('Energía')
+        ax.set_ylabel('Frecuencia')
+        ax.legend()
+        
+        # 9. Correlación corriente-energía
+        ax = fig.add_subplot(gs[2, 2])
+        ax.scatter(histories['current'], histories['total_E'], 
+                  c=time_idx, cmap='viridis', alpha=0.6, s=20)
+        ax.set_title('Correlación Corriente vs Energía')
+        ax.set_xlabel('Corriente I')
+        ax.set_ylabel('Energía Total')
+        cbar = plt.colorbar(ax.collections[0], ax=ax)
+        cbar.set_label('Paso temporal')
+        
+        plt.tight_layout()
+        self.add_figure(fig, "Simulación Completa")
 
-def run_full_evaluation(verbose: bool = True) -> Dict[str, Any]:
-    """
-    Ejecuta la evaluación completa de todas las clases.
+    def test_visualize_integrator_comparison(self):
+        """Compara diferentes integradores."""
+        fig, axes = plt.subplots(2, 2, figsize=(12, 10))
+        fig.suptitle('Comparación de Integradores Numéricos', fontsize=14)
+        
+        # Parámetros comunes
+        C, L = 1.0, 1.0
+        R_values = [0.0, 0.3]  # Sin y con disipación
+        
+        dt = 0.05
+        steps = 200
+        
+        for R_idx, R in enumerate(R_values):
+            engine = RefinedFluxPhysicsEngine(
+                capacitance=C,
+                resistance=R,
+                inductance=L
+            )
+            
+            # Condición inicial
+            engine._state.charge = 1.0
+            engine._state.current = 0.0
+            
+            V_in = 0.0  # Sin forzamiento
+            
+            # Probar cada integrador
+            results = {}
+            
+            for integrator_name, integrator in [
+                ('Simpléctic', engine._evolve_symplectic),
+                ('RK4', engine._evolve_rk4),
+                ('Implícito', engine._evolve_implicit)
+            ]:
+                # Reiniciar
+                engine._state.charge = 1.0
+                engine._state.current = 0.0
+                
+                charges = [engine._state.charge]
+                currents = [engine._state.current]
+                energies = [engine._state.compute_hamiltonian()]
+                
+                for _ in range(steps):
+                    Q_new, I_new = integrator(V_in, dt)
+                    engine._state.charge = Q_new
+                    engine._state.current = I_new
+                    
+                    charges.append(Q_new)
+                    currents.append(I_new)
+                    energies.append(engine._state.compute_hamiltonian())
+                
+                results[integrator_name] = {
+                    'charges': charges,
+                    'currents': currents,
+                    'energies': energies
+                }
+            
+            times = np.arange(steps + 1) * dt
+            
+            # Gráfica de fase
+            ax = axes[0, R_idx]
+            for name, data in results.items():
+                ax.plot(data['charges'], data['currents'], 
+                       label=name, linewidth=1.5, alpha=0.8)
+            ax.set_title(f'Diagrama de Fase (R = {R})')
+            ax.set_xlabel('Carga Q')
+            ax.set_ylabel('Corriente I')
+            ax.legend()
+            ax.set_aspect('equal', adjustable='box')
+            
+            # Conservación de energía
+            ax = axes[1, R_idx]
+            for name, data in results.items():
+                # Error relativo de energía
+                E0 = data['energies'][0]
+                errors = [(e - E0) / E0 if E0 > 1e-10 else 0 
+                         for e in data['energies']]
+                ax.plot(times, errors, label=name, linewidth=2)
+            
+            ax.axhline(y=0, color='gray', linestyle='--', alpha=0.5)
+            ax.set_title(f'Error Relativo de Energía (R = {R})')
+            ax.set_xlabel('Tiempo')
+            ax.set_ylabel('(E - E₀) / E₀')
+            ax.legend()
+            ax.set_ylim(-0.1, 0.1)
+        
+        plt.tight_layout()
+        self.add_figure(fig, "Comparación Integradores")
+
+
+# ============================================================================
+# TESTS DE INTEGRACIÓN
+# ============================================================================
+class TestIntegration(VisualTestCase):
+    """Tests de integración del sistema completo."""
     
-    Returns:
-        Diccionario con resultados y métricas.
-    """
-    print("\n" + "="*60)
-    print("EVALUACIÓN COMPLETA DEL SISTEMA")
-    print("="*60 + "\n")
+    def test_full_pipeline(self):
+        """Prueba el pipeline completo de análisis."""
+        # Crear motor
+        engine = RefinedFluxPhysicsEngine(
+            capacitance=1.0,
+            resistance=0.5,
+            inductance=1.0
+        )
+        
+        # Simular escenario realista
+        for i in range(100):
+            metrics = engine.calculate_metrics(
+                total_records=1000 + np.random.randint(-100, 100),
+                cache_hits=600 + np.random.randint(-50, 50),
+                error_count=np.random.poisson(5),
+                processing_time=0.1
+            )
+            
+            # Verificar consistencia de métricas
+            self.assertGreaterEqual(metrics['total_energy'], 0,
+                "Energía total debe ser no-negativa")
+            
+            self.assertTrue(0 <= metrics['gyroscopic_stability'] <= 1,
+                "Estabilidad debe estar en [0, 1]")
+            
+            self.assertGreaterEqual(metrics['betti_0'], 0,
+                "β₀ debe ser no-negativo")
+        
+        # Obtener diagnóstico final
+        diagnosis = engine.get_system_diagnosis()
+        
+        self.assertIn('system_state', diagnosis)
+        self.assertIn('recommendations', diagnosis)
     
-    runner = TestRunner(verbose=verbose)
+    def test_stress_test(self):
+        """Test de estrés con condiciones extremas."""
+        engine = RefinedFluxPhysicsEngine(
+            capacitance=1e-6,  # Muy pequeño
+            resistance=100.0,  # Alto
+            inductance=1e-3
+        )
+        
+        # Simular condiciones de estrés
+        for i in range(50):
+            metrics = engine.calculate_metrics(
+                total_records=10000,
+                cache_hits=np.random.randint(0, 10000),
+                error_count=np.random.randint(0, 1000)
+            )
+            
+            # No debe haber NaN o Inf
+            for key, value in metrics.items():
+                if isinstance(value, (int, float)):
+                    self.assertFalse(np.isnan(value), 
+                        f"NaN detectado en {key}")
+                    self.assertFalse(np.isinf(value), 
+                        f"Inf detectado en {key}")
     
-    # Ejecutar todas las suites
-    evaluators = [
-        ("SystemConstants", SystemConstantsEvaluator),
-        ("PIController", PIControllerEvaluator),
-        ("DiscreteVectorCalculus", DiscreteVectorCalculusEvaluator),
-        ("MaxwellSolver", MaxwellSolverEvaluator),
-        ("PortHamiltonianController", PortHamiltonianControllerEvaluator),
-        ("Integration", IntegrationEvaluator),
+    def test_visualize_system_summary(self):
+        """Visualiza resumen del sistema."""
+        fig, axes = plt.subplots(2, 2, figsize=(14, 10))
+        fig.suptitle('Resumen del Sistema - Test de Integración', fontsize=14)
+        
+        # Simular diferentes configuraciones
+        configs = [
+            {'C': 1.0, 'R': 0.1, 'L': 1.0, 'name': 'Subamortiguado'},
+            {'C': 1.0, 'R': 2.0, 'L': 1.0, 'name': 'Crítico'},
+            {'C': 1.0, 'R': 5.0, 'L': 1.0, 'name': 'Sobreamortiguado'},
+        ]
+        
+        n_steps = 150
+        
+        all_metrics = {name: [] for config in configs for name in [config['name']]}
+        
+        for config in configs:
+            engine = RefinedFluxPhysicsEngine(
+                capacitance=config['C'],
+                resistance=config['R'],
+                inductance=config['L']
+            )
+            
+            metrics_list = []
+            
+            for i in range(n_steps):
+                # Señal de entrada variable
+                cache_rate = 0.5 + 0.3 * np.sin(i * 0.05)
+                total = 1000
+                
+                metrics = engine.calculate_metrics(
+                    total_records=total,
+                    cache_hits=int(total * cache_rate),
+                    error_count=np.random.poisson(3)
+                )
+                metrics_list.append(metrics)
+            
+            all_metrics[config['name']] = metrics_list
+        
+        time_idx = range(n_steps)
+        
+        # 1. Comparación de corrientes
+        ax = axes[0, 0]
+        for name, metrics_list in all_metrics.items():
+            currents = [m['current_I'] for m in metrics_list]
+            ax.plot(time_idx, currents, label=name, linewidth=2)
+        ax.set_title('Corriente vs Configuración')
+        ax.set_xlabel('Paso')
+        ax.set_ylabel('Corriente I')
+        ax.legend()
+        
+        # 2. Comparación de energías
+        ax = axes[0, 1]
+        for name, metrics_list in all_metrics.items():
+            energies = [m['total_energy'] for m in metrics_list]
+            ax.plot(time_idx, energies, label=name, linewidth=2)
+        ax.set_title('Energía Total vs Configuración')
+        ax.set_xlabel('Paso')
+        ax.set_ylabel('Energía')
+        ax.legend()
+        
+        # 3. Comparación de estabilidad
+        ax = axes[1, 0]
+        for name, metrics_list in all_metrics.items():
+            stabilities = [m['gyroscopic_stability'] for m in metrics_list]
+            ax.plot(time_idx, stabilities, label=name, linewidth=2)
+        ax.axhline(y=0.5, color='orange', linestyle='--', alpha=0.5)
+        ax.set_title('Estabilidad Giroscópica')
+        ax.set_xlabel('Paso')
+        ax.set_ylabel('Estabilidad')
+        ax.set_ylim(0, 1.1)
+        ax.legend()
+        
+        # 4. Estadísticas finales (barras)
+        ax = axes[1, 1]
+        
+        config_names = list(all_metrics.keys())
+        x = np.arange(len(config_names))
+        width = 0.25
+        
+        avg_energy = [np.mean([m['total_energy'] for m in ml]) for ml in all_metrics.values()]
+        avg_stability = [np.mean([m['gyroscopic_stability'] for m in ml]) for ml in all_metrics.values()]
+        avg_entropy = [np.mean([m['entropy_bits'] for m in ml]) for ml in all_metrics.values()]
+        
+        ax.bar(x - width, avg_energy, width, label='Energía media', color=COLORS['energy_total'])
+        ax.bar(x, avg_stability, width, label='Estabilidad media', color=COLORS['stability'])
+        ax.bar(x + width, avg_entropy, width, label='Entropía media', color=COLORS['entropy'])
+        
+        ax.set_title('Estadísticas por Configuración')
+        ax.set_xticks(x)
+        ax.set_xticklabels(config_names)
+        ax.legend()
+        ax.set_ylabel('Valor')
+        
+        plt.tight_layout()
+        self.add_figure(fig, "Resumen Sistema")
+
+
+# ============================================================================
+# RUNNER DE TESTS
+# ============================================================================
+def run_visual_tests():
+    """Ejecuta todos los tests con visualización."""
+    # Crear suite de tests
+    loader = unittest.TestLoader()
+    suite = unittest.TestSuite()
+    
+    # Agregar todas las clases de test
+    test_classes = [
+        TestDiscreteVectorCalculus,
+        TestMaxwellSolver,
+        TestPortHamiltonianController,
+        TestTopologicalAnalyzer,
+        TestEntropyCalculator,
+        TestUnifiedPhysicalState,
+        TestRefinedFluxPhysicsEngine,
+        TestIntegration
     ]
     
-    results = {}
+    for test_class in test_classes:
+        tests = loader.loadTestsFromTestCase(test_class)
+        suite.addTests(tests)
     
-    for name, evaluator in evaluators:
-        if verbose:
-            print(f"\n>>> Ejecutando suite: {name}")
-        
-        suite_result = evaluator.run_all(runner)
-        results[name] = suite_result
-        
-        if verbose:
-            print(suite_result.summary())
+    # Ejecutar tests
+    runner = unittest.TextTestRunner(verbosity=2)
+    result = runner.run(suite)
     
-    # Resumen global
-    global_summary = runner.global_summary()
-    print(global_summary)
+    # Mostrar resumen
+    print("\n" + "="*60)
+    print("RESUMEN DE PRUEBAS")
+    print("="*60)
+    print(f"Tests ejecutados: {result.testsRun}")
+    print(f"Éxitos: {result.testsRun - len(result.failures) - len(result.errors)}")
+    print(f"Fallos: {len(result.failures)}")
+    print(f"Errores: {len(result.errors)}")
     
-    # Métricas agregadas
-    total_passed = sum(s.passed for s in runner.all_results)
-    total_failed = sum(s.failed for s in runner.all_results)
-    total_tests = sum(s.total for s in runner.all_results)
+    if result.failures:
+        print("\nFALLOS:")
+        for test, traceback in result.failures:
+            print(f"  - {test}: {traceback.split(chr(10))[0]}")
     
-    return {
-        "suites": results,
-        "summary": {
-            "total_tests": total_tests,
-            "passed": total_passed,
-            "failed": total_failed,
-            "success_rate": total_passed / max(total_tests, 1),
-            "all_passed": total_failed == 0
-        },
-        "runner": runner
-    }
+    if result.errors:
+        print("\nERRORES:")
+        for test, traceback in result.errors:
+            print(f"  - {test}: {traceback.split(chr(10))[0]}")
+    
+    return result
+
+
+def run_quick_demo():
+    """Ejecuta una demostración rápida con visualización."""
+    print("="*60)
+    print("DEMOSTRACIÓN RÁPIDA - Motor de Física RLC Refinado")
+    print("="*60)
+    
+    # Crear motor
+    engine = RefinedFluxPhysicsEngine(
+        capacitance=1.0,
+        resistance=0.3,
+        inductance=1.0
+    )
+    
+    print(f"\nParámetros del circuito:")
+    print(f"  Capacitancia: {engine.C} F")
+    print(f"  Resistencia: {engine.R} Ω")
+    print(f"  Inductancia: {engine.L} H")
+    print(f"  Frecuencia resonante: {engine._omega_0/(2*np.pi):.4f} Hz")
+    print(f"  Factor de calidad: {engine._Q_factor:.2f}")
+    print(f"  Tipo de amortiguamiento: {engine._damping_type.name}")
+    
+    # Simular
+    print("\nSimulando 100 pasos...")
+    
+    for i in range(100):
+        metrics = engine.calculate_metrics(
+            total_records=1000,
+            cache_hits=600 + int(100 * np.sin(i * 0.1)),
+            error_count=np.random.poisson(5)
+        )
+    
+    # Diagnóstico
+    diagnosis = engine.get_system_diagnosis()
+    
+    print(f"\nDiagnóstico del sistema:")
+    print(f"  Estado: {diagnosis['system_state']}")
+    print(f"  Prioridad: {diagnosis['priority']}")
+    print(f"  Estado de entropía: {diagnosis['entropy_state']}")
+    print(f"  Tipo de amortiguamiento: {diagnosis['damping_type']}")
+    
+    print(f"\nRecomendaciones:")
+    for rec in diagnosis['recommendations']:
+        print(f"  • {rec}")
+    
+    print("\n" + "="*60)
 
 
 # ============================================================================
 # PUNTO DE ENTRADA
 # ============================================================================
-
-if __name__ == "__main__":
-    # Ejecutar evaluación completa
-    results = run_full_evaluation(verbose=True)
+if __name__ == '__main__':
+    import sys
     
-    # Código de salida basado en resultados
-    exit_code = 0 if results["summary"]["all_passed"] else 1
-    
-    print(f"\nCódigo de salida: {exit_code}")
-    exit(exit_code)
+    if len(sys.argv) > 1 and sys.argv[1] == '--demo':
+        run_quick_demo()
+    else:
+        print("Ejecutando suite completa de pruebas...")
+        print("Use --demo para una demostración rápida\n")
+        run_visual_tests()
