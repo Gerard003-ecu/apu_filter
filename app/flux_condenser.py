@@ -2428,24 +2428,11 @@ class RefinedFluxPhysicsEngine:
 
     def calculate_pump_work(self, current_I: float, voltage_across_inductor: float, dt: float) -> float:
         """
-        Calcula el Trabajo (W) realizado por la Bomba Lineal.
-        Basado en v = dw/dq -> dw = v * dq -> W = v * I * dt.
-
-        Args:
-            current_I: La 'velocidad' del pistón (Corriente).
-            voltage_across_inductor: La 'fuerza' ejercida por el pistón (L * di/dt).
-            dt: Diferencial de tiempo.
-
-        Returns:
-            Joules de trabajo realizado sobre el flujo de datos.
+        Calcula el Trabajo (W) realizado por el pistón inductivo.
+        W = V * I * dt
         """
-        # Potencia instantánea entregada por el inductor (Pistón)
-        # W = V * I * dt
-        power_stroke = voltage_across_inductor * current_I
-
-        # Trabajo acumulado en este paso
-        work_done = power_stroke * dt
-        return work_done
+        power = voltage_across_inductor * current_I
+        return power * dt
 
     def calculate_gyroscopic_stability(self, current_I: float) -> float:
         """
@@ -2711,7 +2698,7 @@ class RefinedFluxPhysicsEngine:
             "entropy_absolute": 0.0
         }
 
-    def calculate_metrics(self, total_records: int, cache_hits: int, error_count: int=0, processing_time: float=1.0, condenser_config: Optional[CondenserConfig]=None) -> Dict[str, float]:
+    def calculate_metrics(self, total_records: int, cache_hits: int, error_count: int=0, processing_time: float=1.0, condenser_config: Optional[CondenserConfig]=None) -> Dict[str, Any]:
         if total_records <= 0: return self._get_zero_metrics()
 
         current_time = time.time()
@@ -2829,7 +2816,7 @@ class RefinedFluxPhysicsEngine:
             "gyroscopic_stability": gyro_stability,
             "hamiltonian_excess": hamiltonian_excess,
             "v_total": v_total,
-            "clamping_active": float(self.clamping_active),
+            "clamping_active": self.clamping_active,
 
             # Métricas de flujo de valor (Maxwell 4th order)
             "field_energy": maxwell_metrics.get("total_energy", 0.0),
@@ -2846,7 +2833,7 @@ class RefinedFluxPhysicsEngine:
 
         return metrics
 
-    def _get_zero_metrics(self) -> Dict[str, float]:
+    def _get_zero_metrics(self) -> Dict[str, Any]:
         """Métricas iniciales para casos triviales."""
         return {
             "saturation": 0.0,
@@ -2878,10 +2865,10 @@ class RefinedFluxPhysicsEngine:
             "gyroscopic_stability": 1.0,
             "hamiltonian_excess": 0.0,
             "v_total": 0.0,
-            "clamping_active": 0.0
+            "clamping_active": False
         }
 
-    def _store_metrics(self, metrics: Dict[str, float]) -> None:
+    def _store_metrics(self, metrics: Dict[str, Any]) -> None:
         """Almacena métricas con timestamp."""
         self._metrics_history.append({**metrics, "_timestamp": time.time()})
 
@@ -2921,7 +2908,7 @@ class RefinedFluxPhysicsEngine:
 
         return result
 
-    def get_system_diagnosis(self, metrics: Dict[str, float]) -> Dict[str, str]:
+    def get_system_diagnosis(self, metrics: Dict[str, Any]) -> Dict[str, str]:
         """Genera diagnóstico del estado del sistema."""
         diagnosis = {
             "state": "NOMINAL",

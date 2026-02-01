@@ -1764,7 +1764,7 @@ class TestViscoelasticMembrane:
         )
 
         assert metrics["v_total"] > 5.3
-        assert metrics["clamping_active"] == 1.0
+        assert metrics["clamping_active"] is True
         assert engine.clamping_active is True
 
     def test_saturation_use_elastic_pressure(self, physics_engine_fixture):
