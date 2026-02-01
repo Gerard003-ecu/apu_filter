@@ -298,7 +298,7 @@ class TestCondenserConfig:
         
         assert_positive(config.system_capacitance, "capacitance")
         assert_positive(config.system_inductance, "inductance")
-        assert_positive(config.system_resistance, "resistance", strict=False)
+        assert_positive(config.base_resistance, "resistance", strict=False)
         assert 0 < config.pid_setpoint < 1, "setpoint debe estar en (0, 1)"
         assert config.min_batch_size < config.max_batch_size, "rango de batch inválido"
 
@@ -315,8 +315,8 @@ class TestCondenserConfig:
         assert 1e-6 < omega_0 < 1e6, f"ω₀ = {omega_0} fuera de rango estable"
         
         # Factor de calidad Q debe ser finito
-        if config.system_resistance > 0:
-            Q = (1 / config.system_resistance) * math.sqrt(
+        if config.base_resistance > 0:
+            Q = (1 / config.base_resistance) * math.sqrt(
                 config.system_inductance / config.system_capacitance
             )
             assert_finite(Q, "factor de calidad Q")
@@ -386,7 +386,7 @@ class TestCondenserConfig:
         config_small = CondenserConfig(
             system_capacitance=1e-10,
             system_inductance=1e-10,
-            system_resistance=1e-10,
+            base_resistance=1e-10,
         )
         assert config_small.system_capacitance == 1e-10
         
@@ -1701,6 +1701,88 @@ class TestDataFluxCondenser:
         
         assert health["health"] == "HEALTHY"
         assert len(health["issues"]) == 0
+
+
+# ============================================================================
+# TESTS: ViscoelasticMembrane - Membrana p-Laplaciano
+# ============================================================================
+
+class TestViscoelasticMembrane:
+    """Pruebas específicas para la Membrana Viscoelástica (p-Laplaciano)."""
+
+    def test_membrane_reaction_components(self, physics_engine_fixture):
+        """Verifica que los componentes de la membrana se calculen correctamente."""
+        engine = physics_engine_fixture
+        dt = 0.01
+        current_I = 0.5
+
+        reaction = engine.calculate_membrane_reaction(current_I, dt)
+
+        assert "v_total" in reaction
+        assert "v_elastic" in reaction
+        assert "v_viscous" in reaction
+        assert "v_inertial" in reaction
+        assert "dynamic_esr" in reaction
+
+        # Con corriente positiva y carga inicial cero:
+        # v_elastic should be 0 initially
+        assert reaction["v_elastic"] == 0.0
+        # v_inertial should be positive if last_current was 0
+        assert reaction["v_inertial"] > 0
+        # v_viscous should be positive
+        assert reaction["v_viscous"] > 0
+
+    def test_nonlinear_viscosity_p_laplacian(self, physics_engine_fixture):
+        """Verifica el endurecimiento no lineal (p-Laplaciano) ante saltos de corriente."""
+        engine = physics_engine_fixture
+        dt = 0.01
+
+        # Salto pequeño
+        reaction_small = engine.calculate_membrane_reaction(0.1, dt)
+        esr_small = reaction_small["dynamic_esr"]
+
+        # Salto grande (misma base pero di/dt mayor)
+        # Necesitamos crear uno nuevo para comparar limpiamente
+        engine2 = RefinedFluxPhysicsEngine(5000.0, 10.0, 2.0)
+        reaction_large = engine2.calculate_membrane_reaction(0.5, dt)
+        esr_large = reaction_large["dynamic_esr"]
+
+        # p-Laplaciano: Reff aumenta con Vinertial.
+        assert esr_large > esr_small, "La membrana debe endurecerse ante saltos mayores"
+
+    def test_active_clamping_tl431(self, physics_engine_fixture):
+        """Verifica que el clamping activo se active ante sobrepresión."""
+        engine = physics_engine_fixture
+        config = CondenserConfig(max_voltage=5.3)
+
+        # Forzar sobrepresión con un salto de corriente alto
+        metrics = engine.calculate_metrics(
+            total_records=100,
+            cache_hits=500, # current_I = 5.0
+            processing_time=1.0,
+            condenser_config=config
+        )
+
+        assert metrics["v_total"] > 5.3
+        assert metrics["clamping_active"] == 1.0
+        assert engine.clamping_active is True
+
+    def test_saturation_use_elastic_pressure(self, physics_engine_fixture):
+        """Verifica que la saturación use la presión elástica normalizada."""
+        engine = physics_engine_fixture
+        config = CondenserConfig(max_voltage=5.3)
+
+        # Simular carga manualmente en el estado unificado
+        engine._unified_state.charge = 1000.0
+        # v_elastic = q/C = 1000/5000 = 0.2V
+        # saturation = v_elastic / max_v = 0.2 / 5.3 ≈ 0.0377
+
+        # Usamos cache_hits=0 para que current_I sea 0 y la carga no cambie significativamente
+        metrics = engine.calculate_metrics(100, 0, condenser_config=config)
+
+        expected_sat = (1000.0 / 5000.0) / 5.3
+        # Con I=0, Q no debería cambiar en absoluto
+        assert abs(metrics["saturation"] - expected_sat) < 1e-7
 
 
 # ============================================================================

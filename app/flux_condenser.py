@@ -228,6 +228,7 @@ class CondenserConfig:
     system_capacitance: float = 5000.0
     base_resistance: float = 10.0
     system_inductance: float = 2.0
+    max_voltage: float = 5.3
 
     # Configuración PID
     pid_setpoint: float = 0.30
@@ -252,16 +253,19 @@ class CondenserConfig:
         errors = []
 
         if self.min_records_threshold < 0:
-            errors.append(f"min_records_threshold >= 0, got {self.min_records_threshold}")
+            errors.append(f"min_records_threshold inválido (debe ser >= 0), got {self.min_records_threshold}")
 
-        if self.system_capacitance <= 0:
-            errors.append(f"system_capacitance > 0, got {self.system_capacitance}")
+        if not math.isfinite(self.system_capacitance) or self.system_capacitance <= 0:
+            errors.append(f"system_capacitance debe ser positivo y finito, got {self.system_capacitance}")
 
-        if self.system_inductance <= 0:
-            errors.append(f"system_inductance > 0, got {self.system_inductance}")
+        if not math.isfinite(self.system_inductance) or self.system_inductance <= 0:
+            errors.append(f"system_inductance debe ser positivo y finito, got {self.system_inductance}")
 
-        if self.base_resistance < 0:
-            errors.append(f"base_resistance >= 0, got {self.base_resistance}")
+        if not math.isfinite(self.base_resistance) or self.base_resistance < 0:
+            errors.append(f"base_resistance debe ser no-negativo y finito, got {self.base_resistance}")
+
+        if not math.isfinite(self.max_voltage) or self.max_voltage <= 0:
+            errors.append(f"max_voltage debe ser positivo y finito, got {self.max_voltage}")
 
         if self.pid_kp < 0:
             errors.append(f"pid_kp >= 0, got {self.pid_kp}")
@@ -2283,6 +2287,7 @@ class RefinedFluxPhysicsEngine:
 
         # Amortiguamiento no lineal
         self._nonlinear_damping_factor: float = 1.0
+        self.clamping_active: bool = False
 
     def _validate_physical_parameters(self, C: float, R: float, L: float) -> None:
         """Validación de parámetros físicos con análisis dimensional."""
@@ -2587,6 +2592,72 @@ class RefinedFluxPhysicsEngine:
         return Sg
 
 
+    def calculate_membrane_reaction(self,
+                                  current_I: float,
+                                  dt: float,
+                                  p_factor: float = 3.0) -> Dict[str, float]:
+        """
+        Calcula la reacción física de la Malla APU (Membrana Viscoelástica).
+
+        Implementa la dinámica de fluido no newtoniano para amortiguar picos.
+        Basado en la ecuación constitutiva: V = V_elástico + V_viscoso + V_inercial
+
+        Args:
+            current_I: Corriente actual (Caudal de datos).
+            dt: Diferencial de tiempo.
+            p_factor: Coeficiente de no-linealidad del p-Laplaciano (p > 2).
+                      Si p=2, la difusión es lineal (Ohmica).
+                      Si p>2, la membrana se "endurece" ante impactos fuertes.
+
+        Returns:
+            Diccionario con los componentes de presión (Voltaje).
+        """
+        # 1. Componente Elástica (Ley de Hooke / Capacitancia)
+        # La presión base debido al llenado del tanque.
+        # V = q / C
+        v_elastic = self._unified_state.charge / self.C
+
+        # 2. Componente Inercial (Ley de Faraday / Inductancia)
+        # La resistencia al cambio de velocidad del pistón.
+        # V = L * di/dt
+        delta_I = current_I - self._last_current
+        di_dt = delta_I / dt if dt > 0 else 0.0
+        v_inertial = self.L * di_dt
+
+        # 3. Componente Viscosa No Lineal (p-Laplaciano / ESR Dinámica)
+        # Aquí simulamos la "membrana inteligente".
+        # La resistencia interna (ESR) no es fija; reacciona al gradiente.
+        # Si el cambio es brusco (|di/dt| alto), la viscosidad aumenta.
+
+        # Gradiente de "presión" percibido (aproximación local)
+        gradient_magnitude = abs(v_inertial) + 1e-9 # Evitar división por cero
+
+        # Factor de modulación no lineal: g(|grad|) ~ |grad|^(p-2)
+        viscosity_modulation = math.pow(gradient_magnitude, p_factor - 2.0)
+
+        # Resistencia efectiva dinámica
+        # R_mem incluye la resistencia base del circuito + la ESR de los condensadores
+        r_effective = self.R * (1.0 + 0.1 * viscosity_modulation)
+
+        # Limitador de seguridad para la simulación numérica
+        r_effective = min(r_effective, self.R * 10.0)
+
+        v_viscous = r_effective * current_I
+
+        # 4. Presión Total en la Membrana
+        v_total = v_elastic + v_viscous + v_inertial
+
+        # Actualizar estado interno de histéresis para la próxima iteración
+        self._nonlinear_damping_factor = r_effective / self.R if self.R > 0 else 1.0
+
+        return {
+            "v_total": v_total,
+            "v_elastic": v_elastic,     # Presión estática (Nivel de llenado)
+            "v_viscous": v_viscous,     # Fricción (Calor disipado)
+            "v_inertial": v_inertial,   # Golpe de ariete (Flyback)
+            "dynamic_esr": r_effective  # Viscosidad instantánea
+        }
+
     def calculate_system_entropy(self, total_records: int, error_count: int, processing_time: float) -> Dict[str, float]:
         """Calcula entropía del sistema usando EntropyCalculator."""
         if total_records <= 0:
@@ -2640,7 +2711,7 @@ class RefinedFluxPhysicsEngine:
             "entropy_absolute": 0.0
         }
 
-    def calculate_metrics(self, total_records: int, cache_hits: int, error_count: int=0, processing_time: float=1.0) -> Dict[str, float]:
+    def calculate_metrics(self, total_records: int, cache_hits: int, error_count: int=0, processing_time: float=1.0, condenser_config: Optional[CondenserConfig]=None) -> Dict[str, float]:
         if total_records <= 0: return self._get_zero_metrics()
 
         current_time = time.time()
@@ -2661,7 +2732,23 @@ class RefinedFluxPhysicsEngine:
         # Evolucionar Termodinámica (Coupling)
         self._unified_state.evolve_port_hamiltonian(dt, {"current": I_new})
 
-        # 2. Maxwell & Hamiltonian
+        # 2. Reacción de la Membrana Viscoelástica
+        membrane_state = self.calculate_membrane_reaction(I_new, dt, p_factor=3.0)
+        v_total = membrane_state["v_total"]
+        v_inertial = membrane_state["v_inertial"]
+        v_elastic = membrane_state["v_elastic"]
+
+        # Protección Activa (Simulación del TL431)
+        max_v = condenser_config.max_voltage if condenser_config else 5.3
+        if v_total > max_v:
+            self.logger.warning("🛡️ MEMBRANA ACTIVADA: Derivando sobrepresión (Clamping)")
+            self.clamping_active = True
+            # En un sistema real, el TL431 derivaría corriente para limitar el voltaje.
+            # Aquí marcamos el flag para que la telemetría lo registre.
+        else:
+            self.clamping_active = False
+
+        # 3. Maxwell & Hamiltonian
         hamiltonian_excess = 0.0
         if self.maxwell_solver:
              # Sync unified state
@@ -2671,21 +2758,26 @@ class RefinedFluxPhysicsEngine:
              u = self.hamiltonian_control.apply_control(dt)
              hamiltonian_excess = np.linalg.norm(u)
 
-        # 3. Métricas derivadas
-        piston_pressure = self.L * (I_new - self._last_current) / dt if dt > 0 else 0
-        water_hammer = abs(piston_pressure) if piston_pressure < 0 else 0
+        # 4. Métricas derivadas
+        # El "Voltaje Flyback" es el componente inercial de la membrana
+        piston_pressure = v_inertial
+        water_hammer = abs(v_inertial)
         water_hammer = min(water_hammer, SystemConstants.MAX_WATER_HAMMER_PRESSURE)
 
-        pump_work = piston_pressure * current_I * dt
+        # Trabajo realizado por la bomba
+        pump_work = self.calculate_pump_work(I_new, v_inertial, dt)
 
-        # 4. Entropía
+        # 5. Entropía
         entropy_metrics = self.calculate_system_entropy(
             total_records, error_count, processing_time
         )
 
-        # 5. Topología
+        # 6. Topología
+        # La saturación real es la presión elástica normalizada
+        saturation = v_elastic / max_v
+
         metrics_pre = {
-            "saturation": math.tanh(Q_new),
+            "saturation": saturation,
             "complexity": complexity,
             "current_I": I_new,
             "potential_energy": 0.5 * Q_new**2 / self.C,
@@ -2736,6 +2828,8 @@ class RefinedFluxPhysicsEngine:
 
             "gyroscopic_stability": gyro_stability,
             "hamiltonian_excess": hamiltonian_excess,
+            "v_total": v_total,
+            "clamping_active": float(self.clamping_active),
 
             # Métricas de flujo de valor (Maxwell 4th order)
             "field_energy": maxwell_metrics.get("total_energy", 0.0),
@@ -2782,7 +2876,9 @@ class RefinedFluxPhysicsEngine:
             "graph_vertices": 0,
             "graph_edges": 0,
             "gyroscopic_stability": 1.0,
-            "hamiltonian_excess": 0.0
+            "hamiltonian_excess": 0.0,
+            "v_total": 0.0,
+            "clamping_active": 0.0
         }
 
     def _store_metrics(self, metrics: Dict[str, float]) -> None:
@@ -2828,7 +2924,7 @@ class RefinedFluxPhysicsEngine:
     def get_system_diagnosis(self, metrics: Dict[str, float]) -> Dict[str, str]:
         """Genera diagnóstico del estado del sistema."""
         diagnosis = {
-            "state": "NORMAL",
+            "state": "NOMINAL",
             "damping": self._damping_type,
             "energy": "BALANCED",
             "entropy": "LOW",
@@ -2885,7 +2981,7 @@ class RefinedFluxPhysicsEngine:
                 "⚠️ PRECESIÓN DETECTADA (Inestabilidad de Flujo)"
             )
             # También escalamos el estado si es crítico
-            if gyro_stability < 0.3 and diagnosis["state"] == "NORMAL":
+            if gyro_stability < 0.3 and diagnosis["state"] == "NOMINAL":
                 diagnosis["state"] = "UNSTABLE"
 
         return diagnosis
@@ -3364,6 +3460,7 @@ class DataFluxCondenser:
                 cache_hits=cache_hits_est,
                 error_count=failed_batches_count,
                 processing_time=elapsed_time,
+                condenser_config=self.condenser_config
             )
 
             saturation = metrics.get("saturation", 0.5)
