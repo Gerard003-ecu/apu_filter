@@ -14,7 +14,7 @@ Arquitectura y Fundamentos Matemáticos:
    Utiliza la `LinearInteractionMatrix` (MIC) para proyectar "Intenciones" sobre un espacio
    vectorial de base ortogonal. Cada paso del pipeline (ej. `load_data`, `calculate_costs`)
    es tratado como un vector base unitario ($e_i$) que aplica una transformación lineal $T$
-   sobre el contexto del proyecto [1].
+   sobre el contexto del proyecto.
 
 2. Auditoría Homológica (Secuencia de Mayer-Vietoris):
    Implementa el paso `AuditedMergeStep`. A diferencia de un simple JOIN SQL, este proceso
@@ -22,18 +22,18 @@ Arquitectura y Fundamentos Matemáticos:
    durante la fusión de datos (Presupuesto $\cup$ APUs):
    $$... \to H_k(A \cap B) \to H_k(A) \oplus H_k(B) \to H_k(A \cup B) \to ...$$
    Esto asegura matemáticamente que la integración no introduzca ciclos espurios ($\beta_1$)
-   ni desconexiones ($\beta_0$) que no existían en los conjuntos originales [2], [3].
+   ni desconexiones ($\beta_0$) que no existían en los conjuntos originales.
 
 3. Filtración por Estratos (Jerarquía DIKW):
    Gestiona la ejecución respetando la filtración de subespacios definida en la MIC:
    $V_{PHYSICS} \subset V_{TACTICS} \subset V_{STRATEGY} \subset V_{WISDOM}$.
    El director valida que las transiciones entre estratos sean suaves, impidiendo que
-   operadores de alto nivel (Sabiduría) se ejecuten sobre una base física inestable [4], [5].
+   operadores de alto nivel (Sabiduría) se ejecuten sobre una base física inestable.
 
 4. Protocolo de Caja de Cristal (Glass Box Persistence):
    Mantiene la trazabilidad forense completa. El estado del sistema se serializa entre
    pasos, permitiendo pausar, reanudar y auditar el "Colapso de Onda" (materialización)
-   en cualquier punto del flujo, cumpliendo con el compromiso de transparencia total [6], [7].
+   en cualquier punto del flujo, cumpliendo con el compromiso de transparencia total.
 
 """
 
