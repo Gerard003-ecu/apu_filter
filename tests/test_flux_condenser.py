@@ -1755,6 +1755,9 @@ class TestViscoelasticMembrane:
         engine = physics_engine_fixture
         config = CondenserConfig(max_voltage=5.3)
 
+        # Bypass slew rate limiting para esta prueba
+        engine.muscle._max_slew_rate = 100.0
+
         # Forzar sobrepresión con un salto de corriente alto
         metrics = engine.calculate_metrics(
             total_records=100,
@@ -2074,6 +2077,116 @@ class TestPerformance:
         
         # Debe completar 1000 predicciones en menos de 1 segundo
         assert elapsed < 1.0, f"Predicción demasiado lenta: {elapsed}s para 1000 iteraciones"
+
+
+# ============================================================================
+# TESTS: V3 - Músculo y Reserva Táctica
+# ============================================================================
+
+class TestFluxMuscleController:
+    """Pruebas para el controlador del músculo (MOSFET)."""
+
+    def test_muscle_slew_rate_limiting(self):
+        """Verifica que el cambio de fuerza sea gradual."""
+        from app.flux_condenser import FluxMuscleController
+        muscle = FluxMuscleController()
+
+        # Intentar saltar de 0 a 1 en 1ms
+        dt = 0.001
+        duty = muscle.apply_force(1.0, dt)
+
+        # Max change per 10ms is 0.1, so per 1ms is 0.01
+        assert duty < 0.02
+        assert duty > 0
+
+    def test_muscle_thermal_throttling(self):
+        """Verifica que el músculo se debilite ante esfuerzo sostenido."""
+        from app.flux_condenser import FluxMuscleController
+        muscle = FluxMuscleController()
+
+        # Esfuerzo máximo por 6 segundos (limite es 5s)
+        dt = 1.0
+        for _ in range(6):
+            duty = muscle.apply_force(1.0, dt)
+
+        # Después de 5s al 100%, debe reducirse a la mitad
+        assert duty <= 0.55  # margen por el incremento final
+
+    def test_muscle_temperature_increase(self):
+        """Verifica que la temperatura aumente con la carga."""
+        from app.flux_condenser import FluxMuscleController
+        muscle = FluxMuscleController()
+
+        initial_temp = muscle.temperature
+        muscle.apply_force(1.0, 1.0)  # 1s al 100%
+
+        assert muscle.temperature > initial_temp
+
+
+class TestTacticalReserve:
+    """Pruebas para la Reserva Táctica (UPS)."""
+
+    def test_reserve_charging(self, physics_engine_fixture):
+        """Verifica que la reserva se cargue cuando el bus tiene voltaje."""
+        engine = physics_engine_fixture
+        config = CondenserConfig()
+
+        # Inicialmente en 3V
+        engine._unified_state.brain_voltage = 3.0
+
+        # Bus a 12V
+        engine._update_tactical_reserve(0.1, 12.0, config)
+
+        assert engine._unified_state.brain_voltage > 3.0
+
+    def test_reserve_discharging(self, physics_engine_fixture):
+        """Verifica descarga en modo supervivencia."""
+        engine = physics_engine_fixture
+        config = CondenserConfig()
+
+        engine._unified_state.brain_voltage = 5.0
+
+        # Bus a 0V (Diodo bloqueado)
+        engine._update_tactical_reserve(1.0, 0.0, config)
+
+        assert engine._unified_state.brain_voltage < 5.0
+
+    def test_brownout_detection(self, physics_engine_fixture):
+        """Verifica detección de bajo voltaje."""
+        engine = physics_engine_fixture
+        config = CondenserConfig(brain_brownout_threshold=2.65)
+
+        engine._unified_state.brain_voltage = 2.6
+        engine._update_tactical_reserve(0.1, 0.0, config)
+
+        assert engine._unified_state.brain_alive is False
+
+
+class TestDataFluxCondenserV3:
+    """Pruebas de integración V3 en DataFluxCondenser."""
+
+    def test_control_plane_collapse_raises_error(self, valid_config, valid_profile):
+        """Verifica que el sistema se detenga si el cerebro muere."""
+        condenser = DataFluxCondenser(valid_config, valid_profile)
+        condenser._start_time = time.time()
+
+        with patch.object(condenser.physics, "calculate_metrics") as mock_metrics:
+            mock_metrics.return_value = {
+                "saturation": 0.5,
+                "brain_alive": 0.0,  # Cerebro muerto
+                "brain_voltage": 2.0
+            }
+
+            with pytest.raises(ProcessingError) as exc:
+                condenser._process_batches_with_pid(
+                    raw_records=[{"a": 1}] * 10,
+                    cache={},
+                    total_records=10,
+                    on_progress=None,
+                    progress_callback=None,
+                    telemetry=None
+                )
+            assert "CONTROL_PLANE_COLLAPSE" in str(exc.value)
 
 
 # ============================================================================

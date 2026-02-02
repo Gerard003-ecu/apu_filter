@@ -230,6 +230,10 @@ class CondenserConfig:
     system_inductance: float = 2.0
     max_voltage: float = 5.3
 
+    # Configuración Reserva Táctica (UPS)
+    brain_capacitance: float = 4.0
+    brain_brownout_threshold: float = 2.65
+
     # Configuración PID
     pid_setpoint: float = 0.30
     pid_kp: float = 2000.0
@@ -343,6 +347,67 @@ class BatchResult:
 # ============================================================================
 # CONTROLADORES
 # ============================================================================
+class FluxMuscleController:
+    """
+    Controlador del 'Músculo' (MOSFET).
+    Gestiona la traducción de 'Intención de Flujo' a 'Ciclo de Trabajo PWM'.
+    Implementa Soft-Start y limitación de corriente virtual.
+    """
+    def __init__(self, pwm_pin=None, frequency_hz=20000):
+        # Frecuencia alta (20kHz) para que el inductor 'vea' corriente continua
+        # y no pulsos individuales (fuera del rango audible).
+        self.pwm_frequency = frequency_hz
+        self._current_duty = 0.0
+        self._max_slew_rate = 0.1  # Máximo cambio de fuerza por ciclo (evita golpes)
+
+        # Estado térmico simulado (protección)
+        self._thermal_accumulator = 0.0
+
+    def apply_force(self, target_intensity: float, dt: float) -> float:
+        """
+        Aplica fuerza al pistón (Inductor).
+
+        Args:
+            target_intensity: Solicitud de fuerza del Agente (0.0 a 1.0).
+            dt: Tiempo transcurrido.
+
+        Returns:
+            float: El ciclo de trabajo (duty cycle) real aplicado.
+        """
+        # 1. Protección de Rango
+        target = max(0.0, min(1.0, target_intensity))
+
+        # 2. Limitación de Cambio (Slew Rate Limiting / Soft Start)
+        # El músculo no puede pasar de 0 a 100% instantáneamente.
+        # Esto simula la rampa de corriente necesaria para no saturar el inductor.
+        delta = target - self._current_duty
+        # Normalizado a 10ms (0.01s)
+        max_change = self._max_slew_rate * (dt / 0.01) if dt > 0 else 0.0
+
+        if abs(delta) > max_change:
+            delta = math.copysign(max_change, delta)
+
+        self._current_duty += delta
+
+        # 3. Simulación de Fatiga Térmica (I^2 * R)
+        # Si el músculo trabaja al 100% mucho tiempo, se calienta.
+        if self._current_duty > 0.8:
+            self._thermal_accumulator += dt
+        else:
+            self._thermal_accumulator = max(0.0, self._thermal_accumulator - dt)
+
+        # Protección: Si se calienta demasiado, forzar relajación
+        if self._thermal_accumulator > 5.0:  # 5 segundos de esfuerzo máximo
+            self._current_duty *= 0.5  # Reducir fuerza a la mitad
+
+        return self._current_duty
+
+    @property
+    def temperature(self) -> float:
+        """Retorna una temperatura simulada basada en el acumulador (25°C base)."""
+        return 25.0 + self._thermal_accumulator * 15.0
+
+
 class PIController:
     """
     Controlador PI con anti-windup por back-calculation y análisis de estabilidad.
@@ -2137,6 +2202,12 @@ class UnifiedPhysicalState:
         self.entropy: float = 0.0          # S (J/K)
         self.angular_momentum: np.ndarray = np.zeros(3)
 
+        # Reserva Táctica y Músculo
+        self.brain_voltage: float = 5.0
+        self.brain_inflow_current: float = 0.0
+        self.muscle_temp: float = 25.0
+        self.brain_alive: bool = True
+
         # Parámetros
         self.capacitance = capacitance
         self.inductance = inductance
@@ -2289,6 +2360,9 @@ class RefinedFluxPhysicsEngine:
         self._nonlinear_damping_factor: float = 1.0
         self.clamping_active: bool = False
 
+        # Músculo Inteligente
+        self.muscle = FluxMuscleController()
+
     def _validate_physical_parameters(self, C: float, R: float, L: float) -> None:
         """Validación de parámetros físicos con análisis dimensional."""
         errors = []
@@ -2382,6 +2456,62 @@ class RefinedFluxPhysicsEngine:
         self._unified_state.flux_linkage = y_next[1] * self._unified_state.inductance
 
         return y_next[0], y_next[1]
+
+    def _update_tactical_reserve(self, dt: float, main_bus_voltage: float, config: CondenserConfig) -> None:
+        """
+        Simula la dinámica de la Reserva Táctica (Plano de Control).
+        Modela: Diodo Schottky + Inductor 10uH + Supercondensadores.
+        """
+        state = self._unified_state
+
+        # Parámetros físicos de la Reserva Táctica
+        L_brain = 10e-6  # 10uH (Inercia de protección)
+        C_brain = config.brain_capacitance
+        R_brain = 0.5    # ESR estimada + pistas
+        DIODE_DROP = 0.3 # Caída del Schottky (1N5819/22)
+
+        # 1. Determinar voltaje objetivo (Fuente - Diodo)
+        target_voltage = max(0.0, main_bus_voltage - DIODE_DROP)
+
+        # 2. Dinámica de Carga vs. Descarga
+        if target_voltage > state.brain_voltage:
+            # --- MODO CARGA (Recuperación) ---
+            delta_v = target_voltage - state.brain_voltage
+            current_i = state.brain_inflow_current
+
+            # Caída resistiva
+            v_resistive = current_i * R_brain
+
+            # Aceleración de la corriente (limitada por el inductor)
+            # di_dt = (DeltaV - VR) / L
+            di_dt = (delta_v - v_resistive) / L_brain
+
+            # Integración de Euler para la nueva corriente
+            new_i = current_i + di_dt * dt
+            state.brain_inflow_current = max(0.0, new_i)
+
+            # Cargar el condensador: dV = (I * dt) / C
+            dq = state.brain_inflow_current * dt
+            state.brain_voltage += dq / C_brain
+
+        else:
+            # --- MODO DESCARGA (Supervivencia / Hold-up) ---
+            state.brain_inflow_current = 0.0
+
+            # Consumo del Agente (simulado o medido)
+            agent_consumption_amps = 0.080 # ~80mA para ESP32 con WiFi activo
+
+            # Descarga: V_new = V_old - (I_load * dt) / C
+            discharge_drop = (agent_consumption_amps * dt) / C_brain
+            state.brain_voltage -= discharge_drop
+
+        # 3. Protección de Brownout (Umbral Crítico)
+        if state.brain_voltage < config.brain_brownout_threshold:
+            if state.brain_alive:
+                self.logger.critical("⚠️ ALERTA DE BROWNOUT INMINENTE EN PLANO DE CONTROL")
+            state.brain_alive = False
+        else:
+            state.brain_alive = True
 
     def _evolve_state_rk4_adaptive(self, driving_current: float, dt: float) -> Tuple[float, float]:
         """ RK4 Adaptativo (Simplificado) """
@@ -2714,15 +2844,24 @@ class RefinedFluxPhysicsEngine:
     def calculate_metrics(self, total_records: int, cache_hits: int, error_count: int=0, processing_time: float=1.0, condenser_config: Optional[CondenserConfig]=None) -> Dict[str, float]:
         if total_records <= 0: return self._get_zero_metrics()
 
+        config = condenser_config or CondenserConfig()
+
         current_time = time.time()
         dt = max(1e-6, current_time - self._last_time) if self._initialized else 0.01
         self._initialized = True
         self._last_time = current_time
 
-        current_I = cache_hits / total_records
-        complexity = 1.0 - current_I
+        # 1. Músculo Inteligente: Aplicar Fuerza (Slew Rate + Térmico)
+        target_I = cache_hits / total_records
+        current_I = self.muscle.apply_force(target_I, dt)
+        complexity = 1.0 - target_I
 
-        # 1. Integración Física
+        # 2. Reserva Táctica: Actualizar UPS
+        # El voltaje en el acumulador principal alimenta la reserva a través del diodo
+        v_main_bus = self._unified_state.charge / self.C
+        self._update_tactical_reserve(dt, v_main_bus, config)
+
+        # 3. Integración Física
         if SCIPY_AVAILABLE:
             Q_new, I_new = self._evolve_state_rk4_adaptive(current_I, dt)
         else:
@@ -2732,7 +2871,7 @@ class RefinedFluxPhysicsEngine:
         # Evolucionar Termodinámica (Coupling)
         self._unified_state.evolve_port_hamiltonian(dt, {"current": I_new})
 
-        # 2. Reacción de la Membrana Viscoelástica
+        # 4. Reacción de la Membrana Viscoelástica
         membrane_state = self.calculate_membrane_reaction(I_new, dt, p_factor=3.0)
         v_total = membrane_state["v_total"]
         v_inertial = membrane_state["v_inertial"]
@@ -2748,7 +2887,7 @@ class RefinedFluxPhysicsEngine:
         else:
             self.clamping_active = False
 
-        # 3. Maxwell & Hamiltonian
+        # 5. Maxwell & Hamiltonian
         hamiltonian_excess = 0.0
         if self.maxwell_solver:
              # Sync unified state
@@ -2758,7 +2897,7 @@ class RefinedFluxPhysicsEngine:
              u = self.hamiltonian_control.apply_control(dt)
              hamiltonian_excess = np.linalg.norm(u)
 
-        # 4. Métricas derivadas
+        # 6. Métricas derivadas
         # El "Voltaje Flyback" es el componente inercial de la membrana
         piston_pressure = v_inertial
         water_hammer = abs(v_inertial)
@@ -2767,14 +2906,14 @@ class RefinedFluxPhysicsEngine:
         # Trabajo realizado por la bomba
         pump_work = self.calculate_pump_work(I_new, v_inertial, dt)
 
-        # 5. Entropía
+        # 7. Entropía
         entropy_metrics = self.calculate_system_entropy(
             total_records, error_count, processing_time
         )
 
-        # 6. Topología
+        # 8. Topología
         # La saturación real es la presión elástica normalizada
-        saturation = v_elastic / max_v
+        saturation = v_elastic / config.max_voltage
 
         metrics_pre = {
             "saturation": saturation,
@@ -2788,10 +2927,10 @@ class RefinedFluxPhysicsEngine:
         self._topological_analyzer.build_metric_graph(metrics_pre)
         betti = self._topological_analyzer.compute_betti_with_spectral()
 
-        # 6. Estabilidad Giroscópica
+        # 9. Estabilidad Giroscópica
         gyro_stability = self.calculate_gyroscopic_stability(current_I)
 
-        # 7. Unificar Métricas
+        # 10. Unificar Métricas
         # Integrar métricas avanzadas de Maxwell (Poynting, Energía de Campo)
         maxwell_metrics = {}
         if self.maxwell_solver:
@@ -2830,6 +2969,13 @@ class RefinedFluxPhysicsEngine:
             "hamiltonian_excess": hamiltonian_excess,
             "v_total": v_total,
             "clamping_active": float(self.clamping_active),
+
+            # Métricas V3: Músculo y Reserva
+            "muscle_temp": self.muscle.temperature,
+            "muscle_duty": current_I,
+            "brain_voltage": self._unified_state.brain_voltage,
+            "brain_alive": float(self._unified_state.brain_alive),
+            "brownout_risk": 1.0 if self._unified_state.brain_voltage < config.brain_brownout_threshold + 0.5 else 0.0,
 
             # Métricas de flujo de valor (Maxwell 4th order)
             "field_energy": maxwell_metrics.get("total_energy", 0.0),
@@ -3462,6 +3608,11 @@ class DataFluxCondenser:
                 processing_time=elapsed_time,
                 condenser_config=self.condenser_config
             )
+
+            # Verificar si el Plano de Control (Cerebro) sigue vivo
+            if not metrics.get("brain_alive", 1.0):
+                self.logger.critical("💀 COLAPSO DEL PLANO DE CONTROL: Voltaje insuficiente en Reserva Táctica.")
+                raise ProcessingError("CONTROL_PLANE_COLLAPSE")
 
             saturation = metrics.get("saturation", 0.5)
             complexity = metrics.get("complexity", 0.5)
@@ -4505,7 +4656,7 @@ class DataFluxCondenser:
         if len(self._metrics_history) >= 5:
             recent = list(self._metrics_history)[-5:]
 
-            for key in ['saturation', 'power', 'complexity']:
+            for key in ['saturation', 'power', 'complexity', 'brain_voltage', 'muscle_temp']:
                 values = [m.get(key, 0) for m in recent if key in m]
                 if values:
                     trends[f"{key}_trend"] = (values[-1] - values[0]) / len(values)
@@ -4606,6 +4757,26 @@ class DataFluxCondenser:
                 issues.append(f"Tasa de éxito muy baja: {100*success_rate:.1f}%")
             elif success_rate < 0.8:
                 warnings.append(f"Tasa de éxito degradada: {100*success_rate:.1f}%")
+
+        # ══════════════════════════════════════════════════════════════
+        # EVALUACIÓN DE RESERVA TÁCTICA Y MÚSCULO (V3)
+        # ══════════════════════════════════════════════════════════════
+        if self._metrics_history:
+            last_m = self._metrics_history[-1]
+
+            # Temperatura del Músculo
+            temp = last_m.get("muscle_temp", 25.0)
+            if temp > 80.0:
+                issues.append(f"Músculo sobrecalentado: {temp:.1f}°C")
+            elif temp > 60.0:
+                warnings.append(f"Músculo caliente: {temp:.1f}°C")
+
+            # Voltaje del Cerebro
+            v_brain = last_m.get("brain_voltage", 5.0)
+            if v_brain < self.condenser_config.brain_brownout_threshold + 0.1:
+                issues.append(f"Voltaje crítico en Cerebro: {v_brain:.2f}V")
+            elif v_brain < self.condenser_config.brain_brownout_threshold + 0.5:
+                warnings.append(f"Bajo voltaje en Reserva Táctica: {v_brain:.2f}V")
 
         # ══════════════════════════════════════════════════════════════
         # EVALUACIÓN DEL EKF
