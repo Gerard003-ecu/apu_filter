@@ -44,28 +44,30 @@ from scipy import sparse
 from scipy.spatial.distance import pdist, squareform
 
 from app.pipeline_director import (
-    APUCostCalculator,
     AuditedMergeStep,
-    BaseCostProcessor,
     BasisVector,
     BuildOutputStep,
     BusinessTopologyStep,
     CalculateCostsStep,
     ColumnNames,
-    DataMerger,
-    DataValidator,
-    FileValidator,
     FinalMergeStep,
-    InformationGeometry,
-    InsumosProcessor,
     LinearInteractionMatrix,
     LoadDataStep,
     MaterializationStep,
     MergeDataStep,
     PipelineDirector,
     PipelineSteps,
-    PresupuestoProcessor,
     ProcessingStep,
+)
+from app.apu_processor import (
+    APUCostCalculator,
+    BaseCostProcessor,
+    DataMerger,
+    DataValidator,
+    FileValidator,
+    InformationGeometry,
+    InsumosProcessor,
+    PresupuestoProcessor,
     ProcessingThresholds,
     ProcrustesAnalyzer,
 )
@@ -1945,7 +1947,7 @@ class TestPresupuestoProcessor(TestFixtures):
 
     def test_process_returns_empty_on_load_error(self, processor):
         """Error de carga retorna DataFrame vacío."""
-        with patch("app.pipeline_director.load_data", return_value=None):
+        with patch("app.apu_processor.load_data", return_value=None):
             result = processor.process("nonexistent.csv")
         
         assert result.empty
