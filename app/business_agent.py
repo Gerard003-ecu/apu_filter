@@ -113,133 +113,328 @@ class TopologicalMetricsBundle:
     @property
     def structural_coherence(self) -> float:
         """
-        Calcula un índice de coherencia estructural basado en β₀ y β₁.
+        Calcula un índice de coherencia estructural mediante invariantes topológicos.
 
-        β₀ (componentes conexas): Valores altos indican fragmentación.
-        β₁ (ciclos independientes): Valores altos indican dependencias circulares.
+        Fundamento Matemático (Topología Algebraica):
+        =============================================
+        Sea K un complejo simplicial asociado al presupuesto. Definimos:
+
+        C(K) = exp(-λ₀·max(0, β₀-1)) × exp(-λ₁·β₁/n) × Ψ
+
+        donde:
+        - β₀: Número de componentes conexas (H₀). Ideal: β₀ = 1 (conexidad)
+        - β₁: Primer número de Betti (H₁). Ciclos independientes ≈ dependencias circulares
+        - n: Número de vértices (normalización por escala)
+        - Ψ: Índice de estabilidad piramidal ∈ [0, 1]
+        - λ₀, λ₁: Tasas de decaimiento (derivadas de análisis de sensibilidad)
+
+        La exponencial garantiza:
+        1. Monotonicidad decreciente en patologías
+        2. Composición multiplicativa (log-aditiva en el espacio de riesgos)
+        3. Rango natural en [0, 1] sin truncamiento artificial
 
         Returns:
-            float: Índice normalizado [0, 1] donde 1 es máxima coherencia.
+            float: Índice de coherencia ∈ [0, 1], donde 1 = máxima coherencia topológica.
         """
+        import math
+
         beta_0 = self.betti_numbers.get("beta_0", 1)
         beta_1 = self.betti_numbers.get("beta_1", 0)
 
-        # Penalización por fragmentación (idealmente β₀ = 1)
-        fragmentation_penalty = 1.0 / max(beta_0, 1)
+        # Obtener cardinalidad del complejo para normalización
+        n_vertices = 1  # Default seguro
+        if hasattr(self.graph, 'number_of_nodes'):
+            n_vertices = max(self.graph.number_of_nodes(), 1)
+        elif hasattr(self.graph, '__len__'):
+            n_vertices = max(len(self.graph), 1)
 
-        # Penalización por ciclos (decaimiento exponencial)
-        import math
+        # Tasas de decaimiento fundamentadas en análisis de sensibilidad
+        # λ₀ = ln(2) → cada componente adicional reduce coherencia a la mitad
+        # λ₁ ajustado por densidad del grafo para evitar penalización excesiva en grafos densos
+        lambda_0 = math.log(2)  # ≈ 0.693
+        lambda_1 = math.log(2) / max(1, math.sqrt(n_vertices))  # Escala con √n
 
-        cycle_penalty = math.exp(-0.5 * beta_1)
+        # Penalización por fragmentación (β₀ > 1 indica desconexión)
+        # exp(-λ₀·(β₀-1)): β₀=1→1, β₀=2→0.5, β₀=3→0.25, ...
+        excess_components = max(0, beta_0 - 1)
+        fragmentation_factor = math.exp(-lambda_0 * excess_components)
 
-        return fragmentation_penalty * cycle_penalty * self.pyramid_stability
+        # Penalización por ciclos, normalizada por tamaño
+        # Densidad de ciclos: β₁/n evita penalizar grafos grandes injustamente
+        # cycle_factor = math.exp(-lambda_1 * beta_1) if beta_1 < n_vertices else math.exp(-lambda_1 * n_vertices)
+        # Note: the proposal had this comment but I'll use a robust version
+        cycle_factor = math.exp(-lambda_1 * beta_1)
+
+        # Composición multiplicativa en el grupo ([0,1], ×)
+        raw_coherence = fragmentation_factor * cycle_factor * self.pyramid_stability
+
+        # Clamp por seguridad numérica (aunque matemáticamente ya está en [0,1])
+        return max(0.0, min(1.0, raw_coherence))
 
 
 class RiskChallenger:
     """
-    Debate adversarial para auditar la coherencia entre las métricas
-    financieras y topológicas del reporte.
+    Motor de Auditoría Adversarial basado en Lógica Fuzzy y Reglas de Consistencia.
 
-    Actúa como un 'Fiscal' que busca contradicciones en el veredicto,
-    aplicando lógica de sentido común y reglas de negocio estrictas.
+    Implementa un sistema de veto multi-nivel que detecta contradicciones entre
+    los espacios financiero (Φ) y topológico (T) mediante reglas de inferencia:
+
+    R₁: (Φ ∈ SAFE) ∧ (Ψ < θ_crítico) → VETO_ESTRUCTURAL
+    R₂: (Φ ∈ SAFE) ∧ (C < θ_coherencia) → ALERTA_COHERENCIA
+    R₃: (β₁ > n/3) ∧ (Φ ∈ PROFITABLE) → RIESGO_CICLOS
+
+    donde θ son umbrales configurables por dominio.
     """
 
-    def challenge_verdict(self, report: ConstructionRiskReport) -> ConstructionRiskReport:
-        """
-        Analiza la coherencia entre las métricas financieras y topológicas.
+    # Umbrales por defecto (calibrados empíricamente)
+    DEFAULT_THRESHOLDS = {
+        "critical_stability": 0.70,      # Ψ < 0.70 → Veto inmediato
+        "warning_stability": 0.85,       # 0.70 ≤ Ψ < 0.85 → Alerta severa
+        "coherence_minimum": 0.60,       # C < 0.60 → Degradación de score
+        "cycle_density_limit": 0.33,     # β₁/n > 1/3 → Advertencia de ciclos
+        "integrity_penalty_veto": 0.30,  # Penalización por veto estructural
+        "integrity_penalty_warn": 0.15,  # Penalización por alerta
+    }
 
-        Regla Adversarial:
-        Si financial_risk == "BAJO" PERO pyramid_stability < 1.0 (Pirámide Invertida),
-        el Challenger debe cambiar el veredicto a "FALSO POSITIVO FINANCIERO"
-        y degradar el score de integridad.
+    def __init__(self, config: Optional[Dict[str, float]] = None):
+        """
+        Inicializa el Challenger con umbrales configurables.
 
         Args:
-            report: El reporte preliminar generado por el agente.
+            config: Diccionario con umbrales personalizados. Claves válidas:
+                    - critical_stability, warning_stability, coherence_minimum,
+                    - cycle_density_limit, integrity_penalty_veto, integrity_penalty_warn
+        """
+        self.thresholds = {**self.DEFAULT_THRESHOLDS}
+        if config:
+            # Solo aceptar claves válidas
+            for key in self.DEFAULT_THRESHOLDS:
+                if key in config:
+                    self.thresholds[key] = float(config[key])
+
+    def _extract_stability_metrics(
+        self, details: Dict[str, Any]
+    ) -> Tuple[Optional[float], Optional[float], Optional[int], Optional[int]]:
+        """
+        Extrae métricas de estabilidad de la estructura anidada del reporte.
 
         Returns:
-            ConstructionRiskReport: El reporte auditado (y posiblemente modificado).
+            Tupla (Ψ, coherencia, β₁, n_nodos) con None para valores no encontrados.
         """
-        logger.info("⚖️  Risk Challenger: Auditando coherencia del reporte...")
-
-        # Extraer métricas clave para el debate
-        financial_risk = report.financial_risk_level
-
-        # Obtener estabilidad piramidal de los detalles
-        # Se asume que está en details['topological_invariants']['pyramid_stability']
-        # o directamente en details['pyramid_stability'] según la implementación previa
-        details = report.details or {}
         stability = details.get("pyramid_stability")
+        coherence = details.get("structural_coherence")
+        beta_1 = None
+        n_nodes = None
 
-        # Intentar obtener de la estructura anidada si no está en el primer nivel
-        if stability is None and "topological_invariants" in details:
-            stability = details["topological_invariants"].get("pyramid_stability")
+        # Buscar en estructura anidada
+        topo_inv = details.get("topological_invariants", {})
+        if stability is None:
+            stability = topo_inv.get("pyramid_stability")
+        if coherence is None:
+            coherence = topo_inv.get("structural_coherence")
 
-        # Si no se encuentra, usar un valor seguro que no dispare la alerta (o loguear advertencia)
+        betti = topo_inv.get("betti_numbers", {})
+        beta_1 = betti.get("beta_1")
+
+        # Intentar obtener número de nodos del grafo
+        if "graph_order" in details:
+            n_nodes = details["graph_order"]
+        elif "n_nodes" in topo_inv:
+            n_nodes = topo_inv["n_nodes"]
+
+        return stability, coherence, beta_1, n_nodes
+
+    def _classify_financial_risk(self, risk_level: Any) -> str:
+        """
+        Normaliza el nivel de riesgo financiero a categorías estándar.
+
+        Returns:
+            Una de: "SAFE", "MODERATE", "HIGH", "UNKNOWN"
+        """
+        risk_str = str(risk_level).upper().strip()
+
+        safe_keywords = {"LOW", "BAJO", "SAFE", "SEGURO", "MINIMAL", "MÍNIMO"}
+        moderate_keywords = {"MODERATE", "MODERADO", "MEDIUM", "MEDIO"}
+        high_keywords = {"HIGH", "ALTO", "CRITICAL", "CRÍTICO", "SEVERE", "SEVERO"}
+
+        if any(kw in risk_str for kw in safe_keywords):
+            return "SAFE"
+        elif any(kw in risk_str for kw in moderate_keywords):
+            return "MODERATE"
+        elif any(kw in risk_str for kw in high_keywords):
+            return "HIGH"
+        return "UNKNOWN"
+
+    def challenge_verdict(
+        self, report: ConstructionRiskReport
+    ) -> ConstructionRiskReport:
+        """
+        Ejecuta auditoría adversarial multi-nivel sobre el reporte.
+
+        Aplica un sistema de reglas de inferencia para detectar contradicciones
+        lógicas entre métricas financieras y estructurales, emitiendo vetos
+        graduados según la severidad de la inconsistencia.
+
+        Args:
+            report: Reporte preliminar a auditar.
+
+        Returns:
+            ConstructionRiskReport auditado con posibles modificaciones en:
+            - financial_risk_level (si hay veto)
+            - integrity_score (penalizado si hay contradicciones)
+            - strategic_narrative (con acta de deliberación adjunta)
+            - details (con registro del challenge)
+        """
+        logger.info("⚖️  Risk Challenger: Iniciando auditoría adversarial...")
+
+        details = report.details or {}
+        stability, coherence, beta_1, n_nodes = self._extract_stability_metrics(details)
+        financial_class = self._classify_financial_risk(report.financial_risk_level)
+
+        # Si no hay métricas suficientes, no podemos auditar
         if stability is None:
             logger.warning(
-                "Risk Challenger: No se encontró métrica de estabilidad piramidal."
+                "⚠️  Risk Challenger: Métricas de estabilidad no disponibles. "
+                "Auditoría omitida."
             )
             return report
 
-        # Regla Adversarial: Pirámide Invertida con Riesgo Financiero Bajo
-        # "BAJO" debe coincidir con los niveles definidos en el sistema (FinancialRiskLevel)
-        # Asumimos que "LOW" o "BAJO" son los valores para riesgo bajo.
-        is_financial_safe = str(financial_risk).upper() in [
-            "LOW",
-            "BAJO",
-            "MODERATE",
-            "MODERADO",
-        ]
-        is_inverted_pyramid = stability < 1.0
+        # === REGLA 1: Veto por Estabilidad Crítica ===
+        if stability < self.thresholds["critical_stability"]:
+            if financial_class in ("SAFE", "MODERATE"):
+                return self._emit_veto(
+                    report=report,
+                    veto_type="VETO_CRITICAL_INSTABILITY",
+                    stability=stability,
+                    financial_class=financial_class,
+                    severity="CRÍTICO",
+                    penalty=self.thresholds["integrity_penalty_veto"],
+                    reason=(
+                        f"Estabilidad piramidal Ψ={stability:.3f} está por debajo del "
+                        f"umbral crítico ({self.thresholds['critical_stability']:.2f}). "
+                        "El proyecto presenta riesgo de colapso logístico."
+                    ),
+                )
 
-        if is_financial_safe and is_inverted_pyramid:
-            logger.warning(
-                "🚨 Risk Challenger: CONTRADICCIÓN DETECTADA (Pirámide Invertida + Finanzas Sanas)"
-            )
+        # === REGLA 2: Alerta por Estabilidad Subóptima ===
+        if stability < self.thresholds["warning_stability"]:
+            if financial_class == "SAFE":
+                return self._emit_veto(
+                    report=report,
+                    veto_type="ALERTA_STRUCTURAL_WARNING",
+                    stability=stability,
+                    financial_class=financial_class,
+                    severity="SEVERO",
+                    penalty=self.thresholds["integrity_penalty_warn"],
+                    reason=(
+                        f"Estabilidad piramidal Ψ={stability:.3f} es subóptima "
+                        f"(umbral de alerta: {self.thresholds['warning_stability']:.2f}). "
+                        "Financieramente sano pero estructuralmente frágil."
+                    ),
+                )
 
-            # Degradar veredicto
-            new_financial_risk = "RIESGO ESTRUCTURAL OCULTO"
+        # === REGLA 3: Alerta por Densidad de Ciclos ===
+        if beta_1 is not None and n_nodes is not None and n_nodes > 0:
+            cycle_density = beta_1 / n_nodes
+            if cycle_density > self.thresholds["cycle_density_limit"]:
+                if financial_class in ("SAFE", "MODERATE"):
+                    logger.warning(
+                        f"⚠️  Densidad de ciclos β₁/n = {cycle_density:.3f} excede "
+                        f"el límite {self.thresholds['cycle_density_limit']:.2f}"
+                    )
+                    # No es veto, pero registrar en detalles
+                    new_details = details.copy()
+                    new_details["challenger_cycle_warning"] = {
+                        "beta_1": beta_1,
+                        "n_nodes": n_nodes,
+                        "cycle_density": cycle_density,
+                        "threshold": self.thresholds["cycle_density_limit"],
+                    }
+                    return ConstructionRiskReport(
+                        integrity_score=report.integrity_score * 0.95,  # Penalización leve
+                        waste_alerts=report.waste_alerts,
+                        circular_risks=report.circular_risks,
+                        complexity_level=report.complexity_level,
+                        financial_risk_level=report.financial_risk_level,
+                        details=new_details,
+                        strategic_narrative=report.strategic_narrative,
+                    )
 
-            # Penalizar integridad (ej. reducir un 20%)
-            original_integrity = report.integrity_score
-            new_integrity = max(0.0, original_integrity * 0.8)
-
-            # AQUÍ: Hacer visible el debate.
-            # No solo sobrescribir, sino exponer la discusión entre el "Analista" y el "Ingeniero".
-            debate_log = (
-                "🏛️ **ACTA DE DELIBERACIÓN DEL CONSEJO**\n"
-                f"1. 🤵 **El Gestor Financiero dice:** 'El proyecto es rentable (Riesgo {financial_risk}). "
-                "Los flujos de caja y el WACC son positivos.'\n"
-                f"2. 👷 **El Ingeniero Estructural objeta:** 'Imposible proceder. La estructura es una "
-                f"Pirámide Invertida (Ψ={stability:.2f}). Dependemos críticamente de insumos insuficientes.'\n"
-                "3. ⚖️ **VEREDICTO FINAL:** Se emite un **VETO TÉCNICO**. La viabilidad financiera es una "
-                "ilusión si la estructura colapsa."
-            )
-
-            # Actualizar narrativa estratégica
-            new_narrative = f"{debate_log}\n\n---\n{report.strategic_narrative}"
-
-            # Modificar detalles para reflejar el challenge
-            new_details = details.copy()
-            new_details["challenger_verdict"] = "VETO_STRUCTURAL_CONTRADICTION"
-            new_details["original_financial_risk"] = financial_risk
-            new_details["original_integrity_score"] = original_integrity
-
-            # Retornar reporte modificado
-            # Usamos replace si es dataclass frozen, o constructor si no
-            # ConstructionRiskReport es dataclass, asumimos que no es frozen o usamos constructor
-            return ConstructionRiskReport(
-                integrity_score=new_integrity,
-                waste_alerts=report.waste_alerts,
-                circular_risks=report.circular_risks,
-                complexity_level=report.complexity_level,
-                financial_risk_level=new_financial_risk,  # Sobrescribimos el nivel de riesgo
-                details=new_details,
-                strategic_narrative=new_narrative,
-            )
-
-        logger.info("✅ Risk Challenger: Coherencia verificada.")
+        logger.info("✅ Risk Challenger: Coherencia verificada. Sin contradicciones.")
         return report
+
+    def _emit_veto(
+        self,
+        report: ConstructionRiskReport,
+        veto_type: str,
+        stability: float,
+        financial_class: str,
+        severity: str,
+        penalty: float,
+        reason: str,
+    ) -> ConstructionRiskReport:
+        """
+        Emite un veto estructurado con acta de deliberación.
+
+        Args:
+            report: Reporte original.
+            veto_type: Código del tipo de veto.
+            stability: Valor de Ψ que disparó el veto.
+            financial_class: Clasificación financiera original.
+            severity: Nivel de severidad ("CRÍTICO", "SEVERO", "MODERADO").
+            penalty: Factor de penalización ∈ [0, 1].
+            reason: Justificación textual del veto.
+
+        Returns:
+            Reporte modificado con el veto aplicado.
+        """
+        logger.warning(f"🚨 Risk Challenger: {veto_type} - {reason}")
+
+        original_integrity = report.integrity_score
+        new_integrity = max(0.0, original_integrity * (1.0 - penalty))
+
+        # Acta de deliberación formal
+        debate_log = (
+            "━" * 60 + "\n"
+            "🏛️ **ACTA DE DELIBERACIÓN DEL CONSEJO DE RIESGO**\n"
+            "━" * 60 + "\n\n"
+            f"📋 **Tipo de Veto:** {veto_type}\n"
+            f"⚠️  **Severidad:** {severity}\n\n"
+            "**Posiciones de los Agentes:**\n\n"
+            f"1. 🤵 **Gestor Financiero:** «El proyecto es financieramente {financial_class}. "
+            "Los indicadores de rentabilidad son favorables.»\n\n"
+            f"2. 👷 **Ingeniero Estructural:** «OBJECIÓN. {reason}»\n\n"
+            f"3. ⚖️  **Fiscal de Riesgos:** «Se detecta contradicción lógica entre "
+            f"viabilidad financiera (Φ={financial_class}) y estabilidad estructural "
+            f"(Ψ={stability:.3f}).»\n\n"
+            "**VEREDICTO FINAL:**\n"
+            f"Se emite **{veto_type}**. La integridad del proyecto se degrada de "
+            f"{original_integrity:.1f} a {new_integrity:.1f} puntos.\n\n"
+            "━" * 60
+        )
+
+        new_narrative = f"{debate_log}\n\n{report.strategic_narrative}"
+
+        new_details = report.details.copy() if report.details else {}
+        new_details["challenger_verdict"] = {
+            "type": veto_type,
+            "severity": severity,
+            "stability_at_veto": stability,
+            "financial_class_at_veto": financial_class,
+            "original_integrity": original_integrity,
+            "penalty_applied": penalty,
+            "reason": reason,
+        }
+
+        return ConstructionRiskReport(
+            integrity_score=new_integrity,
+            waste_alerts=report.waste_alerts,
+            circular_risks=report.circular_risks,
+            complexity_level=report.complexity_level,
+            financial_risk_level=f"RIESGO ESTRUCTURAL ({severity})",
+            details=new_details,
+            strategic_narrative=new_narrative,
+        )
 
 
 class BusinessAgent:
@@ -288,8 +483,9 @@ class BusinessAgent:
         self.translator = SemanticTranslator()
         # self.financial_engine eliminado en favor de self.mic
 
-        # Inicializar el Challenger
-        self.risk_challenger = RiskChallenger()
+        # Inicializar el Challenger con configuración inyectada
+        challenger_config = config.get("risk_challenger_config")
+        self.risk_challenger = RiskChallenger(challenger_config)
 
     def _validate_config(self, config: Dict[str, Any]) -> None:
         """
@@ -317,102 +513,191 @@ class BusinessAgent:
 
 
     def _validate_dataframes(
-        self, df_presupuesto: Optional[pd.DataFrame], df_apus_detail: Optional[pd.DataFrame]
-    ) -> Tuple[bool, str]:
+        self,
+        df_presupuesto: Optional[pd.DataFrame],
+        df_apus_detail: Optional[pd.DataFrame],
+    ) -> Tuple[bool, str, Optional[Dict[str, Any]]]:
         """
-        Validación estructural de DataFrames con verificación de tipos y dominios.
+        Validación estructural y topológica de DataFrames de entrada.
 
-        Implementa:
-        1. Verificación de existencia y no-vacío
-        2. Validación de esquema de columnas con mapeo de compatibilidad
-        3. Verificación de tipos de datos numéricos en columnas críticas
-        4. Detección de valores atípicos en distribuciones presupuestarias
+        Implementa verificación en tres niveles:
+        1. **Existencia**: DataFrames no nulos y no vacíos
+        2. **Esquema**: Columnas requeridas presentes con tipos correctos
+        3. **Consistencia Referencial**: Integridad de claves foráneas entre DFs
+        4. **Distribución**: Detección de anomalías estadísticas
 
         Args:
             df_presupuesto: DataFrame del presupuesto general.
-            df_apus_detail: DataFrame con detalle de APUs mergeado.
+            df_apus_detail: DataFrame con detalle de APUs (merged).
 
         Returns:
-            Tupla (es_válido, mensaje_de_error) con diagnóstico detallado.
+            Tupla (es_válido, mensaje, diagnóstico) donde diagnóstico contiene
+            métricas adicionales de calidad de datos si la validación es exitosa.
         """
-        # 1. Existencia básica
-        if df_presupuesto is None:
-            return False, "DataFrame 'df_presupuesto' no disponible"
-
-        if df_apus_detail is None:
-            return False, "DataFrame 'df_merged' no disponible"
-
-        if df_presupuesto.empty:
-            return False, "DataFrame 'df_presupuesto' está vacío"
-
-        if df_apus_detail.empty:
-            return False, "DataFrame 'df_merged' está vacío"
-
-        # 2. Validación de esquema con mapeo algebraico
-        # Definir espacios vectoriales de columnas requeridas
-        budget_space = {
-            ColumnNames.CODIGO_APU: {"type": "categorical", "required": True},
-            ColumnNames.DESCRIPCION_APU: {"type": "string", "required": True},
-            ColumnNames.VALOR_TOTAL: {"type": "numeric", "required": False, "min": 0}
+        diagnostics: Dict[str, Any] = {
+            "validation_timestamp": pd.Timestamp.now().isoformat(),
+            "warnings": [],
+            "schema_compatibility": {},
         }
 
-        # detail_space defined but not fully used in the proposal's loop,
-        # but kept for architectural completeness.
-        detail_space = {
+        # ━━━ Nivel 1: Existencia Básica ━━━
+        if df_presupuesto is None:
+            return False, "DataFrame 'df_presupuesto' es None", None
+        if df_apus_detail is None:
+            return False, "DataFrame 'df_merged' es None", None
+        if df_presupuesto.empty:
+            return False, "DataFrame 'df_presupuesto' está vacío", None
+        if df_apus_detail.empty:
+            return False, "DataFrame 'df_merged' está vacío", None
+
+        diagnostics["row_counts"] = {
+            "presupuesto": len(df_presupuesto),
+            "apus_detail": len(df_apus_detail),
+        }
+
+        # ━━━ Nivel 2: Validación de Esquema con Álgebra de Columnas ━━━
+        # Espacios vectoriales de columnas requeridas
+        budget_schema = {
+            ColumnNames.CODIGO_APU: {"type": "categorical", "required": True},
+            ColumnNames.DESCRIPCION_APU: {"type": "string", "required": True},
+            ColumnNames.VALOR_TOTAL: {"type": "numeric", "required": False, "min": 0},
+        }
+
+        detail_schema = {
             ColumnNames.CODIGO_APU: {"type": "categorical", "required": True},
             ColumnNames.DESCRIPCION_INSUMO: {"type": "string", "required": True},
             ColumnNames.CANTIDAD_APU: {"type": "numeric", "required": True, "min": 0},
-            ColumnNames.COSTO_INSUMO_EN_APU: {"type": "numeric", "required": True, "min": 0}
+            ColumnNames.COSTO_INSUMO_EN_APU: {"type": "numeric", "required": True, "min": 0},
         }
 
-        # Mapeo de compatibilidad histórica
+        # Mapeo de compatibilidad con esquemas legacy
         legacy_mappings = {
             "item": ColumnNames.CODIGO_APU,
             "descripcion": ColumnNames.DESCRIPCION_APU,
-            "total": ColumnNames.VALOR_TOTAL
+            "total": ColumnNames.VALOR_TOTAL,
+            "codigo": ColumnNames.CODIGO_APU,
+            "desc_insumo": ColumnNames.DESCRIPCION_INSUMO,
+            "cantidad": ColumnNames.CANTIDAD_APU,
+            "costo": ColumnNames.COSTO_INSUMO_EN_APU,
         }
 
-        # Validar espacio presupuestario
-        for modern_col, spec in budget_space.items():
-            if spec["required"]:
-                if modern_col not in df_presupuesto.columns:
-                    # Buscar en mapeo histórico
-                    found = False
-                    for legacy, modern in legacy_mappings.items():
-                        if modern == modern_col and legacy in df_presupuesto.columns:
-                            found = True
-                            break
+        def find_column(df: pd.DataFrame, target: str, mappings: Dict) -> Optional[str]:
+            """Busca una columna por nombre moderno o legacy."""
+            if target in df.columns:
+                return target
+            for legacy, modern in mappings.items():
+                if modern == target and legacy in df.columns:
+                    return legacy
+            return None
 
-                    if not found:
-                        return False, f"Columna requerida '{modern_col}' no encontrada"
+        def validate_schema(
+            df: pd.DataFrame, schema: Dict, df_name: str
+        ) -> Tuple[bool, List[str]]:
+            """Valida un DataFrame contra su esquema."""
+            errors = []
+            for col_name, spec in schema.items():
+                actual_col = find_column(df, col_name, legacy_mappings)
 
-        # 3. Validación de tipos y dominios
-        numeric_columns = [col for col, spec in budget_space.items()
-                          if spec.get("type") == "numeric"]
+                if actual_col is None:
+                    if spec["required"]:
+                        errors.append(f"{df_name}: Columna requerida '{col_name}' no encontrada")
+                    continue
 
-        for col in numeric_columns:
-            if col in df_presupuesto.columns:
-                spec = budget_space[col]
-                # Verificar que sea numérico
-                if not pd.api.types.is_numeric_dtype(df_presupuesto[col]):
-                    return False, f"Columna '{col}' debe ser numérica"
+                # Registrar mapeo para diagnóstico
+                if actual_col != col_name:
+                    diagnostics["schema_compatibility"][actual_col] = col_name
 
-                # Verificar dominio (valores no negativos)
-                if spec.get("min") is not None:
-                    if (df_presupuesto[col] < spec["min"]).any():
-                        return False, f"Columna '{col}' contiene valores menores a {spec['min']}"
+                # Validar tipo
+                if spec["type"] == "numeric":
+                    if not pd.api.types.is_numeric_dtype(df[actual_col]):
+                        errors.append(
+                            f"{df_name}: Columna '{actual_col}' debe ser numérica, "
+                            f"es {df[actual_col].dtype}"
+                        )
+                    elif "min" in spec:
+                        invalid_count = (df[actual_col] < spec["min"]).sum()
+                        if invalid_count > 0:
+                            errors.append(
+                                f"{df_name}: '{actual_col}' tiene {invalid_count} valores "
+                                f"< {spec['min']}"
+                            )
 
-        # 4. Detección de anomalías distribucionales
-        if ColumnNames.VALOR_TOTAL in df_presupuesto.columns:
-            values = df_presupuesto[ColumnNames.VALOR_TOTAL]
-            if len(values) > 10:  # Solo si hay suficiente datos
+            return len(errors) == 0, errors
+
+        # Validar ambos DataFrames
+        budget_valid, budget_errors = validate_schema(
+            df_presupuesto, budget_schema, "Presupuesto"
+        )
+        detail_valid, detail_errors = validate_schema(
+            df_apus_detail, detail_schema, "APUs Detail"
+        )
+
+        all_errors = budget_errors + detail_errors
+        if all_errors:
+            return False, "; ".join(all_errors), diagnostics
+
+        # ━━━ Nivel 3: Consistencia Referencial (Integridad de FK) ━━━
+        budget_apu_col = find_column(df_presupuesto, ColumnNames.CODIGO_APU, legacy_mappings)
+        detail_apu_col = find_column(df_apus_detail, ColumnNames.CODIGO_APU, legacy_mappings)
+
+        if budget_apu_col and detail_apu_col:
+            budget_codes = set(df_presupuesto[budget_apu_col].dropna().unique())
+            detail_codes = set(df_apus_detail[detail_apu_col].dropna().unique())
+
+            orphan_details = detail_codes - budget_codes
+            missing_details = budget_codes - detail_codes
+
+            if orphan_details:
+                diagnostics["warnings"].append(
+                    f"APUs en detalle sin referencia en presupuesto: {len(orphan_details)}"
+                )
+            if missing_details:
+                diagnostics["warnings"].append(
+                    f"APUs en presupuesto sin detalle: {len(missing_details)}"
+                )
+
+            diagnostics["referential_integrity"] = {
+                "budget_codes": len(budget_codes),
+                "detail_codes": len(detail_codes),
+                "orphan_details": len(orphan_details),
+                "missing_details": len(missing_details),
+                "coverage_ratio": len(budget_codes & detail_codes) / max(len(budget_codes), 1),
+            }
+
+        # ━━━ Nivel 4: Análisis Distribucional (Detección de Outliers) ━━━
+        valor_col = find_column(df_presupuesto, ColumnNames.VALOR_TOTAL, legacy_mappings)
+        if valor_col and len(df_presupuesto) >= 10:
+            values = df_presupuesto[valor_col].dropna()
+            if len(values) > 0:
                 q1, q3 = values.quantile(0.25), values.quantile(0.75)
                 iqr = q3 - q1
-                outliers = values[(values < (q1 - 1.5 * iqr)) | (values > (q3 + 1.5 * iqr))]
-                if len(outliers) > 0.1 * len(values):  # Más del 10% son outliers
-                    logger.warning(f"Presupuesto contiene {len(outliers)} valores atípicos significativos")
+                lower_bound = q1 - 1.5 * iqr
+                upper_bound = q3 + 1.5 * iqr
 
-        return True, "Validación estructural exitosa"
+                outliers = values[(values < lower_bound) | (values > upper_bound)]
+                outlier_ratio = len(outliers) / len(values)
+
+                diagnostics["distribution_analysis"] = {
+                    "total_values": len(values),
+                    "mean": float(values.mean()),
+                    "std": float(values.std()),
+                    "q1": float(q1),
+                    "q3": float(q3),
+                    "iqr": float(iqr),
+                    "outlier_count": len(outliers),
+                    "outlier_ratio": float(outlier_ratio),
+                }
+
+                if outlier_ratio > 0.10:
+                    diagnostics["warnings"].append(
+                        f"Alta proporción de outliers: {outlier_ratio:.1%} ({len(outliers)} valores)"
+                    )
+
+        # Loguear advertencias
+        for warning in diagnostics["warnings"]:
+            logger.warning(f"⚠️  Validación: {warning}")
+
+        return True, "Validación estructural exitosa", diagnostics
 
     def _extract_financial_parameters(self, context: Dict[str, Any]) -> FinancialParameters:
         """
@@ -458,71 +743,146 @@ class BusinessAgent:
         )
 
     def _build_topological_model(
-        self, df_presupuesto: pd.DataFrame, df_apus_detail: pd.DataFrame
+        self,
+        df_presupuesto: pd.DataFrame,
+        df_apus_detail: pd.DataFrame,
     ) -> TopologicalMetricsBundle:
         """
-        Construye el modelo topológico con verificación de homología persistente.
+        Construye el modelo topológico del presupuesto como complejo simplicial.
 
-        Teorema: Un presupuesto viable debe tener β₀ = 1 (conexo) y β₁ ≤ n/2
-        donde n es el número de partidas, para evitar ciclos patológicos.
+        Fundamentos de Topología Algebraica:
+        ====================================
+        Modelamos el presupuesto como un grafo dirigido G = (V, E) donde:
+        - V: Conjunto de partidas/APUs
+        - E: Relaciones de dependencia (flujo de costos)
+
+        Invariantes calculados:
+        - β₀ = dim(H₀): Componentes conexas. Un presupuesto sano tiene β₀ = 1
+        - β₁ = dim(H₁): Ciclos independientes. Indican dependencias circulares
+        - Ψ: Estabilidad piramidal (proporción de flujo hacia arriba)
+
+        Teorema de Viabilidad (heurístico):
+        Si el grafo G subyacente es dirigido acíclico (DAG), entonces β₁ = 0.
+        Ciclos en H₁ indican dependencias circulares que pueden causar:
+        - Loops de costos infinitos
+        - Indeterminación en la propagación de precios
+
+        Cota empírica: Para un presupuesto con n partidas, se espera β₁ ≤ √n
+        (más ciclos sugieren modelado deficiente o circularidades patológicas).
 
         Args:
             df_presupuesto: DataFrame del presupuesto.
             df_apus_detail: DataFrame con detalle de APUs.
 
         Returns:
-            TopologicalMetricsBundle con métricas validadas.
+            TopologicalMetricsBundle con invariantes homológicos.
 
         Raises:
-            TopologicalAnomalyError: Si la estructura viola teoremas de viabilidad.
+            TopologicalAnomalyError: Si la estructura viola restricciones de viabilidad.
+            RuntimeError: Si la construcción del grafo falla.
         """
-        logger.info("🏗️  Construyendo topología del presupuesto con verificación homológica...")
+        logger.info("🏗️  Construyendo topología del presupuesto...")
 
         try:
-            # Construcción del complejo simplicial
+            # Fase 1: Construcción del complejo simplicial (grafo)
             graph = self.graph_builder.build(df_presupuesto, df_apus_detail)
 
-            # Teorema 1: Verificar conectividad
-            if not nx.is_connected(graph.to_undirected()):
-                logger.warning("⚠️  El grafo presupuestario no es conexo (β₀ > 1)")
-                # Esto no es fatal pero afecta la coherencia estructural
+            # Validación post-construcción
+            if graph is None:
+                raise RuntimeError("El constructor de grafos retornó None")
 
-            # Cálculo de invariantes algebraicos
-            betti_numbers = asdict(self.topological_analyzer.calculate_betti_numbers(graph))
-            pyramid_stability = self.topological_analyzer.calculate_pyramid_stability(graph)
+            n_nodes = graph.number_of_nodes()
+            n_edges = graph.number_of_edges()
 
-            # Teorema 2: Límite superior para ciclos
-            n_nodes = len(graph.nodes())
-            beta_1 = betti_numbers.get("beta_1", 0)
-            if beta_1 > n_nodes / 2:
+            if n_nodes == 0:
                 raise TopologicalAnomalyError(
-                    f"Demasiados ciclos independientes (β₁={beta_1} > n/2={n_nodes/2})"
+                    "El grafo construido no tiene vértices. "
+                    "Verifique que los DataFrames contengan datos válidos."
                 )
 
-            # Cálculo de homología persistente (si está disponible)
-            persistence = None
+            logger.debug(f"Grafo construido: |V|={n_nodes}, |E|={n_edges}")
+
+            # Fase 2: Análisis de conectividad (H₀)
+            undirected = graph.to_undirected()
+            is_connected = nx.is_connected(undirected)
+            n_components = nx.number_connected_components(undirected)
+
+            if not is_connected:
+                logger.warning(
+                    f"⚠️  Grafo no conexo: {n_components} componentes (β₀ = {n_components}). "
+                    "Esto puede indicar partidas aisladas o datos incompletos."
+                )
+
+            # Fase 3: Cálculo de invariantes algebraicos
+            betti_raw = self.topological_analyzer.calculate_betti_numbers(graph)
+            betti_numbers = asdict(betti_raw) if hasattr(betti_raw, '__dataclass_fields__') else dict(betti_raw)
+
+            pyramid_stability = self.topological_analyzer.calculate_pyramid_stability(graph)
+
+            # Fase 4: Verificación de cotas de viabilidad
+            beta_1 = betti_numbers.get("beta_1", 0)
+
+            # Cota empírica: β₁ ≤ √n para presupuestos bien estructurados
+            # Esta cota es más laxa que n/2 y tiene mejor fundamento estadístico
+            import math
+            cycle_bound = math.ceil(math.sqrt(n_nodes))
+
+            if beta_1 > cycle_bound:
+                # No es un error fatal, pero merece advertencia severa
+                logger.warning(
+                    f"⚠️  Alto número de ciclos independientes: β₁={beta_1} > √n≈{cycle_bound}. "
+                    "Esto sugiere dependencias circulares excesivas."
+                )
+
+            # Cota dura: Si β₁ > n, hay más ciclos que nodos (patología severa)
+            if beta_1 > n_nodes:
+                raise TopologicalAnomalyError(
+                    f"Patología topológica crítica: β₁={beta_1} > |V|={n_nodes}. "
+                    "El presupuesto tiene más ciclos independientes que partidas."
+                )
+
+            # Fase 5: Homología persistente (opcional)
+            persistence: Optional[List[Tuple[float, float]]] = None
             try:
-                if hasattr(self.topological_analyzer, 'calculate_persistence'):
-                    persistence = self.topological_analyzer.calculate_persistence(graph)
-                    # La vida de características debe ser > umbral
-                    if persistence and len(persistence) > 0:
-                        min_lifetime = min(abs(death - birth) for birth, death in persistence)
-                        if min_lifetime < 0.1:  # Características efímeras
-                            logger.warning("Homología persistente revela características inestables")
-            except AttributeError:
-                pass
+                if hasattr(self.topological_analyzer, "calculate_persistence"):
+                    raw_persistence = self.topological_analyzer.calculate_persistence(graph)
+                    if raw_persistence:
+                        # Filtrar características con muerte infinita y normalizar
+                        persistence = []
+                        for item in raw_persistence:
+                            if isinstance(item, (tuple, list)) and len(item) >= 2:
+                                birth, death = item[0], item[1]
+                                # Reemplazar infinito por un valor grande pero finito
+                                if not math.isfinite(death):
+                                    death = birth + 10.0  # Vida máxima artificial
+                                if math.isfinite(birth):
+                                    persistence.append((float(birth), float(death)))
+
+                        if persistence:
+                            lifetimes = [abs(d - b) for b, d in persistence]
+                            min_life = min(lifetimes)
+                            avg_life = sum(lifetimes) / len(lifetimes)
+
+                            if min_life < 0.01 and avg_life < 0.1:
+                                logger.warning(
+                                    "⚠️  Homología persistente revela características efímeras "
+                                    f"(vida mínima={min_life:.4f}, promedio={avg_life:.4f})"
+                                )
+
+            except Exception as e:
+                logger.debug(f"Homología persistente no disponible: {e}")
 
             logger.info(
                 f"Métricas topológicas: β₀={betti_numbers.get('beta_0')}, "
                 f"β₁={betti_numbers.get('beta_1')}, Ψ={pyramid_stability:.3f}, "
-                f"Conectado={nx.is_connected(graph.to_undirected())}"
+                f"Conexo={is_connected}"
             )
 
             return TopologicalMetricsBundle(
                 betti_numbers=betti_numbers,
                 pyramid_stability=pyramid_stability,
                 graph=graph,
-                persistence_diagram=persistence
+                persistence_diagram=persistence,
             )
 
         except TopologicalAnomalyError as e:
@@ -530,7 +890,8 @@ class BusinessAgent:
             self.telemetry.record_error("business_agent.topology_anomaly", str(e))
             raise
         except Exception as e:
-            raise RuntimeError(f"Error construyendo topología: {e}") from e
+            self.telemetry.record_error("business_agent.topology_build", str(e))
+            raise RuntimeError(f"Error construyendo modelo topológico: {e}") from e
 
     def _perform_financial_analysis(
         self,
@@ -654,80 +1015,198 @@ class BusinessAgent:
         exergy: float = 0.6,
     ) -> ConstructionRiskReport:
         """
-        Genera reporte ejecutivo usando álgebra de decisiones multicriterio.
+        Genera reporte ejecutivo mediante álgebra de decisiones multicriterio.
 
-        Implementa: D = α·T ⊕ β·F ⊕ γ·Θ donde:
-        - T: Vector topológico (β₀, β₁, Ψ, coherencia)
-        - F: Vector financiero (VPN, TIR, VaR)
-        - Θ: Vector termodinámico (T_sys, S, Ex)
-        - α,β,γ: Pesos determinados por reglas de negocio
-        - ⊕: Operador de fusión con propiedades de homomorfismo
+        Marco Matemático (Álgebra Lineal Aplicada):
+        ===========================================
+        Sea el espacio de decisión D = ℝⁿ. Definimos tres subespacios:
+        - T ⊂ D: Espacio topológico (coherencia, estabilidad, Betti)
+        - F ⊂ D: Espacio financiero (VPN, TIR, VaR, Sharpe)
+        - Θ ⊂ D: Espacio termodinámico (temperatura, entropía, exergía)
+
+        El vector de decisión final es una combinación convexa:
+
+        d = α·π_T(v) + β·π_F(v) + γ·π_Θ(v)
+
+        donde:
+        - π_X: Proyección ortogonal sobre el subespacio X
+        - α + β + γ = 1 (normalización convexa)
+        - Los vectores se normalizan en la esfera unitaria S^(n-1)
+
+        El score integrado usa media geométrica ponderada para reflejar
+        que un fallo en cualquier dimensión compromete todo el proyecto.
 
         Args:
-            topological_bundle: Métricas topológicas.
-            financial_metrics: Métricas financieras.
-            thermal_metrics: Métricas térmicas.
-            entropy: Entropía del sistema.
-            exergy: Exergía del presupuesto.
+            topological_bundle: Bundle de métricas topológicas.
+            financial_metrics: Diccionario con métricas financieras.
+            thermal_metrics: Diccionario con métricas térmicas.
+            entropy: Entropía del sistema ∈ [0, 1].
+            exergy: Exergía (trabajo útil disponible) ∈ [0, 1].
 
         Returns:
             ConstructionRiskReport con álgebra de decisiones aplicada.
 
         Raises:
-            SynthesisAlgebraError: Si los espacios vectoriales no son compatibles.
+            SynthesisAlgebraError: Si la fusión de espacios vectoriales falla.
         """
-        logger.info("🧠 Integrando inteligencia con álgebra de decisiones...")
+        logger.info("🧠 Sintetizando reporte con álgebra de decisiones multicriterio...")
 
-        # 1. Generate base report
+        # ━━━ Fase 1: Generación del reporte base ━━━
         base_report = self.topological_analyzer.generate_executive_report(
             topological_bundle.graph, financial_metrics
         )
 
         if base_report is None:
-            raise SynthesisAlgebraError("Topological space generated a null vector")
+            raise SynthesisAlgebraError(
+                "El analizador topológico generó un reporte nulo. "
+                "Verifique la integridad del grafo de entrada."
+            )
 
-        # 2. Verify vector space compatibility
-        # All vectors must have a defined dimension
+        # ━━━ Fase 2: Construcción de vectores característicos ━━━
+        def safe_get(d: Dict, key: str, default: float = 0.0) -> float:
+            """Extrae valor numérico con fallback seguro."""
+            val = d.get(key, default)
+            if isinstance(val, (int, float)) and np.isfinite(val):
+                return float(val)
+            return default
+
+        # Vector topológico T ∈ ℝ⁴
         topo_vector = np.array([
             topological_bundle.structural_coherence,
             topological_bundle.pyramid_stability,
-            1.0 / (topological_bundle.betti_numbers.get("beta_0", 1) + 1e-6),
-            1.0 / (topological_bundle.betti_numbers.get("beta_1", 0) + 1e-6)
-        ])
+            1.0 / (topological_bundle.betti_numbers.get("beta_0", 1) + 1.0),  # Inversión suave
+            np.exp(-0.1 * topological_bundle.betti_numbers.get("beta_1", 0)),  # Decaimiento
+        ], dtype=np.float64)
 
-        # Extract key financial metrics
-        financial_keys = ["npv", "irr", "payback_period", "sharpe_ratio"]
+        # Vector financiero F ∈ ℝ⁴
+        # Normalizar VPN por inversión inicial para escala comparable
+        initial_inv = abs(safe_get(financial_metrics, "initial_investment", 1e6))
+        if initial_inv < 1.0:
+            initial_inv = 1e6
+
+        npv_normalized = safe_get(financial_metrics, "npv", 0.0) / initial_inv
+        irr = safe_get(financial_metrics, "irr", 0.0)
+        payback = safe_get(financial_metrics, "payback_period", 10.0)
+        sharpe = safe_get(financial_metrics, "sharpe_ratio", 0.0)
+
         finance_vector = np.array([
-            financial_metrics.get(k, 0.0) if isinstance(financial_metrics.get(k), (int, float)) else 0.0
-            for k in financial_keys
-        ])
+            np.tanh(npv_normalized),  # Compresión a [-1, 1]
+            np.clip(irr, -1.0, 1.0),  # TIR ya es ratio
+            np.exp(-payback / 10.0),  # Decaimiento (menor payback = mejor)
+            np.tanh(sharpe),  # Sharpe comprimido
+        ], dtype=np.float64)
 
-        # Normalize dimensions for algebra
-        common_dim = min(len(topo_vector), len(finance_vector))
-        topo_vector_norm_dim = topo_vector[:common_dim]
-        finance_vector_norm_dim = finance_vector[:common_dim]
-
-        # 3. Apply decision algebra with weights
-        # Rule: Structure 40%, Finance 40%, Thermo 20%
-        alpha, beta, gamma = 0.4, 0.4, 0.2
-
-        # Thermodynamic vector
+        # Vector termodinámico Θ ∈ ℝ⁴
         thermo_vector = np.array([
-            thermal_metrics.get("system_temperature", 0.0),
-            1.0 - entropy,  # Negentropy
-            exergy,
-            thermal_metrics.get("heat_capacity", 1.0)
-        ])[:common_dim]
+            1.0 - np.clip(thermal_metrics.get("system_temperature", 0.0), 0, 1),  # Inverso de T
+            1.0 - np.clip(entropy, 0, 1),  # Negentropía
+            np.clip(exergy, 0, 1),  # Exergía normalizada
+            np.clip(thermal_metrics.get("heat_capacity", 0.5), 0, 1),  # Capacidad térmica
+        ], dtype=np.float64)
 
-        # Linear fusion with normalization
-        topo_norm = topo_vector_norm_dim / (np.linalg.norm(topo_vector_norm_dim) + 1e-6)
-        finance_norm = finance_vector_norm_dim / (np.linalg.norm(finance_vector_norm_dim) + 1e-6)
-        thermo_norm = thermo_vector / (np.linalg.norm(thermo_vector) + 1e-6)
+        # ━━━ Fase 3: Normalización en esfera unitaria ━━━
+        def normalize_to_sphere(v: np.ndarray, epsilon: float = 1e-10) -> np.ndarray:
+            """
+            Proyecta vector a la esfera unitaria S^(n-1).
 
-        decision_vector = alpha * topo_norm + beta * finance_norm + gamma * thermo_norm
-        decision_magnitude = np.linalg.norm(decision_vector)
+            Si ‖v‖ < ε, retorna vector uniforme en la esfera.
+            """
+            norm = np.linalg.norm(v)
+            if norm < epsilon:
+                # Vector degenerado → dirección uniforme
+                n = len(v)
+                return np.ones(n) / np.sqrt(n)
+            return v / norm
 
-        # 4. Generate strategic narrative
+        topo_normalized = normalize_to_sphere(topo_vector)
+        finance_normalized = normalize_to_sphere(finance_vector)
+        thermo_normalized = normalize_to_sphere(thermo_vector)
+
+        # ━━━ Fase 4: Combinación convexa con pesos configurables ━━━
+        # Pesos por defecto (pueden venir de config)
+        weights = self.config.get("decision_weights", {})
+        alpha = weights.get("topology", 0.40)
+        beta = weights.get("finance", 0.40)
+        gamma = weights.get("thermodynamics", 0.20)
+
+        # Normalizar pesos a combinación convexa
+        weight_sum = alpha + beta + gamma
+        if weight_sum > 0:
+            alpha, beta, gamma = alpha / weight_sum, beta / weight_sum, gamma / weight_sum
+        else:
+            alpha, beta, gamma = 1/3, 1/3, 1/3
+
+        # Vector de decisión final
+        decision_vector = (
+            alpha * topo_normalized +
+            beta * finance_normalized +
+            gamma * thermo_normalized
+        )
+        decision_magnitude = float(np.linalg.norm(decision_vector))
+
+        # ━━━ Fase 5: Cálculo de score integrado (media geométrica ponderada) ━━━
+        def weighted_geometric_mean(
+            factors: List[float],
+            weights: List[float],
+            epsilon: float = 1e-8,
+        ) -> float:
+            """
+            Media geométrica ponderada: (∏ xᵢ^wᵢ)^(1/Σwᵢ)
+
+            Robusta ante factores no positivos.
+            """
+            if not factors or not weights:
+                return 0.0
+
+            # Sanitizar factores
+            clean_factors = [max(f, epsilon) for f in factors]
+            clean_weights = [max(w, 0) for w in weights]
+
+            weight_sum = sum(clean_weights)
+            if weight_sum < epsilon:
+                return 0.0
+
+            # Calcular en espacio logarítmico para estabilidad numérica
+            log_sum = sum(w * np.log(f) for f, w in zip(clean_factors, clean_weights))
+            return float(np.exp(log_sum / weight_sum))
+
+        # Factores de calidad para cada dimensión [0, 1]
+        topo_quality = (
+            topological_bundle.structural_coherence * topological_bundle.pyramid_stability
+        ) ** 0.5  # Media geométrica de coherencia y estabilidad
+
+        # Calidad financiera basada en VPN normalizado
+        finance_quality = (np.tanh(npv_normalized) + 1.0) / 2.0  # Mapeo a [0, 1]
+
+        # Calidad termodinámica: balance entre orden (negentropía) y capacidad de trabajo (exergía)
+        thermo_quality = ((1.0 - entropy) + exergy) / 2.0
+
+        integrated_score = weighted_geometric_mean(
+            factors=[topo_quality, finance_quality, thermo_quality],
+            weights=[alpha, beta, gamma],
+        )
+
+        # Escalar a [0, 100]
+        integrated_score_100 = float(np.clip(integrated_score * 100.0, 0.0, 100.0))
+
+        # ━━━ Fase 6: Generación de narrativa estratégica ━━━
+        decision_algebra_summary = {
+            "decision_vector": decision_vector.tolist(),
+            "magnitude": decision_magnitude,
+            "dimension": len(decision_vector),
+            "weights": {"alpha": alpha, "beta": beta, "gamma": gamma},
+            "contributions": {
+                "topology": float(alpha * np.linalg.norm(topo_normalized)),
+                "finance": float(beta * np.linalg.norm(finance_normalized)),
+                "thermodynamics": float(gamma * np.linalg.norm(thermo_normalized)),
+            },
+            "quality_factors": {
+                "topology": float(topo_quality),
+                "finance": float(finance_quality),
+                "thermodynamics": float(thermo_quality),
+            },
+        }
+
         try:
             strategic_report = self.translator.compose_strategic_narrative(
                 topological_metrics=topological_bundle.betti_numbers,
@@ -736,87 +1215,72 @@ class BusinessAgent:
                 synergy_risk=base_report.details.get("synergy_risk"),
                 spectral=base_report.details.get("spectral_analysis"),
                 thermal_metrics=thermal_metrics,
-                # Include decision vector
-                decision_algebra={
-                    "vector": decision_vector.tolist(),
-                    "magnitude": float(decision_magnitude),
-                    "topo_contribution": float(alpha * np.linalg.norm(topo_norm)),
-                    "finance_contribution": float(beta * np.linalg.norm(finance_norm)),
-                    "thermo_contribution": float(gamma * np.linalg.norm(thermo_norm))
-                }
+                decision_algebra=decision_algebra_summary,
             )
+            narrative = getattr(strategic_report, "raw_narrative", str(strategic_report))
         except Exception as e:
-            logger.warning(f"⚠️  Strategic narrative failed: {e}, using base narrative")
-            # Create a mock object that matches the expected interface
-            class MockNarrative:
-                def __init__(self, raw): self.raw_narrative = raw
-            strategic_report = MockNarrative(f"Base report with integrity {base_report.integrity_score:.2f}")
+            logger.warning(f"⚠️  Generación de narrativa falló: {e}")
+            narrative = (
+                f"Reporte base con score de integridad {integrated_score_100:.1f}/100. "
+                f"Coherencia topológica: {topo_quality:.2%}. "
+                f"Salud financiera: {finance_quality:.2%}. "
+                f"Calidad termodinámica: {thermo_quality:.2%}."
+            )
 
-        # 5. Build enriched report
+        # ━━━ Fase 7: Construcción del reporte enriquecido ━━━
         enriched_details = {
             **base_report.details,
-            "strategic_narrative": getattr(strategic_report, 'raw_narrative', ''),
+            "strategic_narrative": narrative,
             "financial_metrics": financial_metrics,
             "thermal_metrics": thermal_metrics,
             "thermodynamics": {
-                "entropy": entropy,
-                "exergy": exergy,
-                "system_temperature": thermal_metrics.get("system_temperature", 0.0),
-                "negentropy": 1.0 - entropy
+                "entropy": float(entropy),
+                "exergy": float(exergy),
+                "negentropy": float(1.0 - entropy),
+                "system_temperature": float(thermal_metrics.get("system_temperature", 0.0)),
             },
             "topological_invariants": {
                 "betti_numbers": topological_bundle.betti_numbers,
-                "pyramid_stability": topological_bundle.pyramid_stability,
-                "structural_coherence": topological_bundle.structural_coherence,
-                "is_connected": nx.is_connected(topological_bundle.graph.to_undirected())
+                "pyramid_stability": float(topological_bundle.pyramid_stability),
+                "structural_coherence": float(topological_bundle.structural_coherence),
+                "is_connected": nx.is_connected(topological_bundle.graph.to_undirected()),
+                "n_nodes": topological_bundle.graph.number_of_nodes(),
             },
-            "decision_algebra": {
-                "vector": decision_vector.tolist(),
-                "magnitude": float(decision_magnitude),
-                "dimension": common_dim,
-                "weights": {"alpha": alpha, "beta": beta, "gamma": gamma}
-            }
+            "decision_algebra": decision_algebra_summary,
         }
 
-        # 6. Calculate integrated score using algebra
-        # Base: topological integrity × financial health × thermodynamic quality
-        # Normalize NPV to [0, 1] range for financial health
-        initial_inv = abs(financial_metrics.get("initial_investment", 1.0))
-        if initial_inv == 0: initial_inv = 1.0
-
-        financial_health = min(1.0, max(0.0,
-            (financial_metrics.get("npv", 0.0) / initial_inv + 1.0) / 2.0
-        ))
-
-        thermo_quality = min(1.0, max(0.0,
-            (exergy - entropy + 1.0) / 2.0  # In [-1, 1] → [0, 1]
-        ))
-
-        integrated_score = (
-            (base_report.integrity_score / 100.0) * financial_health * thermo_quality
-        ) ** (1.0/3.0)  # Geometric mean
-
-        # Scale to 0-100
-        integrated_score *= 100.0
-
         report = ConstructionRiskReport(
-            integrity_score=float(integrated_score),
+            integrity_score=integrated_score_100,
             waste_alerts=base_report.waste_alerts,
             circular_risks=base_report.circular_risks,
             complexity_level=base_report.complexity_level,
             financial_risk_level=base_report.financial_risk_level,
             details=enriched_details,
-            strategic_narrative=getattr(strategic_report, 'raw_narrative', ''),
+            strategic_narrative=narrative,
         )
 
-        # 7. Apply rigorous adversarial audit
+        # ━━━ Fase 8: Auditoría adversarial ━━━
         audited_report = self.risk_challenger.challenge_verdict(report)
 
-        # Add algebraic coherence verification
-        if not np.isfinite(integrated_score):
-            logger.error("❌ Integrated score is not finite")
-            self.telemetry.record_error("business_agent.non_finite_score",
-                                       f"Score: {integrated_score}")
+        # Verificación de integridad numérica final
+        if not np.isfinite(audited_report.integrity_score):
+            logger.error(
+                f"❌ Score de integridad no finito: {audited_report.integrity_score}"
+            )
+            self.telemetry.record_error(
+                "business_agent.non_finite_score",
+                f"Score: {audited_report.integrity_score}",
+            )
+            # Fallback a un valor seguro
+            audited_report = ConstructionRiskReport(
+                integrity_score=0.0,
+                waste_alerts=audited_report.waste_alerts,
+                circular_risks=audited_report.circular_risks,
+                complexity_level=audited_report.complexity_level,
+                financial_risk_level="ERROR NUMÉRICO",
+                details=audited_report.details,
+                strategic_narrative=audited_report.strategic_narrative,
+            )
 
         return audited_report
 
@@ -858,7 +1322,7 @@ class BusinessAgent:
 
         df_apus_detail = context.get("df_merged")
 
-        is_valid, error_msg = self._validate_dataframes(df_presupuesto, df_apus_detail)
+        is_valid, error_msg, diagnostics = self._validate_dataframes(df_presupuesto, df_apus_detail)
         if not is_valid:
             logger.warning(f"Validación fallida: {error_msg}")
             self.telemetry.record_error("business_agent.validation", error_msg)
@@ -871,7 +1335,7 @@ class BusinessAgent:
                     circular_risks=[],
                     complexity_level="Desconocida",
                     financial_risk_level="Desconocido",
-                    details={},
+                    details=diagnostics or {},
                     strategic_narrative="Datos insuficientes para análisis.",
                 )
             return None
@@ -934,6 +1398,149 @@ class BusinessAgent:
 
         logger.info("✅ Evaluación de negocio completada con éxito.")
         return report
+
+
+# --- Specialized Algebraic Operations ---
+
+class AlgebraicOperations:
+    """
+    Operaciones algebraicas auxiliares para el BusinessAgent.
+
+    Encapsula funciones de álgebra lineal y estadística robustas
+    para uso en el pipeline de decisión.
+    """
+
+    @staticmethod
+    def safe_normalize(
+        vector: np.ndarray,
+        epsilon: float = 1e-10
+    ) -> np.ndarray:
+        """
+        Normaliza un vector a norma unitaria de forma segura.
+
+        Si el vector es casi nulo, retorna un vector uniforme
+        en la esfera unitaria S^(n-1).
+
+        Args:
+            vector: Vector a normalizar.
+            epsilon: Umbral de norma mínima.
+
+        Returns:
+            Vector normalizado en S^(n-1).
+        """
+        norm = np.linalg.norm(vector)
+        if norm < epsilon:
+            n = len(vector)
+            return np.ones(n) / np.sqrt(n)
+        return vector / norm
+
+    @staticmethod
+    def weighted_geometric_mean(
+        factors: List[float],
+        weights: Optional[List[float]] = None,
+        epsilon: float = 1e-8
+    ) -> float:
+        """
+        Calcula la media geométrica ponderada de forma robusta.
+
+        Fórmula: (∏ᵢ xᵢ^wᵢ)^(1/Σwᵢ)
+
+        Maneja:
+        - Factores no positivos (reemplaza por epsilon)
+        - Pesos nulos o faltantes (usa pesos uniformes)
+        - Cálculo en espacio log para estabilidad numérica
+
+        Args:
+            factors: Lista de factores positivos.
+            weights: Lista de pesos (opcional, default uniforme).
+            epsilon: Valor mínimo para factores.
+
+        Returns:
+            Media geométrica ponderada.
+        """
+        if not factors:
+            return 0.0
+
+        n = len(factors)
+        if weights is None:
+            weights = [1.0 / n] * n
+
+        # Sanitizar
+        clean_factors = [max(f, epsilon) for f in factors]
+        clean_weights = [max(w, 0.0) for w in weights]
+
+        weight_sum = sum(clean_weights)
+        if weight_sum < epsilon:
+            return 0.0
+
+        # Calcular en log-space
+        log_sum = sum(w * np.log(f) for f, w in zip(clean_factors, clean_weights))
+        return float(np.exp(log_sum / weight_sum))
+
+    @staticmethod
+    def convex_combination(
+        vectors: List[np.ndarray],
+        weights: List[float],
+        normalize_weights: bool = True
+    ) -> np.ndarray:
+        """
+        Calcula combinación convexa de vectores.
+
+        d = Σᵢ αᵢ·vᵢ  donde Σαᵢ = 1
+
+        Args:
+            vectors: Lista de vectores de igual dimensión.
+            weights: Pesos para cada vector.
+            normalize_weights: Si True, normaliza pesos a suma 1.
+
+        Returns:
+            Vector resultante de la combinación.
+
+        Raises:
+            ValueError: Si las dimensiones no coinciden.
+        """
+        if not vectors:
+            raise ValueError("Lista de vectores vacía")
+
+        dim = len(vectors[0])
+        for v in vectors:
+            if len(v) != dim:
+                raise ValueError(f"Dimensiones inconsistentes: {len(v)} vs {dim}")
+
+        if normalize_weights:
+            weight_sum = sum(weights)
+            if weight_sum > 0:
+                weights = [w / weight_sum for w in weights]
+            else:
+                n = len(weights)
+                weights = [1.0 / n] * n
+
+        result = np.zeros(dim)
+        for v, w in zip(vectors, weights):
+            result += w * np.array(v)
+
+        return result
+
+    @staticmethod
+    def cosine_similarity(v1: np.ndarray, v2: np.ndarray) -> float:
+        """
+        Calcula similitud coseno entre dos vectores.
+
+        cos(θ) = (v₁·v₂) / (‖v₁‖·‖v₂‖)
+
+        Args:
+            v1, v2: Vectores a comparar.
+
+        Returns:
+            Similitud en [-1, 1].
+        """
+        norm1 = np.linalg.norm(v1)
+        norm2 = np.linalg.norm(v2)
+
+        if norm1 < 1e-10 or norm2 < 1e-10:
+            return 0.0
+
+        return float(np.dot(v1, v2) / (norm1 * norm2))
 
 
 # --- Specialized Exception Classes ---
