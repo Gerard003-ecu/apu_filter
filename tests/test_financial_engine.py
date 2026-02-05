@@ -145,20 +145,23 @@ class TestCapitalAssetPricing:
         )
 
         # CORRECCIÓN 3: Verificar resultados del análisis
-        assert len(results) == len(beta_range), "Faltan resultados en el análisis"
+        sensitivity = results["sensitivity"]
+        assert len(sensitivity) == len(beta_range), "Faltan resultados en el análisis"
 
         # CORRECCIÓN 4: Verificar monotonicidad (WACC debe aumentar con beta)
-        sorted_betas = sorted(results.keys())
-        waccs = [results[b] for b in sorted_betas]
+        waccs = [s["metric"] for s in sensitivity]
 
         for i in range(1, len(waccs)):
             assert waccs[i] > waccs[i - 1], (
-                f"WACC no es monótono creciente con beta: {sorted_betas[i - 1]}→{sorted_betas[i]}"
+                f"WACC no es monótono creciente con beta: {sensitivity[i-1]['parameter_value']}→{sensitivity[i]['parameter_value']}"
             )
 
         # CORRECCIÓN 5: Verificar que el WACC del beta original está en los resultados
-        if original_beta in results:
-            assert isclose(results[original_beta], original_wacc, rel_tol=1e-6), (
+        match = next(
+            (s for s in sensitivity if isclose(s["parameter_value"], original_beta)), None
+        )
+        if match:
+            assert isclose(match["metric"], original_wacc, rel_tol=1e-6), (
                 "El WACC para beta original debería coincidir"
             )
 
@@ -388,8 +391,10 @@ class TestRealOptionsAnalyzer:
         # Caso 1: CALL sin dividendos - Americana = Europea
         call_params = {"S": 100, "K": 100, "r": 0.05, "T": 1, "sigma": 0.3, "n": 200}
 
-        american_call = options_analyzer._binomial_valuation(**call_params, american=True)
-        european_call = options_analyzer._binomial_valuation(**call_params, american=False)
+        american_call = options_analyzer._binomial_valuation_enhanced(**call_params, american=True)
+        european_call = options_analyzer._binomial_valuation_enhanced(
+            **call_params, american=False
+        )
 
         # Para calls sin dividendos, valores deben ser prácticamente iguales
         assert isclose(
@@ -424,7 +429,7 @@ class TestRealOptionsAnalyzer:
         # Caso 3: Verificar convergencia con más pasos
         call_params_fine = call_params.copy()
         call_params_fine["n"] = 500
-        american_fine = options_analyzer._binomial_valuation(
+        american_fine = options_analyzer._binomial_valuation_enhanced(
             **call_params_fine, american=True
         )
 
@@ -573,7 +578,8 @@ class TestUtilityFunctions:
         tolerance = 3 * std_error / std_sample  # Relativa
 
         # Prueba 1: Volatilidad diaria
-        vol_daily = calculate_volatility_from_returns(returns_list, frequency="daily")
+        res_daily = calculate_volatility_from_returns(returns_list, frequency="daily")
+        vol_daily = res_daily["volatility"]
         expected_vol_daily = std_sample * sqrt(252)
 
         assert isclose(vol_daily, expected_vol_daily, rel_tol=tolerance), (
@@ -581,7 +587,8 @@ class TestUtilityFunctions:
         )
 
         # Prueba 2: Volatilidad semanal
-        vol_weekly = calculate_volatility_from_returns(returns_list, frequency="weekly")
+        res_weekly = calculate_volatility_from_returns(returns_list, frequency="weekly")
+        vol_weekly = res_weekly["volatility"]
         expected_vol_weekly = std_sample * sqrt(52)
 
         assert isclose(vol_weekly, expected_vol_weekly, rel_tol=tolerance), (
@@ -589,7 +596,8 @@ class TestUtilityFunctions:
         )
 
         # Prueba 3: Volatilidad mensual
-        vol_monthly = calculate_volatility_from_returns(returns_list, frequency="monthly")
+        res_monthly = calculate_volatility_from_returns(returns_list, frequency="monthly")
+        vol_monthly = res_monthly["volatility"]
         expected_vol_monthly = std_sample * sqrt(12)
 
         assert isclose(vol_monthly, expected_vol_monthly, rel_tol=tolerance), (
@@ -597,7 +605,8 @@ class TestUtilityFunctions:
         )
 
         # Prueba 4: Volatilidad anual (sin escalado)
-        vol_annual = calculate_volatility_from_returns(returns_list, frequency="annual")
+        res_annual = calculate_volatility_from_returns(returns_list, frequency="annual")
+        vol_annual = res_annual["volatility"]
         expected_vol_annual = std_sample * sqrt(1)
 
         assert isclose(vol_annual, expected_vol_annual, rel_tol=tolerance), (
@@ -626,11 +635,11 @@ class TestUtilityFunctions:
         - Casos edge adicionales
         """
         # Caso 1: Lista vacía
-        with pytest.raises(ValueError, match="Se requieren al menos 2 retornos"):
+        with pytest.raises(ValueError, match="Se requieren ≥2 retornos"):
             calculate_volatility_from_returns([])
 
         # Caso 2: Un solo elemento
-        with pytest.raises(ValueError, match="Se requieren al menos 2 retornos"):
+        with pytest.raises(ValueError, match="Se requieren ≥2 retornos"):
             calculate_volatility_from_returns([0.01])
 
         # Caso 3: Frecuencia inválida
@@ -643,8 +652,8 @@ class TestUtilityFunctions:
 
         # Caso 5: Verificar que 2 elementos funcionan (mínimo válido)
         try:
-            vol = calculate_volatility_from_returns([0.01, 0.02], frequency="daily")
-            assert vol > 0, "Volatilidad con 2 elementos debe ser positiva"
+            res = calculate_volatility_from_returns([0.01, 0.02], frequency="daily")
+            assert res["volatility"] > 0, "Volatilidad con 2 elementos debe ser positiva"
         except ValueError:
             pytest.fail("Debería aceptar exactamente 2 elementos")
 
@@ -654,7 +663,7 @@ class TestUtilityFunctions:
 
         for freq in valid_frequencies:
             try:
-                vol = calculate_volatility_from_returns(sample_returns, frequency=freq)
-                assert vol > 0, f"Volatilidad con frecuencia '{freq}' debe ser positiva"
+                res = calculate_volatility_from_returns(sample_returns, frequency=freq)
+                assert res["volatility"] > 0, f"Volatilidad con frecuencia '{freq}' debe ser positiva"
             except ValueError as e:
                 pytest.fail(f"Frecuencia válida '{freq}' lanzó error: {e}")
