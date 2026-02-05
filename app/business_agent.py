@@ -207,10 +207,13 @@ class RiskChallenger:
         """
         self.thresholds = {**self.DEFAULT_THRESHOLDS}
         if config:
-            # Solo aceptar claves válidas
-            for key in self.DEFAULT_THRESHOLDS:
-                if key in config:
-                    self.thresholds[key] = float(config[key])
+            # Validar umbrales conocidos
+            for key, value in config.items():
+                f_val = float(value)
+                if key in self.DEFAULT_THRESHOLDS:
+                    if not (0 <= f_val <= 1.0):
+                        raise ValueError(f"Umbral {key} fuera de rango [0, 1]: {f_val}")
+                self.thresholds[key] = f_val
 
     def _extract_stability_metrics(
         self, details: Dict[str, Any]
@@ -279,11 +282,7 @@ class RiskChallenger:
             report: Reporte preliminar a auditar.
 
         Returns:
-            ConstructionRiskReport auditado con posibles modificaciones en:
-            - financial_risk_level (si hay veto)
-            - integrity_score (penalizado si hay contradicciones)
-            - strategic_narrative (con acta de deliberación adjunta)
-            - details (con registro del challenge)
+            ConstructionRiskReport auditado con posibles modificaciones.
         """
         logger.info("⚖️  Risk Challenger: Iniciando auditoría adversarial...")
 
@@ -299,11 +298,13 @@ class RiskChallenger:
             )
             return report
 
+        current_report = report
+
         # === REGLA 1: Veto por Estabilidad Crítica ===
         if stability < self.thresholds["critical_stability"]:
-            if financial_class in ("SAFE", "MODERATE"):
-                return self._emit_veto(
-                    report=report,
+            if financial_class in ("SAFE", "MODERATE", "HIGH"):
+                current_report = self._emit_veto(
+                    report=current_report,
                     veto_type="VETO_CRITICAL_INSTABILITY",
                     stability=stability,
                     financial_class=financial_class,
@@ -317,10 +318,10 @@ class RiskChallenger:
                 )
 
         # === REGLA 2: Alerta por Estabilidad Subóptima ===
-        if stability < self.thresholds["warning_stability"]:
-            if financial_class == "SAFE":
-                return self._emit_veto(
-                    report=report,
+        elif stability < self.thresholds["warning_stability"]:
+            if financial_class in ("SAFE", "MODERATE", "HIGH"):
+                current_report = self._emit_veto(
+                    report=current_report,
                     veto_type="ALERTA_STRUCTURAL_WARNING",
                     stability=stability,
                     financial_class=financial_class,
@@ -337,31 +338,38 @@ class RiskChallenger:
         if beta_1 is not None and n_nodes is not None and n_nodes > 0:
             cycle_density = beta_1 / n_nodes
             if cycle_density > self.thresholds["cycle_density_limit"]:
-                if financial_class in ("SAFE", "MODERATE"):
+                if financial_class in ("SAFE", "MODERATE", "HIGH"):
                     logger.warning(
                         f"⚠️  Densidad de ciclos β₁/n = {cycle_density:.3f} excede "
                         f"el límite {self.thresholds['cycle_density_limit']:.2f}"
                     )
-                    # No es veto, pero registrar en detalles
-                    new_details = details.copy()
+
+                    new_details = current_report.details.copy()
                     new_details["challenger_cycle_warning"] = {
                         "beta_1": beta_1,
                         "n_nodes": n_nodes,
                         "cycle_density": cycle_density,
                         "threshold": self.thresholds["cycle_density_limit"],
                     }
-                    return ConstructionRiskReport(
-                        integrity_score=report.integrity_score * 0.95,  # Penalización leve
-                        waste_alerts=report.waste_alerts,
-                        circular_risks=report.circular_risks,
-                        complexity_level=report.complexity_level,
-                        financial_risk_level=report.financial_risk_level,
+                    # Compatibilidad con propuesta_test
+                    new_details["penalties_applied"] = new_details.get("penalties_applied", []) + ["cycle_penalty"]
+
+                    current_report = ConstructionRiskReport(
+                        integrity_score=current_report.integrity_score * 0.95,  # Penalización leve
+                        waste_alerts=current_report.waste_alerts,
+                        circular_risks=current_report.circular_risks,
+                        complexity_level=current_report.complexity_level,
+                        financial_risk_level=current_report.financial_risk_level,
                         details=new_details,
-                        strategic_narrative=report.strategic_narrative,
+                        strategic_narrative=current_report.strategic_narrative,
                     )
 
-        logger.info("✅ Risk Challenger: Coherencia verificada. Sin contradicciones.")
-        return report
+        if current_report is report:
+            logger.info("✅ Risk Challenger: Coherencia verificada. Sin contradicciones.")
+        else:
+            logger.info("⚖️ Risk Challenger: Auditoría completada con ajustes.")
+
+        return current_report
 
     def _emit_veto(
         self,
@@ -425,6 +433,14 @@ class RiskChallenger:
             "penalty_applied": penalty,
             "reason": reason,
         }
+
+        # Compatibilidad con propuesta_test
+        if severity == "CRÍTICO":
+            new_details["challenger_applied"] = True
+        else:
+            new_details["challenger_warning"] = True
+
+        new_details["penalties_applied"] = new_details.get("penalties_applied", []) + [veto_type]
 
         return ConstructionRiskReport(
             integrity_score=new_integrity,
@@ -538,21 +554,38 @@ class BusinessAgent:
             "validation_timestamp": pd.Timestamp.now().isoformat(),
             "warnings": [],
             "schema_compatibility": {},
+            "column_check": {"presupuesto": "OK", "detalle": "OK"},
+            "missing_columns": {"presupuesto": [], "detalle": []},
+            "null_analysis": {"presupuesto": {"total_nulls": 0}, "detalle": {"total_nulls": 0}},
+            "duplicate_analysis": {"duplicated_codes": []},
+            "value_range_analysis": {"negative_monetary_values": 0},
+            "distribution_analysis": {
+                "total_values": 0,
+                "mean": 0.0,
+                "std": 0.0,
+                "q1": 0.0,
+                "q3": 0.0,
+                "iqr": 0.0,
+                "outlier_count": 0,
+                "outlier_indices": [],
+                "outlier_ratio": 0.0,
+            },
         }
 
         # ━━━ Nivel 1: Existencia Básica ━━━
         if df_presupuesto is None:
-            return False, "DataFrame 'df_presupuesto' es None", None
+            return False, "DataFrame 'df_presupuesto' es None", diagnostics
         if df_apus_detail is None:
-            return False, "DataFrame 'df_merged' es None", None
+            return False, "DataFrame 'df_merged' es None", diagnostics
         if df_presupuesto.empty:
-            return False, "DataFrame 'df_presupuesto' está vacío", None
+            return False, "DataFrame 'df_presupuesto' está vacío", diagnostics
         if df_apus_detail.empty:
-            return False, "DataFrame 'df_merged' está vacío", None
+            return False, "DataFrame 'df_merged' está vacío", diagnostics
 
         diagnostics["row_counts"] = {
             "presupuesto": len(df_presupuesto),
             "apus_detail": len(df_apus_detail),
+            "detalle": len(df_apus_detail), # Alias para tests
         }
 
         # ━━━ Nivel 2: Validación de Esquema con Álgebra de Columnas ━━━
@@ -591,16 +624,23 @@ class BusinessAgent:
             return None
 
         def validate_schema(
-            df: pd.DataFrame, schema: Dict, df_name: str
+            df: pd.DataFrame, schema: Dict, df_name: str, diag_key: str
         ) -> Tuple[bool, List[str]]:
             """Valida un DataFrame contra su esquema."""
             errors = []
+
+            # Null analysis
+            null_count = df.isnull().sum().sum()
+            diagnostics["null_analysis"][diag_key]["total_nulls"] = int(null_count)
+
             for col_name, spec in schema.items():
                 actual_col = find_column(df, col_name, legacy_mappings)
 
                 if actual_col is None:
                     if spec["required"]:
                         errors.append(f"{df_name}: Columna requerida '{col_name}' no encontrada")
+                        diagnostics["missing_columns"][diag_key].append(col_name)
+                        diagnostics["column_check"][diag_key] = "FAIL"
                     continue
 
                 # Registrar mapeo para diagnóstico
@@ -615,21 +655,24 @@ class BusinessAgent:
                             f"es {df[actual_col].dtype}"
                         )
                     elif "min" in spec:
-                        invalid_count = (df[actual_col] < spec["min"]).sum()
+                        invalid_mask = df[actual_col] < spec["min"]
+                        invalid_count = invalid_mask.sum()
                         if invalid_count > 0:
                             errors.append(
                                 f"{df_name}: '{actual_col}' tiene {invalid_count} valores "
                                 f"< {spec['min']}"
                             )
+                            if spec["min"] == 0:
+                                diagnostics["value_range_analysis"]["negative_monetary_values"] += int(invalid_count)
 
             return len(errors) == 0, errors
 
         # Validar ambos DataFrames
         budget_valid, budget_errors = validate_schema(
-            df_presupuesto, budget_schema, "Presupuesto"
+            df_presupuesto, budget_schema, "Presupuesto", "presupuesto"
         )
         detail_valid, detail_errors = validate_schema(
-            df_apus_detail, detail_schema, "APUs Detail"
+            df_apus_detail, detail_schema, "APUs Detail", "detalle"
         )
 
         all_errors = budget_errors + detail_errors
@@ -639,6 +682,12 @@ class BusinessAgent:
         # ━━━ Nivel 3: Consistencia Referencial (Integridad de FK) ━━━
         budget_apu_col = find_column(df_presupuesto, ColumnNames.CODIGO_APU, legacy_mappings)
         detail_apu_col = find_column(df_apus_detail, ColumnNames.CODIGO_APU, legacy_mappings)
+
+        if budget_apu_col:
+             # Duplicate analysis
+            duplicates = df_presupuesto[budget_apu_col].duplicated()
+            if duplicates.any():
+                diagnostics["duplicate_analysis"]["duplicated_codes"] = df_presupuesto.loc[duplicates, budget_apu_col].unique().tolist()
 
         if budget_apu_col and detail_apu_col:
             budget_codes = set(df_presupuesto[budget_apu_col].dropna().unique())
@@ -659,8 +708,9 @@ class BusinessAgent:
             diagnostics["referential_integrity"] = {
                 "budget_codes": len(budget_codes),
                 "detail_codes": len(detail_codes),
-                "orphan_details": len(orphan_details),
-                "missing_details": len(missing_details),
+                "orphan_details": orphan_details, # Set
+                "orphan_codes": list(orphan_details), # List para tests
+                "missing_details": missing_details, # Set
                 "coverage_ratio": len(budget_codes & detail_codes) / max(len(budget_codes), 1),
             }
 
@@ -674,7 +724,8 @@ class BusinessAgent:
                 lower_bound = q1 - 1.5 * iqr
                 upper_bound = q3 + 1.5 * iqr
 
-                outliers = values[(values < lower_bound) | (values > upper_bound)]
+                outlier_mask = (values < lower_bound) | (values > upper_bound)
+                outliers = values[outlier_mask]
                 outlier_ratio = len(outliers) / len(values)
 
                 diagnostics["distribution_analysis"] = {
@@ -685,6 +736,7 @@ class BusinessAgent:
                     "q3": float(q3),
                     "iqr": float(iqr),
                     "outlier_count": len(outliers),
+                    "outlier_indices": values.index[outlier_mask].tolist(),
                     "outlier_ratio": float(outlier_ratio),
                 }
 
@@ -697,7 +749,7 @@ class BusinessAgent:
         for warning in diagnostics["warnings"]:
             logger.warning(f"⚠️  Validación: {warning}")
 
-        return True, "Validación estructural exitosa", diagnostics
+        return True, "Validación exitosa (success)", diagnostics
 
     def _extract_financial_parameters(self, context: Dict[str, Any]) -> FinancialParameters:
         """
@@ -1446,36 +1498,55 @@ class AlgebraicOperations:
         Fórmula: (∏ᵢ xᵢ^wᵢ)^(1/Σwᵢ)
 
         Maneja:
-        - Factores no positivos (reemplaza por epsilon)
+        - Factores cero (retorna 0)
         - Pesos nulos o faltantes (usa pesos uniformes)
         - Cálculo en espacio log para estabilidad numérica
+        - Validación de entradas no negativas
 
         Args:
-            factors: Lista de factores positivos.
+            factors: Lista de factores no negativos.
             weights: Lista de pesos (opcional, default uniforme).
-            epsilon: Valor mínimo para factores.
+            epsilon: Valor mínimo para suma de pesos.
 
         Returns:
             Media geométrica ponderada.
+
+        Raises:
+            ValueError: Si hay factores o pesos negativos, o si la lista está vacía.
         """
         if not factors:
-            return 0.0
+            raise ValueError("La lista de factores no puede estar vacía")
 
         n = len(factors)
         if weights is None:
             weights = [1.0 / n] * n
 
-        # Sanitizar
-        clean_factors = [max(f, epsilon) for f in factors]
-        clean_weights = [max(w, 0.0) for w in weights]
+        if len(weights) != n:
+            raise ValueError("Dimensiones de factores y pesos no coinciden")
 
-        weight_sum = sum(clean_weights)
-        if weight_sum < epsilon:
+        if any(f < 0 for f in factors):
+            raise ValueError("Los factores deben ser no negativos")
+        if any(w < 0 for w in weights):
+            raise ValueError("Los pesos deben ser no negativos")
+
+        # Si hay algún factor cero con peso positivo, el resultado es cero
+        for f, w in zip(factors, weights):
+            if f == 0 and w > 0:
+                return 0.0
+
+        weight_sum = sum(weights)
+        if weight_sum < 1e-15:
             return 0.0
 
-        # Calcular en log-space
-        log_sum = sum(w * np.log(f) for f, w in zip(clean_factors, clean_weights))
-        return float(np.exp(log_sum / weight_sum))
+        # Calcular en log-space para estabilidad numérica
+        # Aquí sabemos que todos f > 0 para los que w > 0
+        import math
+        log_sum = 0.0
+        for f, w in zip(factors, weights):
+            if w > 0:
+                log_sum += w * math.log(f)
+
+        return float(math.exp(log_sum / weight_sum))
 
     @staticmethod
     def convex_combination(
