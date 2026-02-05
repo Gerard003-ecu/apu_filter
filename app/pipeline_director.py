@@ -1,39 +1,46 @@
 """
-Módulo: Pipeline Director (La Matriz de Transformación de Valor $M_P$)
+Módulo: Pipeline Director (La Matriz de Transformación de Valor M_P)
 ======================================================================
 
-Este componente actúa como el "Sistema Nervioso Central" de APU_filter. No procesa la data
-directamente (eso es responsabilidad de los agentes especializados), sino que orquesta
-la secuencia de activación de los vectores de transformación, garantizando la integridad
-del "Vector de Estado" del proyecto a través de la jerarquía DIKW.
+Este componente actúa como el "Sistema Nervioso Central" de APU_filter. 
+A diferencia de los versiones anteriores, este módulo **no ejecuta cálculos matemáticos** 
+ni lógica de negocio directa (responsabilidad delegada a los Agentes Tácticos y Estratégicos).
+
+Su función es orquestar la secuencia de activación de los vectores de transformación 
+a través de la Matriz de Interacción Central (MIC), garantizando la integridad 
+del "Vector de Estado" del proyecto.
 
 Arquitectura y Fundamentos Matemáticos:
 ---------------------------------------
 
 1. Orquestación Algebraica (Espacio Vectorial de Operadores):
    Utiliza la `LinearInteractionMatrix` (MIC) para proyectar "Intenciones" sobre un espacio
-   vectorial de base ortogonal. Cada paso del pipeline (ej. `load_data`, `calculate_costs`)
-   es tratado como un vector base unitario ($e_i$) que aplica una transformación lineal $T$
-   sobre el contexto del proyecto.
+   vectorial de base ortogonal. Cada paso del pipeline (ej. `calculate_costs`) no es una 
+   función local, sino un vector base unitario ($e_i$) que solicita una transformación 
+   al estrato correspondiente.
 
 2. Auditoría Homológica (Secuencia de Mayer-Vietoris):
-   Implementa el paso `AuditedMergeStep`. A diferencia de un simple JOIN SQL, este proceso
-   utiliza la secuencia exacta de Mayer-Vietoris para garantizar la integridad topológica
-   durante la fusión de datos (Presupuesto $\cup$ APUs):
+   Implementa el paso `AuditedMergeStep`. En lugar de un simple JOIN de datos, utiliza 
+   la secuencia exacta de Mayer-Vietoris para garantizar la integridad topológica 
+   durante la fusión (Presupuesto U APUs):
+   
    $$... \to H_k(A \cap B) \to H_k(A) \oplus H_k(B) \to H_k(A \cup B) \to ...$$
+   
    Esto asegura matemáticamente que la integración no introduzca ciclos espurios ($\beta_1$)
    ni desconexiones ($\beta_0$) que no existían en los conjuntos originales.
 
 3. Filtración por Estratos (Jerarquía DIKW):
-   Gestiona la ejecución respetando la filtración de subespacios definida en la MIC:
+   Gestiona la ejecución respetando estrictamente la filtración de subespacios:
    $V_{PHYSICS} \subset V_{TACTICS} \subset V_{STRATEGY} \subset V_{WISDOM}$.
-   El director valida que las transiciones entre estratos sean suaves, impidiendo que
-   operadores de alto nivel (Sabiduría) se ejecuten sobre una base física inestable.
+   
+   El director actúa como un Gatekeeper Topológico, validando que las transiciones 
+   entre estratos sean suaves y prohibiendo que operadores de alto nivel (Estrategia) 
+   se ejecuten sobre una base física inestable (Datos no validados).
 
 4. Protocolo de Caja de Cristal (Glass Box Persistence):
-   Mantiene la trazabilidad forense completa. El estado del sistema se serializa entre
-   pasos, permitiendo pausar, reanudar y auditar el "Colapso de Onda" (materialización)
-   en cualquier punto del flujo, cumpliendo con el compromiso de transparencia total.
+   Mantiene la trazabilidad forense completa. El estado del sistema se serializa 
+   entre pasos, permitiendo pausar, reanudar y auditar el proceso de transformación 
+   en cualquier punto del flujo.
 
 """
 

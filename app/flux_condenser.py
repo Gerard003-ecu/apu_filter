@@ -1,46 +1,46 @@
 """
-Módulo: Data Flux Condenser (El Guardián Electrodinámico)
-=========================================================
+Módulo: Data Flux Condenser (El Motor de Física de Fluidos Electromagnéticos)
+=============================================================================
 
-Este componente actúa como el "Motor de Física de Campos" del sistema.
-Evolucionando hacia el paradigma de la **Bomba Hidráulica Lineal** (Pistón de Inercia),
-este módulo gestiona el flujo de información no como un filtro pasivo, sino como
-un sistema de inyección activa.
-
-Analogía de la Bomba Lineal:
-- **Inductor (L) = Pistón de Inercia**: Inyecta energía (trabajo) para mover los datos.
-- **Capacitor (C) = Acumulador Hidráulico**: Suaviza los pulsos de presión del pistón.
-- **Resistencia (R) = Fricción de Tubería**: Pérdidas energéticas en el procesamiento.
-- **Voltaje (V) = Presión de Datos**: Energía por unidad de carga (Joules/Coulomb).
-- **Corriente (I) = Caudal**: Velocidad del flujo de datos.
+Este componente actúa como el "Corazón Hemodinámico" del sistema APU Filter.
+Ha evolucionado de un simple filtro pasivo ("condensador") a un **Simulador de 
+Bomba de Desplazamiento Positivo** (Pistón de Inercia) que inyecta flujo de datos 
+de manera activa y controlada.
 
 Fundamentos Teóricos y Arquitectura de Control:
 -----------------------------------------------
 
-1. Motor Maxwell FDTD (La Dinámica del Pistón):
-   Implementa el algoritmo de Yee (Leapfrog) sobre un complejo simplicial discreto.
-   Resuelve las ecuaciones de Maxwell interpretadas como dinámica de fluidos electro-magnéticos:
-   - **Ley de Faraday:** Modela la inercia del pistón ($v = L \cdot di/dt$).
-   - **Golpe de Ariete (Water Hammer):** Detecta picos de presión destructivos cuando el flujo se detiene bruscamente.
-   - **Ley de Ampère-Maxwell (∂ₜD = ∇×H - J):** Modela la "urgencia" (Campo Eléctrico E) y
-     la corriente de desplazamiento, permitiendo detectar presión incluso sin flujo físico (bloqueos).
+1. Isomorfismo Electro-Hidráulico (Gemelo Digital):
+   Modela el pipeline de datos como un circuito RLC de potencia con componentes físicos simulados:
+   - **Inductor ($L$):** El Pistón de Inercia. Representa la "masa" de los datos. Se opone a cambios
+     bruscos de velocidad, evitando discontinuidades (golpes de ariete/flyback).
+   - **Condensador ($C$):** La Membrana Viscoelástica (Acumulador). Absorbe picos de presión. Utiliza
+     lógica p-Laplaciana para endurecerse ante gradientes agresivos ($p > 2$).
+   - **Resistencia ($R$):** Fricción Dinámica. Disipa energía basada en la complejidad ciclomática
+     y entropía de los datos (Calor de Procesamiento).
 
-2. Cálculo Vectorial Discreto (La Geometría):
-   Utiliza operadores topológicos (Gradiente d₀, Rotacional d₁, Divergencia δ₁) sobre grafos.
-   - **Ley de Gauss (∇·D = ρ):** Verifica la integridad estructural. La divergencia del flujo
-     debe igualar a la densidad de carga (datos), detectando "fugas" o inyecciones fantasma.
+2. Motor Maxwell FDTD (Electrodinámica Discreta):
+   Implementa el algoritmo de Yee sobre un complejo simplicial (Grafo). Resuelve las ecuaciones
+   de Maxwell discretizadas para calcular la propagación de "ondas de datos" y detectar
+   resonancias destructivas o bucles de corriente (vórtices de información).
 
-3. Control Hamiltoniano de Puerto (PHS - La Estabilidad):
-   Sustituye la lógica PID reactiva por un control basado en energía (Pasividad).
-   - **Hamiltoniano (H):** Modela la energía total del sistema (H = ½εE² + ½μB²).
-   - **Inyección de Amortiguamiento (Damping Injection):** Introduce una matriz de disipación R
-     dinámica para garantizar que la derivada de la energía sea negativa (dH/dt ≤ 0),
-     asegurando estabilidad asintótica según Lyapunov.
+3. Control Hamiltoniano de Puerto (PHS - Pasividad):
+   Sustituye el control reactivo simple por un enfoque basado en energía ($H$).
+   - **Hamiltoniano ($H$):** $H(x) = \frac{1}{2}CV^2 + \frac{1}{2}LI^2$.
+   - **Inyección de Amortiguamiento:** Garantiza la estabilidad asintótica ($\dot{H} \le 0$) mediante
+     una matriz de disipación $R$ dinámica, asegurando que el sistema nunca diverja.
 
-4. Oráculo de Laplace (La Validación A Priori):
-   Mantiene su rol como validador estático. Antes de iniciar la simulación FDTD, analiza
-   los polos del sistema linealizado en el Plano-S (frecuencia compleja) para vetar
-   configuraciones estructuralmente inestables (polos en el semiplano derecho).
+4. Arquitectura de Hardware Simulado (Protección de Planos):
+   Implementa la segregación estricta entre el Plano de Datos y el Plano de Control [11]:
+   - **El Músculo (FluxMuscleController):** Simula un MOSFET de potencia con control PWM y
+     limitación de *Slew Rate* para evitar fatiga térmica durante cargas masivas [12].
+   - **El Cerebro (Reserva Táctica):** Un sub-circuito aislado (Diodo + Supercap) que garantiza
+     energía para el Agente incluso si el bus principal colapsa (Brownout), permitiendo
+     una "muerte elegante" y telemetría forense.
+
+5. Oráculo de Laplace (Validación A Priori):
+   Antes de iniciar el bombeo, linealiza el sistema y analiza sus polos en el plano complejo ($s$).
+   Si detecta polos en el semiplano derecho (RHP), veta la ejecución por inestabilidad estructural [15].
 
 """
 

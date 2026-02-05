@@ -1,43 +1,45 @@
 """
-Módulo: APU Autonomous Agent (El Operador SRE del Ciclo OODA)
-=============================================================
+Módulo: Autonomous Agent (El Coordinador del Ciclo OODA)
+========================================================
 
-Este componente implementa la inteligencia operativa del sistema, actuando como el
-"Sistema Nervioso Autonómico". Su función es garantizar la **Homeostasis** (estabilidad
-dinámica) de la infraestructura mediante la ejecución continua de un bucle de control
-cibernético.
+Este componente actúa como la "Conciencia Operativa" del sistema APU Filter. 
+A diferencia de los componentes pasivos, el Agente es una entidad activa que 
+gobierna el ciclo de vida del procesamiento mediante un bucle de control 
+continuo OODA (Observar, Orientar, Decidir, Actuar).
 
-A diferencia de un simple monitor de salud, este agente posee capacidades cognitivas
-para distinguir entre ruido transitorio y fallos estructurales mediante topología.
+Su objetivo primario es mantener la **Homeostasis del Sistema**: asegurar que 
+el flujo de datos sea laminar y que la infraestructura no colapse bajo estrés 
+térmico o topológico.
 
-Fundamentos Teóricos y Ciclo Cognitivo (OODA):
-----------------------------------------------
+Arquitectura Cognitiva (El Ciclo OODA):
+---------------------------------------
 
-1. Observe (El Sensor Físico):
-   Recolecta vectores de estado del `FluxPhysicsEngine` (Saturación, Voltaje Flyback).
-   Actúa como un morfismo $O: \\text{Infraestructura} \\to \\mathbb{R}^n$, proyectando
-   la realidad física en un espacio métrico observable [Fuente: SAGES.md].
+1. OBSERVE (Observar - La Percepción Física):
+   Recolecta telemetría cruda del `FluxPhysicsEngine` en tiempo real.
+   - Monitorea variables de estado físico: Voltaje de Flyback (presión inercial) 
+     y Saturación (nivel de llenado).
+   - Verifica la integridad del "Plano de Control" (Voltaje de la Reserva Táctica)
+     para prevenir muerte cerebral por Brownout.
 
-2. Orient (El Topólogo Persistente):
-   No reacciona a datos crudos. Utiliza **Homología Persistente** para analizar la serie
-   temporal de métricas.
-   - Filtra "Ruido Topológico" (picos de vida corta).
-   - Identifica "Características Estructurales" (fallos persistentes de vida larga).
-   Esto evita reacciones espasmódicas (flapping) ante perturbaciones menores [Fuente: apu_agent.txt].
+2. ORIENT (Orientar - El Mapa Topológico):
+   Utiliza el `TopologicalAnalyzer` y la Homología Persistente para situarse en el entorno.
+   - Distingue entre "Ruido Transitorio" (picos ignorables) y "Características 
+     Estructurales" (fallos persistentes) analizando la vida media de las anomalías.
+   - Calcula invariantes topológicos ($\beta_0$) para detectar fragmentación o 
+     pérdida de conectividad con el Núcleo.
 
-3. Decide (La Matriz de Transición):
-   Mapea el diagnóstico topológico a un espacio de estados discreto ($S_{NOMINAL}, S_{CRITICO}, \\dots$).
-   Determina la estrategia de mitigación óptima (ej. aplicar Backpressure, reiniciar conexión)
-   para minimizar la entropía del sistema.
+3. DECIDE (Decidir - La Matriz de Juicio):
+   Evalúa la situación frente a una Matriz de Decisiones determinista.
+   - Aplica lógica de preservación: Si el sistema está "SATURADO" o "CRITICO", 
+     prioriza la reducción de carga (Backpressure) sobre el procesamiento.
+   - Implementa "Debounce" temporal para evitar oscilaciones en la toma de decisiones.
 
-4. Act (El Proyector de Vectores):
-   Ejecuta la decisión proyectando "Vectores de Intención" sobre la Matriz de
-   Interacción Central (MIC).
-   - Vector `clean`: Purga de buffers ante saturación física.
-   - Vector `configure`: Ajuste dinámico de parámetros PID.
-   Opera con el privilegio `force_physics_override=True`, permitiéndole intervenir 
-   directamente en el estrato **PHYSICS ($V_{3}$)** para salvar la integridad del sistema
-   [Fuente: tools_interface.txt].
+4. ACT (Actuar - La Ejecución de Vectores):
+   Proyecta "Intenciones" sobre la Matriz de Interacción Central (MIC).
+   - Ejecuta acciones correctivas: `HEARTBEAT` (Nominal), `EJECUTAR_LIMPIEZA` (Estabilización),
+     `AJUSTAR_VELOCIDAD` (Válvula de Flujo) o `ALERTA_CRITICA` (Parada de Emergencia).
+   - Cierra el bucle registrando el impacto de la acción para la siguiente observación.
+
 """
 
 import logging
