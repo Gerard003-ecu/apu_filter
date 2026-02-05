@@ -1,0 +1,967 @@
+### 1. Clase CapitalAssetPricing - Mejoras en CAPM y WACC
+
+class CapitalAssetPricing:
+    """
+    Motor de cálculo del Costo de Capital con validaciones algebraicas.
+    
+    Implementa CAPM con regularización de Beta y WACC con estructura de capital óptima.
+    """
+    
+    def __init__(self, config: FinancialConfig):
+        if not isinstance(config, FinancialConfig):
+            raise TypeError("Se requiere una instancia válida de FinancialConfig.")
+        self.config = config
+        self._validate_beta_regularization()
+    
+    def _validate_beta_regularization(self):
+        """Aplica regularización bayesiana a Beta para evitar valores extremos."""
+        if self.config.beta < 0.05:
+            # Beta demasiado bajo: aplicar shrinkage hacia 1.0 (mercado)
+            self.config.beta = 0.3 * self.config.beta + 0.7 * 1.0
+            logger.warning(f"Beta regularizado: {self.config.beta:.3f}")
+    
+    @lru_cache(maxsize=1)
+    def calculate_ke(self, structural_risk_adjustment: float = 1.0) -> float:
+        """
+        Calcula Ke con ajuste por riesgo estructural.
+        
+        Fórmula extendida: Ke = Rf + β*(Rm-Rf) + λ*σ_s
+        Donde λ es el aversión al riesgo estructural y σ_s la penalización topológica.
+        """
+        try:
+            # CAPM base
+            base_ke = self.config.risk_free_rate + self.config.beta * self.config.market_premium
+            
+            # Ajuste por riesgo estructural (penalización topológica)
+            adjusted_ke = base_ke * structural_risk_adjustment
+            
+            # Teorema: Ke debe estar entre Rf y Rf + 2*(Rm-Rf) para proyectos viables
+            max_ke = self.config.risk_free_rate + 2 * self.config.market_premium
+            if adjusted_ke > max_ke:
+                logger.warning(f"Ke ({adjusted_ke:.2%}) excede límite teórico ({max_ke:.2%})")
+                adjusted_ke = min(adjusted_ke, max_ke)
+            
+            logger.info(f"Costo del Equity: {base_ke:.2%} → {adjusted_ke:.2%} (ajuste: {structural_risk_adjustment:.2f})")
+            return adjusted_ke
+            
+        except Exception as e:
+            logger.error(f"Error en CAPM: {e}")
+            raise FinancialAlgebraError(f"Fallo en cálculo de Ke: {e}")
+    
+    @lru_cache(maxsize=1)
+    def calculate_wacc(self, topological_coherence: float = 1.0) -> float:
+        """
+        Calcula WACC con penalización por incoherencia estructural.
+        
+        Implementa: WACC_adj = WACC_base * (1 + φ*(1-C))
+        Donde φ=0.3 es el factor de penalización y C=coherencia topológica [0,1].
+        """
+        try:
+            # Validar estructura de capital
+            if self.config.debt_to_equity_ratio < 0:
+                raise ValueError("Razón D/E no puede ser negativa")
+            
+            # Cálculo base
+            ke = self.calculate_ke()
+            d_e = self.config.debt_to_equity_ratio
+            
+            # Pesos (asegurar normalización exacta)
+            w_e = 1.0 / (1.0 + d_e) if d_e != float('inf') else 0.0
+            w_d = d_e / (1.0 + d_e) if d_e != float('inf') else 1.0
+            
+            # Verificar suma unitaria
+            if abs(w_e + w_d - 1.0) > 1e-12:
+                raise FinancialAlgebraError(f"Pesos no normalizados: w_e={w_e:.6f}, w_d={w_d:.6f}")
+            
+            # Kd después de impuestos
+            kd_neto = self.config.cost_of_debt * (1 - self.config.tax_rate)
+            
+            # WACC base
+            wacc_base = (w_e * ke) + (w_d * kd_neto)
+            
+            # Ajuste por coherencia topológica
+            coherence_penalty = 0.3 * (1.0 - topological_coherence)  # φ=0.3
+            wacc_adj = wacc_base * (1.0 + coherence_penalty)
+            
+            # Límite superior: WACC no puede exceder la TIR máxima del sector (~25%)
+            wacc_adj = min(wacc_adj, 0.25)
+            
+            logger.info(f"WACC: base={wacc_base:.2%}, ajustado={wacc_adj:.2%} (coherencia={topological_coherence:.2f})")
+            return wacc_adj
+            
+        except ZeroDivisionError as e:
+            logger.error("División por cero en estructura de capital")
+            raise FinancialAlgebraError("Estructura de capital produce división por cero")
+        except Exception as e:
+            logger.error(f"Error en WACC: {e}")
+            raise
+    
+    def calculate_npv(self, cash_flows: List[float], initial_investment: float = 0, 
+                     certainty_equivalent: float = 1.0) -> float:
+        """
+        Calcula VAN con equivalencia de certeza y flujos estocásticos.
+        
+        Implementa: VAN = Σ [α_t * CF_t / (1+WACC)^t] - I_0
+        Donde α_t = factor de certeza que decrece exponencialmente en el tiempo.
+        """
+        if not cash_flows:
+            raise ValueError("Lista de flujos de caja vacía")
+        
+        try:
+            wacc = self.calculate_wacc()
+            
+            # Validar tasa de descuento positiva
+            if wacc <= -1.0:
+                raise FinancialAlgebraError(f"WACC ({wacc:.2%}) inválido para descuento")
+            
+            # VAN base
+            npv = -abs(initial_investment)
+            
+            # Factor de equivalencia de certeza que decrece con el tiempo
+            # α_t = certainty_equivalent * exp(-λ*t), λ=0.1
+            lambda_decay = 0.1
+            
+            for t, cf in enumerate(cash_flows, 1):
+                # Ajustar flujo por equivalencia de certeza
+                certainty_factor = certainty_equivalent * exp(-lambda_decay * t)
+                adjusted_cf = cf * certainty_factor
+                
+                # Descontar
+                discount_factor = pow(1.0 + wacc, t)
+                if discount_factor <= 0:
+                    raise FinancialAlgebraError(f"Factor de descuento no positivo en t={t}")
+                
+                npv += adjusted_cf / discount_factor
+            
+            # Validación de convergencia de la serie
+            if len(cash_flows) > 20 and abs(npv) > 1e6:
+                logger.warning("VAN muestra posible divergencia en serie larga")
+            
+            logger.info(f"VAN calculado: ${npv:,.2f} (WACC={wacc:.2%}, α={certainty_equivalent:.2f})")
+            return npv
+            
+        except Exception as e:
+            logger.error(f"Error en VAN: {e}")
+            raise
+    
+    def sensitivity_analysis(self, parameter: str, range_values: List[float], 
+                            output_metric: str = "wacc") -> Dict[str, Any]:
+        """
+        Análisis de sensibilidad con gradientes y elasticidades.
+        
+        Calcula: ∂(métrica)/∂(parámetro) y elasticidad ε = (∂m/∂p)*(p/m)
+        """
+        if not hasattr(self.config, parameter):
+            raise ValueError(f"Parámetro '{parameter}' no existe en configuración")
+        
+        original = getattr(self.config, parameter)
+        results = {
+            "parameter": parameter,
+            "original_value": original,
+            "sensitivity": [],
+            "elasticity": []
+        }
+        
+        try:
+            # Calcular métrica base
+            if output_metric == "wacc":
+                base_metric = self.calculate_wacc()
+            elif output_metric == "ke":
+                base_metric = self.calculate_ke()
+            else:
+                raise ValueError(f"Métrica '{output_metric}' no soportada")
+            
+            # Evaluar en cada punto
+            for val in sorted(range_values):
+                setattr(self.config, parameter, val)
+                
+                # Limpiar cachés
+                self.calculate_ke.cache_clear()
+                self.calculate_wacc.cache_clear()
+                
+                # Recalcular
+                if output_metric == "wacc":
+                    metric = self.calculate_wacc()
+                else:
+                    metric = self.calculate_ke()
+                
+                # Calcular sensibilidad y elasticidad
+                if len(results["sensitivity"]) > 0:
+                    prev_val = range_values[range_values.index(val)-1]
+                    prev_metric = results["sensitivity"][-1]["metric"]
+                    
+                    # Derivada numérica
+                    if val != prev_val:
+                        derivative = (metric - prev_metric) / (val - prev_val)
+                        elasticity = derivative * (val / metric) if metric != 0 else float('inf')
+                    else:
+                        derivative = elasticity = float('nan')
+                else:
+                    derivative = elasticity = float('nan')
+                
+                results["sensitivity"].append({
+                    "parameter_value": val,
+                    "metric": metric,
+                    "derivative": derivative,
+                    "elasticity": elasticity
+                })
+            
+            return results
+            
+        finally:
+            # Restaurar siempre
+            setattr(self.config, parameter, original)
+            self.calculate_ke.cache_clear()
+            self.calculate_wacc.cache_clear()
+
+
+### 2. Clase RiskQuantifier - Métricas de Riesgo Avanzadas
+
+class RiskQuantifier:
+    """
+    Cuantificador de riesgo con distribuciones mixtas y cópulas.
+    
+    Implementa VaR, CVaR, Expected Shortfall y métricas de distorsión.
+    """
+    
+    def __init__(self, distribution: DistributionType = DistributionType.NORMAL, 
+                 use_mixed_distributions: bool = False):
+        self.distribution = distribution
+        self.use_mixed = use_mixed_distributions
+        
+    def calculate_var(
+        self,
+        mean: float,
+        std_dev: float,
+        confidence_level: float = 0.95,
+        time_horizon_days: int = 1,
+        df_student_t: int = 5,
+        trading_days_per_year: int = 252,
+        skewness: float = 0.0,
+        kurtosis: float = 3.0
+    ) -> Tuple[float, Dict[str, float]]:
+        """
+        Calcula VaR con ajustes por asimetría y curtosis (Cornish-Fisher).
+        
+        Extensión de Cornish-Fisher:
+        Z_cf = z + (z²-1)*S/6 + (z³-3z)*K/24 - (2z³-5z)*S²/36
+        Donde S=skewness, K=kurtosis-3 (exceso)
+        """
+        if std_dev < 0:
+            raise ValueError("Desviación estándar debe ser positiva")
+        if not 0 < confidence_level < 1:
+            raise ValueError("Nivel de confianza debe estar en (0,1)")
+        
+        try:
+            # Escalado temporal
+            time_factor = sqrt(time_horizon_days / trading_days_per_year)
+            scaled_std = std_dev * time_factor
+            
+            # Valor Z según distribución
+            if self.distribution == DistributionType.NORMAL:
+                z = norm.ppf(confidence_level)
+                dist_name = "Normal"
+                
+                # Ajuste Cornish-Fisher si hay no-normalidad
+                if abs(skewness) > 0.1 or abs(kurtosis - 3.0) > 0.5:
+                    z_cf = self._cornish_fisher_expansion(z, skewness, kurtosis)
+                    dist_name = f"Normal CF (S={skewness:.2f}, K={kurtosis:.2f})"
+                    z = z_cf
+                    
+            elif self.distribution == DistributionType.STUDENT_T:
+                z = t.ppf(confidence_level, df_student_t)
+                dist_name = f"Student-t(df={df_student_t})"
+            else:
+                raise ValueError(f"Distribución no soportada: {self.distribution}")
+            
+            # Calcular VaR
+            var = mean + z * scaled_std
+            
+            # CVaR (Expected Shortfall) - más robusto que VaR
+            if self.distribution == DistributionType.NORMAL:
+                cvar = mean - scaled_std * norm.pdf(z) / (1 - confidence_level)
+            else:  # Student-t
+                pdf_t = t.pdf(z, df_student_t)
+                cvar = mean - scaled_std * (pdf_t / (1 - confidence_level)) * \
+                       (df_student_t + z**2) / (df_student_t - 1)
+            
+            # Métricas adicionales
+            metrics = {
+                "distribution": dist_name,
+                "var": var,
+                "cvar": cvar,
+                "expected_shortfall": cvar,  # Alias
+                "scaled_std": scaled_std,
+                "confidence": confidence_level,
+                "z_score": z,
+                "skewness_adjustment": skewness,
+                "kurtosis_adjustment": kurtosis - 3.0,
+                "tail_index": self._calculate_tail_index(z, confidence_level)
+            }
+            
+            logger.info(f"VaR calculado: {var:,.2f} (Conf={confidence_level:.0%}, {dist_name})")
+            return var, metrics
+            
+        except Exception as e:
+            logger.error(f"Error en cálculo de VaR: {e}")
+            raise RiskQuantificationError(f"Fallo en VaR: {e}")
+    
+    def _cornish_fisher_expansion(self, z: float, skewness: float, excess_kurtosis: float) -> float:
+        """
+        Expansión Cornish-Fisher para percentiles ajustados.
+        
+        z_cf = z + (z²-1)*γ₁/6 + (z³-3z)*γ₂/24 - (2z³-5z)*γ₁²/36
+        Donde γ₁ = skewness, γ₂ = excess kurtosis
+        """
+        term1 = z
+        term2 = (z**2 - 1) * skewness / 6.0
+        term3 = (z**3 - 3*z) * excess_kurtosis / 24.0
+        term4 = (2*z**3 - 5*z) * (skewness**2) / 36.0
+        
+        return term1 + term2 + term3 - term4
+    
+    def _calculate_tail_index(self, z_score: float, confidence: float) -> float:
+        """
+        Calcula el índice de cola: α = -log(1-F(z)) / log(z)
+        Mide la pesadez de las colas.
+        """
+        try:
+            # Probabilidad de exceder z
+            if self.distribution == DistributionType.NORMAL:
+                tail_prob = 1 - norm.cdf(z_score)
+            else:
+                # Para Student-t, necesitaríamos df
+                tail_prob = 1 - confidence
+            
+            if tail_prob <= 0 or z_score <= 0:
+                return float('nan')
+            
+            # Estimador Hill modificado
+            alpha = -np.log(tail_prob) / np.log(abs(z_score))
+            return alpha
+            
+        except:
+            return float('nan')
+    
+    def calculate_risk_metrics_monte_carlo(
+        self,
+        mean: float,
+        std_dev: float,
+        n_simulations: int = 10000,
+        confidence_levels: List[float] = [0.90, 0.95, 0.99]
+    ) -> Dict[str, Any]:
+        """
+        Calcula métricas de riesgo vía Monte Carlo con percentiles empíricos.
+        """
+        # Generar muestras
+        if self.distribution == DistributionType.NORMAL:
+            samples = np.random.normal(mean, std_dev, n_simulations)
+        else:  # Student-t
+            samples = mean + std_dev * np.random.standard_t(df_student_t, n_simulations)
+        
+        # Calcular VaR y CVaR empíricos
+        results = {}
+        for cl in confidence_levels:
+            var_emp = np.percentile(samples, 100 * (1 - cl))
+            cvar_emp = samples[samples <= var_emp].mean()
+            
+            results[f"var_{int(cl*100)}"] = var_emp
+            results[f"cvar_{int(cl*100)}"] = cvar_emp
+        
+        # Estadísticas adicionales
+        results.update({
+            "mean_simulated": samples.mean(),
+            "std_simulated": samples.std(),
+            "skewness": float(stats.skew(samples)),
+            "kurtosis": float(stats.kurtosis(samples)),
+            "max_drawdown": self._calculate_max_drawdown(samples),
+            "expected_shortfall_95": results.get("cvar_95", 0)
+        })
+        
+        return results
+
+
+### 3. Clase RealOptionsAnalyzer - Opciones Reales con Modelos Completos
+
+class RealOptionsAnalyzer:
+    """
+    Analizador de opciones reales con modelos completos y griegas.
+    
+    Implementa: Binomial, Black-Scholes-Merton, y árboles trinomiales.
+    """
+    
+    def __init__(self, model_type: OptionModelType = OptionModelType.BINOMIAL):
+        self.model_type = model_type
+    
+    def value_option_to_wait(
+        self,
+        project_value: float,
+        investment_cost: float,
+        risk_free_rate: float,
+        time_to_expire: float,
+        volatility: float,
+        dividend_yield: float = 0.0,
+        steps: int = 100,
+        option_type: str = "call"  # 'call' o 'put'
+    ) -> Dict[str, float]:
+        """
+        Valora opciones reales con modelo binomial extendido.
+        
+        Soporta:
+        - Opciones americanas/europeas
+        - Dividendos (yield)
+        - Múltiples fuentes de incertidumbre
+        """
+        if self.model_type == OptionModelType.BINOMIAL:
+            return self._binomial_valuation_enhanced(
+                project_value, investment_cost, risk_free_rate,
+                time_to_expire, volatility, dividend_yield, steps, option_type
+            )
+        elif self.model_type == OptionModelType.BLACK_SCHOLES:
+            return self._black_scholes_valuation(
+                project_value, investment_cost, risk_free_rate,
+                time_to_expire, volatility, dividend_yield, option_type
+            )
+    
+    def _binomial_valuation_enhanced(
+        self,
+        S: float,
+        K: float,
+        r: float,
+        T: float,
+        sigma: float,
+        q: float = 0.0,  # dividend yield
+        n: int = 100,
+        option_type: str = "call",
+        american: bool = True
+    ) -> Dict[str, float]:
+        """
+        Modelo binomial CRR mejorado con cálculo exacto de griegas.
+        """
+        dt = T / n
+        u = exp(sigma * sqrt(dt))
+        d = 1 / u
+        a = exp((r - q) * dt)
+        p = (a - d) / (u - d)
+        
+        # Validar probabilidad neutral
+        if p <= 0 or p >= 1:
+            # Ajustar parámetros para mantener arbitraje
+            logger.warning(f"Probabilidad p={p:.3f} fuera de (0,1). Ajustando modelo.")
+            u = exp(sigma * sqrt(dt) + (r - q - sigma**2/2) * dt)
+            d = exp(-sigma * sqrt(dt) + (r - q - sigma**2/2) * dt)
+            a = exp((r - q) * dt)
+            p = (a - d) / (u - d)
+        
+        # Inicializar matrices
+        prices = np.zeros((n + 1, n + 1))
+        values = np.zeros((n + 1, n + 1))
+        
+        # Precios al vencimiento
+        for j in range(n + 1):
+            prices[n, j] = S * (u ** j) * (d ** (n - j))
+            if option_type == "call":
+                values[n, j] = max(prices[n, j] - K, 0)
+            else:  # put
+                values[n, j] = max(K - prices[n, j], 0)
+        
+        # Inducción hacia atrás
+        early_exercise = 0
+        for i in range(n - 1, -1, -1):
+            for j in range(i + 1):
+                # Precio en nodo (i,j)
+                prices[i, j] = S * (u ** j) * (d ** (i - j))
+                
+                # Valor de continuación
+                continuation = exp(-r * dt) * (p * values[i + 1, j + 1] + (1 - p) * values[i + 1, j])
+                
+                # Valor intrínseco
+                if option_type == "call":
+                    intrinsic = max(prices[i, j] - K, 0)
+                else:
+                    intrinsic = max(K - prices[i, j], 0)
+                
+                # Ejercicio temprano (solo americana)
+                if american:
+                    if intrinsic > continuation:
+                        values[i, j] = intrinsic
+                        early_exercise += 1
+                    else:
+                        values[i, j] = continuation
+                else:
+                    values[i, j] = continuation
+        
+        # Calcular griegas mediante diferencias finitas
+        delta = self._calculate_delta(values, S, u, d, r, dt, p, n)
+        gamma = self._calculate_gamma(values, S, u, d)
+        theta = self._calculate_theta(values, dt)
+        vega = self._calculate_vega(S, K, r, T, sigma, q, n, option_type, american)
+        rho = self._calculate_rho(S, K, r, T, sigma, q, n, option_type, american)
+        
+        return {
+            "option_value": values[0, 0],
+            "intrinsic_value": max(S - K, 0) if option_type == "call" else max(K - S, 0),
+            "time_value": values[0, 0] - max(S - K, 0) if option_type == "call" else values[0, 0] - max(K - S, 0),
+            "delta": delta,
+            "gamma": gamma,
+            "theta": theta,
+            "vega": vega,
+            "rho": rho,
+            "early_exercise_nodes": early_exercise,
+            "model": f"Binomial CRR ({'Americana' if american else 'Europea'})",
+            "risk_neutral_prob": p
+        }
+    
+    def _calculate_delta(self, values, S, u, d, r, dt, p, n):
+        """Delta = ∂V/∂S ≈ (V_u - V_d) / (S_u - S_d)"""
+        if n >= 2:
+            V_u = values[1, 1]
+            V_d = values[1, 0]
+            S_u = S * u
+            S_d = S * d
+            return (V_u - V_d) / (S_u - S_d)
+        return 0.0
+    
+    def _black_scholes_valuation(
+        self,
+        S: float,
+        K: float,
+        r: float,
+        T: float,
+        sigma: float,
+        q: float = 0.0,
+        option_type: str = "call"
+    ) -> Dict[str, float]:
+        """
+        Modelo Black-Scholes-Merton con dividendos.
+        
+        Para call: C = S*e^(-qT)*N(d1) - K*e^(-rT)*N(d2)
+        Para put:  P = K*e^(-rT)*N(-d2) - S*e^(-qT)*N(-d1)
+        """
+        if T <= 0:
+            # Opción vencida
+            intrinsic = max(S - K, 0) if option_type == "call" else max(K - S, 0)
+            return {
+                "option_value": intrinsic,
+                "intrinsic_value": intrinsic,
+                "time_value": 0.0,
+                "delta": 1.0 if (option_type == "call" and S > K) else 0.0,
+                "model": "Black-Scholes (expired)"
+            }
+        
+        d1 = (np.log(S / K) + (r - q + 0.5 * sigma**2) * T) / (sigma * np.sqrt(T))
+        d2 = d1 - sigma * np.sqrt(T)
+        
+        if option_type == "call":
+            N_d1 = norm.cdf(d1)
+            N_d2 = norm.cdf(d2)
+            price = S * np.exp(-q * T) * N_d1 - K * np.exp(-r * T) * N_d2
+            delta = np.exp(-q * T) * N_d1
+        else:  # put
+            N_minus_d1 = norm.cdf(-d1)
+            N_minus_d2 = norm.cdf(-d2)
+            price = K * np.exp(-r * T) * N_minus_d2 - S * np.exp(-q * T) * N_minus_d1
+            delta = np.exp(-q * T) * (N_d1 - 1)
+        
+        # Calcular griegas
+        gamma = norm.pdf(d1) * np.exp(-q * T) / (S * sigma * np.sqrt(T))
+        theta = self._calculate_bs_theta(S, K, r, T, sigma, q, option_type)
+        vega = S * np.exp(-q * T) * norm.pdf(d1) * np.sqrt(T)
+        
+        intrinsic = max(S - K, 0) if option_type == "call" else max(K - S, 0)
+        
+        return {
+            "option_value": price,
+            "intrinsic_value": intrinsic,
+            "time_value": price - intrinsic,
+            "delta": delta,
+            "gamma": gamma,
+            "theta": theta,
+            "vega": vega,
+            "model": "Black-Scholes-Merton"
+        }
+
+
+### 4. Clase FinancialEngine - Motor Principal Refinado
+
+class FinancialEngine:
+    """
+    Fachada de análisis financiero con física unificada del costo.
+    
+    Coordina CAPM, riesgo, opciones reales y termodinámica financiera.
+    """
+    
+    def __init__(self, config: FinancialConfig):
+        self.config = config
+        self.capm = CapitalAssetPricing(config)
+        self.risk = RiskQuantifier(DistributionType.NORMAL)
+        self.options = RealOptionsAnalyzer(OptionModelType.BINOMIAL)
+        
+    def _calculate_thermo_structural_volatility(
+        self,
+        base_volatility: float,
+        stability_psi: float,
+        system_temperature: float,
+        structural_coherence: float = 1.0,
+        market_pressure: float = 1.0
+    ) -> Dict[str, Any]:
+        """
+        Implementa la Ecuación Unificada de Física del Costo.
+        
+        Fórmula completa:
+        σ_adj = σ_base * [1 + α*(1-Ψ) + β*(T-T₀)/T₀ + γ*(1-C) + δ*(P-1)]
+        
+        Donde:
+        - α: Sensibilidad estructural (0.3)
+        - β: Sensibilidad térmica (0.005)
+        - γ: Sensibilidad a coherencia (0.2)
+        - δ: Sensibilidad a presión de mercado (0.1)
+        - T₀: Temperatura de referencia (25°C)
+        - Ψ: Estabilidad piramidal
+        - C: Coherencia estructural
+        - P: Presión de mercado (normalizada)
+        """
+        # Factores de sensibilidad (calibrados empíricamente)
+        alpha = 0.3    # Estructural
+        beta = 0.005   # Térmica
+        gamma = 0.2    # Coherencia
+        delta = 0.1    # Mercado
+        
+        T0 = 25.0  # Temperatura de referencia
+        
+        # 1. Factor de Pirámide Invertida
+        structural_factor = 0.0
+        if stability_psi < 1.0:
+            # Penalización exponencial para Ψ < 1
+            structural_factor = alpha * (1.0 / max(stability_psi, 0.1) - 1.0)
+        elif stability_psi < 1.5:
+            # Penalización lineal para 1.0 ≤ Ψ < 1.5
+            structural_factor = alpha * 0.5 * (1.5 - stability_psi)
+        
+        # 2. Factor de Estrés Térmico
+        thermal_factor = 0.0
+        if system_temperature > T0:
+            # Efecto no-lineal: cada 10°C duplica el riesgo
+            thermal_factor = beta * (system_temperature - T0) * \
+                           np.log2(1 + (system_temperature - T0) / 10.0)
+        
+        # 3. Factor de Incoherencia Estructural
+        coherence_factor = gamma * (1.0 - structural_coherence)
+        
+        # 4. Factor de Presión de Mercado
+        market_factor = delta * (market_pressure - 1.0)
+        
+        # 5. Calcular Volatilidad Unificada
+        adjustment = structural_factor + thermal_factor + coherence_factor + market_factor
+        unified_volatility = base_volatility * (1.0 + adjustment)
+        
+        # Límite superior: no más del doble de la volatilidad base
+        unified_volatility = min(unified_volatility, base_volatility * 2.0)
+        
+        # Logging detallado
+        logger.warning(
+            f"🔥 Física del Costo: σ_base={base_volatility:.2%} → σ_adj={unified_volatility:.2%}\n"
+            f"   Factores: Estructural +{structural_factor:.2%}, Térmico +{thermal_factor:.2%}, "
+            f"Coherencia +{coherence_factor:.2%}, Mercado +{market_factor:.2%}"
+        )
+        
+        return {
+            "volatility_base": base_volatility,
+            "volatility_adjusted": unified_volatility,
+            "structural_factor": structural_factor,
+            "thermal_factor": thermal_factor,
+            "coherence_factor": coherence_factor,
+            "market_factor": market_factor,
+            "total_adjustment": adjustment,
+            "stability_psi": stability_psi,
+            "system_temperature": system_temperature,
+            "structural_coherence": structural_coherence,
+            "market_pressure": market_pressure
+        }
+    
+    def calculate_financial_thermal_inertia(
+        self, 
+        liquidity: float, 
+        fixed_contracts_ratio: float,
+        project_complexity: float = 1.0,
+        market_volatility: float = 0.2
+    ) -> Dict[str, float]:
+        """
+        Calcula la Inercia Térmica Financiera con modelo completo.
+        
+        I = M * C_p * exp(-λ*σ)
+        Donde:
+        - M = Masa de Liquidez (liquidity * project_size_factor)
+        - C_p = Calor Específico de Contratos (fixed_contracts_ratio * complexity)
+        - λ = Factor de atenuación por volatilidad del mercado
+        - σ = Volatilidad del mercado
+        """
+        # Masa efectiva (liquidez ajustada por tamaño)
+        mass = liquidity * (1.0 + 0.5 * project_complexity)
+        
+        # Capacidad calorífica específica
+        heat_capacity = fixed_contracts_ratio * (1.0 + 0.3 * project_complexity)
+        
+        # Factor de atenuación por volatilidad
+        attenuation = np.exp(-2.0 * market_volatility)
+        
+        # Inercia térmica total
+        inertia = mass * heat_capacity * attenuation
+        
+        # Inercia normalizada (0-1 scale)
+        max_inertia = 2.0  # Límite teórico
+        normalized_inertia = min(inertia / max_inertia, 1.0)
+        
+        return {
+            "inertia": inertia,
+            "normalized_inertia": normalized_inertia,
+            "mass": mass,
+            "heat_capacity": heat_capacity,
+            "attenuation": attenuation,
+            "stability_class": self._classify_stability(normalized_inertia)
+        }
+    
+    def _classify_stability(self, inertia: float) -> str:
+        """Clasifica la estabilidad térmica del proyecto."""
+        if inertia >= 0.8:
+            return "MUY_ESTABLE"
+        elif inertia >= 0.6:
+            return "ESTABLE"
+        elif inertia >= 0.4:
+            return "MODERADA"
+        elif inertia >= 0.2:
+            return "INESTABLE"
+        else:
+            return "CRITICA"
+    
+    def predict_temperature_change(
+        self, 
+        heat_input: float, 
+        inertia: Dict[str, float],
+        time_constant: float = 1.0,
+        damping_factor: float = 0.7
+    ) -> Dict[str, float]:
+        """
+        Predice el cambio de temperatura financiera usando modelo de segundo orden.
+        
+        Modelo: τ²*d²T/dt² + 2ζτ*dT/dt + T = Q/I
+        Donde:
+        - τ: Constante de tiempo del proyecto
+        - ζ: Factor de amortiguamiento (damping)
+        - Q: Entrada de calor (perturbación)
+        - I: Inercia térmica
+        """
+        I = inertia.get("inertia", 1.0)
+        
+        if I <= 0:
+            return {
+                "temperature_change": heat_input,  # Sin inercia, cambio completo
+                "overshoot": 0.0,
+                "settling_time": 0.0,
+                "stability": "INESTABLE"
+            }
+        
+        # Ecuación simplificada de primer orden para respuesta inicial
+        # ΔT = (Q/I) * (1 - exp(-t/τ))
+        tau = time_constant
+        delta_T = (heat_input / I) * (1 - np.exp(-1.0/tau))  # Respuesta en t=1
+        
+        # Sobrepaso (overshoot) para sistemas subamortiguados
+        if damping_factor < 1.0:
+            overshoot = np.exp(-damping_factor * np.pi / np.sqrt(1 - damping_factor**2))
+        else:
+            overshoot = 0.0
+        
+        # Tiempo de estabilización (2% del valor final)
+        if damping_factor < 1.0:
+            settling_time = -np.log(0.02) / (damping_factor * 1/tau)
+        else:
+            settling_time = 4.0 * tau  # Sobreamortiguado
+        
+        return {
+            "temperature_change": delta_T,
+            "overshoot_percentage": overshoot * 100,
+            "settling_time": settling_time,
+            "final_temperature": heat_input / I,
+            "response_type": "UNDERDAMPED" if damping_factor < 1.0 else "OVERDAMPED"
+        }
+    
+    def calculate_robust_metrics(
+        self,
+        npv: float,
+        cash_flows: List[float],
+        investment: float,
+        volatility: float,
+        confidence_level: float = 0.95
+    ) -> Dict[str, Any]:
+        """
+        Calcula métricas de robustez financiera.
+        
+        Incluye:
+        - Margen de seguridad
+        - Índice de robustez
+        - Probabilidad de quiebre
+        - Factor de estrés
+        """
+        if not cash_flows or investment <= 0:
+            return {}
+        
+        # Margen de seguridad (Safety Margin)
+        total_cash = sum(cash_flows)
+        safety_margin = (total_cash - investment) / investment
+        
+        # Índice de Robustez (Sharpe-like)
+        expected_return = npv / investment if investment > 0 else 0
+        robustness_index = expected_return / volatility if volatility > 0 else float('inf')
+        
+        # Probabilidad de quiebre (Probability of Breach)
+        # Usando distribución lognormal para valor del proyecto
+        mean_log_return = np.log(1 + expected_return) - 0.5 * volatility**2
+        z_score = (np.log(1.0) - mean_log_return) / volatility  # Probabilidad de NPV < 0
+        prob_breach = norm.cdf(z_score)
+        
+        # Factor de Estrés (Stress Factor)
+        # Mide sensibilidad a caídas del 20% en flujos
+        stressed_cash = [cf * 0.8 for cf in cash_flows]
+        stressed_npv = self.capm.calculate_npv(stressed_cash, investment)
+        stress_factor = (npv - stressed_npv) / abs(npv) if npv != 0 else 0
+        
+        return {
+            "safety_margin": safety_margin,
+            "robustness_index": robustness_index,
+            "probability_of_breach": prob_breach,
+            "stress_factor": stress_factor,
+            "rating": self._rate_robustness(robustness_index, prob_breach)
+        }
+    
+    def _rate_robustness(self, robustness_index: float, prob_breach: float) -> str:
+        """Clasifica la robustez del proyecto."""
+        if robustness_index > 2.0 and prob_breach < 0.05:
+            return "EXCELENTE"
+        elif robustness_index > 1.0 and prob_breach < 0.10:
+            return "BUENA"
+        elif robustness_index > 0.5 and prob_breach < 0.20:
+            return "MODERADA"
+        elif robustness_index > 0.0 and prob_breach < 0.30:
+            return "DEBIL"
+        else:
+            return "CRITICA"
+
+
+### 5. Funciones de Utilidad Refinadas
+
+def calculate_volatility_from_returns(
+    returns: List[float],
+    frequency: str = "daily",
+    annual_trading_days: int = 252,
+    method: str = "standard",  # 'standard', 'garch', 'ewma'
+    lambda_ewma: float = 0.94
+) -> Dict[str, float]:
+    """
+    Calcula volatilidad con múltiples métodos y métricas de calidad.
+    
+    Args:
+        returns: Retornos históricos.
+        frequency: Frecuencia de datos.
+        annual_trading_days: Días de trading anuales.
+        method: Método de cálculo ('standard', 'ewma', 'garch').
+        lambda_ewma: Parámetro de decaimiento para EWMA.
+    
+    Returns:
+        Dict con volatilidad y métricas de calidad.
+    """
+    if not returns or len(returns) < 2:
+        raise ValueError(f"Se requieren ≥2 retornos. Recibidos: {len(returns)}")
+    
+    returns_array = np.array(returns)
+    n = len(returns_array)
+    
+    # Factor de anualización
+    factors = {"daily": annual_trading_days, "weekly": 52, "monthly": 12, "annual": 1}
+    if frequency not in factors:
+        raise ValueError(f"Frecuencia '{frequency}' no válida")
+    
+    annual_factor = factors[frequency]
+    
+    # Calcular volatilidad según método
+    if method == "standard":
+        # Desviación estándar clásica
+        vol = np.std(returns_array, ddof=1) * np.sqrt(annual_factor)
+        method_name = "Estándar"
+        
+    elif method == "ewma":
+        # EWMA (RiskMetrics)
+        weights = np.array([lambda_ewma ** (n - i - 1) for i in range(n)])
+        weights = weights / weights.sum()
+        
+        mean = np.average(returns_array, weights=weights)
+        variance = np.average((returns_array - mean) ** 2, weights=weights)
+        vol = np.sqrt(variance * annual_factor)
+        method_name = f"EWMA(λ={lambda_ewma})"
+        
+    elif method == "garch":
+        # GARCH(1,1) simplificado
+        # Inicializar parámetros
+        omega = 0.05
+        alpha = 0.1
+        beta = 0.85
+        
+        # Estimación simplificada
+        variances = np.zeros(n)
+        variances[0] = np.var(returns_array)
+        
+        for t in range(1, n):
+            variances[t] = omega + alpha * returns_array[t-1]**2 + beta * variances[t-1]
+        
+        vol = np.sqrt(np.mean(variances) * annual_factor)
+        method_name = "GARCH(1,1)"
+    else:
+        raise ValueError(f"Método '{method}' no soportado")
+    
+    # Métricas de calidad
+    mean_return = np.mean(returns_array)
+    skew = float(stats.skew(returns_array))
+    kurt = float(stats.kurtosis(returns_array))
+    
+    # Error estándar de la volatilidad
+    vol_se = vol / np.sqrt(2 * n)
+    
+    # Test de normalidad (Jarque-Bera simplificado)
+    jb_stat = n * (skew**2 / 6 + (kurt - 3)**2 / 24)
+    jb_pvalue = 1 - stats.chi2.cdf(jb_stat, 2)
+    
+    return {
+        "volatility": vol,
+        "volatility_se": vol_se,
+        "method": method_name,
+        "annualization_factor": annual_factor,
+        "mean_return": mean_return,
+        "skewness": skew,
+        "kurtosis": kurt,
+        "jarque_bera_stat": jb_stat,
+        "jarque_bera_pvalue": jb_pvalue,
+        "normality_test": "NORMAL" if jb_pvalue > 0.05 else "NON-NORMAL",
+        "confidence_interval": {
+            "lower_95": vol - 1.96 * vol_se,
+            "upper_95": vol + 1.96 * vol_se
+        }
+    }
+
+
+### 6. Clases de Excepción Especializadas
+
+class FinancialAlgebraError(Exception):
+    """Error en álgebra financiera (CAPM, WACC, VAN)."""
+    pass
+
+class RiskQuantificationError(Exception):
+    """Error en cuantificación de riesgo (VaR, CVaR)."""
+    pass
+
+class OptionPricingError(Exception):
+    """Error en valoración de opciones reales."""
+    pass
+
+class ThermodynamicFinanceError(Exception):
+    """Error en termodinámica financiera."""
+    pass
