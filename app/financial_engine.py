@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Este módulo trasciende la contabilidad determinista para modelar el presupuesto como un
 activo financiero dinámico sujeto a la entropía del mercado. Transforma costos fijos
