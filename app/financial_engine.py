@@ -1,28 +1,44 @@
 """
-Este módulo trasciende la contabilidad determinista para modelar el presupuesto como un
-activo financiero dinámico sujeto a la entropía del mercado. Transforma costos fijos
-en distribuciones de probabilidad y evalúa la flexibilidad estratégica.
+Módulo: Business Agent (El Nodo de Síntesis / Estrato Sabiduría)
+================================================================
 
-Modelos y Metodologías:
------------------------
-1. Valoración Estocástica (Monte Carlo & VaR):
-   Simula miles de escenarios de mercado para calcular el Valor en Riesgo (VaR) y
-   el Déficit Esperado (CVaR), definiendo la contingencia necesaria para blindar
-   la rentabilidad con un 95% de confianza.
+Este componente actúa como el cerebro ejecutivo del sistema, operando en el nivel 
+más alto de la jerarquía DIKW (Wisdom). Su función principal es integrar la evidencia 
+física (Topología) y estratégica (Finanzas) para emitir un "Veredicto Holístico" 
+sobre la viabilidad del proyecto.
 
-2. Opciones Reales (Flexibilidad Estratégica):
-   Utiliza modelos binomiales/Black-Scholes para valorar la "Opción de Esperar" o
-   expandir, tratando la gestión del proyecto no como una obligación de gasto,
-   sino como un portafolio de opciones de inversión.
+Principios Arquitectónicos y Matemáticos:
+-----------------------------------------
 
-3. Termodinámica Financiera:
-   Calcula la "Inercia Financiera" del proyecto (Masa de Liquidez * Calor Específico
-   de Contratos Fijos) para predecir la resistencia del presupuesto ante choques
-   inflacionarios (cambios de temperatura del mercado).
+1. El Principio de Causalidad Estructural ("No hay Estrategia sin Física"):
+   El agente se niega a emitir juicios financieros si la estabilidad topológica 
+   subyacente no ha sido garantizada. Utiliza la MIC (Matriz de Interacción Central) 
+   para validar que los estratos inferiores (PHYSICS, TACTICS) estén cerrados antes 
+   de proyectar vectores en el estrato STRATEGY.
 
-4. Costo de Capital Estructural (WACC):
-   Determina la tasa de descuento ajustada por el riesgo topológico detectado,
-   penalizando proyectos con alta fragmentación o ciclos de dependencia.
+2. Síntesis Topológico-Financiera (El Funtor de Decisión):
+   Implementa un mapeo $F: (T \times \Phi \times \Theta) \to D$, donde el vector de 
+   decisión final ($D$) es una combinación convexa de tres subespacios:
+   - $T$ (Topología): Coherencia estructural y estabilidad piramidal ($\Psi$).
+   - $\Phi$ (Finanzas): VPN, TIR y exposición al riesgo (VaR).
+   - $\Theta$ (Termodinámica): Entropía del sistema y temperatura de mercado ($T_{sys}$).
+
+3. Protocolo RiskChallenger (Auditoría Adversarial):
+   Incorpora un "Fiscal Interno" que desafía los resultados financieros mediante 
+   reglas de inferencia lógica para detectar "Falsos Positivos" (proyectos rentables 
+   pero inviables físicamente).
+   
+   Regla de Veto Ejemplo ($R_1$):
+   $$ (\Phi \in SAFE) \land (\Psi < 0.70) \implies \text{VETO\_ESTRUCTURAL} $$
+   "Si la rentabilidad es alta pero la base de proveedores es una pirámide invertida, 
+   el riesgo de colapso logístico anula la ganancia teórica".
+
+4. Inyección Causal de Riesgo:
+   A diferencia de modelos tradicionales, este agente inyecta métricas topológicas 
+   (como la Sinergia de Riesgo o $\beta_1$) directamente en los parámetros de la 
+   simulación financiera, ajustando la volatilidad proyectada ($\sigma$) basada en 
+   la fragilidad estructural detectada.
+
 """
 
 import logging
