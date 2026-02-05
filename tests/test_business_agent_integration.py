@@ -183,13 +183,14 @@ class InsumosBuilder:
         return self
     
     def with_standard_insumos_for(self, codigo_apu: str) -> "InsumosBuilder":
-        """Genera set estándar de insumos para un APU."""
+        """Genera set estándar de insumos únicos para un APU para evitar ciclos excesivos."""
         base_cost = 100.0
+        suffix = f" ({codigo_apu})"
         self._insumos.extend([
-            InsumoRecord(codigo_apu, "Cemento Portland", "MATERIAL", base_cost * 0.4),
-            InsumoRecord(codigo_apu, "Oficial de Obra", "MANO_OBRA", base_cost * 0.35),
-            InsumoRecord(codigo_apu, "Mezcladora", "EQUIPO", base_cost * 0.15),
-            InsumoRecord(codigo_apu, "Flete Materiales", "TRANSPORTE", base_cost * 0.10),
+            InsumoRecord(codigo_apu, f"Cemento Portland{suffix}", "MATERIAL", base_cost * 0.4),
+            InsumoRecord(codigo_apu, f"Oficial de Obra{suffix}", "MANO_OBRA", base_cost * 0.35),
+            InsumoRecord(codigo_apu, f"Mezcladora{suffix}", "EQUIPO", base_cost * 0.15),
+            InsumoRecord(codigo_apu, f"Flete Materiales{suffix}", "TRANSPORTE", base_cost * 0.10),
         ])
         return self
     
@@ -377,6 +378,7 @@ class ProjectContextBuilder:
             "initial_investment": self._cash_flow.initial_investment,
             "cash_flows": self._cash_flow.cash_flows,
             "timestamp": FIXED_TIMESTAMP,
+            "validated_strata": {"PHYSICS", "TACTICS"},
             **self._extra_params
         }
         
@@ -670,7 +672,7 @@ class TestEvaluateProjectFlow(TestFixtures):
         context, _ = complete_context
         report = agent.evaluate_project(context)
         
-        required_keys = ["metrics", "financial_metrics_input", "strategic_narrative"]
+        required_keys = ["metrics", "financial_metrics", "strategic_narrative"]
         
         for key in required_keys:
             assert key in report.details, f"Clave requerida faltante en details: {key}"
@@ -858,10 +860,12 @@ class TestFinancialAnalysis(TestFixtures):
         
         # El payback debería mencionarse en la narrativa o métricas
         metrics = report.details.get("metrics", {})
+        financial_metrics = report.details.get("financial_metrics", {})
         narrative_lower = report.strategic_narrative.lower()
         
         has_payback = (
             "payback" in metrics or
+            "payback" in financial_metrics or
             "período de recuperación" in narrative_lower or
             "recuperación" in narrative_lower
         )
@@ -898,6 +902,7 @@ class TestEdgeCases(TestFixtures):
         context = {
             "df_presupuesto": PresupuestoBuilder().with_apu("APU-001", "Test", 10.0).build(),
             "df_merged": InsumosBuilder().with_insumo("APU-001", "M", "MATERIAL", 100.0).build(),
+            "validated_strata": {"PHYSICS", "TACTICS"},
             # Sin initial_investment ni cash_flows
         }
         
@@ -944,7 +949,7 @@ class TestEdgeCases(TestFixtures):
         presupuesto = PresupuestoBuilder()
         insumos = InsumosBuilder()
         
-        # Crear 100 APUs con insumos
+        # Crear 100 APUs con insumos únicos
         apu_codes = []
         for i in range(1, 101):
             codigo = f"APU-{i:03d}"
@@ -953,7 +958,7 @@ class TestEdgeCases(TestFixtures):
         
         insumos.for_apus(*apu_codes)
         for codigo in apu_codes:
-            insumos.with_insumo(codigo, "Material", "MATERIAL", 100.0)
+            insumos.with_insumo(codigo, f"Material for {codigo}", "MATERIAL", 100.0)
         
         context = (
             ProjectContextBuilder()

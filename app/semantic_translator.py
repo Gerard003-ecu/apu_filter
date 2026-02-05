@@ -1404,6 +1404,7 @@ class SemanticTranslator:
         spectral: Optional[Dict[str, Any]] = None,
         thermal_metrics: Optional[Dict[str, Any]] = None,
         physics_metrics: Optional[Dict[str, Any]] = None,
+        **kwargs: Any,
     ) -> StrategicReport:
         """
         Compone el reporte ejecutivo completo.
