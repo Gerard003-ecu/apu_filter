@@ -1,4 +1,5 @@
 import unittest
+from math import exp
 
 import networkx as nx
 
@@ -207,7 +208,7 @@ class TestFinancialEngine(unittest.TestCase):
 
     def test_thermal_inertia_multiplicative(self):
         """
-        Inercia térmica: I = L × F
+        Inercia térmica: I = L × F (ajustado por complejidad y volatilidad).
 
         Análogo a I = m·c (masa × calor específico).
         """
@@ -221,10 +222,14 @@ class TestFinancialEngine(unittest.TestCase):
 
         for liquidity, fixed_ratio, expected in test_cases:
             with self.subTest(L=liquidity, F=fixed_ratio):
-                inertia = self.engine.calculate_financial_thermal_inertia(
-                    liquidity=liquidity, fixed_contracts_ratio=fixed_ratio
+                # Usamos complejidad=0 y vol=0 para recuperar el comportamiento lineal simple
+                res = self.engine.calculate_financial_thermal_inertia(
+                    liquidity=liquidity,
+                    fixed_contracts_ratio=fixed_ratio,
+                    project_complexity=0.0,
+                    market_volatility=0.0,
                 )
-                self.assertAlmostEqual(inertia, expected, places=10)
+                self.assertAlmostEqual(res["inertia"], expected, places=10)
 
     def test_temperature_change_inverse_law(self):
         """
@@ -239,7 +244,20 @@ class TestFinancialEngine(unittest.TestCase):
         temp_changes = []
 
         for inertia in inertias:
-            delta_t = self.engine.predict_temperature_change(perturbation, inertia)
+            res = self.engine.predict_temperature_change(
+                perturbation,
+                inertia_data={"inertia": inertia},
+                time_constant=1e6,  # Muy alta para que delta_T sea cercano a Q/I
+            )
+            # El modelo de primer orden da ΔT = (Q/I) * (1 - exp(-1/tau))
+            # Si tau es muy grande, ΔT ≈ (Q/I) * (1/tau)
+            # Espera, si quiero ΔT ≈ Q/I necesito que (1 - exp(-1/tau)) ≈ 1.
+            # Eso pasa si tau es pequeño? No. exp(-1/tau) -> 0 if tau is small.
+            # If tau = 0.0001, 1 - exp(-10000) ≈ 1.
+            res = self.engine.predict_temperature_change(
+                perturbation, inertia_data={"inertia": inertia}, time_constant=0.0001
+            )
+            delta_t = res["temperature_change"]
             temp_changes.append(delta_t)
             expected = perturbation / inertia
             self.assertAlmostEqual(delta_t, expected, places=10)
@@ -256,7 +274,8 @@ class TestFinancialEngine(unittest.TestCase):
         Financieramente: Sin liquidez ni contratos, perturbación = impacto directo.
         """
         perturbation = 0.05
-        temp_change = self.engine.predict_temperature_change(perturbation, inertia=0.0)
+        res = self.engine.predict_temperature_change(perturbation, inertia_data={"inertia": 0.0})
+        temp_change = res["temperature_change"]
 
         self.assertEqual(
             temp_change, perturbation, msg="Sin inercia, perturbación pasa sin atenuación"
@@ -268,12 +287,23 @@ class TestFinancialEngine(unittest.TestCase):
 
         Propiedad de sistemas lineales invariantes en el tiempo.
         """
-        inertia = 0.25
+        inertia_data = {"inertia": 0.25}
         base_perturbation = 0.04
+        tau = 0.0001
 
-        delta_1 = self.engine.predict_temperature_change(base_perturbation, inertia)
-        delta_2 = self.engine.predict_temperature_change(2 * base_perturbation, inertia)
-        delta_3 = self.engine.predict_temperature_change(3 * base_perturbation, inertia)
+        res1 = self.engine.predict_temperature_change(
+            base_perturbation, inertia_data, time_constant=tau
+        )
+        res2 = self.engine.predict_temperature_change(
+            2 * base_perturbation, inertia_data, time_constant=tau
+        )
+        res3 = self.engine.predict_temperature_change(
+            3 * base_perturbation, inertia_data, time_constant=tau
+        )
+
+        delta_1 = res1["temperature_change"]
+        delta_2 = res2["temperature_change"]
+        delta_3 = res3["temperature_change"]
 
         self.assertAlmostEqual(delta_2, 2 * delta_1, places=10)
         self.assertAlmostEqual(delta_3, 3 * delta_1, places=10)
@@ -302,8 +332,12 @@ class TestFinancialEngine(unittest.TestCase):
 
         thermo = analysis["thermodynamics"]
 
-        # Verificar inercia
-        expected_inertia = liquidity * fixed_contracts_ratio
+        # Verificar inercia (usando defaults de analyze_project)
+        # mass = 0.2 * (1 + 0.5*1) = 0.3
+        # heat_capacity = 0.5 * (1 + 0.3*1) = 0.65
+        # attenuation = exp(-2 * 0.2) = exp(-0.4) ≈ 0.67032
+        # inertia = 0.3 * 0.65 * 0.67032 = 0.195 * 0.67032 ≈ 0.1307
+        expected_inertia = 0.2 * 1.5 * 0.5 * 1.3 * exp(-0.4)
         self.assertAlmostEqual(thermo["financial_inertia"], expected_inertia, places=10)
 
         # Verificar perturbación y cambio de temperatura
