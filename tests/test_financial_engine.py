@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from math import isclose, sqrt
 
 import numpy as np
