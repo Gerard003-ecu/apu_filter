@@ -33,6 +33,7 @@ class ColumnNames:
     # Costos Calculados
     VR_UNITARIO_FINAL: Final[str] = "VR_UNITARIO_FINAL"
     VALOR_TOTAL_APU: Final[str] = "VALOR_TOTAL_APU"
+    VALOR_TOTAL: Final[str] = "VALOR_TOTAL"  # Alias for structural analysis
     PRECIO_UNIT_APU: Final[str] = "PRECIO_UNIT_APU"
 
     # Categorías de Costo

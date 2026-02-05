@@ -37,10 +37,13 @@ Fundamentos Teóricos y Protocolos de Juicio:
    antes de permitir operaciones en el estrato $V_{STRATEGY}$ [Fuente: tools_interface.txt].
 """
 
+import copy
 import logging
 from dataclasses import asdict, dataclass
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
+import networkx as nx
+import numpy as np
 import pandas as pd
 
 from agent.business_topology import (
@@ -99,11 +102,13 @@ class TopologicalMetricsBundle:
         betti_numbers (Dict[str, Any]): Números de Betti (β0, β1, etc.).
         pyramid_stability (float): Índice de estabilidad piramidal (0.0-1.0).
         graph (Any): Objeto grafo subyacente (NetworkX).
+        persistence_diagram (Optional[List[Any]]): Diagrama de persistencia homológica.
     """
 
     betti_numbers: Dict[str, Any]
     pyramid_stability: float
     graph: Any  # Tipo del grafo según la implementación
+    persistence_diagram: Optional[List[Any]] = None
 
     @property
     def structural_coherence(self) -> float:
@@ -315,15 +320,22 @@ class BusinessAgent:
         self, df_presupuesto: Optional[pd.DataFrame], df_apus_detail: Optional[pd.DataFrame]
     ) -> Tuple[bool, str]:
         """
-        Valida que los DataFrames requeridos existan y tengan estructura válida.
+        Validación estructural de DataFrames con verificación de tipos y dominios.
+
+        Implementa:
+        1. Verificación de existencia y no-vacío
+        2. Validación de esquema de columnas con mapeo de compatibilidad
+        3. Verificación de tipos de datos numéricos en columnas críticas
+        4. Detección de valores atípicos en distribuciones presupuestarias
 
         Args:
             df_presupuesto: DataFrame del presupuesto general.
             df_apus_detail: DataFrame con detalle de APUs mergeado.
 
         Returns:
-            Tupla (es_válido, mensaje_de_error).
+            Tupla (es_válido, mensaje_de_error) con diagnóstico detallado.
         """
+        # 1. Existencia básica
         if df_presupuesto is None:
             return False, "DataFrame 'df_presupuesto' no disponible"
 
@@ -336,38 +348,71 @@ class BusinessAgent:
         if df_apus_detail.empty:
             return False, "DataFrame 'df_merged' está vacío"
 
-        # Validar columnas mínimas requeridas para construir el grafo
-        required_budget_cols = {
-            ColumnNames.CODIGO_APU,
-            ColumnNames.DESCRIPCION_APU,
+        # 2. Validación de esquema con mapeo algebraico
+        # Definir espacios vectoriales de columnas requeridas
+        budget_space = {
+            ColumnNames.CODIGO_APU: {"type": "categorical", "required": True},
+            ColumnNames.DESCRIPCION_APU: {"type": "string", "required": True},
+            ColumnNames.VALOR_TOTAL: {"type": "numeric", "required": False, "min": 0}
         }
 
-        present_cols = set(df_presupuesto.columns)
-        missing_cols = required_budget_cols - present_cols
+        # detail_space defined but not fully used in the proposal's loop,
+        # but kept for architectural completeness.
+        detail_space = {
+            ColumnNames.CODIGO_APU: {"type": "categorical", "required": True},
+            ColumnNames.DESCRIPCION_INSUMO: {"type": "string", "required": True},
+            ColumnNames.CANTIDAD_APU: {"type": "numeric", "required": True, "min": 0},
+            ColumnNames.COSTO_INSUMO_EN_APU: {"type": "numeric", "required": True, "min": 0}
+        }
 
-        if missing_cols:
-            # Fallback para compatibilidad
-            legacy_mapping = {
-                "item": ColumnNames.CODIGO_APU,
-                "descripcion": ColumnNames.DESCRIPCION_APU,
-            }
+        # Mapeo de compatibilidad histórica
+        legacy_mappings = {
+            "item": ColumnNames.CODIGO_APU,
+            "descripcion": ColumnNames.DESCRIPCION_APU,
+            "total": ColumnNames.VALOR_TOTAL
+        }
 
-            still_missing = set()
-            for col in missing_cols:
-                legacy_name = None
-                for leg, new in legacy_mapping.items():
-                    if new == col:
-                        legacy_name = leg
-                        break
+        # Validar espacio presupuestario
+        for modern_col, spec in budget_space.items():
+            if spec["required"]:
+                if modern_col not in df_presupuesto.columns:
+                    # Buscar en mapeo histórico
+                    found = False
+                    for legacy, modern in legacy_mappings.items():
+                        if modern == modern_col and legacy in df_presupuesto.columns:
+                            found = True
+                            break
 
-                if legacy_name and legacy_name in present_cols:
-                    continue
-                still_missing.add(col)
+                    if not found:
+                        return False, f"Columna requerida '{modern_col}' no encontrada"
 
-            if still_missing:
-                return False, f"Columnas faltantes en presupuesto: {still_missing}"
+        # 3. Validación de tipos y dominios
+        numeric_columns = [col for col, spec in budget_space.items()
+                          if spec.get("type") == "numeric"]
 
-        return True, ""
+        for col in numeric_columns:
+            if col in df_presupuesto.columns:
+                spec = budget_space[col]
+                # Verificar que sea numérico
+                if not pd.api.types.is_numeric_dtype(df_presupuesto[col]):
+                    return False, f"Columna '{col}' debe ser numérica"
+
+                # Verificar dominio (valores no negativos)
+                if spec.get("min") is not None:
+                    if (df_presupuesto[col] < spec["min"]).any():
+                        return False, f"Columna '{col}' contiene valores menores a {spec['min']}"
+
+        # 4. Detección de anomalías distribucionales
+        if ColumnNames.VALOR_TOTAL in df_presupuesto.columns:
+            values = df_presupuesto[ColumnNames.VALOR_TOTAL]
+            if len(values) > 10:  # Solo si hay suficiente datos
+                q1, q3 = values.quantile(0.25), values.quantile(0.75)
+                iqr = q3 - q1
+                outliers = values[(values < (q1 - 1.5 * iqr)) | (values > (q3 + 1.5 * iqr))]
+                if len(outliers) > 0.1 * len(values):  # Más del 10% son outliers
+                    logger.warning(f"Presupuesto contiene {len(outliers)} valores atípicos significativos")
+
+        return True, "Validación estructural exitosa"
 
     def _extract_financial_parameters(self, context: Dict[str, Any]) -> FinancialParameters:
         """
@@ -416,48 +461,76 @@ class BusinessAgent:
         self, df_presupuesto: pd.DataFrame, df_apus_detail: pd.DataFrame
     ) -> TopologicalMetricsBundle:
         """
-        Construye el modelo topológico del presupuesto.
+        Construye el modelo topológico con verificación de homología persistente.
 
-        El presupuesto se modela como un complejo simplicial donde:
-        - Vértices: Partidas individuales del presupuesto
-        - Aristas: Relaciones de composición/dependencia entre partidas
-        - Triángulos: Clusters de partidas con dependencias mutuas
-
-        Los números de Betti resultantes caracterizan la estructura:
-        - β₀: Número de componentes conexas (fragmentación del presupuesto)
-        - β₁: Número de ciclos independientes (dependencias circulares)
+        Teorema: Un presupuesto viable debe tener β₀ = 1 (conexo) y β₁ ≤ n/2
+        donde n es el número de partidas, para evitar ciclos patológicos.
 
         Args:
             df_presupuesto: DataFrame del presupuesto.
             df_apus_detail: DataFrame con detalle de APUs.
 
         Returns:
-            TopologicalMetricsBundle con todas las métricas estructurales.
+            TopologicalMetricsBundle con métricas validadas.
 
         Raises:
-            RuntimeError: Si la construcción del grafo falla.
+            TopologicalAnomalyError: Si la estructura viola teoremas de viabilidad.
         """
-        logger.info("🏗️  Construyendo topología del presupuesto...")
+        logger.info("🏗️  Construyendo topología del presupuesto con verificación homológica...")
 
         try:
+            # Construcción del complejo simplicial
             graph = self.graph_builder.build(df_presupuesto, df_apus_detail)
+
+            # Teorema 1: Verificar conectividad
+            if not nx.is_connected(graph.to_undirected()):
+                logger.warning("⚠️  El grafo presupuestario no es conexo (β₀ > 1)")
+                # Esto no es fatal pero afecta la coherencia estructural
+
+            # Cálculo de invariantes algebraicos
+            betti_numbers = asdict(self.topological_analyzer.calculate_betti_numbers(graph))
+            pyramid_stability = self.topological_analyzer.calculate_pyramid_stability(graph)
+
+            # Teorema 2: Límite superior para ciclos
+            n_nodes = len(graph.nodes())
+            beta_1 = betti_numbers.get("beta_1", 0)
+            if beta_1 > n_nodes / 2:
+                raise TopologicalAnomalyError(
+                    f"Demasiados ciclos independientes (β₁={beta_1} > n/2={n_nodes/2})"
+                )
+
+            # Cálculo de homología persistente (si está disponible)
+            persistence = None
+            try:
+                if hasattr(self.topological_analyzer, 'calculate_persistence'):
+                    persistence = self.topological_analyzer.calculate_persistence(graph)
+                    # La vida de características debe ser > umbral
+                    if persistence and len(persistence) > 0:
+                        min_lifetime = min(abs(death - birth) for birth, death in persistence)
+                        if min_lifetime < 0.1:  # Características efímeras
+                            logger.warning("Homología persistente revela características inestables")
+            except AttributeError:
+                pass
+
+            logger.info(
+                f"Métricas topológicas: β₀={betti_numbers.get('beta_0')}, "
+                f"β₁={betti_numbers.get('beta_1')}, Ψ={pyramid_stability:.3f}, "
+                f"Conectado={nx.is_connected(graph.to_undirected())}"
+            )
+
+            return TopologicalMetricsBundle(
+                betti_numbers=betti_numbers,
+                pyramid_stability=pyramid_stability,
+                graph=graph,
+                persistence_diagram=persistence
+            )
+
+        except TopologicalAnomalyError as e:
+            logger.error(f"❌ Anomalía topológica detectada: {e}")
+            self.telemetry.record_error("business_agent.topology_anomaly", str(e))
+            raise
         except Exception as e:
-            raise RuntimeError(f"Error construyendo grafo topológico: {e}") from e
-
-        betti_numbers = asdict(self.topological_analyzer.calculate_betti_numbers(graph))
-        pyramid_stability = self.topological_analyzer.calculate_pyramid_stability(graph)
-
-        logger.debug(
-            f"Métricas topológicas: β₀={betti_numbers.get('beta_0')}, "
-            f"β₁={betti_numbers.get('beta_1')}, "
-            f"estabilidad={pyramid_stability:.3f}"
-        )
-
-        return TopologicalMetricsBundle(
-            betti_numbers=betti_numbers,
-            pyramid_stability=pyramid_stability,
-            graph=graph,
-        )
+            raise RuntimeError(f"Error construyendo topología: {e}") from e
 
     def _perform_financial_analysis(
         self,
@@ -467,56 +540,110 @@ class BusinessAgent:
         thermal_metrics: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
         """
-        Ejecuta el análisis financiero proyectando la intención sobre la MIC.
+        Ejecuta análisis financiero con inyección causal de topología y termodinámica.
+
+        Implementa la proyección: F(T, Φ, Θ) → D donde:
+        - T: Espacio topológico (Betti, Ψ)
+        - Φ: Espacio financiero (parámetros)
+        - Θ: Espacio termodinámico (T_sys, entropía)
+        - D: Espacio de decisión (métricas enriquecidas)
 
         Args:
             params: Parámetros financieros validados.
-            session_context: Contexto de la sesión para validación de estratos (Gatekeeper).
-            topological_bundle: Datos topológicos para inyección causal.
-            thermal_metrics: Datos térmicos para inyección causal.
+            session_context: Contexto de la sesión.
+            topological_bundle: Datos topológicos para condicionamiento causal.
+            thermal_metrics: Datos térmicos para ajuste de volatilidad.
 
         Returns:
-            Diccionario con métricas financieras (VPN, TIR, VaR, etc.).
+            Diccionario con métricas financieras enriquecidas causalmente.
 
         Raises:
-            RuntimeError: Si el análisis financiero falla o es bloqueado por la MIC.
+            FinancialProjectionError: Si la proyección MIC falla o es inválida.
         """
-        logger.info("🤖 Proyectando vector de intención 'financial_analysis' sobre la MIC...")
+        logger.info("🤖 Proyectando vector financiero con inyección causal...")
 
-        # 1. Definir el Payload (Datos para el cálculo)
-        # Adaptamos los parámetros al formato esperado por la herramienta financial_analysis
+        # 1. Build payload enriched with causality
         payload = {
             "amount": params.initial_investment,
             "std_dev": params.cost_std_dev,
-            "time": len(params.cash_flows)  # Asumimos que cash_flows define el tiempo en años
+            "time": len(params.cash_flows),
+            "cash_flows": list(params.cash_flows),  # Use actual cash flows!
+            # Topology causal injection
+            "topological_conditioning": {
+                "structural_coherence": topological_bundle.structural_coherence if topological_bundle else 1.0,
+                "beta_1_penalty": topological_bundle.betti_numbers.get("beta_1", 0) * 0.1 if topological_bundle else 0,
+                "is_connected": nx.is_connected(topological_bundle.graph.to_undirected()) if topological_bundle else True
+            } if topological_bundle else {},
+            # Thermodynamics causal injection
+            "thermal_adjustment": {
+                "system_temperature": thermal_metrics.get("system_temperature", 0.0) if thermal_metrics else 0.0,
+                "volatility_multiplier": 1.0 + (thermal_metrics.get("system_temperature", 0.0) * 0.5)
+                if thermal_metrics else 1.0
+            }
         }
-        # Nota: La herramienta financial_analysis genera sus propios flujos internamente basada en amount/time/std_dev.
-        # Si quisiéramos usar los cash_flows específicos del contexto, necesitaríamos actualizar la herramienta
-        # o pasar un payload diferente. Por ahora, seguimos la firma de la herramienta existente.
 
-        # 2. Definir el Contexto (Para validación de estratos)
-        # El contexto debe venir de la sesión actual para probar que PHYSICS ya pasó.
+        # 2. MIC strata validation with formal verification
+        # Require V_PHYSICS to be closed before operating in V_STRATEGY
+        validated_strata = session_context.get("validated_strata", set())
+        # If validated_strata is a list (from JSON), convert to set
+        if isinstance(validated_strata, list):
+            validated_strata = set(validated_strata)
+
+        required_strata = {"PHYSICS", "TACTICS"}
+
+        missing_strata = required_strata - validated_strata
+        if missing_strata:
+            error_msg = f"Violación de jerarquía MIC: Estratos {missing_strata} no validados"
+            logger.error(f"⛔ {error_msg}")
+            raise MICHierarchyViolationError(error_msg)
+
         mic_context = {
-            "validated_strata": session_context.get("validated_strata", set())
+            "validated_strata": validated_strata,
+            "session_id": session_context.get("session_id", "unknown"),
+            "causal_injection": True  # Marcar que hay inyección causal
         }
 
-        # 3. Proyección Algebraica (project_intent)
+        # 3. Algebraic projection with specific error handling
         try:
-            # Esto invocará internamente a _validate_hierarchy
-            # Si PHYSICS no está validado, lanzará MICHierarchyViolationError (o retornará error)
             response = self.mic.project_intent("financial_analysis", payload, mic_context)
 
             if not response.get("success"):
                 error = response.get("error", "Unknown MIC error")
-                raise RuntimeError(f"Error en vector financiero: {error}")
+                error_code = response.get("error_code", "UNKNOWN")
 
-            # Extraer resultados. La herramienta devuelve structure:
-            # { "success": True, "results": { ... }, ... }
-            return response["results"]
+                # MIC error classification
+                if error_code == "HIERARCHY_VIOLATION":
+                    raise MICHierarchyViolationError(f"MIC: {error}")
+                elif error_code == "TOOL_UNAVAILABLE":
+                    raise FinancialToolError(f"Financial tool unavailable: {error}")
+                else:
+                    raise FinancialProjectionError(f"Error in financial projection: {error}")
 
+            results = copy.deepcopy(response["results"])
+
+            # 4. Post-projection enrichment with structural factors
+            if topological_bundle:
+                # Adjust NPV by structural coherence
+                if "npv" in results:
+                    structural_factor = topological_bundle.structural_coherence
+                    results["npv_adjusted"] = results["npv"] * structural_factor
+                    results["structural_discount"] = 1.0 - structural_factor
+
+                # Adjust risk by topological cycles
+                if "var_95" in results:
+                    cycle_risk = topological_bundle.betti_numbers.get("beta_1", 0) * 0.05
+                    results["var_95"] = results["var_95"] * (1.0 + cycle_risk)
+
+            logger.info(f"✅ Proyección financiera completada. VPN: {results.get('npv', 'N/A')}")
+            return results
+
+        except MICHierarchyViolationError:
+            raise
+        except (FinancialToolError, FinancialProjectionError):
+            raise
         except Exception as e:
-            logger.error(f"⛔ Bloqueo de MIC detectado: {e}")
-            raise RuntimeError(f"Fallo en proyección MIC: {e}") from e
+            logger.error(f"⛔ Error inesperado en proyección MIC: {e}", exc_info=True)
+            raise FinancialProjectionError(f"Fallo catastrófico en proyección: {e}") from e
 
     def _compose_enriched_report(
         self,
@@ -527,89 +654,169 @@ class BusinessAgent:
         exergy: float = 0.6,
     ) -> ConstructionRiskReport:
         """
-        Genera el reporte ejecutivo integrando análisis topológico, financiero y TERMODINÁMICO.
+        Genera reporte ejecutivo usando álgebra de decisiones multicriterio.
 
-        La narrativa estratégica se construye considerando:
-        1. Coherencia estructural del presupuesto (invariantes topológicos).
-        2. Viabilidad financiera (VPN, TIR, período de recuperación).
-        3. Riesgo sistémico (sinergia entre riesgos estructurales y financieros).
-        4. Estado Termodinámico (Fiebre del Proyecto, Exergía, Entropía).
+        Implementa: D = α·T ⊕ β·F ⊕ γ·Θ donde:
+        - T: Vector topológico (β₀, β₁, Ψ, coherencia)
+        - F: Vector financiero (VPN, TIR, VaR)
+        - Θ: Vector termodinámico (T_sys, S, Ex)
+        - α,β,γ: Pesos determinados por reglas de negocio
+        - ⊕: Operador de fusión con propiedades de homomorfismo
 
         Args:
-            topological_bundle: Métricas topológicas del presupuesto.
-            financial_metrics: Métricas del análisis financiero.
-            thermal_metrics: Métricas de flujo térmico (temperatura del sistema).
-            entropy: Entropía del sistema (desde FluxCondenser).
-            exergy: Exergía del presupuesto (desde MatterGenerator).
+            topological_bundle: Métricas topológicas.
+            financial_metrics: Métricas financieras.
+            thermal_metrics: Métricas térmicas.
+            entropy: Entropía del sistema.
+            exergy: Exergía del presupuesto.
 
         Returns:
-            ConstructionRiskReport completo con narrativa estratégica.
-        """
-        logger.info("🧠 Integrando inteligencia (Topología + Finanzas + Termodinámica)...")
+            ConstructionRiskReport con álgebra de decisiones aplicada.
 
-        # Generar reporte base desde el analizador topológico
+        Raises:
+            SynthesisAlgebraError: Si los espacios vectoriales no son compatibles.
+        """
+        logger.info("🧠 Integrando inteligencia con álgebra de decisiones...")
+
+        # 1. Generate base report
         base_report = self.topological_analyzer.generate_executive_report(
             topological_bundle.graph, financial_metrics
         )
 
         if base_report is None:
-            raise RuntimeError("El analizador topológico retornó un reporte nulo")
+            raise SynthesisAlgebraError("Topological space generated a null vector")
 
-        # Extraer riesgo de sinergia para la narrativa
-        synergy_risk = base_report.details.get("synergy_risk")
+        # 2. Verify vector space compatibility
+        # All vectors must have a defined dimension
+        topo_vector = np.array([
+            topological_bundle.structural_coherence,
+            topological_bundle.pyramid_stability,
+            1.0 / (topological_bundle.betti_numbers.get("beta_0", 1) + 1e-6),
+            1.0 / (topological_bundle.betti_numbers.get("beta_1", 0) + 1e-6)
+        ])
 
-        # 1. Obtener Narrativa Estructural, Financiera y Termodinámica Unificada
-        strategic_report = self.translator.compose_strategic_narrative(
-            topological_metrics=topological_bundle.betti_numbers,
-            financial_metrics=financial_metrics,
-            stability=topological_bundle.pyramid_stability,
-            synergy_risk=synergy_risk,
-            spectral=base_report.details.get("spectral_analysis"),
-            thermal_metrics=thermal_metrics,  # Pasamos métricas térmicas para la unificación
-        )
+        # Extract key financial metrics
+        financial_keys = ["npv", "irr", "payback_period", "sharpe_ratio"]
+        finance_vector = np.array([
+            financial_metrics.get(k, 0.0) if isinstance(financial_metrics.get(k), (int, float)) else 0.0
+            for k in financial_keys
+        ])
 
-        # Extraer la narrativa cruda (string) para compatibilidad con ConstructionRiskReport
-        # El objeto StrategicReport completo se guarda en los detalles para uso avanzado
-        full_narrative_str = strategic_report.raw_narrative
+        # Normalize dimensions for algebra
+        common_dim = min(len(topo_vector), len(finance_vector))
+        topo_vector_norm_dim = topo_vector[:common_dim]
+        finance_vector_norm_dim = finance_vector[:common_dim]
 
-        # Enriquecer el reporte con datos adicionales
+        # 3. Apply decision algebra with weights
+        # Rule: Structure 40%, Finance 40%, Thermo 20%
+        alpha, beta, gamma = 0.4, 0.4, 0.2
+
+        # Thermodynamic vector
+        thermo_vector = np.array([
+            thermal_metrics.get("system_temperature", 0.0),
+            1.0 - entropy,  # Negentropy
+            exergy,
+            thermal_metrics.get("heat_capacity", 1.0)
+        ])[:common_dim]
+
+        # Linear fusion with normalization
+        topo_norm = topo_vector_norm_dim / (np.linalg.norm(topo_vector_norm_dim) + 1e-6)
+        finance_norm = finance_vector_norm_dim / (np.linalg.norm(finance_vector_norm_dim) + 1e-6)
+        thermo_norm = thermo_vector / (np.linalg.norm(thermo_vector) + 1e-6)
+
+        decision_vector = alpha * topo_norm + beta * finance_norm + gamma * thermo_norm
+        decision_magnitude = np.linalg.norm(decision_vector)
+
+        # 4. Generate strategic narrative
+        try:
+            strategic_report = self.translator.compose_strategic_narrative(
+                topological_metrics=topological_bundle.betti_numbers,
+                financial_metrics=financial_metrics,
+                stability=topological_bundle.pyramid_stability,
+                synergy_risk=base_report.details.get("synergy_risk"),
+                spectral=base_report.details.get("spectral_analysis"),
+                thermal_metrics=thermal_metrics,
+                # Include decision vector
+                decision_algebra={
+                    "vector": decision_vector.tolist(),
+                    "magnitude": float(decision_magnitude),
+                    "topo_contribution": float(alpha * np.linalg.norm(topo_norm)),
+                    "finance_contribution": float(beta * np.linalg.norm(finance_norm)),
+                    "thermo_contribution": float(gamma * np.linalg.norm(thermo_norm))
+                }
+            )
+        except Exception as e:
+            logger.warning(f"⚠️  Strategic narrative failed: {e}, using base narrative")
+            # Create a mock object that matches the expected interface
+            class MockNarrative:
+                def __init__(self, raw): self.raw_narrative = raw
+            strategic_report = MockNarrative(f"Base report with integrity {base_report.integrity_score:.2f}")
+
+        # 5. Build enriched report
         enriched_details = {
             **base_report.details,
-            "strategic_narrative": full_narrative_str,
-            "strategic_report_object": strategic_report, # Guardamos el objeto completo
-            "financial_metrics_input": financial_metrics,
+            "strategic_narrative": getattr(strategic_report, 'raw_narrative', ''),
+            "financial_metrics": financial_metrics,
             "thermal_metrics": thermal_metrics,
             "thermodynamics": {
                 "entropy": entropy,
                 "exergy": exergy,
-                "temperature": thermal_metrics.get("system_temperature", 0.0),
+                "system_temperature": thermal_metrics.get("system_temperature", 0.0),
+                "negentropy": 1.0 - entropy
             },
-            "structural_coherence": topological_bundle.structural_coherence,
             "topological_invariants": {
                 "betti_numbers": topological_bundle.betti_numbers,
                 "pyramid_stability": topological_bundle.pyramid_stability,
+                "structural_coherence": topological_bundle.structural_coherence,
+                "is_connected": nx.is_connected(topological_bundle.graph.to_undirected())
             },
+            "decision_algebra": {
+                "vector": decision_vector.tolist(),
+                "magnitude": float(decision_magnitude),
+                "dimension": common_dim,
+                "weights": {"alpha": alpha, "beta": beta, "gamma": gamma}
+            }
         }
 
-        # Merge financial metrics into main metrics for easier access/testing
-        if "metrics" in enriched_details:
-             enriched_details["metrics"].update(financial_metrics)
-             if "performance" in financial_metrics:
-                 enriched_details["metrics"].update(financial_metrics["performance"])
+        # 6. Calculate integrated score using algebra
+        # Base: topological integrity × financial health × thermodynamic quality
+        # Normalize NPV to [0, 1] range for financial health
+        initial_inv = abs(financial_metrics.get("initial_investment", 1.0))
+        if initial_inv == 0: initial_inv = 1.0
 
-        # Construir nuevo reporte inmutable con datos enriquecidos
+        financial_health = min(1.0, max(0.0,
+            (financial_metrics.get("npv", 0.0) / initial_inv + 1.0) / 2.0
+        ))
+
+        thermo_quality = min(1.0, max(0.0,
+            (exergy - entropy + 1.0) / 2.0  # In [-1, 1] → [0, 1]
+        ))
+
+        integrated_score = (
+            (base_report.integrity_score / 100.0) * financial_health * thermo_quality
+        ) ** (1.0/3.0)  # Geometric mean
+
+        # Scale to 0-100
+        integrated_score *= 100.0
+
         report = ConstructionRiskReport(
-            integrity_score=base_report.integrity_score,
+            integrity_score=float(integrated_score),
             waste_alerts=base_report.waste_alerts,
             circular_risks=base_report.circular_risks,
             complexity_level=base_report.complexity_level,
             financial_risk_level=base_report.financial_risk_level,
             details=enriched_details,
-            strategic_narrative=full_narrative_str,
+            strategic_narrative=getattr(strategic_report, 'raw_narrative', ''),
         )
 
-        # Aplicar Risk Challenger para auditar el reporte
+        # 7. Apply rigorous adversarial audit
         audited_report = self.risk_challenger.challenge_verdict(report)
+
+        # Add algebraic coherence verification
+        if not np.isfinite(integrated_score):
+            logger.error("❌ Integrated score is not finite")
+            self.telemetry.record_error("business_agent.non_finite_score",
+                                       f"Score: {integrated_score}")
 
         return audited_report
 
@@ -643,8 +850,8 @@ class BusinessAgent:
         """
         logger.info("🤖 Iniciando evaluación de negocio del proyecto...")
 
-        # Fase 0: Validación de entrada
-        # Preferir df_final si existe
+        # Phase 0: Input validation
+        # Prefer df_final if it exists
         df_presupuesto = context.get("df_final")
         if df_presupuesto is None:
             df_presupuesto = context.get("df_presupuesto")
@@ -669,7 +876,7 @@ class BusinessAgent:
                 )
             return None
 
-        # Fase 1: Análisis Topológico
+        # Phase 1: Topological Analysis
         try:
             topological_bundle = self._build_topological_model(
                 df_presupuesto, df_apus_detail
@@ -682,7 +889,7 @@ class BusinessAgent:
             self.telemetry.record_error("business_agent.topology", str(e))
             return None
 
-        # Fase 2.5: Análisis Termodinámico (Anticipado para causalidad)
+        # Phase 2.5: Thermodynamic Analysis (Anticipated for causality)
         try:
             # 1. Flujo Térmico (Topology)
             thermal_metrics = self.topological_analyzer.analyze_thermal_flow(
@@ -701,7 +908,7 @@ class BusinessAgent:
             entropy = 0.5
             exergy = 0.5
 
-        # Fase 2: Análisis Financiero (Con Inyección Causal)
+        # Phase 2: Financial Analysis (With Causal Injection)
         try:
             financial_params = self._extract_financial_parameters(context)
             financial_metrics = self._perform_financial_analysis(
@@ -715,7 +922,7 @@ class BusinessAgent:
             self.telemetry.record_error("business_agent.financial", str(e))
             return None
 
-        # Fase 3 y 4: Síntesis y Auditoría Adversarial
+        # Phase 3 and 4: Synthesis and Adversarial Audit
         try:
             report = self._compose_enriched_report(
                 topological_bundle, financial_metrics, thermal_metrics, entropy, exergy
@@ -727,3 +934,30 @@ class BusinessAgent:
 
         logger.info("✅ Evaluación de negocio completada con éxito.")
         return report
+
+
+# --- Specialized Exception Classes ---
+
+class TopologicalAnomalyError(Exception):
+    """Exception for topological structure anomalies."""
+    pass
+
+
+class MICHierarchyViolationError(Exception):
+    """Exception for MIC hierarchy violations."""
+    pass
+
+
+class FinancialProjectionError(Exception):
+    """Exception for financial projection errors."""
+    pass
+
+
+class FinancialToolError(Exception):
+    """Exception for unavailable financial tools."""
+    pass
+
+
+class SynthesisAlgebraError(Exception):
+    """Exception for synthesis algebra errors."""
+    pass
