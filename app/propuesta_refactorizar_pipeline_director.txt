@@ -1,3 +1,5 @@
+###### APU PROCESSOR ######
+
 Basado en el análisis de los archivos pipeline_director.py y apu_processor.py, he identificado que la clase FinalMergeStep (y en menor medida CalculateCostsStep) dentro del Director está ejecutando lógica "Táctica" (aritmética y manipulación de texto) que viola el principio de responsabilidad única del Orquestador.
 
 # 1. El Ofensor Principal: FinalMergeStep
