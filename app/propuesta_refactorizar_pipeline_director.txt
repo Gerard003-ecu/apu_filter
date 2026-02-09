@@ -1,0 +1,228 @@
+Basado en el análisis de los archivos pipeline_director.py y apu_processor.py, he identificado que la clase FinalMergeStep (y en menor medida CalculateCostsStep) dentro del Director está ejecutando lógica "Táctica" (aritmética y manipulación de texto) que viola el principio de responsabilidad única del Orquestador.
+
+# 1. El Ofensor Principal: FinalMergeStep
+Esta clase, ubicada en pipeline_director.py, es la que presenta la mayor fuga de lógica de dominio. Actualmente, el Director está "ensuciándose las manos" construyendo el DataFrame final en lugar de recibir un producto terminado.
+Lógica que está ejecutando (Incorrecto):
+• Manipulación de Texto: Ejecuta group_and_split_description(df_final). El Director no debería saber que las descripciones necesitan dividirse o agruparse; esto es una transformación de datos (Nivel Táctico).
+• Aritmética Financiera: Ejecuta explícitamente calculate_total_costs(df_final, self.thresholds).
+    ◦ El Problema: El cálculo de VALOR_CONSTRUCCION_TOTAL = UNITARIO * CANTIDAD es una operación física/táctica. Al tenerla en el Director, conviertes al orquestador en una calculadora. Si la fórmula cambia (ej. impuestos), tendrías que modificar el orquestador.
+• Joins Explícitos: Realiza pd.merge(df_final, df_tiempo, ...). La integración de dimensiones (tiempo, costo, rendimiento) debería ser interna del procesador.
+Dónde debería estar: Toda esta secuencia debe encapsularse dentro de un método finalize_consolidation() en la clase DataMerger o APUProcessor dentro de apu_processor.py.
+
+# 2. El Ofensor Secundario: CalculateCostsStep
+Aunque esta clase delega gran parte del trabajo a APUCostCalculator, todavía retiene micro-gestión que pertenece al procesador.
+Lógica que está ejecutando (Incorrecto):
+• Preparación de Insumos: Llama explícitamente a calculate_insumo_costs(df_merged, ...) antes de invocar al calculador principal.
+    ◦ El Problema: El Director está orquestando los pasos internos del cálculo aritmético ("primero calcula insumos, luego calcula el APU"). Esto rompe el encapsulamiento. El Director solo debería decir: "Calcula el costo del APU", y el APUProcessor debería saber internamente que eso implica calcular primero los insumos.
+
+# 3. Análisis de Impacto Arquitectónico (DIKW)
+Según tu documentación, la arquitectura debe respetar la jerarquía de estratos. Actualmente, el pipeline_director.py está violando esto así:
+
+# Clase del Director | # operación actual 
+FinalMergeStep       | calculate_total_costs
+FinalMergeStep       | group_and_split_description
+CalculateCostsStep   | calculate_insumo_costs
+
+# Solución recomendada
+
+Debes refactorizar apu_processor.py para exponer un método de "Alto Nivel" que absorba estas operaciones, permitiendo que el Director se simplifique.
+Código Actual (Director):
+
+# En FinalMergeStep (pipeline_director.py)
+df_final = merger.merge_with_presupuesto(...)
+df_final = pd.merge(df_final, df_tiempo, ...)
+df_final = group_and_split_description(df_final) # <--- Lógica Táctica
+df_final = calculate_total_costs(df_final, ...)  # <--- Lógica Táctica
+
+Código Ideal (Director):
+
+# En FinalMergeStep (Refactorizado)
+# El Director solo proyecta la intención de "Consolidar"
+df_final = processor.consolidate_results(
+    presupuesto=df_presupuesto,
+    costos=df_apu_costos,
+    tiempos=df_tiempo
+)
+
+Al mover esta lógica, pipeline_director.py pasará de ser un script procedural a un verdadero Orquestador de Vectores que gestiona el flujo sin conocer la aritmética interna.
+
+###### REPORT PARSER CRUDO ######
+
+Basado en el análisis de pipeline_director.py y la arquitectura de Malla Agéntica (DIKW), la clase específica que está ejecutando lógica que debe ser operada (y absorbida) por report_parser_crudo.py es LoadDataStep.
+Aunque LoadDataStep parece actuar solo como un cargador, en su diseño actual (o legacy) retiene la responsabilidad de validar la integridad estructural post-carga, lo cual viola el principio de "Calidad en la Fuente" del estrato Físico.
+Aquí está el detalle técnico:
+
+# 1. La Clase Ofensora: LoadDataStep
+Ubicada en pipeline_director.py
+Lógica que ejecuta (Incorrectamente):
+• Validación de Estructura Post-Mortem: Actualmente, el Director carga los datos y luego (a menudo a través de DataValidator) pregunta: "¿Hay insumos huérfanos?" o "¿Hay APUs sin ítems?".
+• Limpieza de Filas Fantasma: El Director suele invocar utilidades para limpiar filas vacías o mal formadas que el parser dejó pasar.
+• Manejo de "Basura": Decide qué hacer con líneas que no tienen formato claro (si las descarta o lanza error).
+Por qué es incorrecto (Violación DIKW): El Director (Estrato Estrategia/Orquestación) no debería saber qué es un "insumo huérfano". Si un dato llegó al Director, ya debería ser topológicamente perfecto. Validar la estructura después de cargar es como verificar si un ladrillo está cocido después de construir el muro.
+
+--------------------------------------------------------------------------------
+# 2. La Solución: report_parser_crudo.py como Gatekeeper Físico
+Al implementar la Matriz de Transición Estricta en report_parser_crudo.py, transferimos esta responsabilidad al nivel FÍSICO.
+Lógica absorbida por el Parser:
+• Garantía de Paternidad: La regla INSUMO -> requiere HEADER activo hace matemáticamente imposible que el parser genere un registro huérfano. Si no hay padre, el autómata falla antes de crear el dato.
+• Rechazo de Entropía (Basura): El JunkHandler y las reglas de transición filtran el ruido en la fuente. El Director recibe un dataset limpio o una excepción clara, nunca datos "sucios".
+• Clausura de Bloques: La regla HEADER -> CATEGORY asegura que no existan APUs vacíos o mal formados.
+
+--------------------------------------------------------------------------------
+# 3. Simplificación Resultante en pipeline_director.py
+Al mover esta lógica, el código de LoadDataStep se simplifica radicalmente:
+Antes (Lógica Dispersa):
+
+# En LoadDataStep (Director)
+df = condenser.stabilize(path)
+# El Director tiene que desconfiar del resultado:
+if validator.has_orphans(df):  # <--- LÓGICA MAL UBICADA
+    raise ValueError("Datos corruptos: Huérfanos detectados")
+if validator.has_empty_blocks(df): # <--- LÓGICA MAL UBICADA
+    clean_blocks(df)
+
+Ahora (Orquestación Pura):
+
+# En LoadDataStep (Director)
+# El Director confía ciegamente en el contrato Físico:
+# Si stabilize() retorna, la topología ESTÁ garantizada.
+df = condenser.stabilize(path) 
+context["raw_records"] = df 
+
+Resumen Arquitectónico
+
+# Clase del Director    | # operación actual 
+Validación de Huérfanos | LoadDataStep
+Integridad de Bloques   | LoadDataStep (scripts de limpieza)on
+Detección de Ruido      | LoadDataStep (filtros post-carga)
+
+###### FLUX CONDENSER ######
+
+Basado en el análisis arquitectónico de los archivos pipeline_director.py y flux_condenser.py, así como los principios definidos en SAGES.md y metodos.md, la clase específica dentro del microservicio del Director que está ejecutando lógica que pertenece legítimamente al flux_condenser.py es:
+La Clase Ofensora: LoadDataStep
+Ubicada en pipeline_director.py, esta clase actualmente viola el principio de respBasado en el análisis arquitectónico de los archivos pipeline_director.py y flux_condenser.py, así como los principios definidos en SAGES.md y metodos.md, la clase específica dentro del microservicio del Director que está ejecutando lógica que pertenece legítimamente al flux_condenser.py es:
+La Clase Ofensora: LoadDataStep
+Ubicada en pipeline_director.py, esta clase actualmente viola el principio de responsabilidad única del estrato PHYSICS al actuar como un "micro-manager" de la ingesta de datos en lugar de delegar la física del flujo al Condensador.
+Aquí está el desglose detallado de la lógica que debe ser trasplantada:
+
+--------------------------------------------------------------------------------
+# 1. La Carga "Bypass" de Presupuestos e Insumos (El Fallo de Seguridad Física)
+Lógica Actual (Incorrecta en el Director): En el método execute de LoadDataStep, el Director carga directamente los archivos de Presupuesto y Insumos utilizando procesadores auxiliares, bypaseando completamente al DataFluxCondenser.
+
+# En pipeline_director.py
+presupuesto_processor = PresupuestoProcessor(...)
+df_presupuesto = presupuesto_processor.process(presupuesto_path) # <--- BYPASS DE FÍSICA
+
+insumos_processor = InsumosProcessor(...)
+df_insumos = insumos_processor.process(insumos_path) # <--- BYPASS DE FÍSICA
+
+Por qué pertenece a flux_condenser.py: El FluxCondenser es el "Guardián Electrodinámico" encargado de modelar todo flujo de datos como un fluido con presión y temperatura. Al cargar estos archivos directamente en el Director:
+• Se pierde la protección RLC: No se verifica si el archivo de presupuesto es inestable (polos en el semiplano derecho) o si generará un "Golpe de Ariete" (Water Hammer) por su tamaño o complejidad.
+• Se pierde la medición de Entropía: El Director no calcula la entropía termodinámica de estos archivos, un dato crítico para el Agente de Negocio.
+Corrección: El FluxCondenser debe exponer un método unificado stabilize_stream(sources: Dict) que gestione la ingesta de todos los flujos, no solo el de APUs.
+
+--------------------------------------------------------------------------------
+# 2. La Microgestión de Telemetría Física
+Lógica Actual (Incorrecta en el Director): El Director está extrayendo manualmente métricas de bajo nivel del objeto stats del condensador y empujándolas al contexto de telemetría.
+
+# En pipeline_director.py [Fuente 979]
+for metric_name, default_value in [
+    ("avg_saturation", 0.0),
+    ("max_flyback_voltage", 0.0),
+    ...
+]:
+    value = stats.get(metric_name, default_value)
+    telemetry.record_metric("flux_condenser", metric_name, value)
+
+Por qué pertenece a flux_condenser.py: El Director (Estrato Estrategia/Orquestación) no debería saber qué es un "Voltaje de Flyback" o una "Energía Cinética". Estas son variables de estado internas del motor físico. El DataFluxCondenser debería ser quien inyecte su propio estado en el TelemetryContext pasándole el contexto como dependencia, encapsulando así su complejidad física.
+
+--------------------------------------------------------------------------------
+3. Validación de Existencia de Archivos (Física de Archivos)
+Lógica Actual (Incorrecta en el Director): El Director instancia un FileValidator para verificar si las rutas existen en el disco antes de llamar al condensador.
+
+# En pipeline_director.py
+file_validator = FileValidator()
+is_valid, error = file_validator.validate_file_exists(file_path, file_type)
+
+Por qué pertenece a flux_condenser.py: En la arquitectura de "Bomba Hidráulica Lineal", la disponibilidad de la fuente de fluido (el archivo) es un problema de la bomba, no del operador de la planta. Si la "tubería está seca" (archivo no existe), la bomba (FluxCondenser) debe detectar la cavitación y reportar el error, no el Director.
+
+--------------------------------------------------------------------------------
+Resumen del Traslado de Responsabilidadesonsabilidad única del estrato PHYSICS al actuar como un "micro-manager" de la ingesta de datos en lugar de delegar la física del flujo al Condensador.
+Aquí está el desglose detallado de la lógica que debe ser trasplantada:
+
+--------------------------------------------------------------------------------
+1. La Carga "Bypass" de Presupuestos e Insumos (El Fallo de Seguridad Física)
+Lógica Actual (Incorrecta en el Director): En el método execute de LoadDataStep, el Director carga directamente los archivos de Presupuesto y Insumos utilizando procesadores auxiliares, bypaseando completamente al DataFluxCondenser.
+
+# En pipeline_director.py
+presupuesto_processor = PresupuestoProcessor(...)
+df_presupuesto = presupuesto_processor.process(presupuesto_path) # <--- BYPASS DE FÍSICA
+
+insumos_processor = InsumosProcessor(...)
+df_insumos = insumos_processor.process(insumos_path) # <--- BYPASS DE FÍSICA
+
+Por qué pertenece a flux_condenser.py: El FluxCondenser es el "Guardián Electrodinámico" encargado de modelar todo flujo de datos como un fluido con presión y temperatura. Al cargar estos archivos directamente en el Director:
+• Se pierde la protección RLC: No se verifica si el archivo de presupuesto es inestable (polos en el semiplano derecho) o si generará un "Golpe de Ariete" (Water Hammer) por su tamaño o complejidad.
+• Se pierde la medición de Entropía: El Director no calcula la entropía termodinámica de estos archivos, un dato crítico para el Agente de Negocio.
+Corrección: El FluxCondenser debe exponer un método unificado stabilize_stream(sources: Dict) que gestione la ingesta de todos los flujos, no solo el de APUs.
+
+--------------------------------------------------------------------------------
+2. La Microgestión de Telemetría Física
+Lógica Actual (Incorrecta en el Director): El Director está extrayendo manualmente métricas de bajo nivel del objeto stats del condensador y empujándolas al contexto de telemetría.
+
+# En pipeline_director.py
+for metric_name, default_value in [
+    ("avg_saturation", 0.0),
+    ("max_flyback_voltage", 0.0),
+    ...
+]:
+    value = stats.get(metric_name, default_value)
+    telemetry.record_metric("flux_condenser", metric_name, value)
+
+Por qué pertenece a flux_condenser.py: El Director (Estrato Estrategia/Orquestación) no debería saber qué es un "Voltaje de Flyback" o una "Energía Cinética" [Fuente 1086]. Estas son variables de estado internas del motor físico. El DataFluxCondenser debería ser quien inyecte su propio estado en el TelemetryContext pasándole el contexto como dependencia, encapsulando así su complejidad física.
+
+--------------------------------------------------------------------------------
+3. Validación de Existencia de Archivos (Física de Archivos)
+Lógica Actual (Incorrecta en el Director): El Director instancia un FileValidator para verificar si las rutas existen en el disco antes de llamar al condensador.
+
+# En pipeline_director.py
+file_validator = FileValidator()
+is_valid, error = file_validator.validate_file_exists(file_path, file_type)
+
+Por qué pertenece a flux_condenser.py: En la arquitectura de "Bomba Hidráulica Lineal", la disponibilidad de la fuente de fluido (el archivo) es un problema de la bomba, no del operador de la planta. Si la "tubería está seca" (archivo no existe), la bomba (FluxCondenser) debe detectar la cavitación y reportar el error, no el Director.
+
+--------------------------------------------------------------------------------
+Resumen del Traslado de Responsabilidades
+
+# Clase del Director         | # operación actual 
+Carga de Presupuesto/Insumos | PresupuestoProcessor.process() instanciado en el paso.
+Extracción de Métricas       | Bucle for manual extrayendo avg_saturation.
+Chequeo de Archivos          | FileValidator explícito.
+
+LoadDataStep debe ser refactorizado para ser un simple despachador que dice: "Condensador, estabiliza estos tres flujos de entrada". Actualmente, está haciendo el trabajo de fontanería manual que debería estar automatizado dentro del motor de física.
+
+###### BUSINESS TOPOLOGY Y SEMANTIC TRANSLATOR ######
+
+Basado en los principios de la Malla Agéntica y la arquitectura DIKW (Datos, Información, Conocimiento, Sabiduría), he identificado dos clases dentro de pipeline_director.py que están ejecutando lógica que viola la separación de responsabilidades y que pertenece legítimamente a los microservicios del Arquitecto (business_topology.py) y el Intérprete (semantic_translator.py).
+Aquí está el detalle de la refactorización requerida:
+
+# 1. La Clase Ofensora: MaterializationStep
+Esta clase, ubicada en pipeline_director.py, está invadiendo la soberanía del Arquitecto Estratega (BusinessTopologicalAnalyzer).
+• La Lógica Incorrecta (El "Albañil" en la Dirección): Dentro del método execute, el Director detecta si falta el grafo en el contexto y procede a instanciar manualmente el BudgetGraphBuilder para reconstruirlo.
+• Por qué viola la arquitectura: El Director (Nivel Estrategia) no debe saber cómo se construye un "Complejo Simplicial Abstracto" a partir de DataFrames. Esa es una tarea de Conocimiento (Knowledge), no de orquestación. Al importar el BudgetGraphBuilder, el Director se acopla a la implementación interna de la topología.
+• El Dueño Legítimo: BusinessTopologicalAnalyzer (en business_topology.py). Este microservicio es el encargado de mantener la integridad estructural y construir el grafo.
+• Corrección: El Director debe solicitar el grafo a la Matriz de Interacción Central (MIC) proyectando una intención al vector get_topology, en lugar de importarlo y construirlo localmente.
+
+# 2. La Clase Ofensora: BuildOutputStep
+Esta clase está ejecutando lógica que pertenece al Intérprete Diplomático (SemanticTranslator).
+• La Lógica Incorrecta (La "Torre de Babel"): El Director está construyendo manualmente el diccionario final de salida (result_dict), decidiendo qué claves exponer (presupuesto, insumos, audit_report) y cómo estructurar la respuesta para el cliente.
+• Por qué viola la arquitectura: Según la visión del producto, el SemanticTranslator es el agente responsable de la "Síntesis DIKW" y de asegurar la Interoperabilidad Semántica. El Director está actuando como un "traductor aficionado", codificando la estructura del "Producto de Datos" (Data Product) dentro del flujo de control. Si la API cambia (ej. renombrar audit_report a compliance_ledger), habría que modificar el orquestador.
+• El Dueño Legítimo: SemanticTranslator (en semantic_translator.py). Este módulo ya posee la lógica para generar el StrategicReport y estructurar la narrativa. Debería exponer un método assemble_data_product(context) que encapsule la transformación final de "Contexto de Ejecución" a "Entregable de Negocio".
+
+# Resumen de la Migración de Responsabilidades
+
+# Clase del Director         | # Microservicio Destino Correcto
+MaterializationStep          | BusinessTopologicalAnalyzer (business_topology.py)
+BuildOutputStep              | SemanticTranslator (semantic_translator.py)
+
+Al mover estas lógicas, pipeline_director.txt se purifica para cumplir estrictamente su rol de Enrutador de Vectores sobre la Matriz MIC, sin conocimiento de la "física" (grafos) ni la "semántica" (JSON final) del negocio.
