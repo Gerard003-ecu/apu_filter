@@ -72,6 +72,11 @@ from scripts.diagnose_insumos_file import InsumosFileDiagnostic
 from scripts.diagnose_presupuesto_file import PresupuestoFileDiagnostic
 from .financial_engine import FinancialConfig, FinancialEngine
 from .schemas import Stratum
+from app.adapters.mic_vectors import (
+    vector_stabilize_flux,
+    vector_parse_raw_structure,
+    vector_structure_logic
+)
 
 logger = logging.getLogger(__name__)
 
@@ -1792,3 +1797,44 @@ def validate_file_for_processing(path: Path) -> Dict[str, Any]:
         return {"valid": True, "size": size, "extension": ext, "is_empty": empty}
     except Exception as e:
         return {"valid": False, "errors": [str(e)]}
+
+# ══════════════════════════════════════════════════════════════════════════════
+# REGISTRO DE VECTORES (BOOTSTRAP)
+# ══════════════════════════════════════════════════════════════════════════════
+
+def register_core_vectors(mic: 'MICRegistry') -> None:
+    """
+    Registra los vectores fundamentales del sistema en la Matriz de Interacción Central.
+    Establece la base vectorial del espacio de operaciones.
+
+    Args:
+        mic (MICRegistry): La instancia de la Matriz donde se registrarán los vectores.
+    """
+    # 1. Vector Físico: Estabilización de Flujo (FluxCondenser)
+    # Requisito: Ninguno (Base)
+    # Propósito: Condensar la materia cruda (bytes) en un flujo estable de datos.
+    mic.register_vector(
+        service_name="stabilize_flux",
+        stratum=Stratum.PHYSICS,
+        handler=vector_stabilize_flux
+    )
+
+    # 2. Vector Físico: Parsing Estructural (ReportParserCrudo)
+    # Requisito: Ninguno (Base, aunque lógicamente sigue a la estabilización de materia tosca)
+    # Propósito: Validar la topología del archivo (Homeomorfismo).
+    mic.register_vector(
+        service_name="parse_raw",
+        stratum=Stratum.PHYSICS,
+        handler=vector_parse_raw_structure
+    )
+
+    # 3. Vector Táctico: Lógica de APU (APUProcessor)
+    # Requisito: Stratum.PHYSICS debe estar validado en el contexto (Clausura Transitiva).
+    # Propósito: Interpretar la estructura validada y calcular costos (Logos).
+    mic.register_vector(
+        service_name="structure_logic",
+        stratum=Stratum.TACTICS,
+        handler=vector_structure_logic
+    )
+
+    logger.info("✅ Vectores nucleares registrados en la MIC: stabilize_flux, parse_raw, structure_logic")

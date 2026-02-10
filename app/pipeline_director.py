@@ -73,6 +73,7 @@ from .apu_processor import (
 )
 from app.semantic_translator import SemanticTranslator
 from .data_validator import validate_and_clean_data
+from app.tools_interface import register_core_vectors
 
 # Configuración explícita para debug
 logger = logging.getLogger(__name__)
@@ -311,51 +312,32 @@ class LoadDataStep(ProcessingStep):
 
             telemetry.record_metric("load_data", "insumos_rows", len(df_insumos))
 
-            apus_profile = file_profiles.get("apus_default", {})
-            logger.info("⚡️ Iniciando DataFluxCondenser para APUs...")
-            condenser_config_data = self.config.get("flux_condenser_config", {})
-
-            try:
-                condenser_config = CondenserConfig(**condenser_config_data)
-            except TypeError as e:
-                logger.warning(f"⚠️ Error en config de condenser, usando defaults: {e}")
-                condenser_config = CondenserConfig()
-
-            condenser = DataFluxCondenser(
-                config=self.config,
-                profile=apus_profile,
-                condenser_config=condenser_config,
+            # 1. Proyectar intención de Física (Estabilización)
+            # El mic debe haber sido inyectado por el Director
+            # Payload debe coincidir con la firma del adaptador: file_path, config
+            flux_result = self.mic.project_intent(
+                "stabilize_flux",
+                {"file_path": str(apus_path), "config": self.config},
+                context
             )
+            
+            if not flux_result["success"]:
+                error = flux_result.get("error", "Unknown error in stabilize_flux")
+                telemetry.record_error("load_data", error)
+                raise ValueError(error)
 
-            # Callbacks simplificados
-            def on_progress_stats(processing_stats):
-                try:
-                    for metric_name, attr_name, default_value in [
-                        ("avg_saturation", "avg_saturation", 0.0),
-                        ("max_flyback_voltage", "max_flyback_voltage", 0.0),
-                    ]:
-                        val = getattr(processing_stats, attr_name, default_value)
-                        telemetry.record_metric("flux_condenser", metric_name, val)
-                except Exception:
-                    pass
-
-            def _publish_telemetry(metrics: Dict[str, Any]):
-                pass # Simplificado para V2
-
-            df_apus_raw = condenser.stabilize(
-                apus_path,
-                on_progress=on_progress_stats,
-                progress_callback=_publish_telemetry,
-                telemetry=telemetry,
-            )
+            # Recuperar datos estabilizados
+            # flux_result["data"] es una lista de dicts (records)
+            # Convertir de nuevo a DataFrame para mantener compatibilidad con el resto del pipeline
+            df_apus_raw = pd.DataFrame(flux_result["data"])
 
             if df_apus_raw is None or df_apus_raw.empty:
-                error = "DataFluxCondenser retornó DataFrame vacío"
+                error = "DataFluxCondenser vector returned empty data"
                 telemetry.record_error("load_data", error)
                 raise ValueError(error)
 
             telemetry.record_metric("load_data", "apus_raw_rows", len(df_apus_raw))
-            logger.info("✅ DataFluxCondenser completado.")
+            logger.info("✅ Vector stabilize_flux completado exitosamente.")
 
             data_validator = DataValidator()
             dataframes = [
@@ -853,6 +835,7 @@ class PipelineDirector:
         
         # Inicializar la MIC (ahora MICRegistry simplificado)
         self.mic = MICRegistry()
+        register_core_vectors(self.mic)
         self._initialize_vector_space_refined()
 
     def _load_thresholds(self, config: dict) -> ProcessingThresholds:
@@ -1029,6 +1012,13 @@ class PipelineDirector:
 
             # 5. Instanciar y ejecutar
             step_instance = basis_vector.operator_class(self.config, self.thresholds)
+            
+            # Inyectar MIC en el paso para permitir proyección de vectores
+            try:
+                step_instance.mic = self.mic
+            except AttributeError:
+                pass # Si el paso no soporta inyección, continuamos (legacy support)
+                
             updated_context = step_instance.execute(context, self.telemetry)
 
             if updated_context is None:
