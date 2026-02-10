@@ -58,7 +58,10 @@ from typing import (
     Tuple,
     Union,
     runtime_checkable,
+    Union,
+    runtime_checkable,
 )
+import networkx as nx
 
 # Importaciones del proyecto
 try:
@@ -1971,6 +1974,44 @@ class SemanticTranslator:
             recommendations.append("Realizar análisis adicional para determinar siguiente paso.")
 
         return recommendations[:5]
+
+    def assemble_data_product(self, graph: nx.DiGraph, report: Any) -> Dict[str, Any]:
+        """
+        Ensambla el Producto de Datos Final (Sabiduría).
+
+        Integra la estructura (Grafo) y el análisis (Reporte) en un artefacto
+        consumible por el negocio.
+
+        Args:
+            graph: Grafo del negocio.
+            report: Reporte de riesgo (ConstructionRiskReport).
+
+        Returns:
+            Dict: Estructura JSON del producto de datos.
+        """
+        # Extraer narrativa y veredicto del reporte
+        narrative = report.strategic_narrative if hasattr(report, "strategic_narrative") else ""
+        verdict = report.integrity_score if hasattr(report, "integrity_score") else 0.0
+        
+        # Estructura del producto de datos
+        product = {
+            "metadata": {
+                "timestamp": datetime.now().isoformat(),
+                "verdict_score": verdict,
+                "complexity_level": getattr(report, "complexity_level", "Unknown"),
+            },
+            "narrative": {
+                "executive_summary": narrative,
+                "alerts": getattr(report, "waste_alerts", []) + getattr(report, "circular_risks", []),
+            },
+            "topology": {
+                "nodes": graph.number_of_nodes(),
+                "edges": graph.number_of_edges(),
+                "details": getattr(report, "details", {}),
+            },
+            # "graph_data": nx.node_link_data(graph) # Opcional, si es serializable
+        }
+        return product
 
     # ========================================================================
     # MÉTODO LEGACY DE COMPATIBILIDAD

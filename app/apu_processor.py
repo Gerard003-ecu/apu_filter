@@ -1798,6 +1798,102 @@ class APUProcessor:
 
         self.global_stats["total_insumos"] = len(all_results)
         self._log_global_stats(telemetry)
+        return pd.DataFrame(all_results)
+
+    # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+    # MÉTODOS DE ESTRATO TÁCTICO (Refactoring PipelineDirector)
+    # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+    def unify_sources(
+        self, df_apus_raw: pd.DataFrame, df_insumos: pd.DataFrame
+    ) -> pd.DataFrame:
+        """
+        Unifica los vectores de datos crudos (Initial Merge).
+
+        Realiza la fusión entre la definición bruta de APUs y la base de datos
+        de insumos/recursos.
+
+        Args:
+            df_apus_raw: DataFrame de APUs (parseado).
+            df_insumos: DataFrame de Insumos (maestro).
+
+        Returns:
+            pd.DataFrame: DataFrame unificado (merged).
+        """
+        logger.info("⚔️ TACTICS: Inificando fuentes de datos (APUs + Insumos)...")
+        # Usamos DataMerger (definido en este módulo)
+        # thresholds se obtienen de self.config o self.profile si existen,
+        # o se instancian defaults.
+        thresholds = ProcessingThresholds(self.config.get("validation_thresholds", {}))
+        merger = DataMerger(thresholds)
+        df_merged = merger.merge_apus_with_insumos(df_apus_raw, df_insumos)
+        return df_merged
+
+    def process_vectors(
+        self, df_merged: pd.DataFrame
+    ) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+        """
+        Procesa los vectores de costos y tiempos (Algebraic Processing).
+
+        Calcula costos unitarios, totales, tiempos y rendimientos.
+
+        Args:
+            df_merged: DataFrame unificado.
+
+        Returns:
+             Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+                (df_apu_costos, df_tiempo, df_rendimiento)
+        """
+        logger.info("⚔️ TACTICS: Calculando vectores algebraicos (Costos/Tiempos)...")
+        thresholds = ProcessingThresholds(self.config.get("validation_thresholds", {}))
+        
+        # 1. Calcular costos de insumos
+        df_merged = calculate_insumo_costs(df_merged, thresholds)
+
+        # 2. Calcular costos por APU
+        cost_calculator = APUCostCalculator(self.config, thresholds)
+        df_apu_costos, df_tiempo, df_rendimiento = cost_calculator.calculate(df_merged)
+        
+        return df_apu_costos, df_tiempo, df_rendimiento
+
+    def consolidate_results(
+        self, 
+        df_presupuesto: pd.DataFrame, 
+        df_apu_costos: pd.DataFrame, 
+        df_tiempo: pd.DataFrame
+    ) -> pd.DataFrame:
+        """
+        Consolida los resultados tácticos en la estructura estratégica (Final Merge).
+
+        Integra los costos calculados con el presupuesto original.
+
+        Args:
+            df_presupuesto: Presupuesto original.
+            df_apu_costos: Costos calculados por APU.
+            df_tiempo: Tiempos calculados.
+
+        Returns:
+            pd.DataFrame: Presupuesto final valorado (df_final).
+        """
+        logger.info("⚔️ TACTICS: Consolidando resultados en presupuesto...")
+        thresholds = ProcessingThresholds(self.config.get("validation_thresholds", {}))
+        merger = DataMerger(thresholds)
+
+        # 1. Merge Presupuesto + Costos
+        df_final = merger.merge_with_presupuesto(df_presupuesto, df_apu_costos)
+
+        # 2. Merge con Tiempos
+        if df_tiempo is not None and not df_tiempo.empty:
+            df_final = pd.merge(
+                df_final, df_tiempo, on=ColumnNames.CODIGO_APU, how="left"
+            )
+
+        # 3. Post-procesamiento (Agrupación y Totales)
+        df_final = group_and_split_description(df_final)
+        df_final = calculate_total_costs(df_final, thresholds)
+
+        return df_final
+
 
         return (
             self._convert_to_dataframe(all_results) if all_results else pd.DataFrame()

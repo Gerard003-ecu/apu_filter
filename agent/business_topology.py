@@ -1529,3 +1529,28 @@ class BusinessTopologicalAnalyzer:
         # Convert list of nodes to string representation "A -> B -> A"
         formatted = [" -> ".join(map(str, c + [c[0]])) for c in raw]
         return formatted, truncated
+
+    def materialize_structure(
+        self,
+        df_presupuesto: pd.DataFrame,
+        df_apus_detail: Optional[pd.DataFrame] = None,
+    ) -> nx.DiGraph:
+        """
+        Materializa la estructura topológica del negocio (Grafo).
+
+        Utiliza el Builder para construir el grafo a partir de los DataFrames
+        procesados.
+
+        Args:
+            df_presupuesto: Estructura del presupuesto (Niveles 0-2).
+            df_apus_detail: Detalle de recursos/insumos (Nivel 3).
+
+        Returns:
+            nx.DiGraph: El grafo del negocio.
+        """
+        self.logger.info("🧠 STRATEGY: Materializando estructura topológica...")
+        builder = BudgetGraphBuilder()
+        # builder.build expects (presupuesto_df, apus_detail_df)
+        graph = builder.build(df_presupuesto, apus_detail_df=df_apus_detail)
+        return graph
+

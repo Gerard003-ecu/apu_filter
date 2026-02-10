@@ -101,6 +101,8 @@ from .apu_processor import (
     sanitize_for_json,
     synchronize_data_sources,
 )
+from .apu_processor import APUProcessor
+from app.semantic_translator import SemanticTranslator
 
 # ==================== CLASE BASE REFACTORIZADA ====================
 
@@ -668,8 +670,11 @@ class MergeDataStep(ProcessingStep):
                 f"🐛 DIAG: [MergeDataStep] Recibidos {len(df_insumos)} insumos del contexto."
             )
 
-            merger = DataMerger(self.thresholds)
-            df_merged = merger.merge_apus_with_insumos(df_apus_raw, df_insumos)
+            # ---------------------------------------------------------
+            # DELEGACIÓN A TACTICS AGENT (APUProcessor)
+            # ---------------------------------------------------------
+            processor = APUProcessor(self.config)
+            df_merged = processor.unify_sources(df_apus_raw, df_insumos)
 
             telemetry.record_metric("merge_data", "merged_rows", len(df_merged))
             context["df_merged"] = df_merged
@@ -766,12 +771,12 @@ class CalculateCostsStep(ProcessingStep):
         telemetry.start_step("calculate_costs")
         try:
             df_merged = context["df_merged"]
-            df_merged = calculate_insumo_costs(df_merged, self.thresholds)
-
-            cost_calculator = APUCostCalculator(self.config, self.thresholds)
-            df_apu_costos, df_tiempo, df_rendimiento = cost_calculator.calculate(
-                df_merged
-            )
+            
+            # ---------------------------------------------------------
+            # DELEGACIÓN A TACTICS AGENT (APUProcessor)
+            # ---------------------------------------------------------
+            processor = APUProcessor(self.config)
+            df_apu_costos, df_tiempo, df_rendimiento = processor.process_vectors(df_merged)
 
             telemetry.record_metric(
                 "calculate_costs", "costos_calculated", len(df_apu_costos)
@@ -780,6 +785,7 @@ class CalculateCostsStep(ProcessingStep):
             context.update(
                 {
                     "df_merged": df_merged,
+
                     "df_apu_costos": df_apu_costos,
                     "df_tiempo": df_tiempo,
                     "df_rendimiento": df_rendimiento,
@@ -812,14 +818,13 @@ class FinalMergeStep(ProcessingStep):
             df_apu_costos = context["df_apu_costos"]
             df_tiempo = context["df_tiempo"]
 
-            merger = DataMerger(self.thresholds)
-            df_final = merger.merge_with_presupuesto(df_presupuesto, df_apu_costos)
-
-            df_final = pd.merge(
-                df_final, df_tiempo, on=ColumnNames.CODIGO_APU, how="left"
+            # ---------------------------------------------------------
+            # DELEGACIÓN A TACTICS AGENT (APUProcessor)
+            # ---------------------------------------------------------
+            processor = APUProcessor(self.config)
+            df_final = processor.consolidate_results(
+                df_presupuesto, df_apu_costos, df_tiempo
             )
-            df_final = group_and_split_description(df_final)
-            df_final = calculate_total_costs(df_final, self.thresholds)
 
             telemetry.record_metric("final_merge", "final_rows", len(df_final))
             context["df_final"] = df_final
@@ -863,8 +868,24 @@ class BusinessTopologyStep(ProcessingStep):
                 context["validated_strata"].add(Stratum.PHYSICS)
                 context["validated_strata"].add(Stratum.TACTICS)
 
-            logger.info("🤖 Desplegando BusinessAgent para evaluación de proyecto...")
-
+            # ---------------------------------------------------------
+            # INTROSPECCIÓN TOPOLÓGICA DIRECTA (Materialización del Grafo)
+            # ---------------------------------------------------------
+            from agent.business_topology import BusinessTopologicalAnalyzer
+            topology_analyzer = BusinessTopologicalAnalyzer(telemetry=telemetry)
+            
+            # Materializar estructura (Grafo)
+            df_final = context.get("df_final")
+            df_merged = context.get("df_merged") # Detalle de insumos
+            
+            if df_final is not None:
+                graph = topology_analyzer.materialize_structure(df_final, df_merged)
+                context["graph"] = graph
+                logger.info(f"🕸️ Grafo de negocio materializado: {graph.number_of_nodes()} nodos")
+            
+            # ---------------------------------------------------------
+            # EVALUACIÓN DE ESTRATEGIA (BusinessAgent)
+            # ---------------------------------------------------------
             agent = BusinessAgent(
                 config=self.config,
                 mic=mic_instance,
@@ -1005,9 +1026,46 @@ class BuildOutputStep(ProcessingStep):
                 df_apu_costos, df_apus_raw, df_tiempo, df_rendimiento
             )
 
-            result_dict = build_output_dictionary(
-                df_final, df_insumos, df_merged, df_apus_raw, df_processed_apus
-            )
+            # ---------------------------------------------------------
+            # DELEGACIÓN A WISDOM AGENT (SemanticTranslator)
+            # ---------------------------------------------------------
+            if "graph" not in context or "business_topology_report" not in context:
+                 logger.warning("⚠️ Faltan artefactos de Estrategia (Grafo/Reporte). Generando salida básica.")
+                 # Fallback a lógica anterior si falla Wisdom
+                 df_final = context["df_final"]
+                 df_insumos = context["df_insumos"]
+                 df_merged = context["df_merged"]
+                 df_apus_raw = context["df_apus_raw"]
+                 df_apu_costos = context["df_apu_costos"]
+                 df_tiempo = context["df_tiempo"]
+                 df_rendimiento = context["df_rendimiento"]
+
+                 df_merged = synchronize_data_sources(df_merged, df_final)
+                 df_processed_apus = build_processed_apus_dataframe(
+                     df_apu_costos, df_apus_raw, df_tiempo, df_rendimiento
+                 )
+                 result_dict = build_output_dictionary(
+                     df_final, df_insumos, df_merged, df_apus_raw, df_processed_apus
+                 )
+            else:
+                 # Lógica Wisdom
+                 graph = context["graph"]
+                 report = context["business_topology_report"]
+                 translator = SemanticTranslator()
+                 
+                 # Ensamblar producto de datos usando el traductor semántico
+                 data_product_payload = translator.assemble_data_product(graph, report)
+                 
+                 # Enriquecer con datos crudos para compatibilidad
+                 df_final = context["df_final"]
+                 df_insumos = context["df_insumos"]
+                 
+                 # Convertir DataFrames a dicts para serialización
+                 data_product_payload["presupuesto"] = df_final.to_dict("records")
+                 data_product_payload["insumos"] = df_insumos.to_dict("records")
+                 
+                 result_dict = data_product_payload
+                 logger.info("🦉 WISDOM: Producto de datos ensamblado por SemanticTranslator")
 
             validated_result = validate_and_clean_data(
                 result_dict, telemetry_context=telemetry
