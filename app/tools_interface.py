@@ -21,7 +21,7 @@ Fundamentos Matemáticos y Arquitectura de Gobernanza:
    $V_{PHYSICS} \supset V_{TACTICS} \supset V_{STRATEGY} \supset V_{WISDOM}$.
    Cada vector de intención $\vec{v}$ pertenece a un estrato específico. La proyección
    $\pi(\vec{v})$ solo es válida si se satisface la **Clausura Transitiva**: para ejecutar
-   una acción de nivel $k$, todos los niveles base $j > k$ deben estar validados [Source: tools_interface.txt].
+   una acción de nivel $k$, todos los niveles base $j > k$ deben estar validados.
 
 3. Gatekeeper Algebraico (Validación de Topología):
    El `MICRegistry` actúa como un operador de proyección condicional. Antes de despachar
@@ -202,7 +202,7 @@ class FileType(str, Enum):
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# ESTRUCTURAS DE DATOS TOPOLÓGICAS (Propuesta 2)
+# ESTRUCTURAS DE DATOS TOPOLÓGICAS
 # ══════════════════════════════════════════════════════════════════════════════
 
 @dataclass(frozen=True)
@@ -278,7 +278,7 @@ class TopologicalSummary:
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# ESTRUCTURAS DE LA MIC (Propuesta 1)
+# ESTRUCTURAS DE LA MIC
 # ══════════════════════════════════════════════════════════════════════════════
 
 @dataclass(frozen=True)
@@ -549,7 +549,7 @@ def _get_diagnostic_class(file_type: FileType) -> Type[DiagnosticProtocol]:
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# FUNCIONES DE ENTROPÍA Y PROBABILIDAD (Propuesta 2)
+# FUNCIONES DE ENTROPÍA Y PROBABILIDAD
 # ══════════════════════════════════════════════════════════════════════════════
 
 def _compute_shannon_entropy(
@@ -630,7 +630,7 @@ def _compute_persistence_entropy(
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# FUNCIONES DE TOPOLOGÍA ALGEBRAICA (Propuesta 2)
+# FUNCIONES DE TOPOLOGÍA ALGEBRAICA
 # ══════════════════════════════════════════════════════════════════════════════
 
 def _detect_cyclic_patterns(lines: List[str], max_period: int = 50) -> int:
@@ -850,7 +850,7 @@ def _compute_diagnostic_magnitude(diagnostic_data: Dict[str, Any]) -> float:
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# FUNCIONES DE ANÁLISIS CSV (Propuesta 2)
+# FUNCIONES DE ANÁLISIS CSV
 # ══════════════════════════════════════════════════════════════════════════════
 
 def _estimate_effective_rank(df: pd.DataFrame, threshold: float = 0.95) -> int:
@@ -1007,7 +1007,7 @@ def _compute_topological_preservation(
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# FUNCIONES FINANCIERAS CON ANÁLISIS TOPOLÓGICO (Propuesta 2)
+# FUNCIONES FINANCIERAS CON ANÁLISIS TOPOLÓGICO
 # ══════════════════════════════════════════════════════════════════════════════
 
 def _generate_topological_cash_flows(
@@ -1222,7 +1222,7 @@ def _compute_topological_efficiency(
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# HANDLERS DE LA MIC REFINADOS (Propuesta 2)
+# HANDLERS DE LA MIC REFINADOS
 # ══════════════════════════════════════════════════════════════════════════════
 
 def diagnose_file(
@@ -1689,7 +1689,7 @@ def get_telemetry_status(
         }
 
 # ══════════════════════════════════════════════════════════════════════════════
-# FUNCIONES DE VALIDACIÓN Y UTILIDADES (Restauradas)
+# FUNCIONES DE VALIDACIÓN Y UTILIDADES
 # ══════════════════════════════════════════════════════════════════════════════
 
 def _validate_path_not_empty(path: Union[str, Path]) -> None:
