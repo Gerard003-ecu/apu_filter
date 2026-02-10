@@ -1,5 +1,5 @@
 """
-Módulo: Pipeline Director V2 (La Matriz de Transformación de Valor M_P)
+Módulo: Pipeline Director V3 (Orquestador Algebraico)
 ======================================================================
 Este componente actúa como el "Sistema Nervioso Central" de APU_filter.
 Su función es orquestar la secuencia de activación de los vectores de transformación
@@ -25,6 +25,7 @@ Arquitectura y Fundamentos:
 import datetime
 import enum
 import hashlib
+import json
 import logging
 import os
 import pickle
@@ -125,13 +126,24 @@ class BasisVector:
 
 class MICRegistry:
     """
-    Refinamiento: Catálogo centralizado de pasos del pipeline (anteriormente LinearInteractionMatrix).
-    Se enfoca en la unicidad y tipo de los operadores, actuando como un Registry de pasos.
+    Catálogo centralizado de pasos del pipeline.
+    
+    Refinamiento V3:
+    - Propiedad `dimension` expuesta.
+    - Iteración ordenada por índice de registro.
+    - Consulta por estrato para validación de filtración.
+    - Método `get_execution_sequence` para recetas por defecto.
     """
     def __init__(self):
         self._basis: Dict[str, BasisVector] = {}
+        self._ordered_labels: List[str] = []
         self._dimension = 0
         self.logger = logging.getLogger(self.__class__.__name__)
+
+    @property
+    def dimension(self) -> int:
+        """Dimensión del espacio vectorial (número de operadores registrados)."""
+        return self._dimension
 
     def add_basis_vector(
         self,
@@ -139,15 +151,10 @@ class MICRegistry:
         step_class: Type['ProcessingStep'],
         stratum: Stratum
     ):
-        """
-        Agrega un paso al catálogo con validaciones básicas.
-        """
         if not label or not isinstance(label, str):
             raise ValueError("Label must be a non-empty string.")
-
         if label in self._basis:
             raise ValueError(f"Duplicate label: '{label}'. Labels must be unique.")
-
         if not (isinstance(step_class, type) and issubclass(step_class, ProcessingStep)):
             raise TypeError(f"Class {step_class} must be a subclass of ProcessingStep.")
 
@@ -158,19 +165,79 @@ class MICRegistry:
             stratum=stratum
         )
         self._basis[label] = vector
+        self._ordered_labels.append(label)
         self._dimension += 1
-        self.logger.debug(f"Added step '{label}' at index {vector.index} (stratum: {stratum.name})")
+        self.logger.debug(
+            f"Registered e_{vector.index} = '{label}' (stratum: {stratum.name})"
+        )
 
     def get_basis_vector(self, label: str) -> Optional[BasisVector]:
-        """Obtiene un vector base por su etiqueta."""
         return self._basis.get(label)
 
     def get_available_labels(self) -> List[str]:
-        """Devuelve las etiquetas disponibles."""
-        return list(self._basis.keys())
+        """Devuelve las etiquetas en orden de registro (preserva la secuencia de la base)."""
+        return list(self._ordered_labels)
+
+    def get_vectors_by_stratum(self, stratum: Stratum) -> List[BasisVector]:
+        """Proyección sobre un subestrato: devuelve todos los vectores de un estrato dado."""
+        return [
+            self._basis[label]
+            for label in self._ordered_labels
+            if self._basis[label].stratum == stratum
+        ]
+
+    def get_execution_sequence(self) -> List[Dict[str, Any]]:
+        """Genera la receta de ejecución por defecto respetando el orden de registro."""
+        return [
+            {"step": label, "enabled": True}
+            for label in self._ordered_labels
+        ]
+
+    def __iter__(self):
+        """Iteración sobre vectores base en orden de registro."""
+        for label in self._ordered_labels:
+            yield self._basis[label]
+
+    def __len__(self) -> int:
+        return self._dimension
 
 
-# ==================== IMPLEMENTACIÓN DE PASOS (PRESERVADOS) ====================
+# ==================== MAPA DE ESTRATOS ====================
+
+_STRATUM_ORDER: Dict[Stratum, int] = {
+    Stratum.PHYSICS: 0,
+    Stratum.TACTICS: 1,
+    Stratum.STRATEGY: 2,
+    Stratum.WISDOM: 3,
+}
+
+
+def stratum_level(s: Stratum) -> int:
+    """Retorna el nivel ordinal de un estrato en la filtración DIKW."""
+    return _STRATUM_ORDER.get(s, -1)
+
+
+class PipelineSteps(enum.Enum):
+    """
+    Receta canónica del pipeline. El orden del enum define el orden de ejecución.
+    
+    Grafo de dependencias (→ = "produce para"):
+      LOAD_DATA → AUDITED_MERGE → CALCULATE_COSTS → FINAL_MERGE
+                                                        ↓
+                                              BUSINESS_TOPOLOGY → MATERIALIZATION
+                                                                       ↓
+                                                                  BUILD_OUTPUT
+    """
+    LOAD_DATA = "load_data"
+    AUDITED_MERGE = "audited_merge"
+    CALCULATE_COSTS = "calculate_costs"
+    FINAL_MERGE = "final_merge"
+    BUSINESS_TOPOLOGY = "business_topology"
+    MATERIALIZATION = "materialization"
+    BUILD_OUTPUT = "build_output"
+
+
+# ==================== IMPLEMENTACIÓN DE PASOS ====================
 
 class LoadDataStep(ProcessingStep):
     """
@@ -320,39 +387,10 @@ class LoadDataStep(ProcessingStep):
             raise
 
 
-class MergeDataStep(ProcessingStep):
-    """
-    Paso de Fusión de Datos.
-    Combina los datos crudos de APUs con la base de datos de insumos.
-    """
-    def __init__(self, config: dict, thresholds: ProcessingThresholds):
-        self.config = config
-        self.thresholds = thresholds
-
-    def execute(self, context: dict, telemetry: TelemetryContext) -> dict:
-        telemetry.start_step("merge_data")
-        try:
-            df_apus_raw = context["df_apus_raw"]
-            df_insumos = context["df_insumos"]
-            
-            processor = APUProcessor(self.config)
-            df_merged = processor.unify_sources(df_apus_raw, df_insumos)
-
-            telemetry.record_metric("merge_data", "merged_rows", len(df_merged))
-            context["df_merged"] = df_merged
-
-            telemetry.end_step("merge_data", "success")
-            return context
-        except Exception as e:
-            telemetry.record_error("merge_data", str(e))
-            telemetry.end_step("merge_data", "error")
-            raise
-
-
 class AuditedMergeStep(ProcessingStep):
     """
     Paso de Fusión con Auditoría Topológica (Mayer-Vietoris).
-    Construye grafos temporales para validar la integridad antes de comprometer la fusión.
+    Refinamiento: Validación de precondiciones antes de operar.
     """
     def __init__(self, config: dict, thresholds: ProcessingThresholds):
         self.config = config
@@ -365,29 +403,59 @@ class AuditedMergeStep(ProcessingStep):
             df_b = context.get("df_apus_raw")
             df_insumos = context.get("df_insumos")
 
-            if df_a is not None and df_b is not None:
+            # ── Precondición: las fuentes de la fusión NO pueden ser None ──
+            if df_b is None:
+                error = "df_apus_raw is None: cannot proceed with merge."
+                telemetry.record_error("audited_merge", error)
+                raise ValueError(error)
+            if df_insumos is None:
+                error = "df_insumos is None: cannot proceed with merge."
+                telemetry.record_error("audited_merge", error)
+                raise ValueError(error)
+
+            # ── Auditoría topológica (no bloquea la fusión si falla) ──
+            if df_a is not None:
                 try:
                     builder = BudgetGraphBuilder()
                     graph_a = builder.build(df_a, pd.DataFrame())
                     graph_b = builder.build(pd.DataFrame(), df_b)
 
                     analyzer = BusinessTopologicalAnalyzer(telemetry=telemetry)
-                    audit_result = analyzer.audit_integration_homology(graph_a, graph_b) # type: ignore
+                    audit_result = analyzer.audit_integration_homology(
+                        graph_a, graph_b
+                    )
 
-                    if audit_result.get("delta_beta_1", 0) > 0:
-                        logger.warning(f"🚨 {audit_result.get('narrative')}")
-                        telemetry.record_metric("topology", "emergent_cycles", audit_result["delta_beta_1"])
+                    delta_beta_1 = audit_result.get("delta_beta_1", 0)
+                    if delta_beta_1 > 0:
+                        logger.warning(
+                            f"🚨 Mayer-Vietoris: {delta_beta_1} emergent cycle(s) detected. "
+                            f"Narrative: {audit_result.get('narrative', 'N/A')}"
+                        )
+                        telemetry.record_metric(
+                            "topology", "emergent_cycles", delta_beta_1
+                        )
                         context["integration_risk_alert"] = audit_result
                     else:
-                        logger.info(f"✅ Auditoría Mayer-Vietoris OK")
-
+                        logger.info("✅ Auditoría Mayer-Vietoris: homología preservada.")
                 except Exception as e_audit:
-                    logger.error(f"❌ Error durante auditoría Mayer-Vietoris: {e_audit}")
+                    logger.error(
+                        f"❌ Auditoría Mayer-Vietoris falló (no bloquea fusión): {e_audit}"
+                    )
                     telemetry.record_error("audited_merge_audit", str(e_audit))
+            else:
+                logger.info(
+                    "ℹ️ df_presupuesto no disponible; auditoría Mayer-Vietoris omitida."
+                )
 
+            # ── Fusión física ──
             logger.info("🛠️ Ejecutando fusión física de datos...")
             merger = DataMerger(self.thresholds)
             df_merged = merger.merge_apus_with_insumos(df_b, df_insumos)
+
+            if df_merged is None or df_merged.empty:
+                error = "Merge produced empty DataFrame"
+                telemetry.record_error("audited_merge", error)
+                raise ValueError(error)
 
             telemetry.record_metric("audited_merge", "merged_rows", len(df_merged))
             context["df_merged"] = df_merged
@@ -402,10 +470,7 @@ class AuditedMergeStep(ProcessingStep):
 
 
 class CalculateCostsStep(ProcessingStep):
-    """
-    Paso de Cálculo de Costos.
-    Calcula costos unitarios, tiempos y rendimientos de los APUs.
-    """
+    """Paso de Cálculo de Costos."""
     def __init__(self, config: dict, thresholds: ProcessingThresholds):
         self.config = config
         self.thresholds = thresholds
@@ -413,20 +478,32 @@ class CalculateCostsStep(ProcessingStep):
     def execute(self, context: dict, telemetry: TelemetryContext) -> dict:
         telemetry.start_step("calculate_costs")
         try:
-            df_merged = context["df_merged"]
+            df_merged = context.get("df_merged")
+            if df_merged is None or df_merged.empty:
+                error = "df_merged is missing or empty: cannot calculate costs."
+                telemetry.record_error("calculate_costs", error)
+                raise ValueError(error)
+
             processor = APUProcessor(self.config)
-            df_apu_costos, df_tiempo, df_rendimiento = processor.process_vectors(df_merged)
+            df_apu_costos, df_tiempo, df_rendimiento = processor.process_vectors(
+                df_merged
+            )
 
-            telemetry.record_metric("calculate_costs", "costos_calculated", len(df_apu_costos))
+            telemetry.record_metric(
+                "calculate_costs", "costos_rows", len(df_apu_costos)
+            )
+            telemetry.record_metric(
+                "calculate_costs", "tiempo_rows", len(df_tiempo)
+            )
 
-            context.update({
-                "df_merged": df_merged,
-                "df_apu_costos": df_apu_costos,
-                "df_tiempo": df_tiempo,
-                "df_rendimiento": df_rendimiento,
-            })
+            # Solo agregar las claves nuevas; df_merged ya está en el contexto
+            context["df_apu_costos"] = df_apu_costos
+            context["df_tiempo"] = df_tiempo
+            context["df_rendimiento"] = df_rendimiento
+
             telemetry.end_step("calculate_costs", "success")
             return context
+
         except Exception as e:
             telemetry.record_error("calculate_costs", str(e))
             telemetry.end_step("calculate_costs", "error")
@@ -466,65 +543,77 @@ class FinalMergeStep(ProcessingStep):
 class BusinessTopologyStep(ProcessingStep):
     """
     Paso de Análisis de Negocio.
-    Utiliza el BusinessAgent para auditar la integridad estructural y evaluar riesgos.
+    Refinamiento: Separación clara, propagación de errores, acceso limpio a MIC global.
     """
     def __init__(self, config: dict, thresholds: ProcessingThresholds):
         self.config = config
         self.thresholds = thresholds
 
+    def _resolve_mic_instance(self):
+        """Intenta resolver la instancia global de MIC."""
+        try:
+            return getattr(current_app, "mic", None)
+        except RuntimeError:
+            logger.warning(
+                "⚠️ No Flask app context. BusinessAgent financial analysis unavailable."
+            )
+            return None
+
     def execute(self, context: dict, telemetry: TelemetryContext) -> dict:
         telemetry.start_step("business_topology")
         try:
-            # Recuperar la instancia global de la MIC (del sistema de herramientas)
-            mic_instance = getattr(current_app, "mic", None)
-            
-            # NOTA: BusinessAgent requiere la MIC global (tools_interface) para 'financial_analysis',
-            # no la MIC interna del PipelineDirector.
-            if not mic_instance:
-                 logger.warning("⚠️ No se encontró 'current_app.mic'. BusinessAgent no podrá ejecutar análisis financiero.")
-                 # Intentamos importar la clase para typing, pero una instancia vacía no servirá de mucho sin herramientas registradas.
-                 try:
-                     from .tools_interface import MICRegistry as GlobalMIC
-                     mic_instance = GlobalMIC()
-                 except ImportError:
-                     pass
-
-            if "validated_strata" not in context:
-                context["validated_strata"] = {Stratum.PHYSICS, Stratum.TACTICS}
-            elif isinstance(context["validated_strata"], set):
-                context["validated_strata"].add(Stratum.PHYSICS)
-                context["validated_strata"].add(Stratum.TACTICS)
-
-            # Introspección Topológica
-            from agent.business_topology import BusinessTopologicalAnalyzer
-            topology_analyzer = BusinessTopologicalAnalyzer(telemetry=telemetry)
-            
             df_final = context.get("df_final")
             df_merged = context.get("df_merged")
-            
-            if df_final is not None:
-                # graph = topology_analyzer.materialize_structure(df_final, df_merged) # Assuming this method exists or similar logic
-                builder = BudgetGraphBuilder()
-                graph = builder.build(df_final, df_merged)
-                context["graph"] = graph
-                logger.info(f"🕸️ Grafo de negocio materializado: {graph.number_of_nodes()} nodos")
-            
-            # Evaluación de Estrategia
+
+            if df_final is None:
+                error = "df_final is required for BusinessTopologyStep."
+                telemetry.record_error("business_topology", error)
+                raise ValueError(error)
+
+            # ── Fase 1: Materialización del grafo topológico ──
+            builder = BudgetGraphBuilder()
+            graph = builder.build(df_final, df_merged if df_merged is not None else pd.DataFrame())
+            context["graph"] = graph
+            logger.info(
+                f"🕸️ Grafo de negocio materializado: "
+                f"{graph.number_of_nodes()} nodos, {graph.number_of_edges()} aristas"
+            )
+            telemetry.record_metric("business_topology", "graph_nodes", graph.number_of_nodes())
+            telemetry.record_metric("business_topology", "graph_edges", graph.number_of_edges())
+
+            # ── Fase 2: Registro de estratos validados ──
+            validated = context.get("validated_strata")
+            if not isinstance(validated, set):
+                validated = set()
+            validated.update({Stratum.PHYSICS, Stratum.TACTICS})
+            context["validated_strata"] = validated
+
+            # ── Fase 3: Evaluación por BusinessAgent (degradable) ──
+            mic_instance = self._resolve_mic_instance()
             if mic_instance:
-                agent = BusinessAgent(
-                    config=self.config,
-                    mic=mic_instance,
-                    telemetry=telemetry
-                )
                 try:
+                    agent = BusinessAgent(
+                        config=self.config,
+                        mic=mic_instance,
+                        telemetry=telemetry,
+                    )
                     report = agent.evaluate_project(context)
                     if report:
-                        logger.info("✅ BusinessAgent completó la evaluación.")
                         context["business_topology_report"] = report
+                        logger.info("✅ BusinessAgent completó la evaluación.")
+                    else:
+                        logger.warning("⚠️ BusinessAgent retornó reporte vacío.")
                 except Exception as ba_error:
-                    logger.warning(f"BusinessAgent evaluation warning: {ba_error}")
+                    logger.warning(
+                        f"⚠️ BusinessAgent evaluation degraded: {ba_error}",
+                        exc_info=True,
+                    )
+                    telemetry.record_error("business_agent", str(ba_error))
             else:
-                 logger.error("❌ No MIC instance available for BusinessAgent") # Should be covered by warning above
+                logger.warning(
+                    "⚠️ Sin instancia MIC global. "
+                    "Evaluación de negocio limitada a grafo topológico."
+                )
 
             telemetry.end_step("business_topology", "success")
             return context
@@ -533,13 +622,13 @@ class BusinessTopologyStep(ProcessingStep):
             logger.error(f"❌ Error en BusinessTopologyStep: {e}", exc_info=True)
             telemetry.record_error("business_topology", str(e))
             telemetry.end_step("business_topology", "error")
-            return context
+            raise
 
 
 class MaterializationStep(ProcessingStep):
     """
-    Paso de Materialización.
-    Genera la Lista de Materiales (BOM) a partir del grafo topológico.
+    Paso de Materialización (BOM).
+    Refinamiento: Manejo de skips legítimos y propagación de errores reales.
     """
     def __init__(self, config: dict, thresholds: ProcessingThresholds):
         self.config = config
@@ -547,38 +636,63 @@ class MaterializationStep(ProcessingStep):
 
     def execute(self, context: dict, telemetry: TelemetryContext) -> dict:
         telemetry.start_step("materialization")
-        try:
-            if "business_topology_report" not in context:
-                logger.warning("⚠️ No se encontró reporte de topología. Saltando materialización.")
-                telemetry.end_step("materialization", "skipped")
-                return context
 
+        # ── Precondición: reporte topológico requerido ──
+        if "business_topology_report" not in context:
+            logger.warning(
+                "⚠️ business_topology_report ausente. "
+                "Materialización omitida (degradación controlada)."
+            )
+            telemetry.record_metric("materialization", "skipped", True)
+            telemetry.end_step("materialization", "skipped")
+            return context
+
+        try:
+            # ── Resolver o construir el grafo ──
             graph = context.get("graph")
             if not graph:
                 builder = BudgetGraphBuilder()
-                df_presupuesto = context.get("df_final")
-                df_detail = context.get("df_merged")
-                if df_presupuesto is not None and df_detail is not None:
-                    graph = builder.build(df_presupuesto, df_detail)
-                    context["graph"] = graph
-                else:
-                    telemetry.end_step("materialization", "error")
-                    return context
+                df_final = context.get("df_final")
+                df_merged = context.get("df_merged")
 
-            report = context.get("business_topology_report")
+                if df_final is None:
+                    error = "Cannot materialize: df_final missing and no prebuilt graph."
+                    telemetry.record_error("materialization", error)
+                    raise ValueError(error)
+
+                graph = builder.build(
+                    df_final,
+                    df_merged if df_merged is not None else pd.DataFrame(),
+                )
+                context["graph"] = graph
+                logger.info("🕸️ Grafo reconstruido para materialización.")
+
+            # ── Extraer métricas de estabilidad ──
+            report = context["business_topology_report"]
             stability = 10.0
-            if report and hasattr(report, 'details') and report.details:
+            if hasattr(report, "details") and isinstance(report.details, dict):
                 stability = report.details.get("pyramid_stability", 10.0)
 
-            flux_metrics = {"pyramid_stability": stability, "avg_saturation": 0.0}
+            flux_metrics = {
+                "pyramid_stability": stability,
+                "avg_saturation": 0.0,
+            }
 
+            # ── Generar BOM ──
             generator = MatterGenerator()
-            bom = generator.materialize_project(graph, flux_metrics=flux_metrics, telemetry=telemetry)
+            bom = generator.materialize_project(
+                graph, flux_metrics=flux_metrics, telemetry=telemetry
+            )
 
             context["bill_of_materials"] = bom
             context["logistics_plan"] = asdict(bom)
 
-            logger.info(f"✅ Materialización completada. Total ítems: {len(bom.requirements)}")
+            telemetry.record_metric(
+                "materialization", "total_items", len(bom.requirements)
+            )
+            logger.info(
+                f"✅ Materialización completada. Total ítems: {len(bom.requirements)}"
+            )
             telemetry.end_step("materialization", "success")
             return context
 
@@ -586,21 +700,50 @@ class MaterializationStep(ProcessingStep):
             logger.error(f"❌ Error en MaterializationStep: {e}", exc_info=True)
             telemetry.record_error("materialization", str(e))
             telemetry.end_step("materialization", "error")
-            return context
+            raise
 
 
 class BuildOutputStep(ProcessingStep):
     """
     Paso de Construcción de Salida.
-    Prepara y valida el diccionario final de resultados para el cliente.
+    Refinamiento: Checksum robusto de payload completo.
     """
     def __init__(self, config: dict, thresholds: ProcessingThresholds):
         self.config = config
         self.thresholds = thresholds
 
+    def _compute_lineage_hash(self, payload: dict) -> str:
+        """Calcula un hash SHA-256 sobre el payload completo."""
+        hash_input_parts = []
+        for key in sorted(payload.keys()):
+            value = payload[key]
+            try:
+                sanitized = sanitize_for_json(value) if isinstance(value, (list, dict)) else value
+                part = json.dumps(
+                    {key: sanitized}, sort_keys=True, default=str
+                )
+            except (TypeError, ValueError):
+                # Fallback para objetos no serializables
+                part = f"{key}:type={type(value).__name__},len={len(value) if hasattr(value, '__len__') else 'N/A'}"
+            hash_input_parts.append(part)
+
+        composite = "|".join(hash_input_parts)
+        return hashlib.sha256(composite.encode("utf-8")).hexdigest()
+
     def execute(self, context: dict, telemetry: TelemetryContext) -> dict:
         telemetry.start_step("build_output")
         try:
+            # ── Extraer artefactos requeridos ──
+            required_keys = [
+                "df_final", "df_insumos", "df_merged",
+                "df_apus_raw", "df_apu_costos", "df_tiempo", "df_rendimiento",
+            ]
+            missing = [k for k in required_keys if k not in context]
+            if missing:
+                error = f"BuildOutputStep missing required context keys: {missing}"
+                telemetry.record_error("build_output", error)
+                raise ValueError(error)
+
             df_final = context["df_final"]
             df_insumos = context["df_insumos"]
             df_merged = context["df_merged"]
@@ -609,59 +752,76 @@ class BuildOutputStep(ProcessingStep):
             df_tiempo = context["df_tiempo"]
             df_rendimiento = context["df_rendimiento"]
 
+            # ── Sincronización ──
             df_merged = synchronize_data_sources(df_merged, df_final)
             df_processed_apus = build_processed_apus_dataframe(
                 df_apu_costos, df_apus_raw, df_tiempo, df_rendimiento
             )
 
-            if "graph" not in context or "business_topology_report" not in context:
-                 logger.warning("⚠️ Faltan artefactos de Estrategia (Grafo/Reporte). Generando salida básica.")
-                 result_dict = build_output_dictionary(
-                     df_final, df_insumos, df_merged, df_apus_raw, df_processed_apus
-                 )
-            else:
-                 graph = context["graph"]
-                 report = context["business_topology_report"]
-                 translator = SemanticTranslator()
-                 data_product_payload = translator.assemble_data_product(graph, report)
-                 
-                 data_product_payload["presupuesto"] = df_final.to_dict("records")
-                 data_product_payload["insumos"] = df_insumos.to_dict("records")
-                 result_dict = data_product_payload
-                 logger.info("🦉 WISDOM: Producto de datos ensamblado por SemanticTranslator")
+            # ── Ensamblaje del producto de datos ──
+            has_strategy_artifacts = (
+                "graph" in context and "business_topology_report" in context
+            )
 
-            validated_result = validate_and_clean_data(result_dict, telemetry_context=telemetry)
+            if has_strategy_artifacts:
+                graph = context["graph"]
+                report = context["business_topology_report"]
+                translator = SemanticTranslator()
+                result_dict = translator.assemble_data_product(graph, report)
+                result_dict["presupuesto"] = df_final.to_dict("records")
+                result_dict["insumos"] = df_insumos.to_dict("records")
+                logger.info("🦉 WISDOM: Producto de datos ensamblado por SemanticTranslator")
+            else:
+                logger.warning(
+                    "⚠️ Sin artefactos de Estrategia. Generando salida básica."
+                )
+                result_dict = build_output_dictionary(
+                    df_final, df_insumos, df_merged, df_apus_raw, df_processed_apus
+                )
+
+            # ── Validación y enriquecimiento ──
+            validated_result = validate_and_clean_data(
+                result_dict, telemetry_context=telemetry
+            )
             validated_result["raw_insumos_df"] = df_insumos.to_dict("records")
 
             if "business_topology_report" in context:
-                validated_result["audit_report"] = asdict(context["business_topology_report"])
+                validated_result["audit_report"] = asdict(
+                    context["business_topology_report"]
+                )
 
             if "logistics_plan" in context:
                 validated_result["logistics_plan"] = context["logistics_plan"]
 
+            # ── Narrativa técnica ──
             try:
                 narrator = TelemetryNarrator()
                 tech_narrative = narrator.summarize_execution(telemetry)
-                validated_result["technical_audit"] = tech_narrative if isinstance(tech_narrative, dict) else tech_narrative
+                validated_result["technical_audit"] = tech_narrative
             except Exception as e:
-                validated_result["technical_audit"] = {"error": str(e)}
+                logger.warning(f"⚠️ Narrativa técnica degradada: {e}")
+                validated_result["technical_audit"] = {
+                    "status": "degraded",
+                    "error": str(e),
+                }
 
-            # Simple Checksum
-            try:
-                import json
-                sanitized = sanitize_for_json(validated_result.get("presupuesto", []))
-                s = json.dumps(sanitized, sort_keys=True, default=str)
-                lineage_hash = hashlib.sha256(s.encode("utf-8")).hexdigest()
-            except Exception:
-                lineage_hash = "hash_failed"
+            # ── Hash de linaje ──
+            lineage_hash = self._compute_lineage_hash(validated_result)
 
             data_product = {
                 "kind": "DataProduct",
                 "metadata": {
                     "version": "3.0",
                     "lineage_hash": lineage_hash,
-                    "generated_at": datetime.datetime.now().isoformat(),
-                    "generator": "APU_Filter_Pipeline_v2",
+                    "generated_at": datetime.datetime.now(
+                        datetime.timezone.utc
+                    ).isoformat(),
+                    "generator": "APU_Filter_Pipeline_v2.1",
+                    "strata_validated": [
+                        s.name
+                        for s in context.get("validated_strata", set())
+                        if isinstance(s, Stratum)
+                    ],
                 },
                 "payload": validated_result,
             }
@@ -669,28 +829,19 @@ class BuildOutputStep(ProcessingStep):
             context["final_result"] = data_product
             telemetry.end_step("build_output", "success")
             return context
+
         except Exception as e:
             telemetry.record_error("build_output", str(e))
             telemetry.end_step("build_output", "error")
             raise
 
 
-# ==================== PIPELINE DIRECTOR (V2) ====================
-
-class PipelineSteps(enum.Enum):
-    LOAD_DATA = "load_data"
-    AUDITED_MERGE = "audited_merge"
-    CALCULATE_COSTS = "calculate_costs"
-    FINAL_MERGE = "final_merge"
-    BUSINESS_TOPOLOGY = "business_topology"
-    MATERIALIZATION = "materialization"
-    BUILD_OUTPUT = "build_output"
-
+# ==================== PIPELINE DIRECTOR (V3) ====================
 
 class PipelineDirector:
     """
-    Director del pipeline V2: Orquesta pasos secuenciales con validación de estado.
-    Refinamiento: Se simplifica la lógica de transición y persistencia.
+    Director del pipeline V3: Orquesta pasos secuenciales con validación de estado.
+    Orquestador Algebraico.
     """
     def __init__(self, config: dict, telemetry: TelemetryContext):
         self.config = config
@@ -704,53 +855,129 @@ class PipelineDirector:
         self.mic = MICRegistry()
         self._initialize_vector_space_refined()
 
+    def _load_thresholds(self, config: dict) -> ProcessingThresholds:
+        """
+        Carga umbrales desde configuración con validación de tipo.
+        """
+        thresholds = ProcessingThresholds()
+        overrides = config.get("processing_thresholds", {})
+
+        if not isinstance(overrides, dict):
+            self.logger.warning(
+                f"processing_thresholds is not a dict (got {type(overrides).__name__}). "
+                f"Using defaults."
+            )
+            return thresholds
+
+        for key, value in overrides.items():
+            if not hasattr(thresholds, key):
+                self.logger.warning(f"Unknown threshold key '{key}'. Ignored.")
+                continue
+
+            current_value = getattr(thresholds, key)
+            if current_value is not None and not isinstance(value, type(current_value)):
+                self.logger.warning(
+                    f"Threshold '{key}': expected {type(current_value).__name__}, "
+                    f"got {type(value).__name__}. Ignored."
+                )
+                continue
+
+            setattr(thresholds, key, value)
+
+        return thresholds
+
     def _initialize_vector_space_refined(self):
-        """Inicializa la MIC con los pasos del pipeline."""
-        steps_and_strata = [
-            ("load_data", LoadDataStep, Stratum.PHYSICS),
-            ("audited_merge", AuditedMergeStep, Stratum.PHYSICS),
-            ("calculate_costs", CalculateCostsStep, Stratum.TACTICS),
-            ("final_merge", FinalMergeStep, Stratum.PHYSICS),
-            ("materialization", MaterializationStep, Stratum.TACTICS),
-            ("business_topology", BusinessTopologyStep, Stratum.STRATEGY),
-            ("build_output", BuildOutputStep, Stratum.WISDOM),
+        """
+        Inicializa la MIC con los pasos del pipeline.
+        
+        El orden de registro es IDÉNTICO al orden del enum PipelineSteps.
+        Los estratos respetan la filtración V_P ⊂ V_T ⊂ V_S ⊂ V_W.
+        """
+        steps_definition: List[Tuple[str, Type[ProcessingStep], Stratum]] = [
+            ("load_data",          LoadDataStep,          Stratum.PHYSICS),
+            ("audited_merge",      AuditedMergeStep,      Stratum.PHYSICS),
+            ("calculate_costs",    CalculateCostsStep,     Stratum.TACTICS),
+            ("final_merge",        FinalMergeStep,         Stratum.TACTICS),
+            ("business_topology",  BusinessTopologyStep,   Stratum.STRATEGY),
+            ("materialization",    MaterializationStep,    Stratum.STRATEGY),
+            ("build_output",       BuildOutputStep,        Stratum.WISDOM),
         ]
-        for label, step_class, stratum in steps_and_strata:
+
+        for label, step_class, stratum in steps_definition:
             self.mic.add_basis_vector(label, step_class, stratum)
 
     def _load_context_state(self, session_id: str) -> dict:
-        """Carga el estado de una sesión."""
-        if not session_id: return {}
+        """
+        Carga el estado de una sesión con validación de tipo.
+        """
+        if not session_id:
+            return {}
         try:
             session_file = self.session_dir / f"{session_id}.pkl"
             if session_file.exists():
                 with open(session_file, "rb") as f:
-                    return pickle.load(f)
+                    data = pickle.load(f)
+                if not isinstance(data, dict):
+                    self.logger.error(
+                        f"Corrupted session {session_id}: expected dict, got {type(data).__name__}"
+                    )
+                    return {}
+                return data
+        except (pickle.UnpicklingError, EOFError, ModuleNotFoundError) as e:
+            self.logger.error(f"Failed to deserialize session {session_id}: {e}")
         except Exception as e:
             self.logger.error(f"Failed to load context for session {session_id}: {e}")
         return {}
 
     def _save_context_state(self, session_id: str, context: dict):
-        """Guarda el estado de una sesión."""
+        """
+        Guarda el estado de una sesión con escritura atómica.
+        """
         try:
             session_file = self.session_dir / f"{session_id}.pkl"
-            with open(session_file, "wb") as f:
-                pickle.dump(context, f)
+            tmp_file = session_file.with_suffix(".pkl.tmp")
+            with open(tmp_file, "wb") as f:
+                pickle.dump(context, f, protocol=pickle.HIGHEST_PROTOCOL)
+            tmp_file.replace(session_file)  # Atómica en POSIX
             self.logger.debug(f"Context saved for session {session_id}")
         except Exception as e:
             self.logger.error(f"Failed to save context for session {session_id}: {e}")
+            # Limpiar archivo temporal si quedó
+            try:
+                if tmp_file.exists():
+                    tmp_file.unlink()
+            except Exception:
+                pass
+
+    def _cleanup_session(self, session_id: str):
+        """Elimina el archivo de sesión tras finalización exitosa."""
+        try:
+            session_file = self.session_dir / f"{session_id}.pkl"
+            if session_file.exists():
+                session_file.unlink()
+                self.logger.debug(f"Session file cleaned: {session_id}")
+        except OSError as e:
+            self.logger.warning(f"Could not clean session file {session_id}: {e}")
 
     def _infer_current_stratum_from_context(self, context: dict) -> Optional[Stratum]:
-        """Heurística para inferir el estrato actual del contexto."""
+        """
+        Heurística para inferir el estrato MÁS ALTO alcanzado en el contexto.
+        Refinamiento: Se evalúa de WISDOM → PHYSICS (descendente).
+        """
         keys = set(context.keys())
-        if any(k in keys for k in ["df_presupuesto", "df_insumos", "df_apus_raw"]):
-            return Stratum.PHYSICS
-        if any(k in keys for k in ["df_merged", "df_apu_costos", "df_tiempo"]):
-            return Stratum.TACTICS
-        if any(k in keys for k in ["graph", "business_topology_report"]):
-            return Stratum.STRATEGY
-        if any(k in keys for k in ["final_result", "bill_of_materials"]):
-            return Stratum.WISDOM
+
+        # Evaluar de mayor a menor: el primer match indica el techo alcanzado
+        stratum_signatures: List[Tuple[Stratum, set]] = [
+            (Stratum.WISDOM,   {"final_result"}),
+            (Stratum.STRATEGY, {"graph", "business_topology_report", "bill_of_materials"}),
+            (Stratum.TACTICS,  {"df_apu_costos", "df_tiempo", "df_rendimiento", "df_final"}),
+            (Stratum.PHYSICS,  {"df_presupuesto", "df_insumos", "df_apus_raw", "df_merged"}),
+        ]
+
+        for stratum, signature_keys in stratum_signatures:
+            if keys & signature_keys:  # Intersección no vacía
+                return stratum
+
         return None
 
     def run_single_step(
@@ -761,40 +988,56 @@ class PipelineDirector:
         validate_stratum: bool = True
     ) -> Dict[str, Any]:
         """
-        Ejecuta un único paso del pipeline.
+        Ejecuta un único paso del pipeline con validación de filtración.
         """
         self.logger.info(f"Executing step: {step_name} (Session: {session_id[:8]}...)")
 
-        # 1. Cargar contexto
+        # 1. Cargar contexto de sesión
         context = self._load_context_state(session_id)
+
+        # 2. Fusionar initial_context (las claves de sesión tienen precedencia)
         if initial_context:
-            context.update(initial_context)
+            merged = {**initial_context, **context}
+            context = merged
 
         try:
-            # 2. Obtener vector de la MIC
+            # 3. Resolver vector base
             basis_vector = self.mic.get_basis_vector(step_name)
             if not basis_vector:
-                raise ValueError(f"Step '{step_name}' not found in the interaction matrix.")
+                available = self.mic.get_available_labels()
+                raise ValueError(
+                    f"Step '{step_name}' not found. Available: {available}"
+                )
 
-            # 3. Validar transición de estrato (opcional)
+            # 4. Validar filtración de estratos
             if validate_stratum:
                 current_stratum = self._infer_current_stratum_from_context(context)
                 target_stratum = basis_vector.stratum
-                # Simple warning logic (omitted complex validation for brevity/clarity per V2)
-                if current_stratum and hasattr(current_stratum, 'level') and target_stratum and hasattr(target_stratum, 'level'):
-                     if current_stratum.level > target_stratum.level:
-                         self.logger.warning(
-                             f"Potential regression: {current_stratum.name} -> {target_stratum.name}."
-                         )
 
-            # 4. Instanciar y ejecutar paso
+                if current_stratum is not None:
+                    current_level = stratum_level(current_stratum)
+                    target_level = stratum_level(target_stratum)
+
+                    if target_level < current_level:
+                        self.logger.warning(
+                            f"⚠️ Stratum regression detected: context at "
+                            f"{current_stratum.name} (level {current_level}), "
+                            f"but step '{step_name}' targets "
+                            f"{target_stratum.name} (level {target_level}). "
+                            f"This may indicate a pipeline ordering defect."
+                        )
+
+            # 5. Instanciar y ejecutar
             step_instance = basis_vector.operator_class(self.config, self.thresholds)
             updated_context = step_instance.execute(context, self.telemetry)
 
             if updated_context is None:
-                raise ValueError(f"Step {step_name} returned a null context.")
+                raise ValueError(
+                    f"Step '{step_name}' returned None context. "
+                    f"All steps must return the (possibly modified) context dict."
+                )
 
-            # 5. Guardar contexto actualizado
+            # 6. Persistir estado actualizado
             self._save_context_state(session_id, updated_context)
 
             self.logger.info(f"Step '{step_name}' completed successfully.")
@@ -803,13 +1046,18 @@ class PipelineDirector:
                 "step": step_name,
                 "stratum": basis_vector.stratum.name,
                 "session_id": session_id,
-                "context_keys": list(updated_context.keys())
+                "context_keys": list(updated_context.keys()),
             }
 
         except Exception as e:
             self.logger.error(f"Error executing step '{step_name}': {e}", exc_info=True)
             self.telemetry.record_error(step_name, str(e))
-            return {"status": "error", "step": step_name, "error": str(e), "session_id": session_id}
+            return {
+                "status": "error",
+                "step": step_name,
+                "error": str(e),
+                "session_id": session_id,
+            }
 
     def execute_pipeline_orchestrated(self, initial_context: dict) -> dict:
         """
@@ -818,44 +1066,59 @@ class PipelineDirector:
         session_id = str(uuid.uuid4())
         self.logger.info(f"Starting orchestrated pipeline (Session ID: {session_id})")
 
-        # Obtener receta de ejecución (default or custom)
-        # Using PipelineSteps enum values
-        default_recipe = [{"step": step.value, "enabled": True} for step in PipelineSteps]
+        # Obtener receta de ejecución
+        default_recipe = self.mic.get_execution_sequence()
         recipe = self.config.get("pipeline_recipe", default_recipe)
 
-        context = initial_context
-        # Initial save of context
-        self._save_context_state(session_id, context)
+        # Guardado inicial del contexto — verificar que no falle silenciosamente
+        self._save_context_state(session_id, initial_context)
+        verification = self._load_context_state(session_id)
+        if not verification:
+            raise IOError(
+                f"Failed to persist initial context for session {session_id}. "
+                f"Check disk permissions on {self.session_dir}."
+            )
 
+        first_step = True
         for step_idx, step_config in enumerate(recipe):
             step_name = step_config.get("step")
             enabled = step_config.get("enabled", True)
 
-            if not enabled:
-                self.logger.info(f"Skipping disabled step: {step_name}")
+            if not step_name:
+                self.logger.warning(f"Recipe entry {step_idx} has no 'step' key. Skipping.")
                 continue
 
-            self.logger.info(f"Orchestrating step [{step_idx + 1}]: {step_name}")
-            
-            # We don't pass context here, run_single_step loads it from session
-            result = self.run_single_step(step_name, session_id)
+            if not enabled:
+                self.logger.info(f"⏭️ Skipping disabled step: {step_name}")
+                continue
+
+            self.logger.info(
+                f"Orchestrating step [{step_idx + 1}/{len(recipe)}]: {step_name}"
+            )
+
+            # En el primer paso, pasar initial_context como respaldo defensivo
+            ctx_override = initial_context if first_step else None
+            result = self.run_single_step(
+                step_name, session_id, initial_context=ctx_override
+            )
+            first_step = False
 
             if result["status"] == "error":
-                error_msg = f"Pipeline failed at step '{step_name}': {result.get('error')}"
+                error_msg = (
+                    f"Pipeline failed at step '{step_name}' "
+                    f"[{step_idx + 1}/{len(recipe)}]: {result.get('error')}"
+                )
                 self.logger.critical(error_msg)
+                # No limpiar sesión en error para permitir análisis forense
                 raise RuntimeError(error_msg)
 
         final_context = self._load_context_state(session_id)
+
+        # Limpieza de archivo de sesión tras éxito
+        self._cleanup_session(session_id)
+
         self.logger.info(f"Pipeline completed successfully (Session: {session_id})")
         return final_context
-
-    def _load_thresholds(self, config: dict):
-        thresholds = ProcessingThresholds()
-        if "processing_thresholds" in config:
-            for key, value in config["processing_thresholds"].items():
-                if hasattr(thresholds, key):
-                    setattr(thresholds, key, value)
-        return thresholds
 
 
 def process_all_files(
@@ -867,29 +1130,39 @@ def process_all_files(
 ) -> dict:
     """
     Función de entrada principal para el pipeline (Batch Mode).
-
-    Wrapper para PipelineDirector.execute_pipeline_orchestrated.
     """
     if config is None:
         config = {}
-    
-    # Ensure paths are absolute/resolved
-    p_path = Path(presupuesto_path).resolve()
-    a_path = Path(apus_path).resolve()
-    i_path = Path(insumos_path).resolve()
+
+    # Garantizar telemetría (evita AttributeError en todos los pasos)
+    if telemetry is None:
+        telemetry = TelemetryContext()
+        logger.info("ℹ️ No telemetry context provided; created default instance.")
+
+    # Resolver y validar rutas
+    paths = {
+        "presupuesto_path": Path(presupuesto_path).resolve(),
+        "apus_path": Path(apus_path).resolve(),
+        "insumos_path": Path(insumos_path).resolve(),
+    }
+
+    for name, path in paths.items():
+        if not path.exists():
+            error = f"File not found: {name} = {path}"
+            telemetry.record_error("process_all_files", error)
+            raise FileNotFoundError(error)
 
     director = PipelineDirector(config, telemetry)
 
-    initial_context = {
-        "presupuesto_path": str(p_path),
-        "apus_path": str(a_path),
-        "insumos_path": str(i_path),
-    }
+    initial_context = {k: str(v) for k, v in paths.items()}
 
     try:
-        return director.execute_pipeline_orchestrated(initial_context)
+        final_context = director.execute_pipeline_orchestrated(initial_context)
+
+        # Retornar el DataProduct si existe; sino, el contexto completo
+        return final_context.get("final_result", final_context)
+
     except Exception as e:
         logger.critical(f"🔥 Critical failure in process_all_files: {e}", exc_info=True)
-        if telemetry:
-             telemetry.record_error("process_all_files", str(e))
+        telemetry.record_error("process_all_files", str(e))
         raise
