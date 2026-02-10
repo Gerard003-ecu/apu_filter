@@ -56,6 +56,7 @@ from abc import ABC, abstractmethod
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Type
+from flask import current_app
 
 import numpy as np
 import pandas as pd
@@ -67,8 +68,14 @@ from app.matter_generator import MatterGenerator
 from app.schemas import Stratum
 from app.telemetry import TelemetryContext
 from app.telemetry_narrative import TelemetryNarrator
-
+from agent.business_topology import BudgetGraphBuilder
+from agent.business_topology import (
+                        BudgetGraphBuilder,
+                        BusinessTopologicalAnalyzer,
+                    )
 from .data_validator import validate_and_clean_data
+from app.business_agent import BusinessAgent
+from flask import current_app
 
 # Configuración explícita para debug
 logger = logging.getLogger(__name__)
@@ -104,6 +111,7 @@ from .apu_processor import (
 from .apu_processor import APUProcessor
 from app.semantic_translator import SemanticTranslator
 
+
 # ==================== CLASE BASE REFACTORIZADA ====================
 
 
@@ -124,7 +132,9 @@ class ProcessingStep(ABC):
         """
         pass
 
+
 # ==================== ESTRUCTURAS ALGEBRAICAS (MIC) ====================
+
 
 @dataclass(frozen=True)
 class BasisVector:
@@ -427,8 +437,6 @@ class LinearInteractionMatrix:
         return float(np.linalg.cond(self._gram_matrix))
 
 
-
-
 # ==================== IMPLEMENTACIÓN DE PASOS ====================
 
 
@@ -563,7 +571,6 @@ class LoadDataStep(ProcessingStep):
                     import json
                     import time
 
-                    from flask import current_app
 
                     payload = {
                         **metrics,
@@ -712,11 +719,7 @@ class AuditedMergeStep(ProcessingStep):
                 )
             else:
                 try:
-                    from agent.business_topology import (
-                        BudgetGraphBuilder,
-                        BusinessTopologicalAnalyzer,
-                    )
-
+                    
                     builder = BudgetGraphBuilder()
                     graph_a = builder.build(df_a, pd.DataFrame())
                     graph_b = builder.build(pd.DataFrame(), df_b)
@@ -852,8 +855,6 @@ class BusinessTopologyStep(ProcessingStep):
         """Ejecuta la evaluación del BusinessAgent."""
         telemetry.start_step("business_topology")
         try:
-            from app.business_agent import BusinessAgent
-            from flask import current_app
 
             # Recuperar la instancia global de la MIC
             mic_instance = getattr(current_app, "mic", None)
@@ -950,7 +951,6 @@ class MaterializationStep(ProcessingStep):
                 logger.info(
                     "🔄 Grafo no encontrado en contexto. Reconstruyendo para materialización..."
                 )
-                from agent.business_topology import BudgetGraphBuilder
 
                 builder = BudgetGraphBuilder()
                 df_presupuesto = context.get("df_final")
@@ -1171,7 +1171,6 @@ class PipelineSteps(str, enum.Enum):
     BUSINESS_TOPOLOGY = "business_topology"
     MATERIALIZATION = "materialization"
     BUILD_OUTPUT = "build_output"
-
 
 
 class PipelineDirector:
@@ -1679,10 +1678,6 @@ class PipelineDirector:
             return {}
         except:
             return {}
-
-
-
-
 
 
 # ==================== ENTRY POINT ====================

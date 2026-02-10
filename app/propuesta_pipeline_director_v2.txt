@@ -1,0 +1,329 @@
+Análisis General
+
+    Fortalezas:
+        Arquitectura Modular: La división en pasos (ProcessingStep) es limpia y promueve la responsabilidad única.
+        Abstracción de la MIC: El concepto de LinearInteractionMatrix es elegante y proporciona un marco para la orquestación.
+        Inyección de Telemetría: La integración con TelemetryContext es buena para la observabilidad.
+        Persistencia de Estado: La idea de PipelineDirector como un sistema que puede pausarse y reanudarse es valiosa.
+    Áreas de Oportunidad Crítica:
+        Desacople entre Concepto y Código: Aunque se nombran conceptos avanzados como "forma de Killing", "Gram-Schmidt", "homología", etc., su implementación a menudo no refleja fielmente la profundidad matemática sugerida. Esto puede llevar a confusión y a un uso incorrecto de la terminología. El código debería o bien implementar fielmente los conceptos o usar una analogía más clara y menos pretenciosa.
+        Eficiencia: Operaciones como _compute_killing_pairing y _compute_operator_signature_similarity son costosas y su utilidad real para la funcionalidad principal del pipeline es discutible.
+        Robustez: Existen bloques try...except vacíos y manejo de errores que pueden ocultar problemas graves.
+        Claridad: La sobrecarga de anotaciones matemáticas puede dificultar la comprensión del flujo lógico del código.
+
+Propuestas de Mejora y Métodos Refinados
+Se centrará en los métodos de LinearInteractionMatrix y PipelineDirector que son centrales para la lógica de orquestación y coherencia del pipeline.
+
+### 1. LinearInteractionMatrix
+Problemas Identificados:
+
+    _verify_orthogonality_killing: Es computacionalmente intensa y su criterio de "ortogonalidad" no es el estándar de un espacio vectorial euclidiano. La métrica interna (_compute_killing_pairing) es heurística y no una verdadera forma bilineal.
+    _orthonormalize_basis y _compute_killing_pairing: Son complejas y potencialmente innecesarias para un simple orquestador.
+    get_spectrum: La ponderación por Stratum no tiene fundamento matemático claro en este contexto.
+    _compute_operator_signature_similarity: Usa inspect para una comparación débil, lo cual es ineficiente.
+
+Propuesta de Refinamiento:
+Se simplifica la clase para enfocarse en su funcionalidad principal: actuar como un catálogo de pasos con verificaciones básicas de unicidad y tipo, delegando la lógica de dependencias y transiciones al director.
+
+import logging
+from typing import Dict, Type, Optional
+from app.schemas import Stratum # Asumiendo Stratum está definido aquí o importado
+
+# Se mantiene la clase BasisVector
+@dataclass(frozen=True)
+class BasisVector:
+    """
+    Representa un vector base unitario e_i en el espacio de operaciones.
+    Propiedades:
+    - Index: Posición en la base.
+    - Label: Identificador único.
+    - Operator Class: Clase del paso asociado.
+    - Stratum: Nivel jerárquico (DIKW).
+    """
+    index: int
+    label: str
+    operator_class: Type['ProcessingStep'] # Usa 'forward reference'
+    stratum: Stratum
+
+class LinearInteractionMatrix:
+    """
+    Refinamiento: Catálogo centralizado de pasos del pipeline.
+    Se enfoca en la unicidad y tipo de los operadores, no en complejidad matemática no aplicada.
+    """
+    def __init__(self):
+        self._basis: Dict[str, BasisVector] = {}
+        self._dimension = 0
+        self.logger = logging.getLogger(self.__class__.__name__)
+
+    def add_basis_vector(
+        self,
+        label: str,
+        step_class: Type['ProcessingStep'],
+        stratum: Stratum
+    ):
+        """
+        Agrega un paso al catálogo con validaciones básicas.
+        """
+        if not label or not isinstance(label, str):
+            raise ValueError("Label must be a non-empty string.")
+
+        if label in self._basis:
+            raise ValueError(f"Duplicate label: '{label}'. Labels must be unique.")
+
+        if not (isinstance(step_class, type) and issubclass(step_class, ProcessingStep)):
+            raise TypeError(f"Class {step_class} must be a subclass of ProcessingStep.")
+
+        vector = BasisVector(
+            index=self._dimension,
+            label=label,
+            operator_class=step_class,
+            stratum=stratum
+        )
+        # Verificación simple de unicidad (ya implícita por la key del dict)
+        self._basis[label] = vector
+        self._dimension += 1
+        self.logger.debug(f"Added step '{label}' at index {vector.index} (stratum: {stratum.name})")
+
+    def get_basis_vector(self, label: str) -> Optional[BasisVector]:
+        """Obtiene un vector base por su etiqueta."""
+        return self._basis.get(label)
+
+    def get_available_labels(self):
+        """Devuelve las etiquetas disponibles."""
+        return list(self._basis.keys())
+
+    # --- Métodos Eliminados o Simplificados ---
+    # get_rank, _verify_orthogonality_killing, _invalidate_caches, _compute_killing_pairing, 
+    # _compute_operator_signature_similarity, project_intent, _orthonormalize_basis, 
+    # get_spectrum, get_condition_number
+    # Estos métodos, o partes de ellos, han sido eliminados o simplificados drásticamente
+    # para enfocarse en la funcionalidad core.
+
+### 2. PipelineDirector
+Problemas Identificados:
+
+    _initialize_vector_space_with_validation: Depende de la MIC anterior. Debe adaptarse.
+    _validate_stratum_transition: La lógica de transición es compleja y no necesariamente refleja una "validación topológica".
+    _infer_current_stratum: Es heurística y frágil.
+    run_single_step: Tiene mucha lógica interna, incluyendo persistencia y cálculos de "traza" que podrían estar desacoplados.
+    _compute_state_trace, _save_context_state_with_checksum, _compute_homology_groups: Son operaciones costosas o cuestionables que pueden no aportar valor directo al pipeline principal.
+
+Propuesta de Refinamiento:
+Se simplifica la lógica de transición y persistencia, se mejora la claridad y se delega la complejidad innecesaria. Se enfatiza la responsabilidad del director como orquestador, no como analista topológico en tiempo de ejecución.
+
+import datetime
+import enum
+import hashlib
+import logging
+import os
+import pickle
+import uuid
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple
+from flask import current_app # Asumiendo Flask
+from app.telemetry import TelemetryContext
+from app.schemas import Stratum # Asumiendo Stratum está definido
+
+# Importaciones de pasos (asumiendo están disponibles)
+# from .apu_processor import LoadDataStep, AuditedMergeStep, CalculateCostsStep, FinalMergeStep, BuildOutputStep
+# from agent.business_topology import BusinessTopologyStep
+# from app.matter_generator import MaterializationStep
+
+# --- Enum para pasos (puede mantenerse o generarse dinámicamente) ---
+class PipelineSteps(enum.Enum):
+    LOAD_DATA = "load_data"
+    AUDITED_MERGE = "audited_merge"
+    CALCULATE_COSTS = "calculate_costs"
+    FINAL_MERGE = "final_merge"
+    BUSINESS_TOPOLOGY = "business_topology"
+    MATERIALIZATION = "materialization"
+    BUILD_OUTPUT = "build_output"
+
+class PipelineDirector:
+    """
+    Director del pipeline: Orquesta pasos secuenciales con validación de estado.
+    Refinamiento: Se simplifica la lógica de transición y persistencia.
+    """
+    def __init__(self, config: dict, telemetry: TelemetryContext):
+        self.config = config
+        self.telemetry = telemetry
+        self.thresholds = self._load_thresholds(config)
+        self.session_dir = Path(config.get("session_dir", "data/sessions"))
+        self.session_dir.mkdir(parents=True, exist_ok=True)
+        self.logger = logging.getLogger(self.__class__.__name__)
+        
+        # Inicializar la MIC (refinada)
+        self.mic = LinearInteractionMatrix()
+        self._initialize_vector_space_refined()
+
+    def _initialize_vector_space_refined(self):
+        """Inicializa la MIC con los pasos del pipeline."""
+        # Definir el flujo de pasos y sus estratos
+        steps_and_strata = [
+            ("load_data", LoadDataStep, Stratum.PHYSICS),
+            ("audited_merge", AuditedMergeStep, Stratum.PHYSICS),
+            ("calculate_costs", CalculateCostsStep, Stratum.TACTICS),
+            ("final_merge", FinalMergeStep, Stratum.PHYSICS),
+            ("materialization", MaterializationStep, Stratum.TACTICS),
+            ("business_topology", BusinessTopologyStep, Stratum.STRATEGY),
+            ("build_output", BuildOutputStep, Stratum.WISDOM),
+        ]
+        for label, step_class, stratum in steps_and_strata:
+            self.mic.add_basis_vector(label, step_class, stratum)
+
+    def _load_context_state(self, session_id: str) -> dict:
+        """Carga el estado de una sesión."""
+        if not session_id: return {}
+        try:
+            session_file = self.session_dir / f"{session_id}.pkl"
+            if session_file.exists():
+                with open(session_file, "rb") as f:
+                    return pickle.load(f)
+        except Exception as e:
+            self.logger.error(f"Failed to load context for session {session_id}: {e}")
+        return {}
+
+    def _save_context_state(self, session_id: str, context: dict):
+        """Guarda el estado de una sesión."""
+        try:
+            session_file = self.session_dir / f"{session_id}.pkl"
+            with open(session_file, "wb") as f:
+                pickle.dump(context, f)
+            self.logger.debug(f"Context saved for session {session_id}")
+        except Exception as e:
+            self.logger.error(f"Failed to save context for session {session_id}: {e}")
+
+    def _infer_current_stratum_from_context(self, context: dict) -> Optional[Stratum]:
+        """
+        Heurística para inferir el estrato actual del contexto.
+        Nota: Esta lógica puede volverse obsoleta si se manejan flujos dinámicos.
+        """
+        # Lógica basada en claves de contexto
+        keys = set(context.keys())
+        if any(k in keys for k in ["df_presupuesto", "df_insumos", "df_apus_raw"]):
+            return Stratum.PHYSICS
+        if any(k in keys for k in ["df_merged", "df_apu_costos", "df_tiempo"]):
+            return Stratum.TACTICS
+        if any(k in keys for k in ["graph", "business_topology_report"]):
+            return Stratum.STRATEGY
+        if any(k in keys for k in ["final_result", "bill_of_materials"]):
+            return Stratum.WISDOM
+        return None
+
+    def run_single_step(
+        self,
+        step_name: str,
+        session_id: str,
+        initial_context: Optional[Dict[str, Any]] = None,
+        validate_stratum: bool = True # Renombrado para claridad
+    ) -> Dict[str, Any]:
+        """
+        Ejecuta un único paso del pipeline.
+        """
+        self.logger.info(f"Executing step: {step_name} (Session: {session_id[:8]}...)")
+
+        # 1. Cargar contexto
+        context = self._load_context_state(session_id)
+        if initial_context:
+            context.update(initial_context)
+
+        try:
+            # 2. Obtener vector de la MIC
+            basis_vector = self.mic.get_basis_vector(step_name)
+            if not basis_vector:
+                raise ValueError(f"Step '{step_name}' not found in the interaction matrix.")
+
+            # 3. Validar transición de estrato (opcional)
+            if validate_stratum:
+                current_stratum = self._infer_current_stratum_from_context(context)
+                target_stratum = basis_vector.stratum
+                if current_stratum and current_stratum.level > target_stratum.level:
+                     self.logger.warning(
+                         f"Potential regression: {current_stratum.name} -> {target_stratum.name}. "
+                         f"Consider if this step should be executed."
+                     )
+                # Aquí se podría implementar una lógica más sofisticada si se tiene un historial de pasos ejecutados.
+
+            # 4. Instanciar y ejecutar paso
+            step_instance = basis_vector.operator_class(self.config, self.thresholds)
+            updated_context = step_instance.execute(context, self.telemetry)
+
+            if updated_context is None:
+                raise ValueError(f"Step {step_name} returned a null context.")
+
+            # 5. Guardar contexto actualizado
+            self._save_context_state(session_id, updated_context)
+
+            self.logger.info(f"Step '{step_name}' completed successfully.")
+            return {
+                "status": "success",
+                "step": step_name,
+                "stratum": basis_vector.stratum.name,
+                "session_id": session_id,
+                "context_keys": list(updated_context.keys())
+            }
+
+        except Exception as e:
+            self.logger.error(f"Error executing step '{step_name}': {e}", exc_info=True)
+            self.telemetry.record_error(step_name, str(e))
+            # Persistir estado en caso de error puede ser útil para diagnóstico
+            # self._save_context_state(session_id, context) # Opcional: guardar estado previo al error
+            return {"status": "error", "step": step_name, "error": str(e), "session_id": session_id}
+
+    def execute_pipeline_orchestrated(self, initial_context: dict) -> dict:
+        """
+        Ejecuta el pipeline completo de forma orquestada.
+        """
+        session_id = str(uuid.uuid4())
+        self.logger.info(f"Starting orchestrated pipeline (Session ID: {session_id})")
+
+        # Obtener receta de ejecución
+        recipe = self.config.get("pipeline_recipe", [{"step": step.value, "enabled": True} for step in PipelineSteps])
+
+        context = initial_context
+        for step_idx, step_config in enumerate(recipe):
+            step_name = step_config.get("step")
+            enabled = step_config.get("enabled", True)
+
+            if not enabled:
+                self.logger.info(f"Skipping disabled step [{step_idx + 1}]: {step_name}")
+                continue
+
+            self.logger.info(f"Orchestrating step [{step_idx + 1}/{len([c for c in recipe if c.get('enabled', True)])}]: {step_name}")
+
+            current_context = context if step_idx == 0 else None
+            result = self.run_single_step(step_name, session_id, initial_context=current_context)
+
+            if result["status"] == "error":
+                error_msg = f"Pipeline failed at step '{step_name}': {result.get('error')}"
+                self.logger.critical(error_msg)
+                raise RuntimeError(error_msg)
+
+            # Actualizar contexto para el siguiente paso
+            context = self._load_context_state(session_id)
+
+        self.logger.info(f"Pipeline completed successfully (Session: {session_id})")
+        return context
+
+    def _load_thresholds(self, config: dict):
+        # Importa y retorna la clase ProcessingThresholds
+        from .apu_processor import ProcessingThresholds
+        thresholds = ProcessingThresholds()
+        if "processing_thresholds" in config:
+            for key, value in config["processing_thresholds"].items():
+                if hasattr(thresholds, key):
+                    setattr(thresholds, key, value)
+        return thresholds
+
+
+Resumen de Cambios y Beneficios
+
+    LinearInteractionMatrix:
+        Eliminación de Complejidad Matemática Irrelevante: Se eliminaron métodos como _verify_orthogonality_killing, _orthonormalize_basis, get_spectrum, etc., que no aportaban funcionalidad crítica al orquestador y eran fuente de confusión.
+        Enfoque Clarificado: Ahora actúa como un catálogo simple y eficiente de pasos disponibles.
+        Beneficio: Código más rápido, más fácil de entender, mantener y depurar.
+    PipelineDirector:
+        Simplificación de Lógica de Transición: La validación de estrato se volvió más directa y menos propensa a errores, enfocándose en regresiones potencialmente indebidas.
+        Separación de Responsabilidades: La persistencia es más directa y no se entremezcla con cálculos de "traza" o "homología" durante la ejecución principal.
+        Claridad y Robustez: Se eliminaron cálculos costosos (_compute_state_trace, _compute_homology_groups) que no parecían ser fundamentales para la operación core del pipeline, relegándolos a análisis posteriores si es necesario.
+        Beneficio: Un director más ágil, coherente con su rol de orquestación y menos propenso a fallos internos.
