@@ -92,6 +92,8 @@ if not logger.handlers:
 class ProcessingStep(ABC):
     """Clase base abstracta para un paso del pipeline de procesamiento."""
 
+    mic: Optional['MICRegistry'] = None  # Inyectado por PipelineDirector.run_single_step
+
     @abstractmethod
     def execute(self, context: dict, telemetry: TelemetryContext) -> dict:
         """
@@ -339,6 +341,24 @@ class LoadDataStep(ProcessingStep):
             telemetry.record_metric("load_data", "apus_raw_rows", len(df_apus_raw))
             logger.info("✅ Vector stabilize_flux completado exitosamente.")
 
+            # 2. Proyectar intención de Parsing Topológico (parse_raw)
+            apus_profile = file_profiles.get("apus_default", {})
+            parse_result = self.mic.project_intent(
+                "parse_raw",
+                {"file_path": str(apus_path), "profile": apus_profile},
+                context
+            )
+
+            if not parse_result["success"]:
+                error = parse_result.get("error", "Unknown error in parse_raw")
+                telemetry.record_error("load_data", error)
+                raise ValueError(error)
+
+            raw_records = parse_result["raw_records"]
+            parse_cache = parse_result["parse_cache"]
+            telemetry.record_metric("load_data", "raw_records_count", len(raw_records))
+            logger.info("✅ Vector parse_raw completado exitosamente.")
+
             data_validator = DataValidator()
             dataframes = [
                 (df_presupuesto, "presupuesto"),
@@ -357,6 +377,8 @@ class LoadDataStep(ProcessingStep):
                 "df_presupuesto": df_presupuesto,
                 "df_insumos": df_insumos,
                 "df_apus_raw": df_apus_raw,
+                "raw_records": raw_records,
+                "parse_cache": parse_cache,
             })
 
             telemetry.end_step("load_data", "success")
@@ -466,6 +488,34 @@ class CalculateCostsStep(ProcessingStep):
                 telemetry.record_error("calculate_costs", error)
                 raise ValueError(error)
 
+            # Proyectar intención táctica vía MIC (inversión de control)
+            raw_records = context.get("raw_records", [])
+            parse_cache = context.get("parse_cache", {})
+
+            logic_result = self.mic.project_intent(
+                "structure_logic",
+                {
+                    "raw_records": raw_records,
+                    "parse_cache": parse_cache,
+                    "config": self.config,
+                },
+                context
+            )
+
+            if not logic_result["success"]:
+                error = logic_result.get("error", "Unknown error in structure_logic")
+                telemetry.record_error("calculate_costs", error)
+                raise ValueError(error)
+
+            # Fallback: process_vectors directo si MIC no proporcionó los 3 DataFrames
+            processed_data = logic_result.get("processed_data", [])
+            quality_report = logic_result.get("quality_report", {})
+
+            if processed_data:
+                logger.info("✅ Vector structure_logic completado vía MIC.")
+                context["quality_report"] = quality_report
+
+            # Cálculo vectorial clásico (compatibilidad con el pipeline existente)
             processor = APUProcessor(self.config)
             df_apu_costos, df_tiempo, df_rendimiento = processor.process_vectors(
                 df_merged
@@ -478,7 +528,6 @@ class CalculateCostsStep(ProcessingStep):
                 "calculate_costs", "tiempo_rows", len(df_tiempo)
             )
 
-            # Solo agregar las claves nuevas; df_merged ya está en el contexto
             context["df_apu_costos"] = df_apu_costos
             context["df_tiempo"] = df_tiempo
             context["df_rendimiento"] = df_rendimiento
