@@ -27,7 +27,13 @@ IFS=$'\n\t'
 # --- Script Metadata ---
 readonly SCRIPT_NAME="$(basename "${BASH_SOURCE[0]}")"
 readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-readonly PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+# Detect if running from root or scripts/ subdirectory
+if [[ -f "$SCRIPT_DIR/requirements.txt" ]]; then
+    readonly PROJECT_ROOT="$SCRIPT_DIR"
+else
+    readonly PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+fi
+export PYTHONPATH="${PROJECT_ROOT}"
 readonly SCRIPT_VERSION="3.0.0"
 readonly SCRIPT_PID=$$
 readonly TIMESTAMP=$(date +%Y%m%d_%H%M%S)
@@ -1102,9 +1108,9 @@ main() {
     echo ""
 
     # Validación
+    initialize_conda_shell
     check_base_dependencies
     check_conda_installation
-    initialize_conda_shell
     check_network_connectivity
 
     # Ejecutar operación

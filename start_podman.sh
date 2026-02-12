@@ -13,7 +13,13 @@ IFS=$'\n\t'
 trap 'cleanup_on_exit' EXIT INT TERM
 
 # --- Configuration ---
-readonly PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# Detect if running from root or scripts/ subdirectory
+if [[ -f "$SCRIPT_DIR/compose.yaml" ]]; then
+    readonly PROJECT_ROOT="$SCRIPT_DIR"
+else
+    readonly PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+fi
 readonly LOG_DIR="${PROJECT_ROOT}/logs"
 readonly DATA_DIR="${PROJECT_ROOT}/data"
 readonly COMPOSE_FILE="${PROJECT_ROOT}/compose.yaml"
@@ -23,8 +29,8 @@ readonly TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 readonly LOG_FILE="${LOG_DIR}/podman_start_${TIMESTAMP}.log"
 
 # Configuración de permisos más seguros
-readonly SAFE_DATA_PERMS="755"
-readonly SAFE_LOG_PERMS="755"
+readonly SAFE_DATA_PERMS="775"
+readonly SAFE_LOG_PERMS="775"
 
 # --- Colors ---
 declare -A COLORS=(
