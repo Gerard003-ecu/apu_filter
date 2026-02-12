@@ -18,3 +18,5 @@ verify_frontend.spec.js
 Miniconda3-latest-Linux-x86_64.sh
 logs/
 data/
+miniconda.sh
+miniconda3/

@@ -882,6 +882,7 @@ class TestStressPerformance:
             _ = narrator.summarize_execution(context)
         
         # Medir rendimiento final
+        gc.collect()  # Ensure GC doesn't skew final measurements
         final_times = []
         for _ in range(20):
             context = create_test_context(num_spans=50)

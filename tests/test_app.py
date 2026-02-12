@@ -605,7 +605,7 @@ class TestEndpoints:
 
     def test_health_check_endpoint(self, client):
         """Debe retornar estado de salud."""
-        response = client.get("/api/health")
+        response = client.get("/health")
         assert response.status_code == 200
         data = json.loads(response.data)
         assert data["status"] == "healthy"
@@ -871,12 +871,12 @@ class TestMiddleware:
     def test_before_request_logging(self, app, client, caplog):
         """Debe loggear requests."""
         with caplog.at_level(logging.DEBUG):
-            client.get("/api/health")
+            client.get("/health")
             assert len(caplog.records) > 0
 
     def test_after_request_security_headers(self, client):
         """Debe agregar headers de seguridad."""
-        response = client.get("/api/health")
+        response = client.get("/health")
         assert "X-Content-Type-Options" in response.headers
         assert "X-Frame-Options" in response.headers
         assert "X-XSS-Protection" in response.headers
@@ -884,7 +884,7 @@ class TestMiddleware:
     def test_after_request_cors_disabled(self, app, client):
         """CORS debe estar deshabilitado por defecto."""
         app.config["ENABLE_CORS"] = False
-        response = client.get("/api/health")
+        response = client.get("/health")
         assert "Access-Control-Allow-Origin" not in response.headers
 
 
@@ -1152,7 +1152,7 @@ class TestPerformance:
     def test_health_check_response_time(self, client):
         """Health check debe ser rápido."""
         start = time.time()
-        response = client.get("/api/health")
+        response = client.get("/health")
         elapsed = time.time() - start
         assert response.status_code == 200
         assert elapsed < 1.0
@@ -1162,7 +1162,7 @@ class TestPerformance:
         import concurrent.futures
 
         def make_request():
-            return client.get("/api/health")
+            return client.get("/health")
 
         with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
             futures = [executor.submit(make_request) for _ in range(10)]
