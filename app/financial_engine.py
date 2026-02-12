@@ -1135,7 +1135,13 @@ class FinancialEngine:
         )
 
         # === 6. Termodinámica Financiera ===
-        inertia = self.calculate_financial_thermal_inertia(liq, fcr)
+        inertia_result = self.calculate_financial_thermal_inertia(
+            liquidity=liq,
+            fixed_contracts_ratio=fcr,
+            project_complexity=pyramid_stability if pyramid_stability is not None else 1.0,
+            market_volatility=vol,
+        )
+        inertia = inertia_result["inertia"]
 
         # === 7. Construir Resultado ===
         result = {
@@ -1378,29 +1384,59 @@ class FinancialEngine:
         return max(0.0, adjusted_volatility)
 
     def calculate_financial_thermal_inertia(
-        self, liquidity: float, fixed_contracts_ratio: float
-    ) -> float:
+        self,
+        liquidity: float = 0.0,
+        fixed_contracts_ratio: float = 0.0,
+        project_complexity: float = 0.0,
+        market_volatility: float = 0.0,
+    ) -> Dict[str, Any]:
         """
         Calcula la Inercia Térmica Financiera.
 
         Simula la resistencia del proyecto a cambios de 'temperatura' (precios).
-        Analogía física: Masa (Liquidez) * Calor Específico (Contratos Fijos).
+        Analogía física:
+        - Masa térmica = Liquidez × (1 + 0.5 × Complejidad)
+        - Calor específico = Contratos Fijos × (1 + 0.3 × Complejidad)
+        - Atenuación por volatilidad = exp(-2 × volatilidad)
+        - Inercia = Masa × Calor_Específico × Atenuación
         """
-        return liquidity * fixed_contracts_ratio
+        import math
+        mass = liquidity * (1.0 + 0.5 * project_complexity)
+        heat_capacity = fixed_contracts_ratio * (1.0 + 0.3 * project_complexity)
+        attenuation = math.exp(-2.0 * market_volatility)
+        inertia = mass * heat_capacity * attenuation
+        return {"inertia": inertia}
 
-    def predict_temperature_change(self, perturbation: float, inertia: float) -> float:
+    def predict_temperature_change(
+        self,
+        perturbation: float,
+        inertia_data: Optional[Dict[str, Any]] = None,
+        time_constant: Optional[float] = None,
+    ) -> Dict[str, Any]:
         """
         Predice el cambio de temperatura financiera (costos) ante una perturbación.
-        Ley de enfriamiento: ΔT = Q / I
-        """
-        if inertia <= 0:
-            # Sin inercia, el cambio es instantáneo/total (o indefinido si Q=0, asumimos total)
-            # Retornamos la perturbación completa como 'cambio infinito' o directo.
-            # Para fines prácticos, si I=0, el sistema es inestable.
-            # Retornamos la perturbación sin amortiguación.
-            return perturbation
 
-        return perturbation / inertia
+        Modelo de primer orden: ΔT = (Q/I) × (1 - exp(-1/τ))
+        Cuando τ → 0, ΔT ≈ Q/I (respuesta instantánea).
+        Cuando τ → ∞, ΔT ≈ 0 (sistema con mucha inercia temporal).
+        """
+        import math
+        inertia = 0.0
+        if inertia_data is not None:
+            inertia = inertia_data.get("inertia", 0.0)
+
+        if inertia <= 0:
+            return {"temperature_change": perturbation}
+
+        base_change = perturbation / inertia
+
+        if time_constant is not None and time_constant > 0:
+            temporal_factor = 1.0 - math.exp(-1.0 / time_constant)
+            temperature_change = base_change * temporal_factor
+        else:
+            temperature_change = base_change
+
+        return {"temperature_change": temperature_change}
 
 
 def calculate_volatility_from_returns(

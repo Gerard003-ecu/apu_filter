@@ -34,7 +34,7 @@ import uuid
 from abc import ABC, abstractmethod
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Type, Union
+from typing import Any, Callable, Dict, List, Optional, Tuple, Type, Union
 
 import numpy as np
 import pandas as pd
@@ -141,6 +141,7 @@ class MICRegistry:
         self._basis: Dict[str, BasisVector] = {}
         self._ordered_labels: List[str] = []
         self._dimension = 0
+        self._vectors: Dict[str, Tuple[Stratum, Callable[..., Dict[str, Any]]]] = {}
         self.logger = logging.getLogger(self.__class__.__name__)
 
     @property
@@ -203,6 +204,76 @@ class MICRegistry:
 
     def __len__(self) -> int:
         return self._dimension
+
+    @property
+    def registered_services(self) -> List[str]:
+        """Returns list of registered handler-based service names."""
+        return list(self._vectors.keys())
+
+    def register_vector(
+        self,
+        service_name: str,
+        stratum: Stratum,
+        handler: Callable[..., Dict[str, Any]]
+    ) -> None:
+        """
+        Registers a handler-based vector (used by register_core_vectors).
+        Compatible with the tools_interface MICRegistry interface.
+        """
+        if not service_name or not service_name.strip():
+            raise ValueError("service_name cannot be empty")
+        if not callable(handler):
+            raise TypeError("handler must be callable")
+        if service_name in self._vectors:
+            self.logger.warning(f"Overwriting existing vector: {service_name}")
+        self._vectors[service_name] = (stratum, handler)
+        self.logger.info(f"Vector registered: {service_name} [{stratum.name}]")
+
+    def _normalize_validated_strata(self, raw: Any) -> set:
+        """Normalizes validated_strata from context to a set of Stratum."""
+        if isinstance(raw, set):
+            return {s for s in raw if isinstance(s, Stratum)}
+        if isinstance(raw, (list, tuple)):
+            return {s for s in raw if isinstance(s, Stratum)}
+        return set()
+
+    def project_intent(
+        self,
+        service_name: str,
+        payload: Dict[str, Any],
+        context: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """
+        Projects an intent onto the vectorial space by invoking a registered handler.
+        """
+        if service_name not in self._vectors:
+            available = self.registered_services
+            raise ValueError(
+                f"Unknown vector: '{service_name}'. "
+                f"Available: {available if available else 'none registered'}"
+            )
+
+        target_stratum, handler = self._vectors[service_name]
+
+        try:
+            result = handler(**payload)
+            if not isinstance(result, dict):
+                result = {"success": True, "result": result}
+            if result.get("success", False):
+                result["_mic_stratum"] = target_stratum.name
+            return result
+        except TypeError as e:
+            self.logger.error(
+                f"Handler signature mismatch for '{service_name}': {e}",
+                exc_info=True
+            )
+            return {"success": False, "error": str(e)}
+        except Exception as e:
+            self.logger.error(
+                f"Error executing vector '{service_name}': {e}",
+                exc_info=True
+            )
+            return {"success": False, "error": str(e)}
 
 
 # ==================== MAPA DE ESTRATOS ====================
@@ -877,10 +948,10 @@ class PipelineDirector:
     def __init__(self, config: dict, telemetry: TelemetryContext):
         self.config = config
         self.telemetry = telemetry
+        self.logger = logging.getLogger(self.__class__.__name__)
         self.thresholds = self._load_thresholds(config)
         self.session_dir = Path(config.get("session_dir", "data/sessions"))
         self.session_dir.mkdir(parents=True, exist_ok=True)
-        self.logger = logging.getLogger(self.__class__.__name__)
         
         # Inicializar la MIC (ahora MICRegistry simplificado)
         self.mic = MICRegistry()

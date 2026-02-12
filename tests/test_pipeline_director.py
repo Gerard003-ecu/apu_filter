@@ -1109,7 +1109,7 @@ class TestAuditedMergeStep:
         }
 
         with patch(
-            "app.pipeline_director_v2.DataMerger"
+            "app.pipeline_director.DataMerger"
         ) as MockMerger:
             mock_instance = MockMerger.return_value
             mock_instance.merge_apus_with_insumos.return_value = pd.DataFrame(
@@ -1149,7 +1149,7 @@ class TestCalculateCostsStep:
         original_df = pd.DataFrame({"original": [1, 2, 3]})
         context = {"df_merged": original_df}
 
-        with patch("app.pipeline_director_v2.APUProcessor") as MockProc:
+        with patch("app.pipeline_director.APUProcessor") as MockProc:
             mock_proc = MockProc.return_value
             mock_proc.process_vectors.return_value = (
                 pd.DataFrame({"costo": [100]}),
@@ -1188,7 +1188,7 @@ class TestBusinessTopologyStep:
         mock_graph.number_of_edges.return_value = 2
 
         with patch(
-            "app.pipeline_director_v2.BudgetGraphBuilder"
+            "app.pipeline_director.BudgetGraphBuilder"
         ) as MockBuilder, patch.object(
             step, "_resolve_mic_instance", return_value=None
         ):
@@ -1214,7 +1214,7 @@ class TestBusinessTopologyStep:
         mock_graph.number_of_edges.return_value = 0
 
         with patch(
-            "app.pipeline_director_v2.BudgetGraphBuilder"
+            "app.pipeline_director.BudgetGraphBuilder"
         ) as MockBuilder, patch.object(
             step, "_resolve_mic_instance", return_value=None
         ):
@@ -1240,11 +1240,11 @@ class TestBusinessTopologyStep:
         mock_mic = MagicMock()
 
         with patch(
-            "app.pipeline_director_v2.BudgetGraphBuilder"
+            "app.pipeline_director.BudgetGraphBuilder"
         ) as MockBuilder, patch.object(
             step, "_resolve_mic_instance", return_value=mock_mic
         ), patch(
-            "app.pipeline_director_v2.BusinessAgent"
+            "app.pipeline_director.BusinessAgent"
         ) as MockAgent:
             MockBuilder.return_value.build.return_value = mock_graph
             MockAgent.return_value.evaluate_project.side_effect = RuntimeError(
@@ -1290,9 +1290,9 @@ class TestMaterializationStep:
         }
 
         with patch(
-            "app.pipeline_director_v2.MatterGenerator"
+            "app.pipeline_director.MatterGenerator"
         ) as MockGen, patch(
-            "app.pipeline_director_v2.asdict", return_value={"items": 3}
+            "app.pipeline_director.asdict", return_value={"items": 3}
         ):
             MockGen.return_value.materialize_project.return_value = mock_bom
             result = step.execute(context, telemetry)
@@ -1377,19 +1377,19 @@ class TestBuildOutputStep:
         }
 
         with patch(
-            "app.pipeline_director_v2.synchronize_data_sources",
+            "app.pipeline_director.synchronize_data_sources",
             return_value=context["df_merged"],
         ), patch(
-            "app.pipeline_director_v2.build_processed_apus_dataframe",
+            "app.pipeline_director.build_processed_apus_dataframe",
             return_value=pd.DataFrame(),
         ), patch(
-            "app.pipeline_director_v2.build_output_dictionary",
+            "app.pipeline_director.build_output_dictionary",
             return_value={"data": True},
         ), patch(
-            "app.pipeline_director_v2.validate_and_clean_data",
+            "app.pipeline_director.validate_and_clean_data",
             return_value={"data": True},
         ), patch(
-            "app.pipeline_director_v2.TelemetryNarrator"
+            "app.pipeline_director.TelemetryNarrator"
         ) as MockNarr:
             MockNarr.return_value.summarize_execution.return_value = {"summary": "ok"}
             result = step.execute(context, telemetry)
@@ -1418,19 +1418,19 @@ class TestBuildOutputStep:
         }
 
         with patch(
-            "app.pipeline_director_v2.synchronize_data_sources",
+            "app.pipeline_director.synchronize_data_sources",
             return_value=context["df_merged"],
         ), patch(
-            "app.pipeline_director_v2.build_processed_apus_dataframe",
+            "app.pipeline_director.build_processed_apus_dataframe",
             return_value=pd.DataFrame(),
         ), patch(
-            "app.pipeline_director_v2.build_output_dictionary",
+            "app.pipeline_director.build_output_dictionary",
             return_value={"data": True},
         ), patch(
-            "app.pipeline_director_v2.validate_and_clean_data",
+            "app.pipeline_director.validate_and_clean_data",
             return_value={"data": True},
         ), patch(
-            "app.pipeline_director_v2.TelemetryNarrator"
+            "app.pipeline_director.TelemetryNarrator"
         ) as MockNarr:
             MockNarr.return_value.summarize_execution.return_value = {}
             result = step.execute(context, telemetry)
@@ -1453,7 +1453,7 @@ class TestProcessAllFiles:
             (tmp_path / name).touch()
 
         with patch(
-            "app.pipeline_director_v2.PipelineDirector"
+            "app.pipeline_director.PipelineDirector"
         ) as MockDirector:
             mock_instance = MockDirector.return_value
             mock_instance.execute_pipeline_orchestrated.return_value = {
@@ -1496,7 +1496,7 @@ class TestProcessAllFiles:
         }
 
         with patch(
-            "app.pipeline_director_v2.PipelineDirector"
+            "app.pipeline_director.PipelineDirector"
         ) as MockDirector:
             mock_instance = MockDirector.return_value
             mock_instance.execute_pipeline_orchestrated.return_value = {
@@ -1520,7 +1520,7 @@ class TestProcessAllFiles:
             (tmp_path / name).touch()
 
         with patch(
-            "app.pipeline_director_v2.PipelineDirector"
+            "app.pipeline_director.PipelineDirector"
         ) as MockDirector:
             mock_instance = MockDirector.return_value
             mock_instance.execute_pipeline_orchestrated.return_value = {
@@ -1543,7 +1543,7 @@ class TestProcessAllFiles:
             (tmp_path / name).touch()
 
         with patch(
-            "app.pipeline_director_v2.PipelineDirector"
+            "app.pipeline_director.PipelineDirector"
         ) as MockDirector:
             mock_instance = MockDirector.return_value
             mock_instance.execute_pipeline_orchestrated.side_effect = RuntimeError(

@@ -3148,7 +3148,7 @@ class DataFluxCondenser:
         self,
         config: Dict[str, Any],
         profile: Dict[str, Any],
-        condenser_config: CondenserConfig,
+        condenser_config: Optional[CondenserConfig] = None,
         thresholds: Optional[ProcessingThresholds] = None,
     ):
         """
@@ -3163,7 +3163,7 @@ class DataFluxCondenser:
         Args:
             config: Configuración general.
             profile: Perfil de procesamiento.
-            condenser_config: Configuración específica del condensador.
+            condenser_config: Configuración específica del condensador (optional, defaults to CondenserConfig()).
             thresholds: Umbrales de procesamiento (Opcional, se cargan de config si es None).
 
         Raises:
@@ -3174,7 +3174,7 @@ class DataFluxCondenser:
         # Configuración con defaults seguros
         self.config = config
         self.profile = profile
-        self.condenser_config = condenser_config
+        self.condenser_config = condenser_config or CondenserConfig()
         self.thresholds = thresholds or ProcessingThresholds(config.get("validation_thresholds", {}))
         self.telemetry = None  # Se inyecta en stabilize_stream o stabilize
         self._cache_bayesian_state = {} # Restaurado para evitar errores de atributo
