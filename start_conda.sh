@@ -340,6 +340,13 @@ check_conda_installation() {
 initialize_conda_shell() {
     log_step "Inicializando Conda para este shell..."
 
+    # Parche de Robustez: Detección temprana
+    if [[ "${CONDA_DEFAULT_ENV:-}" == "$ENV_NAME" ]]; then
+        log_success "Entorno '$ENV_NAME' ya activo. Omitiendo inicialización."
+        RUNTIME_STATE[CONDA_INITIALIZED]="true"
+        return 0
+    fi
+
     local conda_sh=""
     local -a conda_paths=(
         "$(conda info --base 2>/dev/null)/etc/profile.d/conda.sh"
@@ -361,12 +368,16 @@ initialize_conda_shell() {
         source "$conda_sh"
     else
         log_debug "Usando conda shell.bash hook"
-        eval "$(conda shell.bash hook 2>/dev/null)" \
-            || die "No se pudo inicializar conda shell hook"
+        eval "$(conda shell.bash hook 2>/dev/null)" || true
     fi
 
-    if ! type conda | grep -q "function"; then
-        die "Conda no se inicializó correctamente como función"
+    # Parche de Robustez: Verificación flexible
+    if type conda 2>/dev/null | grep -q "function"; then
+        log_debug "Conda detectado como función."
+    elif command -v conda &>/dev/null; then
+        log_warn "Conda detectado como ejecutable (no función). Continuando..."
+    else
+        die "Conda no se inicializó correctamente (ni función ni binario encontrados)"
     fi
 
     RUNTIME_STATE[CONDA_INITIALIZED]="true"
@@ -491,15 +502,21 @@ activate_environment() {
         return 0
     fi
 
-    if ! conda activate "$ENV_NAME" 2>> "$LOG_FILE"; then
-        die "No se pudo activar el entorno '$ENV_NAME'"
-    fi
+    # Parche de Robustez: Evitar reactivación si ya estamos dentro
+    if [[ "${CONDA_DEFAULT_ENV:-}" == "$ENV_NAME" ]]; then
+        log_success "Entorno '$ENV_NAME' ya está activo. Saltando 'conda activate'."
+        RUNTIME_STATE[ENV_ACTIVATED]="true"
+    else
+        if ! conda activate "$ENV_NAME" 2>> "$LOG_FILE"; then
+            die "No se pudo activar el entorno '$ENV_NAME'"
+        fi
 
-    if [[ "${CONDA_DEFAULT_ENV:-}" != "$ENV_NAME" ]]; then
-        die "El entorno no se activó correctamente (actual: ${CONDA_DEFAULT_ENV:-none})"
-    fi
+        if [[ "${CONDA_DEFAULT_ENV:-}" != "$ENV_NAME" ]]; then
+            die "El entorno no se activó correctamente (actual: ${CONDA_DEFAULT_ENV:-none})"
+        fi
 
-    RUNTIME_STATE[ENV_ACTIVATED]="true"
+        RUNTIME_STATE[ENV_ACTIVATED]="true"
+    fi
 
     local python_path python_version
     python_path=$(which python 2>/dev/null || echo "no encontrado")
@@ -1108,9 +1125,9 @@ main() {
     echo ""
 
     # Validación
-    initialize_conda_shell
     check_base_dependencies
     check_conda_installation
+    initialize_conda_shell
     check_network_connectivity
 
     # Ejecutar operación
