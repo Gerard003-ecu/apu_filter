@@ -20,6 +20,7 @@ Organización por estratos:
 import os
 import time
 from dataclasses import FrozenInstanceError
+from types import SimpleNamespace
 from typing import Any, Dict, List
 from unittest.mock import MagicMock, PropertyMock, patch
 
@@ -718,7 +719,7 @@ class TestCalculateDimensionality:
         records = [{"x": 1}, {"y": 2}]
         result = calculate_dimensionality(records)
         assert "default" in result
-        assert result["default"] == 3  # {x, y, record_type no está} → {x, y}=2... wait
+        assert result["default"] == 2  # {x, y} -> record_type no está
 
     def test_default_type_union(self):
         """Sin record_type explícito, se agrupan como 'default'."""
@@ -895,9 +896,7 @@ class TestVectorParseRawStructure:
         mock_instance = MagicMock()
         mock_instance.parse_to_raw.return_value = sample_raw_records
         mock_instance.get_parse_cache.return_value = {"dependency_cycles": []}
-        mock_instance.validation_stats = MagicMock(
-            __dict__={"valid": 5, "invalid": 0}
-        )
+        mock_instance.validation_stats = SimpleNamespace(valid=5, invalid=0)
         MockParser.return_value = mock_instance
 
         result = vector_parse_raw_structure(tmp_file, valid_profile)
@@ -917,7 +916,7 @@ class TestVectorParseRawStructure:
         mock_instance = MagicMock()
         mock_instance.parse_to_raw.return_value = sample_raw_records
         mock_instance.get_parse_cache.return_value = {}
-        mock_instance.validation_stats = MagicMock(__dict__={})
+        mock_instance.validation_stats = SimpleNamespace()
         MockParser.return_value = mock_instance
 
         result = vector_parse_raw_structure(tmp_file, valid_profile)
@@ -948,7 +947,7 @@ class TestVectorParseRawStructure:
         mock_instance.get_parse_cache.return_value = {
             "dependency_cycles": [["x", "y", "x"]]
         }
-        mock_instance.validation_stats = MagicMock(__dict__={})
+        mock_instance.validation_stats = SimpleNamespace()
         MockParser.return_value = mock_instance
 
         result = vector_parse_raw_structure(tmp_file, valid_profile)
@@ -967,7 +966,7 @@ class TestVectorParseRawStructure:
         mock_instance = MagicMock()
         mock_instance.parse_to_raw.return_value = [{"record_type": "A"}]
         mock_instance.get_parse_cache.return_value = {}
-        mock_instance.validation_stats = MagicMock(__dict__={})
+        mock_instance.validation_stats = SimpleNamespace()
         MockParser.return_value = mock_instance
 
         result = vector_parse_raw_structure(

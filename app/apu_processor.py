@@ -1798,7 +1798,7 @@ class APUProcessor:
 
         self.global_stats["total_insumos"] = len(all_results)
         self._log_global_stats(telemetry)
-        return pd.DataFrame(all_results)
+        return self._convert_to_dataframe(all_results)
 
     # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
     # MÉTODOS DE ESTRATO TÁCTICO (Refactoring PipelineDirector)

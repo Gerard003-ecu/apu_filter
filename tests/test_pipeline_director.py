@@ -427,15 +427,15 @@ class TestContextPersistence:
 
         assert loaded == context
 
-    def test_load_nonexistent_session_returns_empty_dict(self, director):
-        """Cargar una sesión inexistente retorna diccionario vacío."""
+    def test_load_nonexistent_session_returns_none(self, director):
+        """Cargar una sesión inexistente retorna None."""
         loaded = director._load_context_state("nonexistent_session_id")
-        assert loaded == {}
+        assert loaded is None
 
-    def test_load_empty_session_id_returns_empty_dict(self, director):
-        """Cargar con session_id vacío retorna diccionario vacío."""
-        assert director._load_context_state("") == {}
-        assert director._load_context_state(None) == {}
+    def test_load_empty_session_id_returns_none(self, director):
+        """Cargar con session_id vacío retorna None."""
+        assert director._load_context_state("") is None
+        assert director._load_context_state(None) is None
 
     def test_save_creates_session_directory(self, base_config, telemetry):
         """Si el directorio de sesiones no existe, se crea."""
@@ -457,7 +457,7 @@ class TestContextPersistence:
         assert tmp_files == [], f"Archivos temporales residuales: {tmp_files}"
 
     def test_load_validates_type_is_dict(self, director):
-        """Si el archivo pickle contiene un no-dict, retorna diccionario vacío."""
+        """Si el archivo pickle contiene un no-dict, retorna None."""
         session_id = "corrupted_type"
         session_file = director.session_dir / f"{session_id}.pkl"
 
@@ -466,10 +466,10 @@ class TestContextPersistence:
             pickle.dump(["not", "a", "dict"], f)
 
         loaded = director._load_context_state(session_id)
-        assert loaded == {}, "Un pickle corrupto (no-dict) debe retornar {}"
+        assert loaded is None, "Un pickle corrupto (no-dict) debe retornar None"
 
     def test_load_handles_corrupted_file(self, director):
-        """Un archivo pickle corrupto no propaga la excepción."""
+        """Un archivo pickle corrupto retorna None."""
         session_id = "corrupted_data"
         session_file = director.session_dir / f"{session_id}.pkl"
 
@@ -478,7 +478,7 @@ class TestContextPersistence:
             f.write(b"this is not valid pickle data")
 
         loaded = director._load_context_state(session_id)
-        assert loaded == {}
+        assert loaded is None
 
     def test_cleanup_session_removes_file(self, director):
         """_cleanup_session elimina el archivo de sesión."""
@@ -896,8 +896,8 @@ class TestPipelineOrchestration:
         Si el guardado inicial del contexto falla (round-trip verification),
         se lanza IOError antes de ejecutar cualquier paso.
         """
-        # Hacer que la carga retorne vacío (simulando fallo de I/O)
-        with patch.object(director, "_load_context_state", return_value={}):
+        # Hacer que la carga retorne None (simulando fallo de I/O)
+        with patch.object(director, "_load_context_state", return_value=None):
             with patch.object(director, "_save_context_state"):
                 with pytest.raises(IOError, match="Failed to persist"):
                     director.execute_pipeline_orchestrated({"data": True})
@@ -1146,6 +1146,11 @@ class TestCalculateCostsStep:
         Solo agrega df_apu_costos, df_tiempo, df_rendimiento.
         """
         step = CalculateCostsStep(base_config, ProcessingThresholds())
+        # Inject mock MIC
+        mock_mic = MagicMock()
+        mock_mic.project_intent.return_value = {"success": True, "processed_data": []}
+        step.mic = mock_mic
+
         original_df = pd.DataFrame({"original": [1, 2, 3]})
         context = {"df_merged": original_df}
 
