@@ -3177,7 +3177,11 @@ class DataFluxCondenser:
         self.condenser_config = condenser_config or CondenserConfig()
         self.thresholds = thresholds or ProcessingThresholds(config.get("validation_thresholds", {}))
         self.telemetry = None  # Se inyecta en stabilize_stream o stabilize
-        self._cache_bayesian_state = {} # Restaurado para evitar errores de atributo
+        self._cache_bayesian_state = {
+            "alpha": 1.0,
+            "beta": 1.0,
+            "total_samples": 0,
+        }
 
         # Estado de inicialización para diagnóstico
         self._initialization_status = {

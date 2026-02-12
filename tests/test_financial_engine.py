@@ -966,23 +966,29 @@ class TestFinancialEngine:
             fixed_contracts_ratio=0.5
         )
         
-        assert inertia == 0.2 * 0.5  # = 0.1
+        assert inertia["inertia"] == 0.2 * 0.5  # = 0.1
         
         # Mayor liquidez y más contratos fijos = más inercia
         high_inertia = engine.calculate_financial_thermal_inertia(0.5, 0.8)
-        assert high_inertia > inertia
+        assert high_inertia["inertia"] > inertia["inertia"]
 
     def test_predict_temperature_change(self, engine):
         """
         Verifica predicción de cambio de temperatura financiera.
         """
         # Con inercia, el cambio se amortigua
-        delta_t = engine.predict_temperature_change(perturbation=100, inertia=0.5)
-        assert delta_t == 100 / 0.5  # = 200
+        delta_t = engine.predict_temperature_change(
+            perturbation=100,
+            inertia_data={'inertia': 0.5}
+        )
+        assert delta_t["temperature_change"] == 100 / 0.5  # = 200
         
         # Sin inercia, el cambio es directo
-        delta_t_no_inertia = engine.predict_temperature_change(perturbation=100, inertia=0)
-        assert delta_t_no_inertia == 100  # Perturbación completa
+        delta_t_no_inertia = engine.predict_temperature_change(
+            perturbation=100,
+            inertia_data={'inertia': 0.0}
+        )
+        assert delta_t_no_inertia["temperature_change"] == 100  # Perturbación completa
 
     def test_adjust_volatility_by_topology_no_report(self, engine):
         """

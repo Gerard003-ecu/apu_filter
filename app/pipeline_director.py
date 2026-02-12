@@ -1009,12 +1009,13 @@ class PipelineDirector:
         for label, step_class, stratum in steps_definition:
             self.mic.add_basis_vector(label, step_class, stratum)
 
-    def _load_context_state(self, session_id: str) -> dict:
+    def _load_context_state(self, session_id: str) -> Optional[dict]:
         """
         Carga el estado de una sesión con validación de tipo.
+        Retorna None si la sesión no existe o está corrupta.
         """
         if not session_id:
-            return {}
+            return None
         try:
             session_file = self.session_dir / f"{session_id}.pkl"
             if session_file.exists():
@@ -1024,13 +1025,13 @@ class PipelineDirector:
                     self.logger.error(
                         f"Corrupted session {session_id}: expected dict, got {type(data).__name__}"
                     )
-                    return {}
+                    return None
                 return data
         except (pickle.UnpicklingError, EOFError, ModuleNotFoundError) as e:
             self.logger.error(f"Failed to deserialize session {session_id}: {e}")
         except Exception as e:
             self.logger.error(f"Failed to load context for session {session_id}: {e}")
-        return {}
+        return None
 
     def _save_context_state(self, session_id: str, context: dict):
         """
@@ -1096,7 +1097,7 @@ class PipelineDirector:
         self.logger.info(f"Executing step: {step_name} (Session: {session_id[:8]}...)")
 
         # 1. Cargar contexto de sesión
-        context = self._load_context_state(session_id)
+        context = self._load_context_state(session_id) or {}
 
         # 2. Fusionar initial_context (las claves de sesión tienen precedencia)
         if initial_context:
@@ -1183,7 +1184,7 @@ class PipelineDirector:
         # Guardado inicial del contexto — verificar que no falle silenciosamente
         self._save_context_state(session_id, initial_context)
         verification = self._load_context_state(session_id)
-        if not verification:
+        if verification is None:
             raise IOError(
                 f"Failed to persist initial context for session {session_id}. "
                 f"Check disk permissions on {self.session_dir}."
@@ -1222,7 +1223,7 @@ class PipelineDirector:
                 # No limpiar sesión en error para permitir análisis forense
                 raise RuntimeError(error_msg)
 
-        final_context = self._load_context_state(session_id)
+        final_context = self._load_context_state(session_id) or {}
 
         # Limpieza de archivo de sesión tras éxito
         self._cleanup_session(session_id)
