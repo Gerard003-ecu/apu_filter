@@ -13,7 +13,13 @@ IFS=$'\n\t'
 trap 'cleanup_on_exit' EXIT INT TERM
 
 # --- Configuration ---
-readonly PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# Detect if running from root or scripts/ subdirectory
+if [[ -f "$SCRIPT_DIR/compose.yaml" ]]; then
+    readonly PROJECT_ROOT="$SCRIPT_DIR"
+else
+    readonly PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+fi
 readonly LOG_DIR="${PROJECT_ROOT}/logs"
 readonly COMPOSE_FILE="${PROJECT_ROOT}/compose.yaml"
 readonly SCRIPT_PID=$$
