@@ -39,7 +39,7 @@ from unittest.mock import MagicMock, Mock, patch, PropertyMock
 # ==================== IMPORTS DEL MÓDULO BAJO TEST ====================
 # NOTA: Todos los steps están definidos en pipeline_director_v2, NO en apu_processor.
 
-from app.pipeline_director_v2 import (
+from app.pipeline_director import (
     # Clases principales
     PipelineDirector,
     MICRegistry,
