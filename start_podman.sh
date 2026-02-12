@@ -56,7 +56,7 @@ main() {
 
     # Abrir permisos explícitamente para evitar problemas de escritura en contenedores
     # Esto es crítico para Gunicorn y otros procesos que corren como non-root
-    chmod -R 775 logs data
+    chmod -R 777 logs data
 
     # Iniciar logging
     touch "$LOG_FILE"
