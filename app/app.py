@@ -1360,7 +1360,7 @@ def create_app(config_name: str) -> Flask:
         """Renderiza la página principal."""
         return render_template("index.html")
 
-    @app.route("/api/health", methods=["GET"])
+    @app.route("/health", methods=["GET"])
     def health_check():
         """Endpoint de verificación de estado con métricas detalladas."""
         redis_client = app.config["SESSION_REDIS"]

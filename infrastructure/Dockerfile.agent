@@ -1,14 +1,30 @@
 # =============================================================================
 # DOCKERFILE.AGENT - Agente con PyTorch CPU
 # =============================================================================
-# Versión: 6.0
+# Versión: 7.0
+# Cambios vs 6.0:
+#   - ARGs centralizados para versiones (fuente única de verdad)
+#   - Regex de exclusión precisa (evita falsos positivos)
+#   - Eliminado || true peligroso en pip install -r
+#   - Fusión de capas de generación de archivos
+#   - chmod 775 en lugar de 777
+#   - Verificación única y exhaustiva
+#   - Limpieza completa de artefactos temporales
+#   - STOPSIGNAL explícito
 # =============================================================================
 
 FROM public.ecr.aws/docker/library/python:3.10-slim
 
 LABEL maintainer="equipo-desarrollo" \
-      version="6.0" \
+      version="7.0" \
       description="Agente orquestador con PyTorch CPU"
+
+# ─── Versiones centralizadas ────────────────────────────────────────────────
+# Un solo lugar para actualizar; se propagan a install, constraints y assert.
+ARG TORCH_VERSION=2.5.1
+ARG TORCHVISION_VERSION=0.20.1
+ARG TORCHAUDIO_VERSION=2.5.1
+ARG SYMPY_VERSION=1.13.1
 
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
@@ -20,78 +36,85 @@ ENV PYTHONUNBUFFERED=1 \
 WORKDIR /app
 
 # =============================================================================
-# FASE 1: Copiar requirements
+# FASE 1: Filtrar requirements + generar constraints  (una sola capa)
 # =============================================================================
-COPY requirements.txt ./req-base-original.txt
+COPY requirements.txt       ./req-base-original.txt
 COPY requirements-agent.txt ./req-agent-original.txt
 
-# =============================================================================
-# FASE 2: Limpiar requirements de dependencias problemáticas
-# =============================================================================
-RUN grep -v -E "^(torch|torchvision|torchaudio|sentence-transformers|transformers|accelerate|huggingface-hub|safetensors|sympy)" \
-    req-base-original.txt > requirements.txt || true && \
-    grep -v -E "^(torch|torchvision|torchaudio|sentence-transformers|transformers|accelerate|huggingface-hub|safetensors|sympy)" \
-    req-agent-original.txt > requirements-agent.txt || true
+# Regex precisa: nombre_paquete seguido de delimitador de versión o fin de línea.
+# Impide excluir paquetes como torchmetrics o transformers-interpret.
+# || true en grep: necesario porque grep retorna 1 si filtra TODAS las líneas.
+RUN set -e; \
+    EXCL='^(torch|torchvision|torchaudio|sentence-transformers|transformers|accelerate|huggingface-hub|safetensors|sympy)([=><!~\[[:space:]]|$)'; \
+    grep -v -E "$EXCL" req-base-original.txt  > requirements.txt       || true; \
+    grep -v -E "$EXCL" req-agent-original.txt > requirements-agent.txt || true; \
+    printf '%s\n' \
+      "torch==${TORCH_VERSION}+cpu" \
+      "torchvision==${TORCHVISION_VERSION}+cpu" \
+      "torchaudio==${TORCHAUDIO_VERSION}+cpu" \
+      "sympy==${SYMPY_VERSION}" \
+      > /tmp/constraints.txt
 
 # =============================================================================
-# FASE 3: Crear CONSTRAINTS
-# =============================================================================
-RUN echo "torch==2.5.1+cpu" > /tmp/constraints.txt && \
-    echo "torchvision==0.20.1+cpu" >> /tmp/constraints.txt && \
-    echo "torchaudio==2.5.1+cpu" >> /tmp/constraints.txt && \
-    echo "sympy==1.13.1" >> /tmp/constraints.txt
-
-# =============================================================================
-# FASE 4: Instalar PyTorch CPU
+# FASE 2: Instalar PyTorch CPU  (capa pesada ~800 MB, alta cachabilidad)
 # =============================================================================
 RUN pip install \
-    torch==2.5.1+cpu \
-    torchvision==0.20.1+cpu \
-    torchaudio==2.5.1+cpu \
-    --index-url https://download.pytorch.org/whl/cpu
-
-RUN python -c "import torch; print(f'[OK] PyTorch {torch.__version__}')"
+      torch==${TORCH_VERSION}+cpu \
+      torchvision==${TORCHVISION_VERSION}+cpu \
+      torchaudio==${TORCHAUDIO_VERSION}+cpu \
+      --index-url https://download.pytorch.org/whl/cpu
 
 # =============================================================================
-# FASE 5: Instalar paquetes ML con CONSTRAINT
+# FASE 3: Paquetes ML con constraint  (protege contra reinstalación GPU)
 # =============================================================================
 RUN pip install \
-    -c /tmp/constraints.txt \
-    sentence-transformers \
-    transformers \
-    accelerate \
-    huggingface-hub \
-    safetensors
+      -c /tmp/constraints.txt \
+      sentence-transformers \
+      transformers \
+      accelerate \
+      huggingface-hub \
+      safetensors
 
 # =============================================================================
-# FASE 6: Instalar resto con CONSTRAINT
+# FASE 4: Dependencias del proyecto con constraint
 # =============================================================================
-RUN pip install -c /tmp/constraints.txt -r requirements.txt || true
-RUN pip install -c /tmp/constraints.txt -r requirements-agent.txt || true
+# SIN || true: un fallo real DEBE romper el build, no ocultarse.
+RUN pip install -c /tmp/constraints.txt -r requirements.txt
+RUN pip install -c /tmp/constraints.txt -r requirements-agent.txt
 
 # =============================================================================
-# FASE 7: Verificación
+# FASE 5: Verificación de integridad  (una sola capa, exhaustiva)
 # =============================================================================
 RUN python -c "\
 import torch; \
 v = torch.__version__; \
-assert v == '2.5.1+cpu', f'FALLO: {v}'; \
-print('[OK] torch==2.5.1+cpu')"
+assert v == '${TORCH_VERSION}+cpu', \
+    f'FALLO: se esperaba ${TORCH_VERSION}+cpu, se obtuvo {v}'; \
+assert not torch.cuda.is_available(), 'FALLO: CUDA detectado en build CPU'; \
+from sentence_transformers import SentenceTransformer; \
+print(f'[OK] torch=={v}'); \
+print('[OK] sentence-transformers disponible'); \
+print('[OK] CUDA ausente (build CPU correcto)')"
 
 # =============================================================================
-# FASE 8: Usuario
+# FASE 6: Usuario no privilegiado + limpieza de artefactos
 # =============================================================================
-RUN useradd --create-home --shell /bin/bash --uid 1000 --user-group apu_user && \
-    mkdir -p /app/logs /app/data && \
-    chmod 777 /app/logs /app/data && \
-    chown -R apu_user:apu_user /app && \
-    rm -f /tmp/constraints.txt req-*-original.txt
+RUN useradd --create-home --shell /bin/bash --uid 1000 --user-group apu_user \
+    && mkdir -p /app/logs /app/data \
+    && chown -R apu_user:apu_user /app \
+    && chmod 775 /app/logs /app/data \
+    && rm -f /tmp/constraints.txt \
+             req-base-original.txt req-agent-original.txt \
+             requirements.txt requirements-agent.txt
 
 USER apu_user
 
 # =============================================================================
-# FASE 9: Código
+# FASE 7: Código de la aplicación
 # =============================================================================
+COPY --chown=apu_user:apu_user app/   /app/app/
 COPY --chown=apu_user:apu_user agent/ /app/agent/
+
+STOPSIGNAL SIGTERM
 
 ENTRYPOINT ["python", "-u", "-m", "agent.apu_agent"]

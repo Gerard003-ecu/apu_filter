@@ -1,17 +1,52 @@
 # =============================================================================
 # COMPOSE.YAML - APU Filter Stack
 # =============================================================================
+# Versión: 7.0
+# Coherencia: alineado con Dockerfile.core v7.0 y Dockerfile.agent v7.0
+# Cambios vs 6.0:
+#   - SECRET_KEY movida a .env (nunca en código fuente)
+#   - CORE_API_URL apunta al service name (core), no al container_name
+#   - Eliminada dns_enabled (inválida en Docker Compose)
+#   - Eliminada FLASK_ENV (deprecada Flask >=2.3)
+#   - Eliminado seccomp=unconfined (innecesario)
+#   - Redis vinculado solo a localhost
+#   - Agent depende de core:service_healthy
+#   - Healthcheck añadido al agent
+#   - Variables duplicadas con Dockerfiles eliminadas
+#   - Healthcheck de core alineado con Dockerfile (/health)
+#   - Límites de recursos para todos los servicios
+#   - Logging con rotación
+#   - stop_grace_period para cierre graceful
+#   - Formato map en environment
+# =============================================================================
 
 name: apu
 
+# ─── Archivo .env requerido ─────────────────────────────────────────────────
+# Crear .env en la raíz del proyecto con (mínimo):
+#
+#   SECRET_KEY=<valor-seguro-generado>
+#
+# NUNCA commitear .env al repositorio.
+# Añadir .env a .gitignore y .dockerignore.
+# =============================================================================
+
 services:
+  # ───────────────────────────────────────────────────────────────────────────
+  # REDIS - Broker de mensajes y caché
+  # ───────────────────────────────────────────────────────────────────────────
   redis:
     image: docker.io/library/redis:7-alpine
     container_name: apu_redis
     hostname: redis
-    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    command: >-
+      redis-server
+      --appendonly yes
+      --maxmemory 256mb
+      --maxmemory-policy allkeys-lru
+    # Solo accesible desde localhost (depuración); inter-contenedor usa apu_net.
     ports:
-      - "6379:6379"
+      - "127.0.0.1:6379:6379"
     volumes:
       - redis_data:/data
     healthcheck:
@@ -21,9 +56,23 @@ services:
       retries: 5
       start_period: 10s
     restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "25m"
+        max-file: "3"
+    deploy:
+      resources:
+        limits:
+          memory: 384M
+        reservations:
+          memory: 64M
     networks:
       - apu_net
 
+  # ───────────────────────────────────────────────────────────────────────────
+  # CORE - API Flask con PyTorch CPU
+  # ───────────────────────────────────────────────────────────────────────────
   core:
     image: apu-core:latest
     pull_policy: never
@@ -34,34 +83,46 @@ services:
     hostname: core
     ports:
       - "5002:5002"
+    env_file:
+      - .env
     environment:
-      - REDIS_URL=redis://redis:6379/0
-      - FLASK_ENV=production
-      - PYTHONUNBUFFERED=1
-      - PYTHONPATH=/app
-      - SECRET_KEY=apu_super_secret_key_2025_change_me_in_prod
-      - TOKENIZERS_PARALLELISM=false
-    security_opt:
-      - seccomp=unconfined
-    # env_file:
-    #  - .env
+      REDIS_URL:                redis://redis:6379/0
+      TOKENIZERS_PARALLELISM:   "false"
+      # PYTHONUNBUFFERED y PYTHONPATH ya definidos en Dockerfile.core v7.0
     depends_on:
       redis:
         condition: service_healthy
+    # Endpoint debe coincidir con la ruta registrada en Flask.
+    # Dockerfile.core v7.0 usa /health como default; ajustar si la app usa /api/health.
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5002/api/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:5002/health"]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 300s
+      start_period: 300s    # PyTorch + carga de modelos puede tomar varios minutos
     volumes:
       - ./data:/app/data:Z
       - ./logs:/app/logs:Z
       - ./config:/app/config:ro,Z
+    stop_grace_period: 45s  # Gunicorn: cierre graceful de workers (--timeout 300)
     restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "50m"
+        max-file: "5"
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+        reservations:
+          memory: 1G
     networks:
       - apu_net
 
+  # ───────────────────────────────────────────────────────────────────────────
+  # AGENT - Orquestador con PyTorch CPU
+  # ───────────────────────────────────────────────────────────────────────────
   agent:
     image: apu-agent:latest
     pull_policy: never
@@ -70,35 +131,61 @@ services:
       dockerfile: infrastructure/Dockerfile.agent
     container_name: apu_agent
     hostname: agent
+    env_file:
+      - .env
     environment:
-      - CORE_API_URL=http://apu_core:5002
-      - REDIS_URL=redis://redis:6379/0
-      - REQUEST_TIMEOUT=30
-      - PYTHONUNBUFFERED=1
-      - PYTHONPATH=/app
-      - CHECK_INTERVAL=1  # Muestreo de alta frecuencia (Real-time)
-      - LOG_LEVEL=INFO
-    security_opt:
-      - seccomp=unconfined
-    #env_file:
-    #  - .env
+      CORE_API_URL:       http://core:5002    # Service name, no container_name
+      REDIS_URL:          redis://redis:6379/0
+      REQUEST_TIMEOUT:    "30"
+      CHECK_INTERVAL:     "1"                 # Muestreo de alta frecuencia (real-time)
+      LOG_LEVEL:          INFO
+      # PYTHONUNBUFFERED y PYTHONPATH ya definidos en Dockerfile.agent v7.0
     depends_on:
       core:
-        condition: service_started
+        condition: service_healthy  # Espera a que core pase healthcheck
       redis:
         condition: service_healthy
+    # Verifica entorno Python + conectividad Redis.
+    # Ideal futuro: heartbeat file escrito por el agente, validado por find.
+    healthcheck:
+      test: >-
+        CMD-SHELL python -c
+        "import redis; redis.Redis.from_url('redis://redis:6379/0').ping()"
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
     volumes:
       - ./logs:/app/logs:Z
+    stop_grace_period: 30s
     restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "50m"
+        max-file: "5"
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+        reservations:
+          memory: 1G
     networks:
       - apu_net
 
+# =============================================================================
+# REDES
+# =============================================================================
 networks:
   apu_net:
     driver: bridge
     name: apu_network
-    dns_enabled: true
+    # DNS automático en redes bridge user-defined (Docker Compose).
+    # No requiere directiva adicional.
 
+# =============================================================================
+# VOLÚMENES
+# =============================================================================
 volumes:
   redis_data:
     name: apu_redis_data

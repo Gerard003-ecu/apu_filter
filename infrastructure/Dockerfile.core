@@ -1,14 +1,34 @@
 # =============================================================================
 # DOCKERFILE.CORE - API Flask con PyTorch CPU
 # =============================================================================
-# Versión: 6.0 - Protección total contra reinstalación de torch
+# Versión: 7.0
+# Coherencia: alineado con Dockerfile.agent v7.0
+# Cambios vs 6.0:
+#   - ARGs centralizados (fuente única de verdad, idénticos a agent)
+#   - Regex precisa con delimitador de versión
+#   - Eliminada capa de debug (cat requirements)
+#   - Verificación única y exhaustiva
+#   - gunicorn integrado en pip install del proyecto
+#   - chmod 775 en lugar de 777
+#   - Eliminado VOLUME (se declara en compose.yaml)
+#   - Eliminado FLASK_ENV deprecado (Flask >=2.3)
+#   - Eliminado chown redundante sobre /app/data
+#   - STOPSIGNAL explícito (coherencia con agent)
+#   - Limpieza completa de artefactos temporales
+#   - printf atómico para constraints
 # =============================================================================
 
 FROM public.ecr.aws/docker/library/python:3.10-slim
 
 LABEL maintainer="equipo-desarrollo" \
-      version="6.0" \
+      version="7.0" \
       description="Core API - Flask con PyTorch CPU"
+
+# ─── Versiones centralizadas (idénticas a Dockerfile.agent v7.0) ────────────
+ARG TORCH_VERSION=2.5.1
+ARG TORCHVISION_VERSION=0.20.1
+ARG TORCHAUDIO_VERSION=2.5.1
+ARG SYMPY_VERSION=1.13.1
 
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
@@ -16,115 +36,109 @@ ENV PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1 \
     PIP_ROOT_USER_ACTION=ignore \
-    FLASK_APP=app.app \
-    FLASK_ENV=production
+    FLASK_APP=app.app
 
 WORKDIR /app
 
 # =============================================================================
 # FASE 1: Dependencias del sistema
 # =============================================================================
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends curl && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends curl \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
 # =============================================================================
-# FASE 2: Copiar y LIMPIAR requirements
+# FASE 2: Filtrar requirements + generar constraints  (una sola capa)
 # =============================================================================
-COPY requirements.txt ./requirements-original.txt
+COPY requirements.txt ./req-base-original.txt
 
-# Eliminar TODAS las dependencias problemáticas del requirements.txt
-# Estas se instalarán manualmente con versiones controladas
-RUN grep -v -E "^(torch|torchvision|torchaudio|sentence-transformers|transformers|accelerate|huggingface-hub|safetensors|sympy)" \
-    requirements-original.txt > requirements.txt || true
-
-# Mostrar qué quedó (para debug)
-RUN echo "=== requirements.txt limpio ===" && cat requirements.txt && echo "==="
-
-# =============================================================================
-# FASE 3: Crear CONSTRAINTS (CANDADO INQUEBRANTABLE)
-# =============================================================================
-RUN echo "torch==2.5.1+cpu" > /tmp/constraints.txt && \
-    echo "torchvision==0.20.1+cpu" >> /tmp/constraints.txt && \
-    echo "torchaudio==2.5.1+cpu" >> /tmp/constraints.txt && \
-    echo "sympy==1.13.1" >> /tmp/constraints.txt && \
-    cat /tmp/constraints.txt
+# Regex precisa: nombre_paquete seguido de delimitador de versión o fin de línea.
+# Impide excluir paquetes como torchmetrics o transformers-interpret.
+# || true en grep: necesario porque grep retorna 1 si filtra TODAS las líneas.
+RUN set -e; \
+    EXCL='^(torch|torchvision|torchaudio|sentence-transformers|transformers|accelerate|huggingface-hub|safetensors|sympy)([=><!~\[[:space:]]|$)'; \
+    grep -v -E "$EXCL" req-base-original.txt > requirements-clean.txt || true; \
+    printf '%s\n' \
+      "torch==${TORCH_VERSION}+cpu" \
+      "torchvision==${TORCHVISION_VERSION}+cpu" \
+      "torchaudio==${TORCHAUDIO_VERSION}+cpu" \
+      "sympy==${SYMPY_VERSION}" \
+      > /tmp/constraints.txt
 
 # =============================================================================
-# FASE 4: Instalar PyTorch CPU PRIMERO
+# FASE 3: Instalar PyTorch CPU  (capa pesada ~800 MB, alta cachabilidad)
 # =============================================================================
 RUN pip install \
-    torch==2.5.1+cpu \
-    torchvision==0.20.1+cpu \
-    torchaudio==2.5.1+cpu \
-    --index-url https://download.pytorch.org/whl/cpu
-
-# Verificación inmediata
-RUN python -c "import torch; print(f'[OK] PyTorch {torch.__version__}')"
+      torch==${TORCH_VERSION}+cpu \
+      torchvision==${TORCHVISION_VERSION}+cpu \
+      torchaudio==${TORCHAUDIO_VERSION}+cpu \
+      --index-url https://download.pytorch.org/whl/cpu
 
 # =============================================================================
-# FASE 5: Instalar paquetes ML con CONSTRAINT
+# FASE 4: Paquetes ML con constraint  (protege contra reinstalación GPU)
 # =============================================================================
 RUN pip install \
-    -c /tmp/constraints.txt \
-    sentence-transformers \
-    transformers \
-    accelerate \
-    huggingface-hub \
-    safetensors
+      -c /tmp/constraints.txt \
+      sentence-transformers \
+      transformers \
+      accelerate \
+      huggingface-hub \
+      safetensors
 
 # =============================================================================
-# FASE 6: Instalar resto con CONSTRAINT
+# FASE 5: Dependencias del proyecto + gunicorn con constraint
 # =============================================================================
-RUN pip install \
-    -c /tmp/constraints.txt \
-    -r requirements.txt
-
-# Gunicorn
-RUN pip install gunicorn
+RUN pip install -c /tmp/constraints.txt -r requirements-clean.txt \
+    && pip install -c /tmp/constraints.txt gunicorn
 
 # =============================================================================
-# FASE 7: VERIFICACIÓN ESTRICTA (falla el build si torch cambió)
+# FASE 6: Verificación de integridad  (una sola capa, exhaustiva)
 # =============================================================================
 RUN python -c "\
 import torch; \
 v = torch.__version__; \
-print(f'Verificando torch: {v}'); \
-assert v == '2.5.1+cpu', f'FALLO: torch es {v}, debería ser 2.5.1+cpu'; \
-print('[OK] torch==2.5.1+cpu confirmado')"
+assert v == '${TORCH_VERSION}+cpu', \
+    f'FALLO: se esperaba ${TORCH_VERSION}+cpu, se obtuvo {v}'; \
+assert not torch.cuda.is_available(), 'FALLO: CUDA detectado en build CPU'; \
+from sentence_transformers import SentenceTransformer; \
+import flask; \
+print(f'[OK] torch=={v}'); \
+print('[OK] sentence-transformers disponible'); \
+print(f'[OK] Flask {flask.__version__}'); \
+print('[OK] CUDA ausente (build CPU correcto)')"
 
 # =============================================================================
-# FASE 8: Usuario no privilegiado
+# FASE 7: Usuario no privilegiado + limpieza de artefactos
 # =============================================================================
-RUN useradd --create-home --shell /bin/bash --uid 1000 --user-group apu_user && \
-    mkdir -p /app/logs /app/data/uploads && \
-    chmod 777 /app/logs /app/data && \
-    chown -R apu_user:apu_user /app && \
-    chown -R apu_user:apu_user /app/data && \
-    rm -f /tmp/constraints.txt requirements-original.txt
-
-# Declarar volúmenes para persistencia de datos y logs
-VOLUME ["/app/logs", "/app/data"]
+RUN useradd --create-home --shell /bin/bash --uid 1000 --user-group apu_user \
+    && mkdir -p /app/logs /app/data/uploads \
+    && chown -R apu_user:apu_user /app \
+    && chmod 775 /app/logs /app/data \
+    && rm -f /tmp/constraints.txt \
+             req-base-original.txt \
+             requirements-clean.txt
 
 USER apu_user
 
 # =============================================================================
-# FASE 9: Copiar código
+# FASE 8: Código de la aplicación
 # =============================================================================
-COPY --chown=apu_user:apu_user app/ /app/app/
-COPY --chown=apu_user:apu_user agent/ /app/agent/
+COPY --chown=apu_user:apu_user app/       /app/app/
+COPY --chown=apu_user:apu_user agent/     /app/agent/
 COPY --chown=apu_user:apu_user templates/ /app/templates/
-COPY --chown=apu_user:apu_user static/ /app/static/
-COPY --chown=apu_user:apu_user config/ /app/config/
-COPY --chown=apu_user:apu_user models/ /app/models/
-COPY --chown=apu_user:apu_user scripts/ /app/scripts/
-COPY --chown=apu_user:apu_user wsgi.py /app/wsgi.py
+COPY --chown=apu_user:apu_user static/    /app/static/
+COPY --chown=apu_user:apu_user config/    /app/config/
+COPY --chown=apu_user:apu_user models/    /app/models/
+COPY --chown=apu_user:apu_user scripts/   /app/scripts/
+COPY --chown=apu_user:apu_user wsgi.py    /app/wsgi.py
 
 # =============================================================================
-# FASE 10: Configuración final
+# FASE 9: Configuración final
 # =============================================================================
 EXPOSE 5002
+
+STOPSIGNAL SIGTERM
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
     CMD curl -f http://localhost:5002/health || exit 1
