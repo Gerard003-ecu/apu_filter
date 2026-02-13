@@ -56,13 +56,15 @@ from app.telemetry_narrative import (
 from app.semantic_translator import (
     SemanticTranslator,
     VerdictLevel,
-    TopologyMetricsDTO,
-    ThermalMetricsDTO,
-    SpectralMetricsDTO,
-    SynergyRiskDTO,
     StrategicReport,
     TranslatorConfig,
     FinancialVerdict,
+)
+from app.telemetry_schemas import (
+    TopologicalMetrics,
+    ThermodynamicMetrics,
+    PhysicsMetrics,
+    ControlMetrics,
 )
 
 
@@ -195,21 +197,21 @@ def context_all_success() -> TelemetryContext:
 
 
 @pytest.fixture
-def clean_topology() -> TopologyMetricsDTO:
+def clean_topology() -> TopologicalMetrics:
     """Topología limpia (sin ciclos, conexa)."""
-    return TopologyMetricsDTO(beta_0=1, beta_1=0, euler_characteristic=1)
+    return TopologicalMetrics(beta_0=1, beta_1=0, euler_characteristic=1)
 
 
 @pytest.fixture
-def cyclic_topology() -> TopologyMetricsDTO:
+def cyclic_topology() -> TopologicalMetrics:
     """Topología con ciclos (Socavones Lógicos)."""
-    return TopologyMetricsDTO(beta_0=1, beta_1=5, euler_characteristic=-4, euler_efficiency=0.2)
+    return TopologicalMetrics(beta_0=1, beta_1=5, euler_characteristic=-4)
 
 
 @pytest.fixture
-def fragmented_topology() -> TopologyMetricsDTO:
+def fragmented_topology() -> TopologicalMetrics:
     """Topología fragmentada."""
-    return TopologyMetricsDTO(beta_0=5, beta_1=0, euler_characteristic=5)
+    return TopologicalMetrics(beta_0=5, beta_1=0, euler_characteristic=5)
 
 
 @pytest.fixture
@@ -391,7 +393,7 @@ class TestTacticsVeto:
     def test_tactics_cycles_invalidate_financials(
         self,
         translator: SemanticTranslator,
-        cyclic_topology: TopologyMetricsDTO,
+        cyclic_topology: TopologicalMetrics,
         viable_financials: Dict[str, Any],
     ):
         """Ciclos topológicos invalidan análisis financiero positivo."""
@@ -776,7 +778,7 @@ class TestCoherenceMatrix:
         expected_verdict_min: VerdictLevel,
     ):
         """Matriz de veredictos del translator."""
-        topology = TopologyMetricsDTO(beta_0=1, beta_1=beta_1)
+        topology = TopologicalMetrics(beta_0=1, beta_1=beta_1)
         financials = {"performance": {"recommendation": recommendation, "profitability_index": 1.0}}
         
         report = translator.compose_strategic_narrative(
@@ -874,7 +876,7 @@ class TestNarrativeCoherence:
         
         # Translator (simulando datos corruptos)
         translator_report = translator.compose_strategic_narrative(
-            topological_metrics=TopologyMetricsDTO(beta_0=0, beta_1=0),  # Vacío
+            topological_metrics=TopologicalMetrics(beta_0=0, beta_1=0),  # Vacío
             financial_metrics={},
             stability=0.1,  # Muy inestable
         )
@@ -893,7 +895,7 @@ class TestNarrativeCoherence:
         narrator_report = narrator.summarize_execution(context_all_success)
         
         translator_report = translator.compose_strategic_narrative(
-            topological_metrics=TopologyMetricsDTO(beta_0=1, beta_1=0),
+            topological_metrics=TopologicalMetrics(beta_0=1, beta_1=0),
             financial_metrics={
                 "performance": {"recommendation": "ACEPTAR", "profitability_index": 1.5}
             },
@@ -916,7 +918,7 @@ class TestNarrativeCoherence:
         
         # Translator con ciclos
         translator_report = translator.compose_strategic_narrative(
-            topological_metrics=TopologyMetricsDTO(beta_0=1, beta_1=5),
+            topological_metrics=TopologicalMetrics(beta_0=1, beta_1=5),
             financial_metrics={"performance": {"recommendation": "REVISAR"}},
             stability=10.0,
         )
@@ -983,7 +985,7 @@ class TestSpecialCases:
         }
         
         report = translator.compose_strategic_narrative(
-            topological_metrics=TopologyMetricsDTO(beta_0=1, beta_1=0),  # Limpio
+            topological_metrics=TopologicalMetrics(beta_0=1, beta_1=0),  # Limpio
             financial_metrics={"performance": {"recommendation": "ACEPTAR"}},
             stability=20.0,  # Muy estable
             synergy_risk=synergy,
@@ -1004,7 +1006,7 @@ class TestSpecialCases:
         thermal = {"system_temperature": 75.0, "entropy": 0.8}
         
         report = translator.compose_strategic_narrative(
-            topological_metrics=TopologyMetricsDTO(),
+            topological_metrics=TopologicalMetrics(),
             financial_metrics={"performance": {"recommendation": "ACEPTAR"}},
             stability=10.0,
             thermal_metrics=thermal,
@@ -1053,7 +1055,7 @@ class TestDeterminism:
         translator: SemanticTranslator,
     ):
         """El translator produce el mismo resultado para el mismo input."""
-        topology = TopologyMetricsDTO(beta_0=1, beta_1=2)
+        topology = TopologicalMetrics(beta_0=1, beta_1=2)
         financials = {"performance": {"recommendation": "REVISAR"}}
         
         report1 = translator.compose_strategic_narrative(
