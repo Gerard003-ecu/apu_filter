@@ -57,53 +57,7 @@ from app.telemetry import TelemetryContext
 logger = logging.getLogger(__name__)
 
 
-@dataclass(frozen=True)
-class TopologicalMetrics:
-    """
-    Métricas Topológicas Invariantes para el Grafo de Negocio.
-
-    Representa los invariantes topológicos calculados sobre el grafo
-    del presupuesto, fundamentales para entender la complejidad estructural.
-
-    Attributes:
-        beta_0 (int): Número de componentes conexas (fragmentación).
-            Indica cuántas partes aisladas tiene el proyecto.
-        beta_1 (int): Número de ciclos independientes (complejidad de bucles).
-            Representa dependencias circulares y redundancia lógica.
-        euler_characteristic (int): Característica de Euler (beta_0 - beta_1).
-            Invariante fundamental de la topología del grafo.
-        euler_efficiency (float): Eficiencia topológica normalizada (0.0 - 1.0).
-            Métrica sintética de la calidad estructural.
-    """
-
-    beta_0: int
-    beta_1: int
-    euler_characteristic: int
-    euler_efficiency: float = 1.0
-
-    @property
-    def is_connected(self) -> bool:
-        """
-        Determina si el grafo está conectado.
-
-        Un grafo conectado tiene exactamente una componente conexa (beta_0 = 1).
-
-        Returns:
-            bool: Verdadero si beta_0 es 1.
-        """
-        return self.beta_0 == 1
-
-    @property
-    def is_simply_connected(self) -> bool:
-        """
-        Determina si el grafo es simplemente conexo.
-
-        Un grafo es simplemente conexo si es conexo y no tiene ciclos (beta_1 = 0).
-
-        Returns:
-            bool: Verdadero si beta_0 es 1 y beta_1 es 0.
-        """
-        return self.beta_0 == 1 and self.beta_1 == 0
+from app.telemetry_schemas import TopologicalMetrics
 
 
 @dataclass
@@ -741,7 +695,7 @@ class BusinessTopologicalAnalyzer:
             TopologicalMetrics: beta_0 (componentes), beta_1 (ciclos).
         """
         if graph.number_of_nodes() == 0:
-            return TopologicalMetrics(0, 0, 0, 1.0)
+            return TopologicalMetrics(beta_0=0, beta_1=0, beta_2=0, euler_characteristic=0)
 
         # Usar MultiGraph para preservar aristas y calcular beta_1 correctamente
         undirected = nx.MultiGraph()
@@ -756,13 +710,14 @@ class BusinessTopologicalAnalyzer:
         # beta_1 = E - V + beta_0
         beta_1 = max(0, n_edges - n_nodes + beta_0)
         euler_char = beta_0 - beta_1
-        efficiency = self.calculate_euler_efficiency(graph)
+
+        # Nota: euler_efficiency se calcula separadamente para reportes
 
         return TopologicalMetrics(
             beta_0=beta_0,
             beta_1=beta_1,
+            beta_2=0,
             euler_characteristic=euler_char,
-            euler_efficiency=efficiency,
         )
 
     def calculate_pyramid_stability(self, graph: nx.DiGraph) -> float:
@@ -1316,7 +1271,7 @@ class BusinessTopologicalAnalyzer:
         anomalies = self._classify_anomalous_nodes(graph)
 
         # --- Scoring ---
-        euler_factor = metrics.euler_efficiency
+        euler_factor = self.calculate_euler_efficiency(graph)
         stability_factor = pyramid_stability
         density = nx.density(graph) if graph.number_of_nodes() > 0 else 0
         density_factor = 1.0 - min(0.5, density)
@@ -1370,6 +1325,7 @@ class BusinessTopologicalAnalyzer:
             strategic_narrative=narrative,
             details={
                 "metrics": asdict(metrics),
+                "euler_efficiency": euler_factor,
                 "pyramid_stability": pyramid_stability,
                 "synergy_risk": synergy,
                 "anomalies": anomalies,
@@ -1473,7 +1429,7 @@ class BusinessTopologicalAnalyzer:
             "=== AUDITORIA ESTRUCTURAL ===",
             f"Integridad: {analysis_result.get('integrity_score', 'N/A')}",
             f"Ciclos de Costo: {analysis_result.get('business.betti_b1', 0)}",
-            f"Eficiencia de Euler: {analysis_result.get('details', {}).get('metrics', {}).get('euler_efficiency', 0.0)}",
+            f"Eficiencia de Euler: {analysis_result.get('details', {}).get('euler_efficiency', 0.0)}",
         ]
 
         if analysis_result.get("business.betti_b1", 0) > 0:

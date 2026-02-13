@@ -264,6 +264,14 @@ class TopologicalMetrics:
         return self.beta_2 > 0
 
     @property
+    def is_simply_connected(self) -> bool:
+        """
+        Indica si el espacio es simplemente conexo.
+        Condición: β₀ = 1 (conexo) y β₁ = 0 (sin ciclos).
+        """
+        return self.beta_0 == 1 and self.beta_1 == 0
+
+    @property
     def betti_vector(self) -> Tuple[int, int, int]:
         """Devuelve los números de Betti como tupla inmutable (β₀, β₁, β₂)."""
         return (self.beta_0, self.beta_1, self.beta_2)
