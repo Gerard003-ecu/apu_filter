@@ -14,25 +14,27 @@ Fundamentos Matemáticos y Arquitectura de Gobernanza:
    herramienta registrada es un vector base ortonormal ($e_i$) en el espacio de acción $\mathbb{R}^n$.
    Esto garantiza **Ortogonalidad Funcional**: la ejecución de una herramienta (ej. `clean`) no
    tiene efectos secundarios colaterales sobre otras dimensiones (ej. `finance`), asegurando
-   independencia lineal y modularidad perfecta [Source: algebra_lineal_MIC.pdf].
+   independencia lineal y modularidad.
 
 2. Filtración Jerárquica (La Pirámide DIKW):
    Implementa una filtración de subespacios vectoriales basada en los estratos de valor:
-   $V_{PHYSICS} \supset V_{TACTICS} \supset V_{STRATEGY} \supset V_{WISDOM}$.
+   $V_{PHYSICS} \subset V_{TACTICS} \subset V_{STRATEGY} \subset V_{WISDOM}$.
    Cada vector de intención $\vec{v}$ pertenece a un estrato específico. La proyección
    $\pi(\vec{v})$ solo es válida si se satisface la **Clausura Transitiva**: para ejecutar
-   una acción de nivel $k$, todos los niveles base $j > k$ deben estar validados.
+   una acción de nivel $k$ (ej. Estrategia), todos los niveles base $j > k$ (Física, Táctica)
+   deben estar validados en el Vector de Estado.
 
-3. Gatekeeper Algebraico (Validación de Topología):
-   El `MICRegistry` actúa como un operador de proyección condicional. Antes de despachar
-   una orden al handler físico, verifica el "Estado de Verdad" del contexto (session context).
-   Si un agente intenta proyectar un vector de Estrategia (ej. análisis de VPN) sin haber
-   validado la Física (ej. integridad de datos RLC), la MIC colapsa la proyección a cero
-   (bloqueo), lanzando un `MICHierarchyViolationError` [Source: Gobernanza_Data_Mesh.pdf].
+3. Gatekeeper Algebraico (Proyección Condicional):
+   El `MICRegistry` actúa como un operador de proyección no lineal. Antes de despachar
+   una orden al handler físico, verifica el contexto. Si un agente intenta proyectar un
+   vector de Estrategia sin haber validado la Física (ej. integridad de datos RLC),
+   la MIC colapsa la proyección al Vector Nulo ($\vec{0}$), lanzando una excepción
+   de violación de jerarquía (`MICHierarchyViolationError`).
 
 4. Interoperabilidad Semántica:
    Facilita la conexión con el `SemanticTranslator` y el `KnowledgeGraph`, permitiendo que
    los vectores de intención sean enriquecidos con contexto ontológico antes de su ejecución.
+
 """
 
 import codecs

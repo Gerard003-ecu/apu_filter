@@ -1,30 +1,38 @@
 """
-app/adapters/mic_vectors.py
+Módulo: MIC Vectors (Adaptadores de Capacidad y Morfismos Algebraicos)
+======================================================================
 
-Adaptadores de Vectores de Capacidad para la MIC.
-Transforman 'Intenciones' (Diccionarios) en llamadas a los Motores Físicos y Tácticos.
+Este módulo implementa la capa de adaptación ("Glue Code") como un conjunto de 
+**Morfismos Algebraicos** que proyectan las intenciones del Agente sobre los 
+motores físicos y lógicos del sistema (FluxCondenser, APUProcessor).
 
-Cada función es un morfismo: Dict → Componente Nuclear → Dict
+Fundamentos Matemáticos y Arquitectura:
+---------------------------------------
 
-REFINAMIENTOS APLICADOS:
- 1. Imports a nivel de módulo; psutil con fallback gracioso.
- 2. VectorMetrics inmutable (frozen dataclass) — valor algebraico puro.
- 3. _build_result / _build_error centralizan la construcción de VectorResult
-    garantizando coherencia topológica del esquema de salida.
- 4. calculate_topological_coherence: fórmula C = S·R/(1+H), siempre ∈ [0,1],
-    monótona creciente en S y R, decreciente en H.
- 5. calculate_dimensionality: cardinalidad de la unión de atributos por tipo
-    (rango real del espacio columnar).
- 6. calculate_algebraic_integrity: itera sobre claves reales, robusto a dict vacío.
- 7. validate_homological_constraints: valida tipos y rangos, no solo existencia.
- 8. compose_vectors: detecta composición indefinida cuando el vector físico
-    no produce raw_records; agrega pipeline_coherence (principio de cuello de botella).
- 9. VectorFactory con registro abierto, preserva __name__/__doc__, y método reset
-    para tests.
-10. vector_parse_raw_structure inyecta dimensionality en cache para que
-    validate_dimensional_isomorphism sea no-vacua aguas abajo.
-11. Acceso seguro a métodos opcionales del processor vía getattr + hasattr.
-12. Tipado corregido: Callable (mayúscula), TypeAlias explícito.
+1. Teoría de Categorías (Morfismos):
+   Cada función vectorial (ej. `vector_stabilize_flux`) se modela como un morfismo $\phi$:
+   $$ \phi: \text{ConfigSpace} \times \text{Context} \to \text{ResultSpace} $$
+   Transforman un payload de configuración (diccionario) en un resultado tipado (`VectorResult`),
+   preservando la estructura de la información a través de los estratos DIKW.
+
+2. Coherencia Topológica ($C$):
+   Se calcula una métrica escalar invariante para evaluar la calidad de la transformación,
+   basada en la Estabilidad ($S$), Robustez ($R$) y Entropía de Shannon ($H$):
+   $$ C = \frac{S \cdot R}{1 + H} \in [1] $$
+   Esto permite al sistema rechazar resultados "técnicamente exitosos" pero 
+   "topológicamente incoherentes" (alto ruido o baja estabilidad) [Fuente 990].
+
+3. Isomorfismo Dimensional (Enlace Física $\to$ Táctica):
+   Implementa guardas algebraicas (`validate_dimensional_isomorphism`) que aseguran 
+   que la dimensión del espacio de salida del vector físico (columnas detectadas en el parser)
+   sea isomorfa a la dimensión esperada por el vector táctico. Esto previene errores de 
+   alineación antes de intentar cualquier cálculo de costos [Fuente 1000].
+
+4. Inmutabilidad Algebraica:
+   Las métricas (`VectorMetrics`) se definen como `dataclasses` congeladas (frozen), 
+   tratándolas como valores puros que no pueden ser alterados por efectos secundarios, 
+   garantizando la integridad forense de la telemetría [Fuente 994].
+
 """
 
 import logging

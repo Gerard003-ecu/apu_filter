@@ -1,46 +1,42 @@
 """
-Módulo: Data Flux Condenser (El Motor de Física de Fluidos Electromagnéticos)
-=============================================================================
+Módulo: Data Flux Condenser (Motor de Física de Fluidos e Hidrodinámica Discreta)
+=================================================================================
 
 Este componente actúa como el "Corazón Hemodinámico" del sistema APU Filter.
-Ha evolucionado de un simple filtro pasivo ("condensador") a un **Simulador de 
-Bomba de Desplazamiento Positivo** (Pistón de Inercia) que inyecta flujo de datos 
-de manera activa y controlada.
+Ha evolucionado de un condensador pasivo a un simulador de **Bomba de Desplazamiento 
+Positivo** (Fuente de Corriente Ideal) que gestiona la inyección de datos mediante 
+principios de conservación de energía y topología algebraica.
 
 Fundamentos Teóricos y Arquitectura de Control:
 -----------------------------------------------
 
-1. Isomorfismo Electro-Hidráulico (Gemelo Digital):
-   Modela el pipeline de datos como un circuito RLC de potencia con componentes físicos simulados:
-   - **Inductor ($L$):** El Pistón de Inercia. Representa la "masa" de los datos. Se opone a cambios
-     bruscos de velocidad, evitando discontinuidades (golpes de ariete/flyback).
-   - **Condensador ($C$):** La Membrana Viscoelástica (Acumulador). Absorbe picos de presión. Utiliza
-     lógica p-Laplaciana para endurecerse ante gradientes agresivos ($p > 2$).
-   - **Resistencia ($R$):** Fricción Dinámica. Disipa energía basada en la complejidad ciclomática
-     y entropía de los datos (Calor de Procesamiento).
+1. Analogía Electro-Hidráulica Rigurosa (Isomorfismo):
+   Implementa una correspondencia biyectiva donde la Presión ($P$) equivale al Voltaje ($V$)
+   y el Caudal ($Q$) a la Corriente ($I$). El sistema resuelve la Ecuación de Poisson en Grafos
+   ($L \cdot p = s$) para garantizar la conservación de masa y energía (Teorema de Tellegen).
 
-2. Motor Maxwell FDTD (Electrodinámica Discreta):
-   Implementa el algoritmo de Yee sobre un complejo simplicial (Grafo). Resuelve las ecuaciones
-   de Maxwell discretizadas para calcular la propagación de "ondas de datos" y detectar
-   resonancias destructivas o bucles de corriente (vórtices de información).
+2. Cálculo Exterior Discreto (DEC) y Operadores de Hodge:
+   Utiliza matrices de incidencia ($B_1$) y de ciclos ($B_2$) para definir operadores diferenciales
+   sobre el complejo simplicial de la red. Aplica la Descomposición de Hodge-Helmholtz para 
+   separar el flujo de datos en componentes irrotacionales (gradiente de presión) y solenoidales 
+   (vórtices de redundancia), permitiendo un filtrado topológico selectivo.
 
-3. Control Hamiltoniano de Puerto (PHS - Pasividad):
-   Sustituye el control reactivo simple por un enfoque basado en energía ($H$).
-   - **Hamiltoniano ($H$):** $H(x) = \frac{1}{2}CV^2 + \frac{1}{2}LI^2$.
-   - **Inyección de Amortiguamiento:** Garantiza la estabilidad asintótica ($\dot{H} \le 0$) mediante
-     una matriz de disipación $R$ dinámica, asegurando que el sistema nunca diverja.
+3. Dinámica de Membrana Amortiguadora (P-Laplaciano):
+   Introduce una "membrana viscoelástica" modelada mediante difusión no lineal (P-Laplaciano, $p > 2$).
+   Esta lógica actúa como una válvula de alivio distribuida que absorbe picos transitorios 
+   ("Golpes de Ariete" o *Water Hammer*) modificando dinámicamente la conductancia efectiva 
+   del grafo ante gradientes extremos de datos.
 
-4. Arquitectura de Hardware Simulado (Protección de Planos):
-   Implementa la segregación estricta entre el Plano de Datos y el Plano de Control [11]:
-   - **El Músculo (FluxMuscleController):** Simula un MOSFET de potencia con control PWM y
-     limitación de *Slew Rate* para evitar fatiga térmica durante cargas masivas [12].
-   - **El Cerebro (Reserva Táctica):** Un sub-circuito aislado (Diodo + Supercap) que garantiza
-     energía para el Agente incluso si el bus principal colapsa (Brownout), permitiendo
-     una "muerte elegante" y telemetría forense.
+4. Control Hamiltoniano de Puerto (PHS - Pasividad):
+   El control de flujo no es reactivo, sino energético. Se modela el sistema mediante un 
+   Hamiltoniano ($H(x) = \frac{1}{2}CV^2 + \frac{1}{2}LI^2$) y se aplica control por 
+   interconexión y amortiguamiento (IDA-PBC) para garantizar la estabilidad asintótica 
+   de Lyapunov, disipando la entropía generada por la complejidad de los datos.
 
 5. Oráculo de Laplace (Validación A Priori):
    Antes de iniciar el bombeo, linealiza el sistema y analiza sus polos en el plano complejo ($s$).
-   Si detecta polos en el semiplano derecho (RHP), veta la ejecución por inestabilidad estructural [15].
+   Verifica la condición de estabilidad estricta (polos en LHP) y márgenes de fase adecuados 
+   para asegurar que la arquitectura de control sea robusta frente a la latencia de ingestión.
 
 """
 

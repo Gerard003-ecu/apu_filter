@@ -1,25 +1,36 @@
 """
-Módulo: Pipeline Director V3 (Orquestador Algebraico)
-======================================================================
-Este componente actúa como el "Sistema Nervioso Central" de APU_filter.
-Su función es orquestar la secuencia de activación de los vectores de transformación
-a través del Registro de Interacción Central (MICRegistry), garantizando la integridad
-del "Vector de Estado" del proyecto.
+Este componente actúa como el "Sistema Nervioso Central" del ecosistema APU Filter.
+Su función principal no es procesar datos, sino gestionar la evolución del **Vector de Estado**
+del proyecto a través de un espacio vectorial jerarquizado, delegando las transformaciones
+a la Matriz de Interacción Central (MICRegistry).
 
-Arquitectura y Fundamentos:
----------------------------
+Fundamentos Matemáticos y Arquitectura de Gobernanza:
+-----------------------------------------------------
+
 1. Orquestación Algebraica (Espacio Vectorial de Operadores):
-   Utiliza el `MICRegistry` para proyectar "Intenciones" sobre un espacio
-   vectorial de base ortogonal. Cada paso del pipeline (ej. `calculate_costs`) no es una
-   función local, sino un vector base unitario ($e_i$) que solicita una transformación.
+   El pipeline no es una lista de funciones, sino una secuencia ordenada de proyecciones
+   sobre una base vectorial ortogonal $\{e_1, \dots, e_n\}$ registrada en la MIC.
+   Cada paso (ej. `LoadDataStep`) proyecta una "Intención" que la MIC resuelve en un
+   handler específico, desacoplando la definición del flujo de su implementación técnica.
 
 2. Filtración por Estratos (Jerarquía DIKW):
-   Gestiona la ejecución respetando estrictamente la filtración de subespacios:
+   Implementa la restricción topológica de filtración de subespacios:
    $V_{PHYSICS} \subset V_{TACTICS} \subset V_{STRATEGY} \subset V_{WISDOM}$.
+   El Director impone la **Clausura Transitiva**: no permite ejecutar un vector de
+   Estrategia (Nivel 1) si los invariantes de Física (Nivel 3) y Táctica (Nivel 2)
+   no han sido validados previamente en el Vector de Estado.
 
-3. Protocolo de Caja de Cristal (Glass Box Persistence):
-   Mantiene la trazabilidad forense completa. El estado del sistema se serializa
-   entre pasos, permitiendo pausar, reanudar y auditar el proceso.
+3. Auditoría Homológica (Secuencia de Mayer-Vietoris):
+   En los pasos de fusión de datos (`AuditedMergeStep`), el sistema no realiza un simple JOIN.
+   Verifica la exactitud de la secuencia de Mayer-Vietoris:
+   $\dots \to H_k(A \cap B) \to H_k(A) \oplus H_k(B) \to H_k(A \cup B) \to \dots$
+   Esto garantiza matemáticamente que la integración del Presupuesto ($A$) y los APUs ($B$)
+   no introduzca ciclos lógicos espurios ($\beta_1$) ni desconexiones ($\beta_0$) artificiales.
+
+4. Protocolo de Caja de Cristal (Glass Box Persistence):
+   Garantiza la trazabilidad forense completa. El estado del sistema se serializa y
+   firma criptográficamente entre transiciones de estrato, permitiendo auditoría,
+   reanudación y depuración ("Time Travel Debugging") del proceso de decisión.
 """
 
 import datetime
