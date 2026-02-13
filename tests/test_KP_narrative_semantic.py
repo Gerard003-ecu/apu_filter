@@ -68,13 +68,15 @@ from app.telemetry_narrative import (
 
 from app.semantic_translator import (
     VerdictLevel,
-    TopologyMetricsDTO,
-    ThermalMetricsDTO,
-    SpectralMetricsDTO,
-    SynergyRiskDTO,
     StrategicReport,
     SemanticTranslator,
     TranslatorConfig,
+)
+from app.telemetry_schemas import (
+    TopologicalMetrics,
+    ThermodynamicMetrics,
+    PhysicsMetrics,
+    ControlMetrics,
 )
 
 from app.telemetry import TelemetryContext, TelemetrySpan, StepStatus
@@ -322,15 +324,15 @@ def complex_context() -> TelemetryContext:
 
 
 @pytest.fixture
-def simple_topology() -> TopologyMetricsDTO:
+def simple_topology() -> TopologicalMetrics:
     """Topología simple."""
-    return TopologyMetricsDTO(beta_0=1, beta_1=0, euler_characteristic=1)
+    return TopologicalMetrics(beta_0=1, beta_1=0, euler_characteristic=1)
 
 
 @pytest.fixture
-def complex_topology() -> TopologyMetricsDTO:
+def complex_topology() -> TopologicalMetrics:
     """Topología compleja."""
-    return TopologyMetricsDTO(beta_0=5, beta_1=10, euler_characteristic=-5)
+    return TopologicalMetrics(beta_0=5, beta_1=10, euler_characteristic=-5)
 
 
 @pytest.fixture
@@ -831,7 +833,7 @@ class TestConcurrencyPerformance:
         def worker():
             results = []
             for i in range(operations_per_thread):
-                topology = TopologyMetricsDTO(beta_0=1, beta_1=i % 3)
+                topology = TopologicalMetrics(beta_0=1, beta_1=i % 3)
                 report = translator.compose_strategic_narrative(
                     topological_metrics=topology,
                     financial_metrics={"performance": {"recommendation": "ACEPTAR"}},
@@ -922,7 +924,7 @@ class TestStressPerformance:
 
     def test_translator_stress_rapid_fire(self, translator: SemanticTranslator):
         """El translator debe manejar llamadas rápidas consecutivas."""
-        topology = TopologyMetricsDTO()
+        topology = TopologicalMetrics()
         financials = {"performance": {"recommendation": "ACEPTAR"}}
         
         # 1000 llamadas rápidas
@@ -946,7 +948,7 @@ class TestStressPerformance:
                 narrator_report = narrator.summarize_execution(context)
                 
                 # Translator basado en resultado del narrator
-                topology = TopologyMetricsDTO(
+                topology = TopologicalMetrics(
                     beta_0=1,
                     beta_1=1 if "REJECTED" in narrator_report["verdict_code"] else 0,
                 )
@@ -1007,7 +1009,7 @@ class TestScalabilityPerformance:
             # Valores bajos
             start = time.perf_counter()
             _ = translator.translate_topology(
-                TopologyMetricsDTO(beta_0=1, beta_1=0),
+                TopologicalMetrics(beta_0=1, beta_1=0),
                 stability=1.0,
             )
             times_low.append((time.perf_counter() - start) * 1000)
@@ -1015,7 +1017,7 @@ class TestScalabilityPerformance:
             # Valores altos
             start = time.perf_counter()
             _ = translator.translate_topology(
-                TopologyMetricsDTO(beta_0=1000, beta_1=500),
+                TopologicalMetrics(beta_0=1000, beta_1=500),
                 stability=1000.0,
             )
             times_high.append((time.perf_counter() - start) * 1000)
@@ -1054,7 +1056,7 @@ class TestComparativeBenchmarks:
         
         # Translation
         translation_times = []
-        topology = TopologyMetricsDTO()
+        topology = TopologicalMetrics()
         for _ in range(100):
             start = time.perf_counter()
             _ = translator.translate_topology(topology, stability=10.0)
@@ -1084,7 +1086,7 @@ class TestComparativeBenchmarks:
         for _ in range(50):
             start = time.perf_counter()
             _ = translator.compose_strategic_narrative(
-                topological_metrics=TopologyMetricsDTO(),
+                topological_metrics=TopologicalMetrics(),
                 financial_metrics={"performance": {"recommendation": "ACEPTAR"}},
                 stability=10.0,
             )
@@ -1142,7 +1144,7 @@ class TestDetailedProfiling:
         self, translator: SemanticTranslator
     ):
         """Desglose de tiempo por fase del translator."""
-        topology = TopologyMetricsDTO(beta_0=3, beta_1=2)
+        topology = TopologicalMetrics(beta_0=3, beta_1=2)
         financials = {"performance": {"recommendation": "REVISAR", "profitability_index": 1.1}}
         thermal = {"system_temperature": 55.0, "entropy": 0.6}
         
@@ -1218,7 +1220,7 @@ class TestPytestBenchmarks:
     def test_benchmark_translator_simple(self, benchmark):
         """Benchmark del translator con datos simples."""
         translator = SemanticTranslator(config=TranslatorConfig(deterministic_market=True))
-        topology = TopologyMetricsDTO()
+        topology = TopologicalMetrics()
         financials = {"performance": {"recommendation": "ACEPTAR"}}
         
         def run():
@@ -1280,7 +1282,7 @@ class TestPerformanceSummary:
         for _ in range(50):
             start = time.perf_counter()
             _ = translator.compose_strategic_narrative(
-                topological_metrics=TopologyMetricsDTO(),
+                topological_metrics=TopologicalMetrics(),
                 financial_metrics={"performance": {"recommendation": "ACEPTAR"}},
                 stability=10.0,
             )
@@ -1893,35 +1895,35 @@ class BoundaryAndEdgeCaseAnalysis:
         boundary_cases = [
             {
                 "name": "zero_topology",
-                "topology": TopologyMetricsDTO(beta_0=0, beta_1=0, euler_characteristic=0),
+                "topology": TopologicalMetrics(beta_0=0, beta_1=0, euler_characteristic=0),
                 "financials": {},
                 "stability": 0.0,
                 "expect": "empty_or_error"
             },
             {
                 "name": "negative_betti",
-                "topology": TopologyMetricsDTO(beta_0=-1, beta_1=-1),
+                "topology": TopologicalMetrics(beta_0=-1, beta_1=-1),
                 "financials": {"performance": {"recommendation": "ACEPTAR"}},
                 "stability": 10.0,
                 "expect": "handle_negative"
             },
             {
                 "name": "extreme_stability",
-                "topology": TopologyMetricsDTO(beta_0=1, beta_1=0),
+                "topology": TopologicalMetrics(beta_0=1, beta_1=0),
                 "financials": {"performance": {"recommendation": "ACEPTAR"}},
                 "stability": 1000000.0,
                 "expect": "cap_extremes"
             },
             {
                 "name": "nan_metrics",
-                "topology": TopologyMetricsDTO(beta_0=float('nan'), beta_1=float('nan')),
+                "topology": {"beta_0": float('nan'), "beta_1": float('nan')},
                 "financials": {"wacc": float('nan'), "performance": {"recommendation": "ACEPTAR"}},
                 "stability": float('nan'),
                 "expect": "handle_nan"
             },
             {
                 "name": "infinite_metrics",
-                "topology": TopologyMetricsDTO(beta_0=float('inf'), beta_1=float('inf')),
+                "topology": {"beta_0": float('inf'), "beta_1": float('inf')},
                 "financials": {"wacc": float('inf')},
                 "stability": float('inf'),
                 "expect": "handle_infinity"
@@ -2016,8 +2018,8 @@ class AdvancedComparativeAnalysis:
         for _ in range(50):
             start = time.perf_counter_ns()
             _ = translator.compose_strategic_narrative(
-                topological_metrics=TopologyMetricsDTO(
-                    beta_0=STANDARD_UNIT["translator"]["topology_complexity"],
+                topological_metrics=TopologicalMetrics(
+                    beta_0=int(STANDARD_UNIT["translator"]["topology_complexity"]),
                     beta_1=0
                 ),
                 financial_metrics={

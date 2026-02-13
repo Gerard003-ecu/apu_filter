@@ -1013,6 +1013,11 @@ class TelemetryNarrator:
             # 2. Agrupación por Estratos
             strata_results = self._group_by_stratum(phases_analysis)
 
+            # 2.5 Análisis Global (Typed State Vectors)
+            # Inyecta problemas detectados en los objetos tipados globales (physics, topology, etc.)
+            global_issues = self._analyze_global_context(context)
+            self._inject_global_issues(strata_results, global_issues)
+
             # 3. Síntesis de Sabiduría
             verdict_code, global_severity = self._determine_verdict(strata_results)
             executive_summary, causality = self._synthesize_narrative(
@@ -1047,6 +1052,129 @@ class TelemetryNarrator:
         except Exception as e:
             logger.error(f"Error in summarize_execution: {e}", exc_info=True)
             return self._generate_error_report(str(e)).to_dict()
+
+    def _analyze_global_context(self, context: TelemetryContext) -> Dict[Stratum, List[Issue]]:
+        """
+        Analiza los vectores de estado globales buscando anomalías.
+        Prioriza los objetos tipados sobre el diccionario de métricas.
+        """
+        issues_by_stratum = {s: [] for s in Stratum}
+
+        # 1. PHYSICS
+        if hasattr(context, "physics"):
+            p = context.physics
+            # Saturation
+            if p.saturation > self.config.ANOMALY_THRESHOLDS.get("saturation", 0.9):
+                issues_by_stratum[Stratum.PHYSICS].append(Issue(
+                    source="FluxCondenser (Global)",
+                    message=f"Saturación global crítica: {p.saturation:.1%}",
+                    issue_type="MetricAnomaly",
+                    depth=0,
+                    topological_path=("global", "physics"),
+                    stratum=Stratum.PHYSICS,
+                    severity=SeverityLevel.ADVERTENCIA
+                ))
+            # Flyback
+            if p.flyback_voltage > self.config.ANOMALY_THRESHOLDS.get("flyback_voltage", 0.5):
+                issues_by_stratum[Stratum.PHYSICS].append(Issue(
+                    source="FluxCondenser (Global)",
+                    message=f"Voltaje Flyback excesivo: {p.flyback_voltage:.2f}V",
+                    issue_type="MetricAnomaly",
+                    depth=0,
+                    topological_path=("global", "physics"),
+                    stratum=Stratum.PHYSICS,
+                    severity=SeverityLevel.CRITICO
+                ))
+            # Dissipated Power
+            if p.dissipated_power > self.config.ANOMALY_THRESHOLDS.get("dissipated_power", 50.0):
+                issues_by_stratum[Stratum.PHYSICS].append(Issue(
+                    source="FluxCondenser (Global)",
+                    message=f"Potencia disipada alta: {p.dissipated_power:.2f}W",
+                    issue_type="MetricAnomaly",
+                    depth=0,
+                    topological_path=("global", "physics"),
+                    stratum=Stratum.PHYSICS,
+                    severity=SeverityLevel.ADVERTENCIA
+                ))
+
+        # 2. CONTROL (Physics Stratum)
+        if hasattr(context, "control"):
+            c = context.control
+            if not c.is_stable:
+                issues_by_stratum[Stratum.PHYSICS].append(Issue(
+                    source="LaplaceOracle (Global)",
+                    message="Sistema inestable (Polos en RHP)",
+                    issue_type="StabilityError",
+                    depth=0,
+                    topological_path=("global", "control"),
+                    stratum=Stratum.PHYSICS,
+                    severity=SeverityLevel.CRITICO
+                ))
+
+        # 3. THERMODYNAMICS (Physics Stratum for Temp)
+        if hasattr(context, "thermodynamics"):
+            t = context.thermodynamics
+            if t.system_temperature > 75.0: # Critical
+                issues_by_stratum[Stratum.PHYSICS].append(Issue(
+                    source="Thermodynamics (Global)",
+                    message=f"Temperatura del sistema crítica: {t.system_temperature:.1f}°C",
+                    issue_type="ThermalAnomaly",
+                    depth=0,
+                    topological_path=("global", "thermodynamics"),
+                    stratum=Stratum.PHYSICS,
+                    severity=SeverityLevel.CRITICO
+                ))
+
+        # 4. TOPOLOGY (Tactics Stratum)
+        if hasattr(context, "topology"):
+            topo = context.topology
+            if topo.beta_1 > 0:
+                issues_by_stratum[Stratum.TACTICS].append(Issue(
+                    source="Topology (Global)",
+                    message=f"Ciclos lógicos detectados: β₁={topo.beta_1}",
+                    issue_type="TopologicalDefect",
+                    depth=0,
+                    topological_path=("global", "topology"),
+                    stratum=Stratum.TACTICS,
+                    severity=SeverityLevel.CRITICO
+                ))
+            if topo.pyramid_stability < 1.0:
+                issues_by_stratum[Stratum.TACTICS].append(Issue(
+                    source="Topology (Global)",
+                    message=f"Pirámide Invertida (Inestabilidad): Ψ={topo.pyramid_stability:.2f}",
+                    issue_type="StructuralInstability",
+                    depth=0,
+                    topological_path=("global", "topology"),
+                    stratum=Stratum.TACTICS,
+                    severity=SeverityLevel.CRITICO
+                ))
+
+        return issues_by_stratum
+
+    def _inject_global_issues(
+        self,
+        strata_results: Dict[Stratum, StratumAnalysis],
+        global_issues: Dict[Stratum, List[Issue]]
+    ) -> None:
+        """Inyecta issues globales en los resultados de estrato."""
+        for stratum, issues in global_issues.items():
+            if not issues:
+                continue
+
+            if stratum in strata_results:
+                analysis = strata_results[stratum]
+                analysis.issues.extend(issues)
+
+                # Recalcular severidad
+                global_severity = SeverityLevel.OPTIMO
+                for issue in issues:
+                    global_severity = global_severity | issue.severity
+
+                analysis.severity = analysis.severity | global_severity
+
+                # Actualizar narrativa si empeoró
+                if global_severity.is_critical:
+                    analysis.narrative = f"Fallo Global detectado: {issues[0].message}"
 
     # ========================================================================
     # ANÁLISIS DE FASES

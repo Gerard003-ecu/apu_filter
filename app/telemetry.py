@@ -34,12 +34,18 @@ import time
 import traceback
 import uuid
 from contextlib import contextmanager
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, asdict
 from datetime import datetime
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union, Iterator
 
 from app.schemas import Stratum
+from app.telemetry_schemas import (
+    PhysicsMetrics,
+    TopologicalMetrics,
+    ControlMetrics,
+    ThermodynamicMetrics,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -411,6 +417,12 @@ class TelemetryContext:
     created_at: float = field(default_factory=time.perf_counter)
     metadata: Dict[str, Any] = field(default_factory=dict)
 
+    # Vectores de estado tipados
+    physics: PhysicsMetrics = field(default_factory=PhysicsMetrics)
+    topology: TopologicalMetrics = field(default_factory=TopologicalMetrics)
+    control: ControlMetrics = field(default_factory=ControlMetrics)
+    thermodynamics: ThermodynamicMetrics = field(default_factory=ThermodynamicMetrics)
+
     business_thresholds: Dict[str, float] = field(
         default_factory=lambda: {
             "critical_flyback_voltage": BusinessThresholds.CRITICAL_FLYBACK_VOLTAGE,
@@ -418,6 +430,59 @@ class TelemetryContext:
             "warning_saturation": BusinessThresholds.WARNING_SATURATION,
         }
     )
+
+    def update_physics(self, **kwargs) -> None:
+        """Actualiza métricas físicas preservando inmutabilidad."""
+        with self._lock:
+            current = asdict(self.physics)
+            current.update(kwargs)
+            # Filtrar claves desconocidas para evitar errores
+            valid_keys = PhysicsMetrics.__annotations__.keys()
+            filtered = {k: v for k, v in current.items() if k in valid_keys}
+            self.physics = PhysicsMetrics(**filtered)
+
+            # Sincronización legacy (opcional)
+            for k, v in kwargs.items():
+                self.metrics[f"flux_condenser.{k}"] = v
+
+    def update_topology(self, **kwargs) -> None:
+        """Actualiza métricas topológicas preservando inmutabilidad."""
+        with self._lock:
+            current = asdict(self.topology)
+            current.update(kwargs)
+            valid_keys = TopologicalMetrics.__annotations__.keys()
+            filtered = {k: v for k, v in current.items() if k in valid_keys}
+            self.topology = TopologicalMetrics(**filtered)
+
+            # Sincronización legacy
+            for k, v in kwargs.items():
+                self.metrics[f"topology.{k}"] = v
+
+    def update_control(self, **kwargs) -> None:
+        """Actualiza métricas de control preservando inmutabilidad."""
+        with self._lock:
+            current = asdict(self.control)
+            current.update(kwargs)
+            valid_keys = ControlMetrics.__annotations__.keys()
+            filtered = {k: v for k, v in current.items() if k in valid_keys}
+            self.control = ControlMetrics(**filtered)
+
+            # Sincronización legacy
+            for k, v in kwargs.items():
+                self.metrics[f"control.{k}"] = v
+
+    def update_thermodynamics(self, **kwargs) -> None:
+        """Actualiza métricas termodinámicas preservando inmutabilidad."""
+        with self._lock:
+            current = asdict(self.thermodynamics)
+            current.update(kwargs)
+            valid_keys = ThermodynamicMetrics.__annotations__.keys()
+            filtered = {k: v for k, v in current.items() if k in valid_keys}
+            self.thermodynamics = ThermodynamicMetrics(**filtered)
+
+            # Sincronización legacy
+            for k, v in kwargs.items():
+                self.metrics[f"thermodynamics.{k}"] = v
 
     def __post_init__(self) -> None:
         """Valida el estado inicial y sanitiza las entradas."""

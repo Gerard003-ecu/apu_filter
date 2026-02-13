@@ -46,16 +46,18 @@ from app.telemetry_narrative import (
 from app.semantic_translator import (
     VerdictLevel,
     FinancialVerdict,
-    TopologyMetricsDTO,
-    ThermalMetricsDTO,
-    SpectralMetricsDTO,
-    SynergyRiskDTO,
     StratumAnalysisResult,
     StrategicReport,
     SemanticTranslator,
     TranslatorConfig,
     NarrativeTemplates as TranslatorTemplates,
     create_translator,
+)
+from app.telemetry_schemas import (
+    TopologicalMetrics,
+    ThermodynamicMetrics,
+    PhysicsMetrics,
+    ControlMetrics,
 )
 
 # Importar dependencias comunes
@@ -88,15 +90,15 @@ def context() -> TelemetryContext:
 
 
 @pytest.fixture
-def clean_topology() -> TopologyMetricsDTO:
+def clean_topology() -> TopologicalMetrics:
     """Topología limpia (sin ciclos, conexa)."""
-    return TopologyMetricsDTO(beta_0=1, beta_1=0, euler_characteristic=1)
+    return TopologicalMetrics(beta_0=1, beta_1=0, euler_characteristic=1)
 
 
 @pytest.fixture
-def cyclic_topology() -> TopologyMetricsDTO:
+def cyclic_topology() -> TopologicalMetrics:
     """Topología con ciclos."""
-    return TopologyMetricsDTO(beta_0=1, beta_1=3, euler_characteristic=-2)
+    return TopologicalMetrics(beta_0=1, beta_1=3, euler_characteristic=-2)
 
 
 @pytest.fixture
@@ -335,7 +337,7 @@ class TestReportComposition:
 
         # Extraer métricas del reporte del narrator para el translator
         # (Simulando extracción de β₀, β₁ del contexto de telemetría)
-        topology = TopologyMetricsDTO(
+        topology = TopologicalMetrics(
             beta_0=1,
             beta_1=0 if narrator_report["verdict_code"] == "APPROVED" else 1,
         )
@@ -452,7 +454,7 @@ class TestEndToEndFlow:
         telemetry_report = narrator.summarize_execution(context)
 
         # Paso 3: Extraer métricas para el translator
-        topology = TopologyMetricsDTO(
+        topology = TopologicalMetrics(
             beta_0=int(context.get_metric("topology", "beta_0", default=1)),
             beta_1=int(context.get_metric("topology", "beta_1", default=0)),
         )
@@ -488,7 +490,7 @@ class TestEndToEndFlow:
 
         # El translator debería recibir topología inválida
         # Simular topología corrupta
-        corrupted_topology = TopologyMetricsDTO(beta_0=0, beta_1=0)
+        corrupted_topology = TopologicalMetrics(beta_0=0, beta_1=0)
 
         strategic_report = translator.compose_strategic_narrative(
             topological_metrics=corrupted_topology,
@@ -515,7 +517,7 @@ class TestEndToEndFlow:
         telemetry_report = narrator.summarize_execution(context)
 
         # El translator recibe topología con ciclos
-        cyclic_topology = TopologyMetricsDTO(beta_0=1, beta_1=3)
+        cyclic_topology = TopologicalMetrics(beta_0=1, beta_1=3)
 
         strategic_report = translator.compose_strategic_narrative(
             topological_metrics=cyclic_topology,
@@ -549,7 +551,7 @@ class TestEndToEndFlow:
         }
 
         strategic_report = translator.compose_strategic_narrative(
-            topological_metrics=TopologyMetricsDTO(),
+            topological_metrics=TopologicalMetrics(),
             financial_metrics={"performance": {"recommendation": "ACEPTAR"}},
             stability=10.0,
             thermal_metrics=thermal,
@@ -579,7 +581,7 @@ class TestNarrativeCoherence:
 
         telemetry_report = narrator.summarize_execution(context)
         strategic_report = translator.compose_strategic_narrative(
-            topological_metrics=TopologyMetricsDTO(),
+            topological_metrics=TopologicalMetrics(),
             financial_metrics={"performance": {"recommendation": "ACEPTAR", "profitability_index": 1.5}},
             stability=20.0,
         )
@@ -599,7 +601,7 @@ class TestNarrativeCoherence:
 
         telemetry_report = narrator.summarize_execution(context)
         strategic_report = translator.compose_strategic_narrative(
-            topological_metrics=TopologyMetricsDTO(beta_0=0, beta_1=5),
+            topological_metrics=TopologicalMetrics(beta_0=0, beta_1=5),
             financial_metrics={"performance": {"recommendation": "RECHAZAR"}},
             stability=0.5,
         )
@@ -647,7 +649,7 @@ class TestNarrativeCoherence:
     ):
         """Narrativas financieras usan lenguaje de negocio."""
         report = translator.compose_strategic_narrative(
-            topological_metrics=TopologyMetricsDTO(),
+            topological_metrics=TopologicalMetrics(),
             financial_metrics={
                 "wacc": 0.15,
                 "performance": {"recommendation": "RECHAZAR", "profitability_index": 0.7},
@@ -676,7 +678,7 @@ class TestErrorPropagation:
         # Simular que el narrator falló y no hay datos de telemetría
         # El translator debe funcionar con datos mínimos
         report = translator.compose_strategic_narrative(
-            topological_metrics=TopologyMetricsDTO(),
+            topological_metrics=TopologicalMetrics(),
             financial_metrics={},
             stability=10.0,
         )
@@ -709,7 +711,7 @@ class TestErrorPropagation:
 
         # Translator con thermal_metrics=None
         translator_report = translator.compose_strategic_narrative(
-            topological_metrics=TopologyMetricsDTO(),
+            topological_metrics=TopologicalMetrics(),
             financial_metrics={},
             stability=10.0,
             thermal_metrics=None,
@@ -735,7 +737,7 @@ class TestErrorPropagation:
 
         # El translator debe funcionar independientemente
         translator_report = translator.compose_strategic_narrative(
-            topological_metrics=TopologyMetricsDTO(),
+            topological_metrics=TopologicalMetrics(),
             financial_metrics={"performance": {"recommendation": "ACEPTAR"}},
             stability=10.0,
         )
@@ -824,7 +826,7 @@ class TestCombinedDecisionMatrix:
         # Generar reportes
         telemetry_report = narrator.summarize_execution(context)
 
-        topology = TopologyMetricsDTO(beta_0=1, beta_1=beta_1)
+        topology = TopologicalMetrics(beta_0=1, beta_1=beta_1)
         financials = {"performance": {"recommendation": recommendation, "profitability_index": 1.0 if recommendation == "ACEPTAR" else 0.7}}
 
         strategic_report = translator.compose_strategic_narrative(
@@ -873,7 +875,7 @@ class TestCombinedDecisionMatrix:
 
         # Simular que los datos están corruptos (β₀=0 indica proyecto vacío)
         strategic_report = translator.compose_strategic_narrative(
-            topological_metrics=TopologyMetricsDTO(beta_0=0, beta_1=0),
+            topological_metrics=TopologicalMetrics(beta_0=0, beta_1=0),
             financial_metrics={},
             stability=0.1,
         )
@@ -917,7 +919,7 @@ class TestCrossModuleSerialization:
         import json
 
         report = translator.compose_strategic_narrative(
-            topological_metrics=TopologyMetricsDTO(),
+            topological_metrics=TopologicalMetrics(),
             financial_metrics={"performance": {"recommendation": "ACEPTAR"}},
             stability=10.0,
         )
@@ -941,7 +943,7 @@ class TestCrossModuleSerialization:
         combined = {
             "telemetry": narrator.summarize_execution(context),
             "strategic": translator.compose_strategic_narrative(
-                topological_metrics=TopologyMetricsDTO(),
+                topological_metrics=TopologicalMetrics(),
                 financial_metrics={},
                 stability=10.0,
             ).to_dict(),
@@ -980,7 +982,7 @@ class TestSharedMetrics:
         }
 
         strategic_report = translator.compose_strategic_narrative(
-            topological_metrics=TopologyMetricsDTO(),
+            topological_metrics=TopologicalMetrics(),
             financial_metrics={"performance": {"recommendation": "ACEPTAR"}},
             stability=10.0,
             thermal_metrics=thermal,
@@ -1000,7 +1002,7 @@ class TestSharedMetrics:
         context.record_metric("topology", "euler_characteristic", -1)
 
         # Crear DTO desde métricas
-        topology = TopologyMetricsDTO(
+        topology = TopologicalMetrics(
             beta_0=int(context.get_metric("topology", "beta_0", default=1)),
             beta_1=int(context.get_metric("topology", "beta_1", default=0)),
             euler_characteristic=int(context.get_metric("topology", "euler_characteristic", default=1)),
@@ -1091,7 +1093,7 @@ class TestCombinedProperties:
         if telemetry_report["global_severity"] == "CRITICO":
             # El translator con datos problemáticos también debe ser severo
             strategic_report = translator.compose_strategic_narrative(
-                topological_metrics=TopologyMetricsDTO(beta_0=0, beta_1=5),
+                topological_metrics=TopologicalMetrics(beta_0=0, beta_1=5),
                 financial_metrics={"performance": {"recommendation": "RECHAZAR"}},
                 stability=0.1,
             )
@@ -1114,12 +1116,12 @@ class TestCombinedProperties:
         report2_tel = narrator.summarize_execution(context2)
 
         report1_str = translator.compose_strategic_narrative(
-            topological_metrics=TopologyMetricsDTO(),
+            topological_metrics=TopologicalMetrics(),
             financial_metrics={"performance": {"recommendation": "ACEPTAR"}},
             stability=10.0,
         )
         report2_str = translator.compose_strategic_narrative(
-            topological_metrics=TopologyMetricsDTO(),
+            topological_metrics=TopologicalMetrics(),
             financial_metrics={"performance": {"recommendation": "ACEPTAR"}},
             stability=10.0,
         )
@@ -1147,7 +1149,7 @@ class TestCombinedProperties:
 
             tel_report = narrator.summarize_execution(context)
             str_report = translator.compose_strategic_narrative(
-                topological_metrics=TopologyMetricsDTO(beta_0=1, beta_1=num_cycles),
+                topological_metrics=TopologicalMetrics(beta_0=1, beta_1=num_cycles),
                 financial_metrics={"performance": {"recommendation": "REVISAR"}},
                 stability=10.0,
             )
@@ -1875,7 +1877,7 @@ class ErrorTraceAlgebra:
         beta_1 = min(3, error_count)  # Más errores, más ciclos potenciales
 
         translator_report = translator.compose_strategic_narrative(
-            topological_metrics=TopologyMetricsDTO(beta_0=1, beta_1=beta_1),
+            topological_metrics=TopologicalMetrics(beta_0=1, beta_1=beta_1),
             financial_metrics={"performance": {"recommendation": "REVISAR"}},
             stability=max(0, 10 - error_count)  # Menos estable con más errores
         )
