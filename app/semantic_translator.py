@@ -1047,21 +1047,37 @@ class SemanticTranslator:
 
     def translate_thermodynamics(
         self,
-        entropy: float = 0.0,
-        exergy: float = 1.0,
-        temperature: float = 25.0,
+        metrics: Union[ThermodynamicMetrics, Dict[str, Any], Any],
     ) -> Tuple[str, VerdictLevel]:
         """
         Traduce métricas termodinámicas a narrativa.
 
         Args:
-            entropy: Nivel de desorden administrativo (0.0 - 1.0)
-            exergy: Eficiencia de inversión (0.0 - 1.0)
-            temperature: Índice de inflación interna (°C)
+            metrics: Métricas termodinámicas (objeto o diccionario).
 
         Returns:
             Tupla (narrativa, veredicto)
         """
+        # Normalizar inputs
+        if isinstance(metrics, dict):
+            # Fallback para claves antiguas si es necesario
+            temp = float(metrics.get("system_temperature", metrics.get("temperature", 25.0)))
+
+            thermo = ThermodynamicMetrics(
+                system_temperature=temp,
+                entropy=float(metrics.get("entropy", 0.0)),
+                exergy=float(metrics.get("exergy", 1.0)),
+                heat_capacity=float(metrics.get("heat_capacity", 0.5)),
+            )
+        elif isinstance(metrics, ThermodynamicMetrics):
+            thermo = metrics
+        else:
+            thermo = ThermodynamicMetrics()
+
+        entropy = thermo.entropy
+        exergy = thermo.exergy
+        temperature = thermo.system_temperature
+
         # Validar rangos
         entropy = max(0.0, min(1.0, entropy))
         exergy = max(0.0, min(1.0, exergy))

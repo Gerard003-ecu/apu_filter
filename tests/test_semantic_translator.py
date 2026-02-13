@@ -232,16 +232,14 @@ class TestThermalTranslation:
     """Pruebas para traducción de métricas termodinámicas."""
 
     def test_translate_cold_temperature(self, default_translator: SemanticTranslator):
-        narrative, verdict = default_translator.translate_thermodynamics(
-            entropy=0.2, exergy=0.9, temperature=15.0
-        )
+        metrics = ThermodynamicMetrics(entropy=0.2, exergy=0.9, system_temperature=15.0)
+        narrative, verdict = default_translator.translate_thermodynamics(metrics)
         assert "Estable" in narrative or "❄️" in narrative
         assert verdict == VerdictLevel.VIABLE
 
     def test_translate_critical_temperature(self, default_translator: SemanticTranslator):
-        narrative, verdict = default_translator.translate_thermodynamics(
-            entropy=0.5, exergy=0.5, temperature=80.0
-        )
+        metrics = ThermodynamicMetrics(entropy=0.5, exergy=0.5, system_temperature=80.0)
+        narrative, verdict = default_translator.translate_thermodynamics(metrics)
         assert "FUSIÓN" in narrative or "crítica" in narrative.lower()
         assert verdict == VerdictLevel.RECHAZAR
 

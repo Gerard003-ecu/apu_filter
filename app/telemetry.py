@@ -432,7 +432,7 @@ class TelemetryContext:
     )
 
     def update_physics(self, **kwargs) -> None:
-        """Actualiza métricas físicas preservando inmutabilidad."""
+        """Actualiza métricas físicas preservando inmutabilidad (Thread-Safe)."""
         with self._lock:
             current = asdict(self.physics)
             current.update(kwargs)
