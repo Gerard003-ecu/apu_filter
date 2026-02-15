@@ -506,89 +506,64 @@ class TestContextPersistence:
         pd.testing.assert_frame_equal(loaded["df_presupuesto"], sample_presupuesto_df)
 
 
-# ==================== 4. TESTS PARA INFERENCIA DE ESTRATO ====================
+# ==================== 4. TESTS PARA VALIDACIÓN DE ESTRATO ====================
 
 
-class TestStratumInference:
+class TestStratumValidation:
     """
-    Tests para _infer_current_stratum_from_context.
-    
-    Invariante crítico: la evaluación debe ser DESCENDENTE (WISDOM → PHYSICS).
-    La versión anterior evaluaba ascendente (PHYSICS primero), retornando
-    siempre PHYSICS una vez cargados los datos iniciales.
+    Tests para _compute_validated_strata y _enforce_filtration_invariant.
     """
 
-    def test_empty_context_returns_none(self, director):
-        """Contexto vacío → estrato indeterminado."""
-        assert director._infer_current_stratum_from_context({}) is None
+    def test_compute_validated_strata_empty(self, director):
+        """Contexto vacío → ningún estrato validado."""
+        assert director._compute_validated_strata({}) == set()
 
-    def test_physics_context_detected(self, director, physics_context):
-        """Contexto con solo artefactos PHYSICS → PHYSICS."""
-        assert director._infer_current_stratum_from_context(physics_context) == Stratum.PHYSICS
+    def test_physics_validation(self, director, physics_context):
+        """Contexto con evidencia PHYSICS completa → PHYSICS validado."""
+        validated = director._compute_validated_strata(physics_context)
+        assert Stratum.PHYSICS in validated
 
-    def test_tactics_context_detected(self, director, tactics_context):
-        """
-        Contexto con artefactos TACTICS (que incluye PHYSICS) → TACTICS.
+    def test_tactics_validation(self, director, tactics_context):
+        """Contexto con evidencia TACTICS completa → TACTICS validado."""
+        validated = director._compute_validated_strata(tactics_context)
+        assert Stratum.TACTICS in validated
+        assert Stratum.PHYSICS in validated
+
+    def test_partial_evidence_fails_validation(self, director, physics_context):
+        """Si falta una clave requerida, el estrato no se valida."""
+        incomplete = physics_context.copy()
+        del incomplete["df_presupuesto"]
+        validated = director._compute_validated_strata(incomplete)
+        assert Stratum.PHYSICS not in validated
+
+    def test_check_stratum_prerequisites(self, director):
+        """Verifica la clausura transitiva."""
+        # PHYSICS no requiere previos
+        assert director._check_stratum_prerequisites(Stratum.PHYSICS, set())
         
-        Este test valida la corrección principal: la evaluación descendente
-        retorna TACTICS y NO PHYSICS a pesar de que las claves de PHYSICS
-        también están presentes.
-        """
-        result = director._infer_current_stratum_from_context(tactics_context)
-        assert result == Stratum.TACTICS, (
-            f"Expected TACTICS but got {result}. "
-            "La evaluación debe ser descendente (WISDOM → PHYSICS)."
+        # TACTICS requiere PHYSICS
+        assert director._check_stratum_prerequisites(Stratum.TACTICS, {Stratum.PHYSICS})
+        assert not director._check_stratum_prerequisites(Stratum.TACTICS, set())
+
+        # STRATEGY requiere PHYSICS y TACTICS
+        assert director._check_stratum_prerequisites(
+            Stratum.STRATEGY, {Stratum.PHYSICS, Stratum.TACTICS}
+        )
+        assert not director._check_stratum_prerequisites(
+            Stratum.STRATEGY, {Stratum.PHYSICS}
         )
 
-    def test_strategy_context_detected(self, director, strategy_context):
-        """Contexto con artefactos STRATEGY → STRATEGY."""
-        result = director._infer_current_stratum_from_context(strategy_context)
-        assert result == Stratum.STRATEGY
+    def test_enforce_filtration_invariant_success(self, director, tactics_context):
+        """No lanza excepción si se cumplen los prerrequisitos."""
+        # TACTICS context has PHYSICS validated.
+        # So we can execute a TACTICS step.
+        director._enforce_filtration_invariant(Stratum.TACTICS, tactics_context)
 
-    def test_wisdom_context_detected(self, director, wisdom_context):
-        """Contexto con artefactos WISDOM → WISDOM."""
-        result = director._infer_current_stratum_from_context(wisdom_context)
-        assert result == Stratum.WISDOM
-
-    def test_irrelevant_keys_ignored(self, director):
-        """Claves que no pertenecen a ningún estrato no producen falso positivo."""
-        context = {"random_key": "value", "another_key": 42}
-        assert director._infer_current_stratum_from_context(context) is None
-
-    def test_single_strategy_key_sufficient(self, director):
-        """Basta una sola clave de un estrato para detectarlo."""
-        context = {"graph": MagicMock()}
-        assert director._infer_current_stratum_from_context(context) == Stratum.STRATEGY
-
-    def test_monotonicity_through_pipeline(self, director):
-        """
-        El estrato inferido nunca decrece a medida que se agregan claves
-        del pipeline en orden canónico.
-        
-        Valida la propiedad de filtración:
-        V_PHYSICS ⊂ V_TACTICS ⊂ V_STRATEGY ⊂ V_WISDOM
-        """
-        context = {}
-        previous_level = -1
-
-        progressive_keys = [
-            ({"df_presupuesto": True}, Stratum.PHYSICS),
-            ({"df_apu_costos": True}, Stratum.TACTICS),
-            ({"graph": True}, Stratum.STRATEGY),
-            ({"final_result": True}, Stratum.WISDOM),
-        ]
-
-        for new_keys, expected_stratum in progressive_keys:
-            context.update(new_keys)
-            inferred = director._infer_current_stratum_from_context(context)
-            current_level = stratum_level(inferred)
-
-            assert current_level >= previous_level, (
-                f"Monotonicity violated: {previous_level} → {current_level} "
-                f"after adding {list(new_keys.keys())}"
-            )
-            assert inferred == expected_stratum
-            previous_level = current_level
+    def test_enforce_filtration_invariant_failure(self, director):
+        """Lanza RuntimeError si faltan estratos base."""
+        # Empty context, try to execute TACTICS
+        with pytest.raises(RuntimeError, match="Filtration Invariant Violation"):
+            director._enforce_filtration_invariant(Stratum.TACTICS, {})
 
 
 # ==================== 5. TESTS PARA PipelineDirector ====================
@@ -746,29 +721,23 @@ class TestPipelineDirector:
 
         assert InspectorStep.captured_value == "from_session"
 
-    def test_stratum_regression_warning(self, director, caplog):
+    def test_invariant_violation_raises_error(self, director):
         """
-        Ejecutar un paso de estrato inferior al contexto actual genera warning.
-        
-        Ejemplo: contexto en TACTICS, paso objetivo en PHYSICS.
+        Ejecutar un paso de alto nivel sin los estratos inferiores validados
+        lanza RuntimeError (Clausura Transitiva).
         """
-        session_id = "regression_test"
-        # Crear contexto que se infiere como TACTICS
-        tactics_ctx = {"df_apu_costos": pd.DataFrame(), "df_tiempo": pd.DataFrame()}
-        director._save_context_state(session_id, tactics_ctx)
+        session_id = "violation_test"
+        # Contexto vacío -> PHYSICS no validado
+        director._save_context_state(session_id, {})
 
-        PhysicsStep = make_stub_class(output_keys={"extra": True})
-        director.mic.add_basis_vector("regressor", PhysicsStep, Stratum.PHYSICS)
+        TacticsStep = make_stub_class()
+        director.mic.add_basis_vector("tactical_move", TacticsStep, Stratum.TACTICS)
 
-        with caplog.at_level(logging.WARNING):
-            director.run_single_step("regressor", session_id)
+        # Debe fallar porque TACTICS requiere PHYSICS validado
+        result = director.run_single_step("tactical_move", session_id)
 
-        assert any(
-            "regression" in record.message.lower() for record in caplog.records
-        ), (
-            f"Expected 'regression' warning in logs. Got: "
-            f"{[r.message for r in caplog.records]}"
-        )
+        assert result["status"] == "error"
+        assert "Filtration Invariant Violation" in result["error"]
 
 
 # ==================== 6. TESTS PARA ORQUESTACIÓN COMPLETA ====================
@@ -1576,14 +1545,27 @@ class TestLightIntegration:
     def test_three_step_pipeline_accumulates_context(self, base_config, telemetry):
         """
         Un pipeline de 3 pasos acumula correctamente las claves de contexto.
-        Cada paso agrega una clave; el contexto final las tiene todas.
+        Se provee evidencia mock para satisfacer los invariantes de filtración.
         """
         director = PipelineDirector(base_config, telemetry)
         director.mic = MICRegistry()
 
-        Step1 = make_stub_class({"phase_1": True})
-        Step2 = make_stub_class({"phase_2": True})
-        Step3 = make_stub_class({"phase_3": True})
+        # Evidencia requerida para PHYSICS
+        ev_physics = {
+            "df_presupuesto": "mock", "df_insumos": "mock", "df_apus_raw": "mock"
+        }
+        # Evidencia requerida para TACTICS
+        ev_tactics = {
+            "df_apu_costos": "mock", "df_tiempo": "mock", "df_rendimiento": "mock"
+        }
+        # Evidencia requerida para STRATEGY
+        ev_strategy = {
+            "graph": "mock", "business_topology_report": "mock"
+        }
+
+        Step1 = make_stub_class({**ev_physics, "phase_1": True})
+        Step2 = make_stub_class({**ev_tactics, "phase_2": True})
+        Step3 = make_stub_class({**ev_strategy, "phase_3": True})
 
         director.mic.add_basis_vector("s1", Step1, Stratum.PHYSICS)
         director.mic.add_basis_vector("s2", Step2, Stratum.TACTICS)
@@ -1598,18 +1580,30 @@ class TestLightIntegration:
 
     def test_strata_monotonicity_in_full_pipeline(self, base_config, telemetry):
         """
-        A lo largo del pipeline canónico completo (con stubs),
-        el estrato inferido nunca decrece.
+        A lo largo del pipeline, los estratos se validan secuencialmente.
         """
         director = PipelineDirector(base_config, telemetry)
         director.mic = MICRegistry()
 
-        # Simular la evolución del estrato a través de 4 pasos
+        ev_physics = {
+            "df_presupuesto": "mock", "df_insumos": "mock", "df_apus_raw": "mock"
+        }
+        ev_tactics = {
+            "df_apu_costos": "mock", "df_tiempo": "mock", "df_rendimiento": "mock"
+        }
+        ev_strategy = {
+            "graph": "mock", "business_topology_report": "mock"
+        }
+        ev_wisdom = {
+            "final_result": "mock"
+        }
+
+        # Simular la evolución del estrato
         steps = [
-            ("p1", {"df_presupuesto": True}, Stratum.PHYSICS),
-            ("t1", {"df_apu_costos": True}, Stratum.TACTICS),
-            ("s1", {"graph": True}, Stratum.STRATEGY),
-            ("w1", {"final_result": True}, Stratum.WISDOM),
+            ("p1", ev_physics, Stratum.PHYSICS),
+            ("t1", ev_tactics, Stratum.TACTICS),
+            ("s1", ev_strategy, Stratum.STRATEGY),
+            ("w1", ev_wisdom, Stratum.WISDOM),
         ]
 
         for label, keys, stratum in steps:
@@ -1617,8 +1611,12 @@ class TestLightIntegration:
 
         result = director.execute_pipeline_orchestrated({})
 
-        # El contexto final debe tener la huella de todos los estratos
-        assert director._infer_current_stratum_from_context(result) == Stratum.WISDOM
+        # Validar usando el nuevo método _compute_validated_strata
+        validated = director._compute_validated_strata(result)
+        assert Stratum.PHYSICS in validated
+        assert Stratum.TACTICS in validated
+        assert Stratum.STRATEGY in validated
+        assert Stratum.WISDOM in validated
 
     def test_mid_pipeline_failure_stops_execution(self, base_config, telemetry):
         """Si el paso 2 de 3 falla, el paso 3 nunca se ejecuta."""

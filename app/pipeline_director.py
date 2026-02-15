@@ -45,7 +45,7 @@ import uuid
 from abc import ABC, abstractmethod
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Tuple, Type, Union
+from typing import Any, Callable, Dict, List, Optional, Set, Tuple, Type, Union
 
 import numpy as np
 import pandas as pd
@@ -296,6 +296,13 @@ _STRATUM_ORDER: Dict[Stratum, int] = {
     Stratum.WISDOM: 3,
 }
 
+_STRATUM_EVIDENCE: Dict[Stratum, List[str]] = {
+    Stratum.PHYSICS: ["df_presupuesto", "df_insumos", "df_apus_raw"],
+    Stratum.TACTICS: ["df_apu_costos", "df_tiempo", "df_rendimiento"],
+    Stratum.STRATEGY: ["graph", "business_topology_report"],
+    Stratum.WISDOM: ["final_result"],
+}
+
 
 def stratum_level(s: Stratum) -> int:
     """Retorna el nivel ordinal de un estrato en la filtración DIKW."""
@@ -338,12 +345,14 @@ class LoadDataStep(ProcessingStep):
     def execute(self, context: dict, telemetry: TelemetryContext) -> dict:
         """Ejecuta la carga y validación inicial de archivos."""
         telemetry.start_step("load_data")
+        # Inmutabilidad: Crear un nuevo contexto para preservar el estado original
+        new_context = context.copy()
         try:
             required_paths = ["presupuesto_path", "apus_path", "insumos_path"]
             paths = {}
 
             for path_key in required_paths:
-                path_value = context.get(path_key)
+                path_value = new_context.get(path_key)
                 if not path_value:
                     error = f"Ruta requerida '{path_key}' no encontrada en contexto"
                     telemetry.record_error("load_data", error)
@@ -454,8 +463,7 @@ class LoadDataStep(ProcessingStep):
                     telemetry.record_error("load_data", error)
                     raise ValueError(error)
 
-            context = {**context}
-            context.update({
+            new_context.update({
                 "df_presupuesto": df_presupuesto,
                 "df_insumos": df_insumos,
                 "df_apus_raw": df_apus_raw,
@@ -464,7 +472,7 @@ class LoadDataStep(ProcessingStep):
             })
 
             telemetry.end_step("load_data", "success")
-            return context
+            return new_context
 
         except Exception as e:
             logger.error(f"❌ Error en LoadDataStep: {e}", exc_info=True)
@@ -589,19 +597,24 @@ class CalculateCostsStep(ProcessingStep):
                 telemetry.record_error("calculate_costs", error)
                 raise ValueError(error)
 
-            # Fallback: process_vectors directo si MIC no proporcionó los 3 DataFrames
-            processed_data = logic_result.get("processed_data", [])
-            quality_report = logic_result.get("quality_report", {})
+            # Protocolo de Dos Fases (Vectorial vs Clásico)
+            # Fase 1: Intentar obtener tensores de costo vía MIC
+            vectorial_success = False
+            if logic_result.get("success") and "df_apu_costos" in logic_result:
+                logger.info("✅ Usando tensores de costo vectoriales (structure_logic).")
+                df_apu_costos = logic_result["df_apu_costos"]
+                df_tiempo = logic_result.get("df_tiempo", pd.DataFrame())
+                df_rendimiento = logic_result.get("df_rendimiento", pd.DataFrame())
+                context["quality_report"] = logic_result.get("quality_report", {})
+                vectorial_success = True
 
-            if processed_data:
-                logger.info("✅ Vector structure_logic completado vía MIC.")
-                context["quality_report"] = quality_report
-
-            # Cálculo vectorial clásico (compatibilidad con el pipeline existente)
-            processor = APUProcessor(self.config)
-            df_apu_costos, df_tiempo, df_rendimiento = processor.process_vectors(
-                df_merged
-            )
+            # Fase 2: Fallback Clásico (APUProcessor)
+            if not vectorial_success:
+                logger.info("⚠️ Proyección vectorial incompleta. Activando fallback clásico APUProcessor.")
+                processor = APUProcessor(self.config)
+                df_apu_costos, df_tiempo, df_rendimiento = processor.process_vectors(
+                    df_merged
+                )
 
             telemetry.record_metric(
                 "calculate_costs", "costos_rows", len(df_apu_costos)
@@ -1074,26 +1087,62 @@ class PipelineDirector:
         except OSError as e:
             self.logger.warning(f"Could not clean session file {session_id}: {e}")
 
-    def _infer_current_stratum_from_context(self, context: dict) -> Optional[Stratum]:
+    def _compute_validated_strata(self, context: dict) -> Set[Stratum]:
         """
-        Heurística para inferir el estrato MÁS ALTO alcanzado en el contexto.
-        Refinamiento: Se evalúa de WISDOM → PHYSICS (descendente).
+        Determina los estratos validados basándose en EVIDENCIA, no heurística.
         """
-        keys = set(context.keys())
+        validated = set()
+        for stratum, evidence_keys in _STRATUM_EVIDENCE.items():
+            # Un estrato es válido ssi TODAS sus claves de evidencia existen y no son None/Empty
+            is_valid = True
+            for key in evidence_keys:
+                value = context.get(key)
+                if value is None:
+                    is_valid = False
+                    break
+                if hasattr(value, "empty") and value.empty:
+                    is_valid = False
+                    break
+                if isinstance(value, (list, dict)) and not value:
+                    is_valid = False
+                    break
 
-        # Evaluar de mayor a menor: el primer match indica el techo alcanzado
-        stratum_signatures: List[Tuple[Stratum, set]] = [
-            (Stratum.WISDOM,   {"final_result"}),
-            (Stratum.STRATEGY, {"graph", "business_topology_report", "bill_of_materials"}),
-            (Stratum.TACTICS,  {"df_apu_costos", "df_tiempo", "df_rendimiento", "df_final"}),
-            (Stratum.PHYSICS,  {"df_presupuesto", "df_insumos", "df_apus_raw", "df_merged"}),
-        ]
+            if is_valid:
+                validated.add(stratum)
+        return validated
 
-        for stratum, signature_keys in stratum_signatures:
-            if keys & signature_keys:  # Intersección no vacía
-                return stratum
+    def _check_stratum_prerequisites(self, target_stratum: Stratum, validated_strata: Set[Stratum]) -> bool:
+        """
+        Verifica que todos los estratos INFERIORES al objetivo estén validados.
+        Clausura Transitiva.
+        """
+        target_level = stratum_level(target_stratum)
+        if target_level == 0: # PHYSICS (Base)
+            return True
 
-        return None
+        for s, level in _STRATUM_ORDER.items():
+            if level < target_level:
+                if s not in validated_strata:
+                    return False
+        return True
+
+    def _enforce_filtration_invariant(self, target_stratum: Stratum, context: dict) -> None:
+        """
+        Lanza excepción si se viola la filtración topológica.
+        """
+        validated = self._compute_validated_strata(context)
+        if not self._check_stratum_prerequisites(target_stratum, validated):
+            target_level = stratum_level(target_stratum)
+            missing = [
+                s.name for s, l in _STRATUM_ORDER.items()
+                if l < target_level and s not in validated
+            ]
+            raise RuntimeError(
+                f"🛡️ Security Block: Filtration Invariant Violation. "
+                f"Target: {target_stratum.name} (L{target_level}). "
+                f"Missing Base Strata: {missing}. "
+                f"Validated: {[s.name for s in validated]}."
+            )
 
     def run_single_step(
         self,
@@ -1124,23 +1173,9 @@ class PipelineDirector:
                     f"Step '{step_name}' not found. Available: {available}"
                 )
 
-            # 4. Validar filtración de estratos
+            # 4. Validar filtración de estratos (Lógica Transitiva Refinada)
             if validate_stratum:
-                current_stratum = self._infer_current_stratum_from_context(context)
-                target_stratum = basis_vector.stratum
-
-                if current_stratum is not None:
-                    current_level = stratum_level(current_stratum)
-                    target_level = stratum_level(target_stratum)
-
-                    if target_level < current_level:
-                        self.logger.warning(
-                            f"⚠️ Stratum regression detected: context at "
-                            f"{current_stratum.name} (level {current_level}), "
-                            f"but step '{step_name}' targets "
-                            f"{target_stratum.name} (level {target_level}). "
-                            f"This may indicate a pipeline ordering defect."
-                        )
+                self._enforce_filtration_invariant(basis_vector.stratum, context)
 
             # 5. Instanciar y ejecutar
             step_instance = basis_vector.operator_class(self.config, self.thresholds)
