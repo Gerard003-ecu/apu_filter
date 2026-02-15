@@ -707,14 +707,7 @@ class BusinessTopologyStep(ProcessingStep):
             telemetry.record_metric("business_topology", "graph_nodes", graph.number_of_nodes())
             telemetry.record_metric("business_topology", "graph_edges", graph.number_of_edges())
 
-            # ── Fase 2: Registro de estratos validados ──
-            validated = context.get("validated_strata")
-            if not isinstance(validated, set):
-                validated = set()
-            validated.update({Stratum.PHYSICS, Stratum.TACTICS})
-            context["validated_strata"] = validated
-
-            # ── Fase 3: Evaluación por BusinessAgent (degradable) ──
+            # ── Fase 2: Evaluación por BusinessAgent (degradable) ──
             mic_instance = self._resolve_mic_instance()
             if mic_instance:
                 try:
