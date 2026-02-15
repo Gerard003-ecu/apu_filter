@@ -19,15 +19,6 @@ Convenciones:
   - Fixtures con datos sintéticos dimensionalmente correctos.
   - Mocks solo para fronteras externas (Flask, LLM, filesystem).
   - Assertions estructurales, no sobre strings literales.
-
-Cambios vs. suite original:
-  - FIX: `[2-4]` → `[2, 3, 4]` (aritmética Python vs lista).
-  - FIX: `"CANTIDAD": [5]` → `[5, 5]` (dimensión de DataFrame).
-  - FIX: `result["context_update"]` → `result["success"]` (contrato MIC).
-  - FIX: `MICHierarchyViolationError` → soft-check + strict mode test.
-  - FIX: `register_core_vectors` duplicado en fixture.
-  - ADD: Tests de degradación, idempotencia, borde vacío.
-  - ADD: Helpers para construcción de grafos y verificación topológica.
 """
 
 import logging
