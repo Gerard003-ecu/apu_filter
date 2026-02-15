@@ -700,6 +700,12 @@ class NarrativeTemplates:
 
     CONTINGENCY: str = "📊 **Blindaje Financiero**: Contingencia sugerida de ${contingency:,.2f}."
 
+    FINANCIAL_INERTIA: Dict[str, str] = {
+        "low": "🍂 **Hoja al Viento (Inercia={inertia:.2f})**: El proyecto carece de masa financiera para resistir la volatilidad. Se mueve con cualquier brisa del mercado.",
+        "medium": "⚖️ **Inercia Moderada ({inertia:.2f})**: Estabilidad razonable ante fluctuaciones menores.",
+        "high": "🪨 **Roca Financiera (Inercia={inertia:.2f})**: Alta resistencia al cambio. El proyecto absorbe impactos sin desviarse.",
+    }
+
     FINANCIAL_VERDICT: Dict[str, str] = {
         "accept": "🚀 **Veredicto**: VIABLE (IR={pi:.2f}). Estructura financiable.",
         "conditional": "🔵 **Veredicto**: CONDICIONAL (IR={pi:.2f}). Viable con ajustes.",
@@ -875,6 +881,7 @@ class SemanticTranslator:
                 beta_1=int(metrics.get("beta_1", 0)),
                 beta_2=int(metrics.get("beta_2", 0)),
                 euler_characteristic=int(metrics.get("euler_characteristic", 1)),
+                mayer_vietoris_delta=int(metrics.get("mayer_vietoris_delta", 0)),
                 fiedler_value=float(metrics.get("fiedler_value", 1.0)),
                 spectral_gap=float(metrics.get("spectral_gap", 0.0)),
                 pyramid_stability=float(metrics.get("pyramid_stability", 1.0)),
@@ -902,8 +909,10 @@ class SemanticTranslator:
         verdicts.append(cycle_verdict)
 
         # 1.5. Mayer-Vietoris (Integridad de Fusión)
-        # Nota: delta_beta_1 no está en TopologicalMetrics, se asume 0 por defecto
-        # si no se pasa en kwargs o similar (aquí se omite por simplicidad)
+        if hasattr(topo, "mayer_vietoris_delta") and topo.mayer_vietoris_delta > 0:
+            mv_narrative = NarrativeTemplates.MAYER_VIETORIS.format(delta_beta_1=topo.mayer_vietoris_delta)
+            narrative_parts.append(mv_narrative)
+            verdicts.append(VerdictLevel.RECHAZAR)
 
         # 2. Sinergia de Riesgo (Producto Cup)
         synergy_detected = bool(synergy.get("synergy_detected", False))
@@ -1077,14 +1086,25 @@ class SemanticTranslator:
         entropy = thermo.entropy
         exergy = thermo.exergy
         temperature = thermo.system_temperature
+        inertia = thermo.financial_inertia
 
         # Validar rangos
         entropy = max(0.0, min(1.0, entropy))
         exergy = max(0.0, min(1.0, exergy))
         temperature = max(0.0, temperature)
+        inertia = max(0.0, inertia)
 
         parts = []
         verdicts = []
+
+        # Inercia Financiera
+        if inertia < 0.2:
+            parts.append(NarrativeTemplates.FINANCIAL_INERTIA["low"].format(inertia=inertia))
+            verdicts.append(VerdictLevel.PRECAUCION)
+        elif inertia < 0.5:
+            parts.append(NarrativeTemplates.FINANCIAL_INERTIA["medium"].format(inertia=inertia))
+        else:
+            parts.append(NarrativeTemplates.FINANCIAL_INERTIA["high"].format(inertia=inertia))
 
         # Exergía
         exergy_pct = exergy * 100.0

@@ -65,6 +65,7 @@ class PhysicsMetrics:
     potential_energy: float = 0.0     # E_p = ½·C·V² (Energía almacenada en buffer)
     flyback_voltage: float = 0.0      # V_fb = L·dI/dt (Picos por cambios bruscos de esquema)
     dissipated_power: float = 0.0     # P_dis = R·I² (Entropía generada por fricción/errores)
+    hamiltonian_excess: float = 0.0   # H_err: Violación de conservación de energía
 
     # ── Estabilidad Mecánica ──
     gyroscopic_stability: float = 1.0  # S_g: Estabilidad rotacional del 'trompo' de datos
@@ -87,6 +88,11 @@ class PhysicsMetrics:
             raise ValueError(
                 f"Dissipated power must be non-negative (P = R·I² ≥ 0): "
                 f"{self.dissipated_power}"
+            )
+        if self.hamiltonian_excess < 0:
+            raise ValueError(
+                f"Hamiltonian excess must be non-negative (energy conservation violation): "
+                f"{self.hamiltonian_excess}"
             )
         if self.gyroscopic_stability < 0:
             raise ValueError(
@@ -201,6 +207,7 @@ class TopologicalMetrics:
 
     # ── Invariantes Derivados ──
     euler_characteristic: Optional[int] = None  # χ = β₀ − β₁ + β₂ (auto-calculado si None)
+    mayer_vietoris_delta: int = 0      # Δ_mv: Ciclos espurios por fusión
 
     # ── Análisis Espectral ──
     fiedler_value: float = 1.0         # λ₂: Conectividad algebraica
@@ -216,6 +223,10 @@ class TopologicalMetrics:
             raise ValueError(
                 f"Betti numbers cannot be negative: "
                 f"(β₀={self.beta_0}, β₁={self.beta_1}, β₂={self.beta_2})"
+            )
+        if self.mayer_vietoris_delta < 0:
+            raise ValueError(
+                f"Mayer-Vietoris delta must be non-negative (cycle count), got {self.mayer_vietoris_delta}"
             )
 
         # Relación de Euler-Poincaré: χ = Σ(-1)ⁱ·βᵢ
@@ -487,6 +498,7 @@ class ThermodynamicMetrics:
     exergy: float = 1.0                    # Ex: Energía útil disponible (presupuesto efectivo)
     heat_capacity: float = 0.5            # C_v: Capacidad de absorber sobrecostos
     reference_temperature: float = 0.0    # T₀: Temperatura del entorno de referencia
+    financial_inertia: float = 1.0        # I_fin: Resistencia al cambio (1.0 = estable)
 
     def __post_init__(self) -> None:
         """Valida rangos termodinámicos."""
@@ -510,6 +522,10 @@ class ThermodynamicMetrics:
             raise ValueError(
                 f"Reference temperature cannot be negative: "
                 f"{self.reference_temperature}"
+            )
+        if self.financial_inertia < 0:
+            raise ValueError(
+                f"Financial inertia must be non-negative: {self.financial_inertia}"
             )
 
     # ── Propiedades Derivadas ──

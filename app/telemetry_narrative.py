@@ -70,10 +70,12 @@ class NarratorConfig:
     ANOMALY_THRESHOLDS: Dict[str, float] = {
         "saturation": 0.9,
         "flyback_voltage": 0.5,
+        "hamiltonian_excess": 0.01,
         "dissipated_power": 50.0,
         "error_rate": 0.1,
         "water_hammer_pressure": 0.7,
         "pump_work": 1000.0,  # Umbral arbitrario para alta inyección
+        "financial_inertia_low": 0.2, # Umbral inferior para inercia (Hoja al Viento)
     }
 
     # Tipos de issues que NO son críticos
@@ -749,6 +751,11 @@ class NarrativeTemplates:
                 "Alto esfuerzo de inyección detectado. La fricción de los datos "
                 "está consumiendo energía crítica."
             ),
+            "hamiltonian_violation": (
+                "⚛️ **Violación de Ley de Conservación**: "
+                "Exceso Hamiltoniano detectado. El sistema está creando o destruyendo "
+                "energía (información) de la nada. Violación física fundamental."
+            ),
         },
         Stratum.TACTICS: {
             "default": (
@@ -787,6 +794,11 @@ class NarrativeTemplates:
                 "💸 **Destrucción de Valor**: "
                 "El NPV proyectado es negativo. "
                 "El proyecto no genera valor económico."
+            ),
+            "financial_fragility": (
+                "🍂 **Fragilidad Estructural (Hoja al Viento)**: "
+                "La inercia financiera es críticamente baja. "
+                "Cualquier ráfaga de volatilidad desestabilizará el proyecto."
             ),
         },
         Stratum.WISDOM: {
@@ -891,9 +903,11 @@ class NarrativeTemplates:
                 return "high_injection_work"
             if "corrupt" in issue_messages or "invalid" in issue_messages:
                 return "corruption"
+            if "hamiltonian" in issue_messages or "conservación" in issue_messages:
+                return "hamiltonian_violation"
 
         elif stratum == Stratum.TACTICS:
-            if "mayer-vietoris" in issue_messages or "integración" in issue_messages:
+            if "mayer-vietoris" in issue_messages or "integración" in issue_messages or "mayer" in issue_messages:
                 return "mayer_vietoris"
             if "ciclo" in issue_messages or "cycle" in issue_messages or "β₁" in issue_messages:
                 return "cycles"
@@ -905,6 +919,8 @@ class NarrativeTemplates:
                 return "high_var"
             if "npv" in issue_messages and "negativ" in issue_messages:
                 return "negative_npv"
+            if "inercia" in issue_messages or "hoja" in issue_messages:
+                return "financial_fragility"
 
         return "default"
 
@@ -1000,25 +1016,32 @@ class TelemetryNarrator:
 
         root_spans = getattr(context, "root_spans", [])
 
-        # Modo legacy: sin spans pero con steps/errors
-        if not root_spans:
-            if context.steps or context.errors:
-                return self._summarize_legacy(context)
-            return self._generate_empty_report().to_dict()
+        # 1. Pre-análisis Global (Typed State Vectors)
+        # Detectar problemas en vectores de estado antes de decidir flujo
+        global_issues_map = self._analyze_global_context(context)
+        has_global_issues = any(len(issues) > 0 for issues in global_issues_map.values())
+
+        # Modo legacy/empty: sin spans Y sin problemas globales detectados
+        if not root_spans and not has_global_issues:
+            # Si hay métricas legacy registradas, procesar normal (asumiendo que son significativas)
+            has_metrics = bool(context.metrics)
+
+            if not has_metrics:
+                if context.steps or context.errors:
+                    return self._summarize_legacy(context)
+                return self._generate_empty_report().to_dict()
 
         try:
-            # 1. Análisis por Fases
+            # 2. Análisis por Fases
             phases_analysis = self._analyze_all_phases(root_spans)
 
-            # 2. Agrupación por Estratos
+            # 3. Agrupación por Estratos
             strata_results = self._group_by_stratum(phases_analysis)
 
-            # 2.5 Análisis Global (Typed State Vectors)
-            # Inyecta problemas detectados en los objetos tipados globales (physics, topology, etc.)
-            global_issues = self._analyze_global_context(context)
-            self._inject_global_issues(strata_results, global_issues)
+            # 4. Inyección de Problemas Globales
+            self._inject_global_issues(strata_results, global_issues_map)
 
-            # 3. Síntesis de Sabiduría
+            # 5. Síntesis de Sabiduría
             verdict_code, global_severity = self._determine_verdict(strata_results)
             executive_summary, causality = self._synthesize_narrative(
                 strata_results, verdict_code
@@ -1096,6 +1119,17 @@ class TelemetryNarrator:
                     stratum=Stratum.PHYSICS,
                     severity=SeverityLevel.ADVERTENCIA
                 ))
+            # Hamiltonian Excess (Physics Veto)
+            if p.hamiltonian_excess >= self.config.ANOMALY_THRESHOLDS.get("hamiltonian_excess", 0.05):
+                issues_by_stratum[Stratum.PHYSICS].append(Issue(
+                    source="FluxCondenser (Global)",
+                    message=f"Violación de conservación de energía (Hamiltonian): {p.hamiltonian_excess:.2f}",
+                    issue_type="PhysicsViolation",
+                    depth=0,
+                    topological_path=("global", "physics"),
+                    stratum=Stratum.PHYSICS,
+                    severity=SeverityLevel.CRITICO
+                ))
 
         # 2. CONTROL (Physics Stratum)
         if hasattr(context, "control"):
@@ -1111,7 +1145,7 @@ class TelemetryNarrator:
                     severity=SeverityLevel.CRITICO
                 ))
 
-        # 3. THERMODYNAMICS (Physics Stratum for Temp)
+        # 3. THERMODYNAMICS (Physics Stratum for Temp, Strategy for Inertia)
         if hasattr(context, "thermodynamics"):
             t = context.thermodynamics
             if t.system_temperature > 75.0: # Critical
@@ -1124,6 +1158,17 @@ class TelemetryNarrator:
                     stratum=Stratum.PHYSICS,
                     severity=SeverityLevel.CRITICO
                 ))
+            # Financial Inertia (Hoja al Viento)
+            if t.financial_inertia < self.config.ANOMALY_THRESHOLDS.get("financial_inertia_low", 0.2):
+                issues_by_stratum[Stratum.STRATEGY].append(Issue(
+                    source="Thermodynamics (Global)",
+                    message=f"Baja inercia financiera (Hoja al Viento): {t.financial_inertia:.2f}",
+                    issue_type="ThermodynamicFragility",
+                    depth=0,
+                    topological_path=("global", "thermodynamics"),
+                    stratum=Stratum.STRATEGY,
+                    severity=SeverityLevel.ADVERTENCIA
+                ))
 
         # 4. TOPOLOGY (Tactics Stratum)
         if hasattr(context, "topology"):
@@ -1133,6 +1178,16 @@ class TelemetryNarrator:
                     source="Topology (Global)",
                     message=f"Ciclos lógicos detectados: β₁={topo.beta_1}",
                     issue_type="TopologicalDefect",
+                    depth=0,
+                    topological_path=("global", "topology"),
+                    stratum=Stratum.TACTICS,
+                    severity=SeverityLevel.CRITICO
+                ))
+            if topo.mayer_vietoris_delta > 0:
+                issues_by_stratum[Stratum.TACTICS].append(Issue(
+                    source="Topology (Global)",
+                    message=f"Incoherencia de integración (Mayer-Vietoris): Δ={topo.mayer_vietoris_delta}",
+                    issue_type="MayerVietorisAnomaly",
                     depth=0,
                     topological_path=("global", "topology"),
                     stratum=Stratum.TACTICS,

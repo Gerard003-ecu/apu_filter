@@ -449,6 +449,11 @@ class TelemetryContext:
         """Actualiza métricas topológicas preservando inmutabilidad."""
         with self._lock:
             current = asdict(self.topology)
+
+            # Si se actualizan números de Betti pero no Euler, invalidar Euler para recalculo
+            if any(k in kwargs for k in ("beta_0", "beta_1", "beta_2")) and "euler_characteristic" not in kwargs:
+                current["euler_characteristic"] = None
+
             current.update(kwargs)
             valid_keys = TopologicalMetrics.__annotations__.keys()
             filtered = {k: v for k, v in current.items() if k in valid_keys}
