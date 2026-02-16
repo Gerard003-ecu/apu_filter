@@ -1,51 +1,559 @@
-// include/telemetry.h
 #ifndef TELEMETRY_H
 #define TELEMETRY_H
 
 #include <Arduino.h>
+#include <ArduinoJson.h>
 
-// ==========================================
-// ESTRUCTURAS DE DATOS (ISOMORFISMO PYTHON)
-// ==========================================
+// Nota: <cstdint> y <limits> deben estar disponibles en el compilador Arduino.
+// C++11 o superior es requerido para std::array y std::numeric_limits.
+#include <cstdint>
+#include <limits>
+#include <cmath>
+#include <array>
+#include <algorithm> // Para std::fill
 
-// Nivel 3: Física (Flux Condenser)
+
+/**
+ * ARQUITECTURA DE GEMELO DIGITAL (C++ MIRROR V4.1)
+ * ================================================
+ * Proyección del Espacio Vectorial de Estado definido en Python.
+ *
+ * V4.1 — Mejoras sobre V4.0:
+ * ---------------------------------------------------------------------------
+ * [Memoria]        Reemplazo de std::vector por std::array para 'poles_real'.
+ *                  Clase PoleContainer para manejo seguro y eficiente.
+ * [Topología]      Aplicación correcta de coherencia espectral post-sanitización.
+ * [Control]        Clarificación de lógica isCoherent para polos y Lyapunov.
+ * [General]        Ajustes cosméticos y comentarios para mayor claridad.
+ *                  Se mantiene compatibilidad ArduinoJson v6/v7.
+ */
+
+// ============================================================================
+// UTILIDADES
+// ============================================================================
+namespace TelemetryUtils {
+
+    /// Clamp genérico sin dependencia de <algorithm>
+    template<typename T>
+    constexpr T clamp(T val, T lo, T hi) {
+        return (val < lo) ? lo : ((val > hi) ? hi : val);
+    }
+
+    /// Verifica que un float sea finito (no NaN ni ±Inf)
+    inline bool isFinite(float v) {
+        // Asegúrate de que <cmath> esté disponible y funcione correctamente en tu placa.
+        return !std::isinf(v) && !std::isnan(v);
+    }
+
+    /// Si el valor no es finito, devuelve el fallback
+    inline float sanitize(float v, float fallback = 0.0f) {
+        return isFinite(v) ? v : fallback;
+    }
+
+    /// Lee un float del JSON con default y sanitización en un paso
+    inline float readFloat(const JsonObjectConst& obj, const char* key, float defaultVal = 0.0f) {
+        float raw = obj[key] | defaultVal;
+        return sanitize(raw, defaultVal);
+    }
+
+} // namespace TelemetryUtils
+
+// ============================================================================
+// ENUMERACIONES TIPADAS
+// ============================================================================
+/// Código de veredicto del estrato Sabiduría
+enum class VerdictCode : uint8_t {
+    OK       = 0,
+    WARN     = 1,
+    CRITICAL = 2,
+    UNKNOWN  = 255
+};
+
+/// Resultado de la deserialización del paquete
+enum class TelemetryError : uint8_t {
+    OK               = 0,
+    EMPTY_INPUT      = 1,
+    JSON_PARSE_ERROR = 2,
+    JSON_OVERFLOW    = 3
+};
+
+// ============================================================================
+// CONFIGURACIÓN CENTRALIZADA
+// ============================================================================
+namespace TelemetryConfig {
+    static constexpr size_t JSON_BUFFER_SIZE  = 4096;  ///< Bytes para DynamicJsonDocument
+    static constexpr size_t MAX_POLES         = 20;    ///< Límite de polos (anti-DoS, tamaño de PoleContainer)
+    static constexpr size_t NARRATIVE_MAX_LEN = 64;    ///< Chars máx. para OLED
+    static constexpr float  STABILITY_EPS     = 1e-9f; ///< Margen Re(s) ≈ 0
+}
+
+
+// ============================================================================
+// CONTENEDOR DE POLOS (Reemplaza std::vector<float>)
+// ============================================================================
+/**
+ * @brief Contenedor seguro para un número fijo máximo de polos.
+ * Evita asignación dinámica en microcontroladores.
+ */
+class PoleContainer {
+public:
+    using ContainerType = std::array<float, TelemetryConfig::MAX_POLES>;
+
+    explicit PoleContainer(size_t initial_size = 0) : size_(initial_size) {
+        if (size_ > TelemetryConfig::MAX_POLES) size_ = TelemetryConfig::MAX_POLES;
+        std::fill(data_.begin(), data_.begin() + size_, 0.0f);
+    }
+
+    void clear() { size_ = 0; }
+
+    size_t size() const { return size_; }
+    size_t capacity() const { return TelemetryConfig::MAX_POLES; }
+    bool empty() const { return size_ == 0; }
+
+    float operator[](size_t index) const {
+        return (index < size_) ? data_[index] : 0.0f; // Valor predeterminado si fuera de rango
+    }
+
+    float& operator[](size_t index) {
+        // Asegura que el índice esté dentro de los límites
+        if (index >= size_) {
+             // Opcional: manejar error de rango, por ahora devolvemos el último elemento o 0
+             // Un sistema robusto podría usar asserts o excepciones.
+             return data_[size_ > 0 ? size_ - 1 : 0];
+        }
+        return data_[index];
+    }
+
+    /**
+     * @brief Inserta un valor, respetando la capacidad máxima.
+     * @param value Valor a insertar.
+     * @return true si se insertó, false si estaba lleno.
+     */
+    bool push_back(float value) {
+        if (size_ >= TelemetryConfig::MAX_POLES) {
+            return false;
+        }
+        data_[size_] = value;
+        size_++;
+        return true;
+    }
+
+    // Iteradores para compatibilidad (opcional)
+    ContainerType::const_iterator begin() const { return data_.begin(); }
+    ContainerType::const_iterator end() const { return data_.begin() + size_; }
+
+private:
+    ContainerType data_;
+    size_t size_{0};
+};
+
+
+// ============================================================================
+// 1. ESTRATO FÍSICO (FluxCondenser)
+// ============================================================================
+/**
+ * Mapeo de variables del condensador de flujo al espacio de métricas.
+ *
+ * Invariantes enforced:
+ *   - saturation    ∈ [0, 1]
+ *   - E_k           ≥ 0          (½mv² ≥ 0)
+ *   - P_dis         ≥ 0          (2ª ley de la termodinámica)
+ *   - S_g           ∈ [0, 2]     (estabilidad giroscópica normalizada)
+ */
 struct PhysicsMetrics {
-    float saturation;          // 0.0 - 1.0
-    float pressure;            // Presión de datos
-    float kinetic_energy;      // Inercia
-    float dissipated_power;    // Fricción/Calor
-    float gyroscopic_stability;// Estabilidad de flujo
-    float pump_work;           // Trabajo realizado
+    float saturation{0.0f};            // [0.0 – 1.0] Nivel de llenado
+    float pressure{0.0f};              // Presión estática (Data backlog)
+    float kinetic_energy{0.0f};        // Inercia del flujo (E_k ≥ 0)
+    float potential_energy{0.0f};      // Energía almacenada (E_p)
+    float flyback_voltage{0.0f};       // [CRÍTICO] Picos transitorios (V_fb)
+    float dissipated_power{0.0f};      // Calor / fricción (P_dis ≥ 0)
+    float gyroscopic_stability{1.0f};  // [0.0 – 2.0, ideal 1.0] (S_g)
+    float poynting_flux{0.0f};         // Flujo de valor direccional (S)
+    float hamiltonian_excess{0.0f};    // Error de conservación: H − (E_k + E_p)
+
+    /// Energía mecánica total: T + V (Lagrangiano conservativo)
+    float totalEnergy() const { return kinetic_energy + potential_energy; }
+
+    void fromJson(const JsonObjectConst& obj) {
+        if (obj.isNull()) return;
+        using namespace TelemetryUtils;
+
+        saturation           = readFloat(obj, "saturation",           0.0f);
+        pressure             = readFloat(obj, "pressure",             0.0f);
+        kinetic_energy       = readFloat(obj, "kinetic_energy",       0.0f);
+        potential_energy     = readFloat(obj, "potential_energy",      0.0f);
+        flyback_voltage      = readFloat(obj, "flyback_voltage",      0.0f);
+        dissipated_power     = readFloat(obj, "dissipated_power",     0.0f);
+        gyroscopic_stability = readFloat(obj, "gyroscopic_stability", 1.0f);
+        poynting_flux        = readFloat(obj, "poynting_flux",        0.0f);
+        hamiltonian_excess   = readFloat(obj, "hamiltonian_excess",   0.0f);
+
+        // --- Restricciones físicas ---
+        saturation           = clamp(saturation, 0.0f, 1.0f);
+        gyroscopic_stability = clamp(gyroscopic_stability, 0.0f, 2.0f);
+        if (kinetic_energy  < 0.0f) kinetic_energy  = 0.0f; // ½mv² ≥ 0
+        if (dissipated_power < 0.0f) dissipated_power = 0.0f; // 2ª ley
+    }
+
+    /**
+     * Coherencia Hamiltoniana.
+     * Verifica |H_excess| ≤ tol · max(E_total, ε) para evitar
+     * falsas alarmas en sistemas de baja energía.
+     */
+    bool isCoherent(float tolerance = 0.05f) const {
+        float E = totalEnergy();
+        float denom = (E > 1e-6f) ? E : 1.0f;
+        return fabsf(hamiltonian_excess) <= tolerance * denom;
+    }
 };
 
-// Nivel 2: Táctica (Topología)
+// ============================================================================
+// 2. ESTRATO TÁCTICO (BusinessTopologicalAnalyzer)
+// ============================================================================
+/**
+ * Invariantes topológicos del complejo simplicial del negocio.
+ *
+ * Invariantes enforced:
+ *   - βₖ ≥ 0  ∀k              (rango de grupo de homología)
+ *   - λ₂ ≥ 0                   (Laplaciano es semi-definido positivo)
+ *   - β₀ > 1  ⇒  λ₂ = 0       (Teorema: multiplicity(0) = #components)
+ *   - H(G) ≥ 0                 (entropía de Shannon)
+ *   - spectral_gap ≥ 0
+ *
+ * Métrica derivada:
+ *   - χ = β₀ − β₁ + β₂        (Característica de Euler-Poincaré)
+ */
 struct TopologicalMetrics {
-    int beta_0;                // Fragmentación
-    int beta_1;                // Ciclos
-    float pyramid_stability;   // Psi (Estabilidad estructural)
-    float structural_entropy;  // Desorden
+    int32_t beta_0{1};              // β₀: Componentes conexas (islas)
+    int32_t beta_1{0};              // β₁: Ciclos independientes (socavones)
+    int32_t beta_2{0};              // β₂: Cavidades (burbujas)
+    int32_t mayer_vietoris_delta{0};// δ: Ciclos fantasma en fusión Mayer-Vietoris
+    float   fiedler_value{1.0f};       // λ₂ del Laplaciano (conectividad algebraica)
+    float   spectral_gap{0.0f};        // Resistencia a la partición (≈ λ₂ para L)
+    float   pyramid_stability{1.0f};   // Índice Ψ (base vs cúspide)
+    float   structural_entropy{0.0f};  // H(G): desorden de la red
+
+    /// Característica de Euler-Poincaré:  χ = β₀ − β₁ + β₂
+    int32_t eulerCharacteristic() const {
+        return beta_0 - beta_1 + beta_2;
+    }
+
+    void fromJson(const JsonObjectConst& obj) {
+        if (obj.isNull()) return;
+        using namespace TelemetryUtils;
+
+        beta_0               = obj["beta_0"]               | 1;
+        beta_1               = obj["beta_1"]               | 0;
+        beta_2               = obj["beta_2"]               | 0;
+        mayer_vietoris_delta = obj["mayer_vietoris_delta"] | 0;
+        fiedler_value        = readFloat(obj, "fiedler_value",       1.0f);
+        spectral_gap         = readFloat(obj, "spectral_gap",        0.0f);
+        pyramid_stability    = readFloat(obj, "pyramid_stability",   1.0f);
+        structural_entropy   = readFloat(obj, "structural_entropy",  0.0f);
+
+        // --- Números de Betti: rango de Hₖ(X;ℤ), no-negativo por definición ---
+        if (beta_0 < 0) beta_0 = 0;
+        if (beta_1 < 0) beta_1 = 0;
+        if (beta_2 < 0) beta_2 = 0;
+        if (mayer_vietoris_delta < 0) mayer_vietoris_delta = 0;
+
+        // --- Restricciones espectrales ---
+        // L es semi-definido positivo  ⇒  todos sus eigenvalores ≥ 0
+        if (fiedler_value < 0.0f) fiedler_value = 0.0f;
+        if (spectral_gap  < 0.0f) spectral_gap  = 0.0f;
+
+        // Entropía de Shannon: H(G) ≥ 0
+        if (structural_entropy < 0.0f) structural_entropy = 0.0f;
+
+        // --- Coherencia espectral post-sanitización ---
+        // La multiplicidad del eigenvalor 0 de L iguala el número de
+        // componentes conexas. Si β₀ > 1, el grafo es desconexo y λ₂ = 0.
+        if (beta_0 > 1) {
+            fiedler_value = 0.0f; // Impone la regla topológica-spectral
+        }
+    }
+
+    /**
+     * Verifica invariantes topológicos-espectrales.
+     *   1. Complejo activo  ⇒  β₀ ≥ 1
+     *   2. Conexo (β₀ = 1)  ⇒  λ₂ > 0   (Fiedler)
+     *   3. Desconexo (β₀ > 1)  ⇒  λ₂ = 0 (Impuesto en fromJson)
+     */
+    bool isCoherent() const {
+        if (beta_0 < 1)                              return false;
+        if (beta_0 == 1 && fiedler_value <= 0.0f)    return false;
+        // No es necesario verificar beta_0 > 1 && fiedler_value == 0.0f
+        // porque fromJson ya lo impone. isCoherent verifica la lógica interna
+        // restante, y la regla de coherencia se aplica en fromJson.
+        // La lógica aquí se centra en el caso conexo.
+        return true;
+    }
 };
 
-// Nivel 1: Estrategia (Finanzas)
-struct FinancialMetrics {
-    float wacc;
-    float var_95;              // Value at Risk
-    bool is_viable;
+// ============================================================================
+// 3. ESTRATO ESTRATÉGICO (LaplaceOracle & FinancialEngine)
+// ============================================================================
+/**
+ * Métricas del plano de control (teoría de sistemas LTI + caos).
+ *
+ * Invariantes enforced:
+ *   - |poles_real| <= MAX_POLES      (anti-DoS de memoria via PoleContainer)
+ *   - is_stable corregido si polos contradicen  (Re(sᵢ) >= ε → inestable)
+ *   - ζ ≥ 0                         (amortiguamiento no-negativo)
+ *
+ * Métrica derivada:
+ *   - polo dominante = max Re(sᵢ)   (determina velocidad de respuesta)
+ */
+struct ControlMetrics {
+    PoleContainer poles_real; // Parte real de los polos del sistema
+    bool  is_stable{true};               // Veredicto del Oráculo (corregible por polos)
+    float phase_margin_deg{45.0f};        // Margen de fase (grados)
+    float gain_margin_db{std::numeric_limits<float>::infinity()}; // Margen de ganancia (dB; ∞ si muy estable)
+    float damping_ratio{0.707f};           // ζ: ratio de amortiguamiento (≥ 0)
+    float nutation_index{0.0f};          // Índice de nutación (tambaleo)
+    float lyapunov_exponent{-1.0f};       // λ_max Lyapunov (< 0 → estable, > 0 → caótico)
+
+    void fromJson(const JsonObjectConst& obj) {
+        if (obj.isNull()) return;
+        using namespace TelemetryUtils;
+        using namespace TelemetryConfig;
+
+        // --- Polos: Usar PoleContainer ---
+        poles_real.clear();
+        JsonArrayConst polesArr = obj["poles_real"];
+        if (!polesArr.isNull()) {
+            size_t count = 0;
+            for (JsonVariantConst pv : polesArr) {
+                if (count++ >= MAX_POLES) break;
+                float pole_val = sanitize(pv.as<float>()); // Sanitize cada valor
+                poles_real.push_back(pole_val);
+            }
+        }
+
+        is_stable        = obj["is_stable"]        | true;
+        phase_margin_deg = readFloat(obj, "phase_margin_deg", 45.0f);
+        damping_ratio    = readFloat(obj, "damping_ratio",    0.707f);
+        nutation_index   = readFloat(obj, "nutation_index",   0.0f);
+        lyapunov_exponent = readFloat(obj, "lyapunov_exponent", -1.0f);
+
+        // --- Gain margin: Manejo de Infinity ---
+        JsonVariantConst gmVar = obj["gain_margin_db"];
+        if (!gmVar.isNull()) {
+            float gm = sanitize(gmVar.as<float>(), std::numeric_limits<float>::infinity());
+            gain_margin_db = gm; // sanitize devuelve inf si el original era inf
+        } else {
+            gain_margin_db = std::numeric_limits<float>::infinity();
+        }
+
+        // --- Amortiguamiento no-negativo (ζ ≥ 0) ---
+        if (damping_ratio < 0.0f) damping_ratio = 0.0f;
+
+        // --- Verificación dura de estabilidad desde polos ---
+        // Criterio: sistema LTI continuo estable ⟺ Re(sᵢ) < 0  ∀i
+        // Los polos (dato duro) prevalecen sobre is_stable (veredicto blando).
+        enforceStabilityFromPoles();
+    }
+
+    /// Polo dominante: max Re(sᵢ). Determina la dinámica más lenta/inestable.
+    float dominantPoleReal() const {
+        if (poles_real.empty())
+            return -std::numeric_limits<float>::infinity();
+        float maxRe = poles_real[0];
+        for (size_t i = 1; i < poles_real.size(); ++i) {
+            if (poles_real[i] > maxRe) maxRe = poles_real[i];
+        }
+        return maxRe;
+    }
+
+    /**
+     * Coherencia: is_stable debe coincidir con el análisis de polos,
+     * y λ_max Lyapunov debe ser consistente con la estabilidad declarada.
+     */
+    bool isCoherent() const {
+        if (!poles_real.empty()) {
+            bool polesStable = (dominantPoleReal() < TelemetryConfig::STABILITY_EPS);
+            if (is_stable != polesStable) return false;
+        }
+        // Sistema estable con exponente de Lyapunov positivo es contradictorio
+        if (is_stable && lyapunov_exponent > 0.0f) return false;
+        return true;
+    }
+
+private:
+    /// Si hay polos, forzar is_stable = (maxRe < ε)
+    void enforceStabilityFromPoles() {
+        if (poles_real.empty()) return; // Sin datos, confiar en el flag
+        is_stable = (dominantPoleReal() < TelemetryConfig::STABILITY_EPS);
+    }
 };
 
-// Nivel 0: Sabiduría (Veredicto)
+// ============================================================================
+// 4. ESTRATO TERMODINÁMICO (Economía Física)
+// ============================================================================
+/**
+ * Mapeo termodinámico del estado financiero/operativo.
+ *
+ * Invariantes enforced:
+ *   - T ≥ 0       (3ª ley: cero absoluto como cota inferior)
+ *   - S ≥ 0       (2ª ley: entropía no decrece en sistema aislado)
+ *   - m > 0       (inercia/masa estrictamente positiva)
+ *   - Ex ≥ 0      (exergía: trabajo útil disponible)
+ *
+ * Métrica derivada:
+ *   - F = U − TS  (energía libre de Helmholtz, con U externo)
+ */
+struct ThermodynamicMetrics {
+    float system_temperature{25.0f};   // T ≥ 0: Volatilidad (Kelvin financieros)
+    float entropy{0.0f};              // S ≥ 0: Desorden administrativo
+    float financial_inertia{1.0f};    // m > 0: Resistencia al cambio (masa térmica)
+    float exergy{1.0f};               // Ex ≥ 0: Energía útil disponible
+
+    /// Energía libre de Helmholtz:  F = U − TS
+    float helmholtzFreeEnergy(float internal_energy) const {
+        return internal_energy - system_temperature * entropy;
+    }
+
+    void fromJson(const JsonObjectConst& obj) {
+        if (obj.isNull()) return;
+        using namespace TelemetryUtils;
+
+        system_temperature = readFloat(obj, "system_temperature", 25.0f);
+        entropy            = readFloat(obj, "entropy",            0.0f);
+        financial_inertia  = readFloat(obj, "financial_inertia",  1.0f);
+        exergy             = readFloat(obj, "exergy",             1.0f);
+
+        // --- Leyes de la termodinámica ---
+        if (system_temperature < 0.0f) system_temperature = 0.0f;  // 3ª ley
+        if (entropy            < 0.0f) entropy            = 0.0f;  // 2ª ley
+        if (exergy             < 0.0f) exergy             = 0.0f;  // definición
+        // Inercia (masa) estrictamente positiva para evitar div/0
+        static constexpr float MIN_INERTIA = 1e-6f;
+        if (financial_inertia <= 0.0f) financial_inertia = MIN_INERTIA;
+    }
+
+    /// Verifica consistencia termodinámica básica
+    bool isCoherent() const {
+        return (system_temperature >= 0.0f)
+            && (entropy            >= 0.0f)
+            && (financial_inertia  >  0.0f)
+            && (exergy             >= 0.0f);
+    }
+};
+
+// ============================================================================
+// 5. ESTRATO SABIDURÍA (Veredicto Final)
+// ============================================================================
+/**
+ * Síntesis narrativa para capa de presentación (OLED/dashboard).
+ *
+ * Invariantes enforced:
+ *   - verdict_code ∈ {OK, WARN, CRITICAL, UNKNOWN}  (enum tipado)
+ *   - |narrative_short| <= NARRATIVE_MAX_LEN
+ */
 struct WisdomMetrics {
-    int verdict_code;          // 0=OK, 1=WARN, 2=CRITICAL
-    char narrative[64];        // Resumen corto para OLED
+    VerdictCode verdict_code{VerdictCode::UNKNOWN};    // Enum tipado
+    String      narrative_short{F("ESPERANDO DATOS...")}; // Resumen para OLED (máx. 64 chars)
+
+    void fromJson(const JsonObjectConst& obj) {
+        if (obj.isNull()) return;
+
+        // --- Verdict code con mapeo explícito (rechazo de valores espurios) ---
+        int raw_code = obj["verdict_code"] | static_cast<int>(VerdictCode::UNKNOWN);
+        switch (raw_code) {
+            case 0:  verdict_code = VerdictCode::OK;       break;
+            case 1:  verdict_code = VerdictCode::WARN;     break;
+            case 2:  verdict_code = VerdictCode::CRITICAL; break;
+            default: verdict_code = VerdictCode::UNKNOWN;  break;
+        }
+
+        // --- Narrativa: usar const char* para evitar String temporal ---
+        const char* narr = obj["narrative_short"];
+        if (narr != nullptr && narr[0] != '\0') {
+            narrative_short = narr;
+            if (narrative_short.length() > TelemetryConfig::NARRATIVE_MAX_LEN) {
+                narrative_short = narrative_short.substring(0, TelemetryConfig::NARRATIVE_MAX_LEN);
+            }
+        } else {
+            narrative_short = F("SISTEMA NOMINAL");
+        }
+    }
+
+    /// Conversión a entero para serialización o logging
+    int verdictAsInt() const { return static_cast<int>(verdict_code); }
 };
 
-// EL VECTOR DE ESTADO COMPLETO
-struct SystemState {
-    PhysicsMetrics physics;
-    TopologicalMetrics topology;
-    FinancialMetrics finance;
-    WisdomMetrics wisdom;
-    unsigned long timestamp;
+// ============================================================================
+// PAQUETE DE TELEMETRÍA GLOBAL (Contenedor Maestro)
+// ============================================================================
+/**
+ * Agrega los cinco estratos + timestamp.
+ *
+ * Flujo: jsonString → deserializeJson → fromJson en cascada → isCoherent()
+ *
+ * NOTA: Para ArduinoJson v7, se usa JsonDocument (sin Dynamic/Static).
+ *       Para v6, se usa DynamicJsonDocument con buffer configurable.
+ */
+struct TelemetryPacket {
+    PhysicsMetrics       physics;
+    TopologicalMetrics   topology;
+    ControlMetrics       control;
+    ThermodynamicMetrics thermodynamics;
+    WisdomMetrics        wisdom;
+    String               timestamp;
+
+    /**
+     * Deserializa el JSON completo recibido del Agente Python.
+     * @param  jsonString  Cadena JSON bruta
+     * @return TelemetryError::OK si todo fue exitoso
+     */
+    TelemetryError fromJson(const String& jsonString) {
+        if (jsonString.length() == 0) {
+            return TelemetryError::EMPTY_INPUT;
+        }
+
+        // --- Compatibilidad ArduinoJson v6 / v7 ---
+        #if ARDUINOJSON_VERSION_MAJOR >= 7
+            JsonDocument doc;
+        #else
+            DynamicJsonDocument doc(TelemetryConfig::JSON_BUFFER_SIZE);
+        #endif
+
+        DeserializationError error = deserializeJson(doc, jsonString);
+        if (error) {
+            return TelemetryError::JSON_PARSE_ERROR;
+        }
+
+        #if ARDUINOJSON_VERSION_MAJOR < 7
+            if (doc.overflowed()) {
+                return TelemetryError::JSON_OVERFLOW;
+            }
+        #endif
+
+        // --- Deserialización en cascada ---
+        physics.fromJson(doc["physics"].as<JsonObjectConst>());
+        topology.fromJson(doc["topology"].as<JsonObjectConst>());
+        control.fromJson(doc["control"].as<JsonObjectConst>());
+        thermodynamics.fromJson(doc["thermodynamics"].as<JsonObjectConst>());
+        wisdom.fromJson(doc["wisdom"].as<JsonObjectConst>());
+
+        // Timestamp: lectura segura sin String temporal intermedia
+        const char* ts = doc["timestamp"];
+        timestamp = (ts != nullptr) ? ts : "";
+
+        return TelemetryError::OK;
+    }
+
+    /**
+     * Verificación global de coherencia inter-estrato.
+     * Cada estrato valida sus propios invariantes matemáticos/físicos.
+     * Retorna true solo si TODOS los estratos son internamente coherentes.
+     */
+    bool isCoherent() const {
+        return physics.isCoherent()
+            && topology.isCoherent()
+            && control.isCoherent()
+            && thermodynamics.isCoherent();
+    }
 };
 
-#endif
+#endif // TELEMETRY_H
