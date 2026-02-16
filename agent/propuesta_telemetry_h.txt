@@ -1,0 +1,51 @@
+// include/telemetry.h
+#ifndef TELEMETRY_H
+#define TELEMETRY_H
+
+#include <Arduino.h>
+
+// ==========================================
+// ESTRUCTURAS DE DATOS (ISOMORFISMO PYTHON)
+// ==========================================
+
+// Nivel 3: Física (Flux Condenser)
+struct PhysicsMetrics {
+    float saturation;          // 0.0 - 1.0
+    float pressure;            // Presión de datos
+    float kinetic_energy;      // Inercia
+    float dissipated_power;    // Fricción/Calor
+    float gyroscopic_stability;// Estabilidad de flujo
+    float pump_work;           // Trabajo realizado
+};
+
+// Nivel 2: Táctica (Topología)
+struct TopologicalMetrics {
+    int beta_0;                // Fragmentación
+    int beta_1;                // Ciclos
+    float pyramid_stability;   // Psi (Estabilidad estructural)
+    float structural_entropy;  // Desorden
+};
+
+// Nivel 1: Estrategia (Finanzas)
+struct FinancialMetrics {
+    float wacc;
+    float var_95;              // Value at Risk
+    bool is_viable;
+};
+
+// Nivel 0: Sabiduría (Veredicto)
+struct WisdomMetrics {
+    int verdict_code;          // 0=OK, 1=WARN, 2=CRITICAL
+    char narrative[64];        // Resumen corto para OLED
+};
+
+// EL VECTOR DE ESTADO COMPLETO
+struct SystemState {
+    PhysicsMetrics physics;
+    TopologicalMetrics topology;
+    FinancialMetrics finance;
+    WisdomMetrics wisdom;
+    unsigned long timestamp;
+};
+
+#endif
