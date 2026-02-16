@@ -122,11 +122,11 @@ def compute_betti_numbers(G: nx.Graph) -> Tuple[int, int]:
     if G.number_of_nodes() == 0:
         return (0, 0)
 
-    undirected = G.to_undirected() if G.is_directed() else G
-
-    # Remover multi-aristas para cálculo correcto de Betti
-    if isinstance(undirected, nx.MultiGraph):
-        undirected = nx.Graph(undirected)
+    # Usar MultiGraph para preservar aristas y calcular beta_1 correctamente
+    # (Mirroring logic from BusinessTopologicalAnalyzer.calculate_betti_numbers)
+    undirected = nx.MultiGraph()
+    undirected.add_nodes_from(G.nodes(data=True))
+    undirected.add_edges_from(G.edges(data=True))
 
     beta_0 = nx.number_connected_components(undirected)
     # β₁ = |E| − |V| + β₀ (puede ser 0 para árboles, >0 para grafos con ciclos)
