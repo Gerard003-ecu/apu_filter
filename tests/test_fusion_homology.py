@@ -30,16 +30,6 @@ Escenarios:
   5. Grafos Vacíos y Disjuntos: bordes del dominio.
   6. Pipeline: telemetría y contexto en AuditedMergeStep.
 
-Cambios vs. suite original:
-  - FIX: Ruta de @patch corregida a `app.pipeline_director.*`.
-  - FIX: Acceso a telemetría via `record_metric`/`record_error`, no `._errors`.
-  - FIX: Mock de `DataMerger` añadido en tests de pipeline.
-  - FIX: Assertions sobre strings → verificación estructural + keywords.
-  - FIX: Verificación de contrato de API antes de consumir resultados.
-  - ADD: Tests de matemática pura independientes del analyzer.
-  - ADD: Tests de frontera (grafos vacíos, disjuntos, idénticos).
-  - ADD: Helpers robustos con atributos de nodo.
-  - ADD: Verificación explícita de β₁(A∩B) en escenarios complejos.
 """
 
 from typing import Any, Dict, List, Optional, Set, Tuple
