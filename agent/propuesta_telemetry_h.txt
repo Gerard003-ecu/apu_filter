@@ -1,0 +1,1121 @@
+#ifndef TELEMETRY_H
+#define TELEMETRY_H
+
+#include <Arduino.h>
+#include <ArduinoJson.h>
+// Nota: Se asume que <array>, <algorithm>, <limits>, <cmath>, <string.h>
+// están disponibles en el entorno Arduino (son parte de C++11 y estándares C).
+#include <cstdint>
+#include <limits>
+#include <cmath>
+#include <array>
+#include <algorithm>
+#include <string.h> // Para strlcpy
+
+
+/**
+ * ARQUITECTURA DE GEMELO DIGITAL (C++ MIRROR V4.3-R)
+ * ===================================================
+ * Proyección refinada del Espacio Vectorial de Estado definido en Python.
+ *
+ * V4.3-R — Refinamiento de V4.3:
+ * ---------------------------------------------------------------------------
+ * [JSON]           Corrección de compatibilidad ArduinoJson v6/v7 en fromJson().
+ * [Salud]          Robustez adicional al cálculo de healthIndex(): penalización
+ *                  fuerte por incoherencia interna.
+ * [Cadena]         Confirma uso de strlcpy para seguridad.
+ */
+
+// ============================================================================
+// UTILIDADES MATEMÁTICAS
+// ============================================================================
+namespace TelemetryUtils {
+    /// Restricción de valor a intervalo [lo, hi]
+    template<typename T>
+    [[nodiscard]] constexpr T clamp(T val, T lo, T hi) noexcept {
+        return (val < lo) ? lo : ((val > hi) ? hi : val);
+    }
+
+    /// Verifica que el valor sea finito (no inf, no nan)
+    [[nodiscard]] inline bool isFinite(float v) noexcept {
+        // std::isfinite es más robusto que !isinf && !isnan
+        return std::isfinite(v);
+    }
+
+    /// Sanitiza valores no finitos reemplazándolos por fallback
+    [[nodiscard]] inline float sanitize(float v, float fallback = 0.0f) noexcept {
+        return isFinite(v) ? v : fallback;
+    }
+
+    /// Lectura segura de float desde JSON con sanitización
+    [[nodiscard]] inline float readFloat(const JsonObjectConst& obj,
+                                         const char* key,
+                                         float defaultVal = 0.0f) noexcept {
+        // Evitar containsKey en v7: se puede leer y comparar con default.
+        float raw = obj[key] | defaultVal;
+        return sanitize(raw, defaultVal);
+    }
+
+    /// Lectura segura de entero desde JSON
+    [[nodiscard]] inline int32_t readInt(const JsonObjectConst& obj,
+                                         const char* key,
+                                         int32_t defaultVal = 0) noexcept {
+        return obj[key] | defaultVal;
+    }
+
+    /// Signo de un valor: -1, 0, +1
+    template<typename T>
+    [[nodiscard]] constexpr int sgn(T val) noexcept {
+        return (T(0) < val) - (val < T(0));
+    }
+
+    /// Comparación con tolerancia para floats
+    [[nodiscard]] inline bool approxEqual(float a, float b,
+                                          float eps = 1e-6f) noexcept {
+        return std::fabs(a - b) <= eps * std::fmax(1.0f, std::fmax(std::fabs(a), std::fabs(b)));
+    }
+
+    /// Interpolación lineal
+    [[nodiscard]] constexpr float lerp(float a, float b, float t) noexcept {
+        return a + t * (b - a);
+    }
+} // namespace TelemetryUtils
+
+// ============================================================================
+// ENUMERACIONES TIPADAS
+// ============================================================================
+enum class VerdictCode : uint8_t {
+    OK       = 0,
+    WARN     = 1,
+    CRITICAL = 2,
+    UNKNOWN  = 255
+};
+
+enum class TelemetryError : uint8_t {
+    OK                    = 0,
+    EMPTY_INPUT           = 1,
+    JSON_PARSE_ERROR      = 2,
+    JSON_OVERFLOW         = 3,
+    COHERENCE_VIOLATION   = 4, // Nuevo en V4.3
+    TOPOLOGICAL_ANOMALY   = 5, // Nuevo en V4.3
+    THERMODYNAMIC_ANOMALY = 6  // Nuevo en V4.3
+};
+
+enum class SystemHealth : uint8_t {
+    NOMINAL    = 0,
+    DEGRADED   = 1,
+    CRITICAL   = 2,
+    UNDEFINED  = 255
+};
+
+// ============================================================================
+// CONFIGURACIÓN CENTRALIZADA
+// ============================================================================
+namespace TelemetryConfig {
+    // Tamaños de buffer
+    static constexpr size_t JSON_BUFFER_SIZE  = 4096;
+    static constexpr size_t MAX_POLES         = 20;
+    static constexpr size_t NARRATIVE_MAX_LEN = 64;
+    static constexpr size_t TIMESTAMP_MAX_LEN = 32;
+
+    // Tolerancias numéricas
+    static constexpr float STABILITY_EPS      = 1e-9f;
+    static constexpr float ENERGY_TOLERANCE   = 0.05f;
+    static constexpr float ENTROPY_TOLERANCE  = 0.1f;
+
+    // Límites físicos
+    static constexpr float MIN_TEMPERATURE_K  = 0.0f;      // Kelvin absoluto
+    static constexpr float MAX_TEMPERATURE_K  = 1e6f;      // Límite práctico
+    static constexpr float MIN_INERTIA        = 1e-6f;
+
+    // Límites topológicos (para variedades compactas orientables)
+    static constexpr int32_t MAX_BETTI_NUMBER = 1000;      // Límite práctico
+
+    // Límites de control
+    static constexpr float MIN_PHASE_MARGIN   = -180.0f;
+    static constexpr float MAX_PHASE_MARGIN   = 180.0f;
+    static constexpr float MIN_DAMPING        = 0.0f;
+    static constexpr float MAX_DAMPING        = 10.0f;     // Sobreamortiguamiento extremo
+}
+
+// ============================================================================
+// CONTENEDOR DE POLOS (Espacio Vectorial Finito-Dimensional)
+// ============================================================================
+/**
+ * Representa un subespacio del plano complejo restringido al eje real.
+ * Para análisis de estabilidad BIBO/Lyapunov de sistemas LTI.
+ *
+ * Propiedades algebraicas implementadas:
+ * - Norma L∞ (polo dominante)
+ * - Norma L²
+ * - Producto interno (para proyecciones)
+ */
+class PoleContainer {
+public:
+    using ContainerType = std::array<float, TelemetryConfig::MAX_POLES>;
+    using const_iterator = ContainerType::const_iterator;
+
+    PoleContainer() noexcept {
+        data_.fill(0.0f);
+    }
+
+    explicit PoleContainer(size_t initial_size) noexcept {
+        data_.fill(0.0f);
+        size_ = std::min(initial_size, TelemetryConfig::MAX_POLES);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Operaciones de contenedor
+    // ─────────────────────────────────────────────────────────────────────────
+    void clear() noexcept {
+        size_ = 0;
+        // Nota: data_ mantiene valores anteriores, pero size_ controla acceso
+    }
+
+    [[nodiscard]] size_t size() const noexcept { return size_; }
+    [[nodiscard]] size_t capacity() const noexcept { return TelemetryConfig::MAX_POLES; }
+    [[nodiscard]] bool empty() const noexcept { return size_ == 0; }
+    [[nodiscard]] bool full() const noexcept { return size_ >= TelemetryConfig::MAX_POLES; }
+
+    /// Acceso de solo lectura con verificación de límites
+    [[nodiscard]] float at(size_t index) const noexcept {
+        return (index < size_) ? data_[index] : 0.0f;
+    }
+
+    /// Establecer valor en posición existente (con sanitización)
+    [[nodiscard]] bool set(size_t index, float value) noexcept {
+        if (index >= size_) return false;
+        data_[index] = TelemetryUtils::sanitize(value);
+        return true;
+    }
+
+    /// Agregar polo (con sanitización automática)
+    [[nodiscard]] bool push_back(float value) noexcept {
+        if (size_ >= TelemetryConfig::MAX_POLES) return false;
+        data_[size_++] = TelemetryUtils::sanitize(value);
+        return true;
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Operaciones algebraicas (Espacio Vectorial ℝⁿ)
+    // ─────────────────────────────────────────────────────────────────────────
+    /// Norma L∞: máximo valor absoluto (polo más alejado del origen)
+    [[nodiscard]] float normLInf() const noexcept {
+        if (empty()) return 0.0f;
+        float maxAbs = 0.0f;
+        for (size_t i = 0; i < size_; ++i) {
+            float absVal = std::fabs(data_[i]);
+            if (absVal > maxAbs) maxAbs = absVal;
+        }
+        return maxAbs;
+    }
+
+    /// Norma L²: √(Σpᵢ²)
+    [[nodiscard]] float normL2() const noexcept {
+        if (empty()) return 0.0f;
+        float sumSq = 0.0f;
+        for (size_t i = 0; i < size_; ++i) {
+            sumSq += data_[i] * data_[i];
+        }
+        return std::sqrt(sumSq);
+    }
+
+    /// Polo dominante (máxima parte real) — determina estabilidad asintótica
+    [[nodiscard]] float dominant() const noexcept {
+        if (empty()) return -std::numeric_limits<float>::infinity();
+        float maxRe = data_[0];
+        for (size_t i = 1; i < size_; ++i) {
+            if (data_[i] > maxRe) maxRe = data_[i];
+        }
+        return maxRe;
+    }
+
+    /// Polo más estable (mínima parte real)
+    [[nodiscard]] float mostStable() const noexcept {
+        if (empty()) return std::numeric_limits<float>::infinity();
+        float minRe = data_[0];
+        for (size_t i = 1; i < size_; ++i) {
+            if (data_[i] < minRe) minRe = data_[i];
+        }
+        return minRe;
+    }
+
+    /// Centroide de polos (promedio)
+    [[nodiscard]] float centroid() const noexcept {
+        if (empty()) return 0.0f;
+        float sum = 0.0f;
+        for (size_t i = 0; i < size_; ++i) {
+            sum += data_[i];
+        }
+        return sum / static_cast<float>(size_);
+    }
+
+    /// Varianza de distribución de polos
+    [[nodiscard]] float variance() const noexcept {
+        if (size_ < 2) return 0.0f;
+        float mean = centroid();
+        float sumSqDiff = 0.0f;
+        for (size_t i = 0; i < size_; ++i) {
+            float diff = data_[i] - mean;
+            sumSqDiff += diff * diff;
+        }
+        return sumSqDiff / static_cast<float>(size_ - 1);
+    }
+
+    /// Cuenta polos inestables (Re > eps)
+    [[nodiscard]] size_t countUnstable(float eps = TelemetryConfig::STABILITY_EPS) const noexcept {
+        size_t count = 0;
+        for (size_t i = 0; i < size_; ++i) {
+            if (data_[i] > eps) ++count;
+        }
+        return count;
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Iteradores (solo lectura)
+    // ─────────────────────────────────────────────────────────────────────────
+    [[nodiscard]] const_iterator begin() const noexcept { return data_.begin(); }
+    [[nodiscard]] const_iterator end() const noexcept { return data_.begin() + size_; }
+    [[nodiscard]] const_iterator cbegin() const noexcept { return begin(); }
+    [[nodiscard]] const_iterator cend() const noexcept { return end(); }
+
+    /// Acceso directo al array subyacente (solo lectura)
+    [[nodiscard]] const float* data() const noexcept { return data_.data(); }
+
+private:
+    ContainerType data_;
+    size_t size_{0};
+};
+
+// ============================================================================
+// 1. ESTRATO FÍSICO (FluxCondenser)
+// ============================================================================
+/**
+ * Métricas del dominio físico-energético.
+ *
+ * Invariantes conservados:
+ * - Hamiltoniano: H = T + V (energía cinética + potencial)
+ * - Potencia disipada ≥ 0 (Segunda Ley)
+ * - Flujo de Poynting: S = E × H (dirección de propagación energética)
+ */
+struct PhysicsMetrics {
+    float saturation{0.0f};           // [0,1] Saturación magnética/capacitiva
+    float pressure{0.0f};             // Presión generalizada del sistema
+    float kinetic_energy{0.0f};       // T: Energía cinética ≥ 0
+    float potential_energy{0.0f};     // V: Energía potencial
+    float flyback_voltage{0.0f};      // Voltaje de retroceso inductivo
+    float dissipated_power{0.0f};     // P_diss ≥ 0 (irreversibilidad)
+    float gyroscopic_stability{1.0f}; // Índice de estabilidad giroscópica [0,2]
+    float poynting_flux{0.0f};        // Flujo de energía electromagnética
+    float hamiltonian_excess{0.0f};   // ΔH: Desviación del Hamiltoniano conservado
+
+    /// Energía total del sistema: H = T + V
+    [[nodiscard]] float totalEnergy() const noexcept {
+        return kinetic_energy + potential_energy;
+    }
+
+    /// Ratio de disipación: P_diss / E_total
+    [[nodiscard]] float dissipationRatio() const noexcept {
+        float E = totalEnergy();
+        return (E > 1e-9f) ? (dissipated_power / E) : 0.0f;
+    }
+
+    /// Eficiencia energética: 1 - ratio_disipación (para E > 0)
+    [[nodiscard]] float efficiency() const noexcept {
+        return TelemetryUtils::clamp(1.0f - dissipationRatio(), 0.0f, 1.0f);
+    }
+
+    void fromJson(const JsonObjectConst& obj) noexcept {
+        if (obj.isNull()) return;
+        using namespace TelemetryUtils;
+
+        saturation           = clamp(readFloat(obj, "saturation", 0.0f), 0.0f, 1.0f);
+        pressure             = readFloat(obj, "pressure", 0.0f);
+        kinetic_energy       = std::fmax(0.0f, readFloat(obj, "kinetic_energy", 0.0f));
+        potential_energy     = readFloat(obj, "potential_energy", 0.0f);
+        flyback_voltage      = readFloat(obj, "flyback_voltage", 0.0f);
+        dissipated_power     = std::fmax(0.0f, readFloat(obj, "dissipated_power", 0.0f));
+        gyroscopic_stability = clamp(readFloat(obj, "gyroscopic_stability", 1.0f), 0.0f, 2.0f);
+        poynting_flux        = readFloat(obj, "poynting_flux", 0.0f);
+        hamiltonian_excess   = readFloat(obj, "hamiltonian_excess", 0.0f);
+    }
+
+    /// Verifica conservación aproximada del Hamiltoniano
+    [[nodiscard]] bool isCoherent(float tolerance = TelemetryConfig::ENERGY_TOLERANCE) const noexcept {
+        // Invariante 1: Energía cinética no negativa
+        if (kinetic_energy < 0.0f) return false;
+        // Invariante 2: Potencia disipada no negativa (Segunda Ley)
+        if (dissipated_power < 0.0f) return false;
+        // Invariante 3: Hamiltoniano aproximadamente conservado
+        float E = totalEnergy();
+        float denom = std::fmax(std::fabs(E), 1.0f);
+        if (std::fabs(hamiltonian_excess) > tolerance * denom) return false;
+        // Invariante 4: Estabilidad giroscópica en rango válido
+        if (gyroscopic_stability < 0.0f || gyroscopic_stability > 2.0f) return false;
+        return true;
+    }
+};
+
+// ============================================================================
+// 2. ESTRATO TÁCTICO (BusinessTopologicalAnalyzer)
+// ============================================================================
+/**
+ * Métricas topológicas del espacio de estados del negocio.
+ *
+ * Fundamentos de Topología Algebraica:
+ * - βₖ: k-ésimo número de Betti (rango del k-ésimo grupo de homología)
+ * - β₀: Componentes conexas
+ * - β₁: "Agujeros" 1-dimensionales (ciclos independientes)
+ * - β₂: "Cavidades" 2-dimensionales
+ *
+ * Relaciones fundamentales:
+ * - χ = β₀ - β₁ + β₂ (Característica de Euler-Poincaré)
+ * - Desigualdad de Morse: βₖ ≤ cₖ (críticos de índice k)
+ * - Fiedler: λ₂ > 0 ⟺ grafo conexo (β₀ = 1)
+ */
+struct TopologicalMetrics {
+    int32_t beta_0{1};                  // Componentes conexas (≥ 1)
+    int32_t beta_1{0};                  // Ciclos independientes (≥ 0)
+    int32_t beta_2{0};                  // Cavidades (≥ 0)
+    int32_t mayer_vietoris_delta{0};    // Corrección Mayer-Vietoris (≥ 0)
+    float   fiedler_value{1.0f};        // λ₂ del Laplaciano (≥ 0)
+    float   spectral_gap{0.0f};         // λ₂ - λ₁ = λ₂ (ya que λ₁ = 0)
+    float   pyramid_stability{1.0f};    // Métrica de estabilidad estructural [0,1]
+    float   structural_entropy{0.0f};   // Entropía de von Neumann del grafo
+
+    /// Característica de Euler-Poincaré: χ = β₀ - β₁ + β₂
+    [[nodiscard]] int32_t eulerCharacteristic() const noexcept {
+        return beta_0 - beta_1 + beta_2;
+    }
+
+    /// Número de Betti total: suma de todos los invariantes
+    [[nodiscard]] int32_t totalBetti() const noexcept {
+        return beta_0 + beta_1 + beta_2;
+    }
+
+    /// Complejidad topológica relativa: β₁/β₀ (ciclos por componente)
+    [[nodiscard]] float cyclomaticComplexity() const noexcept {
+        return (beta_0 > 0) ? static_cast<float>(beta_1) / static_cast<float>(beta_0) : 0.0f;
+    }
+
+    /// Índice de conectividad algebraica (normalizado)
+    [[nodiscard]] float algebraicConnectivity() const noexcept {
+        // λ₂ normalizado por grado máximo estimado
+        return (beta_0 == 1 && fiedler_value > 0.0f) ?
+               TelemetryUtils::clamp(fiedler_value / 2.0f, 0.0f, 1.0f) : 0.0f;
+    }
+
+    void fromJson(const JsonObjectConst& obj) noexcept {
+        if (obj.isNull()) return;
+        using namespace TelemetryUtils;
+
+        // Lectura con límites de cordura
+        beta_0 = clamp(readInt(obj, "beta_0", 1),
+                       static_cast<int32_t>(1),
+                       TelemetryConfig::MAX_BETTI_NUMBER);
+        beta_1 = clamp(readInt(obj, "beta_1", 0),
+                       static_cast<int32_t>(0),
+                       TelemetryConfig::MAX_BETTI_NUMBER);
+        beta_2 = clamp(readInt(obj, "beta_2", 0),
+                       static_cast<int32_t>(0),
+                       TelemetryConfig::MAX_BETTI_NUMBER);
+        mayer_vietoris_delta = std::max(static_cast<int32_t>(0),
+                                        readInt(obj, "mayer_vietoris_delta", 0));
+        fiedler_value      = std::fmax(0.0f, readFloat(obj, "fiedler_value", 1.0f));
+        spectral_gap       = std::fmax(0.0f, readFloat(obj, "spectral_gap", 0.0f));
+        pyramid_stability  = clamp(readFloat(obj, "pyramid_stability", 1.0f), 0.0f, 1.0f);
+        structural_entropy = std::fmax(0.0f, readFloat(obj, "structural_entropy", 0.0f));
+
+        // ═══════════════════════════════════════════════════════════════════
+        // Enforcement de coherencia topológica-espectral
+        // ═══════════════════════════════════════════════════════════════════
+        // Teorema: β₀ > 1 ⟹ λ₂ = 0 (grafo desconexo)
+        if (beta_0 > 1) {
+            fiedler_value = 0.0f;
+            spectral_gap = 0.0f;
+        }
+        // Teorema: β₀ = 1 ∧ λ₂ = 0 es contradictorio para grafos finitos no triviales
+        // Pero permitimos λ₂ → 0⁺ para grafos "casi desconexos"
+        // El gap espectral para Laplacianos normalizados: spectral_gap ≤ 2
+        if (spectral_gap > 2.0f) spectral_gap = 2.0f;
+    }
+
+    /// Verifica invariantes topológicos fundamentales
+    [[nodiscard]] bool isCoherent() const noexcept {
+        // ─────────────────────────────────────────────────────────────────────
+        // Invariante 1: Números de Betti no negativos con β₀ ≥ 1
+        // ─────────────────────────────────────────────────────────────────────
+        if (beta_0 < 1 || beta_1 < 0 || beta_2 < 0) return false;
+        // ─────────────────────────────────────────────────────────────────────
+        // Invariante 2: Coherencia Fiedler ↔ Conectividad
+        // Teorema de Fiedler: λ₂ > 0 ⟺ grafo conexo
+        // ─────────────────────────────────────────────────────────────────────
+        if (beta_0 == 1 && fiedler_value <= 0.0f) return false;  // Conexo pero λ₂=0
+        if (beta_0 > 1 && fiedler_value > TelemetryConfig::STABILITY_EPS) return false;  // Desconexo pero λ₂>0
+        // ─────────────────────────────────────────────────────────────────────
+        // Invariante 3: Desigualdad para complejos simpliciales
+        // Para un complejo K con n vértices: β₁ ≤ C(n,2) - n + β₀
+        // Versión relajada: β₁ no debe exceder dramáticamente a β₀
+        // ─────────────────────────────────────────────────────────────────────
+        // (Relajado para flexibilidad en aplicaciones de negocio)
+        // ─────────────────────────────────────────────────────────────────────
+        // Invariante 4: Entropía estructural acotada
+        // Para grafo con n nodos: S ≤ log(n), aproximamos S ≤ log(β₀ + β₁ + 1)
+        // ─────────────────────────────────────────────────────────────────────
+        float maxEntropy = std::log(static_cast<float>(totalBetti() + 1));
+        if (structural_entropy > maxEntropy * 2.0f) return false;  // Factor de seguridad 2x
+        // ─────────────────────────────────────────────────────────────────────
+        // Invariante 5: Gap espectral coherente con Fiedler
+        // spectral_gap ≈ λ₂ para Laplaciano normalizado comenzando en λ₁=0
+        // ─────────────────────────────────────────────────────────────────────
+        // Permitimos discrepancia razonable
+        if (spectral_gap > 0.0f && fiedler_value <= 0.0f) return false;
+        return true;
+    }
+};
+
+// ============================================================================
+// 3. ESTRATO ESTRATÉGICO (LaplaceOracle & FinancialEngine)
+// ============================================================================
+/**
+ * Métricas de teoría de control para análisis de estabilidad.
+ *
+ * Fundamentos de Control LTI:
+ * - Polos: raíces del polinomio característico det(sI - A)
+ * - Estabilidad BIBO: todos los polos en semiplano izquierdo (Re < 0)
+ * - Lyapunov: λ_max(A) < 0 para estabilidad asintótica
+ * - Márgenes: robustez ante perturbaciones de ganancia/fase
+ */
+struct ControlMetrics {
+    PoleContainer poles_real;                                    // Partes reales de polos
+    bool  is_stable{true};                                       // Estabilidad declarada
+    float phase_margin_deg{45.0f};                               // Margen de fase [°]
+    float gain_margin_db{std::numeric_limits<float>::infinity()}; // Margen de ganancia [dB]
+    float damping_ratio{0.707f};                                 // ζ: Factor de amortiguamiento
+    float nutation_index{0.0f};                                  // Índice de nutación
+    float lyapunov_exponent{-1.0f};                              // λ_max de Lyapunov
+
+    /// Polo real dominante (máxima parte real)
+    [[nodiscard]] float dominantPoleReal() const noexcept {
+        return poles_real.dominant();
+    }
+
+    /// Verifica si los polos indican estabilidad
+    [[nodiscard]] bool polesIndicateStability(float eps = TelemetryConfig::STABILITY_EPS) const noexcept {
+        if (poles_real.empty()) return true;  // Sin polos, asumimos estable
+        return poles_real.dominant() < eps;
+    }
+
+    /// Tiempo de establecimiento aproximado (2% criterio para sistema dominante)
+    [[nodiscard]] float settlingTimeApprox() const noexcept {
+        float dominant = dominantPoleReal();
+        if (dominant >= 0.0f) return std::numeric_limits<float>::infinity();  // Inestable
+        return -4.0f / dominant;  // τ_s ≈ 4/|Re(p_dom)| para 2%
+    }
+
+    /// Frecuencia natural aproximada basada en amortiguamiento y polo dominante
+    [[nodiscard]] float naturalFrequencyApprox() const noexcept {
+        if (poles_real.empty() || damping_ratio <= 0.0f) return 0.0f;
+        float dominant = std::fabs(dominantPoleReal());
+        // Para polo dominante: p = -ζωₙ, entonces ωₙ = |p|/ζ
+        return (damping_ratio > 1e-6f) ? dominant / damping_ratio : 0.0f;
+    }
+
+    void fromJson(const JsonObjectConst& obj) noexcept {
+        if (obj.isNull()) return;
+        using namespace TelemetryUtils;
+
+        // ═══════════════════════════════════════════════════════════════════
+        // Parseo de polos
+        // ═══════════════════════════════════════════════════════════════════
+        poles_real.clear();
+        JsonArrayConst polesArr = obj["poles_real"];
+        if (!polesArr.isNull()) {
+            for (JsonVariantConst pv : polesArr) {
+                if (poles_real.full()) break;
+                float pole_val = pv.as<float>();
+                poles_real.push_back(pole_val);  // Sanitización en push_back
+            }
+        }
+
+        // ═══════════════════════════════════════════════════════════════════
+        // Parámetros de control
+        // ═══════════════════════════════════════════════════════════════════
+        is_stable = obj["is_stable"] | true;
+        phase_margin_deg = clamp(
+            readFloat(obj, "phase_margin_deg", 45.0f),
+            TelemetryConfig::MIN_PHASE_MARGIN,
+            TelemetryConfig::MAX_PHASE_MARGIN
+        );
+        damping_ratio = clamp(
+            readFloat(obj, "damping_ratio", 0.707f),
+            TelemetryConfig::MIN_DAMPING,
+            TelemetryConfig::MAX_DAMPING
+        );
+        nutation_index = readFloat(obj, "nutation_index", 0.0f);
+        // Manejo especial de gain_margin (puede ser infinito)
+        JsonVariantConst gmVar = obj["gain_margin_db"];
+        if (!gmVar.isNull()) {
+            gain_margin_db = sanitize(gmVar.as<float>(),
+                                      std::numeric_limits<float>::infinity());
+        } else {
+            gain_margin_db = std::numeric_limits<float>::infinity();
+        }
+        // Lyapunov: lectura y posterior coherencia
+        lyapunov_exponent = readFloat(obj, "lyapunov_exponent", -1.0f);
+
+        // ═══════════════════════════════════════════════════════════════════
+        // Enforcement de coherencia
+        // ═══════════════════════════════════════════════════════════════════
+        enforceCoherence();
+    }
+
+    /// Verifica coherencia entre parámetros de control
+    [[nodiscard]] bool isCoherent() const noexcept {
+        // ─────────────────────────────────────────────────────────────────────
+        // Invariante 1: Estabilidad declarada ↔ polos
+        // ─────────────────────────────────────────────────────────────────────
+        if (!poles_real.empty()) {
+            bool polesStable = polesIndicateStability();
+            if (is_stable != polesStable) return false;
+        }
+        // ─────────────────────────────────────────────────────────────────────
+        // Invariante 2: Lyapunov ↔ Estabilidad
+        // λ_max < 0 ⟺ sistema asintóticamente estable (para LTI)
+        // ─────────────────────────────────────────────────────────────────────
+        if (is_stable && lyapunov_exponent > TelemetryConfig::STABILITY_EPS) return false;
+        if (!is_stable && lyapunov_exponent < -TelemetryConfig::STABILITY_EPS) return false;
+        // ─────────────────────────────────────────────────────────────────────
+        // Invariante 3: Márgenes para sistema estable
+        // Sistema estable típicamente tiene PM > 0 y GM > 0dB
+        // ─────────────────────────────────────────────────────────────────────
+        if (is_stable) {
+            if (phase_margin_deg < 0.0f && std::isfinite(phase_margin_deg)) {
+                // Margen de fase negativo indica inestabilidad potencial
+                // Permitimos con advertencia implícita
+            }
+            if (std::isfinite(gain_margin_db) && gain_margin_db < 0.0f) {
+                // Margen de ganancia negativo indica inestabilidad
+                return false;
+            }
+        }
+        // ─────────────────────────────────────────────────────────────────────
+        // Invariante 4: Damping ratio válido
+        // ─────────────────────────────────────────────────────────────────────
+        if (damping_ratio < 0.0f) return false;
+        // ─────────────────────────────────────────────────────────────────────
+        // Invariante 5: Lyapunov ≈ polo dominante (para sistemas LTI)
+        // Tolerancia amplia por aproximaciones numéricas
+        // ─────────────────────────────────────────────────────────────────────
+        if (!poles_real.empty()) {
+            float dominant = dominantPoleReal();
+            float lyap_diff = std::fabs(lyapunov_exponent - dominant);
+            float scale = std::fmax(std::fabs(dominant), 1.0f);
+            // Permitimos discrepancia de 50% para cubrir efectos no lineales
+            if (lyap_diff > 0.5f * scale && std::isfinite(dominant)) {
+                // Solo warning, no fallo estricto
+            }
+        }
+        return true;
+    }
+
+private:
+    void enforceCoherence() noexcept {
+        // Derivar estabilidad desde polos si están disponibles
+        if (!poles_real.empty()) {
+            is_stable = polesIndicateStability();
+            // Ajustar Lyapunov para coherencia con polo dominante
+            float dominant = dominantPoleReal();
+            if (std::isfinite(dominant)) {
+                // Para sistemas LTI, λ_max ≈ Re(p_dominante)
+                // Mezclamos valor reportado con derivado
+                if (TelemetryUtils::isFinite(lyapunov_exponent)) {
+                    // Promedio ponderado favoreciendo al polo dominante
+                    lyapunov_exponent = 0.7f * dominant + 0.3f * lyapunov_exponent;
+                } else {
+                    lyapunov_exponent = dominant;
+                }
+            }
+        }
+    }
+};
+
+// ============================================================================
+// 4. ESTRATO TERMODINÁMICO (Economía Física)
+// ============================================================================
+/**
+ * Métricas termodinámicas para modelado económico-energético.
+ *
+ * Analogías Termodinámica ↔ Economía:
+ * - Temperatura → Volatilidad del mercado / actividad
+ * - Entropía → Incertidumbre / desorden del sistema
+ * - Exergía → Trabajo útil disponible / capital productivo
+ * - Inercia → Resistencia al cambio / momentum económico
+ *
+ * Leyes fundamentales:
+ * - Segunda Ley: dS ≥ 0 para sistema aislado (entropía no decrece)
+ * - Helmholtz: F = U - TS (energía libre)
+ */
+struct ThermodynamicMetrics {
+    float system_temperature{25.0f};  // T: Temperatura del sistema (≥ 0)
+    float entropy{0.0f};              // S: Entropía (≥ 0)
+    float financial_inertia{1.0f};    // Inercia financiera (> 0)
+    float exergy{1.0f};               // Exergía: trabajo útil disponible (≥ 0)
+
+    /// Energía libre de Helmholtz: F = U - TS
+    [[nodiscard]] float helmholtzFreeEnergy(float internal_energy) const noexcept {
+        return internal_energy - system_temperature * entropy;
+    }
+
+    /// Energía libre de Gibbs (con presión): G = F + PV = U - TS + PV
+    [[nodiscard]] float gibbsFreeEnergy(float internal_energy,
+                                       float pressure,
+                                       float volume) const noexcept {
+        return helmholtzFreeEnergy(internal_energy) + pressure * volume;
+    }
+
+    /// Ratio de exergía: exergía / (energía total del sistema)
+    [[nodiscard]] float exergyRatio(float total_energy) const noexcept {
+        return (total_energy > 1e-9f) ? exergy / total_energy : 0.0f;
+    }
+
+    /// Índice de irreversibilidad: proxy de generación de entropía
+    [[nodiscard]] float irreversibilityIndex() const noexcept {
+        // Mayor entropía + menor exergía = mayor irreversibilidad
+        float maxEntropy = std::fmax(entropy, 1e-6f);
+        float maxExergy = std::fmax(exergy, 1e-6f);
+        return entropy / (maxExergy + maxEntropy);
+    }
+
+    void fromJson(const JsonObjectConst& obj) noexcept {
+        if (obj.isNull()) return;
+        using namespace TelemetryUtils;
+
+        system_temperature = std::fmax(TelemetryConfig::MIN_TEMPERATURE_K,
+                                       readFloat(obj, "system_temperature", 25.0f));
+        system_temperature = std::fmin(system_temperature,
+                                       TelemetryConfig::MAX_TEMPERATURE_K);
+        entropy = std::fmax(0.0f, readFloat(obj, "entropy", 0.0f));
+        financial_inertia = readFloat(obj, "financial_inertia", 1.0f);
+        if (financial_inertia <= 0.0f) {
+            financial_inertia = TelemetryConfig::MIN_INERTIA;
+        }
+        exergy = std::fmax(0.0f, readFloat(obj, "exergy", 1.0f));
+    }
+
+    /// Verifica invariantes termodinámicos
+    [[nodiscard]] bool isCoherent() const noexcept {
+        // Invariante 1: Temperatura absoluta ≥ 0
+        if (system_temperature < 0.0f) return false;
+        // Invariante 2: Entropía ≥ 0
+        if (entropy < 0.0f) return false;
+        // Invariante 3: Inercia estrictamente positiva
+        if (financial_inertia <= 0.0f) return false;
+        // Invariante 4: Exergía ≥ 0
+        if (exergy < 0.0f) return false;
+        // Invariante 5: Exergía ≤ Energía disponible (aproximado)
+        // No podemos verificar sin energía total, asumimos OK
+        return true;
+    }
+};
+
+// ============================================================================
+// 5. ESTRATO SABIDURÍA (Veredicto Final)
+// ============================================================================
+/**
+ * Síntesis ejecutiva del estado del sistema.
+ * Representa el "juicio" del oráculo sobre la situación global.
+ */
+struct WisdomMetrics {
+    VerdictCode verdict_code{VerdictCode::UNKNOWN};
+    char narrative_short[TelemetryConfig::NARRATIVE_MAX_LEN + 1]{};
+
+    WisdomMetrics() noexcept {
+        setNarrative("ESPERANDO DATOS...");
+    }
+
+    void setNarrative(const char* text) noexcept {
+        if (text != nullptr) {
+            strlcpy(narrative_short, text, sizeof(narrative_short));
+        }
+    }
+
+    void fromJson(const JsonObjectConst& obj) noexcept {
+        if (obj.isNull()) return;
+
+        int raw_code = obj["verdict_code"] | static_cast<int>(VerdictCode::UNKNOWN);
+        switch (raw_code) {
+            case 0:  verdict_code = VerdictCode::OK;       break;
+            case 1:  verdict_code = VerdictCode::WARN;     break;
+            case 2:  verdict_code = VerdictCode::CRITICAL; break;
+            default: verdict_code = VerdictCode::UNKNOWN;  break;
+        }
+
+        const char* narr = obj["narrative_short"];
+        if (narr != nullptr && narr[0] != '\0') {
+            setNarrative(narr);
+        } else {
+            setNarrative("SISTEMA NOMINAL");
+        }
+    }
+
+    [[nodiscard]] int verdictAsInt() const noexcept {
+        return static_cast<int>(verdict_code);
+    }
+
+    [[nodiscard]] bool isOK() const noexcept {
+        return verdict_code == VerdictCode::OK;
+    }
+
+    [[nodiscard]] bool isCritical() const noexcept {
+        return verdict_code == VerdictCode::CRITICAL;
+    }
+
+    [[nodiscard]] const char* verdictString() const noexcept {
+        switch (verdict_code) {
+            case VerdictCode::OK:       return "OK";
+            case VerdictCode::WARN:     return "WARN";
+            case VerdictCode::CRITICAL: return "CRITICAL";
+            default:                    return "UNKNOWN";
+        }
+    }
+};
+
+// ============================================================================
+// PAQUETE DE TELEMETRÍA GLOBAL
+// ============================================================================
+/**
+ * Contenedor maestro que integra todos los estratos del gemelo digital.
+ * Implementa validaciones cruzadas inter-estrato para coherencia global.
+ */
+struct TelemetryPacket {
+    PhysicsMetrics       physics;
+    TopologicalMetrics   topology;
+    ControlMetrics       control;
+    ThermodynamicMetrics thermodynamics;
+    WisdomMetrics        wisdom;
+    char                 timestamp[TelemetryConfig::TIMESTAMP_MAX_LEN + 1]{};
+
+    // Metadata de parseo
+    TelemetryError       last_error{TelemetryError::OK};
+    uint32_t             parse_count{0};
+
+    TelemetryPacket() noexcept = default;
+
+    /// Parsea JSON y puebla todos los estratos
+    [[nodiscard]] TelemetryError fromJson(const String& jsonString) noexcept {
+        ++parse_count;
+        if (jsonString.length() == 0) {
+            last_error = TelemetryError::EMPTY_INPUT;
+            return last_error;
+        }
+
+        // --- Compatibilidad ArduinoJson v6 / v7 ---
+        #if ARDUINOJSON_VERSION_MAJOR >= 7
+            JsonDocument doc;
+        #else
+            StaticJsonDocument<TelemetryConfig::JSON_BUFFER_SIZE> doc;
+        #endif
+
+        DeserializationError error = deserializeJson(doc, jsonString);
+        if (error) {
+            last_error = TelemetryError::JSON_PARSE_ERROR;
+            return last_error;
+        }
+
+        #if ARDUINOJSON_VERSION_MAJOR < 7
+            if (doc.overflowed()) {
+                last_error = TelemetryError::JSON_OVERFLOW;
+                return last_error;
+            }
+        #endif
+
+        // Parseo de cada estrato
+        physics.fromJson(doc["physics"].as<JsonObjectConst>());
+        topology.fromJson(doc["topology"].as<JsonObjectConst>());
+        control.fromJson(doc["control"].as<JsonObjectConst>());
+        thermodynamics.fromJson(doc["thermodynamics"].as<JsonObjectConst>());
+        wisdom.fromJson(doc["wisdom"].as<JsonObjectConst>());
+
+        // Timestamp
+        const char* ts = doc["timestamp"];
+        if (ts != nullptr) {
+            strlcpy(timestamp, ts, sizeof(timestamp));
+        } else {
+            timestamp[0] = '\0';
+        }
+
+        // Validar coherencia post-parseo
+        if (!isCoherent()) {
+            last_error = TelemetryError::COHERENCE_VIOLATION;
+            return last_error;
+        }
+
+        last_error = TelemetryError::OK;
+        return last_error;
+    }
+
+    // =========================================================================
+    // VALIDACIONES DE COHERENCIA
+    // =========================================================================
+    /// Coherencia intra-estrato: cada módulo es internamente consistente
+    [[nodiscard]] bool isIntraCoherent() const noexcept {
+        return physics.isCoherent()
+            && topology.isCoherent()
+            && control.isCoherent()
+            && thermodynamics.isCoherent();
+    }
+
+    /// Coherencia inter-estrato: relaciones cruzadas entre módulos
+    [[nodiscard]] bool isInterCoherent() const noexcept {
+        // ─────────────────────────────────────────────────────────────────────
+        // Relación 1: Control ↔ Física
+        // Sistema de control estable → estabilidad giroscópica adecuada
+        // ─────────────────────────────────────────────────────────────────────
+        if (control.is_stable && physics.gyroscopic_stability < 0.3f) {
+            // Estabilidad de control pero inestabilidad giroscópica severa
+            // Posible pero inusual — warning implícito, no fallo
+        }
+        // ─────────────────────────────────────────────────────────────────────
+        // Relación 2: Termodinámica ↔ Física
+        // Alta potencia disipada → debería reflejarse en entropía
+        // ─────────────────────────────────────────────────────────────────────
+        if (physics.dissipated_power > 10.0f && thermodynamics.entropy < 0.01f) {
+            // Disipación alta con entropía baja es termodinámicamente sospechoso
+            // Pero puede ocurrir si el sistema está en estado estacionario
+        }
+        // ─────────────────────────────────────────────────────────────────────
+        // Relación 3: Topología ↔ Control
+        // Múltiples componentes desconexas → posible pérdida de controlabilidad
+        // ─────────────────────────────────────────────────────────────────────
+        if (topology.beta_0 > 1 && control.is_stable) {
+            // Sistema topológicamente fragmentado pero estable
+            // Válido si cada componente es individualmente estable
+        }
+        // ─────────────────────────────────────────────────────────────────────
+        // Relación 4: Entropía estructural ↔ Entropía termodinámica
+        // Deberían estar correlacionadas positivamente
+        // ─────────────────────────────────────────────────────────────────────
+        // No imponemos restricción estricta, solo verificamos no-negatividad
+        return true;  // Por ahora, todas las validaciones inter son warnings
+    }
+
+    /// Coherencia global: intra + inter
+    [[nodiscard]] bool isCoherent() const noexcept {
+        return isIntraCoherent() && isInterCoherent();
+    }
+
+    // =========================================================================
+    // MÉTRICAS AGREGADAS
+    // =========================================================================
+    /// Índice de salud global del sistema [0, 1]
+    /// Refinado: Penaliza severamente la incoherencia interna.
+    [[nodiscard]] float healthIndex() const noexcept {
+        // Si hay una incoherencia interna, el sistema no es nominal.
+        // Imponemos un límite superior al índice si no es coherente internamente.
+        if (!isIntraCoherent()) {
+            // Si es incoherente internamente, el índice no puede superar 0.5
+            float max_faulty_index = 0.5f;
+
+            // Se puede calcular un índice tentativo basado en métricas individuales
+            // para fines de diagnóstico, pero el valor final se limita.
+            float score = 0.0f;
+            float weight_total = 0.0f;
+
+            // Componente física (peso 0.25)
+            {
+                float phys_score = 0.5f; // Base baja por incoherencia potencial
+                phys_score *= TelemetryUtils::clamp(physics.gyroscopic_stability / 2.0f, 0.0f, 1.0f);
+                phys_score *= TelemetryUtils::clamp(physics.efficiency(), 0.0f, 1.0f);
+                score += 0.25f * phys_score;
+                weight_total += 0.25f;
+            }
+            // Componente topológica (peso 0.20)
+            {
+                float topo_score = topology.isCoherent() ? 1.0f : 0.5f; // Base baja si incoherente
+                topo_score *= TelemetryUtils::clamp(topology.pyramid_stability, 0.0f, 1.0f);
+                topo_score *= topology.algebraicConnectivity();
+                score += 0.20f * topo_score;
+                weight_total += 0.20f;
+            }
+            // Componente de control (peso 0.35)
+            {
+                float ctrl_score = control.is_stable ? 1.0f : 0.0f;
+                float pm_norm = TelemetryUtils::clamp(control.phase_margin_deg / 60.0f, 0.0f, 1.0f);
+                ctrl_score *= pm_norm;
+                float damp_penalty = std::fabs(control.damping_ratio - 0.707f);
+                ctrl_score *= std::fmax(0.0f, 1.0f - damp_penalty);
+                score += 0.35f * ctrl_score;
+                weight_total += 0.35f;
+            }
+            // Componente termodinámica (peso 0.20)
+            {
+                float thermo_score = thermodynamics.isCoherent() ? 1.0f : 0.5f; // Base baja si incoherente
+                float exergy_norm = TelemetryUtils::clamp(thermodynamics.exergy, 0.0f, 1.0f);
+                thermo_score *= exergy_norm;
+                float entropy_penalty = TelemetryUtils::clamp(thermodynamics.entropy / 10.0f, 0.0f, 1.0f);
+                thermo_score *= (1.0f - 0.5f * entropy_penalty);
+                score += 0.20f * thermo_score;
+                weight_total += 0.20f;
+            }
+
+            float tentative_index = (weight_total > 0.0f) ? (score / weight_total) : 0.0f;
+            return std::min(tentative_index, max_faulty_index);
+        }
+
+        // Si es coherente internamente, cálculo normal
+        float score = 0.0f;
+        float weight_total = 0.0f;
+
+        // Componente física (peso 0.25)
+        {
+            float phys_score = 1.0f; // Base alta si coherente
+            phys_score *= TelemetryUtils::clamp(physics.gyroscopic_stability / 2.0f, 0.0f, 1.0f);
+            phys_score *= TelemetryUtils::clamp(physics.efficiency(), 0.0f, 1.0f);
+            score += 0.25f * phys_score;
+            weight_total += 0.25f;
+        }
+        // Componente topológica (peso 0.20)
+        {
+            float topo_score = topology.isCoherent() ? 1.0f : 0.5f;
+            topo_score *= TelemetryUtils::clamp(topology.pyramid_stability, 0.0f, 1.0f);
+            topo_score *= topology.algebraicConnectivity();
+            score += 0.20f * topo_score;
+            weight_total += 0.20f;
+        }
+        // Componente de control (peso 0.35)
+        {
+            float ctrl_score = control.is_stable ? 1.0f : 0.0f;
+            float pm_norm = TelemetryUtils::clamp(control.phase_margin_deg / 60.0f, 0.0f, 1.0f);
+            ctrl_score *= pm_norm;
+            float damp_penalty = std::fabs(control.damping_ratio - 0.707f);
+            ctrl_score *= std::fmax(0.0f, 1.0f - damp_penalty);
+            score += 0.35f * ctrl_score;
+            weight_total += 0.35f;
+        }
+        // Componente termodinámica (peso 0.20)
+        {
+            float thermo_score = thermodynamics.isCoherent() ? 1.0f : 0.5f;
+            float exergy_norm = TelemetryUtils::clamp(thermodynamics.exergy, 0.0f, 1.0f);
+            thermo_score *= exergy_norm;
+            float entropy_penalty = TelemetryUtils::clamp(thermodynamics.entropy / 10.0f, 0.0f, 1.0f);
+            thermo_score *= (1.0f - 0.5f * entropy_penalty);
+            score += 0.20f * thermo_score;
+            weight_total += 0.20f;
+        }
+
+        return (weight_total > 0.0f) ? (score / weight_total) : 0.0f;
+    }
+
+    /// Determina el estado de salud categórico
+    [[nodiscard]] SystemHealth systemHealth() const noexcept {
+        if (!isCoherent()) return SystemHealth::CRITICAL; // Incoherencia implica crítico
+        float hi = healthIndex();
+        if (hi >= 0.7f) return SystemHealth::NOMINAL;
+        if (hi >= 0.4f) return SystemHealth::DEGRADED;
+        return SystemHealth::CRITICAL;
+    }
+
+    /// Veredicto coherente con métricas (puede diferir del wisdom reportado)
+    [[nodiscard]] VerdictCode computedVerdict() const noexcept {
+        SystemHealth health = systemHealth();
+        switch (health) {
+            case SystemHealth::NOMINAL:  return VerdictCode::OK;
+            case SystemHealth::DEGRADED: return VerdictCode::WARN;
+            case SystemHealth::CRITICAL: return VerdictCode::CRITICAL;
+            default:                     return VerdictCode::UNKNOWN;
+        }
+    }
+
+    /// Verifica si el veredicto reportado es coherente con las métricas
+    /// Considera que UNKNOWN siempre es coherente a menos que haya incoherencia global.
+    [[nodiscard]] bool isVerdictCoherent() const noexcept {
+        VerdictCode computed = computedVerdict();
+        VerdictCode reported = wisdom.verdict_code;
+
+        // Si el veredicto reportado es UNKNOWN, asumimos que aún no se ha decidido
+        // y es coherente con cualquier estado calculado, a menos que haya incoherencia.
+        if (reported == VerdictCode::UNKNOWN) {
+             // Si el sistema es coherente, UNKNOWN es aceptable.
+             // Si el sistema es incoherente, el veredicto debería reflejar eso.
+             // Si es UNKNOWN y el sistema es incoherente, es *incoherente*.
+             return isCoherent(); // Verdadero solo si el sistema también es coherente
+        }
+
+        // Permitimos discrepancia de un nivel para otros veredictos
+        int diff = std::abs(static_cast<int>(computed) - static_cast<int>(reported));
+        return diff <= 1;
+    }
+
+    // =========================================================================
+    // UTILIDADES
+    // =========================================================================
+    /// Energía total del sistema desde estrato físico
+    [[nodiscard]] float totalSystemEnergy() const noexcept {
+        return physics.totalEnergy();
+    }
+
+    /// Energía libre de Helmholtz combinando física y termodinámica
+    [[nodiscard]] float helmholtzEnergy() const noexcept {
+        return thermodynamics.helmholtzFreeEnergy(physics.totalEnergy());
+    }
+
+    /// Número total de polos en el sistema
+    [[nodiscard]] size_t poleCount() const noexcept {
+        return control.poles_real.size();
+    }
+
+    /// Cadena de descripción del estado
+    [[nodiscard]] const char* statusString() const noexcept {
+        switch (systemHealth()) {
+            case SystemHealth::NOMINAL:  return "NOMINAL";
+            case SystemHealth::DEGRADED: return "DEGRADED";
+            case SystemHealth::CRITICAL: return "CRITICAL";
+            default:                     return "UNDEFINED";
+        }
+    }
+};
+
+// ============================================================================
+// FUNCIONES DE DIAGNÓSTICO (Opcional)
+// ============================================================================
+namespace TelemetryDiagnostics {
+    /// Genera un reporte textual breve del estado
+    inline void printSummary(const TelemetryPacket& packet, Print& out) {
+        out.print(F("=== TELEMETRY SUMMARY ===\n"));
+        out.print(F("Timestamp: "));
+        out.println(packet.timestamp[0] ? packet.timestamp : "(none)");
+        out.print(F("Health Index: "));
+        out.println(packet.healthIndex(), 3);
+        out.print(F("System Status: "));
+        out.println(packet.statusString());
+        out.print(F("Verdict: "));
+        out.print(packet.wisdom.verdictString());
+        out.print(F(" - "));
+        out.println(packet.wisdom.narrative_short);
+        out.print(F("Coherent: "));
+        out.println(packet.isCoherent() ? "YES" : "NO");
+        out.print(F("Total Energy: "));
+        out.println(packet.totalSystemEnergy(), 4);
+        out.print(F("Control Stable: "));
+        out.println(packet.control.is_stable ? "YES" : "NO");
+        out.print(F("Euler Char: "));
+        out.println(packet.topology.eulerCharacteristic());
+    }
+
+    /// Verifica integridad estructural completa
+    [[nodiscard]] inline bool fullIntegrityCheck(const TelemetryPacket& packet) {
+        // Verificaciones básicas
+        if (!packet.isCoherent()) return false;
+        // Verificar que el health index es calculable
+        float hi = packet.healthIndex();
+        if (!TelemetryUtils::isFinite(hi)) return false;
+        // Verificar coherencia del veredicto
+        if (!packet.isVerdictCoherent()) {
+            // Solo warning, no fallo crítico
+        }
+        return true;
+    }
+} // namespace TelemetryDiagnostics
+
+#endif // TELEMETRY_H

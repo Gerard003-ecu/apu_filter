@@ -193,7 +193,6 @@ class TopologicalMetrics:
         fiedler_value ≥ 0, spectral_gap ≥ 0
         pyramid_stability ≥ 0, structural_entropy ≥ 0
 
-    Ref: business_topology.txt [Fuente 622]
     """
     # ── Homología (Números de Betti) ──
     beta_0: int = 1                    # Componentes conexas (1 = ideal)
