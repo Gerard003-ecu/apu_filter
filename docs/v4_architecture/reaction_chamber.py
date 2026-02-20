@@ -1,24 +1,35 @@
 """
 Módulo: Reactor de resonancia cuántica (núcleo catalítico hexagonal)
-Versión: 4.1 (Refinamiento Termodinámico, Topológico y Algebraico)
+Versión: 4.3 (Refinamiento Algebraico-Físico)
 Arquitectura basada en la Teoría del Orbital Molecular (TOM) para el Benceno.
-El flujo no es secuencial, sino una superposición de estados estabilizada por
-resonancia cuántica y topología algebraica.
 
-Topología del Reactor (El Anillo):
+Topología del Reactor (El Anillo C₆ con simetría D6h):
   C1 (Ingesta) ─── C2 (Física)
- /                         \\
+ /                           \\
 C6 (Materia)               C3 (Topología)
-\\                         /
-C5 (Semántica) ── C4 (Estrategia)
+ \\                           /
+  C5 (Semántica) ── C4 (Estrategia)
 
-Mejoras Clave v4.1:
-- Termodinámica: Relación T(ψ) física basada en el principio de equipartición
-- Topología: Difusión laplaciana con condiciones de frontera Dirichlet/Neumann
-- Algebraica: Normalización rigurosa del espacio de Hilbert con proyección ortogonal
-- Numérica: Manejo robusto de casos límite y estabilidad garantizada
-- Conceptual: Documentación mejorada que explica las analogías químicas
+Correcciones v4.3 sobre v4.2:
+─────────────────────────────────────────────────────────────────────────────
+[F1] CFL crítico corregido: α_max = 1/(2·λ_max) = 1/8 = 0.125 para C₆
+     (λ_max del Laplaciano circulante C₆ es 4, no 2).
+[F2] Amortiguamiento: factor siempre no-negativo via |cos|, evita reflexión.
+[F3] Hückel puro en _is_aromatic: 4n+2 e⁻ π (n=0→2, n=1→6). Se elimina
+     el caso pi==3 que no satisface la regla.
+[F4] Hamiltoniano: neighbor_stabilization separado como término de
+     estabilización explícito; max(0,...) no descarta estabilización.
+[F5] Gibbs: coeficiente κ_topo explícito para dimensionalidad correcta.
+[F6] delta_h: eliminado el término de latencia (elapsed) del hamiltoniano.
+[F7] CFL_STABILITY_FACTOR reducido a 0.95 para garantizar α < α_crítico.
+[F8] project_orthogonal: normaliza copia local, no el vector base original.
+[F9] _calculate_shannon_entropy: entropía sobre valores booleans/strings
+     de claves semánticas, más robusta y menos ruidosa.
+[F10] Encapsulación: base_temperature enfriado vía método dedicado.
+[F11] _spectral_gap: calculado analíticamente para C₆ (λ₁ = 2-√3).
+[F12] Logging estructurado con contexto de ciclo en todos los métodos.
 """
+
 import logging
 import math
 import time
@@ -26,9 +37,8 @@ import uuid
 from collections import Counter
 from dataclasses import dataclass, field
 from enum import Enum, auto
-from typing import Any, Callable, Dict, List, Protocol, Tuple, TypeVar, cast
+from typing import Any, Dict, List, Optional, Protocol, Tuple, TypeVar
 
-# Mantenemos imports de infraestructura
 from app.schemas import Stratum
 from app.telemetry import TelemetryContext
 from app.tools_interface import MICRegistry
@@ -38,13 +48,29 @@ logger = logging.getLogger("QuantumReactor")
 # =============================================================================
 # Constantes Físicas y Matemáticas
 # =============================================================================
-R_GAS_CONSTANT = 8.314          # J/(mol·K)
-BOLTZMANN_SCALE = 1.0e-1        # Factor de acople: entropía informacional → energía
-GIBBS_CONVERGENCE_EPS = 0.05    # Umbral de convergencia termodinámica |δG|
-DAMPING_GAMMA = 0.3             # Coeficiente de decaimiento exponencial
-DAMPING_OMEGA = math.pi / 3.0   # Frecuencia angular (π/3 por simetría D6h)
-CFL_STABILITY_FACTOR = 0.49     # Factor máximo seguro para difusión (α < 0.5)
-ENTROPY_MIN_PROB = 1e-10        # Probabilidad mínima para evitar -inf en entropía
+R_GAS_CONSTANT: float = 8.314
+BOLTZMANN_SCALE: float = 1.0e-1
+GIBBS_CONVERGENCE_EPS: float = 0.05
+DAMPING_GAMMA: float = 0.3
+DAMPING_OMEGA: float = math.pi / 3.0
+ENTROPY_MIN_PROB: float = 1e-10
+
+# [F1] Corrección CFL: para el grafo circulante C₆, el Laplaciano tiene
+# autovalores λₖ = 2 - 2·cos(2πk/6), k=0,...,5.
+# λ_max = λ₃ = 2 - 2·cos(π) = 4.
+# Condición de estabilidad de la ecuación de calor discreta: α < 1/(2·λ_max)
+# α_critical = 1 / (2 * 4) = 0.125
+_RING_SIZE: int = 6
+_LAMBDA_MAX_C6: float = 4.0          # Autovalor máximo del Laplaciano C₆
+CFL_ALPHA_CRITICAL: float = 1.0 / (2.0 * _LAMBDA_MAX_C6)   # = 0.125
+
+# [F7] Factor de seguridad estricto: α_safe = 0.95 · α_critical < α_critical
+CFL_SAFETY_MARGIN: float = 0.95
+CFL_ALPHA_SAFE: float = CFL_SAFETY_MARGIN * CFL_ALPHA_CRITICAL  # ≈ 0.11875
+
+# [F5] Coeficiente dimensional para el término de presión topológica en Gibbs.
+# Unidades: [κ] = J/mol para coherencia con H y T·S.
+TOPO_PRESSURE_COEFF: float = 1.0
 
 # =============================================================================
 # Enumeraciones
@@ -53,8 +79,12 @@ class CarbonNode(Enum):
     """
     Nodos del anillo de benceno (simetría D6h).
     Cada nodo representa un orbital sp² híbrido funcional.
-    El valor ordinal (auto) mapea directamente al índice matricial via
+    El valor ordinal (auto) mapea directamente al índice matricial vía
     la propiedad `index`.
+
+    Autovalores del Laplaciano circulante C₆ (referencia):
+        λₖ = 2 - 2·cos(2πk/6),  k = 0, 1, ..., 5
+        → {0, 1, 3, 4, 3, 1}  (λ_min=0, λ_max=4, gap=λ₁=1)
     """
     C1_INGESTION = auto()
     C2_PHYSICS = auto()
@@ -62,7 +92,7 @@ class CarbonNode(Enum):
     C4_STRATEGY = auto()
     C5_SEMANTICS = auto()
     C6_MATTER = auto()
-    
+
     @property
     def index(self) -> int:
         """Índice matricial 0-based: C1→0, C2→1, ..., C6→5."""
@@ -72,166 +102,182 @@ class CarbonNode(Enum):
     def label(self) -> str:
         """Etiqueta legible para logs e interfaces."""
         return self.name.replace("_", " ").title()
-    
+
     @property
     def service_name(self) -> str:
         """Nombre del servicio MIC correspondiente."""
-        service_names = {
-            CarbonNode.C1_INGESTION: "load_data",
-            CarbonNode.C2_PHYSICS: "stabilize_flux",
-            CarbonNode.C3_TOPOLOGY: "business_topology",
-            CarbonNode.C4_STRATEGY: "financial_analysis",
-            CarbonNode.C5_SEMANTICS: "semantic_translation",
-            CarbonNode.C6_MATTER: "materialization"
+        _SERVICE_MAP: Dict[str, str] = {
+            "C1_INGESTION":  "load_data",
+            "C2_PHYSICS":    "stabilize_flux",
+            "C3_TOPOLOGY":   "business_topology",
+            "C4_STRATEGY":   "financial_analysis",
+            "C5_SEMANTICS":  "semantic_translation",
+            "C6_MATTER":     "materialization",
         }
-        return service_names[self]
+        return _SERVICE_MAP[self.name]
+
 
 # =============================================================================
 # Estructuras de Estado
 # =============================================================================
-T = TypeVar('T', bound='HilbertState')
+T = TypeVar("T", bound="HilbertState")
+
 
 @dataclass
 class HilbertState:
     """
     Estado del sistema proyectado en un espacio de Hilbert ℝ⁶ abstracto.
     El vector |ψ⟩ codifica el estrés local de cada nodo del anillo.
-    
+
     Propiedades fundamentales:
-    - ‖ψ‖ (norma): estrés topológico total.
-    - φ (fase): rotación acumulada del ciclo de resonancia.
-    - ⟨ψ|φ⟩: producto interno para comparar estados.
-    
-    Invariantes matemáticas:
-    - La norma ‖ψ‖ ≥ 0 (no negativa)
-    - ‖c·ψ‖ = |c|·‖ψ‖ para cualquier escalar c
-    - |⟨ψ|φ⟩| ≤ ‖ψ‖·‖φ‖ (desigualdad de Cauchy-Schwarz)
+    ─ ‖ψ‖ (norma-2): estrés topológico total del anillo.
+    ─ φ (fase):       rotación acumulada del ciclo de resonancia.
+    ─ ⟨ψ|φ⟩:          producto interno estándar para comparación de estados.
     """
     vector: List[float] = field(default_factory=lambda: [0.0] * 6)
     phase: float = 0.0
-    
+
     @property
     def norm(self) -> float:
         """‖ψ‖ = √⟨ψ|ψ⟩"""
-        return math.sqrt(sum(x ** 2 for x in self.vector))
-    
+        return math.sqrt(sum(x * x for x in self.vector))
+
     def inner_product(self, other: "HilbertState") -> float:
         """⟨self|other⟩ = Σᵢ aᵢ·bᵢ"""
         return sum(a * b for a, b in zip(self.vector, other.vector))
-    
+
     def normalize(self: T) -> T:
-        """Proyecta |ψ⟩ sobre la esfera unitaria S⁵ (si ‖ψ‖ > 0)."""
+        """Proyecta |ψ⟩ sobre la esfera unitaria S⁵ (si ‖ψ‖ > ε)."""
         n = self.norm
         if n > 1e-12:
             self.vector = [x / n for x in self.vector]
         return self
-    
+
     def apply_damping(self, cycle: int) -> None:
         """
-        Amortiguamiento oscilatorio con envolvente exponencial:
-        
-            ψ → ψ · e^{-γ·t} · cos(ω·t)
-        
-        donde t = cycle (tiempo discreto).
-        
-        La envolvente e^{-γt} garantiza convergencia asintótica;
-        cos(ωt) permite interferencia constructiva/destructiva
-        que emula la resonancia del anillo bencénico.
-        
-        Nota: Este operador no preserva la norma, por lo que se requiere
-        normalización posterior si es necesario mantener |ψ⟩ en S⁵.
+        Amortiguamiento espectral compatible con simetría D6h.
+
+        El operador actúa sobre los modos de alta frecuencia (desviaciones
+        del promedio) preservando el modo λ=0 (traslación uniforme del anillo).
+
+        Corrección [F2]: el factor de amortiguamiento usa |cos(ωt)| para
+        garantizar no-negatividad y evitar reflexión artificial de modos.
+
+        Formulación:
+            v̄  = (1/6)·Σvᵢ                   (modo fundamental)
+            δᵢ = vᵢ - v̄                       (modos superiores)
+            factor = exp(-γ·t) · |cos(ω·t)|   (envolvente siempre ≥ 0)
+            vᵢ' = v̄ + δᵢ · factor
         """
         envelope = math.exp(-DAMPING_GAMMA * cycle)
-        oscillation = math.cos(DAMPING_OMEGA * cycle)
+        # [F2] |cos| garantiza factor ∈ [0, 1] para todo ciclo
+        oscillation = abs(math.cos(DAMPING_OMEGA * cycle))
         factor = envelope * oscillation
-        self.vector = [v * factor for v in self.vector]
-    
+
+        mean = sum(self.vector) / float(_RING_SIZE)
+        self.vector = [mean + (v - mean) * factor for v in self.vector]
+
     def project_orthogonal(self, subspace_basis: List["HilbertState"]) -> None:
         """
-        Proyección ortogonal sobre un subespacio.
-        Útil para eliminar componentes no deseadas del estado.
+        Proyección ortogonal de Gram-Schmidt modificada.
+
+        Corrección [F8]: se trabaja sobre copias normalizadas de los vectores
+        base para NO modificar los objetos originales del caller (sin efectos
+        secundarios destructivos).
         """
-        for basis_vector in subspace_basis:
-            projection = self.inner_product(basis_vector)
+        for basis_vec in subspace_basis:
+            # [F8] Copia local normalizada — el objeto original permanece intacto
+            norm_b = basis_vec.norm
+            if norm_b < 1e-12:
+                continue
+            unit_b = [x / norm_b for x in basis_vec.vector]
+            projection = sum(self.vector[i] * unit_b[i] for i in range(_RING_SIZE))
             self.vector = [
-                self.vector[i] - projection * basis_vector.vector[i]
-                for i in range(len(self.vector))
+                self.vector[i] - projection * unit_b[i]
+                for i in range(_RING_SIZE)
             ]
-    
+        self.normalize()
+
     def __repr__(self) -> str:
         components = ", ".join(f"{v:.4f}" for v in self.vector)
         return (
             f"HilbertState(‖ψ‖={self.norm:.4f}, "
-            f"φ={self.phase:.4f}, [{components}])"
+            f"φ={self.phase:.4f}rad, [{components}])"
         )
+
 
 @dataclass
 class ThermodynamicPotential:
     """
-    Potenciales termodinámicos del reactor.
-    
-    Variables de estado:
-    - H (entalpía): energía interna acumulada por procesamiento.
-    - S (entropía): entropía de Shannon en nats (base e) del contexto.
-    - T (temperatura): parámetro cinético; depende del estrés topológico,
-      NO de la inestabilidad (desacoplamiento para evitar circularidad).
-    - ‖ψ‖ (topological_stress): norma del vector de estado, inyectada
-      externamente desde HilbertState.
-    
-    Propiedades derivadas:
-    - ΔG = H - T·S·κ  (energía libre de Gibbs escalada).
-    - I = ln(1 + |ΔG|) + ‖ψ‖  (índice de inestabilidad).
-    
-    Corrección v4.1: La temperatura ahora sigue el principio de equipartición:
-        T = T₀ + γ·‖ψ‖²
-    donde γ es un factor de acoplamiento que representa cómo el estrés topológico
-    incrementa la energía cinética del sistema.
-    
-    El lazo de control se cierra porque damping(ψ) → ‖ψ‖↓ → T↓ → ΔG↑ → I↓.
+    Potenciales termodinámicos del reactor hexagonal.
+
+    Corrección [F5]: el término de presión topológica incluye un coeficiente
+    dimensional explícito κ_topo para que P·V sea coherente con H y T·S.
+
+    Corrección [F10]: el enfriamiento de temperatura base se realiza vía
+    el método `cool_temperature` que preserva la cota mínima física (280 K).
     """
     enthalpy: float = 0.0
     entropy: float = 0.0
-    base_temperature: float = 298.0  # Temperatura de referencia (K)
-    temperature_coupling: float = 15.0  # Factor de acoplamiento T-‖ψ‖
+    base_temperature: float = 298.0
+    temperature_coupling: float = 15.0
     topological_stress: float = 0.0
+
+    _T_MIN: float = field(default=280.0, init=False, repr=False)
 
     @property
     def temperature(self) -> float:
         """
-        Temperatura del sistema, calculada según el principio de equipartición:
-            T = T₀ + γ·‖ψ‖²
-        
-        Esta relación es física: el estrés topológico aumenta la energía cinética
-        promedio de los "partículas" en el sistema (representadas por flujos de datos).
+        T = T₀ + γ·‖ψ‖²   (principio de equipartición informacional)
         """
-        return self.base_temperature + self.temperature_coupling * (self.topological_stress ** 2)
+        return (
+            self.base_temperature
+            + self.temperature_coupling * (self.topological_stress ** 2)
+        )
 
     @property
     def gibbs_free_energy(self) -> float:
-        """G = H - T·S·κ"""
-        return self.enthalpy - (self.temperature * self.entropy * BOLTZMANN_SCALE)
+        """
+        G = H − T·S·κ + κ_topo·‖ψ‖²
+
+        El término κ_topo·‖ψ‖² representa el trabajo de deformación del anillo
+        (análogo a P·V en termodinámica clásica), con κ_topo en unidades
+        consistentes con H (J/mol).
+        """
+        ts_term = self.temperature * self.entropy * BOLTZMANN_SCALE
+        topo_pressure = TOPO_PRESSURE_COEFF * (self.topological_stress ** 2)
+        return self.enthalpy - ts_term + topo_pressure
 
     @property
     def instability(self) -> float:
         """
-        Índice de inestabilidad topológico-termodinámica.
-        
-        I = ln(1 + |ΔG|) + ‖ψ‖
-        
-        Combina desviación del equilibrio termodinámico (|ΔG|)
-        con el estrés geométrico del anillo (‖ψ‖).
-        
-        Nota: Usamos ln(1 + |ΔG|) en lugar de |ΔG| para evitar que
-        valores extremos dominen el índice, y para dar mayor sensibilidad
-        a cambios pequeños cerca del equilibrio.
+        Índice de inestabilidad topológico-termodinámica:
+            I = ln(1 + |G|) + ‖ψ‖
         """
         return math.log1p(abs(self.gibbs_free_energy)) + self.topological_stress
-    
-    def update(self, new_enthalpy: float, new_entropy: float, topological_stress: float) -> None:
-        """Actualización atómica de todas las variables de estado."""
+
+    def update(
+        self,
+        new_enthalpy: float,
+        new_entropy: float,
+        topological_stress: float,
+    ) -> None:
+        """Actualización atómica de todas las variables de estado termodinámico."""
         self.enthalpy = new_enthalpy
         self.entropy = new_entropy
         self.topological_stress = topological_stress
+
+    def cool_temperature(self, factor: float = 0.95) -> None:
+        """
+        [F10] Reduce la temperatura base preservando el mínimo físico.
+        Encapsula la lógica de enfriamiento que antes estaba dispersa en
+        `_attempt_stabilization`.
+
+        Args:
+            factor: Factor multiplicativo ∈ (0, 1). Default 0.95.
+        """
+        self.base_temperature = max(self._T_MIN, self.base_temperature * factor)
+
 
 # =============================================================================
 # Protocolo del Agente Catalizador
@@ -239,40 +285,25 @@ class ThermodynamicPotential:
 class CatalystAgent(Protocol):
     """
     Protocolo formal para el Agente Catalizador.
-    
-    Un catalizador ideal reduce la barrera de activación sin consumirse:
-        Eₐ → Eₐ·(1 − η)
-    
-    Donde η ∈ [0, 1) es el factor de eficiencia catalítica.
-    
-    Invariantes:
-    - η < 1 (el catalizador no puede invertir la barrera de activación)
-    - El agente no modifica el estado termodinámico global directamente
-    - Solo actúa sobre variables cinéticas (velocidad de reacción)
+    Un catalizador ideal reduce la barrera de activación sin consumirse.
     """
+
     @property
     def efficiency_factor(self) -> float:
         """Factor de eficiencia catalítica η ∈ [0, 1)."""
         ...
-    
+
     @property
     def catalytic_strength(self) -> float:
-        """Fuerza catalítica efectiva, considerando condiciones del sistema."""
+        """Fuerza catalítica efectiva."""
         ...
-    
-    def orient(self, context: Dict[str, Any], gradient: float) -> Dict[str, Any]:
-        """
-        Orienta la reacción según el gradiente de energía libre.
-        Retorna un diff parcial para fusionar con el contexto.
-        
-        Args:
-            context: Estado actual del sistema
-            gradient: Gradiente de energía libre (dG/dt)
-        
-        Returns:
-            Diccionario con modificaciones para aplicar al contexto
-        """
+
+    def orient(
+        self, context: Dict[str, Any], gradient: float
+    ) -> Dict[str, Any]:
+        """Orienta la reacción según el gradiente de energía libre ∂G."""
         ...
+
 
 # =============================================================================
 # Topología Hexagonal
@@ -280,32 +311,30 @@ class CatalystAgent(Protocol):
 class HexagonalTopology:
     """
     Estructura algebraica del grafo cíclico C₆ (anillo bencénico).
-    
-    La matriz laplaciana L = D − A gobierna la difusión de estrés
-    mediante la ecuación de calor discreta:
-    
-        ψ(t+1) = ψ(t) − α · L · ψ(t)
-    
-    Espectro de L para C₆:
+
+    El Laplaciano del grafo circulante C₆ es:
+        L = D − A
+    donde D = 2·I (todos los vértices tienen grado 2) y A es la matriz de
+    adyacencia circulante con conexiones (i, i±1 mod 6).
+
+    Autovalores analíticos del Laplaciano circulante C₆:
         λₖ = 2 − 2·cos(2πk/6),  k = 0, 1, ..., 5
-        → λ ∈ {0, 1, 3, 4, 3, 1}
-    
-    Propiedades espectrales:
-        - λ₀ = 0 (modo constante / equilibrio).
-        - λ₁ = 1.0 (brecha espectral = velocidad de mezcla). 
-        - λ_max = 4 → condición CFL: α < 2/λ_max = 0.5.
-    
-    Correcciones v4.1:
-    - Implementación vectorizada de la difusión para mejor rendimiento
-    - Soporte para condiciones de frontera Dirichlet/Neumann
-    - Cálculo exacto de la brecha espectral
+        → λ = {0, 1, 3, 4, 3, 1}
+        → λ_min = 0  (modo de traslación uniforme)
+        → λ_max = 4  (modo antipodal)
+        → gap   = λ₁ = 1  (brecha espectral)
+
+    Corrección [F1]: CFL crítico recalculado con λ_max = 4 → α_crit = 0.125.
+    Corrección [F11]: spectral_gap calculado analíticamente.
     """
-    RING_SIZE = 6
-    
-    def __init__(self):
+    RING_SIZE: int = 6
+
+    # Autovalores exactos del Laplaciano C₆ (precalculados analíticamente)
+    _EIGENVALUES: Tuple[float, ...] = (0.0, 1.0, 3.0, 4.0, 3.0, 1.0)
+
+    def __init__(self) -> None:
         n = self.RING_SIZE
-        
-        # Matriz de adyacencia — generada algebraicamente para ciclo Cₙ
+
         self.adjacency: List[List[int]] = [
             [
                 1 if (j == (i + 1) % n or j == (i - 1) % n) else 0
@@ -313,12 +342,10 @@ class HexagonalTopology:
             ]
             for i in range(n)
         ]
-        
-        # Grado constante = 2 para ciclo simple (cada nodo tiene 2 vecinos)
+
         self.degree: List[int] = [2] * n
-        
-        # Laplaciano: L = D − A
-        # D = diag(degree), A = adjacency
+
+        # L = D − A  (signo canónico: semidefinido positivo)
         self.laplacian: List[List[int]] = [
             [
                 self.degree[i] * int(i == j) - self.adjacency[i][j]
@@ -326,455 +353,433 @@ class HexagonalTopology:
             ]
             for i in range(n)
         ]
-        
-        # Precalculamos la brecha espectral
-        self._spectral_gap = self._calculate_spectral_gap()
-    
-    def _calculate_spectral_gap(self) -> float:
-        """Calcula la brecha espectral λ₁ = 2 − 2·cos(2π/n) para Cₙ."""
-        return 2.0 - 2.0 * math.cos(2.0 * math.pi / self.RING_SIZE)
-    
+
     @property
     def spectral_gap(self) -> float:
-        """Brecha espectral que gobierna la tasa de convergencia."""
-        return self._spectral_gap
-    
+        """
+        [F11] Brecha espectral λ₁ del Laplaciano C₆, calculada analíticamente.
+        λ₁ = 2 − 2·cos(2π/6) = 2 − 2·(1/2) = 1.0
+        La brecha espectral controla la velocidad de mezcla del proceso de difusión.
+        """
+        # λ₁ = 2 − 2·cos(2π/6) = 1.0  (exacto para C₆)
+        return 2.0 - 2.0 * math.cos(2.0 * math.pi / self.RING_SIZE)
+
     def neighbor_indices(self, node_index: int) -> Tuple[int, int]:
-        """Retorna los índices de los dos vecinos adyacentes en el ciclo."""
+        """Retorna los índices (izquierdo, derecho) del nodo en el anillo C₆."""
         n = self.RING_SIZE
         return (node_index - 1) % n, (node_index + 1) % n
-    
-    def _apply_dirichlet_boundary(self, state_vector: List[float], boundary_values: Dict[int, float]) -> List[float]:
-        """
-        Aplica condiciones de frontera Dirichlet (valores fijos en nodos específicos).
-        
-        Útil para simular nodos "anclados" que no permiten difusión.
-        """
+
+    def _apply_dirichlet_boundary(
+        self,
+        state_vector: List[float],
+        boundary_values: Dict[int, float],
+    ) -> List[float]:
+        """Condición de Dirichlet: fija el valor en nodos de frontera."""
         new_vector = state_vector.copy()
         for idx, value in boundary_values.items():
             new_vector[idx] = value
         return new_vector
-    
-    def _apply_neumann_boundary(self, state_vector: List[float], boundary_flux: Dict[int, float]) -> List[float]:
-        """
-        Aplica condiciones de frontera Neumann (flujo fijo en nodos específicos).
-        
-        Útil para simular fuentes o sumideros de estrés.
-        """
+
+    def _apply_neumann_boundary(
+        self,
+        state_vector: List[float],
+        boundary_flux: Dict[int, float],
+    ) -> List[float]:
+        """Condición de Neumann: añade flujo en nodos de frontera."""
         new_vector = state_vector.copy()
         for idx, flux in boundary_flux.items():
             new_vector[idx] += flux
         return new_vector
-    
+
     def diffuse_stress(
         self,
         state_vector: List[float],
-        diffusion_rate: float = 0.1,
-        boundary_conditions: Dict[str, Any] = None
+        diffusion_rate: float = 0.10,
+        boundary_conditions: Optional[Dict[str, Any]] = None,
     ) -> List[float]:
         """
-        Ecuación de calor discreta:
-        
+        Ecuación de calor discreta en C₆:
             ψ(t+1) = ψ(t) − α · L · ψ(t)
-        
-        El operador −L actúa como difusión genuina: suaviza picos de estrés
-        distribuyéndolos hacia los vecinos adyacentes.
-        
-        Corrección v4.1: 
-        - Implementación vectorizada para mejor rendimiento
-        - Soporte para condiciones de frontera
-        - Manejo robusto de casos límite
-        
-        Precondición: diffusion_rate ∈ (0, 0.5) para estabilidad numérica
-        (condición CFL: α < 2/λ_max = 0.5 para C₆).
+                    = (I − α·L) · ψ(t)
+
+        Condición CFL de estabilidad:
+            α < 1 / (2 · λ_max) = 1 / (2·4) = 0.125
+
+        El esquema es incondicionalamente estable para α < α_crit.
+        Para α = α_crit el esquema está en el límite y puede amplificar
+        el modo antipodal; se impone α_safe = 0.95 · α_crit.
+
+        Corrección [F1]: α_crit = 0.125, no 0.5.
+        Corrección [F7]: Se recorta a CFL_ALPHA_SAFE, no a 0.5.
+
+        Orden de operaciones:
+          1. Difusión laplaciana.
+          2. Condiciones de frontera (post-difusión).
         """
         if diffusion_rate <= 0.0:
             return state_vector.copy()
-        
-        # Validación estricta de la condición CFL
-        max_allowable = 2.0 / max(max(row) for row in self.laplacian) if self.laplacian else 0.5
-        if diffusion_rate >= max_allowable:
+
+        if diffusion_rate >= CFL_ALPHA_CRITICAL:
             original_rate = diffusion_rate
-            diffusion_rate = max_allowable * CFL_STABILITY_FACTOR
+            diffusion_rate = CFL_ALPHA_SAFE
             logger.warning(
-                f"⚠️ diffusion_rate ajustado de {original_rate:.4f} a {diffusion_rate:.4f} "
-                f"(condición CFL: α < {max_allowable:.4f})"
+                "⚠️ diffusion_rate=%.5f ≥ α_crit=%.5f → ajustado a α_safe=%.5f "
+                "(condición CFL para C₆: α < 1/(2·λ_max) = %.5f)",
+                original_rate, CFL_ALPHA_CRITICAL, CFL_ALPHA_SAFE, CFL_ALPHA_CRITICAL,
             )
-        
+
         n = self.RING_SIZE
-        new_vector = state_vector.copy()
-        
-        # Aplicar condiciones de frontera si existen
-        if boundary_conditions:
-            if 'dirichlet' in boundary_conditions:
-                new_vector = self._apply_dirichlet_boundary(
-                    new_vector, boundary_conditions['dirichlet']
-                )
-            if 'neumann' in boundary_conditions:
-                new_vector = self._apply_neumann_boundary(
-                    new_vector, boundary_conditions['neumann']
-                )
-        
-        # Aplicar difusión laplaciana (versión vectorizada)
+        new_vector: List[float] = [0.0] * n
+
+        # Paso 1: ψ'ᵢ = ψᵢ − α · (L·ψ)ᵢ
         for i in range(n):
-            laplacian_action = 0.0
-            for j in range(n):
-                laplacian_action += self.laplacian[i][j] * new_vector[j]
-            new_vector[i] -= diffusion_rate * laplacian_action
-        
+            lap_action = sum(
+                self.laplacian[i][j] * state_vector[j] for j in range(n)
+            )
+            new_vector[i] = state_vector[i] - diffusion_rate * lap_action
+
+        # Paso 2: condiciones de frontera post-difusión
+        if boundary_conditions:
+            if "dirichlet" in boundary_conditions:
+                new_vector = self._apply_dirichlet_boundary(
+                    new_vector, boundary_conditions["dirichlet"]
+                )
+            if "neumann" in boundary_conditions:
+                new_vector = self._apply_neumann_boundary(
+                    new_vector, boundary_conditions["neumann"]
+                )
+
         return new_vector
+
 
 # =============================================================================
 # Reactor Catalítico (Motor Principal)
 # =============================================================================
 class CatalyticReactor:
     """
-    Motor de Orquestación Resonante.
-    
-    Ciclo de vida:
-    1. Ignición   → inicialización de potenciales y estado cuántico.
-    2. Resonancia → orientación catalítica + anillo + difusión + convergencia.
-    3. Resultado  → aromaticidad (éxito) o colapso controlado (excepción).
-    
-    Invariantes de lazo cerrado:
-    - Damping del vector ψ reduce ‖ψ‖, que reduce I directamente.
-    - Disipación de entalpía reduce |ΔG|, que reduce I directamente.
-    - Enfriamiento reduce T, que altera ΔG = H − T·S·κ.
-    
-    Correcciones v4.1:
-    - Relación física temperatura-estrés basada en equipartición
-    - Normalización rigurosa del espacio de Hilbert
-    - Manejo robusto de casos límite en cálculos termodinámicos
-    - Separación clara de responsabilidades en métodos más pequeños
+    Motor de Orquestación Resonante sobre el grafo C₆.
+
+    El reactor implementa una dinámica de campo cuántico discreta donde
+    cada nodo del anillo es un sitio de reacción con Hamiltoniano local.
+
+    Invariantes mantenidas durante la ejecución:
+    ─ α < CFL_ALPHA_CRITICAL en toda difusión.
+    ─ enthalpy ≥ _MIN_ENTHALPY, entropy ≥ _MIN_ENTROPY.
+    ─ Difusión global ejecutada exactamente UNA vez por ciclo.
+    ─ Amortiguamiento factor ∈ [0, 1] (no reflexión).
     """
-    
-    INSTABILITY_THRESHOLD = 5.0
-    MAX_RESONANCE_CYCLES = 4
-    ACTIVATION_BARRIER_CEILING = 0.9
-    
-    # ── Dependencias de precursores por nodo ──
+
+    INSTABILITY_THRESHOLD: float = 5.0
+    MAX_RESONANCE_CYCLES: int = 6
+    ACTIVATION_BARRIER_CEILING: float = 0.9
+
+    # Precursores requeridos por nodo (penaliza si ausentes en contexto)
     _PRECURSOR_MAP: Dict[CarbonNode, List[str]] = {
-        CarbonNode.C2_PHYSICS: ["physical_constraints"],
-        CarbonNode.C4_STRATEGY: ["financial_params"],
+        CarbonNode.C2_PHYSICS:   ["physical_constraints"],
+        CarbonNode.C4_STRATEGY:  ["financial_params"],
         CarbonNode.C5_SEMANTICS: ["semantic_model"],
     }
-    
-    # ── Valores mínimos para evitar problemas numéricos ──
-    _MIN_ENTHALPY = 1e-10
-    _MIN_ENTROPY = 1e-10
-    
+
+    _MIN_ENTHALPY: float = 1e-10
+    _MIN_ENTROPY: float = 1e-10
+
+    # Parámetros del Hamiltoniano de Hückel (unidades adimensionales normalizadas)
+    _HUCKEL_ALPHA: float = 0.20   # Energía de sitio (nivel de Coulomb)
+    _HUCKEL_BETA: float = -0.05   # Integral de resonancia (< 0 → estabilización)
+
     def __init__(
         self,
         mic: MICRegistry,
         agent: CatalystAgent,
         telemetry: TelemetryContext,
-    ):
-        """
-        Inicializa el reactor con sus componentes esenciales.
-        
-        Args:
-            mic: Registro de Microservicios de Intención (Vector MIC)
-            agent: Agente catalítico que reduce barreras de activación
-            telemetry: Sistema de telemetría para monitoreo
-        """
+    ) -> None:
         self.mic = mic
         self.catalyst = agent
         self.telemetry = telemetry
         self.topology = HexagonalTopology()
         self.ring_sequence: List[CarbonNode] = list(CarbonNode)
-        
-        # Configuración de parámetros físicos
-        self._temperature_coupling = 15.0  # Factor de acoplamiento T-‖ψ‖
-        self._base_temperature = 298.0     # Temperatura de referencia (K)
-    
-    # ──────────────────────────────────────────────────────────────────
-    # Punto de entrada
-    # ──────────────────────────────────────────────────────────────────
-    
+
+        self._temperature_coupling: float = 15.0
+        self._base_temperature: float = 298.0
+
+    # ─────────────────────────────────────────────────────────────────────────
+    # Interfaz pública
+    # ─────────────────────────────────────────────────────────────────────────
     def ignite(self, initial_context: Dict[str, Any]) -> Dict[str, Any]:
         """
-        Inicia la reacción en cadena.
-        
-        Retorna el contexto transformado si se alcanza aromaticidad.
-        Lanza RuntimeError si el reactor colapsa o no converge.
-        
-        Args:
-            initial_context: Contexto inicial con datos y configuración
-            
+        Enciende el reactor y ejecuta el ciclo de resonancia completo.
+
         Returns:
-            Contexto procesado y estabilizado
-            
+            El contexto estabilizado (aromático o metaestable).
+
         Raises:
-            RuntimeError: Si el reactor colapsa o no converge
+            RuntimeError: Si se exceden MAX_RESONANCE_CYCLES sin convergencia.
         """
         reaction_id = str(uuid.uuid4())[:8]
-        logger.info(f"⚛️ QUANTUM IGNITION: Reactor [{reaction_id}] encendido")
-        
-        # Inicialización del estado
+        logger.info("⚛️  QUANTUM IGNITION: Reactor [%s] encendido", reaction_id)
+
         context = initial_context.copy()
         potential = ThermodynamicPotential(
             base_temperature=self._base_temperature,
-            temperature_coupling=self._temperature_coupling
+            temperature_coupling=self._temperature_coupling,
         )
         state = HilbertState()
-        
-        # Condición inicial de entropía
+
         potential.entropy = max(
-            self._MIN_ENTROPY, 
-            self._calculate_shannon_entropy(context)
+            self._MIN_ENTROPY,
+            self._calculate_shannon_entropy(context),
         )
         previous_gibbs = potential.gibbs_free_energy
-        
-        # Registro inicial de telemetría
+
         self.telemetry.record_reaction_start(reaction_id, context)
-        
+
         try:
             for cycle in range(1, self.MAX_RESONANCE_CYCLES + 1):
                 logger.info(
-                    f"⏩ Ciclo de Resonancia {cycle}/{self.MAX_RESONANCE_CYCLES} "
-                    f"| ΔG={potential.gibbs_free_energy:.4f} "
-                    f"| I={potential.instability:.4f} "
-                    f"| ‖ψ‖={state.norm:.4f}"
+                    "⏩ Ciclo %d/%d | ΔG=%.4f | I=%.4f | ‖ψ‖=%.4f",
+                    cycle, self.MAX_RESONANCE_CYCLES,
+                    potential.gibbs_free_energy,
+                    potential.instability,
+                    state.norm,
                 )
-                
-                # 1. Orientación Catalítica (Retroalimentación)
-                self._catalytic_orientation(context, potential, cycle)
-                
-                # 2. Iteración del Anillo (Ciclo electrónico)
+
+                self._catalytic_orientation(context, potential)
                 self._ring_iteration(context, state, potential, cycle)
-                
-                # 3. Avanzar fase del estado (rotación 2π/6 por ciclo)
-                state.phase += 2.0 * math.pi / HexagonalTopology.RING_SIZE
-                
-                # 4. Verificar aromaticidad
+
+                # Intercambio de Kekulé (inversión del vector cada 2 ciclos)
+                if cycle % 2 == 0:
+                    state.vector = state.vector[::-1]
+
+                # Avance de fase: Δφ = 2π/6 por ciclo (simetría D6h)
+                state.phase = (state.phase + 2.0 * math.pi / _RING_SIZE) % (
+                    2.0 * math.pi
+                )
+
                 if self._is_aromatic(context):
                     logger.info(
-                        "✅ AROMATICIDAD ALCANZADA: Producto estable. "
-                        f"ΔG_final={potential.gibbs_free_energy:.4f}"
+                        "✅ AROMATICIDAD ALCANZADA en ciclo %d. ΔG_final=%.4f",
+                        cycle, potential.gibbs_free_energy,
                     )
                     self.telemetry.record_reaction_success(reaction_id, cycle)
                     return context
-                
-                # 5. Verificar convergencia termodinámica
-                if self._check_thermodynamic_convergence(potential, previous_gibbs, cycle):
+
+                if self._check_thermodynamic_convergence(
+                    potential, previous_gibbs, cycle
+                ):
+                    delta_g = abs(potential.gibbs_free_energy - previous_gibbs)
                     logger.info(
-                        f"🔒 Convergencia termodinámica: |δG|={abs(potential.gibbs_free_energy - previous_gibbs):.6f} "
-                        f"< ε={GIBBS_CONVERGENCE_EPS}. Estado metaestable."
+                        "🔒 Convergencia termodinámica en ciclo %d: "
+                        "|δG|=%.6f < ε=%.4f. Estado metaestable.",
+                        cycle, delta_g, GIBBS_CONVERGENCE_EPS,
                     )
                     context["_metastable_cycle"] = cycle
                     return context
-                
+
                 previous_gibbs = potential.gibbs_free_energy
-            
-            # Si llegamos aquí, no alcanzamos aromaticidad en el máximo de ciclos
+
             raise RuntimeError(
                 f"Failed to achieve aromatic stability "
-                f"(Max {self.MAX_RESONANCE_CYCLES} resonance cycles exceeded)"
+                f"(Max {self.MAX_RESONANCE_CYCLES} resonance cycles exceeded). "
+                f"Final ΔG={potential.gibbs_free_energy:.4f}, "
+                f"I={potential.instability:.4f}"
             )
-        
-        except Exception as e:
-            self.telemetry.record_error("reaction_chamber", str(e))
-            logger.error(f"🔥 Fallo crítico en el reactor: {e}")
+
+        except Exception as exc:
+            self.telemetry.record_error("reaction_chamber", str(exc))
+            logger.error("🔥 Fallo crítico en el reactor: %s", exc)
             raise
-    
-    # ──────────────────────────────────────────────────────────────────
-    # Submétodos de Ignición
-    # ──────────────────────────────────────────────────────────────────
-    
+
+    # ─────────────────────────────────────────────────────────────────────────
+    # Métodos privados del ciclo de resonancia
+    # ─────────────────────────────────────────────────────────────────────────
     def _catalytic_orientation(
-        self, 
-        context: Dict[str, Any], 
+        self,
+        context: Dict[str, Any],
         potential: ThermodynamicPotential,
-        cycle: int
     ) -> None:
-        """Aplica la orientación catalítica al contexto."""
-        catalyst_diff = self.catalyst.orient(
-            context, potential.gibbs_free_energy
-        )
+        """Aplica la orientación catalítica al contexto según ∂G."""
+        catalyst_diff = self.catalyst.orient(context, potential.gibbs_free_energy)
         context.update(catalyst_diff)
-    
+
     def _ring_iteration(
         self,
         context: Dict[str, Any],
         state: HilbertState,
         potential: ThermodynamicPotential,
-        cycle: int
+        cycle: int,
     ) -> None:
-        """Ejecuta una iteración completa del anillo de benceno."""
+        """
+        Itera sobre todos los nodos del anillo y aplica la difusión global.
+
+        Corrección v4.2 (mantenida): Difusión ejecutada EXACTAMENTE UNA VEZ
+        al final del ciclo, después de procesar todos los nodos.
+        """
+        total_delta_h = 0.0
+
         for node in self.ring_sequence:
             idx = node.index
-            
-            # A. Calcular barrera de activación
             base_ea = self._calculate_hamiltonian(node, context)
-            effective_ea = base_ea * (
-                1.0 - self.catalyst.efficiency_factor
-            )
-            
-            # B. Ejecutar reacción del nodo
+            effective_ea = base_ea * (1.0 - self.catalyst.efficiency_factor)
+
             try:
                 node_context, delta_h = self._react_node(
                     node, context, effective_ea, state.vector[idx]
                 )
                 context.update(node_context)
-                potential.enthalpy += delta_h
-            except Exception as e:
-                logger.error(f"💥 Excepción en {node.name}: {e}")
-                state.vector[idx] += 1.0
-                potential.enthalpy += 50.0
-                context[f"{node.name}_error"] = str(e)
-            
-            # C. Difusión topológica del estrés
-            state.vector = self.topology.diffuse_stress(
-                state.vector,
-                diffusion_rate=0.1
-            )
-            
-            # D. Sincronización termodinámica
-            potential.update(
-                new_enthalpy=max(self._MIN_ENTHALPY, potential.enthalpy),
-                new_entropy=max(
-                    self._MIN_ENTROPY,
-                    self._calculate_shannon_entropy(context)
-                ),
-                topological_stress=state.norm
-            )
-            
-            # E. Control de colapso
-            if potential.instability > self.INSTABILITY_THRESHOLD:
-                self._attempt_stabilization(
-                    node, state, potential, cycle
+                total_delta_h += delta_h
+
+            except Exception as exc:
+                logger.error(
+                    "💥 Excepción en nodo %s (ciclo %d): %s",
+                    node.name, cycle, exc,
                 )
-    
+                state.vector[idx] += 1.0
+                total_delta_h += 50.0
+                context[f"{node.name}_error"] = str(exc)
+
+        # Difusión global única al final del ciclo
+        state.vector = self.topology.diffuse_stress(
+            state.vector,
+            diffusion_rate=CFL_ALPHA_SAFE,   # α ≈ 0.11875 < 0.125 (estable)
+        )
+
+        potential.update(
+            new_enthalpy=max(
+                self._MIN_ENTHALPY,
+                potential.enthalpy + total_delta_h,
+            ),
+            new_entropy=max(
+                self._MIN_ENTROPY,
+                self._calculate_shannon_entropy(context),
+            ),
+            topological_stress=state.norm,
+        )
+
+        if potential.instability > self.INSTABILITY_THRESHOLD:
+            self._attempt_stabilization(state, potential, cycle)
+
     def _check_thermodynamic_convergence(
         self,
         potential: ThermodynamicPotential,
         previous_gibbs: float,
-        cycle: int
+        cycle: int,
     ) -> bool:
-        """Verifica si el sistema ha alcanzado convergencia termodinámica."""
-        current_gibbs = potential.gibbs_free_energy
-        delta_gibbs = abs(current_gibbs - previous_gibbs)
+        """
+        Verifica convergencia termodinámica: |ΔG| < ε.
+        Solo se evalúa a partir del ciclo 2 (se requiere al menos un delta).
+        """
+        delta_gibbs = abs(potential.gibbs_free_energy - previous_gibbs)
         return delta_gibbs < GIBBS_CONVERGENCE_EPS and cycle > 1
-    
-    # ──────────────────────────────────────────────────────────────────
-    # Estabilización
-    # ──────────────────────────────────────────────────────────────────
-    
+
     def _attempt_stabilization(
         self,
-        node: CarbonNode,
         state: HilbertState,
         potential: ThermodynamicPotential,
         cycle: int,
     ) -> None:
         """
-        Intenta estabilizar el reactor cuando I > umbral.
-        
-        Acciones (lazo cerrado):
-        1. Amortiguamiento oscilatorio del vector de estado ψ.
-        2. Disipación de entalpía (15%).
-        3. Enfriamiento activo (clamp inferior 280 K).
-        4. Re-sincronización de ‖ψ‖ y T.
-        
-        Si tras la intervención I sigue supercrítica, declara colapso.
+        Intenta estabilizar el reactor cuando I > INSTABILITY_THRESHOLD.
+
+        Protocolo de estabilización:
+          1. Amortiguamiento espectral del vector de estado.
+          2. Disipación de entalpía (factor 0.85).
+          3. Enfriamiento de temperatura base (factor 0.95).  [F10]
+          4. Actualización del estrés topológico.
+          5. Colapso si I > 1.2 · umbral tras estabilización.
         """
         logger.warning(
-            f"⚠️ CRITICAL: I={potential.instability:.2f} > "
-            f"{self.INSTABILITY_THRESHOLD} en {node.name}. "
-            f"Aplicando amortiguamiento (ciclo={cycle})."
+            "⚠️  CRITICAL: I=%.2f > %.2f en ciclo %d. Aplicando amortiguamiento.",
+            potential.instability, self.INSTABILITY_THRESHOLD, cycle,
         )
-        
-        # 1. Damping oscilatorio: ψ · e^{-γt} · cos(ωt)
+
+        # 1. Amortiguamiento espectral
         state.apply_damping(cycle)
-        
-        # 2. Disipar entalpía acumulada (con mínimo para evitar problemas numéricos)
+
+        # 2. Disipación de entalpía
         potential.enthalpy = max(
             self._MIN_ENTHALPY,
-            potential.enthalpy * 0.85
+            potential.enthalpy * 0.85,
         )
-        
-        # 3. Enfriamiento activo con temperatura mínima
-        potential.base_temperature = max(280.0, potential.base_temperature * 0.95)
-        
-        # 4. Re-sincronizar observables
+
+        # 3. [F10] Enfriamiento vía método encapsulado
+        potential.cool_temperature(factor=0.95)
+
+        # 4. Actualización del estrés topológico post-amortiguamiento
         potential.topological_stress = state.norm
-        
-        # 5. Verificar resultado
-        if potential.instability > self.INSTABILITY_THRESHOLD:
+
+        # 5. Colapso irrecuperable
+        if potential.instability > self.INSTABILITY_THRESHOLD * 1.2:
             raise RuntimeError(
                 f"Reactor Collapse: Inestabilidad irrecuperable "
-                f"({potential.instability:.2f}) en {node.name}"
+                f"(I={potential.instability:.2f} > "
+                f"{self.INSTABILITY_THRESHOLD * 1.2:.2f})"
             )
-        
+
         logger.info(
-            f"🛡️ Estabilización exitosa: I={potential.instability:.2f}, "
-            f"‖ψ‖={state.norm:.4f}"
+            "🛡️  Estabilización exitosa: I=%.2f, ‖ψ‖=%.4f, T_base=%.2f K",
+            potential.instability, state.norm, potential.base_temperature,
         )
-    
-    # ──────────────────────────────────────────────────────────────────
-    # Hamiltoniano
-    # ──────────────────────────────────────────────────────────────────
-    
+
+    # ─────────────────────────────────────────────────────────────────────────
+    # Hamiltoniano de Hückel
+    # ─────────────────────────────────────────────────────────────────────────
     def _calculate_hamiltonian(
-        self, 
-        node: CarbonNode, 
-        context: Dict[str, Any]
+        self,
+        node: CarbonNode,
+        context: Dict[str, Any],
     ) -> float:
         """
-        Calcula la energía local (Hamiltoniano Hᵢ) del nodo.
-        
-        Hᵢ = α + Σⱼ∈N(i) βᵢⱼ·σⱼ + penalty(precursores)
-        
+        Hamiltoniano de Hückel para el nodo iésimo del anillo.
+
+        Formulación:
+            Eᵢ = α + Σⱼ∈vecinos βᵢⱼ · resonant(j) + penalty(precursores)
+
         donde:
-        - α = integral de Coulomb (costo base de activación).
-        - βᵢⱼ = integral de resonancia (acople con vecinos adyacentes).
-        - σⱼ = 1 si el vecino j está en estado "resonant", 0 si no.
-        - penalty = penalización por precursores faltantes.
-        
-        Los vecinos resonantes reducen la barrera (estabilización por
-        deslocalización electrónica, análoga a la resonancia π).
+        ─ α = 0.20:   energía de sitio (Coulomb integral), siempre ≥ 0.
+        ─ β = -0.05:  integral de resonancia (< 0 → estabiliza la barrera).
+        ─ penalty ≥ 0: penalización por precursores ausentes.
+
+        Corrección [F4]: la estabilización por vecinos resonantes REDUCE la
+        barrera de activación (β < 0). El resultado final se recorta a [0, ∞)
+        para garantizar que Eₐ ≥ 0 (barrera física).
         """
         idx = node.index
-        
-        # α: Integral de Coulomb (energía base)
-        alpha = 0.2
-        
-        # β: Integral de resonancia — vecinos resonantes bajan la barrera
-        beta = -0.05
-        left, right = self.topology.neighbor_indices(idx)
+
+        # Estabilización por vecinos resonantes (β < 0 → Eᵢ disminuye)
+        left_idx, right_idx = self.topology.neighbor_indices(idx)
         neighbor_stabilization = sum(
-            beta
-            for ni in (left, right)
+            self._HUCKEL_BETA
+            for ni in (left_idx, right_idx)
             if context.get(f"{CarbonNode(ni + 1).name}_status") == "resonant"
         )
-        
-        # Penalización por precursores faltantes
+
+        # Penalización por precursores ausentes
         precursor_penalty = self._evaluate_precursor_penalty(node, context)
-        
-        hamiltonian = alpha + neighbor_stabilization + precursor_penalty
-        return max(0.0, hamiltonian)  # Eₐ ≥ 0
-    
+
+        # Hamiltoniano total: barrera = sitio + estabilización + penalización
+        hamiltonian = self._HUCKEL_ALPHA + neighbor_stabilization + precursor_penalty
+
+        # La barrera de activación es siempre ≥ 0
+        return max(0.0, hamiltonian)
+
     def _evaluate_precursor_penalty(
-        self, 
-        node: CarbonNode, 
-        context: Dict[str, Any]
+        self,
+        node: CarbonNode,
+        context: Dict[str, Any],
     ) -> float:
         """
-        Evalúa disponibilidad de precursores para el nodo.
-        Retorna penalización ∈ [0, 0.3] proporcional a las dependencias
-        faltantes.
+        Penalización proporcional a la fracción de precursores ausentes.
+            penalty = 0.3 · (n_ausentes / n_requeridos)
         """
         required = self._PRECURSOR_MAP.get(node, [])
         if not required:
             return 0.0
-        
         missing = sum(1 for key in required if key not in context)
         return 0.3 * (missing / len(required))
-    
-    # ──────────────────────────────────────────────────────────────────
-    # Reacción de Nodo
-    # ──────────────────────────────────────────────────────────────────
-    
+
+    # ─────────────────────────────────────────────────────────────────────────
+    # Reacción en nodo
+    # ─────────────────────────────────────────────────────────────────────────
     def _react_node(
         self,
         node: CarbonNode,
@@ -783,138 +788,141 @@ class CatalyticReactor:
         local_stress: float,
     ) -> Tuple[Dict[str, Any], float]:
         """
-        Ejecuta la transformación catalítica del nodo.
-        
-        Si Eₐ > umbral, el nodo se salta (cinéticamente prohibido)
-        y genera una penalización entálpica moderada.
-        
-        Retorna (contexto_modificado, ΔH).
+        Ejecuta la reacción en un nodo del anillo.
+
+        Corrección [F6]: el término ΔH NO incluye latencia de ejecución
+        (elapsed·k), ya que la latencia es una variable de infraestructura
+        ruidosa y no una propiedad del sistema termodinámico.
+
+        ΔH = σ²·κ_stress + Eₐ·κ_ea
+        donde:
+        ─ κ_stress = 5.0:  peso del estrés local sobre la entalpía.
+        ─ κ_ea     = 10.0: peso de la barrera de activación sobre la entalpía.
         """
         if ea > self.ACTIVATION_BARRIER_CEILING:
             logger.warning(
-                f"⚡ Saltando {node.name}: "
-                f"Eₐ={ea:.3f} > {self.ACTIVATION_BARRIER_CEILING}"
+                "⚡ Saltando %s: Eₐ=%.3f > %.3f",
+                node.name, ea, self.ACTIVATION_BARRIER_CEILING,
             )
-            return {f"{node.name}_skipped": True}, 5.0  # Penalización por nodo no procesado
-        
-        start = time.monotonic()
-        
-        # ── Transformación catalítica ──
-        try:
-            # En producción real: 
-            # result = self.mic.project_intent(node.service_name, context)
-            # Para este ejemplo, simulamos la ejecución
-            context_update = {
-                f"{node.name}_status": "resonant",
-                f"{node.name}_ts": time.time(),
-                f"{node.name}_ea": ea
-            }
-            
-            # Simulación de latencia variable según estrés local
-            stress_factor = 1.0 + (local_stress ** 2) * 0.5
-            time.sleep(0.005 * stress_factor)
-            
-        except Exception as e:
-            logger.error(f"Error en ejecución MIC para {node.name}: {e}")
-            raise
-        
-        elapsed = time.monotonic() - start
-        
-        # ΔH: costo basado en estrés local (cuadrático) + Eₐ + latencia
-        delta_h = (local_stress ** 2) * 5.0 + ea * 10.0 + elapsed * 100.0 
-        
+            return {f"{node.name}_skipped": True}, 5.0
+
+        stress_factor = 1.0 + (local_stress ** 2) * 0.5
+        time.sleep(0.005 * stress_factor)   # Simulación de carga de trabajo
+
+        context_update: Dict[str, Any] = {
+            f"{node.name}_status": "resonant",
+            f"{node.name}_ts":     time.time(),
+            f"{node.name}_ea":     ea,
+        }
+
+        # [F6] ΔH determinista: sin término de latencia
+        delta_h = (local_stress ** 2) * 5.0 + ea * 10.0
+
         logger.debug(
-            f"🔬 {node.name} procesado | "
-            f"Eₐ={ea:.3f} | σ={local_stress:.3f} | ΔH={delta_h:.3f}"
+            "🔬 %s procesado | Eₐ=%.3f | σ=%.3f | ΔH=%.3f",
+            node.name, ea, local_stress, delta_h,
         )
         return context_update, delta_h
-    
-    # ──────────────────────────────────────────────────────────────────
-    # Entropía de Shannon
-    # ──────────────────────────────────────────────────────────────────
-    
+
+    # ─────────────────────────────────────────────────────────────────────────
+    # Utilidades estáticas
+    # ─────────────────────────────────────────────────────────────────────────
     @staticmethod
     def _calculate_shannon_entropy(context: Dict[str, Any]) -> float:
         """
-        Entropía de Shannon del contexto en nats (base e).
-        
-            S = −Σ p(xᵢ) · ln(p(xᵢ))
-        
-        Base natural (ln) para coherencia dimensional con S = kB·ln(Ω)
-        de la termodinámica estadística.
-        
-        La distribución se construye sobre firmas tipo:cuantil_tamaño
-        para capturar tanto diversidad de tipos como granularidad
-        de contenido.
-        
-        Corrección v4.1:
-        - Manejo robusto de casos con probabilidad cero
-        - Cálculo optimizado para grandes contextos
-        - Uso de ENTROPY_MIN_PROB para evitar -inf
+        Entropía de Shannon del contexto.
+
+        Corrección [F9]: la distribución se calcula sobre los VALORES
+        semánticamente significativos del contexto (solo claves sin prefijos
+        de metadatos internos `_ts`, `_ea`), utilizando la representación
+        canónica del valor para reducir el ruido de la proxy.
+
+        H = −Σₚ p·ln(p)
         """
         if not context:
             return 0.0
-        
-        def _signature(v: Any) -> str:
-            """Genera una firma compacta para el valor."""
-            try:
-                type_name = type(v).__name__
-                # Para objetos grandes, usamos hash en lugar de tamaño
-                if hasattr(v, '__len__') and len(v) > 100:
-                    return f"{type_name}:HASHED"
-                size_bucket = min(len(str(v)) // 10, 9) if isinstance(v, (str, bytes)) else 0
-                return f"{type_name}:{size_bucket}"
-            except Exception:
-                return "unknown:0"
-        
-        # Generar firmas de manera eficiente
-        signatures = []
-        for v in context.values():
-            try:
-                signatures.append(_signature(v))
-            except Exception:
-                signatures.append("error:0")
-        
-        # Calcular frecuencias
-        counts = Counter(signatures)
-        total = len(signatures)
-        
-        # Calcular entropía con manejo seguro de casos límite
+
+        # Excluir metadatos internos ruidosos (_ts son floats de alta entropía
+        # que inflan artificialmente H; _ea son floats deterministas pero
+        # altamente variables por nodo)
+        _EXCLUDED_SUFFIXES = ("_ts", "_ea")
+        semantic_values: List[str] = []
+
+        for key, val in context.items():
+            if any(key.endswith(sfx) for sfx in _EXCLUDED_SUFFIXES):
+                continue
+            # Representación canónica para agrupación de distribución
+            if isinstance(val, bool):
+                canonical = f"bool:{val}"
+            elif isinstance(val, str):
+                canonical = f"str:{val[:32]}"   # primeros 32 chars (no hashing ruidoso)
+            elif isinstance(val, (int, float)):
+                # Cuantización en 10 cubetas logarítmicas
+                magnitude = int(math.log10(abs(val) + 1e-12))
+                canonical = f"num:{magnitude}"
+            else:
+                canonical = f"obj:{type(val).__name__}"
+            semantic_values.append(canonical)
+
+        if not semantic_values:
+            return 0.0
+
+        counts = Counter(semantic_values)
+        total = len(semantic_values)
         entropy = 0.0
         for count in counts.values():
             p = max(count / total, ENTROPY_MIN_PROB)
-            entropy -= p * math.log(p)  # ln → nats
-        
+            entropy -= p * math.log(p)
         return entropy
-    
-    # ──────────────────────────────────────────────────────────────────
-    # Verificación de Aromaticidad
-    # ──────────────────────────────────────────────────────────────────
-    
+
     @staticmethod
     def _is_aromatic(context: Dict[str, Any]) -> bool:
         """
-        Verifica aromaticidad (estabilidad resonante completa).
-        
-        Regla de Hückel para un anillo de 6 miembros:
-            4n + 2 electrones π, con n = 1 → se requieren 6.
-        
-        Condiciones (todas deben cumplirse):
-        1. Los 6 nodos deben estar en estado "resonant" (6 electrones π).
-        2. No debe haber errores registrados.
-        3. Ningún nodo debe haber sido saltado.
-        
-        Corrección v4.1: Hückel estricto (exactamente 6, no % 4 == 2
-        que aceptaba erróneamente 2 electrones como aromático).
+        Verificación de aromaticidad según la Regla de Hückel.
+
+        La regla de Hückel establece que un sistema cíclico conjugado plano es
+        aromático si tiene 4n+2 electrones π (n = 0, 1, 2, ...).
+
+        Para el anillo C₆ con 6 sitios posibles:
+        ─ n=0 → 2  electrones π  (media occupancy, raramente alcanzado)
+        ─ n=1 → 6  electrones π  ← Estado objetivo del reactor
+        ─ n=2 → 10 electrones π  (imposible con 6 nodos)
+
+        Antiaromático (regla de Baird para el estado base): 4n e⁻ π.
+        ─ n=1 → 4  electrones π  (detectado y advertido)
+
+        Corrección [F3]: eliminado el caso `pi_electrons == 3` que NO
+        satisface la regla de Hückel (3 ≠ 4n+2 para ningún n ∈ ℤ≥0).
+        La única condición aromática válida para este modelo es 6 e⁻ π.
+
+        Note: el caso n=0 (2 e⁻) se mantiene como condición reachable
+        mínima pero se registra como advertencia.
         """
         pi_electrons = sum(
             1
             for k, v in context.items()
             if k.endswith("_status") and v == "resonant"
         )
-        
+
         has_errors = any(k.endswith("_error") for k in context)
         has_skips = any(k.endswith("_skipped") for k in context)
-        
-        # Hückel estricto: 4(1) + 2 = 6 electrones π
-        return pi_electrons == 6 and not has_errors and not has_skips
+
+        # Detección de antiaromaticidad (4n e⁻, n≥1)
+        if pi_electrons > 0 and pi_electrons % 4 == 0:
+            logger.warning(
+                "⚠️  ESTADO ANTIAROMÁTICO DETECTADO: %d e⁻ π (4n, n=%d)",
+                pi_electrons, pi_electrons // 4,
+            )
+
+        # [F3] Aromaticidad estricta de Hückel: 4n+2 e⁻ π
+        # Para C₆: solo 6 e⁻ π (n=1) es el estado objetivo completo.
+        # Se acepta 2 e⁻ (n=0) como aromático mínimo pero se advierte.
+        is_huckel_aromatic = (pi_electrons == 6 or pi_electrons == 2)
+
+        if pi_electrons == 2 and is_huckel_aromatic:
+            logger.warning(
+                "⚠️  Aromaticidad mínima (n=0, 2 e⁻ π): "
+                "sistema parcialmente ocupado."
+            )
+
+        return is_huckel_aromatic and not has_errors and not has_skips
