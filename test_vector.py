@@ -1,33 +1,33 @@
 """
-test_vector.py — Transmisor MIC con Protocolo de Handshake Estricto
-====================================================================
-Protocolo de "Llamada y Respuesta" (revisión 2):
+test_vector.py — Transmisor MIC con Protocolo Pasivo
+=====================================================
+Revisión 3: Protocolo Pasivo (sin manipulación DTR/RTS).
 
-  CAMBIOS QUIRÚRGICOS v2:
-  ┌─────────────────────────────────────────────────────────────────┐
-  │ 1. Auto-Reset por DTR/RTS: Python fuerza el reinicio del ESP32  │
-  │    electrónicamente tras abrir el puerto. Elimina la necesidad  │
-  │    de reconectar el cable manualmente.                           │
-  │                                                                  │
-  │ 2. Beacon Flexible: En lugar de buscar una cadena exacta        │
-  │    (acoplada a la versión del firmware), se detectan palabras   │
-  │    clave semánticas: "SENTINEL" o "READY". Esto desacopla el    │
-  │    script de Python de la versión específica del firmware C++.  │
-  └─────────────────────────────────────────────────────────────────┘
+HISTORIAL DE DECISIONES DE DISEÑO:
+  v1: Espera fija (sleep 3s) → condición de carrera con bootloader.
+  v2: Auto-reset DTR/RTS     → ESP32 DOIT atrapado en DOWNLOAD_BOOT
+                                por capricho del circuito CH340/CP2102.
+  v3: Protocolo Pasivo       → Python NO toca DTR/RTS. Abre el puerto
+                                en modo silencioso y espera que el
+                                usuario presione EN físicamente.
+                                Robusto ante cualquier variante de
+                                circuito USB-Serial.
 
-Flujo completo:
-  1. Python abre el puerto.
-  2. Python fuerza reset via DTR/RTS (automático, sin intervención).
-  3. Python descarta basura del bootloader (74880 baudios → ruido).
-  4. Python detecta "SENTINEL" o "READY" → ESP32 confirmado listo.
-  5. Python envía el JSON + flush.
-  6. Python escucha ACK del firmware.
+FLUJO:
+  1. Python abre el puerto SIN tocar líneas de control (dsrdtr=False,
+     rtscts=False). El chip NO se reinicia automáticamente.
+  2. Python solicita al usuario que presione EN físicamente.
+  3. Python escucha con timeout: descarta basura del bootloader y
+     detecta beacon semántico (SENTINEL o READY).
+  4. Python limpia el buffer de entrada y envía el JSON.
+  5. Python escucha el ACK del firmware.
 """
 
 from __future__ import annotations
 
 import json
 import logging
+import math
 import time
 from contextlib import contextmanager
 from dataclasses import asdict, dataclass
@@ -44,34 +44,32 @@ from serial import SerialException
 PUERTO: Final[str] = "/dev/ttyUSB0"
 BAUDIOS: Final[int] = 115_200
 
-# Timeout por readline(): bajo para que el loop de beacon sea reactivo.
-# 100ms es el balance óptimo entre latencia y consumo de CPU.
-TIMEOUT_LECTURA: Final[float] = 0.1
+# Timeout por readline(): 500ms como en la propuesta.
+# Más alto que v2 (100ms) porque en modo pasivo no necesitamos
+# reactividad extrema: el usuario tiene tiempo de presionar EN.
+TIMEOUT_LECTURA: Final[float] = 0.5
 
-# ── Parámetros de Auto-Reset DTR/RTS ────────────────────────────────────────
-# El ciclo DTR/RTS replica el comportamiento del IDE de Arduino al
-# presionar "Upload": baja DTR para señalizar reset, luego restaura.
-# Los tiempos están calibrados para el CH340/CP2102 del ESP32.
-RESET_DTR_PULSO: Final[float] = 0.1   # segundos en estado de reset
-RESET_POST_ESPERA: Final[float] = 0.5  # segundos para que el bootloader actúe
-
-# ── Palabras Clave del Beacon (Búsqueda Flexible) ───────────────────────────
-# Semánticamente, cualquier firmware del Centinela debería identificarse
-# con "SENTINEL" o indicar disponibilidad con "READY".
-# Usar .upper() en la comparación hace la detección case-insensitive.
+# ── Beacon ───────────────────────────────────────────────────────────────────
+# Palabras clave semánticas, case-insensitive.
+# Desacopladas de la versión específica del firmware.
 BEACON_KEYWORDS: Final[tuple[str, ...]] = ("SENTINEL", "READY")
 
-# ── Timeouts de Handshake ────────────────────────────────────────────────────
-# El ESP32 tarda ~2-4s en reiniciar y ejecutar setup().
-# 15s es un margen generoso para chips lentos o con setup() complejo.
-TIMEOUT_BEACON: Final[float] = 15.0
+# Tiempo máximo para esperar que el usuario presione EN y el firmware
+# emita su beacon. 60s es generoso para el factor humano.
+TIMEOUT_BEACON: Final[float] = 60.0
+
+# Pausa entre beacon y envío: da tiempo al firmware para estabilizarse
+# y vacía cualquier línea rezagada del arranque.
+PAUSA_POST_BEACON: Final[float] = 0.2
+
+# ── ACK ──────────────────────────────────────────────────────────────────────
 TIMEOUT_ACK: Final[float] = 5.0
 
 # ── Reintentos ───────────────────────────────────────────────────────────────
 MAX_REINTENTOS: Final[int] = 3
 BACKOFF_BASE: Final[float] = 2.0
 
-# ── Referencia Topológica ────────────────────────────────────────────────────
+# ── Referencia Topológica ─────────────────────────────────────────────────────
 BETA_1_MAX_REFERENCIA: Final[int] = 1000
 
 # ---------------------------------------------------------------------------
@@ -93,7 +91,7 @@ logger = logging.getLogger("centinela.mic.test")
 
 class VerdictCode(IntEnum):
     """
-    Dominio cerrado de veredictos del sistema.
+    Dominio cerrado de veredictos.
     IntEnum garantiza serialización JSON como entero sin conversión manual.
     """
 
@@ -117,7 +115,7 @@ class PhysicsState:
       - saturation ∈ [0, 1]: fracción de saturación normalizada.
       - dissipated_power ≥ 0: Segunda Ley de la Termodinámica.
       - gyroscopic_stability ∈ [0, 1]: norma L2 normalizada del vector
-        de estabilidad proyectado sobre el subespacio de Lyapunov estable.
+        de estabilidad sobre el subespacio de Lyapunov estable.
     """
 
     saturation: float
@@ -127,9 +125,7 @@ class PhysicsState:
     def validate(self) -> None:
         errors: list[str] = []
         if not (0.0 <= self.saturation <= 1.0):
-            errors.append(
-                f"saturation={self.saturation!r} ∉ [0, 1]."
-            )
+            errors.append(f"saturation={self.saturation!r} ∉ [0, 1].")
         if self.dissipated_power < 0.0:
             errors.append(
                 f"dissipated_power={self.dissipated_power!r} < 0. "
@@ -148,7 +144,7 @@ class PhysicsState:
     def energy_consistency_index(self) -> float:
         """
         ECI = saturation × gyroscopic_stability × dissipated_power.
-        Detecta regímenes anómalos. Valores > 100 → régimen de alarma.
+        Detecta regímenes anómalos. ECI > 100 → régimen de alarma.
         """
         return (
             self.saturation
@@ -163,7 +159,7 @@ class TopologyState:
     Estado topológico del sistema (Álgebra Homológica).
 
     Invariantes:
-      - beta_1 ∈ ℤ≥0: primer número de Betti.
+      - beta_1 ∈ ℤ≥0: primer número de Betti (ciclos independientes).
       - pyramid_stability ∈ [0, 1]: estabilidad piramidal normalizada.
 
     Coherencia β₁ ↔ pyramid_stability:
@@ -176,9 +172,7 @@ class TopologyState:
     def validate(self) -> None:
         errors: list[str] = []
         if self.beta_1 < 0:
-            errors.append(
-                f"beta_1={self.beta_1!r} < 0. β₁ ∈ ℤ≥0."
-            )
+            errors.append(f"beta_1={self.beta_1!r} < 0. β₁ ∈ ℤ≥0.")
         if not (0.0 <= self.pyramid_stability <= 1.0):
             errors.append(
                 f"pyramid_stability={self.pyramid_stability!r} ∉ [0, 1]."
@@ -192,10 +186,12 @@ class TopologyState:
     def _validate_topological_coherence(self) -> None:
         """
         Bound inferior adaptativo para pyramid_stability dado β₁.
-        β₁=442, β₁_max=1000 → lower_bound ≈ 0.118 → 0.69 ✓
-        """
-        import math
 
+        β₁=442, β₁_max=1000:
+          log_ratio = log(443)/log(1001) ≈ 0.882
+          lower_bound = max(0, 1 − 0.882) ≈ 0.118
+          pyramid_stability = 0.69 ≥ 0.118 ✓
+        """
         if BETA_1_MAX_REFERENCIA <= 0:
             return
         log_ratio = math.log1p(self.beta_1) / math.log1p(
@@ -301,27 +297,45 @@ class VectorEstado:
 
 
 # ---------------------------------------------------------------------------
-# Context Manager: Puerto Serial
+# Context Manager: Puerto Serial en Modo Pasivo
 # ---------------------------------------------------------------------------
 
 
 @contextmanager
-def puerto_serial(
+def puerto_serial_pasivo(
     puerto: str,
     baudios: int,
     timeout: float,
 ) -> Iterator[serial.Serial]:
     """
-    Gestión declarativa del puerto serial.
+    Abre el puerto serial en MODO PASIVO.
 
-    Abre el puerto y garantiza su cierre incluso ante excepciones.
-    El timeout bajo (0.1s) mantiene el loop de beacon reactivo.
+    Parámetros clave:
+      dsrdtr=False → Python NO controla DTR automáticamente.
+                     Evita el pulso involuntario que reinicia el ESP32
+                     al abrir el puerto (comportamiento del CH340/CP2102).
+      rtscts=False → Python NO controla RTS automáticamente.
+                     Evita que GPIO0 del ESP32 sea tirado a LOW,
+                     lo que lo pondría en modo DOWNLOAD_BOOT.
+
+    Sin estos flags en False, pyserial puede emitir señales de control
+    en el momento de Serial() que confunden al circuito de auto-reset
+    de la placa DOIT DevKit, atrapando al chip en modo de programación.
     """
     ser: Optional[serial.Serial] = None
     try:
-        logger.info(f"🔌 Abriendo {puerto} @ {baudios} baudios...")
-        ser = serial.Serial(puerto, baudios, timeout=timeout)
-        logger.info("✅ Puerto abierto.")
+        logger.info(
+            f"🔌 Abriendo {puerto} @ {baudios} baudios "
+            f"[MODO PASIVO: dsrdtr=False, rtscts=False]..."
+        )
+        ser = serial.Serial(
+            puerto,
+            baudios,
+            timeout=timeout,
+            dsrdtr=False,   # No tocar DTR → no pulsar EN del ESP32
+            rtscts=False,   # No tocar RTS → no pulsar GPIO0 del ESP32
+        )
+        logger.info("✅ Puerto abierto en modo pasivo. Chip NO perturbado.")
         yield ser
     finally:
         if ser and ser.is_open:
@@ -330,118 +344,85 @@ def puerto_serial(
 
 
 # ---------------------------------------------------------------------------
-# CAMBIO QUIRÚRGICO 1: Auto-Reset por DTR/RTS
+# Interfaz de Usuario: Solicitud de Reset Manual
 # ---------------------------------------------------------------------------
 
 
-def _forzar_reset_hardware(ser: serial.Serial) -> None:
+def _solicitar_reset_manual() -> None:
     """
-    Fuerza el reinicio del ESP32 mediante el ciclo DTR/RTS.
+    Informa al usuario que debe presionar el botón EN físicamente.
 
-    Este mecanismo replica exactamente lo que hace el IDE de Arduino
-    cuando presionas "Subir": manipula las líneas de control del
-    puerto serial para pulsar el pin EN (Enable/Reset) del ESP32.
-
-    Secuencia del pulso:
-      ┌─────────────┬───────┬──────────────────────────────────────────┐
-      │ Señal       │ Valor │ Efecto en el ESP32                       │
-      ├─────────────┼───────┼──────────────────────────────────────────┤
-      │ DTR=False   │  HIGH │ Pin EN del ESP32 va a LOW → reset activo │
-      │ RTS=True    │  LOW  │ GPIO0 va a LOW → modo bootloader         │
-      ├─────────────┼───────┼──────────────────────────────────────────┤
-      │ DTR=True    │  LOW  │ Pin EN vuelve a HIGH → chip arranca      │
-      │ RTS=False   │  HIGH │ GPIO0 vuelve a HIGH → modo ejecución     │
-      └─────────────┴───────┴──────────────────────────────────────────┘
-
-    Nota sobre la lógica invertida:
-      El CH340/CP2102 invierte la polaridad: DTR=False en pyserial
-      produce HIGH en el pin físico, lo cual activa el reset del ESP32
-      (activo en bajo con pull-up interno).
-
-    Args:
-        ser: Puerto serial ya abierto sobre el que se aplica el pulso.
+    Usamos logger.info() en lugar de print() para mantener coherencia
+    del canal de salida y que los timestamps sean visibles.
+    El separador visual ayuda a que la instrucción no se pierda
+    entre el flujo de logs.
     """
-    logger.info("⚡ Forzando reinicio de hardware (DTR/RTS)...")
-
-    # ── Paso 1: Activar reset ────────────────────────────────────────────────
-    ser.setDTR(False)   # EN del ESP32 → LOW (reset activo)
-    ser.setRTS(True)    # GPIO0 → LOW (modo bootloader)
-    time.sleep(RESET_DTR_PULSO)
-
-    # ── Paso 2: Liberar reset → el chip arranca ──────────────────────────────
-    ser.setDTR(True)    # EN del ESP32 → HIGH (chip corre)
-    ser.setRTS(False)   # GPIO0 → HIGH (modo ejecución normal)
-    time.sleep(RESET_POST_ESPERA)
-
-    logger.info(
-        f"   Pulso DTR/RTS completado "
-        f"({RESET_DTR_PULSO}s reset + {RESET_POST_ESPERA}s espera). "
-        "ESP32 reiniciando..."
-    )
+    separador = "=" * 60
+    logger.info(separador)
+    logger.info("👉 ACCIÓN REQUERIDA:")
+    logger.info("   Presiona el botón 'EN' (Reset) de tu ESP32 AHORA.")
+    logger.info(f"   Tienes {TIMEOUT_BEACON:.0f} segundos.")
+    logger.info(separador)
 
 
 # ---------------------------------------------------------------------------
-# CAMBIO QUIRÚRGICO 2: Beacon Flexible por Palabras Clave
+# Fase 1: Espera de Beacon (Modo Pasivo, con Timeout)
 # ---------------------------------------------------------------------------
 
 
 def _es_beacon(linea: str) -> bool:
     """
-    Detecta si una línea del firmware es un beacon de disponibilidad.
+    Detecta si una línea es un beacon de disponibilidad del firmware.
 
-    Criterio semántico (case-insensitive):
-      La línea contiene "SENTINEL" → el firmware se identificó.
-      La línea contiene "READY"    → el firmware declaró disponibilidad.
+    Criterio semántico case-insensitive:
+      "SENTINEL" → el firmware se identificó como Centinela.
+      "READY"    → el firmware declaró disponibilidad explícita.
 
-    Por qué búsqueda flexible en lugar de coincidencia exacta:
-      - Desacopla el script de la versión específica del firmware.
-      - "=== APU SENTINEL V1.2 ===" y "=== APU SENTINEL V3.0 ===" son
-        igualmente válidos: ambos confirman que el Centinela está activo.
-      - "READY — Esperando JSON por Serial @ 115200" también es válido.
-      - Futura versión V4.0 funcionará sin cambiar este script.
-
-    Args:
-        linea: Cadena ya decodificada y con strip() aplicado.
-
-    Returns:
-        True si la línea contiene alguna keyword de BEACON_KEYWORDS.
+    Desacoplado de versiones: V1.2, V3.0, V4.0 → todos válidos.
     """
     linea_upper = linea.upper()
-    return any(keyword in linea_upper for keyword in BEACON_KEYWORDS)
+    return any(kw in linea_upper for kw in BEACON_KEYWORDS)
 
 
 def _esperar_beacon(ser: serial.Serial) -> bool:
     """
-    FASE 1 — Espera del Beacon de Firmware (Portero Flexible).
+    FASE 1 — Espera del Beacon con Timeout y sin Busy-Wait.
 
-    Lee líneas del puerto descartando basura del bootloader hasta
-    detectar un beacon semántico, o hasta agotar TIMEOUT_BEACON.
+    A diferencia de la propuesta original (bucle infinito), esta
+    versión usa time.monotonic() para garantizar que el loop termine
+    incluso si el usuario no presiona EN o el firmware falla.
 
-    La detección se hace en dos pasos:
-      1. _es_beacon(linea) evalúa las palabras clave.
-      2. Si True → logueamos el beacon y retornamos inmediatamente.
-      3. Si False → descartamos en DEBUG (no contaminamos log operacional).
+    Manejo de líneas:
+      - Vacías tras decode+strip → ignoradas silenciosamente.
+      - No-beacon → logueadas en INFO para que el usuario vea
+        el proceso de arranque del chip en tiempo real.
+        (A diferencia de v2 donde eran DEBUG: en modo pasivo,
+        mostrarlas en INFO ayuda al usuario a saber que el chip
+        está vivo y comunicándose.)
+      - Beacon → detectado, retorno inmediato.
 
     Returns:
-        True  → beacon detectado, ESP32 listo para recibir JSON.
-        False → timeout agotado sin beacon válido.
+        True  → beacon detectado dentro del timeout.
+        False → timeout agotado sin beacon.
     """
     logger.info(
-        f"🔍 Escuchando beacon del firmware "
+        f"🔍 Escuchando beacon "
         f"(keywords={BEACON_KEYWORDS}, timeout={TIMEOUT_BEACON}s)..."
     )
     start = time.monotonic()
-    lineas_basura = 0
+    lineas_vistas = 0
 
     while (time.monotonic() - start) < TIMEOUT_BEACON:
         try:
             raw = ser.readline()
         except SerialException as se:
-            logger.error(f"❌ Error leyendo beacon: {se}")
+            logger.error(f"❌ Error leyendo del puerto: {se}")
             return False
 
         if not raw:
-            # Timeout de 100ms sin datos: ESP32 aún no emite nada.
+            # readline() agotó su timeout de 500ms sin datos.
+            # El chip aún no arrancó o el usuario no presionó EN.
+            # No busy-wait: el timeout de readline() ya cede el hilo.
             continue
 
         linea = raw.decode("utf-8", errors="replace").strip()
@@ -449,53 +430,61 @@ def _esperar_beacon(ser: serial.Serial) -> bool:
         if not linea:
             continue
 
-        # ── CAMBIO QUIRÚRGICO 2: Verificación Flexible ──────────────────────
+        lineas_vistas += 1
+
+        # ── Verificación de Beacon ───────────────────────────────────────────
         if _es_beacon(linea):
             elapsed = time.monotonic() - start
             logger.info(
-                f"🎯 BEACON DETECTADO en {elapsed:.2f}s — {linea!r}"
+                f"🎯 BEACON DETECTADO en {elapsed:.2f}s "
+                f"(línea #{lineas_vistas}): {linea!r}"
             )
             return True
 
-        # ── Basura del Bootloader: silenciosa en DEBUG ───────────────────────
-        lineas_basura += 1
-        logger.debug(
-            f"   🗑️  Bootloader/basura [{lineas_basura:03d}]: {linea!r}"
-        )
+        # ── Arranque del Chip: visible en INFO ───────────────────────────────
+        # En modo pasivo mostramos el arranque en INFO (no DEBUG)
+        # para que el usuario confirme visualmente que el chip vive.
+        logger.info(f"   📡 Chip arrancando [{lineas_vistas:03d}]: {linea!r}")
 
+    elapsed = time.monotonic() - start
     logger.error(
-        f"⏰ TIMEOUT: ninguna línea coincidió con keywords={BEACON_KEYWORDS} "
-        f"en {TIMEOUT_BEACON}s. "
-        f"({lineas_basura} líneas descartadas). "
-        "Verifique que el firmware esté cargado y que el setup() imprima "
-        "SENTINEL o READY por Serial."
+        f"⏰ TIMEOUT tras {elapsed:.1f}s: ninguna línea coincidió con "
+        f"keywords={BEACON_KEYWORDS}. "
+        f"({lineas_vistas} líneas recibidas). "
+        "Verifique que presionó EN y que el firmware imprime "
+        "SENTINEL o READY en su setup()."
     )
     return False
 
 
 # ---------------------------------------------------------------------------
-# Fases 2 y 3 del Protocolo (sin cambios respecto a v1)
+# Fase 2: Envío del JSON
 # ---------------------------------------------------------------------------
 
 
 def _enviar_json(ser: serial.Serial, vector: VectorEstado) -> bool:
     """
-    FASE 2 — Envío del JSON.
+    FASE 2 — Limpieza de buffer y Envío del JSON.
 
-    Solo se invoca tras confirmar el beacon. El delimitador '\\n'
-    es el terminador que usa readStringUntil('\\n') en el firmware.
-    ser.flush() garantiza vaciado del buffer del SO antes de escuchar ACK.
+    reset_input_buffer() descarta líneas rezagadas del arranque
+    que llegaron entre el beacon y este punto.
+    sleep(PAUSA_POST_BEACON) da margen al firmware para que
+    su loop() esté activo y escuchando antes de que llegue el JSON.
 
     Returns:
         True  → bytes escritos correctamente.
         False → error de escritura.
     """
+    logger.info("🧹 Limpiando buffer de entrada post-beacon...")
+    ser.reset_input_buffer()
+    time.sleep(PAUSA_POST_BEACON)
+
     payload = vector.to_json() + "\n"
     encoded = payload.encode("utf-8")
 
     try:
         bytes_escritos = ser.write(encoded)
-        ser.flush()
+        ser.flush()  # Vacía buffer del SO → garantiza transmisión completa
     except SerialException as se:
         logger.error(f"❌ Error escribiendo JSON: {se}")
         return False
@@ -509,20 +498,31 @@ def _enviar_json(ser: serial.Serial, vector: VectorEstado) -> bool:
     return bytes_escritos > 0
 
 
+# ---------------------------------------------------------------------------
+# Fase 3: Escucha del ACK
+# ---------------------------------------------------------------------------
+
+
 def _esperar_ack(ser: serial.Serial) -> bool:
     """
-    FASE 3 — Espera del ACK del Firmware.
+    FASE 3 — Escucha del ACK del Firmware.
 
-    Lee todas las líneas durante TIMEOUT_ACK. Considera ACK exitoso
-    si se recibe al menos una línea no vacía. sleep(0.01) evita busy-wait.
+    Registra todas las respuestas del firmware durante TIMEOUT_ACK.
+    Considera éxito si el firmware responde con una línea que
+    contiene "ACK" (coincidencia semántica, igual que el beacon).
+
+    time.monotonic() es robusto ante ajustes de reloj del sistema.
+    sleep(0.01) en ausencia de datos evita busy-wait.
 
     Returns:
-        True  → al menos una respuesta recibida.
-        False → timeout sin respuesta (advertencia, no error fatal).
+        True  → ACK semántico recibido.
+        False → timeout sin ACK (advertencia, no error fatal:
+                el firmware puede procesar en silencio).
     """
     logger.info(f"👂 Esperando ACK del firmware (timeout={TIMEOUT_ACK}s)...")
     start = time.monotonic()
     respuestas: list[str] = []
+    ack_recibido = False
 
     while (time.monotonic() - start) < TIMEOUT_ACK:
         if ser.in_waiting > 0:
@@ -532,22 +532,33 @@ def _esperar_ack(ser: serial.Serial) -> bool:
                 if linea:
                     logger.info(f"   🤖 Firmware → {linea!r}")
                     respuestas.append(linea)
+                    if "ACK" in linea.upper():
+                        ack_recibido = True
             except SerialException as se:
                 logger.error(f"❌ Error leyendo ACK: {se}")
                 break
         else:
             time.sleep(0.01)  # Ceder CPU: sin busy-wait
 
-    if respuestas:
+    if ack_recibido:
         logger.info(
-            f"✅ ACK recibido — {len(respuestas)} línea(s) del firmware."
+            f"🏆 ACK confirmado — "
+            f"El hardware procesó el vector con éxito. "
+            f"({len(respuestas)} línea(s) recibidas en total.)"
         )
         return True
 
-    logger.warning(
-        "⚠️  Sin ACK del firmware. "
-        "El JSON puede haberse procesado en silencio o perdido."
-    )
+    if respuestas:
+        logger.warning(
+            f"⚠️  {len(respuestas)} respuesta(s) recibidas, "
+            "pero ninguna contiene 'ACK'. "
+            "El firmware procesó algo, pero sin confirmación explícita."
+        )
+    else:
+        logger.warning(
+            "⚠️  Sin respuesta del firmware en el tiempo límite. "
+            "El JSON puede haberse perdido o el firmware no lo procesó."
+        )
     return False
 
 
@@ -560,10 +571,9 @@ def _construir_vector() -> VectorEstado:
     """
     Construye y valida el VectorEstado.
 
-    Verificación de coherencia de los valores:
-      β₁=442, β₁_max=1000:
-        lower_bound ≈ 0.118 → pyramid_stability=0.69 ✓
-      Alta carga (sat=0.85, diss=65W):
+    Verificación de coherencia:
+      β₁=442 → lower_bound ≈ 0.118 → pyramid_stability=0.69 ✓
+      sat=0.85 + diss=65W (alta carga):
         gyro + pyramid = 0.4 + 0.69 = 1.09 ≥ 0.9 ✓
     """
     vector = VectorEstado(
@@ -587,32 +597,31 @@ def _construir_vector() -> VectorEstado:
 
 
 # ---------------------------------------------------------------------------
-# Ciclo de Handshake con Auto-Reset
+# Ciclo Principal: Protocolo Pasivo
 # ---------------------------------------------------------------------------
 
 
-def _ejecutar_ciclo_handshake(vector: VectorEstado) -> bool:
+def _ejecutar_ciclo_pasivo(vector: VectorEstado) -> bool:
     """
-    Ejecuta un ciclo completo de handshake estricto con auto-reset:
+    Ejecuta un ciclo completo del Protocolo Pasivo:
 
-      [0] Abrir puerto serial.
-      [1] Forzar reset del ESP32 vía DTR/RTS  ← CAMBIO QUIRÚRGICO 1
-      [2] Esperar beacon flexible              ← CAMBIO QUIRÚRGICO 2
-      [3] Enviar JSON.
-      [4] Esperar ACK.
+      [0] Abrir puerto en modo pasivo (sin tocar DTR/RTS).
+      [1] Solicitar al usuario que presione EN físicamente.
+      [2] Esperar beacon semántico con timeout de 60s.
+      [3] Limpiar buffer + enviar JSON.
+      [4] Esperar ACK del firmware.
 
     Returns:
         True  → ciclo completado (beacon + envío OK).
-        False → fallo en Fase 0, 1 ó 2.
+        False → fallo en cualquier fase.
     """
-    with puerto_serial(PUERTO, BAUDIOS, TIMEOUT_LECTURA) as ser:
+    with puerto_serial_pasivo(PUERTO, BAUDIOS, TIMEOUT_LECTURA) as ser:
 
-        # ── Fase 0: Auto-Reset ───────────────────────────────────────────────
-        _forzar_reset_hardware(ser)
+        # ── Fase 0: Instrucción al Usuario ───────────────────────────────────
+        _solicitar_reset_manual()
 
         # ── Fase 1: Beacon ───────────────────────────────────────────────────
-        beacon_ok = _esperar_beacon(ser)
-        if not beacon_ok:
+        if not _esperar_beacon(ser):
             logger.error(
                 "🚫 Abortando: ESP32 no emitió beacon reconocible. "
                 "Enviar JSON ahora garantizaría corrupción de datos."
@@ -620,8 +629,7 @@ def _ejecutar_ciclo_handshake(vector: VectorEstado) -> bool:
             return False
 
         # ── Fase 2: Envío ────────────────────────────────────────────────────
-        envio_ok = _enviar_json(ser, vector)
-        if not envio_ok:
+        if not _enviar_json(ser, vector):
             logger.error("🚫 Fallo en la escritura del JSON al puerto.")
             return False
 
@@ -632,7 +640,7 @@ def _ejecutar_ciclo_handshake(vector: VectorEstado) -> bool:
 
 
 # ---------------------------------------------------------------------------
-# Punto de Entrada Principal con Reintentos Exponenciales
+# Punto de Entrada con Reintentos Exponenciales
 # ---------------------------------------------------------------------------
 
 
@@ -640,27 +648,27 @@ def enviar_vector_estado() -> None:
     """
     Función principal.
 
-    1. Construye y valida el vector de estado matemáticamente.
-    2. Ejecuta el protocolo de handshake con hasta MAX_REINTENTOS intentos.
+    1. Construye y valida el vector matemáticamente.
+    2. Ejecuta el protocolo pasivo con hasta MAX_REINTENTOS intentos.
     3. Backoff exponencial entre intentos: t = BACKOFF_BASE^intento.
     """
-    # ── Construcción del Vector ──────────────────────────────────────────────
+    # ── Construcción ─────────────────────────────────────────────────────────
     try:
         vector = _construir_vector()
-        logger.info(f"📦 Vector construido: {vector.summary}")
+        logger.info(f"📦 Vector construido y validado: {vector.summary}")
     except ValueError as ve:
         logger.error(f"❌ Vector matemáticamente inconsistente:\n{ve}")
         return
 
-    # ── Ciclo de Reintentos ──────────────────────────────────────────────────
+    # ── Ciclo de Reintentos ───────────────────────────────────────────────────
     for intento in range(1, MAX_REINTENTOS + 1):
         logger.info(
             f"\n{'='*60}\n"
-            f"🔄 INTENTO {intento}/{MAX_REINTENTOS} — Handshake Estricto\n"
+            f"🔄 INTENTO {intento}/{MAX_REINTENTOS} — Protocolo Pasivo\n"
             f"{'='*60}"
         )
         try:
-            if _ejecutar_ciclo_handshake(vector):
+            if _ejecutar_ciclo_pasivo(vector):
                 logger.info("🎯 Transmisión completada exitosamente.")
                 return
 
@@ -674,8 +682,7 @@ def enviar_vector_estado() -> None:
                 f"❌ Error inesperado en intento {intento}: {exc}",
                 exc_info=True,
             )
-            # Error desconocido: no reintentar para no enmascarar bugs
-            return
+            return  # No reintentar ante errores desconocidos
 
         if intento < MAX_REINTENTOS:
             espera = BACKOFF_BASE**intento
