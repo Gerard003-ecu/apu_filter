@@ -71,9 +71,14 @@ class PhysicsMetrics:
 
     # ── Métricas de Maxwell ──
     poynting_flux: float = 0.0         # S = E × H (Flujo de valor direccional)
+    hamiltonian_excess: float = 0.0    # H_excess: Energía espuria (violación de conservación)
 
     def __post_init__(self) -> None:
         """Valida rangos físicos y relaciones energéticas."""
+        if self.hamiltonian_excess < 0:
+            raise ValueError(
+                f"Hamiltonian excess must be non-negative, got {self.hamiltonian_excess}"
+            )
         if not (0.0 <= self.saturation <= 1.0):
             raise ValueError(
                 f"Saturation must be in [0, 1], got {self.saturation}"
@@ -485,7 +490,7 @@ class ThermodynamicMetrics:
     system_temperature: float = 25.0       # T: Volatilidad agregada (Kelvin financiero)
     entropy: float = 0.0                   # S: Grado de desorden administrativo
     exergy: float = 1.0                    # Ex: Energía útil disponible (presupuesto efectivo)
-    heat_capacity: float = 0.5            # C_v: Capacidad de absorber sobrecostos
+    heat_capacity: float = 0.5            # C_v: Capacidad de absorber sobrecostos (Financial Inertia)
     reference_temperature: float = 0.0    # T₀: Temperatura del entorno de referencia
 
     def __post_init__(self) -> None:
@@ -502,6 +507,7 @@ class ThermodynamicMetrics:
             raise ValueError(
                 f"Exergy cannot be negative: {self.exergy}"
             )
+        # Validar heat_capacity (reemplaza financial_inertia)
         if self.heat_capacity < 0:
             raise ValueError(
                 f"Heat capacity cannot be negative: {self.heat_capacity}"

@@ -1004,7 +1004,12 @@ class TelemetryNarrator:
         if not root_spans:
             if context.steps or context.errors:
                 return self._summarize_legacy(context)
-            return self._generate_empty_report().to_dict()
+
+            # Si no hay spans, ni steps/errors, ni métricas registradas, es un contexto vacío
+            if not context.metrics:
+                return self._generate_empty_report().to_dict()
+
+            # Fallthrough to main flow to check typed metrics (Global Analysis)
 
         try:
             # 1. Análisis por Fases
@@ -1096,6 +1101,17 @@ class TelemetryNarrator:
                     stratum=Stratum.PHYSICS,
                     severity=SeverityLevel.ADVERTENCIA
                 ))
+            # Hamiltonian Excess
+            if p.hamiltonian_excess >= 0.01:
+                issues_by_stratum[Stratum.PHYSICS].append(Issue(
+                    source="FluxCondenser (Global)",
+                    message=f"Violación de Conservación de Energía (H_excess={p.hamiltonian_excess:.3f})",
+                    issue_type="HamiltonianViolation",
+                    depth=0,
+                    topological_path=("global", "physics"),
+                    stratum=Stratum.PHYSICS,
+                    severity=SeverityLevel.CRITICO
+                ))
 
         # 2. CONTROL (Physics Stratum)
         if hasattr(context, "control"):
@@ -1123,6 +1139,17 @@ class TelemetryNarrator:
                     topological_path=("global", "thermodynamics"),
                     stratum=Stratum.PHYSICS,
                     severity=SeverityLevel.CRITICO
+                ))
+            # Low Inertia (Hoja al Viento)
+            if t.heat_capacity < 0.2:
+                issues_by_stratum[Stratum.STRATEGY].append(Issue(
+                    source="Thermodynamics (Global)",
+                    message=f"Baja Inercia Financiera (Hoja al Viento): C_v={t.heat_capacity:.2f}",
+                    issue_type="LowInertia",
+                    depth=0,
+                    topological_path=("global", "thermodynamics"),
+                    stratum=Stratum.STRATEGY,
+                    severity=SeverityLevel.ADVERTENCIA
                 ))
 
         # 4. TOPOLOGY (Tactics Stratum)

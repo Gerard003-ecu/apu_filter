@@ -98,7 +98,7 @@ LABEL_MAX_LENGTH = 20
 LABEL_ELLIPSIS = "..."
 
 # Separador de ciclos (debe coincidir con BusinessTopologicalAnalyzer)
-CYCLE_SEPARATOR = " → "
+CYCLE_SEPARATOR = " -> "
 
 
 # =============================================================================
@@ -322,11 +322,15 @@ def extract_anomaly_data(analysis_result: Dict[str, Any]) -> AnomalyData:
 
     # Extraer nodos en ciclos con validación
     cycles_data = details.get("cycles")
-    if isinstance(cycles_data, dict):
+    if isinstance(cycles_data, list):
+        # Case: List of strings directly (BusinessTopologicalAnalyzer V2)
+        anomaly_data.nodes_in_cycles = _extract_nodes_from_cycles(cycles_data)
+    elif isinstance(cycles_data, dict):
+        # Case: Dict with 'list' key (Legacy / Other format)
         cycles_list = cycles_data.get("list", [])
         anomaly_data.nodes_in_cycles = _extract_nodes_from_cycles(cycles_list)
     else:
-        logger.debug("'cycles' no es dict, se omiten datos de ciclos")
+        logger.debug(f"'cycles' format unknown: {type(cycles_data).__name__}, skipping")
 
     return anomaly_data
 
@@ -616,6 +620,7 @@ def _determine_node_color(node_id: str, node_type: str, anomaly_data: AnomalyDat
     5. Gris: Desconocido
     """
     # 1. Verificar riesgos críticos primero
+    # [Visualización] Ciclos (beta_1 > 0) brillan en ROJO según requerimiento
     is_in_cycle = node_id in anomaly_data.nodes_in_cycles
     is_stressed = node_id in anomaly_data.stressed_ids
     is_isolated = node_id in anomaly_data.isolated_ids
