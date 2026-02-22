@@ -1,4 +1,5 @@
 # 🛂 PASSPORT.md: El Pasaporte de Telemetría (Vector de Estado)
+
 "En APU Filter, ningún dato viaja anónimo. Cada byte que ingresa al sistema recibe una identidad y un historial clínico inmutable. El Pasaporte no es un log de errores; es la Caja Negra del vuelo del dato, registrando la física, la topología y la economía de su viaje."
 **1. Concepto: El Viaje del Dato**
 En la arquitectura tradicional, los datos se mueven "a ciegas" entre servicios. En APU Filter, implementamos el patrón Context Propagation. Desde el momento de la ingesta (upload), se instancia un objeto TelemetryContext (el Pasaporte).

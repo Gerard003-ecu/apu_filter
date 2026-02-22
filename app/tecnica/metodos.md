@@ -1,67 +1,47 @@
+
+--------------------------------------------------------------------------------
 ⚙️ metodos.md: Ingeniería Bajo el Capó
-"APU Filter no es una calculadora; es un Simulador de Física de Negocios. Aquí detallamos las ecuaciones de estado y los teoremas topológicos que garantizan la sabiduría del sistema."
-Este documento técnico desglosa la maquinaria matemática que permite al Consejo de Sabios transformar datos crudos en veredictos estratégicos, basándose en tres pilares: Dinámica de Sistemas (Laplace), Topología Algebraica y Estocástica Financiera.
+"APU Filter no es un software de contabilidad; es un Simulador de Física de Negocios ciber-físico. Aquí detallamos las ecuaciones de estado, los teoremas topológicos y los circuitos neuromórficos que garantizan la sabiduría del sistema."
+Este documento técnico desglosa la maquinaria matemática que permite al Consejo de Sabios transformar datos crudos en veredictos estratégicos, basándose en la convergencia de la Dinámica de Sistemas (Laplace), la Topología Algebraica, la Estocástica Financiera y el Hardware en el Borde.
 
 --------------------------------------------------------------------------------
-1. El Guardián: Dinámica de Sistemas y Control (FluxCondenser)
-Base Teórica: Teoría de Control Clásica y Análisis en el Dominio de la Frecuencia. Componentes: flux_condenser.py, laplace_oracle.py.
-El Guardián no valida datos línea por línea; modela el flujo de información como una señal en un sistema dinámico. Antes de procesar, consulta al Oráculo de Laplace para certificar la estabilidad.
-1.1 El Juicio del Plano-S (Validación A Priori)
-Utilizamos la Transformada de Laplace para mapear la arquitectura del proyecto desde el dominio del tiempo (t) al dominio de la frecuencia compleja (s=σ+jω). H(s)=s2+2ζωn​s+ωn2​ωn2​​
-El sistema calcula los polos de esta función de transferencia para determinar el destino del proyecto:
-• σ (Sigma / Amortiguamiento): Representa la Gobernanza.
-    ◦ Si σ<0 (Polos en LHP): El sistema es Estable. La burocracia y controles (resistencia R) son suficientes para disipar la volatilidad de precios.
-    ◦ Si σ>0 (Polos en RHP): El sistema es Inestable. El proyecto divergirán hacia el caos financiero ante la menor perturbación.
-• ω (Omega / Frecuencia): Representa la velocidad de ejecución y la volatilidad del mercado.
-• Resonancia (ωr​): Detectamos si la frecuencia de actualización de precios del mercado coincide con la frecuencia natural del proyecto, lo que causaría una amplificación destructiva de costos.
-1.2 Control Digital en Tiempo Real (PID + Tustin)
-Para operar en servidores digitales, la física continua se discretiza utilizando la Transformación Bilineal de Tustin: s≈T2​z+1z−1​
- Esto permite al FluxCondenser aplicar un controlador PID Discreto con Criterio de Estabilidad de Jury, ajustando dinámicamente el caudal de datos (Batch Size) para mantener un "Flujo Laminar" y evitar la saturación de memoria.
+1. El Guardián: Física de Fluidos y Computación Neuromórfica (Edge)
+Base Teórica: Ecuaciones de Maxwell discretizadas, Control Port-Hamiltoniano (PHS) y Física de Semiconductores. Componentes: flux_condenser.py, neuromorphic_solver.py, Firmware ESP32 (telemetry.h).
+El Guardián no lee bits; procesa un fluido de información con propiedades físicas (Energía, Resistencia, Inercia).
+• 1.1 El Circuito RLC (Presión y Flujo): El pipeline se modela como un circuito eléctrico. El Inductor (L) aporta "inercia" para evitar golpes de ariete de datos; el Condensador (C) absorbe picos de presión (Backlog); y la Resistencia (R) disipa la complejidad ciclomática como "calor de procesamiento".
+• 1.2 El Oráculo de Laplace: Antes de procesar, se linealiza el sistema y se analiza su función de transferencia H(s). Si se detectan polos en el semiplano derecho (RHP, σ>0), el sistema veta la ingesta por "Divergencia Matemática" (inestabilidad intrínseca).
+• 1.3 Simulación Neuromórfica y Hardware Perimetral (ESP32): La matemática se materializa en el silicio. El ESP32 actúa como un "Gatekeeper Físico" usando una arquitectura de Diodos Lambda (JFETs cruzados):
+    ◦ Resistencia Diferencial Negativa (NDR): Si el índice de Estabilidad Piramidal (Ψ) del presupuesto cae a niveles críticos, la presión topológica eleva el voltaje de excitación del circuito hacia la región NDR.
+    ◦ Osciladores de Pánico: El circuito entra en oscilación caótica (Spiking Neurons), traduciendo matemáticamente un mal diseño de presupuesto en una respuesta física medible. La máquina literalmente "siente dolor" y dispara los relés de protección (Crowbar circuits).
+    ◦ Resonancia Hexagonal (Benceno C6​): El flujo de datos resuena físicamente en un anillo de 6 nodos MOSFET. Si un nodo falla, se rompe la "Aromaticidad" de la regla de Hückel, deteniendo la reacción informacional para evitar corrupción.
 
---------------------------------------------------------------------------------
 2. El Arquitecto: Topología Algebraica y Grafos
-Base Teórica: Teoría de Grafos Espectrales y Homología. Componentes: business_topology.py, topology_viz.py.
-El presupuesto se modela como un Complejo Simplicial Abstracto, donde los insumos son vértices (V) y las actividades son aristas (E).
-2.1 Invariantes Topológicos (Números de Betti)
-Calculamos la "forma" del presupuesto mediante homología:
-• β0​ (Componentes Conexas): Mide la fragmentación.
-    ◦ β0​>1: Indica "Islas de Datos". Recursos comprados que no están conectados al objetivo del proyecto (Desperdicio).
-• β1​ (Ciclos Independientes): Mide la complejidad circular.
-    ◦ β1​>0: Alerta de "Socavones Lógicos". Dependencias circulares (A→B→A) que rompen la causalidad logística e impiden el cálculo de costos.
-2.2 Estabilidad Espectral (El Valor de Fiedler)
-Analizamos el espectro de la Matriz Laplaciana (L=D−A) del grafo del proyecto.
-• Brecha Espectral (λ2​): Conocido como el Valor de Fiedler.
-    ◦ Si λ2​≈0: El proyecto sufre de "Fractura Organizacional". Los departamentos (subgrafos) están casi desconectados, dificultando la sincronización.
-    ◦ Si λ2​≫0: Alta cohesión estructural (Red tipo "Small World").
-2.3 Índice de Estabilidad Piramidal (Ψ)
-Definimos la robustez logística como: Ψ=Carga Taˊctica (APUs)Amplitud de Base (Insumos)​×ρ1​
-• Ψ<1.0 (Pirámide Invertida): Riesgo Crítico. Una inmensa estructura de actividades se apoya en una base de proveedores peligrosamente estrecha. Un fallo en un proveedor colapsa la obra.
 
---------------------------------------------------------------------------------
-3. El Oráculo: Estocástica y Termodinámica Financiera
-Base Teórica: Cálculo Estocástico y Termodinámica de No-Equilibrio. Componentes: financial_engine.py.
-3.1 Valoración Estocástica (Monte Carlo & VaR)
-Los costos no son escalares, son distribuciones de probabilidad.
-• Simulación de Monte Carlo: Ejecutamos 10,000 escenarios variando precios según su volatilidad histórica (σmercado​).
-• VaR (Valor en Riesgo): Calculamos la máxima pérdida probable al 95% de confianza, definiendo la contingencia financiera exacta requerida.
-3.2 Termodinámica Estructural
-Tratamos el dinero como energía y la volatilidad como calor.
-• Temperatura del Sistema (Tsys​): Métrica agregada de la volatilidad de los insumos.
-• Convección Inflacionaria: Simulamos cómo el "calor" (alza de precios) se difunde desde los insumos base a través de la topología del grafo hasta afectar el costo final del m². Estructuras con alta conectividad disipan mejor el calor (riesgo).
+Base Teórica: Teoría de Grafos Espectrales y Homología Computacional. Componentes: business_topology.py, topology_viz.py.
+El presupuesto se modela como un Complejo Simplicial Abstracto, ignorando inicialmente los precios para estudiar únicamente la "forma" de las dependencias.
+• 2.1 Invariantes Topológicos (Números de Betti βn​):
+    ◦ β0​ (Islas de Datos): Mide la fragmentación. Si β0​>1, existen "recursos huérfanos" comprados pero desconectados de la obra (desperdicio seguro).
+    ◦ β1​ (Socavones Lógicos): Mide la complejidad circular. Si β1​>0, existen dependencias circulares (A→B→A) que rompen la causalidad e impiden calcular costos reales.
+    ◦ Característica de Euler (χ=β0​−β1​): Cuantifica la Entropía Estructural. Se usa para establecer el Pricing Dinámico del modelo de negocio (a menor entropía, menor tarifa).
+• 2.2 Estabilidad Espectral (Valor de Fiedler λ2​): Analiza el espectro de la Matriz Laplaciana (L=D−A). Si λ2​≈0, diagnostica una "Fractura Organizacional" (silos incomunicados).
+• 2.3 Índice de Estabilidad Piramidal (Ψ): Define la robustez del centro de gravedad. Si Ψ<1.0 (Pirámide Invertida), alerta de un riesgo crítico de colapso logístico por tener demasiadas actividades soportadas en muy pocos proveedores.
 
---------------------------------------------------------------------------------
-4. El Intérprete: Semántica y GraphRAG
-Base Teórica: Procesamiento de Lenguaje Natural y Grafos de Conocimiento. Componentes: semantic_translator.py, governance.py.
-4.1 Gobernanza Computacional (Policy as Code)
-Implementamos reglas de negocio como código ejecutable (inspirado en OPA).
-• Validación Semántica: Utilizamos embeddings vectoriales para asegurar que "Cemento Gris" y "Concreto Tipo A" sean tratados como sinónimos en el grafo, evitando duplicidad de nodos.
-• Detección de Anomalías: Algoritmos de grafos detectan patrones de fraude, como "Puentes" inusuales entre nodos que deberían estar segregados (ej. gastos de personal cargados a materiales).
+3. El Oráculo: Termodinámica Financiera y Estocástica
 
---------------------------------------------------------------------------------
-5. Auditoría de Fusión (Secuencia de Mayer-Vietoris)
-Componente: pipeline_director.py (Paso AuditedMergeStep).
-Cuando el sistema fusiona el presupuesto con los análisis de precios, no hace un simple JOIN. Ejecuta una Auditoría Homológica utilizando la secuencia exacta de Mayer-Vietoris: ⋯→Hk​(A∩B)→Hk​(A)⊕Hk​(B)→Hk​(A∪B)→…
- Esto garantiza matemáticamente que la unión de los datos no introduzca nuevos ciclos (β1​) ni desconexiones (β0​) que no existían en las partes originales. Es una prueba matemática de integridad de datos.
+Base Teórica: Física Estadística y Simulación de Monte Carlo. Componentes: financial_engine.py, probability_models.py.
+El sistema trata el dinero como una forma de energía sujeta a leyes de conservación y entropía.
+• 3.1 Temperatura del Sistema (Tsys​): Modela la volatilidad del mercado como "Calor". Insumos como el acero son "calientes" (volátiles); la mano de obra es "fría" (fija). Un proyecto mal conectado atrapa este calor, generando "Fiebre Inflacionaria" (Tsys​>50∘C).
+• 3.2 Eficiencia Exergética: Distingue entre la energía invertida en trabajo útil (Exergía - avance de obra) y la energía disipada en fricción administrativa y sobrecostos (Entropía).
+• 3.3 Ecuación de Arrhenius Modificada: Ajusta la volatilidad base proyectando cómo el estrés térmico (Tsys​) y estructural (Ψ) aceleran probabilísticamente el riesgo de quiebra financiera.
 
---------------------------------------------------------------------------------
-Este documento constituye la especificación de ingeniería v3.0, alineada con la arquitectura de Malla Agéntica y Física del Costo.
+4. El Intérprete: Retículos Algebraicos y Semántica
+
+Base Teórica: Teoría de Retículos (Lattice Theory) y GraphRAG. Componentes: semantic_translator.py, governance.py.
+• 4.1 Álgebra de Veredictos: Las decisiones se evalúan bajo un retículo acotado (Verdict,≤,⊔) donde se aplica la operación "Supremo" (Worst-case). Si Finanzas aprueba pero Topología veta, el veredicto final es un Veto, garantizando la seguridad.
+• 4.2 Traducción Semántica (GraphRAG): El sistema vectoriza los datos para saber que "Cemento" y "Concreto" son termodinámicamente equivalentes. Luego, traza la ruta de los errores en el grafo y los traduce a lenguaje ejecutivo (ej. de "β1​>0" a "Socavón Lógico detectado en la Mampostería").
+
+5. Motor de Materialización y Fusión Auditada
+
+Base Teórica: Algoritmo Kahan, Secuencia de Mayer-Vietoris. Componentes: pipeline_director.py, matter_generator.py.
+• 5.1 Auditoría Homológica de Fusión: Al unir la tabla maestra del presupuesto con los APUs, se aplica la secuencia exacta de Mayer-Vietoris. Esto asegura matemáticamente que la unión espacial (A∪B) no introduzca "ciclos fantasmas" (Δβ1​>0) inexistentes en las fuentes originales.
+• 5.2 Colapso de Onda y Suma de Kahan: Para transformar el grafo 3D en un listado de materiales plano (BOM), se usa un recorrido DFS con memoización. Dado el gran volumen de operaciones, se aplica la Suma Compensada de Kahan para mitigar errores de punto flotante, asegurando precisión centesimal absoluta en el costo total.
