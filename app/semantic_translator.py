@@ -1136,6 +1136,14 @@ class SemanticTranslator:
                 NarrativeTemplates.THERMAL_ENTROPY["low"].format(entropy=entropy)
             )
 
+        # Inercia (Capacidad Calorífica)
+        # Acceso directo garantizado por el esquema actualizado
+        if thermo.heat_capacity < 0.2:
+            parts.append(
+                "🍂 **Hoja al Viento**: Baja inercia financiera (C_v < 0.2). Riesgo de volatilidad extrema."
+            )
+            verdicts.append(VerdictLevel.PRECAUCION)
+
         final_verdict = VerdictLevel.supremum(*verdicts)
         return " ".join(parts), final_verdict
 

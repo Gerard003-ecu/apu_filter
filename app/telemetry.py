@@ -450,6 +450,14 @@ class TelemetryContext:
         with self._lock:
             current = asdict(self.topology)
             current.update(kwargs)
+
+            # Recalculate Euler if Bettis changed and Euler not provided explicitly in kwargs
+            betti_changed = any(k in kwargs for k in ["beta_0", "beta_1", "beta_2"])
+            euler_provided = "euler_characteristic" in kwargs
+
+            if betti_changed and not euler_provided:
+                current["euler_characteristic"] = None
+
             valid_keys = TopologicalMetrics.__annotations__.keys()
             filtered = {k: v for k, v in current.items() if k in valid_keys}
             self.topology = TopologicalMetrics(**filtered)

@@ -95,7 +95,7 @@ _PHYSICS_FAILURE_KEYWORDS = {
 _TOPOLOGY_CYCLE_KEYWORDS = {
     "ciclo", "cycle", "β₁", "beta_1", "beta1", "homolog",
     "mayer-vietoris", "mayer_vietoris", "integración",
-    "incoherencia", "topológic", "topolog",
+    "incoherencia", "topológic", "topolog", "socavones",
 }
 
 _THERMODYNAMIC_FRAGILITY_KEYWORDS = {
@@ -237,7 +237,7 @@ def _safely_set_thermodynamics(
     if hasattr(ctx, "update_thermodynamics") and callable(ctx.update_thermodynamics):
         try:
             ctx.update_thermodynamics(
-                financial_inertia=metrics.financial_inertia,
+                heat_capacity=metrics.heat_capacity,
                 system_temperature=metrics.system_temperature,
             )
             return True
@@ -414,7 +414,7 @@ def healthy_full_context():
     thermo_ok = _safely_set_thermodynamics(
         ctx,
         ThermodynamicMetrics(
-            financial_inertia=0.8,
+            heat_capacity=0.8,
             system_temperature=10.0,
         ),
     )
@@ -725,7 +725,6 @@ class TestHomologicalIntegrity:
             topo_metrics = TopologicalMetrics(
                 beta_0=1,
                 beta_1=1,
-                mayer_vietoris_delta=1,
             )
         except TypeError as e:
             pytest.skip(f"TopologicalMetrics constructor differs: {e}")
@@ -817,7 +816,7 @@ class TestThermodynamicStability:
         thermo_set = _safely_set_thermodynamics(
             ctx,
             ThermodynamicMetrics(
-                financial_inertia=0.1,      # Muy baja
+                heat_capacity=0.1,      # Muy baja
                 system_temperature=30.0,    # Alta temperatura
             ),
         )
@@ -855,7 +854,7 @@ class TestThermodynamicStability:
 
         try:
             thermo = ThermodynamicMetrics(
-                financial_inertia=0.1,
+                heat_capacity=0.1,
                 system_temperature=30.0,
             )
         except TypeError as e:
@@ -903,7 +902,7 @@ class TestThermodynamicStability:
         thermo_set = _safely_set_thermodynamics(
             ctx,
             ThermodynamicMetrics(
-                financial_inertia=0.9,    # Alta inercia: robusto
+                heat_capacity=0.9,    # Alta inercia: robusto
                 system_temperature=5.0,   # Baja temperatura: estable
             ),
         )
@@ -989,7 +988,7 @@ class TestSchemaRigidity:
         """Inercia financiera válida es aceptada."""
         try:
             tm = ThermodynamicMetrics(
-                financial_inertia=0.5,
+                heat_capacity=0.5,
                 system_temperature=15.0,
             )
             assert tm is not None
@@ -999,7 +998,7 @@ class TestSchemaRigidity:
     @pytest.mark.parametrize(
         "field_name,invalid_value",
         [
-            ("financial_inertia", -1.0),
+            ("heat_capacity", -1.0),
             ("system_temperature", -300.0),
         ],
         ids=["negative_inertia", "below_absolute_zero"],
@@ -1010,7 +1009,7 @@ class TestSchemaRigidity:
         """Valores termodinámicos fuera de dominio son rechazados."""
         try:
             kwargs = {
-                "financial_inertia": 0.5,
+                "heat_capacity": 0.5,
                 "system_temperature": 15.0,
             }
             kwargs[field_name] = invalid_value
@@ -1209,7 +1208,7 @@ class TestVerdictMonotonicity:
             thermo_set = _safely_set_thermodynamics(
                 ctx,
                 ThermodynamicMetrics(
-                    financial_inertia=inertia,
+                    heat_capacity=inertia,
                     system_temperature=15.0,
                 ),
             )
@@ -1312,7 +1311,7 @@ class TestStrataInteraction:
         # Termodinámica frágil
         _safely_set_thermodynamics(
             ctx,
-            ThermodynamicMetrics(financial_inertia=0.01, system_temperature=50.0),
+            ThermodynamicMetrics(heat_capacity=0.01, system_temperature=50.0),
         )
 
         report = narrator.summarize_execution(ctx)
