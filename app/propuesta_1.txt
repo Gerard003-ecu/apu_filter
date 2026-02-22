@@ -1,0 +1,292 @@
+Se ha modificado específicamente la sección de VEREDICTOS FINALES (FINAL_VERDICTS) para adoptar el formato de "Acta del Consejo", materializando la tensión dialéctica entre el Oráculo (Finanzas), el Arquitecto (Topología) y el Guardián (Física), e incluyendo opiniones disidentes para generar confianza radical (Caja de Cristal).
+Refactorización en semantic_translator.py
+Reemplaza el bloque de FINAL_VERDICTS (aprox. línea 1256) con el siguiente código:
+
+    # ========== VEREDICTOS FINALES (ACTAS DEL CONSEJO) ==========
+    
+    FINAL_VERDICTS: Dict[str, str] = {
+        
+        "certified": (
+            "📜 **ACTA DEL CONSEJO DE SABIOS - RESOLUCIÓN DE VIABILIDAD**\n"
+            "━" * 70 + "\n"
+            "**1. 🔮 El Oráculo (Finanzas):** «El proyecto es financieramente viable. Los indicadores de rentabilidad superan el costo de capital (WACC) con un margen de seguridad óptimo.»\n"
+            "**2. 🏗️ El Arquitecto (Topología):** «Certifico la solidez estructural. La red de dependencias es conexa (β₀=1) y está libre de socavones lógicos (β₁=0).»\n"
+            "**3. 🛡️ El Guardián (Física):** «El flujo de datos logísticos es estable. Entropía termodinámica bajo control absoluto.»\n\n"
+            "**⚖️ SÍNTESIS EJECUTIVA - VEREDICTO UNÁNIME:**\n"
+            "✅ **CERTIFICADO DE SOLIDEZ APROBADO**. Estructura piramidal estable y financieramente rentable. Vía libre para iniciar fase de compras y ejecución."
+        ),
+
+        "inverted_pyramid_viable": (
+            "📜 **ACTA DEL CONSEJO DE SABIOS - ALERTA ESTRUCTURAL**\n"
+            "━" * 70 + "\n"
+            "**1. 🔮 El Oráculo (Finanzas):** «El ROI proyectado es alto y el flujo de caja es positivo. Desde la perspectiva estricta del capital, recomiendo proceder.»\n"
+            "**2. 🏗️ El Arquitecto (Topología):** «¡OBJECIÓN FORMAL! Esa rentabilidad es ilusoria. He detectado una **Pirámide Invertida (Ψ={stability:.2f})**. El 80% del peso táctico depende de una cimentación de proveedores críticamente estrecha.»\n"
+            "**3. 🛡️ El Guardián (Física):** «Apoyo la objeción. La inercia financiera es demasiado baja. Un ligero retraso en esos pocos proveedores disparará una fiebre inflacionaria.»\n\n"
+            "**⚖️ SÍNTESIS EJECUTIVA - VEREDICTO POR MAYORÍA (CON DISIDENCIA):**\n"
+            "⚠️ **APROBACIÓN CONDICIONAL**. Aunque los números actuales cuadran (El Oráculo aprueba), la estructura es frágil. *Nota Vinculante:* Es imperativo diversificar la base de proveedores de insumos críticos antes de autorizar la ejecución para mitigar el riesgo de colapso logístico."
+        ),
+
+        "inverted_pyramid_reject": (
+            "📜 **ACTA DEL CONSEJO DE SABIOS - VETO ESTRUCTURAL Y FINANCIERO**\n"
+            "━" * 70 + "\n"
+            "**1. 🏗️ El Arquitecto (Topología):** «El proyecto presenta una deformación severa: es una Pirámide Invertida (Ψ={stability:.2f}). La base logística es incapaz de sostener la obra.»\n"
+            "**2. 🔮 El Oráculo (Finanzas):** «Los números tampoco soportan el riesgo. La volatilidad implícita destruye el valor presente neto esperado.»\n\n"
+            "**⚖️ SÍNTESIS EJECUTIVA - VEREDICTO UNÁNIME:**\n"
+            "🛑 **RECHAZO ROTUNDO**. Riesgo inminente de colapso logístico sumado a inviabilidad financiera. Se requiere un rediseño de la matriz de costos y cadena de suministro."
+        ),
+
+        "has_holes": (
+            "📜 **ACTA DEL CONSEJO DE SABIOS - VETO LÓGICO**\n"
+            "━" * 70 + "\n"
+            "**1. 🔮 El Oráculo (Finanzas):** «Imposible emitir proyección de flujo de caja. Existen indeterminaciones matemáticas en el presupuesto.»\n"
+            "**2. 🏗️ El Arquitecto (Topología):** «La estructura está perforada. He detectado **{beta_1} socavón(es) lógico(s)** (dependencias circulares donde el costo de A depende de B, y B depende de A).»\n"
+            "**3. 🛡️ El Guardián (Física):** «Detectado bucle infinito en el flujo de información. Riesgo de sobrecalentamiento del sistema.»\n\n"
+            "**⚖️ SÍNTESIS EJECUTIVA - VEREDICTO UNÁNIME:**\n"
+            "🛑 **DETENER PARA REPARACIONES (Genus {beta_1})**. No se puede invertir dinero en una estructura con agujeros. Es obligatorio romper las referencias circulares antes de cualquier aprobación técnica."
+        ),
+
+        "synergy_risk": (
+            "📜 **ACTA DEL CONSEJO DE SABIOS - PARADA DE EMERGENCIA**\n"
+            "━" * 70 + "\n"
+            "**1. 🏗️ El Arquitecto (Topología):** «Alerta Roja. Se detectaron múltiples ciclos interconectados compartiendo recursos críticos (Sinergia de Riesgos). El riesgo no es sumatorio, es multiplicativo.»\n"
+            "**2. 🔮 El Oráculo (Finanzas):** «Confirmado. El 'Efecto Dominó' anula cualquier fondo de contingencia razonable. La exposición a pérdida es asimétrica y total.»\n\n"
+            "**⚖️ SÍNTESIS EJECUTIVA - VEREDICTO UNÁNIME:**\n"
+            "☢️ **RIESGO SISTÉMICO DE CONTAGIO**. Cualquier fallo en el suministro provocará una reacción en cadena en múltiples frentes de obra. No proceder bajo ninguna circunstancia sin reestructurar las dependencias."
+        ),
+
+        "review_required": (
+            "📜 **ACTA DEL CONSEJO DE SABIOS - DELIBERACIÓN INCONCLUSA**\n"
+            "━" * 70 + "\n"
+            "**1. 🏗️ El Arquitecto (Topología):** «La estructura base parece estable y conexa.»\n"
+            "**2. 🔮 El Oráculo (Finanzas):** «Sin embargo, el Índice de Rentabilidad (IR) no cumple con la tasa de corte ajustada por riesgo. Propongo revisar los costos paramétricos.»\n\n"
+            "**⚖️ SÍNTESIS EJECUTIVA - VEREDICTO APLAZADO:**\n"
+            "🔍 **REVISIÓN TÉCNICA REQUERIDA**. La estructura topológica es sólida, pero el modelo de negocio es deficiente. Se solicita optimización de precios unitarios o ajuste de alcances."
+        ),
+
+        "analysis_failed": (
+            "📜 **ACTA DEL CONSEJO DE SABIOS - SUSPENSIÓN DE AUDITORÍA**\n"
+            "━" * 70 + "\n"
+            "**1. 🛡️ El Guardián (Física):** «Fallo en la ingesta de telemetría. La integridad de los datos fuente ha sido comprometida.»\n"
+            "**2. ⚖️ El Intérprete:** «El Consejo no puede deliberar sobre datos corruptos o incompletos. Se levanta la sesión.»\n\n"
+            "**⚖️ SÍNTESIS EJECUTIVA:**\n"
+            "⚠️ **ANÁLISIS INTERRUMPIDO**. Imposible certificar la solidez del proyecto por inconsistencias matemáticas críticas en la matriz de origen. Revise los logs de física de datos."
+        ),
+    }
+
+Actualización del Encabezado (Opcional pero recomendado)
+Para que todo el reporte luzca como un documento oficial, ajusta también el método _generate_report_header en semantic_translator.py (línea 1292):
+
+    def _generate_report_header(self) -> str:
+        """Genera el encabezado oficial del reporte del Consejo."""
+        return (
+            "## 🏛️ DICTAMEN OFICIAL DEL CONSEJO DE SABIOS\n"
+            f"*Auditoría de Integridad Estructural y Financiera | "
+            f"Umbral de Estabilidad Crítica: Ψ < {self.config.stability.critical}*\n"
+            "---\n"
+        )
+
+Esta actualización materializa directamente las sugerencias del audio, transformando las alertas secas en verdaderas Actas de Resolución de Conflictos donde se expone la tensión dialéctica (el debate interno) y se incluye explícitamente la "Nota Disidente" de la minoría derrotada en el Consejo.
+Refactorización en business_agent.py
+Debes reemplazar los métodos challenge_verdict y _emit_veto dentro de la clase RiskChallenger (aproximadamente desde la línea 422) con el siguiente bloque de código:
+
+    def challenge_verdict(
+        self, report: ConstructionRiskReport
+    ) -> ConstructionRiskReport:
+        """
+        Ejecuta auditoría adversarial multi-nivel sobre el reporte.
+        Aplica un sistema de reglas de inferencia para detectar contradicciones
+        lógicas entre métricas financieras y estructurales, exponiendo el debate
+        y las opiniones disidentes en el Acta del Consejo.
+
+        Args:
+            report: Reporte preliminar a auditar.
+
+        Returns:
+            ConstructionRiskReport auditado con posibles modificaciones y notas disidentes.
+        """
+        logger.info("⚖️ Risk Challenger: Iniciando auditoría adversarial...")
+        
+        details = report.details or {}
+        stability, coherence, beta_1, n_nodes = self._extract_stability_metrics(details)
+        financial_class = self._classify_financial_risk(report.financial_risk_level)
+
+        # Si no hay métricas suficientes, no podemos auditar
+        if stability is None:
+            logger.warning(
+                "⚠️ Risk Challenger: Métricas de estabilidad no disponibles. "
+                "Auditoría omitida."
+            )
+            return report
+
+        current_report = report
+
+        # === REGLA 1: Veto por Estabilidad Crítica ===
+        if stability < self.thresholds["critical_stability"]:
+            if financial_class in ("SAFE", "MODERATE", "HIGH"):
+                current_report = self._emit_veto(
+                    report=current_report,
+                    veto_type="VETO_ESTRUCTURAL_CRÍTICO",
+                    stability=stability,
+                    financial_class=financial_class,
+                    severity="CRÍTICO",
+                    penalty=self.thresholds["integrity_penalty_veto"],
+                    reason=(
+                        f"La Estabilidad Piramidal Ψ={stability:.3f} está por debajo del "
+                        f"umbral crítico ({self.thresholds['critical_stability']:.2f}). "
+                        "La cimentación logística es incapaz de sostener el peso de la obra."
+                    ),
+                    dissent_note=(
+                        "*Opinión Disidente:* El Oráculo (Finanzas) defiende enérgicamente la "
+                        "proyección de rentabilidad y se opone al veto, pero su posición es "
+                        "anulada unánimemente por el riesgo inminente de colapso físico."
+                    )
+                )
+
+        # === REGLA 2: Alerta por Estabilidad Subóptima ===
+        elif stability < self.thresholds["warning_stability"]:
+            if financial_class in ("SAFE", "MODERATE", "HIGH"):
+                current_report = self._emit_veto(
+                    report=current_report,
+                    veto_type="ALERTA_STRUCTURAL_WARNING",
+                    stability=stability,
+                    financial_class=financial_class,
+                    severity="SEVERO",
+                    penalty=self.thresholds["integrity_penalty_warn"],
+                    reason=(
+                        f"La Estabilidad Piramidal Ψ={stability:.3f} es subóptima "
+                        f"(umbral de alerta: {self.thresholds['warning_stability']:.2f}). "
+                        "Financieramente sano, pero estructuralmente frágil."
+                    ),
+                    dissent_note=(
+                        "*Opinión Disidente:* El Arquitecto (Topología) emite una advertencia "
+                        "vinculante sobre la base estrecha de proveedores (Cuello de Botella), "
+                        "exigiendo que quede constancia en el acta a pesar del consenso mayoritario para proceder."
+                    )
+                )
+
+        # === REGLA 3: Alerta por Densidad de Ciclos ===
+        if beta_1 is not None and n_nodes is not None and n_nodes > 0:
+            cycle_density = beta_1 / n_nodes
+            if cycle_density > self.thresholds["cycle_density_limit"]:
+                if financial_class in ("SAFE", "MODERATE", "HIGH"):
+                    logger.warning(
+                        f"⚠️ Densidad de ciclos β₁/n = {cycle_density:.3f} excede "
+                        f"el límite {self.thresholds['cycle_density_limit']:.2f}"
+                    )
+                    
+                    new_details = current_report.details.copy()
+                    new_details["challenger_cycle_warning"] = {
+                        "beta_1": beta_1,
+                        "n_nodes": n_nodes,
+                        "cycle_density": cycle_density,
+                        "threshold": self.thresholds["cycle_density_limit"],
+                    }
+                    new_details["penalties_applied"] = new_details.get("penalties_applied", []) + ["cycle_penalty"]
+                    
+                    # Generar Acta para el Riesgo de Ciclos
+                    debate_log = (
+                        "━" * 70 + "\n"
+                        "📜 **ACTA DEL CONSEJO DE SABIOS - ADVERTENCIA LÓGICA**\n"
+                        "━" * 70 + "\n\n"
+                        f"**1. 🔮 El Oráculo (Finanzas):** «Proyección financiera favorable ({financial_class}).»\n"
+                        f"**2. 🏗️ El Arquitecto (Topología):** «Detectada densidad de ciclos excesiva (β₁/n = {cycle_density:.3f}).»\n\n"
+                        "**⚖️ SÍNTESIS EJECUTIVA - APROBACIÓN CON SALVEDADES:**\n"
+                        "Se aplica penalización estructural por dependencias circulares.\n"
+                        "✍️ *Nota Disidente:* El Guardián (Física) advierte sobre un posible sobrecalentamiento del sistema "
+                        "debido a bucles infinitos en el flujo de información. Su moción de detener la obra fue denegada por "
+                        "margen estrecho.\n\n"
+                        "━" * 70
+                    )
+                    
+                    new_narrative = f"{debate_log}\n\n{current_report.strategic_narrative}"
+
+                    current_report = ConstructionRiskReport(
+                        integrity_score=current_report.integrity_score * 0.95,  # Penalización leve
+                        waste_alerts=current_report.waste_alerts,
+                        circular_risks=current_report.circular_risks,
+                        complexity_level=current_report.complexity_level,
+                        financial_risk_level=current_report.financial_risk_level,
+                        details=new_details,
+                        strategic_narrative=new_narrative,
+                    )
+
+        if current_report is report:
+            logger.info("✅ Risk Challenger: Coherencia verificada. Sin contradicciones.")
+        else:
+            logger.info("⚖️ Risk Challenger: Auditoría completada con ajustes y notas disidentes.")
+
+        return current_report
+
+    def _emit_veto(
+        self,
+        report: ConstructionRiskReport,
+        veto_type: str,
+        stability: float,
+        financial_class: str,
+        severity: str,
+        penalty: float,
+        reason: str,
+        dissent_note: str = ""
+    ) -> ConstructionRiskReport:
+        """
+        Emite un veto estructurado con acta de deliberación y tensiones dialécticas visibles.
+        """
+        logger.warning(f"🚨 Risk Challenger: {veto_type} - {reason}")
+        
+        original_integrity = report.integrity_score
+        new_integrity = max(0.0, original_integrity * (1.0 - penalty))
+
+        # Acta de deliberación formal (Caja de Cristal)
+        debate_log = (
+            "━" * 70 + "\n"
+            "📜 **ACTA DEL CONSEJO DE SABIOS - RESOLUCIÓN DE CONFLICTO**\n"
+            "━" * 70 + "\n\n"
+            f"📋 **Tipo de Resolución:** {veto_type}\n"
+            f"⚠️ **Severidad:** {severity}\n\n"
+            "**Tensión Dialéctica (Debate Interno):**\n\n"
+            f"**1. 🔮 El Oráculo (Finanzas):** «Desde la perspectiva estricta del capital, el proyecto es financieramente {financial_class}. Recomiendo proceder.»\n\n"
+            f"**2. 🏗️ El Arquitecto (Topología):** «¡OBJECIÓN FORMAL! {reason}»\n\n"
+            f"**3. ⚖️ El Intérprete (Fiscal de Riesgos):** «Se detecta una contradicción inaceptable entre "
+            f"la viabilidad financiera (Φ={financial_class}) y la estabilidad estructural (Ψ={stability:.3f}).»\n\n"
+            "**⚖️ SÍNTESIS EJECUTIVA - VEREDICTO FINAL:**\n"
+            f"Se impone la penalización por **{veto_type}**. La integridad topológica del proyecto "
+            f"se degrada de {original_integrity:.1f} a {new_integrity:.1f} puntos.\n"
+        )
+        
+        # Inyectar opinión disidente si existe
+        if dissent_note:
+            debate_log += f"\n✍️ {dissent_note}\n"
+            
+        debate_log += "\n" + "━" * 70
+
+        new_narrative = f"{debate_log}\n\n{report.strategic_narrative}"
+        
+        new_details = report.details.copy() if report.details else {}
+        new_details["challenger_verdict"] = {
+            "type": veto_type,
+            "severity": severity,
+            "stability_at_veto": stability,
+            "financial_class_at_veto": financial_class,
+            "original_integrity": original_integrity,
+            "penalty_applied": penalty,
+            "reason": reason,
+            "dissent_note": dissent_note
+        }
+        
+        # Compatibilidad con propuesta_test
+        if severity == "CRÍTICO":
+            new_details["challenger_applied"] = True
+        else:
+            new_details["challenger_warning"] = True
+            
+        new_details["penalties_applied"] = new_details.get("penalties_applied", []) + [veto_type]
+
+        return ConstructionRiskReport(
+            integrity_score=new_integrity,
+            waste_alerts=report.waste_alerts,
+            circular_risks=report.circular_risks,
+            complexity_level=report.complexity_level,
+            financial_risk_level=f"RIESGO ESTRUCTURAL ({severity})",
+            details=new_details,
+            strategic_narrative=new_narrative,
+        )
