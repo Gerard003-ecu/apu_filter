@@ -1605,7 +1605,10 @@ def create_app(config_name: str) -> Flask:
                 "apu_details": len(sanitized_data.get("apus_detail", [])),
                 "insumos": len(sanitized_data.get("insumos", [])),
             },
-            "health_report": g.telemetry.get_business_report(),
+            "executive_summary": g.telemetry.get_business_report(),  # Capa 1: Traducción Ejecutiva
+            "technical_audit": sanitized_data.get(
+                "audit_report"
+            ),  # Capa 3: Auditoría Técnica
             "validation": {
                 file_type: {
                     "rows": result.row_count,
@@ -1615,7 +1618,6 @@ def create_app(config_name: str) -> Flask:
                 for file_type, result in validation_results.items()
             },
             "processing_time": processing_time,
-            "audit_report": sanitized_data.get("audit_report"),
         }
 
         # Inyectar salud piramidal

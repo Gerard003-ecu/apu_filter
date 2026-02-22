@@ -177,7 +177,7 @@ def sample_analysis_result():
             },
             "cycles": {
                 "count": 1,
-                "list": ["CYC01 → CYC02 → CYC01"],
+                "list": ["CYC01 -> CYC02 -> CYC01"],
             },
         }
     }
@@ -225,7 +225,7 @@ class TestConstants:
         """Verifica constantes de etiquetas."""
         assert LABEL_MAX_LENGTH == 20
         assert LABEL_ELLIPSIS == "..."
-        assert CYCLE_SEPARATOR == " → "
+        assert CYCLE_SEPARATOR == " -> "
 
 
 # =============================================================================
@@ -562,7 +562,7 @@ class TestExtractNodesFromCycles:
 
     def test_extracts_from_simple_cycle(self):
         """Verifica extracción de ciclo simple."""
-        cycles = ["A → B → A"]
+        cycles = ["A -> B -> A"]
 
         result = _extract_nodes_from_cycles(cycles)
 
@@ -570,7 +570,7 @@ class TestExtractNodesFromCycles:
 
     def test_extracts_from_multiple_cycles(self):
         """Verifica extracción de múltiples ciclos."""
-        cycles = ["A → B → A", "C → D → E → C"]
+        cycles = ["A -> B -> A", "C -> D -> E -> C"]
 
         result = _extract_nodes_from_cycles(cycles)
 
@@ -583,7 +583,7 @@ class TestExtractNodesFromCycles:
 
     def test_handles_non_string_items(self):
         """Verifica manejo de items no-string."""
-        cycles = ["A → B → A", 123, None]
+        cycles = ["A -> B -> A", 123, None]
 
         result = _extract_nodes_from_cycles(cycles)
 
@@ -591,7 +591,7 @@ class TestExtractNodesFromCycles:
 
     def test_handles_empty_parts(self):
         """Verifica manejo de partes vacías."""
-        cycles = ["A →  → B → A"]
+        cycles = ["A ->  -> B -> A"]
 
         result = _extract_nodes_from_cycles(cycles)
 
