@@ -48,6 +48,17 @@ El sistema aplica Gobernanza Computacional en tiempo real. El pasaporte es verif
 Architect | Ciclos Críticos (β1​>0): Paradojas lógicas irresolubles. | Alerta Bloqueante (Requiere intervención humana). |
 | Finanzas | RiskChallenge | Inconsistencia: Rentabilidad alta con Estabilidad baja. | Degradación de Score (Marca de "Falso Positivo"). |
 
+**3.1 La Aduana Ciber-Física y la Pirámide DIKW (`telemetry_schemas.py` y `schemas.py`)**
+El Pasaporte de Telemetría está estructurado topológicamente como una pirámide de 4 estratos basada en el modelo DIKW (Datos, Información, Conocimiento, Sabiduría). Esta jerarquía no requiere de un "microservicio vigilante" porque la validación ocurre en la frontera misma de la memoria:
+
+*   **Estrato 3 (FÍSICA - Base):** Valida la termodinámica del dato bruto (`PhysicsMetrics`).
+*   **Estrato 2 (TÁCTICA):** Valida la topología (`TopologicalMetrics`). Por diseño de software (`schemas.py`), un nodo Táctico (ej. un APU) tiene prohibido ensamblarse si sus cimientos no son nodos Físicos comprobados.
+*   **Estrato 1 (ESTRATEGIA):** Valida la viabilidad financiera (`ThermodynamicMetrics`, `ControlMetrics`).
+*   **Estrato 0 (SABIDURÍA):** Veredicto final.
+
+**La Ley de Clausura Transitiva (Fast-Fail):**
+Nuestros esquemas de datos son inmutables (`frozen=True`). Si un archivo CSV intenta saltarse la física (Estrato 3) para pedir un análisis financiero (Estrato 1), el tipado estricto del sistema lanza una excepción en el milisegundo cero, bloqueando la alucinación antes de que consuma procesamiento. No hay estrategia sin física.
+
 **4. Implementación Técnica (telemetry.py)**
 El Pasaporte vive en el código como la clase TelemetryContext.
 
