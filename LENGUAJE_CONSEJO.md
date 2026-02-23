@@ -13,5 +13,6 @@ Para evitar abrumar al usuario, el sistema no reporta los invariantes matemátic
 | :--- | :--- | :--- |
 | **Ciclos ($\beta_1 > 0$)** | "Socavón Lógico" / Dependencia Circular | "No podemos auditar el 12% del costo total. El sistema está en un bucle infinito que paralizará las compras." |
 | **Fragmentación ($\beta_0 > 1$)** | "Recursos Huérfanos" / Islas de Datos | "Existen insumos pagados que no están conectados a ninguna actividad de la obra. Es dinero ciego." |
-| **Estabilidad ($\Psi < 1.0$)** | "Pirámide Invertida" / Cuello de Botella | "El 80% de su cronograma depende de 2 proveedores. Si uno falla, la obra se detiene, costando $X millones diarios." |
+| **Estabilidad ($\Psi < 1.0$)** | "Monopolio Invisible" / Pirámide Invertida | "El sistema detecta que el subcontratista de acabados y el de estructura compran a la misma ferretería. Si esta falla, la obra se paraliza. $\Psi < 1.0$ exige diversificar proveedores antes de girar anticipos." |
+| **Entropía / Temperatura ($T_{sys}$)** | "Fiebre Inflacionaria" / Volatilidad Térmica | "Si su presupuesto depende en un 60% de materiales volátiles (acero, cobre) sin precio cerrado, la obra está 'enferma'. Cualquier alza en la TRM destruirá su margen." |
 | **Región NDR (JFET Spiking)** | "Ataque de Pánico Sistémico" | "El presupuesto es tan frágil que el hardware de validación ha entrado en oscilación de emergencia." |

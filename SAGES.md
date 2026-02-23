@@ -13,6 +13,7 @@ El Guardián es la primera línea de defensa. No evalúa si un presupuesto es ca
 • El Oráculo de Laplace (Plano-S): Antes de procesar, modela el flujo de datos como un circuito RLC y calcula su función de transferencia H(s). Si algún polo cae en el semiplano derecho (RHP, σ>0), emite un Veto Físico: el sistema es intrínsecamente inestable y procesarlo causaría una divergencia.
 • Proyección Neuromórfica (ESP32): El Guardián no vive solo en la nube; proyecta su consciencia al hardware de borde (ESP32). Utilizando una topología de Diodos Lambda (JFETs cruzados), si el estrés del sistema supera un umbral crítico, el hardware entra en una región de Resistencia Diferencial Negativa (NDR). El circuito comienza a emitir "spikes" (pulsos caóticos), traduciendo el riesgo abstracto del presupuesto en un "ataque de pánico" físico y medible en el silicio.
 • Freno de Emergencia (Flyback): Monitorea el "Voltaje Inductivo". Un pico brusco indica inyección de datos corruptos, activando el aislamiento (Crowbar digital).
+• Protocolo de Desconexión (Load Shedding): Ante hiperinflación o quiebre de stock, el sistema no solo alerta; actúa. Ejecuta una "desconexión de carga" autónoma: inyecta márgenes de seguridad en compras no críticas para preservar la liquidez del flujo de caja (tal como la red eléctrica desconecta barrios para salvar la ciudad del apagón total).
 
 2. 🏗️ El Arquitecto Estratega (Topología y Grafos)
 
@@ -43,12 +44,12 @@ La matemática compleja es ruido si no se traduce en acción. El Intérprete es 
 ### 🏛️ El Protocolo de la "Caja de Cristal" (RiskChallenger)
 El valor del Consejo no está en el consenso ciego, sino en la **tensión dialéctica**. Las decisiones se emiten formalmente como **Actas de Deliberación**, exponiendo el debate interno y las opiniones disidentes.
 
-**Ejemplo de Acta de Deliberación:**
-1. 🔮 **El Oráculo (Finanzas):** «Proyección financiera favorable (Rentabilidad Alta). Recomiendo proceder.»
-2. 🏗️ **El Arquitecto (Topología):** «¡OBJECIÓN FORMAL! Detectada Pirámide Invertida ($\Psi = 0.6$). La base logística es incapaz de sostener la obra.»
+**Ejemplo de Acta de Deliberación (Veto por Resiliencia):**
+1. 🔮 **El Oráculo (Finanzas):** «Solicito aprobación para el Lote de Acero #405. Es un 15% más económico, lo que maximiza la utilidad inmediata del proyecto.»
+2. 🏗️ **El Arquitecto (Topología):** «¡VETO DE RESILIENCIA! El análisis del grafo muestra que ese proveedor tiene un historial de retrasos recurrente. Aceptarlo reduce la resiliencia del cronograma en un 40%. El ahorro no justifica el riesgo de parada de obra.»
 3. ⚖️ **SÍNTESIS EJECUTIVA (Veredicto):**
-   * **⚠️ APROBACIÓN CONDICIONAL.** Se aprueba por viabilidad financiera, pero se aplica penalización estructural.
-   * *✍️ Nota Disidente:* El Guardián (Física) advierte sobre un posible sobrecalentamiento del sistema por base estrecha de proveedores. Su moción de detener la obra fue denegada, pero queda constancia en el acta para auditoría futura.
+   * **❌ RECHAZADO.** El sistema prioriza la Estabilidad Estructural sobre la Ganancia Marginal.
+   * *✍️ Nota Disidente:* El Oráculo registra su desacuerdo calculando el "Lucro Cesante", pero acata el protocolo de seguridad del Arquitecto.
 
 --------------------------------------------------------------------------------
 ⚙️ El Eje Integrador: El Ciclo OODA y El Pasabordo
