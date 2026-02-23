@@ -33,6 +33,7 @@ De la "Caja Negra" a la Confianza Radical
 **5. 💰 Fuentes de Ingresos (Revenue Streams) - La Estrategia de Puente**
 * **Nivel de Entrada ("Orilla Segura"): Certificación de Estabilidad Física.** Tarifa fija por proyecto. Se vende como una póliza de seguro pre-construcción. Evita el colapso logístico antes de ejecutar.
 * **Nivel Avanzado: Gobernanza por Complejidad ($\chi$).** Modelo SaaS de precios dinámicos basado en la Característica de Euler ($\chi = \beta_0 - \beta_1$). Presupuestos más limpios y sin ciclos lógicos pagan una menor tasa de procesamiento. Premiamos la excelencia operativa del cliente.
+* **El Oráculo como Hedge Fund Manager (ROI Inmediato):** El Oráculo Financiero no solo simula; toma decisiones. Detecta que la inflación del acero subirá un 4% el próximo mes y recomienda comprar 500 toneladas hoy, calculando que el ahorro superará con creces el costo de almacenamiento. El Agente paga su propia licencia con este ahorro.
 
 6. 🔑 Recursos Clave (Key Resources)
 
@@ -47,6 +48,7 @@ El Sustrato Ciber-Físico
 De la Ingesta a la Sabiduría
 • Física de Datos y Detección Neuromórfica: Ingesta de datos crudos aplicando leyes de termodinámica y filtrado RLC para rechazar información corrupta y medir la inercia del sistema.
 • Diagnóstico Topológico y Arbitraje Espectral: Análisis continuo del Grafo de Dependencias para computar números de Betti (βn​) e identificar dependencias circulares (β1​>0) o cuellos de botella (Ψ<1.0).
+• Combate a la Fractura Organizacional: El Arquitecto utiliza el Valor de Fiedler ($\lambda_2 \approx 0$) para detectar silos. Identifica cuando Ingeniería y Compras operan con listas de precios contradictorias y alerta a la gerencia antes de que se firmen contratos defectuosos.
 • Traducción Semántica Transversal: Conversión ininterrumpida de resultados matemáticos rigurosos a narrativas de negocio ejecutables mediante GraphRAG.
 
 8. 🤝 Asociaciones Clave (Key Partnerships)
